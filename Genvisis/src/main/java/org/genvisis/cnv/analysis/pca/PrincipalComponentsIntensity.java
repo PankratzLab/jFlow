@@ -62,6 +62,11 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	private final double correctionRatio;
 	private boolean[][] genoSampleClusters;// genotype, sample
 	private final boolean[] forceThisCluster;
+	private float[] correctedLRR;
+
+	public enum CORRECTION_TYPE {
+																XY, LRR_ONLY;
+	}
 
 	public PrincipalComponentsIntensity(final PrincipalComponentsResiduals principalComponentsResiduals,
 																			final MarkerData markerData, boolean recomputeLRR,
@@ -139,6 +144,23 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 			return true;
 		}
 
+	}
+
+	public void correctLRRAt(int atComponent) {
+		setOriginal();
+		this.correctedLRR = Array.toFloatArray(getCorrectedDataAt(
+																															Array.toDoubleArray(centroid.getMarkerData()
+																																													.getLRRs()),
+																															centroid.getSamplesToUse(),
+																															atComponent, lType,
+																															"LRR correction at PC " + atComponent,
+																															verbose).getResiduals());
+	}
+
+
+
+	public float[] getCorrectedLRR() {
+		return correctedLRR;
 	}
 
 	public void correctXYAt(int atComponent) {
@@ -871,17 +893,19 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		// private final int numDecompressThreads;
 		// private final String[] markersToCorrect;
 		private final int correctAt;
+		private final CORRECTION_TYPE correctionType;
 
 		public PcCorrectionProducer(PrincipalComponentsResiduals pcResiduals, int correctAt,
 																int[] sampleSex, boolean[] samplesToUseCluster, LS_TYPE lType,
 																int numCorrectionThreads, int numDecompressThreads,
-																String[] markersToCorrect) {
+																String[] markersToCorrect, CORRECTION_TYPE correctionType) {
 			super();
 			this.pcResiduals = pcResiduals;
 			this.sampleSex = sampleSex;
 			this.samplesToUseCluster = samplesToUseCluster;
 			this.lType = lType;
 			this.numCorrectionThreads = numCorrectionThreads;
+			this.correctionType = correctionType;
 			// this.numDecompressThreads = numDecompressThreads;
 			// this.markersToCorrect = markersToCorrect;
 			this.correctAt = correctAt;
@@ -918,7 +942,17 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 																																																			numCorrectionThreads,
 																																																			false,
 																																																			null);
-					principalComponentsIntensity.correctXYAt(correctAt);
+					switch (correctionType) {
+						case LRR_ONLY:
+							principalComponentsIntensity.correctLRRAt(correctAt);
+							break;
+						case XY:
+							principalComponentsIntensity.correctXYAt(correctAt);
+							break;
+						default:
+							break;
+
+					}
 					return principalComponentsIntensity;
 				}
 

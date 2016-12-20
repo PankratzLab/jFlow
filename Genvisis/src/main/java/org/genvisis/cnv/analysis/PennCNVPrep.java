@@ -16,6 +16,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.PcCorrectionProducer;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -77,7 +78,8 @@ public class PennCNVPrep {
 	 * genotypes)
 	 *
 	 */
-	public void exportSpecialMarkerDataMoreThreads(String tmpDir, boolean preserveBafs) {
+	public void exportSpecialMarkerDataMoreThreads(	String tmpDir, boolean preserveBafs,
+																									CORRECTION_TYPE correctionType) {
 		String output = (tmpDir == null ? proj.PROJECT_DIRECTORY.getValue() : tmpDir)+ dir
 										+ STORAGE_BASE + ext.indexLargeFactors(	markers, proj.getMarkerNames(), true,
 																														proj.getLog(), true, true)[0]
@@ -88,7 +90,9 @@ public class PennCNVPrep {
 			PcCorrectionProducer producer = new PcCorrectionProducer(	principalComponentsResiduals,
 																																numComponents, sampleSex,
 																																samplesToUseCluster, lType,
-																																numCorrectionThreads, 1, markers);
+																																numCorrectionThreads, 1, markers,
+																																correctionType);
+			proj.getLog().reportTimeInfo("Using correction type " + correctionType);
 			WorkerTrain<PrincipalComponentsIntensity> train =
 																											new WorkerTrain<PrincipalComponentsIntensity>(producer,
 																																																		numMarkerThreads,
@@ -119,7 +123,9 @@ public class PennCNVPrep {
 																							correctedXY[1], null, null,
 																							preserveBafs	? markerData.getBAFs()
 																														: correctedLRRBAF[0],
-																							correctedLRRBAF[1], abGenotypes, abGenotypes);
+																							correctionType == CORRECTION_TYPE.XY	? correctedLRRBAF[1]
+																																										: principalComponentsIntensity.getCorrectedLRR(),
+																							abGenotypes, abGenotypes);
 				}
 				markerDataStorage.addToNextIndex(markerDataToStore);
 				index++;
@@ -676,7 +682,8 @@ public class PennCNVPrep {
 																					int numMarkerThreads,
 																					/* boolean exportToPennCNV, */ boolean shadowSamples,
 																					LS_TYPE lType, int numSampleChunks, boolean preserveBafs,
-																					boolean forceLoadFromFiles) {
+																					boolean forceLoadFromFiles,
+																					CORRECTION_TYPE correctionType) {
 		new File(proj.PROJECT_DIRECTORY.getValue() + dir).mkdirs();
 		// if (exportToPennCNV) {
 		// boolean[] exportThese = new boolean[proj.getSamples().length];
@@ -757,13 +764,14 @@ public class PennCNVPrep {
 			proj.saveProperties(proj.PROJECT_DIRECTORY.getValue() + "shadow.properties");
 		} else {
 			prepExport(	proj, dir, tmpDir, numComponents, markerFile, numThreads, numMarkerThreads, lType,
-									preserveBafs);
+									preserveBafs, correctionType);
 		}
 	}
 
 	public static void prepExport(Project proj, String dir, String tmpDir, int numComponents,
 																String markerFile, int numThreads, int numMarkerThreads,
-																LS_TYPE lType, boolean preserveBafs) {
+																LS_TYPE lType, boolean preserveBafs,
+																CORRECTION_TYPE correctionType) {
 		String[] markers;
 		PrincipalComponentsResiduals principalComponentsResiduals = loadPcResids(proj, numComponents);
 		if (principalComponentsResiduals == null) {
@@ -789,7 +797,7 @@ public class PennCNVPrep {
 																												proj.getSamplesToInclude(null), sex,
 																												markers, numComponents, dir, lType,
 																												numThreads, numMarkerThreads);
-		specialPennCNVFormat.exportSpecialMarkerDataMoreThreads(tmpDir, preserveBafs);
+		specialPennCNVFormat.exportSpecialMarkerDataMoreThreads(tmpDir, preserveBafs, correctionType);
 	}
 
 	public static void batchCorrections(Project proj, String java, String classPath, int memoryInMB,
@@ -1028,7 +1036,7 @@ public class PennCNVPrep {
 				exportSpecialPennCNV(	proj, dir, tmpDir, numComponents, markers, numThreads,
 															numMarkerThreads, shadowSamples,
 															svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR, sampleChunks, false,
-															forceLoadFromFiles);
+															forceLoadFromFiles, CORRECTION_TYPE.XY);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -7,6 +7,7 @@ import org.genvisis.cnv.analysis.PennCNVPrep;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsApply;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.ext;
@@ -49,8 +50,8 @@ public class PRoCtOR {
 	}
 
 	public static String shadow(Project proj, String tmpDir, String outputBase,
-														double markerCallRateFilter, boolean recomputeLRR_PCs,
-														int numComponents, int totalThreads) {
+															double markerCallRateFilter, boolean recomputeLRR_PCs,
+															int numComponents, int totalThreads) {
 		int numMarkerThreads = 1;
 		int numThreads = (int) Math.ceil((double) totalThreads / (double) numMarkerThreads);
 		boolean markerQC = true;
@@ -67,12 +68,13 @@ public class PRoCtOR {
 																														recomputeLRR_PCs, true, null,
 																														proj.getLog());
 		proj.getLog().reportTime("Setting PCs file: " + pcApply.getExtrapolatedPCsFile());
+		CORRECTION_TYPE correctionType = CORRECTION_TYPE.XY;
 		proj.INTENSITY_PC_FILENAME.setValue(pcApply.getExtrapolatedPCsFile());
 		PennCNVPrep.prepExport(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
-														numMarkerThreads, LS_TYPE.REGULAR, false);
+														numMarkerThreads, LS_TYPE.REGULAR, false, correctionType);
 		PennCNVPrep.exportSpecialPennCNV(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
 																			numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false,
-																			false);
+																			false, correctionType);
 		return "";
 	}
 
@@ -136,7 +138,8 @@ public class PRoCtOR {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			String err = shadow(proj, tempDir, outputBase, callrate, recomputeLRR, numComponents, numThreads);
+			String err = shadow(proj, tempDir, outputBase, callrate, recomputeLRR, numComponents,
+													numThreads);
 			if (!"".equals(err)) {
 				System.err.println("Error - " + err);
 			}
