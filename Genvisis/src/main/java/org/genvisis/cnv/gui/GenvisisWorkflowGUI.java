@@ -29,6 +29,7 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -535,9 +536,17 @@ public class GenvisisWorkflowGUI extends JDialog {
 						checkBox.setSelected(sel);
 						reqIndex++;
 						reqInputFields.add(checkBox);
-						panel.contentPanel.add(	checkBox,
-																		"alignx right, aligny center, growx, gapleft 20, cell 1 "
-																							+ rowIndex);
+						panel.contentPanel.add(checkBox, "alignx right, aligny center, growx, gapleft 20, cell 1 " + rowIndex);
+					} else if (inputTypes[i][j] == RequirementInputType.ENUM) {
+						Object o = step.getRequirementDefaults(proj)[reqIndex];
+						Enum<?>[] vals = ((Enum<?>) o).getClass().getEnumConstants();						
+						JComboBox<Enum<?>> combo = new JComboBox<Enum<?>>(vals);
+						combo.setAction(new StepRefresher(GenvisisWorkflowGUI.this, step));
+						combo.setFont(combo.getFont().deriveFont(14));
+						combo.setSelectedItem(o);
+						reqIndex++;
+						reqInputFields.add(combo);
+						panel.contentPanel.add(combo, "alignx right, aligny center, growx, gapleft 20, cell 1 " + rowIndex);
 					} else if (inputTypes[i][j] != RequirementInputType.NONE) {
 						JTextField textField = new JTextField();
 						textField.getDocument().addDocumentListener(new TextChangedListener() {
@@ -549,9 +558,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						textField.setText(step.getRequirementDefaults(proj)[reqIndex].toString());
 						reqIndex++;
 						reqInputFields.add(textField);
-						panel.contentPanel.add(	textField,
-																		"alignx right, aligny center, growx, gapleft 20, split 1, cell 1 "
-																								+ rowIndex);
+						panel.contentPanel.add(	textField, "alignx right, aligny center, growx, gapleft 20, split 1, cell 1 " + rowIndex);
 						if (inputTypes[i][j] == RequirementInputType.FILE
 								|| inputTypes[i][j] == RequirementInputType.DIR) {
 							JButton fileBtn = new JButton();
@@ -1030,6 +1037,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 					val = Boolean.toString(((JCheckBox) j).isSelected());
 				} else if (j instanceof JSpinner) {
 					val = ((JSpinner) j).getValue().toString();
+				} else if (j instanceof JComboBox) {
+					val = ((JComboBox<?>) j).getSelectedItem().toString();
 				}
 				values.add(val);
 			}

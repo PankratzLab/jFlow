@@ -2015,12 +2015,15 @@ public class GenvisisWorkflow {
 																																			: S2A_PARSE_SAMPLES;
 			boolean checkStepParseSamples = stepSelections.get(parseStep)
 																			&& parseStep.hasRequirements(proj, stepSelections, variables);
-			return new boolean[][] {{checkStepParseSamples
-																|| (Files.exists(sampDir) && Files.list(sampDir, SAMP_RAF,
-																																				proj.JAR_STATUS.getValue()).length > 0)},
-															{numComponents > 0}, {true},
-															{markerCallRateFilter >= 0}, {true},
-															{tmpDir == null || Files.exists(tmpDir)}, {totalThreads > 0},};
+			return new boolean[][] {
+            {checkStepParseSamples || (Files.exists(sampDir) && Files.list(sampDir, SAMP_RAF, proj.JAR_STATUS.getValue()).length > 0)},
+						{numComponents > 0}, 
+						{true},
+						{markerCallRateFilter >= 0}, 
+						{true},
+						{tmpDir == null || Files.exists(tmpDir)}, 
+						{totalThreads > 0},
+			};
 		}
 
 		@Override
@@ -2234,7 +2237,7 @@ public class GenvisisWorkflow {
 	}
 
 	public enum RequirementInputType {
-		NONE(), FILE(), DIR(), STRING(), NUMBER(), BOOL()
+		NONE(), FILE(), DIR(), STRING(), NUMBER(), BOOL(), ENUM()
 	}
 
 	public GenvisisWorkflow(Project project, Launch launch) {
