@@ -261,8 +261,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
 	private BlastParams blastParams = null;
 	private Hashtable<String, Integer> markerProjectIndices;
-	private final HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders =
-																																			new HashMap<String, PlinkMarkerLoader>();
+	private final HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<String, PlinkMarkerLoader>();
 
 	private BlastFrame blastFrame;
 
@@ -1500,8 +1499,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 	}
 
 	public byte getPlinkGenotypeForIndi(String sampleID, int currentClass) {
-		int plinkIndex = currentClass	- sampleData.getBasicClasses().length
-											- sampleData.getNumActualClasses() - sampleData.getNumCNVClasses();
+		int plinkIndex = currentClass	- sampleData.getBasicClasses().length - sampleData.getNumActualClasses() - sampleData.getNumCNVClasses();
 		String plinkRoot = proj.PLINK_DIR_FILEROOTS.getValue()[plinkIndex];
 		String[] lookup = sampleData.lookup(sampleID);
 		String fidiid = lookup[1];
@@ -1700,8 +1698,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			PlinkMarkerLoader pml =
 														PlinkMarkerLoader.loadPlinkDataFromListInSeparateThread(proj,
 																																										plinkFileRoot,
-																																										markerList,
-																																										sampleFIDIIDs);
+																																										markerList);
 			plinkMarkerLoaders.put(plinkFileRoot, pml);
 		}
 	}
@@ -3925,8 +3922,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			plinkMarkerLoaders.put(	fileRoot,
 															PlinkMarkerLoader.loadPlinkDataFromListInSeparateThread(proj,
 																																											fileRoot,
-																																											markerList,
-																																											sampleFIDIIDs));
+																																											markerList));
 		}
 
 		markerIndex = newMarkerIndex;
