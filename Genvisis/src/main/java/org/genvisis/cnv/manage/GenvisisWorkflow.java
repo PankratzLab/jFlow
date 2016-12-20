@@ -2219,18 +2219,18 @@ public class GenvisisWorkflow {
 		public abstract String getCommandLine(Project proj, Map<STEP, List<String>> variables);
 
 		STEP(	String name, String desc, String[][] requirements, RequirementInputType[][] reqTypes,
-					STEP... requiredSteps) {
+					STEP... relatedSteps) {
 			stepName = name;
 			stepDesc = desc;
 			reqs = requirements;
 			this.reqTypes = reqTypes;
 			final Set<STEP> steps = new HashSet<STEP>();
 			steps.add(this);
-			for (final STEP s : requiredSteps) {
+			for (final STEP s : relatedSteps) {
 				steps.add(s);
 				steps.addAll(s.getRelatedSteps());
 			}
-			relatedSteps = Collections.unmodifiableSet(steps);
+			this.relatedSteps = Collections.unmodifiableSet(steps);
 		}
 
 		/**

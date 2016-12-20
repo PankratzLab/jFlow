@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -671,14 +672,33 @@ public class GenvisisWorkflowGUI extends JDialog {
 			refreshLabels(refrenceGUI, stepsToRefresh);
 		}
 	}
-
+	
+	private Set<STEP> getAllRelatedSteps(final Collection<STEP> refreshSteps) {
+		HashSet<STEP> allSteps = new HashSet<GenvisisWorkflow.STEP>();
+		allSteps.addAll(refreshSteps);
+		boolean go = true;
+		while (go) {
+			int stepCnt = allSteps.size();
+			for (STEP s : this.steps) {
+				if (!Collections.disjoint(refreshSteps, s.getRelatedSteps())) {
+					allSteps.add(s);
+				}
+			}
+			if (allSteps.size() == stepCnt) {
+				go = false;
+			}
+		}
+		return Collections.unmodifiableSet(allSteps);
+	}
+	
 	/**
 	 * Validate all elements of the given {@link STEP}s and refresh the specified UI.
 	 *
 	 * @param stepsToRefresh
 	 */
 	public static void refreshLabels(	final GenvisisWorkflowGUI gui,
-																		final Collection<STEP> stepsToRefresh) {
+																		Collection<STEP> steps) {
+		final Collection<STEP> stepsToRefresh = gui.getAllRelatedSteps(steps);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -691,11 +711,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						}
 					});
 				} catch (InvocationTargetException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
 				final Color greenDark = Color.GREEN.darker();
 				final Color dark = Color.GRAY;
@@ -734,11 +750,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 								}
 							});
 						} catch (InvocationTargetException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
 						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
 						}
 					} else {
 						final boolean[][] reqVals = step.checkRequirements(gui.proj, selectedSteps, variables);
@@ -762,11 +774,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 								}
 							});
 						} catch (InvocationTargetException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
 						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
 						}
 					}
 				}
@@ -779,11 +787,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						}
 					});
 				} catch (InvocationTargetException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
 
 			}
