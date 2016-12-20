@@ -44,7 +44,7 @@ public class PennCNV {
 	public static final String[] ERRORS = {"large SD for LRR", "drifting BAF values",
 	                                       "waviness factor values", "Small-sized CNV calls",
 	                                       "NoCall rate"};
-	public static final String QC_SUMMARY_FILE = "Sample_QC.xln";
+	public static final String QC_SUMMARY_EXTENSION = "_QC.xln";
 	public static final int MISSING_SCORE = -1;
 
 	public static void batch(Project proj, int numChunks, Vector<String> execList, String pfbFile,
@@ -449,7 +449,7 @@ public class PennCNV {
 			}
 			reader.close();
 
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + QC_SUMMARY_FILE));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(filename) + QC_SUMMARY_EXTENSION));
 			writer.print("Sample\tFID\tIID\tUse_" + ext.formDeci(lrrSD_cutoff, 2));
 			for (String element : ERRORS) {
 				writer.print("\t" + element);
