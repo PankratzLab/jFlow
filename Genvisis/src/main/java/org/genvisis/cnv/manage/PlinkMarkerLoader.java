@@ -201,7 +201,7 @@ public class PlinkMarkerLoader implements Runnable {
 						byte[] genos = PlinkData.decodeBedByte(bedByte);
 
 						for (int g = 0; g < genos.length; g++) {
-							int idInd = famIDLookup.get(famIDList[bitInd * 4 + g]) == null ? -1 : famIDLookup.get(famIDList[bitInd * 4 + g]);
+							int idInd = (bitInd * 4 + g) >= famIDList.length ? -1 : famIDLookup.get(famIDList[bitInd * 4 + g]) == null ? -1 : famIDLookup.get(famIDList[bitInd * 4 + g]);
 							if (idInd == -1 || idInd > sampGeno.length) {
 								continue;
 							}
@@ -239,6 +239,25 @@ public class PlinkMarkerLoader implements Runnable {
 				}
 			}
 		}
+		
+		int aa, ab, bb, m;
+		aa = 0;
+		ab = 0;
+		bb = 0;
+		m = 0;
+		for (int i = 0; i < genotypes[0].length; i++) {
+			byte g = genotypes[0][i];
+			if (g == 0) {
+				aa++;
+			} else if (g == 1) {
+				ab++;
+			} else if (g == 2) {
+				bb++;
+			} else if (g == -1) {
+				m++;
+			}
+		}
+		System.out.println("PLINK GENOTYPES  --->  AA: " + aa + " AB: " + ab + " BB: " + bb + " Miss: " + m);
 
 		if (killed) {
 			log.report("PlinkMarkerLoader killed");
@@ -267,7 +286,7 @@ public class PlinkMarkerLoader implements Runnable {
 			while (!loaded[markerIndex]) {
 				Thread.yield();
 			}
-			return genotypes[markerIndex][idIndex];
+			return genotypes[markerIndex][idIndex]; 
 		}
 	}
 

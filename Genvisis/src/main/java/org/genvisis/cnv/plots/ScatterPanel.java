@@ -341,8 +341,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				// additional genotypeFilters
 				if (currentClass == 1) {
 					classCode = genotypeCode;
-				} else if (sampleData	.getClassName(currentClass)
-															.startsWith(SampleData.PLINK_CLASS_PREFIX)) {
+				} else if (sampleData.getClassName(currentClass).startsWith(SampleData.PLINK_CLASS_PREFIX)) {
 					byte indiCode = sp.getPlinkGenotypeForIndi(samples[i], currentClass);// chr1:159,937,288-159,945,728
 					classCode = (byte) (indiCode + 1);
 				} else {
@@ -378,6 +377,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				if (type == PlotPoint.NOT_A_NUMBER || type == PlotPoint.MISSING) {
 					uniqueValueCounts.add(0 + "");
 					genotype[i] = 0;
+					classCode = 0;
 				} else {
 					uniqueValueCounts.add(classCode + "");
 				}
