@@ -377,7 +377,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				if (type == PlotPoint.NOT_A_NUMBER || type == PlotPoint.MISSING) {
 					uniqueValueCounts.add(0 + "");
 					genotype[i] = 0;
-					classCode = 0;
 				} else {
 					uniqueValueCounts.add(classCode + "");
 				}
