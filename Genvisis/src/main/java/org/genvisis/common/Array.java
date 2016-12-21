@@ -948,6 +948,14 @@ public class Array {
 		return sum;
 	}
 
+	public static <T extends Number> double sum(Collection<T> collection) {
+		double s = 0.0;
+		for (T val : collection) {
+			s += val.doubleValue();
+		}
+		return s;
+	}
+
 	/**
 	 * Calculates the mean of an array
 	 *
@@ -1177,6 +1185,10 @@ public class Array {
 	 */
 	public static Float mean(Float[] array) {
 		return sum(array) / array.length;
+	}
+
+	public static <T extends Number> double mean(Collection<T> collection) {
+		return sum(collection) / collection.size();
 	}
 
 	/**

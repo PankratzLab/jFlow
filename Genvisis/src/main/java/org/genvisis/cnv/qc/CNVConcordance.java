@@ -5,13 +5,12 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
-// import org.genvisis.cnv.qc.CNVConcordance.ComparisionIndividualResults;
-// import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
@@ -22,8 +21,6 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariantHash;
 
-import com.google.common.primitives.Doubles;
-
 public class CNVConcordance {
 	private static class ComparisionGlobalResults {
 		private final CNVConcordance.ComparisionIndividualResults[] indResults;
@@ -31,62 +28,47 @@ public class CNVConcordance {
 		private int totalOverlap;
 		private int totalSigOverlap;
 		private int totalPerfectOverlap;
+		private int totalUnpaired;
 		private double avgIndOverlap;
 		private double avgIndSigOverlap;
 		private double avgIndPerfectOverlap;
 		private double avgIndOverlapScore;
+		private double avgIndUnpaired;
+		private double avgIndRelOverlap;
+		private double avgIndRelSigOverlap;
+		private double avgIndRelPerfectOverlap;
 		private double globalOverlap;
 		private double globalSigOverlap;
-		private double globalPerfectOverLap;
+		private double globalPerfectOverlap;
 		private double avgGlobalOverlapScore;
 		private final ArrayList<Double> globalOverLapScores;
 
 		public ComparisionGlobalResults(CNVConcordance.ComparisionIndividualResults[] comparisionIndividualResults) {
-			this(comparisionIndividualResults, 0, 0, 0, 0, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
-		}
-
-		public ComparisionGlobalResults(CNVConcordance.ComparisionIndividualResults[] indResults,
-																		int totalCNVs, int totalOverlap, int totalSigOverlap,
-																		int totalPerfectOverlap, double avgIndOverlap,
-																		double avgIndSigOverlap, double avgIndPerfectOverlap,
-																		double avgIndOverlapScore, double globalOverlap,
-																		double globalSigOverlap, double avgGlobalOverlapScore) {
-			this.indResults = indResults;
-			this.totalCNVs = totalCNVs;
-			this.totalOverlap = totalOverlap;
-			this.totalSigOverlap = totalSigOverlap;
-			this.totalPerfectOverlap = totalPerfectOverlap;
-			this.avgIndOverlap = avgIndOverlap;
-			this.avgIndSigOverlap = avgIndSigOverlap;
-			this.avgIndPerfectOverlap = avgIndPerfectOverlap;
-			this.avgIndOverlapScore = avgIndOverlapScore;
-			this.globalOverlap = globalOverlap;
-			this.globalSigOverlap = globalSigOverlap;
-			this.avgGlobalOverlapScore = avgGlobalOverlapScore;
+			indResults = comparisionIndividualResults;
 			globalOverLapScores = new ArrayList<Double>();
 		}
 
-		private double getAvgGlobalOverlapScore() {
-			return Array.mean(Doubles.toArray(globalOverLapScores));
-		}
-
-		private double getGlobalPercentOverlap() {
-			return 2.0D * totalOverlap / totalCNVs;
-		}
-
-		private double getGlobalPercentPerfectOverlap() {
-			return 2.0D * totalPerfectOverlap / totalCNVs;
-		}
-
-		private double getGlobalPercentSigOverlap() {
-			return 2.0D * totalSigOverlap / totalCNVs;
-		}
-
 		public String getReport() {
-			return totalCNVs	+ "\t" + totalOverlap + "\t" + totalSigOverlap + "\t" + totalPerfectOverlap
-							+ "\t" + avgIndOverlap + "\t" + avgIndSigOverlap + "\t" + avgIndPerfectOverlap + "\t"
-							+ avgIndOverlapScore + "\t" + globalOverlap + "\t" + globalSigOverlap + "\t"
-							+ globalPerfectOverLap + "\t" + avgGlobalOverlapScore;
+			StringBuilder sb = new StringBuilder();
+			sb.append(totalCNVs).append("\t");
+			sb.append(totalOverlap).append("\t");
+			sb.append(totalSigOverlap).append("\t");
+			sb.append(totalPerfectOverlap).append("\t");
+			sb.append(totalUnpaired).append("\t");
+			sb.append(avgIndOverlap).append("\t");
+			sb.append(avgIndSigOverlap).append("\t");
+			sb.append(avgIndPerfectOverlap).append("\t");
+			sb.append(avgIndOverlapScore).append("\t");
+			sb.append(avgIndUnpaired).append("\t");
+			sb.append(avgIndRelOverlap).append("\t");
+			sb.append(avgIndRelSigOverlap).append("\t");
+			sb.append(avgIndRelPerfectOverlap).append("\t");
+			sb.append(globalOverlap).append("\t");
+			sb.append(globalSigOverlap).append("\t");
+			sb.append(globalPerfectOverlap).append("\t");
+			sb.append(avgGlobalOverlapScore).append("\t");
+
+			return sb.toString();
 		}
 
 		public void populateMetrics() {
@@ -99,43 +81,46 @@ public class CNVConcordance {
 				avgIndSigOverlap += indResult.getPercentSigOverlap();
 				avgIndPerfectOverlap += indResult.getPercentPerfectOverlap();
 				avgIndOverlapScore += indResult.getAvgOverlapScore();
+				totalUnpaired += indResult.getUnpaired();
+				avgIndRelOverlap += indResult.getRelativePercentOverlap();
+				avgIndRelSigOverlap += indResult.getRelativePercentSigOverlap();
+				avgIndRelPerfectOverlap += indResult.getRelativePercentPerfectOverlap();
 				indResult.addAllScores(globalOverLapScores);
 			}
 			avgIndOverlap /= indResults.length;
 			avgIndSigOverlap /= indResults.length;
 			avgIndPerfectOverlap /= indResults.length;
 			avgIndOverlapScore /= indResults.length;
-			globalOverlap = getGlobalPercentOverlap();
-			globalSigOverlap = getGlobalPercentSigOverlap();
-			globalPerfectOverLap = getGlobalPercentPerfectOverlap();
-			avgGlobalOverlapScore = getAvgGlobalOverlapScore();
+			avgIndUnpaired = (double) totalUnpaired / indResults.length;
+			avgIndRelOverlap /= indResults.length;
+			avgIndRelSigOverlap /= indResults.length;
+			avgIndRelPerfectOverlap /= indResults.length;
+			globalOverlap = (double) totalOverlap / totalCNVs;
+			globalSigOverlap = (double) totalSigOverlap / totalCNVs;
+			globalPerfectOverlap = (double) totalPerfectOverlap / totalCNVs;
+			avgGlobalOverlapScore = Array.mean(globalOverLapScores);
 		}
 	}
 	private static class ComparisionIndividualResults {
-		// private String ind1;
-		// private String ind2;
+		private String ind1;
+		private String ind2;
 		private final int numCNVind1;
 		private final int numCNVind2;
 		private int numOverlap;
 		private int numSigOverlap;
 		private int numPerfectOverlap;
-		private final ArrayList<Double> overlapScores;
+		private final List<Double> overlapScores;
 
 		public ComparisionIndividualResults(String ind1, String ind2, int numCNVind1, int numCNVind2) {
-			// this.ind1 = ind1;
-			// this.ind2 = ind2;
+			this.ind1 = ind1;
+			this.ind2 = ind2;
 			this.numCNVind1 = numCNVind1;
 			this.numCNVind2 = numCNVind2;
-			numOverlap = 0;
-			numSigOverlap = 0;
-			numPerfectOverlap = 0;
 			overlapScores = new ArrayList<Double>(getTotalCNVCount());
 		}
 
-		public void addAllScores(ArrayList<Double> globalOverLapScores) {
-			for (int i = 0; i < overlapScores.size(); i++) {
-				globalOverLapScores.add(overlapScores.get(i));
-			}
+		public void addAllScores(List<Double> globalOverLapScores) {
+			globalOverLapScores.addAll(overlapScores);
 		}
 
 		public void addOverlap() {
@@ -144,7 +129,7 @@ public class CNVConcordance {
 
 		public void addOverlapScore(double overlapScore) {
 			if (!Double.isNaN(overlapScore)) {
-				overlapScores.add(Double.valueOf(overlapScore));
+				overlapScores.add(overlapScore);
 			}
 		}
 
@@ -157,10 +142,10 @@ public class CNVConcordance {
 		}
 
 		public double getAvgOverlapScore() {
-			if (overlapScores.size() > 0) {
-				return Array.mean(Doubles.toArray(overlapScores));
+			if (!overlapScores.isEmpty()) {
+				return Array.mean(overlapScores);
 			}
-			return 0.0D;
+			return 0.0;
 		}
 
 		public int getNumOverlap() {
@@ -177,39 +162,73 @@ public class CNVConcordance {
 
 		public double getPercentOverlap() {
 			if (getTotalCNVCount() == 0) {
-				return 0.0D;
+				return 0.0;
 			}
-			return 2.0D * numOverlap / getTotalCNVCount();
+			return (double) numOverlap / getTotalCNVCount();
 		}
 
 		public double getPercentPerfectOverlap() {
 			if (getTotalCNVCount() == 0) {
-				return 0.0D;
+				return 0.0;
 			}
-			return 2.0D * numPerfectOverlap / getTotalCNVCount();
+			return (double) numPerfectOverlap / getTotalCNVCount();
 		}
 
 		public double getPercentSigOverlap() {
 			if (getTotalCNVCount() == 0) {
-				return 0.0D;
+				return 0.0;
 			}
-			return 2.0D * numSigOverlap / getTotalCNVCount();
+			return (double) numSigOverlap / getTotalCNVCount();
 		}
 
 		public int getTotalCNVCount() {
 			return numCNVind1 + numCNVind2;
 		}
+
+		public int getUnpaired() {
+			return getTotalCNVCount() - getNumOverlap();
+		}
+
+		public double getRelativePercentOverlap() {
+			return getRelative(numOverlap);
+		}
+
+		public double getRelativePercentPerfectOverlap() {
+			return getRelative(numPerfectOverlap);
+		}
+
+		public double getRelativePercentSigOverlap() {
+			return getRelative(numSigOverlap);
+		}
+
+		private double getRelative(int target) {
+			if (getTotalCNVCount() == 0 || getNumOverlap() == 0) {
+				return 0.0;
+			}
+			return (double) target / getNumOverlap();
+			
+		}
+
+		public String getInfo() {
+			//TODO for printing individual information
+			return "";
+		}
 	}
 
 	private static final String[] REPORT = {"Total CNVs Compared", "Total Overlapping CNVs",
-																					"Total Significantly Overlapping CNVs",
-																					"Total Perfectly overlapping cnvs",
-																					"Average Individual Overlap",
-																					"Average Individual Significant Overlap",
-																					"Average Individual Perfect Overlap",
-																					"Average Individual Overlap Score", "Global Overlap",
-																					"Global Significant Overlap", "Global Perfect Overlap",
-																					"Average Global Overlap Score"};
+	                                        "Total Significantly Overlapping CNVs",
+	                                        "Total Perfectly overlapping cnvs",
+	                                        "Total Unpaired CNVs",
+	                                        "Average Individual Overlap",
+	                                        "Average Individual Significant Overlap",
+	                                        "Average Individual Perfect Overlap","Average Individual Overlap Score",
+	                                        "Average Individual Unpaired",
+	                                        "Average Relative Overlap",
+	                                        "Average Relative Significant Overlap",
+	                                        "Average Relative Perfect Overlap",
+	                                        "Global Overlap",
+	                                        "Global Significant Overlap", "Global Perfect Overlap",
+	                                        "Average Global Overlap Score"};
 	// private static final int WARN_NUM_CNVs = 1000;
 	public static final String COMMAND_PROJECT = "proj=";
 	public static final String COMMAND_CNV = "cnvFile=";
@@ -220,7 +239,8 @@ public class CNVConcordance {
 	public static final String COMMAND_DIR = "dir=";
 	public static final String COMMAND_NUMCNVS = "numCNVS=";
 	public static final String COMMAND_CNV_CONCORDANCE = "cnvConcordance";
-	public static final String COMMAND_CNV_CONCORDANCE_DESCRIPTION = "- compute the concordance between replicates in a cnv file";
+	public static final String COMMAND_CNV_CONCORDANCE_DESCRIPTION =
+	                                                               "- compute the concordance between replicates in a cnv file";
 	private final Project proj;
 	private final String[][] duplicates;
 	private final double[] lrr;
@@ -272,14 +292,15 @@ public class CNVConcordance {
 	private ComparisionIndividualResults[] compareAll() {
 		if (!fail) {
 			int numComp = 0;
-			ArrayList<ComparisionIndividualResults> allResults = new ArrayList<ComparisionIndividualResults>();
+			ArrayList<ComparisionIndividualResults> allResults =
+			                                                   new ArrayList<ComparisionIndividualResults>();
 			for (String[] duplicate : duplicates) {
 				if (lrr[numComp] > maxLrr) {
-					System.out.println("Warning - "	+ duplicate[0] + " has LRR > " + maxLrr + " (" + lrr[numComp]
-															+ "). Excluded from final analysis");
+					System.out.println("Warning - " + duplicate[0] + " has LRR > " + maxLrr + " ("
+					                   + lrr[numComp] + "). Excluded from final analysis");
 				} else if (callRate[numComp] < minCallRate) {
-					System.out.println("Warning - "	+ duplicate[0] + " has callrate < " + minCallRate + " ("
-															+ callRate[numComp] + "). Excluded from final analysis");
+					System.out.println("Warning - " + duplicate[0] + " has callrate < " + minCallRate + " ("
+					                   + callRate[numComp] + "). Excluded from final analysis");
 				} else {
 					// Try dna\tdna first
 					String ind1 = duplicate[0] + "\t" + duplicate[0];
@@ -297,7 +318,8 @@ public class CNVConcordance {
 					if (results.getTotalCNVCount() > 0) {
 						allResults.add(results);
 					} else {
-						System.out.println("No common cnvs found for pair: " + duplicate[0] + ", " + duplicate[1]);
+						System.out.println("No common cnvs found for pair: " + duplicate[0] + ", "
+						                   + duplicate[1]);
 					}
 				}
 				numComp++;
@@ -320,13 +342,13 @@ public class CNVConcordance {
 		}
 		return null;
 	}// This command is what the kids call "janky." currently won't work if the FIDs and IIDs don't
-		// match
+	 // match
 
 	private ComparisionIndividualResults compareInds(String ind1, String ind2) {
 		CNVariant[] ind1CNVs = extractVariants(cNVariantHash.getDataFor(ind1));
 		CNVariant[] ind2CNVs = extractVariants(cNVariantHash.getDataFor(ind2));
-		if ((ind1CNVs == null)	|| (ind2CNVs == null)
-				|| ((ind1CNVs.length == 0) && (ind2CNVs.length == 0))) {
+		if ((ind1CNVs == null) || (ind2CNVs == null)
+		    || ((ind1CNVs.length == 0) && (ind2CNVs.length == 0))) {
 			return new ComparisionIndividualResults(ind1, ind2, 0, 0);
 		}
 		if ((ind1CNVs.length > numCNVs) || (ind2CNVs.length > numCNVs)) {
@@ -334,17 +356,17 @@ public class CNVConcordance {
 		}
 		ind1CNVs = filterCNVs(filter, ind1CNVs, proj);
 		ind2CNVs = filterCNVs(filter, ind2CNVs, proj);
-		if ((ind1CNVs == null)	|| (ind2CNVs == null)
-				|| ((ind1CNVs.length == 0) && (ind2CNVs.length == 0))) {
+		if ((ind1CNVs == null) || (ind2CNVs == null)
+		    || ((ind1CNVs.length == 0) && (ind2CNVs.length == 0))) {
 			return new ComparisionIndividualResults(ind1, ind2, 0, 0);
 		}
 		if (ind1CNVs.length > 1200) {
-			proj.getLog().report("Warning - "	+ ind1 + " has more than " + 1200 + " CNVs ("
-														+ ind1CNVs.length + "), this could lead to skewed concordance rates");
+			proj.getLog().report("Warning - " + ind1 + " has more than " + 1200 + " CNVs ("
+			                     + ind1CNVs.length + "), this could lead to skewed concordance rates");
 		}
 		if (ind2CNVs.length > 1200) { // changed to 1200 from 1000 to shorten print output
-			proj.getLog().report("Warning - "	+ ind2 + " has more than " + 1200 + " CNVs ("
-														+ ind2CNVs.length + "), this could lead to skewed concordance rates");
+			proj.getLog().report("Warning - " + ind2 + " has more than " + 1200 + " CNVs ("
+			                     + ind2CNVs.length + "), this could lead to skewed concordance rates");
 		}
 		if (ind1CNVs.length == 0) {
 			return new ComparisionIndividualResults(ind1, ind2, 0, ind2CNVs.length);
@@ -370,11 +392,12 @@ public class CNVConcordance {
 	 */
 
 	public static void determineConcordance(Project proj, String cnvFile, String dir,
-																					String duplicateFile, String qcFile, CNVFilter filter,
-																					int numCNVs, int CN, double lrrMax, double callMin, String output) {
+	                                        String duplicateFile, String qcFile, CNVFilter filter,
+	                                        int numCNVs, int CN, double lrrMax, double callMin,
+	                                        String output) {
 		if ((duplicateFile == null) || (duplicateFile.equals(""))) {
 			proj.getLog()
-					.reportError("Error - a file of duplicates must be provided to determine concordance");
+			    .reportError("Error - a file of duplicates must be provided to determine concordance");
 			return;
 		}
 		if (((cnvFile == null) || (cnvFile.equals(""))) && (dir == null)) {
@@ -391,17 +414,17 @@ public class CNVConcordance {
 			cnvFiles = Files.toFullPaths(cnvFiles, proj.PROJECT_DIRECTORY.getValue() + dir);
 			proj.getLog().report(Array.toStr(cnvFiles));
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()	+ dir
+				PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + dir
 
-																														+ output));
+				                                                    + output));
 				int start = filter.getMinNumMarkers();
 				// int stop = filter.getMaxNumMarkers();
 				CNVariantHash[] cNVariantHash = new CNVariantHash[cnvFiles.length];
 				for (int i = 0; i < cnvFiles.length; i++) {
 					cNVariantHash[i] = CNVariantHash.load(cnvFiles[i], 1, false, proj.getLog());
 					for (int j = 0; j < REPORT.length; j++) {
-						writer.print(((i == 0) && (j == 0) ? "" : "\t")	+ REPORT[j] + "."
-													+ ext.rootOf(cnvFiles[i]));
+						writer.print(((i == 0) && (j == 0) ? "" : "\t") + REPORT[j] + "."
+						             + ext.rootOf(cnvFiles[i]));
 					}
 					writer.print("\tnumberOFProbes." + ext.rootOf(cnvFiles[i]));
 				}
@@ -436,7 +459,7 @@ public class CNVConcordance {
 			cnvConcordance.determineConcordance();
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																														+ output));
+				                                                    + output));
 				writer.println(Array.toStr(REPORT));
 				writer.println(cnvConcordance.getReport());
 
@@ -469,8 +492,8 @@ public class CNVConcordance {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params = Files.parseControlFile(	filename, "cnvConcordance", getParserParams(),
-																										log);
+		Vector<String> params = Files.parseControlFile(filename, "cnvConcordance", getParserParams(),
+		                                               log);
 		if (params != null) {
 			main(Array.toStringArray(params));
 		}
@@ -489,7 +512,8 @@ public class CNVConcordance {
 		params[8] = "#lrrSD=";
 		params[9] = "#a path (relative to the project directory) to a file for ouput";
 		params[10] = "#output=";
-		params[11] = "#a path (relative to the project directory) containing multiple \".cnv\" files, all will be analyzed and the cnvFile= command will be overridden";
+		params[11] =
+		           "#a path (relative to the project directory) containing multiple \".cnv\" files, all will be analyzed and the cnvFile= command will be overridden";
 		params[12] = "#dir=";
 
 		params[13] = "#maximum number of cnvs per individual";
@@ -501,33 +525,39 @@ public class CNVConcordance {
 		return params;
 	}
 
-	private static ComparisionIndividualResults compareIndCNVs(	CNVariant[] ind1CNVs,
-																															CNVariant[] ind2CNVs) {
-		ComparisionIndividualResults currentComparison = new ComparisionIndividualResults(ind1CNVs[0].getFamilyID()
-																																												+ "\t"
-																																											+ ind1CNVs[0].getIndividualID(),
-																																											ind2CNVs[0].getFamilyID() + "\t" + ind2CNVs[0].getIndividualID(),
-																																											ind1CNVs.length,
-																																											ind2CNVs.length);
-		for (CNVariant ind1cnv : ind1CNVs) {
-			for (CNVariant ind2cnv : ind2CNVs) {
+	private static ComparisionIndividualResults compareIndCNVs(CNVariant[] ind1CNVs,
+	                                                           CNVariant[] ind2CNVs) {
+		ComparisionIndividualResults currentComparison =
+		                                               new ComparisionIndividualResults(ind1CNVs[0].getFamilyID()
+		                                                                                + "\t"
+		                                                                                + ind1CNVs[0].getIndividualID(),
+		                                                                                ind2CNVs[0].getFamilyID() + "\t" + ind2CNVs[0].getIndividualID(),
+		                                                                                ind1CNVs.length,
+		                                                                                ind2CNVs.length);
+		compareIndCNVHelper(currentComparison, ind1CNVs, ind2CNVs);
+		compareIndCNVHelper(currentComparison, ind2CNVs, ind1CNVs);
+
+		return currentComparison;
+	}
+
+	private static void compareIndCNVHelper(ComparisionIndividualResults currentComparison,
+	                                        CNVariant[] cnvs1, CNVariant[] cnvs2) {
+		for (CNVariant ind1cnv : cnvs1) {
+			for (CNVariant ind2cnv : cnvs2) {
 				if (ind1cnv.getCN() == ind2cnv.getCN()) {
 					if (ind1cnv.overlaps(ind2cnv)) {
-						double minOverLapScore = Math.min(ind1cnv.overlapScore(ind2cnv),
-																							ind2cnv.overlapScore(ind1cnv));
-						currentComparison.addOverlapScore(minOverLapScore);
+						currentComparison.addOverlapScore(ind1cnv.overlapScore(ind2cnv));
 						currentComparison.addOverlap();
-					}
-					if ((ind1cnv.significantOverlap(ind2cnv)) && (ind2cnv.significantOverlap(ind1cnv))) {
-						currentComparison.addSigOverlap();
-					}
-					if (ind1cnv.equals(ind2cnv)) {
-						currentComparison.addPerfect();
+						if (ind1cnv.significantOneWayOverlap(ind2cnv)) {
+							currentComparison.addSigOverlap();
+						}
+						if (ind1cnv.equals(ind2cnv)) {
+							currentComparison.addPerfect();
+						}
 					}
 				}
 			}
 		}
-		return currentComparison;
 	}
 
 	private static CNVariant[] extractVariants(Hashtable<String, CNVariant[]> indCNVS) {
@@ -543,7 +573,7 @@ public class CNVConcordance {
 	}
 
 	private static String[][] loadDuplicates(String duplicateFile) {
-		String[] load = HashVec.loadFileToStringArray(duplicateFile, false, new int[]{0,1}, false);
+		String[] load = HashVec.loadFileToStringArray(duplicateFile, false, new int[] {0, 1}, false);
 		String[][] duplicates = new String[load.length][];
 		for (int i = 0; i < load.length; i++) {
 			String[] tmp = load[i].split("\t");
@@ -559,7 +589,7 @@ public class CNVConcordance {
 	}
 
 	private static double[][] loadQC(String qcFile) { // Known Issue - genvisis-generated LRR file
-																										// might have headers sprinkled throughout
+	                                                  // might have headers sprinkled throughout
 		String[] load = HashVec.loadFileToStringArray(qcFile, false, null, false);
 		double[][] qc = new double[2][load.length];
 		for (int i = 0; i < load.length; i++) {
@@ -606,7 +636,7 @@ public class CNVConcordance {
 		usage = usage + "   (5) output file name  (i.e.output=" + output + " (default))\n";
 		usage = usage + "   (6) log file  (i.e. log=" + filename + " (no default))\n";
 		usage = usage
-						+ "\t (7) For cnv filtering, use the default values (i.e. -default ( not the default))\n";
+		        + "\t (7) For cnv filtering, use the default values (i.e. -default ( not the default))\n";
 		usage = usage + "\t (8) a directory containing multiple cnv files (i.e. dir= ( no default))\n";
 		usage = usage + "\t (9) maximum number of cnvs (i.e. numCNVS=" + numCNVs + " (default))\n";
 		usage = usage + "\t (10) lrr cutoff (i.e. lrr=" + lrr + " (default))\n";
@@ -615,19 +645,19 @@ public class CNVConcordance {
 		usage = usage + "\t (12) further usage:\n" + Array.toStr(CNVFilter.getDefaultCNVParams());
 		Project proj;
 		if (ext.indexOfStr("proj=", args, true, false) >= 0) {
-			proj = new Project(	ext.parseStringArg(args[ext.indexOfStr("proj=", args, true, false)], ""),
-													logfile, false);
+			proj = new Project(ext.parseStringArg(args[ext.indexOfStr("proj=", args, true, false)], ""),
+			                   logfile, false);
 		} else {
 			proj = new Project(filename, logfile, false);
 		}
 		CNVFilter filter = ProjectCNVFiltering.setupCNVFilterFromArgs(proj, args, null, defaults,
-																																	proj.getLog());
+		                                                              proj.getLog());
 		if (ext.indexOfStr("-defaults", args) >= 0) {
 			ProjectCNVFiltering.setCNVDefaults(filter, proj);
 		}
 		for (String arg : args) {
-			if ((arg.equals("-h"))	|| (arg.equals("-help")) || (arg.equals("/h"))
-					|| (arg.equals("/help"))) {
+			if ((arg.equals("-h")) || (arg.equals("-help")) || (arg.equals("/h"))
+			    || (arg.equals("/help"))) {
 				System.err.println(usage);
 				System.exit(1);
 			} else if (arg.startsWith("proj=")) {
@@ -660,14 +690,13 @@ public class CNVConcordance {
 			} else if (arg.startsWith("-default")) {
 				defaults = true;
 				numArgs--;
-			} else if (arg.startsWith("lrr")){
+			} else if (arg.startsWith("lrr")) {
 				lrr = ext.parseDoubleArg(arg);
 				numArgs--;
-			} else if (arg.startsWith("call")){
+			} else if (arg.startsWith("call")) {
 				call = ext.parseDoubleArg(arg);
 				numArgs--;
-			}
-				else if (filter.isCommandLineFilterInEffect(arg)) {
+			} else if (filter.isCommandLineFilterInEffect(arg)) {
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + arg);
@@ -678,10 +707,11 @@ public class CNVConcordance {
 			System.exit(1);
 		}
 		try {
-			proj.setLog(new Logger(proj.PROJECT_DIRECTORY.getValue()	+ (dir == null ? "" : dir)
-															+ "concordLog"));
+			proj.setLog(new Logger(proj.PROJECT_DIRECTORY.getValue() + (dir == null ? "" : dir)
+			                       + "concordLog"));
 
-			determineConcordance(proj, cnvFile, dir, duplicateFile, qcFile, filter, numCNVs, CN, lrr, call, output);
+			determineConcordance(proj, cnvFile, dir, duplicateFile, qcFile, filter, numCNVs, CN, lrr,
+			                     call, output);
 			long endTime = System.currentTimeMillis();
 			long finalTime = endTime - startTime;
 			System.out.println("total time: " + finalTime);
