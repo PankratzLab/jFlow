@@ -90,11 +90,23 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 																				/**
 																				 * Females should have ~2x intensity on chrX, etc
 																				 */
-																				BIOLOGICAL,
+																				BIOLOGICAL("Reflects reality, ~2x signal for females (vs. males) on chrX"),
 																				/**
 																				 * sex is explicitly regressed out along with PCs
 																				 */
-																				ARTIFICIAL;
+																				ARTIFICIAL("Sex is regressed out of intensity values");
+
+		private String toolTip;
+
+		private SEX_CHROMOSOME_STRATEGY(String toolTip) {
+			this.toolTip = toolTip;
+
+		}
+
+		public String getToolTip() {
+			return toolTip;
+		}
+
 	}
 
 	public PrincipalComponentsIntensity(final PrincipalComponentsResiduals principalComponentsResiduals,
@@ -136,12 +148,11 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	}
 
 	private double[][] determineAppropriateSexCovariates(SEX_CHROMOSOME_STRATEGY sexStrategy) {
-		if (centroid.isSexSpecific() && sexStrategy == SEX_CHROMOSOME_STRATEGY.ARTIFICIAL) {
+		if (centroid.isSexSpecific()&& sexStrategy == SEX_CHROMOSOME_STRATEGY.ARTIFICIAL
+				&& centroid.getMarkerData().getChr() == 23) {
 
-			int[] sex = SexOps.getSampleSex(proj,
-																			centroid.getMarkerData()
-																							.getChr() == 23	? SEX_LOAD_TYPE.NUM_X_SEX
-																															: SEX_LOAD_TYPE.MAPPED_SEX);
+			int[] sex = SexOps.getSampleSex(proj, SEX_LOAD_TYPE.NUM_X_SEX);
+
 			double[][] sexCovariates = new double[sex.length][];
 			for (int i = 0; i < sexCovariates.length; i++) {
 				if (sex[i] > 0) {

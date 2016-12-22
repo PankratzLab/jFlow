@@ -186,7 +186,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		if (files.length == 0) {
 			// CNV_FILENAMES is empty, throw an error and exit
 			JOptionPane.showMessageDialog(null, "Error - CNV_FILENAMES property is empty");
-			return;
+			// return;
 		}
 		allFiles = new ArrayList<String>();
 		for (String file2 : files) {

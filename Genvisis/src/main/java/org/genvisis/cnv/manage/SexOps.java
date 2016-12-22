@@ -6,7 +6,6 @@ package org.genvisis.cnv.manage;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
 
 /**
  * Helper methods for loading/parsing sample sex from sampleData
@@ -56,9 +55,6 @@ public class SexOps {
 
 			}
 		}
-		proj.getLog().reportTimeInfo(Array.toStr(Array.unique(Array.toStringArray(sex))));
-
-
 		return sex;
 	}
 
