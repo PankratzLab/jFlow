@@ -16,6 +16,7 @@ import org.genvisis.cnv.analysis.Mosaicism;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.SEX_CHROMOSOME_STRATEGY;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.ABLookup.ABSource;
 import org.genvisis.cnv.filesys.Centroids;
@@ -43,7 +44,6 @@ import org.genvisis.common.ext;
 import org.genvisis.gwas.Ancestry;
 import org.genvisis.gwas.PlinkMendelianChecker;
 import org.genvisis.gwas.Qc;
-import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -1974,6 +1974,8 @@ public class GenvisisWorkflow {
 																																	{"Re-compute Log-R Ratio values? (usually false if LRRs already exist)"},
 																																	{"Temporary directory for intermediate files (which tend to be very large)"},
 																																	{"Correction Type"},
+																																	{"Sex Chromosome Strategy"},
+
 																																	{NUM_THREADS_ARG},},
 																									new RequirementInputType[][] {{RequirementInputType.NONE},
 																																								{RequirementInputType.NUMBER},
@@ -1981,6 +1983,7 @@ public class GenvisisWorkflow {
 																																								{RequirementInputType.NUMBER},
 																																								{RequirementInputType.BOOL},
 																																								{RequirementInputType.DIR},
+																																								{RequirementInputType.ENUM},
 																																								{RequirementInputType.ENUM},
 																																								{RequirementInputType.NUMBER},},
 																									S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
@@ -1999,8 +2002,12 @@ public class GenvisisWorkflow {
 			String tmpDir = "".equals(variables.get(this).get(4).trim())	? null
 																																		: variables.get(this).get(4);
 			CORRECTION_TYPE type = CORRECTION_TYPE.valueOf(variables.get(this).get(5));
-			int totalThreads = Integer.parseInt(variables.get(this).get(6));
-			String retMsg = PRoCtOR.shadow(proj, tmpDir, outputBase, markerCallRateFilter, recomputeLRRPCs, type, numComponents, totalThreads);
+			SEX_CHROMOSOME_STRATEGY strategy = SEX_CHROMOSOME_STRATEGY.valueOf(variables.get(this)
+																																									.get(6));
+
+			int totalThreads = Integer.parseInt(variables.get(this).get(7));
+			String retMsg = PRoCtOR.shadow(	proj, tmpDir, outputBase, markerCallRateFilter,
+																			recomputeLRRPCs, type, strategy, numComponents, totalThreads);
 			if (!"".equals(retMsg)) {
 				setFailed(retMsg);
 			}
@@ -2014,7 +2021,7 @@ public class GenvisisWorkflow {
 			String tmpDir = "".equals(variables.get(this).get(4).trim())	? null
 																																		: variables.get(this).get(4);
 
-			int totalThreads = checkIntArgOrNeg1(variables.get(this).get(6));
+			int totalThreads = checkIntArgOrNeg1(variables.get(this).get(7));
 			String sampDir = proj.SAMPLE_DIRECTORY.getValue();
 			STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES)	? S2I_PARSE_SAMPLES
 																																			: S2A_PARSE_SAMPLES;
@@ -2040,6 +2047,7 @@ public class GenvisisWorkflow {
 														false, // recomputeLRR
 														"", // tempDir
 														CORRECTION_TYPE.XY,
+														SEX_CHROMOSOME_STRATEGY.BIOLOGICAL,
 														Runtime.getRuntime().availableProcessors() // numThreads
 			};
 		}
@@ -2060,14 +2068,17 @@ public class GenvisisWorkflow {
 			String tmpDir = "".equals(variables.get(this).get(4).trim())	? null
 																																		: variables.get(this).get(4);
 			String correctionType = variables.get(this).get(5);
-			int totalThreads = Integer.parseInt(variables.get(this).get(6));
+			String strategy = variables.get(this).get(6);
+
+			int totalThreads = Integer.parseInt(variables.get(this).get(7));
 
 			String projPropFile = proj.getPropertyFilename();
 			StringBuilder cmd = new StringBuilder();
 			cmd	.append(Files.getRunString()).append(" org.genvisis.cnv.manage.PRoCtOR").append(" proj=")
 					.append(projPropFile).append(" numComponents=").append(numComponents)
 					.append(" outputBase=").append(outputBase).append(" callrate=")
-					.append(markerCallRateFilter).append(" recomputeLRR=").append(recomputeLRRPCs).append(" type=").append(correctionType)
+					.append(markerCallRateFilter).append(" recomputeLRR=").append(recomputeLRRPCs)
+					.append(" type=").append(correctionType).append(" strategy=").append(strategy)
 					.append(" numThreads=").append(totalThreads);
 			if (tmpDir != null) {
 				cmd.append(" tmp=").append(tmpDir);

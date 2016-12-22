@@ -16,6 +16,7 @@ import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
 import org.genvisis.cnv.analysis.Mosaicism;
 import org.genvisis.cnv.analysis.PennCNVPrep;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.SEX_CHROMOSOME_STRATEGY;
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
@@ -728,14 +729,17 @@ public class BamImport {
 																						pcCorrected.PROJECT_DIRECTORY.getValue()
 																																	+ "tmpPCCorrection/",
 																						correctionPCs, null, numthreads, 1, false,
-																						LS_TYPE.REGULAR, -1, true, true, CORRECTION_TYPE.XY);
+																						LS_TYPE.REGULAR, -1, true, true, CORRECTION_TYPE.XY,
+																						SEX_CHROMOSOME_STRATEGY.BIOLOGICAL);
 					// Warning currently set up for 24 threads..
 					// TODO
-					PennCNVPrep.exportSpecialPennCNV(	pcCorrected, "correction/",
+					PennCNVPrep.exportSpecialPennCNV(	pcCorrected,
+																						"correction/",
 																						pcCorrected.PROJECT_DIRECTORY.getValue()
-																																				+ "tmpPCCorrection/",
+																														+ "tmpPCCorrection/",
 																						correctionPCs, null, 1, 24, true, LS_TYPE.REGULAR, 5,
-																						true, true, CORRECTION_TYPE.XY);
+																						true, true, CORRECTION_TYPE.XY,
+																						SEX_CHROMOSOME_STRATEGY.BIOLOGICAL);
 				}
 				pcCorrected.saveProperties();
 				if (type.getType() != null) {

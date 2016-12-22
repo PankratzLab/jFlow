@@ -18,11 +18,11 @@ import java.util.concurrent.TimeUnit;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.PcCorrectionProducer;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.SEX_CHROMOSOME_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
@@ -79,7 +79,8 @@ public class PennCNVPrep {
 	 *
 	 */
 	public void exportSpecialMarkerDataMoreThreads(	String tmpDir, boolean preserveBafs,
-																									CORRECTION_TYPE correctionType) {
+																									CORRECTION_TYPE correctionType,
+																									SEX_CHROMOSOME_STRATEGY sexStrategy) {
 		String output = (tmpDir == null ? proj.PROJECT_DIRECTORY.getValue() : tmpDir)+ dir
 										+ STORAGE_BASE + ext.indexLargeFactors(	markers, proj.getMarkerNames(), true,
 																														proj.getLog(), true, true)[0]
@@ -91,7 +92,7 @@ public class PennCNVPrep {
 																																numComponents, sampleSex,
 																																samplesToUseCluster, lType,
 																																numCorrectionThreads, 1, markers,
-																																correctionType);
+																																correctionType, sexStrategy);
 			proj.getLog().reportTimeInfo("Using correction type " + correctionType);
 			WorkerTrain<PrincipalComponentsIntensity> train =
 																											new WorkerTrain<PrincipalComponentsIntensity>(producer,
@@ -141,80 +142,7 @@ public class PennCNVPrep {
 		}
 	}
 
-	/**
-	 * This creates the temporary serialized {@link MarkerData} lists stored in
-	 * {@link MarkerDataStorage} objects, and contain only LRR/BAF and genotypes (currently original
-	 * genotypes)
-	 *
-	 */
-	public void exportSpecialMarkerData() {
-		MarkerDataLoader markerDataLoader =
-																			MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
-																																															markers);
-		MarkerDataStorage markerDataStorage = new MarkerDataStorage(markers.length);
-		ArrayList<String> notCorrected = new ArrayList<String>();
-		if (lType == LS_TYPE.SVD) {
-			proj.getLog().report(ext.getTime() + " Info - using an svd based regression for correction");
-		}
-		for (int i = 0; i < markers.length; i++) {
-			if ((i + 1) % 10 == 0) {
-				proj.getLog().report("Info - correcting marker " + (i + 1) + " of " + markers.length);
-			}
-			// TODO, if we have more than 6 threads we could probably do that here
-			MarkerData markerData = markerDataLoader.requestMarkerData(i);
-			MarkerData markerDataToStore = null;
 
-			PrincipalComponentsIntensity principalComponentsIntensity =
-																																new PrincipalComponentsIntensity(	principalComponentsResiduals,
-																																																	markerData,
-																																																	true,
-																																																	sampleSex,
-																																																	samplesToUseCluster,
-																																																	1,
-																																																	0,
-																																																	null,
-																																																	true,
-																																																	lType,
-																																																	2,
-																																																	5,
-																																																	PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER,
-																																																	PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO,
-																																																	numCorrectionThreads,
-																																																	false,
-																																																	null);
-			markerDataLoader.releaseIndex(i);
-			principalComponentsIntensity.correctXYAt(numComponents);
-			if (principalComponentsIntensity.isFail()) {
-				notCorrected.add(markers[i]);
-				markerDataToStore = markerData;
-			} else {
-				byte[] abGenotypes = principalComponentsIntensity.getGenotypesUsed();
-				float[][] correctedXY =
-															principalComponentsIntensity.getCorrectedIntensity(	PrincipalComponentsIntensity.XY_RETURN,
-																																									true);
-				float[][] correctedLRRBAF =
-																	principalComponentsIntensity.getCorrectedIntensity(	PrincipalComponentsIntensity.BAF_LRR_RETURN,
-																																											true);// for
-																																														// now
-				markerDataToStore = new MarkerData(	markerData.getMarkerName(), markerData.getChr(),
-																						markerData.getPosition(), markerData.getFingerprint(),
-																						markerData.getGCs(), null, null, correctedXY[0],
-																						correctedXY[1], null, null, correctedLRRBAF[0],
-																						correctedLRRBAF[1], abGenotypes, abGenotypes);
-			}
-			markerDataStorage.addToNextIndex(markerDataToStore);
-		}
-		String output = proj.PROJECT_DIRECTORY.getValue()+ dir
-										+ STORAGE_BASE + ext.indexLargeFactors(	markers, proj.getMarkerNames(), true,
-																														proj.getLog(), true, true)[0]
-										+ STORAGE_EXT;
-		markerDataStorage.serialize(output);
-		if (notCorrected.size() > 0) {
-			Files.writeArray(	notCorrected.toArray(new String[notCorrected.size()]),
-												output.replaceAll("\\.ser",
-																					"_") + notCorrected.size() + "_markersThatFailedCorrection.txt");
-		}
-	}
 
 	/**
 	 * This function exports to PennCNV format starting from the temporary files made in
@@ -683,7 +611,8 @@ public class PennCNVPrep {
 																					/* boolean exportToPennCNV, */ boolean shadowSamples,
 																					LS_TYPE lType, int numSampleChunks, boolean preserveBafs,
 																					boolean forceLoadFromFiles,
-																					CORRECTION_TYPE correctionType) {
+																					CORRECTION_TYPE correctionType,
+																					SEX_CHROMOSOME_STRATEGY sexStrategy) {
 		new File(proj.PROJECT_DIRECTORY.getValue() + dir).mkdirs();
 		// if (exportToPennCNV) {
 		// boolean[] exportThese = new boolean[proj.getSamples().length];
@@ -764,14 +693,14 @@ public class PennCNVPrep {
 			proj.saveProperties(proj.PROJECT_DIRECTORY.getValue() + "shadow.properties");
 		} else {
 			prepExport(	proj, dir, tmpDir, numComponents, markerFile, numThreads, numMarkerThreads, lType,
-									preserveBafs, correctionType);
+									preserveBafs, correctionType, sexStrategy);
 		}
 	}
 
 	public static void prepExport(Project proj, String dir, String tmpDir, int numComponents,
 																String markerFile, int numThreads, int numMarkerThreads,
-																LS_TYPE lType, boolean preserveBafs,
-																CORRECTION_TYPE correctionType) {
+																LS_TYPE lType, boolean preserveBafs, CORRECTION_TYPE correctionType,
+																SEX_CHROMOSOME_STRATEGY sexStrategy) {
 		String[] markers;
 		PrincipalComponentsResiduals principalComponentsResiduals = loadPcResids(proj, numComponents);
 		if (principalComponentsResiduals == null) {
@@ -797,7 +726,8 @@ public class PennCNVPrep {
 																												proj.getSamplesToInclude(null), sex,
 																												markers, numComponents, dir, lType,
 																												numThreads, numMarkerThreads);
-		specialPennCNVFormat.exportSpecialMarkerDataMoreThreads(tmpDir, preserveBafs, correctionType);
+		specialPennCNVFormat.exportSpecialMarkerDataMoreThreads(tmpDir, preserveBafs, correctionType,
+																														sexStrategy);
 	}
 
 	public static void batchCorrections(Project proj, String java, String classPath, int memoryInMB,
@@ -1036,7 +966,8 @@ public class PennCNVPrep {
 				exportSpecialPennCNV(	proj, dir, tmpDir, numComponents, markers, numThreads,
 															numMarkerThreads, shadowSamples,
 															svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR, sampleChunks, false,
-															forceLoadFromFiles, CORRECTION_TYPE.XY);
+															forceLoadFromFiles, CORRECTION_TYPE.XY,
+															SEX_CHROMOSOME_STRATEGY.BIOLOGICAL);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

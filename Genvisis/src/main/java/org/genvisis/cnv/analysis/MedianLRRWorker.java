@@ -22,6 +22,7 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.SEX_CHROMOSOME_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -675,7 +676,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 																																										PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER,
 																																										PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO,
 																																										numThreads,
-																																										false, null);
+																																										false, null,
+																																										SEX_CHROMOSOME_STRATEGY.BIOLOGICAL);
 				if (recomputeLRR && !correctLRR) {
 					lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
 					// bafs = pcIntensity.getCentroidCompute().getRecomputedBAF();

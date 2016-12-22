@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.SEX_CHROMOSOME_STRATEGY;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
@@ -252,7 +253,7 @@ public class IntensityCorrectionQC {
 																																																			0.1D,
 																																																			numCorrectionThreads,
 																																																			false,
-																																																			null);
+																																																			null,SEX_CHROMOSOME_STRATEGY.BIOLOGICAL);
 					principalComponentsIntensity.correctXYAt(j);
 					if (!principalComponentsIntensity.isFail()) {
 						lrrICC = principalComponentsIntensity.getCorrectedIntensity("BAF_LRR", true)[1];

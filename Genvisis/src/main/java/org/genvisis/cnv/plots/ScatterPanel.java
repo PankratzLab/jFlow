@@ -23,6 +23,8 @@ import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.gui.LaunchAction;
+import org.genvisis.cnv.manage.SexOps;
+import org.genvisis.cnv.manage.SexOps.SEX_LOAD_TYPE;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
 import org.genvisis.cnv.var.IndiPheno;
@@ -213,7 +215,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 					break out;
 				}
 			}
-			datapoints = markerData.getDatapoints(plotType, null, toInclude, false, 1,
+			datapoints = markerData.getDatapoints(plotType, SexOps.getSampleSex(sp.getProject(),
+																																					SEX_LOAD_TYPE.MAPPED_SEX),
+																						toInclude,
+																						false, 1,
 																						sp.getGCthreshold(), sp.getClusterFilterCollection(),
 																						true, sp.getPcResids(), sp.getNumComponents(), 5,
 																						sp.getstdevFilter(), sp.getCorrectionRatio(),
@@ -223,7 +228,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 
 		} else {
 
-			datapoints = markerData.getDatapoints(plotType, null, toInclude, false, 1,
+			datapoints = markerData.getDatapoints(plotType,
+																						SexOps.getSampleSex(sp.getProject(),
+																																SEX_LOAD_TYPE.MAPPED_SEX),
+																						toInclude,
+																						false, 1,
 																						sp.getGCthreshold(), sp.getClusterFilterCollection(),
 																						true, sp.getPcResids(), sp.getNumComponents(), 5,
 																						sp.getstdevFilter(), sp.getCorrectionRatio(),

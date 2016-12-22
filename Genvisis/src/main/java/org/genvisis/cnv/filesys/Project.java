@@ -27,8 +27,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.prop.BooleanProperty;
 import org.genvisis.cnv.prop.DoubleProperty;
@@ -1959,6 +1959,8 @@ public class Project implements PropertyChangeListener {
 		projOriginal.copyBasicFiles(projCorrected, false);
 		return projCorrected;
 	}
+
+
 
 	public static void main(String[] args) {
 		int numArgs = args.length;

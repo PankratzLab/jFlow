@@ -90,6 +90,10 @@ public class CentroidCompute {
 		checkData();// fail early if mismatched array sizes
 	}
 
+	public int[] getSampleSex() {
+		return sampleSex;
+	}
+
 	public void setCentroid(float[][] centroid) {
 		this.centroid = centroid;
 		hasCentroid = true;
@@ -109,6 +113,11 @@ public class CentroidCompute {
 
 	public MarkerData getMarkerData() {
 		return markerData;
+	}
+
+
+	public boolean isSexSpecific() {
+		return sexSpecific;
 	}
 
 	/**
@@ -281,7 +290,7 @@ public class CentroidCompute {
 
 	private boolean checkCanCompute() {
 		if (!hasCentroid || centroid == null) {
-			log.reportError("Error - do not hava a centroid for "	+ markerData.getMarkerName()
+			log.reportError("Error - do not hava a centroid for "+ markerData.getMarkerName()
 											+ ", cannot compute LRR/BAF");
 			return false;
 		} else {
@@ -373,7 +382,7 @@ public class CentroidCompute {
 		} else {
 			ArrayList<Double> filteredXs = new ArrayList<Double>(xs.length);
 			for (int i = 0; i < xs.length; i++) {
-				if ((forceAuto || checkSex(chr, i))	&& (samplesToUse == null || samplesToUse[i])
+				if ((forceAuto || checkSex(chr, i))&& (samplesToUse == null || samplesToUse[i])
 						&& !Float.isNaN(xs[i])) {
 					filteredXs.add((double) xs[i]);
 				}
@@ -542,7 +551,7 @@ public class CentroidCompute {
 	}
 
 	private static boolean useMarker(float theta, float r, float conf, double confThreshold) {
-		return !Float.isNaN(theta)	&& !Float.isNaN(r) && !Float.isNaN(conf)
+		return !Float.isNaN(theta)&& !Float.isNaN(r) && !Float.isNaN(conf)
 						&& (confThreshold == 0 || conf > confThreshold);
 	}
 
@@ -630,7 +639,7 @@ public class CentroidCompute {
 			double cor = markerData.compareLRRs(cent.getCentroid(), proj.getLog())[0];
 			if (markerData.getChr() < 23 && cor < mincor) {
 				// mincor = markerData.compareLRRs(cent.getCentroid())[0];
-				min += markers[i]	+ "\t" + markerData.getChr() + "\t" + markerData.getPosition() + "\t"
+				min += markers[i]+ "\t" + markerData.getChr() + "\t" + markerData.getPosition() + "\t"
 								+ cor + "\n";
 			}
 			if (i % 1000 == 0) {
@@ -851,8 +860,7 @@ public class CentroidCompute {
 												0, proj.getLog());
 						} else if (array.isCNOnly(markerData.getMarkerName())) {
 							if (array != ARRAY.AFFY_GW6_CN && array != ARRAY.AFFY_GW6) {
-								proj.getLog()
-										.reportError("Intenstity only centroid designed for Affymetrix only");
+								proj.getLog().reportError("Intenstity only centroid designed for Affymetrix only");
 								return null;
 							}
 						}
@@ -880,7 +888,7 @@ public class CentroidCompute {
 		while (train.hasNext()) {
 			CentroidCompute[] centroidCompute = train.next();
 			if (!centroidCompute[0].getMarkerData().getMarkerName().equals(markers[index])) {
-				proj.getLog().reportError(centroidCompute[0].getMarkerData().getMarkerName()	+ "\t"
+				proj.getLog().reportError(centroidCompute[0].getMarkerData().getMarkerName()+ "\t"
 																	+ markers[index]);
 			}
 			index++;
