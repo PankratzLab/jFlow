@@ -17,7 +17,7 @@ public class VCFMerge {
 	public static void merge(	String[] vcfs, String mergeOut, String gatkLoc,
 														String referenceGenomeFasta, int numthreads, int memoryInMB,
 														Logger log) {
-		GATK gatk = new GATK(gatkLoc, referenceGenomeFasta, null, memoryInMB, true, false, log);
+		GATK gatk = new GATK(gatkLoc, referenceGenomeFasta, null, null, memoryInMB, true, false, log);
 		System.out.println("HID1");
 
 		if (vcfs != null) {

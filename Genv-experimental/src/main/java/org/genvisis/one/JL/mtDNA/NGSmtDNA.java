@@ -7,6 +7,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.GATK;
+import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
 import org.genvisis.seq.analysis.SimpleTallyGene;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
@@ -44,8 +45,8 @@ public class NGSmtDNA {
 			VCFOpsMT.convertHg19ToRCRS(cVcf, rcrsC, new Logger());
 
 			GATK gatk = new GATK(	"/Users/Kitty/bin/GenomeAnalysisTK-3.6/",
-														"/Volumes/Beta/ref/GRCh37_canon.fa", "MT", PSF.Ext.DEFAULT_MEMORY_MB,
-														true, true, log);
+														"/Volumes/Beta/ref/GRCh37_canon.fa", "MT", SEQ_TARGET.TARGETED,
+														PSF.Ext.DEFAULT_MEMORY_MB, true, true, log);
 
 			String outAnno = ext.addToRoot(rcrsC, ".poly");
 			gatk.annotateWithAnotherVCF(rcrsC, polyVCF, outAnno, new String[] {"AF", "AC"}, "mtPoly",

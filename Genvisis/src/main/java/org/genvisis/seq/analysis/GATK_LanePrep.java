@@ -14,6 +14,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
+import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
 
 /**
  * Prepping for the GATK is done on a lane by lane basis as reflected here
@@ -378,14 +379,14 @@ public class GATK_LanePrep extends BWA_Analysis {
 	public static boolean runPrep(String rootInputDir, String rootOutputDir, String fileOfSamplePairs,
 																String bwaLocation, String picardLocation, String gATKLocation,
 																String referenceGenomeFasta, String regionsFile,
-																String[] knownSitesSnpFile, String[] knownSitesIndelFile,
-																boolean overwriteExisting, boolean verbose, int numSampleThreads,
-																int numOtherThreads, int memoryInMB, int wallTimeInHours, boolean batch,
-																int numBatches, Logger log) {
+																SEQ_TARGET seqTarget, String[] knownSitesSnpFile,
+																String[] knownSitesIndelFile, boolean overwriteExisting, boolean verbose,
+																int numSampleThreads, int numOtherThreads, int memoryInMB, int wallTimeInHours,
+																boolean batch, int numBatches, Logger log) {
 		BWA bwa = new BWA(bwaLocation, overwriteExisting, verbose, log);
 		Picard picard = new Picard(picardLocation, null, overwriteExisting, verbose, log);
-		GATK gatk = new GATK(	gATKLocation, referenceGenomeFasta, regionsFile, null, memoryInMB,
-													knownSitesSnpFile, knownSitesIndelFile, verbose, overwriteExisting, log);
+		GATK gatk = new GATK(	gATKLocation, referenceGenomeFasta, regionsFile, seqTarget, null,
+													memoryInMB, knownSitesSnpFile, knownSitesIndelFile, verbose, overwriteExisting, log);
 		GATK_LanePrep gLanePrep = new GATK_LanePrep(rootInputDir, rootOutputDir, referenceGenomeFasta,
 																								verbose, numSampleThreads, numOtherThreads, bwa,
 																								picard, gatk, log);
@@ -496,6 +497,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 		String rootOutputDir = null;
 		String referenceGenomeFasta = "";
 		String regionsFile = null;
+		SEQ_TARGET seqTarget = null;
 		String bwaLocation = "";
 		String picardLocation = "";
 		String gATKLocation = "";
@@ -515,47 +517,49 @@ public class GATK_LanePrep extends BWA_Analysis {
 
 		String logFile = "GATK_PREP.log";
 
-
+		int argNum = 1;
 		String usage = "\n" + "seq.BWA_Analysis requires 2 argument\n";
-		usage += "   (1) root input directory (i.e. "	+ ROOT_INPUT_COMMAND + rootInputDir
+		usage += "   (" + argNum++ + ") root input directory (i.e. "	+ ROOT_INPUT_COMMAND + rootInputDir
 							+ " (no default))\n" + "";
-		usage += "   (2) root output directory (i.e. "	+ ROOT_OUTPUT_COMMAND + rootOutputDir
+		usage += "   (" + argNum++ + ") root output directory (i.e. "	+ ROOT_OUTPUT_COMMAND + rootOutputDir
 							+ " (no default))\n" + "";
-		usage += "   (3) tab-delimited file with no header of paired .fastq (i.e. "
+		usage += "   (" + argNum++ + ") tab-delimited file with no header of paired .fastq (i.e. "
 								+ FILE_OF_SAMPLE_PAIRS_COMMAND + fileOfSamplePairs + " (optional, no default))\n"
 							+ "";
-		usage += "   (4) the full path to a  reference genome in fasta format (i.e."
+		usage += "   (" + argNum++ + ") the full path to a  reference genome in fasta format (i.e."
 							+ REFERENCE_GENOME_COMMAND + referenceGenomeFasta + " (no default))\n" + "";
 		usage +=
-				"   (5) full path to a file for restricting the analysis to a list of intervals (i.e. "
+				"   (" + argNum++ + ") full path to a file for restricting the analysis to a list of intervals (i.e. "
 						+ GATK_LanePrep.REGIONS_FILE_COMMAND + " (optional for WGS; required otherwise, no default))\n" + "";
-		usage += "   (6) the full path to the bwa executable (i.e. "	+ BWA_LOCATION_COMMAND
+		usage += "   (" + argNum++ + ") Region targeted by sequencing ("	+ Array.toStr(SEQ_TARGET.values(), ",")
+		+ ") ( (i.e. " + GATK.TARGETED_REGION_COMMAND + " ( no default))\n" + "";
+		usage += "   (" + argNum++ + ") the full path to the bwa executable (i.e. "	+ BWA_LOCATION_COMMAND
 							+ bwaLocation + " (defualts to systems path))\n" + "";
-		usage += "   (7) the full path to the picard (2.6.0) directory containing the .jar (i.e. "
+		usage += "   (" + argNum++ + ") the full path to the picard (2.6.0) directory containing the .jar (i.e. "
 							+ Picard.PICARD_LOCATION_COMMAND + picardLocation + " (default))\n" + "";
-		usage += "   (8) the full path to the GATK (3.6) executable (i.e. "	+ GATK.GATK_LOCATION_COMMAND
+		usage += "   (" + argNum++ + ") the full path to the GATK (3.6) executable (i.e. "	+ GATK.GATK_LOCATION_COMMAND
 							+ gATKLocation + " (defualts to systems path))\n" + "";
-		usage += "   (9) the full path to reference indel files (comma delimited if multiple) (i.e. "
+		usage += "   (" + argNum++ + ") the full path to reference indel files (comma delimited if multiple) (i.e. "
 								+ GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND + Array.toStr(knownSitesIndelFile, ",")
 							+ " (default))\n" + "";
-		usage += "   (10) the full path to reference snp files (comma delimited if multiple) (i.e. "
+		usage += "   (" + argNum++ + ") the full path to reference snp files (comma delimited if multiple) (i.e. "
 								+ GATK.KNOWN_SITES_SNP_LOCATION_COMMAND
 							+ Array.toStr(new String[] {"site1", "site2", "site3"}, ",") + " (not the default))\n"
 							+ "";
 
-		usage += "   (11) run in quiet mode (i.e. " + QUIET_COMMAND + " (not tbe default))\n" + "";
-		usage += "   (12) number of threads per sample for bwa mem (i.e."	+ NUM_BETWEEN_THREADS_COMMAND
+		usage += "   (" + argNum++ + ") run in quiet mode (i.e. " + QUIET_COMMAND + " (not tbe default))\n" + "";
+		usage += "   (" + argNum++ + ") number of threads per sample for bwa mem (i.e."	+ NUM_BETWEEN_THREADS_COMMAND
 							+ numBetweenSampleThreads + " (default))\n" + "";
-		usage += "   (13) number of sample threads for bwa mem (i.e."	+ NUM_WITHIN_THREADS_COMMAND
+		usage += "   (" + argNum++ + ") number of sample threads for bwa mem (i.e."	+ NUM_WITHIN_THREADS_COMMAND
 							+ numWithinSampleThreads + " (default))\n" + "";
 
 		usage +=
-					"   (14) filename for a log (i.e. " + LOG_FILE_COMMAND + logFile + " (default))\n" + "";
-		usage += "   (15) set up a batch analysis for the root input directory for a log (i.e. "
+					"   (" + argNum++ + ") filename for a log (i.e. " + LOG_FILE_COMMAND + logFile + " (default))\n" + "";
+		usage += "   (" + argNum++ + ") set up a batch analysis for the root input directory for a log (i.e. "
 							+ BATCH_COMMAND + " (not the default))\n" + "";
-		usage += "   (16) number of batches for a batched analysis (i.e. "	+ NUMBATCHES_COMMAND
+		usage += "   (" + argNum++ + ") number of batches for a batched analysis (i.e. "	+ NUMBATCHES_COMMAND
 							+ numBatches + " (the default))\n" + "";
-		usage += "   (17) over-write exsiting files (i.e. "	+ OVERWRITE_EXISTING_COMMAND
+		usage += "   (" + argNum++ + ") over-write exsiting files (i.e. "	+ OVERWRITE_EXISTING_COMMAND
 							+ " (not the default))\n" + "";
 
 		for (String arg : args) {
@@ -577,6 +581,14 @@ public class GATK_LanePrep extends BWA_Analysis {
 			} else if (arg.startsWith(REGIONS_FILE_COMMAND)) {
 				regionsFile = ext.parseStringArg(arg, "");
 				numArgs--;
+			} else if (arg.startsWith(GATK.TARGETED_REGION_COMMAND)) {
+				try {
+					seqTarget = SEQ_TARGET.valueOf(ext.parseStringArg(arg));
+					numArgs--;
+				} catch (IllegalArgumentException iae) {
+					System.err.println(GATK.TARGETED_REGION_COMMAND	+ " must be one of: "
+															+ Array.toStr(SEQ_TARGET.values()));
+				}
 			} else if (arg.startsWith(BWA_LOCATION_COMMAND)) {
 				bwaLocation = ext.parseStringArg(arg, "");
 				numArgs--;
@@ -631,8 +643,8 @@ public class GATK_LanePrep extends BWA_Analysis {
 		Logger log = new Logger((rootOutputDir == null ? rootInputDir : rootOutputDir)
 														+ "GATK_PREP.log");
 		runPrep(rootInputDir, rootOutputDir, fileOfSamplePairs, bwaLocation, picardLocation,
-						gATKLocation, referenceGenomeFasta, regionsFile, knownSitesSnpFile,
-						knownSitesIndelFile, overwriteExisting, verbose, numWithinSampleThreads, numBetweenSampleThreads,
-						memoryInMB, wallTimeInHours, batch, numBatches, log);
+						gATKLocation, referenceGenomeFasta, regionsFile, seqTarget,
+						knownSitesSnpFile, knownSitesIndelFile, overwriteExisting, verbose, numWithinSampleThreads,
+						numBetweenSampleThreads, memoryInMB, wallTimeInHours, batch, numBatches, log);
 	}
 }

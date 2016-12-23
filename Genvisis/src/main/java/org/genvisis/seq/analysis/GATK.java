@@ -3,6 +3,7 @@ package org.genvisis.seq.analysis;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.genvisis.common.Array;
@@ -17,13 +18,17 @@ import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCFTumorNormalOps;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.googlecode.charts4j.collect.Maps;
 
 public class GATK {
 	public static final String GATK_LOCATION_COMMAND = "gatk=";
+	public static final String TARGETED_REGION_COMMAND = "seqTarget=";
 	public static final String DEFAULT_GATK = "/home/pankrat2/public/bin/GATK/";
 	public static final String SPLIT = ",";
 
@@ -100,6 +105,8 @@ public class GATK {
 
 	public static final String MAX_GAUSSIANS = "--maxGaussians";
 	public static final String DEFAULT_INDEL_MAX_GAUSSIANS = "4";
+	// TODO: Determine if macGuassians 4 should apply to Indels (Question @ GATK)
+	public static final String DEFAULT_TARGETED_MAX_GAUSSIANS = "4";
 	public static final String TS_FILTER_LEVEL = "--ts_filter_level";
 	public static final String DEFUALT_TS_FILTER_LEVEL_SNP = "99.0";
 	public static final String DEFUALT_TS_FILTER_LEVEL_INDEL = "99.0";
@@ -141,23 +148,10 @@ public class GATK {
 
 	public static final Set<String> VCF_EXTENSIONS = ImmutableSet.of(	GZ, GZ_INDEX, VCF, VCF_INDEX,
 																																		GVCF, G);
-
-	public static final String RESOURCE = "-resource:";
-	public static final String[] RESOURCES = {"hapmap", "omni", "1000G", "dbsnp"};
-	public static final String KNOWN_RESOURCE = "known=";
-	public static final String[] KNOWN_RESOURCES = {"false", "false", "false", "true"};
-	public static final String TRAINING = "training=";
-	public static final String[] TRAININGS = {"true", "true", "true", "false"};
-	public static final String TRUTH = "truth=";
-	public static final String[] TRUTHS = {"true", "true", "false", "false"};
-	public static final String PRIOR = "prior=";
-	public static final String[] PRIORS = {"15.0", "12.0", "10.0", "2.0"};
-
+	private static final String RESOURCE_ARG = "-resource:";
+	
 	public static final String TRANCHE = "-tranche";
 	public static final String[] TRANCHES = {"100.0", "99.9", "99.0", "90.0"};
-
-	public static final String INDEL_RESOURCE_FULL_MILLS = "-resource:mills,known=false,training=true,truth=true,prior=12.0";
-	public static final String INDEL_RESOURCE_FULL_DBSNP = "-resource:dbsnp,known=true,training=false,truth=false,prior=2.0";
 
 	private final String gatkLocation;
 	private final String referenceGenomeFasta;
@@ -171,38 +165,31 @@ public class GATK {
 	private final boolean verbose;
 	private final boolean overWriteExistingOutput;
 	private final Logger log;
-	private String hapMapTraining;
-	private String omniTraining;
-	private String thousandGTraining;
-	private String dbSnpTraining;
-	private String millsIndelTraining;
+	private Map<RESOURCE, String> trainingResources;
 	private String regionsFile;
 	private String supportingSnps;
+	private SEQ_TARGET seqTarget;
 
-	/**
-	 * Mutect constructor
-	 * 
-	 * @param memoryInMB TODO
-	 */
 	private GATK(	String gATKLocation, String referenceGenomeFasta, String javaLocation,
-								int memoryInMB, String dbSnpKnownSites, String regionsFile, String cosmicKnownSites,
-								boolean verbose, boolean overWriteExisting, Logger log) {
-		this(	gATKLocation, referenceGenomeFasta, regionsFile, javaLocation, memoryInMB, verbose,
-					overWriteExisting, log);
+								int memoryInMB, String dbSnpKnownSites, String regionsFile, SEQ_TARGET seqTarget,
+								String cosmicKnownSites, boolean verbose, boolean overWriteExisting, Logger log) {
+		this(	gATKLocation, referenceGenomeFasta, regionsFile, seqTarget, javaLocation, memoryInMB,
+					verbose, overWriteExisting, log);
 		this.dbSnpKnownSites = dbSnpKnownSites;
 		this.cosmicKnownSites = cosmicKnownSites;
 	}
 
-	public GATK(String gATKLocation, String referenceGenomeFasta, String regionsFile, int memoryInMB,
-							boolean verbose, boolean overWriteExisting, Logger log) {
-		this(gATKLocation, referenceGenomeFasta, regionsFile, null, memoryInMB, verbose, overWriteExisting, log);
+	public GATK(String gATKLocation, String referenceGenomeFasta, String regionsFile, SEQ_TARGET seqTarget,
+							int memoryInMB, boolean verbose, boolean overWriteExisting, Logger log) {
+		this(gATKLocation, referenceGenomeFasta, regionsFile, seqTarget, null, memoryInMB, verbose, overWriteExisting, log);
 	}
 
-	public GATK(String GATKLocation, String referenceGenomeFasta, String regionsFile, String javaLocation,
-							int memoryInMB, boolean verbose, boolean overWriteExisting, Logger log) {
+	public GATK(String GATKLocation, String referenceGenomeFasta, String regionsFile, SEQ_TARGET seqTarget,
+							String javaLocation, int memoryInMB, boolean verbose, boolean overWriteExisting, Logger log) {
 		this.gatkLocation = GATKLocation;
 		this.referenceGenomeFasta = referenceGenomeFasta;
 		this.regionsFile = regionsFile;
+		this.seqTarget = seqTarget;
 		this.javaLocation = javaLocation == null ? DEFAULT_JAVA : javaLocation;
 		this.memoryInMB = memoryInMB;
 		this.verbose = verbose;
@@ -211,28 +198,28 @@ public class GATK {
 		fail = verifyGATKLocation();
 	}
 
-	public GATK(String gATKLocation, String referenceGenomeFasta, String regionsFile, String javaLocation,
-							int memoryInMB, String[] knownSitesSnpFile, String[] knownSitesIndelFile,
-							boolean verbose, boolean overWriteExisting, Logger log) {
-		this(	gATKLocation, referenceGenomeFasta, regionsFile, javaLocation, memoryInMB, verbose,
-					overWriteExisting, log);
+	public GATK(String gATKLocation, String referenceGenomeFasta, String regionsFile, SEQ_TARGET seqTarget,
+							String javaLocation, int memoryInMB, String[] knownSitesSnpFile,
+							String[] knownSitesIndelFile, boolean verbose, boolean overWriteExisting, Logger log) {
+		this(	gATKLocation, referenceGenomeFasta, regionsFile, seqTarget, javaLocation, memoryInMB,
+					verbose, overWriteExisting, log);
 		this.knownSitesSnpFile = knownSitesSnpFile;
 		this.knownSitesIndelFile = knownSitesIndelFile;
 	}
 
 	public static class Mutect extends GATK {
 		public Mutect(String gATKLocation, String referenceGenomeFasta, int memoryInMB,
-									String dbSnpKnownSites, String regionsFile, String cosmicKnownSites,
-									boolean verbose, boolean overWriteExisting, Logger log) {
+									String dbSnpKnownSites, String regionsFile, SEQ_TARGET seqTarget,
+									String cosmicKnownSites, boolean verbose, boolean overWriteExisting, Logger log) {
 			this(	gATKLocation, referenceGenomeFasta, null, memoryInMB, dbSnpKnownSites, regionsFile,
-						cosmicKnownSites, verbose, overWriteExisting, log);
+						seqTarget, cosmicKnownSites, verbose, overWriteExisting, log);
 		}
 
 		public Mutect(String gATKLocation, String referenceGenomeFasta, String javaLocation,
 									int memoryInMB, String dbSnpKnownSites, String regionsFile,
-									String cosmicKnownSites, boolean verbose, boolean overWriteExisting, Logger log) {
+									SEQ_TARGET seqTarget, String cosmicKnownSites, boolean verbose, boolean overWriteExisting, Logger log) {
 			super(gATKLocation, referenceGenomeFasta, javaLocation, memoryInMB, dbSnpKnownSites,
-						regionsFile, cosmicKnownSites, verbose, overWriteExisting, log);
+						regionsFile, seqTarget, cosmicKnownSites, verbose, overWriteExisting, log);
 		}
 	}
 
@@ -286,6 +273,10 @@ public class GATK {
 		return regionsFile;
 	}
 
+	public SEQ_TARGET getSeqTarget() {
+		return seqTarget;
+	}
+
 	public void setSupportingSnps(String supportingSnps) {
 		this.supportingSnps = supportingSnps;
 	}
@@ -314,48 +305,16 @@ public class GATK {
 		this.cosmicKnownSites = cosmicKnownSites;
 	}
 
-	public String getMillsIndelTraining() {
-		return millsIndelTraining;
-	}
-
-	public void setMillsIndelTraining(String millsIndelTraining) {
-		this.millsIndelTraining = millsIndelTraining;
-	}
-
 	public String[] getKnownSitesIndelFile() {
 		return knownSitesIndelFile;
 	}
 
-	public String getHapMapTraining() {
-		return hapMapTraining;
+	public Map<RESOURCE, String> getTrainingResources() {
+		return trainingResources;
 	}
 
-	public void setHapMapTraining(String hapMapTraining) {
-		this.hapMapTraining = hapMapTraining;
-	}
-
-	public String getOmniTraining() {
-		return omniTraining;
-	}
-
-	public void setOmniTraining(String omniTraining) {
-		this.omniTraining = omniTraining;
-	}
-
-	public String getThousandGTraining() {
-		return thousandGTraining;
-	}
-
-	public void setThousandGTraining(String thousandGTraining) {
-		this.thousandGTraining = thousandGTraining;
-	}
-
-	public String getDbSnpTraining() {
-		return dbSnpTraining;
-	}
-
-	public void setDbSnpTraining(String dbSnpTraining) {
-		this.dbSnpTraining = dbSnpTraining;
+	public void setTrainingResources(Map<RESOURCE, String> trainingResources) {
+		this.trainingResources = ImmutableMap.copyOf(trainingResources);
 	}
 
 	public BaseRecalibration recalibrateABam(String baseId, String dedup_reads_bam, Logger altLog) {
@@ -467,7 +426,7 @@ public class GATK {
 		command.addAll(intervalCommands());
 		command.add(O);
 		command.add(outVCF);
-		command.add(RESOURCE + resourceName);
+		command.add(RESOURCE_ARG + resourceName);
 		command.add(annoVcf);
 		for (String annotation : annotations) {
 			command.add(E);
@@ -937,40 +896,22 @@ public class GATK {
 	private boolean addSnpEffAnnotation(String inputVCF, String snpEffVcf, String outputVCF,
 																			boolean addDBSNP, Logger log) {
 		boolean progress = true;
-		String[] inputFiles = new String[] {inputVCF, snpEffVcf};
-		String[] outputFiles = new String[] {getVcfIndex(outputVCF), outputVCF};
-		String[] command = new String[] {	javaLocation, PSF.Java.buildXmxString(getMemoryInMB()), JAR,
+		List<String> inputFiles = Lists.newArrayList(inputVCF, snpEffVcf);
+		List<String> outputFiles = Lists.newArrayList(getVcfIndex(outputVCF), outputVCF);
+		List<String> command = Lists.newArrayList(javaLocation, PSF.Java.buildXmxString(getMemoryInMB()), JAR,
 																			gatkLocation + GENOME_ANALYSIS_TK, T, VARIANT_ANNOTATOR, R,
 																			referenceGenomeFasta, A, SNP_EFF, VARIANT, inputVCF,
-																			SNP_EFF_FILE, snpEffVcf, L, inputVCF, O, outputVCF};
+																			SNP_EFF_FILE, snpEffVcf, L, inputVCF, O, outputVCF);
 		if (addDBSNP) {
-			String[] dbSnp = new String[] {DB_SNP, getDbSnpTraining()};
-			command = Array.concatAll(command, dbSnp);
-			inputFiles = Array.concatAll(inputFiles, new String[] {getDbSnpTraining()});
+			String dbSNPResource = trainingResources.get(RESOURCE.DBSNP);
+			command.add(DB_SNP);
+			command.add(dbSNPResource);
+			inputFiles.add(dbSNPResource);
 		}
 
 		progress = CmdLine.runCommandWithFileChecks(command, "", inputFiles, outputFiles, verbose,
 																								overWriteExistingOutput, true, log);
 		return progress;
-	}
-
-	private String[] getCurrentResourceBundle() {
-		String[] resourceArray = new String[RESOURCES.length * 2];
-		String[] currentResourceBundle = new String[] {	getHapMapTraining(), getOmniTraining(),
-																										getThousandGTraining(), getDbSnpTraining()};
-		int index = 0;
-		for (int i = 0; i < currentResourceBundle.length; i++) {
-			resourceArray[index] = "";
-			resourceArray[index] += RESOURCE + RESOURCES[i] + SPLIT;
-			resourceArray[index] += KNOWN_RESOURCE + KNOWN_RESOURCES[i] + SPLIT;
-			resourceArray[index] += TRAINING + TRAININGS[i] + SPLIT;
-			resourceArray[index] += TRUTH + TRUTHS[i] + SPLIT;
-			resourceArray[index] += PRIOR + PRIORS[i];
-			index++;
-			resourceArray[index] = currentResourceBundle[i];
-			index++;
-		}
-		return resourceArray;
 	}
 
 	public JointGATKGenotyper recalibrateAVCF(final JointGATKGenotyper jGatkGenotyper, int numThreads,
@@ -981,8 +922,8 @@ public class GATK {
 																						jGatkGenotyper.getRecalSNPFile(),
 																						jGatkGenotyper.getTranchesSNPFile(),
 																						jGatkGenotyper.getRscriptSNPFile(),
-																						jGatkGenotyper.getSeqTarget(),
-																						jGatkGenotyper.isIgnoreInbreeding(), numThreads, log);
+																						jGatkGenotyper.isIgnoreInbreeding(),
+																						numThreads, log);
 			if (progress) {
 				progress = applySNPRecalibrationModel(jGatkGenotyper.getRawVCF(),
 																							jGatkGenotyper.getRecalSNPFile(),
@@ -994,8 +935,8 @@ public class GATK {
 																				jGatkGenotyper.getRecalINDELFile(),
 																				jGatkGenotyper.getTranchesINDELFile(),
 																				jGatkGenotyper.getRscriptINDELFile(),
-																				jGatkGenotyper.getSeqTarget(),
-																				jGatkGenotyper.isIgnoreInbreeding(), numThreads, log);
+																				jGatkGenotyper.isIgnoreInbreeding(),
+																				numThreads, log);
 					if (progress) {
 						applyINDELRecalibrationModel(	jGatkGenotyper.getRecalSNP_VCF_File(),
 																					jGatkGenotyper.getRecalINDELFile(),
@@ -1011,19 +952,28 @@ public class GATK {
 	}
 
 	private boolean buildSNPRecalibrationModel(	String inputVCF, String recalFile, String tranchesFile,
-																							String rscriptFile, SEQ_TARGET seqTarget,
-																							boolean ignoreInbreeding, int numThreads,
-																							Logger altLog) {
-		String[] inputs = new String[] {inputVCF, getHapMapTraining(), getOmniTraining(),
-																		getThousandGTraining(), getDbSnpTraining()};
-		String[] ouputs = new String[] {recalFile, tranchesFile, rscriptFile};
-		String[] command = new String[] {	javaLocation, PSF.Java.buildXmxString(getMemoryInMB()), JAR,
+																							String rscriptFile, boolean ignoreInbreeding,
+																							int numThreads, Logger altLog) {
+		List<String> inputs = Lists.newArrayList(inputVCF);
+		for (RESOURCE training : RESOURCE.SNP_TRAINING_RESOURCES) {
+			inputs.add(trainingResources.get(training));
+		}
+		List<String> ouputs = ImmutableList.of(recalFile, tranchesFile, rscriptFile);
+		List<String> command = Lists.newArrayList(javaLocation, PSF.Java.buildXmxString(getMemoryInMB()), JAR,
 																			gatkLocation + GENOME_ANALYSIS_TK, T, VARIANT_RECALIBRATOR, R,
 																			referenceGenomeFasta, INPUT, inputVCF, MODE, SNP,
 																			TRANCHES_FILE, tranchesFile, RECAL_FILE, recalFile,
-																			R_SCRIPT_FILE, rscriptFile};
-		command = Array.concatAll(command, buildAns(true, seqTarget, ignoreInbreeding, log),
-															getCurrentResourceBundle(), buildTranches());
+																			R_SCRIPT_FILE, rscriptFile);
+		if (seqTarget == SEQ_TARGET.TARGETED) {
+			command.add(MAX_GAUSSIANS);
+			command.add(DEFAULT_TARGETED_MAX_GAUSSIANS);
+		}
+		command.addAll(buildAns(true, getSeqTarget(), ignoreInbreeding, log));
+		command.addAll(buildTranches());
+		for (RESOURCE training : RESOURCE.SNP_TRAINING_RESOURCES) {
+			command.add(training.getArgument());
+			command.add(trainingResources.get(training));
+		}
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
 																						overWriteExistingOutput, false,
 																						altLog == null ? log : altLog);
@@ -1045,20 +995,25 @@ public class GATK {
 
 	private boolean buildINDELRecalibrationModel(	String inputVCF, String recalFile,
 																								String tranchesFile, String rscriptFile,
-																								SEQ_TARGET seqTarget, boolean ignoreInbreeding,
-																								int numThreads, Logger altLog) {
-		String[] inputs = new String[] {inputVCF, getMillsIndelTraining()};
-		String[] ouputs = new String[] {recalFile, tranchesFile, rscriptFile};
-		String[] command = new String[] {	javaLocation, PSF.Java.buildXmxString(getMemoryInMB()), JAR,
-																			gatkLocation + GENOME_ANALYSIS_TK, T, VARIANT_RECALIBRATOR, R,
-																			referenceGenomeFasta, INPUT, inputVCF, MODE, INDEL,
-																			TRANCHES_FILE, tranchesFile, RECAL_FILE, recalFile,
-																			R_SCRIPT_FILE, rscriptFile, MAX_GAUSSIANS,
-																			DEFAULT_INDEL_MAX_GAUSSIANS, INDEL_RESOURCE_FULL_MILLS,
-																			getMillsIndelTraining(), INDEL_RESOURCE_FULL_DBSNP,
-																			getDbSnpTraining()};
-		command = Array.concatAll(command, buildAns(false, seqTarget, ignoreInbreeding, log),
-															buildTranches());
+																								boolean ignoreInbreeding, int numThreads,
+																								Logger altLog) {
+		List<String> inputs = Lists.newArrayList(inputVCF);
+		for (RESOURCE training : RESOURCE.INDEL_TRAINING_RESOURCES) {
+			inputs.add(trainingResources.get(training));
+		}
+		List<String> ouputs = Lists.newArrayList(recalFile, tranchesFile, rscriptFile);
+		List<String> command = Lists.newArrayList(	javaLocation, PSF.Java.buildXmxString(getMemoryInMB()), JAR,
+		      																			gatkLocation + GENOME_ANALYSIS_TK, T, VARIANT_RECALIBRATOR, R,
+		      																			referenceGenomeFasta, INPUT, inputVCF, MODE, INDEL,
+		      																			TRANCHES_FILE, tranchesFile, RECAL_FILE, recalFile,
+		      																			R_SCRIPT_FILE, rscriptFile, MAX_GAUSSIANS,
+		      																			DEFAULT_INDEL_MAX_GAUSSIANS);
+		command.addAll(buildAns(false, getSeqTarget(), ignoreInbreeding, log));
+		command.addAll(buildTranches());
+		for (RESOURCE training : RESOURCE.INDEL_TRAINING_RESOURCES) {
+			command.add(training.getArgument());
+			command.add(trainingResources.get(training));
+		}
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
 																						overWriteExistingOutput, true,
 																						altLog == null ? log : altLog);
@@ -1105,7 +1060,7 @@ public class GATK {
 																							gatkLocation + GENOME_ANALYSIS_TK, T, GENOTYPEGVCFS,
 																							R, referenceGenomeFasta, O, output, NT,
 																							Integer.toString(numWithinSampleThreads));
-
+		command.addAll(inputGVCFArgs);
 		return CmdLine.runCommandWithFileChecks(command, "", inputs,
 																						ImmutableList.of(output, getVcfIndex(output)), verbose,
 																						overWriteExistingOutput, true,
@@ -1150,7 +1105,7 @@ public class GATK {
 	 * @param ignoreInbreeding true to leave out InbreedingCoeff an, false to include
 	 * @return
 	 */
-	private static String[] buildAns(	boolean SNP, SEQ_TARGET seqTarget, boolean ignoreInbreeding,
+	private static List<String> buildAns(	boolean SNP, SEQ_TARGET seqTarget, boolean ignoreInbreeding,
 																		Logger log) {
 		Set<String> ansToUse = Sets.newHashSet(ANS_BASE);
 		if (SNP) {
@@ -1159,41 +1114,128 @@ public class GATK {
 			ansToUse.addAll(ANS_INDEL_ADDITIONS);
 		}
 		switch (seqTarget) {
-			default:
-				log.reportError("Unrecognized Sequencing target, using Exome recalibration annotations");
+			case TARGETED:
+				log.reportTimeWarning("Using Exome recalibration annotationa for custom targeted sequencing");
+				ansToUse.addAll(ANS_EXOME_ADDITIONS);
+				break;
 			case EXOME:
 				ansToUse.addAll(ANS_EXOME_ADDITIONS);
 				break;
 			case GENOME:
 				ansToUse.addAll(ANS_GENOME_ADDITIONS);
 				break;
+			default:
+				log.reportError("Unrecognized Sequencing target, using Exome recalibration annotations");
+				ansToUse.addAll(ANS_EXOME_ADDITIONS);
+				break;
 		}
 		if (!ignoreInbreeding) {
 			ansToUse.addAll(ANS_INBREEDING_ADDITIONS);
 		}
-
-		String[] ans = new String[ansToUse.size() * 2];
-		int index = 0;
+		
+		List<String> ans = Lists.newArrayList();
 		for (String an : ansToUse) {
-			ans[index++] = AN;
-			ans[index++] = an;
+			ans.add(AN);
+			ans.add(an);
 		}
-
 		return ans;
 	}
 
-	private static String[] buildTranches() {
-		String[] tranches = new String[TRANCHES.length * 2];
-		int index = 0;
+	private static List<String> buildTranches() {
+		List<String> tranches = Lists.newArrayList();
 		for (String element : TRANCHES) {
-			tranches[index++] = TRANCHE;
-			tranches[index++] = element;
+			tranches.add(TRANCHE);
+			tranches.add(element);
 		}
 		return tranches;
 	}
+	
+	public static enum RESOURCE {
+		HAPMAP("hapmap", false, true, true, 15.0),
+		OMNI("omni", false, true, true, 12.0),
+		G1K("1000G", false, true, false, 10.0),
+		DBSNP("dbsnp", true, false, false, 2.0),
+		MILLS("mills", false, true, true, 12.0);
+		
+		public static final String KNOWN_RESOURCE = "known=";
+		public static final String TRAINING = "training=";
+		public static final String TRUTH = "truth=";
+		public static final String PRIOR = "prior=";
+		
+		public static final Set<RESOURCE> SNP_TRAINING_RESOURCES = ImmutableSet.of(HAPMAP, OMNI, G1K, DBSNP);
+		public static final Set<RESOURCE> INDEL_TRAINING_RESOURCES = ImmutableSet.of(DBSNP, MILLS);
+		
+		private static final Map<String, RESOURCE> NAME_MAP;
+		
+		static {
+			Map<String, RESOURCE> buildNameMap = Maps.newHashMap();
+			for (RESOURCE resource : RESOURCE.values()) {
+				buildNameMap.put(resource.name, resource);
+			}
+			NAME_MAP = ImmutableMap.copyOf(buildNameMap);
+		}
+		
+		private String name;
+		private boolean known;
+		private boolean training;
+		private boolean truth;
+		private double prior;
+		/**
+		 * @param name
+		 * @param known
+		 * @param training
+		 * @param truth
+		 * @param prior
+		 */
+		private RESOURCE(String name, boolean known, boolean training, boolean truth, double prior) {
+			this.name = name;
+			this.known = known;
+			this.training = training;
+			this.truth = truth;
+			this.prior = prior;
+		}
+		
+		public String getName() {
+			return name;
+		}
+
+		public boolean isKnown() {
+			return known;
+		}
+
+		public boolean isTraining() {
+			return training;
+		}
+
+		public boolean isTruth() {
+			return truth;
+		}
+
+		public double getPrior() {
+			return prior;
+		}
+
+		public String getArgument() {
+			List<String> pieces = Lists.newArrayList();
+			pieces.add(RESOURCE_ARG + name);
+			pieces.add(KNOWN_RESOURCE + Boolean.toString(known));
+			pieces.add(TRAINING + Boolean.toString(training));
+			pieces.add(TRUTH + Boolean.toString(truth));
+			pieces.add(PRIOR + Double.toString(prior));
+			return Joiner.on(SPLIT).join(pieces);
+		}
+		
+		public static Set<String> names() {
+			return NAME_MAP.keySet();
+		}
+		
+		public static RESOURCE getResourceByName(String name) {
+			return NAME_MAP.get(name);
+		}
+	}
 
 	public static enum SEQ_TARGET {
-																	EXOME, GENOME;
+																	TARGETED, EXOME, GENOME;
 	}
 
 	public static class BaseRecalibration {
@@ -1523,7 +1565,4 @@ public class GATK {
 			return true;
 		}
 	}
-
-
-
 }

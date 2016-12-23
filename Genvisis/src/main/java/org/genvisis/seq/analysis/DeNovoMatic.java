@@ -17,6 +17,7 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.GATK.MutectTumorNormal;
+import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
 import org.genvisis.seq.analysis.GATK_Genotyper.ANNOVCF;
 import org.genvisis.seq.analysis.Mutect2.MUTECT_RUN_TYPES;
 import org.genvisis.seq.manage.BamOps;
@@ -426,6 +427,7 @@ public class DeNovoMatic {
 		String gatkLocation = "GATK_3_5/";
 		String cosmic = "b37_cosmic_v54_120711.hg19_chr.vcf";
 		String regions = "AgilentCaptureRegions.bed";
+		SEQ_TARGET seqTarget = null;
 		String ponVCF = null;
 		int numthreads = 1;
 		int numSampleThreads = 4;
@@ -443,18 +445,20 @@ public class DeNovoMatic {
 		usage += "   (3) known dbsnp snps (i.e. knownSnps=" + knownSnps + " (default))\n" + "";
 		usage += "   (4) cosmic snps (i.e. cosmic=" + cosmic + " (default))\n" + "";
 		usage += "   (5) regions for calling (i.e. regions=" + regions + " (default))\n" + "";
-		usage += "   (6) output root directory (i.e. outputDir=" + outputDir + " (default))\n" + "";
+		usage += "   (6) Region targeted by sequencing ("	+ Array.toStr(SEQ_TARGET.values(), ",")
+		+ ") ( (i.e. " + GATK.TARGETED_REGION_COMMAND + " ( no default))\n" + "";
+		usage += "   (7) output root directory (i.e. outputDir=" + outputDir + " (default))\n" + "";
 		usage += "   (8) number of threads (i.e. numthreads=" + numthreads + " (default))\n" + "";
 		usage += "   (9) gatk directory (i.e. gatk=" + gatkLocation + " (default))\n" + "";
-		usage += "   (11) pon vcf (i.e. ponVcf= (no default))\n" + "";
-		usage += "   (12) number of threads per sample (i.e. numSampleThreads="	+ numSampleThreads
+		usage += "   (10) pon vcf (i.e. ponVcf= (no default))\n" + "";
+		usage += "   (11) number of threads per sample (i.e. numSampleThreads="	+ numSampleThreads
 							+ " (default))\n" + "";
-		usage += "   (13) max memory to allocate to Java heap (i.e. "	+ PSF.Ext.MEMORY_MB + memoryInMB
+		usage += "   (12) max memory to allocate to Java heap (i.e. "	+ PSF.Ext.MEMORY_MB + memoryInMB
 							+ " (default))\n" + "";
-		usage += "   (14) full path to a vpop file (i.e. vpop= (no default))\n" + "";
-		usage += "   (15) full path to a file of bams (i.e. bams= (no default))\n" + "";
+		usage += "   (13) full path to a vpop file (i.e. vpop= (no default))\n" + "";
+		usage += "   (14) full path to a file of bams (i.e. bams= (no default))\n" + "";
 		usage +=
-					"   (16) full path to a file of supporting snps (i.e. supportSnps= (no default))\n" + "";
+					"   (15) full path to a file of supporting snps (i.e. supportSnps= (no default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -484,6 +488,14 @@ public class DeNovoMatic {
 			} else if (arg.startsWith("regions=")) {
 				regions = arg.split("=")[1];
 				numArgs--;
+			} else if (arg.startsWith(GATK.TARGETED_REGION_COMMAND)) {
+				try {
+					seqTarget = SEQ_TARGET.valueOf(ext.parseStringArg(arg));
+					numArgs--;
+				} catch (IllegalArgumentException iae) {
+					System.err.println(GATK.TARGETED_REGION_COMMAND	+ " must be one of: "
+															+ Array.toStr(SEQ_TARGET.values()));
+				}
 			} else if (arg.startsWith("outputDir=")) {
 				outputDir = arg.split("=")[1];
 				numArgs--;
@@ -516,7 +528,7 @@ public class DeNovoMatic {
 		new File(outputDir).mkdirs();
 		Logger log = new Logger(outputDir + "TN.log");
 		GATK gatk = new GATK.Mutect(gatkLocation, referenceGenomeFasta, memoryInMB, knownSnps, regions,
-																cosmic, true, false, log);
+																seqTarget, cosmic, true, false, log);
 		try {
 			run(vpopFile, fileOfBams, outputDir, ponVCF, freqFilter, gatk, MUTECT_RUN_TYPES.CALL_SOMATIC,
 					numthreads, numSampleThreads, annoVCF, finalVCF, tparams, log);

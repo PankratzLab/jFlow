@@ -284,6 +284,24 @@ public class ext {
 
 		return -1;
 	}
+	
+	public static boolean startsWithOneOf(String source, String... prefixes) {
+		for (String prefix : prefixes) {
+			if (source.startsWith(prefix)) {
+				return true;
+			}
+		}
+	return false;
+	}
+	
+	public static boolean startsWithOneOf(String source, Iterable<String> prefixes) {
+		for (String prefix : prefixes) {
+			if (source.startsWith(prefix)) {
+				return true;
+			}
+		}
+	return false;
+	}
 
 	public static int indexOfStartsWith(String target, String[] array, boolean reverseNotForward) {
 		if (reverseNotForward) {
@@ -1440,6 +1458,10 @@ public class ext {
 			System.exit(1);
 			return false;
 		}
+	}
+	
+	public static String parseStringArg(String arg) {
+		return parseStringArg(arg, "");
 	}
 
 	public static String parseStringArg(String arg, String blankValue) {

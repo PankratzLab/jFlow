@@ -97,7 +97,7 @@ public class GenotypeRefinement {
 		new File(outputDir).mkdirs();
 		Logger log = new Logger(outputDir + "TN.log");
 		GATK gatk = new Mutect(	gatkLocation, referenceGenomeFasta, PSF.Ext.DEFAULT_MEMORY_MB, null,
-														null, null, true, false, log);
+														null, null, null, true, false, log);
 		gatk.setSupportingSnps(supportingSnps);
 		refineGenotypes(inputVcf, ped, outputDir, gatk);
 	}

@@ -1609,15 +1609,17 @@ public class VCFOps {
 			Segment[] segsToSearch = null;
 			if (segmentFile.endsWith(".in") || segmentFile.endsWith(".bim")) {
 				segsToSearch = Segment.loadRegions(segmentFile, 0, 3, 3, false);
-			} else {
+			} else if (segmentFile.endsWith(".bed")){
+				BEDFileReader bfr = new BEDFileReader(segmentFile, false);
+				segsToSearch = bfr.loadAll(log).getBufferedSegmentSet(bpBuffer).getStrictSegments();
+			} else {			
 				segsToSearch = Segment.loadRegions(segmentFile, 0, 1, 2, 0, true, true, true, bpBuffer);
 				log.reportTimeInfo("Loaded " + segsToSearch.length + " segments to search");
-				segsToSearch = Segment.unique(segsToSearch);
-				log.reportTimeInfo(segsToSearch.length + " were unique");
-				segsToSearch = Segment.mergeOverlapsAndSortAllChromosomes(segsToSearch, 1);
-				log.reportTimeInfo(segsToSearch.length + " after merging");
-
 			}
+			segsToSearch = Segment.unique(segsToSearch);
+			log.reportTimeInfo(segsToSearch.length + " were unique");
+			segsToSearch = Segment.mergeOverlapsAndSortAllChromosomes(segsToSearch, 1);
+			log.reportTimeInfo(segsToSearch.length + " after merging");
 
 			VariantContextWriter writer = initWriter(	output, DEFUALT_WRITER_OPTIONS,
 																								getSequenceDictionary(reader));
