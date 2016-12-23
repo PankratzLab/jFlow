@@ -246,9 +246,14 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		// }
 	}
 
+	public static final int DEFAULT_STARTX = 20;
+	public static final int DEFAULT_STARTY = 20;
+	public static final int DEFAULT_WIDTH = 1000;
+	public static final int DEFAULT_HEIGHT = 720;
+	
 	private void setupGUI() {
 		// Set the default window size
-		setSize(1000, 720);
+		setBounds(DEFAULT_STARTX, DEFAULT_STARTY, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
 		// Close this window but not the entire application on close
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
