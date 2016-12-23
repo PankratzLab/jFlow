@@ -68,7 +68,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	private boolean[][] genoSampleClusters;// genotype, sample
 	private final boolean[] forceThisCluster;
 	private float[] correctedLRR;
-	private final SEX_CHROMOSOME_STRATEGY sexStrategy;
+	private final CHROMOSOME_X_STRATEGY sexStrategy;
 
 	/**
 	 * The two types of intensity correction we support
@@ -86,7 +86,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 																LRR_ONLY;
 	}
 
-	public enum SEX_CHROMOSOME_STRATEGY {
+	public enum CHROMOSOME_X_STRATEGY {
 																				/**
 																				 * Females should have ~2x intensity on chrX, etc
 																				 */
@@ -98,7 +98,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 
 		private String toolTip;
 
-		private SEX_CHROMOSOME_STRATEGY(String toolTip) {
+		private CHROMOSOME_X_STRATEGY(String toolTip) {
 			this.toolTip = toolTip;
 
 		}
@@ -117,7 +117,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 																			boolean medianCenter, LS_TYPE lType, int correctionMethod,
 																			int nStage, double residStandardDeviationFilter,
 																			double correctionRatio, int numThreads, boolean verbose,
-																			String output, SEX_CHROMOSOME_STRATEGY sexStrategy) {
+																			String output, CHROMOSOME_X_STRATEGY sexStrategy) {
 		super(principalComponentsResiduals);// we hijack the loading of the PC file and tracking of
 																				// samples etc ...
 		samples = proj.getSamples();
@@ -138,7 +138,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		this.numThreads = numThreads;
 		this.correctionRatio = correctionRatio;
 		this.sexStrategy = sexStrategy;
-		this.sexSpecificChrCovariates = determineAppropriateSexCovariates(sexStrategy);
+		this.sexSpecificChrCovariates = setUpSexSpecificStrategy(sexStrategy);
 		if (centroid.failed()) {
 			fail = true;
 		}
@@ -147,13 +147,15 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		}
 	}
 
-	private double[][] determineAppropriateSexCovariates(SEX_CHROMOSOME_STRATEGY sexStrategy) {
-		if (centroid.isSexSpecific()&& sexStrategy == SEX_CHROMOSOME_STRATEGY.ARTIFICIAL
-				&& centroid.getMarkerData().getChr() == 23) {
+	private double[][] setUpSexSpecificStrategy(CHROMOSOME_X_STRATEGY sexStrategy) {
+		double[][] sexCovariates =null;
+		if (centroid.isSexSpecific()) {
 
+			if (sexStrategy == CHROMOSOME_X_STRATEGY.ARTIFICIAL
+					&& centroid.getMarkerData().getChr() == 23) {
 			int[] sex = SexOps.getSampleSex(proj, SEX_LOAD_TYPE.NUM_X_SEX);
 
-			double[][] sexCovariates = new double[sex.length][];
+				sexCovariates = new double[sex.length][];
 			for (int i = 0; i < sexCovariates.length; i++) {
 				if (sex[i] > 0) {
 					sexCovariates[i] = new double[] {sex[i]};
@@ -162,9 +164,17 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 				}
 			}
 			return sexCovariates;
-		} else {
-			return null;
+			} else if (centroid.getMarkerData().getChr() == 24) {
+				int[] sex = SexOps.getSampleSex(proj, SEX_LOAD_TYPE.MAPPED_SEX);
+				for (int i = 0; i < sex.length; i++) {
+					if (sex[i] != 1) {
+						// samplesToUse[i] = false;
+						centroid.getSamplesToUse()[i]=false;
+					}
+				}
+			}
 		}
+		return sexCovariates;
 	}
 
 	public MarkerData getMarkerDataUsed() {
@@ -361,7 +371,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		} else {
 
 			centroid.setMarkerData(tmpMarkerData);
-			centroid.computeCentroid(sexStrategy == SEX_CHROMOSOME_STRATEGY.ARTIFICIAL);
+			centroid.computeCentroid(sexStrategy == CHROMOSOME_X_STRATEGY.ARTIFICIAL);
 			float[] lrrs = centroid.getRecomputedLRR();
 			if (isAffyIntensityOnly(getProj().getArrayType(), tmpMarkerData)) {
 				centroid.setIntensityOnly(true); // this is to get proper LRRs /BAFs for affy CN_ probes.
@@ -999,13 +1009,13 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		// private final String[] markersToCorrect;
 		private final int correctAt;
 		private final CORRECTION_TYPE correctionType;
-		private final SEX_CHROMOSOME_STRATEGY sexStrategy;
+		private final CHROMOSOME_X_STRATEGY sexStrategy;
 
 		public PcCorrectionProducer(PrincipalComponentsResiduals pcResiduals, int correctAt,
 																int[] sampleSex, boolean[] samplesToUseCluster, LS_TYPE lType,
 																int numCorrectionThreads, int numDecompressThreads,
 																String[] markersToCorrect, CORRECTION_TYPE correctionType,
-																SEX_CHROMOSOME_STRATEGY sexStrategy) {
+																CHROMOSOME_X_STRATEGY sexStrategy) {
 			super();
 			this.pcResiduals = pcResiduals;
 			this.sampleSex = sampleSex;

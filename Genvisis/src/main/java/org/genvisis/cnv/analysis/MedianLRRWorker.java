@@ -22,7 +22,7 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
-import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.SEX_CHROMOSOME_STRATEGY;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -330,7 +330,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private final boolean[] transChrs;
 
 	private final boolean recomputeLRR, correctXY, correctLRR;
-	private final SEX_CHROMOSOME_STRATEGY strategy;
+	private final CHROMOSOME_X_STRATEGY strategy;
 	private final boolean homozygousOnly;
 
 	private final JProgressBar progressBar;
@@ -338,7 +338,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	public MedianLRRWorker(	Project proj, String[] input, int transformationType, int scope,
 													String outputBase, JProgressBar jProgressBar, boolean recomputeLRR,
 													boolean correctLRR, boolean correctXY, boolean homozygousOnly,
-													SEX_CHROMOSOME_STRATEGY strategy, Logger log) {
+													CHROMOSOME_X_STRATEGY strategy, Logger log) {
 		this.proj = proj;
 		this.input = input;
 		this.outputBase = outputBase;
@@ -1019,7 +1019,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
 	// for access from command line
 	public static void computeMedianLrrs(	Project proj, String regionFileName, int transfromationType,
-																				int scope, SEX_CHROMOSOME_STRATEGY strategy,
+																				int scope, CHROMOSOME_X_STRATEGY strategy,
 																				String outputBase) {
 		Logger log = proj.getLog();
 		String[] input = readToArray(proj.PROJECT_DIRECTORY.getValue() + regionFileName, log);
@@ -1081,7 +1081,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		String logfile = outputBase + ".log";
 		Logger log;
 		Project proj;
-		SEX_CHROMOSOME_STRATEGY strategy = SEX_CHROMOSOME_STRATEGY.BIOLOGICAL;
+		CHROMOSOME_X_STRATEGY strategy = CHROMOSOME_X_STRATEGY.BIOLOGICAL;
 
 		// String usage = "cnv.analysis.MedianLRRWorker requires 2 arguments\n" + "" + " (1) project
 		// properties filename (i.e. proj=" + cnv.Launch.getDefaultDebugProjectFile(false) + "
@@ -1120,8 +1120,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		usage +=
 					"   (8) correct data with principal components (must be defined by the properties file) (i.e. correctXY="
 							+ correctXY + " (default));";
-		usage += "   (9) Sex Chromosome strategy.  Options include: ";
-		usage += Array.toStr(SEX_CHROMOSOME_STRATEGY.values(), ", ") + " (i.e. sexStrategy=";
+		usage += "   (9) Chromosome X strategy.  Options include: ";
+		usage += Array.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy=";
 		usage += strategy + " (default))\n";
 
 		usage += "";
@@ -1155,7 +1155,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 				correctXY = ext.parseBooleanArg(arg);
 				numArgs--;
 			} else if (arg.startsWith("sexStrategy=")) {
-				strategy = SEX_CHROMOSOME_STRATEGY.valueOf(ext.parseStringArg(arg, strategy.toString()));
+				strategy = CHROMOSOME_X_STRATEGY.valueOf(ext.parseStringArg(arg, strategy.toString()));
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + arg);

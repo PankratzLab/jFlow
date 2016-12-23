@@ -31,7 +31,7 @@ import javax.swing.JTextField;
 import javax.swing.border.Border;
 
 import org.genvisis.cnv.analysis.MedianLRRWorker;
-import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.SEX_CHROMOSOME_STRATEGY;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.plots.TwoDPlot;
@@ -63,7 +63,7 @@ public class LRRComp extends JFrame implements Runnable {
 
 	private int transformationType;
 	private int scope;
-	private SEX_CHROMOSOME_STRATEGY strategy = SEX_CHROMOSOME_STRATEGY.ARTIFICIAL;
+	private CHROMOSOME_X_STRATEGY strategy = CHROMOSOME_X_STRATEGY.ARTIFICIAL;
 	private final String initRegion;
 	private MedianLRRWorker medianLRRWorker;
 	private final Project proj;
@@ -303,12 +303,12 @@ public class LRRComp extends JFrame implements Runnable {
 		ButtonGroup sexStrategy = new ButtonGroup();
 
 		private void addSexStrategyButtons(ActionListener actionListener, int initScope) {
-			JRadioButton[] sexStrategyButtons = new JRadioButton[SEX_CHROMOSOME_STRATEGY.values().length];
-			for (int i = 0; i < SEX_CHROMOSOME_STRATEGY.values().length; i++) {
-				sexStrategyButtons[i] = new JRadioButton(	SEX_CHROMOSOME_STRATEGY.values()[i].toString(),
+			JRadioButton[] sexStrategyButtons = new JRadioButton[CHROMOSOME_X_STRATEGY.values().length];
+			for (int i = 0; i < CHROMOSOME_X_STRATEGY.values().length; i++) {
+				sexStrategyButtons[i] = new JRadioButton(	CHROMOSOME_X_STRATEGY.values()[i].toString(),
 																									false);
 				sexStrategyButtons[i].setFont(new Font("Arial", 0, 14));
-				sexStrategyButtons[i].setToolTipText(SEX_CHROMOSOME_STRATEGY.values()[i].getToolTip());
+				sexStrategyButtons[i].setToolTipText(CHROMOSOME_X_STRATEGY.values()[i].getToolTip());
 				typeRadio.add(sexStrategyButtons[i]);
 				sexStrategyButtons[i].addActionListener(actionListener);
 				this.add(sexStrategyButtons[i]);
@@ -441,7 +441,7 @@ public class LRRComp extends JFrame implements Runnable {
 					outputBase = EXTRA_CORRECTION[index];
 				} else {
 					try {
-					strategy = SEX_CHROMOSOME_STRATEGY.valueOf(actionEvent.getActionCommand());
+					strategy = CHROMOSOME_X_STRATEGY.valueOf(actionEvent.getActionCommand());
 					} catch (IllegalArgumentException ile) {
 
 					}

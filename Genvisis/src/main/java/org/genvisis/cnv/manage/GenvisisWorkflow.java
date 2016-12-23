@@ -16,7 +16,7 @@ import org.genvisis.cnv.analysis.Mosaicism;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
-import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.SEX_CHROMOSOME_STRATEGY;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.ABLookup.ABSource;
 import org.genvisis.cnv.filesys.Centroids;
@@ -2002,7 +2002,7 @@ public class GenvisisWorkflow {
 			String tmpDir = "".equals(variables.get(this).get(4).trim())	? null
 																																		: variables.get(this).get(4);
 			CORRECTION_TYPE type = CORRECTION_TYPE.valueOf(variables.get(this).get(5));
-			SEX_CHROMOSOME_STRATEGY strategy = SEX_CHROMOSOME_STRATEGY.valueOf(variables.get(this)
+			CHROMOSOME_X_STRATEGY strategy = CHROMOSOME_X_STRATEGY.valueOf(variables.get(this)
 																																									.get(6));
 
 			int totalThreads = Integer.parseInt(variables.get(this).get(7));
@@ -2047,7 +2047,7 @@ public class GenvisisWorkflow {
 														false, // recomputeLRR
 														"", // tempDir
 														CORRECTION_TYPE.XY,
-														SEX_CHROMOSOME_STRATEGY.BIOLOGICAL,
+														CHROMOSOME_X_STRATEGY.BIOLOGICAL,
 														Runtime.getRuntime().availableProcessors() // numThreads
 			};
 		}

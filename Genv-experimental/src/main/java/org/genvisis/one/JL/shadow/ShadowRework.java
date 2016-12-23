@@ -6,7 +6,7 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.PcCorrectionProducer;
-import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.SEX_CHROMOSOME_STRATEGY;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.TransposeData;
@@ -53,7 +53,7 @@ public class ShadowRework {
 
 		String[] markers = proj.getMarkerNames(); // Correct the entire thing
 		PcCorrectionProducer producer = new PcCorrectionProducer(principalComponentsResiduals, numComponents, sampleSex,
-				samplesToUseCluster, LS_TYPE.REGULAR, numCorrectionThreads, 1, proj.getMarkerNames(),CORRECTION_TYPE.XY,SEX_CHROMOSOME_STRATEGY.BIOLOGICAL);
+				samplesToUseCluster, LS_TYPE.REGULAR, numCorrectionThreads, 1, proj.getMarkerNames(),CORRECTION_TYPE.XY,CHROMOSOME_X_STRATEGY.BIOLOGICAL);
 		WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<PrincipalComponentsIntensity>(producer,
 				numMarkerThreads, 10, proj.getLog());
 		ArrayList<String> notCorrected = new ArrayList<String>();

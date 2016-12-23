@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
-import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.SEX_CHROMOSOME_STRATEGY;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
@@ -193,7 +193,7 @@ public class MarkerData implements Serializable {
 																																									correctionRatio,
 																																									numThreads, false,
 																																									null,
-																																									SEX_CHROMOSOME_STRATEGY.ARTIFICIAL);
+																																									CHROMOSOME_X_STRATEGY.ARTIFICIAL);
 			pcIntensity.correctXYAt(numComponents);
 			// This will display the genotypes after correction in scatter plot for testing, note that you
 			// will lose the original
@@ -273,7 +273,7 @@ public class MarkerData implements Serializable {
 																																									correctionRatio,
 																																									numThreads, false,
 																																									null,
-																																									SEX_CHROMOSOME_STRATEGY.ARTIFICIAL);
+																																									CHROMOSOME_X_STRATEGY.ARTIFICIAL);
 			pcIntensity.correctXYAt(numComponents);
 			return pcIntensity.getCentroidCompute().getClustGenotypes();
 		}

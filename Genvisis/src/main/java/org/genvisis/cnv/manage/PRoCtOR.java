@@ -7,8 +7,8 @@ import org.genvisis.cnv.analysis.PennCNVPrep;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsApply;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
-import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.SEX_CHROMOSOME_STRATEGY;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.Array;
@@ -53,7 +53,7 @@ public class PRoCtOR {
 
 	public static String shadow(Project proj, String tmpDir, String outputBase,
 															double markerCallRateFilter, boolean recomputeLRR_PCs,
-															CORRECTION_TYPE correctionType, SEX_CHROMOSOME_STRATEGY strategy,
+															CORRECTION_TYPE correctionType, CHROMOSOME_X_STRATEGY strategy,
 															int numComponents, int totalThreads) {
 		int numMarkerThreads = 1;
 		int numThreads = (int) Math.ceil((double) totalThreads / (double) numMarkerThreads);
@@ -90,7 +90,7 @@ public class PRoCtOR {
 		boolean recomputeLRR = false;
 		int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;
 		CORRECTION_TYPE correctionType = CORRECTION_TYPE.XY;
-		SEX_CHROMOSOME_STRATEGY strategy = SEX_CHROMOSOME_STRATEGY.BIOLOGICAL;
+		CHROMOSOME_X_STRATEGY strategy = CHROMOSOME_X_STRATEGY.BIOLOGICAL;
 		int numThreads = Runtime.getRuntime().availableProcessors();
 
 		String usage = "\n"+ "cnv.manage.PRoCtOR requires 0-1 arguments\n"
@@ -107,8 +107,8 @@ public class PRoCtOR {
 										+ Array.toStr(CORRECTION_TYPE.values(), ", ") + " (i.e. type=" + correctionType
 										+ " (default))\n"
 
-										+ "   (7) Sex Chromosome strategy.  Options include: "
-										+ Array.toStr(SEX_CHROMOSOME_STRATEGY.values(), ", ") + " (i.e. sexStrategy="
+										+ "   (7) Chromosome X correction strategy.  Options include: "
+										+ Array.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy="
 										+ strategy + " (default))\n"
 
 										+ "   (8) Total number of threads to use (i.e. numThreads=" + numThreads
@@ -144,7 +144,7 @@ public class PRoCtOR {
 																																		correctionType.toString()));
 				numArgs--;
 			} else if (arg.startsWith("sexStrategy=")) {
-				strategy = SEX_CHROMOSOME_STRATEGY.valueOf(ext.parseStringArg(arg, strategy.toString()));
+				strategy = CHROMOSOME_X_STRATEGY.valueOf(ext.parseStringArg(arg, strategy.toString()));
 				numArgs--;
 			} else if (arg.startsWith("tmp=")) {
 				tempDir = ext.parseStringArg(arg, null);

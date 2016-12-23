@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.PcCorrectionProducer;
-import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.SEX_CHROMOSOME_STRATEGY;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
@@ -80,7 +80,7 @@ public class PennCNVPrep {
 	 */
 	public void exportSpecialMarkerDataMoreThreads(	String tmpDir, boolean preserveBafs,
 																									CORRECTION_TYPE correctionType,
-																									SEX_CHROMOSOME_STRATEGY sexStrategy) {
+																									CHROMOSOME_X_STRATEGY sexStrategy) {
 		String output = (tmpDir == null ? proj.PROJECT_DIRECTORY.getValue() : tmpDir)+ dir
 										+ STORAGE_BASE + ext.indexLargeFactors(	markers, proj.getMarkerNames(), true,
 																														proj.getLog(), true, true)[0]
@@ -612,7 +612,7 @@ public class PennCNVPrep {
 																					LS_TYPE lType, int numSampleChunks, boolean preserveBafs,
 																					boolean forceLoadFromFiles,
 																					CORRECTION_TYPE correctionType,
-																					SEX_CHROMOSOME_STRATEGY sexStrategy) {
+																					CHROMOSOME_X_STRATEGY sexStrategy) {
 		new File(proj.PROJECT_DIRECTORY.getValue() + dir).mkdirs();
 		// if (exportToPennCNV) {
 		// boolean[] exportThese = new boolean[proj.getSamples().length];
@@ -700,7 +700,7 @@ public class PennCNVPrep {
 	public static void prepExport(Project proj, String dir, String tmpDir, int numComponents,
 																String markerFile, int numThreads, int numMarkerThreads,
 																LS_TYPE lType, boolean preserveBafs, CORRECTION_TYPE correctionType,
-																SEX_CHROMOSOME_STRATEGY sexStrategy) {
+																CHROMOSOME_X_STRATEGY sexStrategy) {
 		String[] markers;
 		PrincipalComponentsResiduals principalComponentsResiduals = loadPcResids(proj, numComponents);
 		if (principalComponentsResiduals == null) {
@@ -967,7 +967,7 @@ public class PennCNVPrep {
 															numMarkerThreads, shadowSamples,
 															svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR, sampleChunks, false,
 															forceLoadFromFiles, CORRECTION_TYPE.XY,
-															SEX_CHROMOSOME_STRATEGY.BIOLOGICAL);
+															CHROMOSOME_X_STRATEGY.BIOLOGICAL);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
