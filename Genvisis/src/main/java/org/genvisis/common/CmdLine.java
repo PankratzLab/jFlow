@@ -387,7 +387,7 @@ public class CmdLine {
 																									boolean verbose, boolean overWriteExistingOutput,
 																									boolean treatEmptyAsMissing, Logger log) {
 		return new Command(	commandList, necessaryInputFiles, expectedOutputFiles,
-												dir).runCommand(verbose, overWriteExistingOutput, true, treatEmptyAsMissing,
+												dir).runCommand(verbose, overWriteExistingOutput, false, treatEmptyAsMissing,
 																				log);
 	}
 
