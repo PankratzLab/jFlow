@@ -356,10 +356,15 @@ public class MarkerBlast {
 																			Files.exists(proj.getReferenceGenomeFASTAFilename())	? new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																																																													proj.getLog())
 																																																		: null;
+			// ABLookup abLookup =
+			// new ABLookup( markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(),
+			// true, true, proj.getLog());
+			//
+			// Hashtable<String, Integer> indices = proj.getMarkerIndices();
 			if (referenceGenome == null) {
 				proj.getLog().reportTimeWarning("A reference genome was not found");
 			}
-						String refStrandTitle = getRefStrand(parser);
+			String refStrandTitle = getRefStrand(parser);
 			if (refStrandTitle == null && params != null) {
 				params.setNotes("Warning, the positive and negative strands of the probe design are actually forward and reverse designations, due to parsing IlmnIDs ");
 			}
@@ -451,7 +456,7 @@ public class MarkerBlast {
 						for(String seq:allSeqs){
 							collapsed.add(seq);
 						}
-						String[] tmpSeq = Array.reverse(Array.toStringArray(collapsed));
+						String[] tmpSeq = Array.toStringArray(collapsed);
 
 						if (tmpSeq.length != 2) {
 							proj.getLog()
@@ -499,11 +504,13 @@ public class MarkerBlast {
 							// if (!Arrays.equals( new String[] {StrandOps.flipIfNeeded(aS, strand, false),
 							// StrandOps.flipIfNeeded(bS, strand, false)},
 							// new String[] {abLookup.getLookup()[indices.get(markerName)][0]
-							// + "", abLookup.getLookup()[indices.get(markerName)][1]
+							// + "",
+							// abLookup.getLookup()[indices.get(markerName)][1]
 							// + ""})) {
 							// System.err.println(markerName+ "\t" + Array.toStr(tmpSeq) + "\t"
 							// + Array.toStr(new String[] {abLookup.getLookup()[indices.get(markerName)][0]
-							// + "", abLookup.getLookup()[indices.get(markerName)][1]
+							// + "",
+							// abLookup.getLookup()[indices.get(markerName)][1]
 							// + "",
 							// aS, bS, strand.toString()}));
 							//
@@ -525,7 +532,7 @@ public class MarkerBlast {
 																								TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(),
 																								alleleParser.getB(), alleleParser.getRef(),
 																								alleleParser.getAlts()));
-							throw new IllegalArgumentException("Sorry, Affymetrix AB designation is not currently working, feel free to remove this exception if you just want blast results, but make sure to not rely on ABs");
+							throw new IllegalArgumentException("Sorry, Affymetrix AB designation is not currently working, feel free to remove this exception if you just want blast results, but make sure to not rely on ABs - also shout at @jlanej");
 						}
 					}
 				}
