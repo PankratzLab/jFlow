@@ -186,7 +186,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		if (files.length == 0) {
 			// CNV_FILENAMES is empty, throw an error and exit
 			JOptionPane.showMessageDialog(null, "Error - CNV_FILENAMES property is empty");
-			return;
+			// return;
 		}
 		allFiles = new ArrayList<String>();
 		for (String file2 : files) {
@@ -246,9 +246,14 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		// }
 	}
 
+	public static final int DEFAULT_STARTX = 20;
+	public static final int DEFAULT_STARTY = 20;
+	public static final int DEFAULT_WIDTH = 1000;
+	public static final int DEFAULT_HEIGHT = 720;
+	
 	private void setupGUI() {
 		// Set the default window size
-		setSize(1000, 720);
+		setBounds(DEFAULT_STARTX, DEFAULT_STARTY, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
 		// Close this window but not the entire application on close
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

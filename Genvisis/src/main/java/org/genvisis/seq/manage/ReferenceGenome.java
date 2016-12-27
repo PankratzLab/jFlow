@@ -12,6 +12,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Array.BYTE_DECODE_FORMAT;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
@@ -150,6 +151,12 @@ public class ReferenceGenome {
 	}
 
 	public boolean hasContig(String contig) {
+		if (indexedFastaSequenceFile.getSequenceDictionary() == null) {
+			log.reportError("Could not find sequence dictionary for "+ referenceFasta + " ("
+											+ ext.rootOf(referenceFasta) + ".dict)"
+											+ ", will not be able to check if contig " + contig + " is present");
+			return false;
+		}
 		return indexedFastaSequenceFile.getSequenceDictionary().getSequence(contig) != null;
 	}
 

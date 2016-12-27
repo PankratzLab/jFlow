@@ -15,6 +15,8 @@ import org.genvisis.cnv.analysis.AnalysisFormats;
 import org.genvisis.cnv.analysis.Mosaicism;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.ABLookup.ABSource;
 import org.genvisis.cnv.filesys.Centroids;
@@ -51,6 +53,8 @@ public class GenvisisWorkflow {
 
 	private static final String PROJ_PROP_UPDATE_STR = " cnv.filesys.Project proj=";
 	private static final String SAMPLE_STEP_REQ_MSG = "[Parse Sample Files] step must have been run already or must be selected and valid.";
+	private static final String SAMP_RAF = ".sampRAF";
+	private static final String NUM_THREADS_ARG = "Number of threads to use.";
 	Project proj;
 	Logger log;
 	private final Launch launch;
@@ -88,12 +92,8 @@ public class GenvisisWorkflow {
 
 		@Override
 		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
-			boolean mkrPosFile = Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false));
-			// boolean mkrSetFile =
-			// Files.exists(proj.MARKERSET_FILENAME.getValue(false,
-			// false));
-			return mkrPosFile/* && mkrSetFile */;
-		};
+			return Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false));
+		}
 
 		@Override
 		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
@@ -139,13 +139,10 @@ public class GenvisisWorkflow {
 			int retCode = org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, numThreads);
 			switch (retCode) {
 				case 0:
-					setFailed();
-					failReasons.add("Operation failure, please check log for more information.");
-					break;
-				case 6:
-					failReasons.add("ABLookup required but wasn't found.");
+					setFailed("Operation failure, please check log for more information.");
 					break;
 				case 1:
+				case 6:
 				default:
 					break;
 			}
@@ -172,9 +169,12 @@ public class GenvisisWorkflow {
 		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
 			boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
-			return mkrSetFile	&& Files.exists(sampleDirectory)
-							&& Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION, false).length > 0
-							&& proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0;
+			boolean returnValue = mkrSetFile;
+			returnValue = returnValue && Files.exists(sampleDirectory);
+			returnValue = returnValue && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION, false).length > 0;
+			returnValue = returnValue && proj.getSampleList() != null;
+			returnValue = returnValue && proj.getSampleList().getSamples().length > 0;
+			return returnValue;
 		}
 
 		@Override
@@ -247,12 +247,9 @@ public class GenvisisWorkflow {
 																					int retCode = org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, numThreads);
 																					switch (retCode) {
 																						case 0:
-																							setFailed();
-																							failReasons.add("Operation failure, please check log for more information.");
+																							setFailed("Operation failure, please check log for more information.");
 																							break;
 																						case 6:
-																							failReasons.add("ABLookup required but wasn't found.");
-																							break;
 																						case 1:
 																						default:
 																							break;
@@ -281,13 +278,12 @@ public class GenvisisWorkflow {
 																																						Map<STEP, List<String>> variables) {
 																					String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false,
 																																																	false);
-																					boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(	false,
-																																																							false));
-																					return mkrSetFile	&& Files.exists(sampleDirectory)
-																									&& Files.list(sampleDirectory,
-																																Sample.SAMPLE_FILE_EXTENSION, false).length > 0
-																									&& proj.getSampleList() != null
-																									&& proj.getSampleList().getSamples().length > 0;
+																					boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
+																					mkrSetFile = mkrSetFile && Files.exists(sampleDirectory);
+																					mkrSetFile = mkrSetFile && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION, false).length > 0;
+																					mkrSetFile = mkrSetFile && proj.getSampleList() != null;
+																					mkrSetFile = mkrSetFile && proj.getSampleList().getSamples().length > 0;
+																					return mkrSetFile;
 																				}
 
 																				@Override
@@ -363,14 +359,11 @@ public class GenvisisWorkflow {
 			try {
 				int retStat = SampleData.createSampleData(pedFile, sampleMapCsv, proj);
 				if (retStat == -1) {
-					setFailed();
-					failReasons.add("SampleData already exists - please delete and try again.");
+					setFailed("SampleData already exists - please delete and try again.");
 					return;
 				}
 			} catch (Elision e) {
-				String msg = e.getMessage();
-				setFailed();
-				failReasons.add(msg);
+				setFailed(e.getMessage());
 				return;
 			}
 		}
@@ -384,7 +377,7 @@ public class GenvisisWorkflow {
 			boolean checkStepParseSamples = stepSelections.get(parseStep)
 																			&& parseStep.hasRequirements(proj, stepSelections, variables);
 			return new boolean[][] {{checkStepParseSamples
-																|| (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF",
+																|| (Files.exists(sampDir) && Files.list(sampDir, SAMP_RAF,
 																																				proj.JAR_STATUS.getValue()).length > 0)},
 															{	Boolean.parseBoolean(variables.get(this).get(0)),
 																Files.exists(variables.get(this).get(1)),
@@ -487,7 +480,7 @@ public class GenvisisWorkflow {
 																			&& parseStep.hasRequirements(proj, stepSelections, variables);
 			return new boolean[][] {{checkStepParseSamples
 																|| (Files.exists(sampDir)
-																		&& Files.list(sampDir, ".sampRAF",
+																		&& Files.list(sampDir, SAMP_RAF,
 																									proj.JAR_STATUS.getValue()).length > 0),}};
 		}
 
@@ -552,14 +545,13 @@ public class GenvisisWorkflow {
 			if (gc5Base.isAvailable(true)) {
 				return new Object[] {gc5Base.get(), proj.GC_MODEL_FILENAME.getValue()};
 			}
-			return null;
+			return new Object[0];
 		}
 
 		@Override
 		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			String gcOutputFile = variables.get(this).get(1);
-			boolean gcExists = Files.exists(gcOutputFile);
-			return gcExists;
+		  return Files.exists(gcOutputFile);
 		}
 
 		@Override
@@ -588,7 +580,7 @@ public class GenvisisWorkflow {
 	};
 	static final STEP S6_SAMPLE_QC = new STEP("Run Sample QC Metrics", "",
 																						new String[][] {{SAMPLE_STEP_REQ_MSG},
-																														{"Number of threads to use."},},
+																														{NUM_THREADS_ARG},},
 																						new RequirementInputType[][] {{RequirementInputType.NONE},
 																																					{RequirementInputType.NUMBER}},
 																						S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
@@ -624,7 +616,7 @@ public class GenvisisWorkflow {
 			boolean checkStepParseSamples = stepSelections.get(parseStep)
 																			&& parseStep.hasRequirements(proj, stepSelections, variables);
 			return new boolean[][] {{checkStepParseSamples
-																|| (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF",
+																|| (Files.exists(sampDir) && Files.list(sampDir, SAMP_RAF,
 																																				proj.JAR_STATUS.getValue()).length > 0),},
 															{numThreads > 0}};
 		}
@@ -657,7 +649,7 @@ public class GenvisisWorkflow {
 																						new String[][] {{SAMPLE_STEP_REQ_MSG},
 																														{	"Export all markers in project.",
 																															"A targetMarkers files listing the markers to QC."},
-																														{"Number of threads to use."}},
+																														{NUM_THREADS_ARG}},
 																						new RequirementInputType[][] {{RequirementInputType.NONE},
 																																					{	RequirementInputType.NONE,
 																																						RequirementInputType.FILE},
@@ -775,7 +767,7 @@ public class GenvisisWorkflow {
 			String discriminatingMarkersFile = variables.get(this).get(2);
 			String blastVCFFile = variables.get(this).get(3);
 			return new boolean[][] {{checkStepParseSamples
-																|| (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF",
+																|| (Files.exists(sampDir) && Files.list(sampDir, SAMP_RAF,
 																																				proj.JAR_STATUS.getValue()).length > 0)},
 															{stepSelections.get(S3_CREATE_SAMPLEDATA)
 																&& S3_CREATE_SAMPLEDATA.hasRequirements(proj, stepSelections,
@@ -842,7 +834,7 @@ public class GenvisisWorkflow {
 			if (ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false)) {
 				ABLookup.applyABLookupToFullSampleFiles(proj, filename);
 			} else {
-				setFailed();
+				setFailed("Failed to fill in missing alleles - please check log for more info.");
 			}
 		}
 
@@ -861,7 +853,7 @@ public class GenvisisWorkflow {
 																																						variables);
 			return new boolean[][] {{checkStepParseSamples
 																|| (Files.exists(mkrPosFile)	&& Files.exists(sampDir)
-																		&& Files.list(sampDir, ".sampRAF",
+																		&& Files.list(sampDir, SAMP_RAF,
 																									proj.JAR_STATUS.getValue()).length > 0)},};
 		}
 
@@ -935,8 +927,7 @@ public class GenvisisWorkflow {
 																				Pedigree.build(proj, null, null, false);
 																			}
 																			if (!Files.exists(proj.PEDIGREE_FILENAME.getValue())) {
-																				setFailed();
-																				failReasons.add("Creation of Pedigree file in [Create/Run PLINK Files] step failed.");
+																				setFailed("Creation of Pedigree file in [Create/Run PLINK Files] step failed.");
 																				return;
 																			}
 
@@ -949,8 +940,7 @@ public class GenvisisWorkflow {
 																																														-1,
 																																														true);
 																			if (!create) {
-																				setFailed();
-																				failReasons.add("Creation of initial PLINK files failed.");
+																				setFailed("Creation of initial PLINK files failed.");
 																			}
 																			proj.PLINK_DIR_FILEROOTS.addValue(proj.PROJECT_DIRECTORY.getValue()
 																																				+ "plink/plink");
@@ -971,7 +961,7 @@ public class GenvisisWorkflow {
 																			return new boolean[][] {{checkStepParseSamples
 																																|| (Files.exists(sampDir)
 																																		&& Files.list(sampDir,
-																																									".sampRAF",
+																																									SAMP_RAF,
 																																									proj.JAR_STATUS.getValue()).length > 0)},
 																															{	Files.exists(pedFile),
 																																Boolean.parseBoolean(variables.get(this)
@@ -988,12 +978,8 @@ public class GenvisisWorkflow {
 																		@Override
 																		public boolean checkIfOutputExists(	Project proj,
 																																				Map<STEP, List<String>> variables) {
-																			// String fileCheck1 =
-																			// proj.PROJECT_DIRECTORY.getValue()+"gwas.map";
 																			String fileCheck2 = proj.PROJECT_DIRECTORY.getValue()
 																													+ "plink/plink.bed";
-																			// String fileCheck3 =
-																			// proj.PROJECT_DIRECTORY.getValue()+"genome/";
 																			boolean pedCheck = Boolean.parseBoolean(variables.get(this)
 																																									.get(1))	? Files.exists(proj.PEDIGREE_FILENAME.getValue())
 																																														: true;
@@ -1172,9 +1158,8 @@ public class GenvisisWorkflow {
 		}
 
 		private String getPlinkDir(Project proj, Map<STEP, List<String>> variables) {
-			// This directory is also used in S10_ANNOTATE_SAMPLE_DATA, any changes should be reflected
-			// there
-			String dir = "plink/";// variables.get(this).get(0);
+			// This directory is also used in S10_ANNOTATE_SAMPLE_DATA, any changes should be reflected there
+			String dir = "plink/";
 			if (!dir.startsWith("/") && !dir.contains(":")) {
 				dir = ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue() + dir);
 			}
@@ -1185,7 +1170,7 @@ public class GenvisisWorkflow {
 
 	static final STEP S12_MOSAIC_ARMS = new STEP(	"Create Mosaic Arms File", "",
 																								new String[][] {{SAMPLE_STEP_REQ_MSG},
-																																{"Number of threads to use."}},
+																																{NUM_THREADS_ARG}},
 																								new RequirementInputType[][] {{RequirementInputType.NONE},
 																																							{RequirementInputType.NUMBER}},
 																								S2I_PARSE_SAMPLES) {
@@ -1223,9 +1208,7 @@ public class GenvisisWorkflow {
 
 		@Override
 		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
-			boolean outputCheck = Files.exists(proj.RESULTS_DIRECTORY.getValue(false, false)
-																					+ "Mosaicism.xln");
-			return outputCheck;
+			return Files.exists(proj.RESULTS_DIRECTORY.getValue(false, false) + "Mosaicism.xln");
 		}
 
 		@Override
@@ -1373,25 +1356,18 @@ public class GenvisisWorkflow {
 				return false;
 			}
 			String[] reqHdr = {
-			                   
+	      "Class=Exclude",
+	      "ExcludeNote",
+	      "Use",
+	      "UseNote",
+	      "Use_cnv",
+	      "Use_cnvNote"
 			};
-			if (ext.indexOfStr("Class=Exclude", header, false, true) == -1) {
-				return false;
-			}
-			if (ext.indexOfStr("ExcludeNote", header, false, true) == -1) {
-				return false;
-			}
-			if (ext.indexOfStr("Use", header, false, true) == -1) {
-				return false;
-			}
-			if (ext.indexOfStr("UseNote", header, false, true) == -1) {
-				return false;
-			}
-			if (ext.indexOfStr("Use_cnv", header, false, true) == -1) {
-				return false;
-			}
-			if (ext.indexOfStr("Use_cnvNote", header, false, true) == -1) {
-				return false;
+			int[] facts = ext.indexFactors(reqHdr, header, false, false);
+			for (int i : facts) {
+				if (i == -1) {
+					return false;
+				}
 			}
 			return true;
 		}
@@ -1505,12 +1481,12 @@ public class GenvisisWorkflow {
 			double markerCallRateFilter = Double.parseDouble(variables.get(this).get(2));
 			boolean gcCorrect = Boolean.parseBoolean(variables.get(this).get(3));
 			boolean imputeMeanForNaN = Boolean.parseBoolean(variables.get(this).get(4));
-			boolean recomputeLRR_PCs = Boolean.parseBoolean(variables.get(this).get(5));
-			boolean recomputeLRR_Median = Boolean.parseBoolean(variables.get(this).get(6));
+			boolean recomputeLRRPCs = Boolean.parseBoolean(variables.get(this).get(5));
+			boolean recomputeLRRMedian = Boolean.parseBoolean(variables.get(this).get(6));
 			boolean homozygousOnly = Boolean.parseBoolean(variables.get(this).get(7));
-			int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;// Integer.parseInt(variables.get(this).get(8));
+			int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;
 			int regressionDistance = Integer.parseInt(variables.get(this).get(8));
-			int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;// Integer.parseInt(variables.get(this).get(10));
+			int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;
 			int numThreads = Integer.parseInt(variables.get(this).get(9));
 			String outputBase = MitoPipeline.FILE_BASE;
 
@@ -1525,15 +1501,15 @@ public class GenvisisWorkflow {
 			boolean plot = false;
 			int retCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC, markerCallRateFilter,
 																		useFile, proj.getSampleList(), proj.getLog());
-			if (retCode == 42) { // TODO remove magic number
+			if (retCode == PCAPrep.SUCCESS_CODE) {
 				MitoPipeline.estimateMtDNACN(	proj, numThreads, medianMarkers, numComponents, outputBase,
 																			homozygousOnly, markerCallRateFilter, betaOptFile, pedFile,
-																			recomputeLRR_PCs, recomputeLRR_Median, sampLrr,
+																			recomputeLRRPCs, recomputeLRRMedian, sampLrr,
 																			imputeMeanForNaN, gcCorrect, bpGcModel, regressionDistance,
 																			proj.GENOME_BUILD_VERSION.getValue(), pvalOpt,
 																			betaFile, plot, false, proj.getLog());
 			} else {
-				setFailed();
+				setFailed(PCAPrep.errorMessage(retCode));
 			}
 		}
 
@@ -1595,8 +1571,8 @@ public class GenvisisWorkflow {
 			double markerCallRateFilter = Double.parseDouble(variables.get(this).get(2));
 			boolean gcCorrect = Boolean.parseBoolean(variables.get(this).get(3));
 			boolean imputeMeanForNaN = Boolean.parseBoolean(variables.get(this).get(4));
-			boolean recomputeLRR_PCs = Boolean.parseBoolean(variables.get(this).get(5));
-			boolean recomputeLRR_Median = Boolean.parseBoolean(variables.get(this).get(6));
+			boolean recomputeLRRPCs = Boolean.parseBoolean(variables.get(this).get(5));
+			boolean recomputeLRRMedian = Boolean.parseBoolean(variables.get(this).get(6));
 			boolean homozygousOnly = Boolean.parseBoolean(variables.get(this).get(7));
 			int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;
 			int regressionDistance = Integer.parseInt(variables.get(this).get(8));
@@ -1615,7 +1591,7 @@ public class GenvisisWorkflow {
 					.append(" proj=").append(projPropFile).append(" mitochondrialMarkers=")
 					.append(medianMarkers).append(" numComponents=").append(numComponents)
 					.append(" imputeMeanForNaN=").append(imputeMeanForNaN).append(" recomputeLRR_PCs=")
-					.append(recomputeLRR_PCs).append(" recomputeLRR_Median=").append(recomputeLRR_Median)
+					.append(recomputeLRRPCs).append(" recomputeLRR_Median=").append(recomputeLRRMedian)
 					.append(" gcCorrect=").append(gcCorrect).append(" bpGcModel=").append(bpGcModel)
 					.append(" LRRSD=").append(lrrSD).append(" markerCallRate=").append(markerCallRateFilter)
 					.append(" regressionDistance=").append(regressionDistance).append(" sampLRR=")
@@ -1700,9 +1676,7 @@ public class GenvisisWorkflow {
 		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			String subSampFile = variables.get(this).get(0);
 			String pfbOutputFile = variables.get(this).get(1);
-			boolean pfbExists = Files.exists(pfbOutputFile)
-													|| Files.exists(ext.rootOf(subSampFile) + ".pfb");
-			return pfbExists;
+			return Files.exists(pfbOutputFile) || Files.exists(ext.rootOf(subSampFile) + ".pfb");
 		}
 
 		@Override
@@ -1741,7 +1715,7 @@ public class GenvisisWorkflow {
 																																								+ S5_COMPUTE_GCMODEL.stepName
 																																							+ "] must be selected and valid.",
 																																							"Full GC Model File."},
-																																						{"Number of threads to use."},},
+																																						{NUM_THREADS_ARG},},
 																														new RequirementInputType[][] {{	RequirementInputType.NONE,
 																																														RequirementInputType.FILE},
 																																													{RequirementInputType.NUMBER}},
@@ -1762,11 +1736,11 @@ public class GenvisisWorkflow {
 																										@Override
 																										public void run(Project proj,
 																																		Map<STEP, List<String>> variables) {
-																											String malePFB, femalePFB, centFilePathM,
-																													centFilePathF, newGCFile;
-																											// pennData =
-																											// proj.getProperty(proj.PENNCNV_DATA_DIRECTORY);
-																											// sexDir = pennData + "sexSpecific/";
+																											String malePFB;
+																											String femalePFB;
+																											String centFilePathM;
+																											String centFilePathF;
+																											String newGCFile;
 																											String outputDir = proj.DATA_DIRECTORY.getValue();
 																											newGCFile = outputDir + "sexSpecific.gcModel";
 																											malePFB = outputDir + "males.pfb";
@@ -1821,11 +1795,11 @@ public class GenvisisWorkflow {
 																										@Override
 																										public boolean checkIfOutputExists(	Project proj,
 																																												Map<STEP, List<String>> variables) {
-																											String malePFB, femalePFB, centFilePathM,
-																													centFilePathF, newGCFile;
-																											// pennData =
-																											// proj.getProperty(proj.PENNCNV_DATA_DIRECTORY);
-																											// sexDir = pennData + "sexSpecific/";
+																											String malePFB;
+																											String femalePFB;
+																											String centFilePathM;
+																											String centFilePathF;
+																											String newGCFile;
 																											String outputDir = proj.DATA_DIRECTORY.getValue();
 																											malePFB = outputDir + "males.pfb";
 																											femalePFB = outputDir + "females.pfb";
@@ -1834,11 +1808,12 @@ public class GenvisisWorkflow {
 																											centFilePathF = outputDir
 																																			+ "sexSpecific_Female.cent";
 																											newGCFile = outputDir + "sexSpecific.gcModel";
-																											return Files.exists(malePFB)
-																																&& Files.exists(femalePFB)
-																															&& Files.exists(centFilePathM)
-																															&& Files.exists(centFilePathF)
-																															&& Files.exists(newGCFile);
+																											boolean exists = Files.exists(malePFB);
+																											exists = exists && Files.exists(femalePFB);
+																											exists = exists && Files.exists(centFilePathM);
+																											exists = exists && Files.exists(centFilePathF);
+																											exists = exists && Files.exists(newGCFile);
+																											return exists;
 																										}
 
 																										@Override
@@ -1870,7 +1845,7 @@ public class GenvisisWorkflow {
 																																	"PFB File Must Exist"},
 																																{	"[Compute GCMODEL File] step must be selected and valid",
 																																	"GCMODEL File Must Exist"},
-																																{"Number of threads To use."},
+																																{NUM_THREADS_ARG},
 																																{"Output filename."}},
 																								new RequirementInputType[][] {{RequirementInputType.FILE},
 																																							{	RequirementInputType.NONE,
@@ -1883,20 +1858,20 @@ public class GenvisisWorkflow {
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
 																							Map<STEP, List<String>> variables) {
-			String hmm_P = proj.HMM_FILENAME.getValue();
-			String hmm_G = variables.get(this).get(0);
-			if (!hmm_P.equals(hmm_G)) {
-				proj.HMM_FILENAME.setValue(hmm_G);
+			String hmmP = proj.HMM_FILENAME.getValue();
+			String hmmG = variables.get(this).get(0);
+			if (!hmmP.equals(hmmG)) {
+				proj.HMM_FILENAME.setValue(hmmG);
 			}
-			String pfb_P = proj.CUSTOM_PFB_FILENAME.getValue();
-			String pfb_G = variables.get(this).get(1);
-			if (!pfb_P.equals(pfb_G)) {
-				proj.CUSTOM_PFB_FILENAME.setValue(pfb_G);
+			String pfbP = proj.CUSTOM_PFB_FILENAME.getValue();
+			String pfbG = variables.get(this).get(1);
+			if (!pfbP.equals(pfbG)) {
+				proj.CUSTOM_PFB_FILENAME.setValue(pfbG);
 			}
-			String gcm_P = proj.GC_MODEL_FILENAME.getValue();
-			String gcm_G = variables.get(this).get(2);
-			if (!gcm_P.equals(gcm_G)) {
-				proj.GC_MODEL_FILENAME.setValue(gcm_G);
+			String gcmP = proj.GC_MODEL_FILENAME.getValue();
+			String gcmG = variables.get(this).get(2);
+			if (!gcmP.equals(gcmG)) {
+				proj.GC_MODEL_FILENAME.setValue(gcmG);
 			}
 			int numThreads = checkIntArgOrNeg1(variables.get(this).get(3));
 			if (numThreads <= 0) {
@@ -1920,9 +1895,7 @@ public class GenvisisWorkflow {
 			(new File(ext.parseDirectoryOfFile(proj.PROJECT_DIRECTORY.getValue() + output))).mkdirs();
 			CNVCaller.callAutosomalCNVs(proj, output, proj.getSamples(), null, null,
 																	CNVCaller.DEFUALT_MIN_SITES, CNVCaller.DEFUALT_MIN_CONF,
-																	PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);// TODO, sex
-																																											// specific
-																																											// centroids,etc
+																	PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
 			proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output);
 			proj.saveProperties(new Property[] {proj.CNV_FILENAMES});
 		}
@@ -1957,20 +1930,20 @@ public class GenvisisWorkflow {
 		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			String kvCmd = "";
 
-			String hmm_P = proj.HMM_FILENAME.getValue();
-			String hmm_G = variables.get(this).get(0);
-			if (!hmm_P.equals(hmm_G)) {
-				kvCmd += " HMM_FILENAME=" + hmm_G;
+			String hmmP = proj.HMM_FILENAME.getValue();
+			String hmmG = variables.get(this).get(0);
+			if (!hmmP.equals(hmmG)) {
+				kvCmd += " HMM_FILENAME=" + hmmG;
 			}
-			String pfb_P = proj.CUSTOM_PFB_FILENAME.getValue();
-			String pfb_G = variables.get(this).get(1);
-			if (!pfb_P.equals(pfb_G)) {
-				kvCmd += " CUSTOM_PFB_FILENAME=" + pfb_G;
+			String pfbP = proj.CUSTOM_PFB_FILENAME.getValue();
+			String pfbG = variables.get(this).get(1);
+			if (!pfbP.equals(pfbG)) {
+				kvCmd += " CUSTOM_PFB_FILENAME=" + pfbG;
 			}
-			String gcm_P = proj.GC_MODEL_FILENAME.getValue();
-			String gcm_G = variables.get(this).get(2);
-			if (!gcm_P.equals(gcm_G)) {
-				kvCmd += " GC_MODEL_FILENAME=" + gcm_G;
+			String gcmP = proj.GC_MODEL_FILENAME.getValue();
+			String gcmG = variables.get(this).get(2);
+			if (!gcmP.equals(gcmG)) {
+				kvCmd += " GC_MODEL_FILENAME=" + gcmG;
 			}
 
 			int numThreads = checkIntArgOrNeg1(variables.get(this).get(3));
@@ -2000,13 +1973,18 @@ public class GenvisisWorkflow {
 																																	{"Call-rate filter for determining high-quality markers"},
 																																	{"Re-compute Log-R Ratio values? (usually false if LRRs already exist)"},
 																																	{"Temporary directory for intermediate files (which tend to be very large)"},
-																																	{"Number of threads to use."},},
+																																	{"Correction Type"},
+																																	{"Sex Chromosome Strategy"},
+
+																																	{NUM_THREADS_ARG},},
 																									new RequirementInputType[][] {{RequirementInputType.NONE},
 																																								{RequirementInputType.NUMBER},
 																																								{RequirementInputType.STRING},
 																																								{RequirementInputType.NUMBER},
 																																								{RequirementInputType.BOOL},
 																																								{RequirementInputType.DIR},
+																																								{RequirementInputType.ENUM},
+																																								{RequirementInputType.ENUM},
 																																								{RequirementInputType.NUMBER},},
 																									S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
 		@Override
@@ -2020,12 +1998,19 @@ public class GenvisisWorkflow {
 			int numComponents = Integer.parseInt(variables.get(this).get(0));
 			String outputBase = variables.get(this).get(1);
 			double markerCallRateFilter = Double.parseDouble(variables.get(this).get(2));
-			boolean recomputeLRR_PCs = Boolean.parseBoolean(variables.get(this).get(3));
+			boolean recomputeLRRPCs = Boolean.parseBoolean(variables.get(this).get(3));
 			String tmpDir = "".equals(variables.get(this).get(4).trim())	? null
 																																		: variables.get(this).get(4);
-			int totalThreads = Integer.parseInt(variables.get(this).get(5));
-			PRoCtOR.shadow(	proj, tmpDir, outputBase, markerCallRateFilter, recomputeLRR_PCs,
-											numComponents, totalThreads);
+			CORRECTION_TYPE type = CORRECTION_TYPE.valueOf(variables.get(this).get(5));
+			CHROMOSOME_X_STRATEGY strategy = CHROMOSOME_X_STRATEGY.valueOf(variables.get(this)
+																																									.get(6));
+
+			int totalThreads = Integer.parseInt(variables.get(this).get(7));
+			String retMsg = PRoCtOR.shadow(	proj, tmpDir, outputBase, markerCallRateFilter,
+																			recomputeLRRPCs, type, strategy, numComponents, totalThreads);
+			if (!"".equals(retMsg)) {
+				setFailed(retMsg);
+			}
 		}
 
 		@Override
@@ -2035,18 +2020,23 @@ public class GenvisisWorkflow {
 			double markerCallRateFilter = checkDoubleArgOrNeg1(variables.get(this).get(2));
 			String tmpDir = "".equals(variables.get(this).get(4).trim())	? null
 																																		: variables.get(this).get(4);
-			int totalThreads = checkIntArgOrNeg1(variables.get(this).get(5));
+
+			int totalThreads = checkIntArgOrNeg1(variables.get(this).get(7));
 			String sampDir = proj.SAMPLE_DIRECTORY.getValue();
 			STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES)	? S2I_PARSE_SAMPLES
 																																			: S2A_PARSE_SAMPLES;
 			boolean checkStepParseSamples = stepSelections.get(parseStep)
 																			&& parseStep.hasRequirements(proj, stepSelections, variables);
-			return new boolean[][] {{checkStepParseSamples
-																|| (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF",
-																																				proj.JAR_STATUS.getValue()).length > 0)},
-															{numComponents > 0}, {true}, // TODO outputBase check?
-															{markerCallRateFilter >= 0}, {true},
-															{tmpDir == null || Files.exists(tmpDir)}, {totalThreads > 0},};
+			return new boolean[][] {
+            {checkStepParseSamples || (Files.exists(sampDir) && Files.list(sampDir, SAMP_RAF, proj.JAR_STATUS.getValue()).length > 0)},
+						{numComponents > 0}, 
+						{true},
+						{markerCallRateFilter >= 0}, 
+						{true},
+						{tmpDir == null || Files.exists(tmpDir)}, 
+						{true},
+						{totalThreads > 0},
+			};
 		}
 
 		@Override
@@ -2056,6 +2046,8 @@ public class GenvisisWorkflow {
 														MitoPipeline.DEFAULT_MKR_CALLRATE_FILTER, // call rate
 														false, // recomputeLRR
 														"", // tempDir
+														CORRECTION_TYPE.XY,
+														CHROMOSOME_X_STRATEGY.BIOLOGICAL,
 														Runtime.getRuntime().availableProcessors() // numThreads
 			};
 		}
@@ -2072,17 +2064,21 @@ public class GenvisisWorkflow {
 			int numComponents = Integer.parseInt(variables.get(this).get(0));
 			String outputBase = variables.get(this).get(1);
 			double markerCallRateFilter = Double.parseDouble(variables.get(this).get(2));
-			boolean recomputeLRR_PCs = Boolean.parseBoolean(variables.get(this).get(3));
+			boolean recomputeLRRPCs = Boolean.parseBoolean(variables.get(this).get(3));
 			String tmpDir = "".equals(variables.get(this).get(4).trim())	? null
 																																		: variables.get(this).get(4);
-			int totalThreads = Integer.parseInt(variables.get(this).get(5));
+			String correctionType = variables.get(this).get(5);
+			String strategy = variables.get(this).get(6);
+
+			int totalThreads = Integer.parseInt(variables.get(this).get(7));
 
 			String projPropFile = proj.getPropertyFilename();
 			StringBuilder cmd = new StringBuilder();
 			cmd	.append(Files.getRunString()).append(" org.genvisis.cnv.manage.PRoCtOR").append(" proj=")
 					.append(projPropFile).append(" numComponents=").append(numComponents)
 					.append(" outputBase=").append(outputBase).append(" callrate=")
-					.append(markerCallRateFilter).append(" recomputeLRR=").append(recomputeLRR_PCs)
+					.append(markerCallRateFilter).append(" recomputeLRR=").append(recomputeLRRPCs)
+					.append(" type=").append(correctionType).append(" strategy=").append(strategy)
 					.append(" numThreads=").append(totalThreads);
 			if (tmpDir != null) {
 				cmd.append(" tmp=").append(tmpDir);
@@ -2130,20 +2126,29 @@ public class GenvisisWorkflow {
 	};
 
 	public abstract static class STEP {
-		public String stepName;
-		public String stepDesc;
-		public String[][] reqs;
+		private String stepName;
+		private String stepDesc;
+		private String[][] reqs;
 		private boolean failed = false;
-		protected ArrayList<String> failReasons = new ArrayList<String>();
+		private ArrayList<String> failReasons = new ArrayList<String>();
 		private final Set<STEP> relatedSteps;
-		public RequirementInputType[][] reqTypes;
+		private RequirementInputType[][] reqTypes;
 
+		public String getName() {
+			return this.stepName;
+		}
+		
+		public String getDescription() {
+			return this.stepDesc;
+		}
+		
 		public boolean getFailed() {
 			return failed;
 		}
 
-		protected void setFailed() {
+		protected void setFailed(String reason) {
 			failed = true;
+			failReasons.add(reason);
 		}
 
 		public List<String> getFailureMessages() {
@@ -2225,18 +2230,18 @@ public class GenvisisWorkflow {
 		public abstract String getCommandLine(Project proj, Map<STEP, List<String>> variables);
 
 		STEP(	String name, String desc, String[][] requirements, RequirementInputType[][] reqTypes,
-					STEP... requiredSteps) {
+					STEP... relatedSteps) {
 			stepName = name;
 			stepDesc = desc;
 			reqs = requirements;
 			this.reqTypes = reqTypes;
 			final Set<STEP> steps = new HashSet<STEP>();
 			steps.add(this);
-			for (final STEP s : requiredSteps) {
+			for (final STEP s : relatedSteps) {
 				steps.add(s);
 				steps.addAll(s.getRelatedSteps());
 			}
-			relatedSteps = Collections.unmodifiableSet(steps);
+			this.relatedSteps = Collections.unmodifiableSet(steps);
 		}
 
 		/**
@@ -2251,7 +2256,7 @@ public class GenvisisWorkflow {
 	}
 
 	public enum RequirementInputType {
-		NONE(), FILE(), DIR(), STRING(), NUMBER(), BOOL()
+		NONE(), FILE(), DIR(), STRING(), NUMBER(), BOOL(), ENUM()
 	}
 
 	public GenvisisWorkflow(Project project, Launch launch) {

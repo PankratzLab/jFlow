@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -324,7 +325,7 @@ public class VCFImporter {
 													int numRounds, int numThreads) {
 		String[] samples = VCFOps.getSamplesInFile(new VCFFileReader(new File(vcf), true));
 
-		ArrayList<String[]> sampleChunks = Array.splitUpArray(samples, numRounds, proj.getLog());
+		List<String[]> sampleChunks = Array.splitUpArray(samples, numRounds, proj.getLog());
 		WorkerHive<ConversionResults> hive = new WorkerHive<VCFImporter.ConversionResults>(	numThreads,
 																																												10,
 																																												proj.getLog());

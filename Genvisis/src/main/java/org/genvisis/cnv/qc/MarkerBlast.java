@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 import org.genvisis.cnv.annotation.AnalysisParams;
 import org.genvisis.cnv.annotation.AnnotationData;
@@ -114,8 +116,7 @@ public class MarkerBlast {
 
 			if (doBlast && !Files.exists("", tmps)) {
 				MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type, null, false);
-				ArrayList<MarkerFastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads,
-																																	proj.getLog());
+				List<MarkerFastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, proj.getLog());
 
 				ArrayList<BlastWorker> workers = new ArrayList<Blast.BlastWorker>();
 				if (fastaEntries != null && fastaEntries.length > 0) {
@@ -355,6 +356,11 @@ public class MarkerBlast {
 																			Files.exists(proj.getReferenceGenomeFASTAFilename())	? new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																																																													proj.getLog())
 																																																		: null;
+			// ABLookup abLookup =
+			// new ABLookup( markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(),
+			// true, true, proj.getLog());
+			//
+			// Hashtable<String, Integer> indices = proj.getMarkerIndices();
 			if (referenceGenome == null) {
 				proj.getLog().reportTimeWarning("A reference genome was not found");
 			}
@@ -445,8 +451,13 @@ public class MarkerBlast {
 
 					} else {
 
-						String[] tmpSeq =
-														Array.unique(parser.getStringDataForTitle("PROBE_SEQUENCE")[i].split("\t"));
+						String[] allSeqs =Array.unique(parser.getStringDataForTitle("PROBE_SEQUENCE")[i].split("\t"));
+						LinkedHashSet<String > collapsed = new LinkedHashSet<String>();
+						for(String seq:allSeqs){
+							collapsed.add(seq);
+						}
+						String[] tmpSeq = Array.toStringArray(collapsed);
+
 						if (tmpSeq.length != 2) {
 							proj.getLog()
 									.reportError("Marker " + markerName + " did not have 2 unique probe designs");
@@ -490,22 +501,38 @@ public class MarkerBlast {
 							}
 							String aS = tmpSeq[0].substring(interrogationPosition, interrogationPosition + 1);
 							String bS = tmpSeq[1].substring(interrogationPosition, interrogationPosition + 1);
-
+							// if (!Arrays.equals( new String[] {StrandOps.flipIfNeeded(aS, strand, false),
+							// StrandOps.flipIfNeeded(bS, strand, false)},
+							// new String[] {abLookup.getLookup()[indices.get(markerName)][0]
+							// + "",
+							// abLookup.getLookup()[indices.get(markerName)][1]
+							// + ""})) {
+							// System.err.println(markerName+ "\t" + Array.toStr(tmpSeq) + "\t"
+							// + Array.toStr(new String[] {abLookup.getLookup()[indices.get(markerName)][0]
+							// + "",
+							// abLookup.getLookup()[indices.get(markerName)][1]
+							// + "",
+							// aS, bS, strand.toString()}));
+							//
+							// }
 							AlleleParser alleleParser = new AlleleParser(	markerName, markerSegment, aS, bS,
 																														tmpSeq[1], referenceGenome);
 							if (alleleLookup) {
 								alleleParser.parse(proj.getArrayType(), strand, null);
 							}
-							entries.add(new MarkerFastaEntry(markerName	+ PROBE_TAG.A, tmpSeq[0], tmpSeq[1],
+							entries.add(new MarkerFastaEntry(markerName+ PROBE_TAG.A.getTag(), tmpSeq[0],
+																								tmpSeq[1],
 																								strand, interrogationPosition, markerSegment,
 																								TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(),
 																								alleleParser.getB(), alleleParser.getRef(),
 																								alleleParser.getAlts()));
-							entries.add(new MarkerFastaEntry(markerName	+ PROBE_TAG.B, tmpSeq[1], tmpSeq[1],
+							entries.add(new MarkerFastaEntry(markerName+ PROBE_TAG.B.getTag(), tmpSeq[1],
+																								tmpSeq[1],
 																								strand, interrogationPosition, markerSegment,
 																								TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(),
 																								alleleParser.getB(), alleleParser.getRef(),
 																								alleleParser.getAlts()));
+							throw new IllegalArgumentException("Sorry, Affymetrix AB designation is not currently working, feel free to remove this exception if you just want blast results, but make sure to not rely on ABs - also shout at @jlanej");
 						}
 					}
 				}

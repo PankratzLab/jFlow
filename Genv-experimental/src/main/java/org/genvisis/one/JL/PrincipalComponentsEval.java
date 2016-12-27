@@ -176,108 +176,108 @@ public class PrincipalComponentsEval {
 		writer.flush();
 	}
 
-	public static void evaluatePCsIntensityCorrection(Project proj, String markers, String evalFile,
-																										String output, String samplesFile,
-																										LS_TYPE lType, int numMarkerThreads,
-																										int numCorrectionThreads, int jump, int numQs) {
-		PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
-		pcResiduals.setHomozygousOnly(true);
-		double[] eval = loadDataFile(proj, evalFile, proj.getLog());
-		boolean[] samplesToUse = proj.getSamplesToInclude(proj.PROJECT_DIRECTORY.getValue()
-																											+ samplesFile);
-		String[] markersToUse =
-													HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue()	+ markers,
-																												false, new int[1], true);
-		MarkerData[] markerDatas = new MarkerData[markersToUse.length];
-		MarkerDataLoader markerDataLoader =
-																			MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
-																																															markersToUse);
-		byte[][] abGentypes = new byte[markersToUse.length][proj.getSamples().length];
-		boolean[][] homozygousMarkersToUse = new boolean[markerDatas.length][proj.getSamples().length];
-		for (int i = 0; i < markerDatas.length; i++) {
-			markerDatas[i] = markerDataLoader.requestMarkerData(i);
-			abGentypes[i] = markerDatas[i].getAbGenotypes();
-			for (int j = 0; j < abGentypes[i].length; j++) {
-				if ((samplesToUse[j]) && ((abGentypes[i][j] == 0) || (abGentypes[i][j] == 2))) {
-					homozygousMarkersToUse[i][j] = true;
-				} else {
-					homozygousMarkersToUse[i][j] = false;
-				}
-			}
-			markerDataLoader.releaseIndex(i);
-		}
-		output = ext.parseDirectoryOfFile(evalFile) + ext.rootOf(output) + ".evaluatedByMarker";
-		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
-			writer.println("PC\t"	+ ext.rootOf(evalFile) + ".PearsonCorrel" + "\t" + ext.rootOf(evalFile)
-											+ ".PearsonP\t" + ext.rootOf(evalFile) + ".SpearmanCorrel" + "\t"
-											+ ext.rootOf(evalFile) + ".SpearmanP" + "\t" + ext.rootOf(evalFile)
-											+ ".ICCMETHODS" + "\t" + ext.rootOf(evalFile) + ".ICCMATCHED");
-			for (int i = 0; i <= pcResiduals.getNumComponents(); i += jump) {
-				double[][] curData = new double[markersToUse.length][proj.getSamples().length];
-				double[][] tmpData = new double[proj.getSamples().length][markersToUse.length];
-				double[] cnEstimate = new double[proj.getSamples().length];
-				ExecutorService executor = Executors.newFixedThreadPool(numMarkerThreads);
-				Hashtable<String, Future<double[]>> tmpResults = new Hashtable<String, Future<double[]>>();
-				if (i > 0) {
-					for (int j = 0; j < markersToUse.length; j++) {
-						PrincipalComponentsIntensity pcComponentsIntensity = new PrincipalComponentsIntensity(pcResiduals,
-																																																	markerDatas[j],
-																																																	true,
-																																																	null,
-																																																	homozygousMarkersToUse[j],
-																																																	1.0D,
-																																																	0.0D,
-																																																	null,
-																																																	false,
-																																																	lType,
-																																																	2,
-																																																	5,
-																																																	0.0D,
-																																																	0.1D,
-																																																	numCorrectionThreads,
-																																																	false,
-																																																	null);
-						tmpResults.put(j	+ "",
-														executor.submit(new WorkerCorrection(	pcComponentsIntensity, i,
-																																	markersToUse[j], proj.getLog())));
-					}
-					for (int j = 0; j < markersToUse.length; j++) {
-						try {
-							curData[j] = tmpResults.get(Integer.toString(j)).get();
-							for (int k = 0; k < proj.getSamples().length; k++) {
-								tmpData[k][j] = curData[j][k];
-							}
-						} catch (InterruptedException e) {
-							proj.getLog().reportError("Error - could running Correction on internal index " + j);
-							proj.getLog().reportException(e);
-						} catch (ExecutionException e) {
-							proj.getLog().reportError("Error - could running Correction on internal index " + j);
-							proj.getLog().reportException(e);
-						}
-					}
-					executor.shutdown();
-					try {
-						executor.awaitTermination(10L, TimeUnit.DAYS);
-					} catch (InterruptedException e) {
-						proj.getLog().reportException(e);
-					}
-				} else {
-					for (int j = 0; j < markersToUse.length; j++) {
-						curData[j] = Array.toDoubleArray(markerDatas[j].getLRRs());
-					}
-				}
-				pcResiduals.setFullData(curData);
-				pcResiduals.setAbGenotypesAfterFilters(abGentypes);
-				cnEstimate = pcResiduals.getLRRMedian();
-				for (int j = 0; j < proj.getSamples().length; j++) {
-				}
-				evalAndPrint(proj, eval, writer, i, cnEstimate, numQs, i == 0, evalFile);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+//	public static void evaluatePCsIntensityCorrection(Project proj, String markers, String evalFile,
+//																										String output, String samplesFile,
+//																										LS_TYPE lType, int numMarkerThreads,
+//																										int numCorrectionThreads, int jump, int numQs) {
+//		PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
+//		pcResiduals.setHomozygousOnly(true);
+//		double[] eval = loadDataFile(proj, evalFile, proj.getLog());
+//		boolean[] samplesToUse = proj.getSamplesToInclude(proj.PROJECT_DIRECTORY.getValue()
+//																											+ samplesFile);
+//		String[] markersToUse =
+//													HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue()	+ markers,
+//																												false, new int[1], true);
+//		MarkerData[] markerDatas = new MarkerData[markersToUse.length];
+//		MarkerDataLoader markerDataLoader =
+//																			MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+//																																															markersToUse);
+//		byte[][] abGentypes = new byte[markersToUse.length][proj.getSamples().length];
+//		boolean[][] homozygousMarkersToUse = new boolean[markerDatas.length][proj.getSamples().length];
+//		for (int i = 0; i < markerDatas.length; i++) {
+//			markerDatas[i] = markerDataLoader.requestMarkerData(i);
+//			abGentypes[i] = markerDatas[i].getAbGenotypes();
+//			for (int j = 0; j < abGentypes[i].length; j++) {
+//				if ((samplesToUse[j]) && ((abGentypes[i][j] == 0) || (abGentypes[i][j] == 2))) {
+//					homozygousMarkersToUse[i][j] = true;
+//				} else {
+//					homozygousMarkersToUse[i][j] = false;
+//				}
+//			}
+//			markerDataLoader.releaseIndex(i);
+//		}
+//		output = ext.parseDirectoryOfFile(evalFile) + ext.rootOf(output) + ".evaluatedByMarker";
+//		try {
+//			PrintWriter writer = new PrintWriter(new FileWriter(output));
+//			writer.println("PC\t"	+ ext.rootOf(evalFile) + ".PearsonCorrel" + "\t" + ext.rootOf(evalFile)
+//											+ ".PearsonP\t" + ext.rootOf(evalFile) + ".SpearmanCorrel" + "\t"
+//											+ ext.rootOf(evalFile) + ".SpearmanP" + "\t" + ext.rootOf(evalFile)
+//											+ ".ICCMETHODS" + "\t" + ext.rootOf(evalFile) + ".ICCMATCHED");
+//			for (int i = 0; i <= pcResiduals.getNumComponents(); i += jump) {
+//				double[][] curData = new double[markersToUse.length][proj.getSamples().length];
+//				double[][] tmpData = new double[proj.getSamples().length][markersToUse.length];
+//				double[] cnEstimate = new double[proj.getSamples().length];
+//				ExecutorService executor = Executors.newFixedThreadPool(numMarkerThreads);
+//				Hashtable<String, Future<double[]>> tmpResults = new Hashtable<String, Future<double[]>>();
+//				if (i > 0) {
+//					for (int j = 0; j < markersToUse.length; j++) {
+//						PrincipalComponentsIntensity pcComponentsIntensity = new PrincipalComponentsIntensity(pcResiduals,
+//																																																	markerDatas[j],
+//																																																	true,
+//																																																	null,
+//																																																	homozygousMarkersToUse[j],
+//																																																	1.0D,
+//																																																	0.0D,
+//																																																	null,
+//																																																	false,
+//																																																	lType,
+//																																																	2,
+//																																																	5,
+//																																																	0.0D,
+//																																																	0.1D,
+//																																																	numCorrectionThreads,
+//																																																	false,
+//																																																	null);
+//						tmpResults.put(j	+ "",
+//														executor.submit(new WorkerCorrection(	pcComponentsIntensity, i,
+//																																	markersToUse[j], proj.getLog())));
+//					}
+//					for (int j = 0; j < markersToUse.length; j++) {
+//						try {
+//							curData[j] = tmpResults.get(Integer.toString(j)).get();
+//							for (int k = 0; k < proj.getSamples().length; k++) {
+//								tmpData[k][j] = curData[j][k];
+//							}
+//						} catch (InterruptedException e) {
+//							proj.getLog().reportError("Error - could running Correction on internal index " + j);
+//							proj.getLog().reportException(e);
+//						} catch (ExecutionException e) {
+//							proj.getLog().reportError("Error - could running Correction on internal index " + j);
+//							proj.getLog().reportException(e);
+//						}
+//					}
+//					executor.shutdown();
+//					try {
+//						executor.awaitTermination(10L, TimeUnit.DAYS);
+//					} catch (InterruptedException e) {
+//						proj.getLog().reportException(e);
+//					}
+//				} else {
+//					for (int j = 0; j < markersToUse.length; j++) {
+//						curData[j] = Array.toDoubleArray(markerDatas[j].getLRRs());
+//					}
+//				}
+//				pcResiduals.setFullData(curData);
+//				pcResiduals.setAbGenotypesAfterFilters(abGentypes);
+//				cnEstimate = pcResiduals.getLRRMedian();
+//				for (int j = 0; j < proj.getSamples().length; j++) {
+//				}
+//				evalAndPrint(proj, eval, writer, i, cnEstimate, numQs, i == 0, evalFile);
+//			}
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 	private static class WorkerCorrection implements Callable<double[]> {
 		private final PrincipalComponentsIntensity pcComponentsIntensity;
@@ -420,9 +420,9 @@ public class PrincipalComponentsEval {
 		}
 		Project proj = new Project(filename, null, false);
 		if (separate) {
-			evaluatePCsIntensityCorrection(	proj, markers, evalFile, output, sampleFile,
-																			svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR,
-																			numMarkerThreads, numCorrectionThreads, jumpPC, numQs);
+//			evaluatePCsIntensityCorrection(	proj, markers, evalFile, output, sampleFile,
+//																			svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR,
+//																			numMarkerThreads, numCorrectionThreads, jumpPC, numQs);
 		} else {
 			evaluatePCs(proj, markers, evalFile, output, sampleFile, jumpPC, numQs,
 									svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR);

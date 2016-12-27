@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 
 import org.genvisis.common.Array;
@@ -171,7 +172,7 @@ public class BlastContamination {
 	                            int reportWordSize, int numSampThreads, String outputDir,
 	                            String outputRoot, int numBatches, int memoryInMB,
 	                            int wallTimeInHours, Logger log, String[] fastaqs) {
-		ArrayList<String[]> splits = Array.splitUpArray(fastaqs, numBatches, log);
+		List<String[]> splits = Array.splitUpArray(fastaqs, numBatches, log);
 		String command = Array.toStr(PSF.Load.getAllModules(), "\n");
 		String[][] batches = new String[splits.size()][1];
 		for (int i = 0; i < batches.length; i++) {

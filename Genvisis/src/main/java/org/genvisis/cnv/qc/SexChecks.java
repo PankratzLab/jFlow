@@ -57,6 +57,9 @@ public class SexChecks {
 	public static final String EST_SEX_HEADER = generateEstSexHeader();
 
 	private static final int[] EST_SEX_MAPPING = {0, 1, 2, 1, 1, 1, 2, 2, 2, 2};
+	private static final int[] EST_NUM_CHRX_MAPPING = {0, 1, 2, 2, 2, 2, 3, 3, 1, 1};
+
+
 	public static final String[] SEX_HEADER =
 																					{	"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note",
 																						"Check", "Excluded", "Median X e^LRR", "Median Y e^LRR",
@@ -772,6 +775,14 @@ public class SexChecks {
 	public static int getMappedSex(String estimatedValue) {
 		return EST_SEX_MAPPING[Integer.parseInt(estimatedValue)];
 	}
+
+	/**
+	 * returns the number of X chromosomes present for a given code value (e.g female=2, Triple X =3)
+	 */
+	public static int getNumXChrSex(String estimatedValue) {
+		return EST_NUM_CHRX_MAPPING[Integer.parseInt(estimatedValue)];
+	}
+
 
 	public static void sexCheck(Project proj, boolean appendToSampleData) {
 		sexCheck(proj, appendToSampleData, null);

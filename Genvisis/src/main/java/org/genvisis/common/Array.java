@@ -2284,7 +2284,7 @@ public class Array {
 	 * @param log
 	 */
 
-	public static <T> ArrayList<T[]> splitUpArray(T[] array, int nChunks, Logger log) {
+	public static <T> List<T[]> splitUpArray(T[] array, int nChunks, Logger log) {
 		int index = 0;
 		if (array.length < nChunks) {
 			log.reportError("Error - too many chunks ("	+ nChunks + ") for " + array.length
@@ -2312,7 +2312,7 @@ public class Array {
 	}
 
 	/**
-	 * Breaks an array of strings into nChunks. This is geared toward spliting up filenames etc for
+	 * Breaks an array of strings into nChunks. This is geared toward splitting up filenames etc for
 	 * batching
 	 *
 	 * @param strings the array
@@ -2320,29 +2320,7 @@ public class Array {
 	 * @param log
 	 */
 	public static String[][] splitUpStringArray(String[] strings, int nChunks, Logger log) {
-		int index = 0;
-		if (strings.length < nChunks) {
-			log.reportError("Error - too many chunks ("	+ nChunks + ") for " + strings.length
-											+ " strings, setting to " + strings.length);
-			nChunks = strings.length;
-		}
-		if (nChunks <= 0) {
-			log.reportError("Error - not enough chunks ("	+ nChunks + ") for " + strings.length
-											+ " strings, setting to 1");
-			nChunks = 1;
-		}
-		int[] chunks = Array.splitUpDistributeRemainder(strings.length, nChunks, log);
-		String[][] stringChunks = new String[chunks.length][];
-
-		for (int i = 0; i < chunks.length; i++) {
-			ArrayList<String> chunk = new ArrayList<String>(chunks[i]);
-			for (int j = 0; j < chunks[i]; j++) {
-				chunk.add(strings[index]);
-				index++;
-			}
-			stringChunks[i] = chunk.toArray(new String[chunk.size()]);
-		}
-		return stringChunks;
+		return splitUpArray(strings, nChunks, log).toArray(new String[][]{});
 	}
 
 	/**

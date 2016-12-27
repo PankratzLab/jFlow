@@ -44,7 +44,7 @@ public class PennCNV {
 	public static final String[] ERRORS = {"large SD for LRR", "drifting BAF values",
 	                                       "waviness factor values", "Small-sized CNV calls",
 	                                       "NoCall rate"};
-	public static final String QC_SUMMARY_FILE = "Sample_QC.xln";
+	public static final String QC_SUMMARY_EXTENSION = "_QC.xln";
 	public static final int MISSING_SCORE = -1;
 
 	public static void batch(Project proj, int numChunks, Vector<String> execList, String pfbFile,
@@ -235,7 +235,7 @@ public class PennCNV {
 		files = new File(dataDir).list(new FilenameFilter() {
 			@Override
 			public boolean accept(File file, String filename) {
-				return file.length() > 1000;
+				return file.length() > 1000 && !filename.endsWith(".pfb") && !filename.endsWith(".gcmodel") && !filename.startsWith("sex_file");
 			}
 		});
 		log.report("Found " + files.length + " files");
@@ -350,7 +350,7 @@ public class PennCNV {
 		String[] header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
 		int sexInd = -1;
 		for (int i = 0; i < header.length; i++) {
-			if (("CLASS=" + SexChecks.EST_SEX_HEADER).toUpperCase().equals(header[i].toUpperCase())) {
+			if (("CLASS=" + SexChecks.EST_SEX_HEADER).equalsIgnoreCase(header[i])) {
 				sexInd = i;
 				break;
 			}
@@ -369,8 +369,6 @@ public class PennCNV {
 					int estSex = Integer.parseInt(estSexStr);
 					estSex = SexChecks.KARYOTYPES[estSex].contains("XX") ? 2 : 1;
 					writer.println(lineData.getKey() + "\t" + estSex);
-				} else {
-					writer.println(lineData.getKey() + "\t.");
 				}
 			}
 			writer.close();
@@ -451,7 +449,7 @@ public class PennCNV {
 			}
 			reader.close();
 
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + QC_SUMMARY_FILE));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(filename) + QC_SUMMARY_EXTENSION));
 			writer.print("Sample\tFID\tIID\tUse_" + ext.formDeci(lrrSD_cutoff, 2));
 			for (String element : ERRORS) {
 				writer.print("\t" + element);
@@ -792,6 +790,12 @@ public class PennCNV {
 		String childSource = "gunzip -c " + line[4] + ".gz";
 		String faSource = childSource.replace(cDna, faDna);
 		String moSource = childSource.replace(cDna, moDna);
+
+		if (childSource.contains("sexSpecific")) {
+			faSource = faSource.replaceAll("/female/", "/male/");
+			moSource = moSource.replaceAll("/male/", "/female/");
+		}
+
 		String out = outDir + ids[0] + "_" + ids[1] + "_" + position[0] + "_" + position[1] + "_" + position[2];
 		String faFile = out + "_fa.txt";
 		String moFile = out + "_mo.txt";

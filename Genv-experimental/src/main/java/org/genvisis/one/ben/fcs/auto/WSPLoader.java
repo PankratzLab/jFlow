@@ -48,6 +48,10 @@ public class WSPLoader {
   	String[] wspFiles = (new File(wspDir)).list(WSP_FILTER);
   	boolean allLoaded = true;
   	for (String f : wspFiles) {
+  		if (!new File(wspDir + f).canRead()) {
+  			System.err.println("Error - cannot access workspace file: " + wspDir + f);
+  			continue;
+  		}
   		try {
 				loadSampleGating(wspDir + f);
 			} catch (ParserConfigurationException | SAXException | IOException e) {
@@ -92,8 +96,8 @@ public class WSPLoader {
     ArrayList<String> panel1IDs;
     ArrayList<String> panel2IDs;
     
-    panel1IDs = panel1 != null ? loadSampleList(panel1) : new ArrayList<>();
-    panel2IDs = panel2 != null ? loadSampleList(panel2) : new ArrayList<>();
+    panel1IDs = panel1 != null ? loadSampleList(panel1, file, 1) : new ArrayList<>();
+    panel2IDs = panel2 != null ? loadSampleList(panel2, file, 2) : new ArrayList<>();
     
     NodeList samples = doc.getElementsByTagName("Sample");
     
@@ -186,8 +190,13 @@ public class WSPLoader {
     return map;
   }
   
-  private ArrayList<String> loadSampleList(Element panelNode) {
-    NodeList nList = ((Element) panelNode.getElementsByTagName("SampleRefs").item(0)).getElementsByTagName("SampleRef");
+  private ArrayList<String> loadSampleList(Element panelNode, String srcFile, int panel) {
+  	Node node = panelNode.getElementsByTagName("SampleRefs").item(0);
+  	if (node == null) {
+  		System.err.println("No sample list tag for Panel " + panel + " in file: " + srcFile);
+  		return new ArrayList<>();
+  	}
+    NodeList nList = ((Element) node).getElementsByTagName("SampleRef");
     ArrayList<String> sampleRef = new ArrayList<>();
     for (int i = 0; i < nList.getLength(); i++) {
       sampleRef.add(((Element) nList.item(i)).getAttribute("sampleID"));

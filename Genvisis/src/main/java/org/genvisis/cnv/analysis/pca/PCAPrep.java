@@ -24,7 +24,21 @@ public class PCAPrep {
 	static final String MARKERS_TO_QC_FILE = "markers_to_QC.txt";
 	static final String MARKERS_FOR_ABCALLRATE = "markers_ABCallRate.txt";
 
-
+	public static final int SUCCESS_CODE = 42;
+	
+	public static String errorMessage(int errorCode) {
+		switch (errorCode) {
+			case 1:
+				return "MarkerQC should have been run, but the output file " + MARKERS_FOR_ABCALLRATE + " wasn't found in the project/base directory.";
+			case 2:
+			case 3:
+				return "Problem occurred when reading Sample QC (lrr_sd.xln) file - please check log for more details.";
+			case SUCCESS_CODE:
+			default:
+				return "";
+		}
+	}
+	
 	public static int prepPCA(Project proj, int numThreads, String outputBase, boolean markerQC,
 														double markerCallRateFilter, String useFile, SampleList sampleList,
 														Logger log) {
@@ -81,6 +95,7 @@ public class PCAPrep {
 																												markersForEverythingElse, numThreads,
 																												useFile, false);
 			if (counts == null || counts[1] != sampleList.getSamples().length) {
+				int err = 2;
 				if (counts == null) {
 					log.reportError("Error - could not parse QC file ("	+ proj.SAMPLE_QC_FILENAME.getValue()
 													+ ")");
@@ -91,16 +106,17 @@ public class PCAPrep {
 													+ sampleList.getSamples().length + ")");
 					log.reportError("      - delete the QC file ("	+ proj.SAMPLE_QC_FILENAME.getValue()
 													+ ") to regenerate it with the correct number of samples");
+					err = 3;
 				}
 				log.reportError("aborting...");
-				return 2;
+				return err;
 			}
 		}
 		if (counts == null || counts[0] == 0) {// no samples passed threshold, null case shouldn't
 																						// happen but we will test anyway
 			return 2;// message handled already
 		}
-		return 42;
+		return SUCCESS_CODE;
 	}
 
 	/**

@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,6 +30,7 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -373,12 +375,12 @@ public class GenvisisWorkflowGUI extends JDialog {
 
 			String current = fileField.getText();
 
-			String dir = current.equals("")	? proj.PROJECT_DIRECTORY.getValue(false, false)
+			String dir = "".equals(current)	? proj.PROJECT_DIRECTORY.getValue(false, false)
 																			: ext.parseDirectoryOfFile(current);
 			JFileChooser chooser = new JFileChooser(dir);
 			chooser.setMultiSelectionEnabled(false);
 			final STEP step = steps[stepIndex];
-			RequirementInputType[][] reqs = step.reqTypes;
+			RequirementInputType[][] reqs = step.getRequirementInputTypes();
 			int accum = 0;
 			RequirementInputType type = null;
 			outer: for (int i = 0; i < reqs.length; i++) {
@@ -439,8 +441,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 		chckbx.setFont(chckbx.getFont().deriveFont(Font.PLAIN, 14));
 		Grafik.scaleCheckBoxIcon(chckbx);
 		chckbx.setSelected(selected[index]);
-		chckbx.setToolTipText(step.stepDesc);
-		chckbx.setText((index + 1) + ": " + step.stepName);
+		chckbx.setToolTipText(step.getDescription());
+		chckbx.setText((index + 1) + ": " + step.getName());
 
 		checkBoxes.put(step, chckbx);
 		panel.topPanel.add(chckbx, "cell 0 0");
@@ -461,7 +463,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 		cancelStepBtns.put(step, cancelStepButton);
 		panel.topPanel.add(cancelStepButton, "cell 1 0, alignx right, hidemode 3");
 
-		JLabel descLbl = new JLabel("<html><center><p>" + step.stepDesc + "</p></center></html>");
+		JLabel descLbl = new JLabel("<html><center><p>" + step.getDescription() + "</p></center></html>");
 		descLbl.setVerticalAlignment(SwingConstants.TOP);
 		descLbl.setHorizontalAlignment(SwingConstants.LEFT);
 		descLbl.setFont(descLbl.getFont().deriveFont(Font.PLAIN));
@@ -531,14 +533,21 @@ public class GenvisisWorkflowGUI extends JDialog {
 						Grafik.scaleCheckBoxIcon(checkBox);
 						checkBox.setVerticalAlignment(SwingConstants.TOP);
 						checkBox.setHorizontalAlignment(SwingConstants.RIGHT);
-						boolean sel = false;
-						sel = Boolean.valueOf(step.getRequirementDefaults(proj)[reqIndex].toString());
+						boolean sel = Boolean.parseBoolean(step.getRequirementDefaults(proj)[reqIndex].toString());
 						checkBox.setSelected(sel);
 						reqIndex++;
 						reqInputFields.add(checkBox);
-						panel.contentPanel.add(	checkBox,
-																		"alignx right, aligny center, growx, gapleft 20, cell 1 "
-																							+ rowIndex);
+						panel.contentPanel.add(checkBox, "alignx right, aligny center, growx, gapleft 20, cell 1 " + rowIndex);
+					} else if (inputTypes[i][j] == RequirementInputType.ENUM) {
+						Object o = step.getRequirementDefaults(proj)[reqIndex];
+						Enum<?>[] vals = ((Enum<?>) o).getClass().getEnumConstants();						
+						JComboBox<Enum<?>> combo = new JComboBox<Enum<?>>(vals);
+						combo.setAction(new StepRefresher(GenvisisWorkflowGUI.this, step));
+						combo.setFont(combo.getFont().deriveFont(14));
+						combo.setSelectedItem(o);
+						reqIndex++;
+						reqInputFields.add(combo);
+						panel.contentPanel.add(combo, "alignx right, aligny center, growx, gapleft 20, cell 1 " + rowIndex);
 					} else if (inputTypes[i][j] != RequirementInputType.NONE) {
 						JTextField textField = new JTextField();
 						textField.getDocument().addDocumentListener(new TextChangedListener() {
@@ -550,9 +559,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						textField.setText(step.getRequirementDefaults(proj)[reqIndex].toString());
 						reqIndex++;
 						reqInputFields.add(textField);
-						panel.contentPanel.add(	textField,
-																		"alignx right, aligny center, growx, gapleft 20, split 1, cell 1 "
-																								+ rowIndex);
+						panel.contentPanel.add(	textField, "alignx right, aligny center, growx, gapleft 20, split 1, cell 1 " + rowIndex);
 						if (inputTypes[i][j] == RequirementInputType.FILE
 								|| inputTypes[i][j] == RequirementInputType.DIR) {
 							JButton fileBtn = new JButton();
@@ -665,14 +672,33 @@ public class GenvisisWorkflowGUI extends JDialog {
 			refreshLabels(refrenceGUI, stepsToRefresh);
 		}
 	}
-
+	
+	private Set<STEP> getAllRelatedSteps(final Collection<STEP> refreshSteps) {
+		HashSet<STEP> allSteps = new HashSet<GenvisisWorkflow.STEP>();
+		allSteps.addAll(refreshSteps);
+		boolean go = true;
+		while (go) {
+			int stepCnt = allSteps.size();
+			for (STEP s : this.steps) {
+				if (!Collections.disjoint(refreshSteps, s.getRelatedSteps())) {
+					allSteps.add(s);
+				}
+			}
+			if (allSteps.size() == stepCnt) {
+				go = false;
+			}
+		}
+		return Collections.unmodifiableSet(allSteps);
+	}
+	
 	/**
 	 * Validate all elements of the given {@link STEP}s and refresh the specified UI.
 	 *
 	 * @param stepsToRefresh
 	 */
 	public static void refreshLabels(	final GenvisisWorkflowGUI gui,
-																		final Collection<STEP> stepsToRefresh) {
+																		Collection<STEP> steps) {
+		final Collection<STEP> stepsToRefresh = gui.getAllRelatedSteps(steps);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -685,11 +711,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						}
 					});
 				} catch (InvocationTargetException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
 				final Color greenDark = Color.GREEN.darker();
 				final Color dark = Color.GRAY;
@@ -728,11 +750,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 								}
 							});
 						} catch (InvocationTargetException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
 						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
 						}
 					} else {
 						final boolean[][] reqVals = step.checkRequirements(gui.proj, selectedSteps, variables);
@@ -756,11 +774,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 								}
 							});
 						} catch (InvocationTargetException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
 						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
 						}
 					}
 				}
@@ -773,11 +787,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						}
 					});
 				} catch (InvocationTargetException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
 
 			}
@@ -846,11 +856,11 @@ public class GenvisisWorkflowGUI extends JDialog {
 					for (int i = 0; i < options.length; i++) {
 						if (options[i]) {
 							String cmd = steps[i].getCommandLine(proj, variables);
-							output.append("## ").append(steps[i].stepName).append("\n");
-							output.append("echo \" start ").append(steps[i].stepName).append(" at: \" `date`")
+							output.append("## ").append(steps[i].getName()).append("\n");
+							output.append("echo \" start ").append(steps[i].getName()).append(" at: \" `date`")
 										.append("\n");
 							output.append(cmd).append("\n");
-							output.append("echo \" end ").append(steps[i].stepName).append(" at: \" `date`")
+							output.append("echo \" end ").append(steps[i].getName()).append(" at: \" `date`")
 										.append("\n");
 							output.append("\n\n");
 						}
@@ -1001,7 +1011,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 			if (options[i]) {
 				STEP step = steps[i];
 				if (!step.hasRequirements(proj, selectedSteps, variables)) {
-					reqMsgs.add((i + 1) + ". " + step.stepName);
+					reqMsgs.add((i + 1) + ". " + step.getName());
 				}
 			}
 		}
@@ -1031,6 +1041,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 					val = Boolean.toString(((JCheckBox) j).isSelected());
 				} else if (j instanceof JSpinner) {
 					val = ((JSpinner) j).getValue().toString();
+				} else if (j instanceof JComboBox) {
+					val = ((JComboBox<?>) j).getSelectedItem().toString();
 				}
 				values.add(val);
 			}

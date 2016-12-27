@@ -2,6 +2,7 @@ package org.genvisis.seq.analysis;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.manage.Resources;
@@ -216,7 +217,7 @@ public class PlinkSeqMegs {
 																		int numthreads, int numBatches, Logger log) {
 		log.reportTimeInfo("Utilizing " + (numthreads) + " total threads per batch");
 		ChrSplitResults[] cSplitResults = VCFOps.splitByChrs(vcf, numthreads, true, log);
-		ArrayList<ChrSplitResults[]> cSplitResultsBatched = Array.splitUpArray(	cSplitResults,
+		List<ChrSplitResults[]> cSplitResultsBatched = Array.splitUpArray(	cSplitResults,
 																																						numBatches, log);
 		String[] baseCommand = Array.concatAll(	PSF.Java.buildJavaCP(fullPathTojarFile),
 																						new String[] {"seq.analysis.PlinkSeqMegs",

@@ -10,6 +10,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.genvisis.common.Array;
@@ -258,7 +259,7 @@ public class Pathways implements Serializable {
 
 		}
 
-		ArrayList<String[]> splits = Array.splitUpArray(keggGenes.toArray(new String[keggGenes.size()]),
+		List<String[]> splits = Array.splitUpArray(keggGenes.toArray(new String[keggGenes.size()]),
 																										Math.round((float) keggGenes.size() / 50) + 1,
 																										log);
 		for (int i = 0; i < splits.size(); i++) {

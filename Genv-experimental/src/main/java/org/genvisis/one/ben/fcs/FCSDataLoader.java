@@ -346,11 +346,13 @@ public class FCSDataLoader {
   }
   
   public void waitForData() {
+  	long t1 = System.currentTimeMillis();
   	LOAD_STATE currState; 
   	do {
   		currState = getLoadState();
   		Thread.yield();
   	} while (currState != LOAD_STATE.LOADED);
+  	System.out.println("Waited " + ext.getTimeElapsed(t1));
   }
   
   private AxisTransform getDefaultTransform(AXIS_SCALE scale) {

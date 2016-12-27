@@ -7,8 +7,11 @@ import org.genvisis.cnv.analysis.PennCNVPrep;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsApply;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.common.Array;
 import org.genvisis.common.ext;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
@@ -48,9 +51,10 @@ public class PRoCtOR {
 		return (int) sampleChunks;
 	}
 
-	public static void shadow(Project proj, String tmpDir, String outputBase,
-														double markerCallRateFilter, boolean recomputeLRR_PCs,
-														int numComponents, int totalThreads) {
+	public static String shadow(Project proj, String tmpDir, String outputBase,
+															double markerCallRateFilter, boolean recomputeLRR_PCs,
+															CORRECTION_TYPE correctionType, CHROMOSOME_X_STRATEGY strategy,
+															int numComponents, int totalThreads) {
 		int numMarkerThreads = 1;
 		int numThreads = (int) Math.ceil((double) totalThreads / (double) numMarkerThreads);
 		boolean markerQC = true;
@@ -61,19 +65,20 @@ public class PRoCtOR {
 		int retCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC, markerCallRateFilter,
 																	useFile, proj.getSampleList(), proj.getLog());
 		if (retCode != 42) {
-			// TODO error
-			return;
+			return PCAPrep.errorMessage(retCode);
 		}
 		PrincipalComponentsApply pcApply = PCA.generateFullPCA(	proj, numComponents, outputBase,
 																														recomputeLRR_PCs, true, null,
 																														proj.getLog());
 		proj.getLog().reportTime("Setting PCs file: " + pcApply.getExtrapolatedPCsFile());
 		proj.INTENSITY_PC_FILENAME.setValue(pcApply.getExtrapolatedPCsFile());
+
 		PennCNVPrep.prepExport(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
-														numMarkerThreads, LS_TYPE.REGULAR, false);
+														numMarkerThreads, LS_TYPE.REGULAR, false, correctionType, strategy);
 		PennCNVPrep.exportSpecialPennCNV(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
 																			numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false,
-																			false);
+																			false, correctionType, strategy);
+		return "";
 	}
 
 	public static void main(String[] args) {
@@ -84,6 +89,8 @@ public class PRoCtOR {
 		double callrate = MitoPipeline.DEFAULT_MKR_CALLRATE_FILTER;
 		boolean recomputeLRR = false;
 		int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;
+		CORRECTION_TYPE correctionType = CORRECTION_TYPE.XY;
+		CHROMOSOME_X_STRATEGY strategy = CHROMOSOME_X_STRATEGY.BIOLOGICAL;
 		int numThreads = Runtime.getRuntime().availableProcessors();
 
 		String usage = "\n"+ "cnv.manage.PRoCtOR requires 0-1 arguments\n"
@@ -96,9 +103,18 @@ public class PRoCtOR {
 										+ callrate + " (default))\n"
 										+ "   (5) Flag specifying whether or not to re-compute Log-R Ratio values (usually false if LRRs already exist) (i.e. recomputeLRR="
 										+ recomputeLRR + " (default))\n"
-										+ "   (6) Total number of threads to use (i.e. numThreads=" + numThreads
+										+ "   (6) Type of correction.  Options include: "
+										+ Array.toStr(CORRECTION_TYPE.values(), ", ") + " (i.e. type=" + correctionType
 										+ " (default))\n"
-										+ "   (7) OPTIONAL: temp directory for intermediate files (which tend to be very large) (i.e. tmp="
+
+										+ "   (7) Chromosome X correction strategy.  Options include: "
+										+ Array.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy="
+										+ strategy + " (default))\n"
+
+										+ "   (8) Total number of threads to use (i.e. numThreads=" + numThreads
+										+ " (default))\n"
+
+										+ "   (8) OPTIONAL: temp directory for intermediate files (which tend to be very large) (i.e. tmp="
 										+ tempDir + " (default))\n" + "";
 
 		for (String arg : args) {
@@ -123,6 +139,13 @@ public class PRoCtOR {
 			} else if (arg.startsWith("numThreads=")) {
 				numThreads = ext.parseIntArg(arg);
 				numArgs--;
+			} else if (arg.startsWith("type=")) {
+				correctionType = CORRECTION_TYPE.valueOf(ext.parseStringArg(arg,
+																																		correctionType.toString()));
+				numArgs--;
+			} else if (arg.startsWith("sexStrategy=")) {
+				strategy = CHROMOSOME_X_STRATEGY.valueOf(ext.parseStringArg(arg, strategy.toString()));
+				numArgs--;
 			} else if (arg.startsWith("tmp=")) {
 				tempDir = ext.parseStringArg(arg, null);
 				numArgs--;
@@ -136,7 +159,11 @@ public class PRoCtOR {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			shadow(proj, tempDir, outputBase, callrate, recomputeLRR, numComponents, numThreads);
+			String err = shadow(proj, tempDir, outputBase, callrate, recomputeLRR, correctionType,
+													strategy, numComponents, numThreads);
+			if (!"".equals(err)) {
+				System.err.println("Error - " + err);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

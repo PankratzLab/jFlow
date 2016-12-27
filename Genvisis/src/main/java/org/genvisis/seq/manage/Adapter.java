@@ -2,6 +2,7 @@ package org.genvisis.seq.manage;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
@@ -133,7 +134,7 @@ public class Adapter {
 		for (int i = 0; i < sequences.length; i++) {
 			fastaEntries[i] = new FastaEntry(sequences[i] + "_softClippedSequence", sequences[i]);
 		}
-		ArrayList<FastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, log);
+		List<FastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, log);
 		ArrayList<BlastWorker> workers = new ArrayList<Blast.BlastWorker>();
 		String[] tmps = new String[splits.size()];
 		if (fastaEntries != null && fastaEntries.length > 0) {

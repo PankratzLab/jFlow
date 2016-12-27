@@ -14,8 +14,8 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.util.Pair;
 import org.genvisis.common.Array;
 import org.genvisis.common.Logger;
-import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
+import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
 
 import edu.stanford.facs.logicle.Logicle;
