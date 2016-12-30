@@ -1,4 +1,4 @@
-package src.main.java.org.genvisis.one.george;
+package org.genvisis.one.george;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
