@@ -1,8 +1,8 @@
 package org.genvisis.one.george;
 
 public class Node {
-	private int id;
-	private int id2;
+	private int id = -1;
+	private int id2 = -1;
 	private Node[] children = null;
 	
 	public Node(int id, Node[] children) {
@@ -16,7 +16,10 @@ public class Node {
 	}
 	
 	public int[] getIds() {
-		return new int[]{this.id, this.id2};
+		if (this.id2 == -1) // uninitialized
+			return new int[]{this.id};
+		else
+			return new int[]{this.id, this.id2};
 	}
 	public Node[] getChildren() { // Returns pointer to children
 		return this.children;

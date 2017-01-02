@@ -1,23 +1,20 @@
 package org.genvisis.one.george;
+
 import java.io.File;
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.io.IOException;
 
-import org.genvisis.one.ben.fcs.FCSDataLoader;
-import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
-
-public class ExportDir {
-	// exports all fcs in directory to csv files
+public class ExportHumanLabels {
 	public static void main(String[] args) {
 		if (args.length < 1) {
 			System.out.println("err: requires directory name "
-					+ "(containing .fcs files) as first command line arg");
+					+ "(containing .xln files) as first command line arg");
 			return;
 		}
 		else {
-			Pattern p = Pattern.compile(".*fcs");
-			
+			Pattern p = Pattern.compile(".*xln");
+
 			String dirname = args[0];
 			File dir = new File(dirname);
 			File[] fileList = dir.listFiles();
@@ -37,16 +34,9 @@ public class ExportDir {
 			
 			for (int i = 0; i < fileListExt.length; i++) {
 				if (fileListExt[i] != null) {
-					FCSDataLoader loader = new FCSDataLoader();
-					
-					try {loader.loadData(pathListExt[i]);}
-					catch (IOException e) {};
-					loader.waitForData();
-					
-					String filename = fileListExt[i];
-					int extIndex = filename.indexOf(".");
-					String nameNoExt = filename.substring(0, extIndex);
-					loader.exportData(dirname + "/" + nameNoExt + ".csv", FCSDataLoader.DATA_SET.ALL);
+					HumanLabels hl = new HumanLabels(pathListExt[i]);
+					String out_filepath = pathListExt[i].substring(0, pathListExt[i].indexOf(".xln")) + "_mtrx.xln"; 
+					hl.exportData(out_filepath);
 				}
 			}
 		}
