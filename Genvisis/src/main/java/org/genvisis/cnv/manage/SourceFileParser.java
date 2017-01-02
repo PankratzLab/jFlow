@@ -188,8 +188,10 @@ public class SourceFileParser implements Runnable {
 //						return;
 //					}
 					if ((headerData.colGenoAB1 == -1 || headerData.colGenoAB2 == -1) && abLookup == null) {
+						log.reportTimeWarning("Setting IGNORE_AB to TRUE");
 						ignoreAB = true;
 					} else {
+						log.reportTimeWarning("Setting IGNORE_AB to FALSE");
 						ignoreAB = false;
 					}
 
@@ -203,19 +205,10 @@ public class SourceFileParser implements Runnable {
 																headerData.colR == -1 ? null : new float[markerNames.length],
 																headerData.colBAF == -1 ? null : new float[markerNames.length],
 																headerData.colLRR == -1 ? null : new float[markerNames.length],};
-					genotypes = new byte[][] {Array.byteArray(markerNames.length, (byte) 0),
-																		ignoreAB	? null
-																							: Array.byteArray(markerNames.length, (byte) -1),}; // two
-																																																	// sets
-																																																	// of
-																																																	// genotypes,
-																																																	// the
-																																																	// "forward"
-																																																	// alleles
-																																																	// and
-																																																	// the
-																																																	// AB
-																																																	// alleles
+					genotypes = new byte[][] {
+              Array.byteArray(markerNames.length, (byte) 0),
+              ignoreAB ? null : Array.byteArray(markerNames.length, (byte) -1)
+					}; 
 					if (!headersOutput) {
 						StringBuilder logOutput = new StringBuilder();
 						logOutput.append("Column name assignments for data import:\n");
@@ -446,12 +439,15 @@ public class SourceFileParser implements Runnable {
 									}
 								}
 							}
+						}
+						if (headerData.colGenoAB1 != -1 && headerData.colGenoAB2 != -1) {
 							if (ignoreAB) {
 								// do nothing, will need to use these files to determine AB lookup table
-							} else if (abLookup == null) {
-								genotypes[1][key] = (byte) ext.indexOfStr(line[headerData.colGenoAB1]
-																														+ line[headerData.colGenoAB2],
-																													Sample.AB_PAIRS);
+							} else if (abLookup == null || headerData.colGeno1 == -1 || headerData.colGeno2 == -1) {
+								if (abLookup != null) {
+									log.reportTimeWarning("ABLookup data provided to source file parser but forward genotypes aren't present in the source file.  AB genotypes will be parsed from the source file instead.");
+								}
+								genotypes[1][key] = (byte) ext.indexOfStr(line[headerData.colGenoAB1] + line[headerData.colGenoAB2], Sample.AB_PAIRS);
 							} else {
 								if (genotypes[0][key] == 0) {
 									genotypes[1][key] = -1;
@@ -524,7 +520,7 @@ public class SourceFileParser implements Runnable {
 					}
 
 					samp = new Sample(sampleName, fingerprint, data, genotypes, false);
-					samp.saveToRandomAccessFile(filename, allOutliers, sampleName); // TODO sampleIndex
+					samp.saveToRandomAccessFile(filename, allOutliers, sampleName); 
 				} catch (FileNotFoundException fnfe) {
 					log.reportError("Error: file \"" + files[i] + "\" not found in current directory");
 					return;

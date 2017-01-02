@@ -649,12 +649,16 @@ public class LrrSd extends Parallelizable {
 				sampleIndices.put(samples[i], i);
 			}
 			boolean[] passingSamples = Array.booleanArray(samples.length, false);
+			boolean hasGeno, hasLrr;
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delim);
 				// skip any headers as a result of concatenating the qc results
 				if (!line[indices[0]].equals(MitoPipeline.QC_COLUMNS[0])) {
 					// if passes qc
 					String sample = line[indices[0]];
+					Sample fsamp = proj.getPartialSampleFromRandomAccessFile(sample, false, false, false, true, true);
+					hasGeno = fsamp.getAB_Genotypes() != null || fsamp.getForwardGenotypes() != null;
+					hasLrr = fsamp.getLRRs() != null;
 					if (!sampleIndices.containsKey(sample)) {
 						log.reportError("Sample "	+ sample + " is listed in "
 																+ proj.SAMPLE_QC_FILENAME.getValue()
@@ -663,7 +667,7 @@ public class LrrSd extends Parallelizable {
 					}
 					double lrrSd = Double.parseDouble(line[indices[1]]);
 					double callrate = Double.parseDouble(line[indices[2]]);
-					if (lrrSd < lrrSdFilter && callrate > callRateFilter) {
+					if ((!hasLrr || lrrSd < lrrSdFilter) && (!hasGeno || callrate > callRateFilter)) {
 						numPassing++;
 						passingSamples[sampleIndices.get(sample)] = true;
 					}
