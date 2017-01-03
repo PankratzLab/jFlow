@@ -10,7 +10,10 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.cnv.analysis.FilterCalls;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
 import org.genvisis.common.CNVFilter;
@@ -148,17 +151,6 @@ public class lab {
 
 	}
 
-
-	public enum TEST {
-										TEST1, TEST2, TEST3;
-	}
-
-	public static <T extends Enum<T>> void enumValues(Class<T> enumType) {
-		for (T c : enumType.getEnumConstants()) {
-			System.out.println(c.name());
-		}
-	}
-
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
@@ -168,21 +160,28 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
+			
+			String dir = "/scratch.global/cole0482/ny_choanal/omni2.5v1.1/shadowCNVs/";
+			String in = "recodedM.cnv";
+			String out = "recodedM_excl.cnv";
+			String indivFile = "/scratch.global/cole0482/ny_choanal/omni2.5v1.1/cnvs/exclude.txt";
+			boolean exclude = true;
+			FilterCalls.filterExclusions(dir, in, out, indivFile, exclude);
+			in = "recodedF.cnv";
+			out = "recodedF_excl.cnv";
+			FilterCalls.filterExclusions(dir, in, out, indivFile, exclude);
+			
+			CNVFilter cnvF = new CNVFilter(new Logger());
+			cnvF.setProblemRegionsFromFile("/scratch.global/cole0482/ny_choanal/problematicRegions_hg19.dat");
 
-			HashMap<Integer, Integer> testMap = new HashMap<>();
-			for (int i = 0; i < 10; i++) {
-				testMap.put(i * 2, i);
-			}
-			Integer[] testArr = Array.mapToValueSortedArray(testMap);
-			System.out.println(Array.toStr(testArr));
+			in = dir + "recodedM_excl.cnv";
+			out = dir + "recodedM_filt.cnv";
+			CNVFilter.filterCNVs(in, out, cnvF, new Logger());
+
+			in = dir + "recodedF_excl.cnv";
+			out = dir + "recodedF_filt.cnv";
+			CNVFilter.filterCNVs(in, out, cnvF, new Logger());
 			
-			
-//			Files.check32Bit();
-			
-//			String outFile = "/scratch.global/cole0482/test.db.xln.gz";
-//			String mapOutFile = "/scratch.global/cole0482/mapOut.xln";
-//
-//
 //			MergeExtractPipeline pipeline = new MergeExtractPipeline();
 //			// pipeline.setMarkers(markersFile);
 //			pipeline.setRunDirectory("/scratch.global/cole0482/merge/", true);
@@ -228,59 +227,6 @@ public class lab {
 			// dd3 = DosageData.combine(dd2, dd1);
 			// dd3.writeToFile(outFile, mapOutFile, null, DosageData.DATABASE_DOSE_FORMAT, null);
 			// System.out.println("complete!");
-
-			// createRandomSelectionFile();
-			// try {
-			// String checkfile = "D:/data/gedi_gwas/data/cluster.genome.gz";
-			// BufferedReader reader = Files.getAppropriateReader(checkfile);
-			// String line = reader.readLine();
-			// int cnt = 1;
-			// while ((line = reader.readLine()) != null) {
-			// cnt++;
-			// }
-			// reader.close();
-			// System.out.println("Read " + cnt + " lines");
-
-
-
-			// String s = "10000000000";
-			// long l = Long.parseLong(s);
-			// System.out.println(l > Integer.MAX_VALUE);
-			// int d = Integer.parseInt(s);
-
-			//
-			// Process p = Runtime.getRuntime().exec("where notepad.exe");
-			// int waitCode = p.waitFor();
-			// int outCode = p.exitValue();
-			// System.out.println("wait: " + waitCode + "| out: " + outCode);
-			// processData();
-			// concatData();
-			// ConditionalAnalysisPipeline.processOnly(args[0], args[1], args[2]);
-			// } catch (IOException e) {
-			// // TODO Auto-generated catch block
-			// e.printStackTrace();
-			// } /*catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			// e.printStackTrace();
-			// }*/
-			//
-			// String dir = "F:/CARDIA processing/";
-			//
-			// String[] files = (new File(dir)).list(new FilenameFilter() {
-			// @Override
-			// public boolean accept(File dir, String name) {
-			// return name.endsWith("positions.xln");
-			// }
-			// });
-			//
-			// for (String file2 : files) {
-			// try {
-			// processSNPPositions(dir + file2, dir + ext.rootOf(file2) + ".proc.xln");
-			// } catch (IOException e) {
-			// TODO Auto-generated catch block
-			// e.printStackTrace();
-			// }
-			// }
 
 
 			return;
