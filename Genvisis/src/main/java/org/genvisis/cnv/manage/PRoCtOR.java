@@ -73,6 +73,9 @@ public class PRoCtOR {
 		proj.getLog().reportTime("Setting PCs file: " + pcApply.getExtrapolatedPCsFile());
 		proj.INTENSITY_PC_FILENAME.setValue(pcApply.getExtrapolatedPCsFile());
 
+		if (correctionType == CORRECTION_TYPE.GENERATE_COMPS_ONLY) {
+			return "";
+		}
 		PennCNVPrep.prepExport(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
 														numMarkerThreads, LS_TYPE.REGULAR, false, correctionType, strategy);
 		PennCNVPrep.exportSpecialPennCNV(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
@@ -159,8 +162,7 @@ public class PRoCtOR {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			String err = shadow(proj, tempDir, outputBase, callrate, recomputeLRR, correctionType,
-													strategy, numComponents, numThreads);
+			String err = shadow(proj, tempDir, outputBase, callrate, recomputeLRR, correctionType, strategy, numComponents, numThreads);
 			if (!"".equals(err)) {
 				System.err.println("Error - " + err);
 			}
