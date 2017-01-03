@@ -46,19 +46,14 @@ import org.genvisis.common.ext;
  */
 public class SourceFileParser implements Runnable {
 
-	// public static final String[][] SNP_HEADER_OPTIONS = {{ "SNP Name", "rsID", "Probe Set ID",
-	// "ProbeSet", "SNP", "ProbeSetName", "Name", "Marker"}}; // TODO any problems with mixing all
-	// idents together?
+	private static final String IDS_CHANGED_FILEROOT = "FYI_IDS_WERE_CHANGED";
 	public static final String[][] SNP_HEADER_OPTIONS = {Aliases.MARKER_NAMES};
-	// public static final String[][] SNP_TABLE_FIELDS = { SNP_HEADER_OPTIONS[0], { "Chr",
-	// "Chromosome" }, { "Position" } };
-	public static final String[][] SNP_TABLE_FIELDS = {	SNP_HEADER_OPTIONS[0], Aliases.CHRS,
-																											Aliases.POSITIONS};
-	public static final String[] DELIMITERS = {",", "\t", " "};
-	public static final String[] DELIMITER_DESCRIPTIONS = {"COMMA", "TAB", "SPACE"};
+	protected static final String[][] SNP_TABLE_FIELDS = {	SNP_HEADER_OPTIONS[0], Aliases.CHRS, Aliases.POSITIONS};
+	protected static final String[] DELIMITERS = {",", "\t", " "};
+	protected static final String[] DELIMITER_DESCRIPTIONS = {"COMMA", "TAB", "SPACE"};
 	public static final String OVERWRITE_OPTION_FILE = ".overwrite_option";
-	public static final String CANCEL_OPTION_FILE = ".cancel_option";
-	public static final String HOLD_OPTION_FILE = ".hold_option";
+	protected static final String CANCEL_OPTION_FILE = ".cancel_option";
+	protected static final String HOLD_OPTION_FILE = ".hold_option";
 	public static final String FILENAME_AS_ID_OPTION = "[FILENAME_ROOT]";
 
 	private final Project proj;
@@ -139,35 +134,9 @@ public class SourceFileParser implements Runnable {
 
 					reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)
 																							+ files[i]);
-					// temp = null;
 					for (int k = 0; k < headerData.columnHeaderLineIndex + 1; k++) {
-						// iterate
-						/* temp = */ reader.readLine();
+						reader.readLine();
 					}
-					// do {
-					// line = reader.readLine().trim().split(delimiter, -1);
-					// } while (reader.ready() && (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line,
-					// false, true, false, false)[0] == -1 ||
-					// (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader,
-					// line) == -1)));
-
-					// DATA_0 {"GC Score", "GCscore", "confidence","Confidence"}
-					// DATA_1 {"X Raw"}
-					// DATA_2 {"Y Raw"}
-					// DATA_3 {"X", "Xvalue", "Log Ratio", "intensity_1","Signal A"}
-					// DATA_4 {"Y", "Yvalue", "Strength", "intensity_2","Signal B"}
-					// DATA_5 {"Theta"}
-					// DATA_6 {"R"}
-					// DATA_7 {"B Allele Freq"},
-					// DATA_8 {"Log R Ratio"}
-					//
-					// GENO_0 {"Allele1 - Forward", "Allele1", "genotype1", "Allele1 - Top","Forward Strand
-					// Base Calls","Forced Call","Forced Call Codes"},
-					// GENO_1 {"Allele2 - Forward", "Forward Strand Base Calls", "genotype2", "Allele2 -
-					// Top","Allele B","Forced Call","Forced Call Codes"},
-					// GENO_2 {"Allele1 - AB","Call Codes","Call"},
-					// GENO_3 {"Allele2 - AB","Call Codes","Call"}};
-
 					if (idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)) {
 						sampIndex = -7;
 					} else {
@@ -397,7 +366,7 @@ public class SourceFileParser implements Runnable {
 											line[headerData.colGenoAB1] = tmp2;
 											line[headerData.colGenoAB2] = tmp3;
 										} catch (Exception e) {
-											log.reportError("Could not parse genotypes on line " + Array.toStr(line));
+											log.reportError("Could not parse genotypes on line " + key + " --> {" + Array.toStr(line) + "}");
 											log.reportException(e);
 											return;
 										}
@@ -406,8 +375,7 @@ public class SourceFileParser implements Runnable {
 									log.reportError("Inconsistant genotype call lengths");
 								}
 							} else if (splitAB) {
-								log.reportError("Detected previously that genotype calls should be split, but the calls on line "
-																		+ Array.toStr(line) + " did not");
+								log.reportError("Detected previously that genotype calls should be split, but the calls on line " + key + " --> {" + Array.toStr(line) + "} did not.  Parsing will fail for this file.");
 								return;
 							}
 							genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.colGeno1]
@@ -495,15 +463,15 @@ public class SourceFileParser implements Runnable {
 						if (writer == null) {
 							try {
 								writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																													+ "FYI_IDS_WERE_CHANGED" + threadId
+																													+ IDS_CHANGED_FILEROOT + threadId
 																												+ ".txt", true));
-								if (new File(proj.PROJECT_DIRECTORY.getValue()	+ "FYI_IDS_WERE_CHANGED" + threadId
+								if (new File(proj.PROJECT_DIRECTORY.getValue()	+ IDS_CHANGED_FILEROOT + threadId
 															+ ".txt").length() == 0) {
 									writer.println("The following IDs were changed so that spaces are removed and so that they could be used as valid filenames:");
 								}
 							} catch (Exception e) {
 								log.reportError("Error writing to "	+ proj.PROJECT_DIRECTORY.getValue()
-																+ "FYI_IDS_WERE_CHANGED" + threadId + ".txt");
+																+ IDS_CHANGED_FILEROOT + threadId + ".txt");
 								log.reportException(e);
 							}
 						}
@@ -1415,14 +1383,14 @@ public class SourceFileParser implements Runnable {
 																																									+ ".ser"));
 				new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + i + ".ser").delete();
 			}
-			if (new File(proj.PROJECT_DIRECTORY.getValue()	+ "FYI_IDS_WERE_CHANGED" + i
+			if (new File(proj.PROJECT_DIRECTORY.getValue()	+ IDS_CHANGED_FILEROOT + i
 										+ ".txt").exists()) {
-				v.add(proj.PROJECT_DIRECTORY.getValue() + "FYI_IDS_WERE_CHANGED" + i + ".txt");
+				v.add(proj.PROJECT_DIRECTORY.getValue() + IDS_CHANGED_FILEROOT + i + ".txt");
 			}
 		}
 		if (v.size() > 0) {
 			Files.cat(Array.toStringArray(v),
-								proj.PROJECT_DIRECTORY.getValue() + "FYI_IDS_WERE_CHANGED.txt",
+								proj.PROJECT_DIRECTORY.getValue() + IDS_CHANGED_FILEROOT + ".txt",
 								Array.intArray(v.size(), 1), log);
 			for (int i = 0; i < v.size(); i++) {
 				new File(v.elementAt(i)).delete();
