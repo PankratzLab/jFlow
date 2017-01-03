@@ -73,7 +73,7 @@ public class PRoCtOR {
 		proj.getLog().reportTime("Setting PCs file: " + pcApply.getExtrapolatedPCsFile());
 		proj.INTENSITY_PC_FILENAME.setValue(pcApply.getExtrapolatedPCsFile());
 
-		if (correctionType == CORRECTION_TYPE.GENERATE_COMPS_ONLY) {
+		if (correctionType == CORRECTION_TYPE.GENERATE_PCS_ONLY) {
 			return "";
 		}
 		PennCNVPrep.prepExport(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,

@@ -78,7 +78,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 																/**
 																 * No Correction - PCs will be generated and then quit.
 																 */
-																GENERATE_COMPS_ONLY,
+																GENERATE_PCS_ONLY,
 																/**
 																 * Multi-stage correction of X and Y intensities within a genotype
 																 * cluster
