@@ -151,6 +151,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 	public static final int DEFAULT_STARTY = 20;
 	public static final int DEFAULT_WIDTH = 1100;
 	public static final int DEFAULT_HEIGHT = 720;
+	public static final String NO_REGIONS = "Do Not Use Regions...";
 	public static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
 
 	private static final String BLANK_COMMENT = " -- Click here to comment on this region -- ";
@@ -255,7 +256,8 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			String shortName = ((JCheckBoxMenuItem) e.getSource()).getText();
 			if (!loadingFile	&& !REGION_LIST_LOAD_FILE.equals(shortName)
 					&& !REGION_LIST_PLACEHOLDER.equals(shortName)
-					&& !REGION_LIST_USE_CNVS.equals(shortName)) {
+					&& !REGION_LIST_USE_CNVS.equals(shortName)
+					&& !NO_REGIONS.equals(shortName)) {
 				String file = regionFileNameLoc.get(shortName);
 				if (file == null || file.equals(regionFileName)) {
 					return;
@@ -289,6 +291,12 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 					updateGUI();
 					showRegion(0);
 				}
+			} else if (NO_REGIONS.equals(shortName)) {
+				regionFileName = "";
+				regions = null;
+				updateCNVs(chr);
+				updateGUI();
+				showRegion(0);
 			}
 		}
 	};
@@ -882,8 +890,11 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 						loadRegions();
 					}
 				}
-
-				if (regionFileName == null || REGION_LIST_USE_CNVS.equals(regionFileName)) {
+				
+				if (regionFileName == null || NO_REGIONS.equals(regionFileName) || "".equals(regionFileName)) {
+					regionFileName = NO_REGIONS;
+					regionFileNameBtn.get(NO_REGIONS).setSelected(true);
+				} else if (REGION_LIST_USE_CNVS.equals(regionFileName)) {
 					while (!sampleData.getCNVsLoaded()) {
 						try {
 							Thread.sleep(30);
@@ -1763,11 +1774,19 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 
 		JCheckBoxMenuItem item1 = new JCheckBoxMenuItem();
 		item1.setAction(markerFileSelectAction);
-		item1.setText(REGION_LIST_USE_CNVS);
+		item1.setText(NO_REGIONS);
 		item1.setFont(font);
-		regionFileNameBtn.put(REGION_LIST_USE_CNVS, item1);
+		regionFileNameBtn.put(NO_REGIONS, item1);
 		regionButtonGroup.add(item1);
 		loadRecentFileMenu.add(item1);
+
+		JCheckBoxMenuItem item2 = new JCheckBoxMenuItem();
+		item2.setAction(markerFileSelectAction);
+		item2.setText(REGION_LIST_USE_CNVS);
+		item2.setFont(font);
+		regionFileNameBtn.put(REGION_LIST_USE_CNVS, item2);
+		regionButtonGroup.add(item2);
+		loadRecentFileMenu.add(item2);
 
 		final JRadioButtonMenuItem[] transformBtns = new JRadioButtonMenuItem[Transforms.TRANFORMATIONS.length];
 		gcCorrectButton = new JCheckBoxMenuItem(GcAdjustor.GC_ADJUSTOR_TITLE[0], false);// stays hidden
