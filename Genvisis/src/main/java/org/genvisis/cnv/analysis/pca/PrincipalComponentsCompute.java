@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.factory.DecompositionFactory;
@@ -565,7 +566,7 @@ public class PrincipalComponentsCompute {
 		Arrays.fill(markerUsed, true);
 		// for (int i = 0; i < markers.length; i++) {
 		int i = 0;
-		Hashtable<String, Integer> projectIndices = proj.getMarkerIndices();
+		Map<String, Integer> projectIndices = proj.getMarkerIndices();
 		while (mdl.hasNext()) {
 			float[][] data = new float[1][dataToUse[0].length];
 			if (i % 1000 == 0) {

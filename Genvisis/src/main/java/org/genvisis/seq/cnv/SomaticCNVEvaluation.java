@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -308,7 +309,7 @@ public class SomaticCNVEvaluation {
 			Sample normalSamp = proj.getFullSampleFromRandomAccessFile(normalSample);
 
 			int[][] cnvIndices = new int[tumorCnvs.getLoci().length][];
-			Hashtable<String, Integer> track = proj.getMarkerIndices();
+			Map<String, Integer> track = proj.getMarkerIndices();
 			for (int i = 0; i < tumorCnvs.getLoci().length; i++) {
 				String[] namesIn = markerSet.getMarkersIn(tumorCnvs.getLoci()[i],
 																									markerSet.getIndicesByChr());
