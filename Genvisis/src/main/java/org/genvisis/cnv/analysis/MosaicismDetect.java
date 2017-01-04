@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.genvisis.CLI;
@@ -51,7 +52,7 @@ public class MosaicismDetect {
 	private double baseLine;
 	private double[] means;
 	private double[] variances;
-	private final Hashtable<String, Integer> markerIndices;// can provide a speedup if provided
+	private final Map<String, Integer> markerIndices;// can provide a speedup if provided
 	private final boolean[] use;
 
 	public int getMovingFactor() {
@@ -345,7 +346,7 @@ public class MosaicismDetect {
 		private double baseLine = DEFAULT_BASELINE;
 		private double[] means = null;
 		private double[] variances = null;
-		private Hashtable<String, Integer> markerIndices = null;// can provide a speedup if provided
+		private Map<String, Integer> markerIndices = null;// can provide a speedup if provided
 		private boolean[] use = null;// only these markers will be used for the computation
 
 		/**
@@ -361,7 +362,7 @@ public class MosaicismDetect {
 		 * @param markerIndices speeds up extraction of which markers to use for a given seg
 		 * @return
 		 */
-		public MosaicBuilder markerIndices(Hashtable<String, Integer> markerIndices) {
+		public MosaicBuilder markerIndices(Map<String, Integer> markerIndices) {
 			this.markerIndices = markerIndices;
 			return this;
 		}

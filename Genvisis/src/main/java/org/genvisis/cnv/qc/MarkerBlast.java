@@ -169,8 +169,7 @@ public class MarkerBlast {
 																																							proj.BLAST_ANNOTATION_FILENAME.getValue(),
 																																							doBlast ? tmps
 																																											: new String[] {},
-																																							entries,
-																																						entries, reportWordSize,
+																																							entries, reportWordSize,
 																																							proj.getArrayType()
 																																									.getProbeLength(),
 																																							proj.getArrayType()
@@ -513,18 +512,17 @@ public class MarkerBlast {
 							if (alleleLookup) {
 								alleleParser.parse(proj.getArrayType(), strand, null);
 							}
-<<<<<<< Upstream, based on origin/master
-							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.A.getTag(), tmpSeq[0],
-																							 tmpSeq[1], strand, interrogationPosition,
-																							 markerSegment, TOP_BOT.NA, TOP_BOT.NA,
-																							 alleleParser.getA(), alleleParser.getB(),
-																							 alleleParser.getRef(), alleleParser.getAlts()));
-<<<<<<< Upstream, based on origin/master
-							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B.getTag(), tmpSeq[1],
-																							 tmpSeq[1], strand, interrogationPosition,
-																							 markerSegment, TOP_BOT.NA, TOP_BOT.NA,
-																							 alleleParser.getA(), alleleParser.getB(),
-																							 alleleParser.getRef(), alleleParser.getAlts()));
+							entries.add(new MarkerFastaEntry(markerName	+ PROBE_TAG.A.getTag(), tmpSeq[0], tmpSeq[1],
+																								strand, interrogationPosition, markerSegment,
+																								TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(),
+																								alleleParser.getB(), alleleParser.getRef(),
+																								alleleParser.getAlts()));
+
+							entries.add(new MarkerFastaEntry(markerName	+ PROBE_TAG.B.getTag(), tmpSeq[1], tmpSeq[1],
+																								strand, interrogationPosition, markerSegment,
+																								TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(),
+																								alleleParser.getB(), alleleParser.getRef(),
+																								alleleParser.getAlts()));
 							throw new IllegalArgumentException("Sorry, Affymetrix AB designation is not currently working, feel free to remove this exception if you just want blast results, but make sure to not rely on ABs - also shout at @jlanej");
 						}
 					}
