@@ -541,7 +541,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 					} else if (inputTypes[i][j] == RequirementInputType.ENUM) {
 						Object o = step.getRequirementDefaults(proj)[reqIndex];
 						Enum<?>[] vals = ((Enum<?>) o).getClass().getEnumConstants();						
-						JComboBox<Enum<?>> combo = new JComboBox<Enum<?>>(vals);
+						JComboBox combo = new JComboBox(vals);
 						combo.setAction(new StepRefresher(GenvisisWorkflowGUI.this, step));
 						combo.setFont(combo.getFont().deriveFont(14));
 						combo.setSelectedItem(o);
@@ -1042,7 +1042,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 				} else if (j instanceof JSpinner) {
 					val = ((JSpinner) j).getValue().toString();
 				} else if (j instanceof JComboBox) {
-					val = ((JComboBox<?>) j).getSelectedItem().toString();
+					val = ((JComboBox) j).getSelectedItem().toString();
 				}
 				values.add(val);
 			}
