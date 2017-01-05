@@ -21,6 +21,21 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariantHash;
 
+/**
+ * Measure statistics for agreement (concordance) of CNV calls. There are two methods for measurement:
+ * <p>
+ * <ul>
+ * <li>Blind duplicates - the <code>pairingFile</code> should map separate samples that are expected
+ * to be genetically identical (e.g. duplicate samples in the dataset), and only a single
+ * <code>cnvFile</code> is input. The output concordance indicates how well the given CNV algorithm
+ * does when provided similar data.</li>
+ * <li>Gold standard - the <code>pairingFile</code> should map the same sample which has been called
+ * in two separate CNV methods. The base <code>cnvFile</code> is taken as the test case and compared
+ * against a <code>cnvControl<code> file. Output concordance indicates how well a modified CNV
+ * algorithm does against a known standard.</li>
+ * </ul>
+ * </p>
+ */
 public class CNVConcordance {
 	private static class ComparisionGlobalResults {
 		private final CNVConcordance.ComparisionIndividualResults[] indResults;
@@ -206,33 +221,33 @@ public class CNVConcordance {
 				return 0.0;
 			}
 			return (double) target / getNumOverlap();
-			
+
 		}
 
 		public String getInfo() {
-			//TODO for printing individual information
+			// TODO for printing individual information
 			return "";
 		}
 	}
 
-	//TODO would prefer to integrate this with the global stats in a way that avoids parallel arrays
-	private static final String[] REPORT = {"Total CNVs Compared", "Total Overlapping CNVs",
-	                                        "Total Significantly Overlapping CNVs",
-	                                        "Total Perfectly overlapping cnvs",
-	                                        "Total Unpaired CNVs",
-	                                        "Average Individual Overlap",
-	                                        "Average Individual Significant Overlap",
-	                                        "Average Individual Perfect Overlap","Average Individual Overlap Score",
-	                                        "Average Individual Unpaired",
-	                                        "Average Relative Overlap",
-	                                        "Average Relative Significant Overlap",
-	                                        "Average Relative Perfect Overlap",
-	                                        "Global Overlap",
-	                                        "Global Significant Overlap", "Global Perfect Overlap",
-	                                        "Average Global Overlap Score"};
+	// TODO would prefer to integrate this with the global stats in a way that avoids parallel arrays
+	public static final String[] REPORT_HEADER = {"Total CNVs Compared", "Total Overlapping CNVs",
+	                                              "Total Significantly Overlapping CNVs",
+	                                              "Total Perfectly overlapping cnvs",
+	                                              "Total Unpaired CNVs", "Average Individual Overlap",
+	                                              "Average Individual Significant Overlap",
+	                                              "Average Individual Perfect Overlap",
+	                                              "Average Individual Overlap Score",
+	                                              "Average Individual Unpaired",
+	                                              "Average Relative Overlap",
+	                                              "Average Relative Significant Overlap",
+	                                              "Average Relative Perfect Overlap",
+	                                              "Global Overlap", "Global Significant Overlap",
+	                                              "Global Perfect Overlap",
+	                                              "Average Global Overlap Score"};
 	public static final String COMMAND_PROJECT = "proj=";
 	public static final String COMMAND_CNV = "cnvFile=";
-	public static final String COMMAND_DUPLICATE = "duplicateFile=";
+	public static final String COMMAND_PAIR = "pairFile=";
 	public static final String COMMAND_LRRSD_THRESHOLD = "lrrSD=";
 	public static final String COMMAND_OUTPUT = "output=";
 	public static final String COMMAND_DEFUALTS = "-defaults";
@@ -242,11 +257,12 @@ public class CNVConcordance {
 	public static final String COMMAND_CNV_CONCORDANCE_DESCRIPTION =
 	                                                               "- compute the concordance between replicates in a cnv file";
 	private final Project proj;
-	private final String[][] duplicates;
+	private final String[][] pairs;
 	private final double[] lrr;
 	private final double[] callRate;
 	private String report;
-	private final CNVariantHash cNVariantHash;
+	private final CNVariantHash testHash;
+	private final CNVariantHash controlHash;
 	private ComparisionIndividualResults[] comparisionResults;
 	private boolean fail;
 	private final CNVFilter filter;
@@ -255,17 +271,26 @@ public class CNVConcordance {
 	private final double minCallRate;
 	private SampleData sampleData;
 
-	public CNVConcordance(Project proj, String[][] duplicates, double[] lrr, double maxLrr,
+	public CNVConcordance(Project proj, String[][] pairs, double[] lrr, double maxLrr,
 	                      double[] callRate, double minCallRate, CNVariantHash cNVariantHash,
 	                      CNVFilter filter, int numCNVs) {
+		this(proj, pairs, lrr, maxLrr, callRate, minCallRate, cNVariantHash, cNVariantHash, filter,
+		     numCNVs);
+	}
+
+	// TODO need to put some thought in how markers affect scoring
+	public CNVConcordance(Project proj, String[][] pairs, double[] lrr, double maxLrr,
+	                      double[] callRate, double minCallRate, CNVariantHash testHash,
+	                      CNVariantHash controlHash, CNVFilter filter, int numCNVs) {
+		this.testHash = testHash;
+		this.controlHash = controlHash;
 		this.proj = proj;
 		sampleData = proj.getSampleData(SampleData.MINIMAL_SAMPLE_DATA_HEADER.length, false);
 		this.lrr = lrr;
 		this.callRate = callRate;
 		this.maxLrr = maxLrr;
 		this.minCallRate = minCallRate;
-		this.duplicates = duplicates;
-		this.cNVariantHash = cNVariantHash;
+		this.pairs = pairs;
 		this.filter = filter;
 		this.numCNVs = numCNVs;
 	}
@@ -285,38 +310,30 @@ public class CNVConcordance {
 		return report;
 	}
 
-
 	private ComparisionIndividualResults[] compareAll() {
 		if (!fail) {
 			int numComp = 0;
 			ArrayList<ComparisionIndividualResults> allResults =
 			                                                   new ArrayList<ComparisionIndividualResults>();
-			for (String[] duplicate : duplicates) {
+			for (String[] pair : pairs) {
+				String ind1 = pair[0];
+				String ind2 = pair[1];
+				String pairString = ind1 + ", " + ind2;
 				if (lrr[numComp] > maxLrr) {
-					System.out.println("Warning - " + duplicate[0] + " has LRR > " + maxLrr + " ("
+					System.out.println("Warning - " + pairString + " has LRR > " + maxLrr + " ("
 					                   + lrr[numComp] + "). Excluded from final analysis");
 				} else if (callRate[numComp] < minCallRate) {
-					System.out.println("Warning - " + duplicate[0] + " has callrate < " + minCallRate + " ("
+					System.out.println("Warning - " + pairString + " has callrate < " + minCallRate + " ("
 					                   + callRate[numComp] + "). Excluded from final analysis");
 				} else {
-					// Try dna\tdna first
-					String ind1 = duplicate[0] + "\t" + duplicate[0];
-					String ind2 = duplicate[1] + "\t" + duplicate[1];
-
-					ComparisionIndividualResults results = compareInds(ind1, ind2);
-
-					if (results.getTotalCNVCount() <= 0) {
-						// Try looking up actual fid\tiid next
-						ind1 = sampleData.lookup(duplicate[0])[1];
-						ind2 = sampleData.lookup(duplicate[1])[1];
-						results = compareInds(ind1, ind2);
-					}
+					List<CNVariant> ind1CNVs = findVariants(ind1, testHash);
+					List<CNVariant> ind2CNVs = findVariants(ind2, controlHash);
+					ComparisionIndividualResults results = compareInds(ind1, ind1CNVs, ind2, ind2CNVs);
 
 					if (results.getTotalCNVCount() > 0) {
 						allResults.add(results);
 					} else {
-						System.out.println("No common cnvs found for pair: " + duplicate[0] + ", "
-						                   + duplicate[1]);
+						System.out.println("No common cnvs found for pair: " + pairString);
 					}
 				}
 				numComp++;
@@ -330,14 +347,28 @@ public class CNVConcordance {
 	}// This command is what the kids call "janky." currently won't work if the FIDs and IIDs don't
 	 // match
 
-	private ComparisionIndividualResults compareInds(String ind1, String ind2) {
-		List<CNVariant> ind1CNVs = extractVariants(cNVariantHash.getDataFor(ind1));
-		List<CNVariant> ind2CNVs = extractVariants(cNVariantHash.getDataFor(ind2));
-		if (ind1CNVs.isEmpty() || ind2CNVs.isEmpty() || ind1CNVs.size() > numCNVs || ind2CNVs.size() > numCNVs) {
+	private List<CNVariant> findVariants(String id, CNVariantHash hash) {
+		String fidiid = id;
+		Hashtable<String, CNVariant[]> data = hash.getDataFor(fidiid);
+		if (data.isEmpty()) {
+			fidiid = id + "\t" + id;
+			data = hash.getDataFor(fidiid);
+		}
+		if (data.isEmpty()) {
+			fidiid = sampleData.lookup(id)[1];
+			data = hash.getDataFor(fidiid);
+		}
+		return extractVariants(data);
+	}
+
+	private ComparisionIndividualResults compareInds(String ind1, List<CNVariant> ind1CNVs,
+	                                                 String ind2, List<CNVariant> ind2CNVs) {
+		if (ind1CNVs.isEmpty() || ind2CNVs.isEmpty() || ind1CNVs.size() > numCNVs
+		    || ind2CNVs.size() > numCNVs) {
 			return new ComparisionIndividualResults(ind1, ind2, ind1CNVs.size(), ind2CNVs.size());
 		}
-		ind1CNVs = filterCNVs(filter, ind1CNVs, proj);
-		ind2CNVs = filterCNVs(filter, ind2CNVs, proj);
+		ind1CNVs = filterCNVs(filter, ind1CNVs);
+		ind2CNVs = filterCNVs(filter, ind2CNVs);
 		// changed to 1200 from 1000 to shorten print output
 		int warn = 1200;
 		if (ind1CNVs.size() > warn) {
@@ -354,13 +385,13 @@ public class CNVConcordance {
 		return compareIndCNVs(ind1CNVs, ind2CNVs);
 	}
 
-	public static void determineConcordance(Project proj, String cnvFile, String dir,
-	                                        String duplicateFile, String qcFile, CNVFilter filter,
+	public static void determineConcordance(Project proj, String cnvFile, String dir, String pairFile,
+	                                        String qcFile, String cnvControl, CNVFilter filter,
 	                                        int numCNVs, int CN, double lrrMax, double callMin,
 	                                        String output) {
-		if ((duplicateFile == null) || (duplicateFile.equals(""))) {
+		if ((pairFile == null) || (pairFile.equals(""))) {
 			proj.getLog()
-			    .reportError("Error - a file of duplicates must be provided to determine concordance");
+			    .reportError("Error - a file of sample pairings must be provided to determine concordance");
 			return;
 		}
 		if ((cnvFile == null) || (cnvFile.equals("")) && dir == null) {
@@ -371,7 +402,7 @@ public class CNVConcordance {
 		double[] lrr = qc[0];
 		double[] callRate = qc[1];
 		filter.setCN(CN);
-		String[][] duplicates = loadDuplicates(proj.PROJECT_DIRECTORY.getValue() + duplicateFile);
+		String[][] pairs = loadPairs(proj.PROJECT_DIRECTORY.getValue() + pairFile);
 		if (dir != null) {
 			String[] cnvFiles = Files.list(proj.PROJECT_DIRECTORY.getValue() + dir, ".cnv", false);
 			cnvFiles = Files.toFullPaths(cnvFiles, proj.PROJECT_DIRECTORY.getValue() + dir);
@@ -383,8 +414,8 @@ public class CNVConcordance {
 				CNVariantHash[] cNVariantHash = new CNVariantHash[cnvFiles.length];
 				for (int i = 0; i < cnvFiles.length; i++) {
 					cNVariantHash[i] = CNVariantHash.load(cnvFiles[i], 1, false, proj.getLog());
-					for (int j = 0; j < REPORT.length; j++) {
-						writer.print(((i == 0) && (j == 0) ? "" : "\t") + REPORT[j] + "."
+					for (int j = 0; j < REPORT_HEADER.length; j++) {
+						writer.print(((i == 0) && (j == 0) ? "" : "\t") + REPORT_HEADER[j] + "."
 						             + ext.rootOf(cnvFiles[i]));
 					}
 					writer.print("\tnumberOFProbes." + ext.rootOf(cnvFiles[i]));
@@ -397,9 +428,9 @@ public class CNVConcordance {
 						proj.getLog()
 						    .report(ext.getTime() + " Info - beginning comparision for " + cnvFiles[i]);
 
-						CNVConcordance cnvConcordance = new CNVConcordance(proj, duplicates, lrr, lrrMax,
-						                                                   callRate, callMin, cNVariantHash[i],
-						                                                   filter, numCNVs);
+						CNVConcordance cnvConcordance = new CNVConcordance(proj, pairs, lrr, lrrMax, callRate,
+						                                                   callMin, cNVariantHash[i], filter,
+						                                                   numCNVs);
 						cnvConcordance.determineConcordance();
 						writer.print((i == 0 ? "" : "\t") + cnvConcordance.getReport() + "\t" + j);
 						proj.getLog().report(ext.getTime() + " Info - finished comparision for " + cnvFiles[i]
@@ -415,13 +446,24 @@ public class CNVConcordance {
 		} else {
 			CNVariantHash cNVariantHash = CNVariantHash.load(proj.PROJECT_DIRECTORY.getValue() + cnvFile,
 			                                                 1, false, proj.getLog());
-			CNVConcordance cnvConcordance = new CNVConcordance(proj, duplicates, lrr, lrrMax, callRate,
-			                                                   callMin, cNVariantHash, filter, numCNVs);
+			CNVConcordance cnvConcordance;
+
+			if (cnvControl == null) {
+				cnvConcordance = new CNVConcordance(proj, pairs, lrr, lrrMax, callRate, callMin,
+				                                    cNVariantHash, filter, numCNVs);
+			} else {
+				CNVariantHash controlHash =
+				                          CNVariantHash.load(proj.PROJECT_DIRECTORY.getValue() + cnvControl,
+				                                             1, false, proj.getLog());
+				cnvConcordance = new CNVConcordance(proj, pairs, lrr, lrrMax, callRate, callMin,
+				                                    cNVariantHash, controlHash, filter, numCNVs);
+			}
+
 			cnvConcordance.determineConcordance();
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
 				                                                    + output));
-				writer.println(Array.toStr(REPORT));
+				writer.println(Array.toStr(REPORT_HEADER));
 				writer.println(cnvConcordance.getReport());
 
 				writer.close();
@@ -429,12 +471,12 @@ public class CNVConcordance {
 				proj.getLog().reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue() + output);
 				proj.getLog().reportException(e);
 			}
-			proj.getLog().report(Array.toStr(REPORT));
+			proj.getLog().report(Array.toStr(REPORT_HEADER));
 			proj.getLog().report(cnvConcordance.getReport());
 		}
 	}
 
-	public static List<CNVariant> filterCNVs(CNVFilter cnvFilter, List<CNVariant> cnvs, Project proj) {
+	public static List<CNVariant> filterCNVs(CNVFilter cnvFilter, List<CNVariant> cnvs) {
 		List<CNVariant> filtered = new ArrayList<CNVariant>(cnvs.size());
 		for (CNVariant cnv : cnvs) {
 			CNVFilterPass filterPass = cnvFilter.getCNVFilterPass(cnv);
@@ -467,8 +509,8 @@ public class CNVConcordance {
 		params[2] = "proj=";
 		params[3] = "#a path (relative to the project directory) to a cnv file ";
 		params[4] = "cnvFile=";
-		params[5] = "#a path (relative to the project directory) to a file of duplicates ";
-		params[6] = "duplicateFile=";
+		params[5] = "#a path (relative to the project directory) to a file of sample pairs ";
+		params[6] = "pairFile=";
 		params[7] = "#a threshold for log R ratio Standard deviation, but this is not implemented yet";
 		params[8] = "#lrrSD=";
 		params[9] = "#a path (relative to the project directory) to a file for ouput";
@@ -489,10 +531,14 @@ public class CNVConcordance {
 	private static ComparisionIndividualResults compareIndCNVs(List<CNVariant> ind1CNVs,
 	                                                           List<CNVariant> ind2CNVs) {
 		ComparisionIndividualResults currentComparison =
-		                                               new ComparisionIndividualResults(ind1CNVs.get(0).getFamilyID()
+		                                               new ComparisionIndividualResults(ind1CNVs.get(0)
+		                                                                                        .getFamilyID()
 		                                                                                + "\t"
-		                                                                                + ind1CNVs.get(0).getIndividualID(),
-		                                                                                ind2CNVs.get(0).getFamilyID() + "\t" + ind2CNVs.get(0).getIndividualID(),
+		                                                                                + ind1CNVs.get(0)
+		                                                                                          .getIndividualID(),
+		                                                                                ind2CNVs.get(0)
+		                                                                                        .getFamilyID() + "\t" + ind2CNVs.get(0)
+		                                                                                                                        .getIndividualID(),
 		                                                                                ind1CNVs.size(),
 		                                                                                ind2CNVs.size());
 		compareIndCNVHelper(currentComparison, ind1CNVs, ind2CNVs);
@@ -533,9 +579,9 @@ public class CNVConcordance {
 		return cnvs;
 	}
 
-	private static String[][] loadDuplicates(String duplicateFile) {
-		String[] load = HashVec.loadFileToStringArray(duplicateFile, false, new int[] {0, 1}, false);
-		String[][] duplicates = new String[load.length][];
+	private static String[][] loadPairs(String pairFile) {
+		String[] load = HashVec.loadFileToStringArray(pairFile, false, new int[] {0, 1}, false);
+		String[][] pairs = new String[load.length][];
 		for (int i = 0; i < load.length; i++) {
 			String[] tmp = load[i].split("\t");
 			ArrayList<String> compareDef = new ArrayList<String>();
@@ -544,9 +590,9 @@ public class CNVConcordance {
 					compareDef.add(tmp[j]);
 				}
 			}
-			duplicates[i] = compareDef.toArray(new String[compareDef.size()]);
+			pairs[i] = compareDef.toArray(new String[compareDef.size()]);
 		}
-		return duplicates;
+		return pairs;
 	}
 
 	private static double[][] loadQC(String qcFile) { // Known Issue - genvisis-generated LRR file
@@ -571,7 +617,8 @@ public class CNVConcordance {
 		String filename = null;
 		String logfile = null;
 		String cnvFile = null;
-		String duplicateFile = null;
+		String cnvControl = null;
+		String pairFile = null;
 		String dir = null;
 		String qcFile = null;
 		int numCNVs = 2147483647;
@@ -584,19 +631,20 @@ public class CNVConcordance {
 		String usage = "\njlDev.CNVConcordance requires 0-1 arguments\n";
 		usage = usage + "   (1) project filename  (i.e. proj=" + filename + " (no default))\n";
 		usage = usage + "   (2) cnvFile  (i.e.cnvFile=" + filename + " (no default))\n";
-		usage = usage + "   (3) duplicate file  (i.e. duplicateFile=" + filename + " (no default))\n";
+		usage = usage + "   (3) sample pair file (i.e. pairFile=" + filename + " (no default))\n";
 		usage = usage + "   (4) quality control file (i.e. qcFile=" + filename + " (no default))\n";
 		usage = usage + "   OPTIONAL:";
-		usage = usage + "   (5) output file name  (i.e.output=" + output + " (default))\n";
-		usage = usage + "   (6) log file  (i.e. log=" + filename + " (no default))\n";
+		usage = usage + "   (5) control cnv file (i.e. cnvControl=" + filename + " (no default))\n";
+		usage = usage + "   (6) output file name  (i.e.output=" + output + " (default))\n";
+		usage = usage + "   (7) log file  (i.e. log=" + filename + " (no default))\n";
 		usage = usage
-		        + "\t (7) For cnv filtering, use the default values (i.e. -default ( not the default))\n";
-		usage = usage + "\t (8) a directory containing multiple cnv files (i.e. dir= ( no default))\n";
-		usage = usage + "\t (9) maximum number of cnvs (i.e. numCNVS=" + numCNVs + " (default))\n";
-		usage = usage + "\t (10) lrr cutoff (i.e. lrr=" + lrr + " (default))\n";
-		usage = usage + "\t (11) minimum callrate (i.e. call=" + call + " (default))\n";
+		        + "\t (8) For cnv filtering, use the default values (i.e. -default ( not the default))\n";
+		usage = usage + "\t (9) a directory containing multiple cnv files (i.e. dir= ( no default))\n";
+		usage = usage + "\t (10) maximum number of cnvs (i.e. numCNVS=" + numCNVs + " (default))\n";
+		usage = usage + "\t (11) lrr cutoff (i.e. lrr=" + lrr + " (default))\n";
+		usage = usage + "\t (12) minimum callrate (i.e. call=" + call + " (default))\n";
 
-		usage = usage + "\t (12) further usage:\n" + Array.toStr(CNVFilter.getDefaultCNVParams());
+		usage = usage + "\t (13) further usage:\n" + Array.toStr(CNVFilter.getDefaultCNVParams());
 		Project proj;
 		if (ext.indexOfStr("proj=", args, true, false) >= 0) {
 			proj = new Project(ext.parseStringArg(args[ext.indexOfStr("proj=", args, true, false)], ""),
@@ -620,8 +668,11 @@ public class CNVConcordance {
 			} else if (arg.startsWith("cnvFile=")) {
 				cnvFile = ext.parseStringArg(arg, "");
 				numArgs--;
-			} else if (arg.startsWith("duplicateFile=")) {
-				duplicateFile = ext.parseStringArg(arg, "");
+			} else if (arg.startsWith("cnvControl=")) {
+				cnvControl = ext.parseStringArg(arg, "");
+				numArgs--;
+			} else if (arg.startsWith("pairFile=")) {
+				pairFile = ext.parseStringArg(arg, "");
 				numArgs--;
 			} else if (arg.startsWith("output=")) {
 				output = ext.parseStringArg(arg, "");
@@ -664,8 +715,8 @@ public class CNVConcordance {
 			proj.setLog(new Logger(proj.PROJECT_DIRECTORY.getValue() + (dir == null ? "" : dir)
 			                       + "concordLog"));
 
-			determineConcordance(proj, cnvFile, dir, duplicateFile, qcFile, filter, numCNVs, CN, lrr,
-			                     call, output);
+			determineConcordance(proj, cnvFile, dir, pairFile, qcFile, cnvControl, filter, numCNVs, CN,
+			                     lrr, call, output);
 			long endTime = System.currentTimeMillis();
 			long finalTime = endTime - startTime;
 			System.out.println("total time: " + finalTime);
