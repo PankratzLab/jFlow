@@ -229,7 +229,6 @@ public class CNVConcordance {
 	                                        "Global Overlap",
 	                                        "Global Significant Overlap", "Global Perfect Overlap",
 	                                        "Average Global Overlap Score"};
-	// private static final int WARN_NUM_CNVs = 1000;
 	public static final String COMMAND_PROJECT = "proj=";
 	public static final String COMMAND_CNV = "cnvFile=";
 	public static final String COMMAND_DUPLICATE = "duplicateFile=";
@@ -247,7 +246,6 @@ public class CNVConcordance {
 	private final double[] callRate;
 	private String report;
 	private final CNVariantHash cNVariantHash;
-	// private SampleData sampleData;
 	private ComparisionIndividualResults[] comparisionResults;
 	private boolean fail;
 	private final CNVFilter filter;
@@ -265,11 +263,9 @@ public class CNVConcordance {
 		this.callRate = callRate;
 		this.maxLrr = maxLrr;
 		this.minCallRate = minCallRate;
-		// this.sampleData = proj.getSampleData(0, false);
 		this.duplicates = duplicates;
 		this.cNVariantHash = cNVariantHash;
 		this.filter = filter;
-		// this.fail = validDuplicateFormat();
 		this.numCNVs = numCNVs;
 	}
 
@@ -324,17 +320,6 @@ public class CNVConcordance {
 				}
 				numComp++;
 			}
-			/*
-			 * Hashtable<String, String> track = new Hashtable<String, String>(); for (int j = 0; j <
-			 * duplicate.length; j++) { for (int k = 0; k < duplicate.length; k++) { String currentComp =
-			 * j + "V" + k; if ((k != j) && (!track.containsKey(currentComp))) { numComp++;
-			 * 
-			 * track.put(currentComp, currentComp); track.put(k + "V" + j, currentComp); String ind1 =
-			 * sampleData.lookup(duplicate[j])[1]; String ind2 = sampleData.lookup(duplicate[k])[1];
-			 * 
-			 * ComparisionIndividualResults results = compareInds(ind1, ind2); if
-			 * (results.getTotalCNVCount() > 0) { allResults.add(results); } } } } }
-			 */
 			System.out.println("Total of " + numComp + " comparisons");
 			int excluded = numComp - allResults.size();
 			System.out.println("Total comparisons excluded= " + excluded);
@@ -418,7 +403,6 @@ public class CNVConcordance {
 
 				                                                    + output));
 				int start = filter.getMinNumMarkers();
-				// int stop = filter.getMaxNumMarkers();
 				CNVariantHash[] cNVariantHash = new CNVariantHash[cnvFiles.length];
 				for (int i = 0; i < cnvFiles.length; i++) {
 					cNVariantHash[i] = CNVariantHash.load(cnvFiles[i], 1, false, proj.getLog());
