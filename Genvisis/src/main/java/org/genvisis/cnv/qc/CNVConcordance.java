@@ -331,34 +331,25 @@ public class CNVConcordance {
 	 // match
 
 	private ComparisionIndividualResults compareInds(String ind1, String ind2) {
-		CNVariant[] ind1CNVs = extractVariants(cNVariantHash.getDataFor(ind1));
-		CNVariant[] ind2CNVs = extractVariants(cNVariantHash.getDataFor(ind2));
-		if ((ind1CNVs == null) || (ind2CNVs == null)
-		    || ((ind1CNVs.length == 0) && (ind2CNVs.length == 0))) {
-			return new ComparisionIndividualResults(ind1, ind2, 0, 0);
-		}
-		if ((ind1CNVs.length > numCNVs) || (ind2CNVs.length > numCNVs)) {
-			return new ComparisionIndividualResults(ind1, ind2, 0, 0);
+		List<CNVariant> ind1CNVs = extractVariants(cNVariantHash.getDataFor(ind1));
+		List<CNVariant> ind2CNVs = extractVariants(cNVariantHash.getDataFor(ind2));
+		if (ind1CNVs.isEmpty() || ind2CNVs.isEmpty() || ind1CNVs.size() > numCNVs || ind2CNVs.size() > numCNVs) {
+			return new ComparisionIndividualResults(ind1, ind2, ind1CNVs.size(), ind2CNVs.size());
 		}
 		ind1CNVs = filterCNVs(filter, ind1CNVs, proj);
 		ind2CNVs = filterCNVs(filter, ind2CNVs, proj);
-		if ((ind1CNVs == null) || (ind2CNVs == null)
-		    || ((ind1CNVs.length == 0) && (ind2CNVs.length == 0))) {
-			return new ComparisionIndividualResults(ind1, ind2, 0, 0);
+		// changed to 1200 from 1000 to shorten print output
+		int warn = 1200;
+		if (ind1CNVs.size() > warn) {
+			proj.getLog().report("Warning - " + ind1 + " has more than " + warn + " CNVs ("
+			                     + ind1CNVs.size() + "), this could lead to skewed concordance rates");
 		}
-		if (ind1CNVs.length > 1200) {
-			proj.getLog().report("Warning - " + ind1 + " has more than " + 1200 + " CNVs ("
-			                     + ind1CNVs.length + "), this could lead to skewed concordance rates");
+		if (ind2CNVs.size() > warn) {
+			proj.getLog().report("Warning - " + ind2 + " has more than " + warn + " CNVs ("
+			                     + ind2CNVs.size() + "), this could lead to skewed concordance rates");
 		}
-		if (ind2CNVs.length > 1200) { // changed to 1200 from 1000 to shorten print output
-			proj.getLog().report("Warning - " + ind2 + " has more than " + 1200 + " CNVs ("
-			                     + ind2CNVs.length + "), this could lead to skewed concordance rates");
-		}
-		if (ind1CNVs.length == 0) {
-			return new ComparisionIndividualResults(ind1, ind2, 0, ind2CNVs.length);
-		}
-		if (ind2CNVs.length == 0) {
-			return new ComparisionIndividualResults(ind1, ind2, ind1CNVs.length, 0);
+		if (ind1CNVs.isEmpty() || ind2CNVs.isEmpty()) {
+			return new ComparisionIndividualResults(ind1, ind2, ind1CNVs.size(), ind2CNVs.size());
 		}
 		return compareIndCNVs(ind1CNVs, ind2CNVs);
 	}
@@ -372,7 +363,7 @@ public class CNVConcordance {
 			    .reportError("Error - a file of duplicates must be provided to determine concordance");
 			return;
 		}
-		if (((cnvFile == null) || (cnvFile.equals(""))) && (dir == null)) {
+		if ((cnvFile == null) || (cnvFile.equals("")) && dir == null) {
 			proj.getLog().reportError("Error - a file of cnvs must be provided to determine concordance");
 			return;
 		}
@@ -387,7 +378,6 @@ public class CNVConcordance {
 			proj.getLog().report(Array.toStr(cnvFiles));
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + dir
-
 				                                                    + output));
 				int start = filter.getMinNumMarkers();
 				CNVariantHash[] cNVariantHash = new CNVariantHash[cnvFiles.length];
@@ -444,8 +434,8 @@ public class CNVConcordance {
 		}
 	}
 
-	public static CNVariant[] filterCNVs(CNVFilter cnvFilter, CNVariant[] cnvs, Project proj) {
-		ArrayList<CNVariant> filtered = new ArrayList<CNVariant>(cnvs.length);
+	public static List<CNVariant> filterCNVs(CNVFilter cnvFilter, List<CNVariant> cnvs, Project proj) {
+		List<CNVariant> filtered = new ArrayList<CNVariant>(cnvs.size());
 		for (CNVariant cnv : cnvs) {
 			CNVFilterPass filterPass = cnvFilter.getCNVFilterPass(cnv);
 			if (filterPass.passedFilter()) {
@@ -456,10 +446,10 @@ public class CNVConcordance {
 					filtered.add(cnv);
 				}
 			} else if (filterPass.isIndIsExcluded()) {
-				return null;
+				return Collections.<CNVariant>emptyList();
 			}
 		}
-		return filtered.toArray(new CNVariant[filtered.size()]);
+		return filtered;
 	}
 
 	public static void fromParameters(String filename, Logger log) {
@@ -496,15 +486,15 @@ public class CNVConcordance {
 		return params;
 	}
 
-	private static ComparisionIndividualResults compareIndCNVs(CNVariant[] ind1CNVs,
-	                                                           CNVariant[] ind2CNVs) {
+	private static ComparisionIndividualResults compareIndCNVs(List<CNVariant> ind1CNVs,
+	                                                           List<CNVariant> ind2CNVs) {
 		ComparisionIndividualResults currentComparison =
-		                                               new ComparisionIndividualResults(ind1CNVs[0].getFamilyID()
+		                                               new ComparisionIndividualResults(ind1CNVs.get(0).getFamilyID()
 		                                                                                + "\t"
-		                                                                                + ind1CNVs[0].getIndividualID(),
-		                                                                                ind2CNVs[0].getFamilyID() + "\t" + ind2CNVs[0].getIndividualID(),
-		                                                                                ind1CNVs.length,
-		                                                                                ind2CNVs.length);
+		                                                                                + ind1CNVs.get(0).getIndividualID(),
+		                                                                                ind2CNVs.get(0).getFamilyID() + "\t" + ind2CNVs.get(0).getIndividualID(),
+		                                                                                ind1CNVs.size(),
+		                                                                                ind2CNVs.size());
 		compareIndCNVHelper(currentComparison, ind1CNVs, ind2CNVs);
 		compareIndCNVHelper(currentComparison, ind2CNVs, ind1CNVs);
 
@@ -512,7 +502,7 @@ public class CNVConcordance {
 	}
 
 	private static void compareIndCNVHelper(ComparisionIndividualResults currentComparison,
-	                                        CNVariant[] cnvs1, CNVariant[] cnvs2) {
+	                                        List<CNVariant> cnvs1, List<CNVariant> cnvs2) {
 		for (CNVariant ind1cnv : cnvs1) {
 			for (CNVariant ind2cnv : cnvs2) {
 				if (ind1cnv.getCN() == ind2cnv.getCN()) {
@@ -531,16 +521,16 @@ public class CNVConcordance {
 		}
 	}
 
-	private static CNVariant[] extractVariants(Hashtable<String, CNVariant[]> indCNVS) {
-		ArrayList<CNVariant> cnvs = new ArrayList<CNVariant>();
-		ArrayList<String> arr = Collections.list(indCNVS.keys());
+	private static List<CNVariant> extractVariants(Hashtable<String, CNVariant[]> indCNVS) {
+		List<CNVariant> cnvs = new ArrayList<CNVariant>();
+		List<String> arr = Collections.list(indCNVS.keys());
 		for (int i = 0; i < arr.size(); i++) {
 			CNVariant[] chrCNVs = indCNVS.get(arr.get(i));
 			for (CNVariant chrCNV : chrCNVs) {
 				cnvs.add(chrCNV);
 			}
 		}
-		return cnvs.toArray(new CNVariant[cnvs.size()]);
+		return cnvs;
 	}
 
 	private static String[][] loadDuplicates(String duplicateFile) {
@@ -554,7 +544,7 @@ public class CNVConcordance {
 					compareDef.add(tmp[j]);
 				}
 			}
-			duplicates[i] = (compareDef.toArray(new String[compareDef.size()]));
+			duplicates[i] = compareDef.toArray(new String[compareDef.size()]);
 		}
 		return duplicates;
 	}
