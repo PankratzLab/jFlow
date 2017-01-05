@@ -215,6 +215,7 @@ public class CNVConcordance {
 		}
 	}
 
+	//TODO would prefer to integrate this with the global stats in a way that avoids parallel arrays
 	private static final String[] REPORT = {"Total CNVs Compared", "Total Overlapping CNVs",
 	                                        "Total Significantly Overlapping CNVs",
 	                                        "Total Perfectly overlapping cnvs",
@@ -361,20 +362,6 @@ public class CNVConcordance {
 		}
 		return compareIndCNVs(ind1CNVs, ind2CNVs);
 	}
-
-	/*
-	 * private boolean validDuplicateFormat() { boolean valid = true; if (duplicates == null) {
-	 * proj.getLog().report("Error - replicates were not defined"); valid = false; } else { int length
-	 * = 0; for (int i = 0; i < duplicates.length; i++) { if (duplicates[i] == null) {
-	 * proj.getLog().report("Error - replicates were not defined for replicate " + (i + 1)); valid =
-	 * false; } else { length = duplicates[i].length; } } if (valid) { for (String[] duplicate :
-	 * duplicates) { if (duplicate.length != length) {
-	 * proj.getLog().report("Error - mismatched array sizes were found in replicate array"); valid =
-	 * false; } else { for (String element : duplicate) { if (element != null) { String[] ind =
-	 * sampleData.lookup(element); if (ind == null) { proj.getLog() .report("Error - did not find " +
-	 * element + " in the sample data file " + proj.SAMPLE_DATA_FILENAME.getValue()); valid = false; }
-	 * } } } } } } return !valid; }
-	 */
 
 	public static void determineConcordance(Project proj, String cnvFile, String dir,
 	                                        String duplicateFile, String qcFile, CNVFilter filter,
@@ -587,13 +574,6 @@ public class CNVConcordance {
 		}
 		return qc;
 	}
-
-	/*
-	 * private static double[] loadCallRate(String qcFile) { String[][] load =
-	 * HashVec.loadFileToStringMatrix(qcFile, false, null, false); double[] callRate = new
-	 * double[load.length]; for (int i=0; i< load.length; i++) { String[] parts =
-	 * load[i][7].split("/t"); callRate[i]=Double.valueOf(parts[0]); } return callRate; }
-	 */
 
 	public static void main(String[] args) {
 		long startTime = System.currentTimeMillis();
