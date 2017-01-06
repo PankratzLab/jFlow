@@ -4,8 +4,10 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
@@ -22,7 +24,8 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariantHash;
 
 /**
- * Measure statistics for agreement (concordance) of CNV calls. There are two methods for measurement:
+ * Measure statistics for agreement (concordance) of CNV calls. There are two methods for
+ * measurement:
  * <p>
  * <ul>
  * <li>Blind duplicates - the <code>pairingFile</code> should map separate samples that are expected
@@ -258,8 +261,7 @@ public class CNVConcordance {
 	                                                               "- compute the concordance between replicates in a cnv file";
 	private final Project proj;
 	private final String[][] pairs;
-	private final double[] lrr;
-	private final double[] callRate;
+	private final Map<String, double[]> qcMap;
 	private String report;
 	private final CNVariantHash testHash;
 	private final CNVariantHash controlHash;
@@ -271,23 +273,21 @@ public class CNVConcordance {
 	private final double minCallRate;
 	private SampleData sampleData;
 
-	public CNVConcordance(Project proj, String[][] pairs, double[] lrr, double maxLrr,
-	                      double[] callRate, double minCallRate, CNVariantHash cNVariantHash,
-	                      CNVFilter filter, int numCNVs) {
-		this(proj, pairs, lrr, maxLrr, callRate, minCallRate, cNVariantHash, cNVariantHash, filter,
-		     numCNVs);
+	public CNVConcordance(Project proj, String[][] pairs, Map<String, double[]> qcMap, double maxLrr,
+	                      double minCallRate, CNVariantHash cNVariantHash, CNVFilter filter,
+	                      int numCNVs) {
+		this(proj, pairs, qcMap, maxLrr, minCallRate, cNVariantHash, cNVariantHash, filter, numCNVs);
 	}
 
 	// TODO need to put some thought in how markers affect scoring
-	public CNVConcordance(Project proj, String[][] pairs, double[] lrr, double maxLrr,
-	                      double[] callRate, double minCallRate, CNVariantHash testHash,
-	                      CNVariantHash controlHash, CNVFilter filter, int numCNVs) {
+	public CNVConcordance(Project proj, String[][] pairs, Map<String, double[]> qcMap, double maxLrr,
+	                      double minCallRate, CNVariantHash testHash, CNVariantHash controlHash,
+	                      CNVFilter filter, int numCNVs) {
 		this.testHash = testHash;
 		this.controlHash = controlHash;
 		this.proj = proj;
 		sampleData = proj.getSampleData(SampleData.MINIMAL_SAMPLE_DATA_HEADER.length, false);
-		this.lrr = lrr;
-		this.callRate = callRate;
+		this.qcMap = qcMap;
 		this.maxLrr = maxLrr;
 		this.minCallRate = minCallRate;
 		this.pairs = pairs;
@@ -319,13 +319,7 @@ public class CNVConcordance {
 				String ind1 = pair[0];
 				String ind2 = pair[1];
 				String pairString = ind1 + ", " + ind2;
-				if (lrr[numComp] > maxLrr) {
-					System.out.println("Warning - " + pairString + " has LRR > " + maxLrr + " ("
-					                   + lrr[numComp] + "). Excluded from final analysis");
-				} else if (callRate[numComp] < minCallRate) {
-					System.out.println("Warning - " + pairString + " has callrate < " + minCallRate + " ("
-					                   + callRate[numComp] + "). Excluded from final analysis");
-				} else {
+				if (checkQc(ind1, ind2)) {
 					List<CNVariant> ind1CNVs = findVariants(ind1, testHash);
 					List<CNVariant> ind2CNVs = findVariants(ind2, controlHash);
 					ComparisionIndividualResults results = compareInds(ind1, ind1CNVs, ind2, ind2CNVs);
@@ -345,7 +339,51 @@ public class CNVConcordance {
 		}
 		return null;
 	}// This command is what the kids call "janky." currently won't work if the FIDs and IIDs don't
-	 // match
+
+	private boolean checkQc(String... inds) {
+		int passed = 1;
+
+		// At least one sample in this comparison must pass qc. If the rest are not found that is OK
+		// (assume gold standard cnv list). If any fail, this comparison is excluded.
+		for (String ind : inds) {
+			passed = Math.min(passed, checkInd(ind));
+		}
+
+		return passed == 0;
+	}
+
+	/**
+	 * @return 1 if qc not found, 0 if qc passed, -1 if qc failed
+	 */
+	private int checkInd(String ind) {
+		String id = ind;
+		double[] qc = qcMap.get(id);
+		if (qc == null) {
+			String[] lookup = sampleData.lookup(ind);
+			if (lookup != null) {
+				id = lookup[1];
+				qc = qcMap.get(id);
+			}
+		}
+		if (qc == null) {
+			// qc not found
+			return 1;
+		}
+
+		// qc failed
+		if (qc[0] > maxLrr) {
+			System.out.println("Warning - " + ind + " has LRR > " + maxLrr + " (" + qc[0]
+			                   + "). Excluded from final analysis");
+			return -1;
+		} else if (qc[1] < minCallRate) {
+			System.out.println("Warning - " + ind + " has callrate < " + minCallRate + " ("
+			                   + qc[0] + "). Excluded from final analysis");
+			return -1;
+		}
+
+		// qc passed
+		return 0;
+	}
 
 	private List<CNVariant> findVariants(String id, CNVariantHash hash) {
 		String fidiid = id;
@@ -398,11 +436,9 @@ public class CNVConcordance {
 			proj.getLog().reportError("Error - a file of cnvs must be provided to determine concordance");
 			return;
 		}
-		double[][] qc = loadQC(proj.PROJECT_DIRECTORY.getValue() + qcFile);
-		double[] lrr = qc[0];
-		double[] callRate = qc[1];
-		filter.setCN(CN);
 		String[][] pairs = loadPairs(proj.PROJECT_DIRECTORY.getValue() + pairFile);
+		Map<String, double[]> qcMap = loadQC(proj.PROJECT_DIRECTORY.getValue() + qcFile);
+		filter.setCN(CN);
 		if (dir != null) {
 			String[] cnvFiles = Files.list(proj.PROJECT_DIRECTORY.getValue() + dir, ".cnv", false);
 			cnvFiles = Files.toFullPaths(cnvFiles, proj.PROJECT_DIRECTORY.getValue() + dir);
@@ -428,9 +464,8 @@ public class CNVConcordance {
 						proj.getLog()
 						    .report(ext.getTime() + " Info - beginning comparision for " + cnvFiles[i]);
 
-						CNVConcordance cnvConcordance = new CNVConcordance(proj, pairs, lrr, lrrMax, callRate,
-						                                                   callMin, cNVariantHash[i], filter,
-						                                                   numCNVs);
+						CNVConcordance cnvConcordance = new CNVConcordance(proj, pairs, qcMap, lrrMax, callMin,
+						                                                   cNVariantHash[i], filter, numCNVs);
 						cnvConcordance.determineConcordance();
 						writer.print((i == 0 ? "" : "\t") + cnvConcordance.getReport() + "\t" + j);
 						proj.getLog().report(ext.getTime() + " Info - finished comparision for " + cnvFiles[i]
@@ -449,14 +484,14 @@ public class CNVConcordance {
 			CNVConcordance cnvConcordance;
 
 			if (cnvControl == null) {
-				cnvConcordance = new CNVConcordance(proj, pairs, lrr, lrrMax, callRate, callMin,
-				                                    cNVariantHash, filter, numCNVs);
+				cnvConcordance = new CNVConcordance(proj, pairs, qcMap, lrrMax, callMin, cNVariantHash,
+				                                    filter, numCNVs);
 			} else {
 				CNVariantHash controlHash =
 				                          CNVariantHash.load(proj.PROJECT_DIRECTORY.getValue() + cnvControl,
 				                                             1, false, proj.getLog());
-				cnvConcordance = new CNVConcordance(proj, pairs, lrr, lrrMax, callRate, callMin,
-				                                    cNVariantHash, controlHash, filter, numCNVs);
+				cnvConcordance = new CNVConcordance(proj, pairs, qcMap, lrrMax, callMin, cNVariantHash,
+				                                    controlHash, filter, numCNVs);
 			}
 
 			cnvConcordance.determineConcordance();
@@ -595,20 +630,22 @@ public class CNVConcordance {
 		return pairs;
 	}
 
-	private static double[][] loadQC(String qcFile) { // Known Issue - genvisis-generated LRR file
-	                                                  // might have headers sprinkled throughout
+	private static Map<String, double[]> loadQC(String qcFile) {
+		// Known Issue - genvisis-generated LRR file might have headers sprinkled throughout
 		String[] load = HashVec.loadFileToStringArray(qcFile, false, null, false);
-		double[][] qc = new double[2][load.length];
+		Map<String, double[]> qcMap = new HashMap<String, double[]>();
 		for (int i = 0; i < load.length; i++) {
 			String[] line = load[i].split("\t");
 			// skip header lines
 			if (line[2].contains("LRR")) {
 				continue;
 			}
-			qc[0][i] = Double.valueOf(line[2]);
-			qc[1][i] = Double.valueOf(line[7]);
+			double[] qc = new double[2];
+			qcMap.put(line[0], qc);
+			qc[0] = Double.valueOf(line[2]);
+			qc[1] = Double.valueOf(line[7]);
 		}
-		return qc;
+		return qcMap;
 	}
 
 	public static void main(String[] args) {
