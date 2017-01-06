@@ -25,15 +25,11 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
-import org.genvisis.filesys.SnpMarkerSet;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
-import com.googlecode.charts4j.collect.Lists;
-import com.googlecode.charts4j.collect.Maps;
 
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -41,20 +37,14 @@ import htsjdk.variant.vcf.VCFFileReader;
 
 public class Markers {
 	public static final int MAX_ERRORS_TO_REPORT = 30;
-	public static final List<String> MARKER_POSITIONS_MISMATCHES_HEADER = ImmutableList.of("Marker", "Supplied chr", "Supplied pos", "dbSNP chr", "dbSNP pos");
-
-	//	public static void generateMarkerPositionsNew(Project proj, String snpTable) {
-	//		Logger log = proj.getLog();
-	//		BufferedReader reader;
-	//		try {
-	//		if (Files.exists(snpTable)) {
-	//			reader = Files.getAppropriateReader(snpTable);
-	//		} else {
-	//			reader = Files.getAppropriateReader(proj.PROJECT_DIRECTORY + snpTable);
-	//		}
-	//	}
-		
-		public static int[] orderMarkers(	String[] markerNames, String markerDatabase, String output,
+	public static final List<String> MARKER_POSITIONS_MISMATCHES_HEADER =
+																																			ImmutableList.of(	"Marker",
+																																												"Supplied chr",
+																																												"Supplied pos",
+																																												"dbSNP chr",
+																																												"dbSNP pos");
+	
+	public static int[] orderMarkers(	String[] markerNames, String markerDatabase, String output,
 																		Logger log) {
 		Hashtable<String, String> snpPositions;
 		byte[] chrs;
@@ -303,215 +293,39 @@ public class Markers {
 		return hash;
 	}
 
-//	public static void generateMarkerPositionsNew(Project proj, String snpTable) {
-//		Logger log = proj.getLog();
-//		BufferedReader reader;
-//		try {
-//		if (Files.exists(snpTable)) {
-//			reader = Files.getAppropriateReader(snpTable);
-//		} else {
-//			reader = Files.getAppropriateReader(proj.PROJECT_DIRECTORY + snpTable);
-//		}
-//	}
-	
-	//	public static void generateMarkerPositionsNew(Project proj, String snpTable) {
-	//		Logger log = proj.getLog();
-	//		BufferedReader reader;
-	//		try {
-	//		if (Files.exists(snpTable)) {
-	//			reader = Files.getAppropriateReader(snpTable);
-	//		} else {
-	//			reader = Files.getAppropriateReader(proj.PROJECT_DIRECTORY + snpTable);
-	//		}
-	//	}
-		
-		public static void generateMarkerPositions(Project proj, String snpTable) {
-			Logger log = proj.getLog();
-			long time = new Date().getTime();
+	public static void generateMarkerPositions(Project proj, String snpTable) {
+		Logger log = proj.getLog();
+		long time = new Date().getTime();
 
-			LinkedHashMap<String, String> markerToChrPosLinkedMap = new LinkedHashMap<String, String>();
-			int markers = 0;
-			BufferedReader reader = null;
-			try {
-				if (!Files.exists(snpTable) && Files.exists(proj.PROJECT_DIRECTORY.getValue() + snpTable)) {
-					snpTable = proj.PROJECT_DIRECTORY.getValue() + snpTable;
-				}
-				String delimiter = Files.determineDelimiter(snpTable, log);
-				reader = Files.getAppropriateReader(snpTable);
-				int[] indices =
-						ext.indexFactors(	SourceFileParser.SNP_TABLE_FIELDS,
-															reader.readLine().trim().split(delimiter), false, true, true, true);
-				
-				
-				while (reader.ready()) {
-					String[] line = reader.readLine().trim().split(delimiter);
-					if (line.length <= indices[0] || line.length < indices[1] || line.length <= indices[2]) {
-						log.reportTimeWarning("Skipping line with missing columns: " + Array.toStr(line));
-						continue;
-					}
-					String marker = line[indices[0]];
-					String chr = Byte.toString(Positions.chromosomeNumber(line[indices[1]]));
-					String pos = line[indices[2]];
-					if (markerToChrPosLinkedMap.containsKey(marker)) {
-						log.reportTimeWarning("Marker " + marker + " was duplicated in " + snpTable + ", only using first occurence.");
-					} else {
-						markerToChrPosLinkedMap.put(marker, chr + "\t" + pos);
-						markers++;
-					}
-				} 
-			} catch (FileNotFoundException fnfe) {
-					proj.message("Error: file \""	+ snpTable + "\" not found in "
-												+ proj.PROJECT_DIRECTORY.getValue());
-					return;
-				} catch (IOException ioe) {
-					proj.message("Error reading file \"" + snpTable + "\"");
-					return;
-				} finally {
-					if (reader != null) {
-					Closeables.closeQuietly(reader);
-					}
-				}
-				int foundRsids = 0;
-				int posMismatches = 0;
-				List<String> mismatches = Lists.newArrayList();
-				mismatches.add(Joiner.on("\t").join(MARKER_POSITIONS_MISMATCHES_HEADER));
-				String dbSNP = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getDBSNP().get();
-				VCFFileReader dbSNPReader = null;
-				CloseableIterator<VariantContext> dbSNPIterator = null;
-				try {
-					dbSNPReader = new VCFFileReader(new File(dbSNP));
-					dbSNPIterator = dbSNPReader.iterator();
-					while (dbSNPIterator.hasNext()) {
-						VariantContext vc = dbSNPIterator.next();
-						String rsid = vc.getID();
-						if (markerToChrPosLinkedMap.containsKey(rsid)) {
-							foundRsids++;
-							String dbSNPChrPos = Positions.chromosomeNumber(vc.getContig()) + "\t" + vc.getStart();
-							if (!dbSNPChrPos.equals(markerToChrPosLinkedMap.get(rsid))) {
-								posMismatches++;
-								String oldChrPos = markerToChrPosLinkedMap.put(rsid, dbSNPChrPos);
-								mismatches.add(rsid + "\t" + oldChrPos + "\t" + dbSNPChrPos);
-							}
-						}
-					}
-				} finally {
-					if (dbSNPIterator != null) {
-						dbSNPIterator.close();
-						dbSNPReader.close();
-					}
-				}
-				if (foundRsids == 0) {
-					log.report("Markers in " + snpTable + " not identified by rsid, using provided marker positions");
-				} else {
-					if (markers - foundRsids > 0) {
-						log.reportTimeWarning("An rsid match could not be made to dbSNP for " + (markers - foundRsids) + " of " + markers + " total markers in " + snpTable + ", using provided marker positions for these markers.");
-					}
-					if (posMismatches > 0) {
-						log.reportTimeWarning(posMismatches + " markers in " + snpTable + " had positions that did not match the position in dbSNP, using dbSNP position for these markers.");
-						String mismatchesReport = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), "_mismatches");
-						Files.writeIterable(mismatches, mismatchesReport);
-						log.report("Mismatches report written to " + mismatchesReport);
-					}
-				}
-				PrintWriter writer = null;
-				try {
-					writer = Files.getAppropriateWriter(proj.MARKER_POSITION_FILENAME.getValue(	false,
-																																													false));
-					writer.println("Marker\tChr\tPosition");
-					for (String marker : markerToChrPosLinkedMap.keySet()) {
-						String chrPos = markerToChrPosLinkedMap.get(marker);
-						writer.println(marker + "\t" + chrPos);
-					}
-			} finally {
-				if (writer != null) {
-					writer.close();
-				}
-			}
-			log.report("Finished parsing "	+ proj.MARKER_POSITION_FILENAME.getValue(false, false) + " in "
-									+ ext.getTimeElapsed(time));
-		}
-
-	public static void generateMarkerPositionsHighMem(Project proj, String snpTable) {
-		BufferedReader reader;
-		PrintWriter writer;
-		String[] line;
-		int[] indices;
-		String delimiter;
-		long time;
-		Logger log;
-
-		log = proj.getLog();
-		time = new Date().getTime();
-		String dbSNP = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getDBSNP().get();
-		VCFFileReader dbSNPReader = new VCFFileReader(new File(dbSNP));
-		Map<String, String> rsidToUSCSC = Maps.newHashMap();
-		CloseableIterator<VariantContext> dbSNPIterator = null;
-		try {
-			dbSNPIterator = dbSNPReader.iterator();
-			while (dbSNPIterator.hasNext()) {
-				VariantContext vc = dbSNPIterator.next();
-				rsidToUSCSC.put(vc.getID(), vc.getContig() + ":" + vc.getStart());
-			}
-		} finally {
-			if (dbSNPIterator != null) {
-				dbSNPIterator.close();
-				dbSNPReader.close();
-			}
-		}
-		writer = null;
+		Map<String, String> markerToChrPosLinkedMap = new LinkedHashMap<String, String>();
+		int markers = 0;
+		BufferedReader reader = null;
 		try {
 			if (!Files.exists(snpTable) && Files.exists(proj.PROJECT_DIRECTORY.getValue() + snpTable)) {
 				snpTable = proj.PROJECT_DIRECTORY.getValue() + snpTable;
 			}
-			delimiter = Files.determineDelimiter(snpTable, log);
+			String delimiter = Files.determineDelimiter(snpTable, log);
 			reader = Files.getAppropriateReader(snpTable);
-			writer = new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue(	false,
-																																											false)));
-			indices =
-							ext.indexFactors(	SourceFileParser.SNP_TABLE_FIELDS,
-																reader.readLine().trim().split(delimiter), false, true, true, true);
-			writer.println("Marker\tChr\tPosition");
-			int foundRsids = 0;
-			int noRsids = 0;
-			int posMismatches = 0;
+			int[] indices = ext.indexFactors(	SourceFileParser.SNP_TABLE_FIELDS,
+																				reader.readLine().trim().split(delimiter), false, true,
+																				true, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split(delimiter);
+				String[] line = reader.readLine().trim().split(delimiter);
 				if (line.length <= indices[0] || line.length < indices[1] || line.length <= indices[2]) {
 					log.reportTimeWarning("Skipping line with missing columns: " + Array.toStr(line));
 					continue;
 				}
 				String marker = line[indices[0]];
-				String chr = line[indices[1]];
+				String chr = Byte.toString(Positions.chromosomeNumber(line[indices[1]]));
 				String pos = line[indices[2]];
-				String dbSNPUSCSC = null;
-				if (marker.length() > 2 && marker.substring(0, 2).equalsIgnoreCase("rs")) {
-					dbSNPUSCSC = rsidToUSCSC.get(marker);
-				}
-				if (dbSNPUSCSC != null) {
-					foundRsids++;
-					String dbSNPChr = Byte.toString(Positions.chromosomeNumber(dbSNPUSCSC.split(":")[0]));
-					String dbSNPPos = dbSNPUSCSC.split(":")[1];
-					if (!chr.equals(dbSNPChr) || !pos.equals(dbSNPPos)) {
-						chr = dbSNPChr;
-						pos = dbSNPPos;
-						posMismatches++;
-					}
+				if (markerToChrPosLinkedMap.containsKey(marker)) {
+					log.reportTimeWarning("Marker "	+ marker + " was duplicated in " + snpTable
+																+ ", only using first occurence.");
 				} else {
-					noRsids++;
-				}
-				writer.println(marker + "\t" + chr + "\t" + pos);
-			}
-			if (foundRsids == 0) {
-				log.report("Markers in " + snpTable + " not identified by rsid, using provided marker positions");
-			} else {
-				if (noRsids > 0) {
-					log.reportTimeWarning("An rsid match could not be made to dbSNP for " + noRsids + " markers in " + snpTable + ", using provided marker positions for these markers.");
-				}
-				if (posMismatches > 0) {
-					log.reportTimeWarning(posMismatches + " markers in " + snpTable + " had positions that did not match the position in dbSNP, using dbSNP position for these markers.");
+					markerToChrPosLinkedMap.put(marker, chr + "\t" + pos);
+					markers++;
 				}
 			}
-			reader.close();
 		} catch (FileNotFoundException fnfe) {
 			proj.message("Error: file \""	+ snpTable + "\" not found in "
 										+ proj.PROJECT_DIRECTORY.getValue());
@@ -519,6 +333,65 @@ public class Markers {
 		} catch (IOException ioe) {
 			proj.message("Error reading file \"" + snpTable + "\"");
 			return;
+		} finally {
+			Closeables.closeQuietly(reader);
+		}
+		int foundRsids = 0;
+		int posMismatches = 0;
+		List<String> mismatches = Lists.newArrayList();
+		mismatches.add(Joiner.on("\t").join(MARKER_POSITIONS_MISMATCHES_HEADER));
+		String dbSNP = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getDBSNP().get();
+		VCFFileReader dbSNPReader = null;
+		CloseableIterator<VariantContext> dbSNPIterator = null;
+		try {
+			dbSNPReader = new VCFFileReader(new File(dbSNP));
+			dbSNPIterator = dbSNPReader.iterator();
+			while (dbSNPIterator.hasNext()) {
+				VariantContext vc = dbSNPIterator.next();
+				String rsid = vc.getID();
+				if (markerToChrPosLinkedMap.containsKey(rsid)) {
+					foundRsids++;
+					String dbSNPChrPos = Positions.chromosomeNumber(vc.getContig()) + "\t" + vc.getStart();
+					if (!dbSNPChrPos.equals(markerToChrPosLinkedMap.get(rsid))) {
+						posMismatches++;
+						String oldChrPos = markerToChrPosLinkedMap.put(rsid, dbSNPChrPos);
+						mismatches.add(rsid + "\t" + oldChrPos + "\t" + dbSNPChrPos);
+					}
+				}
+			}
+		} finally {
+			if (dbSNPIterator != null) {
+				dbSNPIterator.close();
+				dbSNPReader.close();
+			}
+		}
+		if (foundRsids == 0) {
+			log.report("Markers in "	+ snpTable
+									+ " not identified by rsid, using provided marker positions");
+		} else {
+			if (markers - foundRsids > 0) {
+				log.reportTimeWarning("An rsid match could not be made to dbSNP for "
+																+ (markers - foundRsids) + " of " + markers + " total markers in "
+															+ snpTable + ", using provided marker positions for these markers.");
+			}
+			if (posMismatches > 0) {
+				log.reportTimeWarning(posMismatches	+ " markers in " + snpTable
+															+ " had positions that did not match the position in dbSNP, using dbSNP position for these markers.");
+				String mismatchesReport = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(),
+																								"_mismatches");
+				Files.writeIterable(mismatches, mismatchesReport);
+				log.report("Mismatches report written to " + mismatchesReport);
+			}
+		}
+		PrintWriter writer = null;
+		try {
+			writer = Files.getAppropriateWriter(proj.MARKER_POSITION_FILENAME.getValue(false, false));
+			writer.println("Marker\tChr\tPosition");
+			for (Map.Entry<String, String> markerEntry : markerToChrPosLinkedMap.entrySet()) {
+				String marker = markerEntry.getKey();
+				String chrPos = markerEntry.getValue();
+				writer.println(marker + "\t" + chrPos);
+			}
 		} finally {
 			if (writer != null) {
 				writer.close();
