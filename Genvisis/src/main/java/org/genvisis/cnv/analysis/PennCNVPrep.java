@@ -16,9 +16,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.PcCorrectionProducer;
-import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
@@ -832,6 +832,7 @@ public class PennCNVPrep {
 		int batch = 0;
 		int sampleChunks = 10;
 		boolean forceLoadFromFiles = false;
+		CHROMOSOME_X_STRATEGY strategy = CHROMOSOME_X_STRATEGY.BIOLOGICAL;
 		// Ex - Recommend modifying this to run the corrections
 
 		// java -jar " + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNVPrep batch=100
@@ -885,7 +886,9 @@ public class PennCNVPrep {
 					"   (17) number of threads for between a marker  (correction between a marker)(i.e. numMarkerThreads="
 							+ numThreads + " (default))\n" + "";
 		usage += "   (18) full path to a temporary directory (i.e. tmpDir= (no default))\n" + "";
-
+		usage += "   (7) Chromosome X correction strategy.  Options include: "
+							+ Array.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy=" + strategy
+							+ " (default))\n";
 		usage += "   NOTE: the total number of threads is numThreads*numMarkerThreads";
 		usage += "   NOTE: aprox 50 *(numSamples/5000) batches per 500,000 markers" + "";
 		usage +=
@@ -946,6 +949,9 @@ public class PennCNVPrep {
 			} else if (arg.startsWith("walltime=")) {
 				wallTimeInHours = ext.parseIntArg(arg);
 				numArgs--;
+			} else if (arg.startsWith("sexStrategy=")) {
+				strategy = CHROMOSOME_X_STRATEGY.valueOf(ext.parseStringArg(arg, strategy.toString()));
+				numArgs--;
 			} else if (arg.startsWith("memory=")) {
 				memoryInMB = ext.parseIntArg(arg);
 				numArgs--;
@@ -967,7 +973,7 @@ public class PennCNVPrep {
 															numMarkerThreads, shadowSamples,
 															svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR, sampleChunks, false,
 															forceLoadFromFiles, CORRECTION_TYPE.XY,
-															CHROMOSOME_X_STRATEGY.BIOLOGICAL);
+															strategy);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
