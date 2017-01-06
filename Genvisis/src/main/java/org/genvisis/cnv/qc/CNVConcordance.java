@@ -52,7 +52,6 @@ public class CNVConcordance {
 		private double avgIndPerfectOverlap;
 		private double avgIndOverlapScore;
 		private double avgIndUnpaired;
-		private double avgIndRelOverlap;
 		private double avgIndRelSigOverlap;
 		private double avgIndRelPerfectOverlap;
 		private double globalOverlap;
@@ -78,7 +77,6 @@ public class CNVConcordance {
 			sb.append(avgIndPerfectOverlap).append("\t");
 			sb.append(avgIndOverlapScore).append("\t");
 			sb.append(avgIndUnpaired).append("\t");
-			sb.append(avgIndRelOverlap).append("\t");
 			sb.append(avgIndRelSigOverlap).append("\t");
 			sb.append(avgIndRelPerfectOverlap).append("\t");
 			sb.append(globalOverlap).append("\t");
@@ -100,7 +98,6 @@ public class CNVConcordance {
 				avgIndPerfectOverlap += indResult.getPercentPerfectOverlap();
 				avgIndOverlapScore += indResult.getAvgOverlapScore();
 				totalUnpaired += indResult.getUnpaired();
-				avgIndRelOverlap += indResult.getRelativePercentOverlap();
 				avgIndRelSigOverlap += indResult.getRelativePercentSigOverlap();
 				avgIndRelPerfectOverlap += indResult.getRelativePercentPerfectOverlap();
 				indResult.addAllScores(globalOverLapScores);
@@ -110,7 +107,6 @@ public class CNVConcordance {
 			avgIndPerfectOverlap /= indResults.length;
 			avgIndOverlapScore /= indResults.length;
 			avgIndUnpaired = (double) totalUnpaired / indResults.length;
-			avgIndRelOverlap /= indResults.length;
 			avgIndRelSigOverlap /= indResults.length;
 			avgIndRelPerfectOverlap /= indResults.length;
 			globalOverlap = (double) totalOverlap / totalCNVs;
@@ -207,10 +203,6 @@ public class CNVConcordance {
 			return getTotalCNVCount() - getNumOverlap();
 		}
 
-		public double getRelativePercentOverlap() {
-			return getRelative(numOverlap);
-		}
-
 		public double getRelativePercentPerfectOverlap() {
 			return getRelative(numPerfectOverlap);
 		}
@@ -242,7 +234,6 @@ public class CNVConcordance {
 	                                              "Average Individual Perfect Overlap",
 	                                              "Average Individual Overlap Score",
 	                                              "Average Individual Unpaired",
-	                                              "Average Relative Overlap",
 	                                              "Average Relative Significant Overlap",
 	                                              "Average Relative Perfect Overlap",
 	                                              "Global Overlap", "Global Significant Overlap",
