@@ -471,12 +471,14 @@ public class MitoPipeline {
 
 			String refGenomeFasta = null;
 			if (!Files.exists(proj.GC_MODEL_FILENAME.getValue())) {
-				refGenomeFasta = proj.getReferenceGenomeFASTAFilename();
 				if (refGenomeFasta == null) {
 					log.reportTimeWarning("Generating gcModel for "	+ build.getBuild() + " at "
 																+ proj.GC_MODEL_FILENAME.getValue() + " from " + gmodelBase.get());
 					proj.getLog().setLevel(3);
 					PennCNV.gcModel(proj, gmodelBase.get(), proj.GC_MODEL_FILENAME.getValue(), 100);
+				}
+				if (!Files.exists(proj.GC_MODEL_FILENAME.getValue())) {
+					refGenomeFasta = proj.getReferenceGenomeFASTAFilename();
 				}
 			}
 			if (Files.exists(refGenomeFasta) || Files.exists(proj.GC_MODEL_FILENAME.getValue())) {// TODO,

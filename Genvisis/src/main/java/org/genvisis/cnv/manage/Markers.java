@@ -1,6 +1,7 @@
 package org.genvisis.cnv.manage;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -9,6 +10,9 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.genvisis.cnv.filesys.MarkerSet;
@@ -22,9 +26,24 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.io.Closeables;
+
+import htsjdk.samtools.util.CloseableIterator;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFFileReader;
+
 public class Markers {
 	public static final int MAX_ERRORS_TO_REPORT = 30;
-
+	public static final List<String> MARKER_POSITIONS_MISMATCHES_HEADER =
+																																			ImmutableList.of(	"Marker",
+																																												"Supplied chr",
+																																												"Supplied pos",
+																																												"dbSNP chr",
+																																												"dbSNP pos");
+	
 	public static int[] orderMarkers(	String[] markerNames, String markerDatabase, String output,
 																		Logger log) {
 		Hashtable<String, String> snpPositions;
@@ -275,38 +294,38 @@ public class Markers {
 	}
 
 	public static void generateMarkerPositions(Project proj, String snpTable) {
-		BufferedReader reader;
-		PrintWriter writer;
-		String[] line;
-		int[] indices;
-		String delimiter;
-		long time;
-		Logger log;
+		Logger log = proj.getLog();
+		long time = new Date().getTime();
 
-		log = proj.getLog();
-		time = new Date().getTime();
-		delimiter = Files.determineDelimiter(snpTable, log);
-		writer = null;
+		Map<String, String> markerToChrPosLinkedMap = new LinkedHashMap<String, String>();
+		int markers = 0;
+		BufferedReader reader = null;
 		try {
 			if (!Files.exists(snpTable) && Files.exists(proj.PROJECT_DIRECTORY.getValue() + snpTable)) {
 				snpTable = proj.PROJECT_DIRECTORY.getValue() + snpTable;
 			}
+			String delimiter = Files.determineDelimiter(snpTable, log);
 			reader = Files.getAppropriateReader(snpTable);
-			writer = new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue(	false,
-																																											false)));
-			indices =
-							ext.indexFactors(	SourceFileParser.SNP_TABLE_FIELDS,
-																reader.readLine().trim().split(delimiter), false, true, true, true);
-			writer.println("Marker\tChr\tPosition");
+			int[] indices = ext.indexFactors(	SourceFileParser.SNP_TABLE_FIELDS,
+																				reader.readLine().trim().split(delimiter), false, true,
+																				true, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split(delimiter);
+				String[] line = reader.readLine().trim().split(delimiter);
 				if (line.length <= indices[0] || line.length < indices[1] || line.length <= indices[2]) {
 					log.reportTimeWarning("Skipping line with missing columns: " + Array.toStr(line));
 					continue;
 				}
-				writer.println(line[indices[0]] + "\t" + line[indices[1]] + "\t" + line[indices[2]]);
+				String marker = line[indices[0]];
+				String chr = Byte.toString(Positions.chromosomeNumber(line[indices[1]]));
+				String pos = line[indices[2]];
+				if (markerToChrPosLinkedMap.containsKey(marker)) {
+					log.reportTimeWarning("Marker "	+ marker + " was duplicated in " + snpTable
+																+ ", only using first occurence.");
+				} else {
+					markerToChrPosLinkedMap.put(marker, chr + "\t" + pos);
+					markers++;
+				}
 			}
-			reader.close();
 		} catch (FileNotFoundException fnfe) {
 			proj.message("Error: file \""	+ snpTable + "\" not found in "
 										+ proj.PROJECT_DIRECTORY.getValue());
@@ -314,6 +333,65 @@ public class Markers {
 		} catch (IOException ioe) {
 			proj.message("Error reading file \"" + snpTable + "\"");
 			return;
+		} finally {
+			Closeables.closeQuietly(reader);
+		}
+		int foundRsids = 0;
+		int posMismatches = 0;
+		List<String> mismatches = Lists.newArrayList();
+		mismatches.add(Joiner.on("\t").join(MARKER_POSITIONS_MISMATCHES_HEADER));
+		String dbSNP = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getDBSNP().get();
+		VCFFileReader dbSNPReader = null;
+		CloseableIterator<VariantContext> dbSNPIterator = null;
+		try {
+			dbSNPReader = new VCFFileReader(new File(dbSNP));
+			dbSNPIterator = dbSNPReader.iterator();
+			while (dbSNPIterator.hasNext()) {
+				VariantContext vc = dbSNPIterator.next();
+				String rsid = vc.getID();
+				if (markerToChrPosLinkedMap.containsKey(rsid)) {
+					foundRsids++;
+					String dbSNPChrPos = Positions.chromosomeNumber(vc.getContig()) + "\t" + vc.getStart();
+					if (!dbSNPChrPos.equals(markerToChrPosLinkedMap.get(rsid))) {
+						posMismatches++;
+						String oldChrPos = markerToChrPosLinkedMap.put(rsid, dbSNPChrPos);
+						mismatches.add(rsid + "\t" + oldChrPos + "\t" + dbSNPChrPos);
+					}
+				}
+			}
+		} finally {
+			if (dbSNPIterator != null) {
+				dbSNPIterator.close();
+				dbSNPReader.close();
+			}
+		}
+		if (foundRsids == 0) {
+			log.report("Markers in "	+ snpTable
+									+ " not identified by rsid, using provided marker positions");
+		} else {
+			if (markers - foundRsids > 0) {
+				log.reportTimeWarning("An rsid match could not be made to dbSNP for "
+																+ (markers - foundRsids) + " of " + markers + " total markers in "
+															+ snpTable + ", using provided marker positions for these markers.");
+			}
+			if (posMismatches > 0) {
+				log.reportTimeWarning(posMismatches	+ " markers in " + snpTable
+															+ " had positions that did not match the position in dbSNP, using dbSNP position for these markers.");
+				String mismatchesReport = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(),
+																								"_mismatches");
+				Files.writeIterable(mismatches, mismatchesReport);
+				log.report("Mismatches report written to " + mismatchesReport);
+			}
+		}
+		PrintWriter writer = null;
+		try {
+			writer = Files.getAppropriateWriter(proj.MARKER_POSITION_FILENAME.getValue(false, false));
+			writer.println("Marker\tChr\tPosition");
+			for (Map.Entry<String, String> markerEntry : markerToChrPosLinkedMap.entrySet()) {
+				String marker = markerEntry.getKey();
+				String chrPos = markerEntry.getValue();
+				writer.println(marker + "\t" + chrPos);
+			}
 		} finally {
 			if (writer != null) {
 				writer.close();

@@ -76,6 +76,10 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	 */
 	public enum CORRECTION_TYPE {
 																/**
+																 * No Correction - PCs will be generated and then quit.
+																 */
+																GENERATE_PCS_ONLY,
+																/**
 																 * Multi-stage correction of X and Y intensities within a genotype
 																 * cluster
 																 */

@@ -257,8 +257,6 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
 		// Close this window but not the entire application on close
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		// Close the whole thing for debugging purposes
-		// setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		cpcl = new CompPropertyChangeListener(this);
 

@@ -51,7 +51,7 @@ public class FilterCalls {
 	public static final String DEFAULT_COMMON_CNP_REFERENCE = "data/all_CNPs.txt";
 	public static final String[] DEFAULT_REGION_DIRECTORIES =
 																													{	"C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\",
-																														"/home/npankrat/", "P:\\"};
+																														"/home/npankrat/", "P:\\", "/home/pankrat2/"};
 	public static final int COMMON_IN = 1;
 	public static final int COMMON_OUT = 2;
 	public static final int COMMON_IGNORED = 3;
@@ -2280,14 +2280,8 @@ public class FilterCalls {
 		boolean stats = false;
 		boolean merge = false;
 
-		double totalRequired, delRequired, dupRequired, totalLimitedTo, delLimitedTo, dupLimitedTo,
-				proportionOfProbesThatNeedToPassForFinalInclusion;
-		totalRequired =
-									delRequired =
-															dupRequired =
-																					totalLimitedTo = delLimitedTo = dupLimitedTo =
-																																												proportionOfProbesThatNeedToPassForFinalInclusion =
-																																																																					0.0;
+		double totalRequired, delRequired, dupRequired, totalLimitedTo, delLimitedTo, dupLimitedTo, proportionOfProbesThatNeedToPassForFinalInclusion;
+		totalRequired = delRequired = dupRequired = totalLimitedTo = delLimitedTo = dupLimitedTo = proportionOfProbesThatNeedToPassForFinalInclusion = 0.0;
 		String famFile = null;
 
 		String usage = "cnv.analysis.FilterCalls requires 2+ arguments\n"

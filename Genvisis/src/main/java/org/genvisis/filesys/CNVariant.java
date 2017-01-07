@@ -712,14 +712,7 @@ public class CNVariant extends Segment {
 
 	public static LocusSet<CNVariant> loadLocSet(String cnvFile, Logger log) {
 		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile, false);
-		LocusSet<CNVariant> cLocusSet = new LocusSet<CNVariant>(cnvs, true, log) {
-
-			/**
-			*
-			*/
-			private static final long serialVersionUID = 1L;
-
-		};
+		LocusSet<CNVariant> cLocusSet = new LocusSet<CNVariant>(cnvs, true, log);
 		return cLocusSet;
 
 	}

@@ -155,29 +155,42 @@ public class Segment implements Serializable, Comparable<Segment> {
 		return new Segment(chr, start - buffer, stop + buffer);
 	}
 
+	/**
+	 * @return true if this and target Segment contain more overlapping positions than half the
+	 *         smaller Segment's length (e.g., given a segment of length 10 and length 3, if 2
+	 *         positions overlap this method will return true).
+	 */
 	public boolean significantOverlap(Segment seg) {
-		return amountOfOverlapInBasepairs(seg) > Math.min(getSize(), seg.getSize()) / 2;
+		return significantOverlap(seg, false);
 	}
 
+	/**
+	 * @param checkLarger If true, the significance threshold is stricter - using the smaller value of [larger segment's
+	 *        length / 2] and [smaller segment's length]. If false, significance is tested against 1/2 the smaller segment's length.
+	 * @return true if the number of overlapping positions in this and the target segment exceeds the requested threshold
+	 */
 	public boolean significantOverlap(Segment seg, boolean checkLarger) {
-		int overlap = amountOfOverlapInBasepairs(seg);
+		int smallSize = Math.min(getSize(), seg.getSize());
+		int bigSize = Math.max(getSize(), seg.getSize()) / 2;
 
-		int mySize = getSize();
-		int segSize = seg.getSize();
+		return significantOverlap(seg, checkLarger ? Math.min(bigSize, smallSize) : smallSize / 2);
+	}
 
-		/*
-		 * Get the threshold that overlap needs to pass to be significant: First check which is larger,
-		 * then check argument flag, then set the threshold to the minimum of either half the size of
-		 * the larger CNV or the entirety of the smaller CNV (if the smaller CNV is smaller than half
-		 * the size of the larger CNV - otherwise we'd never call significance)
-		 */
-		int threshold = mySize > segSize
-		                                 ? (checkLarger ? Math.min(mySize / 2, segSize)
-		                                                : Math.min(segSize / 2, mySize))
-		                                 : (checkLarger ? Math.min(segSize / 2, mySize)
-		                                                : Math.min(mySize / 2, segSize));
+	/**
+	 * @return true if the number of overlapping positions between this and the target segment exceed
+	 *         half this segment's length (that is, we don't care about the target segment's length -
+	 *         if it's too short it can't be called as overlapping, and if it's very long we can still
+	 *         call significance).
+	 */
+	public boolean significantOneWayOverlap(Segment seg) {
+		return significantOverlap(seg, getSize() / 2);
+	}
 
-		return overlap > threshold;
+	/**
+	 * @return true if the {@link #amountOfOverlapInBasepairs(Segment)} exceeds the specified threshold
+	 */
+	public boolean significantOverlap(Segment seg, int threshold) {
+		return amountOfOverlapInBasepairs(seg) > threshold;
 	}
 
 	public double overlapScore(Segment seg) {

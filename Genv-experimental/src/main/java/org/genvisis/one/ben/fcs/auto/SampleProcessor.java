@@ -62,13 +62,7 @@ abstract class AbstractSampleProcessor implements SampleProcessor {
     long t1 = System.currentTimeMillis();
     d = new FCSDataLoader();
     d.loadData(sn.fcsFile);
-    while(d.getLoadState() != LOAD_STATE.LOADED) {
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-      	// ignore
-      }
-    }
+    d.waitForData();
     (new Logger()).reportTimeElapsed("Loaded FCS ... ", t1);
     d.setTransformMap(sn.savedTransforms);
     GateFileUtils.updateGateParams(d, sn.gating.gateRoots);
@@ -363,7 +357,7 @@ class LeafDataSampler extends AbstractSampleProcessor {
 	static class GateAssignmentFactory implements ProcessorFactory<GateAssignmentProcessor> {
 		
 		ConcurrentHashMap<Object, ConcurrentHashMap<String, Integer>> ownerMaps = new ConcurrentHashMap<>();
-		String outputDir = "";
+		String outputDir = "/scratch.global/cole0482/FCS/";
 		@Override
 		public GateAssignmentProcessor createProcessor(Object owner, int index) {
 			ConcurrentHashMap<String, Integer> map;

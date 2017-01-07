@@ -170,6 +170,7 @@ public class SampleData {
 
 	}
 
+	private static final String[][] VOID_CLASSES = {};
 	public static final String HEATMAP = "Heat map";
 	public static final String GENOTYPE = "Genotype";
 	public static final String[] BASIC_CLASSES = {"All", HEATMAP, GENOTYPE};
@@ -849,7 +850,13 @@ public class SampleData {
 		return classes[index];
 	}
 
+	/**
+	 * @return The names/values for the given CLASS= index, or an empty array if the index is not valid.
+	 */
 	public String[][] getActualClassColorKey(int index) {
+		if (index < 0 || index >= classColorKeys.length) {
+			return VOID_CLASSES;
+		}
 		return classColorKeys[index];
 	}
 

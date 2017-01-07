@@ -19,8 +19,8 @@ public class GateExportTest {
 		ProcessorFactory<? extends SampleProcessor> pf;
 		
 		pf = new GateAssignmentFactory();
-		pf = new PercentageWriterFactory();
-		pf = new LeafDataSamplerFactory("/scratch.global/cole0482/FCS/", new Logger());
+//		pf = new PercentageWriterFactory();
+//		pf = new LeafDataSamplerFactory("/scratch.global/cole0482/FCS/", new Logger());
 		
 		SamplingPipeline sp = new SamplingPipeline(null, WSP, FCS, null, "/scratch.global/cole0482/FCS/", pf);
 		
