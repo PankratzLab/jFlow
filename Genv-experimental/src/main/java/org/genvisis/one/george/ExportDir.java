@@ -7,6 +7,7 @@ import java.io.IOException;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
 
+// deprecated, see FileManipulator
 public class ExportDir {
 	// exports all fcs in directory to csv files
 	public static void main(String[] args) {

@@ -1,15 +1,6 @@
 package org.genvisis.one.george;
 
 public class Tree {
-	private class Tuple<X, Y> { 
-		public final X x; 
-		public final Y y; 
-		public Tuple(X x, Y y) { 
-			this.x = x; 
-			this.y = y; 
-	    } 
-	}
-	
 	Node root;
 	int maxLeafId;
 	
@@ -36,8 +27,6 @@ public class Tree {
 		
 		for (int i = 0; i < n.getIds().length; i++) {
 			newStoreArr[n.getIds()[i]-1] = 1; // zero indexed
-			System.out.println(n.getIds()[i]-1);
-			System.out.println("looping");
 		}
 		if (newStoreArr[leafId-1] == 1) {
 			System.out.println("true");

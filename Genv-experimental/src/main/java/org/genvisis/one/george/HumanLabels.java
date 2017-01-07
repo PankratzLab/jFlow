@@ -81,10 +81,7 @@ public class HumanLabels {
 					else {
 						out.append("\n");
 					}
-				}
-				System.out.println("line i: " + i);
-				
-				//System.out.println(out);
+				}				
 			}
 			w.write(out.toString());
 			w.close();

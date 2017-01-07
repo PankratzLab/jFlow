@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+// deprecated, see FileManipulator
 public class ExportHumanLabels {
 	public static void main(String[] args) {
 		if (args.length < 1) {
@@ -13,6 +14,7 @@ public class ExportHumanLabels {
 			return;
 		}
 		else {
+			// temporary hack
 			Pattern p = Pattern.compile(".*xln");
 
 			String dirname = args[0];
