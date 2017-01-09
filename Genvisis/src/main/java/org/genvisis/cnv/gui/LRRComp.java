@@ -29,6 +29,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
+import javax.swing.plaf.DimensionUIResource;
 
 import org.genvisis.cnv.analysis.MedianLRRWorker;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
@@ -87,7 +88,6 @@ public class LRRComp extends JFrame implements Runnable {
 	}
 
 	public void createAndShowGUI() {
-		setSize(500, 500);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setTitle("Median Log R Ratio Settings");
@@ -116,7 +116,12 @@ public class LRRComp extends JFrame implements Runnable {
 		TransformationPanel transformationPanel = new TransformationPanel();
 		transformationPanel.setLayout(new BoxLayout(transformationPanel, BoxLayout.Y_AXIS));
 		add(transformationPanel);
-		this.setLocation(dim.width / 2	- this.getSize().width / 2,
+		// get the size of visible components
+		pack();
+		// fix the width to 500 and height expand the height to allow the progress bar
+		setPreferredSize(new Dimension(500, getHeight() + 40));
+		pack();
+		setLocation(dim.width / 2	- this.getSize().width / 2,
 											dim.height / 2 - this.getSize().height / 2);
 		setVisible(true);
 	}
@@ -132,7 +137,7 @@ public class LRRComp extends JFrame implements Runnable {
 		private TransformationPanel() {
 			outputBase = Transforms.TRANFORMATIONS[transformationType];
 			setLayout(new BorderLayout());
-			regionTextField = new RegionTextField(initRegion, 10, 10);
+			regionTextField = new RegionTextField(initRegion, 10, 50);
 			progressBar = new JProgressBar(0, 100);
 			computeButton = new ComputeButton(this);
 			twoDPlotButton = new TwoDPlotButton(this);
