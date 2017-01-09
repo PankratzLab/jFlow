@@ -2,15 +2,20 @@ package org.genvisis.one.JL.anotia;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.GeneData;
 import org.genvisis.filesys.GeneTrack;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.seq.cnv.CNVExtraInfo.EXTRA_INFO_TYPE;
+import org.genvisis.seq.cnv.CNVExtraInfo;
 import org.genvisis.seq.cnv.SeqCNVariant;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
@@ -79,18 +84,44 @@ public class AnotiaCNVs {
 							false)
 					.convertToLocusSet(log);
 			ArrayList<SeqCNVariant> seqCNVariantsFiltered = new ArrayList<>();
+			HashMap<String, HashSet<String>> counts = new HashMap<>();
 
 			for (CNVariant filteredCNV : filteredAnotia) {
 				GeneData[] genes = geneSet.getOverLappingLoci(filteredCNV);
-//				EXTRA_INFO_TYPE
+				AnotiaEI geneInfo = new AnotiaEI(EXTRA_INFO_TYPE.EXOME_DEPTH, "GENE", "");
+				AnotiaEI gdiInfo = new AnotiaEI(EXTRA_INFO_TYPE.EXOME_DEPTH, "GDI", "");
+
 				if (genes != null) {
 					for (GeneData gene : genes) {
-						System.out.println(filteredCNV.getIndividualID()+"\t"+gene.getGeneName() + "\t" + gdiHash.get(gene.getGeneName()));
+						if (!counts.containsKey(gene.getGeneName())) {
+							counts.put(gene.getGeneName(), new HashSet<>());
+						}
+						counts.get(gene.getGeneName()).add(filteredCNV.getIndividualID());
+
+						System.out.println(filteredCNV.getIndividualID() + "\t" + gene.getGeneName() + "\t"
+								+ gdiHash.get(gene.getGeneName()));
 					}
 				}
 			}
+			String outCounts = outDir + ext.rootOf(cnvFile) + "rareGeneCounts.txt";
+			StringBuilder output = new StringBuilder("Gene\tNumAnotiaSamples\tSamples");
+			for (String gene : counts.keySet()) {
+				output.append("\n"+gene + "\t" + counts.get(gene).size()+"\t"+counts.get(gene));
+			}
+			Files.write(output.toString(), outCounts);
+
 			LocusSet<CNVariant> filtered = new LocusSet<>(filteredAnotia, true, log);
 
+		}
+	}
+
+	private static class AnotiaEI extends CNVExtraInfo {
+		private static final long serialVersionUID = 1L;
+
+		public AnotiaEI(EXTRA_INFO_TYPE type, String title, String extra) {
+			super(EXTRA_INFO_TYPE.EXOME_DEPTH);
+			dExtra = extra;
+			sExtra = title;
 		}
 	}
 
