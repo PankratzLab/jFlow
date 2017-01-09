@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -71,6 +70,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Numbers;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.parse.GenParser;
@@ -1386,8 +1386,8 @@ public class TwoDPlot extends JPanel
 								int chr = 0, start = 0, stop = 0;
 								if (metaData != null && metaData.length != 0 && metaData[0] != null) {
 									chr = Positions.chromosomeNumber(metaData[0][0]);
-									start = Integer.parseInt(metaData[0][2]);
-									stop = Integer.parseInt(metaData[0][3]);
+									start = Numbers.parseWithLocale(metaData[0][2]);
+									stop = Numbers.parseWithLocale(metaData[0][3]);
 								}
 								colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0,
 																															sampleData.getIndiFromSampleHash(ids[0]),
