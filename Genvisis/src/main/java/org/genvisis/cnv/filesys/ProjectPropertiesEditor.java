@@ -4,6 +4,7 @@ package org.genvisis.cnv.filesys;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -251,29 +252,26 @@ public class ProjectPropertiesEditor extends JFrame {
 		JPanel panel = new JPanel();
 		getContentPane().add(panel, BorderLayout.SOUTH);
 
-		JButton notepad = new JButton("Edit with Notepad");
-		notepad.addActionListener(new ActionListener() {
+		JButton textEdit = new JButton("Edit Text");
+		textEdit.setToolTipText("Open properties file in your default text editor (closes this dialog)");
+		final Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+		textEdit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				proj.getLog().report("Launching notepad...");
+				proj.getLog().report("Launching default text editor...");
 				try {
-					/* Process p = */Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""
-																											+ proj.getPropertyFilename() + "\"");
+					desktop.open(new File(proj.getPropertyFilename()));
 					ProjectPropertiesEditor.this.setVisible(false);
 					// TODO update properties in Project and Configurator - they may have changed
 				} catch (IOException ioe) {
-					proj.getLog().reportError("Error - failed to open Notepad");
+					proj.getLog().reportError("Error - file could not open in text editor");
 				}
 			}
 		});
-		panel.add(notepad);
+		panel.add(textEdit);
 
-
-		boolean includeNotepad = false;
-		if (Files.isWindows()) {
-			includeNotepad = Files.programExists("notepad.exe");
-		}
-		notepad.setVisible(includeNotepad);
+		boolean includeTextButton = desktop != null && desktop.isSupported(Desktop.Action.OPEN);
+		textEdit.setVisible(includeTextButton);
 
 		JButton btnSave = new JButton("Save");
 		btnSave.addActionListener(new ActionListener() {
