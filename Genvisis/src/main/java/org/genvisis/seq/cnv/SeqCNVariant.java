@@ -19,6 +19,11 @@ public class SeqCNVariant extends CNVariant {
 		this.cExtraInfos = cExtraInfos;
 	}
 
+	public SeqCNVariant(CNVariant cnv, CNVExtraInfo[] cExtraInfos) {
+		super(cnv);
+		this.cExtraInfos = cExtraInfos;
+	}
+
 	public CNVExtraInfo[] getcExtraInfos() {
 		return cExtraInfos;
 	}

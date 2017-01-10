@@ -14,6 +14,7 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.GeneData;
 import org.genvisis.filesys.GeneTrack;
 import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
 import org.genvisis.seq.cnv.CNVExtraInfo.EXTRA_INFO_TYPE;
 import org.genvisis.seq.cnv.CNVExtraInfo;
 import org.genvisis.seq.cnv.SeqCNVariant;
@@ -96,21 +97,32 @@ public class AnotiaCNVs {
 						if (!counts.containsKey(gene.getGeneName())) {
 							counts.put(gene.getGeneName(), new HashSet<>());
 						}
+						geneInfo.setdExtra(geneInfo.getdExtra() + ";" + gene.getGeneName());
 						counts.get(gene.getGeneName()).add(filteredCNV.getIndividualID());
+						if (gdiHash.containsKey(gene.getGeneName())) {
+							gdiInfo.setdExtra(gdiInfo.getdExtra() + ";" + gdiHash.get(gene.getGeneName()));
+						} else {
+							gdiInfo.setdExtra(gdiInfo.getdExtra() + ";NA");
 
+						}
 						System.out.println(filteredCNV.getIndividualID() + "\t" + gene.getGeneName() + "\t"
 								+ gdiHash.get(gene.getGeneName()));
 					}
 				}
+				SeqCNVariant seqCNVariant = new SeqCNVariant(filteredCNV, new AnotiaEI[] { geneInfo, gdiInfo });
+				seqCNVariantsFiltered.add(seqCNVariant);
 			}
 			String outCounts = outDir + ext.rootOf(cnvFile) + "rareGeneCounts.txt";
 			StringBuilder output = new StringBuilder("Gene\tNumAnotiaSamples\tSamples");
 			for (String gene : counts.keySet()) {
-				output.append("\n"+gene + "\t" + counts.get(gene).size()+"\t"+counts.get(gene));
+				output.append("\n" + gene + "\t" + counts.get(gene).size() + "\t" + counts.get(gene));
 			}
 			Files.write(output.toString(), outCounts);
 
-			LocusSet<CNVariant> filtered = new LocusSet<>(filteredAnotia, true, log);
+			LocusSet<SeqCNVariant> filtered = new LocusSet<>(seqCNVariantsFiltered, true, log);
+
+			String outCNVs = outDir + ext.rootOf(cnvFile) + "rareGeneCounts.cnv";
+			filtered.writeRegions(outCNVs, TO_STRING_TYPE.REGULAR, true, log);
 
 		}
 	}
