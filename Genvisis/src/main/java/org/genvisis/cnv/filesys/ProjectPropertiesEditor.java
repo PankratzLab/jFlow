@@ -22,6 +22,7 @@ import java.util.EventObject;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -66,6 +67,9 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -240,12 +244,13 @@ public class ProjectPropertiesEditor extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	//FIXME convert to constructor that takes a list of properties..
 	public ProjectPropertiesEditor(Project project) {
+		this(project, new String[0]);
+	}
+
+	public ProjectPropertiesEditor(Project project, String... propertyNames) {
 		setTitle("Genvisis - " + project.PROJECT_NAME.getValue() + " - Project Properties Editor");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		//FIXME generalize centering logic from LRRComp and use here
-		UITools.setSize(this, 700, 800);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -680,30 +685,35 @@ public class ProjectPropertiesEditor extends JFrame {
 														};
 
 		int count = 0;
-		HashMap<GROUP, ArrayList<String>> allGroupsAndKeys = new HashMap<GROUP, ArrayList<String>>();
-		for (String key : proj.getPropertyKeys()) {
-			ArrayList<String> keys = allGroupsAndKeys.get(proj.getProperty(key).getGroup());
-			if (keys == null) {
-				keys = new ArrayList<String>();
-				allGroupsAndKeys.put(proj.getProperty(key).getGroup(), keys);
+
+		// If we were passed a filter of Project property names, we want to whitelist them so
+		// they are the only keys accepted
+		Set<String> whitelistKeys = new HashSet<String>();
+		if (propertyNames != null) {
+			for (String key : propertyNames) {
+				whitelistKeys.add(key);
 			}
-			keys.add(key);
 		}
 
-		for (GROUP g : GROUP.values()) {
-			if (g == GROUP.SPECIAL_HIDDEN) {
+		Multimap<GROUP, String> groupToKeys = ArrayListMultimap.create();
+		for (String key : proj.getPropertyKeys()) {
+			if (whitelistKeys.isEmpty() || whitelistKeys.contains(key)) {
+				groupToKeys.put(proj.getProperty(key).getGroup(), key);
+			}
+		}
+
+		for (GROUP g : groupToKeys.keySet()) {
+			if (GROUP.SPECIAL_HIDDEN.equals(g)) {
 				continue;
 			}
 			String setName = g.getDescription();
 			model.addRow(new Object[] {setName, ""});
 			labelRows.add(count);
 			count++;
-			if (allGroupsAndKeys.containsKey(g)) {
-				for (String s : allGroupsAndKeys.get(g)) {
-					Object[] values = parseProperty(proj, s);
-					model.addRow(values);
-					count++;
-				}
+			for (String propertyKey : groupToKeys.get(g)) {
+				Object[] values = parseProperty(proj, propertyKey);
+				model.addRow(values);
+				count++;
 			}
 		}
 
@@ -717,6 +727,9 @@ public class ProjectPropertiesEditor extends JFrame {
 		table.setShowVerticalLines(false);
 		table.setShowHorizontalLines(false);
 
+		// Estimate the desired height at 26 pixels per row plus a buffer for other UI elements
+		int height = (26 * count) + 100;
+		UITools.setSize(this, 700, height);
 
 		InputMap inMap = table.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		ActionMap actMap = table.getActionMap();
