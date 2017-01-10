@@ -88,7 +88,6 @@ public class LRRComp extends JFrame implements Runnable {
 	}
 
 	public void createAndShowGUI() {
-		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setTitle("Median Log R Ratio Settings");
 		WindowListener exitListener = new WindowAdapter() {
@@ -119,10 +118,9 @@ public class LRRComp extends JFrame implements Runnable {
 		// get the size of visible components
 		pack();
 		// fix the width to 500 and height expand the height to allow the progress bar
-		setPreferredSize(new Dimension(500, getHeight() + 40));
+		UITools.setSize(this, 500, getHeight() + 40);
 		pack();
-		setLocation(dim.width / 2	- this.getSize().width / 2,
-											dim.height / 2 - this.getSize().height / 2);
+		UITools.centerComponent(this);
 		setVisible(true);
 	}
 

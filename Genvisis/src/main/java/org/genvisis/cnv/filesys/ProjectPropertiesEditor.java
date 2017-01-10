@@ -54,6 +54,7 @@ import javax.swing.table.TableCellRenderer;
 
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.filesys.Project.GROUP;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.prop.DoubleProperty;
 import org.genvisis.cnv.prop.FileProperty;
 import org.genvisis.cnv.prop.IntegerProperty;
@@ -239,10 +240,12 @@ public class ProjectPropertiesEditor extends JFrame {
 	/**
 	 * Create the frame.
 	 */
+	//FIXME convert to constructor that takes a list of properties..
 	public ProjectPropertiesEditor(Project project) {
 		setTitle("Genvisis - " + project.PROJECT_NAME.getValue() + " - Project Properties Editor");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		setBounds(100, 100, 700, 800);
+		//FIXME generalize centering logic from LRRComp and use here
+		UITools.setSize(this, 700, 800);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -766,6 +769,8 @@ public class ProjectPropertiesEditor extends JFrame {
 			}
 		});
 
+		pack();
+		UITools.centerComponent(this);
 	}
 
 	protected void doClose(boolean save, boolean promptChanges) {
