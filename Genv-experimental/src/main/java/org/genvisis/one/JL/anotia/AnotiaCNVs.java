@@ -9,6 +9,7 @@ import java.util.Hashtable;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.GeneData;
@@ -56,24 +57,32 @@ public class AnotiaCNVs {
 			}
 
 			LocusSet<CNVariant> controlSet = new LocusSet<>(controls, true, log);
+			LocusSet<CNVariant> caseSet = new LocusSet<>(anotia, true, log);
+			String outCNVsAll = outDir + ext.rootOf(cnvFile) + "AllCase.cnv";
+			caseSet.writeRegions(outCNVsAll, TO_STRING_TYPE.REGULAR, true, log);
+
+			String outCNVsAllControl = outDir + ext.rootOf(cnvFile) + "AllControl.cnv";
+			controlSet.writeRegions(outCNVsAllControl, TO_STRING_TYPE.REGULAR, true, log);
 
 			ArrayList<CNVariant> filteredAnotia = new ArrayList<>();
 
 			for (CNVariant anotiaCnv : anotia) {
-				CNVariant[] overlaps = controlSet.getOverLappingLoci(anotiaCnv);
-				if (overlaps == null || overlaps.length == 0) {
-					filteredAnotia.add(anotiaCnv);
-				} else {
-					boolean add = true;
-					for (CNVariant cnv : overlaps) {
-						double bpOlap = (double) anotiaCnv.amountOfOverlapInBasepairs(cnv) / anotiaCnv.getSize();
-						// System.out.println(bpOlap);
-						if (bpOlap > .5) {
-							add = false;
-						}
-					}
-					if (add) {
+				if (anotiaCnv.getScore() > 5) {
+					CNVariant[] overlaps = controlSet.getOverLappingLoci(anotiaCnv);
+					if (overlaps == null || overlaps.length == 0) {
 						filteredAnotia.add(anotiaCnv);
+					} else {
+						boolean add = true;
+						for (CNVariant cnv : overlaps) {
+							double bpOlap = (double) anotiaCnv.amountOfOverlapInBasepairs(cnv) / anotiaCnv.getSize();
+							// System.out.println(bpOlap);
+							if (bpOlap > .5) {
+								add = false;
+							}
+						}
+						if (add) {
+							filteredAnotia.add(anotiaCnv);
+						}
 					}
 				}
 			}
@@ -91,25 +100,31 @@ public class AnotiaCNVs {
 				GeneData[] genes = geneSet.getOverLappingLoci(filteredCNV);
 				AnotiaEI geneInfo = new AnotiaEI(EXTRA_INFO_TYPE.EXOME_DEPTH, "GENE", "");
 				AnotiaEI gdiInfo = new AnotiaEI(EXTRA_INFO_TYPE.EXOME_DEPTH, "GDI", "");
-
+				AnotiaEI ucscLink = new AnotiaEI(EXTRA_INFO_TYPE.EXOME_DEPTH, "UCSC", "");
+				int[] pos = new int[] { filteredCNV.getChr(), filteredCNV.getStart(), filteredCNV.getStop() };
+				String link = Positions.getUCSClink(pos, "hg19");
+				ucscLink.setdExtra("[" + filteredCNV.getUCSClocation() + "](" + link + ")");
 				if (genes != null) {
 					for (GeneData gene : genes) {
 						if (!counts.containsKey(gene.getGeneName())) {
 							counts.put(gene.getGeneName(), new HashSet<>());
 						}
-						geneInfo.setdExtra(geneInfo.getdExtra() + ";" + gene.getGeneName());
+						geneInfo.setdExtra((geneInfo.getdExtra().equals("") ? gene.getGeneName()
+								: geneInfo.getdExtra() + ";" + gene.getGeneName()));
 						counts.get(gene.getGeneName()).add(filteredCNV.getIndividualID());
 						if (gdiHash.containsKey(gene.getGeneName())) {
-							gdiInfo.setdExtra(gdiInfo.getdExtra() + ";" + gdiHash.get(gene.getGeneName()));
+							gdiInfo.setdExtra(gdiInfo.getdExtra().equals("") ? gdiHash.get(gene.getGeneName())
+									: gdiInfo.getdExtra() + ";" + gdiHash.get(gene.getGeneName()));
 						} else {
-							gdiInfo.setdExtra(gdiInfo.getdExtra() + ";NA");
+							gdiInfo.setdExtra(gdiInfo.getdExtra().equals("") ? "NA" : gdiInfo.getdExtra() + ";NA");
 
 						}
 						System.out.println(filteredCNV.getIndividualID() + "\t" + gene.getGeneName() + "\t"
 								+ gdiHash.get(gene.getGeneName()));
 					}
 				}
-				SeqCNVariant seqCNVariant = new SeqCNVariant(filteredCNV, new AnotiaEI[] { geneInfo, gdiInfo });
+				SeqCNVariant seqCNVariant = new SeqCNVariant(filteredCNV,
+						new AnotiaEI[] { geneInfo, gdiInfo, ucscLink });
 				seqCNVariantsFiltered.add(seqCNVariant);
 			}
 			String outCounts = outDir + ext.rootOf(cnvFile) + "rareGeneCounts.txt";
