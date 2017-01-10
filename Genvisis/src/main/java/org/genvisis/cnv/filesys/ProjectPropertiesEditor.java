@@ -75,6 +75,8 @@ import net.miginfocom.swing.MigLayout;
 
 public class ProjectPropertiesEditor extends JFrame {
 
+	public static final String ICON = "images/edit.png";
+
 	private static final long serialVersionUID = 1L;
 
 	private JPanel contentPane;
@@ -702,8 +704,8 @@ public class ProjectPropertiesEditor extends JFrame {
 			}
 		}
 
-		for (GROUP g : groupToKeys.keySet()) {
-			if (GROUP.SPECIAL_HIDDEN.equals(g)) {
+		for (GROUP g : GROUP.values()) {
+			if (GROUP.SPECIAL_HIDDEN.equals(g) || !groupToKeys.containsKey(g)) {
 				continue;
 			}
 			String setName = g.getDescription();

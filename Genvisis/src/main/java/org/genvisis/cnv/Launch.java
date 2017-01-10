@@ -671,7 +671,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
 		// Add leftmost system icons
 		addButtons(	iconBar,
-								new String[] {"images/edit.png", "images/refresh.svg.png", "images/gen_pipe_1.png"},
+								new String[] {ProjectPropertiesEditor.ICON, "images/refresh.svg.png", "images/gen_pipe_1.png"},
 								new String[] {EDIT, REFRESH, PIPELINE});
 
 		// Add plot icons

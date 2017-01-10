@@ -1,10 +1,8 @@
 package org.genvisis.cnv.gui;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -29,13 +27,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
-import javax.swing.plaf.DimensionUIResource;
 
 import org.genvisis.cnv.analysis.MedianLRRWorker;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.PropertyEditorButton;
 import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.plots.TwoDPlot;
+import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
@@ -113,7 +112,6 @@ public class LRRComp extends JFrame implements Runnable {
 		};
 		addWindowListener(exitListener);
 		TransformationPanel transformationPanel = new TransformationPanel();
-		transformationPanel.setLayout(new BoxLayout(transformationPanel, BoxLayout.Y_AXIS));
 		add(transformationPanel);
 		// get the size of visible components
 		pack();
@@ -133,8 +131,8 @@ public class LRRComp extends JFrame implements Runnable {
 		private final FileInputArea fileInputArea;
 
 		private TransformationPanel() {
+			setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 			outputBase = Transforms.TRANFORMATIONS[transformationType];
-			setLayout(new BorderLayout());
 			regionTextField = new RegionTextField(initRegion, 10, 50);
 			progressBar = new JProgressBar(0, 100);
 			computeButton = new ComputeButton(this);
@@ -160,12 +158,15 @@ public class LRRComp extends JFrame implements Runnable {
 			addLabel(REGION_TEXT_FIELD_LABELS[7]);
 			addSexStrategyButtons(actionListener, 1);
 			addLabel(REGION_TEXT_FIELD_LABELS[0]);
-			add(regionTextField, BorderLayout.CENTER);
 			JScrollPane scroll = new JScrollPane(regionTextField);
 			add(scroll);
 			add(homozygousCheckBox);
-			add(computeButton, BorderLayout.EAST);
-			add(twoDPlotButton, BorderLayout.WEST);
+			JPanel buttons = new JPanel();
+			buttons.add(computeButton);
+			buttons.add(twoDPlotButton);
+			buttons.add(new PropertyEditorButton(proj, PropertyKeys.KEY_INTENSITY_PC_NUM_COMPONENTS, PropertyKeys.KEY_INTENSITY_PC_FILENAME));
+			buttons.setAlignmentX(LEFT_ALIGNMENT);
+			add(buttons);
 		}
 
 		@Override
@@ -266,7 +267,7 @@ public class LRRComp extends JFrame implements Runnable {
 		}
 
 		private JLabel addLabel(String text) {
-			JLabel label = new JLabel(text);
+			JLabel label = new JLabel("<html>" + text + "</html>");
 			label.setFont(new Font("Arial", 0, 14));
 			add(label);
 			return label;
