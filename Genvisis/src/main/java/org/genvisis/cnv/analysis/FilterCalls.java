@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -480,8 +481,14 @@ public class FilterCalls {
 				// create objects for all CNVs while also setting start/end marker indices, accounting for
 				// dropped markers
 				for (int i = 0; i < cnvList.size(); i++) {
-					int firstSNPIndex = Array.binarySearch(positions[chr], cnvList.get(i).getStart(), true);
-					int lastSNPIndex = Array.binarySearch(positions[chr], cnvList.get(i).getStop(), true);
+					CNVariant cnv = cnvList.get(i);
+					int firstSNPIndex = Arrays.binarySearch(positions[chr], cnv.getStart());
+					int lastSNPIndex = Arrays.binarySearch(positions[chr], cnv.getStop());
+
+					if (firstSNPIndex < 0 || lastSNPIndex < 0) {
+						log.reportTimeWarning("Cannot merge CNV with bounds outside known start/stop: " +  cnv.getStart() + "-" + cnv.getStop());
+						continue;
+					}
 
 					// account for dropped markers
 					if (droppedMarkerNames.contains(markerNames[firstSNPIndex])) {
