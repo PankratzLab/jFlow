@@ -2463,17 +2463,60 @@ public class Files {
 
 	/**
 	 * @param dir directory, set to "" if full paths
+	 * @param verbose report an error to the log for each filename missing
+	 * @param log
 	 * @param filenames array of filenames to check...all will be checked
+	 * @return true if all files exist
+	 */
+	public static boolean checkAllFiles(String dir, boolean verbose, Logger log, String... filenames) {
+		return checkAllFiles(dir, false, verbose, log, filenames);
+	}
+
+	/**
+	 * @param dir directory, set to "" if full paths
+	 * @param treatEmptyAsMissing TODO
+	 * @param verbose report an error to the log for each filename missing
+	 * @param log
+	 * @param filenames array of filenames to check...all will be checked
+	 * @return true if all files exist
+	 */
+	public static boolean checkAllFiles(String dir, boolean treatEmptyAsMissing, boolean verbose, Logger log, String... filenames) {
+		boolean result = true;
+		for (String filename : filenames) {
+			if (!Files.exists(dir + filename, false, treatEmptyAsMissing)) {
+				if (verbose & log != null) {
+					log.reportError("Error - could not find file " + dir + filename);
+				}
+				result = false;
+			}
+		}
+		return result;
+	}
+	/**
+	 * @param dir directory, set to "" if full paths
+	 * @param filenames iterable of filenames to check...all will be checked
 	 * @param verbose report an error to the log for each filename missing
 	 * @param log
 	 * @return true if all files exist
 	 */
-	public static boolean checkAllFiles(String dir, String[] filenames, boolean verbose, Logger log) {
+	public static boolean checkAllFiles(String dir, Iterable<String> filenames, boolean verbose, Logger log) {
+		return checkAllFiles(dir, filenames, false, verbose, log);
+	}
+
+	/**
+	 * @param dir directory, set to "" if full paths
+	 * @param filenames iterable of filenames to check...all will be checked
+	 * @param treatEmptyAsMissing TODO
+	 * @param verbose report an error to the log for each filename missing
+	 * @param log
+	 * @return true if all files exist
+	 */
+	public static boolean checkAllFiles(String dir, Iterable<String> filenames, boolean treatEmptyAsMissing, boolean verbose, Logger log) {
 		boolean result = true;
-		for (int i = 0; i < filenames.length; i++) {
-			if (!Files.exists(dir + filenames[i])) {
+		for (String filename : filenames) {
+			if (!Files.exists(dir + filename, false, treatEmptyAsMissing)) {
 				if (verbose & log != null) {
-					log.reportError("Error - could not find file " + dir + filenames[i]);
+					log.reportError("Error - could not find file " + dir + filename);
 				}
 				result = false;
 			}

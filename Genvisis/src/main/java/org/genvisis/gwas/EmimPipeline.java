@@ -142,7 +142,7 @@ public class EmimPipeline {
 
 	static void setup(String runDir, String[] cnvFiles, String[] plinkRoots, String pedFile,
 										String popFile, String subPopFile, double pThreshold,
-										Set<Emim.EMIM_MODEL> models, String qsubQueue, Logger log1) {
+										Set<Emim.EMIM_MODEL> models, boolean phaseWithShapeit, String qsubQueue, Logger log1) {
 		ArrayList<String> pbsFiles = new ArrayList<String>();
 		Logger log = log1 == null ? new Logger() : log1;
 		PopFileData popData, subPopData;
@@ -196,24 +196,18 @@ public class EmimPipeline {
 				String resultFile = cnvRoot;
 
 				log.reportTimeInfo("Generating EMIM files for cnv root " + plinkRoot + "...");
-				if (Emim.scriptAllInDir(runDir	+ cnvDir, plinkRoot, relativePlinkRoot, "GEN", null,
-																pThreshold, models, resultFile, log)) {
-					String pbsFile = cnvDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
-					if (!Files.exists(runDir + pbsFile)) {
-						/* TODO ERROR */ continue;
-					}
+				String pbsFile = Emim.scriptAllInDir(runDir	+ cnvDir, plinkRoot, relativePlinkRoot, "GEN", null,
+					     																pThreshold, models, phaseWithShapeit, resultFile, log);
+				if (pbsFile != null) {
 					pbsFiles.add(pbsFile);
 				}
 
 				for (String pop : popData.pops) {
 					String popDir = cnvDir + ext.replaceWithLinuxSafeCharacters(pop, true) + "/";
 					resultFile = cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(pop, true);
-					if (Emim.scriptAllInDir(runDir	+ popDir, plinkRoot, "../" + relativePlinkRoot, "GEN",
-																	"keeps.txt", pThreshold, models, resultFile, log)) {
-						String pbsFile = popDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
-						if (!Files.exists(runDir + pbsFile)) {
-							/* TODO ERROR */ continue;
-						}
+					pbsFile = Emim.scriptAllInDir(runDir	+ popDir, plinkRoot, "../" + relativePlinkRoot, "GEN",
+																	"keeps.txt", pThreshold, models, phaseWithShapeit, resultFile, log);
+					if (pbsFile != null) {
 						pbsFiles.add(pbsFile);
 					}
 
@@ -221,12 +215,9 @@ public class EmimPipeline {
 						String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(pop2, true) + "/";
 						resultFile = cnvRoot	+ "_" + ext.replaceWithLinuxSafeCharacters(pop, true) + "_"
 													+ ext.replaceWithLinuxSafeCharacters(pop2, true);
-						if (Emim.scriptAllInDir(runDir	+ subPopDir, plinkRoot, "../../" + relativePlinkRoot,
-																		"GEN", "keeps.txt", pThreshold, models, resultFile, log)) {
-							String pbsFile = subPopDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
-							if (!Files.exists(runDir + pbsFile)) {
-								/* TODO ERROR */ continue;
-							}
+						pbsFile = Emim.scriptAllInDir(runDir	+ subPopDir, plinkRoot, "../../" + relativePlinkRoot,
+																		"GEN", "keeps.txt", pThreshold, models, phaseWithShapeit, resultFile, log);
+						if (pbsFile != null) {
 							pbsFiles.add(pbsFile);
 						}
 					}
@@ -239,24 +230,18 @@ public class EmimPipeline {
 				String resultFile = plinkRoot;
 
 				log.reportTimeInfo("Generating EMIM files for PLINK root " + plinkRoot + "...");
-				if (Emim.scriptAllInDir(runDir	+ plinkDir, plinkRoot, "../" + plinkRoot, "GEN", null,
-																pThreshold, models, resultFile, log)) {
-					String pbsFile = plinkDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
-					if (!Files.exists(runDir + pbsFile)) {
-						/* TODO ERROR */ continue;
-					}
+				String pbsFile = Emim.scriptAllInDir(runDir	+ plinkDir, plinkRoot, "../" + plinkRoot, "GEN", null,
+																pThreshold, models, phaseWithShapeit, resultFile, log);
+				if (pbsFile != null) {
 					pbsFiles.add(pbsFile);
 				}
 
 				for (String pop : popData.pops) {
 					String popDir = plinkDir + ext.replaceWithLinuxSafeCharacters(pop, true) + "/";
 					resultFile = plinkRoot + "_" + ext.replaceWithLinuxSafeCharacters(pop, true);
-					if (Emim.scriptAllInDir(runDir	+ popDir, plinkRoot, "../../" + plinkRoot, "GEN",
-																	"keeps.txt", pThreshold, models, resultFile, log)) {
-						String pbsFile = popDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
-						if (!Files.exists(runDir + pbsFile)) {
-							/* TODO ERROR */ continue;
-						}
+					pbsFile = Emim.scriptAllInDir(runDir	+ popDir, plinkRoot, "../../" + plinkRoot, "GEN",
+																	"keeps.txt", pThreshold, models, phaseWithShapeit, resultFile, log);
+					if (pbsFile != null) {
 						pbsFiles.add(pbsFile);
 					}
 
@@ -264,12 +249,9 @@ public class EmimPipeline {
 						String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(pop2, true) + "/";
 						resultFile = plinkRoot	+ "_" + ext.replaceWithLinuxSafeCharacters(pop, true) + "_"
 													+ ext.replaceWithLinuxSafeCharacters(pop2, true);
-						if (Emim.scriptAllInDir(runDir	+ subPopDir, plinkRoot, "../../../" + plinkRoot, "GEN",
-																		"keeps.txt", pThreshold, models, resultFile, log)) {
-							String pbsFile = subPopDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
-							if (!Files.exists(runDir + pbsFile)) {
-								/* TODO ERROR */ continue;
-							}
+						pbsFile = Emim.scriptAllInDir(runDir	+ subPopDir, plinkRoot, "../../../" + plinkRoot, "GEN",
+																		"keeps.txt", pThreshold, models, phaseWithShapeit, resultFile, log);
+						if (pbsFile != null) {
 							pbsFiles.add(pbsFile);
 						}
 					}
@@ -623,6 +605,7 @@ public class EmimPipeline {
 		boolean process = false;
 		boolean forest = false;
 		Set<Emim.EMIM_MODEL> models = Emim.EMIM_MODEL.valueSet();
+		Boolean phaseWithShapeit = null;
 		String forestMarkers = "./gwasHits.txt";
 
 		String usage = "\n"	+ "gwas.EmimPipeline requires 2-8 arguments\n"
@@ -645,6 +628,7 @@ public class EmimPipeline {
 		for (Emim.EMIM_MODEL model : models) {
 			usage += " AND \n"	+ "   (" + argNum++ + ") Include " + model.toString() + " model (i.e. "
 								+ model.toString() + "=true (default))\n";
+			usage += " AND \n"	+ "   (" + argNum++ + ") Phase with shapeit in PREMIM run (i.e. phase=true (default if any Imprinting/POO model is included))\n";
 		}
 
 		for (int i = 0; i < args.length; i++) {
@@ -682,6 +666,9 @@ public class EmimPipeline {
 			} else if (args[i].startsWith("forestMarkers=")) {
 				forestMarkers = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("phase=")) {
+				phaseWithShapeit = ext.parseBooleanArg(args[i]);
+				numArgs--;	
 			} else {
 				boolean foundModel = false;
 				for (Emim.EMIM_MODEL model : Emim.EMIM_MODEL.valueSet()) {
@@ -698,6 +685,9 @@ public class EmimPipeline {
 					System.err.println("Error - invalid argument: " + args[i]);
 				}
 			}
+		}
+		if (phaseWithShapeit == null) {
+			phaseWithShapeit = models.contains(Emim.EMIM_MODEL.IMPRINTING_MATERNAL) || models.contains(Emim.EMIM_MODEL.IMPRINTING_PATERNAL);
 		}
 		if (args.length == 0 || numArgs != 0) {
 			System.err.println(usage);
@@ -716,8 +706,8 @@ public class EmimPipeline {
 															models, log);
 				}
 			} else {
-				setup(runDir, cnvFiles, plinkRoots, pedFile, popFile, subPopFile, pThreshold, models, qsub,
-							log);
+				setup(runDir, cnvFiles, plinkRoots, pedFile, popFile, subPopFile, pThreshold, models, phaseWithShapeit,
+							qsub, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

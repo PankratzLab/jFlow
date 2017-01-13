@@ -194,7 +194,7 @@ public class GATK_Genotyper {
 
 	public void runSingleSampleAllSites(String[] inputBams) {
 
-		if (!isFail() && Files.checkAllFiles("", inputBams, verbose, log)) {
+		if (!isFail() && Files.checkAllFiles("", verbose, log, inputBams)) {
 			if (inputBams != null) {
 				siSampleHaplotypeCallers = new GATK.SingleSampleHaplotypeCaller[inputBams.length];
 				int[] actualWithinSampleThreads = optimizeThreads(inputBams.length, numBetweenSampleThreads,

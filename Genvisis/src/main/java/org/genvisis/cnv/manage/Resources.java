@@ -18,6 +18,7 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.genvisis.common.Files;
 import org.genvisis.common.HttpDownloadUtility;
 import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 import org.genvisis.filesys.FASTA;
 import org.genvisis.seq.manage.VCFOps;
 
@@ -27,7 +28,8 @@ import org.genvisis.seq.manage.VCFOps;
 public final class Resources {
 
 	public static final String DEFAULT_URL = "http://genvisis.org/rsrc/";
-	public static final String DEFAULT_LOCAL_DIR = "resources" + File.separator;
+	public static final String DEFAULT_LOCAL_DIR = ext.parseDirectoryOfFile(Files.getJarLocation())
+																									+ "resources" + File.separator;
 	public static final String BIN_DIR = "bin";
 	public static final String GENOME_DIR = "Genome";
 
@@ -146,14 +148,14 @@ public final class Resources {
 	 */
 	public static class Shapeit extends AbstractResourceFactory {
 		public Shapeit(Logger log) {
-			super(DEFAULT_LOCAL_DIR + BIN_DIR + "/shapeit" + File.separator, "", log, Shapeit.class);
+			super(DEFAULT_LOCAL_DIR + BIN_DIR + File.separator + "shapeit", "", log, Shapeit.class);
 		}
 
 		/**
 		 * @return A resource for the shapeit app
 		 */
 		public Resource getShapeit() {
-			return getTarGzResource(localPath()	+ "bin/shapeit",
+			return getTarGzResource(localPath(),
 															"https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz");
 		}
 	}
@@ -554,7 +556,7 @@ public final class Resources {
 		protected Resource getVCFResource(String localPath, String remotePath) {
 			return new VCFResource(localPath, remotePath, log);
 		}
-		
+
 		protected Resource getFASTAResource(String rsrc) {
 			return getFASTAResource(localPath + rsrc, remotePath + rsrc);
 		}
@@ -779,7 +781,7 @@ public final class Resources {
 					return true;
 				} catch (IOException e) {
 					log.reportError("Could not retrieve resource from "	+ url + " and save it to"
-															+ downloadPath);
+													+ downloadPath);
 					log.reportException(e);
 				}
 			} else {
@@ -822,8 +824,8 @@ public final class Resources {
 
 			if (!isAvailable) {
 				log.reportError("Could not find local file "	+ localPath
-														+ " and could not download it from " + remotePath
-														+ " please manually download and save to " + localPath);
+												+ " and could not download it from " + remotePath
+												+ " please manually download and save to " + localPath);
 			}
 
 			return isAvailable;
