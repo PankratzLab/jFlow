@@ -2,6 +2,7 @@ package org.genvisis.seq.analysis;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1072,28 +1073,38 @@ public class GATK {
 	 * @param output
 	 * @param log
 	 * @return true on successful merge
+	 * @deprecated Use {@link #mergeVCFs(Collection,String,int,boolean,Logger)} instead
 	 */
 	public boolean mergeVCFs(	String[] vcfs, String output, int numthreads, boolean skipReporting,
 														Logger log) {
-		String[] command = new String[] {	javaLocation, PSF.Java.buildXmxString(getMemoryInMB()), JAR,
+															return mergeVCFs(Lists.newArrayList(vcfs), output, numthreads, skipReporting, log);
+														}
+
+	/**
+	 * @param vcfs these vcfs will be merged to the output file
+	 * @param output
+	 * @param log
+	 * @return true on successful merge
+	 */
+	public boolean mergeVCFs(	Collection<String> vcfs, String output, int numthreads, boolean skipReporting,
+														Logger log) {
+		List<String> command = Lists.newArrayList(javaLocation, PSF.Java.buildXmxString(getMemoryInMB()), JAR,
 																			gatkLocation + GENOME_ANALYSIS_TK, T, COMBINE_VARIANTS, R,
 																			referenceGenomeFasta, O, output, "-genotypeMergeOptions",
-																			"UNIQUIFY"};
+																			"UNIQUIFY");
 		if (numthreads > 1) {
-			command = Array.concatAll(command, new String[] {NT, numthreads + ""});
+			command.add(NT);
+			command.add(Integer.toString(numthreads));
 		}
-		String[] inputArgVCF = new String[vcfs.length * 2];
-
-		int index = 0;
+		if (regionsFile != null) {
+			command.addAll(intervalCommands());
+		}
 		for (String vcf2 : vcfs) {
-			inputArgVCF[index] = VARIANT;
-			index++;
-			inputArgVCF[index] = vcf2;
-			index++;
+			command.add(VARIANT);
+			command.add(vcf2);
 		}
-		command = Array.concatAll(command, inputArgVCF);
 		return CmdLine.runCommandWithFileChecks(command, "", vcfs,
-																						new String[] {output, getVcfIndex(output)}, verbose,
+																						Lists.newArrayList(output, getVcfIndex(output)), verbose,
 																						overWriteExistingOutput, skipReporting, log);
 	}
 

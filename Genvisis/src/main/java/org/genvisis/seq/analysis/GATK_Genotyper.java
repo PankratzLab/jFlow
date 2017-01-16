@@ -2,6 +2,8 @@ package org.genvisis.seq.analysis;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -19,6 +21,7 @@ import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
 import org.genvisis.seq.analysis.SNPEFF.SnpEffResult;
 import org.genvisis.seq.manage.VCFOps;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public class GATK_Genotyper {
@@ -99,7 +102,9 @@ public class GATK_Genotyper {
 				in = VCFOps.getAppropriateRoot(inputVCF, false)	+ ".merge_" + mergeVCF.getTag() + GATK.VCF
 							+ GATK.GZ;
 				log.reportTimeInfo("Output merge: " + in);
-				gatk.mergeVCFs(	Array.concatAll(new String[] {inputVCF}, mergeVCF.getVcfsToMergeWith()), in,
+				List<String> vcfsToMerge = Lists.newArrayList(mergeVCF.getVcfsToMergeWith());
+				vcfsToMerge.add(0, inputVCF);
+				gatk.mergeVCFs(	vcfsToMerge, in,
 												numWithinSampleThreads, false, log);
 				out = in;
 			}
