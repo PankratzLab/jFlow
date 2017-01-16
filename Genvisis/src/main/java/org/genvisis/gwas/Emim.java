@@ -7,7 +7,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.genvisis.cnv.manage.Resources;
@@ -45,8 +47,8 @@ public class Emim {
 			return degreesFreedom;
 		}
 
-		public static Set<EMIM_MODEL> valueSet() {
-			HashSet<EMIM_MODEL> models = new HashSet<EMIM_MODEL>();
+		public static Set<EMIM_MODEL> valueSet() {	
+			Set<EMIM_MODEL> models = new LinkedHashSet<EMIM_MODEL>();
 			for (EMIM_MODEL model : EMIM_MODEL.values()) {
 				models.add(model);
 			}
@@ -195,7 +197,7 @@ public class Emim {
 	protected static String scriptAllInDir(	String runDir, String plinkDirAndRoot,
 																					String relativePlinkRoot, String excludeFile,
 																					String keepFile, double pThreshold,
-																					Set<EMIM_MODEL> models, boolean phaseWithShapeit, String resultPrefix, Logger log) {
+																					Collection<EMIM_MODEL> models, boolean phaseWithShapeit, String resultPrefix, Logger log) {
 		String commands;
 		String currDir = ext.verifyDirFormat(runDir);
 		boolean forceRun = false, forceParse = false;

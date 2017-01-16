@@ -628,8 +628,9 @@ public class EmimPipeline {
 		for (Emim.EMIM_MODEL model : models) {
 			usage += " AND \n"	+ "   (" + argNum++ + ") Include " + model.toString() + " model (i.e. "
 								+ model.toString() + "=true (default))\n";
-			usage += " AND \n"	+ "   (" + argNum++ + ") Phase with shapeit in PREMIM run (i.e. phase=true (default if any Imprinting/POO model is included))\n";
 		}
+		usage += " AND \n"	+ "   (" + argNum++ + ") Phase with shapeit in PREMIM run (i.e. phase=true (default if any Imprinting/POO model is included))\n";
+		
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h")	|| args[i].equals("-help") || args[i].equals("/h")
