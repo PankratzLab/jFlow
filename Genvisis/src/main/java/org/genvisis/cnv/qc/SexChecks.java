@@ -89,7 +89,7 @@ public class SexChecks {
 	private final Logger log;
 	private final MarkerSet markerSet;
 	private final String[] sampleNames;
-	private final boolean[] qcPassedSamples;
+	private boolean[] qcPassedSamples;
 
 	private int[][] indicesByChr;
 
@@ -143,6 +143,10 @@ public class SexChecks {
 		markerSet = proj.getMarkerSet();
 		sampleNames = proj.getSamples();
 		qcPassedSamples = LrrSd.samplesPassingQc(proj);
+		if (qcPassedSamples == null) {
+			log.reportTimeWarning("No LRR SD-filtered samples found. Was Sample QC run? Using all samples for sex checks.");
+			qcPassedSamples = Array.booleanArray(proj.getSamples().length, true);
+		}
 
 		PSF.checkInterrupted();
 
