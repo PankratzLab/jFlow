@@ -23,6 +23,7 @@ import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.Centroids.CENTROID_STRATEGY;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.qc.SexChecks;
@@ -872,7 +873,7 @@ public class PennCNV {
 	 *        0.567557695424774
 	 *
 	 */
-	public static void populationBAF(Project proj) {
+	public static String populationBAF(Project proj) {
 		String[] sampleList;
 		String output;
 
@@ -889,7 +890,7 @@ public class PennCNV {
 			output = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(filename) + ".pfb";
 		} else {
 			proj.message("Failed to load \"" + filename + "\"");
-			return;
+			return null;
 		}
 
 		MarkerSet markerSet = proj.getMarkerSet();
@@ -963,6 +964,7 @@ public class PennCNV {
 			log.reportError("Error writing to '" + output + "'");
 			log.reportException(e);
 		}
+		return output;
 	}
 
 
@@ -1244,7 +1246,7 @@ public class PennCNV {
 			log.report("Transforming data for 'faked' chromosomal CNV analysis");
 			// [males.pfb, females.pfb, sexSpecific.gcModel]
 
-			String[] files = AnalysisFormats.pennCNVSexHackMultiThreaded(proj, gcmodelFile, useExcludes, threadCount);
+			String[] files = AnalysisFormats.pennCNVSexHackMultiThreaded(proj, gcmodelFile, CENTROID_STRATEGY.USE_CENT_IF_EXISTS_OTHERWISE_COMPUTE, useExcludes, threadCount);
 
 			log.report("Creating batch scripts for 'faked' chromosomal CNV analysis");
 			String scriptDir = "penn_scripts/sexSpecific/";

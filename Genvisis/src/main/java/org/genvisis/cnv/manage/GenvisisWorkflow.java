@@ -1737,8 +1737,7 @@ public class GenvisisWorkflow {
 																										}
 
 																										@Override
-																										public void run(Project proj,
-																																		Map<STEP, List<String>> variables) {
+																										public void run(Project proj, Map<STEP, List<String>> variables) {
 																											String malePFB;
 																											String femalePFB;
 																											String centFilePathM;
@@ -1757,15 +1756,10 @@ public class GenvisisWorkflow {
 																											if (numThreads <= 0) {
 																												numThreads = proj.NUM_THREADS.getValue();
 																											}
-																											String gcModelFile = variables.get(this)
-																																										.get(0);
+																											String gcModelFile = variables.get(this).get(0);
 																											Centroids.computeSexSpecificCentroids(proj,
-																																														AnalysisFormats.getChromosomalMarkersOnly(proj),
-																																														new String[] {malePFB,
-																																																					femalePFB},
-																																														new String[] {centFilePathM,
-																																																					centFilePathF},
-																																														true,
+																																														new String[] {malePFB, femalePFB},
+																																														new String[] {centFilePathM, centFilePathF},
 																																														numThreads);
 
 																											AnalysisFormats.filterSexSpecificGCModel(	proj,

@@ -21,6 +21,7 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.Centroids.CENTROID_STRATEGY;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.SexChecks;
@@ -201,35 +202,8 @@ public class AnalysisFormats implements Runnable {
 		}
 	}
 
-	public static boolean[] getChromosomalMarkersOnly(Project proj) {
-		MarkerSet ms;
-		final String[] allMarkers;
-		byte[] markerChrs;
-		boolean[] includeMarkersList;
-
-		ms = proj.getMarkerSet();
-		allMarkers = ms.getMarkerNames();
-		markerChrs = ms.getChrs();
-		includeMarkersList = new boolean[allMarkers.length];
-
-		for (int i = 0; i < markerChrs.length; i++) {
-			switch (markerChrs[i]) {
-				case 23:
-				case 24:
-				case 25:
-				case 26:
-					includeMarkersList[i] = true;
-					break;
-				default:
-					includeMarkersList[i] = false;
-					break;
-			}
-		}
-		return includeMarkersList;
-	}
-
 	@SuppressWarnings("unchecked")
-	public static String[] pennCNVSexHackMultiThreaded(	Project proj, String gcModelFile,
+	public static String[] pennCNVSexHackMultiThreaded(	Project proj, String gcModelFile, CENTROID_STRATEGY chr11Strategy, 
 																											boolean useExcluded, int threadCount) {
 		String sampleDataFile;
 		final String sampleDir;
@@ -251,7 +225,23 @@ public class AnalysisFormats implements Runnable {
 		final Hashtable<String, Vector<String>> sexData;
 		final HashSet<String> chr11Markers = new HashSet<String>();
 		Centroids[] centroids;
-
+		
+		String centFile = proj.CUSTOM_CENTROIDS_FILENAME.getValue();
+		
+		boolean computeCentroids = chr11Strategy == CENTROID_STRATEGY.COMPUTE_CENT; 
+		Centroids tempCentroids = null;
+		if (chr11Strategy == CENTROID_STRATEGY.USE_CENT_IF_EXISTS_OTHERWISE_ORIG || chr11Strategy == CENTROID_STRATEGY.USE_CENT_IF_EXISTS_OTHERWISE_COMPUTE) {
+			if (Files.exists(centFile)) {
+				tempCentroids = Centroids.load(centFile, proj.JAR_STATUS.getValue());
+			} else if (chr11Strategy == CENTROID_STRATEGY.USE_CENT_IF_EXISTS_OTHERWISE_COMPUTE) {
+				computeCentroids = true;
+			}
+		}
+		if (computeCentroids) {
+			tempCentroids = CentroidCompute.computeAndDumpCentroids(proj);
+		}
+		final Centroids autoCentroids = tempCentroids;
+		
 		final Logger log = proj.getLog();
 
 		sexDir = proj.PENNCNV_DATA_DIRECTORY.getValue() + "sexSpecific/";
@@ -303,10 +293,10 @@ public class AnalysisFormats implements Runnable {
 			centroids = new Centroids[] {	Centroids.load(centFilePathM, proj.JAR_STATUS.getValue()),
 																		Centroids.load(centFilePathM, proj.JAR_STATUS.getValue())};
 		} else {
-			centroids = Centroids.computeSexSpecificCentroids(proj, centroidsMarkersList,
+			centroids = Centroids.computeSexSpecificCentroids(proj,
 																												new String[] {malePFBFile, femalePFBFile},
 																												new String[] {centFilePathM, centFilePathF},
-																												true, threadCount);
+																												threadCount);
 		}
 		final float[][][] rawCentroidsMale;
 		final float[][][] rawCentroidsFemale;
@@ -407,10 +397,25 @@ public class AnalysisFormats implements Runnable {
 									if (!includeMarkersList[j] || null == (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j])) {
 										continue;
 									}
-
-									float lrr = chr11Markers.contains(allMarkers[j]) ? mySample.getLRRs()[j] : Centroids.calcLRR(thetas[j], rs[j], (compFemale	? rawCentroidsFemale[j] : rawCentroidsMale[j]));
-									float baf = chr11Markers.contains(allMarkers[j]) ? mySample.getBAFs()[j] : Centroids.calcBAF(thetas[j], (compFemale	? rawCentroidsFemale[j] : rawCentroidsMale[j]));
-
+									
+									float lrr;
+									float baf;
+									
+									if (chr11Markers.contains(allMarkers[j])) {
+										
+										if (autoCentroids == null) {
+											lrr = mySample.getLRRs()[j];
+											baf = mySample.getBAFs()[j];
+										} else {
+											lrr = mySample.getLRRs(autoCentroids.getCentroids())[j];
+											baf = mySample.getBAFs(autoCentroids.getCentroids())[j];
+										}
+										
+									} else {
+										lrr = Centroids.calcLRR(thetas[j], rs[j], (compFemale	? rawCentroidsFemale[j] : rawCentroidsMale[j]));
+										baf = Centroids.calcBAF(thetas[j], (compFemale	? rawCentroidsFemale[j] : rawCentroidsMale[j]));
+									}
+									
 									writer.println(allMarkers[j]	+ "\t" + (genotypes[j] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[j]]) + "\t" + lrr + "\t" + baf);
 								}
 								writer.close();
@@ -769,43 +774,39 @@ public class AnalysisFormats implements Runnable {
 		return new String[] {malePFBFile, femalePFBFile, newGCFile};
 	}
 
-	public static String filterSexSpecificGCModel(Project proj, String gcModelFile,
-																								String newGCFile) {
+	public static String filterSexSpecificGCModel(Project proj, String gcModelFile, String newGCFile) {
 		// TODO combine method with filter methods in PennCNV - only difference is changing chr #
 		BufferedReader reader = null;
 		PrintWriter writer = null;
-		String[] chrs = new String[] {"23", "X", "24", "Y", "25", "XY", "26", "M"};
+		String[] chrs = new String[] {"11", "23", "X", "24", "Y", "25", "XY", "26", "M"};
 
 		try {
 			(new File(ext.parseDirectoryOfFile(newGCFile))).mkdirs();
 			reader = new BufferedReader(new FileReader(gcModelFile));
 			writer = new PrintWriter(new FileWriter(newGCFile));
 
-			String header;
 			String temp;
 			String[] line;
-			if (reader.ready()) {
-				header = reader.readLine();
-				writer.println(header);
-			}
-			while (reader.ready()) {
-				temp = reader.readLine();
+			writer.println(reader.readLine());
+			gc : while ((temp = reader.readLine()) != null) {
 				line = temp.trim().split("[\\s]+");
 				for (String chr : chrs) {
 					if (line[1].equals(chr)) {
-
 						byte chrVal = 0;
-						if ("23".equals(chr) || "X".equals(chr)) {
+						if ("11".equals(chr)) {
+							chrVal = 11;
+						} else if ("23".equals(chr) || "X".equals(chr)) {
 							chrVal = 23;
 						} else if ("24".equals(chr) || "Y".equals(chr)) {
-							chrVal = 25;
+							chrVal = 24;
 						} else if ("25".equals(chr) || "XY".equals(chr)) {
-							chrVal = 26;
+							chrVal = 25;
 						} else if ("26".equals(chr) || "M".equals(chr)) {
-							chrVal = 27;
+							chrVal = 26;
 						}
 
-						writer.println(line[0] + "\t" + (chrVal - 22) + "\t" + line[2] + "\t" + line[3]);
+						writer.println(line[0] + "\t" + (chrVal == 11 ? chrVal : (chrVal - 22)) + "\t" + line[2] + "\t" + line[3]);
+						continue gc;
 					}
 				}
 			}
