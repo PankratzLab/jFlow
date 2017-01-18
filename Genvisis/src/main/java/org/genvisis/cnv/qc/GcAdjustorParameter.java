@@ -448,6 +448,7 @@ public class GcAdjustorParameter implements Serializable {
 	// numThreads);
 	// }
 
+	//TODO each builder has a methods so shouldn't we use those methods instead of providing another parallel array?
 	public static String[][][] generateAdjustmentParameters(Project proj,
 																													GCAdjustorBuilder builders[],
 																													String[] centroidFiles,
