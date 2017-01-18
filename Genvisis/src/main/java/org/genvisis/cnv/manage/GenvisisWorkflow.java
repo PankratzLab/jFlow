@@ -718,11 +718,13 @@ public class GenvisisWorkflow {
 	static final STEP S8_SEX_CHECKS = new STEP(	"Run Sex Checks", "",
 																							new String[][] {{SAMPLE_STEP_REQ_MSG},
 																															{"[Create SampleData.txt File] step must have been run already or must be selected and valid."},
+																															{"[Run Sample QC Metrics] step must have been run already or must be selected"},
 																															{"Add Estimated Sex to Sample Data"},
 																															{	"Use only X and Y chromosome R values to identify sex discriminating markers",
 																																"List of markers that do not cross hybridize",
 																																"BLAST annotation VCF to generate list of markers that do not cross hybridize from"}},
 																							new RequirementInputType[][] {{RequirementInputType.NONE},
+																																						{RequirementInputType.NONE},
 																																						{RequirementInputType.NONE},
 																																						{RequirementInputType.BOOL},
 																																						{	RequirementInputType.BOOL,
@@ -763,6 +765,7 @@ public class GenvisisWorkflow {
 																																			: S2A_PARSE_SAMPLES;
 			boolean checkStepParseSamples = stepSelections.get(parseStep)
 																			&& parseStep.hasRequirements(proj, stepSelections, variables);
+			boolean checkQcStep = stepSelections.get(S6_SAMPLE_QC) && S6_SAMPLE_QC.hasRequirements(proj, stepSelections, variables);
 			boolean useRValues = Boolean.parseBoolean(variables.get(this).get(1));
 			String discriminatingMarkersFile = variables.get(this).get(2);
 			String blastVCFFile = variables.get(this).get(3);
@@ -773,6 +776,7 @@ public class GenvisisWorkflow {
 																&& S3_CREATE_SAMPLEDATA.hasRequirements(proj, stepSelections,
 																																				variables)
 																|| Files.exists(sampDataFile)},
+															{checkQcStep || Files.exists(proj.SAMPLE_QC_FILENAME.getValue())},
 															{true},
 															{	useRValues, !useRValues && Files.exists(discriminatingMarkersFile),
 																!useRValues && !Files.exists(discriminatingMarkersFile) && Files.exists(blastVCFFile)}};
@@ -780,7 +784,7 @@ public class GenvisisWorkflow {
 
 		@Override
 		public Object[] getRequirementDefaults(Project proj) {
-			return new Object[] {	true, false,
+			return new Object[] {	true, false, false,
 														MarkerBlastQC.defaultOneHitWondersFilename(proj.BLAST_ANNOTATION_FILENAME.getValue()),
 														proj.BLAST_ANNOTATION_FILENAME.getValue()};
 		}
