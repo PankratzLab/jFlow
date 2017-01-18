@@ -142,10 +142,14 @@ public class SexChecks {
 
 		markerSet = proj.getMarkerSet();
 		sampleNames = proj.getSamples();
+		if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
+			log.reportTimeWarning("LRR SD values are required for filtering samples to use in Sex Checks. Sample QC will be run now...");
+			int numThreads = proj.NUM_THREADS.getValue();
+			LrrSd.init(proj, null, null, numThreads, false);
+		}
 		qcPassedSamples = LrrSd.samplesPassingQc(proj);
 		if (qcPassedSamples == null) {
-			log.reportTimeWarning("No LRR SD-filtered samples found. Was Sample QC run? Using all samples for sex checks.");
-			qcPassedSamples = Array.booleanArray(proj.getSamples().length, true);
+			throw new IllegalStateException("Sex Checks failed: no LRR SD-filtered samples were found. Please verify that Sample QC was run successfully.");
 		}
 
 		PSF.checkInterrupted();
