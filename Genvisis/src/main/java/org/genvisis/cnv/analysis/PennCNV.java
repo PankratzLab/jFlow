@@ -503,8 +503,7 @@ public class PennCNV {
 		return str.substring(0, start) + trav + str.substring(stop + 1);
 	}
 
-	public static void combineResults(Project proj, String[] cnvFiles, String outputFile,
-	                                  boolean recode) {
+	public static void combineResults(Project proj, String[] cnvFiles, String outputFile, boolean recode, boolean removeChr11) {
 		BufferedReader reader;
 		PrintWriter writer;
 		Logger log = proj.getLog();
@@ -512,8 +511,7 @@ public class PennCNV {
 		// TODO check input and output file names for .cnv extension( - error if not? or just
 		// warning...?)
 
-		java.util.HashMap<String, java.util.TreeMap<String, java.util.ArrayList<String[]>>> cnvSet =
-		                                                                                           new HashMap<String, TreeMap<String, ArrayList<String[]>>>();
+		java.util.HashMap<String, java.util.TreeMap<String, java.util.ArrayList<String[]>>> cnvSet = new HashMap<String, TreeMap<String, ArrayList<String[]>>>();
 
 		String temp;
 		String[] line;
@@ -576,6 +574,9 @@ public class PennCNV {
 					FIDIID = sample.getKey();
 					for (Map.Entry<String, ArrayList<String[]>> chrSet : sample.getValue().entrySet()) {
 						cnvChr = chrSet.getKey();
+						if (removeChr11 && "11".equals(cnvChr)) {
+							continue;
+						}
 						if (recode) {
 							if ("1".equals(cnvChr)) {
 								cnvChr = "23";
@@ -1243,9 +1244,7 @@ public class PennCNV {
 			log.report("Transforming data for 'faked' chromosomal CNV analysis");
 			// [males.pfb, females.pfb, sexSpecific.gcModel]
 
-			String[] files = AnalysisFormats.pennCNVSexHackMultiThreaded(proj, gcmodelFile, useExcludes,
-			                                                             threadCount);
-			// String[] files = AnalysisFormats.pennCNVSexHackSingleThreaded(proj, gcmodelFile);
+			String[] files = AnalysisFormats.pennCNVSexHackMultiThreaded(proj, gcmodelFile, useExcludes, threadCount);
 
 			log.report("Creating batch scripts for 'faked' chromosomal CNV analysis");
 			String scriptDir = "penn_scripts/sexSpecific/";
@@ -1317,6 +1316,7 @@ public class PennCNV {
 		String[] cnvFiles = null;
 		String outputFile = null;
 		boolean recode = false;
+		boolean removeChr11 = true;
 		boolean submit = false;
 		boolean excludes = false;
 		String hmmFile = null;
@@ -1480,7 +1480,7 @@ public class PennCNV {
 			}
 
 			if (cnvFiles != null && outputFile != null) {
-				combineResults(proj, cnvFiles, outputFile, recode);
+				combineResults(proj, cnvFiles, outputFile, recode, removeChr11);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

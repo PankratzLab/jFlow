@@ -245,9 +245,11 @@ public class AnalysisFormats implements Runnable {
 		byte[] markerChrs;
 		final boolean jar;
 		final boolean gzip;
+		final boolean[] centroidsMarkersList;
 		final boolean[] includeMarkersList;
 		boolean[] includeSamplesList;
 		final Hashtable<String, Vector<String>> sexData;
+		final HashSet<String> chr11Markers = new HashSet<String>();
 		Centroids[] centroids;
 
 		final Logger log = proj.getLog();
@@ -275,8 +277,7 @@ public class AnalysisFormats implements Runnable {
 			// datastructures, hence not using the utility method;
 			allMarkers = ms.getMarkerNames();
 			markerChrs = ms.getChrs();
-			Vector<String> markerList = new Vector<String>();
-			final Hashtable<String, Integer> markersToIndices = new Hashtable<String, Integer>();
+			centroidsMarkersList = new boolean[allMarkers.length];
 			includeMarkersList = new boolean[allMarkers.length];
 
 			for (int i = 0; i < markerChrs.length; i++) {
@@ -285,9 +286,12 @@ public class AnalysisFormats implements Runnable {
 					case 24:
 					case 25:
 					case 26:
+						centroidsMarkersList[i] = true;
 						includeMarkersList[i] = true;
-						markerList.add(allMarkers[i]);
-						markersToIndices.put(allMarkers[i], i);
+						break;
+					case 11:
+						includeMarkersList[i] = true;
+						chr11Markers.add(allMarkers[i]);
 						break;
 					default:
 						includeMarkersList[i] = false;
@@ -299,7 +303,7 @@ public class AnalysisFormats implements Runnable {
 			centroids = new Centroids[] {	Centroids.load(centFilePathM, proj.JAR_STATUS.getValue()),
 																		Centroids.load(centFilePathM, proj.JAR_STATUS.getValue())};
 		} else {
-			centroids = Centroids.computeSexSpecificCentroids(proj, includeMarkersList,
+			centroids = Centroids.computeSexSpecificCentroids(proj, centroidsMarkersList,
 																												new String[] {malePFBFile, femalePFBFile},
 																												new String[] {centFilePathM, centFilePathF},
 																												true, threadCount);
@@ -313,7 +317,6 @@ public class AnalysisFormats implements Runnable {
 
 		sampleDir = proj.SAMPLE_DIRECTORY.getValue(false, true);
 		jar = proj.JAR_STATUS.getValue();
-		// gzip = proj.getBoolean(proj.PENNCNV_GZIP_YESNO);
 		gzip = proj.PENNCNV_GZIP_YESNO.getValue();
 
 		if (!useExcluded) {
@@ -380,15 +383,13 @@ public class AnalysisFormats implements Runnable {
 						String exportFileName = (compFemale ? femaleDir : maleDir)	+ sampleName
 																		+ (gzip ? ".gz" : "");
 						if (!Files.exists(exportFileName)) {
-							log.report(ext.getTime()	+ "\tExporting " + (sampleIndex + 1) + " of "
-													+ allSamples.length);
+							log.report(ext.getTime()	+ "\tExporting " + (sampleIndex + 1) + " of " + allSamples.length);
 							if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_FILE_EXTENSION, jar)) {
 								mySample = Sample.loadFromRandomAccessFile(sampleDir	+ sampleName
 																														+ Sample.SAMPLE_FILE_EXTENSION, false,
 																														true, false, false, true, jar);
 							} else {
-								log.reportError("Error - the "	+ sampleName + Sample.SAMPLE_FILE_EXTENSION
-																+ " is not found.");
+								log.reportError("Error - the "	+ sampleName + Sample.SAMPLE_FILE_EXTENSION + " is not found.");
 								// TODO okay to just skip this sample instead of halting entirely?
 								continue;
 							}
@@ -403,25 +404,18 @@ public class AnalysisFormats implements Runnable {
 								writer.println("Name\t"	+ sampleName + ".GType\t" + sampleName + ".Log R Ratio\t"
 																+ sampleName + ".B Allele Freq");
 								for (int j = 0; j < allMarkers.length; j++) {
-									if (!includeMarkersList[j]
-											|| null == (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j])) {
+									if (!includeMarkersList[j] || null == (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j])) {
 										continue;
 									}
 
-									float lrr =
-														Centroids.calcLRR(thetas[j], rs[j], (compFemale	? rawCentroidsFemale[j]
-																																						: rawCentroidsMale[j]));
-									float baf = Centroids.calcBAF(thetas[j], (compFemale	? rawCentroidsFemale[j]
-																																				: rawCentroidsMale[j]));
+									float lrr = chr11Markers.contains(allMarkers[j]) ? mySample.getLRRs()[j] : Centroids.calcLRR(thetas[j], rs[j], (compFemale	? rawCentroidsFemale[j] : rawCentroidsMale[j]));
+									float baf = chr11Markers.contains(allMarkers[j]) ? mySample.getBAFs()[j] : Centroids.calcBAF(thetas[j], (compFemale	? rawCentroidsFemale[j] : rawCentroidsMale[j]));
 
-									writer.println(allMarkers[j]	+ "\t"
-																	+ (genotypes[j] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[j]])
-																	+ "\t" + lrr + "\t" + baf);
+									writer.println(allMarkers[j]	+ "\t" + (genotypes[j] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[j]]) + "\t" + lrr + "\t" + baf);
 								}
 								writer.close();
 							} catch (Exception e) {
-								log.reportError("Error writing sex-specific ("	+ (compFemale ? "female" : "male")
-																+ ") PennCNV data for " + sampleName);
+								log.reportError("Error writing sex-specific ("	+ (compFemale ? "female" : "male") + ") PennCNV data for " + sampleName);
 								log.reportException(e);
 							}
 						} else {
