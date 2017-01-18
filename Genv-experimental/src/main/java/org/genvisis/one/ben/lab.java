@@ -160,27 +160,28 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
-			
-			String dir = "/scratch.global/cole0482/ny_choanal/omni2.5v1.1/shadowCNVs/";
-			String in = "recodedM.cnv";
-			String out = "recodedM_excl.cnv";
-			String indivFile = "/scratch.global/cole0482/ny_choanal/omni2.5v1.1/cnvs/exclude.txt";
-			boolean exclude = true;
-			FilterCalls.filterExclusions(dir, in, out, indivFile, exclude);
-			in = "recodedF.cnv";
-			out = "recodedF_excl.cnv";
-			FilterCalls.filterExclusions(dir, in, out, indivFile, exclude);
-			
-			CNVFilter cnvF = new CNVFilter(new Logger());
-			cnvF.setProblemRegionsFromFile("/scratch.global/cole0482/ny_choanal/problematicRegions_hg19.dat");
-
-			in = dir + "recodedM_excl.cnv";
-			out = dir + "recodedM_filt.cnv";
-			CNVFilter.filterCNVs(in, out, cnvF, new Logger());
-
-			in = dir + "recodedF_excl.cnv";
-			out = dir + "recodedF_filt.cnv";
-			CNVFilter.filterCNVs(in, out, cnvF, new Logger());
+//			String dir = "F:/temp/filter/";
+//			String in = "recodedM.cnv";
+//			String out = "recodedM_excl.cnv";
+//			String indivFile = "F:/temp/filter/exclude.txt";
+//			boolean exclude = true;
+//			FilterCalls.filterExclusions(dir, in, out, indivFile, exclude);
+//			in = "recodedF.cnv";
+//			out = "recodedF_excl.cnv";
+//			FilterCalls.filterExclusions(dir, in, out, indivFile, exclude);
+//			
+//			System.out.println("Removed excluded");
+//			
+//			CNVFilter cnvF = new CNVFilter(new Logger());
+//			cnvF.setProblemRegionsFromFile("F:/temp/filter/problematicRegions_hg19.dat");
+//
+//			in = dir + "recodedM_excl.cnv";
+//			out = dir + "recodedM_filt.cnv";
+//			CNVFilter.filterCNVs(in, out, cnvF, new Logger());
+//
+//			in = dir + "recodedF_excl.cnv";
+//			out = dir + "recodedF_filt.cnv";
+//			CNVFilter.filterCNVs(in, out, cnvF, new Logger());
 			
 //			MergeExtractPipeline pipeline = new MergeExtractPipeline();
 //			// pipeline.setMarkers(markersFile);
