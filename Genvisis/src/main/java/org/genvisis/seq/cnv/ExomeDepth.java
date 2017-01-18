@@ -126,12 +126,17 @@ public class ExomeDepth {
 			}
 
 		} else {
+			List<String> missingSamplesFromVpop = new ArrayList<String>();
 			for (int i = 0; i < allSampleNames.length; i++) {
 				if (vpop.getSuperPop().get(VcfPopulation.EXCLUDE).contains(allSampleNames[i])) {
 					globalExclude.add(allSampleNames[i]);
 				}
 				String[] sampSpecificExclude = vpop.getPopulationForInd(allSampleNames[i],
 																																RETRIEVE_TYPE.SUB);
+				if (sampSpecificExclude == null || sampSpecificExclude.length == 0) {
+					missingSamplesFromVpop.add(allSampleNames[i]);
+					globalExclude.add(allSampleNames[i]);
+				}
 				for (String element : sampSpecificExclude) {
 					Set<String> curSet = vpop.getSubPop().get(element);
 					for (String samp : curSet) {
@@ -140,6 +145,13 @@ public class ExomeDepth {
 						}
 					}
 				}
+			}
+			if(!missingSamplesFromVpop.isEmpty()){
+				log.reportTimeWarning(missingSamplesFromVpop.size()+ " samples were not found in "
+															+ vpop.getFileName()
+															+ " and will not be excluded from reference panel:");
+				log.reportTimeWarning(Array.toStr(missingSamplesFromVpop, "\n"));
+
 			}
 		}
 
