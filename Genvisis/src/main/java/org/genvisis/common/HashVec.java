@@ -471,6 +471,23 @@ public class HashVec {
 	}
 
 	/**
+	 * As {@link #loadFileToHashVec(String, int, int[], String, boolean, boolean)} but all columns of
+	 * interest can be enumerated, avoiding the need to look up their indices. This method assumes
+	 * {@code ignoreFirstLine} to be true (that is, this file does have a header) and detects delimiters automatically.
+	 */
+	public static Hashtable<String, Vector<String>> loadFileToHashVec(String filename, boolean onlyIfAbsent, String key, String... values) {
+		String firstLine = Files.getFirstLineOfFile(filename, null);
+		String delimiter = ext.determineDelimiter(firstLine);
+		String[] header = firstLine.split(delimiter);
+
+		int keyCol = ext.indexOfStr(key, values);
+		int[] valueCols = ext.indexFactors(values, header, true, true);
+
+		return loadFileToHashVec(	filename, keyCol, valueCols, delimiter,
+		                         	true, onlyIfAbsent);
+	}
+
+	/**
 	 * As {@link #loadFileToHashVec(String, int[], int[], String, boolean, boolean)} with a single key
 	 * index.
 	 */
