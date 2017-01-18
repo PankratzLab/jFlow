@@ -3659,6 +3659,10 @@ public class Files {
 		return lines[0].trim().split(delimiter);
 	}
 
+	public static String getFirstLineOfFile(String filename, Logger log) {
+		return getFirstNLinesOfFile(filename, 1, log)[0];
+	}
+
 	public static String[] getFirstNLinesOfFile(String filename, int nLines, Logger log) {
 		return getFirstNLinesOfFile(filename, nLines, null, log);
 	}
