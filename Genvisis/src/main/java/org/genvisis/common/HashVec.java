@@ -480,7 +480,7 @@ public class HashVec {
 		String delimiter = ext.determineDelimiter(firstLine);
 		String[] header = firstLine.split(delimiter);
 
-		int keyCol = ext.indexOfStr(key, values);
+		int keyCol = ext.indexOfStr(key, header);
 		int[] valueCols = ext.indexFactors(values, header, true, true);
 
 		return loadFileToHashVec(	filename, keyCol, valueCols, delimiter,
