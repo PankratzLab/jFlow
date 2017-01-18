@@ -6,8 +6,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -53,7 +55,9 @@ public class ResultsPackager {
 																																	"M_se_lnR1", "M_lnR2",
 																																	"M_se_lnR2", "M_lnS1",
 																																	"M_se_lnS1", "M_lnS2",
-																																	"M_se_lnS2"};
+																																	"M_se_lnS2", "POO_lnIm",
+																																	"POO_se_lnIm", "POO_lnIp",
+																																	"POO_se_lnIp"};
 	public static final String[] EMIM_OUTPUT_FORMAT_EMIM_PVALS = {"pVal_C_df2", "pVal_C_df2_Excel",
 																																"pVal_C_df1", "pVal_C_df1_Excel",
 																																"pVal_M_df2", "pVal_M_df2_Excel",
@@ -65,7 +69,11 @@ public class ResultsPackager {
 																																"pVal_CM-M_df2",
 																																"pVal_CM-M_df2_Excel",
 																																"pVal_CM-M_df1",
-																																"pVal_CM-M_df1_Excel"};
+																																"pVal_CM-M_df1_Excel",
+																																"pVal_Im_df1",
+																																"pVal_Im_df1_Excel",
+																																"pVal_Ip_df1",
+																																"pVal_Ip_df1_Excel"};
 
 	public static final String[] PLINK_REQS = {"SNP", "A1", "TEST", "NMISS", "OR", "BETA", "SE", "P"};
 	public static final String[] SOL_REQS = {	"Variant_ID", "Beta", "Se", "Pvalue", "CAF", "CAC", "N0",
@@ -74,6 +82,10 @@ public class ResultsPackager {
 	public static final String[] EMIM_REQS = {"snpID", "freq", "lnR1", "sd_lnR1", "lnR2", "sd_lnR2",
 																						"lnS1", "sd_lnS1", "lnS2", "sd_lnS2", "lnliknull",
 																						"lnlikfull"};
+	public static final String[] EMIM_IM_REQS = {"snpID", "freq", "lnIm", "sd_lnIm", "lnliknull",
+																						"lnlikfull"};
+	public static final String[] EMIM_IP_REQS = {"snpID", "freq", "lnIp", "sd_lnIp", "lnliknull",
+																							"lnlikfull"};
 	public static final String[] TDT_REQS = {"T", "U", "OR", "P", "L95", "U95"};
 
 	public static void parseIBCFormatFromGWAF(String dir, String resultsFile, String mapFile,
@@ -507,43 +519,40 @@ public class ResultsPackager {
 			}
 		}
 	}
+	
 
-	public static void parseEmimFormat(	String childResultsFile, String momResultsFile,
-																			String childMomResultsFile, String tdtResultsFile,
-																			String mapFile, String mendelErrorFile, String hweFile,
-																			String frqFile, double pValueThreshold, String outfile,
-																			Logger log) {
-		BufferedReader reader1, reader2, reader3;
+	public static void parseEmimFormat(	String resultsFileC, String resultsFileM,
+																			String resultsFileCM, String resultsFileIm,
+																			String resultsFileIp, String tdtResultsFile, String mapFile,
+																			String mendelErrorFile, String hweFile, String frqFile,
+																			double pValueThreshold, String outfile, Logger log) {
 		PrintWriter writer;
-		String[] lineC, lineM, lineCM, pvalEquations;
 		String temp;
 		Hashtable<Long, String> snpList; // , freqHash; // , customFreqHash;
-		String delimiter1, delimiter2, delimiter3;
-		Map<String, Integer> indicesC, indicesM, indicesCM;
 		double hweThreshold;
 		double[] pvals;
 		long index;
 		Hashtable<String, String[]> mendelErrors = null, hwe = null, tdtResults = null, freqs = null;
 
 		if (outfile == null) {
-			outfile = ext.rootOf(childResultsFile, false) + "parsedResults.txt";
+			outfile = ext.rootOf(resultsFileC, false) + "parsedResults.txt";
 		}
 
-		if (!Files.exists(childResultsFile)) {
-			log.reportError("Error: could not find results file '" + childResultsFile + "'");
+		if (!Files.exists(resultsFileC)) {
+			log.reportError("Error: could not find results file '" + resultsFileC + "'");
 			return;
 		}
 		try {
 			snpList = new Hashtable<Long, String>();
 			index = 1;
-			reader1 = Files.getAppropriateReader(mapFile);
-			while (reader1.ready()) {
-				lineC = reader1.readLine().split("\t");
-				snpList.put(index, lineC[0]	+ "\t" + lineC[3] + "\t" + lineC[1] + "\t" + lineC[4] + "\t"
-														+ lineC[5]);
+			BufferedReader mapReader = Files.getAppropriateReader(mapFile);
+			while (mapReader.ready()) {
+				String[] line = mapReader.readLine().split("\t");
+				snpList.put(index, line[0]	+ "\t" + line[3] + "\t" + line[1] + "\t" + line[4] + "\t"
+														+ line[5]);
 				index++;
 			}
-			reader1.close();
+			mapReader.close();
 
 			if (mendelErrorFile != null) {
 				mendelErrors = SkatMeta2.loadFile(mendelErrorFile, null, new String[] {"SNP"},
@@ -563,25 +572,43 @@ public class ResultsPackager {
 				tdtResults = SkatMeta2.loadFile(tdtResultsFile, null, new String[] {"SNP"}, TDT_REQS, null,
 																				null);
 			}
-
-			hweThreshold = 0.05 / Files.countLines(childResultsFile, 1);
+			hweThreshold = 0.05 / Files.countLines(resultsFileC, 1);
 			log.report("");
-			reader1 = Files.getAppropriateReader(childResultsFile);
-			reader3 = Files.getAppropriateReader(childMomResultsFile);
-			reader2 = Files.getAppropriateReader(momResultsFile);
+			
 			writer = Files.getAppropriateWriter(outfile);
-			temp = reader1.readLine().trim();
-			delimiter1 = ext.determineDelimiter(temp);
-			lineC = temp.split(delimiter1);
-			indicesC = ext.indexMap(EMIM_REQS, lineC, false, log, false, false);
-			temp = reader2.readLine().trim();
-			delimiter2 = ext.determineDelimiter(temp);
-			lineM = temp.split(delimiter2);
-			indicesM = ext.indexMap(EMIM_REQS, lineM, false, log, false, false); // TODO EMIM_REQS
-			temp = reader3.readLine().trim();
-			delimiter3 = ext.determineDelimiter(temp);
-			lineCM = temp.split(delimiter3);
-			indicesCM = ext.indexMap(EMIM_REQS, lineCM, false, log, false, false); // TODO EMIM_REQS
+			
+			BufferedReader readerC = Files.getAppropriateReader(resultsFileC);
+			
+			temp = readerC.readLine().trim();
+			String delimiterC = ext.determineDelimiter(temp);
+			String[] lineC = temp.split(delimiterC);
+			Map<String, Integer> indicesC = ext.indexMap(EMIM_REQS, lineC, false, log, false, false);
+			
+
+			BufferedReader readerM = Files.getAppropriateReader(resultsFileM);
+			temp = readerM.readLine().trim();
+			String delimiterM = ext.determineDelimiter(temp);
+			String[] lineM = temp.split(delimiterM);
+			Map<String, Integer> indicesM = ext.indexMap(EMIM_REQS, lineM, false, log, false, false); // TODO EMIM_REQS specific to estimate
+			
+			BufferedReader readerCM = Files.getAppropriateReader(resultsFileCM);
+			temp = readerCM.readLine().trim();
+			String delimiterCM = ext.determineDelimiter(temp);
+			String[] lineCM = temp.split(delimiterCM);
+			Map<String, Integer> indicesCM = ext.indexMap(EMIM_REQS, lineCM, false, log, false, false); // TODO EMIM_REQS specific to estimate
+			
+			BufferedReader readerIm = Files.getAppropriateReader(resultsFileIm);
+			temp = readerIm.readLine().trim();
+			String delimiterIm = ext.determineDelimiter(temp);
+			String[] lineIm = temp.split(delimiterIm);
+			Map<String, Integer> indicesIm = ext.indexMap(EMIM_IM_REQS, lineIm, false, log, false, false);
+			
+			BufferedReader readerIp = Files.getAppropriateReader(resultsFileIp);
+			temp = readerIp.readLine().trim();
+			String delimiterIp = ext.determineDelimiter(temp);
+			String[] lineIp = temp.split(delimiterIp);
+			Map<String, Integer> indicesIp = ext.indexMap(EMIM_IP_REQS, lineIp, false, log, false, false);
+			
 
 			writer.println(Array.toStr(EMIM_OUTPUT_FORMAT_SNPS)
 												+ (mendelErrorFile == null	? ""
@@ -591,11 +618,11 @@ public class ResultsPackager {
 											+ (tdtResultsFile == null ? "" : ("\t" + Array.toStr(EMIM_OUTPUT_FORMAT_TDT)))
 											+ "\t" + Array.toStr(EMIM_OUTPUT_FORMAT_EMIM_RESULTS) + "\t"
 											+ Array.toStr(EMIM_OUTPUT_FORMAT_EMIM_PVALS));
-			while (reader1.ready()) {
+			while (readerC.ready()) {
 				// lineC = reader1.readLine().replaceAll("\\*", " ").trim().split(delimiter1, -1);
-				lineC = reader1	.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
+				lineC = readerC	.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
 																							"            NaN")
-												.trim().split(delimiter1, -1);
+												.trim().split(delimiterC, -1);
 				String snp = snpList.get(Long.parseLong(lineC[indicesC.get("snpID")].substring(	0,
 																																												lineC[indicesC.get("snpID")].indexOf("."))))
 														.split("\t")[2];
@@ -607,26 +634,41 @@ public class ResultsPackager {
 				}
 				// lineM = reader2.readLine().replaceAll("\\*", " ").trim().split(delimiter2, -1);
 				// lineCM = reader3.readLine().replaceAll("\\*", " ").trim().split(delimiter3, -1);
-				lineM = reader2	.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
+				lineM = readerM	.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
 																							"            NaN")
-												.trim().split(delimiter2, -1);
-				lineCM = reader3.readLine().replaceAll(	"\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
+												.trim().split(delimiterM, -1);
+				lineCM = readerCM.readLine().replaceAll(	"\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
 																								"            NaN")
-												.trim().split(delimiter3, -1);
+												.trim().split(delimiterCM, -1);
+				
+				lineIm = readerIm	.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
+																								"            NaN")
+													.trim().split(delimiterIm, -1);
+				lineIp = readerIp	.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
+																								"            NaN")
+													.trim().split(delimiterIp, -1);
 
 				if (!lineC[indicesC.get("snpID")].equals(lineM[indicesM.get("snpID")])
-						|| !lineC[indicesC.get("snpID")].equals(lineCM[indicesCM.get("snpID")])) {
+						|| !lineC[indicesC.get("snpID")].equals(lineCM[indicesCM.get("snpID")])
+						|| !lineC[indicesC.get("snpID")].equals(lineIm[indicesIm.get("snpID")])
+						|| !lineC[indicesC.get("snpID")].equals(lineIp[indicesIp.get("snpID")])) {
 					log.reportError("Error - SNP ID in the files are not lined up. Child SNP ID: "
 														+ lineC[indicesC.get("snpID")] + "; Mom SNP ID: "
 													+ lineM[indicesM.get("snpID")] + "; ChildMom SNP ID: "
-													+ lineCM[indicesCM.get("snpID")] + ".");
+													+ lineCM[indicesCM.get("snpID")] + "; Mat Imprinting SNP ID: "
+															+ lineIm[indicesIm.get("snpID")] + "; Pat Imprinting SNP ID: "
+																	+ lineIp[indicesIp.get("snpID")] + ".");
 					return;
 				}
 				pvals = getPvalues(	Double.parseDouble(lineC[indicesC.get("lnliknull")]),
 														Double.parseDouble(lineC[indicesC.get("lnlikfull")]),
 														Double.parseDouble(lineM[indicesM.get("lnliknull")]),
 														Double.parseDouble(lineM[indicesM.get("lnlikfull")]),
-														Double.parseDouble(lineCM[indicesCM.get("lnlikfull")]), log);
+														Double.parseDouble(lineCM[indicesCM.get("lnlikfull")]),
+														Double.parseDouble(lineIm[indicesIm.get("lnliknull")]),
+														Double.parseDouble(lineIm[indicesIm.get("lnlikfull")]),
+														Double.parseDouble(lineIp[indicesIp.get("lnliknull")]),
+														Double.parseDouble(lineIp[indicesIp.get("lnlikfull")]), log);
 				temp = tdtResults.get(snp)[3];
 				// if (tdtResults.get(temp)[3].equals("NA")) {
 				// System.out.println(temp + "\t" + tdtResults.get(test)[3]);
@@ -637,11 +679,15 @@ public class ResultsPackager {
 									&& pvalsPass(	Array.addDoubleToArray(Double.parseDouble(temp), pvals),
 																pValueThreshold))
 								&& Double.parseDouble(freq) >= .01)) {
-					pvalEquations = getPvalEquations(	lineC[indicesC.get("lnliknull")],
+					String[] pvalEquations = getPvalEquations(	lineC[indicesC.get("lnliknull")],
 																						lineC[indicesC.get("lnlikfull")],
 																						lineM[indicesM.get("lnliknull")],
 																						lineM[indicesM.get("lnlikfull")],
-																						lineCM[indicesCM.get("lnlikfull")], log);
+																						lineCM[indicesCM.get("lnlikfull")],
+																						lineIm[indicesIm.get("lnliknull")],
+																						lineIm[indicesIm.get("lnlikfull")],
+																						lineIp[indicesIp.get("lnliknull")],
+																						lineIp[indicesIp.get("lnlikfull")],log);
 					// writer.println(getOutputString(snpList, lineC, indicesC, lineM, indicesM, lineCM,
 					// indicesCM, log) + "\t" + pvals[0] + "\t" + pvalEquations[0] + "\t" + pvals[1] + "\t" +
 					// pvalEquations[1] + "\t" + pvals[2] + "\t" + pvalEquations[2]);
@@ -650,20 +696,20 @@ public class ResultsPackager {
 					// + pvalEquations[0] + "\t" + pvals[1] + "\t" + pvalEquations[1] + "\t" + pvals[2] + "\t"
 					// + pvalEquations[2]);
 					writer.println(getOutputString(	snpList, mendelErrors, hwe, hweThreshold, freq, lineC,
-																					indicesC, lineM, indicesM, lineCM, indicesCM, tdtResults,
+																					indicesC, lineM, indicesM, lineCM, indicesCM, lineIm, indicesIm, lineIp, indicesIp, tdtResults,
 																					pvals, pvalEquations, log));
 				}
 			}
-			reader1.close();
-			reader3.close();
-			reader2.close();
+			readerC.close();
+			readerCM.close();
+			readerM.close();
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: one of the files was not found within the directory");
 			fnfe.printStackTrace();
 			return;
 		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + childResultsFile + "\"");
+			log.reportError("Error reading file \"" + resultsFileC + "\"");
 			return;
 		}
 
@@ -672,7 +718,9 @@ public class ResultsPackager {
 
 	private static double[] getPvalues(	double logLikilihood_null_C, double logLikilihood_full_C,
 																			double logLikilihood_null_M, double logLikilihood_full_M,
-																			double logLikilihood_full_CM, Logger log) {
+																			double logLikilihood_full_CM, double logLikilihood_null_Im,
+																			double logLikilihood_full_Im, double logLikilihood_null_Ip,
+																			double logLikilihood_full_Ip, Logger log) {
 
 		// Lines up with even entries in EMIM_OUTPUT_FORMAT_EMIM_PVALS
 		return new double[] {	getPvalue(2 * (logLikilihood_full_C - logLikilihood_null_C), 2, log),
@@ -682,7 +730,9 @@ public class ResultsPackager {
 													getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_C), 2, log),
 													getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_C), 1, log),
 													getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_M), 2, log),
-													getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_M), 1, log)};
+													getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_M), 1, log),
+													getPvalue(2 * (logLikilihood_full_Im - logLikilihood_null_Im), 1, log),
+													getPvalue(2 * (logLikilihood_full_Ip - logLikilihood_null_Ip), 1, log)};
 	}
 
 
@@ -707,19 +757,24 @@ public class ResultsPackager {
 	private static String[] getPvalEquations(	String logLikilihood_null_C, String logLikilihood_full_C,
 																						String logLikilihood_null_M,
 																						String logLikilihood_full_M,
-																						String logLikilihood_full_CM, Logger log) {
+																						String logLikilihood_full_CM,
+																						String logLikilihood_null_Im,
+																						String logLikilihood_full_Im,
+																						String logLikilihood_null_Ip,
+																						String logLikilihood_full_Ip, Logger log) {
 
 		// Lines up with odd entries in EMIM_OUTPUT_FORMAT_EMIM_PVALS
 		return new String[] {"=1-CHISQ.DIST(2 * ("
 														+ logLikilihood_full_C + "-" + logLikilihood_null_C + "),2,TRUE)",
-													"=1-CHISQ.DIST(2 * ("																								+ logLikilihood_full_C + "-" + logLikilihood_null_C
-																																															+ "),1,TRUE)",
+													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_C + "-" + logLikilihood_null_C + "),1,TRUE)",
 													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_M + "-" + logLikilihood_null_M + "),2,TRUE)",
 													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_M + "-" + logLikilihood_null_M + "),1,TRUE)",
 													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_C + "),2,TRUE)",
 													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_C + "),1,TRUE)",
 													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M + "),2,TRUE)",
-													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M + "),1,TRUE)"};
+													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M + "),1,TRUE)",
+													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_Im + "-" + logLikilihood_null_Im + "),1,TRUE)",
+													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_Ip + "-" + logLikilihood_null_Ip + "),1,TRUE)"};
 	}
 
 	private static String getOutputString(Hashtable<Long, String> snpList,
@@ -728,6 +783,8 @@ public class ResultsPackager {
 																				String freq, String[] lineC, Map<String, Integer> indicesC,
 																				String[] lineM, Map<String, Integer> indicesM,
 																				String[] lineCM, Map<String, Integer> indicesCM,
+																				String[] lineIm, Map<String, Integer> indicesIm,
+																				String[] lineIp, Map<String, Integer> indicesIp,
 																				Hashtable<String, String[]> tdtResults, double[] pvals,
 																				String[] pvalEquations, Logger log) {
 		String result = null, tmp, snp;
@@ -793,7 +850,9 @@ public class ResultsPackager {
 								+ lineM[indicesM.get("sd_lnR1")] + "\t" + lineM[indicesM.get("lnR2")] + "\t"
 								+ lineM[indicesM.get("sd_lnR2")] + "\t" + lineM[indicesM.get("lnS1")] + "\t"
 								+ lineM[indicesM.get("sd_lnS1")] + "\t" + lineM[indicesM.get("lnS2")] + "\t"
-								+ lineM[indicesM.get("sd_lnS2")];
+								+ lineM[indicesM.get("sd_lnS2")] + "\t" + lineIm[indicesIm.get("lnIm")] + "\t"
+										+ lineIm[indicesIm.get("sd_lnIm")] + "\t" + lineIp[indicesIp.get("lnIp")] + "\t"
+												+ lineIp[indicesIp.get("sd_lnIp")];
 			// result = snpList.get(index) + "\t" + lineC[indicesC[1]];
 			for (int i = 0; i < pvals.length; i++) {
 				result += "\t" + pvals[i] + "\t" + pvalEquations[i];
@@ -1059,9 +1118,11 @@ public class ResultsPackager {
 		String outfile = null;
 		String dir = "";
 		String type = "plink";
-		String resultsFileChild = null;
-		String resultsFileMom = null;
-		String resultsFileChildMom = null;
+		String resultsFileC = null;
+		String resultsFileM = null;
+		String resultsFileCM = null;
+		String resultsFileIm = null;
+		String resultsFileIp = null;
 		String resultsFileTdt = null;
 		Logger log;
 		String logfile = null;
@@ -1069,6 +1130,7 @@ public class ResultsPackager {
 		double callRateThreshold = 0;
 		double pThreshold = .000001;
 
+		// TODO Update usage to match options (e.g. for EMIM) or remove/split out this functionality
 		String usage = "\n"	+ "gwas.ResultsPackager requires 0-1 arguments\n"
 										+ "   (0) name of directory of all other files (i.e. dir=" + dir
 										+ " (default))\n"
@@ -1102,13 +1164,19 @@ public class ResultsPackager {
 				resultsFile = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("resultschild=")) {
-				resultsFileChild = arg.split("=")[1];
+				resultsFileC = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("resultsmom=")) {
-				resultsFileMom = arg.split("=")[1];
+				resultsFileM = arg.split("=")[1];
+				numArgs--;
+			} else if (arg.startsWith("resultsImpM=")) {
+				resultsFileCM = arg.split("=")[1];
+				numArgs--;
+			} else if (arg.startsWith("resultsImpP=")) {
+				resultsFileIm = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("resultschildmom=")) {
-				resultsFileChildMom = arg.split("=")[1];
+				resultsFileIp = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("resultstdt=")) {
 				resultsFileTdt = arg.split("=")[1];
@@ -1336,7 +1404,7 @@ public class ResultsPackager {
 												"N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt", freqFile,
 												markersToReport, filter, callRateThreshold, outfile, log);
 			} else if (type.equalsIgnoreCase("emim")) {
-				parseEmimFormat(resultsFileChild, resultsFileMom, resultsFileChildMom, resultsFileTdt,
+				parseEmimFormat(resultsFileC, resultsFileM, resultsFileCM, resultsFileIm, resultsFileIp, resultsFileTdt,
 												mapFile, mendelErrorFile, hweFile, freqFile, pThreshold, outfile, log);
 			} else if (type.equalsIgnoreCase("forest")) {
 				String mkrFile = "/home/pankrat2/shared/Poynter_emim/gwasHits.txt";
