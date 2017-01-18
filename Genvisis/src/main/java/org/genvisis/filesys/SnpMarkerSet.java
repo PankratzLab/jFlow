@@ -85,16 +85,21 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 
 	/** 0 1 2 3 4 5 6+ */
 	/** Marker name, Chr, Position, centiMorgans, A1, A2, annotation */
-	public static final int[][] INDICES = {	{0, -1, -1, -1, -1, -1}, {0, 1, 2, -1, -1, -1},
-																					{1, 0, 3, 2, 4, 5}, {1, 0, 3, 2, -1, -1},
-																					{0, 1, 3, 2, 4, 5}, {0, 1, 2, -1, -1, -1},
-																					{0, 1, 2, -1, -1, -1, 3}, {0, 1, 2, -1, -1, -1, 3},
-																					{0, -1, -1, -1, 1, 2, 3, 4, 5, 6}, {0, -1, 1, -1, -1, -1},
+	public static final int[][] INDICES = {	
+	                                       	{0, -1, -1, -1, -1, -1}, 
+	                                       	{0, 1, 2, -1, -1, -1},
+																					{1, 0, 3, 2, 4, 5}, 
+																					{1, 0, 3, 2, -1, -1},
+																					{0, 1, 3, 2, 4, 5}, 
+																					{0, 1, 2, -1, -1, -1},
+																					{0, 1, 2, -1, -1, -1, 3}, 
+																					{0, 1, 2, -1, -1, -1, 3},
+																					{0, -1, -1, -1, 1, 2, 3, 4, 5, 6}, 
+																					{0, -1, 1, -1, -1, -1},
 																					{0, -1, -1, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
-																					{1, 0, 2, -1, -1, -1}, {0, 1, 2, -1, 3, 4, 5, 6, 7},
-																					{	1, CHR_INFO_IN_FILENAME, 2, -1, -1, -1, 3, 4, 5, 6, 7,
-																						8,
-																						9},
+																					{1, 0, 2, -1, -1, -1}, 
+																					{0, 1, 2, -1, 3, 4, 5, 6, 7},
+																					{	1, CHR_INFO_IN_FILENAME, 2, -1, -1, -1, 3, 4, 5, 6, 7, 8, 9},
 																					{0, 1, 2, -1, 3, 4},
 			// make sure to add an entry into HEADERS as well
 	};
@@ -452,23 +457,27 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 					line[indices[0]] = markerNames[i];
 				}
 				if (indices[1] != -1) {
-					line[indices[1]] = chrs == null ? "." : chrs[i] + "";
+					line[indices[1]] = chrs == null ? "." : Byte.toString(chrs[i]);
 				}
 				if (indices[2] != -1) {
-					line[indices[2]] = positions == null ? "." : positions[i] + "";
+					line[indices[2]] = positions == null ? "." : Integer.toString(positions[i]);
 				}
 				if (indices[3] != -1) {
 					line[indices[3]] = centiMorgans == null ? "0" : ext.formDeci(centiMorgans[i], 5, false);
 				}
 				if (indices[4] != -1) {
-					line[indices[4]] = alleles == null ? "." : alleles[i][0] + "";
+					line[indices[4]] = alleles == null ? "." : Character.toString(alleles[i][0]);
 				}
 				if (indices[5] != -1) {
-					line[indices[5]] = alleles == null ? "." : alleles[i][1] + "";
+					line[indices[5]] = alleles == null ? "." : Character.toString(alleles[i][1]);
 				}
 				if (indices.length > 6) {
 					for (int j = 6; j < indices.length; j++) {
-						line[indices[j]] = annotation == null ? "." : annotation[i][j - 6];
+						String annot = ".";
+						if (annotation != null && annotation[i].length > (j - 6)) {
+							annot = annotation[i][j - 6];
+						}
+						line[indices[j]] = annot;
 					}
 				}
 				writer.println(Array.toStr(line));
@@ -1072,7 +1081,13 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 														verbose, log);
 	}
 
-	public static int determineType(String filename) {
+	public static int determineType(String file) {
+		String filename = file;
+    if (filename.endsWith(".gz")) {
+      filename = filename.substring(0, filename.length() - 3);
+    } else if (filename.endsWith(".zip")) {
+      filename = filename.substring(0, filename.length() - 4);
+    }
 		if (filename.endsWith(".bim")) {
 			return PLINK_BIM_FORMAT;
 		} else if (filename.endsWith(".map") || filename.endsWith(".pmap")) {

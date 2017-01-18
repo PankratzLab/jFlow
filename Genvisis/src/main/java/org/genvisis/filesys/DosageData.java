@@ -43,6 +43,23 @@ import com.google.common.primitives.Ints;
 public class DosageData implements Serializable {
   public static final long serialVersionUID = 1L;
 
+  enum DosageFileType {
+
+  	MACH_MLDOSE_FORMAT,
+    GEN_FORMAT,
+    GWAF_FORMAT,
+    PLINK_FORMAT,
+    MACH_MLPROB_FORMAT,
+    MINIMAC_DOSE_FORMAT,
+    IMPUTE2_DOSE_FORMAT,
+    DATABASE_DOSE_FORMAT,
+    BEAGLE_DOSE_FORMAT,
+    PLINK_BFILE_FORMAT,
+    FREEZE5_FORMAT;
+  	
+  }
+  
+  
   public static final int MACH_MLDOSE_FORMAT = 0;
   public static final int GEN_FORMAT = 1;
   public static final int GWAF_FORMAT = 2;
@@ -51,7 +68,7 @@ public class DosageData implements Serializable {
   public static final int MINIMAC_DOSE_FORMAT = 5;
   public static final int IMPUTE2_DOSE_FORMAT = 6;
   public static final int DATABASE_DOSE_FORMAT = 7;
-  public static final int BEAGLE_DOSE_FORMAT = 8; // not currently included in determineType
+  public static final int BEAGLE_DOSE_FORMAT = 8;
   public static final int PLINK_BFILE_FORMAT = 9;
   public static final int FREEZE5_FORMAT = 10;
 
@@ -73,30 +90,25 @@ public class DosageData implements Serializable {
   public static final String[] DELIMITERS = {"\t", ",", " "};
 
   /**
-   * 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 id_type, column index where dosage/probability
-   * values begin, dominance format, number of columns summarizing the data, header row, marker/IID
+   * 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 
+   * id_type, column index where dosage/probability values begin, dominance format, number of columns summarizing the data, header row, marker/IID
    * index, A1 index, A2 index, chr index, pos index, delimiter, index for head/lead, min number of
    * digits, max number of digits
    */
 
   /** 0 1 2 3 4 5 6 7 8 9 10 11 12 13 */
-  public static final int[][] PARAMETERS = { {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 0, 3, 3}, // .mldose
-                                                                                                                                 // (MACH)
+  public static final int[][] PARAMETERS = { 
+      {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 0, 3, 3}, // .mldose (MACH)
       {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT, 3, 0, 1, 3, 4, 0, 2, 2, 1, 0, 3}, // .gen
-      {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0, -1, -1, -1, -1, 1, 2, 0, 3}, // .fhsR
-                                                                                      // (GWAF)
-      {FID_IID_TYPE, 3, MARKER_DOMINANT_FORMAT, 2, 1, 0, 1, 2, -1, -1, 0, 3, 3, 3}, // .dosage
-                                                                                    // (PLINK)
-      {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 2, 0, 0, -1, -1, -1, -1, 0, 4, 3, 3}, // .mlprob
-                                                                                          // (MACH)
-      {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 5, 3, 3}, // .dose
-                                                                                          // (MINIMAC)
+      {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0, -1, -1, -1, -1, 1, 2, 0, 3}, // .fhsR (GWAF)
+      {FID_IID_TYPE, 3, MARKER_DOMINANT_FORMAT, 2, 1, 0, 1, 2, -1, -1, 0, 3, 3, 3}, // .dosage  (PLINK)
+      {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 2, 0, 0, -1, -1, -1, -1, 0, 4, 3, 3}, // .mlprob  (MACH)
+      {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 5, 3, 3}, // .dose (MINIMAC)
       {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT, 3, 0, 1, 3, 4, CHR_INFO_IN_FILENAME, 2, 0, 1, 3, 3}, // .impute2
       {FID_IID_TYPE, 3, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0, 3, 4, -1, 2, 0, 6, 3, 3}, // .db.xln
-      {SEPARATE_FILE_ID_TYPE, 3, MARKER_DOMINANT_FORMAT, 1, 1, 0, 1, 2, -1, -1, 2, 1, 4, 4}, // .dose
-                                                                                             // //
-                                                                                             // (BEAGLE)
-      {FID_IID_TYPE, 3, PLINK_BINARY_FORMAT, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 0, 3, 3}, // freeze5
+      {SEPARATE_FILE_ID_TYPE, 3, MARKER_DOMINANT_FORMAT, 1, 1, 0, 1, 2, -1, -1, 2, 1, 4, 4}, // .dose (BEAGLE)
+      {FID_IID_TYPE, 3, PLINK_BINARY_FORMAT, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, 
+      {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 0, 3, 3}, // freeze5
   };
 
   private SnpMarkerSet markerSet;
@@ -1750,6 +1762,8 @@ public class DosageData implements Serializable {
       return MACH_MLPROB_FORMAT;
     } else if (dosageFile.endsWith(".dose")) {
       return MINIMAC_DOSE_FORMAT;
+    } else if (dosageFile.endsWith(".beagle")) {
+    	return BEAGLE_DOSE_FORMAT;
     } else if (dosageFile.endsWith(".impute2") || dosageFile.endsWith(".imputed")) {
       return IMPUTE2_DOSE_FORMAT;
     } else if (dosageFile.endsWith(".db.xln")) {
@@ -1960,14 +1974,54 @@ public class DosageData implements Serializable {
     String extractMkrs = null;
     String extractRgns = null;
     boolean awk = false;
-    long date;
+		long date;
 
-    String usage =
-        "\n" + "filesys.DosageData requires 0-1 arguments\n" + "   (1) name of dosage file to convert (i.e. dosageFile=" + filename + " (default))\n" + "   (2) name of file with ids listed (i.e. idFile=" + idFile + " (default))\n" + "   (3) name of associated map file (i.e. mapFile=" + mapFile + " (default))\n" + "   (4) name of new dosage file (i.e. out=" + outfile + " (default))\n"
-            + "   (5) name of new map file (i.e. mapOut=" + mapOut + " (default))\n" + "   (6) filename for log (i.e. log=" + logfile + " (default) (optional))\n" + "   (7a) name of file listing variants to extract (i.e. extractMarkers=" + extractMkrs + " (default) (optional))\n" + "   (7b) name of file listing ranges to extract (i.e. extractRanges=" + extractRgns + " (default) (optional))\n"
-            + "   (8) file type of original file (i.e. from=" + from + " (default))\n" + "   (9) file type of file to be generated (i.e. to=" + to + " (default))\n" + "  (10) use sed/cut instead (i.e. -awk (not the default))\n" + " \n" + "       Type Extension Description\n" + "        -1   [any]    auto-detect from extension\n" + "        0   .mldose   MACH style .mldose file\n"
-            + "        1   .gen      probabilites for all three genotypes, plus map information\n" + "        2   .fhsR     input file for GWAF\n" + "        3   .dosage   input file for PLINK\n" + "        4   .mlprob   MACH style .mlprob file\n" + "        5   .dose     output from MINIMAC\n" + "        6   .impute2  output from IMPUTE2\n" + "        7   .db.xln   database format\n"
-            + "        8   .dose     BEAGLE format\n" + "        [Files may also be zipped or gzipped]" + "";
+		String usage =
+										"\n" + "filesys.DosageData requires 0-1 arguments\n"
+												+ "   (1) name of dosage file to convert (i.e. dosageFile="
+												+ filename
+												+ " (default))\n"
+												+ "   (2) name of file with ids listed (i.e. idFile="
+												+ idFile
+												+ " (default))\n"
+												+ "   (3) name of associated map file (i.e. mapFile="
+												+ mapFile
+												+ " (default))\n"
+												+ "   (4) name of new dosage file (i.e. out="
+												+ outfile
+												+ " (default))\n"
+												+ "   (5) name of new map file (i.e. mapOut="
+												+ mapOut
+												+ " (default))\n"
+												+ "   (6) filename for log (i.e. log="
+												+ logfile
+												+ " (default) (optional))\n"
+												+ "   (7a) name of file listing variants to extract (i.e. extractMarkers="
+												+ extractMkrs
+												+ " (default) (optional))\n"
+												+ "   (7b) name of file listing ranges to extract (i.e. extractRanges="
+												+ extractRgns
+												+ " (default) (optional))\n"
+												+ "   (8) file type of original file (i.e. from="
+												+ from
+												+ " (default))\n"
+												+ "   (9) file type of file to be generated (i.e. to="
+												+ to
+												+ " (default))\n"
+												+ "  (10) use sed/cut instead (i.e. -awk (not the default))\n"
+												+ " \n"
+												+ "       Type Extension Description\n"
+												+ "        -1   [any]    auto-detect from extension\n"
+												+ "        0   .mldose   MACH style .mldose file\n"
+												+ "        1   .gen      probabilites for all three genotypes, plus map information\n"
+												+ "        2   .fhsR     input file for GWAF\n"
+												+ "        3   .dosage   input file for PLINK\n"
+												+ "        4   .mlprob   MACH style .mlprob file\n"
+												+ "        5   .dose     output from MINIMAC\n"
+												+ "        6   .impute2  output from IMPUTE2\n"
+												+ "        7   .db.xln   database format\n"
+												+ "        8   .dose     BEAGLE format\n"
+												+ "        [Files may also be zipped or gzipped]" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
