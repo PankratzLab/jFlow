@@ -418,6 +418,7 @@ public class MapSNPsAndGenes {
 		boolean gatk = false;
 		String swap = null;
 		boolean xln = false;
+		boolean genes = true;
 		String logfile = null;
 
 		String usage = "\n"	+ "bioinformatics.MapSNPsAndGenes requires 0-1 arguments\n"
@@ -477,6 +478,9 @@ public class MapSNPsAndGenes {
 			} else if (arg.startsWith("log=")) {
 				logfile = ext.parseStringArg(arg, null);
 				numArgs--;
+			} else if (arg.startsWith("genes=")) {
+				genes = ext.parseBooleanArg(arg);
+				numArgs--;
 			} else {
 				System.err.println("Error - don't know what to do with argument '" + arg + "'");
 			}
@@ -506,8 +510,12 @@ public class MapSNPsAndGenes {
 						wiggleRoom = DEFAULT_WIGGLE_ROOM;
 					}
 				}
-				procSNPsToGenes(dir, filename, wiggleRoom, build, log, vcf, snpeff, gatk, snpEffLoc,
-												annovarLoc, swap, xln);
+				if (genes) {
+					procSNPsToGenes(dir, filename, wiggleRoom, build, log, vcf, snpeff, gatk, snpEffLoc,
+													annovarLoc, swap, xln);
+				} else {
+					ParseSNPlocations.lowMemParse(dir + filename, getSNPDB(build, log), getMergeDB(log), true, log);
+				}
 			} else {
 				log = new Logger(logfile);
 				procSNPsToGenes(dir, filename, wiggleRoom, build, log, vcf, snpeff, gatk, snpEffLoc,
