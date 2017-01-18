@@ -718,6 +718,7 @@ public class GenvisisWorkflow {
 	static final STEP S8_SEX_CHECKS = new STEP(	"Run Sex Checks", "",
 																							new String[][] {{SAMPLE_STEP_REQ_MSG},
 																															{"[Create SampleData.txt File] step must have been run already or must be selected and valid."},
+																															{"[Transpose Data into Marker-Dominant Files] step must have been run already or must be selected"},
 																															{"[Run Sample QC Metrics] step must have been run already or must be selected"},
 																															{"Add Estimated Sex to Sample Data"},
 																															{	"Use only X and Y chromosome R values to identify sex discriminating markers",
@@ -726,12 +727,13 @@ public class GenvisisWorkflow {
 																							new RequirementInputType[][] {{RequirementInputType.NONE},
 																																						{RequirementInputType.NONE},
 																																						{RequirementInputType.NONE},
+																																						{RequirementInputType.NONE},
 																																						{RequirementInputType.BOOL},
 																																						{	RequirementInputType.BOOL,
 																																							RequirementInputType.FILE,
 																																							RequirementInputType.FILE}},
 																							S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES,
-																							S3_CREATE_SAMPLEDATA) {
+																							S3_CREATE_SAMPLEDATA, S4_TRANSPOSE_TO_MDF, S6_SAMPLE_QC) {
 
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
@@ -759,24 +761,21 @@ public class GenvisisWorkflow {
 		@Override
 		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
 																					Map<STEP, List<String>> variables) {
-			String sampDir = proj.SAMPLE_DIRECTORY.getValue();
-			String sampDataFile = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
 			STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES)	? S2I_PARSE_SAMPLES
 																																			: S2A_PARSE_SAMPLES;
-			boolean checkStepParseSamples = stepSelections.get(parseStep)
-																			&& parseStep.hasRequirements(proj, stepSelections, variables);
-			boolean checkQcStep = stepSelections.get(S6_SAMPLE_QC) && S6_SAMPLE_QC.hasRequirements(proj, stepSelections, variables);
+			// TODO All of this step checking should be done automatically based on dependent steps.
+			boolean checkStepParseSamples = (stepSelections.get(parseStep)
+																			&& parseStep.hasRequirements(proj, stepSelections, variables)) || parseStep.checkIfOutputExists(proj, variables);
+			boolean checkSampleData = (stepSelections.get(S3_CREATE_SAMPLEDATA) && S3_CREATE_SAMPLEDATA.hasRequirements(proj, stepSelections, variables)) || S3_CREATE_SAMPLEDATA.checkIfOutputExists(proj, variables);
+			boolean checkTransposeStep = (stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variables)) || S4_TRANSPOSE_TO_MDF.checkIfOutputExists(proj, variables);
+			boolean checkQcStep = (stepSelections.get(S6_SAMPLE_QC) && S6_SAMPLE_QC.hasRequirements(proj, stepSelections, variables)) || S6_SAMPLE_QC.checkIfOutputExists(proj, variables);
 			boolean useRValues = Boolean.parseBoolean(variables.get(this).get(1));
 			String discriminatingMarkersFile = variables.get(this).get(2);
 			String blastVCFFile = variables.get(this).get(3);
-			return new boolean[][] {{checkStepParseSamples
-																|| (Files.exists(sampDir) && Files.list(sampDir, SAMP_RAF,
-																																				proj.JAR_STATUS.getValue()).length > 0)},
-															{stepSelections.get(S3_CREATE_SAMPLEDATA)
-																&& S3_CREATE_SAMPLEDATA.hasRequirements(proj, stepSelections,
-																																				variables)
-																|| Files.exists(sampDataFile)},
-															{checkQcStep || Files.exists(proj.SAMPLE_QC_FILENAME.getValue())},
+			return new boolean[][] {{checkStepParseSamples},
+															{checkSampleData},
+															{checkTransposeStep},
+															{checkQcStep},
 															{true},
 															{	useRValues, !useRValues && Files.exists(discriminatingMarkersFile),
 																!useRValues && !Files.exists(discriminatingMarkersFile) && Files.exists(blastVCFFile)}};
