@@ -934,7 +934,7 @@ public class Metal {
 				header = Files.getHeaderOfFile(inputFiles[i], log);
 				indices = ext.indexFactors(headersWithAlts, header, true, false, true, true, log, false);
 				fileParameters[i + 4] = inputFiles[i] + " 0";
-				altHeaders.put(inputFiles[i], new Hashtable<String, String>());
+				altHeaders.put(ext.removeDirectoryInfo(inputFiles[i]), new Hashtable<String, String>());
 				for (int j = 0; j < indices.length; j++) {
 					if (indices[j] != -1) {
 						fileParameters[i + 4] += " '" + header[indices[j]] + "'";

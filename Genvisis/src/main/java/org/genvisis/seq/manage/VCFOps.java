@@ -1382,7 +1382,7 @@ public class VCFOps {
 				int progress = 0;
 				int found = 0;
 
-				if (hasInfoLine(reader, "snp138") || locusID) {
+//				if (hasInfoLine(reader, "snp138") || locusID) {
 					log.reportTimeWarning("If a variant has an ID of \".\", the"
 																+ (locusID ? " locusID" : " snp138 ") + "annotation will be added");
 
@@ -1393,22 +1393,18 @@ public class VCFOps {
 							log.reportTimeInfo(found + " variants found...");
 
 						}
-						// if (found == 10000) {
-						// writer.close();
-						// reader.close();
-						// return outputVCF;
-						// }
+						String id = vc.getID();
 						String anno = locusID	? new VCOps.LocusID(vc).getId()
 																	: VCOps.getAnnotationsFor(new String[] {"snp138"}, vc, ".")[0];
+						if (".".equals(id)) {
+							id = anno;
+						}
 
-						if ((!skipFiltered || !vc.isFiltered()) && (keepIDs && tmp.contains(anno))
-								|| (!keepIDs && !tmp.contains(anno))) {
+						if ((!skipFiltered || !vc.isFiltered()) && (keepIDs && tmp.contains(id)) || (!keepIDs && !tmp.contains(id))) {
 							if (segsToExclude == null
-									|| (keepIDs && Segment.binarySearchForAllOverLappingIndices(VCOps.getSegment(vc),
-																																							segsToExclude) != null)
+									|| (keepIDs && Segment.binarySearchForAllOverLappingIndices(VCOps.getSegment(vc), segsToExclude) != null)
 									|| (!keepIDs
-											&& Segment.binarySearchForAllOverLappingIndices(VCOps.getSegment(vc),
-																																			segsToExclude) == null)) {
+											&& Segment.binarySearchForAllOverLappingIndices(VCOps.getSegment(vc),	segsToExclude) == null)) {
 								VariantContextBuilder builder = new VariantContextBuilder(vc);
 								if (vc.getID().equals(".")) {
 									builder.id(anno);
@@ -1423,9 +1419,9 @@ public class VCFOps {
 							}
 						}
 					}
-				} else {
-					log.reportError("This method relies on the  \"snp138\" annotation, and none was detected, sorry");
-				}
+//				} else {
+//					log.reportError("This method relies on the  \"snp138\" annotation, and none was detected, sorry");
+//				}
 				log.reportTimeInfo(progress + " total variants read...");
 				log.reportTimeInfo(found + " variants found...");
 				reader.close();
