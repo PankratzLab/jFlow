@@ -1736,6 +1736,18 @@ public class Project implements PropertyChangeListener {
 		return cnB;
 	}
 
+	public String[] getMarkersForChrs(int[] chrs) {
+		MarkerSet markerSet = getMarkerSet();
+		byte[] markerChrs = markerSet.getChrs();
+		ArrayList<String> tmp = new ArrayList<String>();
+		for (int i = 0; i < markerChrs.length; i++) {
+			if (ext.indexOfInt((int) markerChrs[i], chrs) >= 0) {
+				tmp.add(markerSet.getMarkerNames()[i]);
+			}
+		}
+		return tmp.toArray(new String[tmp.size()]);
+	}
+	
 	public String[] getAutosomalMarkers() {
 		MarkerSet markerSet = getMarkerSet();
 		byte[] chrs = markerSet.getChrs();
@@ -1754,11 +1766,16 @@ public class Project implements PropertyChangeListener {
 	 */
 	public int[] getAutosomalMarkerIndices() {
 		String[] autosomalMarkers = getAutosomalMarkers();
-		int[] indices =
-		              ext.indexLargeFactors(autosomalMarkers, getMarkerNames(), true, log, true, false);
+		int[] indices = ext.indexLargeFactors(autosomalMarkers, getMarkerNames(), true, log, true, false);
 		return indices;
 	}
 
+	public int[] getMarkersForChrsIndices(int[] chrs) {
+		String[] chrMkrs = getMarkersForChrs(chrs);
+		int[] indices = ext.indexLargeFactors(chrMkrs, getMarkerNames(), true, log, true, false);
+		return indices;
+	}
+	
 	/**
 	 * @return boolean representation of autosomal markers
 	 */
@@ -1770,7 +1787,19 @@ public class Project implements PropertyChangeListener {
 		}
 		return autoB;
 	}
-
+	
+	/**
+	 * @return boolean representation of markers on specified chromosomes
+	 */
+	public boolean[] getMarkerForChrsBoolean(int[] chrs) {
+		int[] indices = getMarkersForChrsIndices(chrs);
+		boolean[] chrB = Array.booleanArray(getMarkerNames().length, false);
+		for (int i = 0; i < indices.length; i++) {
+			chrB[indices[i]] = true;
+		}
+		return chrB;
+	}
+	
 	/**
 	 * For copying an existing project to a new project that will have the same essential data
 	 */
