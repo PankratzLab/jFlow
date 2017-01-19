@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import org.genvisis.cnv.annotation.MarkerBlastAnnotation;
+import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Array;
 

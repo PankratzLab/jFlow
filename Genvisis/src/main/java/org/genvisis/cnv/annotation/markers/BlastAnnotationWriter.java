@@ -1,14 +1,14 @@
-package org.genvisis.cnv.annotation;
+package org.genvisis.cnv.annotation.markers;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Hashtable;
 
-import org.genvisis.cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
-import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
-import org.genvisis.cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
-import org.genvisis.cnv.annotation.LocusAnnotation.Builder;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
+import org.genvisis.cnv.annotation.markers.LocusAnnotation.Builder;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;

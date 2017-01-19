@@ -34,10 +34,10 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.genvisis.cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
-import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
-import org.genvisis.cnv.annotation.MarkerBlastAnnotation;
-import org.genvisis.cnv.annotation.MarkerSeqAnnotation;
+import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
+import org.genvisis.cnv.annotation.markers.MarkerSeqAnnotation;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.util.CNVHelper;
 import org.genvisis.common.Array;

@@ -1,4 +1,4 @@
-package org.genvisis.cnv.annotation;
+package org.genvisis.cnv.annotation.markers;
 
 import org.genvisis.cnv.filesys.AnnotationCollection;
 import org.genvisis.cnv.filesys.Project;

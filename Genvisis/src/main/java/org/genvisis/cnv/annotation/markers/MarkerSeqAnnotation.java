@@ -1,8 +1,8 @@
-package org.genvisis.cnv.annotation;
+package org.genvisis.cnv.annotation.markers;
 
 import java.util.List;
 
-import org.genvisis.cnv.annotation.BlastAnnotationTypes.TOP_BOT;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.TOP_BOT;
 import org.genvisis.cnv.util.CNVHelper;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;

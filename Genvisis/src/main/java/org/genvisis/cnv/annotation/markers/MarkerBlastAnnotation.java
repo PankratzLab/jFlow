@@ -1,13 +1,13 @@
-package org.genvisis.cnv.annotation;
+package org.genvisis.cnv.annotation.markers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.genvisis.cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
-import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
-import org.genvisis.cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
-import org.genvisis.cnv.annotation.MarkerEvalueHistogramAnnotation.EvalueHistogram;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
+import org.genvisis.cnv.annotation.markers.MarkerEvalueHistogramAnnotation.EvalueHistogram;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArraySpecialList.ArrayBlastAnnotationList;
 import org.genvisis.common.Logger;

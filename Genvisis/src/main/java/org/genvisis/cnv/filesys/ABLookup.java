@@ -13,11 +13,11 @@ import java.util.Vector;
 
 import org.genvisis.CLI;
 import org.genvisis.bioinformatics.Sequence;
-import org.genvisis.cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
-import org.genvisis.cnv.annotation.AnnotationParser;
-import org.genvisis.cnv.annotation.MarkerAnnotationLoader;
-import org.genvisis.cnv.annotation.MarkerBlastAnnotation;
-import org.genvisis.cnv.annotation.MarkerSeqAnnotation;
+import org.genvisis.cnv.annotation.markers.AnnotationParser;
+import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
+import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
+import org.genvisis.cnv.annotation.markers.MarkerSeqAnnotation;
+import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_ORDER;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.MarkerBlast;
