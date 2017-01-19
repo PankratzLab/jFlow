@@ -280,7 +280,9 @@ public class EmimPipeline {
 			log.reportError("No pipeline pbs scripts generated, to re-run EMIM remove/rename the existing directories");
 		}
 
-		String processCommand = Files.getRunString()	+ " gwas.EmimPipeline -process -forest dir="
+		String processCommand = "cd " + runDir;
+		
+		processCommand += Files.getRunString()	+ " gwas.EmimPipeline -process -forest dir="
 														+ runDir;
 		if (cnvFiles != null) {
 			processCommand += " cnvs=" + Array.toStr(cnvFiles, ",");
@@ -408,7 +410,7 @@ public class EmimPipeline {
 		boolean firstModel = true;
 		for (Emim.EMIM_MODEL model : models) {
 			if (!model.isOptional()) {
-				return;
+				continue;
 				// POO effects are processed with all genotype models
 			}
 			String finalOut = finalDir + "final_results_pVals_" + model.toString() + ".xln";
@@ -526,7 +528,7 @@ public class EmimPipeline {
 				for (Emim.EMIM_MODEL model : models) {
 					if (!model.isOptional()) {
 						// POO Effects are included with all genotypic models
-						return;
+						continue;
 					}
 					String[][] resultFiles = new String[subPopData.pops.length + 1][];
 					resultFiles[subPopData.pops.length] = new String[] {".",
@@ -725,15 +727,19 @@ public class EmimPipeline {
 			if (logFile != null) {
 				log = new Logger(logFile);
 			}
+			runDir = new File(runDir).getCanonicalPath();
 			if (process || forest) {
 				if (process) {
+					System.out.println("Processing EMIM results...");
 					process(runDir, cnvFiles, plinkRoots, popFile, subPopFile, pThreshold, models, log);
 				}
 				if (forest) {
+					System.out.println("Generating EMIM forest plots...");
 					generateForestPlots(runDir, cnvFiles, plinkRoots, popFile, subPopFile, forestMarkers,
 															models, log);
 				}
 			} else {
+				System.out.println("Preparing up EMIM pipeline...");
 				setup(runDir, cnvFiles, plinkRoots, pedFile, popFile, subPopFile, pThreshold, models,
 							phaseWithShapeit, qsub, log);
 			}
