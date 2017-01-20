@@ -758,7 +758,7 @@ public class PennCNVPrep {
 								memoryInMB, 3 * wallTimeInHours, 1);
 		cmd.append(" tmpDir=").append(thisDir);
 		Files.qsub(	"ShadowCNVPrepFormatExport",
-								cmd.toString() + " -shadow sampleChunks=NeedToFillThisIn numThreads=1",
+								cmd.toString() + " -shadow sampleChunks=NeedToFillThisIn numThreads=1 -forceLoadFromFiles",
 								new String[][] {{""}}, memoryInMB, 3 * wallTimeInHours, 1);
 		cmd	.append(" numMarkerThreads=").append(numMarkerThreads).append(" numThreads=")
 				.append(numThreads).append(" numComponents=").append(numComponents).append(" markers=")
