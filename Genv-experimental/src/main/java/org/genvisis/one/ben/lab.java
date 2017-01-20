@@ -160,6 +160,19 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
+			try {
+				CARDIA2017ResultsProcessor.combineChrXDose();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			System.out.println("DOSAGE FILES FINISHED");
+			try {
+				CARDIA2017ResultsProcessor.combineChrXInfo();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+			
 //			String dir = "F:/temp/filter/";
 //			String in = "recodedM.cnv";
 //			String out = "recodedM_excl.cnv";
