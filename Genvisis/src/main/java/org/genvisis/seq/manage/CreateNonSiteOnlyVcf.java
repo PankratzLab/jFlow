@@ -47,7 +47,7 @@ public class CreateNonSiteOnlyVcf {
 		HashSet<String> samps = new HashSet<String>();
 		samps.add(randSample);
 
-		String output = VCFOps.getAppropriateRoot(vcf, false) + randSample + ".vcf";
+		String output = VCFOps.getAppropriateRoot(vcf, false) + randSample + ".vcf.gz";
 		VariantContextWriter writer = VCFOps.initWriter(output, VCFOps.DEFUALT_WRITER_OPTIONS,
 																										reader.getFileHeader().getSequenceDictionary());
 		VCFHeader header = reader.getFileHeader();
