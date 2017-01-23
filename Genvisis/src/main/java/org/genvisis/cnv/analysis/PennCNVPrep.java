@@ -253,14 +253,11 @@ public class PennCNVPrep {
 			for (int i = 0; i < shadowSamples.length; i++) {
 				shadowSamples[i] = new ShadowSample(subSamples[i], proj.getMarkerNames());
 				if (i % 200 == 0) {
-					float usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-					float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
-					float maxMemory = Runtime.getRuntime().maxMemory();
 					proj.getLog()
 							.report(ext.getTime()+ "\tData loaded = "
-											+ Math.round(((double) i / (double) shadowSamples.length * 100.0))
+											+ Math.round(((double) i / shadowSamples.length) * 100.0)
 											+ "%\tFree memory: "
-											+ Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
+											+ Math.round(((double) MemUtils.availableMem() / Runtime.getRuntime().maxMemory()) * 100.0) + "%");
 
 				}
 			}
@@ -630,6 +627,14 @@ public class PennCNVPrep {
 		// }
 		// }
 		if (shadowSamples) {
+			if (numSampleChunks == 0) {
+				// Conservatively use 75% of available memory for chunking
+				double memToUse = 0.75 * MemUtils.availableMem();
+				// Estimate worst-case memory use per thread
+				long worstCaseSize = Files.worstCaseDirSize(proj.SAMPLE_DATA_FILENAME.getValue(), "sampRAF", false);
+				numSampleChunks = (int) Math.round((worstCaseSize / memToUse) / numThreads);
+			}
+
 
 			boolean[][] batches = Array.splitUpStringArrayToBoolean(proj.getSamples(), numSampleChunks,
 																															proj.getLog());
@@ -830,7 +835,7 @@ public class PennCNVPrep {
 		boolean shadowSamples = false;
 		boolean svdRegression = false;
 		int batch = 0;
-		int sampleChunks = 10;
+		int sampleChunks = 0;
 		boolean forceLoadFromFiles = false;
 		CHROMOSOME_X_STRATEGY strategy = CHROMOSOME_X_STRATEGY.BIOLOGICAL;
 		// Ex - Recommend modifying this to run the corrections
@@ -870,7 +875,7 @@ public class PennCNVPrep {
 					"   (12) export shadow samples for quickly comparing the current sample data to corrected data(i.e. -shadow ( not the default))\n"
 							+ "";
 		usage +=
-					"   (12) if exporting shadow samples, the number of chunks to export at once (this many samples*the number of threads will be held in memory) (i.e. sampleChunks="
+					"   (12) if exporting shadow samples, the number of chunks to export at once (this many samples*the number of threads will be held in memory). A value <= 0 will make chunking determined automatically. (i.e. sampleChunks="
 							+ sampleChunks + " (default))\n" + "";
 		usage += "   (13) walltime in hours for batched run (i.e. walltime="+ wallTimeInHours
 							+ " (default))\n" + "";
