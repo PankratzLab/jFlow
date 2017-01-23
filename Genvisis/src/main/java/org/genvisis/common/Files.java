@@ -2541,6 +2541,23 @@ public class Files {
 		return System.getProperty("os.name").startsWith("Windows");
 	}
 
+	/**
+	 * A worst-case estimate of the size of all files matching the specified suffix within the given
+	 * directory. e.g. if there were 200 matching files, the largest being 20MB, this would return 200
+	 * * 20 * 1000000.
+	 */
+	public static long worstCaseDirSize(String directory, String suffix, boolean jar) {
+		String[] files = listFullPaths(directory, suffix, jar);
+
+		long size = -1;
+		// find the largest file
+		for (String f : files) {
+			size = Math.max(size, getSize(f, jar));
+		}
+
+		return files.length * size;
+	}
+
 	public static String[] listFullPaths(String directory, final String suffix, boolean jar) {
 		return list(directory, null, suffix, false, jar, true);
 	}
