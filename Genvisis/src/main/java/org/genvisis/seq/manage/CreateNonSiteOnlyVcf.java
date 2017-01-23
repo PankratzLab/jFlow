@@ -18,6 +18,7 @@ import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFFormatHeaderLine;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLineType;
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
 
 /**
  * @author takes a site only vcf, and appends a het genotype to all sites...
@@ -53,7 +54,23 @@ public class CreateNonSiteOnlyVcf {
 		VCFHeader header = reader.getFileHeader();
 
 		VCFFormatHeaderLine format = new VCFFormatHeaderLine("GT", -1, VCFHeaderLineType.String, "GT");
+		VCFInfoHeaderLine info = new VCFInfoHeaderLine(	"LEN", -1, VCFHeaderLineType.String,
+																										"Don't know what this is, was not properly in the header -jlanej");
+		VCFInfoHeaderLine info2 =
+														new VCFInfoHeaderLine("TYPE", -1, VCFHeaderLineType.String,
+				"Don't know what this is, was not properly in the header -jlanej");
+		VCFInfoHeaderLine info3 =
+														new VCFInfoHeaderLine("OLD_VARIANT", -1, VCFHeaderLineType.String,
+																									"Don't know what this is, was not properly in the header -jlanej");
+
+
+
 		header.addMetaDataLine(format);
+		header.addMetaDataLine(info);
+		header.addMetaDataLine(info2);
+		header.addMetaDataLine(info3);
+
+
 		writer.writeHeader(new VCFHeader(header.getMetaDataInInputOrder(), samps));
 
 		int count = 0;
