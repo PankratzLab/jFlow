@@ -103,6 +103,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	// Menu entry constants
 	public static final String EXIT = "Exit";
 	public static final String EDIT = "Project Properties Editor";
+	public static final String PREFERENCES = "Preferences";
 	public static final String REFRESH = "Refresh";
 	public static final String PIPELINE = "Genvisis Project Workflow";
 	public static final String NEW_PROJECT = "New Project";
@@ -186,7 +187,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		// Initialize menu structure.
 		MENUS.put("File",
 							Arrays.asList(new String[] {NEW_PROJECT, IMPORT_PROJECT, SELECT_PROJECT,
-																					DELETE_PROJECT, EDIT, "Preferences", CHECK_FOR_UPDATES,
+																					DELETE_PROJECT, EDIT, PREFERENCES, CHECK_FOR_UPDATES,
 																					EXIT}));
 		MENUS.put("Data", Arrays.asList(new String[] {MAP_FILES, GENERATE_MARKER_POSITIONS,
 																									PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}));
@@ -1111,6 +1112,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				}
 			});
 			configurator.setVisible(true);
+		} else if (command.equals(PREFERENCES)) {
+			LaunchProperties.openEditor();
 		} else if (command.equals(DELETE_PROJECT)) {
 			String toDelete = projects.get(indexOfCurrentProj);
 
