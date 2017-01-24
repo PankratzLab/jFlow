@@ -45,6 +45,8 @@ public final class MarkerStats {
 		outHeader.add("Pos");
 		outHeader.add("GC: " + gcModelName);
 		outHeader.add("LRR SD");
+		outHeader.add("BAF Mean");
+		outHeader.add("BAF SD");
 
 		List<GcAdjustorParameters> params = getParams(proj, outHeader, gcModel);
 
@@ -61,16 +63,21 @@ public final class MarkerStats {
 			final List<String> line = new ArrayList<String>();
 			String markerName = marker.getMarkerName();
 			int markerIndexInProject = markerIndices.get(markerName);
+			float bafAvg = Array.mean(marker.getBAFs(), true);
+			float bafSd = Array.stdev(marker.getBAFs(), true);
 			float lrrSd = Array.stdev(marker.getLRRs(), true);
 			line.add(markerName);
 			line.add(String.valueOf(marker.getChr()));
 			line.add(String.valueOf(marker.getPosition()));
 			line.add(gcModelHash.get(markerName).get(0));
+			line.add(String.valueOf(bafAvg));
+			line.add(String.valueOf(bafSd));
 			line.add(String.valueOf(lrrSd));
 			for (GcAdjustorParameters ps : params) {
-				float gcLrrSd = Array.stdev(marker.getGCCorrectedLRRBAF(ps, markerIndexInProject, log)[1],
-				                            true);
+				float[][] lrrbaf = marker.getGCCorrectedLRRBAF(ps, markerIndexInProject, log);
+				float gcLrrSd = Array.stdev(lrrbaf[1], true);
 				line.add(String.valueOf(gcLrrSd));
+				// NB: looks like GC correction doesn't currently affect BAF calculation. Not clear why both come back?
 			}
 
 			writer.println(Array.toStr(line, "\t"));
@@ -98,11 +105,12 @@ public final class MarkerStats {
 			gcParamsFile = GcAdjustorParameter.generateAdjustmentParameters(proj, new GCAdjustorBuilder[] {builder},
 			                                                 centParams,
 			                                                 new GC_CORRECTION_METHOD[] {GC_CORRECTION_METHOD.GENVISIS_GC},
-			                                                 model, new String[] {"GC_Correction"},
+			                                                 model, new String[] {"GC_Correction" + File.separator},
 			                                                 proj.NUM_THREADS.getValue(), false)[0][0];
 		}
 		for (String gaf : gcParamsFile) {
-			header.add(new File(gaf).getName());
+			String name = new File(gaf).getName();
+			header.add(name + ": LRR SD");
 			list.add(GcAdjustorParameters.readSerial(gaf, log));
 		}
 		return list;
