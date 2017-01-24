@@ -54,6 +54,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.LaunchProperties.LaunchKey;
 import org.genvisis.cnv.filesys.Project.GROUP;
 import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.prop.DoubleProperty;
@@ -823,7 +824,7 @@ public class ProjectPropertiesEditor extends JFrame {
 
 	private HashMap<String, String> extract() {
 		table.editingStopped(new ChangeEvent(table));
-		String projectsDir = new LaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE).getProperty(LaunchProperties.PROJECTS_DIR);
+		String projectsDir = LaunchProperties.get(LaunchKey.PROJECTS_DIR);
 		String currProjDir = proj.PROJECT_DIRECTORY.getValue();
 		int rowCount = table.getRowCount();
 

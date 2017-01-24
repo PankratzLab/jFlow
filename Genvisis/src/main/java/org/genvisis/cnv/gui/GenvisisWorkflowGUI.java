@@ -51,6 +51,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.genvisis.cnv.Launch;
+import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.GenvisisWorkflow;
 import org.genvisis.cnv.manage.GenvisisWorkflow.RequirementInputType;
@@ -93,7 +94,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 	 */
 	public GenvisisWorkflowGUI(Project proj2, final Launch launch) {
 		if (proj2 == null) {
-			proj = createNewProject(launch.getLaunchProperties().getListOfProjectNames());
+			proj = createNewProject(LaunchProperties.getListOfProjectNames());
 		} else {
 			proj = proj2;
 		}

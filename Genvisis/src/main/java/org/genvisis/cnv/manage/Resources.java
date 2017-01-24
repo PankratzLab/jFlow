@@ -15,10 +15,11 @@ import java.util.Set;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.LaunchProperties.LaunchKey;
 import org.genvisis.common.Files;
 import org.genvisis.common.HttpDownloadUtility;
 import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
 import org.genvisis.filesys.FASTA;
 import org.genvisis.seq.manage.VCFOps;
 
@@ -28,8 +29,6 @@ import org.genvisis.seq.manage.VCFOps;
 public final class Resources {
 
 	public static final String DEFAULT_URL = "http://genvisis.org/rsrc/";
-	public static final String DEFAULT_LOCAL_DIR = ext.parseDirectoryOfFile(Files.getJarLocation())
-																									+ "resources" + File.separator;
 	public static final String BIN_DIR = "bin";
 	public static final String GENOME_DIR = "Genome";
 
@@ -148,7 +147,7 @@ public final class Resources {
 	 */
 	public static class Shapeit extends AbstractResourceFactory {
 		public Shapeit(Logger log) {
-			super(DEFAULT_LOCAL_DIR + BIN_DIR + File.separator + "shapeit", "", log, Shapeit.class);
+			super(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + BIN_DIR + File.separator + "shapeit", "", log, Shapeit.class);
 		}
 
 		/**
@@ -500,7 +499,7 @@ public final class Resources {
 		private final Class<?>[] classes;
 
 		public AbstractResourceFactory(String subPath, Logger log, Class<?>... classes) {
-			this(DEFAULT_LOCAL_DIR + subPath + File.separator, DEFAULT_URL + subPath + "/", log, classes);
+			this(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + subPath + File.separator, DEFAULT_URL + subPath + "/", log, classes);
 		}
 
 		public AbstractResourceFactory(String localPath, String url, Logger log, Class<?>... classes) {

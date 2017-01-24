@@ -54,6 +54,8 @@ import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 
 public class Project implements PropertyChangeListener {
 
+	public static final String EXAMPLE_PROJ = "example";
+
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		// CAUTION: do not call setValue on the same property that spawned this propertyChangeEvent
@@ -512,7 +514,7 @@ public class Project implements PropertyChangeListener {
 	                                                                                      GROUP.IMPORT,
 	                                                                                      false, 0,
 	                                                                                      GENOME_BUILD.class);
-	public FileProperty TRAILER_REGION = new FileProperty(this, "TRAILER_REGION",
+	public FileProperty TRAILER_REGION = new FileProperty(this, PropertyKeys.KEY_TRAILER_REGION,
 	                                                      "Last region file opened in Trailer",
 	                                                      GROUP.TRAILER, true, "", false);
 

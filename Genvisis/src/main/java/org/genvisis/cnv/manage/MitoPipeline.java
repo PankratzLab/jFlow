@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Hashtable;
 
 import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.LaunchProperties.LaunchKey;
 import org.genvisis.cnv.analysis.PennCNV;
 import org.genvisis.cnv.analysis.pca.BetaOptimizer;
 import org.genvisis.cnv.analysis.pca.CorrectionIterator;
@@ -139,9 +140,9 @@ public class MitoPipeline {
 	 * Sets up the location for projects
 	 */
 	public static String initGenvisisProject() {
-		String launchPropertiesFile = LaunchProperties.DEFAULT_PROPERTIES_FILE;
-		String path = LaunchProperties.directoryOfLaunchProperties(launchPropertiesFile);
-		path = (new LaunchProperties(path + launchPropertiesFile)).getDirectory();
+		String launchPropertiesFile = LaunchProperties.propertiesFile();
+//		String path = LaunchProperties.directoryOfLaunchProperties();
+		String path = LaunchProperties.get(LaunchKey.PROJECTS_DIR);
 		// if (!new File(path + "projects/").exists()) {
 		// new File(path + "projects/").mkdirs();
 		// }

@@ -7,84 +7,156 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
-public class LaunchProperties extends Properties {
+public class LaunchProperties {
 	public static final long serialVersionUID = 1L;
 
-	public static final String DEFAULT_PROPERTIES_FILE = "launch.properties";
-	public static final String PROJECTS_DIR = "PROJECTS_DIR";
-	public static final String LAST_PROJECT_OPENED = "LAST_PROJECT_OPENED";
-	public static final String DEBUG_PROJECT_FILENAME = "DEBUG_PROJECT_FILENAME";
+	private static String propertiesFile = "launch.properties";
 
-	public String filename;
+	/**
+	 * enum of all available launch properties.
+	 */
+	public enum LaunchKey {
+													PROJECTS_DIR("projects/",
+													             true), DEBUG_PROJECT_FILENAME("DEBUG_PROJECT",
+													                                           false), LAST_PROJECT_OPENED(Project.EXAMPLE_PROJ
+													                                                                       + ".properties", false), RESOURCES_DIR("resources/",
+													                                                                                                              true);
 
-	public LaunchProperties(String filename) {
-		InputStream is;
+		private final String def;
+		private final boolean isDir;
 
-		this.filename = filename;
+		private LaunchKey(String defaultValue, boolean isDir) {
+			def = defaultValue;
+			this.isDir = isDir;
+		}
 
-		try {
-			is = new FileInputStream(filename);
-			load(is);
-			is.close();
-		} catch (Exception e) {
-			System.err.println("Failed to load \"" + filename + "\"");
+		/**
+		 * @return Default value to use for this property if it is not present in the properties file
+		 */
+		public String defaultValue() {
+			return def;
+		}
+
+		/**
+		 * @return true iff this property is a directory path that should be created on disk if it
+		 *         doesn't already exist
+		 */
+		public boolean isDir() {
+			return isDir;
+		}
+	}
+
+	private static Properties props = null;
+
+	/**
+	 * Ensure all properties are loaded, filling in default values if needed.
+	 */
+	private static synchronized void init() {
+		if (props == null) {
+			props = new Properties();
+			try {
+				File propFile = new File(propertiesFile);
+				if (!propFile.exists() && !propFile.createNewFile()) {
+					System.err.println("Failed to create launch properties: " + propertiesFile
+					                   + ". Genvisis can not continue, please check error logs.");
+					System.exit(-1);
+				}
+				InputStream is = new FileInputStream(propFile);
+				props.load(is);
+				is.close();
+
+				for (LaunchKey k : LaunchKey.values()) {
+					if (!props.containsKey(k.toString())) {
+						props.put(k.toString(), k.defaultValue());
+					}
+					String val = props.getProperty(k.toString());
+					if (k.isDir() && !Files.exists(val)) {
+						new Logger().reportTimeWarning("Did not detect launch property: " + k.toString()
+						                               + ". Creating default: " + val);
+						new File(val).mkdirs();
+					}
+				}
+				save();
+			} catch (Exception e) {
+				System.err.println("Failed to load launch properties: " + propertiesFile
+				                   + ". Genvisis can not continue, please check error logs.");
+				System.exit(-1);
+			}
 		}
 	}
 
 	/**
-	 * @return Path to directory of project .properties files
+	 * Write the current properties to disk
 	 */
-	public String getDirectory() {
-		String dir;
+	private static synchronized void save() {
+		FileOutputStream out;
 
-		dir = (String) get(PROJECTS_DIR);
-		if (dir == null || !Files.exists(dir)) {
-			new Logger().reportTimeWarning("Did not detect directory with projects (or was missing property). Defaulting to: projects/");
-			dir = "projects/";
-			new File(dir).mkdirs();
-			setProperty(PROJECTS_DIR, dir);
-			save();
+		try {
+			out = new FileOutputStream(propertiesFile);
+			props.store(out, null);
+			out.close();
+		} catch (Exception e) {
+			System.err.println("Failed to save launch properties: " + propertiesFile);
 		}
-
-		dir = ext.verifyDirFormat(dir);
-
-		return dir;
 	}
 
-	public String getFilename() {
-		return filename;
+	/**
+	 * @return The value for this key in the launch properties file
+	 */
+	public static String get(LaunchKey key) {
+		if (props == null) {
+			init();
+		}
+		String val = props.getProperty(key.toString());
+		if (key.isDir()) {
+			val = ext.verifyDirFormat(val);
+		}
+		return val;
 	}
 
-	public static String directoryOfLaunchProperties(String launchPropertiesFile) {
+	/**
+	 * Set the value of the given key in the launch properties file
+	 */
+	public static void put(LaunchKey key, String value) {
+		if (props == null) {
+			init();
+		}
+		props.put(key.toString(), value);
+		save();
+	}
+
+	public static synchronized String propertiesFile() {
+		return propertiesFile;
+	}
+
+	public static synchronized void updatePropertiesFile(String newLoc) {
+		System.err.println("Warning: changing genvisis properties file from: " + propertiesFile
+		                   + " to: " + newLoc + ". This could will fundamentally alter behavior.");
+		propertiesFile = newLoc;
+	}
+
+	/**
+	 * @return A platform-independent fully-qualified path to the launch properties file
+	 */
+	public static String directoryOfLaunchProperties() {
 		String path = null;
 		try {
-			path = ext.parseDirectoryOfFile(new File(launchPropertiesFile).getCanonicalPath());
+			path = ext.parseDirectoryOfFile(new File(propertiesFile).getCanonicalPath());
 		} catch (IOException ioe) {
 			path = "";
 		}
 		return path;
 	}
 
-	public void save() {
-		FileOutputStream out;
-
-		try {
-			out = new FileOutputStream(filename);
-			store(out, null);
-			out.close();
-		} catch (Exception e) {
-			System.err.println("Failed to save \"" + filename + "\"");
-		}
-	}
-
 	/**
 	 * @return A list of the short name (no directory or {@code .properties}) for each known project.
 	 */
-	public String[] getListOfProjectNames() {
+	public static String[] getListOfProjectNames() {
 		String[] projects = getListOfProjectProperties();
 		String[] projectNames = new String[projects.length];
 		for (int i = 0; i < projectNames.length; i++) {
@@ -96,7 +168,7 @@ public class LaunchProperties extends Properties {
 	/**
 	 * @return An array of all known {@code *.properties} files.
 	 */
-	public String[] getListOfProjectProperties() {
-		return Files.list(getDirectory(), ".properties", false);
+	public static String[] getListOfProjectProperties() {
+		return Files.list(get(LaunchKey.PROJECTS_DIR), ".properties", false);
 	}
 }
