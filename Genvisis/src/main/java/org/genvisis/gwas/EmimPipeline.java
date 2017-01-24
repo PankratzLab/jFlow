@@ -280,7 +280,7 @@ public class EmimPipeline {
 			log.reportError("No pipeline pbs scripts generated, to re-run EMIM remove/rename the existing directories");
 		}
 
-		String processCommand = "cd " + runDir;
+		String processCommand = "cd " + runDir + "\n";
 		
 		processCommand += Files.getRunString()	+ " gwas.EmimPipeline -process -forest dir="
 														+ runDir;
@@ -300,7 +300,7 @@ public class EmimPipeline {
 		Files.qsub(runDir + "/processResults.pbs", processCommand, 8000, 6, 1);
 
 		log.report("PBS script for post-pipeline processing generated, submit "	+ runDir
-								+ "/processResults.pbs after the pipeline has completed to process results");
+								+ "processResults.pbs after the pipeline has completed to process results");
 
 
 	}
@@ -727,7 +727,7 @@ public class EmimPipeline {
 			if (logFile != null) {
 				log = new Logger(logFile);
 			}
-			runDir = new File(runDir).getCanonicalPath();
+			runDir = ext.verifyDirFormat(new File(runDir).getCanonicalPath());
 			if (process || forest) {
 				if (process) {
 					System.out.println("Processing EMIM results...");
