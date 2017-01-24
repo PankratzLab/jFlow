@@ -44,48 +44,69 @@ public class ResultsPackager {
 	public static final String[] EMIM_OUTPUT_FORMAT_TDT =
 																											{	"tdt_T", "tdt_U", "tdt_OR", "tdt_P",
 																												"tdt_L95", "tdt_U95", "tdt_BETA", "tdt_SE"};
-	public static final String[] EMIM_OUTPUT_FORMAT_EMIM_RESULTS = {"freq", "C_lnR1", "C_se_lnR1",
-																																	"C_lnR2", "C_se_lnR2", "C_lnS1",
+	public static final String[] EMIM_OUTPUT_FORMAT_EMIM_RESULTS = {"freq",
+
+																																	"C_lnR1", "C_se_lnR1", "C_lnR2",
+																																	"C_se_lnR2", "C_lnS1",
 																																	"C_se_lnS1", "C_lnS2",
-																																	"C_se_lnS2", "CM_lnR1",
-																																	"CM_se_lnR1", "CM_lnR2",
-																																	"CM_se_lnR2", "CM_lnS1",
-																																	"CM_se_lnS1", "CM_lnS2",
-																																	"CM_se_lnS2", "M_lnR1",
-																																	"M_se_lnR1", "M_lnR2",
+																																	"C_se_lnS2",
+
+																																	"CM_lnR1", "CM_se_lnR1",
+																																	"CM_lnR2", "CM_se_lnR2",
+																																	"CM_lnS1", "CM_se_lnS1",
+																																	"CM_lnS2", "CM_se_lnS2",
+
+																																	"CIm_lnR1", "CIm_se_lnR1",
+																																	"CIm_lnR2", "CIm_se_lnR2",
+																																	"CIm_lnIm", "CIm_se_lnIm",
+
+																																	"CIp_lnR1", "CIp_se_lnR1",
+																																	"CIp_lnR2", "CIp_se_lnR2",
+																																	"CIp_lnIm", "CIp_se_lnIm",
+
+																																	"M_lnR1", "M_se_lnR1", "M_lnR2",
 																																	"M_se_lnR2", "M_lnS1",
 																																	"M_se_lnS1", "M_lnS2",
-																																	"M_se_lnS2", "POO_lnIm",
-																																	"POO_se_lnIm", "POO_lnIp",
-																																	"POO_se_lnIp"};
+																																	"M_se_lnS2",
+
+																																	"POO_lnIm", "POO_se_lnIm",
+																																	"POO_lnIp", "POO_se_lnIp"};
 	public static final String[] EMIM_OUTPUT_FORMAT_EMIM_PVALS = {"pVal_C_df2", "pVal_C_df2_Excel",
 																																"pVal_C_df1", "pVal_C_df1_Excel",
+
 																																"pVal_M_df2", "pVal_M_df2_Excel",
 																																"pVal_M_df1", "pVal_M_df1_Excel",
+
 																																"pVal_CM-C_df2",
 																																"pVal_CM-C_df2_Excel",
 																																"pVal_CM-C_df1",
 																																"pVal_CM-C_df1_Excel",
+
 																																"pVal_CM-M_df2",
 																																"pVal_CM-M_df2_Excel",
 																																"pVal_CM-M_df1",
 																																"pVal_CM-M_df1_Excel",
-																																"pVal_Im_df1",
-																																"pVal_Im_df1_Excel",
-																																"pVal_Ip_df1",
-																																"pVal_Ip_df1_Excel"};
+
+																																"pVal_CIm-C_df2",
+																																"pVal_CIm-C_df2_Excel",
+																																"pVal_CIm-C_df1",
+																																"pVal_CIm-C_df1_Excel",
+
+																																"pVal_CIp-C_df2",
+																																"pVal_CIp-C_df2_Excel",
+																																"pVal_CIp-C_df1",
+																																"pVal_CIp-C_df1_Excel",
+
+																																"pVal_Im_df1", "pVal_Im_df1_Excel",
+																																"pVal_Ip_df1", "pVal_Ip_df1_Excel"};
 
 	public static final String[] PLINK_REQS = {"SNP", "A1", "TEST", "NMISS", "OR", "BETA", "SE", "P"};
 	public static final String[] SOL_REQS = {	"Variant_ID", "Beta", "Se", "Pvalue", "CAF", "CAC", "N0",
 																						"N1", "N2", "NMISS"};
 	// Standard Errors in emimsummary.out are currently labeled "sd"
 	public static final String[] EMIM_REQS = {"snpID", "freq", "lnR1", "sd_lnR1", "lnR2", "sd_lnR2",
-																						"lnS1", "sd_lnS1", "lnS2", "sd_lnS2", "lnliknull",
+																						"lnS1", "sd_lnS1", "lnS2", "sd_lnS2", "lnIm", "sd_lnIm", "lnIp", "sd_lnIp", "lnliknull",
 																						"lnlikfull"};
-	public static final String[] EMIM_IM_REQS = {"snpID", "freq", "lnIm", "sd_lnIm", "lnliknull",
-																						"lnlikfull"};
-	public static final String[] EMIM_IP_REQS = {"snpID", "freq", "lnIp", "sd_lnIp", "lnliknull",
-																							"lnlikfull"};
 	public static final String[] TDT_REQS = {"T", "U", "OR", "P", "L95", "U95"};
 
 	public static void parseIBCFormatFromGWAF(String dir, String resultsFile, String mapFile,
@@ -522,7 +543,7 @@ public class ResultsPackager {
 	
 
 	public static void parseEmimFormat(	String resultsFileC, String resultsFileM,
-																			String resultsFileCM, String resultsFileIm,
+																			String resultsFileCM, String resultsFileCIm, String resultsFileCIp, String resultsFileIm,
 																			String resultsFileIp, String tdtResultsFile, String mapFile,
 																			String mendelErrorFile, String hweFile, String frqFile,
 																			double pValueThreshold, String outfile, Logger log) {
@@ -597,17 +618,30 @@ public class ResultsPackager {
 			String[] lineCM = temp.split(delimiterCM);
 			Map<String, Integer> indicesCM = ext.indexMap(EMIM_REQS, lineCM, false, log, false, false); // TODO EMIM_REQS specific to estimate
 			
+			BufferedReader readerCIm = Files.getAppropriateReader(resultsFileCIm);
+			temp = readerCIm.readLine().trim();
+			String delimiterCIm = ext.determineDelimiter(temp);
+			String[] lineCIm = temp.split(delimiterCIm);
+			Map<String, Integer> indicesCIm = ext.indexMap(EMIM_REQS, lineCIm, false, log, false, false); // TODO EMIM_REQS specific to estimate
+			
+			BufferedReader readerCIp = Files.getAppropriateReader(resultsFileCIp);
+			temp = readerCIp.readLine().trim();
+			String delimiterCIp = ext.determineDelimiter(temp);
+			String[] lineCIp = temp.split(delimiterCIp);
+			Map<String, Integer> indicesCIp = ext.indexMap(EMIM_REQS, lineCIp, false, log, false, false); // TODO EMIM_REQS specific to estimate
+			
+			
 			BufferedReader readerIm = Files.getAppropriateReader(resultsFileIm);
 			temp = readerIm.readLine().trim();
 			String delimiterIm = ext.determineDelimiter(temp);
 			String[] lineIm = temp.split(delimiterIm);
-			Map<String, Integer> indicesIm = ext.indexMap(EMIM_IM_REQS, lineIm, false, log, false, false);
+			Map<String, Integer> indicesIm = ext.indexMap(EMIM_REQS, lineIm, false, log, false, false);
 			
 			BufferedReader readerIp = Files.getAppropriateReader(resultsFileIp);
 			temp = readerIp.readLine().trim();
 			String delimiterIp = ext.determineDelimiter(temp);
 			String[] lineIp = temp.split(delimiterIp);
-			Map<String, Integer> indicesIp = ext.indexMap(EMIM_IP_REQS, lineIp, false, log, false, false);
+			Map<String, Integer> indicesIp = ext.indexMap(EMIM_REQS, lineIp, false, log, false, false);
 			
 
 			writer.println(Array.toStr(EMIM_OUTPUT_FORMAT_SNPS)
@@ -641,6 +675,14 @@ public class ResultsPackager {
 																								"            NaN")
 												.trim().split(delimiterCM, -1);
 				
+				lineCIm = readerCIm.readLine().replaceAll(	"\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
+						"            NaN")
+						.trim().split(delimiterCIm, -1);
+				
+				lineCIp = readerCIp.readLine().replaceAll(	"\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
+						"            NaN")
+						.trim().split(delimiterCIp, -1);
+				
 				lineIm = readerIm	.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
 																								"            NaN")
 													.trim().split(delimiterIm, -1);
@@ -651,11 +693,15 @@ public class ResultsPackager {
 				if (!lineC[indicesC.get("snpID")].equals(lineM[indicesM.get("snpID")])
 						|| !lineC[indicesC.get("snpID")].equals(lineCM[indicesCM.get("snpID")])
 						|| !lineC[indicesC.get("snpID")].equals(lineIm[indicesIm.get("snpID")])
+						|| !lineC[indicesC.get("snpID")].equals(lineIp[indicesIp.get("snpID")])
+						|| !lineC[indicesC.get("snpID")].equals(lineIm[indicesIm.get("snpID")])
 						|| !lineC[indicesC.get("snpID")].equals(lineIp[indicesIp.get("snpID")])) {
 					log.reportError("Error - SNP ID in the files are not lined up. Child SNP ID: "
 														+ lineC[indicesC.get("snpID")] + "; Mom SNP ID: "
 													+ lineM[indicesM.get("snpID")] + "; ChildMom SNP ID: "
-													+ lineCM[indicesCM.get("snpID")] + "; Mat Imprinting SNP ID: "
+													+ lineCM[indicesCM.get("snpID")] + "; ChildMat Imp SNP ID: "
+															+ lineIm[indicesIm.get("snpID")] + "; ChildPat Imp SNP ID: "
+																	+ lineIp[indicesIp.get("snpID")] + "; Mat Imprinting SNP ID: "
 															+ lineIm[indicesIm.get("snpID")] + "; Pat Imprinting SNP ID: "
 																	+ lineIp[indicesIp.get("snpID")] + ".");
 					return;
@@ -665,6 +711,8 @@ public class ResultsPackager {
 														Double.parseDouble(lineM[indicesM.get("lnliknull")]),
 														Double.parseDouble(lineM[indicesM.get("lnlikfull")]),
 														Double.parseDouble(lineCM[indicesCM.get("lnlikfull")]),
+														Double.parseDouble(lineCIm[indicesCIm.get("lnlikfull")]),
+														Double.parseDouble(lineCIp[indicesCIp.get("lnlikfull")]),
 														Double.parseDouble(lineIm[indicesIm.get("lnliknull")]),
 														Double.parseDouble(lineIm[indicesIm.get("lnlikfull")]),
 														Double.parseDouble(lineIp[indicesIp.get("lnliknull")]),
@@ -684,6 +732,8 @@ public class ResultsPackager {
 																						lineM[indicesM.get("lnliknull")],
 																						lineM[indicesM.get("lnlikfull")],
 																						lineCM[indicesCM.get("lnlikfull")],
+																						lineCIm[indicesCIm.get("lnlikfull")],
+																						lineCIp[indicesCIp.get("lnlikfull")],
 																						lineIm[indicesIm.get("lnliknull")],
 																						lineIm[indicesIm.get("lnlikfull")],
 																						lineIp[indicesIp.get("lnliknull")],
@@ -696,13 +746,17 @@ public class ResultsPackager {
 					// + pvalEquations[0] + "\t" + pvals[1] + "\t" + pvalEquations[1] + "\t" + pvals[2] + "\t"
 					// + pvalEquations[2]);
 					writer.println(getOutputString(	snpList, mendelErrors, hwe, hweThreshold, freq, lineC,
-																					indicesC, lineM, indicesM, lineCM, indicesCM, lineIm, indicesIm, lineIp, indicesIp, tdtResults,
+																					indicesC, lineM, indicesM, lineCM, indicesCM, lineCIm, indicesCIm, lineCIp, indicesCIp, lineIm, indicesIm, lineIp, indicesIp, tdtResults,
 																					pvals, pvalEquations, log));
 				}
 			}
 			readerC.close();
 			readerCM.close();
+			readerCIm.close();
+			readerCIp.close();
 			readerM.close();
+			readerIm.close();
+			readerIp.close();
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: one of the files was not found within the directory");
@@ -718,7 +772,8 @@ public class ResultsPackager {
 
 	private static double[] getPvalues(	double logLikilihood_null_C, double logLikilihood_full_C,
 																			double logLikilihood_null_M, double logLikilihood_full_M,
-																			double logLikilihood_full_CM, double logLikilihood_null_Im,
+																			double logLikilihood_full_CM, double logLikilihood_full_CIm,
+																			double logLikilihood_full_CIp, double logLikilihood_null_Im,
 																			double logLikilihood_full_Im, double logLikilihood_null_Ip,
 																			double logLikilihood_full_Ip, Logger log) {
 
@@ -731,6 +786,10 @@ public class ResultsPackager {
 													getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_C), 1, log),
 													getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_M), 2, log),
 													getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_M), 1, log),
+													getPvalue(2 * (logLikilihood_full_CIm - logLikilihood_full_C), 2, log),
+													getPvalue(2 * (logLikilihood_full_CIm - logLikilihood_full_C), 1, log),
+													getPvalue(2 * (logLikilihood_full_CIp - logLikilihood_full_C), 2, log),
+													getPvalue(2 * (logLikilihood_full_CIp - logLikilihood_full_C), 1, log),
 													getPvalue(2 * (logLikilihood_full_Im - logLikilihood_null_Im), 1, log),
 													getPvalue(2 * (logLikilihood_full_Ip - logLikilihood_null_Ip), 1, log)};
 	}
@@ -758,6 +817,8 @@ public class ResultsPackager {
 																						String logLikilihood_null_M,
 																						String logLikilihood_full_M,
 																						String logLikilihood_full_CM,
+																						String logLikilihood_full_CIm,
+																						String logLikilihood_full_CIp,
 																						String logLikilihood_null_Im,
 																						String logLikilihood_full_Im,
 																						String logLikilihood_null_Ip,
@@ -773,6 +834,10 @@ public class ResultsPackager {
 													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_C + "),1,TRUE)",
 													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M + "),2,TRUE)",
 													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M + "),1,TRUE)",
+													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CIm + "-" + logLikilihood_full_C + "),2,TRUE)",
+													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CIm + "-" + logLikilihood_full_C + "),1,TRUE)",
+													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CIp + "-" + logLikilihood_full_C + "),2,TRUE)",
+													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CIp + "-" + logLikilihood_full_C + "),1,TRUE)",
 													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_Im + "-" + logLikilihood_null_Im + "),1,TRUE)",
 													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_Ip + "-" + logLikilihood_null_Ip + "),1,TRUE)"};
 	}
@@ -783,6 +848,8 @@ public class ResultsPackager {
 																				String freq, String[] lineC, Map<String, Integer> indicesC,
 																				String[] lineM, Map<String, Integer> indicesM,
 																				String[] lineCM, Map<String, Integer> indicesCM,
+																				String[] lineCIm, Map<String, Integer> indicesCIm,
+																				String[] lineCIp, Map<String, Integer> indicesCIp,
 																				String[] lineIm, Map<String, Integer> indicesIm,
 																				String[] lineIp, Map<String, Integer> indicesIp,
 																				Hashtable<String, String[]> tdtResults, double[] pvals,
@@ -838,21 +905,34 @@ public class ResultsPackager {
 				tmp += "\t" + (!Numbers.isFinite(beta) ? "." : beta);
 				tmp += "\t" + (!Numbers.isFinite(se) ? "." : se);
 			}
-			result = snpList.get(index)	+ tmp + "\t" + freq + "\t" + lineC[indicesC.get("lnR1")] + "\t"
-								+ lineC[indicesC.get("sd_lnR1")] + "\t" + lineC[indicesC.get("lnR2")] + "\t"
-								+ lineC[indicesC.get("sd_lnR2")] + "\t" + lineC[indicesC.get("lnS1")] + "\t"
-								+ lineC[indicesC.get("sd_lnS1")] + "\t" + lineC[indicesC.get("lnS2")] + "\t"
-								+ lineC[indicesC.get("sd_lnS2")] + "\t" + lineCM[indicesCM.get("lnR1")] + "\t"
-								+ lineCM[indicesCM.get("sd_lnR1")] + "\t" + lineCM[indicesCM.get("lnR2")] + "\t"
-								+ lineCM[indicesCM.get("sd_lnR2")] + "\t" + lineCM[indicesCM.get("lnS1")] + "\t"
-								+ lineCM[indicesCM.get("sd_lnS1")] + "\t" + lineCM[indicesCM.get("lnS2")] + "\t"
-								+ lineCM[indicesCM.get("sd_lnS2")] + "\t" + lineM[indicesM.get("lnR1")] + "\t"
-								+ lineM[indicesM.get("sd_lnR1")] + "\t" + lineM[indicesM.get("lnR2")] + "\t"
-								+ lineM[indicesM.get("sd_lnR2")] + "\t" + lineM[indicesM.get("lnS1")] + "\t"
-								+ lineM[indicesM.get("sd_lnS1")] + "\t" + lineM[indicesM.get("lnS2")] + "\t"
-								+ lineM[indicesM.get("sd_lnS2")] + "\t" + lineIm[indicesIm.get("lnIm")] + "\t"
-										+ lineIm[indicesIm.get("sd_lnIm")] + "\t" + lineIp[indicesIp.get("lnIp")] + "\t"
-												+ lineIp[indicesIp.get("sd_lnIp")];
+			result = snpList.get(index)	+ tmp + "\t" + freq + "\t"
+
+								+ lineC[indicesC.get("lnR1")] + "\t" + lineC[indicesC.get("sd_lnR1")] + "\t"
+								+ lineC[indicesC.get("lnR2")] + "\t" + lineC[indicesC.get("sd_lnR2")] + "\t"
+								+ lineC[indicesC.get("lnS1")] + "\t" + lineC[indicesC.get("sd_lnS1")] + "\t"
+								+ lineC[indicesC.get("lnS2")] + "\t" + lineC[indicesC.get("sd_lnS2")] + "\t"
+
+								+ lineCM[indicesCM.get("lnR1")] + "\t" + lineCM[indicesCM.get("sd_lnR1")] + "\t"
+								+ lineCM[indicesCM.get("lnR2")] + "\t" + lineCM[indicesCM.get("sd_lnR2")] + "\t"
+								+ lineCM[indicesCM.get("lnS1")] + "\t" + lineCM[indicesCM.get("sd_lnS1")] + "\t"
+								+ lineCM[indicesCM.get("lnS2")] + "\t" + lineCM[indicesCM.get("sd_lnS2")] + "\t"
+
+								+ lineCIm[indicesCIm.get("lnR1")] + "\t" + lineCIm[indicesCIm.get("sd_lnR1")] + "\t"
+								+ lineCIm[indicesCIm.get("lnR2")] + "\t" + lineCIm[indicesCIm.get("sd_lnR2")] + "\t"
+								+ lineCIm[indicesCIm.get("lnIm")] + "\t" + lineCIm[indicesCIm.get("sd_lnIm")] + "\t"
+
+								+ lineCIp[indicesCIp.get("lnR1")] + "\t" + lineCIp[indicesCIp.get("sd_lnR1")] + "\t"
+								+ lineCIp[indicesCIp.get("lnR2")] + "\t" + lineCIp[indicesCIp.get("sd_lnR2")] + "\t"
+								+ lineCIp[indicesCIp.get("lnIp")] + "\t" + lineCIp[indicesCIp.get("sd_lnIp")] + "\t"
+
+								+ lineM[indicesM.get("lnR1")] + "\t" + lineM[indicesM.get("sd_lnR1")] + "\t"
+								+ lineM[indicesM.get("lnR2")] + "\t" + lineM[indicesM.get("sd_lnR2")] + "\t"
+								+ lineM[indicesM.get("lnS1")] + "\t" + lineM[indicesM.get("sd_lnS1")] + "\t"
+								+ lineM[indicesM.get("lnS2")] + "\t" + lineM[indicesM.get("sd_lnS2")] + "\t"
+
+								+ lineIm[indicesIm.get("lnIm")] + "\t" + lineIm[indicesIm.get("sd_lnIm")] + "\t"
+
+								+ lineIp[indicesIp.get("lnIp")] + "\t" + lineIp[indicesIp.get("sd_lnIp")];
 			// result = snpList.get(index) + "\t" + lineC[indicesC[1]];
 			for (int i = 0; i < pvals.length; i++) {
 				result += "\t" + pvals[i] + "\t" + pvalEquations[i];
@@ -1121,6 +1201,8 @@ public class ResultsPackager {
 		String resultsFileC = null;
 		String resultsFileM = null;
 		String resultsFileCM = null;
+		String resultsFileCIm = null;
+		String resultsFileCIp = null;
 		String resultsFileIm = null;
 		String resultsFileIp = null;
 		String resultsFileTdt = null;
@@ -1169,15 +1251,22 @@ public class ResultsPackager {
 			} else if (arg.startsWith("resultsmom=")) {
 				resultsFileM = arg.split("=")[1];
 				numArgs--;
-			} else if (arg.startsWith("resultsImpM=")) {
+			} else if (arg.startsWith("resultschildmom=")) {
 				resultsFileCM = arg.split("=")[1];
 				numArgs--;
-			} else if (arg.startsWith("resultsImpP=")) {
+			} else if (arg.startsWith("resultschildImpM=")) {
+				resultsFileCIm = arg.split("=")[1];
+				numArgs--;
+			} else if (arg.startsWith("resultschildImpP=")) {
+				resultsFileCIp = arg.split("=")[1];
+				numArgs--;
+			} else if (arg.startsWith("resultsImpM=")) {
 				resultsFileIm = arg.split("=")[1];
 				numArgs--;
-			} else if (arg.startsWith("resultschildmom=")) {
+			} else if (arg.startsWith("resultsImpP=")) {
 				resultsFileIp = arg.split("=")[1];
 				numArgs--;
+
 			} else if (arg.startsWith("resultstdt=")) {
 				resultsFileTdt = arg.split("=")[1];
 				numArgs--;
@@ -1404,7 +1493,7 @@ public class ResultsPackager {
 												"N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt", freqFile,
 												markersToReport, filter, callRateThreshold, outfile, log);
 			} else if (type.equalsIgnoreCase("emim")) {
-				parseEmimFormat(resultsFileC, resultsFileM, resultsFileCM, resultsFileIm, resultsFileIp, resultsFileTdt,
+				parseEmimFormat(resultsFileC, resultsFileM, resultsFileCM, resultsFileCIm, resultsFileCIp, resultsFileIm, resultsFileIp, resultsFileTdt,
 												mapFile, mendelErrorFile, hweFile, freqFile, pThreshold, outfile, log);
 			} else if (type.equalsIgnoreCase("forest")) {
 				String mkrFile = "/home/pankrat2/shared/Poynter_emim/gwasHits.txt";

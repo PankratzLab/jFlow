@@ -160,6 +160,44 @@ public class Emim {
 					log.reportError("Invalid EMIM model for " + runType + " run type: " + model.toString());
 					return;
 			}
+		} else if (runType.equals("CIm")) {
+			switch (model) {
+				case GENOTYPIC:
+					setParams.add(EMIM_PARAM.ESTIMATE_R1);
+					setParams.add(EMIM_PARAM.ESTIMATE_R2);
+					setParams.add(EMIM_PARAM.ESTIMATE_IM);
+					break;
+				case DOMINANT:
+					setParams.add(EMIM_PARAM.R2_EQUALS_R1);
+					setParams.add(EMIM_PARAM.ESTIMATE_IM);
+					break;
+				case ADDITIVE:
+					setParams.add(EMIM_PARAM.R2_EQUALS_R1_SQUARED);
+					setParams.add(EMIM_PARAM.ESTIMATE_IM);
+					break;
+				default:
+					log.reportError("Invalid EMIM model for " + runType + " run type: " + model.toString());
+					return;
+			}
+		} else if (runType.equals("CIp")) {
+			switch (model) {
+				case GENOTYPIC:
+					setParams.add(EMIM_PARAM.ESTIMATE_R1);
+					setParams.add(EMIM_PARAM.ESTIMATE_R2);
+					setParams.add(EMIM_PARAM.ESTIMATE_IP);
+					break;
+				case DOMINANT:
+					setParams.add(EMIM_PARAM.R2_EQUALS_R1);
+					setParams.add(EMIM_PARAM.ESTIMATE_IP);
+					break;
+				case ADDITIVE:
+					setParams.add(EMIM_PARAM.R2_EQUALS_R1_SQUARED);
+					setParams.add(EMIM_PARAM.ESTIMATE_IP);
+					break;
+				default:
+					log.reportError("Invalid EMIM model for " + runType + " run type: " + model.toString());
+					return;
+			}
 		} else if (runType.equals("M")) {
 			switch (model) {
 				case GENOTYPIC:
@@ -337,6 +375,8 @@ public class Emim {
 				runIDs.add("C");
 				runIDs.add("M");
 				runIDs.add("CM");
+				runIDs.add("CIm");
+				runIDs.add("CIp");
 			}
 			Set<String> outputs = Sets.newHashSet();
 			outputs.add((resultPrefix == null ? "" : resultPrefix + "_")	+ "results_pVals_"
@@ -442,6 +482,8 @@ public class Emim {
 		String resultsFileC = dir + "emimsummary_C_" + model.toString() + ".out";
 		String resultsFileM = dir + "emimsummary_M_" + model.toString() + ".out";
 		String resultsFileCM = dir + "emimsummary_CM_" + model.toString() + ".out";
+		String resultsFileCIm = dir + "emimsummary_CIm_" + model.toString() + ".out";
+		String resultsFileCIp = dir + "emimsummary_CIp_" + model.toString() + ".out";
 		String resultsFileIm = dir + "emimsummary_POO_Imprinting_M.out";
 		String resultsFileIp = dir + "emimsummary_POO_Imprinting_P.out";
 		String resultsFileTdt = dir + "plink.tdt";
@@ -450,7 +492,7 @@ public class Emim {
 		String outfile = dir	+ (resultPrefix == null ? "" : resultPrefix + "_") + "results_pVals_"
 											+ model.toString() + ".xln";
 
-		ResultsPackager.parseEmimFormat(resultsFileC, resultsFileM, resultsFileCM, resultsFileIm,
+		ResultsPackager.parseEmimFormat(resultsFileC, resultsFileM, resultsFileCM, resultsFileCIm, resultsFileCIp, resultsFileIm,
 																		resultsFileIp, resultsFileTdt, mapFile, mendelErrorFile,
 																		hweFile, frqFile, pValueThreshold, outfile,
 																		new Logger("EMIMparser.log"));
