@@ -282,7 +282,14 @@ public final class Resources {
 		}
 
 		/**
-		 * Helper method for formatting resource path
+		 * @return .dat list of known problematic regions (e.g. centromere, chromosome ends)
+		 */
+		public Resource getProblematicRegions() {
+			return getResource(build.getBuild() + "/problematicRegions_" + build.getBuild() + ".dat");
+		}
+
+		/**
+		 * Helper method for formatting resource path: formatted "{build}/{build}", e.g. for "hg19/hg19.fa"
 		 */
 		private String getPath() {
 			String b = build.getBuild();
