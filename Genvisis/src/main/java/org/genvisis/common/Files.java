@@ -2361,7 +2361,7 @@ public class Files {
 		int size = -1;
 
 		try {
-			if (Files.exists(filename, jar)) {
+			if (Files.exists(filename, jar, false)) {
 				if (jar) {
 					size = ClassLoader.getSystemResourceAsStream(filename).available();
 				} else {
