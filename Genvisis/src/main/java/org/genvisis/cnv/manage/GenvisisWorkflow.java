@@ -1326,7 +1326,7 @@ public class GenvisisWorkflow {
 			boolean checkStepSampleQC = stepSelections.get(S6_SAMPLE_QC)
 																	&& S6_SAMPLE_QC.hasRequirements(proj, stepSelections, variables);
 			String sampleQCFile = proj.SAMPLE_QC_FILENAME.getValue();
-			boolean sampleQCFileExists = Files.exists(sampleQCFile);
+			boolean sampleQCFileExists = Files.exists(sampleQCFile, false, true);
 			String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue();
 			boolean checkDuplicates = !Boolean.parseBoolean(variables.get(this).get(0));
 			String dir = "plink/";
