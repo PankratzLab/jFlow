@@ -650,8 +650,12 @@ public class GcAdjustorParameter implements Serializable {
 		}
 
 		public void writeSerial(String filename) {
-			System.out.println("writing " + filename);
-			SerializedFiles.writeSerial(this, filename, true);
+			if (!SerializedFiles.writeSerial(this, filename, true)) {
+				System.out.println("Writing " + filename + " failed.");
+				System.exit(-1);
+			} else {
+				System.out.println("Created " + filename);
+			}
 		}
 
 		public static GcAdjustorParameters readSerial(String filename, Logger log) {

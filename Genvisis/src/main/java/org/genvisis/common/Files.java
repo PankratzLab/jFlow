@@ -2462,6 +2462,17 @@ public class Files {
 	}
 
 	/**
+	 * Ensures all parent directories of the given file exist.
+	 *
+	 * @see {@link File#mkdirs()}
+	 */
+	public static boolean ensurePathExists(String filename) {
+		String dir = ext.parseDirectoryOfFile(filename);
+		File f = new File(dir);
+		return f.mkdirs();
+	}
+
+	/**
 	 * @param dir directory, set to "" if full paths
 	 * @param verbose report an error to the log for each filename missing
 	 * @param log
