@@ -62,7 +62,7 @@ public class ResultsPackager {
 
 																																	"CIp_lnR1", "CIp_se_lnR1",
 																																	"CIp_lnR2", "CIp_se_lnR2",
-																																	"CIp_lnIm", "CIp_se_lnIm",
+																																	"CIp_lnIp", "CIp_se_lnIp",
 
 																																	"M_lnR1", "M_se_lnR1", "M_lnR2",
 																																	"M_se_lnR2", "M_lnS1",
@@ -692,16 +692,16 @@ public class ResultsPackager {
 
 				if (!lineC[indicesC.get("snpID")].equals(lineM[indicesM.get("snpID")])
 						|| !lineC[indicesC.get("snpID")].equals(lineCM[indicesCM.get("snpID")])
-						|| !lineC[indicesC.get("snpID")].equals(lineIm[indicesIm.get("snpID")])
-						|| !lineC[indicesC.get("snpID")].equals(lineIp[indicesIp.get("snpID")])
+						|| !lineC[indicesC.get("snpID")].equals(lineCIm[indicesIm.get("snpID")])
+						|| !lineC[indicesC.get("snpID")].equals(lineCIp[indicesIp.get("snpID")])
 						|| !lineC[indicesC.get("snpID")].equals(lineIm[indicesIm.get("snpID")])
 						|| !lineC[indicesC.get("snpID")].equals(lineIp[indicesIp.get("snpID")])) {
 					log.reportError("Error - SNP ID in the files are not lined up. Child SNP ID: "
 														+ lineC[indicesC.get("snpID")] + "; Mom SNP ID: "
 													+ lineM[indicesM.get("snpID")] + "; ChildMom SNP ID: "
 													+ lineCM[indicesCM.get("snpID")] + "; ChildMat Imp SNP ID: "
-															+ lineIm[indicesIm.get("snpID")] + "; ChildPat Imp SNP ID: "
-																	+ lineIp[indicesIp.get("snpID")] + "; Mat Imprinting SNP ID: "
+															+ lineCIm[indicesCIm.get("snpID")] + "; ChildPat Imp SNP ID: "
+																	+ lineCIp[indicesCIp.get("snpID")] + "; Mat Imprinting SNP ID: "
 															+ lineIm[indicesIm.get("snpID")] + "; Pat Imprinting SNP ID: "
 																	+ lineIp[indicesIp.get("snpID")] + ".");
 					return;
