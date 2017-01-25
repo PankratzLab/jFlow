@@ -1120,6 +1120,33 @@ public class Array {
 	}
 
 	/**
+	 * Calculates the mean distance from a value of all values in a float array
+	 *
+	 * @param array an array of numbers
+	 * @param val value to measure distance from
+	 * @return mean of the array
+	 */
+	public static float meanDist(float[] array, float val, boolean ignoreNaN) {
+		float sum;
+		int count;
+
+		sum = 0;
+		count = 0;
+		for (int i = 0; i < array.length; i++) {
+			if (!Float.isNaN(array[i]) || !ignoreNaN) {
+				sum += Math.abs(array[i] - val);
+				count++;
+			}
+		}
+
+		if (count == 0) {
+			return Float.NaN;
+		}
+
+		return sum / count;
+	}
+
+	/**
 	 * Calculates the mean of an array
 	 *
 	 * @param array an array of numbers
@@ -3213,17 +3240,25 @@ public class Array {
 	}
 
 	/**
+	 * As {@link #subArrayInRange(float[], boolean[], float, float)}, using all samples by default.
+	 */
+	public static float[] subArrayInRange(float[] array, float min, float max) {
+		boolean[] use = booleanArray(array.length, true);
+		return subArrayInRange(array, use, min, max);
+	}
+
+	/**
 	 * Creates a new array using only the float values within the given range.
 	 *
 	 * @param array base array to filter
+	 * @param use indices of array to use
 	 * @param min smallest value to include in array
 	 * @param max largest value to include in array
 	 * @return an array of values filtered to the specified range
 	 */
-	public static float[] subArrayInRange(float[] array, float min, float max) {
-		boolean[] use = new boolean[array.length];
+	public static float[] subArrayInRange(float[] array, boolean[] use, float min, float max) {
 		for (int i=0; i<array.length; i++) {
-			use[i] = Float.compare(array[i], min) >= 0 && Float.compare(array[i], max) <= 0;
+			use[i] = use[i] && (Float.compare(array[i], min) >= 0 && Float.compare(array[i], max) <= 0);
 		}
 		return subArray(array, use);
 	}

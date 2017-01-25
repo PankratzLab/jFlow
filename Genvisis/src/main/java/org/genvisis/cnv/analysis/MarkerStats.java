@@ -17,6 +17,7 @@ import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.cnv.qc.GcAdjustorParameter;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -24,6 +25,8 @@ import org.genvisis.common.Logger;
 
 /**
  * Generate marker-dominant LRR SD values, potentially including any number of GC correction models.
+ *
+ * TODO - should this be unified with {@link MarkerMetrics}?
  */
 public final class MarkerStats {
 
@@ -45,7 +48,7 @@ public final class MarkerStats {
 		outHeader.add("Pos");
 		outHeader.add("GC: " + gcModelName);
 		outHeader.add("LRR SD");
-		outHeader.add("BAF Mean");
+		outHeader.add("BAF Mean 0.5 dist");
 		outHeader.add("BAF SD");
 
 		List<GcAdjustorParameters> params = getParams(proj, outHeader, gcModel);
@@ -57,6 +60,7 @@ public final class MarkerStats {
 		writer.println(Array.toStr(outHeader, "\t"));
 
 		MDL mdl = new MDL(proj, proj.getMarkerSet(), proj.getMarkerNames());
+		boolean[] samplesToInclude = proj.getSamplesToInclude();
 
 		try {
 			while (mdl.hasNext()) {
@@ -64,10 +68,10 @@ public final class MarkerStats {
 				final List<String> line = new ArrayList<String>();
 				String markerName = marker.getMarkerName();
 				int markerIndexInProject = markerIndices.get(markerName);
-				float[] baf15t85 = Array.subArrayInRange(marker.getBAFs(), 0.15f, 0.85f);
-				float bafAvg = Array.mean(baf15t85, true);
+				float[] baf15t85 = Array.subArrayInRange(marker.getBAFs(), samplesToInclude, 0.15f, 0.85f);
+				float bafAvg = Array.meanDist(baf15t85, 0.50f, true);
 				float bafSd = Array.stdev(baf15t85, true);
-				float lrrSd = Array.stdev(marker.getLRRs(), true);
+				float lrrSd = Array.stdev(Array.subArray(marker.getLRRs(), samplesToInclude), true);
 				line.add(markerName);
 				line.add(String.valueOf(marker.getChr()));
 				line.add(String.valueOf(marker.getPosition()));

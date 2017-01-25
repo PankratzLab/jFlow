@@ -887,6 +887,14 @@ public class Project implements PropertyChangeListener {
 		return samplesToExclude;
 	}
 
+	/**
+	 * As {@link #getSamplesToInclude(String, boolean, boolean)} with a {@code null}
+	 * fileWithListOfSampleToUse (so only samples not marked as "Excluded" will be returned).
+	 */
+	public boolean[] getSamplesToInclude() {
+		return getSamplesToInclude(null);
+	}
+
 	public boolean[] getSamplesToInclude(String fileWithListOfSamplesToUse) {
 		return getSamplesToInclude(fileWithListOfSamplesToUse, true);
 	}
