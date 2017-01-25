@@ -2401,7 +2401,7 @@ public class Files {
 	}
 
 	public static boolean exists(String dir, String[] filenames) {
-		return exists(dir, filenames, false);
+		return exists(dir, filenames, true);
 	}
 
 	public static boolean exists(String dir, String[] filenames, boolean treatEmptyAsMissing) {
@@ -2419,7 +2419,7 @@ public class Files {
 	}
 
 	public static boolean exists(String dir, Iterable<String> filenames) {
-		return exists(dir, filenames, false);
+		return exists(dir, filenames, true);
 	}
 
 	public static boolean exists(	String dir, Iterable<String> filenames,
@@ -2442,7 +2442,7 @@ public class Files {
 	}
 
 	public static boolean exists(String filename, boolean jar) {
-		return exists(filename, jar, false);
+		return exists(filename, jar, true);
 	}
 
 	public static boolean exists(String filename, boolean jar, boolean treatEmptyAsMissing) {

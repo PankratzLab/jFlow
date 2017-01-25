@@ -456,7 +456,7 @@ public class ABLookup {
 																		Object... args) {
 		ABLookup abLookup = new ABLookup();
 
-		if (!Files.exists(outfile, false, true)) {
+		if (!Files.exists(outfile)) {
 			switch (parseSource) {
 				case GENCLUSTER:
 					abLookup.parseFromGenotypeClusterCenters(proj);
@@ -840,7 +840,7 @@ public class ABLookup {
 		c.parseWithExit(args);
 
 		proj = new Project(c.get(CLI.ARG_PROJ), false);
-		outfile = proj.PROJECT_DIRECTORY.getValue() + c.get(CLI.ARG_OUTFILE);
+		outfile = Files.firstPathToFileThatExists(c.get(CLI.ARG_OUTFILE), "", proj.PROJECT_DIRECTORY.getValue());
 		if (c.has(FLAGS_APPLYAB)) {
 			applyABLookupToFullSampleFiles(proj);
 		} else if (c.has(FLAGS_VCF)) {
