@@ -1026,6 +1026,7 @@ public class Centroids implements Serializable, TextExport {
 		// String unclusteredCentroids = proj.DEFAULT_GENOTYPE_CENTROIDS_FILENAME;
 		boolean fromGenotypes = false;
 		boolean sexSpecific = false;
+		boolean projComputeDump = false;
 		Project proj;
 		String compute = "";
 		String importFile = null;
@@ -1037,6 +1038,7 @@ public class Centroids implements Serializable, TextExport {
 										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
 										+ "   (2) filename (i.e. file=" + centFile + " (default))\n" + " OR\n"
 										+ "   (2) generate centroids from genotypes (i.e. -fromGenotypes (not the default))\n"
+										+ "   (3) compute and dump centroids for project (i.e. -computeDump (not the default))\n"
 										+ " OR\n"
 										+ "   (2) file with intensity only flags (i.e. flags=intensityFlags.dat (not the default))\n"
 										+ "   (3) centroid file for clustered markers (see \"GENOTYPE_CENTROIDS_FILENAME\" in the Project properties file)\n"
@@ -1063,6 +1065,9 @@ public class Centroids implements Serializable, TextExport {
 				numArgs--;
 			} else if (arg.startsWith("-fromGenotypes")) {
 				fromGenotypes = true;
+				numArgs--;
+			} else if (arg.startsWith("-computeDump")) {
+				projComputeDump = true;
 				numArgs--;
 			} else if (arg.startsWith("threads=")) {
 				numThreads = ext.parseIntArg(arg);
@@ -1107,6 +1112,8 @@ public class Centroids implements Serializable, TextExport {
 				importFromText(proj, importFile, centFile);
 			} else if (fromGenotypes) {
 				parseCentroidsFromGenotypes(proj, Array.booleanArray(proj.getSamples().length, true), 1);
+			}	else if (projComputeDump) {
+				CentroidCompute.computeAndDumpCentroids(proj);
 			} else if (!compute.equals("")) {
 				recompute(proj, compute, false, numThreads);
 			} else if (!intensityFlags.equals("")) {
