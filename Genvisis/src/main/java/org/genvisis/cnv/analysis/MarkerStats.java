@@ -48,6 +48,7 @@ public final class MarkerStats {
 		outHeader.add("Pos");
 		outHeader.add("GC: " + gcModelName);
 		outHeader.add("LRR SD");
+		outHeader.add("BAF Mean");
 		outHeader.add("BAF Mean 0.5 dist");
 		outHeader.add("BAF SD");
 
@@ -69,7 +70,8 @@ public final class MarkerStats {
 				String markerName = marker.getMarkerName();
 				int markerIndexInProject = markerIndices.get(markerName);
 				float[] baf15t85 = Array.subArrayInRange(marker.getBAFs(), samplesToInclude, 0.15f, 0.85f);
-				float bafAvg = Array.meanDist(baf15t85, 0.50f, true);
+				float bafAvg = Array.mean(baf15t85, true);
+				float baf50Dist = Array.meanDist(baf15t85, 0.50f, true);
 				float bafSd = Array.stdev(baf15t85, true);
 				float lrrSd = Array.stdev(Array.subArray(marker.getLRRs(), samplesToInclude), true);
 				line.add(markerName);
@@ -77,6 +79,7 @@ public final class MarkerStats {
 				line.add(String.valueOf(marker.getPosition()));
 				line.add(gcModelHash.get(markerName).get(0));
 				line.add(String.valueOf(bafAvg));
+				line.add(String.valueOf(baf50Dist));
 				line.add(String.valueOf(bafSd));
 				line.add(String.valueOf(lrrSd));
 				for (GcAdjustorParameters ps : params) {
