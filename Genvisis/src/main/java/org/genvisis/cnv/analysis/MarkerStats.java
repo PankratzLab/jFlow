@@ -58,32 +58,36 @@ public final class MarkerStats {
 
 		MDL mdl = new MDL(proj, proj.getMarkerSet(), proj.getMarkerNames());
 
-		while (mdl.hasNext()) {
-			MarkerData marker = mdl.next();
-			final List<String> line = new ArrayList<String>();
-			String markerName = marker.getMarkerName();
-			int markerIndexInProject = markerIndices.get(markerName);
-			float bafAvg = Array.mean(marker.getBAFs(), true);
-			float bafSd = Array.stdev(marker.getBAFs(), true);
-			float lrrSd = Array.stdev(marker.getLRRs(), true);
-			line.add(markerName);
-			line.add(String.valueOf(marker.getChr()));
-			line.add(String.valueOf(marker.getPosition()));
-			line.add(gcModelHash.get(markerName).get(0));
-			line.add(String.valueOf(bafAvg));
-			line.add(String.valueOf(bafSd));
-			line.add(String.valueOf(lrrSd));
-			for (GcAdjustorParameters ps : params) {
-				float[][] lrrbaf = marker.getGCCorrectedLRRBAF(ps, markerIndexInProject, log);
-				float gcLrrSd = Array.stdev(lrrbaf[1], true);
-				line.add(String.valueOf(gcLrrSd));
-				// NB: looks like GC correction doesn't currently affect BAF calculation. Not clear why both come back?
-			}
+		try {
+			while (mdl.hasNext()) {
+				MarkerData marker = mdl.next();
+				final List<String> line = new ArrayList<String>();
+				String markerName = marker.getMarkerName();
+				int markerIndexInProject = markerIndices.get(markerName);
+				float bafAvg = Array.mean(marker.getBAFs(), true);
+				float bafSd = Array.stdev(marker.getBAFs(), true);
+				float lrrSd = Array.stdev(marker.getLRRs(), true);
+				line.add(markerName);
+				line.add(String.valueOf(marker.getChr()));
+				line.add(String.valueOf(marker.getPosition()));
+				line.add(gcModelHash.get(markerName).get(0));
+				line.add(String.valueOf(bafAvg));
+				line.add(String.valueOf(bafSd));
+				line.add(String.valueOf(lrrSd));
+				for (GcAdjustorParameters ps : params) {
+					float[][] lrrbaf = marker.getGCCorrectedLRRBAF(ps, markerIndexInProject, log);
+					float gcLrrSd = Array.stdev(lrrbaf[1], true);
+					line.add(String.valueOf(gcLrrSd));
+					// NB: looks like GC correction doesn't currently affect BAF calculation. Not clear why both come back?
+				}
 
-			writer.println(Array.toStr(line, "\t"));
+				writer.println(Array.toStr(line, "\t"));
+			}
+		} finally {
+			mdl.shutdown();
+			writer.close();
 		}
 
-		writer.close();
 		log.report("Finished writing output to: " + outFile);
 	}
 
