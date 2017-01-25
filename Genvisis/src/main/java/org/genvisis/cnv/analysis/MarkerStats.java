@@ -64,8 +64,9 @@ public final class MarkerStats {
 				final List<String> line = new ArrayList<String>();
 				String markerName = marker.getMarkerName();
 				int markerIndexInProject = markerIndices.get(markerName);
-				float bafAvg = Array.mean(marker.getBAFs(), true);
-				float bafSd = Array.stdev(marker.getBAFs(), true);
+				float[] baf15t85 = Array.subArrayInRange(marker.getBAFs(), 0.15f, 0.85f);
+				float bafAvg = Array.mean(baf15t85, true);
+				float bafSd = Array.stdev(baf15t85, true);
 				float lrrSd = Array.stdev(marker.getLRRs(), true);
 				line.add(markerName);
 				line.add(String.valueOf(marker.getChr()));

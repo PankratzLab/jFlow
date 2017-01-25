@@ -3213,6 +3213,22 @@ public class Array {
 	}
 
 	/**
+	 * Creates a new array using only the float values within the given range.
+	 *
+	 * @param array base array to filter
+	 * @param min smallest value to include in array
+	 * @param max largest value to include in array
+	 * @return an array of values filtered to the specified range
+	 */
+	public static float[] subArrayInRange(float[] array, float min, float max) {
+		boolean[] use = new boolean[array.length];
+		for (int i=0; i<array.length; i++) {
+			use[i] = Float.compare(array[i], min) >= 0 && Float.compare(array[i], max) <= 0;
+		}
+		return subArray(array, use);
+	}
+
+	/**
 	 * Creates a new array using only the float values at indices with a true in the boolean array
 	 *
 	 * @param array an array of float
