@@ -3243,12 +3243,11 @@ public class ArrayUtils {
 	 * As {@link #subArrayInRange(float[], boolean[], float, float)}, using all samples by default.
 	 */
 	public static float[] subArrayInRange(float[] array, float min, float max) {
-		boolean[] use = booleanArray(array.length, true);
-		return subArrayInRange(array, use, min, max);
+		return subArrayInRange(array, null, min, max);
 	}
 
 	/**
-	 * Creates a new array using only the float values within the given range.
+	 * Creates a new array using only the float values within the given range. Prunes out {@link Float#NaN} as well.
 	 *
 	 * @param array base array to filter
 	 * @param use indices of array to use
@@ -3257,10 +3256,9 @@ public class ArrayUtils {
 	 * @return an array of values filtered to the specified range
 	 */
 	public static float[] subArrayInRange(float[] array, boolean[] use, float min, float max) {
-		boolean[] samples = new boolean[use.length];
-		System.arraycopy(use, 0, samples, 0, samples.length);
+		boolean[] samples = new boolean[array.length];
 		for (int i=0; i<array.length; i++) {
-			samples[i] = use[i] && (Float.compare(array[i], min) >= 0 && Float.compare(array[i], max) <= 0);
+			samples[i] = (use == null || use[i]) && !Float.isNaN(array[i]) && (Float.compare(array[i], min) >= 0 && Float.compare(array[i], max) <= 0);
 		}
 		return subArray(array, samples);
 	}
