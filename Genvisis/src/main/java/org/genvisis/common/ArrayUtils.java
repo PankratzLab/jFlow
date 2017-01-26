@@ -1232,7 +1232,7 @@ public class ArrayUtils {
 			sum += Math.pow(avg - element, 2);
 		}
 
-		return sum / (array.length);
+		return sum / (array.length - 1);
 	}
 
 	/**
@@ -1249,7 +1249,7 @@ public class ArrayUtils {
 			sum += Math.pow(avg - element, 2);
 		}
 
-		return sum / (array.length);
+		return sum / (array.length - 1);
 	}
 
 	/**
@@ -1285,7 +1285,7 @@ public class ArrayUtils {
 	 * @return variance of the array
 	 */
 	public static double variance(double[] array, double sumSq) {
-		return sumSq / (array.length);
+		return sumSq / (array.length - 1);
 	}
 
 	/**
@@ -1307,7 +1307,7 @@ public class ArrayUtils {
 			sum += Math.pow(avg - element, 2);
 		}
 
-		return (float) (sum / (array.length));
+		return (float) (sum / (array.length - 1));
 	}
 
 	/**
@@ -1358,7 +1358,7 @@ public class ArrayUtils {
 			}
 		}
 
-		return (float) Math.sqrt(sum / (count));
+		return (float) Math.sqrt(sum / (count - 1));
 	}
 
 	/**
@@ -1389,7 +1389,7 @@ public class ArrayUtils {
 			}
 		}
 
-		return Math.sqrt(sum / (count));
+		return Math.sqrt(sum / (count - 1));
 	}
 
 	/**
@@ -1420,7 +1420,7 @@ public class ArrayUtils {
 			}
 		}
 
-		return (float) Math.sqrt(sum / (count));
+		return (float) Math.sqrt(sum / (count - 1));
 	}
 
 	/**
@@ -1451,7 +1451,7 @@ public class ArrayUtils {
 			}
 		}
 
-		return (float) Math.sqrt(sum / (count));
+		return (float) Math.sqrt(sum / (count- 1));
 	}
 
 	/**
