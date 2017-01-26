@@ -47,10 +47,10 @@ public final class MarkerStats {
 		outHeader.add("Chr");
 		outHeader.add("Pos");
 		outHeader.add("GC: " + gcModelName);
-		outHeader.add("LRR SD");
 		outHeader.add("BAF Mean");
 		outHeader.add("BAF Mean 0.5 dist");
 		outHeader.add("BAF SD");
+		outHeader.add("LRR SD");
 
 		List<GcAdjustorParameters> params = getParams(proj, outHeader, gcModel);
 
