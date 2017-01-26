@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
@@ -45,10 +46,7 @@ public class CARDIA2017ResultsProcessor {
 	                    "se_int", // IN_12
 	                    "cov", // IN_13
 	                    "chi_2df", // IN_14 
-//	                    "P_2df", // ProbDist.NormDist(IN_11/IN_12)
-	                    "chi_P_2df", // ProbDist.chiDist(IN_14, 1),
-//	                    "P_comm",
-	                    "chi_comm"
+	                    "chi_P_2df", 
   };
 	String STRAND = "+";
 	String TYPE = "1";
@@ -110,6 +108,9 @@ public class CARDIA2017ResultsProcessor {
 		
 		int numChrs = EA.equals(prefix) ? 23 : 24;
 		
+		String skipFile = this.dir + prefix + "removeSnpsLowQual.txt";
+		HashSet<String> ignore = HashVec.loadFileToHashSet(skipFile, false);
+		
 		HashMap<Integer, PrintWriter> writers = new HashMap<>();
 		HashMap<Integer, PrintWriter> missWriters = new HashMap<>();
 		ChiSquaredDistribution csd = new ChiSquaredDistribution(2);
@@ -133,7 +134,9 @@ public class CARDIA2017ResultsProcessor {
 					missWriter = Files.getAppropriateWriter(ext.rootOf(outFile, false) + "_missing.txt");
 					missWriters.put(i, missWriter);
 				}
-				writer.println(ArrayUtils.toStr(OUT_HDR));
+				if (chr == 1) {
+					writer.println(ArrayUtils.toStr(OUT_HDR));
+				}
 				reader.readLine();
 				String line;
 				String[] parts;
@@ -145,14 +148,13 @@ public class CARDIA2017ResultsProcessor {
 						System.err.println("Error - missing SNP INFO for SNP: " + parts[0] + " in chr " + chr + " results file for EA.");
 						continue;
 					}
+					if (ignore.contains(parts[0])) {
+						continue;
+					}
 					if (snp.pos == -1 || snp.chr == -1) {
 						missWriter.println(parts[0]);
 					}
 					
-					int n = Integer.parseInt(parts[7]);
-					double beta = ext.isMissingValue(parts[11]) ? Double.NaN : Double.parseDouble(parts[11]);
-					double sd = ext.isMissingValue(parts[12]) ? Double.NaN : Double.parseDouble(parts[12]);
-					double se = Double.isNaN(sd) ? Double.NaN : sd / Math.sqrt(n);
 					double chi = ext.isMissingValue(parts[14]) ? Double.NaN : Double.parseDouble(parts[14]);
 					
 					sb.append(snp.chr).append("\t")
@@ -162,20 +164,16 @@ public class CARDIA2017ResultsProcessor {
 						.append(snp.base.charAt(0)).append("\t")
 						.append(snp.eff.charAt(0)).append("\t")
 						.append(parts[7]).append("\t")
-						.append(ext.isMissingValue(parts[8]) ? "nan" : ext.formDeci(Double.parseDouble(parts[8]), 4)).append("\t")
+						.append(ext.isMissingValue(parts[8]) ? "NA" : ext.formDeci(Double.parseDouble(parts[8]), 4)).append("\t")
 						.append(TYPE).append("\t")
 						.append(parts[6]).append("\t")
-						.append(ext.isMissingValue(parts[9]) ? "nan" : ext.formDeci(Double.parseDouble(parts[9]), 5)).append("\t")
-						.append(ext.isMissingValue(parts[10]) ? "nan" : ext.formDeci(Double.parseDouble(parts[10]), 5)).append("\t")
-						.append(ext.isMissingValue(parts[11]) ? "nan" : ext.formDeci(Double.parseDouble(parts[11]), 5)).append("\t")
-						.append(ext.isMissingValue(parts[12]) ? "nan" : ext.formDeci(Double.parseDouble(parts[12]), 5)).append("\t")
+						.append(ext.isMissingValue(parts[9]) ? "NA" : ext.formDeci(Double.parseDouble(parts[9]), 5)).append("\t")
+						.append(ext.isMissingValue(parts[10]) ? "NA" : ext.formDeci(Double.parseDouble(parts[10]), 5)).append("\t")
+						.append(ext.isMissingValue(parts[11]) ? "NA" : ext.formDeci(Double.parseDouble(parts[11]), 5)).append("\t")
+						.append(ext.isMissingValue(parts[12]) ? "NA" : ext.formDeci(Double.parseDouble(parts[12]), 5)).append("\t")
 						.append(parts[13]).append("\t")
 						.append(parts[14]).append("\t")
-//						.append(Double.isNaN(beta) || Double.isNaN(se) ? "nan" : ext.formDeci(ProbDist.NormDist(beta / se), 4)).append("\t")
-						.append(Double.isNaN(chi) ? "nan" : ext.formDeci(ProbDist.ChiDist(chi, 2), 4));
-					
-//					sb.append("\t").append(sd > 0 && (se > 0 || se < 0) ? ext.formDeci(2 * (1 - nd.cumulativeProbability(beta / se)), 4) : "nan");
-					sb.append("\t").append(ext.formDeci(1 - csd.cumulativeProbability(chi), 4));
+						.append(ext.formDeci(1 - csd.cumulativeProbability(chi), 4));
 					
 					writer.println(sb.toString());
 				}
@@ -195,7 +193,7 @@ public class CARDIA2017ResultsProcessor {
 	}
 	
 	String mapDirAA = "/scratch.global/cole0482/CARDIA_DATA/AA/src/map_1000G_mach2dat_qtl/";
-	String mapDirEA = dir + EA;
+	String mapDirEA = dir + EA + "map/";
 	
 	private HashMap<String, SNP> processChrFile(int chr, String prefix) {
 		String infoFile = dir + prefix + "chr" + chr + ".info";
@@ -223,11 +221,11 @@ public class CARDIA2017ResultsProcessor {
 				System.err.println("Error - snp found in .info file that wasn't found in the map file: " + line[0]);
 				snp = new SNP();
 				snp.name = line[0];
-				snp.base = line[1];
-				snp.eff = line[2];
 				snp.chr = chr;
 				snp.pos = -1;
 			}
+			snp.base = line[1];
+			snp.eff = line[2];
 			map.put(line[0], snp);
 		}
 		
