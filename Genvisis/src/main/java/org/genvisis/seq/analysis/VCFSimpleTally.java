@@ -926,7 +926,8 @@ public class VCFSimpleTally {
 		}
 		VariantContextFilter qualControl = getQualityFilterwkggseq(maf, log);
 		if (!Files.exists(finalAnnotGene)|| !Files.exists(finalAnnotGeneBed)
-				|| !Files.exists(finalAnnotSample) || !Files.exists(finalGeneVariantPositions)) {
+				|| !Files.exists(finalAnnotSample) || !Files.exists(finalGeneVariantPositions)
+				|| !Files.exists(filterFile)) {
 			VCFFileReader tmp = new VCFFileReader(new File(filtVcfs.get(0)), true);
 			summarizeQC(caseDef, filterFile, qualCase, qualControl);
 			VariantContextWriter writer = VCFOps.initWriter(finalOutVCF, VCFOps.DEFUALT_WRITER_OPTIONS,
