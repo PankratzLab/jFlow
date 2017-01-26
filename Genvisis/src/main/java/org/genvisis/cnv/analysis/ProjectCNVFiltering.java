@@ -5,7 +5,7 @@ import java.util.Hashtable;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.FreqFilter;
 import org.genvisis.common.Files;
@@ -19,7 +19,7 @@ public class ProjectCNVFiltering {
 
 
 	public static void setIndividualsToKeepFromSampleData(CNVFilter filter, Project proj) {
-		String samples[] = Array.subArray(proj.getSamples(), proj.getSamplesToInclude(null));
+		String samples[] = ArrayUtils.subArray(proj.getSamples(), proj.getSamplesToInclude(null));
 		SampleData sampleData = proj.getSampleData(0, false);
 		for (int i = 0; i < samples.length; i++) {
 			samples[i] = sampleData.lookup(samples[i])[1];

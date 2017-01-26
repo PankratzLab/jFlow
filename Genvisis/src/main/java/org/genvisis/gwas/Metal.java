@@ -18,7 +18,7 @@ import java.util.Vector;
 import org.genvisis.bioinformatics.MapSNPsAndGenes;
 import org.genvisis.bioinformatics.Sequence;
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -205,17 +205,17 @@ public class Metal {
 																				log, false);
 			if (markerIndices[0] == -1) {
 				log.reportError("Error - no unit of analysis in file "	+ filename + " ("
-												+ Array.toStr(unitOfAnlaysis, "/") + ")");
+												+ ArrayUtils.toStr(unitOfAnlaysis, "/") + ")");
 				reader.close();
 				writer.close();
 				return;
 			}
 
 			alleleIndices = ext.indexFactors(Aliases.ALLELES, header, false, true, false, log, false);
-			if (Array.min(alleleIndices) == -1 && Array.sum(alleleIndices) != -2) {
+			if (ArrayUtils.min(alleleIndices) == -1 && ArrayUtils.sum(alleleIndices) != -2) {
 				log.reportError("Error - found only one allele in file "	+ filename + " (need "
-												+ Array.toStr(Aliases.ALLELES[0], "/") + " AND "
-												+ Array.toStr(Aliases.ALLELES[1], "/")
+												+ ArrayUtils.toStr(Aliases.ALLELES[0], "/") + " AND "
+												+ ArrayUtils.toStr(Aliases.ALLELES[1], "/")
 												+ "); zeroing out and assuming uniform across studies...");
 				alleleIndices[0] = -1;
 				alleleIndices[1] = -1;
@@ -237,7 +237,7 @@ public class Metal {
 				if (i == SE_ANALYSIS && ext.indexOfStr("mbse", header) >= 0) {
 					reqIndices[i][1] = ext.indexOfStr("mbse", header);
 				}
-				if (Array.min(reqIndices[i]) == -1) {
+				if (ArrayUtils.min(reqIndices[i]) == -1) {
 					reqIndices[i] = null;
 				} else {
 					for (int j = 0; j < reqIndices[i].length; j++) {
@@ -251,7 +251,7 @@ public class Metal {
 				}
 			}
 			freqIndices = ext.indexFactors(FREQS, header, false, true, false, log, false);
-			if (freqIndices[0] == -1 && Array.min(Array.subArray(freqIndices, 1)) == -1) {
+			if (freqIndices[0] == -1 && ArrayUtils.min(ArrayUtils.subArray(freqIndices, 1)) == -1) {
 				freqIndices = null;
 			} else {
 				writer.print(delimiterOut + FREQS[0][0]);
@@ -293,7 +293,7 @@ public class Metal {
 														+ Double.parseDouble(line[freqIndices[3]]) * 2);
 							} catch (Exception e) {
 								System.err.println("Error - invalid allele count ("
-																			+ Array.subArray(line, Array.subArray(freqIndices, 1), "/")
+																			+ ArrayUtils.subArray(line, ArrayUtils.subArray(freqIndices, 1), "/")
 																		+ ") for marker " + line[markerIndices[0]] + " in file "
 																		+ filename);
 								freq = -999;
@@ -356,7 +356,7 @@ public class Metal {
 	public static void metaAnalyze(	String dir, String[] filenames, String outputFile, boolean se,
 																	Logger log) {
 		metaAnalyze(dir, filenames, Aliases.MARKER_NAMES, outputFile, SE_ANALYSIS, null,
-								Array.doubleArray(filenames.length, -9), null, null, null, log);
+								ArrayUtils.doubleArray(filenames.length, -9), null, null, null, log);
 	}
 
 	public static void metaAnalyze(	String dir, String[] filenames, String[] unitOfAnalysis,
@@ -388,7 +388,7 @@ public class Metal {
 			writer = new PrintWriter(new FileWriter(dir + filename));
 			prevMarker = "";
 			prevAlleles = new String[] {"", ""};
-			prevReqs = Array.stringArray(REQS[analysisType].length, "");
+			prevReqs = ArrayUtils.stringArray(REQS[analysisType].length, "");
 			prevCommaDelimited = false;
 			travFreq = prevFreq = new String[] {"none"};
 
@@ -441,12 +441,12 @@ public class Metal {
 				}
 
 				indices = ext.indexFactors(Aliases.ALLELES, header, false, true, true, log, false);
-				if (Array.min(indices) == -1) {
+				if (ArrayUtils.min(indices) == -1) {
 					log.reportError("Error parsing '" + dir + filenames[i] + "'");
 					writer.close();
 					return;
 				}
-				travAlleles = Array.subArray(header, indices);
+				travAlleles = ArrayUtils.subArray(header, indices);
 				if (!travAlleles[0].equals(prevAlleles[0]) || !travAlleles[1].equals(prevAlleles[1])) {
 					mappings.add("ALLELE " + travAlleles[0] + " " + travAlleles[1]);
 				}
@@ -455,12 +455,12 @@ public class Metal {
 				if (analysisType == PVAL_ANALYSIS && defaultWeights != null) {
 					indices[2] = 0;
 				}
-				if (Array.min(indices) == -1) {
+				if (ArrayUtils.min(indices) == -1) {
 					log.reportError("Error parsing '" + dir + filenames[i] + "'");
 					writer.close();
 					return;
 				}
-				travReqs = Array.subArray(header, indices);
+				travReqs = ArrayUtils.subArray(header, indices);
 				if (analysisType == SE_ANALYSIS || analysisType == WEIGHTED_SE_ANALYSIS) {
 					if (!travReqs[0].equals(prevReqs[0])) {
 						mappings.add("EFFECT " + travReqs[0]);
@@ -487,7 +487,7 @@ public class Metal {
 
 					indices = ext.indexFactors(FREQS, header, false, true, false, log, false);
 					if (indices[0] != -1) {
-						travFreq = Array.subArray(header, indices, "");
+						travFreq = ArrayUtils.subArray(header, indices, "");
 						if (!travFreq[0].equals(prevFreq[0])) {
 							mappings.add("FREQLABEL " + travFreq[0]);
 						}
@@ -620,7 +620,7 @@ public class Metal {
 			for (int i = 1; i < header.length; i++) {
 				HashVec.addIfAbsent(header[i].substring(0, header[i].indexOf("_")), v);
 			}
-			roots = Array.toStringArray(v);
+			roots = ArrayUtils.toStringArray(v);
 			indices = new int[roots.length][2];
 			for (int i = 0; i < roots.length; i++) {
 				indices[i][0] = ext.indexOfStr(roots[i] + "_A", header);
@@ -665,7 +665,7 @@ public class Metal {
 					order = Sort.getReverseIndices(counts);
 					writer.print(line[0] + "\t" + values[order[0]]);
 					for (int i = 1; i < values.length; i++) {
-						writer.print("\t"	+ Array.toStr(Array.toStringArray(hash.get(values[order[i]])), ",")
+						writer.print("\t"	+ ArrayUtils.toStr(ArrayUtils.toStringArray(hash.get(values[order[i]])), ",")
 													+ "\t" + values[order[i]]);
 					}
 					writer.println();
@@ -700,9 +700,9 @@ public class Metal {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (line.length > 2) {
-					writer.println(Array.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 				} else if (line[1].equals("AT") || line[1].equals("CG")) {
-					writer2.println(Array.toStr(line));
+					writer2.println(ArrayUtils.toStr(line));
 				}
 			}
 			reader.close();
@@ -846,8 +846,8 @@ public class Metal {
 				}
 			}
 			params = remaining;
-			tempFiles = Array.toStringArray(params);
-			gcValues = Array.doubleArray(tempFiles.length, gcControlOn ? -9 : -1); // default to
+			tempFiles = ArrayUtils.toStringArray(params);
+			gcValues = ArrayUtils.doubleArray(tempFiles.length, gcControlOn ? -9 : -1); // default to
 																																							// GENOMICCONTROL ON
 			inputFiles = new String[tempFiles.length];// Array.toStringArray(params);
 			for (int i = 0; i < tempFiles.length; i++) {
@@ -864,13 +864,13 @@ public class Metal {
 
 			// String dir = ext.verifyDirFormat((new File("./")).getAbsolutePath());
 			if (!Double.isNaN(mafThreshold)) {
-				mafValues = Array.doubleArray(inputFiles.length, mafThreshold);
+				mafValues = ArrayUtils.doubleArray(inputFiles.length, mafThreshold);
 			}
 			if (!Files.exists(outputFile + "_InvVar1.out")) {
 
 				log.report("Running inverse variance weighted meta-analysis...");
 				if (!Double.isNaN(seThreshold)) {
-					seValues = Array.doubleArray(inputFiles.length, seThreshold);
+					seValues = ArrayUtils.doubleArray(inputFiles.length, seThreshold);
 					log.reportTimeInfo("Setting se threshold to " + seThreshold);
 				}
 				metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile + "_InvVar", SE_ANALYSIS,
@@ -967,8 +967,8 @@ public class Metal {
 									if (trav[0] != chrPosition[0] || trav[1] != chrPosition[1]) {
 										if (countMismatches < 42) {
 											log.reportError("Error - mismatched positions for marker "	+ line[0] + " ("
-																			+ Array.toStr(trav, ":") + " versus "
-																			+ Array.toStr(chrPosition, ":") + ")");
+																			+ ArrayUtils.toStr(trav, ":") + " versus "
+																			+ ArrayUtils.toStr(chrPosition, ":") + ")");
 										} else if (countMismatches == 42) {
 											log.reportError("...");
 										}
@@ -1014,7 +1014,7 @@ public class Metal {
 					System.out.println(ext.getTime() + "\tfinished genes");
 
 					for (int i = 0; i < genes.length; i++) {
-						writer.println(hitList[i]	+ "\t" + Array.toStr(markerPositionHash.get(hitList[i]), "\t")
+						writer.println(hitList[i]	+ "\t" + ArrayUtils.toStr(markerPositionHash.get(hitList[i]), "\t")
 														+ "\t" + genes[i][1]);
 					}
 				}
@@ -1085,7 +1085,7 @@ public class Metal {
 			newHdr[cnt] = pts[i];
 			cnt++;
 		}
-		newResults[0] = Array.concatAll(hdr, newHdr);
+		newResults[0] = ArrayUtils.concatAll(hdr, newHdr);
 
 		for (int i = 1; i < hwResults.length; i++) {
 			String hwMkr = hwResults[i][mkrInd];
@@ -1100,7 +1100,7 @@ public class Metal {
 				cntInd++;
 			}
 
-			String[] newStringArray = Array.concatAll(hwResults[i], newTopData);
+			String[] newStringArray = ArrayUtils.concatAll(hwResults[i], newTopData);
 			newResults[i] = newStringArray;
 		}
 
@@ -1128,7 +1128,7 @@ public class Metal {
 
 		if (params != null) {
 			files = new String[] {"Discovery.se.metal", "Replication.se.metal", "something"};
-			log.report(Array.toStr(Array.toStringArray(params)));
+			log.report(ArrayUtils.toStr(ArrayUtils.toStringArray(params)));
 			for (int i = 0; i < files.length; i++) {
 				if (params.size() >= i + 1) {
 					files[i] = params.elementAt(i).trim().split("[\\s]+")[0];
@@ -1231,7 +1231,7 @@ public class Metal {
 			for (int i = 1; i < header.length; i++) {
 				HashVec.addIfAbsent(header[i].substring(0, header[i].lastIndexOf("_")), v);
 			}
-			roots = Array.toStringArray(v);
+			roots = ArrayUtils.toStringArray(v);
 			indices = new int[roots.length][5];
 			for (int i = 0; i < roots.length; i++) {
 				for (int j = 0; j < SUFFIXES.length - 1; j++) {
@@ -1381,7 +1381,7 @@ public class Metal {
 				System.err.println("Error - expecting two and only two roots to compare");
 				return;
 			}
-			roots = Array.toStringArray(v);
+			roots = ArrayUtils.toStringArray(v);
 			indices = new int[roots.length][6];
 			for (int i = 0; i < roots.length; i++) {
 				for (int j = 0; j < SUFFIXES.length; j++) {
@@ -1576,7 +1576,7 @@ public class Metal {
 					return STRAND_CONFIG_SPECIAL_CASE;
 				}
 			}
-			if (Array.booleanArraySum(nullChecks) == 1) {
+			if (ArrayUtils.booleanArraySum(nullChecks) == 1) {
 				index = nullChecks[0] ? 1 : 0;
 				if (referenceAlleles[0] == null) {
 					referenceAlleles[0] = alleles[index];
@@ -1615,7 +1615,7 @@ public class Metal {
 						}
 					}
 				}
-			} else if (Array.booleanArraySum(nullChecks) == 2) {
+			} else if (ArrayUtils.booleanArraySum(nullChecks) == 2) {
 				return STRAND_CONFIG_BOTH_NULL;
 			} else {
 				return STRAND_CONFIG_DIFFERENT_ALLELES;
@@ -2060,7 +2060,7 @@ public class Metal {
 			} else if (analyze != null) {
 				String[] files = analyze.split(",");
 				if (gcControl == null) {
-					gcControl = Array.doubleArray(files.length, -9);
+					gcControl = ArrayUtils.doubleArray(files.length, -9);
 				} else if (files.length != gcControl.length) {
 					System.err.println("ERROR - list of GC correction values must equal the length of the files list.  Values are {-1=OFF, -9=ON, other values used as given}");
 					System.exit(1);

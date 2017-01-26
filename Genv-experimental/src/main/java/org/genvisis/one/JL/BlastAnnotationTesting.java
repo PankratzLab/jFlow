@@ -15,7 +15,7 @@ import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_ORDER;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation.Builder;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
@@ -124,14 +124,14 @@ public class BlastAnnotationTesting {
 		// t.add(markers[2]);
 		// t.add(markers[200003]);
 
-		MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(Array.toStringArray(t));
+		MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(ArrayUtils.toStringArray(t));
 		MarkerAnnotationLoader annotationLoader =
 																						new MarkerAnnotationLoader(	proj, null,
 																																				proj.BLAST_ANNOTATION_FILENAME.getValue(),
 																																				proj.getMarkerSet(), true);
 		ArrayList<AnnotationParser[]> toparse = new ArrayList<AnnotationParser[]>();
 		toparse.add(blastResults);
-		annotationLoader.fillAnnotations(Array.toStringArray(t), toparse, QUERY_ORDER.NO_ORDER);
+		annotationLoader.fillAnnotations(ArrayUtils.toStringArray(t), toparse, QUERY_ORDER.NO_ORDER);
 		for (MarkerBlastAnnotation blastResult : blastResults) {
 			// System.out.println(Array.toStr(blastResults[i].getAlignmentHistogram(proj)));
 		}

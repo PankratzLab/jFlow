@@ -7,7 +7,7 @@ import java.util.HashSet;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.plots.TwoDPlot;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
@@ -128,7 +128,7 @@ public class ClipSwap {
 			if (line.length > 1) {
 				if (countMoreThan < 5) {
 					System.out.println("Line # "	+ (i + 1) + " had more than one column: "
-															+ Array.toStr(line, " / "));
+															+ ArrayUtils.toStr(line, " / "));
 				}
 				countMoreThan++;
 			}
@@ -143,7 +143,7 @@ public class ClipSwap {
 			} else if (ext.isMissingValue(line[0])) {
 				if (countInvalids < 5) {
 					System.out.println("Line # "	+ (i + 1) + " had an invalid double: "
-															+ Array.toStr(line, " / "));
+															+ ArrayUtils.toStr(line, " / "));
 				}
 				countInvalids++;
 			} else {
@@ -161,7 +161,7 @@ public class ClipSwap {
 		if (sigfigsExtrastep == null) {
 			histo = new Histogram(array);
 		} else {
-			histo = new Histogram(array, Array.min(array), Array.max(array), sigfigsExtrastep[0],
+			histo = new Histogram(array, ArrayUtils.min(array), ArrayUtils.max(array), sigfigsExtrastep[0],
 														sigfigsExtrastep[1]);
 		}
 		return histo;
@@ -170,7 +170,7 @@ public class ClipSwap {
 	public static void inverseVarianceMeta() {
 		// System.out.println(Array.toStr(MetaAnalysis.inverseVarianceWeighting(ext.getClipboard().trim().split("\\n"),
 		// new Logger()), "/"));
-		ext.setClipboard(Array.toStr(MetaAnalysis.inverseVarianceWeighting(	ext.getClipboard().trim()
+		ext.setClipboard(ArrayUtils.toStr(MetaAnalysis.inverseVarianceWeighting(	ext.getClipboard().trim()
 																																					.split("\\n"),
 																																				new Logger())));
 	}
@@ -191,7 +191,7 @@ public class ClipSwap {
 
 		values = hash.toArray(new String[hash.size()]);
 		Arrays.sort(values);
-		result = Array.toStr(values) + "\r\n";
+		result = ArrayUtils.toStr(values) + "\r\n";
 		for (String line : lines) {
 			for (int j = 0; j < values.length; j++) {
 				result += (j == 0 ? "" : "\t")
@@ -274,7 +274,7 @@ public class ClipSwap {
 					temp.append(lineEnding);
 					count++;
 				} else {
-					temp.append(Array.toStr(result[i]) + lineEnding);
+					temp.append(ArrayUtils.toStr(result[i]) + lineEnding);
 				}
 			}
 			if (count > 0) {

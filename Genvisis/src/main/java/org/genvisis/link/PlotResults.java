@@ -36,7 +36,7 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
 import org.genvisis.cnv.gui.JPanelFlowLayoutComponentListener;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
@@ -167,7 +167,7 @@ public class PlotResults extends JFrame implements ActionListener {
 		data = newData;
 		info = newInfo;
 		dirNames = dirs;
-		inUse = Array.booleanArray(dirs.length, true);
+		inUse = ArrayUtils.booleanArray(dirs.length, true);
 
 		markerNames = new String[dirs.length][NUM_CHR][];
 		markerPositions = new double[dirs.length][NUM_CHR][];
@@ -432,7 +432,7 @@ public class PlotResults extends JFrame implements ActionListener {
 		};
 		dirBoxes = new JCheckBox[dirNames.length];
 		boolean alignable = true;
-		int[] chrLengths = Array.intArray(NUM_CHR, -1);
+		int[] chrLengths = ArrayUtils.intArray(NUM_CHR, -1);
 		for (int i = 0; i < dirNames.length; i++) {
 			dirBoxes[i] = new JCheckBox(dirNames[i]);
 			dirBoxes[i].setFont(new Font("Arial", 0, 14));
@@ -734,11 +734,11 @@ public class PlotResults extends JFrame implements ActionListener {
 				}
 				if (dataIV.size() > 0) {
 					System.out.println("  Missing results for chromosomes: "
-															+ Array.toStr(dataIV.toArray(), ", "));
+															+ ArrayUtils.toStr(dataIV.toArray(), ", "));
 				}
 				if (infoIV.size() > 0) {
 					System.out.println("  Missing info for chromosomes: "
-															+ Array.toStr(infoIV.toArray(), ", "));
+															+ ArrayUtils.toStr(infoIV.toArray(), ", "));
 				}
 
 				if (Files.exists(dir + dirs[i] + "/markerPositions.dat", jar)) {

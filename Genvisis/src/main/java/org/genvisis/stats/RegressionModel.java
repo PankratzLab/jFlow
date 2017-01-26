@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -190,7 +190,7 @@ public abstract class RegressionModel {
 		double[][] statPerms = new double[stats.length][numReps];
 		double[][] betaPerms = new double[betas.length][numReps];
 		onePer = true;
-		String[] fams = Array.unique(famIDs);
+		String[] fams = ArrayUtils.unique(famIDs);
 		Hashtable<String, IntVector> hash = new Hashtable<String, IntVector>();
 		IntVector iv;
 		double[] rDeps = new double[fams.length];
@@ -262,8 +262,8 @@ public abstract class RegressionModel {
 		}
 
 		for (int i = 1; i <= M; i++) {
-			betas[i] = Array.bootstrap(betaPerms[i], numBootReps, verbose)[0];
-			stats[i] = Array.bootstrap(statPerms[i], numBootReps, verbose)[0];
+			betas[i] = ArrayUtils.bootstrap(betaPerms[i], numBootReps, verbose)[0];
+			stats[i] = ArrayUtils.bootstrap(statPerms[i], numBootReps, verbose)[0];
 			sigs[i] = logistic ? ProbDist.ChiDist(stats[i], 1) : ProbDist.TDist(stats[i], N - M - 1);
 			SEofBs[i] = Double.NaN;
 		}
@@ -296,7 +296,7 @@ public abstract class RegressionModel {
 			}
 		}
 
-		count = Array.booleanArraySum(use);
+		count = ArrayUtils.booleanArraySum(use);
 		newDeps = new double[count];
 		newIndeps = new double[count][];
 		count = 0;
@@ -397,7 +397,7 @@ public abstract class RegressionModel {
 						indeps[i][k - 1] = oldIndeps[i][k];
 					}
 				}
-				varNames = Array.removeFromArray(varNames, j + 1);
+				varNames = ArrayUtils.removeFromArray(varNames, j + 1);
 				j--;
 			} else {
 				// newVariableNames.add(varNames[j+1]);
@@ -456,7 +456,7 @@ public abstract class RegressionModel {
 
 		for (int i = 0; i < indeps.length; i++) {
 			if (vIndeps.elementAt(i).getClass() == intarray.getClass()) {
-				indeps[i] = Array.toDoubleArray((int[]) vIndeps.elementAt(i));
+				indeps[i] = ArrayUtils.toDoubleArray((int[]) vIndeps.elementAt(i));
 			} else {
 				indeps[i] = (double[]) vIndeps.elementAt(i);
 			}
@@ -571,7 +571,7 @@ public abstract class RegressionModel {
 			System.exit(2);
 		}
 
-		return Array.toStringArray(v);
+		return ArrayUtils.toStringArray(v);
 	}
 
 	/**
@@ -590,9 +590,9 @@ public abstract class RegressionModel {
 		}
 		
 		if (deps != null) {
-			use = Array.booleanArray(deps.length, true);
+			use = ArrayUtils.booleanArray(deps.length, true);
 		} else if (indeps != null) {
-			use = Array.booleanArray(indeps.length, true);
+			use = ArrayUtils.booleanArray(indeps.length, true);
 		} else {
 			log.reportError("Error - cannot determine rows with complete data from two null arrays");
 			return null;

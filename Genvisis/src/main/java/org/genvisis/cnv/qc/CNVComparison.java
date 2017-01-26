@@ -3,7 +3,7 @@ package org.genvisis.cnv.qc;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 
 // class to determine the percent concordance given QC parameters, currently only alpha, confidence,
@@ -178,7 +178,7 @@ public class CNVComparison {
 					}
 				} else {
 					log.reportError("Error - invaled filter Type , need to use "
-													+ Array.toStr(QC_PARAMETERs));
+													+ ArrayUtils.toStr(QC_PARAMETERs));
 					System.exit(1);
 				}
 			}

@@ -16,7 +16,7 @@ import java.util.Vector;
 
 import org.genvisis.bioinformatics.MapSNPsAndGenes;
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -204,7 +204,7 @@ public class CALiCo {
 																				SAMPLE_ID_SYNONYMS);
 				if (idVariable[i] < 0) {
 					System.out.println("Removing " + models[i] + ".");
-					Array.removeFromArray(models, i);
+					ArrayUtils.removeFromArray(models, i);
 					i--;
 				} else if (idVariable[i] == 1) {
 					System.out.println("");
@@ -247,7 +247,7 @@ public class CALiCo {
 		}
 
 		// combine lists, only those that are unique
-		Files.cat(args, resultDir + "cat_hits.txt", Array.intArray(models.length, 1), null);
+		Files.cat(args, resultDir + "cat_hits.txt", ArrayUtils.intArray(models.length, 1), null);
 
 		minimumPvalueHash = new Hashtable<String, Double>();
 		markerPositionHash = new Hashtable<String, int[]>(); // key=markerName, values=new int[]
@@ -722,7 +722,7 @@ public class CALiCo {
 																						false);
 		isBinary = RegressionModel.isBinaryTrait(phenos, log);
 		if (isBinary) {
-			if (Array.max(Array.toIntArray(phenos)) == 1 && Array.min(Array.toIntArray(phenos)) == 0) {
+			if (ArrayUtils.max(ArrayUtils.toIntArray(phenos)) == 1 && ArrayUtils.min(ArrayUtils.toIntArray(phenos)) == 0) {
 				new File(outputDir + root + "_pheno.dat").renameTo(new File(outputDir	+ root
 																																		+ "_pheno.dat.temp"));
 
@@ -795,7 +795,7 @@ public class CALiCo {
 		}
 		v.add("tab");
 		v.add("replace=.");
-		args = Array.toStringArray(v);
+		args = ArrayUtils.toStringArray(v);
 		GenParser.parse(args, log);
 
 		// determine which samples have complete data for pheotype AND all covariates
@@ -804,7 +804,7 @@ public class CALiCo {
 																							new int[] {2}, false, "\t", true, false, false);
 		hashCovariates = HashVec.loadFileToHashString(outputDir	+ root + "_covars.dat",
 																									new int[] {0, 1},
-																									Array.subArray(	Array.arrayOfIndices(args.length
+																									ArrayUtils.subArray(	ArrayUtils.arrayOfIndices(args.length
 																																												- 6),
 																																	2),
 																									false, "\t", true, false, false);
@@ -1108,7 +1108,7 @@ public class CALiCo {
 					filename = ext.replaceAllWith(filePattern,
 																				new String[][] {{"#", count + ""}, {"%%", site}});
 				}
-				Files.cat(Array.toStringArray(v), dir + root + site + ".out", new int[0], new Logger());
+				Files.cat(ArrayUtils.toStringArray(v), dir + root + site + ".out", new int[0], new Logger());
 			}
 		}
 
@@ -1142,16 +1142,16 @@ public class CALiCo {
 			}
 			qqFiles.add(outfile + ",9=" + ext.rootOf(outfile));
 			lowCallrateMarkerFiles.add(dir + outfile + "lowCallRateMarkers.out");
-			inputFiles = Array.addStrToArray(outfile, inputFiles);
+			inputFiles = ArrayUtils.addStrToArray(outfile, inputFiles);
 		}
-		Unique.proc(Array.toStringArray(lowCallrateMarkerFiles), null, null,
+		Unique.proc(ArrayUtils.toStringArray(lowCallrateMarkerFiles), null, null,
 								dir + "lowCallrateMarkers.dat", null, true);
 		if (Files.exists(dir + root + "_InvVar1.out")) {
 			log.report(root + "_InvVar1.out already exists in " + dir);
 		} else {
 			log.report("Running inverse variance weighted meta-analysis...");
 			Metal.metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, root + "_InvVar", Metal.SE_ANALYSIS,
-												null, Array.doubleArray(inputFiles.length, -9), log);
+												null, ArrayUtils.doubleArray(inputFiles.length, -9), log);
 		}
 		qqFiles.add(root + "_InvVar1.out" + ",5=" + ext.rootOf(root + "_InvVar"));
 		if (Files.exists(dir + root + "_NWeighted1.out")) {
@@ -1159,15 +1159,15 @@ public class CALiCo {
 		} else {
 			log.report("Running sample size weighted meta-analysis...");
 			Metal.metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, root + "_NWeighted",
-												Metal.PVAL_ANALYSIS, null, Array.doubleArray(inputFiles.length, -9), log);
+												Metal.PVAL_ANALYSIS, null, ArrayUtils.doubleArray(inputFiles.length, -9), log);
 		}
 		qqFiles.add(root + "_NWeighted1.out" + ",7=" + ext.rootOf(root + "_NWeighted"));
 
 		Files.write("java -jar C:/home/npankrat/vis.jar cnv.plots.QQPlot files=\""
-									+ Array.toStr(Array.toStringArray(qqFiles), ";") + "\" maxToPlot=10",
+									+ ArrayUtils.toStr(ArrayUtils.toStringArray(qqFiles), ";") + "\" maxToPlot=10",
 								dir + "plotQQs.bat");
 		dir = dir.substring(dir.substring(0, dir.length() - 1).lastIndexOf("/") + 1, dir.length());
-		log.report("QQ_FILENAMES=" + dir + Array.toStr(Array.toStringArray(qqFiles), ";" + dir));
+		log.report("QQ_FILENAMES=" + dir + ArrayUtils.toStr(ArrayUtils.toStringArray(qqFiles), ";" + dir));
 	}
 
 	public static void main(String[] args) {

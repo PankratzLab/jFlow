@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -93,7 +93,7 @@ public class Rscript {
 			v.add("qsub " + root + ".qsub");
 		}
 
-		Files.writeArray(Array.toStringArray(v), dir + "master");
+		Files.writeArray(ArrayUtils.toStringArray(v), dir + "master");
 		Files.chmod(dir + "master");
 	}
 
@@ -477,7 +477,7 @@ public class Rscript {
 				log.reportFileNotFound(file);
 				return null;
 			} else if (!Files.headerOfFileContainsAll(file, HEADER, log)) {
-				log.reportError("Geom text " + file + "  must have header " + Array.toStr(HEADER));
+				log.reportError("Geom text " + file + "  must have header " + ArrayUtils.toStr(HEADER));
 				return null;
 			} else {
 				ArrayList<GeomText> geomTexts = new ArrayList<GeomText>();
@@ -634,7 +634,7 @@ public class Rscript {
 		public Restrictions(String cols[], double[] vals, String[] ops, String cond) {
 			super();
 			this.cols = cols;
-			this.vals = Array.toStringArray(vals);
+			this.vals = ArrayUtils.toStringArray(vals);
 			this.ops = ops;
 			this.cond = cond;
 		}
@@ -966,7 +966,7 @@ public class Rscript {
 		private GeomText[] getLabelers() {
 			if (seriesLabeler != null) {
 				ArrayList<GeomText> geomTexts = new ArrayList<GeomText>();
-				double[] xs = Array.toDoubleArray(HashVec.loadFileToStringArray(dataFile, true,
+				double[] xs = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(dataFile, true,
 																																				new int[] {ext.indexOfStr(dataXvalueColumn,
 																																																	Files.getHeaderOfFile(dataFile,
 																																																												log))},
@@ -977,7 +977,7 @@ public class Rscript {
 					double min = Double.MAX_VALUE;
 					double max = -1 * Double.MAX_VALUE;
 
-					double[] data = Array.toDoubleArray(HashVec.loadFileToStringArray(dataFile, true,
+					double[] data = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(dataFile, true,
 																																						new int[] {ext.indexOfStr(dataYvalueColumn,
 																																																			Files.getHeaderOfFile(dataFile,
 																																																														log))},
@@ -1033,8 +1033,8 @@ public class Rscript {
 				ys[i] = gTexts[i].getY();
 			}
 			String typeVector = generateRVector(types, true);
-			String xVector = generateRVector(Array.toStringArray(xs), false);
-			String yVector = generateRVector(Array.toStringArray(ys), false);
+			String xVector = generateRVector(ArrayUtils.toStringArray(xs), false);
+			String yVector = generateRVector(ArrayUtils.toStringArray(ys), false);
 
 			String df = currentPlot + "_direcLdf";
 			directDataFrame[0] = df;
@@ -1062,7 +1062,7 @@ public class Rscript {
 				if (seriesLabeler != null) {
 					GeomText[] labels = getLabelers();
 					if (gTexts != null) {
-						gTexts = Array.concatAll(gTexts, labels);
+						gTexts = ArrayUtils.concatAll(gTexts, labels);
 					} else {
 						gTexts = labels;
 					}
@@ -1090,12 +1090,12 @@ public class Rscript {
 				String plot = "";
 				// if (dataYvalueColumns.length > 1) {
 				if (rSafeAltYColumnNames != null
-						&& !Array.equals(rSafeYColumns, rSafeAltYColumnNames, true)) {
+						&& !ArrayUtils.equals(rSafeYColumns, rSafeAltYColumnNames, true)) {
 					String[] currentNames = rSafeYColumns;
 					String[] altNames = rSafeAltYColumnNames;
 					if (errorBars != null) {
-						currentNames = Array.concatAll(currentNames, errorBars.getrSafeErrorColumns());
-						altNames = Array.concatAll(altNames, errorBars.getrSafeErrorColumns());
+						currentNames = ArrayUtils.concatAll(currentNames, errorBars.getrSafeErrorColumns());
+						altNames = ArrayUtils.concatAll(altNames, errorBars.getrSafeErrorColumns());
 					}
 					String rename = getRename(currentNames, altNames, dataTable);
 					rCmd.add(rename);
@@ -1103,12 +1103,12 @@ public class Rscript {
 					rSafeAltYColumnNames = rSafeYColumns;
 				}
 
-				String[] toExtract = Array.concatAll(new String[] {rSafeXColumn}, rSafeAltYColumnNames);
+				String[] toExtract = ArrayUtils.concatAll(new String[] {rSafeXColumn}, rSafeAltYColumnNames);
 				if (errorBars != null) {
-					toExtract = Array.concatAll(toExtract, errorBars.getrSafeErrorColumns());
+					toExtract = ArrayUtils.concatAll(toExtract, errorBars.getrSafeErrorColumns());
 				}
 				if (colorColumn != null) {
-					toExtract = Array.concatAll(toExtract, new String[] {rSafeColorColumn});
+					toExtract = ArrayUtils.concatAll(toExtract, new String[] {rSafeColorColumn});
 				}
 				String extract = dataTableExtract	+ " <- " + dataTable + "[,"
 													+ generateRVector(toExtract, true) + "]";
@@ -1156,8 +1156,8 @@ public class Rscript {
 												+ (legendTitle == null ? "metric" : legendTitle) + "\",";
 								plot += "breaks=" + generateRVector(altLegendTitles[0], true) + ",";
 								plot += "labels=" + generateRVector(altLegendTitles[1], true) + ")";
-								System.out.println(Array.toStr(altLegendTitles[0]));
-								System.out.println(Array.toStr(altLegendTitles[1]));
+								System.out.println(ArrayUtils.toStr(altLegendTitles[0]));
+								System.out.println(ArrayUtils.toStr(altLegendTitles[1]));
 							}
 
 						} else {
@@ -1360,17 +1360,17 @@ public class Rscript {
 					log.reportError("Could not find all Y value columns in " + dataFile);
 					int[] indices = ext.indexFactors(	dataYvalueColumns, Files.getHeaderOfFile(dataFile, log),
 																						true, false);
-					boolean[] extract = Array.booleanArray(indices.length, false);
+					boolean[] extract = ArrayUtils.booleanArray(indices.length, false);
 					for (int i = 0; i < extract.length; i++) {
 						if (indices[i] >= 0) {
 							extract[i] = true;
 						}
 					}
-					dataYvalueColumns = Array.subArray(dataYvalueColumns, extract);
+					dataYvalueColumns = ArrayUtils.subArray(dataYvalueColumns, extract);
 					rSafeYColumns = makeRSafe(dataYvalueColumns);
 
 					log.reportTimeWarning("Using available columns\t\t\n"
-																+ Array.toStr(dataYvalueColumns, "\n"));
+																+ ArrayUtils.toStr(dataYvalueColumns, "\n"));
 					if (dataYvalueColumns.length < 1) {
 						log.reportError("Could not find any Y value columns, invalid plotting");
 						valid = false;

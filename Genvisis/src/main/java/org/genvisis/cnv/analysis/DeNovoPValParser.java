@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.genvisis.CLI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -52,7 +52,7 @@ public class DeNovoPValParser {
 			outHeader[trioHeader.length] = "FA_ORIGIN";
 			outHeader[trioHeader.length+1] = "MO_ORIGIN";
 			outHeader[trioHeader.length+2] = "P-Val";
-			writer.println(Array.toStr(outHeader, "\t"));
+			writer.println(ArrayUtils.toStr(outHeader, "\t"));
 			int[] idxs = ext.indexFactors(new String[]{"FID", "IID", "CHR", "BP1", "BP2"}, trioHeader, true, false);
 			String[] colsOfInterest = new String[]{"Paternal_origin(F)=", "Maternal_origin(M)=", "P-value="};
 
@@ -82,7 +82,7 @@ public class DeNovoPValParser {
 					}
 					dnvReader.close();
 				}
-				writer.println(Array.toStr(lineOut, "\t"));
+				writer.println(ArrayUtils.toStr(lineOut, "\t"));
 			}
 
 			writer.close();

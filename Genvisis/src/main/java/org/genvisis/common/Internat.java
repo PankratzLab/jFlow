@@ -84,7 +84,7 @@ public class Internat {
 			System.out.println("Can't read  from the Internet: " + e1.toString());
 		}
 
-		return Array.toStringArray(list);
+		return ArrayUtils.toStringArray(list);
 	}
 
 	public static String[] getMash(String source, Logger log) {
@@ -126,7 +126,7 @@ public class Internat {
 			e.printStackTrace();
 		}
 
-		return Array.toStringArray(list);
+		return ArrayUtils.toStringArray(list);
 	}
 
 	public static boolean downloadFile(String source, String output) {
@@ -225,7 +225,7 @@ public class Internat {
 		}
 		in.close();
 
-		return Array.toStringArray(output);
+		return ArrayUtils.toStringArray(output);
 	}
 
 	public static void main(String[] args) {

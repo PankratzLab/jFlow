@@ -18,7 +18,7 @@ import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.cnv.qc.GcAdjustorParameter;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.qc.MarkerMetrics;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -58,7 +58,7 @@ public final class MarkerStats {
 		                                                                          "GC");
 
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
-		writer.println(Array.toStr(outHeader, "\t"));
+		writer.println(ArrayUtils.toStr(outHeader, "\t"));
 
 		MDL mdl = new MDL(proj, proj.getMarkerSet(), proj.getMarkerNames());
 		boolean[] samplesToInclude = proj.getSamplesToInclude();
@@ -69,11 +69,11 @@ public final class MarkerStats {
 				final List<String> line = new ArrayList<String>();
 				String markerName = marker.getMarkerName();
 				int markerIndexInProject = markerIndices.get(markerName);
-				float lrrSd = Array.stdev(Array.subArray(marker.getLRRs(), samplesToInclude), true);
-				float[] baf15t85 = Array.subArrayInRange(marker.getBAFs(), samplesToInclude, 0.15f, 0.85f);
-				float bafAvg = Array.mean(baf15t85, true);
-				float baf50Dist = Array.meanDist(baf15t85, 0.50f, true);
-				float bafSd = Array.stdev(baf15t85, true);
+				float lrrSd = ArrayUtils.stdev(ArrayUtils.subArray(marker.getLRRs(), samplesToInclude), true);
+				float[] baf15t85 = ArrayUtils.subArrayInRange(marker.getBAFs(), samplesToInclude, 0.15f, 0.85f);
+				float bafAvg = ArrayUtils.mean(baf15t85, true);
+				float baf50Dist = ArrayUtils.meanDist(baf15t85, 0.50f, true);
+				float bafSd = ArrayUtils.stdev(baf15t85, true);
 				line.add(markerName);
 				line.add(String.valueOf(marker.getChr()));
 				line.add(String.valueOf(marker.getPosition()));
@@ -84,12 +84,12 @@ public final class MarkerStats {
 				line.add(String.valueOf(lrrSd));
 				for (GcAdjustorParameters ps : params) {
 					float[][] lrrbaf = marker.getGCCorrectedLRRBAF(ps, markerIndexInProject, log);
-					float gcLrrSd = Array.stdev(lrrbaf[1], true);
+					float gcLrrSd = ArrayUtils.stdev(lrrbaf[1], true);
 					line.add(String.valueOf(gcLrrSd));
 					// NB: looks like GC correction doesn't currently affect BAF calculation. Not clear why both come back?
 				}
 
-				writer.println(Array.toStr(line, "\t"));
+				writer.println(ArrayUtils.toStr(line, "\t"));
 			}
 		} finally {
 			mdl.shutdown();

@@ -11,7 +11,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -118,7 +118,7 @@ public class ICC implements Serializable {
 		double[][] rowEffectData = getRowEffectData();
 		String[] rowEffectDataStringFormat = new String[rowEffectData.length];
 		for (int i = 0; i < rowEffectDataStringFormat.length; i++) {
-			rowEffectDataStringFormat[i] = Array.toStr(rowEffectData[i]);
+			rowEffectDataStringFormat[i] = ArrayUtils.toStr(rowEffectData[i]);
 		}
 		return rowEffectDataStringFormat;
 	}
@@ -134,10 +134,10 @@ public class ICC implements Serializable {
 	private void populateFullStats() {
 		if (valid) {
 			nTotal = parsedData.length;
-			sumTotal = Array.sum(parsedData);
-			meanTotal = Array.mean(parsedData, sumTotal);
-			SSTotal = Array.sumSq(parsedData, meanTotal);
-			MSTotal = Array.variance(parsedData, SSTotal);
+			sumTotal = ArrayUtils.sum(parsedData);
+			meanTotal = ArrayUtils.mean(parsedData, sumTotal);
+			SSTotal = ArrayUtils.sumSq(parsedData, meanTotal);
+			MSTotal = ArrayUtils.variance(parsedData, SSTotal);
 
 		} else {
 			log.reportError("Error - data is not valid, cannot populate full stats");
@@ -271,7 +271,7 @@ public class ICC implements Serializable {
 				if (verbose) {
 					log.report("Info - detected " + numValidClasses + " valid classes for ICC computation");
 					if (numValidClasses <= 5) {
-						log.report(Array.toStr(uniqueClasses.toArray(new String[uniqueClasses.size()])));
+						log.report(ArrayUtils.toStr(uniqueClasses.toArray(new String[uniqueClasses.size()])));
 					}
 				}
 			}
@@ -326,10 +326,10 @@ public class ICC implements Serializable {
 
 		private void popluateRowMetrics() {
 			if (valid) {
-				sum = Array.sum(data);
-				rowMean = Array.mean(data, sum);
-				SS = Array.sumSq(data, rowMean);
-				MS = Array.variance(data, SS);
+				sum = ArrayUtils.sum(data);
+				rowMean = ArrayUtils.mean(data, sum);
+				SS = ArrayUtils.sumSq(data, rowMean);
+				MS = ArrayUtils.variance(data, SS);
 				// System.out.println(SS + "\t" + MS);
 			}
 		}

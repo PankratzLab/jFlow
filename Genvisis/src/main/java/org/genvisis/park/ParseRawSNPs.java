@@ -13,7 +13,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountHashHash;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -81,7 +81,7 @@ public class ParseRawSNPs {
 					Thread.sleep(500);
 				} catch (InterruptedException ie) {
 				}
-				indices = Array.intArray(4, -1);
+				indices = ArrayUtils.intArray(4, -1);
 				count = 0;
 				if (verbosity >= 5) {
 					writer = new PrintWriter(new FileWriter(dir + file.getName() + "-discarded.out"));
@@ -129,13 +129,13 @@ public class ParseRawSNPs {
 							writer.println(temp);
 						}
 					} else {
-						if (("!" + temp).trim().split("\t").length >= Math.max(Array.max(indices) + 1, 2)
+						if (("!" + temp).trim().split("\t").length >= Math.max(ArrayUtils.max(indices) + 1, 2)
 									&& indices[0] != -1 && !line[indices[1]].trim().equals("")
 								&& (line[indices[0]].trim().equals("")
 										|| ext.indexOfStr(line[indices[0]], CONTROL_DNA_TYPES, false, false) == -1)
 								&& ext.indexOfStr(line[indices[1]], CONTROL_ID_TYPES, false, false) == -1) {
 							// // doesn't pick up controls
-							if (Array.min(indices) == -1) {
+							if (ArrayUtils.min(indices) == -1) {
 								System.err.println("Error - could not match up all indices for DNA, Fam-Id, Call, and Genotype before trying to add line:");
 								System.err.println("    '" + temp + "'");
 							}
@@ -235,7 +235,7 @@ public class ParseRawSNPs {
 				line = checkCall.getKeys();
 				if (line.length > 4) {
 					System.err.println("Error - There were more than 4 Call types: "
-															+ Array.toStr(line, ", "));
+															+ ArrayUtils.toStr(line, ", "));
 				}
 
 				count = 0;
@@ -299,9 +299,9 @@ public class ParseRawSNPs {
 							}
 							writer.print("," + genotype);
 							if (ext.indexOfStr(genotype, MISSING_GENOTYPE_CODES) == -1) {
-								writer.println("," + Array.toStr(alleleTranslation.get(genotype), ","));
+								writer.println("," + ArrayUtils.toStr(alleleTranslation.get(genotype), ","));
 							} else {
-								writer.println("," + Array.toStr(alleleTranslation.get("."), ","));
+								writer.println("," + ArrayUtils.toStr(alleleTranslation.get("."), ","));
 							}
 						}
 					}

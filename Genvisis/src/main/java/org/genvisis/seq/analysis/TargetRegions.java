@@ -5,7 +5,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Set;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -59,7 +59,7 @@ public class TargetRegions<T extends Segment> {
 				writer.print("\t" + element + "_NumExcluded");
 
 			}
-			writer.print("\t" + Array.toStr(TO_REPORT));
+			writer.print("\t" + ArrayUtils.toStr(TO_REPORT));
 			if (toMatchVCF != null && toMatchAnnotations != null) {
 				for (String toMatchAnnotation : toMatchAnnotations) {
 					writer.print("\t" + ext.rootOf(toMatchVCF) + "_" + toMatchAnnotation);
@@ -101,7 +101,7 @@ public class TargetRegions<T extends Segment> {
 																													VC_SUBSET_TYPE.SUBSET_STRICT);
 							writer.print((index > 0 ? "|" : "")	+ altSamp + ":GQ="
 														+ curContext.getGenotype(0).getGQ() + ":AD="
-														+ Array.toStr(curContext.getGenotype(0).getAD(), ","));
+														+ ArrayUtils.toStr(curContext.getGenotype(0).getAD(), ","));
 							index++;
 						}
 						int numExcluded = 0;
@@ -113,7 +113,7 @@ public class TargetRegions<T extends Segment> {
 						}
 						writer.print("\t" + numExcluded);
 					}
-					writer.print("\t" + Array.toStr(VCOps.getAnnotationsFor(TO_REPORT, vc, ".")));
+					writer.print("\t" + ArrayUtils.toStr(VCOps.getAnnotationsFor(TO_REPORT, vc, ".")));
 					if (toMatchVCF != null && toMatchAnnotations != null) {
 						VariantContext vcMatch = VCFOps.lookupExactVariant(toMatchVCF, vc, log);
 						if (vcMatch == null) {
@@ -121,7 +121,7 @@ public class TargetRegions<T extends Segment> {
 								writer.print("\tNA");
 							}
 						} else {
-							writer.print("\t" + Array.toStr(VCOps.getAnnotationsFor(toMatchAnnotations, vcMatch,
+							writer.print("\t" + ArrayUtils.toStr(VCOps.getAnnotationsFor(toMatchAnnotations, vcMatch,
 																																			".")));
 						}
 					}

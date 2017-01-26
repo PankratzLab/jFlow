@@ -14,7 +14,7 @@ import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -232,7 +232,7 @@ public class GCTA {
 		command.add(output);
 		command.add("--thread-num");
 		command.add(numthreads + "");
-		boolean success = CmdLine.runCommandWithFileChecks(	Array.toStringArray(command), "", inputs,
+		boolean success = CmdLine.runCommandWithFileChecks(	ArrayUtils.toStringArray(command), "", inputs,
 																												outputs, true, false, false, log);
 		return new VarianceResult(summaryFile, success, log);
 	}
@@ -322,7 +322,7 @@ public class GCTA {
 		command.add(output);
 		command.add("--thread-num");
 		command.add(numthreads + "");
-		boolean success = CmdLine.runCommandWithFileChecks(	Array.toStringArray(command), "", inputs,
+		boolean success = CmdLine.runCommandWithFileChecks(	ArrayUtils.toStringArray(command), "", inputs,
 																												outputs, true, false, false, log);
 		return success;
 	}
@@ -412,7 +412,7 @@ public class GCTA {
 		command.add("--make-grm");
 		command.add("--out");
 		command.add(outputGrm);
-		boolean success = CmdLine.runCommandWithFileChecks(	Array.toStringArray(command), "", null,
+		boolean success = CmdLine.runCommandWithFileChecks(	ArrayUtils.toStringArray(command), "", null,
 																												outputs, true, false, false, log);
 		return success;
 	}
@@ -530,14 +530,14 @@ public class GCTA {
 							// note that index is a sneaky way to report which PC
 							// was used.
 							writer.println("PhenoFile\tresultFile\tIndex\t"
-															+ Array.toStr(Array.toStringArray(results.get(0).source)));
+															+ ArrayUtils.toStr(ArrayUtils.toStringArray(results.get(0).source)));
 						}
 						for (VarianceResult varianceResult : results) {
 							writer.println(ext.removeDirectoryInfo(phenoFiles[i])	+ "\t"
 															+ varianceResult.summaryFile + "\t"
 															+ ext	.removeDirectoryInfo(varianceResult.summaryFile)
 																		.replaceAll("\\.hsq", "").replaceAll("PC", "")
-															+ "\t" + Array.toStr(Doubles.toArray(varianceResult.variance)));
+															+ "\t" + ArrayUtils.toStr(Doubles.toArray(varianceResult.variance)));
 						}
 					}
 					writer.close();
@@ -592,7 +592,7 @@ public class GCTA {
 		command.add("--make-grm");
 
 		String[] outputs = new String[] {output + ".grm.N.bin", output + ".grm.id"};
-		boolean success = CmdLine.runCommandWithFileChecks(	Array.toStringArray(command), "", inputs,
+		boolean success = CmdLine.runCommandWithFileChecks(	ArrayUtils.toStringArray(command), "", inputs,
 																												outputs, true, false, false, log);
 
 		return new GRM(success, output);

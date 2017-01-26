@@ -13,7 +13,7 @@ import java.util.Vector;
 
 import org.genvisis.bioinformatics.HapMapParser;
 import org.genvisis.bioinformatics.ParseSNPlocations;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -52,10 +52,10 @@ public class CheckForLD {
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
 					// data = Array.subArray(line, 2);
-					data = Array.subArray(line, 6);
-					if (Array.sum(Array.toIntArray(data)) > 0
+					data = ArrayUtils.subArray(line, 6);
+					if (ArrayUtils.sum(ArrayUtils.toIntArray(data)) > 0
 							&& (lastNotFirst || !hash.containsKey(line[0]))) {
-						hash.put(line[0], line[0] + "\t" + line[1] + "\t0\t0\t1\t2\t" + Array.toStr(data));
+						hash.put(line[0], line[0] + "\t" + line[1] + "\t0\t0\t1\t2\t" + ArrayUtils.toStr(data));
 					}
 				}
 				reader.close();
@@ -325,7 +325,7 @@ public class CheckForLD {
 							subline = maxObsLD.get(line[1]).split("[\\s]+");
 							if (Double.parseDouble(subline[1]) >= maxDprime
 									|| Double.parseDouble(subline[2]) >= maxr2) {
-								v.add(line[1] + "\t" + Array.toStr(subline));
+								v.add(line[1] + "\t" + ArrayUtils.toStr(subline));
 							}
 						}
 					}

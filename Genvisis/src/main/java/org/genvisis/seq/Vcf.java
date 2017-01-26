@@ -12,7 +12,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
@@ -81,7 +81,7 @@ public class Vcf {
 						line = temp.trim().split("[\\s]+");
 						if (line[0].startsWith("#")) {
 							log.reportError("Error - ran into some unexpected trailing comments: "
-															+ Array.toStr(line));
+															+ ArrayUtils.toStr(line));
 						} else {
 							infoToKeep = "";
 							splitInfo = line[indices[5]].split(";");
@@ -158,9 +158,9 @@ public class Vcf {
 														+ line[0] + ")");
 					}
 					alleles = line[1].split(",");
-					alleleCounts = Array.intArray(alleles.length, -1);
-					numAlleleCalled = Array.intArray(alleles.length, -1);
-					freqs = Array.doubleArray(alleles.length, -2);
+					alleleCounts = ArrayUtils.intArray(alleles.length, -1);
+					numAlleleCalled = ArrayUtils.intArray(alleles.length, -1);
+					freqs = ArrayUtils.doubleArray(alleles.length, -2);
 					index = -1;
 					dbsnp = false;
 					for (int j = 0; j < alleles.length; j++) {
@@ -241,7 +241,7 @@ public class Vcf {
 
 		if (params != null) {
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 

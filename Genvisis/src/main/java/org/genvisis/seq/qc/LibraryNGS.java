@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
@@ -126,7 +126,7 @@ public class LibraryNGS implements Serializable {
 
 		public void computeAverageQualities() {
 			for (int i = 0; i < depths.length; i++) {
-				int numBases = Array.sum(depths[i]);
+				int numBases = ArrayUtils.sum(depths[i]);
 				if (numBases > 0) {
 					phreadsAvg[i] /= numBases;
 					mapQsAvg[i] /= numReads[i];
@@ -169,7 +169,7 @@ public class LibraryNGS implements Serializable {
 				}
 			}
 			if (numBases > 0) {
-				medianCoverage = Array.median(Doubles.toArray(allCounts));
+				medianCoverage = ArrayUtils.median(Doubles.toArray(allCounts));
 			}
 			return medianCoverage;
 		}
@@ -376,7 +376,7 @@ public class LibraryNGS implements Serializable {
 
 		public String getHeader() {
 			String header = "";
-			header = header + Array.toStr(SummaryHeader);
+			header = header + ArrayUtils.toStr(SummaryHeader);
 			for (String element : ADD_HEADER) {
 				for (int j = 0; j < filterNGS.getReadDepthFilter().length; j++) {
 					header = header + "\t" + element + "_" + filterNGS.getReadDepthFilter()[j];
@@ -469,7 +469,7 @@ public class LibraryNGS implements Serializable {
 																																					0, 0.0D, filterNGS);
 				}
 				targetReadDepthResults[i].setNumSamples(1);
-				targetReadDepthResults[i].setAverageCoverage(Array.mean(readDepth.getDepths()[i]));
+				targetReadDepthResults[i].setAverageCoverage(ArrayUtils.mean(readDepth.getDepths()[i]));
 				for (int j = 0; j < readDepth.getDepths()[i].length; j++) {
 					targetReadDepthResults[i].parseCount(	readDepth.getDepths()[i][j],
 																								readDepth.getGCs()[i][j]);
@@ -620,9 +620,9 @@ public class LibraryNGS implements Serializable {
 			summary = summary + "\t" + averageInsertSize;
 			summary = summary + "\t" + numBaits;
 			summary = summary + "\t" + baitGC;
-			summary = summary + "\t" + Array.toStr(percentAtDepth);
-			summary = summary + "\t" + Array.toStr(percentGCAtDepth);
-			summary = summary + "\t" + Array.toStr(averagedNumGCAtDepth);
+			summary = summary + "\t" + ArrayUtils.toStr(percentAtDepth);
+			summary = summary + "\t" + ArrayUtils.toStr(percentGCAtDepth);
+			summary = summary + "\t" + ArrayUtils.toStr(averagedNumGCAtDepth);
 			return summary;
 		}
 
@@ -878,10 +878,10 @@ public class LibraryNGS implements Serializable {
 				BufferedReader reader = Files.getAppropriateReader(fullPathToBaitLibrary);
 				int[] indices = ext.indexFactors(	reader.readLine().trim().split("\t"), BAITS_HEADER, true,
 																					false);
-				if (Array.countIf(indices, -1) > 0) {
+				if (ArrayUtils.countIf(indices, -1) > 0) {
 					log.reportError("Error - could not detect proper header in baits file "
 													+ fullPathToBaitLibrary);
-					log.report("Header must be " + Array.toStr(BAITS_HEADER));
+					log.report("Header must be " + ArrayUtils.toStr(BAITS_HEADER));
 					reader.close();
 					reader.close();
 					return null;
@@ -894,12 +894,12 @@ public class LibraryNGS implements Serializable {
 					try {
 						tmpBaits.add(new Segment(line[indices[5]]));
 						String[] seq = LibraryNGS.parseToString(line[indices[2]]);
-						int Gs = Array.countIf(seq, "G");
-						int Cs = Array.countIf(seq, "C");
+						int Gs = ArrayUtils.countIf(seq, "G");
+						int Cs = ArrayUtils.countIf(seq, "C");
 						double GCcontent = (Gs + Cs) / seq.length;
 						tmpGCContent.add(Double.valueOf(GCcontent));
 					} catch (NumberFormatException numberFormatException) {
-						log.reportError("Error - could not parse line " + Array.toStr(line) + ", skipping");
+						log.reportError("Error - could not parse line " + ArrayUtils.toStr(line) + ", skipping");
 					}
 				}
 				reader.close();

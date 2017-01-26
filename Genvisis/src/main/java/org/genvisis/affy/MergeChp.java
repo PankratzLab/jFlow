@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.Vector;
 
 import org.genvisis.cnv.manage.SourceFileParser;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -82,7 +82,7 @@ public class MergeChp implements Runnable {
 						// if its the first directory, print the header
 
 						if (i == 0) {
-							writer.println(Array.toStr(line));
+							writer.println(ArrayUtils.toStr(line));
 						}
 
 						while (reader.ready()) {

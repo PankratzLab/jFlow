@@ -28,7 +28,7 @@ import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -146,9 +146,9 @@ public class PennCNV {
 
 		if (execList == null) {
 			Files.qsub(pennDir + scriptSubDir + "runPenn", dataDir, numChunks, commands,
-			           Matrix.toMatrix(Array.stringArraySequence(numChunks, "")), 2200, 16);
+			           Matrix.toMatrix(ArrayUtils.stringArraySequence(numChunks, "")), 2200, 16);
 		} else {
-			Files.execListAdd(execList, commands, Array.stringArraySequence(numChunks, ""), log);
+			Files.execListAdd(execList, commands, ArrayUtils.stringArraySequence(numChunks, ""), log);
 		}
 
 		Files.writeArray(new String[] {"cd " + projDir,
@@ -279,9 +279,9 @@ public class PennCNV {
 
 		if (execList == null) {
 			Files.qsub(pennDir + scriptSubDir + "runPennX", dataDir, numChunks, commands,
-			           Matrix.toMatrix(Array.stringArraySequence(numChunks, "")), 2200, 16);
+			           Matrix.toMatrix(ArrayUtils.stringArraySequence(numChunks, "")), 2200, 16);
 		} else {
-			Files.execListAdd(execList, commands, Array.stringArraySequence(numChunks, ""), log);
+			Files.execListAdd(execList, commands, ArrayUtils.stringArraySequence(numChunks, ""), log);
 		}
 		Files.writeArray(new String[] {"cd " + projDir,
 		                               "cat " + resultsDir + "*.log > " + resultsDir
@@ -467,7 +467,7 @@ public class PennCNV {
 				writer.print(sampleID + "\t" + (ids == null ? "NotInSampleData\t" + sampleID : ids[1]));
 				writer.print("\t" + (data[1].equals("1") || data[2].equals("1")
 				                     || Double.parseDouble(data[6]) > lrrSD_cutoff ? "0" : "1"));
-				writer.println("\t" + Array.toStr(data));
+				writer.println("\t" + ArrayUtils.toStr(data));
 			}
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
@@ -545,7 +545,7 @@ public class PennCNV {
 
 							@Override
 							public boolean add(String[] e) {
-								int index = Array.binarySearch(this, e, 0, false);
+								int index = ArrayUtils.binarySearch(this, e, 0, false);
 								super.add(index, e);
 								return true;
 							}
@@ -553,7 +553,7 @@ public class PennCNV {
 						chrSets.put(chr, chrSet);
 					}
 					// add CNV to list
-					chrSet.add(Array.subArray(line, 3));
+					chrSet.add(ArrayUtils.subArray(line, 3));
 				}
 				reader.close();
 			}
@@ -568,7 +568,7 @@ public class PennCNV {
 		if (readAll) {
 			try {
 				writer = new PrintWriter(new FileWriter(outputFile));
-				writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 				String FIDIID;
 				String cnvChr;
 				for (Map.Entry<String, TreeMap<String, ArrayList<String[]>>> sample : cnvSet.entrySet()) {
@@ -590,7 +590,7 @@ public class PennCNV {
 							}
 						}
 						for (String[] cnv : chrSet.getValue()) {
-							writer.println(FIDIID + "\t" + cnvChr + "\t" + Array.toStr(cnv, "\t"));
+							writer.println(FIDIID + "\t" + cnvChr + "\t" + ArrayUtils.toStr(cnv, "\t"));
 						}
 					}
 				}
@@ -638,7 +638,7 @@ public class PennCNV {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".cnv"));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			hash = new Hashtable<String, String>();
 			while (reader.ready()) {
 				temp = reader.readLine();
@@ -697,7 +697,7 @@ public class PennCNV {
 						if (denovoWriter == null) {
 							denovoWriter = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
 							                                              + "_denovo.cnv"));
-							denovoWriter.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+							denovoWriter.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 						}
 						denovoWriter.println(lineOut.toString());
 						writeValidation(ped, ids, position, copynum, line, filename, denoValWriter, log);
@@ -1155,7 +1155,7 @@ public class PennCNV {
 
 	private static String[] getSamplesForTransform(Project proj, boolean excludeExcludeds) {
 		if (excludeExcludeds) {
-			return Array.subArray(proj.getSamples(), proj.getSamplesToInclude(null));
+			return ArrayUtils.subArray(proj.getSamples(), proj.getSamplesToInclude(null));
 		} else {
 			return proj.getSamples();
 		}

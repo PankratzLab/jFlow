@@ -2,7 +2,7 @@ package org.genvisis.bioinformatics;
 
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 
@@ -113,7 +113,7 @@ public class Translate {
 		} while (index > -1);
 
 		System.out.println("Found search sequence " + v.size() + " time(s)");
-		return new String[] {str, ext.listWithCommas(Array.toStringArray(v))};
+		return new String[] {str, ext.listWithCommas(ArrayUtils.toStringArray(v))};
 	}
 
 	public static void main(String[] args) {

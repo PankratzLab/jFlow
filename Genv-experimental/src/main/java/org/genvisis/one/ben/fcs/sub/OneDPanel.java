@@ -15,7 +15,7 @@ import org.genvisis.cnv.plots.GenericLine;
 import org.genvisis.cnv.plots.GenericPath;
 import org.genvisis.cnv.plots.GenericRectangle;
 import org.genvisis.cnv.plots.PlotPoint;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2;
 import org.genvisis.stats.LeastSquares;
@@ -238,9 +238,9 @@ public class OneDPanel extends AbstractPanel2 {
 			}
 		}
 
-		float mean = (float) Array.mean(data[0]);
+		float mean = (float) ArrayUtils.mean(data[0]);
 		float mean15 = mean * .15f;
-		float sd = (float) Array.stdev(data[0], true);
+		float sd = (float) ArrayUtils.stdev(data[0], true);
 		lineList.add(new GenericLine(0, mean, numPoints + 1, mean, (byte) 1, (byte) 0, (byte) 99));
 		if (showMean15Line) {
 			lineList.add(new GenericLine(	0, mean - mean15, numPoints + 1, mean - mean15, (byte) 1,
@@ -261,14 +261,14 @@ public class OneDPanel extends AbstractPanel2 {
 																		(byte) get2SDColor(), (byte) 0));
 		}
 
-		double dataMin = Math.min(mean - mean15, Array.min(data[0])),
-				dataMax = Math.max(mean + mean15, Array.max(data[0]));
+		double dataMin = Math.min(mean - mean15, ArrayUtils.min(data[0])),
+				dataMax = Math.max(mean + mean15, ArrayUtils.max(data[0]));
 		for (int i = 1; i < data.length; i++) {
 			if (data[i].length == 0) {
 				continue;
 			}
-			dataMin = Math.min(dataMin, Array.min(data[i]));
-			dataMax = Math.max(dataMax, Array.max(data[i]));
+			dataMin = Math.min(dataMin, ArrayUtils.min(data[i]));
+			dataMax = Math.max(dataMax, ArrayUtils.max(data[i]));
 		}
 
 		double rngY = dataMax - dataMin;
@@ -372,14 +372,14 @@ public class OneDPanel extends AbstractPanel2 {
 
 				byte col = (byte) i;
 
-				double med = Array.median(data[i]);
-				double qr25 = Array.quantExclusive(data[i], 0.25);
-				double qr75 = Array.quantExclusive(data[i], 0.75);
-				double iqr = Array.iqrExclusive(data[i]);
+				double med = ArrayUtils.median(data[i]);
+				double qr25 = ArrayUtils.quantExclusive(data[i], 0.25);
+				double qr75 = ArrayUtils.quantExclusive(data[i], 0.75);
+				double iqr = ArrayUtils.iqrExclusive(data[i]);
 				double wiskLow = qr25 - 1.5 * iqr;
 				double wiskHigh = qr75 + 1.5 * iqr;
-				min = Math.min(min, Math.min(wiskLow, Array.min(data[i])));
-				max = Math.max(max, Math.max(wiskHigh, Array.max(data[i])));
+				min = Math.min(min, Math.min(wiskLow, ArrayUtils.min(data[i])));
+				max = Math.max(max, Math.max(wiskHigh, ArrayUtils.max(data[i])));
 
 				// line @ med
 				lns.add(new GenericLine(xLow, (float) med, xHigh, (float) med, (byte) 4, col, (byte) 0));

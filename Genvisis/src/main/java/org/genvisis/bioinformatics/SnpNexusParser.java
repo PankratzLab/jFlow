@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
@@ -111,7 +111,7 @@ public class SnpNexusParser {
 				if (index >= 0) {
 					option = index;
 					if (HEADER_ON_SAME_LINE[option]) {
-						line = Array.subArray(line, 1);
+						line = ArrayUtils.subArray(line, 1);
 					} else {
 						line = reader.readLine().split("\\t", -1);
 					}
@@ -137,7 +137,7 @@ public class SnpNexusParser {
 							if (!line[7 + i].equals("")) {
 								HashVec.addIfAbsent(line[7 + i], v);
 							}
-							hash.put(line[0], Array.toStringArray(v));
+							hash.put(line[0], ArrayUtils.toStringArray(v));
 						}
 						break;
 					case 1:

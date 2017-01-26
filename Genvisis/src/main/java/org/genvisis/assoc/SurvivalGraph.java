@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -60,8 +60,8 @@ public class SurvivalGraph {
 			System.exit(2);
 		}
 
-		classes = Array.toStringArray(classV);
-		ages = Array.toStringArray(ageV);
+		classes = ArrayUtils.toStringArray(classV);
+		ages = ArrayUtils.toStringArray(ageV);
 		keys = Sort.getSortedIndices(ages);
 		fams = HashVec.getKeys(hash);
 		counts = new double[classes.length][ages.length];
@@ -75,14 +75,14 @@ public class SurvivalGraph {
 
 		sums = new double[counts.length];
 		for (int i = 0; i < counts.length; i++) {
-			sums[i] = Array.sum(counts[i]);
+			sums[i] = ArrayUtils.sum(counts[i]);
 		}
 
 		try {
 			writer = new PrintWriter(new FileWriter(filename + "-survival.xls"));
-			freqs = Array.doubleArray(classes.length, 1);
-			writer.println("\t" + Array.toStr(classes));
-			writer.println("0\t" + Array.toStr(Array.stringArray(classes.length, "1")));
+			freqs = ArrayUtils.doubleArray(classes.length, 1);
+			writer.println("\t" + ArrayUtils.toStr(classes));
+			writer.println("0\t" + ArrayUtils.toStr(ArrayUtils.stringArray(classes.length, "1")));
 			for (int j = 0; j < ages.length; j++) {
 				writer.print(ages[keys[j]]);
 				for (int i = 0; i < classes.length; i++) {

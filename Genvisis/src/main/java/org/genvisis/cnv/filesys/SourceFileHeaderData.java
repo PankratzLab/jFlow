@@ -14,7 +14,7 @@ import javax.swing.JProgressBar;
 
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.manage.SourceFileParser;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -109,7 +109,7 @@ public class SourceFileHeaderData implements Serializable {
 						|| ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true,
 																false, false)[0] != -1)) {
 				log.reportError("Error - malformed or missing header.  Header must start with 'rs' or 'SNP' or contain one of the following: "
-												+ Array.toStr(SourceFileParser.SNP_HEADER_OPTIONS[0]) + ".");
+												+ ArrayUtils.toStr(SourceFileParser.SNP_HEADER_OPTIONS[0]) + ".");
 				throw new Elision(file);
 			}
 		}

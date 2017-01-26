@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -118,7 +118,7 @@ public class CytoCompare {
 				checkFile(outputDir, output, log);
 
 				PrintWriter writer = Files.getAppropriateWriter(outputs[i]);
-				writer.println(Array.toStr(OUTPUT_HEADER));
+				writer.println(ArrayUtils.toStr(OUTPUT_HEADER));
 
 				for (int j = 0; j < cytoCNVariantInds[i].length; j++) {
 					if (ind.equals(cytoCNVariantInds[i][j].getFamilyID()	+ "_"
@@ -275,7 +275,7 @@ public class CytoCompare {
 							int stop = Integer.parseInt(line[INDICES_TO_LOAD[2]]);
 							segs.add(new Segment(chr, start, stop));
 						} catch (NumberFormatException nfe) {
-							log.reportError("Error - could not parse the segment on line " + Array.toStr(line));
+							log.reportError("Error - could not parse the segment on line " + ArrayUtils.toStr(line));
 						}
 					}
 				}

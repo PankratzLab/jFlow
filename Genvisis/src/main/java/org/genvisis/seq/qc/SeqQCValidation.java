@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -225,7 +225,7 @@ public class SeqQCValidation {
 				}
 			}
 		}
-		List<DuplicateETwo[]> duplicateETwos = Array.splitUpArray(	deETwos.toArray(new DuplicateETwo[deETwos.size()]),
+		List<DuplicateETwo[]> duplicateETwos = ArrayUtils.splitUpArray(	deETwos.toArray(new DuplicateETwo[deETwos.size()]),
 																																	numthreads, log);
 		SeqQCValidation[] setSeqQCValidations = new SeqQCValidation[SNP_SETS.length
 																																* duplicateETwos.size()];
@@ -244,7 +244,7 @@ public class SeqQCValidation {
 		}
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
-			writer.println(Array.toStr(SeqError.OUTPUT_HEADER)	+ "\t"
+			writer.println(ArrayUtils.toStr(SeqError.OUTPUT_HEADER)	+ "\t"
 											+ "SET\tAltDepth\tAltDepthRatio\tGQ\tVQSLOD\tDepth");
 			SeqQCValidationProducer producer = new SeqQCValidationProducer(	setSeqQCValidations,
 																																			numVariantsToTest, 1, log);

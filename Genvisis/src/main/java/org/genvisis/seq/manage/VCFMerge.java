@@ -2,7 +2,7 @@ package org.genvisis.seq.manage;
 
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -33,10 +33,10 @@ public class VCFMerge {
 							log.reportTimeInfo("Beginning to merge " + vcfs.length + " vcfs");
 							boolean merged = gatk.mergeVCFs(vcfs, mergeOut, numthreads, false, log);
 							if (merged) {
-								log.reportTimeInfo("Merged " + Array.toStr(vcfs, "\n") + " to " + mergeOut);
+								log.reportTimeInfo("Merged " + ArrayUtils.toStr(vcfs, "\n") + " to " + mergeOut);
 								VCFOps.extractSamps(mergeOut, log);
 							} else {
-								log.reportError("Could not merge "	+ Array.toStr(vcfs, "\n") + " to "
+								log.reportError("Could not merge "	+ ArrayUtils.toStr(vcfs, "\n") + " to "
 																		+ mergeOut);
 							}
 						} else {

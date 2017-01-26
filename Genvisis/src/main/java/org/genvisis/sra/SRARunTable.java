@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -55,7 +55,7 @@ public class SRARunTable extends HashMap<String, SRASample> {
 		for (String sample : keySet()) {
 			sraFiles.add(get(sample).getRunS());
 		}
-		return Array.toStringArray(sraFiles);
+		return ArrayUtils.toStringArray(sraFiles);
 	}
 
 	/**
@@ -77,7 +77,7 @@ public class SRARunTable extends HashMap<String, SRASample> {
 			int numLoaded = 0;
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("\t");
-				String[] parsed = Array.subArray(line, indices);
+				String[] parsed = ArrayUtils.subArray(line, indices);
 
 				String runS = parsed[0];
 				String submittedSampleID = parsed[1];

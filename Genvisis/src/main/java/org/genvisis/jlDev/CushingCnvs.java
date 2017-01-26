@@ -14,7 +14,7 @@ import java.util.concurrent.Callable;
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter.FreqFilter;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
@@ -78,7 +78,7 @@ public class CushingCnvs {
 
 		private String[] getPlinkHeader() {
 			String root = ext.rootOf(inputFile);
-			String[] header = Array.concatAll(Array.tagOn(REPORT_HEADER, root + "_MIN_EMP", null));
+			String[] header = ArrayUtils.concatAll(ArrayUtils.tagOn(REPORT_HEADER, root + "_MIN_EMP", null));
 			return header;
 		}
 
@@ -88,7 +88,7 @@ public class CushingCnvs {
 			data.add(getStart() + "");
 			data.add(emp1 + "");
 			data.add(emp2 + "");
-			return Array.toStringArray(data);
+			return ArrayUtils.toStringArray(data);
 
 		}
 
@@ -215,7 +215,7 @@ public class CushingCnvs {
 
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(outCNV));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			int caseRemoved = 0;
 			int controlRemoved = 0;
 			for (int i = 0; i < cnSet1.getLoci().length; i++) {
@@ -292,7 +292,7 @@ public class CushingCnvs {
 			commandArray.add("--noweb");
 
 
-			CmdLine.runCommandWithFileChecks(	Array.toStringArray(commandArray), dir, null, null, true,
+			CmdLine.runCommandWithFileChecks(	ArrayUtils.toStringArray(commandArray), dir, null, null, true,
 																				true, false, log);
 
 			commandArray = new ArrayList<String>();
@@ -307,7 +307,7 @@ public class CushingCnvs {
 			commandArray.add("--noweb");
 
 
-			CmdLine.runCommandWithFileChecks(	Array.toStringArray(commandArray), dir, null, null, true,
+			CmdLine.runCommandWithFileChecks(	ArrayUtils.toStringArray(commandArray), dir, null, null, true,
 																				true, true, log);
 
 			//
@@ -359,7 +359,7 @@ public class CushingCnvs {
 			}
 		}
 		cnvFreqFiles.add(cnvFile);
-		String[] cnvRemoveFiles = Array.toStringArray(cnvFreqFiles);
+		String[] cnvRemoveFiles = ArrayUtils.toStringArray(cnvFreqFiles);
 		double[] controlFreqFilter = new double[] {0.01, 0.05, 1.1};
 		double[] confs = new double[] {10, 20, 0};
 		WorkerHive<LocusSet<PlinkEmpSeg>> hive = new WorkerHive<LocusSet<PlinkEmpSeg>>(	6, 10,
@@ -445,26 +445,26 @@ public class CushingCnvs {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 			writer.print("UCSC_LOC\tUCSC_LINK\t"
-										+ Array.toStr(Array.concatAll(CNVariant.PLINK_CNV_HEADER,
+										+ ArrayUtils.toStr(ArrayUtils.concatAll(CNVariant.PLINK_CNV_HEADER,
 																									summaryCNVs[0].getHeader(), BASE_HEADER)));
 			for (int j = 0; j < plinkResults.size(); j++) {
-				writer.print("\t" + Array.toStr(plinkResults.get(j).getLoci()[0].getPlinkHeader()));
+				writer.print("\t" + ArrayUtils.toStr(plinkResults.get(j).getLoci()[0].getPlinkHeader()));
 			}
 			writer.println();
 			for (int i = 0; i < summaryCNVs.length; i++) {
 				CNVariant currentCNV = cLocusSet.getLoci()[i];
 				writer.print(currentCNV.getUCSClocation()	+ "\t" + currentCNV.getUCSCLink("hg19") + "\t"
 											+ currentCNV.toPlinkFormat());
-				writer.print("\t" + Array.toStr(summaryCNVs[i].getData()));
+				writer.print("\t" + ArrayUtils.toStr(summaryCNVs[i].getData()));
 				writer.print("\t"	+ cnMappability.getMappabilityResults().get(i).getAverageMapScore() + "\t"
-											+ Array.toStr(cnMappability.getMappabilityResults().get(i).getSubsetNames(),
+											+ ArrayUtils.toStr(cnMappability.getMappabilityResults().get(i).getSubsetNames(),
 																		"/"));
 				for (int j = 0; j < plinkResults.size(); j++) {
 					PlinkEmpSeg[] overLaps = plinkResults.get(j).getOverLappingLoci(currentCNV);
 					if (overLaps == null || overLaps.length == 0 || overLaps.length < 2) {// need to find both
 																																								// start and stop
 																																								// positions
-						writer.print("\t" + Array.toStr(Array.doubleArray(
+						writer.print("\t" + ArrayUtils.toStr(ArrayUtils.doubleArray(
 																															plinkResults.get(j).getLoci()[0]
 																																															.getData().length,
 																															Double.NaN)));
@@ -500,9 +500,9 @@ public class CushingCnvs {
 						}
 						System.out.println(output);
 						if (exactMatchStart && exactMatchStop) {
-							writer.print("\t" + Array.toStr(overLaps[minEmp2Index].getData()));
+							writer.print("\t" + ArrayUtils.toStr(overLaps[minEmp2Index].getData()));
 						} else {
-							writer.print("\t" + Array.toStr(Array.doubleArray(overLaps[0].getData().length,
+							writer.print("\t" + ArrayUtils.toStr(ArrayUtils.doubleArray(overLaps[0].getData().length,
 																																Double.NaN)));
 
 						}
@@ -549,7 +549,7 @@ public class CushingCnvs {
 
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(outputRawPlot));
-			writer.println(Array.toStr(rawCounts));
+			writer.println(ArrayUtils.toStr(rawCounts));
 
 			for (int i = 0; i < cnMappability.getMappabilityResults().size(); i++) {
 				MappabilityResult<CNVariant> cnMapp = cnMappability.getMappabilityResults().get(i);
@@ -688,7 +688,7 @@ public class CushingCnvs {
 				header.add(root + "_" + "NUM_SIG_OVERLAP_SAME_CN");
 				header.add(root + "_" + "NUM_INDS");
 			}
-			return Array.toStringArray(header);
+			return ArrayUtils.toStringArray(header);
 		}
 
 		public String[] getData() {
@@ -704,7 +704,7 @@ public class CushingCnvs {
 				data.add(totalNumInds[i] + "");
 
 			}
-			return Array.toStringArray(data);
+			return ArrayUtils.toStringArray(data);
 		}
 
 		public int[] getNumOverLaps() {
@@ -743,12 +743,12 @@ public class CushingCnvs {
 		String fileName = null;
 		String usage = "\n" + "one.JL.Mappability requires 0-1 arguments\n";
 		usage += "   (1) mappability file (i.e. mapFile=" + mappabilityFile + " (default))\n" + "";
-		usage += "   (2) cnv files (i.e. cnvs=" + Array.toStr(cnvFiles, ",") + " (default))\n" + "";
+		usage += "   (2) cnv files (i.e. cnvs=" + ArrayUtils.toStr(cnvFiles, ",") + " (default))\n" + "";
 		usage +=
-					"   (3) geneTrackFile  (i.e. genes=" + Array.toStr(cnvFiles, ",") + " (default))\n" + "";
+					"   (3) geneTrackFile  (i.e. genes=" + ArrayUtils.toStr(cnvFiles, ",") + " (default))\n" + "";
 		usage += "   (4) call subsetBed  (i.e. callSubset=" + callSubsetBed + " (default))\n" + "";
 		usage += "   (5) comma-Delimited list of files to remove  (i.e. cnvFreqFiles="
-							+ Array.toStr(cnvFreqFiles, ",") + " (default))\n" + "";
+							+ ArrayUtils.toStr(cnvFreqFiles, ",") + " (default))\n" + "";
 		usage += "   (6) project file  (i.e. proj=" + null + " (default))\n" + "";
 
 		for (String arg : args) {

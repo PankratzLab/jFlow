@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -150,7 +150,7 @@ public class LinkageFormat {
 
 		map = new LinkageMap(mapin);
 		markerNames = map.getMarkerNames();
-		keeps = Array.booleanArray(markerNames.length, false);
+		keeps = ArrayUtils.booleanArray(markerNames.length, false);
 		for (int i = 0; i < markerNames.length; i++) {
 			if (markersToKeep != null	&& ext.indexOfStr(markerNames[i], markersToKeep) >= 0
 					&& markersToDrop != null && ext.indexOfStr(markerNames[i], markersToDrop) >= 0) {
@@ -166,7 +166,7 @@ public class LinkageFormat {
 			}
 		}
 
-		numDropped = keeps.length - Array.booleanArraySum(keeps);
+		numDropped = keeps.length - ArrayUtils.booleanArraySum(keeps);
 
 		if (numDropped > 0) {
 			if (pedout.equals(pedin)) {
@@ -214,7 +214,7 @@ public class LinkageFormat {
 			System.out.println("Chromosomes "	+ (i == 0 ? "altered" : (i == 1 ? "unaltered" : "missing"))
 													+ ": "
 													+ (counts[i].getSize() == 0	? "none"
-																											: Array.toStr(i == 0	? counts[i].list()
+																											: ArrayUtils.toStr(i == 0	? counts[i].list()
 																																						: counts[i].getValues(),
 																																		", ")));
 		}
@@ -234,7 +234,7 @@ public class LinkageFormat {
 					System.err.println("I do not think you are keeping the markers you think you are keeping...");
 					System.exit(1);
 				}
-				writer.print(Array.toStr(Array.subArray(line, 0, 6)));
+				writer.print(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, 6)));
 				for (int i = 0; i < keeps.length; i++) {
 					if (keeps[i]) {
 						writer.print("\t" + line[6 + 2 * i + 0] + "\t" + line[6 + 2 * i + 1]);

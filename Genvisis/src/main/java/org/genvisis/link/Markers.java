@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -29,7 +29,7 @@ public class Markers {
 		PrintWriter writer;
 		String[] line;
 		int[] chrs = new int[markers.length];
-		double[] distances = Array.doubleArray(markers.length, -1);
+		double[] distances = ArrayUtils.doubleArray(markers.length, -1);
 		DecimalFormat myFormatter = new DecimalFormat("##0.00");
 		int[] keys = new int[markers.length];
 		int index, chr = -1;

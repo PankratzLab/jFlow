@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 import org.genvisis.link.LinkageMap;
 
@@ -138,13 +138,13 @@ public class Mlink {
 			}
 
 			writer = new PrintWriter(new FileWriter("chrom" + chrome + ".xls"));
-			writer.println("Chr.\tpos\tMarker\t" + Array.toStr(THETAS) + "\tThetaMax");
+			writer.println("Chr.\tpos\tMarker\t" + ArrayUtils.toStr(THETAS) + "\tThetaMax");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.print(chr + "\t" + cumulative_cM_positions[i] + "\t" + markerNames[i]);
 				for (int j = 0; j < THETAS.length; j++) {
 					writer.print("\t" + ext.formDeci(lods[i][j], 2));
 				}
-				writer.println("\t" + Array.max(lods[i]));
+				writer.println("\t" + ArrayUtils.max(lods[i]));
 
 			}
 
@@ -184,15 +184,15 @@ public class Mlink {
 																										+ ".dat"));
 				line[0] = i == numFiles - 1	? "" + (numMarkers - (numFiles - 1) * MAX_MARKERS + 1)
 																		: "" + (MAX_MARKERS + 1);
-				writers[i].println(Array.toStr(line, " "));
+				writers[i].println(ArrayUtils.toStr(line, " "));
 			}
 			ext.writeToAll(reader.readLine(), writers);
 			reader.readLine();
 			for (int i = 0; i < numFiles - 1; i++) {
-				writers[i].println(Array.toStr(Array.stringArraySequence(MAX_MARKERS + 1, ""), " "));
+				writers[i].println(ArrayUtils.toStr(ArrayUtils.stringArraySequence(MAX_MARKERS + 1, ""), " "));
 			}
-			writers[numFiles - 1].println(Array.toStr(
-																								Array.stringArraySequence(numMarkers
+			writers[numFiles - 1].println(ArrayUtils.toStr(
+																								ArrayUtils.stringArraySequence(numMarkers
 																																						- (numFiles - 1)
 																																						* MAX_MARKERS
 																																					+ 1, ""),

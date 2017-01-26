@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.math3.random.EmpiricalDistribution;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -88,7 +88,7 @@ public class HistogramPop extends Application {
 		for (int i = 0; i < dataParsed.length; i++) {
 			dataParsed[i] = Doubles.toArray(ds.get(i));
 		}
-		return new ParseResult(Array.toStringArray(titles), dataParsed);
+		return new ParseResult(ArrayUtils.toStringArray(titles), dataParsed);
 	}
 
 	/**

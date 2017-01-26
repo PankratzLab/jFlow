@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 import org.genvisis.park.tools;
 
@@ -32,7 +32,7 @@ public class gwaPedigreeMaker {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(filename + "-out.xls"));
 			line = reader.readLine().split("\t", -1);
-			writer.println(Array.toStr(line));
+			writer.println(ArrayUtils.toStr(line));
 			ext.checkHeader(line, HEADER, true);
 			prev = "";
 			while (!done) {
@@ -44,7 +44,7 @@ public class gwaPedigreeMaker {
 				}
 				if (!trav[0].equals(prev)) {
 					if (v.size() == 1) {
-						writer.println(Array.toStr(v.elementAt(0)));
+						writer.println(ArrayUtils.toStr(v.elementAt(0)));
 					} else {
 						count = 0;
 						hash.clear();
@@ -66,7 +66,7 @@ public class gwaPedigreeMaker {
 							}
 						}
 						for (int i = 0; i < v.size(); i++) {
-							writer.println(Array.toStr(v.elementAt(i)));
+							writer.println(ArrayUtils.toStr(v.elementAt(i)));
 						}
 					}
 

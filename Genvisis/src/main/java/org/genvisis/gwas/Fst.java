@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -41,7 +41,7 @@ public class Fst {
 		f = new double[counts.length];
 		sums = new int[counts.length];
 		for (int i = 0; i < counts.length; i++) {
-			sums[i] = Array.sum(counts[i]);
+			sums[i] = ArrayUtils.sum(counts[i]);
 			p[i] = (double) (counts[i][2] * 2 + counts[i][1]) / (double) (2 * sums[i]);
 			hetObs[i] = (double) counts[i][1] / (double) sums[i];
 			hetExp[i] = 1 - (p[i] * p[i] + (1 - p[i]) * (1 - p[i]));
@@ -49,9 +49,9 @@ public class Fst {
 		}
 
 		if (unweightedBySampleSize) {
-			pBar = Array.mean(p);
-			hI = Array.mean(hetObs);
-			hS = Array.mean(hetExp);
+			pBar = ArrayUtils.mean(p);
+			hI = ArrayUtils.mean(hetObs);
+			hS = ArrayUtils.mean(hetExp);
 		} else {
 			pBar = 0;
 			hI = 0;
@@ -61,9 +61,9 @@ public class Fst {
 				hI += hetObs[i] * sums[i];
 				hS += hetExp[i] * sums[i];
 			}
-			pBar /= Array.sum(sums);
-			hI /= Array.sum(sums);
-			hS /= Array.sum(sums);
+			pBar /= ArrayUtils.sum(sums);
+			hI /= ArrayUtils.sum(sums);
+			hS /= ArrayUtils.sum(sums);
 		}
 
 		hT = 1 - (pBar * pBar + (1 - pBar) * (1 - pBar));
@@ -110,7 +110,7 @@ public class Fst {
 
 		p = new double[counts.length];
 		for (int i = 0; i < counts.length; i++) {
-			p[i] = (double) (counts[i][2] * 2 + counts[i][1]) / (double) (2 * Array.sum(counts[i]));
+			p[i] = (double) (counts[i][2] * 2 + counts[i][1]) / (double) (2 * ArrayUtils.sum(counts[i]));
 		}
 
 		return p;
@@ -129,14 +129,14 @@ public class Fst {
 		hetExp = new double[counts.length];
 		sums = new int[counts.length];
 		for (int i = 0; i < counts.length; i++) {
-			sums[i] = Array.sum(counts[i]);
+			sums[i] = ArrayUtils.sum(counts[i]);
 			p[i] = (double) (counts[i][2] * 2 + counts[i][1]) / (double) (2 * sums[i]);
 			hetExp[i] = 1 - (p[i] * p[i] + (1 - p[i]) * (1 - p[i]));
 		}
 
 		if (unweightedBySampleSize) {
-			pBar = Array.mean(p);
-			hS = Array.mean(hetExp);
+			pBar = ArrayUtils.mean(p);
+			hS = ArrayUtils.mean(hetExp);
 		} else {
 			pBar = 0;
 			hS = 0;
@@ -144,8 +144,8 @@ public class Fst {
 				pBar += p[i] * sums[i];
 				hS += hetExp[i] * sums[i];
 			}
-			pBar /= Array.sum(sums);
-			hS /= Array.sum(sums);
+			pBar /= ArrayUtils.sum(sums);
+			hS /= ArrayUtils.sum(sums);
 		}
 
 		hT = 1 - (pBar * pBar + (1 - pBar) * (1 - pBar));
@@ -209,9 +209,9 @@ public class Fst {
 				}
 				list = keys[i] + ".list";
 				v.insertElementAt("FID\tIID", 0);
-				array = Array.toStringArray(v);
+				array = ArrayUtils.toStringArray(v);
 				if (!new File(dir + list).exists()
-							|| !Array.equals(	array,
+							|| !ArrayUtils.equals(	array,
 															HashVec.loadFileToStringArray(dir	+ list, false, new int[] {0, 1},
 																														false),
 															false)
@@ -247,9 +247,9 @@ public class Fst {
 							}
 							String[] split = line[3].split("/");
 							if (reverse) {
-								Array.reverse(split);
+								ArrayUtils.reverse(split);
 							}
-							alleleCounts[count] = Array.toIntArray(split);
+							alleleCounts[count] = ArrayUtils.toIntArray(split);
 							count++;
 						}
 					}
@@ -318,15 +318,15 @@ public class Fst {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + Array.toStr(incl, "-") + "_Fst.xln"));
-			writer.println("Marker\tFst_equal\tFst_weighted\t" + Array.toStr(incl));
+			writer = new PrintWriter(new FileWriter(dir + ArrayUtils.toStr(incl, "-") + "_Fst.xln"));
+			writer.println("Marker\tFst_equal\tFst_weighted\t" + ArrayUtils.toStr(incl));
 			counts = new int[incl.length][];
 			for (int i = 0; i < markerInfo.length; i++) {
 				for (int j = 0; j < alleleCounts.length; j++) {
 					counts[j] = alleleCounts[j][i];
 				}
 				writer.println(markerInfo[i][0]	+ "\t" + calcFst(counts, true) + "\t"
-												+ calcFst(counts, false) + "\t" + Array.toStr(calcPs(counts)));
+												+ calcFst(counts, false) + "\t" + ArrayUtils.toStr(calcPs(counts)));
 
 			}
 			writer.close();
@@ -350,7 +350,7 @@ public class Fst {
 		count = 0;
 		fileContents = Vectors.initializedArray(StringVector.class, n);
 		for (String key : keys) {
-			inds = Array.toStringArray(hash.get(key));
+			inds = ArrayUtils.toStringArray(hash.get(key));
 			for (String ind : inds) {
 				fileContents[count % n].add(ind + "\t" + key);
 				count++;

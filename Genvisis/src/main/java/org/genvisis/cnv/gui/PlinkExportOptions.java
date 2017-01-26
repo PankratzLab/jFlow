@@ -30,7 +30,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
 
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
@@ -461,7 +461,7 @@ public class PlinkExportOptions extends JDialog {
 	}
 
 	private String[] getClusterFiltersOptions() {
-		return Array.addStrToArray(	NO_CLUSTER_FILTERS,
+		return ArrayUtils.addStrToArray(	NO_CLUSTER_FILTERS,
 																Files.list(	proj.DATA_DIRECTORY.getValue(false, true), null,
 																						ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)),
 																						false, proj.JAR_STATUS.getValue()));

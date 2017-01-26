@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
@@ -42,15 +42,15 @@ public class GEO_expression {
 
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_transcripts.xln"));
-			writer.println("Sample\tfile\tbackground\t" + Array.toStr(targets));
-			writer.println("Sample\tfile\tbackground\t" + Array.toStr(names));
+			writer.println("Sample\tfile\tbackground\t" + ArrayUtils.toStr(targets));
+			writer.println("Sample\tfile\tbackground\t" + ArrayUtils.toStr(names));
 			hash = new Hashtable<String, String>();
 			count = 0;
 			for (int i = 0; i < files.length; i++) {
 				try {
 					reader = new BufferedReader(new FileReader(files[i]));
 					trav = reader.readLine().trim().split("[\\s]+")[0];
-					data = Array.stringArray(targets.length + 1, ".");
+					data = ArrayUtils.stringArray(targets.length + 1, ".");
 					while (reader.ready()) {
 						line = reader.readLine().trim().split("[\\s]+");
 						if (i == 0) {
@@ -62,7 +62,7 @@ public class GEO_expression {
 
 						if (index != -1) {
 							if (line.length < 3) {
-								System.err.println("Error in '" + files[i] + "': " + Array.toStr(line));
+								System.err.println("Error in '" + files[i] + "': " + ArrayUtils.toStr(line));
 							} else {
 								data[index + 1] = line[1];
 								data[0] = line[2];
@@ -70,7 +70,7 @@ public class GEO_expression {
 						}
 						count++;
 					}
-					writer.println(trav + "\t" + files[i] + "\t" + Array.toStr(data));
+					writer.println(trav + "\t" + files[i] + "\t" + ArrayUtils.toStr(data));
 					writer.flush();
 					if (i == 0) {
 						count = 0;
@@ -113,10 +113,10 @@ public class GEO_expression {
 		double[][] resids;
 
 		data = HashVec.loadFileToStringMatrix(filename, false, null, false);
-		indeps = Array.toDoubleArray(Array.subArray(Matrix.extractColumn(data, 2), 2));
+		indeps = ArrayUtils.toDoubleArray(ArrayUtils.subArray(Matrix.extractColumn(data, 2), 2));
 		resids = new double[data[0].length - 3][];
 		for (int i = 3; i < data[0].length; i++) {
-			deps = Array.toDoubleArray(Array.subArray(Matrix.extractColumn(data, i), 2));
+			deps = ArrayUtils.toDoubleArray(ArrayUtils.subArray(Matrix.extractColumn(data, i), 2));
 			ls = new LeastSquares(deps, Matrix.toMatrix(indeps));
 			resids[i - 3] = ls.getResiduals();
 			resids[i - 3] = Transformations.transform(resids[i - 3], Transformations.NORMALIZE);
@@ -124,8 +124,8 @@ public class GEO_expression {
 
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_residuals.xln"));
-			writer.println(Array.toStr(data[0]));
-			writer.println(Array.toStr(data[1]));
+			writer.println(ArrayUtils.toStr(data[0]));
+			writer.println(ArrayUtils.toStr(data[1]));
 			for (int i = 2; i < data.length; i++) {
 				line = data[i][1].trim().split("_");
 				writer.print(line[1] + "\t" + line[2] + "_" + line[3].charAt(0) + "\t" + data[i][2]);
@@ -170,9 +170,9 @@ public class GEO_expression {
 
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_avg.xln"));
 			header1[1] = "N";
-			writer.println(Array.toStr(header1));
+			writer.println(ArrayUtils.toStr(header1));
 			header2[1] = "N";
-			writer.println(Array.toStr(header2));
+			writer.println(ArrayUtils.toStr(header2));
 			keys = HashVec.getKeys(hashV);
 			for (String key : keys) {
 				v = hashV.get(key);

@@ -31,7 +31,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.SDL.LOAD_TYPE;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -694,7 +694,7 @@ public class PlinkData {
 											+ "' was not found, all markers will be exported to PLINK");
 			}
 
-			indices = Array.arrayOfIndices(markerNames.length);
+			indices = ArrayUtils.arrayOfIndices(markerNames.length);
 		}
 
 		proj.getProgressMonitor().updateTask(PROG_KEY);
@@ -889,7 +889,7 @@ public class PlinkData {
 				try {
 					writer = new PrintWriter(new FileWriter(dir + "invalid_AB_codes.out"));
 					writer.println("MarkerNames\tA\tB");
-					for (int indice : Array.mapToValueSortedArray(invalidAbLookups)) {
+					for (int indice : ArrayUtils.mapToValueSortedArray(invalidAbLookups)) {
 						writer.println(markerNames[indice]	+ "\t" + abLookup[indice][0] + "\t"
 														+ abLookup[indice][1]);
 					}
@@ -942,7 +942,7 @@ public class PlinkData {
 			e.printStackTrace();
 		}
 
-		return Array.toStringArray(samps);
+		return ArrayUtils.toStringArray(samps);
 	}
 
 	/**
@@ -1794,7 +1794,7 @@ public class PlinkData {
 			return null;
 		}
 
-		return Array.toStringArray(dna);
+		return ArrayUtils.toStringArray(dna);
 	}
 
 	/**
@@ -2420,7 +2420,7 @@ public class PlinkData {
 		finalSampleIDs = proj.getSamples();
 		sampleData = proj.getSampleData(SampleData.BASIC_CLASSES.length, false);
 
-		sampleIndices = Array.intArray(finalSampleIDs.length, -1);
+		sampleIndices = ArrayUtils.intArray(finalSampleIDs.length, -1);
 		try {
 			reader = new BufferedReader(new FileReader(plinkFileRoot + ".fam"));
 			count = 0;
@@ -2459,7 +2459,7 @@ public class PlinkData {
 	 * @return
 	 */
 	public static int[] parseSampleIndicesAll(String plinkFileRoot, Logger log) {
-		return Array.arrayOfIndices(Files.countLines(plinkFileRoot + "fam", 0));
+		return ArrayUtils.arrayOfIndices(Files.countLines(plinkFileRoot + "fam", 0));
 	}
 
 	/**

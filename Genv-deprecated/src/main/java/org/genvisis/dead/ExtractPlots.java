@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
@@ -69,10 +69,10 @@ public class ExtractPlots {
 			}
 		});
 		numSamples = files.length;
-		ids = Array.stringArray(numSamples);
+		ids = ArrayUtils.stringArray(numSamples);
 
-		markerNameIndices = Array.intArray(numMarkers, -1);
-		markerLocationIndices = Array.intArray(numMarkers, -1);
+		markerNameIndices = ArrayUtils.intArray(numMarkers, -1);
+		markerLocationIndices = ArrayUtils.intArray(numMarkers, -1);
 		try {
 			reader = new BufferedReader(new FileReader(files[0]));
 			do {
@@ -91,7 +91,7 @@ public class ExtractPlots {
 			}
 			reader.close();
 
-			if (Array.min(markerNameIndices) == -1) {
+			if (ArrayUtils.min(markerNameIndices) == -1) {
 				for (int markerNameIndice : markerNameIndices) {
 					if (markerNameIndice != -1) {
 						markers.removeElementAt(markerNameIndice);
@@ -250,7 +250,7 @@ public class ExtractPlots {
 
 					writer = new PrintWriter(new FileWriter(SLIM + files[i].getName()));
 					writer.println(line[sampleNameIndex]	+ "," + line[snpNameIndex] + ","
-													+ Array.toStr(PLOT_NEEDS, ","));
+													+ ArrayUtils.toStr(PLOT_NEEDS, ","));
 					while (reader.ready()) {
 						line = reader.readLine().split(",");
 						writer.print(line[sampleNameIndex] + "," + line[snpNameIndex]);
@@ -287,7 +287,7 @@ public class ExtractPlots {
 		long time;
 
 		markers =
-						Array.toStringArray(HashVec.loadFileToVec(MARKERS_IN_INDEX_ORDER, false, false, false));
+						ArrayUtils.toStringArray(HashVec.loadFileToVec(MARKERS_IN_INDEX_ORDER, false, false, false));
 
 		if (new File(WINDOWS_DIRECTORY).exists()) {
 			trav = WINDOWS_DIRECTORY;
@@ -331,12 +331,12 @@ public class ExtractPlots {
 						while (reader.ready()) {
 							line = reader.readLine().split(",", -1);
 							if (line.length == header.length) {
-								writer.println(Array.toStr(line, ","));
+								writer.println(ArrayUtils.toStr(line, ","));
 							} else if (line.length == header.length * 2 - 1) {
-								writer.println(Array.toStr(Array.subArray(line, 0, header.length - 1), ","));
+								writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, header.length - 1), ","));
 								count++;
-								writer.println(Array.toStr(Array.subArray(line, 0, 3), ",")	+ ","
-																+ Array.toStr(Array.subArray(line, header.length - 1 + 3), ","));
+								writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, 3), ",")	+ ","
+																+ ArrayUtils.toStr(ArrayUtils.subArray(line, header.length - 1 + 3), ","));
 							} else {
 								System.out.println(count	+ " Expecting either " + header.length + " or "
 																		+ (header.length * 2 - 1) + "; found: " + line.length);

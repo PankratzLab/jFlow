@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -37,9 +37,9 @@ public class heritabilityEstimate {
 			reader = new BufferedReader(new FileReader(database));
 
 			phenoNames = reader.readLine().split("[\\s]+");
-			v = Array.toStringVector(covariates);
+			v = ArrayUtils.toStringVector(covariates);
 			v.insertElementAt(trait, 0);
-			indices = ext.indexFactors(Array.toStringArray(v), phenoNames, true, true);
+			indices = ext.indexFactors(ArrayUtils.toStringArray(v), phenoNames, true, true);
 
 			while (reader.ready()) {
 				line = reader.readLine().split("[\\s]+");
@@ -91,7 +91,7 @@ public class heritabilityEstimate {
 		writer.println("FAMID,ID,FA,MO,SEX");
 		for (int i = 0; i < members.size(); i++) {
 			line = members.elementAt(i);
-			writer.println(Array.toStr(line, ","));
+			writer.println(ArrayUtils.toStr(line, ","));
 		}
 		writer.close();
 
@@ -104,13 +104,13 @@ public class heritabilityEstimate {
 		for (int i = 0; i < members.size(); i++) {
 			line = members.elementAt(i);
 			data = hash.containsKey(line[0] + "\t" + line[1])	? hash.get(line[0] + "\t" + line[1])
-																												: Array.stringArray(indices.length);
+																												: ArrayUtils.stringArray(indices.length);
 			for (int j = 0; j < data.length; j++) {
 				if (data[j].equals(".")) {
 					data[j] = "";
 				}
 			}
-			writer.println(line[0] + "," + line[1] + "," + Array.toStr(data, ","));
+			writer.println(line[0] + "," + line[1] + "," + ArrayUtils.toStr(data, ","));
 		}
 		writer.close();
 
@@ -123,13 +123,13 @@ public class heritabilityEstimate {
 		for (int i = 0; i < members.size(); i++) {
 			line = members.elementAt(i);
 			data = hash.containsKey(line[0] + "\t" + line[1])	? hash.get(line[0] + "\t" + line[1])
-																												: Array.stringArray(indices.length);
+																												: ArrayUtils.stringArray(indices.length);
 			for (int j = 0; j < data.length; j++) {
 				if (data[j].equals(".")) {
 					data[j] = "";
 				}
 			}
-			writer.println(line[0] + "," + line[1] + "," + Array.toStr(data, ","));
+			writer.println(line[0] + "," + line[1] + "," + ArrayUtils.toStr(data, ","));
 		}
 		writer.close();
 
@@ -169,7 +169,7 @@ public class heritabilityEstimate {
 					} else {
 						trait = DEFAULT_TRAIT;
 					}
-					main(Array.addStrToArray("batch=", line));
+					main(ArrayUtils.addStrToArray("batch=", line));
 					writer.println("cd " + trav);
 					writer.println("./batch > batch.log");
 					writer.println("cp "	+ trait + "/polygenic.out ../" + trav + "_" + trait

@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
@@ -170,7 +170,7 @@ public class ComparePlinkResults {
 				}
 				writer.println();
 				for (int j = 0; j < composite.size(); j++) {
-					writer.print(Array.toStr(composite.elementAt(j))	+ "\t=HYPERLINK(\""
+					writer.print(ArrayUtils.toStr(composite.elementAt(j))	+ "\t=HYPERLINK(\""
 												+ Positions.getUCSClink(composite.elementAt(j)) + "\", \"link\")");
 					for (int k = 0; k < files.length; k++) {
 						writer.print("\t" + ext.prettyP(minPs[j][k], 2, 5, 1, false));
@@ -325,7 +325,7 @@ public class ComparePlinkResults {
 			writer.println();
 			for (String element : list) {
 				writer.println(element	+ "\t"
-												+ Array.toStr(Array.booleanArrayToStringArray(hash.get(element))));
+												+ ArrayUtils.toStr(ArrayUtils.booleanArrayToStringArray(hash.get(element))));
 			}
 			writer.close();
 		} catch (Exception e) {

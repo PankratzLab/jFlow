@@ -22,7 +22,7 @@ import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.qc.MarkerBlast;
 import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -133,7 +133,7 @@ public class Markers {
 			log.reportError("Error - There "	+ (v.size() == 1 ? "was one" : "were " + v.size())
 											+ " markers found in the FinalReport file that were not listed in the file of marker positions; halting parse operation.");
 			log.reportError("\nThe best source of complete marker positions is the SNP manifest (e.g., SNP_Map.csv from Illumina's GenomeStudio that should be exported along with the FinalReport files)");
-			Files.writeArray(	Array.toStringArray(v),
+			Files.writeArray(	ArrayUtils.toStringArray(v),
 												ext.parseDirectoryOfFile(markerDatabase) + "markersNotInPositionsFile.txt");
 			// write markerPositionsNotInReport.txt
 			return null;
@@ -377,14 +377,14 @@ public class Markers {
 			int[] extract = new int[required.length];
 			while (reader.ready() && !start) {
 				String[] line = reader.readLine().trim().split(delimiter);
-				if (Array.countIf(ext.indexFactors(required, line, true, log, false, false), -1) == 0) {
+				if (ArrayUtils.countIf(ext.indexFactors(required, line, true, log, false, false), -1) == 0) {
 					start = true;
 					extract = ext.indexFactors(required, line, true, log, false, false);
 				}
 			}
 			if (!start) {
 				throw new IllegalStateException("Could not find required header subset "
-																				+ Array.toStr(required, ",") + " in " + csv);
+																				+ ArrayUtils.toStr(required, ",") + " in " + csv);
 			}
 			markerToChrPosLinkedMap = parseMarkerPositions(reader, delimiter, csv, extract[0],  extract[1],  extract[2], log);
 	
@@ -399,7 +399,7 @@ public class Markers {
 		}
 		checkMarkersAgainstDBSnp(markerToChrPosLinkedMap, ext.addToRoot(output, "_mismatches"), build, csv, log);
 		writeMarkerPositions(markerToChrPosLinkedMap, output);
-		return Array.toStringArray(markerToChrPosLinkedMap.keySet());
+		return ArrayUtils.toStringArray(markerToChrPosLinkedMap.keySet());
 	}
 	
 	
@@ -420,7 +420,7 @@ public class Markers {
 		while (reader.ready()) {
 			String[] line = reader.readLine().trim().split(delimiter);
 			if (line.length <= markerNameIndex || line.length < chrIndex || line.length <= posIndex) {
-				log.reportTimeWarning("Skipping line with missing columns: " + Array.toStr(line));
+				log.reportTimeWarning("Skipping line with missing columns: " + ArrayUtils.toStr(line));
 				continue;
 			}
 			String marker = line[markerNameIndex];
@@ -531,7 +531,7 @@ public class Markers {
 		System.out.println("Converting from columns "	+ header[1 + setFrom * 2 + 0] + "/"
 												+ header[1 + setFrom * 2 + 1] + " to columns " + header[1 + setTo * 2 + 0]
 												+ "/" + header[1 + setTo * 2 + 1]);
-		hash = HashVec.loadFileToHashString(lookupFile, 0, Array.arrayOfIndices(header.length), "\t",
+		hash = HashVec.loadFileToHashString(lookupFile, 0, ArrayUtils.arrayOfIndices(header.length), "\t",
 																				true);
 
 		try {
@@ -540,35 +540,35 @@ public class Markers {
 																							+ header[1 + setTo * 2 + 0] + "_"
 																							+ header[1 + setTo * 2 + 1] + ".xln"));
 			line = reader.readLine().trim().split("[\\s]+");
-			line = Array.insertStringAt(header[1 + setTo * 2 + 0], line, alleleCol + 2);
-			line = Array.insertStringAt(header[1 + setTo * 2 + 1], line, alleleCol + 3);
-			writer.println(Array.toStr(line));
+			line = ArrayUtils.insertStringAt(header[1 + setTo * 2 + 0], line, alleleCol + 2);
+			line = ArrayUtils.insertStringAt(header[1 + setTo * 2 + 1], line, alleleCol + 3);
+			writer.println(ArrayUtils.toStr(line));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (hash.containsKey(line[0])) {
-					alleles = Array.subArray(hash.get(line[0]).split("[\\s]+"), 1);
+					alleles = ArrayUtils.subArray(hash.get(line[0]).split("[\\s]+"), 1);
 					if (line[alleleCol].equals(alleles[setFrom * 2 + 0])
 							&& line[alleleCol + 1].equals(alleles[setFrom * 2 + 1])) {
-						line = Array.insertStringAt(alleles[setTo * 2 + 0], line, alleleCol + 2);
-						line = Array.insertStringAt(alleles[setTo * 2 + 1], line, alleleCol + 3);
+						line = ArrayUtils.insertStringAt(alleles[setTo * 2 + 0], line, alleleCol + 2);
+						line = ArrayUtils.insertStringAt(alleles[setTo * 2 + 1], line, alleleCol + 3);
 					} else if (line[alleleCol].equals(alleles[setFrom * 2 + 1])
 											&& line[alleleCol + 1].equals(alleles[setFrom * 2 + 0])) {
-						line = Array.insertStringAt(alleles[setTo * 2 + 1], line, alleleCol + 2);
-						line = Array.insertStringAt(alleles[setTo * 2 + 0], line, alleleCol + 3);
+						line = ArrayUtils.insertStringAt(alleles[setTo * 2 + 1], line, alleleCol + 2);
+						line = ArrayUtils.insertStringAt(alleles[setTo * 2 + 0], line, alleleCol + 3);
 					} else {
 						System.err.println("Error - snp '"	+ line[0] + "' has alleles " + line[alleleCol] + "/"
 																+ line[alleleCol + 1] + " in the file and "
 																+ alleles[setFrom * 2 + 0] + "/" + alleles[setFrom * 2 + 1]
 																+ " in allele lookup table");
-						line = Array.insertStringAt("XXXXX", line, alleleCol + 2);
-						line = Array.insertStringAt("XXXXX", line, alleleCol + 3);
+						line = ArrayUtils.insertStringAt("XXXXX", line, alleleCol + 2);
+						line = ArrayUtils.insertStringAt("XXXXX", line, alleleCol + 3);
 					}
 				} else {
 					System.err.println("Error - snp '" + line[0] + "' not found in allele lookup table");
-					line = Array.insertStringAt("XXXXX", line, alleleCol + 2);
-					line = Array.insertStringAt("XXXXX", line, alleleCol + 3);
+					line = ArrayUtils.insertStringAt("XXXXX", line, alleleCol + 2);
+					line = ArrayUtils.insertStringAt("XXXXX", line, alleleCol + 3);
 				}
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 			}
 			reader.close();
 			writer.close();

@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Matrix;
 
 public class FisherComp {
@@ -36,11 +36,11 @@ public class FisherComp {
 				}
 				matrix = new int[v.size()][];
 				for (int i = 0; i < v.size(); i++) {
-					matrix[i] = Array.toIntArray(v.elementAt(i).split("/"));
+					matrix[i] = ArrayUtils.toIntArray(v.elementAt(i).split("/"));
 				}
 				prunedMatrix = Matrix.prune(matrix);
 				time = new Date().getTime();
-				writer.println(Array.toStr(line)	+ "\t"
+				writer.println(ArrayUtils.toStr(line)	+ "\t"
 												+ ProbDist.ChiDist(	ContingencyTable.ChiSquare(prunedMatrix, false),
 																						(prunedMatrix.length - 1) * (prunedMatrix[0].length
 																																					- 1))

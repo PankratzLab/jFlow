@@ -3,7 +3,7 @@ package org.genvisis.seq.cnv;
 
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.filesys.CNVariant;
 
 public class SeqCNVariant extends CNVariant {
@@ -41,7 +41,7 @@ public class SeqCNVariant extends CNVariant {
 				extraInfo.add(cnvExtraInfo.getdExtra());
 			}
 		}
-		return toPlinkFormat() + "\t" + Array.toStr(extraInfo);
+		return toPlinkFormat() + "\t" + ArrayUtils.toStr(extraInfo);
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class SeqCNVariant extends CNVariant {
 				extraHeaders.add(cnvExtraInfo.getsExtra());
 			}
 		}
-		return Array.concatAll(PLINK_CNV_HEADER, Array.toStringArray(extraHeaders));
+		return ArrayUtils.concatAll(PLINK_CNV_HEADER, ArrayUtils.toStringArray(extraHeaders));
 	}
 
 

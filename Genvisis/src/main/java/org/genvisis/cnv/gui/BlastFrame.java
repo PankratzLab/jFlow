@@ -40,7 +40,7 @@ import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.util.CNVHelper;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.seq.manage.StrandOps;
@@ -543,11 +543,11 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 					locationLbl.setText(seg.getChromosomeUCSC() + ":" + start + "-" + stop);
 
 					String[] gen = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start, stop));
-					String[] act = Array.subArray(gen, posStrand ? 0 : 1,
+					String[] act = ArrayUtils.subArray(gen, posStrand ? 0 : 1,
 																				posStrand ? gen.length - 1 : gen.length);
 
 					nextBaseLbl.setText(posStrand ? gen[gen.length - 1] : gen[0]);
-					String seq = Array.toStr(act, "");
+					String seq = ArrayUtils.toStr(act, "");
 					probeLbl.setText(posStrand ? seq : BlastLabel.flipBases(seq));
 					// } else if (hasOnT) {
 					// probeDescLbl.setText("<on-target mismatch:>");

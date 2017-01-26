@@ -6,7 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -141,7 +141,7 @@ public class SkatMtDNA {
 			String[] controlPop, Logger log) {
 		StringBuilder filter = new StringBuilder();
 		String root = outDir + VCFOps.getAppropriateRoot(inputVCF, true) + "vp" + ext.rootOf(vpop.getFileName()) + "_"
-				+ casePop + "_" + Array.toStr(controlPop, "_");
+				+ casePop + "_" + ArrayUtils.toStr(controlPop, "_");
 		String out = root;
 
 		if (!Files.exists(out + ".recode.vcf")) {

@@ -13,7 +13,7 @@ import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.qc.MarkerBlast.MarkerFastaEntry;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ArraySpecialList.ArrayBlastAnnotationList;
 import org.genvisis.common.Files;
 import org.genvisis.filesys.Segment;
@@ -41,7 +41,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 																String[] blastResultFiles, int minAlignmentLength, int maxGaps,
 																int maxMismatches, int maxAlignmentsReported) {
 		super(proj, analysisParams,
-					Array.concatAll(BlastAnnotationTypes.getBaseAnnotations(),
+					ArrayUtils.concatAll(BlastAnnotationTypes.getBaseAnnotations(),
 													new Annotation[] {MarkerBlastHistogramAnnotation.getDefaultBlastAnnotation()},
 													new Annotation[] {MarkerSeqAnnotation.getDefault()},
 													new Annotation[] {MarkerEvalueHistogramAnnotation.getDefaultBlastAnnotation()}),
@@ -259,7 +259,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 						toReport[k] = tmp[order[k]];
 					}
 
-					anDatas[i].getAnnotations()[j].setData(Array.toStr(	BlastAnnotation.toAnnotationString(toReport),
+					anDatas[i].getAnnotations()[j].setData(ArrayUtils.toStr(	BlastAnnotation.toAnnotationString(toReport),
 																															BLAST_ANNOTATION_TYPES.values()[j].getSep()));
 				} else {
 					anDatas[i].getAnnotations()[j].setData(BLAST_ANNOTATION_TYPES.values()[j].getDefaultValue());
@@ -313,7 +313,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 																																			new MarkerEvalueHistogramAnnotation(MarkerEvalueHistogramAnnotation.DEFAULT_NAME,
 																																																					MarkerEvalueHistogramAnnotation.DEFAULT_DESCRIPTION);
 
-			builder.annotations(Array.concatAll(BlastAnnotationTypes.getAnnotationDatas(),
+			builder.annotations(ArrayUtils.concatAll(BlastAnnotationTypes.getAnnotationDatas(),
 																					new AnnotationData[] {markerBlastHistogramAnnotation},
 																					new AnnotationData[] {markerEvalueHistogramAnnotation},
 																					new AnnotationData[] {MarkerSeqAnnotation.getDefault()}));

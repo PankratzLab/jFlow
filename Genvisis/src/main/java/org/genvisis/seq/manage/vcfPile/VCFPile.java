@@ -5,7 +5,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
@@ -99,10 +99,10 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
 				log.reportTimeInfo("On Region " + index + "\t" + pRegion.getRegion().getUCSClocation());
 				String out = "";
 				out += pRegion.getRegion().getUCSClocation();
-				out += "\t" + Array.mean(pRegion.getTotalCalledVar());
+				out += "\t" + ArrayUtils.mean(pRegion.getTotalCalledVar());
 				out += "\t" + pRegion.getAvgGC();
-				out += "\t" + Array.mean(pRegion.getAvgDP());
-				out += "\t" + Array.mean(pRegion.getAvgGQ());
+				out += "\t" + ArrayUtils.mean(pRegion.getAvgDP());
+				out += "\t" + ArrayUtils.mean(pRegion.getAvgGQ());
 				writer.println(out);
 				writer.flush();
 			}

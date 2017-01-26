@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
@@ -68,7 +68,7 @@ public class OptimalSet {
 		}
 		bestSets = new int[THRESHOLDS.length][3][types.length];
 		bestSetValues = new int[THRESHOLDS.length][3][4];
-		counters = Array.intArray(names.length, 0);
+		counters = ArrayUtils.intArray(names.length, 0);
 		time = new Date().getTime();
 		while (counters[0] < names[0].length) {
 			if (counters[0] == 21 && counters[1] == 18 && counters[2] == 23) {

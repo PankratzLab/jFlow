@@ -24,7 +24,7 @@ import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 import com.google.common.primitives.Ints;
 
-public class Array {
+public class ArrayUtils {
 	private static final int MINI = -999;
 	private static final double MIND = Double.NaN;
 	private static final int MINF = -999;
@@ -401,7 +401,7 @@ public class Array {
 	public static double[][] toDoubleArrays(String[][] array, boolean NaNForMissing) {
 		double[][] arr = new double[array.length][];
 		for (int i = 0; i < array.length; i++) {
-			arr[i] = Array.toDoubleArray(array[i], NaNForMissing);
+			arr[i] = ArrayUtils.toDoubleArray(array[i], NaNForMissing);
 		}
 		return arr;
 	}
@@ -1037,7 +1037,7 @@ public class Array {
 	 * @return
 	 */
 	public static double[] scaleMinTo(double[] array, final double minForce) {
-		double min = Array.min(Array.removeNaN(array));
+		double min = ArrayUtils.min(ArrayUtils.removeNaN(array));
 
 		if (min < minForce) {
 			min = minForce - min;
@@ -1057,8 +1057,8 @@ public class Array {
 	 * @return
 	 */
 	public static double[] scale(final double[] array, final double minForce) {
-		double max = Array.max(array);
-		double min = Array.min(array);
+		double max = ArrayUtils.max(array);
+		double min = ArrayUtils.min(array);
 		double[] scaled = new double[array.length];
 		for (int i = 0; i < array.length; i++) {
 			scaled[i] = (array[i] - min) / (max - min);
@@ -1451,7 +1451,7 @@ public class Array {
 			}
 		}
 
-		return (float) Math.sqrt(sum / (count - 1));
+		return (float) Math.sqrt(sum / (count- 1));
 	}
 
 	/**
@@ -1462,8 +1462,8 @@ public class Array {
 	 */
 	public static double[] normalize(double[] array) {
 		double[] newData = new double[array.length];
-		double mean = Array.mean(array);
-		double stdev = Array.stdev(array);
+		double mean = ArrayUtils.mean(array);
+		double stdev = ArrayUtils.stdev(array);
 
 		for (int i = 0; i < newData.length; i++) {
 			newData[i] = (array[i] - mean) / stdev;
@@ -1480,8 +1480,8 @@ public class Array {
 	 */
 	public static float[] normalize(float[] array) {
 		float[] newData = new float[array.length];
-		float mean = Array.mean(array, true);
-		float stdev = Array.stdev(array, false);
+		float mean = ArrayUtils.mean(array, true);
+		float stdev = ArrayUtils.stdev(array, false);
 
 		for (int i = 0; i < newData.length; i++) {
 			newData[i] = (array[i] - mean) / stdev;
@@ -1515,8 +1515,8 @@ public class Array {
 			}
 		}
 
-		stdevNegative = Array.stdev(Doubles.toArray(positives));
-		stdevPositive = Array.stdev(Doubles.toArray(positives));
+		stdevNegative = ArrayUtils.stdev(Doubles.toArray(positives));
+		stdevPositive = ArrayUtils.stdev(Doubles.toArray(positives));
 
 		newData = new double[array.length];
 		for (int i = 0; i < newData.length; i++) {
@@ -1557,8 +1557,8 @@ public class Array {
 	 */
 	public static double skewness(double[] array) {
 		double skew = -1;
-		double mean = Array.mean(array);
-		double sd = Array.stdev(array);
+		double mean = ArrayUtils.mean(array);
+		double sd = ArrayUtils.stdev(array);
 		double m3;
 		double n = array.length;
 
@@ -1579,7 +1579,7 @@ public class Array {
 	 */
 	public static double kurtosis(double[] array) {
 		double kurt = -1;
-		double mean = Array.mean(array);
+		double mean = ArrayUtils.mean(array);
 		double m2, s, m4s;
 		double n = array.length;
 
@@ -2110,7 +2110,7 @@ public class Array {
 		for (int i = 0; i < values.length; i++) {
 			arr[i] = values[i].toString();
 		}
-		return Array.toStr(arr, null, delimiter, null);
+		return ArrayUtils.toStr(arr, null, delimiter, null);
 	}
 
 	/**
@@ -2335,7 +2335,7 @@ public class Array {
 											+ " things, setting to 1");
 			nChunks = 1;
 		}
-		int[] chunks = Array.splitUpDistributeRemainder(array.length, nChunks, log);
+		int[] chunks = ArrayUtils.splitUpDistributeRemainder(array.length, nChunks, log);
 		ArrayList<T[]> da = new ArrayList<T[]>();
 		int start = 0;
 		for (int chunk : chunks) {
@@ -2426,7 +2426,7 @@ public class Array {
 		} else {
 			splits[numSplits - 1] = remainder;
 		}
-		if (Array.sum(splits) != total) {
+		if (ArrayUtils.sum(splits) != total) {
 			log.reportError("Internal Error - could not properly split up "	+ total + " into "
 											+ numSplits);
 			splits = null;
@@ -2455,7 +2455,7 @@ public class Array {
 		String[] array = new String[matrix.length];
 
 		for (int i = 0; i < array.length; i++) {
-			array[i] = Array.toStr(matrix[i], delimiter);
+			array[i] = ArrayUtils.toStr(matrix[i], delimiter);
 		}
 
 		return array;
@@ -2675,7 +2675,7 @@ public class Array {
 		List<String> list = toList(array);
 		list.add(pos, str);
 
-		return Array.toStringArray(list);
+		return ArrayUtils.toStringArray(list);
 	}
 
 	/**
@@ -2707,7 +2707,7 @@ public class Array {
 				uniqNoMask.add(uniq);
 			}
 		}
-		uniqs = Array.toStringArray(uniqNoMask);
+		uniqs = ArrayUtils.toStringArray(uniqNoMask);
 		boolean[][] classified = new boolean[uniqs.length][];
 		for (int i = 0; i < classified.length; i++) {
 			classified[i] = booleanArray(toClassify.length, false);
@@ -2801,7 +2801,7 @@ public class Array {
 	 * Tries to find the instance in a sorted array where all values up to, but not including, that
 	 * index are less than a given maximum target
 	 * <p>
-	 * For example, calling {@link Array#indexOfLastMinByte} using (new byte[] {0,1,2,24,25}, 23),
+	 * For example, calling {@link ArrayUtils#indexOfLastMinByte} using (new byte[] {0,1,2,24,25}, 23),
 	 * would return 3 (all values up to index 3 are less than 23);
 	 *
 	 * @param array an array of bytes
@@ -4240,7 +4240,7 @@ public class Array {
 	 */
 	public static int determineType(String filename, int col, String[] exclusions, boolean allow21) {
 		return determineType(	allow21,
-													Array.toDoubleArray(Array.removeFromArray(HashVec.loadFileToStringArray(filename,
+													ArrayUtils.toDoubleArray(ArrayUtils.removeFromArray(HashVec.loadFileToStringArray(filename,
 																																																	true,
 																																																	new int[] {col},
 																																																	true),
@@ -4285,9 +4285,9 @@ public class Array {
 		} else if (array.length == 1) {
 			System.err.println("Error - no variation for this trait!");
 			return -1;
-		} else if (array.length == 2 && Array.min(array) == 0 && Array.max(array) == 1) {
+		} else if (array.length == 2 && ArrayUtils.min(array) == 0 && ArrayUtils.max(array) == 1) {
 			return 0;
-		} else if (allow21 && array.length == 2 && Array.min(array) == 1 && Array.max(array) == 2) {
+		} else if (allow21 && array.length == 2 && ArrayUtils.min(array) == 1 && ArrayUtils.max(array) == 2) {
 			return 0;
 		} else if (array.length == 2) {
 			System.err.println("Error - flag was set to prevent binary trait from being anything other than 0/1 ("
@@ -4474,8 +4474,8 @@ public class Array {
 		int[] freqBinCounts, freqBinCountsSmooth;
 		double minValue, maxFreq, localMinFreq;
 
-		numBins = (int) ((Array.max(array) - Array.min(array)) / binSize);
-		minValue = Array.min(array);
+		numBins = (int) ((ArrayUtils.max(array) - ArrayUtils.min(array)) / binSize);
+		minValue = ArrayUtils.min(array);
 		freqBinCounts = new int[numBins];
 		for (int i = 0; i < array.length; i++) {
 			freqBinCounts[(int) (Math.floor(array[i] - minValue) / binSize)]++;
@@ -4532,8 +4532,8 @@ public class Array {
 		int[] indicesOfLocalMaxima;
 		double[] modes;
 
-		numBins = (int) ((Array.max(array) - Array.min(array)) / binSize) + 1;
-		minValue = Array.min(array);
+		numBins = (int) ((ArrayUtils.max(array) - ArrayUtils.min(array)) / binSize) + 1;
+		minValue = ArrayUtils.min(array);
 		freqBinCounts = new int[numBins];
 		for (int i = 0; i < array.length; i++) {
 			freqBinCounts[(int) Math.floor((array[i] - minValue) / binSize)]++;
@@ -4879,7 +4879,7 @@ public class Array {
 	}
 
 	public static double lambda(double[] pvals) {
-		return ProbDist.ChiDistReverse(Array.median(pvals), 1) / ProbDist.ChiDistReverse(0.50, 1);
+		return ProbDist.ChiDistReverse(ArrayUtils.median(pvals), 1) / ProbDist.ChiDistReverse(0.50, 1);
 	}
 
 	/**
@@ -4936,7 +4936,7 @@ public class Array {
 	}
 
 	/**
-	 * As {@link Array#sortedCopy(double[])} for float arrays.
+	 * As {@link ArrayUtils#sortedCopy(double[])} for float arrays.
 	 */
 	public static float[] sortedCopy(float[] array) {
 		float[] sorted = Arrays.copyOf(array, array.length);
@@ -4945,7 +4945,7 @@ public class Array {
 	}
 
 	/**
-	 * As {@link Array#sortedCopy(double[])} for object arrays.
+	 * As {@link ArrayUtils#sortedCopy(double[])} for object arrays.
 	 */
 	public static <T> T[] sortedCopy(T[] array) {
 		T[] sorted = Arrays.copyOf(array, array.length);
@@ -4959,11 +4959,12 @@ public class Array {
 		// float[] data = {11.8f, 0.93f, 1.76f, 14, 16.5f, 17.1f, 32.5f, 33.4f, 16.8f, 21.5f, 13.1f,
 		// 22.2f, 22.2f, 16, 16.2f};
 
-		System.out.println(Array.toStr(quantiles(data)));
+		System.out.println(ArrayUtils.toStr(quantiles(data)));
 
 		System.out.println(1.1 - (int) 1 == 0.1); //false
 		System.out.println(Math.abs((1.1 - 1) - 0.1) <= 0.00000001); //true
 
+		System.out.println(stdev(new double[]{2, 4, 4, 4, 5, 5, 7, 9}, true));
 		// double alleleFreq = 0.2;
 		// double stdev = 0.12;
 		// double[] array = new double[10000];

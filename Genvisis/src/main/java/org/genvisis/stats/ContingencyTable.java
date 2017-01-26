@@ -6,7 +6,7 @@ package org.genvisis.stats;
 
 import java.io.IOException;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 
@@ -89,8 +89,8 @@ public class ContingencyTable {
 
 		p1 = data[0][0] / (data[0][0] + data[0][1]);
 		p2 = data[1][0] / (data[1][0] + data[1][1]);
-		n1 = Array.sum(data[0]);
-		n2 = Array.sum(data[1]);
+		n1 = ArrayUtils.sum(data[0]);
+		n2 = ArrayUtils.sum(data[1]);
 
 		logRR = Math.log(relativeRisk(data));
 		z = ProbDist.NormDistReverse(alpha);
@@ -150,7 +150,7 @@ public class ContingencyTable {
 			if (data[i].length != data[0].length) {
 				System.err.println("Error - can't do a ChiSquare on a matrix with different numbers of columns");
 			}
-			rowSums[i] = Array.sum(data[i]);
+			rowSums[i] = ArrayUtils.sum(data[i]);
 		}
 
 		return rowSums;
@@ -160,7 +160,7 @@ public class ContingencyTable {
 		double[] colSums = new double[data[0].length];
 
 		for (int j = 0; j < data[0].length; j++) {
-			colSums[j] = Array.sum(Matrix.extractColumn(data, j));
+			colSums[j] = ArrayUtils.sum(Matrix.extractColumn(data, j));
 		}
 
 		return colSums;
@@ -173,7 +173,7 @@ public class ContingencyTable {
 
 		rowSums = computeRowSums(data);
 		colSums = computeColSums(data);
-		total = Array.sum(rowSums);
+		total = ArrayUtils.sum(rowSums);
 
 		expecteds = new double[data.length][data[0].length];
 		for (int i = 0; i < data.length; i++) {
@@ -277,7 +277,7 @@ public class ContingencyTable {
 
 		rowSums = computeRowSums(data);
 		colSums = computeColSums(data);
-		total = Array.sum(rowSums);
+		total = ArrayUtils.sum(rowSums);
 
 		residuals = new double[data.length][data[0].length];
 		expecteds = computeExpecteds(data);
@@ -293,8 +293,8 @@ public class ContingencyTable {
 	}
 
 	public static double linearCorrelation(double[][] data) {
-		return linearCorrelation(	data, Array.toDoubleArray(Array.arrayOfIndices(data.length)),
-															Array.toDoubleArray(Array.arrayOfIndices(data[0].length)));
+		return linearCorrelation(	data, ArrayUtils.toDoubleArray(ArrayUtils.arrayOfIndices(data.length)),
+															ArrayUtils.toDoubleArray(ArrayUtils.arrayOfIndices(data[0].length)));
 	}
 
 	public static double linearCorrelation(double[][] data, double[] rowScores, double[] colScores) {
@@ -304,7 +304,7 @@ public class ContingencyTable {
 
 		rowSums = computeRowSums(data);
 		colSums = computeColSums(data);
-		total = Array.sum(rowSums);
+		total = ArrayUtils.sum(rowSums);
 
 		if (rowScores.length != rowSums.length) {
 			System.err.println("Error - number of rowScores does not jive with the number of rows");
@@ -344,8 +344,8 @@ public class ContingencyTable {
 	}
 
 	public static double linearTrendStatistic(double[][] data) {
-		return linearTrendStatistic(data, Array.toDoubleArray(Array.arrayOfIndices(data.length)),
-																Array.toDoubleArray(Array.arrayOfIndices(data[0].length)));
+		return linearTrendStatistic(data, ArrayUtils.toDoubleArray(ArrayUtils.arrayOfIndices(data.length)),
+																ArrayUtils.toDoubleArray(ArrayUtils.arrayOfIndices(data[0].length)));
 	}
 
 	public static double linearTrendStatistic(double[][] data, double[] rowScores,
@@ -593,7 +593,7 @@ public class ContingencyTable {
 													+ ext.formDeci(linearTrendStatistic(data), 3) + " (p="
 												+ ext.prettyP(ProbDist.ChiDist(linearTrendStatistic(data), 1)) + ")");
 		System.out.println("Using midranks:");
-		System.out.println(Array.toStr(midRanks(computeColSums(data))));
+		System.out.println(ArrayUtils.toStr(midRanks(computeColSums(data))));
 		System.out.println("The linear correlation is "
 												+ ext.formDeci(	linearCorrelation(data, midRanks(computeRowSums(data)),
 																													midRanks(computeColSums(data))),

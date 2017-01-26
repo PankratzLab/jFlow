@@ -17,7 +17,7 @@ import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.cnv.qc.LrrSd;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
@@ -100,7 +100,7 @@ public class GcCorrection {
 																					projCorrected.SAMPLE_QC_FILENAME.getValue()};
 		String[] titles = new String[] {"UN_CORRECTED", "GC_CORRECTED"};
 		String[] fullHeader =
-												Array.concatAll(new String[] {LrrSd.SAMPLE_COLUMN}, LrrSd.NUMERIC_COLUMNS);
+												ArrayUtils.concatAll(new String[] {LrrSd.SAMPLE_COLUMN}, LrrSd.NUMERIC_COLUMNS);
 		int[] indices = ext.indexFactors(	fullHeader,
 																			Files.getHeaderOfFile(orginalFiles[0], projOriginal.getLog()),
 																			true, false);
@@ -111,7 +111,7 @@ public class GcCorrection {
 		String comboBox = comboQC + ".box";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(comboBox));
-			writer.println(status + "\t" + Array.toStr(fullHeader));
+			writer.println(status + "\t" + ArrayUtils.toStr(fullHeader));
 			for (int i = 0; i < orginalFiles.length; i++) {
 
 				BufferedReader reader = Files.getAppropriateReader(orginalFiles[i]);
@@ -119,7 +119,7 @@ public class GcCorrection {
 				while (reader.ready()) {
 					String[] line = reader.readLine().trim().split("[\\s]+");
 					if (!line[indices[0]].equals(LrrSd.SAMPLE_COLUMN)) {
-						writer.println(titles[i] + "\t" + Array.toStr(Array.subArray(line, indices)));
+						writer.println(titles[i] + "\t" + ArrayUtils.toStr(ArrayUtils.subArray(line, indices)));
 					}
 				}
 				reader.close();
@@ -128,12 +128,12 @@ public class GcCorrection {
 			writer.close();
 
 		} catch (FileNotFoundException fnfe) {
-			projOriginal.getLog().reportError("Error: file(s) \""	+ Array.toStr(orginalFiles)
+			projOriginal.getLog().reportError("Error: file(s) \""	+ ArrayUtils.toStr(orginalFiles)
 																				+ "\" not found in current directory");
 			return;
 		} catch (IOException ioe) {
 			projOriginal.getLog()
-									.reportError("Error reading file(s) \"" + Array.toStr(orginalFiles) + "\"");
+									.reportError("Error reading file(s) \"" + ArrayUtils.toStr(orginalFiles) + "\"");
 			return;
 		} catch (Exception e) {
 			projOriginal.getLog().reportError("Error writing to " + comboBox);
@@ -246,7 +246,7 @@ public class GcCorrection {
 				correctedSamp = new Sample(	curSample.getSampleName(), curSample.getFingerprint(),
 																		curSample.getGCs(), curSample.getXs(), curSample.getYs(),
 																		curSample.getBAFs(),
-																		Array.toFloatArray(gcAdjustor.getCorrectedIntensities()),
+																		ArrayUtils.toFloatArray(gcAdjustor.getCorrectedIntensities()),
 																		curSample.getForwardGenotypes(), curSample.getAB_Genotypes(),
 																		curSample.getCanXYBeNegative());
 				correctedSamp.saveToRandomAccessFile(newSampleFile, outliers, curSample.getSampleName());

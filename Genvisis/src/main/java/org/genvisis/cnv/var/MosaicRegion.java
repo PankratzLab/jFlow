@@ -3,7 +3,7 @@ package org.genvisis.cnv.var;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.filesys.CNVariant;
 
 public class MosaicRegion extends CNVariant implements Serializable {
@@ -94,8 +94,8 @@ public class MosaicRegion extends CNVariant implements Serializable {
 		tmp.add(beastHeight + "");
 		tmp.add(beastLength + "");
 
-		String[] s = Array.concatAll(toPlinkFormat().split("\t"), Array.toStringArray(tmp));
-		return Array.toStr(s);
+		String[] s = ArrayUtils.concatAll(toPlinkFormat().split("\t"), ArrayUtils.toStringArray(tmp));
+		return ArrayUtils.toStr(s);
 	}
 
 

@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -128,7 +128,7 @@ public class LinkageMap {
 			penetranceFunctions = new double[numPen][];
 			for (int i = 0; i < numPen; i++) {
 				try {
-					penetranceFunctions[i] = Array.toDoubleArray(reader.readLine().trim().split("[\\s]+"));
+					penetranceFunctions[i] = ArrayUtils.toDoubleArray(reader.readLine().trim().split("[\\s]+"));
 				} catch (NumberFormatException e) {
 					System.err.println("Error - failed to parse the penetrance model for file: " + filename);
 					System.exit(1);
@@ -159,7 +159,7 @@ public class LinkageMap {
 				line = reader.readLine().trim().split("[\\s]+");
 				try {
 					if (line.length == expNumAllele) {
-						alleleFreqs[i] = Array.toDoubleArray(line);
+						alleleFreqs[i] = ArrayUtils.toDoubleArray(line);
 					} else {
 						if (line.length < expNumAllele) {
 							System.err.println("Error - the number of allele frequencies provided for "
@@ -168,7 +168,7 @@ public class LinkageMap {
 																	+ ")");
 							problem = true;
 						} else if (line[Integer.parseInt(line[1])].startsWith("<")) {
-							alleleFreqs[i] = Array.toDoubleArray(Array.subArray(line, 0, expNumAllele));
+							alleleFreqs[i] = ArrayUtils.toDoubleArray(ArrayUtils.subArray(line, 0, expNumAllele));
 						} else {
 							System.err.println("Error - the number of allele frequencies for "	+ markerNames[i]
 																	+ " (n=" + alleleFreqs.length
@@ -179,7 +179,7 @@ public class LinkageMap {
 					}
 				} catch (NumberFormatException e) {
 					System.err.println("Error - failed to parse the allele frequencies for "	+ markerNames[i]
-															+ " (" + Array.toStr(line) + ")");
+															+ " (" + ArrayUtils.toStr(line) + ")");
 					problem = true;
 				}
 			}
@@ -295,19 +295,19 @@ public class LinkageMap {
 			writer.println((markerNames.length + 1)	+ " 0 " + (chr == 23 ? 1 : 0)
 											+ " 5  << NO. OF LOCI, RISK LOCUS, SEXLINKED (IF 1) PROGRAM");
 			writer.println("0 0.0 0.0 0  << MUT LOCUS, MUT RATE, HAPLOTYPE FREQUENCIES (IF 1)");
-			writer.println(Array.toStr(Array.stringArraySequence(markerNames.length + 1, ""), " "));
+			writer.println(ArrayUtils.toStr(ArrayUtils.stringArraySequence(markerNames.length + 1, ""), " "));
 			writer.println("1  2  << AFFECTATION, NO. OF ALLELES");
 			writer.println(ext.formDeci(1 - dxAlleleFreq, 2, 5)	+ " " + ext.formDeci(dxAlleleFreq, 2, 5)
 											+ " << GENE FREQUENCIES");
 			writer.println(penetranceFunctions.length + "  << NO. OF LIABILITY CLASSES");
 			for (double[] penetranceFunction : penetranceFunctions) {
-				writer.println(Array.toStr(penetranceFunction, 2, 5, " "));
+				writer.println(ArrayUtils.toStr(penetranceFunction, 2, 5, " "));
 			}
 
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println("3 "	+ alleleFreqs[i].length + "  # " + markerNames[i]
 												+ (addInfo[i] == null ? "" : addInfo[i]));
-				writer.println(Array.toStr(alleleFreqs[i], 6, 6, " "));
+				writer.println(ArrayUtils.toStr(alleleFreqs[i], 6, 6, " "));
 			}
 
 			writer.println("0 0  << SEX DIFFERENCE, INTERFERENCE (IF 1 OR 2)");
@@ -392,7 +392,7 @@ public class LinkageMap {
 		oldAlleleFreqs = alleleFreqs;
 		old_Cumulative_Positions = positions;
 
-		count = Array.booleanArraySum(keeps);
+		count = ArrayUtils.booleanArraySum(keeps);
 		markerNames = new String[count];
 		alleleFreqs = new double[count][];
 		positions = new double[count];
@@ -547,7 +547,7 @@ public class LinkageMap {
 				orderedAlleles[i][j - numMissing] = alleleSizes[keys[j]];
 				sum += alleleCounts[keys[j]];
 			}
-			addInfo[i] = "  recode : " + Array.toStr(orderedAlleles[i], " ");
+			addInfo[i] = "  recode : " + ArrayUtils.toStr(orderedAlleles[i], " ");
 			alleleFreqs[i] = new double[alleleSizes.length - numMissing];
 			for (int j = numMissing; j < alleleSizes.length; j++) {
 				alleleFreqs[i][j - numMissing] = (double) alleleCounts[keys[j]] / sum;
@@ -600,7 +600,7 @@ public class LinkageMap {
 				System.err.println("        found: " + v.elementAt(i));
 				System.exit(1);
 			}
-			models[i] = Array.toDoubleArray(line);
+			models[i] = ArrayUtils.toDoubleArray(line);
 		}
 
 		return models;
@@ -655,7 +655,7 @@ public class LinkageMap {
 
 		if (iv.size() > 0) {
 			System.err.println("Skipped the following chromosomes as they could not be found: "
-													+ Array.toStr(iv.toArray()));
+													+ ArrayUtils.toStr(iv.toArray()));
 
 		}
 	}

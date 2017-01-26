@@ -20,7 +20,7 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MarkerDataLoader;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -49,7 +49,7 @@ public class PrincipalComponentsEval {
 			}
 		}
 		proj.getLog().report(ext.getTime()	+ " Info - models will be constructed with "
-													+ Array.booleanArraySum(samplesToUse) + " samples");
+													+ ArrayUtils.booleanArraySum(samplesToUse) + " samples");
 
 		pcResiduals.setMarkersToAssessFile(markers);
 		pcResiduals.setRecomputeLRR(true);
@@ -57,7 +57,7 @@ public class PrincipalComponentsEval {
 		pcResiduals.setHomozygousOnly(true);
 
 		Files.writeMatrix(new String[][] {proj.getSamples(),
-																			Array.toStringArray(pcResiduals.getMedians())},
+																			ArrayUtils.toStringArray(pcResiduals.getMedians())},
 											ext.parseDirectoryOfFile(evalFile) + ext.rootOf(output) + ".medianValues",
 											"\t");
 		try {
@@ -102,8 +102,8 @@ public class PrincipalComponentsEval {
 		double[] iccData = new double[evals.length * 2];
 		String[] ICCDef_METHODS = new String[evals.length * 2];
 		String[] ICCDef_MATCHED = new String[evals.length * 2];
-		double[] normResids = Array.normalize(resids);
-		double[] normevals = Array.normalize(evals);
+		double[] normResids = ArrayUtils.normalize(resids);
+		double[] normevals = ArrayUtils.normalize(evals);
 		int index = 0;
 		int match = 1;
 		for (int j = 0; j < evals.length; j++) {
@@ -143,32 +143,32 @@ public class PrincipalComponentsEval {
 			Quantiles[] evalQs = Quantiles.qetQuantilesFor(qs, evals, "QPCR", proj.getLog());
 			Quantiles[] residQs = Quantiles.qetQuantilesFor(qs, resids, "US", proj.getLog());
 			for (int i = 0; i < qs.length; i++) {
-				pearsonCorrelQs[i] = Correlation.Pearson(	Array.toDoubleArray(evalQs[i].getQuantileMembershipAsRoundedInt()),
-																									Array.toDoubleArray(residQs[i].getQuantileMembershipAsRoundedInt()));
+				pearsonCorrelQs[i] = Correlation.Pearson(	ArrayUtils.toDoubleArray(evalQs[i].getQuantileMembershipAsRoundedInt()),
+																									ArrayUtils.toDoubleArray(residQs[i].getQuantileMembershipAsRoundedInt()));
 				IrrTable irrTable = new IrrTable(2, evals.length, true, proj.getLog());
 				irrTable.addRatings(0, evalQs[i].getQuantileMembershipAsRoundedInt());
 				irrTable.addRatings(1, residQs[i].getQuantileMembershipAsRoundedInt());
 				irrTable.parseAgreement();
-				quantileAgreement[i] = new double[] {	irrTable.getPercentAgreementFor(Array.min(irrTable.getUniqRatings())),
-																							irrTable.getPercentAgreementFor(Array.max(irrTable.getUniqRatings())),
+				quantileAgreement[i] = new double[] {	irrTable.getPercentAgreementFor(ArrayUtils.min(irrTable.getUniqRatings())),
+																							irrTable.getPercentAgreementFor(ArrayUtils.max(irrTable.getUniqRatings())),
 																							irrTable.getCohensKappa()};
 			}
 		}
 		proj.getLog().report(ext.getTime() + " Info - finshed PC " + PC);
-		proj.getLog().report(ext.getTime()	+ " Pearson " + Array.toStr(correlP) + "\tNumSamples: "
+		proj.getLog().report(ext.getTime()	+ " Pearson " + ArrayUtils.toStr(correlP) + "\tNumSamples: "
 													+ evalHave.size());
-		proj.getLog().report(ext.getTime()	+ " Spearman " + Array.toStr(correlS) + "\tNumSamples: "
+		proj.getLog().report(ext.getTime()	+ " Spearman " + ArrayUtils.toStr(correlS) + "\tNumSamples: "
 													+ evalHave.size());
 		proj.getLog()
 				.report(ext.getTime() + " ICCMethods " + iccM + "\tNumSamples: " + evalHave.size());
 		proj.getLog()
 				.report(ext.getTime() + " ICCMatched " + iccMa + "\tNumSamples: " + evalHave.size());
 
-		writer.print(PC	+ "\t" + Array.toStr(correlP) + "\t" + Array.toStr(correlS) + "\t" + iccM + "\t"
+		writer.print(PC	+ "\t" + ArrayUtils.toStr(correlP) + "\t" + ArrayUtils.toStr(correlS) + "\t" + iccM + "\t"
 									+ iccMa);
 		if (numQs >= 2) {
 			for (int i = 0; i < pearsonCorrelQs.length; i++) {
-				writer.print("\t"	+ Array.toStr(pearsonCorrelQs[i]) + "\t" + quantileAgreement[i][0] + "\t"
+				writer.print("\t"	+ ArrayUtils.toStr(pearsonCorrelQs[i]) + "\t" + quantileAgreement[i][0] + "\t"
 											+ quantileAgreement[i][1] + "\t" + quantileAgreement[i][2]);
 			}
 		}
@@ -300,7 +300,7 @@ public class PrincipalComponentsEval {
 			pcComponentsIntensity.correctXYAt(atComponent);
 			log.reportTimeInfo("Finished corrections for PC"	+ atComponent + " for marker "
 													+ currentMarker + " on thread" + Thread.currentThread().getName());
-			return Array.toDoubleArray(pcComponentsIntensity.getCorrectedIntensity("BAF_LRR", true)[1]);
+			return ArrayUtils.toDoubleArray(pcComponentsIntensity.getCorrectedIntensity("BAF_LRR", true)[1]);
 		}
 	}
 

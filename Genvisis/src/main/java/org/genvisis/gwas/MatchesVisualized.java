@@ -10,7 +10,7 @@ import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
@@ -44,10 +44,10 @@ public class MatchesVisualized {
 
 		data = new double[anchors.length + barnacles.length][factorIndices.length];
 		for (int i = 0; i < anchors.length; i++) {
-			data[i] = Array.toDoubleArray(hash.get(anchors[i]).split("[\\s]+"));
+			data[i] = ArrayUtils.toDoubleArray(hash.get(anchors[i]).split("[\\s]+"));
 		}
 		for (int i = 0; i < barnacles.length; i++) {
-			data[anchors.length + i] = Array.toDoubleArray(hash.get(barnacles[i]).split("[\\s]+"));
+			data[anchors.length + i] = ArrayUtils.toDoubleArray(hash.get(barnacles[i]).split("[\\s]+"));
 		}
 		trans = Matrix.transpose(data);
 		for (int i = 0; i < factorIndices.length; i++) {
@@ -80,8 +80,8 @@ public class MatchesVisualized {
 
 			@Override
 			public void paintComponent(Graphics g) {
-				double mean = Array.mean(dists);
-				double stdev = Array.stdev(dists);
+				double mean = ArrayUtils.mean(dists);
+				double stdev = ArrayUtils.stdev(dists);
 
 				for (int i = 0; i < pairs.length; i++) {
 					Grafik.drawThickLine(	g,
@@ -122,7 +122,7 @@ public class MatchesVisualized {
 		frame.getContentPane().add(panel);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		System.out.println("Finished writing distances_"	+ Array.toStr(factorIndices, ",") + " in "
+		System.out.println("Finished writing distances_"	+ ArrayUtils.toStr(factorIndices, ",") + " in "
 												+ ext.getTimeElapsed(time));
 	}
 
@@ -150,7 +150,7 @@ public class MatchesVisualized {
 										+ "   (2) barnacles (i.e. barnacles=" + barnacles + " (default))\n"
 										+ "   (3) file with factors (i.e. factors=" + factors + " (default))\n"
 										+ "   (4) indices of factors in clusterfile (i.e. indices="
-										+ Array.toStr(factorIndices, ",") + " (default))\n" + "";
+										+ ArrayUtils.toStr(factorIndices, ",") + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -169,7 +169,7 @@ public class MatchesVisualized {
 				factors = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("indices=")) {
-				factorIndices = Array.toIntArray(arg.split("=")[1].split(","));
+				factorIndices = ArrayUtils.toIntArray(arg.split("=")[1].split(","));
 				numArgs--;
 			}
 		}

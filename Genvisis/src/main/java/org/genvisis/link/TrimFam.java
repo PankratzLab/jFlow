@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -632,7 +632,7 @@ public class TrimFam {
 			}
 			subfams = HashVec.getKeys(famIndHash);
 			for (String subfam : subfams) {
-				inds = Array.toStringArray(famIndHash.get(subfam));
+				inds = ArrayUtils.toStringArray(famIndHash.get(subfam));
 				scores = new double[inds.length];
 				for (int j = 0; j < scores.length; j++) {
 					scores[j] = hash.get(inds[j]).priorityScore;
@@ -769,7 +769,7 @@ public class TrimFam {
 			try {
 				id = Integer.parseInt(line[1]);
 			} catch (NumberFormatException nfe) {
-				return Array.arrayOfIndices(original.size());
+				return ArrayUtils.arrayOfIndices(original.size());
 			}
 			if (id > maxID) {
 				maxID = id;
@@ -987,7 +987,7 @@ public class TrimFam {
 																		log);
 		if (paramV != null) {
 			paramV.addElement("logfile=" + log.getFilename());
-			main(Array.toStringArray(paramV));
+			main(ArrayUtils.toStringArray(paramV));
 		}
 	}
 

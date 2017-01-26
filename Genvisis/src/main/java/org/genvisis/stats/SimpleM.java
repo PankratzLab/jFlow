@@ -1,7 +1,7 @@
 package org.genvisis.stats;
 
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -100,8 +100,8 @@ public class SimpleM {
 			} else {
 				stop = start + index * blockSize;
 				log.reportTimeInfo("Subsetting dataset from " + start + " -> " + stop);
-				double[][] block = Array.subArray(dataM, start, stop);
-				String[] blockTitles = Array.subArray(dataTitles, start, stop);
+				double[][] block = ArrayUtils.subArray(dataM, start, stop);
+				String[] blockTitles = ArrayUtils.subArray(dataTitles, start, stop);
 				start = stop;
 				PrincipalComponentsCompute principalComponentsCompute = computePcs(	block, blockTitles,
 																																						precorrelated, verbose,
@@ -113,8 +113,8 @@ public class SimpleM {
 			}
 		}
 		if (start < dataM.length) {
-			double[][] block = Array.subArray(dataM, start, numTotal);
-			String[] blockTitles = Array.subArray(dataTitles, start, numTotal);
+			double[][] block = ArrayUtils.subArray(dataM, start, numTotal);
+			String[] blockTitles = ArrayUtils.subArray(dataTitles, start, numTotal);
 			System.out.println("Subsetting from " + start + " -> " + numTotal);
 			PrincipalComponentsCompute principalComponentsCompute = computePcs(	block, blockTitles,
 																																					precorrelated, verbose,
@@ -130,7 +130,7 @@ public class SimpleM {
 															double pcaCutoff) {
 		int m = 0;
 		double[] singularValues = principalComponentsCompute.getSingularValues();
-		double cut = pcaCutoff * Array.sum(singularValues);
+		double cut = pcaCutoff * ArrayUtils.sum(singularValues);
 		double curSum = 0;
 		for (double singularValue : singularValues) {
 			if (curSum <= cut) {
@@ -221,7 +221,7 @@ public class SimpleM {
 	private SimpleM(Builder builder, double[][] dataM, Logger log) {
 		this.dataM = dataM;
 		if (builder.dataTitles == null) {
-			dataTitles = Array.stringArraySequence(dataM.length, "Variable_");
+			dataTitles = ArrayUtils.stringArraySequence(dataM.length, "Variable_");
 		} else {
 			dataTitles = builder.dataTitles;
 		}
@@ -242,7 +242,7 @@ public class SimpleM {
 		String filename = "C:/bin/simpleM_Ex/snpSample.txt";// should be 200 in block mode,191 in single
 																												// frame mode
 		String[][] testData = HashVec.loadFileToStringMatrix(filename, false, null, false);
-		double[][] matrix = Array.toDoubleArrays(testData, false);
+		double[][] matrix = ArrayUtils.toDoubleArrays(testData, false);
 		String[] titles = new String[matrix.length];
 		for (int i = 0; i < titles.length; i++) {
 			titles[i] = "var" + i;

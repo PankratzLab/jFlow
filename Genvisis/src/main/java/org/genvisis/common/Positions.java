@@ -198,7 +198,7 @@ public class Positions {
 	public static String getUCSCformat(int[] pos) {
 		if (pos.length < 1 && pos.length > 3) {
 			System.err.println("Error - could not make a valid UCSC position from '"
-													+ Array.toStr(pos, "/") + "' (need 1-3 integers)");
+													+ ArrayUtils.toStr(pos, "/") + "' (need 1-3 integers)");
 			return null;
 		}
 		return "chr"

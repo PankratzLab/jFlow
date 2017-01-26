@@ -15,7 +15,7 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -72,8 +72,8 @@ public class SampleQC {
 
 		this.gcCorrectedLrrSd = gcCorrectedLrrSd;
 
-		excludes = Array.booleanArray(samples.length, false);
-		excludeNotes = Array.stringArray(samples.length, ".");
+		excludes = ArrayUtils.booleanArray(samples.length, false);
+		excludeNotes = ArrayUtils.stringArray(samples.length, ".");
 
 		checkDuplicates = false;
 	}
@@ -251,7 +251,7 @@ public class SampleQC {
 		if (fidiids != null) {
 			header.add("mzTwinID");
 		}
-		return Array.combine(	header.toArray(new String[] {}),
+		return ArrayUtils.combine(	header.toArray(new String[] {}),
 													developMetricsHeader(quantiles, qctitles, numQ, justQuantiles));
 	}
 
@@ -275,8 +275,8 @@ public class SampleQC {
 			}
 		}
 
-		qcMatrix = Array.subArray(getQcMatrix(), useQCs);
-		qctitles = Array.subArray(getQctitles(), useQCs);
+		qcMatrix = ArrayUtils.subArray(getQcMatrix(), useQCs);
+		qctitles = ArrayUtils.subArray(getQctitles(), useQCs);
 		qcsAdded = qctitles.length * samples.length;
 
 		if (gcCorrectedLrrSd && getLrr_sdIndex() == -1) {
@@ -323,7 +323,7 @@ public class SampleQC {
 				}
 			}
 		}
-		uses = Array.booleanNegative(excludes);
+		uses = ArrayUtils.booleanNegative(excludes);
 		useNotes = new String[samples.length];
 		for (int i = 0; i < useNotes.length; i++) {
 			useNotes[i] = uses[i] ? "." : "Excluded";
@@ -339,7 +339,7 @@ public class SampleQC {
 		}
 		fidiids = new String[samples.length];
 		fidiidToIndex = new HashMap<String, Integer>();
-		mzTwinIds = Array.stringArray(samples.length, ".");
+		mzTwinIds = ArrayUtils.stringArray(samples.length, ".");
 		HashMap<String, Integer> sampleIndices = new HashMap<String, Integer>();
 		for (int i = 0; i < samples.length; i++) {
 			sampleIndices.put(samples[i], i);
@@ -367,7 +367,7 @@ public class SampleQC {
 		proj.getLog().reportTimeInfo("Identifying duplicate samples");
 		try {
 			BufferedReader reader = Files.getAppropriateReader(duplicatesSetFile);
-			duplicateIds = Array.stringArray(samples.length, ".");
+			duplicateIds = ArrayUtils.stringArray(samples.length, ".");
 			HashMap<String, HashSet<Integer>> duplicateSets = new HashMap<String, HashSet<Integer>>();
 			String[] line;
 			int duplicatesFound = 0;
@@ -377,7 +377,7 @@ public class SampleQC {
 					proj.getLog()
 							.reportError("file \""	+ duplicatesSetFile
 																+ "\" contains at least one line that is not 3 columns: "
-																+ Array.toStr(line));
+																+ ArrayUtils.toStr(line));
 					return;
 				}
 				String fidiid = line[0] + "\t" + line[1];
@@ -527,8 +527,8 @@ public class SampleQC {
 		thisClass.append(numQ);
 		thisClass.append("_");
 		thisClass.append(qcTitle);
-		List<Integer> uniqLabels = Array.unique(Ints.asList(quantiles.getQuantileMembershipAsRoundedInt()));
-		List<Double> uniqQs = Array.unique(Doubles.asList(quantiles.getQuantileMembership()));
+		List<Integer> uniqLabels = ArrayUtils.unique(Ints.asList(quantiles.getQuantileMembershipAsRoundedInt()));
+		List<Double> uniqQs = ArrayUtils.unique(Doubles.asList(quantiles.getQuantileMembership()));
 		Collections.sort(uniqLabels);
 		Collections.sort(uniqQs);
 		for (int i = 0; i < uniqLabels.size(); i++) {
@@ -547,7 +547,7 @@ public class SampleQC {
 																													new int[] {sampleColumn}, false);
 		int[] indices = ext.indexLargeFactors(fileSamples, projSamples, true, proj.getLog(), false,
 																					false);
-		return fileSamples.length - Array.countIf(indices, -1) == projSamples.length;
+		return fileSamples.length - ArrayUtils.countIf(indices, -1) == projSamples.length;
 	}
 
 	public static SampleQC loadSampleQC(Project proj) {
@@ -592,7 +592,7 @@ public class SampleQC {
 				int[] indicesToLoad = ext.indexFactors(	qcTitlesToLoad, header, true, proj.getLog(), true,
 																								false);
 				int sampleColumn = ext.indexOfStr(sampleColumnName, header);
-				if (Array.countIf(indicesToLoad, -1) > 0 || sampleColumn < 0) {
+				if (ArrayUtils.countIf(indicesToLoad, -1) > 0 || sampleColumn < 0) {
 					proj.getLog()
 							.reportError("Could not find all desired columns in qc file " + lrrSdToLoad);
 					proj.getLog().reportError("Consider re-creating "	+ lrrSdToLoad
@@ -614,7 +614,7 @@ public class SampleQC {
 									data = Double.parseDouble(line[indicesToLoad[i]]);
 								} catch (NumberFormatException e) {
 									proj.getLog()
-											.reportTimeWarning("line "	+ Array.toStr(line)
+											.reportTimeWarning("line "	+ ArrayUtils.toStr(line)
 																					+ " contained an invalid number for qc column "
 																					+ qcTitlesToLoad[i]);
 								}

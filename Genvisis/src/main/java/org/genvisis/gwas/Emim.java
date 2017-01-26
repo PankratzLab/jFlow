@@ -13,7 +13,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.genvisis.cnv.manage.Resources;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -535,7 +535,7 @@ public class Emim {
 
 		String usage = "\n"	+ "gwas.Emim requires 0-1 arguments\n"
 										+ "   (1) run type (either C, CM, or M) (i.e. run=" + runType + " (default))\n"
-										+ "   (2) model (" + Array.toStr(EMIM_MODEL.values(), ",") + ") (i.e. model="
+										+ "   (2) model (" + ArrayUtils.toStr(EMIM_MODEL.values(), ",") + ") (i.e. model="
 										+ model.toString() + " (default))\n" + "  OR\n"
 										+ "   (1) generate script that runs the full process (i.e. script=plinkPrefix (not the default))\n"
 										+ "   (2) p-value threshold to filter on (piped to parse method) (i.e. pThreshold="

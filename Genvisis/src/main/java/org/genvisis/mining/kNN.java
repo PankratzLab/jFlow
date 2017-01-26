@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -386,9 +386,9 @@ public class kNN {
 			System.exit(1);
 		}
 		while (percentages.length < 3) {
-			percentages = Array.addIntToArray(0, percentages);
+			percentages = ArrayUtils.addIntToArray(0, percentages);
 		}
-		if (Array.sum(percentages) != 100) {
+		if (ArrayUtils.sum(percentages) != 100) {
 			System.err.println("Error - partition percentages do not sum to 100");
 			System.exit(2);
 		}
@@ -396,7 +396,7 @@ public class kNN {
 		partitions[1] = new int[(int) Math.round((double) (percentages[1]) * n / 100)];
 		partitions[2] = new int[n - partitions[0].length - partitions[1].length];
 
-		randIndices = Array.random(n);
+		randIndices = ArrayUtils.random(n);
 		count = 0;
 		for (int j = 0; j < 3; j++) {
 			for (int i = 0; i < partitions[j].length; i++) {

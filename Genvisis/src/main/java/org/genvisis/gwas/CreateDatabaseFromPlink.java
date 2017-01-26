@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -113,7 +113,7 @@ public class CreateDatabaseFromPlink {
 			}
 		}
 
-		if (!Array.equals(markerNames,
+		if (!ArrayUtils.equals(markerNames,
 											HashVec.loadFileToStringArray(dir + freqfile, true, new int[] {1}, false),
 											true)) {
 			log.reportError("Error - the freq file does not match the map file");
@@ -125,7 +125,7 @@ public class CreateDatabaseFromPlink {
 			if (params.length > 4) {
 				System.err.println("Error - The allMarkers flagged was set to true, so all markers will be exported and the following lines will be ignored");
 				for (int i = 4; i < params.length; i++) {
-					System.err.println("'" + Array.toStr(params[i], "  ") + "'");
+					System.err.println("'" + ArrayUtils.toStr(params[i], "  ") + "'");
 				}
 			}
 			if (!maskModel) {
@@ -488,7 +488,7 @@ public class CreateDatabaseFromPlink {
 		if (monomorphs.size() > 0) {
 			log.report("There were "	+ monomorphs.size()
 									+ " monomorphic markers that will be filtered out");
-			Files.writeArray(	Array.subArray(markerNames, Ints.toArray(monomorphs)),
+			Files.writeArray(	ArrayUtils.subArray(markerNames, Ints.toArray(monomorphs)),
 												ext.parseDirectoryOfFile(filename) + "monomorphs.dat");
 			temp = outfile + ".bak";
 			new File(outfile).renameTo(new File(temp));

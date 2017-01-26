@@ -2,7 +2,7 @@ package org.genvisis.stats;
 
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
@@ -75,7 +75,7 @@ public class CrossValidation {
 			} else {
 				betas = model.getBetas();
 				SEofBs = model.getSEofBs();
-				avgSEofBs = Array.mean(SEofBs);
+				avgSEofBs = ArrayUtils.mean(SEofBs);
 				Rsquare = model.getRsquare();
 				stats = model.getStats();
 				sigs = model.getSigs();
@@ -311,7 +311,7 @@ public class CrossValidation {
 		if (!foldCheck(deps, kFolds, log)) {
 			return new CrossValidation[0];
 		}
-		int[] chunks = Array.splitUp(deps.length, kFolds);
+		int[] chunks = ArrayUtils.splitUp(deps.length, kFolds);
 		CrossValidation[] crossValidations = new CrossValidation[chunks.length];
 		boolean[][] folds = getFolds(deps, chunks, log);
 		for (int i = 0; i < chunks.length; i++) {
@@ -338,7 +338,7 @@ public class CrossValidation {
 		if (!foldCheck(deps, kFolds, log)) {
 			return new CrossValidation[0];
 		}
-		int[] chunks = Array.splitUp(deps.length, kFolds);
+		int[] chunks = ArrayUtils.splitUp(deps.length, kFolds);
 		CrossValidation[] crossValidations = new CrossValidation[chunks.length];
 		boolean[][] folds = getFolds(deps, chunks, log);
 		for (int i = 0; i < chunks.length; i++) {
@@ -422,7 +422,7 @@ public class CrossValidation {
 	 * @return
 	 */
 	private static double[] extractDeps(double[] deps, boolean[] fold, boolean train, Logger log) {
-		int num = Array.booleanArraySum(fold);
+		int num = ArrayUtils.booleanArraySum(fold);
 		num = train ? num : fold.length - num;
 		double[] extract = new double[num];
 		int depIndex = 0;
@@ -445,7 +445,7 @@ public class CrossValidation {
 	 */
 	private static double[][] extractIndeps(double[][] indeps, boolean[] fold, boolean train,
 																					Logger log) {
-		int num = Array.booleanArraySum(fold);
+		int num = ArrayUtils.booleanArraySum(fold);
 		num = train ? num : fold.length - num;
 		double[][] extract = new double[num][];
 		int depIndex = 0;

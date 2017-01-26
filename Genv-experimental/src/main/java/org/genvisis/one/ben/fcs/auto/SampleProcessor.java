@@ -13,7 +13,7 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
@@ -200,8 +200,8 @@ class PercentageWriter extends AbstractSampleProcessor {
     for (Gate g : allGates) {
     	boolean[] gating = g.gate(d);
     	boolean[] parent = g.getParentGating(d);
-    	int g1 = Array.booleanArraySum(gating);
-    	int g2 = Array.booleanArraySum(parent);
+    	int g1 = ArrayUtils.booleanArraySum(gating);
+    	int g2 = ArrayUtils.booleanArraySum(parent);
     	pcts.put(g.getFullNameAndGatingPath(), ((double) g1) / (double) g2);
     }
 
@@ -330,7 +330,7 @@ class LeafDataSampler extends AbstractSampleProcessor {
 	    	}
     	}
       boolean[] incl = g.gate(d);
-      int[] indices = Array.booleanArrayToIndices(incl);
+      int[] indices = ArrayUtils.booleanArrayToIndices(incl);
       Random rand = new Random();
       for (int i = 0; i < sampleSize; i++) {
         int ind = indices[rand.nextInt(indices.length)];
@@ -416,7 +416,7 @@ class LeafDataSampler extends AbstractSampleProcessor {
 	    loadPopsAndGates(sn);
 	    loadData(sn);
 			
-	    int[] coding = Array.intArray(d.getCount(), 0);
+	    int[] coding = ArrayUtils.intArray(d.getCount(), 0);
 	    synchronized(gateCoding) {
 	    	setup(sn);
 	    }
@@ -474,7 +474,7 @@ class LeafDataSampler extends AbstractSampleProcessor {
 		
 		@Override
 		public void exportToText(String outputFile, Logger log) {
-			Files.writeArray(Array.toStringArray(coding), outputFile);
+			Files.writeArray(ArrayUtils.toStringArray(coding), outputFile);
 			PrintWriter writer = Files.getAppropriateWriter(ext.rootOf(outputFile, false) + "_map.txt");
 			for (Entry<String, Integer> look : codingLookup.entrySet()) {
 				writer.println(look.getKey() + "=" + look.getValue());

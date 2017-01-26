@@ -10,7 +10,7 @@ import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -220,8 +220,8 @@ public class Slopes {
 			refs = HashVec.loadFileToHashString(dir + refFile, true);
 		}
 
-		dateIs = Array.toIntArray(dateIndices.trim().split(","));
-		valueIs = Array.toIntArray(valueIndices.trim().split(","));
+		dateIs = ArrayUtils.toIntArray(dateIndices.trim().split(","));
+		valueIs = ArrayUtils.toIntArray(valueIndices.trim().split(","));
 		if (dateIs.length != valueIs.length) {
 			System.err.println("Error - number of value indices and date indices does not match up");
 			return;
@@ -293,7 +293,7 @@ public class Slopes {
 				writer.print(id);
 				for (int j = 0; j < (refFile == null ? 1 : 3); j++) {
 					if (values[j].size() >= 2) {
-						if (Array.variance(Doubles.toArray(values[j])) == 0) {
+						if (ArrayUtils.variance(Doubles.toArray(values[j])) == 0) {
 							System.err.println("Warning - no variation for '"
 																		+ (j == 0 ? "all" : (j == 1 ? "pre" : "post")) + "' data for "
 																	+ id + "; slope is zero");
@@ -345,8 +345,8 @@ public class Slopes {
 			refs = HashVec.loadFileToHashString(dir + refFile, true);
 		}
 
-		dateIs = Array.toIntArray(dateIndices.trim().split(","));
-		valueIs = Array.toIntArray(valueIndices.trim().split(","));
+		dateIs = ArrayUtils.toIntArray(dateIndices.trim().split(","));
+		valueIs = ArrayUtils.toIntArray(valueIndices.trim().split(","));
 		if (dateIs.length != valueIs.length) {
 			System.err.println("Error - number of value indices and date indices does not match up");
 			return;

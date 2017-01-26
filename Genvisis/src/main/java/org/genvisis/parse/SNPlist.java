@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
@@ -56,7 +56,7 @@ public class SNPlist {
 			System.exit(2);
 		}
 
-		markers = new SnpMarkerSet(Array.toStringArray(snps));
+		markers = new SnpMarkerSet(ArrayUtils.toStringArray(snps));
 		markers.parseSNPlocations();
 		markers.sortMarkers();
 		markers.writeToFile(dir + ext.rootOf(filename) + ".map", SnpMarkerSet.PLINK_MAP_FORMAT, log);

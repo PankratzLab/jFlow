@@ -26,7 +26,7 @@ import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -314,7 +314,7 @@ public class AnalysisFormats implements Runnable {
 			if (!sampleData.hasExcludedIndividuals()) {
 				log.report("Warning - there is no 'Exclude' column in SampleData.txt; centroids will be determined using all samples.");
 			}
-			allSamples = Array.subArray(proj.getSamples(), includeSamplesList);
+			allSamples = ArrayUtils.subArray(proj.getSamples(), includeSamplesList);
 		} else {
 			allSamples = proj.getSamples();
 		}
@@ -529,7 +529,7 @@ public class AnalysisFormats implements Runnable {
 					break;
 			}
 		}
-		sexMarkers = Array.toStringArray(markerList);
+		sexMarkers = ArrayUtils.toStringArray(markerList);
 
 		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, sexMarkers);
 
@@ -971,7 +971,7 @@ public class AnalysisFormats implements Runnable {
 		threads = new Thread[numThreads];
 		for (int i = 0; i < numThreads; i++) {
 			threads[i] = new Thread(new AnalysisFormats(proj,
-																									Array.toStringArray(sampleLists.elementAt(i)),
+																									ArrayUtils.toStringArray(sampleLists.elementAt(i)),
 																									program, hash, 1));
 			threads[i].start();
 			try {

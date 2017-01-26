@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -40,7 +40,7 @@ public class ConsolidateTaxons {
 						while (reader.ready()) {
 							String[] line = reader.readLine().trim().split("\t");
 							allTaxa.add(line[0]);
-							current.put(line[0], Array.subArray(line, 1, line.length));
+							current.put(line[0], ArrayUtils.subArray(line, 1, line.length));
 
 							// System.out.println(Array.toStr(current.get(line[0])));
 						}
@@ -88,8 +88,8 @@ public class ConsolidateTaxons {
 						}
 					}
 					int[] allCounts = Ints.toArray(counts);
-					if (Array.max(allCounts) > 100) {
-						writer.println(ataxa + "\t" + Array.toStr(allCounts));
+					if (ArrayUtils.max(allCounts) > 100) {
+						writer.println(ataxa + "\t" + ArrayUtils.toStr(allCounts));
 					}
 				}
 			}

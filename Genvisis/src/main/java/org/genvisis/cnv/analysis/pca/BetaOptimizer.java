@@ -32,7 +32,7 @@ import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.common.AlleleFreq;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -118,7 +118,7 @@ public class BetaOptimizer {
 			header.add("correl_spearmanUnSigned");
 			header.add("pval_spearmanUnSigned");
 			header.add("numberOfMarkers");
-			return Array.toStringArray(header);
+			return ArrayUtils.toStringArray(header);
 		}
 
 		private String[] getSummary() {
@@ -133,13 +133,13 @@ public class BetaOptimizer {
 			summary.add(correlSpearmanUnSigned + "");
 			summary.add(pSpearmanUnSigned + "");
 			summary.add(numMarkers + "");
-			return Array.toStringArray(summary);
+			return ArrayUtils.toStringArray(summary);
 		}
 	}
 
 	private static double[] inverseNormalizeTo(double[] data, boolean[] samples) {
-		double[] newData = Array.doubleArray(data.length, Double.NaN);
-		double[] tmp = Array.inverseNormalize(Array.subArray(data, samples));
+		double[] newData = ArrayUtils.doubleArray(data.length, Double.NaN);
+		double[] tmp = ArrayUtils.inverseNormalize(ArrayUtils.subArray(data, samples));
 		int retrieve = 0;
 		for (int i = 0; i < newData.length; i++) {
 			if (samples[i]) {
@@ -203,9 +203,9 @@ public class BetaOptimizer {
 				if (tmpGeno.size() > 0) {
 					// whew, is this inefficient or what
 					double[] genos = Doubles.toArray(tmpGeno);
-					int[] tmpInt = Array.toIntArray(genos);
-					double mafMark = AlleleFreq.calcMAF(Array.countIf(tmpInt, 0), Array.countIf(tmpInt, 1),
-																							Array.countIf(tmpInt, 2));
+					int[] tmpInt = ArrayUtils.toIntArray(genos);
+					double mafMark = AlleleFreq.calcMAF(ArrayUtils.countIf(tmpInt, 0), ArrayUtils.countIf(tmpInt, 1),
+																							ArrayUtils.countIf(tmpInt, 2));
 					if (mafMark >= maf) {
 						RegressionModel model = new LeastSquares(Doubles.toArray(tmpData), genos);
 						if (!model.analysisFailed()) {
@@ -220,16 +220,16 @@ public class BetaOptimizer {
 			}
 			double[] correlB = Doubles.toArray(dataBetas);
 			double[] correlM = Doubles.toArray(meta);
-			double[] pearsonSigned = Array.doubleArray(2, Double.NaN);
-			double[] spearmanSigned = Array.doubleArray(2, Double.NaN);
-			double[] pearsonUnSigned = Array.doubleArray(2, Double.NaN);
-			double[] spearmanUnSigned = Array.doubleArray(2, Double.NaN);
+			double[] pearsonSigned = ArrayUtils.doubleArray(2, Double.NaN);
+			double[] spearmanSigned = ArrayUtils.doubleArray(2, Double.NaN);
+			double[] pearsonUnSigned = ArrayUtils.doubleArray(2, Double.NaN);
+			double[] spearmanUnSigned = ArrayUtils.doubleArray(2, Double.NaN);
 			if (correlB.length > 2) {
 				pearsonSigned = Correlation.Pearson(correlB, correlM);
 				spearmanSigned = Correlation.Spearman(new double[][] {correlB, correlM});
-				pearsonUnSigned = Correlation.Pearson(Array.abs(correlB), Array.abs(correlM));
-				spearmanUnSigned = Correlation.Spearman(new double[][] {Array.abs(correlB),
-																																Array.abs(correlM)});
+				pearsonUnSigned = Correlation.Pearson(ArrayUtils.abs(correlB), ArrayUtils.abs(correlM));
+				spearmanUnSigned = Correlation.Spearman(new double[][] {ArrayUtils.abs(correlB),
+																																ArrayUtils.abs(correlM)});
 			}
 			BetaCorrelationResult result = new BetaCorrelationResult(	comparisonIndex, pearsonSigned[0],
 																																pearsonSigned[1], spearmanSigned[0],
@@ -314,19 +314,19 @@ public class BetaOptimizer {
 
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(bigSummaryOut));
-					writer.println(Array.toStr(BetaCorrelationResult.getHeader())	+ "\t"
-													+ Array.toStr(Array.tagOn(BetaCorrelationResult.getHeader(), "inv_",
+					writer.println(ArrayUtils.toStr(BetaCorrelationResult.getHeader())	+ "\t"
+													+ ArrayUtils.toStr(ArrayUtils.tagOn(BetaCorrelationResult.getHeader(), "inv_",
 																										null))
 													+ "\tBetaFile\tMethod\tpvalCutoff\tnumSamples\tmethodKey\tmarkerCallRateThreshold");
 					ArrayList<MetaBeta> metaBetas = prep(	proj, markerSet, abLookup, dbsnpVCF, namesToQuery,
-																								outpuDir, betaFile, Array.max(pvals), log);
+																								outpuDir, betaFile, ArrayUtils.max(pvals), log);
 					if (pvalRefineCutoff > 0 && metaBetas.size() > pvalRefineCutoff) {
 						ArrayList<Double> tmpPvals = new ArrayList<Double>();
 
 						for (double pval : pvals) {
 							tmpPvals.add(pval);
 						}
-						double seed = Array.min(pvals);
+						double seed = ArrayUtils.min(pvals);
 						ArrayList<MetaBeta> tmp = filter(metaBetas, seed);
 						while (tmp.size() > pvalRefineCutoff) {
 							seed = seed / 10;
@@ -338,12 +338,12 @@ public class BetaOptimizer {
 						pvals = Doubles.toArray(tmpPvals);
 					}
 
-					boolean[] samplesForModels = Array.booleanArray(proj.getSamples().length, false);
+					boolean[] samplesForModels = ArrayUtils.booleanArray(proj.getSamples().length, false);
 					String[] pcSamps = HashVec.loadFileToStringArray(	usedInPCFile, false, false,
 																														new int[] {0}, false, true, "\t");
 					int[] indicesPC = ext.indexLargeFactors(pcSamps, proj.getSamples(), true, proj.getLog(),
 																									true, false);
-					boolean[] sampsPCs = Array.booleanArray(proj.getSamples().length, false);
+					boolean[] sampsPCs = ArrayUtils.booleanArray(proj.getSamples().length, false);
 
 					for (int i = 0; i < indicesPC.length; i++) {
 						sampsPCs[indicesPC[i]] = true;
@@ -376,7 +376,7 @@ public class BetaOptimizer {
 									// "_finalSummary.estimates.txt.gz";
 									String file = subDir	+ MODEL_BUILDER_TYPE.WITH_QC_BUILDERS + "_" + oType + "_"
 																+ ITERATION_TYPE.WITHOUT_INDEPS + "_finalSummary.estimates.txt.gz";
-									boolean[] sampleDef = Array.booleanArray(samplesForModels.length, false);
+									boolean[] sampleDef = ArrayUtils.booleanArray(samplesForModels.length, false);
 									byte[][] analysisGenos = new byte[genos.length][genos[0].length];
 									int markersRemoved = 0;
 									int numSamps = 0;
@@ -384,7 +384,7 @@ public class BetaOptimizer {
 
 										switch (runtype) {
 											case RACE_OUT:// typcially non-whites
-												if (Array.booleanArraySum(samplesForModels) > 0) {
+												if (ArrayUtils.booleanArraySum(samplesForModels) > 0) {
 													for (int j = 0; j < genos.length; j++) {
 														int numMissing = 0;
 														int numSampsHere = 0;
@@ -405,7 +405,7 @@ public class BetaOptimizer {
 														double cr = (double) numMissing / numSampsHere;
 														if ((1 - cr) < markerCallRate) {
 															markersRemoved++;
-															analysisGenos[j] = Array.byteArray(	analysisGenos[j].length,
+															analysisGenos[j] = ArrayUtils.byteArray(	analysisGenos[j].length,
 																																	(byte) -1);
 															// log.reportTimeInfo("Removing " +
 															// current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate
@@ -442,7 +442,7 @@ public class BetaOptimizer {
 														// log.reportTimeInfo("Removing " +
 														// current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate "
 														// + markerCallRate + "(" + cr + ")");
-														analysisGenos[j] = Array.byteArray(analysisGenos[j].length, (byte) -1);
+														analysisGenos[j] = ArrayUtils.byteArray(analysisGenos[j].length, (byte) -1);
 													}
 												}
 												break;
@@ -469,7 +469,7 @@ public class BetaOptimizer {
 														// log.reportTimeInfo("Removing " +
 														// current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate "
 														// + markerCallRate + "(" + cr + ")");
-														analysisGenos[j] = Array.byteArray(analysisGenos[j].length, (byte) -1);
+														analysisGenos[j] = ArrayUtils.byteArray(analysisGenos[j].length, (byte) -1);
 													}
 												}
 											default:
@@ -481,7 +481,7 @@ public class BetaOptimizer {
 																						+ " at callrate threshold " + markerCallRate);
 										}
 										log.reportTimeInfo("numsamps =" + numSamps);
-										if (Array.booleanArraySum(sampleDef) != numSamps) {
+										if (ArrayUtils.booleanArraySum(sampleDef) != numSamps) {
 											throw new IllegalArgumentException("Mismatched sample definitions");
 										}
 										if (numSamps > 0) {
@@ -516,8 +516,8 @@ public class BetaOptimizer {
 														default:
 															break;
 													}
-													writer.println(Array.toStr(results[0].getSummary())	+ "\t"
-																					+ Array.toStr(results[1].getSummary()) + "\t" + betaFile
+													writer.println(ArrayUtils.toStr(results[0].getSummary())	+ "\t"
+																					+ ArrayUtils.toStr(results[1].getSummary()) + "\t" + betaFile
 																					+ "\t" + method + "\t" + pval + "\t" + numSamps + "\t"
 																					+ method + "_" + pval + "\t" + markerCallRate);
 												}
@@ -796,9 +796,9 @@ public class BetaOptimizer {
 		int[] indices = ext.indexFactors(BETA_HEADER, header, false, false);
 		int ambi = 0;
 
-		if (Array.countIf(indices, -1) > 0) {
+		if (ArrayUtils.countIf(indices, -1) > 0) {
 			log.reportError("Did not detect proper header in "	+ betaFile + ", requires "
-													+ Array.toStr(BETA_HEADER));
+													+ ArrayUtils.toStr(BETA_HEADER));
 			return null;
 		} else {
 			ArrayList<MetaBeta> metaBetas = new ArrayList<BetaOptimizer.MetaBeta>();
@@ -847,11 +847,11 @@ public class BetaOptimizer {
 									added.add(current.getMarkerName());
 								}
 							} else if (!Numbers.isFinite(beta) || !Numbers.isFinite(p)) {
-								log.reportTimeWarning("Invalid number on line " + Array.toStr(line));
+								log.reportTimeWarning("Invalid number on line " + ArrayUtils.toStr(line));
 								log.reportTimeWarning(line[indices[3]] + "\t" + line[indices[4]]);
 							}
 						} catch (NumberFormatException nfe) {
-							log.reportTimeWarning("Invalid number on line " + Array.toStr(line));
+							log.reportTimeWarning("Invalid number on line " + ArrayUtils.toStr(line));
 						}
 					}
 
@@ -945,7 +945,7 @@ public class BetaOptimizer {
 																														CONFIG.STRAND_CONFIG_UNKNOWN,
 																														SITE_TYPE.UNKNOWN);
 
-				if (Array.countIf(allelesMarker, "N") == 0) {
+				if (ArrayUtils.countIf(allelesMarker, "N") == 0) {
 					CloseableIterator<VariantContext> vcIter = reader.query(Positions.getChromosomeUCSC(current.getChr(),
 																																															false),
 																																	current.getStart() - 2,
@@ -1006,8 +1006,8 @@ public class BetaOptimizer {
 				}
 				markerRsFormats.add(markerRsFormat);
 				writer.println(markerRsFormat.getMarkerName()	+ "\t" + markerRsFormat.getRs() + "\t"
-												+ Array.toStr(markerRsFormat.getDbSnpAlleles()) + "\t"
-												+ Array.toStr(markerRsFormat.getMarkerAlleles()));
+												+ ArrayUtils.toStr(markerRsFormat.getDbSnpAlleles()) + "\t"
+												+ ArrayUtils.toStr(markerRsFormat.getMarkerAlleles()));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -1220,7 +1220,7 @@ public class BetaOptimizer {
 											+ "   (5) maximum number of pcs to optimze to (i.e. maxPCs=" + maxPCs
 											+ " ( default))\n"
 											+ "   (6) comma delimited list of pvalue thresholds (i.e. pvals="
-											+ Array.toStr(Array.toStringArray(pvals), ",") + " ( default))\n"
+											+ ArrayUtils.toStr(ArrayUtils.toStringArray(pvals), ",") + " ( default))\n"
 											+ PSF.Ext.getNumThreadsCommand(7, numthreads)
 											+ "   (8) full path to a file of samples used to generate the pcs (i.e. pcSamps= (no default))\n"
 											+ "   (9) full path a directory of .beta files (i.e. betaDir= (no default))\n"
@@ -1249,7 +1249,7 @@ public class BetaOptimizer {
 					out = arg.split("=")[1];
 					numArgs--;
 				} else if (arg.startsWith("pvals=")) {
-					pvals = Array.toDoubleArray(arg.split("=")[1].split(","));
+					pvals = ArrayUtils.toDoubleArray(arg.split("=")[1].split(","));
 					numArgs--;
 				} else if (arg.startsWith("maxPCs=")) {
 					maxPCs = ext.parseIntArg(arg);

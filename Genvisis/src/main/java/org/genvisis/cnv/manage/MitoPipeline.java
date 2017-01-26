@@ -32,7 +32,7 @@ import org.genvisis.cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import org.genvisis.cnv.qc.GcAdjustorParameter;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -451,7 +451,7 @@ public class MitoPipeline {
 					recomputeLRR_Median = true;
 					recomputeLRR_PCs = true;
 				}
-				sampsToUseRecompute = Array.booleanArray(proj.getSamples().length, false);
+				sampsToUseRecompute = ArrayUtils.booleanArray(proj.getSamples().length, false);
 				int[] indices = ext.indexFactors(
 																					HashVec.loadFileToStringArray(samps, false, false,
 																																				new int[] {0}, false, true,
@@ -465,7 +465,7 @@ public class MitoPipeline {
 				}
 				proj.getLog()
 						.reportTimeInfo("LRR will be recomputed with "
-															+ Array.booleanArraySum(sampsToUseRecompute) + " samples from "
+															+ ArrayUtils.booleanArraySum(sampsToUseRecompute) + " samples from "
 														+ samps);
 			}
 			Resource gmodelBase = Resources.genome(build, log).getModelBase();
@@ -664,7 +664,7 @@ public class MitoPipeline {
 											+ ") do not have an entry in the sample data file "
 											+ proj.SAMPLE_DATA_FILENAME.getValue() + ", halting");
 			log.reportError("	   - Please make sure the following samples have entries: "
-											+ Array.toStr(notInSampleData.toArray(new String[notInSampleData.size()]),
+											+ ArrayUtils.toStr(notInSampleData.toArray(new String[notInSampleData.size()]),
 																		"\n"));
 		}
 		return allParsed;
@@ -767,7 +767,7 @@ public class MitoPipeline {
 				String[] line = reader.readLine().trim().split("\t");
 				String key = line[DNAIndex];
 				if (qcLookup.containsKey(key)) {
-					writer.println(Array.toStr(line) + "\t" + qcLookup.get(key));
+					writer.println(ArrayUtils.toStr(line) + "\t" + qcLookup.get(key));
 				} else {
 					log.reportError("Error - could not match ids "	+ key
 													+ " in the qc file to produce final report");
@@ -799,7 +799,7 @@ public class MitoPipeline {
 			reader = Files.getReader(sampleQcFile, false, true, false);
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("\t");
-				qcLookup.put(line[DNAIndex], Array.toStr(Array.subArray(line, 1)));
+				qcLookup.put(line[DNAIndex], ArrayUtils.toStr(ArrayUtils.subArray(line, 1)));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
@@ -958,7 +958,7 @@ public class MitoPipeline {
 							+ PC_OPT_FILE + betaOptFile + " (no default))\n";
 
 		usage += "   (9) The full path for a tab-delimited .PED format file with header \""
-							+ Array.toStr(PED_INPUT) + "\" (i.e. pedFile=" + pedFile + "(no default))\n";
+							+ ArrayUtils.toStr(PED_INPUT) + "\" (i.e. pedFile=" + pedFile + "(no default))\n";
 		usage += "   OR:\n";
 		usage +=
 					"   (10) The full path for a Sample_Map.csv file, with at least two columns having headers \""
@@ -1014,7 +1014,7 @@ public class MitoPipeline {
 					"   (24) recompute LRR using only those samples that pass QC, and are in the use file (i.e. sampLRR="
 							+ recompSampleSpecific + " (default))\n";
 		usage += "   (25) comma-delimited list of p-values for pc-beta optimization  (i.e. pvals="
-							+ Array.toStr(Array.toStringArray(pvalOpt), ",") + " (default))\n";
+							+ ArrayUtils.toStr(ArrayUtils.toStringArray(pvalOpt), ",") + " (default))\n";
 		usage +=
 					"   (26) use an external beta file to optimize PC selection  (i.e. betas= (no default))\n";
 
@@ -1112,7 +1112,7 @@ public class MitoPipeline {
 				gcCorrect = ext.parseBooleanArg(arg);
 				numArgs--;
 			} else if (arg.startsWith("pvals=")) {
-				pvalOpt = Array.toDoubleArray(ext.parseStringArg(arg, null).split(","));
+				pvalOpt = ArrayUtils.toDoubleArray(ext.parseStringArg(arg, null).split(","));
 				numArgs--;
 			} else if (arg.startsWith("imputeMeanForNaN=")) {
 				imputeMeanForNaN = ext.parseBooleanArg(arg);
@@ -1162,11 +1162,11 @@ public class MitoPipeline {
 		}
 
 		if (!skipProjectCreation) {
-			if (Array.booleanArraySum(requiredArray) != requiredArray.length) {
+			if (ArrayUtils.booleanArraySum(requiredArray) != requiredArray.length) {
 				System.err.println(usage + "\n\n");
 				System.err.println("The MitoPipeline currently requires "	+ requiredArray.length
 														+ " arguments and we only detected "
-														+ Array.booleanArraySum(requiredArray) + " of the "
+														+ ArrayUtils.booleanArraySum(requiredArray) + " of the "
 														+ requiredArray.length);
 				System.err.println("Here is a list of missing arguments...");
 				for (int i = 0; i < requiredArgs.length; i++) {

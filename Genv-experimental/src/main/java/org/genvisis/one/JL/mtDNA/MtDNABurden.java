@@ -3,7 +3,7 @@ package org.genvisis.one.JL.mtDNA;
 import java.io.File;
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -127,7 +127,7 @@ public class MtDNABurden {
 			String[] controlPop, Logger log) {
 		StringBuilder filter = new StringBuilder();
 		String root = outDir + VCFOps.getAppropriateRoot(inputVCF, true) + "vp" + ext.rootOf(vpop.getFileName()) + "_"
-				+ casePop + "_" + Array.toStr(controlPop, "_");
+				+ casePop + "_" + ArrayUtils.toStr(controlPop, "_");
 		String out = root;
 
 		if (!Files.exists(out + ".recode.vcf")) {

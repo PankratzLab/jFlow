@@ -6,7 +6,7 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -45,7 +45,7 @@ public class SomaticSniper {
 		for (TNSample tnSample : tnSamples) {
 			summaryMatch.add(tnSample.getNormalBam() + "\t" + tnSample.getTumorBam());
 		}
-		Files.writeArray(Array.toStringArray(summaryMatch), tnMatch);
+		Files.writeArray(ArrayUtils.toStringArray(summaryMatch), tnMatch);
 		TNProducer producer = new TNProducer(tnSamples);
 		WorkerTrain<TNSample> train = new WorkerTrain<TNSample>(producer, numThreads, 2, log);
 		ArrayList<String> finalOuts = new ArrayList<String>();
@@ -56,7 +56,7 @@ public class SomaticSniper {
 		String out = params.getOutputDir() + "tn.out.vcf.gz";
 		params.getOutputDir();
 
-		if (gatk.mergeVCFs(Array.toStringArray(finalOuts), out, numThreads, false, log)) {
+		if (gatk.mergeVCFs(ArrayUtils.toStringArray(finalOuts), out, numThreads, false, log)) {
 
 		}
 
@@ -122,7 +122,7 @@ public class SomaticSniper {
 			}
 		}
 		if (analysisBams.size() < bamFiles.length) {
-			Files.writeArray(	Array.toStringArray(analysisBams),
+			Files.writeArray(	ArrayUtils.toStringArray(analysisBams),
 												outputDir + ext.rootOf(vpop.getFileName() + ".analysis.bams.txt"));
 		}
 
@@ -183,7 +183,7 @@ public class SomaticSniper {
 			command.add(tumorBam);
 			command.add(normalBam);
 			command.add(output);
-			return Array.toStringArray(command);
+			return ArrayUtils.toStringArray(command);
 		}
 	}
 
@@ -239,7 +239,7 @@ public class SomaticSniper {
 			commandCall.add(tumorBam);
 			commandCall.add(indelPile);
 
-			boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(commandCall), "",
+			boolean progress = CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(commandCall), "",
 																													inputs, output, true,
 																													somaticParams.isOverwriteExisting(),
 																													false, log);
@@ -251,7 +251,7 @@ public class SomaticSniper {
 				commandFilt.add(indelPile);
 				commandFilt.add(">");
 				commandFilt.add(indelPileFilt);
-				String[] runBat = CmdLine.prepareBatchForCommandLine(	Array.toStringArray(commandFilt),
+				String[] runBat = CmdLine.prepareBatchForCommandLine(	ArrayUtils.toStringArray(commandFilt),
 																															indelPileFilt + ".sh", true, log);
 				progress = CmdLine.runCommandWithFileChecks(runBat, "", new String[] {indelPile},
 																										new String[] {indelPileFilt}, true,

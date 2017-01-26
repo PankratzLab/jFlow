@@ -11,7 +11,7 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_S
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
@@ -107,11 +107,11 @@ public class PRoCtOR {
 										+ "   (5) Flag specifying whether or not to re-compute Log-R Ratio values (usually false if LRRs already exist) (i.e. recomputeLRR="
 										+ recomputeLRR + " (default))\n"
 										+ "   (6) Type of correction.  Options include: "
-										+ Array.toStr(CORRECTION_TYPE.values(), ", ") + " (i.e. type=" + correctionType
+										+ ArrayUtils.toStr(CORRECTION_TYPE.values(), ", ") + " (i.e. type=" + correctionType
 										+ " (default))\n"
 
 										+ "   (7) Chromosome X correction strategy.  Options include: "
-										+ Array.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy="
+										+ ArrayUtils.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy="
 										+ strategy + " (default))\n"
 
 										+ "   (8) Total number of threads to use (i.e. numThreads=" + numThreads

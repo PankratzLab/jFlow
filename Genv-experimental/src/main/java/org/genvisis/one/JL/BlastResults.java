@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -37,7 +37,7 @@ public class BlastResults {
 				boolean pm = blastResults[index].hasPerfectMatch(proj.getLog());
 				int numOff = blastResults[index].getNumOffTarget(proj.getLog());
 				int numOnNonPerf = blastResults[index].getNumOnTargetNonPerfect(proj.getLog());
-				int numTotal = Array.sum(blastResults[index].getAlignmentHistogram(proj));
+				int numTotal = ArrayUtils.sum(blastResults[index].getAlignmentHistogram(proj));
 				writer.println(vc.getID()	+ "\t" + pm + "\t" + numOnNonPerf + "\t" + numOff + "\t"
 												+ numTotal);
 				index++;

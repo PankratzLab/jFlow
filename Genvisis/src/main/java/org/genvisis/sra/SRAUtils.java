@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -57,7 +57,7 @@ public class SRAUtils {
 			command.add(">");
 			command.add(outputBam);
 
-			String[] bat = CmdLine.prepareBatchForCommandLine(Array.toStringArray(command),
+			String[] bat = CmdLine.prepareBatchForCommandLine(ArrayUtils.toStringArray(command),
 																												outputBam + ".bat", true, log);
 			return CmdLine.runCommandWithFileChecks(bat, "", inputs, outputs, true, false, false, false,
 																							log);

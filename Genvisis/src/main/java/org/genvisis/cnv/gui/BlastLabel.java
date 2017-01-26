@@ -14,7 +14,7 @@ import org.genvisis.cnv.annotation.markers.MarkerSeqAnnotation;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Fonts;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
@@ -145,7 +145,7 @@ public class BlastLabel extends JLabel {
 		if (refGen != null) {
 			String[] seqArr = refGen.getSequenceFor(fullSegment);
 			if (seqArr != null) {
-				seq = Array.toStr(seqArr, "");
+				seq = ArrayUtils.toStr(seqArr, "");
 			} else {
 				// TODO set to probe seq, with alterations, otherwise causes NPE
 				seq = ref.getSequence();
@@ -215,7 +215,7 @@ public class BlastLabel extends JLabel {
 				index = stop;
 			} else {
 				seqParts.add(new CigarSeq(ciggie,
-																	Array.toStr(Array.stringArray(ciggie.getLength(), "."), ""),
+																	ArrayUtils.toStr(ArrayUtils.stringArray(ciggie.getLength(), "."), ""),
 																	index));
 			}
 			strandInd += ciggie.getLength();

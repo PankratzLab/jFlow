@@ -14,7 +14,7 @@ import java.util.Vector;
 import org.genvisis.bioinformatics.MapSNPsAndGenes;
 import org.genvisis.bioinformatics.Sequence;
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -419,7 +419,7 @@ public class GeneScorePipeline {
                                                                               // SnpEff
                                                                               // too?
             data =
-                Array.toStringArray(HashVec.loadFileToVec(ext.rootOf(filename, false)
+                ArrayUtils.toStringArray(HashVec.loadFileToVec(ext.rootOf(filename, false)
                     + "_positions.xln", true, false, false));
             for (String element : data) {
               line = element.trim().split("[\\s]+");
@@ -838,7 +838,7 @@ public class GeneScorePipeline {
           }
         }
 
-        String[] unique = Array.unique(pheno.toArray(new String[] {}));
+        String[] unique = ArrayUtils.unique(pheno.toArray(new String[] {}));
         if (unique.length == 1) {
           log.report("Error - no variance in pheno data from .fam file for study '"
               + study.studyName + "'");
@@ -1036,7 +1036,7 @@ public class GeneScorePipeline {
         }
         String line;
         dataWriter
-            .println("MarkerName\tChr\tPosition\t" + Array.toStr(Array.subArray(dataHdrs, 1))); // Allele1\tAllele2\tFreq.Allele1.HapMapCEU\tb\tSE\tp\tN
+            .println("MarkerName\tChr\tPosition\t" + ArrayUtils.toStr(ArrayUtils.subArray(dataHdrs, 1))); // Allele1\tAllele2\tFreq.Allele1.HapMapCEU\tb\tSE\tp\tN
         while ((line = dataReader.readLine()) != null) {
           String[] parts = line.split("[\\s]+");
           if (mkrsBim.containsKey(parts[0])
@@ -1049,7 +1049,7 @@ public class GeneScorePipeline {
             dataWriter.print("\t");
             dataWriter.print(chrPosBim[1]);
             dataWriter.print("\t");
-            dataWriter.println(Array.toStr(Array.subArray(parts, 1)));
+            dataWriter.println(ArrayUtils.toStr(ArrayUtils.subArray(parts, 1)));
             cnt++;
           }
         }
@@ -1118,7 +1118,7 @@ public class GeneScorePipeline {
 
         String[] header = Files.getHeaderOfFile(crossFilterFile, null);
         int[] cols = ext.indexFactors(LINKERS, header, false, true, false, null, false);
-        int[] finalCols = new int[cols.length - Array.countIf(cols, -1)];
+        int[] finalCols = new int[cols.length - ArrayUtils.countIf(cols, -1)];
         int finalInd = 0;
         for (int col : cols) {
           if (col != -1) {
@@ -1133,8 +1133,8 @@ public class GeneScorePipeline {
         HashMap<String, String[]> dataList = new HashMap<String, String[]>();
         for (String[] markerData : bimData) {
           if (hitMrkSet.contains(markerData[0])) {
-            dataList.put(markerData[0], Array.subArray(markerData, 1));
-            writer.println(markerData[0] + "\t" + Array.toStr(Array.subArray(markerData, 1), "\t"));
+            dataList.put(markerData[0], ArrayUtils.subArray(markerData, 1));
+            writer.println(markerData[0] + "\t" + ArrayUtils.toStr(ArrayUtils.subArray(markerData, 1), "\t"));
           }
         }
         writer.flush();

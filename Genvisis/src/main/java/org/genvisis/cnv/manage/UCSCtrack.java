@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -45,7 +45,7 @@ public class UCSCtrack {
 			}
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				hash.put(line[idIndex], Array.subArray(line, indices, "."));
+				hash.put(line[idIndex], ArrayUtils.subArray(line, indices, "."));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
@@ -70,7 +70,7 @@ public class UCSCtrack {
 										+ "\" description=\"CNV data\" visibility=2 itemRgb=\"On\"");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				demo = hash.containsKey(line[1]) ? hash.get(line[1]) : Array.stringArray(NEEDS.length, ".");
+				demo = hash.containsKey(line[1]) ? hash.get(line[1]) : ArrayUtils.stringArray(NEEDS.length, ".");
 				track.print("chr"	+ line[2] + "\t" + line[3] + "\t" + line[4] + "\t" + line[1]
 										+ (demo[0].equals(".") || demo[1].equals(".")	? ""
 																																	: (Integer.parseInt(demo[0]) == 2	? ";AOO="

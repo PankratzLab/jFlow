@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Positions;
@@ -479,7 +479,7 @@ public class ConditionalAnalysisPipeline {
 																								regionPathAndDataFile[0], true, false, true, null);
 
 				log("Running " + analysisDirs.length + " FAST analyses...");
-				boolean[] runs = Array.booleanArray(analysisDirs.length, false);
+				boolean[] runs = ArrayUtils.booleanArray(analysisDirs.length, false);
 				for (int i = 0; i < analysisDirs.length; i++) {
 					(new ScriptExecutor(NUM_THREADS)).run(analysisDirs[i] + "input.txt", "took");
 					runs[i] = ScriptExecutor.outLogExistsComplete(analysisDirs[i]	+ "output/input.log_0.out",
@@ -771,7 +771,7 @@ public class ConditionalAnalysisPipeline {
 	}
 
 	private boolean[] buildAnalysisFolders(String dir, Region[] rgns) {
-		boolean[] results = Array.booleanArray(rgns.length, false);
+		boolean[] results = ArrayUtils.booleanArray(rgns.length, false);
 		for (int i = 0; i < rgns.length; i++) {
 			String newDir = rgns[i].label + "_iter0_baseline/";
 			results[i] = new File(dir + newDir).mkdirs();
@@ -1074,7 +1074,7 @@ public class ConditionalAnalysisPipeline {
 																	- 1 ? 1d : ConditionalAnalysisToolset_FAST.PVAL_THRESHOLD;
 						minSNP = extractIndexSnp(dir + metaFile, region, thresh);
 						resultLine.append("\t").append(minSNP).append("\t\t\t");
-						resultLine.append(Array.toStr(extractSnpDetails(dir + metaFile, minSNP)));
+						resultLine.append(ArrayUtils.toStr(extractSnpDetails(dir + metaFile, minSNP)));
 						for (String code : popCodeOrder) {
 							String[] newParts = extractSnpDetails(dir + popFiles.get(code), minSNP);
 							if (newParts[0] == null) {
@@ -1086,7 +1086,7 @@ public class ConditionalAnalysisPipeline {
 							if (newParts[2] == null) {
 								newParts[2] = ".";
 							}
-							resultLine.append("\t").append(Array.toStr(newParts));
+							resultLine.append("\t").append(ArrayUtils.toStr(newParts));
 						}
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
@@ -1285,7 +1285,7 @@ public class ConditionalAnalysisPipeline {
 		}
 		if (numArgs != 0) {
 			System.err.println(usage);
-			System.err.println(Array.toStr(args, "\n"));
+			System.err.println(ArrayUtils.toStr(args, "\n"));
 			System.exit(1);
 		}
 		(new ConditionalAnalysisPipeline()).setup(ext.verifyDirFormat(analysisDir), inputFile, dataFile,

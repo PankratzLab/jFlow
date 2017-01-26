@@ -16,7 +16,7 @@ import java.util.Vector;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.filesys.Pedigree;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.CountHash;
 import org.genvisis.common.Files;
@@ -63,10 +63,10 @@ public class Heritability {
 				System.err.println("Error - warning covariates file expected to start with FID and IID; may not merge properly without");
 			}
 			covarHash = HashVec.loadFileToHashString(dir	+ covars, new int[] {0, 1},
-																								Array.subArray(	Array.arrayOfIndices(covarHeader.length),
+																								ArrayUtils.subArray(	ArrayUtils.arrayOfIndices(covarHeader.length),
 																																2),
 																								covars.endsWith(".csv"), "\t", true, false, false);
-			covarHeader = Array.subArray(covarHeader, 2);
+			covarHeader = ArrayUtils.subArray(covarHeader, 2);
 		} else {
 			covarHash = new Hashtable<String, String>();
 			covarHeader = new String[0];
@@ -103,7 +103,7 @@ public class Heritability {
 																																							? covarHash.get(line[0]
 																																															+ "\t"
 																																														+ line[1])
-																																						: Array.toStr(Array.stringArray(covarHeader.length,
+																																						: ArrayUtils.toStr(ArrayUtils.stringArray(covarHeader.length,
 																																																						"x")))
 												+ "\t1\t1");
 				seen.put(line[0] + "\t" + line[1], "");
@@ -182,9 +182,9 @@ public class Heritability {
 																	"1=ID", "2=FA", "3=MO", "4=SEX"},
 										log);
 		ids = HashVec.loadFileToStringArray(pedfile, false, new int[] {1}, false);
-		if (Array.unique(ids).length != ids.length) {
+		if (ArrayUtils.unique(ids).length != ids.length) {
 			System.err.println("Error - lookup for solar heritabilty screen currently requires unique IDs (found "
-														+ (ids.length - Array.unique(ids).length)
+														+ (ids.length - ArrayUtils.unique(ids).length)
 													+ " that were not unique); aborting solar run");
 			return null;
 		}
@@ -195,9 +195,9 @@ public class Heritability {
 		trait = Files.getHeaderOfFile(dir + pheno, log)[2];
 		if (covars != null) {
 			covarsHeader = Files.getHeaderOfFile(dir + covars, log);
-			line = Array.toStringArray(Array.arrayOfIndices(covarsHeader.length));
-			line = Array.removeFromArray(line, 0);
-			params[2] = dir + covars + " " + Array.toStr(line, " ");
+			line = ArrayUtils.toStringArray(ArrayUtils.arrayOfIndices(covarsHeader.length));
+			line = ArrayUtils.removeFromArray(line, 0);
+			params[2] = dir + covars + " " + ArrayUtils.toStr(line, " ");
 		} else {
 			covarsHeader = null;
 		}
@@ -211,7 +211,7 @@ public class Heritability {
 		Files.write("echo -e \"load ped "	+ prefix + "_fam.csv\\nload phenotype "
 								+ prefix + "_ptypes.csv\\ntrait " + trait + "\\n" + (covarsHeader != null
 																																														? "covariates "
-																																															+ Array.toStr(Array.subArray(	covarsHeader,
+																																															+ ArrayUtils.toStr(ArrayUtils.subArray(	covarsHeader,
 																																																													2),
 																																																					" ")
 																																														+ "\\n"
@@ -396,7 +396,7 @@ public class Heritability {
 					line = models.elementAt(i);
 					if (line.length < 2) {
 						log.reportError("Error - need at least two arguments (model->directory and the model, even if there are no more covariates), found:");
-						log.reportError(Array.toStr(line));
+						log.reportError(ArrayUtils.toStr(line));
 					} else {
 						root = line[0];
 						root = ext.replaceWithLinuxSafeCharacters(root, false);
@@ -407,7 +407,7 @@ public class Heritability {
 						dbHeader = Files.getHeaderOfFile(dbFile, dbDelimiter, log);
 						line[0] = dbHeader[0];
 						indices = ext.indexFactors(line, dbHeader, false, log, true, false);
-						if (Array.min(indices) == -1) {
+						if (ArrayUtils.min(indices) == -1) {
 							summary.close();
 							return;
 						}
@@ -415,7 +415,7 @@ public class Heritability {
 																									false);
 						use = RegressionModel.getRowsWithCompleteData(null,
 																													Matrix.prune(	data, null,
-																																				Array.subArray(	Array.arrayOfIndices(line.length),
+																																				ArrayUtils.subArray(	ArrayUtils.arrayOfIndices(line.length),
 																																												1),
 																																				log),
 																													log);
@@ -464,12 +464,12 @@ public class Heritability {
 						if (line.length > 2) {
 							try {
 								writer = new PrintWriter(new FileWriter(root + "/covars.dat"));
-								writer.println("FID\tIID\t" + Array.toStr(Array.subArray(line, 2)));
+								writer.println("FID\tIID\t" + ArrayUtils.toStr(ArrayUtils.subArray(line, 2)));
 								for (int j = 0; j < use.length; j++) {
 									if (use[j]) {
 										writer.println(famIdHash.get(data[j][0])	+ "\t" + data[j][0] + "\t"
-																		+ Array.toStr(Array.subArray(data[j], 2)));
-										indeps.add(Array.toDoubleArray(Array.subArray(data[j], 2)));
+																		+ ArrayUtils.toStr(ArrayUtils.subArray(data[j], 2)));
+										indeps.add(ArrayUtils.toDoubleArray(ArrayUtils.subArray(data[j], 2)));
 									}
 								}
 								writer.close();
@@ -486,9 +486,9 @@ public class Heritability {
 						double sibICC = Double.NaN;
 						double poICC = Double.NaN;
 						double trioICC = Double.NaN;
-						double[] sibCorrel = Array.doubleArray(2, Double.NaN);
-						double[] poCorrel = Array.doubleArray(2, Double.NaN);
-						double[] trioCorrel = Array.doubleArray(2, Double.NaN);
+						double[] sibCorrel = ArrayUtils.doubleArray(2, Double.NaN);
+						double[] poCorrel = ArrayUtils.doubleArray(2, Double.NaN);
+						double[] trioCorrel = ArrayUtils.doubleArray(2, Double.NaN);
 						int cntSib = 0;
 						int cntPO = 0;
 						int cntTrio = 0;
@@ -545,7 +545,7 @@ public class Heritability {
 																new double[][] {Doubles.toArray(correl1), Doubles.toArray(correl2)};
 								sibCorrel = Correlation.Pearson(correlationData);
 								ICC sibICCAnalysis = new ICC(	Doubles.toArray(sibICCData),
-																							Array.toStringArray(sibICCResponseIDs), null, null,
+																							ArrayUtils.toStringArray(sibICCResponseIDs), null, null,
 																							true, log);
 								sibICCAnalysis.computeICC();
 								sibICC = sibICCAnalysis.getICC();
@@ -574,7 +574,7 @@ public class Heritability {
 																new double[][] {Doubles.toArray(correl1), Doubles.toArray(correl2)};
 								poCorrel = Correlation.Pearson(correlationData);
 								ICC poICCAnalysis = new ICC(Doubles.toArray(poICCData),
-																						Array.toStringArray(poICCResponseIDs), null, null, true,
+																						ArrayUtils.toStringArray(poICCResponseIDs), null, null, true,
 																						log);
 								poICCAnalysis.computeICC();
 								poICC = poICCAnalysis.getICC();
@@ -614,14 +614,14 @@ public class Heritability {
 																new double[][] {Doubles.toArray(correl1), Doubles.toArray(correl2)};
 								trioCorrel = Correlation.Pearson(correlationData);
 								ICC trioICCAnalysis = new ICC(Doubles.toArray(trioICCData),
-																							Array.toStringArray(trioICCResponseIDs), null, null,
+																							ArrayUtils.toStringArray(trioICCResponseIDs), null, null,
 																							true, log);
 								trioICCAnalysis.computeICC();
 								trioICC = trioICCAnalysis.getICC();
 							}
 						}
 						log.report("Heritability for " + root);
-						log.report(line[1] + " ~ " + Array.toStr(Array.subArray(line, 2), " "));
+						log.report(line[1] + " ~ " + ArrayUtils.toStr(ArrayUtils.subArray(line, 2), " "));
 
 						merlinEstimate = computeWithMerlin(dir	+ root, pedigreeFile, "pheno.dat",
 																								line.length > 2 ? "covars.dat" : null, root,
@@ -646,7 +646,7 @@ public class Heritability {
 						// numOfFamiliesSizedTwoOrAbove + "\t" + String.format("%.3", ((float) (numOfAllSamples
 						// - numOfFamiliesSizedOne)) / numOfFamiliesSizedTwoOrAbove) + "\t" +
 						// numOfFamiliesSizedOne);
-						summary.println(root	+ "\t" + merlinEstimate + "\t" + Array.toStr(solarEstimate) + "\t"
+						summary.println(root	+ "\t" + merlinEstimate + "\t" + ArrayUtils.toStr(solarEstimate) + "\t"
 														+ numOfAllSamples + "\t" + counter.getSize() + "\t"
 														+ numOfFamiliesSizedTwoOrAbove + "\t"
 														+ ext.formDeci((float) (numOfAllSamples - numOfFamiliesSizedOne)

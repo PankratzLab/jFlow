@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class procUnigene {
@@ -29,16 +29,16 @@ public class procUnigene {
 		Set<String> v = new LinkedHashSet<String>();
 		Map<String, Integer> vCounts = new HashMap<String, Integer>();
 		int count = 0;
-		String[] data = Array.stringArray(VARS.length + 1, ".");
+		String[] data = ArrayUtils.stringArray(VARS.length + 1, ".");
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(filename + ".xls"));
-			writer.println("NM_ID\t" + Array.toStr(VARS));
+			writer.println("NM_ID\t" + ArrayUtils.toStr(VARS));
 			while (reader.ready()) {
 				temp = reader.readLine();
 				if (temp.equals("//")) {
-					writer.println(Array.toStr(data));
+					writer.println(ArrayUtils.toStr(data));
 					line = data[ext.indexOfStr("EXPRESS", VARS) + 1].split("\\|");
 					if (!line[0].equals(".") && !data[3 + 1].equals(".")) {
 						count++;
@@ -52,7 +52,7 @@ public class procUnigene {
 							}
 						}
 					}
-					data = Array.stringArray(VARS.length + 1, ".");
+					data = ArrayUtils.stringArray(VARS.length + 1, ".");
 				}
 				for (int i = 0; i < VARS.length; i++) {
 					if (temp.startsWith(VARS[i])) {

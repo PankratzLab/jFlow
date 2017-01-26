@@ -11,7 +11,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Random;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Numbers;
 import org.genvisis.one.ben.fcs.AbstractPanel2;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
@@ -104,7 +104,7 @@ public abstract class Gate {
   public boolean[] getParentGating(FCSDataLoader dataLoader) {
     if (parentGating == null || (parentGate != null && parentGate.hasChanged())) {
       if (parentGate == null) {
-      	parentGating = Array.booleanArray(dataLoader.getCount(), true);
+      	parentGating = ArrayUtils.booleanArray(dataLoader.getCount(), true);
       } else {
         parentGating = parentGate.gate(dataLoader);
         if (parentGating != null) {

@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.CountHash;
 import org.genvisis.common.Files;
@@ -145,11 +145,11 @@ public class DumpSAS {
 				writer.println(db);
 				header = Files.getHeaderOfFile(dir + db.toLowerCase() + ".xln", "\t", log);
 				v = hash.get(db);
-				vars = Array.toStringArray(v);
+				vars = ArrayUtils.toStringArray(v);
 				v.insertElementAt("CAReID", 0);
 				// v.insertElementAt("ID", 0);
-				indices = ext.indexFactors(Array.toStringArray(v), header, false, true);
-				writer.println("\t" + Array.toStr(Array.subArray(header, indices)));
+				indices = ext.indexFactors(ArrayUtils.toStringArray(v), header, false, true);
+				writer.println("\t" + ArrayUtils.toStr(ArrayUtils.subArray(header, indices)));
 				writer.print("\t");
 				for (int j = 1; j < indices.length; j++) {
 					writer.print("\t" + descriptions.get(db + "\t" + vars[j - 1]));
@@ -176,8 +176,8 @@ public class DumpSAS {
 						counts = new int[vars.length + 1][3];
 						while (reader.ready()) {
 							line = reader.readLine().split("\t", -1);
-							line = Array.subArray(line, indices);
-							iWriter.println(Array.toStr(line));
+							line = ArrayUtils.subArray(line, indices);
+							iWriter.println(ArrayUtils.toStr(line));
 							for (int j = 0; j < indices.length; j++) {
 								if (!line[j].equals("")) {
 									counts[j][0]++;
@@ -341,7 +341,7 @@ public class DumpSAS {
 
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "all_contents.xln"));
-			writer.println(Array.toStr(ALL_CONTENTS_HEADER));
+			writer.println(ArrayUtils.toStr(ALL_CONTENTS_HEADER));
 			for (String file : files) {
 				System.out.println("Parsing " + file);
 				try {
@@ -381,7 +381,7 @@ public class DumpSAS {
 		mani = HashVec.loadFileToStringMatrix(dir + manifest, false, new int[] {0, 1}, false);
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "master_contents.xln"));
-			writer.println("Group\t" + Array.toStr(ALL_CONTENTS_HEADER));
+			writer.println("Group\t" + ArrayUtils.toStr(ALL_CONTENTS_HEADER));
 			for (String[] element : mani) {
 				try {
 					reader = new BufferedReader(new FileReader(dir + element[1] + "all_contents.xln"));
@@ -503,12 +503,12 @@ public class DumpSAS {
 															+ "'). However, there was no such column header in the file.");
 							error = true;
 						}
-						indices = ext.indexFactors(Array.toStringArray(ids), header, true, log, false, false);
+						indices = ext.indexFactors(ArrayUtils.toStringArray(ids), header, true, log, false, false);
 					} else {
 						foundAnID = false;
 						// TODO If case insensitivity is necessary, make sure all downstream calls can and do
 						// ignore case (including GenParser)
-						indices = ext.indexFactors(Array.toStringArray(ids), header, true, log, false, false);
+						indices = ext.indexFactors(ArrayUtils.toStringArray(ids), header, true, log, false, false);
 						for (int j = 0; j < ids.size(); j++) {
 							if (indices[j] != -1) {
 								if (foundAnID) {
@@ -517,7 +517,7 @@ public class DumpSAS {
 								} else {
 									writer.print(" '" + ids.elementAt(j) + "'");
 									foundAnID = true;
-									keys = Array.toStringArray(HashVec.loadFileToVec(rootDir	+ file, true,
+									keys = ArrayUtils.toStringArray(HashVec.loadFileToVec(rootDir	+ file, true,
 																																		new int[] {indices[j]}, false,
 																																		false, false, "\t"));
 									for (String key : keys) {

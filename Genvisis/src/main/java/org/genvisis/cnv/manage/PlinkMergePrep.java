@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Positions;
@@ -93,7 +93,7 @@ public class PlinkMergePrep {
 				while ((line = reader.readLine()) != null) {
 					parts = line.split("[\\s]+", -1);
 					parts[1] = prepend + "_" + parts[1];
-					writer.println(Array.toStr(parts, "\t"));
+					writer.println(ArrayUtils.toStr(parts, "\t"));
 				}
 				writer.flush();
 				writer.close();

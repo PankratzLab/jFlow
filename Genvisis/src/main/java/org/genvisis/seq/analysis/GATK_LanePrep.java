@@ -9,7 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -54,11 +54,11 @@ public class GATK_LanePrep extends BWA_Analysis {
 	public void resetBwAnalysisIndividuals(MergeBam.BamMerger[] mBamMergers) {
 		boolean[] mergeMask = getMergeMask(mBamMergers, getLog());
 		if (isVerbose()) {
-			getLog().report(ext.getTime()	+ " Info - " + Array.booleanArraySum(mergeMask) + " of "
+			getLog().report(ext.getTime()	+ " Info - " + ArrayUtils.booleanArraySum(mergeMask) + " of "
 											+ mBamMergers.length
 											+ " sample(s) will go through another round of de-duping and realigining");
 		}
-		BWA_AnalysisIndividual[] bwAnalysisIndividuals = new BWA_AnalysisIndividual[Array.booleanArraySum(mergeMask)];
+		BWA_AnalysisIndividual[] bwAnalysisIndividuals = new BWA_AnalysisIndividual[ArrayUtils.booleanArraySum(mergeMask)];
 		int index = 0;
 		for (int i = 0; i < mBamMergers.length; i++) {
 			if (mergeMask[i]) {
@@ -301,7 +301,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 						mBamMergers[i] = tmpResults.get(i + "").get();
 						if ((mergeBam.isFail() || mBamMergers[i].isFail()) && !isFail()) {
 							getLog().reportError("Error - failed merging for "
-																		+ Array.toStr(mBamMergers[i].getInputBams(), "\n"));
+																		+ ArrayUtils.toStr(mBamMergers[i].getInputBams(), "\n"));
 							setFail(true);
 						}
 					} catch (InterruptedException e) {
@@ -333,7 +333,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 		for (int i = 0; i < uniq.length; i++) {
 			uniq[i] = gRecalibrationsToMerge[i].getBaseId();
 		}
-		return Array.unique(uniq);
+		return ArrayUtils.unique(uniq);
 	}
 
 	public Picard getPicard() {
@@ -370,14 +370,14 @@ public class GATK_LanePrep extends BWA_Analysis {
 																																																	// batch...for
 																																																	// downstream
 																																																	// merging
-		String[][] batchedMatchedFiles = Array.splitUpStringArray(batchesByLane, numBatches, getLog());
+		String[][] batchedMatchedFiles = ArrayUtils.splitUpStringArray(batchesByLane, numBatches, getLog());
 		String[][] batches = new String[batchedMatchedFiles.length][1];
 		for (int i = 0; i < batches.length; i++) {
 			batches[i][0] = "batch_" + i + "_" + baseName;
 			Files.writeArray(batchedMatchedFiles[i], getRootOutputDir() + batches[i][0] + ".txt");
 		}
 		// TODO, change classpath
-		String command = Array.toStr(PSF.Load.getAllModules(), "\n");
+		String command = ArrayUtils.toStr(PSF.Load.getAllModules(), "\n");
 		command += "\njava -Xmx"	+ memoryInMB + "m -jar ~/genvisisGATK.jar seq.analysis.GATK_LanePrep "
 								+ ROOT_INPUT_COMMAND + getRootInputDir() + SPACE + ROOT_OUTPUT_COMMAND
 								+ getRootOutputDir() + SPACE;
@@ -390,9 +390,9 @@ public class GATK_LanePrep extends BWA_Analysis {
 		command += Picard.PICARD_LOCATION_COMMAND + getPicard().getPicardLocation() + SPACE;
 		command += GATK.GATK_LOCATION_COMMAND + getGatk().getGATKLocation() + SPACE;
 		command += GATK.KNOWN_SITES_SNP_LOCATION_COMMAND
-								+ Array.toStr(getGatk().getKnownSitesSnpFile(), GATK.SPLIT) + SPACE;
+								+ ArrayUtils.toStr(getGatk().getKnownSitesSnpFile(), GATK.SPLIT) + SPACE;
 		command += GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND
-								+ Array.toStr(getGatk().getKnownSitesIndelFile(), GATK.SPLIT);
+								+ ArrayUtils.toStr(getGatk().getKnownSitesIndelFile(), GATK.SPLIT);
 		Files.qsub("GATK_Lane_Prep"	+ baseName, command, batches, memoryInMB, wallTimeInHours,
 								getNumWithinSampleThreads() * getNumBetweenSampleThreads());
 	}
@@ -520,7 +520,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 		String[] filesNotMerged = null;// to genotype directly
 
 		if (gLanePrep.getmBamMergers() != null
-				&& Array.booleanArraySum(getMergeMask(gLanePrep.getmBamMergers(), log)) > 0) {
+				&& ArrayUtils.booleanArraySum(getMergeMask(gLanePrep.getmBamMergers(), log)) > 0) {
 			gLanePrep.resetBwAnalysisIndividuals(gLanePrep.getmBamMergers());// step right before picard,
 																																				// set output of merge to
 																																				// input of picard and go
@@ -542,7 +542,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 				bamsToGenotype = mergedFiles;
 			}
 			if (filesNotMerged != null && bamsToGenotype != null) {
-				bamsToGenotype = Array.concatAll(bamsToGenotype, filesNotMerged);
+				bamsToGenotype = ArrayUtils.concatAll(bamsToGenotype, filesNotMerged);
 			} else if (filesNotMerged != null) {
 				bamsToGenotype = filesNotMerged;
 			}
@@ -588,7 +588,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 				}
 			}
 			if (barcodesToAdd.size() > 0) {// we will re-header the file here
-				String barcodesAdded = Array.toStr(	Array.unique(barcodesToAdd.toArray(new String[barcodesToAdd.size()])),
+				String barcodesAdded = ArrayUtils.toStr(	ArrayUtils.unique(barcodesToAdd.toArray(new String[barcodesToAdd.size()])),
 																						FileNameParser.SPLIT);
 				String newSampleId = calibrationsToMerge[i][0].getBaseId()	+ FileNameParser.SPLIT
 															+ barcodesAdded;
@@ -622,7 +622,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 		if (len < 3) {
 			return baseId;
 		} else {
-			return Array.toStr(Array.subArray(baseId.split(FileNameParser.SPLIT), 0, 2));
+			return ArrayUtils.toStr(ArrayUtils.subArray(baseId.split(FileNameParser.SPLIT), 0, 2));
 		}
 	}
 
@@ -689,9 +689,9 @@ public class GATK_LanePrep extends BWA_Analysis {
 							+ "";
 		usage += "   (8) the full path to reference indel files (comma delimited if multiple) (i.e. "
 								+ GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND
-							+ Array.toStr(new String[] {"site1", "site2", "site3"}, ",") + " (default))\n" + "";
+							+ ArrayUtils.toStr(new String[] {"site1", "site2", "site3"}, ",") + " (default))\n" + "";
 		usage += "   (9) the full path to reference snp files (comma delimited if multiple) (i.e. "
-								+ GATK.KNOWN_SITES_SNP_LOCATION_COMMAND + Array.toStr(knownSitesSnpFile, ",")
+								+ GATK.KNOWN_SITES_SNP_LOCATION_COMMAND + ArrayUtils.toStr(knownSitesSnpFile, ",")
 							+ " (default))\n" + "";
 
 		usage += "   (10) run in quiet mode (i.e. " + QUIET_COMMAND + " (not tbe default))\n" + "";

@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.sql.Date;
 import java.util.HashSet;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Internat;
@@ -113,7 +113,7 @@ public class temp {
 				}
 			}
 			if (!fine) {
-				System.out.println(i + "\t" + Array.toStr(trios[i]));
+				System.out.println(i + "\t" + ArrayUtils.toStr(trios[i]));
 			}
 		}
 		// commands = "/home/npankrat/bin/detect_cnv.pl -joint -hmm /home/npankrat/bin/lib/hh550.hmm

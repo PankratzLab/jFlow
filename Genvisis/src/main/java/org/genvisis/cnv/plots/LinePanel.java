@@ -17,7 +17,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.LaunchAction;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
@@ -262,8 +262,8 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 																			tempPoints[i].getColor(), (byte) 0, false));
 			}
 
-			points = Array.concatAll(points, tempPoints);
-			lines = Array.concatAll(lines, linesData.toArray(new GenericLine[linesData.size()]));
+			points = ArrayUtils.concatAll(points, tempPoints);
+			lines = ArrayUtils.concatAll(lines, linesData.toArray(new GenericLine[linesData.size()]));
 
 		}
 

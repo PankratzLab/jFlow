@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
@@ -183,7 +183,7 @@ public class McNemarsTest {
 				}
 				mt = new McNemarsTest(round);
 				mt.setContinuity(false);
-				writer.print(analysisVariables[i]	+ "\t" + count + "\t" + Array.toStr(mt.getABCD()) + "\t"
+				writer.print(analysisVariables[i]	+ "\t" + count + "\t" + ArrayUtils.toStr(mt.getABCD()) + "\t"
 											+ mt.getDirectionOfRisk() + "\t" + mt.getChiSq() + "\t" + mt.getPvalue());
 				mt.setContinuity(true);
 				writer.print("\t" + mt.getChiSq() + "\t" + mt.getPvalue());

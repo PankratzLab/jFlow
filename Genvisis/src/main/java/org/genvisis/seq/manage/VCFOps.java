@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -485,7 +485,7 @@ public class VCFOps {
 			}
 		} else {
 			log.reportTimeWarning("Detected that the following files already exist "
-														+ Array.toStr(outFiles));
+														+ ArrayUtils.toStr(outFiles));
 		}
 		if (Files.exists("", outFiles)) {
 			// Hashtable<String, String> newIDS = new Hashtable<String, String>();
@@ -514,7 +514,7 @@ public class VCFOps {
 			}
 		}
 		if (!Files.exists(dir + ".qc.pbs")) {
-			String gwasQC = Array.toStr(PSF.Load.getAllModules(), "\n")+ "\n" + Files.getRunString()
+			String gwasQC = ArrayUtils.toStr(PSF.Load.getAllModules(), "\n")+ "\n" + Files.getRunString()
 											+ " gwas.Qc dir=" + dir;
 			Files.qsub(dir + "qc.pbs", gwasQC, 62000, 24, 16);
 		}
@@ -633,7 +633,7 @@ public class VCFOps {
 				convertToPlinkSet(null, vcf, "plink", PLINK_SET_MODE.GWAS_QC, log);
 			}
 			log.reportTimeInfo("Running gwas.qc on the following files in " + dir + ":");
-			log.reportTimeInfo("\t" + Array.toStr(plinkFiles, "\n"));
+			log.reportTimeInfo("\t" + ArrayUtils.toStr(plinkFiles, "\n"));
 			// gwas.Qc.fullGamut(dir, false, new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
 		} else {
 			log.reportFileNotFound(vcf);
@@ -790,7 +790,7 @@ public class VCFOps {
 		public void dump(String file) {
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(file));
-				writer.println(Array.toStr(HEADER));
+				writer.println(ArrayUtils.toStr(HEADER));
 				HashSet<String> inds = getAllInds();
 				for (String ind : inds) {
 					writer.println(ind+ "\t" + getPopulationForInd(ind, RETRIEVE_TYPE.SUB)[0] + "\t"
@@ -1073,8 +1073,8 @@ public class VCFOps {
 				BufferedReader reader = Files.getAppropriateReader(fullPathToPopFile);
 				String[] header = Files.getHeaderOfFile(fullPathToPopFile, log);
 				int[] indices = ext.indexFactors(HEADER, header, true, false);
-				if (Array.countIf(indices, -1) > 0) {
-					log.reportError("Could not find required headers "+ Array.toStr(HEADER) + " in "
+				if (ArrayUtils.countIf(indices, -1) > 0) {
+					log.reportError("Could not find required headers "+ ArrayUtils.toStr(HEADER) + " in "
 															+ fullPathToPopFile);
 					return null;
 				}
@@ -1163,7 +1163,7 @@ public class VCFOps {
 						}
 						log.reportTimeInfo(callRateRemove.length+ " variants removed from " + splits[j]
 																+ " at callrate " + callRateFiltered);
-						toRemove = Array.unique(Array.concatAll(toRemove, callRateRemove));
+						toRemove = ArrayUtils.unique(ArrayUtils.concatAll(toRemove, callRateRemove));
 					}
 				}
 				String lackOfHomoGeneity = dir + MergeDatasets.CHI_SQUARE_DROPS_FILENAME;
@@ -1181,7 +1181,7 @@ public class VCFOps {
 																																			new int[] {0}, true);
 				log.reportTimeInfo(lackOfHomoGeneityIDs.length+ " markers lacking homogeneity from "
 														+ fullPathToPopFile);
-				toRemove = Array.unique(Array.concatAll(toRemove, lackOfHomoGeneityIDs));
+				toRemove = ArrayUtils.unique(ArrayUtils.concatAll(toRemove, lackOfHomoGeneityIDs));
 				for (String lackOfHomoGeneityID : lackOfHomoGeneityIDs) {
 					toRemoveHash.add(lackOfHomoGeneityID);
 				}
@@ -1244,7 +1244,7 @@ public class VCFOps {
 			for (int j = 0; j < numBarnsPerSample; j++) {
 				HashSet<String> barnaclesPresent = new HashSet<String>();
 				String[] currentBarnsA = currentBarns.toArray(new String[currentBarns.size()]);
-				System.out.println("SIZE" + Array.unique(currentBarnsA).length);
+				System.out.println("SIZE" + ArrayUtils.unique(currentBarnsA).length);
 				for (String barn : barnacles) {
 					if (ext.indexOfStr(barn, barnacleIdsPresent) >= 0
 							&& ext.indexOfStr(barn, currentBarnsA) < 0) {
@@ -1293,7 +1293,7 @@ public class VCFOps {
 				for (String delete : deletes) {
 					new File(delete).delete();
 				}
-				System.out.println(Array.toStr(barnesPicked));
+				System.out.println(ArrayUtils.toStr(barnesPicked));
 				for (String element : barnesPicked) {
 					currentBarns.add(element);
 				}
@@ -1302,7 +1302,7 @@ public class VCFOps {
 			String finalVpop = matchDir + "barnacle.vpop";
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(finalVpop));
-				writer.println(Array.toStr(VcfPopulation.HEADER));
+				writer.println(ArrayUtils.toStr(VcfPopulation.HEADER));
 				for (int j = 0; j < currentBarns.size(); j++) {
 					writer.println(currentBarns.get(j)+ "\t" + VcfPopulation.CONTROL + "\t"
 													+ VcfPopulation.CONTROL);
@@ -1573,7 +1573,7 @@ public class VCFOps {
 							}
 						}
 					}
-					tmp = Array.toStringArray(baTmp);
+					tmp = ArrayUtils.toStringArray(baTmp);
 				} else {
 					tmp = HashVec.loadFileToStringArray(bams, false, new int[] {0}, false);
 				}
@@ -1626,10 +1626,10 @@ public class VCFOps {
 			String[][] annotations = getAnnotationKeys(vcf, log);
 			if (createAnnotationFile) {
 				annoWriter = Files.getAppropriateWriter(annoFile);
-				annoWriter.println("##"+ Array.toStr(ANNO_BASE) + "\t" + Array.toStr(annotations[1]) + "\t"
-														+ Array.toStr(VCFOps.getSamplesInFile(vcf)));
-				annoWriter.println(Array.toStr(ANNO_BASE)+ "\t" + Array.toStr(annotations[0]) + "\t"
-														+ Array.toStr(VCFOps.getSamplesInFile(vcf)));
+				annoWriter.println("##"+ ArrayUtils.toStr(ANNO_BASE) + "\t" + ArrayUtils.toStr(annotations[1]) + "\t"
+														+ ArrayUtils.toStr(VCFOps.getSamplesInFile(vcf)));
+				annoWriter.println(ArrayUtils.toStr(ANNO_BASE)+ "\t" + ArrayUtils.toStr(annotations[0]) + "\t"
+														+ ArrayUtils.toStr(VCFOps.getSamplesInFile(vcf)));
 			}
 			CloseableIterator<VariantContext> iterator = reader.iterator();
 			if (segsToSearch.length == 1) {
@@ -1665,7 +1665,7 @@ public class VCFOps {
 															+ vc.getReference().getBaseString() + "\t"
 															+ vc.getAlternateAlleles().toString() + "\t" + vc.getHomRefCount()
 															+ "\t" + vc.getHetCount() + "\t" + vc.getHomVarCount() + "\t"
-															+ Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
+															+ ArrayUtils.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
 						GenotypesContext gc = vc.getGenotypes();
 
 						for (Genotype g : gc) {
@@ -2171,7 +2171,7 @@ public class VCFOps {
 			log.reportTimeInfo("exporting to " + output);
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(output));
-				writer.println(Array.toStr(VcfPopulation.HEADER));
+				writer.println(ArrayUtils.toStr(VcfPopulation.HEADER));
 				for (String sample : samples) {
 					writer.println(sample + "\t" + VcfPopulation.CONTROL + "\t" + VcfPopulation.CONTROL);
 				}
@@ -2197,7 +2197,7 @@ public class VCFOps {
 	public static QueryInterval[] convertSegsToQI(Segment[] segs, VCFHeader vcfHeader, int bpBuffer,
 																								boolean optimize, Logger log) {
 		QueryInterval[] qIntervals = new QueryInterval[segs.length];
-		segs = Array.sortedCopy(segs);
+		segs = ArrayUtils.sortedCopy(segs);
 		for (int i = 0; i < qIntervals.length; i++) {
 			String sequenceName = Positions.getChromosomeUCSC(segs[i].getChr(), true);
 
@@ -2289,8 +2289,8 @@ public class VCFOps {
 		params.add(SEGMENT_FILE_COMMAND);
 		params.add("#Full path to a either a file listing .bams, or a directory of .bam files");
 		params.add("#" + BAM_COMMAND);
-		System.out.println(Array.toStr(Array.toStringArray(params)));
-		return Array.toStringArray(params);
+		System.out.println(ArrayUtils.toStr(ArrayUtils.toStringArray(params)));
+		return ArrayUtils.toStringArray(params);
 	}
 
 	public static void fromParameters(String filename, UTILITY_TYPE type, Logger log) {
@@ -2340,7 +2340,7 @@ public class VCFOps {
 		if (params != null) {
 			params.add(UTILITY_COMMAND + type);
 
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 

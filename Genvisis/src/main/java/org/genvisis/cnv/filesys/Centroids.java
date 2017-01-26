@@ -25,7 +25,7 @@ import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -205,16 +205,16 @@ public class Centroids implements Serializable, TextExport {
 		try {
 			reader = new BufferedReader(new FileReader(proj.PROJECT_DIRECTORY.getValue() + filename));
 			header = reader.readLine().trim().split(",");
-			indices = Array.intArray(ILLUMINA_CENTROID_SUFFIXES.length, -1);
+			indices = ArrayUtils.intArray(ILLUMINA_CENTROID_SUFFIXES.length, -1);
 			for (int i = 0; i < header.length; i++) {
 				index = ext.indexOfEndsWith(header[i], ILLUMINA_CENTROID_SUFFIXES, true);
 				if (index >= 0) {
 					indices[index] = i;
 				}
 			}
-			if (Array.min(indices) == -1) {
+			if (ArrayUtils.min(indices) == -1) {
 				System.err.println("Error - Need a column header ending with the following suffixes; missing at least one");
-				System.err.println("        " + Array.toStr(ILLUMINA_CENTROID_SUFFIXES, "  "));
+				System.err.println("        " + ArrayUtils.toStr(ILLUMINA_CENTROID_SUFFIXES, "  "));
 			}
 			// for (int i = 0; i < markerNames.length; i++) {
 			while (reader.ready()) {
@@ -661,7 +661,7 @@ public class Centroids implements Serializable, TextExport {
 		final boolean[] inclSampMales;
 		final boolean[] chromPlus11Markers = proj.getMarkerForChrsBoolean(new int[]{11, 23, 24, 25, 26});
 		final boolean[] chromMarkers = proj.getMarkerForChrsBoolean(new int[]{23, 24, 25, 26});
-		final int markerCount = Array.booleanArraySum(chromMarkers);
+		final int markerCount = ArrayUtils.booleanArraySum(chromMarkers);
 		int[] sampleSex;
 		final float[][][] rawCentroidsFemale;
 		final float[][][] rawCentroidsMale;
@@ -741,7 +741,7 @@ public class Centroids implements Serializable, TextExport {
 		}
 
 		for (int i = 0; i < threadCount; i++) {
-			markerDataLoaders[i] = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(	proj, Array.toStringArray(markerLists[i]));
+			markerDataLoaders[i] = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(	proj, ArrayUtils.toStringArray(markerLists[i]));
 		}
 
 		rawCentroidsMale = new float[allMarkers.length][][];
@@ -1111,7 +1111,7 @@ public class Centroids implements Serializable, TextExport {
 			} else if (importFile != null) {
 				importFromText(proj, importFile, centFile);
 			} else if (fromGenotypes) {
-				parseCentroidsFromGenotypes(proj, Array.booleanArray(proj.getSamples().length, true), 1);
+				parseCentroidsFromGenotypes(proj, ArrayUtils.booleanArray(proj.getSamples().length, true), 1);
 			}	else if (projComputeDump) {
 				CentroidCompute.computeAndDumpCentroids(proj);
 			} else if (!compute.equals("")) {

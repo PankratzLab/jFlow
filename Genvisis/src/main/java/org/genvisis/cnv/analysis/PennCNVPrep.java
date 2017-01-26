@@ -24,7 +24,7 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -151,7 +151,7 @@ public class PennCNVPrep {
 	 * @param fileNamesOfMarkerDataInOrder files of serialized {@link MarkerDataStorage};
 	 */
 	public void exportSpecialPennCNVData(String[] fileNamesOfMarkerDataInOrder) {
-		int[] sampleIndicesInProject = ext.indexLargeFactors(	Array.subArray(proj.getSamples(),
+		int[] sampleIndicesInProject = ext.indexLargeFactors(	ArrayUtils.subArray(proj.getSamples(),
 																																				samplesToExport),
 																													proj.getSamples(), true, proj.getLog(),
 																													true, true);
@@ -159,7 +159,7 @@ public class PennCNVPrep {
 		// Integer.parseInt(proj.getProperty(Project.MAX_MARKERS_LOADED_PER_CYCLE));
 		int numMarkersPerWrite = proj.getProperty(proj.MAX_MARKERS_LOADED_PER_CYCLE);
 		int numMarkersThisRound = 0;
-		String[] subSamples = Array.subArray(proj.getSamples(), samplesToExport);
+		String[] subSamples = ArrayUtils.subArray(proj.getSamples(), samplesToExport);
 		PennCNVIndividual[] pennCNVIndividuals = initSamples(	proj, dir, subSamples, false,
 																													numMarkersPerWrite, proj.getLog());
 		for (int i = 0; i < fileNamesOfMarkerDataInOrder.length; i++) {
@@ -232,11 +232,11 @@ public class PennCNVPrep {
 																												boolean forceLoadFromFiles) {
 		Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 		int[] subSampleIndicesInProject = ext.indexLargeFactors(
-																														Array.subArray(	proj.getSamples(),
+																														ArrayUtils.subArray(	proj.getSamples(),
 																																						samplesToExport),
 																														proj.getSamples(), true, proj.getLog(),
 																														true, true);
-		String[] subSamples = Array.subArray(proj.getSamples(), samplesToExport);
+		String[] subSamples = ArrayUtils.subArray(proj.getSamples(), samplesToExport);
 		String dir = sampleDir(proj);
 		proj.getLog().report("Info - checking for existing files in " + dir + "...");
 		boolean allExist = true;
@@ -249,7 +249,7 @@ public class PennCNVPrep {
 		if (!allExist) {// if all files exist we skip this export
 			proj.getLog().report("Info - detected that not all files exist");
 
-			ShadowSample[] shadowSamples = new ShadowSample[Array.booleanArraySum(samplesToExport)];
+			ShadowSample[] shadowSamples = new ShadowSample[ArrayUtils.booleanArraySum(samplesToExport)];
 			for (int i = 0; i < shadowSamples.length; i++) {
 				shadowSamples[i] = new ShadowSample(subSamples[i], proj.getMarkerNames());
 				if (i % 200 == 0) {
@@ -541,8 +541,8 @@ public class PennCNVPrep {
 		for (int i = 0; i < samples.length; i++) {
 			sex[i] = sampleData.getSexForIndividual(samples[i]);
 		}
-		int numMales = Array.countIf(sex, 1);
-		int numFemales = Array.countIf(sex, 2);
+		int numMales = ArrayUtils.countIf(sex, 1);
+		int numFemales = ArrayUtils.countIf(sex, 2);
 		double percentDefined = (double) (numFemales + numMales) / samples.length;
 		if (percentDefined > .90) {
 			proj.getLog().report("Info - detected "+ numMales + " males and " + numFemales
@@ -636,7 +636,7 @@ public class PennCNVPrep {
 			}
 
 
-			boolean[][] batches = Array.splitUpStringArrayToBoolean(proj.getSamples(), numSampleChunks,
+			boolean[][] batches = ArrayUtils.splitUpStringArrayToBoolean(proj.getSamples(), numSampleChunks,
 																															proj.getLog());
 
 			ExecutorService executor = Executors.newFixedThreadPool(numThreads);
@@ -740,7 +740,7 @@ public class PennCNVPrep {
 																			int numBatches, int numThreads, int numMarkerThreads,
 																			int numComponents) {
 		String[] allMarkers = proj.getMarkerNames();
-		int[] chunks = Array.splitUp(allMarkers.length, numBatches);
+		int[] chunks = ArrayUtils.splitUp(allMarkers.length, numBatches);
 		int index = 0;
 		String[][] batches = new String[numBatches][1];
 		String thisDir = (tmpDir == null ? proj.PROJECT_DIRECTORY.getValue() : tmpDir);
@@ -892,7 +892,7 @@ public class PennCNVPrep {
 							+ numThreads + " (default))\n" + "";
 		usage += "   (18) full path to a temporary directory (i.e. tmpDir= (no default))\n" + "";
 		usage += "   (7) Chromosome X correction strategy.  Options include: "
-							+ Array.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy=" + strategy
+							+ ArrayUtils.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy=" + strategy
 							+ " (default))\n";
 		usage += "   NOTE: the total number of threads is numThreads*numMarkerThreads";
 		usage += "   NOTE: aprox 50 *(numSamples/5000) batches per 500,000 markers" + "";

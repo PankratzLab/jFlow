@@ -6,7 +6,7 @@ import java.util.Vector;
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
 import org.genvisis.cnv.analysis.cnvTrio;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -216,7 +216,7 @@ public class CNVTrioFilter extends CNVFilter {
 
 		params[9] = "# maximum number of cnv calls for an offspring";
 		params[10] = COMMAND_MAX_NUM_CALLS + DEFAULT_MAX_NUM_CALLS;
-		params = Array.concatAll(getDefaultCNVParams(), params);
+		params = ArrayUtils.concatAll(getDefaultCNVParams(), params);
 		return params;
 	}
 
@@ -239,7 +239,7 @@ public class CNVTrioFilter extends CNVFilter {
 		params = Files.parseControlFile(filename, CNVTrioFilter.COMMAND_CNV_TRIO_CRF, getParserParams(),
 																		log);
 		if (params != null) {
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 

@@ -10,7 +10,7 @@ import java.util.Hashtable;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.SourceFileParser;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -154,17 +154,17 @@ public class CytoAgilentParse {
 			}
 			if (!reader.ready()) {
 				log.reportError("Error - could not neccesary columns with headers "
-												+ Array.toStr(DATA_TO_GRAB));
+												+ ArrayUtils.toStr(DATA_TO_GRAB));
 				valid = false;
 
 			} else if (valid) {
 				PrintWriter writer = Files.getAppropriateWriter(output);
-				writer.println(Array.toStr(CONVERT_TO));
+				writer.println(ArrayUtils.toStr(CONVERT_TO));
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(SPLITS[0], -1);
 					if (!track.containsKey(line[indices[0]])) {
 						String[] converted = convert(line, indices, scale, log);
-						writer.println(Array.toStr(converted));
+						writer.println(ArrayUtils.toStr(converted));
 						track.put(line[indices[0]], line[indices[0]]);
 						count++;
 					}
@@ -273,11 +273,11 @@ public class CytoAgilentParse {
 
 			if (!reader.ready()) {
 				log.reportError("Error - could not neccesary columns with headers "
-												+ Array.toStr(SYSTEMATIC_NAME) + " and " + DATA_TO_GRAB[0]);
+												+ ArrayUtils.toStr(SYSTEMATIC_NAME) + " and " + DATA_TO_GRAB[0]);
 				return;
 			}
 			PrintWriter writer = Files.getAppropriateWriter(output);
-			writer.println(Array.toStr(MARKER_POSITION_HEADER));
+			writer.println(ArrayUtils.toStr(MARKER_POSITION_HEADER));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(SPLITS[0], -1);
 				String potentialUCSC = line[systematicIndex];

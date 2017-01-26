@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.genvisis.common.AlleleFreq;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -140,7 +140,7 @@ public class VCOps {
 	public static double getMAC(VariantContext vc, Set<String> sampleNames) {
 		VariantContext vcSub = getSubset(vc, sampleNames);
 		int[] alleleCounts = getAlleleCounts(vcSub);
-		if (Array.sum(alleleCounts) == 0) {
+		if (ArrayUtils.sum(alleleCounts) == 0) {
 			return Double.NaN;
 		} else {
 			double minor = Math.min(alleleCounts[0], alleleCounts[2]);
@@ -182,8 +182,8 @@ public class VCOps {
 			jExps = VariantContextUtils.initializeMatchExps(names, expressions);
 		} catch (IllegalArgumentException ile) {
 			log.reportError("Could not intitialize the jexl expressions:");
-			log.reportError("Names: " + Array.toStr(names));
-			log.reportError("JEXLs: " + Array.toStr(expressions));
+			log.reportError("Names: " + ArrayUtils.toStr(names));
+			log.reportError("JEXLs: " + ArrayUtils.toStr(expressions));
 			log.reportException(ile);
 		}
 		return jExps;
@@ -342,7 +342,7 @@ public class VCOps {
 							if (verbose) {
 								log.reportTimeWarning(geno.toString()
 																				+ " did not have allele depths, setting depths to "
-																			+ Array.toStr(AD));
+																			+ ArrayUtils.toStr(AD));
 							}
 						}
 					} catch (IllegalStateException ise) {
@@ -437,7 +437,7 @@ public class VCOps {
 						log.reportError(error);
 						log.reportError(varAlleles.toString());
 						log.reportError(gAlleles.toString());
-						log.reportError(Array.toStr(gAD) + " > " + Array.toStr(AD));
+						log.reportError(ArrayUtils.toStr(gAD) + " > " + ArrayUtils.toStr(AD));
 						log.reportError(vc.toStringWithoutGenotypes());
 						log.reportError(g.toString());
 					}
@@ -476,7 +476,7 @@ public class VCOps {
 						log.reportError("Invalid Allelic depth extraction");
 						log.reportError(varAlleles.toString());
 						log.reportError(gAlleles.toString());
-						log.reportError(Array.toStr(gAD) + " > " + Array.toStr(AD));
+						log.reportError(ArrayUtils.toStr(gAD) + " > " + ArrayUtils.toStr(AD));
 						log.reportError(vc.toStringWithoutGenotypes());
 						log.reportError(g.toString());
 					}
@@ -493,7 +493,7 @@ public class VCOps {
 							log.reportError("Invalid Allelic depth extraction for 1 index");
 							log.reportError(varAlleles.toString());
 							log.reportError(gAlleles.toString());
-							log.reportError(Array.toStr(gAD) + " > " + Array.toStr(AD));
+							log.reportError(ArrayUtils.toStr(gAD) + " > " + ArrayUtils.toStr(AD));
 							log.reportError(vc.toStringWithoutGenotypes());
 							log.reportError(g.toString());
 						}
@@ -505,8 +505,8 @@ public class VCOps {
 					}
 				}
 
-				if (g.isHet()	&& (AD[1] == 0 || AD[0] == 0) && Array.sum(gAD) != AD[0]
-						&& Array.sum(gAD) != AD[1]) {// there can actually be het calls with 0 ref or 0 alt, or
+				if (g.isHet()	&& (AD[1] == 0 || AD[0] == 0) && ArrayUtils.sum(gAD) != AD[0]
+						&& ArrayUtils.sum(gAD) != AD[1]) {// there can actually be het calls with 0 ref or 0 alt, or
 																					// both...apparently, I would'nt do that but whatever. So
 																					// anyways we do not test AD[0]
 					if (verbose) {
@@ -514,30 +514,30 @@ public class VCOps {
 						log.reportError("Invalid Het allele depth, Het non-ref " + g.isHetNonRef());
 						log.reportError(varAlleles.toString());
 						log.reportError(gAlleles.toString());
-						log.reportError(Array.toStr(gAD) + " > " + Array.toStr(AD));
+						log.reportError(ArrayUtils.toStr(gAD) + " > " + ArrayUtils.toStr(AD));
 						log.reportError(vc.toStringWithoutGenotypes());
 						log.reportError(g.toString());
 					}
 					throw new IllegalStateException("Invalid Het allele depth");
-				} else if (g.isHomVar()	&& AD[1] == 0 && Array.sum(gAD) > 0
-										&& Array.sum(gAD) != Array.sum(AD)) {
+				} else if (g.isHomVar()	&& AD[1] == 0 && ArrayUtils.sum(gAD) > 0
+										&& ArrayUtils.sum(gAD) != ArrayUtils.sum(AD)) {
 					if (verbose) {
 
 						log.reportError("Invalid Hom Var allele depth");
 						log.reportError(varAlleles.toString());
 						log.reportError(gAlleles.toString());
-						log.reportError(Array.toStr(gAD) + " > " + Array.toStr(AD));
+						log.reportError(ArrayUtils.toStr(gAD) + " > " + ArrayUtils.toStr(AD));
 						log.reportError(vc.toStringWithoutGenotypes());
 						log.reportError(g.toString());
 					}
 					throw new IllegalStateException("Invalid Hom Var  allele depth");
-				} else if (g.isHomRef() && AD[0] == 0 && Array.sum(gAD) > 0) {
+				} else if (g.isHomRef() && AD[0] == 0 && ArrayUtils.sum(gAD) > 0) {
 					if (verbose) {
 
 						log.reportError("Invalid Hom Ref allele depth");
 						log.reportError(varAlleles.toString());
 						log.reportError(gAlleles.toString());
-						log.reportError(Array.toStr(gAD) + " > " + Array.toStr(AD));
+						log.reportError(ArrayUtils.toStr(gAD) + " > " + ArrayUtils.toStr(AD));
 						log.reportError(vc.toStringWithoutGenotypes());
 						log.reportError(g.toString());
 					}
@@ -589,19 +589,19 @@ public class VCOps {
 						break;
 					case AD_TUMOR:
 					case AD_NORMAL:
-						double[] adTotal = Array.toDoubleArray(geno	.getAnyAttribute(info.getFlag()).toString()
+						double[] adTotal = ArrayUtils.toDoubleArray(geno	.getAnyAttribute(info.getFlag()).toString()
 																												.split(","));
-						avgGI += Array.sum(adTotal);
+						avgGI += ArrayUtils.sum(adTotal);
 						break;
 					case ALT_AD_TUMOR:
 					case ALT_AD_NORMAL:
-						avgGI += Array.toDoubleArray(geno	.getAnyAttribute(info.getFlag()).toString()
+						avgGI += ArrayUtils.toDoubleArray(geno	.getAnyAttribute(info.getFlag()).toString()
 																							.split(","))[1];
 						break;
 					case AF_TUMOR:
 					case NLOD:
 					case TLOD:
-						avgGI += Array.toDoubleArray(geno	.getAnyAttribute(info.getFlag()).toString()
+						avgGI += ArrayUtils.toDoubleArray(geno	.getAnyAttribute(info.getFlag()).toString()
 																							.split(","))[0];
 						break;
 					default:

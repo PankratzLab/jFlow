@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -215,7 +215,7 @@ public class PlateLists {
 
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "MasterFile.xln"));
-			writer.println(Array.toStr(CREATE_HEADER));
+			writer.println(ArrayUtils.toStr(CREATE_HEADER));
 			for (int i = 0; i < LABELS.length; i++) {
 				printDNAsToNewPlates(	dir, LABELS[i][0], writer, categories.elementAt(i),
 															LABELS[i][PROGENI_NOT_CARES ? 1 : 2], 0);
@@ -497,7 +497,7 @@ public class PlateLists {
 
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "MasterFile.xln"));
-			writer.println(Array.toStr(UPDATE_HEADER));
+			writer.println(ArrayUtils.toStr(UPDATE_HEADER));
 			for (int i = 0; i < LABELS.length; i++) {
 				printDNAsToNewPlates(	dir, LABELS[i][0], writer, categories.elementAt(i),
 															LABELS[i][PROGENI_NOT_CARES ? 1 : 2], maxes[i] + 1);
@@ -517,7 +517,7 @@ public class PlateLists {
 
 		try {
 			writer = new PrintWriter(new FileWriter(dir + filename));
-			writer.println(Array.toStr(startIndex == 0 ? CREATE_HEADER : UPDATE_HEADER));
+			writer.println(ArrayUtils.toStr(startIndex == 0 ? CREATE_HEADER : UPDATE_HEADER));
 			for (int i = 0; i < v.size(); i++) {
 				dna = v.elementAt(i);
 				if (dna.getPrior()) {

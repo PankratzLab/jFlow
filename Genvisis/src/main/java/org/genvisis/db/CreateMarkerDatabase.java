@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -187,9 +187,9 @@ public class CreateMarkerDatabase {
 								for (String[] element : data) {
 									if (element == null) {
 										flag = true;
-										writer.print("\t" + Array.toStr(Array.stringArray(info[i].length - 2, ".")));
+										writer.print("\t" + ArrayUtils.toStr(ArrayUtils.stringArray(info[i].length - 2, ".")));
 									} else {
-										writer.print("\t" + Array.toStr(element));
+										writer.print("\t" + ArrayUtils.toStr(element));
 									}
 								}
 								if (flag) {

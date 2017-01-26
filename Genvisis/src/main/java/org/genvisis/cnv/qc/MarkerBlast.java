@@ -22,7 +22,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.Markers;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -113,7 +113,7 @@ public class MarkerBlast {
 			if (doBlast && !Files.exists("", tmps)) {
 				MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type, null, false);
 				List<MarkerFastaEntry[]> splits =
-																				Array.splitUpArray(fastaEntries, numThreads, proj.getLog());
+																				ArrayUtils.splitUpArray(fastaEntries, numThreads, proj.getLog());
 
 				ArrayList<BlastWorker> workers = new ArrayList<Blast.BlastWorker>();
 				if (fastaEntries != null && fastaEntries.length > 0) {
@@ -346,7 +346,7 @@ public class MarkerBlast {
 			parser.determineIndicesFromTitles();
 			parser.loadData();
 			ArrayList<MarkerFastaEntry> entries =
-																					new ArrayList<MarkerFastaEntry>(Array.booleanArraySum(parser.getDataPresent()));
+																					new ArrayList<MarkerFastaEntry>(ArrayUtils.booleanArraySum(parser.getDataPresent()));
 			MarkerSet markerSet = proj.getMarkerSet();
 			// SequenceLookup sequenceLookup = new SequenceLookup(proj.getLog());
 			ReferenceGenome referenceGenome =
@@ -446,18 +446,18 @@ public class MarkerBlast {
 
 					} else {
 
-						String[] allSeqs = Array.unique(parser.getStringDataForTitle("PROBE_SEQUENCE")[i].split("\t"));
+						String[] allSeqs = ArrayUtils.unique(parser.getStringDataForTitle("PROBE_SEQUENCE")[i].split("\t"));
 						LinkedHashSet<String> collapsed = new LinkedHashSet<String>();
 						for (String seq : allSeqs) {
 							collapsed.add(seq);
 						}
-						String[] tmpSeq = Array.toStringArray(collapsed);
+						String[] tmpSeq = ArrayUtils.toStringArray(collapsed);
 
 						if (tmpSeq.length != 2) {
 							proj.getLog()
 									.reportError("Marker " + markerName + " did not have 2 unique probe designs");
 							proj.getLog()
-									.reportError("found the following " + markerName + "\t" + Array.toStr(tmpSeq));
+									.reportError("found the following " + markerName + "\t" + ArrayUtils.toStr(tmpSeq));
 							return null;
 						} else {
 							if (tmpSeq[0].length() != seqLength || tmpSeq[1].length() != seqLength) {
@@ -478,9 +478,9 @@ public class MarkerBlast {
 								}
 							}
 							String[] affyStrandtmp = parser.getStringDataForTitle("TARGET_STRANDEDNESS")[i].split("\t");
-							if (Array.unique(affyStrandtmp).length != 1) {
+							if (ArrayUtils.unique(affyStrandtmp).length != 1) {
 								proj.getLog()
-										.reportError("Multiple strands detected " + Array.toStr(affyStrandtmp));
+										.reportError("Multiple strands detected " + ArrayUtils.toStr(affyStrandtmp));
 								return null;
 							}
 							String affyStrand = affyStrandtmp[0];
@@ -545,7 +545,7 @@ public class MarkerBlast {
 		if ((!tb.equals("B") && !tb.equals("T") && !tb.equals("M"))
 				|| (!fr.equals("F") && !fr.equals("R"))) {
 			throw new IllegalStateException("Invalid IlmnID parsing asumption, splitting with _ for "
-																				+ Array.toStr(fullId, "_") + "\t" + tb + "\t" + fr
+																				+ ArrayUtils.toStr(fullId, "_") + "\t" + tb + "\t" + fr
 																			+ "\nPlease update TOP/BOT strand designation");
 		}
 
@@ -577,7 +577,7 @@ public class MarkerBlast {
 		}
 		if (refStrand == null) {
 			throw new IllegalStateException("Could not parse ref TOP/BOT  "	+ topBotRef + " using IlmnID"
-																			+ Array.toStr(fullId, "_") + " to a strand");
+																			+ ArrayUtils.toStr(fullId, "_") + " to a strand");
 		}
 		return refStrand;
 	}
@@ -664,11 +664,11 @@ public class MarkerBlast {
 																																																// preceeding
 																																																// ref
 																																																// bp
-					String[] tmp = referenceGenome == null	? Array.stringArray(indel.length() + 1, "N")
+					String[] tmp = referenceGenome == null	? ArrayUtils.stringArray(indel.length() + 1, "N")
 																									: referenceGenome.getSequenceFor(newQuery);
 					if (tmp.length - 1 != indel.length()) {
 						throw new IllegalStateException("Invalid reference indel query; REF -> "
-																						+ Array.toStr(tmp) + "\t indel -> " + indel);
+																						+ ArrayUtils.toStr(tmp) + "\t indel -> " + indel);
 					}
 					boolean insertionisRef = true;
 					for (int i = 0; i < indel.length(); i++) {
@@ -679,11 +679,11 @@ public class MarkerBlast {
 							break;
 						}
 					}
-					ref = Allele.create(Array.toStr(tmp, ""), true);
+					ref = Allele.create(ArrayUtils.toStr(tmp, ""), true);
 					if (insertionisRef) {
 						if (aS.equals("I")) {
 
-							String tmpA = Array.toStr(tmp, "");
+							String tmpA = ArrayUtils.toStr(tmp, "");
 							String tmpB = tmp[0];
 							A = Allele.create(StrandOps.flipsIfNeeded(tmpA, strand, false), false);
 							B = Allele.create(StrandOps.flipsIfNeeded(tmpB, strand, false), false);
@@ -692,7 +692,7 @@ public class MarkerBlast {
 
 						} else {
 							String tmpA = tmp[0];
-							String tmpB = Array.toStr(tmp, "");
+							String tmpB = ArrayUtils.toStr(tmp, "");
 							A = Allele.create(StrandOps.flipsIfNeeded(tmpA, strand, false), false);
 							B = Allele.create(StrandOps.flipsIfNeeded(tmpB, strand, false), false);
 							alts = new Allele[1];
@@ -756,7 +756,7 @@ public class MarkerBlast {
 					if (tmp.length != 1) {// don't think we need multiple
 						throw new IllegalArgumentException("base query must be length one ("
 																									+ loc.getUCSClocation() + " returned "
-																								+ Array.toStr(tmp));
+																								+ ArrayUtils.toStr(tmp));
 					} else if (array.isCNOnly(markerName)) {
 
 						ref = Allele.create(tmp[0], true);
@@ -845,7 +845,7 @@ public class MarkerBlast {
 				String[] dataTitles = new String[] {"AlleleA_ProbeSeq", "AlleleB_ProbeSeq", "SNP",
 																						"IlmnStrand", "SourceStrand", "SourceSeq", "IlmnID"};
 				if (ref != null) {
-					dataTitles = Array.concatAll(dataTitles, new String[] {ref});
+					dataTitles = ArrayUtils.concatAll(dataTitles, new String[] {ref});
 				} else {
 					proj.getLog()
 							.reportTimeWarning(strandReportFile

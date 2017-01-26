@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.util.Vector;
 
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -45,7 +45,7 @@ public class GeneDensityInRegion {
 			writer = new PrintWriter(new FileWriter(ext.replaceAllWith(region, ":", "_") + ".xln"));
 			writer.println("Gene\tAssession #'s\tChr\tStart\tStop\tNumExons");
 			for (GeneData gene : genes) {
-				writer.println(gene.getGeneName()	+ "\t" + Array.toStr(gene.getNcbiAssessionNumbers(), "|")
+				writer.println(gene.getGeneName()	+ "\t" + ArrayUtils.toStr(gene.getNcbiAssessionNumbers(), "|")
 												+ "\t" + gene.getChr() + "\t" + gene.getStart() + "\t" + gene.getStop()
 												+ "\t" + gene.getExonBoundaries().length);
 			}

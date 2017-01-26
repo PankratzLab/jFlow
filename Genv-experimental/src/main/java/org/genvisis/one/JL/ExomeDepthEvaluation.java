@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -185,8 +185,8 @@ public class ExomeDepthEvaluation {
 																						HistogramComparison.TITLES[i], SCATTER_TYPE.POINT, log);
 		rsScatterCount.setxLabel(HistogramComparison.XLABELS[i]);
 		rsScatterCount.setyLabel((prop ? "Proportion" : "Count"));
-		rsScatterCount.setTitle("n="	+ Array.sum(exomeDHits[i].getCounts()) + " match; n="
-														+ Array.sum(exomeDMisses[i].getCounts()) + " not match\n " + cType + ";"
+		rsScatterCount.setTitle("n="	+ ArrayUtils.sum(exomeDHits[i].getCounts()) + " match; n="
+														+ ArrayUtils.sum(exomeDMisses[i].getCounts()) + " not match\n " + cType + ";"
 														+ oType);
 		// rsScatterCount.execute();
 		rScatters.add(rsScatterCount);

@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
@@ -174,7 +174,7 @@ public class SeqMetaPrimary {
 				}
 			}
 
-			iterations = Matrix.toMatrix(Array.toStringArray(v));
+			iterations = Matrix.toMatrix(ArrayUtils.toStringArray(v));
 			System.out.println(iterations.length + "\tremaining to run for " + cohort);
 			if (Files.isWindows()) {
 				commands = "Rscript --no-save [%0]";
@@ -206,7 +206,7 @@ public class SeqMetaPrimary {
 				new File(batchDir + "finishUpOnSB_" + cohort).delete();
 			}
 
-			iterations = Matrix.toMatrix(Array.toStringArray(consolidateVector));
+			iterations = Matrix.toMatrix(ArrayUtils.toStringArray(consolidateVector));
 			v = new Vector<String>();
 			jobNamesWithAbsolutePaths = new Vector<String>();
 			jobSizes = new IntVector();
@@ -223,7 +223,7 @@ public class SeqMetaPrimary {
 			v.add(consolidate);
 			v.add("class(" + cohort + ") <- \"skatCohort\"");
 			v.add("save(" + cohort + ", file=\"" + cohort + ".RData\", compress=\"bzip2\")");
-			Files.writeArray(Array.toStringArray(v), batchDir + "mergeRdataFiles.R");
+			Files.writeArray(ArrayUtils.toStringArray(v), batchDir + "mergeRdataFiles.R");
 			commands = Rscript.getRscriptExecutable(new Logger())	+ " --no-save " + batchDir
 									+ "mergeRdataFiles.R";
 			Files.qsub(batchDir	+ "run_mergeRdataFiles_" + cohort, commands, qsubMem * 4, qsubWalltime,
@@ -267,7 +267,7 @@ public class SeqMetaPrimary {
 				v.add("");
 			}
 		}
-		Files.writeArray(Array.toStringArray(v), "scriptAll");
+		Files.writeArray(ArrayUtils.toStringArray(v), "scriptAll");
 		Files.chmod("scriptAll");
 
 		v = new Vector<String>();
@@ -279,7 +279,7 @@ public class SeqMetaPrimary {
 				v.add("");
 			}
 		}
-		Files.writeArray(Array.toStringArray(v), "scriptAllItasca");
+		Files.writeArray(ArrayUtils.toStringArray(v), "scriptAllItasca");
 		Files.chmod("scriptAllItasca");
 
 		v = new Vector<String>();
@@ -294,7 +294,7 @@ public class SeqMetaPrimary {
 				}
 			}
 		}
-		Files.writeArray(Array.toStringArray(v), "finishUpOnSB");
+		Files.writeArray(ArrayUtils.toStringArray(v), "finishUpOnSB");
 		Files.chmod("finishUpOnSB");
 
 		v = new Vector<String>();
@@ -307,7 +307,7 @@ public class SeqMetaPrimary {
 				v.add("");
 			}
 		}
-		Files.writeArray(Array.toStringArray(v), "mergeAll");
+		Files.writeArray(ArrayUtils.toStringArray(v), "mergeAll");
 		Files.chmod("mergeAll");
 
 		v = new Vector<String>();
@@ -321,7 +321,7 @@ public class SeqMetaPrimary {
 				v.add("");
 			}
 		}
-		Files.writeArray(Array.toStringArray(v), "packageUpAll");
+		Files.writeArray(ArrayUtils.toStringArray(v), "packageUpAll");
 		Files.chmod("packageUpAll");
 	}
 
@@ -344,7 +344,7 @@ public class SeqMetaPrimary {
 			v.add("cd ../../");
 			v.add("");
 		}
-		Files.writeArray(Array.toStringArray(v), "addAll");
+		Files.writeArray(ArrayUtils.toStringArray(v), "addAll");
 		Files.chmod("addAll");
 	}
 
@@ -447,7 +447,7 @@ public class SeqMetaPrimary {
 				}
 			}
 
-			iterations = Matrix.toMatrix(Array.toStringArray(v));
+			iterations = Matrix.toMatrix(ArrayUtils.toStringArray(v));
 			System.out.println(iterations.length + "\tremaining to run for " + cohort);
 			if (Files.isWindows()) {
 				commands = "Rscript --no-save [%0]";

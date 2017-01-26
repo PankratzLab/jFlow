@@ -14,7 +14,7 @@ import java.util.Vector;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -406,7 +406,7 @@ public class DeNovoCNV {
 			writer = new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true)	+ "denovo_"
 																							+ pennCnvResultFileNameExt.replace("cnv", "")
 																							+ ".cnv"));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			offspringCnv = new Hashtable<String, String>();
 			for (String filename : filenames) {
 				// currentOffspring = ext.rootOf(filenames[i]);
@@ -512,7 +512,7 @@ public class DeNovoCNV {
 			writer1 = new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true)	+ "denovo_"
 																								+ pennCnvResultFileNameExt.replace("cnv", "")
 																								+ ".cnv"));
-			writer1.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+			writer1.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			writer2 = new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true)	+ "denovo_"
 																								+ pennCnvResultFileNameExt.replace("cnv", "")
 																								+ "_list.txt"));

@@ -7,7 +7,7 @@ import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -155,7 +155,7 @@ public class PlinkSeqMegs {
 															int numthreads, boolean loadLoc, Logger log) {
 
 		String[] vcfs = HashVec.loadFileToStringArray(vcfFile, false, new int[] {0}, true);
-		System.out.println(Array.toStr(vcfs));
+		System.out.println(ArrayUtils.toStr(vcfs));
 
 		ArrayList<PlinkSeqWorker> workers = new ArrayList<PlinkSeq.PlinkSeqWorker>();
 		ImportProducer importer = new ImportProducer(	vcfs, vpopFile, resourceDirectory, geneTrackFile,
@@ -217,9 +217,9 @@ public class PlinkSeqMegs {
 																		int numthreads, int numBatches, Logger log) {
 		log.reportTimeInfo("Utilizing " + (numthreads) + " total threads per batch");
 		ChrSplitResults[] cSplitResults = VCFOps.splitByChrs(vcf, numthreads, true, log);
-		List<ChrSplitResults[]> cSplitResultsBatched = Array.splitUpArray(	cSplitResults,
+		List<ChrSplitResults[]> cSplitResultsBatched = ArrayUtils.splitUpArray(	cSplitResults,
 																																						numBatches, log);
-		String[] baseCommand = Array.concatAll(	PSF.Java.buildJavaCP(fullPathTojarFile),
+		String[] baseCommand = ArrayUtils.concatAll(	PSF.Java.buildJavaCP(fullPathTojarFile),
 																						new String[] {"seq.analysis.PlinkSeqMegs",
 																													"vpop=" + vpopFile, PSF.Ext.NUM_THREADS_COMMAND
 																																							+ numthreads + ""});
@@ -239,7 +239,7 @@ public class PlinkSeqMegs {
 			String[] batchCommand = new String[] {"vcfs=" + vcfFile, (i == 0 ? "-loadLoc" : "")};
 
 			batches.add("qsub -q " + batch);
-			Files.qsub(	batch, Array.toStr(Array.concatAll(baseCommand, batchCommand), " "),
+			Files.qsub(	batch, ArrayUtils.toStr(ArrayUtils.concatAll(baseCommand, batchCommand), " "),
 									totalMemoryRequestedInMb, walltimeRequestedInHours, numthreads);
 		}
 		Files.writeArray(	batches.toArray(new String[batches.size()]),

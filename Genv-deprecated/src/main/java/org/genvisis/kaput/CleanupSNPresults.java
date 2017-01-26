@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Sort;
@@ -50,7 +50,7 @@ public class CleanupSNPresults {
 				checkLine = check.checkPair(line[indices[3]], line[indices[2]], false).split("[\\s]+");
 				if (checkLine[0].equals("yearbug")) {
 					// line[indices[2]] = checkLine[1];
-					System.err.println("  " + Array.toStr(checkLine));
+					System.err.println("  " + ArrayUtils.toStr(checkLine));
 
 				}
 				if (line[indices[0]].trim().equals("")) {
@@ -68,7 +68,7 @@ public class CleanupSNPresults {
 			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_clean.xln"));
 			writer.println("FamInd\tDNA\tResult\tCall\tPlate\tWell\t2nd_DNA\t2nd_Result\t2nd_Call\t2nd_Plate\t2nd_Well\t...");
 			hashKeys = HashVec.getKeys(hash);
-			keys = Sort.getSortedIndices(Array.toIntArray(hashKeys));
+			keys = Sort.getSortedIndices(ArrayUtils.toIntArray(hashKeys));
 			for (int i = 0; i < hashKeys.length; i++) {
 				v = hash.get(hashKeys[keys[i]]);
 				best = -1;
@@ -93,7 +93,7 @@ public class CleanupSNPresults {
 				if (best >= 0) {
 					v.insertElementAt(v.remove(best), 0);
 				}
-				writer.println(hashKeys[keys[i]] + "\t" + Array.toStr(Array.toStringArray(v)));
+				writer.println(hashKeys[keys[i]] + "\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(v)));
 			}
 			writer.close();
 

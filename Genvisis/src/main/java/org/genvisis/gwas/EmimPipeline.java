@@ -12,7 +12,7 @@ import java.util.Set;
 import org.genvisis.cnv.manage.ExportCNVsToPedFormat;
 import org.genvisis.cnv.plots.ForestPlot;
 import org.genvisis.cnv.plots.QQPlot;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -285,10 +285,10 @@ public class EmimPipeline {
 		processCommand += Files.getRunString()	+ " gwas.EmimPipeline -process -forest dir="
 														+ runDir;
 		if (cnvFiles != null) {
-			processCommand += " cnvs=" + Array.toStr(cnvFiles, ",");
+			processCommand += " cnvs=" + ArrayUtils.toStr(cnvFiles, ",");
 		}
 		if (plinkRoots != null) {
-			processCommand += " plink=" + Array.toStr(plinkRoots, ",");
+			processCommand += " plink=" + ArrayUtils.toStr(plinkRoots, ",");
 		}
 		for (Emim.EMIM_MODEL model : Emim.EMIM_MODEL.optionalSet()) {
 			processCommand += " " + model.toString() + "=" + models.contains(model);

@@ -12,7 +12,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -68,7 +68,7 @@ public class FindMarkersNearGenes {
 		String[] markerNames;
 
 		System.out.println(ext.getTime() + "  Loading genes...");
-		geneNames = Array.toStringArray(HashVec.loadFileToVec(dir + filename, false, true, true));
+		geneNames = ArrayUtils.toStringArray(HashVec.loadFileToVec(dir + filename, false, true, true));
 		System.out.println("            Found " + geneNames.length + " genes...");
 
 		System.out.println(ext.getTime() + "  Determining gene boundaries...");
@@ -138,7 +138,7 @@ public class FindMarkersNearGenes {
 		mafLookup = HashVec.loadFileToHashString(dir + root + ".frq", 1, new int[] {4}, null, false);
 		// mafLookup = new Hashtable<String, String>();
 
-		markerNames = Array.toStringArray(markers);
+		markerNames = ArrayUtils.toStringArray(markers);
 		System.out.println(ext.getTime()	+ "  Filtering " + markers.size() + " SNPs; discarding MAF <"
 												+ mafCutoff);
 		try {
@@ -200,7 +200,7 @@ public class FindMarkersNearGenes {
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
 					line[5] = "0";
-					writer.println(Array.toStr(line, " "));
+					writer.println(ArrayUtils.toStr(line, " "));
 				}
 				reader.close();
 				writer.close();
@@ -268,14 +268,14 @@ public class FindMarkersNearGenes {
 		int index, chr, pos;
 
 		System.out.println(ext.getTime() + "  Loading genes...");
-		genes = Array.toStringArray(HashVec.loadFileToVec(dir + filename, false, true, true));
+		genes = ArrayUtils.toStringArray(HashVec.loadFileToVec(dir + filename, false, true, true));
 		System.out.println("            Found " + genes.length + " genes...");
 
 		System.out.println(ext.getTime() + "  Loading tags...");
 		tags = new String[TAG_SUFFIXES.length][];
 		for (int i = 0; i < TAG_SUFFIXES.length; i++) {
 			if (new File(dir + ext.rootOf(filename) + "_tags" + TAG_SUFFIXES[i] + ".txt").exists()) {
-				tags[i] = Array.toStringArray(HashVec.loadFileToVec(dir	+ ext.rootOf(filename) + "_tags"
+				tags[i] = ArrayUtils.toStringArray(HashVec.loadFileToVec(dir	+ ext.rootOf(filename) + "_tags"
 																														+ TAG_SUFFIXES[i] + ".txt", false, true,
 																														true));
 			} else {

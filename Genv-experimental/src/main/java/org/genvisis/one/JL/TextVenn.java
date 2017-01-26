@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -22,7 +22,7 @@ public class TextVenn {
 		String[] header = Files.getHeaderOfFile(inputFile, log);
 
 		log.reportTimeInfo("Found " + header.length + " categories in " + inputFile);
-		log.reportTimeInfo(Array.toStr(header));
+		log.reportTimeInfo(ArrayUtils.toStr(header));
 		ArrayList<HashSet<String>> cats = new ArrayList<HashSet<String>>();
 		for (String element : header) {
 			cats.add(new HashSet<String>());
@@ -79,8 +79,8 @@ public class TextVenn {
 		String output = ext.addToRoot(inputFile, ".overlapSummary.txt");
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
-			writer.println(Array.toStr(comp.toArray(new String[comp.size()])));
-			writer.println(Array.toStr(compSummary.toArray(new String[compSummary.size()])));
+			writer.println(ArrayUtils.toStr(comp.toArray(new String[comp.size()])));
+			writer.println(ArrayUtils.toStr(compSummary.toArray(new String[compSummary.size()])));
 			for (int i = 0; i < maxOverlap; i++) {
 				for (int j = 0; j < overlaps.size(); j++) {
 					if (overlaps.get(j).size() > 0) {

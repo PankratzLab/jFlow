@@ -9,7 +9,7 @@ import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -356,7 +356,7 @@ public class DeNovoMatic {
 			for (MutectTumorNormal famResult : famResults) {
 				toMerge.add(famResult.getReNamedOutputVCF());
 			}
-			String[] vcfsToMerge = Array.toStringArray(toMerge);
+			String[] vcfsToMerge = ArrayUtils.toStringArray(toMerge);
 			if (vcfsToMerge.length != 2) {
 				throw new IllegalArgumentException("Internal error, need to merge two vcfs");
 			}
@@ -414,7 +414,7 @@ public class DeNovoMatic {
 			toWrite.add(p1 + "\t" + off);
 			toWrite.add(p2 + "\t" + off);
 		}
-		Files.writeArray(Array.toStringArray(toWrite), output);
+		Files.writeArray(ArrayUtils.toStringArray(toWrite), output);
 	}
 
 	public static void main(String[] args) {

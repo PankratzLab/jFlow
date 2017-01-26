@@ -8,7 +8,7 @@ import java.util.HashMap;
 
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -133,7 +133,7 @@ public class CARDIA2017ResultsProcessor {
 					missWriter = Files.getAppropriateWriter(ext.rootOf(outFile, false) + "_missing.txt");
 					missWriters.put(i, missWriter);
 				}
-				writer.println(Array.toStr(OUT_HDR));
+				writer.println(ArrayUtils.toStr(OUT_HDR));
 				reader.readLine();
 				String line;
 				String[] parts;
@@ -251,7 +251,7 @@ public class CARDIA2017ResultsProcessor {
 		for (int i = 0; i < idsArr.length; i++) {
 			idIndexLookup.put(idsArr[i], i);
 		}
-		boolean[] found = Array.booleanArray(idsArr.length, false);
+		boolean[] found = ArrayUtils.booleanArray(idsArr.length, false);
 		ArrayList<String> outLines = new ArrayList<>((int) (idsArr.length * 1.8));
 		for (String s : idsArr) {
 			outLines.add(null);

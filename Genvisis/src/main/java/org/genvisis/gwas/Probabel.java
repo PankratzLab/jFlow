@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -48,7 +48,7 @@ public class Probabel {
 		int numSplits, increment, node, antinode;
 
 		if (type == 3) {
-			type = Array.determineType(pheno, 1, false);
+			type = ArrayUtils.determineType(pheno, 1, false);
 		}
 
 		node = 0;
@@ -129,7 +129,7 @@ public class Probabel {
 			}
 		}
 
-		Files.writeArray(Array.toStringArray(v), "master." + ext.rootOf(pheno));
+		Files.writeArray(ArrayUtils.toStringArray(v), "master." + ext.rootOf(pheno));
 		Files.chmod("master." + ext.rootOf(pheno));
 	}
 
@@ -236,7 +236,7 @@ public class Probabel {
 					System.out.print("Parsing '" + filename + "'");
 					line = reader.readLine().trim().split("[\\s]+");
 					if (var.size() == 0) {
-						writer.println(Array.toStr(line) + "\tZscore_pval\tchi2_pval");
+						writer.println(ArrayUtils.toStr(line) + "\tZscore_pval\tchi2_pval");
 					}
 					count = countErr = 0;
 					while (reader.ready()) {
@@ -259,7 +259,7 @@ public class Probabel {
 
 						// writer.println(Array.toStr(line)+"\t"+(line[10].equals("nan")?"nan":ProbDist.NormDist(Double.parseDouble(line[10])/Double.parseDouble(line[11])))+"\t"+(line[12].equals("nan")||line[12].equals("-inf")?"nan":ProbDist.ChiDist(Double.parseDouble(line[12]),
 						// 1)));
-						writer.println(Array.toStr(line)	+ "\t"
+						writer.println(ArrayUtils.toStr(line)	+ "\t"
 														+ (line[10].equals("nan")	? "nan"
 																											: ProbDist.NormDist(Double.parseDouble(line[10])
 																																					/ Double.parseDouble(line[11])))
@@ -323,11 +323,11 @@ public class Probabel {
 																											+ chr + "_add.out.txt"));
 					line = reader.readLine().trim().split("[\\s]+");
 					if (var.size() == 0) {
-						writer.println(Array.toStr(line) + "\tZscore_pval\tchi2_pval");
+						writer.println(ArrayUtils.toStr(line) + "\tZscore_pval\tchi2_pval");
 					}
 					while (reader.ready()) {
 						line = reader.readLine().trim().split("[\\s]+");
-						writer.println(Array.toStr(line)	+ "\t"
+						writer.println(ArrayUtils.toStr(line)	+ "\t"
 														+ (line[10].equals("nan")	? "nan"
 																											: ProbDist.NormDist(Double.parseDouble(line[10])
 																																					/ Double.parseDouble(line[11])))
@@ -346,10 +346,10 @@ public class Probabel {
 				}
 			}
 			writer.close();
-			System.out.println("Data for chromosomes " + ext.listWithCommas(Array.toStringArray(var)));
+			System.out.println("Data for chromosomes " + ext.listWithCommas(ArrayUtils.toStringArray(var)));
 			if (yok.size() > 0) {
 				System.out.println("Missing data for chromosomes "
-														+ ext.listWithCommas(Array.toStringArray(yok)));
+														+ ext.listWithCommas(ArrayUtils.toStringArray(yok)));
 			}
 		} catch (Exception e) {
 			System.err.println("Error writing to " + ext.rootOf(pheno) + "_add.xln");
@@ -426,7 +426,7 @@ public class Probabel {
 						line[1] = "NA";
 					}
 				}
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 				count++;
 			}
 			reader.close();
@@ -843,7 +843,7 @@ public class Probabel {
 				while ((line = reader.readLine()) != null) {
 
 					String[] parts = line.trim().split("[\\s]+");
-					writer.println(Array.toStr(parts)	+ "\t"
+					writer.println(ArrayUtils.toStr(parts)	+ "\t"
 													+ (parts[9].equals("nan")	? "nan"
 																										: ProbDist.NormDist(Double.parseDouble(parts[9])
 																																				/ Double.parseDouble(parts[10])))

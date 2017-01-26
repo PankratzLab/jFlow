@@ -27,7 +27,7 @@ import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.var.MosaicRegion;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -162,11 +162,11 @@ public class SexChecks {
 
 		log.report("Determining Samples to seed Sex Checks...");
 		generateSeedSexLists();
-		log.report("Found " + Array.booleanArraySum(seedMales) + " obvious males");
-		log.report("Found " + Array.booleanArraySum(seedFemales) + " obvious females");
+		log.report("Found " + ArrayUtils.booleanArraySum(seedMales) + " obvious males");
+		log.report("Found " + ArrayUtils.booleanArraySum(seedFemales) + " obvious females");
 		log.report("Seeding sex checks using these "
-									+ (Array.booleanArraySum(seedMales) + Array.booleanArraySum(seedFemales))
-								+ " samples (of " + Array.booleanArraySum(qcPassedSamples) + " QC passed samples)");
+									+ (ArrayUtils.booleanArraySum(seedMales) + ArrayUtils.booleanArraySum(seedFemales))
+								+ " samples (of " + ArrayUtils.booleanArraySum(qcPassedSamples) + " QC passed samples)");
 
 
 		log.report("Scanning for markers that express differently by sex...");
@@ -175,26 +175,26 @@ public class SexChecks {
 		xUseMarkers = sexDiscriminatingXMarkers();
 		yUseMarkers = sexDiscriminatingYMarkers();
 
-		log.report("Found "	+ Array.booleanArraySum(xUseMarkers)
+		log.report("Found "	+ ArrayUtils.booleanArraySum(xUseMarkers)
 								+ " sex differentiating markers out of " + indicesByChr[23].length
 								+ " X chromosome markers");
-		log.report("Found "	+ Array.booleanArraySum(yUseMarkers)
+		log.report("Found "	+ ArrayUtils.booleanArraySum(yUseMarkers)
 								+ " sex differentiating markers out of " + indicesByChr[24].length
 								+ " Y chromosome markers");
 		PSF.checkInterrupted();
 
 		log.report("Calculating median sample LRR for identified X and Y chromosome markers");
-		lrrMedX = calcMedianLRRs(lrrsX, Array.booleanArrayToIndices(xUseMarkers));
-		lrrMedY = calcMedianLRRs(lrrsY, Array.booleanArrayToIndices(yUseMarkers));
+		lrrMedX = calcMedianLRRs(lrrsX, ArrayUtils.booleanArrayToIndices(xUseMarkers));
+		lrrMedY = calcMedianLRRs(lrrsY, ArrayUtils.booleanArrayToIndices(yUseMarkers));
 		PSF.checkInterrupted();
 
-		lrrMeanX = calcMeanLRRs(lrrsX, Array.booleanArrayToIndices(xUseMarkers));
-		lrrMeanY = calcMeanLRRs(lrrsY, Array.booleanArrayToIndices(yUseMarkers));
+		lrrMeanX = calcMeanLRRs(lrrsX, ArrayUtils.booleanArrayToIndices(xUseMarkers));
+		lrrMeanY = calcMeanLRRs(lrrsY, ArrayUtils.booleanArrayToIndices(yUseMarkers));
 		PSF.checkInterrupted();
 
 		log.report("Calculating sample counts of heterozygote calls for identified X chromosome markers...");
-		pctXHets = calcPctHets(genotypesX, Array.booleanArrayToIndices(xUseMarkers));
-		pctXBaf15_85 = calcPctBaf15_85(bafsX, Array.booleanArrayToIndices(xUseMarkers));
+		pctXHets = calcPctHets(genotypesX, ArrayUtils.booleanArrayToIndices(xUseMarkers));
+		pctXBaf15_85 = calcPctBaf15_85(bafsX, ArrayUtils.booleanArrayToIndices(xUseMarkers));
 		PSF.checkInterrupted();
 
 		log.report("Estimating sex for each sample...");
@@ -246,8 +246,8 @@ public class SexChecks {
 					break;
 			}
 		}
-		xMarkers = Array.subArray(markerSet.getMarkerNames(), xKeeps);
-		yMarkers = Array.subArray(markerSet.getMarkerNames(), yKeeps);
+		xMarkers = ArrayUtils.subArray(markerSet.getMarkerNames(), xKeeps);
+		yMarkers = ArrayUtils.subArray(markerSet.getMarkerNames(), yKeeps);
 	}
 
 	private void gatherMarkerStats() {
@@ -277,7 +277,7 @@ public class SexChecks {
 		mdl.shutdown();
 		elrrMedX = new float[sampleNames.length];
 		for (int i = 0; i < sampleNames.length; i++) {
-			elrrMedX[i] = Array.median(Array.removeNonFinites(elrrs[i]));
+			elrrMedX[i] = ArrayUtils.median(ArrayUtils.removeNonFinites(elrrs[i]));
 		}
 
 
@@ -297,7 +297,7 @@ public class SexChecks {
 		mdl.shutdown();
 		elrrMedY = new float[sampleNames.length];
 		for (int i = 0; i < sampleNames.length; i++) {
-			elrrMedY[i] = Array.median(Array.removeNonFinites(elrrs[i]));
+			elrrMedY[i] = ArrayUtils.median(ArrayUtils.removeNonFinites(elrrs[i]));
 		}
 
 
@@ -323,11 +323,11 @@ public class SexChecks {
 		boolean[] discriminatingMarkers = new boolean[xMarkers.length];
 		TTest tTest = new TTest();
 		for (int i = 0; i < xMarkers.length; i++) {
-			double[] markerLrrs = Array.toDoubleArray(lrrsX[i]);
-			double[] maleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedMales));
-			double[] femaleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedFemales));
+			double[] markerLrrs = ArrayUtils.toDoubleArray(lrrsX[i]);
+			double[] maleLrrs = ArrayUtils.removeNonFinites(ArrayUtils.subArray(markerLrrs, seedMales));
+			double[] femaleLrrs = ArrayUtils.removeNonFinites(ArrayUtils.subArray(markerLrrs, seedFemales));
 			if (maleLrrs.length < 2	|| femaleLrrs.length < 2
-					|| Array.mean(femaleLrrs) <= Array.mean(maleLrrs)) {
+					|| ArrayUtils.mean(femaleLrrs) <= ArrayUtils.mean(maleLrrs)) {
 				discriminatingMarkers[i] = false;
 			} else {
 				double pVal = tTest.tTest(maleLrrs, femaleLrrs);
@@ -341,11 +341,11 @@ public class SexChecks {
 		boolean[] discriminatingMarkers = new boolean[yMarkers.length];
 		TTest tTest = new TTest();
 		for (int i = 0; i < yMarkers.length; i++) {
-			double[] markerLrrs = Array.toDoubleArray(lrrsY[i]);
-			double[] maleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedMales));
-			double[] femaleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedFemales));
+			double[] markerLrrs = ArrayUtils.toDoubleArray(lrrsY[i]);
+			double[] maleLrrs = ArrayUtils.removeNonFinites(ArrayUtils.subArray(markerLrrs, seedMales));
+			double[] femaleLrrs = ArrayUtils.removeNonFinites(ArrayUtils.subArray(markerLrrs, seedFemales));
 			if (maleLrrs.length < 2	|| femaleLrrs.length < 2
-					|| Array.mean(maleLrrs) <= Array.mean(femaleLrrs)) {
+					|| ArrayUtils.mean(maleLrrs) <= ArrayUtils.mean(femaleLrrs)) {
 				discriminatingMarkers[i] = false;
 			} else {
 				double pVal = tTest.tTest(maleLrrs, femaleLrrs);
@@ -365,7 +365,7 @@ public class SexChecks {
 
 		float[] medianLRRs = new float[sampleNames.length];
 		for (int i = 0; i < sampleNames.length; i++) {
-			medianLRRs[i] = Array.median(Array.removeNonFinites(lrrsBySample[i]));
+			medianLRRs[i] = ArrayUtils.median(ArrayUtils.removeNonFinites(lrrsBySample[i]));
 		}
 
 		return medianLRRs;
@@ -381,18 +381,18 @@ public class SexChecks {
 
 		float[] meanLRRs = new float[sampleNames.length];
 		for (int i = 0; i < sampleNames.length; i++) {
-			float[] cleaned = Array.removeNonFinites(lrrsBySample[i]);
+			float[] cleaned = ArrayUtils.removeNonFinites(lrrsBySample[i]);
 			float[] sorted = cleaned.clone();
 			Arrays.sort(sorted);
-			meanLRRs[i] = Array.mean(cleaned);
+			meanLRRs[i] = ArrayUtils.mean(cleaned);
 		}
 
 		return meanLRRs;
 	}
 
 	private float[] calcPctHets(byte[][] genotypes, int[] useMarkers) {
-		int[] hetCounts = Array.intArray(sampleNames.length, 0);
-		int[] genotypeCounts = Array.intArray(sampleNames.length, 0);
+		int[] hetCounts = ArrayUtils.intArray(sampleNames.length, 0);
+		int[] genotypeCounts = ArrayUtils.intArray(sampleNames.length, 0);
 		for (int useMarker : useMarkers) {
 			for (int s = 0; s < sampleNames.length; s++) {
 				genotypeCounts[s]++;
@@ -413,8 +413,8 @@ public class SexChecks {
 	}
 
 	private float[] calcPctBaf15_85(float[][] bafs, int[] useMarkers) {
-		int[] baf15_85Counts = Array.intArray(sampleNames.length, 0);
-		int[] bafCounts = Array.intArray(sampleNames.length, 0);
+		int[] baf15_85Counts = ArrayUtils.intArray(sampleNames.length, 0);
+		int[] bafCounts = ArrayUtils.intArray(sampleNames.length, 0);
 		for (int useMarker : useMarkers) {
 			for (int s = 0; s < sampleNames.length; s++) {
 				bafCounts[s]++;
@@ -435,35 +435,35 @@ public class SexChecks {
 	}
 
 	private void estimateSexes() {
-		float[] maleMedLRRsX = Array.subArray(lrrMedX, seedMales);
-		float[] femaleMedLRRsX = Array.subArray(lrrMedX, seedFemales);
+		float[] maleMedLRRsX = ArrayUtils.subArray(lrrMedX, seedMales);
+		float[] femaleMedLRRsX = ArrayUtils.subArray(lrrMedX, seedFemales);
 
-		float maleMeanX = Array.mean(maleMedLRRsX, true);
-		float maleStdDevX = Array.stdev(maleMedLRRsX, true);
-		float femaleMeanX = Array.mean(femaleMedLRRsX, true);
-		float femaleStdDevX = Array.stdev(femaleMedLRRsX, true);
+		float maleMeanX = ArrayUtils.mean(maleMedLRRsX, true);
+		float maleStdDevX = ArrayUtils.stdev(maleMedLRRsX, true);
+		float femaleMeanX = ArrayUtils.mean(femaleMedLRRsX, true);
+		float femaleStdDevX = ArrayUtils.stdev(femaleMedLRRsX, true);
 
-		float maleMeanPctXHets = Array.mean(Array.subArray(pctXHets, seedMales), true);
-		float maleStdDevPctXHets = Array.stdev(Array.subArray(pctXHets, seedMales), true);
-		Array.mean(Array.subArray(pctXHets, seedFemales), true);
-		Array.stdev(Array.subArray(pctXHets, seedFemales), true);
+		float maleMeanPctXHets = ArrayUtils.mean(ArrayUtils.subArray(pctXHets, seedMales), true);
+		float maleStdDevPctXHets = ArrayUtils.stdev(ArrayUtils.subArray(pctXHets, seedMales), true);
+		ArrayUtils.mean(ArrayUtils.subArray(pctXHets, seedFemales), true);
+		ArrayUtils.stdev(ArrayUtils.subArray(pctXHets, seedFemales), true);
 
-		Array.mean(Array.subArray(pctXBaf15_85, seedMales), true);
-		Array.stdev(Array.subArray(pctXBaf15_85, seedMales), true);
-		float femaleMeanPctXBaf15_85 = Array.mean(Array.subArray(pctXBaf15_85, seedFemales), true);
-		float femaleStdDevPctXBaf15_85 = Array.stdev(Array.subArray(pctXBaf15_85, seedFemales), true);
+		ArrayUtils.mean(ArrayUtils.subArray(pctXBaf15_85, seedMales), true);
+		ArrayUtils.stdev(ArrayUtils.subArray(pctXBaf15_85, seedMales), true);
+		float femaleMeanPctXBaf15_85 = ArrayUtils.mean(ArrayUtils.subArray(pctXBaf15_85, seedFemales), true);
+		float femaleStdDevPctXBaf15_85 = ArrayUtils.stdev(ArrayUtils.subArray(pctXBaf15_85, seedFemales), true);
 
-		float[] maleMedLRRsY = Array.subArray(lrrMedY, seedMales);
-		float[] femaleMedLRRsY = Array.subArray(lrrMedY, seedFemales);
+		float[] maleMedLRRsY = ArrayUtils.subArray(lrrMedY, seedMales);
+		float[] femaleMedLRRsY = ArrayUtils.subArray(lrrMedY, seedFemales);
 
-		float maleMeanY = Array.mean(maleMedLRRsY, true);
-		float maleStdDevY = Array.stdev(maleMedLRRsY, true);
-		float femaleMeanY = Array.mean(femaleMedLRRsY, true);
-		float femaleStdDevY = Array.stdev(femaleMedLRRsY, true);
+		float maleMeanY = ArrayUtils.mean(maleMedLRRsY, true);
+		float maleStdDevY = ArrayUtils.stdev(maleMedLRRsY, true);
+		float femaleMeanY = ArrayUtils.mean(femaleMedLRRsY, true);
+		float femaleStdDevY = ArrayUtils.stdev(femaleMedLRRsY, true);
 
 		sexes = new int[sampleNames.length];
-		uncertains = Array.booleanArray(sampleNames.length, false);
-		notes = Array.stringArray(sampleNames.length, "");
+		uncertains = ArrayUtils.booleanArray(sampleNames.length, false);
+		notes = ArrayUtils.stringArray(sampleNames.length, "");
 
 		boolean[] mosaicismCheckUse = mosaicismUse();
 
@@ -588,8 +588,8 @@ public class SexChecks {
 	 * mosoacism on "good" X chromosome markers
 	 */
 	private boolean[] mosaicismUse() {
-		boolean[] use = Array.booleanArray(markerSet.getPositions().length, true);
-		int[] xIndices = Array.booleanArrayToIndices(xKeeps);
+		boolean[] use = ArrayUtils.booleanArray(markerSet.getPositions().length, true);
+		int[] xIndices = ArrayUtils.booleanArrayToIndices(xKeeps);
 		HashSet<Integer> xInclude = new HashSet<Integer>();
 		for (int i = 0; i < xIndices.length; i++) {
 			if (xUseMarkers[i]) {
@@ -612,7 +612,7 @@ public class SexChecks {
 		mosaicBuilder.use(use);
 		mosaicBuilder.markerIndices(proj.getMarkerIndices());
 		MosaicismDetect mosaicismDetect = mosaicBuilder.build(proj, sampleNames[sample], markerSet,
-																													Array.toDoubleArray(bafs));
+																													ArrayUtils.toDoubleArray(bafs));
 		int xStart = markerSet.getPositions()[indicesByChr[23][0]];
 		int xStop = markerSet.getPositions()[indicesByChr[23][indicesByChr[23].length - 1]];
 		Segment xSegment = new Segment((byte) 23, xStart, xStop);
@@ -670,7 +670,7 @@ public class SexChecks {
 		try {
 			writer = new PrintWriter(new FileWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true,
 																																											false)));
-			writer.println(Array.toStr(SEX_HEADER));
+			writer.println(ArrayUtils.toStr(SEX_HEADER));
 
 			for (int i = 0; i < sampleNames.length; i++) {
 				lookup = sampleData.lookup(sampleNames[i]);
@@ -860,16 +860,16 @@ public class SexChecks {
 					log.reportError("Warning - no data for marker " + markerData.getMarkerName());
 					output += "\t.\t.\t.\t.\t.\t.\t.\t.";
 				} else {
-					output += "\t" + Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)),
+					output += "\t" + Math.abs(new Ttest(ArrayUtils.toIntArray(ArrayUtils.toStringArray(intensityDeps)),
 																							Matrix.extractColumn(	Matrix.toDoubleArrays(xys),
 																																		0)).getPvalue());
-					output += "\t" + Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)),
+					output += "\t" + Math.abs(new Ttest(ArrayUtils.toIntArray(ArrayUtils.toStringArray(intensityDeps)),
 																							Matrix.extractColumn(	Matrix.toDoubleArrays(xys),
 																																		1)).getPvalue());
-					output += "\t" + Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)),
+					output += "\t" + Math.abs(new Ttest(ArrayUtils.toIntArray(ArrayUtils.toStringArray(intensityDeps)),
 																							Matrix.extractColumn(	Matrix.toDoubleArrays(baflrrs),
 																																		0)).getPvalue());
-					output += "\t" + Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)),
+					output += "\t" + Math.abs(new Ttest(ArrayUtils.toIntArray(ArrayUtils.toStringArray(intensityDeps)),
 																							Matrix.extractColumn(	Matrix.toDoubleArrays(baflrrs),
 																																		1)).getPvalue());
 				}
@@ -917,7 +917,7 @@ public class SexChecks {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (!hashSet.contains(line[0])) {
-					writer.println(Array.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 				}
 			}
 			writer.flush();
@@ -978,7 +978,7 @@ public class SexChecks {
 		for (int i = 0; i < chrs.length; i++) {
 			sexChrs[i] = chrs[i] >= 23;
 		}
-		markerList = Array.subArray(markerNames, sexChrs);
+		markerList = ArrayUtils.subArray(markerNames, sexChrs);
 
 		clusterFilterCollection = proj.getClusterFilterCollection();
 		// gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
@@ -1015,12 +1015,12 @@ public class SexChecks {
 
 				line += markerName + "\t" + markerData.getChr() + "\t" + markerData.getPosition();
 				if (values[0].size() > 0) {
-					line += "\t" + Array.mean(Doubles.toArray(values[0]));
+					line += "\t" + ArrayUtils.mean(Doubles.toArray(values[0]));
 				} else {
 					line += "\t.";
 				}
 				if (values[1].size() > 0) {
-					line += "\t" + Array.mean(Doubles.toArray(values[1]));
+					line += "\t" + ArrayUtils.mean(Doubles.toArray(values[1]));
 				} else {
 					line += "\t.";
 				}

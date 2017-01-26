@@ -14,7 +14,7 @@ import java.util.Arrays;
 
 import javax.swing.JOptionPane;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -167,7 +167,7 @@ public class QQPlot {
 		error = false;
 		labels = new String[filenames.length];
 		pvals = new double[filenames.length][];
-		cols = Array.intArray(filenames.length, 0);
+		cols = ArrayUtils.intArray(filenames.length, 0);
 		for (int i = 0; i < filenames.length; i++) {
 			if (filenames[i].indexOf("=") > 0) {
 				labels[i] = filenames[i].substring(filenames[i].lastIndexOf("=") + 1);
@@ -365,7 +365,7 @@ public class QQPlot {
 			writer = new PrintWriter(new FileWriter(dir + "CIs.xln"));
 			writer.println("2.5%ile\t5%ile\t95%ile\t97.5%ile");
 			for (float[] dist : dists) {
-				writer.println(Array.toStr(Array.quants(dist, new double[] {0.025, 0.05, 0.95, 0.975})));
+				writer.println(ArrayUtils.toStr(ArrayUtils.quants(dist, new double[] {0.025, 0.05, 0.95, 0.975})));
 			}
 			writer.close();
 		} catch (Exception e) {

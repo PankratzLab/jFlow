@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -392,7 +392,7 @@ public class GinsburgDavid {
 
 		if (dnaList.size() > 0) {
 			logIt("The following dnas were never used: "
-						+ Array.toStr(Array.toStringArray(dnaList), ", "), true);
+						+ ArrayUtils.toStr(ArrayUtils.toStringArray(dnaList), ", "), true);
 
 			try {
 				writer = new PrintWriter(new FileWriter(dir + "DNAS NEVER USED!!!.txt"));
@@ -423,7 +423,7 @@ public class GinsburgDavid {
 			for (int i = 0; i < GENOTYPIC_HEADER.length; i++) {
 				if (!line[i].toLowerCase().startsWith(GENOTYPIC_HEADER[i])) {
 					logIt("Error - expecting the first three columns in the genotypes file to be "
-									+ Array.toStr(GENOTYPIC_HEADER, " ") + " (found " + line[0] + " " + line[1] + " "
+									+ ArrayUtils.toStr(GENOTYPIC_HEADER, " ") + " (found " + line[0] + " " + line[1] + " "
 								+ line[2] + ")", true);
 					logIt("failed at " + ext.getTime(), true);
 					System.exit(1);
@@ -443,7 +443,7 @@ public class GinsburgDavid {
 			reader.close();
 
 			reader = new BufferedReader(new FileReader(dir + genotypes));
-			inds = Array.subArray(reader.readLine().trim().split("\t", -1), 3);
+			inds = ArrayUtils.subArray(reader.readLine().trim().split("\t", -1), 3);
 			for (int i = 0; i < inds.length; i++) {
 				logIt((i + 1) + "\t" + inds[i], false);
 			}
@@ -491,7 +491,7 @@ public class GinsburgDavid {
 			writer = new PrintWriter(new FileWriter(dir + "map.dat"));
 			writer.println((markers.size() + 1) + " 0 0 5");
 			writer.println("0 0.0 0.0 0");
-			writer.println(Array.toStr(Array.stringArraySequence(markers.size() + 1, ""), " "));
+			writer.println(ArrayUtils.toStr(ArrayUtils.stringArraySequence(markers.size() + 1, ""), " "));
 			writer.println("1 2 # TRAIT");
 			writer.println((1 - DEFAULT_FREQ) + " " + DEFAULT_FREQ);
 			writer.println("1");
@@ -501,7 +501,7 @@ public class GinsburgDavid {
 				writer.println((1 - maf) + " " + maf);
 			}
 			writer.println("0 0");
-			writer.println("10.0 " + Array.toStr(Array.stringArray(markers.size() + 1, "0.0"), " "));
+			writer.println("10.0 " + ArrayUtils.toStr(ArrayUtils.stringArray(markers.size() + 1, "0.0"), " "));
 			writer.println("1 0.1 0.45");
 
 			writer.close();
@@ -537,7 +537,7 @@ public class GinsburgDavid {
 					index = inds.length;
 				}
 				// logIt(line[1]+"\t"+index, false);
-				writer.println(Array.toStr(line) + "\t" + translateAlleles(genos[index]));
+				writer.println(ArrayUtils.toStr(line) + "\t" + translateAlleles(genos[index]));
 			}
 			reader.close();
 			writer.close();
@@ -618,7 +618,7 @@ public class GinsburgDavid {
 							line[6 + index * 2 + 1] = fix[2];
 						}
 					}
-					writer.println(Array.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 				}
 				reader.close();
 				writer.close();
@@ -737,7 +737,7 @@ public class GinsburgDavid {
 			hash = new Hashtable<String, IntVector>();
 			for (int i = 0; i < errors.size(); i++) {
 				line = errors.elementAt(i);
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 
 				if (!markerMap.containsKey(line[1])) {
 					markerMap.put(line[1], line[2]);
@@ -808,7 +808,7 @@ public class GinsburgDavid {
 							line[6 + (iv.elementAt(i) - 1) * 2 + 1] = "0";
 						}
 					}
-					writer.println(Array.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 				}
 				reader.close();
 				writer.close();

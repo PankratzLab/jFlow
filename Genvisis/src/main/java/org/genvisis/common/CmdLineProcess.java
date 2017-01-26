@@ -76,7 +76,7 @@ public class CmdLineProcess implements Iterator<String> {
 	private boolean initProcess() {
 		boolean init = true;
 		if (verbose) {
-			log.reportTimeInfo("Attempting to run command " + Array.toStr(commandArray, " "));
+			log.reportTimeInfo("Attempting to run command " + ArrayUtils.toStr(commandArray, " "));
 		}
 		ProcessBuilder probuilder = new ProcessBuilder(commandArray);
 
@@ -95,14 +95,14 @@ public class CmdLineProcess implements Iterator<String> {
 					if (STIN != null) {
 						if (verbose) {
 							log.reportTimeInfo("Passing input paramaters to command:  "
-																	+ Array.toStr(commandArray));
+																	+ ArrayUtils.toStr(commandArray));
 
 						}
 						stIn = new PrintWriter(proc.getOutputStream());
 						writeInput();
 						if (verbose) {
 							log.reportTimeInfo("Finished passing input paramaters to command:  "
-																	+ Array.toStr(commandArray));
+																	+ ArrayUtils.toStr(commandArray));
 						}
 
 					} else {
@@ -131,7 +131,7 @@ public class CmdLineProcess implements Iterator<String> {
 
 		} catch (IOException e) {
 			init = false;
-			log.reportError("Could not initialize process " + Array.toStr(commandArray));
+			log.reportError("Could not initialize process " + ArrayUtils.toStr(commandArray));
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -256,7 +256,7 @@ public class CmdLineProcess implements Iterator<String> {
 				}
 			} catch (IOException e) {
 				log.reportError("Could not read error stream for process "
-														+ Array.toStr(commandArray, " "));
+														+ ArrayUtils.toStr(commandArray, " "));
 				e.printStackTrace();
 			}
 		}

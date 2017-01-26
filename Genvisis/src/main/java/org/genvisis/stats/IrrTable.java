@@ -5,7 +5,7 @@ import java.util.Hashtable;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.SampleQC;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 
 /**
@@ -86,10 +86,10 @@ public class IrrTable {
 			log.reportTimeWarning("Generally cohen's kappa is only used on two raters, currently computing with "
 														+ ratings.length + " raters ");
 		}
-		double chance = Array.sum(byChance);
+		double chance = ArrayUtils.sum(byChance);
 		// System.out.println("CHANCE"+chance);
 
-		double numerator = (double) Array.sum(judgedAgreementsBySample) / ratings[0].length;
+		double numerator = (double) ArrayUtils.sum(judgedAgreementsBySample) / ratings[0].length;
 
 		if (verbose) {
 			log.reportTimeInfo("Pr(a) -agreement by judges: " + numerator);
@@ -138,7 +138,7 @@ public class IrrTable {
 				}
 			}
 		}
-		log.reportTimeInfo(ratings.length	+ " judges agreed on " + Array.sum(judgedAgreementsBySample)
+		log.reportTimeInfo(ratings.length	+ " judges agreed on " + ArrayUtils.sum(judgedAgreementsBySample)
 												+ " of " + judgedAgreementsBySample.length + " subjects");
 		if (parsed) {
 			parsed = parseByChance();

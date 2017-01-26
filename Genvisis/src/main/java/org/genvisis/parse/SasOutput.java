@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
@@ -35,18 +35,18 @@ public class SasOutput {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".xln"));
-			writer.println(Array.toStr(HEADERS) + "\tType\tStratum");
+			writer.println(ArrayUtils.toStr(HEADERS) + "\tType\tStratum");
 			while (reader.ready()) {
 				temp = reader.readLine().trim();
 				if (temp.startsWith("For all")) {
 					line = temp.trim().split("-");
 					line = line[1].split("[\\s]+");
-					type = Array.toStr(Array.subArray(line, 0, line.length - 1), "_");
+					type = ArrayUtils.toStr(ArrayUtils.subArray(line, 0, line.length - 1), "_");
 				}
 				if (temp.startsWith("-----")) {
 					line = temp.trim().split("[\\s]+");
 					// System.err.println(temp);
-					stratum = Array.toStr(Array.subArray(line, 1, line.length - 1), "_");
+					stratum = ArrayUtils.toStr(ArrayUtils.subArray(line, 1, line.length - 1), "_");
 
 					keys = HashVec.getKeys(hash);
 					for (String key : keys) {
@@ -60,10 +60,10 @@ public class SasOutput {
 				} else if (inMeans) {
 					line = temp.trim().split("[\\s]+");
 					if (hash.containsKey(line[0])) {
-						temp = hash.get(line[0]) + "\t" + Array.toStr(line);
+						temp = hash.get(line[0]) + "\t" + ArrayUtils.toStr(line);
 					}
 					line = temp.trim().split("[\\s]+");
-					hash.put(line[0], Array.toStr(line) + "\t" + type + "\t" + stratum);
+					hash.put(line[0], ArrayUtils.toStr(line) + "\t" + type + "\t" + stratum);
 				}
 
 			}

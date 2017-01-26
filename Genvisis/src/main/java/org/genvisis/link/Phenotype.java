@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -37,9 +37,9 @@ public class Phenotype {
 		ext.checkHeader(phenoNames, new String[] {"FID", "IID"}, new int[] {0, 1}, false, log, false);
 		System.out.println("Loading " + pheno);
 		hash = HashVec.loadFileToHashString(dir	+ pheno, new int[] {0, 1},
-																				Array.subArray(Array.arrayOfIndices(phenoNames.length), 2),
+																				ArrayUtils.subArray(ArrayUtils.arrayOfIndices(phenoNames.length), 2),
 																				pheno.endsWith(".csv"), "\t", true, false, false);
-		phenoNames = Array.subArray(phenoNames, 2);
+		phenoNames = ArrayUtils.subArray(phenoNames, 2);
 		writers = new PrintWriter[phenoNames.length];
 		for (int i = 0; i < writers.length; i++) {
 			new File(dir + phenoNames[i] + "/").mkdirs();
@@ -58,13 +58,13 @@ public class Phenotype {
 						line = reader.readLine().trim().split("[\\s]+");
 						trav = hash.get(line[0] + "\t" + line[1]);
 						if (trav == null) {
-							phenos = Array.stringArray(phenoNames.length, missingValue);
+							phenos = ArrayUtils.stringArray(phenoNames.length, missingValue);
 						} else {
 							phenos = trav.split("[\\s]+");
 						}
 						for (int i = 0; i < writers.length; i++) {
 							line[index] = phenos[i];
-							writers[i].println(Array.toStr(line));
+							writers[i].println(ArrayUtils.toStr(line));
 						}
 
 					}

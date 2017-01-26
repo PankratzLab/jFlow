@@ -2,7 +2,7 @@ package org.genvisis.seq.analysis;
 
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -69,7 +69,7 @@ public class Oncotator {
 		command.add(oncotator_Analysis.getInputVcf());
 		command.add(oncotator_Analysis.getOutputVcf());
 		command.add(genomeBuild);
-		anno = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputFiles,
+		anno = CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputFiles,
 																						outputFiles, true, overWriteExistingOutput, false, log);
 
 		return anno;

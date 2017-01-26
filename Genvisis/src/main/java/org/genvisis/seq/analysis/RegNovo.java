@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -141,7 +141,7 @@ public class RegNovo {
 			VCFOps.copyHeader(reader, writerReg, null, HEADER_COPY_TYPE.FULL_COPY, log);
 
 			PrintWriter summaryWriter = Files.getAppropriateWriter(outputSummary);
-			summaryWriter.println(Array.toStr(HEADER)	+ "\t" + Array.toStr(annos[0])
+			summaryWriter.println(ArrayUtils.toStr(HEADER)	+ "\t" + ArrayUtils.toStr(annos[0])
 														+ "\tOff_Exclude\tOFF_Exclude_Notes\tP1_EXCLUDE\tP1_EXCLUDE_Notes\tP2_EXCLUDE\tP2_EXCLUDE_Notes\t"
 														+ REG_NOVO);
 			Hashtable<String, Integer> counts = new Hashtable<String, Integer>();
@@ -280,7 +280,7 @@ public class RegNovo {
 																					+ vc.getContig() + "\t" + vc.getStart() + "\t"
 																					+ vc.getEnd() + "\t" + passesAllControls + sum + pString
 																					+ "\t" + vc.getFilters().toString() + "\t"
-																					+ Array.toStr(anno) + "\t" + Array.toStr(excludes) + "\t"
+																					+ ArrayUtils.toStr(anno) + "\t" + ArrayUtils.toStr(excludes) + "\t"
 																					+ regNovo);
 										summaryWriter.flush();
 										if (regNovo) {
@@ -338,7 +338,7 @@ public class RegNovo {
 		all.addAll(controls);
 		all.addAll(exclude);
 
-		Segment[] segsSorted = Array.sortedCopy(segs);
+		Segment[] segsSorted = ArrayUtils.sortedCopy(segs);
 		vpop.getLog().reportTimeInfo("Scanning " + segsSorted.length + " segments");
 
 		String alleleSummary = ext.addToRoot(output, ".alleleSummary");
@@ -353,7 +353,7 @@ public class RegNovo {
 									"CHR\tSTART\tSTOP\tREF\tALT\tID\tNUM_OFFSPRING\tAAC_OFFSPRING\tHQ_NUMOFFSPRING\tHQ_AAC_OFFSPRING\tNUM_RENTS\tAAC_RENTS\tHQ_NUM_RENTS\tHQ_AAC_RENTS\t";
 		header += "NUM_EXCLUDE\tAAC_EXCLUDE\t";
 		header += "GATK_FILTER\tGENVISIS_HQ_All\tGENVISIS_HQ_All_ALT";
-		header += "\t" + Array.toStr(annos[0]) + "\tINFO";
+		header += "\t" + ArrayUtils.toStr(annos[0]) + "\tINFO";
 
 		writer.println(header);
 		writerFullFam.println("OFF\tRENTS\tEXCLUDED\t" + header);
@@ -522,7 +522,7 @@ public class RegNovo {
 		out +=
 				"\t" + variantContextFilter	.filter(VCOps.getAltAlleleContext(vcSub, new FilterNGS(), log))
 																		.getTestPerformed();
-		out += "\t" + Array.toStr(VCOps.getAnnotationsFor(annos, vcSub, "."));
+		out += "\t" + ArrayUtils.toStr(VCOps.getAnnotationsFor(annos, vcSub, "."));
 		return out;
 	}
 

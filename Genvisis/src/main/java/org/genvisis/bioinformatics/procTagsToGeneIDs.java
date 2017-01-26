@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 
 public class procTagsToGeneIDs {
@@ -74,7 +74,7 @@ public class procTagsToGeneIDs {
 							v = aliases.get(line[1]);
 							if (v.size() > 1) {
 								writer.println(line[0]	+ "\t" + FILES_WITH_GENE[i] + "\t"
-																+ Array.toStr(Array.toStringArray(v)));
+																+ ArrayUtils.toStr(ArrayUtils.toStringArray(v)));
 							} else {
 								HashVec.addToHashHash(hash, line[0], FILES_WITH_GENE[i], v.elementAt(0));
 							}
@@ -123,7 +123,7 @@ public class procTagsToGeneIDs {
 			reader = new BufferedReader(new FileReader(TAGS));
 			writer = new PrintWriter(new FileWriter("tagsToGeneIDs.xls"));
 			geneids = new PrintWriter(new FileWriter("tagsToGeneIDs.prn"));
-			writer.println("Tag\t" + Array.toStr(files));
+			writer.println("Tag\t" + ArrayUtils.toStr(files));
 			while (reader.ready()) {
 				trav = reader.readLine();
 				writer.print(trav);

@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
@@ -79,7 +79,7 @@ public class MarkerFreqs implements Serializable {
 		try {
 			writer = new PrintWriter(new FileWriter(exportFilename));
 			writer.println("marker_fingerprint=" + fingerprint);
-			writer.println(Array.toStr(MARKER_FREQ_FIELDS));
+			writer.println(ArrayUtils.toStr(MARKER_FREQ_FIELDS));
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(markerNames[i] + "\t" + mafs[i]);
 			}
@@ -114,16 +114,16 @@ public class MarkerFreqs implements Serializable {
 			int numMafs = 0;
 			reader = new BufferedReader(new FileReader(proj.PROJECT_DIRECTORY.getValue() + Freqfilename));
 			header = reader.readLine().trim().split("[\\s]+");
-			indices = Array.intArray(MARKER_FREQ_FIELDS.length, -1);
+			indices = ArrayUtils.intArray(MARKER_FREQ_FIELDS.length, -1);
 			for (int i = 0; i < header.length; i++) {
 				index = ext.indexOfEndsWith(header[i], MARKER_FREQ_FIELDS, true);
 				if (index >= 0) {
 					indices[index] = i;
 				}
 			}
-			if (Array.min(indices) == -1) {
+			if (ArrayUtils.min(indices) == -1) {
 				log.reportError("Error - Need a column header ending with the following suffixes; missing at least one");
-				log.reportError("        " + Array.toStr(MARKER_FREQ_FIELDS, "  "));
+				log.reportError("        " + ArrayUtils.toStr(MARKER_FREQ_FIELDS, "  "));
 				System.exit(1);
 			}
 			while (reader.ready()) {

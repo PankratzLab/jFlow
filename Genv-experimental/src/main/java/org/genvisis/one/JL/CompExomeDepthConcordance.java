@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -133,7 +133,7 @@ public class CompExomeDepthConcordance {
 
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(outFile));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER)
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER)
 											+ "\tmappability\tInProblematicRegion");
 			for (int i = 0; i < out.getLoci().length; i++) {
 				CNVariant tmp = out.getLoci()[i];

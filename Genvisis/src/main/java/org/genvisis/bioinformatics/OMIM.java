@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 
@@ -66,7 +66,7 @@ public class OMIM {
 				if (tmp.length != 15) {
 					throw new IllegalArgumentException(filename + " must have 15 entries per line");
 				}
-				String[] genes = Array.unique(line[5].split(","));
+				String[] genes = ArrayUtils.unique(line[5].split(","));
 				for (int i = 0; i < genes.length; i++) {
 					if (!gHashtable.containsKey(genes[i])) {
 						gHashtable.put(genes[i], new ArrayList<OMIM.OMIMGene>());

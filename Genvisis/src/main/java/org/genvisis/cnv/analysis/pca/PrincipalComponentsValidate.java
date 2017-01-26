@@ -8,7 +8,7 @@ import java.util.Hashtable;
 import java.util.Random;
 
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -141,7 +141,7 @@ public class PrincipalComponentsValidate {
 		}
 
 		int[] uniqBatches =
-											Array.toIntArray(Array.unique(componentBatches.toArray(new String[componentBatches.size()])));
+											ArrayUtils.toIntArray(ArrayUtils.unique(componentBatches.toArray(new String[componentBatches.size()])));
 		Arrays.sort(uniqBatches);
 		String[][] batches = new String[uniqBatches.length][1];
 		for (int i = 0; i < uniqBatches.length; i++) {
@@ -297,7 +297,7 @@ public class PrincipalComponentsValidate {
 		writer.print(PC + "\"" + PC_TYPES[pcType] + "\"");
 		for (int i = 0; i < principalComponentsResiduals.length; i++) {
 			writer.print("\tinSample_"	+ principalComponentsResiduals[i].getOutput() + "\t"
-										+ Array.toStr(comparisons[i]));
+										+ ArrayUtils.toStr(comparisons[i]));
 		}
 		writer.println();
 		for (int i = 0; i < inSamplevalidationResults.length; i++) {// for all components tested
@@ -406,7 +406,7 @@ public class PrincipalComponentsValidate {
 																												int numPcSamplings, int kFolds,
 																												int numThreads, String tmpOutput,
 																												LS_TYPE lType, Logger log) {
-		int[] pcChunks = Array.splitUp((stopAtComponent + 1 - startAtComponent), numPcSamplings);
+		int[] pcChunks = ArrayUtils.splitUp((stopAtComponent + 1 - startAtComponent), numPcSamplings);
 		int[] componentsToTest = getComponentsToTest(pcChunks, startAtComponent);
 		ValidationResults[] validationResults = new ValidationResults[componentsToTest.length];
 		initValidations(validationResults, principalComponentsResiduals.length, kFolds,
@@ -591,9 +591,9 @@ public class PrincipalComponentsValidate {
 		}
 
 		public int[] getUniqNumComponents() {
-			String[] array = Array.toStringArray(totalNumComponents);
-			String[] unique = Array.unique(array);
-			return Array.toIntArray(unique);
+			String[] array = ArrayUtils.toStringArray(totalNumComponents);
+			String[] unique = ArrayUtils.unique(array);
+			return ArrayUtils.toIntArray(unique);
 		}
 
 		public int[] getSortedUniqNumComponents() {
@@ -651,7 +651,7 @@ public class PrincipalComponentsValidate {
 		PrincipalComponentsResiduals[] principalComponentsResiduals =
 																																new PrincipalComponentsResiduals[files.length];
 		log.report(ext.getTime()	+ " Info - Using the following files for validation\n"
-								+ Array.toStr(files, "\n"));
+								+ ArrayUtils.toStr(files, "\n"));
 		for (int i = 0; i < files.length; i++) {
 			principalComponentsResiduals[i] = new PrincipalComponentsResiduals(	proj, files[i], mtMarkers,
 																																					numComponents, false, 0,
@@ -680,7 +680,7 @@ public class PrincipalComponentsValidate {
 		String curDir = proj.PROJECT_DIRECTORY.getValue() + dir;
 		String[] inds = HashVec.loadFileToStringArray(curDir	+ indsToValidateFile, false, new int[] {0},
 																									false);
-		int[] chunks = Array.splitUp(inds.length, numberOfChunks);
+		int[] chunks = ArrayUtils.splitUp(inds.length, numberOfChunks);
 		String[][] batches = getBatches(inds, chunks, pcReplicates, log);
 		// Files.writeList(inds, curDir + BATCH + 0);
 		for (int i = 0; i < batches.length; i++) {

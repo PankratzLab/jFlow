@@ -23,7 +23,7 @@ import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -173,7 +173,7 @@ public class PrincipalComponentsCompute {
 		// strip off unneeded components and find the basis
 		V_t.reshape(numComponents, mean.length, true);
 
-		singularValues = Array.subArray(getDiagonal(W), 0, numComponents);// W is the sorted (descending
+		singularValues = ArrayUtils.subArray(getDiagonal(W), 0, numComponents);// W is the sorted (descending
 																																			// order on the diagonal)
 																																			// matrix of singular values
 
@@ -241,7 +241,7 @@ public class PrincipalComponentsCompute {
 
 		boolean[] samplesToUse = getSamples(proj, excludeSamples, useFile);
 		String[] markers = getMarkers(proj);
-		int numSamples = Array.booleanArraySum(samplesToUse);
+		int numSamples = ArrayUtils.booleanArraySum(samplesToUse);
 
 		if (numComponents > numSamples) {
 			int newNumComp = numSamples;
@@ -691,7 +691,7 @@ public class PrincipalComponentsCompute {
 			}
 			PrintWriter writer = new PrintWriter(new FileWriter(markersUsedForPCA));
 			if (!printFullData) {
-				writer.println(Array.toStr(MARKER_REPORT_SMALL));
+				writer.println(ArrayUtils.toStr(MARKER_REPORT_SMALL));
 				for (int i = 0; i < markers.length; i++) {
 					writer.println(markers[i] + "\t" + markerUsed[i]);
 				}

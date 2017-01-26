@@ -8,7 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -88,7 +88,7 @@ public class FilterVariantLists {
 						passes = false;
 					}
 					if (passes) {
-						writer.println(Array.toStr(line));
+						writer.println(ArrayUtils.toStr(line));
 					}
 				}
 				reader.close();

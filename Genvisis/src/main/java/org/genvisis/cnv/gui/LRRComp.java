@@ -35,7 +35,7 @@ import org.genvisis.cnv.filesys.PropertyEditorButton;
 import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.plots.TwoDPlot;
 import org.genvisis.cnv.prop.PropertyKeys;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -58,7 +58,7 @@ public class LRRComp extends JFrame implements Runnable {
 																													"Select a Log R Ratio transformation: ",
 																													"Select a correction method",
 																													"Select for homozygous markers only",
-																													"If " + Array.toStr(EXTRA_CORRECTION,
+																													"If " + ArrayUtils.toStr(EXTRA_CORRECTION,
 																																							", or ") + " are selected, choose sex-specific correction strategy for chrX (if present)"};
 
 	private int transformationType;

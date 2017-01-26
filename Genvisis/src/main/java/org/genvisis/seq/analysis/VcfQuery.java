@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -292,7 +292,7 @@ public class VcfQuery {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(file, append));
 			if (!append) {
-				writer.print(Array.toStr(DEFAULT_HEADER) + "\t" + Array.toStr(infoToExtract));
+				writer.print(ArrayUtils.toStr(DEFAULT_HEADER) + "\t" + ArrayUtils.toStr(infoToExtract));
 				writer.println();
 			}
 			if (queryResults.getQueryResults() != null) {
@@ -348,8 +348,8 @@ public class VcfQuery {
 		}
 
 		private String getDisplayString() {
-			return id	+ "\t" + contig + "\t" + start + "\t" + ref + "\t" + Array.toStr(alts, ",") + "\t"
-							+ callRate + "\t" + Array.toStr(info);
+			return id	+ "\t" + contig + "\t" + start + "\t" + ref + "\t" + ArrayUtils.toStr(alts, ",") + "\t"
+							+ callRate + "\t" + ArrayUtils.toStr(info);
 		}
 
 		private void setInfo(String[] info) {
@@ -414,7 +414,7 @@ public class VcfQuery {
 			qManagers[i] = new QueryManager(fullPathVCFs[i], segs, params, tmpDir, writer, log);
 		}
 		log.reportTimeInfo("Attempting to extract the following:\n"
-												+ Array.toStr(params.getInfoToExtract(), "\n"));
+												+ ArrayUtils.toStr(params.getInfoToExtract(), "\n"));
 		WorkerHive<QueryResults> hive = new WorkerHive<QueryResults>(numThreads, 10, log);
 		hive.setReportEvery(1);
 		hive.addCallables(qManagers);
@@ -537,7 +537,7 @@ public class VcfQuery {
 				vcfs = Files.listFullPaths(qParams.getDir(), ".vcf", false);
 				gzVcfs = Files.listFullPaths(qParams.getDir(), ".vcf.gz", false);
 			}
-			String[] all = Array.concatAll(vcfs, gzVcfs);
+			String[] all = ArrayUtils.concatAll(vcfs, gzVcfs);
 			if (all.length < 1) {
 				log.reportError("Did not find any .vcf or .vcf.gz files in directory "
 														+ qParams.getDir());
@@ -576,7 +576,7 @@ public class VcfQuery {
 		usage += "   (4) full path to a directory containing vcf files to query (i.e. dir= "
 							+ DEFUALT_DIRECTORY + " (default)\n" + "";
 		usage += "   (5) a comma-delimited list of common info to extract (i.e. info= "
-							+ Array.toStr(CONTINENTAL_QUERY, ",") + " (default)\n" + "";
+							+ ArrayUtils.toStr(CONTINENTAL_QUERY, ",") + " (default)\n" + "";
 		usage +=
 					"   (6) the directory of vcfs to search is a local directory (i.e. -local (not the default)\n"
 							+ "";

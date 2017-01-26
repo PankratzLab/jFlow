@@ -6,7 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.ext;
 
@@ -70,7 +70,7 @@ public class Ttest {
 	}
 
 	public Ttest(double[] data1, double[] data2) {
-		this(	Array.mean(data1), Array.stdev(data1), data1.length, Array.mean(data2), Array.stdev(data2),
+		this(	ArrayUtils.mean(data1), ArrayUtils.stdev(data1), data1.length, ArrayUtils.mean(data2), ArrayUtils.stdev(data2),
 					data2.length);
 
 		Ftest = LevenesTest(new double[][] {data1, data2});
@@ -79,8 +79,8 @@ public class Ttest {
 	}
 
 	public Ttest(int[] groupings, double[] values) {
-		this(	splitOut(groupings, values, Array.min(groupings)),
-					splitOut(groupings, values, Array.min(groupings) + 1));
+		this(	splitOut(groupings, values, ArrayUtils.min(groupings)),
+					splitOut(groupings, values, ArrayUtils.min(groupings) + 1));
 	}
 
 	/**
@@ -260,7 +260,7 @@ public class Ttest {
 		for (int i = 0; i < k; i++) {
 			Ns[i] = data[i].length;
 			N += Ns[i];
-			means[i] = Array.mean(data[i]);
+			means[i] = ArrayUtils.mean(data[i]);
 		}
 
 		for (int i = 0; i < k; i++) {
@@ -268,8 +268,8 @@ public class Ttest {
 			for (int j = 0; j < Ns[i]; j++) {
 				Zijs[i][j] = Math.abs(data[i][j] - means[i]);
 			}
-			ZiMeans[i] = Array.mean(Zijs[i]);
-			ZiMeansMean += Array.sum(Zijs[i]);
+			ZiMeans[i] = ArrayUtils.mean(Zijs[i]);
+			ZiMeansMean += ArrayUtils.sum(Zijs[i]);
 		}
 		ZiMeansMean /= N;
 
@@ -278,13 +278,13 @@ public class Ttest {
 			for (int j = 0; j < Ns[i]; j++) {
 				ZiMeansSq[i][j] = Math.pow(Zijs[i][j] - ZiMeans[i], 2);
 			}
-			denomin += Array.sum(ZiMeansSq[i]);
+			denomin += ArrayUtils.sum(ZiMeansSq[i]);
 		}
 
 		for (int i = 0; i < k; i++) {
 			ZiMeansMeanSqN[i] = Ns[i] * Math.pow(ZiMeans[i] - ZiMeansMean, 2);
 		}
-		numer = (N - k) * Array.sum(ZiMeansMeanSqN);
+		numer = (N - k) * ArrayUtils.sum(ZiMeansMeanSqN);
 
 		return numer / denomin;
 	}

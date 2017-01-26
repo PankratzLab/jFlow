@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class showMe {
@@ -107,7 +107,7 @@ public class showMe {
 				writer = new PrintWriter(new FileWriter(peeps.elementAt(0)[0] + ".pre"));
 				do {
 					line = peeps.remove(0);
-					writer.println(Array.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 					prev = line[0];
 				} while (!peeps.isEmpty() && (separate && peeps.elementAt(0)[0].equals(prev)));
 				writer.close();
@@ -115,7 +115,7 @@ public class showMe {
 		} else {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + ".pre"));
 			for (int i = 0; i < peeps.size(); i++) {
-				writer.println(Array.toStr(peeps.elementAt(i)));
+				writer.println(ArrayUtils.toStr(peeps.elementAt(i)));
 			}
 			writer.close();
 		}

@@ -12,7 +12,7 @@ import java.util.Vector;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -123,8 +123,8 @@ public class grep {
 				}
 			}
 
-			filter(	inputFilename, outputFilename, Array.toStringArray(withs),
-							Array.toStringArray(withouts));
+			filter(	inputFilename, outputFilename, ArrayUtils.toStringArray(withs),
+							ArrayUtils.toStringArray(withouts));
 		}
 	}
 

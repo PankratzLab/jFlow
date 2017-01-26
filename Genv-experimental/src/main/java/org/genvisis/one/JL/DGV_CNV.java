@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -72,14 +72,14 @@ public class DGV_CNV {
 
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(out));
-				writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 				boolean dgv = true;
 				BufferedReader reader = Files.getAppropriateReader(element);
 				reader.readLine();
 
 				int[] indices = ext.indexFactors(	HEADER_DGV, Files.getHeaderOfFile(element, log), true,
 																					false);
-				if (Array.countIf(indices, -1) > 0) {
+				if (ArrayUtils.countIf(indices, -1) > 0) {
 					indices = ext.indexFactors(	COPY_NUMBER_VARIATION_MAP, Files.getHeaderOfFile(element, log),
 																			true, false);
 					dgv = false;
@@ -144,7 +144,7 @@ public class DGV_CNV {
 																																											// loss does
 																																											// not equal
 																																											// sample size
-									System.out.println(Array.toStr(line));
+									System.out.println(ArrayUtils.toStr(line));
 									System.out.println(lineNum + "\t" + line.length + "\t" + element);
 									log.reportError("Del: "	+ numDel + " and Dup: " + numDup
 																			+ " does not add up to " + samples.length);
@@ -174,7 +174,7 @@ public class DGV_CNV {
 									}
 								}
 							} catch (ArrayIndexOutOfBoundsException e) {
-								System.out.println(Array.toStr(line));
+								System.out.println(ArrayUtils.toStr(line));
 								System.out.println(lineNum + "\t" + line.length + "\t" + element);
 								log.reportException(e);
 								e.printStackTrace();
@@ -224,7 +224,7 @@ public class DGV_CNV {
 			String out = element + ".cnv";
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(out));
-				writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 				int[] indices = ext.indexFactors(	HEADER_DGV, Files.getHeaderOfFile(element, log), true,
 																					false);
 				try {
@@ -280,7 +280,7 @@ public class DGV_CNV {
 								}
 
 							} catch (Exception e) {
-								log.reportError(Array.toStr(line));
+								log.reportError(ArrayUtils.toStr(line));
 								log.reportException(e);
 								log.reportError(element);
 								log.reportError(lineNum + "");

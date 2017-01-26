@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -41,8 +41,8 @@ public class AltPheno {
 				}
 			}
 		}
-		chrs = Array.toStringArray(v);
-		System.out.println("Found data for chromosomes " + ext.listRanges(Array.toIntArray(chrs)));
+		chrs = ArrayUtils.toStringArray(v);
+		System.out.println("Found data for chromosomes " + ext.listRanges(ArrayUtils.toIntArray(chrs)));
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
@@ -57,7 +57,7 @@ public class AltPheno {
 			}
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				HashVec.addToHashHash(hash, line[0], line[1], Array.toStr(Array.subArray(line, 2)));
+				HashVec.addToHashHash(hash, line[0], line[1], ArrayUtils.toStr(ArrayUtils.subArray(line, 2)));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
@@ -95,10 +95,10 @@ public class AltPheno {
 						if (i == fams.length || line[0].equals(fams[i])) {
 							phenos = hash	.get(line[0])
 														.containsKey(line[1])	? hash.get(line[0]).get(line[1]).split("[\\s]+")
-																									: Array.stringArray(phenoNames.length, "0");
+																									: ArrayUtils.stringArray(phenoNames.length, "0");
 							for (int j = 0; j < phenoNames.length; j++) {
 								line[5] = phenos[j].equals("1") ? "2" : "0";
-								writers[j].println(Array.toStr(line));
+								writers[j].println(ArrayUtils.toStr(line));
 							}
 						}
 					}
@@ -209,7 +209,7 @@ public class AltPheno {
 		try {
 			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_summary.xln"));
 			writer.println("FID\tPhenotype\tN affected\tAffecteds\t"
-											+ Array.toStr(Array.stringArraySequence(23, "")));
+											+ ArrayUtils.toStr(ArrayUtils.stringArraySequence(23, "")));
 			fams = HashVec.getKeys(hashes);
 			for (String fam : fams) {
 				writer.print(fam);
@@ -217,7 +217,7 @@ public class AltPheno {
 					v = hashes.get(fam).get(phenoName);
 					writer.print("\t"	+ phenoName + "\t" + v.size() + "\t"
 												+ (fam.equals("allFams")	? "ALL"
-																									: Array.toStr(Array.toStringArray(v), ",")));
+																									: ArrayUtils.toStr(ArrayUtils.toStringArray(v), ",")));
 					percentages = new String[23];
 					for (int chr = 1; chr <= 23; chr++) {
 						try {
@@ -259,7 +259,7 @@ public class AltPheno {
 						}
 					}
 					writer.println();
-					writer.println("\t\t\t\t" + Array.toStr(percentages));
+					writer.println("\t\t\t\t" + ArrayUtils.toStr(percentages));
 				}
 				writer.println();
 			}

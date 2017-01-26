@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -273,7 +273,7 @@ public class SkatMeta2 {
 											+ "\nNote: even the existing file(s) do not have condition segment, please still specify the segment in the file name template for next rounds' files.");
 			return;
 		}
-		Array.toStr(ethnics, "");
+		ArrayUtils.toStr(ethnics, "");
 
 		for (String pheno : phenos) {
 			log.report("Processing pheno " + pheno);
@@ -449,7 +449,7 @@ public class SkatMeta2 {
 
 		b = new int[2];
 		chrsWithoutFiles = new Vector<String>();
-		allEthnics = Array.toStr(ethnics, "");
+		allEthnics = ArrayUtils.toStr(ethnics, "");
 		for (String chr : chrList) {
 			isFileAvailable = true;
 			resultDirFilenameByChr = byChrResultDirFilenameTemplate.replaceAll(	FILENAME_CHROMOSOME_SEGMENT,
@@ -571,7 +571,7 @@ public class SkatMeta2 {
 		}
 
 		mergeSkatMetaResultFiles(	byChrResultDirFilenameTemplate,
-															Array.addStrToArray(allEthnics, ethnics), chrList,
+															ArrayUtils.addStrToArray(allEthnics, ethnics), chrList,
 															new String[] {"SingleSNP", "T5Count", "T5"},
 															resultsDirFilenameTemplate.replaceAll("_"
 																																		+ FILENAME_CHROMOSOME_SEGMENT, ""),
@@ -686,7 +686,7 @@ public class SkatMeta2 {
 																						.replaceAll(FILENAME_CONDITION_SEGMENT,
 																												phenoCondStratum[1]);
 
-			root = Array.toStr(phenoCondStratum, "_");
+			root = ArrayUtils.toStr(phenoCondStratum, "_");
 			writer = new PrintWriter(new FileOutputStream(rScriptDir + root + ".R"));
 			writer.println(getRScriptForConditional(sourceRDataFilesDir, snpInfoFile, condFile,
 																							rScriptDir, resultsDir));
@@ -2249,7 +2249,7 @@ public class SkatMeta2 {
 				}
 				if (index < 0) {
 					log.reportError("Error - the following file name does not contain any pheno from the list: "
-														+ Array.toStr(phenos) + "\n" + filename
+														+ ArrayUtils.toStr(phenos) + "\n" + filename
 													+ "\nSystem halted due to error.");
 					System.exit(0);
 				}
@@ -3314,7 +3314,7 @@ public class SkatMeta2 {
 
 		significantSnpOfEachRegion = new Hashtable<Integer, String>();
 
-		allEthnics = Array.toStr(ethnics, "");
+		allEthnics = ArrayUtils.toStr(ethnics, "");
 		resultFileForNextCond = resultsDirFilenameTemplate
 																											.replaceAll("_"	+ FILENAME_CHROMOSOME_SEGMENT,
 																																	"")
@@ -3407,7 +3407,7 @@ public class SkatMeta2 {
 
 				if (chrsToRemove.size() != chrs.length) {
 					mergeSkatMetaResultFiles(	resultDirFilenameTemplateByChr,
-																		Array.addStrToArray(allEthnics,
+																		ArrayUtils.addStrToArray(allEthnics,
 																												removeElementsFromAarray(	ethnicsToRemove,
 																																									ethnics)),
 																		chrs, new String[] {"SingleSNP", "T5Count", "T5"},
@@ -3822,7 +3822,7 @@ public class SkatMeta2 {
 		for (String ethnic : ethnics) {
 			allEthnics += ethnic;
 		}
-		ethnics1 = Array.addStrToArray(allEthnics, ethnics);
+		ethnics1 = ArrayUtils.addStrToArray(allEthnics, ethnics);
 
 		resultsDirFilenameTemplate = resultsDirFilenameTemplate.replaceAll("_"
 																																					+ FILENAME_CHROMOSOME_SEGMENT,
@@ -3851,7 +3851,7 @@ public class SkatMeta2 {
 			// getListsOfPhenosConditionsEthnicsAnalysesGenes(genePvalSummary, phenoList,
 			// conditionListAllPhenos, ethnicList, analysesList, geneListAllPhenos, log);
 			printSummarizedGenePvalues(	genePvalSummary, phenoList, ethnics1, analysesList,
-																	summaryDir																					+ "summary_" + Array.toStr(phenoList, "_")
+																	summaryDir																					+ "summary_" + ArrayUtils.toStr(phenoList, "_")
 																																											+ "_genePvalues.xln",
 																	log);
 
@@ -3909,7 +3909,7 @@ public class SkatMeta2 {
 			// getListsOfPhenosConditionsEthnicsAnalysesGenes(genePvalSummary, phenoList,
 			// conditionListAllPhenos, ethnicList, analysesList, geneListAllPhenos, log);
 			printSummarizedGenePvalues(	genePvalSummary, phenoList, ethnics, analysesList,
-																	summaryDir																					+ "summary_" + Array.toStr(phenoList, "_")
+																	summaryDir																					+ "summary_" + ArrayUtils.toStr(phenoList, "_")
 																																											+ "_genePvalues.xln",
 																	log);
 

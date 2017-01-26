@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -40,7 +40,7 @@ public class ConvertChargeToVCF {
 	public static void processChargeMafFile(String fullPathToFile, Logger log) {
 		if (!Files.headerOfFileContainsAll(fullPathToFile, CHARGE_HEADER, log)) {
 			log.reportError("This is designed for a specific file format with header "
-													+ Array.toStr(CHARGE_HEADER));
+													+ ArrayUtils.toStr(CHARGE_HEADER));
 		} else {
 			VCFHeader vcfHeader = new VCFHeader();
 

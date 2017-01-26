@@ -37,7 +37,7 @@ import org.genvisis.cnv.qc.MarkerBlastQC;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -366,7 +366,7 @@ public class GenvisisWorkflow {
 																										new String[][] {{"[Parse Sample Files] step must have been run already or must be selected and valid"},
 																																		{	"Create a minimal SampleData.txt file from sample files",
 																																			"Either a Pedigree.dat file, or any file with a header containing all of the following elements (in any order):  \""
-																																																																	+ Array.toStr(MitoPipeline.PED_INPUT,
+																																																																	+ ArrayUtils.toStr(MitoPipeline.PED_INPUT,
 																																																																							", ")
 																																																																+ "\"",
 																																			"A Sample_Map.csv file, with at least two columns having headers \""
@@ -2209,7 +2209,7 @@ public class GenvisisWorkflow {
 			int sum = 0;
 			boolean[][] reqrs = checkRequirements(proj, stepSelections, variables);
 			for (boolean[] req : reqrs) {
-				sum += Array.booleanArraySum(req) > 0 ? 1 : 0;
+				sum += ArrayUtils.booleanArraySum(req) > 0 ? 1 : 0;
 			}
 			return sum == reqs.length;
 		}

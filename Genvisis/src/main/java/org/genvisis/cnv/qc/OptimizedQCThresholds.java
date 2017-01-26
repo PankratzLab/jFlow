@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
@@ -17,7 +17,7 @@ public class OptimizedQCThresholds {
 																								"SAMPLE_CALL_RATE", "PENN_CONF", "BAF_DRIFT",
 																								"SIZE_IN_KB", "PROBE_DENSITY_IN_KB"};
 	public static final String[] OPT_QC_HEADS = {	"targetConcordance", "actualConcordance",
-																								Array.toStr(QC_Thresholds), "goodCalls",
+																								ArrayUtils.toStr(QC_Thresholds), "goodCalls",
 																								"callsPassingFilter", "totalCalls",
 																								"pairsOfDuplicates", "CN"};
 	private double targetConcordance;
@@ -142,16 +142,16 @@ public class OptimizedQCThresholds {
 		try {
 			reader = new BufferedReader(new FileReader(QCThresholdFileName));
 			header = reader.readLine().trim().split("[\\s]+");
-			indices = Array.intArray(QC_Thresholds.length, -1);
+			indices = ArrayUtils.intArray(QC_Thresholds.length, -1);
 			for (int i = 0; i < header.length; i++) {
 				index = ext.indexOfEndsWith(header[i], QC_Thresholds, true);
 				if (index >= 0) {
 					indices[index] = i;
 				}
 			}
-			if (Array.min(indices) == -1) {
+			if (ArrayUtils.min(indices) == -1) {
 				log.reportError("Error - Need a column header ending with the following suffixes; missing at least one");
-				log.reportError("        " + Array.toStr(QC_Thresholds, "  "));
+				log.reportError("        " + ArrayUtils.toStr(QC_Thresholds, "  "));
 				System.exit(1);
 			}
 			while (reader.ready()) {

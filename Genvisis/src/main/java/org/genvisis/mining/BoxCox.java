@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -38,7 +38,7 @@ public class BoxCox {
 		N = data.length;
 
 		shift = 0;
-		min = Array.min(data);
+		min = ArrayUtils.min(data);
 		if (min < 0) {
 			log.reportError("Warning - the original data was not suitable for transformation -- the minimum ("
 												+ min + ") cannot be less than 1.0; therefore added " + (Math.abs(min) + 1)
@@ -132,10 +132,10 @@ public class BoxCox {
 	private double evaluate(double[] data, double lambda, int method) {
 		switch (method) {
 			case LOG_LIKELIHOOD:
-				return -1 * (N - 1) / 2 * Math.log(Array.variance(transform(data, lambda)))
+				return -1 * (N - 1) / 2 * Math.log(ArrayUtils.variance(transform(data, lambda)))
 								+ (lambda - 1) * (N - 1) / N * sumLN;
 			case KURTOSIS:
-				return Array.kurtosis(transform(data, lambda));
+				return ArrayUtils.kurtosis(transform(data, lambda));
 		}
 		return -1;
 	}
@@ -222,11 +222,11 @@ public class BoxCox {
 		bc = new BoxCox(data, new Logger());
 		System.out.println("Maximizing Log-Likelihood...");
 		System.out.println("Optimal lambda: " + bc.getLambda_MaxLL());
-		System.out.println("Kurtosis: " + Array.kurtosis(bc.getTransform_MaxLL()));
+		System.out.println("Kurtosis: " + ArrayUtils.kurtosis(bc.getTransform_MaxLL()));
 		System.out.println("");
 		System.out.println("Minimizing kurtosis...");
 		System.out.println("Optimal lambda: " + bc.getLambda_MinKurt());
-		System.out.println("Kurtosis: " + Array.kurtosis(bc.getTransform_MinKurt()));
+		System.out.println("Kurtosis: " + ArrayUtils.kurtosis(bc.getTransform_MinKurt()));
 		System.out.println("");
 
 	}

@@ -4,7 +4,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.CmdLineProcess;
 import org.genvisis.common.CmdLineProcess.ERR_Mode;
@@ -144,7 +144,7 @@ public class Blast {
 							if (bResults.getAlignmentLength() >= reportWordSize) {
 								bSummaries[i].addBlastResult(bResults, log);
 								if (tmpFile != null) {
-									tmpFile.println(Array.toStr(bResults.getResults()));
+									tmpFile.println(ArrayUtils.toStr(bResults.getResults()));
 								}
 							}
 						}
@@ -167,7 +167,7 @@ public class Blast {
 																										getDBFiles(fastaDb), true, false, false, log);
 		} else {
 			log.reportTimeInfo("Using existing data base files : "	+ ext.rootOf(fastaDb) + " ("
-													+ Array.toStr(DB_EXTs, ",") + ")");
+													+ ArrayUtils.toStr(DB_EXTs, ",") + ")");
 
 		}
 		return dbCreated;
@@ -190,7 +190,7 @@ public class Blast {
 				&& !CmdLine.run(BLAST_COMMANDS.MAKE_DB.getCommand(), "")) {
 			log.reportError("It is assumed that the program "	+ BLAST_COMMANDS.BLASTN.getCommand()
 													+ " can be found on the system's path, or the following files are present...");
-			log.reportError(Array.toStr(getDBFiles(fastaDb), "\n"));
+			log.reportError(ArrayUtils.toStr(getDBFiles(fastaDb), "\n"));
 			verified = false;
 		}
 		return verified;
@@ -517,7 +517,7 @@ public class Blast {
 			if (tmpFile != null) {
 				blast.getLog().reportTimeInfo("Output sent to " + tmpFile);
 				writer = Files.getAppropriateWriter(tmpFile);
-				writer.println(Array.toStr(BLAST_HEADER));
+				writer.println(ArrayUtils.toStr(BLAST_HEADER));
 
 			}
 

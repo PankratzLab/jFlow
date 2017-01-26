@@ -12,7 +12,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.AlleleFreq;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
@@ -72,10 +72,10 @@ public class extractMarkers {
 		for (String chr : chrs) {
 			chrome = ext.chrome(Integer.parseInt(chr));
 			markerNames = new LinkageMap("map" + chrome + ".dat").getMarkerNames();
-			markersPicked = Array.toStringArray(hash.get(chr));
+			markersPicked = ArrayUtils.toStringArray(hash.get(chr));
 			indices = ext.indexFactors(markersPicked, markerNames, false, false);
 
-			if (Array.min(indices) < 0) {
+			if (ArrayUtils.min(indices) < 0) {
 				System.err.println("Error - the following markers were not found in "	+ "map" + chrome
 														+ ".dat");
 				for (int j = 0; j < indices.length; j++) {
@@ -96,7 +96,7 @@ public class extractMarkers {
 												+ temp.substring(temp.split("[\\s]+")[0].length()));
 				writer.println(reader.readLine());
 				reader.readLine();
-				writer.println(Array.toStr(Array.stringArraySequence(markersPicked.length + 1, ""), " "));
+				writer.println(ArrayUtils.toStr(ArrayUtils.stringArraySequence(markersPicked.length + 1, ""), " "));
 				for (int j = 0; j < (chrome.equals("23") ? 5 : 4); j++) {
 					writer.println(reader.readLine());
 				}

@@ -22,7 +22,7 @@ import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.MarkerBlast;
 import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -162,7 +162,7 @@ public class ABLookup {
 							countsForGenotypes[j][2]++;
 						} else {
 							log.reportError("Error - different genotype ("	+ trav
-															+ ") than anything seen before (" + Array.toStr(genotypesSeen[j], "/")
+															+ ") than anything seen before (" + ArrayUtils.toStr(genotypesSeen[j], "/")
 															+ ") for marker " + markerNames[j] + " and sample " + samples[i]);
 						}
 					}
@@ -713,7 +713,7 @@ public class ABLookup {
 					return false;
 				}
 				
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 			}
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
@@ -743,13 +743,13 @@ public class ABLookup {
 							}
 						}
 						if (knownIndex != -9) {
-							log.reportError("Error - failed to reconcile "	+ Array.toStr(line, "/")
+							log.reportError("Error - failed to reconcile "	+ ArrayUtils.toStr(line, "/")
 															+ " with reference alleles: " + refAlleles[0] + "/" + refAlleles[1]);
 						}
 					}
 
 				}
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 			}
 			reader.close();
 			writer.close();
@@ -763,7 +763,7 @@ public class ABLookup {
 				log.report("There were "	+ markersWithNoLink.size()
 										+ " markers that were zeroed out in the original export; these are set to alleles 'A' and 'B'; for list check "
 										+ markersWithNoLinkFile);
-				markerNames = Array.toStringArray(markersWithNoLink);
+				markerNames = ArrayUtils.toStringArray(markersWithNoLink);
 				markerDataLoader = null;
 				output = Files.getNextAvailableFilename(markersWithNoLinkFile);
 				try {

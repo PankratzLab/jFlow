@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -54,7 +54,7 @@ public class CorrelTypePcs {
 				outHeader.add("SPEARCorrelation");
 				outHeader.add("PEARCorrelation");
 
-				writer.println(Array.toStr(Array.toStringArray(outHeader)));
+				writer.println(ArrayUtils.toStr(ArrayUtils.toStringArray(outHeader)));
 
 				for (int pcFile1Index = 0; pcFile1Index < fullPathPcFile.length; pcFile1Index++) {
 					String getItDir = ext.rootOf(fullPathPcFile[pcFile1Index], false) + SUB_DIR;
@@ -106,12 +106,12 @@ public class CorrelTypePcs {
 										}
 										// proj.getLog().reportTimeInfo(indicesToCorrel.size() + " valid estimates of "
 										// + data[0].length + " total for " + gzippers[gzipIndex]);
-										data[0] = Array.subArray(data[0], Ints.toArray(indicesToCorrel));
-										data[1] = Array.subArray(data[1], Ints.toArray(indicesToCorrel));
+										data[0] = ArrayUtils.subArray(data[0], Ints.toArray(indicesToCorrel));
+										data[1] = ArrayUtils.subArray(data[1], Ints.toArray(indicesToCorrel));
 
 										outData.add(Correlation.Spearman(data)[0] + "");
 										outData.add(Correlation.Pearson(data)[0] + "");
-										writer.println(Array.toStr(Array.toStringArray(outData)));
+										writer.println(ArrayUtils.toStr(ArrayUtils.toStringArray(outData)));
 									} else {
 										writer.close();
 
@@ -187,7 +187,7 @@ public class CorrelTypePcs {
 				ind.add(i);
 			}
 		}
-		return Array.subArray(header, Ints.toArray(ind));
+		return ArrayUtils.subArray(header, Ints.toArray(ind));
 
 	}
 
@@ -202,8 +202,8 @@ public class CorrelTypePcs {
 		pcFilesW.add("/home/pankrat2/shared/aric_exome_chip/gc_corrected/aric_exomeW_1000PCs_OHW_40_ws15_gc_corrected.PCs.extrapolated.txt");
 
 		try {
-			run(proj, Array.toStringArray(pcFilesAll));
-			run(proj, Array.toStringArray(pcFilesW));
+			run(proj, ArrayUtils.toStringArray(pcFilesAll));
+			run(proj, ArrayUtils.toStringArray(pcFilesW));
 
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block

@@ -51,7 +51,7 @@ import org.genvisis.cnv.manage.UCSCtrack;
 import org.genvisis.cnv.var.CNVRectangles;
 import org.genvisis.cnv.var.Region;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -147,8 +147,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
 			chrBoundaries[0][1] = markerNames.length - 1;
 		}
 		allSamples = proj.getSamples();
-		subSamples = Array.subArray(proj.getSamples(),
-																Array.booleanNegative(proj.getSamplesToExclude()));
+		subSamples = ArrayUtils.subArray(proj.getSamples(),
+																ArrayUtils.booleanNegative(proj.getSamplesToExclude()));
 		init();
 
 		addWindowListener(new WindowAdapter() {
@@ -702,7 +702,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		if (jfc.showOpenDialog(CompPlot.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();
 			if (files.length > 0) {
-				boolean[] keep = Array.booleanArray(files.length, true);
+				boolean[] keep = ArrayUtils.booleanArray(files.length, true);
 				for (int i = 0; i < files.length; i++) {
 					for (String fileName : proj.REGION_LIST_FILENAMES.getValue()) {
 						if (ext.rootOf(files[i].toString()).equals(fileName)) {
@@ -710,8 +710,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
 						}
 					}
 				}
-				File[] keptFiles = Array.subArray(files, keep);
-				File[] discards = Array.subArray(files, Array.booleanNegative(keep));
+				File[] keptFiles = ArrayUtils.subArray(files, keep);
+				File[] discards = ArrayUtils.subArray(files, ArrayUtils.booleanNegative(keep));
 
 				if (discards.length > 0) {
 					StringBuilder msg = new StringBuilder("The following data file(s) are already present:");

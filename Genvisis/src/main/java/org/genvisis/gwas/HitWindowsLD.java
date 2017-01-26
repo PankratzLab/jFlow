@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -205,7 +205,7 @@ public class HitWindowsLD {
 			Arrays.fill(summ, "NA");
 			summ[8] = "false";
 			summ[11] = window + "";
-			summary += target + "\t" + Array.toStr(summ);
+			summary += target + "\t" + ArrayUtils.toStr(summ);
 		} else {
 			if (minHitPos == pos) {
 				minHitMarker = target;
@@ -576,12 +576,12 @@ public class HitWindowsLD {
 			} else {
 				writer = new PrintWriter(new FileWriter(output + "." + source, false));
 			}
-			writer.println("\n" + Array.toStr(MARK_REPORT_HEADER));
+			writer.println("\n" + ArrayUtils.toStr(MARK_REPORT_HEADER));
 			for (HitWindowsLD element : hitWindowsLD) {
 				writer.println(element.getSummary(referenceMap, liberal) + "\t" + source);
 			}
 			if (region) {
-				writer.println("\n" + Array.toStr(REGION_REPORT_HEADER));
+				writer.println("\n" + ArrayUtils.toStr(REGION_REPORT_HEADER));
 				writer.println(ext.rootOf(targetFile, true)	+ "\t" + getRegionSummary(hitWindowsLD, log)
 												+ "\t" + source);
 			}
@@ -673,12 +673,12 @@ public class HitWindowsLD {
 		String output = "C:/data/gedi_exomechip/LD_windows/testHap";
 		String usage = "\n"	+ "gwas.HitWindowsLD requires 3 arguments\n"
 										+ "   (1) files (comma-separated) with a list of rs# targets (i.e. targets="
-										+ Array.toStr(targetFiles) + ")\n"
+										+ ArrayUtils.toStr(targetFiles) + ")\n"
 										+ "   (2) plink format map file for lookup (i.e. refMap=" + refMap
 										+ " (default))\n" + "   (3) directory containing LD input files (i.e. dir="
 										+ dir + " (default))\n" + "   OPTIONAL: "
 										+ "   (4) file extension of LD input files (options are "
-										+ Array.toStr(FILE_TYPES) + ")(i.e. fileExt=" + fileExt + " (default))\n"
+										+ ArrayUtils.toStr(FILE_TYPES) + ")(i.e. fileExt=" + fileExt + " (default))\n"
 										+ "   (5) window around hit to extend (i.e. window=" + window + " (default))\n"
 										+ "   (6) for \".ld\" and haploview format files, the cutoff for R2,D',or LOD  (i.e. filter="
 										+ filter + " (default))\n"

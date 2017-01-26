@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class prioritize {
@@ -64,7 +64,7 @@ public class prioritize {
 						hash.put(trav, data);
 					}
 					if (data[db] == null) {
-						data[db] = Array.stringArray(variableIndices[db].length);
+						data[db] = ArrayUtils.stringArray(variableIndices[db].length);
 					}
 					for (int i = 0; i < data[db].length; i++) {
 						temp = line[variableIndices[db][i]];
@@ -129,18 +129,18 @@ public class prioritize {
 														+ "') does not match a column in the file " + filename);
 				System.exit(1);
 			}
-			writer.print(Array.toStr(line));
+			writer.print(ArrayUtils.toStr(line));
 			for (int i = 0; i < DBs.length; i++) {
 				line = (variables.split("\\|")[i]).split(":")[1].split(";");
 				for (int j = 0; j < line.length; j++) {
 					line[j] = line[j].substring(1);
 				}
-				writer.print("\t" + Array.toStr(line));
+				writer.print("\t" + ArrayUtils.toStr(line));
 			}
 			writer.println();
 			while (reader.ready()) {
 				line = reader.readLine().split("\t", -1);
-				writer.print(Array.toStr(line));
+				writer.print(ArrayUtils.toStr(line));
 				data = hash.get(line[lookupIndices[DBs.length]]);
 				if (data == null) {
 					System.err.println("Error - no data for '" + line[lookupIndices[DBs.length]] + "'");

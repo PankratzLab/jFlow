@@ -224,14 +224,14 @@ public class HashVec {
 	public static String[] loadFileToStringArray(	String filename, boolean ignoreFirstLine, int[] cols,
 																								boolean onlyIfAbsent) {
 		Vector<String> v = loadFileToVec(filename, ignoreFirstLine, cols, onlyIfAbsent, false);
-		return v == null ? null : Array.toStringArray(v);
+		return v == null ? null : ArrayUtils.toStringArray(v);
 	}
 
 	public static String[] loadFileToStringArray(	String filename, boolean jar,
 																								boolean ignoreFirstLine, int[] cols,
 																								boolean onlyIfAbsent) {
 		Vector<String> v = loadFileToVec(filename, ignoreFirstLine, cols, onlyIfAbsent, jar);
-		return v == null ? null : Array.toStringArray(v);
+		return v == null ? null : ArrayUtils.toStringArray(v);
 	}
 
 	public static String[] loadFileToStringArray(	String filename, boolean jar,
@@ -240,7 +240,7 @@ public class HashVec {
 																								String delimiter) {
 		Vector<String> v = loadFileToVec(	filename, ignoreFirstLine, cols, trimFirst, onlyIfAbsent, jar,
 																			delimiter);
-		return v == null ? null : Array.toStringArray(v);
+		return v == null ? null : ArrayUtils.toStringArray(v);
 	}
 
 	public static Vector<String> loadFileToVec(	String filename, boolean ignoreFirstLine, int[] cols,
@@ -284,7 +284,7 @@ public class HashVec {
 					for (int i = 0; i < cols.length; i++) {
 						if (line.length <= cols[i]) {
 							System.err.println("Error - not enough columns at line "+ count + " of file "
-																	+ filename + ": " + Array.toStr(line));
+																	+ filename + ": " + ArrayUtils.toStr(line));
 						}
 						trav += (i == 0 ? "" : "\t") + line[cols[i]];
 					}

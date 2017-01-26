@@ -8,7 +8,7 @@ import java.util.Set;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -241,7 +241,7 @@ public class DuplicateConcordance {
 						markers.add(marker);
 					}
 				}
-				targetMarkers = Array.toStringArray(markers);
+				targetMarkers = ArrayUtils.toStringArray(markers);
 			} else {
 				targetMarkers = null;
 			}

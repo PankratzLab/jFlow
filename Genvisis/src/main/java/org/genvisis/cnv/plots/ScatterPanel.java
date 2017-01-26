@@ -29,7 +29,7 @@ import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
 import org.genvisis.cnv.var.IndiPheno;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -197,10 +197,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		boolean[] toInclude = sp.hideExcludedSamples(panelIndex)
 																																? sp.getProject()
 																																	.getSamplesToInclude(null, false)
-																															: Array.booleanArray(	samples.length,
+																															: ArrayUtils.booleanArray(	samples.length,
 																																										true);
 		out: if (plotType == 2	&& sp.getDisplaygcAdjustor() != null
-							&& Array.booleanArraySum(sp.getDisplaygcAdjustor()) == 1) {// plot types should be
+							&& ArrayUtils.booleanArraySum(sp.getDisplaygcAdjustor()) == 1) {// plot types should be
 																																					// changed to enums
 																																					// sometime
 			for (int i = 0; i < sp.getDisplaygcAdjustor().length; i++) {
@@ -273,7 +273,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		}
 
 		if (plotType == 0 || plotType == 1 || plotType >= 4) {
-			numCents = Array.booleanArraySum(displayCents);
+			numCents = ArrayUtils.booleanArraySum(displayCents);
 			points = new PlotPoint[samples.length + numCents * 3];
 
 			count = 0;
@@ -473,7 +473,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			}
 		}
 		// sort layers as bytes
-		byte[] layers = Array.toByteArray(HashVec.getKeys(hash, false));
+		byte[] layers = ArrayUtils.toByteArray(HashVec.getKeys(hash, false));
 		Arrays.sort(layers);
 		setLayersInBase(layers);
 		generateRectangles();
@@ -494,7 +494,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		ArrayList<GenericLine> linesList = new ArrayList<GenericLine>();
 		int plotType = sp.getPlotType(panelIndex);
 		int centroidOffset = (plotType == 0 || plotType == 1 || plotType >= 4
-																																						? Array.booleanArraySum(sp.getDisplayCentroids())
+																																						? ArrayUtils.booleanArraySum(sp.getDisplayCentroids())
 																																					: 0);
 		centroidOffset *= 3;
 		byte size = (byte) 3;

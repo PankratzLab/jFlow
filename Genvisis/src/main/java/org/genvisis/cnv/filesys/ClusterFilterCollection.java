@@ -12,7 +12,7 @@ import javax.swing.JOptionPane;
 
 import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.cnv.plots.GenericRectangle;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.SerializedFiles;
@@ -224,7 +224,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 		result = (String) JOptionPane.showInputDialog(null, "Please select a cluster filter file:",
 																									"Apply Cluster Filters",
 																									JOptionPane.QUESTION_MESSAGE, null,
-																									Array.addStrToArray("(--Do not apply any cluster filter--)",
+																									ArrayUtils.addStrToArray("(--Do not apply any cluster filter--)",
 																																			Files.list(	proj.DATA_DIRECTORY.getValue(false,
 																																																							true),
 																																									null,
@@ -277,7 +277,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 
 		if (v.size() > 0) {
 			System.out.println("The following markers had cluster filters in multiple files:");
-			System.out.println(Array.toStr(Array.toStringArray(v), "\n"));
+			System.out.println(ArrayUtils.toStr(ArrayUtils.toStringArray(v), "\n"));
 		}
 	}
 

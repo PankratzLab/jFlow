@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Date;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -151,7 +151,7 @@ public class Qc {
 			if (runCode1 != 0) {
 				// ERROR! TODO not sure if we should quit here; for now, continue;
 			}
-			Files.writeArray(	Array.addStrToArray("dir="	+ dir + "marker_qc/",
+			Files.writeArray(	ArrayUtils.addStrToArray("dir="	+ dir + "marker_qc/",
 																						HashVec.loadFileToStringArray(dir
 																																						+ "marker_qc/miss.crf",
 																																					false, new int[] {0},
@@ -266,7 +266,7 @@ public class Qc {
 
 		if (params != null) {
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 

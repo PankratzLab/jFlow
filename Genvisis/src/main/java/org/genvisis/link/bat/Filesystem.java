@@ -12,7 +12,7 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -236,7 +236,7 @@ public class Filesystem {
 		}
 		error.close();
 
-		new LinkageMap(	chr, Array.toStringArray(orderedMarkers), alleleFreqs,
+		new LinkageMap(	chr, ArrayUtils.toStringArray(orderedMarkers), alleleFreqs,
 										Doubles.toArray(distMarkers), false, false).createFile("map" + chrome + ".dat");
 
 		changes = new Hashtable<String, String>();
@@ -269,8 +269,8 @@ public class Filesystem {
 		Vector<String> missedOpportunities = new Vector<String>();
 		int[] missedOpps;
 		IntVector missedCounts = new IntVector();
-		double mean = Array.mean(Array.toDoubleArray(source));
-		double sd = Array.stdev(Array.toDoubleArray(source));
+		double mean = ArrayUtils.mean(ArrayUtils.toDoubleArray(source));
+		double sd = ArrayUtils.stdev(ArrayUtils.toDoubleArray(source));
 		int ub = (int) (mean + sd * 5), lb = (int) (mean - sd * 5);
 		int count;
 

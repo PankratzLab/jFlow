@@ -10,7 +10,7 @@ import java.util.Date;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.SourceFileParser;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -336,7 +336,7 @@ public class AffySNP6Tables {
 				line = reader.readLine().trim().split(delimiter, -1);
 			} while (reader.ready() && (ext.indexFactors(	SNP_HEADER_OPTIONS, line, false, true, false,
 																										false)[0] == -1));
-			header = Array.toStr(line);
+			header = ArrayUtils.toStr(line);
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + tableName + "\"");
 			return "Error reading file \"" + tableName + "\"";

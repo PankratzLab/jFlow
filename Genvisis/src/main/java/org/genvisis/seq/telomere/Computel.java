@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 import org.genvisis.CLI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -50,7 +50,7 @@ public class Computel {
 		command.add("Rscript");
 		command.add(computelCommandR);
 		command.add(config);
-		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
+		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputs, outputs, true,
 																						false, false, log);
 	}
 
@@ -69,7 +69,7 @@ public class Computel {
 		command.add("F2=");
 		command.add(r2);
 
-		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
+		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputs, outputs, true,
 																						false, false, log);
 	}
 

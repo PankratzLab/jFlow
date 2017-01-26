@@ -14,7 +14,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.genvisis.CLI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -218,9 +218,9 @@ public class DBGAPMerge {
 				parts = line.split("\t", -1);
 				fs.ids.add(parts[0]);
 				while (parts.length - 1 < fs.dataDefs.size()) {
-					parts = Array.addStrToArray(MISSING_DATA, parts);
+					parts = ArrayUtils.addStrToArray(MISSING_DATA, parts);
 				}
-				fs.idDataMap.put(parts[0], Array.subArray(parts, 1));
+				fs.idDataMap.put(parts[0], ArrayUtils.subArray(parts, 1));
 			}
 		}
 		reader.close();
@@ -499,7 +499,7 @@ public class DBGAPMerge {
 				}
 				parts = line.trim().split(delim, -1);
 
-				int[] searchInds = Array.intArray(search.length, -1);
+				int[] searchInds = ArrayUtils.intArray(search.length, -1);
 				for (int s = 0; s < search.length; s++) {
 					for (int col : searchCols) {
 						searchInds[s] = Math.max(	searchInds[s],
@@ -585,12 +585,12 @@ public class DBGAPMerge {
 											+ "   (1) dbGap Map File (from merged files) (i.e. map=" + map
 											+ " (default))\n"
 											+ "   (2) Column indices in which to search (i.e. searchCols="
-											+ Array.toStr(searchCols, ",") + " (default))\n"
+											+ ArrayUtils.toStr(searchCols, ",") + " (default))\n"
 											+ "   (3) Column indices from which to export data (i.e. outputCols="
-											+ Array.toStr(outputCols, ",") + " (default))\n"
+											+ ArrayUtils.toStr(outputCols, ",") + " (default))\n"
 											+ "   (4) Output File (i.e. out=" + output + " (default))\n"
 											+ "   (5) Data export CRF filename (i.e. crf=" + crf + " (default))\n"
-											+ "   (6) Search terms (i.e. search=" + Array.toStr(search, ",")
+											+ "   (6) Search terms (i.e. search=" + ArrayUtils.toStr(search, ",")
 											+ " (default))\n" + "   (7) OPTIONAL: Log file (i.e. log=" + logfile
 											+ " (default))\n" + "";
 

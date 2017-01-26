@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -37,7 +37,7 @@ public class MossyPlots {
 		String mosFile = outDir + "mosResults_excludesTagged.txt";
 
 		ArrayList<String> filtered = new ArrayList<String>();
-		filtered.add(Array.toStr(mos[0]) + "\tExclude\tTUMOR\tChr");
+		filtered.add(ArrayUtils.toStr(mos[0]) + "\tExclude\tTUMOR\tChr");
 		ArrayList<GeomText> geomTexts = new ArrayList<Rscript.GeomText>();
 		// public static final String[] MOSAICISM_HEADER = { "Sample", "Band", "LRR N", "mean LRR", "BAF
 		// N", "SD of BAF (0.15-0.85)", "IQR of BAF (0.15-0.85)", "%Homo", "BandPercentMosaicism",
@@ -55,7 +55,7 @@ public class MossyPlots {
 				mos[i][6] = "NaN";
 			}
 			if (Double.parseDouble(mos[i][9]) >= 0) {
-				String data = Array.toStr(mos[i])	+ "\t"
+				String data = ArrayUtils.toStr(mos[i])	+ "\t"
 											+ (sampleData.individualShouldBeExcluded(mos[i][0]) ? 1 : 0) + "\t"
 											+ (tns.contains(mos[i][0]) ? "TUMOR" : "GERMLINE") + "\t"
 											+ mos[i][1].replaceAll("p", "").replaceAll("q", "");
@@ -66,7 +66,7 @@ public class MossyPlots {
 				filtered.add(data);
 			}
 		}
-		Files.writeArray(Array.toStringArray(filtered), mosFile);
+		Files.writeArray(ArrayUtils.toStringArray(filtered), mosFile);
 		ArrayList<RScatter> rscScatters = new ArrayList<RScatter>();
 
 		String tNAll = outDir + "tumorNormalAll.plot";

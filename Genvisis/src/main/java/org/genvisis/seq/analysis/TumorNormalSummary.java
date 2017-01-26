@@ -8,7 +8,7 @@ import java.util.Set;
 
 import javax.jms.IllegalStateException;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -65,7 +65,7 @@ public class TumorNormalSummary {
 			PrintWriter writerSummary = new PrintWriter(new FileWriter(outSummary));
 			String[][] annos = VCFOps.getAnnotationKeys(vcf, log);
 			// writerSummary.println(Array.toStr(BASE_OUT) + "\t" + Array.toStr(annos[1]));
-			writerSummary.println(Array.toStr(BASE_OUT) + "\t" + Array.toStr(annos[0]));
+			writerSummary.println(ArrayUtils.toStr(BASE_OUT) + "\t" + ArrayUtils.toStr(annos[0]));
 
 			while (iter.hasNext()) {
 				VariantContext vcFull = iter.next();
@@ -112,8 +112,8 @@ public class TumorNormalSummary {
 							builder.append("\t" + gTumor.toString());
 							builder.append("\t" + gNormal.getGenotypeString());
 							builder.append("\t" + gTumor.getGenotypeString());
-							builder.append("\t" + Array.toStr(Array.toStringArray(gNormal.getAD()), ","));
-							builder.append("\t" + Array.toStr(Array.toStringArray(gTumor.getAD()), ","));
+							builder.append("\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(gNormal.getAD()), ","));
+							builder.append("\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(gTumor.getAD()), ","));
 							builder.append("\t" + gNormal.getGQ());
 							builder.append("\t" + gTumor.getGQ());
 							builder.append("\t" + (gNormal.isCalled() && !gNormal.isHomRef()));
@@ -121,7 +121,7 @@ public class TumorNormalSummary {
 
 							builder.append("\t" + Math.min(gNormal.getGQ(), gTumor.getGQ()));
 							builder.append("\t" + gTumor.sameGenotype(gNormal));
-							builder.append("\t" + Array.toStr(VCOps.getAnnotationsFor(annos[0], vc, ".")));
+							builder.append("\t" + ArrayUtils.toStr(VCOps.getAnnotationsFor(annos[0], vc, ".")));
 							writerSummary.println(builder.toString());
 						}
 					}

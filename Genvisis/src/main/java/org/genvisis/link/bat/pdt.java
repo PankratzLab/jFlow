@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -32,7 +32,7 @@ public class pdt {
 		try {
 			reader = new BufferedReader(new FileReader(templateFile));
 			while (reader.ready()) {
-				pedinfo.add(Array.subArray(reader.readLine().split("[\\s]+"), 0, 10));
+				pedinfo.add(ArrayUtils.subArray(reader.readLine().split("[\\s]+"), 0, 10));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
@@ -147,7 +147,7 @@ public class pdt {
 				// int count = 0;
 				for (int j = 0; j < data.size(); j++) {
 					dataline = data.elementAt(j);
-					writer.println(Array.toStr(pedinfo.elementAt(j))	+ "\t" + dataline[i * 2 + 0] + "\t"
+					writer.println(ArrayUtils.toStr(pedinfo.elementAt(j))	+ "\t" + dataline[i * 2 + 0] + "\t"
 													+ dataline[i * 2 + 1]);
 					// count++;
 				}

@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -70,7 +70,7 @@ public class CaptureQC {
 				// ArrayList<RScatter> rsScatters = new ArrayList<RScatter>();
 				PrintWriter writer = new PrintWriter(new FileWriter(output, false));
 				String[] header = Files.getHeaderOfFile(bamQCSummary, log);
-				writer.println("GENE_NAME\tExon\tPosition\tGC_REF\tHIDE"	+ Array.toStr(header)
+				writer.println("GENE_NAME\tExon\tPosition\tGC_REF\tHIDE"	+ ArrayUtils.toStr(header)
 												+ "\tInternalKey");
 
 				int UCSCIndex = ext.indexOfStr(UCSC, header);
@@ -91,13 +91,13 @@ public class CaptureQC {
 								if (seg.overlaps(exon)) {
 									if (allInOne) {
 										writer.println(currentData.getGeneName()	+ "\t" + (j + 1) + "\t"
-																		+ seg.getStart() + "\t" + gcRegion + "\t" + Array.toStr(line)
+																		+ seg.getStart() + "\t" + gcRegion + "\t" + ArrayUtils.toStr(line)
 																		+ "\t0");
 									} else {// print bp resolution
 										for (int k = seg.getStart(); k <= seg.getStop(); k++) {
 											if (exon.getStart() <= k && exon.getStop() >= k) {
 												writer.println(currentData.getGeneName()	+ "\t" + (j + 1) + "\t" + k + "\t"
-																				+ gcRegion + "\t" + Array.toStr(line) + "\t" + j + "_" + k);
+																				+ gcRegion + "\t" + ArrayUtils.toStr(line) + "\t" + j + "_" + k);
 											}
 										}
 									}
@@ -128,7 +128,7 @@ public class CaptureQC {
 		if (allinone) {
 			for (int j = 0; j < PLOT_BY_POS_PERCENT.length; j++) {
 
-				double[] data = Array.toDoubleArray(HashVec.loadFileToStringArray(output, true,
+				double[] data = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(output, true,
 																																					new int[] {ext.indexOfStr(PLOT_BY_POS_PERCENT[j],
 																																																		Files.getHeaderOfFile(output,
 																																																													log))},
@@ -139,7 +139,7 @@ public class CaptureQC {
 																																																				log))},
 																												false);
 
-				double average = Array.mean(data, true);
+				double average = ArrayUtils.mean(data, true);
 				String rootExon = ext.rootOf(output, false) + "_coverageHist_" + j;
 				RScatter rsScatterPos = new RScatter(	output, rootExon + ".rscript",
 																							ext.removeDirectoryInfo(rootExon), rootExon + ".jpeg",
@@ -148,7 +148,7 @@ public class CaptureQC {
 				String format = PLOT_BY_POS_PERCENT[j].replaceAll("_", " ")
 																							.replaceAll("Percent", "Proportion of target ");
 				rsScatterPos.setxRange(new double[] {0, 1});
-				rsScatterPos.setTitle("Average "	+ format + "  (" + Array.unique(genes).length + " genes, "
+				rsScatterPos.setTitle("Average "	+ format + "  (" + ArrayUtils.unique(genes).length + " genes, "
 															+ data.length + " targeted regions)" + " = "
 															+ ext.formDeci(average, 3));
 				rsScatterPos.setxLabel(format);
@@ -217,7 +217,7 @@ public class CaptureQC {
 		String usage = "\n" + "seq.qc.CaptureQC requires 0-1 arguments\n";
 		usage += "   (1) bamQC file (i.e. bamQCSummary=" + bamQCSummary + " (default))\n" + "";
 		usage += "   (2) gene track file(i.e. geneTrackFile=" + geneTrackFile + " (default))\n" + "";
-		usage += "   (3) comma delimited gene names(i.e. geneNames="	+ Array.toStr(geneNames, ",")
+		usage += "   (3) comma delimited gene names(i.e. geneNames="	+ ArrayUtils.toStr(geneNames, ",")
 							+ " (default))\n" + "";
 		usage += "   (4) output directory (i.e. outputDir= ( no default))\n" + "";
 		usage += "   (5) reference genome fasta file (i.e. referenceGenomeFasta="	+ referenceGenomeFasta
@@ -263,7 +263,7 @@ public class CaptureQC {
 			if (Files.exists(geneNames[0])) {
 				log.reportTimeInfo("Detected file input for gene names, loading " + geneNames[0]);
 				geneNames = HashVec.loadFileToStringArray(geneNames[0], false, new int[] {0}, true);
-				geneNames = Array.unique(geneNames);
+				geneNames = ArrayUtils.unique(geneNames);
 				log.reportTimeInfo("Loaded " + geneNames.length + " genes");
 			}
 			captureQC(referenceGenomeFasta, bamQCSummary, extraPostionFile, geneTrackFile, geneNames,

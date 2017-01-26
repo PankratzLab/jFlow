@@ -24,7 +24,7 @@ import org.flowcyt.cfcs.CFCSParameter;
 import org.flowcyt.cfcs.CFCSParameters;
 import org.flowcyt.cfcs.CFCSSpillover;
 import org.flowcyt.cfcs.CFCSSystem;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
@@ -321,7 +321,7 @@ public class FCSDataLoader {
       allData = new double[listData.getCount()][];
       setState(LOAD_STATE.PARTIALLY_LOADED);
       for (int i = 0; i < listData.getCount(); i++) {
-        double[] newData = Array.doubleArray(paramsCount, Double.NaN);
+        double[] newData = ArrayUtils.doubleArray(paramsCount, Double.NaN);
         try {
           listData.getEvent/* AsInTheFile */(i, newData); // should be getEventAsInTheFile???
           if (Double.isNaN(newData[0])) {
@@ -396,7 +396,7 @@ public class FCSDataLoader {
         }
         while (indicesToLoad.size() > 0 && !Thread.currentThread().isInterrupted()) {
           int indToLoad = indicesToLoad.get(indicesToLoad.size() - 1);
-          double[] newData = Array.doubleArray(paramsCount, Double.NaN);
+          double[] newData = ArrayUtils.doubleArray(paramsCount, Double.NaN);
           try {
             listData.getEvent/* AsInTheFile */(indToLoad, newData); // should be
                                                                     // getEventAsInTheFile???
@@ -469,7 +469,7 @@ public class FCSDataLoader {
           }
         } else {
           int len = eventCount == -1 ? 0 : eventCount;
-          return Array.doubleArray(len, Double.NaN);
+          return ArrayUtils.doubleArray(len, Double.NaN);
         }
       }
     } else {
@@ -478,7 +478,7 @@ public class FCSDataLoader {
       } else {
         if (currState == LOAD_STATE.LOADING && !waitIfNecessary) {
           int len = eventCount == -1 ? 0 : eventCount;
-          return Array.doubleArray(len, Double.NaN);
+          return ArrayUtils.doubleArray(len, Double.NaN);
         } else {
           if (currState != LOAD_STATE.LOADED && waitIfNecessary) {
             while ((currState = getLoadState()) != LOAD_STATE.LOADED) { // TODO wait for complete

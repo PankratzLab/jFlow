@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
@@ -22,7 +22,7 @@ public class CTable {
 	public CTable() {}
 
 	public CTable(int[] array1, int[] array2) {
-		this(Array.toStringArray(array1), Array.toStringArray(array2));
+		this(ArrayUtils.toStringArray(array1), ArrayUtils.toStringArray(array2));
 	}
 
 	public CTable(String[][] matrix) {
@@ -132,7 +132,7 @@ public class CTable {
 		int maxValue;
 		String[][] extrapolate;
 
-		maxValue = Array.max(genotype);
+		maxValue = ArrayUtils.max(genotype);
 		extrapolate = new String[2][genotype.length * maxValue];
 		for (int i = 0; i < genotype.length; i++) {
 			for (int j = 0; j < maxValue; j++) {

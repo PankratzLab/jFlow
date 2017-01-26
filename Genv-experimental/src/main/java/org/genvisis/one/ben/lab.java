@@ -15,7 +15,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
 import org.genvisis.common.Files;
@@ -63,7 +63,7 @@ public class lab {
 		while (reader.ready()) {
 			String line = reader.readLine();
 			String[] keyVal = sampleData.lookup(line);
-			writer.println(Array.toStr(keyVal, "\t"));
+			writer.println(ArrayUtils.toStr(keyVal, "\t"));
 		}
 		writer.flush();
 		writer.close();
@@ -94,7 +94,7 @@ public class lab {
 				line = reader.readLine().trim().split("[\\s]+");
 				cnv = new CNVariant(line);
 				if (cnv.overlaps(centromereMidpoints[cnv.getChr()])) {
-					writer.println(Array.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 				}
 			}
 			fr.close();
@@ -133,7 +133,7 @@ public class lab {
 		CNVariant[] centromeric = CNVariant.loadPlinkFile("D:/SIDS and IQ/IQ/merged.cnv", false);
 
 		PrintWriter writer = new PrintWriter(new FileWriter("D:/SIDS and IQ/IQ/merged_split.cnv"));
-		writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+		writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 
 		for (CNVariant cnv : centromeric) {
 			CNVFilterPass fp = filter.getCNVFilterPass(cnv);

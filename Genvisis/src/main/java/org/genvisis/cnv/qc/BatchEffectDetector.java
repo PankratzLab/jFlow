@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
@@ -66,7 +66,7 @@ public class BatchEffectDetector {
 
 	private static MarkerLRRPair[] getPairs(Project proj, ExtProjectDataParser parser) {
 		double[] lrrSD = parser.getNumericDataForTitle("SD_LRR");
-		String[] markers = Array.subArray(proj.getMarkerNames(), parser.getDataPresent());
+		String[] markers = ArrayUtils.subArray(proj.getMarkerNames(), parser.getDataPresent());
 		MarkerLRRPair[] pairs = new MarkerLRRPair[lrrSD.length];
 
 		for (int i=0; i<pairs.length; i++) {

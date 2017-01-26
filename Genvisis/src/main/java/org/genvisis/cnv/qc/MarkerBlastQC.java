@@ -12,7 +12,7 @@ import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -64,7 +64,7 @@ public class MarkerBlastQC {
 			if (perfectMatches.size() == 1) {
 				int[] alignmentHistogram = current.getAlignmentHistogram(proj);
 				int sub = (int) Math.round(crossHybePercent * alignmentHistogram.length);
-				int numHits = Array.sum(Array.subArray(alignmentHistogram, sub));
+				int numHits = ArrayUtils.sum(ArrayUtils.subArray(alignmentHistogram, sub));
 				if (numHits == 1) {
 					// Perfect match is the only hit within crossHybePercent
 					oneHitters.add(markerNames[i]);

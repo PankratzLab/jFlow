@@ -12,7 +12,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
@@ -100,10 +100,10 @@ public class Emmax {
 		}
 		// TODO consolidate with new method
 		Files.qsub(batchDir	+ "runEmmax", batchDir, -1, "[%0]",
-								Matrix.toMatrix(Array.toStringArray(scripts)), qsubMemInMBs, qsubWalltimeInHours);
+								Matrix.toMatrix(ArrayUtils.toStringArray(scripts)), qsubMemInMBs, qsubWalltimeInHours);
 		// System.out.println("scripts.size(): " + scripts.size() + "\nbatchDir: " + batchDir);
 		Files.qsubMultiple(batchDir	+ "chunkSB_emmax",
-												Array.stringArraySequence(scripts.size(), batchDir + "runEmmax_", ".qsub"),
+												ArrayUtils.stringArraySequence(scripts.size(), batchDir + "runEmmax_", ".qsub"),
 												16, -1, qsubMemInMBs, qsubWalltimeInHours);
 	}
 
@@ -204,7 +204,7 @@ public class Emmax {
 							for (int j = 0; j < pvals.length; j++) {
 								pvals[j] = pVals.elementAt(j);
 							}
-							lambda[i] = ProbDist.ChiDistReverse(Array.median(pvals), 1)
+							lambda[i] = ProbDist.ChiDistReverse(ArrayUtils.median(pvals), 1)
 													/ ProbDist.ChiDistReverse(0.50, 1);
 						}
 					}

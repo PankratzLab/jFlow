@@ -14,7 +14,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
@@ -95,7 +95,7 @@ public class GcAdjustorParameter implements Serializable {
 		qc.add(meanPost + "");
 		qc.add(lrrsdPrior + "");
 		qc.add(lrrsdPost + "");
-		return Array.toStringArray(qc);
+		return ArrayUtils.toStringArray(qc);
 
 	}
 
@@ -278,7 +278,7 @@ public class GcAdjustorParameter implements Serializable {
 																														correction_METHODs[i], proj.getLog());
 					} else {
 						double[] meandSdPrior = getMeanSd(intensites, autosomalIndices);
-						double[] meandSdPost = getMeanSd(	Array.toFloatArray(gcAdjustor.getCorrectedIntensities()),
+						double[] meandSdPost = getMeanSd(	ArrayUtils.toFloatArray(gcAdjustor.getCorrectedIntensities()),
 																							autosomalIndices);
 						gcAdjustorParameters = new GcAdjustorParameter(	sample,
 																														gcAdjustor.getCrossValidation()
@@ -300,13 +300,13 @@ public class GcAdjustorParameter implements Serializable {
 		}
 
 		private static double[] getMeanSd(float[] intensites, int[] autosomalIndices) {
-			float[] tmp = Array.subArray(intensites, autosomalIndices);
-			float[] clean = Array.removeNaN(tmp);
+			float[] tmp = ArrayUtils.subArray(intensites, autosomalIndices);
+			float[] clean = ArrayUtils.removeNaN(tmp);
 			float sd = Float.NaN;
 			float mean = Float.NaN;
 			if (clean.length > 0) {
-				sd = Array.stdev(clean, false);
-				mean = Array.mean(clean);
+				sd = ArrayUtils.stdev(clean, false);
+				mean = ArrayUtils.mean(clean);
 			}
 			return new double[] {mean, sd};
 		}

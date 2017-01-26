@@ -12,7 +12,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
@@ -309,7 +309,7 @@ public class CompareCalls_dev {
 		file = cnvfile.replace(".cnv", ".clean.cnv");
 		System.out.println("cleaning " + cnvfile);
 		writer = Files.getAppropriateWriter(file);
-		writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+		writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 
 		for (String ind : inds) {
 			CNVariant mergedCNV;
@@ -410,7 +410,7 @@ public class CompareCalls_dev {
 					files[i] = rootDir	+ "intermediateFiles/Filtered_LRR_" + lrrFilter + "_conf_" + confFilter
 											+ "_numMarkers_" + numMarkers + "_rep" + i + ".cnv";
 					writers[i] = new PrintWriter(new FileWriter(files[i]));
-					writers[i].println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+					writers[i].println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 					filteredCounts[i] = 0;
 				}
 				while (reader.ready()) {
@@ -421,7 +421,7 @@ public class CompareCalls_dev {
 						// main check for filter parameters
 						if (lrrs.get(line[0]) <= lrrFilter	&& Double.parseDouble(line[6]) >= confFilter
 								&& Integer.parseInt(line[7]) >= numMarkers) {
-							writers[fileNumber].println(Array.toStr(line));
+							writers[fileNumber].println(ArrayUtils.toStr(line));
 							includeCounts[fileNumber]++;
 						} else {
 							filteredCounts[fileNumber]++;

@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.genvisis.CLI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.Segment;
@@ -211,9 +211,9 @@ public class SpecialK {
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("\t");
 				if (merge.containsKey(line[4])) {
-					merge.put(line[4], merge.get(line[4]) + "\t" + Array.toStr(line));
+					merge.put(line[4], merge.get(line[4]) + "\t" + ArrayUtils.toStr(line));
 				} else {
-					merge.put(line[4], Array.toStr(line));
+					merge.put(line[4], ArrayUtils.toStr(line));
 
 				}
 			}

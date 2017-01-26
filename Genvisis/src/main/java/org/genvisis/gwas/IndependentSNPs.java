@@ -26,7 +26,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -146,8 +146,8 @@ public class IndependentSNPs {
 															+ "'; no line started with 'Locus_Name'");
 						} else if (indices[1] == -1 && indices[2] == -1) {
 							log.reportError("Error - Illumina files must have one of the following columns: "
-															+ Array.toStr(Array.subArray(ILLUMINA_TARGET_COLUMNS, 1), ", "));
-							log.reportError("      - only found: " + Array.toStr(line, ", "));
+															+ ArrayUtils.toStr(ArrayUtils.subArray(ILLUMINA_TARGET_COLUMNS, 1), ", "));
+							log.reportError("      - only found: " + ArrayUtils.toStr(line, ", "));
 						} else {
 							while (reader.ready()) {
 								line = reader.readLine().trim().split(",", -1);
@@ -330,7 +330,7 @@ public class IndependentSNPs {
 			beforeIndices = Ints.toArray(beforeIndicesVector);
 			beforeIndex = 0;
 			chrLDdbs = LDdatabase.getChrLDdbs(lddbs, chr);
-			while (pvals.length > 0 && Array.min(pvals) < 2) {
+			while (pvals.length > 0 && ArrayUtils.min(pvals) < 2) {
 				index = -1;
 				pval = -1;
 
@@ -340,7 +340,7 @@ public class IndependentSNPs {
 					pvals[index] = 3;
 					beforeIndex++;
 				} else {
-					index = Array.minIndex(pvals);
+					index = ArrayUtils.minIndex(pvals);
 					pval = pvals[index];
 					score = getScore(subset[index], scores, merges, missingIlluminaValues, log);
 					bestDiff = scoreDiffThreshold;
@@ -425,7 +425,7 @@ public class IndependentSNPs {
 		if (missingMarkers.size() > 0) {
 			log.reportError("Error - Missing "	+ missingMarkers.size() + " markers for threshold "
 											+ pval_threshold);
-			Files.writeArray(	Array.toStringArray(missingMarkers),
+			Files.writeArray(	ArrayUtils.toStringArray(missingMarkers),
 												dir																		+ (outputRoot == null ? pval_threshold : outputRoot)
 																															+ "_missingValues.txt");
 		}
@@ -433,7 +433,7 @@ public class IndependentSNPs {
 			log.reportError("Error - Missing Illumina design scores for "	+ missingIlluminaValues.size()
 											+ " markers");
 			missingIlluminaValues.insertElementAt("Locus_Name", 0);
-			Files.writeArray(	Array.toStringArray(missingIlluminaValues),
+			Files.writeArray(	ArrayUtils.toStringArray(missingIlluminaValues),
 												dir + (outputRoot == null ? pval_threshold : outputRoot) + "_ill.txt");
 		}
 
@@ -480,10 +480,10 @@ public class IndependentSNPs {
 		Files.writeArray(	trimList(tags, numSNPs),
 											dir + (outputRoot == null ? pval_threshold : outputRoot) + "_tags.xln");
 		if (filteringDataset != null) {
-			Files.writeArray(	Array.toStringArray(checkTags),
+			Files.writeArray(	ArrayUtils.toStringArray(checkTags),
 												dir															+ (outputRoot == null ? pval_threshold : outputRoot)
 																												+ "_checkArray_tags.xln");
-			Files.writeArray(	Array.toStringArray(untaggedTags),
+			Files.writeArray(	ArrayUtils.toStringArray(untaggedTags),
 												dir																	+ (outputRoot == null ? pval_threshold : outputRoot)
 																														+ "_untagged_tags.xln");
 		}
@@ -495,7 +495,7 @@ public class IndependentSNPs {
 		int[] order;
 
 		if (tags.size() < numSNPs) {
-			return Array.toStringArray(tags);
+			return ArrayUtils.toStringArray(tags);
 		}
 
 		values = new double[tags.size()];
@@ -575,7 +575,7 @@ public class IndependentSNPs {
 			}
 		}
 
-		return Array.toStringArray(v);
+		return ArrayUtils.toStringArray(v);
 	}
 
 	public static Vector<String> checkCoverage(String hitTags, String arrayTags, Logger log) {
@@ -681,10 +681,10 @@ public class IndependentSNPs {
 				for (int j = 0; j < bins.length; j++) {
 					failRate += SCORE_BIN_FAIL_RATES[j] * bins[j];
 				}
-				failRate /= Array.sum(bins);
-				writer.println(Array.toStr(Array.toDoubleArray(param), 2, 2, "\t")	+ "\t\t" + failRate
+				failRate /= ArrayUtils.sum(bins);
+				writer.println(ArrayUtils.toStr(ArrayUtils.toDoubleArray(param), 2, 2, "\t")	+ "\t\t" + failRate
 												+ "\t" + sumPval + "\t" + effSumPval + "\t" + "." + "\t"
-												+ Array.toStr(bins));
+												+ ArrayUtils.toStr(bins));
 			}
 			writer.close();
 		} catch (Exception e) {

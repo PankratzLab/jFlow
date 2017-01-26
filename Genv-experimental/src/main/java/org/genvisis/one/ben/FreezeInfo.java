@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -66,7 +66,7 @@ public class FreezeInfo {
 		while ((line = frz4reader.readLine()) != null) {
 			parts = ext.splitCommasIntelligently(line, true, null);
 			if (!ALL && !line.contains("exonic")) {
-				finalWriter.println(Array.toStr(parts, "\t"));
+				finalWriter.println(ArrayUtils.toStr(parts, "\t"));
 				continue;
 			}
 			int ind = parts[5].indexOf(":", 4);
@@ -148,14 +148,14 @@ public class FreezeInfo {
 				noMatchWriter.println(line);
 				if (frz5Info != null) {
 					for (String[] data : frz5Info) {
-						noMatchWriter.println(Array.toStr(data, "\t"));
+						noMatchWriter.println(ArrayUtils.toStr(data, "\t"));
 					}
 				}
 				noMatchWriter.println();
 				noMatchWriter.println();
 			}
 
-			finalWriter.println(Array.toStr(parts, "\t"));
+			finalWriter.println(ArrayUtils.toStr(parts, "\t"));
 		}
 		finalWriter.flush();
 		finalWriter.close();

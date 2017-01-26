@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
@@ -107,7 +107,7 @@ public class SeqError {
 	public void summarize(String fullPathToOutput) {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutput));
-			writer.println(Array.toStr(OUTPUT_HEADER));
+			writer.println(ArrayUtils.toStr(OUTPUT_HEADER));
 			for (DuplicateETwo dETwo : dETwos) {
 				writer.println(dETwo.getSummary());
 			}

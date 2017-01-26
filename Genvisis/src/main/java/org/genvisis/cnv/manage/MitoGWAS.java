@@ -15,7 +15,7 @@ import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.qc.MarkerMetrics;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -89,7 +89,7 @@ public class MitoGWAS {
 			proj.getLog().reportTimeInfo(numSkipped	+ " copy number or chr0 only probes  were removed, "
 																		+ markersToAnalyze.size() + " remaining");
 			String exportList = root + "_markers.txt";
-			Files.writeArray(Array.toStringArray(markersToAnalyze), exportList);
+			Files.writeArray(ArrayUtils.toStringArray(markersToAnalyze), exportList);
 			String blankCluster = root + ".blankCluster.ser";
 			proj.getLog().reportTimeWarning("Using blank cluster filter file to ensure AB lookup");
 			new ClusterFilterCollection().serialize(blankCluster);
@@ -141,7 +141,7 @@ public class MitoGWAS {
 		}
 
 		String[] out = new String[] {fam, bim, bed};
-		CmdLine.runCommandWithFileChecks(	Array.toStringArray(plinkConverCommand), "", in, out, true,
+		CmdLine.runCommandWithFileChecks(	ArrayUtils.toStringArray(plinkConverCommand), "", in, out, true,
 																			false, false, proj.getLog());
 		ArrayList<PlinkAssoc> plinkCommands = new ArrayList<MitoGWAS.PlinkAssoc>();
 		String subDir = ext.rootOf(pcFile, false) + SUB_DIR;
@@ -171,7 +171,7 @@ public class MitoGWAS {
 		String[] qcpass = HashVec.loadFileToStringArray(ext.parseDirectoryOfFile(root)
 																											+ "ldPruning/plink.prune.out", false,
 																										new int[] {0}, true);
-		qcpass = Array.concatAll(	qcpass,
+		qcpass = ArrayUtils.concatAll(	qcpass,
 															HashVec.loadFileToStringArray(ext.parseDirectoryOfFile(root)
 																															+ "ldPruning/plink.prune.in", false,
 																														new int[] {0}, true));
@@ -192,14 +192,14 @@ public class MitoGWAS {
 			String results = plinkCommands.get(j).getOutputs()[0];
 			empTitles[j] = ext.removeDirectoryInfo(results);
 		}
-		empTitles = Array.untag(empTitles, true, true);
+		empTitles = ArrayUtils.untag(empTitles, true, true);
 		String[] pvalFiles = new String[plinkCommands.size()];
 		for (int i = 0; i < pvalFiles.length; i++) {
 			pvalFiles[i] = ext.parseDirectoryOfFile(pvalDB) + empTitles[i] + ".pvalsQQ.txt";
 		}
 		MarkerSet markerSet = proj.getMarkerSet();
 
-		String[] empLogP = Array.tagOn(empTitles, "p_", null);
+		String[] empLogP = ArrayUtils.tagOn(empTitles, "p_", null);
 		// if (!Files.exists(pvalDB) || !Files.exists(pvalQQ)) {
 		for (int j = 0; j < plinkCommands.size(); j++) {
 			if (!Files.exists(pvalFiles[j])) {
@@ -222,13 +222,13 @@ public class MitoGWAS {
 					permParser.loadData();
 					emp1s[j] = permParser.getNumericDataForTitle("P");
 
-					Files.writeArray(Array.toStringArray(emp1s[j]), pvalFiles[j]);
+					Files.writeArray(ArrayUtils.toStringArray(emp1s[j]), pvalFiles[j]);
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 					return;
 				}
 			} else {
-				emp1s[j] = Array.toDoubleArray(HashVec.loadFileToStringArray(	pvalFiles[j], false,
+				emp1s[j] = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(	pvalFiles[j], false,
 																																			new int[] {0}, false));
 			}
 			if (emp1s[j].length != markerSet.getMarkerNames().length) {
@@ -242,7 +242,7 @@ public class MitoGWAS {
 			sTabs.computeTable();
 			sTabs.dumpTables(outTabs);
 		}
-		boolean[] valids = Array.booleanArray(emp1s[0].length, true);
+		boolean[] valids = ArrayUtils.booleanArray(emp1s[0].length, true);
 		VCFFileReader annoReader = null;
 		if (Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
 			annoReader = new VCFFileReader(new File(proj.BLAST_ANNOTATION_FILENAME.getValue()), true);
@@ -261,9 +261,9 @@ public class MitoGWAS {
 			PrintWriter writerSig = new PrintWriter(new FileWriter(pvalDB + ".sig"));
 			PrintWriter writerSigQc = new PrintWriter(new FileWriter(pvalDB + ".sig.qc"));
 
-			String header = "SNP\tCHR\tBP\tREF\tALT\tPlinkPruneOut\t"	+ Array.toStr(empTitles)
+			String header = "SNP\tCHR\tBP\tREF\tALT\tPlinkPruneOut\t"	+ ArrayUtils.toStr(empTitles)
 											+ "\tMinPval\tMaxPval\tMaxDiffPval\tStdPval\t"
-											+ Array.toStr(MarkerMetrics.FULL_QC_HEADER) + "\t" + Array.toStr(annotations);
+											+ ArrayUtils.toStr(MarkerMetrics.FULL_QC_HEADER) + "\t" + ArrayUtils.toStr(annotations);
 			writer.println(header);
 			writerSig.println(header);
 			writerSigQc.println(header);
@@ -320,11 +320,11 @@ public class MitoGWAS {
 						pvals[j] = emp1s[j][i];
 					}
 				}
-				pvals = Array.removeNaN(pvals);
-				double max = Array.max(pvals);
-				double min = Array.min(pvals);
+				pvals = ArrayUtils.removeNaN(pvals);
+				double max = ArrayUtils.max(pvals);
+				double min = ArrayUtils.min(pvals);
 				double maxDiff = max - min;
-				double std = Array.stdev(pvals);
+				double std = ArrayUtils.stdev(pvals);
 				line.add(min + "");
 				line.add(max + "");
 				line.add(maxDiff + "");
@@ -333,10 +333,10 @@ public class MitoGWAS {
 					line.add(qcParser.getNumericData()[qcindice][i] + "");
 				}
 				if (valid) {
-					String data = Array.toStr(Array.toStringArray(line))
+					String data = ArrayUtils.toStr(ArrayUtils.toStringArray(line))
 												+ (markVC == null	? ""
 																					: "\t"
-																						+ Array.toStr(VCOps.getAnnotationsFor(annotations,
+																						+ ArrayUtils.toStr(VCOps.getAnnotationsFor(annotations,
 																																									markVC, ".")));
 					writer.println(data);
 					if (min < 0.05) {
@@ -366,11 +366,11 @@ public class MitoGWAS {
 		try {
 
 			for (int i = 0; i < emp1s.length; i++) {
-				emp1s[i] = Array.subArray(emp1s[i], valids);
+				emp1s[i] = ArrayUtils.subArray(emp1s[i], valids);
 				Arrays.sort(emp1s[i]);
 			}
 			PrintWriter writer = new PrintWriter(new FileWriter(pvalQQ));
-			writer.println("RANK\t" + Array.toStr(empLogP));
+			writer.println("RANK\t" + ArrayUtils.toStr(empLogP));
 			for (int i = 0; i < emp1s[0].length; i++) {
 				StringBuilder builder = new StringBuilder();
 				double ranke = i + 1;
@@ -576,12 +576,12 @@ public class MitoGWAS {
 			builderCovar.hasHeader(true);
 			builderCovar.dataKeyColumnName("DNA");
 			builderCovar.requireAll(false);
-			builderCovar.numericDataTitles(Array.subArray(Files.getHeaderOfFile(covarFile, proj.getLog()),
+			builderCovar.numericDataTitles(ArrayUtils.subArray(Files.getHeaderOfFile(covarFile, proj.getLog()),
 																										1));
 			ExtProjectDataParser covarParser = builderCovar.build(proj, covarFile);
 			covarParser.determineIndicesFromTitles();
 			covarParser.loadData();
-			boolean[] hasVarianceWithinPed = Array.booleanArray(covarParser.getNumericDataTitles().length,
+			boolean[] hasVarianceWithinPed = ArrayUtils.booleanArray(covarParser.getNumericDataTitles().length,
 																													false);
 			for (int i = 0; i < hasVarianceWithinPed.length; i++) {
 				Hashtable<String, String> varHash = new Hashtable<String, String>();
@@ -631,7 +631,7 @@ public class MitoGWAS {
 					}
 					writer.close();
 
-					String covarTitles = Array.toStr(	Array.subArray(covarParser.getNumericDataTitles(),
+					String covarTitles = ArrayUtils.toStr(	ArrayUtils.subArray(covarParser.getNumericDataTitles(),
 																													hasVarianceWithinPed),
 																						",");
 					String outPrepReg = ext.addToRoot(outCurrent, ".prepped");
@@ -701,7 +701,7 @@ public class MitoGWAS {
 
 		@Override
 		public Boolean call() throws Exception {
-			return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs,
+			return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputs, outputs,
 																							true, false, false, log);
 		}
 	}
@@ -739,7 +739,7 @@ public class MitoGWAS {
 		String[] inputs = new String[] {processed, inputDb};
 		String[] outputs = new String[] {ext.rootOf(output, false) + ".assoc.linear"};
 		if (perm) {
-			outputs = Array.concatAll(outputs,
+			outputs = ArrayUtils.concatAll(outputs,
 																new String[] {ext.rootOf(output, false) + ".assoc.linear.perm"});
 		}
 		PlinkAssoc assoc = new PlinkAssoc(plink, inputs, outputs, log);

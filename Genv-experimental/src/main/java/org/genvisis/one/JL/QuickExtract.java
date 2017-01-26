@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.LocusSet;
@@ -62,7 +62,7 @@ public class QuickExtract {
 													+ vc.getReference().getBaseString() + "\t"
 													+ vc.getAlternateAlleles().toString() + "\t" + numAlt + "\t" + numAltMinux
 													+ "\t"
-													+ Array.toStr(VCOps.getAnnotationsFor(new String[] {"g10002014oct_all",
+													+ ArrayUtils.toStr(VCOps.getAnnotationsFor(new String[] {"g10002014oct_all",
 																																							"SNPEFF_IMPACT",
 																																							"SNPEFF_GENE_NAME"},
 																																vc, ".")));

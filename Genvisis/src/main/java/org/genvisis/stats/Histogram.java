@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -41,8 +41,8 @@ public class Histogram implements Serializable {
 		peakThreshold = DEFAULT_PEAK_THRESHOLD;
 		sumTotal = array.length;
 
-		min = Array.min(array);
-		max = Array.max(array);
+		min = ArrayUtils.min(array);
+		max = ArrayUtils.max(array);
 
 		sigfigs = 0;
 		extrastep = 0;
@@ -74,7 +74,7 @@ public class Histogram implements Serializable {
 	}
 
 	public Histogram(double[] array, int sigfigs, int extrastep) {
-		this(array, Array.min(array), Array.max(array), sigfigs, extrastep);
+		this(array, ArrayUtils.min(array), ArrayUtils.max(array), sigfigs, extrastep);
 	}
 
 	public Histogram(double[] array, double min, double max, int sigfigs, int extrastep) {
@@ -141,7 +141,7 @@ public class Histogram implements Serializable {
 	}
 
 	public Histogram(float[] array, float min, float max, int sigfigs) {
-		this(Array.toDoubleArray(array), min, max, sigfigs, 0);
+		this(ArrayUtils.toDoubleArray(array), min, max, sigfigs, 0);
 	}
 
 	protected Histogram() {
@@ -458,10 +458,10 @@ public class Histogram implements Serializable {
 
 				double[] totals = new double[histograms.length];
 				for (int i = 0; i < totals.length; i++) {
-					totals[i] = proportion ? Array.sum(histograms[i].getCounts()) : 1;
+					totals[i] = proportion ? ArrayUtils.sum(histograms[i].getCounts()) : 1;
 				}
 				PrintWriter writer = new PrintWriter(new FileWriter(output));
-				String[] cumulative = Array.tagOn(titles, "Cumulative_", null);
+				String[] cumulative = ArrayUtils.tagOn(titles, "Cumulative_", null);
 				String[] allTitles = new String[titles.length * 2];
 				int index = 0;
 				for (int i = 0; i < titles.length; i++) {
@@ -471,7 +471,7 @@ public class Histogram implements Serializable {
 					index++;
 				}
 				int[] cuCounts = new int[histograms.length];
-				writer.println("Bin\t" + Array.toStr(allTitles));
+				writer.println("Bin\t" + ArrayUtils.toStr(allTitles));
 				for (int i = 0; i < histograms[0].getBins().length; i++) {
 					writer.print(histograms[0].getBins()[i]);
 					for (int j = 0; j < histograms.length; j++) {
@@ -560,7 +560,7 @@ public class Histogram implements Serializable {
 
 				PrintWriter writer = new PrintWriter(new FileWriter(filename));
 				if (titles != null) {
-					writer.println(Array.toStr(titles));
+					writer.println(ArrayUtils.toStr(titles));
 				} else {
 					writer.println("Bin\tCounts\tAverage");
 				}
@@ -587,14 +587,14 @@ public class Histogram implements Serializable {
 				return;
 			}
 			try {
-				String[] finalTitles = Array.concatAll(	Array.tagOn(titles, null, DUMP_COUNT),
-																								Array.tagOn(titles, null, DUMP_PROP),
-																								Array.tagOn(titles, null, DUMP_AVG));
+				String[] finalTitles = ArrayUtils.concatAll(	ArrayUtils.tagOn(titles, null, DUMP_COUNT),
+																								ArrayUtils.tagOn(titles, null, DUMP_PROP),
+																								ArrayUtils.tagOn(titles, null, DUMP_AVG));
 				PrintWriter writer = new PrintWriter(new FileWriter(output));
-				writer.println("Bin\t" + Array.toStr(finalTitles));
+				writer.println("Bin\t" + ArrayUtils.toStr(finalTitles));
 				double[] totals = new double[histograms.length];
 				for (int i = 0; i < totals.length; i++) {
-					totals[i] = Array.sum(histograms[i].getCounts());
+					totals[i] = ArrayUtils.sum(histograms[i].getCounts());
 				}
 				for (int i = 0; i < histograms[0].getBins().length; i++) {
 					double currentBin = histograms[0].getBins()[i];

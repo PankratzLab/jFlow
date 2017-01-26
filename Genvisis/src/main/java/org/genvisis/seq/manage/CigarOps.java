@@ -3,7 +3,7 @@ package org.genvisis.seq.manage;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Sort;
 import org.genvisis.seq.analysis.Blast.BlastResults;
@@ -101,7 +101,7 @@ public class CigarOps {
 				if (cigar.getReadLength() != initialSequencLength) {
 					String error = "INT ONLY REP: Cigar length representation of "	+ cigar.getReadLength()
 													+ " did not equal the query length of " + initialSequencLength;
-					error += "\n BLAST:  " + Array.toStr(blastResults.getResults());
+					error += "\n BLAST:  " + ArrayUtils.toStr(blastResults.getResults());
 					error += "\n CIGAR:  " + cigar.toString();
 					log.reportError(error);
 					throw new IllegalArgumentException(error);
@@ -141,7 +141,7 @@ public class CigarOps {
 				if (cigar.getReadLength() != initialSequencLength) {
 					String error = "STRING INT REP: Cigar length representation of "	+ cigar.getReadLength()
 													+ " did not equal the query length of " + initialSequencLength;
-					error += "\n BLAST:  " + Array.toStr(blastResults.getResults());
+					error += "\n BLAST:  " + ArrayUtils.toStr(blastResults.getResults());
 					error += "\n CIGAR:  " + cigar.toString();
 
 					log.reportError(error);
@@ -280,7 +280,7 @@ public class CigarOps {
 		if (currentString != null) {
 			btopBroken.add(currentString);
 		}
-		return Array.toStringArray(btopBroken);
+		return ArrayUtils.toStringArray(btopBroken);
 	}
 
 	private static boolean isAllMatched(BlastResults blastResults, int initialSequencLength) {

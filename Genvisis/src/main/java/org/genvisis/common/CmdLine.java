@@ -156,10 +156,10 @@ public class CmdLine {
 	public static String[] prepareBatchForCommandLine(String[] commandArray, String batFile,
 																										boolean verbose, Logger log) {
 		if (verbose) {
-			log.report(ext.getTime()	+ " Info - running command " + Array.toStr(commandArray, " ")
+			log.report(ext.getTime()	+ " Info - running command " + ArrayUtils.toStr(commandArray, " ")
 									+ "\nUsing file " + batFile);
 		}
-		Files.write(Array.toStr(commandArray, " "), batFile);
+		Files.write(ArrayUtils.toStr(commandArray, " "), batFile);
 		Files.chmod(batFile);
 		return new String[] {batFile};
 	}

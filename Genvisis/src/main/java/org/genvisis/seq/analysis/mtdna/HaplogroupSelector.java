@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.genvisis.CLI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -57,7 +57,7 @@ public class HaplogroupSelector {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "hapSelector.log");
 		log.reportTimeInfo("Selecting haplogroup matches for "+ selectFor + " from "
-												+ Array.toStr(selectFrom, ", and ") + " using ..."
+												+ ArrayUtils.toStr(selectFrom, ", and ") + " using ..."
 												+ ext.removeDirectoryInfo(haplogrepFile));
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.ANY, log);
 		HashSet<String> samplesToChooseFrom = new HashSet<String>();
@@ -81,9 +81,9 @@ public class HaplogroupSelector {
 																													minMatch);
 		String[] header = HaploMatch.BASE_HEADER;
 		for (int i = 0; i < xfactor; i++) {
-			header = Array.concatAll(header, Array.tagOn(HaploMatch.BASE_HEADER, "Control_r1_", null));
+			header = ArrayUtils.concatAll(header, ArrayUtils.tagOn(HaploMatch.BASE_HEADER, "Control_r1_", null));
 		}
-		StringBuilder builder = new StringBuilder(Array.toStr(header));
+		StringBuilder builder = new StringBuilder(ArrayUtils.toStr(header));
 		StringBuilder caseControlBuilder = new StringBuilder();
 		caseControlBuilder.append("##phe1,Integer,-9,\"1/2 = ARIC/CUSHING\"\n");
 		caseControlBuilder.append("#ID\tphe1");

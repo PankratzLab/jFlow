@@ -110,7 +110,7 @@ import org.genvisis.cnv.var.IndiPheno;
 import org.genvisis.cnv.var.MosaicRegion;
 import org.genvisis.cnv.var.Region;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
@@ -840,7 +840,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			gcModel = null;
 		}
 		otherColors = Files.list(proj.DATA_DIRECTORY.getValue(), null, ".gcmodel", true, false, true);
-		otherColors = Array.concatAll(otherColors, Files.list(proj.PROJECT_DIRECTORY.getValue(), null,
+		otherColors = ArrayUtils.concatAll(otherColors, Files.list(proj.PROJECT_DIRECTORY.getValue(), null,
 																													".gcmodel", true, false, true));
 
 		generateComponents();
@@ -1051,7 +1051,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			String newFile = jfc.getSelectedFile().getAbsolutePath();
 			String[] regionLines = new String[regions.length];
 			for (int i = 0; i < regionLines.length; i++) {
-				regionLines[i] = Array.toStr(regions[i], "\t");
+				regionLines[i] = ArrayUtils.toStr(regions[i], "\t");
 			}
 			Files.writeArray(regionLines, newFile);
 			addFileToList(newFile, true);
@@ -1070,7 +1070,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 		if (jfc.showOpenDialog(Trailer.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();
 			if (files.length > 0) {
-				boolean[] keep = Array.booleanArray(files.length, true);
+				boolean[] keep = ArrayUtils.booleanArray(files.length, true);
 				for (int i = 0; i < files.length; i++) {
 					for (String fileName : regionFileNameLoc.keySet()) {
 						if (ext.rootOf(files[i].toString()).equals(fileName)) {
@@ -1078,8 +1078,8 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 						}
 					}
 				}
-				File[] keptFiles = Array.subArray(files, keep);
-				File[] discards = Array.subArray(files, Array.booleanNegative(keep));
+				File[] keptFiles = ArrayUtils.subArray(files, keep);
+				File[] discards = ArrayUtils.subArray(files, ArrayUtils.booleanNegative(keep));
 
 				if (discards.length > 0) {
 					StringBuilder msg = new StringBuilder("The following data file(s) are already present:");
@@ -1163,8 +1163,8 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 				float min, max;
 
 				if (lrrValues != null) {
-					min = Array.min(lrrValues);
-					max = Array.max(lrrValues);
+					min = ArrayUtils.min(lrrValues);
+					max = ArrayUtils.max(lrrValues);
 
 					// System.out.println("Displaying "+(stopMarker-startMarker)+"
 					// markers");
@@ -1486,7 +1486,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 					if (regionDetails.length >= 3) {
 						regionDetails[2] = newComment;
 					} else {
-						regionDetails = Array.addStrToArray(newComment, regionDetails);
+						regionDetails = ArrayUtils.addStrToArray(newComment, regionDetails);
 					}
 					regions[regionIndex] = regionDetails;
 					commentLabel.setText(regions[regionIndex][2].isEmpty()	? BLANK_COMMENT
@@ -2072,8 +2072,8 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 						}
 					} else {
 						CNVCallResult callResult = CNVCaller.callCNVsFor(	proj, pennHmm, sample,
-																															Array.toDoubleArray(lrrs),
-																															Array.toDoubleArray(bafs), gcModel,
+																															ArrayUtils.toDoubleArray(lrrs),
+																															ArrayUtils.toDoubleArray(bafs), gcModel,
 																															pfb, markerSet, new int[] {chr}, null,
 																															false, CNVCaller.DEFUALT_MIN_SITES,
 																															CNVCaller.DEFUALT_MIN_CONF,
@@ -2106,7 +2106,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 					JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
 					MosaicBuilder builder = new MosaicBuilder();
 					builder.verbose(true);
-					MosaicismDetect md = builder.build(proj, sample, markerSet, Array.toDoubleArray(bafs));
+					MosaicismDetect md = builder.build(proj, sample, markerSet, ArrayUtils.toDoubleArray(bafs));
 					Segment seg = new Segment(chr, 0, Integer.MAX_VALUE);
 					LocusSet<MosaicRegion> mosSet = md.callMosaic(seg, false);
 					int externalCNVs = prepInternalClasses();
@@ -2821,7 +2821,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			startMarker = chrBoundaries[chr][0];
 			start = 1;
 		} else {
-			startMarker = Array.binarySearch(	positions, start, chrBoundaries[chr][0],
+			startMarker = ArrayUtils.binarySearch(	positions, start, chrBoundaries[chr][0],
 																				chrBoundaries[chr][1], false);
 		}
 
@@ -2829,7 +2829,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			stop = positions[chrBoundaries[chr][1]];
 			stopMarker = chrBoundaries[chr][1];
 		} else {
-			stopMarker = Array.binarySearch(positions, stop, chrBoundaries[chr][0], chrBoundaries[chr][1],
+			stopMarker = ArrayUtils.binarySearch(positions, stop, chrBoundaries[chr][0], chrBoundaries[chr][1],
 																			false);
 		}
 
@@ -2867,7 +2867,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 					// boolean fastQC = false;//gcFastButton.isSelected();
 					GC_CORRECTION_METHOD correctionMethod = GC_CORRECTION_METHOD.GENVISIS_GC;// !gcFastButton.isSelected();
 					if (updateGenome) {
-						boolean[] markersForEverythingElseGenome = Array.booleanNegative(dropped);
+						boolean[] markersForEverythingElseGenome = ArrayUtils.booleanNegative(dropped);
 						qcGenome = LrrSd.LrrSdPerSample(proj, markerSet, sample, samp, centroids,
 																						markersForCallrate, markersForEverythingElseGenome,
 																						gcModelToUse, correctionMethod, log);
@@ -2885,7 +2885,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 					// markersForEverythingElseChromosome, gcModelToUse, fastQC, log);
 					// }
 					if (updateRegion) {
-						boolean[] markersForEverythingElseRegion = Array.booleanNegative(dropped);
+						boolean[] markersForEverythingElseRegion = ArrayUtils.booleanNegative(dropped);
 						for (int i = 0; i < markersForEverythingElseRegion.length; i++) {
 							if (i < startMarker || i > stopMarker) {
 								markersForEverythingElseRegion[i] = false;
@@ -3204,7 +3204,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			correctGC = false;
 		}
 		if (correctGC && correctGCFirst) {
-			tmpLrrs = Array.toFloatArray(GcAdjustor	.getComputedAdjustor(proj, markerSet, tmpLrrs, gcModel,
+			tmpLrrs = ArrayUtils.toFloatArray(GcAdjustor	.getComputedAdjustor(proj, markerSet, tmpLrrs, gcModel,
 																																	GC_CORRECTION_METHOD.GENVISIS_GC,
 																																	false, false, true)
 																							.getCorrectedIntensities());
@@ -3215,7 +3215,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 																			markerSet);
 		}
 		if (correctGC && !correctGCFirst) {
-			tmpLrrs = Array.toFloatArray(GcAdjustor	.getComputedAdjustor(proj, markerSet, tmpLrrs, gcModel,
+			tmpLrrs = ArrayUtils.toFloatArray(GcAdjustor	.getComputedAdjustor(proj, markerSet, tmpLrrs, gcModel,
 																																	GC_CORRECTION_METHOD.GENVISIS_GC,
 																																	false, false, true)
 																							.getCorrectedIntensities());
@@ -3252,8 +3252,8 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			internals[INTERNAL_CNV_TYPES.values()[i].getIndex()] = INTERNAL_CNV_TYPES.values()[i].getName();
 		}
 		if (sampleData.getCnvClasses().length <= externalCNVs) {
-			sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), internals));
-			cnvLabels = Array.concatAll(sampleData.getCnvClasses());
+			sampleData.setCnvClasses(ArrayUtils.concatAll(sampleData.getCnvClasses(), internals));
+			cnvLabels = ArrayUtils.concatAll(sampleData.getCnvClasses());
 		}
 		if (indiPheno.getCnvClasses().size() <= externalCNVs) {
 			for (int i = 0; i < INTERNAL_CNV_TYPES.values().length; i++) {
@@ -3328,7 +3328,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 				|| selectedCNV[0] != externalCNVs + INTERNAL_CNV_TYPES.MOSAIC_CALLER.getIndex()) {
 			MosaicBuilder builderMosaic = new MosaicBuilder();
 			builderMosaic.verbose(true);
-			MosaicismDetect md = builderMosaic.build(proj, sample, markerSet, Array.toDoubleArray(bafs));
+			MosaicismDetect md = builderMosaic.build(proj, sample, markerSet, ArrayUtils.toDoubleArray(bafs));
 			LocusSet<MosaicRegion> mosSet = md.callMosaic(quantSeg, true);
 
 			if (mosSet.getLoci().length != 1) {
@@ -3381,7 +3381,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 		CNVariant[] tmpCurrent = indiPheno.getCnvClasses().get(key).get(chr + "");
 
 		if (tmpCurrent != null && tmpCurrent.length > 0) {
-			boolean[] use = Array.booleanArray(tmp.length, true);
+			boolean[] use = ArrayUtils.booleanArray(tmp.length, true);
 			for (CNVariant element : tmpCurrent) {
 				for (int j = 0; j < tmp.length; j++) {
 					if (use[j]) {
@@ -3398,7 +3398,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 				}
 			}
 			CNVariant[] uniq = uniqAdd.toArray(new CNVariant[uniqAdd.size()]);
-			tmpCurrent = Array.concatAll(uniq, tmpCurrent);
+			tmpCurrent = ArrayUtils.concatAll(uniq, tmpCurrent);
 		} else {
 			tmpCurrent = tmp;
 		}

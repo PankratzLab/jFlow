@@ -23,7 +23,7 @@ import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -151,7 +151,7 @@ public class AffyPipeline {
 	private String generateCelList(String[] celFiles, String outDir, String analysisName) {
 		String celListFile = outDir + analysisName + ".celList.txt";
 		String[] toWrite = new String[] {AFFY_CEL_LIST_HEADER};
-		toWrite = Array.concatAll(toWrite, celFiles);
+		toWrite = ArrayUtils.concatAll(toWrite, celFiles);
 		Files.writeArray(toWrite, celListFile);
 		return celListFile;
 	}
@@ -219,7 +219,7 @@ public class AffyPipeline {
 		log.report(ext.getTime() + " Info - running a command to extract probeset ids: " + psetCommand);
 
 		String probeResults = outDir + currentAnalysis + ".summary.txt";
-		boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(psetCommand), "",
+		boolean progress = CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(psetCommand), "",
 																												new String[] {celFile},
 																												new String[] {probeResults}, true, false,
 																												false, log);
@@ -275,13 +275,13 @@ public class AffyPipeline {
 		if (markersNotUsed.size() > 0) {
 			log.reportTimeInfo(markersNotUsed.size() + " markers where skipped");
 			String pIdSkipFile = outDir + analysisName + ".probesetIdsSkipped.txt";
-			Files.writeArray(Array.toStringArray(markersNotUsed), pIdSkipFile);
+			Files.writeArray(ArrayUtils.toStringArray(markersNotUsed), pIdSkipFile);
 
 		}
 		String pIdAllFile = outDir + analysisName + ".probesetIdsAll.txt";
 		String pIdSnpFile = outDir + analysisName + ".probesetIdsSNPS.txt";
-		Files.writeArray(Array.toStringArray(probesetIdsAll), pIdAllFile);
-		Files.writeArray(Array.toStringArray(probesetIdsSNP), pIdSnpFile);
+		Files.writeArray(ArrayUtils.toStringArray(probesetIdsAll), pIdAllFile);
+		Files.writeArray(ArrayUtils.toStringArray(probesetIdsSNP), pIdSnpFile);
 
 		new File(smallCelList).delete();
 		Probesets probesets = new Probesets(pIdSnpFile, pIdAllFile);
@@ -336,7 +336,7 @@ public class AffyPipeline {
 		String quantNormFile = outCurrent + analysisName + ".summary.txt";
 		String report = outCurrent + analysisName + ".report.txt";
 
-		boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(normalizeCommand), "",
+		boolean progress = CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(normalizeCommand), "",
 																												null, new String[] {quantNormFile, report},
 																												true, false, false, log);
 		NormalizationResult normalizationResult = new NormalizationResult(quantNormFile);
@@ -412,7 +412,7 @@ public class AffyPipeline {
 		GenotypeResult genotypeResult = new GenotypeResult(callFile, confFile);
 		String[] output = new String[] {genotypeResult.getCallFile(), genotypeResult.getConfFile(),
 																		reportFile};
-		boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(genotypeCommand), "",
+		boolean progress = CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(genotypeCommand), "",
 																												null, output, true, false, false, log);
 		genotypeResult.setFailed(!progress);
 		return genotypeResult;

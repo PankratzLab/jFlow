@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -130,7 +130,7 @@ public class DeleteGenotypes {
 								}
 								markers.remove(line[0]);
 							}
-							writer.println(Array.toStr(line, ","));
+							writer.println(ArrayUtils.toStr(line, ","));
 							count++;
 						}
 						reader.close();

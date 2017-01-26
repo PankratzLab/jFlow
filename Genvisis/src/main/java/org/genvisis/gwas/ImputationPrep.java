@@ -17,7 +17,7 @@ import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.PlinkData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -147,7 +147,7 @@ public class ImputationPrep {
 			String delim = ext.determineDelimiter(header);
 			int[] cols = ext.indexFactors(HRC_COLS, header.split(delim), false, log, true, false);
 			while (reader.ready()) {
-				String[] refLine = Array.subArray(reader.readLine().split(delim), cols);
+				String[] refLine = ArrayUtils.subArray(reader.readLine().split(delim), cols);
 				proj.getProgressMonitor().updateTask(taskName);
 				byte chr = Positions.chromosomeNumber(refLine[0], log);
 				int position;

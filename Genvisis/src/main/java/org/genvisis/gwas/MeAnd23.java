@@ -3,7 +3,7 @@ package org.genvisis.gwas;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -38,7 +38,7 @@ public class MeAnd23 {
 		ArrayList<String> toMerge = new ArrayList<String>();
 		for (PlinkGenerator plinkGenerator : plinkGenerators) {
 			if (plinkGenerator.isCreated()) {
-				toMerge.add(Array.toStr(plinkGenerator.getPlinks()));
+				toMerge.add(ArrayUtils.toStr(plinkGenerator.getPlinks()));
 			}
 		}
 		log.reportTimeInfo("Found " + toMerge.size() + " file(s) to merge");
@@ -76,7 +76,7 @@ public class MeAnd23 {
 					Files.write("", problematicMarkers);
 				}
 				Files.copyFile(problematicMarkers, problematicMarkers + "2");
-				String[] cats = Array.concatAll(missnps, new String[] {problematicMarkers + "2"});
+				String[] cats = ArrayUtils.concatAll(missnps, new String[] {problematicMarkers + "2"});
 				Files.cat(cats, problematicMarkers, null, log);
 				log.reportTimeInfo("Job failed, but since .missnp file(s) exist, we are going to try and just remove these snps (and any others listed in "
 														+ problematicMarkers + ") ");
@@ -93,7 +93,7 @@ public class MeAnd23 {
 	}
 
 	private static String[] addExclude(String[] command, String problematicMarkers) {
-		command = Array.concatAll(command, new String[] {"--exclude", problematicMarkers});
+		command = ArrayUtils.concatAll(command, new String[] {"--exclude", problematicMarkers});
 		return command;
 	}
 
@@ -147,7 +147,7 @@ public class MeAnd23 {
 				command = addExclude(command, problematicMarkers);
 			}
 			log.reportTimeInfo(Thread.currentThread().getName()	+ ":" + name + " ( "
-													+ Array.toStr(command, " ") + " )");
+													+ ArrayUtils.toStr(command, " ") + " )");
 			created = CmdLine.runCommandWithFileChecks(	command, "", new String[] {input}, plinks, true,
 																									true, true, log);
 			return this;

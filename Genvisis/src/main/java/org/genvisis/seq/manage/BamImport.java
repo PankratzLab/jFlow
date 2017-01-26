@@ -28,7 +28,7 @@ import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -619,7 +619,7 @@ public class BamImport {
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(gcFile));
 				String[] header = new String[] {"Name", "Chr", "Position", "GC"};
-				writer.println(Array.toStr(header));
+				writer.println(ArrayUtils.toStr(header));
 				for (int i = 0; i < markerNames.length; i++) {
 					if (i % 1000 == 0) {
 						proj.getLog().reportTimeInfo("Loaded gc content for " + (i + 1) + " bins");
@@ -669,7 +669,7 @@ public class BamImport {
 		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(Math.max(20, correctionPCs));
 		String mediaMarks = ext.addToRoot(proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), ".median");
 		ArrayList<ProjectCorrected> correctedProjects = new ArrayList<ProjectCorrected>();
-		Files.writeArray(Array.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
+		Files.writeArray(ArrayUtils.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
 		String[] autoMarks = proj.getAutosomalMarkers();
 		for (MarkerFileType type : types) {
 			String base = "";
@@ -718,7 +718,7 @@ public class BamImport {
 				pcCorrected.SAMPLE_DIRECTORY.setValue(pcCorrected.PROJECT_DIRECTORY.getValue()
 																							+ "shadowSamples/");
 
-				String[] correctedSamps = Array.tagOn(proj.getSamples(),
+				String[] correctedSamps = ArrayUtils.tagOn(proj.getSamples(),
 																							pcCorrected.SAMPLE_DIRECTORY.getValue(),
 																							Sample.SAMPLE_FILE_EXTENSION);
 				if (!Files.exists("", correctedSamps) && type.getType() != null) {
@@ -821,10 +821,10 @@ public class BamImport {
 			Sample sampleOriginal = proj.getFullSampleFromRandomAccessFile(sampleName);
 			int numAccountedFor = 0;
 			float[] gcs = sampleOriginal.getGCs();
-			float[] intensity = Array.floatArray(markerSet.getMarkerNames().length, Float.NaN);
+			float[] intensity = ArrayUtils.floatArray(markerSet.getMarkerNames().length, Float.NaN);
 
 			float[] bafs = sampleOriginal.getBAFs();// preserve the bafs
-			float[] lrrs = Array.floatArray(markerSet.getMarkerNames().length, Float.NaN);
+			float[] lrrs = ArrayUtils.floatArray(markerSet.getMarkerNames().length, Float.NaN);
 
 			String[] markerNames = markerSet.getMarkerNames();
 			for (ProjectCorrected corrected : correctedProjects) {
@@ -906,7 +906,7 @@ public class BamImport {
 		Files.writeIterable(problems, problemFile);
 		Files.writeIterable(noProblems, noproblemFile);
 		Files.writeIterable(all, allFile);
-		return Array.toStringArray(goodOffTargets);
+		return ArrayUtils.toStringArray(goodOffTargets);
 
 	}
 
@@ -1016,14 +1016,14 @@ public class BamImport {
 		ArrayList<MarkerFileType> markerTypes = new ArrayList<MarkerFileType>();
 
 		if (!onTMarkers.isEmpty()) {
-			Files.writeArray(Array.toStringArray(onTMarkers), onTargetFile);
+			Files.writeArray(ArrayUtils.toStringArray(onTMarkers), onTargetFile);
 			markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.ON_TARGET, onTargetFile));
 		} else {
 			proj.getLog()
 					.reportTimeWarning("No " + NGS_MARKER_TYPE.ON_TARGET.getFlag() + " markers detected");
 		}
 		if (!offTMarkers.isEmpty()) {
-			Files.writeArray(Array.toStringArray(offTMarkers), offTargetFile);
+			Files.writeArray(ArrayUtils.toStringArray(offTMarkers), offTargetFile);
 			markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.OFF_TARGET, offTargetFile));
 		} else {
 			proj.getLog()
@@ -1031,14 +1031,14 @@ public class BamImport {
 		}
 
 		if (!variantSiteMarkers.isEmpty()) {
-			Files.writeArray(Array.toStringArray(variantSiteMarkers), variantSiteTargetFile);
+			Files.writeArray(ArrayUtils.toStringArray(variantSiteMarkers), variantSiteTargetFile);
 			markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.VARIANT_SITE, variantSiteTargetFile));
 		} else {
 			proj.getLog()
 					.reportTimeWarning("No " + NGS_MARKER_TYPE.VARIANT_SITE.getFlag() + " markers detected");
 		}
 
-		Files.writeArray(Array.toStringArray(allMarkerColors), allMarkerColorFile);
+		Files.writeArray(ArrayUtils.toStringArray(allMarkerColors), allMarkerColorFile);
 
 		Files.writeArray(	HashVec.loadFileToStringArray(proj.MARKER_POSITION_FILENAME.getValue(), true,
 																										new int[] {0}, true),

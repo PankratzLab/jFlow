@@ -22,7 +22,7 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MarkerDataLoader;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -74,7 +74,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	 * @param mTests can add more tests here,just call before populating results
 	 */
 	public void addManhattanTest(ManhattanTest[] mTests) {
-		manhattanTests = Array.concatAll(manhattanTests, mTests);
+		manhattanTests = ArrayUtils.concatAll(manhattanTests, mTests);
 		updateResultSize();
 	}
 
@@ -102,7 +102,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	 */
 	public void populateDataForMarker(int numThreads, boolean verbose, LS_TYPE lType, int i,
 																		MarkerData markerData) {
-		double[] lrrs = Array.toDoubleArray(markerData.getLRRs());
+		double[] lrrs = ArrayUtils.toDoubleArray(markerData.getLRRs());
 		ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 		Hashtable<String, Future<double[]>> tmpResults = new Hashtable<String, Future<double[]>>();
 		for (int j = 0; j < manhattanTests.length; j++) {
@@ -145,7 +145,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(output));
-				writer.println(Array.toStr(HEADER));
+				writer.println(ArrayUtils.toStr(HEADER));
 				for (int j = 0; j < markersToTest.length; j++) {
 					writer.println((j + 1)	+ "\t" + markersToTest[j] + "\t" + chrs[markerIndicesInProject[j]]
 													+ "\t" + pos[markerIndicesInProject[j]] + "\t"
@@ -170,7 +170,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 		if (fullPathToaltDataFile != null) {
 			proj.getLog().reportTimeInfo("Attempting to load " + fullPathToaltDataFile);
 			ManhattanTest[] tmp = loadManhattanTestFromFile(getProj(), fullPathToaltDataFile);
-			manhattanTests = Array.concatAll(tmp, manhattanTests);
+			manhattanTests = ArrayUtils.concatAll(tmp, manhattanTests);
 		}
 		updateResultSize();
 	}
@@ -236,8 +236,8 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 			double[] tmpdep = dataTest;
 			double[] tmpInd = dataToTest;
 			if (dataMask != null) {
-				tmpdep = Array.subArray(tmpdep, dataMask);
-				tmpInd = Array.subArray(tmpInd, dataMask);
+				tmpdep = ArrayUtils.subArray(tmpdep, dataMask);
+				tmpInd = ArrayUtils.subArray(tmpInd, dataMask);
 			}
 			CrossValidation crossValidation = new CrossValidation(tmpdep, Matrix.toMatrix(tmpInd), tmpdep,
 																														Matrix.toMatrix(tmpInd), verbose, lType,
@@ -317,7 +317,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 			}
 			maTests = new ManhattanTest[titleIndices.length];
 			for (int i = 0; i < maTests.length; i++) {
-				proj.getLog().reportTimeInfo("Found "	+ Array.booleanArraySum(masks[i])
+				proj.getLog().reportTimeInfo("Found "	+ ArrayUtils.booleanArraySum(masks[i])
 																			+ " samples for column " + titles[i]);
 				maTests[i] = new ManhattanTest(titles[i], data[i], masks[i]);
 			}

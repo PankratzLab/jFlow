@@ -13,7 +13,7 @@ import java.util.Vector;
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
 import org.genvisis.common.Files;
@@ -112,7 +112,7 @@ public class CNVConcordance {
 			globalOverlap = (double) totalOverlap / totalCNVs;
 			globalSigOverlap = (double) totalSigOverlap / totalCNVs;
 			globalPerfectOverlap = (double) totalPerfectOverlap / totalCNVs;
-			avgGlobalOverlapScore = Array.mean(globalOverLapScores);
+			avgGlobalOverlapScore = ArrayUtils.mean(globalOverLapScores);
 		}
 	}
 	private static class ComparisionIndividualResults {
@@ -157,7 +157,7 @@ public class CNVConcordance {
 
 		public double getAvgOverlapScore() {
 			if (!overlapScores.isEmpty()) {
-				return Array.mean(overlapScores);
+				return ArrayUtils.mean(overlapScores);
 			}
 			return 0.0;
 		}
@@ -433,7 +433,7 @@ public class CNVConcordance {
 		if (dir != null) {
 			String[] cnvFiles = Files.list(proj.PROJECT_DIRECTORY.getValue() + dir, ".cnv", false);
 			cnvFiles = Files.toFullPaths(cnvFiles, proj.PROJECT_DIRECTORY.getValue() + dir);
-			proj.getLog().report(Array.toStr(cnvFiles));
+			proj.getLog().report(ArrayUtils.toStr(cnvFiles));
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + dir
 				                                                    + output));
@@ -489,7 +489,7 @@ public class CNVConcordance {
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
 				                                                    + output));
-				writer.println(Array.toStr(REPORT_HEADER));
+				writer.println(ArrayUtils.toStr(REPORT_HEADER));
 				writer.println(cnvConcordance.getReport());
 
 				writer.close();
@@ -497,7 +497,7 @@ public class CNVConcordance {
 				proj.getLog().reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue() + output);
 				proj.getLog().reportException(e);
 			}
-			proj.getLog().report(Array.toStr(REPORT_HEADER));
+			proj.getLog().report(ArrayUtils.toStr(REPORT_HEADER));
 			proj.getLog().report(cnvConcordance.getReport());
 		}
 	}
@@ -524,7 +524,7 @@ public class CNVConcordance {
 		Vector<String> params = Files.parseControlFile(filename, "cnvConcordance", getParserParams(),
 		                                               log);
 		if (params != null) {
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 
@@ -548,8 +548,8 @@ public class CNVConcordance {
 		params[13] = "#maximum number of cnvs per individual";
 		params[14] = "#numCNVS=";
 
-		System.out.println(Array.toStr(CNVFilter.getDefaultCNVParams()));
-		params = Array.concatAll(params, new String[][] {CNVFilter.getDefaultCNVParams()});
+		System.out.println(ArrayUtils.toStr(CNVFilter.getDefaultCNVParams()));
+		params = ArrayUtils.concatAll(params, new String[][] {CNVFilter.getDefaultCNVParams()});
 
 		return params;
 	}
@@ -672,7 +672,7 @@ public class CNVConcordance {
 		usage = usage + "\t (11) lrr cutoff (i.e. lrr=" + lrr + " (default))\n";
 		usage = usage + "\t (12) minimum callrate (i.e. call=" + call + " (default))\n";
 
-		usage = usage + "\t (13) further usage:\n" + Array.toStr(CNVFilter.getDefaultCNVParams());
+		usage = usage + "\t (13) further usage:\n" + ArrayUtils.toStr(CNVFilter.getDefaultCNVParams());
 		Project proj;
 		if (ext.indexOfStr("proj=", args, true, false) >= 0) {
 			proj = new Project(ext.parseStringArg(args[ext.indexOfStr("proj=", args, true, false)], ""),

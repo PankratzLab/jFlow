@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -526,7 +526,7 @@ public class ParseSNPlocations {
 						if (rs.indexOf(":") != -1) {
 							rs = rs.substring(0, rs.indexOf(":")); // remove alleles if they exist
 						}
-						index = Array.binarySearch(dbRSnumbers, Integer.parseInt(rs.substring(2)), true); // TODO
+						index = ArrayUtils.binarySearch(dbRSnumbers, Integer.parseInt(rs.substring(2)), true); // TODO
 																																															// parse
 																																															// RS
 																																															// w/
@@ -554,7 +554,7 @@ public class ParseSNPlocations {
 																	+ " in any NCBI database ****ERROR****\n\n");
 								} else if (trav != null) {
 									log.reportError("FYI - " + rs + " has merged with rs" + trav);
-									index = Array.binarySearch(dbRSnumbers, trav.intValue(), true);
+									index = ArrayUtils.binarySearch(dbRSnumbers, trav.intValue(), true);
 
 									if (index == -1) {
 										log.reportError("Error - could not find rs"	+ trav + " in " + db
@@ -564,7 +564,7 @@ public class ParseSNPlocations {
 									} else {
 										chr = dbChrs[index];
 										position = dbPositions[index] + ParseSNPlocations.OFFSET;
-										index = Array.binarySearch(dbRSnumbers, trav.intValue(), true);
+										index = ArrayUtils.binarySearch(dbRSnumbers, trav.intValue(), true);
 									}
 								} else {
 									log.reportError("Error - tried and failed to find a merge record for " + rs);
@@ -688,7 +688,7 @@ public class ParseSNPlocations {
 
 					}
 					if (line[0].startsWith("rs")) {
-						index = Array.binarySearch(dbRSnumbers, Integer.parseInt(line[0].substring(2)), true);
+						index = ArrayUtils.binarySearch(dbRSnumbers, Integer.parseInt(line[0].substring(2)), true);
 						if (index == -1) {
 							if (mergeDB != null) {
 								if (mergeHash == null) {
@@ -712,10 +712,10 @@ public class ParseSNPlocations {
 																	+ " in any NCBI database ****ERROR****\n\n");
 								} else if (trav != null) {
 									log.reportError("FYI - " + line[0] + " has merged with rs" + trav);
-									index = Array.binarySearch(dbRSnumbers, trav.intValue(), true);
+									index = ArrayUtils.binarySearch(dbRSnumbers, trav.intValue(), true);
 									chr = dbChrs[index];
 									position = dbPositions[index] + ParseSNPlocations.OFFSET;
-									index = Array.binarySearch(dbRSnumbers, trav.intValue(), true);
+									index = ArrayUtils.binarySearch(dbRSnumbers, trav.intValue(), true);
 								} else {
 									log.reportError("Error - tried and failed to find a merge record for " + line[0]);
 								}
@@ -806,7 +806,7 @@ public class ParseSNPlocations {
 								positions[count] = Integer.parseInt(line[2]);
 							} catch (NumberFormatException nfe) {
 								System.err.println("Error - parsing line #"	+ (count + 1) + ": "
-																		+ Array.toStr(line));
+																		+ ArrayUtils.toStr(line));
 							}
 						} else {
 							positions[count] = MULTIPLE_POSITIONS;

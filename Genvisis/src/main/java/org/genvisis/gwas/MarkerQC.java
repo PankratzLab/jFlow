@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -94,7 +94,7 @@ public class MarkerQC {
 								line = reader.readLine().trim().split("[\\s]+");
 							} else {
 								done = true;
-								line = Array.stringArray(8, "");
+								line = ArrayUtils.stringArray(8, "");
 							}
 							if (!line[0].equals(prev)) {
 								min = "2";
@@ -161,10 +161,10 @@ public class MarkerQC {
 																																&& params[1][3].equals("header"),
 																								new int[] {Integer.parseInt(params[1][2])}, false);
 			log.report("Found " + markerNames.length + " markers to parse in " + params[1][1]);
-			Files.writeArray(Array.toStringArray(v), dir + "whatGoesIn.out");
+			Files.writeArray(ArrayUtils.toStringArray(v), dir + "whatGoesIn.out");
 			// Files.combine(markerNames, Array.toStringArray(v), Matrix.toStringArrays(headers),
 			// "Marker", ".", dir+params[0][1], log, true, true, false);
-			Files.combineWithLessMemory(markerNames, Array.toStringArray(v),
+			Files.combineWithLessMemory(markerNames, ArrayUtils.toStringArray(v),
 																	Matrix.toStringArrays(headers), "Marker", ".", dir + params[0][1],
 																	log, true, true, false, false);
 			log.report("Finished in " + ext.getTimeElapsed(time));
@@ -241,7 +241,7 @@ public class MarkerQC {
 				writers[2] = new PrintWriter(new FileWriter(dir + params[2][1] + "_annotated.xln"));
 				writers[3] = new PrintWriter(new FileWriter(dir + params[2][1] + "_allAnnotations.out"));
 				line = reader.readLine().trim().split("\\t");
-				indices = ext.indexFactors(	Array.subArray(Matrix.extractColumn(params, 0), 3), line, false,
+				indices = ext.indexFactors(	ArrayUtils.subArray(Matrix.extractColumn(params, 0), 3), line, false,
 																		log, true, false);
 				counts = new int[3][indices.length]; // all, primary, only
 				while (reader.ready()) {
@@ -305,8 +305,8 @@ public class MarkerQC {
 			}
 
 			writer = new PrintWriter(new FileWriter(dir + params[2][1] + ".out"));
-			writer.println("Number of markers failed: "	+ Array.sum(counts[1]) + " of " + count + " ("
-											+ ext.formDeci((double) Array.sum(counts[1]) / (double) count * 100, 2)
+			writer.println("Number of markers failed: "	+ ArrayUtils.sum(counts[1]) + " of " + count + " ("
+											+ ext.formDeci((double) ArrayUtils.sum(counts[1]) / (double) count * 100, 2)
 											+ "%)");
 			writer.println();
 
@@ -326,8 +326,8 @@ public class MarkerQC {
 			}
 			writer.println();
 
-			writer.println("Number of markers failed for only a single reason: "	+ Array.sum(counts[2])
-											+ " (" + ext.formDeci((double) Array.sum(counts[2]) / (double) count * 100, 2)
+			writer.println("Number of markers failed for only a single reason: "	+ ArrayUtils.sum(counts[2])
+											+ " (" + ext.formDeci((double) ArrayUtils.sum(counts[2]) / (double) count * 100, 2)
 											+ "%)");
 			for (int i = 0; i < indices.length; i++) {
 				writer.println(ext.formStr(params[i + 3][0] + params[i + 3][2] + ":", maxSize + 2, true)

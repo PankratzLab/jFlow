@@ -56,7 +56,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.GenvisisWorkflow;
 import org.genvisis.cnv.manage.GenvisisWorkflow.RequirementInputType;
 import org.genvisis.cnv.manage.GenvisisWorkflow.STEP;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
@@ -108,7 +108,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 		}
 		proj.getLog().report("Launching Genvisis Project Pipeline");
 		steps = GenvisisWorkflow.getStepsForProject(proj);
-		selected = Array.booleanArray(steps.length, true);
+		selected = ArrayUtils.booleanArray(steps.length, true);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		JPanel optionPanel = new JPanel();
@@ -740,7 +740,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 								public void run() {
 									int lblIndex = 0;
 									for (boolean[] reqVal : reqVals) {
-										boolean hasAny = Array.booleanArraySum(reqVal) > 0;
+										boolean hasAny = ArrayUtils.booleanArraySum(reqVal) > 0;
 										for (boolean element : reqVal) {
 											reqLbls	.get(lblIndex)
 															.setForeground(element ? greenDark : hasAny ? Color.GRAY : Color.RED);

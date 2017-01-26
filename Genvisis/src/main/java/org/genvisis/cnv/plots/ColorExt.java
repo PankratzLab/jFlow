@@ -15,7 +15,7 @@ import java.util.Set;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
@@ -69,8 +69,8 @@ public class ColorExt {
 	 * @return an array of {@link Color}, one for each data point.
 	 */
 	public static Color[] assignColorsForData(int numColors, double[] data) {
-		NormalDistribution nd = new NormalDistribution(	Array.mean(data, true),
-																										Math.pow(Array.stdev(data, true), 2));
+		NormalDistribution nd = new NormalDistribution(	ArrayUtils.mean(data, true),
+																										Math.pow(ArrayUtils.stdev(data, true), 2));
 		Color[] colorsAvailable = ColorExt.generatRGBScale(numColors);
 		Color[] colorsforData = new Color[data.length];
 		for (int i = 0; i < data.length; i++) {
@@ -157,7 +157,7 @@ public class ColorExt {
 			if (markerIndex < 0 || classIndex < 0) {
 				if (markerIndex < 0) {
 					proj.getLog().reportError("Could not find any of the the following in the header of "
-																				+ file + "\n" + Array.toStr(Aliases.MARKER_NAMES, "\n"));
+																				+ file + "\n" + ArrayUtils.toStr(Aliases.MARKER_NAMES, "\n"));
 				} else {
 					proj.getLog()
 							.reportError("Could not find CLASS=MARKER_COLOR  in the header of " + file);

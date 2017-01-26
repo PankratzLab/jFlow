@@ -5,7 +5,7 @@ package org.genvisis.seq.manage.mtdna;
 
 import java.io.File;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 
@@ -25,7 +25,7 @@ public class RCRS {
 
 	private RCRS(ReferenceSequence rcrsRef, Logger log) {
 		this.rcrsRef = rcrsRef;
-		bases = Array.decodeByteArray(rcrsRef.getBases(), log);
+		bases = ArrayUtils.decodeByteArray(rcrsRef.getBases(), log);
 	}
 
 

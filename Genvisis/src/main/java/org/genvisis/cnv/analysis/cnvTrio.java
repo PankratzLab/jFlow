@@ -19,7 +19,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.qc.CNVTrioFilter;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
 import org.genvisis.common.Files;
@@ -259,8 +259,8 @@ public class cnvTrio extends CNVariant {
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("\t");
 
-				String[] plinkLine = Array.subArray(line, cnvIndices);
-				String[] trio = Array.subArray(line, trioIndics);
+				String[] plinkLine = ArrayUtils.subArray(line, cnvIndices);
+				String[] trio = ArrayUtils.subArray(line, trioIndics);
 				String iDNA = trio[0];
 				String fADNA = trio[1];
 				String mODNA = trio[2];
@@ -434,7 +434,7 @@ public class cnvTrio extends CNVariant {
 		}
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(parentOutput + BEAST_OUTPUT[4]));
-			writer.println(Array.toStr(PLINK_CNV_HEADER));
+			writer.println(ArrayUtils.toStr(PLINK_CNV_HEADER));
 			for (int i = 0; i < parentalCNVs.size(); i++) {
 				writer.println(parentalCNVs.get(i).toPlinkFormat());
 			}
@@ -518,11 +518,11 @@ public class cnvTrio extends CNVariant {
 	private static void summarizeTrios(Project proj, TrioQC[] trios, String fileType) {
 		PrintWriter writerFullSummary = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
 		                                                           + fileType + BEAST_OUTPUT[0]);
-		writerFullSummary.print(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
-		                        + Array.toStr(OUTPUT_HEADER) + "\n");
+		writerFullSummary.print(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
+		                        + ArrayUtils.toStr(OUTPUT_HEADER) + "\n");
 		for (TrioQC trio : trios) {
 			if (trio.hasSummary()) {
-				writerFullSummary.println(Array.toStr(trio.getFullSummary(), "\n"));
+				writerFullSummary.println(ArrayUtils.toStr(trio.getFullSummary(), "\n"));
 			} else {
 				proj.getLog().report("Info - not reporting " + trio.getTrio()
 				                     + ", did not have any offspring cnvs...");
@@ -676,9 +676,9 @@ public class cnvTrio extends CNVariant {
 				float[] moLrr = moSamp.getLRRs();
 
 				final int end = Bytes.indexOf(chrs, (byte) 23);
-				float iStDev = Array.stdev(Array.subArray(iLrr, 0, end), true);
-				float faStDev = Array.stdev(Array.subArray(faLrr, 0, end), true);
-				float moStDev = Array.stdev(Array.subArray(moLrr, 0, end), true);
+				float iStDev = ArrayUtils.stdev(ArrayUtils.subArray(iLrr, 0, end), true);
+				float faStDev = ArrayUtils.stdev(ArrayUtils.subArray(faLrr, 0, end), true);
+				float moStDev = ArrayUtils.stdev(ArrayUtils.subArray(moLrr, 0, end), true);
 
 				BeastScore iBeast = getBeast(iLrr, indicesByChr, targetIndices, log);
 				BeastScore faBeast = getBeast(faLrr, indicesByChr, targetIndices, log);
@@ -722,7 +722,7 @@ public class cnvTrio extends CNVariant {
 					}
 				}
 				if (tmp.size() > 0) {
-					median = (float) Array.median(Doubles.toArray(tmp));
+					median = (float) ArrayUtils.median(Doubles.toArray(tmp));
 				}
 			}
 			return median;
@@ -741,7 +741,7 @@ public class cnvTrio extends CNVariant {
 					bafs[j] = Float.NaN;
 				}
 			}
-			return Array.stdev(bafs, true);
+			return ArrayUtils.stdev(bafs, true);
 		}
 
 		/**
@@ -894,9 +894,9 @@ public class cnvTrio extends CNVariant {
 			// FileWriter(proj.getFilename(proj.REGION_LIST_FILENAMES)));
 			PrintWriter writerRegion =
 			                         new PrintWriter(new FileWriter(proj.REGION_LIST_FILENAMES.getValue()[0]));
-			writerSummary.println(Array.toStr(PLINK_CNV_HEADER) + "\t"
-			                      + Array.toStr(FILTERED_OUTPUT_HEADER));
-			writerCNV.println(Array.toStr(PLINK_CNV_HEADER));
+			writerSummary.println(ArrayUtils.toStr(PLINK_CNV_HEADER) + "\t"
+			                      + ArrayUtils.toStr(FILTERED_OUTPUT_HEADER));
+			writerCNV.println(ArrayUtils.toStr(PLINK_CNV_HEADER));
 			Hashtable<String, String> track = new Hashtable<String, String>();
 
 			for (int i = 0; i < filteredCnvTrios.size(); i++) {
@@ -942,7 +942,7 @@ public class cnvTrio extends CNVariant {
 		params[2] = COMMAND_PROJECT;
 		params[3] = "# the path (relative to the project directory) for the trio results file";
 		params[4] = COMMAND_TRIO_RESULTS;
-		params = Array.concatAll(params, CNVTrioFilter.getDefaultCNVTrioParams());
+		params = ArrayUtils.concatAll(params, CNVTrioFilter.getDefaultCNVTrioParams());
 		return params;
 	}
 
@@ -952,7 +952,7 @@ public class cnvTrio extends CNVariant {
 		                                log);
 		if (params != null) {
 			params.add(COMMAND_PARSE);
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 

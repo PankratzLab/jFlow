@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -226,10 +226,10 @@ public class Picard {
 			parseMetricsFiles();
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(outputSummaryFile));
-				writer.println("SAMPLE\t" + Array.toStr(PICARD_METRICS));
+				writer.println("SAMPLE\t" + ArrayUtils.toStr(PICARD_METRICS));
 				for (int i = 0; i < consolidatedMetrics.length; i++) {
 					writer.println(ext.rootOf(picardMetricsFiles[i])	+ "\t"
-													+ Array.toStr(consolidatedMetrics[i]));
+													+ ArrayUtils.toStr(consolidatedMetrics[i]));
 				}
 				writer.close();
 			} catch (Exception e) {
@@ -259,7 +259,7 @@ public class Picard {
 				} while (reader.ready() && (ext.indexFactors(	new String[][] {PICARD_METRICS}, line, false,
 																											true, false, false)[0] == -1));
 				if (!reader.ready()) {
-					log.reportError("Error - could not find neccesary header "	+ Array.toStr(PICARD_METRICS)
+					log.reportError("Error - could not find neccesary header "	+ ArrayUtils.toStr(PICARD_METRICS)
 													+ " in file " + picardMetricsFile);
 				} else {
 					int[] indices = ext.indexFactors(line, PICARD_METRICS, true, false);
@@ -268,7 +268,7 @@ public class Picard {
 						try {
 							curMetrics[i] = Double.parseDouble(line[indices[i]]);
 						} catch (NumberFormatException numberFormatException) {
-							log.reportError("Error - invalid number on line "	+ Array.toStr(line) + " in file "
+							log.reportError("Error - invalid number on line "	+ ArrayUtils.toStr(line) + " in file "
 															+ picardMetricsFile);
 						}
 					}

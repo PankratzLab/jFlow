@@ -329,7 +329,7 @@ public class CNVFilter {
 		params.add("# proportion of probes that need to pass for final inclusion");
 		params.add("# proportion=");
 
-		return Array.toStringArray(params);
+		return ArrayUtils.toStringArray(params);
 	}
 
 	public boolean passesCNVFilter(CNVariant cnv) {
@@ -383,8 +383,8 @@ public class CNVFilter {
 						cnvCentromere = new CNVariant[] {};
 					}
 
-					int secondMarker = Array.binarySearch(getPositions()[cnv.getChr()], cnv.getStop(), true);
-					int firstMarker = Array.binarySearch(getPositions()[cnv.getChr()], bounds[1], true);
+					int secondMarker = ArrayUtils.binarySearch(getPositions()[cnv.getChr()], cnv.getStop(), true);
+					int firstMarker = ArrayUtils.binarySearch(getPositions()[cnv.getChr()], bounds[1], true);
 					int markerCnt = secondMarker - firstMarker + 1;
 					newCNV1 = new CNVariant(cnv.getFamilyID(), cnv.getIndividualID(), cnv.getChr(),
 																	getPositions()[cnv.getChr()][firstMarker], cnv.getStop(),
@@ -397,8 +397,8 @@ public class CNVFilter {
 						cnvCentromere = new CNVariant[] {};
 					}
 
-					int firstMarker = Array.binarySearch(getPositions()[cnv.getChr()], cnv.getStart(), true);
-					int secondMarker = Array.binarySearch(getPositions()[cnv.getChr()], bounds[0], true);
+					int firstMarker = ArrayUtils.binarySearch(getPositions()[cnv.getChr()], cnv.getStart(), true);
+					int secondMarker = ArrayUtils.binarySearch(getPositions()[cnv.getChr()], bounds[0], true);
 					int markerCnt = secondMarker - firstMarker + 1;
 					newCNV2 = new CNVariant(cnv.getFamilyID(), cnv.getIndividualID(), cnv.getChr(),
 																	cnv.getStart(), getPositions()[cnv.getChr()][secondMarker],
@@ -619,7 +619,7 @@ public class CNVFilter {
 		try {
 			log.reportTimeInfo("Writing cnvs to " + out);
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (CNVariant cnv2 : cnvs) {
 				if (cnvFilter != null) {
 					CNVFilterPass pass = cnvFilter.getCNVFilterPass(cnv2);
@@ -881,7 +881,7 @@ public class CNVFilter {
 		params[5] = "# the path (relative to the project directory) for the filtered output";
 		params[6] = COMMAND_CNV_FILE_OUT;
 
-		params = Array.concatAll(params, getDefaultCNVParams());
+		params = ArrayUtils.concatAll(params, getDefaultCNVParams());
 		return params;
 	}
 
@@ -890,7 +890,7 @@ public class CNVFilter {
 		params = Files.parseControlFile(filename, COMMAND_CNV_FILTER_CRF, getParserParams(), log);
 		params.add(COMMAND_CNV_FILTER);
 		if (params != null) {
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 

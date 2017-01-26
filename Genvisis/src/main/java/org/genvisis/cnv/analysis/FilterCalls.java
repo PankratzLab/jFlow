@@ -24,7 +24,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.UCSCtrack;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
 import org.genvisis.common.Files;
@@ -328,7 +328,7 @@ public class FilterCalls {
 
 		System.out.println(ext.getTime() + "] Writing results to \"" + outputFile + "\"...");
 
-		String header = Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t")
+		String header = ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t")
 										+ "\t%major\t%minor\tStats(M)\tStats(m)";
 
 		PrintWriter writer;
@@ -682,7 +682,7 @@ public class FilterCalls {
 
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 
 			HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap =
 																																					new HashMap<String, HashMap<Byte, ArrayList<CNVariant>>>();
@@ -767,8 +767,8 @@ public class FilterCalls {
 					// create objects for all CNVs while also setting start/end marker indices, accounting for
 					// dropped markers
 					for (int i = 0; i < cnvList.size(); i++) {
-						int firstSNPIndex = Array.binarySearch(positions[chr], cnvList.get(i).getStart(), true);
-						int lastSNPIndex = Array.binarySearch(positions[chr], cnvList.get(i).getStop(), true);
+						int firstSNPIndex = ArrayUtils.binarySearch(positions[chr], cnvList.get(i).getStart(), true);
+						int lastSNPIndex = ArrayUtils.binarySearch(positions[chr], cnvList.get(i).getStop(), true);
 
 						// account for dropped markers
 						if (droppedMarkerNames.contains(markerNames[firstSNPIndex])) {
@@ -981,8 +981,8 @@ public class FilterCalls {
 			}
 		}
 		double[] lrrsDubs = Doubles.toArray(lrr);
-		cnv.medianLRR = Array.median(lrrsDubs);
-		cnv.stdevLRR = Array.stdev(lrrsDubs);
+		cnv.medianLRR = ArrayUtils.median(lrrsDubs);
+		cnv.stdevLRR = ArrayUtils.stdev(lrrsDubs);
 	}
 
 	private static void setLRRMedStdDev(MergedCNVariant newCNV, MergedCNVariant oldCNV1,
@@ -1006,8 +1006,8 @@ public class FilterCalls {
 		}
 
 		double[] lrrsDubs = Doubles.toArray(lrr);
-		newCNV.medianLRR = Array.median(lrrsDubs);
-		newCNV.stdevLRR = Array.stdev(lrrsDubs);
+		newCNV.medianLRR = ArrayUtils.median(lrrsDubs);
+		newCNV.stdevLRR = ArrayUtils.stdev(lrrsDubs);
 
 		newCNV.originalCNVs.addAll(allOriginalCNVs);
 	}
@@ -1042,7 +1042,7 @@ public class FilterCalls {
 
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 			for (CNVariant cnv : newCNVs) {
 				writer.println(cnv.toPlinkFormat());
 			}
@@ -1147,8 +1147,8 @@ public class FilterCalls {
 			return new float[] {curr.getSize() + next.getSize(), next.getStart() - curr.getStop()};
 		}
 
-		int lastSNPIndex1 = Array.binarySearch(positions[curr.getChr()], curr.getStop(), true);
-		int firstSNPIndex2 = Array.binarySearch(positions[next.getChr()], next.getStart(), true);
+		int lastSNPIndex1 = ArrayUtils.binarySearch(positions[curr.getChr()], curr.getStop(), true);
+		int firstSNPIndex2 = ArrayUtils.binarySearch(positions[next.getChr()], next.getStart(), true);
 
 		float sz = (curr.getNumMarkers() + next.getNumMarkers());
 		float dist = firstSNPIndex2 - lastSNPIndex1 - 2;
@@ -1360,7 +1360,7 @@ public class FilterCalls {
 		String filenm = fileext.substring(0, fileext.lastIndexOf('.'));
 		String newFile = path + filenm + ".excluded.cnv";
 
-		String[] excludes = Array.subArray(proj.getSamples(), proj.getSamplesToExclude());
+		String[] excludes = ArrayUtils.subArray(proj.getSamples(), proj.getSamplesToExclude());
 		HashSet<String> excludeSet = new HashSet<String>();
 		for (String exclude : excludes) {
 			excludeSet.add(exclude);
@@ -1394,7 +1394,7 @@ public class FilterCalls {
 																			boolean exclude) {
 		PrintWriter writer;
 		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, true, false);
-		boolean[] remove = Array.booleanArray(cnvs.size(), !exclude);
+		boolean[] remove = ArrayUtils.booleanArray(cnvs.size(), !exclude);
 		HashSet<String> indivList =
 															HashVec.convertHashNullToHashSet(HashVec.loadFileToHashString(indivFile,
 																																														new int[] {	0,
@@ -1420,7 +1420,7 @@ public class FilterCalls {
 
 		try {
 			writer = new PrintWriter(new FileWriter(dir + out));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 			for (int i = 0; i < remove.length; i++) {
 				if (!remove[i]) {
 					writer.println(cnvs.get(i).toPlinkFormat());
@@ -1464,7 +1464,7 @@ public class FilterCalls {
 
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(dir + out));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 
 			for (CNVariant cnv : centromeric) {
 				CNVFilterPass fp = filter.getCNVFilterPass(cnv);
@@ -1750,10 +1750,10 @@ public class FilterCalls {
 								// TODO update marker count for newly-broken CNV
 								line[3] = cnv.getStart() + "";
 								line[4] = centromereBoundaries[cnv.getChr()][0] + "";
-								writer.println(Array.toStr(line));
+								writer.println(ArrayUtils.toStr(line));
 								line[3] = centromereBoundaries[cnv.getChr()][1] + "";
 								line[4] = cnv.getStop() + "";
-								writer.println(Array.toStr(line));
+								writer.println(ArrayUtils.toStr(line));
 								// return;
 							}
 							countCentromeric++;
@@ -1766,7 +1766,7 @@ public class FilterCalls {
 							// "+cnv.getFamilyID()+","+cnv.getIndividualID()+" spans a centromere
 							// ("+cnv.getUCSClocation()+") with "+cnv.getNumMarkers()+" markers");
 						} else {
-							writer.println(Array.toStr(line));
+							writer.println(ArrayUtils.toStr(line));
 						}
 					}
 					if (cnv.getSize() > 10000000 || cnv.getNumMarkers() > 500) {
@@ -1890,8 +1890,8 @@ public class FilterCalls {
 
 		System.out.println(ext.getTime() + "\tDetermining acceptability...");
 		for (int i = 0; i < cnvs.length; i++) {
-			firstSNP = Array.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStart(), true);
-			lastSNP = Array.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStop(), true);
+			firstSNP = ArrayUtils.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStart(), true);
+			lastSNP = ArrayUtils.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStop(), true);
 			if (firstSNP == -1 || lastSNP == -1) {
 				System.err.println("Error - could not locate start or stop position for "
 														+ cnvs[i].getUCSClocation());
@@ -1917,8 +1917,8 @@ public class FilterCalls {
 
 		System.out.println(ext.getTime() + "\tFiltering CNVs...");
 		for (CNVariant cnv : cnvs) {
-			firstSNP = Array.binarySearch(positions[cnv.getChr()], cnv.getStart(), true);
-			lastSNP = Array.binarySearch(positions[cnv.getChr()], cnv.getStop(), true);
+			firstSNP = ArrayUtils.binarySearch(positions[cnv.getChr()], cnv.getStart(), true);
+			lastSNP = ArrayUtils.binarySearch(positions[cnv.getChr()], cnv.getStop(), true);
 			indel = cnv.getCN() < 2 ? 0 : 1;
 
 
@@ -1990,8 +1990,8 @@ public class FilterCalls {
 
 		System.out.println(ext.getTime() + "\tDetermining acceptability...");
 		for (int i = 0; i < cnvs.length; i++) {
-			firstSNP = Array.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStart(), true);
-			lastSNP = Array.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStop(), true);
+			firstSNP = ArrayUtils.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStart(), true);
+			lastSNP = ArrayUtils.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStop(), true);
 			if (firstSNP == -1 || lastSNP == -1) {
 				System.err.println("Error - could not locate start or stop position for "
 														+ cnvs[i].getUCSClocation());
@@ -2016,10 +2016,10 @@ public class FilterCalls {
 		System.out.println(ext.getTime() + "\tFiltering CNVs...");
 		try {
 			writer = new PrintWriter(new FileWriter(fileout));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (CNVariant cnv : cnvs) {
-				firstSNP = Array.binarySearch(positions[cnv.getChr()], cnv.getStart(), true);
-				lastSNP = Array.binarySearch(positions[cnv.getChr()], cnv.getStop(), true);
+				firstSNP = ArrayUtils.binarySearch(positions[cnv.getChr()], cnv.getStart(), true);
+				lastSNP = ArrayUtils.binarySearch(positions[cnv.getChr()], cnv.getStop(), true);
 				indel = cnv.getCN() < 2 ? 0 : 1;
 
 				if (firstSNP == -1 || lastSNP == -1) {
@@ -2239,7 +2239,7 @@ public class FilterCalls {
 
 		if (params != null) {
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 

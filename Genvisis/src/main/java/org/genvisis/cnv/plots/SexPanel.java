@@ -19,7 +19,7 @@ import javax.swing.JPopupMenu;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.LaunchAction;
 import org.genvisis.cnv.qc.SexChecks;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.mining.Distance;
@@ -153,7 +153,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 	}
 
 	public void uncertainsToTrailer() {
-		int numUncertains = Array.booleanArraySum(uncertains);
+		int numUncertains = ArrayUtils.booleanArraySum(uncertains);
 		if (numUncertains == 0) {
 			JOptionPane.showMessageDialog(null, "No uncertain sex calls to display");
 			return;

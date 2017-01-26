@@ -2,7 +2,7 @@ package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 import com.google.common.primitives.Doubles;
@@ -85,11 +85,11 @@ public class CNVBDeviation {
 	public void summarize() {
 		if (bDeviationsAll.size() > 0) {
 			double[] bDeviationsDAll = Doubles.toArray(bDeviationsAll);
-			medianBDeviationAll = Array.median(bDeviationsDAll);
+			medianBDeviationAll = ArrayUtils.median(bDeviationsDAll);
 		}
 		if (bDeviationsHet.size() > 0) {
 			double[] bDeviationsDHet = Doubles.toArray(bDeviationsHet);
-			medianBDeviationHet = Array.median(bDeviationsDHet);
+			medianBDeviationHet = ArrayUtils.median(bDeviationsDHet);
 		}
 	}
 

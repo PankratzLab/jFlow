@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -108,7 +108,7 @@ public class MergeBam {
 				}
 			} else {
 				log.report(ext.getTime()	+ " Info - since there were less than two input bams, "
-										+ Array.toStr(inputBams) + " will not be merged");
+										+ ArrayUtils.toStr(inputBams) + " will not be merged");
 				progress = true;
 			}
 		} else {
@@ -134,7 +134,7 @@ public class MergeBam {
 
 	public BamMerger mergeABam(	String[] baseIds, String newBaseID, String[] inputBams,
 															String outputDir, String mergeStage, Logger altLog) {
-		altLog.report("trying to merge " + newBaseID + "\t" + Array.toStr(inputBams));
+		altLog.report("trying to merge " + newBaseID + "\t" + ArrayUtils.toStr(inputBams));
 		BamMerger bamMerger = new BamMerger(newBaseID, outputDir, inputBams, altLog);
 		bamMerger.parse(mergeStage);
 		boolean progress = true;
@@ -159,7 +159,7 @@ public class MergeBam {
 																			samtoolsLocation, REHEADER, "-", bamFile, ">",
 																			reHeader.getReHeaderBam()};
 		String bat = ext.rootOf(bamFile, false) + ".rh.bat";
-		Files.write(Array.toStr(command, " "), bat);
+		Files.write(ArrayUtils.toStr(command, " "), bat);
 		Files.chmod(bat);
 		progress = CmdLine.runCommandWithFileChecks(new String[] {bat}, "", new String[] {bamFile, bat},
 																								output, verbose, overwriteExisting, false, log);
@@ -295,7 +295,7 @@ public class MergeBam {
 		String[] fullHeaderCommand = new String[] {	samtoolsLocation, "view", H, inputBam, ">",
 																								headerFile};
 		String bat = ext.addToRoot(inputBam, ".header.bat");
-		Files.write(Array.toStr(fullHeaderCommand, " "), bat);
+		Files.write(ArrayUtils.toStr(fullHeaderCommand, " "), bat);
 		Files.chmod(bat);
 		CmdLine.run(bat, "");
 		// CmdLine.runCommandWithFileChecks(fullHeaderCommand, "", new String[] { inputBam }, new

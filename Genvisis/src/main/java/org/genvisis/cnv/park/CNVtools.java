@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class CNVtools {
@@ -80,7 +80,7 @@ public class CNVtools {
 							System.err.println("Error reading file \"" + file.getName() + "\"");
 							System.exit(2);
 						}
-						ids = Array.toStringArray(v);
+						ids = ArrayUtils.toStringArray(v);
 						writer.print("Name\tChr\tPosition");
 						for (String id : ids) {
 							writer.print("\t"	+ id + ".GType" + "\t" + id + ".Log R Ratio" + "\t" + id

@@ -352,8 +352,8 @@ public class ext {
 		}
 		tokens.add(hist);
 
-		return new String[][] {	Array.toStringArray(operatorsPresent),
-														Array.toStringArray(operatorIndices), Array.toStringArray(tokens)};
+		return new String[][] {	ArrayUtils.toStringArray(operatorsPresent),
+														ArrayUtils.toStringArray(operatorIndices), ArrayUtils.toStringArray(tokens)};
 	}
 
 	public static boolean eqArrays(Object[] arr1, Object[] arr2) {
@@ -944,7 +944,7 @@ public class ext {
 				if (verbose) {
 					if (log != null) {
 						log.reportError((kill ? "Error" : "Warning")	+ " - no factor named '"
-														+ Array.toStr(targetsWithAlts[i], "/") + "'");
+														+ ArrayUtils.toStr(targetsWithAlts[i], "/") + "'");
 					}
 				}
 				finalIndices[i] = -1;
@@ -1048,8 +1048,8 @@ public class ext {
 		if (observed.length != expected.length) {
 			log.reportError("Error - file has an unexpected header; expecting "	+ expected.length
 											+ " columns, found " + observed.length);
-			log.reportError("Expected: " + Array.toStr(expected));
-			log.reportError("Observed: " + Array.toStr(observed));
+			log.reportError("Expected: " + ArrayUtils.toStr(expected));
+			log.reportError("Observed: " + ArrayUtils.toStr(observed));
 			kosher = false;
 			if (kill) {
 				System.exit(1);
@@ -1718,7 +1718,7 @@ public class ext {
 		v.add(removeAndSimplifyQuotes	? removeAndSimplifyQuotes(str.substring(startIndex), log)
 																	: str.substring(startIndex));
 
-		return Array.toStringArray(v);
+		return ArrayUtils.toStringArray(v);
 	}
 
 	public static String reportMemoryUsage() {

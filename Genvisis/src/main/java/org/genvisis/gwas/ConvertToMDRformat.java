@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 
 public class ConvertToMDRformat {
@@ -36,7 +36,7 @@ public class ConvertToMDRformat {
 		try {
 			reader = new BufferedReader(new FileReader(dir + prefix + ".ped"));
 			writer = new PrintWriter(new FileWriter(dir + prefix + ".mdr"));
-			writer.println(Array.toStr(markers) + "\tClass");
+			writer.println(ArrayUtils.toStr(markers) + "\tClass");
 			while (reader.ready()) {
 				line = reader.readLine().split("[\\s]+");
 				if (!line[5].equals("0")) {

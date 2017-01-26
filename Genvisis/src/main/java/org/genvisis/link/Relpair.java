@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ByteVector;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
@@ -53,7 +53,7 @@ public class Relpair {
 		if (missing.size() > 0) {
 			System.err.println("Warning - Files not found for chromosome"
 														+ (missing.size() > 1 ? "s" : "") + ": "
-													+ Array.toStr(missing.toArray(), " "));
+													+ ArrayUtils.toStr(missing.toArray(), " "));
 		}
 		numMarkers = new int[chrs.length];
 		readers = new BufferedReader[chrs.length];
@@ -120,7 +120,7 @@ public class Relpair {
 			System.exit(1);
 		}
 
-		System.out.println("Using " + Array.sum(numMarkers) + " markers.");
+		System.out.println("Using " + ArrayUtils.sum(numMarkers) + " markers.");
 
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "relpair.ped"));
@@ -128,7 +128,7 @@ public class Relpair {
 
 			writer.println("(I2,1X,A" + maxfamIDsize + ")");
 			writer.println("(3A"	+ (maxindIDsize + 1) + ",2A1,A" + (MAX_NUM_DIGITS_IN_ALLELE * 2 + 1)
-											+ "," + Array.sum(numMarkers) + "(1X,A" + (MAX_NUM_DIGITS_IN_ALLELE * 2 + 1)
+											+ "," + ArrayUtils.sum(numMarkers) + "(1X,A" + (MAX_NUM_DIGITS_IN_ALLELE * 2 + 1)
 											+ "))");
 
 			for (int fam = 0; fam < indsPerFam.length; fam++) {
@@ -238,7 +238,7 @@ public class Relpair {
 						line[6] = "";
 					}
 					if (genome == null) {
-						withinWriter.println(Array.toStr(line));
+						withinWriter.println(ArrayUtils.toStr(line));
 					} else {
 						within.put(line[0]	+ "\t" + line[1] + "\t" + line[2],
 												line[3] + "\t" + line[4] + "\t" + line[5]);
@@ -264,7 +264,7 @@ public class Relpair {
 						line[6] = "10^6";
 					}
 					if (genome == null) {
-						betweenWriter.println(Array.toStr(line));
+						betweenWriter.println(ArrayUtils.toStr(line));
 					} else {
 						between.put(line[0]	+ "\t" + line[1] + "\t" + line[2] + "\t" + line[3],
 												line[4] + "\t" + line[5] + "\t" + line[6]);
@@ -319,12 +319,12 @@ public class Relpair {
 			}
 			keys = HashVec.getKeys(within);
 			for (String key : keys) {
-				withinWriter.println(key	+ "\t" + Array.toStr(Array.stringArray(5, ".")) + "\t"
+				withinWriter.println(key	+ "\t" + ArrayUtils.toStr(ArrayUtils.stringArray(5, ".")) + "\t"
 															+ within.get(key));
 			}
 			keys = HashVec.getKeys(between);
 			for (String key : keys) {
-				betweenWriter.println(key	+ "\t" + Array.toStr(Array.stringArray(4, ".")) + "\t"
+				betweenWriter.println(key	+ "\t" + ArrayUtils.toStr(ArrayUtils.stringArray(4, ".")) + "\t"
 															+ within.get(key));
 			}
 

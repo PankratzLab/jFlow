@@ -7,7 +7,7 @@ import java.awt.Graphics;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -38,10 +38,10 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
 
 		log.report("File\tTrait\tLambda");
 		for (int i = 0; i < pvals.length; i++) {
-			descriptions[i] = "lambda = "	+ ext.formDeci(Array.lambda(pvals[i]), 4) + " (" + labels[i]
+			descriptions[i] = "lambda = "	+ ext.formDeci(ArrayUtils.lambda(pvals[i]), 4) + " (" + labels[i]
 												+ ")";
-			log.report(Array.toStr(ext.replaceAllWith(labels[i], "'", "").split("[\\s]+"))	+ "\t"
-									+ ext.formDeci(Array.lambda(pvals[i]), 4));
+			log.report(ArrayUtils.toStr(ext.replaceAllWith(labels[i], "'", "").split("[\\s]+"))	+ "\t"
+									+ ext.formDeci(ArrayUtils.lambda(pvals[i]), 4));
 		}
 
 		createLookup(false);

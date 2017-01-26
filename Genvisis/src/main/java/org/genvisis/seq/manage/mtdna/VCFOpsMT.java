@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.genvisis.CLI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.seq.manage.VCFOps;
@@ -160,7 +160,7 @@ public class VCFOpsMT {
 		}
 
 		private Allele getRcrsAllles(VariantContext vc) {
-			String rcrsS = Array.toStr(	Array.subArray(rcrs.getBases(), vc.getStart() - 1, vc.getEnd()),
+			String rcrsS = ArrayUtils.toStr(	ArrayUtils.subArray(rcrs.getBases(), vc.getStart() - 1, vc.getEnd()),
 																	"");
 			return Allele.create(rcrsS, true);
 		}

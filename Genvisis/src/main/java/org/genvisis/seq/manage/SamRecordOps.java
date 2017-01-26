@@ -2,7 +2,7 @@ package org.genvisis.seq.manage;
 
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.filesys.Segment;
@@ -92,7 +92,7 @@ public class SamRecordOps {
 	public static SoftClipped[] getSoftClippedBases(SAMRecord samRecord, Logger log) {
 		ArrayList<SoftClipped> softies = new ArrayList<SoftClipped>();
 		Cigar cigar = samRecord.getCigar();
-		String[] bases = Array.decodeByteArray(samRecord.getReadBases(), log);
+		String[] bases = ArrayUtils.decodeByteArray(samRecord.getReadBases(), log);
 		int curStart = 0;
 		int readIndex = 0;
 
@@ -102,7 +102,7 @@ public class SamRecordOps {
 				readIndex += cigarElement.getLength();
 			}
 			if (cigarElement.getOperator() == CigarOperator.S) {
-				String softy = Array.toStr(Array.subArray(bases, curStart, readIndex), "");
+				String softy = ArrayUtils.toStr(ArrayUtils.subArray(bases, curStart, readIndex), "");
 				// soft clips are at begining and ends of reads....
 				int refPos = curStart == 0	? samRecord.getReferencePositionAtReadPosition(readIndex)
 																		: samRecord.getReferencePositionAtReadPosition(curStart);

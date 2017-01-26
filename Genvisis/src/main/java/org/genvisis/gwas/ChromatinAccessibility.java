@@ -12,7 +12,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
@@ -79,7 +79,7 @@ public class ChromatinAccessibility {
 						} else {
 							hash.put(trav, v = new Vector<double[]>());
 						}
-						v.add(Array.toDoubleArray(Array.subArray(line, 9)));
+						v.add(ArrayUtils.toDoubleArray(ArrayUtils.subArray(line, 9)));
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
@@ -98,17 +98,17 @@ public class ChromatinAccessibility {
 					matrix = Matrix.toDoubleArrays(hash.get(keys[j]));
 					writer.print("mean");
 					for (int k = 0; k < matrix[j].length; k++) {
-						writer.print("\t" + Array.mean(Matrix.extractColumn(matrix, k)));
+						writer.print("\t" + ArrayUtils.mean(Matrix.extractColumn(matrix, k)));
 					}
 					writer.println("\t" + keys[j]);
 					writer.print("min");
 					for (int k = 0; k < matrix[j].length; k++) {
-						writer.print("\t" + Array.min(Matrix.extractColumn(matrix, k)));
+						writer.print("\t" + ArrayUtils.min(Matrix.extractColumn(matrix, k)));
 					}
 					writer.println("\t" + keys[j]);
 					writer.print("max");
 					for (int k = 0; k < matrix[j].length; k++) {
-						writer.print("\t" + Array.max(Matrix.extractColumn(matrix, k)));
+						writer.print("\t" + ArrayUtils.max(Matrix.extractColumn(matrix, k)));
 					}
 					writer.println("\t" + keys[j]);
 				}
@@ -199,7 +199,7 @@ public class ChromatinAccessibility {
 				// System.out.println("\tClass\tProportion affected\tnumIn\tnumOut");
 				for (int j = 0; j < 2; j++) {
 					// for (int j = 0; j < CLASSES.length; j++) {
-					System.out.print("\t" + CLASSES[j] + "\t" + Array.toStr(coverage(segs[i][j])));
+					System.out.print("\t" + CLASSES[j] + "\t" + ArrayUtils.toStr(coverage(segs[i][j])));
 				}
 				System.out.println();
 			}
@@ -249,7 +249,7 @@ public class ChromatinAccessibility {
 		// System.out.println("\tClass\tProportion affected\tnumIn\tnumOut");
 		for (int j = 0; j < 2; j++) {
 			// for (int j = 0; j < CLASSES.length; j++) {
-			System.out.print("\t" + CLASSES[j] + "\t" + Array.toStr(coverage(segs[files.length][j])));
+			System.out.print("\t" + CLASSES[j] + "\t" + ArrayUtils.toStr(coverage(segs[files.length][j])));
 		}
 		System.out.println();
 
@@ -400,7 +400,7 @@ public class ChromatinAccessibility {
 						// System.out.print("\t"+numOut+"\t"+ext.formPercent(numIn/(numIn+numOut), 2));
 						System.out.print("\t" + ext.formPercent(numIn / (numIn + numOut), 2));
 
-						pvals = Array.toDoubleArray(HashVec.loadFileToStringArray(file_dir
+						pvals = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(file_dir
 																																				+ ext.rootOf(filename) + "/"
 																																			+ ext.addToRoot(filename,
 																																											(i == files.length	? "_allMerged_"
@@ -411,15 +411,15 @@ public class ChromatinAccessibility {
 																																																+ "_in"),
 																																			false, new int[] {3}, false));
 						System.out.print("\t" + ext.formDeci(
-																									ProbDist.ChiDistReverse(Array.median(Array.removeNaN(pvals)),
+																									ProbDist.ChiDistReverse(ArrayUtils.median(ArrayUtils.removeNaN(pvals)),
 																																					1)
 																									/ ProbDist.ChiDistReverse(0.50, 1), 4));
 						System.out.print("\t" + ext.formDeci(
-																									ProbDist.ChiDistReverse(Array.quantExclusive(	Array.removeNaN(pvals),
+																									ProbDist.ChiDistReverse(ArrayUtils.quantExclusive(	ArrayUtils.removeNaN(pvals),
 																																																0.10),
 																																					1)
 																									/ ProbDist.ChiDistReverse(0.10, 1), 4));
-						pvals = Array.toDoubleArray(HashVec.loadFileToStringArray(file_dir
+						pvals = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(file_dir
 																																				+ ext.rootOf(filename) + "/"
 																																			+ ext.addToRoot(filename,
 																																											(i == files.length	? "_allMerged_"
@@ -430,11 +430,11 @@ public class ChromatinAccessibility {
 																																																+ "_out"),
 																																			false, new int[] {3}, false));
 						System.out.print("\t" + ext.formDeci(
-																									ProbDist.ChiDistReverse(Array.median(Array.removeNaN(pvals)),
+																									ProbDist.ChiDistReverse(ArrayUtils.median(ArrayUtils.removeNaN(pvals)),
 																																					1)
 																									/ ProbDist.ChiDistReverse(0.50, 1), 4));
 						System.out.print("\t" + ext.formDeci(
-																									ProbDist.ChiDistReverse(Array.quantExclusive(	Array.removeNaN(pvals),
+																									ProbDist.ChiDistReverse(ArrayUtils.quantExclusive(	ArrayUtils.removeNaN(pvals),
 																																																0.10),
 																																					1)
 																									/ ProbDist.ChiDistReverse(0.10, 1), 4));

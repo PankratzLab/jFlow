@@ -13,7 +13,7 @@ import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.PSF;
@@ -101,7 +101,7 @@ public class AutoMito {
 		}
 
 		SampleQC sampleQC = SampleQC.loadSampleQC(proj);
-		boolean[] samplesPassing = Array.booleanArray(proj.getSamples().length, false);
+		boolean[] samplesPassing = ArrayUtils.booleanArray(proj.getSamples().length, false);
 		String sampleFiltRound1 = qcDir + name + "_base_sampleFilter.txt";
 		double[] lrr = sampleQC.getDataFor("LRR_SD");
 		double[] callRate = sampleQC.getDataFor("Genotype_callrate");
@@ -111,8 +111,8 @@ public class AutoMito {
 			}
 		}
 		proj.getLog()
-				.reportTimeInfo(Array.booleanArraySum(samplesPassing) + " samples passed initial QC");
-		Files.writeArray(Array.subArray(proj.getSamples(), samplesPassing), sampleFiltRound1);
+				.reportTimeInfo(ArrayUtils.booleanArraySum(samplesPassing) + " samples passed initial QC");
+		Files.writeArray(ArrayUtils.subArray(proj.getSamples(), samplesPassing), sampleFiltRound1);
 
 		if (!Files.exists(proj.MARKER_METRICS_FILENAME.getValue())) {
 			MarkerMetrics.fullQC(proj, samplesPassing, baseMarkers, false, numThreads);

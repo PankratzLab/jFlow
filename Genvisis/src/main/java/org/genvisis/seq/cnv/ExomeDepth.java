@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -76,7 +76,7 @@ public class ExomeDepth {
 		new File(outputDir).mkdirs();
 		this.outputRoot = outputRoot;
 		if (!fail) {
-			fail = Array.countIf(	ext.indexLargeFactors(analysisBamFiles, allReferenceBamFiles, true, log,
+			fail = ArrayUtils.countIf(	ext.indexLargeFactors(analysisBamFiles, allReferenceBamFiles, true, log,
 																									true, false),
 														-1) > 0;
 			if (fail) {
@@ -150,7 +150,7 @@ public class ExomeDepth {
 				log.reportTimeWarning(missingSamplesFromVpop.size()+ " samples were not found in "
 															+ vpop.getFileName()
 															+ " and will not be excluded from reference panel:");
-				log.reportTimeWarning(Array.toStr(missingSamplesFromVpop, "\n"));
+				log.reportTimeWarning(ArrayUtils.toStr(missingSamplesFromVpop, "\n"));
 
 			}
 		}
@@ -197,7 +197,7 @@ public class ExomeDepth {
 		}
 
 		script += MY_REF_SAMPLES_VAR+ " <- "
-							+ Rscript.generateRVector(Array.toStringArray(tmpRef), true) + "\n";
+							+ Rscript.generateRVector(ArrayUtils.toStringArray(tmpRef), true) + "\n";
 		script += MY_REF_SET_VAR+ " <- " + "as.matrix(" + EXOME_COUNTS_DAFR + "[, "
 							+ MY_REF_SAMPLES_VAR + "])\n";
 		if (tmpRef.size() == 0) {
@@ -510,8 +510,8 @@ public class ExomeDepth {
 			} else {
 				String[] header = Files.getHeaderOfFile(getAnnoExomeDepthOutput(), log);
 				int[] indices = ext.indexFactors(RESULT_PARSE, header, true, false);
-				if (Array.countIf(indices, -1) > 0) {
-					log.reportError("Did not find complete header "+ Array.toStr(RESULT_PARSE) + " in "
+				if (ArrayUtils.countIf(indices, -1) > 0) {
+					log.reportError("Did not find complete header "+ ArrayUtils.toStr(RESULT_PARSE) + " in "
 													+ getAnnoExomeDepthOutput());
 				} else {
 					try {
@@ -526,7 +526,7 @@ public class ExomeDepth {
 								} else if (line[indices[0]].equals("duplication")) {
 									cn = 3;
 								} else {
-									log.reportError("Invalid copy number type on line " + Array.toStr(line));
+									log.reportError("Invalid copy number type on line " + ArrayUtils.toStr(line));
 									return null;
 								}
 								int nexons = Integer.parseInt(line[indices[1]]);
@@ -547,7 +547,7 @@ public class ExomeDepth {
 																													cn, score, nexons, 99, eis);
 								cnvs.add(cnVariant);
 							} catch (NumberFormatException nfe) {
-								log.reportError("Invalid number on line " + Array.toStr(line));
+								log.reportError("Invalid number on line " + ArrayUtils.toStr(line));
 								return null;
 							}
 						}
@@ -580,7 +580,7 @@ public class ExomeDepth {
 		if (numBatches > 0) {
 			log.reportTimeInfo("number of batches set to "+ numBatches
 													+ ", preparing for batched run...");
-			List<String[]> batches = Array.splitUpArray(allReferenceBamFiles, numBatches, log);
+			List<String[]> batches = ArrayUtils.splitUpArray(allReferenceBamFiles, numBatches, log);
 			for (int i = 0; i < batches.size(); i++) {
 				ExomeDepth exomeDepth = new ExomeDepth(	allReferenceBamFiles, batches.get(i), outputDir,
 																								outputRoot, Rloc, log);
@@ -596,7 +596,7 @@ public class ExomeDepth {
 
 				String qsub = outputDir + outputRoot + "ExomeDepth_" + i + ".pbs";
 				String command = "";
-				command += Array.toStr(	PSF.Java.buildJavaCPXMX(PSF.Java.GENVISIS, "seq.cnv.ExomeDepth",
+				command += ArrayUtils.toStr(	PSF.Java.buildJavaCPXMX(PSF.Java.GENVISIS, "seq.cnv.ExomeDepth",
 																												memoryInMb),
 																" ");
 				command += " bams=" + tmpBams;

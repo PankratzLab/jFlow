@@ -14,7 +14,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.bioinformatics.MapSNPsAndGenes;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
@@ -115,7 +115,7 @@ public class OriginalNrss {
 						count++;
 					}
 				} else {
-					markerNames = Array.toStringArray(markerVector);
+					markerNames = ArrayUtils.toStringArray(markerVector);
 					positions = Ints.toArray(markerLocations);
 					pvals = Doubles.toArray(pvalueVector);
 					indexSNPs = Ints.toArray(indexVector);
@@ -186,7 +186,7 @@ public class OriginalNrss {
 										+ (positions[indexSNPs[maxSNP]] + window) + "\t" + minPvalue
 										+ (variate_column == -1	? ""
 																						: "\t"
-																							+ Array.toStr(Array.subArray(	stats[maxSNP], 1,
+																							+ ArrayUtils.toStr(ArrayUtils.subArray(	stats[maxSNP], 1,
 																																						stats[maxSNP].length))));
 							cluster.clear();
 							cluster.add(i);
@@ -209,7 +209,7 @@ public class OriginalNrss {
 										+ (positions[indexSNPs[maxSNP]] + window) + "\t" + minPvalue
 										+ (variate_column == -1	? ""
 																						: "\t"
-																							+ Array.toStr(Array.subArray(	stats[maxSNP], 1,
+																							+ ArrayUtils.toStr(ArrayUtils.subArray(	stats[maxSNP], 1,
 																																						stats[maxSNP].length))));
 						}
 					}
@@ -240,8 +240,8 @@ public class OriginalNrss {
 											+ (variate_column == -1 ? "" : "\tvars"));
 			for (int i = 0; i < v.size(); i++) {
 				line = v.elementAt(i).trim().split("[\\s]+");
-				writer.println(Array.toStr(Array.subArray(line, 0, 3))	+ "\t" + genes[i] + "\t"
-												+ Array.toStr(Array.subArray(line, 3)));
+				writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, 3))	+ "\t" + genes[i] + "\t"
+												+ ArrayUtils.toStr(ArrayUtils.subArray(line, 3)));
 			}
 			writer.close();
 			System.out.println(ext.getTime());
@@ -305,7 +305,7 @@ public class OriginalNrss {
 		}
 
 		System.out.println("Stat is " + ext.formDeci(
-																									computeStatistic(	Array.toStringArray(markerVector),
+																									computeStatistic(	ArrayUtils.toStringArray(markerVector),
 																																		Doubles.toArray(pvalueVector),
 																																		hash, INCLUSION_THRESHOLD)[0],
 																									2));
@@ -401,7 +401,7 @@ public class OriginalNrss {
 		commands +=
 							"java -Dsun.java2d.noddraw=true -Xmx1024m -classpath /home/npankrat/Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -log -pedfile chr[%0].recode.ped -info chr[%0].map -skipcheck -hwcutoff 0 -maxDistance 500 -dprime\n\n";
 
-		Files.batchIt("haplo", null, numBatches, commands, Array.stringArraySequence(23, ""));
+		Files.batchIt("haplo", null, numBatches, commands, ArrayUtils.stringArraySequence(23, ""));
 	}
 
 	public static void procMapForHaploview(String in, String out) {
@@ -460,7 +460,7 @@ public class OriginalNrss {
 			try {
 				writer = new PrintWriter(new FileWriter("sim." + i + ".dat"));
 				writer.println("FID\tIID\tAff");
-				order = Array.random(data.length);
+				order = ArrayUtils.random(data.length);
 				for (int j = 0; j < data.length; j++) {
 					writer.println(data[j][0] + "\t" + data[j][1] + "\t" + data[order[j]][2]);
 				}
@@ -621,7 +621,7 @@ public class OriginalNrss {
 						}
 					}
 					reader.close();
-					markerNames = Array.toStringArray(markerVector);
+					markerNames = ArrayUtils.toStringArray(markerVector);
 					positions = Ints.toArray(markerLocations);
 					pvals = Doubles.toArray(pvalueVector);
 					indexSNPs = Ints.toArray(indexVector);
@@ -797,15 +797,15 @@ public class OriginalNrss {
 			writer = new PrintWriter(new FileWriter("NRSS_distributions.xln"));
 			for (int i = 0; i < dirs.length; i++) {
 				writer.print((i == 0 ? "" : "\t")	+ dirs[i].getName()
-											+ Array.toStr(Array.stringArray(levelsDeep), "\t"));
+											+ ArrayUtils.toStr(ArrayUtils.stringArray(levelsDeep), "\t"));
 			}
 			writer.println();
 			for (int i = 0; i < dirs.length; i++) {
 				writer.print((i == 0 ? "" : "\t")
-											+ Array.toStr(Array.stringArraySequence(levelsDeep, ""), "\t"));
+											+ ArrayUtils.toStr(ArrayUtils.stringArraySequence(levelsDeep, ""), "\t"));
 			}
 			writer.println();
-			writer.println(Array.toStr(Array.stringArray(dirs.length * levelsDeep, "0.5")));
+			writer.println(ArrayUtils.toStr(ArrayUtils.stringArray(dirs.length * levelsDeep, "0.5")));
 			temp = "";
 			for (int i = 0; i < dirs.length; i++) {
 				for (int j = 0; j < levelsDeep; j++) {
@@ -817,7 +817,7 @@ public class OriginalNrss {
 			}
 
 			count = 0;
-			while (!temp.equals(Array.toStr(Array.stringArray(dirs.length * levelsDeep)))) {
+			while (!temp.equals(ArrayUtils.toStr(ArrayUtils.stringArray(dirs.length * levelsDeep)))) {
 				writer.println(temp);
 				temp = "";
 				for (int i = 0; i < dirs.length; i++) {

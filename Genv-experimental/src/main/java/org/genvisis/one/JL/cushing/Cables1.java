@@ -12,7 +12,7 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.MDL;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
@@ -139,9 +139,9 @@ public class Cables1 {
 			for (int i = 0; i < samples.length; i++) {
 				proj.getLog().reportTimeInfo("Sample " + i);
 				Sample samp = proj.getFullSampleFromRandomAccessFile(samples[i]);
-				float[] lrrs = Array.subArray(samp.getLRRs(), indices);
-				float mean = Array.mean(lrrs, true);
-				float sd = Array.stdev(lrrs, true);
+				float[] lrrs = ArrayUtils.subArray(samp.getLRRs(), indices);
+				float mean = ArrayUtils.mean(lrrs, true);
+				float sd = ArrayUtils.stdev(lrrs, true);
 				sampleDistParams[i] = new SampleDistParams(samples[i], mean, sd);
 				raw.append("\n" + samples[i] + "\t" + mean + "\t" + sd);
 				proj.getLog().reportTimeInfo("Sample " + i + "\t" + samples[i] + "\t" + mean + "\t" + sd);
@@ -196,8 +196,8 @@ public class Cables1 {
 				if (!md.getMarkerName().contains("VARIANT_SITE") && !md.getMarkerName().contains("OFF_TARGET")) {
 					proj.getLog().reportTimeInfo("Marker " + md.getMarkerName());
 
-					NormalDistribution nd = new NormalDistribution(Array.mean(md.getLRRs(), true),
-							Array.stdev(md.getLRRs(), true));
+					NormalDistribution nd = new NormalDistribution(ArrayUtils.mean(md.getLRRs(), true),
+							ArrayUtils.stdev(md.getLRRs(), true));
 
 					for (int i = 0; i < samples.length; i++) {
 
@@ -219,7 +219,7 @@ public class Cables1 {
 				}
 			}
 			PrintWriter writer = Files.getAppropriateWriter(outDir + seg.getUCSClocation() + "cnvs.txt");
-			writer.println(Array.toStr(CNDataPoint.Header));
+			writer.println(ArrayUtils.toStr(CNDataPoint.Header));
 			for (CNDataPoint cDataPoint : points) {
 				writer.println(cDataPoint.toString());
 			}

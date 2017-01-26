@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
@@ -472,7 +472,7 @@ public class TrimToDependencies implements Serializable {
 					log.report("  M" + numBrackets + "\t" + temp);
 				}
 				log.report("End of method '" + name + "'");
-				allLines = Array.toStringArray(vLines);
+				allLines = ArrayUtils.toStringArray(vLines);
 			} catch (IOException ioe) {
 				log.reportError("Error reading file \"" + name + "\"");
 				log.reportException(ioe);

@@ -76,7 +76,7 @@ import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.var.Region;
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Fonts;
 import org.genvisis.common.Grafik;
@@ -548,7 +548,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		loadedVCFData =
 									new HashMap<String, HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>>>();
 		headerMap = new HashMap<String, VCFHeader>();
-		String[] genes = Array.extract(geneFile, 0);
+		String[] genes = ArrayUtils.extract(geneFile, 0);
 		GeneData[][] geneData = track.lookupAllGeneData(genes);
 
 		for (int i = 0; i < geneFile.length; i++) {
@@ -1603,7 +1603,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		if (jfc.showOpenDialog(VariantViewer.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();
 			if (files.length > 0) {
-				boolean[] keep = Array.booleanArray(files.length, true);
+				boolean[] keep = ArrayUtils.booleanArray(files.length, true);
 				for (int i = 0; i < files.length; i++) {
 					for (String fileName : regionFileNameLoc.keySet()) {
 						if (ext.rootOf(files[i].toString()).equals(fileName)) {
@@ -1611,8 +1611,8 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 						}
 					}
 				}
-				File[] keptFiles = Array.subArray(files, keep);
-				File[] discards = Array.subArray(files, Array.booleanNegative(keep));
+				File[] keptFiles = ArrayUtils.subArray(files, keep);
+				File[] discards = ArrayUtils.subArray(files, ArrayUtils.booleanNegative(keep));
 
 				if (discards.length > 0) {
 					StringBuilder msg = new StringBuilder("The following data file(s) are already present:");

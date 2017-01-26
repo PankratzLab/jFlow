@@ -16,7 +16,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.var.MosaicRegion;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
@@ -72,10 +72,10 @@ public class CNVMosaic {
 
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(output));
-				writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER)	+ "\t"
-												+ Array.toStr(MosaicRegion.ADD_HEADER) + "\tEXCLUDED\tDNA\tUCSC");
+				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER)	+ "\t"
+												+ ArrayUtils.toStr(MosaicRegion.ADD_HEADER) + "\tEXCLUDED\tDNA\tUCSC");
 
-				MosaicProducer producer = new MosaicProducer(	proj, builder, Array.toStringArray(samples),
+				MosaicProducer producer = new MosaicProducer(	proj, builder, ArrayUtils.toStringArray(samples),
 																											markerSet, segs);
 				WorkerTrain<LocusSet<MosaicRegion>> train =
 																									new WorkerTrain<LocusSet<MosaicRegion>>(producer,
@@ -162,8 +162,8 @@ public class CNVMosaic {
 
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(output));
-					writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER)	+ "\t"
-													+ Array.toStr(MosaicRegion.ADD_HEADER) + "\tEXCLUDED\tDNA\tUCSC");
+					writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER)	+ "\t"
+													+ ArrayUtils.toStr(MosaicRegion.ADD_HEADER) + "\tEXCLUDED\tDNA\tUCSC");
 					int index = 0;
 					while (train.hasNext()) {
 						MosaicRegion[] regions = train.next();
@@ -400,7 +400,7 @@ public class CNVMosaic {
 					MosaicBuilder builderMosaic = new MosaicBuilder();
 					builderMosaic.verbose(true);
 					MosaicismDetect md = builderMosaic.build(	proj, sample, markerSet,
-																										Array.toDoubleArray(samp.getBAFs()));
+																										ArrayUtils.toDoubleArray(samp.getBAFs()));
 					// MosaicQuantWorker worker = new MosaicQuantWorker(sampCNVs.getLoci(), proj, sample,
 					// MOSAIC_TYPE.values(), 5);
 					// WorkerHive<MosaicQuantResults[]> hive = new

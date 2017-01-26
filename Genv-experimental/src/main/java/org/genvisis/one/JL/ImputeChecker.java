@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -38,11 +38,11 @@ public class ImputeChecker {
 		String out = dir + ext.rootOf(immunoChip) + ".imputationSummary";
 
 		if (!Files.exists(out)) {
-			boolean[] foundMask = Array.booleanArray(immunoRs.length, false);
+			boolean[] foundMask = ArrayUtils.booleanArray(immunoRs.length, false);
 			int snpIndex = ext.indexOfStr("rs_id", headerAric);
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(out));
-				writer.println(Array.toStr(immunoRs[0])	+ "\t" + Array.toStr(headerAric)
+				writer.println(ArrayUtils.toStr(immunoRs[0])	+ "\t" + ArrayUtils.toStr(headerAric)
 												+ "\tFound\tDirectMatch");
 				BufferedReader reader = Files.getAppropriateReader(aricImpute);
 				int totalFound = 0;
@@ -50,7 +50,7 @@ public class ImputeChecker {
 					String[] line = reader.readLine().trim().split("[\\s]+");
 					String snp = line[snpIndex];
 					if (index.containsKey(snp)) {
-						writer.println(Array.toStr(immunoRs[index.get(snp)])	+ "\t" + Array.toStr(line)
+						writer.println(ArrayUtils.toStr(immunoRs[index.get(snp)])	+ "\t" + ArrayUtils.toStr(line)
 														+ "\t1\t" + (line[0] == snp ? 1 : 0));
 						foundMask[index.get(snp)] = true;
 						totalFound++;
@@ -59,10 +59,10 @@ public class ImputeChecker {
 					}
 				}
 
-				String[] blank = Array.stringArray(headerAric.length, "NA");
+				String[] blank = ArrayUtils.stringArray(headerAric.length, "NA");
 				for (int i = 0; i < foundMask.length; i++) {
 					if (!foundMask[i]) {
-						writer.println(Array.toStr(immunoRs[i]) + "\t" + Array.toStr(blank) + "\t0\t0");
+						writer.println(ArrayUtils.toStr(immunoRs[i]) + "\t" + ArrayUtils.toStr(blank) + "\t0\t0");
 					}
 				}
 
@@ -89,8 +89,8 @@ public class ImputeChecker {
 		Restrictions[] restrictionTN = new Restrictions[] {new Restrictions(new String[] {"type"},
 																																				new double[] {0},
 																																				new String[] {"=="}, null)};
-		String title = " DirectMatch="	+ Array.countIf(aricType, "2") + " Impute="
-										+ Array.countIf(aricType, "0") + " No match = " + Array.countIf(aricType, "NA");
+		String title = " DirectMatch="	+ ArrayUtils.countIf(aricType, "2") + " Impute="
+										+ ArrayUtils.countIf(aricType, "0") + " No match = " + ArrayUtils.countIf(aricType, "NA");
 
 		for (String type : types) {
 			String outtype = rootR + type;

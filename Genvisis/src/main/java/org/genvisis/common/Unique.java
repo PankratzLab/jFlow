@@ -28,10 +28,10 @@ public class Unique {
 		int[] cols;
 
 		if (skips == null) {
-			skips = Array.intArray(filenames.length, 0);
+			skips = ArrayUtils.intArray(filenames.length, 0);
 		}
 		if (delimiters == null) {
-			delimiters = Array.stringArray(filenames.length, "[\\s]+");
+			delimiters = ArrayUtils.stringArray(filenames.length, "[\\s]+");
 		}
 		if (uniquesFile != null && uniquesFile.equalsIgnoreCase("null")) {
 			uniquesFile = null;
@@ -154,8 +154,8 @@ public class Unique {
 			out = params.remove(0);
 			outCounts = params.remove(0);
 			files = new String[params.size()];
-			skips = Array.intArray(params.size(), 0);
-			delimiters = Array.stringArray(params.size(), "[\\s]+");
+			skips = ArrayUtils.intArray(params.size(), 0);
+			delimiters = ArrayUtils.stringArray(params.size(), "[\\s]+");
 			for (int i = 0; i < files.length; i++) {
 				line = params.elementAt(i).trim().split("[\\s]+");
 				files[i] = line[0];
@@ -344,7 +344,7 @@ public class Unique {
 			}
 		}
 		try {
-			proc(Array.toStringArray(filenames), null, null, uniquesFile, countsFile, true);
+			proc(ArrayUtils.toStringArray(filenames), null, null, uniquesFile, countsFile, true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

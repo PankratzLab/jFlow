@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -31,11 +31,11 @@ public class RareVariants {
 		time = new Date().getTime();
 		for (String[] subset : subsets) {
 			System.out.println(subset[0]);
-			wss.setSubset(Array.subArray(subset, 1));
+			wss.setSubset(ArrayUtils.subArray(subset, 1));
 			wss.setThresholdMAF(0.02);
 			perms = wss.getPermutations();
-			mean = Array.mean(perms);
-			stdev = Array.stdev(perms);
+			mean = ArrayUtils.mean(perms);
+			stdev = ArrayUtils.stdev(perms);
 			z = (wss.getStat() - mean) / stdev;
 
 			System.out.println(wss.getMarkerNames().length	+ "\t" + ext.formDeci(z, 3) + "\t"
@@ -112,7 +112,7 @@ public class RareVariants {
 								System.out.print(".");
 								writer.flush();
 							}
-							wss.setSubset(Array.subArray(subsets[k][m], 1));
+							wss.setSubset(ArrayUtils.subArray(subsets[k][m], 1));
 							writer.println(subsets[k][m][0]	+ "\t" + wss.getMarkerNames().length + "\t"
 															+ ext.prettyP(wss.getSig()) + "\t"
 															+ ext.prettyP(wss.getEmpiricalSig()));

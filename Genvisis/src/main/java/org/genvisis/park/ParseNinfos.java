@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -184,7 +184,7 @@ public class ParseNinfos {
 					master[6] = "PD";
 				} else if (phenos.contains("-") || phenos.contains("-PD")) {
 					missingPheno.add(master[0]	+ "\t" + master[1] + "\t"
-														+ Array.toStr(Array.toStringArray(dnas), "\t"));
+														+ ArrayUtils.toStr(ArrayUtils.toStringArray(dnas), "\t"));
 					master[3] = ".";
 					master[6] = ".";
 				} else if (phenos.contains("VPD-PD") && phenos.contains("NVPD-PD")) {
@@ -193,7 +193,7 @@ public class ParseNinfos {
 				} else if (phenos.size() > 1) {
 					System.err.println("Error - "	+ master[0] + "-" + master[1]
 															+ " is listed as several things, none of which are PD ("
-															+ ext.listWithCommas(Array.toStringArray(phenos)) + ")");
+															+ ext.listWithCommas(ArrayUtils.toStringArray(phenos)) + ")");
 				}
 				if (dnas.size() > 1) {
 					master[4] = "";

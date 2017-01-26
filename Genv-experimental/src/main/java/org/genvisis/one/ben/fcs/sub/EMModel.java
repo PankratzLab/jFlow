@@ -12,7 +12,7 @@ import org.apache.commons.math3.distribution.fitting.MultivariateNormalMixtureEx
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.util.Pair;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
@@ -50,7 +50,7 @@ public class EMModel {
   }
 
   public static Logicle getLogicle(double[] data) {
-    return getBiexScale(Array.max(data));
+    return getBiexScale(ArrayUtils.max(data));
   }
 
   private static double[][] transformData(double[][] data, Logicle[] mehs, Logger log) {

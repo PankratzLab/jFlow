@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
@@ -196,7 +196,7 @@ public class FamilyStructure {
 	}
 
 	public String getIndividualHeader(int index, boolean displayDNA) {
-		return Array.toStr(ids[index])	+ "\t" + genders[index] + "\t" + affections[index]
+		return ArrayUtils.toStr(ids[index])	+ "\t" + genders[index] + "\t" + affections[index]
 						+ (displayDNA && dnas != null ? "\t" + dnas[index] : "");
 	}
 
@@ -215,7 +215,7 @@ public class FamilyStructure {
 	}
 
 	public static boolean likelyPedHeader(String[] line) {
-		return Array.countIf(	ext.indexFactors(TYPICAL_HEADERS, line, false, true, false, false),
+		return ArrayUtils.countIf(	ext.indexFactors(TYPICAL_HEADERS, line, false, true, false, false),
 													-1) < 3;
 	}
 }

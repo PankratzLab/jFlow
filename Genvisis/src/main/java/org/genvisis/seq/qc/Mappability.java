@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -161,7 +161,7 @@ public class Mappability<SEGMENT extends Segment> {
 		String out2 = outputRoot + ".hist.cnvCenter.txt";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out2));
-			writer.println(Array.toStr(header2));
+			writer.println(ArrayUtils.toStr(header2));
 			for (int i = 0; i < dynamicAveragingHistogramCNVCentered.getAverages().length; i++) {
 				if (dynamicAveragingHistogramCNVCentered.getCounts()[i] > 0) {
 					System.out.println(dynamicAveragingHistogramCNVCentered.getAverages()[i]);
@@ -192,7 +192,7 @@ public class Mappability<SEGMENT extends Segment> {
 
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out3));
-			writer.println(Array.toStr(header3));
+			writer.println(ArrayUtils.toStr(header3));
 			for (int i = 0; i < dynamicAveragingHistogramMapCentered.getAverages().length; i++) {
 				if (dynamicAveragingHistogramMapCentered.getCounts()[i] > 0) {
 					writer.println(dynamicAveragingHistogramMapCentered.getBins()[i]	+ "\t"
@@ -217,12 +217,12 @@ public class Mappability<SEGMENT extends Segment> {
 		rScatterAverageSCORECENTER.setOverWriteExisting(true);
 		rScatterAverageSCORECENTER.execute();
 
-		String[] header4 = Array.concatAll(	CNVariant.PLINK_CNV_HEADER,
+		String[] header4 = ArrayUtils.concatAll(	CNVariant.PLINK_CNV_HEADER,
 																				new String[] {"GENE_NAME", "MAP_SCORE"});
 		String out4 = outputRoot + ".cnvSummary.txt";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out4));
-			writer.println(Array.toStr(header4));
+			writer.println(ArrayUtils.toStr(header4));
 			for (int i = 0; i < cnMappability.getMappabilityResults().size(); i++) {
 				MappabilityResult<CNVariant> cnMapp = cnMappability.getMappabilityResults().get(i);
 				GeneData[] overlappingGenes = gLocusSet.getOverLappingLoci(cnMapp.getT());
@@ -257,7 +257,7 @@ public class Mappability<SEGMENT extends Segment> {
 																	String out1) {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out1));
-			writer.println(Array.toStr(header1));
+			writer.println(ArrayUtils.toStr(header1));
 
 			for (int i = 0; i < cnMappability.getMappabilityResults().size(); i++) {
 				MappabilityResult<CNVariant> cnMapp = cnMappability.getMappabilityResults().get(i);

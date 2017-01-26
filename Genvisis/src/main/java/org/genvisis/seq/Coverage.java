@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -63,7 +63,7 @@ public class Coverage {
 
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + "_list.xln"));
-			writer.println("Sample\tIndex\t" + Array.toStr(COVERAGE_HEADER));
+			writer.println("Sample\tIndex\t" + ArrayUtils.toStr(COVERAGE_HEADER));
 			inds = HashVec.getKeys(hashes, false);
 			for (int i = 0; i < inds.length; i++) {
 				System.out.println("Analyzing indiviudal " + (i + 1) + " of " + inds.length);
@@ -92,7 +92,7 @@ public class Coverage {
 							line = reader.readLine().trim().split("[\\s]+");
 							if (hash.containsKey(line[0] + "_" + line[1])) {
 								writer.println(inds[i]	+ "\t" + hash.get(line[0] + "_" + line[1]) + "\t"
-																+ Array.toStr(line));
+																+ ArrayUtils.toStr(line));
 								writer.flush();
 								hash.put(line[0] + "_" + line[1], "dup");
 							}

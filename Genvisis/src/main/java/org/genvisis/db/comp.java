@@ -15,7 +15,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.AlleleFreq;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -91,7 +91,7 @@ public class comp {
 		PrintWriter writer = new PrintWriter(new FileWriter(DEFAULT_INPUT));
 		writer.println(DEFAULT_DB);
 		writer.println(DEFAULT_TRAIT);
-		writer.println(Array.toStr(DEFAULT_USE));
+		writer.println(ArrayUtils.toStr(DEFAULT_USE));
 		writer.println();
 		writer.println("user notes: ");
 		writer.close();
@@ -207,7 +207,7 @@ public class comp {
 			for (int i = 0; i < traits.length; i++) {
 				if (traits[i].startsWith("suffix=")) {
 					suffix = ext.parseStringArg(traits[i], "");
-					traits = Array.removeFromArray(traits, i);
+					traits = ArrayUtils.removeFromArray(traits, i);
 					i--;
 				}
 			}
@@ -254,9 +254,9 @@ public class comp {
 			}
 			factorNames = reader.readLine().split(delimiter);
 
-			indices = ext.indexFactors(	Array.addStrToArray(traits[trt], Array.toStringArray(included), 0),
+			indices = ext.indexFactors(	ArrayUtils.addStrToArray(traits[trt], ArrayUtils.toStringArray(included), 0),
 																	factorNames, true, log, true, true);
-			limits = ext.indexFactors(Array.addStrToArray(traits[trt], Array.toStringArray(limitKeys), 0),
+			limits = ext.indexFactors(ArrayUtils.addStrToArray(traits[trt], ArrayUtils.toStringArray(limitKeys), 0),
 																factorNames, true, log, true, true);
 			idIndices = ext.indexFactors(DEFAULT_ID_NAMES, factorNames, false, true, false, false);
 			M = indices.length - 1;
@@ -268,7 +268,7 @@ public class comp {
 				flagOption("oneperfamily", false);
 			}
 
-			if ((optionFlagged("chis") || optionFlagged("hwe")) && Array.min(idIndices) < 0) {
+			if ((optionFlagged("chis") || optionFlagged("hwe")) && ArrayUtils.min(idIndices) < 0) {
 				System.err.println("Error - chis option was enabled, but family and indiviudal ids were not found; disabling option");
 				flagOption("chis", false);
 				flagOption("hwe", false);
@@ -433,7 +433,7 @@ public class comp {
 				}
 				writer.println();
 				for (int i = 0; i < N; i++) {
-					writer.print(Array.toStr(ids[i]));
+					writer.print(ArrayUtils.toStr(ids[i]));
 					for (int j = 0; j < M + 1; j++) {
 						writer.print("\t" + (data[i][j] == Double.MIN_VALUE ? "." : data[i][j] + ""));
 					}
@@ -467,7 +467,7 @@ public class comp {
 									writer.print((i == 0 ? "N" : "") + "\t" + trends[i].size());
 								} else {
 									writer.print((i == 0 ? factorNames[indices[factor]] : "")	+ "\t"
-																+ Array.mean(Doubles.toArray(trends[i])));
+																+ ArrayUtils.mean(Doubles.toArray(trends[i])));
 								}
 							}
 							writer.println();
@@ -677,9 +677,9 @@ public class comp {
 								}
 							}
 							writer.println(factorNames[indices[factor]]	+ "\t"
-															+ ext.formDeci(Array.mean(Doubles.toArray(dv1s)), sigfigs, true)
+															+ ext.formDeci(ArrayUtils.mean(Doubles.toArray(dv1s)), sigfigs, true)
 															+ "\t" + counts[1] + "\t"
-															+ ext.formDeci(Array.mean(Doubles.toArray(dv0s)), sigfigs, true)
+															+ ext.formDeci(ArrayUtils.mean(Doubles.toArray(dv0s)), sigfigs, true)
 															+ "\t" + counts[0] + "\t"
 															+ ext.prettyP(new Ttest(Doubles.toArray(dv1s),
 																											Doubles.toArray(dv0s)).getPvalue()));
@@ -717,7 +717,7 @@ public class comp {
 							results =
 											new PermuteOnePer(optionFlagged("oneperfamily")	? Matrix.extractColumn(	Matrix.toStringArrays(idV),
 																																															1)
-																																			: Array.stringArraySequence(idV.size(),
+																																			: ArrayUtils.stringArraySequence(idV.size(),
 																																																	"IND"),
 																				Doubles.toArray(dv1), dummyIntMatrix(Doubles.toArray(dv2)),
 																				new String[][] {{factorNames[indices[0]]},
@@ -806,10 +806,10 @@ public class comp {
 						writer.print("\tbootreps=" + bootReps);
 					}
 					if (order != null) {
-						writer.print("\torder=" + Array.toStr(order, ","));
+						writer.print("\torder=" + ArrayUtils.toStr(order, ","));
 					}
 					writer.println();
-					writer.println(Array.toStr(traits) + (suffix.equals("") ? "" : "\tsuffix=" + suffix));
+					writer.println(ArrayUtils.toStr(traits) + (suffix.equals("") ? "" : "\tsuffix=" + suffix));
 					for (int i = 0; i < included.size(); i++) {
 						writer.print((i == 0 ? "" : "\t") + included.elementAt(i));
 					}
@@ -840,7 +840,7 @@ public class comp {
 				writer.print("\tbootreps=" + bootReps);
 			}
 			if (order != null) {
-				writer.print("\torder=" + Array.toStr(order, ","));
+				writer.print("\torder=" + ArrayUtils.toStr(order, ","));
 			}
 
 			writer.println();
@@ -884,10 +884,10 @@ public class comp {
 			writer.println();
 			writer.println();
 
-			double min = Math.min(Array.max(Matrix.extractColumn(means, 0)),
-														Array.max(Matrix.extractColumn(means, 1)));
-			double max = Math.max(Array.max(Matrix.extractColumn(means, 0)),
-														Array.max(Matrix.extractColumn(means, 1)));
+			double min = Math.min(ArrayUtils.max(Matrix.extractColumn(means, 0)),
+														ArrayUtils.max(Matrix.extractColumn(means, 1)));
+			double max = Math.max(ArrayUtils.max(Matrix.extractColumn(means, 0)),
+														ArrayUtils.max(Matrix.extractColumn(means, 1)));
 
 			int maxFigs = Math.max(10, (int) Math.floor(Math.log10(Math.max(
 																																			Math.max(	Math.abs(min),
@@ -900,7 +900,7 @@ public class comp {
 																			: "") + "dir",
 														(logistic ? "Odds ratio (95% CI)   " : "Beta (95% CI)         "),
 														"Factor", "Mean +/- SD", "Failures", "p-value"};
-			writer.println(Array.toStr(order == null ? line : Sort.getOrdered(line, order)));
+			writer.println(ArrayUtils.toStr(order == null ? line : Sort.getOrdered(line, order)));
 
 			for (int i = 1; i <= M; i++) {
 				// count = 0;
@@ -915,7 +915,7 @@ public class comp {
 																																					Math.abs(max)),
 																																1)));
 
-				line = Array.stringArray(9, "error");
+				line = ArrayUtils.stringArray(9, "error");
 				try {
 					line[0] =
 									ext.formStr(ext.formDeci(sigs[i][1] * 100, SIG_FIGS_PERCENTAGES * 2, true)	+ "%",
@@ -932,8 +932,8 @@ public class comp {
 										+ ext.formDeci(effectsAndConfidenceIntervals[i][1], 3, true) + ", "
 										+ ext.formDeci(effectsAndConfidenceIntervals[i][2], 3, true) + ")";
 					line[5] = factorNames[indices[i]];
-					line[6] = "("	+ ext.formDeci(Array.mean(filterArray(data, i, Double.MIN_VALUE)), 3)
-										+ " +/- " + ext.formDeci(Array.stdev(filterArray(data, i, Double.MIN_VALUE)), 3)
+					line[6] = "("	+ ext.formDeci(ArrayUtils.mean(filterArray(data, i, Double.MIN_VALUE)), 3)
+										+ " +/- " + ext.formDeci(ArrayUtils.stdev(filterArray(data, i, Double.MIN_VALUE)), 3)
 										+ ")";
 					line[7] = (failures[i] > 0	? ", " + failures[i] + " failures (potential cause of bias)"
 																			: "");
@@ -946,7 +946,7 @@ public class comp {
 					e.printStackTrace();
 				}
 
-				writer.println(Array.toStr(order == null ? line : Sort.getOrdered(line, order)));
+				writer.println(ArrayUtils.toStr(order == null ? line : Sort.getOrdered(line, order)));
 			}
 			writer.println();
 			writer.println();
@@ -1167,7 +1167,7 @@ public class comp {
 		double[][] avgCounts, baseCounts;
 		DoubleVector dv, dv1, dv2;
 
-		fams = Array.unique(Matrix.extractColumn(ids, 1));
+		fams = ArrayUtils.unique(Matrix.extractColumn(ids, 1));
 
 		hashVec = new Hashtable<String, Vector<String>>();
 		hashVecData = new Hashtable<String, Vector<double[]>>();
@@ -1232,7 +1232,7 @@ public class comp {
 			}
 		}
 
-		min = Array.min(Matrix.extractColumn(data, 0));
+		min = ArrayUtils.min(Matrix.extractColumn(data, 0));
 
 		avgCounts = new double[2][dv.size()];
 		for (String fam : fams) {
@@ -1243,12 +1243,12 @@ public class comp {
 				baseCounts[dataline[0] == min ? 0 : 1][dv.indexOf(dataline[1])]++;
 				baseCounts[dataline[0] == min ? 0 : 1][dv.indexOf(dataline[2])]++;
 			}
-			count = Array.sum(baseCounts[1]) > 0 ? 1 : 0;
+			count = ArrayUtils.sum(baseCounts[1]) > 0 ? 1 : 0;
 			for (int j = 0; j < dv.size(); j++) {
-				avgCounts[count][j] += baseCounts[count][j] / (Array.sum(baseCounts[count]) / 2);
+				avgCounts[count][j] += baseCounts[count][j] / (ArrayUtils.sum(baseCounts[count]) / 2);
 			}
 		}
-		subtotals = new double[] {Array.sum(avgCounts[0]), Array.sum(avgCounts[1])};
+		subtotals = new double[] {ArrayUtils.sum(avgCounts[0]), ArrayUtils.sum(avgCounts[1])};
 
 		try {
 			writer = new PrintWriter(new FileWriter("chis.out"));
@@ -1348,7 +1348,7 @@ public class comp {
 		double[] countsInOrder;
 		String[] alleleLabels;
 
-		fams = Array.unique(Matrix.extractColumn(ids, 1));
+		fams = ArrayUtils.unique(Matrix.extractColumn(ids, 1));
 
 		hashVec = new Hashtable<String, Vector<String>>();
 		hashVecData = new Hashtable<String, Vector<int[]>>();
@@ -1413,7 +1413,7 @@ public class comp {
 			}
 		}
 
-		min = (int) Array.min(Matrix.extractColumn(data, 0));
+		min = (int) ArrayUtils.min(Matrix.extractColumn(data, 0));
 
 		avgCounts = new double[2][types.size()];
 		for (String fam : fams) {
@@ -1423,12 +1423,12 @@ public class comp {
 				dataline = genotypes.elementAt(j);
 				baseCounts[dataline[0] == min ? 0 : 1][types.indexOf(dataline[1] + "/" + dataline[2])]++;
 			}
-			count = Array.sum(baseCounts[1]) > 0 ? 1 : 0;
+			count = ArrayUtils.sum(baseCounts[1]) > 0 ? 1 : 0;
 			for (int j = 0; j < types.size(); j++) {
-				avgCounts[count][j] += baseCounts[count][j] / Array.sum(baseCounts[count]);
+				avgCounts[count][j] += baseCounts[count][j] / ArrayUtils.sum(baseCounts[count]);
 			}
 		}
-		subtotals = new double[] {Array.sum(avgCounts[0]), Array.sum(avgCounts[1])};
+		subtotals = new double[] {ArrayUtils.sum(avgCounts[0]), ArrayUtils.sum(avgCounts[1])};
 
 		try {
 			writer = new PrintWriter(new FileWriter(factorNames[indices[1]]	+ "_"
@@ -1447,7 +1447,7 @@ public class comp {
 																			iv.get(1) + "/" + iv.get(1)};
 			} else {
 				System.err.println("Error - HWE is not currently set up to handle more than 3 alleles");
-				System.err.println("   (found " + Array.toStr(iv.toArray()) + ")");
+				System.err.println("   (found " + ArrayUtils.toStr(iv.toArray()) + ")");
 				System.exit(1);
 				alleleLabels = null;
 			}

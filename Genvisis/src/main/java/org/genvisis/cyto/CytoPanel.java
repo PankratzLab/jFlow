@@ -23,7 +23,7 @@ import org.genvisis.cnv.gui.FileChooser;
 import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -342,10 +342,10 @@ public class CytoPanel extends JPanel implements ActionListener {
 			JOptionPane.showMessageDialog(this,
 																		"An error occured while parsing the following "
 																						+ (workBenchFiles.length == 1 ? " file: " : " files: ")
-																					+ Array.toStr(workBenchFiles, "\n"));
+																					+ ArrayUtils.toStr(workBenchFiles, "\n"));
 			log.reportError("An error occured while parsing the following "
 												+ (workBenchFiles.length == 1 ? " file: " : " files: ")
-											+ Array.toStr(workBenchFiles, "\n"));
+											+ ArrayUtils.toStr(workBenchFiles, "\n"));
 			log.reportException(exc);
 		}
 	}
@@ -467,7 +467,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 		// proj.setProperty(proj.CNV_FILENAMES, proj.getProperty(proj.CNV_FILENAMES) +
 		// (proj.getProperty(proj.CNV_FILENAMES).length() > 0 ? ";" : "") + cnvFile);
 		String[] vals = proj.getProperty(proj.CNV_FILENAMES);
-		proj.setProperty(proj.CNV_FILENAMES, Array.addStrToArray(cnvFile, vals));
+		proj.setProperty(proj.CNV_FILENAMES, ArrayUtils.addStrToArray(cnvFile, vals));
 		proj.saveProperties();
 	}
 
@@ -495,7 +495,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 			if (segs != null) {
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(output));
-					writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+					writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 					for (Segment seg : segs) {
 						writer.println(new CNVariant(	ext.rootOf(output), seg.getUCSClocation(), seg.getChr(),
 																					seg.getStart(), seg.getStop(), 2, 10f, 10,
@@ -656,7 +656,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 																									JOptionPane.QUESTION_MESSAGE, null, options,
 																									options[0]);
 			if (response == 1) {
-				JOptionPane.showOptionDialog(	null, Array.toStr(files, "\n"), "Warning",
+				JOptionPane.showOptionDialog(	null, ArrayUtils.toStr(files, "\n"), "Warning",
 																			JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
 																			null, new String[] {options[0]}, options[0]);
 			}
@@ -676,7 +676,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 			dialoge +=
 							"If you are re-parsing the same samples, select \"Continue\", otherwise please ensure that samples have unique names\n";
 			dialoge += "Please note that a FID/IID combination must be unique\n";
-			dialoge += Array.toStr(issues, "\n");
+			dialoge += ArrayUtils.toStr(issues, "\n");
 			int response = JOptionPane.showOptionDialog(null, dialoge, "Error",
 																									JOptionPane.DEFAULT_OPTION,
 																									JOptionPane.QUESTION_MESSAGE, null, options,
@@ -779,7 +779,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 	private static boolean writeNewSampleData(FileBox[] fileBoxes, String sampleDataFile) {
 		boolean keepGoing;
 		PrintWriter writer = Files.getAppropriateWriter(sampleDataFile);
-		writer.println(Array.toStr(SAMP_DATA_TO_ADD));
+		writer.println(ArrayUtils.toStr(SAMP_DATA_TO_ADD));
 		for (FileBox fileBoxe : fileBoxes) {
 			writer.println(fileBoxe.getDNA()	+ "\t" + fileBoxe.getFID() + "\t" + fileBoxe.getIID()
 											+ "\t0");

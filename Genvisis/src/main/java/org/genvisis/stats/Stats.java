@@ -1,7 +1,7 @@
 package org.genvisis.stats;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
@@ -38,7 +38,7 @@ public class Stats {
 	}
 
 	public static double ttestOneSample(double[] array, double expected) {
-		return ttestOneSample(Array.mean(array), Array.stdev(array), array.length, expected);
+		return ttestOneSample(ArrayUtils.mean(array), ArrayUtils.stdev(array), array.length, expected);
 	}
 
 	public static double ttestOneSample(double mean, double stdev, int n, double expected) {

@@ -10,7 +10,7 @@ import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -67,7 +67,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 				throw new IllegalArgumentException("All bams must have a single normal and a single tumor");
 			} else if (!Files.exists("", tumorNormalMatchedBams[i])) {
 				throw new IllegalArgumentException("Missing one of "
-																						+ Array.toStr(tumorNormalMatchedBams[i], "\n"));
+																						+ ArrayUtils.toStr(tumorNormalMatchedBams[i], "\n"));
 			}
 		}
 	}
@@ -300,7 +300,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 																						+ normals.getNormalSamples()[i].getPonVCF());
 					}
 				}
-				gatk.combinePonVcfs(Array.toStringArray(ponVcfs), ponVcf, 2, log);
+				gatk.combinePonVcfs(ArrayUtils.toStringArray(ponVcfs), ponVcf, 2, log);
 			}
 		} else if (type == MUTECT_RUN_TYPES.CALL_SOMATIC) {
 			callSomatic(fileOftumorNormalMatchedBams, outputDir, ponVcf, gatk, null, null, null,
@@ -383,7 +383,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 			} else if (param.startsWith("genesetDir=")) {
 				genesetDir = ext.parseStringArg(param, null);
 			} else if (param.startsWith("maf=")) {
-				mafs = Array.toDoubleArray(ext.parseStringArg(param, null).split(","));
+				mafs = ArrayUtils.toDoubleArray(ext.parseStringArg(param, null).split(","));
 			}
 		}
 		new File(popDir).mkdirs();
@@ -415,7 +415,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		// String outMergeRenameAnnoVCF = root + ".renamed.anno.vcf.gz";
 		String vcfToReturn = null;
 		if (!Files.exists(outMergeVCF)) {
-			gatk.mergeVCFs(Array.toStringArray(finalTNVCfs), outMergeVCF, numThreads, false, log);
+			gatk.mergeVCFs(ArrayUtils.toStringArray(finalTNVCfs), outMergeVCF, numThreads, false, log);
 		}
 
 		if (!Files.exists(outMergeRenameVCF)) {
@@ -445,7 +445,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 			String extractFiltDir = outputDir+ "extract_" + VCFOps.getAppropriateRoot(finalAnno, true)
 															+ "/";
 			new File(extractFiltDir).mkdirs();
-			extractBamsTo(extractFiltDir, Array.toStringArray(bamsToExtract), finalAnno, numThreads, log);
+			extractBamsTo(extractFiltDir, ArrayUtils.toStringArray(bamsToExtract), finalAnno, numThreads, log);
 		}
 
 		return vcfToReturn;
@@ -481,7 +481,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 	private static void batchPON(	int numNormalBatches, GATK gatk, String bamFilesFullPath,
 																String outputDir, int numthreads, int numSampleThreads,
 																Logger log) {
-		List<String[]> splits = Array.splitUpArray(HashVec.loadFileToStringArray(bamFilesFullPath,
+		List<String[]> splits = ArrayUtils.splitUpArray(HashVec.loadFileToStringArray(bamFilesFullPath,
 																																									false,
 																																									new int[] {0},
 																																									true),
@@ -497,7 +497,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		command.addAll(getBaseArgs(gatk, outputDir, numthreads, numSampleThreads));
 		command.add("normalBams=" + baseOut);
 
-		Files.qsub(outputDir+ "Contam.txt", Array.toStr(Array.toStringArray(command), " "), batches,
+		Files.qsub(outputDir+ "Contam.txt", ArrayUtils.toStr(ArrayUtils.toStringArray(command), " "), batches,
 								62000, 40, numthreads * numSampleThreads, "small");
 	}
 

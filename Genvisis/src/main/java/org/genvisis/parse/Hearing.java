@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -41,7 +41,7 @@ public class Hearing {
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
 					if (chr == 1) {
-						names.add(Array.toStr(Array.subArray(line, 0, 6)) + "\t" + line[1] + "\t.\t.");
+						names.add(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, 6)) + "\t" + line[1] + "\t.\t.");
 					}
 					writer.print(line[0] + "\t" + line[1]);
 					for (int i = 6; i < line.length; i++) {
@@ -79,7 +79,7 @@ public class Hearing {
 					line[5] =
 									trav.equals("A") ? "2" : (trav.equals("U") ? (AFFECTEDS_ONLY ? "0" : "1") : "0");
 				}
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -95,7 +95,7 @@ public class Hearing {
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
 					if (line.length != 3) {
-						System.err.println("Error - what am I supposed to do with '"	+ Array.toStr(line)
+						System.err.println("Error - what am I supposed to do with '"	+ ArrayUtils.toStr(line)
 																+ "'??");
 					}
 					if (Integer.parseInt(line[0]) != chr) {
@@ -112,7 +112,7 @@ public class Hearing {
 				}
 				reader.close();
 
-				new LinkageMap(	chr, Array.toStringArray(names), 2, Doubles.toArray(positions), false,
+				new LinkageMap(	chr, ArrayUtils.toStringArray(names), 2, Doubles.toArray(positions), false,
 												true).createFile(dir + "map" + ext.chrome(chr) + ".dat");
 			} catch (FileNotFoundException fnfe) {
 				System.err.println("Error: file \""	+ dir + source + "chr" + chr + "_SNP.noLD.ped"

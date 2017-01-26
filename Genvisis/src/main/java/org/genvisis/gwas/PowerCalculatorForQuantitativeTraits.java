@@ -5,7 +5,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Map;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Internat;
 import org.genvisis.common.Matrix;
@@ -94,7 +94,7 @@ public class PowerCalculatorForQuantitativeTraits {
 
 		found = false;
 		index = 20;
-		array = Array.intArray(10000, -1);
+		array = ArrayUtils.intArray(10000, -1);
 		while (!found) {
 			varianceExplained = 1 + index * VARIANCE_INCREMENT;
 			if (array[index] == -1) {
@@ -230,7 +230,7 @@ public class PowerCalculatorForQuantitativeTraits {
 		}
 		// System.out.println();
 
-		return new double[] {Array.mean(rsqs), Array.mean(power)};
+		return new double[] {ArrayUtils.mean(rsqs), ArrayUtils.mean(power)};
 	}
 
 	public static void rangeOfSigmaShiftsAndMAFsViaSimulation(int n, int numReps,

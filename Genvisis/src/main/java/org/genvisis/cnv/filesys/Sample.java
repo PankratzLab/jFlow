@@ -17,7 +17,7 @@ import java.util.concurrent.Callable;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustorParameter;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
@@ -1477,7 +1477,7 @@ public class Sample implements Serializable {
 				dv.add((double) baf);
 			}
 		}
-		return Array.isBimodal(Doubles.toArray(dv));
+		return ArrayUtils.isBimodal(Doubles.toArray(dv));
 	}
 
 	public static void main(String[] args) {

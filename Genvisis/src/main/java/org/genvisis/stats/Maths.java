@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -116,7 +116,7 @@ public class Maths {
 
 		total = Maths.nCr(n, r);
 		indices = new int[total][];
-		indices[0] = Array.arrayOfIndices(r);
+		indices[0] = ArrayUtils.arrayOfIndices(r);
 
 		for (int i = 1; i < total; i++) {
 			indices[i] = indices[i - 1].clone();
@@ -221,7 +221,7 @@ public class Maths {
 	public static void main(String[] args) {
 		// System.out.println(nCr(11, 5));
 		// System.out.println(Array.toStr(slopeAndIntercept(432, 234, 132, 324)));
-		System.out.println(Array.toStr(slopeAndIntercept(188, 900, 154, 1000)));
+		System.out.println(ArrayUtils.toStr(slopeAndIntercept(188, 900, 154, 1000)));
 
 	}
 

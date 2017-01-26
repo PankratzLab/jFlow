@@ -63,7 +63,7 @@ import org.genvisis.cnv.prop.IntegerProperty;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.cnv.prop.StringListProperty;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
@@ -158,7 +158,7 @@ public class ProjectPropertiesEditor extends JFrame {
 							}
 							if (ind < 0 || ind >= hdr.length) {
 								log.reportError("Malformed header replacement token (index < 0 or > header length [HEADER: "
-																			+ Array.toStr(hdr) + "]) in " + PropertyKeys.KEY_QQ_FILENAMES
+																			+ ArrayUtils.toStr(hdr) + "]) in " + PropertyKeys.KEY_QQ_FILENAMES
 																		+ ": {" + pts[i] + "}");
 								return false;
 							}
@@ -377,7 +377,7 @@ public class ProjectPropertiesEditor extends JFrame {
 			public Component getTableCellEditorComponent(	JTable table, Object value, boolean isSelected,
 																										int row, int column) {
 				String[] val = (String[]) value;
-				String valueString = Array.toStr(val, ";");
+				String valueString = ArrayUtils.toStr(val, ";");
 				return super.getTableCellEditorComponent(table, valueString, isSelected, row, column);
 			}
 

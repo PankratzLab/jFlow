@@ -8,8 +8,8 @@ import java.util.Arrays;
 
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.Array;
-import org.genvisis.common.Array.BYTE_DECODE_FORMAT;
+import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.ArrayUtils.BYTE_DECODE_FORMAT;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -212,7 +212,7 @@ public class ReferenceGenome {
 					referenceSequence = indexedFastaSequenceFile.getSequence(requestedContig);
 					log.reportTimeInfo("Converting reference sequence to String for " + requestedContig);
 
-					inMemoryContig = Array.decodeByteArray(	referenceSequence.getBases(),
+					inMemoryContig = ArrayUtils.decodeByteArray(	referenceSequence.getBases(),
 																									BYTE_DECODE_FORMAT.UPPER_CASE, log);
 					log.reportTimeInfo("reference sequence in memory for " + requestedContig);
 
@@ -220,7 +220,7 @@ public class ReferenceGenome {
 					// log.reportTimeInfo("Memory works");
 				}
 				try {
-					requestedSeq = Array.subArray(inMemoryContig, Math.max(0, start - 1),
+					requestedSeq = ArrayUtils.subArray(inMemoryContig, Math.max(0, start - 1),
 																				Math.min(inMemoryContig.length - 1, stop));
 				} catch (Exception e) {
 					log.reportError("Invalid query "	+ segment.getUCSClocation() + "; buffer "
@@ -230,7 +230,7 @@ public class ReferenceGenome {
 				ReferenceSequence subReferenceSequence = indexedFastaSequenceFile.getSubsequenceAt(	requestedContig,
 																																														start,
 																																														stop);
-				requestedSeq = Array.decodeByteArray(	subReferenceSequence.getBases(),
+				requestedSeq = ArrayUtils.decodeByteArray(	subReferenceSequence.getBases(),
 																							BYTE_DECODE_FORMAT.UPPER_CASE, log);
 			}
 			return requestedSeq;

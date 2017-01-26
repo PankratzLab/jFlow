@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class BinMissingnessByPosition {
@@ -43,7 +43,7 @@ public class BinMissingnessByPosition {
 			writer = new PrintWriter(new FileWriter(filename + ".out"));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				writer.println(Array.toStr(line) + "\t" + hash.get(line[1]));
+				writer.println(ArrayUtils.toStr(line) + "\t" + hash.get(line[1]));
 
 			}
 			reader.close();
@@ -117,7 +117,7 @@ public class BinMissingnessByPosition {
 			reader.close();
 
 			writer = new PrintWriter(new FileWriter(filename + "_binned.xln"));
-			writer.println("Chr\tbin start pos\tbin stop pos\t" + Array.toStr(THRESHOLDS));
+			writer.println("Chr\tbin start pos\tbin stop pos\t" + ArrayUtils.toStr(THRESHOLDS));
 			for (int i = 0; i < counts.length; i++) {
 				for (int j = 0; j < counts[i].length; j++) {
 					writer.print((i + 1)	+ "\t" + ext.formDeci((j + 0) * binSizes[i], 1) + "\t"

@@ -8,7 +8,7 @@ import org.genvisis.stats.ProbDist;
 
 public class AlleleFreq {
 	public static double calcFrequency(int[] genotypes) {
-		return calcFrequency(Array.toDoubleArray(genotypes));
+		return calcFrequency(ArrayUtils.toDoubleArray(genotypes));
 	}
 
 	public static double calcFrequency(double[] genotypes) {
@@ -40,7 +40,7 @@ public class AlleleFreq {
 	}
 
 	public static double computeHeterozygosity(int[] counts) {
-		double p = (double) (counts[0] * 2 + counts[1]) / (double) (Array.sum(counts) * 2);
+		double p = (double) (counts[0] * 2 + counts[1]) / (double) (ArrayUtils.sum(counts) * 2);
 		return 1 - p * p - (1 - p) * (1 - p);
 	}
 
@@ -121,7 +121,7 @@ public class AlleleFreq {
 	}
 
 	public static double HWEsig(int[] genotypes) {
-		return HWEsig(Array.toDoubleArray(genotypes));
+		return HWEsig(ArrayUtils.toDoubleArray(genotypes));
 	}
 
 	public static double HWEsig(int pp, int pq, int qq) {

@@ -11,7 +11,7 @@ import java.util.TreeSet;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -78,8 +78,8 @@ public class LRRBDevHetOutlierClassifier {
 				index++;
 			}
 
-			populationData = new PopulationData(Array.mean(bdev), Array.mean(lrr), Array.stdev(bdev),
-																					Array.stdev(lrr), Array.median(bdev), Array.median(lrr));
+			populationData = new PopulationData(ArrayUtils.mean(bdev), ArrayUtils.mean(lrr), ArrayUtils.stdev(bdev),
+																					ArrayUtils.stdev(lrr), ArrayUtils.median(bdev), ArrayUtils.median(lrr));
 		}
 
 		public void addIndivData(String idStr, IndividualData individualData) {
@@ -335,13 +335,13 @@ public class LRRBDevHetOutlierClassifier {
 		if (project) {
 			Project proj = new Project(file, false);
 			SampleData sampleData = proj.getSampleData(0, false);
-			for (String id : Array.subArray(proj.getSamples(), proj.getSamplesToExclude())) {
+			for (String id : ArrayUtils.subArray(proj.getSamples(), proj.getSamplesToExclude())) {
 				for (String subID : sampleData.lookup(id)) {
 					excludeList.add(subID);
 				}
 			}
-			for (String id : Array.subArray(proj.getSamples(),
-																			Array.booleanNegative(proj.getSamplesToExclude()))) {
+			for (String id : ArrayUtils.subArray(proj.getSamples(),
+																			ArrayUtils.booleanNegative(proj.getSamplesToExclude()))) {
 				popList.add(sampleData.lookup(id)[0]);
 			}
 		} else {

@@ -1,6 +1,6 @@
 package org.genvisis.stats;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountHash;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -10,8 +10,8 @@ public class Nonparametric {
 
 
 	public static double runWilcoxonRankSumTest(int[] groupings, double[] values, Logger log) {
-		return runWilcoxonRankSumTest(Ttest.splitOut(groupings, values, Array.min(groupings)),
-																	Ttest.splitOut(groupings, values, Array.min(groupings) + 1), log);
+		return runWilcoxonRankSumTest(Ttest.splitOut(groupings, values, ArrayUtils.min(groupings)),
+																	Ttest.splitOut(groupings, values, ArrayUtils.min(groupings) + 1), log);
 	}
 
 	// nonparametric form of the independent T-Test, does not assume the traits are normally
@@ -48,8 +48,8 @@ public class Nonparametric {
 		}
 
 		ranks = Transformations.rankTransform(merged);
-		ranks1 = Array.subArray(ranks, 0, n1);
-		ranks2 = Array.subArray(ranks, n1);
+		ranks1 = ArrayUtils.subArray(ranks, 0, n1);
+		ranks2 = ArrayUtils.subArray(ranks, n1);
 
 		// System.out.println("mean rank for group1: "+Array.mean(ranks1));
 		// System.out.println("mean rank for group2: "+Array.mean(ranks2));
@@ -57,7 +57,7 @@ public class Nonparametric {
 		// System.out.println("rank sum for group1: "+Array.sum(ranks1));
 		// System.out.println("rank sum for group2: "+Array.sum(ranks2));
 
-		u = Array.sum(ranks1) - n1 * (n1 + 1) / 2;
+		u = ArrayUtils.sum(ranks1) - n1 * (n1 + 1) / 2;
 		if (u < n1 * n2 - u) {
 			ranks = ranks1;
 		} else {
@@ -149,11 +149,11 @@ public class Nonparametric {
 		}
 		try {
 			log = new Logger(logfile);
-			System.out.println(runWilcoxonRankSumTest(Array.toDoubleArray(HashVec.loadFileToStringArray("file1.txt",
+			System.out.println(runWilcoxonRankSumTest(ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray("file1.txt",
 																																																	false,
 																																																	new int[] {0},
 																																																	false)),
-																								Array.toDoubleArray(HashVec.loadFileToStringArray("file2.txt",
+																								ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray("file2.txt",
 																																																	false,
 																																																	new int[] {0},
 																																																	false)),

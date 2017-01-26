@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.manage.VCOps.GENOTYPE_FLAG_INFO;
@@ -631,7 +631,7 @@ public class FilterNGS implements Serializable {
 					if (AD[0] == 0) {
 						return 1.0;
 					} else {
-						double sum = Array.sum(AD);
+						double sum = ArrayUtils.sum(AD);
 						return AD[1] / sum;
 					}
 				} else {// we only test het calls, and return a passing value if it is not
@@ -1475,7 +1475,7 @@ public class FilterNGS implements Serializable {
 		VariantContextFilter tmp = buildertmp.build(log);
 		VariantContextFilter tnfilt = getTumorNormalFilter(maf, failure, log);
 		VariantContextFilterBuilder builderFilter = new VariantContextFilterBuilder();
-		builderFilter.vBooleans(Array.concatAll(tmp.getvBooleans(), tnfilt.getvBooleans()));
+		builderFilter.vBooleans(ArrayUtils.concatAll(tmp.getvBooleans(), tnfilt.getvBooleans()));
 		builderFilter.vFilterJEXL(tnfilt.getvFilterJEXL());
 		return builderFilter.build(log);
 	}

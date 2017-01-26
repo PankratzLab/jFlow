@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.genvisis.bioinformatics.Sequence;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
@@ -32,7 +32,7 @@ public class IndianDiabetes {
 			ext.checkHeader(line, new String[] {"NUMBER ", "Sex", "Affected"}, new int[] {0, 1, 2}, false,
 											log, true);
 			numMarkers = line.length - 3;
-			markerNames = Array.subArray(line, 3);
+			markerNames = ArrayUtils.subArray(line, 3);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(",", -1);
 				writer.print(line[0] + "\t" + line[0] + "\t0\t0" + "\t" + line[1] + "\t" + line[2]);

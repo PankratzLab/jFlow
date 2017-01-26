@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -95,7 +95,7 @@ public class VCF {
 	}
 
 	public String[] getSamplesInVcf() {
-		return Array.toStringArray(vcfFileReader.getFileHeader().getSampleNamesInOrder());
+		return ArrayUtils.toStringArray(vcfFileReader.getFileHeader().getSampleNamesInOrder());
 	}
 
 	public void closeReader() {
@@ -142,8 +142,8 @@ public class VCF {
 		}
 		if (hasAllInfos(toDump)) {
 			if (toDump != null) {
-				log.reportTimeInfo("Will be dumping the following annotations " + Array.toStr(toDump, ","));
-				toDumpTmp.add("CHR\tPOS\t" + Array.toStr(toDump) + "\tNumAlleles");
+				log.reportTimeInfo("Will be dumping the following annotations " + ArrayUtils.toStr(toDump, ","));
+				toDumpTmp.add("CHR\tPOS\t" + ArrayUtils.toStr(toDump) + "\tNumAlleles");
 			}
 			if (outputDir == null) {
 				outputDir = ext.parseDirectoryOfFile(vcfFile);
@@ -151,7 +151,7 @@ public class VCF {
 			new File(outputDir).mkdirs();
 			String outputVCF = outputDir + ext.removeDirectoryInfo(vcfFile).replaceAll(".vcf", "")
 																				.replaceAll(".gz", "");
-			outputVCF = ext.addToRoot(outputVCF, "." + Array.toStr(name, "_"));
+			outputVCF = ext.addToRoot(outputVCF, "." + ArrayUtils.toStr(name, "_"));
 			if (!outputVCF.endsWith(".vcf.gz")) {
 				outputVCF = outputVCF + ".vcf.gz";
 			}
@@ -258,7 +258,7 @@ public class VCF {
 			vcfFileReader.close();
 			variantContextWriter.close();
 			if (toDump != null) {
-				Files.writeArray(	Array.toStringArray(toDumpTmp),
+				Files.writeArray(	ArrayUtils.toStringArray(toDumpTmp),
 													ext.rootOf(outputVCF, false) + ".filteredAnno");
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(ext.rootOf(outputVCF, false)
@@ -432,7 +432,7 @@ public class VCF {
 																										getParserParams(ext.parseDirectoryOfFile(filename)),
 																										log);
 		if (params != null) {
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 
@@ -544,7 +544,7 @@ public class VCF {
 			Logger log = new Logger(logfile);
 			String expression = null;
 			if (filterExpression.size() > 0) {
-				expression = Array.toStr(	filterExpression.toArray(new String[filterExpression.size()]),
+				expression = ArrayUtils.toStr(	filterExpression.toArray(new String[filterExpression.size()]),
 																	"&&");
 			}
 			if (extractAnnotation) {

@@ -12,7 +12,7 @@ import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
@@ -99,7 +99,7 @@ public class NrsHap {
 						count++;
 					}
 				} else {
-					markerNames = Array.toStringArray(markerVector);
+					markerNames = ArrayUtils.toStringArray(markerVector);
 					positions = Ints.toArray(markerLocations);
 					pvals = Doubles.toArray(pvalueVector);
 					indexSNPs = Ints.toArray(indexVector);
@@ -238,7 +238,7 @@ public class NrsHap {
 			System.exit(2);
 		}
 		System.out.println("Stat is "
-												+ ext.formDeci(	computeStatistic(chr, Array.toStringArray(markerVector),
+												+ ext.formDeci(	computeStatistic(chr, ArrayUtils.toStringArray(markerVector),
 																												Doubles.toArray(pvalueVector),
 																												INCLUSION_THRESHOLD),
 																				2));
@@ -270,7 +270,7 @@ public class NrsHap {
 			}
 		}
 		String temp = "plink --bfile chr"	+ chr + extraStuff + " --hap-assoc --snps "
-									+ Array.toStr(Array.toStringArray(snps), ",") + " --hap-window " + snps.size();
+									+ ArrayUtils.toStr(ArrayUtils.toStringArray(snps), ",") + " --hap-window " + snps.size();
 		// System.out.println(temp);
 		CmdLine.run(temp, ".");
 
@@ -278,7 +278,7 @@ public class NrsHap {
 			reader = new BufferedReader(new FileReader("plink.assoc.hap"));
 			if (!reader.readLine().trim().split("[\\s]+")[1].equals("HAPLOTYPE")) {
 				System.err.println("Error - could not find the result of the haplotype test for "
-														+ Array.toStr(Array.toStringArray(snps), ","));
+														+ ArrayUtils.toStr(ArrayUtils.toStringArray(snps), ","));
 			}
 			line = reader.readLine().trim().split("[\\s]+");
 			reader.close();
@@ -328,7 +328,7 @@ public class NrsHap {
 			try {
 				writer = new PrintWriter(new FileWriter("sim." + i + ".dat"));
 				writer.println("FID\tIID\tAff");
-				order = Array.random(data.length);
+				order = ArrayUtils.random(data.length);
 				for (int j = 0; j < data.length; j++) {
 					writer.println(data[j][0] + "\t" + data[j][1] + "\t" + data[order[j]][2]);
 				}
@@ -485,7 +485,7 @@ public class NrsHap {
 						}
 					}
 					reader.close();
-					markerNames = Array.toStringArray(markerVector);
+					markerNames = ArrayUtils.toStringArray(markerVector);
 					positions = Ints.toArray(markerLocations);
 					pvals = Doubles.toArray(pvalueVector);
 					indexSNPs = Ints.toArray(indexVector);
@@ -660,15 +660,15 @@ public class NrsHap {
 			writer = new PrintWriter(new FileWriter("NRSS_distributions.xln"));
 			for (int i = 0; i < dirs.length; i++) {
 				writer.print((i == 0 ? "" : "\t")	+ dirs[i].getName()
-											+ Array.toStr(Array.stringArray(levelsDeep), "\t"));
+											+ ArrayUtils.toStr(ArrayUtils.stringArray(levelsDeep), "\t"));
 			}
 			writer.println();
 			for (int i = 0; i < dirs.length; i++) {
 				writer.print((i == 0 ? "" : "\t")
-											+ Array.toStr(Array.stringArraySequence(levelsDeep, ""), "\t"));
+											+ ArrayUtils.toStr(ArrayUtils.stringArraySequence(levelsDeep, ""), "\t"));
 			}
 			writer.println();
-			writer.println(Array.toStr(Array.stringArray(dirs.length * levelsDeep, "0.5")));
+			writer.println(ArrayUtils.toStr(ArrayUtils.stringArray(dirs.length * levelsDeep, "0.5")));
 			temp = "";
 			for (int i = 0; i < dirs.length; i++) {
 				for (int j = 0; j < levelsDeep; j++) {
@@ -680,7 +680,7 @@ public class NrsHap {
 			}
 
 			count = 0;
-			while (!temp.equals(Array.toStr(Array.stringArray(dirs.length * levelsDeep)))) {
+			while (!temp.equals(ArrayUtils.toStr(ArrayUtils.stringArray(dirs.length * levelsDeep)))) {
 				writer.println(temp);
 				temp = "";
 				for (int i = 0; i < dirs.length; i++) {

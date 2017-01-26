@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 
 import org.genvisis.bioinformatics.Sequence;
 import org.genvisis.cnv.manage.PlinkData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
@@ -199,7 +199,7 @@ public class DosageData implements Serializable {
       return;
     }
     markersToKeep = filterMarkers(markerNames, regions, markers, verbose, log);
-    keepTotal = Array.booleanArraySum(markersToKeep);
+    keepTotal = ArrayUtils.booleanArraySum(markersToKeep);
 
     log.report("Keeping " + keepTotal + " markers out of " + markerNames.length);
 
@@ -241,7 +241,7 @@ public class DosageData implements Serializable {
           String msg = "Warning - the format given expects chromosome number to be part of the file name.  This was determined to be chr{" + chr + "}.";
           log.report(msg);
         }
-        chrs = Array.byteArray(keepTotal, chr);
+        chrs = ArrayUtils.byteArray(keepTotal, chr);
       } else {
         if (verbose) {
           String msg = "Error - the format given expects chromosome number to be part of the file name, but no chromosome number was found.  Chromosome information will not be included.";
@@ -485,14 +485,14 @@ public class DosageData implements Serializable {
     double[] betas, stderrs, pvals, stats;
 
     traits = Files.getHeaderOfFile(phenoFile, "\t", log);
-    hash = HashVec.loadFileToHashString(phenoFile, new int[] {0, 1}, Arrays.copyOfRange(Array.arrayOfIndices(traits.length), 2, traits.length), false, "\t", true, false, false);
-    traits = Array.subArray(traits, 2);
+    hash = HashVec.loadFileToHashString(phenoFile, new int[] {0, 1}, Arrays.copyOfRange(ArrayUtils.arrayOfIndices(traits.length), 2, traits.length), false, "\t", true, false, false);
+    traits = ArrayUtils.subArray(traits, 2);
 
     markerNames = markerSet.getMarkerNames();
     chrs = markerSet.getChrs();
     positions = markerSet.getPositions();
     alleles = markerSet.getAlleles();
-    analyze = Array.booleanArray(markerNames.length, true);
+    analyze = ArrayUtils.booleanArray(markerNames.length, true);
     if (snpList != null) {
       snps = HashVec.loadFileToHashSet(snpList, false);
       for (int i = 0; i < markerNames.length; i++) {
@@ -502,7 +502,7 @@ public class DosageData implements Serializable {
       }
     }
 
-    use = Array.booleanArray(ids.length, true);
+    use = ArrayUtils.booleanArray(ids.length, true);
     for (int i = 0; i < ids.length; i++) {
       if (hash.containsKey(ids[i][0] + "\t" + ids[i][1])) {
         line = hash.get(ids[i][0] + "\t" + ids[i][1]).split("[\\s]+");
@@ -515,7 +515,7 @@ public class DosageData implements Serializable {
         use[i] = false;
       }
     }
-    deps = new double[Array.booleanArraySum(use)];
+    deps = new double[ArrayUtils.booleanArraySum(use)];
     indeps = new double[deps.length][traits.length];
     log.report("There are " + deps.length + " rows with complete data", true, verbose);
     count = 0;
@@ -529,7 +529,7 @@ public class DosageData implements Serializable {
         count++;
       }
     }
-    logistic = RegressionModel.isBinaryTrait(Array.toStr(deps).split("[\\s]+"), log);
+    logistic = RegressionModel.isBinaryTrait(ArrayUtils.toStr(deps).split("[\\s]+"), log);
     log.report("Running a " + (logistic ? "logistic" : "linear") + " model for trait '" + traits[0] + "'", true, verbose);
     try {
       // writer = new PrintWriter(new FileWriter(ext.rootOf(phenoFile,
@@ -543,7 +543,7 @@ public class DosageData implements Serializable {
       line = Arrays.copyOf(arr, arr.length);
       line[1] = line[1] + "      ";
       line[2] = line[1] + "      ";
-      writer.println(Array.toStr(line));
+      writer.println(ArrayUtils.toStr(line));
       // w2.println("MARKER\tREF\tOTHER\tN\tDIR\tPVALUE\tbeta\tSE");
       w2.println("MarkerName\tAllele1\tAllele2\tWeight\tDirection\tP-value\tEffect\tStdErr");
       // public static final String[] LOGISTIC_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST",
@@ -729,7 +729,7 @@ public class DosageData implements Serializable {
     try {
       writer = Files.getAppropriateWriter(filename);
       if (parameters[4] == 1) {
-        writer.print(Array.toStr(HEADS[parameters[11]], delimiter));
+        writer.print(ArrayUtils.toStr(HEADS[parameters[11]], delimiter));
 
         if (parameters[2] == MARKER_DOMINANT_FORMAT) {
           if (parameters[3] == 2 && parameters[0] == FID_IID_TYPE) {
@@ -781,7 +781,7 @@ public class DosageData implements Serializable {
             if (parameters[9] >= 0) {
               line[parameters[9]] = positions[i] + "";
             }
-            writer.print(Array.toStr(line, delimiter));
+            writer.print(ArrayUtils.toStr(line, delimiter));
 
             if (parameters[3] == 1) {
               for (int j = 0; j < ids.length; j++) {
@@ -820,7 +820,7 @@ public class DosageData implements Serializable {
             log.reportError("Error - ID type has not been defined");
             System.exit(1);
           }
-          writer.print(Array.toStr(line, delimiter));
+          writer.print(ArrayUtils.toStr(line, delimiter));
 
           if (parameters[3] == 1) {
             for (int j = 0; j < markerNames.length; j++) {
@@ -875,7 +875,7 @@ public class DosageData implements Serializable {
       for (String[] id : ids) {
         writer.print(id[0] + "\t" + id[1] + "\t");
         String[] parts = {id.length > 2 ? id[2] : "0", id.length > 3 ? id[3] : "0", id.length > 4 ? id[4] : "0", id.length > 5 ? id[5] : "-9",};
-        writer.println(Array.toStr(parts, "\t"));
+        writer.println(ArrayUtils.toStr(parts, "\t"));
       }
       writer.close();
     } catch (IOException e) {
@@ -902,7 +902,7 @@ public class DosageData implements Serializable {
       out.write(outStream);
 
       for (int j = 0; j < markerNames.length; j++) {
-        out.write(PlinkData.encodePlinkBedBytesForASingleMarkerOrSample(Array.toByteArray(dosageValues[j])));
+        out.write(PlinkData.encodePlinkBedBytesForASingleMarkerOrSample(ArrayUtils.toByteArray(dosageValues[j])));
       }
 
       out.close();
@@ -914,10 +914,10 @@ public class DosageData implements Serializable {
   }
 
   private boolean[] filterMarkers(String[] markerNames, int[][] regionsToUse, String[] markersToUse, boolean verbose, Logger log) {
-    boolean[] markersToKeep = Array.booleanArray(markerNames.length, true);
+    boolean[] markersToKeep = ArrayUtils.booleanArray(markerNames.length, true);
     if (regionsToUse != null) {
       markerSet = markerSet.trim(regionsToUse, verbose, log);
-      markersToKeep = Array.booleanArray(markerNames.length, true);
+      markersToKeep = ArrayUtils.booleanArray(markerNames.length, true);
       HashSet<String> newMarkerSet = HashVec.loadToHashSet(markerSet.getMarkerNames());
       for (int i = 0; i < markerNames.length; i++) {
         markersToKeep[i] = newMarkerSet.contains(markerNames[i]);
@@ -939,7 +939,7 @@ public class DosageData implements Serializable {
         }
         hash = null;
       }
-      markersToKeep = Array.booleanArray(markerNames.length, false);
+      markersToKeep = ArrayUtils.booleanArray(markerNames.length, false);
       for (int i = 0; i < markerNames.length; i++) {
         if (mkrsToKeep.contains(markerNames[i])) {
           markersToKeep[i] = true;
@@ -1219,10 +1219,10 @@ public class DosageData implements Serializable {
               ddNew.genotypeProbabilities[m][s] = dd1Data; // set to missingGeno
             } else if (!miss1 && !miss2) {
               log.reportError("Error - valid genotype data in both DosageData objects for ID/MKR: \"" + id + "\" / \"" + mkr + "\" - data will be set to missing.");
-              ddNew.genotypeProbabilities[m][s] = Array.floatArray(ddNewNumGeno, missingGeno);
+              ddNew.genotypeProbabilities[m][s] = ArrayUtils.floatArray(ddNewNumGeno, missingGeno);
             }
           } else {
-            ddNew.genotypeProbabilities[m][s] = Array.floatArray(ddNewNumGeno, missingGeno);
+            ddNew.genotypeProbabilities[m][s] = ArrayUtils.floatArray(ddNewNumGeno, missingGeno);
           }
         }
 
@@ -1421,7 +1421,7 @@ public class DosageData implements Serializable {
     // };
 
 
-    if (awk && !Array.equals(fromParameters, toParameters)) {
+    if (awk && !ArrayUtils.equals(fromParameters, toParameters)) {
       log.reportError("Error - the awk option of convert is currently only available for identical file types");
     } else if (awk) {
       cols = new IntVector();
@@ -1508,7 +1508,7 @@ public class DosageData implements Serializable {
         }
 
         if (toParameters[4] == 1) { // if there is a header row
-          writer.print(Array.toStr(HEADS[toParameters[11]], delimiter));
+          writer.print(ArrayUtils.toStr(HEADS[toParameters[11]], delimiter));
 
           if (toParameters[2] == MARKER_DOMINANT_FORMAT) {
             if (toParameters[3] == 2 && toParameters[0] == FID_IID_TYPE) {
@@ -1635,7 +1635,7 @@ public class DosageData implements Serializable {
               if (toParameters[9] >= 0) {
                 lead[toParameters[9]] = position + "";
               }
-              writer.print(Array.toStr(lead, delimiter));
+              writer.print(ArrayUtils.toStr(lead, delimiter));
 
 
               for (int j = 0; j < ids.length; j++) {
@@ -1692,7 +1692,7 @@ public class DosageData implements Serializable {
               log.reportError("Error - ID type has not been defined");
               System.exit(1);
             }
-            writer.print(Array.toStr(lead, delimiter));
+            writer.print(ArrayUtils.toStr(lead, delimiter));
 
             for (int j = 0; j < markerNames.length; j++) {
               if (extract == null || keeps.contains(markerNames[j])) {
@@ -1798,7 +1798,7 @@ public class DosageData implements Serializable {
     }
 
 
-    boolean[] markersToInclude = Array.booleanArray(bimData.length, false);
+    boolean[] markersToInclude = ArrayUtils.booleanArray(bimData.length, false);
     markers: for (int i = 0; i < bimData.length; i++) {
       if (markerSet != null && markerSet.contains(bimData[i][1])) {
         markersToInclude[i] = true;
@@ -1820,7 +1820,7 @@ public class DosageData implements Serializable {
 
 
     dd.ids = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".fam", false, new int[] {0, 1, 2, 3, 4, 5}, false);
-    int numMarkers = Array.booleanArraySum(markersToInclude);// Files.countLines(dir + plinkRoot +
+    int numMarkers = ArrayUtils.booleanArraySum(markersToInclude);// Files.countLines(dir + plinkRoot +
                                                              // ".bim", 0);
     dd.alleles = new char[numMarkers][2];
     dd.chrs = new byte[numMarkers];
@@ -1861,7 +1861,7 @@ public class DosageData implements Serializable {
           }
           index++;
           if (dd.positions[index] == -1) {
-            dd.dosageValues[index] = Array.floatArray(dd.ids.length, -1); // TODO is this correct
+            dd.dosageValues[index] = ArrayUtils.floatArray(dd.ids.length, -1); // TODO is this correct
                                                                           // code? i.e. will this
                                                                           // ever occur?
             continue;
@@ -1882,7 +1882,7 @@ public class DosageData implements Serializable {
               sampGeno[idInd] = genotypes[g];
             }
           }
-          dd.dosageValues[index] = Array.toFloatArray(sampGeno);
+          dd.dosageValues[index] = ArrayUtils.toFloatArray(sampGeno);
           if (loadMissingAsNaN) {
             for (int n = 0; n < dd.dosageValues[index].length; n++) {
               if (dd.dosageValues[index][n] == -1) {

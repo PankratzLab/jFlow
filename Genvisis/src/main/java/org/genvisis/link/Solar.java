@@ -14,7 +14,7 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -228,7 +228,7 @@ public class Solar {
 						line[i] = "";
 					}
 				}
-				writer.println(Array.toStr(line, ","));
+				writer.println(ArrayUtils.toStr(line, ","));
 			}
 			reader.close();
 			writer.close();

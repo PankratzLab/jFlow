@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 public class haploPerm {
 	public haploPerm(int numReps) throws IOException {
@@ -35,7 +35,7 @@ public class haploPerm {
 
 		for (int i = 1; i <= numReps; i++) {
 			writer = new PrintWriter(new FileWriter("aff." + i));
-			randKey = Array.random(n);
+			randKey = ArrayUtils.random(n);
 			for (int j = 0; j < n; j++) {
 				writer.println(inds.elementAt(j) + "\t" + affstat.elementAt(randKey[j]));
 			}

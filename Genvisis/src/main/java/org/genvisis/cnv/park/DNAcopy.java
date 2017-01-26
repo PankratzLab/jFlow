@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -148,7 +148,7 @@ public class DNAcopy {
 				inds[i] = ext.rootOf(outputs[i]);
 			}
 		} else {
-			inds = Array.toStringArray(HashVec.loadFileToVec(rootDirectory	+ included, false, false, true,
+			inds = ArrayUtils.toStringArray(HashVec.loadFileToVec(rootDirectory	+ included, false, false, true,
 																												true));
 			System.out.println("Using all indivduals listed in '"	+ included + "' (n=" + inds.length
 													+ ")");
@@ -162,7 +162,7 @@ public class DNAcopy {
 
 		try {
 			writer = new PrintWriter(new FileWriter(rootDirectory + "dnacopy.cnv"));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			counts = new int[inds.length][2];
 			for (int i = 0; i < inds.length; i++) {
 				try {
@@ -201,11 +201,11 @@ public class DNAcopy {
 				// writer.println(inds[i]);
 			}
 			array = Matrix.extractColumn(counts, 0);
-			System.out.println("Mean/Total number of CNVs per person is: "	+ Array.mean(array) + " / "
-													+ Array.sum(array));
+			System.out.println("Mean/Total number of CNVs per person is: "	+ ArrayUtils.mean(array) + " / "
+													+ ArrayUtils.sum(array));
 			array = Matrix.extractColumn(counts, 1);
 			System.out.println("Mean/Total number of CNVs per person exceeding the threshold is: "
-													+ Array.mean(array) + " / " + Array.sum(array));
+													+ ArrayUtils.mean(array) + " / " + ArrayUtils.sum(array));
 			writer.close();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -243,7 +243,7 @@ public class DNAcopy {
 			}
 			output = "Distribution_for_ALL." + sigfigs + "sigfig" + ".xln";
 		} else {
-			inds = Array.toStringArray(HashVec.loadFileToVec(included, false, false, true, true));
+			inds = ArrayUtils.toStringArray(HashVec.loadFileToVec(included, false, false, true, true));
 			System.out.println("Using all dnas listed in '" + included + "' (n=" + inds.length + ")");
 			for (String ind : inds) {
 				if (ext.indexOfStr(ind + ".smooth", outputs) == -1) {

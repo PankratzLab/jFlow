@@ -226,7 +226,7 @@ public class Matrix {
 		double sum = 0;
 
 		for (double[] element : matrix) {
-			sum += Array.sum(element);
+			sum += ArrayUtils.sum(element);
 		}
 
 		return sum;
@@ -242,7 +242,7 @@ public class Matrix {
 		int sum = 0;
 
 		for (int[] element : matrix) {
-			sum += Array.sum(element);
+			sum += ArrayUtils.sum(element);
 		}
 
 		return sum;
@@ -278,7 +278,7 @@ public class Matrix {
 		double[][] matrix = new double[iMatrix.length][];
 
 		for (int i = 0; i < iMatrix.length; i++) {
-			matrix[i] = Array.toDoubleArray(iMatrix[i]);
+			matrix[i] = ArrayUtils.toDoubleArray(iMatrix[i]);
 		}
 
 		return matrix;
@@ -294,7 +294,7 @@ public class Matrix {
 		double[][] matrix = new double[sMatrix.length][];
 
 		for (int i = 0; i < sMatrix.length; i++) {
-			matrix[i] = Array.toDoubleArray(sMatrix[i]);
+			matrix[i] = ArrayUtils.toDoubleArray(sMatrix[i]);
 		}
 
 		return matrix;
@@ -310,7 +310,7 @@ public class Matrix {
 		int[][] matrix = new int[sMatrix.length][];
 
 		for (int i = 0; i < sMatrix.length; i++) {
-			matrix[i] = Array.toIntArray(sMatrix[i]);
+			matrix[i] = ArrayUtils.toIntArray(sMatrix[i]);
 		}
 
 		return matrix;
@@ -722,7 +722,7 @@ public class Matrix {
 			}
 		}
 
-		count = Array.booleanArraySum(use);
+		count = ArrayUtils.booleanArraySum(use);
 		if (count < use.length) {
 			newMatrix = new double[matrix.length][count];
 			count = 0;
@@ -756,9 +756,9 @@ public class Matrix {
 
 		return prune(	matrix,
 									rowsToKeep == null	? null
-																			: Array.indicesToBooleanArray(rowsToKeep, matrix.length),
+																			: ArrayUtils.indicesToBooleanArray(rowsToKeep, matrix.length),
 									columnsToKeep == null	? null
-																				: Array.indicesToBooleanArray(columnsToKeep,
+																				: ArrayUtils.indicesToBooleanArray(columnsToKeep,
 																																			matrix[0].length),
 									log);
 	}
@@ -787,8 +787,8 @@ public class Matrix {
 		row = 0;
 		newMatrix =
 							new String[rowsToKeep == null	? matrix.length
-																						: Array.booleanArraySum(rowsToKeep)][columnsToKeep == null	? matrix[0].length
-																																																				: Array.booleanArraySum(columnsToKeep)];
+																						: ArrayUtils.booleanArraySum(rowsToKeep)][columnsToKeep == null	? matrix[0].length
+																																																				: ArrayUtils.booleanArraySum(columnsToKeep)];
 		for (int i = 0; i < matrix.length; i++) {
 			if (rowsToKeep == null || rowsToKeep[i]) {
 				if (columnsToKeep == null) {
@@ -834,12 +834,12 @@ public class Matrix {
 		}
 
 		newMatrix = matrix;
-		if (Array.min(c) == 0) {
+		if (ArrayUtils.min(c) == 0) {
 			use = new boolean[c.length];
 			for (int j = 0; j < c.length; j++) {
 				use[j] = c[j] != 0;
 			}
-			temp = new int[r.length][Array.booleanArraySum(use)];
+			temp = new int[r.length][ArrayUtils.booleanArraySum(use)];
 			count = 0;
 			for (int j = 0; j < c.length; j++) {
 				if (use[j]) {
@@ -854,12 +854,12 @@ public class Matrix {
 			pruned = true;
 		}
 
-		if (Array.min(r) == 0) {
+		if (ArrayUtils.min(r) == 0) {
 			use = new boolean[r.length];
 			for (int i = 0; i < r.length; i++) {
 				use[i] = r[i] != 0;
 			}
-			temp = new int[Array.booleanArraySum(use)][newMatrix[0].length];
+			temp = new int[ArrayUtils.booleanArraySum(use)][newMatrix[0].length];
 			count = 0;
 			for (int i = 0; i < r.length; i++) {
 				if (use[i]) {
@@ -964,7 +964,7 @@ public class Matrix {
 
 		rowProportions = new double[counts.length][];
 		for (int i = 0; i < counts.length; i++) {
-			rowProportions[i] = Array.getProportions(counts[i]);
+			rowProportions[i] = ArrayUtils.getProportions(counts[i]);
 		}
 
 		return rowProportions;
@@ -987,7 +987,7 @@ public class Matrix {
 		int count;
 
 		count = 0;
-		subset = new double[Array.booleanArraySum(rowsToKeep)][];
+		subset = new double[ArrayUtils.booleanArraySum(rowsToKeep)][];
 		for (int i = 0; i < matrix.length; i++) {
 			if (rowsToKeep[i]) {
 				subset[count++] = matrix[i];
@@ -1002,7 +1002,7 @@ public class Matrix {
 		int count;
 
 		count = 0;
-		subset = new String[Array.booleanArraySum(rowsToKeep)][];
+		subset = new String[ArrayUtils.booleanArraySum(rowsToKeep)][];
 		for (int i = 0; i < matrix.length; i++) {
 			if (rowsToKeep[i]) {
 				subset[count++] = matrix[i];
@@ -1031,13 +1031,13 @@ public class Matrix {
 		int[][] matrix = {{1, 2, 4}, {1, 4, 0}, {0, 1, 0}};
 
 		for (int[] element : matrix) {
-			System.out.println(Array.toStr(element));
+			System.out.println(ArrayUtils.toStr(element));
 		}
 		System.out.println();
 		matrix = prune(matrix);
 		System.out.println();
 		for (int[] element : matrix) {
-			System.out.println(Array.toStr(element));
+			System.out.println(ArrayUtils.toStr(element));
 		}
 		System.out.println();
 

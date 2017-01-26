@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Vector;
 
 import org.genvisis.bioinformatics.Alleles;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -159,7 +159,7 @@ public class ResultsPackager {
 			line = temp.split(delimiter);
 			ext.checkHeader(line, GWAF.HEADER_SUMMARY, true);
 			// writer.println(Array.toStr(IBC_OUTPUT_FORMAT));
-			writer.println(Array.toStr(TRADITIONAL_OUTPUT_FORMAT));
+			writer.println(ArrayUtils.toStr(TRADITIONAL_OUTPUT_FORMAT));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiter);
 				trav = line[0];
@@ -184,7 +184,7 @@ public class ResultsPackager {
 						alleles = new String[] {".", "."};
 						log.reportError("Error - no alleles from original .frq file for " + trav);
 					}
-					writer.print("\t" + Array.toStr(alleles));
+					writer.print("\t" + ArrayUtils.toStr(alleles));
 
 					freq = line[5];
 					if (customFreqHash != null) {
@@ -287,7 +287,7 @@ public class ResultsPackager {
 			}
 
 
-			writer.println(Array.toStr(STANDARD_OUTPUT_FORMAT));
+			writer.println(ArrayUtils.toStr(STANDARD_OUTPUT_FORMAT));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiter);
 				trav = line[indices[0]];
@@ -309,13 +309,13 @@ public class ResultsPackager {
 					} else {
 						// try {
 						if (freqHash.containsKey(trav)) {
-							writer.print("\t" + Array.toStr(Alleles.getAlleleFreqForA1(	line[indices[1]],
+							writer.print("\t" + ArrayUtils.toStr(Alleles.getAlleleFreqForA1(	line[indices[1]],
 																																					freqHash.get(trav)
 																																									.split("\t")))); // a1,
 																																																		// a2,
 																																																		// a1_freq
 						} else if (freqHash.containsKey(ext.replaceAllWith(trav, ".", "-"))) {
-							writer.print("\t" + Array.toStr(Alleles.getAlleleFreqForA1(	line[indices[1]],
+							writer.print("\t" + ArrayUtils.toStr(Alleles.getAlleleFreqForA1(	line[indices[1]],
 																																					freqHash.get(ext.replaceAllWith(trav,
 																																																					".",
 																																																					"-"))
@@ -442,7 +442,7 @@ public class ResultsPackager {
 			}
 
 			lowCallrateMarkers = new Vector<String>();
-			writer.println(Array.toStr(STANDARD_OUTPUT_FORMAT));
+			writer.println(ArrayUtils.toStr(STANDARD_OUTPUT_FORMAT));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiter);
 				trav = line[indices[0]];
@@ -518,7 +518,7 @@ public class ResultsPackager {
 			return;
 		}
 
-		Files.writeArray(	Array.toStringArray(lowCallrateMarkers),
+		Files.writeArray(	ArrayUtils.toStringArray(lowCallrateMarkers),
 											dir + outfile + "lowCallRateMarkers.out");
 	}
 
@@ -644,14 +644,14 @@ public class ResultsPackager {
 			Map<String, Integer> indicesIp = ext.indexMap(EMIM_REQS, lineIp, false, log, false, false);
 			
 
-			writer.println(Array.toStr(EMIM_OUTPUT_FORMAT_SNPS)
+			writer.println(ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_SNPS)
 												+ (mendelErrorFile == null	? ""
 																									: ("\t"
-																											+ Array.toStr(EMIM_OUTPUT_FORMAT_MENDEL_ERRORS)))
-											+ (hweFile == null ? "" : ("\t" + Array.toStr(EMIM_OUTPUT_FORMAT_HWE)))
-											+ (tdtResultsFile == null ? "" : ("\t" + Array.toStr(EMIM_OUTPUT_FORMAT_TDT)))
-											+ "\t" + Array.toStr(EMIM_OUTPUT_FORMAT_EMIM_RESULTS) + "\t"
-											+ Array.toStr(EMIM_OUTPUT_FORMAT_EMIM_PVALS));
+																											+ ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_MENDEL_ERRORS)))
+											+ (hweFile == null ? "" : ("\t" + ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_HWE)))
+											+ (tdtResultsFile == null ? "" : ("\t" + ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_TDT)))
+											+ "\t" + ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_EMIM_RESULTS) + "\t"
+											+ ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_EMIM_PVALS));
 			while (readerC.ready()) {
 				// lineC = reader1.readLine().replaceAll("\\*", " ").trim().split(delimiter1, -1);
 				lineC = readerC	.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
@@ -724,7 +724,7 @@ public class ResultsPackager {
 				// }
 				if (pValueThreshold >= 1
 						|| ((!temp.equals("NA")
-									&& pvalsPass(	Array.addDoubleToArray(Double.parseDouble(temp), pvals),
+									&& pvalsPass(	ArrayUtils.addDoubleToArray(Double.parseDouble(temp), pvals),
 																pValueThreshold))
 								&& Double.parseDouble(freq) >= .01)) {
 					String[] pvalEquations = getPvalEquations(	lineC[indicesC.get("lnliknull")],
@@ -1182,7 +1182,7 @@ public class ResultsPackager {
 
 		if (params != null) {
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 

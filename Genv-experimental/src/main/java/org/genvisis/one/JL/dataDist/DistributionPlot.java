@@ -10,7 +10,7 @@ import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
@@ -109,8 +109,8 @@ public class DistributionPlot {
 						}
 						int[] finals = Ints.toArray(markersInCnv);
 						proj.getLog().report(newValue+"\t"+ind.getLoci().length + " cnvs over " + finals.length + " markers");
-						bafs = Array.subArray(bafs, finals);
-						lrrs = Array.subArray(lrrs, finals);
+						bafs = ArrayUtils.subArray(bafs, finals);
+						lrrs = ArrayUtils.subArray(lrrs, finals);
 						if (copyNumbers.size() != bafs.length) {
 							throw new IllegalStateException();
 						}
@@ -175,7 +175,7 @@ public class DistributionPlot {
 		private XYChart.Series<Number, Number> update(SampleData sampleData, String sampleName, float[] bafs,
 				float[] lrrs, boolean baf) {
 
-			double[] data = Array.toDoubleArray(baf ? bafs : lrrs);
+			double[] data = ArrayUtils.toDoubleArray(baf ? bafs : lrrs);
 			return getHistogram(data, sampleName);
 		}
 

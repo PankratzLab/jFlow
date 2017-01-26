@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
@@ -252,7 +252,7 @@ public class procGenesByTissue {
 						}
 					} else {
 						writer.print(DELIMITER
-													+ Array.toStr(Array.stringArray(2 + TISSUE_TERMS_CHOSEN.length, ".."),
+													+ ArrayUtils.toStr(ArrayUtils.stringArray(2 + TISSUE_TERMS_CHOSEN.length, ".."),
 																				DELIMITER));
 					}
 					count = 0;
@@ -264,7 +264,7 @@ public class procGenesByTissue {
 								levels = expressionData.get(trav);
 								if (count > 0) {
 									writer.print("\n"
-																+ Array.toStr(Array.stringArray(5 + 2 + TISSUE_TERMS_CHOSEN.length),
+																+ ArrayUtils.toStr(ArrayUtils.stringArray(5 + 2 + TISSUE_TERMS_CHOSEN.length),
 																							DELIMITER));
 								}
 								writer.print(DELIMITER + trav);
@@ -277,7 +277,7 @@ public class procGenesByTissue {
 							}
 						}
 					} else {
-						writer.print(DELIMITER + Array.toStr(	Array.stringArray(TISSUES_CHOSEN.length + 1, "."),
+						writer.print(DELIMITER + ArrayUtils.toStr(	ArrayUtils.stringArray(TISSUES_CHOSEN.length + 1, "."),
 																									DELIMITER));
 					}
 					if (geneidOmimLookup.containsKey(line[0])) {

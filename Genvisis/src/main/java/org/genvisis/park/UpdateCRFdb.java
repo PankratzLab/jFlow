@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.db.crfDB;
@@ -75,7 +75,7 @@ public class UpdateCRFdb {
 			reader.readLine();
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				writer.println(Array.toStr(tools.getFamID(line[1]), ",")	+ ",1,"
+				writer.println(ArrayUtils.toStr(tools.getFamID(line[1]), ",")	+ ",1,"
 												+ (line[6].equals("VPD") || line[6].equals("CONF_PD") ? "1" : "0"));
 			}
 			writer.close();
