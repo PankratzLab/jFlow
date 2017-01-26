@@ -3257,10 +3257,12 @@ public class Array {
 	 * @return an array of values filtered to the specified range
 	 */
 	public static float[] subArrayInRange(float[] array, boolean[] use, float min, float max) {
+		boolean[] samples = new boolean[use.length];
+		System.arraycopy(use, 0, samples, 0, samples.length);
 		for (int i=0; i<array.length; i++) {
-			use[i] = use[i] && (Float.compare(array[i], min) >= 0 && Float.compare(array[i], max) <= 0);
+			samples[i] = use[i] && (Float.compare(array[i], min) >= 0 && Float.compare(array[i], max) <= 0);
 		}
-		return subArray(array, use);
+		return subArray(array, samples);
 	}
 
 	/**

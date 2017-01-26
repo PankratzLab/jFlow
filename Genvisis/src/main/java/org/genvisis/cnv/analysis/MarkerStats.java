@@ -61,6 +61,7 @@ public final class MarkerStats {
 		writer.println(Array.toStr(outHeader, "\t"));
 
 		MDL mdl = new MDL(proj, proj.getMarkerSet(), proj.getMarkerNames());
+		boolean[] samplesToInclude = proj.getSamplesToInclude();
 
 		try {
 			while (mdl.hasNext()) {
@@ -68,9 +69,7 @@ public final class MarkerStats {
 				final List<String> line = new ArrayList<String>();
 				String markerName = marker.getMarkerName();
 				int markerIndexInProject = markerIndices.get(markerName);
-				boolean[] samplesToInclude = proj.getSamplesToInclude();
 				float lrrSd = Array.stdev(Array.subArray(marker.getLRRs(), samplesToInclude), true);
-				// NB: subArrayInRange modifies the input boolean array
 				float[] baf15t85 = Array.subArrayInRange(marker.getBAFs(), samplesToInclude, 0.15f, 0.85f);
 				float bafAvg = Array.mean(baf15t85, true);
 				float baf50Dist = Array.meanDist(baf15t85, 0.50f, true);
