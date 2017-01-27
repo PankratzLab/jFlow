@@ -21,6 +21,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HttpDownloadUtility;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.FASTA;
+import org.genvisis.seq.manage.BedOps;
 import org.genvisis.seq.manage.VCFOps;
 
 /**
@@ -261,6 +262,14 @@ public final class Resources {
 		}
 
 		/**
+		 * @return The 100-mer mappability track for this {@link GENOME_BUILD}, note we do not download
+		 *         the index - generate if needed with {@link BedOps#verifyBedIndex(String, Logger)}
+		 */
+		public Resource get100MerMappabilityTrack() {
+			return getResource(getPath() + "_wgEncodeCrgMapabilityAlign100mer.bedGraph");
+		}
+
+		/**
 		 * @return b138 DB .ser resource
 		 */
 		public Resource getB138() {
@@ -462,6 +471,39 @@ public final class Resources {
 			return getResource(sb.toString());
 		}
 	}
+
+
+	/**
+	 * Get general annotation resources
+	 */
+	public static class Annotation extends AbstractResourceFactory {
+		private static final String DIR = "Annotation";
+
+		public Annotation(Logger log) {
+			super(DIR, log, Annotation.class);
+		}
+
+		public Resource getGDI() {
+			return getResource("GDI.txt");
+		}
+
+
+		/**
+		 * Helper method for chaining resource calls.
+		 */
+		public Annotation annotation() {
+			return new Annotation(log());
+		}
+	}
+
+	/**
+	 * Helper method for chaining resource calls
+	 */
+	public static Annotation annotation(Logger log) {
+		return new Annotation(log);
+	}
+
+
 
 	/**
 	 * Get general CNV resources
