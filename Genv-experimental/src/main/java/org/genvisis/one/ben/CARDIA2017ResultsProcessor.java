@@ -3,7 +3,9 @@ package org.genvisis.one.ben;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -107,6 +109,10 @@ public class CARDIA2017ResultsProcessor {
 		int numModels = 4;
 		
 		int numChrs = EA.equals(prefix) ? 23 : 24;
+
+		String form = "ddMMMyy";
+		SimpleDateFormat sdf = new SimpleDateFormat(form);
+		String date = sdf.format(new Date()).toUpperCase();
 		
 		String skipFile = this.dir + prefix + "removeSnpsLowQual.txt";
 		HashSet<String> ignore = HashVec.loadFileToHashSet(skipFile, false);
@@ -121,7 +127,7 @@ public class CARDIA2017ResultsProcessor {
 			for (int i = 0; i < numModels; i++) {
 				String modelDir = dir + prefix + modelPref + (i + 1) + "/";
 				String regFile = modelDir + "regression_chr" + chr + ".out_add.out.txt";
-				String outFile = modelDir + "out/" + "CARDIA_" + MODEL_VARS[i] + "_" + getAnc(prefix) + "_" + NUTR_VARS[i] + "_" + (i + 1) + "_DDMMYYYY.txt";
+				String outFile = modelDir + "out/" + "CARDIA_" + MODEL_VARS[i] + "_" + getAnc(prefix) + "_" + NUTR_VARS[i] + "_" + (i + 1) + "_" + date + ".txt";
 				
 				reader = Files.getAppropriateReader(regFile);
 				writer = writers.get(i);
@@ -156,15 +162,26 @@ public class CARDIA2017ResultsProcessor {
 					}
 					
 					double chi = ext.isMissingValue(parts[14]) ? Double.NaN : Double.parseDouble(parts[14]);
+					double pval = 1 - csd.cumulativeProbability(chi);
+					String pvalStr = Double.isNaN(pval) ? "NA" : pval > 0.001 ? ext.formDeci(pval, 4) : ext.formSciNot(pval, 4, false);
+					String eaf = ext.isMissingValue(parts[8]) ? "NA" : ext.formDeci(Double.parseDouble(parts[8]), 4);
 					
 					sb.append(snp.chr).append("\t")
 						.append(snp.pos).append("\t")
 						.append(parts[0]).append("\t")
-						.append(STRAND).append("\t")
-						.append(snp.base.charAt(0)).append("\t")
+						.append(STRAND).append("\t");
+					if (EA.equals(prefix)) {
+						sb
+							.append(snp.base.charAt(0)).append("\t")
+							.append(snp.eff.charAt(0)).append("\t");
+					} else {
+						sb
 						.append(snp.eff.charAt(0)).append("\t")
+						.append(snp.base.charAt(0)).append("\t");
+					}
+					sb
 						.append(parts[7]).append("\t")
-						.append(ext.isMissingValue(parts[8]) ? "NA" : ext.formDeci(Double.parseDouble(parts[8]), 4)).append("\t")
+						.append(eaf).append("\t")
 						.append(TYPE).append("\t")
 						.append(parts[6]).append("\t")
 						.append(ext.isMissingValue(parts[9]) ? "NA" : ext.formDeci(Double.parseDouble(parts[9]), 5)).append("\t")
@@ -173,7 +190,7 @@ public class CARDIA2017ResultsProcessor {
 						.append(ext.isMissingValue(parts[12]) ? "NA" : ext.formDeci(Double.parseDouble(parts[12]), 5)).append("\t")
 						.append(parts[13]).append("\t")
 						.append(parts[14]).append("\t")
-						.append(ext.formDeci(1 - csd.cumulativeProbability(chi), 4));
+						.append(pvalStr);
 					
 					writer.println(sb.toString());
 				}
