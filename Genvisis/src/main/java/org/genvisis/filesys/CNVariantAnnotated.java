@@ -11,7 +11,7 @@ import java.util.Map;
 
 import org.genvisis.cnv.annotation.segments.SegmentAnnotationKeys;
 import org.genvisis.cnv.annotation.segments.SegmentAnotation;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 
 public class CNVariantAnnotated extends CNVariant {
@@ -63,7 +63,7 @@ public class CNVariantAnnotated extends CNVariant {
 		for (SegmentAnnotationKeys key : SegmentAnnotationKeys.values()) {
 			header.add(key.toString());
 		}
-		return Array.toStringArray(header);
+		return ArrayUtils.toStringArray(header);
 	}
 
 

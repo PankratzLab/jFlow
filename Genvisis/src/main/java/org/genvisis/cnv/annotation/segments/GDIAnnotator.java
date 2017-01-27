@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.genvisis.cnv.manage.Resources;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -65,9 +65,9 @@ public class GDIAnnotator implements SegmentAnnotator {
 
 		Map<String, String> attributes = new HashMap<String, String>();
 
-		if (Array.countIf(indices, -1) > 0) {
+		if (ArrayUtils.countIf(indices, -1) > 0) {
 			throw new IllegalArgumentException("Invalid header in "+ gdiFile + " , require "
-																					+ Array.toStr(REQUIRED_HEADER));
+																					+ ArrayUtils.toStr(REQUIRED_HEADER));
 		}
 
 		try {

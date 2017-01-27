@@ -14,7 +14,7 @@ import org.genvisis.cnv.annotation.segments.SegmentAnotation;
 import org.genvisis.cnv.annotation.segments.WESMappabilityAnnotator;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -133,7 +133,7 @@ public class CNVScan {
 					+ "\t" + tallyResult.getDupCN().size() + "\t"
 					+ (tallyResult.getAllCN().size() == tallyResult.getDupCN().size()
 							|| tallyResult.getAllCN().size() == tallyResult.getDelCN().size())
-					+ "\t" + Array.toStr(gdi.replaceAll("%", "").split(";")) + "\t");
+					+ "\t" + ArrayUtils.toStr(gdi.replaceAll("%", "").split(";")) + "\t");
 			int len = -1;
 			if (tallyResult.getAllLocs().size() == 1) {
 				for (CNVariant seg : tallyResult.getAllLocs()) {
