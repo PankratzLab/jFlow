@@ -71,9 +71,9 @@ public class NGSmtDNA {
 			String vpopFileEpp = "/Volumes/Beta/data/mtDNA-dev/vcf/EPP_FREQ_V2.vpop";
 
 			if (Files.exists(annoVcf)) {
-				SimpleTallyGene.run(annoVcf, vpopFileEpp, new double[] { 1.2, .01, 0.0 });
-
-				SimpleTallyGene.run(annoVcf, vpopFileGermlineCushing, new double[] { 1.2, .01, 0.0 });
+//				SimpleTallyGene.run(annoVcf, vpopFileEpp, new double[] { 1.2, .01, 0.0 });
+//
+//				SimpleTallyGene.run(annoVcf, vpopFileGermlineCushing, new double[] { 1.2, .01, 0.0 });
 			}
 			// TumorNormalSummary.main(new String[] { annoVcf });
 
