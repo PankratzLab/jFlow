@@ -12,7 +12,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.CLI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -97,7 +97,7 @@ public class GWAF {
 													+ ext.replaceAllWith(geneticDataTemplate, "#", count + "") + "\", \""
 													+ pedfile + "\", \"" + pheno + "\", \"kmat.Rfile\", covars="
 													+ (covars == null	? "NULL"
-																						: "c(\"" + Array.toStr(covars, "\",\"") + "\")")
+																						: "c(\"" + ArrayUtils.toStr(covars, "\",\"") + "\")")
 													+ ", \"" + ext.replaceAllWith(outfileTemplate, "#", count + "")
 													+ "\", col.names=T, sep.ped=\",\", sep.phe=\",\", sep.gen=\",\")");
 				} else {
@@ -106,7 +106,7 @@ public class GWAF {
 													+ "\", \"" + pedfile + "\", \"" + pheno + "\", \"kmat.Rfile\", model=\""
 													+ model + "\", covars="
 													+ (covars == null	? "NULL"
-																						: "c(\"" + Array.toStr(covars, "\",\"") + "\")")
+																						: "c(\"" + ArrayUtils.toStr(covars, "\",\"") + "\")")
 													+ ", \"" + ext.replaceAllWith(outfileTemplate, "#", count + "")
 													+ "\", col.names=T, sep.ped=\",\", sep.phe=\",\", sep.gen=\",\")");
 				}
@@ -120,7 +120,7 @@ public class GWAF {
 			if (numBatches < 1) {
 				if (nodesToUse == null) {
 					v =
-						Array.toStringVector(Files.qsub(dir, rootTemplate, startAt, count,
+						ArrayUtils.toStringVector(Files.qsub(dir, rootTemplate, startAt, count,
 																						"R --no-save < "										+ rootTemplate
 																																								+ ".R > "
 																																								+ rootTemplate
@@ -146,7 +146,7 @@ public class GWAF {
 				if (!Files.exists(dir + "kmat.Rfile", false)) {
 					v.insertElementAt("R --no-save < createKmat.R > createKmat.log", 0);
 				}
-				Files.writeArray(Array.toStringArray(v), dir + "master." + pheno);
+				Files.writeArray(ArrayUtils.toStringArray(v), dir + "master." + pheno);
 				Files.chmod(dir + "master." + pheno);
 			} else {
 				if (Files.isWindows()) {
@@ -214,7 +214,7 @@ public class GWAF {
 						count = 0;
 						while (reader.ready()) {
 							line = reader.readLine().trim().split(",");
-							if (Array.equals(line, expectedHeader, false)) {
+							if (ArrayUtils.equals(line, expectedHeader, false)) {
 								headerIndices.add(count);
 							}
 							count++;
@@ -244,7 +244,7 @@ public class GWAF {
 
 						ext.checkHeader(header, expectedHeader, true);
 						if (first) {
-							writer.println(Array.toStr(HEADER_SUMMARY, DELIMITER));
+							writer.println(ArrayUtils.toStr(HEADER_SUMMARY, DELIMITER));
 							first = false;
 						}
 						count = 0;

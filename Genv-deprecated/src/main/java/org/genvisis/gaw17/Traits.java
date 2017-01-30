@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
@@ -71,18 +71,18 @@ public class Traits {
 						indeps[count][2] = Double.parseDouble(line[3]);
 						count++;
 					}
-					writer.print("\t" + Array.toStr(Array.subArray(
+					writer.print("\t" + ArrayUtils.toStr(ArrayUtils.subArray(
 																													new LogisticRegression(deps[0], indeps)
 																																																	.getSigs(),
 																													1, 4)));
 					writer.print("\t"
-												+ Array.toStr(Array.subArray(	new LeastSquares(deps[1], indeps).getSigs(), 1,
+												+ ArrayUtils.toStr(ArrayUtils.subArray(	new LeastSquares(deps[1], indeps).getSigs(), 1,
 																											4)));
 					writer.print("\t"
-												+ Array.toStr(Array.subArray(	new LeastSquares(deps[2], indeps).getSigs(), 1,
+												+ ArrayUtils.toStr(ArrayUtils.subArray(	new LeastSquares(deps[2], indeps).getSigs(), 1,
 																											4)));
 					writer.print("\t"
-												+ Array.toStr(Array.subArray(	new LeastSquares(deps[3], indeps).getSigs(), 1,
+												+ ArrayUtils.toStr(ArrayUtils.subArray(	new LeastSquares(deps[3], indeps).getSigs(), 1,
 																											4)));
 					writer.println();
 					writer.flush();
@@ -153,18 +153,18 @@ public class Traits {
 						indeps[3][count][4] = Double.parseDouble(line[5]);
 						count++;
 					}
-					writer.print("\t" + Array.toStr(Array.subArray(
+					writer.print("\t" + ArrayUtils.toStr(ArrayUtils.subArray(
 																													new LogisticRegression(deps[0], indeps[0])
 																																																		.getSigs(),
 																													1, 7)));
 					writer.print("\t"
-												+ Array.toStr(Array.subArray(	new LeastSquares(deps[1], indeps[1]).getSigs(),
+												+ ArrayUtils.toStr(ArrayUtils.subArray(	new LeastSquares(deps[1], indeps[1]).getSigs(),
 																											1, 6)));
 					writer.print("\t"
-												+ Array.toStr(Array.subArray(	new LeastSquares(deps[2], indeps[2]).getSigs(),
+												+ ArrayUtils.toStr(ArrayUtils.subArray(	new LeastSquares(deps[2], indeps[2]).getSigs(),
 																											1, 6)));
 					writer.print("\t"
-												+ Array.toStr(Array.subArray(	new LeastSquares(deps[3], indeps[3]).getSigs(),
+												+ ArrayUtils.toStr(ArrayUtils.subArray(	new LeastSquares(deps[3], indeps[3]).getSigs(),
 																											1, 6)));
 					writer.println();
 					writer.flush();
@@ -196,7 +196,7 @@ public class Traits {
 			try {
 				reader = new BufferedReader(new FileReader(pheno_dir + "unr_phen." + rep));
 				writer = new PrintWriter(new FileWriter(pheno_dir + "unr_phen." + rep + ".tab"));
-				writer.println("FID\tI" + Array.toStr(reader.readLine().trim().split(",")));
+				writer.println("FID\tI" + ArrayUtils.toStr(reader.readLine().trim().split(",")));
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(",");
 					writer.println(line[0]	+ "\t" + line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3]
@@ -702,14 +702,14 @@ public class Traits {
 		counts = new int[ids.length][stddevThresholds.length];
 		matrix = new double[ids.length][200];
 		for (int rep = 1; rep <= 200; rep++) {
-			values = Array.toDoubleArray(Array.toStringArray(HashVec.loadFileToVec(pheno_dir	+ pheno_root
+			values = ArrayUtils.toDoubleArray(ArrayUtils.toStringArray(HashVec.loadFileToVec(pheno_dir	+ pheno_root
 																																							+ "." + rep, true,
 																																							new int[] {col}, true,
 																																							false, false,
 																																							commaDelimited	? ","
 																																															: "[\\s]+")));
-			mean = Array.mean(values);
-			stdev = Array.stdev(values);
+			mean = ArrayUtils.mean(values);
+			stdev = ArrayUtils.stdev(values);
 			for (int i = 0; i < ids.length; i++) {
 				matrix[i][rep - 1] = values[i];
 				for (int j = 0; j < stddevThresholds.length; j++) {
@@ -728,8 +728,8 @@ public class Traits {
 			}
 			writer.println();
 			for (int i = 0; i < ids.length; i++) {
-				writer.println(ids[i]	+ "\t" + Array.mean(matrix[i]) + "\t" + Array.stdev(matrix[i]) + "\t"
-												+ Array.toStr(counts[i]));
+				writer.println(ids[i]	+ "\t" + ArrayUtils.mean(matrix[i]) + "\t" + ArrayUtils.stdev(matrix[i]) + "\t"
+												+ ArrayUtils.toStr(counts[i]));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -745,7 +745,7 @@ public class Traits {
 			}
 			writer.println();
 			for (int i = 0; i < ids.length; i++) {
-				writer.println(ids[i] + "\t" + Array.toStr(matrix[i]));
+				writer.println(ids[i] + "\t" + ArrayUtils.toStr(matrix[i]));
 			}
 			writer.close();
 		} catch (Exception e) {

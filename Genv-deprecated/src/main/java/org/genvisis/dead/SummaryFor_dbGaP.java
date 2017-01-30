@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class SummaryFor_dbGaP {
@@ -61,7 +61,7 @@ public class SummaryFor_dbGaP {
 		try {
 			reader = new BufferedReader(new FileReader(dir + HWE_FILE));
 			writer = new PrintWriter(new FileWriter(dir + "summary.xln"));
-			writer.println(Array.toStr(FINAL_HEADER));
+			writer.println(ArrayUtils.toStr(FINAL_HEADER));
 			line = reader.readLine().trim().split("[\\s]+");
 			snpCol = ext.indexFactors(new String[] {"SNP"}, line, false, true)[0];
 			a1Col = ext.indexFactors(new String[] {"A1"}, line, true, false)[0];
@@ -80,14 +80,14 @@ public class SummaryFor_dbGaP {
 				}
 				caseP = line[pCol];
 				writer.print(CHIP_BATCH_NAME	+ "\t" + line[snpCol] + "\t" + line[a1Col] + "\t" + line[a2Col]
-											+ "\t" + Array.toStr(line[genoCol].split("/")));
+											+ "\t" + ArrayUtils.toStr(line[genoCol].split("/")));
 
 				line = reader.readLine().trim().split("[\\s]+");
 				if (!line[testCol].equalsIgnoreCase("unaff")) {
 					System.err.println("Error - out of sync at " + line[snpCol]);
 					System.exit(1);
 				}
-				writer.print("\t"	+ Array.toStr(line[genoCol].split("/")) + "\t" + line[pCol] + "\t"
+				writer.print("\t"	+ ArrayUtils.toStr(line[genoCol].split("/")) + "\t" + line[pCol] + "\t"
 											+ caseP);
 
 				data = hash.get(line[snpCol]);
@@ -95,7 +95,7 @@ public class SummaryFor_dbGaP {
 					System.err.println("Error - no p-value for " + line[snpCol]);
 					data = new String[] {"NA", "NA", "NA"};
 				}
-				writer.println("\t" + Array.toStr(data));
+				writer.println("\t" + ArrayUtils.toStr(data));
 
 			}
 			writer.close();

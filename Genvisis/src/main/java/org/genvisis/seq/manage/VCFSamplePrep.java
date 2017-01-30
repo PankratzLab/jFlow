@@ -9,7 +9,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Numbers;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
@@ -42,7 +42,7 @@ public class VCFSamplePrep {
 				break;
 			case NORMALIZED_GC_CORRECTED:
 				if (gcModel != null) {
-					normDepth = GcAdjustor.getComputedAdjustor(	proj, null, Array.toFloatArray(normDepth),
+					normDepth = GcAdjustor.getComputedAdjustor(	proj, null, ArrayUtils.toFloatArray(normDepth),
 																											gcModel, GC_CORRECTION_METHOD.GENVISIS_GC,
 																											true, true, false)
 																.getCorrectedIntensities();
@@ -67,7 +67,7 @@ public class VCFSamplePrep {
 	}
 
 	private static float[] scale(float[] d, float[] totalDepth, double[] normDepth) {
-		double minNorm = Array.min(normDepth);
+		double minNorm = ArrayUtils.min(normDepth);
 		float[] scaleNorm = new float[d.length];
 		for (int i = 0; i < scaleNorm.length; i++) {
 			if (!Numbers.isFinite((float) normDepth[i])) {
@@ -82,7 +82,7 @@ public class VCFSamplePrep {
 				scaleNorm[i] = (float) ((d[i] * normDepth[i]) / totalDepth[i]);
 			}
 		}
-		double min = Math.abs(Array.min(scaleNorm));
+		double min = Math.abs(ArrayUtils.min(scaleNorm));
 		for (int i = 0; i < scaleNorm.length; i++) {
 			scaleNorm[i] += min;
 		}
@@ -91,7 +91,7 @@ public class VCFSamplePrep {
 	}
 
 	private static double[] normDepth(float[] totalDepth) {
-		return Array.normalize(Array.toDoubleArray(totalDepth));
+		return ArrayUtils.normalize(ArrayUtils.toDoubleArray(totalDepth));
 	}
 
 	private static float[] getTotalDepth(float[] xs, float[] ys) {

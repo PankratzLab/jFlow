@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
@@ -100,7 +100,7 @@ public class GenParser {
 																	: (tabDelimited ? "\t" : "[\\s]+");
 		columnHeaders = data == null	? Files.getHeaderOfFile(filename, delim, log)
 																	: ext.splitLine(data.get(0), delim, log);
-		if (Array.toStr(line).contains("'")) {
+		if (ArrayUtils.toStr(line).contains("'")) {
 			for (int i = 0; i < line.length; i++) {
 				indices = ext.indicesWithinString("'", line[i]);
 				if (indices.length % 2 != 0) {
@@ -182,7 +182,7 @@ public class GenParser {
 
 		cols = new int[columns.size()];
 		colNames = new String[columns.size()];
-		failCodes = Array.stringArray(columns.size(), ".");
+		failCodes = ArrayUtils.stringArray(columns.size(), ".");
 		comps = new Vector<String>();
 		for (int j = 0; j < columns.size(); j++) {
 			trav = columns.elementAt(j);
@@ -334,7 +334,7 @@ public class GenParser {
 			}
 		} catch (IOException ioe) {
 			log.reportException(ioe);
-			return Array.stringArray(cols.length, "NaN");
+			return ArrayUtils.stringArray(cols.length, "NaN");
 		}
 
 		truncatedLine = false;
@@ -368,7 +368,7 @@ public class GenParser {
 				}
 			}
 
-			parsed = Array.stringArray(cols.length, "!found or failed");
+			parsed = ArrayUtils.stringArray(cols.length, "!found or failed");
 			if (forceFailCodes && cols[0] >= 0) {
 				parsed[0] = line[cols[0]];
 			}
@@ -449,11 +449,11 @@ public class GenParser {
 				log.reportError("Error trying to parse: " + temp);
 				log.reportException(aioobe);
 			}
-			return Array.stringArray(cols.length, "NaN");
+			return ArrayUtils.stringArray(cols.length, "NaN");
 		} catch (Exception e) {
 			log.reportError("Error trying to parse: " + temp);
 			log.reportException(e);
-			return Array.stringArray(cols.length, "NaN");
+			return ArrayUtils.stringArray(cols.length, "NaN");
 		}
 
 		return parsed;
@@ -510,12 +510,12 @@ public class GenParser {
 			}
 		}
 		if (nonNull > 0 && parser.hasHeader()) {
-			returnData.add(Array.toStr(header, delimiter));
+			returnData.add(ArrayUtils.toStr(header, delimiter));
 		}
 		while (parser.ready()) {
 			trav = parser.nextLine();
 			if (trav != null) {
-				returnData.add(Array.toStr(trav, delimiter));
+				returnData.add(ArrayUtils.toStr(trav, delimiter));
 			}
 		}
 		parser.close();
@@ -551,12 +551,12 @@ public class GenParser {
 			}
 		}
 		if (nonNull > 0 && parser.hasHeader()) {
-			writer.println(Array.toStr(header, delimiter));
+			writer.println(ArrayUtils.toStr(header, delimiter));
 		}
 		while (parser.ready()) {
 			trav = parser.nextLine();
 			if (trav != null) {
-				writer.println(Array.toStr(trav, delimiter));
+				writer.println(ArrayUtils.toStr(trav, delimiter));
 			}
 		}
 		writer.flush();

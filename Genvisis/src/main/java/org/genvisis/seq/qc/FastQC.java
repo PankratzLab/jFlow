@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -132,12 +132,12 @@ public class FastQC {
 						try {
 							PrintWriter writer = new PrintWriter(new FileWriter(currentOutput));
 							String[] header = fastaQCModuleResults[0][i].getModuleHeader();
-							writer.println("Sample\tInternalKey\t" + Array.toStr(header));
+							writer.println("Sample\tInternalKey\t" + ArrayUtils.toStr(header));
 							for (FastaQCModuleResults[] fastaQCModuleResult : fastaQCModuleResults) {
 								String[] allKeys = fastaQCModuleResult[i].getAllArrayKeys();
 								for (String allKey : allKeys) {
 									writer.println(fastaQCModuleResult[i].getSourceFile()	+ "\t" + allKey + "\t"
-																	+ Array.toStr(fastaQCModuleResult[i].getValueForKey(allKey)));
+																	+ ArrayUtils.toStr(fastaQCModuleResult[i].getValueForKey(allKey)));
 								}
 							}
 							writer.println();
@@ -351,7 +351,7 @@ public class FastQC {
 			if (!fail) {
 				if (verbose) {
 					log.report(ext.getTime()	+ " Info - gathering files from "
-											+ Array.toStr(rootInputDirs, "\n"));
+											+ ArrayUtils.toStr(rootInputDirs, "\n"));
 				}
 				ArrayList<String> tmpAllFiles = new ArrayList<String>();
 
@@ -374,14 +374,14 @@ public class FastQC {
 				fastaQFiles = tmpAllFiles.toArray(new String[tmpAllFiles.size()]);
 			} else {
 				log.reportError("Error - could not find input location(s) "
-												+ Array.toStr(rootInputDirs, "\n"));
+												+ ArrayUtils.toStr(rootInputDirs, "\n"));
 			}
 		}
 		if (fastaQFiles == null || fastaQFiles.length < 1) {
 			fail = true;
 			log.reportError("Error - could not find any input files in "
-												+ Array.toStr(rootInputDirs, "\n") + "\nwith any of the following extensions:"
-											+ Array.toStr(BWA_Analysis.FQ_EXTS, "\n"));
+												+ ArrayUtils.toStr(rootInputDirs, "\n") + "\nwith any of the following extensions:"
+											+ ArrayUtils.toStr(BWA_Analysis.FQ_EXTS, "\n"));
 		} else {
 			log.report(ext.getTime() + " Info - found " + fastaQFiles.length + " file(s) to QC");
 		}

@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
@@ -137,7 +137,7 @@ public class Parser {
 																							+ "markerSets.dat"));
 			for (int i = 0; i < genes.size(); i++) {
 				writer.println(genes.elementAt(i)	+ "\t"
-												+ Array.toStr(Array.toStringArray(hash.get(genes.elementAt(i)))));
+												+ ArrayUtils.toStr(ArrayUtils.toStringArray(hash.get(genes.elementAt(i)))));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -151,7 +151,7 @@ public class Parser {
 			for (int i = 0; i < genes.size(); i++) {
 				if (nonsynon.containsKey(genes.elementAt(i))) {
 					writer.println(genes.elementAt(i)	+ "\t"
-													+ Array.toStr(Array.toStringArray(nonsynon.get(genes.elementAt(i)))));
+													+ ArrayUtils.toStr(ArrayUtils.toStringArray(nonsynon.get(genes.elementAt(i)))));
 				}
 			}
 			writer.close();

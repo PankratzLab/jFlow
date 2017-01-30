@@ -8,7 +8,7 @@ import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.hmm.PennHmm.ViterbiResult;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
@@ -46,13 +46,13 @@ public class GCBin extends Segment {
 	public static LocusSet<GCBin> bin(Project proj, GcModel gcModel) {// TODO, split and thread by chr
 
 		double[] gcs = gcModel.getGcs();
-		new OpdfGaussian(Array.mean(gcs, true), Math.pow(Array.stdev(gcs, true), 2));
+		new OpdfGaussian(ArrayUtils.mean(gcs, true), Math.pow(ArrayUtils.stdev(gcs, true), 2));
 		int numStates = 50;
 		int zeroState = 5;
 		NormalDistribution nd =
-													new org.apache.commons.math3.distribution.NormalDistribution(	Array.mean(gcs,
+													new org.apache.commons.math3.distribution.NormalDistribution(	ArrayUtils.mean(gcs,
 																																																	true),
-																																												Array.stdev(gcs,
+																																												ArrayUtils.stdev(gcs,
 																																																		true));
 		int[] stateSequence = new int[gcs.length];
 		for (int i = 0; i < gcs.length; i++) {
@@ -66,8 +66,8 @@ public class GCBin extends Segment {
 
 		for (int i = 0; i < indices.length; i++) {
 			if (indices[i].length > 0) {
-				int[] currentStates = Array.subArray(stateSequence, indices[i]);
-				int[] positions = Array.subArray(markerSet.getPositions(), indices[i]);
+				int[] currentStates = ArrayUtils.subArray(stateSequence, indices[i]);
+				int[] positions = ArrayUtils.subArray(markerSet.getPositions(), indices[i]);
 				byte chr = (byte) i;
 				ViterbiResult vtr = new ViterbiResult(currentStates, null);
 				LocusSet<CNVariant> tmp = vtr.analyzeStateSequence(	proj, "GC_CONTENT", "chr" + i, chr,
@@ -77,7 +77,7 @@ public class GCBin extends Segment {
 					CNVariant gcv = tmp.getLoci()[j];
 					int[] startStop = indicesStates.get(j);
 					int[] stateIndices = Arrays.copyOfRange(indices[i], startStop[0], startStop[1] + 1);
-					double gc = Array.mean(Array.subArray(gcs, stateIndices), true);
+					double gc = ArrayUtils.mean(ArrayUtils.subArray(gcs, stateIndices), true);
 					allGc.add(new GCBin(gcv, gc, gcv.getNumMarkers(), gcv.getCN()));
 				}
 			}

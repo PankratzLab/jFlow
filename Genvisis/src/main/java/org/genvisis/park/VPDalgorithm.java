@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 import org.genvisis.db.crfDB;
@@ -421,10 +421,10 @@ public class VPDalgorithm {
 					// writer.print("\t"+(info.onset_GT20.equals("1")&&info.bradykinesia.equals("1")&&info.prob_GTE50.equals("1")&&info.atLeast1>=1&&info.atLeast2>=2&&info.exclusion.size()==0?"1":"0"));
 					writer.print("\t" + (countToVPD == 6 ? "1" : "0") + "\t" + countToVPD);
 					writer.print("\t" + (info.inclusion.size() == 0	? "."
-																													: ext.listWithCommas(	Array.toStringArray(info.inclusion),
+																													: ext.listWithCommas(	ArrayUtils.toStringArray(info.inclusion),
 																																								true)));
 					writer.print("\t" + (info.supporting.size() == 0	? "."
-																														: ext.listWithCommas(	Array.toStringArray(info.supporting),
+																														: ext.listWithCommas(	ArrayUtils.toStringArray(info.supporting),
 																																									true)));
 					missing = info.atLeast1missing	+ info.atLeast2missing + info.exclusionMissing
 										+ info.restTremorMissing + info.rigidityMissing;
@@ -436,22 +436,22 @@ public class VPDalgorithm {
 																											+ info.reasoning.size() > 0 ? "; also " : "")
 																								: ""))
 										+ (info.exclusion.size() > 0	? "Exclusion criteria: "
-																										+ ext.listWithCommas(	Array.toStringArray(info.exclusion),
+																										+ ext.listWithCommas(	ArrayUtils.toStringArray(info.exclusion),
 																																				true)
 																									+ (info.reasoning.size() > 0 ? "; also " : "")
 																								: "")
-									+ ext.listWithCommas(Array.toStringArray(info.reasoning), true);
+									+ ext.listWithCommas(ArrayUtils.toStringArray(info.reasoning), true);
 					writer.print("\t" + (temp.equals("") ? "." : temp));
 
 					writer.print("\t" + (countToUKBBC == 4 ? "1" : "0") + "\t" + countToUKBBC);
 					writer.print("\t" + (info.brainBank_inclusion.size() == 0	? "."
-																																		: ext.listWithCommas(	Array.toStringArray(info.brainBank_inclusion),
+																																		: ext.listWithCommas(	ArrayUtils.toStringArray(info.brainBank_inclusion),
 																																													true)));
 					writer.print("\t" + (info.brainBank_supporting.size() == 0	? "."
-																																			: ext.listWithCommas(	Array.toStringArray(info.brainBank_supporting),
+																																			: ext.listWithCommas(	ArrayUtils.toStringArray(info.brainBank_supporting),
 																																														true)));
 					writer.println("\t" + (info.brainBank_exclusion.size() == 0	? "."
-																																			: ext.listWithCommas(	Array.toStringArray(info.brainBank_exclusion),
+																																			: ext.listWithCommas(	ArrayUtils.toStringArray(info.brainBank_exclusion),
 																																														true)));
 				} else {
 					writer.println(".\t.\t.\t.\t.\t.\t.\t.\t\t.\t0\t0\t0\t0\t0\t0\t.\t.\tNo CRFs\t0\t0\t.\t.\tNo CRFs");

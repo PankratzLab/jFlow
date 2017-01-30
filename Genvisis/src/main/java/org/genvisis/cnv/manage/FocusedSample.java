@@ -5,7 +5,7 @@ import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
@@ -50,22 +50,22 @@ public class FocusedSample {
 
 	private Sample getFocusedSample(Sample sample, int[] focusedIndices, long newFingerPrint) {
 		byte[] abGenotypes = sample.getAB_Genotypes() == null	? null
-																													: Array.subArray(	sample.getAB_Genotypes(),
+																													: ArrayUtils.subArray(	sample.getAB_Genotypes(),
 																																						focusedIndices);
 		byte[] forwardGenotypes =
 														sample.getForwardGenotypes() == null	? null
-																																	: Array.subArray(	sample.getForwardGenotypes(),
+																																	: ArrayUtils.subArray(	sample.getForwardGenotypes(),
 																																										focusedIndices);
 
-		float[] xs = sample.getXs() == null ? null : Array.subArray(sample.getXs(), focusedIndices);
-		float[] ys = sample.getYs() == null ? null : Array.subArray(sample.getYs(), focusedIndices);
+		float[] xs = sample.getXs() == null ? null : ArrayUtils.subArray(sample.getXs(), focusedIndices);
+		float[] ys = sample.getYs() == null ? null : ArrayUtils.subArray(sample.getYs(), focusedIndices);
 
 		float[] lrrs = sample.getLRRs() == null	? null
-																						: Array.subArray(sample.getLRRs(), focusedIndices);
+																						: ArrayUtils.subArray(sample.getLRRs(), focusedIndices);
 		float[] bafs = sample.getBAFs() == null	? null
-																						: Array.subArray(sample.getBAFs(), focusedIndices);
+																						: ArrayUtils.subArray(sample.getBAFs(), focusedIndices);
 
-		float[] gcs = sample.getGCs() == null ? null : Array.subArray(sample.getGCs(), focusedIndices);
+		float[] gcs = sample.getGCs() == null ? null : ArrayUtils.subArray(sample.getGCs(), focusedIndices);
 		boolean canXYBeNegative = sample.getCanXYBeNegative();
 		Sample focusedSample = new Sample(sample.getSampleName(), newFingerPrint, gcs, xs, ys, bafs,
 																			lrrs, forwardGenotypes, abGenotypes, canXYBeNegative);
@@ -76,7 +76,7 @@ public class FocusedSample {
 																						boolean[] samplesToUse, long newFingerPrint,
 																						boolean overwriteExisting) {
 		String[] samples = samplesToUse == null	? original.getSamples()
-																						: Array.subArray(original.getSamples(), samplesToUse);
+																						: ArrayUtils.subArray(original.getSamples(), samplesToUse);
 		WorkerSubset[] workerSubsets = new WorkerSubset[samples.length];
 		for (int i = 0; i < samples.length; i++) {
 			workerSubsets[i] = new WorkerSubset(samples[i], original, newFocus, focusedIndices,
@@ -139,7 +139,7 @@ public class FocusedSample {
 			focused = false;
 		} else {
 			log.reportTimeInfo("Markers to export = " + markersToUse.length);
-			log.reportTimeInfo("Samples to export = " + Array.booleanArraySum(samplesToUse));
+			log.reportTimeInfo("Samples to export = " + ArrayUtils.booleanArraySum(samplesToUse));
 			int[] markerToUseIndices = ext.indexLargeFactors(	markersToUse, original.getMarkerNames(),
 																												true, log, true, false);
 			WorkerHive<FocusedSample> hive = new WorkerHive<FocusedSample>(numThreads, 10, log);

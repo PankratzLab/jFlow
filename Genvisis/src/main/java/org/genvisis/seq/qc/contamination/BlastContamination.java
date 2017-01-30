@@ -9,7 +9,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -135,7 +135,7 @@ public class BlastContamination {
 		String[] allTaxaA = allTaxa.toArray(new String[allTaxa.size()]);
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
-			writer.println("Taxa\t" + Array.toStr(fastaqs));
+			writer.println("Taxa\t" + ArrayUtils.toStr(fastaqs));
 			for (String element : allTaxaA) {
 				writer.print(element);
 				for (int j = 0; j < fastaqs.length; j++) {
@@ -172,8 +172,8 @@ public class BlastContamination {
 	                            int reportWordSize, int numSampThreads, String outputDir,
 	                            String outputRoot, int numBatches, int memoryInMB,
 	                            int wallTimeInHours, Logger log, String[] fastaqs) {
-		List<String[]> splits = Array.splitUpArray(fastaqs, numBatches, log);
-		String command = Array.toStr(PSF.Load.getAllModules(), "\n");
+		List<String[]> splits = ArrayUtils.splitUpArray(fastaqs, numBatches, log);
+		String command = ArrayUtils.toStr(PSF.Load.getAllModules(), "\n");
 		String[][] batches = new String[splits.size()][1];
 		for (int i = 0; i < batches.length; i++) {
 			batches[i][0] = "batch_" + i + "_" + outputRoot;

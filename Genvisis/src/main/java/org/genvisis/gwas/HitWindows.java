@@ -8,7 +8,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -60,13 +60,13 @@ public class HitWindows {
 			delimiter = ext.determineDelimiter(temp);
 			header = temp.trim().split(delimiter);
 			indices = ext.indexFactors(factors, header, false, false, true, true, log, false);
-			if (Array.min(indices) == -1) {
+			if (ArrayUtils.min(indices) == -1) {
 				log.reportError("Aborting after failing to find the appropriate column headers in file "
 												+ filename);
 				log.reportError("Missing:");
 				for (int i = 0; i < indices.length; i++) {
 					if (indices[i] == -1) {
-						log.reportError("  " + Array.toStr(factors[i], "/"));
+						log.reportError("  " + ArrayUtils.toStr(factors[i], "/"));
 					}
 				}
 				return null;
@@ -79,7 +79,7 @@ public class HitWindows {
 				} else {
 					line = temp.trim().split(delimiter);
 				}
-				line = Array.subArray(line, indices);
+				line = ArrayUtils.subArray(line, indices);
 				try {
 					markerNames[count] = line[0];
 					chrs[count] = Positions.chromosomeNumber(line[1]);
@@ -91,7 +91,7 @@ public class HitWindows {
 					}
 				} catch (Exception e) {
 					log.reportError("Error - reading file " + filename + " at line " + count + ": " + temp);
-					log.reportError("  which was parsed as : " + Array.toStr(line));
+					log.reportError("  which was parsed as : " + ArrayUtils.toStr(line));
 					log.reportException(e);
 					return null;
 				}
@@ -148,7 +148,7 @@ public class HitWindows {
 													"RegionStart", "RegionStop", "NumSigMarkers", "NumSuggestiveMarkers",
 													"NumTotalMarkers", "SizeOfRegion"};
 		for (String additionalAnnotationVariableName : additionalAnnotationVariableNames) {
-			line = Array.addStrToArray(additionalAnnotationVariableName, line);
+			line = ArrayUtils.addStrToArray(additionalAnnotationVariableName, line);
 		}
 		v.add(line);
 
@@ -237,7 +237,7 @@ public class HitWindows {
 															numSuggestive + "", (stopIndex - startIndex + 1) + "",
 															(positions[stopIndex] - positions[startIndex] + 1) + ""};
 				for (int j = 0; j < additionalAnnotationVariableNames.length; j++) {
-					line = Array.addStrToArray(annotation[minIndex][j], line);
+					line = ArrayUtils.addStrToArray(annotation[minIndex][j], line);
 				}
 				v.add(line);
 
@@ -268,7 +268,7 @@ public class HitWindows {
 			header = reader.readLine().trim().split("[\\s]+");
 			indices = ext.indexFactors(	new String[][] {{"Trait"}, Aliases.CHRS, Aliases.POSITIONS},
 																	header, false, true, true, true);
-			if (!Array.equals(indices, new int[] {0, 1, 2})) {
+			if (!ArrayUtils.equals(indices, new int[] {0, 1, 2})) {
 				log.reportError("Error - currently expecting format: Trait\tChr\tPosition");
 			}
 			while (reader.ready()) {
@@ -285,7 +285,7 @@ public class HitWindows {
 			return;
 		}
 
-		traits = Array.toStringArray(v);
+		traits = ArrayUtils.toStringArray(v);
 		segs = new Segment[traits.length][];
 		for (int i = 0; i < traits.length; i++) {
 			v = hash.get(traits[i]);
@@ -315,7 +315,7 @@ public class HitWindows {
 				}
 			}
 			log.report(markerNames[m]	+ "\t"
-									+ (v.size() == 0 ? "." : Array.toStr(Array.toStringArray(v), "/")));
+									+ (v.size() == 0 ? "." : ArrayUtils.toStr(ArrayUtils.toStringArray(v), "/")));
 		}
 	}
 
@@ -338,7 +338,7 @@ public class HitWindows {
 
 		if (params != null) {
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 
@@ -478,7 +478,7 @@ public class HitWindows {
 						Files.writeMatrix(results, outfile, "\t");
 					} else {
 						for (String[] result : results) {
-							log.report(Array.toStr(result, "\t"));
+							log.report(ArrayUtils.toStr(result, "\t"));
 						}
 					}
 				}

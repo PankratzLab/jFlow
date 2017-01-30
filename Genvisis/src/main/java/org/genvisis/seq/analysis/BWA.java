@@ -2,7 +2,7 @@ package org.genvisis.seq.analysis;
 
 
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -43,7 +43,7 @@ public class BWA {
 																					fullPathToRevereseReadFQ, " > ", fullPathToOutputFile};
 		if (!fail) {
 			String command = fullPathToOutputFile + ".bat";
-			Files.write(Array.toStr(commandArray, " "), command);
+			Files.write(ArrayUtils.toStr(commandArray, " "), command);
 			Files.chmod(command);
 			return CmdLine.runCommandWithFileChecks(new String[] {command}, "", inputFiles, outputFiles,
 																							verbose, overwriteExisting, true,

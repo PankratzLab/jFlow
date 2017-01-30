@@ -21,7 +21,7 @@ import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -108,7 +108,7 @@ public class LrrSd extends Parallelizable {
 			}
 
 			chrs = proj.getMarkerSet().getChrs();
-			subIndex = Array.indexOfFirstMaxByte(chrs, (byte) 23);// index is the first byte >= 23,
+			subIndex = ArrayUtils.indexOfFirstMaxByte(chrs, (byte) 23);// index is the first byte >= 23,
 																														// chrs.length if all are less, -1 if
 																														// none are less, 0 if all are greater!
 			if (subIndex <= 0) {
@@ -132,9 +132,9 @@ public class LrrSd extends Parallelizable {
 			}
 
 			int numAb = (markersForCallrate == null	? chrs.length
-																							: Array.booleanArraySum(markersForCallrate));
+																							: ArrayUtils.booleanArraySum(markersForCallrate));
 			int numAllElse = (markersForEverythingElse == null	? subIndex
-																													: Array.booleanArraySum(markersForEverythingElse));
+																													: ArrayUtils.booleanArraySum(markersForEverythingElse));
 			if (threadNumber == 1) {// we can just show this once
 				proj.getLog().report("Info - using " + numAb + " markers for sample call rate qc");
 				proj.getLog().report("Info - using "	+ numAllElse
@@ -165,7 +165,7 @@ public class LrrSd extends Parallelizable {
 			// threadNumber));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(proj.SAMPLE_QC_FILENAME.getValue(), false)
 																							+ "." + threadNumber));
-			writer.println(SAMPLE_COLUMN + "\t" + Array.toStr(NUMERIC_COLUMNS));
+			writer.println(SAMPLE_COLUMN + "\t" + ArrayUtils.toStr(NUMERIC_COLUMNS));
 			PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
 			for (String sample : samples) {
 				// log.report((i+1)+" of "+samples.length);
@@ -174,7 +174,7 @@ public class LrrSd extends Parallelizable {
 					log.reportError("Error - "	+ sample + Sample.SAMPLE_FILE_EXTENSION
 													+ " not found in samples directory");
 				} else {
-					writer.println(Array.toStr(	LrrSdPerSample(proj, markerSet, sample, fsamp, cents,
+					writer.println(ArrayUtils.toStr(	LrrSdPerSample(proj, markerSet, sample, fsamp, cents,
 																										markersForCallrate, markersForEverythingElse,
 																										gcModel, GC_CORRECTION_METHOD.GENVISIS_GC, log),
 																			"\t"));
@@ -251,18 +251,18 @@ public class LrrSd extends Parallelizable {
 															+ " will be based on all markers, not just autosomal markers");
 			markersForEverythingElse = null;
 		} else {
-			lrrs = Array.subArray(lrrs, markersForEverythingElse);
-			bafs = Array.subArray(bafs, markersForEverythingElse);
-			bafsWide = Array.subArray(bafsWide, markersForEverythingElse);
+			lrrs = ArrayUtils.subArray(lrrs, markersForEverythingElse);
+			bafs = ArrayUtils.subArray(bafs, markersForEverythingElse);
+			bafsWide = ArrayUtils.subArray(bafsWide, markersForEverythingElse);
 		}
 		abGenotypes = fsamp.getAB_Genotypes();
 		forwardGenotypes = fsamp.getForwardGenotypes();
 		// TODO, remove cnv only probes using proj Array type if markersForCallrate is not provided...
 		if (markersForCallrate != null) {// we do not need autosomal only markers here...
 			abGenotypes = (abGenotypes == null	? abGenotypes
-																					: Array.subArray(abGenotypes, markersForCallrate));
+																					: ArrayUtils.subArray(abGenotypes, markersForCallrate));
 			forwardGenotypes = (forwardGenotypes == null	? forwardGenotypes
-																										: Array.subArray(	forwardGenotypes,
+																										: ArrayUtils.subArray(	forwardGenotypes,
 																																			markersForCallrate));
 		}
 
@@ -327,46 +327,46 @@ public class LrrSd extends Parallelizable {
 				double[] tmp;
 				if (markersForEverythingElse == null) {
 
-					lrrsdPost = Array.stdev(gcAdjustor.getCorrectedIntensities(), true);
-					lrrMadPost = Array.mad(Array.removeNaN(gcAdjustor.getCorrectedIntensities()));
+					lrrsdPost = ArrayUtils.stdev(gcAdjustor.getCorrectedIntensities(), true);
+					lrrMadPost = ArrayUtils.mad(ArrayUtils.removeNaN(gcAdjustor.getCorrectedIntensities()));
 					tmp = CNVCaller.adjustLrr(gcAdjustor.getCorrectedIntensities(),
 																		CNVCaller.MIN_LRR_MEDIAN_ADJUST,
 																		CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
 				} else {
-					double[] subLrr = Array.subArray(	gcAdjustor.getCorrectedIntensities(),
+					double[] subLrr = ArrayUtils.subArray(	gcAdjustor.getCorrectedIntensities(),
 																						markersForEverythingElse);
-					lrrsdPost = Array.stdev(subLrr, true);
-					lrrMadPost = Array.mad(Array.removeNaN(subLrr));
+					lrrsdPost = ArrayUtils.stdev(subLrr, true);
+					lrrMadPost = ArrayUtils.mad(ArrayUtils.removeNaN(subLrr));
 					tmp = CNVCaller.adjustLrr(subLrr, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
 																		CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
 				}
-				tmp = Array.removeNaN(Array.getValuesBetween(	tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
+				tmp = ArrayUtils.removeNaN(ArrayUtils.getValuesBetween(	tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
 																											CNVCaller.MAX_LRR_MEDIAN_ADJUST, false));
-				lrrsdPostBound = Array.stdev(tmp, true);
-				lrrMadBoundPost = Array.mad(tmp);
+				lrrsdPostBound = ArrayUtils.stdev(tmp, true);
+				lrrMadBoundPost = ArrayUtils.mad(tmp);
 			}
 		}
 
-		multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
-		lrrs = Array.replaceNonFinites(lrrs);
-		double[] dlrrs = Array.toDoubleArray(lrrs);
+		multimodal = ArrayUtils.isMultimodal(ArrayUtils.toDoubleArray(ArrayUtils.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
+		lrrs = ArrayUtils.replaceNonFinites(lrrs);
+		double[] dlrrs = ArrayUtils.toDoubleArray(lrrs);
 		double[] tmp = CNVCaller.adjustLrr(	dlrrs, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
 																				CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, proj.getLog());
-		tmp = Array.removeNaN(Array.getValuesBetween(	tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
+		tmp = ArrayUtils.removeNaN(ArrayUtils.getValuesBetween(	tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
 																									CNVCaller.MAX_LRR_MEDIAN_ADJUST, false));
-		lrrsdBound = Array.stdev(tmp, true);
-		lrrMadBound = Array.mad(tmp);
+		lrrsdBound = ArrayUtils.stdev(tmp, true);
+		lrrMadBound = ArrayUtils.mad(tmp);
 
-		String[] retVals = new String[] {	sampleID, Array.mean(lrrs, true) + "",
-																			Array.stdev(lrrs, true) + "", lrrsdBound + "",
-																			Array.mad(Array.removeNaN(dlrrs)) + "", lrrMadBound + "",
-																			Array.stdev(bafs, true) + "",
+		String[] retVals = new String[] {	sampleID, ArrayUtils.mean(lrrs, true) + "",
+																			ArrayUtils.stdev(lrrs, true) + "", lrrsdBound + "",
+																			ArrayUtils.mad(ArrayUtils.removeNaN(dlrrs)) + "", lrrMadBound + "",
+																			ArrayUtils.stdev(bafs, true) + "",
 																			(abCallRate > 0 ? abCallRate : forwardCallRate) + "",
 																			(abCallRate > 0 ? abHetRate : forwardHetRate) + "",
 																			wfPrior + "", gcwfPrior + "", wfPost + "", gcwfPost + "",
 																			lrrsdPost + "", lrrsdPostBound + "", lrrMadPost + "",
 																			lrrMadBoundPost + "", multimodal + "",
-																			Array.toStr(bafBinCounts),};
+																			ArrayUtils.toStr(bafBinCounts),};
 		return retVals;
 	}
 
@@ -379,9 +379,9 @@ public class LrrSd extends Parallelizable {
 		// ext.rootOf(proj.getFilename(proj.SAMPLE_QC_FILENAME), false) + ".");
 		// Files.cat(files, proj.getFilename(proj.SAMPLE_QC_FILENAME), Array.intArray(files.length, 0),
 		// proj.getLog());
-		files = Array.stringArraySequence(numThreads,
+		files = ArrayUtils.stringArraySequence(numThreads,
 																			ext.rootOf(proj.SAMPLE_QC_FILENAME.getValue(), false) + ".");
-		Files.cat(files, proj.SAMPLE_QC_FILENAME.getValue(), Array.intArray(files.length, 0),
+		Files.cat(files, proj.SAMPLE_QC_FILENAME.getValue(), ArrayUtils.intArray(files.length, 0),
 							proj.getLog());
 		for (String file : files) {
 			new File(file).delete();
@@ -531,7 +531,7 @@ public class LrrSd extends Parallelizable {
 																																	+ outputBase
 																																+ MitoPipeline.PCA_SAMPLES_SUMMARY));
 
-			writerSummary.println(Array.toStr(MitoPipeline.SAMPLE_QC_SUMMARY));
+			writerSummary.println(ArrayUtils.toStr(MitoPipeline.SAMPLE_QC_SUMMARY));
 			if (!reader.ready()) {
 				writerUse.close();
 				writerSummary.close();
@@ -603,7 +603,7 @@ public class LrrSd extends Parallelizable {
 
 		if (addToSampleData) {
 			sampleData.addData(	sampDataQC, MitoPipeline.DNA_LINKER,
-													Array.tagOn(MitoPipeline.SAMPLE_DATA_ADDITION_HEADERS, outputBase, null),
+													ArrayUtils.tagOn(MitoPipeline.SAMPLE_DATA_ADDITION_HEADERS, outputBase, null),
 													ext.MISSING_VALUES[1], delim, log);
 		}
 		return new int[] {numPassing, count};
@@ -648,7 +648,7 @@ public class LrrSd extends Parallelizable {
 			for (int i = 0; i < samples.length; i++) {
 				sampleIndices.put(samples[i], i);
 			}
-			boolean[] passingSamples = Array.booleanArray(samples.length, false);
+			boolean[] passingSamples = ArrayUtils.booleanArray(samples.length, false);
 			boolean hasGeno, hasLrr;
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delim);
@@ -724,7 +724,7 @@ public class LrrSd extends Parallelizable {
 		boolean[] theRest = null;
 
 		if (!useAllMarkers) {
-			callRate = Array.booleanNegative(proj.getCNMarkers());
+			callRate = ArrayUtils.booleanNegative(proj.getCNMarkers());
 			theRest = proj.getAutosomalMarkerBoolean();
 			if (callRate.length != theRest.length) {
 				proj.getLog()

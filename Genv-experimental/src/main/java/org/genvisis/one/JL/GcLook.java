@@ -6,17 +6,17 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import org.genvisis.cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
-import org.genvisis.cnv.annotation.AnnotationParser;
-import org.genvisis.cnv.annotation.MarkerAnnotationLoader;
-import org.genvisis.cnv.annotation.MarkerBlastAnnotation;
-import org.genvisis.cnv.annotation.MarkerGCAnnotation;
+import org.genvisis.cnv.annotation.markers.AnnotationParser;
+import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
+import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
+import org.genvisis.cnv.annotation.markers.MarkerGCAnnotation;
+import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_ORDER;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.qc.MarkerMetrics;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
@@ -212,7 +212,7 @@ public class GcLook {
 						String groupPlot = ext.rootOf(out, false)	+ "_" + QC_TITLES[l] + "_chr"
 																+ (CHRS[chrIndex] >= 0 ? CHRS[chrIndex] : "All") + "_"
 																+ KB_BUFFER.values()[bufferIndex] + "bp";
-						String title = "n=" + Array.sum(dHistograms[0][chrIndex][bufferIndex].getCounts());
+						String title = "n=" + ArrayUtils.sum(dHistograms[0][chrIndex][bufferIndex].getCounts());
 						ArrayList<String> ys = new ArrayList<String>();
 						for (int k = 0; k < QC_GROUPINGS[l].length; k++) {
 							ys.add(dHistograms[QC_GROUPINGS[l][k]][chrIndex][bufferIndex].getTitle());

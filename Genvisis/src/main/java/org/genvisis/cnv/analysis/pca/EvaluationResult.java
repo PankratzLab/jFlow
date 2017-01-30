@@ -10,7 +10,7 @@ import org.genvisis.cnv.analysis.pca.CorrectionIterator.ITERATION_TYPE;
 import org.genvisis.cnv.analysis.pca.CorrectionIterator.MODEL_BUILDER_TYPE;
 import org.genvisis.cnv.analysis.pca.CorrectionIterator.ORDER_TYPE;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -221,7 +221,7 @@ class EvaluationResult implements Serializable {
 													+ output);
 		log.reportTimeWarning("Assuming ped file has DNA listed in the last column of  " + output);
 		if (samplesToEvaluate != null) {
-			log.reportTimeInfo("Using "	+ Array.booleanArraySum(samplesToEvaluate)
+			log.reportTimeInfo("Using "	+ ArrayUtils.booleanArraySum(samplesToEvaluate)
 													+ " samples that are not excluded");
 		}
 		try {
@@ -252,7 +252,7 @@ class EvaluationResult implements Serializable {
 				if (samplesToEvaluate == null || samplesToEvaluate[i]) {
 					if (pedHash.containsKey(samples[i])) {
 						sampsHave.add(pedHash.get(samples[i]) + "\t" + samples[i]);
-						String[] fidIid = Array.subArray(pedHash.get(samples[i]).split("\t"), 0, 2);
+						String[] fidIid = ArrayUtils.subArray(pedHash.get(samples[i]).split("\t"), 0, 2);
 						writer.print(fidIid[1] + "\t" + fidIid[0]);
 						if (otherData == null) {
 							for (EvaluationResult result : results) {

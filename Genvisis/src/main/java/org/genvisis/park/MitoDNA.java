@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 import org.genvisis.stats.McNemarsTest;
@@ -52,7 +52,7 @@ public class MitoDNA {
 			if (!line[0].toLowerCase().contains("haplo")) {
 				System.err.println("Error - I do not think that word means what you think it means");
 			}
-			refSNPs = Array.subArray(line, 1);
+			refSNPs = ArrayUtils.subArray(line, 1);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (line.length != refSNPs.length + 1) {
@@ -61,7 +61,7 @@ public class MitoDNA {
 					return;
 				}
 				names.add(line[0]);
-				v.add(Array.subArray(line, 1));
+				v.add(ArrayUtils.subArray(line, 1));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
@@ -81,7 +81,7 @@ public class MitoDNA {
 			reader = new BufferedReader(new FileReader(dir + snps));
 			temp = reader.readLine();
 			line = temp.trim().split("[\\s]+");
-			indices = Array.intArray(refSNPs.length, -1);
+			indices = ArrayUtils.intArray(refSNPs.length, -1);
 			prob = false;
 			for (int i = 0; i < line.length; i++) {
 				for (int j = 0; j < refSNPs.length; j++) {
@@ -104,7 +104,7 @@ public class MitoDNA {
 			for (String refSNP : refSNPs) {
 				writer.print("\t" + refSNP + "_dom");
 			}
-			writer.print("\t" + Array.toStr(Array.toStringArray(names)));
+			writer.print("\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(names)));
 			for (int i = 0; i < names.size(); i++) {
 				writer.print("\t" + names.elementAt(i) + "_v_" + names.elementAt(0));
 			}
@@ -122,7 +122,7 @@ public class MitoDNA {
 						if (trav.length() != 2) {
 							writer.println("! INVALID GENOTYPE ("	+ trav + ")\t" + missing + "\t"
 															+ (missing > 0 ? 1 : 0) + genos + "\t"
-															+ Array.toStr(Array.stringArray(refs.length * 2, ".")) + "\t" + temp);
+															+ ArrayUtils.toStr(ArrayUtils.stringArray(refs.length * 2, ".")) + "\t" + temp);
 							prob = true;
 							genos += "\t?";
 						} else if (trav.charAt(0) != trav.charAt(1)) {
@@ -142,9 +142,9 @@ public class MitoDNA {
 					if (count > 0) {
 						writer.println("! "	+ count + " HET" + (count > 1 ? "S" : "") + "\t" + missing + "\t"
 														+ (missing > 0 ? 1 : 0) + genos + "\t"
-														+ Array.toStr(Array.stringArray(refs.length * 2, ".")) + "\t" + temp);
+														+ ArrayUtils.toStr(ArrayUtils.stringArray(refs.length * 2, ".")) + "\t" + temp);
 					} else {
-						poss = Array.booleanArray(refs.length, true);
+						poss = ArrayUtils.booleanArray(refs.length, true);
 						for (int i = 0; i < refSNPs.length; i++) {
 							trav = indices[i] == -1 ? "." : line[indices[i]];
 							for (int j = 0; j < refs.length; j++) {
@@ -154,11 +154,11 @@ public class MitoDNA {
 								}
 							}
 						}
-						count = Array.booleanArraySum(poss);
+						count = ArrayUtils.booleanArraySum(poss);
 						if (count == 0) {
 							writer.println("Other\t"	+ missing + "\t" + (missing > 0 ? 1 : 0) + genos + "\t"
-															+ Array.toStr(Array.stringArray(refs.length, "0")) + "\t"
-															+ Array.toStr(Array.stringArray(refs.length, ".")) + "\t" + temp);
+															+ ArrayUtils.toStr(ArrayUtils.stringArray(refs.length, "0")) + "\t"
+															+ ArrayUtils.toStr(ArrayUtils.stringArray(refs.length, ".")) + "\t" + temp);
 						} else {
 							trav = "";
 							for (int i = 0; i < poss.length; i++) {
@@ -166,16 +166,16 @@ public class MitoDNA {
 									trav += (trav.equals("") ? "" : " / ") + names.elementAt(i);
 								}
 							}
-							trans = count == 1	? Array.booleanArrayToStringArray(poss)
-																	: Array.stringArray(refs.length, ".");
+							trans = count == 1	? ArrayUtils.booleanArrayToStringArray(poss)
+																	: ArrayUtils.stringArray(refs.length, ".");
 							writer.print((count > 1 ? count + " " : "")	+ trav + "\t" + missing + "\t"
-														+ (missing > 0 ? 1 : 0) + genos + "\t" + Array.toStr(trans));
+														+ (missing > 0 ? 1 : 0) + genos + "\t" + ArrayUtils.toStr(trans));
 							for (int i = 0; i < poss.length; i++) {
 								if (trans[i].equals("0") && !poss[0]) {
 									trans[i] = ".";
 								}
 							}
-							writer.println("\t" + Array.toStr(trans) + "\t" + temp);
+							writer.println("\t" + ArrayUtils.toStr(trans) + "\t" + temp);
 						}
 					}
 				}

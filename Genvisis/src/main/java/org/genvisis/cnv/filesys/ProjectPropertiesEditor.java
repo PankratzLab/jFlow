@@ -4,6 +4,7 @@ package org.genvisis.cnv.filesys;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -21,6 +22,7 @@ import java.util.EventObject;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -52,22 +54,29 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.LaunchProperties.LaunchKey;
 import org.genvisis.cnv.filesys.Project.GROUP;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.prop.DoubleProperty;
 import org.genvisis.cnv.prop.FileProperty;
 import org.genvisis.cnv.prop.IntegerProperty;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.cnv.prop.StringListProperty;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
 import net.miginfocom.swing.MigLayout;
 
 public class ProjectPropertiesEditor extends JFrame {
+
+	public static final String ICON = "images/edit.png";
 
 	private static final long serialVersionUID = 1L;
 
@@ -149,7 +158,7 @@ public class ProjectPropertiesEditor extends JFrame {
 							}
 							if (ind < 0 || ind >= hdr.length) {
 								log.reportError("Malformed header replacement token (index < 0 or > header length [HEADER: "
-																			+ Array.toStr(hdr) + "]) in " + PropertyKeys.KEY_QQ_FILENAMES
+																			+ ArrayUtils.toStr(hdr) + "]) in " + PropertyKeys.KEY_QQ_FILENAMES
 																		+ ": {" + pts[i] + "}");
 								return false;
 							}
@@ -239,9 +248,12 @@ public class ProjectPropertiesEditor extends JFrame {
 	 * Create the frame.
 	 */
 	public ProjectPropertiesEditor(Project project) {
+		this(project, new String[0]);
+	}
+
+	public ProjectPropertiesEditor(Project project, String... propertyNames) {
 		setTitle("Genvisis - " + project.PROJECT_NAME.getValue() + " - Project Properties Editor");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		setBounds(100, 100, 700, 800);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -251,29 +263,26 @@ public class ProjectPropertiesEditor extends JFrame {
 		JPanel panel = new JPanel();
 		getContentPane().add(panel, BorderLayout.SOUTH);
 
-		JButton notepad = new JButton("Edit with Notepad");
-		notepad.addActionListener(new ActionListener() {
+		JButton textEdit = new JButton("Edit Text");
+		textEdit.setToolTipText("Open properties file in your default text editor (closes this dialog)");
+		final Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+		textEdit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				proj.getLog().report("Launching notepad...");
+				proj.getLog().report("Launching default text editor...");
 				try {
-					/* Process p = */Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""
-																											+ proj.getPropertyFilename() + "\"");
+					desktop.open(new File(proj.getPropertyFilename()));
 					ProjectPropertiesEditor.this.setVisible(false);
 					// TODO update properties in Project and Configurator - they may have changed
 				} catch (IOException ioe) {
-					proj.getLog().reportError("Error - failed to open Notepad");
+					proj.getLog().reportError("Error - file could not open in text editor");
 				}
 			}
 		});
-		panel.add(notepad);
+		panel.add(textEdit);
 
-
-		boolean includeNotepad = false;
-		if (Files.isWindows()) {
-			includeNotepad = Files.programExists("notepad.exe");
-		}
-		notepad.setVisible(includeNotepad);
+		boolean includeTextButton = desktop != null && desktop.isSupported(Desktop.Action.OPEN);
+		textEdit.setVisible(includeTextButton);
 
 		JButton btnSave = new JButton("Save");
 		btnSave.addActionListener(new ActionListener() {
@@ -368,7 +377,7 @@ public class ProjectPropertiesEditor extends JFrame {
 			public Component getTableCellEditorComponent(	JTable table, Object value, boolean isSelected,
 																										int row, int column) {
 				String[] val = (String[]) value;
-				String valueString = Array.toStr(val, ";");
+				String valueString = ArrayUtils.toStr(val, ";");
 				return super.getTableCellEditorComponent(table, valueString, isSelected, row, column);
 			}
 
@@ -679,30 +688,35 @@ public class ProjectPropertiesEditor extends JFrame {
 														};
 
 		int count = 0;
-		HashMap<GROUP, ArrayList<String>> allGroupsAndKeys = new HashMap<GROUP, ArrayList<String>>();
-		for (String key : proj.getPropertyKeys()) {
-			ArrayList<String> keys = allGroupsAndKeys.get(proj.getProperty(key).getGroup());
-			if (keys == null) {
-				keys = new ArrayList<String>();
-				allGroupsAndKeys.put(proj.getProperty(key).getGroup(), keys);
+
+		// If we were passed a filter of Project property names, we want to whitelist them so
+		// they are the only keys accepted
+		Set<String> whitelistKeys = new HashSet<String>();
+		if (propertyNames != null) {
+			for (String key : propertyNames) {
+				whitelistKeys.add(key);
 			}
-			keys.add(key);
+		}
+
+		Multimap<GROUP, String> groupToKeys = ArrayListMultimap.create();
+		for (String key : proj.getPropertyKeys()) {
+			if (whitelistKeys.isEmpty() || whitelistKeys.contains(key)) {
+				groupToKeys.put(proj.getProperty(key).getGroup(), key);
+			}
 		}
 
 		for (GROUP g : GROUP.values()) {
-			if (g == GROUP.SPECIAL_HIDDEN) {
+			if (GROUP.SPECIAL_HIDDEN.equals(g) || !groupToKeys.containsKey(g)) {
 				continue;
 			}
 			String setName = g.getDescription();
 			model.addRow(new Object[] {setName, ""});
 			labelRows.add(count);
 			count++;
-			if (allGroupsAndKeys.containsKey(g)) {
-				for (String s : allGroupsAndKeys.get(g)) {
-					Object[] values = parseProperty(proj, s);
-					model.addRow(values);
-					count++;
-				}
+			for (String propertyKey : groupToKeys.get(g)) {
+				Object[] values = parseProperty(proj, propertyKey);
+				model.addRow(values);
+				count++;
 			}
 		}
 
@@ -716,6 +730,9 @@ public class ProjectPropertiesEditor extends JFrame {
 		table.setShowVerticalLines(false);
 		table.setShowHorizontalLines(false);
 
+		// Estimate the desired height at 26 pixels per row plus a buffer for other UI elements
+		int height = (26 * count) + 100;
+		UITools.setSize(this, 700, height);
 
 		InputMap inMap = table.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		ActionMap actMap = table.getActionMap();
@@ -768,6 +785,8 @@ public class ProjectPropertiesEditor extends JFrame {
 			}
 		});
 
+		pack();
+		UITools.centerComponent(this);
 	}
 
 	protected void doClose(boolean save, boolean promptChanges) {
@@ -805,7 +824,7 @@ public class ProjectPropertiesEditor extends JFrame {
 
 	private HashMap<String, String> extract() {
 		table.editingStopped(new ChangeEvent(table));
-		String projectsDir = new LaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE).getProperty(LaunchProperties.PROJECTS_DIR);
+		String projectsDir = LaunchProperties.get(LaunchKey.PROJECTS_DIR);
 		String currProjDir = proj.PROJECT_DIRECTORY.getValue();
 		int rowCount = table.getRowCount();
 

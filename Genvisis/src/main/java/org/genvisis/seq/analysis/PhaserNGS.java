@@ -7,7 +7,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import org.genvisis.CLI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -80,7 +80,7 @@ public class PhaserNGS {
 		command.add(Integer.toString(0));
 
 		String vcfOut = rootOut + ".vcf";
-		CmdLine.runCommandWithFileChecks(	Array.toStringArray(command), "", new String[] {vcf},
+		CmdLine.runCommandWithFileChecks(	ArrayUtils.toStringArray(command), "", new String[] {vcf},
 																			new String[] {vcfOut}, true, true, false, log);
 		return vcfOut;
 

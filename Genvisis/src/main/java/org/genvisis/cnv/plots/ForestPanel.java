@@ -10,7 +10,7 @@ import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -160,7 +160,7 @@ public class ForestPanel extends AbstractPanel {
 		}
 		// points = tempPoints;
 		points = tempPoints.toArray(new PlotPoint[tempPoints.size()]);
-		lines = Array.concatAll(lines, linesData.toArray(new GenericLine[linesData.size()]));
+		lines = ArrayUtils.concatAll(lines, linesData.toArray(new GenericLine[linesData.size()]));
 	}
 
 	private String prepareRightMarkers(float beta, float conf0, float conf1) {
@@ -220,7 +220,7 @@ public class ForestPanel extends AbstractPanel {
 			}
 		}
 
-		rectangles = Array.concatAll(	rectangles,
+		rectangles = ArrayUtils.concatAll(	rectangles,
 																	rectData.toArray(new GenericRectangle[rectData.size()]));
 	}
 

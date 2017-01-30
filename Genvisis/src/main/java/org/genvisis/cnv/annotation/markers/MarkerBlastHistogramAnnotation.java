@@ -1,4 +1,4 @@
-package org.genvisis.cnv.annotation;
+package org.genvisis.cnv.annotation.markers;
 
 import java.util.List;
 

@@ -12,7 +12,7 @@ import java.util.Vector;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.plots.TwoDPlot;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -199,10 +199,10 @@ public class PhenoPrep {
 
 			String[] dataStrs = HashVec.loadFileToStringArray(dir	+ filename, true, new int[] {dataIndex},
 																												false);
-			String[] valid = Array.removeMissingValues(dataStrs);
+			String[] valid = ArrayUtils.removeMissingValues(dataStrs);
 			int missing = dataStrs.length - valid.length;
 			log.report("Warning - " + missing + " missing values were found");
-			double[] data = Array.toDoubleArray(valid);
+			double[] data = ArrayUtils.toDoubleArray(valid);
 			Histogram hist = new Histogram(data);
 			String file = dir + "histograms/" + ext.rootOf(outFile, false) + "_hist.png";
 			int cnt = 1;
@@ -233,12 +233,12 @@ public class PhenoPrep {
 		try {
 			writer = new PrintWriter(new FileWriter("summary_stats.txt", true));
 			if (!exists) {
-				writer.println(Array.toStr(SUMMARY_INFO_HEADER));
+				writer.println(ArrayUtils.toStr(SUMMARY_INFO_HEADER));
 			}
 			trait = Matrix.extractColumn(database, 0);
 			if (ext.indexOfStr("Male", finalHeader) >= 0) {
 				males =
-							Array.toIntArray(Matrix.extractColumn(database, ext.indexOfStr("Male", finalHeader)));
+							ArrayUtils.toIntArray(Matrix.extractColumn(database, ext.indexOfStr("Male", finalHeader)));
 			} else {
 				males = null;
 			}
@@ -248,20 +248,20 @@ public class PhenoPrep {
 				ages = null;
 			}
 			writer.println((idFile == null ? "All" : ext.replaceAllWith(ext.rootOf(idFile), "_keeps", ""))
-												+ "\t" + finalHeader[0] + "\t" + ext.formDeci(Array.mean(trait), 4, false)
-											+ "\t" + ext.formDeci(Array.median(trait), 4, false) + "\t"
-											+ ext.formDeci(Array.stdev(trait), 4, false) + "\t"
-											+ ext.formDeci(Array.min(trait), 4, false) + "\t"
-											+ ext.formDeci(Array.max(trait), 4, false)
+												+ "\t" + finalHeader[0] + "\t" + ext.formDeci(ArrayUtils.mean(trait), 4, false)
+											+ "\t" + ext.formDeci(ArrayUtils.median(trait), 4, false) + "\t"
+											+ ext.formDeci(ArrayUtils.stdev(trait), 4, false) + "\t"
+											+ ext.formDeci(ArrayUtils.min(trait), 4, false) + "\t"
+											+ ext.formDeci(ArrayUtils.max(trait), 4, false)
 											+ (males == null	? "\t.\t."
-																				: "\t"	+ (males.length - Array.sum(males)) + "\t"
-																					+ Array.sum(males))
+																				: "\t"	+ (males.length - ArrayUtils.sum(males)) + "\t"
+																					+ ArrayUtils.sum(males))
 											+ (ages == null	? "\t.\t.\t.\t."
-																			: "\t"	+ ext.formDeci(Array.mean(ages), 4, false) + "\t"
-																				+ ext.formDeci(Array.median(ages), 4, false) + "\t"
-																				+ ext.formDeci(Array.stdev(ages), 4, false) + "\t"
-																				+ ext.formDeci(Array.min(ages), 4, false) + "\t"
-																				+ ext.formDeci(Array.max(ages), 4, false))
+																			: "\t"	+ ext.formDeci(ArrayUtils.mean(ages), 4, false) + "\t"
+																				+ ext.formDeci(ArrayUtils.median(ages), 4, false) + "\t"
+																				+ ext.formDeci(ArrayUtils.stdev(ages), 4, false) + "\t"
+																				+ ext.formDeci(ArrayUtils.min(ages), 4, false) + "\t"
+																				+ ext.formDeci(ArrayUtils.max(ages), 4, false))
 											+ "\t" + (numBelowLowerThreshold < 0 ? "NA" : numBelowLowerThreshold) + "\t"
 											+ (numAboveUpperThreshold < 0 ? "NA" : numAboveUpperThreshold));
 
@@ -318,21 +318,21 @@ public class PhenoPrep {
 				return;
 			}
 
-			indices = ext.indexFactors(	Array.insertStringAt(pheno, covars, 0), header, false, log, true,
+			indices = ext.indexFactors(	ArrayUtils.insertStringAt(pheno, covars, 0), header, false, log, true,
 																	false);
-			if (Array.min(indices) == -1) {
+			if (ArrayUtils.min(indices) == -1) {
 				log.reportError("Header looks like this: ");
-				log.reportError(Array.toStr(header, " / "));
+				log.reportError(ArrayUtils.toStr(header, " / "));
 				reader.close();
 				return;
 			}
-			finalHeader = Array.subArray(header, indices);
+			finalHeader = ArrayUtils.subArray(header, indices);
 			while (reader.ready()) {
 				temp = reader.readLine();
 				line = temp.split(delimiter, -1);
 				id = line[idIndex];
 				if (idsWithDNA == null || ext.indexOfStr(id, idsWithDNA) >= 0) {
-					line = Array.subArray(line, indices);
+					line = ArrayUtils.subArray(line, indices);
 					use = true;
 					for (String element : line) {
 						if (ext.isMissingValue(element)) {
@@ -342,7 +342,7 @@ public class PhenoPrep {
 					}
 					if (use) {
 						vIDs.add(id);
-						data = Array.toDoubleArray(line);
+						data = ArrayUtils.toDoubleArray(line);
 						if (data == null) {
 							log.reportError("Error - failed to parse data for " + id);
 						}
@@ -361,7 +361,7 @@ public class PhenoPrep {
 			return;
 		}
 
-		finalIDs = Array.toStringArray(vIDs);
+		finalIDs = ArrayUtils.toStringArray(vIDs);
 		database = Matrix.toDoubleArrays(vData);
 
 		if (finalIDs.length == 0) {
@@ -389,14 +389,14 @@ public class PhenoPrep {
 
 		data = Matrix.extractColumn(database, 0);
 
-		count = Array.countIf(Array.toStringArray(data), "0.0");
+		count = ArrayUtils.countIf(ArrayUtils.toStringArray(data), "0.0");
 		if (count > 0 && (transform.equalsIgnoreCase("ln") || transform.equalsIgnoreCase("log10"))) {
 			log.reportError("There "	+ (count == 1 ? "is one zero value" : " are zero values")
 											+ ", which will cause the " + transform
 											+ " transformation to fail; aborting");
 			return false;
 		}
-		if (Array.min(data) < 0
+		if (ArrayUtils.min(data) < 0
 				&& (transform.equalsIgnoreCase("ln")	|| transform.equalsIgnoreCase("log10")
 						|| transform.equalsIgnoreCase("sqrt"))) {
 			log.reportError("Negative values will cause the "	+ transform
@@ -431,8 +431,8 @@ public class PhenoPrep {
 
 		data = Matrix.extractColumn(database, 0);
 
-		mean = Array.mean(data);
-		sd = Array.stdev(data);
+		mean = ArrayUtils.mean(data);
+		sd = ArrayUtils.stdev(data);
 		lowerThreshold = mean - sdThreshold * sd;
 		upperThreshold = mean + sdThreshold * sd;
 
@@ -467,20 +467,20 @@ public class PhenoPrep {
 				}
 			}
 
-			finalIDs = Array.subArray(finalIDs, rowsToUse);
+			finalIDs = ArrayUtils.subArray(finalIDs, rowsToUse);
 			database = Matrix.subset(database, rowsToUse);
 		}
 	}
 
 	public void inverseNormalize() {
-		Matrix.overwriteColumn(	database, 0, Array.inverseNormalize(Matrix.extractColumn(database, 0)),
+		Matrix.overwriteColumn(	database, 0, ArrayUtils.inverseNormalize(Matrix.extractColumn(database, 0)),
 														log);
 	}
 
 	public void zscore(boolean signZ) {
 		Matrix.overwriteColumn(	database, 0,
-														signZ	? Array.normalizeSigned(Matrix.extractColumn(database, 0))
-																	: Array.normalize(Matrix.extractColumn(database, 0)),
+														signZ	? ArrayUtils.normalizeSigned(Matrix.extractColumn(database, 0))
+																	: ArrayUtils.normalize(Matrix.extractColumn(database, 0)),
 														log);
 	}
 
@@ -491,7 +491,7 @@ public class PhenoPrep {
 
 		deps = Matrix.extractColumn(database, 0);
 		indeps = Matrix.extractColumns(	database,
-																		Array.subArray(Array.arrayOfIndices(database[0].length), 1));
+																		ArrayUtils.subArray(ArrayUtils.arrayOfIndices(database[0].length), 1));
 
 		reg = new LeastSquares(deps, indeps, null, false, true);
 
@@ -542,7 +542,7 @@ public class PhenoPrep {
 			System.exit(1);
 		}
 		indices =
-						ext.indexFactors(Array.removeFromArray(header, idIndex), header, true, log, true, true);
+						ext.indexFactors(ArrayUtils.removeFromArray(header, idIndex), header, true, log, true, true);
 		hash = HashVec.loadFileToHashString(extras, new int[] {idIndex}, indices, commaDelimitedFile,
 																				"\t", true, false, false);
 
@@ -580,7 +580,7 @@ public class PhenoPrep {
 		}
 
 		finalHeader = newFinalHeader;
-		finalIDs = Array.toStringArray(vIDs);
+		finalIDs = ArrayUtils.toStringArray(vIDs);
 		database = Matrix.toDoubleArrays(vData);
 	}
 
@@ -614,20 +614,20 @@ public class PhenoPrep {
 						if (fastFormat) {
 							writer.println("#Fam_ID"	+ delimiter + "Ind_ID" + delimiter + "Dad_ID" + delimiter
 															+ "Mom_ID" + delimiter + "Sex" + delimiter + "Phenotype" + delimiter
-															+ Array.toStr(Array.subArray(finalHeader, 1), delimiter));
+															+ ArrayUtils.toStr(ArrayUtils.subArray(finalHeader, 1), delimiter));
 						} else {
 							writer.println("FID"	+ delimiter + "IID" + delimiter
 															+ (pedFormat	? "FA"	+ delimiter + "MO" + delimiter + "SEX"
 																							+ delimiter
 																						: "")
-															+ Array.toStr(finalHeader, delimiter));
+															+ ArrayUtils.toStr(finalHeader, delimiter));
 						}
 					}
 					for (int i = 0; i < finalIDs.length; i++) {
 						if (hash.containsKey(finalIDs[i])) {
-							if (!excludeMissingValues || !Array.containsMissingValue(database[i])) {
+							if (!excludeMissingValues || !ArrayUtils.containsMissingValue(database[i])) {
 								writer.println(hash.get(finalIDs[i])	+ delimiter
-																+ Array.toStr(database[i], -1, -1, delimiter));
+																+ ArrayUtils.toStr(database[i], -1, -1, delimiter));
 							}
 						} else {
 							log.report("Error - there was no record of "	+ finalIDs[i] + " in " + idFile
@@ -652,7 +652,7 @@ public class PhenoPrep {
 					}
 					for (int j = 0; j < finalIDs.length; j++) {
 						if (hash.containsKey(finalIDs[j])) {
-							if (!excludeMissingValues || !Array.containsMissingValue(database[j])) {
+							if (!excludeMissingValues || !ArrayUtils.containsMissingValue(database[j])) {
 								writer.println(hash.get(finalIDs[j]) + delimiter + database[j][0]);
 							}
 						} else {
@@ -672,14 +672,14 @@ public class PhenoPrep {
 						writer = new PrintWriter(new FileWriter(ext.addToRoot(filename, "_covars")));
 						if (printFinalHeader) {
 							writer.println("FID"	+ delimiter + "IID" + delimiter
-															+ Array.toStr(Array.subArray(finalHeader, 1), delimiter));
+															+ ArrayUtils.toStr(ArrayUtils.subArray(finalHeader, 1), delimiter));
 						}
 						for (int k = 0; k < finalIDs.length; k++) {
 							if (hash.containsKey(finalIDs[k])) {
-								if (!excludeMissingValues || !Array.containsMissingValue(database[k])) {
+								if (!excludeMissingValues || !ArrayUtils.containsMissingValue(database[k])) {
 									writer.println(hash.get(finalIDs[k]).split(delimiter, -1)[0]	+ delimiter
 																	+ finalIDs[k] + delimiter
-																	+ Array.toStr(Array.subArray(database[k], 1), -1, -1, delimiter));
+																	+ ArrayUtils.toStr(ArrayUtils.subArray(database[k], 1), -1, -1, delimiter));
 								}
 							} else {
 								log.report("Error - there was no record of "	+ finalIDs[k] + " in " + idFile
@@ -699,11 +699,11 @@ public class PhenoPrep {
 			try {
 				writer = new PrintWriter(new FileWriter(filename));
 				if (printFinalHeader) {
-					writer.println("id" + delimiter + Array.toStr(finalHeader, delimiter));
+					writer.println("id" + delimiter + ArrayUtils.toStr(finalHeader, delimiter));
 				}
 				for (int m = 0; m < finalIDs.length; m++) {
-					if (!excludeMissingValues || !Array.containsMissingValue(database[m])) {
-						writer.println(finalIDs[m] + delimiter + Array.toStr(database[m], -1, -1, delimiter));
+					if (!excludeMissingValues || !ArrayUtils.containsMissingValue(database[m])) {
+						writer.println(finalIDs[m] + delimiter + ArrayUtils.toStr(database[m], -1, -1, delimiter));
 					}
 				}
 				writer.close();
@@ -735,7 +735,7 @@ public class PhenoPrep {
 		data = new double[newIDs.length][finalHeader.length];
 		for (int j = 0; j < newIDs.length; j++) {
 			if (idIndices[j] == -1) {
-				data[j] = Array.doubleArray(finalHeader.length, Double.NaN);
+				data[j] = ArrayUtils.doubleArray(finalHeader.length, Double.NaN);
 			} else {
 				data[j] = database[idIndices[j]];
 			}
@@ -794,7 +794,7 @@ public class PhenoPrep {
 
 		if (params != null) {
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 
@@ -814,9 +814,9 @@ public class PhenoPrep {
 																									"# column name of the ID in the input file",
 																									"id=" + vars[0],
 																									"# phenotype names (requires a [phenoName].csv file as can be created by PhenoPrep)",
-																									"pheno=" + Array.toStr(files, ","),
+																									"pheno=" + ArrayUtils.toStr(files, ","),
 																									"# covariate column names separated by a comma",
-																									"covar=" + Array.toStr(	Array.subArray(vars, 2),
+																									"covar=" + ArrayUtils.toStr(	ArrayUtils.subArray(vars, 2),
 																																					","),
 																									"# normalization of the final phenotype (0=none; 1=also normalization; 2=also normalization using sign-specific standard deviations)",
 																									"normalization=1",
@@ -827,7 +827,7 @@ public class PhenoPrep {
 		if (params != null) {
 			params.add("-summarizeAll");
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 
@@ -924,12 +924,12 @@ public class PhenoPrep {
 																													false, false,
 																													Files.determineDelimiter(dir	+ outFile,
 																																										log));
-									rawData = Array.removeFromArray(rawData, ext.MISSING_VALUES);
-									data = Array.toDoubleArray(rawData);
-									mean = Array.mean(data);
-									stdev = Array.stdev(data);
-									skewness = Array.skewness(data);
-									kurtosis = Array.kurtosis(data);
+									rawData = ArrayUtils.removeFromArray(rawData, ext.MISSING_VALUES);
+									data = ArrayUtils.toDoubleArray(rawData);
+									mean = ArrayUtils.mean(data);
+									stdev = ArrayUtils.stdev(data);
+									skewness = ArrayUtils.skewness(data);
+									kurtosis = ArrayUtils.kurtosis(data);
 									writer.println(pheno	+ "\t" + ext.rootOf(outFile) + "\t" + transform + "\t"
 																	+ winsorize + "\t" + remove + "\t" + makeResids + "\t"
 																	+ afterResids + "\t" + (NORMALIZATION_METHODS[norm]) + "\t"

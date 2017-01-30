@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.filesys.Segment;
@@ -42,7 +42,7 @@ public class BamPile extends Segment implements Serializable {
 	private double overallAvgDepth;
 
 	public static String getBampPileHeader() {
-		String header = Array.toStr(BASE_HEADER);
+		String header = ArrayUtils.toStr(BASE_HEADER);
 		for (String element : COUNT_HEADER) {
 			header += "\t" + element;
 		}
@@ -98,7 +98,7 @@ public class BamPile extends Segment implements Serializable {
 			indelmask[4] = false;
 		}
 
-		return Array.sum(Array.subArray(counts, indelmask));
+		return ArrayUtils.sum(ArrayUtils.subArray(counts, indelmask));
 
 	}
 
@@ -107,7 +107,7 @@ public class BamPile extends Segment implements Serializable {
 		String[] ref = referenceGenome.getSequenceFor(bin);
 		refAllele = ref[0];
 		if (ref.length > 1) {
-			System.out.println(Array.toStr(ref));
+			System.out.println(ArrayUtils.toStr(ref));
 		}
 
 		if (ref.length > 1) {
@@ -134,8 +134,8 @@ public class BamPile extends Segment implements Serializable {
 		out += "\t" + counts[4];
 		out += "\t" + counts[5];
 		out += "\t" + counts[6];
-		out += "\t" + Array.toStr(avgMapQ);
-		out += "\t" + Array.toStr(avgPhread);
+		out += "\t" + ArrayUtils.toStr(avgMapQ);
+		out += "\t" + ArrayUtils.toStr(avgPhread);
 		return out;
 	}
 
@@ -170,20 +170,20 @@ public class BamPile extends Segment implements Serializable {
 		} else if (refAllele.equals("N")) {
 			referenceMask[4] = false;
 		}
-		if (Array.booleanArraySum(referenceMask) != 4) {
+		if (ArrayUtils.booleanArraySum(referenceMask) != 4) {
 			log.reportError("Invalid number of alternate allele possibilities, found "
-													+ Array.booleanArraySum(referenceMask) + " with ref allele" + refAllele);
+													+ ArrayUtils.booleanArraySum(referenceMask) + " with ref allele" + refAllele);
 
 		}
-		return Array.subArray(counts, referenceMask);
+		return ArrayUtils.subArray(counts, referenceMask);
 	}
 
 	public int getNumAlt(Logger log) {
-		return Array.sum(getAltCounts(log));
+		return ArrayUtils.sum(getAltCounts(log));
 	}
 
 	public boolean hasOnlyOneAlt(Logger log) {
-		return Array.countIf(getAltCounts(log), 0) == 3;// everthing else is 0
+		return ArrayUtils.countIf(getAltCounts(log), 0) == 3;// everthing else is 0
 	}
 
 	public int getNumRef(Logger log) {
@@ -203,10 +203,10 @@ public class BamPile extends Segment implements Serializable {
 		} else if (refAllele.equals("N")) {
 			referenceMask[4] = true;
 		}
-		if (Array.booleanArraySum(referenceMask) != 1) {
+		if (ArrayUtils.booleanArraySum(referenceMask) != 1) {
 			log.reportError("Invalid number of reference allele possibilities");
 		}
-		return (Array.sum(Array.subArray(counts, referenceMask)));
+		return (ArrayUtils.sum(ArrayUtils.subArray(counts, referenceMask)));
 	}
 
 	public boolean hasAltAllele(Logger log) {

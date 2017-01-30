@@ -69,7 +69,7 @@ import javax.swing.table.TableColumnModel;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.genvisis.cnv.gui.IncludeExcludeGUI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
@@ -1081,7 +1081,7 @@ public class RainbowTestGUI extends JFrame {
 			paramSet.addAll(p);
 		}
 		String[] paramNames = paramSet.toArray(new String[paramSet.size()]);
-		String[] colNames = Array.addStrToArray("", paramNames, 0);
+		String[] colNames = ArrayUtils.addStrToArray("", paramNames, 0);
 		for (String p : paramNames) {
 			paramMeanLists.put(p, new ArrayList<Double>());
 			paramSDLists.put(p, new ArrayList<Double>());
@@ -1143,7 +1143,7 @@ public class RainbowTestGUI extends JFrame {
 		for (int i = 1; i < colNames.length; i++) {
 			String colNm = colNames[i];
 			if (paramMeanLists.containsKey(colNm)) {
-				Double mn = Array.mean(Doubles.toArray(paramMeanLists.get(colNm)), true);
+				Double mn = ArrayUtils.mean(Doubles.toArray(paramMeanLists.get(colNm)), true);
 				paramMeans.put(colNm, mn);
 				meanRow[i] = mn;
 			}
@@ -1158,7 +1158,7 @@ public class RainbowTestGUI extends JFrame {
 		for (int i = 1; i < colNames.length; i++) {
 			String colNm = colNames[i];
 			if (paramMeanLists.containsKey(colNm)) {
-				Double sd = Array.stdev(paramMeanLists.get(colNm).toArray(new Double[0]), true);
+				Double sd = ArrayUtils.stdev(paramMeanLists.get(colNm).toArray(new Double[0]), true);
 				paramSDs.put(colNm, sd);
 				sdRow[i] = sd;
 			}
@@ -1523,7 +1523,7 @@ public class RainbowTestGUI extends JFrame {
 				if (co != null
 							&& ((gateStrat == null && "".equals(co.gateFileApplied))
 								|| gateStrat.getFile().equals(co.gateFileApplied))
-						&& Array.equals(paramNames, co.params, false)) {
+						&& ArrayUtils.equals(paramNames, co.params, false)) {
 					System.out.println("Loading data for " + f + " from cache");
 					for (int i = 0; i < paramNames.length; i++) {
 						Double mn = co.paramMeans.get(paramNames[i]);
@@ -1558,17 +1558,17 @@ public class RainbowTestGUI extends JFrame {
 								if (gating == null) {
 									gating = g.gate(loader);
 								} else {
-									Array.booleanArrayAndInPlace(gating, g.gate(loader));
+									ArrayUtils.booleanArrayAndInPlace(gating, g.gate(loader));
 								}
 							}
 						}
 
 						double[] data = loader.getData(paramNames[i], true);
 						if (gating != null) {
-							data = Array.subArray(data, gating);
+							data = ArrayUtils.subArray(data, gating);
 						}
-						Double mn = Array.mean(data, true);
-						Double sd = Array.stdev(data, true);
+						Double mn = ArrayUtils.mean(data, true);
+						Double sd = ArrayUtils.stdev(data, true);
 						Double cv = 100 * (sd / mn);
 						paramMeanLists.get(paramNames[i]).add(mn);
 						paramSDLists.get(paramNames[i]).add(sd);
@@ -1624,7 +1624,7 @@ public class RainbowTestGUI extends JFrame {
 			if (co != null
 						&& ((gateStrat == null && "".equals(co.gateFileApplied))
 							|| gateStrat.getFile().equals(co.gateFileApplied))
-					&& Array.equals(paramNames, co.params, false)) {
+					&& ArrayUtils.equals(paramNames, co.params, false)) {
 				System.out.println("Loading data for " + f + " from cache");
 				for (int i = 0; i < paramNames.length; i++) {
 					Double mn = co.paramMeans.get(paramNames[i]);
@@ -1657,17 +1657,17 @@ public class RainbowTestGUI extends JFrame {
 								gating = g.gate(loader);
 							} else {
 							}
-							Array.booleanArrayAndInPlace(gating, g.gate(loader));
+							ArrayUtils.booleanArrayAndInPlace(gating, g.gate(loader));
 						}
 					}
 
 					double[] data = loader.getData(paramNames[i], true);
 					if (gating != null) {
-						data = Array.subArray(data, gating);
+						data = ArrayUtils.subArray(data, gating);
 					}
-					Double mn = Array.mean(data, true);
+					Double mn = ArrayUtils.mean(data, true);
 					fileParamMeanMap.get(f).put(paramNames[i], mn);
-					Double sd = Array.stdev(data, true);
+					Double sd = ArrayUtils.stdev(data, true);
 					Double cv = 100 * (sd / mn);
 					rowDataM[i + 1] = mn;
 					rowDataS[i + 1] = sd;

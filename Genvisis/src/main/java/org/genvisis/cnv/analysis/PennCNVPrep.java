@@ -24,7 +24,7 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -151,7 +151,7 @@ public class PennCNVPrep {
 	 * @param fileNamesOfMarkerDataInOrder files of serialized {@link MarkerDataStorage};
 	 */
 	public void exportSpecialPennCNVData(String[] fileNamesOfMarkerDataInOrder) {
-		int[] sampleIndicesInProject = ext.indexLargeFactors(	Array.subArray(proj.getSamples(),
+		int[] sampleIndicesInProject = ext.indexLargeFactors(	ArrayUtils.subArray(proj.getSamples(),
 																																				samplesToExport),
 																													proj.getSamples(), true, proj.getLog(),
 																													true, true);
@@ -159,7 +159,7 @@ public class PennCNVPrep {
 		// Integer.parseInt(proj.getProperty(Project.MAX_MARKERS_LOADED_PER_CYCLE));
 		int numMarkersPerWrite = proj.getProperty(proj.MAX_MARKERS_LOADED_PER_CYCLE);
 		int numMarkersThisRound = 0;
-		String[] subSamples = Array.subArray(proj.getSamples(), samplesToExport);
+		String[] subSamples = ArrayUtils.subArray(proj.getSamples(), samplesToExport);
 		PennCNVIndividual[] pennCNVIndividuals = initSamples(	proj, dir, subSamples, false,
 																													numMarkersPerWrite, proj.getLog());
 		for (int i = 0; i < fileNamesOfMarkerDataInOrder.length; i++) {
@@ -232,11 +232,11 @@ public class PennCNVPrep {
 																												boolean forceLoadFromFiles) {
 		Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 		int[] subSampleIndicesInProject = ext.indexLargeFactors(
-																														Array.subArray(	proj.getSamples(),
+																														ArrayUtils.subArray(	proj.getSamples(),
 																																						samplesToExport),
 																														proj.getSamples(), true, proj.getLog(),
 																														true, true);
-		String[] subSamples = Array.subArray(proj.getSamples(), samplesToExport);
+		String[] subSamples = ArrayUtils.subArray(proj.getSamples(), samplesToExport);
 		String dir = sampleDir(proj);
 		proj.getLog().report("Info - checking for existing files in " + dir + "...");
 		boolean allExist = true;
@@ -249,18 +249,15 @@ public class PennCNVPrep {
 		if (!allExist) {// if all files exist we skip this export
 			proj.getLog().report("Info - detected that not all files exist");
 
-			ShadowSample[] shadowSamples = new ShadowSample[Array.booleanArraySum(samplesToExport)];
+			ShadowSample[] shadowSamples = new ShadowSample[ArrayUtils.booleanArraySum(samplesToExport)];
 			for (int i = 0; i < shadowSamples.length; i++) {
 				shadowSamples[i] = new ShadowSample(subSamples[i], proj.getMarkerNames());
 				if (i % 200 == 0) {
-					float usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-					float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
-					float maxMemory = Runtime.getRuntime().maxMemory();
 					proj.getLog()
 							.report(ext.getTime()+ "\tData loaded = "
-											+ Math.round(((double) i / (double) shadowSamples.length * 100.0))
+											+ Math.round(((double) i / shadowSamples.length) * 100.0)
 											+ "%\tFree memory: "
-											+ Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
+											+ Math.round(((double) MemUtils.availableMem() / Runtime.getRuntime().maxMemory()) * 100.0) + "%");
 
 				}
 			}
@@ -544,8 +541,8 @@ public class PennCNVPrep {
 		for (int i = 0; i < samples.length; i++) {
 			sex[i] = sampleData.getSexForIndividual(samples[i]);
 		}
-		int numMales = Array.countIf(sex, 1);
-		int numFemales = Array.countIf(sex, 2);
+		int numMales = ArrayUtils.countIf(sex, 1);
+		int numFemales = ArrayUtils.countIf(sex, 2);
 		double percentDefined = (double) (numFemales + numMales) / samples.length;
 		if (percentDefined > .90) {
 			proj.getLog().report("Info - detected "+ numMales + " males and " + numFemales
@@ -630,8 +627,16 @@ public class PennCNVPrep {
 		// }
 		// }
 		if (shadowSamples) {
+			if (numSampleChunks == 0) {
+				// Conservatively use 75% of available memory for chunking
+				double memToUse = 0.75 * MemUtils.availableMem();
+				// Estimate worst-case memory use per thread
+				long worstCaseSize = Files.worstCaseDirSize(proj.SAMPLE_DATA_FILENAME.getValue(), "sampRAF", false);
+				numSampleChunks = (int) Math.round((worstCaseSize / memToUse) / numThreads);
+			}
 
-			boolean[][] batches = Array.splitUpStringArrayToBoolean(proj.getSamples(), numSampleChunks,
+
+			boolean[][] batches = ArrayUtils.splitUpStringArrayToBoolean(proj.getSamples(), numSampleChunks,
 																															proj.getLog());
 
 			ExecutorService executor = Executors.newFixedThreadPool(numThreads);
@@ -735,7 +740,7 @@ public class PennCNVPrep {
 																			int numBatches, int numThreads, int numMarkerThreads,
 																			int numComponents) {
 		String[] allMarkers = proj.getMarkerNames();
-		int[] chunks = Array.splitUp(allMarkers.length, numBatches);
+		int[] chunks = ArrayUtils.splitUp(allMarkers.length, numBatches);
 		int index = 0;
 		String[][] batches = new String[numBatches][1];
 		String thisDir = (tmpDir == null ? proj.PROJECT_DIRECTORY.getValue() : tmpDir);
@@ -754,15 +759,15 @@ public class PennCNVPrep {
 		cmd	.append("java").append(" -Xmx").append(memoryInMB).append("M -jar ").append(classPath)
 				.append(" cnv.analysis.PennCNVPrep proj=").append(proj.getPropertyFilename())
 				.append(" dir=").append(dir);
-		Files.qsub(	"ShadowCNVPrepFormatExport",
-								cmd.toString() + " -shadow sampleChunks=NeedToFillThisIn numThreads=1",
-								new String[][] {{""}}, memoryInMB, 3 * wallTimeInHours, 1);
 		Files.qsub(	"PennCNVPrepFormatExport", cmd.toString() + " -create", new String[][] {{""}},
 								memoryInMB, 3 * wallTimeInHours, 1);
+		cmd.append(" tmpDir=").append(thisDir);
+		Files.qsub(	"ShadowCNVPrepFormatExport",
+								cmd.toString() + " -shadow sampleChunks=NeedToFillThisIn numThreads=1 -forceLoadFromFiles",
+								new String[][] {{""}}, memoryInMB, 3 * wallTimeInHours, 1);
 		cmd	.append(" numMarkerThreads=").append(numMarkerThreads).append(" numThreads=")
 				.append(numThreads).append(" numComponents=").append(numComponents).append(" markers=")
 				.append(thisDir).append(dir).append("[%0].txt");
-		cmd.append(" tmpDir=").append(thisDir);
 		Files.qsub(	"PennCNVPrepFormatTmpFiles", cmd.toString(), batches, memoryInMB, wallTimeInHours,
 								numThreads * numMarkerThreads);
 		if (!Files.exists(proj.INTENSITY_PC_FILENAME.getValue())) {
@@ -830,7 +835,7 @@ public class PennCNVPrep {
 		boolean shadowSamples = false;
 		boolean svdRegression = false;
 		int batch = 0;
-		int sampleChunks = 10;
+		int sampleChunks = 0;
 		boolean forceLoadFromFiles = false;
 		CHROMOSOME_X_STRATEGY strategy = CHROMOSOME_X_STRATEGY.BIOLOGICAL;
 		// Ex - Recommend modifying this to run the corrections
@@ -870,7 +875,7 @@ public class PennCNVPrep {
 					"   (12) export shadow samples for quickly comparing the current sample data to corrected data(i.e. -shadow ( not the default))\n"
 							+ "";
 		usage +=
-					"   (12) if exporting shadow samples, the number of chunks to export at once (this many samples*the number of threads will be held in memory) (i.e. sampleChunks="
+					"   (12) if exporting shadow samples, the number of chunks to export at once (this many samples*the number of threads will be held in memory). A value <= 0 will make chunking determined automatically. (i.e. sampleChunks="
 							+ sampleChunks + " (default))\n" + "";
 		usage += "   (13) walltime in hours for batched run (i.e. walltime="+ wallTimeInHours
 							+ " (default))\n" + "";
@@ -887,7 +892,7 @@ public class PennCNVPrep {
 							+ numThreads + " (default))\n" + "";
 		usage += "   (18) full path to a temporary directory (i.e. tmpDir= (no default))\n" + "";
 		usage += "   (7) Chromosome X correction strategy.  Options include: "
-							+ Array.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy=" + strategy
+							+ ArrayUtils.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy=" + strategy
 							+ " (default))\n";
 		usage += "   NOTE: the total number of threads is numThreads*numMarkerThreads";
 		usage += "   NOTE: aprox 50 *(numSamples/5000) batches per 500,000 markers" + "";

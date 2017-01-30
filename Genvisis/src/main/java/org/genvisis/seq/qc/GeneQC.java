@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -77,7 +77,7 @@ public class GeneQC {
 			BufferedReader reader = Files.getAppropriateReader(bamQCFile);
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 			writer.println("GENE\tNumExons\tNumOtherGenes\tMRNA_Overlap\tNonUTRMrnaOverlap\t"
-											+ Array.toStr(Files.getHeaderOfFile(bamQCFile, log)));
+											+ ArrayUtils.toStr(Files.getHeaderOfFile(bamQCFile, log)));
 
 			reader.readLine();
 			while (reader.ready()) {
@@ -110,7 +110,7 @@ public class GeneQC {
 						}
 						if (mrna > 0) {
 							writer.println(gene	+ "\t" + numExons + "\t" + numOtherGenes + "\t" + mrna + "\t"
-															+ Math.max(0, mrnaNonUtr) + "\t" + Array.toStr(line));
+															+ Math.max(0, mrnaNonUtr) + "\t" + ArrayUtils.toStr(line));
 						}
 					}
 				}
@@ -152,7 +152,7 @@ public class GeneQC {
 				// numMrnaTotal.get(in)
 			}
 
-			System.out.println(Array.toStr(toSumm[i]));
+			System.out.println(ArrayUtils.toStr(toSumm[i]));
 		}
 
 	}
@@ -273,7 +273,7 @@ public class GeneQC {
 		LocusSet<Segment> utr3pSegs = LocusSet.loadSegmentSetFromFile(utr3p, 0, 1, 2, 0, true, true, 0,
 																																	log);
 		log.reportTimeInfo("Loaded " + utr3pSegs.getLoci().length + " 3' UTRs");
-		LocusSet<Segment> utrs = new LocusSet<Segment>(	Array.concatAll(utr5pSegs.getLoci(),
+		LocusSet<Segment> utrs = new LocusSet<Segment>(	ArrayUtils.concatAll(utr5pSegs.getLoci(),
 																																		utr3pSegs.getLoci()),
 																										true, log) {
 

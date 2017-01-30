@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
 import org.genvisis.CLI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -43,7 +43,7 @@ public class MtDNAGenotypePrep {
 		command.add("F2=");
 		command.add(r2);
 
-		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
+		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputs, outputs, true,
 																						false, false, log);
 	}
 

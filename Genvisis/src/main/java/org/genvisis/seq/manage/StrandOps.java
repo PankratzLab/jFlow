@@ -3,7 +3,7 @@ package org.genvisis.seq.manage;
 import java.util.List;
 
 import org.genvisis.bioinformatics.Sequence;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 import htsjdk.tribble.annotation.Strand;
@@ -160,7 +160,7 @@ public class StrandOps {
 					return CONFIG.STRAND_CONFIG_SPECIAL_CASE;
 				}
 			}
-			if (Array.booleanArraySum(nullChecks) == 1) {
+			if (ArrayUtils.booleanArraySum(nullChecks) == 1) {
 				index = nullChecks[0] ? 1 : 0;
 				if (referenceAlleles[0] == null) {
 					referenceAlleles[0] = alleles[index];
@@ -199,7 +199,7 @@ public class StrandOps {
 						}
 					}
 				}
-			} else if (Array.booleanArraySum(nullChecks) == 2) {
+			} else if (ArrayUtils.booleanArraySum(nullChecks) == 2) {
 				return CONFIG.STRAND_CONFIG_BOTH_NULL;
 			} else {
 				return CONFIG.STRAND_CONFIG_DIFFERENT_ALLELES;

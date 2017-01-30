@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -333,7 +333,7 @@ public class GenomeFileMergePipeline {
 					outLine = outLineMap.get(outKey2);
 					// TODO will IBD/PIHAT need to be altered due to flipped ids?
 				} else {
-					outLine = Array.stringArray(outLineCount, ".");
+					outLine = ArrayUtils.stringArray(outLineCount, ".");
 					outLine[0] = fid1;
 					outLine[1] = iid1;
 					outLine[2] = fid2;
@@ -429,12 +429,12 @@ public class GenomeFileMergePipeline {
 
 		writer = Files.getAppropriateWriter(outputFile);
 
-		outLine = Array.stringArray(outLineCount, "");
+		outLine = ArrayUtils.stringArray(outLineCount, "");
 		for (int p = 0; p < files.size(); p++) {
 			outLine[4 + (5 * p)] = files.get(p).name;
 		}
-		writer.println(Array.toStr(outLine, "\t"));
-		outLine = Array.stringArray(outLineCount, "");
+		writer.println(ArrayUtils.toStr(outLine, "\t"));
+		outLine = ArrayUtils.stringArray(outLineCount, "");
 		outLine[0] = "FID1";
 		outLine[1] = "IID1";
 		outLine[2] = "FID2";
@@ -448,7 +448,7 @@ public class GenomeFileMergePipeline {
 			outLine[4 + fileInd + 4] = "Type"; // 8 13
 		}
 		outLine[outLine.length - 1] = "DIFF_FLAG";
-		writer.println(Array.toStr(outLine, "\t"));
+		writer.println(ArrayUtils.toStr(outLine, "\t"));
 
 		HashSet<String> types = new HashSet<String>();
 		for (Entry<String, String[]> lines : outLineMap.entrySet()) {
@@ -461,7 +461,7 @@ public class GenomeFileMergePipeline {
 				}
 			}
 			outLine[outLine.length - 1] = (types.size() > 1) ? "1" : "0";
-			writer.println(Array.toStr(outLine, "\t"));
+			writer.println(ArrayUtils.toStr(outLine, "\t"));
 		}
 
 		writer.flush();

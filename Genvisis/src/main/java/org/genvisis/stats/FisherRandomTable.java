@@ -1,7 +1,7 @@
 // check if any of the marginals is zero, collapse if need be
 package org.genvisis.stats;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 public class FisherRandomTable {
 	public static int[][] rcont(int[] r, int[] c) {
@@ -333,7 +333,7 @@ public class FisherRandomTable {
 		for (int rep = 0; rep < 100; rep++) {
 			matrix = rcont(new int[] {3, 0, 3}, new int[] {1, 2, 3});
 			for (int[] element : matrix) {
-				System.out.println(Array.toStr(element));
+				System.out.println(ArrayUtils.toStr(element));
 			}
 		}
 	}

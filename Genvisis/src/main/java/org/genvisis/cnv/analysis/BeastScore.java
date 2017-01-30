@@ -6,7 +6,7 @@ import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.Segment;
@@ -56,10 +56,10 @@ public class BeastScore {
 		super();
 		this.inputData = inputData;
 		this.indicesToChunk =
-												indicesToChunk == null	? new int[][] {Array.arrayOfIndices(inputData.length)}
+												indicesToChunk == null	? new int[][] {ArrayUtils.arrayOfIndices(inputData.length)}
 																								: indicesToChunk;
 		this.indicesForScores =
-													indicesForScores == null	? new int[][] {Array.arrayOfIndices(inputData.length)}
+													indicesForScores == null	? new int[][] {ArrayUtils.arrayOfIndices(inputData.length)}
 																										: indicesForScores;
 		beastHeights = new float[this.indicesForScores.length];
 		beastScores = new float[this.indicesForScores.length];
@@ -149,7 +149,7 @@ public class BeastScore {
 	public static float[] transformData(float[] inputData, int[][] indicesToChunk, boolean[] use,
 																			Logger log) {
 		return Transforms.transform(inputData, 2, indicesToChunk,
-																use == null	? Array.booleanArray(indicesToChunk.length, true)
+																use == null	? ArrayUtils.booleanArray(indicesToChunk.length, true)
 																						: use);
 	}
 
@@ -178,7 +178,7 @@ public class BeastScore {
 					}
 				}
 				indicesMADScaled[i] =
-														(float) (Array.median(Doubles.toArray(medianIndices)) / scaleFactorMAD);
+														(float) (ArrayUtils.median(Doubles.toArray(medianIndices)) / scaleFactorMAD);
 			}
 		}
 		return indicesMADScaled;
@@ -237,7 +237,7 @@ public class BeastScore {
 				}
 			}
 			if (medianHeightIndices.size() > 0) {
-				beastHeights[i] = (float) (Array.median(Doubles.toArray(medianHeightIndices)));
+				beastHeights[i] = (float) (ArrayUtils.median(Doubles.toArray(medianHeightIndices)));
 			} else {
 				beastHeights[i] = Float.NaN;
 			}

@@ -36,7 +36,7 @@ import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.manage.SourceFileParser;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
@@ -362,7 +362,7 @@ public class ProjectCreationGUI extends JDialog {
 												// !idHdr.equals("") ,
 												validTgtMkrs};// Files.exists(tgtMkrs)};
 
-		if (Array.booleanArraySum(checks) < checks.length) {
+		if (ArrayUtils.booleanArraySum(checks) < checks.length) {
 			StringBuilder errorMsg = new StringBuilder();
 			for (int i = 0; i < checks.length; i++) {
 				if (!checks[i]) {

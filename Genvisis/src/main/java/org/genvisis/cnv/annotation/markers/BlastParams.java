@@ -1,8 +1,8 @@
-package org.genvisis.cnv.annotation;
+package org.genvisis.cnv.annotation.markers;
 
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 
 import htsjdk.variant.vcf.VCFHeaderLine;
@@ -111,7 +111,7 @@ public class BlastParams implements AnalysisParams {
 		valueString.add(parseKeys[7] + markerFingerPrint);
 		valueString.add(parseKeys[8] + notes);
 
-		String value = Array.toStr(Array.toStringArray(valueString), DATA_DELIMITER);
+		String value = ArrayUtils.toStr(ArrayUtils.toStringArray(valueString), DATA_DELIMITER);
 		return new VCFHeaderLine(KEY, value);
 	}
 

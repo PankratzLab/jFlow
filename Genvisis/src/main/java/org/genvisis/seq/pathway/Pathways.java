@@ -13,7 +13,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
@@ -259,12 +259,12 @@ public class Pathways implements Serializable {
 
 		}
 
-		List<String[]> splits = Array.splitUpArray(keggGenes.toArray(new String[keggGenes.size()]),
+		List<String[]> splits = ArrayUtils.splitUpArray(keggGenes.toArray(new String[keggGenes.size()]),
 																										Math.round((float) keggGenes.size() / 50) + 1,
 																										log);
 		for (int i = 0; i < splits.size(); i++) {
 
-			String q = Array.toStr(splits.get(i), "+");
+			String q = ArrayUtils.toStr(splits.get(i), "+");
 			String url = REF_SEQ_GENE_LINK + q;
 			try {
 				URLConnection uc = new URL(url).openConnection();

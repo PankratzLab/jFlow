@@ -10,7 +10,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.prop.Property;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
@@ -93,7 +93,7 @@ public class AffyProcess {
 				}
 				if (Files.getLineContaining(chpFiles[i], "\t", AFFY_CHP_HEADER, log) == null) {
 					log.reportError("Currently chp files must have at least the following columns "
-															+ Array.toStr(AFFY_CHP_HEADER));
+															+ ArrayUtils.toStr(AFFY_CHP_HEADER));
 					valid = false;
 				} else {
 					String toMatch = ext.replaceAllWith(ext.rootOf(chpFiles[i]), REPLACES);
@@ -192,12 +192,12 @@ public class AffyProcess {
 				} while (reader.ready() && ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line,
 																										false, true, false, false)[0] == -1);
 
-				writer.println(Array.toStr(AFFY_CHP_HEADER));
+				writer.println(ArrayUtils.toStr(AFFY_CHP_HEADER));
 				int[] indices = ext.indexFactors(AFFY_CHP_HEADER, line, true, false);
 				int numSnps = 0;
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(delimiter);
-					writer.println(Array.toStr(Array.subArray(line, indices)));
+					writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, indices)));
 					numSnps++;
 				}
 
@@ -220,7 +220,7 @@ public class AffyProcess {
 							log2Ratio = Double.parseDouble(line[indices[1]]);
 							log2Ratio = Math.pow(log2Ratio, 2);
 						} catch (NumberFormatException nfe) {
-							log.reportError("Could not parse Log2Ratio on line " + Array.toStr(line));
+							log.reportError("Could not parse Log2Ratio on line " + ArrayUtils.toStr(line));
 						}
 						for (int i = 0; i < AFFY_CHP_HEADER.length; i++) {
 							switch (i) {
@@ -274,7 +274,7 @@ public class AffyProcess {
 		for (String file : files) {
 			if (Files.getLineContaining(file, "\t", header, log) == null) {
 				log.reportError("Currently "	+ type + " files must have at least the following columns "
-														+ Array.toStr(header));
+														+ ArrayUtils.toStr(header));
 				log.reportError(file + " did not contain a line with  the required columns");
 
 				return false;

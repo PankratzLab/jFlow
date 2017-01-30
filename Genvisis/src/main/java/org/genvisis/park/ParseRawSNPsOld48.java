@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
@@ -214,8 +214,8 @@ class SNP {
 			value = i == 0 ? allele1 : allele2;
 			index = ext.indexOfStr(value, values);
 			if (index == -1) {
-				values = Array.addStrToArray(value, values);
-				counts = Array.addIntToArray(1, counts);
+				values = ArrayUtils.addStrToArray(value, values);
+				counts = ArrayUtils.addIntToArray(1, counts);
 			} else {
 				counts[index]++;
 			}
@@ -246,8 +246,8 @@ class SNP {
 		int minor, major;
 
 		while (values.length < 3) {
-			values = Array.addStrToArray("?", values);
-			counts = Array.addIntToArray(0, counts);
+			values = ArrayUtils.addStrToArray("?", values);
+			counts = ArrayUtils.addIntToArray(0, counts);
 		}
 		minor = counts[1] < counts[2] ? 1 : 2;
 		major = counts[1] < counts[2] ? 2 : 1;

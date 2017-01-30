@@ -21,7 +21,7 @@ import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -118,7 +118,7 @@ public class CNVCaller {
 		managePfbs();
 		this.dataAdjustments = dataAdjustments;
 		this.copyNumberDef = copyNumberDef;
-		analysisProjectIndices = Array.arrayOfIndices(markerSet.getMarkerNames().length);
+		analysisProjectIndices = ArrayUtils.arrayOfIndices(markerSet.getMarkerNames().length);
 		analysisPositions = markerSet.getPositions();
 		this.debugMode = debugMode;
 
@@ -147,7 +147,7 @@ public class CNVCaller {
 			case PENNCNV_DEFAULT:
 				int numRemoved = 0;
 				if (markersToUse == null) {
-					markersToUse = Array.booleanArray(markerSet.getMarkerNames().length, true);
+					markersToUse = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, true);
 				}
 				for (int i = 0; i < analysisPfbs.length; i++) {
 					if (analysisPfbs[i] < 0) {
@@ -167,7 +167,7 @@ public class CNVCaller {
 	}
 
 	private static double[] roundToPennCNVSigFigs(double[] array) {
-		return Array.round(array, PENN_CNV_SIG_FIGS);
+		return ArrayUtils.round(array, PENN_CNV_SIG_FIGS);
 	}
 
 	/**
@@ -178,7 +178,7 @@ public class CNVCaller {
 		if (dataAdjustments == null) {
 			proj.getLog().reportTimeWarning("No data adjustments supplied");
 		} else {
-			double lrrSd = Array.stdev(Array.getValuesBetween(analysisLrrs, MIN_LRR_MEDIAN_ADJUST,
+			double lrrSd = ArrayUtils.stdev(ArrayUtils.getValuesBetween(analysisLrrs, MIN_LRR_MEDIAN_ADJUST,
 																												MAX_LRR_MEDIAN_ADJUST));
 			for (DATA_ADJUSTMENTS type : dataAdjustments) {
 				switch (type) {
@@ -215,10 +215,10 @@ public class CNVCaller {
 							GcAdjustor gcAdjustor = builder.build(proj, markerSet, gcModel, dataToCorrect);
 							gcAdjustor.correctIntensities();
 							gcAdjustor.computeQCMetrics(true, true);
-							analysisLrrs = Array.subArray(gcAdjustor.getCorrectedIntensities(),
+							analysisLrrs = ArrayUtils.subArray(gcAdjustor.getCorrectedIntensities(),
 																						analysisProjectIndices);
 							proj.getLog().reportTimeInfo(gcAdjustor.getAnnotatedQCString());
-							lrrSd = Array.stdev(Array.getValuesBetween(	analysisLrrs, MIN_LRR_MEDIAN_ADJUST,
+							lrrSd = ArrayUtils.stdev(ArrayUtils.getValuesBetween(	analysisLrrs, MIN_LRR_MEDIAN_ADJUST,
 																													MAX_LRR_MEDIAN_ADJUST));
 
 						}
@@ -236,7 +236,7 @@ public class CNVCaller {
 							proj.getLog().reportTimeInfo("Set "	+ nanCount
 																						+ " observations with NaN data to 0 for lrr and baf");
 						}
-						lrrSd = Array.stdev(Array.getValuesBetween(	analysisLrrs, MIN_LRR_MEDIAN_ADJUST,
+						lrrSd = ArrayUtils.stdev(ArrayUtils.getValuesBetween(	analysisLrrs, MIN_LRR_MEDIAN_ADJUST,
 																												MAX_LRR_MEDIAN_ADJUST));
 
 						break;
@@ -253,15 +253,15 @@ public class CNVCaller {
 						if (markersToUse != null) {
 							boolean[] tmpExclude = markersToUse;
 							if (analysisProjectIndices.length != markerSet.getMarkerNames().length) {
-								tmpExclude = Array.subArray(markersToUse, analysisProjectIndices);
+								tmpExclude = ArrayUtils.subArray(markersToUse, analysisProjectIndices);
 							}
-							analysisLrrs = Array.subArray(analysisLrrs, tmpExclude);
-							analysisBafs = Array.subArray(analysisBafs, tmpExclude);
-							analysisPfbs = Array.subArray(analysisPfbs, tmpExclude);
-							analysisPositions = Array.subArray(analysisPositions, tmpExclude);
-							analysisProjectIndices = Array.subArray(analysisProjectIndices, tmpExclude);
-							copyNumberDef = Array.subArray(copyNumberDef, analysisProjectIndices);
-							lrrSd = Array.stdev(Array.getValuesBetween(	analysisLrrs, MIN_LRR_MEDIAN_ADJUST,
+							analysisLrrs = ArrayUtils.subArray(analysisLrrs, tmpExclude);
+							analysisBafs = ArrayUtils.subArray(analysisBafs, tmpExclude);
+							analysisPfbs = ArrayUtils.subArray(analysisPfbs, tmpExclude);
+							analysisPositions = ArrayUtils.subArray(analysisPositions, tmpExclude);
+							analysisProjectIndices = ArrayUtils.subArray(analysisProjectIndices, tmpExclude);
+							copyNumberDef = ArrayUtils.subArray(copyNumberDef, analysisProjectIndices);
+							lrrSd = ArrayUtils.stdev(ArrayUtils.getValuesBetween(	analysisLrrs, MIN_LRR_MEDIAN_ADJUST,
 																													MAX_LRR_MEDIAN_ADJUST));
 						}
 						break;
@@ -279,7 +279,7 @@ public class CNVCaller {
 	private CNVCallResult callCNVS(	int[] chrsToCall, boolean callReverse, int minNumMarkers,
 																	double minConf, int numThreads) {
 		WorkerHive<CNVCallResult> hive = new WorkerHive<CNVCallResult>(numThreads, 10, proj.getLog());
-		boolean[] finalAnalysisSet = Array.booleanArray(markerSet.getMarkerNames().length, false);
+		boolean[] finalAnalysisSet = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
 		HashMap<String, ArrayList<Integer>> chrIndices = new HashMap<String, ArrayList<Integer>>();
 		byte[] chrs = markerSet.getChrs();
 
@@ -294,19 +294,19 @@ public class CNVCaller {
 		int[][] snpDists = getSNPDist(proj, markerSet, false, finalAnalysisSet);
 
 		if (chrsToCall == null) {
-			chrsToCall = Array.arrayOfIndices(snpDists.length);
+			chrsToCall = ArrayUtils.arrayOfIndices(snpDists.length);
 		}
 		for (int curChr : chrsToCall) {
 			String chr = Positions.getChromosomeUCSC(curChr, true);
 			if (snpDists[curChr].length > MIN_MARKERS_PER_CHROMOSOME && chrIndices.containsKey(chr)) {
 				int[] currentChrIndices = Ints.toArray(chrIndices.get(chr));
-				int[] currentChrPositions = Array.subArray(analysisPositions, currentChrIndices);
-				double[] currentChrLrr = Array.subArray(analysisLrrs, currentChrIndices);
-				double[] currentChrBaf = Array.subArray(analysisBafs, currentChrIndices);
-				double[] currentChrPfbs = Array.subArray(analysisPfbs, currentChrIndices);
-				boolean[] currentChrCnDef = Array.subArray(copyNumberDef, currentChrIndices);
-				String[] currentNames = Array.subArray(
-																								Array.subArray(	markerSet.getMarkerNames(),
+				int[] currentChrPositions = ArrayUtils.subArray(analysisPositions, currentChrIndices);
+				double[] currentChrLrr = ArrayUtils.subArray(analysisLrrs, currentChrIndices);
+				double[] currentChrBaf = ArrayUtils.subArray(analysisBafs, currentChrIndices);
+				double[] currentChrPfbs = ArrayUtils.subArray(analysisPfbs, currentChrIndices);
+				boolean[] currentChrCnDef = ArrayUtils.subArray(copyNumberDef, currentChrIndices);
+				String[] currentNames = ArrayUtils.subArray(
+																								ArrayUtils.subArray(	markerSet.getMarkerNames(),
 																																analysisProjectIndices),
 																								currentChrIndices);
 				CNVCallerWorker worker = new CNVCallerWorker(	proj, dna, (byte) curChr, currentChrPositions,
@@ -535,7 +535,7 @@ public class CNVCaller {
 		int[][] snpDists = new int[tmp.length][];
 		for (int i = 0; i < tmp.length; i++) {
 			int[] distsTmp = new int[tmp[i].length];
-			int[] posTmp = reverse ? Array.reverse(tmp[i]) : tmp[i];
+			int[] posTmp = reverse ? ArrayUtils.reverse(tmp[i]) : tmp[i];
 			if (distsTmp.length > 0) {
 				distsTmp[posTmp.length - 1] = 0;
 				for (int j = 0; j < distsTmp.length - 1; j++) {
@@ -556,9 +556,9 @@ public class CNVCaller {
 	public static double[] adjustLrr(	double[] lrrs, double minLrr, double maxLrr, boolean verbose,
 																		Logger log) {
 		double[] adjusted = new double[lrrs.length];
-		double median = Array.median(Array.getValuesBetween(lrrs, minLrr, maxLrr));
+		double median = ArrayUtils.median(ArrayUtils.getValuesBetween(lrrs, minLrr, maxLrr));
 		if (verbose) {
-			log.reportTimeInfo("Median adjusting lrr values by " + median + "\t" + Array.median(lrrs));
+			log.reportTimeInfo("Median adjusting lrr values by " + median + "\t" + ArrayUtils.median(lrrs));
 		}
 		for (int i = 0; i < adjusted.length; i++) {
 			adjusted[i] = lrrs[i] - median;
@@ -578,7 +578,7 @@ public class CNVCaller {
 				bafsToMedian.add(bafs[i]);
 			}
 		}
-		double median = Array.median(Doubles.toArray(bafsToMedian));
+		double median = ArrayUtils.median(Doubles.toArray(bafsToMedian));
 		double factor = median - 0.5;
 		if (debugMode) {
 			log.reportTimeInfo("Median adjusting baf measures by " + factor);
@@ -668,12 +668,12 @@ public class CNVCaller {
 																					PFB_MANAGEMENT_TYPE pManagementType, int numThreads,
 																					boolean debugMode) {
 		String[] markerNames = markerSet.getMarkerNames();
-		boolean[] copyNumberDef = Array.booleanArray(markerNames.length, false);
+		boolean[] copyNumberDef = ArrayUtils.booleanArray(markerNames.length, false);
 		ARRAY array = proj.getArrayType();
 		if (debugMode) {
 			proj.getLog()
 					.reportTimeInfo("Assigning copy number probes according to "	+ array.toString()
-													+ " using the following " + Array.toStr(array.getCnFlags(), ","));
+													+ " using the following " + ArrayUtils.toStr(array.getCnFlags(), ","));
 			proj.getLog()
 					.reportTimeInfo("BAF values greater than 1 will also be set to copy number only");
 
@@ -682,12 +682,12 @@ public class CNVCaller {
 			copyNumberDef[i] = array.isCNOnly(markerNames[i]) || bafs[i] > 1;
 		}
 		if (debugMode) {
-			proj.getLog().reportTimeInfo("Found "	+ Array.booleanArraySum(copyNumberDef)
+			proj.getLog().reportTimeInfo("Found "	+ ArrayUtils.booleanArraySum(copyNumberDef)
 																		+ " copy number only markers");
 		}
 		if (markersToUse == null) {
 			int[] autosomalMarkers = proj.getAutosomalMarkerIndices();
-			markersToUse = Array.booleanArray(markerSet.getMarkerNames().length, false);
+			markersToUse = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
 			for (int i = 0; i < autosomalMarkers.length; i++) {
 				markersToUse[autosomalMarkers[i]] = true;
 				if (array == ARRAY.NGS) {
@@ -699,7 +699,7 @@ public class CNVCaller {
 		}
 		if (debugMode) {
 			proj.getLog()
-					.reportTimeInfo("Found " + Array.booleanArraySum(markersToUse) + " total markers to use");
+					.reportTimeInfo("Found " + ArrayUtils.booleanArraySum(markersToUse) + " total markers to use");
 
 		}
 		CNVCallResult cnvs = callCNVsFor(	proj, pennHmm, sample, lrrs, bafs, gcModel, pfb, markerSet,
@@ -791,7 +791,7 @@ public class CNVCaller {
 					float[] bafs = centroids == null	? curSample.getBAFs()
 																						: curSample.getBAFs(centroids.getCentroids());
 					CNVCallResult cnvs = callCNVsFor(	proj, pennHmmTmp, curSample.getSampleName(),
-																						Array.toDoubleArray(lrrs), Array.toDoubleArray(bafs),
+																						ArrayUtils.toDoubleArray(lrrs), ArrayUtils.toDoubleArray(bafs),
 																						gcModelTmp, pfbTmp, markerSet, chrsToCall, markersToUse,
 																						callReverse, minNumMarkers, minConf, pManagementType,
 																						numSampleThreads, debugMode);
@@ -841,18 +841,18 @@ public class CNVCaller {
 		String output = proj.PROJECT_DIRECTORY.getValue() + outputFile;
 		proj.getLog().reportTimeInfo("CNVS will be reported to " + output);
 		new File(ext.parseDirectoryOfFile(output)).mkdirs();
-		CNVCallerIterator callerIterator = getCallerIterator(proj, markerSet, Array.concatAll(maleSamples, femaleSamples), null, null,
+		CNVCallerIterator callerIterator = getCallerIterator(proj, markerSet, ArrayUtils.concatAll(maleSamples, femaleSamples), null, null,
 											centroids[0], minNumMarkers, minConf, pManagementType, numSampleThreads,
 											numChrThreads);
 		writeOutput(callerIterator, output, proj.getLog());
 		// will passing null to chrsToCall result in calling on 23/24 also?
-		boolean[] chr23 = Array.booleanArray(markerSet.getMarkerNames().length, false);
+		boolean[] chr23 = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
 		int[][] indicesByChr = markerSet.getIndicesByChr();
 		for (int i = 0; i < indicesByChr[23].length; i++) {
 			chr23[indicesByChr[23][i]] = true;
 		}
 
-		boolean[] chr24 = Array.booleanArray(markerSet.getMarkerNames().length, false);
+		boolean[] chr24 = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
 		for (int i = 0; i < indicesByChr[24].length; i++) {
 			chr24[indicesByChr[24][i]] = true;
 		}
@@ -946,7 +946,7 @@ public class CNVCaller {
 	private static void writeOutput(CNVCallerIterator callerIterator, String output, Logger log) {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			int sum = 0;
 			int cnt = 0;
 			while (callerIterator.hasNext()) {

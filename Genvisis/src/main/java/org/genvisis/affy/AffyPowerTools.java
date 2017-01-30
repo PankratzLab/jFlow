@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -466,7 +466,7 @@ public class AffyPowerTools {
 	private static String[] getCommands(String baseCommand, int numJobs, String replacer) {
 		String[] commands = new String[numJobs];
 		String trav = baseCommand;
-		String[][] iterations = Matrix.toMatrix(Array.stringArraySequence(numJobs, ""));
+		String[][] iterations = Matrix.toMatrix(ArrayUtils.stringArraySequence(numJobs, ""));
 		for (int i = 0; i < iterations.length; i++) {
 			for (int j = 0; j < iterations[i].length; j++) {
 				commands[i] = ext.replaceAllWith(trav, "[%" + j + "]", replacer + iterations[i][j]);
@@ -556,7 +556,7 @@ public class AffyPowerTools {
 			} while (reader.ready() && !line[0].matches(AFFY_PROBELIST_HEADER[0]));
 			if (!reader.ready()) {
 				log.reportError("Error - reached the end of the file without finding a line with the following token: "
-												+ Array.toStr(AFFY_PROBELIST_HEADER));
+												+ ArrayUtils.toStr(AFFY_PROBELIST_HEADER));
 				reader.close();
 				System.exit(1);
 			}

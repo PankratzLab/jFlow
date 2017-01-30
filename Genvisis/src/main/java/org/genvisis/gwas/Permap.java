@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Transformations;
 
@@ -40,7 +40,7 @@ public class Permap {
 			System.exit(2);
 		}
 
-		peeps = Array.toStringArray(v);
+		peeps = ArrayUtils.toStringArray(v);
 		try {
 			// reader = new BufferedReader(new
 			// FileReader(DIR+"plink.mdist.missing"));
@@ -63,21 +63,21 @@ public class Permap {
 				}
 			}
 
-			mean = Array.mean(values);
-			stdev = Array.stdev(values);
+			mean = ArrayUtils.mean(values);
+			stdev = ArrayUtils.stdev(values);
 			System.out.println(values.length);
 
 			System.out.println("mean: " + mean);
 			System.out.println("std: " + stdev);
-			System.out.println("range: " + Array.min(values) + " - " + Array.max(values));
+			System.out.println("range: " + ArrayUtils.min(values) + " - " + ArrayUtils.max(values));
 
 			values = Transformations.standardizeRange(values);
-			mean = Array.mean(values);
-			stdev = Array.stdev(values);
+			mean = ArrayUtils.mean(values);
+			stdev = ArrayUtils.stdev(values);
 
 			System.out.println("mean: " + mean);
 			System.out.println("std: " + stdev);
-			System.out.println("range: " + Array.min(values) + " - " + Array.max(values));
+			System.out.println("range: " + ArrayUtils.min(values) + " - " + ArrayUtils.max(values));
 
 			count = 0;
 			for (int i = 0; i < peeps.length; i++) {

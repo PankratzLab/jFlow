@@ -17,7 +17,7 @@ import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.SexOps;
 import org.genvisis.cnv.manage.SexOps.SEX_LOAD_TYPE;
 import org.genvisis.cnv.plots.ScatterPlot;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.stats.CrossValidation;
@@ -225,8 +225,8 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 
 	public void correctLRRAt(int atComponent) {
 		setOriginal();
-		this.correctedLRR = Array.toFloatArray(getCorrectedDataAt(
-																															Array.toDoubleArray(centroid.getMarkerData()
+		this.correctedLRR = ArrayUtils.toFloatArray(getCorrectedDataAt(
+																															ArrayUtils.toDoubleArray(centroid.getMarkerData()
 																																													.getLRRs()),
 																															sexSpecificChrCovariates,
 																															centroid.getSamplesToUse(),
@@ -396,8 +396,8 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 
 	private void correctXYRegression(int atComponent, double[][] extraIndeps) {
 		CrossValidation[][] cvals = threadIt(	atComponent,
-																					Array.toDoubleArray(centroid.getMarkerData().getXs()),
-																					Array.toDoubleArray(centroid.getMarkerData().getYs()),
+																					ArrayUtils.toDoubleArray(centroid.getMarkerData().getXs()),
+																					ArrayUtils.toDoubleArray(centroid.getMarkerData().getYs()),
 																					extraIndeps);
 		for (int i = 0; i < genoSampleClusters.length; i++) {
 			int clusterComponent = getProperComponent(atComponent, genoClusterCounts[i], i,
@@ -407,9 +407,9 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 			if (cvals[i] != null&& cvals[i][1] != null && cvals[i][0] != null
 					&& !cvals[i][0].analysisFailed() && !cvals[i][1].analysisFailed()
 					&& validClusterComponent(genoClusterCounts[i], clusterComponent, numTotalSamples)) {
-				correctedXCluster[i] = Array.toFloatArray(Array.subArray(	cvals[i][0].getResiduals(),
+				correctedXCluster[i] = ArrayUtils.toFloatArray(ArrayUtils.subArray(	cvals[i][0].getResiduals(),
 																																	genoSampleClusters[i]));
-				correctedYCluster[i] = Array.toFloatArray(Array.subArray(	cvals[i][1].getResiduals(),
+				correctedYCluster[i] = ArrayUtils.toFloatArray(ArrayUtils.subArray(	cvals[i][1].getResiduals(),
 																																	genoSampleClusters[i]));
 			} else {
 				if (cvals[i] == null|| cvals[i][1] == null || cvals[i][0] == null
@@ -431,8 +431,8 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	 * regression models tested)
 	 */
 	private void estimateNewGenotypes(int atComponent, double[][] extraIndeps) {
-		double[] Xs = Array.toDoubleArray(centroid.getMarkerData().getXs());
-		double[] Ys = Array.toDoubleArray(centroid.getMarkerData().getYs());
+		double[] Xs = ArrayUtils.toDoubleArray(centroid.getMarkerData().getXs());
+		double[] Ys = ArrayUtils.toDoubleArray(centroid.getMarkerData().getYs());
 		byte[] estimatedGenotypes = new byte[Xs.length];
 		double[][] fullXPredicteds = new double[3][];
 		double[][] fullYPredicteds = new double[3][];
@@ -457,7 +457,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 					fullXPredicteds[i] = cvalX.getPredicteds();
 					if (residStandardDeviationFilter != 0) {
 						residX[i] = cvalX.getResiduals();
-						residstdevX[i] = Array.stdev(Array.subArray(residX[i], genoSampleClusters[i]), true);// compute
+						residstdevX[i] = ArrayUtils.stdev(ArrayUtils.subArray(residX[i], genoSampleClusters[i]), true);// compute
 																																																	// standard
 																																																	// deviation
 																																																	// only
@@ -479,7 +479,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 					fullYPredicteds[i] = cvalY.getPredicteds();
 					if (residStandardDeviationFilter != 0) {
 						residY[i] = cvalY.getResiduals();
-						residstdevY[i] = Array.stdev(Array.subArray(residY[i], genoSampleClusters[i]), true);// compute
+						residstdevY[i] = ArrayUtils.stdev(ArrayUtils.subArray(residY[i], genoSampleClusters[i]), true);// compute
 																																																	// standard
 																																																	// deviation
 																																																	// only

@@ -12,7 +12,7 @@ import java.util.HashMap;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -110,7 +110,7 @@ public class CBCApplicator implements Runnable {
 													+ files[0]);
 			return;
 		}
-		if (Array.countIf(panel2DataColumns, -1) > 0) {
+		if (ArrayUtils.countIf(panel2DataColumns, -1) > 0) {
 			log.reportError("missing column "
 														+ PNL_2_CBC_COLS[Arrays.asList(panel2DataColumns).indexOf(-1)]
 													+ " CBC file: " + cbcDir + files[0]);
@@ -267,7 +267,7 @@ public class CBCApplicator implements Runnable {
 				cbcCnt = cbcData[panel1DataColumn];
 				if ("NULL".equals(cbcCnt) || "NA".equals(cbcCnt)) {
 					writer.println(id	+ "\t"
-													+ Array.toStr(Array.stringArray(parts.length	- (skipFirstCol ? 2 : 1),
+													+ ArrayUtils.toStr(ArrayUtils.stringArray(parts.length	- (skipFirstCol ? 2 : 1),
 																													"NaN")));
 				} else {
 					double[] cnts = new double[parts.length - (skipFirstCol ? 2 : 1)];
@@ -397,7 +397,7 @@ public class CBCApplicator implements Runnable {
 				cbcCnt = getCBCCountPanel2(cbcData);
 				if (Double.isNaN(cbcCnt)) {
 					writer.println(id	+ "\t"
-													+ Array.toStr(Array.stringArray(parts.length	- (skipFirstCol ? 2 : 1),
+													+ ArrayUtils.toStr(ArrayUtils.stringArray(parts.length	- (skipFirstCol ? 2 : 1),
 																													"NaN")));
 				} else {
 					double[] cnts = new double[parts.length - (skipFirstCol ? 2 : 1)];

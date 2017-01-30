@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -181,7 +181,7 @@ public class Merlin {
 			writer = new PrintWriter(new FileWriter(root + ".freq"));
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println("M " + markerNames[i]);
-				writer.println("F " + Array.toStr(alleleFreqs[i], 6, 6, " "));
+				writer.println("F " + ArrayUtils.toStr(alleleFreqs[i], 6, 6, " "));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -303,7 +303,7 @@ public class Merlin {
 				trait = QUANTITATIVE_TRAIT;
 				numArgs--;
 			} else if (arg.startsWith("quant=")) {
-				quant = Array.toDoubleArray(arg.split("=")[1].split(","));
+				quant = ArrayUtils.toDoubleArray(arg.split("=")[1].split(","));
 				if (quant.length == 3) {
 					numArgs--;
 				} else {

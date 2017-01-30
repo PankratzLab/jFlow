@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -224,7 +224,7 @@ public class BWA_Analysis {
 				lane = split[split.length - 3];
 				batch = split[split.length - 1];
 				barcode = split[split.length - 4];
-				ID = Array.toStr(Array.subArray(split, 0, split.length - 4), SPLIT);// we do not include
+				ID = ArrayUtils.toStr(ArrayUtils.subArray(split, 0, split.length - 4), SPLIT);// we do not include
 				                                                                    // barcode in the id,
 				                                                                    // instead adding it to
 				                                                                    // the RG
@@ -376,7 +376,7 @@ public class BWA_Analysis {
 		for (int i = 0; i < allFilesMatched.length; i++) {
 			allFilesMatched[i] = bwAnalysisIndividuals[i].getAvailableFiles("\t");
 		}
-		String[][] batchedMatchedFiles = Array.splitUpStringArray(allFilesMatched, numBatches, log);
+		String[][] batchedMatchedFiles = ArrayUtils.splitUpStringArray(allFilesMatched, numBatches, log);
 
 		String[][] batches = new String[batchedMatchedFiles.length][1];
 		for (int i = 0; i < batches.length; i++) {
@@ -485,12 +485,12 @@ public class BWA_Analysis {
 					if (fileNameParser1.isValid() && fileNameParser2.isValid()) {
 						if (!fileNameParser1.getLane().equals(fileNameParser2.getLane())) {
 							log.reportError("Warning - the determined lane for the two samples "
-							                + Array.toStr(line)
+							                + ArrayUtils.toStr(line)
 							                + " did not match up, please make sure this is what you want to do");
 						}
 						if (!fileNameParser1.getID().equals(fileNameParser2.getID())) {
 							log.reportError("Error - the determined root ID for the two samples "
-							                + Array.toStr(line) + " did not match up");
+							                + ArrayUtils.toStr(line) + " did not match up");
 							fail = true;
 						} else {
 							bwAnalysisIndividuals[index] = getAnalysisIndFromFileParser(fileNameParser1);
@@ -575,7 +575,7 @@ public class BWA_Analysis {
 				}
 				if (currIndex != bwAnalysisIndividuals.length) {
 					log.reportError("Error - could not match all files for input set\n"
-					                + Array.toStr(inputFiles, "\n"));
+					                + ArrayUtils.toStr(inputFiles, "\n"));
 					fail = true;
 				}
 			}

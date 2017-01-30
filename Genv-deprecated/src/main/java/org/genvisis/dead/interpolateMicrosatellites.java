@@ -11,7 +11,7 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Sort;
 
 public class interpolateMicrosatellites {
@@ -123,7 +123,7 @@ public class interpolateMicrosatellites {
 			v.add(id + " (" + trav + ")");
 		}
 		if (v.size() > 0) {
-			keys = Sort.getSortedIndices(Array.toStringArray(v));
+			keys = Sort.getSortedIndices(ArrayUtils.toStringArray(v));
 			System.err.println("Warning - the following IDs did not have an original entry.");
 			for (int i = 0; i < v.size(); i++) {
 				System.err.println("        - " + v.elementAt(keys[i]));

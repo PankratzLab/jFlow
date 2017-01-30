@@ -15,10 +15,13 @@ import java.util.Set;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.LaunchProperties.LaunchKey;
 import org.genvisis.common.Files;
 import org.genvisis.common.HttpDownloadUtility;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.FASTA;
+import org.genvisis.seq.manage.BedOps;
 import org.genvisis.seq.manage.VCFOps;
 
 /**
@@ -27,7 +30,6 @@ import org.genvisis.seq.manage.VCFOps;
 public final class Resources {
 
 	public static final String DEFAULT_URL = "http://genvisis.org/rsrc/";
-	public static final String DEFAULT_LOCAL_DIR = "resources" + File.separator;
 	public static final String BIN_DIR = "bin";
 	public static final String GENOME_DIR = "Genome";
 
@@ -146,14 +148,14 @@ public final class Resources {
 	 */
 	public static class Shapeit extends AbstractResourceFactory {
 		public Shapeit(Logger log) {
-			super(DEFAULT_LOCAL_DIR + BIN_DIR + "/shapeit" + File.separator, "", log, Shapeit.class);
+			super(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + BIN_DIR + File.separator + "shapeit", "", log, Shapeit.class);
 		}
 
 		/**
 		 * @return A resource for the shapeit app
 		 */
 		public Resource getShapeit() {
-			return getTarGzResource(localPath()	+ "bin/shapeit",
+			return getTarGzResource(localPath(),
 															"https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz");
 		}
 	}
@@ -260,6 +262,14 @@ public final class Resources {
 		}
 
 		/**
+		 * @return The 100-mer mappability track for this {@link GENOME_BUILD}, note we do not download
+		 *         the index - generate if needed with {@link BedOps#verifyBedIndex(String, Logger)}
+		 */
+		public Resource get100MerMappabilityTrack() {
+			return getResource(getPath() + "_wgEncodeCrgMapabilityAlign100mer.bedGraph");
+		}
+
+		/**
 		 * @return b138 DB .ser resource
 		 */
 		public Resource getB138() {
@@ -281,7 +291,14 @@ public final class Resources {
 		}
 
 		/**
-		 * Helper method for formatting resource path
+		 * @return .dat list of known problematic regions (e.g. centromere, chromosome ends)
+		 */
+		public Resource getProblematicRegions() {
+			return getResource(build.getBuild() + "/problematicRegions_" + build.getBuild() + ".dat");
+		}
+
+		/**
+		 * Helper method for formatting resource path: formatted "{build}/{build}", e.g. for "hg19/hg19.fa"
 		 */
 		private String getPath() {
 			String b = build.getBuild();
@@ -455,6 +472,39 @@ public final class Resources {
 		}
 	}
 
+
+	/**
+	 * Get general annotation resources
+	 */
+	public static class Annotation extends AbstractResourceFactory {
+		private static final String DIR = "Annotation";
+
+		public Annotation(Logger log) {
+			super(DIR, log, Annotation.class);
+		}
+
+		public Resource getGDI() {
+			return getResource("GDI.txt");
+		}
+
+
+		/**
+		 * Helper method for chaining resource calls.
+		 */
+		public Annotation annotation() {
+			return new Annotation(log());
+		}
+	}
+
+	/**
+	 * Helper method for chaining resource calls
+	 */
+	public static Annotation annotation(Logger log) {
+		return new Annotation(log);
+	}
+
+
+
 	/**
 	 * Get general CNV resources
 	 */
@@ -498,7 +548,7 @@ public final class Resources {
 		private final Class<?>[] classes;
 
 		public AbstractResourceFactory(String subPath, Logger log, Class<?>... classes) {
-			this(DEFAULT_LOCAL_DIR + subPath + File.separator, DEFAULT_URL + subPath + "/", log, classes);
+			this(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + subPath + File.separator, DEFAULT_URL + subPath + "/", log, classes);
 		}
 
 		public AbstractResourceFactory(String localPath, String url, Logger log, Class<?>... classes) {
@@ -554,7 +604,7 @@ public final class Resources {
 		protected Resource getVCFResource(String localPath, String remotePath) {
 			return new VCFResource(localPath, remotePath, log);
 		}
-		
+
 		protected Resource getFASTAResource(String rsrc) {
 			return getFASTAResource(localPath + rsrc, remotePath + rsrc);
 		}
@@ -779,7 +829,7 @@ public final class Resources {
 					return true;
 				} catch (IOException e) {
 					log.reportError("Could not retrieve resource from "	+ url + " and save it to"
-															+ downloadPath);
+													+ downloadPath);
 					log.reportException(e);
 				}
 			} else {
@@ -822,8 +872,8 @@ public final class Resources {
 
 			if (!isAvailable) {
 				log.reportError("Could not find local file "	+ localPath
-														+ " and could not download it from " + remotePath
-														+ " please manually download and save to " + localPath);
+												+ " and could not download it from " + remotePath
+												+ " please manually download and save to " + localPath);
 			}
 
 			return isAvailable;

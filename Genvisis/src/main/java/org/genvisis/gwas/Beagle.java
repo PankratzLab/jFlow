@@ -16,7 +16,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
@@ -200,7 +200,7 @@ public class Beagle {
 			if (files.length == 1) {
 				writer.println("plink --bfile ../plink --keep " + filename + " --make-bed");
 			} else {
-				Files.cat(files, root + ".txt", Array.intArray(files.length, 0), new Logger());
+				Files.cat(files, root + ".txt", ArrayUtils.intArray(files.length, 0), new Logger());
 				writer.println("cp " + root + ".txt " + root + "/");
 				writer.println("plink --bfile ../plink --keep " + root + ".txt" + " --make-bed");
 			}
@@ -297,17 +297,17 @@ public class Beagle {
 
 		percentages = new int[22][numLists];
 		for (int chr = 1; chr <= 22; chr++) {
-			max = Math.max(Array.max(Array.toDoubleArray(sizes[chr - 1])), 1);
+			max = Math.max(ArrayUtils.max(ArrayUtils.toDoubleArray(sizes[chr - 1])), 1);
 			for (int rep = 1; rep <= numLists; rep++) {
 				percentages[chr - 1][rep - 1] = (int) Math.round(sizes[chr - 1][rep - 1] / max * 100);
 			}
 		}
 
-		System.out.println("Reps:\t"	+ Array.toStr(Array.stringArraySequence(numLists, ""))
+		System.out.println("Reps:\t"	+ ArrayUtils.toStr(ArrayUtils.stringArraySequence(numLists, ""))
 												+ "\tNum remaining");
 		for (int chr = 1; chr <= 22; chr++) {
 			compl = count = prob = miss = 0;
-			max = Array.max(Array.toDoubleArray(sizes[chr - 1]));
+			max = ArrayUtils.max(ArrayUtils.toDoubleArray(sizes[chr - 1]));
 			System.out.print("chr" + chr);
 			for (int rep = 1; rep <= numLists; rep++) {
 				// average = 0;
@@ -603,7 +603,7 @@ public class Beagle {
 			writer = new PrintWriter(new FileWriter(filename + "_sum.xln"));
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(markerNames[i]	+ "\t" + avgs[i][0] + "\t" + avgs[i][1] + "\t"
-												+ Array.toStr(alleleCounts[i]));
+												+ ArrayUtils.toStr(alleleCounts[i]));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -644,7 +644,7 @@ public class Beagle {
 			iv.add(Files.countLines("lists/" + rep + ".list", 0));
 			rep++;
 		}
-		n = Array.sum(Ints.toArray(iv));
+		n = ArrayUtils.sum(Ints.toArray(iv));
 		log.report("Detected " + iv.size() + " reps to parse for each chromosome");
 		missings = Vectors.initializedArray(IntVector.class, 22);
 		markerNames = new String[22][];
@@ -698,7 +698,7 @@ public class Beagle {
 			writer = new PrintWriter(new FileWriter("avgIBD.xln"));
 			writer.println("MarkerName\tChr\tPosition\t"
 												+ ext.replaceDirectoryCharsWithUnderscore(new File(".").getCanonicalPath(), 1)
-											+ "\t" + Array.toStr(ALLELES) + "\tConsensus\tFreq\tActualFreq\tpval");
+											+ "\t" + ArrayUtils.toStr(ALLELES) + "\tConsensus\tFreq\tActualFreq\tpval");
 			writer.println("\t\t\t" + n);
 			for (int chr = 1; chr <= 22; chr++) {
 				if (new File("chr" + chr + "/").exists()) {
@@ -755,14 +755,14 @@ public class Beagle {
 							System.err.println("Error - mismatch in freq file order");
 						}
 						actualAlleleCounts = Arrays.copyOfRange(alleleCounts[i], 1, alleleCounts[i].length);
-						conAllele = ALLELES[ext.indexOfStr(Array.max(actualAlleleCounts)	+ "",
-																								Array.toStr(actualAlleleCounts).split("\t"))
+						conAllele = ALLELES[ext.indexOfStr(ArrayUtils.max(actualAlleleCounts)	+ "",
+																								ArrayUtils.toStr(actualAlleleCounts).split("\t"))
 																+ 1];
 						writer.print(markerNames[chr - 1][i]	+ "\t" + chrs[chr - 1][i] + "\t"
 													+ positions[chr - 1][i] + "\t" + avgs[i][0] + "\t"
-													+ Array.toStr(alleleCounts[i]) + "\t" + conAllele + "\t"
-													+ ext.formDeci((double) Array.max(actualAlleleCounts)
-																					/ (double) Array.sum(actualAlleleCounts), 5));
+													+ ArrayUtils.toStr(alleleCounts[i]) + "\t" + conAllele + "\t"
+													+ ext.formDeci((double) ArrayUtils.max(actualAlleleCounts)
+																					/ (double) ArrayUtils.sum(actualAlleleCounts), 5));
 						if (conAllele.equals("0")) {
 							writer.println("\t.\t.");
 						} else {
@@ -778,8 +778,8 @@ public class Beagle {
 							// Double.parseDouble(markerFreq[i][4]) -
 							// conFreq*Double.parseDouble(markerFreq[i][4])}}, false, true), 1));
 							writer.println("\t"	+ ext.formDeci(conFreq, 5) + "\t"
-															+ ext.formDeci(((double) Array.max(actualAlleleCounts)
-																							/ (double) Array.sum(actualAlleleCounts))	/ conFreq,
+															+ ext.formDeci(((double) ArrayUtils.max(actualAlleleCounts)
+																							/ (double) ArrayUtils.sum(actualAlleleCounts))	/ conFreq,
 																							5));
 						}
 
@@ -804,7 +804,7 @@ public class Beagle {
 					try {
 						writer = new PrintWriter(new FileWriter(trav + (suffix == 0 ? "Plus" : "")));
 						if (suffix == 0) {
-							writer.println(Array.toStr(SEGMENT_HEADER) + "\tMeanIBD\tMaxIBD\tGeneticLength");
+							writer.println(ArrayUtils.toStr(SEGMENT_HEADER) + "\tMeanIBD\tMaxIBD\tGeneticLength");
 						}
 						for (int chr = 1; chr <= 22; chr++) {
 							if (new File("chr" + chr + "/").exists()) {
@@ -905,7 +905,7 @@ public class Beagle {
 		log.report(ext.getTime() + "\tConcatenating .match files");
 		try {
 			writer = new PrintWriter(new FileWriter("germline.segmentPlus"));
-			writer.println(Array.toStr(SEGMENT_HEADER) + "\tGeneticLength");
+			writer.println(ArrayUtils.toStr(SEGMENT_HEADER) + "\tGeneticLength");
 			for (int chr = 1; chr <= 22; chr++) {
 				try {
 					reader = new BufferedReader(new FileReader("chr" + chr + "/chr" + chr + ".match"));
@@ -1140,7 +1140,7 @@ public class Beagle {
 						merged = false;
 						for (int i2 = 0; i2 < dataV.size(); i2++) {
 							for (int j2 = i2 + 1; j2 < dataV.size(); j2++) {
-								merge = Array.merge(dataV.elementAt(i2), dataV.elementAt(j2),
+								merge = ArrayUtils.merge(dataV.elementAt(i2), dataV.elementAt(j2),
 																		dataV.elementAt(i2).length / 10);
 								if (merge != null) {
 									dataV.removeElementAt(j2);
@@ -1152,7 +1152,7 @@ public class Beagle {
 						}
 					} while (merged);
 					for (int k = 0; k < dataV.size(); k++) {
-						writer.println(key + "\t" + Array.toStr(dataV.elementAt(k), null, "\t", "."));
+						writer.println(key + "\t" + ArrayUtils.toStr(dataV.elementAt(k), null, "\t", "."));
 					}
 				}
 				writer.close();
@@ -1196,12 +1196,12 @@ public class Beagle {
 																																								: "")
 																									+ ".segment"));
 					line = reader.readLine().trim().split("[\\s]+");
-					writer.println(Array.toStr(Array.subArray(line, 0, line.length - 3)));
+					writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, line.length - 3)));
 					while (reader.ready()) {
 						line = reader.readLine().trim().split("[\\s]+");
 						if (Double.parseDouble(line[14]) >= element
 								&& (strict == 0 || Double.parseDouble(line[13]) >= FILTER_MAX_THRESHOLD)) {
-							writer.println(Array.toStr(Array.subArray(line, 0, line.length - 3)));
+							writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, line.length - 3)));
 						}
 					}
 					writer.close();

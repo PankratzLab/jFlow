@@ -3,7 +3,7 @@ package org.genvisis.stats;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Sort;
@@ -39,12 +39,12 @@ public class Quantiles {
 
 	private static double[] initQuantiles(double[] data, double[] qs, Logger log) {
 		double[] quantiles = null;
-		double[] tmp = Array.removeNaN(data);
+		double[] tmp = ArrayUtils.removeNaN(data);
 		if (tmp.length == 0) {
 			log.reportError("Found all NaN values, setting all to quantiles 0");
 			quantiles = new double[] {.5};
 		} else {
-			quantiles = Array.quantsExclusive(tmp, qs);
+			quantiles = ArrayUtils.quantsExclusive(tmp, qs);
 		}
 		return quantiles;
 
@@ -198,7 +198,7 @@ public class Quantiles {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 			for (int i = 0; i < memberships[0].length; i++) {// for sample,
-				writer.print(Array.toStr(toQ[i]));
+				writer.print(ArrayUtils.toStr(toQ[i]));
 				for (int[] membership : memberships) {
 					writer.print("\t" + membership[i]);
 				}

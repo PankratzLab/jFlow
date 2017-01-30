@@ -8,7 +8,7 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import org.genvisis.CLI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.ExcelConverter;
 import org.genvisis.common.HashVec;
@@ -41,7 +41,7 @@ public class MicaPlink {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "log.log");
 		int[] gqs = new int[] { -1, 20, 50 };
-		String[] covarsH = Array.subArray(org.genvisis.common.Files.getHeaderOfFile(covars, log), 2);
+		String[] covarsH = ArrayUtils.subArray(org.genvisis.common.Files.getHeaderOfFile(covars, log), 2);
 		ArrayList<Result> results = new ArrayList<>();
 		// , 20, 50
 		for (int gq : gqs) {
@@ -81,21 +81,21 @@ public class MicaPlink {
 		HashSet<String> rsHaves = new HashSet<>();
 		StringBuilder builderSamp = new StringBuilder("IID");
 		StringBuilder builder = new StringBuilder(
-				"SNP\t" + Array.toStr(LOC) + "\tRSID\tRSID_OF_INTEREST\tPopFreqMax\tFunction");
+				"SNP\t" + ArrayUtils.toStr(LOC) + "\tRSID\tRSID_OF_INTEREST\tPopFreqMax\tFunction");
 		for (Result result : results) {
 			builder.append("\t"
-					+ Array.toStr(Array.tagOn(ASSOC_COUNTS, null,
+					+ ArrayUtils.toStr(ArrayUtils.tagOn(ASSOC_COUNTS, null,
 							"_GQ_" + result.gq + "_COVAR_FALSE" + "_MIND_" + result.mind))
 					+ "\t"
-					+ Array.toStr(
-							Array.tagOn(ASSOC, null, "Assoc_GQ_" + result.gq + "_COVAR_FALSE" + "_MIND_" + result.mind))
+					+ ArrayUtils.toStr(
+							ArrayUtils.tagOn(ASSOC, null, "Assoc_GQ_" + result.gq + "_COVAR_FALSE" + "_MIND_" + result.mind))
 					+ "\t"
-					+ Array.toStr(Array.tagOn(MPERM, null,
+					+ ArrayUtils.toStr(ArrayUtils.tagOn(MPERM, null,
 							"Logistic_GQ_" + result.gq + "_COVAR_" + result.covars + "_MIND_" + result.mind))
-					+ "\t" + Array.toStr(Array.tagOn(MISS, null,
+					+ "\t" + ArrayUtils.toStr(ArrayUtils.tagOn(MISS, null,
 							"_GQ_" + result.gq + "_COVAR_" + result.covars + "_MIND_" + result.mind)));
-			builderSamp.append("\t" + Array.toStr(
-					Array.tagOn(IMISS, null, "_GQ_" + result.gq + "_COVAR_" + result.covars + "_MIND_" + result.mind)));
+			builderSamp.append("\t" + ArrayUtils.toStr(
+					ArrayUtils.tagOn(IMISS, null, "_GQ_" + result.gq + "_COVAR_" + result.covars + "_MIND_" + result.mind)));
 		}
 		builderSamp.append("\n");
 		builder.append("\n");
@@ -104,7 +104,7 @@ public class MicaPlink {
 			builderSamp.append(samp);
 			for (Result result : results) {
 				if (result.imiss.get(samp) == null) {
-					builderSamp.append("\t" + Array.toStr(Array.stringArray(IMISS.length, "NA")));
+					builderSamp.append("\t" + ArrayUtils.toStr(ArrayUtils.stringArray(IMISS.length, "NA")));
 				} else {
 					builderSamp.append("\t" + result.imiss.get(samp));
 				}
@@ -119,7 +119,7 @@ public class MicaPlink {
 				rsHaves.add(rs);
 			}
 			builder.append(snp + "\t" + results.get(0).loc.get(snp) + "\t" + rs + "\t" + rsOfInterest.containsKey(rs)
-					+ "\t" + Array.toStr(getPopFunc(snp)));
+					+ "\t" + ArrayUtils.toStr(getPopFunc(snp)));
 			for (Result result : results) {
 				builder.append("\t" + result.acounts.get(snp) + "\t" + result.assoc.get(snp) + "\t"
 						+ result.mperm.get(snp) + "\t" + result.lmiss.get(snp));
@@ -187,7 +187,7 @@ public class MicaPlink {
 
 		if (!org.genvisis.common.Files.exists(root + ".assoc.logistic.mperm")) {
 			String run2 = "plink2 --logistic mperm=100000 --bfile " + root + " --out " + root
-					+ (covars == null ? "" : " --covar " + covars + " --covar-name " + Array.toStr(covarsH, ","));
+					+ (covars == null ? "" : " --covar " + covars + " --covar-name " + ArrayUtils.toStr(covarsH, ","));
 			CmdLine.run(run2, outDir);
 		}
 

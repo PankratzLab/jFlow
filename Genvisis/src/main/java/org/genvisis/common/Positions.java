@@ -198,7 +198,7 @@ public class Positions {
 	public static String getUCSCformat(int[] pos) {
 		if (pos.length < 1 && pos.length > 3) {
 			System.err.println("Error - could not make a valid UCSC position from '"
-													+ Array.toStr(pos, "/") + "' (need 1-3 integers)");
+													+ ArrayUtils.toStr(pos, "/") + "' (need 1-3 integers)");
 			return null;
 		}
 		return "chr"
@@ -423,13 +423,9 @@ public class Positions {
 
 	public static int[][] determineCentromereBoundariesFromMarkerSet(	String markerSetFilename,
 																																		int build, Logger log) {
-		byte chr;
 		byte[] chrs;
 		int[] positions;
-		int[] midpointEstimates;
-		Segment[] midpointSegments;
 		int[][] centromereBoundaries;
-		int markerPosition;
 		SnpMarkerSet markerSet;
 
 		if (build == 36) {
@@ -449,39 +445,15 @@ public class Positions {
 																											+ "' could not be found")
 											+ "; then the default centromere boundaries for build " + build
 											+ " will be used");
-		} else {
-			markerSet = new SnpMarkerSet(markerSetFilename, false, log);
-			chrs = markerSet.getChrs();
-			positions = markerSet.getPositions();
+			return centromereBoundaries;
+		} 
 
-			midpointEstimates = new int[27];
-			midpointSegments = computeCentromereMidpoints(centromereBoundaries);
-			for (chr = 0; chr < 27; chr++) {
-				centromereBoundaries[chr] = new int[] {-1, Integer.MAX_VALUE};
-				midpointEstimates[chr] = midpointSegments[chr].getStart();
-			}
+		markerSet = new SnpMarkerSet(markerSetFilename, false, log);
+		chrs = markerSet.getChrs();
+		positions = markerSet.getPositions();
 
-			for (int i = 0; i < positions.length; i++) {
-				chr = chrs[i];
-				markerPosition = positions[i];
-				if (markerPosition < midpointEstimates[chr]
-						&& markerPosition > centromereBoundaries[chr][0]) {
-					centromereBoundaries[chr][0] = markerPosition;
-				}
-				if (markerPosition > midpointEstimates[chr]
-						&& markerPosition < centromereBoundaries[chr][1]) {
-					centromereBoundaries[chr][1] = markerPosition;
-				}
-			}
+		return determineCentromereBoundariesFromMarkerSet(chrs, positions, build, log);
 
-			for (chr = 0; chr < 27; chr++) {
-				if (centromereBoundaries[chr][1] == Integer.MAX_VALUE) {
-					centromereBoundaries[chr] = new int[] {0, 0};
-				}
-			}
-		}
-
-		return centromereBoundaries;
 	}
 
 	public static int[][] determineCentromereBoundariesFromMarkerSet(	SnpMarkerSet markerSet,

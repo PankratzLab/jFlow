@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -66,11 +65,12 @@ import org.genvisis.cnv.gui.GuiManager;
 import org.genvisis.cnv.var.IndiPheno;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Numbers;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.parse.GenParser;
@@ -113,7 +113,7 @@ public class TwoDPlot extends JPanel
 	// };
 	public static final String[][] LINKERS = {Aliases.INDIVIDUAL_ID, Aliases.FAMILY_ID, Aliases.DNA,
 																						Aliases.MARKER_NAMES, Aliases.REGION, Aliases.CHRS,
-																						Array.combine(Aliases.POSITIONS,
+																						ArrayUtils.combine(Aliases.POSITIONS,
 																													Aliases.POSITIONS_START),
 																						Aliases.POSITIONS_STOP};
 	public static final int IID_INDEX_IN_LINKERS = 0;
@@ -1210,15 +1210,15 @@ public class TwoDPlot extends JPanel
 			dataHeader = dataHeaderX;
 		}
 
-		genParseData.add(Array.toStr(dataHeader, ","));
+		genParseData.add(ArrayUtils.toStr(dataHeader, ","));
 
 		for (String key : keys) {
 			inLine = xData.get(key);
 			outLine = yData.get(key);
 			if (outLine != null) {
-				inLine = Array.combine(inLine, outLine);
+				inLine = ArrayUtils.combine(inLine, outLine);
 			}
-			genParseData.add(Array.toStr(inLine, ",")); // TODO should use comma here? use tab instead?
+			genParseData.add(ArrayUtils.toStr(inLine, ",")); // TODO should use comma here? use tab instead?
 		}
 
 		ArrayList<String[]> genParserLines = genParserFiltersMap.get(filterKey);
@@ -1386,8 +1386,8 @@ public class TwoDPlot extends JPanel
 								int chr = 0, start = 0, stop = 0;
 								if (metaData != null && metaData.length != 0 && metaData[0] != null) {
 									chr = Positions.chromosomeNumber(metaData[0][0]);
-									start = Integer.parseInt(metaData[0][2]);
-									stop = Integer.parseInt(metaData[0][3]);
+									start = Numbers.parseWithLocale(metaData[0][2]);
+									stop = Numbers.parseWithLocale(metaData[0][3]);
 								}
 								colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0,
 																															sampleData.getIndiFromSampleHash(ids[0]),
@@ -1665,7 +1665,7 @@ public class TwoDPlot extends JPanel
 		int choice;
 		String filenames, selections = "", message;
 
-		filenames = Array.toStr(Array.toStringArray(dataKeys), ";");
+		filenames = ArrayUtils.toStr(ArrayUtils.toStringArray(dataKeys), ";");
 
 		// find the selected nodes in the plot and create a string from them delimited by ;
 		String[][] selectedNodes = tree.getSelectionValues();
@@ -1683,7 +1683,7 @@ public class TwoDPlot extends JPanel
 		options = new String[] {"Yes", "No", "Cancel"};
 		message = "";
 
-		if (!Array.toStr(proj.TWOD_LOADED_FILENAMES.getValue(), ";").equals(filenames)) {
+		if (!ArrayUtils.toStr(proj.TWOD_LOADED_FILENAMES.getValue(), ";").equals(filenames)) {
 			if (filenames.equals("")) {
 				message = "All files have been unloaded from 2D Plot.";
 			} else {
@@ -1691,7 +1691,7 @@ public class TwoDPlot extends JPanel
 			}
 		}
 
-		if (!Array.toStr(proj.TWOD_LOADED_VARIABLES.getValue(), ";").equals(selections)) {
+		if (!ArrayUtils.toStr(proj.TWOD_LOADED_VARIABLES.getValue(), ";").equals(selections)) {
 			if (!Strings.isNullOrEmpty(message)) {
 				if (!Strings.isNullOrEmpty(selections)) {
 					message = message.substring(0, message.length() - 1)
@@ -1721,7 +1721,7 @@ public class TwoDPlot extends JPanel
 																						JOptionPane.QUESTION_MESSAGE, null, options,
 																						options[0]);
 			if (choice == JOptionPane.YES_OPTION) {
-				proj.TWOD_LOADED_FILENAMES.setValue(Array.toStringArray(dataKeys));
+				proj.TWOD_LOADED_FILENAMES.setValue(ArrayUtils.toStringArray(dataKeys));
 				proj.TWOD_LOADED_VARIABLES.setValue(selections.split(";"));
 				proj.saveProperties();
 				GuiManager.disposeOfParentFrame(this);
@@ -2148,7 +2148,7 @@ public class TwoDPlot extends JPanel
 			// }
 			// createLinkKeyToDataHash(filename, linkKeyIndices);
 			ArrayList<String[]> data = new ArrayList<String[]>();
-			boolean[] valid = Array.booleanArray(header.length, true);
+			boolean[] valid = ArrayUtils.booleanArray(header.length, true);
 			String tempLine = "";
 			int cnt = 0;
 			while ((tempLine = reader.readLine()) != null) {
@@ -2162,7 +2162,7 @@ public class TwoDPlot extends JPanel
 					reader.close();
 					return;
 				}
-				valid = Array.booleanArrayAnd(valid, validate(line));
+				valid = ArrayUtils.booleanArrayAnd(valid, validate(line));
 				data.add(line);
 				cnt++;
 			}
@@ -2230,7 +2230,7 @@ public class TwoDPlot extends JPanel
 	}
 
 	private boolean[] validate(String[] data) {
-		boolean[] result = Array.booleanArray(data.length, true);
+		boolean[] result = ArrayUtils.booleanArray(data.length, true);
 		for (int i = 0; i < data.length; i++) {
 			if (!ext.isValidDouble(data[i])) {
 				boolean res = false;

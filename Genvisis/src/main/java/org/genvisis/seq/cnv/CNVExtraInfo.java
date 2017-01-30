@@ -8,7 +8,7 @@ public abstract class CNVExtraInfo implements Serializable {
 	}
 
 	private static final long serialVersionUID = 1L;
-	protected double dExtra;
+	protected String dExtra;
 	protected String sExtra;
 	protected boolean boolExtra;
 	protected EXTRA_INFO_TYPE type;
@@ -17,11 +17,11 @@ public abstract class CNVExtraInfo implements Serializable {
 		this.type = type;
 	}
 
-	public double getdExtra() {
+	public String getdExtra() {
 		return dExtra;
 	}
 
-	public void setdExtra(double dExtra) {
+	public void setdExtra(String dExtra) {
 		this.dExtra = dExtra;
 	}
 

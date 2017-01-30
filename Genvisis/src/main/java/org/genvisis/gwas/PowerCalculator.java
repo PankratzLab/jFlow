@@ -3,7 +3,7 @@ package org.genvisis.gwas;
 import java.util.Hashtable;
 import java.util.Map;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Internat;
 import org.genvisis.common.ext;
 
@@ -104,7 +104,7 @@ public class PowerCalculator {
 
 		found = false;
 		index = 20;
-		array = Array.intArray(10000, -1);
+		array = ArrayUtils.intArray(10000, -1);
 		while (!found) {
 			rr = 1 + index * RR_INCREMENT;
 			if (array[index] == -1) {

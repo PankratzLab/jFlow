@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -189,7 +189,7 @@ public class BamOps {
 																								int bpBuffer, boolean optimize, boolean chr,
 																								Logger log) {
 		QueryInterval[] qIntervals = new QueryInterval[segs.length];
-		segs = Array.sortedCopy(segs);
+		segs = ArrayUtils.sortedCopy(segs);
 		for (int i = 0; i < qIntervals.length; i++) {
 			String sequenceName = Positions.getChromosomeUCSC(segs[i].getChr(), chr);
 			int referenceIndex = sFileHeader.getSequenceIndex(sequenceName);
@@ -441,9 +441,9 @@ public class BamOps {
 		}
 		if (readsScanned > 0) {
 			double[] finals = Doubles.toArray(insertSizes);
-			double averageInsertSize = Array.mean(finals);
-			double stDevInsertSize = Array.stdev(finals);
-			double mad = Array.mad(finals);
+			double averageInsertSize = ArrayUtils.mean(finals);
+			double stDevInsertSize = ArrayUtils.stdev(finals);
+			double mad = ArrayUtils.mad(finals);
 			return new InsertSizeEstimate(averageInsertSize, stDevInsertSize, mad);
 
 		}

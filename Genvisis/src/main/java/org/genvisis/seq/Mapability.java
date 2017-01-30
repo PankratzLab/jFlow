@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -27,7 +27,7 @@ public class Mapability {
 		double value, sum, mean, max;
 
 		header = Files.getHeaderOfFile(filename, "\t", new Logger());
-		data = HashVec.loadFileToStringMatrix(filename, true, Array.arrayOfIndices(header.length),
+		data = HashVec.loadFileToStringMatrix(filename, true, ArrayUtils.arrayOfIndices(header.length),
 																					false);
 		indices = ext.indexFactors(REQS, header, false, true);
 
@@ -150,9 +150,9 @@ public class Mapability {
 			ext.checkHeader(line, new String[] {"Chr", "Position"}, new int[] {0, 1}, false, new Logger(),
 											true);
 			for (int i = 0; i < passes.length; i++) {
-				line = Array.insertStringAt(ext.rootOf(passes[i]), line, 2 + i);
+				line = ArrayUtils.insertStringAt(ext.rootOf(passes[i]), line, 2 + i);
 			}
-			writer.println(Array.toStr(line));
+			writer.println(ArrayUtils.toStr(line));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				seg = new Segment("chr" + line[0] + ":" + line[1] + "-" + (Integer.parseInt(line[1]) + 1));
@@ -163,9 +163,9 @@ public class Mapability {
 							overlaps = true;
 						}
 					}
-					line = Array.insertStringAt(overlaps ? "1" : "0", line, 2 + i);
+					line = ArrayUtils.insertStringAt(overlaps ? "1" : "0", line, 2 + i);
 				}
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 			}
 			writer.close();
 			reader.close();

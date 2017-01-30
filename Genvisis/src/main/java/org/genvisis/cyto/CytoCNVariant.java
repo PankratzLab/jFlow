@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -114,7 +114,7 @@ public class CytoCNVariant extends CNVariant {
 		} else {
 			System.err.println("Error - invalid copy number "	+ getCN()
 													+ " for CytoCNVariants, copy number must be "
-													+ Array.toStr(CN_NUMBER, ", or"));
+													+ ArrayUtils.toStr(CN_NUMBER, ", or"));
 			return "";
 		}
 		interp += getCytoBand() + " (" + ext.prettyUpDistance(getSize(), 1) + ")";
@@ -133,7 +133,7 @@ public class CytoCNVariant extends CNVariant {
 	 * @return a String representing the genes of the aberration, GENES_DELIM delimited
 	 */
 	public String getStringGenes() {
-		return (genes.length > 0 ? Array.toStr(genes, GENES_DELIM) : GENES_BLANK);
+		return (genes.length > 0 ? ArrayUtils.toStr(genes, GENES_DELIM) : GENES_BLANK);
 	}
 
 	/**
@@ -213,7 +213,7 @@ public class CytoCNVariant extends CNVariant {
 	 */
 	private void formatCytoBand() {
 		cytoBand = Positions.getChromosomeUCSC(chr, false)
-								+ Array.toStr(cytoBandtmp.toArray(new String[cytoBandtmp.size()]), "");
+								+ ArrayUtils.toStr(cytoBandtmp.toArray(new String[cytoBandtmp.size()]), "");
 	}
 
 	/**
@@ -310,10 +310,10 @@ public class CytoCNVariant extends CNVariant {
 
 			if (indicesSamples.length == sampleNames.length) {
 				log.report(ext.getTime()	+ " Info - found the following samples to parse: "
-										+ Array.toStr(sampleNames) + " in file " + cytoCNVariantFile);
+										+ ArrayUtils.toStr(sampleNames) + " in file " + cytoCNVariantFile);
 			} else {
 				log.reportError("Error - data columns were found for "	+ indicesSamples.length
-												+ "samples, but only " + Array.toStr(sampleNames) + " names were found");
+												+ "samples, but only " + ArrayUtils.toStr(sampleNames) + " names were found");
 				return null;
 			}
 			// skip the already parsed data header
@@ -433,7 +433,7 @@ public class CytoCNVariant extends CNVariant {
 	public static void writeToPlink(CytoCNVariant[] CytoCNVariant, String fileName, Logger log) {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(fileName));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (org.genvisis.cyto.CytoCNVariant element : CytoCNVariant) {
 				writer.println(element.toPlinkFormat());
 			}
@@ -486,7 +486,7 @@ public class CytoCNVariant extends CNVariant {
 				if (ext.indexOfStr(sampAmp, NOTHINGS, true, true) == -1
 						&& ext.indexOfStr(sampDel, NOTHINGS, true, true) == -1) {
 					log.reportError("Error - found an amplification and a deletion on line "
-													+ Array.toStr(line));
+													+ ArrayUtils.toStr(line));
 					return;
 				}
 				if (ext.indexOfStr(sampAmp, NOTHINGS, true, true) == -1) {
@@ -504,7 +504,7 @@ public class CytoCNVariant extends CNVariant {
 																																			// update it
 							if (!tmps[i].update(cytoBand, chr, stop, probe, gene, logRatio, log)) {
 								log.reportError("Error - could not update the variant for sample "	+ sampleNames[i]
-																+ " on line " + Array.toStr(line));
+																+ " on line " + ArrayUtils.toStr(line));
 							}
 						} else {// else we finalize the previous and create a new one
 							tmps[i].finalizeVariant();
@@ -529,7 +529,7 @@ public class CytoCNVariant extends CNVariant {
 			}
 		} catch (NumberFormatException nfe) {
 			log.reportError("Error - found an invalid number on that could not be parsed on line "
-											+ Array.toStr(line));
+											+ ArrayUtils.toStr(line));
 			return;
 		}
 	}
@@ -618,7 +618,7 @@ public class CytoCNVariant extends CNVariant {
 		}
 		if (sampleIndex != sampleIndices.length) {
 			log.reportError("Error - did not find the necessary column headers \""
-											+ Array.toStr(CYTO_SAMPLE_HEADER) + "\" for all samples");
+											+ ArrayUtils.toStr(CYTO_SAMPLE_HEADER) + "\" for all samples");
 		}
 		return sampleIndices;
 	}

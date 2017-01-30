@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -140,8 +140,8 @@ public class GenotypeMatrix implements Serializable {
 					}
 					if (problem) {
 						log.reportError("Error - mismatched head of header row: expecting '"
-															+ Array.toStr(headerHead, "/") + "' but found '"
-														+ Array.toStr(Array.subArray(line, 0, headerHead.length), "/") + "'");
+															+ ArrayUtils.toStr(headerHead, "/") + "' but found '"
+														+ ArrayUtils.toStr(ArrayUtils.subArray(line, 0, headerHead.length), "/") + "'");
 					}
 					if (ids == null) {
 						ids = new String[line.length - headerHead.length];
@@ -254,19 +254,19 @@ public class GenotypeMatrix implements Serializable {
 		String[] names, namesUsed;
 
 		traits = Files.getHeaderOfFile(phenoFile, Files.determineDelimiter(phenoFile, log), log);
-		names = Array.subArray(traits, 1);
+		names = ArrayUtils.subArray(traits, 1);
 		hash = HashVec.loadFileToHashString(phenoFile, new int[] {0},
-																				Arrays.copyOfRange(	Array.arrayOfIndices(traits.length), 1,
+																				Arrays.copyOfRange(	ArrayUtils.arrayOfIndices(traits.length), 1,
 																														traits.length),
 																				phenoFile.endsWith(".csv"), "\t", true, false, false);
-		traits = Array.subArray(traits, 1);
+		traits = ArrayUtils.subArray(traits, 1);
 		log.report("Missing phenotype is set to '" + phenoMissingValue + "'");
 
 		markerNames = markerSet.getMarkerNames();
 		chrs = markerSet.getChrs();
 		positions = markerSet.getPositions();
 		alleles = markerSet.getAlleles();
-		analyze = Array.booleanArray(markerNames.length, true);
+		analyze = ArrayUtils.booleanArray(markerNames.length, true);
 		if (snpList != null) {
 			snps = HashVec.loadFileToHashSet(snpList, false);
 			for (int i = 0; i < markerNames.length; i++) {
@@ -276,7 +276,7 @@ public class GenotypeMatrix implements Serializable {
 			}
 		}
 
-		use = Array.booleanArray(ids.length, true);
+		use = ArrayUtils.booleanArray(ids.length, true);
 		for (int i = 0; i < ids.length; i++) {
 			if (hash.containsKey(ids[i])) {
 				line = hash.get(ids[i]).split("[\\s]+");
@@ -290,7 +290,7 @@ public class GenotypeMatrix implements Serializable {
 			}
 		}
 
-		deps = new double[Array.booleanArraySum(use)];
+		deps = new double[ArrayUtils.booleanArraySum(use)];
 		indeps = new double[deps.length][traits.length];
 		log.report("There are " + deps.length + " samples with complete data", true, verbose);
 		count = 0;
@@ -304,7 +304,7 @@ public class GenotypeMatrix implements Serializable {
 				count++;
 			}
 		}
-		logistic = RegressionModel.isBinaryTrait(Array.toStr(deps).split("[\\s]+"), log);
+		logistic = RegressionModel.isBinaryTrait(ArrayUtils.toStr(deps).split("[\\s]+"), log);
 		log.report("Running a "	+ (logistic ? "logistic" : "linear") + " model for trait '" + traits[0]
 								+ "'", true, verbose);
 		try {
@@ -315,7 +315,7 @@ public class GenotypeMatrix implements Serializable {
 			line = Arrays.copyOf(arr, arr.length);
 			line[1] = line[1] + "      ";
 			line[2] = line[1] + "      ";
-			writer.println(Array.toStr(line));
+			writer.println(ArrayUtils.toStr(line));
 			// w2.println("MARKER\tREF\tOTHER\tN\tDIR\tPVALUE\tbeta\tSE");
 			w2.println("MarkerName\tAllele1\tAllele2\tWeight\tDirection\tP-value\tEffect\tStdErr");
 			// public static final String[] LOGISTIC_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST",

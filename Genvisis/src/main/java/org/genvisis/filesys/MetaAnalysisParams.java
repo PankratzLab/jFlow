@@ -7,7 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
@@ -114,7 +114,7 @@ public class MetaAnalysisParams {
 						for (String[] groupAnnotationParam : groupAnnotationParams) {
 							if (groupAnnotationParam.length != 2) {
 								log.reportError("Error - additional group annotation params must have exactly 2 tokens: a method grouping and a space separated GenParser parameter set");
-								log.reportError("Found: " + Array.toStr(groupAnnotationParam));
+								log.reportError("Found: " + ArrayUtils.toStr(groupAnnotationParam));
 								problem = true;
 							}
 						}
@@ -287,7 +287,7 @@ public class MetaAnalysisParams {
 		groups = new String[] {};
 		for (String[] method : methods) {
 			if (ext.indexOfStr(method[1], groups) == -1) {
-				groups = Array.addStrToArray(method[1], groups);
+				groups = ArrayUtils.addStrToArray(method[1], groups);
 			}
 		}
 

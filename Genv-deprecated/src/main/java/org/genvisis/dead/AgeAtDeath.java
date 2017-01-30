@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 import org.genvisis.park.tools;
 
@@ -82,7 +82,7 @@ public class AgeAtDeath {
 					affected = -1;
 				}
 
-				if (affected < 0	|| Array.min(ages) < 0
+				if (affected < 0	|| ArrayUtils.min(ages) < 0
 						|| ages[affected] - ages[FLIP[affected]] > DIFF_AGE_THRESHOLD) {
 					use = false;
 				}

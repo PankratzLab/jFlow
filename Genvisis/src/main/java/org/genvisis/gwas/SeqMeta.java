@@ -15,7 +15,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.CountHash;
 import org.genvisis.common.DoubleVector;
@@ -108,11 +108,11 @@ public class SeqMeta {
 			}
 		}
 		log.report("There are "	+ v.size() + " .Rdata files remaining to interrogate:\n"
-								+ Array.toStr(Array.toStringArray(v), "\n") + "\n\n./master.checkObjectAll");
+								+ ArrayUtils.toStr(ArrayUtils.toStringArray(v), "\n") + "\n\n./master.checkObjectAll");
 
 		if (v.size() > 0) {
 			commands = getRscriptExecutable(maps, log) + " --no-save [%0]";
-			iterations = Matrix.toMatrix(Array.toStringArray(v));
+			iterations = Matrix.toMatrix(ArrayUtils.toStringArray(v));
 			Files.qsub("batchChecks/checkObject", dir, -1, commands, iterations, 4000, 1);
 			Files.batchIt("master.checkObjectAll", null, 1, commands, iterations);
 		}
@@ -133,7 +133,7 @@ public class SeqMeta {
 		String[] usedFor;
 		boolean first;
 
-		usedFor = Array.stringArray(files.length, null);
+		usedFor = ArrayUtils.stringArray(files.length, null);
 
 		index = ext.indexOfStr(maps.getSnpInfoFilename(), files);
 		if (index >= 0) {
@@ -151,12 +151,12 @@ public class SeqMeta {
 			finalSets[i] = Matrix.stringMatrix(studies.length, races.length, "<missing>");
 			if (log.getLevel() > 5) {
 				log.report("For " + phenotypes[i][0] + " identified:", true, true);
-				log.report("\tStudy\t" + Array.toStr(Matrix.extractColumn(races, 0)));
+				log.report("\tStudy\t" + ArrayUtils.toStr(Matrix.extractColumn(races, 0)));
 			}
 			for (int j = 0; j < studies.length; j++) {
 				log.report("\t" + studies[j], false, true, 5);
 				for (int k = 0; k < races.length; k++) {
-					picks = Array.booleanArray(files.length, false);
+					picks = ArrayUtils.booleanArray(files.length, false);
 					for (int f = 0; f < files.length; f++) {
 						if (files[f].contains(studies[j])	&& ext.containsAny(files[f], maskedPhenos[i])
 								&& ext.containsAny(files[f], races[k])) {
@@ -174,7 +174,7 @@ public class SeqMeta {
 							usedFor[f] = studies[j] + "/" + races[k][0] + "/" + phenotypes[i][0];
 						}
 					}
-					numMatches = Array.booleanArraySum(picks);
+					numMatches = ArrayUtils.booleanArraySum(picks);
 					if (numMatches == 0) {
 						// log.reportError("Warning - could not find a match for
 						// "+studies[j]+"/"+phenotypes[i][0]+"/"+races[k][0]);
@@ -285,7 +285,7 @@ public class SeqMeta {
 		commands.add("}");
 
 		filename = dir + "batchSplits/splitChrs.R";
-		Files.writeArray(Array.toStringArray(commands), filename);
+		Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 		new File(dir + "snpInfos/").mkdirs();
 		Files.qsub(dir	+ "batchSplits/" + ext.rootOf(filename) + ".qsub",
@@ -339,7 +339,7 @@ public class SeqMeta {
 							if (chrsToDo.size() != 0 && chrsToDo.size() != maxChr) {
 								log.reportError("Warning - for "	+ studies[j] + ";" + races[k][0] + "/"
 																+ phenotypes[i][0] + ", missing chr(s) "
-																+ ext.listWithCommas(Array.toStringArray(Ints.toArray(chrsToDo))));
+																+ ext.listWithCommas(ArrayUtils.toStringArray(Ints.toArray(chrsToDo))));
 								log.reportError("        - if batch job was killed in the middle, suggest deleting the last attempted chromosome, in case it was incomplete");
 							}
 
@@ -376,7 +376,7 @@ public class SeqMeta {
 							if (chrsToDo.size() > 0) {
 								filename = dir	+ "batchSplits/" + studies[j] + "_" + races[k][0] + "_"
 														+ phenotypes[i][0] + "_f" + f + ".R";
-								Files.writeArray(Array.toStringArray(commands), filename);
+								Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 								jobNames.add(getRscriptExecutable(maps, log) + " --no-save " + filename);
 								jobSizes.add((int) (new File(dir + files[f]).length()));
@@ -450,7 +450,7 @@ public class SeqMeta {
 													+ "/";
 							files = finalSets[i][j][k].split(";");
 							if (iter == 0) {
-								finalSelections[i][j][k] = Array.intArray(maxChr, -1);
+								finalSelections[i][j][k] = ArrayUtils.intArray(maxChr, -1);
 							}
 
 							for (int chr = 1; chr <= maxChr; chr++) {
@@ -666,12 +666,12 @@ public class SeqMeta {
 																			&& ext.isValidDouble(method[3])	? ", mafRange = c(0,"
 																																					+ method[3] + ")"
 																																				+ (method.length > 4	? ", "
-																																																+ Array.toStr(Array.subArray(	method,
+																																																+ ArrayUtils.toStr(ArrayUtils.subArray(	method,
 																																																															4),
 																																																							", ")
 																																															: "")
 																																			: (method.length > 3	? ", "
-																																															+ Array.toStr(Array.subArray(	method,
+																																															+ ArrayUtils.toStr(ArrayUtils.subArray(	method,
 																																																														3),
 																																																						", ")
 																																														: ""))
@@ -685,7 +685,7 @@ public class SeqMeta {
 																	+ objectFilename + " has a filesize of "
 																	+ new File(objectFilename).length());
 										}
-										Files.write(Array.toStr(getHeaderForMethod(method), ","), outputFilename);
+										Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","), outputFilename);
 									}
 								}
 							}
@@ -697,7 +697,7 @@ public class SeqMeta {
 															+ (count == 0 ? "" : "_" + count) + ".R";
 									count++;
 								} while (Files.exists(filename));
-								Files.writeArray(Array.toStringArray(commands), filename);
+								Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 								jobNames.add(getRscriptExecutable(maps, log) + " --no-save " + filename);
 								jobSizes.add(infoSizes[chr]);
@@ -771,7 +771,7 @@ public class SeqMeta {
 								|| new File(outputFilename).length() == 0) {
 							if (objects.size() > 0) {
 								commands.add("results <- "	+ method[2] + "("
-															+ Array.toStr(Array.toStringArray(objects), ", ") + ", SNPInfo="
+															+ ArrayUtils.toStr(ArrayUtils.toStringArray(objects), ", ") + ", SNPInfo="
 															+ (SINGLE_VARIANTS[ext.indexOfStr(method[2], ALGORITHMS)]
 																	|| functionFlagName == null	? snpInfoName
 																															: "subset("	+ snpInfoName + ", "
@@ -782,12 +782,12 @@ public class SeqMeta {
 																	&& ext.isValidDouble(method[3])	? ", mafRange = c(0,"	+ method[3]
 																																		+ ")"
 																																		+ (method.length > 4	? ", "
-																																														+ Array.toStr(Array.subArray(	method,
+																																														+ ArrayUtils.toStr(ArrayUtils.subArray(	method,
 																																																													4),
 																																																					", ")
 																																													: "")
 																																	: (method.length > 3	? ", "
-																																													+ Array.toStr(Array.subArray(	method,
+																																													+ ArrayUtils.toStr(ArrayUtils.subArray(	method,
 																																																												3),
 																																																				", ")
 																																												: ""))
@@ -797,7 +797,7 @@ public class SeqMeta {
 								commands.add("");
 								count++;
 							} else {
-								Files.write(Array.toStr(getHeaderForMethod(method), ","), outputFilename);
+								Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","), outputFilename);
 							}
 
 						}
@@ -810,7 +810,7 @@ public class SeqMeta {
 													+ ".R";
 							count++;
 						} while (Files.exists(filename));
-						Files.writeArray(Array.toStringArray(commands), filename);
+						Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 						jobNames.add(getRscriptExecutable(maps, log) + " --no-save " + filename);
 						jobSizes.add(infoSizes[chr]);
@@ -868,7 +868,7 @@ public class SeqMeta {
 							|| new File(outputFilename).length() == 0) {
 						if (objects.size() > 0) {
 							commands.add("results <- "	+ method[2] + "("
-														+ Array.toStr(Array.toStringArray(objects), ", ") + ", SNPInfo="
+														+ ArrayUtils.toStr(ArrayUtils.toStringArray(objects), ", ") + ", SNPInfo="
 														+ (SINGLE_VARIANTS[ext.indexOfStr(method[2], ALGORITHMS)]
 																|| functionFlagName == null	? snpInfoName
 																														: "subset("	+ snpInfoName + ", "
@@ -879,12 +879,12 @@ public class SeqMeta {
 																&& ext.isValidDouble(method[3])	? ", mafRange = c(0,"	+ method[3]
 																																	+ ")"
 																																	+ (method.length > 4	? ", "
-																																													+ Array.toStr(Array.subArray(	method,
+																																													+ ArrayUtils.toStr(ArrayUtils.subArray(	method,
 																																																												4),
 																																																				", ")
 																																												: "")
 																																: (method.length > 3	? ", "
-																																												+ Array.toStr(Array.subArray(	method,
+																																												+ ArrayUtils.toStr(ArrayUtils.subArray(	method,
 																																																											3),
 																																																			", ")
 																																											: ""))
@@ -894,7 +894,7 @@ public class SeqMeta {
 							commands.add("");
 							count++;
 						} else {
-							Files.write(Array.toStr(getHeaderForMethod(method), ","), outputFilename);
+							Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","), outputFilename);
 						}
 					}
 				}
@@ -905,7 +905,7 @@ public class SeqMeta {
 												+ (count == 0 ? "" : "_" + count) + ".R";
 						count++;
 					} while (Files.exists(filename));
-					Files.writeArray(Array.toStringArray(commands), filename);
+					Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 					jobNames.add(getRscriptExecutable(maps, log) + " --no-save " + filename);
 					jobSizes.add(infoSizes[chr]);
@@ -1059,7 +1059,7 @@ public class SeqMeta {
 								line = procFile(outputFilename, log);
 								sampleSizes[k][j][i] = line[0];
 								writer.println(studies[j]	+ "\t" + races[k][0] + "\t" + phenotypes[i][0] + "\t"
-																+ Array.toStr(line));
+																+ ArrayUtils.toStr(line));
 								hash.put(studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0], line[7]);
 							} else {
 								log.report("Error - missing expected file: " + outputFilename);
@@ -1078,7 +1078,7 @@ public class SeqMeta {
 						log.report("Processing " + outputFilename);
 						line = procFile(outputFilename, log);
 						writer.println("Meta\t"	+ (k == races.length ? "PanEthnic" : races[k][0]) + "\t"
-														+ phenotype[0] + "\t" + Array.toStr(line));
+														+ phenotype[0] + "\t" + ArrayUtils.toStr(line));
 						hash.put("Meta_"	+ (k == races.length ? "PanEthnic" : races[k][0]) + "_" + phenotype[0],
 											line[7]);
 					} else {
@@ -1135,11 +1135,11 @@ public class SeqMeta {
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "sampleSizes.xln"));
 			for (int k = 0; k < races.length; k++) {
-				writer.println(races[k][0] + "\t" + Array.toStr(Matrix.extractColumn(phenotypes, 0)));
+				writer.println(races[k][0] + "\t" + ArrayUtils.toStr(Matrix.extractColumn(phenotypes, 0)));
 				start++;
 				stop = start;
 				for (int j = 0; j < studies.length; j++) {
-					writer.println(studies[j] + "\t" + Array.toStr(sampleSizes[k][j]));
+					writer.println(studies[j] + "\t" + ArrayUtils.toStr(sampleSizes[k][j]));
 					stop++;
 				}
 				writer.print("Subtotal");
@@ -1188,7 +1188,7 @@ public class SeqMeta {
 		problem = false;
 		count = 0;
 		maxSamples = 0;
-		metrics = Array.stringArray(14, "");
+		metrics = ArrayUtils.stringArray(14, "");
 		dvs = Vectors.initializedArray(DoubleVector.class, 6);
 
 		try {
@@ -1201,19 +1201,19 @@ public class SeqMeta {
 				header = temp.split(delimiter, -1);
 			}
 
-			keeps = Array.booleanArray(header.length, true);
+			keeps = ArrayUtils.booleanArray(header.length, true);
 			if (header[4].equals("caf")) {
 				keeps[4] = false;
 			}
 
-			if (ext.checkHeader(Array.subArray(header, keeps), HEADER_TYPES[0],
-													Array.arrayOfIndices(HEADER_TYPES[0].length), false, log, false)) {
+			if (ext.checkHeader(ArrayUtils.subArray(header, keeps), HEADER_TYPES[0],
+													ArrayUtils.arrayOfIndices(HEADER_TYPES[0].length), false, log, false)) {
 				pvalIndex = ext.indexOfStr("p", header, false, true);
 				mafIndex = ext.indexOfStr("maf", header, false, true);
 				ntotalIndex = ext.indexOfStr("ntotal", header, false, true);
 				betaIndex = ext.indexOfStr("beta", header, false, true);
 				log.report(outputFilename);
-				log.report(Array.toStr(header, "/"));
+				log.report(ArrayUtils.toStr(header, "/"));
 				log.report("p="	+ pvalIndex + "=" + header[pvalIndex] + " maf=" + mafIndex + "="
 										+ header[mafIndex] + " ntotal=" + ntotalIndex + "=" + header[ntotalIndex]
 										+ " beta=" + betaIndex + "=" + header[betaIndex]);
@@ -1249,7 +1249,7 @@ public class SeqMeta {
 							problem = true;
 							log.reportError("Problem with file " + outputFilename);
 						}
-						log.reportError("Error parsing line: "	+ temp + " into " + Array.toStr(line, delimiter)
+						log.reportError("Error parsing line: "	+ temp + " into " + ArrayUtils.toStr(line, delimiter)
 														+ "   line[ntotalIndex/" + ntotalIndex + "]=" + line[ntotalIndex]
 														+ "  line[betaIndex/" + betaIndex + "]=" + line[betaIndex]);
 					}
@@ -1257,20 +1257,20 @@ public class SeqMeta {
 				metrics[0] = maxSamples + "";
 				metrics[1] = count + "";
 				metrics[2] = dvs[0].size() + "";
-				metrics[3] = ext.formDeci(ProbDist.ChiDistReverse(Array.median(Doubles.toArray(dvs[0])), 1)
+				metrics[3] = ext.formDeci(ProbDist.ChiDistReverse(ArrayUtils.median(Doubles.toArray(dvs[0])), 1)
 																	/ ProbDist.ChiDistReverse(0.50, 1), 4);
-				metrics[4] = ext.formDeci(Array.median(Doubles.toArray(dvs[1])), 6);
-				metrics[5] = ext.formDeci(Array.stdev(Doubles.toArray(dvs[1])), 6);
+				metrics[4] = ext.formDeci(ArrayUtils.median(Doubles.toArray(dvs[1])), 6);
+				metrics[5] = ext.formDeci(ArrayUtils.stdev(Doubles.toArray(dvs[1])), 6);
 				metrics[6] = dvs[2].size() + "";
-				metrics[7] = ext.formDeci(ProbDist.ChiDistReverse(Array.median(Doubles.toArray(dvs[2])), 1)
+				metrics[7] = ext.formDeci(ProbDist.ChiDistReverse(ArrayUtils.median(Doubles.toArray(dvs[2])), 1)
 																	/ ProbDist.ChiDistReverse(0.50, 1), 4);
-				metrics[8] = ext.formDeci(Array.median(Doubles.toArray(dvs[3])), 6);
-				metrics[9] = ext.formDeci(Array.stdev(Doubles.toArray(dvs[3])), 6);
+				metrics[8] = ext.formDeci(ArrayUtils.median(Doubles.toArray(dvs[3])), 6);
+				metrics[9] = ext.formDeci(ArrayUtils.stdev(Doubles.toArray(dvs[3])), 6);
 				metrics[10] = dvs[4].size() + "";
-				metrics[11] = ext.formDeci(ProbDist.ChiDistReverse(Array.median(Doubles.toArray(dvs[4])), 1)
+				metrics[11] = ext.formDeci(ProbDist.ChiDistReverse(ArrayUtils.median(Doubles.toArray(dvs[4])), 1)
 																		/ ProbDist.ChiDistReverse(0.50, 1), 4);
-				metrics[12] = ext.formDeci(Array.median(Doubles.toArray(dvs[5])), 6);
-				metrics[13] = ext.formDeci(Array.stdev(Doubles.toArray(dvs[5])), 6);
+				metrics[12] = ext.formDeci(ArrayUtils.median(Doubles.toArray(dvs[5])), 6);
+				metrics[13] = ext.formDeci(ArrayUtils.stdev(Doubles.toArray(dvs[5])), 6);
 			} else {
 				log.reportError("Error - unexpected header for file '" + outputFilename + "' : " + temp);
 				System.exit(1);
@@ -1330,7 +1330,7 @@ public class SeqMeta {
 			}
 		}
 
-		Files.writeArray(Array.toStringArray(commands), dir + "checkNs.R");
+		Files.writeArray(ArrayUtils.toStringArray(commands), dir + "checkNs.R");
 		Files.qsub(dir	+ "checkNs.qsub",
 								"cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save checkNs.R", 5000,
 								1, 1);
@@ -1350,7 +1350,7 @@ public class SeqMeta {
 		}
 
 		log.report("Computing MACs for the following mafThresholds: "
-								+ ext.listWithCommas(Array.toStringArray(v)));
+								+ ext.listWithCommas(ArrayUtils.toStringArray(v)));
 		for (int i = 0; i < v.size(); i++) {
 			log.report("Starting MACs for maf<=" + v.elementAt(i));
 			computeMAC(dir, maps, v.elementAt(i), log);
@@ -1441,10 +1441,10 @@ public class SeqMeta {
 				needs = new String[][] {Aliases.MARKER_NAMES, Aliases.GENE_UNITS,
 																new String[] {functionFlagName}, Aliases.CHRS};
 				indices = ext.indexFactors(needs, header, false, true, true, log, false);
-				if (Array.min(indices) == -1) {
+				if (ArrayUtils.min(indices) == -1) {
 					log.reportError("Improper header for file '"	+ filename + "', found: "
-													+ Array.toStr(header, "/") + "\nMissing one of these: "
-													+ Array.toStr(needs[ext.indexOfInt(-1, indices)], "/"));
+													+ ArrayUtils.toStr(header, "/") + "\nMissing one of these: "
+													+ ArrayUtils.toStr(needs[ext.indexOfInt(-1, indices)], "/"));
 					reader.close();
 					return;
 				}
@@ -1478,7 +1478,7 @@ public class SeqMeta {
 			for (String key : keys) {
 				if (geneLoci.get(key).size() > 1) {
 					log.reportError("Gene '"	+ key + "' can be found on chromosomes "
-													+ ext.listWithCommas(Array.toStringArray(geneLoci.get(key)), true));
+													+ ext.listWithCommas(ArrayUtils.toStringArray(geneLoci.get(key)), true));
 				}
 			}
 
@@ -1598,10 +1598,10 @@ public class SeqMeta {
 																									+ "minorAlleleCounts.maf" + mafThreshold
 																									+ ".xln"));
 					keys = HashVec.getKeys(raceSpecificMacs);
-					writer.println("Gene\t" + Array.toStr(studies) + "\tTotal");
+					writer.println("Gene\t" + ArrayUtils.toStr(studies) + "\tTotal");
 					for (String key : keys) {
 						counts = raceSpecificMacs.get(key);
-						writer.println(key + "\t" + Array.toStr(counts) + "\t" + Array.sum(counts));
+						writer.println(key + "\t" + ArrayUtils.toStr(counts) + "\t" + ArrayUtils.sum(counts));
 					}
 					writer.close();
 				} catch (Exception e) {
@@ -1615,10 +1615,10 @@ public class SeqMeta {
 				writer = new PrintWriter(new FileWriter(dir	+ phenotypes[i][0] + "/"
 																								+ "minorAlleleCounts.maf" + mafThreshold + ".xln"));
 				keys = HashVec.getKeys(macs);
-				writer.println("Gene\t" + Array.toStr(studies) + "\tTotal");
+				writer.println("Gene\t" + ArrayUtils.toStr(studies) + "\tTotal");
 				for (String key : keys) {
 					counts = macs.get(key);
-					writer.println(key + "\t" + Array.toStr(counts) + "\t" + Array.sum(counts));
+					writer.println(key + "\t" + ArrayUtils.toStr(counts) + "\t" + ArrayUtils.sum(counts));
 				}
 				writer.close();
 			} catch (Exception e) {
@@ -1765,7 +1765,7 @@ public class SeqMeta {
 				if (methods[m][1].equals("BurdenTests")) {
 					// see if particular maf threshold has been introduced prior
 					if (!macHashesHashByRace.get("PanEthnic").containsKey(methods[m][3])) {
-						line = Array.addStrToArray("Total", studies);
+						line = ArrayUtils.addStrToArray("Total", studies);
 						for (String[] race : races) {
 							macHashesHashByRace	.get(race[0])
 																	.put(	methods[m][3],
@@ -1776,7 +1776,7 @@ public class SeqMeta {
 																																							+ methods[m][3]
 																																							+ ".xln", "Gene",
 																																							line, "\t"));
-							macHash.put("studies", Array.toStr(line));
+							macHash.put("studies", ArrayUtils.toStr(line));
 						}
 						macHashesHashByRace	.get("PanEthnic")
 																.put(	methods[m][3],
@@ -1822,10 +1822,10 @@ public class SeqMeta {
 							}
 							if (methods[m][1].equals("BurdenTests")) {
 								groupParams	.get(methods[m][1])
-														.add(localRaceDir + filename + " " + Array.toStr(header, " "));
+														.add(localRaceDir + filename + " " + ArrayUtils.toStr(header, " "));
 							} else {
 								groupParams.get(methods[m][1]).add(localRaceDir	+ filename + " "
-																										+ Array.toStr(Array.subArray(header, 1), " "));
+																										+ ArrayUtils.toStr(ArrayUtils.subArray(header, 1), " "));
 							}
 						}
 					}
@@ -1856,10 +1856,10 @@ public class SeqMeta {
 						temp = header[0];
 						header[0] = header[1];
 						header[1] = temp;
-						header = Array.subArray(header, 0, getHeaderForMethod(methods[m]).length);
+						header = ArrayUtils.subArray(header, 0, getHeaderForMethod(methods[m]).length);
 					}
 					groupParams	.get(methods[m][1])
-											.add(k, localRaceDir + filename + " " + Array.toStr(header, " "));
+											.add(k, localRaceDir + filename + " " + ArrayUtils.toStr(header, " "));
 					groupHits.get(methods[m][1]).incorporateFromFile(localDir	+ pvalFile, new int[] {0, 1},
 																														0.001, log);
 				}
@@ -1887,9 +1887,9 @@ public class SeqMeta {
 					temp = header[0];
 					header[0] = header[1];
 					header[1] = temp;
-					header = Array.subArray(header, 0, getHeaderForMethod(methods[m]).length);
+					header = ArrayUtils.subArray(header, 0, getHeaderForMethod(methods[m]).length);
 				}
-				groupParams.get(methods[m][1]).add(0, localDir + filename + " " + Array.toStr(header, " "));
+				groupParams.get(methods[m][1]).add(0, localDir + filename + " " + ArrayUtils.toStr(header, " "));
 				groupHits.get(methods[m][1]).incorporateFromFile(localDir	+ pvalFile, new int[] {0, 1},
 																													0.001, log);
 
@@ -1964,7 +1964,7 @@ public class SeqMeta {
 					writer.println("lookup");
 					writer.println(phenotypes[i][0]	+ "_hitters.dat 0 out=" + dir + phenotypes[i][0] + "/"
 													+ phenotypes[i][0] + "_" + group + ".csv");
-					writer.println(Array.toStr(Array.toStringArray(groupParams.get(group)), "\n"));
+					writer.println(ArrayUtils.toStr(ArrayUtils.toStringArray(groupParams.get(group)), "\n"));
 					writer.close();
 				} catch (Exception e) {
 					System.err.println("Error writing to "	+ "parser_" + group + "_" + phenotypes[i][0]
@@ -1972,11 +1972,11 @@ public class SeqMeta {
 					e.printStackTrace();
 				}
 				Files.writeArray(hits, phenotypes[i][0] + "_hitters.dat");
-				Files.combine(hits, Array.toStringArray(groupParams.get(group)), null, group, ".",
+				Files.combine(hits, ArrayUtils.toStringArray(groupParams.get(group)), null, group, ".",
 											dir + phenotypes[i][0] + "/" + phenotypes[i][0] + "_" + group + ".csv", log,
 											true, true, false);
 				log.report("\ncrf language for the creation of " + phenotypes[i][0] + "_" + group + ".csv");
-				log.report(Array.toStr(Array.toStringArray(groupParams.get(group)), "\n"), true, false);
+				log.report(ArrayUtils.toStr(ArrayUtils.toStringArray(groupParams.get(group)), "\n"), true, false);
 				log.report("");
 			}
 		}
@@ -1987,7 +1987,7 @@ public class SeqMeta {
 		delineateRegions(dir, hitsDirectory, maps, macThresholdTotal);
 
 		lineCounts.insertElementAt("Study\tRace\tPhenotype\tMethod\tCount", 0);
-		Files.writeArray(Array.toStringArray(lineCounts), dir + "lineCounts.xln");
+		Files.writeArray(ArrayUtils.toStringArray(lineCounts), dir + "lineCounts.xln");
 		log.report("check lineCounts.xln for completeness");
 	}
 
@@ -2014,13 +2014,13 @@ public class SeqMeta {
 		header = Files.getHeaderOfFile(filename, ",!", log);
 		expected = getHeaderForMethod(method);
 
-		keeps = Array.booleanArray(header.length, true);
+		keeps = ArrayUtils.booleanArray(header.length, true);
 		if (header[4].equals("caf")) {
 			keeps[4] = false;
 		}
 
-		if (!ext.checkHeader(	Array.subArray(header, keeps), expected,
-													Array.arrayOfIndices(expected.length), false, log, false)) {
+		if (!ext.checkHeader(	ArrayUtils.subArray(header, keeps), expected,
+													ArrayUtils.arrayOfIndices(expected.length), false, log, false)) {
 			log.reportError("Error - unexpected header for file " + filename);
 			System.exit(1);
 		}
@@ -2188,7 +2188,7 @@ public class SeqMeta {
 				} else {
 					line = temp.trim().split(delimiter);
 				}
-				line = Array.subArray(line, indices);
+				line = ArrayUtils.subArray(line, indices);
 				trav = new Segment(	Positions.chromosomeNumber(line[1], log), Integer.parseInt(line[2]),
 														Integer.parseInt(line[2]));
 				if (hash.containsKey(line[0])) {
@@ -2294,7 +2294,7 @@ public class SeqMeta {
 		countHash = new CountHash();
 		for (String[] method : methods) {
 			if (ext.indexOfStr(method[1], groups) == -1) {
-				groups = Array.addStrToArray(method[1], groups);
+				groups = ArrayUtils.addStrToArray(method[1], groups);
 				filesToCat.add(new Vector<String>());
 			}
 			countHash.add(method[1]);
@@ -2303,7 +2303,7 @@ public class SeqMeta {
 		pvalThresholdsLog = new Logger(dir + "pval_thresholds.xln");
 		pvalThresholdsLog.report("Trait\tN\tnTests\tBonferroni_pval");
 		for (String[] phenotype : phenotypes) {
-			ns = Array.intArray(groups.length, -1);
+			ns = ArrayUtils.intArray(groups.length, -1);
 			for (String[] method : methods) {
 				filename = phenotype[0]	+ "/" + method[0] + "/meta_panEthnic_pvals_mac" + macThresholdTotal
 										+ ".dat";
@@ -2358,14 +2358,14 @@ public class SeqMeta {
 				}
 				if (Files.exists(dir + hitsDirectory + filename)) {
 					results = HitWindows.determine(dir	+ hitsDirectory + filename, indexThreshold, 500000,
-																					indexThreshold * 100, Array.toStringArray(additionalCols),
+																					indexThreshold * 100, ArrayUtils.toStringArray(additionalCols),
 																					log);
 					if (results == null) {
 						log.reportError("HitWindows result from " + filename + " was null");
 					} else {
-						results[0] = Array.addStrToArray("Trait", results[0], 0);
+						results[0] = ArrayUtils.addStrToArray("Trait", results[0], 0);
 						for (int j = 1; j < results.length; j++) {
-							results[j] = Array.addStrToArray(phenotype[0], results[j], 0);
+							results[j] = ArrayUtils.addStrToArray(phenotype[0], results[j], 0);
 						}
 
 						// this won't be called if there is no SingleSNP method
@@ -2404,15 +2404,15 @@ public class SeqMeta {
 		}
 
 		for (int g = 0; g < groups.length; g++) {
-			Files.cat(Array.toStringArray(filesToCat.elementAt(g)),
+			Files.cat(ArrayUtils.toStringArray(filesToCat.elementAt(g)),
 								dir + hitsDirectory + groups[g] + "_regions.xln", new int[0], log);
 		}
 		if (inputsToCat.size() > 0) {
-			Files.cat(Array.toStringArray(inputsToCat), dir + hitsDirectory + "allForestPlots.input",
+			Files.cat(ArrayUtils.toStringArray(inputsToCat), dir + hitsDirectory + "allForestPlots.input",
 								new int[0], log);
 			batchesToCat.addElement(Files.getRunString()	+ " cnv.plots.ForestPlot markerList="
 															+ hitsDirectory + "allForestPlots.input");
-			Files.writeArray(Array.toStringArray(batchesToCat), dir + "allForestPlots.bat");
+			Files.writeArray(ArrayUtils.toStringArray(batchesToCat), dir + "allForestPlots.bat");
 		}
 	}
 
@@ -2475,7 +2475,7 @@ public class SeqMeta {
 			writer = new PrintWriter(new FileWriter(dir	+ hitsDirectory
 																							+ "SingleVariant_regions_processed.xln"));
 			line = reader.readLine().trim().split("[\\s]+");
-			keeps = Array.booleanArray(line.length, true);
+			keeps = ArrayUtils.booleanArray(line.length, true);
 
 			// Trait Region Gene Chr Position p-value Region+Window RegionStart RegionStop NumSigMarkers
 			// NumSuggestiveMarkers NumTotalMarkers SizeOfRegion PanEthnic_nsnpsTotal_T5Count
@@ -2497,7 +2497,7 @@ public class SeqMeta {
 			keeps[12] = false; // size
 			line[13] = "Gene";
 
-			line = Array.subArray(line, keeps);
+			line = ArrayUtils.subArray(line, keeps);
 			typeMatrix = Matrix.booleanMatrix(typesToSplit.length, line.length, false);
 
 			v = new Vector<String>();
@@ -2527,15 +2527,15 @@ public class SeqMeta {
 			}
 			for (int i = 0; i < line.length; i++) {
 				if (line[i].equalsIgnoreCase("PanEthnic")) {
-					line[i] = Array.toStr(Array.toStringArray(v), "+");
+					line[i] = ArrayUtils.toStr(ArrayUtils.toStringArray(v), "+");
 				}
 			}
 			writer.println();
-			writer.println(Array.toStr(line));
+			writer.println(ArrayUtils.toStr(line));
 
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				line = Array.subArray(line, keeps);
+				line = ArrayUtils.subArray(line, keeps);
 				for (int i = 0; i < line.length; i++) {
 					for (int j = 0; j < typesToSplit.length; j++) {
 						if (typeMatrix[j][i]) {
@@ -2551,7 +2551,7 @@ public class SeqMeta {
 						}
 					}
 				}
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 			}
 			reader.close();
 			writer.close();
@@ -2571,7 +2571,7 @@ public class SeqMeta {
 			writer = new PrintWriter(new FileWriter(dir	+ hitsDirectory
 																							+ "BurdenTests_regions_processed.xln"));
 			line = reader.readLine().trim().split("[\\s]+");
-			keeps = Array.booleanArray(line.length, true);
+			keeps = ArrayUtils.booleanArray(line.length, true);
 
 			// Trait Region Gene Chr Position p-value Region+Window RegionStart RegionStop NumSigMarkers
 			// NumSuggestiveMarkers NumTotalMarkers SizeOfRegion PanEthnic_nsnpsTotal_T5Count
@@ -2587,8 +2587,8 @@ public class SeqMeta {
 			keeps[12] = false; // size
 			line[13] = "#variants";
 
-			line = Array.subArray(line, keeps);
-			pvals = Array.booleanArray(line.length, false);
+			line = ArrayUtils.subArray(line, keeps);
+			pvals = ArrayUtils.booleanArray(line.length, false);
 
 			v = new Vector<String>();
 			for (int i = 1; i < line.length; i++) {
@@ -2614,21 +2614,21 @@ public class SeqMeta {
 			}
 			for (int i = 0; i < line.length; i++) {
 				if (line[i].equalsIgnoreCase("PanEthnic")) {
-					line[i] = Array.toStr(Array.toStringArray(v), "+");
+					line[i] = ArrayUtils.toStr(ArrayUtils.toStringArray(v), "+");
 				}
 			}
 			writer.println();
-			writer.println(Array.toStr(line));
+			writer.println(ArrayUtils.toStr(line));
 
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				line = Array.subArray(line, keeps);
+				line = ArrayUtils.subArray(line, keeps);
 				for (int i = 0; i < pvals.length; i++) {
 					if (pvals[i]) {
 						line[i] = "\"" + ext.prettyP(line[i], 2, 4, sigfigs, true) + "\"";
 					}
 				}
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 			}
 			reader.close();
 			writer.close();
@@ -2653,7 +2653,7 @@ public class SeqMeta {
 				try {
 					reader = Files.getAppropriateReader(dir + hitsDirectory + filename);
 					line = ext.splitCommasIntelligently(reader.readLine(), true, log);
-					keeps = Array.booleanArray(line.length, true);
+					keeps = ArrayUtils.booleanArray(line.length, true);
 
 					for (int j = 0; j < line.length; j++) {
 						if (line[j].equals("gene")) {
@@ -2679,17 +2679,17 @@ public class SeqMeta {
 					}
 
 					if (i == 0) {
-						line = Array.subArray(line, keeps);
-						writer.println("Trait\t" + Array.toStr(line));
+						line = ArrayUtils.subArray(line, keeps);
+						writer.println("Trait\t" + ArrayUtils.toStr(line));
 					}
 
 					while (reader.ready()) {
 						line = ext.splitCommasIntelligently(reader.readLine(), true, log);
-						line = Array.subArray(line, keeps);
+						line = ArrayUtils.subArray(line, keeps);
 						writer.println(ext.replaceAllWith(phenotypes[i],
 																							new String[][] {{"F7", "Factor VII"},
 																															{"F8", "Factor VIII"}})
-														+ "\t" + Array.toStr(line));
+														+ "\t" + ArrayUtils.toStr(line));
 						forestWriter.println(line[0]	+ "\t" + phenotypes[i] + "/SingleSNP/" + phenotypes[i]
 																	+ "_SingleSNP.csv\tPanEthnic SingleSNP for " + phenotypes[i]
 																	+ " (p=" + ext.prettyP(line[7]) + ")");
@@ -2735,7 +2735,7 @@ public class SeqMeta {
 			list[chr - 1] = dir + ext.replaceAllWith(	pattern, "#",
 																								chr == 23 ? "X" : (chr == 24 ? "Y" : chr + ""));
 		}
-		skips = Array.intArray(list.length, 1);
+		skips = ArrayUtils.intArray(list.length, 1);
 		skips[0] = 0;
 		Files.cat(list, dir + fileout, skips, log);
 	}
@@ -2793,7 +2793,7 @@ public class SeqMeta {
 				v.add(dir + pheno + "/" + method + "/" + pheno + "_" + method + ".csv");
 			}
 		}
-		Zip.zip(Array.toStringArray(v), Files.getNextAvailableFilename("metaResultsStash#.zip"),
+		Zip.zip(ArrayUtils.toStringArray(v), Files.getNextAvailableFilename("metaResultsStash#.zip"),
 						new Logger(), true);
 	}
 
@@ -2837,7 +2837,7 @@ public class SeqMeta {
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(betasFor) + "_summary.xln"));
 			writer.println("Pheno\tRace\tStudy\t"
-											+ Array.toStr(HEADER_TYPES[ext.indexOfStr(methods[0][2], ALGORITHMS)]));
+											+ ArrayUtils.toStr(HEADER_TYPES[ext.indexOfStr(methods[0][2], ALGORITHMS)]));
 			for (int i = 0; i < phenotypes.length; i++) {
 				for (int k = 0; k <= races.length; k++) {
 					localDir = dir	+ phenotypes[i][0] + "/" + (k == races.length ? "" : races[k][0] + "/")
@@ -2859,7 +2859,7 @@ public class SeqMeta {
 										writer.println(phenotypes[i][0]	+ "\t"
 																		+ (k == races.length ? "PanEthnic" : races[k][0]) + "\t"
 																		+ (j == studies.length ? "Meta" : studies[j]) + "\t"
-																		+ Array.toStr(line));
+																		+ ArrayUtils.toStr(line));
 									}
 								}
 								reader.close();
@@ -2961,8 +2961,8 @@ public class SeqMeta {
 								trav = studies[i] + "\t" + races[raceIndex][0] + "\t" + phenotypes[phenoIndex][0];
 								if (statsForStudyRacePheno.containsKey(trav)) {
 									log.reportError("Error - duplicate summary stats entry for " + trav);
-									log.reportError("Previous: " + Array.toStr(statsForStudyRacePheno.get(trav)));
-									log.reportError("Current : " + Array.toStr(line));
+									log.reportError("Previous: " + ArrayUtils.toStr(statsForStudyRacePheno.get(trav)));
+									log.reportError("Current : " + ArrayUtils.toStr(line));
 								} else {
 									statsForStudyRacePheno.put(trav, line);
 								}
@@ -2979,7 +2979,7 @@ public class SeqMeta {
 				warnings.add("Warning - there is no summary stats file available for " + studies[i]);
 			}
 			if (warnings.size() > 0) {
-				log.reportError(Array.toStr(Array.toStringArray(warnings), "\n"));
+				log.reportError(ArrayUtils.toStr(ArrayUtils.toStringArray(warnings), "\n"));
 			}
 		}
 		log.report("Loaded info for " + statsForStudyRacePheno.size() + " Study/Race/Pheno sets");
@@ -3018,16 +3018,16 @@ public class SeqMeta {
 
 		mainTable = new Vector<String>();
 		mainTable.add("Study\tRace\tAge\tminMean\tmaxMean\tN\t%Female\t"
-									+ Array.toStr(Matrix.extractColumn(phenotypes, 0)));
+									+ ArrayUtils.toStr(Matrix.extractColumn(phenotypes, 0)));
 		unitsTable = new Vector<String>();
-		unitsTable.add("Study\tRace\t" + Array.toStr(Matrix.extractColumn(phenotypes, 0)));
+		unitsTable.add("Study\tRace\t" + ArrayUtils.toStr(Matrix.extractColumn(phenotypes, 0)));
 		countsTable = new Vector<String>();
-		countsTable.add("Study\tRace\t" + Array.toStr(Matrix.extractColumn(phenotypes, 0)));
+		countsTable.add("Study\tRace\t" + ArrayUtils.toStr(Matrix.extractColumn(phenotypes, 0)));
 		for (int k = 0; k < races.length; k++) {
 			for (int j = 0; j < studies.length; j++) {
-				mainLine = Array.stringArray(phenotypes.length, "");
-				unitsLine = Array.stringArray(phenotypes.length, "");
-				countsLine = Array.stringArray(phenotypes.length, "");
+				mainLine = ArrayUtils.stringArray(phenotypes.length, "");
+				unitsLine = ArrayUtils.stringArray(phenotypes.length, "");
+				countsLine = ArrayUtils.stringArray(phenotypes.length, "");
 				something = false;
 				ages = new double[0];
 				proportionFemale = new double[0];
@@ -3056,14 +3056,14 @@ public class SeqMeta {
 							}
 							unitsLine[i] = line[2];
 							sampleSizes =
-													Array.addIntToArray(Integer.parseInt(line[8])	+ Integer.parseInt(line[9]),
+													ArrayUtils.addIntToArray(Integer.parseInt(line[8])	+ Integer.parseInt(line[9]),
 																							sampleSizes);
-							proportionFemale = Array.addDoubleToArray(Double.parseDouble(line[8])
+							proportionFemale = ArrayUtils.addDoubleToArray(Double.parseDouble(line[8])
 																													/ (Double.parseDouble(line[8])
 																														+ Double.parseDouble(line[9])),
 																												proportionFemale);
 							countsLine[i] = sampleSizes[sampleSizes.length - 1] + "";
-							ages = Array.addDoubleToArray(Double.parseDouble(line[10]), ages);
+							ages = ArrayUtils.addDoubleToArray(Double.parseDouble(line[10]), ages);
 						} else {
 							mainLine[i] = "!!MISSING!!";
 							unitsLine[i] = "!!MISSING!!";
@@ -3074,19 +3074,19 @@ public class SeqMeta {
 					}
 				}
 				if (something) {
-					mainTable.add(studies[j]	+ "\t" + races[k][0] + "\t" + ext.formDeci(Array.mean(ages), 2)
-												+ "\t" + ext.formDeci(Array.min(ages), 2) + "\t"
-												+ ext.formDeci(Array.max(ages), 2) + "\t" + Array.max(sampleSizes) + "\t"
-												+ Array.mean(proportionFemale) + "\t" + Array.toStr(mainLine));
-					unitsTable.add(studies[j] + "\t" + races[k][0] + "\t" + Array.toStr(unitsLine));
-					countsTable.add(studies[j] + "\t" + races[k][0] + "\t" + Array.toStr(countsLine));
+					mainTable.add(studies[j]	+ "\t" + races[k][0] + "\t" + ext.formDeci(ArrayUtils.mean(ages), 2)
+												+ "\t" + ext.formDeci(ArrayUtils.min(ages), 2) + "\t"
+												+ ext.formDeci(ArrayUtils.max(ages), 2) + "\t" + ArrayUtils.max(sampleSizes) + "\t"
+												+ ArrayUtils.mean(proportionFemale) + "\t" + ArrayUtils.toStr(mainLine));
+					unitsTable.add(studies[j] + "\t" + races[k][0] + "\t" + ArrayUtils.toStr(unitsLine));
+					countsTable.add(studies[j] + "\t" + races[k][0] + "\t" + ArrayUtils.toStr(countsLine));
 				}
 			}
 		}
 
-		Files.writeArray(Array.toStringArray(mainTable), dir + "pheno_summary_means.xln");
-		Files.writeArray(Array.toStringArray(unitsTable), dir + "pheno_summary_units.xln");
-		Files.writeArray(Array.toStringArray(countsTable), dir + "pheno_summary_counts.xln");
+		Files.writeArray(ArrayUtils.toStringArray(mainTable), dir + "pheno_summary_means.xln");
+		Files.writeArray(ArrayUtils.toStringArray(unitsTable), dir + "pheno_summary_units.xln");
+		Files.writeArray(ArrayUtils.toStringArray(countsTable), dir + "pheno_summary_counts.xln");
 	}
 
 	public static void metalCohortSensitivity(String dir, String compareToMetal, Logger log) {
@@ -3119,12 +3119,12 @@ public class SeqMeta {
 				writer = new PrintWriter(new FileWriter(dir + root + "/" + root + ".xln"));
 				header[4] = "A1";
 				header[5] = "A2";
-				writer.println(Array.toStr(header));
+				writer.println(ArrayUtils.toStr(header));
 				while (reader.ready()) {
 					line = ext.splitCommasIntelligently(reader.readLine(), true, log);
 					line[4] = "A";
 					line[5] = "C";
-					writer.println(Array.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 				}
 				writer.close();
 			}
@@ -3203,8 +3203,8 @@ public class SeqMeta {
 							for (int j = 0; j < 3; j++) {
 								if (ext.isMissingValue(originalBits[j])) {
 									log.reportError("Error - value for "	+ line[0] + " was "
-																	+ Array.toStr(Array.subArray(line, 3, 6), "/") + " without "
-																	+ study + " and was " + Array.toStr(originalBits, "/")
+																	+ ArrayUtils.toStr(ArrayUtils.subArray(line, 3, 6), "/") + " without "
+																	+ study + " and was " + ArrayUtils.toStr(originalBits, "/")
 																	+ " with it");
 									data[1][j][count] = Double.NaN;
 								} else {
@@ -3220,14 +3220,14 @@ public class SeqMeta {
 																																Transformations.negativeLog10Transform(data[1][2]))[0],
 																						3)
 														+ "\t"
-														+ ext.formDeci(Array.median(data[0][0]) / Array.median(data[1][0]), 2)
+														+ ext.formDeci(ArrayUtils.median(data[0][0]) / ArrayUtils.median(data[1][0]), 2)
 														+ "\t"
-														+ ext.formDeci(Array.median(data[0][1]) / Array.median(data[1][1]), 2)
+														+ ext.formDeci(ArrayUtils.median(data[0][1]) / ArrayUtils.median(data[1][1]), 2)
 														+ "\t"
-														+ ext.formDeci(Array.lambda(data[0][2]) - Array.lambda(data[1][2]), 3)
-														+ "\t" + Array.median(data[0][0]) + "\t" + Array.median(data[1][0])
-														+ "\t" + Array.median(data[0][1]) + "\t" + Array.median(data[1][1])
-														+ "\t" + Array.lambda(data[0][2]) + "\t" + Array.lambda(data[1][2]));
+														+ ext.formDeci(ArrayUtils.lambda(data[0][2]) - ArrayUtils.lambda(data[1][2]), 3)
+														+ "\t" + ArrayUtils.median(data[0][0]) + "\t" + ArrayUtils.median(data[1][0])
+														+ "\t" + ArrayUtils.median(data[0][1]) + "\t" + ArrayUtils.median(data[1][1])
+														+ "\t" + ArrayUtils.lambda(data[0][2]) + "\t" + ArrayUtils.lambda(data[1][2]));
 
 					} catch (FileNotFoundException fnfe) {
 						log.reportError("Error: file \""	+ dir + compareToMetal
@@ -3317,7 +3317,7 @@ public class SeqMeta {
 			}
 		}
 
-		files = Array.toStringArray(needToBeProcessed);
+		files = ArrayUtils.toStringArray(needToBeProcessed);
 		needToBeProcessed.clear();
 		if (files.length > 0) {
 			for (String file : files) {
@@ -3330,13 +3330,13 @@ public class SeqMeta {
 										25000, 3, 1);
 				needToBeProcessed.add("qsub batchRuns/" + ext.rootOf(file) + ".qsub");
 			}
-			Files.writeArray(Array.toStringArray(needToBeProcessed), dir + "master.toBeProcessed");
+			Files.writeArray(ArrayUtils.toStringArray(needToBeProcessed), dir + "master.toBeProcessed");
 			Files.chmod(dir + "master.toBeProcessed");
 			log.report("Next run:\n./master.toBeProcessed");
 		} else {
 			log.report("All files have been processed; allMetalSensitivityAnalyses.xln should now be complete");
-			Files.cat(Array.toStringArray(readyToBeConcatenated), dir + "allMetalSensitivityAnalyses.xln",
-								Array.intArrayStandarddSkips(readyToBeConcatenated.size()), log);
+			Files.cat(ArrayUtils.toStringArray(readyToBeConcatenated), dir + "allMetalSensitivityAnalyses.xln",
+								ArrayUtils.intArrayStandarddSkips(readyToBeConcatenated.size()), log);
 		}
 	}
 
@@ -3450,7 +3450,7 @@ public class SeqMeta {
 													+ outputFilename);
 				}
 				if (!ext.checkHeader(	header.split(delimiter, -1), HEADER_TYPES[0],
-															Array.arrayOfIndices(HEADER_TYPES[0].length), false, log, false)) {
+															ArrayUtils.arrayOfIndices(HEADER_TYPES[0].length), false, log, false)) {
 					log.reportError("Error - unexpected header for file '"	+ outputFilename + "' : "
 													+ header);
 					readers[i].close();
@@ -3533,7 +3533,7 @@ public class SeqMeta {
 						System.out.println("Excluding " + localRaceDir + filename);
 					}
 				}
-				lookForPleiotropy(Array.toStringArray(filenames), macThresholdTotal,
+				lookForPleiotropy(ArrayUtils.toStringArray(filenames), macThresholdTotal,
 													maxPvalAllowedForCountColumn,
 													"pleiotropy/" + method[0] + "_" + race[0] + "_pleiotropy.xln", log);
 			}
@@ -3550,7 +3550,7 @@ public class SeqMeta {
 					System.out.println("Excluding " + localDir + filename);
 				}
 			}
-			lookForPleiotropy(Array.toStringArray(filenames), macThresholdTotal,
+			lookForPleiotropy(ArrayUtils.toStringArray(filenames), macThresholdTotal,
 												maxPvalAllowedForCountColumn, "pleiotropy/" + method[0] + "_pleiotropy.xln",
 												log);
 		}
@@ -3582,15 +3582,15 @@ public class SeqMeta {
 																	new String[][] {{"Name", "SNP", "gene"}, {"p"},
 																									{"cmafUsed", "cmaf", "maf"}, {"ntotal"}},
 																	header, true, false, true, false, log, false);
-			if (Array.min(indices) == -1) {
+			if (ArrayUtils.min(indices) == -1) {
 				log.reportError("Error - header for file "	+ filenames[i] + "; aborting pleiotropy for "
 												+ outputFile);
 				return;
 			}
 
-			params = Array.toStringArray(indices);
+			params = ArrayUtils.toStringArray(indices);
 			// params = Array.addStrToArray("simplifyQuotes", params);
-			params = Array.insertStringAt(filenames[i], params, 0);
+			params = ArrayUtils.insertStringAt(filenames[i], params, 0);
 			parsers[i] = new GenParser(params, log);
 		}
 
@@ -3661,11 +3661,11 @@ public class SeqMeta {
 						pvals[i] = -1 * Math.log10(pvals[i]);
 					}
 				}
-				pvals = Array.removeNaN(pvals);
+				pvals = ArrayUtils.removeNaN(pvals);
 				Arrays.sort(pvals);
 				if (count > 1) {
 					writer.println(temp	+ "\t" + pvals[pvals.length - 1] + "\t"
-													+ Array.sum(Array.subArray(pvals, 0, pvals.length - 1)) + "\t"
+													+ ArrayUtils.sum(ArrayUtils.subArray(pvals, 0, pvals.length - 1)) + "\t"
 													+ (count - 1));
 				}
 			}
@@ -3702,7 +3702,7 @@ public class SeqMeta {
 			writer.println("lookup");
 			for (int chr = 1; chr <= 24; chr++) {
 				if (hash.containsKey(chr + "")) {
-					markerNames = Array.toStringArray(hash.get(chr + ""));
+					markerNames = ArrayUtils.toStringArray(hash.get(chr + ""));
 					header = Files.getHeaderOfFile(dir + ext.insertNumbers(genoPattern, chr, 1), ",!", log);
 					indices = ext.indexFactors(markerNames, header, false, false);
 					params = dir + ext.insertNumbers(genoPattern, chr, 1) + " 0";
@@ -3754,7 +3754,7 @@ public class SeqMeta {
 						line[i] = ext.replaceAllWith(line[i], replacements);
 						line[i] = ext.replaceAllWith(line[i], "NA", "0\t0");
 					}
-					writer.println(Array.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 				}
 				reader.close();
 				writer.close();
@@ -3789,7 +3789,7 @@ public class SeqMeta {
 		groups = new String[] {};
 		for (String[] method : methods) {
 			if (ext.indexOfStr(method[1], groups) == -1) {
-				groups = Array.addStrToArray(method[1], groups);
+				groups = ArrayUtils.addStrToArray(method[1], groups);
 			}
 		}
 
@@ -3852,7 +3852,7 @@ public class SeqMeta {
 		groups = new String[] {};
 		for (String[] method : methods) {
 			if (ext.indexOfStr(method[1], groups) == -1) {
-				groups = Array.addStrToArray(method[1], groups);
+				groups = ArrayUtils.addStrToArray(method[1], groups);
 			}
 		}
 

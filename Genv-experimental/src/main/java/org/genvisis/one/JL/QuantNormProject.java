@@ -16,7 +16,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.qc.LrrSd;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
@@ -96,7 +96,7 @@ public class QuantNormProject {
 																					projCorrected.SAMPLE_QC_FILENAME.getValue()};
 		String[] titles = new String[] {"ORIGINAL", "ORIGINAL_NEW_CENT", "QuantNorm"};
 		String[] fullHeader =
-												Array.concatAll(new String[] {LrrSd.SAMPLE_COLUMN}, LrrSd.NUMERIC_COLUMNS);
+												ArrayUtils.concatAll(new String[] {LrrSd.SAMPLE_COLUMN}, LrrSd.NUMERIC_COLUMNS);
 		int[] indices = ext.indexFactors(	fullHeader,
 																			Files.getHeaderOfFile(orginalFiles[0], projOriginal.getLog()),
 																			true, false);
@@ -117,16 +117,16 @@ public class QuantNormProject {
 		String comboBox = comboQC + ".box";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(comboBox));
-			writer.println(status + "\t" + Array.toStr(fullHeader));
+			writer.println(status + "\t" + ArrayUtils.toStr(fullHeader));
 			for (int i = 0; i < orginalFiles.length; i++) {
 
 				BufferedReader reader = Files.getAppropriateReader(orginalFiles[i]);
 				reader.readLine();
 				while (reader.ready()) {
 					String[] line = reader.readLine().trim().split("[\\s]+");
-					String[] data = Array.subArray(line, indices);
+					String[] data = ArrayUtils.subArray(line, indices);
 					if (!line[indices[0]].equals(LrrSd.SAMPLE_COLUMN)) {
-						writer.println(titles[i] + "\t" + Array.toStr(data));
+						writer.println(titles[i] + "\t" + ArrayUtils.toStr(data));
 						for (int j = 0; j < lrrIndices.size(); j++) {
 							histograms[i][j].addDataPointToHistogram(Double.parseDouble(data[lrrIndices.get(j)
 																																								+ 1]));
@@ -139,12 +139,12 @@ public class QuantNormProject {
 			writer.close();
 
 		} catch (FileNotFoundException fnfe) {
-			projOriginal.getLog().reportError("Error: file(s) \""	+ Array.toStr(orginalFiles)
+			projOriginal.getLog().reportError("Error: file(s) \""	+ ArrayUtils.toStr(orginalFiles)
 																				+ "\" not found in current directory");
 			return;
 		} catch (IOException ioe) {
 			projOriginal.getLog()
-									.reportError("Error reading file(s) \"" + Array.toStr(orginalFiles) + "\"");
+									.reportError("Error reading file(s) \"" + ArrayUtils.toStr(orginalFiles) + "\"");
 			return;
 		} catch (Exception e) {
 			projOriginal.getLog().reportError("Error writing to " + comboBox);
@@ -160,7 +160,7 @@ public class QuantNormProject {
 			ArrayList<DynamicHistogram> tmps = new ArrayList<DynamicHistogram>();
 			String out = gcLookDir + "gc_" + LrrSd.NUMERIC_COLUMNS[lrrIndices.get(i)] + ".hist";
 			String curQc = LrrSd.NUMERIC_COLUMNS[lrrIndices.get(i)];
-			String[] titleTmp = Array.tagOn(titles, curQc, null);
+			String[] titleTmp = ArrayUtils.tagOn(titles, curQc, null);
 			for (String element : titleTmp) {
 				allTitles.add(element);
 			}
@@ -180,7 +180,7 @@ public class QuantNormProject {
 
 			RScatter rtmpCumulative = new RScatter(	out, out + "cu.rscript",
 																							ext.removeDirectoryInfo(out) + "cu", out + "cu.jpeg",
-																							"Bin", Array.tagOn(titleTmp, "Cumulative_", null),
+																							"Bin", ArrayUtils.tagOn(titleTmp, "Cumulative_", null),
 																							SCATTER_TYPE.POINT, projCorrected.getLog());
 			rtmpCumulative.setyLabel("Cumulative Count " + curQc);
 			rtmpCumulative.setxLabel("Bin " + curQc);
@@ -191,13 +191,13 @@ public class QuantNormProject {
 		}
 		String allHist = gcLookDir + "Gc_summaryHistAll.txt";
 		DynamicHistogram.dumpToSameFile(all.toArray(new DynamicHistogram[all.size()]),
-																		Array.toStringArray(allTitles), allHist, false,
+																		ArrayUtils.toStringArray(allTitles), allHist, false,
 																		projCorrected.getLog());
 		VertLine[] vertLines = new VertLine[] {new VertLine(0.30)};
 		RScatter rtmpCumulativeAll = new RScatter(allHist, allHist + "cu.rscript",
 																							ext.removeDirectoryInfo(allHist) + "cu",
 																							allHist + "cu.jpeg", "Bin",
-																							Array.tagOn(Array.toStringArray(allTitles),
+																							ArrayUtils.tagOn(ArrayUtils.toStringArray(allTitles),
 																													"Cumulative_", null),
 																							SCATTER_TYPE.POINT, projCorrected.getLog());
 		rtmpCumulativeAll.setyLabel("Cumulative Count All");
@@ -289,8 +289,8 @@ public class QuantNormProject {
 
 		if (!Files.exists(output)) {
 			Sample samp = projOriginal.getFullSampleFromRandomAccessFile(sample);
-			double[][] xy = new double[][] {Array.toDoubleArray(samp.getXs()),
-																			Array.toDoubleArray(samp.getYs())};
+			double[][] xy = new double[][] {ArrayUtils.toDoubleArray(samp.getXs()),
+																			ArrayUtils.toDoubleArray(samp.getYs())};
 			QuantileNormalization qn = new QuantileNormalization(xy, projNorm.getLog());
 			qn.setThresholdFactor(THRESHOLD_FACTOR);
 			projNorm.getLog().reportTimeInfo("Beginning normalizing " + sample);
@@ -301,7 +301,7 @@ public class QuantNormProject {
 			double[][] xyNorm = qn.getNormData();
 			time = System.currentTimeMillis();
 			Sample sampNorm = new Sample(	sample, samp.getFingerprint(), samp.getGCs(),
-																		Array.toFloatArray(xyNorm[0]), Array.toFloatArray(xyNorm[1]),
+																		ArrayUtils.toFloatArray(xyNorm[0]), ArrayUtils.toFloatArray(xyNorm[1]),
 																		samp.getBAFs(), samp.getLRRs(), samp.getForwardGenotypes(),
 																		samp.getAB_Genotypes(), samp.getCanXYBeNegative());
 			sampNorm.saveToRandomAccessFile(output, outliers, sample);

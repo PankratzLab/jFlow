@@ -1,4 +1,4 @@
-package org.genvisis.cnv.annotation;
+package org.genvisis.cnv.annotation.markers;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -7,7 +7,7 @@ import java.util.List;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.WritingFilePrep;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -249,14 +249,14 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 																																															// present
 																																															// in
 																																															// ref
-			int[] chr0Len = Array.subArray(markerSet.getPositions(), indicesByChr[0]);
+			int[] chr0Len = ArrayUtils.subArray(markerSet.getPositions(), indicesByChr[0]);
 			proj.getLog()
 					.reportTimeInfo("Since the project contained markers designated as chr0, a chr0 contig is being added");
-			if (Array.countIf(chr0Len, 0) > 0) {
+			if (ArrayUtils.countIf(chr0Len, 0) > 0) {
 				proj.getLog()
 						.reportTimeWarning("VCF files cannot have positions of 0, positions will be updated to chr0:1");
 			}
-			SAMSequenceRecord samSequenceRecord = new SAMSequenceRecord("chr0", Array.max(chr0Len) + 1);
+			SAMSequenceRecord samSequenceRecord = new SAMSequenceRecord("chr0", ArrayUtils.max(chr0Len) + 1);
 			samSequenceRecord.setSequenceIndex(currentIndex);
 			updatedRecords.add(samSequenceRecord);
 			currentIndex++;
@@ -268,7 +268,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 				if (contig > 0) {
 					samSequenceRecord.setSequenceIndex(currentIndex);
 
-					int contigProjLength = Array.max(Array.subArray(markerSet.getPositions(),
+					int contigProjLength = ArrayUtils.max(ArrayUtils.subArray(markerSet.getPositions(),
 																													indicesByChr[contig]));
 					if (samSequenceRecord.getSequenceLength() < contigProjLength) {
 						proj.getLog()
@@ -295,20 +295,20 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 																																																// present
 																																																// in
 																																																// ref
-			int[] chrxyLen = Array.subArray(markerSet.getPositions(), indicesByChr[25]);
+			int[] chrxyLen = ArrayUtils.subArray(markerSet.getPositions(), indicesByChr[25]);
 			proj.getLog()
 					.reportTimeInfo("Since the project contained markers designated as pseudo-autosomal, a chrXY contig is being added");
-			SAMSequenceRecord samSequenceRecord = new SAMSequenceRecord("chrXY", Array.max(chrxyLen) + 1);
+			SAMSequenceRecord samSequenceRecord = new SAMSequenceRecord("chrXY", ArrayUtils.max(chrxyLen) + 1);
 			samSequenceRecord.setSequenceIndex(currentIndex);
 			currentIndex++;
 			updatedRecords.add(samSequenceRecord);
 		}
 		if (indicesByChr[26].length > 0) {// not always present in ref
-			int[] chrMLen = Array.subArray(markerSet.getPositions(), indicesByChr[26]);
+			int[] chrMLen = ArrayUtils.subArray(markerSet.getPositions(), indicesByChr[26]);
 			proj.getLog()
 					.reportTimeInfo("Since the project contained markers designated as mitochondrial, a chrM entry is being added");
 			mitoRecord = mitoRecord != null	? mitoRecord
-																			: new SAMSequenceRecord("chrM", Array.max(chrMLen) + 1);
+																			: new SAMSequenceRecord("chrM", ArrayUtils.max(chrMLen) + 1);
 			mitoRecord.setSequenceIndex(currentIndex);
 			updatedRecords.add(mitoRecord);
 		}

@@ -8,7 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
@@ -102,7 +102,7 @@ public class ThousandGenomeVariation {
 						}
 					}
 				}
-				System.out.println(Array.toStr(counts));
+				System.out.println(ArrayUtils.toStr(counts));
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
 				System.err.println("Error: file \"" + dir + bedfile + "\" not found in current directory");

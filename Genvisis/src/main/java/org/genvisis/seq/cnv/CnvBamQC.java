@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ArraySpecialList.ArrayIntList;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -65,7 +65,7 @@ public class CnvBamQC {
 
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\t" + Array.toStr(QC_HEADER));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\t" + ArrayUtils.toStr(QC_HEADER));
 			LocusSet<CNVariant> cnLocusSet = callSplit.getCnLocusSet();
 
 			for (int i = 0; i < cnLocusSet.getLoci().length; i++) {
@@ -107,7 +107,7 @@ public class CnvBamQC {
 	}
 
 	private static RScatter[] plotResults(String summary, HistogramQC histogramQC, Logger log) {
-		String[] plotFiles = Array.concatAll(new String[] {summary}, splitCn(summary, log));
+		String[] plotFiles = ArrayUtils.concatAll(new String[] {summary}, splitCn(summary, log));
 		String rscatterAll = ext.parseDirectoryOfFile(summary) + "summary.qc";
 		ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
 		ArrayList<RScatter> rScatterHists = histogramQC.plotAndDumpMapQPop(
@@ -173,9 +173,9 @@ public class CnvBamQC {
 		ArrayList<String> splits = new ArrayList<String>();
 		splits.add(ext.addToRoot(summary, ".DUP"));
 		splits.add(ext.addToRoot(summary, ".DEL"));
-		PrintWriter[] writers = Files.getAppropriateWriters(Array.toStringArray(splits));
+		PrintWriter[] writers = Files.getAppropriateWriters(ArrayUtils.toStringArray(splits));
 		for (PrintWriter writer : writers) {
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\t" + Array.toStr(QC_HEADER));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\t" + ArrayUtils.toStr(QC_HEADER));
 		}
 		try {
 			BufferedReader reader = Files.getAppropriateReader(summary);
@@ -186,9 +186,9 @@ public class CnvBamQC {
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("[\\s]+");
 				if (cnvs[index].getCN() > 2) {
-					writers[0].println(Array.toStr(line));
+					writers[0].println(ArrayUtils.toStr(line));
 				} else if (cnvs[index].getCN() < 2) {
-					writers[1].println(Array.toStr(line));
+					writers[1].println(ArrayUtils.toStr(line));
 				} else {
 					log.reportError("Invalid cnv " + cnvs[index].toPlinkFormat());
 					return null;
@@ -204,7 +204,7 @@ public class CnvBamQC {
 			return null;
 		}
 		Files.closeAllWriters(writers);
-		return Array.toStringArray(splits);
+		return ArrayUtils.toStringArray(splits);
 
 	}
 
@@ -286,7 +286,7 @@ public class CnvBamQC {
 			RScatter rScatterAverage = new RScatter(output, rootOutAverage + ".rscript",
 																							ext.removeDirectoryInfo(rootOutAverage),
 																							rootOutAverage + ".pdf", "Bin",
-																							Array.tagOn(titles, null,
+																							ArrayUtils.tagOn(titles, null,
 																													DynamicAveragingHistogram.DUMP_AVG),
 																							SCATTER_TYPE.POINT, log);
 			rScatterAverage.setTitle("MapQ average");
@@ -300,7 +300,7 @@ public class CnvBamQC {
 			RScatter rScatterCount = new RScatter(output, rootOutCount + ".rscript",
 																						ext.removeDirectoryInfo(rootOutCount),
 																						rootOutCount + ".pdf", "Bin",
-																						Array.tagOn(titles, null,
+																						ArrayUtils.tagOn(titles, null,
 																												DynamicAveragingHistogram.DUMP_COUNT),
 																						SCATTER_TYPE.POINT, log);
 			rScatterCount.setTitle("Count by " + QC_HEADER[0]);
@@ -313,7 +313,7 @@ public class CnvBamQC {
 			RScatter rScatterProp = new RScatter(	output, rootOutProp + ".rscript",
 																						ext.removeDirectoryInfo(rootOutProp),
 																						rootOutProp + ".pdf", "Bin",
-																						Array.tagOn(titles, null,
+																						ArrayUtils.tagOn(titles, null,
 																												DynamicAveragingHistogram.DUMP_PROP),
 																						SCATTER_TYPE.POINT, log);
 			rScatterProp.setTitle("Proportion by " + QC_HEADER[0]);
@@ -437,7 +437,7 @@ public class CnvBamQC {
 				callSubsetBedReader = new BEDFileReader(callSubsetBed, true);
 
 			}
-			hadProblem = Array.booleanArray(cnLocusSet.getLoci().length, false);
+			hadProblem = ArrayUtils.booleanArray(cnLocusSet.getLoci().length, false);
 			this.log = log;
 			matched = new ArrayIntList[cnLocusSet.getLoci().length];
 		}

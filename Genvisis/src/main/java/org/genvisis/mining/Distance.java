@@ -1,10 +1,10 @@
 package org.genvisis.mining;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 public class Distance {
 	public static final double euclidean(int[] p1, int[] p2) {
-		return euclidean(Array.toDoubleArray(p1), Array.toDoubleArray(p2));
+		return euclidean(ArrayUtils.toDoubleArray(p1), ArrayUtils.toDoubleArray(p2));
 	}
 
 	public static final double euclidean(double[] p1, double[] p2) {

@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
@@ -129,7 +129,7 @@ public class PlinkToLinkage {
 				writer = new PrintWriter(new FileWriter(dir + "chrom" + ext.chrome(chr) + ".pre"));
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
-					writer.print(Array.toStr(Array.subArray(line, 0, 6)));
+					writer.print(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, 6)));
 					if (hash.containsKey(line[0] + "\t" + line[1])) {
 						line = hash.get(line[0] + "\t" + line[1]);
 						for (int i = 6; i < line.length; i++) {

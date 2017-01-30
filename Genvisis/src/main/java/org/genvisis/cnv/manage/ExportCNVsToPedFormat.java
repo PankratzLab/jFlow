@@ -17,7 +17,7 @@ import java.util.Vector;
 
 import javax.swing.JFileChooser;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -204,7 +204,7 @@ public class ExportCNVsToPedFormat {
 			}
 
 			currentCNs = new byte[currentChrPosSegs.length][sampleListHashFromCnvOrPedData.size()];
-			previousCNs = Array.byteArray(sampleListHashFromCnvOrPedData.size(), Byte.MIN_VALUE);
+			previousCNs = ArrayUtils.byteArray(sampleListHashFromCnvOrPedData.size(), Byte.MIN_VALUE);
 
 			while (cnvs[cnvIndex].getChr() < currentChrPosSegs[0].getChr()
 							|| (cnvs[cnvIndex].getChr() == currentChrPosSegs[0].getChr()
@@ -284,8 +284,8 @@ public class ExportCNVsToPedFormat {
 			// } else {
 			try {
 				for (int i = 0; i < currentChrPosSegs.length; i++) {
-					if (!excludeMonomorphicLoci	|| Array.min(currentCNs[i]) < 0
-							|| Array.max(currentCNs[i]) > 0 && !Array.equals(currentCNs[i], previousCNs)) {
+					if (!excludeMonomorphicLoci	|| ArrayUtils.min(currentCNs[i]) < 0
+							|| ArrayUtils.max(currentCNs[i]) > 0 && !ArrayUtils.equals(currentCNs[i], previousCNs)) {
 						if (countValidLoci % markersPerFile == 0) {
 							if (writer != null) {
 								writer.flush();
@@ -328,7 +328,7 @@ public class ExportCNVsToPedFormat {
 							if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)
 										&& !fileFormat.equals(PLINK_BINARY_FORMAT)
 									&& !fileFormat.equals(PLINK_TEXT_FORMAT)) {
-								writer.print("markerName\t" + Array.toStr(finalSampleList));
+								writer.print("markerName\t" + ArrayUtils.toStr(finalSampleList));
 								writer.print(endOfLine);
 							}
 						}

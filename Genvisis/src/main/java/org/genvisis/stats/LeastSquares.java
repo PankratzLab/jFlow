@@ -7,7 +7,7 @@ import java.util.Vector;
 
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
@@ -75,7 +75,7 @@ public class LeastSquares extends RegressionModel {
 	}
 
 	public LeastSquares(int[] iDeps, int[][] iIndeps) {
-		this(new LeastSquaresBuilder().deps(Array.toDoubleArray(iDeps))
+		this(new LeastSquaresBuilder().deps(ArrayUtils.toDoubleArray(iDeps))
 																	.indeps(Matrix.toDoubleArrays(iIndeps)));
 	}
 
@@ -556,7 +556,7 @@ public class LeastSquares extends RegressionModel {
 			str += "One per family was permuted " + numPermutations + " times" + eol;
 			str += "Statistics were bootstrapped " + numBootReps + " times" + eol;
 			str += "" + eol;
-			str += "Number of independent observations: " + Array.unique(famIDs).length + "" + eol;
+			str += "Number of independent observations: " + ArrayUtils.unique(famIDs).length + "" + eol;
 			str += "" + eol;
 		} else {
 			str += "n="	+ N + " Fstat = " + ext.formDeci(overall, 3) + ", Sig. "
@@ -586,7 +586,7 @@ public class LeastSquares extends RegressionModel {
 														7)
 							+ "\t" + ext.formStr(ext.formDeci(sigs[i], sigfigs, true), 7) + "\t"
 							+ ext.prettyP(sigs[i]) + "\t=TDIST(" + Math.abs(stats[i]) + ","
-							+ ((onePer ? Array.unique(famIDs).length : N) - 2) + ",2)" + eol;
+							+ ((onePer ? ArrayUtils.unique(famIDs).length : N) - 2) + ",2)" + eol;
 		}
 
 		return str;

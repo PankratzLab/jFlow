@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ExcelConverter;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -99,7 +99,7 @@ public class Indelathon {
 		for (String bam : bams) {
 			ArrayList<String> bc = BamOps.getBarcodesFor(bam, log);
 			bcPrint += "\n"	+ BamOps.getSampleName(bam) + "\t" + bam + "\t"
-									+ Array.toStr(bc.toArray(new String[bc.size()]));
+									+ ArrayUtils.toStr(bc.toArray(new String[bc.size()]));
 		}
 		Files.write(bcPrint, outBarCode);
 		String out = outDir + "countit.txt";
@@ -536,7 +536,7 @@ public class Indelathon {
 			hive.addCallable(extractor);
 		}
 		hive.execute(true);
-		return Array.toStringArray(indelBams);
+		return ArrayUtils.toStringArray(indelBams);
 	}
 
 	public static void main(String[] args) {

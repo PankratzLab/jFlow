@@ -34,7 +34,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2;
@@ -180,7 +180,7 @@ public class BoxPlot extends JFrame {
 		for (String s : keyDef) {
 			String[] pts = s.split("\\|")[0].trim().split("/");
 			TreePath tp =
-									new TreePath(dtm.getPathToRoot(ctrlPanel.getNodeForKey(Array.toStr(pts, "\t"))));
+									new TreePath(dtm.getPathToRoot(ctrlPanel.getNodeForKey(ArrayUtils.toStr(pts, "\t"))));
 			data.add(tp);
 		}
 		if (data.size() > 0) {
@@ -272,12 +272,12 @@ public class BoxPlot extends JFrame {
 			bp.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 2);
 			bp.setAxisYWidth(AbstractPanel2.WIDTH_Y_AXIS - AbstractPanel2.WIDTH_Y_AXIS / 3);
 			bp.setInsideScrollpaneAndNoZoom();
-			bp.setData(lbl, Array.toStringArray(dataSources), Doubles.toArray(panelData));
+			bp.setData(lbl, ArrayUtils.toStringArray(dataSources), Doubles.toArray(panelData));
 			bp.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
 			bp.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
 			bp.setYAxisLabel(lbl.split("\\|")[1].trim());
 			panels.add(bp);
-			panelMap.put(Array.toStr(lbl.split("\\|")[0].trim().split("/"), "\t"), bp);
+			panelMap.put(ArrayUtils.toStr(lbl.split("\\|")[0].trim().split("/"), "\t"), bp);
 			headers.add(lbl);
 		}
 		scrollContent.removeAll();
@@ -305,7 +305,7 @@ public class BoxPlot extends JFrame {
 			DefaultTreeModel dtm = (DefaultTreeModel) ctrlPanel.tree.getModel();
 			for (String s : sel) {
 				String[] pts = s.split("\\|")[0].trim().split("/");
-				TreePath tp = new TreePath(dtm.getPathToRoot(ctrlPanel.getNodeForKey(Array.toStr(	pts,
+				TreePath tp = new TreePath(dtm.getPathToRoot(ctrlPanel.getNodeForKey(ArrayUtils.toStr(	pts,
 																																													"\t"))));
 				data.add(tp);
 			}
@@ -332,13 +332,13 @@ public class BoxPlot extends JFrame {
 		try {
 			Properties props = new Properties();
 			props.setProperty(PROPKEY_DATAFILE, currentFile == null ? "" : currentFile);
-			String sel = Array.toStr(Array.toStringArray(selected), ";;");
+			String sel = ArrayUtils.toStr(ArrayUtils.toStringArray(selected), ";;");
 			props.setProperty(PROPKEY_SELECTED, sel);
 			for (String element : PROPKEY_HOTKEYS) {
 				ArrayList<String> hotKeyDef = hotkeyDefs.get(element);
 				props.setProperty(element,
 													hotKeyDef == null	? ""
-																						: Array.toStr(Array.toStringArray(hotKeyDef), ";;"));
+																						: ArrayUtils.toStr(ArrayUtils.toStringArray(hotKeyDef), ";;"));
 			}
 			File f = new File(PROP_FILE);
 			OutputStream out = new FileOutputStream(f);
@@ -358,7 +358,7 @@ public class BoxPlot extends JFrame {
 			if (i / cols > (row / 2)) {
 				row += 2;
 			}
-			String key = Array.toStr(paths.get(i), "\t");
+			String key = ArrayUtils.toStr(paths.get(i), "\t");
 			OneDPanel bp = panelMap.get(key);
 			selected.add(bp.plotLabel);
 			scrollContent.add(bp, "cell " + (i % cols) + " " + row);

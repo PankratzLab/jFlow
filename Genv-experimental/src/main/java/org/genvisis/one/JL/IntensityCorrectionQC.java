@@ -26,7 +26,7 @@ import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
@@ -104,7 +104,7 @@ public class IntensityCorrectionQC {
 			writer.println();
 			int report = 0;
 			for (int i = startPC; i < stopPC; i += jumpPC) {
-				writer.println(i + "\t" + Array.toStr(allResults[report]));
+				writer.println(i + "\t" + ArrayUtils.toStr(allResults[report]));
 				report++;
 			}
 			writer.close();
@@ -156,7 +156,7 @@ public class IntensityCorrectionQC {
 																																									"PC" + pc, false);
 			currentData = crossValidation.getResiduals();
 			if (pc == 100) {
-				Files.writeArray(	Array.toStringArray(currentData),
+				Files.writeArray(	ArrayUtils.toStringArray(currentData),
 													pcComponentsResiduals.getProj().PROJECT_DIRECTORY.getValue()
 																														+ "DFSD.txt");
 				System.exit(1);
@@ -221,7 +221,7 @@ public class IntensityCorrectionQC {
 			byte[] abGenotypes = markerData.getAbGenotypes();
 			boolean[] tmpSampleFilter = new boolean[samplesToUseCluster.length];
 			Arrays.fill(tmpSampleFilter, true);
-			System.out.println(Array.booleanArraySum(samplesToUseCluster));
+			System.out.println(ArrayUtils.booleanArraySum(samplesToUseCluster));
 			for (int k = 0; k < abGenotypes.length; k++) {
 				if ((mitoMode) && (abGenotypes[k] != 2) && (abGenotypes[k] != 0)) {
 					tmpSampleFilter[k] = false;
@@ -274,7 +274,7 @@ public class IntensityCorrectionQC {
 								}
 							}
 						}
-						ICC iccComp = new ICC(Array.toDoubleArray(lrrICC), classDefs, MASK, null, false,
+						ICC iccComp = new ICC(ArrayUtils.toDoubleArray(lrrICC), classDefs, MASK, null, false,
 																	proj.getLog());
 						iccComp.computeICC();
 						icc = iccComp.getICC();
@@ -437,7 +437,7 @@ public class IntensityCorrectionQC {
 		}
 
 		public double getAvgAt(int pcIndex) {
-			return Array.mean(finalIccs[pcIndex], true);
+			return ArrayUtils.mean(finalIccs[pcIndex], true);
 		}
 
 		public int getSizeAt(int pcIndex) {
@@ -448,11 +448,11 @@ public class IntensityCorrectionQC {
 			if (finalIccs[pcIndex].length < 2) {
 				return (0.0D / 0.0D);
 			}
-			return Array.median(finalIccs[pcIndex]);
+			return ArrayUtils.median(finalIccs[pcIndex]);
 		}
 
 		public double getStdevAt(int pcIndex) {
-			return Array.stdev(finalIccs[pcIndex], true);
+			return ArrayUtils.stdev(finalIccs[pcIndex], true);
 		}
 
 		public void finalizeArrays() {
@@ -529,15 +529,15 @@ public class IntensityCorrectionQC {
 
 		public boolean verify(String[] classDefs, int[] pcsTested) {
 			for (int i = 0; i < icMarkerResults.length; i++) {
-				if (!Array.equals(icMarkerResults[i].getClassDefs(), classDefs, true)) {
+				if (!ArrayUtils.equals(icMarkerResults[i].getClassDefs(), classDefs, true)) {
 					System.out.println(i + " classDefs");
 
 					return false;
 				}
 				if (!Arrays.equals(pcsTested, icMarkerResults[i].getPcsTested())) {
 					System.out.println(i + " pcs");
-					System.out.println(Array.toStr(pcsTested));
-					System.out.println(Array.toStr(icMarkerResults[i].getPcsTested()));
+					System.out.println(ArrayUtils.toStr(pcsTested));
+					System.out.println(ArrayUtils.toStr(icMarkerResults[i].getPcsTested()));
 					return false;
 				}
 			}
@@ -676,7 +676,7 @@ public class IntensityCorrectionQC {
 	private static int[] getSexDef(ClassDefinition[] classDefinitions) {
 		for (ClassDefinition classDefinition : classDefinitions) {
 			if (classDefinition.isSexClass()) {
-				return Array.toIntArray(classDefinition.getClassDefs());
+				return ArrayUtils.toIntArray(classDefinition.getClassDefs());
 			}
 		}
 		return null;
@@ -687,7 +687,7 @@ public class IntensityCorrectionQC {
 		Arrays.fill(modelDef, 1);
 		for (ClassDefinition classDefinition : classDefinitions) {
 			if (classDefinition.isIncludedInPCDef()) {
-				modelDef = Array.toIntArray(classDefinition.getClassDefs());
+				modelDef = ArrayUtils.toIntArray(classDefinition.getClassDefs());
 			}
 		}
 		boolean[] modelDefMask = new boolean[modelDef.length];
@@ -749,7 +749,7 @@ public class IntensityCorrectionQC {
 		// String[][] chunkMarkers = Array.splitUpStringArray(Array.subArray(proj.getMarkerNames(),
 		// chrInd[3]), 300, proj.getLog());
 
-		ICCtheClasses(proj, Array.subArray(proj.getMarkerNames(), chrInd[26]), 6, 1, "Mito", "mitos/",
+		ICCtheClasses(proj, ArrayUtils.subArray(proj.getMarkerNames(), chrInd[26]), 6, 1, "Mito", "mitos/",
 									0, 1500, 5, true);
 		dumpToText(proj, "mitos/");
 		for (int i = 0; i < 25; i++) {

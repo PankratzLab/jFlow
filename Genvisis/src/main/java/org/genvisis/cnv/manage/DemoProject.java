@@ -9,7 +9,7 @@ import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.prop.FileProperty;
 import org.genvisis.cnv.prop.StringListProperty;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -116,7 +116,7 @@ public class DemoProject extends Project {
 	}
 
 	private static void copyStratResults(Project original, Project demo) {
-		String[] strats = Array.toStringArray(original.getStratResults());
+		String[] strats = ArrayUtils.toStringArray(original.getStratResults());
 		if (strats != null && strats.length > 0) {
 			for (String strat : strats) {
 				Files.copyFile(strat, demo.PROJECT_DIRECTORY.getValue() + ext.removeDirectoryInfo(strat));

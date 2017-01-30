@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.genvisis.common.AlleleFreq;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.seq.analysis.VCFSourceReader;
@@ -64,7 +64,7 @@ public class CMAF {
 						try {
 							double maf = Double.NaN;
 							if (useAC) {
-								ac = Array.sum(Array.toIntArray(vc.getAttributeAsString("AC", "NaN")
+								ac = ArrayUtils.sum(ArrayUtils.toIntArray(vc.getAttributeAsString("AC", "NaN")
 																									.replaceAll("\\[", "").replaceAll("\\]", "")
 																									.replaceAll(" ", "").trim().split(",")));
 								maf = AlleleFreq.calcMAF(numSamples - ac, 0, ac);
@@ -103,8 +103,8 @@ public class CMAF {
 				}
 			}
 		}
-		log.reportTimeInfo(Array.toStr(numVars));
-		log.reportTimeInfo(Array.toStr(numMuts));
+		log.reportTimeInfo(ArrayUtils.toStr(numVars));
+		log.reportTimeInfo(ArrayUtils.toStr(numMuts));
 
 		Files.writeIterable(out, outDir	+ VCFOps.getAppropriateRoot(vcf, true)
 															+ (requiredAnno == null ? "" : requiredAnno) + ".cmaf.txt");

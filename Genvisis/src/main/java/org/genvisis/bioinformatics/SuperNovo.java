@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountHash;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -2284,17 +2284,17 @@ public class SuperNovo {
 												// }
 											}
 
-											resultElements = Array.subArray(line, indices);
-											resultElements = Array.concatAll(	new String[] {annotation[7], miniBamLink},
+											resultElements = ArrayUtils.subArray(line, indices);
+											resultElements = ArrayUtils.concatAll(	new String[] {annotation[7], miniBamLink},
 																												resultElements);
-											resultElements = Array.concatAll(	resultElements,
+											resultElements = ArrayUtils.concatAll(	resultElements,
 																												new String[] {ext.formDeci(	pctDenovoAllele[0],
 																																										3),
 																																			ext.formDeci(	pctDenovoAllele[1],
 																																										3),
 																																			ext.formDeci(	pctDenovoAllele[2],
 																																										3)});
-											resultElements = Array.concatAll(resultElements, annotation);
+											resultElements = ArrayUtils.concatAll(resultElements, annotation);
 
 											if (!result.containsKey(line[3])) {
 												result.put(line[3], new Hashtable<String, String[]>());
@@ -2308,7 +2308,7 @@ public class SuperNovo {
 									// if (alleles[j].startsWith("+")) {
 									// System.out.println("missing "+markerName);
 									// }
-									annotation = Array.stringArray(seatleSeekHeader.length);
+									annotation = ArrayUtils.stringArray(seatleSeekHeader.length);
 									// this is capturing a subset of the indels
 									// if (readsCounts[0][0][orderedIndices[0][1]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO)
 									// {
@@ -2343,12 +2343,12 @@ public class SuperNovo {
 		}
 
 		if (annotationNeedsVars.size() > 0) {
-			Files.writeArray(	Array.toStringArray(annotationNeedsVars),
+			Files.writeArray(	ArrayUtils.toStringArray(annotationNeedsVars),
 												annotationDir															+ "seattleSeq_input_" + new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date())
 																																	+ ".txt");
 		}
 		if (annotationNeedsInDels.size() > 0) {
-			Files.writeArray(	Array.toStringArray(annotationNeedsInDels),
+			Files.writeArray(	ArrayUtils.toStringArray(annotationNeedsInDels),
 												annotationDir																+ "seattleSeq_input_InDels_" + new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date())
 																																		+ ".txt");
 		}
@@ -2383,7 +2383,7 @@ public class SuperNovo {
 		}
 
 		saveParsedResults(resultDir	+ DEFAULT_OUTPUT_FILENAME, null, result, geneCounts, geneTrioCounts,
-											outFormat, PARSE_RESULT_HEADER + "\tBAD\t" + Array.toStr(seatleSeekHeader),
+											outFormat, PARSE_RESULT_HEADER + "\tBAD\t" + ArrayUtils.toStr(seatleSeekHeader),
 											log);
 		log.report(ext.getTime() + "\tFinished in " + ext.getTimeElapsed(time));
 	}
@@ -2611,24 +2611,24 @@ public class SuperNovo {
 											additionalComment = additionalComments.get(line[1] + ":" + line[2]);
 											// additionalComment = additionalComments.get(line[3].replaceAll("chr", ""));
 
-											resultElements = Array.subArray(line, indices);
-											resultElements = Array.concatAll(	new String[] {annotation[7], miniBamLink},
+											resultElements = ArrayUtils.subArray(line, indices);
+											resultElements = ArrayUtils.concatAll(	new String[] {annotation[7], miniBamLink},
 																												resultElements);
-											resultElements = Array.concatAll(	resultElements,
+											resultElements = ArrayUtils.concatAll(	resultElements,
 																												new String[] {ext.formDeci(	pctDenovoAllele[0],
 																																										3),
 																																			ext.formDeci(	pctDenovoAllele[1],
 																																										3),
 																																			ext.formDeci(	pctDenovoAllele[2],
 																																										3)});
-											resultElements = Array.concatAll(resultElements, annotation);
+											resultElements = ArrayUtils.concatAll(resultElements, annotation);
 											if (additionalComment != null
 													&& additionalComment.containsKey(line[45].substring(0, 2))) {
-												resultElements = Array.concatAll(	resultElements,
+												resultElements = ArrayUtils.concatAll(	resultElements,
 																													additionalComment.get(line[45].substring(	0,
 																																																		2)));
 											} else {
-												resultElements = Array.concatAll(	resultElements,
+												resultElements = ArrayUtils.concatAll(	resultElements,
 																													new String[] {".", ".", ".", ".", ".",
 																																				"."});
 											}
@@ -2647,7 +2647,7 @@ public class SuperNovo {
 													}
 												}
 											}
-											resultElements = Array.concatAll(resultElements, new String[] {tmp});
+											resultElements = ArrayUtils.concatAll(resultElements, new String[] {tmp});
 
 											if (!result.containsKey(line[3])) {
 												result.put(line[3], new Hashtable<String, String[]>());
@@ -2661,7 +2661,7 @@ public class SuperNovo {
 									// if (alleles[j].startsWith("+")) {
 									// System.out.println("missing "+markerName);
 									// }
-									annotation = Array.stringArray(seatleSeekHeader.length);
+									annotation = ArrayUtils.stringArray(seatleSeekHeader.length);
 									// this is capturing a subset of the indels
 									// if (readsCounts[0][0][orderedIndices[0][1]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO)
 									// {
@@ -2696,12 +2696,12 @@ public class SuperNovo {
 		}
 
 		if (annotationNeedsVars.size() > 0) {
-			Files.writeArray(	Array.toStringArray(annotationNeedsVars),
+			Files.writeArray(	ArrayUtils.toStringArray(annotationNeedsVars),
 												seatleSeqDir															+ "seattleSeq_input_" + new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date())
 																																	+ ".txt");
 		}
 		if (annotationNeedsInDels.size() > 0) {
-			Files.writeArray(	Array.toStringArray(annotationNeedsInDels),
+			Files.writeArray(	ArrayUtils.toStringArray(annotationNeedsInDels),
 												seatleSeqDir																+ "seattleSeq_input_InDels_" + new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date())
 																																		+ ".txt");
 		}
@@ -2737,7 +2737,7 @@ public class SuperNovo {
 
 		saveParsedResults(resultDir	+ DEFAULT_OUTPUT_FILENAME, null, result, geneCounts, geneTrioCounts,
 											outFormat,
-											PARSE_RESULT_HEADER	+ "\tBAD\t" + Array.toStr(seatleSeekHeader)
+											PARSE_RESULT_HEADER	+ "\tBAD\t" + ArrayUtils.toStr(seatleSeekHeader)
 																	+ "\tSKATgene\tfunc_region\tMAF_whites\tn_whites\tMAF_blacks\tn_blacks\totherAllelePairs",
 											log);
 		log.report(ext.getTime() + "\tFinished in " + ext.getTimeElapsed(time));
@@ -3896,8 +3896,8 @@ public class SuperNovo {
 		timer = new Date().getTime();
 
 		try {
-			thresholdsForReadCount = Array.toIntArray(thresholdsForReadCounts.split(","));
-			thresholdForMapping = Array.toIntArray(thresholdsForMapping.split(","));
+			thresholdsForReadCount = ArrayUtils.toIntArray(thresholdsForReadCounts.split(","));
+			thresholdForMapping = ArrayUtils.toIntArray(thresholdsForMapping.split(","));
 		} catch (Exception e) {
 			log.reportError("Error - failed to parse coverage thresholds: " + thresholdsForReadCounts);
 			log.reportException(e);
@@ -4048,7 +4048,7 @@ public class SuperNovo {
 		String temp;
 		int[] thresholdForMapping;
 
-		thresholdForMapping = Array.toIntArray(thresholdsForMapping.split(","));
+		thresholdForMapping = ArrayUtils.toIntArray(thresholdsForMapping.split(","));
 		temp = "TrioId\t#Reads_Threshold";
 		for (int element : thresholdForMapping) {
 			temp += "\tMapping>="	+ element + "_Child\tMapping>=" + element + "_Dad\tMapping>=" + element
@@ -4160,7 +4160,7 @@ public class SuperNovo {
 
 		if (params != null) {
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 

@@ -209,7 +209,7 @@ public class Files {
 		if (params.size() > 0) {
 			writer.println("#PBS -m ae"); // send mail when aborts or ends (add b, as in #PBS -m abe, for
 																		// begins as well)
-			writer.println("#PBS -l " + Array.toStr(Array.toStringArray(params), ","));
+			writer.println("#PBS -l " + ArrayUtils.toStr(ArrayUtils.toStringArray(params), ","));
 		}
 
 
@@ -219,7 +219,7 @@ public class Files {
 		writer.println();
 
 		if (defualtMods) {
-			writer.println(Array.toStr(PSF.Load.getAllModules(), "\n"));
+			writer.println(ArrayUtils.toStr(PSF.Load.getAllModules(), "\n"));
 			writer.println(PSF.Cmd.getProfilePLWithOutput(ext.rootOf(filename, false) + ".profile"));
 		}
 
@@ -272,7 +272,7 @@ public class Files {
 					writer.println("while [ -e \"plug\" ]; do ");
 					writer.println("    rep=$(java -jar "	+ ROOT_DIRECTORY
 													+ org.genvisis.common.PSF.Java.GENVISIS
-													+ " common.Files -nextRep patterns=" + Array.toStr(patterns, ",")
+													+ " common.Files -nextRep patterns=" + ArrayUtils.toStr(patterns, ",")
 													+ " lastRep=$rep wait=1000)");
 					writer.println("    echo \"Beginning replicate $rep\"");
 					lines = commands.split("\n");
@@ -292,7 +292,7 @@ public class Files {
 				throw new RuntimeException("Problem creating " + dir + filename);
 			}
 		}
-		return Array.toStringArray(v);
+		return ArrayUtils.toStringArray(v);
 	}
 
 	// TODO get rid of memoryPerProcRequestedInMb at some point
@@ -347,7 +347,7 @@ public class Files {
 		Vector<String> v;
 
 		if (jobSizes == null) {
-			files = Array.toStringArray(jobNamesWithAbsolutePaths);
+			files = ArrayUtils.toStringArray(jobNamesWithAbsolutePaths);
 		} else {
 			int[] jobOrder = Sort.getReverseIndices(Ints.toArray(jobSizes));
 			files = Sort.getOrdered(jobNamesWithAbsolutePaths, jobOrder);
@@ -358,7 +358,7 @@ public class Files {
 		v.add("cd " + batchDir);
 		while (count * maxJobsPerBatch < files.length) {
 			Files.qsubMultiple(batchDir	+ ext.removeDirectoryInfo(batchRoot) + "." + count,
-													Array.subArray(	files, count * maxJobsPerBatch,
+													ArrayUtils.subArray(	files, count * maxJobsPerBatch,
 																					Math.min((count + 1) * maxJobsPerBatch, files.length)),
 													forceMaxJobs ? maxJobsPerBatch : -1, memoryPerProcRequestedInMb,
 													totalMemoryRequestedInMb, walltimeRequestedInHours);
@@ -366,7 +366,7 @@ public class Files {
 						+ ext.removeDirectoryInfo(batchRoot) + "." + count);
 			count++;
 		}
-		Files.writeArray(Array.toStringArray(v), ext.parseDirectoryOfFile(batchRoot)	+ "master."
+		Files.writeArray(ArrayUtils.toStringArray(v), ext.parseDirectoryOfFile(batchRoot)	+ "master."
 																							+ ext.removeDirectoryInfo(batchRoot));
 		Files.chmod(ext.parseDirectoryOfFile(batchRoot)	+ "master."
 								+ ext.removeDirectoryInfo(batchRoot));
@@ -379,7 +379,7 @@ public class Files {
 		String[] commands;
 
 		if (jobSizes == null) {
-			commands = Array.toStringArray(commandsWithAbsolutePaths);
+			commands = ArrayUtils.toStringArray(commandsWithAbsolutePaths);
 		} else {
 			int[] jobOrder = Sort.getReverseIndices(Ints.toArray(jobSizes));
 			commands = Sort.getOrdered(commandsWithAbsolutePaths, jobOrder);
@@ -1059,11 +1059,11 @@ public class Files {
 		if (paramV != null) {
 			file1 = paramV.elementAt(0);
 			lookup1 = Integer.parseInt(paramV.elementAt(1));
-			indices1 = Array.toIntArray(paramV.elementAt(2).split("[\\s]+"));
+			indices1 = ArrayUtils.toIntArray(paramV.elementAt(2).split("[\\s]+"));
 			keepRowsUniqueToFile1 = paramV.elementAt(3).trim().toLowerCase().equals("true");
 			file2 = paramV.elementAt(4);
 			lookup2 = Integer.parseInt(paramV.elementAt(5));
-			indices2 = Array.toIntArray(paramV.elementAt(6).split("[\\s]+"));
+			indices2 = ArrayUtils.toIntArray(paramV.elementAt(6).split("[\\s]+"));
 			keepRowsUniqueToFile2 = paramV.elementAt(7).trim().toLowerCase().equals("true");
 			mergedFile = paramV.elementAt(8);
 
@@ -1120,16 +1120,16 @@ public class Files {
 					trav += (i == 0 ? "" : "\t") + line[indices1[i]];
 				}
 				if (used.containsKey(line[lookup1])) {
-					writer.println(trav + "\t" + Array.toStr(used.get(line[lookup1])));
+					writer.println(trav + "\t" + ArrayUtils.toStr(used.get(line[lookup1])));
 				} else if (hash.containsKey(line[lookup1])) {
-					writer.println(trav + "\t" + Array.toStr(hash.get(line[lookup1])));
+					writer.println(trav + "\t" + ArrayUtils.toStr(hash.get(line[lookup1])));
 					used.put(line[lookup1], hash.remove(line[lookup1]));
 				} else if (keepRowsUniqueToFile1) {
-					point = Array.stringArray(indices2.length, ".");
+					point = ArrayUtils.stringArray(indices2.length, ".");
 					if (Ints.indexOf(indices2, lookup2) != -1) {
 						point[Ints.indexOf(indices2, lookup2)] = line[lookup1];
 					}
-					writer.println(trav + "\t" + Array.toStr(point));
+					writer.println(trav + "\t" + ArrayUtils.toStr(point));
 				}
 			}
 			reader.close();
@@ -1142,11 +1142,11 @@ public class Files {
 		if (keepRowsUniqueToFile2) {
 			keys = HashVec.getKeys(hash);
 			for (String key : keys) {
-				line = Array.stringArray(indices1.length, ".");
+				line = ArrayUtils.stringArray(indices1.length, ".");
 				if (Ints.indexOf(indices1, lookup1) != -1) {
 					line[Ints.indexOf(indices1, lookup1)] = key;
 				}
-				writer.println(Array.toStr(line) + "\t" + Array.toStr(hash.get(key)));
+				writer.println(ArrayUtils.toStr(line) + "\t" + ArrayUtils.toStr(hash.get(key)));
 			}
 		}
 
@@ -1166,7 +1166,7 @@ public class Files {
 		if (paramV != null) {
 			file1 = paramV.elementAt(0);
 			lookup1 = Integer.parseInt(paramV.elementAt(1));
-			indices1 = Array.toIntArray(paramV.elementAt(2).split("[\\s]+"));
+			indices1 = ArrayUtils.toIntArray(paramV.elementAt(2).split("[\\s]+"));
 			keepRowsUniqueToFile1 = paramV.elementAt(3).trim().toLowerCase().equals("true");
 			file2 = paramV.elementAt(4);
 			lookup2 = Integer.parseInt(paramV.elementAt(5));
@@ -1263,7 +1263,7 @@ public class Files {
 					num = -1;
 				}
 
-				index = Array.binarySearch(rsNums, num, true);
+				index = ArrayUtils.binarySearch(rsNums, num, true);
 				if (index >= 0) {
 					writer.println(trav + "\t1");
 					used[index] = true;
@@ -1281,11 +1281,11 @@ public class Files {
 		if (keepRowsUniqueToFile2) {
 			for (int i = 0; i < rsNums.length; i++) {
 				if (!used[i]) {
-					line = Array.stringArray(indices1.length, ".");
+					line = ArrayUtils.stringArray(indices1.length, ".");
 					if (Ints.indexOf(indices1, lookup1) != -1) {
 						line[Ints.indexOf(indices1, lookup1)] = "rs" + rsNums[i];
 					}
-					writer.println(Array.toStr(line) + "\t0");
+					writer.println(ArrayUtils.toStr(line) + "\t0");
 				}
 			}
 		}
@@ -1350,7 +1350,7 @@ public class Files {
 					data[i][keys.length] = sHash.get("!colNames");
 
 					for (int j = 0; j < keys.length; j++) {
-						data[i][j] = Array.stringArray(data[i][keys.length].length, missingValue);
+						data[i][j] = ArrayUtils.stringArray(data[i][keys.length].length, missingValue);
 					}
 
 					for (int k = 0; k < keys.length; k++) {
@@ -1382,9 +1382,9 @@ public class Files {
 
 					for (int j = 0; j < keys.length; j++) {
 						if (parser.forcingFailCodes()) {
-							data[i][j] = Array.subArray(parser.getFailCodes(), 1);
+							data[i][j] = ArrayUtils.subArray(parser.getFailCodes(), 1);
 						} else {
-							data[i][j] = Array.stringArray(parser.getNumColumns() - 1, missingValue);
+							data[i][j] = ArrayUtils.stringArray(parser.getNumColumns() - 1, missingValue);
 						}
 					}
 
@@ -1405,7 +1405,7 @@ public class Files {
 							}
 						}
 						if (serializing && line != null) {
-							sHash.put(line[0], Array.subArray(line, 1));
+							sHash.put(line[0], ArrayUtils.subArray(line, 1));
 						}
 					}
 					parser.reportTruncatedLines();
@@ -1441,10 +1441,10 @@ public class Files {
 									tmp[j] = data[i][keys.length][j];
 								}
 							}
-							writer.print((hideIndex && i == 0 ? "" : delimiter) + Array.toStr(tmp, delimiter));
+							writer.print((hideIndex && i == 0 ? "" : delimiter) + ArrayUtils.toStr(tmp, delimiter));
 						} else {
 							writer.print((hideIndex && i == 0 ? "" : delimiter)
-														+ Array.toStr(data[i][keys.length], delimiter));
+														+ ArrayUtils.toStr(data[i][keys.length], delimiter));
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -1457,7 +1457,7 @@ public class Files {
 					writer.print(keys[j]);
 				}
 				for (int i = 0; i < data.length; i++) {
-					writer.print((hideIndex && i == 0 ? "" : delimiter) + Array.toStr(data[i][j], delimiter));
+					writer.print((hideIndex && i == 0 ? "" : delimiter) + ArrayUtils.toStr(data[i][j], delimiter));
 				}
 				writer.println();
 			}
@@ -1512,7 +1512,7 @@ public class Files {
 					data[0] = sHash.get("!colNames");
 
 					for (int j = 0; j < keys.length; j++) {
-						data[j + 1] = Array.stringArray(data[0].length, missingValue);
+						data[j + 1] = ArrayUtils.stringArray(data[0].length, missingValue);
 					}
 
 					for (int k = 0; k < keys.length; k++) {
@@ -1548,9 +1548,9 @@ public class Files {
 
 					for (int j = 0; j < keys.length; j++) {
 						if (parser.forcingFailCodes()) {
-							data[j + 1] = Array.subArray(parser.getFailCodes(), 1);
+							data[j + 1] = ArrayUtils.subArray(parser.getFailCodes(), 1);
 						} else {
-							data[j + 1] = Array.stringArray(parser.getNumColumns() - 1, missingValue);
+							data[j + 1] = ArrayUtils.stringArray(parser.getNumColumns() - 1, missingValue);
 						}
 					}
 
@@ -1572,7 +1572,7 @@ public class Files {
 							}
 						}
 						if (serializing && line != null) {
-							sHash.put(line[0], Array.subArray(line, 1));
+							sHash.put(line[0], ArrayUtils.subArray(line, 1));
 						}
 					}
 					parser.reportTruncatedLines();
@@ -1586,7 +1586,7 @@ public class Files {
 			} catch (OutOfMemoryError oome) {
 				log.reportError("Uh oh! Ran out of memory parsing file '"
 												+ fileParameters[i].trim().split("[\\s]+")[0] + "' at line:");
-				log.reportError(Array.toStr(line, "/"));
+				log.reportError(ArrayUtils.toStr(line, "/"));
 			} catch (Exception e) {
 				log.reportException(e);
 			}
@@ -1692,9 +1692,9 @@ public class Files {
 					if (count < 5 && log.getLevel() > 8) {
 						log.reportError("Warning duplicate key in lookup values ('"	+ key
 														+ "'); only the first value will be used:");
-						log.reportError(Array.toStr(lookupSource[hash.get(key)]));
+						log.reportError(ArrayUtils.toStr(lookupSource[hash.get(key)]));
 						log.reportError("...and not this one:");
-						log.reportError(Array.toStr(lookupSource[i]));
+						log.reportError(ArrayUtils.toStr(lookupSource[i]));
 					} else if (count == 5) {
 						log.reportError("...");
 					}
@@ -1725,7 +1725,7 @@ public class Files {
 				if (hash.containsKey(key)) {
 					data[i] = lookupSource[hash.get(key)];
 				} else {
-					data[i] = Array.stringArray(numColsInValues, missingValue);
+					data[i] = ArrayUtils.stringArray(numColsInValues, missingValue);
 					count++;
 				}
 			}
@@ -1814,7 +1814,7 @@ public class Files {
 		}
 		reader.close();
 		if (preserveKeyOrder) {
-			lines = Array.removeMissingValues(lines);
+			lines = ArrayUtils.removeMissingValues(lines);
 			Files.writeArray(lines, fileOut);
 		}
 	}
@@ -1841,7 +1841,7 @@ public class Files {
 
 		try {
 			writer = new PrintWriter(new FileWriter(outputFile));
-			writer.println("\t" + Array.toStr(fileDescriptions) + "\tAll");
+			writer.println("\t" + ArrayUtils.toStr(fileDescriptions) + "\tAll");
 			for (String[] parameter : parameters) {
 				writer.print(parameter[0]);
 				stdev = false;
@@ -1874,9 +1874,9 @@ public class Files {
 					counts = new int[files.length];
 					for (int j = 0; j < files.length; j++) {
 						data = generateDataset(	files[j], determineDelimiter(files[j], log), values,
-																		Array.toStringArray(filters), log);
-						array = Array.toDoubleArray(Matrix.extractColumn(data, 0));
-						means[j] = Array.mean(array);
+																		ArrayUtils.toStringArray(filters), log);
+						array = ArrayUtils.toDoubleArray(Matrix.extractColumn(data, 0));
+						means[j] = ArrayUtils.mean(array);
 						counts[j] = data.length;
 						if (counts[j] > 0) {
 							means[files.length] += means[j] * counts[j];
@@ -1888,24 +1888,24 @@ public class Files {
 																															: ext.formDeci(	means[j],
 																																							sf)
 																																+ (stdev	? " (+/- "
-																																							+ ext.formDeci(	Array.stdev(array),
+																																							+ ext.formDeci(	ArrayUtils.stdev(array),
 																																														sf)
 																																						+ ")"
 																																					: ""))
 																									: (blank ? "" : ".")));
 						} else {
-							writer.print("\t" + (counts[j] > 0	? ext.formDeci(Array.stdev(array), sf)
+							writer.print("\t" + (counts[j] > 0	? ext.formDeci(ArrayUtils.stdev(array), sf)
 																									: (blank ? "" : ".")));
 						}
 					}
 					if (parameter[1].equals("mean")) {
-						writer.print("\t" + (Array.sum(counts) > 0
+						writer.print("\t" + (ArrayUtils.sum(counts) > 0
 																													? (percent	? ext.formDeci(means[files.length]
-																																											/ Array.sum(counts)
+																																											/ ArrayUtils.sum(counts)
 																																										* 100, sf)
 																																			+ "%"
 																																		: ext.formDeci(means[files.length]
-																																											/ Array.sum(counts),
+																																											/ ArrayUtils.sum(counts),
 																																										sf))
 																												: (blank ? "" : ".")));
 					} else {
@@ -1926,11 +1926,11 @@ public class Files {
 					counts = new int[files.length];
 					for (int j = 0; j < files.length; j++) {
 						data = generateDataset(	files[j], determineDelimiter(files[j], log), values,
-																		Array.toStringArray(filters), log);
+																		ArrayUtils.toStringArray(filters), log);
 						counts[j] = data.length;
 						writer.print("\t" + (counts[j] == 0 ? (blank ? "" : "0") : counts[j]));
 					}
-					writer.print("\t" + (Array.sum(counts) == 0 ? (blank ? "" : "0") : Array.sum(counts)));
+					writer.print("\t" + (ArrayUtils.sum(counts) == 0 ? (blank ? "" : "0") : ArrayUtils.sum(counts)));
 
 				} else if (parameter[1].contains("percentile")) {
 					percentile = Integer.parseInt(parameter[1].split(" ")[0].trim());
@@ -1948,8 +1948,8 @@ public class Files {
 					counts = new int[files.length];
 					for (int j = 0; j < files.length; j++) {
 						data = generateDataset(	files[j], determineDelimiter(files[j], log), values,
-																		Array.toStringArray(filters), log);
-						array = Array.toDoubleArray(Matrix.extractColumn(data, 0));
+																		ArrayUtils.toStringArray(filters), log);
+						array = ArrayUtils.toDoubleArray(Matrix.extractColumn(data, 0));
 						counts[j] = data.length;
 						if (counts[j] > 0) {
 							Arrays.sort(array);
@@ -2130,7 +2130,7 @@ public class Files {
 														+ size + "; line " + (i + 1) + ": " + line.length + ")");
 						log.reportError("   Make sure that the delimiter is set correctly");
 					}
-					matrix[i] = Array.subArray(line, inc, inc + step > size ? size : inc + step);
+					matrix[i] = ArrayUtils.subArray(line, inc, inc + step > size ? size : inc + step);
 				}
 				reader.close();
 
@@ -2361,7 +2361,7 @@ public class Files {
 		int size = -1;
 
 		try {
-			if (Files.exists(filename, jar)) {
+			if (Files.exists(filename, jar, false)) {
 				if (jar) {
 					size = ClassLoader.getSystemResourceAsStream(filename).available();
 				} else {
@@ -2401,7 +2401,7 @@ public class Files {
 	}
 
 	public static boolean exists(String dir, String[] filenames) {
-		return exists(dir, filenames, false);
+		return exists(dir, filenames, true);
 	}
 
 	public static boolean exists(String dir, String[] filenames, boolean treatEmptyAsMissing) {
@@ -2419,7 +2419,7 @@ public class Files {
 	}
 
 	public static boolean exists(String dir, Iterable<String> filenames) {
-		return exists(dir, filenames, false);
+		return exists(dir, filenames, true);
 	}
 
 	public static boolean exists(	String dir, Iterable<String> filenames,
@@ -2442,7 +2442,7 @@ public class Files {
 	}
 
 	public static boolean exists(String filename, boolean jar) {
-		return exists(filename, jar, false);
+		return exists(filename, jar, true);
 	}
 
 	public static boolean exists(String filename, boolean jar, boolean treatEmptyAsMissing) {
@@ -2462,18 +2462,72 @@ public class Files {
 	}
 
 	/**
+	 * Ensures all parent directories of the given file exist.
+	 *
+	 * @see {@link File#mkdirs()}
+	 */
+	public static boolean ensurePathExists(String filename) {
+		String dir = ext.parseDirectoryOfFile(filename);
+		File f = new File(dir);
+		return f.mkdirs();
+	}
+
+	/**
 	 * @param dir directory, set to "" if full paths
+	 * @param verbose report an error to the log for each filename missing
+	 * @param log
 	 * @param filenames array of filenames to check...all will be checked
+	 * @return true if all files exist
+	 */
+	public static boolean checkAllFiles(String dir, boolean verbose, Logger log, String... filenames) {
+		return checkAllFiles(dir, false, verbose, log, filenames);
+	}
+
+	/**
+	 * @param dir directory, set to "" if full paths
+	 * @param treatEmptyAsMissing TODO
+	 * @param verbose report an error to the log for each filename missing
+	 * @param log
+	 * @param filenames array of filenames to check...all will be checked
+	 * @return true if all files exist
+	 */
+	public static boolean checkAllFiles(String dir, boolean treatEmptyAsMissing, boolean verbose, Logger log, String... filenames) {
+		boolean result = true;
+		for (String filename : filenames) {
+			if (!Files.exists(dir + filename, false, treatEmptyAsMissing)) {
+				if (verbose & log != null) {
+					log.reportError("Error - could not find file " + dir + filename);
+				}
+				result = false;
+			}
+		}
+		return result;
+	}
+	/**
+	 * @param dir directory, set to "" if full paths
+	 * @param filenames iterable of filenames to check...all will be checked
 	 * @param verbose report an error to the log for each filename missing
 	 * @param log
 	 * @return true if all files exist
 	 */
-	public static boolean checkAllFiles(String dir, String[] filenames, boolean verbose, Logger log) {
+	public static boolean checkAllFiles(String dir, Iterable<String> filenames, boolean verbose, Logger log) {
+		return checkAllFiles(dir, filenames, false, verbose, log);
+	}
+
+	/**
+	 * @param dir directory, set to "" if full paths
+	 * @param filenames iterable of filenames to check...all will be checked
+	 * @param treatEmptyAsMissing TODO
+	 * @param verbose report an error to the log for each filename missing
+	 * @param log
+	 * @return true if all files exist
+	 */
+	public static boolean checkAllFiles(String dir, Iterable<String> filenames, boolean treatEmptyAsMissing, boolean verbose, Logger log) {
 		boolean result = true;
-		for (int i = 0; i < filenames.length; i++) {
-			if (!Files.exists(dir + filenames[i])) {
+		for (String filename : filenames) {
+			if (!Files.exists(dir + filename, false, treatEmptyAsMissing)) {
 				if (verbose & log != null) {
-					log.reportError("Error - could not find file " + dir + filenames[i]);
+					log.reportError("Error - could not find file " + dir + filename);
 				}
 				result = false;
 			}
@@ -2496,6 +2550,23 @@ public class Files {
 
 	public static boolean isWindows() {
 		return System.getProperty("os.name").startsWith("Windows");
+	}
+
+	/**
+	 * A worst-case estimate of the size of all files matching the specified suffix within the given
+	 * directory. e.g. if there were 200 matching files, the largest being 20MB, this would return 200
+	 * * 20 * 1000000.
+	 */
+	public static long worstCaseDirSize(String directory, String suffix, boolean jar) {
+		String[] files = listFullPaths(directory, suffix, jar);
+
+		long size = -1;
+		// find the largest file
+		for (String f : files) {
+			size = Math.max(size, getSize(f, jar));
+		}
+
+		return files.length * size;
 	}
 
 	public static String[] listFullPaths(String directory, final String suffix, boolean jar) {
@@ -2577,7 +2648,7 @@ public class Files {
 
 				jarFile.close();
 
-				return Array.toStringArray(v);
+				return ArrayUtils.toStringArray(v);
 			} catch (Exception e) {
 				System.err.println("Error reading files in jar file");
 				e.printStackTrace();
@@ -2664,7 +2735,7 @@ public class Files {
 
 				jarFile.close();
 
-				return Array.toStringArray(v);
+				return ArrayUtils.toStringArray(v);
 			} catch (Exception e) {
 				System.err.println("Error reading files in jar file");
 				e.printStackTrace();
@@ -2714,7 +2785,7 @@ public class Files {
 
 		allFiles = new Vector<String>();
 		traverseTree(dir, "", allFiles, jar);
-		return Array.toStringArray(allFiles);
+		return ArrayUtils.toStringArray(allFiles);
 	}
 
 	private static void traverseTree(String root, String dir, Vector<String> allFiles, boolean jar) {
@@ -2725,7 +2796,7 @@ public class Files {
 			traverseTree(root, dir + dir2 + "/", allFiles, jar);
 		}
 
-		HashVec.addAllInArrayToVector(Array.addPrefixSuffixToArray(	list(root + dir, null, jar), dir,
+		HashVec.addAllInArrayToVector(ArrayUtils.addPrefixSuffixToArray(	list(root + dir, null, jar), dir,
 																																null),
 																	allFiles);
 	}
@@ -2786,9 +2857,9 @@ public class Files {
 
 		// get all files in the directory, excluding the crf itself and its corresponding log
 		files = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false, false);
-		files = Array.addStrToArray("outfile.xln", files, 0);
+		files = ArrayUtils.addStrToArray("outfile.xln", files, 0);
 		files =
-					Array.addStrToArray("# include add_filename_as_first_column after the output filename if you want it",
+					ArrayUtils.addStrToArray("# include add_filename_as_first_column after the output filename if you want it",
 															files, 1);
 		for (int i = 3; i < files.length; i++) {
 			files[i] += " skip=1";
@@ -2802,7 +2873,7 @@ public class Files {
 				addFilename = true;
 			}
 			files = new String[params.size()];
-			skips = Array.intArray(params.size(), 0);
+			skips = ArrayUtils.intArray(params.size(), 0);
 			for (int i = 0; i < files.length; i++) {
 				line = params.elementAt(i).trim().split("[\\s]+");
 				files[i] = line[0];
@@ -2825,7 +2896,7 @@ public class Files {
 		// get all files in the directory, excluding the crf itself and its corresponding log
 		files = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false, false);
 		params = parseControlFile(filename, "rename",
-															Array.toStringArray(Matrix.transpose(new String[][] {files, files}),
+															ArrayUtils.toStringArray(Matrix.transpose(new String[][] {files, files}),
 																									"\t"),
 															log);
 		if (params != null) {
@@ -2835,7 +2906,7 @@ public class Files {
 				line = params.elementAt(i).trim().split("\t", -1);
 				if (line.length != 2) {
 					log.reportError("Error - skipping this line, invalid number of arguments (needs to be tab delimited): "
-													+ Array.toStr(line, "/"));
+													+ ArrayUtils.toStr(line, "/"));
 					problem = true;
 				} else {
 					matchingFilenames[i] = line;
@@ -2892,7 +2963,7 @@ public class Files {
 				String[] line = readers[0].readLine().trim().split("\t");
 				String key = line[keyColumn];
 				if (skipKeys == null || ext.indexOfStr(key, skipKeys) < 0) {
-					writer.print(Array.toStr(Array.subArray(line, columns)));
+					writer.print(ArrayUtils.toStr(ArrayUtils.subArray(line, columns)));
 					for (int i = 1; i < readers.length; i++) {
 						String[] oLine = readers[i].readLine().trim().split("\t");
 						if (!key.equals(oLine[keyColumn])) {
@@ -2900,7 +2971,7 @@ public class Files {
 							log.reportError(error);
 							throw new IllegalStateException(error);
 						} else {
-							writer.print("\t" + Array.toStr(Array.subArray(oLine, columns)));
+							writer.print("\t" + ArrayUtils.toStr(ArrayUtils.subArray(oLine, columns)));
 						}
 					}
 					writer.println();
@@ -2964,17 +3035,17 @@ public class Files {
 					params.remove(count);
 				} else {
 					if (line.length == 1) {
-						line = Array.addStrToArray("", line);
+						line = ArrayUtils.addStrToArray("", line);
 					}
 					if (line.length > 2) {
-						System.out.println("Error more than two tokens in: " + Array.toStr(line, " / "));
+						System.out.println("Error more than two tokens in: " + ArrayUtils.toStr(line, " / "));
 					}
 					substitutions[count] = line;
 					count++;
 				}
 			}
 			if (substitutions.length > count) {
-				boolean[] keeps = Array.booleanArray(substitutions.length, true);
+				boolean[] keeps = ArrayUtils.booleanArray(substitutions.length, true);
 				for (int i = count; i < keeps.length; i++) {
 					keeps[i] = false;
 				}
@@ -3068,7 +3139,7 @@ public class Files {
 
 		if (skips != null) {
 			if (skips.length == 0) {
-				skips = Array.addIntToArray(0, Array.intArray(originalFiles.length - 1, 1), 0);
+				skips = ArrayUtils.addIntToArray(0, ArrayUtils.intArray(originalFiles.length - 1, 1), 0);
 			}
 			if (skips.length != originalFiles.length) {
 				log.reportError("Error - mismatched length of arrays for the files and number of lines to skip for file "
@@ -3240,7 +3311,7 @@ public class Files {
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
 			for (String[] element : matrix) {
-				writer.println(Array.toStr(element, delimiterToUse));
+				writer.println(ArrayUtils.toStr(element, delimiterToUse));
 			}
 			writer.flush();
 			writer.close();
@@ -3480,7 +3551,7 @@ public class Files {
 		do {
 			trav++;
 			done = true;
-			trav = findNextRep(Array.addStrToArray("#.taken", patterns), numDigits, trav);
+			trav = findNextRep(ArrayUtils.addStrToArray("#.taken", patterns), numDigits, trav);
 			Files.writeArray(new String[0], trav + "." + rand + ".reserved");
 			if (new File(trav + ".taken").exists()) {
 				done = false;
@@ -3564,10 +3635,10 @@ public class Files {
 		boolean has = true;
 		if (toSearch.length > header.length) {
 			has = false;
-		} else if (Array.countIf(	ext.indexFactors(toSearch, header, true, log, verbose, false),
+		} else if (ArrayUtils.countIf(	ext.indexFactors(toSearch, header, true, log, verbose, false),
 															-1) > 0) {
 			if (verbose) {
-				log.reportError("Searched header " + Array.toStr(header));
+				log.reportError("Searched header " + ArrayUtils.toStr(header));
 			}
 			has = false;
 		}
@@ -3616,6 +3687,10 @@ public class Files {
 		return lines[0].trim().split(delimiter);
 	}
 
+	public static String getFirstLineOfFile(String filename, Logger log) {
+		return getFirstNLinesOfFile(filename, 1, log)[0];
+	}
+
 	public static String[] getFirstNLinesOfFile(String filename, int nLines, Logger log) {
 		return getFirstNLinesOfFile(filename, nLines, null, log);
 	}
@@ -3662,7 +3737,7 @@ public class Files {
 			}
 			reader.close();
 
-			return Array.toStringArray(v);
+			return ArrayUtils.toStringArray(v);
 
 		} catch (FileNotFoundException fnfe) {
 			if (log != null) {
@@ -3693,13 +3768,13 @@ public class Files {
 			String line;
 			while ((line = reader.readLine()) != null) {
 				String[] tmp = line.trim().split(delimiter);
-				if (Array.countIf(ext.indexFactors(containing, tmp, false, log, false, false), -1) == 0) {
+				if (ArrayUtils.countIf(ext.indexFactors(containing, tmp, false, log, false, false), -1) == 0) {
 					reader.close();
 					return tmp;
 				}
 			}
 			reader.close();
-			log.reportError("Could not find the header containing "	+ Array.toStr(containing)
+			log.reportError("Could not find the header containing "	+ ArrayUtils.toStr(containing)
 													+ " in file " + filename);
 			return null;
 		} catch (FileNotFoundException fnfe) {
@@ -3719,7 +3794,7 @@ public class Files {
 		if (v == null) {
 			return null;
 		} else {
-			return Array.splitStrings(Array.toStringArray(v), tab);
+			return ArrayUtils.splitStrings(ArrayUtils.toStringArray(v), tab);
 		}
 	}
 
@@ -3731,7 +3806,7 @@ public class Files {
 		String temp;
 
 		if (new File(filename).length() == 0) {
-			Files.writeArray(Array.addStrToArray(command, sampleCode, 0), filename);
+			Files.writeArray(ArrayUtils.addStrToArray(command, sampleCode, 0), filename);
 			return null;
 		}
 
@@ -3745,7 +3820,7 @@ public class Files {
 			}
 			if (!reader.ready()) {
 				reader.close();
-				Files.writeArray(Array.addStrToArray(command, sampleCode, 0), filename);
+				Files.writeArray(ArrayUtils.addStrToArray(command, sampleCode, 0), filename);
 				return null;
 			} else {
 				v = new Vector<String>();
@@ -3797,16 +3872,16 @@ public class Files {
 											patterns, PBS_MEM, PBS_PROC, null);
 				v.add(qsubs[0]);
 			}
-			writeArray(Array.toStringArray(v), "master." + ext.rootOf(filename));
+			writeArray(ArrayUtils.toStringArray(v), "master." + ext.rootOf(filename));
 			Files.chmod("master." + ext.rootOf(filename));
 		} else {
 			if (changeToCurrentWorkingDirectoryFirst) {
-				lines = Array.addStrToArray("cd " + ext.pwd(), lines);
+				lines = ArrayUtils.addStrToArray("cd " + ext.pwd(), lines);
 			}
 			if (start == stop) {
-				qsub(ext.rootOf(filename) + ".qsub", Array.toStr(lines, "\n"), PBS_MEM, PBS_PROC, 1);
+				qsub(ext.rootOf(filename) + ".qsub", ArrayUtils.toStr(lines, "\n"), PBS_MEM, PBS_PROC, 1);
 			} else {
-				qsubs = qsub(	"", ext.rootOf(filename) + "#", start, stop, Array.toStr(lines, "\n"),
+				qsubs = qsub(	"", ext.rootOf(filename) + "#", start, stop, ArrayUtils.toStr(lines, "\n"),
 											patterns, PBS_MEM, PBS_PROC, null);
 				if (qsubs.length > 1) {
 					writeArray(qsubs, "master." + ext.rootOf(filename));
@@ -4174,7 +4249,7 @@ public class Files {
 
 		if (params != null) {
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 

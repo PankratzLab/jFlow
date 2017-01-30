@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 import org.genvisis.CLI;
 import org.genvisis.CLI.Arg;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -90,7 +90,7 @@ public class FDR {
 
 
 	private static void computeFromFile(String pvalFile, double q, String output, Logger log) {
-		double[] pvals = Array.toDoubleArray(HashVec.loadFileToStringArray(	pvalFile, false,
+		double[] pvals = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(	pvalFile, false,
 																																				new int[] {0}, false));
 		log.reportTimeInfo("False discovery rate set to " + q);
 		FDR f = compute(pvals, q);

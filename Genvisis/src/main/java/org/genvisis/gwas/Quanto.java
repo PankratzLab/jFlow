@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class Quanto {
@@ -32,11 +32,11 @@ public class Quanto {
 				if (line.length > 3) {
 					freq = line[0];
 					prev = 999;
-					line = Array.subArray(line, 1);
+					line = ArrayUtils.subArray(line, 1);
 				}
 				trav = Double.parseDouble(line[1]);
 				if (prev < 0.8 && trav >= 0.8) {
-					writer.println(freq + "\t" + Array.toStr(line));
+					writer.println(freq + "\t" + ArrayUtils.toStr(line));
 				}
 
 				prev = trav;

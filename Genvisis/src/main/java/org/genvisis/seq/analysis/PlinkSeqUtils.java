@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Properties;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -377,7 +377,7 @@ public class PlinkSeqUtils {
 																																		desc, type, log);
 
 								} catch (NumberFormatException nfe) {
-									log.reportTimeInfo("Invalid number on line " + Array.toStr(line));
+									log.reportTimeInfo("Invalid number on line " + ArrayUtils.toStr(line));
 									log.reportException(nfe);
 								}
 

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -61,7 +61,7 @@ public class CNVSampleQC {
 								&& (ext.indexFactors(ID_HEADS, line, false, true)[0] == -1));
 			if (!reader.ready()) {
 				log.reportError("Error - reached the end of the file without finding a line with the following tokens: "
-												+ Array.toStr(QC_HEADS));
+												+ ArrayUtils.toStr(QC_HEADS));
 				log.reportError("      - perhaps the delimiter is set incorrectly? Determing most stable delimiter...");
 				reader.close();
 			}

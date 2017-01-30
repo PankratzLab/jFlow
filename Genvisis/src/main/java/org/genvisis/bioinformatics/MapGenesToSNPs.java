@@ -10,7 +10,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -146,7 +146,7 @@ public class MapGenesToSNPs {
 		}
 		log.report("Found " + snps.size() + " SNPs in these genes");
 
-		Files.combine(Array.toStringArray(snps), Array.toStringArray(paramV), "SNP", outputFilename,
+		Files.combine(ArrayUtils.toStringArray(snps), ArrayUtils.toStringArray(paramV), "SNP", outputFilename,
 									log, true);
 	}
 }

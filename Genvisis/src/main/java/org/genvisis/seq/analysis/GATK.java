@@ -3,7 +3,7 @@ package org.genvisis.seq.analysis;
 import java.io.File;
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -399,7 +399,7 @@ public class GATK {
 			command.add(NT);
 			command.add(numThreads + "");
 		}
-		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs,
+		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputs, outputs,
 																						verbose, overWriteExistingOutput, false, log);
 	}
 
@@ -411,7 +411,7 @@ public class GATK {
 				log.report("Warning - known indel file(s) were not provided, skipping known indel realignment");
 			} else {
 				log.report("Warning - could not find all of the following known indel files:\n"
-										+ Array.toStr(knownSitesIndelFile, "\n"));
+										+ ArrayUtils.toStr(knownSitesIndelFile, "\n"));
 			}
 		}
 		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
@@ -529,7 +529,7 @@ public class GATK {
 				log.report(ext.getTime()+ " Info - will annotate variants from " + bamFile
 										+ " with db snp file " + dbSnpFile);
 			}
-			input = Array.concatAll(input, new String[] {dbSnpFile});
+			input = ArrayUtils.concatAll(input, new String[] {dbSnpFile});
 		}
 
 		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
@@ -554,7 +554,7 @@ public class GATK {
 	 */
 	public boolean combinePonVcfs(String[] vcfs, String outputVcf, int minN, Logger log) {
 		String[] input = new String[] {referenceGenomeFasta, regionsFile};
-		input = Array.concatAll(input, vcfs);
+		input = ArrayUtils.concatAll(input, vcfs);
 		String[] outputs = new String[] {outputVcf, outputVcf + VCF_INDEX};
 
 		ArrayList<String> command = new ArrayList<String>();
@@ -580,7 +580,7 @@ public class GATK {
 		command.add(regionsFile);
 		command.add(O);
 		command.add(outputVcf);
-		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs,
+		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", input, outputs,
 																						verbose, overWriteExistingOutput, false, log);
 	}
 
@@ -589,7 +589,7 @@ public class GATK {
 		String[] input = new String[] {	referenceGenomeFasta, normalBam, tumorBam, dbSnpKnownSites,
 																		regionsFile, cosmicKnownSites};
 		if (pon != null) {
-			input = Array.concatAll(input, new String[] {pon});
+			input = ArrayUtils.concatAll(input, new String[] {pon});
 		} else {
 			log.reportTimeWarning("Running tumor normal calling without PON");
 		}
@@ -621,7 +621,7 @@ public class GATK {
 		command.add(regionsFile);
 		command.add(O);
 		command.add(outputVCF);
-		boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input,
+		boolean progress = CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", input,
 																												outputs, verbose, overWriteExistingOutput,
 																												false, log);
 
@@ -751,7 +751,7 @@ public class GATK {
 		command.add(O);
 		command.add(outputVCF);
 		String[] outputs = new String[] {outputVCF, outputVCF + VCF_GZ_INDEX};
-		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs,
+		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", input, outputs,
 																						verbose, overWriteExistingOutput, false, log);
 	}
 
@@ -778,7 +778,7 @@ public class GATK {
 		command.add(O);
 		command.add(outputVCF);
 		String[] outputs = new String[] {outputVCF, outputVCF + VCF_GZ_INDEX};
-		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs,
+		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", input, outputs,
 																						verbose, overWriteExistingOutput, false, log);
 	}
 
@@ -805,7 +805,7 @@ public class GATK {
 		command.add(O);
 		command.add(outputVCF);
 		String[] outputs = new String[] {outputVCF, outputVCF + VCF_GZ_INDEX};
-		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs,
+		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", input, outputs,
 																						verbose, overWriteExistingOutput, false, log);
 	}
 
@@ -840,7 +840,7 @@ public class GATK {
 		}
 
 		String[] outputs = new String[] {outputVcf, outputVcf + VCF_INDEX};
-		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs,
+		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", input, outputs,
 																						verbose, overWriteExistingOutput, false, log);
 	}
 
@@ -855,8 +855,8 @@ public class GATK {
 																			outputVCF};
 		if (addDBSNP) {
 			String[] dbSnp = new String[] {DB_SNP, getDbSnpTraining()};
-			command = Array.concatAll(command, dbSnp);
-			inputFiles = Array.concatAll(inputFiles, new String[] {getDbSnpTraining()});
+			command = ArrayUtils.concatAll(command, dbSnp);
+			inputFiles = ArrayUtils.concatAll(inputFiles, new String[] {getDbSnpTraining()});
 		}
 
 		progress = CmdLine.runCommandWithFileChecks(command, "", inputFiles, outputFiles, verbose,
@@ -925,7 +925,7 @@ public class GATK {
 																			VARIANT_RECALIBRATOR, R, referenceGenomeFasta, INPUT,
 																			inputVCF, MODE, SNP, TRANCHES_FILE, tranchesFile, RECAL_FILE,
 																			recalFile, R_SCRIPT_FILE, rscriptFile};
-		command = Array.concatAll(command, buildAns(true), getCurrentResourceBundle(), buildTranches());
+		command = ArrayUtils.concatAll(command, buildAns(true), getCurrentResourceBundle(), buildTranches());
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
 																						overWriteExistingOutput, false,
 																						(altLog == null ? log : altLog));
@@ -956,7 +956,7 @@ public class GATK {
 																			MAX_GAUSSIANS, DEFAULT_MAX_GAUSSIANS,
 																			INDEL_RESOURCE_FULL_MILLS, getMillsIndelTraining(),
 																			INDEL_RESOURCE_FULL_DBSNP, getDbSnpTraining()};
-		command = Array.concatAll(command, buildAns(false), buildTranches());
+		command = ArrayUtils.concatAll(command, buildAns(false), buildTranches());
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
 																						overWriteExistingOutput, true,
 																						(altLog == null ? log : altLog));
@@ -989,7 +989,7 @@ public class GATK {
 	public boolean jointGenotypeGVCFs(String[] inputGVCFs, String output, String restrictContig,
 																		int numWithinSampleThreads, Logger altLog) {
 		String[] inputs = new String[] {referenceGenomeFasta};
-		inputs = Array.concatAll(inputs, inputGVCFs);
+		inputs = ArrayUtils.concatAll(inputs, inputGVCFs);
 		String[] inputGVCFArgs = new String[inputGVCFs.length * 2];
 		int index = 0;
 		for (String inputGVCF : inputGVCFs) {
@@ -1003,10 +1003,10 @@ public class GATK {
 																			numWithinSampleThreads + ""};
 		if (restrictContig != null) {
 			String[] restriction = new String[] {L, restrictContig};
-			command = Array.concatAll(command, restriction);
+			command = ArrayUtils.concatAll(command, restriction);
 			log.reportTimeInfo("Restricting joint genotyping to " + restrictContig);
 		}
-		command = Array.concatAll(command, inputGVCFArgs);
+		command = ArrayUtils.concatAll(command, inputGVCFArgs);
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, new String[] {output}, verbose,
 																						overWriteExistingOutput, true,
 																						(altLog == null ? log : altLog));
@@ -1024,7 +1024,7 @@ public class GATK {
 																			COMBINE_VARIANTS, R, referenceGenomeFasta, O, output,
 																			"-genotypeMergeOptions", "UNIQUIFY"};
 		if (numthreads > 1) {
-			command = Array.concatAll(command, new String[] {NT, numthreads + ""});
+			command = ArrayUtils.concatAll(command, new String[] {NT, numthreads + ""});
 		}
 		String[] inputArgVCF = new String[vcfs.length * 2];
 
@@ -1035,7 +1035,7 @@ public class GATK {
 			inputArgVCF[index] = vcf2;
 			index++;
 		}
-		command = Array.concatAll(command, inputArgVCF);
+		command = ArrayUtils.concatAll(command, inputArgVCF);
 		return CmdLine.runCommandWithFileChecks(command, "", vcfs,
 																						new String[] {output,
 																													output.endsWith(".gz")	? output
@@ -1388,13 +1388,13 @@ public class GATK {
 			knowns[2 * i] = commandToAdd;
 			knowns[2 * i + 1] = values[i];
 		}
-		command = Array.concatAll(command, knowns);
+		command = ArrayUtils.concatAll(command, knowns);
 		return command;
 	}
 
 	private String[] handleKnownSites(String[] neccesaryInputFiles, String[] command) {
-		neccesaryInputFiles = Array.concatAll(neccesaryInputFiles, knownSitesIndelFile);
-		neccesaryInputFiles = Array.concatAll(neccesaryInputFiles, knownSitesSnpFile);
+		neccesaryInputFiles = ArrayUtils.concatAll(neccesaryInputFiles, knownSitesIndelFile);
+		neccesaryInputFiles = ArrayUtils.concatAll(neccesaryInputFiles, knownSitesSnpFile);
 		return neccesaryInputFiles;
 	}
 

@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -40,7 +40,7 @@ public class PermuteOnePer {
 	public PermuteOnePer(String[] famIDs, double[] trait, int[][] variables) {
 		this(	famIDs, trait, variables,
 					new String[][] {new String[] {"Trait"},
-													Array.stringArraySequence(variables.length, "Var ")});
+													ArrayUtils.stringArraySequence(variables.length, "Var ")});
 	}
 
 	public PermuteOnePer(String[] famIDs, double[] trait, int[][] variables, String[][] varNames) {
@@ -77,7 +77,7 @@ public class PermuteOnePer {
 																			+ "')");
 				}
 				Collections.sort(v);
-				order = Array.toIntArray(v);
+				order = ArrayUtils.toIntArray(v);
 				Arrays.sort(order);
 				counts[i] = order[order.length - 1] - order[0] + 1;
 				offsets[i] = order[0];
@@ -228,7 +228,7 @@ public class PermuteOnePer {
 		}
 
 		try {
-			pop = procStrings(Array.toStringArray(v), varNames);
+			pop = procStrings(ArrayUtils.toStringArray(v), varNames);
 			writer = new PrintWriter(new FileWriter(filename + "-summary.out"));
 			writer.println(pop.getSummary());
 			writer.println();
@@ -237,7 +237,7 @@ public class PermuteOnePer {
 			writer.close();
 			double[][] results = pop.getResults()[0];
 			for (double[] result : results) {
-				System.out.println(Array.toStr(result));
+				System.out.println(ArrayUtils.toStr(result));
 			}
 		} catch (IOException ioe) {
 			System.err.println("Error writing file \"" + filename + "-summary.out" + "\"");
@@ -345,7 +345,7 @@ public class PermuteOnePer {
 			}
 			for (int j = 0; j < data.length; j++) {
 				if (data[j].length > 0) {
-					aggregateSums[j] += Array.mean(data[j]) * data[j].length / sum;
+					aggregateSums[j] += ArrayUtils.mean(data[j]) * data[j].length / sum;
 					aggregateCounts[j] += data[j].length / sum;
 				}
 			}

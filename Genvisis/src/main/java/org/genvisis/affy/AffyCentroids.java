@@ -12,7 +12,7 @@ import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.stats.Maths;
@@ -297,7 +297,7 @@ public class AffyCentroids implements Serializable {
 	}
 
 	public static float quant(float[] array, float q) {
-		float[] copy = Array.sortedCopy(array);
+		float[] copy = ArrayUtils.sortedCopy(array);
 		try {
 			if (q > 1 || q < 0) {
 				return 0;
@@ -390,7 +390,7 @@ public class AffyCentroids implements Serializable {
 		proj = new Project(filename, logfile, false);
 		try {
 			if (fromGenotypes) {
-				parseCentroids(proj, Array.booleanArray(proj.getSamples().length, true), 1, callConfidence);
+				parseCentroids(proj, ArrayUtils.booleanArray(proj.getSamples().length, true), 1, callConfidence);
 			} else if (sampleFilter) {
 				parseCentroidsFilteredSamples(proj, 1, callConfidence);
 			} else if (!compute.equals("")) {

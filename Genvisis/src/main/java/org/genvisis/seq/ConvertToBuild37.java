@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Positions;
@@ -114,7 +114,7 @@ public class ConvertToBuild37 {
 			order = Sort.getSort2DIndices(chrs, positions);
 			locs = Sort.getOrdered(locs, order);
 			if (new File(dir + "liftOver.in").exists()
-					&& Array.equals(locs, HashVec.loadFileToStringArray(dir	+ "liftOver.in", false,
+					&& ArrayUtils.equals(locs, HashVec.loadFileToStringArray(dir	+ "liftOver.in", false,
 																															new int[] {0}, false),
 													false)) {
 				System.err.println("Error - getting the same list of positions to convert and it's not the same number as is in liftOver.bed");
@@ -151,7 +151,7 @@ public class ConvertToBuild37 {
 							count++;
 						} else {
 							if (pos.length < 3) {
-								System.err.println("Error - invalid positions: " + Array.toStr(pos));
+								System.err.println("Error - invalid positions: " + ArrayUtils.toStr(pos));
 							}
 							writer.println("chr"	+ pos[0] + "\t" + pos[1] + "\t" + pos[2] + "\t" + line[3] + "\t"
 															+ line[4]);

@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.Sort;
@@ -96,7 +96,7 @@ public class dbExport {
 
 		dv = new DoubleVector();
 		if (filename.equals("")) {
-			keys = Sort.getSortedIndices(Array.toStringArray(inds));
+			keys = Sort.getSortedIndices(ArrayUtils.toStringArray(inds));
 			for (int i = 0; i < inds.size(); i++) {
 				trav = inds.elementAt(keys[i]);
 				writer.println(formatData(uniqueIDs ? trav : trav.substring(0, 5),
@@ -131,11 +131,11 @@ public class dbExport {
 		writer = new PrintWriter(new FileWriter("punkd.txt")); // why is this
 		// more than in
 		// the file?????
-		writer.println(Array.toStr(dist, 5, 5, "\n"));
+		writer.println(ArrayUtils.toStr(dist, 5, 5, "\n"));
 		writer.close();
 
-		if (Math.abs(Array.kurtosis(dist)) > 1) {
-			System.err.println("Warning!  Kurtosis is "	+ ext.formDeci(Array.kurtosis(dist), 3)
+		if (Math.abs(ArrayUtils.kurtosis(dist)) > 1) {
+			System.err.println("Warning!  Kurtosis is "	+ ext.formDeci(ArrayUtils.kurtosis(dist), 3)
 													+ " which is too high.");
 			System.err.println("See if the kurtosis looks any better for the following transformations...");
 			// for (int k = 0; k<Transformations.NUM_TRANSFORMATIONS; k++) {
@@ -161,7 +161,7 @@ public class dbExport {
 			}
 
 			if (filename.equals("")) {
-				keys = Sort.getSortedIndices(Array.toStringArray(inds));
+				keys = Sort.getSortedIndices(ArrayUtils.toStringArray(inds));
 				for (int i = 0; i < inds.size(); i++) {
 					trav = inds.elementAt(keys[i]);
 					data = hash.get(trav);

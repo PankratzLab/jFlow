@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.seq.manage.GenotypeOps;
 import org.genvisis.seq.manage.VCFOps;
@@ -29,10 +29,10 @@ public class SomSnipLOH {
 			String[][] geneAnno = GenotypeOps.getGenoFormatKeys(vcf, log);
 
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
-			writer.println("CHROM\tPOS\tID\tREF\tALT\tFILTER\tSAMPLE\t"	+ Array.toStr(geneAnno[1]) + "\t"
-											+ Array.toStr(varAnno[1]));
-			writer.println("CHROM\tPOS\tID\tREF\tALT\tFILTER\tSAMPLE\t"	+ Array.toStr(geneAnno[0]) + "\t"
-											+ Array.toStr(varAnno[0]));
+			writer.println("CHROM\tPOS\tID\tREF\tALT\tFILTER\tSAMPLE\t"	+ ArrayUtils.toStr(geneAnno[1]) + "\t"
+											+ ArrayUtils.toStr(varAnno[1]));
+			writer.println("CHROM\tPOS\tID\tREF\tALT\tFILTER\tSAMPLE\t"	+ ArrayUtils.toStr(geneAnno[0]) + "\t"
+											+ ArrayUtils.toStr(varAnno[0]));
 
 			VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 			for (VariantContext vc : reader) {
@@ -44,8 +44,8 @@ public class SomSnipLOH {
 				for (Genotype g : vc.getGenotypes()) {
 					if (!g.isNoCall() && !g.isHomRef()) {
 						writer.println(base	+ "\t" + g.getSampleName() + "\t"
-														+ Array.toStr(GenotypeOps.getGenoAnnotationsFor(geneAnno[0], g, "."))
-														+ "\t" + Array.toStr(vcAnnot));
+														+ ArrayUtils.toStr(GenotypeOps.getGenoAnnotationsFor(geneAnno[0], g, "."))
+														+ "\t" + ArrayUtils.toStr(vcAnnot));
 					}
 				}
 			}

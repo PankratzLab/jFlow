@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -394,14 +394,14 @@ public class CARe_Analyses {
 																"abo_icam.ids.fam 1 hideIndex out=plink_phenoWithConditionals.dat",
 																"abo_icam.ids.fam 1 0=FID 1=IID skip=0",
 																"pheno/db_clean_wPCs.txt 1 4;-9 5;. 6;. 7;. fail",
-																"abo_icam.dosage.csv , 0 " + Array.toStr(	Array.stringArraySequence(new SnpMarkerSet(dir
+																"abo_icam.dosage.csv , 0 " + ArrayUtils.toStr(	ArrayUtils.stringArraySequence(new SnpMarkerSet(dir
 																																																										+ "abo_icam.dosage.pinfo").getMarkerNames().length,
 																																																		""),
 																																					" "),
 																"pheno/db_clean_wPCs.txt 1 8;. 9;. 10;. 11;. 12;. 13;. 14;. 15;. 16;. 17;. fail"};
 					if (STUDIES[i].equals("MESA")
 							&& (element[0].equals("asians") || element[0].equals("hispanics"))) {
-						hitlist = Array.addStrToArray(DRIVE_ROOT	+ "Analyses/ICAM/IBC/whites/" + STUDIES[i]
+						hitlist = ArrayUtils.addStrToArray(DRIVE_ROOT	+ "Analyses/ICAM/IBC/whites/" + STUDIES[i]
 																					+ "/pheno/" + element[3]
 																					+ "QC/rs1799969.xln 1 4=rs1799969c", hitlist, 5);
 					}
@@ -414,7 +414,7 @@ public class CARe_Analyses {
 																						"abo_icam.ids.fam 1 hideIndex out=phenoWithConditionals.csv",
 																						"leslie_lange." + STUDIES[i] + ".IBC." + element[1] + ".Rlinker 0 2=id skip=0",
 																						"pheno/db_clean_wPCs.txt 1 4; 5; 6; 7; fail",
-																						"abo_icam.dosage.csv , 0 " + Array.toStr(Array.stringArraySequence(	new SnpMarkerSet(dir
+																						"abo_icam.dosage.csv , 0 " + ArrayUtils.toStr(ArrayUtils.stringArraySequence(	new SnpMarkerSet(dir
 																																																																+ "abo_icam.dosage.pinfo").getMarkerNames().length,
 																																																								"")),
 																						"pheno/db_clean_wPCs.txt 1 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; fail"},
@@ -895,12 +895,12 @@ public class CARe_Analyses {
 					fileDescriptions.add(element2);
 				}
 				Files.generateTables(DRIVE_ROOT	+ "Analyses/ICAM/" + element[0] + "_demographics.xln",
-															Array.toStringArray(files), Array.toStringArray(fileDescriptions),
+															ArrayUtils.toStringArray(files), ArrayUtils.toStringArray(fileDescriptions),
 															FINAL2_PARAMETERS, log);
 			}
 			raceFiles.add(DRIVE_ROOT + "Analyses/ICAM/" + element[0] + "_demographics.xln");
 		}
-		Files.cat(Array.toStringArray(raceFiles), DRIVE_ROOT + "Analyses/ICAM/All_demographics.xln",
+		Files.cat(ArrayUtils.toStringArray(raceFiles), DRIVE_ROOT + "Analyses/ICAM/All_demographics.xln",
 							null, log);
 
 
@@ -974,7 +974,7 @@ public class CARe_Analyses {
 			}
 		}
 
-		allFiles = Array.toStringArray(vHash.get("joint"));
+		allFiles = ArrayUtils.toStringArray(vHash.get("joint"));
 		for (int i = 0; i < allFiles.length; i++) {
 			allFiles[i] = DRIVE_ROOT + "Analyses/" + subDirectory + allFiles[i];
 		}
@@ -985,7 +985,7 @@ public class CARe_Analyses {
 		parameters = new String[keys.length];
 		for (int i = 0; i < keys.length; i++) {
 			Metal.metaAnalyze(DRIVE_ROOT	+ "Analyses/" + subDirectory,
-												Array.toStringArray(vHash.get(keys[i])), keys[i] + "_SE", true, log);
+												ArrayUtils.toStringArray(vHash.get(keys[i])), keys[i] + "_SE", true, log);
 			parameters[i] = DRIVE_ROOT	+ "Analyses/" + subDirectory + keys[i] + "_SE1.out" + " 0 3="
 											+ keys[i] + "_beta 5=" + keys[i] + "_pval";
 		}
@@ -1134,7 +1134,7 @@ public class CARe_Analyses {
 			count--;
 			System.out.println("Files remaining: "
 													+ (v.size() == 0	? "none"
-																						: ext.listRanges(Array.toIntArray(Array.toStringArray(v)))));
+																						: ext.listRanges(ArrayUtils.toIntArray(ArrayUtils.toStringArray(v)))));
 		} catch (Exception e) {
 			System.err.println("Error writing to " + "catchUp");
 			e.printStackTrace();
@@ -1356,10 +1356,10 @@ public class CARe_Analyses {
 					race.add(filename);
 				}
 			}
-			Metal.metaAnalyze(dir, Array.toStringArray(race),
+			Metal.metaAnalyze(dir, ArrayUtils.toStringArray(race),
 												(label == null ? "" : label + "_") + element[0] + "_metal", true, log);
 		}
-		Metal.metaAnalyze(dir, Array.toStringArray(all),
+		Metal.metaAnalyze(dir, ArrayUtils.toStringArray(all),
 											(label == null ? "" : label + "_") + "all_metal", true, log);
 	}
 
@@ -1372,7 +1372,7 @@ public class CARe_Analyses {
 		for (String[] element : RACES) {
 			all.add(dir + element[0] + "_metal1.out");
 		}
-		Unique.proc(Array.toStringArray(all), null, null, dir + "allSNPs.txt",
+		Unique.proc(ArrayUtils.toStringArray(all), null, null, dir + "allSNPs.txt",
 								dir + "allSNP_counts.txt", true);
 	}
 
@@ -1429,12 +1429,12 @@ public class CARe_Analyses {
 					}
 				}
 			}
-			Unique.proc(Array.toStringArray(files), null, null,
+			Unique.proc(ArrayUtils.toStringArray(files), null, null,
 									DRIVE_ROOT + "CARe_geno_data_and_misc/IBC/allSNPs.txt", null, true);
 			Files.combine(HashVec.loadFileToStringArray(DRIVE_ROOT
 																										+ "CARe_geno_data_and_misc/IBC/allSNPs.txt", true,
 																									new int[] {0}, false),
-										Array.toStringArray(parameters), null, "MarkerName", ".",
+										ArrayUtils.toStringArray(parameters), null, "MarkerName", ".",
 										DRIVE_ROOT																								+ "CARe_geno_data_and_misc/IBC/alleleFreqs/" + element[0]
 																																							+ "_freq_input.txt",
 										log, true, true, false);
@@ -1458,9 +1458,9 @@ public class CARe_Analyses {
 						DRIVE_ROOT + "CARe_imputed_all_llange_24mar2010/" + studie + "/IBC/" + element[0] + "/";
 				root = "leslie_lange." + studie + ".IBC." + element[1];
 				if (new File(dir + root + ".chr1.mlinfo").exists()) {
-					skips = Array.intArray(22, 1);
+					skips = ArrayUtils.intArray(22, 1);
 					skips[0] = 0;
-					Files.cat(Array.stringArraySequence(22, dir + root + ".chr", ".mlinfo"),
+					Files.cat(ArrayUtils.stringArraySequence(22, dir + root + ".chr", ".mlinfo"),
 										dir + root + ".mlinfo", skips, log);
 					n = Files.countLines(dir + root + ".chr1.pfam", 0);
 					files.add(dir	+ root + ".mlinfo 0 1=" + studie + "_" + element[0] + "_A1 2=" + studie
@@ -1468,7 +1468,7 @@ public class CARe_Analyses {
 										+ studie + "_" + element[0] + "_N 6=" + studie + "_" + element[0] + "_Rsq");
 
 
-					Files.cat(Array.stringArraySequence(22, dir + root + ".chr", ".pmap"),
+					Files.cat(ArrayUtils.stringArraySequence(22, dir + root + ".chr", ".pmap"),
 										dir + root + ".pmap", null, log);
 					log.report("Parsing " + root + ".pmap");
 					travPos =
@@ -1489,7 +1489,7 @@ public class CARe_Analyses {
 			Files.combine(HashVec.loadFileToStringArray(DRIVE_ROOT
 																										+ "CARe_imputed_all_llange_24mar2010/allSNPs.txt",
 																									true, new int[] {0}, false),
-										Array.toStringArray(files), null, "MarkerName", ".",
+										ArrayUtils.toStringArray(files), null, "MarkerName", ".",
 										DRIVE_ROOT																						+ "CARe_imputed_all_llange_24mar2010/"
 																																					+ element[0]
 																																					+ "_freq_input.txt",
@@ -1584,11 +1584,11 @@ public class CARe_Analyses {
 																	"abo_icam.ids.fam 1 0=FID 1=IID skip=0",
 																	"pheno/db_" + element[0] + "_normalized.txt 1 4;-9 fail",
 																	"pheno/db_clean_wPCs.txt 2 5;. 6;. 7;. fail",
-																	"abo_icam.dosage.csv , 0 " + Array.toStr(conditionals),
+																	"abo_icam.dosage.csv , 0 " + ArrayUtils.toStr(conditionals),
 																	"pheno/db_clean_wPCs.txt 2 8;. 9;. 10;. 11;. 12;. 13;. 14;. 15;. 16;. 17;. fail"};
 						if (STUDIES[i].equals("MESA")
 								&& (element[0].equals("asians") || element[0].equals("hispanics"))) {
-							hitlist = Array.addStrToArray(DRIVE_ROOT	+ "Analyses/ICAM/IBC/whites/" + STUDIES[i]
+							hitlist = ArrayUtils.addStrToArray(DRIVE_ROOT	+ "Analyses/ICAM/IBC/whites/" + STUDIES[i]
 																						+ "/pheno/" + element[3]
 																						+ "QC/rs1799969.xln 1 4=rs1799969c", hitlist, 6);
 						}
@@ -1603,11 +1603,11 @@ public class CARe_Analyses {
 																	"abo_icam.ids.fam 1 0=FID 1=IID skip=0",
 																	"pheno/db_" + element[0] + "_inverseNormalized.txt 1 4;-9 fail",
 																	"pheno/db_clean_wPCs.txt 2 5;. 6;. 7;. fail",
-																	"abo_icam.dosage.csv , 0 " + Array.toStr(conditionals),
+																	"abo_icam.dosage.csv , 0 " + ArrayUtils.toStr(conditionals),
 																	"pheno/db_clean_wPCs.txt 2 8;. 9;. 10;. 11;. 12;. 13;. 14;. 15;. 16;. 17;. fail"};
 						if (STUDIES[i].equals("MESA")
 								&& (element[0].equals("asians") || element[0].equals("hispanics"))) {
-							hitlist = Array.addStrToArray(DRIVE_ROOT	+ "Analyses/ICAM/IBC/whites/" + STUDIES[i]
+							hitlist = ArrayUtils.addStrToArray(DRIVE_ROOT	+ "Analyses/ICAM/IBC/whites/" + STUDIES[i]
 																						+ "/pheno/" + element[3]
 																						+ "QC/rs1799969.xln 1 4=rs1799969c", hitlist, 6);
 						}
@@ -1622,7 +1622,7 @@ public class CARe_Analyses {
 																							"leslie_lange." + STUDIES[i] + ".IBC." + element[1] + ".Rlinker 0 2=id skip=0",
 																							"pheno/db_" + element[0] + "_normalized.txt 1 4; fail",
 																							"pheno/db_clean_wPCs.txt 2 5; 6; 7; fail #VALUE!=> tab",
-																							"abo_icam.dosage.csv , 0 " + Array.toStr(conditionals),
+																							"abo_icam.dosage.csv , 0 " + ArrayUtils.toStr(conditionals),
 																							"pheno/db_clean_wPCs.txt 2 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; fail"},
 																dir + "generateNormalizedPhenoForGWAFWithConditionals.crf");
 							CmdLine.run("java -Xmx1024M -jar C:/home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
@@ -1633,7 +1633,7 @@ public class CARe_Analyses {
 																							"leslie_lange." + STUDIES[i] + ".IBC." + element[1] + ".Rlinker 0 2=id skip=0",
 																							"pheno/db_" + element[0] + "_inverseNormalized.txt 1 4; fail",
 																							"pheno/db_clean_wPCs.txt 2 5; 6; 7; fail #VALUE!=> tab",
-																							"abo_icam.dosage.csv , 0 " + Array.toStr(conditionals),
+																							"abo_icam.dosage.csv , 0 " + ArrayUtils.toStr(conditionals),
 																							"pheno/db_clean_wPCs.txt 2 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; fail"},
 																dir + "generateInverseNormalizedPhenoForGWAFWithConditionals.crf");
 							CmdLine.run("java -Xmx1024M -jar C:/home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
@@ -1728,7 +1728,7 @@ public class CARe_Analyses {
 			if (!variantsToConditionOn[i].endsWith("c")) {
 				variantsToConditionOn[i] += "c";
 			}
-			covars = Array.addStrToArray(variantsToConditionOn[i], covars, i + 3);
+			covars = ArrayUtils.addStrToArray(variantsToConditionOn[i], covars, i + 3);
 			numExtraCovars++;
 		}
 
@@ -1762,7 +1762,7 @@ public class CARe_Analyses {
 								while (reader.ready()) {
 									line = reader.readLine().trim().split(",");
 									line[0] = hash.get(line[0]);
-									writer.println(Array.toStr(line, ","));
+									writer.println(ArrayUtils.toStr(line, ","));
 								}
 								writer.close();
 								reader.close();
@@ -1821,7 +1821,7 @@ public class CARe_Analyses {
 												+ ".IBC." + element[1] + ".chr1.pfam " + "--map ../" + root + ".map "
 												+ "--dosage ../" + root + ".dosage skip0=0 skip1=0 skip2=0 format=2 "
 												+ "--pheno ../" + phenofile + " --pheno-name " + pheno + " " + "--covar ../"
-												+ phenofile + " --covar-name " + Array.toStr(covars, ",") + " " + "--out "
+												+ phenofile + " --covar-name " + ArrayUtils.toStr(covars, ",") + " " + "--out "
 												+ root + (numExtraCovars > 0 ? "_withCondi" + numExtraCovars : "") + "_out";
 						Files.write(commands, dir	+ "analysis_of_" + pheno + "/run" + numExtraCovars + "."
 																	+ pheno + ".bat");
@@ -1892,7 +1892,7 @@ public class CARe_Analyses {
 					}
 				}
 				if (files.size() > 0) {
-					Metal.metaAnalyze(finalDir	+ "iteration" + iter + "/", Array.toStringArray(files),
+					Metal.metaAnalyze(finalDir	+ "iteration" + iter + "/", ArrayUtils.toStringArray(files),
 														element[0] + "_iteration" + iter, true, log);
 				} else {
 					log.reportError("No files for " + element[0] + "_iteration" + iter);
@@ -1904,7 +1904,7 @@ public class CARe_Analyses {
 				}
 			}
 			if (allFiles.size() > 0) {
-				Metal.metaAnalyze(finalDir	+ "iteration" + iter + "/", Array.toStringArray(allFiles),
+				Metal.metaAnalyze(finalDir	+ "iteration" + iter + "/", ArrayUtils.toStringArray(allFiles),
 													"All_iteration" + iter, true, log);
 			} else {
 				log.reportError("No files for iteration" + iter);
@@ -1951,9 +1951,9 @@ public class CARe_Analyses {
 			}
 		}
 
-		skips = Array.intArray(v.size(), 0);
+		skips = ArrayUtils.intArray(v.size(), 0);
 		skips[0] = 0;
-		Files.cat(Array.toStringArray(v),
+		Files.cat(ArrayUtils.toStringArray(v),
 							"D:/CARe/Analyses/ICAM/IBC/analysis_of_ln_icam_InverseNormalized/allPhenos.dat",
 							skips, new Logger());
 	}
@@ -1975,9 +1975,9 @@ public class CARe_Analyses {
 			}
 		}
 
-		skips = Array.intArray(v.size(), 0);
+		skips = ArrayUtils.intArray(v.size(), 0);
 		skips[0] = 0;
-		Files.cat(Array.toStringArray(v),
+		Files.cat(ArrayUtils.toStringArray(v),
 							"D:/CARe/Analyses/ICAM/IBC/analysis_of_ln_icam_InverseNormalized/allDBs.dat", skips,
 							new Logger());
 	}

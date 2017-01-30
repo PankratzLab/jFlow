@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -53,7 +53,7 @@ public class eQTLs {
 		Logger log;
 
 		log = new Logger(dir + ext.rootOf(phenoFile) + ".log");
-		phenos = Array.subArray(Files.getHeaderOfFile(dir + phenoFile, "\t", log), 2);
+		phenos = ArrayUtils.subArray(Files.getHeaderOfFile(dir + phenoFile, "\t", log), 2);
 		//// CmdLine.run("plink --bfile plink --keep ../CEU.txt --freq --out CEU", dir);
 		// CmdLine.run("plink --bfile CEU --freq --out CEU", dir);
 		//// CmdLine.run("plink --bfile plink --keep ../YRI.txt --freq --out YRI", dir);
@@ -174,7 +174,7 @@ public class eQTLs {
 		double[][] pairs;
 
 		log = new Logger(dir + ext.rootOf(phenoFile) + "_weights.log");
-		phenos = Array.subArray(Files.getHeaderOfFile(dir + phenoFile, "\t", log), 2);
+		phenos = ArrayUtils.subArray(Files.getHeaderOfFile(dir + phenoFile, "\t", log), 2);
 
 		// hash = HashVec.loadFileToHashString(DEFAULT_TRANSCRIPT_BED, new int[] {3}, new int[] {0, 1,
 		// 2}, false, "\t", true, false, false);
@@ -191,14 +191,14 @@ public class eQTLs {
 			CmdLine.run("plink --bfile CEU --pheno pheno.dat --pheno-name "	+ pheno + " --score " + pheno
 									+ "_meta.weights --out " + pheno + "_meta", dir);
 			pairs = new double[][] {
-															Array.toDoubleArray(HashVec.loadFileToStringArray(dir	+ pheno
+															ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(dir	+ pheno
 																																								+ "_meta.profile",
 																																								true, new int[] {2},
 																																								false)),
-															Array.toDoubleArray(HashVec.loadFileToStringArray(dir	+ pheno
+															ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(dir	+ pheno
 																																								+ "_meta.profile", true, new int[] {5}, false))};
 			pairs = Matrix.transpose(Matrix.removeRowsWithNaN(Matrix.transpose(pairs)));
-			System.out.println(pheno + "_meta\t" + Array.toStr(Correlation.Pearson(pairs)));
+			System.out.println(pheno + "_meta\t" + ArrayUtils.toStr(Correlation.Pearson(pairs)));
 
 			parseWeights(dir	+ "CEU_" + pheno + ".se.metal", dir + "allSNPs.dat",
 										dir + pheno + "_CEU.weights", transThreshold, probeSeg, cisDistance,
@@ -208,14 +208,14 @@ public class eQTLs {
 			CmdLine.run("plink --bfile CEU --pheno pheno.dat --pheno-name "	+ pheno + " --score " + pheno
 									+ "_CEU.weights --out " + pheno + "_CEU", dir);
 			pairs = new double[][] {
-															Array.toDoubleArray(HashVec.loadFileToStringArray(dir	+ pheno
+															ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(dir	+ pheno
 																																								+ "_CEU.profile",
 																																								true, new int[] {2},
 																																								false)),
-															Array.toDoubleArray(HashVec.loadFileToStringArray(dir	+ pheno
+															ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(dir	+ pheno
 																																								+ "_CEU.profile", true, new int[] {5}, false))};
 			pairs = Matrix.transpose(Matrix.removeRowsWithNaN(Matrix.transpose(pairs)));
-			System.out.println(pheno + "_CEU\t" + Array.toStr(Correlation.Pearson(pairs)));
+			System.out.println(pheno + "_CEU\t" + ArrayUtils.toStr(Correlation.Pearson(pairs)));
 		}
 	}
 

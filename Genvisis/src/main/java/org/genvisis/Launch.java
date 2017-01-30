@@ -12,7 +12,7 @@ import org.genvisis.cnv.analysis.MeanLRR;
 import org.genvisis.cnv.analysis.cnvTrio;
 import org.genvisis.cnv.qc.CNVConcordance;
 import org.genvisis.cnv.qc.CNVTrioFilter;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
@@ -110,7 +110,7 @@ public class Launch {
 
 			if (temp == null || temp.equals("")) {
 				log.reportError("Below is a list of valid launch types:");
-				log.reportError(Array.toStr(LAUNCH_TYPES, "\n"));
+				log.reportError(ArrayUtils.toStr(LAUNCH_TYPES, "\n"));
 			} else if (temp.equals("lookup")) {
 				LookupTable.fromParameters(filename, log);
 			} else if (temp.equals("dummy")) {
@@ -229,7 +229,7 @@ public class Launch {
 				DBGapExtract.fromParameters(filename, log);
 			} else {
 				log.reportError("Error - '" + temp + "' is an invalid launch type, options include:");
-				log.reportError(Array.toStr(LAUNCH_TYPES, "\n"));
+				log.reportError(ArrayUtils.toStr(LAUNCH_TYPES, "\n"));
 			}
 		} catch (Exception e) {
 			log.reportError(e.getMessage());

@@ -45,7 +45,6 @@ public class SamplingPipeline {
 		}
 	};
 	
-	private static final double SAMPLING_PCT = 1;
 	private static final int OUTLIER_SAMPLE_EVERY = 0; // no outlier sampling // every fifth sampling will be from an outlier, if possible 
 	
 	WSPLoader wspLoader;
@@ -69,6 +68,8 @@ public class SamplingPipeline {
 	
 	boolean isFinished = false;
 	
+	private double samplingPct = 1;
+	
 	final String csvDir;
 	final String wspDir;
 	final String fcsDir;
@@ -76,7 +77,8 @@ public class SamplingPipeline {
 	final String outDir;
 	final ProcessorFactory<? extends SampleProcessor> processorFactory;
 	
-	public SamplingPipeline(String csvDir, String wspDir, String fcsDir, String outliersFile, String outDir, ProcessorFactory<? extends SampleProcessor> processorFactory) {
+	public SamplingPipeline(double sampPct, String csvDir, String wspDir, String fcsDir, String outliersFile, String outDir, ProcessorFactory<? extends SampleProcessor> processorFactory) {
+		this.samplingPct = sampPct;
 		this.csvDir = csvDir;
 		this.wspDir = wspDir;
 		this.fcsDir = fcsDir;
@@ -262,11 +264,11 @@ public class SamplingPipeline {
 		p1.removeAll(p1O);
 		p2.removeAll(p2O);
 		
-		int p1Cnt = p1.isEmpty() ? 0 : Math.max(1, (int) (p1.size() * SAMPLING_PCT));
-		int p2Cnt = p2.isEmpty() ? 0 : Math.max(1, (int) (p2.size() * SAMPLING_PCT));
+		int p1Cnt = p1.isEmpty() ? 0 : Math.max(1, (int) (p1.size() * samplingPct));
+		int p2Cnt = p2.isEmpty() ? 0 : Math.max(1, (int) (p2.size() * samplingPct));
 		
 		log.reportTime("Sampling " + p1Cnt + " panel 1 files and " + p2Cnt + " panel 2 files.");
-		if (SAMPLING_PCT > .95) {
+		if (samplingPct > .95) {
 			p1Sampling.addAll(p1);
 			p2Sampling.addAll(p2);
 		} else {

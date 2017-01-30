@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.manage.Markers;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -21,7 +21,7 @@ public class Scratch {
 		String[] mito = HashVec.loadFileToStringArray(dir	+ "gw6_MT_USE.oneHitWonders_20.txt", false,
 																									new int[] {0}, false);
 
-		String[] combo = Array.concatAll(pcMarks, mito);
+		String[] combo = ArrayUtils.concatAll(pcMarks, mito);
 		log.reportTimeInfo("PCMarks " + pcMarks.length);
 		log.reportTimeInfo("Mito" + mito.length);
 

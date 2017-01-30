@@ -156,6 +156,9 @@ public class SerializedFiles {
 
 	public static boolean writeSerial(Object o, String filename, boolean gzip) {
 		ObjectOutputStream oos;
+		if (!Files.ensurePathExists(filename)) {
+			new Logger().reportTimeWarning("No valid path to file: " + filename);
+		}
 		
 		try {
 			if (gzip) {

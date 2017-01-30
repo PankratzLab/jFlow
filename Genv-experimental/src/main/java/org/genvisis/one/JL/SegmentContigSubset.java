@@ -3,7 +3,7 @@ package org.genvisis.one.JL;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -13,7 +13,7 @@ public class SegmentContigSubset {
 
 	public static void subset(String segFile, String[] contigs, Logger log) {
 		Segment[] q = Segment.loadRegions(segFile, 0, 1, 2, 0, true, true, true, 100);
-		String output = ext.addToRoot(segFile, "_" + Array.toStr(contigs, "_"));
+		String output = ext.addToRoot(segFile, "_" + ArrayUtils.toStr(contigs, "_"));
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 			for (Segment element : q) {
@@ -39,7 +39,7 @@ public class SegmentContigSubset {
 
 		String usage = "\n" + "one.JL.SegmentSubSet requires 0-1 arguments\n";
 		usage += "   (1) a file of segments to subset (i.e. segs=" + segFile + " (default))\n" + "";
-		usage += "   (2) a comma delimited list of contigs (i.e. contigs="	+ Array.toStr(contigs, ",")
+		usage += "   (2) a comma delimited list of contigs (i.e. contigs="	+ ArrayUtils.toStr(contigs, ",")
 							+ " (default))\n" + "";
 
 		for (String arg : args) {

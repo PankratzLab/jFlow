@@ -9,7 +9,7 @@ import java.util.Hashtable;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MarkerDataLoader;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Histogram;
@@ -53,13 +53,13 @@ public class PeakZero {
 					use[i] = !(trav.equals(".") || trav.equals("NA"));
 				}
 			}
-			System.out.println("Distributions will be created from "	+ Array.booleanArraySum(use) + " of "
+			System.out.println("Distributions will be created from "	+ ArrayUtils.booleanArraySum(use) + " of "
 													+ samples.length + " possible samples");
 		} else {
-			use = Array.booleanArray(samples.length, true);
+			use = ArrayUtils.booleanArray(samples.length, true);
 			System.out.println("Distributions will be created using all " + samples.length + " samples");
 		}
-		count = Array.booleanArraySum(use);
+		count = ArrayUtils.booleanArraySum(use);
 
 		drops = proj.getFilteredHash();
 

@@ -12,7 +12,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.bioinformatics.MapGenesToSNPs;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
@@ -262,7 +262,7 @@ public class PathwayAnalysis {
 			new File("wait").delete();
 			System.exit(1);
 		}
-		keys = Array.random(trait.length);
+		keys = ArrayUtils.random(trait.length);
 		try {
 			reader = new BufferedReader(new FileReader(pheno));
 			writer = new PrintWriter(new FileWriter(filenames[0]));
@@ -283,7 +283,7 @@ public class PathwayAnalysis {
 
 		if (covars != null) {
 			if (!new File("pheno_covar_checks_out").exists()) {
-				if (!Array.equals(HashVec.loadFileToStringArray(pheno, true, new int[] {0, 1}, false),
+				if (!ArrayUtils.equals(HashVec.loadFileToStringArray(pheno, true, new int[] {0, 1}, false),
 													HashVec.loadFileToStringArray(covars, true, new int[] {0, 1}, false),
 													false)) {
 					System.err.println("Error - the covars files needs to match the ids in the pheno file line for line");
@@ -332,7 +332,7 @@ public class PathwayAnalysis {
 		long time;
 		int rep;
 
-		quant = Array.determineType(pheno, 2, true) == 1;
+		quant = ArrayUtils.determineType(pheno, 2, true) == 1;
 
 		time = new Date().getTime();
 		Files.writeArray(new String[0], "plug");
@@ -448,7 +448,7 @@ public class PathwayAnalysis {
 		boolean quant, done;
 		int count;
 
-		quant = Array.determineType(pheno, 2, true) == 1;
+		quant = ArrayUtils.determineType(pheno, 2, true) == 1;
 		markerNames =
 								SerialStringArray.load(ext.rootOf(pheno, false) + ".markerNames", false).getArray();
 
@@ -505,7 +505,7 @@ public class PathwayAnalysis {
 													+ ".markerNames' to verify marker order");
 			return "error";
 		}
-		if (Array.equals(	markerNames,
+		if (ArrayUtils.equals(	markerNames,
 											SerialStringArray	.load(repDir	+ ext.rootOf(pheno, false) + ".markerNames",
 																							false)
 																				.getArray(),
@@ -612,7 +612,7 @@ public class PathwayAnalysis {
 					}
 
 					System.out.println(subheader + "\t" + snpsInPathway.size());
-					pvalue = evaluateGeneset(	pheno, Array.toStringArray(snpsInPathway), results, repDir,
+					pvalue = evaluateGeneset(	pheno, ArrayUtils.toStringArray(snpsInPathway), results, repDir,
 																		p_thresh, nrss_thresh);
 
 					writer.print("\t"	+ "\t" + pathway + "\t" + kegg.pathwayLookup.get(pathway) + "\t"
@@ -665,7 +665,7 @@ public class PathwayAnalysis {
 		new File(dir + "pathways/").mkdirs();
 		keys = HashVec.getKeys(kegg.pathways);
 		for (String key : keys) {
-			Files.writeArray(	Array.toStringArray(kegg.pathways.get(key)),
+			Files.writeArray(	ArrayUtils.toStringArray(kegg.pathways.get(key)),
 												dir + "pathways/" + key + ".list");
 			try {
 				writer = new PrintWriter(new FileWriter(dir + "pathways/" + key + ".crf"));
@@ -687,7 +687,7 @@ public class PathwayAnalysis {
 			keys = HashVec.getKeys(kegg.genes);
 			for (String key : keys) {
 				writer.println(key	+ "\t" + kegg.genes.get(key).size() + "\t"
-												+ Array.toStr(Array.toStringArray(kegg.genes.get(key))));
+												+ ArrayUtils.toStr(ArrayUtils.toStringArray(kegg.genes.get(key))));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -777,7 +777,7 @@ public class PathwayAnalysis {
 		dir = ext.verifyDirFormat(ext.parseDirectoryOfFile(filename));
 		hash = HashVec.loadFileToHashVec(filename, 0, new int[] {0}, "", false, false);
 
-		Files.writeArray(Array.toStringArray(kegg.pathways.get("ko05010")), dir + "AlzGenes.xln");
+		Files.writeArray(ArrayUtils.toStringArray(kegg.pathways.get("ko05010")), dir + "AlzGenes.xln");
 
 		try {
 			reader = new BufferedReader(new FileReader(groupings_file));
@@ -843,7 +843,7 @@ public class PathwayAnalysis {
 					}
 				}
 			}
-			Files.writeArray(	Array.toStringArray(snpsInPathway),
+			Files.writeArray(	ArrayUtils.toStringArray(snpsInPathway),
 												ext.parseDirectoryOfFile(mapfile)		+ pathway + "_"
 																														+ ((int) (offset / 1000.0)) + "K.dat");
 		} else {

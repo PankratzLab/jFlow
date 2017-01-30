@@ -13,7 +13,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.qc.SampleQC;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
@@ -56,13 +56,13 @@ public class BAFContamination {
 
 	public BAFContaminationResults getContamination() {
 		byte[] chrs = proj.getMarkerSet().getChrs();
-		int subIndex = Array.indexOfFirstMaxByte(chrs, (byte) 23);
+		int subIndex = ArrayUtils.indexOfFirstMaxByte(chrs, (byte) 23);
 		// mafs = getMafs(mafs);
 		boolean[] use = getPFBsToUse(	getMafs(mafs), callRate, sampGenotypes, minFreq, minCallRate,
 																	subIndex);
-		double[][] indeps = new double[Array.booleanArraySum(use)][2];
+		double[][] indeps = new double[ArrayUtils.booleanArraySum(use)][2];
 
-		log.reportTimeInfo("Found "	+ Array.booleanArraySum(use)
+		log.reportTimeInfo("Found "	+ ArrayUtils.booleanArraySum(use)
 												+ " homozygous autosomal markers passing freq threashold of " + minFreq
 												+ " and callrate " + minCallRate);
 		int index = 0;
@@ -79,13 +79,13 @@ public class BAFContamination {
 			}
 		}
 
-		RegressionModel model = new LeastSquares(	Array.subArray(sampBAF, use), indeps, null, false,
+		RegressionModel model = new LeastSquares(	ArrayUtils.subArray(sampBAF, use), indeps, null, false,
 																							verbose, LS_TYPE.REGULAR);
 		BAFContaminationResults results = new BAFContaminationResults(model.getOverallSig(),
 																																	model.getRsquare(),
 																																	model.getBetas());
-		results.setsAlleleDeviation(new StandardAlleleDeviation(Array.subArray(sampGenotypes, use),
-																														Array.subArray(sampBAF, use)));
+		results.setsAlleleDeviation(new StandardAlleleDeviation(ArrayUtils.subArray(sampGenotypes, use),
+																														ArrayUtils.subArray(sampBAF, use)));
 		// System.out.println(Array.toStr(results.getBetas()));
 		return results;
 	}
@@ -183,7 +183,7 @@ public class BAFContamination {
 				}
 			}
 			double[] tmp2 = Doubles.toArray(tmp);
-			double cv = Array.stdev(tmp2, true) / Array.mean(tmp2, true);
+			double cv = ArrayUtils.stdev(tmp2, true) / ArrayUtils.mean(tmp2, true);
 			System.out.println(geno + "\t" + cv);
 
 			return cv;
@@ -253,7 +253,7 @@ public class BAFContamination {
 			byte[] genos = samp.getAB_GenotypesAfterFilters(proj.getMarkerNames(),
 																											clusterFilterCollection, (float) 0.20);
 			BAFContamination bafContamination = new BAFContamination(	proj,
-																																Array.toDoubleArray(samp.getBAFs()),
+																																ArrayUtils.toDoubleArray(samp.getBAFs()),
 																																genos, pfbs, callRate, MIN_MAF,
 																																MIN_CALL_RATE, true, proj.getLog());
 			BAFContaminationResults results = bafContamination.getContamination();
@@ -345,7 +345,7 @@ public class BAFContamination {
 					result += "\t"	+ results.getsAlleleDeviation().getAA_stdev() + "\t"
 										+ results.getsAlleleDeviation().getBB_stdev();
 					result += "\t"	+ sampleQC.getDataFor("AB_callrate")[index] + "\t"
-										+ Array.toStr(results.getBetas());
+										+ ArrayUtils.toStr(results.getBetas());
 					writer.println(result);
 					index++;
 					writer.flush();

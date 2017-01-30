@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 
 public class dbsnpParser {
@@ -45,7 +45,7 @@ public class dbsnpParser {
 				if (reader.ready()) {
 					if (temp.equals("")) {
 						hash.put(	trav = reader.readLine().split("[\\s]+")[0],
-											info = Array.stringArray(9, "-1"));
+											info = ArrayUtils.stringArray(9, "-1"));
 					}
 					line = temp.split("\\|");
 					if (temp.startsWith("SNP")) {

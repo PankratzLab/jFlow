@@ -8,7 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Internat;
 
@@ -20,7 +20,7 @@ public class gatherOmim {
 		String temp;
 		int count;
 
-		ids = Array.toStringArray(HashVec.loadFileToVec(filename, false, false, true));
+		ids = ArrayUtils.toStringArray(HashVec.loadFileToVec(filename, false, false, true));
 
 		try {
 			writer = new PrintWriter(new FileWriter("omim_names.out"));

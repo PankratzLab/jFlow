@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -79,7 +79,7 @@ public class Plink {
 
 		if (extraCommands.size() > 0) {
 			System.out.println("Run the following first:");
-			System.out.println(Array.toStr(Array.toStringArray(extraCommands), "\n"));
+			System.out.println(ArrayUtils.toStr(ArrayUtils.toStringArray(extraCommands), "\n"));
 			return;
 		}
 
@@ -109,7 +109,7 @@ public class Plink {
 													+ " indiviudals that are not genotyped");
 		}
 
-		inds = Array.toStringArray(filter);
+		inds = ArrayUtils.toStringArray(filter);
 		step = (int) Math.ceil((double) inds.length / (double) threads);
 
 		for (int i = 0; i < threads; i++) {
@@ -275,7 +275,7 @@ public class Plink {
 			System.err.println("Batch files will not include the "	+ count
 													+ " indiviudals that are not genotyped");
 		}
-		inds = Array.toStringArray(filter);
+		inds = ArrayUtils.toStringArray(filter);
 
 		newCount = (int) Math.ceil((double) inds.length / (double) step);
 		for (int i = 0; i < newCount; i++) {
@@ -331,7 +331,7 @@ public class Plink {
 		try {
 			reader = new BufferedReader(new FileReader(genomeFile));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(ids) + "_" + genomeFile));
-			writer.println(Array.toStr(reader.readLine().trim().split("[\\s]+")));
+			writer.println(ArrayUtils.toStr(reader.readLine().trim().split("[\\s]+")));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				if ((filterPairs
@@ -339,7 +339,7 @@ public class Plink {
 									|| hash.containsKey(line[2] + "\t" + line[3] + "\t" + line[0] + "\t" + line[1])))
 						|| (!filterPairs	&& hash.containsKey(line[0] + "\t" + line[1])
 								&& hash.containsKey(line[2] + "\t" + line[3]))) {
-					writer.println(Array.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 				}
 			}
 			reader.close();
@@ -371,12 +371,12 @@ public class Plink {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(genomeFile));
 			PrintWriter writer = new PrintWriter(new FileWriter(genomeFile + "_" + ext.rootOf(ids)));
-			writer.println(Array.toStr(reader.readLine().trim().split("[\\s]+")));
+			writer.println(ArrayUtils.toStr(reader.readLine().trim().split("[\\s]+")));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (!hash.containsKey(line[0] + "\t" + line[1])
 						&& !hash.containsKey(line[2] + "\t" + line[3])) {
-					writer.println(Array.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 				}
 			}
 			reader.close();
@@ -457,7 +457,7 @@ public class Plink {
 		}
 
 		log.report("Started with "	+ in.size() + " known samples; will remove one of each pair of: "
-								+ Array.toStr(Array.subArray(flags, 0, removeOutTo), "/"));
+								+ ArrayUtils.toStr(ArrayUtils.subArray(flags, 0, removeOutTo), "/"));
 
 
 		if (genomeFile.endsWith(".gz")) {
@@ -493,14 +493,14 @@ public class Plink {
 						numExtras++;
 					}
 				}
-				probs = Array.toDoubleArray(Array.subArray(line, 6, 10));
+				probs = ArrayUtils.toDoubleArray(ArrayUtils.subArray(line, 6, 10));
 				for (int i = 0; i < removeOutTo; i++) {
 					if (probs != null	&& probs[0] >= thresholds[i][0] && probs[1] >= thresholds[i][1]
 							&& probs[2] >= thresholds[i][2] && probs[3] >= thresholds[i][3]) {
-						line = Array.subArray(line, RELEVANT_CLUSTER_INDICES);
+						line = ArrayUtils.subArray(line, RELEVANT_CLUSTER_INDICES);
 						counts[i]++;
 
-						metrics = Array.stringArray(4, ".");
+						metrics = ArrayUtils.stringArray(4, ".");
 						for (int k = 0; k < 2; k++) {
 							if (callrates.containsKey(line[k * 2 + 0] + "\t" + line[k * 2 + 1])) {
 								metrics[k * 2 + 0] = callrates.get(line[k * 2 + 0] + "\t" + line[k * 2 + 1]);
@@ -605,7 +605,7 @@ public class Plink {
 				if (out.containsKey(line[13] + "\t" + line[14])) {
 					line[13] = line[14] = ".";
 				}
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 			}
 			reader.close();
 			writer.close();
@@ -868,7 +868,7 @@ public class Plink {
 			writer = new PrintWriter(new FileWriter(filename + "_ind.xln"));
 			keys = HashVec.getKeys(indHash);
 			for (String key : keys) {
-				writer.println(key + "\t" + Array.toStr(indHash.get(key)));
+				writer.println(key + "\t" + ArrayUtils.toStr(indHash.get(key)));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -880,7 +880,7 @@ public class Plink {
 			writer = new PrintWriter(new FileWriter(filename + "_markers.xln"));
 			keys = HashVec.getKeys(markerHash);
 			for (String key : keys) {
-				writer.println(key + "\t" + Array.toStr(markerHash.get(key)));
+				writer.println(key + "\t" + ArrayUtils.toStr(markerHash.get(key)));
 			}
 			writer.close();
 		} catch (Exception e) {

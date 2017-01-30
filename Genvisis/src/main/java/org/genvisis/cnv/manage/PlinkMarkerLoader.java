@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -60,7 +60,7 @@ public class PlinkMarkerLoader implements Runnable {
 
 		markerPosInBim = new int[markerList.length];
 		genotypes = new byte[markerList.length][];
-		loaded = Array.booleanArray(markerList.length, false);
+		loaded = ArrayUtils.booleanArray(markerList.length, false);
 
 		lookupMarkerPositions();
 		lookupIDs();
@@ -187,7 +187,7 @@ public class PlinkMarkerLoader implements Runnable {
 				for (int i = 0; i < markerList.length; i++) {
 					if (markerPosInBim[i] == -1) {
 						// missing marker, not present in PLINK files
-						mkrGenotypes.put(markerList[i], Array.byteArray(famIDList.length, (byte) -1));
+						mkrGenotypes.put(markerList[i], ArrayUtils.byteArray(famIDList.length, (byte) -1));
 						cnt++;
 						continue;
 					}

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Internat;
@@ -83,7 +83,7 @@ public class DossierMerge {
 					line[0] += "<super>�</>";
 					line[1] += "<super>�</>";
 				}
-				bits[0] = Array.toStr(line, ",") + ".";
+				bits[0] = ArrayUtils.toStr(line, ",") + ".";
 
 				if (bits[2].contains(" doi:")) {
 					bits[2] = bits[2].substring(0, bits[2].indexOf(" doi:"))
@@ -102,7 +102,7 @@ public class DossierMerge {
 				}
 				bits[2] = "<u>" + journal + "</>" + bits[2].substring(bits[2].indexOf("."));
 
-				writer.println(count + "." + (rtfOutput ? "\\tab " : "\t") + Array.toStr(bits, " "));
+				writer.println(count + "." + (rtfOutput ? "\\tab " : "\t") + ArrayUtils.toStr(bits, " "));
 
 				if (jointFirstAuthor) {
 					writer.println((rtfOutput ? "\\bullet \\tab " : "\t") + "<super>�</>Joint first author");

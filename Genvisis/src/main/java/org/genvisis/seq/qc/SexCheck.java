@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -53,7 +53,7 @@ public class SexCheck {
 	public void checkSex(String fullPathTooutput) {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(fullPathTooutput));
-			writer.println(Array.toStr(SEX_CHECK_HEADER));
+			writer.println(ArrayUtils.toStr(SEX_CHECK_HEADER));
 			while (train.hasNext()) {
 				SexCheckResults sexCheckResults = train.next();
 				writer.println(sexCheckResults.getSample()+ "\t" + sexCheckResults.getBamFile() + "\t"

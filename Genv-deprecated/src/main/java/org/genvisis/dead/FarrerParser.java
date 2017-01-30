@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -96,7 +96,7 @@ public class FarrerParser {
 																+ line[PROBABEL_HEADER.length + j * 2 + 1]);
 					}
 				}
-				HashVec.addToHashHash(hashes, model, "terms", Array.toStr(terms));
+				HashVec.addToHashHash(hashes, model, "terms", ArrayUtils.toStr(terms));
 
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
@@ -174,7 +174,7 @@ public class FarrerParser {
 					}
 				}
 				if (!hashes.get(model).containsKey("terms")) {
-					HashVec.addToHashHash(hashes, model, "terms", Array.toStr(Array.toStringArray(v)));
+					HashVec.addToHashHash(hashes, model, "terms", ArrayUtils.toStr(ArrayUtils.toStringArray(v)));
 				}
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
@@ -214,7 +214,7 @@ public class FarrerParser {
 					} else {
 						writer.print("\t.\t.");
 					}
-					finalSummary = Array.stringArray(2 + 3 * numTerms, "");
+					finalSummary = ArrayUtils.stringArray(2 + 3 * numTerms, "");
 					count = 0;
 					for (String model2 : models) {
 						hash = hashes.get(model2);
@@ -237,7 +237,7 @@ public class FarrerParser {
 							count++;
 						}
 					}
-					writer.println("\t" + Array.toStr(finalSummary));
+					writer.println("\t" + ArrayUtils.toStr(finalSummary));
 				}
 			}
 			writer.close();

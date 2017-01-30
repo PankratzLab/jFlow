@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -67,7 +67,7 @@ public class MergeDatasets {
 				v.add(dirs[i]);
 			}
 		}
-		dirs = Array.toStringArray(v);
+		dirs = ArrayUtils.toStringArray(v);
 
 		hashes = new Hashtable<String, Hashtable<String, String>>();
 		for (int i = 0; i < dirs.length; i++) {
@@ -99,7 +99,7 @@ public class MergeDatasets {
 			writer = new PrintWriter(new FileWriter(outputDir + CHI_SQUARE_DROPS_FILENAME));
 			writer2 = new PrintWriter(new FileWriter(outputDir + "homogeneityTests.xln"));
 
-			writer2.println("SNP\t"	+ Array.toStr(dirs) + "\t" + Array.toStr(dirs)
+			writer2.println("SNP\t"	+ ArrayUtils.toStr(dirs) + "\t" + ArrayUtils.toStr(dirs)
 											+ "\t2allele_p-value\t3genotype_p-value");
 			writer3 = new PrintWriter(new FileWriter(outputDir + "homo.R"));
 
@@ -111,13 +111,13 @@ public class MergeDatasets {
 				keys = HashVec.getKeys(hash, false);
 				alleleCounts = new int[keys.length][2];
 				genotypeCounts = new int[keys.length][2];
-				gCounts = Array.stringArray(dirs.length);
-				freqs = Array.doubleArray(dirs.length, Double.MIN_VALUE);
+				gCounts = ArrayUtils.stringArray(dirs.length);
+				freqs = ArrayUtils.doubleArray(dirs.length, Double.MIN_VALUE);
 				refAlleles = new String[2];
 				for (int j = 0; j < keys.length; j++) {
 					index = Integer.parseInt(keys[j]);
 					line = hash.get(keys[j]).split("[\\s]+");
-					genotypeCounts[j] = Array.toIntArray(line[2].split("/"));
+					genotypeCounts[j] = ArrayUtils.toIntArray(line[2].split("/"));
 
 					switch (Metal.determineStrandConfig(new String[] {line[0], line[1]}, refAlleles)) {
 						case Metal.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
@@ -164,14 +164,14 @@ public class MergeDatasets {
 							break;
 					}
 
-					gCounts[index] = Array.toStr(genotypeCounts[j], "/");
+					gCounts[index] = ArrayUtils.toStr(genotypeCounts[j], "/");
 					alleleCounts[j][0] = genotypeCounts[j][0] * 2 + genotypeCounts[j][1];
 					alleleCounts[j][1] = genotypeCounts[j][1] + genotypeCounts[j][2] * 2;
 					freqs[index] = (double) (alleleCounts[j][0])
 													/ (double) (alleleCounts[j][0] + alleleCounts[j][1]);
 				}
 				if (keys.length > 1) {
-					writer2.print(markerNames[i] + "\t" + Array.toStr(gCounts));
+					writer2.print(markerNames[i] + "\t" + ArrayUtils.toStr(gCounts));
 					for (double freq : freqs) {
 						writer2.print("\t");
 						if (freq > Double.MIN_VALUE) {
@@ -203,7 +203,7 @@ public class MergeDatasets {
 							writer3.println("#" + markerNames[i]);
 							writer3.print("alleles <- matrix(c(");
 							for (int j = 0; j < genotypeCounts.length; j++) {
-								writer3.print((j == 0 ? "" : ", ") + Array.toStr(genotypeCounts[j], ", "));
+								writer3.print((j == 0 ? "" : ", ") + ArrayUtils.toStr(genotypeCounts[j], ", "));
 							}
 							writer3.println("), nr=" + genotypeCounts[0].length + ")");
 							writer3.println("chisq.test(alleles)");
@@ -237,7 +237,7 @@ public class MergeDatasets {
 		Files.qsub(outputDir	+ "runHomo", null, -1,
 								Rscript.getRExecutable(new Logger())	+ " CMD BATCH " + outputDir + "homo[%0].R "
 																				+ outputDir + "homo[%0].Rout",
-								Matrix.toMatrix(Array.stringArraySequence(12, "")), 1000, 12);
+								Matrix.toMatrix(ArrayUtils.stringArraySequence(12, "")), 1000, 12);
 		System.out.println("To run Fisher's exact with permutations in R use either ./master or ./master.runHomo");
 		System.out.println(ext.getTime() + "\tDone!");
 	}
@@ -446,11 +446,11 @@ public class MergeDatasets {
 				}
 				order = Sort.getReverseIndices(counts);
 				temp = key	+ "\t" + (order.length == 1 ? 1 : 0) + "\t" + counts[order[0]] + "\t"
-								+ Array.sum(counts) + "\t"
-								+ ((double) counts[order[0]] / (double) Array.sum(counts));
+								+ ArrayUtils.sum(counts) + "\t"
+								+ ((double) counts[order[0]] / (double) ArrayUtils.sum(counts));
 				for (int element : order) {
 					temp += "\t"	+ values.elementAt(element) + "\t"
-									+ ext.listWithCommas(Array.toStringArray(datasets.elementAt(element)));
+									+ ext.listWithCommas(ArrayUtils.toStringArray(datasets.elementAt(element)));
 				}
 				if (order.length > 1) {
 					writer2.println(temp);
@@ -513,7 +513,7 @@ public class MergeDatasets {
 									} else {
 										record[3] = record[2];
 									}
-									writer.println(Array.toStr(record));
+									writer.println(ArrayUtils.toStr(record));
 									if (Double.parseDouble(record[3]) < HOMOGENEITY_THRESHOLD) {
 										writer2.println(record[0]);
 									}
@@ -596,7 +596,7 @@ public class MergeDatasets {
 				}
 				line[0] = loc[0];
 				line[3] = loc[1];
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 			}
 			reader.close();
 			writer.close();

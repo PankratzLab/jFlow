@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import org.genvisis.cnv.manage.TextExport;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -192,7 +192,7 @@ public class MarkerSet implements Serializable, TextExport {
 				break;
 			}
 		}
-		return Array.toStringArray(markersIn);
+		return ArrayUtils.toStringArray(markersIn);
 	}
 
 	public void checkFingerprint(Sample samp) {
@@ -251,7 +251,7 @@ public class MarkerSet implements Serializable, TextExport {
 		byte[] result;
 		String geno;
 
-		result = Array.byteArray(abGenotypes.length, (byte) -3);
+		result = ArrayUtils.byteArray(abGenotypes.length, (byte) -3);
 		for (int i = 0; i < abGenotypes.length; i++) {
 			switch (abGenotypes[i]) {
 				case 0:

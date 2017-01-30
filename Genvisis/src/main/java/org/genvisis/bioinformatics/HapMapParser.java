@@ -12,7 +12,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -35,7 +35,7 @@ public class HapMapParser {
 		for (int chr = 1; chr <= 23; chr++) {
 			timestamp = new File(root + ".chr" + chr + ".fam").lastModified();
 			struct = new FamilyStructure(root + ".chr" + chr + ".fam");
-			struct.setAffections(Array.byteArray(struct.getAffections().length, (byte) 1));
+			struct.setAffections(ArrayUtils.byteArray(struct.getAffections().length, (byte) 1));
 			struct.writeToFile(root + ".chr" + chr + ".fam", false);
 			new File(root + ".chr" + chr + ".fam").setLastModified(timestamp);
 			System.out.print(".");
@@ -123,7 +123,7 @@ public class HapMapParser {
 			}
 			reader.close();
 			writer.close();
-			indIDs = Array.stringArraySequence(trans.length, "");
+			indIDs = ArrayUtils.stringArraySequence(trans.length, "");
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + filename + "\"");
 			log.reportException(ioe);

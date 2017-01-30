@@ -1,6 +1,6 @@
 package org.genvisis.stats;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 
@@ -56,7 +56,7 @@ public class QuantileNormalization {
 				for (int j = 0; j < tmp.length; j++) {
 					tmp[j] = dataToNorm[j][i];
 				}
-				int numNan = tmp.length - Array.removeNaN(tmp).length;
+				int numNan = tmp.length - ArrayUtils.removeNaN(tmp).length;
 				if (numNan != 0 && numNan != tmp.length) {
 					String error = i	+ "\tAll indices must either have complete (non-NaN) data, or all NaN data "
 													+ numNan + " Nans out of " + tmp.length;
@@ -110,10 +110,10 @@ public class QuantileNormalization {
 		// }
 		// }
 		for (int i = 0; i < dataToNorm.length; i++) {
-			log.reportTimeInfo("MEAN Original"	+ i + " : " + Array.mean(dataToNorm[i], true) + " -> "
-													+ Array.mean(normData[i], true));
-			log.reportTimeInfo("SD Original"	+ i + " : " + Array.stdev(dataToNorm[i], true) + " -> "
-													+ Array.stdev(normData[i], true));
+			log.reportTimeInfo("MEAN Original"	+ i + " : " + ArrayUtils.mean(dataToNorm[i], true) + " -> "
+													+ ArrayUtils.mean(normData[i], true));
+			log.reportTimeInfo("SD Original"	+ i + " : " + ArrayUtils.stdev(dataToNorm[i], true) + " -> "
+													+ ArrayUtils.stdev(normData[i], true));
 
 		}
 	}

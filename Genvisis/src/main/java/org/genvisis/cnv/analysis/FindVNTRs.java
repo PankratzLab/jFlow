@@ -11,7 +11,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -74,7 +74,7 @@ public class FindVNTRs {
 					// for (int j = 0; j<v.size(); j++) {
 					// writer.println(v.elementAt(j));
 					// }
-					writer.println(Array.toStr(Array.toStringArray(v)));
+					writer.println(ArrayUtils.toStr(ArrayUtils.toStringArray(v)));
 				}
 			}
 			cv.sort(true);

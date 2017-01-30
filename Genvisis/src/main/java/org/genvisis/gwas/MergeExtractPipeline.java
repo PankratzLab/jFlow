@@ -9,7 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.genvisis.cnv.manage.PlinkMergePrep;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -423,8 +423,8 @@ public class MergeExtractPipeline {
       }
     }
     if (plinkRoots.size() > 0) {
-      String[] roots = Array.toStringArray(plinkRoots);
-      String[] lbls = Array.toStringArray(plinkLabels);
+      String[] roots = ArrayUtils.toStringArray(plinkRoots);
+      String[] lbls = ArrayUtils.toStringArray(plinkLabels);
       plinkRoots = null;
       String outRoot = dir + "plink_merged";
       String mergeCommand =

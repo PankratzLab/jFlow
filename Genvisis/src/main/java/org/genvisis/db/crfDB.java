@@ -13,7 +13,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -369,7 +369,7 @@ public class crfDB {
 				reader.close();
 			}
 
-			String[] sortedIds = Array.toStringArray(idCollection);
+			String[] sortedIds = ArrayUtils.toStringArray(idCollection);
 			Arrays.sort(sortedIds);
 
 			for (int i = 0; i < idCollection.size(); i++) {

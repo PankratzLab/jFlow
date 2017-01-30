@@ -26,7 +26,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.ColorIcon;
 import org.genvisis.cnv.gui.WrapLayout;
 import org.genvisis.cnv.qc.SexChecks;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
@@ -203,7 +203,7 @@ public class SexPlot extends JFrame {
 		new SexPlot(proj, samples.toArray(new String[samples.size()]),
 								Matrix.toDoubleArrays(datapoints), Bytes.toArray(sexes),
 								Bytes.toArray(estimatedSexes), Booleans.toArray(excluded),
-								Booleans.toArray(uncertains), Array.toStringArray(notes));
+								Booleans.toArray(uncertains), ArrayUtils.toStringArray(notes));
 	}
 
 	public static void main(String[] args) {

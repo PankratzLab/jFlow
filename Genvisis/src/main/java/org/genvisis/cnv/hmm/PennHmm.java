@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Numbers;
@@ -529,7 +529,7 @@ public class PennHmm {
 				int currentFind = 2;
 				int[] states = q;
 				if (reverse) {
-					states = Array.reverse(states);
+					states = ArrayUtils.reverse(states);
 				}
 				for (int i = 0; i < states.length; i++) {
 
@@ -657,7 +657,7 @@ public class PennHmm {
 			throw new IllegalStateException(error);
 		} else {
 			String[] line = reader.readLine().trim().split("[\\s]+");
-			return Array.toDoubleArray(line);
+			return ArrayUtils.toDoubleArray(line);
 		}
 	}
 
@@ -666,7 +666,7 @@ public class PennHmm {
 		a = new double[n][m];
 		for (int i = 0; i < n; i++) {
 			String[] line = reader.readLine().trim().split("[\\s]+");
-			double[] tmp = Array.toDoubleArray(line);
+			double[] tmp = ArrayUtils.toDoubleArray(line);
 			a[i] = tmp;
 		}
 		return a;
@@ -821,10 +821,10 @@ public class PennHmm {
 				throw new IllegalStateException(error);
 			}
 
-			double score = getLocScore(	pennHmm, Array.subArray(lrrChr, indices),
-																	Array.subArray(bafsChr, indices),
-																	Array.subArray(pfbsChr, indices),
-																	Array.subArray(copyNumberOnlyDef, indices), hmmState);
+			double score = getLocScore(	pennHmm, ArrayUtils.subArray(lrrChr, indices),
+																	ArrayUtils.subArray(bafsChr, indices),
+																	ArrayUtils.subArray(pfbsChr, indices),
+																	ArrayUtils.subArray(copyNumberOnlyDef, indices), hmmState);
 			CNVBuilder builder = new CNVBuilder(current);
 			builder.score(score);
 			scored.add(builder.build());

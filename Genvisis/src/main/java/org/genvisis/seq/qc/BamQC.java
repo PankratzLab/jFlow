@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -139,9 +139,9 @@ public class BamQC {
 		percentUnMapped = computePercent(numUnMapped, numUnique);
 		percentOnTarget = computePercent(numOnTarget, numUnique);
 		averageInsertSize[NO_QC_INSERT_HISTOGRAM] /=
-																							Array.sum(getInsertHistogram(NO_QC_INSERT_HISTOGRAM).getCounts());
+																							ArrayUtils.sum(getInsertHistogram(NO_QC_INSERT_HISTOGRAM).getCounts());
 		averageInsertSize[QC_INSERT_HISTOGRAM] /=
-																						Array.sum(getInsertHistogram(QC_INSERT_HISTOGRAM).getCounts());
+																						ArrayUtils.sum(getInsertHistogram(QC_INSERT_HISTOGRAM).getCounts());
 
 		stDevInsertSize = new double[2];
 		stDevInsertSize[NO_QC_INSERT_HISTOGRAM] =
@@ -161,7 +161,7 @@ public class BamQC {
 
 		}
 		double[] finals = Doubles.toArray(inserts);
-		return Array.stdev(finals);
+		return ArrayUtils.stdev(finals);
 	}
 
 	public void setPercentCoverageAtDepth(double[] percentCoverageAtDepth) {
@@ -289,7 +289,7 @@ public class BamQC {
 							+ percentOnTarget + "\t" + averageInsertSize[NO_QC_INSERT_HISTOGRAM] + "\t" + "\t"
 							+ stDevInsertSize[QC_INSERT_HISTOGRAM] + "\t" + filterNGS.getMappingQualityFilter()
 							+ "\t" + filterNGS.getPhreadScoreFilter() + "\t" + totalTargetedBasePairs + "\t"
-							+ Array.toStr(percentCoverageAtDepth) + "\t" + Array.toStr(totalPercentGCAtDepth);
+							+ ArrayUtils.toStr(percentCoverageAtDepth) + "\t" + ArrayUtils.toStr(totalPercentGCAtDepth);
 		return summary;
 	}
 
@@ -607,7 +607,7 @@ public class BamQC {
 	private static void summarizeQC(BamQC[] bamQCs, FilterNGS filterNGS, String output, Logger log) {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
-			writer.print(Array.toStr(QC_HEADER));
+			writer.print(ArrayUtils.toStr(QC_HEADER));
 			for (int i = 0; i < filterNGS.getReadDepthFilter().length; i++) {
 				writer.print("\tPercent Coverage At " + filterNGS.getReadDepthFilter()[i]);
 			}
@@ -631,7 +631,7 @@ public class BamQC {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(ext.rootOf(output, false) + ".gcs"));
 			double[] bins = null;
-			writer.print(Array.toStr(HIST_HEADER));
+			writer.print(ArrayUtils.toStr(HIST_HEADER));
 			for (BamQC bamQC : bamQCs) {
 				if (bamQC != null) {
 					writer.print("\t" + ext.rootOf(bamQC.getInputSamOrBamFile()));
@@ -661,7 +661,7 @@ public class BamQC {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(ext.rootOf(output, false) + ".insert"));
 			double[] bins = null;
-			writer.print(Array.toStr(HIST_HEADER));
+			writer.print(ArrayUtils.toStr(HIST_HEADER));
 			for (BamQC bamQC : bamQCs) {
 				if (bamQC != null) {
 					writer.print("\t" + ext.rootOf(bamQC.getInputSamOrBamFile()));
@@ -749,7 +749,7 @@ public class BamQC {
 						+ phreadScore + " (default))\n";
 		usage = usage
 							+ "   (11) read depth filter (comma-delimited if multiple) to compute qc metrics with (i.e. readDepth="
-						+ Array.toStr(Array.toStringArray(readDepth), ",") + " (default))\n";
+						+ ArrayUtils.toStr(ArrayUtils.toStringArray(readDepth), ",") + " (default))\n";
 		usage = usage	+ "   (12) compute QC against the baits library (i.e. -baits" + baitsAsTarget
 						+ " (default))\n";
 		usage = usage	+ "   (13) normalize coverage to number of Reads (in millions)  (i.e. normReads="
@@ -809,7 +809,7 @@ public class BamQC {
 				snpEffLocation = ext.parseStringArg(arg, "");
 				numArgs--;
 			} else if (arg.startsWith("readDepth=")) {
-				readDepth = Array.toIntArray(ext.parseStringArg(arg, "").split(","));
+				readDepth = ArrayUtils.toIntArray(ext.parseStringArg(arg, "").split(","));
 				phreadScore = ext.parseDoubleArg(arg);
 				numArgs--;
 			} else {

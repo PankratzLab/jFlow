@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -95,8 +95,8 @@ public class RelativeQuantification {
 
 		try {
 			inds = HashVec.getKeys(individuals);
-			probeNames = Array.toStringArray(vProbes);
-			regionNames = Array.toStringArray(vRegions);
+			probeNames = ArrayUtils.toStringArray(vProbes);
+			regionNames = ArrayUtils.toStringArray(vRegions);
 
 			writer = new PrintWriter(new FileWriter(dir + "RQ.xln"));
 			writer.print("Sample");
@@ -123,16 +123,16 @@ public class RelativeQuantification {
 					for (int k = 0; k < regionNames.length; k++) {
 						values = regions.get(regionNames[k]);
 						if (values == null) {
-							writer.print("\t" + Array.toStr(Array.stringArray(5, ".")));
+							writer.print("\t" + ArrayUtils.toStr(ArrayUtils.stringArray(5, ".")));
 						} else {
 							means[i][j][k] = Double.parseDouble(values[0]);
 							stderrs[i][j][k] = Double.parseDouble(values[1]);
 							sampleStderrs.add(Double.parseDouble(values[1]));
-							writer.print("\t" + Array.toStr(values));
+							writer.print("\t" + ArrayUtils.toStr(values));
 						}
 					}
 				}
-				writer.println("\t" + Array.mean(Doubles.toArray(sampleStderrs)));
+				writer.println("\t" + ArrayUtils.mean(Doubles.toArray(sampleStderrs)));
 			}
 			writer.close();
 
@@ -162,7 +162,7 @@ public class RelativeQuantification {
 						}
 					}
 				}
-				writer.println("\t" + Array.mean(Doubles.toArray(sampleStderrs)));
+				writer.println("\t" + ArrayUtils.mean(Doubles.toArray(sampleStderrs)));
 			}
 			writer.close();
 
@@ -182,11 +182,11 @@ public class RelativeQuantification {
 					for (String regionName : regionNames) {
 						values = regions.get(regionName);
 						if (values == null) {
-							writer.print("\t" + Array.toStr(Array.stringArray(5, ".")));
+							writer.print("\t" + ArrayUtils.toStr(ArrayUtils.stringArray(5, ".")));
 						} else {
 							values[3] = (Double.parseDouble(values[2]) - Double.parseDouble(values[3])) + "";
 							values[4] = (Double.parseDouble(values[4]) - Double.parseDouble(values[2])) + "";
-							writer.print("\t" + Array.toStr(values));
+							writer.print("\t" + ArrayUtils.toStr(values));
 						}
 					}
 					writer.println();

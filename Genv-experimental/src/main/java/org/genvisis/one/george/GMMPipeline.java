@@ -43,4 +43,9 @@ public class GMMPipeline {
 		}
 		// plot
 	}
+
+	public static void main(String[] args) {
+		GMMPipeline pipeline = new GMMPipeline("./fcs");
+		pipeline.run();
+	}
 }

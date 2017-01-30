@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 
 public class MergeDuplicateCalls {
@@ -67,7 +67,7 @@ public class MergeDuplicateCalls {
 			writer = new PrintWriter(new FileWriter(dir + filename + "_marged.xln"));
 			keys = HashVec.getKeys(hash);
 			for (String key : keys) {
-				writer.println(Array.toStr(hash.get(key)));
+				writer.println(ArrayUtils.toStr(hash.get(key)));
 			}
 			writer.close();
 		} catch (Exception e) {

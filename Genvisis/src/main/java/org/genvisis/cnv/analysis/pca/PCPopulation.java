@@ -9,7 +9,7 @@ import java.util.Hashtable;
 import java.util.Set;
 
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -107,7 +107,7 @@ public class PCPopulation {
 						curMask[sampPCs.get(ind)] = true;
 					}
 				}
-				if (Array.booleanArraySum(curMask) > 0) {
+				if (ArrayUtils.booleanArraySum(curMask) > 0) {
 					pops.add(new Population(sPop, curMask, vpopPCs,
 																	sPop.equals(VcfPopulation.DETERMINE_ANCESTRY)));
 				} else {
@@ -269,7 +269,7 @@ public class PCPopulation {
 				boolean[] mask = new boolean[populations.size()];
 				Arrays.fill(mask, true);
 				mask[i] = false;
-				double sumTotalDists = Array.sum(Array.subArray(getDistances(), mask));
+				double sumTotalDists = ArrayUtils.sum(ArrayUtils.subArray(getDistances(), mask));
 				normDist = distances.get(i) / sumTotalDists;
 				// System.out.println("The difference from the " + clusterPop.getPopulation().getName() + "
 				// cluster to the " + clusterPop.getOtherPopulations().get(i) + " cluster is " +
@@ -443,7 +443,7 @@ public class PCPopulation {
 																																					pResiduals.getPcBasis(),
 																																					log);
 				for (int i = 0; i < clusterCenters.length; i++) {
-					clusterCenters[i] = Array.median(Array.subArray(trimmedPcs[i], pcMatchedMask));
+					clusterCenters[i] = ArrayUtils.median(ArrayUtils.subArray(trimmedPcs[i], pcMatchedMask));
 					log.reportTimeInfo(name + " Cluster " + i + " : " + clusterCenters[i]);
 				}
 			}
@@ -473,13 +473,13 @@ public class PCPopulation {
 			String output = ext.rootOf(genoPCfile, false) + ".ancestry.txt";
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(output));
-				writer.println("DNA\tSTUDY\t"	+ Array.toStr(testSampleDistances[0].getPopulations()) + "\t"
-												+ Array.toStr(testSampleDistances[0].getPopulations()));
+				writer.println("DNA\tSTUDY\t"	+ ArrayUtils.toStr(testSampleDistances[0].getPopulations()) + "\t"
+												+ ArrayUtils.toStr(testSampleDistances[0].getPopulations()));
 				for (TestSampleDistances testSampleDistance : testSampleDistances) {
 					String sample = testSampleDistance.getSample();
 					writer.println(sample	+ "\t" + vpop.getPopulationForInd(sample, RETRIEVE_TYPE.SUB)[0]
-													+ "\t" + Array.toStr(testSampleDistance.getDistances()) + "\t"
-													+ Array.toStr(testSampleDistance.getNormDistances()));
+													+ "\t" + ArrayUtils.toStr(testSampleDistance.getDistances()) + "\t"
+													+ ArrayUtils.toStr(testSampleDistance.getNormDistances()));
 				}
 				writer.close();
 			} catch (Exception e) {

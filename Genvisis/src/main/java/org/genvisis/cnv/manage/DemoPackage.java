@@ -18,6 +18,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.LaunchProperties.LaunchKey;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.FileChooser;
 import org.genvisis.cnv.manage.DemoProject.DEMO_TYPE;
@@ -31,7 +32,6 @@ public class DemoPackage {
 
 	private final String demoDirectory;
 	private final Logger log;
-	private LaunchProperties newLaunchProperties;
 	private boolean fail;
 
 	public DemoPackage(String demoDirectory, Logger log) {
@@ -96,11 +96,10 @@ public class DemoPackage {
 			log.reportError("This could be because you are running from eclipse without a jar file");
 			// fail = true;
 		}
-		String launchProperties = demoDirectory + LaunchProperties.DEFAULT_PROPERTIES_FILE;
-		org.genvisis.cnv.Launch.createLaunchProperties(launchProperties, true, true);
+		LaunchProperties.updatePropertiesFile(demoDirectory + LaunchProperties.propertiesFile());
+		org.genvisis.cnv.Launch.createLaunchProperties(true, true);
 
-		newLaunchProperties = new LaunchProperties(launchProperties);
-		System.out.println(newLaunchProperties.getProperty(LaunchProperties.PROJECTS_DIR));
+		System.out.println(LaunchProperties.get(LaunchKey.PROJECTS_DIR));
 	}
 
 	public boolean isFail() {
@@ -170,9 +169,9 @@ public class DemoPackage {
 	}
 
 	private void saveDemoProperties(Project proj, DemoProject demoProject, boolean setToDefault) {
-		String projectsDir = newLaunchProperties.getDirectory();
+		String projectsDir = LaunchProperties.get(LaunchKey.PROJECTS_DIR);
 		if (Files.isRelativePath(projectsDir)) {
-			projectsDir = ext.parseDirectoryOfFile(newLaunchProperties.getFilename()) + projectsDir;
+			projectsDir = ext.parseDirectoryOfFile(LaunchProperties.propertiesFile()) + projectsDir;
 		}
 		demoProject.setProperty(demoProject.PROJECT_NAME,
 														proj.PROJECT_NAME.getValue() + "_" + demoProject.getdType());
@@ -198,9 +197,8 @@ public class DemoPackage {
 		}
 
 		if (setToDefault) {
-			newLaunchProperties.setProperty(LaunchProperties.LAST_PROJECT_OPENED,
+			LaunchProperties.put(LaunchKey.LAST_PROJECT_OPENED,
 																			demoProject.PROJECT_NAME.getValue() + ".properties");
-			newLaunchProperties.save();
 		}
 	}
 

@@ -12,7 +12,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.bioinformatics.SeattleSeq;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -93,7 +93,7 @@ public class Polymutt {
 			v.add("qsub batches/run_" + iteration[0]);
 		}
 		v.insertElementAt("cd " + ext.pwd(), 0);
-		Files.writeArray(Array.toStringArray(v), "master.allRuns");
+		Files.writeArray(ArrayUtils.toStringArray(v), "master.allRuns");
 		Files.chmod("master.allRuns");
 	}
 
@@ -143,7 +143,7 @@ public class Polymutt {
 		}
 		if (unknownAnnotations.size() > 0) {
 			filename = "SeattleSeq_" + ext.getTimestampForFilename() + ".input";
-			Files.writeArray(Array.toStringArray(unknownAnnotations), annotationDir + filename);
+			Files.writeArray(ArrayUtils.toStringArray(unknownAnnotations), annotationDir + filename);
 		}
 		temp = "Filename\tSampleRoot\tMarkerName\tChr\tPosition\tREF\tALT\tQUAL\tMapQual\tDenovoQual";
 		for (int i = 1; i <= 3; i++) {
@@ -165,7 +165,7 @@ public class Polymutt {
 		}
 
 		finishedAnnotations.insertElementAt(temp, 0);
-		Files.writeArray(	Array.toStringArray(finishedAnnotations),
+		Files.writeArray(	ArrayUtils.toStringArray(finishedAnnotations),
 											ext.parseDirectoryOfFile(triosFile) + "summary.xln");
 	}
 
@@ -254,7 +254,7 @@ public class Polymutt {
 				genotypeQualities = new double[3];
 				for (int i = 0; i < 3; i++) {
 					subline = line[9 + i].split(":");
-					phreds = Array.toIntArray(subline[3].split(","));
+					phreds = ArrayUtils.toIntArray(subline[3].split(","));
 					indexOfPhred = ext.indexOfStr(subline[0], GENOTYPE_ORDER);
 					phredOfCall[i] = phreds[indexOfPhred];
 					phreds[indexOfPhred] = 999;
@@ -280,10 +280,10 @@ public class Polymutt {
 																			+ refAllele + "\t" + denovoAllele.charAt(i) + "\t"
 																			+ qualityScore + "\t" + mapQuality + "\t" + dqScore + ""
 																			+ genotypes + "\t" + parsedAnnotations.get(trav)[0] + "\t"
-																			+ Array.toStr(readDepths) + "\t"
-																			+ Array.toStr(genotypeQualities) + "\t"
-																			+ Array.toStr(phredOfCall) + "\t"
-																			+ Array.toStr(nextBestGenotype));
+																			+ ArrayUtils.toStr(readDepths) + "\t"
+																			+ ArrayUtils.toStr(genotypeQualities) + "\t"
+																			+ ArrayUtils.toStr(phredOfCall) + "\t"
+																			+ ArrayUtils.toStr(nextBestGenotype));
 						}
 					}
 
@@ -344,12 +344,12 @@ public class Polymutt {
 			count++;
 		}
 		if (count == GENOTYPE_ORDER.length) {
-			if (Array.max(scores) > 0) {
+			if (ArrayUtils.max(scores) > 0) {
 				log.report("There was no likely genotype. Line: " + phredScores);
 			}
 		}
 
-		return Array.toStringArray(mostLikelyGenotypes);
+		return ArrayUtils.toStringArray(mostLikelyGenotypes);
 	}
 
 	private static void findAllDenovo(String dir) {
@@ -477,7 +477,7 @@ public class Polymutt {
 								// at least 5 reads for all three individuals
 								if (denovo	&& Double.parseDouble(line[7].split(";")[3].split("=")[1]) > 50
 										&& Double.parseDouble(line[9 + 2].split(":")[1]) > 50
-										&& Array.min(readDepths) >= minReadDepth) {
+										&& ArrayUtils.min(readDepths) >= minReadDepth) {
 									writers[0].println(temp);
 								}
 							}
@@ -513,7 +513,7 @@ public class Polymutt {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				pattern = line[0];
-				iterations = Array.subArray(line, 1);
+				iterations = ArrayUtils.subArray(line, 1);
 
 				for (String iteration : iterations) {
 					fill = ext.replaceAllWith(pattern, "[%%]", iteration);
@@ -523,7 +523,7 @@ public class Polymutt {
 				}
 
 				for (int r = 2; r <= iterations.length; r++) {
-					nCr = Array.nCr_indices(iterations.length, r);
+					nCr = ArrayUtils.nCr_indices(iterations.length, r);
 
 					for (int[] element : nCr) {
 						fill = iterations[element[0]];
@@ -583,7 +583,7 @@ public class Polymutt {
 		}
 
 		try {
-			thresholds = Array.toIntArray(coverages.split(","));
+			thresholds = ArrayUtils.toIntArray(coverages.split(","));
 		} catch (Exception e) {
 			log.reportError("Error - failed to parse coverage thresholds: " + coverages);
 			log.reportException(e);
@@ -651,7 +651,7 @@ public class Polymutt {
 						readCounts = new int[] {Integer.parseInt(line[9].split(":")[2]),
 																		Integer.parseInt(line[10].split(":")[2]),
 																		Integer.parseInt(line[11].split(":")[2])};
-						writer.println(line[0] + "\t" + line[1] + "\t" + Array.toStr(readCounts));
+						writer.println(line[0] + "\t" + line[1] + "\t" + ArrayUtils.toStr(readCounts));
 					} else {
 						readCounts = null;
 					}
@@ -729,7 +729,7 @@ public class Polymutt {
 			log = new Logger(dir + "assessingAllPossibleCoverageFor_" + ext.rootOf(controlFile) + ".out");
 
 			try {
-				thresholds = Array.toIntArray(coverages.split(","));
+				thresholds = ArrayUtils.toIntArray(coverages.split(","));
 			} catch (Exception e) {
 				log.reportError("Error - failed to parse coverage thresholds: " + coverages);
 				log.reportException(e);
@@ -741,7 +741,7 @@ public class Polymutt {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				pattern = line[0];
-				reps = Array.subArray(line, 1);
+				reps = ArrayUtils.subArray(line, 1);
 
 				problem = false;
 				filenames = new Vector<String>();
@@ -762,14 +762,14 @@ public class Polymutt {
 
 				iterations = new Vector<int[]>();
 				for (int r = 1; r <= reps.length; r++) {
-					nCr = Array.nCr_indices(reps.length, r);
+					nCr = ArrayUtils.nCr_indices(reps.length, r);
 					for (int[] element : nCr) {
 						iterations.add(element);
 					}
 				}
 				nCr = Matrix.toMatrix(iterations);
 
-				results = parseAllPossibleCoverages(Array.toStringArray(filenames), nCr, thresholds,
+				results = parseAllPossibleCoverages(ArrayUtils.toStringArray(filenames), nCr, thresholds,
 																						bedList, log);
 
 				for (int i = 0; i < nCr.length; i++) {
@@ -779,7 +779,7 @@ public class Polymutt {
 					}
 					for (int j = 0; j < thresholds.length; j++) {
 						writer.println(pattern	+ "\t" + fill + "\t" + nCr[i].length + "\t>=" + thresholds[j]
-														+ "\t" + Array.toStr(results[i][j]));
+														+ "\t" + ArrayUtils.toStr(results[i][j]));
 					}
 				}
 
@@ -839,8 +839,8 @@ public class Polymutt {
 					log.report(ext.getTimestampForFilename() + "\t" + onTargetReads);
 				}
 
-				if (chr != Array.min(chrs)) {
-					chr = Array.min(chrs);
+				if (chr != ArrayUtils.min(chrs)) {
+					chr = ArrayUtils.min(chrs);
 					log.report(ext.getTimestampForFilename()	+ "\tStarting chromosome "
 											+ Positions.CHR_CODES[chr]);
 				}
@@ -861,7 +861,7 @@ public class Polymutt {
 							temp = readers[i].readLine();
 							currents[i] = temp.split("[\\s]+");
 							if (currents[i].length < 5) {
-								log.report("Not enough columns for line: " + Array.toStr(currents[i]));
+								log.report("Not enough columns for line: " + ArrayUtils.toStr(currents[i]));
 								done = true;
 							}
 						} catch (Exception e) {

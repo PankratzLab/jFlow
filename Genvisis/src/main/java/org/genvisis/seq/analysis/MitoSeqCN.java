@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -106,12 +106,12 @@ public class MitoSeqCN {
 				ArrayList<MitoCNResult> results = new ArrayList<MitoSeqCN.MitoCNResult>();
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(output));
-					writer.println(Array.toStr(MitoCNResult.header));
+					writer.println(ArrayUtils.toStr(MitoCNResult.header));
 					while (train.hasNext()) {
 						MitoCNResult result = train.next();
 						if (result != null) {
-							log.reportTimeInfo(Array.toStr(result.getResult()));
-							writer.println(Array.toStr(result.getResult()));
+							log.reportTimeInfo(ArrayUtils.toStr(result.getResult()));
+							writer.println(ArrayUtils.toStr(result.getResult()));
 							results.add(result);
 						}
 
@@ -189,7 +189,7 @@ public class MitoSeqCN {
 			result.add(outBam);
 			result.add(ext.rootOf(ext.rootOf(outBam)));
 			result.add(Integer.toString(estimatedReadLength));
-			return Array.toStringArray(result);
+			return ArrayUtils.toStringArray(result);
 		}
 	}
 

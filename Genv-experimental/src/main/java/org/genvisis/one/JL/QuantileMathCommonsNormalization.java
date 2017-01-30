@@ -6,7 +6,7 @@ import org.apache.commons.math3.stat.ranking.NaNStrategy;
 import org.apache.commons.math3.stat.ranking.NaturalRanking;
 import org.apache.commons.math3.stat.ranking.RankingAlgorithm;
 import org.apache.commons.math3.stat.ranking.TiesStrategy;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 import com.google.common.primitives.Doubles;
 
@@ -109,9 +109,9 @@ public class QuantileMathCommonsNormalization {
 			if (needsReplacement) {
 				double replacementValue;
 				if (useMedian) {
-					replacementValue = Array.median(Doubles.toArray(nonNAvalues));
+					replacementValue = ArrayUtils.median(Doubles.toArray(nonNAvalues));
 				} else {
-					replacementValue = Array.mean(Doubles.toArray(nonNAvalues));
+					replacementValue = ArrayUtils.mean(Doubles.toArray(nonNAvalues));
 
 				}
 

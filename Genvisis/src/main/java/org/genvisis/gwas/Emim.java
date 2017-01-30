@@ -7,26 +7,57 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.genvisis.common.Array;
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Sets;
+
 public class Emim {
 
 	public enum EMIM_MODEL {
-													GENOTYPIC("Genotypic", 2), DOMINANT("Dominant", 1), ADDITIVE(	"Additive",
-																																												1);
+													GENOTYPIC("Genotypic", 2,
+																		true), DOMINANT("Dominant", 1,
+																										true), ADDITIVE("Additive", 1,
+																																		true), IMPRINTING_MATERNAL(	"Imprinting_M",
+																																																1,
+																																																false), IMPRINTING_PATERNAL("Imprinting_P",
+																																																														1,
+																																																														false);
+
+		private static final Set<EMIM_MODEL> VALUE_SET;
+		private static final Set<EMIM_MODEL> OPTIONAL_SET;
+
+		static {
+			Set<EMIM_MODEL> valueSet = Sets.newHashSet();
+			Set<EMIM_MODEL> optionalSet = Sets.newLinkedHashSet();
+			for (EMIM_MODEL model : EMIM_MODEL.values()) {
+				valueSet.add(model);
+				if (model.optional) {
+					optionalSet.add(model);
+				}
+			}
+			VALUE_SET = ImmutableSet.copyOf(valueSet);
+			OPTIONAL_SET = ImmutableSortedSet.copyOf(optionalSet);
+		}
 
 		private final String name;
 		private final int degreesFreedom;
+		private final boolean optional;
 
-		EMIM_MODEL(String name, int degreesFreedom) {
+		EMIM_MODEL(String name, int degreesFreedom, boolean optional) {
 			this.name = name;
 			this.degreesFreedom = degreesFreedom;
+			this.optional = optional;
 		}
 
 		@Override
@@ -38,17 +69,23 @@ public class Emim {
 			return degreesFreedom;
 		}
 
-		public static Set<EMIM_MODEL> valueSet() {
-			HashSet<EMIM_MODEL> models = new HashSet<EMIM_MODEL>();
-			for (EMIM_MODEL model : EMIM_MODEL.values()) {
-				models.add(model);
-			}
-			return models;
+
+		public boolean isOptional() {
+			return optional;
 		}
+
+		public static Set<EMIM_MODEL> valueSet() {
+			return VALUE_SET;
+		}
+
+		public static Set<EMIM_MODEL> optionalSet() {
+			return OPTIONAL_SET;
+		}
+
 	}
 
 	private enum EMIM_PARAM {
-														ESTIMATE_R1("   << estimate R1 (0=no, 1=yes)"), ESTIMATE_R2("   << estimate R2 (0=no, 1=yes)"), R2_EQUALS_R1("   << R2=R1 (0=no, 1=yes)"), R2_EQUALS_R1_SQUARED("   << R2=R1squared\t(0=no, 1=yes)"), ESTIMATE_S1("   << estimate S1 (0=no, 1=yes)"), ESTIMATE_S2("   << estimate S2 (0=no, 1=yes)"), S2_EQUALS_S1("   << S2=S1 (0=no, 1=yes)"), S2_EQUALS_S1_SQUARED("   << S2=S1squared\t(0=no, 1=yes)");
+														ESTIMATE_R1("   << estimate R1 (0=no, 1=yes)"), ESTIMATE_R2("   << estimate R2 (0=no, 1=yes)"), R2_EQUALS_R1("   << R2=R1 (0=no, 1=yes)"), R2_EQUALS_R1_SQUARED("   << R2=R1squared\t(0=no, 1=yes)"), ESTIMATE_S1("   << estimate S1 (0=no, 1=yes)"), ESTIMATE_S2("   << estimate S2 (0=no, 1=yes)"), S2_EQUALS_S1("   << S2=S1 (0=no, 1=yes)"), S2_EQUALS_S1_SQUARED("   << S2=S1squared\t(0=no, 1=yes)"), ESTIMATE_IM("   << estimate Im (0=no, 1=yes)"), ESTIMATE_IP("   << estimate Ip (0=no, 1=yes)");
 
 		private final String lineSuffix;
 
@@ -86,7 +123,6 @@ public class Emim {
 		filenameOriginal = Files.backup("emimparams.dat", "./", "./", true);
 
 		HashSet<EMIM_PARAM> setParams = new HashSet<EMIM_PARAM>();
-
 		if (runType.equals("C")) {
 			switch (model) {
 				case GENOTYPIC:
@@ -100,7 +136,7 @@ public class Emim {
 					setParams.add(EMIM_PARAM.R2_EQUALS_R1_SQUARED);
 					break;
 				default:
-					log.reportError("Invalid EMIM model: " + model.toString());
+					log.reportError("Invalid EMIM model for " + runType + " run type: " + model.toString());
 					return;
 			}
 
@@ -121,7 +157,45 @@ public class Emim {
 					setParams.add(EMIM_PARAM.S2_EQUALS_S1_SQUARED);
 					break;
 				default:
-					log.reportError("Invalid EMIM model: " + model.toString());
+					log.reportError("Invalid EMIM model for " + runType + " run type: " + model.toString());
+					return;
+			}
+		} else if (runType.equals("CIm")) {
+			switch (model) {
+				case GENOTYPIC:
+					setParams.add(EMIM_PARAM.ESTIMATE_R1);
+					setParams.add(EMIM_PARAM.ESTIMATE_R2);
+					setParams.add(EMIM_PARAM.ESTIMATE_IM);
+					break;
+				case DOMINANT:
+					setParams.add(EMIM_PARAM.R2_EQUALS_R1);
+					setParams.add(EMIM_PARAM.ESTIMATE_IM);
+					break;
+				case ADDITIVE:
+					setParams.add(EMIM_PARAM.R2_EQUALS_R1_SQUARED);
+					setParams.add(EMIM_PARAM.ESTIMATE_IM);
+					break;
+				default:
+					log.reportError("Invalid EMIM model for " + runType + " run type: " + model.toString());
+					return;
+			}
+		} else if (runType.equals("CIp")) {
+			switch (model) {
+				case GENOTYPIC:
+					setParams.add(EMIM_PARAM.ESTIMATE_R1);
+					setParams.add(EMIM_PARAM.ESTIMATE_R2);
+					setParams.add(EMIM_PARAM.ESTIMATE_IP);
+					break;
+				case DOMINANT:
+					setParams.add(EMIM_PARAM.R2_EQUALS_R1);
+					setParams.add(EMIM_PARAM.ESTIMATE_IP);
+					break;
+				case ADDITIVE:
+					setParams.add(EMIM_PARAM.R2_EQUALS_R1_SQUARED);
+					setParams.add(EMIM_PARAM.ESTIMATE_IP);
+					break;
+				default:
+					log.reportError("Invalid EMIM model for " + runType + " run type: " + model.toString());
 					return;
 			}
 		} else if (runType.equals("M")) {
@@ -137,8 +211,19 @@ public class Emim {
 					setParams.add(EMIM_PARAM.S2_EQUALS_S1_SQUARED);
 					break;
 				default:
-					log.reportError("Invalid EMIM model: " + model.toString());
+					log.reportError("Invalid EMIM model for " + runType + " run type: " + model.toString());
 					return;
+			}
+		} else if (runType.equals("POO")) {
+			switch (model) {
+				case IMPRINTING_MATERNAL:
+					setParams.add(EMIM_PARAM.ESTIMATE_IM);
+					break;
+				case IMPRINTING_PATERNAL:
+					setParams.add(EMIM_PARAM.ESTIMATE_IP);
+					break;
+				default:
+					log.reportError("Invalid EMIM model for " + runType + " run type: " + model.toString());
 			}
 		} else {
 			log.reportError("Invalid Run Type: " + runType);
@@ -175,17 +260,20 @@ public class Emim {
 		reader.close();
 	}
 
-	protected static boolean scriptAllInDir(String runDir, String plinkDirAndRoot,
+	protected static String scriptAllInDir(	String runDir, String plinkDirAndRoot,
 																					String relativePlinkRoot, String excludeFile,
 																					String keepFile, double pThreshold,
-																					Set<EMIM_MODEL> models, String resultPrefix, Logger log) {
+																					Collection<EMIM_MODEL> models, boolean phaseWithShapeit,
+																					String resultPrefix, Logger log) {
 		String commands;
 		String currDir = ext.verifyDirFormat(runDir);
 		boolean forceRun = false, forceParse = false;
-
 		if (currDir.charAt(0) != '/' && !currDir.contains(":")) {
 			currDir = (new File("./" + currDir)).getAbsolutePath() + "/";
 		}
+		final String premimPBS = currDir + ext.rootOf(plinkDirAndRoot, true) + "_runPremim.pbs";
+		final String emimPBS = currDir + ext.rootOf(plinkDirAndRoot, true) + "_runEmim.pbs";
+		boolean runPremimPBS = false;
 
 		if (excludeFile.equals("GEN")) {
 			excludeFile = "sexChrMarkers.txt";
@@ -205,9 +293,8 @@ public class Emim {
 
 		commands = "";
 
-		if (!forceRun	&& Files.exists(currDir + "plink_prep.log")
-				&& Files.exists(currDir + "emimPrep.bed") && Files.exists(currDir + "emimPrep.bim")
-				&& Files.exists(currDir + "emimPrep.fam")) {
+		if (!forceRun && Files.checkAllFiles(	currDir, true, false, log, "plink_prep.log",
+																					"emimPrep.bed", "emimPrep.bim", "emimPrep.fam")) {
 			log.report(currDir + "emimPrep PLINK files already exist, skipping PLINK file generation");
 		} else {
 			forceRun = true;
@@ -218,9 +305,9 @@ public class Emim {
 									+ "mv emimPrep.log plink_prep.log\n" + "\n";
 		}
 
-		if (!forceRun	&& Files.exists(currDir + "plink_mendel.log")
-				&& Files.exists(currDir + "plink.mendel") && Files.exists(currDir + "plink.lmendel")
-				&& Files.exists(currDir + "plink.fmendel") && Files.exists(currDir + "plink.imendel")) {
+		if (!forceRun
+				&& Files.checkAllFiles(	currDir, true, false, log, "plink_mendel.log", "plink.mendel",
+																"plink.lmendel", "plink.fmendel", "plink.imendel")) {
 			log.report(currDir
 									+ "plink.*mendel files already exist, skipping mendelian error calculation");
 		} else {
@@ -229,8 +316,7 @@ public class Emim {
 									+ "\n";
 		}
 
-		if (!forceRun	&& Files.exists(currDir + "plink_tdt.log")
-				&& Files.exists(currDir + "plink.tdt")) {
+		if (!forceRun && Files.checkAllFiles(currDir, true, false, log, "plink_tdt.log", "plink.tdt")) {
 			log.report(currDir + "plink.tdt already exists, skipping TDT");
 		} else {
 			forceParse = true;
@@ -238,8 +324,7 @@ public class Emim {
 									+ "mv plink.log plink_tdt.log\n" + "\n";
 		}
 
-		if (!forceRun	&& Files.exists(currDir + "plink_hwe.log")
-				&& Files.exists(currDir + "plink.hwe")) {
+		if (!forceRun && Files.checkAllFiles(currDir, true, false, log, "plink_hwe.log", "plink.hwe")) {
 			log.report(currDir
 									+ "plink.hwe already exists, skipping Hardy-Weinberg Equilibrium calculation");
 		} else {
@@ -248,8 +333,8 @@ public class Emim {
 								"plink2 --noweb --bfile emimPrep --hardy\n" + "mv plink.log plink_hwe.log\n" + "\n";
 		}
 
-		if (!forceRun	&& Files.exists(currDir + "plink_freq.log")
-				&& Files.exists(currDir + "plink.frq")) {
+		if (!forceRun
+				&& Files.checkAllFiles(currDir, true, false, log, "plink_freq.log", "plink.frq")) {
 			log.report(currDir + "plink.frq already exists, skipping Minor Allele Frequency calculation");
 		} else {
 			forceParse = true;
@@ -257,73 +342,89 @@ public class Emim {
 								"plink2 --noweb --bfile emimPrep --freq\n" + "mv plink.log plink_freq.log\n" + "\n";
 		}
 
-		if (!forceRun	&& Files.exists(currDir + "premim.log")
-				&& Files.exists(currDir + "risksnplist.txt") && Files.exists(currDir + "emimparams.dat")
-				&& Files.exists(currDir + "emimmarkers.dat")
-				&& Files.exists(currDir + "caseparenttrios.dat")
-				&& Files.exists(currDir + "caseparents.dat") && Files.exists(currDir + "casemotherduos.dat")
-				&& Files.exists(currDir + "casefatherduos.dat") && Files.exists(currDir + "casemothers.dat")
-				&& Files.exists(currDir + "casefathers.dat") && Files.exists(currDir + "cases.dat")
-				&& Files.exists(currDir + "conparents.dat") && Files.exists(currDir + "conmotherduos.dat")
-				&& Files.exists(currDir + "confatherduos.dat") && Files.exists(currDir + "cons.dat")) {
+		if (!forceRun
+				&& Files.checkAllFiles(	currDir, true, false, log, "premim.log", "risksnplist.txt",
+																"emimparams.dat", "emimmarkers.dat", "caseparenttrios.dat",
+																"caseparents.dat", "casemotherduos.dat", "casefatherduos.dat",
+																"casemothers.dat", "casefathers.dat", "cases.dat", "conparents.dat",
+																"conmotherduos.dat", "confatherduos.dat", "cons.dat")) {
 			log.report("Outputs of PREMIM in " + currDir + " already exist, skipping PREMIM");
 		} else {
 			forceRun = true;
 			forceParse = true;
-			commands += "premim -cg -a -rout risksnplist.txt emimPrep.bed\n";
+			if (phaseWithShapeit) {
+				commands += "premim -im -a -ihap -shapeit "	+ Resources.shapeit(log).getShapeit().get()
+										+ " -shapeit-thread 24 -rout risksnplist.txt emimPrep.bed\n";
+				commands += "\nqsub " + emimPBS;
+				commands = "cd " + currDir + "\n" + commands;
+				Files.qsub(premimPBS, commands, 62000, 24, 24);
+				commands = "";
+				runPremimPBS = true;
+			} else {
+				commands += "premim -cg -a -rout risksnplist.txt emimPrep.bed\n";
+			}
+
 		}
-
-
+		String parseCommands = "";
 		for (EMIM_MODEL model : models) {
-			boolean skipModel = !forceRun
-														&& Files.exists(currDir	+ (resultPrefix == null ? "" : resultPrefix + "_")
-																					+ "results_pVals_" + model.toString() + ".xln")
-													&& Files.exists(currDir + "emimsummary_C_" + model.toString() + ".out")
-													&& Files.exists(currDir + "emimparams_C_" + model.toString() + ".dat")
-													&& Files.exists(currDir + "emimsummary_CM_" + model.toString() + ".out")
-													&& Files.exists(currDir + "emimparams_CM_" + model.toString() + ".dat")
-													&& Files.exists(currDir + "emimsummary_M_" + model.toString() + ".out")
-													&& Files.exists(currDir + "emimparams_M_" + model.toString() + ".dat");
+			Set<String> runIDs = Sets.newHashSet();
+			if (model.equals(EMIM_MODEL.IMPRINTING_PATERNAL)
+					|| model.equals(EMIM_MODEL.IMPRINTING_MATERNAL)) {
+				runIDs.add("POO");
+			} else {
+				runIDs.add("C");
+				runIDs.add("M");
+				runIDs.add("CM");
+				runIDs.add("CIm");
+				runIDs.add("CIp");
+			}
+			Set<String> outputs = Sets.newHashSet();
+			outputs.add((resultPrefix == null ? "" : resultPrefix + "_")	+ "results_pVals_"
+									+ model.toString() + ".xln");
+			for (String runID : runIDs) {
+				outputs.add("emimsummary_" + runID + "_" + model.toString() + ".out");
+				outputs.add("emimparams_" + runID + "_" + model.toString() + ".dat");
+			}
+			boolean skipModel = Files.checkAllFiles(currDir, outputs, false, false, log);
 			if (skipModel) {
 				log.report("Results already exist in "	+ currDir + " for " + model.toString()
 										+ " model, skipping " + model.toString() + " EMIM");
 			} else {
-				commands += "\n"	+ Files.getRunString() + " gwas.Emim run=C model=" + model.toString()
-										+ "\n" + "emim\n" + "mv emimsummary.out emimsummary_C_" + model.toString()
-										+ ".out\n" + "rm emimresults.out\n" + "cp emimparams.dat emimparams_C_"
-										+ model.toString() + ".dat\n" + "\n" + Files.getRunString()
-										+ " gwas.Emim run=CM model=" + model.toString() + "\n" + "emim\n"
-										+ "mv emimsummary.out emimsummary_CM_" + model.toString() + ".out\n"
-										+ "rm emimresults.out\n" + "cp emimparams.dat emimparams_CM_" + model.toString()
-										+ ".dat\n" + "\n" + Files.getRunString() + " gwas.Emim run=M model="
-										+ model.toString() + "\n" + "emim\n" + "mv emimsummary.out emimsummary_M_"
-										+ model.toString() + ".out\n" + "rm emimresults.out\n"
-										+ "cp emimparams.dat emimparams_M_" + model.toString() + ".dat\n" + "\n";
+				for (String runID : runIDs) {
+					commands += "\n"	+ Files.getRunString() + " gwas.Emim run=" + runID + " model="
+											+ model.toString() + "\n" + "emim\n" + "mv emimsummary.out emimsummary_"
+											+ runID + "_" + model.toString() + ".out\n" + "rm emimresults.out\n"
+											+ "cp emimparams.dat emimparams_" + runID + "_" + model.toString() + ".dat\n";
+				}
 			}
 
 			if (!skipModel || forceParse) {
-				commands += Files.getRunString()	+ " gwas.Emim parse=./" + " hwe=plink.hwe"
-										+ " frq=plink.frq" + " pThreshold=" + pThreshold + " model=" + model.toString()
-										+ (resultPrefix == null ? "" : " resultPrefix=" + resultPrefix) + "\n\n";
+				parseCommands += Files.getRunString()	+ " gwas.Emim parse=./" + " hwe=plink.hwe"
+													+ " frq=plink.frq" + " pThreshold=" + pThreshold + " model="
+													+ model.toString()
+													+ (resultPrefix == null ? "" : " resultPrefix=" + resultPrefix) + "\n\n";
 			}
 		}
 
-		if (commands.equals("")) {
-			log.report("Warning - No commands were generated for "	+ currDir
+		commands += parseCommands;
+
+		if (commands.equals("") && !runPremimPBS) {
+			log.report("Warning - No EMIM commands were generated for "	+ currDir
 									+ ", remove directory to re-run EMIM Pipeline from scratch");
-			return false;
+			return null;
 		}
 		commands = "cd " + currDir + "\n" + commands;
 
-		Files.qsub(currDir + ext.rootOf(plinkDirAndRoot, true) + "_runEmim.pbs", commands, 8000, 6, 1);
 
-		return true;
+		Files.qsub(emimPBS, commands, 8000, 6, 1);
+
+		return runPremimPBS ? premimPBS : emimPBS;
 	}
 
-	public static boolean scriptAll(String plinkPrefix, String excludeFile, String keepFile,
+	public static String scriptAll(	String plinkPrefix, String excludeFile, String keepFile,
 																	double pThreshold) {
 		return scriptAllInDir("./", plinkPrefix, plinkPrefix, excludeFile, keepFile, pThreshold,
-													EMIM_MODEL.valueSet(), null, new Logger());
+													EMIM_MODEL.valueSet(), true, null, new Logger());
 		// String commands;
 		// String currDir;
 		//
@@ -374,21 +475,27 @@ public class Emim {
 
 	public static void parse(	String dir, String resultPrefix, String hweFile, String frqFile,
 														double pValueThreshold, EMIM_MODEL model) {
-		String resultsFileChild, resultsFileChildMom, resultsFileMom, resultsFileTdt, mapFile,
-				mendelErrorFile, outfile;
+		if (!model.isOptional()) {
+			// Imprinting models are included for comparison with each Genotype model
+			return;
+		}
+		String resultsFileC = dir + "emimsummary_C_" + model.toString() + ".out";
+		String resultsFileM = dir + "emimsummary_M_" + model.toString() + ".out";
+		String resultsFileCM = dir + "emimsummary_CM_" + model.toString() + ".out";
+		String resultsFileCIm = dir + "emimsummary_CIm_" + model.toString() + ".out";
+		String resultsFileCIp = dir + "emimsummary_CIp_" + model.toString() + ".out";
+		String resultsFileIm = dir + "emimsummary_POO_Imprinting_M.out";
+		String resultsFileIp = dir + "emimsummary_POO_Imprinting_P.out";
+		String resultsFileTdt = dir + "plink.tdt";
+		String mapFile = dir + "emimPrep.bim";
+		String mendelErrorFile = dir + "plink.lmendel";
+		String outfile = dir	+ (resultPrefix == null ? "" : resultPrefix + "_") + "results_pVals_"
+											+ model.toString() + ".xln";
 
-		resultsFileChild = dir + "emimsummary_C_" + model.toString() + ".out";
-		resultsFileMom = dir + "emimsummary_M_" + model.toString() + ".out";
-		resultsFileChildMom = dir + "emimsummary_CM_" + model.toString() + ".out";
-		resultsFileTdt = dir + "plink.tdt";
-		mapFile = dir + "emimPrep.bim";
-		mendelErrorFile = dir + "plink.lmendel";
-		outfile = dir	+ (resultPrefix == null ? "" : resultPrefix + "_") + "results_pVals_"
-							+ model.toString() + ".xln";
-
-		ResultsPackager.parseEmimFormat(resultsFileChild, resultsFileMom, resultsFileChildMom,
-																		resultsFileTdt, mapFile, mendelErrorFile, hweFile, frqFile,
-																		pValueThreshold, outfile, new Logger("EMIMparser.log"));
+		ResultsPackager.parseEmimFormat(resultsFileC, resultsFileM, resultsFileCM, resultsFileCIm, resultsFileCIp, resultsFileIm,
+																		resultsFileIp, resultsFileTdt, mapFile, mendelErrorFile,
+																		hweFile, frqFile, pValueThreshold, outfile,
+																		new Logger("EMIMparser.log"));
 	}
 
 	public static void replaceLines(String filenameOriginal, String filenameWithReplacements,
@@ -428,7 +535,7 @@ public class Emim {
 
 		String usage = "\n"	+ "gwas.Emim requires 0-1 arguments\n"
 										+ "   (1) run type (either C, CM, or M) (i.e. run=" + runType + " (default))\n"
-										+ "   (2) model (" + Array.toStr(EMIM_MODEL.values(), ",") + ") (i.e. model="
+										+ "   (2) model (" + ArrayUtils.toStr(EMIM_MODEL.values(), ",") + ") (i.e. model="
 										+ model.toString() + " (default))\n" + "  OR\n"
 										+ "   (1) generate script that runs the full process (i.e. script=plinkPrefix (not the default))\n"
 										+ "   (2) p-value threshold to filter on (piped to parse method) (i.e. pThreshold="

@@ -7,7 +7,7 @@ import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 
@@ -27,15 +27,15 @@ public class XYIntensityBias {
 		String out = outDir + "xyComp.txt";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
-			String[] xh = Array.tagOn(HEADER_BASE, "X_", null);
-			String[] yh = Array.tagOn(HEADER_BASE, "Y_", null);
+			String[] xh = ArrayUtils.tagOn(HEADER_BASE, "X_", null);
+			String[] yh = ArrayUtils.tagOn(HEADER_BASE, "Y_", null);
 
-			writer.println("Sample\t" + Array.toStr(xh) + "\t" + Array.toStr(yh));
+			writer.println("Sample\t" + ArrayUtils.toStr(xh) + "\t" + ArrayUtils.toStr(yh));
 			int index = 0;
 			while (train.hasNext()) {
 				double[][] vals = train.next();
-				writer.println(proj.getSamples()[index]	+ "\t" + Array.toStr(vals[0]) + "\t"
-												+ Array.toStr(vals[1]));
+				writer.println(proj.getSamples()[index]	+ "\t" + ArrayUtils.toStr(vals[0]) + "\t"
+												+ ArrayUtils.toStr(vals[1]));
 				index++;
 				proj.getLog().reportTimeInfo(index + "");
 			}
@@ -114,19 +114,19 @@ public class XYIntensityBias {
 		double[][] vals = new double[2][3];
 		Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
 		int[] auto = proj.getAutosomalMarkerIndices();
-		float[] xauto = Array.subArray(samp.getXs(), auto);
-		float[] yauto = Array.subArray(samp.getYs(), auto);
-		vals[0] = getVals(Array.toDoubleArray(xauto));
-		vals[1] = getVals(Array.toDoubleArray(yauto));
+		float[] xauto = ArrayUtils.subArray(samp.getXs(), auto);
+		float[] yauto = ArrayUtils.subArray(samp.getYs(), auto);
+		vals[0] = getVals(ArrayUtils.toDoubleArray(xauto));
+		vals[1] = getVals(ArrayUtils.toDoubleArray(yauto));
 		return vals;
 	}
 
 	private static double[] getVals(double[] in) {
 		double[] vals = new double[3];
-		double[] tmp = Array.removeNaN(in);
-		vals[0] = Array.mean(tmp);
-		vals[1] = Array.median(tmp);
-		vals[2] = Array.stdev(tmp);
+		double[] tmp = ArrayUtils.removeNaN(in);
+		vals[0] = ArrayUtils.mean(tmp);
+		vals[1] = ArrayUtils.median(tmp);
+		vals[2] = ArrayUtils.stdev(tmp);
 		return vals;
 	}
 

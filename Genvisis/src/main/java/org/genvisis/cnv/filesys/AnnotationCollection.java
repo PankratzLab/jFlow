@@ -22,7 +22,7 @@ import java.util.Vector;
 import javax.swing.JOptionPane;
 
 import org.genvisis.cnv.manage.TextExport;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -122,7 +122,7 @@ public class AnnotationCollection implements Serializable, TextExport {
 
 	public char[] annotationsForMarker(String markerName) {
 		if (markerAnnotations.containsKey(markerName)) {
-			return Array.toCharArray(Array.toStringArray(markerAnnotations.get(markerName)));
+			return ArrayUtils.toCharArray(ArrayUtils.toStringArray(markerAnnotations.get(markerName)));
 		} else {
 			return new char[0];
 		}
@@ -145,7 +145,7 @@ public class AnnotationCollection implements Serializable, TextExport {
 
 		keysAnnotations = HashVec.getKeyList(annotationMarkerLists);
 		for (String keysAnnotation : keysAnnotations) {
-			Files.writeArray(	Array.toStringArray(annotationMarkerLists.get(keysAnnotation)),
+			Files.writeArray(	ArrayUtils.toStringArray(annotationMarkerLists.get(keysAnnotation)),
 												outputDir																												+ "annotation_" + keysAnnotation + "_" + ext.replaceWithLinuxSafeCharacters(getDescriptionForComment(	keysAnnotation.charAt(0),
 																																																																				false,
 																																																																				false),
@@ -166,7 +166,7 @@ public class AnnotationCollection implements Serializable, TextExport {
 		for (int i = 0; i < list.length; i++) {
 			annotationsVector = markerAnnotations.get(keysMarkers.get(i));
 			annotationsOfTheMarker = "";
-			matrix[i + 2] = Array.stringArray(keysAnnotations.size() + 1, "0");
+			matrix[i + 2] = ArrayUtils.stringArray(keysAnnotations.size() + 1, "0");
 			matrix[i + 2][0] = keysMarkers.get(i);
 			for (int j = 0; j < annotationsVector.size(); j++) {
 				annotationsOfTheMarker += (j == 0 ? "" : ";")
@@ -319,7 +319,7 @@ public class AnnotationCollection implements Serializable, TextExport {
 	}
 
 	public String[] getMarkerLists(char key) {
-		return Array.toStringArray(annotationMarkerLists.get(key + ""));
+		return ArrayUtils.toStringArray(annotationMarkerLists.get(key + ""));
 	}
 
 	public String getDescriptionForComment(char c, boolean includeShortcuts, boolean includeNumbers) {

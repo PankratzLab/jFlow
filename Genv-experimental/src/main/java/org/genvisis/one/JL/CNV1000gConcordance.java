@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 
 import org.genvisis.cnv.filesys.MarkerSet;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -41,7 +41,7 @@ public class CNV1000gConcordance {
 			int num = 0;
 			log.reportTimeInfo("HFD");
 			PrintWriter writer = Files.getAppropriateWriter(pfile);
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (int i = 0; i < set.getLoci().length; i++) {
 				// If the sample is in the genvisis project and is autosomal
 				if (samps.contains(set.getLoci()[i].getIndividualID()) && set.getLoci()[i].getChr() < 23) {
@@ -81,7 +81,7 @@ public class CNV1000gConcordance {
 				if (inds.contains(line[0]) || inds.contains(line[1])) {
 					finals.add(line[0]);
 					finals.add(line[1]);
-					comps.add(Array.toStr(line));
+					comps.add(ArrayUtils.toStr(line));
 					newSampDat.add(line[0] + "\t" + line[0] + "\t" + line[0]);
 					newSampDat.add(line[1] + "\t" + line[1] + "\t" + line[1]);
 
@@ -100,7 +100,7 @@ public class CNV1000gConcordance {
 
 		LocusSet<CNVariant> genset = CNVariant.loadLocSet(genFile, new Logger());
 		PrintWriter writer = Files.getAppropriateWriter(finalCNVFile);
-		writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+		writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 		for (int j = 0; j < set.getLoci().length; j++) {
 			CNVBuilder builder = new CNVBuilder(set.getLoci()[j]);
 			// builder.cn(1);

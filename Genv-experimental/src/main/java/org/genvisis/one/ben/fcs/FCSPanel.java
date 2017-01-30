@@ -29,7 +29,7 @@ import org.genvisis.cnv.plots.GenericLine;
 import org.genvisis.cnv.plots.GenericPath;
 import org.genvisis.cnv.plots.GenericRectangle;
 import org.genvisis.cnv.plots.PlotPoint;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Numbers;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.ParulaColorMap;
@@ -324,7 +324,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         return;
       }
 
-      double[] minMax = Array.minMax(xData);
+      double[] minMax = ArrayUtils.minMax(xData);
       int range = (int) Math.ceil(minMax[1]) - (int) Math.floor(minMax[0]) + 1;
       // int step = (int) Math.ceil(range / (2 * Array.iqrExclusive(xData) / Math.pow(xData.length,
       // 1/3))); // bin size too small with this formula
@@ -346,14 +346,14 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
     ArrayList<GenericLine> lineList = new ArrayList<GenericLine>();
     if (showMedSD[0] || showMedSD[1]) {
-      xMed = columnsChangedX || dataChanged || Double.isNaN(xMed) ? (xData.length == 0 ? Double.NaN : Array.median(xData)) : xMed;
-      xMin = columnsChangedX || dataChanged || Double.isNaN(xMin) ? (xData.length == 0 ? Double.NaN : Math.min(Math.min(0, plotXmin) - xMed, Array.min(xData) - xMed)) : xMin;
-      xMax = columnsChangedX || dataChanged || Double.isNaN(xMax) ? (xData.length == 0 ? Double.NaN : Math.max(plotXmax + xMed, Array.max(xData) + xMed)) : xMax;
+      xMed = columnsChangedX || dataChanged || Double.isNaN(xMed) ? (xData.length == 0 ? Double.NaN : ArrayUtils.median(xData)) : xMed;
+      xMin = columnsChangedX || dataChanged || Double.isNaN(xMin) ? (xData.length == 0 ? Double.NaN : Math.min(Math.min(0, plotXmin) - xMed, ArrayUtils.min(xData) - xMed)) : xMin;
+      xMax = columnsChangedX || dataChanged || Double.isNaN(xMax) ? (xData.length == 0 ? Double.NaN : Math.max(plotXmax + xMed, ArrayUtils.max(xData) + xMed)) : xMax;
       if (showMedSD[0] && !Double.isNaN(xMed) && !Double.isNaN(xMin) && !Double.isNaN(xMax)) {
         lineList.add(new GenericLine((float) xMed, (float) xMin, (float) xMed, (float) xMax, (byte) 1, (byte) 8, (byte) 1, 0, false));
       }
       if (showMedSD[1] && !Double.isNaN(xMed) && !Double.isNaN(xMin) && !Double.isNaN(xMax)) {
-        xSD = columnsChangedX || dataChanged || Double.isNaN(xSD) ? Array.stdev(xData, false) : xSD;
+        xSD = columnsChangedX || dataChanged || Double.isNaN(xSD) ? ArrayUtils.stdev(xData, false) : xSD;
         lineList.add(new GenericLine((float) (xMed - xSD), (float) xMin, (float) (xMed - xSD),
             (float) xMax, (byte) 1, (byte) 9, (byte) 1, 0, false));
         lineList.add(new GenericLine((float) (xMed + xSD), (float) xMin, (float) (xMed + xSD),
@@ -361,15 +361,15 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       }
     }
     if (showMedSD[2] || showMedSD[3]) {
-      yMed = columnsChangedY || dataChanged || Double.isNaN(yMed) ? (yData.length == 0 ? Double.NaN : Array.median(yData)) : yMed;
-      yMin = columnsChangedY || dataChanged || Double.isNaN(yMax) ? (yData.length == 0 ? Double.NaN : Math.min(Math.min(0, plotYmin) - yMed, Array.min(yData))) : yMin;
-      yMax = columnsChangedY || dataChanged || Double.isNaN(yMin) ? (yData.length == 0 ? Double.NaN : Math.max(plotYmax + yMed, Array.max(yData))) : yMax;
+      yMed = columnsChangedY || dataChanged || Double.isNaN(yMed) ? (yData.length == 0 ? Double.NaN : ArrayUtils.median(yData)) : yMed;
+      yMin = columnsChangedY || dataChanged || Double.isNaN(yMax) ? (yData.length == 0 ? Double.NaN : Math.min(Math.min(0, plotYmin) - yMed, ArrayUtils.min(yData))) : yMin;
+      yMax = columnsChangedY || dataChanged || Double.isNaN(yMin) ? (yData.length == 0 ? Double.NaN : Math.max(plotYmax + yMed, ArrayUtils.max(yData))) : yMax;
       if (showMedSD[2] && !Double.isNaN(yMed) && !Double.isNaN(yMin) && !Double.isNaN(yMax)) {
         lineList.add(new GenericLine((float) yMin, (float) yMed, (float) yMax, (float) yMed,
             (byte) 1, (byte) 8, (byte) 1, 0, false));
       }
       if (showMedSD[3] && !Double.isNaN(yMed) && !Double.isNaN(yMin) && !Double.isNaN(yMax)) {
-        ySD = columnsChangedY || dataChanged || Double.isNaN(ySD) ? Array.stdev(yData, false) : ySD;
+        ySD = columnsChangedY || dataChanged || Double.isNaN(ySD) ? ArrayUtils.stdev(yData, false) : ySD;
         lineList.add(new GenericLine((float) yMin, (float) (yMed - ySD), (float) yMax,
             (float) (yMed - ySD), (byte) 1, (byte) 9, (byte) 1, 0, false));
         lineList.add(new GenericLine((float) yMin, (float) (yMed + ySD), (float) yMax,
@@ -438,8 +438,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       if (gt == null) {
         continue;
       }
-      int sm = Array.booleanArraySum(gt);
-      int sm1 = Array.booleanArraySum(g.getParentGating(fcp.dataLoader));
+      int sm = ArrayUtils.booleanArraySum(gt);
+      int sm1 = ArrayUtils.booleanArraySum(g.getParentGating(fcp.dataLoader));
       float pctInt = 100 * ((float) sm / (float) sm1);
       String pct = ext.formDeci(pctInt, 2);
       String lbl =

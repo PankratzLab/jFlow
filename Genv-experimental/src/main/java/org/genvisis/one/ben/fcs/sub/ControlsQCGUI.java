@@ -65,7 +65,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 import org.genvisis.cnv.gui.IncludeExcludeGUI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
@@ -130,8 +130,8 @@ public class ControlsQCGUI extends JFrame {
 			return; // same as already loaded
 		}
 		baseData = DataFile.construct(fileOrDir, log);
-		String[] pnls = Array.addStrToArray("All", baseData.getPanels(), 0);
-		String[] ctrls = Array.addStrToArray("All", baseData.getControlGroups(), 0);
+		String[] pnls = ArrayUtils.addStrToArray("All", baseData.getPanels(), 0);
+		String[] ctrls = ArrayUtils.addStrToArray("All", baseData.getControlGroups(), 0);
 
 		String currPanel, currCtrl;
 		currCtrl = (String) comboControl.getSelectedItem();
@@ -283,7 +283,7 @@ public class ControlsQCGUI extends JFrame {
 					pts = curr.split(";");
 				}
 				IncludeExcludeGUI dialog = new IncludeExcludeGUI(	ControlsQCGUI.this, pts,
-																													Array.booleanArray(pts.length, true));
+																													ArrayUtils.booleanArray(pts.length, true));
 				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 				dialog.pack();
 				dialog.setVisible(true);
@@ -1050,7 +1050,7 @@ public class ControlsQCGUI extends JFrame {
 											&& (panel == null || cfmd.isPanel(panel));
 
 					}
-					retArr = Array.subArray(retArr, incl);
+					retArr = ArrayUtils.subArray(retArr, incl);
 					paramDataCache.put(param + "\t" + ctrl + "\t" + panel, retArr);
 				}
 			}
@@ -1267,8 +1267,8 @@ public class ControlsQCGUI extends JFrame {
 
 		boldRows.clear();
 
-		String[] firstRow = Array.addStrToArray("", paramNames.clone(), 0);
-		firstRow = Array.addStrToArray("", firstRow, 0);
+		String[] firstRow = ArrayUtils.addStrToArray("", paramNames.clone(), 0);
+		firstRow = ArrayUtils.addStrToArray("", firstRow, 0);
 		firstRow[0] = "Include?";
 		firstRow[1] = "Source";
 		dtmMean.addRow(firstRow);
@@ -1285,7 +1285,7 @@ public class ControlsQCGUI extends JFrame {
 		for (int i = 2; i < colNames.length; i++) {
 			String colNm = paramNames[i - 2];
 			if (paramMeanLists.containsKey(colNm)) {
-				Float mn = Array.mean(Floats.toArray(paramMeanLists.get(colNm)), true);
+				Float mn = ArrayUtils.mean(Floats.toArray(paramMeanLists.get(colNm)), true);
 				paramMeans.put(colNm, mn);
 				meanRow[i] = mn;
 			}
@@ -1299,7 +1299,7 @@ public class ControlsQCGUI extends JFrame {
 		for (int i = 2; i < colNames.length; i++) {
 			String colNm = paramNames[i - 2];
 			if (paramMeanLists.containsKey(colNm)) {
-				Float sd = Array.stdev(paramMeanLists.get(colNm).toArray(new Float[0]), true);
+				Float sd = ArrayUtils.stdev(paramMeanLists.get(colNm).toArray(new Float[0]), true);
 				paramSDs.put(colNm, sd);
 				sdRow[i] = sd;
 			}

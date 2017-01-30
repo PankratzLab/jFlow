@@ -16,7 +16,7 @@ import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountHash;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -155,7 +155,7 @@ public class MarkerDataLoader implements Runnable {
 		}
 		if (missingMarkers.size() > 0) {
 			proj.message("Error - the following markers were not found in the MarkerSet: "
-										+ Array.toStr(Array.toStringArray(missingMarkers), " "));
+										+ ArrayUtils.toStr(ArrayUtils.toStringArray(missingMarkers), " "));
 		}
 		currentIndexBeingLoaded = 0;
 		currentDirection = +1;

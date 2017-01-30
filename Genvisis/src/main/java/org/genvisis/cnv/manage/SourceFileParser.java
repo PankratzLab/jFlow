@@ -27,7 +27,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountHash;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
@@ -146,8 +146,8 @@ public class SourceFileParser implements Runnable {
 
 					if (headerData.colX == -1 || headerData.colY == -1) {
 						log.reportError("Error - File format not consistent! At the very least the files need to contain "
-															+ Array.toStr(Sample.DATA_FIELDS[3], "/") + " and "
-														+ Array.toStr(Sample.DATA_FIELDS[4], "/"));
+															+ ArrayUtils.toStr(Sample.DATA_FIELDS[3], "/") + " and "
+														+ ArrayUtils.toStr(Sample.DATA_FIELDS[4], "/"));
 						return;
 					}
 //					if (headerData.colGeno1 == -1 || headerData.colGeno2 == -1) {
@@ -175,8 +175,8 @@ public class SourceFileParser implements Runnable {
 																headerData.colBAF == -1 ? null : new float[markerNames.length],
 																headerData.colLRR == -1 ? null : new float[markerNames.length],};
 					genotypes = new byte[][] {
-              Array.byteArray(markerNames.length, (byte) 0),
-              ignoreAB ? null : Array.byteArray(markerNames.length, (byte) -1)
+              ArrayUtils.byteArray(markerNames.length, (byte) 0),
+              ignoreAB ? null : ArrayUtils.byteArray(markerNames.length, (byte) -1)
 					}; 
 					if (!headersOutput) {
 						StringBuilder logOutput = new StringBuilder();
@@ -329,7 +329,7 @@ public class SourceFileParser implements Runnable {
 							}
 						} catch (NumberFormatException nfe) {
 							log.reportError("Error - failed at line "	+ key + " to parse '" + line[col]
-															+ "' into a valid " + Array.toStr(Sample.DATA_FIELDS[ind], "/"));
+															+ "' into a valid " + ArrayUtils.toStr(Sample.DATA_FIELDS[ind], "/"));
 							return;
 						} catch (Exception e) {
 							log.reportError("Some other exception");
@@ -366,7 +366,7 @@ public class SourceFileParser implements Runnable {
 											line[headerData.colGenoAB1] = tmp2;
 											line[headerData.colGenoAB2] = tmp3;
 										} catch (Exception e) {
-											log.reportError("Could not parse genotypes on line " + key + " --> {" + Array.toStr(line) + "}");
+											log.reportError("Could not parse genotypes on line " + key + " --> {" + ArrayUtils.toStr(line) + "}");
 											log.reportException(e);
 											return;
 										}
@@ -375,7 +375,7 @@ public class SourceFileParser implements Runnable {
 									log.reportError("Inconsistant genotype call lengths");
 								}
 							} else if (splitAB) {
-								log.reportError("Detected previously that genotype calls should be split, but the calls on line " + key + " --> {" + Array.toStr(line) + "} did not.  Parsing will fail for this file.");
+								log.reportError("Detected previously that genotype calls should be split, but the calls on line " + key + " --> {" + ArrayUtils.toStr(line) + "} did not.  Parsing will fail for this file.");
 								return;
 							}
 							genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.colGeno1]
@@ -544,9 +544,9 @@ public class SourceFileParser implements Runnable {
 		log.report("Writing to file {" + filename + "}...", false, true);
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
-			writer.println("SNP\t" + Array.toStr(Sample.ALL_STANDARD_GENOTYPE_FIELDS));
+			writer.println("SNP\t" + ArrayUtils.toStr(Sample.ALL_STANDARD_GENOTYPE_FIELDS));
 			for (Entry<String, String[]> entry : hash.entrySet()) {
-				writer.println(entry.getKey() + "\t" + Array.toStr(entry.getValue()));
+				writer.println(entry.getKey() + "\t" + ArrayUtils.toStr(entry.getValue()));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -989,7 +989,7 @@ public class SourceFileParser implements Runnable {
 		// "+proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)+" extension");
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].startsWith("Sample_Map.csv") || files[i].startsWith("SNP_Map.csv")) {
-				files = Array.removeFromArray(files, i);
+				files = ArrayUtils.removeFromArray(files, i);
 				i--;
 			}
 		}
@@ -1058,7 +1058,7 @@ public class SourceFileParser implements Runnable {
 				line = reader.readLine().trim().replace("#Column header: ", "").split(delimiter, -1);
 				count++;
 				if (count < 20) {
-					log.report(Array.toStr(line), true, true, 11);
+					log.report(ArrayUtils.toStr(line), true, true, 11);
 				}
 				if (ext.indexFactors(	SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false,
 															false)[0] != -1) {
@@ -1090,9 +1090,9 @@ public class SourceFileParser implements Runnable {
 				}
 				delimiter = null;
 				for (int j = 0; j < SourceFileParser.DELIMITERS.length; j++) {
-					if (Array.quantWithExtremeForTie(delimiterCounts[j], 0.5) > 4
-							&& Array.quantWithExtremeForTie(delimiterCounts[j], 0.9)
-									- Array.quantWithExtremeForTie(delimiterCounts[j], 0.1) == 0) {
+					if (ArrayUtils.quantWithExtremeForTie(delimiterCounts[j], 0.5) > 4
+							&& ArrayUtils.quantWithExtremeForTie(delimiterCounts[j], 0.9)
+									- ArrayUtils.quantWithExtremeForTie(delimiterCounts[j], 0.1) == 0) {
 						if (delimiter == null) {
 							delimiter = SourceFileParser.DELIMITERS[j];
 						} else {
@@ -1107,7 +1107,7 @@ public class SourceFileParser implements Runnable {
 				if (delimiter == null) {
 					if (foundSNPon == -1) {
 						log.reportError("Could not find a header with the following tokens: "
-														+ Array.toStr(SourceFileParser.SNP_HEADER_OPTIONS[0], " / "));
+														+ ArrayUtils.toStr(SourceFileParser.SNP_HEADER_OPTIONS[0], " / "));
 					}
 					if (foundIDon == -2) {
 						log.reportError("Could not find a header with the selected id type: " + idHeader);
@@ -1122,7 +1122,7 @@ public class SourceFileParser implements Runnable {
 														+ proj.getProperty(proj.ID_HEADER)
 													+ "' should be present in the header line.");
 					log.reportError("   OR perhaps the ARRAY_TYPE property is incorrect;  options are "
-													+ Array.toStr(Project.ARRAY.class, ","));
+													+ ArrayUtils.toStr(Project.ARRAY.class, ","));
 
 					proj.message("Failed to auto-detect the delimiter used in the Final Reports file; exiting");
 					return 0;
@@ -1257,7 +1257,7 @@ public class SourceFileParser implements Runnable {
 						}
 						reader.close();
 						// we should have all markers now...
-						markerNames = Array.mapToValueSortedArray(markerNameHash);
+						markerNames = ArrayUtils.mapToValueSortedArray(markerNameHash);
 						keys = Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
 																				proj.MARKERSET_FILENAME.getValue(true, true),
 																				proj.getLog());
@@ -1290,7 +1290,7 @@ public class SourceFileParser implements Runnable {
 
 
 		PSF.checkInterrupted();
-		markerNames = Array.mapToValueSortedArray(markerNameHash);
+		markerNames = ArrayUtils.mapToValueSortedArray(markerNameHash);
 		keys = Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
 																proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 		if (keys == null) {
@@ -1389,9 +1389,9 @@ public class SourceFileParser implements Runnable {
 			}
 		}
 		if (v.size() > 0) {
-			Files.cat(Array.toStringArray(v),
+			Files.cat(ArrayUtils.toStringArray(v),
 								proj.PROJECT_DIRECTORY.getValue() + IDS_CHANGED_FILEROOT + ".txt",
-								Array.intArray(v.size(), 1), log);
+								ArrayUtils.intArray(v.size(), 1), log);
 			for (int i = 0; i < v.size(); i++) {
 				new File(v.elementAt(i)).delete();
 			}
@@ -2406,14 +2406,14 @@ public class SourceFileParser implements Runnable {
 																		headerData.colLRR == -1	? null
 																														: new float[markerNames.length],};
 							genotypes = new byte[2][];
-							genotypes[0] = Array.byteArray(markerNames.length, (byte) 0); // used to be
+							genotypes[0] = ArrayUtils.byteArray(markerNames.length, (byte) 0); // used to be
 																																						// initialized to
 																																						// Byte.MIN_VALUE when
 																																						// AB genotypes &&
 																																						// abLookup were both
 																																						// absent
 							if (!ignoreAB) {
-								genotypes[1] = Array.byteArray(markerNames.length, (byte) -1); // used to be
+								genotypes[1] = ArrayUtils.byteArray(markerNames.length, (byte) -1); // used to be
 																																								// initialized to
 																																								// Byte.MIN_VALUE
 																																								// when AB genotypes
@@ -2486,7 +2486,7 @@ public class SourceFileParser implements Runnable {
 							}
 						} catch (NumberFormatException nfe) {
 							log.reportError("Error - failed at line "	+ key + " to parse '" + line[col]
-															+ "' into a valid " + Array.toStr(Sample.DATA_FIELDS[ind], "/"));
+															+ "' into a valid " + ArrayUtils.toStr(Sample.DATA_FIELDS[ind], "/"));
 							return result;
 						} catch (Exception e) {
 							log.reportError("Some other exception");
@@ -2511,7 +2511,7 @@ public class SourceFileParser implements Runnable {
 											line[headerData.colGenoAB1] = tmp2;
 											line[headerData.colGenoAB2] = tmp3;
 										} catch (Exception e) {
-											log.reportError("Could not parse genotypes on line " + Array.toStr(line));
+											log.reportError("Could not parse genotypes on line " + ArrayUtils.toStr(line));
 											log.reportException(e);
 											return result;
 										}
@@ -2521,7 +2521,7 @@ public class SourceFileParser implements Runnable {
 								}
 							} else if (splitAB) {
 								log.reportError("Detected previously that genotype calls should be split, but the calls on line "
-																		+ Array.toStr(line) + " did not");
+																		+ ArrayUtils.toStr(line) + " did not");
 								return result;
 							}
 							genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.colGeno1]

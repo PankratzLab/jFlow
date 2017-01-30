@@ -15,7 +15,7 @@ import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
@@ -241,7 +241,7 @@ public class MDL implements Iterator<MarkerData> {
 		if (missing.size() > 0) {
 			proj.getLog()
 					.reportError("Could not find the following markers in the project"
-														+ Array.toStr(missing.keySet().toArray(new String[missing.size()]),
+														+ ArrayUtils.toStr(missing.keySet().toArray(new String[missing.size()]),
 																					"\n"));
 		}
 		return files;
@@ -286,9 +286,9 @@ public class MDL implements Iterator<MarkerData> {
 		@SuppressWarnings("unchecked")
 		private void init() throws IOException, IllegalStateException {
 			sampleFingerprint = proj.getSampleList().getFingerprint();
-			chrs = Array.subArray(markerSet.getChrs(), markerIndicesInProject);
-			positions = Array.subArray(markerSet.getPositions(), markerIndicesInProject);
-			names = Array.subArray(markerSet.getMarkerNames(), markerIndicesInProject);
+			chrs = ArrayUtils.subArray(markerSet.getChrs(), markerIndicesInProject);
+			positions = ArrayUtils.subArray(markerSet.getPositions(), markerIndicesInProject);
+			names = ArrayUtils.subArray(markerSet.getMarkerNames(), markerIndicesInProject);
 			file = new RandomAccessFile(currentMarkFilename, "r");
 			file.read(parameterReadBuffer);
 			nullStatus = parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START];

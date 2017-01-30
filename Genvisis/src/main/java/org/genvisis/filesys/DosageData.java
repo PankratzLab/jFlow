@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 
 import org.genvisis.bioinformatics.Sequence;
 import org.genvisis.cnv.manage.PlinkData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
@@ -43,6 +43,23 @@ import com.google.common.primitives.Ints;
 public class DosageData implements Serializable {
   public static final long serialVersionUID = 1L;
 
+  enum DosageFileType {
+
+  	MACH_MLDOSE_FORMAT,
+    GEN_FORMAT,
+    GWAF_FORMAT,
+    PLINK_FORMAT,
+    MACH_MLPROB_FORMAT,
+    MINIMAC_DOSE_FORMAT,
+    IMPUTE2_DOSE_FORMAT,
+    DATABASE_DOSE_FORMAT,
+    BEAGLE_DOSE_FORMAT,
+    PLINK_BFILE_FORMAT,
+    FREEZE5_FORMAT;
+  	
+  }
+  
+  
   public static final int MACH_MLDOSE_FORMAT = 0;
   public static final int GEN_FORMAT = 1;
   public static final int GWAF_FORMAT = 2;
@@ -51,7 +68,7 @@ public class DosageData implements Serializable {
   public static final int MINIMAC_DOSE_FORMAT = 5;
   public static final int IMPUTE2_DOSE_FORMAT = 6;
   public static final int DATABASE_DOSE_FORMAT = 7;
-  public static final int BEAGLE_DOSE_FORMAT = 8; // not currently included in determineType
+  public static final int BEAGLE_DOSE_FORMAT = 8;
   public static final int PLINK_BFILE_FORMAT = 9;
   public static final int FREEZE5_FORMAT = 10;
 
@@ -73,30 +90,25 @@ public class DosageData implements Serializable {
   public static final String[] DELIMITERS = {"\t", ",", " "};
 
   /**
-   * 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 id_type, column index where dosage/probability
-   * values begin, dominance format, number of columns summarizing the data, header row, marker/IID
+   * 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 
+   * id_type, column index where dosage/probability values begin, dominance format, number of columns summarizing the data, header row, marker/IID
    * index, A1 index, A2 index, chr index, pos index, delimiter, index for head/lead, min number of
    * digits, max number of digits
    */
 
   /** 0 1 2 3 4 5 6 7 8 9 10 11 12 13 */
-  public static final int[][] PARAMETERS = { {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 0, 3, 3}, // .mldose
-                                                                                                                                 // (MACH)
+  public static final int[][] PARAMETERS = { 
+      {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 0, 3, 3}, // .mldose (MACH)
       {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT, 3, 0, 1, 3, 4, 0, 2, 2, 1, 0, 3}, // .gen
-      {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0, -1, -1, -1, -1, 1, 2, 0, 3}, // .fhsR
-                                                                                      // (GWAF)
-      {FID_IID_TYPE, 3, MARKER_DOMINANT_FORMAT, 2, 1, 0, 1, 2, -1, -1, 0, 3, 3, 3}, // .dosage
-                                                                                    // (PLINK)
-      {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 2, 0, 0, -1, -1, -1, -1, 0, 4, 3, 3}, // .mlprob
-                                                                                          // (MACH)
-      {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 5, 3, 3}, // .dose
-                                                                                          // (MINIMAC)
+      {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0, -1, -1, -1, -1, 1, 2, 0, 3}, // .fhsR (GWAF)
+      {FID_IID_TYPE, 3, MARKER_DOMINANT_FORMAT, 2, 1, 0, 1, 2, -1, -1, 0, 3, 3, 3}, // .dosage  (PLINK)
+      {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 2, 0, 0, -1, -1, -1, -1, 0, 4, 3, 3}, // .mlprob  (MACH)
+      {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 5, 3, 3}, // .dose (MINIMAC)
       {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT, 3, 0, 1, 3, 4, CHR_INFO_IN_FILENAME, 2, 0, 1, 3, 3}, // .impute2
       {FID_IID_TYPE, 3, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0, 3, 4, -1, 2, 0, 6, 3, 3}, // .db.xln
-      {SEPARATE_FILE_ID_TYPE, 3, MARKER_DOMINANT_FORMAT, 1, 1, 0, 1, 2, -1, -1, 2, 1, 4, 4}, // .dose
-                                                                                             // //
-                                                                                             // (BEAGLE)
-      {FID_IID_TYPE, 3, PLINK_BINARY_FORMAT, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 0, 3, 3}, // freeze5
+      {SEPARATE_FILE_ID_TYPE, 3, MARKER_DOMINANT_FORMAT, 1, 1, 0, 1, 2, -1, -1, 2, 1, 4, 4}, // .dose (BEAGLE)
+      {FID_IID_TYPE, 3, PLINK_BINARY_FORMAT, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, 
+      {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 0, 3, 3}, // freeze5
   };
 
   private SnpMarkerSet markerSet;
@@ -187,7 +199,7 @@ public class DosageData implements Serializable {
       return;
     }
     markersToKeep = filterMarkers(markerNames, regions, markers, verbose, log);
-    keepTotal = Array.booleanArraySum(markersToKeep);
+    keepTotal = ArrayUtils.booleanArraySum(markersToKeep);
 
     log.report("Keeping " + keepTotal + " markers out of " + markerNames.length);
 
@@ -229,7 +241,7 @@ public class DosageData implements Serializable {
           String msg = "Warning - the format given expects chromosome number to be part of the file name.  This was determined to be chr{" + chr + "}.";
           log.report(msg);
         }
-        chrs = Array.byteArray(keepTotal, chr);
+        chrs = ArrayUtils.byteArray(keepTotal, chr);
       } else {
         if (verbose) {
           String msg = "Error - the format given expects chromosome number to be part of the file name, but no chromosome number was found.  Chromosome information will not be included.";
@@ -473,14 +485,14 @@ public class DosageData implements Serializable {
     double[] betas, stderrs, pvals, stats;
 
     traits = Files.getHeaderOfFile(phenoFile, "\t", log);
-    hash = HashVec.loadFileToHashString(phenoFile, new int[] {0, 1}, Arrays.copyOfRange(Array.arrayOfIndices(traits.length), 2, traits.length), false, "\t", true, false, false);
-    traits = Array.subArray(traits, 2);
+    hash = HashVec.loadFileToHashString(phenoFile, new int[] {0, 1}, Arrays.copyOfRange(ArrayUtils.arrayOfIndices(traits.length), 2, traits.length), false, "\t", true, false, false);
+    traits = ArrayUtils.subArray(traits, 2);
 
     markerNames = markerSet.getMarkerNames();
     chrs = markerSet.getChrs();
     positions = markerSet.getPositions();
     alleles = markerSet.getAlleles();
-    analyze = Array.booleanArray(markerNames.length, true);
+    analyze = ArrayUtils.booleanArray(markerNames.length, true);
     if (snpList != null) {
       snps = HashVec.loadFileToHashSet(snpList, false);
       for (int i = 0; i < markerNames.length; i++) {
@@ -490,7 +502,7 @@ public class DosageData implements Serializable {
       }
     }
 
-    use = Array.booleanArray(ids.length, true);
+    use = ArrayUtils.booleanArray(ids.length, true);
     for (int i = 0; i < ids.length; i++) {
       if (hash.containsKey(ids[i][0] + "\t" + ids[i][1])) {
         line = hash.get(ids[i][0] + "\t" + ids[i][1]).split("[\\s]+");
@@ -503,7 +515,7 @@ public class DosageData implements Serializable {
         use[i] = false;
       }
     }
-    deps = new double[Array.booleanArraySum(use)];
+    deps = new double[ArrayUtils.booleanArraySum(use)];
     indeps = new double[deps.length][traits.length];
     log.report("There are " + deps.length + " rows with complete data", true, verbose);
     count = 0;
@@ -517,7 +529,7 @@ public class DosageData implements Serializable {
         count++;
       }
     }
-    logistic = RegressionModel.isBinaryTrait(Array.toStr(deps).split("[\\s]+"), log);
+    logistic = RegressionModel.isBinaryTrait(ArrayUtils.toStr(deps).split("[\\s]+"), log);
     log.report("Running a " + (logistic ? "logistic" : "linear") + " model for trait '" + traits[0] + "'", true, verbose);
     try {
       // writer = new PrintWriter(new FileWriter(ext.rootOf(phenoFile,
@@ -531,7 +543,7 @@ public class DosageData implements Serializable {
       line = Arrays.copyOf(arr, arr.length);
       line[1] = line[1] + "      ";
       line[2] = line[1] + "      ";
-      writer.println(Array.toStr(line));
+      writer.println(ArrayUtils.toStr(line));
       // w2.println("MARKER\tREF\tOTHER\tN\tDIR\tPVALUE\tbeta\tSE");
       w2.println("MarkerName\tAllele1\tAllele2\tWeight\tDirection\tP-value\tEffect\tStdErr");
       // public static final String[] LOGISTIC_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST",
@@ -717,7 +729,7 @@ public class DosageData implements Serializable {
     try {
       writer = Files.getAppropriateWriter(filename);
       if (parameters[4] == 1) {
-        writer.print(Array.toStr(HEADS[parameters[11]], delimiter));
+        writer.print(ArrayUtils.toStr(HEADS[parameters[11]], delimiter));
 
         if (parameters[2] == MARKER_DOMINANT_FORMAT) {
           if (parameters[3] == 2 && parameters[0] == FID_IID_TYPE) {
@@ -769,7 +781,7 @@ public class DosageData implements Serializable {
             if (parameters[9] >= 0) {
               line[parameters[9]] = positions[i] + "";
             }
-            writer.print(Array.toStr(line, delimiter));
+            writer.print(ArrayUtils.toStr(line, delimiter));
 
             if (parameters[3] == 1) {
               for (int j = 0; j < ids.length; j++) {
@@ -808,7 +820,7 @@ public class DosageData implements Serializable {
             log.reportError("Error - ID type has not been defined");
             System.exit(1);
           }
-          writer.print(Array.toStr(line, delimiter));
+          writer.print(ArrayUtils.toStr(line, delimiter));
 
           if (parameters[3] == 1) {
             for (int j = 0; j < markerNames.length; j++) {
@@ -863,7 +875,7 @@ public class DosageData implements Serializable {
       for (String[] id : ids) {
         writer.print(id[0] + "\t" + id[1] + "\t");
         String[] parts = {id.length > 2 ? id[2] : "0", id.length > 3 ? id[3] : "0", id.length > 4 ? id[4] : "0", id.length > 5 ? id[5] : "-9",};
-        writer.println(Array.toStr(parts, "\t"));
+        writer.println(ArrayUtils.toStr(parts, "\t"));
       }
       writer.close();
     } catch (IOException e) {
@@ -890,7 +902,7 @@ public class DosageData implements Serializable {
       out.write(outStream);
 
       for (int j = 0; j < markerNames.length; j++) {
-        out.write(PlinkData.encodePlinkBedBytesForASingleMarkerOrSample(Array.toByteArray(dosageValues[j])));
+        out.write(PlinkData.encodePlinkBedBytesForASingleMarkerOrSample(ArrayUtils.toByteArray(dosageValues[j])));
       }
 
       out.close();
@@ -902,10 +914,10 @@ public class DosageData implements Serializable {
   }
 
   private boolean[] filterMarkers(String[] markerNames, int[][] regionsToUse, String[] markersToUse, boolean verbose, Logger log) {
-    boolean[] markersToKeep = Array.booleanArray(markerNames.length, true);
+    boolean[] markersToKeep = ArrayUtils.booleanArray(markerNames.length, true);
     if (regionsToUse != null) {
       markerSet = markerSet.trim(regionsToUse, verbose, log);
-      markersToKeep = Array.booleanArray(markerNames.length, true);
+      markersToKeep = ArrayUtils.booleanArray(markerNames.length, true);
       HashSet<String> newMarkerSet = HashVec.loadToHashSet(markerSet.getMarkerNames());
       for (int i = 0; i < markerNames.length; i++) {
         markersToKeep[i] = newMarkerSet.contains(markerNames[i]);
@@ -927,7 +939,7 @@ public class DosageData implements Serializable {
         }
         hash = null;
       }
-      markersToKeep = Array.booleanArray(markerNames.length, false);
+      markersToKeep = ArrayUtils.booleanArray(markerNames.length, false);
       for (int i = 0; i < markerNames.length; i++) {
         if (mkrsToKeep.contains(markerNames[i])) {
           markersToKeep[i] = true;
@@ -1207,10 +1219,10 @@ public class DosageData implements Serializable {
               ddNew.genotypeProbabilities[m][s] = dd1Data; // set to missingGeno
             } else if (!miss1 && !miss2) {
               log.reportError("Error - valid genotype data in both DosageData objects for ID/MKR: \"" + id + "\" / \"" + mkr + "\" - data will be set to missing.");
-              ddNew.genotypeProbabilities[m][s] = Array.floatArray(ddNewNumGeno, missingGeno);
+              ddNew.genotypeProbabilities[m][s] = ArrayUtils.floatArray(ddNewNumGeno, missingGeno);
             }
           } else {
-            ddNew.genotypeProbabilities[m][s] = Array.floatArray(ddNewNumGeno, missingGeno);
+            ddNew.genotypeProbabilities[m][s] = ArrayUtils.floatArray(ddNewNumGeno, missingGeno);
           }
         }
 
@@ -1409,7 +1421,7 @@ public class DosageData implements Serializable {
     // };
 
 
-    if (awk && !Array.equals(fromParameters, toParameters)) {
+    if (awk && !ArrayUtils.equals(fromParameters, toParameters)) {
       log.reportError("Error - the awk option of convert is currently only available for identical file types");
     } else if (awk) {
       cols = new IntVector();
@@ -1496,7 +1508,7 @@ public class DosageData implements Serializable {
         }
 
         if (toParameters[4] == 1) { // if there is a header row
-          writer.print(Array.toStr(HEADS[toParameters[11]], delimiter));
+          writer.print(ArrayUtils.toStr(HEADS[toParameters[11]], delimiter));
 
           if (toParameters[2] == MARKER_DOMINANT_FORMAT) {
             if (toParameters[3] == 2 && toParameters[0] == FID_IID_TYPE) {
@@ -1623,7 +1635,7 @@ public class DosageData implements Serializable {
               if (toParameters[9] >= 0) {
                 lead[toParameters[9]] = position + "";
               }
-              writer.print(Array.toStr(lead, delimiter));
+              writer.print(ArrayUtils.toStr(lead, delimiter));
 
 
               for (int j = 0; j < ids.length; j++) {
@@ -1680,7 +1692,7 @@ public class DosageData implements Serializable {
               log.reportError("Error - ID type has not been defined");
               System.exit(1);
             }
-            writer.print(Array.toStr(lead, delimiter));
+            writer.print(ArrayUtils.toStr(lead, delimiter));
 
             for (int j = 0; j < markerNames.length; j++) {
               if (extract == null || keeps.contains(markerNames[j])) {
@@ -1750,6 +1762,8 @@ public class DosageData implements Serializable {
       return MACH_MLPROB_FORMAT;
     } else if (dosageFile.endsWith(".dose")) {
       return MINIMAC_DOSE_FORMAT;
+    } else if (dosageFile.endsWith(".beagle")) {
+    	return BEAGLE_DOSE_FORMAT;
     } else if (dosageFile.endsWith(".impute2") || dosageFile.endsWith(".imputed")) {
       return IMPUTE2_DOSE_FORMAT;
     } else if (dosageFile.endsWith(".db.xln")) {
@@ -1784,7 +1798,7 @@ public class DosageData implements Serializable {
     }
 
 
-    boolean[] markersToInclude = Array.booleanArray(bimData.length, false);
+    boolean[] markersToInclude = ArrayUtils.booleanArray(bimData.length, false);
     markers: for (int i = 0; i < bimData.length; i++) {
       if (markerSet != null && markerSet.contains(bimData[i][1])) {
         markersToInclude[i] = true;
@@ -1806,7 +1820,7 @@ public class DosageData implements Serializable {
 
 
     dd.ids = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".fam", false, new int[] {0, 1, 2, 3, 4, 5}, false);
-    int numMarkers = Array.booleanArraySum(markersToInclude);// Files.countLines(dir + plinkRoot +
+    int numMarkers = ArrayUtils.booleanArraySum(markersToInclude);// Files.countLines(dir + plinkRoot +
                                                              // ".bim", 0);
     dd.alleles = new char[numMarkers][2];
     dd.chrs = new byte[numMarkers];
@@ -1847,7 +1861,7 @@ public class DosageData implements Serializable {
           }
           index++;
           if (dd.positions[index] == -1) {
-            dd.dosageValues[index] = Array.floatArray(dd.ids.length, -1); // TODO is this correct
+            dd.dosageValues[index] = ArrayUtils.floatArray(dd.ids.length, -1); // TODO is this correct
                                                                           // code? i.e. will this
                                                                           // ever occur?
             continue;
@@ -1868,7 +1882,7 @@ public class DosageData implements Serializable {
               sampGeno[idInd] = genotypes[g];
             }
           }
-          dd.dosageValues[index] = Array.toFloatArray(sampGeno);
+          dd.dosageValues[index] = ArrayUtils.toFloatArray(sampGeno);
           if (loadMissingAsNaN) {
             for (int n = 0; n < dd.dosageValues[index].length; n++) {
               if (dd.dosageValues[index][n] == -1) {
@@ -1960,14 +1974,54 @@ public class DosageData implements Serializable {
     String extractMkrs = null;
     String extractRgns = null;
     boolean awk = false;
-    long date;
+		long date;
 
-    String usage =
-        "\n" + "filesys.DosageData requires 0-1 arguments\n" + "   (1) name of dosage file to convert (i.e. dosageFile=" + filename + " (default))\n" + "   (2) name of file with ids listed (i.e. idFile=" + idFile + " (default))\n" + "   (3) name of associated map file (i.e. mapFile=" + mapFile + " (default))\n" + "   (4) name of new dosage file (i.e. out=" + outfile + " (default))\n"
-            + "   (5) name of new map file (i.e. mapOut=" + mapOut + " (default))\n" + "   (6) filename for log (i.e. log=" + logfile + " (default) (optional))\n" + "   (7a) name of file listing variants to extract (i.e. extractMarkers=" + extractMkrs + " (default) (optional))\n" + "   (7b) name of file listing ranges to extract (i.e. extractRanges=" + extractRgns + " (default) (optional))\n"
-            + "   (8) file type of original file (i.e. from=" + from + " (default))\n" + "   (9) file type of file to be generated (i.e. to=" + to + " (default))\n" + "  (10) use sed/cut instead (i.e. -awk (not the default))\n" + " \n" + "       Type Extension Description\n" + "        -1   [any]    auto-detect from extension\n" + "        0   .mldose   MACH style .mldose file\n"
-            + "        1   .gen      probabilites for all three genotypes, plus map information\n" + "        2   .fhsR     input file for GWAF\n" + "        3   .dosage   input file for PLINK\n" + "        4   .mlprob   MACH style .mlprob file\n" + "        5   .dose     output from MINIMAC\n" + "        6   .impute2  output from IMPUTE2\n" + "        7   .db.xln   database format\n"
-            + "        8   .dose     BEAGLE format\n" + "        [Files may also be zipped or gzipped]" + "";
+		String usage =
+										"\n" + "filesys.DosageData requires 0-1 arguments\n"
+												+ "   (1) name of dosage file to convert (i.e. dosageFile="
+												+ filename
+												+ " (default))\n"
+												+ "   (2) name of file with ids listed (i.e. idFile="
+												+ idFile
+												+ " (default))\n"
+												+ "   (3) name of associated map file (i.e. mapFile="
+												+ mapFile
+												+ " (default))\n"
+												+ "   (4) name of new dosage file (i.e. out="
+												+ outfile
+												+ " (default))\n"
+												+ "   (5) name of new map file (i.e. mapOut="
+												+ mapOut
+												+ " (default))\n"
+												+ "   (6) filename for log (i.e. log="
+												+ logfile
+												+ " (default) (optional))\n"
+												+ "   (7a) name of file listing variants to extract (i.e. extractMarkers="
+												+ extractMkrs
+												+ " (default) (optional))\n"
+												+ "   (7b) name of file listing ranges to extract (i.e. extractRanges="
+												+ extractRgns
+												+ " (default) (optional))\n"
+												+ "   (8) file type of original file (i.e. from="
+												+ from
+												+ " (default))\n"
+												+ "   (9) file type of file to be generated (i.e. to="
+												+ to
+												+ " (default))\n"
+												+ "  (10) use sed/cut instead (i.e. -awk (not the default))\n"
+												+ " \n"
+												+ "       Type Extension Description\n"
+												+ "        -1   [any]    auto-detect from extension\n"
+												+ "        0   .mldose   MACH style .mldose file\n"
+												+ "        1   .gen      probabilites for all three genotypes, plus map information\n"
+												+ "        2   .fhsR     input file for GWAF\n"
+												+ "        3   .dosage   input file for PLINK\n"
+												+ "        4   .mlprob   MACH style .mlprob file\n"
+												+ "        5   .dose     output from MINIMAC\n"
+												+ "        6   .impute2  output from IMPUTE2\n"
+												+ "        7   .db.xln   database format\n"
+												+ "        8   .dose     BEAGLE format\n"
+												+ "        [Files may also be zipped or gzipped]" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

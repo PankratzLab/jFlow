@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.ext;
 
@@ -39,7 +39,7 @@ public class temp {
 		dist = Doubles.toArray(dv);
 		for (int k = 0; k < Transformations.NUM_TRANSFORMATIONS; k++) {
 			System.err.println(Transformations.getLabel(k)	+ ": "
-													+ ext.formDeci(Array.kurtosis(Transformations.transform(dist, k)), 4));
+													+ ext.formDeci(ArrayUtils.kurtosis(Transformations.transform(dist, k)), 4));
 		}
 
 		System.exit(1);

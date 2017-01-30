@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Date;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 
@@ -87,7 +87,7 @@ public class FishersExact {
 		for (int j = 0; j < c.length; j++) {
 			facts[r.length + j] = lookup[c[j]];
 		}
-		num = Array.sum(facts);
+		num = ArrayUtils.sum(facts);
 
 		facts = new double[r.length * c.length + 1];
 		for (int i = 0; i < r.length; i++) {
@@ -96,7 +96,7 @@ public class FishersExact {
 			}
 		}
 		facts[0] = lookup[n];
-		denom = Array.sum(facts);
+		denom = ArrayUtils.sum(facts);
 		pex = Math.exp(num - denom);
 
 		Arrays.sort(facts);
@@ -321,7 +321,7 @@ public class FishersExact {
 			}
 		}
 		//FIXME MCH - I don't see any reason to sum in sorted order. If there is a reason, it should be documented
-		denom = Array.sum(Array.sortedCopy(facts));
+		denom = ArrayUtils.sum(ArrayUtils.sortedCopy(facts));
 		temp = Math.exp(num - denom);
 		if (temp <= pex) {
 			return temp;
@@ -382,7 +382,7 @@ public class FishersExact {
 			time = new Date().getTime();
 			matrix = tests[i];
 			for (int j = 0; j < matrix.length; j++) {
-				System.out.print((j == 0 ? "" : " / ") + Array.toStr(matrix[j], ","));
+				System.out.print((j == 0 ? "" : " / ") + ArrayUtils.toStr(matrix[j], ","));
 			}
 			d = calc(matrix, 0, true);
 			System.out.print("\tExact: "	+ d + "\t"

@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -32,7 +32,7 @@ public class ComparePlinkToMach {
 		Hashtable<String, String[]> plinkData = new Hashtable<String, String[]>();
 		String[] markers;
 
-		markers = Array.toStringArray(HashVec.loadFileToVec(markersToDo, false, true, true));
+		markers = ArrayUtils.toStringArray(HashVec.loadFileToVec(markersToDo, false, true, true));
 
 		plinkPeopleIndicies = new Vector<String>();
 		try {

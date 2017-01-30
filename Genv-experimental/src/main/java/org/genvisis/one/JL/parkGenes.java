@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.GeneData;
@@ -57,7 +57,7 @@ public class parkGenes {
 		String out = "D:/data/NGRC/cnvs/pdGenes.cnv";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\tGENE");
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\tGENE");
 			for (CNVariant cnv : found) {
 				for (GeneData gene : genLocs) {
 					if (cnv.overlaps(gene)) {

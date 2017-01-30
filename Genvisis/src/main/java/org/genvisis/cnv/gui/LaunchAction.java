@@ -11,7 +11,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.plots.ScatterPlot;
 import org.genvisis.cnv.plots.Trailer;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -37,7 +37,7 @@ public class LaunchAction extends AbstractAction {
 	private int plotHeight;
 
 	public LaunchAction(Project proj, String sample, String[] loc, Color color) {
-		super(sample + " " + Array.toStr(loc, " / "));
+		super(sample + " " + ArrayUtils.toStr(loc, " / "));
 		type = LAUNCH_TRAILER;
 		this.proj = proj;
 		jar = proj.JAR_STATUS.getValue();
@@ -128,7 +128,7 @@ public class LaunchAction extends AbstractAction {
 				}
 				break;
 			case LAUNCH_SCATTER:
-				ext.setClipboard(sample + "\t" + Array.toStr(loc));
+				ext.setClipboard(sample + "\t" + ArrayUtils.toStr(loc));
 				ScatterPlot.createAndShowGUI(proj, new String[] {marker}, null, false);
 				break;
 			case COPY_ID:

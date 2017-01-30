@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -142,7 +142,7 @@ public class SeattleSeq {
 					}
 					line[i] = a1 / (a1 + a2) + "";
 				}
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 			}
 			reader.close();
 			writer.close();
@@ -181,7 +181,7 @@ public class SeattleSeq {
 		try {
 			reader = Files.getAppropriateReader(filename);
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_summary.out"));
-			writer.println(Array.toStr(Matrix.extractColumn(RELEVANTS, 0))
+			writer.println(ArrayUtils.toStr(Matrix.extractColumn(RELEVANTS, 0))
 											+ "\tAlleleFrequency\tMAF<1%\tMAF<5%");
 			log = new Logger(ext.rootOf(filename, false) + ".log");
 			temp = reader.readLine().trim();
@@ -197,7 +197,7 @@ public class SeattleSeq {
 			while (!done) {
 				if (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
-					if (line.length < Array.max(indices)) {
+					if (line.length < ArrayUtils.max(indices)) {
 						linesSkipped++;
 						continue;
 					}
@@ -216,7 +216,7 @@ public class SeattleSeq {
 							type = ext.indexOfStr(trav[indices[4]], ORDER);
 							if (type == -1) {
 								System.out.println("unknown type: " + trav[indices[4]]);
-								System.out.println(Array.toStr(trav));
+								System.out.println(ArrayUtils.toStr(trav));
 								System.exit(1);
 							}
 							if (type < worstType) {
@@ -368,7 +368,7 @@ public class SeattleSeq {
 					while (!done) {
 						if (reader.ready()) {
 							line = reader.readLine().trim().split("[\\s]+");
-							if (line[0].startsWith("#") || line.length < Array.max(indices)) {
+							if (line[0].startsWith("#") || line.length < ArrayUtils.max(indices)) {
 								linesSkipped++;
 								continue;
 							}
@@ -391,7 +391,7 @@ public class SeattleSeq {
 									type = ext.indexOfStr(trav[indices[4]], ORDER);
 									if (type == -1) {
 										log.reportError("unknown type: " + trav[indices[4]]);
-										log.reportError(Array.toStr(trav));
+										log.reportError(ArrayUtils.toStr(trav));
 										problem = true;
 									}
 									if (type < worstType) {
@@ -406,8 +406,8 @@ public class SeattleSeq {
 									trav[indices[8]] = "rs" + trav[indices[8]];
 								}
 
-								trav = Array.subArray(trav, indices); // trim to the relevant columns
-								trav = Array.addStrToArray(ext.indexOfStr(trav[4], BAD) >= 0 ? "1" : "0", trav, 0); // determine
+								trav = ArrayUtils.subArray(trav, indices); // trim to the relevant columns
+								trav = ArrayUtils.addStrToArray(ext.indexOfStr(trav[4], BAD) >= 0 ? "1" : "0", trav, 0); // determine
 																																																		// if
 																																																		// mutation
 																																																		// is
@@ -420,7 +420,7 @@ public class SeattleSeq {
 							v.add(line);
 							prev = markerName;
 						} catch (Exception e) {
-							log.reportError("Error reading line: " + Array.toStr(line));
+							log.reportError("Error reading line: " + ArrayUtils.toStr(line));
 							log.reportException(e);
 							problem = true;
 							System.exit(1);

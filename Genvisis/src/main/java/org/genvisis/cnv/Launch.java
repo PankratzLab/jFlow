@@ -50,6 +50,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
+import org.genvisis.cnv.LaunchProperties.LaunchKey;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.DeNovoCNV;
 import org.genvisis.cnv.analysis.Mosaicism;
@@ -102,6 +103,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	// Menu entry constants
 	public static final String EXIT = "Exit";
 	public static final String EDIT = "Project Properties Editor";
+	public static final String PREFERENCES = "Preferences";
 	public static final String REFRESH = "Refresh";
 	public static final String PIPELINE = "Genvisis Project Workflow";
 	public static final String NEW_PROJECT = "New Project";
@@ -185,7 +187,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		// Initialize menu structure.
 		MENUS.put("File",
 							Arrays.asList(new String[] {NEW_PROJECT, IMPORT_PROJECT, SELECT_PROJECT,
-																					DELETE_PROJECT, EDIT, "Preferences", CHECK_FOR_UPDATES,
+																					DELETE_PROJECT, EDIT, PREFERENCES, CHECK_FOR_UPDATES,
 																					EXIT}));
 		MENUS.put("Data", Arrays.asList(new String[] {MAP_FILES, GENERATE_MARKER_POSITIONS,
 																									PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}));
@@ -207,8 +209,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	private final boolean jar;
 	private JComboBox projectsBox;
 	private transient List<String> projects;
-	private LaunchProperties launchProperties;
-	private final String launchPropertiesFile;
 	private JTextArea output;
 	private JScrollPane scrollPane;
 	private final Vector<Thread> threadsRunning;
@@ -231,7 +231,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
 		super("Genvisis " + currentManifest.getVersion().getVersion());
 		this.jar = jar;
-		this.launchPropertiesFile = launchPropertiesFile;
 		timestampOfPropertiesFile = -1;
 		timestampOfSampleDataFile = -1;
 		threadsRunning = new Vector<Thread>();
@@ -243,13 +242,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * Safely initialize the projects list and all views on the projects (e.g. combo box and menus).
 	 */
 	private synchronized void initProjects() {
-		String[] properties = launchProperties.getListOfProjectProperties();
+		String[] properties = LaunchProperties.getListOfProjectProperties();
 		List<String> list = Arrays.asList(properties);
 		projects = list;
 
 		// update the project box
 		if (projectsBox != null) {
-			projectsBox.setModel(new DefaultComboBoxModel(launchProperties.getListOfProjectNames()));
+			projectsBox.setModel(new DefaultComboBoxModel(LaunchProperties.getListOfProjectNames()));
 		}
 
 		// update the menu
@@ -261,7 +260,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 */
 	public void loadProjects() {
 		initProjects();
-		setIndexOfCurrentProject(launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
+		setIndexOfCurrentProject(LaunchProperties.get(LaunchKey.LAST_PROJECT_OPENED));
 	}
 
 	/**
@@ -270,7 +269,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @return Currently selected {@link Project} instance.
 	 */
 	public Project loadProject() {
-		proj = new Project(launchProperties.getDirectory() + projects.get(indexOfCurrentProj), jar);
+		proj = new Project(LaunchProperties.get(LaunchKey.PROJECTS_DIR) + projects.get(indexOfCurrentProj), jar);
 		proj.setGuiState(true);
 		timestampOfPropertiesFile = new Date().getTime();
 		timestampOfSampleDataFile = new Date().getTime();
@@ -325,13 +324,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		if (projectsBox != null && !projects.isEmpty()) {
 			projectsBox.setSelectedIndex(indexOfCurrentProj);
 		}
-	}
-
-	/**
-	 * @return Current {@link LaunchProperties} instance.
-	 */
-	public LaunchProperties getLaunchProperties() {
-		return launchProperties;
 	}
 
 	/**
@@ -458,7 +450,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		}).start();
 
 		// Create and set up the content pane.
-		launchPropertiesFile = LaunchProperties.DEFAULT_PROPERTIES_FILE;
 		CurrentManifest manifest = new CurrentManifest(new Attributes());
 		try {
 			// try not to break the launch so we will catch anything
@@ -467,7 +458,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			// It's OK if there is no manifest
 		}
 
-		launchUI = new Launch(launchPropertiesFile, manifest, false);
+		launchUI = new Launch(LaunchProperties.propertiesFile(), manifest, false);
 		// FIXME switch to dedicated shutdown method that can notify anything that needs to respond to
 		// shutdown requests
 		launchUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -485,7 +476,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		launchUI.addWindowListener(launchUI);
 
 		// restore the last project open (e.g. in the previous session)
-		launchUI.setIndexOfCurrentProject(launchUI.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
+		launchUI.setIndexOfCurrentProject(LaunchProperties.get(LaunchKey.LAST_PROJECT_OPENED));
 		if (!launchUI.projects.isEmpty()) {
 			launchUI.loadProject();
 		}
@@ -512,7 +503,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * Read the launch properties file
 	 */
 	private void initLaunchProperties() {
-		launchProperties = createLaunchProperties(launchPropertiesFile, false, true);
+		createLaunchProperties(false, true);
 	}
 
 	/**
@@ -671,7 +662,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
 		// Add leftmost system icons
 		addButtons(	iconBar,
-								new String[] {"images/edit.png", "images/refresh.svg.png", "images/gen_pipe_1.png"},
+								new String[] {ProjectPropertiesEditor.ICON, "images/refresh.svg.png", "images/gen_pipe_1.png"},
 								new String[] {EDIT, REFRESH, PIPELINE});
 
 		// Add plot icons
@@ -721,7 +712,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		// In JDK1.4 this prevents action events from being fired when the up/down arrow keys are used
 		// on the dropdown menu
 		projectsBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
-		projectsBox.setModel(new DefaultComboBoxModel(launchProperties.getListOfProjectNames()));
+		projectsBox.setModel(new DefaultComboBoxModel(LaunchProperties.getListOfProjectNames()));
 
 		if (indexOfCurrentProj > 0 && projectsBox.getItemCount() > 0) {
 			projectsBox.setSelectedIndex(indexOfCurrentProj);
@@ -735,9 +726,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 					loadProject();
 					log.report("\nCurrent project: " + ext.rootOf(projects.get(indexOfCurrentProj)) + "\n");
 
-					launchProperties.setProperty(	LaunchProperties.LAST_PROJECT_OPENED,
+					LaunchProperties.put(	LaunchKey.LAST_PROJECT_OPENED,
 																				projects.get(projectsBox.getSelectedIndex()));
-					launchProperties.save();
 				}
 			}
 		});
@@ -1122,6 +1112,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				}
 			});
 			configurator.setVisible(true);
+		} else if (command.equals(PREFERENCES)) {
+			LaunchProperties.openEditor();
 		} else if (command.equals(DELETE_PROJECT)) {
 			String toDelete = projects.get(indexOfCurrentProj);
 
@@ -1135,7 +1127,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			}
 
 			int newIndex = Math.max(0, --indexOfCurrentProj);
-			if (new File(launchProperties.getDirectory() + toDelete).delete()) {
+			if (new File(LaunchProperties.get(LaunchKey.PROJECTS_DIR) + toDelete).delete()) {
 				projects = null;
 
 				// Update toDelete to just the project name
@@ -1323,28 +1315,18 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @param relativePath If true, relative paths will be written instead of fully qualified
 	 * @return A {@link LaunchProperties} instance containing all parsed metadata
 	 */
-	public static LaunchProperties createLaunchProperties(String launchPropertiesFile, boolean force,
+	public static void createLaunchProperties(boolean force,
 																												boolean relativePath) {
-		Logger log = new Logger();
-		LaunchProperties launchProperties;
 		String path =
 								relativePath	? ""
-															: LaunchProperties.directoryOfLaunchProperties(launchPropertiesFile);
+															: LaunchProperties.directoryOfLaunchProperties();
 
-		String projPath;
-
-		if (force || !new File(launchPropertiesFile).exists()) {
-			log.reportTime("No launch properties found. Creating default: " + launchPropertiesFile);
-			projPath = path + "projects" + File.separatorChar;
-			// Create a default launch.properties
-			// Set the "example" project as the default opened project
-			Files.writeArray(	new String[] {"LAST_PROJECT_OPENED=example.properties",
-																			"PROJECTS_DIR=" + projPath},
-												launchPropertiesFile);
+		File launchProps = new File(LaunchProperties.propertiesFile());
+		if (force && launchProps.exists()) {
+			launchProps.delete();
 		}
-		launchProperties = new LaunchProperties(launchPropertiesFile);
 
-		createExampleProject(launchProperties, path);
+		createExampleProject(path);
 
 		String bat = path + "Launch.bat";
 		String sh = path + "Launch.sh";
@@ -1363,8 +1345,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			Files.write(getLaunchSH(), command);
 			Files.chmod(command);
 		}
-
-		return launchProperties;
 	}
 
 	/**
@@ -1373,10 +1353,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @param properties launch properties file to use to determine project location
 	 * @param path Base directory for the project data
 	 */
-	private static void createExampleProject(LaunchProperties properties, String path) {
+	private static void createExampleProject(String path) {
 		Logger log = new Logger();
-		String examplePath = path + "example" + File.separatorChar;
-		String exampleProperties = properties.getDirectory() + "example.properties";
+		String examplePath = path + Project.EXAMPLE_PROJ + File.separatorChar;
+		String exampleProperties = LaunchProperties.get(LaunchKey.PROJECTS_DIR) + Project.EXAMPLE_PROJ + ".properties";
 
 		File f = new File(examplePath);
 		if (!f.exists()) {
@@ -1397,18 +1377,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @return Path to the {@code default.properties} file
 	 */
 	public static String getDefaultDebugProjectFile(boolean verbose) {
-		LaunchProperties launchProperties;
 		String dir, filename;
 
-		if (Files.exists(LaunchProperties.DEFAULT_PROPERTIES_FILE)) {
-			launchProperties = new LaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE);
-			dir = launchProperties.getProperty(LaunchProperties.PROJECTS_DIR);
-			filename = launchProperties.getProperty(LaunchProperties.DEBUG_PROJECT_FILENAME);
+		if (Files.exists(LaunchProperties.propertiesFile())) {
+			dir = LaunchProperties.get(LaunchKey.PROJECTS_DIR);
+			filename = LaunchProperties.get(LaunchKey.DEBUG_PROJECT_FILENAME);
 			if (dir == null || filename == null) {
 				if (verbose) {
 					System.err.println("Warning - you are trying to access the default debug project properties file, but there is no '"
-																+ LaunchProperties.DEBUG_PROJECT_FILENAME + "=' property listed in '"
-															+ LaunchProperties.DEFAULT_PROPERTIES_FILE
+																+ LaunchKey.DEBUG_PROJECT_FILENAME + "=' property listed in '"
+															+ LaunchProperties.propertiesFile()
 															+ "'. The default filename is being set to \"default.properties\" in the current directory. However, if that does not exist either, then the program will likely end in an error.");
 				}
 				dir = "./";

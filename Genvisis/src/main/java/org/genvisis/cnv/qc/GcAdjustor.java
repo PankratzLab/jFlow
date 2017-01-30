@@ -19,7 +19,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.plots.ColorExt;
 import org.genvisis.cnv.plots.ColorExt.ColorItem;
 import org.genvisis.cnv.plots.ColorExt.ColorManager;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -696,12 +696,12 @@ public class GcAdjustor {
 		ArrayList<Double> medianGc = new ArrayList<Double>();
 		for (int[] wFbin : WFbins) {
 			if (wFbin != null) {
-				medianIntensity.add(Array.median(Array.subArray(intensities, wFbin)));
-				medianGc.add(Array.median(Array.subArray(gcs, wFbin)));
+				medianIntensity.add(ArrayUtils.median(ArrayUtils.subArray(intensities, wFbin)));
+				medianGc.add(ArrayUtils.median(ArrayUtils.subArray(gcs, wFbin)));
 			}
 		}
 
-		double wf = Array.mad(Doubles.toArray(medianIntensity));
+		double wf = ArrayUtils.mad(Doubles.toArray(medianIntensity));
 		if (pennCNVGCBins != null) {// Used for PennCNV bins, if not supplied we use what we found above
 			if (pennCNVGCBins.length != DEFUALT_PENNCNV_CHR11_GC_BINS.length) {
 				log.reportError("Error - default PennCNV GC bins and current data do not match up, computing using full autosomal bins instead");
@@ -714,7 +714,7 @@ public class GcAdjustor {
 				for (int i = 0; i < pennCNVGCBins.length; i++) {
 					if (pennCNVGCBins[i] != null) {
 						medianGc.add(DEFUALT_PENNCNV_CHR11_GC_BINS[i]);
-						medianIntensity.add(Array.median(Array.subArray(intensities, pennCNVGCBins[i])));
+						medianIntensity.add(ArrayUtils.median(ArrayUtils.subArray(intensities, pennCNVGCBins[i])));
 					}
 				}
 			}
@@ -814,8 +814,8 @@ public class GcAdjustor {
 		private void developColorManager(int numBins, boolean redevelop) {
 			if (redevelop || colorManager == null) {
 
-				NormalDistribution nd = new NormalDistribution(	Array.mean(gcs, true),
-																												Array.stdev(getGcs(), true));
+				NormalDistribution nd = new NormalDistribution(	ArrayUtils.mean(gcs, true),
+																												ArrayUtils.stdev(getGcs(), true));
 				Color[] colors = ColorExt.generatRGBScale(numBins); // bin gc to 100 bins
 				Hashtable<String, String> lookup = new Hashtable<String, String>();// items associated with
 																																						// category
@@ -1076,10 +1076,10 @@ public class GcAdjustor {
 
 			int[] indices = ext.indexFactors(	Files.getHeaderOfFile(fullPathToGcModel, log), GC_HEADER,
 																				true, false);
-			if (Array.countIf(indices, -1) > 0) {
+			if (ArrayUtils.countIf(indices, -1) > 0) {
 				log.reportError("Error - could not find correct header for gc model file "
 												+ fullPathToGcModel);
-				log.reportError("		 - header must be:" + Array.toStr(GC_HEADER));
+				log.reportError("		 - header must be:" + ArrayUtils.toStr(GC_HEADER));
 				return null;
 			} else {
 				BufferedReader reader;
@@ -1102,7 +1102,7 @@ public class GcAdjustor {
 							lineNum++;
 						} catch (NumberFormatException nfe) {
 							if (verbose) {
-								log.reportError("Error - found invalid number format on line "	+ Array.toStr(line)
+								log.reportError("Error - found invalid number format on line "	+ ArrayUtils.toStr(line)
 																+ " , skipping");
 							}
 						}
@@ -1123,7 +1123,7 @@ public class GcAdjustor {
 				} else {
 					log.report("Info - loaded "	+ markers.size() + " markers from gc model file "
 											+ fullPathToGcModel);
-					GcModel gcModel = new GcModel(Array.toStringArray(markers), Bytes.toArray(chrs),
+					GcModel gcModel = new GcModel(ArrayUtils.toStringArray(markers), Bytes.toArray(chrs),
 																				Ints.toArray(positions), Doubles.toArray(gcs), index, log);
 					gcModel.Serialize(fullPathToGcSer);
 					return gcModel;
@@ -1190,7 +1190,7 @@ public class GcAdjustor {
 																								boolean computePrior, boolean computePost,
 																								boolean verbose) {
 		GcAdjustor gcAdjustor = builder.build(proj, preparedMarkerSet, gcModel,
-																					Array.toDoubleArray(markerIntensities));
+																					ArrayUtils.toDoubleArray(markerIntensities));
 		builder.verbose(verbose);
 		gcAdjustor.correctIntensities(sample, gcParameters);
 		gcAdjustor.computeQCMetrics(computePrior, computePost);
@@ -1200,7 +1200,7 @@ public class GcAdjustor {
 	public static void test(Project proj, String fullPathToGcModel,
 													String fullPathToFileOfTestSamples) {
 		GcModel gcModel = GcModel.populateFromFile(fullPathToGcModel, false, proj.getLog());
-		String[] samplesToTest = Array.subArray(proj.getSamples(),
+		String[] samplesToTest = ArrayUtils.subArray(proj.getSamples(),
 																						proj.getSamplesToInclude(fullPathToFileOfTestSamples));
 		String fileTest = proj.PROJECT_DIRECTORY.getValue() + "testGCWF.txt";
 		try {
@@ -1211,7 +1211,7 @@ public class GcAdjustor {
 				proj.getLog().report("Testing sample " + samp.getSampleName());
 				GCAdjustorBuilder builder = new GCAdjustorBuilder();
 				GcAdjustor gcAdjusterNew = builder.build(	proj, null, gcModel,
-																									Array.toDoubleArray(samp.getLRRs()));
+																									ArrayUtils.toDoubleArray(samp.getLRRs()));
 				gcAdjusterNew.correctIntensities();
 				gcAdjusterNew.computeQCMetrics(true, true);
 				writer.println(samp.getSampleName()	+ "\t" + gcAdjusterNew.getQCString() + "\t"

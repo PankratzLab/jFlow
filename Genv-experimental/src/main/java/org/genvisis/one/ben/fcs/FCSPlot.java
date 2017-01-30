@@ -43,7 +43,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.genvisis.cnv.gui.GuiManager;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -121,7 +121,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 					props.setProperty(PROPKEY_GATEFILE, getGatingStrategy().getFile() == null ? "" : getGatingStrategy().getFile());
 				}
 				ArrayList<String> files = fcsControls.getAddedFiles();
-				props.setProperty(PROPKEY_FCSFILES, files.isEmpty() ? "" : Array.toStr(Array.toStringArray(files), ";"));
+				props.setProperty(PROPKEY_FCSFILES, files.isEmpty() ? "" : ArrayUtils.toStr(ArrayUtils.toStringArray(files), ";"));
 				File f = new File(PROPERTIES_FILE);
 				OutputStream out = new FileOutputStream(f);
 				props.store(out, "");
@@ -271,11 +271,11 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 				
 //				gating13 should equals gating22
 				int s1, s2, s3, s4, s5, s6;
-				s1 = Array.booleanArraySum(gating11);
-				s2 = Array.booleanArraySum(gating12);
-				s4 = Array.booleanArraySum(gating21);
-				s5 = Array.booleanArraySum(gating22);
-				s6 = Array.booleanArraySum(gating221);
+				s1 = ArrayUtils.booleanArraySum(gating11);
+				s2 = ArrayUtils.booleanArraySum(gating12);
+				s4 = ArrayUtils.booleanArraySum(gating21);
+				s5 = ArrayUtils.booleanArraySum(gating22);
+				s6 = ArrayUtils.booleanArraySum(gating221);
 				
 				System.out.println(s1 / (double) s2);
 				System.out.println(s4 / (double) s5);
@@ -590,9 +590,9 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 			data = dataLoader.getData(xAxis ? getXDataName() : getYDataName(), wait);
 			if (!backgating && !leafgating && parentGate != null) {
 				boolean[] gating = parentGate.gate(dataLoader);
-				data = Array.subArray(data, gating);
+				data = ArrayUtils.subArray(data, gating);
 				if (fullClusterAssigns != null) {
-				  clusterAssigns = Array.subArray(fullClusterAssigns, gating);
+				  clusterAssigns = ArrayUtils.subArray(fullClusterAssigns, gating);
 				}
 			}
 		}
@@ -872,7 +872,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 			return cnt;
 		}
 		if (!backgating && !leafgating && parentGate != null) {
-			cnt = Array.booleanArraySum(parentGate.gate(dataLoader));
+			cnt = ArrayUtils.booleanArraySum(parentGate.gate(dataLoader));
 		} else {
 			cnt = dataLoader.getCount();
 		}
@@ -1052,12 +1052,12 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 				if (gt == null) {
 					sb.append("\t.");
 				} else {
-					int c = Array.booleanArraySum(gt);
+					int c = ArrayUtils.booleanArraySum(gt);
 					if (exportCounts) {
 						sb.append("\t").append(c);
 					} else {
 						boolean[] pG = g.getParentGating(dataLoader);
-						int p = pG == null ? dataLoader.getCount() : Array.booleanArraySum(pG);
+						int p = pG == null ? dataLoader.getCount() : ArrayUtils.booleanArraySum(pG);
 						double pct = (double) c / (double) p;
 						sb.append("\t").append(ext.formDeci(100 * pct, 2));
 					}

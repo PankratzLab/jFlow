@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -39,7 +39,7 @@ public class FilterDB {
 				line = reader.readLine().trim().split("\t", -1);
 				if (!line[0].startsWith("#") && !line[0].startsWith("//")) {
 					if (line.length != 2) {
-						log.reportError("Malformed filter: " + Array.toStr(line, " "));
+						log.reportError("Malformed filter: " + ArrayUtils.toStr(line, " "));
 						log.reportError("     must have two values separated by a tab, where the first token is the filter and the second is the label to be used to describe it");
 						reader.close();
 						return;

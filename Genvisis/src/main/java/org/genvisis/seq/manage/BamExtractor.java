@@ -7,7 +7,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -177,7 +177,7 @@ public class BamExtractor {
 	private static QueryInterval[] convertSegsToQI(	Segment[] segs, SAMFileHeader sFileHeader,
 																									int bpBuffer, Logger log) {
 		QueryInterval[] qIntervals = new QueryInterval[segs.length];
-		segs = Array.sortedCopy(segs);
+		segs = ArrayUtils.sortedCopy(segs);
 		for (int i = 0; i < qIntervals.length; i++) {
 			String sequenceName = Positions.getChromosomeUCSC(segs[i].getChr(), true);
 			int referenceIndex = sFileHeader.getSequenceIndex(sequenceName);
@@ -268,7 +268,7 @@ public class BamExtractor {
 					}
 					if (!hasOne) {
 						log.reportError("Could not find a matching bam file for sample "+ samples[i]
-																+ " in the following var sets" + Array.toStr(varset, ","));
+																+ " in the following var sets" + ArrayUtils.toStr(varset, ","));
 
 					}
 					verified = hasOne;
@@ -330,7 +330,7 @@ public class BamExtractor {
 					}
 				}
 			}
-			samples = Array.unique(Array.toStringArray(tmpSamples));
+			samples = ArrayUtils.unique(ArrayUtils.toStringArray(tmpSamples));
 			if (samples.length != bamFiles.length) {
 				log.reportError("Detected more samples than bam files, currently this only supports single sample bam files");
 				fail = true;

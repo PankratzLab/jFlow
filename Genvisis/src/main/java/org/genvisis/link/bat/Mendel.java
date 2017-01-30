@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
@@ -199,7 +199,7 @@ public class Mendel {
 			map = new LinkageMap(dir + mapfile);
 			map.alterPenetrance(dir + "autosomal.dat", disease, pp, pq, qq, false);
 			LinkageFormat.filterMarkers(dir	+ pedfile, dir + "autosomal.pre", dir + "autosomal.dat",
-																	dir + "autosomal.dat", Array.toStringArray(autosomalMarkers),
+																	dir + "autosomal.dat", ArrayUtils.toStringArray(autosomalMarkers),
 																	null);
 			Mendel.createFiles(dir, "autosomal.pre", "autosomal.dat", false);
 			CmdLine.run("mendel", dir);
@@ -214,7 +214,7 @@ public class Mendel {
 			map.setChr(23);
 			map.alterPenetrance(dir + "map23.dat", disease, pp, pq, qq, false);
 			LinkageFormat.filterMarkers(dir	+ pedfile, dir + "chr23.pre", dir + "map23.dat",
-																	dir + "map23.dat", Array.toStringArray(xLinkedMarkers), null);
+																	dir + "map23.dat", ArrayUtils.toStringArray(xLinkedMarkers), null);
 			Mendel.createFiles(dir, "chr23.pre", "map23.dat", true);
 			CmdLine.run("mendel", dir);
 			results = Mendel.parseMaxLods(dir + "mendel.sum");

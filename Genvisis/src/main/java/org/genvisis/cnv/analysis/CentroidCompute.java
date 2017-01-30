@@ -11,7 +11,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.MarkerDataLoader;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
@@ -278,11 +278,11 @@ public class CentroidCompute {
 			failed = true;
 			log.reportError("Error - mismatched number of samples to use for data's length");
 		}
-		if (sampleSex != null && sexSpecific && chr == 23 && Array.countIf(sampleSex, 2) == 0) {
+		if (sampleSex != null && sexSpecific && chr == 23 && ArrayUtils.countIf(sampleSex, 2) == 0) {
 			log.reportError("Error - sample sex was defined, but no females were found; cannot properly cluster chr X ");
 			sampleSex = null;
 		}
-		if (sampleSex != null && sexSpecific && chr == 24 && Array.countIf(sampleSex, 1) == 0) {
+		if (sampleSex != null && sexSpecific && chr == 24 && ArrayUtils.countIf(sampleSex, 1) == 0) {
 			log.reportError("Error - sample sex was defined, but no males were found; cannot properly cluster chr Y");
 			sampleSex = null;
 		}
@@ -389,13 +389,13 @@ public class CentroidCompute {
 			}
 
 			double[] xsFilt = Doubles.toArray(filteredXs);
-			double[] xsFiltLog2 = Array.log2(xsFilt);
+			double[] xsFiltLog2 = ArrayUtils.log2(xsFilt);
 
 			centerRs[0] = Double.NaN;
 			centerRs[1] = Double.NaN;
-			centerRs[2] = (medianCenter ? Array.median(xsFiltLog2) : Array.mean(xsFiltLog2));
-			centerRs[3] = (medianCenter ? Array.mean(xsFiltLog2) : Array.median(xsFiltLog2));
-			centerRs[4] = (medianCenter ? Array.median(xsFilt) : Array.mean(xsFilt));
+			centerRs[2] = (medianCenter ? ArrayUtils.median(xsFiltLog2) : ArrayUtils.mean(xsFiltLog2));
+			centerRs[3] = (medianCenter ? ArrayUtils.mean(xsFiltLog2) : ArrayUtils.median(xsFiltLog2));
+			centerRs[4] = (medianCenter ? ArrayUtils.median(xsFilt) : ArrayUtils.mean(xsFilt));
 
 			centerThetas[0] = 0.5;
 			centerThetas[1] = 0.5;
@@ -530,7 +530,7 @@ public class CentroidCompute {
 		}
 
 		public double getMedianAt(int index) {
-			return Array.median(getAt(index));
+			return ArrayUtils.median(getAt(index));
 		}
 	}
 
@@ -913,7 +913,7 @@ public class CentroidCompute {
 			counts[clustAB[i] + 1]++;
 		}
 		if (counts[0] == clustAB.length) {
-			byte tmpCluster = Array.mean(markerData.getXs()) > Array.mean(markerData.getYs())	? (byte) 0
+			byte tmpCluster = ArrayUtils.mean(markerData.getXs()) > ArrayUtils.mean(markerData.getYs())	? (byte) 0
 																																												: (byte) 1;
 			Arrays.fill(fakeAB, tmpCluster);
 			centroid.setAlternateGenotypes(fakeAB);

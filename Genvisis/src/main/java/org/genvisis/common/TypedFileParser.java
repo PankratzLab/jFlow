@@ -23,14 +23,14 @@ public class TypedFileParser extends FileParser {
 			if (numericColumns != null) {
 				numericData = new double[numericColumns.length][];
 				for (int i = 0; i < numericColumns.length; i++) {
-					String[] tmp = Array.subArray(line, numericColumns[i]);
+					String[] tmp = ArrayUtils.subArray(line, numericColumns[i]);
 					numericData[i] = new double[tmp.length];
 					for (int j = 0; j < tmp.length; j++) {
 						try {
 							numericData[i][j] = Double.parseDouble(tmp[j]);
 						} catch (NumberFormatException nfe) {
 							if (!setInvalidNumericToNaN) {
-								log.reportError("Found invalid number on line " + Array.toStr(line));
+								log.reportError("Found invalid number on line " + ArrayUtils.toStr(line));
 								validLine = false;
 							} else {
 								numInvalidNumerics++;
@@ -43,23 +43,23 @@ public class TypedFileParser extends FileParser {
 			if (stringColumns != null) {
 				stringData = new String[stringColumns.length][];
 				for (int i = 0; i < stringColumns.length; i++) {
-					stringData[i] = Array.subArray(line, stringColumns[i]);
+					stringData[i] = ArrayUtils.subArray(line, stringColumns[i]);
 				}
 			}
 			return new TypedFileLine(numericData, stringData, validLine, numInvalidNumerics);
 		} catch (ArrayIndexOutOfBoundsException aiob) {
-			log.reportError("Could not extract indices from line " + Array.toStr(line));
+			log.reportError("Could not extract indices from line " + ArrayUtils.toStr(line));
 			if (numericColumns != null) {
 				String numeric = "";
 				for (int[] numericColumn : numericColumns) {
-					numeric += "\t" + Array.toStr(numericColumn);
+					numeric += "\t" + ArrayUtils.toStr(numericColumn);
 				}
 				log.reportError("Indices for numeric data: " + numeric);
 			}
 			if (stringColumns != null) {
 				String string = "";
 				for (int[] stringColumn : stringColumns) {
-					string += "\t" + Array.toStr(stringColumn);
+					string += "\t" + ArrayUtils.toStr(stringColumn);
 				}
 				log.reportError("Indices for numeric data: " + string);
 			}

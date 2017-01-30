@@ -11,7 +11,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -186,8 +186,8 @@ public class ExomeDepthRun {
 						ratioLrr[i] = Float.NaN;
 					}
 				}
-				byte[] genos = Array.byteArray(ratioLrr.length, (byte) 1);
-				float[] zeroArray = Array.floatArray(ratioLrr.length, 0);
+				byte[] genos = ArrayUtils.byteArray(ratioLrr.length, (byte) 1);
+				float[] zeroArray = ArrayUtils.floatArray(ratioLrr.length, 0);
 				Sample samp = new Sample(	sample, proj.getMarkerSet().getFingerprint(), zeroArray, zeroArray,
 																	zeroArray, zeroArray, ratioLrr, genos, genos, false);
 				samp.saveToRandomAccessFile(sampFile, outliers, sample);

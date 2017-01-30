@@ -27,7 +27,7 @@ import javax.swing.SwingUtilities;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Elision;
@@ -164,7 +164,7 @@ public class SampleData {
 				return dna + "\t" + fid + "\t" + iid + "\t" + fa + "\t" + mo + "\t" + sex + "\t" + aff;
 			} else {
 				return dna	+ "\t" + fid + "\t" + iid + "\t" + fa + "\t" + mo + "\t" + sex + "\t" + aff
-								+ "\t" + Array.toStr(sampleMapLine);
+								+ "\t" + ArrayUtils.toStr(sampleMapLine);
 			}
 		}
 
@@ -198,7 +198,7 @@ public class SampleData {
 	// };
 	public static final String[][] LINKERS = {Aliases.INDIVIDUAL_ID, Aliases.FAMILY_ID, Aliases.DNA,
 																						Aliases.MARKER_NAMES, Aliases.REGION, Aliases.CHRS,
-																						Array.combine(Aliases.POSITIONS,
+																						ArrayUtils.combine(Aliases.POSITIONS,
 																													Aliases.POSITIONS_START),
 																						Aliases.POSITIONS_STOP};
 	// Hashtable<String, Integer> linkKeyIndex;
@@ -381,7 +381,7 @@ public class SampleData {
 			excludeClassIndex =
 												ext.indexFactors(	new String[][] {EXCLUDE_ALIASES}, classes, false, false,
 																					true, log.getLevel() >= 1 ? true : false, log, false)[0];
-			log.report("Class list: " + Array.toStr(classes), true, true, 1);
+			log.report("Class list: " + ArrayUtils.toStr(classes), true, true, 1);
 
 			sexCountHash = new CountVector();
 			sampleHash = new Hashtable<String, IndiPheno>();
@@ -425,14 +425,14 @@ public class SampleData {
 
 			if (log.getLevel() >= 1) {
 				if (sexClassIndex != -1) {
-					int[] sexValues = Array.toIntArray(sexCountHash.getValues());
-					if (Array.countIf(sexValues, 2) == 0) {
+					int[] sexValues = ArrayUtils.toIntArray(sexCountHash.getValues());
+					if (ArrayUtils.countIf(sexValues, 2) == 0) {
 						log.reportError("Warning - no females listed in SampleData file; make sure 1=male and 2=female in the coding");
 						// proj.message("descending "+ Array.toStr(sexValues, " ")+"\tError - warning no females
 						// listed in SampleData file; make sure 1=male and 2=female in the coding");
 					}
 				} else {
-					log.reportError("Error - variable names '"	+ Array.toStr(EUPHEMISMS, "/")
+					log.reportError("Error - variable names '"	+ ArrayUtils.toStr(EUPHEMISMS, "/")
 												+ "' was not found in the SampleData file; recommend running Sex Check step");
 				}
 			}
@@ -510,7 +510,7 @@ public class SampleData {
 
 		if (sexClassIndex < 0) {
 			proj.getLog()
-					.reportTimeWarning("Variable names '"	+ Array.toStr(EUPHEMISMS, "/")
+					.reportTimeWarning("Variable names '"	+ ArrayUtils.toStr(EUPHEMISMS, "/")
 															+ "' were not found in the SampleData file; make sure 1=male and 2=female in the coding to retrive sample sex");
 		}
 		for (int i = 0; i < samples.length; i++) {
@@ -594,7 +594,7 @@ public class SampleData {
 		for (int i = 0; i < files.length; i++) {
 			if (!Files.exists(files[i], proj.JAR_STATUS.getValue())) {
 				missingFiles.add(files[i]);
-				files = Array.removeFromArray(files, i);
+				files = ArrayUtils.removeFromArray(files, i);
 				i--;
 			}
 		}
@@ -635,7 +635,7 @@ public class SampleData {
 															+ (missingFiles.size() > 1 ? "files do not" : "file does not")
 														+ " exist and therefore " + (missingFiles.size() > 1 ? "were" : "was")
 														+ " not loaded:\n     "
-														+ Array.toStr(Array.toStringArray(missingFiles), "\n     ")
+														+ ArrayUtils.toStr(ArrayUtils.toStringArray(missingFiles), "\n     ")
 														+ "\n\nTo prevent this message in the future, either find "
 														+ (missingFiles.size() > 1	? "these files \n     or remove them"
 																												: "this file \n     or remove it")
@@ -663,7 +663,7 @@ public class SampleData {
 			tempPlinkClasses[cnt] = PLINK_CLASS_PREFIX + ext.rootOf(file);
 			cnt++;
 		}
-		plinkClasses = Array.trimArray(tempPlinkClasses);
+		plinkClasses = ArrayUtils.trimArray(tempPlinkClasses);
 	}
 
 	public String[] getFilters() {
@@ -1299,7 +1299,7 @@ public class SampleData {
 					reader = new BufferedReader(new FileReader(bakFile));
 					String[] tmpHeader = reader.readLine().trim().split("\t");
 					// fail if header of original and backup do not match
-					if (!Array.equals(tmpHeader, sampleDataHeader, true)) {
+					if (!ArrayUtils.equals(tmpHeader, sampleDataHeader, true)) {
 						log.reportError("Error - backup sample data "	+ bakFile
 														+ " does not contain the same header as " + sampleDatafilename
 														+ ", will not add data");
@@ -1314,7 +1314,7 @@ public class SampleData {
 								sampleDataHeader[index] = "x" + sampleDataHeader[index] + "_replaced_" + dateTime;
 							}
 						}
-						writer.println(Array.toStr(sampleDataHeader) + "\t" + Array.toStr(columnHeaders));
+						writer.println(ArrayUtils.toStr(sampleDataHeader) + "\t" + ArrayUtils.toStr(columnHeaders));
 						String[] blanks = new String[columnHeaders.length];
 						Arrays.fill(blanks, missingData);
 						String[] line;
@@ -1324,24 +1324,24 @@ public class SampleData {
 								if (columnHeaders.length > 1) {
 									String[] data = linkData.get(line[linkerIndex]).split(linkDataDelimiter);
 									if (data.length == columnHeaders.length) {
-										writer.println(Array.toStr(line) + "\t" + Array.toStr(data));
+										writer.println(ArrayUtils.toStr(line) + "\t" + ArrayUtils.toStr(data));
 										numAdded++;
 									} // fail if added data for a linker is the wrong length after delimiting
 									else {
 										log.reportError("Error - the number of entries in the column header "
-																			+ Array.toStr(columnHeaders) + " (" + columnHeaders.length
+																			+ ArrayUtils.toStr(columnHeaders) + " (" + columnHeaders.length
 																		+ ") does not equal the number of entries in the data "
-																		+ Array.toStr(data) + " (" + data.length + ")");
+																		+ ArrayUtils.toStr(data) + " (" + data.length + ")");
 										log.reportError("Cancelling the addition and replacing sample data with backup");
 										add = false;
 									}
 								} else {
 									String data = linkData.get(line[linkerIndex]);
-									writer.println(Array.toStr(line) + "\t" + data);
+									writer.println(ArrayUtils.toStr(line) + "\t" + data);
 									numAdded++;
 								}
 							} else {
-								writer.println(Array.toStr(line) + "\t" + Array.toStr(blanks));
+								writer.println(ArrayUtils.toStr(line) + "\t" + ArrayUtils.toStr(blanks));
 								numMissing++;
 							}
 						}
@@ -1352,7 +1352,7 @@ public class SampleData {
 						// TODO check for new classes/filters/etc
 						for (String header : columnHeaders) {
 							if (header.toUpperCase().startsWith("CLASS=")) {
-								classes = Array.addStrToArray(header.split("=")[1], classes);
+								classes = ArrayUtils.addStrToArray(header.split("=")[1], classes);
 							}
 						}
 
@@ -1436,7 +1436,7 @@ public class SampleData {
 					reader = new BufferedReader(new FileReader(bakFile));
 					String[] tmpHeader = reader.readLine().trim().split("\t");
 					// fail if header of original and backup do not match
-					if (!Array.equals(tmpHeader, sampleDataHeader, true)) {
+					if (!ArrayUtils.equals(tmpHeader, sampleDataHeader, true)) {
 						log.reportError("Error - backup sample data "	+ bakFile
 														+ " does not contain the same header as " + sampleDatafilename
 														+ ", will not replace data");
@@ -1464,7 +1464,7 @@ public class SampleData {
 							}
 						}
 						if (replace) {
-							writer.println(Array.toStr(sampleDataHeader));
+							writer.println(ArrayUtils.toStr(sampleDataHeader));
 							String[] line;
 							HashSet<String> linkers = new HashSet<String>();
 							while (reader.ready() && replace) {
@@ -1486,26 +1486,26 @@ public class SampleData {
 									if (data.length != columnHeaders.length) {
 										// fail if replaced data for a linker is the wrong length after delimiting
 										log.reportError("Error - the number of entries in the column header "
-																			+ Array.toStr(columnHeaders) + " (" + columnHeaders.length
+																			+ ArrayUtils.toStr(columnHeaders) + " (" + columnHeaders.length
 																		+ ") does not equal the number of entries in the data "
-																		+ Array.toStr(data) + " (" + data.length + ")");
+																		+ ArrayUtils.toStr(data) + " (" + data.length + ")");
 										log.reportError("Cancelling the replacement and replacing sample data with backup");
 										replace = false;
 									} else {
 										for (int i = 0; i < data.length; i++) {
 											line[existingIndices[i]] = data[i];
 										}
-										writer.println(Array.toStr(line));
+										writer.println(ArrayUtils.toStr(line));
 										numReplaced++;
 									}
 								} else {
-									writer.println(Array.toStr(line));
+									writer.println(ArrayUtils.toStr(line));
 									String[] existingVals = new String[existingIndices.length];
 									for (int i = 0; i < existingIndices.length; i++) {
 										existingVals[i] = line[existingIndices[i]];
 									}
 									linkData.put(	line[linkerIndex],
-																Array.toStr(existingVals,
+																ArrayUtils.toStr(existingVals,
 																						linkDataDelimiter != null ? linkDataDelimiter : "\t"));
 									numUnchanged++;
 								}
@@ -1620,10 +1620,10 @@ public class SampleData {
 			PrintWriter writer = new PrintWriter(new FileWriter(sampleDataFile));
 			String[] classed = MitoPipeline.PED_INPUT;
 			classed[5] = "Class=Sex";
-			writer.println(Array.toStr(classed)
+			writer.println(ArrayUtils.toStr(classed)
 											+ (inds[0].getSampleMapHeader() == null	? ""
 																															: "\t"
-																																+ Array.toStr(inds[0].getSampleMapHeader())));
+																																+ ArrayUtils.toStr(inds[0].getSampleMapHeader())));
 			for (Individual ind : inds) {
 				writer.println(ind.getSampDataFormat());
 			}
@@ -1805,7 +1805,7 @@ public class SampleData {
 			} else {
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(sampleDatafilename));
-					writer.println(Array.toStr(MINIMAL_SAMPLE_DATA_HEADER));
+					writer.println(ArrayUtils.toStr(MINIMAL_SAMPLE_DATA_HEADER));
 					for (String sample : samples) {
 						for (int j = 0; j < MINIMAL_SAMPLE_DATA_HEADER.length; j++) {
 							writer.print(sample + (j < (MINIMAL_SAMPLE_DATA_HEADER.length - 1) ? "\t" : ""));

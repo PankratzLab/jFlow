@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -366,7 +366,7 @@ public class CALiCoResultsPackager {
 														"index#.coded", "index#.noncoded"};
 
 	private static String getHeader(ModelData md) {
-		StringBuilder header = new StringBuilder(Array.toStr(hdr1, "\t"));
+		StringBuilder header = new StringBuilder(ArrayUtils.toStr(hdr1, "\t"));
 		int rsCount = md.RS_INDICES.length;
 		for (int i = 0; i < rsCount; i++) {
 			header.append("\tindex");
@@ -375,10 +375,10 @@ public class CALiCoResultsPackager {
 			}
 			header.append(".rsID");
 		}
-		header.append("\t").append(Array.toStr(hdr2, "\t")).append("\t");
+		header.append("\t").append(ArrayUtils.toStr(hdr2, "\t")).append("\t");
 		for (int i = 0; i < rsCount; i++) {
 			String repl = rsCount > 1 ? (i + 1) + "" : "";
-			header.append(Array.toStr(hdrInd, "\t").replaceAll("#", repl)).append("\t");
+			header.append(ArrayUtils.toStr(hdrInd, "\t").replaceAll("#", repl)).append("\t");
 		}
 		return header.toString();
 	}

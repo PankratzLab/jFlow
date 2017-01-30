@@ -13,7 +13,7 @@ import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
@@ -56,16 +56,16 @@ public class SummarizeOSTrioCoverage {
 
 				FamSum famSum = train.next();
 				if (num == 0) {
-					writer.println(Array.toStr(famSum.getFamCoverageResults().developHeader()));
+					writer.println(ArrayUtils.toStr(famSum.getFamCoverageResults().developHeader()));
 				}
 				num++;
 				if (famSum.getFamCoverageResults().getNumTotalRegions() > 0) {
-					writer.println(Array.toStr(famSum.getFamCoverageResults().getData()));
+					writer.println(ArrayUtils.toStr(famSum.getFamCoverageResults().getData()));
 					haveData.add(famSum);
 				}
 
 			}
-			Files.writeArray(Array.toStringArray(famsNotFound), outDir + "famsNotFound.txt");
+			Files.writeArray(ArrayUtils.toStringArray(famsNotFound), outDir + "famsNotFound.txt");
 			writer.close();
 
 		} catch (Exception e) {
@@ -278,7 +278,7 @@ public class SummarizeOSTrioCoverage {
 				h.add("FA_ProportionCoveredAt" + covTarget + "X");
 				h.add("INTERSECT_ProportionCoveredAt" + covTarget + "X");
 			}
-			return Array.toStringArray(h);
+			return ArrayUtils.toStringArray(h);
 		}
 
 		private String[] getData() {
@@ -291,9 +291,9 @@ public class SummarizeOSTrioCoverage {
 			h.add(totalAvgCoverage[0] + "");
 			h.add(totalAvgCoverage[1] + "");
 			h.add(totalAvgCoverage[2] + "");
-			h.add(Array.mean(totalAvgCoverage) + "");
-			h.add(Array.min(totalAvgCoverage) + "");
-			h.add(Array.max(totalAvgCoverage) + "");
+			h.add(ArrayUtils.mean(totalAvgCoverage) + "");
+			h.add(ArrayUtils.min(totalAvgCoverage) + "");
+			h.add(ArrayUtils.max(totalAvgCoverage) + "");
 
 			for (int i = 0; i < covTargets.length; i++) {
 				h.add((numTotalRegions == 0 ? 0 : (double) numCoveredAtOff[i] / numTotalRegions) + "");
@@ -302,7 +302,7 @@ public class SummarizeOSTrioCoverage {
 				h.add((numTotalRegions == 0 ? 0 : (double) numCoveredAtIntersect[i] / numTotalRegions)
 							+ "");
 			}
-			return Array.toStringArray(h);
+			return ArrayUtils.toStringArray(h);
 		}
 
 	}

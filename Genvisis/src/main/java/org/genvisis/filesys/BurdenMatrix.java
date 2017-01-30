@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -266,7 +266,7 @@ public class BurdenMatrix implements Serializable {
 
 		if (imputeUsingDataFreqFromTheseIDsNotAnnotationFreq != null) {
 			if (imputeUsingDataFreqFromTheseIDsNotAnnotationFreq.length == 0) {
-				useForImputation = Array.booleanArray(ids.length, true);
+				useForImputation = ArrayUtils.booleanArray(ids.length, true);
 			} else {
 				useForImputation = new boolean[ids.length];
 				idsToUse = HashVec.loadToHashSet(imputeUsingDataFreqFromTheseIDsNotAnnotationFreq);
@@ -274,7 +274,7 @@ public class BurdenMatrix implements Serializable {
 					useForImputation[i] = idsToUse.contains(ids[i]);
 				}
 			}
-			observedFreqs = Array.doubleArray(markerNames.length, Double.MAX_VALUE);
+			observedFreqs = ArrayUtils.doubleArray(markerNames.length, Double.MAX_VALUE);
 		} else {
 			useForImputation = null;
 			observedFreqs = null;
@@ -404,7 +404,7 @@ public class BurdenMatrix implements Serializable {
 			writer = new PrintWriter(new FileWriter(newMapFile));
 			writer.println("AnalysisUnit,CHROM,POS,POS_STOP,REF,ALT");
 			for (int i = 0; i < geneNames.length; i++) {
-				writer.println(geneNames[i] + "," + Array.toStr(startAndStopPositions[i], ",") + ",N,B");
+				writer.println(geneNames[i] + "," + ArrayUtils.toStr(startAndStopPositions[i], ",") + ",N,B");
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -445,19 +445,19 @@ public class BurdenMatrix implements Serializable {
 		String delimiter;
 
 		traits = Files.getHeaderOfFile(phenoFile, Files.determineDelimiter(phenoFile, log), log);
-		names = Array.subArray(traits, 1);
+		names = ArrayUtils.subArray(traits, 1);
 		hash = HashVec.loadFileToHashString(phenoFile, new int[] {0},
-																				Arrays.copyOfRange(	Array.arrayOfIndices(traits.length), 1,
+																				Arrays.copyOfRange(	ArrayUtils.arrayOfIndices(traits.length), 1,
 																														traits.length),
 																				phenoFile.endsWith(".csv"), "\t", true, false, false);
-		traits = Array.subArray(traits, 1);
+		traits = ArrayUtils.subArray(traits, 1);
 		log.report("Missing phenotype is set to '" + phenoMissingValue + "'");
 
 		// markerNames = markerSet.getMarkerNames();
 		// chrs = markerSet.getChrs();
 		// positions = markerSet.getPositions();
 		// alleles = markerSet.getAlleles();
-		analyze = Array.booleanArray(geneNames.length, true);
+		analyze = ArrayUtils.booleanArray(geneNames.length, true);
 		if (geneListSubset != null) {
 			genes = HashVec.loadFileToHashSet(geneListSubset, false);
 			for (int i = 0; i < geneNames.length; i++) {
@@ -473,7 +473,7 @@ public class BurdenMatrix implements Serializable {
 			}
 		}
 
-		use = Array.booleanArray(ids.length, true);
+		use = ArrayUtils.booleanArray(ids.length, true);
 		for (int i = 0; i < ids.length; i++) {
 			if (hash.containsKey(ids[i])) {
 				line = hash.get(ids[i]).split("[\\s]+");
@@ -487,7 +487,7 @@ public class BurdenMatrix implements Serializable {
 			}
 		}
 
-		deps = new double[Array.booleanArraySum(use)];
+		deps = new double[ArrayUtils.booleanArraySum(use)];
 		indeps = new double[deps.length][traits.length];
 		log.report("There are " + deps.length + " samples with complete data", true, verbose);
 		countSamplesUsed = 0;
@@ -501,7 +501,7 @@ public class BurdenMatrix implements Serializable {
 				countSamplesUsed++;
 			}
 		}
-		logistic = RegressionModel.isBinaryTrait(Array.toStr(deps).split("[\\s]+"), log);
+		logistic = RegressionModel.isBinaryTrait(ArrayUtils.toStr(deps).split("[\\s]+"), log);
 		log.report("Running a "	+ (logistic ? "logistic" : "linear") + " model for trait '" + traits[0]
 								+ "'", true, verbose);
 		try {
@@ -555,9 +555,9 @@ public class BurdenMatrix implements Serializable {
 						// sigfig, true)+delimiter+ext.formDeci(stderrs[indexOfBeta], sigfig,
 						// true)+delimiter+ext.prettyP(pvals[indexOfBeta], sigfig, 4, 3, true));
 						writer.println(delimiter	+ numberOfVariants[i] + delimiter
-														+ Array.sum(Array.subArray(numberOfAlleles[i], use)) + delimiter
-														+ Array.sum(snpCounts) + delimiter + countSamplesUsed + delimiter
-														+ Array.mean(snpCounts) + delimiter + Array.variance(snpCounts)
+														+ ArrayUtils.sum(ArrayUtils.subArray(numberOfAlleles[i], use)) + delimiter
+														+ ArrayUtils.sum(snpCounts) + delimiter + countSamplesUsed + delimiter
+														+ ArrayUtils.mean(snpCounts) + delimiter + ArrayUtils.variance(snpCounts)
 														+ delimiter + betas[indexOfBeta] + delimiter + stderrs[indexOfBeta]
 														+ delimiter + pvals[indexOfBeta]); // delimiter+Array.sum(snpCounts)+
 					}

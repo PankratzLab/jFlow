@@ -25,7 +25,7 @@ import org.genvisis.cnv.plots.MosaicPlot;
 import org.genvisis.cnv.var.IndiPheno;
 import org.genvisis.cnv.var.MosaicRegion;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -107,7 +107,7 @@ public class Mosaicism {
 		samples = proj.getSamples();
 		try {
 			writer = new PrintWriter(new FileWriter(proj.MOSAIC_RESULTS_FILENAME.getValue(true, true)));
-			writer.println(Array.toStr(MosaicPlot.MOSAICISM_HEADER));
+			writer.println(ArrayUtils.toStr(MosaicPlot.MOSAICISM_HEADER));
 			// samples = new String[] { "7355066051_R03C01", "7330686030_R02C01", "7159911135_R01C02" };
 			// samples = new String[] { "7355066051_R03C01" };
 
@@ -237,7 +237,7 @@ public class Mosaicism {
 			proj.getLog().reportTimeInfo(numMasked + " markers were masked");
 			builder.use(use);
 		}
-		MosaicismDetect md = builder.build(proj, sample, markerSet, Array.toDoubleArray(bafs));
+		MosaicismDetect md = builder.build(proj, sample, markerSet, ArrayUtils.toDoubleArray(bafs));
 		int[] positions = markerSet.getPositions();
 		byte[] chrs = markerSet.getChrs();
 		for (int j = 1; j <= 23; j++) {
@@ -273,9 +273,9 @@ public class Mosaicism {
 					int lrrSize = lrrAl.size();
 					float[] bafTmp = Floats.toArray(bafAl);
 					String result = sample	+ "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t"
-													+ ext.formDeci(Array.mean(Floats.toArray(lrrAl)), 5) + "\t" + bafAl.size()
-													+ (bafSize > 10	? "\t"	+ ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t"
-																						+ ext.formDeci(Array.iqrExclusive(bafTmp), 5)
+													+ ext.formDeci(ArrayUtils.mean(Floats.toArray(lrrAl)), 5) + "\t" + bafAl.size()
+													+ (bafSize > 10	? "\t"	+ ext.formDeci(ArrayUtils.stdev(bafTmp, true), 5) + "\t"
+																						+ ext.formDeci(ArrayUtils.iqrExclusive(bafTmp), 5)
 																					: "\t.\t.")
 													+ "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5);
 					result += "\t" + mosaicMetrics.getForcedCallproportionArmMosaic();
@@ -289,7 +289,7 @@ public class Mosaicism {
 				}
 			}
 		}
-		return Array.toStringArray(results);
+		return ArrayUtils.toStringArray(results);
 	}
 
 	private static class MosaicMetric {
@@ -505,7 +505,7 @@ public class Mosaicism {
 		v = new Vector<String>();
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(listOfMosaicArms, false) + "_counts.xln"));
-			writer.println(Array.toStr(HEADER));
+			writer.println(ArrayUtils.toStr(HEADER));
 			for (String[] listOfArm : listOfArms) {
 				indiPheno = sampleData.getIndiPheno(listOfArm[0]);
 

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.cnv.var.MosaicRegion;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
@@ -269,7 +269,7 @@ public class LocusSet<T extends Segment> implements Serializable {
 		if (indices == null) {
 			return null;
 		} else {
-			return Array.subArray(loci, indices);
+			return ArrayUtils.subArray(loci, indices);
 		}
 	}
 
@@ -296,7 +296,7 @@ public class LocusSet<T extends Segment> implements Serializable {
 	@SuppressWarnings("unchecked")
 	public static <T extends Segment> LocusSet<T> combine(LocusSet<T> one, LocusSet<T> two,
 																												boolean sort, Logger log) {
-		T[] combinedLoci = Array.concatAll(one.getLoci(), two.getLoci());
+		T[] combinedLoci = ArrayUtils.concatAll(one.getLoci(), two.getLoci());
 		LocusSet<T> combined = new LocusSet<T>(combinedLoci, sort, log);
 		return combined;
 	}
@@ -350,7 +350,7 @@ public class LocusSet<T extends Segment> implements Serializable {
 			PrintWriter writer = new PrintWriter(new FileWriter(filename));
 			for (int i = 0; i < loci.length; i++) {
 				if (i == 0 && header) {
-					writer.println(Array.toStr(loci[i].getHeader()));
+					writer.println(ArrayUtils.toStr(loci[i].getHeader()));
 				}
 				switch (type) {
 					case REGULAR:

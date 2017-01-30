@@ -6,7 +6,7 @@ import java.util.Hashtable;
 
 import org.genvisis.cnv.filesys.CNVQC;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.CNVariant;
 
@@ -56,7 +56,7 @@ public class CNVariantQC implements Serializable {
 	}
 
 	public CNVariantQC(String[] plinkPlusQCFormatLine) {
-		cnVariant = new CNVariant(Array.subArray(plinkPlusQCFormatLine, 0, 7));
+		cnVariant = new CNVariant(ArrayUtils.subArray(plinkPlusQCFormatLine, 0, 7));
 		height = Double.parseDouble(plinkPlusQCFormatLine[8]);
 		bafQC = Double.parseDouble(plinkPlusQCFormatLine[9]);
 		numHetsBAF = Integer.parseInt(plinkPlusQCFormatLine[10]);
@@ -182,7 +182,7 @@ public class CNVariantQC implements Serializable {
 	}
 
 	public void assigncnvLRRStdev() {
-		cnvLRRStdev = Array.median(lrrs);
+		cnvLRRStdev = ArrayUtils.median(lrrs);
 	}
 
 	public double getSampleCallRate() {

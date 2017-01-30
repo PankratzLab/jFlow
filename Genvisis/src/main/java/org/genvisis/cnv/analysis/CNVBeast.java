@@ -22,7 +22,7 @@ import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -89,7 +89,7 @@ public class CNVBeast {
 					.reportError("Error - mismatched array sizes for project's samples and sample mask");
 		} else {
 			MarkerSet markerSet = proj.getMarkerSet();
-			int numSamples = (samplesToAnalyze != null	? Array.booleanArraySum(samplesToAnalyze)
+			int numSamples = (samplesToAnalyze != null	? ArrayUtils.booleanArraySum(samplesToAnalyze)
 																									: samples.length);
 			BeastConfig[][] sampleConfigs = new BeastConfig[numSamples][];
 			int configIndex = 0;
@@ -121,7 +121,7 @@ public class CNVBeast {
 		proj.getLog().report(ext.getTime() + " Info - reporting all cnvs to " + fullPathToOutput);
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutput));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (CNVariant[] allCNV : allCNVs) {
 				if (allCNV != null) {
 					for (CNVariant element : allCNV) {
@@ -169,7 +169,7 @@ public class CNVBeast {
 				BufferedReader reader = Files.getAppropriateReader(summaryFile);
 				String[] beastHeader = reader.readLine().trim().split(BEAST_DELIM);
 				int[] indices = ext.indexFactors(beastHeader, BEAST_RESULTS_HEADER, true, false);
-				if (Array.countIf(indices, -1) == 0) {
+				if (ArrayUtils.countIf(indices, -1) == 0) {
 					while (reader.ready()) {
 						String[] beastLine = reader.readLine().trim().split(BEAST_DELIM);
 						try {
@@ -191,7 +191,7 @@ public class CNVBeast {
 						} catch (NumberFormatException nfe) {
 							proj.getLog()
 									.reportError("Error - results file "	+ summaryFile
-																+ " had an improper number on line " + Array.toStr(beastLine));
+																+ " had an improper number on line " + ArrayUtils.toStr(beastLine));
 						}
 					}
 					reader.close();
@@ -355,7 +355,7 @@ public class CNVBeast {
 																																				GC_CORRECTION_METHOD.GENVISIS_GC,
 																																				false, true, false);
 								if (!gcAdjustor.isFail()) {
-									lrrs = Array.toFloatArray(gcAdjustor.getCorrectedIntensities());
+									lrrs = ArrayUtils.toFloatArray(gcAdjustor.getCorrectedIntensities());
 								} else {
 									proj.getLog()
 											.reportError("Error - gc correction has failed for sample "
@@ -368,7 +368,7 @@ public class CNVBeast {
 						}
 						try {
 							PrintWriter writer = new PrintWriter(new FileWriter(configs[i].getDataFile()));
-							writer.println(Array.toStr(BEAST_DATA_HEADER));
+							writer.println(ArrayUtils.toStr(BEAST_DATA_HEADER));
 							int analysisChr = configs[i].getAnalysisChr();
 							for (int j = 0; j < indicesByChr[analysisChr].length; j++) {
 								writer.println(markerNames[indicesByChr[analysisChr][j]]	+ "\t"

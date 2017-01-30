@@ -9,7 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -47,7 +47,7 @@ public class GenBankMtDNA {
 					String[] data = line.trim().split("\t");
 					// Info is index 7
 					data[7] = data[7].replaceAll(" ", "");
-					writer.println(Array.toStr(data));
+					writer.println(ArrayUtils.toStr(data));
 				}
 			}
 			reader.close();

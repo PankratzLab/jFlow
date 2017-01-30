@@ -41,7 +41,7 @@ import org.genvisis.cnv.prop.StringListProperty;
 import org.genvisis.cnv.prop.StringProperty;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CurrentManifest;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -53,6 +53,8 @@ import org.genvisis.filesys.GeneSet;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 
 public class Project implements PropertyChangeListener {
+
+	public static final String EXAMPLE_PROJ = "example";
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
@@ -512,7 +514,7 @@ public class Project implements PropertyChangeListener {
 	                                                                                      GROUP.IMPORT,
 	                                                                                      false, 0,
 	                                                                                      GENOME_BUILD.class);
-	public FileProperty TRAILER_REGION = new FileProperty(this, "TRAILER_REGION",
+	public FileProperty TRAILER_REGION = new FileProperty(this, PropertyKeys.KEY_TRAILER_REGION,
 	                                                      "Last region file opened in Trailer",
 	                                                      GROUP.TRAILER, true, "", false);
 
@@ -885,6 +887,14 @@ public class Project implements PropertyChangeListener {
 		return samplesToExclude;
 	}
 
+	/**
+	 * As {@link #getSamplesToInclude(String, boolean, boolean)} with a {@code null}
+	 * fileWithListOfSampleToUse (so only samples not marked as "Excluded" will be returned).
+	 */
+	public boolean[] getSamplesToInclude() {
+		return getSamplesToInclude(null);
+	}
+
 	public boolean[] getSamplesToInclude(String fileWithListOfSamplesToUse) {
 		return getSamplesToInclude(fileWithListOfSamplesToUse, true);
 	}
@@ -1127,7 +1137,7 @@ public class Project implements PropertyChangeListener {
 
 		changed = false;
 		// knowns = Array.toStringVector(HashVec.getKeys(this, false, false));
-		preknowns = Array.toStringVector(getPropertyKeys());
+		preknowns = ArrayUtils.toStringVector(getPropertyKeys());
 		unknowns = new Vector<String>();
 		corrections = new Vector<String>();
 		try {
@@ -1190,7 +1200,7 @@ public class Project implements PropertyChangeListener {
 			Files.backup(ext.removeDirectoryInfo(projectPropertiesFilename),
 			             ext.parseDirectoryOfFile(projectPropertiesFilename),
 			             ext.parseDirectoryOfFile(projectPropertiesFilename) + "backup/", true);
-			Files.writeArray(Array.toStringArray(corrections), projectPropertiesFilename);
+			Files.writeArray(ArrayUtils.toStringArray(corrections), projectPropertiesFilename);
 		}
 	}
 
@@ -1213,7 +1223,7 @@ public class Project implements PropertyChangeListener {
 		}
 		props = new Vector<String>();
 		changes = new Vector<String>();
-		loaded = Array.toStringVector(propsToSave);
+		loaded = ArrayUtils.toStringVector(propsToSave);
 		loaded.remove(PROJECT_PROPERTIES_FILENAME.getValue());
 		try {
 			reader = new BufferedReader(new FileReader(projectPropertiesFilename));
@@ -1292,7 +1302,7 @@ public class Project implements PropertyChangeListener {
 			             ext.parseDirectoryOfFile(projectPropertiesFilename),
 			             ext.parseDirectoryOfFile(projectPropertiesFilename) + "backup/",
 			             outfile.equals(projectPropertiesFilename));
-			Files.writeArray(Array.toStringArray(props), outfile);
+			Files.writeArray(ArrayUtils.toStringArray(props), outfile);
 		}
 
 	}
@@ -1711,7 +1721,7 @@ public class Project implements PropertyChangeListener {
 				nonCNs.add(mkrs[i]);
 			}
 		}
-		return Array.toStringArray(nonCNs);
+		return ArrayUtils.toStringArray(nonCNs);
 	}
 
 	public String[] getAutosomalNonCNMarkers() {
@@ -1723,7 +1733,7 @@ public class Project implements PropertyChangeListener {
 				nonCNs.add(mkrs[i]);
 			}
 		}
-		return Array.toStringArray(nonCNs);
+		return ArrayUtils.toStringArray(nonCNs);
 	}
 
 	public boolean[] getCNMarkers() {
@@ -1736,6 +1746,18 @@ public class Project implements PropertyChangeListener {
 		return cnB;
 	}
 
+	public String[] getMarkersForChrs(int[] chrs) {
+		MarkerSet markerSet = getMarkerSet();
+		byte[] markerChrs = markerSet.getChrs();
+		ArrayList<String> tmp = new ArrayList<String>();
+		for (int i = 0; i < markerChrs.length; i++) {
+			if (ext.indexOfInt((int) markerChrs[i], chrs) >= 0) {
+				tmp.add(markerSet.getMarkerNames()[i]);
+			}
+		}
+		return tmp.toArray(new String[tmp.size()]);
+	}
+	
 	public String[] getAutosomalMarkers() {
 		MarkerSet markerSet = getMarkerSet();
 		byte[] chrs = markerSet.getChrs();
@@ -1754,23 +1776,40 @@ public class Project implements PropertyChangeListener {
 	 */
 	public int[] getAutosomalMarkerIndices() {
 		String[] autosomalMarkers = getAutosomalMarkers();
-		int[] indices =
-		              ext.indexLargeFactors(autosomalMarkers, getMarkerNames(), true, log, true, false);
+		int[] indices = ext.indexLargeFactors(autosomalMarkers, getMarkerNames(), true, log, true, false);
 		return indices;
 	}
 
+	public int[] getMarkersForChrsIndices(int[] chrs) {
+		String[] chrMkrs = getMarkersForChrs(chrs);
+		int[] indices = ext.indexLargeFactors(chrMkrs, getMarkerNames(), true, log, true, false);
+		return indices;
+	}
+	
 	/**
 	 * @return boolean representation of autosomal markers
 	 */
 	public boolean[] getAutosomalMarkerBoolean() {
 		int[] indices = getAutosomalMarkerIndices();
-		boolean[] autoB = Array.booleanArray(getMarkerNames().length, false);
+		boolean[] autoB = ArrayUtils.booleanArray(getMarkerNames().length, false);
 		for (int i = 0; i < indices.length; i++) {
 			autoB[indices[i]] = true;
 		}
 		return autoB;
 	}
-
+	
+	/**
+	 * @return boolean representation of markers on specified chromosomes
+	 */
+	public boolean[] getMarkerForChrsBoolean(int[] chrs) {
+		int[] indices = getMarkersForChrsIndices(chrs);
+		boolean[] chrB = ArrayUtils.booleanArray(getMarkerNames().length, false);
+		for (int i = 0; i < indices.length; i++) {
+			chrB[indices[i]] = true;
+		}
+		return chrB;
+	}
+	
 	/**
 	 * For copying an existing project to a new project that will have the same essential data
 	 */

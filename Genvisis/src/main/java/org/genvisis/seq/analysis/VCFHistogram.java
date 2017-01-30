@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -108,7 +108,7 @@ public class VCFHistogram implements Serializable {
 			ArrayList<DynamicHistogram> tmpHists = new ArrayList<DynamicHistogram>();
 			String output = dir + root;
 			for (int j = 0; j < histograms.length; j++) {
-				tmpTitles.add(histTitles[j][i] + "_n_" + Array.sum(histograms[j][i].getCounts()));
+				tmpTitles.add(histTitles[j][i] + "_n_" + ArrayUtils.sum(histograms[j][i].getCounts()));
 				tmpHists.add(histograms[j][i]);
 				output += "_" + histTitles[j][i];
 
@@ -124,7 +124,7 @@ public class VCFHistogram implements Serializable {
 			rScatter.setOverWriteExisting(true);
 			rScatter.setyLabel("Proportion");
 			rScatter.setxLabel(METRICS_TRACKED[i]);
-			rScatter.setTitle(Array.toStr(root.split("_"), " "));
+			rScatter.setTitle(ArrayUtils.toStr(root.split("_"), " "));
 			double[] minMax = new double[] {0, 1};
 			if (i == 0) {
 				minMax = new double[] {0, .65};
@@ -303,7 +303,7 @@ public class VCFHistogram implements Serializable {
 					String newFile = dir + superPop + "_V_" + superPopComp + ".vpop";
 					try {
 						PrintWriter writer = new PrintWriter(new FileWriter(newFile));
-						writer.println(Array.toStr(VcfPopulation.HEADER));
+						writer.println(ArrayUtils.toStr(VcfPopulation.HEADER));
 						for (String newCase : newCases) {
 							writer.println(newCase + "\t" + VcfPopulation.CASE + "\t" + superPop);
 						}

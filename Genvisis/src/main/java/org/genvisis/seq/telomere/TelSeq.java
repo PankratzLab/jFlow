@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -99,7 +99,7 @@ public class TelSeq {
 
 			command.add(inputBam);
 
-			boolean valid = CmdLine.runCommandWithFileChecks(	Array.toStringArray(command), "", input,
+			boolean valid = CmdLine.runCommandWithFileChecks(	ArrayUtils.toStringArray(command), "", input,
 																												outputs, true, false, false, log);
 			return new Ran(valid, command);
 		}
@@ -185,18 +185,18 @@ public class TelSeq {
 		// Only interested in these columns currently, do not know what to do
 		// with TEL* and GC*
 		int[] indices = ext.indexFactors(TELSEQ_REPORT, telHeader, true, false);
-		if (Array.countIf(indices, -1) > 0) {
+		if (ArrayUtils.countIf(indices, -1) > 0) {
 			throw new IllegalStateException("Missing proper heading for " + results.get(0).output);
 		}
 
 		ArrayList<String> result = new ArrayList<String>();
-		result.add("BAM\t" + Array.toStr(TELSEQ_REPORT) + "\tType\tSampleName\tReadSize");
+		result.add("BAM\t" + ArrayUtils.toStr(TELSEQ_REPORT) + "\tType\tSampleName\tReadSize");
 		for (TelSeqResult telSeqResult : results) {
 			if (Files.exists(telSeqResult.output)) {
 				String[][] data = HashVec.loadFileToStringMatrix(telSeqResult.output, true, null, false);
 				for (String[] element : data) {
 					result.add(ext.rootOf(telSeqResult.output)	+ "\t"
-											+ Array.toStr(Array.subArray(element, indices)) + "\t" + telSeqResult.type
+											+ ArrayUtils.toStr(ArrayUtils.subArray(element, indices)) + "\t" + telSeqResult.type
 											+ "\t" + telSeqResult.sample + "\t" + telSeqResult.readSizeUsed);
 				}
 			}

@@ -25,7 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ChrPositionMap;
 import org.genvisis.common.Files;
 import org.genvisis.common.Positions;
@@ -276,7 +276,7 @@ public class DnaseEnrichment {
 			}
 			resultArrayList.add(resultArray);
 		}
-		resultArrayList = Array.transpose(resultArrayList);
+		resultArrayList = ArrayUtils.transpose(resultArrayList);
 		try {
 			String outputFilePath = bedDir + OUTPUT_FOLDER + File.separator + OUTPUT_FILENAME;
 

@@ -10,7 +10,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.hmm.PennHmm.ViterbiResult;
 import org.genvisis.cnv.var.MosaicRegion;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Numbers;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.CNVariant;
@@ -152,21 +152,21 @@ public class MosaicismDetect {
 
 		}
 		int[] evalIndices = Ints.toArray(evalIndicestmp);
-		segIndices = Array.subArray(segIndices, evalIndices);
+		segIndices = ArrayUtils.subArray(segIndices, evalIndices);
 		if (segIndices.length > 0) {
 
-			p_density = Array.subArray(p_density, evalIndices);
-			nearestN = Array.subArray(nearestN, evalIndices);
-			double[] p_densityMA = Array.movingAverageForward(movingFactor, p_density, true);
-			double[] p_densityMAReverse = Array.reverse(Array.movingAverageForward(	movingFactor,
-																																							Array.reverse(p_density),
+			p_density = ArrayUtils.subArray(p_density, evalIndices);
+			nearestN = ArrayUtils.subArray(nearestN, evalIndices);
+			double[] p_densityMA = ArrayUtils.movingAverageForward(movingFactor, p_density, true);
+			double[] p_densityMAReverse = ArrayUtils.reverse(ArrayUtils.movingAverageForward(	movingFactor,
+																																							ArrayUtils.reverse(p_density),
 																																							true));
 			int[] states = new int[p_densityMA.length];
 			ArrayList<Double> p_densityScored = new ArrayList<Double>(p_densityMA.length);
 			ArrayList<Integer> mosIndicesTmp = new ArrayList<Integer>(p_densityMA.length);
 			for (int i = 0; i < p_densityMA.length; i++) {
-				double[] tD = Array.removeNaN(new double[] {p_densityMA[i], p_densityMAReverse[i]});
-				double d = tD.length > 0 ? Array.mean(tD) : Double.NaN;
+				double[] tD = ArrayUtils.removeNaN(new double[] {p_densityMA[i], p_densityMAReverse[i]});
+				double d = tD.length > 0 ? ArrayUtils.mean(tD) : Double.NaN;
 				p_densityScored.add(d);
 				if (Numbers.isFinite(d)) {
 					if (d <= baseLine || force) {
@@ -182,12 +182,12 @@ public class MosaicismDetect {
 				}
 			}
 			int[] mosIndices = Ints.toArray(mosIndicesTmp);
-			int[] positions = Array.subArray(	Array.subArray(markerSet.getPositions(), segIndices),
+			int[] positions = ArrayUtils.subArray(	ArrayUtils.subArray(markerSet.getPositions(), segIndices),
 																				mosIndices);
-			String[] names = Array.subArray(Array.subArray(markerSet.getMarkerNames(), segIndices),
+			String[] names = ArrayUtils.subArray(ArrayUtils.subArray(markerSet.getMarkerNames(), segIndices),
 																			mosIndices);
-			double[] bafsSub = Array.subArray(Array.subArray(bafs, segIndices), mosIndices);
-			ViterbiResult vtr = new ViterbiResult(Array.subArray(states, mosIndices), null);
+			double[] bafsSub = ArrayUtils.subArray(ArrayUtils.subArray(bafs, segIndices), mosIndices);
+			ViterbiResult vtr = new ViterbiResult(ArrayUtils.subArray(states, mosIndices), null);
 			dud = vtr.analyzeStateSequence(	proj, sample, sample, seg.getChr(), positions, names, 2, false,
 																			verbose);
 			MosaicRegion[] tmp = new MosaicRegion[dud.getLoci().length];
@@ -204,9 +204,9 @@ public class MosaicismDetect {
 				}
 
 				int[] scoreStopStart = vtr.getIndexStateChange().get(i);
-				double[] scored = Array.subArray(finalPDensit, scoreStopStart[0], scoreStopStart[1] + 1);
-				double pdfScore = baseLine - Array.mean(scored);// TODO,
-				double delta = Array.median(Array.removeNaN(Array.distFrom(	Array.subArray(bafsSub,
+				double[] scored = ArrayUtils.subArray(finalPDensit, scoreStopStart[0], scoreStopStart[1] + 1);
+				double pdfScore = baseLine - ArrayUtils.mean(scored);// TODO,
+				double delta = ArrayUtils.median(ArrayUtils.removeNaN(ArrayUtils.distFrom(	ArrayUtils.subArray(bafsSub,
 																																									scoreStopStart[0],
 																																									scoreStopStart[1] + 1),
 																																		gd.distributions()[1].mean())));
@@ -215,7 +215,7 @@ public class MosaicismDetect {
 																										// states.length;
 				double customF = MosaicismQuant.getDisomyF(delta);
 				builder.score(customF);
-				double nearestStateScore = Array.mean(Array.subArray(	nearestN, scoreStopStart[0],
+				double nearestStateScore = ArrayUtils.mean(ArrayUtils.subArray(	nearestN, scoreStopStart[0],
 																															scoreStopStart[1] + 1));
 				tmp[i] = new MosaicRegion(builder.build(), Math.log10(Math.pow(factor, 2)),
 																	nearestStateScore, pdfScore, delta, Double.NaN, customF);
@@ -255,7 +255,7 @@ public class MosaicismDetect {
 		if (use != null) {
 			autosomalIndices = removeMasked(autosomalIndices);
 		}
-		double[] autosomalBafs = Array.subArray(bafs, autosomalIndices);
+		double[] autosomalBafs = ArrayUtils.subArray(bafs, autosomalIndices);
 		gd = prepareGaussMixture(autosomalBafs, .33, .66);
 		if (baseLine < 0) {
 			baseLine = 0;
@@ -329,10 +329,10 @@ public class MosaicismDetect {
 	}
 
 	private static double[] getMeanVar(double[] autosomalBafs, double r1, double r2) {
-		double[] sub = Array.getValuesBetween(autosomalBafs, r1, r2, true);
+		double[] sub = ArrayUtils.getValuesBetween(autosomalBafs, r1, r2, true);
 		double[] meanVar = new double[2];
-		meanVar[0] = Array.mean(sub);
-		meanVar[1] = Math.pow(Array.stdev(sub), 2);
+		meanVar[0] = ArrayUtils.mean(sub);
+		meanVar[1] = Math.pow(ArrayUtils.stdev(sub), 2);
 		return meanVar;
 	}
 
@@ -353,7 +353,7 @@ public class MosaicismDetect {
 			MosaicBuilder mosBuilder = new MosaicBuilder();
 
 			MosaicismDetect md = mosBuilder.build(proj, sample, markerSet,
-																						Array.toDoubleArray(samp.getBAFs()));
+																						ArrayUtils.toDoubleArray(samp.getBAFs()));
 			int[][] te = markerSet.getIndicesByChr();
 			for (int j = 0; j < te.length; j++) {
 				if (te[j].length > 0 && j < 23) {
@@ -550,8 +550,8 @@ public class MosaicismDetect {
 		@Override
 		public LocusSet<MosaicRegion> call() throws Exception {
 			Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
-			bafs = Array.toDoubleArray(samp.getBAFs());
-			lrrs = Array.toDoubleArray(samp.getLRRs());
+			bafs = ArrayUtils.toDoubleArray(samp.getBAFs());
+			lrrs = ArrayUtils.toDoubleArray(samp.getLRRs());
 			builder.indicesByChr(indicesByChr);
 			MosaicismDetect md = builder.build(proj, sample, markerSet, bafs);
 			ArrayList<MosaicRegion> all = new ArrayList<MosaicRegion>();
@@ -570,7 +570,7 @@ public class MosaicismDetect {
 
 																			};
 			// System.out.println(allCalls);
-			BeastScore beastScore = BeastScore.beastInd(proj, null, Array.toFloatArray(lrrs),
+			BeastScore beastScore = BeastScore.beastInd(proj, null, ArrayUtils.toFloatArray(lrrs),
 																									allCalls.getLoci(), md.getMarkerSet().getChrs(),
 																									md.getMarkerSet().getPositions(),
 																									md.getIndicesByChr());

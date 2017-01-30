@@ -9,7 +9,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
@@ -139,7 +139,7 @@ public class CNValidate implements Runnable {
 			}
 			if (markerList.length == cnVariantQC.getCnVariant().getNumMarkers()
 					&& markerList.length == variantLRRs.length) {
-				cnVariantQC.setHeight(Array.median(variantLRRs));
+				cnVariantQC.setHeight(ArrayUtils.median(variantLRRs));
 				cnVariantQC.setBafs(variantbafs);
 				cnVariantQC.setGenotypes(variantGenotypes);
 				cnVariantQC.setLrrs(variantLRRs);
@@ -283,7 +283,7 @@ public class CNValidate implements Runnable {
 			if (q > 1 || q < 0) {
 				return 0;
 			} else {
-				float[] sorted = Array.sortedCopy(array);
+				float[] sorted = ArrayUtils.sortedCopy(array);
 				double index = (array.length + 1) * q;
 				if (index - (int) index == 0) {
 					return sorted[(int) index - 1];

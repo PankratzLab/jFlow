@@ -14,8 +14,8 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import org.genvisis.common.Array;
-import org.genvisis.common.Array.BooleanClassifier;
+import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.ArrayUtils.BooleanClassifier;
 import org.genvisis.common.ArraySpecialList.ArrayStringList;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -193,15 +193,15 @@ public class CorrectionIterator implements Serializable {
 
 					int[] indices = ext.indexLargeFactors(sampsForMods, proj.getSamples(), true,
 																								proj.getLog(), true, false);
-					samplesForModels = Array.booleanArray(proj.getSamples().length, false);
+					samplesForModels = ArrayUtils.booleanArray(proj.getSamples().length, false);
 					for (int i = 0; i < indices.length; i++) {
 						samplesForModels[indices[i]] = true;
 					}
 				}
-				log.reportTimeInfo("Loaded "	+ Array.booleanArraySum(samplesForModels)
+				log.reportTimeInfo("Loaded "	+ ArrayUtils.booleanArraySum(samplesForModels)
 														+ " model builders from " + samplesToBuildModels);
 
-				log.reportTimeInfo(Array.booleanArraySum(samplesForModels)
+				log.reportTimeInfo(ArrayUtils.booleanArraySum(samplesForModels)
 														+ " model builders from after QC filtering");
 
 				break;
@@ -212,7 +212,7 @@ public class CorrectionIterator implements Serializable {
 
 		switch (iType) {
 			case WITHOUT_INDEPS:
-				log.reportTimeInfo("Evaluating with "	+ Array.booleanArraySum(samplesForModels)
+				log.reportTimeInfo("Evaluating with "	+ ArrayUtils.booleanArraySum(samplesForModels)
 														+ " samples, no additional independent variables");
 				break;
 
@@ -230,7 +230,7 @@ public class CorrectionIterator implements Serializable {
 		// }
 		PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
 		int totalNumPCs = pcResiduals.getTotalNumComponents();
-		int numSamples = Array.booleanArraySum(samplesForModels);
+		int numSamples = ArrayUtils.booleanArraySum(samplesForModels);
 		log.reportTimeInfo("Detected "	+ pcResiduals.getTotalNumComponents() + "available PCs in "
 												+ proj.INTENSITY_PC_FILENAME.getValue());
 		log.reportTimeInfo("Using a total of " + numSamples + " samples");
@@ -243,7 +243,7 @@ public class CorrectionIterator implements Serializable {
 		pcResiduals = proj.loadPcResids();
 		pcResiduals.fillInMissing();
 		pcResiduals.setMarkersToAssessFile(markesToEvaluate);
-		Files.writeArray(	Array.subArray(proj.getSamples(), samplesForModels),
+		Files.writeArray(	ArrayUtils.subArray(proj.getSamples(), samplesForModels),
 											outputDir + iType + "_" + oType + "_" + bType + "_samplesForModels.txt");
 		pcResiduals.setHomozygousOnly(true);
 		proj.getLog().reportTimeWarning("In gc-correction mode now, using "
@@ -325,7 +325,7 @@ public class CorrectionIterator implements Serializable {
 				}
 				Files.writeIterable(outOrder, out);
 			}
-			Files.writeArray(	Array.subArray(proj.getSamples(), samplesToEvaluate),
+			Files.writeArray(	ArrayUtils.subArray(proj.getSamples(), samplesToEvaluate),
 												outputDir + iType + "_" + oType + "_" + bType + "_samplesForEval.txt");
 
 			cEvaluator = new CorrectionEvaluator(	proj, pcResiduals, precomputed, order,
@@ -336,8 +336,8 @@ public class CorrectionIterator implements Serializable {
 																					samplesToEvaluate, samplesForModels, null);
 			BasicPrep.serialize(basicPrep, iterationResult.getBasePrep());
 			iterationResult.setBasicPrep(basicPrep);
-			log.reportTimeInfo(Array.booleanArraySum(samplesForModels) + " samples for models");
-			log.reportTimeInfo(Array.booleanArraySum(samplesToEvaluate) + " samples for evaluation");
+			log.reportTimeInfo(ArrayUtils.booleanArraySum(samplesForModels) + " samples for models");
+			log.reportTimeInfo(ArrayUtils.booleanArraySum(samplesToEvaluate) + " samples for evaluation");
 
 			ArrayList<EvaluationResult> store = new ArrayList<EvaluationResult>();
 
@@ -354,9 +354,9 @@ public class CorrectionIterator implements Serializable {
 					result.setOrType(oType);
 					result.setbType(bType);
 					if (index == 0) {
-						writer.println(Array.toStr(result.getHeader()));
+						writer.println(ArrayUtils.toStr(result.getHeader()));
 					}
-					writer.println(Array.toStr(result.getData()));
+					writer.println(ArrayUtils.toStr(result.getData()));
 					index++;
 					result.shrink();
 					store.add(result);
@@ -525,7 +525,7 @@ public class CorrectionIterator implements Serializable {
 						use.add(i);
 					}
 				}
-				builder.numericDataTitles(Array.subArray(numericStratCats, Ints.toArray(use)));
+				builder.numericDataTitles(ArrayUtils.subArray(numericStratCats, Ints.toArray(use)));
 			}
 			BooleanClassifier[] classifiers = new BooleanClassifier[sampleDataStratCats.length];
 			ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
@@ -538,7 +538,7 @@ public class CorrectionIterator implements Serializable {
 				log.reportTimeInfo("Finished loading " + proj.SAMPLE_DATA_FILENAME.getValue());
 				for (int i = 0; i < sampleDataStratCats.length; i++) {
 					BooleanClassifier booleanClassifier =
-																							Array.classifyStringsToBoolean(	parser.getStringDataForTitle(sampleDataStratCats[i]),
+																							ArrayUtils.classifyStringsToBoolean(	parser.getStringDataForTitle(sampleDataStratCats[i]),
 																																							new String[] {"NaN"});
 					classifiers[i] = booleanClassifier;
 					EvaluationResult[] evaluationResults = EvaluationResult.readSerial(outputSer, log);
@@ -676,7 +676,7 @@ public class CorrectionIterator implements Serializable {
 																						ext.removeDirectoryInfo(outputBox) + "sub",
 																						dir + ext.removeDirectoryInfo(outputBox) + "sub.pdf",
 																						sampleDataStratCats[i],
-																						Array.subArray(	Array.toStringArray(pcYs), 0,
+																						ArrayUtils.subArray(	ArrayUtils.toStringArray(pcYs), 0,
 																														Math.min(20, evaluationResults.length)),
 																						SCATTER_TYPE.BOX, log);
 			rScatterSubset.setOverWriteExisting(false);
@@ -703,7 +703,7 @@ public class CorrectionIterator implements Serializable {
 			RScatter rScatterSkip = new RScatter(	outputBox, ext.addToRoot(outputBox, "skips.rscript"),
 																						ext.removeDirectoryInfo(outputBox) + "skips",
 																						dir + ext.removeDirectoryInfo(outputBox) + "skips.pdf",
-																						sampleDataStratCats[i], Array.toStringArray(skips),
+																						sampleDataStratCats[i], ArrayUtils.toStringArray(skips),
 																						SCATTER_TYPE.BOX, log);
 			rScatterSkip.setOverWriteExisting(false);
 			rScatterSkip.setyLabel(BOX_Y);
@@ -760,7 +760,7 @@ public class CorrectionIterator implements Serializable {
 			String[] availableYs = rScatter.getrSafeYColumns();
 
 			String[] altYs = new String[availableYs.length];
-			String[] titles = Array.toStringArray(evaluationResult.getCorrelTitles());
+			String[] titles = ArrayUtils.toStringArray(evaluationResult.getCorrelTitles());
 			for (int i = 0; i < availableYs.length; i++) {
 				if (availableYs[i].equals("Rsquare_correction")) {
 					altYs[i] = "n_" + modelN;
@@ -839,12 +839,12 @@ public class CorrectionIterator implements Serializable {
 						System.out.println(tmpHerit);
 						int[] indices = ext.indexFactors(	toExtract, Files.getHeaderOfFile(tmpHerit, log), true,
 																							false);
-						if (Array.countIf(indices, -1) > 0) {
-							log.reportError("Could not find " + Array.toStr(toExtract) + " in " + tmpHerit);
+						if (ArrayUtils.countIf(indices, -1) > 0) {
+							log.reportError("Could not find " + ArrayUtils.toStr(toExtract) + " in " + tmpHerit);
 							return null;
 						}
 						PrintWriter writer = new PrintWriter(new FileWriter(heritSummary));
-						writer.println(Array.toStr(HERIT_ADDITIONS) + "\t" + reader.readLine().trim());
+						writer.println(ArrayUtils.toStr(HERIT_ADDITIONS) + "\t" + reader.readLine().trim());
 						int index = 0;
 						while (reader.ready()) {
 							String[] line = reader.readLine().trim().split("\t");
@@ -858,9 +858,9 @@ public class CorrectionIterator implements Serializable {
 								String kurtWarning = line[indices[5]];
 								writer.println(index	+ "\t" + merlinEst + "\t" + solareEst + "\t" + solareP + "\t"
 																+ solareStError + "\t" + solarKurt + "\t" + kurtWarning + "\t"
-																+ Array.toStr(line));
+																+ ArrayUtils.toStr(line));
 							} catch (NumberFormatException nfe) {
-								log.reportTimeWarning("Skipping line " + Array.toStr(line) + " , invalid estimate");
+								log.reportTimeWarning("Skipping line " + ArrayUtils.toStr(line) + " , invalid estimate");
 							}
 							index++;
 						}
@@ -889,7 +889,7 @@ public class CorrectionIterator implements Serializable {
 					String[] line = Files.getHeaderOfFile(tmpHerit, "\t", new String[] {"Model"}, log);
 					numFam = Integer.parseInt(line[numFamIndex]);
 					numSamps = Integer.parseInt(line[numSampsIndex]);
-					double[] tmp = Array.toDoubleArray(HashVec.loadFileToStringArray(	heritSummary, true,
+					double[] tmp = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(	heritSummary, true,
 																																						new int[] {1}, false));
 					if (tmp.length > 0) {
 						estimates = tmp;
@@ -897,13 +897,13 @@ public class CorrectionIterator implements Serializable {
 				} catch (Exception e) {
 					log.reportException(e);
 				}
-				double[] pvals = Array.toDoubleArray(HashVec.loadFileToStringArray(	heritSummary, true,
+				double[] pvals = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(	heritSummary, true,
 																																						new int[] {3}, false));
-				double[] solarHerit = Array.toDoubleArray(HashVec.loadFileToStringArray(heritSummary, true,
+				double[] solarHerit = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(heritSummary, true,
 																																								new int[] {2},
 																																								false));
 				double[] solarStError =
-															Array.toDoubleArray(HashVec.loadFileToStringArray(heritSummary, true,
+															ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(heritSummary, true,
 																																								new int[] {4},
 																																								false));
 				String[] solarWarnKurt = HashVec.loadFileToStringArray(	heritSummary, true, new int[] {6},
@@ -1060,7 +1060,7 @@ public class CorrectionIterator implements Serializable {
 		for (String customPlotFile : customPlotFiles) {
 			String[] groups = HashVec.loadFileToStringArray(customPlotFile, true, new int[] {0}, false);
 			String[] names = HashVec.loadFileToStringArray(customPlotFile, true, new int[] {1}, false);
-			ArrayStringList[] arrayStringList = new ArrayStringList[Array.unique(groups).length];
+			ArrayStringList[] arrayStringList = new ArrayStringList[ArrayUtils.unique(groups).length];
 			for (int j = 0; j < arrayStringList.length; j++) {
 				arrayStringList[j] = new ArrayStringList(10);
 			}
@@ -1069,7 +1069,7 @@ public class CorrectionIterator implements Serializable {
 																															+ "_CUSTOM_PHENO_TAG_NO_STRAT");
 			}
 			for (ArrayStringList element : arrayStringList) {
-				plotters.add(Array.toStringArray(element));
+				plotters.add(ArrayUtils.toStringArray(element));
 			}
 		}
 
@@ -1193,7 +1193,7 @@ public class CorrectionIterator implements Serializable {
 			header.add("PC_150_PVAL");
 			header.add("PC_MAX_STAT");
 			header.add("PC_MAX_PVAL");
-			writer.println(Array.toStr(Array.toStringArray(header)));
+			writer.println(ArrayUtils.toStr(ArrayUtils.toStringArray(header)));
 			for (CorrectionIterator correctionIterator : cIterators) {
 				EvaluationResult[] evaluationResults = EvaluationResult.readSerial(	correctionIterator.getIterationResult()
 																																															.getOutputSer(),
@@ -1333,21 +1333,21 @@ public class CorrectionIterator implements Serializable {
 			// if ((evalName.contains("qpcr.qnorm.exprs") || evalName.toLowerCase().contains("age") ||
 			// evalName.toLowerCase().contains("center") || evalName.toLowerCase().contains("dupli") ||
 			// evalName.toLowerCase().contains("sex"))) {
-			double maxStat = Array.max(stats);
-			double minStat = Array.min(stats);
-			int maxStatPC = Array.maxIndex(stats);
-			int minStatPC = Array.minIndex(stats);
+			double maxStat = ArrayUtils.max(stats);
+			double minStat = ArrayUtils.min(stats);
+			int maxStatPC = ArrayUtils.maxIndex(stats);
+			int minStatPC = ArrayUtils.minIndex(stats);
 
-			double maxPval = Array.max(pval);
-			double minPval = Array.min(pval);
-			int maxPvalPC = Array.maxIndex(pval);
-			int minPvalPC = Array.minIndex(pval);
+			double maxPval = ArrayUtils.max(pval);
+			double minPval = ArrayUtils.min(pval);
+			int maxPvalPC = ArrayUtils.maxIndex(pval);
+			int minPvalPC = ArrayUtils.minIndex(pval);
 
-			double avgStat = Array.mean(stats);
-			double medianStat = Array.mean(stats);
-			double stdvStat = Array.stdev(stats);
+			double avgStat = ArrayUtils.mean(stats);
+			double medianStat = ArrayUtils.mean(stats);
+			double stdvStat = ArrayUtils.stdev(stats);
 
-			int numSamplesModel = Array.booleanArraySum(correctionIterator.getIterationResult()
+			int numSamplesModel = ArrayUtils.booleanArraySum(correctionIterator.getIterationResult()
 																																		.getBasicPrep()
 																																		.getSamplesForModels());
 			ArrayList<String> result = new ArrayList<String>();
@@ -1382,7 +1382,7 @@ public class CorrectionIterator implements Serializable {
 			result.add(statMax + "");
 			result.add(pvalMax + "");
 
-			writer.println(Array.toStr(Array.toStringArray(result)));
+			writer.println(ArrayUtils.toStr(ArrayUtils.toStringArray(result)));
 		}
 		// }
 	}
@@ -1471,7 +1471,7 @@ public class CorrectionIterator implements Serializable {
 
 						}
 
-						int modelN = Array.booleanArraySum(iterationResult.getBasicPrep()
+						int modelN = ArrayUtils.booleanArraySum(iterationResult.getBasicPrep()
 																															.getSamplesForModels());
 						for (int i = 0; i < plotTitlesForSummary.length; i++) {
 							RScatter rScatterSummary = iterationResult.plotSummary(	plotTitlesForSummary[i],
@@ -1562,7 +1562,7 @@ public class CorrectionIterator implements Serializable {
 																																	null, log)
 																								.getrScatter();
 												tmpherit.setTitle(subsetDataHeritability[i]	+ " - matched samples n="
-																					+ Array.booleanArraySum(currentModel));
+																					+ ArrayUtils.booleanArraySum(currentModel));
 												scatters.add(tmpR	.plotHeritability(proj, pedFile, currentModel, null, null,
 																														log)
 																					.getrScatter());
@@ -1636,7 +1636,7 @@ public class CorrectionIterator implements Serializable {
 								ArrayList<String> currentClass = new ArrayList<String>();
 								ArrayList<HeritPlot> hPlots = new ArrayList<HeritPlot>();
 								ArrayList<GeomText> otherDataGeomTexts = new ArrayList<GeomText>();
-								boolean[] allModel = Array.booleanArray(iterationResult	.getBasicPrep()
+								boolean[] allModel = ArrayUtils.booleanArray(iterationResult	.getBasicPrep()
 																																				.getSamplesToEvaluate().length,
 																												false);
 								for (int titleIndex =
@@ -1675,7 +1675,7 @@ public class CorrectionIterator implements Serializable {
 									RScatter tmpherit = heritPlot.getrScatter();
 									tmpherit.setTitle(classifiers[classifyIndex].getTitles()[titleIndex]
 																			+ " - matched samples n="
-																		+ Array.booleanArraySum(currentModel));
+																		+ ArrayUtils.booleanArraySum(currentModel));
 									tmpherit.execute();
 									GeomText[] gTexts = tmpherit.getgTexts();
 									for (GeomText gText : gTexts) {
@@ -1776,7 +1776,7 @@ public class CorrectionIterator implements Serializable {
 								}
 								String[] heritColumns = new String[currentClass.size()];
 								String[] errorColumns = new String[currentClass.size()];
-								String[][] columns = Files.paste(	Array.toStringArray(currentClass), comboHerit,
+								String[][] columns = Files.paste(	ArrayUtils.toStringArray(currentClass), comboHerit,
 																									new int[] {0, 1, 2, 3, 4, 5, 6}, 0, adds, null,
 																									log);
 								for (int j = 0; j < columns.length; j++) {

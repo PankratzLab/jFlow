@@ -17,7 +17,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.CountHash;
 import org.genvisis.common.Files;
@@ -127,7 +127,7 @@ public class Conditional {
 			return;
 		}
 		CreateDatabaseFromPlink.createDatabase(dir, dir + "plink.crf", log);
-		if (!Array.equals(markerNames,
+		if (!ArrayUtils.equals(markerNames,
 											HashVec.loadFileToStringArray(dir + "plink.frq", true, new int[] {1}, false),
 											true)) {
 			log.reportError("Error - the freq file does not match the map file");
@@ -154,7 +154,7 @@ public class Conditional {
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
 					if (hash.containsKey(line[0] + "\t" + line[1])) {
-						writer.println(Array.toStr(line) + "\t" + hash.get(line[0] + "\t" + line[1]));
+						writer.println(ArrayUtils.toStr(line) + "\t" + hash.get(line[0] + "\t" + line[1]));
 					} else {
 						if (countMissingCovariate < 5) {
 							log.reportError("Error - no covariate information for individual "	+ line[0] + "-"
@@ -331,7 +331,7 @@ public class Conditional {
 				v.add(snps[i] + "\t1");
 			}
 		}
-		Files.writeArray(Array.toStringArray(v), dir + "condis.txt");
+		Files.writeArray(ArrayUtils.toStringArray(v), dir + "condis.txt");
 		hashes = new Hashtable<String, Hashtable<String, String>>();
 		if (v.size() > 0) {
 			if (Mach.extractSpecificMarkers(dir, dir + "condis.txt", dir + doseFile, dir + infoFile,
@@ -402,7 +402,7 @@ public class Conditional {
 			reader = new BufferedReader(new FileReader(dir + originalPhenotypeFile));
 			writer = new PrintWriter(new FileWriter(dir + newPhenotypeFile));
 			line = reader.readLine().trim().split("[\\s]+");
-			writer.print(Array.toStr(line));
+			writer.print(ArrayUtils.toStr(line));
 			for (String snp : snps) {
 				hash = hashes.get(snp);
 				if (hash != null) {
@@ -413,7 +413,7 @@ public class Conditional {
 			count = 0;
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				writer.print(Array.toStr(line));
+				writer.print(ArrayUtils.toStr(line));
 				for (String snp : snps) {
 					hash = hashes.get(snp);
 					if (hash != null) {
@@ -485,10 +485,10 @@ public class Conditional {
 		if (new File(annotationFile).exists()) {
 			annotationHeader = Files.getHeaderOfFile(annotationFile, "[\\s]+", log);
 			annotation = HashVec.loadFileToHashString(annotationFile, new int[] {0},
-																								Array.subArray(	Array.arrayOfIndices(annotationHeader.length),
+																								ArrayUtils.subArray(	ArrayUtils.arrayOfIndices(annotationHeader.length),
 																																1),
 																								false, "\t", true, false, false);
-			annotationHeader = Array.subArray(annotationHeader, 1);
+			annotationHeader = ArrayUtils.subArray(annotationHeader, 1);
 		} else if (annotationFile != null) {
 			log.reportError("Error - annotation file '"	+ annotationFile
 											+ "' not found; no annotation will occur");
@@ -545,7 +545,7 @@ public class Conditional {
 					} else {
 						addCountsAsCovariate(dirs[k], covariates, filename, files[i], log);
 						if (covariates != null) {
-							baseCovars[k] = Array.subArray(	Files.getHeaderOfFile(dirs[k]	+ covariates, "[\\s]+",
+							baseCovars[k] = ArrayUtils.subArray(	Files.getHeaderOfFile(dirs[k]	+ covariates, "[\\s]+",
 																																		log),
 																							2);
 						}
@@ -556,7 +556,7 @@ public class Conditional {
 			count = 1;
 			results = new Vector<String>();
 			runningTally = -1;
-			v = Array.toStringVector(snps);
+			v = ArrayUtils.toStringVector(snps);
 			freqs = new Hashtable<String, String>();
 			allResults = new Hashtable<String, Hashtable<String, String>>();
 			while (!done) {
@@ -590,7 +590,7 @@ public class Conditional {
 								justIID = false;
 							}
 							addDosageAsCovariate(	dirs[k], infoFile, doseFile, pheno, justIID, outfile,
-																		Array.toStringArray(v), allowMissingConditional, useResiduals,
+																		ArrayUtils.toStringArray(v), allowMissingConditional, useResiduals,
 																		log);
 						} else {
 							log.reportError("Error: file " + dirs[k] + pheno + " not found");
@@ -645,7 +645,7 @@ public class Conditional {
 						outfile = (files[i] == null ? "" : ext.rootOf(files[i], false) + "_")	+ "iteration"
 											+ count + ".dat";
 						if (run || iterate) {
-							covars = Array.toStringVector(baseCovars[k]);
+							covars = ArrayUtils.toStringVector(baseCovars[k]);
 							for (int j = 0; j < v.size(); j++) {
 								covars.add(v.elementAt(j));
 							}
@@ -659,7 +659,7 @@ public class Conditional {
 																																			: "_" + ext.rootOf(	files[i],
 																																													false))
 																									+ ".dat --covar-name "
-																									+ Array.toStr(Array.toStringArray(covars), ",")),
+																									+ ArrayUtils.toStr(ArrayUtils.toStringArray(covars), ",")),
 													dirs[k] + ext.rootOf(files[i]));
 							Metal.convertPlinkResults(dirs[k]	+ ext.rootOf(files[i], false) + "/",
 																				"iteration" + count + ".assoc.logistic", "ADD", "logistic",
@@ -781,7 +781,7 @@ public class Conditional {
 
 					models.add(filename	+ "\t" + (files[i] == null ? "null" : files[i]) + "\t"
 											+ (minIndex == -1 ? "minimum" : pvals[minIndex][0]) + "\t"
-											+ (v.size() == 0 ? "null" : Array.toStr(Array.toStringArray(v), ",")));
+											+ (v.size() == 0 ? "null" : ArrayUtils.toStr(ArrayUtils.toStringArray(v), ",")));
 
 					if (minIndex == -1) {
 						done = true;
@@ -834,7 +834,7 @@ public class Conditional {
 					positions = new int[keys.length];
 					chrIndex = ext.indexOfStr("chr", annotationHeader, false, true);
 					posIndex = ext.indexOfStr("position", annotationHeader, false, true);
-					annotationHeaderMask = Array.booleanArray(annotationHeader.length, true);
+					annotationHeaderMask = ArrayUtils.booleanArray(annotationHeader.length, true);
 					if (chrIndex >= 0 && posIndex >= 0) {
 						annotationHeaderMask[chrIndex] = false;
 						annotationHeaderMask[posIndex] = false;
@@ -864,7 +864,7 @@ public class Conditional {
 					}
 					order = Sort.getSort2DIndices(chrs, positions);
 					writer.print("Marker\tChr\tPosition"
-												+ (annotationHeader.length > 0	? "\t" + Array.toStr(	annotationHeader,
+												+ (annotationHeader.length > 0	? "\t" + ArrayUtils.toStr(	annotationHeader,
 																																							annotationHeaderMask,
 																																							"\t", ".")
 																												: ""));
@@ -875,10 +875,10 @@ public class Conditional {
 					for (int j = 0; j < keys.length; j++) {
 						writer.print(keys[order[j]] + "\t" + allMarkers.get(keys[order[j]]));
 						if (annotationHeader.length > 0) {
-							writer.print("\t" + Array.toStr(
+							writer.print("\t" + ArrayUtils.toStr(
 																							annotation.containsKey(keys[order[j]])	? annotation.get(keys[order[j]])
 																																																	.split("[\\s]+")
-																																											: Array.stringArray(annotationHeader.length,
+																																											: ArrayUtils.stringArray(annotationHeader.length,
 																																																					"."),
 																							annotationHeaderMask, "\t", "."));
 						}
@@ -924,7 +924,7 @@ public class Conditional {
 
 		if (iterate) {
 			models.insertElementAt("#" + ext.getDate() + " " + ext.getTime(), 0);
-			Files.writeArray(	Array.toStringArray(models),
+			Files.writeArray(	ArrayUtils.toStringArray(models),
 												ext.parseDirectoryOfFile(outfile) + "All_models.dat");
 		}
 	}
@@ -1340,7 +1340,7 @@ public class Conditional {
 				markersAndChrs = new String[][] {{"Metal_SE"}};
 			} else {
 				markersAndChrs = HashVec.loadFileToStringMatrix(regionListFilename, false,
-																												Array.arrayOfIndices(Files.getHeaderOfFile(	regionListFilename,
+																												ArrayUtils.arrayOfIndices(Files.getHeaderOfFile(	regionListFilename,
 																																																		log).length),
 																												"\t", false, 100, false);
 			}
@@ -1482,7 +1482,7 @@ public class Conditional {
 																																								markersAndChrs[i][1]}}));
 										w2.print("\t.\t.\t.");
 									} else {
-										w2.print("\t" + Array.toStr(Array.subArray(results[index], 1)));
+										w2.print("\t" + ArrayUtils.toStr(ArrayUtils.subArray(results[index], 1)));
 									}
 								} else {
 									System.err.println("Error - file not found for analysis "	+ markersAndChrs[i][0]

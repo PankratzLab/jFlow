@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -129,7 +129,7 @@ public class CARDIAConcatenator {
 			newLine[line1Parts.length + (i - 3)] = line2Parts[i];
 		}
 
-		return Array.toStr(newLine, " ");
+		return ArrayUtils.toStr(newLine, " ");
 	}
 
 	private String combineHeader(String line1, String line2, PrintWriter writerIDs) {
@@ -150,7 +150,7 @@ public class CARDIAConcatenator {
 			writerIDs.println(line2Parts[i]);
 		}
 
-		return Array.toStr(newLine, " ");
+		return ArrayUtils.toStr(newLine, " ");
 	}
 
 	public static void main(String[] args) {

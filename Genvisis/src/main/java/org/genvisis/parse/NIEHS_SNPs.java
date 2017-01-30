@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
@@ -116,7 +116,7 @@ public class NIEHS_SNPs {
 				positions[i] = Integer.parseInt(line[0]);
 				HashVec.addToHashVec(geneSNPs, line[1], markerNames[count], false);
 			}
-			new SnpMarkerSet(	markerNames, chrs, positions, null, Array.toMatrix(annotation), true,
+			new SnpMarkerSet(	markerNames, chrs, positions, null, ArrayUtils.toMatrix(annotation), true,
 												false).serialize(DIR + ext.rootOf(RS_LOOKUP_FILE) + ".ser");
 
 			genes = HashVec.getKeys(geneSNPs);
@@ -181,7 +181,7 @@ public class NIEHS_SNPs {
 								}
 								if (data[indIndex][snpIndex][i] == -1) {
 									data[indIndex][snpIndex][i] = 0;
-									log.reportError(Array.toStr(annotation[snpIndex].split("-"))	+ "\t" + line[2 + i]
+									log.reportError(ArrayUtils.toStr(annotation[snpIndex].split("-"))	+ "\t" + line[2 + i]
 																	+ "\tinstead of either\t" + alleles[snpIndex][0] + "\t"
 																	+ alleles[snpIndex][1]);
 								}

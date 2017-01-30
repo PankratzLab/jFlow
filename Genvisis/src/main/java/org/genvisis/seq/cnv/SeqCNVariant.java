@@ -1,6 +1,9 @@
 package org.genvisis.seq.cnv;
 
 
+import java.util.ArrayList;
+
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.filesys.CNVariant;
 
 public class SeqCNVariant extends CNVariant {
@@ -16,12 +19,40 @@ public class SeqCNVariant extends CNVariant {
 		this.cExtraInfos = cExtraInfos;
 	}
 
+	public SeqCNVariant(CNVariant cnv, CNVExtraInfo[] cExtraInfos) {
+		super(cnv);
+		this.cExtraInfos = cExtraInfos;
+	}
+
 	public CNVExtraInfo[] getcExtraInfos() {
 		return cExtraInfos;
 	}
 
 	public void setcExtraInfos(CNVExtraInfo[] cExtraInfos) {
 		this.cExtraInfos = cExtraInfos;
+	}
+
+
+	@Override
+	public String toAnalysisString() {
+		ArrayList<String> extraInfo = new ArrayList<String>();
+		if (cExtraInfos != null) {
+			for (CNVExtraInfo cnvExtraInfo : cExtraInfos) {
+				extraInfo.add(cnvExtraInfo.getdExtra());
+			}
+		}
+		return toPlinkFormat() + "\t" + ArrayUtils.toStr(extraInfo);
+	}
+
+	@Override
+	public String[] getHeader() {
+		ArrayList<String> extraHeaders = new ArrayList<String>();
+		if (cExtraInfos != null) {
+			for (CNVExtraInfo cnvExtraInfo : cExtraInfos) {
+				extraHeaders.add(cnvExtraInfo.getsExtra());
+			}
+		}
+		return ArrayUtils.concatAll(PLINK_CNV_HEADER, ArrayUtils.toStringArray(extraHeaders));
 	}
 
 

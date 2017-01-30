@@ -8,7 +8,7 @@ import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MarkerDataLoader;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ByteVector;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
@@ -121,8 +121,8 @@ public class ThetaOutliers {
 		// thetas = Array.normalize(Array.removeNaN(Array.toDoubleArray(markerData.getThetas())));
 		// rs = Array.removeNaN(Array.toDoubleArray(markerData.getRs()));
 		// thetas = Array.removeNaN(Array.toDoubleArray(markerData.getThetas()));
-		rs = Array.toDoubleArray(markerData.getRs());
-		thetas = Array.toDoubleArray(markerData.getThetas());
+		rs = ArrayUtils.toDoubleArray(markerData.getRs());
+		thetas = ArrayUtils.toDoubleArray(markerData.getThetas());
 		rsByGenotype = new DoubleVector[4];
 		thetasByGenotype = new DoubleVector[4];
 		for (int i = 0; i < 4; i++) {
@@ -145,9 +145,9 @@ public class ThetaOutliers {
 		for (int i = 1; i < 4; i++) {
 			if (rsByGenotype[i].size() >= 5) {
 				nonMissingGenotype.add((byte) i);
-				meanR[i] = Array.mean(Doubles.toArray(rsByGenotype[i]));
-				meanTheta[i] = Array.mean(Doubles.toArray(thetasByGenotype[i]));
-				sdTheta[i] = Array.stdev(Doubles.toArray(thetasByGenotype[i]));
+				meanR[i] = ArrayUtils.mean(Doubles.toArray(rsByGenotype[i]));
+				meanTheta[i] = ArrayUtils.mean(Doubles.toArray(thetasByGenotype[i]));
+				sdTheta[i] = ArrayUtils.stdev(Doubles.toArray(thetasByGenotype[i]));
 				// if (markerData.getMarkerName().equals("rs2139063") ||
 				// markerData.getMarkerName().equals("rs35687686")) {
 				// System.out.println(markerData.getMarkerName()+"\t"+meanR[i]);

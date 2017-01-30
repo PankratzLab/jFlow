@@ -18,7 +18,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -137,7 +137,7 @@ public class LDdatabase implements Serializable {
 			if (Files.exists(dir + listName + ".list", false)) {
 				check =
 							HashVec.loadFileToStringArray(dir + listName + ".list", false, new int[] {0}, false);
-				if (Array.equals(targets, check, false)) {
+				if (ArrayUtils.equals(targets, check, false)) {
 					unchanged = true;
 					subHash = SerialHash.loadSerializedStringHash(dir + listName + ".chrHash.ser");
 					return;
@@ -180,7 +180,7 @@ public class LDdatabase implements Serializable {
 			for (int i = 0; i < v.size(); i++) {
 				log.reportError(v.elementAt(i));
 			}
-			missingMarkers = new SnpMarkerSet(Array.toStringArray(v));
+			missingMarkers = new SnpMarkerSet(ArrayUtils.toStringArray(v));
 			missingMarkers.parseSNPlocations();
 			chrs = missingMarkers.getChrs();
 			for (int i = 0; i < v.size(); i++) {
@@ -232,7 +232,7 @@ public class LDdatabase implements Serializable {
 					log.report("All calculations have been performed previously");
 				} else {
 					log.report("Extracting chr" + chr + " markers from " + root, false, true);
-					Files.writeArray(Array.toStringArray(v), dir + LDDB_TARGETS + "_snplist.txt");
+					Files.writeArray(ArrayUtils.toStringArray(v), dir + LDDB_TARGETS + "_snplist.txt");
 					if (!new File(root + ".chr" + chr + ".bed").exists()) {
 						CmdLine.run("plink --bfile "	+ root + " --chr " + chr + " --noweb --make-bed --out "
 												+ root + ".chr" + chr, "./");

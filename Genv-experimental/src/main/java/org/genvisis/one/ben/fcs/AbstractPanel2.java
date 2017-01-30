@@ -39,7 +39,7 @@ import org.genvisis.cnv.plots.GenericLine;
 import org.genvisis.cnv.plots.GenericPath;
 import org.genvisis.cnv.plots.GenericRectangle;
 import org.genvisis.cnv.plots.PlotPoint;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -1772,7 +1772,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
         HashSet<Integer> quantSet = new HashSet<Integer>();
         for (int i = 0, count = (int) (1 / lvls[k]) - 1; i < count; i++) {
-            quantSet.add(Array.quantWithExtremeForTie(intent, (i + 1) * lvls[k]));
+            quantSet.add(ArrayUtils.quantWithExtremeForTie(intent, (i + 1) * lvls[k]));
         }
         ArrayList<Integer> quants = new ArrayList<Integer>(quantSet);
         Collections.sort(quants);

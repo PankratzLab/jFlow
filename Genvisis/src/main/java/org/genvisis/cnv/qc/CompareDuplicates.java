@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.stats.Correlation;
 
@@ -87,10 +87,10 @@ public class CompareDuplicates {
 			sameGeno /= 2;
 
 			for (int i = 0; i < pair.length; i++) {
-				correl_icin[i] = Array.subArray(correl_icin[i], 0, count);
+				correl_icin[i] = ArrayUtils.subArray(correl_icin[i], 0, count);
 			}
 			summary += (sameGeno / ((double) pair.length - 1) / count)	+ "\t"
-									+ Array.toStr(Correlation.Pearson(correl_icin)) + "\t" + diffGeno;
+									+ ArrayUtils.toStr(Correlation.Pearson(correl_icin)) + "\t" + diffGeno;
 
 			// writer.close();
 		} catch (Exception e) {
@@ -119,7 +119,7 @@ public class CompareDuplicates {
 			writer.println("DNA1\tDNA2\tgenotypeConcordance\tx_correlation\tcorr_pval\t#diffGeno");
 			for (int i = 0; i < pairs.length; i++) {
 				System.out.println((i + 1) + " of " + pairs.length);
-				writer.println(Array.toStr(pairs[i])	+ "\t"
+				writer.println(ArrayUtils.toStr(pairs[i])	+ "\t"
 												+ doIt(proj, pairs[i], markerNames, discordantCounts));
 			}
 			writer.close();

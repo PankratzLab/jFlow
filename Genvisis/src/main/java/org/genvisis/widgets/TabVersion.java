@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 public class TabVersion {
 	public static void make(String filename) {
@@ -18,7 +18,7 @@ public class TabVersion {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(filename + ".xln"));
 			while (reader.ready()) {
-				writer.println(Array.toStr(reader.readLine().trim().split("[\\s]+")));
+				writer.println(ArrayUtils.toStr(reader.readLine().trim().split("[\\s]+")));
 			}
 			reader.close();
 			writer.close();

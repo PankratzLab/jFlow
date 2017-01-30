@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Vector;
 
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -75,11 +75,11 @@ public class SkatMeta {
 			}
 		}
 		log.report("There are "	+ v.size() + " .Rdata files remaining to interrogate:\n"
-								+ Array.toStr(Array.toStringArray(v), "\n"));
+								+ ArrayUtils.toStr(ArrayUtils.toStringArray(v), "\n"));
 
 		if (v.size() > 0) {
 			commands = getRscriptExecutable(maps, log) + " --no-save [%0]";
-			iterations = Matrix.toMatrix(Array.toStringArray(v));
+			iterations = Matrix.toMatrix(ArrayUtils.toStringArray(v));
 			Files.qsub("batchChecks/checkObject", dir, -1, commands, iterations, 4000, 1);
 			Files.batchIt("master.checkObjectAll", null, 1, commands, iterations);
 		}
@@ -98,7 +98,7 @@ public class SkatMeta {
 		String[] studies;
 		String[][] races;
 
-		used = Array.booleanArray(files.length, false);
+		used = ArrayUtils.booleanArray(files.length, false);
 
 		index = ext.indexOfStr(maps.getSnpInfoFilename(), files);
 		if (index >= 0) {
@@ -115,11 +115,11 @@ public class SkatMeta {
 		for (int i = 0; i < phenotypes.length; i++) {
 			finalSets[i] = Matrix.stringMatrix(studies.length, races.length, "<missing>");
 			log.report("For " + phenotypes[i][0] + " identified:", true, true);
-			log.report("\tStudy\t" + Array.toStr(Matrix.extractColumn(races, 0)));
+			log.report("\tStudy\t" + ArrayUtils.toStr(Matrix.extractColumn(races, 0)));
 			for (int j = 0; j < studies.length; j++) {
 				log.report("\t" + studies[j], false, true);
 				for (int k = 0; k < races.length; k++) {
-					picks = Array.booleanArray(files.length, false);
+					picks = ArrayUtils.booleanArray(files.length, false);
 					for (int f = 0; f < files.length; f++) {
 						if (files[f].contains(studies[j])	&& ext.containsAny(files[f], maskedPhenos[i])
 								&& ext.containsAny(files[f], races[k])) {
@@ -136,7 +136,7 @@ public class SkatMeta {
 							used[f] = true;
 						}
 					}
-					numMatches = Array.booleanArraySum(picks);
+					numMatches = ArrayUtils.booleanArraySum(picks);
 					if (numMatches == 0) {
 						// log.reportError("Warning - could not find a match for
 						// "+studies[j]+"/"+phenotypes[i][0]+"/"+races[k][0]);
@@ -153,7 +153,7 @@ public class SkatMeta {
 			log.report("");
 		}
 
-		numMatches = Array.booleanArraySum(used);
+		numMatches = ArrayUtils.booleanArraySum(used);
 		if (numMatches != files.length) {
 			log.reportError("Warning - did not find a match for the following file(s):");
 			for (int i = 0; i < files.length; i++) {
@@ -246,7 +246,7 @@ public class SkatMeta {
 		commands.add("}");
 
 		filename = dir + "batchSplits/splitChrs.R";
-		Files.writeArray(Array.toStringArray(commands), filename);
+		Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 		new File(dir + "snpInfos/").mkdirs();
 		Files.qsub(dir	+ "batchSplits/" + ext.rootOf(filename) + ".qsub",
@@ -299,7 +299,7 @@ public class SkatMeta {
 							if (chrsToDo.size() != 0 && chrsToDo.size() != maxChr) {
 								log.reportError("Warning - for "	+ studies[j] + ";" + races[k][0] + "/"
 																+ phenotypes[i][0] + ", missing chr(s) "
-																+ ext.listWithCommas(Array.toStringArray(Ints.toArray(chrsToDo))));
+																+ ext.listWithCommas(ArrayUtils.toStringArray(Ints.toArray(chrsToDo))));
 								log.reportError("        - if batch job was killed in the middle, suggest deleting the last attempted chromosome, in case it was incomplete");
 							}
 
@@ -336,7 +336,7 @@ public class SkatMeta {
 							if (chrsToDo.size() > 0) {
 								filename = dir	+ "batchSplits/" + studies[j] + "_" + races[k][0] + "_"
 														+ phenotypes[i][0] + "_f" + f + ".R";
-								Files.writeArray(Array.toStringArray(commands), filename);
+								Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 								Files.qsub(dir	+ "batchSplits/" + ext.rootOf(filename) + ".qsub",
 														"cd "																								+ dir + "\n"
@@ -363,7 +363,7 @@ public class SkatMeta {
 		}
 
 		toBeSplit.add("# make sure to run \"SkatMeta -consolidate\" after everything else is run!!!");
-		Files.writeArray(Array.toStringArray(toBeSplit), dir + "master.toBeSplit");
+		Files.writeArray(ArrayUtils.toStringArray(toBeSplit), dir + "master.toBeSplit");
 		Files.chmod(dir + "master.toBeSplit");
 
 		log.report("");
@@ -417,7 +417,7 @@ public class SkatMeta {
 													+ "/";
 							files = finalSets[i][j][k].split(";");
 							if (iter == 0) {
-								finalSelections[i][j][k] = Array.intArray(maxChr, -1);
+								finalSelections[i][j][k] = ArrayUtils.intArray(maxChr, -1);
 							}
 
 							for (int chr = 1; chr <= maxChr; chr++) {
@@ -627,12 +627,12 @@ public class SkatMeta {
 																			&& ext.isValidDouble(method[3])	? ", mafRange = c(0,"
 																																					+ method[3] + ")"
 																																				+ (method.length > 4	? ", "
-																																																+ Array.toStr(Array.subArray(	method,
+																																																+ ArrayUtils.toStr(ArrayUtils.subArray(	method,
 																																																															4),
 																																																							", ")
 																																															: "")
 																																			: (method.length > 3	? ", "
-																																															+ Array.toStr(Array.subArray(	method,
+																																															+ ArrayUtils.toStr(ArrayUtils.subArray(	method,
 																																																														3),
 																																																						", ")
 																																														: ""))
@@ -641,7 +641,7 @@ public class SkatMeta {
 																	+ "\", sep=\",\", row.names = F)");
 										count++;
 									} else {
-										Files.write(Array.toStr(getHeaderForMethod(method), ","), outputFilename);
+										Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","), outputFilename);
 									}
 								}
 							}
@@ -653,7 +653,7 @@ public class SkatMeta {
 															+ (count == 0 ? "" : "_" + count) + ".R";
 									count++;
 								} while (Files.exists(filename));
-								Files.writeArray(Array.toStringArray(commands), filename);
+								Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 								Files.qsub(dir	+ "batchRuns/" + ext.rootOf(filename) + ".qsub",
 														"cd "																							+ dir + "\n"
@@ -672,7 +672,7 @@ public class SkatMeta {
 			}
 		}
 
-		Files.writeArray(Array.toStringArray(toBeRunIndividually), dir + "master.toBeRunIndividually");
+		Files.writeArray(ArrayUtils.toStringArray(toBeRunIndividually), dir + "master.toBeRunIndividually");
 		Files.chmod(dir + "master.toBeRunIndividually");
 		System.err.println("qsubing multiple individual runs");
 		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkRun", 16, true, "sb", -1, 62000, 2);
@@ -729,7 +729,7 @@ public class SkatMeta {
 								|| new File(outputFilename).length() == 0) {
 							if (objects.size() > 0) {
 								commands.add("results <- "	+ method[2] + "("
-															+ Array.toStr(Array.toStringArray(objects), ", ") + ", SNPInfo="
+															+ ArrayUtils.toStr(ArrayUtils.toStringArray(objects), ", ") + ", SNPInfo="
 															+ (SINGLE_VARIANTS[ext.indexOfStr(method[2], ALGORITHMS)]
 																	|| functionFlagName == null	? snpInfoName
 																															: "subset("	+ snpInfoName + ", "
@@ -740,12 +740,12 @@ public class SkatMeta {
 																	&& ext.isValidDouble(method[3])	? ", mafRange = c(0,"	+ method[3]
 																																		+ ")"
 																																		+ (method.length > 4	? ", "
-																																														+ Array.toStr(Array.subArray(	method,
+																																														+ ArrayUtils.toStr(ArrayUtils.subArray(	method,
 																																																													4),
 																																																					", ")
 																																													: "")
 																																	: (method.length > 3	? ", "
-																																													+ Array.toStr(Array.subArray(	method,
+																																													+ ArrayUtils.toStr(ArrayUtils.subArray(	method,
 																																																												3),
 																																																				", ")
 																																												: ""))
@@ -755,7 +755,7 @@ public class SkatMeta {
 								commands.add("");
 								count++;
 							} else {
-								Files.write(Array.toStr(getHeaderForMethod(method), ","), outputFilename);
+								Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","), outputFilename);
 							}
 
 						}
@@ -768,7 +768,7 @@ public class SkatMeta {
 													+ ".R";
 							count++;
 						} while (Files.exists(filename));
-						Files.writeArray(Array.toStringArray(commands), filename);
+						Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 						Files.qsub(dir	+ "batchRuns/" + ext.rootOf(filename) + ".qsub",
 												"cd "																							+ dir + "\n"
@@ -832,7 +832,7 @@ public class SkatMeta {
 							|| new File(outputFilename).length() == 0) {
 						if (objects.size() > 0) {
 							commands.add("results <- "	+ method[2] + "("
-														+ Array.toStr(Array.toStringArray(objects), ", ") + ", SNPInfo="
+														+ ArrayUtils.toStr(ArrayUtils.toStringArray(objects), ", ") + ", SNPInfo="
 														+ (SINGLE_VARIANTS[ext.indexOfStr(method[2], ALGORITHMS)]
 																|| functionFlagName == null	? snpInfoName
 																														: "subset("	+ snpInfoName + ", "
@@ -843,12 +843,12 @@ public class SkatMeta {
 																&& ext.isValidDouble(method[3])	? ", mafRange = c(0,"	+ method[3]
 																																	+ ")"
 																																	+ (method.length > 4	? ", "
-																																													+ Array.toStr(Array.subArray(	method,
+																																													+ ArrayUtils.toStr(ArrayUtils.subArray(	method,
 																																																												4),
 																																																				", ")
 																																												: "")
 																																: (method.length > 3	? ", "
-																																												+ Array.toStr(Array.subArray(	method,
+																																												+ ArrayUtils.toStr(ArrayUtils.subArray(	method,
 																																																											3),
 																																																			", ")
 																																											: ""))
@@ -858,7 +858,7 @@ public class SkatMeta {
 							commands.add("");
 							count++;
 						} else {
-							Files.write(Array.toStr(getHeaderForMethod(method), ","), outputFilename);
+							Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","), outputFilename);
 						}
 					}
 				}
@@ -869,7 +869,7 @@ public class SkatMeta {
 												+ (count == 0 ? "" : "_" + count) + ".R";
 						count++;
 					} while (Files.exists(filename));
-					Files.writeArray(Array.toStringArray(commands), filename);
+					Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 					Files.qsub(dir	+ "batchRuns/" + ext.rootOf(filename) + ".qsub",
 											"cd "																							+ dir + "\n"
@@ -884,7 +884,7 @@ public class SkatMeta {
 				}
 			}
 		}
-		Files.writeArray(Array.toStringArray(toBeRunMetad), dir + "master.toBeMetaAnalyzed");
+		Files.writeArray(ArrayUtils.toStringArray(toBeRunMetad), dir + "master.toBeMetaAnalyzed");
 		Files.chmod(dir + "master.toBeMetaAnalyzed");
 		System.err.println("qsubing multiple meta runs");
 		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkMeta", 16, true, "sb", -1, 62000, 2);

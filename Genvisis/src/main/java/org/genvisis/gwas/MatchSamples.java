@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -69,9 +69,9 @@ public class MatchSamples {
 																							false, 1000, false);
 			allData = new double[factorIndices.length][];
 			for (int i = 0; i < factorTargets.length; i++) {
-				allData[i] = Array.toDoubleArray(Matrix.extractColumn(matrix, i));
+				allData[i] = ArrayUtils.toDoubleArray(Matrix.extractColumn(matrix, i));
 				if (normalizeFactors) {
-					allData[i] = Array.normalize(allData[i]);
+					allData[i] = ArrayUtils.normalize(allData[i]);
 				}
 			}
 			for (int i = 0; i < ids.length; i++) {
@@ -119,16 +119,16 @@ public class MatchSamples {
 				// writer = new PrintWriter(new
 				// FileWriter(dir+"distances_1-100.xln"));
 				writer.println(anchors.length + "\t" + barnacles.length);
-				writer.println("Anchor\t" + Array.toStr(barnacles));
+				writer.println("Anchor\t" + ArrayUtils.toStr(barnacles));
 				for (int i = 0; i < anchors.length; i++) {
-					writer.println(anchors[i] + "\t" + Array.toStr(dists[i]));
+					writer.println(anchors[i] + "\t" + ArrayUtils.toStr(dists[i]));
 				}
 				writer.close();
 			} catch (Exception e) {
 				System.err.println("Error writing distances");
 				e.printStackTrace();
 			}
-			System.out.println("Finished writing distances_"	+ Array.toStr(factorIndices, ",") + " in "
+			System.out.println("Finished writing distances_"	+ ArrayUtils.toStr(factorIndices, ",") + " in "
 													+ ext.getTimeElapsed(time));
 		} else {
 			time = new Date().getTime();
@@ -146,7 +146,7 @@ public class MatchSamples {
 				for (int i = 0; i < anchors.length; i++) {
 					line = reader.readLine().trim().split("[\\s]+");
 					anchors[i] = line[0];
-					newDists[i] = Array.toDoubleArray(Array.subArray(line, 1));
+					newDists[i] = ArrayUtils.toDoubleArray(ArrayUtils.subArray(line, 1));
 				}
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
@@ -207,9 +207,9 @@ public class MatchSamples {
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "pihats.xln"));
 			writer.println(anchors.length + "\t" + barnacles.length);
-			writer.println("Anchor\t" + Array.toStr(barnacles));
+			writer.println("Anchor\t" + ArrayUtils.toStr(barnacles));
 			for (int i = 0; i < anchors.length; i++) {
-				writer.println(anchors[i] + "\t" + Array.toStr(pihats[i]));
+				writer.println(anchors[i] + "\t" + ArrayUtils.toStr(pihats[i]));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -219,9 +219,9 @@ public class MatchSamples {
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "dsts.xln"));
 			writer.println(anchors.length + "\t" + barnacles.length);
-			writer.println("Anchor\t" + Array.toStr(barnacles));
+			writer.println("Anchor\t" + ArrayUtils.toStr(barnacles));
 			for (int i = 0; i < anchors.length; i++) {
-				writer.println(anchors[i] + "\t" + Array.toStr(dsts[i]));
+				writer.println(anchors[i] + "\t" + ArrayUtils.toStr(dsts[i]));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -231,9 +231,9 @@ public class MatchSamples {
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "ratios.xln"));
 			writer.println(anchors.length + "\t" + barnacles.length);
-			writer.println("Anchor\t" + Array.toStr(barnacles));
+			writer.println("Anchor\t" + ArrayUtils.toStr(barnacles));
 			for (int i = 0; i < anchors.length; i++) {
-				writer.println(anchors[i] + "\t" + Array.toStr(ratios[i]));
+				writer.println(anchors[i] + "\t" + ArrayUtils.toStr(ratios[i]));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -254,7 +254,7 @@ public class MatchSamples {
 			line = reader.readLine().trim().split("[\\s]+");
 			anchors = new String[Integer.parseInt(line[0])];
 			barnacles = new String[Integer.parseInt(line[1])];
-			values[0] = Array.doubleArray(anchors.length * barnacles.length, -999);
+			values[0] = ArrayUtils.doubleArray(anchors.length * barnacles.length, -999);
 			line = reader.readLine().trim().split("[\\s]+");
 			for (int i = 0; i < barnacles.length; i++) {
 				barnacles[i] = line[i + 1];
@@ -275,7 +275,7 @@ public class MatchSamples {
 				System.err.println("Error - the two files have different numbers of anchors and barnacles");
 				System.exit(1);
 			}
-			values[1] = Array.doubleArray(anchors.length * barnacles.length, -999);
+			values[1] = ArrayUtils.doubleArray(anchors.length * barnacles.length, -999);
 			line = reader.readLine().trim().split("[\\s]+");
 			for (int i = 0; i < barnacles.length; i++) {
 				if (!barnacles[i].equals(line[i + 1])) {
@@ -297,7 +297,7 @@ public class MatchSamples {
 
 			System.out.println(ext.formStr(file1, 30, true)	+ ext.formStr(file2, 30, true) + " p="
 													+ ext.prettyP(new Ttest(values).getPvalue()) + "\t"
-													+ Array.toStr(Correlation.Pearson(values)));
+													+ ArrayUtils.toStr(Correlation.Pearson(values)));
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \"" + dir + file2 + "\" not found in current directory");
 			System.exit(1);
@@ -341,7 +341,7 @@ public class MatchSamples {
 				try {
 					writer = new PrintWriter(new FileWriter(dir + ext.rootOf(distanceFile) + "_norm.xln"));
 					writer.println(anchors.length + "\t" + barnacles.length);
-					writer.println("Anchor\t" + Array.toStr(barnacles));
+					writer.println("Anchor\t" + ArrayUtils.toStr(barnacles));
 					for (int i = 0; i < anchors.length; i++) {
 						writer.print(anchors[i]);
 						for (int j = 0; j < barnacles.length; j++) {
@@ -391,23 +391,23 @@ public class MatchSamples {
 			for (int i = 0; i < anchors.length; i++) {
 				line = reader.readLine().trim().split("[\\s]+");
 				anchors[i] = line[0];
-				dists[i] = Array.toDoubleArray(Array.subArray(line, 1));
+				dists[i] = ArrayUtils.toDoubleArray(ArrayUtils.subArray(line, 1));
 			}
 			reader.close();
 
-			matches = Array.intArray(anchors.length, -1);
-			finalDists = Array.doubleArray(anchors.length, -1);
-			while (Array.min(matches) == -1) {
+			matches = ArrayUtils.intArray(anchors.length, -1);
+			finalDists = ArrayUtils.doubleArray(anchors.length, -1);
+			while (ArrayUtils.min(matches) == -1) {
 				// System.out.println(Array.countIf(matches, -1));
 				mins = new double[anchors.length];
 				for (int i = 0; i < anchors.length; i++) {
-					mins[i] = (matches[i] == -1	? Array.min(dists[i])
+					mins[i] = (matches[i] == -1	? ArrayUtils.min(dists[i])
 																			: (minMin_not_maxMin	? Double.POSITIVE_INFINITY
 																														: Double.NEGATIVE_INFINITY));
 				}
 
-				iAnch = minMin_not_maxMin ? Array.minIndex(mins) : Array.maxIndex(mins);
-				iBarn = Array.minIndex(dists[iAnch]);
+				iAnch = minMin_not_maxMin ? ArrayUtils.minIndex(mins) : ArrayUtils.maxIndex(mins);
+				iBarn = ArrayUtils.minIndex(dists[iAnch]);
 				matches[iAnch] = iBarn;
 				finalDists[iAnch] = dists[iAnch][iBarn];
 				for (int i = 0; i < anchors.length; i++) {
@@ -474,8 +474,8 @@ public class MatchSamples {
 			System.err.println("Error reading file \"" + dir + pairings + "\"");
 			System.exit(2);
 		}
-		anchors = Array.toStringArray(anchs);
-		barnacles = Array.toStringArray(barns);
+		anchors = ArrayUtils.toStringArray(anchs);
+		barnacles = ArrayUtils.toStringArray(barns);
 		totalDists = Doubles.toArray(distV);
 		mdsDists = new double[anchors.length];
 
@@ -565,13 +565,13 @@ public class MatchSamples {
 							+ ext.formDeci(sumAges[1], 1, true) + "\n" + ext.formPercent(sumGenders[2], 0)
 							+ " gender concordance\n" + "mean age diff b/w case-ctrl: "
 							+ ext.formDeci(sumAges[2], 1, true) + "\n" + "Mean MDS distance: "
-							+ ext.formDeci(Array.mean(mdsDists), 2) + " (SD: "
-							+ ext.formDeci(Array.stdev(mdsDists), 3, true) + ", range="
-							+ ext.formDeci(Array.min(mdsDists), 2, true) + "-"
-							+ ext.formDeci(Array.max(mdsDists), 2, true) + ")\n";
+							+ ext.formDeci(ArrayUtils.mean(mdsDists), 2) + " (SD: "
+							+ ext.formDeci(ArrayUtils.stdev(mdsDists), 3, true) + ", range="
+							+ ext.formDeci(ArrayUtils.min(mdsDists), 2, true) + "-"
+							+ ext.formDeci(ArrayUtils.max(mdsDists), 2, true) + ")\n";
 
-		mean = Array.mean(totalDists);
-		stdev = Array.stdev(totalDists);
+		mean = ArrayUtils.mean(totalDists);
+		stdev = ArrayUtils.stdev(totalDists);
 		count = 0;
 		sumAges = new double[3];
 		sumGenders = new double[3];
@@ -611,10 +611,10 @@ public class MatchSamples {
 								+ ext.formDeci(sumAges[1], 1, true) + "\n" + ext.formPercent(sumGenders[2], 0)
 								+ " gender concordance\n" + "mean age diff b/w case-ctrl: "
 								+ ext.formDeci(sumAges[2], 1, true) + "\n" + "Mean MDS distance: "
-								+ ext.formDeci(Array.mean(mdsDists), 2) + " (SD: "
-								+ ext.formDeci(Array.stdev(mdsDists), 3, true) + ", range="
-								+ ext.formDeci(Array.min(mdsDists), 2, true) + "-"
-								+ ext.formDeci(Array.max(mdsDists), 2, true) + ")\n";
+								+ ext.formDeci(ArrayUtils.mean(mdsDists), 2) + " (SD: "
+								+ ext.formDeci(ArrayUtils.stdev(mdsDists), 3, true) + ", range="
+								+ ext.formDeci(ArrayUtils.min(mdsDists), 2, true) + "-"
+								+ ext.formDeci(ArrayUtils.max(mdsDists), 2, true) + ")\n";
 
 		System.out.println(results);
 
@@ -675,8 +675,8 @@ public class MatchSamples {
 			System.err.println("Error reading file \"" + dir + pairings + "\"");
 			System.exit(2);
 		}
-		anchors = Array.toStringArray(anchs);
-		barnacles = Array.toStringArray(barns);
+		anchors = ArrayUtils.toStringArray(anchs);
+		barnacles = ArrayUtils.toStringArray(barns);
 		totalDists = Doubles.toArray(distV);
 
 		problem = false;
@@ -737,8 +737,8 @@ public class MatchSamples {
 
 		results = "";
 
-		mean = Array.mean(totalDists);
-		stdev = Array.stdev(totalDists);
+		mean = ArrayUtils.mean(totalDists);
+		stdev = ArrayUtils.stdev(totalDists);
 		for (int outliers = 0; outliers < 2; outliers++) {
 			count = 0;
 			distV = new DoubleVector();
@@ -786,10 +786,10 @@ public class MatchSamples {
 				}
 				results += "\n";
 			}
-			results += "Mean distance: "	+ ext.formDeci(Array.mean(dists), 2) + " (SD: "
-									+ ext.formDeci(Array.stdev(dists), 3, true) + ", range="
-									+ ext.formDeci(Array.min(dists), 2, true) + "-"
-									+ ext.formDeci(Array.max(dists), 2, true) + ")\n";
+			results += "Mean distance: "	+ ext.formDeci(ArrayUtils.mean(dists), 2) + " (SD: "
+									+ ext.formDeci(ArrayUtils.stdev(dists), 3, true) + ", range="
+									+ ext.formDeci(ArrayUtils.min(dists), 2, true) + "-"
+									+ ext.formDeci(ArrayUtils.max(dists), 2, true) + ")\n";
 		}
 
 
@@ -831,7 +831,7 @@ public class MatchSamples {
 			barnacleFile = paramV.elementAt(2);
 			line = paramV.elementAt(3).trim().split("[\\s]+");
 			demographicsFile = line[0];
-			demoFactors = Array.subArray(line, 1);
+			demoFactors = ArrayUtils.subArray(line, 1);
 			line = paramV.elementAt(4).trim().split("[\\s]+");
 			coordsFile = line[0];
 			coords = new int[] {Integer.parseInt(line[1]), Integer.parseInt(line[2])};

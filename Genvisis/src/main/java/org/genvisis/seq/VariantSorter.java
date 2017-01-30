@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Collapsed;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -406,11 +406,11 @@ public class VariantSorter {
 							}
 							for (int j = 0; j < plusHits.size(); j++) {
 								HashVec.addToHashVec(	hash, plusHits.elementAt(j),
-																			files[i] + "\t" + Array.toStr(line), false);
+																			files[i] + "\t" + ArrayUtils.toStr(line), false);
 							}
 							for (int j = 0; j < minusHits.size(); j++) {
 								HashVec.addToHashVec(	hash, minusHits.elementAt(j),
-																			files[i] + "\t" + Array.toStr(line), false);
+																			files[i] + "\t" + ArrayUtils.toStr(line), false);
 							}
 						}
 					}

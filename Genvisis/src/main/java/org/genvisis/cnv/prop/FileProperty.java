@@ -57,8 +57,7 @@ public class FileProperty extends StringProperty {
 				if (getName().equals(PropertyKeys.KEY_PROJECT_DIRECTORY)) { // happens with
 																																		// example.properties
 					tempValue =
-										LaunchProperties.directoryOfLaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE)
-											+ valu;
+										LaunchProperties.directoryOfLaunchProperties() + valu;
 				} else {
 					tempValue = getProject().PROJECT_DIRECTORY.getValue() + valu;
 				}

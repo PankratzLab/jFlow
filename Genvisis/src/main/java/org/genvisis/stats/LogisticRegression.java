@@ -2,7 +2,7 @@ package org.genvisis.stats;
 
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
@@ -31,19 +31,19 @@ public class LogisticRegression extends RegressionModel {
 	}
 
 	public LogisticRegression(int[] deps, double[][] indeps) {
-		this(Array.toDoubleArray(deps), indeps);
+		this(ArrayUtils.toDoubleArray(deps), indeps);
 	}
 
 	public LogisticRegression(int[] deps, int[][] indeps) {
-		this(Array.toDoubleArray(deps), Matrix.toDoubleArrays(indeps));
+		this(ArrayUtils.toDoubleArray(deps), Matrix.toDoubleArrays(indeps));
 	}
 
 	public LogisticRegression(int[] deps, int[][] indeps, boolean bypassDataChecks, boolean verbose) {
-		this(Array.toDoubleArray(deps), Matrix.toDoubleArrays(indeps), bypassDataChecks, verbose);
+		this(ArrayUtils.toDoubleArray(deps), Matrix.toDoubleArrays(indeps), bypassDataChecks, verbose);
 	}
 
 	public LogisticRegression(int[] deps, double[] indeps) {
-		this(Array.toDoubleArray(deps), Matrix.toMatrix(indeps), false, true);
+		this(ArrayUtils.toDoubleArray(deps), Matrix.toMatrix(indeps), false, true);
 	}
 
 	public LogisticRegression(double[] deps, double[] indeps) {
@@ -388,7 +388,7 @@ public class LogisticRegression extends RegressionModel {
 							+ " cases with Y=" + offset + "" + eol;
 			str += "Average of "	+ ext.formDeci((double) logCounts[1] / numPermutations, 2)
 							+ " cases with Y=" + (offset + 1) + "" + eol;
-			str += "Number of independent observations: " + Array.unique(famIDs).length + "" + eol;
+			str += "Number of independent observations: " + ArrayUtils.unique(famIDs).length + "" + eol;
 			str += "" + eol;
 		} else {
 			str += sY0 + " cases with Y=" + offset + "" + eol;

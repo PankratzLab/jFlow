@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.ABLookup;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -34,7 +34,7 @@ public class MStr {
 			Logger log = new Logger(outDir + "log.log");
 			VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 			String[] samples = VCFOps.getSamplesInFile(reader);
-			boolean[] samplesWithOneGenotype = Array.booleanArray(samples.length, false);
+			boolean[] samplesWithOneGenotype = ArrayUtils.booleanArray(samples.length, false);
 			writer.println("CHR\tPOS\tREF\tFULL_ALT\tSAMPLE\tA1\tA2\tGQ\tAD\tHOM_HET\tFullGeno");
 			for (VariantContext vc : reader) {
 				if (VCOps.getSegment(vc).overlaps(mSeg)) {
@@ -92,7 +92,7 @@ public class MStr {
 								builder2.append("\t.\t.");
 							}
 							builder2.append("\t" + g.getGQ() + "\t" + (g.getAD() == null ? g.getAnyAttribute("DPR")
-									: Array.toStr(Array.toStringArray((g.getAD())), ",")));
+									: ArrayUtils.toStr(ArrayUtils.toStringArray((g.getAD())), ",")));
 
 							builder2.append("\t" + (g.isCalled() ? (g.isHom() ? "HOM" : "HET") : "NA"));
 							builder2.append("\t" + g.toString());
@@ -107,7 +107,7 @@ public class MStr {
 			writer.close();
 			reader.close();
 			log.reportTimeInfo(
-					Array.booleanArraySum(samplesWithOneGenotype) + " of " + samples.length + " samples had genotypes");
+					ArrayUtils.booleanArraySum(samplesWithOneGenotype) + " of " + samples.length + " samples had genotypes");
 		}
 
 	}

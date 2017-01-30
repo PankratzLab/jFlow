@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -151,7 +151,7 @@ public class PlinkSeq implements Serializable {
 					if (init && loadReq && reqFiles != null && reqFiles.length > 0) {
 						log.reportTimeInfo("Found the following "	+ REQ_FILE
 																+ " files to load into the loc db: ");
-						log.reportTimeInfo(Array.toStr(reqFiles));
+						log.reportTimeInfo(ArrayUtils.toStr(reqFiles));
 						for (String reqFile : reqFiles) {
 							if (init) {
 								init = loadData(pseqProject, LOAD_TYPES.LOC_DB, reqFile);
@@ -175,7 +175,7 @@ public class PlinkSeq implements Serializable {
 																						+ pseqProject.getProjectName(),
 																			NEW_PROJECT, pseqProject.getCommandFor(PROPERTIES.RESOURCES),
 																			pseqProject.getResourceDirectory()};
-		command = Array.concatAll(command, vcfs);
+		command = ArrayUtils.concatAll(command, vcfs);
 		String[] outputs = new String[] {currentProject + "." + PSEQ};
 		String[] inputs = pseqProject.getVcfs();
 		init = CmdLine.runCommandWithFileChecks(command, "", inputs, outputs, verbose,
@@ -279,9 +279,9 @@ public class PlinkSeq implements Serializable {
 				}
 				String[] command = new String[] {PSEQ, pseqProject.getProjectNameForPseq(), loadCommand};
 				if (file != null) {
-					command = Array.concatAll(command, new String[] {FILE, file});
+					command = ArrayUtils.concatAll(command, new String[] {FILE, file});
 					if (lTypes == LOAD_TYPES.LOC_DB) {
-						command = Array.concatAll(command, new String[] {GROUP, ext.rootOf(file)});
+						command = ArrayUtils.concatAll(command, new String[] {GROUP, ext.rootOf(file)});
 					}
 					inputs = new String[] {file};
 				}
@@ -298,7 +298,7 @@ public class PlinkSeq implements Serializable {
 
 	private static String[] addPermCommand(int numPerm, String[] command) {
 		if (numPerm != 0) {
-			return Array.concatAll(command, new String[] {PERM, numPerm + ""});
+			return ArrayUtils.concatAll(command, new String[] {PERM, numPerm + ""});
 		} else {
 			return command;
 		}
@@ -338,10 +338,10 @@ public class PlinkSeq implements Serializable {
 					validWorker = false;
 				} else {
 					outputFile += "." + phenotype + ".txt";
-					commandBase = Array.concatAll(commandBase, new String[] {V_ASSOC},
+					commandBase = ArrayUtils.concatAll(commandBase, new String[] {V_ASSOC},
 																				getPhenoCommand(phenotype));
 					if (locGroups != null) {
-						commandBase = Array.concatAll(commandBase, new String[] {MASK, LOC_GROUP + locGroups});
+						commandBase = ArrayUtils.concatAll(commandBase, new String[] {MASK, LOC_GROUP + locGroups});
 						ext.addToRoot(outputFile, locGroups);
 
 					}
@@ -359,14 +359,14 @@ public class PlinkSeq implements Serializable {
 				} else {
 					outputFile += "."	+ phenotype + "." + ext.replaceWithLinuxSafeCharacters(locGroups, true)
 												+ ".txt";
-					commandBase = Array.concatAll(commandBase, new String[] {BURDEN},
+					commandBase = ArrayUtils.concatAll(commandBase, new String[] {BURDEN},
 																				getPhenoCommand(phenotype));
-					commandBase = Array.concatAll(commandBase,
+					commandBase = ArrayUtils.concatAll(commandBase,
 																				new String[] {MASK, LOC_GROUP + locGroups,
 																											maf.equals("0") ? "" : MAF + "0:" + maf});
 					if (varMask != null) {
 						outputFile = ext.addToRoot(outputFile, "." + varMask);
-						commandBase = Array.concatAll(commandBase, new String[] {VAR_MASK + varMask});
+						commandBase = ArrayUtils.concatAll(commandBase, new String[] {VAR_MASK + varMask});
 					}
 					if (!maf.equals("0")) {
 						outputFile = ext.addToRoot(outputFile, "maf_" + maf);
@@ -382,16 +382,16 @@ public class PlinkSeq implements Serializable {
 						index++;
 						// }
 					}
-					commandBase = Array.concatAll(commandBase, tests);
+					commandBase = ArrayUtils.concatAll(commandBase, tests);
 				}
 				commandBase = addPermCommand(numPerm, commandBase);
 
 				break;
 			case I_SUMMARY:
-				commandBase = Array.concatAll(commandBase, new String[] {I_STATS});
+				commandBase = ArrayUtils.concatAll(commandBase, new String[] {I_STATS});
 				break;
 			case V_SUMMARY:
-				commandBase = Array.concatAll(commandBase, new String[] {V_STATS});
+				commandBase = ArrayUtils.concatAll(commandBase, new String[] {V_STATS});
 				break;
 			default:
 				break;
@@ -399,7 +399,7 @@ public class PlinkSeq implements Serializable {
 
 		if (validWorker) {
 			// we always pump the commands to a .bat since no --out option
-			commandBase = Array.concatAll(commandBase, new String[] {PSF.Ext.CARROT, outputFile});
+			commandBase = ArrayUtils.concatAll(commandBase, new String[] {PSF.Ext.CARROT, outputFile});
 			String bat = ext.addToRoot(outputFile, ".bat");
 			commandBase = CmdLine.prepareBatchForCommandLine(commandBase, bat, true, log);
 			return new PlinkSeqWorker(type, commandBase, new String[] {bat}, new String[] {outputFile},
@@ -609,7 +609,7 @@ public class PlinkSeq implements Serializable {
 		usage += "   (6) project name  (i.e. projName=" + projName + " (default))\n" + "";
 		usage += "   (7) overwrite existing files  (i.e. -overwriteExisting (default))\n" + "";
 		usage += "   (8) comma -delimted loc groups to test in the association  (i.e. locGroups="
-							+ Array.toStr(locGroups, ",") + " (default))\n" + "";
+							+ ArrayUtils.toStr(locGroups, ",") + " (default))\n" + "";
 		usage += "   (9) mac cutoff for burden tests  (i.e. mac=" + mac + " (default))\n" + "";
 		usage += "   (10) " + PSF.Ext.getNumThreadsCommand(10, numThreads);
 

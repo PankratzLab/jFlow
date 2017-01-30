@@ -74,15 +74,15 @@ import javax.swing.event.ChangeListener;
 
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
-import org.genvisis.cnv.annotation.AnalysisParams;
-import org.genvisis.cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
-import org.genvisis.cnv.annotation.AnnotationParser;
-import org.genvisis.cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
-import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
-import org.genvisis.cnv.annotation.BlastParams;
-import org.genvisis.cnv.annotation.MarkerAnnotationLoader;
-import org.genvisis.cnv.annotation.MarkerBlastAnnotation;
-import org.genvisis.cnv.annotation.MarkerGCAnnotation;
+import org.genvisis.cnv.annotation.markers.AnalysisParams;
+import org.genvisis.cnv.annotation.markers.AnnotationParser;
+import org.genvisis.cnv.annotation.markers.BlastParams;
+import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
+import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
+import org.genvisis.cnv.annotation.markers.MarkerGCAnnotation;
+import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_ORDER;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.filesys.AnnotationCollection;
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.ClusterFilter;
@@ -105,7 +105,7 @@ import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.AlleleFreq;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
@@ -322,7 +322,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		gcThreshold = DEFAULT_GC_THRESHOLD / 100f;
 		stdevFilter = 0;
 		correctionRatio = PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO;
-		markerIndexHistory = Array.intArray(NUM_MARKERS_TO_SAVE_IN_HISTORY, -1);
+		markerIndexHistory = ArrayUtils.intArray(NUM_MARKERS_TO_SAVE_IN_HISTORY, -1);
 
 		if (!Files.exists(proj.MARKER_DATA_DIRECTORY.getValue(false, true),
 											proj.JAR_STATUS.getValue())) {
@@ -399,7 +399,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			String filename = proj.DISPLAY_MARKERS_FILENAMES.getValue()[0];
 			loadMarkerListFromFile(filename);
 			if (masterMarkerList == null) {
-				String[] tmp = Array.subArray(proj.getMarkerNames(), 0,
+				String[] tmp = ArrayUtils.subArray(proj.getMarkerNames(), 0,
 																			Math.min(10, proj.getMarkerNames().length));
 				Files.writeArray(tmp, proj.DISPLAY_MARKERS_FILENAMES.getValue()[0]);
 				loadMarkerListFromFile(filename);
@@ -424,7 +424,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			}
 		}
 		if (masterCommentList == null) {
-			masterCommentList = Array.stringArray(masterMarkerList.length, "");
+			masterCommentList = ArrayUtils.stringArray(masterMarkerList.length, "");
 		}
 
 
@@ -1632,7 +1632,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		for (int i = 0; i < centroids.length; i++) {
 			centroids[i] = v.elementAt(i);
 		}
-		centList = Array.toStringArray(fileList);
+		centList = ArrayUtils.toStringArray(fileList);
 
 	}
 
@@ -1679,8 +1679,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 				return;
 			}
 
-			masterMarkerList = Array.toStringArray(markerNames);
-			masterCommentList = Array.toStringArray(markerComments);
+			masterMarkerList = ArrayUtils.toStringArray(markerNames);
+			masterCommentList = ArrayUtils.toStringArray(markerComments);
 
 			markerIndex = 0;
 			markerIndexHistory = new int[NUM_MARKERS_TO_SAVE_IN_HISTORY];
@@ -1736,7 +1736,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 				actual.add(gcParamFile);
 			}
 		}
-		gcCList = new String[][] {Array.toStringArray(display), Array.toStringArray(actual)};
+		gcCList = new String[][] {ArrayUtils.toStringArray(display), ArrayUtils.toStringArray(actual)};
 		gcAdjustorParameters = new GcAdjustorParameters[gcCList[0].length];
 	}
 
@@ -2276,7 +2276,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		ToolTipManager.sharedInstance().setDismissDelay(100000);
 
 		classCount = new CTable(called, sex);// This is the problem.
-		classCount.setCustomNullValues(Array.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
+		classCount.setCustomNullValues(ArrayUtils.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
 		classCount.setCustomLabelsAndOrder(	new String[][] {{"-1", "Genotype missing"},
 																												{"1", "Genotype NOT missing"}},
 																				sampleData.getActualClassColorKey(0));
@@ -2298,7 +2298,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		qcPanel.add(qcPanelLabel, "cell 1 4");
 
 		classCount = new CTable(CTable.extrapolateCounts(sex, genotype));
-		classCount.setCustomNullValues(Array.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
+		classCount.setCustomNullValues(ArrayUtils.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
 		classCount.setCustomLabelsAndOrder(	Matrix.addRow(sampleData.getActualClassColorKey(0),
 																											new String[] {null, "missing"}),
 																				new String[][] {{"A", "Allele A"}, {"B", "Allele B"}});
@@ -2329,8 +2329,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 																																						- SampleData.BASIC_CLASSES.length));
 			qcPanelLabel = new JLabel("Callrate by "	+ sampleData.getClassName(currentClass) + ": ",
 																JLabel.LEFT);
-			classCount.setCustomNullValues(Array.addStrToArray(	"-1",
-																													Array.addStrToArray("0",
+			classCount.setCustomNullValues(ArrayUtils.addStrToArray(	"-1",
+																													ArrayUtils.addStrToArray("0",
 																																							CTable.DEFAULT_NULL_VALUES)));
 			// classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"},
 			// {"1","Genotype NOT missing"}},
@@ -2355,8 +2355,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 																																													false),
 																															1)),
 																JLabel.LEFT);
-			classCount.setCustomNullValues(Array.addStrToArray(	"-1",
-																													Array.addStrToArray("0",
+			classCount.setCustomNullValues(ArrayUtils.addStrToArray(	"-1",
+																													ArrayUtils.addStrToArray("0",
 																																							CTable.DEFAULT_NULL_VALUES)));
 			// classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"},
 			// {"1","Genotype NOT missing"}},
@@ -2374,8 +2374,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			// classCount.replaceIdWithLabel(SampleData.KEYS_FOR_BASIC_CLASSES[1],sampleData.getActualClassColorKey(0));
 			qcPanelLabel = new JLabel("Allele Freq by "	+ sampleData.getClassName(currentClass) + ": ",
 																JLabel.LEFT);
-			classCount.setCustomNullValues(Array.addStrToArray(	"-1",
-																													Array.addStrToArray("0",
+			classCount.setCustomNullValues(ArrayUtils.addStrToArray(	"-1",
+																													ArrayUtils.addStrToArray("0",
 																																							CTable.DEFAULT_NULL_VALUES)));
 			// classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length),
 			// new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
@@ -2396,8 +2396,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 																																													false),
 																															1)),
 																JLabel.LEFT);
-			classCount.setCustomNullValues(Array.addStrToArray(	"-1",
-																													Array.addStrToArray("0",
+			classCount.setCustomNullValues(ArrayUtils.addStrToArray(	"-1",
+																													ArrayUtils.addStrToArray("0",
 																																							CTable.DEFAULT_NULL_VALUES)));
 			// classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length),
 			// new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
@@ -3944,7 +3944,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 				return;
 			}
 			if (masterCommentList == null) {
-				masterCommentList = Array.stringArray(masterMarkerList.length, "");
+				masterCommentList = ArrayUtils.stringArray(masterMarkerList.length, "");
 			}
 			proj.getProgressMonitor().beginDeterminateTask(	"SCATTERPLOT",
 																											"Loading ScatterPlot Marker List...", 10,

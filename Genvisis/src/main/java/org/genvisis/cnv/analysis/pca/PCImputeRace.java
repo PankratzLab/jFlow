@@ -8,7 +8,7 @@ import java.util.Set;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -81,7 +81,7 @@ public class PCImputeRace {
 		}
 
 		writer = Files.getAppropriateWriter(ext.rootOf(outFile, false) + "_step0.mds");
-		writer.println(Array.toStr(STEP_PCS_HEADER));
+		writer.println(ArrayUtils.toStr(STEP_PCS_HEADER));
 
 		for (int i = 0; i < pc1.length; i++) {
 			writer.println(fidiids[i] + "\t" + pc1[i] + "\t" + pc2[i] + "\t" + (1.0 - (pc1[i] + pc2[i])));
@@ -103,11 +103,11 @@ public class PCImputeRace {
 			}
 		}
 
-		pc1 = Array.minus(pc1, maxEuropeanPC1);
-		pc2 = Array.minus(pc2, maxEuropeanPC2);
+		pc1 = ArrayUtils.minus(pc1, maxEuropeanPC1);
+		pc2 = ArrayUtils.minus(pc2, maxEuropeanPC2);
 
 		writer = Files.getAppropriateWriter(ext.rootOf(outFile, false) + "_step1.mds");
-		writer.println(Array.toStr(STEP_PCS_HEADER));
+		writer.println(ArrayUtils.toStr(STEP_PCS_HEADER));
 
 		for (int i = 0; i < pc1.length; i++) {
 			writer.println(fidiids[i] + "\t" + pc1[i] + "\t" + pc2[i] + "\t" + (1.0 - (pc1[i] + pc2[i])));
@@ -162,7 +162,7 @@ public class PCImputeRace {
 		pc2 = rect[1];
 
 		writer = Files.getAppropriateWriter(ext.rootOf(outFile, false) + "_step2.mds");
-		writer.println(Array.toStr(STEP_PCS_HEADER));
+		writer.println(ArrayUtils.toStr(STEP_PCS_HEADER));
 
 		for (int i = 0; i < pc1.length; i++) {
 			writer.println(fidiids[i] + "\t" + pc1[i] + "\t" + pc2[i] + "\t" + (1.0 - (pc1[i] + pc2[i])));
@@ -194,10 +194,10 @@ public class PCImputeRace {
 		double[] pctEuropean = new double[pc1.length];
 		int[] imputedRace = new int[pc1.length];
 
-		boolean[] whites = Array.booleanArray(pc1.length, false);
-		boolean[] africans = Array.booleanArray(pc1.length, false);
-		boolean[] hispanics = Array.booleanArray(pc1.length, false);
-		boolean[] asians = Array.booleanArray(pc1.length, false);
+		boolean[] whites = ArrayUtils.booleanArray(pc1.length, false);
+		boolean[] africans = ArrayUtils.booleanArray(pc1.length, false);
+		boolean[] hispanics = ArrayUtils.booleanArray(pc1.length, false);
+		boolean[] asians = ArrayUtils.booleanArray(pc1.length, false);
 
 		for (int i = 0; i < pc1.length; i++) {
 			pctAfrican[i] = Math.min(Math.max(pc1[i], 0.0), 1.0);
@@ -232,7 +232,7 @@ public class PCImputeRace {
 		sampleData.addData(dataToAdd, "DNA", IMPUTED_RACE_SAMPLE_DATA_HEADERS, ".", "\t", log);
 
 		writer = Files.getAppropriateWriter(outFile);
-		writer.println(Array.toStr(CORRECTED_PCS_HEADER));
+		writer.println(ArrayUtils.toStr(CORRECTED_PCS_HEADER));
 		String[] raceListFiles = raceListFilenames(outFile);
 		PrintWriter[] raceWriters = new PrintWriter[raceListFiles.length];
 		for (int i = 0; i < raceWriters.length; i++) {
@@ -276,12 +276,12 @@ public class PCImputeRace {
 			asianPC2[i] = pc2[asianSeeds[i]];
 		}
 
-		double europeanMeanPC1 = Array.mean(europeanPC1, true);
-		double europeanMeanPC2 = Array.mean(europeanPC2, true);
-		double africanMeanPC1 = Array.mean(africanPC1, true);
-		double africanMeanPC2 = Array.mean(africanPC2, true);
-		double asianMeanPC1 = Array.mean(asianPC1, true);
-		double asianMeanPC2 = Array.mean(asianPC2, true);
+		double europeanMeanPC1 = ArrayUtils.mean(europeanPC1, true);
+		double europeanMeanPC2 = ArrayUtils.mean(europeanPC2, true);
+		double africanMeanPC1 = ArrayUtils.mean(africanPC1, true);
+		double africanMeanPC2 = ArrayUtils.mean(africanPC2, true);
+		double asianMeanPC1 = ArrayUtils.mean(asianPC1, true);
+		double asianMeanPC2 = ArrayUtils.mean(asianPC2, true);
 
 		if (Math.abs(africanMeanPC1) > Math.abs(asianMeanPC1)
 					&& Math.abs(asianMeanPC2) > Math.abs(africanMeanPC2)
@@ -318,12 +318,12 @@ public class PCImputeRace {
 		}
 
 		if (africanMeanPC1 < 0) {
-			pc1 = Array.multiply(pc1, -1.0);
+			pc1 = ArrayUtils.multiply(pc1, -1.0);
 
 		}
 
 		if (asianMeanPC2 < 0) {
-			pc2 = Array.multiply(pc2, -1.0);
+			pc2 = ArrayUtils.multiply(pc2, -1.0);
 		}
 		return true;
 	}

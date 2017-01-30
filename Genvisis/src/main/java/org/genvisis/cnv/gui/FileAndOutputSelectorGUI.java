@@ -22,7 +22,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.JTextComponent;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 import net.miginfocom.swing.MigLayout;
@@ -228,7 +228,7 @@ public class FileAndOutputSelectorGUI extends JDialog {
 		} else {
 			{
 				final JTextField txtFldInputFile = new JTextField(inputSuggestions == null	? ""
-																																										: Array.toStr(inputSuggestions,
+																																										: ArrayUtils.toStr(inputSuggestions,
 																																																	";"));
 				contentPanel.add(txtFldInputFile, "flowx,cell 0 1,growx");
 				txtFldInputFile.setColumns(10);

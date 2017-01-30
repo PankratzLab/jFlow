@@ -1,6 +1,6 @@
-package org.genvisis.cnv.annotation;
+package org.genvisis.cnv.annotation.markers;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.stats.Histogram.DynamicHistogram;
 
 import htsjdk.variant.vcf.VCFHeaderLineType;
@@ -32,7 +32,7 @@ public abstract class HistogramAnnotation extends AnnotationData {
 			}
 			setData(truncatedHistogram);
 		} else {
-			setData(Array.toStr(dynamicHistogram.getCounts(), DEFUALT_DELIMITER));
+			setData(ArrayUtils.toStr(dynamicHistogram.getCounts(), DEFUALT_DELIMITER));
 		}
 	}
 

@@ -1,6 +1,6 @@
 package org.genvisis.seq.analysis;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -56,7 +56,7 @@ public class SNPSIFT {
 		if (!fail) {
 			String[] command = PSF.Java.buildJavaJar(snpSiftLocation + SNP_SIFT_JAR);
 			String[] args = new String[] {DB_NSFP, V, inputVCF, PSF.Ext.CARROT, outputVCF};
-			command = Array.concatAll(command, args);
+			command = ArrayUtils.concatAll(command, args);
 			String batFile = outputVCF + ".bat";
 			command = CmdLine.prepareBatchForCommandLine(command, batFile, true, log);
 			progress = CmdLine.runCommandWithFileChecks(command, "", new String[] {inputVCF, batFile},
@@ -73,7 +73,7 @@ public class SNPSIFT {
 		if (!fail) {
 			String[] command = PSF.Java.buildJavaJar(snpSiftLocation + SNP_SIFT_JAR);
 			String[] args = new String[] {TSTV, HOM, inputVCF, PSF.Ext.CARROT, outputTsTv};
-			command = Array.concatAll(command, args);
+			command = ArrayUtils.concatAll(command, args);
 			String batFile = outputTsTv + ".bat";
 			command = CmdLine.prepareBatchForCommandLine(command, batFile, true, log);
 			progress = CmdLine.runCommandWithFileChecks(command, "", new String[] {inputVCF, batFile},

@@ -13,7 +13,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -330,7 +330,7 @@ public class PrincipalComponentsApply {
 				String[] line = reader.readLine().trim().split("\t");
 				int[] indices = ext.indexFactors(LOADING_FIRST, line, true, true);
 				if (indices == null || indices[0] != 0) {
-					log.reportError("Error - Marker Loading file  must have "	+ Array.toStr(LOADING_FIRST)
+					log.reportError("Error - Marker Loading file  must have "	+ ArrayUtils.toStr(LOADING_FIRST)
 													+ " in the first column");
 					System.exit(1);
 				}
@@ -402,7 +402,7 @@ public class PrincipalComponentsApply {
 				int[] indices = ext.indexFactors(line, SINGULAR_HEADER, true, false);
 				if (indices == null) {
 					log.reportError("Error - singular value file must have header "
-													+ Array.toStr(SINGULAR_HEADER));
+													+ ArrayUtils.toStr(SINGULAR_HEADER));
 					return;
 				}
 				while (reader.ready()) {

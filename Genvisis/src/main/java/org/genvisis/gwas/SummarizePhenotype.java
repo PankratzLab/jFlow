@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -59,9 +59,9 @@ public class SummarizePhenotype {
 		String result;
 
 		if (statOperation.equalsIgnoreCase("mean")) {
-			mean = (Array.sum(data) / data.length);
+			mean = (ArrayUtils.sum(data) / data.length);
 			if (includeStdev) {
-				stdev = Array.stdev(data);
+				stdev = ArrayUtils.stdev(data);
 			}
 			result = (mean != 0	? (showPercent	? ext.formDeci(mean * 100, sf) + "%"
 																					: ext.formDeci(mean, sf))
@@ -73,13 +73,13 @@ public class SummarizePhenotype {
 													: (useBlankForNull ? "" : "."));
 
 		} else if (statOperation.equalsIgnoreCase("stdev")) {
-			stdev = Array.stdev(data);
+			stdev = ArrayUtils.stdev(data);
 			result = (!Double.isNaN(stdev))	? (showPercent	? ext.formDeci(stdev * 100, sf) + "%"
 																											: ext.formDeci(stdev, sf))
 																			: (useBlankForNull ? "" : ".");
 
 		} else if (statOperation.equalsIgnoreCase("count")) {
-			result = Array.sum(data) > 0 ? data.length + "" : (useBlankForNull ? "" : ".");
+			result = ArrayUtils.sum(data) > 0 ? data.length + "" : (useBlankForNull ? "" : ".");
 
 		} else if (statOperation.contains("percentile")) {
 			percentile = Integer.parseInt(statOperation.split(" ")[0].trim());
@@ -238,9 +238,9 @@ public class SummarizePhenotype {
 		size = data.size();
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
-			writer.println(Array.toStr(header));
+			writer.println(ArrayUtils.toStr(header));
 			for (int i = 0; i < size; i++) {
-				writer.println(Array.toStr(data.elementAt(i)));
+				writer.println(ArrayUtils.toStr(data.elementAt(i)));
 			}
 			writer.close();
 		} catch (IOException e) {
@@ -525,7 +525,7 @@ public class SummarizePhenotype {
 		defaults[0] = "in=phenoDataFile.csv";
 		defaults[1] = "out=statisticsResults.xln";
 		for (int i = 0; i < DEFAULT_PARAMS.length; i++) {
-			defaults[i + 2] = Array.toStr(DEFAULT_PARAMS[i]);
+			defaults[i + 2] = ArrayUtils.toStr(DEFAULT_PARAMS[i]);
 		}
 
 		params = Files.parseControlFile(filename, "descriptive", defaults, log);
@@ -659,7 +659,7 @@ public class SummarizePhenotype {
 			}
 		} else {
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 

@@ -16,7 +16,7 @@ public class Sort {
 	 * As {@link #getSortedIndices(long[])} but returns in reverse order.
 	 */
 	public static int[] getReverseIndices(long[] arr) {
-		return Array.reverseInPlace(getSortedIndices(arr));
+		return ArrayUtils.reverseInPlace(getSortedIndices(arr));
 	}
 
 	/**
@@ -43,7 +43,7 @@ public class Sort {
 	 * As {@link #getSortedIndices(int[])} but returns in reverse order.
 	 */
 	public static int[] getReverseIndices(int[] arr) {
-		return Array.reverseInPlace(getSortedIndices(arr));
+		return ArrayUtils.reverseInPlace(getSortedIndices(arr));
 	}
 
 	/**
@@ -60,7 +60,7 @@ public class Sort {
 	 * As {@link #getSortedIndices(double[])} but returns in reverse order.
 	 */
 	public static int[] getReverseIndices(double[] arr) {
-		return Array.reverseInPlace(getSortedIndices(arr));
+		return ArrayUtils.reverseInPlace(getSortedIndices(arr));
 	}
 
 	/**
@@ -78,7 +78,7 @@ public class Sort {
 	}
 
 	public static <T extends Comparable<T>> int[] getReverseIndices(List<T> list) {
-		return Array.reverseInPlace(getSortedIndices(list));
+		return ArrayUtils.reverseInPlace(getSortedIndices(list));
 	}
 
 	public static <T extends Comparable<T>> int[] getSortedIndices(List<T> list) {
@@ -291,17 +291,17 @@ public class Sort {
 
 	public static void reverseSort(String[] array) {
 		Arrays.sort(array);
-		Array.reverseInPlace(array);
+		ArrayUtils.reverseInPlace(array);
 	}
 
 	public static void reverseSort(long[] array) {
 		Arrays.sort(array);
-		Array.reverseInPlace(array);
+		ArrayUtils.reverseInPlace(array);
 	}
 
 	public static void reverseSort(int[] array) {
 		Arrays.sort(array);
-		Array.reverseInPlace(array);
+		ArrayUtils.reverseInPlace(array);
 	}
 
 	/**
@@ -327,7 +327,7 @@ public class Sort {
 		}
 
 		if (reverse) {
-			Array.reverseInPlace(ranks);
+			ArrayUtils.reverseInPlace(ranks);
 		}
 
 		return ranks;

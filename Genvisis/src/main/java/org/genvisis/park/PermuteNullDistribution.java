@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -101,7 +101,7 @@ public class PermuteNullDistribution {
 		pheno = new Vector<String>();
 		count = 0;
 		for (int i = 0; i < sizes.length; i++) {
-			fams = Array.toStringArray(countHash.get(sizes[i]));
+			fams = ArrayUtils.toStringArray(countHash.get(sizes[i]));
 			if (fams.length < 5) {
 				System.err.println("Warning - There are only "	+ fams.length
 														+ " families with a family size of " + sizes[i] + ".");
@@ -124,7 +124,7 @@ public class PermuteNullDistribution {
 						count++;
 					} catch (NumberFormatException nfe) {
 						System.err.println("Error - could not parse one of the following numbers:\n"
-																+ Array.toStr(line));
+																+ ArrayUtils.toStr(line));
 					}
 				}
 			}
@@ -147,9 +147,9 @@ public class PermuteNullDistribution {
 			System.out.println("Rep: " + (rep + 1));
 			count = 0;
 			for (int i = 0; i < depMatrix.length; i++) {
-				randomFams = Array.random(depMatrix[i].length);
+				randomFams = ArrayUtils.random(depMatrix[i].length);
 				for (int j = 0; j < depMatrix[i].length; j++) {
-					randomPeople = Array.random(depMatrix[i][j].length);
+					randomPeople = ArrayUtils.random(depMatrix[i][j].length);
 					for (int k = 0; k < depMatrix[i][j].length; k++) {
 						deps[count] = depMatrix[i][j][k];
 						if (rep == -1) {
@@ -242,13 +242,13 @@ public class PermuteNullDistribution {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			traits = Array.subArray(reader.readLine().split("[\\s]+"), 2);
+			traits = ArrayUtils.subArray(reader.readLine().split("[\\s]+"), 2);
 			reader.close();
 
 			writer = Files.getWriter(filename + "-permutedSummary.out");
 			grand = Files.getWriter(filename + "_p-values.out");
 			writer.println("Trait\t"
-											+ Array.toStr(Array.stringArraySequence(numFiles, "Rep "), "\t\t\t"));
+											+ ArrayUtils.toStr(ArrayUtils.stringArraySequence(numFiles, "Rep "), "\t\t\t"));
 			for (String trait : traits) {
 				writer.print(trait);
 				grandCountAbove = grandCount = 0;

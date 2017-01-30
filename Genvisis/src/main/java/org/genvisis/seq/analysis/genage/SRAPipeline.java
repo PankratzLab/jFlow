@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -189,7 +189,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 				bams.add(bam);
 			}
 		}
-		return Array.toStringArray(bams);
+		return ArrayUtils.toStringArray(bams);
 
 	}
 
@@ -309,7 +309,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		}
 		Files.writeIterable(sampleSummary, rootOutDir + "sampleAnalysis.summary.txt");
 		if (numBatches > 0) {
-			batch(Array.toStringArray(sraFiles), rootOutDir, c, log);
+			batch(ArrayUtils.toStringArray(sraFiles), rootOutDir, c, log);
 		} else {
 			hive.execute(true);
 		}
@@ -336,7 +336,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		String processFile = processDir + "process.sh";
 
 		ArrayList<String> sraFilesToAnalyze = new ArrayList<String>();
-		String[] sraFiles = Array.tagOn(srRunTable.getAllRunSFiles(), c.get(SRA_INPUT), ".sra");
+		String[] sraFiles = ArrayUtils.tagOn(srRunTable.getAllRunSFiles(), c.get(SRA_INPUT), ".sra");
 		for (int i = 0; i < sraFiles.length; i++) {
 			if (!Files.exists(getCompleteFile(c.get(CLI.ARG_OUTDIR), sraFiles[i]))) {
 				sraFilesToAnalyze.add(sraFiles[i]);
@@ -346,7 +346,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 												+ platform + "," + (sraFiles.length - sraFilesToAnalyze.size())
 												+ " samples are already complete");
 
-		String[][] batches = batch(Array.toStringArray(sraFilesToAnalyze), c.get(CLI.ARG_OUTDIR), c, log);
+		String[][] batches = batch(ArrayUtils.toStringArray(sraFilesToAnalyze), c.get(CLI.ARG_OUTDIR), c, log);
 
 		ArrayList<String> process = new ArrayList<String>();
 		int num = 0;
@@ -387,7 +387,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 	}
 
 	private static String[][] batch(String[] sraFiles, String rootOutDir, CLI c, Logger log) {
-		String[][] splits = Array.splitUpStringArray(sraFiles, c.getI(NUM_BATCHES), log);
+		String[][] splits = ArrayUtils.splitUpStringArray(sraFiles, c.getI(NUM_BATCHES), log);
 		String runningJar = SRAPipeline.class	.getProtectionDomain().getCodeSource().getLocation()
 																					.getFile();
 		PLATFORM platform = PLATFORM.valueOf(c.get(PLATFORM_TYPE));
@@ -453,7 +453,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 			ArrayList<String> currentCommand = new ArrayList<String>();
 			currentCommand.addAll(baseCommand);
 			currentCommand.add(SRA_INPUT + "=" + batch);
-			Files.qsub(	qsub, Array.toStr(Array.toStringArray(currentCommand), " "), 55000, 55,
+			Files.qsub(	qsub, ArrayUtils.toStr(ArrayUtils.toStringArray(currentCommand), " "), 55000, 55,
 									c.getI(NUM_THREADS) * c.getI(NUM_THREADS_PIPELINE));
 		}
 		return splits;

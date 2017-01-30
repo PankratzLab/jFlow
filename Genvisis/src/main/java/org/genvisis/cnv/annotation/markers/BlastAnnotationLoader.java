@@ -1,16 +1,16 @@
-package org.genvisis.cnv.annotation;
+package org.genvisis.cnv.annotation.markers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 
-import org.genvisis.cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
-import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
-import org.genvisis.cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ArraySpecialList.ArrayBlastAnnotationList;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -50,7 +50,7 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 	public MarkerBlastResult[] loadBlastAnnotationsFor(	String[] markers,
 																											AnnotationParser[]... otherQueries) {
 
-		if (Array.unique(markers).length != markers.length) {
+		if (ArrayUtils.unique(markers).length != markers.length) {
 			String error = "Internal error, markers for blast annotation retrieval must be unique";
 			proj.getLog().reportError(error);
 			throw new IllegalArgumentException(error);
@@ -62,7 +62,7 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 
 		AnnotationQuery annotationQuery = getAnnotationQuery(segs);
 
-		boolean[] found = Array.booleanArray(markers.length, false);
+		boolean[] found = ArrayUtils.booleanArray(markers.length, false);
 
 		int count = 0;
 		while (annotationQuery.hasNext()) {
@@ -90,16 +90,16 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 				blastAnnotations[annoIndex].parseAnnotation(vc, proj.getLog());
 			}
 		}
-		if (Array.booleanArraySum(found) != markers.length) {
+		if (ArrayUtils.booleanArraySum(found) != markers.length) {
 			String error = markers.length	+ " markers were expected to be loaded, but only "
-											+ Array.booleanArraySum(found) + " markers were found";
+											+ ArrayUtils.booleanArraySum(found) + " markers were found";
 			for (int i = 0; i < found.length; i++) {
 				if (!found[i]) {
 					error += "\nMissing " + markers[i];
 				}
 			}
 			proj.getLog().reportError(error);
-			proj.getLog().reportError(Array.toStr(markers));
+			proj.getLog().reportError(ArrayUtils.toStr(markers));
 			// throw new IllegalStateException(error);
 		} else {
 			proj.getLog().reportTimeInfo("Loaded " + markers.length + " marker annotations");

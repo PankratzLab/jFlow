@@ -44,7 +44,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
@@ -553,7 +553,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 		if (jfc.showOpenDialog(ForestPlotFrame.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();
 			if (files.length > 0) {
-				boolean[] keep = Array.booleanArray(files.length, true);
+				boolean[] keep = ArrayUtils.booleanArray(files.length, true);
 				for (int i = 0; i < files.length; i++) {
 					for (String fileName : markerFileNameLoc.keySet()) {
 						if (ext.rootOf(files[i].toString()).equals(fileName)) {
@@ -561,8 +561,8 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 						}
 					}
 				}
-				File[] keptFiles = Array.subArray(files, keep);
-				File[] discards = Array.subArray(files, Array.booleanNegative(keep));
+				File[] keptFiles = ArrayUtils.subArray(files, keep);
+				File[] discards = ArrayUtils.subArray(files, ArrayUtils.booleanNegative(keep));
 
 				if (discards.length > 0) {
 					StringBuilder msg = new StringBuilder("The following data file(s) are already present:");

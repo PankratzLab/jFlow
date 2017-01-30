@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.Hashtable;
 
 import org.genvisis.cnv.manage.ExportCNVsToPedFormat;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
@@ -80,7 +80,7 @@ public class GenCNV implements Runnable {
 			if (hasVariance(phenos[i])) {
 				RegressionModel model =
 															new LeastSquares(	phenos[i].getArrayPheno(),
-																								Array.toDoubleArray(analysis.getBurdens()[i].getCounts()));
+																								ArrayUtils.toDoubleArray(analysis.getBurdens()[i].getCounts()));
 				if (!model.analysisFailed()) {
 					analysis.getBurdens()[i].setBurdenPvalue(model.getOverallSig());
 				}
@@ -99,7 +99,7 @@ public class GenCNV implements Runnable {
 				int count = 0;
 				int[] indices = ext.indexFactors(phenos[i].getArrayInds(), headers, true, true);
 				for (int k = 0; k < gpedGenos.length; k++) {
-					double[] indeps = Array.toDoubleArray(Array.subArray(gpedGenos[k], indices));
+					double[] indeps = ArrayUtils.toDoubleArray(ArrayUtils.subArray(gpedGenos[k], indices));
 					analysis.getSignificance()[i].addNumTotal();
 					// only doing burden on rare as defined by input
 					boolean common = checkIndepsFreq(analysis, indeps);
@@ -206,7 +206,7 @@ public class GenCNV implements Runnable {
 			headers = reader.readLine().trim().split("\t");
 			if (!headers[0].equals(GPED_HEADERS[0])) {
 				log.reportError("Error - Need a column header ending with the following suffixes; missing at least one");
-				log.reportError("        " + Array.toStr(GPED_HEADERS, "  "));
+				log.reportError("        " + ArrayUtils.toStr(GPED_HEADERS, "  "));
 				System.exit(1);
 			}
 			while (reader.ready()) {
@@ -326,7 +326,7 @@ public class GenCNV implements Runnable {
 			head = true;
 		} else {
 			log.reportError("Error - Need a column header ending with the following suffixes; missing at least one");
-			log.reportError("        " + Array.toStr(GPHENO_HEADERS, "  "));
+			log.reportError("        " + ArrayUtils.toStr(GPHENO_HEADERS, "  "));
 			System.exit(1);
 		}
 		return head;
@@ -603,13 +603,13 @@ public class GenCNV implements Runnable {
 		}
 
 		public String getAllloci() {
-			return Array.toStr(lociTested.toArray(new String[lociTested.size()]));
+			return ArrayUtils.toStr(lociTested.toArray(new String[lociTested.size()]));
 		}
 
 		public double getLambda() {
 			// ProbDist.ChiDistReverse(Array.median(toDoubleArray(lociTestedPvalue)),
 			// 1)/ProbDist.ChiDistReverse(0.50, 1);
-			return ProbDist.ChiDistReverse(Array.median(toDoubleArray(lociTestedPvalue)), 1)
+			return ProbDist.ChiDistReverse(ArrayUtils.median(toDoubleArray(lociTestedPvalue)), 1)
 							/ ProbDist.ChiDistReverse(0.50, 1);
 		}
 
@@ -705,7 +705,7 @@ public class GenCNV implements Runnable {
 					}
 				}
 			}
-			return Array.toStr(sortedLoci);
+			return ArrayUtils.toStr(sortedLoci);
 		}
 	}
 
@@ -855,7 +855,7 @@ public class GenCNV implements Runnable {
 
 	private static void summarizeAll(	GenCNV[] genCNVs, String dir, String gPhenoFile,
 																		String outputSerial, Logger log) {
-		log.report(Array.toStr(ANALYSIS_SUMMARY_HEADER));
+		log.report(ArrayUtils.toStr(ANALYSIS_SUMMARY_HEADER));
 		ArrayList<Significance> allSigs = new ArrayList<Significance>();
 		ArrayList<Burden> allburdens = new ArrayList<Burden>();
 
@@ -893,7 +893,7 @@ public class GenCNV implements Runnable {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(dir	+ ext.rootOf(outputSummary)
 																													+ "_lociResults.txt"));
-			writer.println(Array.toStr(ANALYSIS_LOCI_HEADER));
+			writer.println(ArrayUtils.toStr(ANALYSIS_LOCI_HEADER));
 
 			for (Significance significance : significances) {
 				double lambda = significance.getLambda();
@@ -907,7 +907,7 @@ public class GenCNV implements Runnable {
 			}
 			writer.close();
 			writer = new PrintWriter(new FileWriter(dir + outputSummary));
-			writer.println(Array.toStr(ANALYSIS_SUMMARY_HEADER));
+			writer.println(ArrayUtils.toStr(ANALYSIS_SUMMARY_HEADER));
 			for (Significance significance : significances) {
 				writer.println(significance.getFullAnalysis());
 			}
@@ -994,7 +994,7 @@ public class GenCNV implements Runnable {
 			writer.println();
 			for (String uniqInd : uniqInds) {
 				String indKey = uniqInd.split(ID_DELIMITER)[0];
-				writer.print(Array.toStr(uniqInd.split(ID_DELIMITER)));
+				writer.print(ArrayUtils.toStr(uniqInd.split(ID_DELIMITER)));
 				for (PrepResults prepResult : prepResults) {
 					if (prepResult.getTracker().containsKey(indKey)) {
 						writer.print("\t" + prepResult.getPhenoValues()[prepResult.getTracker().get(indKey)]);

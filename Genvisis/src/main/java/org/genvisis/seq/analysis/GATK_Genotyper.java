@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -93,7 +93,7 @@ public class GATK_Genotyper {
 				log.reportTimeInfo("Applying merge " + mergeVCF.getArg() + " prior to annotation");
 				in = VCFOps.getAppropriateRoot(inputVCF, false) + ".merge_" + mergeVCF.getTag() + ".vcf";
 				log.reportTimeInfo("Output merge: " + in);
-				gatk.mergeVCFs(	Array.concatAll(new String[] {inputVCF}, mergeVCF.getVcfsToMergeWith()), in,
+				gatk.mergeVCFs(	ArrayUtils.concatAll(new String[] {inputVCF}, mergeVCF.getVcfsToMergeWith()), in,
 												numWithinSampleThreads, false, log);
 				out = in;
 			}
@@ -154,7 +154,7 @@ public class GATK_Genotyper {
 										ANNOVCF annoVCF, boolean annotate, int memoryInMB, int wallTimeInHours,
 										String baseName) {
 		// TODO, change classpath
-		String command = Array.toStr(PSF.Load.getAllModules(), "\n");
+		String command = ArrayUtils.toStr(PSF.Load.getAllModules(), "\n");
 		command += "\njava -Xmx" + memoryInMB + "m -jar parkGATK.jar seq.analysis.GATK_Genotyper ";
 		command += GATK_LanePrep.ROOT_INPUT_COMMAND + jointGATKGenotyper.getRootInputDir() + SPACE;
 		command += GATK_LanePrep.ROOT_OUTPUT_COMMAND + rootOutputDir + SPACE;
@@ -194,7 +194,7 @@ public class GATK_Genotyper {
 
 	public void runSingleSampleAllSites(String[] inputBams) {
 
-		if (!isFail() && Files.checkAllFiles("", inputBams, verbose, log)) {
+		if (!isFail() && Files.checkAllFiles("", verbose, log, inputBams)) {
 			if (inputBams != null) {
 				siSampleHaplotypeCallers = new GATK.SingleSampleHaplotypeCaller[inputBams.length];
 				int[] actualWithinSampleThreads = optimizeThreads(inputBams.length, numBetweenSampleThreads,
@@ -246,7 +246,7 @@ public class GATK_Genotyper {
 									+ " Info - since we have extra between sample threads, we will allocate some to within sample(s) threads");
 			log.report(ext.getTime()+ " Info - allocated " + (numBetweenSampleThreads - numInputs)
 									+ " extra thread(s) within sample(s) as follows: "
-									+ Array.toStr(optimizedWithin));
+									+ ArrayUtils.toStr(optimizedWithin));
 		}
 		return optimizedWithin;
 	}
@@ -556,7 +556,7 @@ public class GATK_Genotyper {
 		}
 
 		private String getArg() {
-			return tag + ":" + Array.toStr(vcfsToMergeWith, ",");
+			return tag + ":" + ArrayUtils.toStr(vcfsToMergeWith, ",");
 
 		}
 
@@ -596,7 +596,7 @@ public class GATK_Genotyper {
 		}
 
 		public String getArg() {
-			return tag + ":" + vcf + ":" + Array.toStr(annos, ",");
+			return tag + ":" + vcf + ":" + ArrayUtils.toStr(annos, ",");
 
 		}
 
@@ -712,7 +712,7 @@ public class GATK_Genotyper {
 		usage += "   (17) full path to the SNP EFF directory (i.e. "+ SNPEFF.SNP_EFF_COMMAND
 							+ " ( no default))\n" + "";
 		usage += "   (18) the build version for SNP EFF annotation (options are "
-							+ Array.toStr(SNPEFF.BUILDS, ", ") + " (i.e. " + SNPEFF.SNP_EFF_BUILD_COMMAND
+							+ ArrayUtils.toStr(SNPEFF.BUILDS, ", ") + " (i.e. " + SNPEFF.SNP_EFF_BUILD_COMMAND
 							+ annoBuild + " ( default))\n" + "";
 		usage +=
 					"   (19) full path to the SNP SIFT directory (only if different from the SNP EFF directory) (i.e. "

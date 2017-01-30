@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -141,7 +141,7 @@ public class Eigenstrat {
 		numEigens =
 							Files.getHeaderOfFile(sourceRoot + ".weights.out", "[\\s]+", new Logger()).length - 3;
 		weightsHash = HashVec.loadFileToHashString(sourceRoot	+ ".weights.out", 0,
-																								Arrays.copyOfRange(	Array.arrayOfIndices(numEigens
+																								Arrays.copyOfRange(	ArrayUtils.arrayOfIndices(numEigens
 																																													+ 3),
 																																		3, numEigens + 3),
 																								"\t", false);
@@ -166,7 +166,7 @@ public class Eigenstrat {
 		count = 0;
 		for (int i = 0; i < markerNames.length; i++) {
 			if (weightsHash.containsKey(markerNames[i])) {
-				weights[i] = Array.toDoubleArray(weightsHash.remove(markerNames[i]).split("[\\s]+"));
+				weights[i] = ArrayUtils.toDoubleArray(weightsHash.remove(markerNames[i]).split("[\\s]+"));
 
 				str = strandHash.get(markerNames[i]);
 				if (str == null) {
@@ -229,7 +229,7 @@ public class Eigenstrat {
 																+ targetRoot + ".fam"
 															+ " is present in the same directory, that will be used instead");
 					ids = HashVec.loadFileToVec(targetRoot + ".fam", false, new int[] {0, 1}, false, false);
-					if (!Array.equals(Matrix.extractColumn(	Array.splitStrings(	Array.toStringArray(ids),
+					if (!ArrayUtils.equals(Matrix.extractColumn(	ArrayUtils.splitStrings(	ArrayUtils.toStringArray(ids),
 																																			true),
 																									1),
 														HashVec.loadFileToStringArray(targetRoot	+ ".ind", false, new int[] {0},
@@ -322,7 +322,7 @@ public class Eigenstrat {
 		try {
 			writer = new PrintWriter(new FileWriter(targetRoot	+ (fancy_weighting ? "_fancy" : "")
 																							+ "_eigens.xln"));
-			writer.println("FID\tIID\t" + Array.toStr(Array.stringArraySequence(numEigens, "C")));
+			writer.println("FID\tIID\t" + ArrayUtils.toStr(ArrayUtils.stringArraySequence(numEigens, "C")));
 			for (int i = 0; i < ids.size(); i++) {
 				writer.print(ids.elementAt(i));
 				for (int j = 0; j < numEigens; j++) {
@@ -341,13 +341,13 @@ public class Eigenstrat {
 		stdevs = new double[numEigens];
 		for (int i = 0; i < numEigens; i++) {
 			array = Matrix.extractColumn(scoreMatrix, i);
-			means[i] = Array.mean(array);
-			stdevs[i] = Array.stdev(array);
+			means[i] = ArrayUtils.mean(array);
+			stdevs[i] = ArrayUtils.stdev(array);
 		}
 		try {
 			writer = new PrintWriter(new FileWriter(targetRoot	+ (fancy_weighting ? "_fancy" : "")
 																							+ "_postnormed_eigens.xln"));
-			writer.println("FID\tIID\t" + Array.toStr(Array.stringArraySequence(numEigens, "C")));
+			writer.println("FID\tIID\t" + ArrayUtils.toStr(ArrayUtils.stringArraySequence(numEigens, "C")));
 			sampleSizeCorrection = Math.sqrt(ids.size());
 			for (int i = 0; i < ids.size(); i++) {
 				writer.print(ids.elementAt(i));
@@ -417,7 +417,7 @@ public class Eigenstrat {
 					System.exit(1);
 				}
 				writer.println(ids[count][0]	+ "\t" + ids[count][1] + "\t"
-												+ Array.toStr(Array.subArray(line, 1)));
+												+ ArrayUtils.toStr(ArrayUtils.subArray(line, 1)));
 				count++;
 			}
 			writer.close();

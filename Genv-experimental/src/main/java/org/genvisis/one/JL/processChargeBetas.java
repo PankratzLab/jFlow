@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.genvisis.cnv.analysis.pca.BetaOptimizer;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -38,12 +38,12 @@ public class processChargeBetas {
 				while (reader.ready()) {
 					String[] line = reader.readLine().trim().split("\t");
 					if (line[0].equals("ID")) {
-						writer.println(Array.toStr(BetaOptimizer.BETA_HEADER));
+						writer.println(ArrayUtils.toStr(BetaOptimizer.BETA_HEADER));
 						indices = ext.indexFactors(required, line, true, false);
 					}
 
 					else if (indices != null) {
-						writer.println(Array.toStr(Array.subArray(line, indices)));
+						writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, indices)));
 					}
 				}
 				writer.close();

@@ -1,6 +1,6 @@
 package org.genvisis.db;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -119,7 +119,7 @@ public class Filter {
 	public void determineIndices(String[] header) throws Elision {
 		try {
 			variableIndices = ext.indexFactors(variableNames, header, false, false);
-			if (Array.min(variableIndices) == -1) {
+			if (ArrayUtils.min(variableIndices) == -1) {
 				throw new Elision("Filter variable name was not found in the file to be filtered");
 			}
 		} catch (Exception e) {

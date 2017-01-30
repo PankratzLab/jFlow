@@ -14,7 +14,7 @@ import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.AlleleFreq;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Numbers;
@@ -632,8 +632,8 @@ public class MarkerData implements Serializable {
 		}
 
 		// System.out.println("error="+error+" count="+count);
-		return new double[] {	Correlation.Pearson(Array.subArray(originalLRRs, 0, count),
-																							Array.subArray(compLRRs, 0, count))[0],
+		return new double[] {	Correlation.Pearson(ArrayUtils.subArray(originalLRRs, 0, count),
+																							ArrayUtils.subArray(compLRRs, 0, count))[0],
 													error / count};
 	}
 
@@ -731,8 +731,8 @@ public class MarkerData implements Serializable {
 			clusterCenters[2] = new float[] {0, 1};
 		}
 
-		ab_bb_xMidpoint = Array.mean(new float[] {clusterCenters[1][0], clusterCenters[2][0]});
-		aa_ab_yMidpoint = Array.mean(new float[] {clusterCenters[0][1], clusterCenters[1][1]});
+		ab_bb_xMidpoint = ArrayUtils.mean(new float[] {clusterCenters[1][0], clusterCenters[2][0]});
+		aa_ab_yMidpoint = ArrayUtils.mean(new float[] {clusterCenters[0][1], clusterCenters[1][1]});
 
 
 		x = new DoubleVector();
@@ -754,11 +754,11 @@ public class MarkerData implements Serializable {
 		// }
 		// System.out.print(x.size()+"\t"+y.size()+"\t");
 
-		return (x.size() > 0	? Array.getLocalModes(Doubles.toArray(x),
+		return (x.size() > 0	? ArrayUtils.getLocalModes(Doubles.toArray(x),
 																								proportionOfLastPeakRequiredForNewLocalMinima,
 																								proportionOfGlobalMaxRequiredForLocalMaxima).length
 													: 0)
-						+ (y.size() > 0	? Array.getLocalModes(Doubles.toArray(y),
+						+ (y.size() > 0	? ArrayUtils.getLocalModes(Doubles.toArray(y),
 																									proportionOfLastPeakRequiredForNewLocalMinima,
 																									proportionOfGlobalMaxRequiredForLocalMaxima).length
 														: 0);

@@ -16,7 +16,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -69,7 +69,7 @@ public class simulateNullDistribution {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			numCols = reader.readLine().split("\t").length;
-			if (numCols < Array.max(new int[] {famCol, indCol, affCol, allCol})) {
+			if (numCols < ArrayUtils.max(new int[] {famCol, indCol, affCol, allCol})) {
 				System.err.println("Error - there are fewer columns than the max column specified");
 				System.exit(1);
 			}
@@ -118,7 +118,7 @@ public class simulateNullDistribution {
 						affs = phenos.get(prev);
 						for (int i = 0; i < v.size(); i++) {
 							trav = v.elementAt(i).split("[\\s]+");
-							writer.println(Array.toStr(trav, "\t")	+ "\t" + (affs.containsKey(trav[1])
+							writer.println(ArrayUtils.toStr(trav, "\t")	+ "\t" + (affs.containsKey(trav[1])
 																																														? (Integer.parseInt(affs.get(trav[1]))
 																																															+ 1)
 																																														+ "\t1\t1"
@@ -144,7 +144,7 @@ public class simulateNullDistribution {
 					System.err.println("Error - more than one individual found in a family not found in ninfo2: "
 																+ fam + "\n"
 															+ "        The following indivuals will be listed as unrelated: "
-															+ Array.toStr(Array.toStringArray(v), ",") + "");
+															+ ArrayUtils.toStr(ArrayUtils.toStringArray(v), ",") + "");
 				}
 				for (int j = 0; j < v.size(); j++) {
 					writer.println(fam	+ "\t" + v.elementAt(j) + "\t0\t0\t2\t"
@@ -203,8 +203,8 @@ public class simulateNullDistribution {
 		for (int i = 0; i < REP_STEP; i++) {
 			alleleFreqs[i] = freqs;
 		}
-		new LinkageMap(	1, Array.stringArraySequence(REP_STEP, "Rep"), alleleFreqs,
-										Array.doubleArray(REP_STEP, 50), false, false).createFile("map.dat");
+		new LinkageMap(	1, ArrayUtils.stringArraySequence(REP_STEP, "Rep"), alleleFreqs,
+										ArrayUtils.doubleArray(REP_STEP, 50), false, false).createFile("map.dat");
 
 		try {
 			writer = new PrintWriter(new FileWriter("simulate.opt"));
@@ -286,7 +286,7 @@ public class simulateNullDistribution {
 				for (int j = 0; j < REP_STEP; j++) {
 					model = new LogisticRegression(deps, indeps[j], false, false);
 					model.onePerFamily(fams, FAM_REPS_DEFAULT, BOOT_REPS_DEFAULT);
-					writer.println(Array.toStr(model.getStats()) + "\t" + Array.toStr(model.getBetas()));
+					writer.println(ArrayUtils.toStr(model.getStats()) + "\t" + ArrayUtils.toStr(model.getBetas()));
 					writer.flush();
 				}
 				writer.close();

@@ -1,6 +1,6 @@
 package org.genvisis.stats;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.mining.Transformations;
 
 public class Correlation {
@@ -19,7 +19,7 @@ public class Correlation {
 		} else if (data[0].length != data[1].length) {
 			System.err.println("Error - PearsonCorrelation requires the 2 arrays to have equal N");
 		} else {
-			zScores = new double[][] {Array.normalize(data[0]), Array.normalize(data[1])};
+			zScores = new double[][] {ArrayUtils.normalize(data[0]), ArrayUtils.normalize(data[1])};
 			results[0] = 0;
 			count = 0;
 			for (int i = 0; i < data[0].length; i++) {

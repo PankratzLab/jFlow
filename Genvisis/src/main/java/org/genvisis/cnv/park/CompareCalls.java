@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
@@ -127,7 +127,7 @@ public class CompareCalls {
 						}
 					}
 					writer.println(ind	+ "\t" + cnvs[0].length + "\t" + cnvs[1].length + "\t"
-													+ Array.toStr(counts));
+													+ ArrayUtils.toStr(counts));
 				}
 				writer.close();
 			} catch (Exception e) {
@@ -145,7 +145,7 @@ public class CompareCalls {
 
 		String usage = "\\n"	+ "park.cnv.ComparePlinkResults requires 0-1 arguments\n"
 										+ "   (1) directory (i.e. dir=" + rootDirectory + " (default))\n"
-										+ "   (2) files to be compared (i.e. files=" + Array.toStr(files, ",")
+										+ "   (2) files to be compared (i.e. files=" + ArrayUtils.toStr(files, ",")
 										+ " (default))\n" + "";
 
 		for (String arg : args) {

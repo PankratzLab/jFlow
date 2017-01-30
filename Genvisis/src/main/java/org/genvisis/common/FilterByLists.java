@@ -76,7 +76,7 @@ public class FilterByLists {
 		} else {
 			if (filename.contains(";")) {
 				listFile = filename.substring(0, filename.indexOf(";"));
-				listCols = Array.toIntArray(filename.substring(filename.indexOf(";") + 1).split(","));
+				listCols = ArrayUtils.toIntArray(filename.substring(filename.indexOf(";") + 1).split(","));
 			} else {
 				listFile = filename;
 				listCols = new int[] {0};
@@ -149,7 +149,7 @@ public class FilterByLists {
 			while (reader.ready()) {
 				temp = reader.readLine();
 				line = temp.trim().split(commaDelimited ? "," : "[\\s]+");
-				key = Array.toStr(Array.subArray(line, cols));
+				key = ArrayUtils.toStr(ArrayUtils.subArray(line, cols));
 				if (isFirstLine && keepFirstLine) {
 					writer.println(temp);
 					isFirstLine = false;

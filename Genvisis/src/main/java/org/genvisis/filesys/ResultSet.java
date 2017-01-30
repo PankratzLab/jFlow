@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 
@@ -74,7 +74,7 @@ public class ResultSet implements Serializable {
 			}
 			for (int i = 0; i < numMarkers; i++) {
 				line = reader.readLine().trim().split("[\\s]+");
-				if (Array.max(result_indices) >= line.length) {
+				if (ArrayUtils.max(result_indices) >= line.length) {
 					System.err.println("Error - required column does not exist for the marker in row "
 															+ (i + 1));
 					System.exit(1);
@@ -148,7 +148,7 @@ public class ResultSet implements Serializable {
 		positions = markerSet.getPositions();
 		alleles = markerSet.getAlleles();
 
-		line = new String[Math.max(Array.max(snp_indices), Array.max(result_indices)) + 1];
+		line = new String[Math.max(ArrayUtils.max(snp_indices), ArrayUtils.max(result_indices)) + 1];
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
 			for (int i = 0; i < markerNames.length; i++) {
@@ -182,7 +182,7 @@ public class ResultSet implements Serializable {
 				if (result_indices[3] != -1 && annotation != null) {
 					line[result_indices[3]] = annotation[i];
 				}
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 			}
 			writer.close();
 		} catch (Exception e) {

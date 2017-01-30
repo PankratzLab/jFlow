@@ -160,7 +160,7 @@ public class HttpUpdate {
 		}
 
 		private int[] parse() {
-			int[] v = Array.toIntArray(version.replaceAll("v", "").split("\\."));
+			int[] v = ArrayUtils.toIntArray(version.replaceAll("v", "").split("\\."));
 			return v;
 
 		}

@@ -7,7 +7,7 @@ import org.apache.commons.math3.distribution.MixtureMultivariateNormalDistributi
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.apache.commons.math3.distribution.fitting.MultivariateNormalMixtureExpectationMaximization;
 import org.apache.commons.math3.util.Pair;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -67,8 +67,8 @@ public class Em {
 		double[] x = Doubles.toArray(xt);
 		double[] y = Doubles.toArray(yt);
 
-		Logicle mehx = getBiexScale(Array.max(x));
-		Logicle mehy = getBiexScale(Array.max(y));
+		Logicle mehx = getBiexScale(ArrayUtils.max(x));
+		Logicle mehy = getBiexScale(ArrayUtils.max(y));
 
 		for (int i = 0; i < y.length; i++) {
 			x[i] = mehx.scale(x[i]);
@@ -85,8 +85,8 @@ public class Em {
 		MixtureMultivariateNormalDistribution finalMix = mle.getFittedModel();
 		List<Pair<Double, MultivariateNormalDistribution>> dists = finalMix.getComponents();
 		for (Pair<Double, MultivariateNormalDistribution> pair : dists) {
-			log.reportTimeInfo("Means: " + Array.toStr(pair.getValue().getMeans()));
-			log.reportTimeInfo("SDs: " + Array.toStr(pair.getValue().getStandardDeviations()));
+			log.reportTimeInfo("Means: " + ArrayUtils.toStr(pair.getValue().getMeans()));
+			log.reportTimeInfo("SDs: " + ArrayUtils.toStr(pair.getValue().getStandardDeviations()));
 		}
 
 		Files.writeIterable(out, ext.parseDirectoryOfFile(export) + "export.biexp.txt");

@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -242,8 +242,8 @@ public class Additionals {
 												+ "\t" + (data.elementAt(3).size()) + "\t"
 												+ (data.elementAt(0).size() + data.elementAt(1).size()) + "\t" + (numDads)
 												+ "\t" + (numMoms) + "\t"
-												+ (Array.toStr(Array.toStringArray(data.elementAt(2)), " ")) + "\t"
-												+ (Array.toStr(Array.toStringArray(data.elementAt(6)), " ")));
+												+ (ArrayUtils.toStr(ArrayUtils.toStringArray(data.elementAt(2)), " ")) + "\t"
+												+ (ArrayUtils.toStr(ArrayUtils.toStringArray(data.elementAt(6)), " ")));
 
 			}
 

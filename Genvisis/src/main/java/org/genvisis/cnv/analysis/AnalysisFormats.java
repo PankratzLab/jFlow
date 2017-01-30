@@ -21,11 +21,12 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.Centroids.CENTROID_STRATEGY;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -201,35 +202,8 @@ public class AnalysisFormats implements Runnable {
 		}
 	}
 
-	public static boolean[] getChromosomalMarkersOnly(Project proj) {
-		MarkerSet ms;
-		final String[] allMarkers;
-		byte[] markerChrs;
-		boolean[] includeMarkersList;
-
-		ms = proj.getMarkerSet();
-		allMarkers = ms.getMarkerNames();
-		markerChrs = ms.getChrs();
-		includeMarkersList = new boolean[allMarkers.length];
-
-		for (int i = 0; i < markerChrs.length; i++) {
-			switch (markerChrs[i]) {
-				case 23:
-				case 24:
-				case 25:
-				case 26:
-					includeMarkersList[i] = true;
-					break;
-				default:
-					includeMarkersList[i] = false;
-					break;
-			}
-		}
-		return includeMarkersList;
-	}
-
 	@SuppressWarnings("unchecked")
-	public static String[] pennCNVSexHackMultiThreaded(	Project proj, String gcModelFile,
+	public static String[] pennCNVSexHackMultiThreaded(	Project proj, String gcModelFile, CENTROID_STRATEGY chr11Strategy, 
 																											boolean useExcluded, int threadCount) {
 		String sampleDataFile;
 		final String sampleDir;
@@ -245,11 +219,29 @@ public class AnalysisFormats implements Runnable {
 		byte[] markerChrs;
 		final boolean jar;
 		final boolean gzip;
+		final boolean[] centroidsMarkersList;
 		final boolean[] includeMarkersList;
 		boolean[] includeSamplesList;
 		final Hashtable<String, Vector<String>> sexData;
+		final HashSet<String> chr11Markers = new HashSet<String>();
 		Centroids[] centroids;
-
+		
+		String centFile = proj.CUSTOM_CENTROIDS_FILENAME.getValue();
+		
+		boolean computeCentroids = chr11Strategy == CENTROID_STRATEGY.COMPUTE_CENT; 
+		Centroids tempCentroids = null;
+		if (chr11Strategy == CENTROID_STRATEGY.USE_CENT_IF_EXISTS_OTHERWISE_ORIG || chr11Strategy == CENTROID_STRATEGY.USE_CENT_IF_EXISTS_OTHERWISE_COMPUTE) {
+			if (Files.exists(centFile)) {
+				tempCentroids = Centroids.load(centFile, proj.JAR_STATUS.getValue());
+			} else if (chr11Strategy == CENTROID_STRATEGY.USE_CENT_IF_EXISTS_OTHERWISE_COMPUTE) {
+				computeCentroids = true;
+			}
+		}
+		if (computeCentroids) {
+			tempCentroids = CentroidCompute.computeAndDumpCentroids(proj);
+		}
+		final Centroids autoCentroids = tempCentroids;
+		
 		final Logger log = proj.getLog();
 
 		sexDir = proj.PENNCNV_DATA_DIRECTORY.getValue() + "sexSpecific/";
@@ -275,8 +267,7 @@ public class AnalysisFormats implements Runnable {
 			// datastructures, hence not using the utility method;
 			allMarkers = ms.getMarkerNames();
 			markerChrs = ms.getChrs();
-			Vector<String> markerList = new Vector<String>();
-			final Hashtable<String, Integer> markersToIndices = new Hashtable<String, Integer>();
+			centroidsMarkersList = new boolean[allMarkers.length];
 			includeMarkersList = new boolean[allMarkers.length];
 
 			for (int i = 0; i < markerChrs.length; i++) {
@@ -285,9 +276,12 @@ public class AnalysisFormats implements Runnable {
 					case 24:
 					case 25:
 					case 26:
+						centroidsMarkersList[i] = true;
 						includeMarkersList[i] = true;
-						markerList.add(allMarkers[i]);
-						markersToIndices.put(allMarkers[i], i);
+						break;
+					case 11:
+						includeMarkersList[i] = true;
+						chr11Markers.add(allMarkers[i]);
 						break;
 					default:
 						includeMarkersList[i] = false;
@@ -299,10 +293,10 @@ public class AnalysisFormats implements Runnable {
 			centroids = new Centroids[] {	Centroids.load(centFilePathM, proj.JAR_STATUS.getValue()),
 																		Centroids.load(centFilePathM, proj.JAR_STATUS.getValue())};
 		} else {
-			centroids = Centroids.computeSexSpecificCentroids(proj, includeMarkersList,
+			centroids = Centroids.computeSexSpecificCentroids(proj,
 																												new String[] {malePFBFile, femalePFBFile},
 																												new String[] {centFilePathM, centFilePathF},
-																												true, threadCount);
+																												threadCount);
 		}
 		final float[][][] rawCentroidsMale;
 		final float[][][] rawCentroidsFemale;
@@ -313,7 +307,6 @@ public class AnalysisFormats implements Runnable {
 
 		sampleDir = proj.SAMPLE_DIRECTORY.getValue(false, true);
 		jar = proj.JAR_STATUS.getValue();
-		// gzip = proj.getBoolean(proj.PENNCNV_GZIP_YESNO);
 		gzip = proj.PENNCNV_GZIP_YESNO.getValue();
 
 		if (!useExcluded) {
@@ -321,7 +314,7 @@ public class AnalysisFormats implements Runnable {
 			if (!sampleData.hasExcludedIndividuals()) {
 				log.report("Warning - there is no 'Exclude' column in SampleData.txt; centroids will be determined using all samples.");
 			}
-			allSamples = Array.subArray(proj.getSamples(), includeSamplesList);
+			allSamples = ArrayUtils.subArray(proj.getSamples(), includeSamplesList);
 		} else {
 			allSamples = proj.getSamples();
 		}
@@ -380,15 +373,13 @@ public class AnalysisFormats implements Runnable {
 						String exportFileName = (compFemale ? femaleDir : maleDir)	+ sampleName
 																		+ (gzip ? ".gz" : "");
 						if (!Files.exists(exportFileName)) {
-							log.report(ext.getTime()	+ "\tExporting " + (sampleIndex + 1) + " of "
-													+ allSamples.length);
+							log.report(ext.getTime()	+ "\tExporting " + (sampleIndex + 1) + " of " + allSamples.length);
 							if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_FILE_EXTENSION, jar)) {
 								mySample = Sample.loadFromRandomAccessFile(sampleDir	+ sampleName
 																														+ Sample.SAMPLE_FILE_EXTENSION, false,
 																														true, false, false, true, jar);
 							} else {
-								log.reportError("Error - the "	+ sampleName + Sample.SAMPLE_FILE_EXTENSION
-																+ " is not found.");
+								log.reportError("Error - the "	+ sampleName + Sample.SAMPLE_FILE_EXTENSION + " is not found.");
 								// TODO okay to just skip this sample instead of halting entirely?
 								continue;
 							}
@@ -403,25 +394,33 @@ public class AnalysisFormats implements Runnable {
 								writer.println("Name\t"	+ sampleName + ".GType\t" + sampleName + ".Log R Ratio\t"
 																+ sampleName + ".B Allele Freq");
 								for (int j = 0; j < allMarkers.length; j++) {
-									if (!includeMarkersList[j]
-											|| null == (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j])) {
+									if (!includeMarkersList[j] || null == (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j])) {
 										continue;
 									}
-
-									float lrr =
-														Centroids.calcLRR(thetas[j], rs[j], (compFemale	? rawCentroidsFemale[j]
-																																						: rawCentroidsMale[j]));
-									float baf = Centroids.calcBAF(thetas[j], (compFemale	? rawCentroidsFemale[j]
-																																				: rawCentroidsMale[j]));
-
-									writer.println(allMarkers[j]	+ "\t"
-																	+ (genotypes[j] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[j]])
-																	+ "\t" + lrr + "\t" + baf);
+									
+									float lrr;
+									float baf;
+									
+									if (chr11Markers.contains(allMarkers[j])) {
+										
+										if (autoCentroids == null) {
+											lrr = mySample.getLRRs()[j];
+											baf = mySample.getBAFs()[j];
+										} else {
+											lrr = mySample.getLRRs(autoCentroids.getCentroids())[j];
+											baf = mySample.getBAFs(autoCentroids.getCentroids())[j];
+										}
+										
+									} else {
+										lrr = Centroids.calcLRR(thetas[j], rs[j], (compFemale	? rawCentroidsFemale[j] : rawCentroidsMale[j]));
+										baf = Centroids.calcBAF(thetas[j], (compFemale	? rawCentroidsFemale[j] : rawCentroidsMale[j]));
+									}
+									
+									writer.println(allMarkers[j]	+ "\t" + (genotypes[j] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[j]]) + "\t" + lrr + "\t" + baf);
 								}
 								writer.close();
 							} catch (Exception e) {
-								log.reportError("Error writing sex-specific ("	+ (compFemale ? "female" : "male")
-																+ ") PennCNV data for " + sampleName);
+								log.reportError("Error writing sex-specific ("	+ (compFemale ? "female" : "male") + ") PennCNV data for " + sampleName);
 								log.reportException(e);
 							}
 						} else {
@@ -530,7 +529,7 @@ public class AnalysisFormats implements Runnable {
 					break;
 			}
 		}
-		sexMarkers = Array.toStringArray(markerList);
+		sexMarkers = ArrayUtils.toStringArray(markerList);
 
 		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, sexMarkers);
 
@@ -775,43 +774,39 @@ public class AnalysisFormats implements Runnable {
 		return new String[] {malePFBFile, femalePFBFile, newGCFile};
 	}
 
-	public static String filterSexSpecificGCModel(Project proj, String gcModelFile,
-																								String newGCFile) {
+	public static String filterSexSpecificGCModel(Project proj, String gcModelFile, String newGCFile) {
 		// TODO combine method with filter methods in PennCNV - only difference is changing chr #
 		BufferedReader reader = null;
 		PrintWriter writer = null;
-		String[] chrs = new String[] {"23", "X", "24", "Y", "25", "XY", "26", "M"};
+		String[] chrs = new String[] {"11", "23", "X", "24", "Y", "25", "XY", "26", "M"};
 
 		try {
 			(new File(ext.parseDirectoryOfFile(newGCFile))).mkdirs();
 			reader = new BufferedReader(new FileReader(gcModelFile));
 			writer = new PrintWriter(new FileWriter(newGCFile));
 
-			String header;
 			String temp;
 			String[] line;
-			if (reader.ready()) {
-				header = reader.readLine();
-				writer.println(header);
-			}
-			while (reader.ready()) {
-				temp = reader.readLine();
+			writer.println(reader.readLine());
+			gc : while ((temp = reader.readLine()) != null) {
 				line = temp.trim().split("[\\s]+");
 				for (String chr : chrs) {
 					if (line[1].equals(chr)) {
-
 						byte chrVal = 0;
-						if ("23".equals(chr) || "X".equals(chr)) {
+						if ("11".equals(chr)) {
+							chrVal = 11;
+						} else if ("23".equals(chr) || "X".equals(chr)) {
 							chrVal = 23;
 						} else if ("24".equals(chr) || "Y".equals(chr)) {
-							chrVal = 25;
+							chrVal = 24;
 						} else if ("25".equals(chr) || "XY".equals(chr)) {
-							chrVal = 26;
+							chrVal = 25;
 						} else if ("26".equals(chr) || "M".equals(chr)) {
-							chrVal = 27;
+							chrVal = 26;
 						}
 
-						writer.println(line[0] + "\t" + (chrVal - 22) + "\t" + line[2] + "\t" + line[3]);
+						writer.println(line[0] + "\t" + (chrVal == 11 ? chrVal : (chrVal - 22)) + "\t" + line[2] + "\t" + line[3]);
+						continue gc;
 					}
 				}
 			}
@@ -976,7 +971,7 @@ public class AnalysisFormats implements Runnable {
 		threads = new Thread[numThreads];
 		for (int i = 0; i < numThreads; i++) {
 			threads[i] = new Thread(new AnalysisFormats(proj,
-																									Array.toStringArray(sampleLists.elementAt(i)),
+																									ArrayUtils.toStringArray(sampleLists.elementAt(i)),
 																									program, hash, 1));
 			threads[i].start();
 			try {

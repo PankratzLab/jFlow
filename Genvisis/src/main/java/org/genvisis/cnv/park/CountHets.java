@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class CountHets {
@@ -75,7 +75,7 @@ public class CountHets {
 
 		try {
 			writer = new PrintWriter(new FileWriter(dir + filename + "_hetCounts.xln"));
-			writer.println(Array.toStr(EXPECTED_HEADER)
+			writer.println(ArrayUtils.toStr(EXPECTED_HEADER)
 											+ "\t#Markers\t%CalledHet\t%0.15<BAF,0.85\t%0.25<BAF,0.75");
 			for (int i = 0; i < hashKeys.size(); i++) {
 				v = hash.get(hashKeys.elementAt(i));

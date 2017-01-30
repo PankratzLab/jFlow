@@ -3,7 +3,7 @@ package org.genvisis.seq.analysis;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -76,7 +76,7 @@ public class PlinkSeqIteration {
 		usage += "   (6) project name  (i.e. projName=" + projName + " (default))\n" + "";
 		usage += "   (7) overwrite existing files  (i.e. -overwriteExisting (default))\n" + "";
 		usage += "   (8) comma -delimted loc groups to test in the association  (i.e. locGroups="
-							+ Array.toStr(locGroups, ",") + " (default))\n" + "";
+							+ ArrayUtils.toStr(locGroups, ",") + " (default))\n" + "";
 		usage += "   (9) mac start  (i.e. macStart=" + macStart + " (default))\n" + "";
 		usage += "   (9) mac stop  (i.e. macStop=" + macStop + " (default))\n" + "";
 

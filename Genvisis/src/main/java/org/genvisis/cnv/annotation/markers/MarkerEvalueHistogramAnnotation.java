@@ -1,10 +1,10 @@
-package org.genvisis.cnv.annotation;
+package org.genvisis.cnv.annotation.markers;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.stats.Histogram.DynamicHistogram;
@@ -39,7 +39,7 @@ public class MarkerEvalueHistogramAnnotation extends HistogramAnnotation {
 			data.add(key);
 			data.add(exactHistogram.get(key).toString());
 		}
-		setData(Array.toStr(data, DEFUALT_DELIMITER));
+		setData(ArrayUtils.toStr(data, DEFUALT_DELIMITER));
 	}
 
 	public void addExactHistogram(double d) {

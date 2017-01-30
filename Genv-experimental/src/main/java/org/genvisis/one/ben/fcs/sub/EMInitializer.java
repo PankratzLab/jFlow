@@ -13,7 +13,7 @@ import org.apache.commons.math3.distribution.fitting.MultivariateNormalMixtureEx
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.util.Pair;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -44,7 +44,7 @@ public class EMInitializer {
   }
 
   private static Logicle getLogicle(double[] data) {
-    return getBiexScale(Array.max(data));
+    return getBiexScale(ArrayUtils.max(data));
   }
 
   private static double[][] transpose(double[][] matrixData) {
@@ -167,7 +167,7 @@ public class EMInitializer {
 
       writer2 = Files.getAppropriateWriter(DIST_DIR + filename + ".comp" + ".covars");
       for (double[] d : covars) {
-        writer2.println("" + Array.toStr(d, "\t"));
+        writer2.println("" + ArrayUtils.toStr(d, "\t"));
       }
       writer2.flush();
       writer2.close();

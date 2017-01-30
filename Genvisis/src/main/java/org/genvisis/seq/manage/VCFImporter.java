@@ -23,7 +23,7 @@ import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -325,7 +325,7 @@ public class VCFImporter {
 													int numRounds, int numThreads) {
 		String[] samples = VCFOps.getSamplesInFile(new VCFFileReader(new File(vcf), true));
 
-		List<String[]> sampleChunks = Array.splitUpArray(samples, numRounds, proj.getLog());
+		List<String[]> sampleChunks = ArrayUtils.splitUpArray(samples, numRounds, proj.getLog());
 		WorkerHive<ConversionResults> hive = new WorkerHive<VCFImporter.ConversionResults>(	numThreads,
 																																												10,
 																																												proj.getLog());
@@ -448,9 +448,9 @@ public class VCFImporter {
 		projNorm.saveProperties();
 		String pretendMedian = projNorm.PROJECT_DIRECTORY.getValue() + "pretendMedian.txt";
 
-		Files.writeArray(Array.subArray(projNorm.getAutosomalMarkers(), 0, 100), pretendMedian);
+		Files.writeArray(ArrayUtils.subArray(projNorm.getAutosomalMarkers(), 0, 100), pretendMedian);
 		String useFile = projNorm.PROJECT_DIRECTORY.getValue() + "VCF_SAMPLES_TO_USE.txt";
-		Files.writeArray(	Array.subArray(projNorm.getSamples(),
+		Files.writeArray(	ArrayUtils.subArray(projNorm.getSamples(),
 																		projNorm.getSamplesToInclude(null, true)),
 											useFile);
 		projNorm.getSamplesToInclude(null);

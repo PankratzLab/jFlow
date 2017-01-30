@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -70,7 +70,7 @@ public class BamSoftClip {
 					int numSoft = 0;
 					rgs.add(samRecord.getReadGroup().getId());
 					Cigar cigar = samRecord.getCigar();
-					String[] bases = Array.decodeByteArray(samRecord.getReadBases(), log);
+					String[] bases = ArrayUtils.decodeByteArray(samRecord.getReadBases(), log);
 					int curStart = 0;
 					int readIndex = 0;
 					for (CigarElement cigarElement : cigar.getCigarElements()) {
@@ -79,7 +79,7 @@ public class BamSoftClip {
 						}
 						if (cigarElement.getOperator() == CigarOperator.S) {
 							numSoft += cigarElement.getLength();
-							String softy = Array.toStr(Array.subArray(bases, curStart, readIndex), "");
+							String softy = ArrayUtils.toStr(ArrayUtils.subArray(bases, curStart, readIndex), "");
 
 							if (seqCount.containsKey(softy)) {
 								seqCount.put(softy, seqCount.get(softy) + 1);
@@ -121,13 +121,13 @@ public class BamSoftClip {
 			}
 			Summary summary = new Summary(seqCount, rgs);
 			summaries.add(summary);
-			Files.writeArray(Array.toStringArray(outPrintCount), outCounts);
-			Files.writeArray(Array.toStringArray(outPrint), out);
+			Files.writeArray(ArrayUtils.toStringArray(outPrintCount), outCounts);
+			Files.writeArray(ArrayUtils.toStringArray(outPrint), out);
 		}
 		String outFinal = outputDir + "summaryCounts.txt";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(outFinal));
-			writer.println("Clipped\t" + Array.toStr(Array.tagOn(bams, "Count_", null)));
+			writer.println("Clipped\t" + ArrayUtils.toStr(ArrayUtils.tagOn(bams, "Count_", null)));
 			for (String clip : allSofts) {
 				writer.print(clip);
 				for (Summary summary : summaries) {

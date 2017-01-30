@@ -5,7 +5,7 @@ package org.genvisis.seq.analysis;
 
 import java.io.File;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -38,7 +38,7 @@ public class Dinumt {
 		double bpCoverage = Double.parseDouble(stats[0]) * BamOps.estimateReadSize(bamFile, log);
 		double targeted = Double.parseDouble(stats[1]);
 		double averageCoverage = bpCoverage / targeted;
-		System.out.println(Array.toStr(stats));
+		System.out.println(ArrayUtils.toStr(stats));
 		return new QCParams(Double.parseDouble(stats[2]), Double.parseDouble(stats[3]),
 												averageCoverage);
 	}

@@ -15,7 +15,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.Transforms;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -83,7 +83,7 @@ public class MeanLRR {
 			numberOfMarkers[i] = indices[i].length;
 		}
 
-		transChrs = Array.booleanArray(27, false);
+		transChrs = ArrayUtils.booleanArray(27, false);
 		try {
 			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()	+ "MarkersIn_"
 																							+ ext.rootOf(regionsFile) + ".xln"));
@@ -196,11 +196,11 @@ public class MeanLRR {
 			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()	+ "MarkersIn_"
 																							+ ext.rootOf(regionsFile) + ".xln"));
 			for (int i = 0; i < regions.length; i++) {
-				markerNames = Array.toStringArray(components.get(i + ""));
+				markerNames = ArrayUtils.toStringArray(components.get(i + ""));
 				numberOfMarkers[i] = markerNames.length;
 				writer.println(regions[i].getUCSClocation()	+ "\t" + markerNames.length + "\t"
 												+ regions[i].getChr() + "\t" + regions[i].getStart() + "\t"
-												+ regions[i].getStop() + "\t" + Array.toStr(markerNames));
+												+ regions[i].getStop() + "\t" + ArrayUtils.toStr(markerNames));
 				log.report("Computing mean Log R ratios for: " + regions[i].getUCSClocation());
 				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(	proj,
 																																										markerNames);
@@ -404,17 +404,17 @@ public class MeanLRR {
 			for (int i = 0; i < samples.length; i++) {
 				writer.print(samples[i]	+ "\t"
 											+ (hash.containsKey(samples[i])	? hash.get(samples[i])
-																											: Array.stringArray(phenotypes.length, ".")));
+																											: ArrayUtils.stringArray(phenotypes.length, ".")));
 				if (regionToDumpOrNullForAll == null) {
 					for (int j = 0; j < regions.length; j++) {
 						if (transformationToUse == -1) {
-							writer.print("\t" + Array.toStr(data[j][i]));
+							writer.print("\t" + ArrayUtils.toStr(data[j][i]));
 						} else {
 							writer.print("\t" + data[j][i][transformationToUse]);
 						}
 					}
 				} else {
-					writer.print("\t" + Array.toStr(data[index][i]));
+					writer.print("\t" + ArrayUtils.toStr(data[index][i]));
 				}
 				writer.println();
 			}
@@ -445,7 +445,7 @@ public class MeanLRR {
 
 		if (params != null) {
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 
@@ -504,7 +504,7 @@ public class MeanLRR {
 										+ "   (2) filename of the regions in UCSC format (chr8:25129632-25130278) (i.e. regions="
 										+ regions + " (default))\n"
 										+ "   (3) phenotype in SampleData.txt; delimit with a comma for export, only first will be analyzed (i.e. pheno="
-										+ Array.toStr(phenotypes, ",") + " (default))\n"
+										+ ArrayUtils.toStr(phenotypes, ",") + " (default))\n"
 										+ "   (4) compute transforms as well (takes much much longer) (i.e. transform=false (default))\n"
 										+ "   (5) run a regression model using the first phenotype (i.e. analyze=false (default))\n"
 										+ "  ADD the following if you want to dump the data to a text file\n"

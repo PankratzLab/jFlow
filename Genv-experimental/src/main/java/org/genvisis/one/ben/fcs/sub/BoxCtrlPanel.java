@@ -19,7 +19,7 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -59,13 +59,13 @@ public class BoxCtrlPanel extends JPanel {
 					actualData.add(hdr[0]);
 				}
 			} else {
-				String parentKey = Array.toStr(Array.subArray(hdr, 0, hdr.length - 1), "\t");
+				String parentKey = ArrayUtils.toStr(ArrayUtils.subArray(hdr, 0, hdr.length - 1), "\t");
 				DefaultMutableTreeNode dmtnParent = nodes.get(parentKey);
 				if (dmtnParent == null) {
 					dmtnParent = new DefaultMutableTreeNode(hdr[hdr.length - 2]);
 					nodes.put(parentKey, dmtnParent);
 					for (int i = hdr.length - 3; i >= 0; i--) {
-						String key = Array.toStr(Array.subArray(hdr, 0, i + 1), "\t");
+						String key = ArrayUtils.toStr(ArrayUtils.subArray(hdr, 0, i + 1), "\t");
 						DefaultMutableTreeNode nd = nodes.get(key);
 						boolean found = true;
 						if (nd == null) {
@@ -73,7 +73,7 @@ public class BoxCtrlPanel extends JPanel {
 							nodes.put(key, nd);
 							found = false;
 						}
-						key = Array.toStr(Array.subArray(hdr, 0, i + 2), "\t");
+						key = ArrayUtils.toStr(ArrayUtils.subArray(hdr, 0, i + 2), "\t");
 						nd.add(nodes.get(key));
 						if (found) {
 							break;
@@ -82,8 +82,8 @@ public class BoxCtrlPanel extends JPanel {
 				}
 				DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode(hdr[hdr.length - 1]);
 				dmtnParent.add(dmtn);
-				nodes.put(Array.toStr(hdr, "\t"), dmtn);
-				actualData.add(Array.toStr(hdr, "\t"));
+				nodes.put(ArrayUtils.toStr(hdr, "\t"), dmtn);
+				actualData.add(ArrayUtils.toStr(hdr, "\t"));
 			}
 		}
 		if (rootNodes.size() == 0) {
@@ -110,7 +110,7 @@ public class BoxCtrlPanel extends JPanel {
 				ArrayList<TreePath> validPaths = new ArrayList<TreePath>();
 				for (TreePath path : pPaths) {
 					Object[] pathObjs = path.getPath();
-					if (actualData.contains(Array.toStr(pathObjs, "\t"))) { // only allow selections that have
+					if (actualData.contains(ArrayUtils.toStr(pathObjs, "\t"))) { // only allow selections that have
 																																	// data
 						validPaths.add(path);
 					}
@@ -121,7 +121,7 @@ public class BoxCtrlPanel extends JPanel {
 			@Override
 			public void setSelectionPath(TreePath path) {
 				Object[] pathObjs = path.getPath();
-				if (actualData.contains(Array.toStr(pathObjs, "\t"))) { // only allow selections that have
+				if (actualData.contains(ArrayUtils.toStr(pathObjs, "\t"))) { // only allow selections that have
 																																// data
 					super.setSelectionPath(path);
 				}
@@ -134,7 +134,7 @@ public class BoxCtrlPanel extends JPanel {
 				if (e.getNewLeadSelectionPath() == null) {
 					return;
 				}
-				String newKey = Array.toStr(e.getNewLeadSelectionPath().getPath(), "\t");
+				String newKey = ArrayUtils.toStr(e.getNewLeadSelectionPath().getPath(), "\t");
 				if (actualData.contains(newKey)) {
 					return;
 				} else {
@@ -144,7 +144,7 @@ public class BoxCtrlPanel extends JPanel {
 						boolean foundValid = false;
 						do {
 							newRow--;
-							foundValid = actualData.contains(Array.toStr(	tree.getPathForRow(newRow).getPath(),
+							foundValid = actualData.contains(ArrayUtils.toStr(	tree.getPathForRow(newRow).getPath(),
 																														"\t"));
 						} while (tree.getPathForRow(newRow).getPathCount() >= e	.getNewLeadSelectionPath()
 																																		.getPathCount()
@@ -153,14 +153,14 @@ public class BoxCtrlPanel extends JPanel {
 						boolean foundValid = false;
 						do {
 							newRow--;
-							foundValid = actualData.contains(Array.toStr(	tree.getPathForRow(newRow).getPath(),
+							foundValid = actualData.contains(ArrayUtils.toStr(	tree.getPathForRow(newRow).getPath(),
 																														"\t"));
 						} while (!foundValid && newRow >= 0);
 					} else { // moving down
 						boolean foundValid = false;
 						do {
 							newRow++;
-							foundValid = actualData.contains(Array.toStr(	tree.getPathForRow(newRow).getPath(),
+							foundValid = actualData.contains(ArrayUtils.toStr(	tree.getPathForRow(newRow).getPath(),
 																														"\t"));
 						} while (!foundValid && newRow < tree.getRowCount());
 					}
@@ -204,7 +204,7 @@ public class BoxCtrlPanel extends JPanel {
 																									boolean hasFocus) {
 			boolean enabled = actualData == null
 												|| tree.getPathForRow(row) == null	? true
-																														: actualData.contains(Array.toStr(tree.getPathForRow(row)
+																														: actualData.contains(ArrayUtils.toStr(tree.getPathForRow(row)
 																																																	.getPath(),
 																																															"\t")); // <--
 																																																			// here

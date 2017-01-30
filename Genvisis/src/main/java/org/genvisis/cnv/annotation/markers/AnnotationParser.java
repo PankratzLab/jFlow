@@ -1,6 +1,6 @@
-package org.genvisis.cnv.annotation;
+package org.genvisis.cnv.annotation.markers;
 
-import org.genvisis.cnv.annotation.AnnotationFileLoader.AnnotationQuery;
+import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.AnnotationQuery;
 import org.genvisis.common.Logger;
 
 import htsjdk.variant.variantcontext.VariantContext;

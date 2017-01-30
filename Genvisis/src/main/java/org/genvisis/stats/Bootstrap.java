@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class Bootstrap {
@@ -52,10 +52,10 @@ public class Bootstrap {
 				array[count] = Double.parseDouble(line[column - 1]);
 				count++;
 			}
-			mean = Array.mean(array);
+			mean = ArrayUtils.mean(array);
 			System.out.println("mean: "	+ mean + " (chi-square, 1 df p-value: "
 													+ ext.formDeci(ProbDist.ChiDist(mean, 1), 4, true) + ")");
-			bs = Array.bootstrap(array, reps, true);
+			bs = ArrayUtils.bootstrap(array, reps, true);
 			System.out.println("bootstrapped mean (95% CI):\t"	+ ext.formDeci(bs[0], 4, true) + " ("
 													+ ext.formDeci(bs[1], 4, true) + "," + ext.formDeci(bs[2], 4, true)
 													+ ")");
@@ -69,7 +69,7 @@ public class Bootstrap {
 			writer.println("Using all " + count + " records.");
 			writer.println("Bootstrapping column " + column + " a total of " + reps + " times.");
 			writer.println();
-			writer.println("mean: " + Array.mean(array));
+			writer.println("mean: " + ArrayUtils.mean(array));
 			writer.println("bootstrapped mean (95% CI):\t"	+ ext.formDeci(bs[0], 4, true) + " ("
 											+ ext.formDeci(bs[1], 4, true) + "," + ext.formDeci(bs[2], 4, true) + ")");
 			writer.println("corresponding chi-square, 1 df p-values:\t"

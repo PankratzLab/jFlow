@@ -9,7 +9,7 @@ import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MarkerDataLoader;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -63,7 +63,7 @@ public class Zcall {
 
 		samples = proj.getSamples();
 		if (samplesToInclude == null) {
-			samplesToInclude = Array.booleanArray(samples.length, true);
+			samplesToInclude = ArrayUtils.booleanArray(samples.length, true);
 		} else if (samplesToInclude.length != samples.length) {
 			log.reportError("Error - length of samplesToInclude does not match length of samples");
 			return;
@@ -78,7 +78,7 @@ public class Zcall {
 		try {
 			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
 																							+ "GenomeStudioData.txt"));
-			writer.print(Array.toStr(BASIC_HEADER));
+			writer.print(ArrayUtils.toStr(BASIC_HEADER));
 			for (int i = 0; i < samples.length; i++) {
 				if (samplesToInclude[i]) {
 					writer.print("\t" + samples[i] + ".gtype\t" + samples[i] + ".X\t" + samples[i] + ".Y");

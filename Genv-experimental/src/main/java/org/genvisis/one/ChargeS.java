@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.Hashtable;
 
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -326,7 +326,7 @@ public class ChargeS {
 					} else {
 						line = ext.replaceAllWith(temp, "\"", "").split("\t", -1);
 						// writer.println(line[1]+"\t"+trav+"\t0\t"+line[2]+"\t"+line[3]+"\t"+line[4]);
-						writer.println(Array.toStr(line));
+						writer.println(ArrayUtils.toStr(line));
 					}
 				}
 				writer.close();
@@ -423,7 +423,7 @@ public class ChargeS {
 			ext.checkHeader(line,
 											new String[] {"CHR", "SNP", "BP", "A1", "TEST", "NMISS", "BETA", "STAT", "P"},
 											true);
-			writer.println(Array.toStr(	new String[] {"snp", "noncoded_all", "coded_all", "sampleSumN",
+			writer.println(ArrayUtils.toStr(	new String[] {"snp", "noncoded_all", "coded_all", "sampleSumN",
 																								"AF", "sampleAA", "sampleAR", "sampleRR", "beta",
 																								"se", "pval", "NMISS", "wbeta", "wse"},
 																	delimiter));
@@ -447,7 +447,7 @@ public class ChargeS {
 						log.reportError("Could not divide: " + line[6] + "/" + line[7]);
 						se = -999;
 					}
-					writer.println(line[1]	+ delimiter + Array.toStr(subline, delimiter) + delimiter + line[6]
+					writer.println(line[1]	+ delimiter + ArrayUtils.toStr(subline, delimiter) + delimiter + line[6]
 													+ delimiter + se + delimiter + line[8] + delimiter + line[5] + delimiter
 													+ line[6] + delimiter + se);
 				}
@@ -494,7 +494,7 @@ public class ChargeS {
 																							Aliases.ALLELES[0], Aliases.ALLELES[1]},
 															header, true, false, true, true, log, true);
 		annotationHash = HashVec.loadFileToHashString(dir	+ annotationFile, new int[] {indices[0]},
-																									Array.subArray(indices, 1),
+																									ArrayUtils.subArray(indices, 1),
 																									Files	.determineDelimiter(dir	+ annotationFile,
 																																						log)
 																												.equals(","),
@@ -521,7 +521,7 @@ public class ChargeS {
 						return;
 					}
 					if (chr == 1) {
-						ids = Array.subArray(header, 2);
+						ids = ArrayUtils.subArray(header, 2);
 						try {
 							famWriter = new PrintWriter(new FileWriter(dir + "plink.tfam"));
 							for (String id : ids) {
@@ -533,7 +533,7 @@ public class ChargeS {
 							e.printStackTrace();
 						}
 
-					} else if (!Array.equals(ids, Array.subArray(header, 2), true)) {
+					} else if (!ArrayUtils.equals(ids, ArrayUtils.subArray(header, 2), true)) {
 						log.reportError("The ids in " + filename + " are not the same as for chr1");
 						reader.close();
 						return;
@@ -653,7 +653,7 @@ public class ChargeS {
 					} else {
 						line = ext.replaceAllWith(temp, "\"", "").split("\t", -1);
 						// writer.println(line[1]+"\t"+trav+"\t0\t"+line[2]+"\t"+line[3]+"\t"+line[4]);
-						writer.println(Array.toStr(line));
+						writer.println(ArrayUtils.toStr(line));
 					}
 				}
 				writer.close();

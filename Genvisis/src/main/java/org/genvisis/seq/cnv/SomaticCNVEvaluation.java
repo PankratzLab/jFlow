@@ -14,7 +14,7 @@ import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -114,15 +114,15 @@ public class SomaticCNVEvaluation {
 			System.exit(1);
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(outFile));
-				writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER)	+ "\t"
-												+ Array.toStr(SomaticEvaluation.HEADER));
+				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER)	+ "\t"
+												+ ArrayUtils.toStr(SomaticEvaluation.HEADER));
 				while (train.hasNext()) {
 					TNCNV current = train.next();
 					for (int i = 0; i < current.getTumorCnvs().getLoci().length; i++) {
 						CNVariant currentCNV = current.getTumorCnvs().getLoci()[i];
 						writer.println(currentCNV.toPlinkFormat()	+ "\t"
-														+ Array.toStr(current.getSomaticEvaluations()[i].getSummary()) + "\t"
-														+ Array.toStr(currentCNV.toTrailerFormat()));
+														+ ArrayUtils.toStr(current.getSomaticEvaluations()[i].getSummary()) + "\t"
+														+ ArrayUtils.toStr(currentCNV.toTrailerFormat()));
 					}
 				}
 				writer.close();
@@ -136,7 +136,7 @@ public class SomaticCNVEvaluation {
 		try {
 			GeneTrack geneTrack = GeneTrack.load(proj.getGeneTrackFilename(true), false);
 			PrintWriter writer = new PrintWriter(new FileWriter(geneOutFile));
-			writer.println(Array.toStr(results[0]) + "\tGENE");
+			writer.println(ArrayUtils.toStr(results[0]) + "\tGENE");
 			for (int i = 1; i < results.length; i++) {
 				Segment current =
 												new Segment(Byte.parseByte(results[i][2]), Integer.parseInt(results[i][3]),
@@ -145,7 +145,7 @@ public class SomaticCNVEvaluation {
 				HashSet<String> written = new HashSet<String>();
 				for (int j = 0; j < geneDatas.length; j++) {
 					if (!written.contains(geneDatas[j].getGeneName())) {
-						writer.println(Array.toStr(results[i]) + "\t" + geneDatas[j].getGeneName());
+						writer.println(ArrayUtils.toStr(results[i]) + "\t" + geneDatas[j].getGeneName());
 						written.add(geneDatas[j].getGeneName());
 					}
 				}
@@ -262,7 +262,7 @@ public class SomaticCNVEvaluation {
 			summary.add(bhNormal + "");
 			summary.add(heightDiff + "");
 			summary.add(hq + "");
-			return Array.toStringArray(summary);
+			return ArrayUtils.toStringArray(summary);
 		}
 
 	}

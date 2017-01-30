@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.stats.ContingencyTable;
@@ -30,7 +30,7 @@ public class temp {
 			writer = new PrintWriter(new FileWriter(filename + "_chi.xln"));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				writer.print(Array.toStr(line)	+ "\t"
+				writer.print(ArrayUtils.toStr(line)	+ "\t"
 											+ Stats.FishersExact(	Double.parseDouble(line[0]), Double.parseDouble(line[1]),
 																						Double.parseDouble(line[2]),
 																						Double.parseDouble(line[3]), true));

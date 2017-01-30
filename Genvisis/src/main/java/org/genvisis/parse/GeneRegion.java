@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.ext;
 
@@ -82,7 +82,7 @@ public class GeneRegion {
 				counts = cv.getCounts();
 				writer2.println((i == 0 ? "NA" : i)	+ "\t" + boundaries[i][0] + "\t" + boundaries[i][1]
 												+ "\t" + boundaries[i][2] + "\t" + cv.getSize() + "\t"
-												+ (i == 0 ? "too many to list" : Array.toStr(genes)));
+												+ (i == 0 ? "too many to list" : ArrayUtils.toStr(genes)));
 				for (int j = 0; j < genes.length; j++) {
 					writer.println(i + "\t" + genes[j] + "\t" + (j == 0 ? counts[j] - 1 : counts[j]));
 				}

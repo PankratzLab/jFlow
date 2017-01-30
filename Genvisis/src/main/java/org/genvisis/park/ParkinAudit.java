@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
@@ -337,9 +337,9 @@ public class ParkinAudit {
 					if (line[8].equals("point")) {
 						for (int i = 0; i < (line.length > 13 && line[13].startsWith("Homo") ? 2 : 1); i++) {
 							if (line.length > 12 && ext.indexOfStr(line[12], KNOWN_POLYMORPHISMS) != -1) {
-								mc.knownPolymorphisms = Array.addStrToArray(line[12], mc.knownPolymorphisms);
+								mc.knownPolymorphisms = ArrayUtils.addStrToArray(line[12], mc.knownPolymorphisms);
 							} else {
-								mc.seanMutations = Array.addStrToArray(line.length > 12	&& !line[12].equals("")
+								mc.seanMutations = ArrayUtils.addStrToArray(line.length > 12	&& !line[12].equals("")
 																																																	? line[12]
 																																																: line[11],
 																												mc.seanMutations);
@@ -390,10 +390,10 @@ public class ParkinAudit {
 					mc = indData.get(uniqueID);
 					for (int i = 0; i < (temp.indexOf("Homozygous") > 0 ? 2 : 1); i++) {
 						if (line.length > 4 && ext.indexOfStr(line[4], KNOWN_POLYMORPHISMS) != -1) {
-							mc.knownPolymorphisms = Array.addStrToArray(line[4], mc.knownPolymorphisms);
+							mc.knownPolymorphisms = ArrayUtils.addStrToArray(line[4], mc.knownPolymorphisms);
 						} else {
 							mc.dianeMutations =
-																Array.addStrToArray(line.length > 4	&& !line[4].equals("")
+																ArrayUtils.addStrToArray(line.length > 4	&& !line[4].equals("")
 																																															? line[4]
 																																														: line[3],
 																										mc.dianeMutations);
@@ -493,7 +493,7 @@ public class ParkinAudit {
 																		+ mc.IndID + " (the file format expected some)");
 							}
 							for (String element : trav) {
-								mc.MLPAresults = Array.addStrToArray(element, mc.MLPAresults);
+								mc.MLPAresults = ArrayUtils.addStrToArray(element, mc.MLPAresults);
 							}
 							// System.err.println(mc.FamID+"-"+mc.IndID+"\t"+Array.toStr(mc.MLPAresults,
 							// "\t\t") +"\t\t"+Array.toStr(parkinExons, " "));
@@ -532,7 +532,7 @@ public class ParkinAudit {
 						if (CATEGORY_CRITERIA[l][1].equals("equals")) {
 							for (int m = 2; m < CATEGORY_CRITERIA[l].length; m++) {
 								if (element.toLowerCase().equals(CATEGORY_CRITERIA[l][m].toLowerCase())) {
-									mc.categories[l] = Array.addStrToArray(element, mc.categories[l]);
+									mc.categories[l] = ArrayUtils.addStrToArray(element, mc.categories[l]);
 									m = CATEGORY_CRITERIA[l].length - 1;
 									l = CATEGORY_CRITERIA.length - 1;
 								}
@@ -540,7 +540,7 @@ public class ParkinAudit {
 						} else if (CATEGORY_CRITERIA[l][1].equals("contains")) {
 							for (int m = 2; m < CATEGORY_CRITERIA[l].length; m++) {
 								if (element.toLowerCase().contains(CATEGORY_CRITERIA[l][m].toLowerCase())) {
-									mc.categories[l] = Array.addStrToArray(element, mc.categories[l]);
+									mc.categories[l] = ArrayUtils.addStrToArray(element, mc.categories[l]);
 									m = CATEGORY_CRITERIA[l].length - 1;
 									l = CATEGORY_CRITERIA.length - 1;
 								}
@@ -548,7 +548,7 @@ public class ParkinAudit {
 						} else if (CATEGORY_CRITERIA[l][1].equals("endswith")) {
 							for (int m = 2; m < CATEGORY_CRITERIA[l].length; m++) {
 								if (element.toLowerCase().endsWith(CATEGORY_CRITERIA[l][m].toLowerCase())) {
-									mc.categories[l] = Array.addStrToArray(element, mc.categories[l]);
+									mc.categories[l] = ArrayUtils.addStrToArray(element, mc.categories[l]);
 									m = CATEGORY_CRITERIA[l].length - 1;
 									l = CATEGORY_CRITERIA.length - 1;
 								}
@@ -725,7 +725,7 @@ public class ParkinAudit {
 					writer.print("," + (mc.numMutations == 1 ? mc.categories[j].length : 0));
 				}
 				for (int j = 0; j < CATEGORY_CRITERIA.length; j++) {
-					writer.print("," + Array.toStr(mc.categories[j], "/"));
+					writer.print("," + ArrayUtils.toStr(mc.categories[j], "/"));
 				}
 				writer.println();
 			}
@@ -823,14 +823,14 @@ public class ParkinAudit {
 				if (trav2.endsWith("-")) {
 					trav2 += count;
 				}
-				mutations = Array.addStrToArray(trav2, mutations);
+				mutations = ArrayUtils.addStrToArray(trav2, mutations);
 				trav2 = "";
 			}
 			if (!trav1.equals("") && exons[count] == 0) {
 				if (trav1.endsWith("-")) {
 					trav1 += count;
 				}
-				mutations = Array.addStrToArray(trav1, mutations);
+				mutations = ArrayUtils.addStrToArray(trav1, mutations);
 				trav1 = "";
 			}
 			if (Math.abs(exons[count]) == 2) {
@@ -851,7 +851,7 @@ public class ParkinAudit {
 		}
 
 		if (mutations.length > 2) {
-			System.err.println("Error - more than 2 mutations parsed for: " + Array.toStr(exons, " "));
+			System.err.println("Error - more than 2 mutations parsed for: " + ArrayUtils.toStr(exons, " "));
 		}
 		return mutations;
 	}

@@ -20,7 +20,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.TransposeData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountHash;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -165,15 +165,15 @@ public class ParseKcol implements Runnable {
 
 					if (dataIndices[3] == -1 || dataIndices[4] == -1) {
 						System.err.println("Error - File format not consistent! At the very least the files need to contain "
-																	+ Array.toStr(DATA_FIELDS[3], "/") + " and "
-																+ Array.toStr(DATA_FIELDS[4], "/"));
+																	+ ArrayUtils.toStr(DATA_FIELDS[3], "/") + " and "
+																+ ArrayUtils.toStr(DATA_FIELDS[4], "/"));
 						return;
 					}
 					if (genotypeIndices[4] == -1 && (genotypeIndices[0] == -1 || genotypeIndices[1] == -1)) {
 						System.err.println("Error - File format not consistent! The files need to contain "
-																	+ Array.toStr(GENOTYPE_FIELDS[0], "/") + " and "
-																+ Array.toStr(GENOTYPE_FIELDS[1], "/") + " or "
-																+ Array.toStr(GENOTYPE_FIELDS[4], ",")
+																	+ ArrayUtils.toStr(GENOTYPE_FIELDS[0], "/") + " and "
+																+ ArrayUtils.toStr(GENOTYPE_FIELDS[1], "/") + " or "
+																+ ArrayUtils.toStr(GENOTYPE_FIELDS[4], ",")
 																+ " (for single token calls)");
 						return;
 					}
@@ -198,12 +198,12 @@ public class ParseKcol implements Runnable {
 						}
 					}
 					genotypes = new byte[2][];
-					genotypes[0] = Array.byteArray(markerNames.length, (byte) 0); // used to be initialized to
+					genotypes[0] = ArrayUtils.byteArray(markerNames.length, (byte) 0); // used to be initialized to
 																																				// Byte.MIN_VALUE when AB
 																																				// genotypes && abLookup
 																																				// were both absent
 					if (!ignoreAB) {
-						genotypes[1] = Array.byteArray(markerNames.length, (byte) -1); // used to be initialized
+						genotypes[1] = ArrayUtils.byteArray(markerNames.length, (byte) -1); // used to be initialized
 																																						// to Byte.MIN_VALUE
 																																						// when
 																																						// AB genotypes &&
@@ -281,7 +281,7 @@ public class ParseKcol implements Runnable {
 								}
 							} catch (NumberFormatException nfe) {
 								System.err.println("Error - failed to parse '"	+ line[dataIndices[j]]
-																		+ "' into a valid " + Array.toStr(DATA_FIELDS[j], "/"));
+																		+ "' into a valid " + ArrayUtils.toStr(DATA_FIELDS[j], "/"));
 								return;
 							}
 						}
@@ -606,7 +606,7 @@ public class ParseKcol implements Runnable {
 												+ " extension");
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].equals("Sample_Map.csv") || files[i].equals("SNP_Map.csv")) {
-				files = Array.removeFromArray(files, i);
+				files = ArrayUtils.removeFromArray(files, i);
 				i--;
 			}
 		}
@@ -646,7 +646,7 @@ public class ParseKcol implements Runnable {
 
 			if (!reader.ready()) {
 				System.err.println("Error - reached the end of the file without finding a line with the following tokens: "
-														+ Array.toStr(SNP_HEADER_OPTIONS[0]));
+														+ ArrayUtils.toStr(SNP_HEADER_OPTIONS[0]));
 				System.err.println("      - perhaps the delimiter is set incorrectly? Determing most stable delimiter...");
 
 				reader.close();
@@ -660,9 +660,9 @@ public class ParseKcol implements Runnable {
 				}
 				delimiter = null;
 				for (int j = 0; j < DELIMITERS.length; j++) {
-					if (Array.quantWithExtremeForTie(delimiterCounts[j], 0.5) > 4
-							&& Array.quantWithExtremeForTie(delimiterCounts[j], 0.9)
-									- Array.quantWithExtremeForTie(delimiterCounts[j], 0.1) == 0) {
+					if (ArrayUtils.quantWithExtremeForTie(delimiterCounts[j], 0.5) > 4
+							&& ArrayUtils.quantWithExtremeForTie(delimiterCounts[j], 0.9)
+									- ArrayUtils.quantWithExtremeForTie(delimiterCounts[j], 0.1) == 0) {
 						if (delimiter == null) {
 							delimiter = DELIMITERS[j];
 						} else {
@@ -699,19 +699,19 @@ public class ParseKcol implements Runnable {
 			indices = ext.indexFactors(DATA_FIELDS, line, false, true, true, false); // dataIndices
 			if (indices[3] == -1 || indices[4] == -1) {
 				System.err.println("Error - at the very least the files need to contain "
-															+ Array.toStr(DATA_FIELDS[3], "/") + " and "
-														+ Array.toStr(DATA_FIELDS[4], "/"));
+															+ ArrayUtils.toStr(DATA_FIELDS[3], "/") + " and "
+														+ ArrayUtils.toStr(DATA_FIELDS[4], "/"));
 				System.err.println("      - failed to see that in " + files[0]);
-				System.err.println(Array.toStr(line));
+				System.err.println(ArrayUtils.toStr(line));
 
 				return;
 			}
 			indices = ext.indexFactors(GENOTYPE_FIELDS, line, false, true, true, false); // genotypeIndices
 			if (indices[4] == -1 && (indices[0] == -1 || indices[1] == -1)) {
 				System.err.println("Error - the files need to contain "
-															+ Array.toStr(GENOTYPE_FIELDS[0], "/") + " and "
-														+ Array.toStr(GENOTYPE_FIELDS[1], "/") + " or "
-														+ Array.toStr(GENOTYPE_FIELDS[4], "/") + " (for single token calls)");
+															+ ArrayUtils.toStr(GENOTYPE_FIELDS[0], "/") + " and "
+														+ ArrayUtils.toStr(GENOTYPE_FIELDS[1], "/") + " or "
+														+ ArrayUtils.toStr(GENOTYPE_FIELDS[4], "/") + " (for single token calls)");
 				return;
 			}
 			if (indices[5] == -1 && (indices[2] == -1 || indices[3] == -1)) {
@@ -831,7 +831,7 @@ public class ParseKcol implements Runnable {
 		// new File(proj.getDir(proj.DATA_DIRECTORY)).mkdirs();
 
 		// markerNames = Array.toStringArray(markerNameHash);
-		markerNames = Array.toStringArray(alNames);
+		markerNames = ArrayUtils.toStringArray(alNames);
 		// keys = Markers.orderMarkers(markerNames, proj.getFilename(proj.MARKER_POSITION_FILENAME),
 		// proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
 		keys = Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
@@ -998,7 +998,7 @@ public class ParseKcol implements Runnable {
 																					false)[0] == -1
 												|| ext.indexOfStr(idHeader, line) == -1));
 
-					System.err.println("Searching: " + Array.toStr(line));
+					System.err.println("Searching: " + ArrayUtils.toStr(line));
 					dataIndices = ext.indexFactors(DATA_FIELDS, line, false, true, false, false);
 					genotypeIndices = ext.indexFactors(GENOTYPE_FIELDS, line, false, true, false, false);
 					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
@@ -1006,15 +1006,15 @@ public class ParseKcol implements Runnable {
 
 					if (dataIndices[3] == -1 || dataIndices[4] == -1) {
 						System.err.println("Error - File format not consistent! At the very least the files need to contain "
-																	+ Array.toStr(DATA_FIELDS[3], "/") + " and "
-																+ Array.toStr(DATA_FIELDS[4], "/"));
+																	+ ArrayUtils.toStr(DATA_FIELDS[3], "/") + " and "
+																+ ArrayUtils.toStr(DATA_FIELDS[4], "/"));
 						return;
 					}
 					if (genotypeIndices[4] == -1 && (genotypeIndices[0] == -1 || genotypeIndices[1] == -1)) {
 						System.err.println("Error - File format not consistent! The files need to contain "
-																	+ Array.toStr(GENOTYPE_FIELDS[0], "/") + " and "
-																+ Array.toStr(GENOTYPE_FIELDS[1], "/") + " or "
-																+ Array.toStr(GENOTYPE_FIELDS[4], ",")
+																	+ ArrayUtils.toStr(GENOTYPE_FIELDS[0], "/") + " and "
+																+ ArrayUtils.toStr(GENOTYPE_FIELDS[1], "/") + " or "
+																+ ArrayUtils.toStr(GENOTYPE_FIELDS[4], ",")
 																+ " (for single token calls)");
 						return;
 					}
@@ -1074,18 +1074,18 @@ public class ParseKcol implements Runnable {
 								data = new float[DATA_FIELDS.length][];
 								for (int j = 0; j < data.length; j++) {
 									if (dataIndices[j] != -1) {
-										data[j] = Array.floatArray(markerNames.length, Float.POSITIVE_INFINITY);
+										data[j] = ArrayUtils.floatArray(markerNames.length, Float.POSITIVE_INFINITY);
 									}
 								}
 								genotypes = new byte[2][];
-								genotypes[0] = Array.byteArray(markerNames.length, (byte) 0); // used to be
+								genotypes[0] = ArrayUtils.byteArray(markerNames.length, (byte) 0); // used to be
 																																							// initialized to
 																																							// Byte.MIN_VALUE when
 																																							// AB genotypes &&
 																																							// abLookup were both
 																																							// absent
 								if (!ignoreAB) {
-									genotypes[1] = Array.byteArray(markerNames.length, (byte) -1); // used to be
+									genotypes[1] = ArrayUtils.byteArray(markerNames.length, (byte) -1); // used to be
 																																									// initialized to
 																																									// Byte.MIN_VALUE
 																																									// when AB
@@ -1115,7 +1115,7 @@ public class ParseKcol implements Runnable {
 										}
 									} catch (NumberFormatException nfe) {
 										System.err.println("Error - failed to parse"	+ line[dataIndices[j]]
-																				+ " into a valid " + Array.toStr(DATA_FIELDS[j], ","));
+																				+ " into a valid " + ArrayUtils.toStr(DATA_FIELDS[j], ","));
 										return;
 									}
 								}
@@ -1287,12 +1287,12 @@ public class ParseKcol implements Runnable {
 					// if its the first directory, print the header
 
 					if (i == 0) {
-						writer.println(Array.toStr(line));
+						writer.println(ArrayUtils.toStr(line));
 					}
 
 					while (reader.ready()) {
 						line = reader.readLine().trim().split(delimiter, -1);
-						writer.println(Array.toStr(line));
+						writer.println(ArrayUtils.toStr(line));
 						counts++;
 					}
 					System.out.println(counts);
@@ -1493,9 +1493,9 @@ public class ParseKcol implements Runnable {
 																							+ (fileNumber > 0 ? "_atFile" + fileNumber : "")
 																							+ ".xln"));
 			keys = HashVec.getKeys(hash, false);
-			writer.println("SNP\t" + Array.toStr(Sample.ALL_STANDARD_GENOTYPE_FIELDS));
+			writer.println("SNP\t" + ArrayUtils.toStr(Sample.ALL_STANDARD_GENOTYPE_FIELDS));
 			for (String key : keys) {
-				writer.println(key + "\t" + Array.toStr(hash.get(key)));
+				writer.println(key + "\t" + ArrayUtils.toStr(hash.get(key)));
 			}
 			writer.close();
 		} catch (Exception e) {

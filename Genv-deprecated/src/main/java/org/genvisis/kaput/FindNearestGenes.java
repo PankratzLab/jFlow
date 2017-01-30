@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
@@ -35,7 +35,7 @@ public class FindNearestGenes {
 
 		System.out.println(ext.getTime());
 		System.out.println("Loading markers...");
-		markers = Array.toStringArray(HashVec.loadFileToVec(DIR + filename, false, true, false));
+		markers = ArrayUtils.toStringArray(HashVec.loadFileToVec(DIR + filename, false, true, false));
 
 		System.out.println("Loading map...");
 		poslar = new Hashtable<String, String>();
@@ -58,7 +58,7 @@ public class FindNearestGenes {
 
 		System.out.println("Searching through genes...");
 		genePositions = new int[markers.length][2];
-		genes = Array.stringArray(markers.length, "");
+		genes = ArrayUtils.stringArray(markers.length, "");
 		for (int j = 0; j < markers.length; j++) {
 			if (poslar.containsKey(markers[j])) {
 				line = (poslar.get(markers[j])).split("[\\s]+");

@@ -11,7 +11,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.bioinformatics.Sequence;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -137,9 +137,9 @@ public class Minimac {
 			System.exit(2);
 		}
 
-		Files.writeArray(Array.toStringArray(flips), "flips.txt");
-		Files.writeArray(Array.toStringArray(mismatches), "mismatches.txt");
-		Files.writeArray(Array.toStringArray(others), "problems.txt");
+		Files.writeArray(ArrayUtils.toStringArray(flips), "flips.txt");
+		Files.writeArray(ArrayUtils.toStringArray(mismatches), "mismatches.txt");
+		Files.writeArray(ArrayUtils.toStringArray(others), "problems.txt");
 	}
 
 	public static void filterHaplotypes(String hapFile, String mapFile, String flips, String drops,
@@ -211,7 +211,7 @@ public class Minimac {
 			System.exit(2);
 		}
 
-		finalMarkerNames = new String[markerNames.length - Array.booleanArraySum(drop)];
+		finalMarkerNames = new String[markerNames.length - ArrayUtils.booleanArraySum(drop)];
 		count = 0;
 		for (int i = 0; i < markerNames.length; i++) {
 			if (!drop[i]) {
@@ -239,8 +239,8 @@ public class Minimac {
 			line = reader.readLine().trim().split("[\\s]+");
 			indices = ext.indexFactors(	new String[][] {{"MarkerName", "SNP", "RSID"}, {"Chr"}}, line,
 																	false, true, true, false);
-			if (Array.min(indices) == -1) {
-				System.err.println("Error - assuming there is no header; found '"	+ Array.toStr(line)
+			if (ArrayUtils.min(indices) == -1) {
+				System.err.println("Error - assuming there is no header; found '"	+ ArrayUtils.toStr(line)
 														+ "' as first line");
 				reader.reset();
 			}
@@ -273,7 +273,7 @@ public class Minimac {
 		if (merges.size() > 1) {
 			command = "plink --file "	+ ext.rootOf(merges.remove(0).split("[\\s]+")[0])
 								+ " --merge-list merges.txt --make-bed --out " + ext.rootOf(markerFile);
-			Files.writeArray(Array.toStringArray(merges), "merges.txt");
+			Files.writeArray(ArrayUtils.toStringArray(merges), "merges.txt");
 			CmdLine.run(command, "./");
 
 		}
@@ -299,7 +299,7 @@ public class Minimac {
 		for (int i = 0; i < indices.length; i++) {
 			hash.put(indices[i] + "", i + "");
 		}
-		max = Array.max(indices);
+		max = ArrayUtils.max(indices);
 		try {
 			count = Files.countLines(hapFile, 0);
 			System.out.println("Found " + count + " indiviudals to parse");
@@ -370,8 +370,8 @@ public class Minimac {
 				if (map[i] == null) {
 					writer.println("0\t" + markers[i] + "\t0\t" + i);
 				} else {
-					line = Array.insertStringAt("0", map[i].trim().split("[\\s]+"), 2);
-					writer.println(Array.toStr(line));
+					line = ArrayUtils.insertStringAt("0", map[i].trim().split("[\\s]+"), 2);
+					writer.println(ArrayUtils.toStr(line));
 				}
 			}
 			writer.close();
@@ -381,8 +381,8 @@ public class Minimac {
 				if (map[i] == null) {
 					writer.println(markers[i] + "\t" + i);
 				} else {
-					line = Array.removeFromArray(map[i].trim().split("[\\s]+"), 0);
-					writer.println(Array.toStr(line));
+					line = ArrayUtils.removeFromArray(map[i].trim().split("[\\s]+"), 0);
+					writer.println(ArrayUtils.toStr(line));
 				}
 			}
 			writer.close();
@@ -482,7 +482,7 @@ public class Minimac {
 					if (i == 0) {
 						ids[j] = new String[] {line[0], line[1]};
 					} else if (!ids[j][0].equals(line[0]) || !ids[j][1].equals(line[1])) {
-						System.err.println("Error - mismatched IDs ("	+ Array.toStr(ids[j], "/") + ") in "
+						System.err.println("Error - mismatched IDs ("	+ ArrayUtils.toStr(ids[j], "/") + ") in "
 																+ files[0] + " and " + files[i]);
 					}
 					alleles = line[2].toCharArray();
@@ -609,7 +609,7 @@ public class Minimac {
 
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(hapFile, true) + "_freq.xln"));
-			writer.println(Array.toStr(FREQ_HEADER));
+			writer.println(ArrayUtils.toStr(FREQ_HEADER));
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.print(markerNames[i] + "\t" + alleleCounts[i][0]);
 				sum = 0;
@@ -678,7 +678,7 @@ public class Minimac {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (hash.containsKey(line[0])) {
 					target = hash.get(line[0]).split("[\\s]+");
-					ref = Array.subArray(line, 2, 6);
+					ref = ArrayUtils.subArray(line, 2, 6);
 					matchup = new boolean[2][4];
 					for (int i = 0; i < 2; i++) {
 						for (int j = 0; j < 4; j++) {
@@ -686,15 +686,15 @@ public class Minimac {
 						}
 					}
 					chisq = ContingencyTable.ChiSquare(
-																							Matrix.prune(new int[][] {Array.toIntArray(target),
-																																				Array.toIntArray(ref)}),
+																							Matrix.prune(new int[][] {ArrayUtils.toIntArray(target),
+																																				ArrayUtils.toIntArray(ref)}),
 																							false);
-					numObserved = Array.booleanArraySum(allelesUsed(matchup));
-					if (Array.booleanArraySum(matchup[0]) > 2 || Array.booleanArraySum(matchup[1]) > 2) {
+					numObserved = ArrayUtils.booleanArraySum(allelesUsed(matchup));
+					if (ArrayUtils.booleanArraySum(matchup[0]) > 2 || ArrayUtils.booleanArraySum(matchup[1]) > 2) {
 						others.add(line[0]	+ "\t" + ext.formDeci(chisq, 1, true) + "\t"
 												+ displayFreqs(matchup, target, ref));
 					} else if (numObserved > 2) {
-						if (Array.booleanArraySum(allelesUsed(new boolean[][] {	flip(matchup[0]),
+						if (ArrayUtils.booleanArraySum(allelesUsed(new boolean[][] {	flip(matchup[0]),
 																																		matchup[1]})) > 2) {
 							others.add(line[0]	+ "\t" + ext.formDeci(chisq, 1, true) + "\t"
 													+ displayFreqs(matchup, target, ref));
@@ -716,9 +716,9 @@ public class Minimac {
 			System.exit(2);
 		}
 
-		Files.writeArray(Array.toStringArray(flips), "flips.txt");
-		Files.writeArray(Array.toStringArray(mismatches), "mismatches.txt");
-		Files.writeArray(Array.toStringArray(others), "problems.txt");
+		Files.writeArray(ArrayUtils.toStringArray(flips), "flips.txt");
+		Files.writeArray(ArrayUtils.toStringArray(mismatches), "mismatches.txt");
+		Files.writeArray(ArrayUtils.toStringArray(others), "problems.txt");
 
 	}
 
@@ -749,7 +749,7 @@ public class Minimac {
 	public static boolean[] allelesUsed(boolean[][] matchup) {
 		boolean[] allelesUsed;
 
-		allelesUsed = Array.booleanArray(4, false);
+		allelesUsed = ArrayUtils.booleanArray(4, false);
 		for (boolean[] element : matchup) {
 			for (int j = 0; j < element.length; j++) {
 				if (element[j]) {
@@ -775,8 +775,8 @@ public class Minimac {
 		strs[2] = "[";
 
 		first = true;
-		denoms = new double[] {	Array.sum(Array.toDoubleArray(target)),
-														Array.sum(Array.toDoubleArray(ref))};
+		denoms = new double[] {	ArrayUtils.sum(ArrayUtils.toDoubleArray(target)),
+														ArrayUtils.sum(ArrayUtils.toDoubleArray(ref))};
 		for (int i = 0; i < allelesUsed.length; i++) {
 			if (allelesUsed[i]) {
 				if (first) {
@@ -795,7 +795,7 @@ public class Minimac {
 			strs[j] += "]";
 		}
 
-		return Array.toStr(strs);
+		return ArrayUtils.toStr(strs);
 	}
 
 	// the mach2dat executable needed to be recompiled, per the recommendation of the website

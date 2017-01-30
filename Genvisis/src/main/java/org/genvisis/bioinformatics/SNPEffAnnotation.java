@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.util.List;
 
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -45,7 +45,7 @@ public class SNPEffAnnotation {
 		} else if (firstLine.length == 3) {
 			// snps, chr, and pos
 			int[] factors = ext.indexFactors(FACTORS, firstLine, false, true, true, false);
-			if (Array.countIf(factors, -1) > 0) {
+			if (ArrayUtils.countIf(factors, -1) > 0) {
 				log.reportError("Error - files containing three columns of data must contain RS ID's, Chromosomes, and Positions.");
 				return null;
 			}
@@ -57,7 +57,7 @@ public class SNPEffAnnotation {
 		} else if (firstLine.length >= 5) {
 			// snps, chr, and pos
 			int[] factors = ext.indexFactors(FACTORS_5, firstLine, false, true, true, false);
-			if (Array.countIf(factors, -1) > 0) {
+			if (ArrayUtils.countIf(factors, -1) > 0) {
 				log.reportError("Error - files containing five or more columns of data must contain RS ID's, Chromosomes, Positions, and Ref and Alt alleles.");
 				return null;
 			}

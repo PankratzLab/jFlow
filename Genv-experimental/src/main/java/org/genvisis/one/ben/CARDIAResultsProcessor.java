@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -27,7 +28,10 @@ public class CARDIAResultsProcessor {
 
 				String lineR = readerR.readLine();
 				String lineP = readerP.readLine();
-				writer.println(HEADER);
+				String[] hdr = lineR.split("[\\s]+");
+				hdr = ArrayUtils.insertStringAt("Chr", hdr, 1);
+				hdr = ArrayUtils.insertStringAt("Pos", hdr, 2);
+				writer.println(ArrayUtils.toStr(hdr));
 				while ((lineR = readerR.readLine()) != null && (lineP = readerP.readLine()) != null) {
 					String[] partsR = lineR.split("[\\s]+");
 					String[] partsP = lineP.split("[\\s]+");

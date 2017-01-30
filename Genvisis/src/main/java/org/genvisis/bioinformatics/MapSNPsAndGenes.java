@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -151,8 +151,8 @@ public class MapSNPsAndGenes {
 		int[] dists;
 		int[] order;
 
-		genes = Array.stringArray(markerPositions.length, "");
-		distances = Array.stringArray(markerPositions.length, "");
+		genes = ArrayUtils.stringArray(markerPositions.length, "");
+		distances = ArrayUtils.stringArray(markerPositions.length, "");
 		try {
 			reader = new BufferedReader(new FileReader(geneDB));
 			reader.readLine();
@@ -206,7 +206,7 @@ public class MapSNPsAndGenes {
 				finalGenes[i][2] = ".";
 			} else {
 				geneNames = genes[i].split("\\|");
-				dists = Array.toIntArray(distances[i].split("\\|"));
+				dists = ArrayUtils.toIntArray(distances[i].split("\\|"));
 				for (int j = 0; j < geneNames.length; j++) {
 					if (dists[j] < 0) {
 						geneNames[j] += " " + ext.prettyUpDistance(-1 * dists[j], 1) + " upstream";
@@ -230,7 +230,7 @@ public class MapSNPsAndGenes {
 				if (finalGenes[i][1] == null) {
 					finalGenes[i][1] = geneNames[order[0]];
 				}
-				finalGenes[i][2] = Array.toStr(Sort.getOrdered(geneNames, order), "|");
+				finalGenes[i][2] = ArrayUtils.toStr(Sort.getOrdered(geneNames, order), "|");
 			}
 		}
 
@@ -284,7 +284,7 @@ public class MapSNPsAndGenes {
 			}
 		}
 
-		data = Array.toStringArray(HashVec.loadFileToVec(ext.rootOf(dir + snps, false)
+		data = ArrayUtils.toStringArray(HashVec.loadFileToVec(ext.rootOf(dir + snps, false)
 																											+ "_positions.xln", false, false, false));
 
 		ArrayList<String> mkrList = new ArrayList<String>();
@@ -389,7 +389,7 @@ public class MapSNPsAndGenes {
 
 		if (params != null) {
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 
@@ -418,6 +418,7 @@ public class MapSNPsAndGenes {
 		boolean gatk = false;
 		String swap = null;
 		boolean xln = false;
+		boolean genes = true;
 		String logfile = null;
 
 		String usage = "\n"	+ "bioinformatics.MapSNPsAndGenes requires 0-1 arguments\n"
@@ -477,6 +478,9 @@ public class MapSNPsAndGenes {
 			} else if (arg.startsWith("log=")) {
 				logfile = ext.parseStringArg(arg, null);
 				numArgs--;
+			} else if (arg.startsWith("genes=")) {
+				genes = ext.parseBooleanArg(arg);
+				numArgs--;
 			} else {
 				System.err.println("Error - don't know what to do with argument '" + arg + "'");
 			}
@@ -506,8 +510,12 @@ public class MapSNPsAndGenes {
 						wiggleRoom = DEFAULT_WIGGLE_ROOM;
 					}
 				}
-				procSNPsToGenes(dir, filename, wiggleRoom, build, log, vcf, snpeff, gatk, snpEffLoc,
-												annovarLoc, swap, xln);
+				if (genes) {
+					procSNPsToGenes(dir, filename, wiggleRoom, build, log, vcf, snpeff, gatk, snpEffLoc,
+													annovarLoc, swap, xln);
+				} else {
+					ParseSNPlocations.lowMemParse(dir + filename, getSNPDB(build, log), getMergeDB(log), true, log);
+				}
 			} else {
 				log = new Logger(logfile);
 				procSNPsToGenes(dir, filename, wiggleRoom, build, log, vcf, snpeff, gatk, snpEffLoc,

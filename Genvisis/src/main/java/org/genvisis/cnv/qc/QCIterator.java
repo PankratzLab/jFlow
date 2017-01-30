@@ -14,7 +14,7 @@ import org.genvisis.cnv.filesys.CNVQC;
 import org.genvisis.cnv.filesys.MarkerFreqs;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -268,9 +268,9 @@ public class QCIterator implements Runnable {
 			}
 			ArrayList<CNVariantQC> misses = cnvComparison.getMisses();
 			writeMisses(proj, misses, log);
-			log.report(Array.toStr(cnvComparison.getGoodCalls()));
-			log.report(Array.toStr(cnvComparison.getFilteredCallsAvailable()));
-			log.report(Array.toStr(cnvComparison.getAverageCNPercent()));
+			log.report(ArrayUtils.toStr(cnvComparison.getGoodCalls()));
+			log.report(ArrayUtils.toStr(cnvComparison.getFilteredCallsAvailable()));
+			log.report(ArrayUtils.toStr(cnvComparison.getAverageCNPercent()));
 		}
 	}
 
@@ -287,7 +287,7 @@ public class QCIterator implements Runnable {
 		try {
 			PrintWriter missWriter = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
 																															+ "misses.cnv"));
-			missWriter.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+			missWriter.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (int i = 0; i < misses.size(); i++) {
 				missWriter.println(misses.get(i).getCnVariant().toPlinkFormat());
 			}
@@ -326,7 +326,7 @@ public class QCIterator implements Runnable {
 			cnvWriter = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()	+ output
 																									+ ".cnv"));
 			sampleWriter.println("Sample\tPassQC?0:1");
-			cnvWriter.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+			cnvWriter.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (int i = 0; i < inds.length; i++) {
 				if (defineCompHash.containsKey(inds[i]) || QCsubset == null) {
 					if (filteredcnvsQCs[i] != null) {
@@ -641,7 +641,7 @@ public class QCIterator implements Runnable {
 
 			if (qcIts[i % processors].getTargetPercentages()[indIndex] != allPercents[i]) {
 				log.reportError("Error - recieved unmatched results while collecting results for "
-													+ Array.toStr(qcIts[i % processors].getOptqcs()[indIndex], ",") + "\t"
+													+ ArrayUtils.toStr(qcIts[i % processors].getOptqcs()[indIndex], ",") + "\t"
 												+ allPercents[i]);
 				System.exit(1);
 			} else if (qcIts[i % processors].getTargetPercentages()[indIndex] == allPercents[i]) {
@@ -660,9 +660,9 @@ public class QCIterator implements Runnable {
 		try {
 			PrintWriter qcoutput = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
 																														+ output, false));
-			qcoutput.println(Array.toStr(OptimizedQCThresholds.OPT_QC_HEADS));
+			qcoutput.println(ArrayUtils.toStr(OptimizedQCThresholds.OPT_QC_HEADS));
 			for (OptimizedQCThresholds[] optqc : optqcs) {
-				qcoutput.println(Array.toStr(OptimizedQCThresholds.OPT_QC_HEADS));
+				qcoutput.println(ArrayUtils.toStr(OptimizedQCThresholds.OPT_QC_HEADS));
 				for (OptimizedQCThresholds element : optqc) {
 					qcoutput.print(element.getDisplayString());
 					qcoutput.print("\n");

@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
@@ -166,7 +166,7 @@ public class ParseRegression {
 				}
 				if (map == null) {
 					System.err.println("Error - could not find a .MAP or .BIM file with any of the following roots: "
-															+ Array.toStr(MAP_ROOTS, ", "));
+															+ ArrayUtils.toStr(MAP_ROOTS, ", "));
 					System.exit(1);
 				}
 				markerNames = map.getMarkerNames();
@@ -176,7 +176,7 @@ public class ParseRegression {
 				try {
 					writer = new PrintWriter(new FileWriter(dir + element + ".xls"));
 					writer.println("SNP\tChr\tPosition\tAllele\t"
-													+ Array.toStr(MODELS, "\tstatistic\tp-value\t") + "\tstatistic\tp-value");
+													+ ArrayUtils.toStr(MODELS, "\tstatistic\tp-value\t") + "\tstatistic\tp-value");
 					for (int j = 0; j < markerNames.length; j++) {
 						if (allSNPs.containsKey(markerNames[j])) {
 							writer.print(markerNames[j]	+ "\t" + chrs[j] + "\t" + positions[j] + "\t"
@@ -221,7 +221,7 @@ public class ParseRegression {
 				System.out.println("Writing top hits...");
 				try {
 					writer = new PrintWriter(new FileWriter(dir + element + "_topHits.xls"));
-					writer.println("SNP\t" + Array.toStr(MODELS, "\tp-value\t") + "\tp-value");
+					writer.println("SNP\t" + ArrayUtils.toStr(MODELS, "\tp-value\t") + "\tp-value");
 					for (int j = 0; j < topSNPs.size(); j++) {
 						writer.print(topSNPs.elementAt(j));
 						data = used.get(topSNPs.elementAt(j));
@@ -273,7 +273,7 @@ public class ParseRegression {
 			System.exit(1);
 		}
 		try {
-			parseRegression(v.size() == 0 ? DEFAULT_DIRS : Array.toStringArray(v));
+			parseRegression(v.size() == 0 ? DEFAULT_DIRS : ArrayUtils.toStringArray(v));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

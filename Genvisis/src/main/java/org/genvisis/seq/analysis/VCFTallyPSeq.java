@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Set;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -117,7 +117,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 	public void fullGamutAssoc(	int numPerm, String mac, FilterNGS filterNGS,
 															String fullpathToChargeVCF, int numThreads) {
 		tally(filterNGS, fullpathToChargeVCF);
-		String[] varMasks = Array.unique(HashVec.loadFileToStringArray(	varList, false, new int[] {1},
+		String[] varMasks = ArrayUtils.unique(HashVec.loadFileToStringArray(	varList, false, new int[] {1},
 																																		true));
 		String locFile = pseqProject.getResourceDirectory()
 											+ ext.rootOf(genomeRegions.getGeneTrack().getGeneSetFilename() + ".reg");
@@ -284,7 +284,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 										}
 										curString += "\t"	+ pstSummary.getP() + "\t" + pstSummary.getI() + "\t" + ""
 																	+ pstSummary.getDesc().replaceAll("/", "::").replaceAll("/", "::")
-																	+ (test == BURDEN_Tests.BURDEN ? "\t" + Array.toStr(desc) : "");
+																	+ (test == BURDEN_Tests.BURDEN ? "\t" + ArrayUtils.toStr(desc) : "");
 										curString += "\t" + pstSummary.getBonfFull();
 										for (int k = 0; k < PlinkSeqUtils.PlinkSeqBurdenSummary.I_THRESHOLDS.length; k++) {
 											curString += "\t" + pstSummary.getBonfsI()[k];
@@ -406,7 +406,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 		// Logger log;
 		String usage = "\n" + "seq.analysis.VCFTallyPSeq requires 0-1 arguments\n";
 		usage += "   (1) vcf file (i.e. vcf=" + vcf + " (default))\n" + "";
-		usage += "   (2) vpop files, comma delimited (i.e. vpop="	+ Array.toStr(vpopFiles)
+		usage += "   (2) vpop files, comma delimited (i.e. vpop="	+ ArrayUtils.toStr(vpopFiles)
 							+ " (default))\n" + "";
 
 		for (String arg : args) {

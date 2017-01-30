@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ByteVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.FilterByLists;
@@ -127,7 +127,7 @@ public class Mega_Analyses {
 									try {
 										hash.put(line[1], line[4]);
 									} catch (Exception e) {
-										System.err.println("Error in '" + filename + "' : " + Array.toStr(line, "|"));
+										System.err.println("Error in '" + filename + "' : " + ArrayUtils.toStr(line, "|"));
 										e.printStackTrace();
 									}
 								} else if (hash.containsKey(line[1])) {
@@ -239,7 +239,7 @@ public class Mega_Analyses {
 					}
 				}
 
-				trav1 = Array.toStr(line);
+				trav1 = ArrayUtils.toStr(line);
 
 				if (hash2.containsKey(key)) {
 					trav2 = hash2.remove(key);
@@ -257,7 +257,7 @@ public class Mega_Analyses {
 			System.err.println("Error writing to " + "discordant.out");
 			e.printStackTrace();
 		}
-		Files.writeArray(Array.toStringArray(missingFrom2), "missingFrom2.out");
+		Files.writeArray(ArrayUtils.toStringArray(missingFrom2), "missingFrom2.out");
 		Files.writeArray(HashVec.getKeys(hash2, false), "missingFrom1.out");
 
 
@@ -390,7 +390,7 @@ public class Mega_Analyses {
 		for (int i = 0; i < allFiles.length; i++) {
 			allFiles[i] = DIR + "filtered/" + STUDIES[i][1];
 		}
-		Unique.proc(allFiles, Array.intArray(STUDIES.length, 1), null, DIR + "filtered/allSNPs.txt",
+		Unique.proc(allFiles, ArrayUtils.intArray(STUDIES.length, 1), null, DIR + "filtered/allSNPs.txt",
 								DIR + "filtered/allSNPcounts.txt", true);
 
 		GenParser.parse(new String[] {DIR	+ "filtered/allSNPcounts.txt", "skip=2", "1", "!2>=3",
@@ -454,7 +454,7 @@ public class Mega_Analyses {
 		// Metasoft.generateInputFile(HashVec.getKeys(threeOrMoreAndRef), metasoftParams,
 		// DIR+"filtered/"+subDir+"metasoft.input", log);
 		log.report(ext.getTime() + "\tCounting number with three or more");
-		Unique.proc(allFiles, Array.intArray(STUDIES.length, 1), null,
+		Unique.proc(allFiles, ArrayUtils.intArray(STUDIES.length, 1), null,
 								DIR + "filtered/" + subDir + "checkSNPs.txt",
 								DIR + "filtered/" + subDir + "checkSNPcounts.txt", true);
 
@@ -471,7 +471,7 @@ public class Mega_Analyses {
 				v.add(DIR + "filtered/" + subDir + "" + element[1]);
 			}
 		}
-		Unique.proc(Array.toStringArray(v), Array.intArray(v.size(), 1), null,
+		Unique.proc(ArrayUtils.toStringArray(v), ArrayUtils.intArray(v.size(), 1), null,
 								DIR + "filtered/" + subDir + "coreStudySNPs.txt",
 								DIR + "filtered/" + subDir + "coreStudyCounts.txt", true);
 	}
@@ -514,10 +514,10 @@ public class Mega_Analyses {
 			}
 		}
 
-		Unique.proc(allFiles, Array.intArray(STUDIES.length, 1), null,
+		Unique.proc(allFiles, ArrayUtils.intArray(STUDIES.length, 1), null,
 								DIR + "non1000G_markers/extraSNPs.txt", DIR + "non1000G_markers/extraSNPcounts.txt",
 								true);
-		Unique.proc(allFilteredFiles, Array.intArray(STUDIES.length, 1), null,
+		Unique.proc(allFilteredFiles, ArrayUtils.intArray(STUDIES.length, 1), null,
 								DIR + "non1000G_markers/filtered/extraSNPs.txt",
 								DIR + "non1000G_markers/filtered/extraSNPcounts.txt", true);
 
@@ -573,7 +573,7 @@ public class Mega_Analyses {
 			}
 		}
 		//
-		Unique.proc(allFiles, Array.intArray(STUDIES.length, 1), null,
+		Unique.proc(allFiles, ArrayUtils.intArray(STUDIES.length, 1), null,
 								DIR + "duplicatedMarkers/allDuplicatedSNPs.txt",
 								DIR + "duplicatedMarkers/allDuplicatedSNPcounts.txt", true);
 		// Unique.proc(allFilteredFiles, Array.intArray(STUDIES.length, 1), null,
@@ -670,7 +670,7 @@ public class Mega_Analyses {
 																																																															+ "")	? "1"
 																																																																		: "0")
 																																									: ".\t.\t0")
-												+ "\t" + Array.toStr(Array.toStringArray(v)));
+												+ "\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(v)));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -903,7 +903,7 @@ public class Mega_Analyses {
 				v.add(DIR + "filtered/" + subDir + "" + element[1]);
 			}
 		}
-		Unique.proc(Array.toStringArray(v), Array.intArray(v.size(), 1), null,
+		Unique.proc(ArrayUtils.toStringArray(v), ArrayUtils.intArray(v.size(), 1), null,
 								DIR + "filtered/" + subDir + "coreStudySNPs.txt",
 								DIR + "filtered/" + subDir + "coreStudyCounts.txt", true);
 		System.exit(1);

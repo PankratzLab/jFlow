@@ -15,7 +15,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
 import org.genvisis.common.Files;
@@ -63,7 +63,7 @@ public class lab {
 		while (reader.ready()) {
 			String line = reader.readLine();
 			String[] keyVal = sampleData.lookup(line);
-			writer.println(Array.toStr(keyVal, "\t"));
+			writer.println(ArrayUtils.toStr(keyVal, "\t"));
 		}
 		writer.flush();
 		writer.close();
@@ -94,7 +94,7 @@ public class lab {
 				line = reader.readLine().trim().split("[\\s]+");
 				cnv = new CNVariant(line);
 				if (cnv.overlaps(centromereMidpoints[cnv.getChr()])) {
-					writer.println(Array.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 				}
 			}
 			fr.close();
@@ -133,7 +133,7 @@ public class lab {
 		CNVariant[] centromeric = CNVariant.loadPlinkFile("D:/SIDS and IQ/IQ/merged.cnv", false);
 
 		PrintWriter writer = new PrintWriter(new FileWriter("D:/SIDS and IQ/IQ/merged_split.cnv"));
-		writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+		writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 
 		for (CNVariant cnv : centromeric) {
 			CNVFilterPass fp = filter.getCNVFilterPass(cnv);
@@ -160,27 +160,41 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
+			try {
+				CARDIA2017ResultsProcessor.combineChrXDose();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			System.out.println("DOSAGE FILES FINISHED");
+			try {
+				CARDIA2017ResultsProcessor.combineChrXInfo();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			
-			String dir = "/scratch.global/cole0482/ny_choanal/omni2.5v1.1/shadowCNVs/";
-			String in = "recodedM.cnv";
-			String out = "recodedM_excl.cnv";
-			String indivFile = "/scratch.global/cole0482/ny_choanal/omni2.5v1.1/cnvs/exclude.txt";
-			boolean exclude = true;
-			FilterCalls.filterExclusions(dir, in, out, indivFile, exclude);
-			in = "recodedF.cnv";
-			out = "recodedF_excl.cnv";
-			FilterCalls.filterExclusions(dir, in, out, indivFile, exclude);
 			
-			CNVFilter cnvF = new CNVFilter(new Logger());
-			cnvF.setProblemRegionsFromFile("/scratch.global/cole0482/ny_choanal/problematicRegions_hg19.dat");
-
-			in = dir + "recodedM_excl.cnv";
-			out = dir + "recodedM_filt.cnv";
-			CNVFilter.filterCNVs(in, out, cnvF, new Logger());
-
-			in = dir + "recodedF_excl.cnv";
-			out = dir + "recodedF_filt.cnv";
-			CNVFilter.filterCNVs(in, out, cnvF, new Logger());
+//			String dir = "F:/temp/filter/";
+//			String in = "recodedM.cnv";
+//			String out = "recodedM_excl.cnv";
+//			String indivFile = "F:/temp/filter/exclude.txt";
+//			boolean exclude = true;
+//			FilterCalls.filterExclusions(dir, in, out, indivFile, exclude);
+//			in = "recodedF.cnv";
+//			out = "recodedF_excl.cnv";
+//			FilterCalls.filterExclusions(dir, in, out, indivFile, exclude);
+//			
+//			System.out.println("Removed excluded");
+//			
+//			CNVFilter cnvF = new CNVFilter(new Logger());
+//			cnvF.setProblemRegionsFromFile("F:/temp/filter/problematicRegions_hg19.dat");
+//
+//			in = dir + "recodedM_excl.cnv";
+//			out = dir + "recodedM_filt.cnv";
+//			CNVFilter.filterCNVs(in, out, cnvF, new Logger());
+//
+//			in = dir + "recodedF_excl.cnv";
+//			out = dir + "recodedF_filt.cnv";
+//			CNVFilter.filterCNVs(in, out, cnvF, new Logger());
 			
 //			MergeExtractPipeline pipeline = new MergeExtractPipeline();
 //			// pipeline.setMarkers(markersFile);

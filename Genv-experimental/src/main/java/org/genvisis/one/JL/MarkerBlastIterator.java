@@ -17,7 +17,7 @@ import org.genvisis.cnv.qc.MarkerBlast;
 import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
 import org.genvisis.cnv.qc.MarkerBlast.MarkerBlastResult;
 import org.genvisis.cnv.qc.MarkerMetrics;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -303,13 +303,13 @@ public class MarkerBlastIterator {
 				int markerIndex = indices.get(summaries.get(k).getMarkerName());
 				if (summaries.get(k).isHasAppropriateMatch()) {
 					if (summaries.get(k).getCrossHybLength().size() == 0
-							|| Array.max(Doubles.toArray(summaries.get(k)
+							|| ArrayUtils.max(Doubles.toArray(summaries.get(k)
 																										.getCrossHybLength())) < oneHitWonderDef) {
 						oneHitters.add(summaries.get(k).getMarkerName());
 					} else {
 						notOneHitters.add(summaries.get(k).getMarkerName()	+ "\t"
 															+ markerSet.getChrs()[markerIndex]);
-						notOneHittersMaxCrossHybe.add(Array.max(Doubles.toArray(summaries	.get(k)
+						notOneHittersMaxCrossHybe.add(ArrayUtils.max(Doubles.toArray(summaries	.get(k)
 																																							.getCrossHybLength())));
 					}
 					if (parser.getNumericDataForTitle("MAF")[markerIndex] > mafFilter) {
@@ -320,18 +320,18 @@ public class MarkerBlastIterator {
 									BLAST_METRICS metric = BLAST_METRICS.values()[m];
 									switch (metric) {
 										case CROSS_HYBE_EVAL:
-											dHistograms[m][l].addDataPair(Array.min(Doubles.toArray(summaries	.get(k)
+											dHistograms[m][l].addDataPair(ArrayUtils.min(Doubles.toArray(summaries	.get(k)
 																																												.getCrossHybEvalue())),
 																										parser.getNumericData()[l][markerIndex]);
 											break;
 										case CROSS_HYBE_LENGTH:
-											dHistograms[m][l].addDataPair(Array.max(Doubles.toArray(summaries	.get(k)
+											dHistograms[m][l].addDataPair(ArrayUtils.max(Doubles.toArray(summaries	.get(k)
 																																												.getCrossHybLength())),
 																										parser.getNumericData()[l][markerIndex]);
 
 											break;
 										case CROSS_HYBE_PERCENT_MATCH:
-											dHistograms[m][l].addDataPair(Array.max(Doubles.toArray(summaries	.get(k)
+											dHistograms[m][l].addDataPair(ArrayUtils.max(Doubles.toArray(summaries	.get(k)
 																																												.getCrossHybLength()))
 																											/ proj.getArrayType().getProbeLength(),
 																										parser.getNumericData()[l][markerIndex]);
@@ -355,7 +355,7 @@ public class MarkerBlastIterator {
 					noAppropriateMatch.add(summaries.get(k).getMarkerName()	+ "\t"
 																	+ markerSet.getChrs()[markerIndex]);
 					if (summaries.get(k).getCrossHybLength().size() > 0) {
-						noAppropriateMatchMaxCrossHybe.add(Array.max(Doubles.toArray(summaries.get(k)
+						noAppropriateMatchMaxCrossHybe.add(ArrayUtils.max(Doubles.toArray(summaries.get(k)
 																																									.getCrossHybLength())));
 					} else {
 						noAppropriateMatchMaxCrossHybe.add((double) 0);
@@ -377,10 +377,10 @@ public class MarkerBlastIterator {
 																						".oneHitWonders_" + oneHitWonderDef);
 			Files.writeIterable(oneHitters, oneHitWonders);
 			extractOneHitWondersFrom(	proj.TARGET_MARKERS_FILENAMES.getValue()[0],
-																Array.toStringArray(oneHitters), oneHitTargets, log);
+																ArrayUtils.toStringArray(oneHitters), oneHitTargets, log);
 			if (otherMarkersToExtract != null) {
 				for (String element : otherMarkersToExtract) {
-					extractOneHitWondersFrom(	element, Array.toStringArray(oneHitters),
+					extractOneHitWondersFrom(	element, ArrayUtils.toStringArray(oneHitters),
 																		ext.addToRoot(element, ".oneHitWonders_" + oneHitWonderDef),
 																		log);
 				}
@@ -424,7 +424,7 @@ public class MarkerBlastIterator {
 
 					for (int l = 0; l < QC_GROUPINGS.length; l++) {
 						String groupPlot = ext.rootOf(allPlotFiles[j], false) + "_" + QC_TITLES[l];
-						String title = "n=" + Array.sum(dHistograms[j][0].getCounts());
+						String title = "n=" + ArrayUtils.sum(dHistograms[j][0].getCounts());
 						ArrayList<String> ys = new ArrayList<String>();
 						for (int k = 0; k < QC_GROUPINGS[l].length; k++) {
 							ys.add(titles[3 * QC_GROUPINGS[l][k] + 2]);
@@ -646,10 +646,10 @@ public class MarkerBlastIterator {
 				PrintWriter writerMatch = Files.getAppropriateWriter(plotFileMatch);
 				PrintWriter writerALL = Files.getAppropriateWriter(plotFileALL);
 
-				writerMatch.println(Array.toStr(PLOT_FILE_HEADER)	+ "\t"
-														+ Array.toStr(Array.subArray(MarkerMetrics.FULL_QC_HEADER, 1)));
-				writerALL.println(Array.toStr(PLOT_FILE_HEADER)	+ "\t"
-													+ Array.toStr(Array.subArray(MarkerMetrics.FULL_QC_HEADER, 1)));
+				writerMatch.println(ArrayUtils.toStr(PLOT_FILE_HEADER)	+ "\t"
+														+ ArrayUtils.toStr(ArrayUtils.subArray(MarkerMetrics.FULL_QC_HEADER, 1)));
+				writerALL.println(ArrayUtils.toStr(PLOT_FILE_HEADER)	+ "\t"
+													+ ArrayUtils.toStr(ArrayUtils.subArray(MarkerMetrics.FULL_QC_HEADER, 1)));
 				ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 				builder.separator("\t");
 				builder.sampleBased(false);
@@ -717,7 +717,7 @@ public class MarkerBlastIterator {
 
 				for (String element : X_COLUMNS_PLOT) {
 					for (int j2 = 0; j2 < QC_GROUPINGS.length; j2++) {
-						String[] yColumns = Array.subArray(MarkerMetrics.FULL_QC_HEADER, QC_GROUPINGS[j2]);
+						String[] yColumns = ArrayUtils.subArray(MarkerMetrics.FULL_QC_HEADER, QC_GROUPINGS[j2]);
 						// rScatters.add(plot(proj, plotFileMatch, X_COLUMNS_PLOT[j], QC_TITLES[j2], yColumns));
 						rScatters.add(plot(proj, plotFileALL, element, QC_TITLES[j2], yColumns));
 					}

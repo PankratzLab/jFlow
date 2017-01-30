@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -155,12 +155,12 @@ public class FilterSNPsByRegion {
 		log.report("Found " + snps.size() + " SNPs within these regions");
 
 		if (regionNumber) {
-			Files.writeArray(Array.toStringArray(snpsWithRegionNumbers), "snp_region_matchup.dat");
+			Files.writeArray(ArrayUtils.toStringArray(snpsWithRegionNumbers), "snp_region_matchup.dat");
 			paramV.add("snp_region_matchup.dat 0 1=RegionNumber"
 									+ (regionNameIndex >= 0 ? "\t2=RegionName" : ""));
 		}
 
-		Files.combine(Array.toStringArray(snps), Array.toStringArray(paramV), "MarkerName",
+		Files.combine(ArrayUtils.toStringArray(snps), ArrayUtils.toStringArray(paramV), "MarkerName",
 									outputFilename, log, true);
 	}
 }

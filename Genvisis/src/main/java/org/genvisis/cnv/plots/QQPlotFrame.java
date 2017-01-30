@@ -7,7 +7,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JFrame;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
@@ -85,7 +85,7 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 
 		String usage = "\n"	+ "plot.QQPlot requires 0-1 arguments\n"
 										+ "   (1) name of files with p-values (i.e. files="
-										+ Array.toStr(filenames, ";") + " (default))\n"
+										+ ArrayUtils.toStr(filenames, ";") + " (default))\n"
 										+ "   (2) -log10(p) at which to start truncating (i.e. maxToPlot=10 (default: -1))\n"
 										+ "   (3) make symmetric (i.e. -symmetric (not the default))\n"
 										+ "   (4) name of plot, for frame (i.e. plotLabel=" + plotLabel
@@ -143,7 +143,7 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 		}
 
 		System.out.println("Found "	+ filenames.length + " files to parse: \n"
-												+ Array.toStr(filenames, "\n"));
+												+ ArrayUtils.toStr(filenames, "\n"));
 
 		try {
 			if (computePrefix != null) {

@@ -12,7 +12,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.cnv.analysis.FilterCalls;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
@@ -90,7 +90,7 @@ public class QuantiSNP {
 			while (reader.ready()) {
 				vNames.add(reader.readLine().trim().split(",")[index]);
 			}
-			snpNames = Array.toStringArray(vNames);
+			snpNames = ArrayUtils.toStringArray(vNames);
 			writer = new PrintWriter(new FileWriter(MARKER_FILE));
 			for (String snpName : snpNames) {
 				writer.println(snpName);
@@ -292,7 +292,7 @@ public class QuantiSNP {
 				inds[i] = outputs[i].substring(0, outputs[i].lastIndexOf("_"));
 			}
 		} else {
-			inds = Array.toStringArray(HashVec.loadFileToVec(	rootDirectory, false, new int[] {0, 1}, true,
+			inds = ArrayUtils.toStringArray(HashVec.loadFileToVec(	rootDirectory, false, new int[] {0, 1}, true,
 																												false));
 			System.out.println("Using all indivduals listed in '"	+ included + "' (n=" + inds.length
 													+ ")");
@@ -306,7 +306,7 @@ public class QuantiSNP {
 
 		try {
 			writer = new PrintWriter(new FileWriter(rootDirectory + "plink.cnv"));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (String ind : inds) {
 				try {
 					reader = new BufferedReader(new FileReader(rootDirectory	+ outputDirectory + ind

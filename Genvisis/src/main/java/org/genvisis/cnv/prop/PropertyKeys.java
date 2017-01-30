@@ -100,5 +100,6 @@ public class PropertyKeys {
 																																	"STRATIFICATION_RESULTS_FILENAMES";
 	public static final String KEY_GENOME_BUILD_VERSION = "GENOME_BUILD_VERSION";
 	public static final String KEY_GENE_LIST_FILENAMES = "GENE_LIST_FILENAMES";
+	public static final String KEY_TRAILER_REGION = "TRAILER_REGION";
 
 }

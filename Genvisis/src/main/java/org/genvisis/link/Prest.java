@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 // import java.util.*;
 import java.text.DecimalFormat;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -42,7 +42,7 @@ public class Prest {
 			reader = new BufferedReader(new FileReader("re_chrom" + chrome + ".pre"));
 			writer = new PrintWriter(new FileWriter("pedigrees"));
 			while (reader.ready()) {
-				writer.println(Array.toStr(Array.subArray(reader.readLine().trim().split("[\\s]+"), 0, 6)));
+				writer.println(ArrayUtils.toStr(ArrayUtils.subArray(reader.readLine().trim().split("[\\s]+"), 0, 6)));
 			}
 			reader.close();
 			writer.close();

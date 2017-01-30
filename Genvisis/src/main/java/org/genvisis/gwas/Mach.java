@@ -15,7 +15,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.zip.GZIPInputStream;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -132,7 +132,7 @@ public class Mach {
 
 		v = new Vector<String>();
 		if (nodesToUse == null) {
-			v = Array.toStringVector(Files.qsub("", "chr#", 1, 22, commands, null, 10000, 48, null));
+			v = ArrayUtils.toStringVector(Files.qsub("", "chr#", 1, 22, commands, null, 10000, 48, null));
 		} else {
 			v = new Vector<String>();
 			// step = (int)Math.ceil((double)(22)/(double)nodesToUse.length);
@@ -147,7 +147,7 @@ public class Mach {
 				}
 			}
 		}
-		Files.writeArray(Array.toStringArray(v), "master.mach");
+		Files.writeArray(ArrayUtils.toStringArray(v), "master.mach");
 		Files.chmod("master.mach");
 	}
 
@@ -293,8 +293,8 @@ public class Mach {
 			reader = new BufferedReader(new FileReader(dir	+ "truncated_chr" + chr
 																									+ "_CEU_r22_nr.b36_fwd.phase"));
 			writer = new PrintWriter(new FileWriter(dir + "chr" + chr + "_phased.xln"));
-			writer.println(Array.toStr(markerNames));
-			writer.println(Array.toStr(positions));
+			writer.println(ArrayUtils.toStr(markerNames));
+			writer.println(ArrayUtils.toStr(positions));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				for (int i = 0; i < markerNames.length; i++) {
@@ -401,7 +401,7 @@ public class Mach {
 			dir = "";
 		}
 
-		markerNames = Array.toStringArray(HashVec.loadFileToVec(dir	+ machMarkers, true,
+		markerNames = ArrayUtils.toStringArray(HashVec.loadFileToVec(dir	+ machMarkers, true,
 																														new int[] {0, 1, 2}, false, false));
 
 		count = 0;
@@ -430,7 +430,7 @@ public class Mach {
 
 		if (new File(dir + markersToTest).exists()) {
 			System.out.println("Extracting the markers listed in " + markersToTest);
-			subset = Array.toStringArray(HashVec.loadFileToVec(dir + markersToTest, false, true, false));
+			subset = ArrayUtils.toStringArray(HashVec.loadFileToVec(dir + markersToTest, false, true, false));
 			allMarkers = false;
 		} else {
 			System.out.println("Did not find a " + markersToTest + " file; extracting all markers...");
@@ -518,7 +518,7 @@ public class Mach {
 
 			writer = new PrintWriter(new FileWriter(dir + machDosage + ".dose"));
 			writer.print("SNP\tA1\tA2");
-			indIDs = Array.toStringArray(v);
+			indIDs = ArrayUtils.toStringArray(v);
 			for (int i = 0; i < rowCount; i++) {
 				writer.print("\t"	+ indIDs[i].substring(0, indIDs[i].indexOf("->")) + " "
 											+ indIDs[i].substring(indIDs[i].indexOf("->") + 2));
@@ -684,7 +684,7 @@ public class Mach {
 			log.reportError("Error reading file \"" + markerList + "\"");
 			return false;
 		}
-		markerNames = Array.toStringArray(v);
+		markerNames = ArrayUtils.toStringArray(v);
 		log.report("Will try to export data for " + markerNames.length + " markers");
 
 		pedfile = dir + "list.txt";
@@ -884,12 +884,12 @@ public class Mach {
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
 			if (machFormat) {
-				writer.println(Array.toStr(MLINFO_HEADER));
+				writer.println(ArrayUtils.toStr(MLINFO_HEADER));
 			} else {
-				writer.println(Array.toStr(MINFO_HEADER));
+				writer.println(ArrayUtils.toStr(MINFO_HEADER));
 			}
 			for (String markerName : markerNames) {
-				writer.println(Array.toStr(infoHash.get(markerName)));
+				writer.println(ArrayUtils.toStr(infoHash.get(markerName)));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -1246,7 +1246,7 @@ public class Mach {
 		if (regions) {
 			batchFilename = "splitByRegion";
 			// regionKeys = HashVec.getKeys(regionMarkerHashes, true, false);
-			regionKeys = Array.toStringArray(v);
+			regionKeys = ArrayUtils.toStringArray(v);
 			Files.writeArray(regionKeys, "regionList.dat");
 			System.out.println("Found " + regionKeys.length + " regions to parse");
 		} else {
@@ -1292,7 +1292,7 @@ public class Mach {
 					w2 = new PrintWriter(new FileWriter(dir
 																							+ (regions ? "data.info" : "chr" + chr + ".info")));
 					line = reader.readLine().trim().split("[\\s]+");
-					w2.println(Array.toStr(line));
+					w2.println(ArrayUtils.toStr(line));
 					if (markersFile.endsWith(".gz") || markersFile.endsWith(".zip")) {
 						markersFile = markersFile.substring(0, markersFile.lastIndexOf("."));
 					}
@@ -1317,7 +1317,7 @@ public class Mach {
 						if (regionHash.containsKey(line[0])) {
 							regionHash.remove(line[0]);
 							v.add(count + "");
-							w2.println(Array.toStr(line));
+							w2.println(ArrayUtils.toStr(line));
 						}
 					}
 					reader.close();
@@ -1328,7 +1328,7 @@ public class Mach {
 																+ " markers that were supposed to be "
 																+ (regions ? "part of region " : "on chromosome ") + regionKeys[i]
 																+ ":");
-						System.err.println(Array.toStr(HashVec.getKeys(regionHash), ","));
+						System.err.println(ArrayUtils.toStr(HashVec.getKeys(regionHash), ","));
 					}
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + markersFile + "\"");
@@ -1341,7 +1341,7 @@ public class Mach {
 					writer.println("echo \"parsing chr"	+ chr + " (batch " + (i + 1) + " of "
 													+ regionKeys.length + ")...\"");
 				}
-				Files.write("{print $"	+ Array.toStr(Array.toStringArray(v), "\"\\t\"$") + "}",
+				Files.write("{print $"	+ ArrayUtils.toStr(ArrayUtils.toStringArray(v), "\"\\t\"$") + "}",
 										dir + "split" + (i + 1) + ".awk");
 				if (dosageFile.endsWith(".gz")) {
 					writer.println("gunzip -c "	+ dosageFile + " | awk -f " + dir + "split" + (i + 1)
@@ -1645,12 +1645,12 @@ public class Mach {
 		try {
 			reader = new BufferedReader(new FileReader(machRoot + ".mldose"));
 			writer = new PrintWriter(new FileWriter(machRoot + ".xln"));
-			writer.println("FID\tIID\t" + Array.toStr(markerNames));
+			writer.println("FID\tIID\t" + ArrayUtils.toStr(markerNames));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				line[1] = line[0].substring(line[0].indexOf("->") + 2);
 				line[0] = line[0].substring(0, line[0].indexOf("->"));
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 			}
 			reader.close();
 			writer.close();
@@ -1755,7 +1755,7 @@ public class Mach {
 										+ " OR\n" + "   -gethapmap (downloads data)\n" + " OR\n"
 										+ "   (1) create batch files for MACH phasing (i.e. -batches (not the default))\n"
 										+ "   (2) nodes to use (i.e. nodesToUse="
-										+ Array.toStr(new String[] {"v1", "v2", "..."}, ",")
+										+ ArrayUtils.toStr(new String[] {"v1", "v2", "..."}, ",")
 										+ " (default; qsubs only; full names, comma-delimited))\n" + " OR\n"
 										+ "   chromosome to trim from source phase files (i.e. trim=1 (not the default))\n"
 										+ " OR\n" + "   list IDs from .mldose file (i.e. list=chr21.mldose)\n" + " OR\n"

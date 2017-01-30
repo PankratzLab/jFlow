@@ -1,8 +1,8 @@
-package org.genvisis.cnv.annotation;
+package org.genvisis.cnv.annotation.markers;
 
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.filesys.Segment;
@@ -102,7 +102,7 @@ public class LocusAnnotation {
 	}
 
 	public void addAnnotation(AnnotationData annotationData) {
-		annotations = Array.concatAll(annotations, new AnnotationData[] {annotationData});
+		annotations = ArrayUtils.concatAll(annotations, new AnnotationData[] {annotationData});
 	}
 
 	public static class Builder {

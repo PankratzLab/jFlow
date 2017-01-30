@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -45,7 +45,8 @@ public class ExomeDepth {
 	private static final String MY_CHOICE_VAR = "my.choice";
 	private static final String[] RESULT_PARSE = new String[] {	"type", "nexons", "start", "end",
 																															"chromosome", "BF", "reads.expected",
-																															"reads.observed", "reads.ratio"};
+																															"reads.observed", "reads.ratio",
+																															"Conrad.hg19"};
 
 	private final String[] allReferenceBAMFiles;
 	private String[] allReferenceBAIFiles;
@@ -75,7 +76,7 @@ public class ExomeDepth {
 		new File(outputDir).mkdirs();
 		this.outputRoot = outputRoot;
 		if (!fail) {
-			fail = Array.countIf(	ext.indexLargeFactors(analysisBamFiles, allReferenceBamFiles, true, log,
+			fail = ArrayUtils.countIf(	ext.indexLargeFactors(analysisBamFiles, allReferenceBamFiles, true, log,
 																									true, false),
 														-1) > 0;
 			if (fail) {
@@ -125,12 +126,17 @@ public class ExomeDepth {
 			}
 
 		} else {
+			List<String> missingSamplesFromVpop = new ArrayList<String>();
 			for (int i = 0; i < allSampleNames.length; i++) {
 				if (vpop.getSuperPop().get(VcfPopulation.EXCLUDE).contains(allSampleNames[i])) {
 					globalExclude.add(allSampleNames[i]);
 				}
 				String[] sampSpecificExclude = vpop.getPopulationForInd(allSampleNames[i],
 																																RETRIEVE_TYPE.SUB);
+				if (sampSpecificExclude == null || sampSpecificExclude.length == 0) {
+					missingSamplesFromVpop.add(allSampleNames[i]);
+					globalExclude.add(allSampleNames[i]);
+				}
 				for (String element : sampSpecificExclude) {
 					Set<String> curSet = vpop.getSubPop().get(element);
 					for (String samp : curSet) {
@@ -139,6 +145,13 @@ public class ExomeDepth {
 						}
 					}
 				}
+			}
+			if(!missingSamplesFromVpop.isEmpty()){
+				log.reportTimeWarning(missingSamplesFromVpop.size()+ " samples were not found in "
+															+ vpop.getFileName()
+															+ " and will not be excluded from reference panel:");
+				log.reportTimeWarning(ArrayUtils.toStr(missingSamplesFromVpop, "\n"));
+
 			}
 		}
 
@@ -151,8 +164,8 @@ public class ExomeDepth {
 		for (int i = 0; i < allReferenceBAMFiles.length; i++) {
 			String bai = ext.rootOf(allReferenceBAMFiles[i], false) + BamOps.BAI_EXT;
 			if (!Files.exists(allReferenceBAMFiles[i]) || !Files.exists(bai)) {
-				log.reportError("Could not find "	+ allReferenceBAMFiles[i]
-														+ " with corresponding .bai file" + bai);
+				log.reportError("Could not find "+ allReferenceBAMFiles[i]
+												+ " with corresponding .bai file" + bai);
 			} else {
 				allReferenceBAIFiles[i] = bai;
 				sampleSpecificExclude.put(allSampleNames[i], new HashSet<String>());
@@ -172,40 +185,40 @@ public class ExomeDepth {
 	private ExomeDepthAnalysis generateCallingScript(final ExomeDepthAnalysis eAnalysis) {
 		String script = addBaseLoadScript("");
 		script += loadCountFileScript() + "\n";
-		script += MY_TEST_VAR	+ " <- " + EXOME_COUNTS_DAFR + "$"
+		script += MY_TEST_VAR+ " <- " + EXOME_COUNTS_DAFR + "$"
 							+ Rscript.makeRSafe(ext.removeDirectoryInfo(eAnalysis.getInputBam())) + "\n";
 		ArrayList<String> tmpRef = new ArrayList<String>();
 		for (int i = 0; i < allReferenceBAMFiles.length; i++) {
 			if (!allReferenceBAMFiles[i].equals(eAnalysis.getInputBam())
-						&& !eAnalysis.getExcludeFromRef().contains(allSampleNames[i])
+					&& !eAnalysis.getExcludeFromRef().contains(allSampleNames[i])
 					&& !globalExclude.contains(allSampleNames[i])) {
 				tmpRef.add(Rscript.makeRSafe(ext.removeDirectoryInfo(allReferenceBAMFiles[i])));
 			}
 		}
 
-		script += MY_REF_SAMPLES_VAR	+ " <- "
-							+ Rscript.generateRVector(Array.toStringArray(tmpRef), true) + "\n";
-		script += MY_REF_SET_VAR	+ " <- " + "as.matrix(" + EXOME_COUNTS_DAFR + "[, "
+		script += MY_REF_SAMPLES_VAR+ " <- "
+							+ Rscript.generateRVector(ArrayUtils.toStringArray(tmpRef), true) + "\n";
+		script += MY_REF_SET_VAR+ " <- " + "as.matrix(" + EXOME_COUNTS_DAFR + "[, "
 							+ MY_REF_SAMPLES_VAR + "])\n";
 		if (tmpRef.size() == 0) {
 			throw new IllegalArgumentException("0 size reference set, cannot call cnvs with exomeDepth");
 		}
 
 		if (tmpRef.size() > 1) {
-			script += MY_CHOICE_VAR	+ " <- " + "select.reference.set (test.counts = " + MY_TEST_VAR
+			script += MY_CHOICE_VAR+ " <- " + "select.reference.set (test.counts = " + MY_TEST_VAR
 								+ ",reference.counts = " + MY_REF_SET_VAR;
-			script += ",bin.length = ("	+ EXOME_COUNTS_DAFR + "$end - " + EXOME_COUNTS_DAFR
+			script += ",bin.length = ("+ EXOME_COUNTS_DAFR + "$end - " + EXOME_COUNTS_DAFR
 								+ "$start)/1000,n.bins.reduced = 10000)\n";
 			script += "print(" + MY_CHOICE_VAR + "[[1]])\n";
 
-			script += MY_MATRIX_VAR	+ " <- as.matrix( " + EXOME_COUNTS_DAFR + "[," + MY_CHOICE_VAR
+			script += MY_MATRIX_VAR+ " <- as.matrix( " + EXOME_COUNTS_DAFR + "[," + MY_CHOICE_VAR
 								+ "$reference.choice, drop = FALSE])\n";
 			script += MY_REF_SET_SELECTED_VAR + "<- apply(X =" + MY_MATRIX_VAR + ",MAR = 1,FUN = sum)\n";
 		} else {// causes R error otherwise, and no need to select ref
-			script += MY_REF_SET_SELECTED_VAR	+ " <- " + EXOME_COUNTS_DAFR + "$"
+			script += MY_REF_SET_SELECTED_VAR+ " <- " + EXOME_COUNTS_DAFR + "$"
 								+ Rscript.makeRSafe(ext.removeDirectoryInfo(tmpRef.get(0))) + "\n";
 		}
-		script += MY_ALL_EXONS_VAR	+ "<- new ('ExomeDepth', test = " + MY_TEST_VAR + " , reference = "
+		script += MY_ALL_EXONS_VAR+ "<- new ('ExomeDepth', test = " + MY_TEST_VAR + " , reference = "
 							+ MY_REF_SET_SELECTED_VAR + ",";
 		script += "formula = 'cbind(test,reference) ~ 1')\n";
 
@@ -214,16 +227,16 @@ public class ExomeDepth {
 		script += "start = " + EXOME_COUNTS_DAFR + "$start,";
 		script += "end = " + EXOME_COUNTS_DAFR + "$end,";
 		script += "name = " + EXOME_COUNTS_DAFR + "$names)\n";
-		script += "write.table("	+ MY_ALL_EXONS_VAR + "@CNV.calls, " + "\""
+		script += "write.table("+ MY_ALL_EXONS_VAR + "@CNV.calls, " + "\""
 							+ eAnalysis.getExomeDepthOutput()
 							+ "\", sep=\"\\t\", row.names = FALSE , quote=FALSE)\n";
 		script += MY_ALL_EXONS_VAR + "<- AnnotateExtra(x = " + MY_ALL_EXONS_VAR + ",";
 		script +=
 						"reference.annotation = Conrad.hg19.common.CNVs, min.overlap = 0.5, column.name = 'Conrad.hg19')\n";
-		script += "write.table("	+ MY_ALL_EXONS_VAR + "@CNV.calls, " + "\""
+		script += "write.table("+ MY_ALL_EXONS_VAR + "@CNV.calls, " + "\""
 							+ eAnalysis.getAnnoExomeDepthOutput()
 							+ "\", sep=\"\\t\", row.names = FALSE , quote=FALSE)\n";
-		script += "save("	+ MY_ALL_EXONS_VAR + ",file=\"" + eAnalysis.getRDafrExomeDepthOutput()
+		script += "save("+ MY_ALL_EXONS_VAR + ",file=\"" + eAnalysis.getRDafrExomeDepthOutput()
 							+ "\")\n";
 		eAnalysis.setScript(script);
 		Files.write(script, eAnalysis.getrScriptFile());
@@ -255,11 +268,11 @@ public class ExomeDepth {
 		String script = generateBamBaiScript();
 		script += MY_COUNTS_VAR
 							+ " <- getBamCounts(bed.frame = exons.hg19 , bam.files=BAMFILES, include.chr=TRUE, index.files=BAIFILES )\n";
-		script += EXOME_COUNTS_DAFR	+ " <- as(" + MY_COUNTS_VAR + "[, colnames(" + MY_COUNTS_VAR
+		script += EXOME_COUNTS_DAFR+ " <- as(" + MY_COUNTS_VAR + "[, colnames(" + MY_COUNTS_VAR
 							+ ")], 'data.frame')\n";
-		script += EXOME_COUNTS_DAFR	+ "$chromosome <- gsub(as.character(" + EXOME_COUNTS_DAFR
+		script += EXOME_COUNTS_DAFR+ "$chromosome <- gsub(as.character(" + EXOME_COUNTS_DAFR
 							+ "$space),pattern = 'chr', replacement = '')\n";
-		script += EXOME_COUNTS_DAFR	+ "$space <- gsub(as.character(" + EXOME_COUNTS_DAFR
+		script += EXOME_COUNTS_DAFR+ "$space <- gsub(as.character(" + EXOME_COUNTS_DAFR
 							+ "$space),pattern = 'chr', replacement = '')\n";
 		script += "save(" + EXOME_COUNTS_DAFR + ",file=\"" + getCountFile() + "\")\n";
 		return script;
@@ -320,7 +333,7 @@ public class ExomeDepth {
 					log.reportTimeInfo("Running ExomeDepth on " + eAnalysis.getSampleName());
 					if (eAnalysis.getExcludeFromRef().size() > 0) {
 						log.reportTimeInfo("Excluding sample specific "
-																	+ eAnalysis.getExcludeFromRef().toString()
+																+ eAnalysis.getExcludeFromRef().toString()
 																+ " samples from reference set for " + eAnalysis.getSampleName());
 					}
 					CmdLine.runCommandWithFileChecks(	new String[] {eAnalysis.getrScriptCall(),
@@ -362,7 +375,7 @@ public class ExomeDepth {
 			rDafrexomeDepthOutput = outputDir + outputRoot + ext.rootOf(inputBam) + ".dafr";
 			exomeDepthPDFOutput = outputDir + outputRoot + ext.rootOf(inputBam) + "cnvs.pdf";
 			exomeDepthRawDataOutput = outputDir + outputRoot + ext.rootOf(inputBam) + "rawData.txt";
-			sampleName = BamOps.getSampleName(inputBam);
+			sampleName = BamOps.getSampleName(inputBam, log);
 			excludeFromRef = new HashSet<String>();
 			this.rScriptCall = rScriptCall;
 			this.log = log;
@@ -466,7 +479,7 @@ public class ExomeDepth {
 			script += "anno <- all.exons@annotations\n";
 			script +=
 							"exomeObject = data.frame(anno$chromosome,anno$start,anno$end, test,expected,reference,ratio)\n";
-			script += "write.table(exomeObject, \""	+ exomeDepthRawDataOutput
+			script += "write.table(exomeObject, \""+ exomeDepthRawDataOutput
 								+ "\",row.names = FALSE,quote=FALSE )\n";
 			return script;
 
@@ -475,13 +488,13 @@ public class ExomeDepth {
 		private static String getPlotFor(double bufferPercent, SeqCNVariant cnv, String script) {
 			script += "plot(all.exons , sequence = \"" + cnv.getChr() + "\",";
 			int buffer = (int) (bufferPercent * cnv.getSize());
-			String[] curBoundary = new String[] {cnv.getStart()	+ " - " + buffer,
+			String[] curBoundary = new String[] {cnv.getStart()+ " - " + buffer,
 																						cnv.getStop() + " + " + buffer};
 			script += "xlim = " + Rscript.generateRVector(curBoundary, false) + ",";
 			script += "main = '" + cnv.getIndividualID();
 			// + sampleName + "_" + i;
 			for (int i = 0; i < cnv.getcExtraInfos().length; i++) {
-				script += "\\n"	+ cnv.getcExtraInfos()[i].getsExtra() + "="
+				script += "\\n"+ cnv.getcExtraInfos()[i].getsExtra() + "="
 									+ cnv.getcExtraInfos()[i].getdExtra();
 			}
 			script += "\\nscore=" + cnv.getScore() + "' , cex.lab = 0.8,";
@@ -492,17 +505,17 @@ public class ExomeDepth {
 		public SeqCNVariant[] processCNVs() {
 
 			ArrayList<SeqCNVariant> cnvs = new ArrayList<SeqCNVariant>();
-			if (!Files.exists(getExomeDepthOutput())) {
-				log.reportFileNotFound(getExomeDepthOutput());
+			if (!Files.exists(getAnnoExomeDepthOutput())) {
+				log.reportFileNotFound(getAnnoExomeDepthOutput());
 			} else {
-				String[] header = Files.getHeaderOfFile(getExomeDepthOutput(), log);
+				String[] header = Files.getHeaderOfFile(getAnnoExomeDepthOutput(), log);
 				int[] indices = ext.indexFactors(RESULT_PARSE, header, true, false);
-				if (Array.countIf(indices, -1) > 0) {
-					log.reportError("Did not find complete header "	+ Array.toStr(RESULT_PARSE) + " in "
-															+ getExomeDepthOutput());
+				if (ArrayUtils.countIf(indices, -1) > 0) {
+					log.reportError("Did not find complete header "+ ArrayUtils.toStr(RESULT_PARSE) + " in "
+													+ getAnnoExomeDepthOutput());
 				} else {
 					try {
-						BufferedReader reader = Files.getAppropriateReader(getExomeDepthOutput());
+						BufferedReader reader = Files.getAppropriateReader(getAnnoExomeDepthOutput());
 						reader.readLine();
 						while (reader.ready()) {
 							String[] line = reader.readLine().trim().split("\t");
@@ -513,7 +526,7 @@ public class ExomeDepth {
 								} else if (line[indices[0]].equals("duplication")) {
 									cn = 3;
 								} else {
-									log.reportError("Invalid copy number type on line " + Array.toStr(line));
+									log.reportError("Invalid copy number type on line " + ArrayUtils.toStr(line));
 									return null;
 								}
 								int nexons = Integer.parseInt(line[indices[1]]);
@@ -521,19 +534,20 @@ public class ExomeDepth {
 								int stop = Integer.parseInt(line[indices[3]]);
 								byte chr = Positions.chromosomeNumber(line[indices[4]]);
 								double score = Double.parseDouble(line[indices[5]]);
-								ExomeDepthEI[] eis = new ExomeDepthEI[3];
+								ExomeDepthEI[] eis = new ExomeDepthEI[4];
 								eis[0] = new ExomeDepthEI(EXTRA_INFO_TYPE.EXOME_DEPTH, RESULT_PARSE[6],
-																					Double.parseDouble(line[indices[6]]));
+																					line[indices[6]]);
 								eis[1] = new ExomeDepthEI(EXTRA_INFO_TYPE.EXOME_DEPTH, RESULT_PARSE[7],
-																					Double.parseDouble(line[indices[7]]));
+																					line[indices[7]]);
 								eis[2] = new ExomeDepthEI(EXTRA_INFO_TYPE.EXOME_DEPTH, RESULT_PARSE[8],
-																					Double.parseDouble(line[indices[8]]));
-
+																					line[indices[8]]);
+								eis[3] = new ExomeDepthEI(EXTRA_INFO_TYPE.EXOME_DEPTH, RESULT_PARSE[9],
+																					line[indices[9]]);
 								SeqCNVariant cnVariant = new SeqCNVariant(sampleName, sampleName, chr, start, stop,
 																													cn, score, nexons, 99, eis);
 								cnvs.add(cnVariant);
 							} catch (NumberFormatException nfe) {
-								log.reportError("Invalid number on line " + Array.toStr(line));
+								log.reportError("Invalid number on line " + ArrayUtils.toStr(line));
 								return null;
 							}
 						}
@@ -553,7 +567,7 @@ public class ExomeDepth {
 																		int numBatches, int numthreads, int wallTimeInHours,
 																		int memoryInMb, Logger log) {
 		String[] allReferenceBamFiles = Files.isDirectory(bams)
-																															? Files.listFullPaths(bams,
+																														? Files.listFullPaths(bams,
 																																									BamOps.BAM_EXT,
 																																									false)
 																														: HashVec.loadFileToStringArray(bams,
@@ -564,14 +578,14 @@ public class ExomeDepth {
 
 		log.reportTimeInfo("found " + allReferenceBamFiles.length + " bam files in " + bams);
 		if (numBatches > 0) {
-			log.reportTimeInfo("number of batches set to "	+ numBatches
+			log.reportTimeInfo("number of batches set to "+ numBatches
 													+ ", preparing for batched run...");
-			List<String[]> batches = Array.splitUpArray(allReferenceBamFiles, numBatches, log);
+			List<String[]> batches = ArrayUtils.splitUpArray(allReferenceBamFiles, numBatches, log);
 			for (int i = 0; i < batches.size(); i++) {
 				ExomeDepth exomeDepth = new ExomeDepth(	allReferenceBamFiles, batches.get(i), outputDir,
 																								outputRoot, Rloc, log);
 				if (!Files.exists(exomeDepth.getCountFile())) {
-					log.reportTimeWarning("Did not find "	+ exomeDepth.getCountFile()
+					log.reportTimeWarning("Did not find "+ exomeDepth.getCountFile()
 																+ ", generating it now (takes a long time)");
 					exomeDepth.generateCountFile();
 				} else {
@@ -582,7 +596,7 @@ public class ExomeDepth {
 
 				String qsub = outputDir + outputRoot + "ExomeDepth_" + i + ".pbs";
 				String command = "";
-				command += Array.toStr(	PSF.Java.buildJavaCPXMX(PSF.Java.GENVISIS, "seq.cnv.ExomeDepth",
+				command += ArrayUtils.toStr(	PSF.Java.buildJavaCPXMX(PSF.Java.GENVISIS, "seq.cnv.ExomeDepth",
 																												memoryInMb),
 																" ");
 				command += " bams=" + tmpBams;
@@ -645,7 +659,7 @@ public class ExomeDepth {
 	private static class ExomeDepthEI extends CNVExtraInfo {
 		private static final long serialVersionUID = 1L;
 
-		public ExomeDepthEI(EXTRA_INFO_TYPE type, String title, double extra) {
+		public ExomeDepthEI(EXTRA_INFO_TYPE type, String title, String extra) {
 			super(EXTRA_INFO_TYPE.EXOME_DEPTH);
 			dExtra = extra;
 			sExtra = title;
@@ -666,7 +680,7 @@ public class ExomeDepth {
 		String Rloc = null;
 
 		String usage = "\n" + "seq.analysis.ExomeDepth requires 0-1 arguments\n";
-		usage += "   (1) full path to a directory of or file of bams (i.e. bams="	+ bams
+		usage += "   (1) full path to a directory of or file of bams (i.e. bams="+ bams
 							+ " (default))\n" + "";
 		usage += "   (2) number of batches to run (i.e. numBatches=" + bams + " (default))\n" + "";
 		usage += PSF.Ext.getOutputDirCommand(3, outputDir);
