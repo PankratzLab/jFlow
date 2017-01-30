@@ -8,6 +8,7 @@ import java.util.Set;
 
 import javax.jms.IllegalStateException;
 
+import org.genvisis.CLI;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -44,6 +45,8 @@ public class TumorNormalSummary {
 	private static void run(String vcf, String vpopFile, String outputDir, Segment seg, String name,
 													int buffer, Logger log) {
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.TUMOR_NORMAL, log);
+
+		vpop.report();
 		Set<String> all = new HashSet<String>();
 		all.addAll(vpop.getSuperPop().get(VcfPopulation.TUMOR));
 		all.addAll(vpop.getSuperPop().get(VcfPopulation.NORMAL));
@@ -52,6 +55,7 @@ public class TumorNormalSummary {
 		String outRoot = outputDir + ext.rootOf(vpop.getFileName()) + "_" + name;
 		String outVCF = outRoot + ".vcf.gz";
 		String outSummary = outRoot + ".summary.txt";
+
 		VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 		VariantContextWriter writer = VCFOps.initWriter(outVCF, VCFOps.DEFUALT_WRITER_OPTIONS,
 																										reader.getFileHeader().getSequenceDictionary());
@@ -74,8 +78,8 @@ public class TumorNormalSummary {
 					writer.add(vc);
 					for (String tnPair : vpop.getSubPop().keySet()) {
 						Set<String> samps = vpop.getSubPop().get(tnPair);
-						VariantContext vcTNPair = VCOps.getSubset(vc, samps);
-						if (!vcTNPair.isMonomorphicInSamples()) {
+						VariantContext vcTNPair = VCOps.getSubset(vc, samps, VC_SUBSET_TYPE.SUBSET_STRICT);
+						// if (!vcTNPair.isMonomorphicInSamples()) {
 							String tumor = null;
 							String normal = null;
 							for (String samp : samps) {
@@ -94,7 +98,6 @@ public class TumorNormalSummary {
 							// "REF", "ALT", "TN_PAIR", "NORMAL_GENOTYPE", "TUMOR_GENOTYPE", "TN_MATCH" };
 							Genotype gTumor = vc.getGenotype(tumor);
 							Genotype gNormal = vc.getGenotype(normal);
-
 							StringBuilder builder = new StringBuilder();
 							builder.append(vc.getContig());
 							builder.append("\t" + vc.getStart());
@@ -103,7 +106,7 @@ public class TumorNormalSummary {
 							builder.append("\t" + vcFull.getAlternateAlleles());
 							builder.append("\t" + vc.getAlternateAlleles());
 							String impact = VCOps.getSNP_EFFImpact(vc);
-							builder.append("\t" + (impact.equals("HIGH")	|| impact.equals("MODERATE")
+							builder.append("\t" + (impact.equals("HIGH")|| impact.equals("MODERATE")
 																			|| impact.equals("LOW")));
 							builder.append("\t" + tnPair);
 							builder.append("\t" + normal);
@@ -112,8 +115,10 @@ public class TumorNormalSummary {
 							builder.append("\t" + gTumor.toString());
 							builder.append("\t" + gNormal.getGenotypeString());
 							builder.append("\t" + gTumor.getGenotypeString());
-							builder.append("\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(gNormal.getAD()), ","));
-							builder.append("\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(gTumor.getAD()), ","));
+							builder.append("\t"
+															+ ArrayUtils.toStr(ArrayUtils.toStringArray(gNormal.getAD()), ","));
+							builder.append("\t"
+															+ ArrayUtils.toStr(ArrayUtils.toStringArray(gTumor.getAD()), ","));
 							builder.append("\t" + gNormal.getGQ());
 							builder.append("\t" + gTumor.getGQ());
 							builder.append("\t" + (gNormal.isCalled() && !gNormal.isHomRef()));
@@ -123,7 +128,7 @@ public class TumorNormalSummary {
 							builder.append("\t" + gTumor.sameGenotype(gNormal));
 							builder.append("\t" + ArrayUtils.toStr(VCOps.getAnnotationsFor(annos[0], vc, ".")));
 							writerSummary.println(builder.toString());
-						}
+
 					}
 				}
 			}
@@ -139,19 +144,28 @@ public class TumorNormalSummary {
 	}
 
 	public static void main(String[] args) {
-		String vcf = args[0];
-		String outputDir = "/Volumes/Beta/data/Cushings/mito/tumorNormal/";
-		String vpop = outputDir + "TN.form.vpop";
+		CLI c = new CLI(TumorNormalSummary.class);
 
-		Logger log = new Logger(outputDir + "TN.log");
-		Segment[] segs = new Segment[] {new Segment("chr15:50714579-50795277"),
-																		new Segment("chr8:143543377-143628368"),
-																		new Segment("chrM:1-20000")};
-		String[] names = new String[] {"USP8", "BAI1", "mtDNA"};
+
+
+		c.addArgWithDefault("vcf", "vcf to tally", "a.vcf");
+		c.addArgWithDefault("vpop", "vpop to use", "a.vpop");
+		c.addArgWithDefault("segment", "UCSC segment", "chr18:20714428-20840534");
+		c.addArgWithDefault("name", "typically gene name", "CABLES1");
+		c.addArgWithDefault("outDir", "output directory", "out");
+
+
+		c.parseWithExit(args);
+
+		String vcf = c.get("vcf");
+		String vpop = c.get("vpop");
+		Segment seg = new Segment(c.get("segment"));
+		String name = c.get("name");
+		String outDir = c.get("outDir");
+
 		int buffer = 300;
-		for (int i = 0; i < names.length; i++) {
-			run(vcf, vpop, outputDir, segs[i], names[i], buffer, log);
-		}
+		run(vcf, vpop, outDir, seg, name, buffer, new Logger());
+
 	}
 }
 
