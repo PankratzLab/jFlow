@@ -704,10 +704,12 @@ public class VCFSimpleTally {
 				PrintWriter writer = new PrintWriter(new FileWriter(out));
 				writer.println("Sample\tSNPEFF_IMPACT\tQUALITY\tGENE\tCOUNTS\tHQ_Sample");
 				for (String key : counts.keySet()) {
-					writer.println(key + "\tANY\t" + counts.get(key) + "\t" + !lqs.contains(key));
+					writer.println(key+ "\tANY\t" + counts.get(key) + "\t"
+													+ !lqs.contains(key.split("\t")[0]));
 				}
 				for (String key : countsGene.keySet()) {
-					writer.println(key + "\t" + countsGene.get(key) + "\t" + !lqs.contains(key));
+					writer.println(key+ "\t" + countsGene.get(key) + "\t"
+													+ !lqs.contains(key.split("\t")[0]));
 				}
 				writer.close();
 			} catch (Exception e) {
