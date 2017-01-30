@@ -3,6 +3,7 @@ package org.genvisis.seq.analysis;
 import java.io.File;
 import java.util.concurrent.Callable;
 
+import org.genvisis.CLI;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerHive;
@@ -22,8 +23,17 @@ public class SimpleTallyGene {
 		private final VariantContextFilter filter;
 		private final double maf;
 
-		public Params(String vcf, Segment seg, String name, String vpopFile, String omimDir,
-									VariantContextFilter filter, double maf) {
+		/**
+		 * @param vcf vcf file to use
+		 * @param seg seqment to tally
+		 * @param name name of this segment
+		 * @param vpopFile
+		 * @param omimDir
+		 * @param filter
+		 * @param maf max maf
+		 */
+		private Params(	String vcf, Segment seg, String name, String vpopFile, String omimDir,
+										VariantContextFilter filter, double maf) {
 			super();
 			this.vcf = vcf;
 			this.seg = seg;
@@ -59,32 +69,49 @@ public class SimpleTallyGene {
 
 	}
 
-	public static void run(String vcf, String vpop, double[] mafs) {
-
-		String[] names = new String[] {"Mito"};
-		Segment[] segs = new Segment[] {new Segment("chrM:1-20000")};
-		mafs = mafs == null ? new double[] {1.2} : mafs;
-		String tnVpop = "/Volumes/Beta/data/Cushings/mito/CUSHINGS_TUMOR.vpop";
+	/**
+	 * @param vcf
+	 * @param vpop
+	 * @param maf
+	 * @param seg
+	 * @param name
+	 * @param omimDir
+	 */
+	public static void run(	String vcf, String vpop, double maf, Segment seg, String name,
+													String omimDir) {
 
 		WorkerHive<Params> hive = new WorkerHive<SimpleTallyGene.Params>(1, 1, new Logger());
-		String omimDir = "/Volumes/Beta/ref/OMIM/";
-		for (int i = 0; i < names.length; i++) {
-			for (double maf : mafs) {
-				hive.addCallable(new Params(vcf, segs[i], names[i], vpop, omimDir, null, maf));
-				if (maf == 0) {
-					hive.addCallable(new Params(vcf, segs[i], names[i], tnVpop, omimDir, null, maf));
-				}
-			}
-		}
+		hive.addCallable(new Params(vcf, seg, name, vpop, omimDir, null, maf));
 		hive.execute(true);
 
 
 	}
 
+	/**
+	 * @param args
+	 */
 	public static void main(String[] args) {
+		CLI c = new CLI(SimpleTallyGene.class);
 
 
-		run(null, null, null);// TODO, cmdline if use this again
+
+		c.addArgWithDefault("vcf", "vcf to tally", "a.vcf");
+		c.addArgWithDefault("vpop", "vpop to use", "a.vpop");
+		c.addArgWithDefault("maf", "maf to use", "1.2");
+		c.addArgWithDefault("segment", "UCSC segment", "chr18:20714428-20840534");
+		c.addArgWithDefault("name", "typically gene name", "CABLES1");
+		c.addArgWithDefault("omimDir", "omim directory", "/Volumes/Beta/ref/OMIM/");
+
+
+		c.parseWithExit(args);
+
+		String vcf = c.get("vcf");
+		String vpop = c.get("vpop");
+		double maf = c.getD("maf");
+		Segment seg = new Segment(c.get("segment"));
+		String name = c.get("name");
+		String omimDir = c.get("omimDir");
+		run(vcf, vpop, maf, seg, name, omimDir);
 
 	}
 
