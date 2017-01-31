@@ -98,6 +98,12 @@ public class MosaicRegion extends CNVariant implements Serializable {
 		return ArrayUtils.toStr(s);
 	}
 
+	@Override
+	public String[] getHeader() {
+		return ArrayUtils.concatAll(PLINK_CNV_HEADER, ADD_HEADER);
+
+	}
+
 
 	public double getCustomF() {
 		return customF;

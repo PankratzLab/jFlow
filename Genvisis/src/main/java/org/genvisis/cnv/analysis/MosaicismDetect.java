@@ -1,22 +1,25 @@
 package org.genvisis.cnv.analysis;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
+import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.hmm.PennHmm.ViterbiResult;
 import org.genvisis.cnv.var.MosaicRegion;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Numbers;
+import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariant.CNVBuilder;
 import org.genvisis.filesys.LocusSet;
-import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
 import org.genvisis.filesys.Segment;
 
 import com.google.common.primitives.Doubles;
@@ -35,7 +38,6 @@ public class MosaicismDetect {
 	private static final int DEFAULT_MOVING_FACTOR = 25;
 	private static final double DEFAULT_NULL_SIGMA = 2;
 	private static final double DEFAULT_BASELINE = -1;
-	// private static final double DEFAULT_MIN_PERCENT_STATES = 0.05;
 
 	private final Project proj;
 	private final String sample;
@@ -51,8 +53,6 @@ public class MosaicismDetect {
 	private double[] variances;
 	private final Hashtable<String, Integer> markerIndices;// can provide a speedup if provided
 	private final boolean[] use;
-
-	// private double minPercentStates;
 
 	public int getMovingFactor() {
 
@@ -73,6 +73,11 @@ public class MosaicismDetect {
 		return use;
 	}
 
+	/**
+	 * @param seg call on this segment
+	 * @param force if true, the region is assumed to be mosaic, and is essentially just scored
+	 * @return
+	 */
 	public <T extends Segment> LocusSet<MosaicRegion> callMosaic(T seg, boolean force) {
 		if (seg.getStop() < seg.getStart()) {
 			throw new IllegalArgumentException("Segment must have stop that is gte to start");
@@ -92,14 +97,8 @@ public class MosaicismDetect {
 		}
 		int totalIndices = segIndices.length;
 		ArrayList<Integer> evalIndicestmp = new ArrayList<Integer>(totalIndices / 2);
-		LocusSet<CNVariant> dud = new LocusSet<CNVariant>(new CNVariant[0], true, proj.getLog()) {
+		LocusSet<CNVariant> dud = new LocusSet<CNVariant>(new CNVariant[0], true, proj.getLog());
 
-			/**
-			 *
-			 */
-			private static final long serialVersionUID = 1L;
-
-		};
 		LocusSet<MosaicRegion> mSet = new LocusSet<MosaicRegion>(	new MosaicRegion[0], true,
 																															proj.getLog()) {
 
@@ -131,8 +130,8 @@ public class MosaicismDetect {
 					if (Numbers.isFinite(baf)) {
 						if (j == 0 || j == 2) {
 							nearestN[i] = baf < gd.distributions()[1].mean()
-																																	? Math.max(baf
-																																							- gd.distributions()[j].mean(),
+																																? Math.max(baf
+																																						- gd.distributions()[j].mean(),
 																																						0)
 																																: gd.distributions()[j].mean()
 																																	- baf;
@@ -159,8 +158,8 @@ public class MosaicismDetect {
 			nearestN = ArrayUtils.subArray(nearestN, evalIndices);
 			double[] p_densityMA = ArrayUtils.movingAverageForward(movingFactor, p_density, true);
 			double[] p_densityMAReverse = ArrayUtils.reverse(ArrayUtils.movingAverageForward(	movingFactor,
-																																							ArrayUtils.reverse(p_density),
-																																							true));
+																																												ArrayUtils.reverse(p_density),
+																																												true));
 			int[] states = new int[p_densityMA.length];
 			ArrayList<Double> p_densityScored = new ArrayList<Double>(p_densityMA.length);
 			ArrayList<Integer> mosIndicesTmp = new ArrayList<Integer>(p_densityMA.length);
@@ -182,10 +181,12 @@ public class MosaicismDetect {
 				}
 			}
 			int[] mosIndices = Ints.toArray(mosIndicesTmp);
-			int[] positions = ArrayUtils.subArray(	ArrayUtils.subArray(markerSet.getPositions(), segIndices),
-																				mosIndices);
-			String[] names = ArrayUtils.subArray(ArrayUtils.subArray(markerSet.getMarkerNames(), segIndices),
-																			mosIndices);
+			int[] positions =
+											ArrayUtils.subArray(ArrayUtils.subArray(markerSet.getPositions(), segIndices),
+																					mosIndices);
+			String[] names = ArrayUtils.subArray(	ArrayUtils.subArray(markerSet.getMarkerNames(),
+																																segIndices),
+																						mosIndices);
 			double[] bafsSub = ArrayUtils.subArray(ArrayUtils.subArray(bafs, segIndices), mosIndices);
 			ViterbiResult vtr = new ViterbiResult(ArrayUtils.subArray(states, mosIndices), null);
 			dud = vtr.analyzeStateSequence(	proj, sample, sample, seg.getChr(), positions, names, 2, false,
@@ -204,19 +205,20 @@ public class MosaicismDetect {
 				}
 
 				int[] scoreStopStart = vtr.getIndexStateChange().get(i);
-				double[] scored = ArrayUtils.subArray(finalPDensit, scoreStopStart[0], scoreStopStart[1] + 1);
-				double pdfScore = baseLine - ArrayUtils.mean(scored);// TODO,
-				double delta = ArrayUtils.median(ArrayUtils.removeNaN(ArrayUtils.distFrom(	ArrayUtils.subArray(bafsSub,
-																																									scoreStopStart[0],
-																																									scoreStopStart[1] + 1),
-																																		gd.distributions()[1].mean())));
+				double[] scored =
+												ArrayUtils.subArray(finalPDensit, scoreStopStart[0], scoreStopStart[1] + 1);
+				double pdfScore = baseLine - ArrayUtils.mean(scored);
+				double delta = ArrayUtils.median(ArrayUtils.removeNaN(ArrayUtils.distFrom(ArrayUtils.subArray(bafsSub,
+																																																			scoreStopStart[0],
+																																																			scoreStopStart[1] + 1),
+																																									gd.distributions()[1].mean())));
 				double factor = dud.getLoci()[i].getSize(); // factor = factor * (double)
 																										// dud.getLoci()[i].getNumMarkers() /
 																										// states.length;
 				double customF = MosaicismQuant.getDisomyF(delta);
 				builder.score(customF);
 				double nearestStateScore = ArrayUtils.mean(ArrayUtils.subArray(	nearestN, scoreStopStart[0],
-																															scoreStopStart[1] + 1));
+																																				scoreStopStart[1] + 1));
 				tmp[i] = new MosaicRegion(builder.build(), Math.log10(Math.pow(factor, 2)),
 																	nearestStateScore, pdfScore, delta, Double.NaN, customF);
 				tmp[i].setNumFMarkers(numFMarkers);
@@ -230,7 +232,6 @@ public class MosaicismDetect {
 				private static final long serialVersionUID = 1L;
 
 			};
-			// }
 
 		} else if (force) {// no markers met criteria, set a blank
 			CNVariant blank = new CNVariant(sample, sample, seg.getChr(), seg.getStart(), seg.getStop(),
@@ -275,8 +276,7 @@ public class MosaicismDetect {
 				notMasked.add(autosomalIndice);
 			}
 		}
-		autosomalIndices = Ints.toArray(notMasked);
-		return autosomalIndices;
+		return Ints.toArray(notMasked);
 	}
 
 	private void reportDynRange() {
@@ -307,7 +307,7 @@ public class MosaicismDetect {
 			double[] t_sMeanVar = getMeanVar(autosomalBafs, r2, 1);
 			means[0] = zero_tsMeanVar[0];
 			variances[0] = Numbers.isFinite(zero_tsMeanVar[1]) && zero_tsMeanVar[1] > 0
-																																										? zero_tsMeanVar[1]
+																																									? zero_tsMeanVar[1]
 																																									: 1;
 			means[1] = t_tsMeanVar[0];
 			variances[1] = Numbers.isFinite(t_tsMeanVar[1]) && t_tsMeanVar[1] > 0 ? t_tsMeanVar[1] : 1;
@@ -316,7 +316,7 @@ public class MosaicismDetect {
 
 			if (!Numbers.isFinite(zero_tsMeanVar[1] + t_tsMeanVar[1] + t_sMeanVar[1])
 					|| zero_tsMeanVar[1] <= 0 || t_tsMeanVar[1] <= 0 || t_sMeanVar[1] <= 0) {
-				proj.getLog().reportTimeWarning("Sample "	+ sample
+				proj.getLog().reportTimeWarning("Sample "+ sample
 																				+ " had non-finite or 0 baf variance, setting to 1");
 			}
 		}
@@ -324,8 +324,7 @@ public class MosaicismDetect {
 		double[] props = new double[3];
 		Arrays.fill(props, (double) 1 / 3);
 
-		GaussianMixtureDistribution gd = new GaussianMixtureDistribution(means, variances, props);
-		return gd;
+		return new GaussianMixtureDistribution(means, variances, props);
 	}
 
 	private static double[] getMeanVar(double[] autosomalBafs, double r1, double r2) {
@@ -336,72 +335,10 @@ public class MosaicismDetect {
 		return meanVar;
 	}
 
-	private static void test() {
-		Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
-
-		ArrayList<MosaicRegion> all = new ArrayList<MosaicRegion>();
-		int movingFactor = 50;
-		// String[] samples = new String[] { "7355066051_R03C01", "7330686030_R02C01",
-		// "7159911135_R01C02" };
-		String[] samples = new String[] {"7355066051_R03C01"};
-
-		for (int i = 0; i < samples.length; i++) {
-
-			String sample = samples[i];
-			Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
-			MarkerSet markerSet = proj.getMarkerSet();
-			MosaicBuilder mosBuilder = new MosaicBuilder();
-
-			MosaicismDetect md = mosBuilder.build(proj, sample, markerSet,
-																						ArrayUtils.toDoubleArray(samp.getBAFs()));
-			int[][] te = markerSet.getIndicesByChr();
-			for (int j = 0; j < te.length; j++) {
-				if (te[j].length > 0 && j < 23) {
-					proj.getLog().reportTimeInfo("Calling chr " + j + " for sample " + i);
-					LocusSet<MosaicRegion> hi = md.callMosaic(new Segment((byte) j, 0,
-																																markerSet.getPositions()[te[j][te[j].length
-																																																- 1]]
-																																							+ 10),
-																										false);
-					for (int k = 0; k < hi.getLoci().length; k++) {
-						System.out.println(hi.getLoci()[k].toPlinkFormat());
-					}
-					hi.addAll(all);
-					ArrayList<MosaicRegion> tmp = new ArrayList<MosaicRegion>();
-					for (int k = 0; k < all.size(); k++) {
-						if (all.get(k).getNumMarkers() > movingFactor) {
-							tmp.add(all.get(k));
-						}
-					}
-					all = tmp;
-				}
-			}
-			// }
-		}
-
-		LocusSet<CNVariant> mos = new LocusSet<CNVariant>(all.toArray(new CNVariant[all.size()]), true,
-																											proj.getLog()) {
-
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-		};
-
-		mos.writeRegions(proj.PROJECT_DIRECTORY.getValue()	+ "TestMosaic/mos.cnvs",
-											TO_STRING_TYPE.REGULAR, true, proj.getLog());
-		// proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + "TestMosaic/mos.cnvs");
-
-		proj.saveProperties();
-
-	}
-
-	public static void main(String[] args) {
-
-		test();
-	}
-
+	/**
+	 * builder for {@link MosaicismDetect}
+	 *
+	 */
 	public static class MosaicBuilder {
 		// init to default params...
 		private int movingFactor = DEFAULT_MOVING_FACTOR;
@@ -414,10 +351,8 @@ public class MosaicismDetect {
 		private Hashtable<String, Integer> markerIndices = null;// can provide a speedup if provided
 		private boolean[] use = null;// only these markers will be used for the computation
 
-		// private double minPercentStates = DEFAULT_MIN_PERCENT_STATES;
-
 		/**
-		 * @param mask mask markers from computation
+		 * @param use mask markers from computation
 		 * @return
 		 */
 		public MosaicBuilder use(boolean[] use) {
@@ -507,19 +442,14 @@ public class MosaicismDetect {
 			return this;
 		}
 
-		// /**
-		// * @param minPercentStates
-		// * this percent of all markers in a region of interst must be outside of nullsigma
-		// * @return
-		// */
-		// public MosaicBuilder minPercentStates(double minPercentStates) {
-		// this.minPercentStates = minPercentStates;
-		// if (minPercentStates <= 0) {
-		// throw new IllegalArgumentException("minPercentStates must be positive");
-		// }
-		// return this;
-		// }
 
+		/**
+		 * @param proj
+		 * @param sample
+		 * @param markerSet
+		 * @param bafs
+		 * @return a Mosaic detector
+		 */
 		public MosaicismDetect build(Project proj, String sample, MarkerSet markerSet, double[] bafs) {
 			return new MosaicismDetect(this, proj, sample, markerSet, bafs);
 		}
@@ -569,12 +499,10 @@ public class MosaicismDetect {
 																				private static final long serialVersionUID = 1L;
 
 																			};
-			// System.out.println(allCalls);
 			BeastScore beastScore = BeastScore.beastInd(proj, null, ArrayUtils.toFloatArray(lrrs),
 																									allCalls.getLoci(), md.getMarkerSet().getChrs(),
 																									md.getMarkerSet().getPositions(),
 																									md.getIndicesByChr());
-			// beastScore.computeBeastScores();
 			for (int i = 0; i < allCalls.getLoci().length; i++) {
 				allCalls.getLoci()[i].setBeastScore(beastScore.getBeastScores()[i]);
 				allCalls.getLoci()[i].setBeastHeight(beastScore.getBeastHeights()[i]);
@@ -585,6 +513,10 @@ public class MosaicismDetect {
 		}
 	}
 
+	/**
+	 * @author Kitty
+	 *
+	 */
 	public static class MosaicProducer extends AbstractProducer<LocusSet<MosaicRegion>> {
 		private final Project proj;
 		private final String[] samples;
@@ -593,6 +525,13 @@ public class MosaicismDetect {
 		private final MarkerSet markerSet;
 		private int index;
 
+		/**
+		 * @param proj
+		 * @param builder builds the detectors
+		 * @param samples which samples to use
+		 * @param markerSet
+		 * @param segs segments to call (like a chromosome)
+		 */
 		public MosaicProducer(Project proj, MosaicBuilder builder, String[] samples,
 													MarkerSet markerSet, LocusSet<Segment> segs) {
 			super();
@@ -618,6 +557,13 @@ public class MosaicismDetect {
 		}
 	}
 
+	/**
+	 * @param builder
+	 * @param proj
+	 * @param sample
+	 * @param markerSet
+	 * @param bafs
+	 */
 	private MosaicismDetect(MosaicBuilder builder, Project proj, String sample, MarkerSet markerSet,
 													double[] bafs) {
 		this.proj = proj;
@@ -634,7 +580,6 @@ public class MosaicismDetect {
 		variances = builder.variances;
 		markerIndices = builder.markerIndices;
 		use = builder.use;
-		// this.minPercentStates = builder.minPercentStates;
 		if (bafs.length != markerSet.getMarkerNames().length) {
 			throw new IllegalArgumentException("Internal error, bafs must be present for entire array, fill with NaN if neccesary");
 		}
@@ -643,4 +588,82 @@ public class MosaicismDetect {
 		}
 		prep();
 	}
+
+
+	/**
+	 * @param proj call mosaicism for this project
+	 * @param output the output file name
+	 * @param numThreads number of threads to use
+	 */
+	public static void callMosaicRegions(Project proj, String output, int numThreads) {
+
+		MarkerSet markerSet = proj.getMarkerSet();
+		int[][] indicesByChr = markerSet.getIndicesByChr();
+		MosaicBuilder builder = new MosaicBuilder();// most customizing can be done in the builder if
+																								// needed
+		builder.indicesByChr(indicesByChr);
+
+		// develop segments to call on
+		ArrayList<Segment> callSegs = new ArrayList<Segment>();
+
+		for (int i = 0; i < indicesByChr.length; i++) {
+			if (i > 0 && i < 23 && indicesByChr[i].length > 0) {// weird things happen on non-auto
+				callSegs.add(new Segment((byte) i, 0, Integer.MAX_VALUE));
+			}
+		}
+		LocusSet<Segment> segs = new LocusSet<Segment>(	callSegs.toArray(new Segment[callSegs.size()]),
+																										true, proj.getLog()) {
+
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
+
+		MosaicProducer producer = new MosaicProducer(proj, builder, proj.getSamples(), markerSet, segs);
+		WorkerTrain<LocusSet<MosaicRegion>> train =
+																							new WorkerTrain<LocusSet<MosaicRegion>>(producer,
+																																											numThreads,
+																																											10,
+																																											proj.getLog());
+		int numCalled = 0;
+		boolean wroteHeader = false;
+
+		PrintWriter writer = Files.getAppropriateWriter(output);
+		while (train.hasNext()) {
+			LocusSet<MosaicRegion> current = train.next();
+			numCalled++;
+			if (numCalled % 100 == 0) {
+				proj.getLog().reportTimeInfo("Called " + numCalled + " samples for mosaicism");
+			}
+			for (MosaicRegion region : current.getLoci()) {
+				if (!wroteHeader) {
+					writer.println(ArrayUtils.toStr(region.getHeader()));
+					wroteHeader = true;
+				}
+				// could definitely put a num marker filter here..
+				writer.println(region.toAnalysisString());
+			}
+		}
+		writer.close();
+	}
+
+
+
+	public static void main(String[] args) {
+		CLI c = new CLI(MosaicismDetect.class);
+
+		c.addArgWithDefault(CLI.ARG_PROJ, CLI.DESC_PROJ, "proj.properties");
+		c.addArgWithDefault(CLI.ARG_OUTFILE, CLI.DESC_OUTFILE, "out.mos");
+		c.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS, "24");
+		c.parseWithExit(args);
+
+		Project proj = new Project(c.get(CLI.ARG_PROJ), false);
+
+		callMosaicRegions(proj, c.get(CLI.ARG_OUTFILE), c.getI(CLI.ARG_THREADS));
+
+	}
+
+
 }
