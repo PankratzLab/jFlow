@@ -3396,6 +3396,19 @@ public class ArrayUtils {
 	}
 
 	/**
+	 * Create a sub-list using only indicies with {@code true} values in the given use array.
+	 */
+	public static <T> List<T> subList(List<T> listIn, boolean[] use) {
+		List<T> listOut = new ArrayList<T>();
+		for (int i=0; i<listIn.size(); i++) {
+			if (use[i]) {
+				listOut.add(listIn.get(i));
+			}
+		}
+		return listOut;
+	}
+
+	/**
 	 * Increments a boolean array
 	 *
 	 * @param array an array of boolean
