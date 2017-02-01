@@ -53,6 +53,7 @@ public class PropertyKeys {
 	public static final String KEY_LRRSD_CUTOFF = "LRRSD_CUTOFF";
 	public static final String KEY_SAMPLE_CALLRATE_THRESHOLD = "SAMPLE_CALLRATE_THRESHOLD";
 	public static final String KEY_MARKER_METRICS_FILENAME = "MARKER_METRICS_FILENAME";
+	public static final String KEY_MARKER_STATS_FILENAME = "MARKER_STATS_FILENAME";
 	public static final String KEY_MARKER_EXCLUSION_CRITERIA_FILENAME =
 																																		"MARKER_EXCLUSION_CRITERIA_FILENAME";
 	public static final String KEY_MARKER_REVIEW_CRITERIA_FILENAME = "MARKER_REVIEW_CRITERIA_FILENAME";

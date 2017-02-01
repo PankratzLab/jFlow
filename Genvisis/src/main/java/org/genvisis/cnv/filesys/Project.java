@@ -336,6 +336,11 @@ public class Project implements PropertyChangeListener {
 	                                                               "", GROUP.DATA_CLEANING, true,
 	                                                               "results/markerQualityChecks.xln",
 	                                                               false);
+	public FileProperty MARKER_STATS_FILENAME = new FileProperty(this,
+	                                                               PropertyKeys.KEY_MARKER_STATS_FILENAME,
+	                                                               "Per-marker statistics for displaying in Trailer track", GROUP.TRAILER, true,
+	                                                               "marker_lrr_sd.xln",
+	                                                               false);
 	public FileProperty MARKER_REVIEW_CRITERIA_FILENAME = new FileProperty(this,
 	                                                                       PropertyKeys.KEY_MARKER_REVIEW_CRITERIA_FILENAME,
 	                                                                       "", GROUP.DATA_CLEANING,
