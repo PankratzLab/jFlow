@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import org.genvisis.CLI;
@@ -30,6 +32,18 @@ import org.genvisis.common.Logger;
  */
 public final class MarkerStats {
 
+	public static final Set<String> ID_COLUMNS = new LinkedHashSet<String>();
+	public static final String ID_MARKER_NAME = "Marker name";
+	public static final String ID_CHR = "Chr";
+	public static final String ID_POS = "Pos";
+	public static final String DELIM = "\t";
+
+	static {
+		ID_COLUMNS.add(ID_MARKER_NAME);
+		ID_COLUMNS.add(ID_CHR);
+		ID_COLUMNS.add(ID_POS);
+	}
+
 	private MarkerStats() {
 		// Prevent instantiation of utility class
 	}
@@ -43,9 +57,9 @@ public final class MarkerStats {
 		String gcModelName = new File(gcModel).getName();
 
 		List<String> outHeader = new ArrayList<String>();
-		outHeader.add("Marker name");
-		outHeader.add("Chr");
-		outHeader.add("Pos");
+		for (String col : ID_COLUMNS) {
+			outHeader.add(col);
+		}
 		outHeader.add("GC: " + gcModelName);
 		outHeader.add("BAF Mean");
 		outHeader.add("BAF Mean 0.5 dist");
@@ -58,7 +72,7 @@ public final class MarkerStats {
 		                                                                          "GC");
 
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
-		writer.println(ArrayUtils.toStr(outHeader, "\t"));
+		writer.println(ArrayUtils.toStr(outHeader, DELIM));
 
 		MDL mdl = new MDL(proj, proj.getMarkerSet(), proj.getMarkerNames());
 		boolean[] samplesToInclude = proj.getSamplesToInclude();
@@ -89,7 +103,7 @@ public final class MarkerStats {
 					// NB: looks like GC correction doesn't currently affect BAF calculation. Not clear why both come back?
 				}
 
-				writer.println(ArrayUtils.toStr(line, "\t"));
+				writer.println(ArrayUtils.toStr(line, DELIM));
 			}
 		} finally {
 			mdl.shutdown();
