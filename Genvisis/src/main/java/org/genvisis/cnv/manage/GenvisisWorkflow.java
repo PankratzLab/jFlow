@@ -2050,7 +2050,7 @@ public class GenvisisWorkflow {
 																|| (Files.exists(sampDir) && Files.list(sampDir, SAMP_RAF,
 																																				proj.JAR_STATUS.getValue()).length > 0)},
 															{numComponents > 0}, {true}, {markerCallRateFilter >= 0}, {true},
-															{tmpDir == null || Files.exists(tmpDir)}, {true},
+															{tmpDir == null || Files.exists(tmpDir)}, {true}, {true},
 															{totalThreads > 0},};
 		}
 
