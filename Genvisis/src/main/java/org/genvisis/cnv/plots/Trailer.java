@@ -33,12 +33,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -49,14 +52,17 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.ButtonModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -65,6 +71,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
@@ -73,6 +80,9 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.NumberFormatter;
+
+import net.miginfocom.swing.MigLayout;
 
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.MosaicismDetect;
@@ -87,6 +97,8 @@ import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.ClickListener;
+import org.genvisis.cnv.gui.ColorIcon;
+import org.genvisis.cnv.gui.ColorSequence;
 import org.genvisis.cnv.gui.FileActionMenu;
 import org.genvisis.cnv.gui.NewRegionListDialog;
 import org.genvisis.cnv.gui.RegionNavigator;
@@ -101,6 +113,7 @@ import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.plots.ColorExt.ColorManager;
+import org.genvisis.cnv.plots.MarkerGraphics.Smoothing;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
@@ -127,9 +140,7 @@ import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.mining.Transformations;
 
-import net.miginfocom.swing.MigLayout;
-
-public class Trailer extends JFrame	implements ChrNavigator, ActionListener, ClickListener,
+public class Trailer extends JFrame implements ChrNavigator, ActionListener, ClickListener,
 											MouseListener, MouseMotionListener, MouseWheelListener {
 
 	public static final long serialVersionUID = 1L;
@@ -206,6 +217,13 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 	private JPanel lrrPanel;
 	private JPanel bafPanel;
 	private JPanel cnvPanel;
+	private JPanel markerPanel;
+	private MarkerGraphics markerGraphics;
+	private List<String> markerComponents;
+	private boolean[] useMarkerComponent;
+	private List<String> markersToUse;
+	private Smoothing markerSmoothing;
+	private int markerMovingAverage = 0;
 	private SingleClick leftClick;
 	private SingleClick rightClick;
 	private GeneTrack track;
@@ -254,9 +272,8 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String shortName = ((JCheckBoxMenuItem) e.getSource()).getText();
-			if (!loadingFile	&& !REGION_LIST_LOAD_FILE.equals(shortName)
-					&& !REGION_LIST_PLACEHOLDER.equals(shortName)
-					&& !REGION_LIST_USE_CNVS.equals(shortName)
+			if (!loadingFile&& !REGION_LIST_LOAD_FILE.equals(shortName)
+					&& !REGION_LIST_PLACEHOLDER.equals(shortName) && !REGION_LIST_USE_CNVS.equals(shortName)
 					&& !NO_REGIONS.equals(shortName)) {
 				String file = regionFileNameLoc.get(shortName);
 				if (file == null || file.equals(regionFileName)) {
@@ -610,9 +627,6 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 				if (selectedCNV != null) {
 					doPop(e);
 				}
-			} else {
-				startX = e.getPoint().x;
-				inDrag = true;
 			}
 		}
 
@@ -623,36 +637,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 					doPop(e);
 				}
 			}
-			inDrag = false;
 		}
-
-		@Override
-		public void mouseDragged(MouseEvent e) {
-			int curX = e.getPoint().x;
-			int distance = startX - curX;
-
-			distance *= (stop - start) / (getWidth() - 2 * WIDTH_BUFFER);
-
-			if (distance < 0) {
-				distance = Math.max(distance, 1 - start);
-			} else {
-				distance = Math.min(distance, positions[chrBoundaries[chr][1]] - stop);
-			}
-
-			if ((start <= 1 && distance < 0)
-					|| (stop >= positions[chrBoundaries[chr][1]] && distance > 0)) {
-
-			} else {
-				start += distance;
-				stop += distance;
-			}
-
-			if (inDrag) {
-				updateGUI();
-				startX = curX;
-			}
-		}
-
 
 		private void doPop(MouseEvent e) {
 			CustomCallPopUp menu = new CustomCallPopUp();
@@ -840,8 +825,9 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			gcModel = null;
 		}
 		otherColors = Files.list(proj.DATA_DIRECTORY.getValue(), null, ".gcmodel", true, false, true);
-		otherColors = ArrayUtils.concatAll(otherColors, Files.list(proj.PROJECT_DIRECTORY.getValue(), null,
-																													".gcmodel", true, false, true));
+		otherColors =
+								ArrayUtils.concatAll(otherColors, Files.list(	proj.PROJECT_DIRECTORY.getValue(),
+																															null, ".gcmodel", true, false, true));
 
 		generateComponents();
 		setJMenuBar(createMenuBar());
@@ -862,8 +848,24 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			log.report("Loaded track in " + ext.getTimeElapsed(time));
 		}
 
-		System.out.println("startX: "	+ startX + "\t startY: " + startY + "\t width: " + width
-												+ "\t height: " + height);
+		String markerStatFile = proj.MARKER_STATS_FILENAME.getValue();
+		if (Files.exists(markerStatFile)) {
+			markerGraphics = new MarkerGraphics(markerStatFile, proj);
+			markerComponents = markerGraphics.getComponents();
+			markersToUse = markerComponents;
+			markerSmoothing = Smoothing.MARKERS;
+			useMarkerComponent = new boolean[markerComponents.size()];
+			// By default display the first track
+			if (useMarkerComponent.length > 0) {
+				useMarkerComponent[0] = true;
+				markersToUse = ArrayUtils.subList(markerComponents, useMarkerComponent);
+				markerPanel.addMouseListener(new MarkerMouseListener());
+				markerPanel.setToolTipText("Click to configure displayed tracks");
+			}
+		}
+
+		// System.out.println("startX: " + startX + "\t startY: " + startY + "\t width: " + width
+		// + "\t height: " + height);
 
 		parseLocation(startingLocation);
 		addMouseListener(new MouseAdapter() {
@@ -890,8 +892,9 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 						loadRegions();
 					}
 				}
-				
-				if (regionFileName == null || NO_REGIONS.equals(regionFileName) || "".equals(regionFileName)) {
+
+				if (regionFileName == null|| NO_REGIONS.equals(regionFileName)
+						|| "".equals(regionFileName)) {
 					regionFileName = NO_REGIONS;
 					regionFileNameBtn.get(NO_REGIONS).setSelected(true);
 				} else if (REGION_LIST_USE_CNVS.equals(regionFileName)) {
@@ -939,9 +942,105 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 
 	}
 
+	/**
+	 * Respond to mouse events in the marker panel
+	 */
+	private class MarkerMouseListener implements MouseListener {
+		private final JCheckBox[] boxes;
+		private final Object[] inputs;
+		private final JFormattedTextField movingAvg;
+		private final JComboBox smoothing;
+
+		public MarkerMouseListener() {
+			boxes = new JCheckBox[markerComponents.size()];
+			inputs = new Object[markerComponents.size() + 3];
+			for (int i = 0; i < boxes.length; i++) {
+				boxes[i] = new JCheckBox(	markerComponents.get(i), new ColorIcon(8, 8, Color.BLACK), useMarkerComponent[i]);
+				boxes[i].setSelectedIcon(new ColorIcon(8, 8, ColorSequence.get(i)));
+				inputs[i] = boxes[i];
+			}
+
+			// see http://stackoverflow.com/a/16228698/1027800
+			NumberFormat format = NumberFormat.getInstance();
+			NumberFormatter formatter = new NumberFormatter(format);
+			formatter.setValueClass(Integer.class);
+			formatter.setMinimum(0);
+			formatter.setMaximum(Integer.MAX_VALUE);
+			formatter.setAllowsInvalid(false);
+			formatter.setCommitsOnValidEdit(true);
+			movingAvg = new JFormattedTextField(formatter);
+			movingAvg.setValue(0);
+			movingAvg.setPreferredSize(new Dimension(40, 14));
+			inputs[boxes.length] = new JLabel("Set moving average window (0 to disable):");
+			inputs[boxes.length + 1] = movingAvg;
+
+			smoothing = new JComboBox();
+			smoothing.setModel(new DefaultComboBoxModel(Smoothing.values()));
+			smoothing.setSelectedItem(markerSmoothing);
+			inputs[boxes.length + 2] = smoothing;
+		}
+
+		/**
+		 * Display a panel for users to configure displayed marker information
+		 */
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			int res = JOptionPane.showConfirmDialog(null, inputs, "Select marker tracks",
+																							JOptionPane.OK_CANCEL_OPTION,
+																							JOptionPane.PLAIN_MESSAGE);
+
+			if (res == JOptionPane.OK_OPTION) {
+				for (int i = 0; i < boxes.length; i++) {
+					useMarkerComponent[i] = boxes[i].isSelected();
+				}
+				markersToUse = ArrayUtils.subList(markerComponents, useMarkerComponent);
+				markerMovingAverage = Integer.parseInt(movingAvg.getValue().toString());
+				markerSmoothing = (Smoothing) smoothing.getSelectedItem();
+				updateGUI();
+			} else {
+				for (int i = 0; i < boxes.length; i++) {
+					boxes[i].setSelected(useMarkerComponent[i]);
+				}
+				smoothing.setSelectedItem(markerSmoothing);
+			}
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			// nothing to do
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			// nothing to do
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			// nothing to do
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			// nothing to do
+		}
+	}
+
 	private void paintLRRPanel(Graphics g) {
 		// TODO moving paintComponent code here breaks drawing, and I haven't figured out why.. (cole -
 		// 3/6/15)
+	}
+
+	private void paintMarkerPanel(Graphics g) {
+		String text;
+		if (markerGraphics == null) {
+			text = proj.MARKER_STATS_FILENAME.getName() + " property not set.";
+			int width = g.getFontMetrics(g.getFont()).stringWidth(text);
+			g.drawString(text, getWidth() / 2 - width / 2, 10);
+		} else {
+			markerGraphics.draw(g, chr, start, stop, markerPanel.getWidth() - 2 * WIDTH_BUFFER,
+													markerPanel.getHeight(), markerMovingAverage, markerSmoothing, markersToUse);
+		}
 	}
 
 	private void paintCNVGeneTrackPanel(Graphics g) {
@@ -1040,7 +1139,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 	}
 
 	private int getX(int pos) {
-		return (int) ((double) (pos - start)	/ (double) (stop - start)
+		return (int) ((double) (pos - start)/ (double) (stop - start)
 									* (getWidth() - 2 * WIDTH_BUFFER))
 						+ WIDTH_BUFFER;
 	}
@@ -1057,7 +1156,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			addFileToList(newFile, true);
 			regionFileName = newFile;
 
-			JOptionPane.showMessageDialog(Trailer.this, "Successfully saved "	+ regions.length
+			JOptionPane.showMessageDialog(Trailer.this, "Successfully saved "+ regions.length
 																									+ " regions to file: " + newFile);
 		}
 	}
@@ -1151,7 +1250,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 
 	public void generateComponents() {
 		JPanel dataPanel = new JPanel();
-		dataPanel.setLayout(new GridLayout(3, 1, 5, 5));
+		dataPanel.setLayout(new GridLayout(3, 1, 5, 4));
 
 		lrrPanel = new JPanel() {
 			public static final long serialVersionUID = 2L;
@@ -1162,7 +1261,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 
 				float min, max;
 
-				if (lrrValues != null) {
+				if (lrrValues != null && lrrValues.length > 0) {
 					min = ArrayUtils.min(lrrValues);
 					max = ArrayUtils.max(lrrValues);
 
@@ -1217,12 +1316,12 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 					if (SHOW_MIDLINE) {
 						g.setColor(Color.LIGHT_GRAY);
 						g.drawLine(	WIDTH_BUFFER,
-												getHeight()		- (int) ((double) (0 - min)	/ (double) (max - min)
+												getHeight()		- (int) ((double) (0 - min)/ (double) (max - min)
 																								* (getHeight() - 2 * HEIGHT_BUFFER))
 																			- HEIGHT_BUFFER,
 												getWidth() - WIDTH_BUFFER, getHeight()
-																											- (int) ((double) (0 - min)
-																																/ (double) (max - min)
+																										- (int) ((double) (0 - min)
+																															/ (double) (max - min)
 																															* (getHeight() - 2 * HEIGHT_BUFFER))
 																										- HEIGHT_BUFFER);
 					}
@@ -1252,25 +1351,23 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 								// g.drawString("X", getX(positions[i]),
 								// getHeight()-(int)((double)(lrrValues[i]-min)/(double)(max-min)*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER);
 							} else if (lrrValues[i] < min) {
-								g.drawString(	"v",
-															Trailer.this.getX(positions[i]), getHeight()
-																																	- (int) ((double) (min - min)
-																																						/ (double) (max - min)
-																																					* (getHeight()
-																																							- 2 * HEIGHT_BUFFER))
-																																- HEIGHT_BUFFER);
+								g.drawString("v", Trailer.this.getX(positions[i]), getHeight()
+																																		- (int) ((double) (min - min)
+																																							/ (double) (max - min)
+																																							* (getHeight() - 2
+																																																* HEIGHT_BUFFER))
+																																		- HEIGHT_BUFFER);
 							} else if (lrrValues[i] > max) {
-								g.drawString(	"^",
-															Trailer.this.getX(positions[i]), getHeight()
-																																	- (int) ((double) (max - min)
-																																						/ (double) (max - min)
-																																					* (getHeight()
-																																							- 2 * HEIGHT_BUFFER))
-																																- HEIGHT_BUFFER);
+								g.drawString("^", Trailer.this.getX(positions[i]), getHeight()
+																																		- (int) ((double) (max - min)
+																																							/ (double) (max - min)
+																																							* (getHeight() - 2
+																																																* HEIGHT_BUFFER))
+																																		- HEIGHT_BUFFER);
 							} else {
 								g.fillOval(	Trailer.this.getX(positions[i]), getHeight()
-																															- (int) ((double) (lrrValues[i] - min)
-																																				/ (double) (max - min)
+																														- (int) ((double) (lrrValues[i] - min)
+																																			/ (double) (max - min)
 																																			* (getHeight()
 																																					- 2 * HEIGHT_BUFFER))
 																														- HEIGHT_BUFFER,
@@ -1281,10 +1378,11 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 				}
 			}
 		};
-		lrrPanel.addMouseListener(this);
-		lrrPanel.addMouseMotionListener(this);
-		lrrPanel.addMouseWheelListener(this);
+		registerMouse(lrrPanel);
 		dataPanel.add(lrrPanel);
+
+		JPanel tracksPanel = new JPanel();
+		tracksPanel.setLayout(new BoxLayout(tracksPanel, BoxLayout.Y_AXIS));
 
 		cnvPanel = new JPanel() {
 			public static final long serialVersionUID = 8L;
@@ -1294,10 +1392,26 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 				paintCNVGeneTrackPanel(g);
 			}
 		};
-		cnvPanel.setMaximumSize(new Dimension(getWidth(), 20));
+		cnvPanel.setPreferredSize(new Dimension(getWidth(), 20));
 		cnvPanel.addMouseListener(cnvAdapter);
-		cnvPanel.addMouseMotionListener(cnvAdapter);
-		dataPanel.add(cnvPanel);
+		registerMouse(cnvPanel);
+		tracksPanel.add(cnvPanel);
+
+		markerPanel = new JPanel() {
+			public static final long serialVersionUID = 1L;
+
+			@Override
+			public void paintComponent(Graphics g) {
+				g.setFont(new Font("Arial", 0, 16));
+				g.drawString("Marker statistics", WIDTH_BUFFER, 20);
+				paintMarkerPanel(g);
+			}
+		};
+
+		markerPanel.setPreferredSize(new Dimension(getWidth(), 40));
+		registerMouse(markerPanel);
+		tracksPanel.add(markerPanel);
+		dataPanel.add(tracksPanel);
 
 		bafPanel = new JPanel() {
 			public static final long serialVersionUID = 7L;
@@ -1331,12 +1445,11 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 																																														* HEIGHT_BUFFER))
 																																		- HEIGHT_BUFFER / 2);
 							} else if (bafs != null && bafs.length > i) {
-								g.fillOval(	Trailer.this.getX(positions[i]),
-														getHeight()												- (int) (bafs[i]
-																																				* (double) (getHeight()
-																																										- 4
-																																											* HEIGHT_BUFFER))
-																															- HEIGHT_BUFFER,
+								g.fillOval(	Trailer.this.getX(positions[i]), getHeight()
+																														- (int) (bafs[i]
+																																			* (double) (getHeight() - 4
+																																																* HEIGHT_BUFFER))
+																														- HEIGHT_BUFFER,
 														SIZE, SIZE);
 							} else {
 								g.setFont(new Font("Arial", 0, 20));
@@ -1349,6 +1462,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			}
 		};
 		dataPanel.add(bafPanel);
+		registerMouse(bafPanel);
 
 		getContentPane().add(dataPanel, BorderLayout.CENTER);
 
@@ -1490,7 +1604,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 					}
 					regions[regionIndex] = regionDetails;
 					commentLabel.setText(regions[regionIndex][2].isEmpty()	? BLANK_COMMENT
-																																	: "region #"	+ (regionIndex + 1)
+																																	: "region #"+ (regionIndex + 1)
 																																		+ ":  "
 																																		+ regions[regionIndex][2]);
 					promptCommentSave = promptAndSaveRegions(promptCommentSave);
@@ -1996,7 +2110,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 
 			String tempFileMale = proj.SEX_CENTROIDS_MALE_FILENAME.getValue();
 			String tempFileFemale = proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue();
-			if (tempFileMale != null	&& tempFileFemale != null && !"".equals(tempFileMale)
+			if (tempFileMale != null&& tempFileFemale != null && !"".equals(tempFileMale)
 					&& !"".equals(tempFileFemale)) {
 				centFiles.add(SEX_CENT);
 			}
@@ -2064,18 +2178,19 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 					}
 					if (pfb == null || pennHmm == null) {
 						if (pennHmm == null) {
-							proj.getLog().reportError("Could not load "	+ proj.HMM_FILENAME.getName()
-																						+ " defined by " + proj.HMM_FILENAME.getValue());
+							proj.getLog().reportError("Could not load "+ proj.HMM_FILENAME.getName()
+																				+ " defined by " + proj.HMM_FILENAME.getValue());
 						} else if (pfb == null) {
-							proj.getLog().reportError("Could not load "	+ proj.CUSTOM_PFB_FILENAME.getName()
-																						+ " defined by " + proj.CUSTOM_PFB_FILENAME.getValue());
+							proj.getLog().reportError("Could not load "+ proj.CUSTOM_PFB_FILENAME.getName()
+																				+ " defined by " + proj.CUSTOM_PFB_FILENAME.getValue());
 						}
 					} else {
 						CNVCallResult callResult = CNVCaller.callCNVsFor(	proj, pennHmm, sample,
 																															ArrayUtils.toDoubleArray(lrrs),
-																															ArrayUtils.toDoubleArray(bafs), gcModel,
-																															pfb, markerSet, new int[] {chr}, null,
-																															false, CNVCaller.DEFUALT_MIN_SITES,
+																															ArrayUtils.toDoubleArray(bafs),
+																															gcModel, pfb, markerSet,
+																															new int[] {chr}, null, false,
+																															CNVCaller.DEFUALT_MIN_SITES,
 																															CNVCaller.DEFUALT_MIN_CONF,
 																															PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT,
 																															proj.NUM_THREADS.getValue(), true);
@@ -2106,7 +2221,8 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 					JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
 					MosaicBuilder builder = new MosaicBuilder();
 					builder.verbose(true);
-					MosaicismDetect md = builder.build(proj, sample, markerSet, ArrayUtils.toDoubleArray(bafs));
+					MosaicismDetect md = builder.build(	proj, sample, markerSet,
+																							ArrayUtils.toDoubleArray(bafs));
 					Segment seg = new Segment(chr, 0, Integer.MAX_VALUE);
 					LocusSet<MosaicRegion> mosSet = md.callMosaic(seg, false);
 					int externalCNVs = prepInternalClasses();
@@ -2399,6 +2515,12 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 		}
 	}
 
+	public void registerMouse(Component c) {
+		c.addMouseListener(this);
+		c.addMouseWheelListener(this);
+		c.addMouseMotionListener(this);
+	}
+
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		Trailer.this.requestFocusInWindow();
@@ -2555,7 +2677,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 		MessageOfEncouragment mess;
 
 		time = new Date().getTime();
-		log.report("  Getting a list of all files with extension "	+ Sample.SAMPLE_FILE_EXTENSION
+		log.report("  Getting a list of all files with extension "+ Sample.SAMPLE_FILE_EXTENSION
 								+ " (if the process hangs here the first time after reverse transposing, please be patient, the operating system is busy indexing the new files) ...");
 		mess = new MessageOfEncouragment(	"Getting a list of all sample files is taking longer than usual and probably means that your recently created files are still being indexed on the hard drive. Please be patient...",
 																			proj);
@@ -2606,7 +2728,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			JOptionPane.showMessageDialog(null,
 																		"Error - Failed to load the MarkerSet file; make sure the raw data is parsed",
 																		"Error", JOptionPane.ERROR_MESSAGE);
-			log.reportError("Error - failed to load MarkerSet for project "	+ proj.PROJECT_NAME.getValue()
+			log.reportError("Error - failed to load MarkerSet for project "+ proj.PROJECT_NAME.getValue()
 											+ "; make sure the raw data is parsed");
 			return false;
 		}
@@ -2636,7 +2758,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 		chrBoundaries[0][0] = 0;
 		chrBoundaries[0][1] = markerNames.length - 1;
 
-		System.out.println("Read in data for "	+ markerNames.length + " markers in "
+		System.out.println("Read in data for "+ markerNames.length + " markers in "
 												+ ext.getTimeElapsed(time));
 		return true;
 	}
@@ -2650,12 +2772,12 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			System.err.println("Error - unspecified sample from "
 													+ proj.SAMPLE_DIRECTORY.getValue(false, true));
 		} else if (samp.getFingerprint() != fingerprint) {
-			System.err.println("Error - Sample "	+ proj.SAMPLE_DIRECTORY.getValue(false, true) + sample
+			System.err.println("Error - Sample "+ proj.SAMPLE_DIRECTORY.getValue(false, true) + sample
 													+ Sample.SAMPLE_FILE_EXTENSION + " has a different fingerprint ("
 													+ samp.getFingerprint() + ") than the MarkerSet (" + fingerprint + ")");
 		} else {
 
-			if (currentCentroid != null	&& currentCentroid.startsWith(SEX_CENT)
+			if (currentCentroid != null&& currentCentroid.startsWith(SEX_CENT)
 					&& autoSwitch.isSelected()) {
 				SampleData sampleData = proj.getSampleData(0, false);
 				int sex = sampleData.getSexForIndividual(samp.getSampleName());
@@ -2670,7 +2792,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 						log.report("Switching to specified female centroid file");
 					}
 				} else {
-					log.report("Warning - no sex specified for sample "	+ samp.getSampleName()
+					log.report("Warning - no sex specified for sample "+ samp.getSampleName()
 											+ "; using currently selected centroid file");
 				}
 			}
@@ -2766,13 +2888,13 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 				// if (!sample.equals(proj.get(Project.SAMPLE_DIRECTORY)+" directory is empty")) {
 				if (!sample.equals(proj.SAMPLE_DIRECTORY.getValue(false, true) + " directory is empty")) {
 					JOptionPane.showMessageDialog(this,
-																				"Sample '"	+ sample
+																				"Sample '"+ sample
 																							+ "' was not present in the SampleData file",
 																				"Error", JOptionPane.ERROR_MESSAGE);
 				}
 				return;
 			} else {
-				if (proj.CNV_FILENAMES.getValue() == null	|| proj.CNV_FILENAMES.getValue().length == 0
+				if (proj.CNV_FILENAMES.getValue() == null|| proj.CNV_FILENAMES.getValue().length == 0
 						|| indiPheno.getCnvClasses().size() <= proj.CNV_FILENAMES.getValue().length) {
 					for (int i = 0; i < INTERNAL_CNV_TYPES.values().length; i++) {
 						indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
@@ -2801,7 +2923,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 				}
 			}
 			if (!found) {
-				if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true)	+ newSample
+				if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true)+ newSample
 													+ Sample.SAMPLE_FILE_EXTENSION, jar)) {
 					createSampleList();
 					updateSample(newSample);
@@ -2821,16 +2943,16 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			startMarker = chrBoundaries[chr][0];
 			start = 1;
 		} else {
-			startMarker = ArrayUtils.binarySearch(	positions, start, chrBoundaries[chr][0],
-																				chrBoundaries[chr][1], false);
+			startMarker = ArrayUtils.binarySearch(positions, start, chrBoundaries[chr][0],
+																						chrBoundaries[chr][1], false);
 		}
 
 		if (stop >= positions[chrBoundaries[chr][1]]) {
 			stop = positions[chrBoundaries[chr][1]];
 			stopMarker = chrBoundaries[chr][1];
 		} else {
-			stopMarker = ArrayUtils.binarySearch(positions, stop, chrBoundaries[chr][0], chrBoundaries[chr][1],
-																			false);
+			stopMarker = ArrayUtils.binarySearch(	positions, stop, chrBoundaries[chr][0],
+																						chrBoundaries[chr][1], false);
 		}
 
 		if (startMarker == -1) {
@@ -2999,21 +3121,21 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			regions = Matrix.toStringArrays(v);
 			if (invalidSamples > 0) {
 				JOptionPane.showMessageDialog(null,
-																			"Error - there were "	+ invalidSamples
+																			"Error - there were "+ invalidSamples
 																						+ " invalid samples in '" + regionFileName
 																						+ "' that were ignored because they could not be found",
 																			"Error", JOptionPane.ERROR_MESSAGE);
 			}
 			if (countMissingRegions > 0) {
 				JOptionPane.showMessageDialog(null,
-																			"Warning - there were "	+ countMissingRegions + " lines in '"
+																			"Warning - there were "+ countMissingRegions + " lines in '"
 																						+ regionFileName
 																						+ "' without a chromosomal region listed; using \"chr1\" for all missing values",
 																			"Warning", JOptionPane.ERROR_MESSAGE);
 			}
 			if (ignoredLines > 1) {
 				JOptionPane.showMessageDialog(null,
-																			"Error - there were "	+ ignoredLines + " regions in '"
+																			"Error - there were "+ ignoredLines + " regions in '"
 																						+ regionFileName
 																						+ "' that were ignored due to improper formatting",
 																			"Error", JOptionPane.ERROR_MESSAGE);
@@ -3204,10 +3326,12 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			correctGC = false;
 		}
 		if (correctGC && correctGCFirst) {
-			tmpLrrs = ArrayUtils.toFloatArray(GcAdjustor	.getComputedAdjustor(proj, markerSet, tmpLrrs, gcModel,
-																																	GC_CORRECTION_METHOD.GENVISIS_GC,
-																																	false, false, true)
-																							.getCorrectedIntensities());
+			tmpLrrs = ArrayUtils.toFloatArray(GcAdjustor
+																									.getComputedAdjustor(	proj, markerSet, tmpLrrs,
+																																				gcModel,
+																																				GC_CORRECTION_METHOD.GENVISIS_GC,
+																																				false, false, true)
+																									.getCorrectedIntensities());
 		}
 
 		if (transformation_type > 0) {
@@ -3215,10 +3339,12 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 																			markerSet);
 		}
 		if (correctGC && !correctGCFirst) {
-			tmpLrrs = ArrayUtils.toFloatArray(GcAdjustor	.getComputedAdjustor(proj, markerSet, tmpLrrs, gcModel,
-																																	GC_CORRECTION_METHOD.GENVISIS_GC,
-																																	false, false, true)
-																							.getCorrectedIntensities());
+			tmpLrrs = ArrayUtils.toFloatArray(GcAdjustor
+																									.getComputedAdjustor(	proj, markerSet, tmpLrrs,
+																																				gcModel,
+																																				GC_CORRECTION_METHOD.GENVISIS_GC,
+																																				false, false, true)
+																									.getCorrectedIntensities());
 		}
 		if (Transforms.TRANSFORMATION_TYPES[transformation_type] == Transformations.MAD_SCALED) {
 			for (int i = 0; i < tmpLrrs.length; i++) {
@@ -3324,11 +3450,12 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 		// private static final int[] INTERNAL_CNV_CLASSES_INDICES = new int[] { 0, 1, 2, 3, 4, 5, 6, 7
 		// };
 		addCnvsToPheno(tmp, externalCNVs, INTERNAL_CNV_TYPES.MONSOMOMY_DYSOMYF);
-		if (!checkAlreadyCalled	|| selectedCNV == null
+		if (!checkAlreadyCalled|| selectedCNV == null
 				|| selectedCNV[0] != externalCNVs + INTERNAL_CNV_TYPES.MOSAIC_CALLER.getIndex()) {
 			MosaicBuilder builderMosaic = new MosaicBuilder();
 			builderMosaic.verbose(true);
-			MosaicismDetect md = builderMosaic.build(proj, sample, markerSet, ArrayUtils.toDoubleArray(bafs));
+			MosaicismDetect md = builderMosaic.build(	proj, sample, markerSet,
+																								ArrayUtils.toDoubleArray(bafs));
 			LocusSet<MosaicRegion> mosSet = md.callMosaic(quantSeg, true);
 
 			if (mosSet.getLoci().length != 1) {
