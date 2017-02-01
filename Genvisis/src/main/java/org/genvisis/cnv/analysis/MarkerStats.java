@@ -61,10 +61,12 @@ public final class MarkerStats {
 			outHeader.add(col);
 		}
 		outHeader.add("GC: " + gcModelName);
-		outHeader.add("BAF Mean");
-		outHeader.add("BAF Mean 0.5 dist");
-		outHeader.add("BAF SD");
+		outHeader.add("BAF 15,85 Mean");
+		outHeader.add("BAF 15,85 Mean 0.5 dist");
+		outHeader.add("BAF 15,85 SD");
+		outHeader.add("BAF 15,85 MAD");
 		outHeader.add("LRR SD");
+		outHeader.add("LRR MAD");
 
 		List<GcAdjustorParameters> params = getParams(proj, outHeader, gcModel);
 
@@ -83,11 +85,15 @@ public final class MarkerStats {
 				final List<String> line = new ArrayList<String>();
 				String markerName = marker.getMarkerName();
 				int markerIndexInProject = markerIndices.get(markerName);
-				float lrrSd = ArrayUtils.stdev(ArrayUtils.subArray(marker.getLRRs(), samplesToInclude), true);
-				float[] baf15t85 = ArrayUtils.subArrayInRange(marker.getBAFs(), samplesToInclude, 0.15f, 0.85f);
+				float[] lrrNoNaN = ArrayUtils.removeNaN(marker.getLRRs());
+				float lrrSd = ArrayUtils.stdev(ArrayUtils.subArray(lrrNoNaN, samplesToInclude), true);
+				double lrrMad = ArrayUtils.mad(lrrNoNaN);
+				float[] bafNoNaN = ArrayUtils.removeNaN(marker.getBAFs());
+				float[] baf15t85 = ArrayUtils.subArrayInRange(bafNoNaN, samplesToInclude, 0.15f, 0.85f);
 				float bafAvg = ArrayUtils.mean(baf15t85, true);
 				float baf50Dist = ArrayUtils.meanDist(baf15t85, 0.50f, true);
 				float bafSd = ArrayUtils.stdev(baf15t85, true);
+				double bafMad = ArrayUtils.mad(bafNoNaN);
 				line.add(markerName);
 				line.add(String.valueOf(marker.getChr()));
 				line.add(String.valueOf(marker.getPosition()));
@@ -95,11 +101,15 @@ public final class MarkerStats {
 				line.add(String.valueOf(bafAvg));
 				line.add(String.valueOf(baf50Dist));
 				line.add(String.valueOf(bafSd));
+				line.add(String.valueOf(bafMad));
 				line.add(String.valueOf(lrrSd));
+				line.add(String.valueOf(lrrMad));
 				for (GcAdjustorParameters ps : params) {
 					float[][] lrrbaf = marker.getGCCorrectedLRRBAF(ps, markerIndexInProject, log);
 					float gcLrrSd = ArrayUtils.stdev(lrrbaf[1], true);
+					double gcLrrMad = ArrayUtils.mad(ArrayUtils.removeNaN(lrrbaf[1]));
 					line.add(String.valueOf(gcLrrSd));
+					line.add(String.valueOf(gcLrrMad));
 					// NB: looks like GC correction doesn't currently affect BAF calculation. Not clear why both come back?
 				}
 
@@ -137,6 +147,7 @@ public final class MarkerStats {
 		for (String gaf : gcParamsFile) {
 			String name = new File(gaf).getName();
 			header.add(name + ": LRR SD");
+			header.add(name + ": LRR MAD");
 			list.add(GcAdjustorParameters.readSerial(gaf, log));
 		}
 		return list;

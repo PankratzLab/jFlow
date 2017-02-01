@@ -1890,6 +1890,33 @@ public class ArrayUtils {
 	}
 
 	/**
+	 * Determines the median absolute difference of an array of floats
+	 *
+	 * @param array an array of numbers
+	 * @return mad of the array
+	 */
+	public static double mad(float[] array) {
+		return mad(array, 1);
+	}
+
+
+
+	/**
+	 * Determines the median absolute difference of an array of floats
+	 *
+	 * @param array an array of numbers
+	 * @return mad of the array
+	 */
+	public static double mad(float[] array, double constant) {
+		double median = quantExclusive(array, 0.50f);
+		float[] tmp = new float[array.length];
+		for (int i = 0; i < array.length; i++) {
+			tmp[i] = (float)Math.abs(array[i] - median);
+		}
+		return quantExclusive(tmp, 0.50f) * constant;
+	}
+
+	/**
 	 * Determines the median absolute difference of an array of double
 	 *
 	 * @param array an array of numbers
