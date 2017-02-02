@@ -287,8 +287,10 @@ public class BinnedMovingStatistic<T extends Number> {
 		@Override
 		public void evict() {
 			List<T> removed = bins.remove(0);
-			// Have to update coutns for each value in the removed bin
-			values.removeAll(removed);
+			// Have to update counts for each value in the removed bin
+			for (T val : removed) {
+				values.remove(val);
+			}
 		}
 
 		@Override

@@ -2004,7 +2004,7 @@ public class ArrayUtils {
 		int midpoint = list.size() / 2;
 		double median;
 		if (list.size() % 2 == 0) {
-			median = (list.get(midpoint).doubleValue() + list.get(midpoint + 1).doubleValue()) / 2.0;
+			median = (list.get(midpoint).doubleValue() + list.get(midpoint - 1).doubleValue()) / 2.0;
 		} else {
 			median = list.get(midpoint).doubleValue();
 		}
