@@ -1014,7 +1014,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		@Override
 		public void mouseClicked(MouseEvent e) {
 		//  If movingAvg is less than 10, force markerWindow to MEAN
-			int res = JOptionPane.showConfirmDialog(null, panel, "Select marker tracks",
+			int res = JOptionPane.showConfirmDialog(null, panel, "Configure marker tracks",
 																							JOptionPane.OK_CANCEL_OPTION,
 																							JOptionPane.PLAIN_MESSAGE);
 
@@ -1023,7 +1023,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				for (int i=0; i<markerParams.size(); i++) {
 					RenderParams renderParams = markerParams.get(i);
 					useMarkerComponent[i] = boxes[i].isSelected();
-					renderParams.setMovingAverage(Integer.parseInt(movingWindows[i].getValue().toString()));
+					renderParams.setMovingAverage((Integer)movingWindows[i].getValue());
 					renderParams.setSmoothing((Smoothing)smoothings[i].getSelectedItem());
 					renderParams.setMovingType((MovingStat)movingStats[i].getSelectedItem());
 				}
