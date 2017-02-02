@@ -33,6 +33,7 @@ import htsjdk.variant.vcf.VCFFileReader;
  */
 public class TumorNormalSummary {
 
+
 	private static final String[] BASE_OUT = new String[] {	"CHROM", "POS", "ID", "REF", "FULL_ALT",
 																													"ALT", "HIGH||MODERATE||LOW", "TN_PAIR",
 																													"NORMAL_SAMPLE", "TUMOR_SAMPLE",
@@ -41,6 +42,10 @@ public class TumorNormalSummary {
 																													"NORMAL_AD", "TUMOR_AD", "NORMAL_GQ",
 																													"TUMOR_GQ", "NORMAL_HAS_ALT",
 																													"TUMOR_HAS_ALT", "MIN_GQ", "TN_MATCH"};
+
+	private TumorNormalSummary() {
+
+	}
 
 	private static void run(String vcf, String vpopFile, String outputDir, Segment seg, String name,
 													int buffer, Logger log) {
@@ -68,7 +73,6 @@ public class TumorNormalSummary {
 		try {
 			PrintWriter writerSummary = new PrintWriter(new FileWriter(outSummary));
 			String[][] annos = VCFOps.getAnnotationKeys(vcf, log);
-			// writerSummary.println(Array.toStr(BASE_OUT) + "\t" + Array.toStr(annos[1]));
 			writerSummary.println(ArrayUtils.toStr(BASE_OUT) + "\t" + ArrayUtils.toStr(annos[0]));
 
 			while (iter.hasNext()) {
@@ -78,8 +82,7 @@ public class TumorNormalSummary {
 					writer.add(vc);
 					for (String tnPair : vpop.getSubPop().keySet()) {
 						Set<String> samps = vpop.getSubPop().get(tnPair);
-						VariantContext vcTNPair = VCOps.getSubset(vc, samps, VC_SUBSET_TYPE.SUBSET_STRICT);
-						// if (!vcTNPair.isMonomorphicInSamples()) {
+
 							String tumor = null;
 							String normal = null;
 							for (String samp : samps) {
@@ -94,8 +97,7 @@ public class TumorNormalSummary {
 									throw new IllegalStateException("Unknown types");
 								}
 							}
-							// private static final String[] BASE_OUT = new String[] { "CHROM", "POS", "ID",
-							// "REF", "ALT", "TN_PAIR", "NORMAL_GENOTYPE", "TUMOR_GENOTYPE", "TN_MATCH" };
+
 							Genotype gTumor = vc.getGenotype(tumor);
 							Genotype gNormal = vc.getGenotype(normal);
 							StringBuilder builder = new StringBuilder();
@@ -128,7 +130,6 @@ public class TumorNormalSummary {
 							builder.append("\t" + gTumor.sameGenotype(gNormal));
 							builder.append("\t" + ArrayUtils.toStr(VCOps.getAnnotationsFor(annos[0], vc, ".")));
 							writerSummary.println(builder.toString());
-
 					}
 				}
 			}
@@ -145,8 +146,6 @@ public class TumorNormalSummary {
 
 	public static void main(String[] args) {
 		CLI c = new CLI(TumorNormalSummary.class);
-
-
 
 		c.addArgWithDefault("vcf", "vcf to tally", "a.vcf");
 		c.addArgWithDefault("vpop", "vpop to use", "a.vpop");
@@ -169,16 +168,3 @@ public class TumorNormalSummary {
 	}
 }
 
-// String subsetVcf = outputDir + ext.rootOf(vpop.getFileName()) + ".vcf.gz";
-// if (!Files.exists(subsetVcf)) {
-// log.reportTimeInfo("Generating fast- query vcf");
-// Set<String> all = new HashSet<String>();
-// all.addAll(vpop.getSuperPop().get(VcfPopulation.TUMOR));
-// all.addAll(vpop.getSuperPop().get(VcfPopulation.NORMAL));
-// Hashtable<String, Set<String>> allHash = new Hashtable<String, Set<String>>();
-// allHash.put(ext.rootOf(vpopFile), all);
-// VcfPopulation allpop = new VcfPopulation(allHash, allHash, POPULATION_TYPE.ANY, log);
-// String tmpOut = outputDir + "tmp.vpop";
-// allpop.dump(tmpOut);
-// VcfPopulation.splitVcfByPopulation(vcf, tmpOut, true, true, log);
-// }
