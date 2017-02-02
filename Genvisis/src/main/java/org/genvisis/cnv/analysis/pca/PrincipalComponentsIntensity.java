@@ -225,14 +225,22 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 
 	public void correctLRRAt(int atComponent) {
 		setOriginal();
-		this.correctedLRR = ArrayUtils.toFloatArray(getCorrectedDataAt(
-																															ArrayUtils.toDoubleArray(centroid.getMarkerData()
-																																													.getLRRs()),
-																															sexSpecificChrCovariates,
-																															centroid.getSamplesToUse(),
-																															atComponent, lType,
-																															"LRR correction at PC " + atComponent,
-																															verbose).getResiduals());
+		CrossValidation crossValidation = getCorrectedDataAt(
+																													ArrayUtils.toDoubleArray(centroid	.getMarkerData()
+																																														.getLRRs()),
+																													sexSpecificChrCovariates,
+																													centroid.getSamplesToUse(), atComponent,
+																													lType,
+																													"LRR correction at PC " + atComponent,
+																													verbose);
+		if (crossValidation.analysisFailed()) {
+			fail = true;
+			log.reportTimeWarning("Failed to correct "+ centroid.getMarkerData().getMarkerName()
+														+ " , returning original LRRS");
+			this.correctedLRR = centroid.getMarkerData().getLRRs();
+		} else {
+			this.correctedLRR = ArrayUtils.toFloatArray(crossValidation.getResiduals());
+		}
 	}
 
 
