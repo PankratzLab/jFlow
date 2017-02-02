@@ -1926,6 +1926,19 @@ public class ArrayUtils {
 		return mad(array, 1);
 	}
 
+	/**
+	 * As {@link #mad(double[])} but we know the initial array is already sorted
+	 */
+	public static double madSorted(double[] array) {
+		double median;
+		int midpoint = array.length / 2;
+		if (array.length % 2 == 0) {
+			median = (array[midpoint] + array[midpoint + 1]) / 2.0;
+		} else {
+			median = array[midpoint];
+		}
+		return mad(array, 1, median);
+	}
 
 
 	/**
@@ -1936,6 +1949,17 @@ public class ArrayUtils {
 	 */
 	public static double mad(double[] array, double constant) {
 		double median = (quantExclusive(array, 0.50));
+		return mad(array, constant, median);
+	}
+
+	/**
+	 * Determines the median absolute difference of an array of double with a known median
+	 *
+	 * @param array an array of numbers
+	 * @param median the median of the given array
+	 * @return mad of the array
+	 */
+	public static double mad(double[] array, double constant, double median) {
 		double[] tmp = new double[array.length];
 		for (int i = 0; i < array.length; i++) {
 			tmp[i] = Math.abs(array[i] - median);

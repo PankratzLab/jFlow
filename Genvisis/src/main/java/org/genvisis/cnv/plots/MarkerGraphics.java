@@ -6,7 +6,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +18,8 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Numbers;
 import org.genvisis.common.Positions;
-import org.genvisis.stats.BinnedMovingAverage;
+import org.genvisis.stats.BinnedMovingStatistic;
+import org.genvisis.stats.BinnedMovingStatistic.MovingStat;
 
 
 /**
@@ -98,63 +98,16 @@ public class MarkerGraphics {
 	/**
 	 * @return A list of the component names available for this MarkerGraphics
 	 */
-	public List<String> getComponents() {
-		return Collections.unmodifiableList(markerComponents);
+	public List<RenderParams> getParams() {
+		List<RenderParams> params = new ArrayList<RenderParams>();
+		for (String comp : markerComponents) {
+			params.add(new RenderParams(comp));
+			
+		}
+		return params;
 	}
 
 	// TODO extract API for just looking at regions for genome start/end?
-	/**
-	 * Draw all components with no moving average
-	 *
-	 * @see {@link #draw(Graphics, int, int, int, int, int, int, Smoothing, List)}
-	 */
-	public void draw(Graphics g, int chr, int genomeStart, int genomeEnd, int pixelWidth,
-	                 int height) {
-		draw(g, chr, genomeStart, genomeEnd, pixelWidth, height, markerComponents);
-	}
-
-	/**
-	 * Draw with specified moving average
-	 *
-	 * @see {@link #draw(Graphics, int, int, int, int, int, int, Smoothing, List)}
-	 */
-	public void draw(Graphics g, int chr, int genomeStart, int genomeEnd, int pixelWidth, int height,
-	                 String... components) {
-		draw(g, chr, genomeStart, genomeEnd, pixelWidth, height, DEFAULT_MOVING_AVG, components);
-	}
-
-	/**
-	 * Convenience method for converting varargs to {@code List<String>}
-	 *
-	 * @see {@link #draw(Graphics, int, int, int, int, int, int, Smoothing, List)}
-	 */
-	public void draw(Graphics g, int chr, int genomeStart, int genomeEnd, int pixelWidth, int height,
-	                 int movingAverage, String... components) {
-		draw(g, chr, genomeStart, genomeEnd, pixelWidth, height, movingAverage,
-		     Arrays.asList(components));
-	}
-
-	/**
-	 * Use default moving average
-	 *
-	 * @see {@link #draw(Graphics, int, int, int, int, int, int, Smoothing, List)}
-	 */
-	public void draw(Graphics g, int chr, int genomeStart, int genomeEnd, int pixelWidth, int height,
-	                 List<String> components) {
-		draw(g, chr, genomeStart, genomeEnd, pixelWidth, height, DEFAULT_MOVING_AVG, components);
-	}
-
-	/**
-	 * Use {@link Smoothing#MARKERS} strategy
-	 *
-	 * @see {@link #draw(Graphics, int, int, int, int, int, int, Smoothing, List)}
-	 */
-	public void draw(Graphics g, int chr, int genomeStart, int genomeEnd, int pixelWidth, int height,
-	                 int movingAverage, List<String> components) {
-
-		draw(g, chr, genomeStart, genomeEnd, pixelWidth, height, movingAverage, Smoothing.MARKERS,
-		     components);
-	}
 
 	/**
 	 * @param g AWT Graphics object to draw in
@@ -163,13 +116,9 @@ public class MarkerGraphics {
 	 * @param genomeEnd Last genome position, in base pairs, that is in view
 	 * @param pixelWidth Width of the UI component to fill
 	 * @param height Height of the UI component to fill
-	 * @param movingAverage How many positions to use for smoothing (half this value in both
-	 *        directions)
-	 * @param smoothing - Smoothing strategy to use when creating moving averages
-	 * @param components List of one or more {@link MarkerStats} components to draw
+	 * @param params A list of {@link RenderParams} indicating component, moving average, smoothing, etc... to be drawn
 	 */
-	public void draw(Graphics g, int chr, int genomeStart, int genomeEnd, int pixelWidth, int height,
-	                 int movingAverage, Smoothing smoothing, List<String> components) {
+	public void draw(Graphics g, int chr, int genomeStart, int genomeEnd, int pixelWidth, int height, List<RenderParams> params) {
 		if (this.loadedChr != chr) {
 			load(chr);
 		}
@@ -178,30 +127,33 @@ public class MarkerGraphics {
 		Color c = g.getColor();
 
 		// TODO binary search for start point and stop loops when passed end
-		for (String comp : components) {
+		for (RenderParams p : params) {
 			// Draw a single point for each stat, for each marker
-			g.setColor(markerColors.get(comp));
+			g.setColor(markerColors.get(p.getComponent()));
 
-			if (movingAverage <= 0) {
+			if (p.getMovingAverage() <= 0) {
 				for (int i = 0; i < markers.size(); i++) {
 					MarkerCols marker = markers.get(i);
 					if (marker.pos >= genomeStart && marker.pos <= genomeEnd) {
-						int y = getScaledY(marker.get(comp), height, heightBuffer);
+						int y = getScaledY(marker.get(p.getComponent()), height, heightBuffer);
 						int x = getX(marker.pos, pixelWidth, genomeStart, genomeWidth);
 						g.fillOval(x, y, 4, 4);
 					}
 				}
 			} else {
 				// Smooth using a moving average
-				BinnedMovingAverage<Double> bma = new BinnedMovingAverage<Double>(movingAverage);
+				BinnedMovingStatistic<Double> bma = new BinnedMovingStatistic<Double>(p.getMovingAverage(), p.getMovingStat());
+
+				// Whether the last marker was drawn
+				boolean drewPoint = false;
 
 				// If pixel smoothing, each bin covers 1 X position
 				// If marker smoothing, each bin covers 1 marker
 				// If KBP smoothing, each bin covers 1KB.
-
 				for (int i = 0; i < markers.size(); i++) {
 					MarkerCols marker = markers.get(i);
 					int pos = marker.pos;
+					drewPoint = false;
 
 					if (pos >= centromereStart && pos <= centromereEnd) {
 						// traversing the centromere
@@ -209,7 +161,7 @@ public class MarkerGraphics {
 					} else {
 						int bin = 0;
 						// Identify which bin the current marker belongs in
-						switch (smoothing) {
+						switch (p.getSmoothing()) {
 							case KBASEPAIRS:
 								bin = pos / 1000;
 								break;
@@ -222,9 +174,10 @@ public class MarkerGraphics {
 						}
 						// if adding the current value will add a new bin, we want to draw the current stats
 						if (!bma.lastBin(bin)) {
-							drawPoint(g, genomeStart, pixelWidth, height, smoothing, genomeWidth, bma, false);
+							drawPoint(g, genomeStart, pixelWidth, height, p.getSmoothing(), genomeWidth, bma);
+							drewPoint = true;
 						}
-						Double val = marker.get(comp);
+						Double val = marker.get(p.getComponent());
 						// prune NaNs
 						if (!val.isNaN()) {
 							bma.add(val, bin);
@@ -232,7 +185,9 @@ public class MarkerGraphics {
 					}
 				}
 				// Draw the last point if needed
-				drawPoint(g, genomeStart, pixelWidth, height, smoothing, genomeWidth, bma, true);
+				if (!drewPoint) {
+					drawPoint(g, genomeStart, pixelWidth, height, p.getSmoothing(), genomeWidth, bma);
+				}
 			}
 		}
 		// Restore original grahpics color
@@ -241,8 +196,8 @@ public class MarkerGraphics {
 	}
 
 	private void drawPoint(Graphics g, int genomeStart, int pixelWidth, int height,
-	                      Smoothing smoothing, int genomeWidth, BinnedMovingAverage<Double> bma, boolean forceCurrentBin) {
-		double v = forceCurrentBin ? bma.getValWithCurrentBin() : bma.getValue();
+	                      Smoothing smoothing, int genomeWidth, BinnedMovingStatistic<Double> bma) {
+		double v = bma.getValue();
 		if (v > -1) {
 			int x = bma.mid();
 			switch (smoothing) {
@@ -360,6 +315,59 @@ public class MarkerGraphics {
 				c = name.compareTo(o.name);
 			}
 			return c;
+		}
+	}
+
+	/**
+	 * Container class for parameters for {@link MarkerGraphics#draw(Graphics, int, int, int, int, int, List)}
+	 */
+	public static class RenderParams {
+		private int movingAverage;
+		private Smoothing smoothing;
+		private MovingStat movingType;
+		private String component;
+
+		public RenderParams(String component) {
+			this(0, Smoothing.MARKERS, MovingStat.MEAN, component);
+		}
+
+		public RenderParams(int movingAverage, Smoothing smoothing, MovingStat movingType, String component) {
+			this.movingAverage = movingAverage;
+			this.smoothing = smoothing;
+			this.movingType = movingType;
+			this.component = component;
+		}
+
+		public int getMovingAverage() {
+			return movingAverage;
+		}
+
+		public void setMovingAverage(int movingAverage) {
+			this.movingAverage = movingAverage;
+		}
+
+		public Smoothing getSmoothing() {
+			return smoothing;
+		}
+
+		public void setSmoothing(Smoothing smoothing) {
+			this.smoothing = smoothing;
+		}
+
+		public MovingStat getMovingStat() {
+			return movingType;
+		}
+
+		public void setMovingType(MovingStat movingType) {
+			this.movingType = movingType;
+		}
+
+		public String getComponent() {
+			return component;
+		}
+
+		public void setComponent(String component) {
+			this.component = component;
 		}
 	}
 }

@@ -41,7 +41,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -52,7 +51,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.ButtonModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.InputMap;
@@ -71,7 +69,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
@@ -113,6 +110,7 @@ import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.plots.ColorExt.ColorManager;
+import org.genvisis.cnv.plots.MarkerGraphics.RenderParams;
 import org.genvisis.cnv.plots.MarkerGraphics.Smoothing;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
@@ -139,6 +137,7 @@ import org.genvisis.filesys.GeneTrack;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.mining.Transformations;
+import org.genvisis.stats.BinnedMovingStatistic.MovingStat;
 
 public class Trailer extends JFrame implements ChrNavigator, ActionListener, ClickListener,
 											MouseListener, MouseMotionListener, MouseWheelListener {
@@ -219,11 +218,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	private JPanel cnvPanel;
 	private JPanel markerPanel;
 	private MarkerGraphics markerGraphics;
-	private List<String> markerComponents;
+	private List<RenderParams> markerParams;
 	private boolean[] useMarkerComponent;
-	private List<String> markersToUse;
-	private Smoothing markerSmoothing;
-	private int markerMovingAverage = 0;
+	private List<RenderParams> markersToUse;
 	private SingleClick leftClick;
 	private SingleClick rightClick;
 	private GeneTrack track;
@@ -851,14 +848,13 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		String markerStatFile = proj.MARKER_STATS_FILENAME.getValue();
 		if (Files.exists(markerStatFile)) {
 			markerGraphics = new MarkerGraphics(markerStatFile, proj);
-			markerComponents = markerGraphics.getComponents();
-			markersToUse = markerComponents;
-			markerSmoothing = Smoothing.MARKERS;
-			useMarkerComponent = new boolean[markerComponents.size()];
+			markerParams = markerGraphics.getParams();
+			markersToUse = markerParams;
+			useMarkerComponent = new boolean[markerParams.size()];
 			// By default display the first track
 			if (useMarkerComponent.length > 0) {
 				useMarkerComponent[0] = true;
-				markersToUse = ArrayUtils.subList(markerComponents, useMarkerComponent);
+				markersToUse = ArrayUtils.subList(markerParams, useMarkerComponent);
 				markerPanel.addMouseListener(new MarkerMouseListener());
 				markerPanel.setToolTipText("Click to configure displayed tracks");
 			}
@@ -946,38 +942,70 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	 * Respond to mouse events in the marker panel
 	 */
 	private class MarkerMouseListener implements MouseListener {
+		private static final int ROW_HEIGHT = 20;
+		private static final int BOX_EDGE = 12;
+
 		private final JCheckBox[] boxes;
-		private final Object[] inputs;
-		private final JFormattedTextField movingAvg;
-		private final JComboBox smoothing;
+		private final JFormattedTextField[] movingWindows;
+		private final JComboBox[] smoothings;
+		private final JComboBox[] movingStats;
+		private final JPanel panel;
 
 		public MarkerMouseListener() {
-			boxes = new JCheckBox[markerComponents.size()];
-			inputs = new Object[markerComponents.size() + 3];
-			for (int i = 0; i < boxes.length; i++) {
-				boxes[i] = new JCheckBox(	markerComponents.get(i), new ColorIcon(8, 8, Color.BLACK), useMarkerComponent[i]);
-				boxes[i].setSelectedIcon(new ColorIcon(8, 8, ColorSequence.get(i)));
-				inputs[i] = boxes[i];
+			panel = new JPanel(new GridLayout(markerParams.size() + 1, 1));
+			boxes = new JCheckBox[markerParams.size()];
+			movingWindows = new JFormattedTextField[markerParams.size()];
+			smoothings = new JComboBox[markerParams.size()];
+			movingStats = new JComboBox[markerParams.size()];
+
+			Dimension[] colSizes = new Dimension[]{new Dimension(160, ROW_HEIGHT), new Dimension(60, ROW_HEIGHT), new Dimension(110, ROW_HEIGHT), new Dimension(100, ROW_HEIGHT)};
+			String[] headers = new String[]{"Track", "Window", "Unit", "Calc"};
+
+			// Add headers
+			JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
+			for (int i=0; i<colSizes.length; i++) {
+				JLabel colHeader = new JLabel(headers[i], SwingConstants.CENTER);
+				colHeader.setPreferredSize(colSizes[i]);
+				header.add(colHeader);
 			}
+			panel.add(header);
 
-			// see http://stackoverflow.com/a/16228698/1027800
-			NumberFormat format = NumberFormat.getInstance();
-			NumberFormatter formatter = new NumberFormatter(format);
-			formatter.setValueClass(Integer.class);
-			formatter.setMinimum(0);
-			formatter.setMaximum(Integer.MAX_VALUE);
-			formatter.setAllowsInvalid(false);
-			formatter.setCommitsOnValidEdit(true);
-			movingAvg = new JFormattedTextField(formatter);
-			movingAvg.setValue(0);
-			movingAvg.setPreferredSize(new Dimension(40, 14));
-			inputs[boxes.length] = new JLabel("Set moving average window (0 to disable):");
-			inputs[boxes.length + 1] = movingAvg;
+			// Add marker options
+			for (int i = 0; i < markerParams.size(); i++) {
+				int column = 0;
+				JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT));
+				boxes[i] = new JCheckBox(	markerParams.get(i).getComponent(), new ColorIcon(BOX_EDGE, BOX_EDGE, Color.BLACK), useMarkerComponent[i]);
+				boxes[i].setSelectedIcon(new ColorIcon(BOX_EDGE, BOX_EDGE, ColorSequence.get(i)));
+				boxes[i].setPreferredSize(colSizes[column++]);
+				boxes[i].setToolTipText(markerParams.get(i).getComponent());
+				row.add(boxes[i]);
 
-			smoothing = new JComboBox();
-			smoothing.setModel(new DefaultComboBoxModel(Smoothing.values()));
-			smoothing.setSelectedItem(markerSmoothing);
-			inputs[boxes.length + 2] = smoothing;
+				// see http://stackoverflow.com/a/16228698/1027800
+				NumberFormat format = NumberFormat.getInstance();
+				NumberFormatter formatter = new NumberFormatter(format);
+				formatter.setValueClass(Integer.class);
+				formatter.setMinimum(0);
+				formatter.setMaximum(Integer.MAX_VALUE);
+				formatter.setAllowsInvalid(true);
+				formatter.setCommitsOnValidEdit(true);
+				movingWindows[i] = new JFormattedTextField(formatter);
+				movingWindows[i].setValue(0);
+				movingWindows[i].setPreferredSize(colSizes[column++]);
+				row.add(movingWindows[i]);
+
+				smoothings[i] = new JComboBox();
+				smoothings[i].setModel(new DefaultComboBoxModel(Smoothing.values()));
+				smoothings[i].setSelectedItem(markerParams.get(i).getSmoothing());
+				smoothings[i].setPreferredSize(colSizes[column++]);
+				row.add(smoothings[i]);
+
+				movingStats[i] = new JComboBox();
+				movingStats[i].setModel(new DefaultComboBoxModel(MovingStat.values()));
+				movingStats[i].setSelectedItem(markerParams.get(i).getMovingStat());
+				movingStats[i].setPreferredSize(colSizes[column++]);
+				row.add(movingStats[i]);
+				panel.add(row);
+			}
 		}
 
 		/**
@@ -985,23 +1013,31 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		 */
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			int res = JOptionPane.showConfirmDialog(null, inputs, "Select marker tracks",
+		//  If movingAvg is less than 10, force markerWindow to MEAN
+			int res = JOptionPane.showConfirmDialog(null, panel, "Select marker tracks",
 																							JOptionPane.OK_CANCEL_OPTION,
 																							JOptionPane.PLAIN_MESSAGE);
 
 			if (res == JOptionPane.OK_OPTION) {
-				for (int i = 0; i < boxes.length; i++) {
+				// Update markerParams and redraw
+				for (int i=0; i<markerParams.size(); i++) {
+					RenderParams renderParams = markerParams.get(i);
 					useMarkerComponent[i] = boxes[i].isSelected();
+					renderParams.setMovingAverage(Integer.parseInt(movingWindows[i].getValue().toString()));
+					renderParams.setSmoothing((Smoothing)smoothings[i].getSelectedItem());
+					renderParams.setMovingType((MovingStat)movingStats[i].getSelectedItem());
 				}
-				markersToUse = ArrayUtils.subList(markerComponents, useMarkerComponent);
-				markerMovingAverage = Integer.parseInt(movingAvg.getValue().toString());
-				markerSmoothing = (Smoothing) smoothing.getSelectedItem();
+				markersToUse = ArrayUtils.subList(markerParams, useMarkerComponent);
 				updateGUI();
 			} else {
-				for (int i = 0; i < boxes.length; i++) {
+				// Reset the GUI components
+				for (int i=0; i<markerParams.size(); i++) {
+					RenderParams renderParams = markerParams.get(i);
 					boxes[i].setSelected(useMarkerComponent[i]);
+					movingWindows[i].setValue(renderParams.getMovingAverage());
+					smoothings[i].setSelectedItem(renderParams.getSmoothing());
+					movingStats[i].setSelectedItem(renderParams.getMovingStat());
 				}
-				smoothing.setSelectedItem(markerSmoothing);
 			}
 		}
 
@@ -1039,7 +1075,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			g.drawString(text, getWidth() / 2 - width / 2, 40);
 		} else {
 			markerGraphics.draw(g, chr, start, stop, markerPanel.getWidth() - 2 * WIDTH_BUFFER,
-													markerPanel.getHeight(), markerMovingAverage, markerSmoothing, markersToUse);
+													markerPanel.getHeight(), markersToUse);
 		}
 	}
 
