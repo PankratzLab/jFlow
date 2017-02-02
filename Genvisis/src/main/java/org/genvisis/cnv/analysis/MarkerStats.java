@@ -85,15 +85,16 @@ public final class MarkerStats {
 				final List<String> line = new ArrayList<String>();
 				String markerName = marker.getMarkerName();
 				int markerIndexInProject = markerIndices.get(markerName);
-				float[] lrrNoNaN = ArrayUtils.removeNaN(marker.getLRRs());
-				float lrrSd = ArrayUtils.stdev(ArrayUtils.subArray(lrrNoNaN, samplesToInclude), true);
-				double lrrMad = ArrayUtils.mad(lrrNoNaN);
-				float[] bafNoNaN = ArrayUtils.removeNaN(marker.getBAFs());
-				float[] baf15t85 = ArrayUtils.subArrayInRange(bafNoNaN, samplesToInclude, 0.15f, 0.85f);
+				float[] lrrs = ArrayUtils.subArray(marker.getLRRs(), samplesToInclude);
+				lrrs = ArrayUtils.removeNaN(lrrs);
+				float lrrSd = ArrayUtils.stdev(lrrs, true);
+				double lrrMad = ArrayUtils.mad(lrrs);
+				float[] baf15t85 = ArrayUtils.subArrayInRange(marker.getBAFs(), samplesToInclude, 0.15f, 0.85f);
+				baf15t85 = ArrayUtils.removeNaN(baf15t85);
 				float bafAvg = ArrayUtils.mean(baf15t85, true);
 				float baf50Dist = ArrayUtils.meanDist(baf15t85, 0.50f, true);
 				float bafSd = ArrayUtils.stdev(baf15t85, true);
-				double bafMad = ArrayUtils.mad(bafNoNaN);
+				double bafMad = ArrayUtils.mad(baf15t85);
 				line.add(markerName);
 				line.add(String.valueOf(marker.getChr()));
 				line.add(String.valueOf(marker.getPosition()));
@@ -105,9 +106,10 @@ public final class MarkerStats {
 				line.add(String.valueOf(lrrSd));
 				line.add(String.valueOf(lrrMad));
 				for (GcAdjustorParameters ps : params) {
-					float[][] lrrbaf = marker.getGCCorrectedLRRBAF(ps, markerIndexInProject, log);
-					float gcLrrSd = ArrayUtils.stdev(lrrbaf[1], true);
-					double gcLrrMad = ArrayUtils.mad(ArrayUtils.removeNaN(lrrbaf[1]));
+					float[] gcLrrs = marker.getGCCorrectedLRRBAF(ps, markerIndexInProject, log)[1];
+					gcLrrs = ArrayUtils.removeNaN(gcLrrs);
+					float gcLrrSd = ArrayUtils.stdev(gcLrrs, true);
+					double gcLrrMad = ArrayUtils.mad(gcLrrs);
 					line.add(String.valueOf(gcLrrSd));
 					line.add(String.valueOf(gcLrrMad));
 					// NB: looks like GC correction doesn't currently affect BAF calculation. Not clear why both come back?
