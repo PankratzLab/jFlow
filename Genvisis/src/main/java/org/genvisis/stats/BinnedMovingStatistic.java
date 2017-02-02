@@ -3,10 +3,8 @@ package org.genvisis.stats;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 
+import org.apache.commons.collections4.list.TreeList;
 import org.genvisis.common.ArrayUtils;
 
 /**
@@ -254,70 +252,50 @@ public class BinnedMovingStatistic<T extends Number> {
 	 */
 	private static class MADBinManager<T extends Number> extends AbstractBinManager<T> {
 
-		// Map of values to number of times that value appears in the window range.
-		// Keys are sorted by value
-		private Map<T, int[]> countMap;
+		private List<T> values;
 		// A list of all the bins covered in this window
 		private List<List<T>> bins;
-		// Current number of value in this window
-		private int movingCount = 0;
 
 		public MADBinManager(int window) {
 			super(window);
 			// Need to store the raw bin unfortunately, as it is necessary on eviction
 			bins = new LinkedList<List<T>>();
-			countMap = new TreeMap<T, int[]>();
+			values = new TreeList<T>();
 		}
 
 		@Override
 		public boolean add(List<T> bin) {
 			// Convert the bin to a map of value > counts. Using a map reduces how frequently we have to
 			// sort data, as normally the MAD would require two sorts.
-			for (T val : bin) {
-				int[] c = countMap.get(val);
-				if (c == null) {
-					c = new int[1];
-					countMap.put(val, c);
-				}
-				c[0]++;
-			}
+			values.addAll(bin);
 			bins.add(bin);
-			movingCount += bin.size();
 			return super.add(bin);
 		}
 
 		@Override
 		public double getStat() {
-			double[] vals = new double[movingCount];
-			int pos = 0;
-			// Construct the value array using our known counts in sorted order
-			for (Entry<T, int[]> entry : countMap.entrySet()) {
-				double v = entry.getKey().doubleValue();
-				int count = entry.getValue()[0];
-				for (int i = 0; i < count; i++) {
-					vals[pos++] = v;
-				}
+			double median = ArrayUtils.medianSorted(values);
+
+			TreeList<Double> absDiffs = new TreeList<Double>();
+			for (T v : values) {
+				absDiffs.add(Math.abs(v.doubleValue() - median));
 			}
-			return ArrayUtils.madSorted(vals);
+
+			return ArrayUtils.medianSorted(absDiffs);
 		}
 
 		@Override
 		public void evict() {
 			List<T> removed = bins.remove(0);
 			// Have to update coutns for each value in the removed bin
-			for (T val : removed) {
-				int[] c = countMap.get(val);
-				c[0]--;
-			}
-			movingCount -= removed.size();
+			values.removeAll(removed);
 		}
 
 		@Override
 		public void clear() {
 			super.clear();
 			bins.clear();
-			countMap.clear();
-			movingCount = 0;
+			values.clear();
 		}
 	}
 }

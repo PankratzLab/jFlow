@@ -19,6 +19,7 @@ The following components use the EPL 1.0 license:
 
 The following components use the Apache 2.0 license:
 * commons-compress
+* commons-collections4
 * commons-jexl
 * commons-logging
 * ejml

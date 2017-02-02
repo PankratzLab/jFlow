@@ -1998,6 +1998,21 @@ public class ArrayUtils {
 	}
 
 	/**
+	 * Determines the median of sorted list of numbers
+	 */
+	public static <T extends Number> double medianSorted(List<T> list) {
+		int midpoint = list.size() / 2;
+		double median;
+		if (list.size() % 2 == 0) {
+			median = (list.get(midpoint).doubleValue() + list.get(midpoint + 1).doubleValue()) / 2.0;
+		} else {
+			median = list.get(midpoint).doubleValue();
+		}
+
+		return median;
+	}
+
+	/**
 	 * Prints an array of objects separated by a tab
 	 *
 	 * @param array an array of objects
