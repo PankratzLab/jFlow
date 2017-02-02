@@ -1036,7 +1036,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		if (markerGraphics == null) {
 			text = proj.MARKER_STATS_FILENAME.getName() + " property not set.";
 			int width = g.getFontMetrics(g.getFont()).stringWidth(text);
-			g.drawString(text, getWidth() / 2 - width / 2, 10);
+			g.drawString(text, getWidth() / 2 - width / 2, 40);
 		} else {
 			markerGraphics.draw(g, chr, start, stop, markerPanel.getWidth() - 2 * WIDTH_BUFFER,
 													markerPanel.getHeight(), markerMovingAverage, markerSmoothing, markersToUse);
