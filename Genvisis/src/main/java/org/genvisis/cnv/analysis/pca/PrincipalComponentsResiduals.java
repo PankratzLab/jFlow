@@ -1165,7 +1165,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			if (!Double.isNaN(data[i])) {
 				count++;
 			}
-			if (count > numComponents) {
+			if (count > numComponents + 1) { //N-M-1 for T dist DoF
 				return false;
 			}
 		}
