@@ -2469,7 +2469,7 @@ public class Files {
 	public static boolean ensurePathExists(String filename) {
 		String dir = ext.parseDirectoryOfFile(filename);
 		File f = new File(dir);
-		return f.mkdirs();
+		return f.exists() || f.mkdirs();
 	}
 
 	/**

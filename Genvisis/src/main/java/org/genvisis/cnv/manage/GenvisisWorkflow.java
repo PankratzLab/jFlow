@@ -2092,7 +2092,7 @@ public class GenvisisWorkflow {
 					.append(projPropFile).append(" numComponents=").append(numComponents)
 					.append(" outputBase=").append(outputBase).append(" callrate=")
 					.append(markerCallRateFilter).append(" recomputeLRR=").append(recomputeLRRPCs)
-					.append(" type=").append(correctionType).append(" strategy=").append(strategy)
+					.append(" type=").append(correctionType).append(" sexStrategy=").append(strategy)
 					.append(" numThreads=").append(totalThreads);
 			if (tmpDir != null) {
 				cmd.append(" tmp=").append(tmpDir);
