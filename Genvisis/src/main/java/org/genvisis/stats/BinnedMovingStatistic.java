@@ -17,7 +17,7 @@ import org.genvisis.common.ArrayUtils;
  * {@link MovingStat} provided at construction.
  * <p>
  * Use: you must decide how your data is to be binned. For each sample, in bin-sorted order, compute
- * the bin number for that sample. Check {@link #lastBin(int)} to see if that sample will cause a
+ * the bin number for that sample. Check {@link #inBin(int)} to see if that sample will cause a
  * new bin to be created. If so, check {@link #getValue()} for the average value of all current bins
  * (which will be {@code -1} if we do not have sufficient bins yet). If you are using a two-sided
  * moving average, {@link #mid()} will give you the current median bin value. Finally, use
@@ -119,8 +119,8 @@ public class BinnedMovingStatistic<T extends Number> {
 	 * @return True if a) the given bin value matches the most recent bin, or b) there are currently
 	 *         no bins. In either case, there is nothing interesting about the current statistics.
 	 */
-	public boolean lastBin(int bin) {
-		return binVals.isEmpty() || currentBinVal != bin;
+	public boolean inBin(int bin) {
+		return binVals.isEmpty() || currentBinVal == bin;
 	}
 
 	/**

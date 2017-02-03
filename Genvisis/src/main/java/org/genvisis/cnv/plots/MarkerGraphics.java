@@ -173,7 +173,7 @@ public class MarkerGraphics {
 								break;
 						}
 						// if adding the current value will add a new bin, we want to draw the current stats
-						if (!bma.lastBin(bin)) {
+						if (!bma.inBin(bin)) {
 							drawPoint(g, genomeStart, pixelWidth, height, p.getSmoothing(), genomeWidth, bma);
 							drewPoint = true;
 						}
