@@ -1023,7 +1023,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				for (int i=0; i<markerParams.size(); i++) {
 					RenderParams renderParams = markerParams.get(i);
 					useMarkerComponent[i] = boxes[i].isSelected();
-					renderParams.setMovingAverage((Integer)movingWindows[i].getValue());
+					renderParams.setMovingWindow((Integer)movingWindows[i].getValue());
 					renderParams.setSmoothing((Smoothing)smoothings[i].getSelectedItem());
 					renderParams.setMovingType((MovingStat)movingStats[i].getSelectedItem());
 				}
@@ -1034,7 +1034,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				for (int i=0; i<markerParams.size(); i++) {
 					RenderParams renderParams = markerParams.get(i);
 					boxes[i].setSelected(useMarkerComponent[i]);
-					movingWindows[i].setValue(renderParams.getMovingAverage());
+					movingWindows[i].setValue(renderParams.getMovingWindow());
 					smoothings[i].setSelectedItem(renderParams.getSmoothing());
 					movingStats[i].setSelectedItem(renderParams.getMovingStat());
 				}

@@ -131,7 +131,7 @@ public class MarkerGraphics {
 			// Draw a single point for each stat, for each marker
 			g.setColor(markerColors.get(p.getComponent()));
 
-			if (p.getMovingAverage() <= 0) {
+			if (p.getMovingWindow() <= 0) {
 				for (int i = 0; i < markers.size(); i++) {
 					MarkerCols marker = markers.get(i);
 					if (marker.pos >= genomeStart && marker.pos <= genomeEnd) {
@@ -142,7 +142,7 @@ public class MarkerGraphics {
 				}
 			} else {
 				// Smooth using a moving average
-				BinnedMovingStatistic<Double> bma = new BinnedMovingStatistic<Double>(p.getMovingAverage(), p.getMovingStat());
+				BinnedMovingStatistic<Double> bma = new BinnedMovingStatistic<Double>(p.getMovingWindow(), p.getMovingStat());
 
 				// Whether the last marker was drawn
 				boolean drewPoint = false;
@@ -322,7 +322,7 @@ public class MarkerGraphics {
 	 * Container class for parameters for {@link MarkerGraphics#draw(Graphics, int, int, int, int, int, List)}
 	 */
 	public static class RenderParams {
-		private int movingAverage;
+		private int movingWindow;
 		private Smoothing smoothing;
 		private MovingStat movingType;
 		private String component;
@@ -331,19 +331,19 @@ public class MarkerGraphics {
 			this(0, Smoothing.MARKERS, MovingStat.MEAN, component);
 		}
 
-		public RenderParams(int movingAverage, Smoothing smoothing, MovingStat movingType, String component) {
-			this.movingAverage = movingAverage;
+		public RenderParams(int movingWindow, Smoothing smoothing, MovingStat movingType, String component) {
+			this.movingWindow = movingWindow;
 			this.smoothing = smoothing;
 			this.movingType = movingType;
 			this.component = component;
 		}
 
-		public int getMovingAverage() {
-			return movingAverage;
+		public int getMovingWindow() {
+			return movingWindow;
 		}
 
-		public void setMovingAverage(int movingAverage) {
-			this.movingAverage = movingAverage;
+		public void setMovingWindow(int movingWindow) {
+			this.movingWindow = movingWindow;
 		}
 
 		public Smoothing getSmoothing() {

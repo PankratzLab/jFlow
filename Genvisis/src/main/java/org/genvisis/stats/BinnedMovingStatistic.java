@@ -1,8 +1,10 @@
 package org.genvisis.stats;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import org.apache.commons.collections4.list.TreeList;
 import org.genvisis.common.ArrayUtils;
@@ -36,7 +38,8 @@ public class BinnedMovingStatistic<T extends Number> {
 	}
 
 	private BinManager<T> binManager;
-	private List<Integer> binVals;
+	private LinkedList<Integer> binVals;
+	private int currentBinVal;
 	private List<T> currentBin;
 
 	/**
@@ -64,16 +67,18 @@ public class BinnedMovingStatistic<T extends Number> {
 		if (binVals.isEmpty()) {
 			// First bin value, so start tracking
 			binVals.add(bin);
-		} else if (bin != binVals.get(binVals.size() - 1)) {
+			currentBinVal = bin;
+		} else if (bin != currentBinVal) {
 			// Current bin is done. Add it to our running stats
 
 			// If we've passed the window size, pop off the oldest bin
 			if (binManager.add(currentBin)) {
-				binVals.remove(0);
+				binVals.removeFirst();
 				rVal = getValue();
 			}
 			// Start building the next bin
 			binVals.add(bin);
+			currentBinVal = bin;
 			currentBin = new ArrayList<T>();
 		}
 		currentBin.add(val);
@@ -115,7 +120,7 @@ public class BinnedMovingStatistic<T extends Number> {
 	 *         no bins. In either case, there is nothing interesting about the current statistics.
 	 */
 	public boolean lastBin(int bin) {
-		return binVals.isEmpty() || binVals.get(binVals.size() - 1).compareTo(bin) == 0;
+		return binVals.isEmpty() || currentBinVal != bin;
 	}
 
 	/**
@@ -202,15 +207,15 @@ public class BinnedMovingStatistic<T extends Number> {
 	 */
 	private static class MeanBinManager<T extends Number> extends AbstractBinManager<T> {
 
-		private List<Double> sums;
-		private List<Integer> counts;
+		private Queue<Double> sums;
+		private Queue<Integer> counts;
 		private int movingCount;
 		private double movingSum;
 
 		public MeanBinManager(int window) {
 			super(window);
-			sums = new LinkedList<Double>();
-			counts = new LinkedList<Integer>();
+			sums = new ArrayDeque<Double>();
+			counts = new ArrayDeque<Integer>();
 		}
 
 		@Override
@@ -230,8 +235,8 @@ public class BinnedMovingStatistic<T extends Number> {
 
 		@Override
 		public void evict() {
-			Double removedSum = sums.remove(0);
-			Integer removedCount = counts.remove(0);
+			Double removedSum = sums.remove();
+			Integer removedCount = counts.remove();
 			movingSum -= removedSum;
 			movingCount -= removedCount;
 		}
