@@ -991,7 +991,14 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			}
 
 		}
-		if (data == null || willFailNAN(data, numComponentsForModel)) {
+
+		if (samplesTobuildModel != null && samplesTobuildModel.length != numSamples) {
+			proj.getLog().reportError(
+																"Error - boolean definitions of samples to build the regression model must be provided for every sample in the project, only found  "
+																+ samplesTobuildModel.length);
+			go = false;
+		}
+		if (data == null || willFailNAN(data, numComponentsForModel, samplesTobuildModel)) {
 			int numNonNaN = data == null ? 0 : ArrayUtils.removeNaN(data).length;
 			proj.getLog()
 					.reportError("Error - there are not enough samples with non NAN (n="	+ numNonNaN
@@ -1008,12 +1015,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			proj.getLog().reportError("      - data for unwanted samples can be set to NaN and masked ");
 			go = false;
 		}
-		if (samplesTobuildModel != null && samplesTobuildModel.length != numSamples) {
-			proj.getLog().reportError(
-																"Error - boolean definitions of samples to build the regression model must be provided for every sample in the project, only found  "
-																+ samplesTobuildModel.length);
-			go = false;
-		}
+
 
 		if (numComponentsForModel > numComponents) {
 			proj.getLog()
@@ -1159,10 +1161,11 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		}
 	}
 
-	private static boolean willFailNAN(double[] data, float numComponents) {
+	private static boolean willFailNAN(	double[] data, float numComponents,
+																			boolean[] samplesTobuildModel) {
 		int count = 0;
 		for (int i = 0; i < data.length; i++) {
-			if (!Double.isNaN(data[i])) {
+			if (!Double.isNaN(data[i]) && (samplesTobuildModel == null || samplesTobuildModel[i])) {
 				count++;
 			}
 			if (count > numComponents + 1) { //N-M-1 for T dist DoF
@@ -1170,54 +1173,6 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			}
 		}
 		return true;
-	}
-
-	/**
-	 * @param data Currently, the data must be the same length as all samples in the project. To
-	 *        remove individuals from the regression, set values to NaN
-	 * @param numComponents number of components to include in the regression model
-	 * @param title optional to report if model has failed (could be a specific marker or trait,
-	 *        etc...) OLD OLD
-	 * @return
-	 */
-	public double[] getCorrectdedDataAt(double[] data, int numComponents, String title) {
-		String finalTitle = (title == null ? " data" : title);
-		double[] correctedData = new double[data.length];
-		if (data == null || willFailNAN(data, numComponents)) {
-			proj.getLog()
-					.reportError("Error - there are not enough samples with non NAN data for "	+ title
-												+ " using " + numComponents + " "
-												+ (numComponents == 1 ? "principal component " : "principal components")
-												+ " to run a regression, skipping");
-			return null;
-		}
-		if (data.length != samplesToUse.length) {// samplesToUse in project order;
-			proj.getLog()
-					.reportError("Error - array of samples to correct and data must be the same length");
-			return null;
-		} else {
-			setAssesmentDataSortByPCs(ArrayUtils.subArray(data, samplesToUse));// sorts according to the order
-																																		// of samples in the pcFile
-			RegressionModel model = new LeastSquares(	assesmentData,
-																								getTrimmedPreppedPCs(numComponents, false));
-			if (!model.analysisFailed()) {
-				double[] residuals = model.getResiduals();
-				int indexResid = 0;
-				for (int i = 0; i < correctedData.length; i++) {
-					if (samplesToUse[i] && !Double.isNaN(data[i])) {
-						correctedData[i] = residuals[indexResid];
-						indexResid++;
-					} else {
-						correctedData[i] = Double.NaN;
-					}
-				}
-			} else {
-				Arrays.fill(correctedData, Float.NaN);
-				proj.getLog().report("Warning - could not correct"	+ finalTitle
-															+ ", regression model has failed...setting all values to NaN");
-			}
-		}
-		return correctedData;
 	}
 
 	public void setMarkersToAssessFile(String markersToAssessFile) {
