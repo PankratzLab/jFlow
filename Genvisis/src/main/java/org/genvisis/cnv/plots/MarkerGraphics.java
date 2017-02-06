@@ -226,6 +226,7 @@ public class MarkerGraphics {
 	 * Load marker data for the given chromosome into memory
 	 */
 	private void load(int targetChr) {
+		markers.clear();
 		try {
 			BufferedReader reader = Files.getAppropriateReader(markerStatsFile);
 			// Read all markers from the target chromosome into memory
