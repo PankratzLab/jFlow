@@ -59,7 +59,7 @@ public class MarkerGraphics {
 	 * Create a MarkerGraphics object that can be used to draw statistics from the specified file.
 	 */
 	public MarkerGraphics(String markerStatsFile, Project proj) {
-		this(markerStatsFile, proj, 16);
+		this(markerStatsFile, proj, 12);
 	}
 
 	public MarkerGraphics(String markerStatsFile, Project proj, int heightBuffer) {
@@ -272,7 +272,7 @@ public class MarkerGraphics {
 	 *         position.
 	 */
 	private static int getScaledY(Double y, int height, int buffer) {
-		int adjustedHeight = height - buffer;
+		int adjustedHeight = height - (2 * buffer);
 		return buffer + (adjustedHeight - (int) (y * adjustedHeight));
 	}
 

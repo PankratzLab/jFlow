@@ -2,9 +2,11 @@ package org.genvisis.stats;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
+import java.util.TreeMap;
 
 import org.apache.commons.collections4.list.TreeList;
 import org.genvisis.common.ArrayUtils;
@@ -38,7 +40,7 @@ public class BinnedMovingStatistic<T extends Number> {
 	}
 
 	private BinManager<T> binManager;
-	private LinkedList<Integer> binVals;
+	private List<Integer> binVals;
 	private int currentBinVal;
 	private List<T> currentBin;
 
@@ -55,7 +57,7 @@ public class BinnedMovingStatistic<T extends Number> {
 				binManager = new MADBinManager<T>(window);
 				break;
 		}
-		binVals = new LinkedList<Integer>();
+		binVals = new TreeList<Integer>();
 		currentBin = new ArrayList<T>();
 	}
 
@@ -73,7 +75,7 @@ public class BinnedMovingStatistic<T extends Number> {
 
 			// If we've passed the window size, pop off the oldest bin
 			if (binManager.add(currentBin)) {
-				binVals.removeFirst();
+				binVals.remove(0);
 				rVal = getValue();
 			}
 			// Start building the next bin
@@ -257,36 +259,45 @@ public class BinnedMovingStatistic<T extends Number> {
 	 */
 	private static class MADBinManager<T extends Number> extends AbstractBinManager<T> {
 
-		private List<T> values;
+		private Map<T, int[]> values;
 		// A list of all the bins covered in this window
 		private List<List<T>> bins;
+		private int valueCount = 0;
 
 		public MADBinManager(int window) {
 			super(window);
 			// Need to store the raw bin unfortunately, as it is necessary on eviction
-			bins = new LinkedList<List<T>>();
-			values = new TreeList<T>();
+			bins = new TreeList<List<T>>();
+			values = new TreeMap<T, int[]>();
 		}
 
 		@Override
 		public boolean add(List<T> bin) {
 			// Convert the bin to a map of value > counts. Using a map reduces how frequently we have to
 			// sort data, as normally the MAD would require two sorts.
-			values.addAll(bin);
+			for (T v : bin) {
+				add(v, values);
+				valueCount++;
+			}
 			bins.add(bin);
 			return super.add(bin);
 		}
 
 		@Override
 		public double getStat() {
-			double median = ArrayUtils.medianSorted(values);
+			double median = median(values);
 
-			TreeList<Double> absDiffs = new TreeList<Double>();
-			for (T v : values) {
-				absDiffs.add(Math.abs(v.doubleValue() - median));
+			Map<Double, int[]> absDiffs = new TreeMap<Double, int[]>();
+			for (Entry<T, int[]> entry : values.entrySet()) {
+				Double diffKey = Math.abs(entry.getKey().doubleValue() - median);
+				if (absDiffs.containsKey(diffKey)) {
+					absDiffs.get(diffKey)[0] += entry.getValue()[0];
+				} else {
+					absDiffs.put(diffKey, new int[]{entry.getValue()[0]});
+				}
 			}
 
-			return ArrayUtils.medianSorted(absDiffs);
+			return median(absDiffs);
 		}
 
 		@Override
@@ -294,7 +305,7 @@ public class BinnedMovingStatistic<T extends Number> {
 			List<T> removed = bins.remove(0);
 			// Have to update counts for each value in the removed bin
 			for (T val : removed) {
-				values.remove(val);
+				remove(val, values);
 			}
 		}
 
@@ -303,6 +314,46 @@ public class BinnedMovingStatistic<T extends Number> {
 			super.clear();
 			bins.clear();
 			values.clear();
+			valueCount = 0;
+		}
+
+		private void add(T value, Map<T, int[]> valueMap) {
+			int[] counts = valueMap.get(value);
+			if (counts == null) {
+				counts = new int[1];
+				valueMap.put(value, counts);
+			}
+			counts[0]++;
+		}
+
+		private void remove(T value, Map<T, int[]> valueMap) {
+			int[] counts = valueMap.get(value);
+			counts[0]--;
+			if (counts[0] == 0) {
+				valueMap.remove(value);
+			}
+			valueCount--;
+		}
+
+		private <N extends Number> double median(Map<N, int[]> valueMap) {
+			N p1 = null;
+			N p2 = null;
+			final int idx1 = valueCount / 2;
+			final int idx2 = valueCount % 2 == 0 ? (valueCount / 2) - 1 : idx1;
+			int pos = 0;
+			for (Entry<N, int[]> entry : valueMap.entrySet()) {
+				pos += entry.getValue()[0];
+				if (p1 == null && idx1 < pos) {
+					p1 = entry.getKey();
+				}
+				if (p2 == null && idx2 < pos) {
+					p2 = entry.getKey();
+				}
+				if (p1 != null && p2 != null) {
+					break;
+				}
+			}
+			return (p1.doubleValue() + p2.doubleValue()) / 2;
 		}
 	}
 }
