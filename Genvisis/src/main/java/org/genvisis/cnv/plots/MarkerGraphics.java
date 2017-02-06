@@ -123,6 +123,7 @@ public class MarkerGraphics {
 			load(chr);
 		}
 		int genomeWidth = genomeEnd - genomeStart;
+		pixelWidth = pixelWidth - (2 * Trailer.WIDTH_BUFFER);
 
 		Color c = g.getColor();
 
@@ -137,15 +138,12 @@ public class MarkerGraphics {
 					if (marker.pos >= genomeStart && marker.pos <= genomeEnd) {
 						int y = getScaledY(marker.get(p.getComponent()), height, heightBuffer);
 						int x = getX(marker.pos, pixelWidth, genomeStart, genomeWidth);
-						g.fillOval(x, y, 4, 4);
+						drawPoint(g, pixelWidth, x, y);
 					}
 				}
 			} else {
 				// Smooth using a moving average
 				BinnedMovingStatistic<Double> bma = new BinnedMovingStatistic<Double>(p.getMovingWindow(), p.getMovingStat());
-
-				// Whether the last marker was drawn
-				boolean drewPoint = false;
 
 				// If pixel smoothing, each bin covers 1 X position
 				// If marker smoothing, each bin covers 1 marker
@@ -153,10 +151,16 @@ public class MarkerGraphics {
 				for (int i = 0; i < markers.size(); i++) {
 					MarkerCols marker = markers.get(i);
 					int pos = marker.pos;
-					drewPoint = false;
 
 					if (pos >= centromereStart && pos <= centromereEnd) {
 						// traversing the centromere
+						if (bma.getValue() >= 0) {
+							bma.forceBinBreak();
+							do {
+								// Draw remaining points
+								drawBinned(g, genomeStart, pixelWidth, height, p.getSmoothing(), genomeWidth, bma);
+							} while(bma.forceBinPop());
+						}
 						bma.clear();
 					} else {
 						int bin = 0;
@@ -174,8 +178,7 @@ public class MarkerGraphics {
 						}
 						// if adding the current value will add a new bin, we want to draw the current stats
 						if (!bma.inBin(bin)) {
-							drawPoint(g, genomeStart, pixelWidth, height, p.getSmoothing(), genomeWidth, bma);
-							drewPoint = true;
+							drawBinned(g, genomeStart, pixelWidth, height, p.getSmoothing(), genomeWidth, bma);
 						}
 						Double val = marker.get(p.getComponent());
 						// prune NaNs
@@ -185,9 +188,11 @@ public class MarkerGraphics {
 					}
 				}
 				// Draw the last point if needed
-				if (!drewPoint) {
-					drawPoint(g, genomeStart, pixelWidth, height, p.getSmoothing(), genomeWidth, bma);
-				}
+				bma.forceBinBreak();
+				do {
+					// Draw remaining points
+					drawBinned(g, genomeStart, pixelWidth, height, p.getSmoothing(), genomeWidth, bma);
+				} while(bma.forceBinPop());
 			}
 		}
 		// Restore original grahpics color
@@ -195,7 +200,7 @@ public class MarkerGraphics {
 
 	}
 
-	private void drawPoint(Graphics g, int genomeStart, int pixelWidth, int height,
+	private void drawBinned(Graphics g, int genomeStart, int pixelWidth, int height,
 	                      Smoothing smoothing, int genomeWidth, BinnedMovingStatistic<Double> bma) {
 		double v = bma.getValue();
 		if (v > -1) {
@@ -218,6 +223,16 @@ public class MarkerGraphics {
 			int y = getScaledY(v, height, heightBuffer);
 			// TODO draw lines instead - just need to remember two points at a time and draw
 			// between them. Maybe also with thickness ~ SD?
+			drawPoint(g, pixelWidth, x, y);
+		}
+	}
+
+	/**
+	 * Helper method to control how an individual point is drawn.
+	 */
+	private void drawPoint(Graphics g, int pixelWidth, int x, int y) {
+		// Filter out points beyond the width buffer.
+		if (x >= Trailer.WIDTH_BUFFER && x <= pixelWidth + Trailer.WIDTH_BUFFER) {
 			g.fillOval(x, y, 4, 4);
 		}
 	}

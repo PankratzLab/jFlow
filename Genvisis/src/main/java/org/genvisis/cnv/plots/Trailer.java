@@ -1074,7 +1074,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			int width = g.getFontMetrics(g.getFont()).stringWidth(text);
 			g.drawString(text, getWidth() / 2 - width / 2, 40);
 		} else {
-			markerGraphics.draw(g, chr, start, stop, markerPanel.getWidth() - 2 * WIDTH_BUFFER,
+			markerGraphics.draw(g, chr, start, stop, markerPanel.getWidth(),
 													markerPanel.getHeight(), markersToUse);
 		}
 	}

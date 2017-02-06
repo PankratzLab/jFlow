@@ -19,8 +19,8 @@ import org.genvisis.common.ArrayUtils;
  * {@link MovingStat} provided at construction.
  * <p>
  * Use: you must decide how your data is to be binned. For each sample, in bin-sorted order, compute
- * the bin number for that sample. Check {@link #inBin(int)} to see if that sample will cause a
- * new bin to be created. If so, check {@link #getValue()} for the average value of all current bins
+ * the bin number for that sample. Check {@link #inBin(int)} to see if that sample will cause a new
+ * bin to be created. If so, check {@link #getValue()} for the average value of all current bins
  * (which will be {@code -1} if we do not have sufficient bins yet). If you are using a two-sided
  * moving average, {@link #mid()} will give you the current median bin value. Finally, use
  * {@link #add(Number, int)} to add the value to the specified bin.
@@ -36,7 +36,7 @@ public class BinnedMovingStatistic<T extends Number> {
 	 * Available moving statistics to compute
 	 */
 	public enum MovingStat {
-														MEAN, MAD
+													MEAN, MAD
 	}
 
 	private BinManager<T> binManager;
@@ -90,7 +90,7 @@ public class BinnedMovingStatistic<T extends Number> {
 
 	/**
 	 * Returns the current moving statistic, not including the bin currently under construction. To
-	 * get that value, first explicitly call {@link #binBreak()}.
+	 * get that value, first explicitly call {@link #forceBinBreak()}.
 	 *
 	 * @return The mean of all values in all lists in scope, or -1 if insufficient values have been
 	 *         added to this moving average.
@@ -101,11 +101,32 @@ public class BinnedMovingStatistic<T extends Number> {
 
 	/**
 	 * Forcibly stops construction of the current bin, adding its contents to the running total. This
-	 * method does not need to be called under normal circumstances, but may be useful at the end of
+	 * method does not need to be called under normal circumstances, but may be useful to end current
 	 * iteration.
+	 *
+	 * @return true the current statistic has a valid value
 	 */
-	public void binBreak() {
+	public boolean forceBinBreak() {
+		if (!currentBin.isEmpty()) {
+			binVals.add(currentBinVal);
+			binManager.add(currentBin);
+			currentBin = new ArrayList<T>();
+		}
+		return binManager.hasStat();
+	}
 
+	/**
+	 * Forcibly removes the oldest bin. This method does not need to be called under normal
+	 * circumstances, but may be useful to end current iteration.
+	 *
+	 * @return true the current statistic has a valid value
+	 */
+	public boolean forceBinPop() {
+		if (!binVals.isEmpty()) {
+			binManager.evict();
+			binVals.remove(0);
+		}
+		return binManager.hasStat();
 	}
 
 	/**
@@ -126,10 +147,10 @@ public class BinnedMovingStatistic<T extends Number> {
 	}
 
 	/**
-	 * @return Median bin value
+	 * @return bin value corresponding to current stat
 	 */
 	public int mid() {
-		return binVals.get(binVals.size() / 2);
+		return binVals.get(binManager.fillOffset());
 	}
 
 	/**
@@ -164,20 +185,41 @@ public class BinnedMovingStatistic<T extends Number> {
 		 * Drop all values from this statistic
 		 */
 		void clear();
+
+		/**
+		 * @return Offset from the current bin to the bin position that corresponds to the value of
+		 *         {@link #getStat()}. Reasonable expected values: 0 - use only preceding bins,
+		 *         window_size - use only following bins, window_size/2 - use half the window on both
+		 *         side..
+		 */
+		int fillOffset();
 	}
 
 	/**
 	 * Abstract superclass for {@link BinManager} implementations. Covers some boilerplate. Subclasses
 	 * should calling {@code super.add} so they do not need to manually determine if {@link #evict()}
-	 * is necessary. All subclasses should call {@code super.clear}.
+	 * is necessary. All subclasses should call {@code super.clear} and {@code super.evict}.
+	 * <p>
+	 * NB: this class implements {@link #hasStat()} and {@link #fillOffset()} in a way to facilitate
+	 * two-sided moving statistics that are "valid" when either window margin is satisfied.
+	 * </p>
+	 * <p>
+	 * This superclass assumes moving bins over a continuous data range. If is designed to handle a
+	 * single turning point in window size (e.g. effective window size grows at the beginning as you
+	 * are adding more data, and shrinks at the tail end). {@link #clear()} will reset the statistic.
+	 * </p>
 	 */
 	private abstract static class AbstractBinManager<T extends Number> implements BinManager<T> {
 
 		private final int window;
+		private final int minFill;
 		private int bins;
+		// Flag for whether or not we have ever reached the full window size
+		private boolean filledWindow = false;
 
 		public AbstractBinManager(int window) {
 			this.window = window;
+			minFill = (window / 2) + 1;
 			bins = 0;
 		}
 
@@ -186,20 +228,34 @@ public class BinnedMovingStatistic<T extends Number> {
 			bins++;
 			if (bins > window) {
 				evict();
-				bins--;
+				filledWindow = true;
 				return true;
 			}
 			return false;
 		}
 
 		@Override
+		public void evict() {
+			bins--;
+		}
+
+		@Override
 		public void clear() {
+			filledWindow = false;
 			bins = 0;
 		}
 
 		@Override
 		public boolean hasStat() {
-			return bins == window;
+			return bins >= minFill;
+		}
+
+		@Override
+		public int fillOffset() {
+			// This behavior has to depend on whether or not the moving stat is
+			// growing or shrinking. As you start to build the stat, you must use points ahead of you. As
+			// your stat moves into terminal boundaries, it must use points behind it.
+			return filledWindow ? minFill : (bins - minFill);
 		}
 	}
 
@@ -241,6 +297,7 @@ public class BinnedMovingStatistic<T extends Number> {
 			Integer removedCount = counts.remove();
 			movingSum -= removedSum;
 			movingCount -= removedCount;
+			super.evict();
 		}
 
 		@Override
@@ -293,7 +350,7 @@ public class BinnedMovingStatistic<T extends Number> {
 				if (absDiffs.containsKey(diffKey)) {
 					absDiffs.get(diffKey)[0] += entry.getValue()[0];
 				} else {
-					absDiffs.put(diffKey, new int[]{entry.getValue()[0]});
+					absDiffs.put(diffKey, new int[] {entry.getValue()[0]});
 				}
 			}
 
@@ -307,6 +364,7 @@ public class BinnedMovingStatistic<T extends Number> {
 			for (T val : removed) {
 				remove(val, values);
 			}
+			super.evict();
 		}
 
 		@Override
