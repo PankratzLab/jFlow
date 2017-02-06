@@ -98,8 +98,9 @@ public class SimpleTallyGene {
 		c.addArgWithDefault("vcf", "vcf to tally", "a.vcf");
 		c.addArgWithDefault("vpop", "vpop to use", "a.vpop");
 		c.addArgWithDefault("maf", "maf to use", "1.2");
-		c.addArgWithDefault("segment", "UCSC segment", "chr18:20714428-20840534");
-		c.addArgWithDefault("name", "typically gene name", "CABLES1");
+		c.addArgWithDefault("segment", "UCSC segments , ; delimited",
+												"chr18:20714428-20840534;chr17:7571720-7590868");
+		c.addArgWithDefault("name", "typically gene name, comma delimited", "CABLES1,TP53");
 		c.addArgWithDefault("omimDir", "omim directory", "/Volumes/Beta/ref/OMIM/");
 
 
@@ -108,10 +109,16 @@ public class SimpleTallyGene {
 		String vcf = c.get("vcf");
 		String vpop = c.get("vpop");
 		double maf = c.getD("maf");
-		Segment seg = new Segment(c.get("segment"));
-		String name = c.get("name");
+
+		Segment[] segs = Segment.getSegments(c.get("segment").split(";"));
+		String[] names = c.get("name").split(",");
 		String omimDir = c.get("omimDir");
-		run(vcf, vpop, maf, seg, name, omimDir);
+		if (names.length != segs.length) {
+			throw new IllegalArgumentException("Must have a name for each segment");
+		}
+		for (int i = 0; i < names.length; i++) {
+			run(vcf, vpop, maf, segs[i], names[i], omimDir);
+		}
 
 	}
 
