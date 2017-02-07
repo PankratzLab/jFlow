@@ -53,6 +53,9 @@ public class CLI {
 	public static final String DESC_OUTFILE = "output filename";
 	public static final String ARG_THREADS = "threads";
 	public static final String DESC_THREADS = "number of threads";
+	public static final String ARG_VCF = "vcf";
+	public static final String DESC_VCF = "input vcf file";
+
 
 	private static final String HELP_CHAR = "h"; // short string to print usage
 	private static final String HELP_STRING = "help"; // long string to print usage
