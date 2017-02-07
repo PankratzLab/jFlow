@@ -2369,29 +2369,34 @@ public class VCFOps {
 	 */
 
 	public static String addIds(String inputVCF, String dbnspIdAnno) {
-		VCFFileReader reader = new VCFFileReader(new File(inputVCF), false);
 		String root = VCFOps.getAppropriateRoot(inputVCF, false) + "_ids";
 		String idVCF = root + ".vcf.gz";
 		Logger log = new Logger(idVCF + ".log");
-		log.reportTimeInfo("Adding Ids to  "+ inputVCF + ", from " + dbnspIdAnno
-												+ " if available, writing to " + idVCF);
-		VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, idVCF,
-																															VCFOps.DEFUALT_WRITER_OPTIONS,
-																															new Logger());
-		int num = 0;
-		for (VariantContext vc : reader) {
-			num++;
-			if (num % 100000 == 0) {
-				log.reportTimeInfo("Added " + num + " ids to variants");
+		if (!Files.exists(idVCF)) {
+			log.reportTimeInfo("Adding Ids to  "+ inputVCF + ", from " + dbnspIdAnno
+													+ " if available, writing to " + idVCF);
+			VCFFileReader reader = new VCFFileReader(new File(inputVCF), false);
+
+			VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, idVCF,
+																																VCFOps.DEFUALT_WRITER_OPTIONS,
+																																new Logger());
+			int num = 0;
+			for (VariantContext vc : reader) {
+				num++;
+				if (num % 100000 == 0) {
+					log.reportTimeInfo("Added " + num + " ids to variants");
+				}
+				String[] dbsnp = VCOps.getAnnotationsFor(new String[] {dbnspIdAnno}, vc, ".");
+				VariantContextBuilder builder = new VariantContextBuilder(vc);
+				String newId = dbsnp[0].equals(".") ? new VCOps.LocusID(vc).getId() : dbsnp[0];
+				builder.id(newId);
+				writer.add(builder.make());
 			}
-			String[] dbsnp = VCOps.getAnnotationsFor(new String[] {dbnspIdAnno}, vc, ".");
-			VariantContextBuilder builder = new VariantContextBuilder(vc);
-			String newId = dbsnp[0].equals(".") ? new VCOps.LocusID(vc).getId() : dbsnp[0];
-			builder.id(newId);
-			writer.add(builder.make());
+			reader.close();
+			writer.close();
+		} else {
+			log.reportFileExists(idVCF);
 		}
-		reader.close();
-		writer.close();
 		return idVCF;
 	}
 

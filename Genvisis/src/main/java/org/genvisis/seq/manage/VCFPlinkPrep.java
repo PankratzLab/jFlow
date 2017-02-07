@@ -56,21 +56,23 @@ public class VCFPlinkPrep {
 				if (numScanned % 10000 == 0) {
 					log.reportTimeInfo(numScanned + " variants scanned for GQ" + gq);
 				}
-				VariantContextBuilder builder = new VariantContextBuilder(vc);
-				ArrayList<Genotype> genotypes = new ArrayList<Genotype>();
-				for (Genotype g : vc.getGenotypes()) {
-					if (g.hasGQ() && g.getGQ() < gq) {
-						GenotypeBuilder gb = new GenotypeBuilder(g);
-						gb.alleles(GenotypeOps.getNoCall());
-						genotypes.add(gb.make());
-					} else {
-						genotypes.add(g);
+				if (!vc.isFiltered()) {
+					VariantContextBuilder builder = new VariantContextBuilder(vc);
+					ArrayList<Genotype> genotypes = new ArrayList<Genotype>();
+					for (Genotype g : vc.getGenotypes()) {
+						if (g.hasGQ() && g.getGQ() < gq) {
+							GenotypeBuilder gb = new GenotypeBuilder(g);
+							gb.alleles(GenotypeOps.getNoCall());
+							genotypes.add(gb.make());
+						} else {
+							genotypes.add(g);
+						}
 					}
-				}
 
-				GenotypesContext bc = GenotypesContext.create(genotypes);
-				builder.genotypes(bc);
-				writer.add(builder.make());
+					GenotypesContext bc = GenotypesContext.create(genotypes);
+					builder.genotypes(bc);
+					writer.add(builder.make());
+				}
 			}
 			reader.close();
 			writer.close();
