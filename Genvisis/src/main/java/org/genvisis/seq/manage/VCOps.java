@@ -31,6 +31,10 @@ import htsjdk.variant.variantcontext.VariantContextUtils;
  *
  */
 public class VCOps {
+	/**
+	 * 
+	 */
+	public static final String DEFAULT_DBSNP = "snp138";
 	private static final String SNPEFF_GENE_NAME = "SNPEFF_GENE_NAME";
 	private static final String SNPEFF_IMPACT = "SNPEFF_IMPACT";
 	private static final String[] SNPEFF_IMPACT_IMPACTS = new String[] {"HIGH", "MODERATE", "LOW"};
@@ -302,13 +306,13 @@ public class VCOps {
 		HashSet<String> samplesWithAlt = new HashSet<String>();
 		int altAlleleDepth = -1;
 		double altAlleleDepthRatio = -1;
-		if (filterNGS != null	&& filterNGS.getAltAlleleDepthFilter() != null
+		if (filterNGS != null&& filterNGS.getAltAlleleDepthFilter() != null
 				&& filterNGS.getAltAlleleDepthFilter()[0] > 0) {
 			// log.reportTimeError("Alt Allele depth filter is currently not in here, JOHN");
 			altAlleleDepth = filterNGS.getAltAlleleDepthFilter()[0];
 			// return null;
 		}
-		if (filterNGS != null	&& filterNGS.getAltAlleleDepthRatioFilter() != null
+		if (filterNGS != null&& filterNGS.getAltAlleleDepthRatioFilter() != null
 				&& filterNGS.getAltAlleleDepthRatioFilter()[0] > 0) {
 			// log.reportTimeError("Alt Allele depth filter is currently not in here, JOHN");
 			altAlleleDepthRatio = filterNGS.getAltAlleleDepthRatioFilter()[0];
@@ -341,7 +345,7 @@ public class VCOps {
 							AD = new int[] {altAlleleDepth + 1, altAlleleDepth + 1};
 							if (verbose) {
 								log.reportTimeWarning(geno.toString()
-																				+ " did not have allele depths, setting depths to "
+																			+ " did not have allele depths, setting depths to "
 																			+ ArrayUtils.toStr(AD));
 							}
 						}
@@ -505,10 +509,11 @@ public class VCOps {
 					}
 				}
 
-				if (g.isHet()	&& (AD[1] == 0 || AD[0] == 0) && ArrayUtils.sum(gAD) != AD[0]
-						&& ArrayUtils.sum(gAD) != AD[1]) {// there can actually be het calls with 0 ref or 0 alt, or
-																					// both...apparently, I would'nt do that but whatever. So
-																					// anyways we do not test AD[0]
+				if (g.isHet()&& (AD[1] == 0 || AD[0] == 0) && ArrayUtils.sum(gAD) != AD[0]
+						&& ArrayUtils.sum(gAD) != AD[1]) {// there can actually be het calls with 0 ref or 0
+																							// alt, or
+					// both...apparently, I would'nt do that but whatever. So
+					// anyways we do not test AD[0]
 					if (verbose) {
 
 						log.reportError("Invalid Het allele depth, Het non-ref " + g.isHetNonRef());
@@ -519,7 +524,7 @@ public class VCOps {
 						log.reportError(g.toString());
 					}
 					throw new IllegalStateException("Invalid Het allele depth");
-				} else if (g.isHomVar()	&& AD[1] == 0 && ArrayUtils.sum(gAD) > 0
+				} else if (g.isHomVar()&& AD[1] == 0 && ArrayUtils.sum(gAD) > 0
 										&& ArrayUtils.sum(gAD) != ArrayUtils.sum(AD)) {
 					if (verbose) {
 
@@ -589,20 +594,20 @@ public class VCOps {
 						break;
 					case AD_TUMOR:
 					case AD_NORMAL:
-						double[] adTotal = ArrayUtils.toDoubleArray(geno	.getAnyAttribute(info.getFlag()).toString()
-																												.split(","));
+						double[] adTotal = ArrayUtils.toDoubleArray(geno.getAnyAttribute(info.getFlag())
+																														.toString().split(","));
 						avgGI += ArrayUtils.sum(adTotal);
 						break;
 					case ALT_AD_TUMOR:
 					case ALT_AD_NORMAL:
-						avgGI += ArrayUtils.toDoubleArray(geno	.getAnyAttribute(info.getFlag()).toString()
-																							.split(","))[1];
+						avgGI += ArrayUtils.toDoubleArray(geno.getAnyAttribute(info.getFlag()).toString()
+																									.split(","))[1];
 						break;
 					case AF_TUMOR:
 					case NLOD:
 					case TLOD:
-						avgGI += ArrayUtils.toDoubleArray(geno	.getAnyAttribute(info.getFlag()).toString()
-																							.split(","))[0];
+						avgGI += ArrayUtils.toDoubleArray(geno.getAnyAttribute(info.getFlag()).toString()
+																									.split(","))[0];
 						break;
 					default:
 						throw new IllegalArgumentException("Invalid genotype flag " + info);
@@ -757,7 +762,7 @@ public class VCOps {
 	}
 
 	public static int[] getAlleleCounts(VariantContext vc) {
-		if ((vc.getHomRefCount()	+ vc.getHetCount() + vc.getHomVarCount()
+		if ((vc.getHomRefCount()+ vc.getHetCount() + vc.getHomVarCount()
 					+ vc.getNoCallCount()) != vc.getNSamples()) {
 			System.err.println("Un accounted for genotypes...");
 		}

@@ -32,18 +32,19 @@ public class VCFPlinkPrep {
 
 
 	/**
-	 * @param vcf input vcf
+	 * @param inputVcf input vcf
 	 * @param outDir output directory
 	 * @param gqs array of GQ thresholds
 	 */
-	private static void prep(String vcf, String outDir, int[] gqs) {
+	private static void prep(String inputVcf, String outDir, int[] gqs) {
 		new File(outDir).mkdirs();
+		String idVCF = VCFOps.addIds(inputVcf, VCOps.DEFAULT_DBSNP);
 		Logger log = new Logger(outDir + "plinkvcfPrep.log");
 		for (int gq : gqs) {
-			VCFFileReader reader = new VCFFileReader(new File(vcf), false);
-			String root = outDir + VCFOps.getAppropriateRoot(vcf, true) + "_GQ_" + gq;
+			VCFFileReader reader = new VCFFileReader(new File(idVCF), false);
+			String root = outDir + VCFOps.getAppropriateRoot(idVCF, true) + "_GQ_" + gq;
 			String filtVcf = root + ".vcf.gz";
-			log.reportTimeInfo("Filtering "+ vcf + ", setting genotypes with GQ < " + gq
+			log.reportTimeInfo("Filtering "+ idVCF + ", setting genotypes with GQ < " + gq
 													+ " to missing in " + filtVcf);
 			VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, filtVcf,
 																																VCFOps.DEFUALT_WRITER_OPTIONS,
@@ -73,7 +74,7 @@ public class VCFPlinkPrep {
 			}
 			reader.close();
 			writer.close();
-			Files.writeArray(VCFOps.getSamplesInFile(vcf), root + ".sampleList.txt");
+			Files.writeArray(VCFOps.getSamplesInFile(idVCF), root + ".sampleList.txt");
 		}
 	}
 
@@ -86,7 +87,7 @@ public class VCFPlinkPrep {
 		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, "outDir/");
 		c.addArgWithDefault("gqs",
 												"comma delimited GQ scores to filter genotypes by. NOTE: only genotypes with a GQ entry will be subjected to this filter",
-												"20,50");
+												"50,20");
 
 
 		c.parseWithExit(args);

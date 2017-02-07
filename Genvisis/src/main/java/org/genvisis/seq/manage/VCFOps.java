@@ -41,6 +41,7 @@ import org.genvisis.seq.analysis.PlinkSeq.PlinkSeqWorker;
 import org.genvisis.seq.analysis.PlinkSeqUtils.PseqProject;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.manage.VCOps.LocusID;
 import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
@@ -84,6 +85,8 @@ public class VCFOps {
 
 	private static final String[] ANNO_BASE = new String[] {"CHROM", "POS", "ID", "REF", "ALT",
 																													"NUM_HOM_VAR", "NUM_HET", "NUM_HOM_ALT"};
+
+
 
 	public enum VCF_EXTENSIONS {
 															GZIP_VCF(".vcf.gz"), REG_VCF(".vcf"), BCF(".bcf");
@@ -147,7 +150,13 @@ public class VCFOps {
 														/**
 														 * Determine Homogeneity for populations in a vcf
 														 */
-														HOMOGENEITY;
+														HOMOGENEITY,
+
+														/**
+														 * Will add from the snp138 annotation if available, else will create
+														 * from {@link LocusID}
+														 */
+														ADD_IDS;
 	}
 
 	/**
@@ -841,8 +850,8 @@ public class VCFOps {
 					break;
 				case CASE_CONTROL:
 					if (!subPop.containsKey(CASE) || !subPop.containsKey(CONTROL)) {
-						log.reportError("Population type was set to "+ type + ", but did not contain "
-																+ CASE + " and  " + CONTROL);
+						log.reportError("Population type was set to "+ type + ", but did not contain " + CASE
+														+ " and  " + CONTROL);
 					}
 					break;
 				case STRATIFICATION:
@@ -850,17 +859,17 @@ public class VCFOps {
 				case PC_ANCESTRY:
 					if (!superPop.containsKey(DETERMINE_ANCESTRY)) {
 						log.reportError("Population type was set to "+ type + ", but did not contain "
-																+ DETERMINE_ANCESTRY);
+														+ DETERMINE_ANCESTRY);
 						log.reportError(DETERMINE_ANCESTRY+ " must be present in the " + HEADER[2]
-																+ " column as a flag to determine ancestry, all other categories will be used as cluster generators");
+														+ " column as a flag to determine ancestry, all other categories will be used as cluster generators");
 
 						valid = false;
 					}
 					break;
 				case ANCHOR_BARNACLE:
 					if (!superPop.containsKey(ANCHOR) || !superPop.containsKey(BARNACLE)) {
-						log.reportError("Population type was set to "+ type + ", but did not contain "
-																+ ANCHOR + " AND " + BARNACLE);
+						log.reportError("Population type was set to "+ type + ", but did not contain " + ANCHOR
+														+ " AND " + BARNACLE);
 						valid = false;
 					}
 					break;
@@ -1075,7 +1084,7 @@ public class VCFOps {
 				int[] indices = ext.indexFactors(HEADER, header, true, false);
 				if (ArrayUtils.countIf(indices, -1) > 0) {
 					log.reportError("Could not find required headers "+ ArrayUtils.toStr(HEADER) + " in "
-															+ fullPathToPopFile);
+													+ fullPathToPopFile);
 					return null;
 				}
 				reader.readLine();
@@ -1119,7 +1128,7 @@ public class VCFOps {
 																								false);
 		if (matchUpVpops.length < 1) {
 			log.reportError("Required file(s) ending with .homogeneity.vpop in directory "
-													+ ext.parseDirectoryOfFile(vcf) + " were not found");
+											+ ext.parseDirectoryOfFile(vcf) + " were not found");
 			return;
 		}
 		if (!Files.exists(finalSamples)) {
@@ -1382,46 +1391,50 @@ public class VCFOps {
 				int progress = 0;
 				int found = 0;
 
-//				if (hasInfoLine(reader, "snp138") || locusID) {
-					log.reportTimeWarning("If a variant has an ID of \".\", the"
-																+ (locusID ? " locusID" : " snp138 ") + "annotation will be added");
+				// if (hasInfoLine(reader, "snp138") || locusID) {
+				log.reportTimeWarning("If a variant has an ID of \".\", the"
+															+ (locusID ? " locusID" : " snp138 ") + "annotation will be added");
 
-					for (VariantContext vc : reader) {
-						progress++;
-						if (progress % 100000 == 0) {
-							log.reportTimeInfo(progress + " variants read...");
-							log.reportTimeInfo(found + " variants found...");
+				for (VariantContext vc : reader) {
+					progress++;
+					if (progress % 100000 == 0) {
+						log.reportTimeInfo(progress + " variants read...");
+						log.reportTimeInfo(found + " variants found...");
 
-						}
-						String id = vc.getID();
-						String anno = locusID	? new VCOps.LocusID(vc).getId()
-																	: VCOps.getAnnotationsFor(new String[] {"snp138"}, vc, ".")[0];
-						if (".".equals(id)) {
-							id = anno;
-						}
+					}
+					String id = vc.getID();
+					String anno = locusID	? new VCOps.LocusID(vc).getId()
+																: VCOps.getAnnotationsFor(new String[] {"snp138"}, vc, ".")[0];
+					if (".".equals(id)) {
+						id = anno;
+					}
 
-						if ((!skipFiltered || !vc.isFiltered()) && (keepIDs && tmp.contains(id)) || (!keepIDs && !tmp.contains(id))) {
-							if (segsToExclude == null
-									|| (keepIDs && Segment.binarySearchForAllOverLappingIndices(VCOps.getSegment(vc), segsToExclude) != null)
-									|| (!keepIDs
-											&& Segment.binarySearchForAllOverLappingIndices(VCOps.getSegment(vc),	segsToExclude) == null)) {
-								VariantContextBuilder builder = new VariantContextBuilder(vc);
-								if (vc.getID().equals(".")) {
-									builder.id(anno);
-								}
-								VariantContext vcAdd = builder.make();
-
-								if (samples != null) {
-									vcAdd = VCOps.getSubset(vcAdd, samples, VC_SUBSET_TYPE.SUBSET_STRICT, false);
-								}
-								writer.add(vcAdd);
-								found++;
+					if ((!skipFiltered || !vc.isFiltered()) && (keepIDs && tmp.contains(id))
+							|| (!keepIDs && !tmp.contains(id))) {
+						if (segsToExclude == null
+								|| (keepIDs && Segment.binarySearchForAllOverLappingIndices(VCOps.getSegment(vc),
+																																						segsToExclude) != null)
+								|| (!keepIDs
+										&& Segment.binarySearchForAllOverLappingIndices(VCOps.getSegment(vc),
+																																		segsToExclude) == null)) {
+							VariantContextBuilder builder = new VariantContextBuilder(vc);
+							if (vc.getID().equals(".")) {
+								builder.id(anno);
 							}
+							VariantContext vcAdd = builder.make();
+
+							if (samples != null) {
+								vcAdd = VCOps.getSubset(vcAdd, samples, VC_SUBSET_TYPE.SUBSET_STRICT, false);
+							}
+							writer.add(vcAdd);
+							found++;
 						}
 					}
-//				} else {
-//					log.reportError("This method relies on the  \"snp138\" annotation, and none was detected, sorry");
-//				}
+				}
+				// } else {
+				// log.reportError("This method relies on the \"snp138\" annotation, and none was detected,
+				// sorry");
+				// }
 				log.reportTimeInfo(progress + " total variants read...");
 				log.reportTimeInfo(found + " variants found...");
 				reader.close();
@@ -1626,10 +1639,11 @@ public class VCFOps {
 			String[][] annotations = getAnnotationKeys(vcf, log);
 			if (createAnnotationFile) {
 				annoWriter = Files.getAppropriateWriter(annoFile);
-				annoWriter.println("##"+ ArrayUtils.toStr(ANNO_BASE) + "\t" + ArrayUtils.toStr(annotations[1]) + "\t"
+				annoWriter.println("##"+ ArrayUtils.toStr(ANNO_BASE) + "\t"
+														+ ArrayUtils.toStr(annotations[1]) + "\t"
 														+ ArrayUtils.toStr(VCFOps.getSamplesInFile(vcf)));
-				annoWriter.println(ArrayUtils.toStr(ANNO_BASE)+ "\t" + ArrayUtils.toStr(annotations[0]) + "\t"
-														+ ArrayUtils.toStr(VCFOps.getSamplesInFile(vcf)));
+				annoWriter.println(ArrayUtils.toStr(ANNO_BASE)+ "\t" + ArrayUtils.toStr(annotations[0])
+														+ "\t" + ArrayUtils.toStr(VCFOps.getSamplesInFile(vcf)));
 			}
 			CloseableIterator<VariantContext> iterator = reader.iterator();
 			if (segsToSearch.length == 1) {
@@ -2344,6 +2358,43 @@ public class VCFOps {
 		}
 	}
 
+
+	/**
+	 * Creates a new VCF with IDs taken from dbnspIdAnno if available, or from {@link LocusID#getId()}
+	 * 
+	 * @param inputVCF the input vcf to add ids to
+	 * @param dbnspIdAnno
+	 * 
+	 * @return the vcf with the new IDs
+	 */
+
+	public static String addIds(String inputVCF, String dbnspIdAnno) {
+		VCFFileReader reader = new VCFFileReader(new File(inputVCF), false);
+		String root = VCFOps.getAppropriateRoot(inputVCF, false) + "_ids";
+		String idVCF = root + ".vcf.gz";
+		Logger log = new Logger(idVCF + ".log");
+		log.reportTimeInfo("Adding Ids to  "+ inputVCF + ", from " + dbnspIdAnno
+												+ " if available, writing to " + idVCF);
+		VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, idVCF,
+																															VCFOps.DEFUALT_WRITER_OPTIONS,
+																															new Logger());
+		int num = 0;
+		for (VariantContext vc : reader) {
+			num++;
+			if (num % 100000 == 0) {
+				log.reportTimeInfo("Added " + num + " ids to variants");
+			}
+			String[] dbsnp = VCOps.getAnnotationsFor(new String[] {dbnspIdAnno}, vc, ".");
+			VariantContextBuilder builder = new VariantContextBuilder(vc);
+			String newId = dbsnp[0].equals(".") ? new VCOps.LocusID(vc).getId() : dbsnp[0];
+			builder.id(newId);
+			writer.add(builder.make());
+		}
+		reader.close();
+		writer.close();
+		return idVCF;
+	}
+
 	private static final String VCF_COMMAND = "vcf=";
 	private static final String UTILITY_COMMAND = "utility=";
 	private static final String SEGMENT_FILE_COMMAND = "segs=";
@@ -2528,6 +2579,9 @@ public class VCFOps {
 					break;
 				case BED_ANNOTATE:
 					annoWithBed(vcf, bedFile);
+					break;
+				case ADD_IDS:
+					addIds(vcf, VCOps.DEFAULT_DBSNP);
 					break;
 				default:
 					System.err.println("Invalid utility type: Available are ->");
