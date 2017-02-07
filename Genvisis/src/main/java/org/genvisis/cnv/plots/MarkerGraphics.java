@@ -154,8 +154,8 @@ public class MarkerGraphics {
 
 					if (pos >= centromereStart && pos <= centromereEnd) {
 						// traversing the centromere
+						bma.forceBinBreak();
 						if (bma.getValue() >= 0) {
-							bma.forceBinBreak();
 							do {
 								// Draw remaining points
 								drawBinned(g, genomeStart, pixelWidth, height, p.getSmoothing(), genomeWidth, bma);

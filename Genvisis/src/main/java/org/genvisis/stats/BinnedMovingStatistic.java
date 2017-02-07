@@ -41,7 +41,7 @@ public class BinnedMovingStatistic<T extends Number> {
 
 	private BinManager<T> binManager;
 	private List<Integer> binVals;
-	private int currentBinVal;
+	private int currentBinVal = -1;
 	private List<T> currentBin;
 
 	/**
@@ -66,20 +66,17 @@ public class BinnedMovingStatistic<T extends Number> {
 	 */
 	public double add(T val, int bin) {
 		double rVal = -1;
-		if (binVals.isEmpty()) {
+		if (currentBinVal == -1) {
 			// First bin value, so start tracking
-			binVals.add(bin);
 			currentBinVal = bin;
 		} else if (bin != currentBinVal) {
 			// Current bin is done. Add it to our running stats
 
 			// If we've passed the window size, pop off the oldest bin
-			if (binManager.add(currentBin)) {
-				binVals.remove(0);
-				rVal = getValue();
-			}
+			addCurrentBin();
+			rVal = getValue();
 			// Start building the next bin
-			binVals.add(bin);
+			binVals.add(currentBinVal);
 			currentBinVal = bin;
 			currentBin = new ArrayList<T>();
 		}
@@ -109,9 +106,11 @@ public class BinnedMovingStatistic<T extends Number> {
 	public boolean forceBinBreak() {
 		if (!currentBin.isEmpty()) {
 			binVals.add(currentBinVal);
-			binManager.add(currentBin);
+			addCurrentBin();
 			currentBin = new ArrayList<T>();
+			currentBinVal = -1;
 		}
+		binManager.filledWindow();
 		return binManager.hasStat();
 	}
 
@@ -126,6 +125,7 @@ public class BinnedMovingStatistic<T extends Number> {
 			binManager.evict();
 			binVals.remove(0);
 		}
+		binManager.filledWindow();
 		return binManager.hasStat();
 	}
 
@@ -136,6 +136,7 @@ public class BinnedMovingStatistic<T extends Number> {
 		binVals.clear();
 		currentBin.clear();
 		binManager.clear();
+		currentBinVal = -1;
 	}
 
 	/**
@@ -150,7 +151,13 @@ public class BinnedMovingStatistic<T extends Number> {
 	 * @return bin value corresponding to current stat
 	 */
 	public int mid() {
-		return binVals.get(binManager.fillOffset());
+		return binManager.hasStat() ? binVals.get(binManager.fillOffset()) : -1;
+	}
+
+	private void addCurrentBin() {
+		if (binManager.add(currentBin)) {
+			binVals.remove(0);
+		}
 	}
 
 	/**
@@ -193,6 +200,12 @@ public class BinnedMovingStatistic<T extends Number> {
 		 *         side..
 		 */
 		int fillOffset();
+
+		/**
+		 * Manually indicate that the current statistic has hit the end of new values. Use this method
+		 * if using a number of values less than the minimum window size.
+		 */
+		void filledWindow();
 	}
 
 	/**
@@ -211,15 +224,16 @@ public class BinnedMovingStatistic<T extends Number> {
 	 */
 	private abstract static class AbstractBinManager<T extends Number> implements BinManager<T> {
 
-		private final int window;
-		private final int minFill;
+		private int window;
+		private int minFill;
 		private int bins;
 		// Flag for whether or not we have ever reached the full window size
 		private boolean filledWindow = false;
+		// For even windows we make the trailing window half larger.
+		private  int evenOffset;
 
 		public AbstractBinManager(int window) {
-			this.window = window;
-			minFill = (window / 2) + 1;
+			setWindow(window);
 			bins = 0;
 		}
 
@@ -228,7 +242,7 @@ public class BinnedMovingStatistic<T extends Number> {
 			bins++;
 			if (bins > window) {
 				evict();
-				filledWindow = true;
+				filledWindow();
 				return true;
 			}
 			return false;
@@ -247,7 +261,8 @@ public class BinnedMovingStatistic<T extends Number> {
 
 		@Override
 		public boolean hasStat() {
-			return bins >= minFill;
+			int min = minFill + evenOffset;
+			return bins >= min;
 		}
 
 		@Override
@@ -255,7 +270,22 @@ public class BinnedMovingStatistic<T extends Number> {
 			// This behavior has to depend on whether or not the moving stat is
 			// growing or shrinking. As you start to build the stat, you must use points ahead of you. As
 			// your stat moves into terminal boundaries, it must use points behind it.
-			return filledWindow ? minFill : (bins - minFill);
+			return filledWindow ? minFill : bins - minFill;
+		}
+
+		@Override
+		public void filledWindow() {
+			if (!filledWindow) {
+				filledWindow = true;
+				// In case we did not fill the full window and this method was called explicitly
+				setWindow(bins);
+			}
+		}
+
+		private void setWindow(int window) {
+			this.window = window;
+			minFill = (int) (filledWindow ? Math.floor(window / 2.0) : Math.ceil(window / 2.0));
+			evenOffset = filledWindow ? 1 : 0;
 		}
 	}
 
