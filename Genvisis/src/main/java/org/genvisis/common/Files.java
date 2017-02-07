@@ -21,6 +21,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -2442,7 +2443,7 @@ public class Files {
 	}
 
 	public static boolean exists(String filename, boolean jar) {
-		return exists(filename, jar, true);
+		return exists(filename, jar, (!new File(filename).isDirectory()));
 	}
 
 	public static boolean exists(String filename, boolean jar, boolean treatEmptyAsMissing) {
@@ -2457,7 +2458,8 @@ public class Files {
 				return false;
 			}
 		} else {
-			return new File(filename).exists() && (!treatEmptyAsMissing || getSize(filename, jar) != 0);
+			File f = new File(filename);
+			return f.exists() && (!treatEmptyAsMissing || getSize(filename, jar) != 0);
 		}
 	}
 

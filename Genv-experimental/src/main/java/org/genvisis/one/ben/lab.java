@@ -5,7 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -21,6 +23,8 @@ import org.genvisis.common.CNVFilter.CNVFilterPass;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
+import org.genvisis.common.QueueControl;
+import org.genvisis.common.QueueControl.JobQueue;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.DosageData;
@@ -150,8 +154,38 @@ public class lab {
 		writer.close();
 
 	}
+	
+	private static void breakSeqMetaDataFileIntoChrs() throws IOException {
+		String dir = "/panfs/roc/groups/5/pankrat2/shared/skatMeta/snpInfos/exome_chip_v7/";
+		String dataFile = "SNPInfo_HumanExome-12v1_rev7b2_slim_wChr.txt";
+		
+		String[] outHdr = {"SNP", "CHR", "MapInfo", "sc_exonic", "sc_nonsynSplice", "sc_damaging", "sc_lof", "SKATgene"};
+		
+		HashMap<String, PrintWriter> chrWriters = new HashMap<>();
+		for (int i = 1; i < 27; i++) {
+			PrintWriter writer = Files.getAppropriateWriter(dir + "chr" + i + ".csv");
+			writer.println(ArrayUtils.toStr(outHdr, ","));
+			chrWriters.put(Positions.CHR_CODES[i], writer);
+		}
+		
+		BufferedReader reader = Files.getAppropriateReader(dir + dataFile);
+		reader.readLine();
+		String line;
+		while ((line = reader.readLine()) != null) {
+			String[] parts = line.split("\t");
+			chrWriters.get(parts[1]).println(ArrayUtils.toStr(parts, ","));
+		}
+		reader.close();
+		
+		for (PrintWriter writer : chrWriters.values()) {
+			writer.flush();
+			writer.close();
+		}
+		
+	}
+	
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		Project proj;
 		String filename = "lab.dat";
@@ -160,19 +194,18 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
-			try {
-				CARDIA2017ResultsProcessor.combineChrXDose();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			System.out.println("DOSAGE FILES FINISHED");
-			try {
-				CARDIA2017ResultsProcessor.combineChrXInfo();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			
+			System.out.println(Files.exists("F:/ny_choanal/shadow11/penncnv/"));
+			System.out.println();
 			
 			
+//				
+//			System.out.println("Username: " + QueueControl.getUserName());
+//			System.out.println("Group: " + QueueControl.getCurrentGroup());
+//			System.out.println("All Groups: " + QueueControl.getUserGroups().toString());
+//			System.out.println();
+//			System.out.println("Default Queue: " + QueueControl.findSensibleDefault(QueueControl.parseAllowedQueues(new Logger())).getName());
+//			
 //			String dir = "F:/temp/filter/";
 //			String in = "recodedM.cnv";
 //			String out = "recodedM_excl.cnv";

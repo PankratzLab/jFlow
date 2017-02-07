@@ -76,16 +76,16 @@ public class FileProperty extends StringProperty {
 				}
 			} else if (verbose) {
 				if (isDir) {
-					getProject().getLog().reportError("Error - directory '" + valu + "' does not exist");
+					getProject().getLog().reportError("Error - directory '" + tempValue + "' does not exist");
 				} else {
 					if (!Files.exists(ext.parseDirectoryOfFile(tempValue),
 														getProject().JAR_STATUS.getValue())) {
 						getProject().getLog()
-												.reportError("Error - the directory ('"	+ ext.parseDirectoryOfFile(valu)
+												.reportError("Error - the directory ('"	+ ext.parseDirectoryOfFile(tempValue)
 																			+ "') of the file you're trying to access/create ('"
-																			+ ext.removeDirectoryInfo(valu) + "') does not exist");
+																			+ ext.removeDirectoryInfo(tempValue) + "') does not exist");
 					} else {
-						getProject().getLog().reportError("Error - file '" + valu + "' does not exist");
+						getProject().getLog().reportError("Error - file '" + tempValue + "' does not exist");
 					}
 				}
 			}

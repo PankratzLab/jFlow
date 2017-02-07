@@ -1,6 +1,7 @@
 package org.genvisis.cnv.filesys;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -904,8 +905,10 @@ public class Centroids implements Serializable, TextExport {
 
 		if (pfbFiles != null) {
 			log.report("Writing sex-specific (plus chr11) PFB files");
-
+			
 			try {
+				new File(pfbFiles[0]).mkdirs();
+				new File(pfbFiles[1]).mkdirs();
 				writerM = new PrintWriter(new FileWriter(pfbFiles[0]));
 				writerF = new PrintWriter(new FileWriter(pfbFiles[1]));
 

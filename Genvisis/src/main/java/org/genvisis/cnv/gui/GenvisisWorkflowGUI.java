@@ -854,8 +854,10 @@ public class GenvisisWorkflowGUI extends JDialog {
 				Map<STEP, List<String>> variables = getVariables();
 				if (checkRequirementsAndNotify(selectedSteps, variables)) {
 					StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
+					HashSet<GenvisisWorkflow.FLAG> flags = new HashSet<GenvisisWorkflow.FLAG>();
 					for (int i = 0; i < options.length; i++) {
 						if (options[i]) {
+							flags.addAll(steps[i].getFlags());
 							String cmd = steps[i].getCommandLine(proj, variables);
 							output.append("## ").append(steps[i].getName()).append("\n");
 							output.append("echo \" start ").append(steps[i].getName()).append(" at: \" `date`")
@@ -866,8 +868,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 							output.append("\n\n");
 						}
 					}
-					Files.write(output.toString(),
-											proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.run");
+					Files.write(output.toString(), proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.run");
 					Files.qsub(proj.PROJECT_DIRECTORY.getValue()	+ "GenvisisPipeline."
 											+ ext.getTimestampForFilename() + ".pbs", output.toString(), Files.PBS_MEM, 48, Files.PBS_PROC);
 					proj.message("GenvisisPipeline commands written to "	+ proj.PROJECT_DIRECTORY.getValue()

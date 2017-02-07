@@ -192,132 +192,216 @@ public class QueueControl {
 		return s.split("\\s");
 	}
 
-	public static String getUserName() throws IOException {
-		String uid = loadIDInfo()[0];
-		uid = uid.substring(uid.indexOf('(') + 1, uid.length() - 1);
+	/**
+	 * Runs 'id' command and parses current user name. 
+	 * 
+	 * @return
+	 */
+	public static String getUserName() {
+		String uid = "";
+		try {
+			uid = loadIDInfo()[0];
+			uid = uid.substring(uid.indexOf('(') + 1, uid.length() - 1);
+		} catch (IOException e) {
+			// error from running 'id' or from reading input; either way, unable to determine username
+		}
 		return uid;
 	}
 
-	public static String getCurrentGroup() throws IOException {
-		String gid = loadIDInfo()[1];
-		gid = gid.substring(gid.indexOf('(') + 1, gid.length() - 1);
+	/**
+	 * Runs 'id' command and parses user's current group. 
+	 * 
+	 * @return
+	 * @throws IOException Thrown by Runtime.exec and BufferedReader when reading command output
+	 */
+	public static String getCurrentGroup() {
+		String gid = "";
+		try {
+			gid = loadIDInfo()[1];
+			gid = gid.substring(gid.indexOf('(') + 1, gid.length() - 1);
+		} catch (IOException e) {
+			// error from running 'id' or from reading input; either way, unable to determine group
+		}
 		return gid;
 	}
 
-	public static ArrayList<String> getUserGroups() throws IOException {
-		String[] grps = loadIDInfo()[2].split(",");
+	/**
+	 * Runs 'id' command and parses all groups for current user. 
+	 * 
+	 * @return
+	 * @throws IOException Thrown by Runtime.exec and BufferedReader when reading command output
+	 */
+	public static ArrayList<String> getUserGroups() {
+		String[] grps = new String[0];
+		try {
+			loadIDInfo()[2].split(",");
+		} catch (IOException e) {
+			// error from running 'id' or from reading input; either way, unable to determine groups
+		}
 		ArrayList<String> groups = new ArrayList<String>();
-		for (String g : grps) {
+		for (String g : grps) { 
 			groups.add(g.substring(g.indexOf('(') + 1, g.length() - 1));
 		}
 		return groups;
 	}
-
-	public static ArrayList<JobQueue> parseAllowedQueues() throws IOException {
-		return parseAllowedQueues(getUserName(), getCurrentGroup(),
-															getUserGroups().toArray(new String[0]));
+	
+	
+	public static ArrayList<JobQueue> parseAllowedQueues(Logger log) {
+		return parseAllowedQueues(getUserName(), getCurrentGroup(), getUserGroups().toArray(new String[0]), log);
 	}
 
-	public static ArrayList<JobQueue> parseAllowedQueues(String username, String currgroup,
-																												String[] allGroups) throws IOException {
-		return filterAllowed(parseQueues(username, currgroup, allGroups));
+	public static ArrayList<JobQueue> parseAllowedQueues(String username, String currgroup, String[] allGroups, Logger log) {
+		return filterAllowed(parseQueues(username, currgroup, allGroups, log));
 	}
 
-	public static ArrayList<JobQueue> parseQueues(String username, String currGroup,
-																								String[] allGroups) throws IOException {
+	/**
+	 * Runs 'qstat -Qf' command and parses queue information. 
+	 * 
+	 * @return
+	 */
+	public static ArrayList<JobQueue> parseQueues(String username, String currGroup, String[] allGroups, Logger log) {
 		Runtime rt = Runtime.getRuntime();
 		String[] commands = {"qstat", "-Qf"};
-		Process proc = rt.exec(commands);
-
-		BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+		BufferedReader stdInput = null;
+		
+		try {
+			Process proc = rt.exec(commands);
+			stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+		} catch (IOException e) {
+			log.reportError("Failed to parse available queues: " + e.getMessage());
+		}
 
 		ArrayList<JobQueue> queues = new ArrayList<JobQueue>();
+		
+		if (stdInput == null) {
+			return queues;
+		}
+		
 		JobQueue curr = null;
 		String s;
-		while ((s = stdInput.readLine()) != null) {
-			s = s.trim();
-			if (s.startsWith("Queue: ")) {
-				if (curr != null) {
-					finalizeQueue(curr, username, currGroup, allGroups);
-					queues.add(curr);
+		try {
+			while ((s = stdInput.readLine()) != null) {
+				s = s.trim();
+				if (s.startsWith("Queue: ")) {
+					if (curr != null) {
+						checkIfQueueAllowed(curr, username, currGroup, allGroups);
+						queues.add(curr);
+					}
+					curr = new JobQueue();
+					curr.setName(s.substring("Queue: ".length()).trim());
 				}
-				curr = new JobQueue();
-				curr.setName(s.substring(7).trim());
-			}
-			if (s.startsWith(TAG_TYPE)) {
-				if (s.endsWith("Route")) {
-					curr.setType(QueueType.ROUTE);
-				} else {
-					curr.setType(QueueType.EXEC);
+				if (s.startsWith(TAG_TYPE)) {
+					if (s.endsWith("Route")) {
+						curr.setType(QueueType.ROUTE);
+					} else {
+						curr.setType(QueueType.EXEC);
+					}
+				}
+				if (s.startsWith(TAG_TOTAL_JOBS)) {
+					try {
+						curr.setJobsInQueue(Integer.parseInt(s.substring(TAG_TOTAL_JOBS.length()).trim()));
+					} catch (NumberFormatException e1) {
+						log.reportError("Found 'total jobs' tag but couldn't parse value: " + s.substring(13).trim());
+					}
+				}
+				if (s.startsWith(TAG_WALLTIME_MIN)) {
+					String s1 = s.substring(TAG_WALLTIME_MIN.length()).trim();
+					try {
+						curr.setMinWalltime(Integer.parseInt(s1.substring(0, s1.indexOf(':'))));
+					} catch (NumberFormatException e1) {
+						log.reportError("Found 'minimum walltime' tag but couldn't parse value: " + s1.substring(0, s1.indexOf(':')).trim());
+					}
+				}
+				if (s.startsWith(TAG_WALLTIME_MAX)) {
+					String s1 = s.substring(TAG_WALLTIME_MAX.length()).trim();
+					try {
+						curr.setMaxWalltime(Integer.parseInt(s1.substring(0, s1.indexOf(':'))));
+					} catch (NumberFormatException e1) {
+						log.reportError("Found 'maximum walltime' tag but couldn't parse value: " + s1.substring(0, s1.indexOf(':')).trim());
+					}
+				}
+				if (s.startsWith(TAG_MEM)) {
+					String b = s.substring(TAG_MEM.length());
+					try {
+						curr.setDefaultMem(Long.parseLong(b.substring(0, b.length() - 1)));
+					} catch (NumberFormatException e1) {
+						log.reportError("Found 'assigned memory' tag but couldn't parse value: " + b.substring(0, b.indexOf(':')).trim());
+					}
+				}
+				if (s.startsWith(TAG_PROC_MAX)) {
+					try {
+						curr.setMaxProc(Integer.parseInt(s.substring(TAG_PROC_MAX.length())));
+					} catch (NumberFormatException e1) {
+						log.reportError("Found 'maximum processors' tag but couldn't parse value: " + s.substring(TAG_PROC_MAX.length()));
+					}
+				}
+				if (s.startsWith(TAG_PROC_MIN)) {
+					try {
+						curr.setMinProc(Integer.parseInt(s.substring(TAG_PROC_MIN.length())));
+					} catch (NumberFormatException e1) {
+						log.reportError("Found 'minimum processors' tag but couldn't parse value: " + s.substring(TAG_PROC_MIN.length()));
+					}
+				}
+				if (s.startsWith(TAG_NODE_MAX)) {
+					try {
+						curr.setMaxNodeCnt(Integer.parseInt(s.substring(TAG_NODE_MAX.length())));
+					} catch (NumberFormatException e1) {
+						log.reportError("Found 'maximum nodes' tag but couldn't parse value: " + s.substring(TAG_NODE_MAX.length()));
+					}
+				}
+				if (s.startsWith(TAG_NODE_MIN)) {
+					try {
+						curr.setMinNodeCnt(Integer.parseInt(s.substring(TAG_NODE_MIN.length())));
+					} catch (NumberFormatException e1) {
+						log.reportError("Found 'minimum processors' tag but couldn't parse value: " + s.substring(TAG_NODE_MIN.length()));
+					}
+				}
+				if (s.startsWith(TAG_USERS_LIST)) {
+					String[] allowedUsers = s.substring(TAG_USERS_LIST.length()).split(",");
+					for (String u : allowedUsers) {
+						curr.getAllowedUsers().add(u);
+					}
+				}
+				if (s.startsWith(TAG_USER_CTRL)) {
+					curr.setUserAccessControlEnabled(s.toUpperCase().endsWith("TRUE"));
+				}
+				if (s.startsWith(TAG_GROUP_CTRL)) {
+					curr.setGroupAccessControlEnabled(s.toUpperCase().endsWith("TRUE"));
+				}
+				if (s.startsWith(TAG_GROUP_CTRL_SLOPPY)) {
+					curr.setGroupControlSloppy(s.toUpperCase().endsWith("TRUE"));
+				}
+				if (s.startsWith(TAG_ROUTE_DEST)) {
+					String[] dests = s.substring(TAG_ROUTE_DEST.length()).trim().split(",");
+					for (String d : dests) {
+						curr.getRouteDests().add(d);
+					}
+				}
+				if (s.startsWith(TAG_GROUPS)) {
+					String[] groups = s.substring(TAG_ROUTE_DEST.length()).trim().split(",");
+					for (String g : groups) {
+						curr.getAllowedGroups().add(g);
+					}
 				}
 			}
-			if (s.startsWith(TAG_TOTAL_JOBS)) {
-				curr.setJobsInQueue(Integer.parseInt(s.substring(13).trim()));
-			}
-			if (s.startsWith(TAG_WALLTIME_MIN)) {
-				String s1 = s.substring(TAG_WALLTIME_MIN.length()).trim();
-				curr.setMinWalltime(Integer.parseInt(s1.substring(0, s1.indexOf(':'))));
-			}
-			if (s.startsWith(TAG_WALLTIME_MAX)) {
-				String s1 = s.substring(TAG_WALLTIME_MAX.length()).trim();
-				curr.setMaxWalltime(Integer.parseInt(s1.substring(0, s1.indexOf(':'))));
-			}
-			if (s.startsWith(TAG_MEM)) {
-				String b = s.substring(TAG_MEM.length());
-				curr.setDefaultMem(Long.parseLong(b.substring(0, b.length() - 1)));
-			}
-			if (s.startsWith(TAG_PROC_MAX)) {
-				curr.setMaxProc(Integer.parseInt(s.substring(TAG_PROC_MAX.length())));
-			}
-			if (s.startsWith(TAG_PROC_MIN)) {
-				curr.setMinProc(Integer.parseInt(s.substring(TAG_PROC_MIN.length())));
-			}
-			if (s.startsWith(TAG_NODE_MAX)) {
-				curr.setMaxNodeCnt(Integer.parseInt(s.substring(TAG_NODE_MAX.length())));
-			}
-			if (s.startsWith(TAG_NODE_MIN)) {
-				curr.setMinNodeCnt(Integer.parseInt(s.substring(TAG_NODE_MIN.length())));
-			}
-			if (s.startsWith(TAG_USERS_LIST)) {
-				String[] allowedUsers = s.substring(TAG_USERS_LIST.length()).split(",");
-				for (String u : allowedUsers) {
-					curr.getAllowedUsers().add(u);
-				}
-			}
-			if (s.startsWith(TAG_USER_CTRL)) {
-				curr.setUserAccessControlEnabled(s.toUpperCase().endsWith("TRUE"));
-			}
-			if (s.startsWith(TAG_GROUP_CTRL)) {
-				curr.setGroupAccessControlEnabled(s.toUpperCase().endsWith("TRUE"));
-			}
-			if (s.startsWith(TAG_GROUP_CTRL_SLOPPY)) {
-				curr.setGroupControlSloppy(s.toUpperCase().endsWith("TRUE"));
-			}
-			if (s.startsWith(TAG_ROUTE_DEST)) {
-				String[] dests = s.substring(TAG_ROUTE_DEST.length()).trim().split(",");
-				for (String d : dests) {
-					curr.getRouteDests().add(d);
-				}
-			}
-			if (s.startsWith(TAG_GROUPS)) {
-				String[] groups = s.substring(TAG_ROUTE_DEST.length()).trim().split(",");
-				for (String g : groups) {
-					curr.getAllowedGroups().add(g);
-				}
-			}
+		} catch (IOException e) {
+			log.reportError("Error reading data from qstat command: " + e.getMessage());
 		}
 		if (curr != null) {
-			finalizeQueue(curr, username, currGroup, allGroups);
+			checkIfQueueAllowed(curr, username, currGroup, allGroups);
 			queues.add(curr);
 		}
-		stdInput.close();
+		try {
+			stdInput.close();
+		} catch (IOException e) {
+			// ignore - probably a bad idea
+		}
 
 		return queues;
 	}
 
 
-	private static void finalizeQueue(JobQueue curr, String username, String currGroup,
-																		String[] allGroups) {
+	private static void checkIfQueueAllowed(JobQueue curr, String username, String currGroup, String[] allGroups) {
 		if (!curr.isGroupAccessControlEnabled() && !curr.isUserAccessControlEnabled()) {
 			curr.setAllowed(true);
 		} else {
@@ -349,6 +433,16 @@ public class QueueControl {
 		}
 	}
 
+	private static ArrayList<JobQueue> filterAllowed(ArrayList<JobQueue> all) {
+		ArrayList<JobQueue> filt = new ArrayList<JobQueue>();
+		for (JobQueue f : all) {
+			if (f.isAllowed()) {
+				filt.add(f);
+			}
+		}
+		return filt;
+	}
+
 	/**
 	 * <p>
 	 * Takes a list of PBS queues, filters to usable queues, and returns a queue based on (in
@@ -372,15 +466,15 @@ public class QueueControl {
 		JobQueue exclusive = null;
 		JobQueue mostUsed = null;
 		for (JobQueue q : allowed) {
-			if (mostUsed == null || mostUsed.jobsInQueue < q.jobsInQueue) {
+			if (mostUsed == null || mostUsed.getJobsInQueue() < q.getJobsInQueue()) {
 				mostUsed = q;
 			}
 
-			if (q.type == QueueType.ROUTE) {
+			if (q.getType() == QueueType.ROUTE) {
 				int found = 0;
-				for (String r : q.routeDests) {
+				for (String r : q.getRouteDests()) {
 					for (JobQueue q2 : allowed) {
-						if (q2.name.equals(r)) {
+						if (q2.getName().equals(r)) {
 							found++;
 							break;
 						}
@@ -393,22 +487,12 @@ public class QueueControl {
 			}
 
 			if ((q.isUserAccessControlEnabled() || q.isGroupAccessControlEnabled())
-					&& (exclusive == null || exclusive.jobsInQueue > q.jobsInQueue)) {
+					&& (exclusive == null || exclusive.getJobsInQueue() > q.getJobsInQueue())) {
 				exclusive = q;
 			}
 		}
 
 		return exclusive != null ? exclusive : routeQueueMost != null ? routeQueueMost : mostUsed;
 	}
-
-	public static ArrayList<JobQueue> filterAllowed(ArrayList<JobQueue> all) {
-		ArrayList<JobQueue> filt = new ArrayList<JobQueue>();
-		for (JobQueue f : all) {
-			if (f.allowed) {
-				filt.add(f);
-			}
-		}
-		return filt;
-	}
-
+	
 }

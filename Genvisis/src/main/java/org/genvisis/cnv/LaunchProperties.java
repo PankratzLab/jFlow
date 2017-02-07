@@ -35,11 +35,10 @@ public class LaunchProperties {
 	 * enum of all available launch properties.
 	 */
 	public enum LaunchKey {
-													PROJECTS_DIR("projects/",
-													             true), DEBUG_PROJECT_FILENAME("DEBUG_PROJECT",
-													                                           false), LAST_PROJECT_OPENED(Project.EXAMPLE_PROJ
-													                                                                       + ".properties", false), RESOURCES_DIR("resources/",
-													                                                                                                              true);
+		PROJECTS_DIR("projects/", true), 
+		DEBUG_PROJECT_FILENAME("DEBUG_PROJECT", false), 
+		LAST_PROJECT_OPENED(Project.EXAMPLE_PROJ + ".properties", false), 
+		RESOURCES_DIR("resources/", true);
 
 		private final String def;
 		private final boolean isDir;

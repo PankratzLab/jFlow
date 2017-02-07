@@ -28,6 +28,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.hmm.CNVCaller.PFB_MANAGEMENT_TYPE;
+import org.genvisis.cnv.manage.GenvisisWorkflow.FLAG;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.GcAdjustor;
@@ -54,20 +55,28 @@ import com.google.common.collect.Lists;
 public class GenvisisWorkflow {
 
 	private static final String PROJ_PROP_UPDATE_STR = " cnv.filesys.Project proj=";
-	private static final String SAMPLE_STEP_REQ_MSG =
-																									"[Parse Sample Files] step must have been run already or must be selected and valid.";
+	private static final String SAMPLE_STEP_REQ_MSG = "[Parse Sample Files] step must have been run already or must be selected and valid.";
 	private static final String SAMP_RAF = ".sampRAF";
 	private static final String NUM_THREADS_ARG = "Number of threads to use.";
 	Project proj;
 	Logger log;
 	private final Launch launch;
 
-	static final STEP S1I_CREATE_MKR_POS = new STEP("Create Marker Positions (if not already exists)",
+	public enum FLAG {
+		MEMORY,
+		RUNTIME,
+		MULTITHREADED
+	}
+	
+	static final STEP S1I_CREATE_MKR_POS = new STEP(
+																									"Create Marker Positions (if not already exists)",
 																									"",
-																									new String[][] {{	"An Illumina SNP_map file.",
+																									new String[][] {{"An Illumina SNP_map file.",
 																																		"An Illumina Manifest file."}},
-																									new RequirementInputType[][] {{	RequirementInputType.FILE,
-																																									RequirementInputType.FILE}}) {
+																									new RequirementInputType[][] {{
+																																									RequirementInputType.FILE,
+																																									RequirementInputType.FILE}},
+																									null, null) {
 
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
@@ -134,7 +143,8 @@ public class GenvisisWorkflow {
 																									new RequirementInputType[][] {{	RequirementInputType.NONE,
 																																									RequirementInputType.FILE},
 																																								{RequirementInputType.NUMBER}},
-																									S1I_CREATE_MKR_POS) {
+																									new STEP[]{S1I_CREATE_MKR_POS}, 
+																									new FLAG[]{}) {
 
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
@@ -237,7 +247,9 @@ public class GenvisisWorkflow {
 																								new String[][] {{"markerPositions file must already exist."},
 																																{"Number of Threads to Use"}},
 																								new RequirementInputType[][] {{RequirementInputType.FILE},
-																																							{RequirementInputType.NUMBER}}) {
+																																							{RequirementInputType.NUMBER}},
+																																							null,
+																																							new FLAG[]{}) {
 
 																				@Override
 																				public void setNecessaryPreRunProperties(	Project proj,
@@ -378,7 +390,8 @@ public class GenvisisWorkflow {
 																																									{	RequirementInputType.BOOL,
 																																										RequirementInputType.FILE,
 																																										RequirementInputType.FILE}},
-																										S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
+																																										new STEP[]{S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES},
+																																										new FLAG[]{}) {
 
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
@@ -492,7 +505,8 @@ public class GenvisisWorkflow {
 	static final STEP S4_TRANSPOSE_TO_MDF = new STEP(	"Transpose Data into Marker-Dominant Files", "",
 																										new String[][] {{SAMPLE_STEP_REQ_MSG}},
 																										new RequirementInputType[][] {{RequirementInputType.NONE}},
-																										S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
+																										new STEP[]{S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES},
+																										new FLAG[]{}) {
 
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
@@ -546,7 +560,9 @@ public class GenvisisWorkflow {
 																									new String[][] {{"A GC Base file must exist."},
 																																	{"GCModel output file must be specified."}},
 																									new RequirementInputType[][] {{RequirementInputType.FILE},
-																																								{RequirementInputType.FILE}}) {
+																																								{RequirementInputType.FILE}},
+																																								null,
+																																								new FLAG[]{}) {
 
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
@@ -617,7 +633,8 @@ public class GenvisisWorkflow {
 																														{NUM_THREADS_ARG},},
 																						new RequirementInputType[][] {{RequirementInputType.NONE},
 																																					{RequirementInputType.NUMBER}},
-																						S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
+																																					new STEP[]{S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES},
+																																					new FLAG[]{}) {
 
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
@@ -688,7 +705,8 @@ public class GenvisisWorkflow {
 																																					{	RequirementInputType.NONE,
 																																						RequirementInputType.FILE},
 																																					{RequirementInputType.NUMBER}},
-																						S2I_PARSE_SAMPLES) {
+																																					new STEP[]{S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES}, 
+																																					new FLAG[]{}) {
 
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
@@ -765,9 +783,10 @@ public class GenvisisWorkflow {
 																																						{	RequirementInputType.BOOL,
 																																							RequirementInputType.FILE,
 																																							RequirementInputType.FILE}},
-																							S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES,
-																							S3_CREATE_SAMPLEDATA, S4_TRANSPOSE_TO_MDF,
-																							S6_SAMPLE_QC) {
+																							new STEP[] {S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES,
+																													S3_CREATE_SAMPLEDATA,
+																													S4_TRANSPOSE_TO_MDF, S6_SAMPLE_QC}, 
+																													new FLAG[]{}) {
 
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
@@ -861,7 +880,7 @@ public class GenvisisWorkflow {
 	static final STEP S9_GENERATE_ABLOOKUP = new STEP("Generate AB Lookup File", "",
 																										new String[][] {{SAMPLE_STEP_REQ_MSG}},
 																										new RequirementInputType[][] {{RequirementInputType.NONE}},
-																										S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
+																										new STEP[]{S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES}, new FLAG[]{}) {
 
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
@@ -950,7 +969,7 @@ public class GenvisisWorkflow {
 																							new RequirementInputType[][] {{RequirementInputType.NONE},
 																																						{	RequirementInputType.FILE,
 																																							RequirementInputType.BOOL}},
-																							S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
+																																							new STEP[]{S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES}, new FLAG[]{}) {
 
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
@@ -1058,7 +1077,7 @@ public class GenvisisWorkflow {
 																																					{	RequirementInputType.BOOL,
 																																						RequirementInputType.FILE,
 																																						RequirementInputType.FILE}},
-																						S10_RUN_PLINK) {
+																																						new STEP[]{S10_RUN_PLINK}, new FLAG[]{}) {
 
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
@@ -1197,7 +1216,7 @@ public class GenvisisWorkflow {
 																																{NUM_THREADS_ARG}},
 																								new RequirementInputType[][] {{RequirementInputType.NONE},
 																																							{RequirementInputType.NUMBER}},
-																								S2I_PARSE_SAMPLES) {
+																																							new STEP[]{S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES}, new FLAG[]{}) {
 
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
@@ -1287,7 +1306,7 @@ public class GenvisisWorkflow {
 																																											{RequirementInputType.NUMBER},
 																																											{RequirementInputType.NUMBER},
 																																											{RequirementInputType.BOOL}},
-																												S3_CREATE_SAMPLEDATA, S6_SAMPLE_QC) {
+																																											new STEP[]{S3_CREATE_SAMPLEDATA, S6_SAMPLE_QC}, new FLAG[]{}) {
 
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
@@ -1463,7 +1482,7 @@ public class GenvisisWorkflow {
 																																						{RequirementInputType.NUMBER},
 																																						{RequirementInputType.FILE},
 																																						{RequirementInputType.FILE},},
-																							S4_TRANSPOSE_TO_MDF) {
+																																						new STEP[]{S4_TRANSPOSE_TO_MDF}, new FLAG[]{}) {
 
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
@@ -1640,7 +1659,7 @@ public class GenvisisWorkflow {
 																								new RequirementInputType[][] {{	RequirementInputType.NONE,
 																																								RequirementInputType.FILE},
 																																							{RequirementInputType.FILE}},
-																								S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
+																																							new STEP[]{S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES}, new FLAG[]{}) {
 
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
@@ -1724,142 +1743,116 @@ public class GenvisisWorkflow {
 		}
 
 	};
-	static final STEP S16_SEX_CENTROIDS_PFB_GCMODEL =
-																									new STEP(	"Create Sex-Specific Centroids; Filter PFB and GCMODEL Files",
-																														"",
-																														new String[][] {{"["
-																																								+ S5_COMPUTE_GCMODEL.stepName
-																																							+ "] must be selected and valid.",
-																																							"Full GC Model File."},
-																																						{NUM_THREADS_ARG},},
-																														new RequirementInputType[][] {{	RequirementInputType.NONE,
-																																														RequirementInputType.FILE},
-																																													{RequirementInputType.NUMBER}},
-																														S5_COMPUTE_GCMODEL) {
-																										@Override
-																										public void setNecessaryPreRunProperties(	Project proj,
-																																															Map<STEP, List<String>> variables) {
 
-																											int numThreads = checkIntArgOrNeg1(variables.get(this)
-																																																	.get(1));
-																											if (numThreads <= 0) {
-																												numThreads = proj.NUM_THREADS.getValue();
-																											}
-																											if (numThreads != proj.NUM_THREADS.getValue()) {
-																												proj.NUM_THREADS.setValue(numThreads);
-																											}
-																										}
+	static final STEP S16_SEX_CENTROIDS_PFB_GCMODEL = new STEP(
+																															"Create Sex-Specific Centroids; Filter PFB and GCMODEL Files",
+																															"",
+																															new String[][] {
+																																							{
+																																								"["
+																																										+ S5_COMPUTE_GCMODEL.stepName
+																																										+ "] must be selected and valid.",
+																																								"Full GC Model File."},
+																																							{NUM_THREADS_ARG},},
+																															new RequirementInputType[][] {
+																																														{
+																																															RequirementInputType.NONE,
+																																															RequirementInputType.FILE},
+																																														{RequirementInputType.NUMBER}},
+																															new STEP[] {S5_COMPUTE_GCMODEL}, new FLAG[]{}) {
 
-																										@Override
-																										public void run(Project proj,
-																																		Map<STEP, List<String>> variables) {
-																											String malePFB;
-																											String femalePFB;
-																											String centFilePathM;
-																											String centFilePathF;
-																											String newGCFile;
-																											String outputDir = proj.DATA_DIRECTORY.getValue();
-																											newGCFile = outputDir + "sexSpecific.gcModel";
-																											malePFB = outputDir + "males.pfb";
-																											femalePFB = outputDir + "females.pfb";
-																											centFilePathM = outputDir
-																																			+ "sexSpecific_Male.cent";
-																											centFilePathF = outputDir
-																																			+ "sexSpecific_Female.cent";
+		@Override
+		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
 
-																											int numThreads = checkIntArgOrNeg1(variables.get(this)
-																																																	.get(1));
-																											if (numThreads <= 0) {
-																												numThreads = proj.NUM_THREADS.getValue();
-																											}
-																											String gcModelFile = variables.get(this)
-																																										.get(0);
-																											Centroids.computeSexSpecificCentroids(proj,
-																																														new String[] {malePFB,
-																																																					femalePFB},
-																																														new String[] {centFilePathM,
-																																																					centFilePathF},
-																																														numThreads);
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
+			if (numThreads <= 0) {
+				numThreads = proj.NUM_THREADS.getValue();
+			}
+			if (numThreads != proj.NUM_THREADS.getValue()) {
+				proj.NUM_THREADS.setValue(numThreads);
+			}
+		}
 
-																											AnalysisFormats.filterSexSpecificGCModel(	proj,
-																																																gcModelFile,
-																																																newGCFile);
-																										}
+		@Override
+		public void run(Project proj, Map<STEP, List<String>> variables) {
+			String malePFB;
+			String femalePFB;
+			String centFilePathM;
+			String centFilePathF;
+			String newGCFile;
+			String outputDir = proj.DATA_DIRECTORY.getValue();
+			newGCFile = outputDir + "sexSpecific.gcModel";
+			malePFB = outputDir + "males.pfb";
+			femalePFB = outputDir + "females.pfb";
+			centFilePathM = outputDir + "sexSpecific_Male.cent";
+			centFilePathF = outputDir + "sexSpecific_Female.cent";
 
-																										@Override
-																										public boolean[][] checkRequirements(	Project proj,
-																																													Map<STEP, Boolean> stepSelections,
-																																													Map<STEP, List<String>> variables) {
-																											boolean checkStepGCModel = stepSelections.get(S5_COMPUTE_GCMODEL)
-																																									&& S5_COMPUTE_GCMODEL.hasRequirements(proj,
-																																																												stepSelections, variables);
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
+			if (numThreads <= 0) {
+				numThreads = proj.NUM_THREADS.getValue();
+			}
+			String gcModelFile = variables.get(this).get(0);
+			Centroids.computeSexSpecificCentroids(proj, new String[] {malePFB, femalePFB},
+																						new String[] {centFilePathM, centFilePathF}, numThreads);
 
-																											int numThreads = checkIntArgOrNeg1(variables.get(this)
-																																																	.get(1));
-																											String gcModelFile = variables.get(this)
-																																										.get(0);
-																											return new boolean[][] {{	checkStepGCModel,
-																																								Files.exists(gcModelFile)},
-																																							{numThreads > 0}};
-																										}
+			AnalysisFormats.filterSexSpecificGCModel(proj, gcModelFile, newGCFile);
+		}
 
-																										@Override
-																										public Object[] getRequirementDefaults(Project proj) {
-																											return new Object[] {	proj.GC_MODEL_FILENAME.getValue(),
-																																						proj.NUM_THREADS.getValue()};
-																										}
+		@Override
+		public boolean[][] checkRequirements(Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
+			boolean checkStepGCModel = stepSelections.get(S5_COMPUTE_GCMODEL)
+																	&& S5_COMPUTE_GCMODEL.hasRequirements(proj, stepSelections,
+																																				variables);
 
-																										@Override
-																										public boolean checkIfOutputExists(	Project proj,
-																																												Map<STEP, List<String>> variables) {
-																											String malePFB;
-																											String femalePFB;
-																											String centFilePathM;
-																											String centFilePathF;
-																											String newGCFile;
-																											String outputDir = proj.DATA_DIRECTORY.getValue();
-																											malePFB = outputDir + "males.pfb";
-																											femalePFB = outputDir + "females.pfb";
-																											centFilePathM = outputDir
-																																			+ "sexSpecific_Male.cent";
-																											centFilePathF = outputDir
-																																			+ "sexSpecific_Female.cent";
-																											newGCFile = outputDir + "sexSpecific.gcModel";
-																											boolean exists = Files.exists(malePFB);
-																											exists = exists && Files.exists(femalePFB);
-																											exists = exists
-																																&& Files.exists(centFilePathM);
-																											exists = exists
-																																&& Files.exists(centFilePathF);
-																											exists = exists && Files.exists(newGCFile);
-																											return exists;
-																										}
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
+			String gcModelFile = variables.get(this).get(0);
+			return new boolean[][] { {checkStepGCModel, Files.exists(gcModelFile)}, {numThreads > 0}};
+		}
 
-																										@Override
-																										public String getCommandLine(	Project proj,
-																																									Map<STEP, List<String>> variables) {
+		@Override
+		public Object[] getRequirementDefaults(Project proj) {
+			return new Object[] {proj.GC_MODEL_FILENAME.getValue(), proj.NUM_THREADS.getValue()};
+		}
 
-																											int numThreads = checkIntArgOrNeg1(variables.get(this)
-																																																	.get(1));
-																											if (numThreads <= 0) {
-																												numThreads = proj.NUM_THREADS.getValue();
-																											}
-																											String mainCmd = Files.getRunString()
-																																					+ " cnv.filesys.Centroids proj="
-																																				+ proj.getPropertyFilename()
-																																				+ " -sexSpecific "
-																																				+ PSF.Ext.NUM_THREADS_COMMAND
-																																				+ numThreads;
-																											String gcModelFile = variables.get(this)
-																																										.get(0);
-																											String gcCmd = Files.getRunString()
-																																				+ " cnv.analysis.AnalysisFormats proj="
-																																			+ proj.getPropertyFilename()
-																																			+ " gcmodel=" + gcModelFile;
-																											return mainCmd + "\n" + gcCmd;
-																										}
+		@Override
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
+			String malePFB;
+			String femalePFB;
+			String centFilePathM;
+			String centFilePathF;
+			String newGCFile;
+			String outputDir = proj.DATA_DIRECTORY.getValue();
+			malePFB = outputDir + "males.pfb";
+			femalePFB = outputDir + "females.pfb";
+			centFilePathM = outputDir + "sexSpecific_Male.cent";
+			centFilePathF = outputDir + "sexSpecific_Female.cent";
+			newGCFile = outputDir + "sexSpecific.gcModel";
+			boolean exists = Files.exists(malePFB);
+			exists = exists && Files.exists(femalePFB);
+			exists = exists && Files.exists(centFilePathM);
+			exists = exists && Files.exists(centFilePathF);
+			exists = exists && Files.exists(newGCFile);
+			return exists;
+		}
 
-																									};
+		@Override
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
+
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
+			if (numThreads <= 0) {
+				numThreads = proj.NUM_THREADS.getValue();
+			}
+			String mainCmd = Files.getRunString() + " cnv.filesys.Centroids proj="
+												+ proj.getPropertyFilename() + " -sexSpecific "
+												+ PSF.Ext.NUM_THREADS_COMMAND + numThreads;
+			String gcModelFile = variables.get(this).get(0);
+			String gcCmd = Files.getRunString() + " cnv.analysis.AnalysisFormats proj="
+											+ proj.getPropertyFilename() + " gcmodel=" + gcModelFile;
+			return mainCmd + "\n" + gcCmd;
+		}
+
+	};
 
 	static final STEP S17_CNV_CALLING = new STEP(	"Call CNVs", "",
 																								new String[][] {{"Hidden Markov Model File Must Exist"},
@@ -1876,7 +1869,7 @@ public class GenvisisWorkflow {
 																																								RequirementInputType.FILE},
 																																							{RequirementInputType.NUMBER},
 																																							{RequirementInputType.FILE},},
-																								S5_COMPUTE_GCMODEL, S15_COMPUTE_PFB) {
+																																							new STEP[]{S5_COMPUTE_GCMODEL, S15_COMPUTE_PFB}, new FLAG[]{}) {
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
 			String hmmP = proj.HMM_FILENAME.getValue();
@@ -2007,7 +2000,7 @@ public class GenvisisWorkflow {
 																																								{RequirementInputType.ENUM},
 																																								{RequirementInputType.ENUM},
 																																								{RequirementInputType.NUMBER},},
-																									S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
+																																								new STEP[]{S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES}, new FLAG[]{}) {
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
 			// not needed for step
@@ -2101,11 +2094,7 @@ public class GenvisisWorkflow {
 			return cmd.toString();
 		}
 	};
-	static final STEP S00_TEMPLATE = new STEP("", "", new String[][] {
-
-	}, new RequirementInputType[][] {
-
-	}) {
+	static final STEP S00_TEMPLATE = new STEP("", "", new String[][] {}, new RequirementInputType[][] {}, new STEP[]{},	new FLAG[]{}) {
 		@Override
 		public void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables) {
 			// INSERT CODE HERE
@@ -2146,6 +2135,7 @@ public class GenvisisWorkflow {
 		private boolean failed = false;
 		private ArrayList<String> failReasons = new ArrayList<String>();
 		private final Set<STEP> relatedSteps;
+		private final Set<FLAG> stepFlags;
 		private RequirementInputType[][] reqTypes;
 
 		public String getName() {
@@ -2246,19 +2236,27 @@ public class GenvisisWorkflow {
 
 		public abstract String getCommandLine(Project proj, Map<STEP, List<String>> variables);
 
-		STEP(	String name, String desc, String[][] requirements, RequirementInputType[][] reqTypes,
-					STEP... relatedSteps) {
+		STEP(String name, String desc, String[][] requirements, RequirementInputType[][] reqTypes, STEP[] relatedSteps, FLAG[] flags) {
 			stepName = name;
 			stepDesc = desc;
 			reqs = requirements;
 			this.reqTypes = reqTypes;
 			final Set<STEP> steps = new HashSet<STEP>();
 			steps.add(this);
-			for (final STEP s : relatedSteps) {
-				steps.add(s);
-				steps.addAll(s.getRelatedSteps());
+			if (relatedSteps != null) {
+				for (final STEP s : relatedSteps) {
+					steps.add(s);
+					steps.addAll(s.getRelatedSteps());
+				}
 			}
 			this.relatedSteps = Collections.unmodifiableSet(steps);
+			final Set<FLAG> flgs = new HashSet<FLAG>();
+			if (flags != null) {
+				for (final FLAG f : flags) {
+					flgs.add(f);
+				}
+			}
+			this.stepFlags = Collections.unmodifiableSet(flgs);
 		}
 
 		/**
@@ -2269,11 +2267,20 @@ public class GenvisisWorkflow {
 			return relatedSteps;
 		}
 
+		public Collection<FLAG> getFlags() {
+			return stepFlags;
+		}
 
 	}
 
 	public enum RequirementInputType {
-																		NONE(), FILE(), DIR(), STRING(), NUMBER(), BOOL(), ENUM()
+		NONE,
+		FILE,
+		DIR,
+		STRING,
+		NUMBER,
+		BOOL,
+		ENUM
 	}
 
 	public GenvisisWorkflow(Project project, Launch launch) {
