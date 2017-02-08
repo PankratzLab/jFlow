@@ -215,6 +215,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	private int regionIndex;
 	private JPanel lrrPanel;
 	private JPanel bafPanel;
+	private JPanel genePanel;
 	private JPanel cnvPanel;
 	private JPanel markerPanel;
 	private MarkerGraphics markerGraphics;
@@ -1079,14 +1080,12 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		}
 	}
 
-	private void paintCNVGeneTrackPanel(Graphics g) {
-
+	private void paintGeneTrackPanel(Graphics g) {
 		GeneData[] genes;
 		int[][] exons;
 		Vector<Segment> v = new Vector<Segment>();
 		Segment[] segs;
-		int width, begin, end, source;
-		Segment currentView;
+		int width, begin, end;
 		String text;
 
 		// g.drawRect(0, 0, this.getWidth()-1, this.getHeight()-1);
@@ -1132,6 +1131,10 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				}
 			}
 		}
+	}
+	private void paintCNVPanel(Graphics g) {
+		int begin, end, source;
+		Segment currentView;
 		currentView = new Segment(chr, start, stop);
 		activeCNVs.clear();
 		int firstBegin;
@@ -1286,7 +1289,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 	public void generateComponents() {
 		JPanel dataPanel = new JPanel();
-		dataPanel.setLayout(new GridLayout(3, 1, 5, 4));
+		dataPanel.setLayout(new MigLayout("ins 0, hidemode 3, fillx, filly","[grow]","[grow]0px[grow]0px[grow]"));
+//		dataPanel.setLayout(new GridLayout(3, 1, 5, 0));
 
 		lrrPanel = new JPanel() {
 			public static final long serialVersionUID = 2L;
@@ -1415,23 +1419,36 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			}
 		};
 		registerMouse(lrrPanel);
-		dataPanel.add(lrrPanel);
+		dataPanel.add(lrrPanel, "cell 0 0, grow");
 
 		JPanel tracksPanel = new JPanel();
-		tracksPanel.setLayout(new BoxLayout(tracksPanel, BoxLayout.Y_AXIS));
+//		tracksPanel.setLayout(new BoxLayout(tracksPanel, BoxLayout.Y_AXIS));
+		tracksPanel.setLayout(new MigLayout("ins 0, fillx, filly, hidemode 3", "[grow]", "[grow]0px[grow]0px[grow]"));
 
-		cnvPanel = new JPanel() {
+		genePanel = new JPanel() {
 			public static final long serialVersionUID = 8L;
 
 			@Override
 			public void paintComponent(Graphics g) {
-				paintCNVGeneTrackPanel(g);
+				paintGeneTrackPanel(g);
+			}
+		};
+		genePanel.setPreferredSize(new Dimension(getWidth(), 20));
+		registerMouse(genePanel);
+		tracksPanel.add(genePanel, "cell 0 0, grow");
+		
+		cnvPanel = new JPanel() {
+			public static final long serialVersionUID = 8L;
+			
+			@Override
+			public void paintComponent(Graphics g) {
+				paintCNVPanel(g);
 			}
 		};
 		cnvPanel.setPreferredSize(new Dimension(getWidth(), 20));
 		cnvPanel.addMouseListener(cnvAdapter);
 		registerMouse(cnvPanel);
-		tracksPanel.add(cnvPanel);
+		tracksPanel.add(cnvPanel, "cell 0 1, grow");
 
 		markerPanel = new JPanel() {
 			public static final long serialVersionUID = 1L;
@@ -1446,8 +1463,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 		markerPanel.setPreferredSize(new Dimension(getWidth(), 40));
 		registerMouse(markerPanel);
-		tracksPanel.add(markerPanel);
-		dataPanel.add(tracksPanel);
+		tracksPanel.add(markerPanel, "cell 0 2, grow");
+		dataPanel.add(tracksPanel, "cell 0 1, grow");
 
 		bafPanel = new JPanel() {
 			public static final long serialVersionUID = 7L;
@@ -1497,7 +1514,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				}
 			}
 		};
-		dataPanel.add(bafPanel);
+		dataPanel.add(bafPanel, "cell 0 2, grow");
 		registerMouse(bafPanel);
 
 		getContentPane().add(dataPanel, BorderLayout.CENTER);
@@ -1785,19 +1802,27 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	private BufferedImage generateScreenshot() {
 		int lW = lrrPanel.getWidth();
 		int bW = bafPanel.getWidth();
+		int gW = genePanel.getWidth();
 		int cW = cnvPanel.getWidth();
 		int lH = lrrPanel.getHeight();
 		int bH = bafPanel.getHeight();
+		int gH = genePanel.getHeight();
 		int cH = cnvPanel.getHeight();
 		BufferedImage imageLrr = new BufferedImage(lW, lH, BufferedImage.TYPE_INT_RGB);
 		BufferedImage imageBaf = new BufferedImage(bW, bH, BufferedImage.TYPE_INT_RGB);
+		BufferedImage imageGene = new BufferedImage(gW, gH, BufferedImage.TYPE_INT_RGB);
 		BufferedImage imageCnv = new BufferedImage(cW, cH, BufferedImage.TYPE_INT_RGB);
 
 		Graphics g = imageLrr.getGraphics();
 		g.setColor(lrrPanel.getBackground());
 		g.fillRect(0, 0, imageLrr.getWidth(), imageLrr.getHeight());
 		lrrPanel.paintAll(g);
-
+		
+		g = imageGene.getGraphics();
+		g.setColor(genePanel.getBackground());
+		g.fillRect(0, 0, imageGene.getWidth(), imageGene.getHeight());
+		genePanel.paintAll(g);
+		
 		g = imageCnv.getGraphics();
 		g.setColor(cnvPanel.getBackground());
 		g.fillRect(0, 0, imageCnv.getWidth(), imageCnv.getHeight());
@@ -1820,8 +1845,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		g.setColor(lrrPanel.getBackground());
 		g.fillRect(0, 0, finalImage.getWidth(), finalImage.getHeight());
 		g.drawImage(imageLrr, 0, 0, null);
-		g.drawImage(imageCnv, 0, lH + 5, null);
-		g.drawImage(imageBaf, 0, lH + cH + 10, null);
+		g.drawImage(imageGene, 0, lH + 5, null);
+		g.drawImage(imageCnv, 0, lH + gH + 5, null);
+		g.drawImage(imageBaf, 0, lH + gH + cH + 10, null);
 		g.dispose();
 
 		return finalImage;
