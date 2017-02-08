@@ -45,7 +45,8 @@ public class VCFPlinkPrep {
 		for (int gq : gqs) {
 			prepFor(outDir, idVCF, log, gq);
 		}
-		runPlink(log, VCFOps.getAppropriateRoot(idVCF, false), idVCF);
+		String noFails = VCFOps.removeFilteredVariants(idVCF, true, false, log);
+		runPlink(log, VCFOps.getAppropriateRoot(noFails, false), noFails);
 	}
 
 
