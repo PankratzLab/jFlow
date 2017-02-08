@@ -15,7 +15,7 @@ public class TestCNVCaller {
 																false);
 
 		CNVCaller.callAutosomalCNVs(proj, "test.cnvs", new String[] {"4874928039_R01C01"}, null, null,
-																CNVCaller.DEFUALT_MIN_SITES, CNVCaller.DEFUALT_MIN_CONF,
+																CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF,
 																PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, 2, 4);
 	}
 

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
@@ -48,8 +49,8 @@ public class CNVCaller {
 	private static final double MIN_BAF_MEDIAN_ADJUST = .25;
 	private static final double MAX_BAF_MEDIAN_ADJUST = .75;
 	private static final int PENN_CNV_SIG_FIGS = 4;
-	public static final int DEFUALT_MIN_SITES = 3;
-	public static final int DEFUALT_MIN_CONF = 3;
+	public static final int DEFAULT_MIN_SITES = 3;
+	public static final int DEFAULT_MIN_CONF = 3;
 
 	private static final int MIN_MARKERS_PER_CHROMOSOME = 10;
 
@@ -969,21 +970,20 @@ public class CNVCaller {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = null;
-		String output = "genvisis.cnvs";
+		String output = "genvisis.cnv";
 		int numThreads = 24;
-		int minNumMarkers = DEFUALT_MIN_SITES;
-		double minConf = DEFUALT_MIN_CONF;
+		int minNumMarkers = DEFAULT_MIN_SITES;
+		double minConf = DEFAULT_MIN_CONF;
+		boolean callGen = false;
 
 		String usage = "\n" + "cnv.hmm.CNVCaller requires 0-1 arguments\n";
 		usage += "   (1) proj (i.e. proj=" + filename + " (default))\n" + "";
-		usage += "   (2) output file (relative to project directory) (i.e. out="	+ filename
-							+ " (default))\n" + "";
-		usage += "   (3) minimum number of markers to report a cnv  (i.e. minMarkers="	+ minNumMarkers
-							+ " (default))\n" + "";
-		usage +=
-					"   (4) minimum confidence report a cnv  (i.e. minConf=" + minConf + " (default))\n" + "";
+		usage += "   (2) output file (relative to project directory) (i.e. out=" + filename + " (default))\n" + "";
+		usage += "   (3) minimum number of markers to report a cnv  (i.e. minMarkers=" + minNumMarkers + " (default))\n" + "";
+		usage += "   (4) minimum confidence report a cnv  (i.e. minConf=" + minConf + " (default))\n" + "";
+		usage += "   (5) optional: Call genome CNVs (chromosomes 23 and 24) (will also call autosomal cnvs for known male/female samples) (i.e. -genome (not the default))\n" + "";
 
-		usage += PSF.Ext.getNumThreadsCommand(4, numThreads);
+		usage += PSF.Ext.getNumThreadsCommand(24, numThreads);
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -994,15 +994,15 @@ public class CNVCaller {
 				numArgs--;
 			} else if (arg.startsWith("out=")) {
 				output = ext.parseStringArg(arg, "");
-
 				numArgs--;
 			} else if (arg.startsWith("minMarkers=")) {
 				minNumMarkers = ext.parseIntArg(arg);
-
 				numArgs--;
 			} else if (arg.startsWith("minConf=")) {
 				minConf = ext.parseDoubleArg(arg);
-
+				numArgs--;
+			} else if (arg.startsWith("-genome")) {
+				callGen = true;
 				numArgs--;
 			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(arg);
@@ -1017,8 +1017,41 @@ public class CNVCaller {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			callAutosomalCNVs(proj, output, proj.getSamples(), null, null, minNumMarkers, minConf,
+			if (callGen) {
+
+				String[] samples = proj.getSamples();
+				boolean[] inclSampAll = proj.getSamplesToInclude(null);
+				int[] sexes = proj.getSampleData(0, false).getSexForAllIndividuals();
+				ArrayList<String> males = new ArrayList<String>();
+				ArrayList<String> females = new ArrayList<String>();
+				
+				for (int i = 0; i < inclSampAll.length; i++) {
+					if (sexes[i] == -1) {
+						// ignore
+					} else if (sexes[i] == 1) {
+						females.add(samples[i]);
+					} else if (sexes[i] == 2) {
+						males.add(samples[i]);
+					} else {
+						// Leave these for now, but when computing LRRs and BAFs, will need to be crafty....
+					}
+				}
+				
+				Centroids[] sexCents = null;
+				if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue()) && Files.exists(proj.SEX_CENTROIDS_MALE_FILENAME.getValue())) {
+					sexCents = new Centroids[]{
+				     Files.exists(proj.CUSTOM_CENTROIDS_FILENAME.getValue()) ? Centroids.load(proj.CUSTOM_CENTROIDS_FILENAME.getValue(), proj.JAR_STATUS.getValue()) : null,
+             Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue(), proj.JAR_STATUS.getValue()),
+             Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue(), proj.JAR_STATUS.getValue())
+					};
+				}
+				
+				callGenomeCnvs(proj, output, males.toArray(new String[males.size()]), females.toArray(new String[females.size()]), sexCents, minNumMarkers, minConf,
+				                  PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
+			} else {
+				callAutosomalCNVs(proj, output, proj.getSamples(), null, null, minNumMarkers, minConf,
 												PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
