@@ -861,10 +861,12 @@ public class CNVCaller {
 											minNumMarkers, minConf, pManagementType, numSampleThreads, numChrThreads);
 		output = proj.PROJECT_DIRECTORY.getValue() + "23_M_" + outputFile;
 		writeOutput(callerIterator, output, proj.getLog());
+		
 		callerIterator = getCallerIterator(proj, markerSet, femaleSamples, new int[] {23}, chr23, centroids[2],
 											minNumMarkers, minConf, pManagementType, numSampleThreads, numChrThreads);
 		output = proj.PROJECT_DIRECTORY.getValue() + "23_F_" + outputFile;
 		writeOutput(callerIterator, output, proj.getLog());
+		
 		callerIterator = getCallerIterator(proj, markerSet, maleSamples, new int[] {24}, chr24, centroids[1],
 											minNumMarkers, minConf, pManagementType, numSampleThreads, numChrThreads);
 		output = proj.PROJECT_DIRECTORY.getValue() + "24_M_" + outputFile;
@@ -1029,9 +1031,9 @@ public class CNVCaller {
 					if (sexes[i] == -1) {
 						// ignore
 					} else if (sexes[i] == 1) {
-						females.add(samples[i]);
-					} else if (sexes[i] == 2) {
 						males.add(samples[i]);
+					} else if (sexes[i] == 2) {
+						females.add(samples[i]);
 					} else {
 						// Leave these for now, but when computing LRRs and BAFs, will need to be crafty....
 					}

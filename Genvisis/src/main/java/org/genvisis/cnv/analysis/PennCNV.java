@@ -104,7 +104,8 @@ public class PennCNV {
 		files = new File(dataDir).list(new FilenameFilter() {
 			@Override
 			public boolean accept(File file, String filename) {
-				return file.length() > 1000 && !filename.equals("chrX") && !filename.equals("sexSpecific");
+				return filename.endsWith(".gz");
+				// file.length() > 1000 && !filename.equals("chrX") && !filename.equals("sexSpecific");
 			}
 		});
 
@@ -135,12 +136,12 @@ public class PennCNV {
 			}
 		}
 
-		commands = execDir + "detect_cnv.pl -test -conf -hmm "
+		commands = "/bin/bash -c \"" + execDir + "detect_cnv.pl -test -conf -hmm "
 		           + (hmmFile == null ? execDir + "lib/hhall.hmm" : hmmFile) + " -pfb "
 		           + (pfbFile == null ? execDir + "lib/hhall.hg18.pfb" : pfbFile) + " -gcmodel "
 		           + (gcmodelFile == null ? execDir + "lib/hhall.hg18.gcmodel" : gcmodelFile)
 		           + " -list " + resultsDir + "list[%0].txt -log " + resultsDir + "[%0].log -out "
-		           + resultsDir + "[%0].rawcnv > " + resultsDir + "[%0].out";
+		           + resultsDir + "[%0].rawcnv > " + resultsDir + "[%0].out\"";
 
 		new File(pennDir + scriptSubDir).mkdirs();
 
@@ -268,13 +269,13 @@ public class PennCNV {
 			}
 		}
 
-		commands = execDir + "detect_cnv.pl -test -conf -hmm "
+		commands = "/bin/bash -c \"" + execDir + "detect_cnv.pl -test -conf -hmm "
 		           + (hmmFile == null ? execDir + "lib/hhall.hmm" : hmmFile) + " -pfb "
 		           + (pfbFile == null ? execDir + "lib/hhall.hg18.pfb" : pfbFile) + " -gcmodel "
 		           + (gcmodelFile == null ? execDir + "lib/hhall.hg18.gcmodel" : gcmodelFile)
 		           + " -chrx -sexfile " + dataDir + "sex_file.txt -list " + resultsDir
 		           + "list[%0].txt -log " + resultsDir + "[%0].log -out " + resultsDir
-		           + "[%0].rawcnv > " + resultsDir + "[%0].out";
+		           + "[%0].rawcnv > " + resultsDir + "[%0].out\"";
 
 		new File(pennDir + scriptSubDir).mkdirs();
 

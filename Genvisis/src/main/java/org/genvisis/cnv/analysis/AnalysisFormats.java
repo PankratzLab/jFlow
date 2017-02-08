@@ -362,7 +362,7 @@ public class AnalysisFormats implements Runnable {
 					int mySampleCount = 0;
 					String sampleName;
 					float[] thetas, rs, lrrs, bafs;
-					float[][][] cent, autoCent;
+					float[][][] cent;
 					byte[] genotypes;
 					int skippedExports = 0;
 
@@ -393,9 +393,8 @@ public class AnalysisFormats implements Runnable {
 							rs = mySample.getRs();
 							genotypes = mySample.getAB_Genotypes();
 							cent = compFemale ? rawCentroidsFemale : rawCentroidsMale;
-							autoCent = autoCentroids.getCentroids();
-							lrrs = autoCentroids == null ? mySample.getLRRs() : mySample.getLRRs(autoCent);
-							bafs = autoCentroids == null ? mySample.getBAFs() : mySample.getBAFs(autoCent);
+							lrrs = autoCentroids == null ? mySample.getLRRs() : mySample.getLRRs(autoCentroids.getCentroids());
+							bafs = autoCentroids == null ? mySample.getBAFs() : mySample.getBAFs(autoCentroids.getCentroids());
 							
 							try {
 								writer = Files.getAppropriateWriter(exportFileName);
