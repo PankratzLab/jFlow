@@ -13,6 +13,8 @@ public class QueueControl {
 		private int minWalltime = -1; // may not exist
 		private int maxWalltime = -1; // hours
 		private long defaultMem = -1; // bytes
+		private long minMem = -1; // bytes
+		private long maxMem = -1; // bytes
 		private int jobsInQueue = -1; // VERY VOLATILE
 		private int minProc = -1; // may not exist
 		private int maxProc = -1;
@@ -56,6 +58,22 @@ public class QueueControl {
 
 		public void setDefaultMem(long defaultMem) {
 			this.defaultMem = defaultMem;
+		}
+
+		public long getMinMem() {
+			return minMem;
+		}
+		
+		public void setMinMem(long minMem) {
+			this.minMem = minMem;
+		}
+		
+		public long getMaxMem() {
+			return maxMem;
+		}
+		
+		public void setMaxMem(long maxMem) {
+			this.maxMem = maxMem;
 		}
 
 		public int getJobsInQueue() {
@@ -179,7 +197,7 @@ public class QueueControl {
 	private static final String TAG_GROUPS = "acl_groups = ";
 	private static final String TAG_GROUP_CTRL_SLOPPY = "acl_group_sloppy = ";
 	private static final String TAG_ROUTE_DEST = "route_destinations = ";
-	private static final String TAG_MEM = "resources_assigned.mem = ";
+	private static final String TAG_MEM = "resources_default.mem = ";
 
 	private static String[] loadIDInfo() throws IOException {
 		Runtime rt = Runtime.getRuntime();
