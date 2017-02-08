@@ -414,6 +414,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		final JFrame splash;
 		try {
 			splash = new JFrame();
+			splash.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		} catch (HeadlessException e) {
 			// X11 forwarding disabled
 			System.err.println(ExceptionHandler.X11_ERROR_MSG_FORE + ExceptionHandler.X11_ERROR_DISABLED);
