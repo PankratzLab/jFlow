@@ -907,8 +907,8 @@ public class Centroids implements Serializable, TextExport {
 			log.report("Writing sex-specific (plus chr11) PFB files");
 			
 			try {
-				new File(pfbFiles[0]).mkdirs();
-				new File(pfbFiles[1]).mkdirs();
+				new File(ext.parseDirectoryOfFile(pfbFiles[0])).mkdirs();
+				new File(ext.parseDirectoryOfFile(pfbFiles[1])).mkdirs();
 				writerM = new PrintWriter(new FileWriter(pfbFiles[0]));
 				writerF = new PrintWriter(new FileWriter(pfbFiles[1]));
 

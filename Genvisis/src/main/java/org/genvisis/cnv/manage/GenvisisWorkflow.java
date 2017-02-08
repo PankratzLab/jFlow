@@ -1908,7 +1908,7 @@ public class GenvisisWorkflow {
 			String output = variables.get(this).get(4); // gets PROJ_DIR prepended, so NOT ABSOLUTE
 			(new File(ext.parseDirectoryOfFile(proj.PROJECT_DIRECTORY.getValue() + output))).mkdirs();
 			CNVCaller.callAutosomalCNVs(proj, output, proj.getSamples(), null, null,
-																	CNVCaller.DEFUALT_MIN_SITES, CNVCaller.DEFUALT_MIN_CONF,
+																	CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF,
 																	PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
 			proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output);
 			proj.saveProperties(new Property[] {proj.CNV_FILENAMES});

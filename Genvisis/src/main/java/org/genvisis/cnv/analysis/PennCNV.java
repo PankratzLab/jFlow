@@ -236,7 +236,8 @@ public class PennCNV {
 		files = new File(dataDir).list(new FilenameFilter() {
 			@Override
 			public boolean accept(File file, String filename) {
-				return file.length() > 1000 && !filename.endsWith(".pfb") && !filename.endsWith(".gcmodel") && !filename.startsWith("sex_file");
+				return filename.endsWith(".gz");
+//				return file.length() > 1000 && !filename.endsWith(".pfb") && !filename.endsWith(".gcmodel") && !filename.startsWith("sex_file");
 			}
 		});
 		log.report("Found " + files.length + " files");

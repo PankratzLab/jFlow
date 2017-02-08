@@ -2,6 +2,7 @@ package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -20,6 +21,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.SpinnerNumberModel;
 
 import org.genvisis.cnv.manage.GenvisisWorkflow.FLAG;
+import org.genvisis.common.QueueControl;
 import org.genvisis.common.QueueControl.JobQueue;
 
 import java.awt.event.ItemListener;
@@ -148,15 +150,15 @@ public class QueuePicker extends JDialog {
 			contentPanel.add(label, "cell 1 3");
 		}
 		{
-			JLabel lblProcMinMax = new JLabel("?? / ??");
+			lblProcMinMax = new JLabel("?? / ??");
 			contentPanel.add(lblProcMinMax, "cell 1 1");
 		}
 		{
-			JLabel lblMemMinMax = new JLabel("?? / ??");
+			lblMemMinMax = new JLabel("?? / ??");
 			contentPanel.add(lblMemMinMax, "cell 1 2");
 		}
 		{
-			JLabel lblWalltimeMinMax = new JLabel("?? / ??");
+			lblWalltimeMinMax = new JLabel("?? / ??");
 			contentPanel.add(lblWalltimeMinMax, "cell 1 3");
 		}
 		{
@@ -192,11 +194,44 @@ public class QueuePicker extends JDialog {
 	}
 
 	protected void queueSelected(String queueName) {
-		System.out.println("Queue " + queueName + " selected");
+		JobQueue jq = premadeQueues.get(queueName);
+		if (jq == null) {
+			customQueue();
+			return;
+		}
+		setLimits(jq);
 	}
+	
+	private void setLimits(JobQueue jq) {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append(jq.getMinProc() > 0 ? jq.getMinProc() : "??")
+			.append(" / ")
+			.append(jq.getMaxProc() > 0 ? jq.getMaxProc() : "??");
+		lblProcMinMax.setText(sb.toString());
+		sb = new StringBuilder();
+		
+		sb.append(jq.getMinMem() > 0 ? jq.getMinProc() : "??")
+			.append(" / ")
+			.append(jq.getMaxProc() > 0 ? jq.getMaxProc() : "??");
+		lblMemMinMax.setText(sb.toString());
+		sb = new StringBuilder();
+		
+		sb.append(jq.getMinWalltime() > 0 ? jq.getMinWalltime() + "hr(s)" : "??")
+			.append(" / ")
+			.append(jq.getMinWalltime() > 0 ? jq.getMinWalltime() + "hrs(s)" : "??");
+		lblWalltimeMinMax.setText(sb.toString());
+	}
+	
+	HashMap<String, JobQueue> premadeQueues = new HashMap<String, QueueControl.JobQueue>();
+	private JLabel lblProcMinMax;
+	private JLabel lblMemMinMax;
+	private JLabel lblWalltimeMinMax;
 
 	protected void populate(List<JobQueue> queues) {
-		
+		for (JobQueue jq : queues) {
+			premadeQueues.put(jq.getName(), jq);
+		}
 	}
 	
 	

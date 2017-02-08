@@ -2226,8 +2226,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 																															ArrayUtils.toDoubleArray(bafs),
 																															gcModel, pfb, markerSet,
 																															new int[] {chr}, null, false,
-																															CNVCaller.DEFUALT_MIN_SITES,
-																															CNVCaller.DEFUALT_MIN_CONF,
+																															CNVCaller.DEFAULT_MIN_SITES,
+																															CNVCaller.DEFAULT_MIN_CONF,
 																															PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT,
 																															proj.NUM_THREADS.getValue(), true);
 						int externalCNVs = prepInternalClasses();
