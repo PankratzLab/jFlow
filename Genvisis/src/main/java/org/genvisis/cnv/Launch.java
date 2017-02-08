@@ -89,6 +89,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HttpUpdate;
 import org.genvisis.common.Logger;
+import org.genvisis.common.StartupValidation;
 import org.genvisis.common.ext;
 import org.genvisis.cyto.CytoGUI;
 
@@ -489,6 +490,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				splash.setVisible(false);
 				launchUI.setVisible(true);
 				System.out.println(ext.getTime() + "]\tGenvisis Loaded.");
+				if (!StartupValidation.warnings().isEmpty()) {
+					JOptionPane.showMessageDialog(null, StartupValidation.warnings(), "Startup warnings", JOptionPane.WARNING_MESSAGE);
+				}
 			}
 		});
 
@@ -1422,6 +1426,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @param args Command-line arguments
 	 */
 	public static void main(String[] args) {
+		// TODO check startup processes here
+
+		if (StartupValidation.validate()) {
+			System.err.println(StartupValidation.warnings());
+		}
+
 		if (runMainClass(args)) {
 			return;
 		}

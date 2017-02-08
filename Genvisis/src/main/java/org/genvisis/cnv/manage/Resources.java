@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -17,6 +18,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.LaunchProperties.LaunchKey;
+import org.genvisis.common.AbstractStartupCheck;
 import org.genvisis.common.Files;
 import org.genvisis.common.HttpDownloadUtility;
 import org.genvisis.common.Logger;
@@ -32,9 +34,94 @@ public final class Resources {
 	public static final String DEFAULT_URL = "http://genvisis.org/rsrc/";
 	public static final String BIN_DIR = "bin";
 	public static final String GENOME_DIR = "Genome";
+	private static Set<Resource> allResources = null;
 
 	private Resources() {
 		// prevent instantiation of utility class
+	}
+
+	public static class ResourceValidator extends AbstractStartupCheck {
+		private List<String> localResources;
+
+		public ResourceValidator() {
+			// Build the list of files in the local resource dir
+			localResources = new ArrayList<String>();
+			String resourceDir = LaunchProperties.get(LaunchKey.RESOURCES_DIR);
+			if (Files.exists(resourceDir)) {
+				for (String resource : Files.listAllFilesInTree(resourceDir, false)) {
+					localResources.add(new File(resourceDir + resource).getAbsolutePath());
+				}
+			}
+		}
+
+		@Override
+		public List<String> doCheck() {
+			checkLocalResources();
+			return super.doCheck();
+		}
+
+		@Override
+		protected String warningHeader() {
+			return "WARNING: the following local file(s) in "
+			       + LaunchProperties.get(LaunchKey.RESOURCES_DIR) + " are not tracked:";
+		}
+
+		/**
+		 * Check all local resources against a list of known resources. Report:
+		 * <ul>
+		 * <li>Any resources present locally not in the known list.</li>
+		 * </ul>
+		 */
+		private void checkLocalResources() {
+			Set<String> knownPaths = new HashSet<String>();
+			for (Resource r : listAll()) {
+				knownPaths.add(r.getLocalPath());
+			}
+			for (String localFile : localResources) {
+				if (!knownPaths.contains(localFile)) {
+					addMessage(localFile);
+				}
+			}
+		}
+	}
+
+	/**
+	 * @return A list of all available resource instances.
+	 */
+	public static Set<Resource> listAll() {
+		if (allResources == null) {
+			initResourceList();
+		}
+		return allResources;
+	}
+
+	/**
+	 * Synchronized initialization method to ensure resource list is only generated once.
+	 */
+	private static synchronized void initResourceList() {
+		if (allResources == null) {
+			Set<Resource> resources = new HashSet<Resource>();
+			resources.addAll(path(null).getResources());
+			resources.addAll(mitoCN(null).getResources());
+			resources.addAll(cnv(null).getResources());
+			resources.addAll(affy(null).getResources());
+
+			resources.addAll(miniMac(null).getResources());
+			resources.addAll(shapeit(null).getResources());
+			resources.addAll(eigenstrat(null).getResources());
+			resources.addAll(convertf(null).getResources());
+			resources.addAll(smartpca(null).getResources());
+
+			for (GENOME_BUILD build : GENOME_BUILD.values()) {
+				resources.addAll(genome(build, null).getResources());
+				resources.addAll(cnv(null).genome(build).getResources());
+				resources.addAll(affy(null).genome(build).getResources());
+				for (CHROMOSOME c : CHROMOSOME.values()) {
+					resources.addAll(genome(build, null).chr(c).getResources());
+				}
+			}
+			allResources = Collections.unmodifiableSet(resources);
+		}
 	}
 
 	/**
@@ -148,7 +235,8 @@ public final class Resources {
 	 */
 	public static class Shapeit extends AbstractResourceFactory {
 		public Shapeit(Logger log) {
-			super(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + BIN_DIR + File.separator + "shapeit", "", log, Shapeit.class);
+			super(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + BIN_DIR + File.separator + "shapeit",
+			      "", log, Shapeit.class);
 		}
 
 		/**
@@ -156,7 +244,7 @@ public final class Resources {
 		 */
 		public Resource getShapeit() {
 			return getTarGzResource(localPath(),
-															"https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz");
+			                        "https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz");
 		}
 	}
 
@@ -298,7 +386,8 @@ public final class Resources {
 		}
 
 		/**
-		 * Helper method for formatting resource path: formatted "{build}/{build}", e.g. for "hg19/hg19.fa"
+		 * Helper method for formatting resource path: formatted "{build}/{build}", e.g. for
+		 * "hg19/hg19.fa"
 		 */
 		private String getPath() {
 			String b = build.getBuild();
@@ -548,7 +637,8 @@ public final class Resources {
 		private final Class<?>[] classes;
 
 		public AbstractResourceFactory(String subPath, Logger log, Class<?>... classes) {
-			this(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + subPath + File.separator, DEFAULT_URL + subPath + "/", log, classes);
+			this(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + subPath + File.separator,
+			     DEFAULT_URL + subPath + "/", log, classes);
 		}
 
 		public AbstractResourceFactory(String localPath, String url, Logger log, Class<?>... classes) {
@@ -565,7 +655,7 @@ public final class Resources {
 			for (Class<?> c : classes) {
 				for (Method m : c.getDeclaredMethods()) {
 					if (m.getReturnType().equals(Resources.Resource.class)
-							&& m.getParameterTypes().length == 0) {
+					    && m.getParameterTypes().length == 0) {
 						try {
 							resources.add((Resource) m.invoke(this));
 						} catch (Exception e) {
@@ -828,8 +918,8 @@ public final class Resources {
 					HttpDownloadUtility.downloadFile(url, downloadPath, true, log);
 					return true;
 				} catch (IOException e) {
-					log.reportError("Could not retrieve resource from "	+ url + " and save it to"
-													+ downloadPath);
+					log.reportError("Could not retrieve resource from " + url + " and save it to"
+					                + downloadPath);
 					log.reportException(e);
 				}
 			} else {
@@ -843,8 +933,8 @@ public final class Resources {
 			if (isLocallyAvailable(localPath)) {
 				return localPath;
 			}
-			log.report("Resource is not available at "	+ localPath + ", will attempt to download from "
-									+ remotePath);
+			log.report("Resource is not available at " + localPath + ", will attempt to download from "
+			           + remotePath);
 
 			if (!downloadResource(remotePath, localPath)) {
 				log.reportError("Download failed for: " + remotePath);
@@ -871,9 +961,9 @@ public final class Resources {
 			boolean isAvailable = isLocallyAvailable(localPath) || isRemotelyAvailable(remotePath);
 
 			if (!isAvailable) {
-				log.reportError("Could not find local file "	+ localPath
-												+ " and could not download it from " + remotePath
-												+ " please manually download and save to " + localPath);
+				log.reportError("Could not find local file " + localPath
+				                + " and could not download it from " + remotePath
+				                + " please manually download and save to " + localPath);
 			}
 
 			return isAvailable;
