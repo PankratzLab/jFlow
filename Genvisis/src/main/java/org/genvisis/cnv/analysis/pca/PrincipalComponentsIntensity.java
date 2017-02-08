@@ -232,10 +232,19 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 
 	public void correctLRRAt(int atComponent) {
 		setOriginal();
+
+
 		CrossValidation crossValidation = getCorrectedDataAt(
 																													ArrayUtils.toDoubleArray(centroid	.getMarkerData()
 																																														.getLRRs()),
-																													sexSpecificChrCovariates,
+																													validateExtraIndeps(sexSpecificChrCovariates, // will
+																																																				// get
+																																																				// null
+																																																				// if
+																																																				// not
+																																																				// enough
+																																																				// variance
+																																							centroid.getSamplesToUse()),
 																													centroid.getSamplesToUse(), atComponent,
 																													lType,
 																													"LRR correction at PC " + atComponent,

@@ -998,7 +998,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 																+ samplesTobuildModel.length);
 			go = false;
 		}
-		if (data == null || willFailNAN(data, numComponentsForModel, samplesTobuildModel)) {
+		if (data == null
+				|| willFailNAN(data, numComponentsForModel, samplesTobuildModel, extraIndeps)) {
 			int numNonNaN = data == null ? 0 : ArrayUtils.removeNaN(data).length;
 			proj.getLog()
 					.reportError("Error - there are not enough samples with non NAN (n="	+ numNonNaN
@@ -1161,14 +1162,20 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		}
 	}
 
-	private static boolean willFailNAN(	double[] data, float numComponents,
-																			boolean[] samplesTobuildModel) {
+	private static boolean willFailNAN(	double[] data, int numComponents,
+																			boolean[] samplesTobuildModel, double[][] extraIndeps) {
+
+		int test = numComponents + 1;
+		if (extraIndeps != null && extraIndeps[0].length > 0) {
+			test += extraIndeps[0].length;
+
+		}
 		int count = 0;
 		for (int i = 0; i < data.length; i++) {
 			if (!Double.isNaN(data[i]) && (samplesTobuildModel == null || samplesTobuildModel[i])) {
 				count++;
 			}
-			if (count > numComponents + 1) { //N-M-1 for T dist DoF
+			if (count > test) { // N-M-1 for T dist DoF
 				return false;
 			}
 		}
