@@ -117,17 +117,27 @@ public class PennCNVPrep {
 					float[][] correctedLRRBAF =
 																		principalComponentsIntensity.getCorrectedIntensity(	PrincipalComponentsIntensity.BAF_LRR_RETURN,
 																																												true);// for
-																																															// now
-					markerDataToStore = new MarkerData(	markerData.getMarkerName(), markerData.getChr(),
+
+					if (correctionType == CORRECTION_TYPE.COMBO) {
+						markerDataToStore =
+															new MarkerData(	markerData.getMarkerName(), markerData.getChr(),
+																							markerData.getPosition(), markerData.getFingerprint(),
+																							markerData.getGCs(), null, null, correctedXY[0],
+																							correctedXY[1], null, null, correctedLRRBAF[0],
+																							principalComponentsIntensity.getCorrectedLRR(),
+																							abGenotypes, abGenotypes);
+					} else {
+						markerDataToStore = new MarkerData(	markerData.getMarkerName(), markerData.getChr(),
 																							markerData.getPosition(), markerData.getFingerprint(),
 																							markerData.getGCs(), null, null, correctedXY[0],
 																							correctedXY[1], null, null,
 																							(preserveBafs
 																								|| correctionType == CORRECTION_TYPE.LRR_ONLY)	? markerData.getBAFs()
-																														: correctedLRRBAF[0],
+																																																	: correctedLRRBAF[0],
 																							correctionType == CORRECTION_TYPE.XY	? correctedLRRBAF[1]
 																																										: principalComponentsIntensity.getCorrectedLRR(),
 																							abGenotypes, abGenotypes);
+					}
 				}
 				markerDataStorage.addToNextIndex(markerDataToStore);
 				index++;
@@ -153,7 +163,7 @@ public class PennCNVPrep {
 	 */
 	public void exportSpecialPennCNVData(String[] fileNamesOfMarkerDataInOrder) {
 		int[] sampleIndicesInProject = ext.indexLargeFactors(	ArrayUtils.subArray(proj.getSamples(),
-																																				samplesToExport),
+																																							samplesToExport),
 																													proj.getSamples(), true, proj.getLog(),
 																													true, true);
 		// int numMarkersPerWrite =
@@ -233,8 +243,8 @@ public class PennCNVPrep {
 																												boolean forceLoadFromFiles) {
 		Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 		int[] subSampleIndicesInProject = ext.indexLargeFactors(
-																														ArrayUtils.subArray(	proj.getSamples(),
-																																						samplesToExport),
+																														ArrayUtils.subArray(proj.getSamples(),
+																																								samplesToExport),
 																														proj.getSamples(), true, proj.getLog(),
 																														true, true);
 		String[] subSamples = ArrayUtils.subArray(proj.getSamples(), samplesToExport);
@@ -257,8 +267,11 @@ public class PennCNVPrep {
 					proj.getLog()
 							.report(ext.getTime()+ "\tData loaded = "
 											+ Math.round(((double) i / shadowSamples.length) * 100.0)
-											+ "%\tFree memory: "
-											+ Math.round(((double) MemUtils.availableMem() / Runtime.getRuntime().maxMemory()) * 100.0) + "%");
+											+ "%\tFree memory: " + Math.round(
+																												((double) MemUtils.availableMem()
+																													/ Runtime.getRuntime().maxMemory())
+																												* 100.0)
+											+ "%");
 
 				}
 			}
@@ -632,13 +645,14 @@ public class PennCNVPrep {
 				// Conservatively use 75% of available memory for chunking
 				double memToUse = 0.75 * MemUtils.availableMem();
 				// Estimate worst-case memory use per thread
-				long worstCaseSize = Files.worstCaseDirSize(proj.SAMPLE_DATA_FILENAME.getValue(), "sampRAF", false);
+				long worstCaseSize = Files.worstCaseDirSize(proj.SAMPLE_DATA_FILENAME.getValue(), "sampRAF",
+																										false);
 				numSampleChunks = (int) Math.round((worstCaseSize / memToUse) / numThreads);
 			}
 
 
-			boolean[][] batches = ArrayUtils.splitUpStringArrayToBoolean(proj.getSamples(), numSampleChunks,
-																															proj.getLog());
+			boolean[][] batches = ArrayUtils.splitUpStringArrayToBoolean(	proj.getSamples(),
+																																		numSampleChunks, proj.getLog());
 
 			ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 			Hashtable<String, Future<Hashtable<String, Float>>> tmpResults = new Hashtable<String, Future<Hashtable<String, Float>>>();
@@ -893,8 +907,8 @@ public class PennCNVPrep {
 							+ numThreads + " (default))\n" + "";
 		usage += "   (18) full path to a temporary directory (i.e. tmpDir= (no default))\n" + "";
 		usage += "   (7) Chromosome X correction strategy.  Options include: "
-							+ ArrayUtils.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy=" + strategy
-							+ " (default))\n";
+							+ ArrayUtils.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy="
+							+ strategy + " (default))\n";
 		usage += "   NOTE: the total number of threads is numThreads*numMarkerThreads";
 		usage += "   NOTE: aprox 50 *(numSamples/5000) batches per 500,000 markers" + "";
 		usage +=
@@ -978,8 +992,7 @@ public class PennCNVPrep {
 				exportSpecialPennCNV(	proj, dir, tmpDir, numComponents, markers, numThreads,
 															numMarkerThreads, shadowSamples,
 															svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR, sampleChunks, false,
-															forceLoadFromFiles, CORRECTION_TYPE.XY,
-															strategy);
+															forceLoadFromFiles, CORRECTION_TYPE.XY, strategy);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -87,7 +87,14 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 																/**
 																 * A simple LRR only correction
 																 */
-																LRR_ONLY;
+																LRR_ONLY,
+																/**
+																 * A highly experimental and who knows what will happen type, geared
+																 * mainly for chr23 correction
+																 * 
+																 * LRR are from LRR_ONLY, BAFS are from XY, go figure
+																 */
+																COMBO;
 	}
 
 	public enum CHROMOSOME_X_STRATEGY {
@@ -1078,6 +1085,11 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 							principalComponentsIntensity.correctLRRAt(correctAt);
 							break;
 						case XY:
+							principalComponentsIntensity.correctXYAt(correctAt);
+							break;
+
+						case COMBO: // we want both XY corrected bafs, and LRR_ONLY corrected lrrs
+							principalComponentsIntensity.correctLRRAt(correctAt);
 							principalComponentsIntensity.correctXYAt(correctAt);
 							break;
 						default:
