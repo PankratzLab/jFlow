@@ -43,50 +43,64 @@ public class VCFPlinkPrep {
 		String idVCF = VCFOps.addIds(inputVcf, VCOps.DEFAULT_DBSNP);
 		Logger log = new Logger(outDir + "plinkvcfPrep.log");
 		for (int gq : gqs) {
-			String root = outDir + VCFOps.getAppropriateRoot(idVCF, true) + "_GQ_" + gq;
-			String filtVcf = root + ".vcf.gz";
-			if (!Files.exists(filtVcf)) {
-				VCFFileReader reader = new VCFFileReader(new File(idVCF), false);
-
-				log.reportTimeInfo("Filtering "+ idVCF + ", setting genotypes with GQ < " + gq
-														+ " to missing in " + filtVcf);
-				VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, filtVcf,
-																																	VCFOps.DEFUALT_WRITER_OPTIONS,
-																																	new Logger());
-
-				int numScanned = 0;
-				for (VariantContext vc : reader) {
-					numScanned++;
-					if (numScanned % 10000 == 0) {
-						log.reportTimeInfo(numScanned + " variants scanned for GQ" + gq);
-					}
-					if (!vc.isFiltered()) {
-						VariantContextBuilder builder = new VariantContextBuilder(vc);
-						ArrayList<Genotype> genotypes = new ArrayList<Genotype>();
-						for (Genotype g : vc.getGenotypes()) {
-							if (g.hasGQ() && g.getGQ() < gq) {
-								GenotypeBuilder gb = new GenotypeBuilder(g);
-								gb.alleles(GenotypeOps.getNoCall());
-								genotypes.add(gb.make());
-							} else {
-								genotypes.add(g);
-							}
-						}
-
-						GenotypesContext bc = GenotypesContext.create(genotypes);
-						builder.genotypes(bc);
-						writer.add(builder.make());
-					}
-				}
-				reader.close();
-				writer.close();
-				Files.writeArray(VCFOps.getSamplesInFile(idVCF), root + ".sampleList.txt");
-			} else {
-				log.reportFileExists(filtVcf);
-			}
-			runPlink(log, root, filtVcf);
+			prepFor(outDir, idVCF, log, gq);
 		}
 		runPlink(log, VCFOps.getAppropriateRoot(idVCF, false), idVCF);
+	}
+
+
+
+	private static void prepFor(String outDir, String idVCF, Logger log, int gq) {
+		String root = outDir + VCFOps.getAppropriateRoot(idVCF, true) + "_GQ_" + gq;
+		String filtVcf = root + ".vcf.gz";
+		if (!Files.exists(filtVcf)) {
+			VCFFileReader reader = new VCFFileReader(new File(idVCF), false);
+
+			log.reportTimeInfo("Filtering "+ idVCF + ", setting genotypes with GQ < " + gq
+													+ " to missing in " + filtVcf);
+			VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, filtVcf,
+																																VCFOps.DEFUALT_WRITER_OPTIONS,
+																																new Logger());
+
+			int numScanned = 0;
+			for (VariantContext vc : reader) {
+				numScanned++;
+				if (numScanned % 10000 == 0) {
+					log.reportTimeInfo(numScanned + " variants scanned for GQ" + gq);
+				}
+				if (!vc.isFiltered()) {
+					VariantContextBuilder builder = new VariantContextBuilder(vc);
+
+					ArrayList<Genotype> genotypes = filterGenotypes(gq, vc);
+
+					GenotypesContext bc = GenotypesContext.create(genotypes);
+					builder.genotypes(bc);
+					writer.add(builder.make());
+				}
+			}
+			reader.close();
+			writer.close();
+			Files.writeArray(VCFOps.getSamplesInFile(idVCF), root + ".sampleList.txt");
+		} else {
+			log.reportFileExists(filtVcf);
+		}
+		runPlink(log, root, filtVcf);
+	}
+
+
+
+	private static ArrayList<Genotype> filterGenotypes(int gq, VariantContext vc) {
+		ArrayList<Genotype> genotypes = new ArrayList<Genotype>();
+		for (Genotype g : vc.getGenotypes()) {
+			if (g.hasGQ() && g.getGQ() < gq) {
+				GenotypeBuilder gb = new GenotypeBuilder(g);
+				gb.alleles(GenotypeOps.getNoCall());
+				genotypes.add(gb.make());
+			} else {
+				genotypes.add(g);
+			}
+		}
+		return genotypes;
 	}
 
 
@@ -98,6 +112,9 @@ public class VCFPlinkPrep {
 																			false, false, log);
 	}
 
+	/**
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		CLI c = new CLI(VCFPlinkPrep.class);
 
