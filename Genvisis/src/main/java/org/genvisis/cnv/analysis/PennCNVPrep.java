@@ -122,7 +122,8 @@ public class PennCNVPrep {
 																							markerData.getPosition(), markerData.getFingerprint(),
 																							markerData.getGCs(), null, null, correctedXY[0],
 																							correctedXY[1], null, null,
-																							preserveBafs	? markerData.getBAFs()
+																							(preserveBafs
+																								|| correctionType == CORRECTION_TYPE.LRR_ONLY)	? markerData.getBAFs()
 																														: correctedLRRBAF[0],
 																							correctionType == CORRECTION_TYPE.XY	? correctedLRRBAF[1]
 																																										: principalComponentsIntensity.getCorrectedLRR(),
