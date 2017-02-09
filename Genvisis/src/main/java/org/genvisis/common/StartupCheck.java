@@ -18,6 +18,6 @@ public interface StartupCheck {
 	 *
 	 * @return A list of messages to report based on the check results.
 	 */
-	List<String> doCheck();
+	List<String> check();
 
 }

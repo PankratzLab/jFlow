@@ -22,6 +22,7 @@ import org.genvisis.common.AbstractStartupCheck;
 import org.genvisis.common.Files;
 import org.genvisis.common.HttpDownloadUtility;
 import org.genvisis.common.Logger;
+import org.genvisis.common.StartupCheck;
 import org.genvisis.filesys.FASTA;
 import org.genvisis.seq.manage.BedOps;
 import org.genvisis.seq.manage.VCFOps;
@@ -40,10 +41,29 @@ public final class Resources {
 		// prevent instantiation of utility class
 	}
 
-	public static class ResourceValidator extends AbstractStartupCheck {
+	public static class ResourceVersionCheck extends AbstractStartupCheck {
+
+		@Override
+		protected String warningHeader() {
+			// TODO Auto-generated method stub
+			return "";
+		}
+
+		@Override
+		protected void doCheck() {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+
+	/**
+	 * {@link StartupCheck} for ensuring things in the resources directory are actually resources.
+	 */
+	public static class LocalResourceCheck extends AbstractStartupCheck {
 		private List<String> localResources;
 
-		public ResourceValidator() {
+		public LocalResourceCheck() {
 			// Build the list of files in the local resource dir
 			localResources = new ArrayList<String>();
 			String resourceDir = LaunchProperties.get(LaunchKey.RESOURCES_DIR);
@@ -54,25 +74,12 @@ public final class Resources {
 			}
 		}
 
-		@Override
-		public List<String> doCheck() {
-			checkLocalResources();
-			return super.doCheck();
-		}
-
-		@Override
-		protected String warningHeader() {
-			return "WARNING: the following local file(s) in "
-			       + LaunchProperties.get(LaunchKey.RESOURCES_DIR) + " are not tracked:";
-		}
-
 		/**
-		 * Check all local resources against a list of known resources. Report:
-		 * <ul>
-		 * <li>Any resources present locally not in the known list.</li>
-		 * </ul>
+		 * Check all local resources against a list of known resources. Report any resources present
+		 * locally not in the known list.
 		 */
-		private void checkLocalResources() {
+		@Override
+		protected void doCheck() {
 			Set<String> knownPaths = new HashSet<String>();
 			for (Resource r : listAll()) {
 				knownPaths.add(r.getLocalPath());
@@ -81,7 +88,12 @@ public final class Resources {
 				if (!knownPaths.contains(localFile)) {
 					addMessage(localFile);
 				}
-			}
+			}		}
+
+		@Override
+		protected String warningHeader() {
+			return "WARNING: the following local file(s) in "
+			       + LaunchProperties.get(LaunchKey.RESOURCES_DIR) + " are not tracked:";
 		}
 	}
 

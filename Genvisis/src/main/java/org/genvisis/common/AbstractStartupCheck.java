@@ -12,7 +12,8 @@ public abstract class AbstractStartupCheck implements StartupCheck {
 	private List<String> messages = new ArrayList<String>();
 
 	@Override
-	public List<String> doCheck() {
+	public List<String> check() {
+		doCheck();
 		return messages;
 	}
 
@@ -30,4 +31,6 @@ public abstract class AbstractStartupCheck implements StartupCheck {
 	}
 
 	protected abstract String warningHeader();
+
+	protected abstract void doCheck();
 }
