@@ -97,6 +97,30 @@ public class HttpDownloadUtility {
 		httpConn.disconnect();
 		return responseCode;
 	}
+
+	public static String readFileAsHexString(String fileURL) throws IOException {
+		// Try and open a URL connection
+		URL url = new URL(fileURL);
+		HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+		if (httpConn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+			return null;
+		}
+
+
+		// Read the HTTP connection as a digest, allowing the MD5 to be computed
+		InputStream inputStream = httpConn.getInputStream();
+
+		byte[] md5 = new byte[httpConn.getContentLength()];
+		int bytesRead = 0;
+
+		while (bytesRead != -1) {
+			int buffer = Math.min(BUFFER_SIZE, md5.length - bytesRead);
+			// Read the file file
+			bytesRead = inputStream.read(md5, bytesRead, buffer);
+		}
+
+		return new String(md5, "UTF-8").trim();
+	}
 }
 
 // if (disposition != null) {

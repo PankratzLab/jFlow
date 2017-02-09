@@ -1,11 +1,14 @@
 package org.genvisis.cnv.manage;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -45,38 +49,36 @@ public final class Resources {
 		// prevent instantiation of utility class
 	}
 
-	public static class ResourceVersionCheck extends AbstractStartupCheck {
+	/**
+	 * {@link StartupCheck} to verify and update the versions of local resources.
+	 */
+	public static class ResourceVersionCheck extends AbstractResourceCheck {
 
 		@Override
 		protected String warningHeader() {
-			// TODO Auto-generated method stub
-			return "";
+			return "WARNING: the following resources may be out of date. Recommend deletion of local copies:";
 		}
 
 		@Override
 		protected void doCheck() {
-			// TODO Auto-generated method stub
+			for (Resource rsrc : listAll()) {
+				String localMD5 = rsrc.getMD5Local();
+				if (localMD5 == null) {
+					continue;
+				}
+				String remoteMD5 = rsrc.getMD5Remote();
 
+				if (remoteMD5 != null && !remoteMD5.equals(localMD5)) {
+					addMessage(rsrc.getLocalPath());
+				}
+			}
 		}
 	}
 
 	/**
 	 * {@link StartupCheck} for ensuring things in the resources directory are actually resources.
 	 */
-	public static class LocalResourceCheck extends AbstractStartupCheck {
-		private List<String> localResources;
-
-		public LocalResourceCheck() {
-			// Build the list of files in the local resource dir
-			localResources = new ArrayList<String>();
-			String resourceDir = LaunchProperties.get(LaunchKey.RESOURCES_DIR);
-			if (Files.exists(resourceDir)) {
-				for (String resource : Files.listAllFilesInTree(resourceDir, false)) {
-					localResources.add(new File(resourceDir + resource).getAbsolutePath());
-				}
-			}
-		}
-
+	public static class LocalResourceCheck extends AbstractResourceCheck {
 		/**
 		 * Check all local resources against a list of known resources. Report any resources present
 		 * locally not in the known list.
@@ -87,7 +89,7 @@ public final class Resources {
 			for (Resource r : listAll()) {
 				knownPaths.add(r.getLocalPath());
 			}
-			for (String localFile : localResources) {
+			for (String localFile : localResources()) {
 				if (!knownPaths.contains(localFile)) {
 					addMessage(localFile);
 				}
@@ -98,6 +100,29 @@ public final class Resources {
 		protected String warningHeader() {
 			return "WARNING: the following local file(s) in "
 						 + LaunchProperties.get(LaunchKey.RESOURCES_DIR) + " are not tracked:";
+		}
+	}
+
+	/**
+	 * Abstract superclass for resource-based {@link StartupCheck}s that want to check
+	 * {@link #localResources());
+	 */
+	private abstract static class AbstractResourceCheck extends AbstractStartupCheck {
+		private Set<String> localResources;
+
+		public AbstractResourceCheck() {
+			// Build the list of files in the local resource dir
+			localResources = new HashSet<String>();
+			String resourceDir = LaunchProperties.get(LaunchKey.RESOURCES_DIR);
+			if (Files.exists(resourceDir)) {
+				for (String resource : Files.listAllFilesInTree(resourceDir, false)) {
+					localResources.add(new File(resourceDir + resource).getAbsolutePath());
+				}
+			}
+		}
+
+		protected Set<String> localResources() {
+			return localResources;
 		}
 	}
 
@@ -965,6 +990,49 @@ public final class Resources {
 			return localPath;
 		}
 
+		@Override
+		public String getMD5Local() {
+			String md5 = null;
+			if (isLocallyAvailable(localPath)) {
+				try {
+					String md5Path = localPath + ".md5";
+					if (isLocallyAvailable(md5Path)) {
+						// If we already have a local .md5, we just need to read it and return.
+						BufferedReader reader = Files.getAppropriateReader(md5Path);
+						md5 = reader.readLine().trim();
+						reader.close();
+					} else {
+						// Compute the md5 for this resource
+						log.report("Generating md5 checksum for resource: " + localPath);
+						FileInputStream fis = new FileInputStream(new File(localPath));
+						md5 = DigestUtils.md5Hex(fis);
+						fis.close();
+						// Write out the computed md5
+						PrintWriter writer = Files.getAppropriateWriter(md5Path);
+						writer.println(md5);
+						writer.flush();
+						writer.close();
+					}
+				} catch (FileNotFoundException e) {
+					log.reportException(e);
+				} catch (IOException e) {
+					log.reportException(e);
+				}
+			}
+			return md5;
+		}
+
+		@Override
+		public String getMD5Remote() {
+			String md5 = null;
+			try {
+				md5 = HttpDownloadUtility.readFileAsHexString(remotePath + ".md5");
+			} catch (IOException e) {
+				// If remote MD5 isn't available, that can be OK.
+			}
+			return md5;
+		}
+
 		public Logger log() {
 			return log;
 		}
@@ -981,7 +1049,16 @@ public final class Resources {
 			if (isRemotelyAvailable(url)) {
 				try {
 					HttpDownloadUtility.downloadFile(url, downloadPath, true, log);
-					return true;
+
+					// Try to download the md5
+					String md5Url = url + ".md5";
+					String md5LocalPath = downloadPath + ".md5";
+					if (isRemotelyAvailable(md5Url)) {
+						HttpDownloadUtility.downloadFile(md5Url, md5LocalPath, true, log);
+					} else {
+						log.reportTimeWarning("No remote md5 found for resource: " + url);
+					}
+
 				} catch (IOException e) {
 					log.reportError("Could not retrieve resource from " + url + " and save it to"
 													+ downloadPath);
@@ -1076,6 +1153,18 @@ public final class Resources {
 		 * @return The local path to this resource.
 		 */
 		String getLocalPath();
+
+		/**
+		 * @return The computed md5 checksum for this resource, or null if the resource is not locally
+		 *         available.
+		 */
+		String getMD5Local();
+
+		/**
+		 * @return The "official" md5 checksum for this resource, or null if lacking internet
+		 *         connectivity.
+		 */
+		String getMD5Remote();
 	}
 
 	/**
