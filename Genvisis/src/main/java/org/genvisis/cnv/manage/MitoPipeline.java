@@ -482,7 +482,8 @@ public class MitoPipeline {
 					refGenomeFasta = proj.getReferenceGenomeFASTAFilename();
 				}
 			}
-			if (Files.exists(refGenomeFasta) || Files.exists(proj.GC_MODEL_FILENAME.getValue())) {// TODO,
+			if ((refGenomeFasta != null && Files.exists(refGenomeFasta))
+					|| Files.exists(proj.GC_MODEL_FILENAME.getValue())) {// TODO,
 																																														// after
 																																														// evaluating
 																																														// reference
