@@ -560,7 +560,7 @@ public class MitoPipeline {
 																							: betaFile,
 																	betaOptFile,
 																	proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES,
-																	pvalOpt, numComponents, markerCallRateFilter, 25, numThreads);
+																	pvalOpt, numComponents, markerCallRateFilter, 5, numThreads);
 				} else {
 					proj.getLog().reportError("Could not optimize betas due to missing files");
 				}
