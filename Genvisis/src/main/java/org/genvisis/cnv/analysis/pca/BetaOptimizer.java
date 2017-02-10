@@ -292,10 +292,11 @@ public class BetaOptimizer {
 																	MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF,
 																	String[] namesToQuery, String outpuDir, String[] betas,
 																	double[] pvals, double markerCallRate, int maxPCs, int numthreads,
-																	String usedInPCFile, int pvalRefineCutoff, Logger log) {
+																	String usedInPCFile, int pvalRefineCutoff, double minPval,
+																	Logger log) {
 		analyze(proj, pcFile, samplesToBuildModels, markerSet, abLookup, dbsnpVCF, namesToQuery,
 						outpuDir, Arrays.asList(betas), pvals, markerCallRate, maxPCs, numthreads, usedInPCFile,
-						pvalRefineCutoff, log);
+						pvalRefineCutoff, minPval, log);
 
 	}
 
@@ -447,7 +448,7 @@ public class BetaOptimizer {
 		}
 		log.reportTimeInfo(filtered.size() + " markers remaining post QC");
 		GeneralHitWindowDetector<MetaBeta> hitWindowDetector = new GeneralHitWindowDetector<MetaBeta>(filtered,
-																																																	250000,
+																																																	125000,
 																																																	pval,
 																																																	pval);
 		ArrayList<MetaBeta> windows = new ArrayList<BetaOptimizer.MetaBeta>();
@@ -466,7 +467,8 @@ public class BetaOptimizer {
 															MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF,
 															String[] namesToQuery, String outpuDir, List<String> betaFiles,
 															double[] pvals, double markerCallRate, int maxPCs, int numthreads,
-															String usedInPCFile, int pvalRefineCutoff, Logger log) {
+															String usedInPCFile, int pvalRefineCutoff, double minPval,
+															Logger log) {
 
 		String subDir = ext.rootOf(pcFile, false) + SUB_DIR;
 
@@ -493,7 +495,7 @@ public class BetaOptimizer {
 						}
 						double seed = ArrayUtils.min(pvals);
 						ArrayList<MetaBeta> tmp = filter(metaBetas, seed);
-						while (tmp.size() > pvalRefineCutoff) {
+						while (tmp.size() > pvalRefineCutoff && seed > minPval) {
 							seed = seed / 10;
 							tmp = filter(metaBetas, seed);
 							if (tmp.size() > pvalRefineCutoff) {
@@ -555,6 +557,13 @@ public class BetaOptimizer {
 										}
 										ArrayList<MetaBeta> filtered = getWindowPruned(	filterGenoResultPrimary, current,
 																																		pval, log);
+
+										String rootDump = outpuDir+ MODEL_BUILDER_TYPE.WITH_QC_BUILDERS + "_" + oType
+																			+ "_" + ITERATION_TYPE.WITHOUT_INDEPS + "_pval_" + pval + "_"
+																			+ ext.rootOf(betaFile) + "_markersUsed";
+										dumpToFile(current, rootDump + "_preFilter.txt", log);
+										dumpToFile(filtered, rootDump + "_postFilter.txt", log);
+
 										if (filtered.size() > pvalRefineCutoff) {
 
 											byte[][] genosSecondary = loadGenos(proj, markerSet, filtered);
@@ -810,7 +819,19 @@ public class BetaOptimizer {
 		return genos;
 	}
 
-	public static ArrayList<MetaBeta> prep(	Project proj, MarkerSet markerSet, ABLookup abLookup,
+	private static void dumpToFile(ArrayList<MetaBeta> metaBetas, String output, Logger log) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("rsID\tbeta\tp\tchr\tpos\n");
+		for (MetaBeta metaBeta : metaBetas) {
+			builder.append(metaBeta.getMarkerRsFormat().rs+ "\t" + metaBeta.beta + "\t"
+											+ metaBeta.getPval() + "\t" + metaBeta.getChr() + "\t" + metaBeta.getPos()
+											+ "\n");
+
+		}
+		Files.write(builder.toString(), output);
+	}
+
+	private static ArrayList<MetaBeta> prep(Project proj, MarkerSet markerSet, ABLookup abLookup,
 																					String dbsnpVCF, String[] namesToQuery, String outpuDir,
 																					String betaFile, double minPval, Logger log) {
 		new File(outpuDir).mkdirs();
@@ -1220,7 +1241,7 @@ public class BetaOptimizer {
 
 	public static void optimize(Project proj, String pcFile, String outDir, String betaLoc,
 															String unRelatedFile, String pcSamps, double[] pvals, int maxPCs,
-															double markerCallRate, int pvalRefineCutoff,
+															double markerCallRate, int pvalRefineCutoff, double minPval,
 															int numthreads) throws IllegalStateException {
 		new File(outDir).mkdirs();
 
@@ -1268,7 +1289,7 @@ public class BetaOptimizer {
 		}
 		analyzeAll(	proj, pcFile, unRelatedFile, markerSet, abLookup, dbsnp.get(),
 								proj.getNonCNMarkers(), outDir, betaFiles, pvals, markerCallRate, maxPCs,
-								numthreads, pcSamps, pvalRefineCutoff, proj.getLog());
+								numthreads, pcSamps, pvalRefineCutoff, minPval, proj.getLog());
 	}
 
 	public static void main(String[] args) {
@@ -1350,7 +1371,7 @@ public class BetaOptimizer {
 
 				Project proj = new Project(filename, false);
 				optimize(	proj, pcFile, proj.PROJECT_DIRECTORY.getValue() + out, betaDir, unRelatedFile,
-									pcSamps, pvals, maxPCs, markerCallRate, 25, numthreads);
+									pcSamps, pvals, maxPCs, markerCallRate, 25, -1, numthreads);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -1389,7 +1410,7 @@ public class BetaOptimizer {
 												+ " available cores");
 		int maxPCs = 120;
 		analyzeAll(	proj, pcFile, toUseFile, markerSet, abLookup, dbsnp.get(), proj.getNonCNMarkers(),
-								out, betaFiles, pvals, markerCallRate, maxPCs, numthreads, usedInPCFile, 25,
+								out, betaFiles, pvals, markerCallRate, maxPCs, numthreads, usedInPCFile, 25, -1,
 								proj.getLog());
 	}
 }

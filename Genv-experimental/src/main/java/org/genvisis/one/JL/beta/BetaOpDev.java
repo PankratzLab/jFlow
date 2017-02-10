@@ -25,23 +25,20 @@ public class BetaOpDev {
 		proj.BLAST_ANNOTATION_FILENAME.setValue("/Users/Kitty/temp/LLFS/blast.vcfno.gz");// SSD
 		String outDir = ext.parseDirectoryOfFile(pcFile) + "betaOpt2/";
 		new File(outDir).mkdirs();
-		
-		new File(outDir+"WBC_SE_beta_summary.txt").delete();
-		
+
+		new File(outDir + "WBC_SE_beta_summary.txt").delete();
+
 		String unrelatedWhites = "/Volumes/Beta/data/LLFS/unrelateWParse/unrelatedWStudySample.txt";
 
 		BetaOptimizer.optimize(proj, pcFile, outDir,
 				"/Users/Kitty/workspace.other/Genvisis/Genvisis/target/resources/MitoCN/", unrelatedWhites, pcSamps,
-				pvals, 100, .98, 10, 3);
-
+				pvals, 100, .98, 10, 0.0000000001, 3);
+//		0.000001
 	}
-
-
 
 	public static void main(String[] args) {
 
 		test();
 	}
-
 
 }
