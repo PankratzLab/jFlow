@@ -22,6 +22,7 @@ import org.genvisis.CLI;
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.LaunchProperties.LaunchKey;
 import org.genvisis.common.AbstractStartupCheck;
+import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HttpDownloadUtility;
 import org.genvisis.common.Logger;
@@ -57,7 +58,6 @@ public final class Resources {
 			// TODO Auto-generated method stub
 			
 		}
-		
 	}
 
 	/**
@@ -158,7 +158,7 @@ public final class Resources {
 		 * @return A resource for the MiniMac3 app
 		 */
 		public Resource getMiniMac3() {
-			return getTarGzResource(localPath() + "Minimac3", remotePath() + "Minimac3.v2.0.1.tar.gz");
+			return getTarGzResource("Minimac3/bin/Minimac3", remotePath() + "Minimac3.v2.0.1.tar.gz", "Minimac3");
 		}
 	}
 
@@ -250,15 +250,14 @@ public final class Resources {
 	 */
 	public static class Shapeit extends AbstractResourceFactory {
 		public Shapeit(Logger log) {
-			super(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + BIN_DIR + File.separator + "shapeit"
-			      + File.separator, "", log, Shapeit.class);
+			super(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + BIN_DIR + "/shapeit/", "", log, Shapeit.class);
 		}
 
 		/**
 		 * @return A resource for the shapeit app
 		 */
 		public Resource getShapeit() {
-			return getTarGzResource(localPath(),
+			return getTarGzResource("bin/shapeit",
 			                        "https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz");
 		}
 	}
@@ -651,11 +650,23 @@ public final class Resources {
 		private final Logger log;
 		private final Class<?>[] classes;
 
+		/**
+		 * Use this constructor when resource strucutre is consistent between remote and local paths
+		 *
+		 * @param subPath Relative path to this resource's top-level for both local (to the RESOURCES
+		 *        directory) and remote (where resources are hosted) locations.
+		 */
 		public AbstractResourceFactory(String subPath, Logger log, Class<?>... classes) {
 			this(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + subPath + File.separator,
 			     DEFAULT_URL + subPath + "/", log, classes);
 		}
 
+		/**
+		 * Use this constructor when URL and local dir must be significantly different.
+		 *
+		 * @param localPath Fully qualified local path to a base directory for this resource
+		 * @param url Fully qualified URL
+		 */
 		public AbstractResourceFactory(String localPath, String url, Logger log, Class<?>... classes) {
 			this.localPath = localPath;
 			remotePath = url;
@@ -694,12 +705,33 @@ public final class Resources {
 			return log;
 		}
 
+		/**
+		 * Use this method when the resource a) follows consistent structure on local and remote dirs
+		 * and b) does not require Make to be called
+		 *
+		 * @param rsrc Relative (from local dir) path to the "essential" archived file
+		 */
 		protected Resource getTarGzResource(String rsrc) {
-			return getTarGzResource(localPath() + rsrc, remotePath() + rsrc + ".tar.gz");
+			return getTarGzResource(rsrc, remotePath() + rsrc + ".tar.gz");
 		}
 
-		protected Resource getTarGzResource(String unzippedPath, String remotePath) {
-			return new TarGzResource(unzippedPath, localPath(), remotePath, log);
+		/**
+		 * Use this method when the remote and local path are not consistent, but Make does not need to be called.
+		 *
+		 * @param remotePath Absolute path to remote download location
+		 */
+		protected Resource getTarGzResource(String rsrc, String remotePath) {
+			return getTarGzResource(rsrc, remotePath, null);
+		}
+
+		/**
+		 * Use this when Make needs to be called in the extracted directory
+		 *
+		 * @param makeFile Relative (from local) path to make file, or null if this resource does not need to be built.
+		 */
+		protected Resource getTarGzResource(String rsrc, String remotePath, String makePath) {
+			String makeDir = makePath == null ? null : localPath() + makePath;
+			return new TarGzResource(localPath() + rsrc, localPath(), remotePath, log, makeDir);
 		}
 
 		protected Resource getVCFResource(String rsrc) {
@@ -738,16 +770,21 @@ public final class Resources {
 	/**
 	 * Resource that is .tar.gz compressed
 	 */
+	// FIXME: this class is currently doing too much.
+	// It would be nice to split out things that need to be built and things that need to be chmodded into some sort of merge-able stack,
+	// e.g. by constructing multiple Resources wrapping each other.
 	public static class TarGzResource extends AbstractResource {
 		private final String unzippedPath;
+		private final String makeDir;
 
 		/**
 		 * @param path Local path to unzipped indicator file
 		 * @param url Remote tar.gz path
 		 */
-		public TarGzResource(String unzippedPath, String extractionDir, String url, Logger log) {
+		public TarGzResource(String unzippedPath, String extractionDir, String url, Logger log, String makeDir) {
 			super(extractionDir + new File(url).getName(), url, log);
 			this.unzippedPath = unzippedPath;
+			this.makeDir = makeDir;
 		}
 
 		@Override
@@ -758,7 +795,16 @@ public final class Resources {
 
 			String path = super.get();
 			if (path != null) {
-				return extractTarGz(path);
+				String extracted = extractTarGz(path);
+				if (extracted != null) {
+					// Run make if the zipped archive requires compilation
+					if (makeDir != null && !CmdLine.runDefaults("make -s", makeDir)) {
+						return null;
+					}
+					// Ensure extracted file can be used
+					Files.chmod(extracted);
+				}
+				return extracted;
 			}
 
 			return null;
@@ -785,7 +831,7 @@ public final class Resources {
 				IOUtils.copy(in, out);
 				in.close();
 				out.close();
-				 unzippedTar.deleteOnExit();
+				unzippedTar.deleteOnExit();
 
 				// Extract all entries in the tar
 				final InputStream is = new FileInputStream(unzippedTar);
