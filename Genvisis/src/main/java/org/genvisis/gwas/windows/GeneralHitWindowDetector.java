@@ -70,6 +70,11 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
 	}
 
 
+	@Override
+	public void remove() {
+		// Eclipse complains about this being missing. Maven doesn't seem to care. Java is dumb.
+		throw new UnsupportedOperationException();
+	}
 
 	/**
 	 * This sets
@@ -175,5 +180,6 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
 		}
 		return false;
 	}
+
 
 }
