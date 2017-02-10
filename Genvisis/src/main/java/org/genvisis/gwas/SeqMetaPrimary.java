@@ -76,13 +76,15 @@ public class SeqMetaPrimary {
 
 				if (new File(currentGeno).exists()) {
 					foundGenos = true;
+					if (new File(currentSnpInfo).exists()) {
+						foundSnpInfo = true;
+					} else {
+						System.err.println("Error - Files not found " + currentSnpInfo + "; this chromosome will be skipped");
+						foundSnpInfo = false;
+					}
 				} else {
-					System.err.println("Error - Files not found " + currentGeno);
-				}
-				if (new File(currentSnpInfo).exists()) {
-					foundSnpInfo = true;
-				} else {
-					System.err.println("Error - Files not found " + currentSnpInfo);
+					System.err.println("Error - Files not found " + currentGeno + "; this chromosome will be skipped");
+					foundGenos = false;
 				}
 
 				if (foundGenos && foundSnpInfo) {
@@ -200,10 +202,10 @@ public class SeqMetaPrimary {
 						commands += "./run_" + cohort + "_" + (j + 1) + ".qsub\n";
 					}
 				}
-				Files.qsub(batchDir	+ "finishUpOnSB_" + cohort, commands, 60000,
-										(int) Math.ceil(iterations.length / 2.0), 16);
+				Files.qsub(batchDir	+ "finishWithHigherMem_" + cohort, commands, 60000,
+										(int) Math.ceil(iterations.length / 2.0), 1);
 			} else {
-				new File(batchDir + "finishUpOnSB_" + cohort).delete();
+				new File(batchDir + "finishWithHigherMem_" + cohort).delete();
 			}
 
 			iterations = Matrix.toMatrix(ArrayUtils.toStringArray(consolidateVector));
@@ -228,23 +230,21 @@ public class SeqMetaPrimary {
 									+ "mergeRdataFiles.R";
 			Files.qsub(batchDir	+ "run_mergeRdataFiles_" + cohort, commands, qsubMem * 4, qsubWalltime,
 									1);
-			Files.qsubMultiple(	jobNamesWithAbsolutePaths, jobSizes, batchDir,
-													batchDir + "chunk_" + cohort, 8, true, null, -1, qsubMem, qsubWalltime);
-			Files.qsubMultiple(	jobNamesWithAbsolutePaths, jobSizes, batchDir,
-													batchDir + "chunkSB256_" + cohort, 16, true, "sb256", -1, qsubMem,
-													qsubWalltime);
-			Files.qsubMultiple(	jobNamesWithAbsolutePaths, jobSizes, batchDir,
-													batchDir + "chunkSB_" + cohort, 16, true, "sb", -1, qsubMem,
-													qsubWalltime);
+//			Files.qsubMultiple(	jobNamesWithAbsolutePaths, jobSizes, batchDir,
+//													batchDir + "chunk_" + cohort, 8, true, null, -1, qsubMem, qsubWalltime);
+//			Files.qsubMultiple(	jobNamesWithAbsolutePaths, jobSizes, batchDir,
+//													batchDir + "chunkSB256_" + cohort, 16, true, "sb256", -1, qsubMem,
+//													qsubWalltime);
+//			Files.qsubMultiple(	jobNamesWithAbsolutePaths, jobSizes, batchDir,
+//													batchDir + "chunkSB_" + cohort, 16, true, "sb", -1, qsubMem,
+//													qsubWalltime);
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static void batchMany(	String cohort, String genos, String phenosCommaDelimited,
-																String racesCommaDelimited, String snpInfo, int qsubMem,
-																double qsubWalltime, String queue) {
+	public static void batchMany(String cohort, String genos, String phenosCommaDelimited, String racesCommaDelimited, String snpInfo, int qsubMem, double qsubWalltime, String queue) {
 		String[] phenos, races;
 		Vector<String> v;
 
@@ -270,9 +270,22 @@ public class SeqMetaPrimary {
 		Files.writeArray(ArrayUtils.toStringArray(v), "scriptAll");
 		Files.chmod("scriptAll");
 
+//		v = new Vector<String>();
+//		for (String pheno : phenos) {
+//			for (String race : races) {
+//				v.add("cd " + cohort + "_" + race + "_" + pheno + "/batchFiles/");
+//				v.add("./master.chunkSB_" + cohort + "_" + race + "_" + pheno);
+//				v.add("cd ../../");
+//				v.add("");
+//			}
+//		}
+//		Files.writeArray(Array.toStringArray(v), "scriptAllItasca");
+//		Files.chmod("scriptAllItasca");
+//
 		v = new Vector<String>();
 		for (String pheno : phenos) {
 			for (String race : races) {
+<<<<<<< Upstream, based on origin/master
 				v.add("cd " + cohort + "_" + race + "_" + pheno + "/batchFiles/");
 				v.add("./master.chunkSB_" + cohort + "_" + race + "_" + pheno);
 				v.add("cd ../../");
@@ -286,16 +299,24 @@ public class SeqMetaPrimary {
 		for (String pheno : phenos) {
 			for (String race : races) {
 				if (Files.exists(cohort	+ "_" + race + "_" + pheno + "/batchFiles/finishUpOnSB_" + cohort
+=======
+				if (Files.exists(cohort	+ "_" + race + "_" + pheno + "/batchFiles/finishWithHigherMem_" + cohort
+>>>>>>> 9e15830 Simplified batching in SeqMetaPrimary
 													+ "_" + race + "_" + pheno)) {
 					v.add("cd " + cohort + "_" + race + "_" + pheno + "/batchFiles/");
-					v.add("qsub -q sb finishUpOnSB_" + cohort + "_" + race + "_" + pheno);
+					v.add("qsub finishWithHigherMem_" + cohort + "_" + race + "_" + pheno);
 					v.add("cd ../../");
 					v.add("");
 				}
 			}
 		}
+<<<<<<< Upstream, based on origin/master
 		Files.writeArray(ArrayUtils.toStringArray(v), "finishUpOnSB");
 		Files.chmod("finishUpOnSB");
+=======
+		Files.writeArray(Array.toStringArray(v), "finishWithHigherMem");
+		Files.chmod("finishWithHigherMem");
+>>>>>>> 9e15830 Simplified batching in SeqMetaPrimary
 
 		v = new Vector<String>();
 		for (String pheno : phenos) {
