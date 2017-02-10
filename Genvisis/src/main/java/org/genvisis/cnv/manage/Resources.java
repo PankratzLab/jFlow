@@ -18,6 +18,7 @@ import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
+import org.genvisis.CLI;
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.LaunchProperties.LaunchKey;
 import org.genvisis.common.AbstractStartupCheck;
@@ -1062,6 +1063,21 @@ public final class Resources {
 
 		public String getLabel() {
 			return label;
+		}
+	}
+
+	public static void main(String... args) {
+		CLI c = new CLI(Resources.class);
+		final String localCheck = "local";
+
+		c.addFlag(localCheck, "Check local resources for untracked files.");
+		c.parseWithExit(args);
+
+		if (c.has(localCheck)) {
+			List<String> checkResults = new LocalResourceCheck().check();
+			for (String s : checkResults) {
+				System.err.println(s);
+			}
 		}
 	}
 }

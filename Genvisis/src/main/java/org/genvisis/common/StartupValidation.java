@@ -3,8 +3,6 @@ package org.genvisis.common;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.genvisis.cnv.manage.Resources.LocalResourceCheck;
-
 /**
  * Utility class for executing {@link StartupCheck} plugins and reporting the results.
  *
@@ -13,7 +11,7 @@ public final class StartupValidation {
 
 	private static boolean validated = false;
 	private static String warningString = "";
-	private static StartupCheck[] toCheck = new StartupCheck[] {new LocalResourceCheck()};
+	private static StartupCheck[] toCheck = new StartupCheck[] {};
 
 	private StartupValidation() {
 		// prevent instantiation of utility class
