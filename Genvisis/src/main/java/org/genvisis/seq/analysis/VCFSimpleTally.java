@@ -333,9 +333,9 @@ public class VCFSimpleTally {
 				header = ArrayUtils.tagOn(head, ext.removeDirectoryInfo(fileName), null);
 				while (reader.ready()) {
 					String[] line = reader.readLine().trim().split("\t");
-					String gene = line[0];
-					if (anno.containsKey(gene.toUpperCase())) {
-						throw new IllegalAccessError("One entry per gene per file");
+					String gene = line[0].toUpperCase();
+					if (anno.containsKey(gene)) {
+						throw new IllegalAccessError("One entry per gene per file, " + gene + " was seen twice");
 
 					} else {
 						if (line.length > header.length) {
@@ -354,7 +354,7 @@ public class VCFSimpleTally {
 							throw new IllegalArgumentException("Error, could not fill line in" + fileName);
 
 						}
-						anno.put(gene.toUpperCase(), ArrayUtils.toStringArray(filled));
+						anno.put(gene, ArrayUtils.toStringArray(filled));
 					}
 
 				}
