@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -14,6 +15,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.genvisis.stats.Maths;
 import org.genvisis.stats.ProbDist;
@@ -5027,6 +5030,37 @@ public class ArrayUtils {
 	public static <T> T[] sortedCopy(T[] array) {
 		T[] sorted = Arrays.copyOf(array, array.length);
 		Arrays.sort(sorted);
+		return sorted;
+	}
+	
+	public static String[] sortedCopyAlphanum(String[] array) {
+		String[] sorted = Arrays.copyOf(array, array.length);
+		Arrays.sort(sorted, new Comparator<String>() {
+			final Pattern p = Pattern.compile("^\\d+");
+			@Override
+			public int compare(String object1, String object2) {
+				Matcher m = p.matcher(object1);
+				Integer number1 = null;
+				if (!m.find()) {
+					return object1.compareTo(object2);
+				} else {
+					Integer number2 = null;
+					number1 = Integer.parseInt(m.group());
+					m = p.matcher(object2);
+					if (!m.find()) {
+						return object1.compareTo(object2);
+					} else {
+						number2 = Integer.parseInt(m.group());
+						int comparison = number1.compareTo(number2);
+						if (comparison != 0) {
+							return comparison;
+						} else {
+							return object1.compareTo(object2);
+						}
+					}
+				}
+			}
+		});
 		return sorted;
 	}
 

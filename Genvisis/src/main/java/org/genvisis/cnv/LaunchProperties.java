@@ -171,7 +171,7 @@ public class LaunchProperties {
 	 */
 	public static String[] getListOfProjectNames() {
 		String[] projects = getListOfProjectProperties();
-		String[] projectNames = new String[projects.length];
+		String[] projectNames = new String[projects == null ? 0 : projects.length];
 		for (int i = 0; i < projectNames.length; i++) {
 			projectNames[i] = ext.rootOf(projects[i], true);
 		}

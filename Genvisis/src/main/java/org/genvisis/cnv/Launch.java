@@ -83,6 +83,7 @@ import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.CurrentManifest;
 import org.genvisis.common.Files;
@@ -249,7 +250,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
 		// update the project box
 		if (projectsBox != null) {
-			projectsBox.setModel(new DefaultComboBoxModel(LaunchProperties.getListOfProjectNames()));
+			String[] projNames = LaunchProperties.getListOfProjectNames();
+			projNames = ArrayUtils.sortedCopyAlphanum(projNames);
+			projectsBox.setModel(new DefaultComboBoxModel(projNames));
 		}
 
 		// update the menu
