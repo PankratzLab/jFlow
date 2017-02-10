@@ -45,7 +45,7 @@ public class PhenoPrep {
 														boolean pedFormat, boolean fastFormat, boolean excludeMissingValues,
 														boolean variablesAllInOneFile, String extras, String[] outputs,
 														boolean finalHeader, boolean addintercept, boolean sort, boolean zscore,
-														boolean signZ, boolean histogram, Logger log) {
+														boolean signZ, String timeVariable, boolean histogram, Logger log) {
 		if (phenos == null) {
 			log.reportError("Error - phenos is null");
 			return;
@@ -60,11 +60,13 @@ public class PhenoPrep {
 				parse(dir, filename, idColName, phenos[i], transform, sdThreshold, winsorize, remove,
 							makeResids, afterResids, inverseNormalize, covars, idFile, matchIdOrder, plinkFormat,
 							pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, extras,
-							outputs[i], finalHeader, addintercept, sort, zscore, signZ, histogram, log);
+							outputs[i], finalHeader, addintercept, sort, zscore, signZ, timeVariable, histogram, log);
 			}
 		}
 	}
 
+	// TODO Check to see if pheno is binary 
+	// TODO If timeVariable != null, then check to ensure pheno isn't binary. Also remove from covarList if present.
 	public static void parse(	String dir, String filename, String idColName, String pheno,
 														String transform, double sdThreshold, boolean winsorize, boolean remove,
 														boolean makeResids, boolean afterResids, boolean inverseNormalize,
@@ -73,40 +75,34 @@ public class PhenoPrep {
 														boolean excludeMissingValues, boolean variablesAllInOneFile,
 														String extras, String outFile, boolean finalHeader,
 														boolean addintercept, boolean sort, boolean zscore, boolean signZ,
-														boolean histogram, Logger log) {
+														String timeVariable, boolean histogram, Logger log) {
 		PhenoPrep prep;
 		String[] covars;
 
 		if (outFile == null) {
 			outFile = pheno + "_out.csv";
-			log.reportError("Warning - no output filename specified using [pheno]_out.csv ("	+ outFile
-											+ ")");
+			log.reportError("Warning - no output filename specified using [pheno]_out.csv ("+outFile+")");
 		}
 
 		log.report("Processing pheno: " + pheno + "\tout: " + outFile);
 
 		if (winsorize && remove) {
-			log.reportError("Error - you have selected to both Winsorize and remove outliers for phenotype '"
-											+ pheno + "'; pick one or the other");
+			log.reportError("Error - you have selected to both Winsorize and remove outliers for phenotype '"+pheno+"'; pick one or the other");
 			return;
 		}
 
 		if (afterResids && !winsorize && !remove) {
-			log.reportError("Error - you have selected the \"after residuals\" option for phenotype '"
-												+ pheno
-											+ "' but have not selected to Winsorize or remove outliers; aborting");
+			log.reportError("Error - you have selected the \"after residuals\" option for phenotype '"+pheno+"' but have not selected to Winsorize or remove outliers; aborting");
 			return;
 		}
 
 		if (!makeResids && afterResids) {
-			log.reportError("Error - you have selected to Winsorize or remove outliers with the \"after residuals\" option for phenotype '"
-											+ pheno + "' but have not selected the \"make residuals\" option; aborting");
+			log.reportError("Error - you have selected to Winsorize or remove outliers with the \"after residuals\" option for phenotype '"+pheno+"' but have not selected the \"make residuals\" option; aborting");
 			return;
 		}
 
 		if (makeResids && covarList == null) {
-			log.reportError("Error - you have selected to make residuals without specifying any covariates to regress out for phenotype '"
-											+ pheno + "'; aborting");
+			log.reportError("Error - you have selected to make residuals without specifying any covariates to regress out for phenotype '"+pheno+"'; aborting");
 			return;
 		}
 
@@ -131,16 +127,19 @@ public class PhenoPrep {
 			covars = covarList.split(",");
 		}
 
+		if (timeVariable != null) {
+			covars = Array.insertStringAt(timeVariable, covars, 0);
+		}
+		
+		
 		String[] header = Files.getHeaderOfFile(dir + filename, log);
 		if (ext.indexOfStr(pheno, header) == -1 && pheno.endsWith(header[1])) {
-			log.reportError("Warning - did not find specified phenotype '"	+ pheno + "', but did find '"
-											+ header[1] + "', so using that instead");
+			log.reportError("Warning - did not find specified phenotype '"	+ pheno + "', but did find '"+ header[1] + "', so using that instead");
 			pheno = header[1];
 		}
 
 
-		prep = new PhenoPrep(dir	+ filename, idFile == null ? null : dir + idFile, idColName, pheno,
-													covars, log);
+		prep = new PhenoPrep(dir+filename, idFile == null ? null : dir + idFile, idColName, pheno, covars, log);
 
 		if (prep.failed()) {
 			log.report("Error - PhenoPrep failed for " + pheno);
@@ -187,9 +186,13 @@ public class PhenoPrep {
 		} else if (sort) {
 			prep.sort();
 		}
+		
+		if (timeVariable != null) {
+			prep.setFinalHeaderToCox();
+		}
 
-		prep.writeFinalFile(dir	+ outFile, plinkFormat, pedFormat, fastFormat, excludeMissingValues,
-												variablesAllInOneFile, dir + idFile, finalHeader);
+
+		prep.writeFinalFile(dir	+ outFile, plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, dir + idFile, finalHeader);
 		prep.summarizeCentralMoments(dir + idFile);
 
 		if (histogram) {
@@ -197,8 +200,7 @@ public class PhenoPrep {
 			// int idIndex = ext.indexOfStr(idColName, parts);
 			int dataIndex = ext.indexOfStr(pheno, parts);
 
-			String[] dataStrs = HashVec.loadFileToStringArray(dir	+ filename, true, new int[] {dataIndex},
-																												false);
+			String[] dataStrs = HashVec.loadFileToStringArray(dir	+ filename, true, new int[] {dataIndex}, false);
 			String[] valid = ArrayUtils.removeMissingValues(dataStrs);
 			int missing = dataStrs.length - valid.length;
 			log.report("Warning - " + missing + " missing values were found");
@@ -223,6 +225,11 @@ public class PhenoPrep {
 
 	}
 
+	private void setFinalHeaderToCox() {
+		finalHeader[0] = "status";
+		finalHeader[1] = "time";
+	}
+
 	private void summarizeCentralMoments(String idFile) {
 		PrintWriter writer;
 		boolean exists;
@@ -237,8 +244,7 @@ public class PhenoPrep {
 			}
 			trait = Matrix.extractColumn(database, 0);
 			if (ext.indexOfStr("Male", finalHeader) >= 0) {
-				males =
-							ArrayUtils.toIntArray(Matrix.extractColumn(database, ext.indexOfStr("Male", finalHeader)));
+				males = ArrayUtils.toIntArray(Matrix.extractColumn(database, ext.indexOfStr("Male", finalHeader)));
 			} else {
 				males = null;
 			}
@@ -253,11 +259,9 @@ public class PhenoPrep {
 											+ ext.formDeci(ArrayUtils.stdev(trait), 4, false) + "\t"
 											+ ext.formDeci(ArrayUtils.min(trait), 4, false) + "\t"
 											+ ext.formDeci(ArrayUtils.max(trait), 4, false)
-											+ (males == null	? "\t.\t."
-																				: "\t"	+ (males.length - ArrayUtils.sum(males)) + "\t"
+											+ (males == null	? "\t.\t." : "\t"	+ (males.length - ArrayUtils.sum(males)) + "\t"
 																					+ ArrayUtils.sum(males))
-											+ (ages == null	? "\t.\t.\t.\t."
-																			: "\t"	+ ext.formDeci(ArrayUtils.mean(ages), 4, false) + "\t"
+											+ (ages == null	? "\t.\t.\t.\t." : "\t"	+ ext.formDeci(ArrayUtils.mean(ages), 4, false) + "\t"
 																				+ ext.formDeci(ArrayUtils.median(ages), 4, false) + "\t"
 																				+ ext.formDeci(ArrayUtils.stdev(ages), 4, false) + "\t"
 																				+ ext.formDeci(ArrayUtils.min(ages), 4, false) + "\t"
@@ -273,8 +277,7 @@ public class PhenoPrep {
 
 	}
 
-	public PhenoPrep(	String filename, String idFile, String idColName, String pheno, String[] covars,
-										Logger log) {
+	public PhenoPrep(String filename, String idFile, String idColName, String pheno, String[] covars, Logger log) {
 		BufferedReader reader;
 		String[] line;
 		String temp;
@@ -318,8 +321,7 @@ public class PhenoPrep {
 				return;
 			}
 
-			indices = ext.indexFactors(	ArrayUtils.insertStringAt(pheno, covars, 0), header, false, log, true,
-																	false);
+			indices = ext.indexFactors(	ArrayUtils.insertStringAt(pheno, covars, 0), header, false, log, true, false);
 			if (ArrayUtils.min(indices) == -1) {
 				log.reportError("Header looks like this: ");
 				log.reportError(ArrayUtils.toStr(header, " / "));
@@ -366,8 +368,7 @@ public class PhenoPrep {
 
 		if (finalIDs.length == 0) {
 			log.reportError("Error - there are no indiviudals present in the final dataset"
-											+ (idFile != null	? "; check the ids file to make sure the same set of IDs were used in both input files"
-																				: ""));
+			+ (idFile != null ?"; check the ids file to make sure the same set of IDs were used in both input files" : ""));
 		}
 	}
 
@@ -391,16 +392,11 @@ public class PhenoPrep {
 
 		count = ArrayUtils.countIf(ArrayUtils.toStringArray(data), "0.0");
 		if (count > 0 && (transform.equalsIgnoreCase("ln") || transform.equalsIgnoreCase("log10"))) {
-			log.reportError("There "	+ (count == 1 ? "is one zero value" : " are zero values")
-											+ ", which will cause the " + transform
-											+ " transformation to fail; aborting");
+			log.reportError("There " + (count == 1 ? "is one zero value" : " are zero values") + ", which will cause the " + transform + " transformation to fail; aborting");
 			return false;
 		}
-		if (ArrayUtils.min(data) < 0
-				&& (transform.equalsIgnoreCase("ln")	|| transform.equalsIgnoreCase("log10")
-						|| transform.equalsIgnoreCase("sqrt"))) {
-			log.reportError("Negative values will cause the "	+ transform
-											+ " transformation to fail; aborting");
+		if (ArrayUtils.min(data) < 0 && (transform.equalsIgnoreCase("ln") || transform.equalsIgnoreCase("log10") || transform.equalsIgnoreCase("sqrt"))) {
+			log.reportError("Negative values will cause the " + transform + " transformation to fail; aborting");
 			return false;
 		}
 

@@ -240,9 +240,10 @@ public class PowerCalculator {
 			// rangeOfMaf(0.001, 0.01, 465, 1119, 5043, false); // Poynter's MDS-AML grant, MDS
 			// rangeOfMaf(0.001, 0.01, 434, 1119, 5043, false); // Poynter's MDS-AML grant, MDS
 			// rangeOfMaf(0.001, 0.01, 465+434, 1119, 5043, false); // Poynter's MDS-AML grant, MDS
-			rangeOfMaf(0.001, 0.01, 465, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
-			rangeOfMaf(0.001, 0.01, 434, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
-			rangeOfMaf(0.001, 0.01, 465 + 434, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
+//			rangeOfMaf(0.001, 0.01, 465, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
+//			rangeOfMaf(0.001, 0.01, 434, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
+//			rangeOfMaf(0.001, 0.01, 465 + 434, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
+			rangeOfMaf(0.001, 0.01, 875 + 700, 875 + 700, 1000000, false); // Poynter's MDS-AML grant, MDS
 
 
 
