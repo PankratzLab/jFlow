@@ -141,7 +141,7 @@ public class EmimPipeline {
 	}
 
 	static void setup(String runDir, String[] cnvFiles, String[] plinkRoots, String pedFile,
-										String popFile, String subPopFile, double pThreshold,
+										String popFile, String subPopFile, String riskAlleleFile, double pThreshold,
 										Set<Emim.EMIM_MODEL> models, boolean phaseWithShapeit, String qsubQueue,
 										Logger log1) {
 		ArrayList<String> pbsFiles = new ArrayList<String>();
@@ -198,8 +198,8 @@ public class EmimPipeline {
 
 				log.reportTimeInfo("Generating EMIM files for cnv root " + plinkRoot + "...");
 				String pbsFile = Emim.scriptAllInDir(runDir	+ cnvDir, plinkRoot, relativePlinkRoot, "GEN",
-																							null, pThreshold, models, phaseWithShapeit,
-																							resultFile, log);
+																							null, riskAlleleFile, pThreshold, models,
+																							phaseWithShapeit, resultFile, log);
 				if (pbsFile != null) {
 					pbsFiles.add(pbsFile);
 				}
@@ -208,8 +208,8 @@ public class EmimPipeline {
 					String popDir = cnvDir + ext.replaceWithLinuxSafeCharacters(pop, true) + "/";
 					resultFile = cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(pop, true);
 					pbsFile = Emim.scriptAllInDir(runDir	+ popDir, plinkRoot, "../" + relativePlinkRoot,
-																				"GEN", "keeps.txt", pThreshold, models, phaseWithShapeit,
-																				resultFile, log);
+																				"GEN", "keeps.txt", riskAlleleFile, pThreshold, models,
+																				phaseWithShapeit, resultFile, log);
 					if (pbsFile != null) {
 						pbsFiles.add(pbsFile);
 					}
@@ -218,9 +218,10 @@ public class EmimPipeline {
 						String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(pop2, true) + "/";
 						resultFile = cnvRoot	+ "_" + ext.replaceWithLinuxSafeCharacters(pop, true) + "_"
 													+ ext.replaceWithLinuxSafeCharacters(pop2, true);
-						pbsFile = Emim.scriptAllInDir(runDir	+ subPopDir, plinkRoot,
-																					"../../" + relativePlinkRoot, "GEN", "keeps.txt",
-																					pThreshold, models, phaseWithShapeit, resultFile, log);
+						pbsFile =
+										Emim.scriptAllInDir(runDir	+ subPopDir, plinkRoot, "../../" + relativePlinkRoot,
+																				"GEN", "keeps.txt", riskAlleleFile, pThreshold, models,
+																				phaseWithShapeit, resultFile, log);
 						if (pbsFile != null) {
 							pbsFiles.add(pbsFile);
 						}
@@ -235,8 +236,8 @@ public class EmimPipeline {
 
 				log.reportTimeInfo("Generating EMIM files for PLINK root " + plinkRoot + "...");
 				String pbsFile = Emim.scriptAllInDir(runDir	+ plinkDir, plinkRoot, "../" + plinkRoot, "GEN",
-																							null, pThreshold, models, phaseWithShapeit,
-																							resultFile, log);
+																							null, riskAlleleFile, pThreshold, models,
+																							phaseWithShapeit, resultFile, log);
 				if (pbsFile != null) {
 					pbsFiles.add(pbsFile);
 				}
@@ -245,8 +246,8 @@ public class EmimPipeline {
 					String popDir = plinkDir + ext.replaceWithLinuxSafeCharacters(pop, true) + "/";
 					resultFile = plinkRoot + "_" + ext.replaceWithLinuxSafeCharacters(pop, true);
 					pbsFile = Emim.scriptAllInDir(runDir	+ popDir, plinkRoot, "../../" + plinkRoot, "GEN",
-																				"keeps.txt", pThreshold, models, phaseWithShapeit,
-																				resultFile, log);
+																				"keeps.txt", riskAlleleFile, pThreshold, models,
+																				phaseWithShapeit, resultFile, log);
 					if (pbsFile != null) {
 						pbsFiles.add(pbsFile);
 					}
@@ -256,8 +257,8 @@ public class EmimPipeline {
 						resultFile = plinkRoot	+ "_" + ext.replaceWithLinuxSafeCharacters(pop, true) + "_"
 													+ ext.replaceWithLinuxSafeCharacters(pop2, true);
 						pbsFile = Emim.scriptAllInDir(runDir	+ subPopDir, plinkRoot, "../../../" + plinkRoot,
-																					"GEN", "keeps.txt", pThreshold, models, phaseWithShapeit,
-																					resultFile, log);
+																					"GEN", "keeps.txt", riskAlleleFile, pThreshold, models,
+																					phaseWithShapeit, resultFile, log);
 						if (pbsFile != null) {
 							pbsFiles.add(pbsFile);
 						}
@@ -281,9 +282,8 @@ public class EmimPipeline {
 		}
 
 		String processCommand = "cd " + runDir + "\n";
-		
-		processCommand += Files.getRunString()	+ " gwas.EmimPipeline -process -forest dir="
-														+ runDir;
+
+		processCommand += Files.getRunString() + " gwas.EmimPipeline -process -forest dir=" + runDir;
 		if (cnvFiles != null) {
 			processCommand += " cnvs=" + ArrayUtils.toStr(cnvFiles, ",");
 		}
@@ -629,6 +629,7 @@ public class EmimPipeline {
 		String pedFile = "./pedigree.dat";
 		String popFile = "./pops.xln";
 		String subPopFile = "./subPops.xln";
+		String riskAlleleFile = null;
 		double pThreshold = 1.1;
 		String logFile = null;
 		Logger log = null;
@@ -646,18 +647,19 @@ public class EmimPipeline {
 										+ "   (2b) PLINK fileroots (i.e. plink=plink1,plink2 (not the default))\n"
 										+ " AND\n" + "   (3) population file (i.e. pop=" + popFile + " (default))\n"
 										+ " AND\n" + "   (4) subpopulation file (i.e. subPop=" + subPopFile
-										+ " (default))\n" + " AND\n"
-										+ "   (5) p-value threshold to filter on (i.e. pThreshold=" + pThreshold
-										+ " (default))\n"
+										+ " (default))\n" + " AND\n" + " AND\n"
+										+ "   (5) desired risk allele file (i.e. riskAlleles=forceRiskAllele.txt (not the default))\n"
+										+ " AND\n" + "   (6) p-value threshold to filter on (i.e. pThreshold="
+										+ pThreshold + " (default))\n"
 										+ " AND, if desired (though the script to run this will be created automatically)\n"
-										+ "   (6) -process flag to consolidate results after PBS files have completed (i.e. -process (not the default))\n"
+										+ "   (7) -process flag to consolidate results after PBS files have completed (i.e. -process (not the default))\n"
 										+ " AND/OR \n"
-										+ "   (7) -forest flag to generate forest plot parameters for a set of markers (i.e. -forest (not the default))\n"
+										+ "   (8) -forest flag to generate forest plot parameters for a set of markers (i.e. -forest (not the default))\n"
 										+ " AND\n"
-										+ "   (8) markers to use for forest plot parameter generation (i.e. forestMarkers=./gwasHits.txt (default))\n"
-										+ " AND\n" + "   (9) Phase with shapeit in PREMIM run (i.e. phase="
+										+ "   (9) markers to use for forest plot parameter generation (i.e. forestMarkers=./gwasHits.txt (default))\n"
+										+ " AND\n" + "   (10) Phase with shapeit in PREMIM run (i.e. phase="
 										+ phaseWithShapeit + " (default))\n";
-		int argNum = 10;
+		int argNum = 11;
 		for (Emim.EMIM_MODEL model : Emim.EMIM_MODEL.optionalSet()) {
 			usage += " AND\n"	+ "   (" + argNum++ + ") Include " + model.toString() + " model (i.e. "
 								+ model.toString() + "=true (default))\n";
@@ -686,6 +688,9 @@ public class EmimPipeline {
 				numArgs--;
 			} else if (args[i].startsWith("subPop=")) {
 				subPopFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("riskAlleles=")) {
+				riskAlleleFile = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("pThreshold=")) {
 				pThreshold = ext.parseDoubleArg(args[i]);
@@ -739,9 +744,12 @@ public class EmimPipeline {
 															models, log);
 				}
 			} else {
-				System.out.println("Preparing up EMIM pipeline...");
-				setup(runDir, cnvFiles, plinkRoots, pedFile, popFile, subPopFile, pThreshold, models,
-							phaseWithShapeit, qsub, log);
+				System.out.println("Preparing EMIM pipeline...");
+				if (riskAlleleFile != null) {
+					riskAlleleFile = Files.firstPathToFileThatExists(riskAlleleFile, runDir, "");
+				}
+				setup(runDir, cnvFiles, plinkRoots, pedFile, popFile, subPopFile, riskAlleleFile,
+							pThreshold, models, phaseWithShapeit, qsub, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

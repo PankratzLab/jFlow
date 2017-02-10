@@ -9,18 +9,20 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
+import com.google.common.io.Closeables;
 
 public class Emim {
 
@@ -99,6 +101,9 @@ public class Emim {
 		}
 	}
 
+	private static final String EMIM_RISK_SNP_FILENAME = "risksnplist.txt";
+	private static final String EMIM_MINOR_SNP_FILENAME = "minorsnplist.txt";
+
 	private static void generateEmimParams(	String filenameOriginal, HashSet<EMIM_PARAM> setParams,
 																					Logger log) {
 		String[][] replacements = new String[EMIM_PARAM.values().length][];
@@ -108,6 +113,53 @@ public class Emim {
 		}
 
 		replaceLines(filenameOriginal, "emimparams.dat", replacements, log);
+	}
+
+	private static void generateRiskAlleles(String riskAlleleFile, Logger log) {
+		if (!Files.exists(riskAlleleFile)) {
+			log.reportError(riskAlleleFile
+											+ " is not in the current directory; aborting risk allele generation");
+			return;
+		}
+		if (!Files.exists(EMIM_MINOR_SNP_FILENAME)) {
+			log.reportError(EMIM_MINOR_SNP_FILENAME
+											+ " is not in the current directory; aborting risk allele generation");
+			return;
+		}
+
+		Map<String, String> riskAlleles = HashVec.loadFileToHashString(riskAlleleFile, false);
+		BufferedReader reader = null;
+		PrintWriter writer = Files.getAppropriateWriter(EMIM_RISK_SNP_FILENAME);
+
+		try {
+			reader = Files.getAppropriateReader(EMIM_MINOR_SNP_FILENAME);
+			while (reader.ready()) {
+				String line = reader.readLine();
+				String[] linePieces = line.split("\\s+");
+				if (linePieces.length != 3) {
+					log.reportError("Invalid line in "	+ EMIM_MINOR_SNP_FILENAME + ": " + line
+													+ "; aborting risk allele generation");
+					return;
+				}
+				String markerNum = linePieces[0];
+				String markerID = linePieces[1];
+				String allele = linePieces[2];
+				if (riskAlleles.containsKey(markerID)) {
+					allele = riskAlleles.get(markerID);
+				}
+
+				writer.println(markerNum + "\t" + markerID + "\t" + allele);
+			}
+		} catch (FileNotFoundException e) {
+			log.reportFileNotFound(EMIM_MINOR_SNP_FILENAME);
+		} catch (IOException e) {
+			log.reportIOException(EMIM_MINOR_SNP_FILENAME);
+		} finally {
+			Closeables.closeQuietly(reader);
+			writer.close();
+		}
+
+
 	}
 
 	private static void setTo(String runType, EMIM_MODEL model) {
@@ -262,7 +314,7 @@ public class Emim {
 
 	protected static String scriptAllInDir(	String runDir, String plinkDirAndRoot,
 																					String relativePlinkRoot, String excludeFile,
-																					String keepFile, double pThreshold,
+																					String keepFile, String riskAlleleFile, double pThreshold,
 																					Collection<EMIM_MODEL> models, boolean phaseWithShapeit,
 																					String resultPrefix, Logger log) {
 		String commands;
@@ -301,8 +353,9 @@ public class Emim {
 			forceParse = true;
 			commands += "plink2 --noweb --bfile "	+ relativePlinkRoot
 									+ (excludeFile != null ? " --exclude " + excludeFile : "")
-									+ (keepFile != null ? " --keep " + keepFile : "") + " --make-bed --out emimPrep\n"
-									+ "mv emimPrep.log plink_prep.log\n" + "\n";
+									+ (keepFile != null ? " --keep " + keepFile : "")
+									+ (riskAlleleFile != null ? " --a1-allele " + riskAlleleFile : "")
+									+ " --make-bed --out emimPrep\n" + "mv emimPrep.log plink_prep.log\n" + "\n";
 		}
 
 		if (!forceRun
@@ -342,11 +395,25 @@ public class Emim {
 								"plink2 --noweb --bfile emimPrep --freq\n" + "mv plink.log plink_freq.log\n" + "\n";
 		}
 
+		if (!forceRun && Files.checkAllFiles(	currDir, true, false, log, EMIM_MINOR_SNP_FILENAME,
+																					EMIM_RISK_SNP_FILENAME)) {
+			log.report(EMIM_MINOR_SNP_FILENAME	+ " and " + EMIM_RISK_SNP_FILENAME
+									+ " already exist, skipping risk allele designation");
+		} else {
+			commands += "\npremim -rout " + EMIM_MINOR_SNP_FILENAME + " emimPrep.bed\n";
+			if (riskAlleleFile != null) {
+				commands += Files.getRunString() + " gwas.Emim riskAlleles=" + riskAlleleFile + "\n\n";
+			} else {
+				commands += "cp " + EMIM_MINOR_SNP_FILENAME + " " + EMIM_RISK_SNP_FILENAME + "\n";
+			}
+
+		}
+
 		if (!forceRun
-				&& Files.checkAllFiles(	currDir, true, false, log, "premim.log", "risksnplist.txt",
-																"emimparams.dat", "emimmarkers.dat", "caseparenttrios.dat",
-																"caseparents.dat", "casemotherduos.dat", "casefatherduos.dat",
-																"casemothers.dat", "casefathers.dat", "cases.dat", "conparents.dat",
+				&& Files.checkAllFiles(	currDir, true, false, log, "premim.log", "emimparams.dat",
+																"emimmarkers.dat", "caseparenttrios.dat", "caseparents.dat",
+																"casemotherduos.dat", "casefatherduos.dat", "casemothers.dat",
+																"casefathers.dat", "cases.dat", "conparents.dat",
 																"conmotherduos.dat", "confatherduos.dat", "cons.dat")) {
 			log.report("Outputs of PREMIM in " + currDir + " already exist, skipping PREMIM");
 		} else {
@@ -354,14 +421,14 @@ public class Emim {
 			forceParse = true;
 			if (phaseWithShapeit) {
 				commands += "premim -im -a -ihap -shapeit "	+ Resources.shapeit(log).getShapeit().get()
-										+ " -shapeit-thread 24 -rout risksnplist.txt emimPrep.bed\n";
+										+ " -shapeit-thread 24 -rfile risksnplist.txt emimPrep.bed\n";
 				commands += "\nqsub " + emimPBS;
 				commands = "cd " + currDir + "\n" + commands;
 				Files.qsub(premimPBS, commands, 62000, 24, 24);
 				commands = "";
 				runPremimPBS = true;
 			} else {
-				commands += "premim -cg -a -rout risksnplist.txt emimPrep.bed\n";
+				commands += "premim -cg -a -rfile risksnplist.txt emimPrep.bed\n";
 			}
 
 		}
@@ -423,7 +490,7 @@ public class Emim {
 
 	public static String scriptAll(	String plinkPrefix, String excludeFile, String keepFile,
 																	double pThreshold) {
-		return scriptAllInDir("./", plinkPrefix, plinkPrefix, excludeFile, keepFile, pThreshold,
+		return scriptAllInDir("./", plinkPrefix, plinkPrefix, excludeFile, keepFile, null, pThreshold,
 													EMIM_MODEL.valueSet(), true, null, new Logger());
 		// String commands;
 		// String currDir;
@@ -492,10 +559,10 @@ public class Emim {
 		String outfile = dir	+ (resultPrefix == null ? "" : resultPrefix + "_") + "results_pVals_"
 											+ model.toString() + ".xln";
 
-		ResultsPackager.parseEmimFormat(resultsFileC, resultsFileM, resultsFileCM, resultsFileCIm, resultsFileCIp, resultsFileIm,
-																		resultsFileIp, resultsFileTdt, mapFile, mendelErrorFile,
-																		hweFile, frqFile, pValueThreshold, outfile,
-																		new Logger("EMIMparser.log"));
+		ResultsPackager.parseEmimFormat(resultsFileC, resultsFileM, resultsFileCM, resultsFileCIm,
+																		resultsFileCIp, resultsFileIm, resultsFileIp, resultsFileTdt,
+																		mapFile, mendelErrorFile, hweFile, frqFile, pValueThreshold,
+																		outfile, new Logger("EMIMparser.log"));
 	}
 
 	public static void replaceLines(String filenameOriginal, String filenameWithReplacements,
@@ -523,6 +590,7 @@ public class Emim {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String runType = "C";
+		String riskAlleleFile = null;
 		String dir = null;
 		double pValueThreshold = 1.1;
 		String hweFile = null;
@@ -537,6 +605,8 @@ public class Emim {
 										+ "   (1) run type (either C, CM, or M) (i.e. run=" + runType + " (default))\n"
 										+ "   (2) model (" + ArrayUtils.toStr(EMIM_MODEL.values(), ",") + ") (i.e. model="
 										+ model.toString() + " (default))\n" + "  OR\n"
+										+ "   (1) desired risk allele file (i.e. riskAlleles=forceRiskAllele.txt (not the default))\n"
+										+ "  OR\n"
 										+ "   (1) generate script that runs the full process (i.e. script=plinkPrefix (not the default))\n"
 										+ "   (2) p-value threshold to filter on (piped to parse method) (i.e. pThreshold="
 										+ pValueThreshold + " (default))\n"
@@ -584,6 +654,9 @@ public class Emim {
 			} else if (arg.startsWith("resultPrefix=")) {
 				resultPrefix = ext.parseStringArg(arg, null);
 				numArgs--;
+			} else if (arg.startsWith("riskAlleles=")) {
+				riskAlleleFile = arg.split("=")[1];
+				numArgs--;
 			} else if (arg.startsWith("model=")) {
 				String modelString = ext.parseStringArg(arg, null);
 				model = null;
@@ -607,7 +680,9 @@ public class Emim {
 			System.exit(1);
 		}
 		try {
-			if (dir != null) {
+			if (riskAlleleFile != null) {
+				generateRiskAlleles(riskAlleleFile, new Logger("GenerateRiskAlleles.log"));
+			} else if (dir != null) {
 				parse(dir, resultPrefix, hweFile, frqFile, pValueThreshold, model);
 			} else if (plinkPrefix != null) {
 				scriptAll(plinkPrefix, excludeFile, keepFile, pValueThreshold);
