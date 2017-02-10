@@ -158,7 +158,7 @@ public final class Resources {
 		 * @return A resource for the MiniMac3 app
 		 */
 		public Resource getMiniMac3() {
-			return getTarGzResource(localPath() + "Minimac3", remotePath() + "Minimac3.v1.0.14.tar.gz");
+			return getTarGzResource(localPath() + "Minimac3", remotePath() + "Minimac3.v2.0.1.tar.gz");
 		}
 	}
 
