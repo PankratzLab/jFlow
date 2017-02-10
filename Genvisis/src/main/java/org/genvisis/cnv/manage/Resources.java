@@ -1,21 +1,23 @@
 package org.genvisis.cnv.manage;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.compress.utils.IOUtils;
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.LaunchProperties.LaunchKey;
 import org.genvisis.common.AbstractStartupCheck;
@@ -247,8 +249,8 @@ public final class Resources {
 	 */
 	public static class Shapeit extends AbstractResourceFactory {
 		public Shapeit(Logger log) {
-			super(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + BIN_DIR + File.separator + "shapeit",
-			      "", log, Shapeit.class);
+			super(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + BIN_DIR + File.separator + "shapeit"
+			      + File.separator, "", log, Shapeit.class);
 		}
 
 		/**
@@ -762,63 +764,61 @@ public final class Resources {
 		}
 
 		private String extractTarGz(String targzPath) {
-			final int BUFFER = 2048;
+			final File inputFile = new File(targzPath);
+			final String destination = inputFile.getParent() + File.separator;
+			 inputFile.deleteOnExit();
 
+			// from: http://stackoverflow.com/a/7556307/1027800
 			try {
-				FileInputStream fin = new FileInputStream(targzPath);
-				BufferedInputStream in = new BufferedInputStream(fin);
-				GzipCompressorInputStream gzIn = new GzipCompressorInputStream(in);
-				TarArchiveInputStream tarIn = new TarArchiveInputStream(gzIn);
+				// Unzip the downloaded targz
+				// Not all files end with .tar.gz.. some are .tgz.. so handle both cases
+				String unzippedName =
+				                    inputFile.getName().substring(0, inputFile.getName().lastIndexOf('.'));
+				if (!unzippedName.endsWith(".tar")) {
+					unzippedName += ".tar";
+				}
+				final File unzippedTar = new File(destination, unzippedName);
 
+				final GZIPInputStream in = new GZIPInputStream(new FileInputStream(inputFile));
+				final FileOutputStream out = new FileOutputStream(unzippedTar);
+				IOUtils.copy(in, out);
+				in.close();
+				out.close();
+				 unzippedTar.deleteOnExit();
+
+				// Extract all entries in the tar
+				final InputStream is = new FileInputStream(unzippedTar);
+				final TarArchiveInputStream tarStream =
+				                                      (TarArchiveInputStream) new ArchiveStreamFactory().createArchiveInputStream("tar",
+				                                                                                                                  is);
 				TarArchiveEntry entry = null;
-				String destination = new File(targzPath).getParent() + File.separator;
-
-				/** Read the tar entries using the getNextEntry method **/
-				Set<TarArchiveEntry> dirs = new HashSet<TarArchiveEntry>();
-				Set<TarArchiveEntry> files = new HashSet<TarArchiveEntry>();
-
-				while ((entry = (TarArchiveEntry) tarIn.getNextEntry()) != null) {
-					// Sort out the directories and files. Ensure the directories are all created first.
+				while ((entry = (TarArchiveEntry) tarStream.getNextEntry()) != null) {
+					final File outputFile = new File(destination, entry.getName());
 					if (entry.isDirectory()) {
-						dirs.add(entry);
+						if (!outputFile.exists() && !outputFile.mkdirs()) {
+							throw new IllegalStateException(String.format("Couldn't create directory %s.",
+							                                              outputFile.getAbsolutePath()));
+						}
 					} else {
-						files.add(entry);
+						final File parentDir = outputFile.getParentFile();
+						if (!parentDir.exists() && !parentDir.mkdirs()) {
+							throw new IllegalStateException(String.format("Couldn't create directory %s.",
+							                                              parentDir));
+						} else {
+							final OutputStream outputFileStream = new FileOutputStream(outputFile);
+							IOUtils.copy(tarStream, outputFileStream);
+							outputFileStream.close();
+						}
 					}
 				}
+				tarStream.close();
 
-				/** If the entry is a directory, create the directory. **/
-				for (TarArchiveEntry e : dirs) {
-					File f = new File(destination + e.getName());
-					f.mkdirs();
-				}
-
-				/**
-				 * If the entry is a file,write the decompressed file to the disk and close destination
-				 * stream.
-				 **/
-				for (TarArchiveEntry e : files) {
-					int count;
-					byte[] data = new byte[BUFFER];
-					String fileName = destination + e.getName();
-					File f = new File(fileName).getParentFile();
-					f.mkdirs();
-
-					FileOutputStream fos = new FileOutputStream(fileName);
-					BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER);
-
-					while ((count = tarIn.read(data, 0, BUFFER)) != -1) {
-						dest.write(data, 0, count);
-					}
-					dest.close();
-				}
-
-				/** Close the input stream **/
-				tarIn.close();
-				new File(targzPath).delete();
 				return unzippedPath;
 			} catch (Exception e) {
 				log().reportError("Failed to extract: " + targzPath);
 				log().reportException(e);
+				// Remove the base dir as this is the marker of success
+				new File(unzippedPath).deleteOnExit();
 				return null;
 			}
 		}
