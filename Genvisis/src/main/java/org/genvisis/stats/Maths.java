@@ -224,14 +224,30 @@ public class Maths {
 		System.out.println(ArrayUtils.toStr(slopeAndIntercept(188, 900, 154, 1000)));
 
 	}
+	
+	public static double cartesianToPolarTheta(double x, double y) {
+		return Math.atan2(y, x);
+	}
+	
+	public static double cartesianToPolarR(double x, double y) {
+		return Math.hypot(x, y);
+	}
 
 	public static double[][] cartesianToPolar(double[] x, double[] y) {
 		double[][] polar = new double[x.length][2];
 		for (int i = 0; i < x.length; i++) {
-			polar[i][0] = Math.atan2(y[i], x[i]);
-			polar[i][1] = Math.hypot(x[i], y[i]);
+			polar[i][0] = cartesianToPolarTheta(x[i], y[i]);
+			polar[i][1] = cartesianToPolarR(x[i], y[i]);
 		}
 		return polar;
+	}
+	
+	public static double polarToCartesianX(double theta, double r) {
+		return r * Math.cos(theta);
+	}
+	
+	public static double polarToCartesianY(double theta, double r) {
+		return r * Math.sin(theta);
 	}
 
 	public static double[][] polarToCartesian(double[][] polar) {
@@ -241,8 +257,8 @@ public class Maths {
 		for (int i = 0; i < polar.length; i++) {
 			double theta = polar[i][0];
 			double r = polar[i][1];
-			x[i] = r * Math.cos(theta);
-			y[i] = r * Math.sin(theta);
+			x[i] = polarToCartesianX(theta, r);
+			y[i] = polarToCartesianY(theta, r);
 		}
 
 		return new double[][] {x, y};

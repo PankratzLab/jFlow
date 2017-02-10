@@ -1,9 +1,9 @@
 package org.genvisis.gwas;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import org.genvisis.cnv.analysis.pca.PCImputeRace;
@@ -15,14 +15,14 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 
-import com.google.common.primitives.Ints;
+import com.google.common.collect.Sets;
 
 
 
 public class Ancestry {
 
 	public static final String DEFAULT_HAPMAP_PLINKROOT =
-	                                                    "/home/pankrat2/shared/bin/HapMap/unambiguousHapMapFounders";
+																											"/home/pankrat2/shared/bin/HapMap/unambiguousHapMapFounders";
 	public static final String RACE_IMPUTATIONAS_FILENAME = "raceImputations.mds";
 	public static final String RACE_FREQS_FILENAME = "freqsByRace.xln";
 
@@ -30,13 +30,13 @@ public class Ancestry {
 		runPipeline(dir, putativeWhitesFile, null, proj, log);
 	}
 
-	public static void runPipeline(String dir, String putativeWhitesFile, String hapMapPlinkRoot,
-	                               Project proj, Logger log) {
+	public static void runPipeline(	String dir, String putativeWhitesFile, String hapMapPlinkRoot,
+																	Project proj, Logger log) {
 		if (hapMapPlinkRoot == null) {
 			hapMapPlinkRoot = DEFAULT_HAPMAP_PLINKROOT;
 		}
 		if (!Files.exists(dir + "homogeneity/" + MergeDatasets.CHI_SQUARE_DROPS_FILENAME)
-		    && Files.list(dir + "homogeneity/", ".Rout", false).length == 0) {
+				&& Files.list(dir + "homogeneity/", ".Rout", false).length == 0) {
 			log.report("Running homogeneity checks...");
 			checkHomogeneity(dir, putativeWhitesFile, dir + "plink", hapMapPlinkRoot, log);
 		}
@@ -47,17 +47,17 @@ public class Ancestry {
 	}
 
 	public static void checkHomogeneity(String dir, String putativeWhitesFile,
-	                                    String projectPlinkRoot, String hapMapPlinkRoot, Logger log) {
+																			String projectPlinkRoot, String hapMapPlinkRoot, Logger log) {
 		String homoDir = dir + "homogeneity/";
 		String homoProjDir = homoDir + ext.removeDirectoryInfo(projectPlinkRoot) + "/";
 		String homoHapMapDir = homoDir + ext.removeDirectoryInfo(hapMapPlinkRoot) + "/";
 		new File(homoProjDir).mkdirs();
 		new File(homoHapMapDir).mkdirs();
-		CmdLine.runDefaults("plink2 --bfile " + projectPlinkRoot + " --keep " + putativeWhitesFile
-		                    + " --hardy", homoProjDir, log);
-		CmdLine.runDefaults("plink2 --bfile " + hapMapPlinkRoot + " --keep "
-		                    + ext.parseDirectoryOfFile(hapMapPlinkRoot) + "CEUFounders.txt --hardy",
-		                    homoHapMapDir, log);
+		CmdLine.runDefaults("plink2 --bfile "	+ projectPlinkRoot + " --keep " + putativeWhitesFile
+												+ " --hardy", homoProjDir, log);
+		CmdLine.runDefaults("plink2 --bfile "	+ hapMapPlinkRoot + " --keep "
+												+ ext.parseDirectoryOfFile(hapMapPlinkRoot) + "CEUFounders.txt --hardy",
+												homoHapMapDir, log);
 
 		MergeDatasets.checkForHomogeneity(homoDir, null, null, "UNAFF", log);
 	}
@@ -72,8 +72,8 @@ public class Ancestry {
 		return dir + "homogeneity/" + MergeDatasets.FISHER_OR_CHI_SQUARE_DROPS_FILENAME;
 	}
 
-	public static void mergeHapMap(String dir, String projectPlinkRoot, String hapMapPlinkRoot,
-	                               String dropMarkersFile, Logger log) {
+	public static void mergeHapMap(	String dir, String projectPlinkRoot, String hapMapPlinkRoot,
+																	String dropMarkersFile, Logger log) {
 		if (!Files.exists(dir + "unrelateds.txt")) {
 			log.reportError("Error - need a file called unrelateds.txt with FID and IID pairs before we can proceed");
 			return;
@@ -81,22 +81,22 @@ public class Ancestry {
 		if (!Files.exists(dir + "plink.bim_unambiguous.txt")) {
 			log.report(ext.getTime() + "]\tGenerating list of unambiguous SNPs");
 			new SnpMarkerSet(dir + "plink.bim", true, log).listUnambiguousMarkers(dir
-			                                                                      + "plink.bim_unambiguous.txt",
-			                                                                      dropMarkersFile, true);
+																																							+ "plink.bim_unambiguous.txt",
+																																						dropMarkersFile, true);
 		}
 
 		if (!Files.exists(dir + "unambiguousHapMap.bed")) {
 			log.report(ext.getTime() + "]\tExtracting unambiguous SNPs for HapMap founders");
-			CmdLine.runDefaults("plink2 --bfile " + hapMapPlinkRoot
-			                    + " --extract plink.bim_unambiguous.txt --make-bed --out unambiguousHapMap --noweb",
-			                    dir, log);
+			CmdLine.runDefaults("plink2 --bfile "	+ hapMapPlinkRoot
+													+ " --extract plink.bim_unambiguous.txt --make-bed --out unambiguousHapMap --noweb",
+													dir, log);
 		}
 
 		if (!Files.exists(dir + "overlap.txt")) {
 			log.report(ext.getTime() + "]\tGenerating list of overlapping SNPs");
-			Files.writeIterable(HashVec.loadFileToVec(dir + "unambiguousHapMap.bim", false, new int[] {1},
-			                                          false, false),
-			                    dir + "overlap.txt");
+			Files.writeIterable(HashVec.loadFileToVec(dir	+ "unambiguousHapMap.bim", false, new int[] {1},
+																								false, false),
+													dir + "overlap.txt");
 		}
 
 		if (Files.exists(dir + "combo.missnp")) {
@@ -106,13 +106,13 @@ public class Ancestry {
 		if (!Files.exists(dir + "unambiguous.bed")) {
 			log.report(ext.getTime() + "]\tExtracting overlapping SNPs for study samples");
 			CmdLine.runDefaults("plink2 --bfile plink --extract overlap.txt --make-bed --out unambiguous --noweb",
-			                    dir, log);
+													dir, log);
 		}
 
 		if (!Files.exists(dir + "combo.missnp")) {
 			log.report(ext.getTime() + "]\tMerging study data and HapMap data for overlapping SNPs");
 			CmdLine.runDefaults("plink --bfile unambiguous --bmerge unambiguousHapMap.bed unambiguousHapMap.bim unambiguousHapMap.fam --out combo --noweb",
-			                    dir, log);
+													dir, log);
 		}
 
 		if (Files.exists(dir + "combo.missnp")) {
@@ -122,9 +122,9 @@ public class Ancestry {
 			log.report(ext.getTime() + "]\tChecking for flipped alleles");
 			new File(dir + "combo.missnp").renameTo(new File(dir + "combo.1.missnp"));
 			CmdLine.runDefaults("plink2 --bfile unambiguous --flip combo.1.missnp --make-bed --out unambiguousFlipped --noweb",
-			                    dir, log);
+													dir, log);
 			CmdLine.runDefaults("plink --bfile unambiguousFlipped --bmerge unambiguousHapMap.bed unambiguousHapMap.bim unambiguousHapMap.fam --make-bed --out combo --noweb",
-			                    dir, log);
+													dir, log);
 			if (Files.exists(dir + "combo.missnp")) {
 				if (Files.exists(dir + "combo.2.missnp")) {
 					new File(dir + "combo.2.missnp").delete();
@@ -132,19 +132,19 @@ public class Ancestry {
 				log.report(ext.getTime() + "]\tDropping SNPs that cannot be resolved by flipping alleles");
 				new File(dir + "combo.missnp").renameTo(new File(dir + "combo.2.missnp"));
 				CmdLine.runDefaults("plink2 --bfile unambiguousFlipped --exclude combo.2.missnp --make-bed --out unambiguousFlippedDropped --noweb",
-				                    dir, log);
+														dir, log);
 				CmdLine.runDefaults("plink2 --bfile unambiguousHapMap --exclude combo.2.missnp --make-bed --out unambiguousDroppedHapMap --noweb",
-				                    dir, log);
+														dir, log);
 				CmdLine.runDefaults("plink --bfile unambiguousFlippedDropped --bmerge unambiguousDroppedHapMap.bed unambiguousDroppedHapMap.bim unambiguousDroppedHapMap.fam --make-bed --out combo --noweb",
-				                    dir, log);
+														dir, log);
 			}
 		}
 
 		if (!Files.exists(dir + "finalSNPs.txt")) {
 			log.report(ext.getTime() + "]\tWriting final list of SNPs to use");
-			Files.writeIterable(HashVec.loadFileToVec(dir + "combo.bim", false, new int[] {1}, false,
-			                                          false),
-			                    dir + "finalSNPs.txt");
+			Files.writeIterable(HashVec.loadFileToVec(dir	+ "combo.bim", false, new int[] {1}, false,
+																								false),
+													dir + "finalSNPs.txt");
 		}
 	}
 
@@ -159,8 +159,8 @@ public class Ancestry {
 		if (!Files.exists(unrelatedsDir + "unrelateds.txt")) {
 			log.report(ext.getTime() + "]\tGenerating combined unrelateds.txt");
 			new File(unrelatedsDir).mkdir();
-			Vector<String> unrelateds = HashVec.loadFileToVec(dir + "unambiguousHapMap.fam", false,
-			                                                  new int[] {0, 1}, false, false);
+			Vector<String> unrelateds = HashVec.loadFileToVec(dir	+ "unambiguousHapMap.fam", false,
+																												new int[] {0, 1}, false, false);
 			unrelateds.addAll(HashVec.loadFileToVec(dir + "unrelateds.txt", false, false, false));
 			Files.writeIterable(unrelateds, unrelatedsDir + "unrelateds.txt");
 		}
@@ -168,20 +168,20 @@ public class Ancestry {
 		if (!Files.exists(unrelatedsDir + "plink.bed")) {
 			log.report(ext.getTime() + "]\tGenerating PLINK files based on combined unrelateds.txt");
 			CmdLine.runDefaults("plink2 --bfile ../combo --keep unrelateds.txt --make-bed --noweb",
-			                    unrelatedsDir, log);
+													unrelatedsDir, log);
 		}
 
 		if (!Files.exists(unrelatedsDir + "master")) {
 			log.report(ext.getTime() + "]\tCreating Eigenstrat");
-			CmdLine.runDefaults(Files.getRunString() + " gwas.Eigenstrat source=plink -create",
-			                    unrelatedsDir, log);
+			CmdLine.runDefaults(Files.getRunString()	+ " gwas.Eigenstrat source=plink -create",
+													unrelatedsDir, log);
 		}
 
 		if (!Files.exists(unrelatedsDir + "plink.pca.evec")) {
 			log.report(ext.getTime() + "]\tRunning master");
 			CmdLine.runDefaults("./master", unrelatedsDir, log);
-			CmdLine.runDefaults(Files.getRunString() + " gwas.Eigenstrat convert=plink.pca.evec",
-			                    unrelatedsDir, log);
+			CmdLine.runDefaults(Files.getRunString()	+ " gwas.Eigenstrat convert=plink.pca.evec",
+													unrelatedsDir, log);
 		}
 
 		if (!Files.exists(dir + "convertf.par")) {
@@ -192,18 +192,18 @@ public class Ancestry {
 
 		if (!Files.exists(dir + "combo_fancy_postnormed_eigens.xln")) {
 			CmdLine.runDefaults("plink2 --bfile unrelateds/plink --freq --out unrelateds/plink --noweb",
-			                    dir, log);
+													dir, log);
 			CmdLine.runDefaults(Files.getRunString()
-			                    + " gwas.Eigenstrat source=unrelateds/plink target=combo -parse -eigenFormat",
-			                    dir, log);
+														+ " gwas.Eigenstrat source=unrelateds/plink target=combo -parse -eigenFormat",
+													dir, log);
 		}
 	}
 
 	public static void imputeRace(String dir, Project proj) {
 		if (!Files.exists(dir + RACE_IMPUTATIONAS_FILENAME)) {
-			String[][] pcResults =
-			                     HashVec.loadFileToStringMatrix(dir + "combo_fancy_postnormed_eigens.xln",
-			                                                    true, new int[] {0, 1, 2, 3}, false);
+			String[][] pcResults = HashVec.loadFileToStringMatrix(dir
+																															+ "combo_fancy_postnormed_eigens.xln",
+																														true, new int[] {0, 1, 2, 3}, false);
 
 			String sd = proj.SAMPLE_DATA_FILENAME.getValue();
 			String[] sdHeader = Files.getHeaderOfFile(sd, proj.getLog());
@@ -213,84 +213,80 @@ public class Ancestry {
 			if (hapIndex < 0) {
 				proj.getLog().reportError("Cannot impute: no HapMap column in sample data.");
 				proj.getLog()
-				    .reportError("Please create a column with header: \"Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT\"");
+						.reportError("Please create a column with header: \"Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT\"");
 				return;
 			}
-			Hashtable<String, Hashtable<String, String>> hapmaps =
-			                                                     HashVec.loadFileToHashHash(sd, fidIndex,
-			                                                                                iidIndex,
-			                                                                                hapIndex,
-			                                                                                true);
+			Hashtable<String, Hashtable<String, String>> hapmaps = HashVec.loadFileToHashHash(sd,
+																																												fidIndex,
+																																												iidIndex,
+																																												hapIndex,
+																																												true);
 
-
-			List<String> fidiids = new ArrayList<String>();
-			List<Double> pc1 = new ArrayList<Double>();
-			List<Double> pc2 = new ArrayList<Double>();
-			ArrayList<Integer> europeans = new ArrayList<Integer>();
-			ArrayList<Integer> africans = new ArrayList<Integer>();
-			ArrayList<Integer> asians = new ArrayList<Integer>();
+			Set<PCImputeRace.Sample> samples = Sets.newHashSet();
+			Set<PCImputeRace.Sample> europeans = Sets.newHashSet();
+			Set<PCImputeRace.Sample> africans = Sets.newHashSet();
+			Set<PCImputeRace.Sample> asians = Sets.newHashSet();
 
 			for (int i = 0; i < pcResults.length; i++) {
 
+
+				Map<String, String> iidTable = hapmaps.get(pcResults[i][0]);
+				if (iidTable == null || !iidTable.containsKey(pcResults[i][1])) {
+					continue;
+				}
+				String fid = pcResults[i][0];
+				String iid = pcResults[i][1];
+				double pc1;
+				double pc2;
 				try {
-					Hashtable<String, String> iidTable = hapmaps.get(pcResults[i][0]);
-					if (iidTable == null || !iidTable.containsKey(pcResults[i][1])) {
-						continue;
-					}
-					fidiids.add(pcResults[i][0] + "\t" + pcResults[i][1]);
-					try {
-						pc1.add(Double.parseDouble(pcResults[i][2]));
-					} catch (NumberFormatException nfe) {
-						pc1.add(Double.NaN);
-					}
-					try {
-						pc2.add(Double.parseDouble(pcResults[i][3]));
-					} catch (NumberFormatException nfe) {
-						pc2.add(Double.NaN);
-					}
+					pc1 = Double.parseDouble(pcResults[i][2]);
+				} catch (NumberFormatException nfe) {
+					pc1 = Double.NaN;
+				}
+				try {
+					pc2 = Double.parseDouble(pcResults[i][3]);
+				} catch (NumberFormatException nfe) {
+					pc2 = Double.NaN;
+				}
+
+				PCImputeRace.Sample sample = new PCImputeRace.Sample(fid, iid, pc1, pc2);
+				samples.add(sample);
+				try {
 					int race = Integer.parseInt(iidTable.get(pcResults[i][1]));
 					switch (race) {
 						case 1:
-							europeans.add(i);
+							europeans.add(sample);
 							break;
 						case 2:
-							africans.add(i);
+							africans.add(sample);
 							break;
 						case 3:
-							asians.add(i);
 						case 4:
-							asians.add(i);
+							asians.add(sample);
 							break;
 						default:
 							break;
 					}
 				} catch (NumberFormatException nfe) {
+					// For non hap-map samples, don't add to a race set
 				}
 			}
 
-			String[] fi = new String[fidiids.size()];
-			double[] p1 = new double[fidiids.size()];
-			double[] p2 = new double[fidiids.size()];
-
-			for (int i=0; i<fidiids.size(); i++) {
-				fi[i] = fidiids.get(i);
-				p1[i] = pc1.get(i);
-				p2[i] = pc2.get(i);
-			}
-
-			PCImputeRace pcir = new PCImputeRace(proj, fi, p1, p2, Ints.toArray(europeans),
-			                                     Ints.toArray(africans), Ints.toArray(asians),
-			                                     proj.getLog());
+			PCImputeRace pcir =
+												new PCImputeRace(proj, samples, europeans, africans, asians, proj.getLog());
 			pcir.correctPCsToRace(dir + RACE_IMPUTATIONAS_FILENAME);
 		} else {
-			proj.getLog().reportTimeWarning("Skipping imputation - output already exists: " + (dir + RACE_IMPUTATIONAS_FILENAME));
+			proj.getLog().reportTimeWarning("Skipping imputation - output already exists: "
+																			+ (dir + RACE_IMPUTATIONAS_FILENAME));
 		}
 
 		if (!Files.exists(dir + RACE_FREQS_FILENAME)) {
-			PCImputeRace.freqsByRace(dir + RACE_IMPUTATIONAS_FILENAME, dir + "plink",
-			                         dir + RACE_FREQS_FILENAME, proj.getLog());
-		} {
-			proj.getLog().reportTimeWarning("Skipping race freq calculation - output already exists: " + (dir + RACE_FREQS_FILENAME));
+			PCImputeRace.freqsByRace(dir	+ RACE_IMPUTATIONAS_FILENAME, dir + "plink",
+																dir + RACE_FREQS_FILENAME, proj.getLog());
+		}
+		{
+			proj.getLog().reportTimeWarning("Skipping race freq calculation - output already exists: "
+																			+ (dir + RACE_FREQS_FILENAME));
 		}
 
 	}
@@ -310,21 +306,21 @@ public class Ancestry {
 		String logfile = null;
 		Logger log;
 
-		String usage = "\n" + "gwas.Ancestry requires 3+ arguments\n"
-		               + "   (1) Run directory with plink.* files and unrelateds.txt (i.e. dir=" + dir
-		               + " (default))\n"
-		               + "   (2) PLINK root of Unambiguous HapMap Founders (i.e. hapMapPlinkRoot="
-		               + hapMapPlinkRoot + " (default))\n" + "   (3) Logfile (i.e. log="
-		               + "ancestry.log" + " (default))" + "  AND"
-		               + "   (4) Run full pipeline (i.e. -runPipeline (not the default, requires arguments for each step))"
-		               + "  OR"
-		               + "   (5) Check Homogeneity using Chi-Square (Generates PBS script to run Fisher's exact, if desired) (i.e. -checkHomo (not the default))"
-		               + "   (6) File of FID/IID pairs of putative whites to use for finding homogenous markers by comparison to CEU (i.e. putativeWhites=whites.txt (not the default))\n"
-		               + "  OR"
-		               + "   (7) Parse homogeneity checks and run Eigenstrat (i.e. -run (not the default))"
-		               + "  OR" + "   (8) Impute race (i.e. -imputeRace (not the default))"
-		               + "   (9) Project properties file (i.e. proj=example.properties (not the default))\n"
-		               + "";
+		String usage = "\n"	+ "gwas.Ancestry requires 3+ arguments\n"
+										+ "   (1) Run directory with plink.* files and unrelateds.txt (i.e. dir=" + dir
+										+ " (default))\n"
+										+ "   (2) PLINK root of Unambiguous HapMap Founders (i.e. hapMapPlinkRoot="
+										+ hapMapPlinkRoot + " (default))\n" + "   (3) Logfile (i.e. log="
+										+ "ancestry.log" + " (default))\n" + "  AND\n"
+										+ "   (4) Run full pipeline (i.e. -runPipeline (not the default, requires arguments for each step))\n"
+										+ "  OR\n"
+										+ "   (5) Check Homogeneity using Chi-Square (Generates PBS script to run Fisher's exact, if desired) (i.e. -checkHomo (not the default))\n"
+										+ "   (6) File of FID/IID pairs of putative whites to use for finding homogenous markers by comparison to CEU (i.e. putativeWhites=whites.txt (not the default))\n"
+										+ "  OR\n"
+										+ "   (7) Parse homogeneity checks and run Eigenstrat (i.e. -run (not the default))\n"
+										+ "  OR\n" + "   (8) Impute race (i.e. -imputeRace (not the default))\n"
+										+ "   (9) Project properties file (i.e. proj=example.properties (not the default))\n"
+										+ "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

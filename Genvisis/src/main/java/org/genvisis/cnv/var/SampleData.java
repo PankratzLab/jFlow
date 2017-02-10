@@ -1252,7 +1252,7 @@ public class SampleData {
 	 * <p>
 	 * Warning - alternate names for linker are not determined, please do that prior to use
 	 *
-	 * @param linkData Hashtable with the linker entry as the key (DNA, , FID, IID, plate, sex etc),
+	 * @param linkData Map with the linker entry as the key (DNA, , FID, IID, plate, sex etc),
 	 *        and data to add as value. If adding more than one column, the data to add can be
 	 *        delimited
 	 * @param linker The linker column header in sample Data, the linker should be verified prior to
@@ -1269,7 +1269,7 @@ public class SampleData {
 	 *
 	 * @return true if data was added successfully, false if not
 	 */
-	public boolean addData(	Hashtable<String, String> linkData, String linker, String[] columnHeaders,
+	public boolean addData(	Map<String, String> linkData, String linker, String[] columnHeaders,
 													String missingData, String linkDataDelimiter, Logger log) {
 		boolean add = true;
 		boolean writerWasOpened = false;
