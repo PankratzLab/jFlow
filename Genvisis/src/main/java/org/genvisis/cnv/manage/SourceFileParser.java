@@ -40,10 +40,7 @@ import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
 
-/**
- * @author lane0212
- *
- */
+
 public class SourceFileParser implements Runnable {
 
 	private static final String IDS_CHANGED_FILEROOT = "FYI_IDS_WERE_CHANGED";
