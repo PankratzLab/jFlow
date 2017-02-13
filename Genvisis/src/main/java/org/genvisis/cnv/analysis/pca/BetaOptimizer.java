@@ -559,8 +559,9 @@ public class BetaOptimizer {
 																																		pval, log);
 
 										String rootDump = outpuDir+ MODEL_BUILDER_TYPE.WITH_QC_BUILDERS + "_" + oType
-																			+ "_" + ITERATION_TYPE.WITHOUT_INDEPS + "_pval_" + pval + "_"
-																			+ ext.rootOf(betaFile) + "_markersUsed";
+																			+ "_" + ITERATION_TYPE.WITHOUT_INDEPS + "_" + runtype
+																			+ "_pval_" + pval + "_" + ext.rootOf(betaFile)
+																			+ "_markersUsed";
 										dumpToFile(current, rootDump + "_preFilter.txt", log);
 										dumpToFile(filtered, rootDump + "_postFilter.txt", log);
 
@@ -821,11 +822,11 @@ public class BetaOptimizer {
 
 	private static void dumpToFile(ArrayList<MetaBeta> metaBetas, String output, Logger log) {
 		StringBuilder builder = new StringBuilder();
-		builder.append("rsID\tbeta\tp\tchr\tpos\n");
+		builder.append("rsID\tbeta\tp\tchr\tpos\tmarkerName\n");
 		for (MetaBeta metaBeta : metaBetas) {
 			builder.append(metaBeta.getMarkerRsFormat().rs+ "\t" + metaBeta.beta + "\t"
 											+ metaBeta.getPval() + "\t" + metaBeta.getChr() + "\t" + metaBeta.getPos()
-											+ "\n");
+											+ "\t" + metaBeta.getMarkerRsFormat().markerName + "\n");
 
 		}
 		Files.write(builder.toString(), output);

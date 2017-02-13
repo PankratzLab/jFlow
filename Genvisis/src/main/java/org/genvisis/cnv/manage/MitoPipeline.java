@@ -560,7 +560,7 @@ public class MitoPipeline {
 																							: betaFile,
 																	betaOptFile,
 																	proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES,
-																	pvalOpt, numComponents, markerCallRateFilter, 5, 0.0000000001,
+																	pvalOpt, numComponents, markerCallRateFilter, 2, 0.0000000001,
 																	numThreads);
 
 				} else {
