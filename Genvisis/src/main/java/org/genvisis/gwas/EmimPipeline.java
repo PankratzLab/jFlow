@@ -637,7 +637,7 @@ public class EmimPipeline {
 		boolean process = false;
 		boolean forest = false;
 		Set<Emim.EMIM_MODEL> models = Emim.EMIM_MODEL.valueSet();
-		boolean phaseWithShapeit = true;
+		boolean phaseWithShapeit = false;
 		String forestMarkers = "./gwasHits.txt";
 
 		String usage = "\n"	+ "gwas.EmimPipeline requires 2-8 arguments\n"
