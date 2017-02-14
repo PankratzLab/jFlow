@@ -636,7 +636,7 @@ public class EmimPipeline {
 		String qsub = null;
 		boolean process = false;
 		boolean forest = false;
-		Set<Emim.EMIM_MODEL> models = Emim.EMIM_MODEL.valueSet();
+		Set<Emim.EMIM_MODEL> models = new HashSet<Emim.EMIM_MODEL>(Emim.EMIM_MODEL.valueSet());
 		boolean phaseWithShapeit = false;
 		String forestMarkers = "./gwasHits.txt";
 
