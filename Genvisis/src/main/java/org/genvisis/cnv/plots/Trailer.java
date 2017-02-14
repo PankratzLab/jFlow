@@ -565,18 +565,18 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			ToolTipManager.sharedInstance().setReshowDelay(defaultReshow);
 			ToolTipManager.sharedInstance().setInitialDelay(defaultInitial);
 		}
-
+		
 		@Override
 		public void mouseMoved(MouseEvent e) {
 			super.mouseMoved(e);
 			if (selectedCNV == null) {
+				cnvPanel.setToolTipText(null);
 				return;
 			}
 			int x = e.getX();
 			int y = e.getY();
 
 			if (cnvs.length <= selectedCNV[0] || cnvs[selectedCNV[0]].length <= selectedCNV[1]) {
-				// UIManager.put("ToolTip.background", defaultBG);
 				cnvPanel.setToolTipText(null);
 				return;
 			}
@@ -588,17 +588,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			int cnvY2 = cnvY1 + 10;
 			if (x >= cnvX1 && x <= cnvX2 && y > cnvY1 && y < cnvY2) {
 				if (cnvPanel.getToolTipText() != null) {
-					// Point locationOnScreen = new Point(e.getXOnScreen(), e.getYOnScreen());
-					// Point locationOnComponent = new Point(e.getX(), e.getY());
-					// final MouseEvent me = new MouseEvent(cnvPanel, -1, System.currentTimeMillis(), 0,
-					// locationOnComponent.x, locationOnComponent.y, locationOnScreen.x, locationOnScreen.y,
-					// 0, false, 0);
-					// SwingUtilities.invokeLater(new Runnable() {
-					// @Override
-					// public void run() {
-					// ToolTipManager.sharedInstance().mouseMoved(me);
-					// }
-					// });
+					// 
 				} else {
 					StringBuilder txtBld = new StringBuilder();
 					txtBld.append("<html>Start: ").append(ext.addCommas(cnv.getStart())).append("<br/>");
@@ -608,15 +598,10 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 					txtBld.append("# Mkrs: ").append(cnv.getNumMarkers()).append("<br/>");
 					txtBld.append("CN: ").append(cnv.getCN()).append("<br/>");
 					txtBld.append("Score: ").append(cnv.getScore()).append("</html>");
-					// UIManager.put("ToolTip.background", new
-					// javax.swing.plaf.ColorUIResource(colorScheme[selectedCNV[0]][cnv.getCN() < 2 ? 0 :
-					// 1]));
-					// cnvPanel.createToolTip();
 					cnvPanel.setToolTipText(txtBld.toString());
 				}
 			} else {
-				// UIManager.put("ToolTip.background", defaultBG);
-				cnvPanel.setToolTipText(null);
+//				cnvPanel.setToolTipText(null);
 			}
 		}
 
@@ -673,6 +658,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			}
 
 			selectedCNV = null;
+			cnvPanel.setToolTipText(null);
 			Trailer.this.repaint();
 		}
 	};
@@ -1447,6 +1433,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		};
 		cnvPanel.setPreferredSize(new Dimension(getWidth(), 20));
 		cnvPanel.addMouseListener(cnvAdapter);
+		cnvPanel.addMouseMotionListener(cnvAdapter);
 		registerMouse(cnvPanel);
 		tracksPanel.add(cnvPanel, "cell 0 1, grow");
 
@@ -3434,6 +3421,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				}
 			}
 		}
+		selectedCNV = null;
 	}
 
 	/**
