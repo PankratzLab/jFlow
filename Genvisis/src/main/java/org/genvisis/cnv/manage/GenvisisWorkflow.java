@@ -1181,7 +1181,7 @@ public class GenvisisWorkflow {
 			command += "\n";
 			command += Files.getRunString()	+ " org.genvisis.cnv.filesys.Project proj="
 									+ proj.getPropertyFilename();
-			command += " " + proj.GENOME_CLUSTER_FILENAME.getName() + "=" + dir + "genome/plink.genome";
+			command += " " + proj.GENOME_CLUSTER_FILENAME.getName() + "=" + dir + "quality_control/genome/plink.genome";
 			if (!keepUnrelatedsOnly) {
 				command += "\n";
 				command += Files.getRunString()	+ " org.genvisis.gwas.PlinkMendelianChecker proj="
