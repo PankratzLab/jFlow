@@ -235,21 +235,6 @@ public class lab {
 		boolean test = true;
 		if (test) {
 			
-			String src = "F:/Flow/testDupl/testFile.fcs";
-			String dest = "F:/Flow/testDupl/resultFile.fcs";
-			
-			System.out.println(FCSFileDuplicator.createFrom(src, dest, new Logger()));
-			
-			FCSDataLoader loader = new FCSDataLoader();
-			loader.loadData(dest);
-			while(loader.getLoadState() != LOAD_STATE.LOADED) {
-				Thread.yield();
-			}
-			
-			for (int i = 0; i < loader.getCount(); i++) {
-				System.out.println(loader.getPresetGateAssignment(i));
-			}
-			
 			
 //			System.out.println("Username: " + QueueControl.getUserName());
 //			System.out.println("Group: " + QueueControl.getCurrentGroup());

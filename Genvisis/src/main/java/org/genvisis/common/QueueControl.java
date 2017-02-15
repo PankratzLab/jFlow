@@ -192,6 +192,18 @@ public class QueueControl {
 			return this.defaultNodeCnt;
 		}
 
+		public void setDefaultNodeCnt(int nodeCnt) {
+			this.defaultNodeCnt = nodeCnt;
+		}
+
+		public void setDefaultProcCnt(int procCnt) {
+			this.defaultProc = procCnt;
+		}
+
+		public void setDefaultWalltime(int defWall) {
+			this.defaultWalltime = defWall;
+		}
+
 	}
 
 	public enum QueueType {
