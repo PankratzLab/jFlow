@@ -5,13 +5,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 
-import org.flowcyt.cfcs.CFCSData;
 import org.flowcyt.cfcs.CFCSDataSet;
-import org.flowcyt.cfcs.CFCSDatatype;
 import org.flowcyt.cfcs.CFCSKeyword;
 import org.flowcyt.cfcs.CFCSKeywords;
 import org.flowcyt.cfcs.CFCSListModeData;
-import org.flowcyt.cfcs.CFCSParameter;
 import org.flowcyt.cfcs.CFCSParameters;
 import org.flowcyt.cfcs.CFCSSystem;
 import org.genvisis.common.ArrayUtils;
@@ -27,7 +24,7 @@ public class FCSFileDuplicator {
 	CFCSSystem syst;
 	CFCSDataSet dataSet;
 	
-	public static boolean createFrom(String srcFile, String destFile, Logger log) {
+	public static boolean createFrom(String srcFile, String destFile, Logger log, String[] gatings) {
 		FCSFileDuplicator writer;
 		try {
 			writer = new FCSFileDuplicator(destFile);
@@ -36,7 +33,7 @@ public class FCSFileDuplicator {
 			return false;
 		}
 		try {
-			writer.copyKeywordsAndData(srcFile);
+			writer.copyKeywordsAndData(srcFile, gatings);
 		} catch (MalformedURLException e) {
 			log.reportException(e);
 			return false;
@@ -46,7 +43,7 @@ public class FCSFileDuplicator {
 	}
 	
 	
-	private void copyKeywordsAndData(String srcFile) throws MalformedURLException {
+	private void copyKeywordsAndData(String srcFile, String[] gatings) throws MalformedURLException {
     CFCSSystem srcSyst = new CFCSSystem();
     File sysFile = new File(srcFile);
     URL fileURL = (sysFile).toURI().toURL();
@@ -77,8 +74,7 @@ public class FCSFileDuplicator {
 		gatingInfo.setKeywordName(FCSDataLoader.GATING_KEY);
 		gatingInfo.setKeywordSource(1);
 		
-		// TODO create gating assignment array
-		String v = ArrayUtils.toStr(ArrayUtils.stringArray(srcData.getCount(), "Lymphocytes"),",");
+		String v = ArrayUtils.toStr(gatings, ",");
 		
 		gatingInfo.setKeywordValue(v);
 		myKeys.addKeyword(gatingInfo);
