@@ -8,10 +8,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -390,6 +390,13 @@ public class Plink {
 		}
 	}
 
+	/**
+	 * Generate the *_relateds.xln file. The purpose of this file is to recommend the best sample in
+	 * each family (based on determined relationship, not pedigree) via the "drop" and "keep" columns.
+	 * <p>
+	 * Also generates registry files of discovered duplicates (*_duplicatesSet.dat + *_duplicates.dat)
+	 * </p>
+	 */
 	public static int flagRelateds(	String genomeFile, String famFile, String iMissFile,
 																	String lrrFile, String[] flags, double[][] thresholds,
 																	int removeOutTo, boolean kill) {
@@ -397,7 +404,7 @@ public class Plink {
 		PrintWriter writer;
 		String[] line, metrics, ids;
 		Hashtable<String, String> callrates, lrr_sds, in, out, trav;
-		List<Set<String>> duplicates;
+		Map<String, Set<String>> duplicates;
 		Logger log;
 		int numExtras;
 		double[] probs;
@@ -470,7 +477,7 @@ public class Plink {
 		counts = new int[removeOutTo];
 		numExtras = 0;
 		out = new Hashtable<String, String>();
-		duplicates = new ArrayList<Set<String>>();
+		duplicates = new HashMap<String, Set<String>>();
 		try {
 			reader = Files.getAppropriateReader(genomeFile);
 			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CLUSTER_HEADER, true);
@@ -521,32 +528,37 @@ public class Plink {
 						String fidIid1 = line[0] + "\t" + line[1];
 						String fidIid2 = line[2] + "\t" + line[3];
 
+						// Update list of known duplicates
 						if ("duplicate".equals(flags[i])) {
-							boolean found = false;
-							for (Set<String> dupeSet : duplicates) {
-								if (dupeSet.contains(fidIid1) || dupeSet.contains(fidIid2)) {
-									dupeSet.add(fidIid1);
-									dupeSet.add(fidIid2);
-									found = true;
-								}
+							// Create the set for this duplicate pair
+							Set<String> dupeSet = new HashSet<String>();
+							dupeSet.add(fidIid1);
+							dupeSet.add(fidIid2);
+							// Merge with any pre-existing sets
+							if (duplicates.containsKey(fidIid1)) {
+								dupeSet.addAll(duplicates.remove(fidIid1));
 							}
-							if (!found) {
-								HashSet<String> newDuplicateSet = new HashSet<String>();
-								newDuplicateSet.add(fidIid1);
-								newDuplicateSet.add(fidIid2);
-								duplicates.add(newDuplicateSet);
+							if (duplicates.containsKey(fidIid2)) {
+								dupeSet.addAll(duplicates.remove(fidIid2));
+							}
+							// Update the mapping for all duplicates in this set
+							for (String duplicate : dupeSet) {
+								duplicates.put(duplicate, dupeSet);
 							}
 						}
 						writer.print(fidIid1	+ "\t" + metrics[0] + "\t" + metrics[1] + "\t" + fidIid2 + "\t"
 													+ metrics[2] + "\t" + metrics[3] + "\t" + line[4] + "\t" + line[5] + "\t"
 													+ line[6] + "\t" + line[7] + "\t" + flags[i]);
+						// Dropped both individuals already. No recommendation necessary
 						if (out.containsKey(fidIid1) && out.containsKey(fidIid2)) {
 							writer.println("\t.\t.\t.\t.");
+						// Check if either individual has already been dropped - if so, keep the other.
 						} else if (out.containsKey(fidIid1)) {
 							writer.println("\t" + fidIid2 + "\t.\t.");
 						} else if (out.containsKey(fidIid2)) {
 							writer.println("\t" + fidIid1 + "\t.\t.");
 						} else {
+						// Determine which individual to keep and which to drop based on available metrics
 							if (metrics[0].equals(".")	|| metrics[2].equals(".")
 									|| (Double.parseDouble(metrics[0]) == Double.parseDouble(metrics[2]))) {
 								if (metrics[1].equals(".")	|| metrics[3].equals(".")
@@ -662,7 +674,7 @@ public class Plink {
 																																+ "_duplicatesSet.dat"));
 				writer = new PrintWriter(new FileWriter(genomeFileRoot + "_duplicates.dat"));
 				int set = 1;
-				for (Set<String> dupeSet : duplicates) {
+				for (Set<String> dupeSet : duplicates.values()) {
 					for (String fidIid : dupeSet) {
 						writerSet.println(fidIid + "\t" + set);
 						writer.print(fidIid);
