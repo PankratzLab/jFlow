@@ -224,20 +224,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	/**
 	 * Constructs a "Launch" object, which contains the Genvisis app state.
 	 *
-	 * @param launchPropertiesFile {@code launch.properties} file containing startup and project
-	 *        information.
 	 * @param currentManifest Manifest for this execution
 	 * @param jar Whether or not this was launched from a .jar
 	 */
-	public Launch(String launchPropertiesFile, CurrentManifest currentManifest, boolean jar) {
-
+	public Launch(CurrentManifest currentManifest, boolean jar) {
 		super("Genvisis " + currentManifest.getVersion().getVersion());
 		this.jar = jar;
 		timestampOfPropertiesFile = -1;
 		timestampOfSampleDataFile = -1;
 		threadsRunning = new Vector<Thread>();
 		log = new Logger();
-
 	}
 
 	/**
@@ -463,7 +459,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			// It's OK if there is no manifest
 		}
 
-		launchUI = new Launch(LaunchProperties.propertiesFile(), manifest, false);
+		launchUI = new Launch(manifest, false);
 		// FIXME switch to dedicated shutdown method that can notify anything that needs to respond to
 		// shutdown requests
 		launchUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -720,7 +716,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		// In JDK1.4 this prevents action events from being fired when the up/down arrow keys are used
 		// on the dropdown menu
 		projectsBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
-		projectsBox.setModel(new DefaultComboBoxModel(LaunchProperties.getListOfProjectNames()));
+		String[] projNames = LaunchProperties.getListOfProjectNames();
+		projNames = ArrayUtils.sortedCopyAlphanum(projNames);
+		projectsBox.setModel(new DefaultComboBoxModel(projNames));
 
 		if (indexOfCurrentProj > 0 && projectsBox.getItemCount() > 0) {
 			projectsBox.setSelectedIndex(indexOfCurrentProj);

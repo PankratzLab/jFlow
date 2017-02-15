@@ -395,6 +395,15 @@ public class AnalysisFormats implements Runnable {
 							cent = compFemale ? rawCentroidsFemale : rawCentroidsMale;
 							lrrs = autoCentroids == null ? mySample.getLRRs() : mySample.getLRRs(autoCentroids.getCentroids());
 							bafs = autoCentroids == null ? mySample.getBAFs() : mySample.getBAFs(autoCentroids.getCentroids());
+
+							if (lrrs == null) {
+								if (autoCentroids != null) {
+									log.reportError("LRRs for sample " + sampleName + " were null after centroid transformation.");
+								}
+								if (mySample.getXs() == null) {
+									log.reportError("Xs for sample " + sampleName + " were null.");
+								}
+							}
 							
 							try {
 								writer = Files.getAppropriateWriter(exportFileName);
