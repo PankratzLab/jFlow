@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 
 public class QueueControl {
 
@@ -12,12 +13,15 @@ public class QueueControl {
 		private boolean allowed;
 		private int minWalltime = -1; // may not exist
 		private int maxWalltime = -1; // hours
+		private int defaultWalltime = -1; // hours
 		private long defaultMem = -1; // bytes
 		private long minMem = -1; // bytes
 		private long maxMem = -1; // bytes
 		private int jobsInQueue = -1; // VERY VOLATILE
+		private int defaultProc = -1;
 		private int minProc = -1; // may not exist
 		private int maxProc = -1;
+		private int defaultNodeCnt = -1;
 		private int minNodeCnt = -1;
 		private int maxNodeCnt = -1;
 		private QueueType type;
@@ -176,9 +180,21 @@ public class QueueControl {
 			return this.userAccessControlEnabled;
 		}
 
+		public int getDefaultWalltime() {
+			return this.defaultWalltime;
+		}
+
+		public int getDefaultProc() {
+			return this.defaultProc;
+		}
+		
+		public int getDefaultNodeCnt() {
+			return this.defaultNodeCnt;
+		}
+
 	}
 
-	enum QueueType {
+	public enum QueueType {
 		EXEC,
 		ROUTE;
 	}
@@ -198,6 +214,7 @@ public class QueueControl {
 	private static final String TAG_GROUP_CTRL_SLOPPY = "acl_group_sloppy = ";
 	private static final String TAG_ROUTE_DEST = "route_destinations = ";
 	private static final String TAG_MEM = "resources_default.mem = ";
+	private static final String TAG_WALLTIME_DEFAULT= "resources_default.walltime = ";
 
 	private static String[] loadIDInfo() throws IOException {
 		Runtime rt = Runtime.getRuntime();
@@ -264,11 +281,11 @@ public class QueueControl {
 	}
 	
 	
-	public static ArrayList<JobQueue> parseAllowedQueues(Logger log) {
+	public static List<JobQueue> parseAllowedQueues(Logger log) {
 		return parseAllowedQueues(getUserName(), getCurrentGroup(), getUserGroups().toArray(new String[0]), log);
 	}
 
-	public static ArrayList<JobQueue> parseAllowedQueues(String username, String currgroup, String[] allGroups, Logger log) {
+	public static List<JobQueue> parseAllowedQueues(String username, String currgroup, String[] allGroups, Logger log) {
 		return filterAllowed(parseQueues(username, currgroup, allGroups, log));
 	}
 
@@ -277,7 +294,7 @@ public class QueueControl {
 	 * 
 	 * @return
 	 */
-	public static ArrayList<JobQueue> parseQueues(String username, String currGroup, String[] allGroups, Logger log) {
+	public static List<JobQueue> parseQueues(String username, String currGroup, String[] allGroups, Logger log) {
 		Runtime rt = Runtime.getRuntime();
 		String[] commands = {"qstat", "-Qf"};
 		BufferedReader stdInput = null;
@@ -451,7 +468,7 @@ public class QueueControl {
 		}
 	}
 
-	private static ArrayList<JobQueue> filterAllowed(ArrayList<JobQueue> all) {
+	private static List<JobQueue> filterAllowed(List<JobQueue> all) {
 		ArrayList<JobQueue> filt = new ArrayList<JobQueue>();
 		for (JobQueue f : all) {
 			if (f.isAllowed()) {
@@ -477,7 +494,7 @@ public class QueueControl {
 	 * @return
 	 */
 	public static JobQueue findSensibleDefault(ArrayList<JobQueue> queues) {
-		ArrayList<JobQueue> allowed = filterAllowed(queues); // maybe already filtered, but just in case
+		List<JobQueue> allowed = filterAllowed(queues); // maybe already filtered, but just in case
 
 		JobQueue routeQueueMost = null;
 		int svRt = 0;

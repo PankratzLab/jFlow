@@ -235,6 +235,4 @@ public class QueuePicker extends JDialog {
 	}
 	
 	
-	
-
 }

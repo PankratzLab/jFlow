@@ -30,6 +30,9 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.DosageData;
 import org.genvisis.filesys.Segment;
 import org.genvisis.gwas.MergeExtractPipeline;
+import org.genvisis.one.ben.fcs.FCSFileDuplicator;
+import org.genvisis.one.ben.fcs.FCSDataLoader;
+import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
 
 import com.google.common.io.Closeables;
 
@@ -184,6 +187,43 @@ public class lab {
 		
 	}
 	
+	private static void filterNYChoanalCNVs() {
+		String filenameOfProblematicRegions = null;
+		String individualsToKeepFile = null;
+		int commonInOutOrIgnore = FilterCalls.COMMON_IGNORED;
+		String markerSetFilenameToBreakUpCentromeres_1 = "/scratch.global/cole0482/ny_choanal/shadow11combo/markerPositions.txt";
+		String markerSetFilenameToBreakUpCentromeres_2 = "/scratch.global/cole0482/ny_choanal/shadow12combo/markerPositions.txt";
+		int build = 37;
+		boolean makeUCSC = false;
+		int[] del = new int[]{10, 0};
+		int[] dup = new int[]{10, 10};
+		int[] number = new int[]{5, 3};
+		int score = 10;
+		
+		String[][] files = new String[][]{
+			{"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/", "23Mgen_merged.cnv", "23_M_filtered.cnv", markerSetFilenameToBreakUpCentromeres_1},
+			{"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/", "23Fgen_merged.cnv", "23_F_filtered.cnv", markerSetFilenameToBreakUpCentromeres_1},
+			{"/scratch.global/cole0482/ny_choanal/shadow12combo/cnv/", "23Mgen_merged.cnv", "23_M_filtered.cnv", markerSetFilenameToBreakUpCentromeres_2},
+			{"/scratch.global/cole0482/ny_choanal/shadow12combo/cnv/", "23Fgen_merged.cnv", "23_F_filtered.cnv", markerSetFilenameToBreakUpCentromeres_2},
+			{"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/", "24_M_genvisis.cnv", "24_M_filtered.cnv", markerSetFilenameToBreakUpCentromeres_1}
+		};
+		
+		for (String[] fileSet : files) {
+			FilterCalls.filterCNVs(fileSet[0], fileSet[1], fileSet[2], del, dup,
+									number, score, filenameOfProblematicRegions,
+									commonInOutOrIgnore, individualsToKeepFile, true,
+									fileSet[3], makeUCSC,
+									build, new Logger());
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
@@ -195,11 +235,22 @@ public class lab {
 		boolean test = true;
 		if (test) {
 			
-			System.out.println(Files.exists("F:/ny_choanal/shadow11/penncnv/"));
-			System.out.println();
+			String src = "F:/Flow/testDupl/testFile.fcs";
+			String dest = "F:/Flow/testDupl/resultFile.fcs";
+			
+			System.out.println(FCSFileDuplicator.createFrom(src, dest, new Logger()));
+			
+			FCSDataLoader loader = new FCSDataLoader();
+			loader.loadData(dest);
+			while(loader.getLoadState() != LOAD_STATE.LOADED) {
+				Thread.yield();
+			}
+			
+			for (int i = 0; i < loader.getCount(); i++) {
+				System.out.println(loader.getPresetGateAssignment(i));
+			}
 			
 			
-//				
 //			System.out.println("Username: " + QueueControl.getUserName());
 //			System.out.println("Group: " + QueueControl.getCurrentGroup());
 //			System.out.println("All Groups: " + QueueControl.getUserGroups().toString());
