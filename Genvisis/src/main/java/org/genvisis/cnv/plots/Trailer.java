@@ -587,19 +587,15 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			int cnvY1 = (selectedCNV[2] + 2) * 15;
 			int cnvY2 = cnvY1 + 10;
 			if (x >= cnvX1 && x <= cnvX2 && y > cnvY1 && y < cnvY2) {
-				if (cnvPanel.getToolTipText() != null) {
-					// 
-				} else {
-					StringBuilder txtBld = new StringBuilder();
-					txtBld.append("<html>Start: ").append(ext.addCommas(cnv.getStart())).append("<br/>");
-					txtBld.append(" Stop: ").append(ext.addCommas(cnv.getStop())).append("<br/>");
-					txtBld.append(" Length: ").append(ext.addCommas((cnv.getStop() - cnv.getStart())))
-								.append("<br/>");
-					txtBld.append("# Mkrs: ").append(cnv.getNumMarkers()).append("<br/>");
-					txtBld.append("CN: ").append(cnv.getCN()).append("<br/>");
-					txtBld.append("Score: ").append(cnv.getScore()).append("</html>");
-					cnvPanel.setToolTipText(txtBld.toString());
-				}
+				StringBuilder txtBld = new StringBuilder();
+				txtBld.append("<html>Start: ").append(ext.addCommas(cnv.getStart())).append("<br/>");
+				txtBld.append(" Stop: ").append(ext.addCommas(cnv.getStop())).append("<br/>");
+				txtBld.append(" Length: ").append(ext.addCommas((cnv.getStop() - cnv.getStart())))
+							.append("<br/>");
+				txtBld.append("# Mkrs: ").append(cnv.getNumMarkers()).append("<br/>");
+				txtBld.append("CN: ").append(cnv.getCN()).append("<br/>");
+				txtBld.append("Score: ").append(cnv.getScore()).append("</html>");
+				cnvPanel.setToolTipText(txtBld.toString());
 			} else {
 //				cnvPanel.setToolTipText(null);
 			}
