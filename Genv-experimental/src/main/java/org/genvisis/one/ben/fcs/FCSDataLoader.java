@@ -37,6 +37,7 @@ public class FCSDataLoader {
 
   private static final String COMPENSATED_PREPEND = "Comp-";
   private static final int COMP_LEN = COMPENSATED_PREPEND.length();
+	static final String GATING_KEY = "GATING";
 
   public static enum LOAD_STATE {
     LOADED, LOADING, PARTIALLY_LOADED, LOADING_REMAINDER, UNLOADED;
@@ -56,7 +57,9 @@ public class FCSDataLoader {
   int loadedCount = 0;
   double[][] allData;
   double[][] compensatedData;
+  String[] presetGating;
   private String loadedFile = null;
+  CFCSSystem syst = null;
   CFCSData dataObj = null;
   CFCSSpillover spillObj = null;
   int paramsCount = -1;
@@ -99,9 +102,11 @@ public class FCSDataLoader {
     compensatedIndices = new HashMap<String, Integer>();
     eventCount = -1;
     loadedCount = 0;
+    presetGating = null;
     allData = null;
     compensatedData = null;
     loadedFile = null;
+    syst = null;
     dataObj = null;
     spillObj = null;
     paramsCount = -1;
@@ -207,7 +212,7 @@ public class FCSDataLoader {
     // }
     loadedFile = fcsFilename;
 
-    CFCSSystem syst = new CFCSSystem();
+    syst = new CFCSSystem();
     File sysFile = new File(fcsFilename);
     URL fileURL = (sysFile).toURI().toURL();
     syst.open(fileURL);
@@ -253,6 +258,19 @@ public class FCSDataLoader {
       lastModified = new Date(sysFile.lastModified());
     }
 
+    String gating = null;
+    try {
+    	gating = keys.getKeyword(FCSDataLoader.GATING_KEY).getKeywordValue();
+    } catch (Exception e) {
+    	System.err.println("Info - no precreated gating info available.");
+    }
+    if (gating != null) {
+    	String[] sp = gating.split(",");
+    	presetGating = sp;
+    } else {
+    	presetGating = null;
+    }
+    
     HashMap<String, String> names = new HashMap<String, String>();
     for (int i = 0; i < paramsCount; i++) {
       CFCSParameter param = params.getParameter(i);
@@ -305,7 +323,7 @@ public class FCSDataLoader {
         rng = 262144;
       }
       ranges.add(rng);
-
+      
     }
 
     String[] arr = spillObj.getParameterNames();
@@ -412,6 +430,7 @@ public class FCSDataLoader {
         }
       }
       if (Thread.currentThread().isInterrupted()) {
+      	cleanup();
         return;
       }
       compensatedData =
@@ -419,21 +438,30 @@ public class FCSDataLoader {
               compensatedNames.toArray(new String[compensatedNames.size()]),
               getInvertedSpilloverMatrix(spillObj.getSpilloverCoefficients()));
       if (Thread.currentThread().isInterrupted()) {
+      	cleanup();
         return;
       }
       allData = Matrix.transpose(allData);
       if (Thread.currentThread().isInterrupted()) {
+      	cleanup();
         return;
       }
       compensatedData = Matrix.transpose(compensatedData);
       if (Thread.currentThread().isInterrupted()) {
+      	cleanup();
         return;
       }
+      cleanup();
+    }
+    
+    private void cleanup() {
       isTransposed = true;
       dataObj = null;
+      syst.close();
       setState(LOAD_STATE.LOADED);
       System.gc();
     }
+    
   });
 
   public void setSpilloverMatrix(double[][] newCoeffs) {
@@ -518,6 +546,13 @@ public class FCSDataLoader {
       return prepend ? COMPENSATED_PREPEND + paramNamesInOrder.get(ind) : paramNamesInOrder.get(ind);
     }
     return prepend ? COMPENSATED_PREPEND + nm : nm;
+  }
+  
+  public String getPresetGateAssignment(int line) {
+  	if (presetGating == null || presetGating.length <= line || line < 0) {
+  		return "";
+  	}
+  	return presetGating[line];
   }
   
   public double[] getDataLine(List<String> params, int ind) {
