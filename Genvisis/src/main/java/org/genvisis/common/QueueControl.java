@@ -292,7 +292,6 @@ public class QueueControl {
 		return groups;
 	}
 	
-	
 	public static List<JobQueue> parseAllowedQueues(Logger log) {
 		return parseAllowedQueues(getUserName(), getCurrentGroup(), getUserGroups().toArray(new String[0]), log);
 	}

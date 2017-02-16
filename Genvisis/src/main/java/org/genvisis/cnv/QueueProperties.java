@@ -1,20 +1,23 @@
 package org.genvisis.cnv;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.QueueControl;
 import org.genvisis.common.QueueControl.JobQueue;
 
 public class QueueProperties {
 	
 	private static final String PROPERTIES_FILE = "queues.properties";
-	private static final String INIT_FAILURE = "Failed to create PBS queue properties: " + PROPERTIES_FILE
-      + ". Genvisis will continue, but generated PBS files should be reviewed before submission."	;
 	
-	private static Logger log;
+	private static Logger log = new Logger();
 	private static List<JobQueue> qList;
 	
 	private enum QueueKeys {
@@ -27,7 +30,6 @@ public class QueueProperties {
 		Q_WALL_MIN() {
 			@Override
 			public String getValue(JobQueue q) { return this.toString() + "=" + q.getMinWalltime(); }
-
 			@Override
 			public void setValue(JobQueue q, String rawValue) { q.setMinWalltime(parseIntOrNeg1(rawValue)); }
 		},
@@ -117,16 +119,61 @@ public class QueueProperties {
 		}
 	}
 	
+	public static List<JobQueue> getJobQueues() {
+		if (qList == null) {
+			load();
+		}
+		return qList == null ? new ArrayList<JobQueue>() : qList;
+	}
 	
-	private void parseLine(String line, JobQueue q) {
+	public static synchronized void load() {
+		if (Files.exists(PROPERTIES_FILE)) {
+			loadFile();
+		} else {
+			log.report("No queue properties file found; Initializing programmatically.  Please edit the generated queue.properties file by hand with relevant information.");
+			init();
+		}
+	}
+	
+	private static void loadFile() {
+		BufferedReader reader;
+		try {
+			reader = Files.getAppropriateReader(PROPERTIES_FILE);
+		} catch (FileNotFoundException e) {
+			log.reportError("Couldn't read properties file: " + PROPERTIES_FILE);
+			log.reportException(e);
+			return;
+		}
+		String line;
+		JobQueue q = null;
+		qList = new ArrayList<QueueControl.JobQueue>();
+		try {
+			while ((line = reader.readLine()) != null) {
+				if (line.startsWith(QueueKeys.Q_NAME.toString())) {
+					if (q != null) {
+						qList.add(q);
+					}
+					q = new JobQueue();
+				}
+				parseLine(line, q);
+			}
+		} catch (IOException e) {
+			log.reportError("Encountered error when reading queue properties file.");
+			log.reportException(e);
+			qList = null;
+			return;
+		}
+		qList.add(q);
+	}
+	
+	private static void parseLine(String line, JobQueue q) {
 		String[] pts = line.split("=");
 		QueueKeys.valueOf(pts[0]).setValue(q, pts[1]);
 	}
 	
 	
 	public static synchronized void voidQueues() {
-		// clear queue container object
-		
+		qList = null;
 		if (Files.exists(PROPERTIES_FILE)) {
 			boolean del = (new File(PROPERTIES_FILE)).delete();
 			if (!del) {
@@ -136,30 +183,19 @@ public class QueueProperties {
 	}
 	
 	private static synchronized void init() {
-//		if (props == null) {
-//			props = new Properties();
-//			try {
-//				File propFile = new File(PROPERTIES_FILE);
-//				if (!propFile.exists() && !propFile.createNewFile()) {
-//					System.err.println(INIT_FAILURE);
-//					System.exit(-1);
-//				}
-//				InputStream is = new FileInputStream(propFile);
-//				props.load(is);
-//				is.close();
-//				
-//				List<JobQueue> qList = QueueControl.parseAllowedQueues(log);
-//				
-//				
-//				save();
-//			} catch (Exception e) {
-//				System.err.println(INIT_FAILURE);
-//				System.exit(-1);
-//			}
-//		}
+		if (qList == null) {
+			List<JobQueue> allQs = QueueControl.parseAllowedQueues(log);
+			qList = new ArrayList<JobQueue>();
+			for (JobQueue q : allQs) {
+				if (q.isAllowed()) {
+					qList.add(q);
+				}
+			}
+			save();
+		}
 	}
 	
-
+	
 	/**
 	 * Write the current properties to disk
 	 */
