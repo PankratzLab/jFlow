@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -241,13 +242,23 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 */
 	private synchronized void initProjects() {
 		String[] properties = LaunchProperties.getListOfProjectProperties();
-		List<String> list = Arrays.asList(properties);
-		projects = list;
+		
+		String[] projNames = LaunchProperties.getListOfProjectNames();
+		Map<String, Integer> indMap = new HashMap<String, Integer>();
+		for (int i = 0; i < projNames.length; i++) {
+			indMap.put(projNames[i], i);
+		}
+		
+		projNames = ArrayUtils.sortedCopyAlphanum(projNames);
+		String[] propsSorted = new String[properties.length];
+		for (int i = 0; i < projNames.length; i++) {
+			propsSorted[i] = properties[indMap.get(projNames[i])];
+		}
+
+		projects =  Arrays.asList(propsSorted);
 
 		// update the project box
 		if (projectsBox != null) {
-			String[] projNames = LaunchProperties.getListOfProjectNames();
-			projNames = ArrayUtils.sortedCopyAlphanum(projNames);
 			projectsBox.setModel(new DefaultComboBoxModel(projNames));
 		}
 
