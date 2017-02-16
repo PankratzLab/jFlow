@@ -387,11 +387,11 @@ public class SeqMetaPrimary {
 					// foundSnpInfo = true;
 					rCode = "library(\"seqMeta\")\n"	+ "library(\"methods\")\n" + "setwd(\"" + resultDir
 									+ "\")\n" + "\n"
-									+ (currentSnpInfo.toLowerCase().endsWith(".rdata")	? "obj_name <- load(\""
-																																				+ currentSnpInfo + "\")\n" + "SNPInfo <- get(obj_name)\n" + "rm(list=obj_name)\n" + "rm(obj_name)\n"
-																																			: "SNPInfo <- read.csv(\""
-																																					+ currentSnpInfo
-																																				+ "\", header=T, as.is=T)\n")
+									+ (currentSnpInfo.toLowerCase().endsWith(".rdata")
+											? "obj_name <- load(\"" + currentSnpInfo + "\")\n"
+											+ "SNPInfo <- get(obj_name)\n" + "rm(list=obj_name)\n" + "rm(obj_name)\n" 
+										: "SNPInfo <- read.csv(\"" + currentSnpInfo + "\", header=T, as.is=T)\n"
+									)
 									+ "\n"
 
 									+ "cohortName <- load(\"" + resultDir + cohort + "_chr" + i + ".RData" + "\")\n"
