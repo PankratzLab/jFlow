@@ -17,8 +17,7 @@ import org.genvisis.stats.Rscript;
 
 public class SeqMetaPrimary {
 
-	public static void batch(	String cohort, String genos, String phenoFilename, String snpInfo,
-														int qsubMem, double qsubWalltime, String queue) {
+	public static void batch(String cohort, String genos, String phenoFilename, String snpInfo, int qsubMem, double qsubWalltime, String queue) {
 		String phenoDir;
 		String phenoRoot;
 		String resultDir;
@@ -90,37 +89,32 @@ public class SeqMetaPrimary {
 				if (foundGenos && foundSnpInfo) {
 					rCode = "library(\"seqMeta\")\n"	+ "library(\"methods\")\n" + "setwd(\"" + resultDir
 									+ "\")\n" + "\n"
-									+ (currentSnpInfo.toLowerCase().endsWith(".rdata")	? "obj_name <- load(\""
-																																					+ currentSnpInfo + "\")\n"
-																																				+ "SNPInfo <- get(obj_name)\n"
-																																				+ "rm(list=obj_name)\n"
-																																				+ "rm(obj_name)\n"
-																																			: "SNPInfo <- read.csv(\""
-																																					+ currentSnpInfo
-																																				+ "\", header=T, as.is=T)\n")
+									+ (currentSnpInfo.toLowerCase().endsWith(".rdata")	? "obj_name <- load(\"" + currentSnpInfo + "\")\n"
+									+ "SNPInfo <- get(obj_name)\n"
+									+ "rm(list=obj_name)\n"
+									+ "rm(obj_name)\n"
+									: "SNPInfo <- read.csv(\""
+									+ currentSnpInfo + "\", header=T, as.is=T)\n")
 									+ "\n"
-
-									+ (genos.toLowerCase().endsWith(".rdata")
-																															? "genoName <- load(\""	+ currentGeno
-																															+ "\")\n" + "Z <- get(genoName)\n"
-																															+ "percent_miss <- mean(colnames(Z) %in% SNPInfo[,\"SNP\"])\n"
-																															+ "if (percent_miss == 0) {\n"
-																															+ "    names <- colnames(Z)\n"
-																															+ "    for (i in 1:ncol(Z)) {\n"
-																															+ "        names[i] <- paste(\"chr\", names[i], sep=\"\")\n"
-																															+ "    }\n"
-																															+ "    colnames(Z) <- names\n" + "}\n"
-																														: "Z <- t(read.csv(\""	+ currentGeno
-																															+ "\", header=T, as.is=T, row.names=1))\n"
-																															+ "names <- colnames(Z)\n"
-																															+ "for (i in 1:ncol(Z)) {\n"
-																															+ "    tmp <- names[i]\n"
-																															+ "    if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
-																															+ "        names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n"
-																															+ "    }\n" + "}\n"
-																															+ "colnames(Z) <- names\n")
-									+ "\n" + "pheno <- read.csv(\"" + phenoFilename
-									+ "\", header=T, as.is=T, row.names=1)\n" + "xphen <- na.omit(pheno)\n"
+									+ (genos.toLowerCase().endsWith(".rdata") ? "genoName <- load(\""	+ currentGeno + "\")\n" + "Z <- get(genoName)\n"
+											+ "percent_miss <- mean(colnames(Z) %in% SNPInfo[,\"SNP\"])\n"
+											+ "if (percent_miss == 0) {\n"
+											+ "    names <- colnames(Z)\n"
+											+ "    for (i in 1:ncol(Z)) {\n"
+											+ "        names[i] <- paste(\"chr\", names[i], sep=\"\")\n"
+											+ "    }\n"
+											+ "    colnames(Z) <- names\n" + "}\n"
+										: "Z <- t(read.csv(\""	+ currentGeno
+											+ "\", header=T, as.is=T, row.names=1))\n"
+											+ "names <- colnames(Z)\n"
+											+ "for (i in 1:ncol(Z)) {\n"
+											+ "    tmp <- names[i]\n"
+											+ "    if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
+											+ "        names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n"
+											+ "    }\n" + "}\n"
+											+ "colnames(Z) <- names\n")
+									+ "\n"
+									+ "pheno <- read.csv(\"" + phenoFilename + "\", header=T, as.is=T, row.names=1)\n" + "xphen <- na.omit(pheno)\n"
 									+ "merged <- merge(xphen, Z, by=\"row.names\")\n"
 									+ "mPheno <- merged[,1:ncol(pheno)+1]\n" + "names <- colnames(pheno)\n"
 									+ "coxy <- sum(names %in% c(\"time\", \"status\"))\n" + "if (length(names)>1) {\n"
@@ -188,8 +182,7 @@ public class SeqMetaPrimary {
 				Files.qsub(batchDir	+ "run_" + cohort, batchDir, -1, commands, iterations, qsubMem,
 										qsubWalltime, queue);
 				if (iterations.length == 0) {
-					new File(batchDir + "master.run_" + cohort).renameTo(new File(batchDir	+ "master.run_"
-																																				+ cohort + ".bak"));
+					new File(batchDir + "master.run_" + cohort).renameTo(new File(batchDir	+ "master.run_" + cohort + ".bak"));
 				}
 			}
 
@@ -285,23 +278,7 @@ public class SeqMetaPrimary {
 		v = new Vector<String>();
 		for (String pheno : phenos) {
 			for (String race : races) {
-<<<<<<< Upstream, based on origin/master
-				v.add("cd " + cohort + "_" + race + "_" + pheno + "/batchFiles/");
-				v.add("./master.chunkSB_" + cohort + "_" + race + "_" + pheno);
-				v.add("cd ../../");
-				v.add("");
-			}
-		}
-		Files.writeArray(ArrayUtils.toStringArray(v), "scriptAllItasca");
-		Files.chmod("scriptAllItasca");
-
-		v = new Vector<String>();
-		for (String pheno : phenos) {
-			for (String race : races) {
-				if (Files.exists(cohort	+ "_" + race + "_" + pheno + "/batchFiles/finishUpOnSB_" + cohort
-=======
 				if (Files.exists(cohort	+ "_" + race + "_" + pheno + "/batchFiles/finishWithHigherMem_" + cohort
->>>>>>> 9e15830 Simplified batching in SeqMetaPrimary
 													+ "_" + race + "_" + pheno)) {
 					v.add("cd " + cohort + "_" + race + "_" + pheno + "/batchFiles/");
 					v.add("qsub finishWithHigherMem_" + cohort + "_" + race + "_" + pheno);
@@ -310,13 +287,8 @@ public class SeqMetaPrimary {
 				}
 			}
 		}
-<<<<<<< Upstream, based on origin/master
-		Files.writeArray(ArrayUtils.toStringArray(v), "finishUpOnSB");
-		Files.chmod("finishUpOnSB");
-=======
-		Files.writeArray(Array.toStringArray(v), "finishWithHigherMem");
+		Files.writeArray(ArrayUtils.toStringArray(v), "finishWithHigherMem");
 		Files.chmod("finishWithHigherMem");
->>>>>>> 9e15830 Simplified batching in SeqMetaPrimary
 
 		v = new Vector<String>();
 		for (String pheno : phenos) {
