@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -21,8 +22,11 @@ import org.genvisis.filesys.SerialHash;
 import org.genvisis.parse.GenParser;
 import org.genvisis.stats.Maths;
 
+import com.google.common.collect.ImmutableList;
+
 public class MarkerQC {
 	public static final String DEFAULT_FILENAME = "thresholds.properties";
+	public static final String COMMAND = "miss";
 	public static final String[] FRQ_HEADER = {"CHR", "SNP", "A1", "A2", "MAF", "NCHROBS"};
 	public static final String[] LMISS_HEADER = {"CHR", "SNP", "N_MISS", "N_GENO", "F_MISS"};
 	public static final String[] HWE_HEADER = {"CHR", "SNP", "TEST", "A1", "A2", "GENO", "O(HET)",
@@ -36,6 +40,30 @@ public class MarkerQC {
 																							 "miss.hap min p-value", "P_MISS"};
 	// public static final String[] THRESHOLDS = {"snp", "chr", "maf", "f_miss", "hwe", "hetero",
 	// "minmishap", "p_miss"};
+
+	public static final List<String> DEFAULT_STRICT_QC_THRESHOLDS = ImmutableList.of("file=markerQC.xln",
+																																									 "markers=freq.frq,1,header",
+																																									 "chr=freq.frq,<1,1:0",
+																																									 "maf=freq.frq,<0.01",
+																																									 "callrate=missing.lmiss,<0.98",
+																																									 "hwe=hardy.hwe,<0.00001",
+																																									 "mishap_hetero=mishap.missing.hap,<0.0001",
+																																									 "mishap_min=mishap.missing.hap,<0.0001",
+																																									 "p_miss=test.missing.missing,<0.0001",
+																																									 "p_gender=gender.assoc,<1E-7",
+																																									 "p_gender_miss=gender.missing,<0.0001");
+
+	public static final List<String> DEFAULT_GWAS_QC_THRESHOLDS = ImmutableList.of("file=markerQC.xln",
+																																								 "markers=freq.frq,1,header",
+																																								 "chr=freq.frq,<1,1:0",
+																																								 "maf=freq.frq,<0.01",
+																																								 "callrate=missing.lmiss,<0.98",
+																																								 "hwe=hardy.hwe,<1E-7",
+																																								 "mishap_hetero=mishap.missing.hap,<1E-7",
+																																								 "mishap_min=mishap.missing.hap,<1E-7",
+																																								 "p_miss=test.missing.missing,<1E-7",
+																																								 "p_gender=gender.assoc,<1E-7",
+																																								 "p_gender_miss=gender.missing,<1E-7");
 
 	public static int parse(String dir, String[][] params, Logger log, boolean kill) {
 		BufferedReader reader;
@@ -116,7 +144,8 @@ public class MarkerQC {
 						reader.close();
 						SerialHash.createSerializedStringArrayHash(dir
 																											 + GenParser.parseSerialFilename(new String[] {params[i][1],
-																																																		 "0", "$MIN7"}),
+																																																		 "0",
+																																																		 "$MIN7"}),
 																											 hash);
 					} catch (FileNotFoundException fnfe) {
 						log.reportError("Error: file \"" + params[i][1] + "\" not found in current directory");
@@ -359,17 +388,8 @@ public class MarkerQC {
 		String dir;
 
 		dir = "";
-		paramV = Files.parseControlFile(filename, "miss",
-																		new String[] {"file=markerQC.xln", "markers=freq.frq,1,header",
-																									"chr=freq.frq,<1,1:0", "maf=freq.frq,<0.01",
-																									"callrate=missing.lmiss,<0.98",
-																									"hwe=hardy.hwe,<0.00001",
-																									"mishap_hetero=mishap.missing.hap,<0.0001",
-																									"mishap_min=mishap.missing.hap,<0.0001",
-																									"p_miss=test.missing.missing,<0.0001",
-																									"p_gender=gender.assoc,<1E-7",
-																									"p_gender_miss=gender.missing,<0.0001"},
-																		log);
+		paramV = Files.parseControlFile(filename, COMMAND,
+																		ArrayUtils.toStringArray(DEFAULT_STRICT_QC_THRESHOLDS), log);
 		if (paramV != null) {
 			file = null;
 			markers = null;
