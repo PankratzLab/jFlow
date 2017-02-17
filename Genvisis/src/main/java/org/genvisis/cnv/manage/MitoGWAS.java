@@ -712,7 +712,7 @@ public class MitoGWAS {
 		if (!Files.exists(processed)) {
 			PhenoPrep.parse("", inputDb, "IID", pheno, null, 3.0, false, false, true, false, inverse,
 											covars, root + ".fam", true, true, false, false, true, false, null, output,
-											true, false, false, false, false, false, log);
+											true, false, false, false, false, null, false, log);
 		}
 
 		ArrayList<String> plink = new ArrayList<String>();
