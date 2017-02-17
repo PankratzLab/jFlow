@@ -297,7 +297,7 @@ public class EmimPipeline {
 		if (log1 != null) {
 			processCommand += " log=" + log1.getFilename();
 		}
-		Files.qsub(runDir + "/processResults.pbs", processCommand, 8000, 6, 1);
+		Files.qsub(runDir + "/processResults.pbs", processCommand, 16000, 6, 1);
 
 		log.report("PBS script for post-pipeline processing generated, submit " + runDir
 							 + "processResults.pbs after the pipeline has completed to process results");
