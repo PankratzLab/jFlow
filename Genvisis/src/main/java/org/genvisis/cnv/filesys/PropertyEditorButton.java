@@ -36,7 +36,7 @@ public class PropertyEditorButton extends JButton {
 		addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				//NB: copied the window logic from cnv.Launnch
+				// NB: copied the window logic from cnv.Launnch
 				proj.getLog().report("Launching project properties editor...");
 				final ProjectPropertiesEditor editor = new ProjectPropertiesEditor(proj, keys);
 				editor.addWindowListener(new WindowAdapter() {

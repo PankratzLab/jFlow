@@ -60,14 +60,14 @@ public class GDIAnnotator implements SegmentAnnotator {
 	 */
 	public static GDIAnnotator getDefaultGDIAnnotator(Logger log) {
 		String gdiFile = Resources.annotation(log).getGDI().get();
-		int[] indices = ext.indexFactors(	REQUIRED_HEADER, Files.getHeaderOfFile(gdiFile, log), true,
-																			false);
+		int[] indices = ext.indexFactors(REQUIRED_HEADER, Files.getHeaderOfFile(gdiFile, log), true,
+																		 false);
 
 		Map<String, String> attributes = new HashMap<String, String>();
 
 		if (ArrayUtils.countIf(indices, -1) > 0) {
-			throw new IllegalArgumentException("Invalid header in "+ gdiFile + " , require "
-																					+ ArrayUtils.toStr(REQUIRED_HEADER));
+			throw new IllegalArgumentException("Invalid header in " + gdiFile + " , require "
+																				 + ArrayUtils.toStr(REQUIRED_HEADER));
 		}
 
 		try {
@@ -78,8 +78,8 @@ public class GDIAnnotator implements SegmentAnnotator {
 				if (attributes.containsKey(line[indices[0]])) {
 					log.reportTimeWarning("Multiple entries for " + line[indices[0]] + " in " + gdiFile);
 				} else {
-					attributes.put(	line[indices[0]],
-													line[indices[1]] + ";" + line[indices[2]] + ";" + line[indices[3]]);
+					attributes.put(line[indices[0]],
+												 line[indices[1]] + ";" + line[indices[2]] + ";" + line[indices[3]]);
 				}
 			}
 			reader.close();
@@ -121,8 +121,8 @@ public class GDIAnnotator implements SegmentAnnotator {
 
 
 
-		List<String> genes = segmentAnotation	.getAttributes()
-																					.get(SegmentAnnotationKeys.GENE.toString());
+		List<String> genes = segmentAnotation.getAttributes()
+																				 .get(SegmentAnnotationKeys.GENE.toString());
 		List<String> gdis = new ArrayList<String>();
 		for (String gene : genes) {
 			if (gdiLookup.containsKey(gene)) {

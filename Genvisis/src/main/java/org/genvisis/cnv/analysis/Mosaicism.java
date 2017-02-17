@@ -42,10 +42,10 @@ import org.genvisis.filesys.Segment;
 import com.google.common.primitives.Floats;
 
 public class Mosaicism {
-	public static final String[] HEADER = {	"Sample", "Arm", "#CNVs", "Summed_Size", "%covered",
-																					"Custom_metric", "LRR_SD", "LRR_SD_flag",
-																					"Flagged_via_Mosaicism", "Mosaicism_level",
-																					"Mosaicism description"};
+	public static final String[] HEADER = {"Sample", "Arm", "#CNVs", "Summed_Size", "%covered",
+																				 "Custom_metric", "LRR_SD", "LRR_SD_flag",
+																				 "Flagged_via_Mosaicism", "Mosaicism_level",
+																				 "Mosaicism description"};
 	public static final double LOWER_BOUND = 0.15;
 	public static final double UPPER_BOUND = 0.85;
 
@@ -111,12 +111,12 @@ public class Mosaicism {
 			// samples = new String[] { "7355066051_R03C01", "7330686030_R02C01", "7159911135_R01C02" };
 			// samples = new String[] { "7355066051_R03C01" };
 
-			MosaicResultProducer producer = new MosaicResultProducer(	proj, samples, snpDropped,
-																																chrBoundaries, markerSet,
-																																indicesByChr);
+			MosaicResultProducer producer = new MosaicResultProducer(proj, samples, snpDropped,
+																															 chrBoundaries, markerSet,
+																															 indicesByChr);
 			WorkerTrain<String[]> train = new WorkerTrain<String[]>(producer,
-																															numthreads > 0	? numthreads
-																																							: proj.NUM_THREADS.getValue(),
+																															numthreads > 0 ? numthreads
+																																						 : proj.NUM_THREADS.getValue(),
 																															2, proj.getLog());
 			int index = 0;
 			long timePer = System.currentTimeMillis();
@@ -134,7 +134,7 @@ public class Mosaicism {
 					index++;
 					if (index % numthreads == 0) {
 						proj.getLog()
-								.reportTimeInfo((index)	+ " of " + samples.length + " in "
+								.reportTimeInfo((index) + " of " + samples.length + " in "
 																+ ext.getTimeElapsed(timePer) + ", total time at "
 																+ ext.getTimeElapsed(time));
 						timePer = System.currentTimeMillis();
@@ -203,9 +203,9 @@ public class Mosaicism {
 		}
 	}
 
-	private static String[] getMosaicResults(	Project proj, String sample, boolean[] snpDropped,
-																						int[][] chrBoundaries, MarkerSet markerSet,
-																						int[][] indicesByChr) {
+	private static String[] getMosaicResults(Project proj, String sample, boolean[] snpDropped,
+																					 int[][] chrBoundaries, MarkerSet markerSet,
+																					 int[][] indicesByChr) {
 		Sample samp;
 		float baf;
 		float[] lrrs;
@@ -213,8 +213,8 @@ public class Mosaicism {
 		samp = proj.getPartialSampleFromRandomAccessFile(sample);
 		ArrayList<String> results = new ArrayList<String>();
 		if (samp.getFingerprint() != markerSet.getFingerprint()) {
-			String error = "Error - cannot estimate mosaics if MarkerSet and Sample ("	+ sample
-											+ ") don't use the same markers";
+			String error = "Error - cannot estimate mosaics if MarkerSet and Sample (" + sample
+										 + ") don't use the same markers";
 			throw new IllegalArgumentException(error);
 		}
 		lrrs = samp.getLRRs();
@@ -263,7 +263,7 @@ public class Mosaicism {
 					if (chrs[startIndex] != (byte) j || chrs[stopIndex - 1] != (byte) j) {
 
 						throw new IllegalStateException("Internal Error, mismatched chromosome indices, start ="
-																							+ chrs[startIndex] + "\tstop = " + chrs[stopIndex]
+																						+ chrs[startIndex] + "\tstop = " + chrs[stopIndex]
 																						+ "\tarm = " + arm);
 					}
 					Segment armSeg = new Segment((byte) j, positions[startIndex], positions[stopIndex - 1]);
@@ -272,10 +272,13 @@ public class Mosaicism {
 					int bafSize = bafAl.size();
 					int lrrSize = lrrAl.size();
 					float[] bafTmp = Floats.toArray(bafAl);
-					String result = sample	+ "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t"
-													+ ext.formDeci(ArrayUtils.mean(Floats.toArray(lrrAl)), 5) + "\t" + bafAl.size()
-													+ (bafSize > 10	? "\t"	+ ext.formDeci(ArrayUtils.stdev(bafTmp, true), 5) + "\t"
-																						+ ext.formDeci(ArrayUtils.iqrExclusive(bafTmp), 5)
+					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t"
+													+ ext.formDeci(ArrayUtils.mean(Floats.toArray(lrrAl)),
+																				 5)
+													+ "\t" + bafAl.size()
+													+ (bafSize > 10 ? "\t" + ext.formDeci(ArrayUtils.stdev(bafTmp, true), 5)
+																						+ "\t" + ext.formDeci(ArrayUtils.iqrExclusive(bafTmp),
+																																	5)
 																					: "\t.\t.")
 													+ "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5);
 					result += "\t" + mosaicMetrics.getForcedCallproportionArmMosaic();
@@ -381,8 +384,8 @@ public class Mosaicism {
 		mosaicMetric.setBpArm(bpArm);
 		if (mosSet.getLoci().length != 1 || !seg.equals(mosSet.getLoci()[0])) {
 			log.reportError("Mosaic caller not in force call mode");
-			log.reportError(seg.getUCSClocation()	+ " went in, and "
-													+ mosSet.getLoci()[0].getUCSClocation() + " came out");
+			log.reportError(seg.getUCSClocation() + " went in, and "
+											+ mosSet.getLoci()[0].getUCSClocation() + " came out");
 		} else if (seg.getChr() < 23) {// can't call chr23 yet
 			mosaicMetric.setForcedCallproportionArmMosaic(mosSet.getLoci()[0].getScore());
 		}
@@ -443,24 +446,24 @@ public class Mosaicism {
 			return;
 		}
 		sampleData = proj.getSampleData(2, new String[] {cnvFiles[0]});
-		if (Files.exists(proj.PROJECT_DIRECTORY.getValue()	+ "lrr_sd.xln",
-											proj.JAR_STATUS.getValue())) {
-			lrrsdHash = HashVec.loadFileToHashString(proj.PROJECT_DIRECTORY.getValue()	+ "lrr_sd.xln",
-																								false);
+		if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + "lrr_sd.xln",
+										 proj.JAR_STATUS.getValue())) {
+			lrrsdHash = HashVec.loadFileToHashString(proj.PROJECT_DIRECTORY.getValue() + "lrr_sd.xln",
+																							 false);
 		} else {
 			System.err.println("Warning - could not find 'lrr_sd.xln' in project directory; no flags will be generated");
 			lrrsdHash = new Hashtable<String, String>();
 		}
-		if (Files.exists(	proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false, false),
-											proj.JAR_STATUS.getValue())) {
+		if (Files.exists(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false, false),
+										 proj.JAR_STATUS.getValue())) {
 			mosaicHash = HashVec.loadFileToHashString(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false,
 																																													false),
 																								new int[] {0, 1}, new int[] {2, 3}, false, "\t",
 																								true, proj.JAR_STATUS.getValue(), true);
 		} else {
 			System.err.println("Warning - could not find "
-														+ proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false, false)
-													+ "; no annotation possible");
+												 + proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false, false)
+												 + "; no annotation possible");
 			mosaicHash = new Hashtable<String, String>();
 		}
 
@@ -492,8 +495,8 @@ public class Mosaicism {
 				reader.close();
 
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \""	+ listOfMosaicArms
-														+ "\" not found in current directory");
+				System.err.println("Error: file \"" + listOfMosaicArms
+													 + "\" not found in current directory");
 				return;
 			} catch (IOException ioe) {
 				System.err.println("Error reading file \"" + listOfMosaicArms + "\"");
@@ -535,11 +538,11 @@ public class Mosaicism {
 					}
 					proportion = (double) sum / (double) arm.getSize();
 					writer.print(listOfArm[0] + "\t" + listOfArm[1]);
-					writer.print("\t"	+ count + "\t" + sum + "\t" + proportion + "\t"
-												+ (400 * proportion + count));
+					writer.print("\t" + count + "\t" + sum + "\t" + proportion + "\t"
+											 + (400 * proportion + count));
 					if (lrrsdHash.containsKey(listOfArm[0])) {
-						writer.print("\t"	+ lrrsdHash.get(listOfArm[0]) + "\t"
-													+ (Double.parseDouble(lrrsdHash.get(listOfArm[0])) > 0.28 ? 1 : 0));
+						writer.print("\t" + lrrsdHash.get(listOfArm[0]) + "\t"
+												 + (Double.parseDouble(lrrsdHash.get(listOfArm[0])) > 0.28 ? 1 : 0));
 					} else {
 						writer.print("\t.\t.");
 					}
@@ -561,14 +564,14 @@ public class Mosaicism {
 				}
 				writer.close();
 				JOptionPane.showMessageDialog(null,
-																			"There were "	+ v.size()
+																			"There were " + v.size()
 																						+ " samples not present in the SampleData file; check file in the project directory for a list",
 																			"Error", JOptionPane.ERROR_MESSAGE);
 
 			}
 		} catch (IOException ioe) {
-			System.err.println("Error writing to file \""	+ ext.rootOf(listOfMosaicArms, false)
-													+ "_counts.xln" + "\"");
+			System.err.println("Error writing to file \"" + ext.rootOf(listOfMosaicArms, false)
+												 + "_counts.xln" + "\"");
 			return;
 		}
 		System.out.println("Finished in " + ext.getTimeElapsed(time));
@@ -582,14 +585,14 @@ public class Mosaicism {
 		boolean check = false;
 		int numthreads = 24;
 
-		String usage = "\n"	+ "filesys.ParseIllumina requires 0-1 arguments\n"
-										+ "   (1) project properties filename (i.e. proj="
-										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-										+ "   (2) check for overlap between mosaic arms and CNV calls in the first CNV file listed in the project file (i.e. -check (not the default))\n"
-										+ "   (3) mosaic arms file (i.e. arms=MosaicArms.txt (default))\n"
-										+ PSF.Ext.getNumThreadsCommand(4, numthreads) +
+		String usage = "\n" + "filesys.ParseIllumina requires 0-1 arguments\n"
+									 + "   (1) project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + "   (2) check for overlap between mosaic arms and CNV calls in the first CNV file listed in the project file (i.e. -check (not the default))\n"
+									 + "   (3) mosaic arms file (i.e. arms=MosaicArms.txt (default))\n"
+									 + PSF.Ext.getNumThreadsCommand(4, numthreads) +
 
-										"";
+									 "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

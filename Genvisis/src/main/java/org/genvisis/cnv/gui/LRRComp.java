@@ -51,15 +51,15 @@ public class LRRComp extends JFrame implements Runnable {
 																												"Recompute Log R Ratios"};
 
 	public static final String[] EXTRA_CORRECTION = {"Correct LRR", "Correct XY"};
-	public static final String[] REGION_TEXT_FIELD_LABELS =
-																												{	"Input UCSC or probeset-based regions of Interest (one per Line):",
-																													"Progress...", "Enter Analysis Name Here",
-																													"Transform by: ",
-																													"Select a Log R Ratio transformation: ",
-																													"Select a correction method",
-																													"Select for homozygous markers only",
-																													"If " + ArrayUtils.toStr(EXTRA_CORRECTION,
-																																							", or ") + " are selected, choose sex-specific correction strategy for chrX (if present)"};
+	public static final String[] REGION_TEXT_FIELD_LABELS = {"Input UCSC or probeset-based regions of Interest (one per Line):",
+																													 "Progress...",
+																													 "Enter Analysis Name Here",
+																													 "Transform by: ",
+																													 "Select a Log R Ratio transformation: ",
+																													 "Select a correction method",
+																													 "Select for homozygous markers only",
+																													 "If " + ArrayUtils.toStr(EXTRA_CORRECTION,
+																																										", or ") + " are selected, choose sex-specific correction strategy for chrX (if present)"};
 
 	private int transformationType;
 	private int scope;
@@ -164,7 +164,8 @@ public class LRRComp extends JFrame implements Runnable {
 			JPanel buttons = new JPanel();
 			buttons.add(computeButton);
 			buttons.add(twoDPlotButton);
-			buttons.add(new PropertyEditorButton(proj, PropertyKeys.KEY_INTENSITY_PC_NUM_COMPONENTS, PropertyKeys.KEY_INTENSITY_PC_FILENAME));
+			buttons.add(new PropertyEditorButton(proj, PropertyKeys.KEY_INTENSITY_PC_NUM_COMPONENTS,
+																					 PropertyKeys.KEY_INTENSITY_PC_FILENAME));
 			buttons.setAlignmentX(LEFT_ALIGNMENT);
 			add(buttons);
 		}
@@ -218,7 +219,7 @@ public class LRRComp extends JFrame implements Runnable {
 				valid = false;
 				String ObjButtons[] = {"Overwrite", "Cancel"};
 				int promptResult = JOptionPane.showOptionDialog(this,
-																												"The Files for Analysis "	+ outputBase
+																												"The Files for Analysis " + outputBase
 																															+ " Exist",
 																												"Warning - Analysis Files Exist",
 																												JOptionPane.DEFAULT_OPTION,
@@ -237,9 +238,10 @@ public class LRRComp extends JFrame implements Runnable {
 			String ObjButtons[] = {"OK", "Cancel"};
 			int promptResult = JOptionPane.showOptionDialog(this,
 																											"Compute median using "
-																															+ Transforms.TRANFORMATIONS[transformationType]
+																														+ Transforms.TRANFORMATIONS[transformationType]
 																														+ "?",
-																											"Log R Ratio " + Transforms.TRANFORMATIONS[transformationType],
+																											"Log R Ratio "
+																																	 + Transforms.TRANFORMATIONS[transformationType],
 																											JOptionPane.DEFAULT_OPTION,
 																											JOptionPane.WARNING_MESSAGE, null, ObjButtons,
 																											ObjButtons[1]);
@@ -253,7 +255,7 @@ public class LRRComp extends JFrame implements Runnable {
 																							correctionParams[1], correctionParams[2],
 																							correctionParams[3], homozygousCheckBox.isSelected(),
 																							strategy, proj.getLog());// TODO homozygous
-																															// box
+				// box
 				medianLRRWorker.execute();
 				revalidate();
 			}
@@ -261,9 +263,9 @@ public class LRRComp extends JFrame implements Runnable {
 		}
 
 		private void resetOutputBase() {
-			outputBase = outputBase.replaceFirst(	ext.replaceWithLinuxSafeCharacters(fileInputArea.getText()
+			outputBase = outputBase.replaceFirst(ext.replaceWithLinuxSafeCharacters(fileInputArea.getText()
 																																							+ "_", true),
-																						"");
+																					 "");
 		}
 
 		private JLabel addLabel(String text) {
@@ -292,8 +294,7 @@ public class LRRComp extends JFrame implements Runnable {
 		ButtonGroup typeRadio = new ButtonGroup();
 
 		private void addTransformButtons(ActionListener actionListener, int initScope) {
-			JRadioButton[] transformationRadioButtons =
-																								new JRadioButton[Transforms.TRANFORMATIONS.length];
+			JRadioButton[] transformationRadioButtons = new JRadioButton[Transforms.TRANFORMATIONS.length];
 			for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
 				transformationRadioButtons[i] = new JRadioButton(Transforms.TRANFORMATIONS[i], false);
 				transformationRadioButtons[i].setFont(new Font("Arial", 0, 14));
@@ -309,8 +310,8 @@ public class LRRComp extends JFrame implements Runnable {
 		private void addSexStrategyButtons(ActionListener actionListener, int initScope) {
 			JRadioButton[] sexStrategyButtons = new JRadioButton[CHROMOSOME_X_STRATEGY.values().length];
 			for (int i = 0; i < CHROMOSOME_X_STRATEGY.values().length; i++) {
-				sexStrategyButtons[i] = new JRadioButton(	CHROMOSOME_X_STRATEGY.values()[i].toString(),
-																									false);
+				sexStrategyButtons[i] = new JRadioButton(CHROMOSOME_X_STRATEGY.values()[i].toString(),
+																								 false);
 				sexStrategyButtons[i].setFont(new Font("Arial", 0, 14));
 				sexStrategyButtons[i].setToolTipText(CHROMOSOME_X_STRATEGY.values()[i].getToolTip());
 				typeRadio.add(sexStrategyButtons[i]);
@@ -341,9 +342,9 @@ public class LRRComp extends JFrame implements Runnable {
 			}
 			if (extra) {
 				for (int i = BASIC_CORRECTION.length; i < numButtons; i++) {
-					correctionRadioButtons[i] =
-																		new JRadioButton(	EXTRA_CORRECTION[i - BASIC_CORRECTION.length],
-																											false);
+					correctionRadioButtons[i] = new JRadioButton(EXTRA_CORRECTION[i
+																																				- BASIC_CORRECTION.length],
+																											 false);
 					correctionRadioButtons[i].setFont(new Font("Arial", 0, 14));
 					correctionRadio.add(correctionRadioButtons[i]);
 					correctionRadioButtons[i].addActionListener(actionListener);
@@ -411,41 +412,41 @@ public class LRRComp extends JFrame implements Runnable {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
 
-				if (ext.indexOfStr(	actionEvent.getActionCommand(), Transforms.TRANFORMATIONS, true, true,
-														proj.getLog(), false) >= 0) {
+				if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.TRANFORMATIONS, true, true,
+													 proj.getLog(), false) >= 0) {
 					transformationType = ext.indexOfStr(actionEvent.getActionCommand(),
 																							Transforms.TRANFORMATIONS, true, true, proj.getLog(),
 																							false);
 					outputBase = Transforms.TRANFORMATIONS[transformationType];
 				} else if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true,
 																	proj.getLog(), false) >= 0
-										&& transformationType == 0) {
+									 && transformationType == 0) {
 					JOptionPane.showMessageDialog(null,
 																				"Transform by Chromosome or Genome not valid for Raw Values");
 				} else if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true,
 																	proj.getLog(), false) >= 0) {
-					scope = ext.indexOfStr(	actionEvent.getActionCommand(), Transforms.SCOPES, true, true,
-																	proj.getLog(), false);
-					outputBase = Transforms.TRANFORMATIONS[transformationType]	+ "_"
-												+ Transforms.SCOPES[scope];
+					scope = ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true,
+																 proj.getLog(), false);
+					outputBase = Transforms.TRANFORMATIONS[transformationType] + "_"
+											 + Transforms.SCOPES[scope];
 				} else if (ext.indexOfStr(actionEvent.getActionCommand(), BASIC_CORRECTION, true, true,
 																	proj.getLog(), false) >= 0) {
-					int index = ext.indexOfStr(	actionEvent.getActionCommand(), BASIC_CORRECTION, true, true,
-																			proj.getLog(), false);
+					int index = ext.indexOfStr(actionEvent.getActionCommand(), BASIC_CORRECTION, true, true,
+																		 proj.getLog(), false);
 					Arrays.fill(correctionParams, false);
 					correctionParams[index] = true;
 					outputBase = BASIC_CORRECTION[index];
 
 				} else if (ext.indexOfStr(actionEvent.getActionCommand(), EXTRA_CORRECTION, true, true,
 																	proj.getLog(), false) >= 0) {
-					int index = ext.indexOfStr(	actionEvent.getActionCommand(), EXTRA_CORRECTION, true, true,
-																			proj.getLog(), false);
+					int index = ext.indexOfStr(actionEvent.getActionCommand(), EXTRA_CORRECTION, true, true,
+																		 proj.getLog(), false);
 					Arrays.fill(correctionParams, false);
 					correctionParams[(BASIC_CORRECTION.length + index)] = true;
 					outputBase = EXTRA_CORRECTION[index];
 				} else {
 					try {
-					strategy = CHROMOSOME_X_STRATEGY.valueOf(actionEvent.getActionCommand());
+						strategy = CHROMOSOME_X_STRATEGY.valueOf(actionEvent.getActionCommand());
 					} catch (IllegalArgumentException ile) {
 
 					}

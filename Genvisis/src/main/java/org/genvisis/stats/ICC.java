@@ -56,8 +56,8 @@ public class ICC implements Serializable {
 	 *        <p>
 	 *        Note : must call {@link ICC#computeICC()} to compute the ICC
 	 */
-	public ICC(	double[] initData, String[] response, String[] maskedResponses,
-							String[] onlyTheseResponses, boolean verbose, Logger log) {
+	public ICC(double[] initData, String[] response, String[] maskedResponses,
+						 String[] onlyTheseResponses, boolean verbose, Logger log) {
 		super();
 		parsedData = initData;
 		this.log = log;
@@ -154,8 +154,8 @@ public class ICC implements Serializable {
 			}
 		}
 		if (verbose) {
-			System.out.println("Between Rows\tSS: "	+ MSBetween + "\tMS: "
-													+ (MSBetween / (rowEffects.length - 1)));
+			System.out.println("Between Rows\tSS: " + MSBetween + "\tMS: "
+												 + (MSBetween / (rowEffects.length - 1)));
 		}
 		MSBetween /= (rowEffects.length - 1);
 	}
@@ -206,8 +206,8 @@ public class ICC implements Serializable {
 			}
 		}
 		if (verbose) {
-			System.out.println("Within Rows\tSS: "	+ MSWithin + "\tMS: "
-													+ (MSWithin / (rowEffects.length)));
+			System.out.println("Within Rows\tSS: " + MSWithin + "\tMS: "
+												 + (MSWithin / (rowEffects.length)));
 		}
 		MSWithin /= (nTotal - rowEffects.length);
 		// MSWithin /= rowEffects.length;
@@ -251,7 +251,7 @@ public class ICC implements Serializable {
 				}
 				rowEffects[i] = new ResponseEffect(currentLabel, tmpdata);
 				if ((!rowEffects[i].isValid() || rowEffects[i].getN() < 2) && verbose) {
-					log.reportError("Error - data for class "	+ currentLabel + " containing "
+					log.reportError("Error - data for class " + currentLabel + " containing "
 													+ rowEffects[i].getN() + " "
 													+ (rowEffects[i].getN() == 1 ? "data point is " : "data points are")
 													+ " not valid , will not include in the ICC");
@@ -418,8 +418,7 @@ public class ICC implements Serializable {
 
 	public static void test() {
 		try {
-			BufferedReader in =
-												new BufferedReader(new InputStreamReader(new URL("http://www.uvm.edu/~dhowell/StatPages/More_Stuff/icc/PartnerCorr.dat").openStream()));
+			BufferedReader in = new BufferedReader(new InputStreamReader(new URL("http://www.uvm.edu/~dhowell/StatPages/More_Stuff/icc/PartnerCorr.dat").openStream()));
 			int lines = 0;
 			while (in.ready()) {
 				lines++;

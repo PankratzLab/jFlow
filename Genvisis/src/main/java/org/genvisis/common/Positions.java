@@ -27,30 +27,30 @@ public class Positions {
 	// 191300000, 180900000, 170900000, 158900000, 146300000, 140300000, 135400000, 134500000,
 	// 132300000, 114200000, 106400000, 100400000, 88900000, 78700000, 76200000, 63900000, 62500000,
 	// 47000000, 49600000, 154600000, 57800000, 154900000, 20000, -1 };
-	public static final int[] CHROMOSOME_LENGTHS_B36_HG18 = {	-1, 247300000, 243000000, 199600000,
-																														191300000, 180900000, 170900000,
-																														158900000, 146300000, 140300000,
-																														135400000, 134500000, 132400000,
-																														114200000, 106400000, 100400000,
-																														88900000, 78800000, 76200000, 63900000,
-																														62500000, 47000000, 49700000, 155000000,
-																														57800000, 155000000, 20000, -1};
-	public static final int[] CHROMOSOME_LENGTHS_B37_HG19 = {	-1, 249300000, 243200000, 198100000,
-																														191200000, 181000000, 171200000,
-																														159200000, 146400000, 141300000,
-																														135600000, 135100000, 133900000,
-																														115200000, 107400000, 102600000,
-																														90400000, 81200000, 78100000, 59200000,
-																														63100000, 48200000, 51400000, 155300000,
-																														59400000, 155300000, 20000, -1};
-	public static final int[] CHROMOSOME_LENGTHS_B38_HG38 = {	-1, 249000000, 242200000, 198300000,
-																														190300000, 181600000, 170900000,
-																														159400000, 145200000, 138400000,
-																														133800000, 135100000, 133300000,
-																														114400000, 107100000, 102000000,
-																														90400000, 83300000, 80400000, 58700000,
-																														64500000, 46800000, 50900000, 156100000,
-																														57300000, 156100000, 20000, -1};
+	public static final int[] CHROMOSOME_LENGTHS_B36_HG18 = {-1, 247300000, 243000000, 199600000,
+																													 191300000, 180900000, 170900000,
+																													 158900000, 146300000, 140300000,
+																													 135400000, 134500000, 132400000,
+																													 114200000, 106400000, 100400000,
+																													 88900000, 78800000, 76200000, 63900000,
+																													 62500000, 47000000, 49700000, 155000000,
+																													 57800000, 155000000, 20000, -1};
+	public static final int[] CHROMOSOME_LENGTHS_B37_HG19 = {-1, 249300000, 243200000, 198100000,
+																													 191200000, 181000000, 171200000,
+																													 159200000, 146400000, 141300000,
+																													 135600000, 135100000, 133900000,
+																													 115200000, 107400000, 102600000,
+																													 90400000, 81200000, 78100000, 59200000,
+																													 63100000, 48200000, 51400000, 155300000,
+																													 59400000, 155300000, 20000, -1};
+	public static final int[] CHROMOSOME_LENGTHS_B38_HG38 = {-1, 249000000, 242200000, 198300000,
+																													 190300000, 181600000, 170900000,
+																													 159400000, 145200000, 138400000,
+																													 133800000, 135100000, 133300000,
+																													 114400000, 107100000, 102000000,
+																													 90400000, 83300000, 80400000, 58700000,
+																													 64500000, 46800000, 50900000, 156100000,
+																													 57300000, 156100000, 20000, -1};
 	public static final int[] CHROMOSOME_LENGTHS_MAX = {-1, 249300000, 243200000, 199600000,
 																											191300000, 181600000, 171200000, 159400000,
 																											146400000, 141300000, 135600000, 135100000,
@@ -75,62 +75,62 @@ public class Positions {
 	// "chrX:59,500,000", "chrY:11,800,000"};
 
 	public static final int[][] CENTROMERE_BOUNDARIES_FROM_SNPS_B36_HG18 = { // determined using the
-																																						// Omni map
-																																						{0, 0},
-																																						{121186705, 141477078},
-																																						{91682828, 94691119},
-																																						{90576572, 94994003},
-																																						{49353840, 52355341},
-																																						{46440100, 49442477},
-																																						{58887738, 61940508},
-																																						{58023003, 61060840},
-																																						{43956838, 46958273},
-																																						{46992793, 65231255},
-																																						{39194226, 41677980},
-																																						{51447829, 54468566},
-																																						{34747647, 36144166},
-																																						{10384996, 17922259},
-																																						{0, 18070422},
-																																						{0, 18275409},
-																																						{35141900, 44943958},
-																																						{22699477, 22707804},
-																																						{15399965, 16770020},
-																																						{24421125, 32424385},
-																																						{26267039, 28039018},
-																																						{10208131, 13260157},
-																																						{0, 14430353},
-																																						{58588152, 61607037},
-																																						{11799053, 12116660},
-																																						{0, 0}, {0, 0}};
+																																					 // Omni map
+																																					 {0, 0},
+																																					 {121186705, 141477078},
+																																					 {91682828, 94691119},
+																																					 {90576572, 94994003},
+																																					 {49353840, 52355341},
+																																					 {46440100, 49442477},
+																																					 {58887738, 61940508},
+																																					 {58023003, 61060840},
+																																					 {43956838, 46958273},
+																																					 {46992793, 65231255},
+																																					 {39194226, 41677980},
+																																					 {51447829, 54468566},
+																																					 {34747647, 36144166},
+																																					 {10384996, 17922259},
+																																					 {0, 18070422},
+																																					 {0, 18275409},
+																																					 {35141900, 44943958},
+																																					 {22699477, 22707804},
+																																					 {15399965, 16770020},
+																																					 {24421125, 32424385},
+																																					 {26267039, 28039018},
+																																					 {10208131, 13260157},
+																																					 {0, 14430353},
+																																					 {58588152, 61607037},
+																																					 {11799053, 12116660},
+																																					 {0, 0}, {0, 0}};
 
 	public static final int[][] CENTROMERE_BOUNDARIES_FROM_SNPS_B37_HG19 = { // determined using the
-																																						// Omni 2.5 map
-																																						{0, 0},
-																																						{121357107, 142603938},
-																																						{92304211, 95350864},
-																																						{90501225, 93512116},
-																																						{49628667, 52682617},
-																																						{46404562, 49447784},
-																																						{58775254, 61880512},
-																																						{58042660, 61055273},
-																																						{43822051, 46842124},
-																																						{46386250, 65629772},
-																																						{39154535, 42386853},
-																																						{51591253, 54707899},
-																																						{34853011, 37857837},
-																																						{0, 19058717},
-																																						{0, 19000480},
-																																						{0, 20005287},
-																																						{35285609, 46416238},
-																																						{22252439, 25268096},
-																																						{15400035, 18511035},
-																																						{24599528, 27735604},
-																																						{26316921, 29423716},
-																																						{11186430, 14338959},
-																																						{0, 16114244},
-																																						{58563705, 61685579},
-																																						{24522209, 27009547},
-																																						{0, 0}, {0, 0}};
+																																					 // Omni 2.5 map
+																																					 {0, 0},
+																																					 {121357107, 142603938},
+																																					 {92304211, 95350864},
+																																					 {90501225, 93512116},
+																																					 {49628667, 52682617},
+																																					 {46404562, 49447784},
+																																					 {58775254, 61880512},
+																																					 {58042660, 61055273},
+																																					 {43822051, 46842124},
+																																					 {46386250, 65629772},
+																																					 {39154535, 42386853},
+																																					 {51591253, 54707899},
+																																					 {34853011, 37857837},
+																																					 {0, 19058717},
+																																					 {0, 19000480},
+																																					 {0, 20005287},
+																																					 {35285609, 46416238},
+																																					 {22252439, 25268096},
+																																					 {15400035, 18511035},
+																																					 {24599528, 27735604},
+																																					 {26316921, 29423716},
+																																					 {11186430, 14338959},
+																																					 {0, 16114244},
+																																					 {58563705, 61685579},
+																																					 {24522209, 27009547},
+																																					 {0, 0}, {0, 0}};
 
 	public static int[] parseUCSClocation(String str) {
 		int chr, start, stop;
@@ -198,16 +198,15 @@ public class Positions {
 	public static String getUCSCformat(int[] pos) {
 		if (pos.length < 1 && pos.length > 3) {
 			System.err.println("Error - could not make a valid UCSC position from '"
-													+ ArrayUtils.toStr(pos, "/") + "' (need 1-3 integers)");
+												 + ArrayUtils.toStr(pos, "/") + "' (need 1-3 integers)");
 			return null;
 		}
-		return "chr"
-						+ getChromosomeUCSC(pos[0], false) + (pos.length > 1
-																																		? ":"	+ pos[1]
-																																		+ (pos.length == 3	? "-"
-																																													+ pos[2]
-																																												: "")
-																																	: "");
+		return "chr" + getChromosomeUCSC(pos[0], false) + (pos.length > 1
+																																			? ":" + pos[1]
+																																				+ (pos.length == 3 ? "-"
+																																														 + pos[2]
+																																													 : "")
+																																			: "");
 	}
 
 	public static String getChromosomeUCSC(int chr, boolean addChr) {
@@ -260,8 +259,8 @@ public class Positions {
 			System.err.println("Error - not a valid UCSC position");
 			return null;
 		}
-		return "http://genome.ucsc.edu/cgi-bin/hgTracks?db="	+ hgBuild + "&position="
-						+ getUCSCformat(pos);
+		return "http://genome.ucsc.edu/cgi-bin/hgTracks?db=" + hgBuild + "&position="
+					 + getUCSCformat(pos);
 	}
 
 	public static String getUCSClinkInExcel(int[] pos) {
@@ -290,8 +289,8 @@ public class Positions {
 			String encodedUCSC = URLEncoder.encode(getUCSCformat(pos), "UTF-8");
 			String encodedFilename = URLEncoder.encode(filename, "UTF-8");
 			String uploadURL = "http://genome.ucsc.edu/cgi-bin/hgCustom?hgHubConnect.destUrl=..%2Fcgi-bin%2FhgTracks&clade=mammal&org=Human&db=hg18&"
-														+ encodedUCSC + "&hgt.customFile=" + encodedFilename
-													+ "&hgt.positionInput=enter+position%2C+gene+symbol+or+search+terms&hgt.suggestTrack=knownGene&hgsid=366816683&pix=1499";
+												 + encodedUCSC + "&hgt.customFile=" + encodedFilename
+												 + "&hgt.positionInput=enter+position%2C+gene+symbol+or+search+terms&hgt.suggestTrack=knownGene&hgsid=366816683&pix=1499";
 			return uploadURL;
 		} catch (Exception e) {
 			return gatewayURL;
@@ -322,18 +321,18 @@ public class Positions {
 			chr = 23;
 		} else if (chromosome.equalsIgnoreCase("Y")) {
 			chr = 24;
-		} else if (chromosome.equalsIgnoreCase("MT")	|| chromosome.equalsIgnoreCase("M")
-								|| chromosome.equalsIgnoreCase("Mito")) {
+		} else if (chromosome.equalsIgnoreCase("MT") || chromosome.equalsIgnoreCase("M")
+							 || chromosome.equalsIgnoreCase("Mito")) {
 			chr = 26;
-		} else if (chromosome.equalsIgnoreCase("un")	|| chromosome.equalsIgnoreCase("multi")
-								|| chromosome.equalsIgnoreCase("altonly") || chromosome.equalsIgnoreCase("noton")
-								|| chromosome.contains("random")) {
+		} else if (chromosome.equalsIgnoreCase("un") || chromosome.equalsIgnoreCase("multi")
+							 || chromosome.equalsIgnoreCase("altonly") || chromosome.equalsIgnoreCase("noton")
+							 || chromosome.contains("random")) {
 			chr = 0;
 		} else {
 			try {
 				chr = Byte.parseByte(chromosome);
 				if (chr < 0 || chr > 26) {
-					log.reportError("Error - chromosome number '"	+ chromosome
+					log.reportError("Error - chromosome number '" + chromosome
 													+ "' out of range for homo sapiens", true, true, 10);
 				}
 			} catch (NumberFormatException nfe) {
@@ -365,17 +364,17 @@ public class Positions {
 
 		midpoints = new Segment[centromereBoundaries.length];
 		for (int i = 0; i < midpoints.length; i++) {
-			midpoints[i] = new Segment("chr"	+ i + ":"
-																	+ (int) Math.floor((centromereBoundaries[i][1]
-																											- centromereBoundaries[i][0]) / 2.0
-																											+ centromereBoundaries[i][0]));
+			midpoints[i] = new Segment("chr" + i + ":"
+																 + (int) Math.floor((centromereBoundaries[i][1]
+																										 - centromereBoundaries[i][0])
+																										/ 2.0 + centromereBoundaries[i][0]));
 		}
 
 		return midpoints;
 	}
 
-	public static int[][] determineCentromereBoundariesFromMarkerSet(	byte[] chrs, int[] positions,
-																																		int build, Logger log) {
+	public static int[][] determineCentromereBoundariesFromMarkerSet(byte[] chrs, int[] positions,
+																																	 int build, Logger log) {
 		byte chr;
 		int[] midpointEstimates;
 		Segment[] midpointSegments;
@@ -421,8 +420,8 @@ public class Positions {
 		return centromereBoundaries;
 	}
 
-	public static int[][] determineCentromereBoundariesFromMarkerSet(	String markerSetFilename,
-																																		int build, Logger log) {
+	public static int[][] determineCentromereBoundariesFromMarkerSet(String markerSetFilename,
+																																	 int build, Logger log) {
 		byte[] chrs;
 		int[] positions;
 		int[][] centromereBoundaries;
@@ -440,13 +439,13 @@ public class Positions {
 
 		if (markerSetFilename == null || !Files.exists(markerSetFilename)) {
 			log.reportError("Warning - since "
-												+ (markerSetFilename == null	? "markerSetFilename was set to null"
-																										: " the file '"	+ markerSetFilename
-																											+ "' could not be found")
+											+ (markerSetFilename == null ? "markerSetFilename was set to null"
+																									 : " the file '" + markerSetFilename
+																										 + "' could not be found")
 											+ "; then the default centromere boundaries for build " + build
 											+ " will be used");
 			return centromereBoundaries;
-		} 
+		}
 
 		markerSet = new SnpMarkerSet(markerSetFilename, false, log);
 		chrs = markerSet.getChrs();
@@ -456,8 +455,8 @@ public class Positions {
 
 	}
 
-	public static int[][] determineCentromereBoundariesFromMarkerSet(	SnpMarkerSet markerSet,
-																																		int build, Logger log) {
+	public static int[][] determineCentromereBoundariesFromMarkerSet(SnpMarkerSet markerSet,
+																																	 int build, Logger log) {
 		byte chr;
 		byte[] chrs;
 		int[] positions;

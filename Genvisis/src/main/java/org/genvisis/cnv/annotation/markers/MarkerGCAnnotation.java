@@ -13,7 +13,7 @@ import htsjdk.variant.vcf.VCFHeaderLineType;
 public class MarkerGCAnnotation extends LocusAnnotation implements AnnotationParser {
 
 	public enum GC_TYPE {
-												MARKER_GC_CONTENT;
+		MARKER_GC_CONTENT;
 	}
 
 	private boolean found;

@@ -228,8 +228,8 @@ public class FisherRandomTable {
 					ihp = iap - nlm;
 					nlmp = nlm + 1;
 					iip = ii + nlmp;
-					x = Math.exp(fact[iap - 1]	+ fact[ib] + fact[ic] + fact[idp - 1] - fact[ie]
-												- fact[nlmp - 1] - fact[igp - 1] - fact[ihp - 1] - fact[iip - 1]);
+					x = Math.exp(fact[iap - 1] + fact[ib] + fact[ic] + fact[idp - 1] - fact[ie]
+											 - fact[nlmp - 1] - fact[igp - 1] - fact[ihp - 1] - fact[iip - 1]);
 
 					if (r <= x) {
 						break;

@@ -25,8 +25,8 @@ public class Grafik {
 		checkbox.setSelected(false);
 		FontMetrics boxFontMetrics = checkbox.getFontMetrics(checkbox.getFont());
 		Icon boxIcon = UIManager.getIcon("CheckBox.icon");
-		BufferedImage boxImage = new BufferedImage(	boxIcon.getIconWidth(), boxIcon.getIconHeight(),
-																								BufferedImage.TYPE_INT_ARGB);
+		BufferedImage boxImage = new BufferedImage(boxIcon.getIconWidth(), boxIcon.getIconHeight(),
+																							 BufferedImage.TYPE_INT_ARGB);
 		Graphics graphics = boxImage.createGraphics();
 		try {
 			boxIcon.paintIcon(checkbox, graphics, 0, 0);
@@ -34,9 +34,9 @@ public class Grafik {
 			graphics.dispose();
 		}
 		ImageIcon newBoxImage = new ImageIcon(boxImage);
-		Image finalBoxImage = newBoxImage.getImage().getScaledInstance(	boxFontMetrics.getHeight(),
-																																		boxFontMetrics.getHeight(),
-																																		Image.SCALE_SMOOTH);
+		Image finalBoxImage = newBoxImage.getImage().getScaledInstance(boxFontMetrics.getHeight(),
+																																	 boxFontMetrics.getHeight(),
+																																	 Image.SCALE_SMOOTH);
 		checkbox.setIcon(new ImageIcon(finalBoxImage));
 
 		checkbox.setSelected(true);
@@ -51,28 +51,28 @@ public class Grafik {
 			checkedGraphics.dispose();
 		}
 		ImageIcon newCheckedBoxImage = new ImageIcon(checkedBoxImage);
-		Image finalCheckedBoxImage = newCheckedBoxImage	.getImage()
-																										.getScaledInstance(	boxFontMetrics.getHeight(),
-																																				boxFontMetrics.getHeight(),
-																																				Image.SCALE_SMOOTH);
+		Image finalCheckedBoxImage = newCheckedBoxImage.getImage()
+																									 .getScaledInstance(boxFontMetrics.getHeight(),
+																																			boxFontMetrics.getHeight(),
+																																			Image.SCALE_SMOOTH);
 		checkbox.setSelectedIcon(new ImageIcon(finalCheckedBoxImage));
 		checkbox.setSelected(false);
 		checkbox.setSelected(previousState);
 	}
 
 
-	public static void drawThickLine(	Graphics g, int x1, int y1, int x2, int y2, int thickness,
-																		Color c) {
+	public static void drawThickLine(Graphics g, int x1, int y1, int x2, int y2, int thickness,
+																	 Color c) {
 		drawThickLine(g, x1, y1, x2, y2, thickness, c, 0);
 	}
 
-	public static void drawThickLine(	Graphics g, int x1, int y1, int x2, int y2, int thickness,
-																		Color c, int direction) {
+	public static void drawThickLine(Graphics g, int x1, int y1, int x2, int y2, int thickness,
+																	 Color c, int direction) {
 		drawThickLine(g, x1, y1, x2, y2, thickness, c, direction, true);
 	}
 
-	public static void drawThickLine(	Graphics g, int x1, int y1, int x2, int y2, int thickness,
-																		Color c, int direction, boolean scaleThickness) {
+	public static void drawThickLine(Graphics g, int x1, int y1, int x2, int y2, int thickness,
+																	 Color c, int direction, boolean scaleThickness) {
 		int dX = x2 - x1;
 		int dY = y2 - y1;
 		g.setColor(c);

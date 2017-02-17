@@ -18,7 +18,8 @@ public final class MemUtils {
 	}
 
 	/**
-	 * @return An estimate of how much memory can be allocated before hitting {@link OutOfMemoryError}.
+	 * @return An estimate of how much memory can be allocated before hitting
+	 *         {@link OutOfMemoryError}.
 	 */
 	public static long availableMem() {
 		return Runtime.getRuntime().maxMemory() - allocatedMem();

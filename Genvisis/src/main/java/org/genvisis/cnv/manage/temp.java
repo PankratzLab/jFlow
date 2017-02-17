@@ -23,24 +23,23 @@ public class temp {
 		PrintWriter writer;
 		String[] line;
 
-		String filename =
-										"C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\results\\paperComp\\finalLargeRare\\nums.txt";
+		String filename = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\results\\paperComp\\finalLargeRare\\nums.txt";
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(filename + "_chi.xln"));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				writer.print(ArrayUtils.toStr(line)	+ "\t"
-											+ Stats.FishersExact(	Double.parseDouble(line[0]), Double.parseDouble(line[1]),
-																						Double.parseDouble(line[2]),
-																						Double.parseDouble(line[3]), true));
-				writer.println("\t" + ProbDist.ChiDist(	ContingencyTable.ChiSquare(
-																																					new double[][] {{	Double.parseDouble(line[0]),
-																																														Double.parseDouble(line[1])},
-																																													{	Double.parseDouble(line[2]),
-																																														Double.parseDouble(line[3])}},
+				writer.print(ArrayUtils.toStr(line) + "\t"
+										 + Stats.FishersExact(Double.parseDouble(line[0]), Double.parseDouble(line[1]),
+																					Double.parseDouble(line[2]), Double.parseDouble(line[3]),
+																					true));
+				writer.println("\t" + ProbDist.ChiDist(ContingencyTable.ChiSquare(
+																																					new double[][] {{Double.parseDouble(line[0]),
+																																													 Double.parseDouble(line[1])},
+																																													{Double.parseDouble(line[2]),
+																																													 Double.parseDouble(line[3])}},
 																																					true, true),
-																								1));
+																							 1));
 			}
 			writer.close();
 			reader.close();
@@ -64,9 +63,9 @@ public class temp {
 		System.exit(1);
 
 		String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\data\\";
-		String[] peeps = HashVec.loadFileToStringArray(dir	+ "peeps.txt", false, false,
-																										new int[] {0, 1}, true);
-		String[] cnvs = HashVec.loadFileToStringArray(dir	+ "parkin_introns.cnv", false, false,
+		String[] peeps = HashVec.loadFileToStringArray(dir + "peeps.txt", false, false,
+																									 new int[] {0, 1}, true);
+		String[] cnvs = HashVec.loadFileToStringArray(dir + "parkin_introns.cnv", false, false,
 																									new int[] {2, 3, 4, 5, 6, 7}, true);
 
 		try {

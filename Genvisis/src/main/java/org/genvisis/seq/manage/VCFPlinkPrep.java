@@ -57,8 +57,8 @@ public class VCFPlinkPrep {
 		if (!Files.exists(filtVcf)) {
 			VCFFileReader reader = new VCFFileReader(new File(idVCF), false);
 
-			log.reportTimeInfo("Filtering "+ idVCF + ", setting genotypes with GQ < " + gq
-													+ " to missing in " + filtVcf);
+			log.reportTimeInfo("Filtering " + idVCF + ", setting genotypes with GQ < " + gq
+												 + " to missing in " + filtVcf);
 			VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, filtVcf,
 																																VCFOps.DEFUALT_WRITER_OPTIONS,
 																																new Logger());
@@ -109,8 +109,8 @@ public class VCFPlinkPrep {
 	private static void runPlink(Logger log, String root, String filtVcf) {
 		String[] plinkCommand = PSF.Plink.getPlinkVCFCommand(filtVcf, root);
 		String[] plinkFiles = PSF.Plink.getPlinkBedBimFam(root);
-		CmdLine.runCommandWithFileChecks(	plinkCommand, "", new String[] {filtVcf}, plinkFiles, true,
-																			false, false, log);
+		CmdLine.runCommandWithFileChecks(plinkCommand, "", new String[] {filtVcf}, plinkFiles, true,
+																		 false, false, log);
 	}
 
 	/**

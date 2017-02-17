@@ -51,10 +51,10 @@ public class AricWesFilter {
 		VARIANT_FILTER_DOUBLE altRatHigh = VARIANT_FILTER_DOUBLE.HET_ALLELE_RATIO_HIGH;
 		altRatHigh.setDFilter(.75);
 
-		builder.vCFiltAltGeno(new VariantContextFilter(	new VARIANT_FILTER_DOUBLE[] {altDP, altRatLow,
+		builder.vCFiltAltGeno(new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {altDP, altRatLow,
 																																								altRatHigh},
-																										new VARIANT_FILTER_BOOLEAN[] {}, null, null,
-																										log));
+																									 new VARIANT_FILTER_BOOLEAN[] {}, null, null,
+																									 log));
 
 		// hom ref filters....
 
@@ -66,18 +66,17 @@ public class AricWesFilter {
 		VARIANT_FILTER_DOUBLE gq = VARIANT_FILTER_DOUBLE.GQ_STRICT;
 		gq.setDFilter(95);
 
-		builder.vCFiltAllGeno(new VariantContextFilter(	new VARIANT_FILTER_DOUBLE[] {gq, totalDepth},
-																										new VARIANT_FILTER_BOOLEAN[] {}, null, null,
-																										log));
+		builder.vCFiltAllGeno(new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {gq, totalDepth},
+																									 new VARIANT_FILTER_BOOLEAN[] {}, null, null,
+																									 log));
 
 		// indel filter
 		// the same for indels except a total coverage less than 30-fold was used.
 		VARIANT_FILTER_DOUBLE indelDepth = VARIANT_FILTER_DOUBLE.DP;
 		totalDepth.setDFilter(30);
 
-		builder.vCFiltIndel(new VariantContextFilter(	new VARIANT_FILTER_DOUBLE[] {indelDepth},
-																									new VARIANT_FILTER_BOOLEAN[] {}, null, null,
-																									log));
+		builder.vCFiltIndel(new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {indelDepth},
+																								 new VARIANT_FILTER_BOOLEAN[] {}, null, null, log));
 
 		return builder.build(ARIC_FILTER_NAME, log);
 	}

@@ -135,13 +135,13 @@ public class Zcall {
 		String samples = "sampleSubset.txt";
 		String markersSubset = null;
 
-		String usage = "\n"	+ "cnv.analysis.Zcall requires 0-1 arguments\n"
-										+ "   (1) project properties filename (i.e. proj="
-										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-										+ "   (2) filename of subset of markers to include / otherwise all markers (i.e. markers="
-										+ markersSubset + " (default))\n"
-										+ "   (3) filename of subset of samples to include / otherwise all samples (i.e. samples="
-										+ samples + " (default))\n" + "";
+		String usage = "\n" + "cnv.analysis.Zcall requires 0-1 arguments\n"
+									 + "   (1) project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + "   (2) filename of subset of markers to include / otherwise all markers (i.e. markers="
+									 + markersSubset + " (default))\n"
+									 + "   (3) filename of subset of samples to include / otherwise all samples (i.e. samples="
+									 + samples + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

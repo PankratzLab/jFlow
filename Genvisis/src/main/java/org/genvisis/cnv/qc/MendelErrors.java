@@ -273,8 +273,8 @@ public class MendelErrors {
 		int numArgs = args.length;
 		String filename = "C:/workspace/Genvisis/projects/Poynter_PCs.properties";
 
-		String usage = "\n"	+ "cnv.qc.MendelErrors requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. proj=" + filename + " (default))\n" + "";
+		String usage = "\n" + "cnv.qc.MendelErrors requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. proj=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

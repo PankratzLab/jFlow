@@ -39,8 +39,8 @@ public class AnnotationData extends Annotation implements AnnotationParser {
 	}
 
 	public List<String> getDataAsList() {
-		return Arrays.asList(data	.replaceAll("\\[", "").replaceAll("\\]", "")
-															.split("\\s*" + DEFUALT_DELIMITER + "\\s*"));
+		return Arrays.asList(data.replaceAll("\\[", "").replaceAll("\\]", "")
+														 .split("\\s*" + DEFUALT_DELIMITER + "\\s*"));
 	}
 
 	@Override

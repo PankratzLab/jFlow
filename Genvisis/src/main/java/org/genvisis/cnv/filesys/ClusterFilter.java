@@ -30,8 +30,8 @@ public class ClusterFilter implements Serializable {
 		this(plotType, rawXMin, rawYMin, rawXmax, rawYmax, (byte) 0);
 	}
 
-	public ClusterFilter(	byte plotType, float rawXMin, float rawYMin, float rawXmax, float rawYmax,
-												byte newGenotype) {
+	public ClusterFilter(byte plotType, float rawXMin, float rawYMin, float rawXmax, float rawYmax,
+											 byte newGenotype) {
 		this.plotType = plotType;
 		this.rawXMin = rawXMin;
 		this.rawYMin = rawYMin;
@@ -40,8 +40,8 @@ public class ClusterFilter implements Serializable {
 		this.newGenotype = newGenotype;
 	}
 
-	public ClusterFilter(	byte plotType, float rawXMin, float rawYMin, float rawXmax, float rawYmax,
-												MarkerData markerData) {
+	public ClusterFilter(byte plotType, float rawXMin, float rawYMin, float rawXmax, float rawYmax,
+											 MarkerData markerData) {
 		this.plotType = plotType;
 		this.rawXMin = rawXMin;
 		this.rawYMin = rawYMin;
@@ -126,7 +126,7 @@ public class ClusterFilter implements Serializable {
 		genotypes = markerData.getAbGenotypes();
 		// iterate through all samples
 		for (int i = 0; i < genotypes.length; i++) {
-			if (realX[i] >= rawXMin	&& realY[i] >= rawYMin && realX[i] <= rawXmax
+			if (realX[i] >= rawXMin && realY[i] >= rawYMin && realX[i] <= rawXmax
 					&& realY[i] <= rawYmax) {
 				cluster = "3"; // "3" identifies the data points within the cluster filter
 			} else {
@@ -188,18 +188,18 @@ public class ClusterFilter implements Serializable {
 					}
 					clusterCenters[i] = new float[] {xSum / iv.size(), ySum / iv.size()};
 					if (i != 3) {
-						distancetemp = (float) Math.sqrt(Math.pow(clusterCenters[i][0]	- clusterCenters[3][0],
+						distancetemp = (float) Math.sqrt(Math.pow(clusterCenters[i][0] - clusterCenters[3][0],
 																											2)
-																							+ Math.pow(clusterCenters[i][1]
-																													- clusterCenters[3][1], 2));
+																						 + Math.pow(clusterCenters[i][1] - clusterCenters[3][1],
+																												2));
 						if (distancetemp < distance) {
 							distance = distancetemp;
 							result = i;
 						}
 					}
-				} else if (i != 3	&& genotypeCount[i] > 0
-										&& genotypeCount[i] == Math.max(genotypeCount[0],
-																										Math.max(genotypeCount[1], genotypeCount[2]))) {
+				} else if (i != 3 && genotypeCount[i] > 0
+									 && genotypeCount[i] == Math.max(genotypeCount[0],
+																									 Math.max(genotypeCount[1], genotypeCount[2]))) {
 					result = i;
 					break;
 				}
@@ -262,7 +262,7 @@ public class ClusterFilter implements Serializable {
 		counterGenotypesOutsideTheCluster = new int[] {0, 0, 0, 0};
 		genotypeOld = -2;
 		for (int i = 0; i < genotypes.length; i++) {
-			if (realX[i] >= rawXMin	&& realY[i] >= rawYMin && realX[i] <= rawXmax
+			if (realX[i] >= rawXMin && realY[i] >= rawYMin && realX[i] <= rawXmax
 					&& realY[i] <= rawYmax) {
 				xSum += realX[i];
 				ySum += realY[i];
@@ -301,8 +301,8 @@ public class ClusterFilter implements Serializable {
 		for (int i = 0; i < indexOfPointsOutsideTheCluster.size(); i++) {
 			distancetemp = (float) Math.sqrt(Math.pow(realX[indexOfPointsOutsideTheCluster.elementAt(i)]
 																								- xSum, 2)
-																				+ Math.pow(realY[indexOfPointsOutsideTheCluster.elementAt(i)]
-																										- ySum, 2));
+																			 + Math.pow(realY[indexOfPointsOutsideTheCluster.elementAt(i)]
+																									- ySum, 2));
 			if (distancetemp < minDist && genotypes[indexOfPointsOutsideTheCluster.elementAt(i)] != -1) {
 				minDist = distancetemp;
 				indexOfNearbyPoint = indexOfPointsOutsideTheCluster.elementAt(i);

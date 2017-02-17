@@ -23,21 +23,20 @@ public class LeastSquares extends RegressionModel {
 	public static final double DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 10e-105;
 
 	public enum LS_TYPE {
-												/**
-												 * The good ole regression that has been well tested
-												 */
-												REGULAR,
-												/**
-												 * Uses singular value decomposition to get the lin reg. <br>
-												 * Basically only faster than {@link LS_TYPE#REGULAR} due to QR
-												 * decomposition in EJML <br>
-												 * Extra baggage from full SVD though
-												 */
-												SVD,
-												/**
-												 * math.commons Implementation
-												 */
-												QR_DECOMP;
+		/**
+		 * The good ole regression that has been well tested
+		 */
+		REGULAR,
+		/**
+		 * Uses singular value decomposition to get the lin reg. <br>
+		 * Basically only faster than {@link LS_TYPE#REGULAR} due to QR decomposition in EJML <br>
+		 * Extra baggage from full SVD though
+		 */
+		SVD,
+		/**
+		 * math.commons Implementation
+		 */
+		QR_DECOMP;
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
@@ -48,8 +47,8 @@ public class LeastSquares extends RegressionModel {
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public LeastSquares(Vector vDeps, Vector vIndeps, LS_TYPE lType) { // deps = Vector of int/double
-																																			// as String, indeps = Vector
-																																			// of double[]
+																																		 // as String, indeps = Vector
+																																		 // of double[]
 		this(vDeps, vIndeps, false, false, lType);
 	}
 
@@ -205,8 +204,8 @@ public class LeastSquares extends RegressionModel {
 		optimizeMethod = builder.optimizeMethod;
 
 		if (deps.length != indeps.length) {
-			System.err.println("Error - mismatched number of records: "	+ deps.length
-													+ " dependent elements and " + indeps.length + " independent elements");
+			System.err.println("Error - mismatched number of records: " + deps.length
+												 + " dependent elements and " + indeps.length + " independent elements");
 			fail();
 			return;
 		}
@@ -497,8 +496,8 @@ public class LeastSquares extends RegressionModel {
 				// System.out.println(stats[i] + "\t" + (N - M - 1) + "\t" + sigs[i] + "\t" + ();
 				if (sigs[i] < 0) {
 					if (sigs[i] < -1E-10) {
-						System.out.println("Negative p-value: "	+ stats[i] + "\t" + (N - M - 1) + "\t"
-																+ sigs[i]);
+						System.out.println("Negative p-value: " + stats[i] + "\t" + (N - M - 1) + "\t"
+															 + sigs[i]);
 					}
 					sigs[i] = 0;
 				}
@@ -559,9 +558,9 @@ public class LeastSquares extends RegressionModel {
 			str += "Number of independent observations: " + ArrayUtils.unique(famIDs).length + "" + eol;
 			str += "" + eol;
 		} else {
-			str += "n="	+ N + " Fstat = " + ext.formDeci(overall, 3) + ", Sig. "
-							+ ext.formDeci(overallSig, 3, true) + " and R2= " + ext.formDeci(Rsquare, 4) + ""
-							+ eol;
+			str += "n=" + N + " Fstat = " + ext.formDeci(overall, 3) + ", Sig. "
+						 + ext.formDeci(overallSig, 3, true) + " and R2= " + ext.formDeci(Rsquare, 4) + ""
+						 + eol;
 			str += "" + eol;
 		}
 		str += "Coefficients:" + eol;
@@ -578,15 +577,15 @@ public class LeastSquares extends RegressionModel {
 
 		eol = Files.isWindows() ? "\r\n" : "\n";
 		for (int i = 0; i < betas.length; i++) {
-			str += ext.formStr(varNames[i], maxNameSize, true)	+ "\t"
-							+ ext.formStr(ext.formDeci(betas[i], sigfigs, true), 7) + "\t"
-							+ ext.formStr(ext.formDeci(SEofBs[i], sigfigs, true), 7) + "\t"
-							+ ext.formStr((stats[i] > 100	? ext.formSciNot(stats[i], 1, true)
-																						: ext.formDeci(stats[i], sigfigs, true)),
-														7)
-							+ "\t" + ext.formStr(ext.formDeci(sigs[i], sigfigs, true), 7) + "\t"
-							+ ext.prettyP(sigs[i]) + "\t=TDIST(" + Math.abs(stats[i]) + ","
-							+ ((onePer ? ArrayUtils.unique(famIDs).length : N) - 2) + ",2)" + eol;
+			str += ext.formStr(varNames[i], maxNameSize, true) + "\t"
+						 + ext.formStr(ext.formDeci(betas[i], sigfigs, true), 7) + "\t"
+						 + ext.formStr(ext.formDeci(SEofBs[i], sigfigs, true), 7) + "\t"
+						 + ext.formStr((stats[i] > 100 ? ext.formSciNot(stats[i], 1, true)
+																					 : ext.formDeci(stats[i], sigfigs, true)),
+													 7)
+						 + "\t" + ext.formStr(ext.formDeci(sigs[i], sigfigs, true), 7) + "\t"
+						 + ext.prettyP(sigs[i]) + "\t=TDIST(" + Math.abs(stats[i]) + ","
+						 + ((onePer ? ArrayUtils.unique(famIDs).length : N) - 2) + ",2)" + eol;
 		}
 
 		return str;

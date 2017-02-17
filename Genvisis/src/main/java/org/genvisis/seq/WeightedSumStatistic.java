@@ -141,7 +141,7 @@ public class WeightedSumStatistic {
 			for (int i = 0; i < NUM_REPS; i++) {
 				order = ArrayUtils.random(affectionStatus.length);
 				permWeights = computeWeights(Sort.getOrdered(affectionStatus, order), markerCounts,
-				                             valid_subset);
+																		 valid_subset);
 				permScores = computeScores(markerCounts, permWeights, valid_subset);
 				double[] orderedTraits = Sort.getOrdered(trait, order);
 				if (binary) {
@@ -292,7 +292,7 @@ public class WeightedSumStatistic {
 			writer.println("SNP\tA1\tA2\tMAF\tNCHROBS\tweight");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(markerNames[i] + "\t" + alleles[i][0] + "\t" + alleles[i][1] + "\t"
-				               + freqs[i] + "\t" + genotypeCounts[i] + "\t" + weights[i]);
+											 + freqs[i] + "\t" + genotypeCounts[i] + "\t" + weights[i]);
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -337,14 +337,14 @@ public class WeightedSumStatistic {
 		System.out.println("empirical p-value: " + ext.prettyP((double) count / (double) NUM_REPS));
 
 		System.out.println(markerNames.length + "\t" + ext.formDeci(z, 3) + "\t"
-		                   + ext.prettyP(ProbDist.NormDist(Math.abs(z) * -1)) + "\t"
-		                   + ext.prettyP((double) count / (double) NUM_REPS));
+											 + ext.prettyP(ProbDist.NormDist(Math.abs(z) * -1)) + "\t"
+											 + ext.prettyP((double) count / (double) NUM_REPS));
 
 		try {
 			writer = new PrintWriter(new FileWriter("logfile2.out", true));
 			writer.println(markerNames.length + "\t" + ext.formDeci(z, 3) + "\t"
-			               + ext.prettyP(ProbDist.NormDist(Math.abs(z) * -1)) + "\t"
-			               + ext.prettyP((double) count / (double) NUM_REPS));
+										 + ext.prettyP(ProbDist.NormDist(Math.abs(z) * -1)) + "\t"
+										 + ext.prettyP((double) count / (double) NUM_REPS));
 			writer.println();
 			writer.close();
 		} catch (Exception e) {
@@ -393,7 +393,7 @@ public class WeightedSumStatistic {
 	}
 
 	public static double[] computeWeights(byte[] affectionStatus, int[][] markerCounts,
-	                                      int[] subset) {
+																				int[] subset) {
 		double[] weights;
 		int numGenotyped, numVariantsInUnaffecteds, numUnaffecteds;
 
@@ -416,7 +416,7 @@ public class WeightedSumStatistic {
 	}
 
 	public static double computeWSS_weight(int numGenotyped, int numVariantsInUnaffecteds,
-	                                       int numUnaffecteds) {
+																				 int numUnaffecteds) {
 		double q;
 
 		q = ((double) numVariantsInUnaffecteds + 1) / ((double) numUnaffecteds + 2);
@@ -439,9 +439,9 @@ public class WeightedSumStatistic {
 			for (String model : models) {
 				line = model.split("[\\s]+");
 				writer.println("plink --bfile allThree --recode --keep " + line[0] + " --extract "
-				               + line[1]);
+											 + line[1]);
 				writer.println("java -jar /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS
-				               + " seq.WeightedSumStatistic set=" + line[1]);
+											 + " seq.WeightedSumStatistic set=" + line[1]);
 				writer.println();
 			}
 
@@ -464,7 +464,7 @@ public class WeightedSumStatistic {
 		String models = "models.dat";
 
 		String usage = "\n" + "seq.WeightedSumStatistic requires 0-1 arguments\n"
-		               + "   (1) filename (i.e. file=" + root + " (default))\n" + "";
+									 + "   (1) filename (i.e. file=" + root + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

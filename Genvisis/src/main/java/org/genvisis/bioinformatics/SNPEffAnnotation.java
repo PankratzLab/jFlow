@@ -67,7 +67,7 @@ public class SNPEffAnnotation {
 				return prepareInput(infile, factors, log);
 			}
 		} else {
-			log.reportError("Error - file {"	+ infile
+			log.reportError("Error - file {" + infile
 											+ "} must have 1 (rsID), 3 (rsID, chr, pos), or 5+ (rsID, chr, pos, ref, alt) columns.");
 			return null;
 		}
@@ -81,7 +81,7 @@ public class SNPEffAnnotation {
 			// monitor);
 			ParseSNPlocations.lowMemParse(file, MapSNPsAndGenes.getSNPDB(DEFAULT_BUILD, log),
 																		MapSNPsAndGenes.getMergeDB(log), true, log); // TODO using hash
-																																									// parse, not VCF
+																																								 // parse, not VCF
 			fileToUse = ext.rootOf(file, false) + "_positions.xln";
 			indicesToUse = ext.indexFactors(FACTORS, Files.getHeaderOfFile(fileToUse, log), false, true,
 																			true, false);
@@ -91,11 +91,11 @@ public class SNPEffAnnotation {
 		while (new File(newFile).exists()) {
 			newFile = ext.rootOf(file, false) + "_snpEffLookup_" + cnt++ + ".txt";
 		}
-		int[] colsToLoad = indicesToUse.length == 3	? new int[] {	indicesToUse[1], indicesToUse[2],
-																															indicesToUse[0]}
-																								: new int[] {	indicesToUse[1], indicesToUse[2],
-																															indicesToUse[0], indicesToUse[3],
-																															indicesToUse[4]};
+		int[] colsToLoad = indicesToUse.length == 3 ? new int[] {indicesToUse[1], indicesToUse[2],
+																														 indicesToUse[0]}
+																								: new int[] {indicesToUse[1], indicesToUse[2],
+																														 indicesToUse[0], indicesToUse[3],
+																														 indicesToUse[4]};
 		String[] rschrpos = HashVec.loadFileToStringArray(fileToUse, false, true, colsToLoad, false);
 		Files.writeArray(rschrpos, newFile);
 		return newFile;
@@ -132,10 +132,10 @@ public class SNPEffAnnotation {
 		String config = SNPEffAnnotation.getDefaultConfigFile();
 		String logFile = null;
 
-		String usage = "\\n"	+ "bioinformatics.SNPEffAnnotation requires 1-3 arguments\n"
-										+ "   (1) name of file containing 1 (rsIDs), 3 (rsIDs, pos, chr), or 5 (rsIDs, pos, chr, ref, alt) data columns (i.e. file="
-										+ filename + " (default))\n" + "   (2) SNPEFF config file (i.e. config="
-										+ config + " (default))\n" + "   (3) log file (i.e. log=null (default))\n" + "";
+		String usage = "\\n" + "bioinformatics.SNPEffAnnotation requires 1-3 arguments\n"
+									 + "   (1) name of file containing 1 (rsIDs), 3 (rsIDs, pos, chr), or 5 (rsIDs, pos, chr, ref, alt) data columns (i.e. file="
+									 + filename + " (default))\n" + "   (2) SNPEFF config file (i.e. config=" + config
+									 + " (default))\n" + "   (3) log file (i.e. log=null (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

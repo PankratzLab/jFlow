@@ -56,8 +56,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
-public class LinePlot extends JPanel
-											implements WindowListener, ActionListener, TreeSelectionListener {
+public class LinePlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener {
 	public static final long serialVersionUID = 1L;
 	public static final byte DEFAULT_SIZE = 8;
 
@@ -76,19 +75,19 @@ public class LinePlot extends JPanel
 	public static final String SET_AS_LINKKEY = "Set as Link Key";
 	public static final String[] BUTTONS = {ADD_DATA_FILE, REMOVE_DATA_FILE, SET_AS_COLORKEY,
 																					SET_AS_LINKKEY};
-	public static final String[][] LINKERS = {{	"IndividualID", "ID", "IID", "UID", "UniqueID",
-																							"IndID", "Sample"},
+	public static final String[][] LINKERS = {{"IndividualID", "ID", "IID", "UID", "UniqueID",
+																						 "IndID", "Sample"},
 																						{"Family ID", "FamID", "FID"},
 																						{"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"},
-																						{	"MarkerName", "Marker", "SNP", "Variant",
-																							"VariantName"}, // will link to Scatter Plot
+																						{"MarkerName", "Marker", "SNP", "Variant",
+																						 "VariantName"}, // will link to Scatter Plot
 																						{"Region", "UCSC", "Band", "Arm"}, // will link to
-																																								// Trailer
+																																							 // Trailer
 																						{"Chromosome", "Chr"}, // secondary link to Trailer
 																						{"Position", "Pos", "Start", "Begin"}, // secondary link
-																																										// to Trailer
+																																									 // to Trailer
 																						{"Stop Position", "Stop", "End"} // secondary link to
-																																							// Trailer
+																																						 // Trailer
 	};
 
 	private LinePanel linePanel;
@@ -223,8 +222,8 @@ public class LinePlot extends JPanel
 		});
 
 		setVisible(true);
-		readColorKeyFile(proj.PROJECT_DIRECTORY.getValue()	+ File.separator + LINE_PLOT_DIR_NAME
-											+ File.separator + LINE_PLOT_COLOR_FILENAME);
+		readColorKeyFile(proj.PROJECT_DIRECTORY.getValue() + File.separator + LINE_PLOT_DIR_NAME
+										 + File.separator + LINE_PLOT_COLOR_FILENAME);
 		updateColorKey();
 	}
 
@@ -236,14 +235,14 @@ public class LinePlot extends JPanel
 		String[] keys;
 
 		if (command.equals(ADD_DATA_FILE)) {
-			JFileChooser fileChooser = new JFileChooser(proj != null	? proj.PROJECT_DIRECTORY.getValue()
-																																: ".");
+			JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue()
+																															 : ".");
 			int fileOpenActionSelected = fileChooser.showOpenDialog(null);
 			if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 				for (int i = 0; tree != null
 												&& i < tree.getModel().getChildCount(tree.getModel().getRoot()); i++) {
-					if (ext	.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/")
-									.equals(tree.getModel().getChild(tree.getModel().getRoot(), i).toString())) {
+					if (ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/")
+								 .equals(tree.getModel().getChild(tree.getModel().getRoot(), i).toString())) {
 						found = true;
 						break;
 					}
@@ -265,7 +264,7 @@ public class LinePlot extends JPanel
 																					// there is an adding or deleting.
 				tree.deleteSelectedNode();
 				dataHash.remove(keys[numberOfSelectedNodes]);// TODO tree.getSelectionValues()[0][0] is not
-																											// the branch to delete.
+																										 // the branch to delete.
 				namesHash.remove(keys[numberOfSelectedNodes]);
 				keyIndices.remove(keys[numberOfSelectedNodes]);
 				numericHash.remove(keys[numberOfSelectedNodes]);
@@ -402,7 +401,7 @@ public class LinePlot extends JPanel
 			if (selectionValues[i][0] == null) {
 				result[i] = "";
 			} else {
-				result[i] = ext.removeDirectoryInfo(selectionValues[i][0])	+ " _ "
+				result[i] = ext.removeDirectoryInfo(selectionValues[i][0]) + " _ "
 										+ namesHash.get(selectionValues[i][0])[Integer.parseInt(selectionValues[i][1])];
 			}
 		}
@@ -452,8 +451,8 @@ public class LinePlot extends JPanel
 			linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, log, false);
 
 			if (linkKeyIndices[0] == -1) {
-				log.report("ID linker not automatically identified for file '"	+ filename
-										+ "'; assuming the first column.");
+				log.report("ID linker not automatically identified for file '" + filename
+									 + "'; assuming the first column.");
 				linkKeyIndices[0] = 0;
 			}
 
@@ -476,12 +475,12 @@ public class LinePlot extends JPanel
 				}
 				if (line.length != header.length) {
 					JOptionPane.showMessageDialog(null,
-																				"File '"	+ filename
+																				"File '" + filename
 																							+ "' does not have a uniform number of columns and was not properly loaded",
 																				"Error", JOptionPane.ERROR_MESSAGE);
-					log.report("Error - mismatched number of columns (n="	+ line.length
-											+ " versus the header, which had " + header.length + ") at line " + count
-											+ " of file " + filename);
+					log.report("Error - mismatched number of columns (n=" + line.length
+										 + " versus the header, which had " + header.length + ") at line " + count
+										 + " of file " + filename);
 					reader.close();
 					return;
 				}
@@ -540,8 +539,8 @@ public class LinePlot extends JPanel
 				}
 
 				colorKeyHashValue.put(curLineParams[0], curLineParams[1]); // put filename as key and human
-																																		// readable
-																																		// celltype as value
+																																	 // readable
+																																	 // celltype as value
 
 			}
 			reader.close();
@@ -588,9 +587,9 @@ public class LinePlot extends JPanel
 							// set the Group color block in ColorKeyPanel to white
 							if (groupToColorLabelHash.containsKey(classValue)) {
 								JLabel thisColorLabel[] = groupToColorLabelHash.get(classValue);
-								thisColorLabel[0] = new JLabel(new ColorIcon(	12, 12,
-																															LinePanel.DEFAULT_COLORS[LinePanel.DEFAULT_COLORS.length
-																																												- 1]));
+								thisColorLabel[0] = new JLabel(new ColorIcon(12, 12,
+																														 LinePanel.DEFAULT_COLORS[LinePanel.DEFAULT_COLORS.length
+																																											- 1]));
 								generateColorKeyPanel();
 							}
 							performGroupCheckboxAction(classValue, ItemEvent.DESELECTED);
@@ -605,9 +604,8 @@ public class LinePlot extends JPanel
 							// set this group color block in ColorKeyPanel to black
 							if (groupToColorLabelHash.containsKey(classValue)) {
 								JLabel thisColorLabel[] = groupToColorLabelHash.get(classValue);
-								thisColorLabel[0] =
-																	new JLabel(new ColorIcon(	12, 12,
-																														LinePanel.DEFAULT_COLORS[LinePanel.DEFAULT_COLORS_BLACK_INDEX]));
+								thisColorLabel[0] = new JLabel(new ColorIcon(12, 12,
+																														 LinePanel.DEFAULT_COLORS[LinePanel.DEFAULT_COLORS_BLACK_INDEX]));
 								generateColorKeyPanel();
 							}
 							performGroupCheckboxAction(classValue, ItemEvent.SELECTED);
@@ -617,9 +615,8 @@ public class LinePlot extends JPanel
 						// set the color block to this group's color in the ColorKeyPanel
 						if (groupToColorLabelHash.containsKey(classValue)) {
 							JLabel thisColorLabel[] = groupToColorLabelHash.get(classValue);
-							thisColorLabel[0] =
-																new JLabel(new ColorIcon(	12, 12,
-																													LinePanel.DEFAULT_COLORS[groupToColorHash.get(classValue)]));
+							thisColorLabel[0] = new JLabel(new ColorIcon(12, 12,
+																													 LinePanel.DEFAULT_COLORS[groupToColorHash.get(classValue)]));
 							generateColorKeyPanel();
 						}
 						performGroupCheckboxAction(classValue, ItemEvent.SELECTED);
@@ -829,8 +826,8 @@ public class LinePlot extends JPanel
 		menuItemOpen.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser(proj != null	? proj.PROJECT_DIRECTORY.getValue()
-																																	: ".");
+				JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue()
+																																 : ".");
 				int fileOpenActionSelected = fileChooser.showOpenDialog(null);
 				if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 					loadFile(ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/"));
@@ -845,13 +842,13 @@ public class LinePlot extends JPanel
 		menuItemSave.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser(proj != null	? proj.PROJECT_DIRECTORY.getValue()
-																																	: ".");
+				JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue()
+																																 : ".");
 				int fileOpenActionSelected = fileChooser.showOpenDialog(null);
 				if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 					File fileToOpen = fileChooser.getSelectedFile();
 					linePanel.screenCapture(fileToOpen.toString() + ".png"); // ??? zx: How to avoid LinePanel
-																																		// being static?
+																																	 // being static?
 				}
 			}
 		});
@@ -909,9 +906,9 @@ public class LinePlot extends JPanel
 					}
 				}
 				if (!found) {
-					tree.addNode(	ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)),
-												treeFilenameLookup.elementAt(i), treeFileVariableNameLookup[i],
-												numericHash.get(treeFilenameLookup.elementAt(i)), null);
+					tree.addNode(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)),
+											 treeFilenameLookup.elementAt(i), treeFileVariableNameLookup[i],
+											 numericHash.get(treeFilenameLookup.elementAt(i)), null);
 				}
 			}
 			tree.setMaxSelections(maxSelectable);
@@ -950,8 +947,8 @@ public class LinePlot extends JPanel
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				createAndShowGUI(new Project(	org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true),
-																			false));
+				createAndShowGUI(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true),
+																		 false));
 			}
 		});
 

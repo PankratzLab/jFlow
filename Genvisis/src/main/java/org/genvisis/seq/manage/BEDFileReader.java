@@ -50,8 +50,8 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
 			bedSegs.add(new BEDFeatureSeg(bedFeature, log));
 
 		}
-		LocusSet<BEDFeatureSeg> segSet = new LocusSet<BEDFeatureSeg>(	bedSegs.toArray(new BEDFeatureSeg[bedSegs.size()]),
-																																	true, log) {
+		LocusSet<BEDFeatureSeg> segSet = new LocusSet<BEDFeatureSeg>(bedSegs.toArray(new BEDFeatureSeg[bedSegs.size()]),
+																																 true, log) {
 
 			/**
 			 * 
@@ -78,8 +78,8 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
 			return null;
 		}
 
-		LocusSet<BEDFeatureSeg> segSet = new LocusSet<BEDFeatureSeg>(	bedSegs.toArray(new BEDFeatureSeg[bedSegs.size()]),
-																																	true, log) {
+		LocusSet<BEDFeatureSeg> segSet = new LocusSet<BEDFeatureSeg>(bedSegs.toArray(new BEDFeatureSeg[bedSegs.size()]),
+																																 true, log) {
 
 			/**
 			 * 

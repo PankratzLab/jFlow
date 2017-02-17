@@ -93,11 +93,11 @@ public class CurrentManifest {
 	public static String getGenvisisInfo() {
 		try {
 			CurrentManifest manifest = CurrentManifest.loadGenvisisManifest();// until it always works
-			return "Genvisis, "	+ manifest.getVersion().getVersion() + "\n" + manifest.getCopyright()
-							+ "\n\n" + (new Date());
+			return "Genvisis, " + manifest.getVersion().getVersion() + "\n" + manifest.getCopyright()
+						 + "\n\n" + (new Date());
 		} catch (Exception e) {
 			return "Genvisis, v0.0.0\n(c)2009-2015 Nathan Pankratz, GNU General Public License, v2\n\n"
-							+ (new Date());
+						 + (new Date());
 		}
 	}
 

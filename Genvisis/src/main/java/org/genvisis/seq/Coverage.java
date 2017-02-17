@@ -91,16 +91,16 @@ public class Coverage {
 						while (reader.ready()) {
 							line = reader.readLine().trim().split("[\\s]+");
 							if (hash.containsKey(line[0] + "_" + line[1])) {
-								writer.println(inds[i]	+ "\t" + hash.get(line[0] + "_" + line[1]) + "\t"
-																+ ArrayUtils.toStr(line));
+								writer.println(inds[i] + "\t" + hash.get(line[0] + "_" + line[1]) + "\t"
+															 + ArrayUtils.toStr(line));
 								writer.flush();
 								hash.put(line[0] + "_" + line[1], "dup");
 							}
 						}
 						reader.close();
 					} catch (FileNotFoundException fnfe) {
-						System.err.println("Error: file \""	+ dir + files[fileIndex]
-																+ "\" not found in current directory");
+						System.err.println("Error: file \"" + dir + files[fileIndex]
+															 + "\" not found in current directory");
 						System.exit(1);
 					} catch (IOException ioe) {
 						System.err.println("Error reading file \"" + dir + files[fileIndex] + "\"");
@@ -158,11 +158,11 @@ public class Coverage {
 		boolean parseCoverageFiles = false;
 		String filter = "";
 
-		String usage = "\n"	+ "seq.Coverage requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "   (2) directory of coverage files (i.e. cov="
-										+ dir + " (default))\n" + " OR\n"
-										+ "   (1) files to filter (i.e. filter=fileToFilter.pileup,variants.txt (not the default))\n"
-										+ "";
+		String usage = "\n" + "seq.Coverage requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "   (2) directory of coverage files (i.e. cov="
+									 + dir + " (default))\n" + " OR\n"
+									 + "   (1) files to filter (i.e. filter=fileToFilter.pileup,variants.txt (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

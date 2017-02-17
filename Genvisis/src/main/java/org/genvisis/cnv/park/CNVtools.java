@@ -28,11 +28,11 @@ public class CNVtools {
 
 	public static final String DEFAULT_MARKER_LOOKUP = "lookup/";
 
-	public static final String[] QC_HEADS = {	"LRR_mean", "LRR_median", "LRR_SD", "BAF_mean",
-																						"BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF"};
+	public static final String[] QC_HEADS = {"LRR_mean", "LRR_median", "LRR_SD", "BAF_mean",
+																					 "BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF"};
 
-	public static final String[] ERRORS = {	"large SD for LRR", "drifting BAF values",
-																					"waviness factor values", "Small-sized CNV calls"};
+	public static final String[] ERRORS = {"large SD for LRR", "drifting BAF values",
+																				 "waviness factor values", "Small-sized CNV calls"};
 
 	public static void create(String map) {
 		BufferedReader mapReader, reader;
@@ -61,8 +61,8 @@ public class CNVtools {
 				subdir = slot.substring(0, slot.length() - 1) + "/";
 				file = new File(PLOT_ROOT + subdir + getFilename(line[1]));
 				if (!file.exists()) {
-					System.err.println("Error - '"	+ line[1] + "' was not found in the expected directory (./"
-															+ subdir + "/)");
+					System.err.println("Error - '" + line[1] + "' was not found in the expected directory (./"
+														 + subdir + "/)");
 				} else {
 					if (firstTime) {
 						try {
@@ -73,8 +73,8 @@ public class CNVtools {
 							}
 							reader.close();
 						} catch (FileNotFoundException fnfe) {
-							System.err.println("Error: file \""	+ file.getName()
-																	+ "\" not found in current directory");
+							System.err.println("Error: file \"" + file.getName()
+																 + "\" not found in current directory");
 							System.exit(1);
 						} catch (IOException ioe) {
 							System.err.println("Error reading file \"" + file.getName() + "\"");
@@ -83,13 +83,13 @@ public class CNVtools {
 						ids = ArrayUtils.toStringArray(v);
 						writer.print("Name\tChr\tPosition");
 						for (String id : ids) {
-							writer.print("\t"	+ id + ".GType" + "\t" + id + ".Log R Ratio" + "\t" + id
-														+ ".B Allele Freq");
+							writer.print("\t" + id + ".GType" + "\t" + id + ".Log R Ratio" + "\t" + id
+													 + ".B Allele Freq");
 						}
 						writer.println();
 						firstTime = false;
-						System.out.println("There are "	+ ids.length
-																+ " individuals (remember this in case you need to split up to the process in PennCNV)");
+						System.out.println("There are " + ids.length
+															 + " individuals (remember this in case you need to split up to the process in PennCNV)");
 					}
 
 					try {
@@ -99,8 +99,8 @@ public class CNVtools {
 						for (int i = 0; i < ids.length; i++) {
 							line = reader.readLine().trim().split("[\\s]+");
 							if (!line[0].equals(ids[i])) {
-								System.err.println("Error - out of sync with first file (expecting '"	+ ids[i]
-																		+ "'; found '" + line[0] + "')");
+								System.err.println("Error - out of sync with first file (expecting '" + ids[i]
+																	 + "'; found '" + line[0] + "')");
 								System.exit(1);
 							}
 							switch (Integer.parseInt(line[11])) {
@@ -125,8 +125,8 @@ public class CNVtools {
 						writer.println();
 						reader.close();
 					} catch (FileNotFoundException fnfe) {
-						System.err.println("Error: file \""	+ file.getName()
-																+ "\" not found in current directory");
+						System.err.println("Error: file \"" + file.getName()
+															 + "\" not found in current directory");
 						System.exit(1);
 					} catch (IOException ioe) {
 						System.err.println("Error reading file \"" + file.getName() + "\"");
@@ -196,9 +196,9 @@ public class CNVtools {
 		// String warnings = "parsed.log";
 		String warnings = "final.log";
 
-		String usage = "\\n"	+ "cnv.PennCNV requires 0-1 arguments\n" + "   (1) map file (i.e. map="
-										+ mapfile + " (default))\n" + "   (2) errors and warnings capture (i.e. err="
-										+ warnings + " (default))\n" + "";
+		String usage = "\\n" + "cnv.PennCNV requires 0-1 arguments\n" + "   (1) map file (i.e. map="
+									 + mapfile + " (default))\n" + "   (2) errors and warnings capture (i.e. err="
+									 + warnings + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -28,11 +28,11 @@ public class PlateLists {
 	public static final String PLATE_LIST_DIRECTORY = tools.MASTER_PLATELIST_DIR;
 	public static final String PROGENI = "PROGENI";
 	public static final String CARES = "CARES";
-	public static final String[][] LABELS = {	{"probands.xln", "Probands", "Sporadics"},
-																						{	"other_affecteds.xln", "OtherAffecteds",
-																							"ShouldNotBeOtherAffecteds"},
-																						{"unaffecteds.xln", "Unaffecteds", "Controls"},
-																						{"temps.xln", "TEMP", "CARES_TEMPS"}};
+	public static final String[][] LABELS = {{"probands.xln", "Probands", "Sporadics"},
+																					 {"other_affecteds.xln", "OtherAffecteds",
+																						"ShouldNotBeOtherAffecteds"},
+																					 {"unaffecteds.xln", "Unaffecteds", "Controls"},
+																					 {"temps.xln", "TEMP", "CARES_TEMPS"}};
 	public static final String[] IGNORE_CODES = new String[] {"CONF", "HS", "SWAPPED", "MZLINKAGE",
 																														"DEL4LINKAGE", "POORYIELD", "MUT",
 																														"PHENO"};
@@ -96,13 +96,12 @@ public class PlateLists {
 			indices = ext.indexFactors(COLS, line, false, true);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\t");
-				dna =
-						new DnaSample(line[indices[ext.indexOfStr("DNA#", COLS)]],
-													line[indices[ext.indexOfStr("FamInd", COLS)]],
-													line[indices[ext.indexOfStr("Plate", COLS)]],
-													line[indices[ext.indexOfStr("Well", COLS)]],
-													// ext.rootOf(filename),
-													".", false);
+				dna = new DnaSample(line[indices[ext.indexOfStr("DNA#", COLS)]],
+														line[indices[ext.indexOfStr("FamInd", COLS)]],
+														line[indices[ext.indexOfStr("Plate", COLS)]],
+														line[indices[ext.indexOfStr("Well", COLS)]],
+														// ext.rootOf(filename),
+														".", false);
 				dna.setNote(".");
 
 				trav = dna.getID();
@@ -168,8 +167,8 @@ public class PlateLists {
 
 					dx = diagnoses.get(inds[j]);
 					if (dx == null) {
-						System.err.println("Error - no diagnosis for "	+ inds[j]
-																+ " (will be assigned to the unaffecteds plate)");
+						System.err.println("Error - no diagnosis for " + inds[j]
+															 + " (will be assigned to the unaffecteds plate)");
 						dx = "Unknown";
 					} else {
 						if (dx.equals("CONF_PD")) {
@@ -217,8 +216,8 @@ public class PlateLists {
 			writer = new PrintWriter(new FileWriter(dir + "MasterFile.xln"));
 			writer.println(ArrayUtils.toStr(CREATE_HEADER));
 			for (int i = 0; i < LABELS.length; i++) {
-				printDNAsToNewPlates(	dir, LABELS[i][0], writer, categories.elementAt(i),
-															LABELS[i][PROGENI_NOT_CARES ? 1 : 2], 0);
+				printDNAsToNewPlates(dir, LABELS[i][0], writer, categories.elementAt(i),
+														 LABELS[i][PROGENI_NOT_CARES ? 1 : 2], 0);
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -280,8 +279,8 @@ public class PlateLists {
 		maxes = new int[LABELS.length];
 		for (int i = 0; i < LABELS.length; i++) {
 			try {
-				reader = new BufferedReader(new FileReader(dir	+ (PROGENI_NOT_CARES ? PROGENI : CARES) + "/"
-																										+ LABELS[i][0]));
+				reader = new BufferedReader(new FileReader(dir + (PROGENI_NOT_CARES ? PROGENI : CARES) + "/"
+																									 + LABELS[i][0]));
 				line = reader.readLine().trim().split("\t");
 				if (ext.eqArrays(line, CREATE_HEADER)) {
 					indices = ext.indexFactors(UPDATE_FROM_CREATE_HEADER, line, false, true);
@@ -420,14 +419,14 @@ public class PlateLists {
 
 					dx = diagnoses.get(inds[j]);
 					if (dx == null) {
-						System.err.println("Error - no diagnosis for "	+ inds[j]
-																+ " (will be assigned to the unaffecteds plate)");
+						System.err.println("Error - no diagnosis for " + inds[j]
+															 + " (will be assigned to the unaffecteds plate)");
 						dx = "Unknown";
 					} else {
 						if (v.elementAt(0).getProband()) {
 							prior = j;
-							priorLevel = dx.equals("CONF_PD")	? 3
-																								: (dx.equals("VPD")	? 2
+							priorLevel = dx.equals("CONF_PD") ? 3
+																								: (dx.equals("VPD") ? 2
 																																		: (dx.equals("NVPD") ? 1 : 0));
 						}
 						if (dx.equals("CONF_PD")) {
@@ -459,12 +458,11 @@ public class PlateLists {
 				}
 
 				if (probandLevel > priorLevel && priorLevel != -1) {
-					System.err.println("FYI: "	+ family.get(inds[prior]).elementAt(0).getID() + " ("
-															+ diagnoses.get(family.get(inds[prior]).elementAt(0).getID())
-															+ ") could be replaced by "
-															+ family.get(inds[proband]).elementAt(0).getID() + " ("
-															+ diagnoses.get(family.get(inds[proband]).elementAt(0).getID())
-															+ ")");
+					System.err.println("FYI: " + family.get(inds[prior]).elementAt(0).getID() + " ("
+														 + diagnoses.get(family.get(inds[prior]).elementAt(0).getID())
+														 + ") could be replaced by "
+														 + family.get(inds[proband]).elementAt(0).getID() + " ("
+														 + diagnoses.get(family.get(inds[proband]).elementAt(0).getID()) + ")");
 				}
 				if (prior >= 0) {
 					categories.elementAt(0).add(family.remove(inds[prior]).elementAt(0));
@@ -483,8 +481,8 @@ public class PlateLists {
 					} else if (ext.indexOfStr(dx, tools.UNAFFECTED) >= 0) {
 						categories.elementAt(2).add(family.remove(ind).elementAt(0));
 					} else {
-						System.err.println("Error - failed to place "	+ ind + " ("
-																+ family.get(ind).elementAt(0).getDNA() + ")");
+						System.err.println("Error - failed to place " + ind + " ("
+															 + family.get(ind).elementAt(0).getDNA() + ")");
 						family.get(ind).elementAt(0).setNote("No valid phenotype for this indiviudal");
 						// categories.elementAt(0).add(family.remove(inds[j]).elementAt(0));
 					}
@@ -499,8 +497,8 @@ public class PlateLists {
 			writer = new PrintWriter(new FileWriter(dir + "MasterFile.xln"));
 			writer.println(ArrayUtils.toStr(UPDATE_HEADER));
 			for (int i = 0; i < LABELS.length; i++) {
-				printDNAsToNewPlates(	dir, LABELS[i][0], writer, categories.elementAt(i),
-															LABELS[i][PROGENI_NOT_CARES ? 1 : 2], maxes[i] + 1);
+				printDNAsToNewPlates(dir, LABELS[i][0], writer, categories.elementAt(i),
+														 LABELS[i][PROGENI_NOT_CARES ? 1 : 2], maxes[i] + 1);
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -521,32 +519,32 @@ public class PlateLists {
 			for (int i = 0; i < v.size(); i++) {
 				dna = v.elementAt(i);
 				if (dna.getPrior()) {
-					writer.println(dna.getDNA()	+ "\t" + dna.getID()
-													+ (startIndex == 0 ? "\tprior\tprior" : "") + "\t" + dna.getPlate() + "\t"
-													+ dna.getWell() + "\t" + dna.getBatch() + "\t" + dna.getDx() + "\t"
-													+ dna.getNote());
-					master.println(dna.getDNA()	+ "\t" + dna.getID()
-													+ (startIndex == 0 ? "\tprior\tprior" : "") + "\t" + dna.getPlate() + "\t"
-													+ dna.getWell() + "\t" + dna.getBatch() + "\t" + dna.getDx() + "\t"
-													+ dna.getNote());
+					writer.println(dna.getDNA() + "\t" + dna.getID()
+												 + (startIndex == 0 ? "\tprior\tprior" : "") + "\t" + dna.getPlate() + "\t"
+												 + dna.getWell() + "\t" + dna.getBatch() + "\t" + dna.getDx() + "\t"
+												 + dna.getNote());
+					master.println(dna.getDNA() + "\t" + dna.getID()
+												 + (startIndex == 0 ? "\tprior\tprior" : "") + "\t" + dna.getPlate() + "\t"
+												 + dna.getWell() + "\t" + dna.getBatch() + "\t" + dna.getDx() + "\t"
+												 + dna.getNote());
 				}
 			}
 			count = 0;
 			for (int i = 0; i < v.size(); i++) {
 				dna = v.elementAt(i);
 				if (!dna.getPrior()) {
-					writer.println(dna.getDNA()	+ "\t" + dna.getID()
-													+ (startIndex == 0 ? "\t" + dna.getPlate() + "\t" + dna.getWell() : "")
-													+ "\t"
-													+ translateToPlateWell(	plateName, startIndex + count,
-																									v.size() < NUM_ON_PLATE)
-													+ "\t" + dna.getBatch() + "\t" + dna.getDx() + "\t" + dna.getNote());
-					master.println(dna.getDNA()	+ "\t" + dna.getID()
-													+ (startIndex == 0 ? "\t" + dna.getPlate() + "\t" + dna.getWell() : "")
-													+ "\t"
-													+ translateToPlateWell(	plateName, startIndex + count,
-																									v.size() < NUM_ON_PLATE)
-													+ "\t" + dna.getBatch() + "\t" + dna.getDx() + "\t" + dna.getNote());
+					writer.println(dna.getDNA() + "\t" + dna.getID()
+												 + (startIndex == 0 ? "\t" + dna.getPlate() + "\t" + dna.getWell() : "")
+												 + "\t"
+												 + translateToPlateWell(plateName, startIndex + count,
+																								v.size() < NUM_ON_PLATE)
+												 + "\t" + dna.getBatch() + "\t" + dna.getDx() + "\t" + dna.getNote());
+					master.println(dna.getDNA() + "\t" + dna.getID()
+												 + (startIndex == 0 ? "\t" + dna.getPlate() + "\t" + dna.getWell() : "")
+												 + "\t"
+												 + translateToPlateWell(plateName, startIndex + count,
+																								v.size() < NUM_ON_PLATE)
+												 + "\t" + dna.getBatch() + "\t" + dna.getDx() + "\t" + dna.getNote());
 					count++;
 				}
 			}
@@ -560,8 +558,8 @@ public class PlateLists {
 		int plateNumber = index / NUM_ON_PLATE;
 		int wellIndex = index - plateNumber * NUM_ON_PLATE;
 
-		return plateName	+ (singlePlate ? "" : ext.formNum(plateNumber + 1, 2)) + "\t"
-						+ translateToWell(wellIndex);
+		return plateName + (singlePlate ? "" : ext.formNum(plateNumber + 1, 2)) + "\t"
+					 + translateToWell(wellIndex);
 	}
 
 	public static int translateFromPlateWell(int plate, String well) {
@@ -569,7 +567,7 @@ public class PlateLists {
 
 		index = (plate - 1) * NUM_ON_PLATE;
 		index += ext.getIndexFromColumn(well.substring(0, 1)) * NUM_IN_ROW
-							+ Integer.parseInt(well.substring(1)) - 1;
+						 + Integer.parseInt(well.substring(1)) - 1;
 
 		return index;
 	}
@@ -582,20 +580,20 @@ public class PlateLists {
 	}
 
 	public static void batchCombine() {
-		String str = "Send, {ENTER}"	+ "\n" + "Sleep, 3000" + "\n" + "" + "\n" + "loop, 4 {" + "\n"
-									+ "Send, {SHIFTDOWN}{F11}{SHIFTUP}" + "\n" + "Sleep, 200" + "\n"
-									+ "Send, {ALTDOWN}{TAB}{ALTUP}" + "\n" + "Sleep, 200" + "\n"
-									+ "Send, {DOWN}{ENTER}" + "\n" + "Sleep, 1500" + "\n"
-									+ "Send, {CTRLDOWN}a{CTRLUP}{CTRLDOWN}c{F4}{CTRLUP}" + "\n" + "Sleep, 300" + "\n"
-									+ "Send, {ENTER}" + "\n" + "Sleep, 500" + "\n" + "Send, {CTRLDOWN}v{CTRLUP}"
-									+ "\n" + "Sleep, 500" + "\n" + "Send, {ALTDOWN}{TAB}{ALTUP}" + "\n" + "Sleep, 500"
-									+ "\n" + "Send, {F2}" + "\n" + "Sleep, 200" + "\n"
-									+ "Send, {SHIFTDOWN}{LEFT}{LEFT}{LEFT}{LEFT}{SHIFTUP}" + "\n" + "Sleep, 100"
-									+ "\n" + "Send, {CTRLDOWN}c{CTRLUP}" + "\n" + "Sleep, 100" + "\n" + "Send, {ESC}"
-									+ "\n" + "Sleep, 200" + "\n" + "Send, {ALTDOWN}{TAB}{ALTUP}" + "\n" + "Sleep, 500"
-									+ "\n" + "MouseClick, left,  102,  966" + "\n" + "Sleep, 100" + "\n"
-									+ "MouseClick, left,  102,  966" + "\n" + "Sleep, 100" + "\n"
-									+ "Send, {CTRLDOWN}v{CTRLUP}{ENTER}" + "\n" + "Sleep, 100" + "\n" + "}" + "\n";
+		String str = "Send, {ENTER}" + "\n" + "Sleep, 3000" + "\n" + "" + "\n" + "loop, 4 {" + "\n"
+								 + "Send, {SHIFTDOWN}{F11}{SHIFTUP}" + "\n" + "Sleep, 200" + "\n"
+								 + "Send, {ALTDOWN}{TAB}{ALTUP}" + "\n" + "Sleep, 200" + "\n"
+								 + "Send, {DOWN}{ENTER}" + "\n" + "Sleep, 1500" + "\n"
+								 + "Send, {CTRLDOWN}a{CTRLUP}{CTRLDOWN}c{F4}{CTRLUP}" + "\n" + "Sleep, 300" + "\n"
+								 + "Send, {ENTER}" + "\n" + "Sleep, 500" + "\n" + "Send, {CTRLDOWN}v{CTRLUP}" + "\n"
+								 + "Sleep, 500" + "\n" + "Send, {ALTDOWN}{TAB}{ALTUP}" + "\n" + "Sleep, 500" + "\n"
+								 + "Send, {F2}" + "\n" + "Sleep, 200" + "\n"
+								 + "Send, {SHIFTDOWN}{LEFT}{LEFT}{LEFT}{LEFT}{SHIFTUP}" + "\n" + "Sleep, 100" + "\n"
+								 + "Send, {CTRLDOWN}c{CTRLUP}" + "\n" + "Sleep, 100" + "\n" + "Send, {ESC}" + "\n"
+								 + "Sleep, 200" + "\n" + "Send, {ALTDOWN}{TAB}{ALTUP}" + "\n" + "Sleep, 500" + "\n"
+								 + "MouseClick, left,  102,  966" + "\n" + "Sleep, 100" + "\n"
+								 + "MouseClick, left,  102,  966" + "\n" + "Sleep, 100" + "\n"
+								 + "Send, {CTRLDOWN}v{CTRLUP}{ENTER}" + "\n" + "Sleep, 100" + "\n" + "}" + "\n";
 
 		ext.setClipboard(str);
 	}
@@ -606,8 +604,8 @@ public class PlateLists {
 		String filename = NEW_FILENAME;
 		boolean combine = true;
 
-		String usage = "\\n"	+ "park.PlateLists requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\\n" + "park.PlateLists requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

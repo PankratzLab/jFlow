@@ -23,12 +23,12 @@ public abstract class HistogramAnnotation extends AnnotationData {
 			String truncatedHistogram = "";
 			int index = 0;
 			while (index < dynamicHistogram.getCounts().length
-							&& dynamicHistogram.getCounts()[index] == 0) {
+						 && dynamicHistogram.getCounts()[index] == 0) {
 				index++;
 			}
 			for (int i = index; i < dynamicHistogram.getCounts().length; i++) {
-				truncatedHistogram +=
-														(i == index ? "" : DEFUALT_DELIMITER) + dynamicHistogram.getCounts()[i];
+				truncatedHistogram += (i == index ? "" : DEFUALT_DELIMITER)
+															+ dynamicHistogram.getCounts()[i];
 			}
 			setData(truncatedHistogram);
 		} else {

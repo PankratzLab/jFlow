@@ -17,7 +17,7 @@ public final class UITools {
 	public static void centerComponent(Component comp) {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		comp.setLocation(dim.width / 2 - comp.getSize().width / 2,
-		                 dim.height / 2 - comp.getSize().height / 2);
+										 dim.height / 2 - comp.getSize().height / 2);
 	}
 
 	/**
@@ -27,7 +27,7 @@ public final class UITools {
 	public static void setSize(Component c, double widthPct, double heightPct) {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		setSize(c, (int) Math.round(widthPct * dim.getWidth()),
-		        (int) Math.round(heightPct * dim.getHeight()));
+						(int) Math.round(heightPct * dim.getHeight()));
 	}
 
 	/**
@@ -36,7 +36,8 @@ public final class UITools {
 	 */
 	public static void setSize(Component c, int width, int height) {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		c.setPreferredSize(new Dimension(capValue(width, dim.getWidth()), capValue(height, dim.getHeight())));
+		c.setPreferredSize(new Dimension(capValue(width, dim.getWidth()),
+																		 capValue(height, dim.getHeight())));
 	}
 
 	/**
@@ -46,6 +47,6 @@ public final class UITools {
 	private static int capValue(int dim, double cap) {
 		int min = (int) (0.1 * cap);
 		int max = (int) (0.9 * cap);
-		return dim < min ? min : Math.min(dim,  max);
+		return dim < min ? min : Math.min(dim, max);
 	}
 }

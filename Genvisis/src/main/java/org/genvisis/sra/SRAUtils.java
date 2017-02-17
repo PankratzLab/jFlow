@@ -149,10 +149,10 @@ public class SRAUtils {
 		String outDir = "/scratch.global/lanej/aric_raw/";
 		int threads = 24;
 
-		String usage = "\n"	+ " SRAUtils requires 0-1 arguments\n"
-										+ "   (1) SRA directory (i.e. sraDir=" + sraDir + " (default))\n"
-										+ "   (2) out directory (i.e. outDir=" + outDir + " (default))\n"
-										+ PSF.Ext.getNumThreadsCommand(3, threads) + "";
+		String usage = "\n" + " SRAUtils requires 0-1 arguments\n"
+									 + "   (1) SRA directory (i.e. sraDir=" + sraDir + " (default))\n"
+									 + "   (2) out directory (i.e. outDir=" + outDir + " (default))\n"
+									 + PSF.Ext.getNumThreadsCommand(3, threads) + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

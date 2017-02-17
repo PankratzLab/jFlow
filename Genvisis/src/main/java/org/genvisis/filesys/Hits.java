@@ -28,8 +28,8 @@ public class Hits {
 	public void incorporateFromFile(String filename, double threshold, Logger log) {
 		int[] indices;
 
-		indices = ext.indexFactors(	new String[][] {Aliases.MARKER_NAMES, Aliases.PVALUES},
-																Files.getHeaderOfFile(filename, log), false, true, true, log, true);
+		indices = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.PVALUES},
+															 Files.getHeaderOfFile(filename, log), false, true, true, log, true);
 		incorporateFromFile(filename, indices, threshold, log);
 	}
 
@@ -52,8 +52,8 @@ public class Hits {
 					try {
 						value = Double.parseDouble(line[indices[1]]);
 					} catch (NumberFormatException nfe) {
-						System.err.println("Error - invalid p-value ("	+ line[indices[1]] + ") for marker "
-																+ line[indices[0]]);
+						System.err.println("Error - invalid p-value (" + line[indices[1]] + ") for marker "
+															 + line[indices[0]]);
 						value = 1;
 					}
 					if (value <= threshold) {

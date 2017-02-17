@@ -78,8 +78,9 @@ public class LRRBDevHetOutlierClassifier {
 				index++;
 			}
 
-			populationData = new PopulationData(ArrayUtils.mean(bdev), ArrayUtils.mean(lrr), ArrayUtils.stdev(bdev),
-																					ArrayUtils.stdev(lrr), ArrayUtils.median(bdev), ArrayUtils.median(lrr));
+			populationData = new PopulationData(ArrayUtils.mean(bdev), ArrayUtils.mean(lrr),
+																					ArrayUtils.stdev(bdev), ArrayUtils.stdev(lrr),
+																					ArrayUtils.median(bdev), ArrayUtils.median(lrr));
 		}
 
 		public void addIndivData(String idStr, IndividualData individualData) {
@@ -127,39 +128,39 @@ public class LRRBDevHetOutlierClassifier {
 
 
 	enum OutlierClassifier {
-													WEIGHTED_BDEV_SD_EUCLIDEAN_NORM() {
-														@Override
-														String getClassifierName() {
-															return "StdDev BDev-Weighted Euclidean Norm";
-														}
+		WEIGHTED_BDEV_SD_EUCLIDEAN_NORM() {
+			@Override
+			String getClassifierName() {
+				return "StdDev BDev-Weighted Euclidean Norm";
+			}
 
-														@Override
-														void runClassifier(final AnalysisData analysis) {
-															scoreEuclidean(analysis, this);
-														}
-													},
-													WEIGHTED_LRR_SD_EUCLIDEAN_NORM() {
-														@Override
-														String getClassifierName() {
-															return "StdDev LRR-Weighted Euclidean Norm";
-														}
+			@Override
+			void runClassifier(final AnalysisData analysis) {
+				scoreEuclidean(analysis, this);
+			}
+		},
+		WEIGHTED_LRR_SD_EUCLIDEAN_NORM() {
+			@Override
+			String getClassifierName() {
+				return "StdDev LRR-Weighted Euclidean Norm";
+			}
 
-														@Override
-														void runClassifier(final AnalysisData analysis) {
-															scoreEuclidean(analysis, this);
-														}
-													},
-													UNWEIGHTED_SD_EUCLIDEAN_NORM() {
-														@Override
-														String getClassifierName() {
-															return "StdDev Unweighted Euclidean Norm";
-														}
+			@Override
+			void runClassifier(final AnalysisData analysis) {
+				scoreEuclidean(analysis, this);
+			}
+		},
+		UNWEIGHTED_SD_EUCLIDEAN_NORM() {
+			@Override
+			String getClassifierName() {
+				return "StdDev Unweighted Euclidean Norm";
+			}
 
-														@Override
-														void runClassifier(final AnalysisData analysis) {
-															scoreEuclidean(analysis, this);
-														}
-													};
+			@Override
+			void runClassifier(final AnalysisData analysis) {
+				scoreEuclidean(analysis, this);
+			}
+		};
 
 		abstract void runClassifier(AnalysisData analysis);
 
@@ -179,7 +180,7 @@ public class LRRBDevHetOutlierClassifier {
 			for (java.util.Map.Entry<String, IndividualData> entry : analysis.dataMap.entrySet()) {
 				IndividualData indivDatum = entry.getValue();
 				double sdCntBDev = (indivDatum.dataBDev - analysis.populationData.meanBDev)
-														/ analysis.populationData.stdDevBDev;
+													 / analysis.populationData.stdDevBDev;
 				double sdCntLRR = (indivDatum.dataLRR - analysis.populationData.meanLRR)
 													/ analysis.populationData.stdDevLRR;
 
@@ -341,7 +342,7 @@ public class LRRBDevHetOutlierClassifier {
 				}
 			}
 			for (String id : ArrayUtils.subArray(proj.getSamples(),
-																			ArrayUtils.booleanNegative(proj.getSamplesToExclude()))) {
+																					 ArrayUtils.booleanNegative(proj.getSamplesToExclude()))) {
 				popList.add(sampleData.lookup(id)[0]);
 			}
 		} else {
@@ -395,9 +396,9 @@ public class LRRBDevHetOutlierClassifier {
 							String id = line[idCol];
 							for (AnalysisData analysis : fileData) {
 								analysis.addIndivData(id,
-																			new IndividualData(	id,
-																													Double.parseDouble(line[analysis.lrrCol]),
-																													Double.parseDouble(line[analysis.bdevCol])));
+																			new IndividualData(id,
+																												 Double.parseDouble(line[analysis.lrrCol]),
+																												 Double.parseDouble(line[analysis.bdevCol])));
 							}
 						}
 					}
@@ -463,9 +464,9 @@ public class LRRBDevHetOutlierClassifier {
 						String id = line[idCol];
 						for (AnalysisData analysis : analyses) {
 							analysis.addIndivData(id,
-																		new IndividualData(	id,
-																												Double.parseDouble(line[analysis.lrrCol]),
-																												Double.parseDouble(line[analysis.bdevCol])));
+																		new IndividualData(id,
+																											 Double.parseDouble(line[analysis.lrrCol]),
+																											 Double.parseDouble(line[analysis.bdevCol])));
 						}
 					}
 				}
@@ -501,8 +502,8 @@ public class LRRBDevHetOutlierClassifier {
 					String[] line = temp.split("\t");
 					if (!excludeList.contains(line[idCol])) {
 						analysis.addIndivData(line[idCol],
-																	new IndividualData(	line[idCol], Double.parseDouble(line[lrrCol]),
-																											Double.parseDouble(line[bdevCol])));
+																	new IndividualData(line[idCol], Double.parseDouble(line[lrrCol]),
+																										 Double.parseDouble(line[bdevCol])));
 						popCnt++;
 					}
 				}
@@ -629,9 +630,9 @@ public class LRRBDevHetOutlierClassifier {
 
 			// int totalValidated = analysis.truePositive.size() + analysis.falseNegative.size() +
 			// analysis.trueNegative.size();
-			System.out.println(analysis.ucscRegion	+ " -> " + analysis.truePositive.size() + " "
-													+ analysis.falsePositive.size() + " " + analysis.falseNegative.size()
-													+ " " + analysis.trueNegative.size());
+			System.out.println(analysis.ucscRegion + " -> " + analysis.truePositive.size() + " "
+												 + analysis.falsePositive.size() + " " + analysis.falseNegative.size() + " "
+												 + analysis.trueNegative.size());
 
 		}
 
@@ -646,11 +647,11 @@ public class LRRBDevHetOutlierClassifier {
 			// balanced accuracy = (0.5*TP \ (TP + FN)) + (0.5*TN \ (TN + FP))
 			score = ((stats[0] + stats[2]) == 0 ? 0 : ((0.5 * stats[0]) / (stats[0] + stats[2])))
 							+ ((0.5 * stats[3]) / (stats[3] + stats[1]));
-			writer.println(regionStat.getKey()	+ "\t" + stats[0] + "\t" + stats[1] + "\t" + stats[2]
-											+ "\t" + stats[3] + "\t" + score);
+			writer.println(regionStat.getKey() + "\t" + stats[0] + "\t" + stats[1] + "\t" + stats[2]
+										 + "\t" + stats[3] + "\t" + score);
 		}
-		writer.println("\t\t"	+ totalStats[0] + "\t" + totalStats[1] + "\t" + totalStats[2] + "\t"
-										+ totalStats[3]);
+		writer.println("\t\t" + totalStats[0] + "\t" + totalStats[1] + "\t" + totalStats[2] + "\t"
+									 + totalStats[3]);
 
 		writer.flush();
 		writer.close();
@@ -760,11 +761,11 @@ public class LRRBDevHetOutlierClassifier {
 			// balanced accuracy = (0.5*TP \ (TP + FN)) + (0.5*TN \ (TN + FP))
 			score = ((stats[0] + stats[2]) == 0 ? 0 : ((0.5 * stats[0]) / (stats[0] + stats[2])))
 							+ ((0.5 * stats[3]) / (stats[3] + stats[1]));
-			writer.println(regionStat.getKey()	+ "\t" + stats[0] + "\t" + stats[1] + "\t" + stats[2]
-											+ "\t" + stats[3] + "\t" + score);
+			writer.println(regionStat.getKey() + "\t" + stats[0] + "\t" + stats[1] + "\t" + stats[2]
+										 + "\t" + stats[3] + "\t" + score);
 		}
-		writer.println("\t\t"	+ totalStats[0] + "\t" + totalStats[1] + "\t" + totalStats[2] + "\t"
-										+ totalStats[3]);
+		writer.println("\t\t" + totalStats[0] + "\t" + totalStats[1] + "\t" + totalStats[2] + "\t"
+									 + totalStats[3]);
 
 		writer.flush();
 		writer.close();
@@ -853,8 +854,8 @@ public class LRRBDevHetOutlierClassifier {
 				file = fileRoot + ext.replaceWithLinuxSafeCharacters(file, false);
 				writer = Files.getAppropriateWriter(file);
 				if (writeHeader) {
-					writer.println("ID\tOutliers"	+ (writeScores ? "\tScore" : "") + "\tN="
-													+ analyses.get(0).popCount);
+					writer.println("ID\tOutliers" + (writeScores ? "\tScore" : "") + "\tN="
+												 + analyses.get(0).popCount);
 				}
 
 				for (String outlier : analysis.outlierList) {
@@ -921,25 +922,25 @@ public class LRRBDevHetOutlierClassifier {
 		boolean runValidation = false;
 		boolean validationOnly = false;
 
-		String usage = "\n"	+ "one.LRRBDevHetOutlierClassifier requires 2-4+ arguments\n"
-										+ "   (1a) filename (i.e. file=" + filename + " (default))\n" + "     OR\n"
-										+ "   (1b) root of multiple data files (i.e. fileRoot=" + fileRoot
-										+ " (default))" + "     AND\n" + "   (2) Column index for IDs (i.e. id=" + idCol
-										+ " (default))\n" + "   (3a) Column index for LRR data (i.e. lrr=" + lrrCol
-										+ " (default))\n" + "   (4a) Column index for BDev data (i.e. bdev=" + bdevCol
-										+ " (default))\n" + "     OR\n"
-										+ "   (3b) Unique column header fragment for all columns of LRR data (i.e. lrrHdr=MEDIAN (not the default))"
-										+ "   (4b) Unique column header fragment for all columns of BDev data (i.e. bdevHdr=BDeviation_Het (not the default))\n"
-										+ "       OPTIONAL:"
-										+ "   (5a) (Optional) Use an existing Project to remove excluded data from analysis (i.e. proj=default.properties (not the default))\n"
-										+ "     OR "
-										+ "   (5b) (Optional) Excluded data from analysis based on a file of excluded sample IDs (i.e. excl=excluded.txt (not the default))\n"
-										+ "   (6) filename of validation set (i.e. vfile=outliers.txt (not the default))\n"
-										+ "   (7) Run validation and write results, do not write outliers or scores (i.e. -validateOnly (not the default))\n"
-										+ "  OR  \n" + "   (1) filename of outlier results (i.e. file=" + filename
-										+ " (default))\n"
-										+ "   (2) filename of validation set (i.e. vfile=outliers.txt (not the default))\n"
-										+ "   (3) run validation (i.e. -validate (not the default))\n" + "\n";
+		String usage = "\n" + "one.LRRBDevHetOutlierClassifier requires 2-4+ arguments\n"
+									 + "   (1a) filename (i.e. file=" + filename + " (default))\n" + "     OR\n"
+									 + "   (1b) root of multiple data files (i.e. fileRoot=" + fileRoot
+									 + " (default))" + "     AND\n" + "   (2) Column index for IDs (i.e. id=" + idCol
+									 + " (default))\n" + "   (3a) Column index for LRR data (i.e. lrr=" + lrrCol
+									 + " (default))\n" + "   (4a) Column index for BDev data (i.e. bdev=" + bdevCol
+									 + " (default))\n" + "     OR\n"
+									 + "   (3b) Unique column header fragment for all columns of LRR data (i.e. lrrHdr=MEDIAN (not the default))"
+									 + "   (4b) Unique column header fragment for all columns of BDev data (i.e. bdevHdr=BDeviation_Het (not the default))\n"
+									 + "       OPTIONAL:"
+									 + "   (5a) (Optional) Use an existing Project to remove excluded data from analysis (i.e. proj=default.properties (not the default))\n"
+									 + "     OR "
+									 + "   (5b) (Optional) Excluded data from analysis based on a file of excluded sample IDs (i.e. excl=excluded.txt (not the default))\n"
+									 + "   (6) filename of validation set (i.e. vfile=outliers.txt (not the default))\n"
+									 + "   (7) Run validation and write results, do not write outliers or scores (i.e. -validateOnly (not the default))\n"
+									 + "  OR  \n" + "   (1) filename of outlier results (i.e. file=" + filename
+									 + " (default))\n"
+									 + "   (2) filename of validation set (i.e. vfile=outliers.txt (not the default))\n"
+									 + "   (3) run validation (i.e. -validate (not the default))\n" + "\n";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

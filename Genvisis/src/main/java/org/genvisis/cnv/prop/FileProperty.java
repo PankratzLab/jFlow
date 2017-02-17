@@ -14,11 +14,11 @@ public class FileProperty extends StringProperty {
 	public FileProperty(Project proj, String name, String desc, GROUP group, boolean editable,
 											String defVal, boolean dirOnly) {
 		super(proj, name, desc, group, editable,
-					dirOnly	? ext.verifyDirFormat(defVal)
-									: ext.replaceAllWith(defVal, "\\", "/")/*
-																													 * == null || "".equals(defVal) ? null :
-																													 * new File(defVal)
-																													 */);
+					dirOnly ? ext.verifyDirFormat(defVal)
+									: ext.replaceAllWith(defVal, "\\",
+																			 "/")/*
+																					  * == null || "".equals(defVal) ? null : new File(defVal)
+																					  */);
 		isDir = dirOnly;
 	}
 
@@ -56,14 +56,13 @@ public class FileProperty extends StringProperty {
 			if (isDir) {
 				if (getName().equals(PropertyKeys.KEY_PROJECT_DIRECTORY)) { // happens with
 																																		// example.properties
-					tempValue =
-										LaunchProperties.directoryOfLaunchProperties() + valu;
+					tempValue = LaunchProperties.directoryOfLaunchProperties() + valu;
 				} else {
 					tempValue = getProject().PROJECT_DIRECTORY.getValue() + valu;
 				}
 			} else {
 				tempValue = getProject().PROJECT_DIRECTORY.getValue()
-											+ (subdir == null ? "" : getProject().getProperty(subdir).getValueString())
+										+ (subdir == null ? "" : getProject().getProperty(subdir).getValueString())
 										+ valu;
 			}
 		}
@@ -81,9 +80,10 @@ public class FileProperty extends StringProperty {
 					if (!Files.exists(ext.parseDirectoryOfFile(tempValue),
 														getProject().JAR_STATUS.getValue())) {
 						getProject().getLog()
-												.reportError("Error - the directory ('"	+ ext.parseDirectoryOfFile(tempValue)
-																			+ "') of the file you're trying to access/create ('"
-																			+ ext.removeDirectoryInfo(tempValue) + "') does not exist");
+												.reportError("Error - the directory ('"
+																		 + ext.parseDirectoryOfFile(tempValue)
+																		 + "') of the file you're trying to access/create ('"
+																		 + ext.removeDirectoryInfo(tempValue) + "') does not exist");
 					} else {
 						getProject().getLog().reportError("Error - file '" + tempValue + "' does not exist");
 					}

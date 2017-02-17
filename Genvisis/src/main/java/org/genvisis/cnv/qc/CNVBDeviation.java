@@ -57,7 +57,7 @@ public class CNVBDeviation {
 		boolean added = true;
 		double dBaf = baf;
 
-		if (Float.isNaN(baf)	|| ext.indexOfStartsWith(markerName, intensityOnlyFlags, false) > 0
+		if (Float.isNaN(baf) || ext.indexOfStartsWith(markerName, intensityOnlyFlags, false) > 0
 				|| gc < gcThreshold) {// skip intensity only, and gc filtered
 			added = false;
 		} else {

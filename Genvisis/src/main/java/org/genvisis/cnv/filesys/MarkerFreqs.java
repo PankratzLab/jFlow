@@ -68,13 +68,13 @@ public class MarkerFreqs implements Serializable {
 											+ mafFilename + "); aborting");
 			System.exit(1);
 		} else {
-			dump(proj.PROJECT_DIRECTORY.getValue()	+ exportFilename, mafs, markerNames,
-						markerSet.getFingerprint(), log);
+			dump(proj.PROJECT_DIRECTORY.getValue() + exportFilename, mafs, markerNames,
+					 markerSet.getFingerprint(), log);
 		}
 	}
 
-	private static void dump(	String exportFilename, double[] mafs, String[] markerNames,
-														long fingerprint, Logger log) {
+	private static void dump(String exportFilename, double[] mafs, String[] markerNames,
+													 long fingerprint, Logger log) {
 		PrintWriter writer;
 		try {
 			writer = new PrintWriter(new FileWriter(exportFilename));
@@ -91,8 +91,8 @@ public class MarkerFreqs implements Serializable {
 		}
 	}
 
-	public static void convertMarkerFreqsFromTxt(	Project proj, String Freqfilename,
-																								String outputFileNameSer) {
+	public static void convertMarkerFreqsFromTxt(Project proj, String Freqfilename,
+																							 String outputFileNameSer) {
 		BufferedReader reader;
 		String[] line, header;
 		Hashtable<String, String> hash;
@@ -137,14 +137,14 @@ public class MarkerFreqs implements Serializable {
 				mafs[index] = Double.parseDouble(line[1]);
 			}
 			if (numMafs != markerNames.length) {
-				log.reportError("Error - "	+ (markerNames.length - numMafs)
+				log.reportError("Error - " + (markerNames.length - numMafs)
 												+ "markers were not found in MarkerSet");
 				System.exit(1);
 			}
 
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \""	+ Freqfilename + "\" not found in "
+			log.reportError("Error: file \"" + Freqfilename + "\" not found in "
 											+ proj.PROJECT_DIRECTORY.getValue());
 			System.exit(1);
 		} catch (IOException ioe) {

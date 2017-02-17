@@ -46,7 +46,7 @@ public class MapSNPsAndGenes {
 				geneDB = GENES37_FILENAME;
 				break;
 			default:
-				log.reportError("Error - unknown build '"	+ build
+				log.reportError("Error - unknown build '" + build
 												+ "'; using the default instead (b37/hg19)");
 				break;
 		}
@@ -68,7 +68,7 @@ public class MapSNPsAndGenes {
 					satisfied = true;
 					break;
 				default:
-					log.reportError("Error - unknown build '"	+ build + "'; using the default instead (build "
+					log.reportError("Error - unknown build '" + build + "'; using the default instead (build "
 													+ ParseSNPlocations.DEFAULT_BUILD + ")");
 					build = ParseSNPlocations.DEFAULT_BUILD;
 					break;
@@ -94,7 +94,7 @@ public class MapSNPsAndGenes {
 					satisfied = true;
 					break;
 				default:
-					log.reportError("Error - unknown build '"	+ build + "'; using the default instead (build "
+					log.reportError("Error - unknown build '" + build + "'; using the default instead (build "
 													+ ParseSNPlocations.DEFAULT_BUILD + ")");
 					build = ParseSNPlocations.DEFAULT_BUILD;
 					break;
@@ -105,22 +105,22 @@ public class MapSNPsAndGenes {
 	}
 
 	public static String getUnmappedVCF(Logger log) {
-		return Aliases.getPathToFileInReferenceDirectory(	ParseSNPlocations.DEFAULT_UNMAPPED_VCF_FILENAME,
-																											true, log);
+		return Aliases.getPathToFileInReferenceDirectory(ParseSNPlocations.DEFAULT_UNMAPPED_VCF_FILENAME,
+																										 true, log);
 	}
 
 	public static String getMergeVCF(Logger log) {
-		return Aliases.getPathToFileInReferenceDirectory(	ParseSNPlocations.DEFAULT_MERGE_VCF_FILENAME,
-																											true, log);
+		return Aliases.getPathToFileInReferenceDirectory(ParseSNPlocations.DEFAULT_MERGE_VCF_FILENAME,
+																										 true, log);
 	}
 
 	public static String getMergeDB(Logger log) {
-		return Aliases.getPathToFileInReferenceDirectory(	ParseSNPlocations.DEFAULT_MERGE_FILENAME, true,
-																											log);
+		return Aliases.getPathToFileInReferenceDirectory(ParseSNPlocations.DEFAULT_MERGE_FILENAME, true,
+																										 log);
 	}
 
-	public static String[] mapSNPsToGenesLoosely(	int[][] markerPositions, int wiggleRoom, int build,
-																								Logger log) {
+	public static String[] mapSNPsToGenesLoosely(int[][] markerPositions, int wiggleRoom, int build,
+																							 Logger log) {
 		return Matrix.extractColumn(mapSNPsToGenes(markerPositions, build, wiggleRoom, log), 1);
 	}
 
@@ -160,19 +160,18 @@ public class MapSNPsAndGenes {
 			while (reader.ready()) {
 				line = reader.readLine().split("[\\s]+");
 				if (!line[3].equals(".")) {
-					chr_start_stop[0] =
-														line[2].equals("X")	? 23
-																								: (line[2].equals("Y")	? 24
-																																				: (line[2].equals("XY")	? 25
-																																																: (line[2].equals("MT")	? 26
-																																																												: (line[2].equals("Un")	? 27
-																																																																								: Integer.parseInt(line[2])))));
+					chr_start_stop[0] = line[2].equals("X") ? 23
+																									: (line[2].equals("Y") ? 24
+																																				 : (line[2].equals("XY") ? 25
+																																																 : (line[2].equals("MT") ? 26
+																																																												 : (line[2].equals("Un") ? 27
+																																																																								 : Integer.parseInt(line[2])))));
 					chr_start_stop[1] = Integer.parseInt(line[3]);
 					chr_start_stop[2] = Integer.parseInt(line[4]);
 
 					for (int j = 0; j < markerPositions.length; j++) {
 						if (markerPositions[j][0] == chr_start_stop[0]
-									&& markerPositions[j][1] >= chr_start_stop[1] - wiggleRoom
+								&& markerPositions[j][1] >= chr_start_stop[1] - wiggleRoom
 								&& markerPositions[j][1] <= chr_start_stop[2] + wiggleRoom) {
 							genes[j] += (genes[j].equals("") ? "" : "|") + line[1];
 							if (markerPositions[j][1] < chr_start_stop[1]) {
@@ -221,9 +220,9 @@ public class MapSNPsAndGenes {
 				order = Sort.getSortedIndices(dists);
 				for (int j = 0; j < geneNames.length; j++) {
 					if (dists[j] == 0) {
-						finalGenes[i][0] = finalGenes[i][0] == null	? geneNames[j]
+						finalGenes[i][0] = finalGenes[i][0] == null ? geneNames[j]
 																												: finalGenes[i][0] + "|" + geneNames[j];
-						finalGenes[i][1] = finalGenes[i][1] == null	? geneNames[j]
+						finalGenes[i][1] = finalGenes[i][1] == null ? geneNames[j]
 																												: finalGenes[i][1] + "|" + geneNames[j];
 					}
 				}
@@ -238,10 +237,9 @@ public class MapSNPsAndGenes {
 	}
 
 
-	public static void procSNPsToGenes(	String dir, String snps, int wiggleRoom, int build, Logger log,
-																			boolean useVCF, boolean snpEff, boolean gatk,
-																			String snpEffLoc, String annovarLoc, String swapFile,
-																			boolean exportToXLN) {
+	public static void procSNPsToGenes(String dir, String snps, int wiggleRoom, int build, Logger log,
+																		 boolean useVCF, boolean snpEff, boolean gatk, String snpEffLoc,
+																		 String annovarLoc, String swapFile, boolean exportToXLN) {
 		PrintWriter writer;
 		String[] line;
 		String[] data, markers;
@@ -251,7 +249,7 @@ public class MapSNPsAndGenes {
 		ProgressMonitor monitor = new ProgressMonitor(null, log);
 		if (useVCF) {
 			System.out.println("Processing with VCF files...");
-			ParseSNPlocations.parseSNPlocations(dir	+ snps, getSNPVCF(build, log), getUnmappedVCF(log),
+			ParseSNPlocations.parseSNPlocations(dir + snps, getSNPVCF(build, log), getUnmappedVCF(log),
 																					getMergeVCF(log), log, monitor);
 		} else {
 			ParseSNPlocations.lowMemParse(dir + snps, getSNPDB(build, log), getMergeDB(log), true, log);
@@ -263,11 +261,11 @@ public class MapSNPsAndGenes {
 			if (input == null) {
 				// TODO error occurred!
 			}
-			output = GATK_Genotyper.annotateOnly(	input, "", "", snpEffLoc, snpEffLoc, annovarLoc,
-																						SNPEFF.BUILDS[0], true, false, log);
+			output = GATK_Genotyper.annotateOnly(input, "", "", snpEffLoc, snpEffLoc, annovarLoc,
+																					 SNPEFF.BUILDS[0], true, false, log);
 		} else if (snpEff) {
-			output = SNPEffAnnotation.pipeline(ext.rootOf(dir + snps, false)	+ "_positions.xln",
-																					SNPEffAnnotation.getDefaultConfigFile(), log);
+			output = SNPEffAnnotation.pipeline(ext.rootOf(dir + snps, false) + "_positions.xln",
+																				 SNPEffAnnotation.getDefaultConfigFile(), log);
 		}
 		if (output != null && !"".equals(output) && Files.exists(output)) {
 			if (swapFile != null && !"".equals(swapFile) && Files.exists(swapFile)) {
@@ -285,7 +283,7 @@ public class MapSNPsAndGenes {
 		}
 
 		data = ArrayUtils.toStringArray(HashVec.loadFileToVec(ext.rootOf(dir + snps, false)
-																											+ "_positions.xln", false, false, false));
+																													+ "_positions.xln", false, false, false));
 
 		ArrayList<String> mkrList = new ArrayList<String>();
 		ArrayList<int[]> posList = new ArrayList<int[]>();
@@ -304,19 +302,19 @@ public class MapSNPsAndGenes {
 		try {
 			System.out.println(dir + ext.rootOf(snps) + "_genes.xln");
 			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(snps) + "_genes.xln"));
-			writer.println("SNP\tChr\tPosition\tGene(s)\t"	+ UCSC_WINDOW + "\tClosest"
-											+ "\t<- dynamically linked basepair buffer in UCSC hyperlink");
+			writer.println("SNP\tChr\tPosition\tGene(s)\t" + UCSC_WINDOW + "\tClosest"
+										 + "\t<- dynamically linked basepair buffer in UCSC hyperlink");
 			for (int i = 0; i < markers.length; i++) {
 				// writer.println(markers[i]+"\t"+markerPositions[i][0]+"\t"+(AUTOMATICALLY_ADD_ONE?markerPositions[i][1]+1:markerPositions[i][1])+"\t"+(genes[i].equals("")?".":genes[i])+"\t=HYPERLINK(CONCATENATE(\"http://genome.ucsc.edu/cgi-bin/hgTracks?position=chr"+markerPositions[i][0]+":\","+markerPositions[i][1]+"-$E$1+1,\"-\","+markerPositions[i][1]+"+$E$1),CONCATENATE(\"chr"+markerPositions[i][0]+":\","+markerPositions[i][1]+"-$E$1+1,\"-\","+markerPositions[i][1]+"+$E$1))");
-				writer.println(markers[i]	+ "\t" + markerPositions[i][0] + "\t" + markerPositions[i][1]
-												+ "\t" + (genes[i][0] == null ? "." : genes[i][0]) + "\t"
-												+ (genes[i][1] == null ? "." : genes[i][1]) + "\t"
-												+ (genes[i][2] == null ? "." : genes[i][2])
-												+ "\t=HYPERLINK(CONCATENATE(\"http://genome.ucsc.edu/cgi-bin/hgTracks?position=chr"
-												+ markerPositions[i][0] + ":\"," + markerPositions[i][1] + "-$E$1+1,\"-\","
-												+ markerPositions[i][1] + "+$E$1),CONCATENATE(\"chr" + markerPositions[i][0]
-												+ ":\"," + markerPositions[i][1] + "-$E$1+1,\"-\"," + markerPositions[i][1]
-												+ "+$E$1))");
+				writer.println(markers[i] + "\t" + markerPositions[i][0] + "\t" + markerPositions[i][1]
+											 + "\t" + (genes[i][0] == null ? "." : genes[i][0]) + "\t"
+											 + (genes[i][1] == null ? "." : genes[i][1]) + "\t"
+											 + (genes[i][2] == null ? "." : genes[i][2])
+											 + "\t=HYPERLINK(CONCATENATE(\"http://genome.ucsc.edu/cgi-bin/hgTracks?position=chr"
+											 + markerPositions[i][0] + ":\"," + markerPositions[i][1] + "-$E$1+1,\"-\","
+											 + markerPositions[i][1] + "+$E$1),CONCATENATE(\"chr" + markerPositions[i][0]
+											 + ":\"," + markerPositions[i][1] + "-$E$1+1,\"-\"," + markerPositions[i][1]
+											 + "+$E$1))");
 			}
 			writer.flush();
 			writer.close();
@@ -343,9 +341,9 @@ public class MapSNPsAndGenes {
 			String line = null;
 			while ((line = reader.readLine()) != null) {
 				String[] parts = line.split("\t");
-				writer.println(parts[1]	+ "\t" + parts[2] + "\t" + parts[0] + "\t"
-												+ (parts.length >= 5 ? parts[3] : ".") + "\t"
-												+ (parts.length >= 5 ? parts[4] : ".") + "\t.\t.\t.");
+				writer.println(parts[1] + "\t" + parts[2] + "\t" + parts[0] + "\t"
+											 + (parts.length >= 5 ? parts[3] : ".") + "\t"
+											 + (parts.length >= 5 ? parts[4] : ".") + "\t.\t.\t.");
 			}
 			writer.flush();
 			writer.close();
@@ -360,10 +358,10 @@ public class MapSNPsAndGenes {
 	public static void fromParameters(String filename, Logger log) {
 		Vector<String> params;
 
-		String snpEffLoc = Aliases.getPathToFileInReferenceDirectory(	SNPEFF.SNP_EFF, true,
-																																	new Logger());
+		String snpEffLoc = Aliases.getPathToFileInReferenceDirectory(SNPEFF.SNP_EFF, true,
+																																 new Logger());
 		if (snpEffLoc == null) {
-			snpEffLoc = Aliases.getPathToFileInReferenceDirectory("snpEff/"	+ SNPEFF.SNP_EFF, true,
+			snpEffLoc = Aliases.getPathToFileInReferenceDirectory("snpEff/" + SNPEFF.SNP_EFF, true,
 																														new Logger());
 		}
 		if (snpEffLoc == null) {
@@ -373,8 +371,8 @@ public class MapSNPsAndGenes {
 																																	new Logger());
 		if (annovarLoc == null) {
 			annovarLoc = Aliases.getPathToFileInReferenceDirectory("ANNOVAR/annovar/"
-																																+ ANNOVAR.TABLE_ANNOVAR, true,
-																															new Logger());
+																														 + ANNOVAR.TABLE_ANNOVAR, true,
+																														 new Logger());
 		}
 		if (annovarLoc == null) {
 			annovarLoc = "";
@@ -403,13 +401,13 @@ public class MapSNPsAndGenes {
 		byte build = 37;
 		Logger log;
 		boolean vcf = true;
-		String snpEffLoc = Aliases.getPathToFileInReferenceDirectory("snpEff/"	+ SNPEFF.SNP_EFF, false,
-																																	new Logger());
+		String snpEffLoc = Aliases.getPathToFileInReferenceDirectory("snpEff/" + SNPEFF.SNP_EFF, false,
+																																 new Logger());
 		if (snpEffLoc == null) {
 			snpEffLoc = "";
 		}
 		String annovarLoc = Aliases.getPathToFileInReferenceDirectory("ANNOVAR/annovar/"
-																																		+ ANNOVAR.TABLE_ANNOVAR, false,
+																																	+ ANNOVAR.TABLE_ANNOVAR, false,
 																																	new Logger());
 		if (annovarLoc == null) {
 			annovarLoc = "";
@@ -421,22 +419,22 @@ public class MapSNPsAndGenes {
 		boolean genes = true;
 		String logfile = null;
 
-		String usage = "\n"	+ "bioinformatics.MapSNPsAndGenes requires 0-1 arguments\n"
-										+ "   (1) directory (i.e. dir=" + dir + " (default))\n"
-										+ "   (2) filename (i.e. file=" + filename + " (default))\n"
-										+ "   (3) # bp up and down stream to count as an associated gene (i.e. win="
-										+ wiggleRoom + " (default))\n"
-										+ "   (4) build # of the NCBI gene map file (i.e. build=" + build
-										+ " (default))\n"
-										+ "   (5) should use vcf files instead of serialized database files (i.e. vcf=true (default))\n"
-										+
-										// " (6) create additional output file with annotations from SNPEFF (i.e.
-										// snpeff=true (not the default; mutually-exclusive with 'gatk' option))\n" +
-										"   (6) create additional output file with annotations from GATK, SNPEFF, and ANNOVAR (i.e. annotate=true (not the default; mutually-exclusive with 'snpeff' option))\n"
-										+ "   (7) Location of SNPEFF program in filesystem; used if 'gatk' option set to TRUE (i.e. snpeffLoc="
-										+ snpEffLoc + " (default))\n"
-										+ "   (8) Location of ANNOVAR program in filesystem; used if 'gatk' option set to TRUE (i.e. annovarLoc="
-										+ annovarLoc + " (default))\n" + "";
+		String usage = "\n" + "bioinformatics.MapSNPsAndGenes requires 0-1 arguments\n"
+									 + "   (1) directory (i.e. dir=" + dir + " (default))\n"
+									 + "   (2) filename (i.e. file=" + filename + " (default))\n"
+									 + "   (3) # bp up and down stream to count as an associated gene (i.e. win="
+									 + wiggleRoom + " (default))\n"
+									 + "   (4) build # of the NCBI gene map file (i.e. build=" + build
+									 + " (default))\n"
+									 + "   (5) should use vcf files instead of serialized database files (i.e. vcf=true (default))\n"
+									 +
+									 // " (6) create additional output file with annotations from SNPEFF (i.e.
+									 // snpeff=true (not the default; mutually-exclusive with 'gatk' option))\n" +
+									 "   (6) create additional output file with annotations from GATK, SNPEFF, and ANNOVAR (i.e. annotate=true (not the default; mutually-exclusive with 'snpeff' option))\n"
+									 + "   (7) Location of SNPEFF program in filesystem; used if 'gatk' option set to TRUE (i.e. snpeffLoc="
+									 + snpEffLoc + " (default))\n"
+									 + "   (8) Location of ANNOVAR program in filesystem; used if 'gatk' option set to TRUE (i.e. annovarLoc="
+									 + annovarLoc + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -499,7 +497,7 @@ public class MapSNPsAndGenes {
 				} else if (filename.indexOf(".b37.") > 0) {
 					build = 37;
 				} else {
-					log.reportError("Warning - using the default build (b37/hg19) since the file '"	+ filename
+					log.reportError("Warning - using the default build (b37/hg19) since the file '" + filename
 													+ "' does not explicitly specify one using the convention \"filename.b37.20000.snps\"");
 					build = 37;
 				}
@@ -514,7 +512,8 @@ public class MapSNPsAndGenes {
 					procSNPsToGenes(dir, filename, wiggleRoom, build, log, vcf, snpeff, gatk, snpEffLoc,
 													annovarLoc, swap, xln);
 				} else {
-					ParseSNPlocations.lowMemParse(dir + filename, getSNPDB(build, log), getMergeDB(log), true, log);
+					ParseSNPlocations.lowMemParse(dir + filename, getSNPDB(build, log), getMergeDB(log), true,
+																				log);
 				}
 			} else {
 				log = new Logger(logfile);

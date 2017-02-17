@@ -16,10 +16,10 @@ public class OptimizedQCThresholds {
 																								"GCWF", "NUM_SAMPLE_CNVS", "CNV_LRR_SD",
 																								"SAMPLE_CALL_RATE", "PENN_CONF", "BAF_DRIFT",
 																								"SIZE_IN_KB", "PROBE_DENSITY_IN_KB"};
-	public static final String[] OPT_QC_HEADS = {	"targetConcordance", "actualConcordance",
-																								ArrayUtils.toStr(QC_Thresholds), "goodCalls",
-																								"callsPassingFilter", "totalCalls",
-																								"pairsOfDuplicates", "CN"};
+	public static final String[] OPT_QC_HEADS = {"targetConcordance", "actualConcordance",
+																							 ArrayUtils.toStr(QC_Thresholds), "goodCalls",
+																							 "callsPassingFilter", "totalCalls",
+																							 "pairsOfDuplicates", "CN"};
 	private double targetConcordance;
 	private double actualConcordance;
 	private final double alpha;
@@ -44,9 +44,9 @@ public class OptimizedQCThresholds {
 	private double kbDensity;
 
 
-	public OptimizedQCThresholds(	OptimizedQCThresholds comparedQCs, double targetConcordance,
-																double actualConcordance, int callsPassingFilter, int goodCalls,
-																int totalCalls, int pairsOfDuplicates, int CN) {
+	public OptimizedQCThresholds(OptimizedQCThresholds comparedQCs, double targetConcordance,
+															 double actualConcordance, int callsPassingFilter, int goodCalls,
+															 int totalCalls, int pairsOfDuplicates, int CN) {
 		this.targetConcordance = targetConcordance;
 		this.actualConcordance = actualConcordance;
 		this.callsPassingFilter = callsPassingFilter;
@@ -72,11 +72,11 @@ public class OptimizedQCThresholds {
 
 	}
 
-	public OptimizedQCThresholds(	double alpha, double beastConfCutoff, double lrrCutoff,
-																int numMarkers, double BAFQCcutoff, double twopqCutoff,
-																double hetCutoff, double GCWF, int numSampleCNVs,
-																double cnvLRRSTDev, double sampleCallRate, double pennConf,
-																double bafDrift, double kbSize, double kbDensity) {
+	public OptimizedQCThresholds(double alpha, double beastConfCutoff, double lrrCutoff,
+															 int numMarkers, double BAFQCcutoff, double twopqCutoff,
+															 double hetCutoff, double GCWF, int numSampleCNVs, double cnvLRRSTDev,
+															 double sampleCallRate, double pennConf, double bafDrift,
+															 double kbSize, double kbDensity) {
 		this.alpha = alpha;
 		this.beastConfCutoff = beastConfCutoff;
 		this.lrrCutoff = lrrCutoff;
@@ -207,17 +207,17 @@ public class OptimizedQCThresholds {
 
 	public String getDisplayString() {
 		if (callsPassingFilter > 0) {
-			return targetConcordance	+ "\t" + actualConcordance + "\t" + alpha + "\t" + beastConfCutoff
-							+ "\t" + lrrCutoff + "\t" + numMarkers + "\t" + BAFQCcutoff + "\t" + twopqCutoff
-							+ "\t" + hetCutoff + "\t" + GCWF + "\t" + numSampleCNVs + "\t" + cnvLRRSTDev + "\t"
-							+ sampleCallRate + "\t" + pennConf + "\t" + bafDrift + "\t" + kbSize + "\t"
-							+ kbDensity + "\t" + goodCalls + "\t" + callsPassingFilter + "\t" + totalCalls + "\t"
-							+ pairsOfDuplicates + "\t" + CN;
+			return targetConcordance + "\t" + actualConcordance + "\t" + alpha + "\t" + beastConfCutoff
+						 + "\t" + lrrCutoff + "\t" + numMarkers + "\t" + BAFQCcutoff + "\t" + twopqCutoff + "\t"
+						 + hetCutoff + "\t" + GCWF + "\t" + numSampleCNVs + "\t" + cnvLRRSTDev + "\t"
+						 + sampleCallRate + "\t" + pennConf + "\t" + bafDrift + "\t" + kbSize + "\t" + kbDensity
+						 + "\t" + goodCalls + "\t" + callsPassingFilter + "\t" + totalCalls + "\t"
+						 + pairsOfDuplicates + "\t" + CN;
 		} else if (CN == 5) {
 			return "";
 		} else {
-			return "No parameters achieved target concordance of "	+ targetConcordance
-							+ " for copy number " + CN;
+			return "No parameters achieved target concordance of " + targetConcordance
+						 + " for copy number " + CN;
 		}
 	}
 

@@ -27,30 +27,30 @@ import org.genvisis.filesys.Hits;
 public class Plink {
 	// public static final String[] CLUSTER_HEADER = {"FID1", "IID1", "FID2", "IID2", "Z0", "Z1",
 	// "Z2", "PI_HAT", "PHE", "IBS0", "IBS1", "IBS2", "DST", "P", "HOMHOM", "HETHET", "RATIO"};
-	public static final String[] CLUSTER_HEADER =
-																							{	"FID1", "IID1", "FID2", "IID2", "RT", "EZ", "Z0",
-																								"Z1", "Z2", "PI_HAT", "PHE", "DST", "PPC", "RATIO"};
+	public static final String[] CLUSTER_HEADER = {"FID1", "IID1", "FID2", "IID2", "RT", "EZ", "Z0",
+																								 "Z1", "Z2", "PI_HAT", "PHE", "DST", "PPC",
+																								 "RATIO"};
 	public static final int[] RELEVANT_CLUSTER_INDICES = {0, 1, 2, 3, 6, 7, 8, 9};
-	public static final String[] IMISS_HEADER = {	"FID", "IID", "MISS_PHENO", "N_MISS", "N_GENO",
-																								"F_MISS"};
+	public static final String[] IMISS_HEADER = {"FID", "IID", "MISS_PHENO", "N_MISS", "N_GENO",
+																							 "F_MISS"};
 	public static final String[] MPERM_HEADER = {"CHR", "SNP", "EMP1", "EMP2"};
-	public static final String[] LOGISTIC_SE_HEADER = {	"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
-																											"OR", "SE", "L95", "U95", "STAT", "P"};
-	public static final String[] LINEAR_SE_HEADER = {	"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
-																										"BETA", "SE", "L95", "U95", "STAT", "P"};
+	public static final String[] LOGISTIC_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
+																										 "OR", "SE", "L95", "U95", "STAT", "P"};
+	public static final String[] LINEAR_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
+																									 "BETA", "SE", "L95", "U95", "STAT", "P"};
 	public static final int[][] BUILD_36_PARS = {{}};
 	public static final int[][] BUILD_37_PARS = {{}};
 
-	public static final String[] FLAGS = new String[] {	"duplicate", "parent-offspring", "sibling",
-																											"avuncular,gg", "first cousins,halfsibs",
-																											"second cousins"};
+	public static final String[] FLAGS = new String[] {"duplicate", "parent-offspring", "sibling",
+																										 "avuncular,gg", "first cousins,halfsibs",
+																										 "second cousins"};
 	public static final double[][] THRESHOLDS = new double[][] {{0, 0, 0, 0.90}, // duplicate
 																															{0, 0.80, 0, 0.49}, // parent-offspring
 																															{0, 0.30, 0.10, 0.35}, // sibling
 																															{0, 0.40, 0, 0}, // second degree,
-																																								// avuncular, gg
+																																							 // avuncular, gg
 																															{0, 0.20, 0, 0}, // third degree,
-																																								// cousins, halfsibs
+																																							 // cousins, halfsibs
 																															{0, 0.10, 0, 0}, // fourth degree
 	};
 
@@ -91,22 +91,22 @@ public class Plink {
 		for (String ind : inds) {
 			line = ind.split("[\\s]+");
 			if (!imiss.containsKey(line[0] + "\t" + line[1])) {
-				System.err.println("Error - 'plink.imiss' does not contain individual"	+ line[0] + ","
-														+ line[1]);
+				System.err.println("Error - 'plink.imiss' does not contain individual" + line[0] + ","
+													 + line[1]);
 				return;
 			} else if (imiss.get(line[0] + "\t" + line[1]).equals("1")) {
 				count++;
 			} else {
 				if (Double.parseDouble(imiss.get(line[0] + "\t" + line[1])) > 0.50) {
-					System.err.println("Warning - "	+ line[0] + "," + line[1]
-															+ " is missing data for more than 50% of the markers");
+					System.err.println("Warning - " + line[0] + "," + line[1]
+														 + " is missing data for more than 50% of the markers");
 				}
 				filter.add(line[0] + "\t" + line[1]);
 			}
 		}
 		if (count > 0) {
-			System.err.println("Batch files will not include the "	+ count
-													+ " indiviudals that are not genotyped");
+			System.err.println("Batch files will not include the " + count
+												 + " indiviudals that are not genotyped");
 		}
 
 		inds = ArrayUtils.toStringArray(filter);
@@ -132,10 +132,10 @@ public class Plink {
 		}
 
 		String plink = " ~/bin/plink";
-		commands = "cd "	+ ext.pwd() + "\n" + (Files.exists(plink) ? plink : "plink")
-								+ " --noweb --bfile " + root + " --read-freq plink.frq --genome"
-								+ (minPiHatToKeep > 0 ? " --min " + minPiHatToKeep : "")
-								+ " --genome-lists tmp.list[%0] tmp.list[%1] --out data.sub.[%2]";
+		commands = "cd " + ext.pwd() + "\n" + (Files.exists(plink) ? plink : "plink")
+							 + " --noweb --bfile " + root + " --read-freq plink.frq --genome"
+							 + (minPiHatToKeep > 0 ? " --min " + minPiHatToKeep : "")
+							 + " --genome-lists tmp.list[%0] tmp.list[%1] --out data.sub.[%2]";
 		Files.qsub("genom", commands, Matrix.toStringArrays(v));
 		try {
 			writer = new PrintWriter(new FileWriter("master.compile"));
@@ -169,8 +169,8 @@ public class Plink {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (line.length < 6) {
-					System.err.println("Error: file \""	+ filename
-															+ "\" appears to be truncated (or is not finished being generated)");
+					System.err.println("Error: file \"" + filename
+														 + "\" appears to be truncated (or is not finished being generated)");
 					reader.close();
 					return null;
 				}
@@ -238,8 +238,8 @@ public class Plink {
 				step = Math.max(step, count);
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \""	+ "tmp.list" + ext.formNum(listCount, 3)
-														+ "\" not found in current directory");
+				System.err.println("Error: file \"" + "tmp.list" + ext.formNum(listCount, 3)
+													 + "\" not found in current directory");
 				return;
 			} catch (IOException ioe) {
 				System.err.println("Error reading file \"" + "tmp.list" + ext.formNum(listCount, 3) + "\"");
@@ -258,22 +258,22 @@ public class Plink {
 		for (String ind : inds) {
 			line = ind.split("[\\s]+");
 			if (!imiss.containsKey(line[0] + "\t" + line[1])) {
-				System.err.println("Error - 'plink.imiss' does not contain individual"	+ line[0] + ","
-														+ line[1]);
+				System.err.println("Error - 'plink.imiss' does not contain individual" + line[0] + ","
+													 + line[1]);
 				return;
 			} else if (imiss.get(line[0] + "\t" + line[1]).equals("1")) {
 				count++;
 			} else if (!hash.containsKey(line[0] + "\t" + line[1])) {
 				if (Double.parseDouble(imiss.get(line[0] + "\t" + line[1])) > 0.50) {
-					System.err.println("Warning - "	+ line[0] + "," + line[1]
-															+ " is missing data for more than 50% of the markers");
+					System.err.println("Warning - " + line[0] + "," + line[1]
+														 + " is missing data for more than 50% of the markers");
 				}
 				filter.add(line[0] + "\t" + line[1]);
 			}
 		}
 		if (count > 0) {
-			System.err.println("Batch files will not include the "	+ count
-													+ " indiviudals that are not genotyped");
+			System.err.println("Batch files will not include the " + count
+												 + " indiviudals that are not genotyped");
 		}
 		inds = ArrayUtils.toStringArray(filter);
 
@@ -298,8 +298,8 @@ public class Plink {
 			}
 		}
 
-		commands = "plink --noweb --bfile "	+ root
-								+ " --read-freq plink.frq --genome --genome-lists tmp.list[%0] tmp.list[%1] --out data.sub.[%2]";
+		commands = "plink --noweb --bfile " + root
+							 + " --read-freq plink.frq --genome --genome-lists tmp.list[%0] tmp.list[%1] --out data.sub.[%2]";
 		Files.batchIt("addGenome", "", threads, commands, Matrix.toStringArrays(v));
 		try {
 			writer = new PrintWriter(new FileWriter("master", true));
@@ -335,9 +335,9 @@ public class Plink {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				if ((filterPairs
-							&& (hash.containsKey(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3])
-									|| hash.containsKey(line[2] + "\t" + line[3] + "\t" + line[0] + "\t" + line[1])))
-						|| (!filterPairs	&& hash.containsKey(line[0] + "\t" + line[1])
+						 && (hash.containsKey(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3])
+								 || hash.containsKey(line[2] + "\t" + line[3] + "\t" + line[0] + "\t" + line[1])))
+						|| (!filterPairs && hash.containsKey(line[0] + "\t" + line[1])
 								&& hash.containsKey(line[2] + "\t" + line[3]))) {
 					writer.println(ArrayUtils.toStr(line));
 				}
@@ -397,9 +397,9 @@ public class Plink {
 	 * Also generates registry files of discovered duplicates (*_duplicatesSet.dat + *_duplicates.dat)
 	 * </p>
 	 */
-	public static int flagRelateds(	String genomeFile, String famFile, String iMissFile,
-																	String lrrFile, String[] flags, double[][] thresholds,
-																	int removeOutTo, boolean kill) {
+	public static int flagRelateds(String genomeFile, String famFile, String iMissFile,
+																 String lrrFile, String[] flags, double[][] thresholds,
+																 int removeOutTo, boolean kill) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, metrics, ids;
@@ -422,8 +422,8 @@ public class Plink {
 			callrates = new Hashtable<String, String>();
 		} else {
 			ext.checkHeader(Files.getHeaderOfFile(iMissFile, "[\\s]+", log), IMISS_HEADER, true);
-			callrates = HashVec.loadFileToHashString(	iMissFile, new int[] {0, 1}, new int[] {5}, false,
-																								"\t", false, false, false);
+			callrates = HashVec.loadFileToHashString(iMissFile, new int[] {0, 1}, new int[] {5}, false,
+																							 "\t", false, false, false);
 			log.report("Successfully loaded '" + iMissFile + "'");
 		}
 
@@ -431,16 +431,16 @@ public class Plink {
 			log.report("Warning - no LRR_SD file specified, indiviudals will not be preferentially selected based on LRR_SD");
 			lrr_sds = new Hashtable<String, String>();
 		} else if (!Files.exists(lrrFile, false)) {
-			log.reportError("Error - specified LRR_SD file ("	+ lrrFile
+			log.reportError("Error - specified LRR_SD file (" + lrrFile
 											+ ") is missing, individuals will not be preferentially selected based on LRR_SD");
 			lrr_sds = new Hashtable<String, String>();
 		} else {
-			boolean properHeader = ext.checkHeader(	Files.getHeaderOfFile(lrrFile, "[\\s]+", log),
-																							new String[] {"SAMPLE", "LRR_SD"}, new int[] {0, 2},
-																							false, log, true);
+			boolean properHeader = ext.checkHeader(Files.getHeaderOfFile(lrrFile, "[\\s]+", log),
+																						 new String[] {"SAMPLE", "LRR_SD"}, new int[] {0, 2},
+																						 false, log, true);
 			if (properHeader) {
-				lrr_sds = HashVec.loadFileToHashString(	lrrFile, new int[] {0}, new int[] {2}, false, "\t",
-																								false, false, false);
+				lrr_sds = HashVec.loadFileToHashString(lrrFile, new int[] {0}, new int[] {2}, false, "\t",
+																							 false, false, false);
 				log.report("Successfully loaded '" + lrrFile + "'");
 			} else {
 				log.reportError("Error - specified LRR_SD file has an improper header (looking for \"SAMPLE\" and \"LRR_SD\" as the first two columns of file.");
@@ -453,7 +453,7 @@ public class Plink {
 			log.report("Warning - no .fam SD file specified, assuming .genome file is complete");
 			in = new Hashtable<String, String>();
 		} else if (!Files.exists(famFile, false)) {
-			log.reportError("Error - specified .fam file ("	+ famFile
+			log.reportError("Error - specified .fam file (" + famFile
 											+ ") is missing, assuming .genome file is complete");
 			in = new Hashtable<String, String>();
 			famFile = null;
@@ -463,8 +463,8 @@ public class Plink {
 			log.report("Successfully loaded '" + famFile + "'");
 		}
 
-		log.report("Started with "	+ in.size() + " known samples; will remove one of each pair of: "
-								+ ArrayUtils.toStr(ArrayUtils.subArray(flags, 0, removeOutTo), "/"));
+		log.report("Started with " + in.size() + " known samples; will remove one of each pair of: "
+							 + ArrayUtils.toStr(ArrayUtils.subArray(flags, 0, removeOutTo), "/"));
 
 
 		if (genomeFile.endsWith(".gz")) {
@@ -493,7 +493,7 @@ public class Plink {
 					if (!in.containsKey(line[i * 2 + 0] + "\t" + line[i * 2 + 1])
 							&& !out.containsKey(line[i * 2 + 0] + "\t" + line[i * 2 + 1])) {
 						if (famFile != null && numExtras < 20) {
-							log.reportError("Warning - individual '"	+ line[i * 2 + 0] + "-" + line[i * 2 + 1]
+							log.reportError("Warning - individual '" + line[i * 2 + 0] + "-" + line[i * 2 + 1]
 															+ "' was in the .genome file, but not listed in the .fam file; adding...");
 						}
 						in.put(line[i * 2 + 0] + "\t" + line[i * 2 + 1], in.size() + "");
@@ -502,7 +502,7 @@ public class Plink {
 				}
 				probs = ArrayUtils.toDoubleArray(ArrayUtils.subArray(line, 6, 10));
 				for (int i = 0; i < removeOutTo; i++) {
-					if (probs != null	&& probs[0] >= thresholds[i][0] && probs[1] >= thresholds[i][1]
+					if (probs != null && probs[0] >= thresholds[i][0] && probs[1] >= thresholds[i][1]
 							&& probs[2] >= thresholds[i][2] && probs[3] >= thresholds[i][3]) {
 						line = ArrayUtils.subArray(line, RELEVANT_CLUSTER_INDICES);
 						counts[i]++;
@@ -513,14 +513,14 @@ public class Plink {
 								metrics[k * 2 + 0] = callrates.get(line[k * 2 + 0] + "\t" + line[k * 2 + 1]);
 							}
 							if (lrr_sds.containsKey(line[k * 2 + 0] + "\t" + line[k * 2 + 1])) { // check for
-																																										// FID+IID
-																																										// first,
-																																										// even though
-																																										// this is
-																																										// outdated
+																																									 // FID+IID
+																																									 // first,
+																																									 // even though
+																																									 // this is
+																																									 // outdated
 								metrics[k * 2 + 1] = lrr_sds.get(line[k * 2 + 0] + "\t" + line[k * 2 + 1]);
 							} else if (lrr_sds.containsKey(line[k * 2 + 1])) { // then check for IID next, even
-																																	// though IID may not be unique
+																																 // though IID may not be unique
 								metrics[k * 2 + 1] = lrr_sds.get(line[k * 2 + 1]);
 							}
 						}
@@ -546,22 +546,22 @@ public class Plink {
 								duplicates.put(duplicate, dupeSet);
 							}
 						}
-						writer.print(fidIid1	+ "\t" + metrics[0] + "\t" + metrics[1] + "\t" + fidIid2 + "\t"
-													+ metrics[2] + "\t" + metrics[3] + "\t" + line[4] + "\t" + line[5] + "\t"
-													+ line[6] + "\t" + line[7] + "\t" + flags[i]);
+						writer.print(fidIid1 + "\t" + metrics[0] + "\t" + metrics[1] + "\t" + fidIid2 + "\t"
+												 + metrics[2] + "\t" + metrics[3] + "\t" + line[4] + "\t" + line[5] + "\t"
+												 + line[6] + "\t" + line[7] + "\t" + flags[i]);
 						// Dropped both individuals already. No recommendation necessary
 						if (out.containsKey(fidIid1) && out.containsKey(fidIid2)) {
 							writer.println("\t.\t.\t.\t.");
-						// Check if either individual has already been dropped - if so, keep the other.
+							// Check if either individual has already been dropped - if so, keep the other.
 						} else if (out.containsKey(fidIid1)) {
 							writer.println("\t" + fidIid2 + "\t.\t.");
 						} else if (out.containsKey(fidIid2)) {
 							writer.println("\t" + fidIid1 + "\t.\t.");
 						} else {
-						// Determine which individual to keep and which to drop based on available metrics
-							if (metrics[0].equals(".")	|| metrics[2].equals(".")
+							// Determine which individual to keep and which to drop based on available metrics
+							if (metrics[0].equals(".") || metrics[2].equals(".")
 									|| (Double.parseDouble(metrics[0]) == Double.parseDouble(metrics[2]))) {
-								if (metrics[1].equals(".")	|| metrics[3].equals(".")
+								if (metrics[1].equals(".") || metrics[3].equals(".")
 										|| (Double.parseDouble(metrics[1]) <= Double.parseDouble(metrics[3]))) {
 									sel = 0;
 								} else {
@@ -604,8 +604,8 @@ public class Plink {
 			}
 		}
 		if (numExtras >= 20) {
-			log.report("There were "	+ numExtras
-									+ " samples that were in the .genome file but not predefined in a .fam file");
+			log.report("There were " + numExtras
+								 + " samples that were in the .genome file but not predefined in a .fam file");
 		}
 
 		temp = Files.getBakFilename(genomeFileRoot + "_relateds.xln", "", true);
@@ -646,7 +646,7 @@ public class Plink {
 		log.report("");
 		for (int i = 0; i < 2; i++) {
 			try {
-				writer = new PrintWriter(new FileWriter(genomeFileRoot	+ "_" + (i == 0 ? "keep" : "drop")
+				writer = new PrintWriter(new FileWriter(genomeFileRoot + "_" + (i == 0 ? "keep" : "drop")
 																								+ ".dat"));
 				trav = i == 0 ? in : out;
 				ids = HashVec.getKeys(trav, false);
@@ -660,18 +660,18 @@ public class Plink {
 				}
 				writer.close();
 			} catch (Exception e) {
-				System.err.println("Error writing to "	+ genomeFileRoot + "_" + (i == 0 ? "keep" : "drop")
-														+ ".dat");
+				System.err.println("Error writing to " + genomeFileRoot + "_" + (i == 0 ? "keep" : "drop")
+													 + ".dat");
 				e.printStackTrace();
 			}
 		}
 
 		if (!duplicates.isEmpty()) {
-			log.report("Writing duplicates file - found "	+ duplicates.size()
-									+ " sets of duplicate identifiers");
+			log.report("Writing duplicates file - found " + duplicates.size()
+								 + " sets of duplicate identifiers");
 			try {
 				PrintWriter writerSet = new PrintWriter(new FileWriter(genomeFileRoot
-																																+ "_duplicatesSet.dat"));
+																															 + "_duplicatesSet.dat"));
 				writer = new PrintWriter(new FileWriter(genomeFileRoot + "_duplicates.dat"));
 				int set = 1;
 				for (Set<String> dupeSet : duplicates.values()) {
@@ -710,8 +710,8 @@ public class Plink {
 					counts[2]++;
 				}
 			}
-			log.report("...of which "	+ counts[0] + " remain in " + counts[1] + " have been removed"
-									+ (counts[2] > 0 ? "( AND " + counts[2] + " ARE UNACCOUNTED FOR!)" : ""));
+			log.report("...of which " + counts[0] + " remain in " + counts[1] + " have been removed"
+								 + (counts[2] > 0 ? "( AND " + counts[2] + " ARE UNACCOUNTED FOR!)" : ""));
 		} else {
 			log.report("Failed to locate file 'ofInterest.txt'");
 		}
@@ -762,9 +762,9 @@ public class Plink {
 						if (rep == 1) {
 							markerNames[count] = line[1];
 						} else if (!line[1].equals(markerNames[count])) {
-							System.err.println("Error - marker mismatch in "	+ filename + "; expecting "
-																	+ markerNames[count] + " at line " + (count + 2) + ", found "
-																	+ line[1]);
+							System.err.println("Error - marker mismatch in " + filename + "; expecting "
+																 + markerNames[count] + " at line " + (count + 2) + ", found "
+																 + line[1]);
 						}
 						counts[count][0] += (int) (Double.parseDouble(line[2]) * (numReps + 1)) - 1;
 						counts[count][1] += (int) (Double.parseDouble(line[3]) * (numReps + 1)) - 1;
@@ -794,17 +794,17 @@ public class Plink {
 			}
 
 		} while (!done);
-		System.out.println("Parsed the results of "	+ (rep - 1)
-												+ " replicates, summing over a total of " + numRepsTotal + " permutations");
+		System.out.println("Parsed the results of " + (rep - 1)
+											 + " replicates, summing over a total of " + numRepsTotal + " permutations");
 		if (rep > 0) {
 			try {
 				filename = ext.replaceAllWith(pattern, "#", "_ALL");
 				writer = new PrintWriter(new FileWriter(filename));
 				writer.println("SNP\tEMP1\tEMP2");
 				for (int i = 0; i < markerNames.length; i++) {
-					writer.println(markerNames[i]	+ "\t"
-													+ ((double) counts[i][0] + 1) / ((double) numRepsTotal + 1) + "\t"
-													+ ((double) counts[i][1] + 1) / ((double) numRepsTotal + 1));
+					writer.println(markerNames[i] + "\t"
+												 + ((double) counts[i][0] + 1) / ((double) numRepsTotal + 1) + "\t"
+												 + ((double) counts[i][1] + 1) / ((double) numRepsTotal + 1));
 				}
 				writer.close();
 			} catch (Exception e) {
@@ -912,8 +912,8 @@ public class Plink {
 			pars = BUILD_36_PARS;
 		} else {
 			if (build != 37 && build != 19) {
-				System.err.println("Warning - '"	+ build
-														+ "' is an unknown build of the genome; using default build 37 (hg19)");
+				System.err.println("Warning - '" + build
+													 + "' is an unknown build of the genome; using default build 37 (hg19)");
 			}
 			pars = BUILD_37_PARS;
 		}
@@ -941,11 +941,11 @@ public class Plink {
 	}
 
 	public static void batchLD(String root, double minR2ToKeep) {
-		Files.qsub(	"runLD", 1, 22,
-								"cd "						+ ext.pwd() + "\n~/bin/plink --noweb --bfile " + root
-																+ " --r2 --chr # --ld-window 99999 --ld-window-r2 " + minR2ToKeep
-																+ " --out chr#",
-								2000, 2);
+		Files.qsub("runLD", 1, 22,
+							 "cd " + ext.pwd() + "\n~/bin/plink --noweb --bfile " + root
+															 + " --r2 --chr # --ld-window 99999 --ld-window-r2 " + minR2ToKeep
+															 + " --out chr#",
+							 2000, 2);
 	}
 
 	public static void parseHitsForAllFilesInDirectory(String dir, double pvalThreshold, Logger log) {
@@ -997,48 +997,47 @@ public class Plink {
 		double minR2ToKeep = 0.20;
 		boolean batchLD = false;
 
-		String usage = "\n"	+ "gwas.Plink requires 0-1 arguments\n"
-										+ "   (1) collapse parallelized .mperm files with the given pattern and the specified number of reps per file (i.e. mperm=perm#.assoc.mperm,100000 (not the default))\n"
-										+ "  OR\n"
-										+ "   (1) number of parts to break into --genome on (i.e. genome=8 (not the default))\n"
-										+ "          type \"-remind\" for a reminder of how many jobs the number of parts leads to\n"
-										+ "   (2) name of PLINK root for --genome runs (i.e. root=" + root
-										+ " (default))\n"
-										+ "   (3) minimum pi_hat to retain in --genome runs (i.e. minPiHatToKeep=0.1 (not the default))\n"
-										+ "   Note: requires both plink.frq and plink.imiss\n" +
+		String usage = "\n" + "gwas.Plink requires 0-1 arguments\n"
+									 + "   (1) collapse parallelized .mperm files with the given pattern and the specified number of reps per file (i.e. mperm=perm#.assoc.mperm,100000 (not the default))\n"
+									 + "  OR\n"
+									 + "   (1) number of parts to break into --genome on (i.e. genome=8 (not the default))\n"
+									 + "          type \"-remind\" for a reminder of how many jobs the number of parts leads to\n"
+									 + "   (2) name of PLINK root for --genome runs (i.e. root=" + root
+									 + " (default))\n"
+									 + "   (3) minimum pi_hat to retain in --genome runs (i.e. minPiHatToKeep=0.1 (not the default))\n"
+									 + "   Note: requires both plink.frq and plink.imiss\n" +
 
-										"  OR\n"
-										+ "   (1) add more indiviudals to a .genome using N threads (i.e. addGenome=4 (not the default))\n"
-										+ "          type \"-remind\" for a reminder of how many jobs the number of parts leads to\n"
-										+ "   (2) name of PLINK root for --genome runs (i.e. root=" + root
-										+ " (default))\n" + "  OR\n"
-										+ "   (1) filter genome file by ids (i.e. filter=plink.genome,ids.txt (not the default))\n"
-										+ "   (2) filter pairs of ids (i.e. -filterPairs (not the default))\n"
-										+ "  OR\n"
-										+ "   (1) remove ids from the genome file (i.e. remove=plink.genome,ids.txt (not the default))\n"
-										+ "  OR\n"
-										+ "   (1) delineate related indiviudals and select one to keep (i.e. relate=plink.genome.gz (not the default))\n"
-										+ "   (2) (optional) if genome is incomplete (e.g. truncated at PI_HAT>0.10) (i.e. fam="
-										+ famFile + " (default))\n"
-										+ "   (3) (optional) select sample to keep based on call rate (i.e. imiss="
-										+ iMissFile + " (default))\n"
-										+ "   (4) (optional) select on LRR_SD if call rates are within 0.2% (i.e. lrr_sd="
-										+ lrrFile + " (default; needs to have format FID\tIID\tLRR_SD))\n"
-										+ "   (5) (optional) only purge out to certain level (i.e. level=" + removeOutTo
-										+ " (default)), where:\n" + "  OR\n"
-										+ "   (1) summarize diff mode 6 results into markers and inds (i.e. diff=comp.diff (not the default))\n"
-										+ "  OR\n"
-										+ "   (1) shift markers in the PAR regions to chr25 (i.e. shift=plink.bim (not the default))\n"
-										+ "   (2) genome build (i.e. build=" + build + " (default))\n" + "  OR\n"
-										+ "   (1) batch pairwise LD computation of r^2 (i.e. -batchLD (not the default))\n"
-										+ "   (2) name of PLINK root for --genome runs (i.e. root=" + root
-										+ " (default))\n"
-										+ "   (3) minimum r^2 value to retain in the output to save on space (i.e. minR2="
-										+ minR2ToKeep + " (default; set to zero to keep all))\n" + "";
+									 "  OR\n"
+									 + "   (1) add more indiviudals to a .genome using N threads (i.e. addGenome=4 (not the default))\n"
+									 + "          type \"-remind\" for a reminder of how many jobs the number of parts leads to\n"
+									 + "   (2) name of PLINK root for --genome runs (i.e. root=" + root
+									 + " (default))\n" + "  OR\n"
+									 + "   (1) filter genome file by ids (i.e. filter=plink.genome,ids.txt (not the default))\n"
+									 + "   (2) filter pairs of ids (i.e. -filterPairs (not the default))\n" + "  OR\n"
+									 + "   (1) remove ids from the genome file (i.e. remove=plink.genome,ids.txt (not the default))\n"
+									 + "  OR\n"
+									 + "   (1) delineate related indiviudals and select one to keep (i.e. relate=plink.genome.gz (not the default))\n"
+									 + "   (2) (optional) if genome is incomplete (e.g. truncated at PI_HAT>0.10) (i.e. fam="
+									 + famFile + " (default))\n"
+									 + "   (3) (optional) select sample to keep based on call rate (i.e. imiss="
+									 + iMissFile + " (default))\n"
+									 + "   (4) (optional) select on LRR_SD if call rates are within 0.2% (i.e. lrr_sd="
+									 + lrrFile + " (default; needs to have format FID\tIID\tLRR_SD))\n"
+									 + "   (5) (optional) only purge out to certain level (i.e. level=" + removeOutTo
+									 + " (default)), where:\n" + "  OR\n"
+									 + "   (1) summarize diff mode 6 results into markers and inds (i.e. diff=comp.diff (not the default))\n"
+									 + "  OR\n"
+									 + "   (1) shift markers in the PAR regions to chr25 (i.e. shift=plink.bim (not the default))\n"
+									 + "   (2) genome build (i.e. build=" + build + " (default))\n" + "  OR\n"
+									 + "   (1) batch pairwise LD computation of r^2 (i.e. -batchLD (not the default))\n"
+									 + "   (2) name of PLINK root for --genome runs (i.e. root=" + root
+									 + " (default))\n"
+									 + "   (3) minimum r^2 value to retain in the output to save on space (i.e. minR2="
+									 + minR2ToKeep + " (default; set to zero to keep all))\n" + "";
 		for (int i = 0; i < FLAGS.length; i++) {
-			usage += "           level "	+ (i + 1) + ": " + FLAGS[i] + "\tP(IBD=0)>=" + THRESHOLDS[i][0]
-								+ "\tP(IBD=1)>=" + THRESHOLDS[i][1] + "\tP(IBD=2)>=" + THRESHOLDS[i][2]
-								+ "\tPI_HAT>=" + THRESHOLDS[i][3] + "\n";
+			usage += "           level " + (i + 1) + ": " + FLAGS[i] + "\tP(IBD=0)>=" + THRESHOLDS[i][0]
+							 + "\tP(IBD=1)>=" + THRESHOLDS[i][1] + "\tP(IBD=2)>=" + THRESHOLDS[i][2]
+							 + "\tPI_HAT>=" + THRESHOLDS[i][3] + "\n";
 		}
 
 		for (String arg : args) {

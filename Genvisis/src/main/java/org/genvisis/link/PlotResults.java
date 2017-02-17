@@ -51,30 +51,30 @@ public class PlotResults extends JFrame implements ActionListener {
 	public static final boolean PLOT_INFO = true;
 
 	public static final String[] RESULT_TYPES = {"Allegro", "Merlin", "Merlin-VC", "Merlin-Regress"};
-	public static final String[][] RESULT_TYPE_NAMES = {{	"chrom\\d\\d.lin.out",
-																												"chrom\\d\\d.exp.out"},
-																											{	"merlin-chr\\d\\d-nonparametric.tbl",
-																												"merlin-chr\\d\\d-info.tbl"},
-																											{	"vc-chr\\d\\d-vc-chr\\d\\d.tbl",
-																												"vc-chr\\d\\d-info.tbl"},
-																											{	"regress-chr\\d\\d-regress-chr\\d\\d.tbl",
-																												"regress-chr\\d\\d-regress-chr\\d\\d.tbl"}};
-	public static final String[][][] RESULT_TYPE_HEADERS = {{	{"location", "LOD", "dhat", "NPL", "Zlr",
+	public static final String[][] RESULT_TYPE_NAMES = {{"chrom\\d\\d.lin.out",
+																											 "chrom\\d\\d.exp.out"},
+																											{"merlin-chr\\d\\d-nonparametric.tbl",
+																											 "merlin-chr\\d\\d-info.tbl"},
+																											{"vc-chr\\d\\d-vc-chr\\d\\d.tbl",
+																											 "vc-chr\\d\\d-info.tbl"},
+																											{"regress-chr\\d\\d-regress-chr\\d\\d.tbl",
+																											 "regress-chr\\d\\d-regress-chr\\d\\d.tbl"}};
+	public static final String[][][] RESULT_TYPE_HEADERS = {{{"location", "LOD", "dhat", "NPL", "Zlr",
 																														"marker"},
-																														{	"location", "LOD", "dhat", "NPL",
-																															"Zlr", "info", "marker"}},
-																													{	{"CHR", "POS", "LABEL", "ANALYSIS",
+																													 {"location", "LOD", "dhat", "NPL", "Zlr",
+																														"info", "marker"}},
+																													{{"CHR", "POS", "LABEL", "ANALYSIS",
 																														"ZSCORE", "DELTA", "LOD", "PVALUE"},
-																														{"CHR", "POS", "LABEL", "INFO"}},
-																													{	{"CHR", "POS", "LABEL", "TRAIT", "H2",
+																													 {"CHR", "POS", "LABEL", "INFO"}},
+																													{{"CHR", "POS", "LABEL", "TRAIT", "H2",
 																														"LOD", "PVALUE"},
-																														{"CHR", "POS", "LABEL", "INFO"}},
-																													{	{"CHR", "POS", "PHENOTYPE", "H2", "SD",
+																													 {"CHR", "POS", "LABEL", "INFO"}},
+																													{{"CHR", "POS", "PHENOTYPE", "H2", "SD",
 																														"INFO", "LOD", "PVALUE"},
-																														{	"CHR", "POS", "PHENOTYPE", "H2", "SD",
-																															"INFO", "LOD", "PVALUE"}}};
-	public static final int[][] RESULT_TYPE_LOD_INDICES =
-																											{{0, 1, 5}, {1, 6, 2}, {1, 5, 2}, {1, 6, 1}};
+																													 {"CHR", "POS", "PHENOTYPE", "H2", "SD",
+																														"INFO", "LOD", "PVALUE"}}};
+	public static final int[][] RESULT_TYPE_LOD_INDICES = {{0, 1, 5}, {1, 6, 2}, {1, 5, 2},
+																												 {1, 6, 1}};
 	public static final int[][] RESULT_TYPE_INFO_INDICES = {{0, 5}, {1, 3}, {1, 3}, {1, 5}};
 	public static final int[] RESULT_TYPE_SKIP_EXTRA_LINES = {0, 2, 0, 0};
 	public static final Color BACKGROUND_COLOR = Color.WHITE;
@@ -98,35 +98,35 @@ public class PlotResults extends JFrame implements ActionListener {
 	private static final String UNCHECK_ALL = "Uncheck all";
 
 
-	private static final Color[] DEFAULT_COLOR_SCHEME = {	new Color(33, 31, 53), // dark dark
-																												new Color(23, 58, 172), // dark blue
-																												new Color(201, 30, 10), // deep red
-																												new Color(140, 20, 180), // deep purple
-																												new Color(33, 87, 0), // dark green
-																												new Color(55, 129, 252), // light blue
-																												new Color(217, 109, 194), // pink
-																												new Color(94, 88, 214), // light purple
-																												new Color(189, 243, 61), // light green
+	private static final Color[] DEFAULT_COLOR_SCHEME = {new Color(33, 31, 53), // dark dark
+																											 new Color(23, 58, 172), // dark blue
+																											 new Color(201, 30, 10), // deep red
+																											 new Color(140, 20, 180), // deep purple
+																											 new Color(33, 87, 0), // dark green
+																											 new Color(55, 129, 252), // light blue
+																											 new Color(217, 109, 194), // pink
+																											 new Color(94, 88, 214), // light purple
+																											 new Color(189, 243, 61), // light green
 
-																												new Color(33, 31, 53), // dark dark
-																												new Color(23, 58, 172), // dark blue
-																												new Color(201, 30, 10), // deep red
-																												new Color(140, 20, 180), // deep purple
-																												new Color(33, 87, 0), // dark green
-																												new Color(55, 129, 252), // light blue
-																												new Color(217, 109, 194), // pink
-																												new Color(94, 88, 214), // light purple
-																												new Color(189, 243, 61), // light green
+																											 new Color(33, 31, 53), // dark dark
+																											 new Color(23, 58, 172), // dark blue
+																											 new Color(201, 30, 10), // deep red
+																											 new Color(140, 20, 180), // deep purple
+																											 new Color(33, 87, 0), // dark green
+																											 new Color(55, 129, 252), // light blue
+																											 new Color(217, 109, 194), // pink
+																											 new Color(94, 88, 214), // light purple
+																											 new Color(189, 243, 61), // light green
 
-																												new Color(33, 31, 53), // dark dark
-																												new Color(23, 58, 172), // dark blue
-																												new Color(201, 30, 10), // deep red
-																												new Color(140, 20, 180), // deep purple
-																												new Color(33, 87, 0), // dark green
-																												new Color(55, 129, 252), // light blue
-																												new Color(217, 109, 194), // pink
-																												new Color(94, 88, 214), // light purple
-																												new Color(189, 243, 61), // light green
+																											 new Color(33, 31, 53), // dark dark
+																											 new Color(23, 58, 172), // dark blue
+																											 new Color(201, 30, 10), // deep red
+																											 new Color(140, 20, 180), // deep purple
+																											 new Color(33, 87, 0), // dark green
+																											 new Color(55, 129, 252), // light blue
+																											 new Color(217, 109, 194), // pink
+																											 new Color(94, 88, 214), // light purple
+																											 new Color(189, 243, 61), // light green
 	};
 
 
@@ -150,8 +150,8 @@ public class PlotResults extends JFrame implements ActionListener {
 
 	private final Color[] colorScheme = DEFAULT_COLOR_SCHEME;
 
-	public PlotResults(	String title, String[] dirs, double[][][][] newData, double[][][][] newInfo,
-											String[][][][] newMarkerInfo, boolean jar) {
+	public PlotResults(String title, String[] dirs, double[][][][] newData, double[][][][] newInfo,
+										 String[][][][] newMarkerInfo, boolean jar) {
 		super(title == null ? "Linkage Plots" : title);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -243,25 +243,27 @@ public class PlotResults extends JFrame implements ActionListener {
 					if (inUse[i] && data[i][chr - 1] != null) {
 						g.setColor(colorScheme[i]);
 						for (int j = 0; j < data[i][chr - 1].length - 1; j++) {
-							Grafik.drawThickLine(	g,
-																		getX(data[alignMaps && data[0][chr - 1] != null ? 0 : i][chr
-																																															- 1][j][0]),
-																		getY(data[i][chr - 1][j][1]),
-																		getX(data[alignMaps && data[0][chr - 1] != null ? 0 : i][chr
-																																															- 1][j + 1][0]),
-																		getY(data[i][chr - 1][j + 1][1]), SIZE / 2, colorScheme[i]);
+							Grafik.drawThickLine(g,
+																	 getX(data[alignMaps && data[0][chr - 1] != null ? 0 : i][chr
+																																														- 1][j][0]),
+																	 getY(data[i][chr - 1][j][1]),
+																	 getX(data[alignMaps && data[0][chr - 1] != null ? 0 : i][chr
+																																														- 1][j
+																																																 + 1][0]),
+																	 getY(data[i][chr - 1][j + 1][1]), SIZE / 2, colorScheme[i]);
 						}
 					}
 					if (plotInformativeness && inUse[i] && info[i][chr - 1] != null) {
 						g.setColor(colorScheme[i]);
 						for (int j = 0; j < info[i][chr - 1].length - 1; j++) {
-							Grafik.drawThickLine(	g,
-																		getX(info[alignMaps && info[0][chr - 1] != null ? 0 : i][chr
-																																															- 1][j][0]),
-																		getNormY(info[i][chr - 1][j][1]),
-																		getX(info[alignMaps && info[0][chr - 1] != null ? 0 : i][chr
-																																															- 1][j + 1][0]),
-																		getNormY(info[i][chr - 1][j + 1][1]), SIZE / 4, colorScheme[i]);
+							Grafik.drawThickLine(g,
+																	 getX(info[alignMaps && info[0][chr - 1] != null ? 0 : i][chr
+																																														- 1][j][0]),
+																	 getNormY(info[i][chr - 1][j][1]),
+																	 getX(info[alignMaps && info[0][chr - 1] != null ? 0 : i][chr
+																																														- 1][j
+																																																 + 1][0]),
+																	 getNormY(info[i][chr - 1][j + 1][1]), SIZE / 4, colorScheme[i]);
 						}
 					}
 				}
@@ -273,14 +275,14 @@ public class PlotResults extends JFrame implements ActionListener {
 				yMax = HEIGHT_X_AXIS;
 				g.setFont(new Font("Arial", 0, 28));
 				for (int i = 0; i <= plotXmax / step; i++) {
-					Grafik.drawThickLine(	g, getX(i * step), getHeight() - yMax, getX(i * step),
-																getHeight() - (yMax - TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
-					g.drawString(i * step	+ "", getX(i * step) - (i * step + "").length() * 8,
-												getHeight() - (yMax - TICK_LENGTH - 30));
+					Grafik.drawThickLine(g, getX(i * step), getHeight() - yMax, getX(i * step),
+															 getHeight() - (yMax - TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
+					g.drawString(i * step + "", getX(i * step) - (i * step + "").length() * 8,
+											 getHeight() - (yMax - TICK_LENGTH - 30));
 				}
-				Grafik.drawThickLine(	g, xMin - (int) Math.ceil(AXIS_THICKNESS / 2.0), getHeight() - yMax,
-															xMax + (int) Math.ceil(AXIS_THICKNESS / 2.0), getHeight() - yMax,
-															AXIS_THICKNESS, Color.BLACK);
+				Grafik.drawThickLine(g, xMin - (int) Math.ceil(AXIS_THICKNESS / 2.0), getHeight() - yMax,
+														 xMax + (int) Math.ceil(AXIS_THICKNESS / 2.0), getHeight() - yMax,
+														 AXIS_THICKNESS, Color.BLACK);
 
 				// y-axis
 				xMin = 0;
@@ -289,13 +291,13 @@ public class PlotResults extends JFrame implements ActionListener {
 				yMax = getHeight() - HEAD_BUFFER;
 				g.setFont(new Font("Arial", 0, 28));
 				for (int i = 0; i <= minMaxes[chr - 1][3]; i++) {
-					Grafik.drawThickLine(	g, xMax - TICK_LENGTH, getY(i), xMax, getY(i), TICK_THICKNESS,
-																Color.BLACK);
+					Grafik.drawThickLine(g, xMax - TICK_LENGTH, getY(i), xMax, getY(i), TICK_THICKNESS,
+															 Color.BLACK);
 					g.drawString(i + "", xMax - TICK_LENGTH - (i + "").length() * 15 - 5, getY(i) + 9);
 				}
-				Grafik.drawThickLine(	g, xMax, getY(minMaxes[chr - 1][2]), xMax,
-															getY(minMaxes[chr - 1][3]) - (int) Math.ceil(TICK_THICKNESS / 2.0),
-															AXIS_THICKNESS, Color.BLACK);
+				Grafik.drawThickLine(g, xMax, getY(minMaxes[chr - 1][2]), xMax,
+														 getY(minMaxes[chr - 1][3]) - (int) Math.ceil(TICK_THICKNESS / 2.0),
+														 AXIS_THICKNESS, Color.BLACK);
 
 				// info axis
 				xMin = getWidth() - WIDTH_INFO_AXIS;
@@ -304,14 +306,14 @@ public class PlotResults extends JFrame implements ActionListener {
 				yMax = getHeight() - HEAD_BUFFER;
 				g.setFont(new Font("Arial", 0, 28));
 				for (double i = 0; i <= 1; i += 0.2) {
-					Grafik.drawThickLine(	g, xMin, getNormY(i), xMin + TICK_LENGTH, getNormY(i),
-																TICK_THICKNESS, Color.BLACK);
+					Grafik.drawThickLine(g, xMin, getNormY(i), xMin + TICK_LENGTH, getNormY(i),
+															 TICK_THICKNESS, Color.BLACK);
 					str = ext.formDeci(i, 1, true);
 					g.drawString(str, xMin + TICK_LENGTH + 5, getNormY(i) + 9);
 				}
-				Grafik.drawThickLine(	g, xMin, getNormY(0), xMin,
-															getNormY(1) - (int) Math.ceil(TICK_THICKNESS / 2.0), AXIS_THICKNESS,
-															Color.BLACK);
+				Grafik.drawThickLine(g, xMin, getNormY(0), xMin,
+														 getNormY(1) - (int) Math.ceil(TICK_THICKNESS / 2.0), AXIS_THICKNESS,
+														 Color.BLACK);
 
 				// markers
 				xMin = WIDTH_Y_AXIS;
@@ -326,11 +328,11 @@ public class PlotResults extends JFrame implements ActionListener {
 					g.setColor(colorScheme[indexSet]);
 					for (int i = 0; i < markerUsage[indexSet][chr - 1].length; i++) {
 						if (markerUsage[indexSet][chr - 1][i] == 1) {
-							g.fillOval(	getX(markerPositions[indexSet][chr - 1][i]), HEAD_BUFFER, MARKER_SIZE,
-													MARKER_SIZE);
+							g.fillOval(getX(markerPositions[indexSet][chr - 1][i]), HEAD_BUFFER, MARKER_SIZE,
+												 MARKER_SIZE);
 						} else if (markerUsage[indexSet][chr - 1][i] == -1) {
-							g.drawOval(	getX(markerPositions[indexSet][chr - 1][i]), HEAD_BUFFER, MARKER_SIZE,
-													MARKER_SIZE);
+							g.drawOval(getX(markerPositions[indexSet][chr - 1][i]), HEAD_BUFFER, MARKER_SIZE,
+												 MARKER_SIZE);
 						} else {
 							g.setFont(new Font("Arial", Font.BOLD, 15));
 							g.drawString("X", getX(markerPositions[indexSet][chr - 1][i]) - 3, HEAD_BUFFER + 9);
@@ -341,15 +343,15 @@ public class PlotResults extends JFrame implements ActionListener {
 			}
 
 			public int getX(double x) {
-				return (int) ((x - minMaxes[chr - 1][0])	/ (plotXmax - minMaxes[chr - 1][0])
+				return (int) ((x - minMaxes[chr - 1][0]) / (plotXmax - minMaxes[chr - 1][0])
 											* (xMax - xMin))
-								+ xMin;
+							 + xMin;
 			}
 
 			public int getY(double y) {
 				return getHeight()
-								- (int) ((y - minMaxes[chr - 1][2])	/ (minMaxes[chr - 1][3] - minMaxes[chr - 1][2])
-													* (yMax - yMin) + yMin);
+							 - (int) ((y - minMaxes[chr - 1][2]) / (minMaxes[chr - 1][3] - minMaxes[chr - 1][2])
+												* (yMax - yMin) + yMin);
 			}
 
 			public int getNormY(double y) {
@@ -425,8 +427,8 @@ public class PlotResults extends JFrame implements ActionListener {
 		ItemListener classListener = new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent ie) {
-				inUse[ext.indexOfStr(	((JCheckBox) ie.getSource()).getText(),
-															dirNames)] = ((JCheckBox) ie.getSource()).isSelected();
+				inUse[ext.indexOfStr(((JCheckBox) ie.getSource()).getText(),
+														 dirNames)] = ((JCheckBox) ie.getSource()).isSelected();
 				updateGUI();
 			}
 		};
@@ -633,8 +635,8 @@ public class PlotResults extends JFrame implements ActionListener {
 
 		dirs = Files.listDirectories(dir, jar);
 		screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		prog = new ProgressBarDialog(	"Loading results...", 0, dirs.length * 23, screenSize.width,
-																	screenSize.height, 0);
+		prog = new ProgressBarDialog("Loading results...", 0, dirs.length * 23, screenSize.width,
+																 screenSize.height, 0);
 
 		if (dirs.length > DEFAULT_COLOR_SCHEME.length) {
 			System.err.println("Error - there are currently more data sources than there are colors defined!");
@@ -658,7 +660,7 @@ public class PlotResults extends JFrame implements ActionListener {
 			}
 			if (resultType == -1) {
 				System.err.println("Error - could not determine which program generated the results in "
-														+ dirs[i] + "/");
+													 + dirs[i] + "/");
 			} else {
 				System.out.println("Parsing " + RESULT_TYPES[resultType] + " data from " + dirs[i] + "/");
 				dataIV = new IntVector();
@@ -683,15 +685,15 @@ public class PlotResults extends JFrame implements ActionListener {
 						}
 						while (reader.ready()) {
 							line = reader.readLine().trim().split(filename.endsWith(".tbl") ? "\t" : "[\\s]+");
-							result.add(new double[] {	Double.parseDouble(line[RESULT_TYPE_LOD_INDICES[resultType][0]]),
-																				Double.parseDouble(line[RESULT_TYPE_LOD_INDICES[resultType][1]])});
+							result.add(new double[] {Double.parseDouble(line[RESULT_TYPE_LOD_INDICES[resultType][0]]),
+																			 Double.parseDouble(line[RESULT_TYPE_LOD_INDICES[resultType][1]])});
 							if (!line[RESULT_TYPE_LOD_INDICES[resultType][2]].equals("-")
 									&& !line[RESULT_TYPE_LOD_INDICES[resultType][2]].equals(line[RESULT_TYPE_LOD_INDICES[resultType][0]])) {
-								HashVec.addToHashVec(	hash, chr + "",
-																			line[RESULT_TYPE_LOD_INDICES[resultType][2]]	+ "\t"
-																											+ line[RESULT_TYPE_LOD_INDICES[resultType][0]]
-																											+ "\t" + "1",
-																			true);
+								HashVec.addToHashVec(hash, chr + "",
+																		 line[RESULT_TYPE_LOD_INDICES[resultType][2]] + "\t"
+																										 + line[RESULT_TYPE_LOD_INDICES[resultType][0]]
+																										 + "\t" + "1",
+																		 true);
 							}
 						}
 						reader.close();
@@ -714,8 +716,8 @@ public class PlotResults extends JFrame implements ActionListener {
 														RESULT_TYPE_HEADERS[resultType][1], true);
 						while (reader.ready()) {
 							line = reader.readLine().trim().split(filename.endsWith(".tbl") ? "\t" : "[\\s]+");
-							infoPair = new double[] {	Double.parseDouble(line[RESULT_TYPE_INFO_INDICES[resultType][0]]),
-																				Double.parseDouble(line[RESULT_TYPE_INFO_INDICES[resultType][1]])};
+							infoPair = new double[] {Double.parseDouble(line[RESULT_TYPE_INFO_INDICES[resultType][0]]),
+																			 Double.parseDouble(line[RESULT_TYPE_INFO_INDICES[resultType][1]])};
 							if (infoPair[1] > 1) {
 								infoPair[1] /= 100;
 							}
@@ -734,11 +736,11 @@ public class PlotResults extends JFrame implements ActionListener {
 				}
 				if (dataIV.size() > 0) {
 					System.out.println("  Missing results for chromosomes: "
-															+ ArrayUtils.toStr(dataIV.toArray(), ", "));
+														 + ArrayUtils.toStr(dataIV.toArray(), ", "));
 				}
 				if (infoIV.size() > 0) {
 					System.out.println("  Missing info for chromosomes: "
-															+ ArrayUtils.toStr(infoIV.toArray(), ", "));
+														 + ArrayUtils.toStr(infoIV.toArray(), ", "));
 				}
 
 				if (Files.exists(dir + dirs[i] + "/markerPositions.dat", jar)) {
@@ -752,8 +754,8 @@ public class PlotResults extends JFrame implements ActionListener {
 						}
 						reader.close();
 					} catch (FileNotFoundException fnfe) {
-						System.err.println("Error: file \""	+ dirs[i] + "/markerPositions.dat"
-																+ "\" not found in current directory");
+						System.err.println("Error: file \"" + dirs[i] + "/markerPositions.dat"
+															 + "\" not found in current directory");
 						System.exit(1);
 					} catch (IOException ioe) {
 						System.err.println("Error reading file \"" + dirs[i] + "/markerPositions.dat" + "\"");
@@ -766,8 +768,8 @@ public class PlotResults extends JFrame implements ActionListener {
 							markerNames = map.getMarkerNames();
 							dists = map.getCumulativePositions(false);
 							for (int j = 0; j < markerNames.length; j++) {
-								HashVec.addToHashVec(	hash, chr + "", markerNames[j] + "\t" + dists[j] + "\t" + "1",
-																			true);
+								HashVec.addToHashVec(hash, chr + "", markerNames[j] + "\t" + dists[j] + "\t" + "1",
+																		 true);
 							}
 						} else {
 							mapIV.add(chr);
@@ -788,7 +790,7 @@ public class PlotResults extends JFrame implements ActionListener {
 		prog.close();
 
 		if (Files.exists(dir + "title.txt", jar)) {
-			title = HashVec.loadFileToStringArray(dir	+ "title.txt", jar, false, new int[] {0}, true,
+			title = HashVec.loadFileToStringArray(dir + "title.txt", jar, false, new int[] {0}, true,
 																						false, "\t")[0];
 		} else {
 			title = null;
@@ -818,8 +820,8 @@ public class PlotResults extends JFrame implements ActionListener {
 		String jar_dir = "results/";
 		boolean jar = false;
 
-		String usage = "\\n"	+ "link.PlotResults requires 0-1 arguments\n"
-										+ "   (0) directory (i.e. dir=" + dir + " (default))\n" + "";
+		String usage = "\\n" + "link.PlotResults requires 0-1 arguments\n"
+									 + "   (0) directory (i.e. dir=" + dir + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

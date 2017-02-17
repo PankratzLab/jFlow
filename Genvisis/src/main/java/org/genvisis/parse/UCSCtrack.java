@@ -160,8 +160,8 @@ public class UCSCtrack {
 					}
 					prevStart = -1;
 					while (reader.ready()) {
-						line = reader	.readLine().trim()
-													.split(commaDelimited ? "," : (tabDelimited ? "\t" : "[\\s]+"));
+						line = reader.readLine().trim()
+												 .split(commaDelimited ? "," : (tabDelimited ? "\t" : "[\\s]+"));
 						passedFilter = true;
 						for (int i = 0; i < filterOps.length && passedFilter; i++) {
 							if (filterOps[i].equals("=")) {
@@ -173,8 +173,8 @@ public class UCSCtrack {
 									passedFilter = false;
 								}
 							} else if (ext.isMissingValue(line[filterCols[i]])
-													|| !Maths.op(	Double.parseDouble(line[filterCols[i]]),
-																				Double.parseDouble(filterValues[i]), filterOps[i])) {
+												 || !Maths.op(Double.parseDouble(line[filterCols[i]]),
+																			Double.parseDouble(filterValues[i]), filterOps[i])) {
 								passedFilter = false;
 							}
 						}
@@ -182,7 +182,7 @@ public class UCSCtrack {
 							if (valueIndex == -1) {
 								value = 1;
 							} else if (line[valueIndex].equals(".")
-													|| line[valueIndex].toUpperCase().startsWith("NA")) {
+												 || line[valueIndex].toUpperCase().startsWith("NA")) {
 								value = -1;
 							} else {
 								value = Double.parseDouble(line[valueIndex]);
@@ -191,8 +191,8 @@ public class UCSCtrack {
 								}
 							}
 							if (separateMap) {
-								hash.put(	ignoreCase ? line[markerIndex].toLowerCase() : line[markerIndex],
-													Double.valueOf(value));
+								hash.put(ignoreCase ? line[markerIndex].toLowerCase() : line[markerIndex],
+												 Double.valueOf(value));
 							} else {
 								start = Integer.parseInt(line[startIndex]);
 								stop = Integer.parseInt(line[stopIndex]);
@@ -206,21 +206,21 @@ public class UCSCtrack {
 								if (line[chrIndex].equals("0")) {
 									unplaced++;
 								} else if (line[chrIndex].equals("25")) {
-									writer.println("chrX\t"	+ start + "\t" + stop + "\t"
-																	+ (displayMarkerName ? "\t" + line[markerIndex] : "") + "\t"
-																	+ ext.formDeci(-2, SIG_FIGS));
-									writer.println("chrY\t"	+ start + "\t" + stop + "\t"
-																	+ (displayMarkerName ? "\t" + line[markerIndex] : "") + "\t"
-																	+ ext.formDeci(-2, SIG_FIGS));
+									writer.println("chrX\t" + start + "\t" + stop + "\t"
+																 + (displayMarkerName ? "\t" + line[markerIndex] : "") + "\t"
+																 + ext.formDeci(-2, SIG_FIGS));
+									writer.println("chrY\t" + start + "\t" + stop + "\t"
+																 + (displayMarkerName ? "\t" + line[markerIndex] : "") + "\t"
+																 + ext.formDeci(-2, SIG_FIGS));
 									par++;
 								} else if (line[chrIndex].equals("26")) {
 									mitochondrial++;
 								} else {
 									writer.println("chr"
-																		+ Positions.chromosomeNumberInverse(Integer.parseInt(line[chrIndex]))
-																	+ "\t" + start + "\t" + stop
-																	+ (displayMarkerName ? "\t" + line[markerIndex] : "") + "\t"
-																	+ ext.formDeci(value, SIG_FIGS));
+																 + Positions.chromosomeNumberInverse(Integer.parseInt(line[chrIndex]))
+																 + "\t" + start + "\t" + stop
+																 + (displayMarkerName ? "\t" + line[markerIndex] : "") + "\t"
+																 + ext.formDeci(value, SIG_FIGS));
 								}
 								prevStart = start;
 							}
@@ -246,8 +246,8 @@ public class UCSCtrack {
 						}
 						prevStart = -1;
 						while (reader.ready()) {
-							line = reader	.readLine().trim()
-														.split(mapCommaDelimited ? "," : (mapTabDelimited ? "\t" : "[\\s]+"));
+							line = reader.readLine().trim()
+													 .split(mapCommaDelimited ? "," : (mapTabDelimited ? "\t" : "[\\s]+"));
 							start = Integer.parseInt(line[startIndex]);
 							stop = Integer.parseInt(line[stopIndex]);
 							if (start == stop) {
@@ -257,49 +257,49 @@ public class UCSCtrack {
 								start++;
 								stop++;
 							}
-							if (hash.containsKey(ignoreCase	? line[mapMarkerIndex].toLowerCase()
+							if (hash.containsKey(ignoreCase ? line[mapMarkerIndex].toLowerCase()
 																							: line[mapMarkerIndex])) {
-								value = hash.get(ignoreCase	? line[mapMarkerIndex].toLowerCase()
+								value = hash.get(ignoreCase ? line[mapMarkerIndex].toLowerCase()
 																						: line[mapMarkerIndex])
 														.doubleValue();
 								if (line[chrIndex].equals("0")) {
 									unplaced++;
 								} else if (line[chrIndex].equals("25")) {
-									writer.println("chrX\t"	+ start + "\t" + stop + "\t"
-																	+ (displayMarkerName ? "\t" + line[mapMarkerIndex] : "") + "\t"
-																	+ ext.formDeci(-2, SIG_FIGS));
-									writer.println("chrY\t"	+ start + "\t" + stop + "\t"
-																	+ (displayMarkerName ? "\t" + line[mapMarkerIndex] : "") + "\t"
-																	+ ext.formDeci(-2, SIG_FIGS));
+									writer.println("chrX\t" + start + "\t" + stop + "\t"
+																 + (displayMarkerName ? "\t" + line[mapMarkerIndex] : "") + "\t"
+																 + ext.formDeci(-2, SIG_FIGS));
+									writer.println("chrY\t" + start + "\t" + stop + "\t"
+																 + (displayMarkerName ? "\t" + line[mapMarkerIndex] : "") + "\t"
+																 + ext.formDeci(-2, SIG_FIGS));
 									par++;
 								} else if (line[chrIndex].equals("26")) {
 									mitochondrial++;
 								} else {
 									writer.println("chr"
-																		+ Positions.chromosomeNumberInverse(Integer.parseInt(line[chrIndex]))
-																	+ "\t" + start + "\t" + stop
-																	+ (displayMarkerName ? "\t" + line[mapMarkerIndex] : "") + "\t"
-																	+ ext.formDeci(value, SIG_FIGS));
+																 + Positions.chromosomeNumberInverse(Integer.parseInt(line[chrIndex]))
+																 + "\t" + start + "\t" + stop
+																 + (displayMarkerName ? "\t" + line[mapMarkerIndex] : "") + "\t"
+																 + ext.formDeci(value, SIG_FIGS));
 								}
 							} else if (!ignoreWhenAbsentInResultsFile) {
 								if (line[chrIndex].equals("0")) {
 									unplaced++;
 								} else if (line[chrIndex].equals("25")) {
-									writer.println("chrX\t"	+ start + "\t" + stop + "\t"
-																	+ (displayMarkerName ? "\t" + line[mapMarkerIndex] : "") + "\t"
-																	+ ext.formDeci(-2, SIG_FIGS));
-									writer.println("chrY\t"	+ start + "\t" + stop + "\t"
-																	+ (displayMarkerName ? "\t" + line[mapMarkerIndex] : "") + "\t"
-																	+ ext.formDeci(-2, SIG_FIGS));
+									writer.println("chrX\t" + start + "\t" + stop + "\t"
+																 + (displayMarkerName ? "\t" + line[mapMarkerIndex] : "") + "\t"
+																 + ext.formDeci(-2, SIG_FIGS));
+									writer.println("chrY\t" + start + "\t" + stop + "\t"
+																 + (displayMarkerName ? "\t" + line[mapMarkerIndex] : "") + "\t"
+																 + ext.formDeci(-2, SIG_FIGS));
 									par++;
 								} else if (line[chrIndex].equals("26")) {
 									mitochondrial++;
 								} else {
 									writer.println("chr"
-																		+ Positions.chromosomeNumberInverse(Integer.parseInt(line[chrIndex]))
-																	+ "\t" + start + "\t" + stop + "\t"
-																	+ (displayMarkerName ? "\t" + line[mapMarkerIndex] : "") + "\t"
-																	+ ext.formDeci(-2, SIG_FIGS));
+																 + Positions.chromosomeNumberInverse(Integer.parseInt(line[chrIndex]))
+																 + "\t" + start + "\t" + stop + "\t"
+																 + (displayMarkerName ? "\t" + line[mapMarkerIndex] : "") + "\t"
+																 + ext.formDeci(-2, SIG_FIGS));
 								}
 							}
 							prevStart = start;
@@ -323,15 +323,15 @@ public class UCSCtrack {
 			}
 
 			if (unplaced > 0) {
-				log.reportError("Warning - there were "	+ unplaced
+				log.reportError("Warning - there were " + unplaced
 												+ " marker(s) on chromosome zero that were not exported to " + outfile);
 			}
 			if (mitochondrial > 0) {
-				log.reportError("Warning - there were "	+ mitochondrial
+				log.reportError("Warning - there were " + mitochondrial
 												+ " marker(s) from the mitochondria that were not exported to " + outfile);
 			}
 			if (par > 0) {
-				log.reportError("Warning - there were "	+ par
+				log.reportError("Warning - there were " + par
 												+ " marker(s) in pseudo-autosomal regions that were duplicated, one for the X and one for the Y inside "
 												+ outfile);
 			}

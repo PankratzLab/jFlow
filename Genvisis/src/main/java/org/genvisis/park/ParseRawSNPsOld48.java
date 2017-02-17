@@ -34,7 +34,7 @@ public class ParseRawSNPsOld48 {
 				line = reader.readLine().split("\t", -1);
 				if (count == 1) {
 					header = line;
-					if (header[0].indexOf("SNPlex") == -1	|| header[1].indexOf("DNA") == -1
+					if (header[0].indexOf("SNPlex") == -1 || header[1].indexOf("DNA") == -1
 							|| header[2].indexOf("Family") == -1) {
 						System.err.println("Warning - first three headers are different than last time; might want to reconfigure");
 					}
@@ -103,8 +103,8 @@ public class ParseRawSNPsOld48 {
 			if (hash.containsKey(snps[i].getName())) {
 				snpPositions[i] = Integer.parseInt(hash.get(snps[i].getName()));
 			} else {
-				System.err.println("Error - marker '"	+ snps[i].getName() + "' was not listed in "
-														+ SNP_POSITIONS);
+				System.err.println("Error - marker '" + snps[i].getName() + "' was not listed in "
+													 + SNP_POSITIONS);
 				System.exit(1);
 			}
 		}
@@ -168,8 +168,8 @@ public class ParseRawSNPsOld48 {
 		// String filename = "newSNPs.dat";
 		String filename = "nextRound.dat";
 
-		String usage = "\n"	+ "park.parseRawSNPs requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
+		String usage = "\n" + "park.parseRawSNPs requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -235,8 +235,8 @@ class SNP {
 		} else if (allele.equals(values[2])) {
 			return counts[1] > counts[2] ? "1" : "2";
 		} else {
-			System.err.println("Error - allele '"	+ allele + "' is neither " + values[1] + " nor "
-													+ values[2] + " for marker " + name);
+			System.err.println("Error - allele '" + allele + "' is neither " + values[1] + " nor "
+												 + values[2] + " for marker " + name);
 			return "0";
 		}
 	}
@@ -252,14 +252,14 @@ class SNP {
 		minor = counts[1] < counts[2] ? 1 : 2;
 		major = counts[1] < counts[2] ? 2 : 1;
 
-		return name	+ "\t" + values[minor] + "\t"
-						+ ext.formDeci(ext.divide(counts[minor], counts[minor] + counts[major]), 4, true) + "\t"
-						+ values[major] + "\t"
-						+ ext.formDeci(ext.divide(counts[major], counts[minor] + counts[major]), 4, true) + "\t"
-						+ "Failed\t" + counts[0] + "\t" + ext.formDeci(
-																														ext.divide(	counts[0],
-																																				counts[0]		+ counts[1]
-																																										+ counts[2]),
-																														4, true);
+		return name + "\t" + values[minor] + "\t"
+					 + ext.formDeci(ext.divide(counts[minor], counts[minor] + counts[major]), 4, true) + "\t"
+					 + values[major] + "\t"
+					 + ext.formDeci(ext.divide(counts[major], counts[minor] + counts[major]), 4, true) + "\t"
+					 + "Failed\t" + counts[0] + "\t" + ext.formDeci(
+																													ext.divide(counts[0],
+																																		 counts[0] + counts[1]
+																																								+ counts[2]),
+																													4, true);
 	}
 }

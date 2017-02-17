@@ -39,22 +39,21 @@ public class OMIM {
 			return gHashtable.get(gene);
 		} else {
 			ArrayList<OMIMGene> blank = new ArrayList<OMIM.OMIMGene>();
-			blank.add(new OMIMGene(	new String[] {"NA"}, new String[] {"NA"}, "NA", "NA", "NA", "NA", "NA",
-															"NA", "NA", "NA"));
+			blank.add(new OMIMGene(new String[] {"NA"}, new String[] {"NA"}, "NA", "NA", "NA", "NA", "NA",
+														 "NA", "NA", "NA"));
 			return blank;
 		}
 	}
 
 	private static Hashtable<String, ArrayList<OMIMGene>> loadGeneOmimMap(String filename,
 																																				Logger log) {
-		Hashtable<String, ArrayList<OMIMGene>> gHashtable =
-																											new Hashtable<String, ArrayList<OMIMGene>>();
+		Hashtable<String, ArrayList<OMIMGene>> gHashtable = new Hashtable<String, ArrayList<OMIMGene>>();
 		Hashtable<String, String> status = new Hashtable<String, String>();
 		status.put("C", "confirmed - observed in at least two laboratories or in several families");
 		status.put("P", "based on evidence from one laboratory or one family");
 		status.put("I", "inconsistent - results of different laboratories disagree");
-		status.put(	"L",
-								"limbo - evidence not as strong as that provisional, but included for heuristic reasons");
+		status.put("L",
+							 "limbo - evidence not as strong as that provisional, but included for heuristic reasons");
 
 		try {
 			BufferedReader reader = Files.getAppropriateReader(filename);

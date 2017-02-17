@@ -99,16 +99,16 @@ public class Adapter {
 	/**
 	 * blast a sequence (typically soft clipped) against a blast database of adapter content
 	 */
-	public static String[] blast(	int blastWordSize, ArrayList<Adapter> adapters, String[] sequences,
-																String outputDir, String root, int numThreads, Logger log) {
+	public static String[] blast(int blastWordSize, ArrayList<Adapter> adapters, String[] sequences,
+															 String outputDir, String root, int numThreads, Logger log) {
 		new File(outputDir).mkdirs();
 		String db = outputDir + "adapter.db.fa";
 		String containsFile = db + ".adapterContent";
 		String[] names = getAllNames(adapters);
 
-		if (!Files.exists(containsFile)	|| !Files.exists(db)
-				|| !ext.containsAll(names, HashVec.loadFileToStringArray(	containsFile, false, new int[] {0},
-																																	true))) {
+		if (!Files.exists(containsFile) || !Files.exists(db)
+				|| !ext.containsAll(names, HashVec.loadFileToStringArray(containsFile, false, new int[] {0},
+																																 true))) {
 			String contains = "";
 			String adapterFasta = "";
 			for (Adapter adapter : adapters) {
@@ -145,9 +145,9 @@ public class Adapter {
 				tmps[i] = tmp;
 			}
 		}
-		WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<Blast.BlastResultsSummary[]>(	numThreads,
-																																																10,
-																																																log);
+		WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<Blast.BlastResultsSummary[]>(numThreads,
+																																															 10,
+																																															 log);
 		hive.addCallables(workers.toArray(new BlastWorker[workers.size()]));
 		hive.setReportEvery(1);
 		hive.execute(true);

@@ -69,7 +69,7 @@ public class SourceFileHeaderData implements Serializable {
 
 	private SourceFileHeaderData() {}
 
-	public static SourceFileHeaderData parseHeader(String file, Logger log)	throws Elision,
+	public static SourceFileHeaderData parseHeader(String file, Logger log) throws Elision,
 																																					IOException {
 		BufferedReader reader = Files.getAppropriateReader(file);
 		String line = null;
@@ -83,7 +83,7 @@ public class SourceFileHeaderData implements Serializable {
 			if (",".equals(delim)) {
 				delim = "[\\s]*,[\\s]*"; // ext.indexFactors doesn't call trim()
 			}
-			if ("[Data]".equals(line)	|| line.startsWith("rs") || line.toUpperCase().startsWith("SNP")
+			if ("[Data]".equals(line) || line.startsWith("rs") || line.toUpperCase().startsWith("SNP")
 					|| ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true,
 															false, false)[0] != -1) {
 				break;
@@ -93,19 +93,19 @@ public class SourceFileHeaderData implements Serializable {
 			lineCnt++;
 		}
 		if (!"[Data]".equals(line)
-				&& !(line.startsWith("rs")	|| line.toUpperCase().startsWith("SNP")
-							|| ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false,
-																	true, false, false)[0] != -1)) {
+				&& !(line.startsWith("rs") || line.toUpperCase().startsWith("SNP")
+						 || ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false,
+																 true, false, false)[0] != -1)) {
 			log.reportError("Error - malformed or missing header.");
 			throw new Elision(file);
 		}
 		if ("[Data]".equals(line)) {
 			line = reader.readLine();
-			delim = file.contains(".csv")	? "[\\s]*,[\\s]*"
-																		: file.contains(".xln")	? "[\\s]*\t[\\s]*"
+			delim = file.contains(".csv") ? "[\\s]*,[\\s]*"
+																		: file.contains(".xln") ? "[\\s]*\t[\\s]*"
 																														: ext.determineDelimiter(line, true);
 			lineCnt++;
-			if (!(line.startsWith("rs")	|| line.toUpperCase().startsWith("SNP")
+			if (!(line.startsWith("rs") || line.toUpperCase().startsWith("SNP")
 						|| ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true,
 																false, false)[0] != -1)) {
 				log.reportError("Error - malformed or missing header.  Header must start with 'rs' or 'SNP' or contain one of the following: "
@@ -116,10 +116,10 @@ public class SourceFileHeaderData implements Serializable {
 		reader.close(); // done
 		reader = null; // release
 		String columnHeaders = line;
-		delim = file.contains(".csv")	? SOURCE_FILE_DELIMITERS.COMMA.getDelimiter()
-																	: file.contains(".xln")	? SOURCE_FILE_DELIMITERS.TAB.getDelimiter()
-																													: SOURCE_FILE_DELIMITERS.getDelimiter(ext.determineDelimiter(	columnHeaders,
-																																																												true))
+		delim = file.contains(".csv") ? SOURCE_FILE_DELIMITERS.COMMA.getDelimiter()
+																	: file.contains(".xln") ? SOURCE_FILE_DELIMITERS.TAB.getDelimiter()
+																													: SOURCE_FILE_DELIMITERS.getDelimiter(ext.determineDelimiter(columnHeaders,
+																																																											 true))
 																																									.getDelimiter();
 		// if (",".equals(delim)) {
 		// delim = "[\\s]*,[\\s]*";
@@ -137,10 +137,10 @@ public class SourceFileHeaderData implements Serializable {
 																									"confidenceScore"};
 	private static final String[] DATA_FIELDS_XRAW = {"X Raw"};
 	private static final String[] DATA_FIELDS_YRAW = {"Y Raw"};
-	private static final String[] DATA_FIELDS_X = {	"X", "Xvalue", "Log Ratio", "intensity_1",
-																									"Signal A"};
-	private static final String[] DATA_FIELDS_Y = {	"Y", "Yvalue", "Strength", "intensity_2",
-																									"Signal B"};
+	private static final String[] DATA_FIELDS_X = {"X", "Xvalue", "Log Ratio", "intensity_1",
+																								 "Signal A"};
+	private static final String[] DATA_FIELDS_Y = {"Y", "Yvalue", "Strength", "intensity_2",
+																								 "Signal B"};
 	private static final String[] DATA_FIELDS_THETA = {"Theta"};
 	private static final String[] DATA_FIELDS_R = {"R"};
 	private static final String[] DATA_FIELDS_BAF = {"B Allele Freq", "BAF"};
@@ -248,13 +248,13 @@ public class SourceFileHeaderData implements Serializable {
 		}
 	}
 
-	public static HashMap<String, SourceFileHeaderData> validate(	final String rawDir,
-																																final String ext,
-																																boolean fullValidation, Logger log,
-																																JProgressBar progressBar) {
+	public static HashMap<String, SourceFileHeaderData> validate(final String rawDir,
+																															 final String ext,
+																															 boolean fullValidation, Logger log,
+																															 JProgressBar progressBar) {
 		String dir = rawDir.endsWith("/")
-									|| rawDir.endsWith("\\")	? rawDir
-																						: org.genvisis.common.ext.verifyDirFormat(rawDir);
+								 || rawDir.endsWith("\\") ? rawDir
+																					: org.genvisis.common.ext.verifyDirFormat(rawDir);
 		String[] possibleFiles = (new File(dir)).list(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
@@ -346,8 +346,8 @@ public class SourceFileHeaderData implements Serializable {
 			if (headerData.numFiles == -1) {
 				headerData.numFiles = cnt;
 			} else if (headerData.numFiles != cnt) {
-				return "Number of Files listed in Source File {"	+ entry.getKey()
-								+ "} does not equal the number of headers needing validation.  Please check source directory and extension and try again.";
+				return "Number of Files listed in Source File {" + entry.getKey()
+							 + "} does not equal the number of headers needing validation.  Please check source directory and extension and try again.";
 			}
 			ArrayList<String> files = totSnpsSet.get(headerData.totalSnps);
 			if (files == null) {
@@ -454,7 +454,7 @@ public class SourceFileHeaderData implements Serializable {
 		}
 		int numErrors = 0;
 		ArrayList<String> errorMsgs = new ArrayList<String>();
-		
+
 		String error;
 		error = checkErrors(totSnpsSet, "Total SNPs");
 		if (!"".equals(error)) {
@@ -541,40 +541,40 @@ public class SourceFileHeaderData implements Serializable {
 			numErrors++;
 			errorMsgs.add(error);
 		}
-		
+
 		if (numErrors > 0 || !errorMsgs.isEmpty()) {
 			if (!errorMsgs.isEmpty()) {
 				for (String s : errorMsgs) {
 					log.reportError(s);
 				}
 			}
-			return "Found "	+ numErrors + " data or column index mismatches among source files.  Please check log for more details";
+			return "Found " + numErrors
+						 + " data or column index mismatches among source files.  Please check log for more details";
 		}
-		
+
 		return null;
 	}
 
-	private static String checkErrors(HashMap<Integer, ArrayList<String>> valueMapping, String string) {
+	private static String checkErrors(HashMap<Integer, ArrayList<String>> valueMapping,
+																		String string) {
 		if (valueMapping.size() == 1) {
 			return "";
 		}
-		StringBuilder sb = new StringBuilder("Mismatch in ")
-														.append(string)
-														.append(" between ")
-														.append(valueMapping.size())
-														.append(" sets of values: {");
-		
+		StringBuilder sb = new StringBuilder("Mismatch in ").append(string).append(" between ")
+																												.append(valueMapping.size())
+																												.append(" sets of values: {");
+
 		ArrayList<Integer> values = new ArrayList<Integer>(valueMapping.keySet());
 		Collections.sort(values);
 		Collections.reverse(values);
-		
+
 		for (int i = 0, cnt = values.size(), cnt1 = cnt - 1; i < cnt; i++) {
 			sb.append(values.get(i));
 			if (i < cnt1) {
 				sb.append(", ");
 			}
 		}
-		
+
 		sb.append("} with {");
 		for (int i = 0, cnt = values.size(), cnt1 = cnt - 1; i < cnt; i++) {
 			sb.append(valueMapping.get(values.get(i)).size());
@@ -603,9 +603,9 @@ public class SourceFileHeaderData implements Serializable {
 		String ext = ".csv.gz";
 		String log = null;
 
-		String usage = "\n"	+ "cnv.filesys.FinalReportHeaderData requires 2 argument\n"
-										+ "   (1) Directory of FinalReport files (i.e. dir=" + dir + " (default))\n"
-										+ "   (2) Extension of FinalReport files (i.e. ext=" + ext + " (default))\n";
+		String usage = "\n" + "cnv.filesys.FinalReportHeaderData requires 2 argument\n"
+									 + "   (1) Directory of FinalReport files (i.e. dir=" + dir + " (default))\n"
+									 + "   (2) Extension of FinalReport files (i.e. ext=" + ext + " (default))\n";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

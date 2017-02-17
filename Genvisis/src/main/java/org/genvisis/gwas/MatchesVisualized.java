@@ -29,8 +29,8 @@ public class MatchesVisualized {
 	private final int x = 0;
 	private final int y = 1;
 
-	public MatchesVisualized(	String dir, String anchorList, String barnacleList, String factorfile,
-														int[] factorIndices, String pairings) {
+	public MatchesVisualized(String dir, String anchorList, String barnacleList, String factorfile,
+													 int[] factorIndices, String pairings) {
 		String[] line;
 		Hashtable<String, String> hash;
 		Vector<String> v;
@@ -57,8 +57,8 @@ public class MatchesVisualized {
 
 		v = HashVec.loadFileToVec(dir + pairings, true, false, false);
 		if (v.size() != anchors.length) {
-			System.err.println("Error - number of pairings ("	+ v.size()
-													+ ") doesn't match number of anchors loaded (" + anchors.length + ")");
+			System.err.println("Error - number of pairings (" + v.size()
+												 + ") doesn't match number of anchors loaded (" + anchors.length + ")");
 			System.exit(1);
 		}
 
@@ -84,46 +84,45 @@ public class MatchesVisualized {
 				double stdev = ArrayUtils.stdev(dists);
 
 				for (int i = 0; i < pairs.length; i++) {
-					Grafik.drawThickLine(	g,
-																(int) (data[pairs[i][0]][x] * (getWidth() - 2 * WIDTH_BUFFER))
-																		+ WIDTH_BUFFER,
-																getHeight()					- (int) (data[pairs[i][0]][y]
-																															* (getHeight() - 2 * HEIGHT_BUFFER))
-																										- HEIGHT_BUFFER,
-																(int) (data[anchors.length + pairs[i][1]][x]
-																				* (getWidth() - 2 * WIDTH_BUFFER)) + WIDTH_BUFFER,
-																getHeight()																									- (int) (data[anchors.length
-																																																					+ pairs[i][1]][y]
-																																																			* (getHeight()
-																																																					- 2
-																																																						* HEIGHT_BUFFER))
-																																														- HEIGHT_BUFFER,
-																4, dists[i] < mean + 3 * stdev ? Color.BLUE : Color.ORANGE);
+					Grafik.drawThickLine(g,
+															 (int) (data[pairs[i][0]][x] * (getWidth() - 2 * WIDTH_BUFFER))
+																	+ WIDTH_BUFFER,
+															 getHeight() - (int) (data[pairs[i][0]][y]
+																										* (getHeight() - 2 * HEIGHT_BUFFER))
+																									- HEIGHT_BUFFER,
+															 (int) (data[anchors.length + pairs[i][1]][x]
+																			* (getWidth() - 2 * WIDTH_BUFFER)) + WIDTH_BUFFER,
+															 getHeight() - (int) (data[anchors.length + pairs[i][1]][y]
+																										* (getHeight() - 2 * HEIGHT_BUFFER))
+																																												 - HEIGHT_BUFFER,
+															 4, dists[i] < mean + 3 * stdev ? Color.BLUE : Color.ORANGE);
 				}
 
 				g.setColor(Color.RED);
 				for (int i = 0; i < anchors.length; i++) {
-					g.fillOval((int) (data[i][x] * (getWidth() - 2 * WIDTH_BUFFER))	+ WIDTH_BUFFER - SIZE / 2,
-											getHeight()									- (int) (data[i][y]
-																														* (getHeight() - 2 * HEIGHT_BUFFER))
-																									- HEIGHT_BUFFER - SIZE / 2,
-											SIZE, SIZE);
+					g.fillOval((int) (data[i][x] * (getWidth() - 2 * WIDTH_BUFFER)) + WIDTH_BUFFER - SIZE / 2,
+										 getHeight() - (int) (data[i][y] * (getHeight() - 2 * HEIGHT_BUFFER))
+																																																		 - HEIGHT_BUFFER
+																																																		 - SIZE
+																																																			 / 2,
+										 SIZE, SIZE);
 				}
 				g.setColor(Color.BLACK);
 				for (int i = anchors.length; i < data.length; i++) {
-					g.fillOval((int) (data[i][x] * (getWidth() - 2 * WIDTH_BUFFER))	+ WIDTH_BUFFER - SIZE / 2,
-											getHeight()									- (int) (data[i][y]
-																														* (getHeight() - 2 * HEIGHT_BUFFER))
-																									- HEIGHT_BUFFER - SIZE / 2,
-											SIZE, SIZE);
+					g.fillOval((int) (data[i][x] * (getWidth() - 2 * WIDTH_BUFFER)) + WIDTH_BUFFER - SIZE / 2,
+										 getHeight() - (int) (data[i][y] * (getHeight() - 2 * HEIGHT_BUFFER))
+																																																		 - HEIGHT_BUFFER
+																																																		 - SIZE
+																																																			 / 2,
+										 SIZE, SIZE);
 				}
 			}
 		};
 		frame.getContentPane().add(panel);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		System.out.println("Finished writing distances_"	+ ArrayUtils.toStr(factorIndices, ",") + " in "
-												+ ext.getTimeElapsed(time));
+		System.out.println("Finished writing distances_" + ArrayUtils.toStr(factorIndices, ",") + " in "
+											 + ext.getTimeElapsed(time));
 	}
 
 	public static void main(String[] args) {
@@ -144,13 +143,13 @@ public class MatchesVisualized {
 		// int[] factorIndices = new int[] {1,2,3,4,5,6,7,8,9,10};
 		int[] factorIndices = new int[] {1, 2};
 
-		String usage = "\\n"	+ "kaput.MatchesVisualized requires 0-1 arguments\n"
-										+ "   (0) directory (i.e. dir=" + dir + " (default))\n"
-										+ "   (1) anchors (i.e. anchors=" + anchors + " (default))\n"
-										+ "   (2) barnacles (i.e. barnacles=" + barnacles + " (default))\n"
-										+ "   (3) file with factors (i.e. factors=" + factors + " (default))\n"
-										+ "   (4) indices of factors in clusterfile (i.e. indices="
-										+ ArrayUtils.toStr(factorIndices, ",") + " (default))\n" + "";
+		String usage = "\\n" + "kaput.MatchesVisualized requires 0-1 arguments\n"
+									 + "   (0) directory (i.e. dir=" + dir + " (default))\n"
+									 + "   (1) anchors (i.e. anchors=" + anchors + " (default))\n"
+									 + "   (2) barnacles (i.e. barnacles=" + barnacles + " (default))\n"
+									 + "   (3) file with factors (i.e. factors=" + factors + " (default))\n"
+									 + "   (4) indices of factors in clusterfile (i.e. indices="
+									 + ArrayUtils.toStr(factorIndices, ",") + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

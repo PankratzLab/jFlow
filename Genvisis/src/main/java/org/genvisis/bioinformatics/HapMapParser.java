@@ -47,13 +47,13 @@ public class HapMapParser {
 																						Logger log) {
 		PrintWriter writer;
 
-		new SnpMarkerSet(dir + root + ".map", true, log).writeToFile(dir	+ root + ".info",
-																																	SnpMarkerSet.HAPLOVIEW_INFO_FORMAT,
-																																	log);
+		new SnpMarkerSet(dir + root + ".map", true, log).writeToFile(dir + root + ".info",
+																																 SnpMarkerSet.HAPLOVIEW_INFO_FORMAT,
+																																 log);
 		try {
 			writer = new PrintWriter(new FileWriter((new File(dir).exists() ? dir : "") + root + ".bat"));
-			writer.println("java -jar /home/npankrat/Haploview.jar -pedfile "	+ root + "."
-											+ (preNotPed ? "pre" : "ped") + " -info " + root + ".info");
+			writer.println("java -jar /home/npankrat/Haploview.jar -pedfile " + root + "."
+										 + (preNotPed ? "pre" : "ped") + " -info " + root + ".info");
 			writer.close();
 		} catch (Exception e) {
 			log.reportError("Error writing batch file");
@@ -77,8 +77,8 @@ public class HapMapParser {
 		try {
 			reader = Files.getReader(filename, dir);
 			temp = reader.readLine();
-			indices = ext.indexFactors(	TARGETS_WITH_ALTS, temp.trim().split("\\t", -1), false, false,
-																	true, log, true);
+			indices = ext.indexFactors(TARGETS_WITH_ALTS, temp.trim().split("\\t", -1), false, false,
+																 true, log, true);
 
 			writer = new PrintWriter(new FileWriter((new File(dir).exists() ? dir : "") + root + ".map"));
 			trans = null;
@@ -157,7 +157,7 @@ public class HapMapParser {
 					}
 				}
 				if (index == -2) {
-					log.reportError("Error - Could not find sample "	+ trav
+					log.reportError("Error - Could not find sample " + trav
 													+ " from the pedigree file in the genotype file");
 				}
 				for (int i = 0; i < v.size(); i++) {
@@ -184,7 +184,7 @@ public class HapMapParser {
 	public static void splitBedByChromosome(String root) {
 		for (int chr = 1; chr <= 23; chr++) {
 			System.out.print(".");
-			CmdLine.run("plink --noweb --bfile "	+ root + " --chr " + chr + " --make-bed --out " + root
+			CmdLine.run("plink --noweb --bfile " + root + " --chr " + chr + " --make-bed --out " + root
 									+ ".chr" + chr, "./");
 		}
 		System.out.println();
@@ -193,7 +193,7 @@ public class HapMapParser {
 	public static void splitPedByChromosome(String root) {
 		for (int chr = 1; chr <= 23; chr++) {
 			System.out.print(".");
-			CmdLine.run("plink --noweb --file "	+ root + " --chr " + chr + " --recode --out " + root
+			CmdLine.run("plink --noweb --file " + root + " --chr " + chr + " --recode --out " + root
 									+ ".chr" + chr, "./");
 		}
 		System.out.println();
@@ -216,15 +216,15 @@ public class HapMapParser {
 		String ped = "";
 		String fix = "";
 
-		String usage = "\n"	+ "bioinformatics.HapMapParser requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=MAPT.tsv (not the default)\n"
-										+ "   (2) famstruct (i.e. struct=" + famstruct + " (default)\n"
-										+ "   (3) split bed by chromosome (i.e. bed=plink (not the default)\n"
-										+ "   (4) split ped by chromosome (i.e. ped=plink (not the default)\n"
-										+ "   (5) fix affection status in fam files (i.e. fix=plink (not the default)\n"
-										+ "  OR:\n"
-										+ "   (1) generate Haploview batch file from PLINK files (i.e. map=plink.map (not the default)\n"
-										+ "";
+		String usage = "\n" + "bioinformatics.HapMapParser requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=MAPT.tsv (not the default)\n"
+									 + "   (2) famstruct (i.e. struct=" + famstruct + " (default)\n"
+									 + "   (3) split bed by chromosome (i.e. bed=plink (not the default)\n"
+									 + "   (4) split ped by chromosome (i.e. ped=plink (not the default)\n"
+									 + "   (5) fix affection status in fam files (i.e. fix=plink (not the default)\n"
+									 + "  OR:\n"
+									 + "   (1) generate Haploview batch file from PLINK files (i.e. map=plink.map (not the default)\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -266,9 +266,9 @@ public class HapMapParser {
 				filename = map;
 			}
 			if (!map.equals("")) {
-				generateHaploviewBatch(	"", ext.removeDirectoryInfo(map.substring(0, map.lastIndexOf("."))),
-																false,
-																new Logger(ext.rootOf(filename, false) + "_haploview_prep.log"));
+				generateHaploviewBatch("", ext.removeDirectoryInfo(map.substring(0, map.lastIndexOf("."))),
+															 false,
+															 new Logger(ext.rootOf(filename, false) + "_haploview_prep.log"));
 			} else if (!bed.equals("")) {
 				splitBedByChromosome(bed);
 			} else if (!ped.equals("")) {

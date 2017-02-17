@@ -54,7 +54,7 @@ public class PSF {
 		}
 
 		public static String[] buildJavaCPXMX(String fullPathTojarFile, String cp, int memoryInMb) {
-			return new String[]{JAVA, XMX + memoryInMb + "m", CP, cp, JAR, fullPathTojarFile};
+			return new String[] {JAVA, XMX + memoryInMb + "m", CP, cp, JAR, fullPathTojarFile};
 		}
 	}
 
@@ -70,8 +70,8 @@ public class PSF {
 		public static final String MODULE_LOAD_PERL = "module load perl";
 
 		public static String[] getAllModules() {
-			return new String[] {	MODULE_LOAD_JAVA, MODULE_LOAD_PERL, MODULE_LOAD_R, MODULE_LOAD_RISS_UTIL,
-														MODULE_LOAD_SAMTOOLS};
+			return new String[] {MODULE_LOAD_JAVA, MODULE_LOAD_PERL, MODULE_LOAD_R, MODULE_LOAD_RISS_UTIL,
+													 MODULE_LOAD_SAMTOOLS};
 		}
 
 	}
@@ -101,8 +101,8 @@ public class PSF {
 			return ECHO + "\"" + toEcho + "\"";
 		}
 
-		public static final String getSedCommand(	String fullPathToInput, String fullPathToOutput,
-																							String reg1, String reg2) {
+		public static final String getSedCommand(String fullPathToInput, String fullPathToOutput,
+																						 String reg1, String reg2) {
 			String sed = "";
 			// sed 's/1000g2014oct_all/g10002014oct_all/g'
 
@@ -132,24 +132,24 @@ public class PSF {
 		public static final String WALLTIME_HRS = "wallTimeInHour=";
 
 		public static String getNumThreadsCommand(int argNumber, int numThreads) {
-			return "   ("	+ argNumber + ")" + " number of threads to use (i.e. " + NUM_THREADS_COMMAND
-							+ numThreads + " (default))\n";
+			return "   (" + argNumber + ")" + " number of threads to use (i.e. " + NUM_THREADS_COMMAND
+						 + numThreads + " (default))\n";
 		}
 
 		public static String getWallTimeCommand(int argNumber, int wallTimeInHours) {
-			return "   ("	+ argNumber + ")" + " wall time in hours to use (i.e. " + WALLTIME_HRS
-							+ wallTimeInHours + " (default))\n";
+			return "   (" + argNumber + ")" + " wall time in hours to use (i.e. " + WALLTIME_HRS
+						 + wallTimeInHours + " (default))\n";
 		}
 
 		public static String getMemoryMbCommand(int argNumber, int memoryInMb) {
-			return "   ("	+ argNumber + ")" + " memory in mb to use (i.e. " + MEMORY_MB + memoryInMb
-							+ " (default))\n";
+			return "   (" + argNumber + ")" + " memory in mb to use (i.e. " + MEMORY_MB + memoryInMb
+						 + " (default))\n";
 		}
 
 		public static String getOutputDirCommand(int argNumber, String defaultDir) {
-			return "   ("	+ argNumber + ")" + " the output directory to use (i.e. " + OUTPUT_DIR_COMMAND
-							+ (defaultDir == null ? "" : defaultDir) + " (" + (defaultDir == null ? "no" : "")
-							+ "default))\n";
+			return "   (" + argNumber + ")" + " the output directory to use (i.e. " + OUTPUT_DIR_COMMAND
+						 + (defaultDir == null ? "" : defaultDir) + " (" + (defaultDir == null ? "no" : "")
+						 + "default))\n";
 
 		}
 
@@ -204,8 +204,8 @@ public class PSF {
 		 * @return
 		 */
 		public static String[] getPlinkVCFCommand(String inputVCF, String outputBase) {
-			return new String[] {	PLINK2, VCF, inputVCF, DOUBLE_ID, MAKE_BED, OUT, outputBase,
-														BIALLELIC_ONLY, STRICT, LIST, NO_WEB};
+			return new String[] {PLINK2, VCF, inputVCF, DOUBLE_ID, MAKE_BED, OUT, outputBase,
+													 BIALLELIC_ONLY, STRICT, LIST, NO_WEB};
 		}
 
 		/**

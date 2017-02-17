@@ -35,7 +35,7 @@ public class WorkerTrain<E> implements Iterator<E> {
 	public WorkerTrain(Producer<E> producer, int nThreads, int buffer, Logger log) {
 		this.numThreads = nThreads;
 		this.qBuffer = buffer <= 0 ? nThreads : Math.max(numThreads, buffer);// always utilize all
-																																					// threads given
+																																				 // threads given
 		this.executor = Executors.newFixedThreadPool(numThreads);
 		this.bq = new ArrayBlockingQueue<Future<E>>(qBuffer, true);
 		this.producer = producer;

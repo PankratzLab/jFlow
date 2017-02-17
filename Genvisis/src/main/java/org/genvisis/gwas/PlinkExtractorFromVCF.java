@@ -78,8 +78,8 @@ public class PlinkExtractorFromVCF {
 				}
 			}
 			if (results[i] == null) {
-				System.err.println("Error - unable to find 1000G data file for chromosome "	+ chrs[i]
-														+ ".  Please ensure that data files names include \".chr#.\".");
+				System.err.println("Error - unable to find 1000G data file for chromosome " + chrs[i]
+													 + ".  Please ensure that data files names include \".chr#.\".");
 			}
 		}
 
@@ -126,7 +126,7 @@ public class PlinkExtractorFromVCF {
 		String mergeRoot = roots.remove(0);
 		Files.writeIterable(roots, current + "temp/mergeList.txt");
 
-		String plinkMerge = "plink2 --noweb --bfile "	+ current + mergeRoot + " --merge-list " + current
+		String plinkMerge = "plink2 --noweb --bfile " + current + mergeRoot + " --merge-list " + current
 												+ "temp/mergeList.txt --make-bed --out " + current + "merged";
 		commands.add("");
 		commands.add(plinkMerge);
@@ -144,11 +144,11 @@ public class PlinkExtractorFromVCF {
 		String rgnFile = "regions.txt";
 		String idsFile = null;
 
-		String usage = "\n"	+ "gwas.PlinkExtractorFromVCF requires 0-1 arguments\n"
-										+ "   (1) Directory of 1000G VCF files (i.e. dir=" + dir + " (default))\n"
-										+ "   (2) UCSC regions filename (i.e. regions=" + rgnFile + " (default))\n"
-										+ "   (3) (Optional) IDs list filename (i.e. ids=" + idsFile + " (default))\n"
-										+ "" + "";
+		String usage = "\n" + "gwas.PlinkExtractorFromVCF requires 0-1 arguments\n"
+									 + "   (1) Directory of 1000G VCF files (i.e. dir=" + dir + " (default))\n"
+									 + "   (2) UCSC regions filename (i.e. regions=" + rgnFile + " (default))\n"
+									 + "   (3) (Optional) IDs list filename (i.e. ids=" + idsFile + " (default))\n"
+									 + "" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

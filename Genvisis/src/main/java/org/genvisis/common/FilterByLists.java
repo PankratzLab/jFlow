@@ -82,8 +82,8 @@ public class FilterByLists {
 				listCols = new int[] {0};
 			}
 			if (!new File(listFile).exists()) {
-				System.err.println("Since '"	+ filename
-														+ "' is not a filename, assuming this is the key to " + type);
+				System.err.println("Since '" + filename
+													 + "' is not a filename, assuming this is the key to " + type);
 				hash = new Hashtable<String, String>();
 				hash.put(filename, "1");
 			} else {
@@ -95,19 +95,19 @@ public class FilterByLists {
 		return hash;
 	}
 
-	public static void process(	String filename, String keeps, String deletes, int[] cols,
-															String outfile, boolean keepFirstLine, boolean reportMissingElements,
-															boolean commaDelimited, Logger log) {
+	public static void process(String filename, String keeps, String deletes, int[] cols,
+														 String outfile, boolean keepFirstLine, boolean reportMissingElements,
+														 boolean commaDelimited, Logger log) {
 		process(filename, cols, outfile, loadFileToHash(keeps, "keep"),
 						loadFileToHash(deletes, "delete"), keepFirstLine, true, reportMissingElements,
 						commaDelimited, log);
 	}
 
-	public static void process(	String filename, int[] cols, String outfile,
-															Hashtable<String, String> keepsHash,
-															Hashtable<String, String> deletesHash, boolean keepFirstLine,
-															boolean checkForOverlap, boolean reportMissingElements,
-															boolean commaDelimited, Logger log) {
+	public static void process(String filename, int[] cols, String outfile,
+														 Hashtable<String, String> keepsHash,
+														 Hashtable<String, String> deletesHash, boolean keepFirstLine,
+														 boolean checkForOverlap, boolean reportMissingElements,
+														 boolean commaDelimited, Logger log) {
 		BufferedReader reader = null;
 		PrintWriter writer = null;
 		String[] line;
@@ -220,15 +220,15 @@ public class FilterByLists {
 		int col = 0;
 		boolean commaDelimited = false;
 
-		String usage = "\n"	+ "common.FilterByLists requires 0-1 arguments\n"
-										+ "   (1) input filename (i.e. file=" + filename + " (default))\n"
-										+ "   (2) filename containing list of tokens to keep (i.e. keeps=keeps.txt (not the default; if token is not a filename, assuming it is the key to keep))\n"
-										+ "   (3) filename containing list of tokens to remove (i.e. deletes=deltetes.txt (not the default; if token is not a filename, assuming it is the key to delete))\n"
-										+ "   (4) index of the column of the token to match on (i.e. col=" + col
-										+ " (default))\n"
-										+ "   (5) output filename (i.e. out=output.out (not the default; default is to backup and replace the input file))\n"
-										+ "   (6) always keep first line (i.e. -keepFirst (not the default))\n"
-										+ "   (7) comma delimited file (i.e. -commaDelimited (not the default))\n" + "";
+		String usage = "\n" + "common.FilterByLists requires 0-1 arguments\n"
+									 + "   (1) input filename (i.e. file=" + filename + " (default))\n"
+									 + "   (2) filename containing list of tokens to keep (i.e. keeps=keeps.txt (not the default; if token is not a filename, assuming it is the key to keep))\n"
+									 + "   (3) filename containing list of tokens to remove (i.e. deletes=deltetes.txt (not the default; if token is not a filename, assuming it is the key to delete))\n"
+									 + "   (4) index of the column of the token to match on (i.e. col=" + col
+									 + " (default))\n"
+									 + "   (5) output filename (i.e. out=output.out (not the default; default is to backup and replace the input file))\n"
+									 + "   (6) always keep first line (i.e. -keepFirst (not the default))\n"
+									 + "   (7) comma delimited file (i.e. -commaDelimited (not the default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

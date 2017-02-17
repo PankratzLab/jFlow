@@ -71,7 +71,7 @@ public final class MarkerStats {
 		List<GcAdjustorParameters> params = getParams(proj, outHeader, gcModel);
 
 		Hashtable<String, Vector<String>> gcModelHash = HashVec.loadFileToHashVec(gcModel, true, "Name",
-		                                                                          "GC");
+																																							"GC");
 
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
 		writer.println(ArrayUtils.toStr(outHeader, DELIM));
@@ -89,7 +89,8 @@ public final class MarkerStats {
 				lrrs = ArrayUtils.removeNaN(lrrs);
 				float lrrSd = ArrayUtils.stdev(lrrs, true);
 				double lrrMad = ArrayUtils.mad(lrrs);
-				float[] baf15t85 = ArrayUtils.subArrayInRange(marker.getBAFs(), samplesToInclude, 0.15f, 0.85f);
+				float[] baf15t85 = ArrayUtils.subArrayInRange(marker.getBAFs(), samplesToInclude, 0.15f,
+																											0.85f);
 				baf15t85 = ArrayUtils.removeNaN(baf15t85);
 				float bafAvg = ArrayUtils.mean(baf15t85, true);
 				float baf50Dist = ArrayUtils.meanDist(baf15t85, 0.50f, true);
@@ -112,7 +113,8 @@ public final class MarkerStats {
 					double gcLrrMad = ArrayUtils.mad(gcLrrs);
 					line.add(String.valueOf(gcLrrSd));
 					line.add(String.valueOf(gcLrrMad));
-					// NB: looks like GC correction doesn't currently affect BAF calculation. Not clear why both come back?
+					// NB: looks like GC correction doesn't currently affect BAF calculation. Not clear why
+					// both come back?
 				}
 
 				writer.println(ArrayUtils.toStr(line, DELIM));
@@ -126,25 +128,29 @@ public final class MarkerStats {
 	}
 
 	private static List<GcAdjustorParameters> getParams(Project proj, List<String> header,
-	                                                    String gcModel) {
+																											String gcModel) {
 		List<GcAdjustorParameters> list = new ArrayList<GcAdjustorParameters>();
 		final Logger log = proj.getLog();
 		String[] gcParamsFile = proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue();
 
 		if (gcParamsFile == null || gcParamsFile.length == 0) {
 			log.reportTimeWarning("No GC-corrected parameter files found. Will attempt to create default for GC model file: "
-			                      + gcModel);
+														+ gcModel);
 			GCAdjustorBuilder builder = new GcAdjustor.GCAdjustorBuilder();
 			// TODO return value is a list of outputs which I guess we can deserialize?
 			// GCAdjustorBuilders
 			GcModel model = GcModel.populateFromFile(gcModel, false, log);
 			String cents = proj.CUSTOM_CENTROIDS_FILENAME.getValue();
 			String[] centParams = Files.exists(cents) ? new String[] {cents} : null;
-			gcParamsFile = GcAdjustorParameter.generateAdjustmentParameters(proj, new GCAdjustorBuilder[] {builder},
-			                                                 centParams,
-			                                                 new GC_CORRECTION_METHOD[] {GC_CORRECTION_METHOD.GENVISIS_GC},
-			                                                 model, new String[] {"GC_Correction" + File.separator},
-			                                                 proj.NUM_THREADS.getValue(), false)[0][0];
+			gcParamsFile = GcAdjustorParameter.generateAdjustmentParameters(proj,
+																																			new GCAdjustorBuilder[] {builder},
+																																			centParams,
+																																			new GC_CORRECTION_METHOD[] {GC_CORRECTION_METHOD.GENVISIS_GC},
+																																			model,
+																																			new String[] {"GC_Correction"
+																																										+ File.separator},
+																																			proj.NUM_THREADS.getValue(),
+																																			false)[0][0];
 		}
 		for (String gaf : gcParamsFile) {
 			String name = new File(gaf).getName();

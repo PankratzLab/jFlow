@@ -56,22 +56,22 @@ public class PlinkSeq implements Serializable {
 	private static final String I_STATS = "i-stats";
 
 	public enum ANALYSIS_TYPES {
-															/**
-															 * Single variant association test
-															 */
-															V_ASSOC,
-															/**
-															 * Burden analysis
-															 */
-															BURDEN,
-															/**
-															 * Summarize individuals in the project
-															 */
-															I_SUMMARY,
-															/**
-															 * Summarize variants in the project
-															 */
-															V_SUMMARY
+		/**
+		 * Single variant association test
+		 */
+		V_ASSOC,
+		/**
+		 * Burden analysis
+		 */
+		BURDEN,
+		/**
+		 * Summarize individuals in the project
+		 */
+		I_SUMMARY,
+		/**
+		 * Summarize variants in the project
+		 */
+		V_SUMMARY
 	}
 
 	/**
@@ -79,12 +79,12 @@ public class PlinkSeq implements Serializable {
 	 *
 	 */
 	public enum BURDEN_Tests {
-														BURDEN
+		BURDEN
 		// , UNIQ, VT, FW, CALPHA, SUMSTAT, FRQWGT
 	}
 
 	public enum LOAD_TYPES {
-													VCF, PHENO, LOC_DB
+		VCF, PHENO, LOC_DB
 	}
 
 	// public static enum BUILDS {
@@ -111,8 +111,8 @@ public class PlinkSeq implements Serializable {
 
 	private boolean loadVarSet(PseqProject pseqProject, String varSetFile) {
 		boolean progress = false;
-		String[] command = new String[] {	PSEQ, pseqProject.getProjectNameForPseq(), VAR_SET, FILE,
-																			varSetFile};
+		String[] command = new String[] {PSEQ, pseqProject.getProjectNameForPseq(), VAR_SET, FILE,
+																		 varSetFile};
 		progress = CmdLine.runCommandWithFileChecks(command, "", new String[] {varSetFile}, null, true,
 																								false, false, log);
 		return progress;
@@ -149,8 +149,8 @@ public class PlinkSeq implements Serializable {
 																									false);
 
 					if (init && loadReq && reqFiles != null && reqFiles.length > 0) {
-						log.reportTimeInfo("Found the following "	+ REQ_FILE
-																+ " files to load into the loc db: ");
+						log.reportTimeInfo("Found the following " + REQ_FILE
+															 + " files to load into the loc db: ");
 						log.reportTimeInfo(ArrayUtils.toStr(reqFiles));
 						for (String reqFile : reqFiles) {
 							if (init) {
@@ -170,11 +170,11 @@ public class PlinkSeq implements Serializable {
 		boolean init;
 		String currentProject = pseqProject.getProjectDirectory() + pseqProject.getProjectName();
 		String[] vcfs = getVCFCommands(pseqProject);
-		String[] command = new String[] {	PSEQ,
-																			pseqProject.getProjectDirectory()
-																						+ pseqProject.getProjectName(),
-																			NEW_PROJECT, pseqProject.getCommandFor(PROPERTIES.RESOURCES),
-																			pseqProject.getResourceDirectory()};
+		String[] command = new String[] {PSEQ,
+																		 pseqProject.getProjectDirectory()
+																					 + pseqProject.getProjectName(),
+																		 NEW_PROJECT, pseqProject.getCommandFor(PROPERTIES.RESOURCES),
+																		 pseqProject.getResourceDirectory()};
 		command = ArrayUtils.concatAll(command, vcfs);
 		String[] outputs = new String[] {currentProject + "." + PSEQ};
 		String[] inputs = pseqProject.getVcfs();
@@ -183,16 +183,16 @@ public class PlinkSeq implements Serializable {
 		return init;
 	}
 
-	public PlinkSeqWorker[] fullGamutAssoc(	PseqProject pseqProject, String[] locGroups,
-																					String[] varMasks, int numPerm, String mac,
-																					String outputRoot, int numThreads) {
+	public PlinkSeqWorker[] fullGamutAssoc(PseqProject pseqProject, String[] locGroups,
+																				 String[] varMasks, int numPerm, String mac,
+																				 String outputRoot, int numThreads) {
 		return fullGamutAssoc(pseqProject, locGroups, varMasks, numPerm, mac, outputRoot, true,
 													numThreads);
 	}
 
-	public PlinkSeqWorker[] fullGamutAssoc(	PseqProject pseqProject, String[] locGroups,
-																					String[] varMasks, int numPerm, String mac,
-																					String outputRoot, boolean execute, int numThreads) {
+	public PlinkSeqWorker[] fullGamutAssoc(PseqProject pseqProject, String[] locGroups,
+																				 String[] varMasks, int numPerm, String mac,
+																				 String outputRoot, boolean execute, int numThreads) {
 		ArrayList<PlinkSeqWorker> workers = new ArrayList<PlinkSeqWorker>();
 		PseqPhenoTypes[] pseqPhenoTypes = pseqProject.getPhenotypes();
 		if (pseqPhenoTypes != null) {
@@ -225,8 +225,8 @@ public class PlinkSeq implements Serializable {
 		workers.add(generateAWorker(pseqProject, ANALYSIS_TYPES.V_SUMMARY, null, null, null, null, 0,
 																"0", outputRoot, overwriteExisting, log));
 		if (execute) {
-			WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<PlinkSeq.PlinkSeqWorker>(	numThreads, 10,
-																																											log);
+			WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<PlinkSeq.PlinkSeqWorker>(numThreads, 10,
+																																										 log);
 			assocHive.addCallables(workers.toArray(new PlinkSeqWorker[workers.size()]));
 			assocHive.execute(true);
 			ArrayList<PlinkSeqWorker> complete = assocHive.getResults();
@@ -285,12 +285,12 @@ public class PlinkSeq implements Serializable {
 					}
 					inputs = new String[] {file};
 				}
-				CmdLine.runCommandWithFileChecks(	command, "", inputs, null, verbose, overideOverWrite,
-																					false, log);
+				CmdLine.runCommandWithFileChecks(command, "", inputs, null, verbose, overideOverWrite,
+																				 false, log);
 			} else {
 				loaded = false;
-				log.reportError("The project "	+ pseqProject.getProjectName() + " in directory "
-														+ pseqProject.getProjectDirectory() + " has not been loaded");
+				log.reportError("The project " + pseqProject.getProjectName() + " in directory "
+												+ pseqProject.getProjectDirectory() + " has not been loaded");
 			}
 		}
 		return loaded;
@@ -321,11 +321,11 @@ public class PlinkSeq implements Serializable {
 	 * @param log
 	 * @return
 	 */
-	public static PlinkSeqWorker generateAWorker(	PseqProject pseqProject, ANALYSIS_TYPES type,
-																								BURDEN_Tests[] bTests, String locGroups,
-																								String varMask, String phenotype, int numPerm,
-																								String maf, String outputRoot,
-																								boolean overwriteExisting, Logger log) {
+	public static PlinkSeqWorker generateAWorker(PseqProject pseqProject, ANALYSIS_TYPES type,
+																							 BURDEN_Tests[] bTests, String locGroups,
+																							 String varMask, String phenotype, int numPerm,
+																							 String maf, String outputRoot,
+																							 boolean overwriteExisting, Logger log) {
 		String outputDirectory = ext.parseDirectoryOfFile(pseqProject.getFilename()) + "assoc/";
 		new File(outputDirectory).mkdirs();
 		String outputFile = outputDirectory + outputRoot + "." + type;
@@ -339,9 +339,10 @@ public class PlinkSeq implements Serializable {
 				} else {
 					outputFile += "." + phenotype + ".txt";
 					commandBase = ArrayUtils.concatAll(commandBase, new String[] {V_ASSOC},
-																				getPhenoCommand(phenotype));
+																						 getPhenoCommand(phenotype));
 					if (locGroups != null) {
-						commandBase = ArrayUtils.concatAll(commandBase, new String[] {MASK, LOC_GROUP + locGroups});
+						commandBase = ArrayUtils.concatAll(commandBase,
+																							 new String[] {MASK, LOC_GROUP + locGroups});
 						ext.addToRoot(outputFile, locGroups);
 
 					}
@@ -357,13 +358,14 @@ public class PlinkSeq implements Serializable {
 					log.reportError("Must provide a phentype and a group for " + type);
 					validWorker = false;
 				} else {
-					outputFile += "."	+ phenotype + "." + ext.replaceWithLinuxSafeCharacters(locGroups, true)
+					outputFile += "." + phenotype + "." + ext.replaceWithLinuxSafeCharacters(locGroups, true)
 												+ ".txt";
 					commandBase = ArrayUtils.concatAll(commandBase, new String[] {BURDEN},
-																				getPhenoCommand(phenotype));
+																						 getPhenoCommand(phenotype));
 					commandBase = ArrayUtils.concatAll(commandBase,
-																				new String[] {MASK, LOC_GROUP + locGroups,
-																											maf.equals("0") ? "" : MAF + "0:" + maf});
+																						 new String[] {MASK, LOC_GROUP + locGroups,
+																													 maf.equals("0") ? ""
+																																					 : MAF + "0:" + maf});
 					if (varMask != null) {
 						outputFile = ext.addToRoot(outputFile, "." + varMask);
 						commandBase = ArrayUtils.concatAll(commandBase, new String[] {VAR_MASK + varMask});
@@ -424,9 +426,9 @@ public class PlinkSeq implements Serializable {
 		private final boolean skipReporting;
 		private final Logger log;
 
-		private PlinkSeqWorker(	ANALYSIS_TYPES type, String[] command, String[] inputFiles,
-														String[] outputFiles, boolean verbose, boolean overWriteExisting,
-														boolean skipReporting, Logger log) {
+		private PlinkSeqWorker(ANALYSIS_TYPES type, String[] command, String[] inputFiles,
+													 String[] outputFiles, boolean verbose, boolean overWriteExisting,
+													 boolean skipReporting, Logger log) {
 			super();
 			this.type = type;
 			this.command = command;
@@ -449,8 +451,8 @@ public class PlinkSeq implements Serializable {
 
 		@Override
 		public PlinkSeqWorker call() throws Exception {
-			success = CmdLine.runCommandWithFileChecks(	command, "", inputFiles, outputFiles, verbose,
-																									overWriteExisting, skipReporting, log);
+			success = CmdLine.runCommandWithFileChecks(command, "", inputFiles, outputFiles, verbose,
+																								 overWriteExisting, skipReporting, log);
 			if (success) {
 				switch (type) {
 					case BURDEN:
@@ -494,19 +496,19 @@ public class PlinkSeq implements Serializable {
 	private boolean verify() {
 		boolean verified = true;
 		if (!CmdLine.run(PSEQ, "")) {
-			log.reportError("It is assumed that the program "	+ PSEQ
-													+ " can be found on the system's path, please install before continuing");
+			log.reportError("It is assumed that the program " + PSEQ
+											+ " can be found on the system's path, please install before continuing");
 			verified = false;
 		}
 		return verified;
 	}
 
-	public static PseqProject initialize(	PlinkSeq pSeq, String projName, String directory, String vcf,
-																				VcfPopulation vpop, String resourceDirectory,
-																				boolean loadVCF, boolean loadReq, Logger log) {
-		String projectName = projName == null	? PlinkSeqUtils.PSEQ_PROJECT + ext.rootOf(vcf)
+	public static PseqProject initialize(PlinkSeq pSeq, String projName, String directory, String vcf,
+																			 VcfPopulation vpop, String resourceDirectory,
+																			 boolean loadVCF, boolean loadReq, Logger log) {
+		String projectName = projName == null ? PlinkSeqUtils.PSEQ_PROJECT + ext.rootOf(vcf)
 																					: PlinkSeqUtils.PSEQ_PROJECT + projName;
-		String projectDirectory = directory == null	? ext.parseDirectoryOfFile(vcf) + projectName + "/"
+		String projectDirectory = directory == null ? ext.parseDirectoryOfFile(vcf) + projectName + "/"
 																								: directory;
 		new File(projectDirectory).mkdirs();
 		String phenoFile = null;
@@ -539,9 +541,9 @@ public class PlinkSeq implements Serializable {
 											resourceDirectory, loadVCF, loadReq, log);
 	}
 
-	public static PseqProject initialize(	PlinkSeq pSeq, String projectName, String projectDirectory,
-																				String[] vcfs, String phenoFile, String resourceDirectory,
-																				boolean loadVCF, boolean loadReq, Logger log) {
+	public static PseqProject initialize(PlinkSeq pSeq, String projectName, String projectDirectory,
+																			 String[] vcfs, String phenoFile, String resourceDirectory,
+																			 boolean loadVCF, boolean loadReq, Logger log) {
 		new File(projectDirectory).mkdirs();
 		String filename = projectDirectory + projectName + "." + PlinkSeq.PSEQ;
 		PseqProject pseqProject = new PseqProject(filename, vcfs, phenoFile, resourceDirectory, log);
@@ -549,13 +551,13 @@ public class PlinkSeq implements Serializable {
 		return pseqProject;
 	}
 
-	public static void runPlinkSeq(	String projName, String vcf, String phenoFile,
-																	String resourceDirectory, String outputRoot, String[] locGroups,
-																	boolean overwriteExisting, boolean loadVCF, boolean loadReq,
-																	String mac, int numThreads, Logger log) {
+	public static void runPlinkSeq(String projName, String vcf, String phenoFile,
+																 String resourceDirectory, String outputRoot, String[] locGroups,
+																 boolean overwriteExisting, boolean loadVCF, boolean loadReq,
+																 String mac, int numThreads, Logger log) {
 		PlinkSeq plinkSeq = new PlinkSeq(overwriteExisting, true, log);
-		PlinkSeqUtils.PseqProject pseqProject = initialize(	plinkSeq, projName, vcf, phenoFile,
-																												resourceDirectory, loadVCF, loadReq, log);
+		PlinkSeqUtils.PseqProject pseqProject = initialize(plinkSeq, projName, vcf, phenoFile,
+																											 resourceDirectory, loadVCF, loadReq, log);
 		plinkSeq.fullGamutAssoc(pseqProject, locGroups, null, -1, mac, outputRoot, numThreads);
 	}
 
@@ -601,15 +603,14 @@ public class PlinkSeq implements Serializable {
 		String usage = "\n" + "seq.analysis.PlinkSeq requires 3 arguments\n";
 		usage += "   (1) full path to a vcf file (i.e. vcf= (no default))\n" + "";
 		usage += "   (2) full path to a plinkseq phenotype file (i.e. phenoFile= (no default))\n" + "";
-		usage +=
-					"   (3) full path to a plinkseq resource directory  (i.e. resourceDirectory= (no default))\n"
-							+ "";
+		usage += "   (3) full path to a plinkseq resource directory  (i.e. resourceDirectory= (no default))\n"
+						 + "";
 		usage += "   (4) overwrite existing files  (i.e. -overwriteExisting (default))\n" + "";
 		usage += "   (5) analysis output root  (i.e. outputRoot=" + outputRoot + " (default))\n" + "";
 		usage += "   (6) project name  (i.e. projName=" + projName + " (default))\n" + "";
 		usage += "   (7) overwrite existing files  (i.e. -overwriteExisting (default))\n" + "";
 		usage += "   (8) comma -delimted loc groups to test in the association  (i.e. locGroups="
-							+ ArrayUtils.toStr(locGroups, ",") + " (default))\n" + "";
+						 + ArrayUtils.toStr(locGroups, ",") + " (default))\n" + "";
 		usage += "   (9) mac cutoff for burden tests  (i.e. mac=" + mac + " (default))\n" + "";
 		usage += "   (10) " + PSF.Ext.getNumThreadsCommand(10, numThreads);
 
@@ -668,8 +669,8 @@ public class PlinkSeq implements Serializable {
 		String projName = "PseqTest";
 		Logger log = new Logger();
 		PlinkSeq plinkSeq = new PlinkSeq(true, true, log);
-		PseqProject pseqProject = initialize(	plinkSeq, projName, testVCF, testPheno, resourceDirectory,
-																					true, true, log);
+		PseqProject pseqProject = initialize(plinkSeq, projName, testVCF, testPheno, resourceDirectory,
+																				 true, true, log);
 		plinkSeq.fullGamutAssoc(pseqProject, new String[] {"refseq"}, null, -1, "2", "test", 4);
 
 	}

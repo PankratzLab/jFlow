@@ -16,8 +16,7 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.stats.Maths;
 
 public class CompareCalls {
-	public static final String DEFAULT_ROOT =
-																					"C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\allCalls\\";
+	public static final String DEFAULT_ROOT = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\allCalls\\";
 
 	// public static final String[] DEFAULT_FILES = {"conf.cnv", "allMarkers.cnv"};
 	// public static final String[] DEFAULT_FILES = {"conf_100kb_5SNP_10.0.cnv",
@@ -40,8 +39,8 @@ public class CompareCalls {
 		for (int i = 0; i < files.length; i++) {
 			try {
 				reader = new BufferedReader(new FileReader(rootDir + files[i]));
-				if (!ext.checkHeader(	reader.readLine().trim().split("[\\s]+"), CNVariant.PLINK_CNV_HEADER,
-															false)) {
+				if (!ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CNVariant.PLINK_CNV_HEADER,
+														 false)) {
 					reader.close();
 					return;
 				}
@@ -61,8 +60,8 @@ public class CompareCalls {
 				}
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \""	+ rootDir + files[i]
-														+ "\" not found in current directory");
+				System.err.println("Error: file \"" + rootDir + files[i]
+													 + "\" not found in current directory");
 				System.exit(1);
 			} catch (IOException ioe) {
 				System.err.println("Error reading file \"" + rootDir + files[i] + "\"");
@@ -73,31 +72,30 @@ public class CompareCalls {
 		inds = HashVec.getKeys(hash);
 		for (int[] allPossibleCombination : allPossibleCombinations) {
 			try {
-				writer = new PrintWriter(new FileWriter(rootDir	+ "Compare "
+				writer = new PrintWriter(new FileWriter(rootDir + "Compare "
 																								+ ext.rootOf(files[allPossibleCombination[0]])
 																								+ " and "
 																								+ ext.rootOf(files[allPossibleCombination[1]])
 																								+ ".xln"));
-				writer.println("FID\tIID\tTotal"	+ ext.rootOf(files[allPossibleCombination[0]]) + "\tTotal"
-												+ ext.rootOf(files[allPossibleCombination[1]]) + "\tUnique"
-												+ ext.rootOf(files[allPossibleCombination[0]]) + "\tUnique"
-												+ ext.rootOf(files[allPossibleCombination[1]])
-												+ "\tOverlaps\tExactMatches");
+				writer.println("FID\tIID\tTotal" + ext.rootOf(files[allPossibleCombination[0]]) + "\tTotal"
+											 + ext.rootOf(files[allPossibleCombination[1]]) + "\tUnique"
+											 + ext.rootOf(files[allPossibleCombination[0]]) + "\tUnique"
+											 + ext.rootOf(files[allPossibleCombination[1]]) + "\tOverlaps\tExactMatches");
 				for (String ind : inds) {
-					cnvs = new CNVariant[][] {CNVariant.toCNVariantArray(hash	.get(ind)
-																																		.get(allPossibleCombination[0]
-																																					+ "")),
+					cnvs = new CNVariant[][] {CNVariant.toCNVariantArray(hash.get(ind)
+																																	 .get(allPossibleCombination[0]
+																																				+ "")),
 																		CNVariant.toCNVariantArray(hash.get(ind).get(
-																																									allPossibleCombination[1]
-																																									+ ""))};
+																																								 allPossibleCombination[1]
+																																								 + ""))};
 					counts = new int[4];
 					if (cnvs[0].length == 0) {
-						System.err.println("Error - "	+ ind + " not found in "
-																+ files[allPossibleCombination[0]]);
+						System.err.println("Error - " + ind + " not found in "
+															 + files[allPossibleCombination[0]]);
 					}
 					if (cnvs[1].length == 0) {
-						System.err.println("Error - "	+ ind + " not found in "
-																+ files[allPossibleCombination[1]]);
+						System.err.println("Error - " + ind + " not found in "
+															 + files[allPossibleCombination[1]]);
 					}
 					for (int a = 0; a < cnvs[0].length; a++) {
 						match = 0;
@@ -117,8 +115,8 @@ public class CompareCalls {
 						for (int a = 0; a < cnvs[0].length; a++) {
 							if (cnvs[1][b].getSource() != 99 && cnvs[1][b].equals(cnvs[0][a])) {
 								match = 3;
-							} else if (match < 2	&& cnvs[1][b].getSource() != 99
-													&& cnvs[1][b].overlaps(cnvs[0][a])) {
+							} else if (match < 2 && cnvs[1][b].getSource() != 99
+												 && cnvs[1][b].overlaps(cnvs[0][a])) {
 								match = 2;
 							}
 						}
@@ -126,13 +124,13 @@ public class CompareCalls {
 							counts[match]++;
 						}
 					}
-					writer.println(ind	+ "\t" + cnvs[0].length + "\t" + cnvs[1].length + "\t"
-													+ ArrayUtils.toStr(counts));
+					writer.println(ind + "\t" + cnvs[0].length + "\t" + cnvs[1].length + "\t"
+												 + ArrayUtils.toStr(counts));
 				}
 				writer.close();
 			} catch (Exception e) {
-				System.err.println("Error comparing "	+ files[allPossibleCombination[0]] + " and "
-														+ files[allPossibleCombination[1]]);
+				System.err.println("Error comparing " + files[allPossibleCombination[0]] + " and "
+													 + files[allPossibleCombination[1]]);
 				e.printStackTrace();
 			}
 		}
@@ -143,10 +141,10 @@ public class CompareCalls {
 		String rootDirectory = DEFAULT_ROOT;
 		String[] files = DEFAULT_FILES;
 
-		String usage = "\\n"	+ "park.cnv.ComparePlinkResults requires 0-1 arguments\n"
-										+ "   (1) directory (i.e. dir=" + rootDirectory + " (default))\n"
-										+ "   (2) files to be compared (i.e. files=" + ArrayUtils.toStr(files, ",")
-										+ " (default))\n" + "";
+		String usage = "\\n" + "park.cnv.ComparePlinkResults requires 0-1 arguments\n"
+									 + "   (1) directory (i.e. dir=" + rootDirectory + " (default))\n"
+									 + "   (2) files to be compared (i.e. files=" + ArrayUtils.toStr(files, ",")
+									 + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

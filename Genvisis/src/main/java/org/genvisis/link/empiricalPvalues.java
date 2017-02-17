@@ -40,8 +40,8 @@ public class empiricalPvalues {
 		while (!done) {
 			if (st.countTokens() > 0) {
 				trav = st.nextToken() + "\t" + st.nextToken();
-				writer.println(trav	+ "\t" + st.nextToken() + "\t" + st.nextToken() + "\t" + st.nextToken()
-												+ "\t" + st.nextToken() + "\t1\t1");
+				writer.println(trav + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t" + st.nextToken()
+											 + "\t" + st.nextToken() + "\t1\t1");
 
 				handle = new boolean[numMarkers];
 				for (int i = 0; i < numMarkers; i++) {
@@ -59,7 +59,7 @@ public class empiricalPvalues {
 		writer.close();
 
 		optfile = new PrintWriter(new FileWriter("chrom" + chrome + ".opt"));
-		optfile.println("% Read input in LINKAGE style format:\n"	+ "PREFILE chrom" + chrome
+		optfile.println("% Read input in LINKAGE style format:\n" + "PREFILE chrom" + chrome
 										+ "-template\n" + "DATFILE map" + chrome + ".dat\n\n"
 										+ "% Simulate stroke reconstruction pedigrees\n" + "SIMULATE dloc:10.0 npre:"
 										+ numReps + " rep:1 err:0.00 yield:1.0 het:1\n\n" + "% Other options:\n"
@@ -82,15 +82,15 @@ public class empiricalPvalues {
 		batch.println("cp batch.1 trash1");
 		batch.println("cp batch.1 trash2");
 		batch.println();
-		batch.println("java -classpath /home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
+		batch.println("java -classpath /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS
 									+ " park.bat.dat2loc map" + chrome + ".dat");
 
 		for (int repNum = 1; repNum <= numReps; repNum++) {
 			// for (int repNum=NUM_REPS; repNum>=1; repNum--) {
 			writer = new PrintWriter(new FileWriter("chrom" + chrome + "-" + repNum + ".pre"));
 
-			file = "chrom"	+ chrome + "-template."
-							+ ext.formNum(repNum + "", String.valueOf(numReps).length());
+			file = "chrom" + chrome + "-template."
+						 + ext.formNum(repNum + "", String.valueOf(numReps).length());
 			reader = new BufferedReader(new FileReader(file));
 			while (reader.ready()) {
 				st = new StringTokenizer(reader.readLine(), "- ");
@@ -125,7 +125,7 @@ public class empiricalPvalues {
 			writer.close();
 
 			if (chromosome != 23) {
-				batch.println("echo -e \"pairs\\n3\\nload map"	+ chrome + ".loc\\nprep chrom" + chrome + "-"
+				batch.println("echo -e \"pairs\\n3\\nload map" + chrome + ".loc\\nprep chrom" + chrome + "-"
 											+ repNum + ".pre\\nn\\nscan\\nestimate\\ny\\nchrom" + chrome + "-" + repNum
 											+ "-mls.out\\ntrash1\\ny\\ntrash2\\ny\\nestimate\\nn\\nchrom" + chrome + "-"
 											+ repNum
@@ -133,7 +133,7 @@ public class empiricalPvalues {
 											+ chrome + "-" + repNum + ".log"); // >
 				// /dev/null"
 			} else {
-				batch.println("echo -e \"sex on\\npairs\\n3\\nload map"	+ chrome + ".loc\\nprep chrom"
+				batch.println("echo -e \"sex on\\npairs\\n3\\nload map" + chrome + ".loc\\nprep chrom"
 											+ chrome + "-" + repNum + ".pre\\nn\\nscan\\nestimate\\nchrom" + chrome + "-"
 											+ repNum
 											+ "-mls.out\\ntrash1\\ny\\ntrash2\\ny\\nquit\\n\" | /software/bin/sibs > chrom"
@@ -240,8 +240,8 @@ public class empiricalPvalues {
 				if (args.length == 1) {
 					new empiricalPvalues(Integer.valueOf(args[0]).intValue(), 5000);
 				} else {
-					new empiricalPvalues(	Integer.valueOf(args[0]).intValue(),
-																Integer.valueOf(args[1]).intValue());
+					new empiricalPvalues(Integer.valueOf(args[0]).intValue(),
+															 Integer.valueOf(args[1]).intValue());
 				}
 			} catch (Exception e) {
 				e.printStackTrace();

@@ -23,8 +23,8 @@ public class SRASample extends NGSSample {
 	 *
 	 * @param platform sequencing platform
 	 */
-	public SRASample(	String runS, String submittedSampleID, ASSEMBLY_NAME aName, ASSAY_TYPE aType,
-										PLATFORM platform) {
+	public SRASample(String runS, String submittedSampleID, ASSEMBLY_NAME aName, ASSAY_TYPE aType,
+									 PLATFORM platform) {
 		super(aName, aType, platform);
 		this.runS = runS;
 		this.submittedSampleID = submittedSampleID;
@@ -55,8 +55,8 @@ public class SRASample extends NGSSample {
 
 	@Override
 	public String toString() {
-		return "SRASample [runS="	+ runS + ", submittedSampleID=" + submittedSampleID + ", aName="
-						+ getaName() + ", aType=" + getaType() + ", platform=" + getPlatform() + "]";
+		return "SRASample [runS=" + runS + ", submittedSampleID=" + submittedSampleID + ", aName="
+					 + getaName() + ", aType=" + getaType() + ", platform=" + getPlatform() + "]";
 	}
 
 }

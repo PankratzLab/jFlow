@@ -64,7 +64,7 @@ public class BamSoftClip {
 					log.reportTimeInfo(numTotalReads + " total reads scanned");
 					break;
 				}
-				if (!samRecord.getReadUnmappedFlag()	&& samRecord.getReadPairedFlag()
+				if (!samRecord.getReadUnmappedFlag() && samRecord.getReadPairedFlag()
 						&& !samRecord.getMateUnmappedFlag() && !samRecord.getDuplicateReadFlag()) {
 					int insert = samRecord.getInferredInsertSize();
 					int numSoft = 0;
@@ -100,9 +100,9 @@ public class BamSoftClip {
 			ArrayList<String> outPrint = new ArrayList<String>();
 			outPrint.add("InsertSize\tCount\tAvgSoftClipped");
 			for (int j = 0; j < dynamicAveragingHistogram.getCounts().length; j++) {
-				outPrint.add(dynamicAveragingHistogram.getBins()[j]	+ "\t"
-											+ dynamicAveragingHistogram.getCounts()[j] + "\t"
-											+ dynamicAveragingHistogram.getAverages()[j]);
+				outPrint.add(dynamicAveragingHistogram.getBins()[j] + "\t"
+										 + dynamicAveragingHistogram.getCounts()[j] + "\t"
+										 + dynamicAveragingHistogram.getAverages()[j]);
 			}
 			String outCounts = outputDir + BamOps.getSampleName(bam) + "clipSumCounts.txt";
 			ArrayList<String> outPrintCount = new ArrayList<String>();

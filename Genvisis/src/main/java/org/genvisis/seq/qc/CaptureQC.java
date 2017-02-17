@@ -34,9 +34,9 @@ public class CaptureQC {
 																																		"Percent_Covered_at_depth_40"};
 	private static final String[] PLOT_BY_POS_ACTUAL = new String[] {"averageCoverage"};
 
-	public static void captureQC(	String referenceGenomeFasta, String bamQCSummary,
-																String extraPostionFile, String geneTrackFile, String[] geneNames,
-																String outputDir, String root, boolean allInOne, Logger log) {
+	public static void captureQC(String referenceGenomeFasta, String bamQCSummary,
+															 String extraPostionFile, String geneTrackFile, String[] geneNames,
+															 String outputDir, String root, boolean allInOne, Logger log) {
 		if (extraPostionFile != null) {
 			GeomText.fromFile(extraPostionFile, log);
 		}
@@ -70,8 +70,8 @@ public class CaptureQC {
 				// ArrayList<RScatter> rsScatters = new ArrayList<RScatter>();
 				PrintWriter writer = new PrintWriter(new FileWriter(output, false));
 				String[] header = Files.getHeaderOfFile(bamQCSummary, log);
-				writer.println("GENE_NAME\tExon\tPosition\tGC_REF\tHIDE"	+ ArrayUtils.toStr(header)
-												+ "\tInternalKey");
+				writer.println("GENE_NAME\tExon\tPosition\tGC_REF\tHIDE" + ArrayUtils.toStr(header)
+											 + "\tInternalKey");
 
 				int UCSCIndex = ext.indexOfStr(UCSC, header);
 				BufferedReader reader = Files.getAppropriateReader(bamQCSummary);
@@ -85,19 +85,20 @@ public class CaptureQC {
 						double gcRegion = referenceGenome.getGCContentFor(seg);
 						for (GeneData currentData : overlapping) {
 							for (int j = 0; j < currentData.getExonBoundaries().length; j++) {
-								Segment exon = new Segment(	currentData.getChr(),
-																						currentData.getExonBoundaries()[j][0],
-																						currentData.getExonBoundaries()[j][1]);
+								Segment exon = new Segment(currentData.getChr(),
+																					 currentData.getExonBoundaries()[j][0],
+																					 currentData.getExonBoundaries()[j][1]);
 								if (seg.overlaps(exon)) {
 									if (allInOne) {
-										writer.println(currentData.getGeneName()	+ "\t" + (j + 1) + "\t"
-																		+ seg.getStart() + "\t" + gcRegion + "\t" + ArrayUtils.toStr(line)
-																		+ "\t0");
+										writer.println(currentData.getGeneName() + "\t" + (j + 1) + "\t"
+																	 + seg.getStart() + "\t" + gcRegion + "\t"
+																	 + ArrayUtils.toStr(line) + "\t0");
 									} else {// print bp resolution
 										for (int k = seg.getStart(); k <= seg.getStop(); k++) {
 											if (exon.getStart() <= k && exon.getStop() >= k) {
-												writer.println(currentData.getGeneName()	+ "\t" + (j + 1) + "\t" + k + "\t"
-																				+ gcRegion + "\t" + ArrayUtils.toStr(line) + "\t" + j + "_" + k);
+												writer.println(currentData.getGeneName() + "\t" + (j + 1) + "\t" + k + "\t"
+																			 + gcRegion + "\t" + ArrayUtils.toStr(line) + "\t" + j + "_"
+																			 + k);
 											}
 										}
 									}
@@ -122,34 +123,34 @@ public class CaptureQC {
 
 	}
 
-	private static void plot(	String[] geneNames, Logger log, GeomText[] geomTexts, int i,
-														String output, boolean allinone) {
+	private static void plot(String[] geneNames, Logger log, GeomText[] geomTexts, int i,
+													 String output, boolean allinone) {
 
 		if (allinone) {
 			for (int j = 0; j < PLOT_BY_POS_PERCENT.length; j++) {
 
 				double[] data = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(output, true,
-																																					new int[] {ext.indexOfStr(PLOT_BY_POS_PERCENT[j],
-																																																		Files.getHeaderOfFile(output,
-																																																													log))},
-																																					false));
-				String[] genes = HashVec.loadFileToStringArray(	output, true,
-																												new int[] {ext.indexOfStr("GENE_NAME",
-																																									Files.getHeaderOfFile(output,
-																																																				log))},
-																												false);
+																																							 new int[] {ext.indexOfStr(PLOT_BY_POS_PERCENT[j],
+																																																				 Files.getHeaderOfFile(output,
+																																																															 log))},
+																																							 false));
+				String[] genes = HashVec.loadFileToStringArray(output, true,
+																											 new int[] {ext.indexOfStr("GENE_NAME",
+																																								 Files.getHeaderOfFile(output,
+																																																			 log))},
+																											 false);
 
 				double average = ArrayUtils.mean(data, true);
 				String rootExon = ext.rootOf(output, false) + "_coverageHist_" + j;
-				RScatter rsScatterPos = new RScatter(	output, rootExon + ".rscript",
-																							ext.removeDirectoryInfo(rootExon), rootExon + ".jpeg",
-																							"InternalKey", new String[] {PLOT_BY_POS_PERCENT[j]},
-																							SCATTER_TYPE.HIST, log);
+				RScatter rsScatterPos = new RScatter(output, rootExon + ".rscript",
+																						 ext.removeDirectoryInfo(rootExon), rootExon + ".jpeg",
+																						 "InternalKey", new String[] {PLOT_BY_POS_PERCENT[j]},
+																						 SCATTER_TYPE.HIST, log);
 				String format = PLOT_BY_POS_PERCENT[j].replaceAll("_", " ")
 																							.replaceAll("Percent", "Proportion of target ");
 				rsScatterPos.setxRange(new double[] {0, 1});
-				rsScatterPos.setTitle("Average "	+ format + "  (" + ArrayUtils.unique(genes).length + " genes, "
-															+ data.length + " targeted regions)" + " = "
+				rsScatterPos.setTitle("Average " + format + "  (" + ArrayUtils.unique(genes).length
+															+ " genes, " + data.length + " targeted regions)" + " = "
 															+ ext.formDeci(average, 3));
 				rsScatterPos.setxLabel(format);
 				rsScatterPos.setyLabel("Counts (targeted regions) labelled with percent of total");
@@ -160,9 +161,9 @@ public class CaptureQC {
 
 		} else {
 			String root = ext.rootOf(output, false);
-			RScatter rsScatterPos = new RScatter(	output, root + ".rscript", ext.removeDirectoryInfo(root),
-																						root + ".pdf", "Position", PLOT_BY_POS_PERCENT,
-																						SCATTER_TYPE.POINT, log);
+			RScatter rsScatterPos = new RScatter(output, root + ".rscript", ext.removeDirectoryInfo(root),
+																					 root + ".pdf", "Position", PLOT_BY_POS_PERCENT,
+																					 SCATTER_TYPE.POINT, log);
 			rsScatterPos.setTitle(geneNames[i] + " capture");
 			rsScatterPos.setxLabel("Position");
 			rsScatterPos.setyLabel("Proportion Covered at Depth");
@@ -217,11 +218,11 @@ public class CaptureQC {
 		String usage = "\n" + "seq.qc.CaptureQC requires 0-1 arguments\n";
 		usage += "   (1) bamQC file (i.e. bamQCSummary=" + bamQCSummary + " (default))\n" + "";
 		usage += "   (2) gene track file(i.e. geneTrackFile=" + geneTrackFile + " (default))\n" + "";
-		usage += "   (3) comma delimited gene names(i.e. geneNames="	+ ArrayUtils.toStr(geneNames, ",")
-							+ " (default))\n" + "";
+		usage += "   (3) comma delimited gene names(i.e. geneNames=" + ArrayUtils.toStr(geneNames, ",")
+						 + " (default))\n" + "";
 		usage += "   (4) output directory (i.e. outputDir= ( no default))\n" + "";
-		usage += "   (5) reference genome fasta file (i.e. referenceGenomeFasta="	+ referenceGenomeFasta
-							+ "  (default))\n" + "";
+		usage += "   (5) reference genome fasta file (i.e. referenceGenomeFasta=" + referenceGenomeFasta
+						 + "  (default))\n" + "";
 		usage += "   (6) extra positions file  (i.e. extrap= ( no default))\n" + "";
 
 		for (String arg : args) {

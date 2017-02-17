@@ -75,10 +75,10 @@ public class Quantiles {
 	}
 
 	public int[] getQuantileMembershipAsRoundedInt() {
-		int mult = quantiles.length <= 10	? 10
-																			: quantiles.length <= 100	? 100
-																																: quantiles.length <= 1000	? 1000
-																																														: 10000;
+		int mult = quantiles.length <= 10 ? 10
+																			: quantiles.length <= 100 ? 100
+																																: quantiles.length <= 1000 ? 1000
+																																													 : 10000;
 		return roundInt(quantileMembership, mult, log);
 	}
 
@@ -150,7 +150,7 @@ public class Quantiles {
 																						String[] variableTitles, Logger log) {
 		if (variableTitles != null && variableTitles.length != variableDominantMatrix.length) {
 			log.reportError("titles must be the same length as the data matrix, titles="
-													+ variableTitles.length + " vs " + variableDominantMatrix.length);
+											+ variableTitles.length + " vs " + variableDominantMatrix.length);
 			return null;
 		}
 
@@ -218,8 +218,8 @@ public class Quantiles {
 		// String logfile = null;
 
 		developQuantiles(filename, new int[] {1, 2}, 10, new Logger());
-		String usage = "\n"	+ "stats.Quantiles requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "";
+		String usage = "\n" + "stats.Quantiles requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

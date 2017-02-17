@@ -6,7 +6,7 @@ package org.genvisis.cnv.util;
 @Deprecated
 public final class Java6Helper {
 
-	private Java6Helper() { 
+	private Java6Helper() {
 		// prevent instantiation
 	}
 
@@ -14,6 +14,6 @@ public final class Java6Helper {
 	 * As Integer.compare in J7+
 	 */
 	public static int compare(int x, int y) {
-    return (x < y) ? -1 : ((x == y) ? 0 : 1);
+		return (x < y) ? -1 : ((x == y) ? 0 : 1);
 	}
 }

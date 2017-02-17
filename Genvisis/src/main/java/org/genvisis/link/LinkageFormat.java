@@ -17,7 +17,7 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 
 public class LinkageFormat {
-	public static String STRUCT_EXAMPLE = ""	+ "70001	101	0	0	1	0	NoDNAprsnt	.	.\n"
+	public static String STRUCT_EXAMPLE = "" + "70001	101	0	0	1	0	NoDNAprsnt	.	.\n"
 																				+ "70001	102	0	0	2	0	NoDNAprsnt	.	.\n"
 																				+ "70001	1	101	102	1	2	1999PD0004	55	WHTE\n"
 																				+ "70001	11	101	102	1	2	1999PD0005	59	WHTE"
@@ -38,12 +38,12 @@ public class LinkageFormat {
 		if (new File("mrkr" + chrome + ".dat").exists()) {
 			create("mrkr" + chrome + ".dat", "chrom" + chrome + ".pre", makePheno);
 		} else if (new File("/home/npankrat/park/00masters/mrkr" + chrome + ".dat").exists()) {
-			create("/home/npankrat/park/00masters/mrkr"	+ chrome + ".dat", "chrom" + chrome + ".pre",
-							makePheno);
+			create("/home/npankrat/park/00masters/mrkr" + chrome + ".dat", "chrom" + chrome + ".pre",
+						 makePheno);
 		} else {
-			System.err.println("Could not open the genotype file for chromosome "	+ chr + ": mrkr"
-													+ chrome + ".dat\n"
-													+ "in present directory or /home/npankrat/park/00masters/");
+			System.err.println("Could not open the genotype file for chromosome " + chr + ": mrkr"
+												 + chrome + ".dat\n"
+												 + "in present directory or /home/npankrat/park/00masters/");
 		}
 	}
 
@@ -88,9 +88,9 @@ public class LinkageFormat {
 				}
 				if (data == null) {
 					if (!line[6].equals("NoDNAprsnt") && !line[6].equals("0")) {
-						System.err.println("Error - expecting genotypes for "	+ line[0] + "\t" + line[1]
-																+ " (i.e. contains DNA# '" + line[6]
-																+ "'), but was not found in genotype file");
+						System.err.println("Error - expecting genotypes for " + line[0] + "\t" + line[1]
+															 + " (i.e. contains DNA# '" + line[6]
+															 + "'), but was not found in genotype file");
 						System.exit(6);
 					}
 					data = hash.get("blank");
@@ -121,17 +121,17 @@ public class LinkageFormat {
 
 	public static int filterMarkers(String pedin, String pedout, String mapin, String mapout,
 																	String markersToKeepFile, String markersToDropFile) {
-		return filterMarkers(	pedin, pedout, mapin, mapout,
-													markersToKeepFile == null	? null
-																										: HashVec.loadFileToStringArray(markersToKeepFile,
-																																										false,
-																																										new int[] {0},
-																																										true),
-													markersToDropFile == null	? null
-																										: HashVec.loadFileToStringArray(markersToDropFile,
-																																										false,
-																																										new int[] {0},
-																																										true));
+		return filterMarkers(pedin, pedout, mapin, mapout,
+												 markersToKeepFile == null ? null
+																									 : HashVec.loadFileToStringArray(markersToKeepFile,
+																																									 false,
+																																									 new int[] {0},
+																																									 true),
+												 markersToDropFile == null ? null
+																									 : HashVec.loadFileToStringArray(markersToDropFile,
+																																									 false,
+																																									 new int[] {0},
+																																									 true));
 	}
 
 	public static int filterMarkers(String pedin, String pedout, String mapin, String mapout,
@@ -152,17 +152,17 @@ public class LinkageFormat {
 		markerNames = map.getMarkerNames();
 		keeps = ArrayUtils.booleanArray(markerNames.length, false);
 		for (int i = 0; i < markerNames.length; i++) {
-			if (markersToKeep != null	&& ext.indexOfStr(markerNames[i], markersToKeep) >= 0
+			if (markersToKeep != null && ext.indexOfStr(markerNames[i], markersToKeep) >= 0
 					&& markersToDrop != null && ext.indexOfStr(markerNames[i], markersToDrop) >= 0) {
-				System.err.println("Error - marker '"	+ markerNames[i]
-														+ "' is listed in the keeps list and the drops list");
+				System.err.println("Error - marker '" + markerNames[i]
+													 + "' is listed in the keeps list and the drops list");
 			} else if (markersToKeep == null) {
 				keeps[i] = ext.indexOfStr(markerNames[i], markersToDrop) == -1;
 			} else if (markersToDrop == null) {
 				keeps[i] = ext.indexOfStr(markerNames[i], markersToKeep) >= 0;
 			} else {
 				keeps[i] = ext.indexOfStr(markerNames[i], markersToDrop) == -1
-										&& ext.indexOfStr(markerNames[i], markersToKeep) >= 0;
+									 && ext.indexOfStr(markerNames[i], markersToKeep) >= 0;
 			}
 		}
 
@@ -194,10 +194,10 @@ public class LinkageFormat {
 
 		for (int chr = 1; chr <= 23; chr++) {
 			if (new File("map" + ext.chrome(chr) + ".dat").exists()) {
-				numDropped = filterMarkers(prefix	+ ext.chrome(chr) + ".pre",
-																		prefix + ext.chrome(chr) + ".pre",
-																		"map" + ext.chrome(chr) + ".dat",
-																		"map" + ext.chrome(chr) + ".dat", null, dropFile);
+				numDropped = filterMarkers(prefix + ext.chrome(chr) + ".pre",
+																	 prefix + ext.chrome(chr) + ".pre",
+																	 "map" + ext.chrome(chr) + ".dat",
+																	 "map" + ext.chrome(chr) + ".dat", null, dropFile);
 				if (numDropped > 0) {
 					for (int i = 0; i < numDropped; i++) {
 						counts[0].add(chr + "");
@@ -211,12 +211,12 @@ public class LinkageFormat {
 		}
 
 		for (int i = 0; i < counts.length; i++) {
-			System.out.println("Chromosomes "	+ (i == 0 ? "altered" : (i == 1 ? "unaltered" : "missing"))
-													+ ": "
-													+ (counts[i].getSize() == 0	? "none"
-																											: ArrayUtils.toStr(i == 0	? counts[i].list()
-																																						: counts[i].getValues(),
-																																		", ")));
+			System.out.println("Chromosomes " + (i == 0 ? "altered" : (i == 1 ? "unaltered" : "missing"))
+												 + ": "
+												 + (counts[i].getSize() == 0 ? "none"
+																										 : ArrayUtils.toStr(i == 0 ? counts[i].list()
+																																							 : counts[i].getValues(),
+																																				", ")));
 		}
 	}
 
@@ -257,8 +257,8 @@ public class LinkageFormat {
 		int numArgs = args.length;
 		int chr = -1;
 		String filename = "mrkr02.dat";
-		String fileout = (filename.lastIndexOf(".") != -1	? filename.substring(	0,
-																																						filename.lastIndexOf("."))
+		String fileout = (filename.lastIndexOf(".") != -1 ? filename.substring(0,
+																																					 filename.lastIndexOf("."))
 																												+ ".pre"
 																											: filename + ".pre");
 		boolean pheno = false;
@@ -266,14 +266,14 @@ public class LinkageFormat {
 		String drops = "";
 		String prefix = "re_chrom";
 
-		String usage = "\n"	+ "link.LinkageFormat requires 0-2 arguments\n"
-										+ "   (1) chromosome number (i.e. chr=2 (no default))\n"
-										+ "   (2) add '-pheno' if you want to create \"pheno.sibs\" (not done by default)\n"
-										+ "   (3) file with list of markers you want to drop (i.e. drop=drops.dat (no default))\n"
-										+ "alternative [default] usage:\n"
-										+ "   (1) take from file other than a mrkr##.dat file (i.e. file=" + filename
-										+ " (default))\n" + "   (2) specify the name of the .pre file (i.e. out="
-										+ fileout + " (default))\n" + "";
+		String usage = "\n" + "link.LinkageFormat requires 0-2 arguments\n"
+									 + "   (1) chromosome number (i.e. chr=2 (no default))\n"
+									 + "   (2) add '-pheno' if you want to create \"pheno.sibs\" (not done by default)\n"
+									 + "   (3) file with list of markers you want to drop (i.e. drop=drops.dat (no default))\n"
+									 + "alternative [default] usage:\n"
+									 + "   (1) take from file other than a mrkr##.dat file (i.e. file=" + filename
+									 + " (default))\n" + "   (2) specify the name of the .pre file (i.e. out="
+									 + fileout + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

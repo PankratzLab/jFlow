@@ -17,7 +17,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 
 public class SampleNGS {
 	private enum DATA_TYPE {
-													GENO, X, Y, GC;
+		GENO, X, Y, GC;
 	}
 
 	private final String sampleName;
@@ -44,7 +44,7 @@ public class SampleNGS {
 			log.reportError("Sample names do not match");
 		} else {
 			try {
-				int[] ad = vc == null	? geno.getAD()
+				int[] ad = vc == null ? geno.getAD()
 															: VCOps.getAppropriateAlleleDepths(vc, geno, true, log);
 				addFloat(ad[0], DATA_TYPE.X, log);
 				addFloat(ad[1], DATA_TYPE.Y, log);
@@ -124,15 +124,15 @@ public class SampleNGS {
 	public boolean verify(Project proj) {
 		int numMarkers = proj.getMarkerNames().length;
 		boolean verified = true;
-		if (numMarkers != gcs.size()	|| numMarkers != xs.size() || numMarkers != ys.size()
+		if (numMarkers != gcs.size() || numMarkers != xs.size() || numMarkers != ys.size()
 				|| numMarkers != geno.size()) {
 			verified = false;
 		}
 		return verified;
 	}
 
-	public Hashtable<String, Float> dump(	Project proj, Hashtable<String, Float> allOutliers,
-																				long fingerprint, Logger log) {
+	public Hashtable<String, Float> dump(Project proj, Hashtable<String, Float> allOutliers,
+																			 long fingerprint, Logger log) {
 		if (!verify(proj)) {
 			log.reportError("Could not verify that all data has been added for sample " + sampleName);
 		} else {
@@ -142,10 +142,10 @@ public class SampleNGS {
 			float[] fakeBAFS = new float[gcs.size()];
 			Arrays.fill(fakeLRRs, -1);
 			Arrays.fill(fakeBAFS, 0);
-			Sample samp = new Sample(	sampleName, fingerprint, Floats.toArray(gcs), Floats.toArray(xs),
-																Floats.toArray(ys), fakeBAFS, fakeLRRs, Bytes.toArray(geno),
-																Bytes.toArray(geno), false);
-			samp.saveToRandomAccessFile(dir	+ sampleName + Sample.SAMPLE_FILE_EXTENSION, allOutliers,
+			Sample samp = new Sample(sampleName, fingerprint, Floats.toArray(gcs), Floats.toArray(xs),
+															 Floats.toArray(ys), fakeBAFS, fakeLRRs, Bytes.toArray(geno),
+															 Bytes.toArray(geno), false);
+			samp.saveToRandomAccessFile(dir + sampleName + Sample.SAMPLE_FILE_EXTENSION, allOutliers,
 																	sampleName);
 		}
 		return allOutliers;

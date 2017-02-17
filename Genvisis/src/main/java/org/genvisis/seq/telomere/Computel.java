@@ -50,8 +50,8 @@ public class Computel {
 		command.add("Rscript");
 		command.add(computelCommandR);
 		command.add(config);
-		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputs, outputs, true,
-																						false, false, log);
+		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputs, outputs,
+																						true, false, false, log);
 	}
 
 	private static boolean convertToFasta(String inputBam, String computelLoc, String r1, String r2,
@@ -69,8 +69,8 @@ public class Computel {
 		command.add("F2=");
 		command.add(r2);
 
-		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputs, outputs, true,
-																						false, false, log);
+		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputs, outputs,
+																						true, false, false, log);
 	}
 
 	/**
@@ -78,42 +78,42 @@ public class Computel {
 	 */
 	private static String processConfig(String computelOperatingDir, String bowtieSamDir,
 																			String config, String r1, String r2, int readLength) {
-		config = config.replaceAll(	"scripts.dir	./scripts",
-																"scripts.dir	" + computelOperatingDir + "src/scripts");
+		config = config.replaceAll("scripts.dir	./scripts",
+															 "scripts.dir	" + computelOperatingDir + "src/scripts");
 		String btieBuild = bowtieSamDir + "bowtie2-2.1.0-linux/bowtie2-build";
 		Files.chmod(btieBuild);
 
-		config = config.replaceAll(	"bowtie.build.path	./bowtie2-2.1.0-linux/bowtie2-build",
-																"bowtie.build.path	" + btieBuild);
+		config = config.replaceAll("bowtie.build.path	./bowtie2-2.1.0-linux/bowtie2-build",
+															 "bowtie.build.path	" + btieBuild);
 		String btieAln = bowtieSamDir + "bowtie2-2.1.0-linux/bowtie2-align";
 		Files.chmod(btieAln);
 
-		config = config.replaceAll(	"bowtie.align.path	./bowtie2-2.1.0-linux/bowtie2-align",
-																"bowtie.align.path	" + btieAln);
+		config = config.replaceAll("bowtie.align.path	./bowtie2-2.1.0-linux/bowtie2-align",
+															 "bowtie.align.path	" + btieAln);
 		String samTools = bowtieSamDir + "samtools-0.1.19-linux/samtools";
 		Files.chmod(samTools);
-		config = config.replaceAll(	"samtools.path	./samtools-0.1.19-linux/samtools",
-																"samtools.path	" + samTools);
+		config = config.replaceAll("samtools.path	./samtools-0.1.19-linux/samtools",
+															 "samtools.path	" + samTools);
 
 		String samToFastQ = computelOperatingDir + SAM_TO_FASTQ_LOC;
 		Files.chmod(samToFastQ);
-		config = config.replaceAll(	"picard.samtofastq.jar	./SamToFastq.jar",
-																"picard.samtofastq.jar	" + samToFastQ);
+		config = config.replaceAll("picard.samtofastq.jar	./SamToFastq.jar",
+															 "picard.samtofastq.jar	" + samToFastQ);
 
 		config = config.replaceAll("read.length	76", "read.length	" + readLength);
 
 		config = config.replaceAll("files.with.prefix	T", "files.with.prefix	F");
 
-		config = config.replaceAll(	"fastq	examples/tel_reads.fq, examples/tel_reads1.fq, examples/tel_reads2.fq",
-																"fastq	" + r1 + "," + r2);
+		config = config.replaceAll("fastq	examples/tel_reads.fq, examples/tel_reads1.fq, examples/tel_reads2.fq",
+															 "fastq	" + r1 + "," + r2);
 
 		config = config.replaceAll("compute.base.cov	F", "compute.base.cov	T");
 
-		config = config.replaceAll(	"base.index.pathtoprefix	./examples/base.index/base_index",
-																"base.index.pathtoprefix	" + computelOperatingDir + "src/examples/base.index/base_index");
+		config = config.replaceAll("base.index.pathtoprefix	./examples/base.index/base_index",
+															 "base.index.pathtoprefix	" + computelOperatingDir + "src/examples/base.index/base_index");
 
-		config = config.replaceAll(	"output.dir	output",
-																"output.dir	" + computelOperatingDir + "results");
+		config = config.replaceAll("output.dir	output",
+															 "output.dir	" + computelOperatingDir + "results");
 
 		config = config.replaceAll("num.proc    3", "num.proc    1");
 		// compute.base.cov F
@@ -126,8 +126,8 @@ public class Computel {
 	 * @param computelDirectory the full path to a (git clone) of computel
 	 * @param log
 	 */
-	public static void runComputel(	String inputBam, String outputDir, String computelDirectory,
-																	Logger log) {
+	public static void runComputel(String inputBam, String outputDir, String computelDirectory,
+																 Logger log) {
 		String finalOutDirectory = outputDir + ext.rootOf(inputBam) + "/";
 		new File(finalOutDirectory).mkdirs();
 
@@ -175,8 +175,8 @@ public class Computel {
 
 					if (Files.exists(finalResults)) {
 						String parsedFinalResults = finalResults + ".parsed";
-						String[][] file = HashVec.loadFileToStringMatrix(	parsedFinalResults, false,
-																															new int[] {0, 1}, false);
+						String[][] file = HashVec.loadFileToStringMatrix(parsedFinalResults, false,
+																														 new int[] {0, 1}, false);
 						for (int i = 0; i < file.length; i++) {
 							for (int j = 0; j < file[i].length; j++) {
 								file[i][j] = file[i][j].replaceAll("\"", "");
@@ -216,9 +216,9 @@ public class Computel {
 		return dir.delete();
 	}
 
-	private static String manageConfig(	Logger log, String finalOutDirectory, String bowtieSamDir,
-																			String r1, String r2,
-																			int readLength) throws FileNotFoundException {
+	private static String manageConfig(Logger log, String finalOutDirectory, String bowtieSamDir,
+																		 String r1, String r2,
+																		 int readLength) throws FileNotFoundException {
 		Scanner s = new Scanner(new File(finalOutDirectory + "src/examples/config_unix.txt"));
 
 		String config = s.useDelimiter("\\Z").next();

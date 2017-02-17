@@ -27,8 +27,8 @@ public class PlotPoint implements Serializable {
 	private boolean highlight;
 	private boolean visible;
 
-	public PlotPoint(	String id, byte type, float rawX, float rawY, byte size, byte color,
-										byte layer) {
+	public PlotPoint(String id, byte type, float rawX, float rawY, byte size, byte color,
+									 byte layer) {
 		this.id = id;
 		this.type = type;
 		this.rawX = rawX;

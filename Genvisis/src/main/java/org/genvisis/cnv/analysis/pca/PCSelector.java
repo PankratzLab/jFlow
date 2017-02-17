@@ -91,10 +91,9 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 	public StatsCrossTabRank next() {
 		String currentQC = LrrSd.NUMERIC_COLUMNS[index];
 		proj.getLog().reportTimeInfo("Analyzing QC metric " + currentQC);
-		StatsCrossTabRank sRank =
-														pResiduals.getStatRankFor(sampleQC.getDataFor(LrrSd.NUMERIC_COLUMNS[index]),
-																											null, null, currentQC, sType, VALUE_TYPE.STAT,
-																											false, 1, proj.getLog());
+		StatsCrossTabRank sRank = pResiduals.getStatRankFor(sampleQC.getDataFor(LrrSd.NUMERIC_COLUMNS[index]),
+																												null, null, currentQC, sType,
+																												VALUE_TYPE.STAT, false, 1, proj.getLog());
 		index++;
 		return sRank;
 	}
@@ -105,22 +104,22 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 	}
 
 	public enum SELECTION_TYPE {
-															/**
-															 * filtered by the {@link STAT_TYPE } actual stat
-															 */
-															STAT,
-															/**
-															 * filtered by the {@link STAT_TYPE } p-value
-															 */
-															P_VAL,
-															/**
-															 * pval cutoff after effective M correction, see {@link SimpleM}
-															 */
-															EFFECTIVE_M_CORRECTED;
+		/**
+		 * filtered by the {@link STAT_TYPE } actual stat
+		 */
+		STAT,
+		/**
+		 * filtered by the {@link STAT_TYPE } p-value
+		 */
+		P_VAL,
+		/**
+		 * pval cutoff after effective M correction, see {@link SimpleM}
+		 */
+		EFFECTIVE_M_CORRECTED;
 	}
 
-	public static SelectionResult select(	Project proj, double filterValue, STAT_TYPE sType,
-																				SELECTION_TYPE selType) {
+	public static SelectionResult select(Project proj, double filterValue, STAT_TYPE sType,
+																			 SELECTION_TYPE selType) {
 		PCSelector selector = new PCSelector(proj, sType);
 		ArrayList<Integer> sigPCs = new ArrayList<Integer>();
 		SelectionResult rankResult = null;
@@ -141,7 +140,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 				case EFFECTIVE_M_CORRECTED:
 					int numTests = selector.determineEffectiveNumberOfTests();
 					proj.getLog()
-							.reportTimeInfo("Controling type I error at "	+ filterValue + "; " + filterValue + "/"
+							.reportTimeInfo("Controling type I error at " + filterValue + "; " + filterValue + "/"
 															+ numTests + " = " + (filterValue / numTests));
 					// String originalP = filterValue + "";
 					filterValue = filterValue / numTests;
@@ -211,13 +210,13 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 			summarize(ranks, selector.getpResiduals().getPcTitles(), finalSelection, outputSelect);
 
 			RScatter rScatterAll = plot(proj, sType,
-																	" n="					+ selector.getpResiduals().getPcTitles().length
-																								+ " total PCs",
+																	" n=" + selector.getpResiduals().getPcTitles().length
+																							 + " total PCs",
 																	selector.getpResiduals().getPcTitles().length + 1, outputAll,
 																	titles);
-			RScatter rScatterSelect = plot(	proj, sType, title + "; n=" + sigPCs.size() + " QC PCs",
-																			selector.getpResiduals().getPcTitles().length + 1,
-																			outputSelect, titles);
+			RScatter rScatterSelect = plot(proj, sType, title + "; n=" + sigPCs.size() + " QC PCs",
+																		 selector.getpResiduals().getPcTitles().length + 1,
+																		 outputSelect, titles);
 
 			RScatters rScatters = new RScatters(new RScatter[] {rScatterAll, rScatterSelect},
 																					outputBoth + ".rscript", outputBoth + ".pdf", null,
@@ -229,11 +228,11 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 		return rankResult;
 	}
 
-	private static RScatter plot(	Project proj, STAT_TYPE sType, String title, int xmax, String output,
-																String[] titles) {
-		RScatter rScatter =
-											new RScatter(	output, output + ".rscript", ext.rootOf(output), output + ".pdf",
-																		"PC", titles, SCATTER_TYPE.POINT, proj.getLog());
+	private static RScatter plot(Project proj, STAT_TYPE sType, String title, int xmax, String output,
+															 String[] titles) {
+		RScatter rScatter = new RScatter(output, output + ".rscript", ext.rootOf(output),
+																		 output + ".pdf", "PC", titles, SCATTER_TYPE.POINT,
+																		 proj.getLog());
 		rScatter.setyLabel(sType.toString());
 		rScatter.setOverWriteExisting(true);
 		rScatter.setxLabel("PC");
@@ -302,9 +301,8 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 
 		String usage = "\n" + "cnv.analysis.pca.PCSelector requires 0-1 arguments\n";
 		usage += "   (1) project filename (i.e. proj=" + filename + " ( no default))\n" + "";
-		usage +=
-					"   (2) the minimum (absolute value of the test statistic) across all qc metrics (i.e. statMin="
-							+ absStatMin + " (default))\n" + "";
+		usage += "   (2) the minimum (absolute value of the test statistic) across all qc metrics (i.e. statMin="
+						 + absStatMin + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

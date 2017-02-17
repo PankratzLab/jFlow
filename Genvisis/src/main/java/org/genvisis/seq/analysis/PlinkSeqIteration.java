@@ -13,9 +13,9 @@ import org.genvisis.seq.manage.VCFOps;
 
 public class PlinkSeqIteration {
 
-	public static void runPlinkSeq(	String dir, String phenoFile, String resourceDirectory,
-																	String outputRoot, String[] locGroups, boolean overwriteExisting,
-																	int macStart, int macStop, int numThreads, Logger log) {
+	public static void runPlinkSeq(String dir, String phenoFile, String resourceDirectory,
+																 String outputRoot, String[] locGroups, boolean overwriteExisting,
+																 int macStart, int macStop, int numThreads, Logger log) {
 		String[] vcfs = Files.listFullPaths(dir, ".vcf.gz", false);
 		String finalSummary = dir + "finalBurden.summary";
 		try {
@@ -26,9 +26,9 @@ public class PlinkSeqIteration {
 				int max = 500;
 				for (int j = macStart; j < macStop; j++) {
 					String projName = ext.rootOf(vcf) + "_mac_" + j;
-					PlinkSeq.runPlinkSeq(	projName, vcf, phenoFile, resourceDirectory, outputRoot, locGroups,
-																overwriteExisting, true, true, j == 0 ? "0" : j + ":" + max,
-																numThreads, log);
+					PlinkSeq.runPlinkSeq(projName, vcf, phenoFile, resourceDirectory, outputRoot, locGroups,
+															 overwriteExisting, true, true, j == 0 ? "0" : j + ":" + max,
+															 numThreads, log);
 					String summaryFile = dir + "pseqProj_" + projName + "/assoc/burden.summary";
 					String[] start = Files.getHeaderOfFile(summaryFile, new Logger());
 					int[] indices = new int[start.length];
@@ -68,15 +68,14 @@ public class PlinkSeqIteration {
 		String usage = "\n" + "seq.analysis.PlinkSeq requires 3 arguments\n";
 		usage += "   (1) full path to a dir with vcfs (i.e. vcf= (no default))\n" + "";
 		usage += "   (2) full path to a plinkseq phenotype file (i.e. phenoFile= (no default))\n" + "";
-		usage +=
-					"   (3) full path to a plinkseq resource directory  (i.e. resourceDirectory= (no default))\n"
-							+ "";
+		usage += "   (3) full path to a plinkseq resource directory  (i.e. resourceDirectory= (no default))\n"
+						 + "";
 		usage += "   (4) overwrite existing files  (i.e. -overwriteExisting (default))\n" + "";
 		usage += "   (5) analysis output root  (i.e. outputRoot=" + outputRoot + " (default))\n" + "";
 		usage += "   (6) project name  (i.e. projName=" + projName + " (default))\n" + "";
 		usage += "   (7) overwrite existing files  (i.e. -overwriteExisting (default))\n" + "";
 		usage += "   (8) comma -delimted loc groups to test in the association  (i.e. locGroups="
-							+ ArrayUtils.toStr(locGroups, ",") + " (default))\n" + "";
+						 + ArrayUtils.toStr(locGroups, ",") + " (default))\n" + "";
 		usage += "   (9) mac start  (i.e. macStart=" + macStart + " (default))\n" + "";
 		usage += "   (9) mac stop  (i.e. macStop=" + macStop + " (default))\n" + "";
 

@@ -41,7 +41,7 @@ public class CLI {
 	 * {@link PatternOptionBuilder} class constants.
 	 */
 	public enum Arg {
-										STRING, NUMBER, FILE
+		STRING, NUMBER, FILE
 	}
 
 	// common argument constants
@@ -404,7 +404,7 @@ public class CLI {
 
 			// Pop the indentation off non-required args
 			o.setDescription("(select one) "
-												+ o.getDescription().substring(o.isRequired() ? 0 : INDENT.length()));
+											 + o.getDescription().substring(o.isRequired() ? 0 : INDENT.length()));
 			g.addOption(o);
 			defaults.remove(getName(o));
 		}

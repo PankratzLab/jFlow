@@ -14,8 +14,8 @@ public class GenericLine {
 	private int direction;
 	private final boolean scale;
 
-	public GenericLine(	float startX, float startY, float stopX, float stopY, byte thickness,
-											byte color, byte layer, int direction) {
+	public GenericLine(float startX, float startY, float stopX, float stopY, byte thickness,
+										 byte color, byte layer, int direction) {
 		this.startX = startX;
 		this.startY = startY;
 		this.stopX = stopX;
@@ -26,8 +26,8 @@ public class GenericLine {
 		scale = true;
 	}
 
-	public GenericLine(	float startX, float startY, float stopX, float stopY, byte thickness,
-											byte color, byte layer, int direction, boolean shouldScale) {
+	public GenericLine(float startX, float startY, float stopX, float stopY, byte thickness,
+										 byte color, byte layer, int direction, boolean shouldScale) {
 		this.startX = startX;
 		this.startY = startY;
 		this.stopX = stopX;
@@ -41,16 +41,16 @@ public class GenericLine {
 	/*
 	 * Stub constructor for backwards compatibility
 	 */
-	public GenericLine(	float startX, float startY, float stopX, float stopY, byte thickness,
-											byte color, byte layer) {
+	public GenericLine(float startX, float startY, float stopX, float stopY, byte thickness,
+										 byte color, byte layer) {
 		this(startX, startY, stopX, stopY, thickness, color, layer, 0);
 	}
 
 	/*
 	 * Stub constructor for backwards compatibility
 	 */
-	public GenericLine(	PlotPoint startPoint, PlotPoint endPoint, byte thickness, byte color,
-											byte layer, boolean swapAxes) {
+	public GenericLine(PlotPoint startPoint, PlotPoint endPoint, byte thickness, byte color,
+										 byte layer, boolean swapAxes) {
 		this(startPoint, endPoint, thickness, color, layer, swapAxes, 0, true);
 	}
 
@@ -64,8 +64,8 @@ public class GenericLine {
 	 * @param layer
 	 * @param swapAxes
 	 */
-	public GenericLine(	PlotPoint startPoint, PlotPoint endPoint, byte thickness, byte color,
-											byte layer, boolean swapAxes, int direction, boolean shouldScale) {
+	public GenericLine(PlotPoint startPoint, PlotPoint endPoint, byte thickness, byte color,
+										 byte layer, boolean swapAxes, int direction, boolean shouldScale) {
 		startX = swapAxes ? startPoint.getRawY() : startPoint.getRawX();
 		startY = swapAxes ? startPoint.getRawX() : startPoint.getRawY();
 		stopX = swapAxes ? startPoint.getRawY() : endPoint.getRawX();

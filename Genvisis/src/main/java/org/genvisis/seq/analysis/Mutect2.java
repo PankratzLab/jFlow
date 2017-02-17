@@ -48,8 +48,8 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 	/**
 	 * @param tumorNormalMatchedBams String[sampleCombo][0]=normal and String[sampleCombo][1]=tumor
 	 */
-	public Mutect2(	GATK gatk, String[][] tumorNormalMatchedBams, String pon, String outputDir,
-									int numSampleThreads, Logger log) {
+	public Mutect2(GATK gatk, String[][] tumorNormalMatchedBams, String pon, String outputDir,
+								 int numSampleThreads, Logger log) {
 		super();
 		this.gatk = gatk;
 		this.tumorNormalMatchedBams = tumorNormalMatchedBams;
@@ -67,7 +67,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 				throw new IllegalArgumentException("All bams must have a single normal and a single tumor");
 			} else if (!Files.exists("", tumorNormalMatchedBams[i])) {
 				throw new IllegalArgumentException("Missing one of "
-																						+ ArrayUtils.toStr(tumorNormalMatchedBams[i], "\n"));
+																					 + ArrayUtils.toStr(tumorNormalMatchedBams[i], "\n"));
 			}
 		}
 	}
@@ -84,10 +84,10 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		String tumorBam = tumorNormalMatchedBams[index][1];
 		String tumorSample = BamOps.getSampleName(tumorBam);
 		index++;
-		return new MutectTumorNormalWorker(	gatk,
-																				normalBam, tumorBam, outputDir+ normalSample + "_normal_"
-																															+ tumorSample + "_tumor" + ".vcf.gz",
-																				pon, log);
+		return new MutectTumorNormalWorker(gatk,
+																			 normalBam, tumorBam, outputDir + normalSample + "_normal_"
+																														+ tumorSample + "_tumor" + ".vcf.gz",
+																			 pon, log);
 	}
 
 	private static class MutectTumorNormalWorker implements Callable<MutectTumorNormal> {
@@ -98,8 +98,8 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		private final String pon;
 		private final Logger log;
 
-		public MutectTumorNormalWorker(	GATK gatk, String normalBam, String tumorBam, String outputVCF,
-																		String pon, Logger log) {
+		public MutectTumorNormalWorker(GATK gatk, String normalBam, String tumorBam, String outputVCF,
+																	 String pon, Logger log) {
 			super();
 			this.gatk = gatk;
 			this.normalBam = normalBam;
@@ -155,10 +155,10 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		}
 
 		private void generatePON(int numThreads, int numSampleThreads) throws IllegalStateException {
-			NormalProducer producer = new NormalProducer(	gatk, normalSamples, ponDir, numSampleThreads,
-																										log);
-			WorkerTrain<Mutect2Normal> train = new WorkerTrain<GATK.Mutect2Normal>(	producer, numThreads,
-																																							2, log);
+			NormalProducer producer = new NormalProducer(gatk, normalSamples, ponDir, numSampleThreads,
+																									 log);
+			WorkerTrain<Mutect2Normal> train = new WorkerTrain<GATK.Mutect2Normal>(producer, numThreads,
+																																						 2, log);
 			ArrayList<String> vcfsToCombine = new ArrayList<String>();
 
 			while (train.hasNext()) {
@@ -179,8 +179,8 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		private int index;
 		private final int numSampleThreads;
 
-		private NormalProducer(	GATK gatk, NormalSample[] normalSamples, String outputDir,
-														int numSampleThreads, Logger log) {
+		private NormalProducer(GATK gatk, NormalSample[] normalSamples, String outputDir,
+													 int numSampleThreads, Logger log) {
 			super();
 			this.gatk = gatk;
 			this.normalSamples = normalSamples;
@@ -236,9 +236,9 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 			this.bamFile = bamFile;
 			this.ponVCF = ponVCF;
 			if (!BamOps.getSampleName(bamFile).equals(sample)) {
-				throw new IllegalArgumentException("Sample detected in bam file "+ bamFile
-																						+ " should have been " + sample + " but saw "
-																						+ BamOps.getSampleName(bamFile) + "+ instead");
+				throw new IllegalArgumentException("Sample detected in bam file " + bamFile
+																					 + " should have been " + sample + " but saw "
+																					 + BamOps.getSampleName(bamFile) + "+ instead");
 			}
 		}
 
@@ -268,9 +268,9 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 	 * @param log
 	 * @throws IllegalStateException
 	 */
-	public static void run(	String fileOfBams, String fileOftumorNormalMatchedBams, String outputDir,
-													String ponVcf, GATK gatk, MUTECT_RUN_TYPES type, int numThreads,
-													int numSampleThreads, Logger log) throws IllegalStateException {
+	public static void run(String fileOfBams, String fileOftumorNormalMatchedBams, String outputDir,
+												 String ponVcf, GATK gatk, MUTECT_RUN_TYPES type, int numThreads,
+												 int numSampleThreads, Logger log) throws IllegalStateException {
 		if (type == MUTECT_RUN_TYPES.GEN_NORMALS || type == MUTECT_RUN_TYPES.COMBINE_NORMALS) {
 			String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] {0}, true);
 			String[] samples = new String[bams.length];
@@ -319,14 +319,14 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		if (!merge) {
 			log.reportTimeInfo("Will not merge results as strict tumor normal comparison");
 		}
-		String[][] tumorNormalMatchedBams = HashVec.loadFileToStringMatrix(	fileOftumorNormalMatchedBams,
-																																				false, new int[] {0, 1},
-																																				false);
+		String[][] tumorNormalMatchedBams = HashVec.loadFileToStringMatrix(fileOftumorNormalMatchedBams,
+																																			 false, new int[] {0, 1},
+																																			 false);
 		Mutect2 mutect2 = new Mutect2(gatk, tumorNormalMatchedBams, ponVcf, outputDir, numSampleThreads,
 																	log);
-		WorkerTrain<MutectTumorNormal> train = new WorkerTrain<GATK.MutectTumorNormal>(	mutect2,
-																																										numThreads, 2,
-																																										log);
+		WorkerTrain<MutectTumorNormal> train = new WorkerTrain<GATK.MutectTumorNormal>(mutect2,
+																																									 numThreads, 2,
+																																									 log);
 		ArrayList<MutectTumorNormal> results = new ArrayList<GATK.MutectTumorNormal>();
 		ArrayList<String> finalTNnoFiltVCfs = new ArrayList<String>();
 		ArrayList<String> finalTNFiltVCFS = new ArrayList<String>();
@@ -340,9 +340,9 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		}
 		if (merge) {
 			String rootNoFilter = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) + ".merged";
-			String anno =
-									mergeAndAnnotate(	outputDir, gatk, annoVCF, finalMergeWithVCF, numThreads, log,
-																		tumorNormalMatchedBams, finalTNnoFiltVCfs, false, rootNoFilter);
+			String anno = mergeAndAnnotate(outputDir, gatk, annoVCF, finalMergeWithVCF, numThreads, log,
+																		 tumorNormalMatchedBams, finalTNnoFiltVCfs, false,
+																		 rootNoFilter);
 
 			// String rootFilter = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) +
 			// ".merged.filtered";
@@ -405,11 +405,11 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		}
 	}
 
-	private static String mergeAndAnnotate(	String outputDir, GATK gatk, ANNOVCF annoVCF,
-																					String finalMergeWithVCF, int numThreads, Logger log,
-																					String[][] tumorNormalMatchedBams,
-																					ArrayList<String> finalTNVCfs, boolean extract,
-																					String root) {
+	private static String mergeAndAnnotate(String outputDir, GATK gatk, ANNOVCF annoVCF,
+																				 String finalMergeWithVCF, int numThreads, Logger log,
+																				 String[][] tumorNormalMatchedBams,
+																				 ArrayList<String> finalTNVCfs, boolean extract,
+																				 String root) {
 		String outMergeVCF = root + ".vcf.gz";
 		String outMergeRenameVCF = root + ".renamed.vcf.gz";
 		// String outMergeRenameAnnoVCF = root + ".renamed.anno.vcf.gz";
@@ -422,14 +422,14 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 			VCFTumorNormalOps.renameMergeVCF(outMergeVCF, outMergeRenameVCF);
 		}
 		log.reportTimeWarning("Attempting to annotate using default locations...");
-		String finalAnno = GATK_Genotyper.annotateOnlyWithDefualtLocations(	outMergeRenameVCF, annoVCF,
-																																				true, false, log);
+		String finalAnno = GATK_Genotyper.annotateOnlyWithDefualtLocations(outMergeRenameVCF, annoVCF,
+																																			 true, false, log);
 
 		if (finalMergeWithVCF != null) {
 			String finalMerge = VCFOps.getAppropriateRoot(finalAnno, false) + ".finalMerge.vcf.gz";
 			log.reportTimeInfo("Merging with " + finalMergeWithVCF);
-			gatk.mergeVCFs(	new String[] {outMergeRenameVCF, finalMergeWithVCF}, finalMerge, numThreads,
-											false, log);
+			gatk.mergeVCFs(new String[] {outMergeRenameVCF, finalMergeWithVCF}, finalMerge, numThreads,
+										 false, log);
 			vcfToReturn = finalMerge;
 		} else {
 			vcfToReturn = finalAnno;
@@ -442,10 +442,11 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 					bamsToExtract.add(element);
 				}
 			}
-			String extractFiltDir = outputDir+ "extract_" + VCFOps.getAppropriateRoot(finalAnno, true)
+			String extractFiltDir = outputDir + "extract_" + VCFOps.getAppropriateRoot(finalAnno, true)
 															+ "/";
 			new File(extractFiltDir).mkdirs();
-			extractBamsTo(extractFiltDir, ArrayUtils.toStringArray(bamsToExtract), finalAnno, numThreads, log);
+			extractBamsTo(extractFiltDir, ArrayUtils.toStringArray(bamsToExtract), finalAnno, numThreads,
+										log);
 		}
 
 		return vcfToReturn;
@@ -474,13 +475,12 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 			}
 
 		}
-		VCFOps.extractSegments(	vcf, segFile, 300, bamFile, extractDir, false, true, false, false, null,
-														numThreads, log);
+		VCFOps.extractSegments(vcf, segFile, 300, bamFile, extractDir, false, true, false, false, null,
+													 numThreads, log);
 	}
 
-	private static void batchPON(	int numNormalBatches, GATK gatk, String bamFilesFullPath,
-																String outputDir, int numthreads, int numSampleThreads,
-																Logger log) {
+	private static void batchPON(int numNormalBatches, GATK gatk, String bamFilesFullPath,
+															 String outputDir, int numthreads, int numSampleThreads, Logger log) {
 		List<String[]> splits = ArrayUtils.splitUpArray(HashVec.loadFileToStringArray(bamFilesFullPath,
 																																									false,
 																																									new int[] {0},
@@ -497,8 +497,8 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		command.addAll(getBaseArgs(gatk, outputDir, numthreads, numSampleThreads));
 		command.add("normalBams=" + baseOut);
 
-		Files.qsub(outputDir+ "Contam.txt", ArrayUtils.toStr(ArrayUtils.toStringArray(command), " "), batches,
-								62000, 40, numthreads * numSampleThreads, "small");
+		Files.qsub(outputDir + "Contam.txt", ArrayUtils.toStr(ArrayUtils.toStringArray(command), " "),
+							 batches, 62000, 40, numthreads * numSampleThreads, "small");
 	}
 
 	private static void getJava(ArrayList<String> command) {
@@ -510,8 +510,8 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 
 	}
 
-	private static ArrayList<String> getBaseArgs(	GATK gatk, String outputDir, int numthreads,
-																								int numSampleThreads) {
+	private static ArrayList<String> getBaseArgs(GATK gatk, String outputDir, int numthreads,
+																							 int numSampleThreads) {
 		ArrayList<String> base = new ArrayList<String>();
 		base.add("gatk=" + gatk.getGATKLocation());
 		base.add("ref=" + gatk.getReferenceGenomeFasta());
@@ -525,19 +525,18 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 	}
 
 	public enum MUTECT_RUN_TYPES {
-																/**
-																 * Generate individual normal calls
-																 */
-																GEN_NORMALS,
-																/**
-																 * Combine individual normal calls, will generate normals if needed
-																 */
-																COMBINE_NORMALS,
-																/**
-																 * Call somatic variants, will combine variants and generate normals
-																 * if needed
-																 */
-																CALL_SOMATIC;
+		/**
+		 * Generate individual normal calls
+		 */
+		GEN_NORMALS,
+		/**
+		 * Combine individual normal calls, will generate normals if needed
+		 */
+		COMBINE_NORMALS,
+		/**
+		 * Call somatic variants, will combine variants and generate normals if needed
+		 */
+		CALL_SOMATIC;
 	}
 
 	public static void main(String[] args) {
@@ -559,28 +558,26 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		ANNOVCF annoVCF = null;
 		String tparams = null;
 		String usage = "\n" + "seq.analysis.Mutect2 requires 0-1 arguments\n";
-		usage += "   (1) full path to a file of normal sample bams (i.e. normalBams="+ fileOfNormalBams
-							+ " (default))\n" + "";
-		usage += "   (2) full path to a reference genome (i.e. ref="+ referenceGenomeFasta
-							+ " (default))\n" + "";
+		usage += "   (1) full path to a file of normal sample bams (i.e. normalBams=" + fileOfNormalBams
+						 + " (default))\n" + "";
+		usage += "   (2) full path to a reference genome (i.e. ref=" + referenceGenomeFasta
+						 + " (default))\n" + "";
 		usage += "   (3) known dbsnp snps (i.e. knownSnps=" + knownSnps + " (default))\n" + "";
 		usage += "   (4) cosmic snps (i.e. cosmic=" + cosmic + " (default))\n" + "";
 		usage += "   (5) regions for calling (i.e. regions=" + regions + " (default))\n" + "";
 		usage += "   (6) output root directory (i.e. outputDir=" + outputDir + " (default))\n" + "";
 		usage += "   (7) number of batches- triggers qsub generation (i.e. numNormalBatches="
-							+ numbatches + " (default))\n" + "";
+						 + numbatches + " (default))\n" + "";
 		usage += "   (8) number of threads (i.e. numthreads=" + numthreads + " (default))\n" + "";
 		usage += "   (9) gatk directory (i.e. gatk=" + gatkLocation + " (default))\n" + "";
 		usage += "   (10) type of analysis (i.e. run=" + run + " (default))\n" + "";
 		usage += "   (11) pon vcf (i.e. ponVcf= (no default))\n" + "";
-		usage += "   (12) number of threads per sample (i.e. numSampleThreads="+ numSampleThreads
-							+ " (default))\n" + "";
-		usage +=
-					"   (13) full path to a file of tumor-normal matched (tab-delimited) bam files, normal in first column, tumor in second (i.e. tumorNormalBams= (no default))\n"
-							+ "";
-		usage +=
-					"   (14) full path to a final merge vcf to merge somatic calls with (i.e. finalVCF= (no default))\n"
-							+ "";
+		usage += "   (12) number of threads per sample (i.e. numSampleThreads=" + numSampleThreads
+						 + " (default))\n" + "";
+		usage += "   (13) full path to a file of tumor-normal matched (tab-delimited) bam files, normal in first column, tumor in second (i.e. tumorNormalBams= (no default))\n"
+						 + "";
+		usage += "   (14) full path to a final merge vcf to merge somatic calls with (i.e. finalVCF= (no default))\n"
+						 + "";
 		usage += "   (15) full path to a vcf tallyparamFile (i.e. tparams= (no default))\n" + "";
 
 		for (String arg : args) {
@@ -660,8 +657,8 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 					String outputNormal = outputDir + "pon/";
 					new File(outputNormal).mkdirs();
 					log.reportTimeInfo("Generating normal sample vcfs batches in " + outputNormal);
-					batchPON(	numbatches, gatk, fileOfNormalBams, outputNormal, numthreads, numSampleThreads,
-										log);
+					batchPON(numbatches, gatk, fileOfNormalBams, outputNormal, numthreads, numSampleThreads,
+									 log);
 				} else if (fileOfNormalBams != "") {
 					log.reportTimeInfo("Generating normal sample vcfs");
 					try {

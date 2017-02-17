@@ -23,10 +23,10 @@ public class Menus {
 		return menu;
 	}
 
-	public static JMenuItem createMenuItem(	JMenu menu, String name, int mnemonic, String tooltip,
-																					int accelerator, boolean checkbox,
-																					ActionListener listener) {
-		JMenuItem menuItem = checkbox	? (JCheckBoxMenuItem) menu.add(new JCheckBoxMenuItem(name))
+	public static JMenuItem createMenuItem(JMenu menu, String name, int mnemonic, String tooltip,
+																				 int accelerator, boolean checkbox,
+																				 ActionListener listener) {
+		JMenuItem menuItem = checkbox ? (JCheckBoxMenuItem) menu.add(new JCheckBoxMenuItem(name))
 																	: (JMenuItem) menu.add(new JMenuItem(name));
 		if (mnemonic != -1) {
 			menuItem.setMnemonic(mnemonic);

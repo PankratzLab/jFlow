@@ -11,8 +11,8 @@ import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 
 public class Ancestry {
 
-	public static void runAncestry(	String vcf, String hapMapRsIds, String g1000RsIds, String vpopFile,
-																	String outputDirectory) {
+	public static void runAncestry(String vcf, String hapMapRsIds, String g1000RsIds, String vpopFile,
+																 String outputDirectory) {
 		new File(outputDirectory).mkdirs();
 
 		Logger log = new Logger(outputDirectory + "ancestry.log");
@@ -21,8 +21,8 @@ public class Ancestry {
 		String curVCF = VCFOps.extractIDs(vcf, g1000RsIds, outputDirectory, true, true, null, null,
 																			false, true, log);
 		log.reportTimeInfo("Current VCF: " + curVCF);
-		curVCF = VCFOps.extractIDs(	curVCF, hapMapRsIds, outputDirectory, true, true, null, null, false,
-																true, log);
+		curVCF = VCFOps.extractIDs(curVCF, hapMapRsIds, outputDirectory, true, true, null, null, false,
+															 true, log);
 		log.reportTimeInfo("Current VCF: " + curVCF);
 
 		String[] filenames = VcfPopulation.splitVcfByPopulation(curVCF, vpopFile, false, false, false,
@@ -35,8 +35,8 @@ public class Ancestry {
 				curVCF = VCFOps.removeFilteredVariants(curVCF, true, true, log);
 				log.reportTimeInfo("Current VCF: " + curVCF);
 
-				String copyVcf = ext.parseDirectoryOfFile(curVCF)	+ ext.rootOf(vpopFile)
-													+ "ancestry.vcf.gz";
+				String copyVcf = ext.parseDirectoryOfFile(curVCF) + ext.rootOf(vpopFile)
+												 + "ancestry.vcf.gz";
 				Files.copyFileUsingFileChannels(new File(curVCF), new File(copyVcf), log);
 				Files.copyFileUsingFileChannels(new File(curVCF + ".tbi"), new File(copyVcf + ".tbi"), log);
 				curVCF = copyVcf;
@@ -59,8 +59,8 @@ public class Ancestry {
 		String usage = "\n" + "seq.analysis.ancestry requires 0-1 arguments\n";
 		usage += "   (1) vcf (i.e. vcf=" + vcf + " (default))\n" + "";
 		usage += "   (2) file of hapMap rs ids to extract (i.e. hapMap=" + vcf + " (default))\n" + "";
-		usage +=
-					"   (3) file of 1000 genome rs ids to extract (i.e. g1000=" + vcf + " (default))\n" + "";
+		usage += "   (3) file of 1000 genome rs ids to extract (i.e. g1000=" + vcf + " (default))\n"
+						 + "";
 		usage += "   (4) vpopFile  (i.e. vpop=" + vpopFile + " (default))\n" + "";
 		usage += PSF.Ext.getOutputDirCommand(4, "");
 

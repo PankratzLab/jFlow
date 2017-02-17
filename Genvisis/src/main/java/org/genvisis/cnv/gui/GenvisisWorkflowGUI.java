@@ -376,7 +376,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 
 			String current = fileField.getText();
 
-			String dir = "".equals(current)	? proj.PROJECT_DIRECTORY.getValue(false, false)
+			String dir = "".equals(current) ? proj.PROJECT_DIRECTORY.getValue(false, false)
 																			: ext.parseDirectoryOfFile(current);
 			JFileChooser chooser = new JFileChooser(dir);
 			chooser.setMultiSelectionEnabled(false);
@@ -464,7 +464,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 		cancelStepBtns.put(step, cancelStepButton);
 		panel.topPanel.add(cancelStepButton, "cell 1 0, alignx right, hidemode 3");
 
-		JLabel descLbl = new JLabel("<html><center><p>" + step.getDescription() + "</p></center></html>");
+		JLabel descLbl = new JLabel("<html><center><p>" + step.getDescription()
+																+ "</p></center></html>");
 		descLbl.setVerticalAlignment(SwingConstants.TOP);
 		descLbl.setHorizontalAlignment(SwingConstants.LEFT);
 		descLbl.setFont(descLbl.getFont().deriveFont(Font.PLAIN));
@@ -492,8 +493,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 
 				for (int j = 0; j < reqs[i].length; j++) {
 					// OR
-					JLabel indLbl = new JLabel(""	+ (i + 1) + (reqs[i].length > 1 ? reqSteps.charAt(j) : "")
-																			+ ". ");
+					JLabel indLbl = new JLabel("" + (i + 1) + (reqs[i].length > 1 ? reqSteps.charAt(j) : "")
+																		 + ". ");
 					indLbl.setFont(indLbl.getFont().deriveFont(Font.PLAIN, 9));
 					panel.contentPanel.add(indLbl, "gapleft 25, aligny top, split 1, cell 0 " + rowIndex);
 					JLabel requirementLbl = new JLabel("<html><p>" + reqs[i][j] + "</p></html>");
@@ -538,17 +539,20 @@ public class GenvisisWorkflowGUI extends JDialog {
 						checkBox.setSelected(sel);
 						reqIndex++;
 						reqInputFields.add(checkBox);
-						panel.contentPanel.add(checkBox, "alignx right, aligny center, growx, gapleft 20, cell 1 " + rowIndex);
+						panel.contentPanel.add(checkBox,
+																	 "alignx right, aligny center, growx, gapleft 20, cell 1 "
+																						 + rowIndex);
 					} else if (inputTypes[i][j] == RequirementInputType.ENUM) {
 						Object o = step.getRequirementDefaults(proj)[reqIndex];
-						Enum<?>[] vals = ((Enum<?>) o).getClass().getEnumConstants();						
+						Enum<?>[] vals = ((Enum<?>) o).getClass().getEnumConstants();
 						JComboBox combo = new JComboBox(vals);
 						combo.setAction(new StepRefresher(GenvisisWorkflowGUI.this, step));
 						combo.setFont(combo.getFont().deriveFont(14));
 						combo.setSelectedItem(o);
 						reqIndex++;
 						reqInputFields.add(combo);
-						panel.contentPanel.add(combo, "alignx right, aligny center, growx, gapleft 20, cell 1 " + rowIndex);
+						panel.contentPanel.add(combo, "alignx right, aligny center, growx, gapleft 20, cell 1 "
+																					+ rowIndex);
 					} else if (inputTypes[i][j] != RequirementInputType.NONE) {
 						JTextField textField = new JTextField();
 						textField.getDocument().addDocumentListener(new TextChangedListener() {
@@ -560,7 +564,9 @@ public class GenvisisWorkflowGUI extends JDialog {
 						textField.setText(step.getRequirementDefaults(proj)[reqIndex].toString());
 						reqIndex++;
 						reqInputFields.add(textField);
-						panel.contentPanel.add(	textField, "alignx right, aligny center, growx, gapleft 20, split 1, cell 1 " + rowIndex);
+						panel.contentPanel.add(textField,
+																	 "alignx right, aligny center, growx, gapleft 20, split 1, cell 1 "
+																							+ rowIndex);
 						if (inputTypes[i][j] == RequirementInputType.FILE
 								|| inputTypes[i][j] == RequirementInputType.DIR) {
 							JButton fileBtn = new JButton();
@@ -673,7 +679,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 			refreshLabels(refrenceGUI, stepsToRefresh);
 		}
 	}
-	
+
 	private Set<STEP> getAllRelatedSteps(final Collection<STEP> refreshSteps) {
 		HashSet<STEP> allSteps = new HashSet<GenvisisWorkflow.STEP>();
 		allSteps.addAll(refreshSteps);
@@ -691,14 +697,13 @@ public class GenvisisWorkflowGUI extends JDialog {
 		}
 		return Collections.unmodifiableSet(allSteps);
 	}
-	
+
 	/**
 	 * Validate all elements of the given {@link STEP}s and refresh the specified UI.
 	 *
 	 * @param stepsToRefresh
 	 */
-	public static void refreshLabels(	final GenvisisWorkflowGUI gui,
-																		Collection<STEP> steps) {
+	public static void refreshLabels(final GenvisisWorkflowGUI gui, Collection<STEP> steps) {
 		final Collection<STEP> stepsToRefresh = gui.getAllRelatedSteps(steps);
 		new Thread(new Runnable() {
 			@Override
@@ -742,8 +747,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 									for (boolean[] reqVal : reqVals) {
 										boolean hasAny = ArrayUtils.booleanArraySum(reqVal) > 0;
 										for (boolean element : reqVal) {
-											reqLbls	.get(lblIndex)
-															.setForeground(element ? greenDark : hasAny ? Color.GRAY : Color.RED);
+											reqLbls.get(lblIndex)
+														 .setForeground(element ? greenDark : hasAny ? Color.GRAY : Color.RED);
 											lblIndex++;
 										}
 									}
@@ -868,12 +873,14 @@ public class GenvisisWorkflowGUI extends JDialog {
 							output.append("\n\n");
 						}
 					}
-					Files.write(output.toString(), proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.run");
-					Files.qsub(proj.PROJECT_DIRECTORY.getValue()	+ "GenvisisPipeline."
-											+ ext.getTimestampForFilename() + ".pbs", output.toString(), Files.PBS_MEM, 48, Files.PBS_PROC);
-					proj.message("GenvisisPipeline commands written to "	+ proj.PROJECT_DIRECTORY.getValue()
-												+ "GenvisisPipeline.run", "Command File Written",
-												JOptionPane.INFORMATION_MESSAGE);
+					Files.write(output.toString(),
+											proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.run");
+					Files.qsub(proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline."
+										 + ext.getTimestampForFilename() + ".pbs", output.toString(), Files.PBS_MEM, 48,
+										 Files.PBS_PROC);
+					proj.message("GenvisisPipeline commands written to " + proj.PROJECT_DIRECTORY.getValue()
+											 + "GenvisisPipeline.run", "Command File Written",
+											 JOptionPane.INFORMATION_MESSAGE);
 				}
 
 				lockup(false);
@@ -883,7 +890,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 	}
 
 	enum FINAL_CODE {
-										COMPLETE("Complete"), FAILED("Failed"), CANCELLED("Cancelled");
+		COMPLETE("Complete"), FAILED("Failed"), CANCELLED("Cancelled");
 
 		private String message;
 
@@ -926,14 +933,15 @@ public class GenvisisWorkflowGUI extends JDialog {
 								System.gc();
 							}
 							if (code != FINAL_CODE.CANCELLED
-									&& (e != null	|| steps[i].getFailed()
+									&& (e != null || steps[i].getFailed()
 											|| !steps[i].checkIfOutputExists(proj, variables))) {
 								code = FINAL_CODE.FAILED;
 							}
 							endStep(steps[i], code);
 							if (code == FINAL_CODE.FAILED) {
-								StringBuilder failureMessage = new StringBuilder("Error Occurred on Step ")	.append(i + 1)
-																																														.append(":");
+								StringBuilder failureMessage = new StringBuilder("Error Occurred on Step ").append(i
+																																																	 + 1)
+																																													 .append(":");
 								if (e != null) {
 									proj.getLog().reportException(e, 0);
 									failureMessage.append("\n").append(e.getMessage());
@@ -946,11 +954,11 @@ public class GenvisisWorkflowGUI extends JDialog {
 								}
 								failureMessage.append("\nPlease check project log for more details.");
 								String[] opts = {"Continue", "Retry", "Cancel"};
-								int opt = JOptionPane.showOptionDialog(	GenvisisWorkflowGUI.this,
-																												failureMessage.toString(), "Error!",
-																												JOptionPane.YES_NO_OPTION,
-																												JOptionPane.ERROR_MESSAGE, null, opts,
-																												opts[2]);
+								int opt = JOptionPane.showOptionDialog(GenvisisWorkflowGUI.this,
+																											 failureMessage.toString(), "Error!",
+																											 JOptionPane.YES_NO_OPTION,
+																											 JOptionPane.ERROR_MESSAGE, null, opts,
+																											 opts[2]);
 								if (opt == JOptionPane.CLOSED_OPTION || opt == 2) { // closed or cancel
 									for (STEP step : steps) {
 										step.resetRun();
@@ -1005,7 +1013,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 
 	}
 
-	private boolean checkRequirementsAndNotify(Map<STEP, Boolean> selectedSteps, Map<STEP, List<String>> variables) {
+	private boolean checkRequirementsAndNotify(Map<STEP, Boolean> selectedSteps,
+																						 Map<STEP, List<String>> variables) {
 		boolean[] options = getSelectedOptions();
 
 		ArrayList<String> reqMsgs = new ArrayList<String>();
@@ -1019,8 +1028,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 		}
 		boolean retVal = true;
 		if (!reqMsgs.isEmpty()) {
-			StringBuilder msg =
-												new StringBuilder("Prerequisite requirements are unmet for the following steps:");
+			StringBuilder msg = new StringBuilder("Prerequisite requirements are unmet for the following steps:");
 			for (String str : reqMsgs) {
 				msg.append("\n").append(str);
 			}

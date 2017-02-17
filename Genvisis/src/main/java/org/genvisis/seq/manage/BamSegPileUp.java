@@ -178,8 +178,8 @@ public class BamSegPileUp implements Iterator<BamPile> {
 		public BamPileResult call() throws Exception {
 			String ser = serDir + ext.rootOf(bamFile) + ".ser";
 			if (!Files.exists(ser)) {
-				BamSegPileUp bamSegPileUp = new BamSegPileUp(	bamFile, referenceGenomeFasta, pileSegs,
-																											filterNGS, aName, log);
+				BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceGenomeFasta, pileSegs,
+																										 filterNGS, aName, log);
 				ArrayList<BamPile> bamPiles = new ArrayList<BamPile>();
 				while (bamSegPileUp.hasNext()) {
 					BamPile bamPile = bamSegPileUp.next();
@@ -229,8 +229,8 @@ public class BamSegPileUp implements Iterator<BamPile> {
 
 		@Override
 		public Callable<BamPileResult> next() {
-			PileUpWorker worker = new PileUpWorker(	bamFiles[index], serDir, referenceGenomeFasta,
-																							pileSegs, filterNGS, aName, log);
+			PileUpWorker worker = new PileUpWorker(bamFiles[index], serDir, referenceGenomeFasta,
+																						 pileSegs, filterNGS, aName, log);
 			index++;
 			return worker;
 		}

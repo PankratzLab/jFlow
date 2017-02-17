@@ -17,8 +17,7 @@ import htsjdk.variant.vcf.VCFHeaderLineType;
 public class MarkerSeqAnnotation extends AnnotationData {
 
 	private static final String DEFAULT_NAME = "PROBE_DESIGN";
-	private static final String DESCRIPTION =
-																					"The probe sequence for the A probe, probe sequence for the B probe (if different than A) interrogation position,strand by design,TOB_BOTTOM SNP designation,TOP_BOTTOM Reference Designation, A allele, and B allele ";
+	private static final String DESCRIPTION = "The probe sequence for the A probe, probe sequence for the B probe (if different than A) interrogation position,strand by design,TOB_BOTTOM SNP designation,TOP_BOTTOM Reference Designation, A allele, and B allele ";
 	private String seqA;
 	private String seqB;
 	private Strand strand;
@@ -56,7 +55,7 @@ public class MarkerSeqAnnotation extends AnnotationData {
 		this.A = A;
 		this.B = B;
 		// this.seg=seg; populate on load only
-		setData(seqA	+ DEFUALT_DELIMITER + segB + DEFUALT_DELIMITER + interrogationPosition
+		setData(seqA + DEFUALT_DELIMITER + segB + DEFUALT_DELIMITER + interrogationPosition
 						+ DEFUALT_DELIMITER + CNVHelper.decode(strand) + DEFUALT_DELIMITER + topBotProbe
 						+ DEFUALT_DELIMITER + topBotRef + DEFUALT_DELIMITER + A.getDisplayString()
 						+ DEFUALT_DELIMITER + B.getDisplayString());

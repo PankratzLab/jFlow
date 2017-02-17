@@ -36,7 +36,7 @@ public class BinnedMovingStatistic<T extends Number> {
 	 * Available moving statistics to compute
 	 */
 	public enum MovingStat {
-													MEAN, MAD
+		MEAN, MAD
 	}
 
 	private BinManager<T> binManager;
@@ -230,7 +230,7 @@ public class BinnedMovingStatistic<T extends Number> {
 		// Flag for whether or not we have ever reached the full window size
 		private boolean filledWindow = false;
 		// For even windows we make the trailing window half larger.
-		private  int evenOffset;
+		private int evenOffset;
 
 		public AbstractBinManager(int window) {
 			setWindow(window);

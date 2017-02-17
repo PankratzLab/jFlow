@@ -38,8 +38,8 @@ public class RegionNavigator extends JPanel {
 																						"images/firstLast/dLeft.gif"};
 	private static final String[] NEXT_BTN = {"images/firstLast/Right.gif",
 																						"images/firstLast/dRight.gif"};
-	private static final String[] FIRST_BTN = {	"images/firstLast/First.gif",
-																							"images/firstLast/dFirst.gif"};
+	private static final String[] FIRST_BTN = {"images/firstLast/First.gif",
+																						 "images/firstLast/dFirst.gif"};
 	private static final String[] LAST_BTN = {"images/firstLast/Last.gif",
 																						"images/firstLast/dLast.gif"};
 
@@ -85,9 +85,8 @@ public class RegionNavigator extends JPanel {
 	}
 
 	public void setChrFieldText(byte chr, int start, int stop) {
-		chrNavField.setText(chr == 0	? "all"
-																	: "chr"	+ chr + ":" + ext.addCommas(start) + "-"
-																		+ ext.addCommas(stop));
+		chrNavField.setText(chr == 0 ? "all" : "chr" + chr + ":" + ext.addCommas(start) + "-"
+																					 + ext.addCommas(stop));
 	}
 
 	/**

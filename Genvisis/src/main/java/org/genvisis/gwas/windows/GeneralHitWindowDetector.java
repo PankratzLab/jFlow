@@ -93,31 +93,31 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
 				int numSig = 1;
 				int numSuggestive = 1;
 				while (startIndex - offset - 1 >= 0
-								&& hittables.get(startIndex).getChr() == hittables.get(startIndex - offset - 1)
-																																	.getChr()
-								&& hittables.get(startIndex).getPos()
-										- window * 2 <= hittables.get(startIndex - offset - 1).getPos()) { // *2
-																																												// required
-																																												// to ensure
-																																												// that
-																																												// there
-																																												// are no
-																																												// overlapping
-																																												// SNPs
-																																												// 500kb
-																																												// after
-																																												// last
-																																												// hit and
-																																												// 500kb
-																																												// before
-																																												// next
-																																												// hit is
-																																												// technically
-																																												// a 1M
-																																												// region
-																																												// that
-																																												// should
-																																												// be merged
+							 && hittables.get(startIndex).getChr() == hittables.get(startIndex - offset - 1)
+																																 .getChr()
+							 && hittables.get(startIndex).getPos()
+									- window * 2 <= hittables.get(startIndex - offset - 1).getPos()) { // *2
+																																										 // required
+																																										 // to ensure
+																																										 // that
+																																										 // there
+																																										 // are no
+																																										 // overlapping
+																																										 // SNPs
+																																										 // 500kb
+																																										 // after
+																																										 // last
+																																										 // hit and
+																																										 // 500kb
+																																										 // before
+																																										 // next
+																																										 // hit is
+																																										 // technically
+																																										 // a 1M
+																																										 // region
+																																										 // that
+																																										 // should
+																																										 // be merged
 					offset++;
 					if (hittables.get(startIndex - offset).getPval() < windowExtensionThreshold) {
 						startIndex -= offset;
@@ -130,12 +130,12 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
 				offset = 0;
 
 				while (stopIndex + offset + 1 < hittables.size()
-								&& hittables.get(stopIndex).getChr() == hittables	.get(stopIndex + offset + 1)
-																																	.getChr()
-								&& hittables.get(stopIndex).getPos()
-										+ window >= hittables.get(stopIndex + offset + 1).getPos()) { // don't want the
-																																									// 2* here,
-																																									// though
+							 && hittables.get(stopIndex).getChr() == hittables.get(stopIndex + offset + 1)
+																																.getChr()
+							 && hittables.get(stopIndex).getPos()
+									+ window >= hittables.get(stopIndex + offset + 1).getPos()) { // don't want the
+																																								// 2* here,
+																																								// though
 					offset++;
 					if (hittables.get(stopIndex + offset).getPval() < indexThreshold) {
 						numSig++;
@@ -170,9 +170,9 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
 				for (Integer minIndex : minIndices) {
 					indexHits.add(hittables.get(minIndex));
 				}
-				currentWindow = new HitWindow<T>(	window, indexHits, hittables.get(startIndex),
-																					hittables.get(stopIndex), numSig, numSuggestive,
-																					stopIndex - startIndex + 1);
+				currentWindow = new HitWindow<T>(window, indexHits, hittables.get(startIndex),
+																				 hittables.get(stopIndex), numSig, numSuggestive,
+																				 stopIndex - startIndex + 1);
 
 				currentIndex = stopIndex + offset + 1;// +1 since this is not i
 				return true;

@@ -18,6 +18,6 @@ public interface SegmentAnnotator {
 	 * @return
 	 */
 	public void annotate(Segment segment, SegmentAnotation segmentAnotation);
-		
+
 
 }

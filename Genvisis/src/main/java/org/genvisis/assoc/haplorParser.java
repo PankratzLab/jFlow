@@ -87,7 +87,7 @@ public class haplorParser {
 
 		writers = new PrintWriter[TARGET_HAPLOTYPES.length];
 		for (int i = 0; i < TARGET_HAPLOTYPES.length; i++) {
-			writers[i] = new PrintWriter(new FileWriter("BRI3-haplotype-"	+ TARGET_HAPLOTYPES[i]
+			writers[i] = new PrintWriter(new FileWriter("BRI3-haplotype-" + TARGET_HAPLOTYPES[i]
 																									+ "-cases.dat"));
 			writers[i].println("UniqueID\tFamID\tIndID\thaplotype-" + TARGET_HAPLOTYPES[i]);
 		}
@@ -144,8 +144,8 @@ public class haplorParser {
 				} while (!done && !line[0 + offset].equals(count + ""));
 				if (!done) {
 					trav = comparisons.elementAt(Integer.valueOf(line[1 + offset]).intValue() - 1);
-					temp = compHaps.elementAt(Integer.valueOf(line[2 + offset]).intValue() - 1)	+ "\t"
-									+ compHaps.elementAt(Integer.valueOf(line[3 + offset]).intValue() - 1);
+					temp = compHaps.elementAt(Integer.valueOf(line[2 + offset]).intValue() - 1) + "\t"
+								 + compHaps.elementAt(Integer.valueOf(line[3 + offset]).intValue() - 1);
 					post = Double.valueOf(line[4 + offset]).doubleValue();
 				}
 				if (trav.equals(prev)) {
@@ -197,15 +197,15 @@ public class haplorParser {
 					count++;
 				}
 			}
-			if (count < (double) numMarkers	&& line.length > 1
+			if (count < (double) numMarkers && line.length > 1
 					&& Integer.valueOf(line[1]).intValue() < 100) {
 				System.out.print(".");
 				missingdata.add(line[0] + "-" + line[1]);
 			}
 		} while (reader.ready() && line.length > 1);
 		System.out.println();
-		System.out.println("Warning - "	+ missingdata.size()
-												+ " individuals were excluded due to missing data");
+		System.out.println("Warning - " + missingdata.size()
+											 + " individuals were excluded due to missing data");
 
 		System.out.println("Determining haplotypes for " + fams.size() + " families");
 
@@ -244,8 +244,8 @@ public class haplorParser {
 			// for (int i = 0; i<2; i++) {
 			line = reader.readLine().split("[\\s]+");
 			if (!fams.elementAt(i).equals(line[3])) {
-				System.err.println("Error - failed family line up. Expecting "	+ fams.elementAt(i)
-														+ " found " + line[3] + ".");
+				System.err.println("Error - failed family line up. Expecting " + fams.elementAt(i)
+													 + " found " + line[3] + ".");
 			}
 			hFam = new HapFam(line[3]);
 			// hash.put(line[3], hFam);
@@ -275,8 +275,8 @@ public class haplorParser {
 						temp += (temp.equals("") ? "" : ",") + trav;
 						hInd = hFam.members.get(indIDs[k]);
 						if (hInd.posts.containsKey(trav)) {
-							hInd.posts.put(	trav,
-															(Double.valueOf(hInd.posts.get(trav)).doubleValue() + post) + "");
+							hInd.posts.put(trav,
+														 (Double.valueOf(hInd.posts.get(trav)).doubleValue() + post) + "");
 						} else {
 							hInd.posts.put(trav, post + "");
 						}
@@ -319,15 +319,16 @@ public class haplorParser {
 						// 3,
 						// true)+"\t"+hInd.maxHap+"\t"+ext.formDeci(hInd.maxPost,
 						// 3, true));
-						writer.print(hFam.id	+ "\t" + hInd.id + "\t"
-													+ translateHap(line[typed.indexOf(j)], haplotypes) + "\t"
-													+ ext.formDeci(hFam.maxPost, 3, true) + "\t"
-													+ translateHap(hInd.maxHap, haplotypes) + "\t"
-													+ ext.formDeci(hInd.maxPost, 3, true));
+						writer.print(hFam.id + "\t" + hInd.id + "\t"
+												 + translateHap(line[typed.indexOf(j)], haplotypes) + "\t"
+												 + ext.formDeci(hFam.maxPost, 3, true) + "\t"
+												 + translateHap(hInd.maxHap, haplotypes) + "\t"
+												 + ext.formDeci(hInd.maxPost, 3, true));
 						temp = (Integer.valueOf(hFam.id).intValue() * 1000
-										+ Integer.valueOf(hInd.id).intValue()) + "";
-						writer.println(compare	? (hash.containsKey(temp) ? "\t" + hash.get(temp) : "\t.\t.\t.")
-																		: "");
+										+ Integer.valueOf(hInd.id).intValue())
+									 + "";
+						writer.println(compare ? (hash.containsKey(temp) ? "\t" + hash.get(temp) : "\t.\t.\t.")
+																	 : "");
 					}
 					for (int k = 0; k < TARGET_HAPLOTYPES.length; k++) {
 						writers[k].print(hFam.id + ext.formNum(hInd.id, 3) + "\t" + hFam.id + "\t" + hInd.id);
@@ -335,8 +336,8 @@ public class haplorParser {
 							writers[k].println("\t0\t0");
 						} else {
 							marks = translateHap(line[typed.indexOf(j)], haplotypes).split("[\\s]+");
-							writers[k].println("\t"	+ compHap(marks[0], TARGET_HAPLOTYPES[k]) + "\t"
-																	+ compHap(marks[1], TARGET_HAPLOTYPES[k]));
+							writers[k].println("\t" + compHap(marks[0], TARGET_HAPLOTYPES[k]) + "\t"
+																 + compHap(marks[1], TARGET_HAPLOTYPES[k]));
 						}
 					}
 
@@ -381,9 +382,9 @@ public class haplorParser {
 		// String filename = "pd_first3_all.out";
 		String filename = "trythis.ped.out";
 
-		String usage = "\n"	+ "park.haplorParser requires 1 arguments:\n"
-										+ "   (1) the name of the file to parse (i.e. file=" + filename
-										+ " (default))\n" + "";
+		String usage = "\n" + "park.haplorParser requires 1 arguments:\n"
+									 + "   (1) the name of the file to parse (i.e. file=" + filename + " (default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

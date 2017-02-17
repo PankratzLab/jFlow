@@ -18,9 +18,9 @@ import org.genvisis.seq.manage.ReferenceGenome;
 
 public class PrimerBuffer {
 	private static final String[] HEADER = new String[] {"CHR", "START", "STOP", "TARGET_SEQUENCE"};
-	private static final String[] HEADER_OUT_ADD = new String[] {	"BUFFER_LOCATION",
-																																"BUFFER_SEQUENCE_TOTAL_LENGTH",
-																																"BUFFER_SEQUENCE"};
+	private static final String[] HEADER_OUT_ADD = new String[] {"BUFFER_LOCATION",
+																															 "BUFFER_SEQUENCE_TOTAL_LENGTH",
+																															 "BUFFER_SEQUENCE"};
 
 	private static void extractBuffer(String queryFile, String referenceGenomeFast, int bpBuffer,
 																		Logger log) {
@@ -31,8 +31,8 @@ public class PrimerBuffer {
 			BufferedReader reader = Files.getAppropriateReader(queryFile);
 			int[] header = ext.indexFactors(reader.readLine().trim().split("\t"), HEADER, true, true);
 			if (ArrayUtils.countIf(header, -1) > 0) {
-				log.reportError("Did not detect complete header "	+ ArrayUtils.toStr(HEADER) + " in "
-														+ queryFile);
+				log.reportError("Did not detect complete header " + ArrayUtils.toStr(HEADER) + " in "
+												+ queryFile);
 				return;
 			}
 			while (reader.ready()) {
@@ -89,7 +89,8 @@ public class PrimerBuffer {
 			super();
 			this.seg = seg;
 			this.sequence = sequence;
-			if (seg.getSize() != sequence.length && ArrayUtils.countIf(sequence, BLANK) != sequence.length) {
+			if (seg.getSize() != sequence.length
+					&& ArrayUtils.countIf(sequence, BLANK) != sequence.length) {
 				throw new IllegalArgumentException("Segment size must equal sequence size");
 			}
 		}

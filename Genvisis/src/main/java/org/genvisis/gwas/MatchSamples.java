@@ -47,8 +47,8 @@ public class MatchSamples {
 
 		filename = "distances_";
 		for (int i = 0; i < factorTargets.length; i++) {
-			filename +=
-								(i == 0 ? "" : ",") + factorTargets[i] + "x" + ext.formDeci(factorLoadings[i], 10);
+			filename += (i == 0 ? "" : ",") + factorTargets[i] + "x"
+									+ ext.formDeci(factorLoadings[i], 10);
 		}
 		filename += ".xln";
 
@@ -61,11 +61,11 @@ public class MatchSamples {
 			barnacles = HashVec.loadFileToStringArray(dir + barnacleList, false, new int[] {0}, true);
 			barnData = new double[barnacles.length][];
 
-			factorIndices = ext.indexFactors(	factorTargets, Files.getHeaderOfFile(dir	+ factorfile,
+			factorIndices = ext.indexFactors(factorTargets, Files.getHeaderOfFile(dir + factorfile,
 																																						"[\\s]+", new Logger()),
-																				false, true);
+																			 false, true);
 			ids = HashVec.loadFileToStringArray(dir + factorfile, true, new int[] {0}, false);
-			matrix = HashVec.loadFileToStringMatrix(dir	+ factorfile, true, factorIndices, "[\\s]+",
+			matrix = HashVec.loadFileToStringMatrix(dir + factorfile, true, factorIndices, "[\\s]+",
 																							false, 1000, false);
 			allData = new double[factorIndices.length][];
 			for (int i = 0; i < factorTargets.length; i++) {
@@ -92,14 +92,14 @@ public class MatchSamples {
 
 			for (int i = 0; i < anchors.length; i++) {
 				if (anchData[i] == null) {
-					System.err.println("Error - data for anchor '"	+ anchors[i] + "' not found in "
-															+ factorfile);
+					System.err.println("Error - data for anchor '" + anchors[i] + "' not found in "
+														 + factorfile);
 				}
 			}
 			for (int i = 0; i < barnacles.length; i++) {
 				if (barnData[i] == null) {
-					System.err.println("Error - data for barnacle '"	+ barnacles[i] + "' not found in "
-															+ factorfile);
+					System.err.println("Error - data for barnacle '" + barnacles[i] + "' not found in "
+														 + factorfile);
 				}
 			}
 
@@ -128,8 +128,8 @@ public class MatchSamples {
 				System.err.println("Error writing distances");
 				e.printStackTrace();
 			}
-			System.out.println("Finished writing distances_"	+ ArrayUtils.toStr(factorIndices, ",") + " in "
-													+ ext.getTimeElapsed(time));
+			System.out.println("Finished writing distances_" + ArrayUtils.toStr(factorIndices, ",")
+												 + " in " + ext.getTimeElapsed(time));
 		} else {
 			time = new Date().getTime();
 
@@ -156,8 +156,8 @@ public class MatchSamples {
 				System.err.println("Error reading file \"" + dir + filename + "\"");
 				System.exit(2);
 			}
-			System.out.println("Finished reading in "	+ ext.rootOf(filename) + " in "
-													+ ext.getTimeElapsed(time));
+			System.out.println("Finished reading in " + ext.rootOf(filename) + " in "
+												 + ext.getTimeElapsed(time));
 		}
 		time = new Date().getTime();
 
@@ -194,8 +194,8 @@ public class MatchSamples {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ dir + clusterfile
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + dir + clusterfile
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + dir + clusterfile + "\"");
@@ -295,9 +295,9 @@ public class MatchSamples {
 			}
 			reader.close();
 
-			System.out.println(ext.formStr(file1, 30, true)	+ ext.formStr(file2, 30, true) + " p="
-													+ ext.prettyP(new Ttest(values).getPvalue()) + "\t"
-													+ ArrayUtils.toStr(Correlation.Pearson(values)));
+			System.out.println(ext.formStr(file1, 30, true) + ext.formStr(file2, 30, true) + " p="
+												 + ext.prettyP(new Ttest(values).getPvalue()) + "\t"
+												 + ArrayUtils.toStr(Correlation.Pearson(values)));
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \"" + dir + file2 + "\" not found in current directory");
 			System.exit(1);
@@ -401,9 +401,9 @@ public class MatchSamples {
 				// System.out.println(Array.countIf(matches, -1));
 				mins = new double[anchors.length];
 				for (int i = 0; i < anchors.length; i++) {
-					mins[i] = (matches[i] == -1	? ArrayUtils.min(dists[i])
-																			: (minMin_not_maxMin	? Double.POSITIVE_INFINITY
-																														: Double.NEGATIVE_INFINITY));
+					mins[i] = (matches[i] == -1 ? ArrayUtils.min(dists[i])
+																			: (minMin_not_maxMin ? Double.POSITIVE_INFINITY
+																													 : Double.NEGATIVE_INFINITY));
 				}
 
 				iAnch = minMin_not_maxMin ? ArrayUtils.minIndex(mins) : ArrayUtils.maxIndex(mins);
@@ -414,7 +414,7 @@ public class MatchSamples {
 					dists[i][iBarn] = Double.POSITIVE_INFINITY;
 				}
 			}
-			writer = new PrintWriter(new FileWriter(dir	+ ext.rootOf(distanceFile) + "_"
+			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(distanceFile) + "_"
 																							+ (minMin_not_maxMin ? "min" : "max") + "Min.xln"));
 			writer.println("Anchor\tBarnaclePair");
 			for (int i = 0; i < anchors.length; i++) {
@@ -429,16 +429,16 @@ public class MatchSamples {
 			ioe.printStackTrace();
 			System.exit(2);
 		}
-		System.out.println("Created "	+ ext.rootOf(distanceFile) + "_"
-												+ (minMin_not_maxMin ? "min" : "max") + "Min.xln" + " in "
-												+ ext.getTimeElapsed(time));
+		System.out.println("Created " + ext.rootOf(distanceFile) + "_"
+											 + (minMin_not_maxMin ? "min" : "max") + "Min.xln" + " in "
+											 + ext.getTimeElapsed(time));
 
 		return ext.rootOf(distanceFile) + "_" + (minMin_not_maxMin ? "min" : "max") + "Min.xln";
 	}
 
-	public static void evalAgeSex_and_MDS_separately(	String dir, String pairings, String refDistances,
-																										String demofile, String ageHead,
-																										String genHead) {
+	public static void evalAgeSex_and_MDS_separately(String dir, String pairings, String refDistances,
+																									 String demofile, String ageHead,
+																									 String genHead) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, anchors, barnacles, refBarns;
@@ -484,9 +484,8 @@ public class MatchSamples {
 			line = reader.readLine().trim().split("[\\s]+");
 			numRefAnch = Integer.parseInt(line[0]);
 			if (anchors.length != Integer.parseInt(line[0])) {
-				System.err.println("Warning - number of reference anchors ("	+ numRefAnch
-														+ ") is not the same as the number of anchors (" + anchors.length
-														+ ")");
+				System.err.println("Warning - number of reference anchors (" + numRefAnch
+													 + ") is not the same as the number of anchors (" + anchors.length + ")");
 			}
 			refBarns = new String[Integer.parseInt(line[1])];
 			line = reader.readLine().trim().split("[\\s]+");
@@ -500,8 +499,8 @@ public class MatchSamples {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ dir + refDistances
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + dir + refDistances
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + dir + refDistances + ".xln" + "\"");
@@ -519,12 +518,12 @@ public class MatchSamples {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (ext.indexOfStr(line[0], anchors) >= 0) {
-					data[ext.indexOfStr(line[0], anchors)][0] = new int[] {	Integer.parseInt(line[ageIndex]),
-																																	Integer.parseInt(line[genIndex])};
+					data[ext.indexOfStr(line[0], anchors)][0] = new int[] {Integer.parseInt(line[ageIndex]),
+																																 Integer.parseInt(line[genIndex])};
 				} else if (ext.indexOfStr(line[0], barnacles) >= 0) {
-					data[ext.indexOfStr(line[0], barnacles)][1] =
-																											new int[] {	Integer.parseInt(line[ageIndex]),
-																																	Integer.parseInt(line[genIndex])};
+					data[ext.indexOfStr(line[0],
+															barnacles)][1] = new int[] {Integer.parseInt(line[ageIndex]),
+																													Integer.parseInt(line[genIndex])};
 				}
 			}
 			reader.close();
@@ -559,7 +558,7 @@ public class MatchSamples {
 		System.out.println("Finished evaluating " + pairings + " in " + ext.getTimeElapsed(time));
 		System.out.println();
 
-		results = "Cases: "	+ ext.formPercent(sumGenders[0], 0) + " male, mean AOO="
+		results = "Cases: " + ext.formPercent(sumGenders[0], 0) + " male, mean AOO="
 							+ ext.formDeci(sumAges[0], 1, true) + "\n" + "Controls: "
 							+ ext.formPercent(sumGenders[1], 0) + " male, mean AOO="
 							+ ext.formDeci(sumAges[1], 1, true) + "\n" + ext.formPercent(sumGenders[2], 0)
@@ -602,19 +601,19 @@ public class MatchSamples {
 		}
 		mdsDists = Doubles.toArray(distV);
 
-		results += "\n\nUsing just the "	+ count + " of " + anchors.length
-								+ " pairs that were < 3SD from the mean distance:\n\n";
+		results += "\n\nUsing just the " + count + " of " + anchors.length
+							 + " pairs that were < 3SD from the mean distance:\n\n";
 
-		results += "Cases: "	+ ext.formPercent(sumGenders[0], 0) + " male, mean AOO="
-								+ ext.formDeci(sumAges[0], 1, true) + "\n" + "Controls: "
-								+ ext.formPercent(sumGenders[1], 0) + " male, mean AOO="
-								+ ext.formDeci(sumAges[1], 1, true) + "\n" + ext.formPercent(sumGenders[2], 0)
-								+ " gender concordance\n" + "mean age diff b/w case-ctrl: "
-								+ ext.formDeci(sumAges[2], 1, true) + "\n" + "Mean MDS distance: "
-								+ ext.formDeci(ArrayUtils.mean(mdsDists), 2) + " (SD: "
-								+ ext.formDeci(ArrayUtils.stdev(mdsDists), 3, true) + ", range="
-								+ ext.formDeci(ArrayUtils.min(mdsDists), 2, true) + "-"
-								+ ext.formDeci(ArrayUtils.max(mdsDists), 2, true) + ")\n";
+		results += "Cases: " + ext.formPercent(sumGenders[0], 0) + " male, mean AOO="
+							 + ext.formDeci(sumAges[0], 1, true) + "\n" + "Controls: "
+							 + ext.formPercent(sumGenders[1], 0) + " male, mean AOO="
+							 + ext.formDeci(sumAges[1], 1, true) + "\n" + ext.formPercent(sumGenders[2], 0)
+							 + " gender concordance\n" + "mean age diff b/w case-ctrl: "
+							 + ext.formDeci(sumAges[2], 1, true) + "\n" + "Mean MDS distance: "
+							 + ext.formDeci(ArrayUtils.mean(mdsDists), 2) + " (SD: "
+							 + ext.formDeci(ArrayUtils.stdev(mdsDists), 3, true) + ", range="
+							 + ext.formDeci(ArrayUtils.min(mdsDists), 2, true) + "-"
+							 + ext.formDeci(ArrayUtils.max(mdsDists), 2, true) + ")\n";
 
 		System.out.println(results);
 
@@ -688,8 +687,8 @@ public class MatchSamples {
 			for (int i = 0; i < factors.length; i++) {
 				indices[i] = ext.indexOfStr(factors[i], line);
 				if (indices[i] == -1) {
-					System.err.println("Error - could not find factor '"	+ factors[i]
-															+ "' in demographics file '" + demofile + "'");
+					System.err.println("Error - could not find factor '" + factors[i]
+														 + "' in demographics file '" + demofile + "'");
 					problem = true;
 				}
 			}
@@ -770,26 +769,26 @@ public class MatchSamples {
 			if (outliers == 0) {
 				results += "Using all " + count + " of " + anchors.length + " pairs:\n\n";
 			} else {
-				results += "\n\nUsing just the "	+ count + " of " + anchors.length
-										+ " pairs that were < 3SD from the mean distance:\n\n";
+				results += "\n\nUsing just the " + count + " of " + anchors.length
+									 + " pairs that were < 3SD from the mean distance:\n\n";
 			}
 			results += "\tAnchors\tBarncls\tConcord\tMean Diff\n";
 			for (int i = 0; i < factors.length; i++) {
 				results += factors[i];
 				if (checkForConcordance[i]) {
-					results += "\t"	+ ext.formPercent(sums[i][0], 0) + "\t" + ext.formPercent(sums[i][1], 1)
-											+ "\t" + ext.formPercent(sums[i][2], 1) + "\t";
+					results += "\t" + ext.formPercent(sums[i][0], 0) + "\t" + ext.formPercent(sums[i][1], 1)
+										 + "\t" + ext.formPercent(sums[i][2], 1) + "\t";
 				} else {
-					results += "\t"	+ ext.formDeci(sums[i][0], 1, true) + "\t"
-											+ ext.formDeci(sums[i][1], 2, true) + "\t\t"
-											+ ext.formDeci(sums[i][2], 2, true);
+					results += "\t" + ext.formDeci(sums[i][0], 1, true) + "\t"
+										 + ext.formDeci(sums[i][1], 2, true) + "\t\t"
+										 + ext.formDeci(sums[i][2], 2, true);
 				}
 				results += "\n";
 			}
-			results += "Mean distance: "	+ ext.formDeci(ArrayUtils.mean(dists), 2) + " (SD: "
-									+ ext.formDeci(ArrayUtils.stdev(dists), 3, true) + ", range="
-									+ ext.formDeci(ArrayUtils.min(dists), 2, true) + "-"
-									+ ext.formDeci(ArrayUtils.max(dists), 2, true) + ")\n";
+			results += "Mean distance: " + ext.formDeci(ArrayUtils.mean(dists), 2) + " (SD: "
+								 + ext.formDeci(ArrayUtils.stdev(dists), 3, true) + ", range="
+								 + ext.formDeci(ArrayUtils.min(dists), 2, true) + "-"
+								 + ext.formDeci(ArrayUtils.max(dists), 2, true) + ")\n";
 		}
 
 
@@ -881,14 +880,14 @@ public class MatchSamples {
 		String clusterfile = "cluster.genome";
 		String file, pairs;
 
-		String usage = "\\n"	+ "gwas.MatchSamples requires 0-1 arguments\n"
-										+ "   (0) directory (i.e. dir=" + dir + " (default))\n"
-										+ "   (1) anchors (i.e. anchors=" + anchors + " (default))\n"
-										+ "   (2) barnacles (i.e. barnacles=" + barnacles + " (default))\n"
-										+ "   (3) file with factors (i.e. factors=" + factors + " (default))\n" +
-										// " (4) indices of factors in clusterfile (i.e.
-										// indices="+Array.toStr(factorIndices, ",") +" (default))\n" +
-										"   (5) clusterfile (i.e. clusterfile=" + clusterfile + " (default))\n" + "";
+		String usage = "\\n" + "gwas.MatchSamples requires 0-1 arguments\n"
+									 + "   (0) directory (i.e. dir=" + dir + " (default))\n"
+									 + "   (1) anchors (i.e. anchors=" + anchors + " (default))\n"
+									 + "   (2) barnacles (i.e. barnacles=" + barnacles + " (default))\n"
+									 + "   (3) file with factors (i.e. factors=" + factors + " (default))\n" +
+									 // " (4) indices of factors in clusterfile (i.e.
+									 // indices="+Array.toStr(factorIndices, ",") +" (default))\n" +
+									 "   (5) clusterfile (i.e. clusterfile=" + clusterfile + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

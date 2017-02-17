@@ -26,52 +26,50 @@ public class BlastAnnotationTypes {
 	 * @author lane0212 Define a key value entry method in the vcf
 	 */
 	public enum BLAST_ANNOTATION_TYPES {
-																			// /**
-																			// * alignment without gaps
-																			// */
-																			// OFF_T_ALIGNMENT_GAPS_AND_MISMATCHES(VCFHeaderLineType.String,
-																			// "OFF_T_ALIGNMENT_GAPS_AND_MISMATCHES", "Off-target
-																			// Alignments with mismatches AND gaps (" + ANNO_DELIM +
-																			// "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
-																			// /**
-																			// *
-																			// * alignment without gaps
-																			// */
-																			// OFF_T_ALIGNMENT_NO_GAPS(VCFHeaderLineType.String,
-																			// "OFF_T_ALIGNMENT_NO_GAPS", "Off-target Alignments with
-																			// mismatches, but without gaps (" + ANNO_DELIM +
-																			// "-delimited)", ANNO_DELIM, DEFAULT_VALUE), /**
-																			// * alignment without mismatches
-																			// */
-																			// OFF_T_ALIGNMENT_NO_MISMATCHES(VCFHeaderLineType.String,
-																			// "OFF_T_ALIGNMENT_NO_MISMATCHES", "Off-target Alignments
-																			// with gaps, but without mismatches (" + ANNO_DELIM +
-																			// "-delimited)", ANNO_DELIM, DEFAULT_VALUE), /**
-																			// * alignment without mismatches or gaps
-																			// */
-																			// OFF_T_ALIGNMENT_NO_MISMATCHES_NO_GAPS(VCFHeaderLineType.String,
-																			// "OFF_T_ALIGNMENT_NO_MISMATCHES_NO_GAPS", "Off-target
-																			// Alignments without gaps AND without mismatches (" +
-																			// ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
+		// /**
+		// * alignment without gaps
+		// */
+		// OFF_T_ALIGNMENT_GAPS_AND_MISMATCHES(VCFHeaderLineType.String,
+		// "OFF_T_ALIGNMENT_GAPS_AND_MISMATCHES", "Off-target
+		// Alignments with mismatches AND gaps (" + ANNO_DELIM +
+		// "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
+		// /**
+		// *
+		// * alignment without gaps
+		// */
+		// OFF_T_ALIGNMENT_NO_GAPS(VCFHeaderLineType.String,
+		// "OFF_T_ALIGNMENT_NO_GAPS", "Off-target Alignments with
+		// mismatches, but without gaps (" + ANNO_DELIM +
+		// "-delimited)", ANNO_DELIM, DEFAULT_VALUE), /**
+		// * alignment without mismatches
+		// */
+		// OFF_T_ALIGNMENT_NO_MISMATCHES(VCFHeaderLineType.String,
+		// "OFF_T_ALIGNMENT_NO_MISMATCHES", "Off-target Alignments
+		// with gaps, but without mismatches (" + ANNO_DELIM +
+		// "-delimited)", ANNO_DELIM, DEFAULT_VALUE), /**
+		// * alignment without mismatches or gaps
+		// */
+		// OFF_T_ALIGNMENT_NO_MISMATCHES_NO_GAPS(VCFHeaderLineType.String,
+		// "OFF_T_ALIGNMENT_NO_MISMATCHES_NO_GAPS", "Off-target
+		// Alignments without gaps AND without mismatches (" +
+		// ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
 
-																			OFF_T_ALIGNMENTS(	VCFHeaderLineType.String, DEFAULT_COUNT,
-																												DEFAULT_NUMBER,
-																												"Off-target alignments (Cigar-positive orientation, Segment - positive orientation, Strand -original orientation) sorted by continous reference alignment length ("
-																																					+ ANNO_DELIM
-																																				+ "-delimited)",
-																												ANNO_DELIM, DEFAULT_VALUE),
+		OFF_T_ALIGNMENTS(VCFHeaderLineType.String,
+										 DEFAULT_COUNT, DEFAULT_NUMBER,
+										 "Off-target alignments (Cigar-positive orientation, Segment - positive orientation, Strand -original orientation) sorted by continous reference alignment length ("
+																										+ ANNO_DELIM + "-delimited)",
+										 ANNO_DELIM, DEFAULT_VALUE),
 
-																			ON_T_ALIGNMENTS_NON_PERFECT(VCFHeaderLineType.String,
-																																	DEFAULT_COUNT, DEFAULT_NUMBER,
-																																	"On-target alignments (but not perfectly matched)(Cigar-positive orientation, Segment - positive orientation, Strand -original orientation) sorted by continous reference alignment length ("
-																																																		+ ANNO_DELIM
-																																																	+ "-delimited)",
-																																	ANNO_DELIM, DEFAULT_VALUE),
+		ON_T_ALIGNMENTS_NON_PERFECT(VCFHeaderLineType.String, DEFAULT_COUNT,
+																DEFAULT_NUMBER,
+																"On-target alignments (but not perfectly matched)(Cigar-positive orientation, Segment - positive orientation, Strand -original orientation) sorted by continous reference alignment length ("
+																								+ ANNO_DELIM + "-delimited)",
+																ANNO_DELIM, DEFAULT_VALUE),
 
-																			/**
-																			 *
-																			 */
-																			PERFECT_MATCH(VCFHeaderLineType.String, DEFAULT_COUNT, DEFAULT_NUMBER, "Alignments (Cigar-positive orientation, Segment - positive orientation, Strand -original orientation) that perfectly cover the region", ANNO_DELIM, DEFAULT_VALUE),
+		/**
+		 *
+		 */
+		PERFECT_MATCH(VCFHeaderLineType.String, DEFAULT_COUNT, DEFAULT_NUMBER, "Alignments (Cigar-positive orientation, Segment - positive orientation, Strand -original orientation) that perfectly cover the region", ANNO_DELIM, DEFAULT_VALUE),
 		/**
 		*
 		*/
@@ -94,8 +92,8 @@ public class BlastAnnotationTypes {
 		 * @param sep
 		 * @param defaultValue
 		 */
-		private BLAST_ANNOTATION_TYPES(	VCFHeaderLineType vType, VCFHeaderLineCount count, int number,
-																		String Description, String sep, String defaultValue) {
+		private BLAST_ANNOTATION_TYPES(VCFHeaderLineType vType, VCFHeaderLineCount count, int number,
+																	 String Description, String sep, String defaultValue) {
 			this.vType = vType;
 			this.count = count;
 			this.number = number;
@@ -144,14 +142,14 @@ public class BlastAnnotationTypes {
 				break;
 			case ON_T_ALIGNMENTS_NON_PERFECT:
 				if (blastResults.getSegment().overlaps(seg)) {
-					if (blastResults.getMismatches() > 0	|| blastResults.getGapOpens() > 0
+					if (blastResults.getMismatches() > 0 || blastResults.getGapOpens() > 0
 							|| blastResults.getAlignmentLength() != proj.getArrayType().getProbeLength()) {
 						annotatedAs = true;
 					}
 				}
 				break;
 			case PERFECT_MATCH:
-				annotatedAs = blastResults.getMismatches() == 0	&& blastResults.getGapOpens() == 0
+				annotatedAs = blastResults.getMismatches() == 0 && blastResults.getGapOpens() == 0
 											&& blastResults.getAlignmentLength() == proj.getArrayType().getProbeLength()
 											&& blastResults.getSegment().overlaps(seg);
 				break;
@@ -167,9 +165,9 @@ public class BlastAnnotationTypes {
 		ArrayList<Annotation> annotations = new ArrayList<Annotation>();
 		for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
 			BLAST_ANNOTATION_TYPES btype = BLAST_ANNOTATION_TYPES.values()[i];
-			annotations.add(new Annotation(	btype.getvType(), btype.getCount(), btype.getNumber(),
-																			btype.getName(), btype.getDescription(),
-																			btype.getDefaultValue()) {});
+			annotations.add(new Annotation(btype.getvType(), btype.getCount(), btype.getNumber(),
+																		 btype.getName(), btype.getDescription(),
+																		 btype.getDefaultValue()) {});
 		}
 		return annotations.toArray(new Annotation[annotations.size()]);
 	}
@@ -178,32 +176,35 @@ public class BlastAnnotationTypes {
 		ArrayList<AnnotationData> annotations = new ArrayList<AnnotationData>();
 		for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
 			BLAST_ANNOTATION_TYPES btype = BLAST_ANNOTATION_TYPES.values()[i];
-			annotations.add(new AnnotationData(	btype.getvType(), btype.getCount(), btype.getNumber(),
-																					btype.getName(), btype.getDescription(),
-																					btype.getDefaultValue(), btype.getDefaultValue()) {});
+			annotations.add(new AnnotationData(btype.getvType(), btype.getCount(), btype.getNumber(),
+																				 btype.getName(), btype.getDescription(),
+																				 btype.getDefaultValue(), btype.getDefaultValue()) {});
 		}
 		return annotations.toArray(new AnnotationData[annotations.size()]);
 	}
 
 	public enum TOP_BOT {
-												TOP, BOT, NA,
-												/**
-												 * For cnvi
-												 */
-												PLUS,
-												/**
-												 * For cnvi and indels
-												 */
-												MINUS;
+		TOP,
+		BOT,
+		NA,
+		/**
+		 * For cnvi
+		 */
+		PLUS,
+		/**
+		 * For cnvi and indels
+		 */
+		MINUS;
 	}
 
 	public enum PROBE_TAG {
 
-													A("_A"), B("_B"),
-													/**
-													 * When both the A and B probes have identical sequences
-													 */
-													BOTH("_AB");
+		A("_A"),
+		B("_B"),
+		/**
+		 * When both the A and B probes have identical sequences
+		 */
+		BOTH("_AB");
 		private final String tag;
 
 		private PROBE_TAG(String tag) {
@@ -229,13 +230,13 @@ public class BlastAnnotationTypes {
 		}
 
 		public static PROBE_TAG parseMarkerTag(String markerWithTag, Logger log) {
-			return markerWithTag.endsWith(PROBE_TAG.BOTH.getTag())	? PROBE_TAG.toTag(markerWithTag.substring(markerWithTag.length()
-																																																				- PROBE_TAG.BOTH.getTag()
-																																																												.length()),
-																																								log)
-																															: PROBE_TAG.toTag(markerWithTag.substring(markerWithTag.length()
-																																																				- 2),
-																																								log);
+			return markerWithTag.endsWith(PROBE_TAG.BOTH.getTag()) ? PROBE_TAG.toTag(markerWithTag.substring(markerWithTag.length()
+																																																			 - PROBE_TAG.BOTH.getTag()
+																																																											 .length()),
+																																							 log)
+																														 : PROBE_TAG.toTag(markerWithTag.substring(markerWithTag.length()
+																																																			 - 2),
+																																							 log);
 		}
 	}
 
@@ -250,8 +251,8 @@ public class BlastAnnotationTypes {
 		private final PROBE_TAG tag;// A probe, B probe, or Both
 		private final double eValue;
 
-		public BlastAnnotation(	Cigar cigar, Segment refLoc, Strand strand, PROBE_TAG tag,
-														double eValue) {
+		public BlastAnnotation(Cigar cigar, Segment refLoc, Strand strand, PROBE_TAG tag,
+													 double eValue) {
 			super();
 			this.cigar = cigar;
 			this.refLoc = refLoc;
@@ -284,9 +285,9 @@ public class BlastAnnotationTypes {
 			String[] annotations = new String[blastAnnotations.length];
 			for (int i = 0; i < annotations.length; i++) {
 				BlastAnnotation tmp = blastAnnotations[i];
-				annotations[i] = tmp.getCigar().toString()	+ "/" + tmp.getRefLoc().getUCSClocation() + "/"
-													+ CNVHelper.decode(tmp.getStrand()) + "/" + tmp.getTag() + "/"
-													+ tmp.geteValue();
+				annotations[i] = tmp.getCigar().toString() + "/" + tmp.getRefLoc().getUCSClocation() + "/"
+												 + CNVHelper.decode(tmp.getStrand()) + "/" + tmp.getTag() + "/"
+												 + tmp.geteValue();
 			}
 			return annotations;
 		}

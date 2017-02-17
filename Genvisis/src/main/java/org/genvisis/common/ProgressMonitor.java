@@ -142,7 +142,7 @@ class Task {
 public class ProgressMonitor {
 
 	public static enum DISPLAY_MODE {
-																		GUI_AND_CONSOLE, GUI_ONLY, CONSOLE_ONY;
+		GUI_AND_CONSOLE, GUI_ONLY, CONSOLE_ONY;
 	}
 
 	public static final int DEFAULT_TIMEOUT_MINS = 10;
@@ -171,7 +171,7 @@ public class ProgressMonitor {
 		internalLogger = log;
 		Timer timer = new Timer("TaskMonitorTimer", true);
 		timer.schedule(monitorTask, 60 * 1000, 60 * 1000); // wait a minute to begin monitoring, and
-																												// wait a minute between each check
+																											 // wait a minute between each check
 	}
 
 	/**
@@ -214,8 +214,8 @@ public class ProgressMonitor {
 		if (taskMap.containsKey(taskName)) {
 			// likely programmer error, or trying to run a task twice at the same time
 			// TODO, sometimes causes conflict with opening multiple ScatterPlots at the same time...
-			throw new IllegalArgumentException("Error - task with key ["	+ taskName
-																					+ "] already exists!");
+			throw new IllegalArgumentException("Error - task with key [" + taskName
+																				 + "] already exists!");
 		}
 
 		Task newTask = new Task(taskName);
@@ -243,8 +243,8 @@ public class ProgressMonitor {
 		} catch (EmptyStackException e) {
 		}
 
-		String msg = ext.getTime()	+ "]\tTask '" + myTask.getName() + "' with status '"
-									+ myTask.getLabel() + "' is complete";
+		String msg = ext.getTime() + "]\tTask '" + myTask.getName() + "' with status '"
+								 + myTask.getLabel() + "' is complete";
 		if (internalLogger != null) {
 			internalLogger.report(msg);
 		} else {
@@ -369,8 +369,8 @@ public class ProgressMonitor {
 				elapsedLong /= 1000;
 				int elapsed = (int) elapsedLong;
 				if (elapsed > INDET_ELAPSED_LOG_SECONDS) {
-					String msg = ext.getTime()	+ "]\tTask '" + task.getName() + "' with status '"
-												+ task.getLabel() + "' has been updated";
+					String msg = ext.getTime() + "]\tTask '" + task.getName() + "' with status '"
+											 + task.getLabel() + "' has been updated";
 					if (internalLogger != null) {
 						internalLogger.report(msg);
 					} else {
@@ -386,8 +386,8 @@ public class ProgressMonitor {
 				if (elapsed > DET_ELAPSED_LOG_SECONDS) {
 					double rawPct = 100d * (task.getUpdateCount()) / (task.getExpectedUpdateCount());
 					String pct = (task.getIndeterminate() ? "" : " (" + ext.formDeci(rawPct, 2) + "%)");
-					String msg = ext.getTime()	+ "]\tTask '" + task.getName() + "' with status '"
-												+ task.getLabel() + "' is " + pct + " complete";
+					String msg = ext.getTime() + "]\tTask '" + task.getName() + "' with status '"
+											 + task.getLabel() + "' is " + pct + " complete";
 					if (task.getExpectedUpdateCount() > 100 && task.getUpdateCount() > 0) {
 						if (internalLogger != null) {
 							internalLogger.report(msg);
@@ -426,11 +426,11 @@ public class ProgressMonitor {
 					if (elapsed > task.getTimeout() && !task.alreadyWarned()) {
 						task.warned();
 						String msg = "Alert! A long-running task has failed to progress in the past "
-													+ task.getTimeout() + " minutes.";
+												 + task.getTimeout() + " minutes.";
 						String[] opts = new String[] {"Continue", "Exit Genvisis"};
-						int opt = JOptionPane.showOptionDialog(	internalProgBar, msg, "Warning - stalled task!",
-																										JOptionPane.YES_NO_OPTION,
-																										JOptionPane.WARNING_MESSAGE, null, opts, 0);
+						int opt = JOptionPane.showOptionDialog(internalProgBar, msg, "Warning - stalled task!",
+																									 JOptionPane.YES_NO_OPTION,
+																									 JOptionPane.WARNING_MESSAGE, null, opts, 0);
 						if (opt == 0 || opt == JOptionPane.CLOSED_OPTION) {
 							continue;
 						} else {

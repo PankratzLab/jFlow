@@ -31,8 +31,7 @@ public class CNVBMAF extends CNVBDeviation {
 	/**
 	 * Metric is divided by all markers, and the average heterzygous bmaf is subtracted from the score
 	 */
-	public static final String SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY =
-																																				"SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY";
+	public static final String SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY = "SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY";
 
 	/**
 	 * Metric is divided by sum of all markers
@@ -187,9 +186,8 @@ public class CNVBMAF extends CNVBDeviation {
 		// String display = proj.getFilename(proj.DISPLAY_MARKERS_FILENAME);
 		String display = proj.DISPLAY_MARKERS_FILENAMES.getValue()[0];
 		String[] markers = HashVec.loadFileToStringArray(display, false, new int[] {0}, true);
-		MarkerDataLoader markerDataLoader =
-																			MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
-																																															markers);
+		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+																																																markers);
 		PoplulationBAFs poplulationBDeviation = new PoplulationBAFs(proj.getSamples().length,
 																																DEFAULT_INTENSITY_ONLY_FLAGS,
 																																DEFAULT_GC_THRESHOLD);

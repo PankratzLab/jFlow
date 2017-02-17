@@ -51,12 +51,12 @@ public class meld {
 				if (line1.length != line2.length) {
 					if (line1.length > line2.length) {
 						System.err.println("Error - 1/chromosome" + chr + ".dat has "
-						                   + (line1.length - line2.length)
-						                   + " more columns (markers?) than 2/chromosome" + chr + ".dat");
+															 + (line1.length - line2.length)
+															 + " more columns (markers?) than 2/chromosome" + chr + ".dat");
 					} else {
 						System.err.println("Error - 2/chromosome" + chr + ".dat has "
-						                   + (line2.length - line1.length)
-						                   + " more columns (markers?) than 1/chromosome" + chr + ".dat");
+															 + (line2.length - line1.length)
+															 + " more columns (markers?) than 1/chromosome" + chr + ".dat");
 					}
 					System.exit(1);
 				}
@@ -103,7 +103,7 @@ public class meld {
 									store[(k - 3) / 2]++;
 									if (offs.elementAt((k - 3) / 2).containsKey(off + "")) {
 										offCount = Integer.valueOf(offs.elementAt((k - 3) / 2).get(off + "")).intValue()
-										           + 1;
+															 + 1;
 									} else {
 										offCount = 1;
 									}
@@ -150,7 +150,7 @@ public class meld {
 							totalOffCount += offCount;
 						}
 						temp = (int) (100 * (double) maxOffCount / totalOffCount) + "% shifted "
-						       + (maxOff > 0 ? "+" + maxOff : "" + maxOff);
+									 + (maxOff > 0 ? "+" + maxOff : "" + maxOff);
 					}
 					mismatchedMarkers.println(markerNames[j + 3] + "\t" + store[j] + "\t" + temp);
 				}
@@ -173,7 +173,7 @@ public class meld {
 		}
 
 		System.err.println("Overall error rate was " + diffs + "/" + (sames + diffs) + " ("
-		                   + ((double) diffs / (double) (sames + diffs) * 100) + "%)");
+											 + ((double) diffs / (double) (sames + diffs) * 100) + "%)");
 
 		mismatchedMarkers.close();
 		mismatchGenotypes.close();

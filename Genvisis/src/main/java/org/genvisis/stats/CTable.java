@@ -116,10 +116,10 @@ public class CTable {
 				} else if (j == -1) {
 					output = output + "<tr><td align=\"center\">" + rowLabels[i][1] + "</td>";
 				} else {
-					output = output	+ "<td align=\"center\">" + contingencyTable[i][j]
-										+ (showRowProportions	? " (" + ext.formDeci(rowProportions[i][j], 3, true) + ")"
-																					: "")
-										+ "</td>";
+					output = output + "<td align=\"center\">" + contingencyTable[i][j]
+									 + (showRowProportions ? " (" + ext.formDeci(rowProportions[i][j], 3, true) + ")"
+																				 : "")
+									 + "</td>";
 				}
 			}
 			output = output + "</tr>";

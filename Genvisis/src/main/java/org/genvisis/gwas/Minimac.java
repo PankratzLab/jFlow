@@ -47,9 +47,9 @@ public class Minimac {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter((filename.lastIndexOf(".") > 0	? filename.substring(	0,
-																																																		filename.lastIndexOf("."))
-																																							: filename)
+			writer = new PrintWriter(new FileWriter((filename.lastIndexOf(".") > 0 ? filename.substring(0,
+																																																	filename.lastIndexOf("."))
+																																						 : filename)
 																							+ ".haps"));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
@@ -97,16 +97,16 @@ public class Minimac {
 
 					if (temp.indexOf("Target Haplotypes Loaded") > 0 || temp.indexOf("markers") > 0) {
 						break;
-					} else if (temp	.substring(temp.indexOf("[") + 1, temp.indexOf("]"))
-													.split(",").length == 3) {
+					} else if (temp.substring(temp.indexOf("[") + 1, temp.indexOf("]"))
+												 .split(",").length == 3) {
 						if (temp.indexOf("Possible strand flip") > 0) {
-							others.add(line[4].substring(1, line[4].indexOf("':"))	+ "\t" + line[11] + "\t"
-													+ line[5] + "\t" + line[7] + "\t"
-													+ line[9].substring(0, line[9].length() - 1));
+							others.add(line[4].substring(1, line[4].indexOf("':")) + "\t" + line[11] + "\t"
+												 + line[5] + "\t" + line[7] + "\t"
+												 + line[9].substring(0, line[9].length() - 1));
 						} else if (temp.indexOf("Mismatched frequencies") > 0) {
-							others.add(line[3].substring(1, line[3].indexOf("':"))	+ "\t" + line[10] + "\t"
-													+ line[4] + "\t" + line[6] + "\t"
-													+ line[8].substring(0, line[8].length() - 1));
+							others.add(line[3].substring(1, line[3].indexOf("':")) + "\t" + line[10] + "\t"
+												 + line[4] + "\t" + line[6] + "\t"
+												 + line[8].substring(0, line[8].length() - 1));
 						} else {
 							System.err.println("Error - don't know what to do with: " + temp);
 							others.add(temp);
@@ -114,9 +114,9 @@ public class Minimac {
 					} else if (temp.indexOf("Possible strand flip") > 0) {
 						flips.add(line[4].substring(1, line[4].indexOf("':")));
 					} else if (temp.indexOf("Mismatched frequencies") > 0) {
-						mismatches.add(line[3].substring(1, line[3].indexOf("':"))	+ "\t" + line[10] + "\t"
-														+ line[4] + "\t" + line[6] + "\t"
-														+ line[8].substring(0, line[8].length() - 1));
+						mismatches.add(line[3].substring(1, line[3].indexOf("':")) + "\t" + line[10] + "\t"
+													 + line[4] + "\t" + line[6] + "\t"
+													 + line[8].substring(0, line[8].length() - 1));
 					} else {
 						System.err.println("Error - don't know what to do with: " + temp);
 						others.add(temp);
@@ -179,12 +179,12 @@ public class Minimac {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (line[2].length() != markerNames.length) {
 					if (line[2].length() == 1) {
-						System.err.println("Error - remove all whitespace between alleles in file '"	+ hapFile
-																+ "'");
+						System.err.println("Error - remove all whitespace between alleles in file '" + hapFile
+															 + "'");
 					} else {
-						System.err.println("Error - mismatched number of alleles at line "	+ count
-																+ " (expecting " + markerNames.length + "; found "
-																+ line[2].length() + ")");
+						System.err.println("Error - mismatched number of alleles at line " + count
+															 + " (expecting " + markerNames.length + "; found " + line[2].length()
+															 + ")");
 					}
 					reader.close();
 					writer.close();
@@ -237,11 +237,11 @@ public class Minimac {
 			reader = new BufferedReader(new FileReader(markerFile));
 			reader.mark(5000);
 			line = reader.readLine().trim().split("[\\s]+");
-			indices = ext.indexFactors(	new String[][] {{"MarkerName", "SNP", "RSID"}, {"Chr"}}, line,
-																	false, true, true, false);
+			indices = ext.indexFactors(new String[][] {{"MarkerName", "SNP", "RSID"}, {"Chr"}}, line,
+																 false, true, true, false);
 			if (ArrayUtils.min(indices) == -1) {
-				System.err.println("Error - assuming there is no header; found '"	+ ArrayUtils.toStr(line)
-														+ "' as first line");
+				System.err.println("Error - assuming there is no header; found '" + ArrayUtils.toStr(line)
+													 + "' as first line");
 				reader.reset();
 			}
 			while (reader.ready()) {
@@ -262,16 +262,16 @@ public class Minimac {
 		for (int i = 0; i < markers.length; i++) {
 			if (markers[i] != null) {
 				list = markers[i].split(",");
-				System.out.println("Extracting "	+ list.length + " marker" + (list.length > 1 ? "s" : "")
-														+ " from chr" + i);
+				System.out.println("Extracting " + list.length + " marker" + (list.length > 1 ? "s" : "")
+													 + " from chr" + i);
 				// extractMarkerGenotypesFromHaplotypes(ext.replaceAllWith(hapFileFormat, "#", i+""),
 				// ext.replaceAllWith(mapFileFormat, "#", i+""), list, ext.rootOf(markerFile)+"_chr"+i);
-				merges.add(ext.rootOf(markerFile)	+ "_chr" + i + ".ped " + ext.rootOf(markerFile) + "_chr"
-										+ i + ".map");
+				merges.add(ext.rootOf(markerFile) + "_chr" + i + ".ped " + ext.rootOf(markerFile) + "_chr"
+									 + i + ".map");
 			}
 		}
 		if (merges.size() > 1) {
-			command = "plink --file "	+ ext.rootOf(merges.remove(0).split("[\\s]+")[0])
+			command = "plink --file " + ext.rootOf(merges.remove(0).split("[\\s]+")[0])
 								+ " --merge-list merges.txt --make-bed --out " + ext.rootOf(markerFile);
 			Files.writeArray(ArrayUtils.toStringArray(merges), "merges.txt");
 			CmdLine.run(command, "./");
@@ -292,9 +292,9 @@ public class Minimac {
 		String[] ids;
 		String[] map;
 
-		indices = ext.indexFactors(	markers,
-																HashVec.loadFileToStringArray(mapFile, false, new int[] {1}, false),
-																false, false);
+		indices = ext.indexFactors(markers,
+															 HashVec.loadFileToStringArray(mapFile, false, new int[] {1}, false),
+															 false, false);
 		hash = new Hashtable<String, String>();
 		for (int i = 0; i < indices.length; i++) {
 			hash.put(indices[i] + "", i + "");
@@ -394,13 +394,13 @@ public class Minimac {
 			System.exit(2);
 		}
 
-		Files.writeArray(	new String[] {"java -jar /home/npankrat/Haploview.jar -pedfile "
-																		+ rootForOutput + ".ped -info " + rootForOutput + ".info"},
-											rootForOutput + ".bat");
+		Files.writeArray(new String[] {"java -jar /home/npankrat/Haploview.jar -pedfile "
+																	 + rootForOutput + ".ped -info " + rootForOutput + ".info"},
+										 rootForOutput + ".bat");
 	}
 
-	public static void batch(	boolean beagle, boolean update, int memRequiredInGb,
-														double walltimeRequestedInHours) {
+	public static void batch(boolean beagle, boolean update, int memRequiredInGb,
+													 double walltimeRequestedInHours) {
 		String commands;
 
 		// might consider using a local temp directory, especially for the BGL_TO_PED conversion, to
@@ -412,9 +412,9 @@ public class Minimac {
 		commands = "cd chr#\n";
 		if (beagle) {
 			commands += "gunzip phased.pre_phase.bgl.phased.gz\n"
-										+ (update	? "cat phased.pre_phase.bgl.phased | fgrep -v id | cat ../new_header - > updated.phased\n"
-																+ BGL_TO_PED + " updated.phased ../new_plink.fam 0 > target.ped\n" + // transform
-																																																		// updated
+									+ (update ? "cat phased.pre_phase.bgl.phased | fgrep -v id | cat ../new_header - > updated.phased\n"
+															+ BGL_TO_PED + " updated.phased ../new_plink.fam 0 > target.ped\n" + // transform
+																																																	 // updated
 															"rm updated.phased\n"
 														: BGL_TO_PED
 															+ " phased.pre_phase.bgl.phased plink.fam 0 > target.ped\n")
@@ -429,9 +429,9 @@ public class Minimac {
 		}
 
 		commands += Files.getRunString()
-									+ " gwas.Minimac -freq hapFile=target.haps mapFile=target.snps\n" + // compute
-																																										// allele
-																																										// frequencies
+								+ " gwas.Minimac -freq hapFile=target.haps mapFile=target.snps\n" + // compute
+								// allele
+								// frequencies
 								Files.getRunString() + " gwas.Minimac compStrand=target_freq.xln compRef="
 								+ REF_FREQ_ROOT + "/\n" + // process strand issues
 								Files.getRunString()
@@ -464,12 +464,11 @@ public class Minimac {
 		files = filenames.split(",");
 		markerIndices = new int[files.length][markerNames.length];
 		for (int i = 0; i < files.length; i++) {
-			hash = HashVec.loadFileToHashString(ext.rootOf(files[i], false)	+ ".snps", new int[] {0},
+			hash = HashVec.loadFileToHashString(ext.rootOf(files[i], false) + ".snps", new int[] {0},
 																					new int[] {-7}, false, "\t", false, false, false);
 			for (int j = 0; j < markerNames.length; j++) {
-				markerIndices[i][j] =
-														hash.containsKey(markerNames[j])	? Integer.parseInt(hash.get(markerNames[j]))
-																															: -1;
+				markerIndices[i][j] = hash.containsKey(markerNames[j]) ? Integer.parseInt(hash.get(markerNames[j]))
+																															 : -1;
 			}
 		}
 		ids = new String[numToCompare][2];
@@ -482,8 +481,8 @@ public class Minimac {
 					if (i == 0) {
 						ids[j] = new String[] {line[0], line[1]};
 					} else if (!ids[j][0].equals(line[0]) || !ids[j][1].equals(line[1])) {
-						System.err.println("Error - mismatched IDs ("	+ ArrayUtils.toStr(ids[j], "/") + ") in "
-																+ files[0] + " and " + files[i]);
+						System.err.println("Error - mismatched IDs (" + ArrayUtils.toStr(ids[j], "/") + ") in "
+															 + files[0] + " and " + files[i]);
 					}
 					alleles = line[2].toCharArray();
 					for (int k = 0; k < markerNames.length; k++) {
@@ -536,8 +535,8 @@ public class Minimac {
 			}
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to "	+ ext.parseDirectoryOfFile(files[0])
-													+ "haplotype_comparison.xln");
+			System.err.println("Error writing to " + ext.parseDirectoryOfFile(files[0])
+												 + "haplotype_comparison.xln");
 			e.printStackTrace();
 		}
 	}
@@ -575,10 +574,10 @@ public class Minimac {
 				}
 				alleles = (makeUpperCase ? trav.toUpperCase() : trav).toCharArray();
 				if (alleles.length != markerNames.length) {
-					System.err.println("Error - number of markers in line "	+ count + " of "
-															+ ext.removeDirectoryInfo(hapFile) + " (" + alleles.length
-															+ ") does not match the number of markers in "
-															+ ext.rootOf(hapFile, true) + ".snps (" + markerNames.length + ")");
+					System.err.println("Error - number of markers in line " + count + " of "
+														 + ext.removeDirectoryInfo(hapFile) + " (" + alleles.length
+														 + ") does not match the number of markers in "
+														 + ext.rootOf(hapFile, true) + ".snps (" + markerNames.length + ")");
 					reader.close();
 					return;
 				}
@@ -587,8 +586,8 @@ public class Minimac {
 					if (alleleIndex == -1) {
 						if (ext.indexOfChar((alleles[i] + "").toUpperCase().charAt(0),
 																Sequence.ALLELES) == -1) {
-							System.err.println("Error - unknown allele code '"	+ alleles[i]
-																	+ "'; add to null chars if this is a valid missing value");
+							System.err.println("Error - unknown allele code '" + alleles[i]
+																 + "'; add to null chars if this is a valid missing value");
 						} else {
 							makeUpperCase = true;
 							alleles = trav.toUpperCase().toCharArray();
@@ -638,13 +637,13 @@ public class Minimac {
 			writer.println("cd /share/archive/1000G_phased/freq/");
 			writer.println("mkdir /share/archive/1000G_phased/hap/EUR/unzipped/");
 			for (int chr = 1; chr <= 22; chr++) {
-				writer.println("gunzip -c /share/archive/1000G_phased/hap/EUR/EUR.chr"	+ chr
-												+ ".hap.gz > /share/archive/1000G_phased/hap/EUR/unzipped/EUR.chr" + chr
-												+ ".hap");
+				writer.println("gunzip -c /share/archive/1000G_phased/hap/EUR/EUR.chr" + chr
+											 + ".hap.gz > /share/archive/1000G_phased/hap/EUR/unzipped/EUR.chr" + chr
+											 + ".hap");
 				writer.println(Files.getRunString()
-													+ " gwas.Minimac -freq hapFile=/share/archive/1000G_phased/hap/EUR/unzipped/EUR.chr"
-												+ chr + ".hap mapFile=/share/archive/1000G_phased/snps/EUR.chr" + chr
-												+ ".snps");
+											 + " gwas.Minimac -freq hapFile=/share/archive/1000G_phased/hap/EUR/unzipped/EUR.chr"
+											 + chr + ".hap mapFile=/share/archive/1000G_phased/snps/EUR.chr" + chr
+											 + ".snps");
 				writer.println("rm /share/archive/1000G_phased/hap/EUR/unzipped/EUR.chr" + chr + ".hap");
 				writer.println();
 			}
@@ -685,25 +684,25 @@ public class Minimac {
 							matchup[i][j] = !(i == 0 ? target : ref)[j].equals("0");
 						}
 					}
-					chisq = ContingencyTable.ChiSquare(
-																							Matrix.prune(new int[][] {ArrayUtils.toIntArray(target),
-																																				ArrayUtils.toIntArray(ref)}),
-																							false);
+					chisq = ContingencyTable.ChiSquare(Matrix.prune(new int[][] {ArrayUtils.toIntArray(target),
+																																			 ArrayUtils.toIntArray(ref)}),
+																						 false);
 					numObserved = ArrayUtils.booleanArraySum(allelesUsed(matchup));
-					if (ArrayUtils.booleanArraySum(matchup[0]) > 2 || ArrayUtils.booleanArraySum(matchup[1]) > 2) {
-						others.add(line[0]	+ "\t" + ext.formDeci(chisq, 1, true) + "\t"
-												+ displayFreqs(matchup, target, ref));
+					if (ArrayUtils.booleanArraySum(matchup[0]) > 2
+							|| ArrayUtils.booleanArraySum(matchup[1]) > 2) {
+						others.add(line[0] + "\t" + ext.formDeci(chisq, 1, true) + "\t"
+											 + displayFreqs(matchup, target, ref));
 					} else if (numObserved > 2) {
-						if (ArrayUtils.booleanArraySum(allelesUsed(new boolean[][] {	flip(matchup[0]),
-																																		matchup[1]})) > 2) {
-							others.add(line[0]	+ "\t" + ext.formDeci(chisq, 1, true) + "\t"
-													+ displayFreqs(matchup, target, ref));
+						if (ArrayUtils.booleanArraySum(allelesUsed(new boolean[][] {flip(matchup[0]),
+																																				matchup[1]})) > 2) {
+							others.add(line[0] + "\t" + ext.formDeci(chisq, 1, true) + "\t"
+												 + displayFreqs(matchup, target, ref));
 						} else {
 							flips.add(line[0] + "\t" + displayFreqs(matchup, target, ref));
 						}
 					} else if (chisq >= CHISQ_THRESHOLD) {
-						mismatches.add(line[0]	+ "\t" + ext.formDeci(chisq, 1, true) + "\t"
-														+ displayFreqs(matchup, target, ref));
+						mismatches.add(line[0] + "\t" + ext.formDeci(chisq, 1, true) + "\t"
+													 + displayFreqs(matchup, target, ref));
 					}
 				}
 			}
@@ -775,8 +774,8 @@ public class Minimac {
 		strs[2] = "[";
 
 		first = true;
-		denoms = new double[] {	ArrayUtils.sum(ArrayUtils.toDoubleArray(target)),
-														ArrayUtils.sum(ArrayUtils.toDoubleArray(ref))};
+		denoms = new double[] {ArrayUtils.sum(ArrayUtils.toDoubleArray(target)),
+													 ArrayUtils.sum(ArrayUtils.toDoubleArray(ref))};
 		for (int i = 0; i < allelesUsed.length; i++) {
 			if (allelesUsed[i]) {
 				if (first) {
@@ -821,7 +820,7 @@ public class Minimac {
 		commands += "cd chr#\n";
 		// commands += "awk '{print $1\"\\t\"$2\"\\t\"$3\"\\t\"$4\"\\t\"$5\"\\t\"$6\"\\t\"$7}' chr#.info
 		// > chr#.pinfo\n";
-		commands += MACH2DAT	+ " -d ../" + ext.addToRoot(pheno, "_desc") + " -p ../" + pheno
+		commands += MACH2DAT + " -d ../" + ext.addToRoot(pheno, "_desc") + " -p ../" + pheno
 								+ " -i chr#.info -g chr#.dose > " + ext.rootOf(pheno) + "_chr#.out\n";
 		commands += "cd ..\n";
 		commands += "echo \"end at: \" `date`\n";
@@ -858,44 +857,44 @@ public class Minimac {
 		String mach2dat = null;
 		boolean beagle = false;
 
-		String usage = "\n"	+ "gwas.Minimac requires 0-1 arguments\n"
-										+ "   (1) extract specific markers from haplotype files (i.e. extract=filename.txt OR extract=rs3129882,rs2395163,chr6:32588205 (not the default))\n"
-										+ "   (2) haplotype filename (i.e. hapFile=" + hapFile + " (default))\n"
-										+ "   (3) map filename (i.e.  mapFile=" + mapFile + " (default))\n" + " OR\n"
-										+ "   (1) extract markers from a set of haplotype files using the names and chrs in this file (i.e. extractSet=filename.txt (not the default))\n"
-										+ "   (2) haplotype filename format (i.e. hapFileFormat=" + hapFileFormat
-										+ " (default))\n" + "   (3) map filename (i.e.  mapFileFormat=" + mapFileFormat
-										+ " (default))\n" + " OR\n"
-										+ "   (1) compute allele frequencies from haplotype files (i.e. -freq (not the default))\n"
-										+ "   (2) haplotype filename (i.e. hapFile=" + hapFile + " (default)))\n"
-										+ "   (3) map filename (i.e.  mapFile=" + mapFile + " (default))\n" + " OR\n"
-										+ "   (1) generate frequency reports for full reference panel (i.e. -freqAll (not the default))\n"
-										+ " OR\n"
-										+ "   (1) minimac logfile to be parsed for flipped/mismatched markers (i.e. logfile=chr6_mini.log (not the default))\n"
-										+ " OR\n"
-										+ "   (1) compare alleles/strand directly to a reference freq report (i.e. compStrand=chr6_freq.xln (not the default))\n"
-										+ "   (2) reference freq report to which to compare (i.e. compRef=ref/EUR.chr6_freq.xln (not the default))\n"
-										+ " OR\n"
-										+ "   (1) split and compress the results of a bgl_to_ped conversion (i.e. split=chr6.ped (not the default))\n"
-										+ " OR\n" + "   (1) filter haplotypes (i.e. -filter (not the default))\n"
-										+ "   (2) haplotype filename (i.e. hapFile=" + hapFile + " (default))\n"
-										+ "   (3) map filename (i.e.  mapFile=" + mapFile + " (default))\n"
-										+ "   (4) list of markers to flip (i.e. flips=" + flips + " (default))\n"
-										+ "   (5) list of markers to drop (i.e. drop=" + drops + " (default))\n"
-										+ "   (6) name of resulting haplotype file (i.e. newHapFile=[oldfileRoot]_filtered.[oldFileExtension] (default))\n"
-										+ "   (7) name of resulting map filename (i.e. newMapFile=[oldfileRoot]_filtered.[oldFileExtension] (default))\n"
-										+ " OR\n"
-										+ "   (1) compare haplotypes (i.e. comp=target.haps,final.haps (not the default; need a .snps file for each root))\n"
-										+ "   (2) master map file with positions (i.e. map=" + map + " (default))\n"
-										+ "   (3) number of lines/haplotypes to compare (i.e. numToCompare="
-										+ numToCompare + " (default))\n" + " OR\n"
-										+ "   (1) batch convert and run (i.e. -batch (not the default))\n"
-										+ "   (2) used phased beagle data instead of phased mach data (i.e. -beagle (not the default))\n"
-										+ "   (3) (optional) update IDs with ../new_header and ../new_plink.fam when running (i.e. -update (not the default))\n"
-										+ "   (4) (optional) amount of memory in Gb to reserve on each node (i.e. mem=4 (not the default))\n"
-										+ " OR\n"
-										+ "   (1) set up qsubs for mach2dat using .PED style phenotype file which can have additional covariates (i.e. mach2dat=plink.fam (not the default))\n"
-										+ "";
+		String usage = "\n" + "gwas.Minimac requires 0-1 arguments\n"
+									 + "   (1) extract specific markers from haplotype files (i.e. extract=filename.txt OR extract=rs3129882,rs2395163,chr6:32588205 (not the default))\n"
+									 + "   (2) haplotype filename (i.e. hapFile=" + hapFile + " (default))\n"
+									 + "   (3) map filename (i.e.  mapFile=" + mapFile + " (default))\n" + " OR\n"
+									 + "   (1) extract markers from a set of haplotype files using the names and chrs in this file (i.e. extractSet=filename.txt (not the default))\n"
+									 + "   (2) haplotype filename format (i.e. hapFileFormat=" + hapFileFormat
+									 + " (default))\n" + "   (3) map filename (i.e.  mapFileFormat=" + mapFileFormat
+									 + " (default))\n" + " OR\n"
+									 + "   (1) compute allele frequencies from haplotype files (i.e. -freq (not the default))\n"
+									 + "   (2) haplotype filename (i.e. hapFile=" + hapFile + " (default)))\n"
+									 + "   (3) map filename (i.e.  mapFile=" + mapFile + " (default))\n" + " OR\n"
+									 + "   (1) generate frequency reports for full reference panel (i.e. -freqAll (not the default))\n"
+									 + " OR\n"
+									 + "   (1) minimac logfile to be parsed for flipped/mismatched markers (i.e. logfile=chr6_mini.log (not the default))\n"
+									 + " OR\n"
+									 + "   (1) compare alleles/strand directly to a reference freq report (i.e. compStrand=chr6_freq.xln (not the default))\n"
+									 + "   (2) reference freq report to which to compare (i.e. compRef=ref/EUR.chr6_freq.xln (not the default))\n"
+									 + " OR\n"
+									 + "   (1) split and compress the results of a bgl_to_ped conversion (i.e. split=chr6.ped (not the default))\n"
+									 + " OR\n" + "   (1) filter haplotypes (i.e. -filter (not the default))\n"
+									 + "   (2) haplotype filename (i.e. hapFile=" + hapFile + " (default))\n"
+									 + "   (3) map filename (i.e.  mapFile=" + mapFile + " (default))\n"
+									 + "   (4) list of markers to flip (i.e. flips=" + flips + " (default))\n"
+									 + "   (5) list of markers to drop (i.e. drop=" + drops + " (default))\n"
+									 + "   (6) name of resulting haplotype file (i.e. newHapFile=[oldfileRoot]_filtered.[oldFileExtension] (default))\n"
+									 + "   (7) name of resulting map filename (i.e. newMapFile=[oldfileRoot]_filtered.[oldFileExtension] (default))\n"
+									 + " OR\n"
+									 + "   (1) compare haplotypes (i.e. comp=target.haps,final.haps (not the default; need a .snps file for each root))\n"
+									 + "   (2) master map file with positions (i.e. map=" + map + " (default))\n"
+									 + "   (3) number of lines/haplotypes to compare (i.e. numToCompare="
+									 + numToCompare + " (default))\n" + " OR\n"
+									 + "   (1) batch convert and run (i.e. -batch (not the default))\n"
+									 + "   (2) used phased beagle data instead of phased mach data (i.e. -beagle (not the default))\n"
+									 + "   (3) (optional) update IDs with ../new_header and ../new_plink.fam when running (i.e. -update (not the default))\n"
+									 + "   (4) (optional) amount of memory in Gb to reserve on each node (i.e. mem=4 (not the default))\n"
+									 + " OR\n"
+									 + "   (1) set up qsubs for mach2dat using .PED style phenotype file which can have additional covariates (i.e. mach2dat=plink.fam (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -1035,9 +1034,9 @@ public class Minimac {
 			} else if (logfile != null) {
 				parseLogfile(logfile);
 			} else if (filter) {
-				filterHaplotypes(	hapFile, mapFile, flips, drops,
-													newHapFile == null ? ext.addToRoot(hapFile, "_filtered") : newHapFile,
-													newMapFile == null ? ext.addToRoot(mapFile, "_filtered") : newMapFile);
+				filterHaplotypes(hapFile, mapFile, flips, drops,
+												 newHapFile == null ? ext.addToRoot(hapFile, "_filtered") : newHapFile,
+												 newMapFile == null ? ext.addToRoot(mapFile, "_filtered") : newMapFile);
 			} else if (batch) {
 				batch(beagle, update, memRequiredInGb, 24);
 			} else if (comp != null) {

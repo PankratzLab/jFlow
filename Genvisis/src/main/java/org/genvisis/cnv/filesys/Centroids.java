@@ -42,12 +42,12 @@ import org.genvisis.stats.Maths;
  */
 public class Centroids implements Serializable, TextExport {
 	public static final long serialVersionUID = 1L;
-	public static final String[] ILLUMINA_CENTROID_SUFFIXES = {	"Name", "AA T Mean", "AA R Mean",
-																															"AB T Mean", "AB R Mean", "BB T Mean",
-																															"BB R Mean"};
+	public static final String[] ILLUMINA_CENTROID_SUFFIXES = {"Name", "AA T Mean", "AA R Mean",
+																														 "AB T Mean", "AB R Mean", "BB T Mean",
+																														 "BB R Mean"};
 
 	private final float[][][] centroids; // marker, genotype (0=AA, 1=AB, 2=BB), coordinates (0=Mean
-																				// Theta, 1=Mean R) (a.k.a. follows the suffix order above)
+																			 // Theta, 1=Mean R) (a.k.a. follows the suffix order above)
 	private final long fingerprint;
 
 	public Centroids(float[][][] centroids, long fingerprint) {
@@ -161,16 +161,16 @@ public class Centroids implements Serializable, TextExport {
 				estimatedR = centroids[1][1];
 			} else {
 				estimatedR = centroids[0][1]
-											+ (theta - centroids[0][0])	* (centroids[1][1] - centroids[0][1])
-												/ (centroids[1][0] - centroids[0][0]);
+										 + (theta - centroids[0][0]) * (centroids[1][1] - centroids[0][1])
+											 / (centroids[1][0] - centroids[0][0]);
 			}
 		} else if (centroids[2] != null && theta < centroids[2][0]) {
 			if (centroids[1] == null) {
 				estimatedR = centroids[2][1];
 			} else {
 				estimatedR = centroids[1][1]
-											+ (theta - centroids[1][0])	* (centroids[2][1] - centroids[1][1])
-												/ (centroids[2][0] - centroids[1][0]);
+										 + (theta - centroids[1][0]) * (centroids[2][1] - centroids[1][1])
+											 / (centroids[2][0] - centroids[1][0]);
 			}
 		} else {
 			if (centroids[2] == null) {
@@ -221,8 +221,8 @@ public class Centroids implements Serializable, TextExport {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(",");
 				if (!hash.containsKey(line[indices[0]])) {
-					System.err.println("Error - marker '"	+ line[indices[0]]
-															+ "' was not found in MarkerSet");
+					System.err.println("Error - marker '" + line[indices[0]]
+														 + "' was not found in MarkerSet");
 					System.exit(1);
 				}
 				index = Integer.parseInt(hash.get(line[indices[0]]));
@@ -235,7 +235,7 @@ public class Centroids implements Serializable, TextExport {
 			}
 			missing = false;
 			for (int i = 0; i < centroids.length; i++) { // might want to generate an error log or display
-																										// the number if greater than, say, 10
+																									 // the number if greater than, say, 10
 				if (centroids[i] == null) {
 					if (!missing) {
 						System.err.println("Error - did not find a centroid for the following markers:");
@@ -247,8 +247,8 @@ public class Centroids implements Serializable, TextExport {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ filename + "\" not found in "
-													+ proj.PROJECT_DIRECTORY.getValue());
+			System.err.println("Error: file \"" + filename + "\" not found in "
+												 + proj.PROJECT_DIRECTORY.getValue());
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + filename + "\"");
@@ -267,8 +267,8 @@ public class Centroids implements Serializable, TextExport {
 									markerSet.getFingerprint()).serialize(proj.CUSTOM_CENTROIDS_FILENAME.getValue());
 	}
 
-	public static void parseCentroidsFromGenotypes(	Project proj, boolean[] samplesToBeUsed,
-																									double missingnessThreshold) {
+	public static void parseCentroidsFromGenotypes(Project proj, boolean[] samplesToBeUsed,
+																								 double missingnessThreshold) {
 		String[] samples, markerNames;
 		float[][][] centroids;
 		float[][] centroid;
@@ -351,11 +351,11 @@ public class Centroids implements Serializable, TextExport {
 			}
 		}
 		if (count > 0) {
-			System.out.println("Computed mean genotyped centroids for "	+ (centroids.length - count)
-													+ " of " + centroids.length + " markers, " + count + " missing");
+			System.out.println("Computed mean genotyped centroids for " + (centroids.length - count)
+												 + " of " + centroids.length + " markers, " + count + " missing");
 		} else {
-			System.out.println("Computed mean genotyped centroids for all "	+ centroids.length
-													+ " markers");
+			System.out.println("Computed mean genotyped centroids for all " + centroids.length
+												 + " markers");
 		}
 		// new Centroids(centroids,
 		// markerSet.getFingerprint()).serialize(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME));
@@ -379,19 +379,19 @@ public class Centroids implements Serializable, TextExport {
 		time = new Date().getTime();
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
-		hash = HashVec.loadFileToHashString(proj.PROJECT_DIRECTORY.getValue()	+ intensityOnlyFlagFile,
+		hash = HashVec.loadFileToHashString(proj.PROJECT_DIRECTORY.getValue() + intensityOnlyFlagFile,
 																				false);
 		// if (!Files.exists(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME), jar)) {
 		// System.err.println("Error - file '"+proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME)+"'
 		// does not exist in the project's data directory");
 		if (!Files.exists(proj.GENOTYPE_CENTROIDS_FILENAME.getValue(), jar)) {
-			System.err.println("Error - file '"	+ proj.GENOTYPE_CENTROIDS_FILENAME.getValue()
-													+ "' does not exist in the project's data directory");
+			System.err.println("Error - file '" + proj.GENOTYPE_CENTROIDS_FILENAME.getValue()
+												 + "' does not exist in the project's data directory");
 			return;
 		}
 		if (!Files.exists(proj.ORIGINAL_CENTROIDS_FILENAME.getValue(), jar)) {
-			System.err.println("Error - file '"	+ proj.ORIGINAL_CENTROIDS_FILENAME.getValue()
-													+ "' does not exist in the project's data directory");
+			System.err.println("Error - file '" + proj.ORIGINAL_CENTROIDS_FILENAME.getValue()
+												 + "' does not exist in the project's data directory");
 			return;
 		}
 		clustered = Centroids.load(proj.GENOTYPE_CENTROIDS_FILENAME.getValue(), jar);
@@ -419,8 +419,8 @@ public class Centroids implements Serializable, TextExport {
 			} else if (flag.equals("0")) {
 				cents[i] = clusteredCents[i];
 			} else {
-				System.err.println("Error - invalid flag for marker '"	+ markerNames[i] + "'; found '"
-														+ flag + "', expecting '1' or '0'");
+				System.err.println("Error - invalid flag for marker '" + markerNames[i] + "'; found '"
+													 + flag + "', expecting '1' or '0'");
 				problem = true;
 			}
 		}
@@ -463,15 +463,15 @@ public class Centroids implements Serializable, TextExport {
 		public Hashtable<String, Float> call() throws Exception {
 			Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 			Sample original = proj.getFullSampleFromRandomAccessFile(sample);
-			Sample sample = new Sample(	original.getSampleName(), original.getFingerprint(),
-																	original.getGCs(), original.getXs(), original.getYs(),
-																	preserveBafs	? original.getBAFs()
-																								: original.getBAFs(centroids.getCentroids()),
-																	original.getLRRs(centroids.getCentroids()),
-																	original.getForwardGenotypes(), original.getAB_Genotypes(),
-																	original.getCanXYBeNegative());
+			Sample sample = new Sample(original.getSampleName(), original.getFingerprint(),
+																 original.getGCs(), original.getXs(), original.getYs(),
+																 preserveBafs ? original.getBAFs()
+																							: original.getBAFs(centroids.getCentroids()),
+																 original.getLRRs(centroids.getCentroids()),
+																 original.getForwardGenotypes(), original.getAB_Genotypes(),
+																 original.getCanXYBeNegative());
 			sample.saveToRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(false, true)
-																			+ original.getSampleName() + Sample.SAMPLE_FILE_EXTENSION,
+																		+ original.getSampleName() + Sample.SAMPLE_FILE_EXTENSION,
 																		outliers, sample.getSampleName());
 			return outliers;
 		}
@@ -489,8 +489,8 @@ public class Centroids implements Serializable, TextExport {
 		private final boolean preserveBafs;
 		private int index;
 
-		public RecomputeProducer(	Project proj, String[] samples, Centroids centroids,
-															boolean preserveBafs) {
+		public RecomputeProducer(Project proj, String[] samples, Centroids centroids,
+														 boolean preserveBafs) {
 			super();
 			this.proj = proj;
 			this.samples = samples;
@@ -520,8 +520,8 @@ public class Centroids implements Serializable, TextExport {
 	 * @param preserveBafs bafs will not be recomputed from the centroids, useful if an atypical baf
 	 *        value is used
 	 */
-	public static void recompute(	Project proj, String centroidsFile, boolean preserveBafs,
-																int numThreads) {
+	public static void recompute(Project proj, String centroidsFile, boolean preserveBafs,
+															 int numThreads) {
 		MarkerSet markerSet;
 		Centroids centroids;
 		// Sample original, sample;
@@ -531,19 +531,18 @@ public class Centroids implements Serializable, TextExport {
 		markerSet = proj.getMarkerSet();
 		centroids = load(centroidsFile, proj.JAR_STATUS.getValue());
 		if (centroids.getFingerprint() != markerSet.getFingerprint()) {
-			System.err.println("Error - fingerprint for Centroids file '"	+ centroidsFile
-													+ "' does not match the fingerprint for the current MarkerSet");
+			System.err.println("Error - fingerprint for Centroids file '" + centroidsFile
+												 + "' does not match the fingerprint for the current MarkerSet");
 		}
 
 		// cents = centroids.getCentroids();
 		samples = proj.getSamples();
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 		RecomputeProducer producer = new RecomputeProducer(proj, samples, centroids, preserveBafs);
-		WorkerTrain<Hashtable<String, Float>> train =
-																								new WorkerTrain<Hashtable<String, Float>>(producer,
-																																													numThreads,
-																																													10,
-																																													proj.getLog());
+		WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(producer,
+																																														numThreads,
+																																														10,
+																																														proj.getLog());
 		while (train.hasNext()) {
 			Hashtable<String, Float> currentOutliers = train.next();
 			outliers.putAll(currentOutliers);
@@ -560,9 +559,9 @@ public class Centroids implements Serializable, TextExport {
 		// }
 		if (outliers.size() > 0) {
 			if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {
-				Files.copyFile(proj.SAMPLE_DIRECTORY.getValue(true, true)	+ "outliers.ser",
-												ext.addToRoot(proj.SAMPLE_DIRECTORY.getValue(true, true)	+ "outliers.ser",
-																			ext.getTimestampForFilename()));
+				Files.copyFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser",
+											 ext.addToRoot(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser",
+																		 ext.getTimestampForFilename()));
 			}
 		}
 		SerializedFiles.writeSerial(outliers,
@@ -587,7 +586,7 @@ public class Centroids implements Serializable, TextExport {
 		counts = new int[5];
 
 		for (int k = 0; k < xs.length; k++) {
-			if ((samplesToBeUsed == null || samplesToBeUsed[k])	&& !Float.isNaN(xs[k])
+			if ((samplesToBeUsed == null || samplesToBeUsed[k]) && !Float.isNaN(xs[k])
 					&& !Float.isNaN(ys[k])) {
 				meanXs[0] += xs[k];
 				meanYs[0] += ys[k];
@@ -644,11 +643,10 @@ public class Centroids implements Serializable, TextExport {
 		USE_CENT_IF_EXISTS_OTHERWISE_COMPUTE,
 		COMPUTE_CENT;
 	}
-	
+
 	@SuppressWarnings("unchecked")
-	public static Centroids[] computeSexSpecificCentroids(final Project proj,
-																												String[] pfbFiles, String[] centFiles,
-																												int threads) {
+	public static Centroids[] computeSexSpecificCentroids(final Project proj, String[] pfbFiles,
+																												String[] centFiles, int threads) {
 		PrintWriter writerM;
 		PrintWriter writerF;
 		MarkerSet markerSet;
@@ -660,8 +658,9 @@ public class Centroids implements Serializable, TextExport {
 		final boolean[] inclSampAll;
 		final boolean[] inclSampFemales;
 		final boolean[] inclSampMales;
-		final boolean[] chromPlus11Markers = proj.getMarkerForChrsBoolean(new int[]{11, 23, 24, 25, 26});
-		final boolean[] chromMarkers = proj.getMarkerForChrsBoolean(new int[]{23, 24, 25, 26});
+		final boolean[] chromPlus11Markers = proj.getMarkerForChrsBoolean(new int[] {11, 23, 24, 25,
+																																								 26});
+		final boolean[] chromMarkers = proj.getMarkerForChrsBoolean(new int[] {23, 24, 25, 26});
 		final int markerCount = ArrayUtils.booleanArraySum(chromMarkers);
 		int[] sampleSex;
 		final float[][][] rawCentroidsFemale;
@@ -717,7 +716,7 @@ public class Centroids implements Serializable, TextExport {
 				// Leave these for now, but when computing LRRs and BAFs, will need to be crafty....
 			}
 		}
-		
+
 		markerIndexQueues = new ConcurrentLinkedQueue[threadCount];
 		markerLists = new Vector[threadCount];
 		fullToTruncMarkerIndices = new Hashtable[threadCount];
@@ -742,22 +741,24 @@ public class Centroids implements Serializable, TextExport {
 		}
 
 		for (int i = 0; i < threadCount; i++) {
-			markerDataLoaders[i] = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(	proj, ArrayUtils.toStringArray(markerLists[i]));
+			markerDataLoaders[i] = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+																																										 ArrayUtils.toStringArray(markerLists[i]));
 		}
 
 		rawCentroidsMale = new float[allMarkers.length][][];
 		rawCentroidsFemale = new float[allMarkers.length][][];
 
 		pfbInfo = new Hashtable<Integer, String[][]>();
-		log.report("Computing sex-specific centroids for "	+ markerCount + " sex-specific markers on " + threadCount + " thread(s).");
-		
+		log.report("Computing sex-specific centroids for " + markerCount + " sex-specific markers on "
+							 + threadCount + " thread(s).");
+
 		PFB pfb = PFB.loadPFB(proj);
 		if (pfb == null) {
 			String newPFB = PennCNV.populationBAF(proj);
 			pfb = PFB.loadPFB(proj, newPFB);
 		}
 		final PFB autoPFB = pfb;
-		
+
 		computeHub = Executors.newFixedThreadPool(threadCount);
 
 		for (int i = 0; i < threadCount; i++) {
@@ -773,60 +774,57 @@ public class Centroids implements Serializable, TextExport {
 							continue;
 						}
 						int index = indexInt.intValue();
-						
+
 						if (!chromMarkers[index] && !chromPlus11Markers[index]) {
 							continue;
 						}
 						int markerIndex = fullToTruncMarkerIndices[myIndex].get(index);
 						MarkerData markerData = markerDataLoaders[myIndex].requestMarkerData(markerIndex);
 						if (!chromMarkers[index]) {
-							rawCentroidsMale[index] = new float[][] {	{Float.NaN, Float.NaN},
-																											{Float.NaN, Float.NaN},
-																											{Float.NaN, Float.NaN}};
-							rawCentroidsFemale[index] = new float[][] {	{Float.NaN, Float.NaN},
-																													{Float.NaN, Float.NaN},
-																													{Float.NaN, Float.NaN}};
-							pfbInfo.put(index, new String[][] {
-							               										{	
-							               											markerData.getMarkerName(), 
-							               											Integer.toString(markerData.getChr()), 
-							               											Integer.toString(markerData.getPosition()), 
-					               													Double.toString(autoPFB.getPfbs()[index])
-							               										},
-							               										{	
-							               											markerData.getMarkerName(),
-							               											Integer.toString(markerData.getChr()),
-							               											Integer.toString(markerData.getPosition()),
-							               											Double.toString(autoPFB.getPfbs()[index])
-							               										}
-							               							});
+							rawCentroidsMale[index] = new float[][] {{Float.NaN, Float.NaN},
+																											 {Float.NaN, Float.NaN},
+																											 {Float.NaN, Float.NaN}};
+							rawCentroidsFemale[index] = new float[][] {{Float.NaN, Float.NaN},
+																												 {Float.NaN, Float.NaN},
+																												 {Float.NaN, Float.NaN}};
+							pfbInfo.put(index,
+													new String[][] {{markerData.getMarkerName(),
+																					 Integer.toString(markerData.getChr()),
+																					 Integer.toString(markerData.getPosition()),
+																					 Double.toString(autoPFB.getPfbs()[index])},
+																					{markerData.getMarkerName(),
+																					 Integer.toString(markerData.getChr()),
+																					 Integer.toString(markerData.getPosition()),
+																					 Double.toString(autoPFB.getPfbs()[index])}});
 						} else {
 
-							CentroidCompute centCompM = new CentroidCompute(markerData, null, inclSampMales, false, // NOT
-																																																			// intensity
-																																																			// only
+							CentroidCompute centCompM = new CentroidCompute(markerData, null, inclSampMales,
+																															false, // NOT
+																																		 // intensity
+																																		 // only
 																															1, // no filtering
 																															0, // no filtering
 																															null, // no filtering
 																															true, // median, not mean
 																															proj.getLog());
-	
-							CentroidCompute centCompF = new CentroidCompute(markerData, null, inclSampFemales, false, // NOT
-																																																			// intensity
-																																																			// only
-																														1, // no filtering
-																														0, // no filtering
-																														null, // no filtering
-																														true, // median, not mean
-																														proj.getLog());
-	
-	
+
+							CentroidCompute centCompF = new CentroidCompute(markerData, null, inclSampFemales,
+																															false, // NOT
+																															// intensity
+																															// only
+																															1, // no filtering
+																															0, // no filtering
+																															null, // no filtering
+																															true, // median, not mean
+																															proj.getLog());
+
+
 							centCompM.computeCentroid(true);
 							centCompF.computeCentroid(true);
-	
+
 							rawCentroidsMale[index] = centCompM.getCentroid();
 							rawCentroidsFemale[index] = centCompF.getCentroid();
-	
+
 							float[] bafCnt = new float[] {0, 0};
 							float[] bafSum = new float[] {0, 0};
 							float[] genCnt = new float[] {0, 0};
@@ -854,35 +852,32 @@ public class Centroids implements Serializable, TextExport {
 									}
 								}
 							}
-	
-							pfbInfo.put(index, new String[][] {
-										{	
-											markerData.getMarkerName(), 
-											Integer.toString(markerData.getChr() - 22), 
-											Integer.toString(markerData.getPosition()), 
-											Float.toString(genCnt[0] > 0	? (bafSum[0] / bafCnt[0]) : 2)
-										},
-										{	
-											markerData.getMarkerName(),
-											Integer.toString(markerData.getChr() - 22),
-											Integer.toString(markerData.getPosition()),
-											Float.toString(genCnt[1] > 0	? (bafSum[1] / bafCnt[1]) : 2)
-										}
-							});
-	
+
+							pfbInfo.put(index,
+													new String[][] {{markerData.getMarkerName(),
+																					 Integer.toString(markerData.getChr() - 22),
+																					 Integer.toString(markerData.getPosition()),
+																					 Float.toString(genCnt[0] > 0 ? (bafSum[0] / bafCnt[0])
+																																				: 2)},
+																					{markerData.getMarkerName(),
+																					 Integer.toString(markerData.getChr() - 22),
+																					 Integer.toString(markerData.getPosition()),
+																					 Float.toString(genCnt[1] > 0 ? (bafSum[1] / bafCnt[1])
+																																				: 2)}});
+
 						}
-						
+
 						if (markerIndex > 0 && markerIndex % 10000 == 0) {
-							log.report(ext.getTime()	+ "\t...sex centroids computed up to marker "
-									+ (markerCount - markerIndex) + " of " + markerCount);
+							log.report(ext.getTime() + "\t...sex centroids computed up to marker "
+												 + (markerCount - markerIndex) + " of " + markerCount);
 						}
 						markerDataLoaders[myIndex].releaseIndex(markerIndex);
 
 						myMarkerCount++;
 					}
 
-					log.report("Thread "	+ myIndex + " processed " + myMarkerCount + " markers in "
-															+ ext.getTimeElapsed(myStartTime));
+					log.report("Thread " + myIndex + " processed " + myMarkerCount + " markers in "
+										 + ext.getTimeElapsed(myStartTime));
 				}
 			});
 		}
@@ -905,7 +900,7 @@ public class Centroids implements Serializable, TextExport {
 
 		if (pfbFiles != null) {
 			log.report("Writing sex-specific (plus chr11) PFB files");
-			
+
 			try {
 				new File(ext.parseDirectoryOfFile(pfbFiles[0])).mkdirs();
 				new File(ext.parseDirectoryOfFile(pfbFiles[1])).mkdirs();
@@ -920,9 +915,9 @@ public class Centroids implements Serializable, TextExport {
 						continue;
 					}
 					String[][] pfbEntry = pfbInfo.get(Integer.valueOf(i));
-					writerM.println(pfbEntry[0][0]	+ "\t" + pfbEntry[0][1] + "\t" + pfbEntry[0][2] + "\t"
+					writerM.println(pfbEntry[0][0] + "\t" + pfbEntry[0][1] + "\t" + pfbEntry[0][2] + "\t"
 													+ pfbEntry[0][3]);
-					writerF.println(pfbEntry[1][0]	+ "\t" + pfbEntry[1][1] + "\t" + pfbEntry[1][2] + "\t"
+					writerF.println(pfbEntry[1][0] + "\t" + pfbEntry[1][1] + "\t" + pfbEntry[1][2] + "\t"
 													+ pfbEntry[1][3]);
 				}
 
@@ -970,25 +965,25 @@ public class Centroids implements Serializable, TextExport {
 		String dir;
 
 		dir = proj.PROJECT_DIRECTORY.getValue();
-		String file = centFilename.startsWith(dir)	|| centFilename.contains(":")
+		String file = centFilename.startsWith(dir) || centFilename.contains(":")
 									|| centFilename.startsWith("/") ? centFilename : dir + centFilename;
 		centObject = Centroids.load(file, false);
 		centroids = centObject.getCentroids();
 
 		if (markerNames.length != centroids.length) {
 			System.err.println("Error - mismatched number of markers in the project's marker set and the imported centroids file ("
-													+ centFilename + "); aborting");
+												 + centFilename + "); aborting");
 			return;
 		}
 
 		if (MarkerSet.fingerprint(markerNames) != centObject.getFingerprint()) {
 			System.err.println("Error - mismatched marker fingerprints in the project's marker set and the imported centroids file ("
-													+ centFilename + "); aborting");
+												 + centFilename + "); aborting");
 			return;
 		}
 
-		String outFile = exportFilename.startsWith(dir)	|| exportFilename.contains(":")
-											|| exportFilename.startsWith("/") ? exportFilename : dir + exportFilename;
+		String outFile = exportFilename.startsWith(dir) || exportFilename.contains(":")
+										 || exportFilename.startsWith("/") ? exportFilename : dir + exportFilename;
 		try {
 			writer = new PrintWriter(new FileWriter(outFile));
 			writer.println("marker_fingerprint=" + centObject.getFingerprint());
@@ -1036,19 +1031,19 @@ public class Centroids implements Serializable, TextExport {
 		String exportFile = null;
 		int numThreads = 1;
 
-		String usage = "\n"	+ "cnv.filesys.Centroids requires 0-1 arguments\n"
-										+ "   (1) project properties filename (i.e. proj="
-										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-										+ "   (2) filename (i.e. file=" + centFile + " (default))\n" + " OR\n"
-										+ "   (2) generate centroids from genotypes (i.e. -fromGenotypes (not the default))\n"
-										+ "   (3) compute and dump centroids for project (i.e. -computeDump (not the default))\n"
-										+ " OR\n"
-										+ "   (2) file with intensity only flags (i.e. flags=intensityFlags.dat (not the default))\n"
-										+ "   (3) centroid file for clustered markers (see \"GENOTYPE_CENTROIDS_FILENAME\" in the Project properties file)\n"
-										+ "   (4) centroid file for intensity only markers (see \"GENOTYPE_CENTROIDS_FILENAME\" in the Project properties file)\n"
-										+ " OR\n"
-										+ "   (2) recompute BAF/LRR and generate new Sample files using these centroids (i.e. compute=genotype.cent (not the default))\n"
-										+ "";
+		String usage = "\n" + "cnv.filesys.Centroids requires 0-1 arguments\n"
+									 + "   (1) project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + "   (2) filename (i.e. file=" + centFile + " (default))\n" + " OR\n"
+									 + "   (2) generate centroids from genotypes (i.e. -fromGenotypes (not the default))\n"
+									 + "   (3) compute and dump centroids for project (i.e. -computeDump (not the default))\n"
+									 + " OR\n"
+									 + "   (2) file with intensity only flags (i.e. flags=intensityFlags.dat (not the default))\n"
+									 + "   (3) centroid file for clustered markers (see \"GENOTYPE_CENTROIDS_FILENAME\" in the Project properties file)\n"
+									 + "   (4) centroid file for intensity only markers (see \"GENOTYPE_CENTROIDS_FILENAME\" in the Project properties file)\n"
+									 + " OR\n"
+									 + "   (2) recompute BAF/LRR and generate new Sample files using these centroids (i.e. compute=genotype.cent (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -1108,14 +1103,14 @@ public class Centroids implements Serializable, TextExport {
 				femalePFB = sexDir + "females.pfb";
 				centFilePathM = sexDir + "sexSpecific_Male.cent";
 				centFilePathF = sexDir + "sexSpecific_Female.cent";
-				computeSexSpecificCentroids(proj, 
-																		new String[] {malePFB, femalePFB},
+				computeSexSpecificCentroids(proj, new String[] {malePFB, femalePFB},
 																		new String[] {centFilePathM, centFilePathF}, numThreads);
 			} else if (importFile != null) {
 				importFromText(proj, importFile, centFile);
 			} else if (fromGenotypes) {
-				parseCentroidsFromGenotypes(proj, ArrayUtils.booleanArray(proj.getSamples().length, true), 1);
-			}	else if (projComputeDump) {
+				parseCentroidsFromGenotypes(proj, ArrayUtils.booleanArray(proj.getSamples().length, true),
+																		1);
+			} else if (projComputeDump) {
 				CentroidCompute.computeAndDumpCentroids(proj);
 			} else if (!compute.equals("")) {
 				recompute(proj, compute, false, numThreads);

@@ -25,8 +25,8 @@ public class PFB {
 		pfbs = pfbst;
 		MarkerSet markerSet = proj.getMarkerSet();
 		if (pfbs.length != markerSet.getMarkerNames().length) {
-			String error = "Found "	+ pfbs.length + " pfb entries, but the project has" + pfbs.length
-											+ " markers";
+			String error = "Found " + pfbs.length + " pfb entries, but the project has" + pfbs.length
+										 + " markers";
 			proj.getLog().reportError(error);
 			throw new IllegalArgumentException(error);
 		} else {

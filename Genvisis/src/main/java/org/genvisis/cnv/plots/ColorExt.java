@@ -69,8 +69,8 @@ public class ColorExt {
 	 * @return an array of {@link Color}, one for each data point.
 	 */
 	public static Color[] assignColorsForData(int numColors, double[] data) {
-		NormalDistribution nd = new NormalDistribution(	ArrayUtils.mean(data, true),
-																										Math.pow(ArrayUtils.stdev(data, true), 2));
+		NormalDistribution nd = new NormalDistribution(ArrayUtils.mean(data, true),
+																									 Math.pow(ArrayUtils.stdev(data, true), 2));
 		Color[] colorsAvailable = ColorExt.generatRGBScale(numColors);
 		Color[] colorsforData = new Color[data.length];
 		for (int i = 0; i < data.length; i++) {
@@ -151,16 +151,15 @@ public class ColorExt {
 		}
 		if (Files.exists(file)) {
 			String[] header = Files.getHeaderOfFile(file, proj.getLog());
-			int markerIndex = ext.indexFactors(	new String[][] {Aliases.MARKER_NAMES}, header, true, true,
-																					false, proj.getLog(), false)[0];
+			int markerIndex = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES}, header, true, true,
+																				 false, proj.getLog(), false)[0];
 			int classIndex = ext.indexOfStartsWith("CLASS=MARKER_COLOR", header, false);
 			if (markerIndex < 0 || classIndex < 0) {
 				if (markerIndex < 0) {
 					proj.getLog().reportError("Could not find any of the the following in the header of "
-																				+ file + "\n" + ArrayUtils.toStr(Aliases.MARKER_NAMES, "\n"));
+																		+ file + "\n" + ArrayUtils.toStr(Aliases.MARKER_NAMES, "\n"));
 				} else {
-					proj.getLog()
-							.reportError("Could not find CLASS=MARKER_COLOR  in the header of " + file);
+					proj.getLog().reportError("Could not find CLASS=MARKER_COLOR  in the header of " + file);
 
 				}
 				return null;
@@ -182,7 +181,7 @@ public class ColorExt {
 
 						String[] line = reader.readLine().trim().split("\t");
 						if (!indices.containsKey(line[markerIndex])) {
-							proj.getLog().reportTimeWarning("Did not detect marker "	+ line[markerIndex]
+							proj.getLog().reportTimeWarning("Did not detect marker " + line[markerIndex]
 																							+ " in the project");
 						}
 						lookup.put(line[markerIndex], line[classIndex]);

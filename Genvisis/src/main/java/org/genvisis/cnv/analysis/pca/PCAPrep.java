@@ -25,11 +25,12 @@ public class PCAPrep {
 	static final String MARKERS_FOR_ABCALLRATE = "markers_ABCallRate.txt";
 
 	public static final int SUCCESS_CODE = 42;
-	
+
 	public static String errorMessage(int errorCode) {
 		switch (errorCode) {
 			case 1:
-				return "MarkerQC should have been run, but the output file " + MARKERS_FOR_ABCALLRATE + " wasn't found in the project/base directory.";
+				return "MarkerQC should have been run, but the output file " + MARKERS_FOR_ABCALLRATE
+							 + " wasn't found in the project/base directory.";
 			case 2:
 			case 3:
 				return "Problem occurred when reading Sample QC (lrr_sd.xln) file - please check log for more details.";
@@ -38,7 +39,7 @@ public class PCAPrep {
 				return "";
 		}
 	}
-	
+
 	public static int prepPCA(Project proj, int numThreads, String outputBase, boolean markerQC,
 														double markerCallRateFilter, String useFile, SampleList sampleList,
 														Logger log) {
@@ -47,10 +48,10 @@ public class PCAPrep {
 		String markersForEverythingElse;
 		// if marker QC is not flagged, sample qc is based on all target markers by default
 		String markersToQC = proj.PROJECT_DIRECTORY.getValue() + outputBase + "_" + MARKERS_TO_QC_FILE;
-		String markersABCallrate = proj.PROJECT_DIRECTORY.getValue()	+ outputBase + "_"
-																+ MARKERS_FOR_ABCALLRATE;
-		String baseLineMarkers = proj.PROJECT_DIRECTORY.getValue()	+ outputBase
-															+ "_baselineMarkers.txt";
+		String markersABCallrate = proj.PROJECT_DIRECTORY.getValue() + outputBase + "_"
+															 + MARKERS_FOR_ABCALLRATE;
+		String baseLineMarkers = proj.PROJECT_DIRECTORY.getValue() + outputBase
+														 + "_baselineMarkers.txt";
 		String[] auto = proj.getAutosomalMarkers();
 		ArrayList<String> tmp = new ArrayList<String>();
 		for (int i = 0; i < auto.length; i++) {
@@ -66,7 +67,7 @@ public class PCAPrep {
 								numThreads);
 			markersForABCallRate = markersABCallrate;
 			if (!Files.exists(markersForABCallRate)) {
-				log.reportError("Error - markerQC was flagged but the file "	+ markersABCallrate
+				log.reportError("Error - markerQC was flagged but the file " + markersABCallrate
 												+ " could not be found");
 				return 1;
 			}
@@ -78,33 +79,33 @@ public class PCAPrep {
 		String qcFile = outputBase + "_lrr_sd.txt";
 		proj.SAMPLE_QC_FILENAME.setValue(qcFile);
 
-		counts = org.genvisis.cnv.qc.LrrSd.filterSamples(	proj, outputBase, markersForABCallRate,
-																											markersForEverythingElse, numThreads, useFile,
-																											false);
+		counts = org.genvisis.cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate,
+																										 markersForEverythingElse, numThreads, useFile,
+																										 false);
 		if (counts == null || counts[1] != sampleList.getSamples().length) {
 			if (counts == null || counts[1] == 0 && Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
-				log.reportError("Error - was unable to parse QC file "	+ proj.SAMPLE_QC_FILENAME.getValue()
+				log.reportError("Error - was unable to parse QC file " + proj.SAMPLE_QC_FILENAME.getValue()
 												+ ", backing up this file to "
 												+ proj.BACKUP_DIRECTORY.getValue(false, false)
 												+ " and re-starting sample qc");
-				Files.backup(	ext.removeDirectoryInfo(proj.SAMPLE_QC_FILENAME.getValue()),
-											proj.PROJECT_DIRECTORY.getValue(),
-											proj.BACKUP_DIRECTORY.getValue(true, false), true);
+				Files.backup(ext.removeDirectoryInfo(proj.SAMPLE_QC_FILENAME.getValue()),
+										 proj.PROJECT_DIRECTORY.getValue(), proj.BACKUP_DIRECTORY.getValue(true, false),
+										 true);
 			}
-			counts = org.genvisis.cnv.qc.LrrSd.filterSamples(	proj, outputBase, markersForABCallRate,
-																												markersForEverythingElse, numThreads,
-																												useFile, false);
+			counts = org.genvisis.cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate,
+																											 markersForEverythingElse, numThreads,
+																											 useFile, false);
 			if (counts == null || counts[1] != sampleList.getSamples().length) {
 				int err = 2;
 				if (counts == null) {
-					log.reportError("Error - could not parse QC file ("	+ proj.SAMPLE_QC_FILENAME.getValue()
+					log.reportError("Error - could not parse QC file (" + proj.SAMPLE_QC_FILENAME.getValue()
 													+ ")");
 				} else {
-					log.reportError("Error - different number of samples (n="	+ counts[1]
+					log.reportError("Error - different number of samples (n=" + counts[1]
 													+ ") listed in the QC file (" + proj.SAMPLE_QC_FILENAME.getValue()
 													+ ") compared to the number of samples in the project (n="
 													+ sampleList.getSamples().length + ")");
-					log.reportError("      - delete the QC file ("	+ proj.SAMPLE_QC_FILENAME.getValue()
+					log.reportError("      - delete the QC file (" + proj.SAMPLE_QC_FILENAME.getValue()
 													+ ") to regenerate it with the correct number of samples");
 					err = 3;
 				}
@@ -113,7 +114,7 @@ public class PCAPrep {
 			}
 		}
 		if (counts == null || counts[0] == 0) {// no samples passed threshold, null case shouldn't
-																						// happen but we will test anyway
+																					 // happen but we will test anyway
 			return 2;// message handled already
 		}
 		return SUCCESS_CODE;
@@ -123,8 +124,8 @@ public class PCAPrep {
 	 * Currently un-neccesary, but it is set up in case we want to QC the median markers at the same
 	 * time
 	 */
-	private static void writeMarkersToQC(	Project proj, String targetMarkersFile,
-																				String markersToQCFile) {
+	private static void writeMarkersToQC(Project proj, String targetMarkersFile,
+																			 String markersToQCFile) {
 		String[] markers = null;
 		if (targetMarkersFile == null) {
 			markers = proj.getMarkerNames();
@@ -148,15 +149,15 @@ public class PCAPrep {
 				markersToUse.add(marker);
 			}
 		}
-		return PrincipalComponentsCompute.sortByProjectMarkers(	proj,
-																														markersToUse.toArray(new String[markersToUse.size()]));
+		return PrincipalComponentsCompute.sortByProjectMarkers(proj,
+																													 markersToUse.toArray(new String[markersToUse.size()]));
 	}
 
 	/**
 	 * Write a filtered list of markers to use for ab callRate in sample QC
 	 */
-	private static boolean filterMarkerMetricsFile(	Project proj, double markerCallRateFilter,
-																									String markersABCallrate) {
+	private static boolean filterMarkerMetricsFile(Project proj, double markerCallRateFilter,
+																								 String markersABCallrate) {
 		ArrayList<String> abMarkersToUse = new ArrayList<String>();
 		BufferedReader reader;
 		Logger log = proj.getLog();
@@ -172,7 +173,7 @@ public class PCAPrep {
 				// MarkerMetrics.FULL_QC_HEADER[2] + " was not found in the marker metrics file" +
 				// proj.getFilename(proj.MARKER_METRICS_FILENAME));
 				log.reportError("Error - the necessary marker metrics header "
-													+ MarkerMetrics.FULL_QC_HEADER[2]
+												+ MarkerMetrics.FULL_QC_HEADER[2]
 												+ " was not found in the marker metrics file"
 												+ proj.MARKER_METRICS_FILENAME.getValue());
 				return false;
@@ -187,8 +188,8 @@ public class PCAPrep {
 							abMarkersToUse.add(metrics[0]);
 						}
 					} catch (NumberFormatException nfe) {
-						log.report("Warning - found an invalid number "	+ metrics[abIndex] + " for marker"
-												+ metrics[0] + " skipping this marker");
+						log.report("Warning - found an invalid number " + metrics[abIndex] + " for marker"
+											 + metrics[0] + " skipping this marker");
 					}
 				}
 			}
@@ -197,14 +198,14 @@ public class PCAPrep {
 				return false;
 			} else {
 				log.report("Sample call rate will be computed with " + abMarkersToUse.size() + " markers");
-				Files.writeArray(	abMarkersToUse.toArray(new String[abMarkersToUse.size()]),
-													markersABCallrate);
+				Files.writeArray(abMarkersToUse.toArray(new String[abMarkersToUse.size()]),
+												 markersABCallrate);
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
 			// log.reportError("Error: file \"" + proj.getFilename(proj.MARKER_METRICS_FILENAME) + "\" not
 			// found in current directory");
-			log.reportError("Error: file \""	+ proj.MARKER_METRICS_FILENAME.getValue()
+			log.reportError("Error: file \"" + proj.MARKER_METRICS_FILENAME.getValue()
 											+ "\" not found in current directory");
 		} catch (IOException ioe) {
 			// log.reportError("Error reading file \"" + proj.getFilename(proj.MARKER_METRICS_FILENAME) +
@@ -232,16 +233,16 @@ public class PCAPrep {
 		log = proj.getLog();
 		markerMetricsFilename = proj.MARKER_METRICS_FILENAME.getValue(true, false);
 		// skip if marker qc file exists
-		if (Files.exists(markerMetricsFilename)	&& new File(markerMetricsFilename).length() > 0
+		if (Files.exists(markerMetricsFilename) && new File(markerMetricsFilename).length() > 0
 				&& Files.exists(markersToQCFile)
 				&& Files.countLines(markerMetricsFilename, 1) >= Files.countLines(markersToQCFile, 0)) {
-			log.report("Marker QC file "	+ proj.MARKER_METRICS_FILENAME.getValue(true, false)
-									+ " exists");
+			log.report("Marker QC file " + proj.MARKER_METRICS_FILENAME.getValue(true, false)
+								 + " exists");
 			log.report("Skipping Marker QC computation for the analysis, filtering on existing file");
 		} else {
 			log.report("Computing marker QC for "
-									+ (targetMarkersFile == null	? "all markers in project."
-																								: "markers in " + targetMarkersFile));
+								 + (targetMarkersFile == null ? "all markers in project."
+																							: "markers in " + targetMarkersFile));
 			writeMarkersToQC(proj, targetMarkersFile, markersToQCFile);
 			boolean[] samplesToExclude = new boolean[proj.getSamples().length];
 			Arrays.fill(samplesToExclude, false);

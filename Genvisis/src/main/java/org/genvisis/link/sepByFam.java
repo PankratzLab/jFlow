@@ -46,9 +46,9 @@ public class sepByFam {
 				writer.println("FamID\tAR LOD");
 			} else {
 				if (!allFour(args)) {
-					System.err.println("Error: Not chromf"	+ chrome + ".lin.out, chromf" + chrome
-															+ ".D.out or chromf" + chrome
-															+ ".R.out could be found for questioning.");
+					System.err.println("Error: Not chromf" + chrome + ".lin.out, chromf" + chrome
+														 + ".D.out or chromf" + chrome
+														 + ".R.out could be found for questioning.");
 					System.err.println("       Furthermore, could not find them in their respective struct/directories either.");
 				}
 				System.exit(0);
@@ -93,16 +93,16 @@ public class sepByFam {
 			writer = new PrintWriter(new FileWriter("lods" + chrome + "_" + position + ".dat.xls"));
 
 			if (!(new File("allegro/chromf" + chrome + ".lin.out")).exists()
-						|| !(new File("parametric dominant/chromf" + chrome + ".d.out")).exists()
+					|| !(new File("parametric dominant/chromf" + chrome + ".d.out")).exists()
 					|| !(new File("parametric recessive/chromf" + chrome + ".r.out")).exists()) {
 				writer.close();
 				return false;
 			}
 
 			reader[0] = new BufferedReader(new FileReader("allegro/chromf" + chrome + ".lin.out"));
-			reader[1] = new BufferedReader(new FileReader("parametric dominant/chromf"	+ chrome
+			reader[1] = new BufferedReader(new FileReader("parametric dominant/chromf" + chrome
 																										+ ".d.out"));
-			reader[2] = new BufferedReader(new FileReader("parametric recessive/chromf"	+ chrome
+			reader[2] = new BufferedReader(new FileReader("parametric recessive/chromf" + chrome
 																										+ ".r.out"));
 
 			writer.println("Family\tlinearLOD\tNPL\tAD LOD\tAR LOD\t\tpositive");

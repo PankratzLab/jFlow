@@ -14,7 +14,7 @@ public class simRunAllegro {
 			for (int chr = 1; chr <= 23; chr++) {
 				chrome = (chr < 10) ? "0" + chr : "" + chr;
 				optfile = new PrintWriter(new FileWriter("temp-" + (all ? chrome + "-" : "") + i + ".opt"));
-				optfile.println("% Read input in LINKAGE style format:\n"	+ "PREFILE linkage-"
+				optfile.println("% Read input in LINKAGE style format:\n" + "PREFILE linkage-"
 												+ (all ? chrome + "-" : "") + i + ".pre\n" + "DATFILE "
 												+ (all ? "map" + chrome + ".dat" : "linkage.dat") + "\n\n"
 												+ "% Simulate stroke reconstruction pedigrees\n"
@@ -40,9 +40,9 @@ public class simRunAllegro {
 		int numReps = 1000;
 		boolean allChrs = false;
 
-		String usage = "\n"	+ "park.simRunAllegro requires 0-2 arguments\n"
-										+ "   (1) number of replicates (i.e. reps=" + numReps + " (default)\n"
-										+ "   (2) all chromosomes (i.e. '-all' (optional))\n" + "";
+		String usage = "\n" + "park.simRunAllegro requires 0-2 arguments\n"
+									 + "   (1) number of replicates (i.e. reps=" + numReps + " (default)\n"
+									 + "   (2) all chromosomes (i.e. '-all' (optional))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

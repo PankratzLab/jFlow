@@ -19,17 +19,16 @@ import org.genvisis.common.ext;
 import com.google.common.primitives.Doubles;
 
 public class RelativeQuantification {
-	public static final String[] HEADER = {	"Plate", "Well ID", "Well", "Sample", "Detector", "Task",
-																					"Ct", "Ct Std Err", "Avg Ct", "Avg dCt", "dCt Std Err",
-																					"ddCt", "RQ", "RQ Min", "RQ Max", "Omit", "Filtered",
-																					"Threshold", "Auto Ct", "Baseline", "Start", "End"};
+	public static final String[] HEADER = {"Plate", "Well ID", "Well", "Sample", "Detector", "Task",
+																				 "Ct", "Ct Std Err", "Avg Ct", "Avg dCt", "dCt Std Err",
+																				 "ddCt", "RQ", "RQ Min", "RQ Max", "Omit", "Filtered",
+																				 "Threshold", "Auto Ct", "Baseline", "Start", "End"};
 
 	public static void parse(String dir, String subdir) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, inds, regionNames, probeNames, values;
-		Hashtable<String, Hashtable<String, Hashtable<String, String[]>>> individuals =
-																																									new Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>();
+		Hashtable<String, Hashtable<String, Hashtable<String, String[]>>> individuals = new Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>();
 		Hashtable<String, Hashtable<String, String[]>> probes;
 		Hashtable<String, String[]> regions;
 		double[][][] means, stderrs;
@@ -72,7 +71,7 @@ public class RelativeQuantification {
 					}
 					if (regions.containsKey(region)) {
 						values = regions.get(region);
-						if (!values[0].equals(line[8])	|| !values[1].equals(line[7])
+						if (!values[0].equals(line[8]) || !values[1].equals(line[7])
 								|| !values[2].equals(line[12]) || !values[3].equals(line[13])
 								|| !values[4].equals(line[14])) {
 							System.err.println("Error - mismatch with " + ind);
@@ -102,13 +101,13 @@ public class RelativeQuantification {
 			writer.print("Sample");
 			for (String probeName2 : probeNames) {
 				for (String regionName : regionNames) {
-					writer.print("\t"	+ regionName + "_" + probeGeneLookup.get(probeName2) + "-" + probeName2
-												+ "_AvgCt\t" + regionName + "_" + probeGeneLookup.get(probeName2) + "-"
-												+ probeName2 + "_CtStderr\t" + regionName + "_"
-												+ probeGeneLookup.get(probeName2) + "-" + probeName2 + "_RQ\t" + regionName
-												+ "_" + probeGeneLookup.get(probeName2) + "-" + probeName2 + "_RQ Min\t"
-												+ regionName + "_" + probeGeneLookup.get(probeName2) + "-" + probeName2
-												+ "_RQ Max");
+					writer.print("\t" + regionName + "_" + probeGeneLookup.get(probeName2) + "-" + probeName2
+											 + "_AvgCt\t" + regionName + "_" + probeGeneLookup.get(probeName2) + "-"
+											 + probeName2 + "_CtStderr\t" + regionName + "_"
+											 + probeGeneLookup.get(probeName2) + "-" + probeName2 + "_RQ\t" + regionName
+											 + "_" + probeGeneLookup.get(probeName2) + "-" + probeName2 + "_RQ Min\t"
+											 + regionName + "_" + probeGeneLookup.get(probeName2) + "-" + probeName2
+											 + "_RQ Max");
 				}
 			}
 			writer.println("\tMeanSampleStderr");
@@ -140,8 +139,8 @@ public class RelativeQuantification {
 			writer.print("Sample");
 			for (String probeName2 : probeNames) {
 				for (String regionName : regionNames) {
-					writer.print("\t"	+ regionName + "_" + probeGeneLookup.get(probeName2) + "-" + probeName2
-												+ "_RQ_log");
+					writer.print("\t" + regionName + "_" + probeGeneLookup.get(probeName2) + "-" + probeName2
+											 + "_RQ_log");
 				}
 			}
 			writer.println("\tMeanSampleStderr");
@@ -167,13 +166,13 @@ public class RelativeQuantification {
 			writer.close();
 
 			for (String probeName2 : probeNames) {
-				writer = new PrintWriter(new FileWriter(dir	+ probeGeneLookup.get(probeName2) + "_"
+				writer = new PrintWriter(new FileWriter(dir + probeGeneLookup.get(probeName2) + "_"
 																								+ probeName2 + ".xln"));
 				writer.print("Sample");
 				for (String regionName : regionNames) {
-					writer.print("\t"	+ regionName + "_" + "_AvgCt\t" + regionName + "_" + "_CtStderr\t"
-												+ regionName + "_" + "_RQ\t" + regionName + "_" + "_RQ Min\t" + regionName
-												+ "_" + "_RQ Max");
+					writer.print("\t" + regionName + "_" + "_AvgCt\t" + regionName + "_" + "_CtStderr\t"
+											 + regionName + "_" + "_RQ\t" + regionName + "_" + "_RQ Min\t" + regionName
+											 + "_" + "_RQ Max");
 				}
 				writer.println();
 				for (String ind2 : inds) {
@@ -353,8 +352,8 @@ public class RelativeQuantification {
 		String subdir = "source/";
 		String filename = "RelativeQuantification.dat";
 
-		String usage = "\\n"	+ "park.expression.RelativeQuantification requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\\n" + "park.expression.RelativeQuantification requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

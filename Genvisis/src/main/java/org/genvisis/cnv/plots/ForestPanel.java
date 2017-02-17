@@ -91,9 +91,9 @@ public class ForestPanel extends AbstractPanel {
 				errorMessage = "No data file selected, or no data found in input file.  Please select a data file.";
 			} else {
 				input = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex());
-				errorMessage = "Cannot generate points for marker "	+ input.marker
-												+ " because the data did not load; check to see if file \"" + input.file
-												+ "\" actually exists and if the beta/se columns are named as expected (e.g., expecting beta.Study1 and not Study1.beta; overall results need to be exactly beta/se or effect/stderr)";
+				errorMessage = "Cannot generate points for marker " + input.marker
+											 + " because the data did not load; check to see if file \"" + input.file
+											 + "\" actually exists and if the beta/se columns are named as expected (e.g., expecting beta.Study1 and not Study1.beta; overall results need to be exactly beta/se or effect/stderr)";
 			}
 			setNullMessage(errorMessage);
 			if (log != null) {
@@ -124,15 +124,15 @@ public class ForestPanel extends AbstractPanel {
 				PlotPoint leftEnd = new PlotPoint("", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 5,
 																					(byte) 0, (byte) 0);
 				yAxisValue = (float) i + 1;
-				PlotPoint rightEnd = new PlotPoint(	"", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 5,
-																						(byte) 0, (byte) 0);
+				PlotPoint rightEnd = new PlotPoint("", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 5,
+																					 (byte) 0, (byte) 0);
 
 				linesData.add(new GenericLine(leftEnd, rightEnd, (byte) 1, (byte) 0, (byte) 0, false));
 
 				yAxisValue = (float) i + 1;
 
-				tempPoints.add(new PlotPoint(	" | ", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 3,
-																			(byte) 0, (byte) 0));
+				tempPoints.add(new PlotPoint(" | ", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 3,
+																		 (byte) 0, (byte) 0));
 				tempPoints.get(tempPoints.size() - 1).setVisible(false);
 				// tempPoints[i] = new PlotPoint(" | ", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 3,
 				// (byte) 0, (byte) 0);
@@ -145,16 +145,16 @@ public class ForestPanel extends AbstractPanel {
 
 				xAxisValue = currStudy.getConfInterval(oddsDisplay)[1];
 				yAxisValue = (float) i + 1;
-				PlotPoint rightEnd = new PlotPoint(	currStudy.getDisplayLabel(), currStudy.getShape(),
-																						xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
+				PlotPoint rightEnd = new PlotPoint(currStudy.getDisplayLabel(), currStudy.getShape(),
+																					 xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
 
 				linesData.add(new GenericLine(leftEnd, rightEnd, (byte) 1, (byte) 0, (byte) 0, false));
 
 				xAxisValue = currStudy.getBeta(oddsDisplay);
 				yAxisValue = (float) i + 1;
-				tempPoints.add(new PlotPoint(currStudy.getDisplayLabel()	+ "|"
-																			+ prepareRightMarkers(currStudy), currStudy.getShape(),
-																			xAxisValue, yAxisValue, (byte) 3, (byte) 0, (byte) 0));
+				tempPoints.add(new PlotPoint(currStudy.getDisplayLabel() + "|"
+																		 + prepareRightMarkers(currStudy), currStudy.getShape(),
+																		 xAxisValue, yAxisValue, (byte) 3, (byte) 0, (byte) 0));
 				tempPoints.get(tempPoints.size() - 1).setVisible(false);
 			}
 		}
@@ -168,14 +168,14 @@ public class ForestPanel extends AbstractPanel {
 				|| (oddsDisplay && beta == 1.0f && conf0 == 1.0f && conf1 == 1.0f)) {
 			return " monomorphic ";
 		}
-		return String.format(	"%1$4s (%2$4s, %3$4s)", precision2Decimal.format(beta),
-													precision2Decimal.format(conf0), precision2Decimal.format(conf1));
+		return String.format("%1$4s (%2$4s, %3$4s)", precision2Decimal.format(beta),
+												 precision2Decimal.format(conf0), precision2Decimal.format(conf1));
 	}
 
 	private String prepareRightMarkers(StudyData forestTree) {
-		return prepareRightMarkers(	forestTree.getBeta(oddsDisplay),
-																forestTree.getConfInterval(oddsDisplay)[0],
-																forestTree.getConfInterval(oddsDisplay)[1]);
+		return prepareRightMarkers(forestTree.getBeta(oddsDisplay),
+															 forestTree.getConfInterval(oddsDisplay)[0],
+															 forestTree.getConfInterval(oddsDisplay)[1]);
 	}
 
 	private void generateRectangles(Graphics g) {
@@ -209,19 +209,19 @@ public class ForestPanel extends AbstractPanel {
 				// float scale = currentData.get(i).getZScore() / forestPlot.getMaxZScore() / 4;
 
 				float scale = (float) (Math.sqrt(currentData.get(i).getZScore())
-																/ Math.sqrt(forestPlot.getMaxZScore()) / 4);
+															 / Math.sqrt(forestPlot.getMaxZScore()) / 4);
 				float xDelta = xAxisStep * scale;
 				float yDelta = yAxisStep * scale;
 				xDelta = Math.max(xDelta, 0.05f);
 				yDelta = Math.max(yDelta, 0.05f);
-				rectData.add(new GenericRectangle(xAxisValue	- xDelta, yAxisValue - yDelta,
+				rectData.add(new GenericRectangle(xAxisValue - xDelta, yAxisValue - yDelta,
 																					xAxisValue + xDelta, yAxisValue + yDelta, (byte) 5, true,
 																					false, (byte) 0, (byte) 0, false));
 			}
 		}
 
-		rectangles = ArrayUtils.concatAll(	rectangles,
-																	rectData.toArray(new GenericRectangle[rectData.size()]));
+		rectangles = ArrayUtils.concatAll(rectangles,
+																			rectData.toArray(new GenericRectangle[rectData.size()]));
 	}
 
 	@Override
@@ -241,8 +241,8 @@ public class ForestPanel extends AbstractPanel {
 	@Override
 	public void assignAxisLabels() {
 		displayXaxis = displayYaxis = true;
-		xAxisLabel = (oddsDisplay ? "Odds Ratio" : "Relative Risk")	+ " (" + forestPlot.getPlotLabel()
-									+ ")";
+		xAxisLabel = (oddsDisplay ? "Odds Ratio" : "Relative Risk") + " (" + forestPlot.getPlotLabel()
+								 + ")";
 		yAxisLabel = " ";
 	}
 
@@ -260,8 +260,8 @@ public class ForestPanel extends AbstractPanel {
 		sf = ext.getNumSigFig(stepStep);
 
 		if (xAxis) {
-			textWidth = Math.max(	fontMetrics.stringWidth(ext.formDeci(min, sf, true)),
-														fontMetrics.stringWidth(ext.formDeci(max, sf, true)));
+			textWidth = Math.max(fontMetrics.stringWidth(ext.formDeci(min, sf, true)),
+													 fontMetrics.stringWidth(ext.formDeci(max, sf, true)));
 			numHashes = 12;
 			canvasRange = canvasSectionMaximumX - canvasSectionMinimumX;
 			temp = (textWidth + 30) * numHashes;
@@ -306,8 +306,8 @@ public class ForestPanel extends AbstractPanel {
 
 		if (xAxis) {
 			fontMetrics = g.getFontMetrics(g.getFont());
-			textWidth = Math.max(	fontMetrics.stringWidth(ext.formDeci(min, sf, true)),
-														fontMetrics.stringWidth(ext.formDeci(max, sf, true)));
+			textWidth = Math.max(fontMetrics.stringWidth(ext.formDeci(min, sf, true)),
+													 fontMetrics.stringWidth(ext.formDeci(max, sf, true)));
 			numHashes = 12;
 			canvasRange = canvasSectionMaximumX - canvasSectionMinimumX;
 			temp = (textWidth + 30) * numHashes;
@@ -329,9 +329,9 @@ public class ForestPanel extends AbstractPanel {
 			minBnd = zoomMin - (plotStep / 2d);
 		}
 
-		double[] retArr =
-										new double[] {zoomMin, zoomMax,
-																	Double.parseDouble(ext.formDeci(plotStep, sf, true)), minBnd, sf};
+		double[] retArr = new double[] {zoomMin, zoomMax,
+																		Double.parseDouble(ext.formDeci(plotStep, sf, true)), minBnd,
+																		sf};
 		return retArr;
 	}
 
@@ -356,7 +356,7 @@ public class ForestPanel extends AbstractPanel {
 	public void drawAll(Graphics g, boolean base) {
 		float minimumObservedRawX, maximumObservedRawX, minimumObservedRawY, maximumObservedRawY;
 		double[] plotMinMaxStep; // needs to be double, else x <= plotXmax can be inexact and leave off
-															// the last tick mark
+														 // the last tick mark
 		int sigFigs;
 		String str;
 		FontMetrics fontMetrics = g.getFontMetrics();
@@ -365,10 +365,10 @@ public class ForestPanel extends AbstractPanel {
 
 		if (g instanceof Graphics2D) {
 			((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-																				antiAlias	? RenderingHints.VALUE_ANTIALIAS_ON
+																				antiAlias ? RenderingHints.VALUE_ANTIALIAS_ON
 																									: RenderingHints.VALUE_ANTIALIAS_OFF);
 			((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-																				antiAlias	? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+																				antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
 																									: RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 		}
 
@@ -464,24 +464,22 @@ public class ForestPanel extends AbstractPanel {
 		maximumObservedRawY = maximumObservedRawY == Float.MIN_VALUE ? 1 : maximumObservedRawY;
 
 		// otherwise step is off
-		minimumObservedRawX = !oddsDisplay	? (minimumObservedRawX > 0 ? 0 : minimumObservedRawX)
-																				: minimumObservedRawX;
+		minimumObservedRawX = !oddsDisplay ? (minimumObservedRawX > 0 ? 0 : minimumObservedRawX)
+																			 : minimumObservedRawX;
 		minimumObservedRawY = minimumObservedRawY > 0 ? 0 : minimumObservedRawY;
 
 		minimumObservedRawX = Float.isNaN(forcePlotXmin) ? minimumObservedRawX : forcePlotXmin;
-		maximumObservedRawX =
-												Float.isNaN(forcePlotXmax)	? (maximumObservedRawX
+		maximumObservedRawX = Float.isNaN(forcePlotXmax) ? (maximumObservedRawX
 																												+ (maximumObservedRawX
-																														- minimumObservedRawX)
+																													 - minimumObservedRawX)
 																													* (float) 0.01)
-																										: forcePlotXmax;
+																										 : forcePlotXmax;
 		minimumObservedRawY = Float.isNaN(forcePlotYmin) ? minimumObservedRawY : forcePlotYmin;
-		maximumObservedRawY =
-												Float.isNaN(forcePlotYmax)	? (maximumObservedRawY
+		maximumObservedRawY = Float.isNaN(forcePlotYmax) ? (maximumObservedRawY
 																												+ (maximumObservedRawY
-																														- minimumObservedRawY)
+																													 - minimumObservedRawY)
 																													* (float) 0.01)
-																										: forcePlotYmax;
+																										 : forcePlotYmax;
 
 		setNumberOfNaNSamples(0);
 		int leftsize = 0;
@@ -521,36 +519,36 @@ public class ForestPanel extends AbstractPanel {
 				}
 				for (double x = plotXmin; x <= plotXmax; x += plotMinMaxStep[2]) {
 					if (x >= plotXmin || !truncate) {
-						Grafik.drawThickLine(	g, getXPixel(x), getHeight() - canvasSectionMaximumY, getXPixel(x),
-																	getHeight() - (canvasSectionMaximumY - TICK_LENGTH),
-																	TICK_THICKNESS, Color.BLACK);
+						Grafik.drawThickLine(g, getXPixel(x), getHeight() - canvasSectionMaximumY, getXPixel(x),
+																 getHeight() - (canvasSectionMaximumY - TICK_LENGTH),
+																 TICK_THICKNESS, Color.BLACK);
 						str = ext.formDeci(Math.abs(x) < DOUBLE_INACCURACY_HEDGE ? 0 : x, sigFigs, true);
-						g.drawString(	str, getXPixel(x) - str.length() * 8,
-													getHeight() - (canvasSectionMaximumY - TICK_LENGTH - 30));
+						g.drawString(str, getXPixel(x) - str.length() * 8,
+												 getHeight() - (canvasSectionMaximumY - TICK_LENGTH - 30));
 					}
 				}
 				if (Math.abs(loopMax - plotXmax) > DOUBLE_INACCURACY_HEDGE) {
-					Grafik.drawThickLine(	g, getXPixel(plotXmax), getHeight() - canvasSectionMaximumY,
-																getXPixel(plotXmax),
-																getHeight() - (canvasSectionMaximumY - TICK_LENGTH), TICK_THICKNESS,
-																Color.BLACK);
-					str = ext.formDeci(	Math.abs(plotXmax) < DOUBLE_INACCURACY_HEDGE ? 0 : plotXmax, sigFigs,
-															true);
-					g.drawString(	str, getXPixel(plotXmax) - str.length() * 8,
-												getHeight() - (canvasSectionMaximumY - TICK_LENGTH - 30));
+					Grafik.drawThickLine(g, getXPixel(plotXmax), getHeight() - canvasSectionMaximumY,
+															 getXPixel(plotXmax),
+															 getHeight() - (canvasSectionMaximumY - TICK_LENGTH), TICK_THICKNESS,
+															 Color.BLACK);
+					str = ext.formDeci(Math.abs(plotXmax) < DOUBLE_INACCURACY_HEDGE ? 0 : plotXmax, sigFigs,
+														 true);
+					g.drawString(str, getXPixel(plotXmax) - str.length() * 8,
+											 getHeight() - (canvasSectionMaximumY - TICK_LENGTH - 30));
 				}
-				Grafik.drawThickLine(	g, canvasSectionMinimumX - (int) Math.ceil(AXIS_THICKNESS / 2.0),
-															getHeight() - canvasSectionMaximumY,
-															canvasSectionMaximumX + (int) Math.ceil(AXIS_THICKNESS / 2.0),
-															getHeight() - canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
-				g.drawString(	xAxisLabel,
-											// graph-centered plot name:
-											canvasSectionMinimumX + ((canvasSectionMaximumX - canvasSectionMinimumX) / 2
-																								- (fontMetrics.stringWidth(xAxisLabel) / 2)),
-											// window-centered plot name:
-											// (getWidth() - WIDTH_Y_AXIS) / 2 - fontMetrics.stringWidth(xAxisLabel) / 2 +
-											// WIDTH_Y_AXIS,
-											getHeight() - 20);
+				Grafik.drawThickLine(g, canvasSectionMinimumX - (int) Math.ceil(AXIS_THICKNESS / 2.0),
+														 getHeight() - canvasSectionMaximumY,
+														 canvasSectionMaximumX + (int) Math.ceil(AXIS_THICKNESS / 2.0),
+														 getHeight() - canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
+				g.drawString(xAxisLabel,
+										 // graph-centered plot name:
+										 canvasSectionMinimumX + ((canvasSectionMaximumX - canvasSectionMinimumX) / 2
+																							- (fontMetrics.stringWidth(xAxisLabel) / 2)),
+										 // window-centered plot name:
+										 // (getWidth() - WIDTH_Y_AXIS) / 2 - fontMetrics.stringWidth(xAxisLabel) / 2 +
+										 // WIDTH_Y_AXIS,
+										 getHeight() - 20);
 			}
 
 			if (displayYaxis) {
@@ -565,8 +563,8 @@ public class ForestPanel extends AbstractPanel {
 				plotYmin = plotMinMaxStep[0];
 				plotYmax = plotMinMaxStep[1];
 
-				g.drawString((oddsDisplay ? "OR" : "RR")	+ " (95% CI)", getWidth() - rightsize + 15,
-											3 * HEAD_BUFFER + 14);
+				g.drawString((oddsDisplay ? "OR" : "RR") + " (95% CI)", getWidth() - rightsize + 15,
+										 3 * HEAD_BUFFER + 14);
 
 				sigFigs = (int) plotMinMaxStep[4];
 				double step = 1;// Math.max(1, Math.round(plotMinMaxStep[2] * 2) / 2.0f);
@@ -578,22 +576,22 @@ public class ForestPanel extends AbstractPanel {
 						str = str.split("\\.")[0];
 						int index = Integer.parseInt(str) - 1;
 						String left = points[index].getId().split("\\|")[0];
-						g.drawString(	left, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(left) - 15,
-													getYPixel(y) + 7);
+						g.drawString(left, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(left) - 15,
+												 getYPixel(y) + 7);
 						String right = points[index].getId().split("\\|")[1];
 						g.drawString(right, getWidth() - rightsize + 15, getYPixel(y) + 7);
 					}
 				}
-				g.drawString(	META_LABEL, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(META_LABEL) - 15,
-											getHeight() - axisXHeight/* HEIGHT_X_AXIS */ - fontMetrics.getHeight() - 10);
+				g.drawString(META_LABEL, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(META_LABEL) - 15,
+										 getHeight() - axisXHeight/* HEIGHT_X_AXIS */ - fontMetrics.getHeight() - 10);
 
-				g.drawString(	prepareRightMarkers(forestPlot.getCurrentMetaStudy().getMetaBeta(oddsDisplay),
-																					forestPlot.getCurrentMetaStudy()
-																										.getMetaConf(oddsDisplay)[0],
-																					forestPlot.getCurrentMetaStudy()
-																										.getMetaConf(oddsDisplay)[1]),
-											getWidth() - rightsize + 15,
-											getHeight() - /* HEIGHT_X_AXIS */axisXHeight - fontMetrics.getHeight() - 10);
+				g.drawString(prepareRightMarkers(forestPlot.getCurrentMetaStudy().getMetaBeta(oddsDisplay),
+																				 forestPlot.getCurrentMetaStudy()
+																									 .getMetaConf(oddsDisplay)[0],
+																				 forestPlot.getCurrentMetaStudy()
+																									 .getMetaConf(oddsDisplay)[1]),
+										 getWidth() - rightsize + 15,
+										 getHeight() - /* HEIGHT_X_AXIS */axisXHeight - fontMetrics.getHeight() - 10);
 				// Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin),
 				// canvasSectionMaximumX, getYPixel(plotYmax) - (int) Math.ceil((double) TICK_THICKNESS /
 				// 2.0), AXIS_THICKNESS, Color.BLACK);
@@ -631,9 +629,9 @@ public class ForestPanel extends AbstractPanel {
 			if ((base && (getLayersInBase() == null
 										|| Bytes.indexOf(getLayersInBase(), lines[i].getLayer()) >= 0))
 					|| (!base && Bytes.indexOf(getExtraLayersVisible(), lines[i].getLayer()) >= 0)) {
-				Grafik.drawThickLine(	g, getXPixel(lines[i].getStartX()), getYPixel(lines[i].getStartY()),
-															getXPixel(lines[i].getStopX()), getYPixel(lines[i].getStopY()),
-															lines[i].getThickness(), colorScheme[lines[i].getColor()]);
+				Grafik.drawThickLine(g, getXPixel(lines[i].getStartX()), getYPixel(lines[i].getStartY()),
+														 getXPixel(lines[i].getStopX()), getYPixel(lines[i].getStopY()),
+														 lines[i].getThickness(), colorScheme[lines[i].getColor()]);
 			}
 		}
 
@@ -647,12 +645,12 @@ public class ForestPanel extends AbstractPanel {
 			if ((base && (getLayersInBase() == null
 										|| Bytes.indexOf(getLayersInBase(), rectangles[i].getLayer()) >= 0))
 					|| (!base && Bytes.indexOf(getExtraLayersVisible(), rectangles[i].getLayer()) >= 0)) {
-				rectangleXPixel = Math.min(	getXPixel(rectangles[i].getStartXValue()),
-																		getXPixel(rectangles[i].getStopXValue()));
-				rectangleYPixel = Math.min(	getYPixel(rectangles[i].getStartYValue()),
-																		getYPixel(rectangles[i].getStopYValue()));
+				rectangleXPixel = Math.min(getXPixel(rectangles[i].getStartXValue()),
+																	 getXPixel(rectangles[i].getStopXValue()));
+				rectangleYPixel = Math.min(getYPixel(rectangles[i].getStartYValue()),
+																	 getYPixel(rectangles[i].getStopYValue()));
 				rectangleWidthPixel = Math.abs(getXPixel(rectangles[i].getStartXValue())
-																				- getXPixel(rectangles[i].getStopXValue()));
+																			 - getXPixel(rectangles[i].getStopXValue()));
 				rectangleHeightPixel = Math.abs(getYPixel(rectangles[i].getStartYValue())
 																				- getYPixel(rectangles[i].getStopYValue()));
 
@@ -687,7 +685,7 @@ public class ForestPanel extends AbstractPanel {
 		if (base) {
 			g.setColor(Color.BLACK);
 			double val = forestPlot.getCurrentMetaStudy().getMetaBeta(false)
-										- 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(false);
+									 - 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(false);
 			if (oddsDisplay) {
 				val = Math.exp(val);
 			}
@@ -721,8 +719,8 @@ public class ForestPanel extends AbstractPanel {
 			int yMin = (4 * HEAD_BUFFER) - 5;
 			int yMax = getHeight() - /* HEIGHT_X_AXIS */axisXHeight;
 
-			Grafik.drawThickLine(	g, getXPixel(oddsDisplay ? 1.0 : 0.0), yMin,
-														getXPixel(oddsDisplay ? 1.0 : 0.0), yMax, 3, Color.BLACK);
+			Grafik.drawThickLine(g, getXPixel(oddsDisplay ? 1.0 : 0.0), yMin,
+													 getXPixel(oddsDisplay ? 1.0 : 0.0), yMax, 3, Color.BLACK);
 
 			int dashSize = 10;
 			int dashSpacing = 5;
@@ -740,8 +738,8 @@ public class ForestPanel extends AbstractPanel {
 					int w = g.getFontMetrics().stringWidth(comm) / 2;
 					// TODO handle this better than checking GraphicsEnvironment.isHeadless() to determine
 					// where to put title
-					g.drawString(	comm, getWidth() / 2 - w,
-												(GraphicsEnvironment.isHeadless() ? 1 : 3) * HEAD_BUFFER + 10);
+					g.drawString(comm, getWidth() / 2 - w,
+											 (GraphicsEnvironment.isHeadless() ? 1 : 3) * HEAD_BUFFER + 10);
 				}
 			}
 		}
@@ -755,8 +753,8 @@ public class ForestPanel extends AbstractPanel {
 		double yMax = plotYmax; // # of studies
 		double yMin = plotYmin; // always 0
 		return getHeight()
-						- (int) ((y - yMin) / (yMax - yMin) * (canvasSectionMaximumY - canvasSectionMinimumY)
-											+ canvasSectionMinimumY);
+					 - (int) ((y - yMin) / (yMax - yMin) * (canvasSectionMaximumY - canvasSectionMinimumY)
+										+ canvasSectionMinimumY);
 	}
 
 	private int determineRightBorder(Graphics g, double markerFontSize) {

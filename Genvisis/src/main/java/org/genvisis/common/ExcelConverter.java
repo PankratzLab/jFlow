@@ -84,7 +84,7 @@ public class ExcelConverter {
 
 							reader.close();
 						} catch (FileNotFoundException fnfe) {
-							log.reportError("Error: file \""	+ fileParams.getFile()
+							log.reportError("Error: file \"" + fileParams.getFile()
 															+ "\" not found in current directory");
 							workbook.close();
 							return;

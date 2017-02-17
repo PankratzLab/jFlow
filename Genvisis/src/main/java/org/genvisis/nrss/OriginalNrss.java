@@ -59,7 +59,7 @@ public class OriginalNrss {
 		Vector<String> markerVector = new Vector<String>(EST_NUM_MARKERS_IN_LARGEST_CHR);
 		IntVector markerLocations = new IntVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
 		DoubleVector pvalueVector = new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
-		DoubleVector varVector = variate_column == -1	? null
+		DoubleVector varVector = variate_column == -1 ? null
 																									: new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
 		int count, lowIndex, highIndex;
 		IntVector indexVector = new IntVector();
@@ -151,7 +151,7 @@ public class OriginalNrss {
 						lowIndex++;
 						highIndex = indexSNPs[i];
 						while (highIndex < positions.length
-										&& positions[highIndex] < positions[indexSNPs[i]] + window) {
+									 && positions[highIndex] < positions[indexSNPs[i]] + window) {
 							if (pvals[highIndex] < minPvalue) {
 								minPvalue = pvals[highIndex];
 							}
@@ -178,16 +178,16 @@ public class OriginalNrss {
 									maxStat = stats[maxSNP][0];
 								}
 							}
-							v.add(markerNames[indexSNPs[maxSNP]]	+ "\t" + chr + "\t"
+							v.add(markerNames[indexSNPs[maxSNP]] + "\t" + chr + "\t"
 										+ positions[indexSNPs[maxSNP]] + "\t" + ext.formDeci(stats[maxSNP][0], 2) + "\t"
 										+ markerCounts[maxSNP] + "\t"
 										+ ext.formDeci(stats[maxSNP][0] * Math.sqrt(markerCounts[maxSNP]), 2) + "\tchr"
 										+ chr + ":" + (positions[indexSNPs[maxSNP]] - window) + "-"
 										+ (positions[indexSNPs[maxSNP]] + window) + "\t" + minPvalue
-										+ (variate_column == -1	? ""
+										+ (variate_column == -1 ? ""
 																						: "\t"
-																							+ ArrayUtils.toStr(ArrayUtils.subArray(	stats[maxSNP], 1,
-																																						stats[maxSNP].length))));
+																							+ ArrayUtils.toStr(ArrayUtils.subArray(stats[maxSNP],
+																																										 1, stats[maxSNP].length))));
 							cluster.clear();
 							cluster.add(i);
 						}
@@ -201,16 +201,16 @@ public class OriginalNrss {
 									maxStat = stats[maxSNP][0];
 								}
 							}
-							v.add(markerNames[indexSNPs[maxSNP]]	+ "\t" + chr + "\t"
+							v.add(markerNames[indexSNPs[maxSNP]] + "\t" + chr + "\t"
 										+ positions[indexSNPs[maxSNP]] + "\t" + ext.formDeci(stats[maxSNP][0], 2) + "\t"
 										+ markerCounts[maxSNP] + "\t"
 										+ ext.formDeci(stats[maxSNP][0] * Math.sqrt(markerCounts[maxSNP]), 2) + "\tchr"
 										+ chr + ":" + (positions[indexSNPs[maxSNP]] - window) + "-"
 										+ (positions[indexSNPs[maxSNP]] + window) + "\t" + minPvalue
-										+ (variate_column == -1	? ""
+										+ (variate_column == -1 ? ""
 																						: "\t"
-																							+ ArrayUtils.toStr(ArrayUtils.subArray(	stats[maxSNP], 1,
-																																						stats[maxSNP].length))));
+																							+ ArrayUtils.toStr(ArrayUtils.subArray(stats[maxSNP],
+																																										 1, stats[maxSNP].length))));
 						}
 					}
 
@@ -237,11 +237,11 @@ public class OriginalNrss {
 
 			writer = new PrintWriter(new FileWriter(dir + outfile));
 			writer.println("Marker\tChr\tPostition\tGenes(s)\tWeightedStatistic\tNumMarkers\tUnweightedStatistic\tUCSC coordinates\tMin p-value"
-											+ (variate_column == -1 ? "" : "\tvars"));
+										 + (variate_column == -1 ? "" : "\tvars"));
 			for (int i = 0; i < v.size(); i++) {
 				line = v.elementAt(i).trim().split("[\\s]+");
-				writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, 3))	+ "\t" + genes[i] + "\t"
-												+ ArrayUtils.toStr(ArrayUtils.subArray(line, 3)));
+				writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, 3)) + "\t" + genes[i] + "\t"
+											 + ArrayUtils.toStr(ArrayUtils.subArray(line, 3)));
 			}
 			writer.close();
 			System.out.println(ext.getTime());
@@ -305,10 +305,10 @@ public class OriginalNrss {
 		}
 
 		System.out.println("Stat is " + ext.formDeci(
-																									computeStatistic(	ArrayUtils.toStringArray(markerVector),
-																																		Doubles.toArray(pvalueVector),
-																																		hash, INCLUSION_THRESHOLD)[0],
-																									2));
+																								 computeStatistic(ArrayUtils.toStringArray(markerVector),
+																																	Doubles.toArray(pvalueVector),
+																																	hash, INCLUSION_THRESHOLD)[0],
+																								 2));
 	}
 
 	public static double[] computeStatistic(String[] markerNames, double[] pvalues,
@@ -344,14 +344,14 @@ public class OriginalNrss {
 			if (pval_window[keys[i]] < threshold) {
 				maxR2 = 0;
 				for (int j = 0; j < i; j++) {
-					if (hash.containsKey(markerNames[lowIndex + keys[i]]	+ ":"
-																+ markerNames[lowIndex + keys[j]])) {
-						r2 = Double.parseDouble(hash.get(markerNames[lowIndex + keys[i]]	+ ":"
-																							+ markerNames[lowIndex + keys[j]]));
-					} else if (hash.containsKey(markerNames[lowIndex + keys[j]]	+ ":"
+					if (hash.containsKey(markerNames[lowIndex + keys[i]] + ":"
+															 + markerNames[lowIndex + keys[j]])) {
+						r2 = Double.parseDouble(hash.get(markerNames[lowIndex + keys[i]] + ":"
+																						 + markerNames[lowIndex + keys[j]]));
+					} else if (hash.containsKey(markerNames[lowIndex + keys[j]] + ":"
 																			+ markerNames[lowIndex + keys[i]])) {
-						r2 = Double.parseDouble(hash.get(markerNames[lowIndex + keys[j]]	+ ":"
-																							+ markerNames[lowIndex + keys[i]]));
+						r2 = Double.parseDouble(hash.get(markerNames[lowIndex + keys[j]] + ":"
+																						 + markerNames[lowIndex + keys[i]]));
 					} else {
 						// System.err.println("Error - no LD computed between
 						// "+markerNames[lowIndex+keys[j]]+" and
@@ -398,8 +398,7 @@ public class OriginalNrss {
 		// --remove WGAs.txt\n";
 		commands += "plink --bfile plink --chr [%0] --out chr[%0].recode --recode\n\n";
 		commands += Files.getRunString() + " nrss.Nrss procMap=[%0]\n";
-		commands +=
-							"java -Dsun.java2d.noddraw=true -Xmx1024m -classpath /home/npankrat/Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -log -pedfile chr[%0].recode.ped -info chr[%0].map -skipcheck -hwcutoff 0 -maxDistance 500 -dprime\n\n";
+		commands += "java -Dsun.java2d.noddraw=true -Xmx1024m -classpath /home/npankrat/Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -log -pedfile chr[%0].recode.ped -info chr[%0].map -skipcheck -hwcutoff 0 -maxDistance 500 -dprime\n\n";
 
 		Files.batchIt("haplo", null, numBatches, commands, ArrayUtils.stringArraySequence(23, ""));
 	}
@@ -485,8 +484,8 @@ public class OriginalNrss {
 
 				// writer.println("plink --bfile pd_gwas --pheno
 				// sim."+(i+1)+".dat --logistic --out sim."+(i+1)+".additive");
-				writer.println("plink --bfile plink --pheno sim."	+ (i + 1) + ".dat --logistic --out sim."
-												+ (i + 1) + ".additive");
+				writer.println("plink --bfile plink --pheno sim." + (i + 1) + ".dat --logistic --out sim."
+											 + (i + 1) + ".additive");
 			}
 			writer.close();
 			Files.chmod("batchSims." + count);
@@ -509,8 +508,8 @@ public class OriginalNrss {
 				return filename.endsWith(suffix);
 			}
 		});
-		System.out.println(ext.getTime()	+ "\tFound " + files.length + " files with suffix '" + suffix
-												+ "' to parse");
+		System.out.println(ext.getTime() + "\tFound " + files.length + " files with suffix '" + suffix
+											 + "' to parse");
 
 		for (File file : files) {
 			filename = file.getName();
@@ -521,8 +520,8 @@ public class OriginalNrss {
 				writer = new PrintWriter(new FileWriter(outfile));
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
-					writer.println(line[markerName_column]	+ "\t" + line[chr_column] + "\t" + line[pos_column]
-													+ "\t" + (line[p_column].equals("NA") ? "." : line[p_column]));
+					writer.println(line[markerName_column] + "\t" + line[chr_column] + "\t" + line[pos_column]
+												 + "\t" + (line[p_column].equals("NA") ? "." : line[p_column]));
 				}
 				reader.close();
 				writer.close();
@@ -534,8 +533,8 @@ public class OriginalNrss {
 
 	}
 
-	public static void procSimulations(	final String suffix, int p_column, int chr_column,
-																			int pos_column, int markerName_column) {
+	public static void procSimulations(final String suffix, int p_column, int chr_column,
+																		 int pos_column, int markerName_column) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -567,8 +566,8 @@ public class OriginalNrss {
 				return filename.endsWith(suffix);
 			}
 		});
-		System.out.println("Found "	+ files.length + " files with suffix '" + suffix
-												+ "' to compute from");
+		System.out.println("Found " + files.length + " files with suffix '" + suffix
+											 + "' to compute from");
 
 		maxThreshold = 0;
 		models = new String[MODELS.length];
@@ -576,7 +575,7 @@ public class OriginalNrss {
 		inclusionThresholds = new double[MODELS.length];
 		windowSizes = new int[MODELS.length];
 		for (int t = 0; t < MODELS.length; t++) {
-			models[t] = "index"	+ MODELS[t][0] + "_incl" + MODELS[t][1] + "_"
+			models[t] = "index" + MODELS[t][0] + "_incl" + MODELS[t][1] + "_"
 									+ (Integer.parseInt(MODELS[t][2]) / 1000) + "kb/";
 			new File(models[t]).mkdirs();
 			indexThresholds[t] = Double.parseDouble(MODELS[t][0]);
@@ -586,8 +585,8 @@ public class OriginalNrss {
 				maxThreshold = indexThresholds[t];
 			}
 		}
-		System.out.println("Found "	+ MODELS.length + " thresholds to consider (min index pvalue of "
-												+ maxThreshold + ")");
+		System.out.println("Found " + MODELS.length + " thresholds to consider (min index pvalue of "
+											 + maxThreshold + ")");
 
 		for (int chr_target = 1; chr_target <= 23; chr_target++) {
 			System.out.println(ext.getTime() + "\tLoading LD information for chromosome " + chr_target);
@@ -651,13 +650,13 @@ public class OriginalNrss {
 							if (pvals[indexSNPs[i]] < indexThresholds[t]) {
 								lowIndex = indexSNPs[i];
 								while (lowIndex >= 0
-												&& positions[lowIndex] > positions[indexSNPs[i]] - windowSizes[t]) {
+											 && positions[lowIndex] > positions[indexSNPs[i]] - windowSizes[t]) {
 									lowIndex--;
 								}
 								lowIndex++;
 								highIndex = indexSNPs[i];
 								while (highIndex < positions.length
-												&& positions[highIndex] < positions[indexSNPs[i]] + windowSizes[t]) {
+											 && positions[highIndex] < positions[indexSNPs[i]] + windowSizes[t]) {
 									highIndex++;
 								}
 								highIndex--;
@@ -684,14 +683,14 @@ public class OriginalNrss {
 											maxStat = stats[maxSNP];
 										}
 									}
-									writer.println(markerNames[indexSNPs[maxSNP]]	+ "\t" + chr_target + "\t"
-																	+ positions[indexSNPs[maxSNP]] + "\t"
-																	+ ext.formDeci(stats[maxSNP], 2) + "\t" + markerCounts[maxSNP]
-																	+ "\t"
-																	+ ext.formDeci(stats[maxSNP] * Math.sqrt(markerCounts[maxSNP]), 2)
-																	+ "\tchr" + chr_target + ":"
-																	+ (positions[indexSNPs[maxSNP]] - windowSizes[t]) + "-"
-																	+ (positions[indexSNPs[maxSNP]] + windowSizes[t]));
+									writer.println(markerNames[indexSNPs[maxSNP]] + "\t" + chr_target + "\t"
+																 + positions[indexSNPs[maxSNP]] + "\t"
+																 + ext.formDeci(stats[maxSNP], 2) + "\t" + markerCounts[maxSNP]
+																 + "\t"
+																 + ext.formDeci(stats[maxSNP] * Math.sqrt(markerCounts[maxSNP]), 2)
+																 + "\tchr" + chr_target + ":"
+																 + (positions[indexSNPs[maxSNP]] - windowSizes[t]) + "-"
+																 + (positions[indexSNPs[maxSNP]] + windowSizes[t]));
 									cluster.clear();
 									cluster.add(i);
 								}
@@ -705,14 +704,14 @@ public class OriginalNrss {
 											maxStat = stats[maxSNP];
 										}
 									}
-									writer.println(markerNames[indexSNPs[maxSNP]]	+ "\t" + chr_target + "\t"
-																	+ positions[indexSNPs[maxSNP]] + "\t"
-																	+ ext.formDeci(stats[maxSNP], 2) + "\t" + markerCounts[maxSNP]
-																	+ "\t"
-																	+ ext.formDeci(stats[maxSNP] * Math.sqrt(markerCounts[maxSNP]), 2)
-																	+ "\tchr" + chr_target + ":"
-																	+ (positions[indexSNPs[maxSNP]] - windowSizes[t]) + "-"
-																	+ (positions[indexSNPs[maxSNP]] + windowSizes[t]));
+									writer.println(markerNames[indexSNPs[maxSNP]] + "\t" + chr_target + "\t"
+																 + positions[indexSNPs[maxSNP]] + "\t"
+																 + ext.formDeci(stats[maxSNP], 2) + "\t" + markerCounts[maxSNP]
+																 + "\t"
+																 + ext.formDeci(stats[maxSNP] * Math.sqrt(markerCounts[maxSNP]), 2)
+																 + "\tchr" + chr_target + ":"
+																 + (positions[indexSNPs[maxSNP]] - windowSizes[t]) + "-"
+																 + (positions[indexSNPs[maxSNP]] + windowSizes[t]));
 								}
 
 							}
@@ -783,8 +782,8 @@ public class OriginalNrss {
 						dvs[i][k].add(trav.elementAt(k));
 					}
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ file.getName()
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + file.getName()
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + file.getName() + "\"");
@@ -796,13 +795,13 @@ public class OriginalNrss {
 		try {
 			writer = new PrintWriter(new FileWriter("NRSS_distributions.xln"));
 			for (int i = 0; i < dirs.length; i++) {
-				writer.print((i == 0 ? "" : "\t")	+ dirs[i].getName()
-											+ ArrayUtils.toStr(ArrayUtils.stringArray(levelsDeep), "\t"));
+				writer.print((i == 0 ? "" : "\t") + dirs[i].getName()
+										 + ArrayUtils.toStr(ArrayUtils.stringArray(levelsDeep), "\t"));
 			}
 			writer.println();
 			for (int i = 0; i < dirs.length; i++) {
 				writer.print((i == 0 ? "" : "\t")
-											+ ArrayUtils.toStr(ArrayUtils.stringArraySequence(levelsDeep, ""), "\t"));
+										 + ArrayUtils.toStr(ArrayUtils.stringArraySequence(levelsDeep, ""), "\t"));
 			}
 			writer.println();
 			writer.println(ArrayUtils.toStr(ArrayUtils.stringArray(dirs.length * levelsDeep, "0.5")));
@@ -810,7 +809,7 @@ public class OriginalNrss {
 			for (int i = 0; i < dirs.length; i++) {
 				for (int j = 0; j < levelsDeep; j++) {
 					col = ext.getExcelColumn(i * levelsDeep + j);
-					temp += (i == 0 && j == 0 ? "" : "\t")	+ "=COUNTIF(" + col + "5:" + col
+					temp += (i == 0 && j == 0 ? "" : "\t") + "=COUNTIF(" + col + "5:" + col
 									+ (Math.max(4 + dvs[i][j].size(), 5)) + ", \">\"&" + col + "3)/COUNT(" + col
 									+ "5:" + col + (Math.max(4 + dvs[i][j].size(), 5)) + ")";
 				}
@@ -869,16 +868,15 @@ public class OriginalNrss {
 		int col = 4;
 		int var = -1;
 
-		String usage = "\\n"	+ "park.gwa.Nrss requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "   (1) column of p-values (i.e. col=" + col
-										+ " (default))\n" + "   (1) column of variate (i.e. var=" + var
-										+ " (default))\n"
-										+ "   (2) proc map for Haploview (i.e. procMap=4 for chromosome 4 (not the default))\n"
-										+ "   (3) batch haploview LD computation, using N files (i.e. batch=N (not the default))\n"
-										+ "   (4) simulate null distribution (i.e. sim=100 to do 100 replicates (not the default))\n"
-										+ "   (3) parse simulations (i.e. -parseSims (not the default))\n"
-										+ "   (3) process simulation results (i.e. -procSims (not the default))\n"
-										+ "   (3) form distributions (i.e. -formDist (not the default))\n" + "";
+		String usage = "\\n" + "park.gwa.Nrss requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "   (1) column of p-values (i.e. col=" + col
+									 + " (default))\n" + "   (1) column of variate (i.e. var=" + var + " (default))\n"
+									 + "   (2) proc map for Haploview (i.e. procMap=4 for chromosome 4 (not the default))\n"
+									 + "   (3) batch haploview LD computation, using N files (i.e. batch=N (not the default))\n"
+									 + "   (4) simulate null distribution (i.e. sim=100 to do 100 replicates (not the default))\n"
+									 + "   (3) parse simulations (i.e. -parseSims (not the default))\n"
+									 + "   (3) process simulation results (i.e. -procSims (not the default))\n"
+									 + "   (3) form distributions (i.e. -formDist (not the default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

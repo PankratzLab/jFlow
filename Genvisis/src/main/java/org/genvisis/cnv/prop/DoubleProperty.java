@@ -12,8 +12,8 @@ public class DoubleProperty extends Property<Double> {
 												double min, double max, double defValue) {
 		super(proj, name, desc, group, editable, defValue);
 		if (min > max || defValue < min || defValue > max || (max == min && defValue != max)) {
-			throw new RuntimeException("Cannot initialize DoubleProperty['"	+ name + "'] with: min=" + min
-																	+ ", max=" + max + ", and default value=" + defValue);
+			throw new RuntimeException("Cannot initialize DoubleProperty['" + name + "'] with: min=" + min
+																 + ", max=" + max + ", and default value=" + defValue);
 		}
 		this.min = min;
 		this.max = max;
@@ -28,8 +28,8 @@ public class DoubleProperty extends Property<Double> {
 	@Override
 	public void setValue(Double value) {
 		if (value < min || value > max) {
-			throw new RuntimeException("Error - values for property "	+ getName() + " must be within "
-																	+ min + "-" + max + "; " + value + " is not valid");
+			throw new RuntimeException("Error - values for property " + getName() + " must be within "
+																 + min + "-" + max + "; " + value + " is not valid");
 		}
 		super.setValue(value);
 	}

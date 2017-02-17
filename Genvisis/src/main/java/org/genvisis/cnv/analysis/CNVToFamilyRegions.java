@@ -40,7 +40,7 @@ public class CNVToFamilyRegions {
 			PrintWriter writer = Files.getAppropriateWriter(out);
 
 			int[] idx = ext.indexFactors(new String[] {"FID", "IID", "CHR", "BP1", "BP2"},
-			                             CNVariant.PLINK_CNV_HEADER, true, true);
+																	 CNVariant.PLINK_CNV_HEADER, true, true);
 
 			// Skip header
 			reader.readLine();
@@ -59,9 +59,9 @@ public class CNVToFamilyRegions {
 
 				String cDNA = ped.getiDNA(indIndex);
 				StringBuilder comment = new StringBuilder(cDNA).append(", has father? ")
-				                                               .append(faIndex > 0 ? "yes" : "no")
-				                                               .append(" - has mother? ")
-				                                               .append(moIndex > 0 ? "yes" : "no");
+																											 .append(faIndex > 0 ? "yes" : "no")
+																											 .append(" - has mother? ")
+																											 .append(moIndex > 0 ? "yes" : "no");
 
 				Integer p1 = Integer.parseInt(bp1);
 				Integer p2 = Integer.parseInt(bp2);

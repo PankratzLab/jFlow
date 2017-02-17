@@ -100,15 +100,15 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 		if (proj == null) {
 			markerLookup = new MarkerLookup(new Hashtable<String, String>());
 		} else {
-			if (Files.exists(	proj.MARKERLOOKUP_FILENAME.getValue(false, false),
-												proj.JAR_STATUS.getValue())) {
+			if (Files.exists(proj.MARKERLOOKUP_FILENAME.getValue(false, false),
+											 proj.JAR_STATUS.getValue())) {
 				markerLookup = proj.getMarkerLookup();
 				proj.getLog().report("Marker data is available for this project");
 			} else {
 				markerLookup = new MarkerLookup(new Hashtable<String, String>());
 			}
-			if (Files.exists(	proj.SAMPLE_DATA_FILENAME.getValue(false, false),
-												proj.JAR_STATUS.getValue())) {
+			if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
+											 proj.JAR_STATUS.getValue())) {
 				sampleData = proj.getSampleData(1, false);
 				proj.getLog().report("Sample lookup is available for this project");
 			}
@@ -435,7 +435,7 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 			for (int i = 0; i < maxNumPoints; i++) {
 				// menu.add(new LaunchAction(linkKeyValues[prox.elementAt(i)][0] + "\t" +
 				// points[prox.elementAt(i)].getRawX() + "\t" + points[prox.elementAt(i)].getRawY(), true));
-				menu.add(new LaunchAction(points[prox.elementAt(i)].getId()	+ "\t"
+				menu.add(new LaunchAction(points[prox.elementAt(i)].getId() + "\t"
 																	+ points[prox.elementAt(i)].getRawX() + "\t"
 																	+ points[prox.elementAt(i)].getRawY(), true));
 
@@ -448,7 +448,7 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 
 				sample = null;
 				if (linkKeyIndicies[2] >= 0
-						&& Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false)	+ sample
+						&& Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + sample
 														+ Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
 					sample = setOfKeys[prox.elementAt(i)][2];
 				}
@@ -456,14 +456,14 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 																										// sample lookup exists
 					ids = null;
 					if (linkKeyIndicies[1] >= 0) { // if FID present
-						ids = sampleData.lookup(setOfKeys[prox.elementAt(i)][1]	+ "\t"
+						ids = sampleData.lookup(setOfKeys[prox.elementAt(i)][1] + "\t"
 																		+ setOfKeys[prox.elementAt(i)][0]);
 					}
 					if (ids == null) {
 						ids = sampleData.lookup(setOfKeys[prox.elementAt(i)][0]);
 					}
 					if (ids != null
-							&& Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false)	+ ids[0]
+							&& Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + ids[0]
 															+ Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
 						sample = ids[0];
 					}

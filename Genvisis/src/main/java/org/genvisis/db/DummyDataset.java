@@ -48,7 +48,7 @@ public class DummyDataset {
 						num = Integer.parseInt(params[i][0]);
 						countV.add(num);
 					} catch (Exception e) {
-						log.reportError("Error - '"	+ params[i][0]
+						log.reportError("Error - '" + params[i][0]
 														+ "' is an invalid integer; first column contains the number of time series is repreated");
 						return;
 					}
@@ -72,8 +72,8 @@ public class DummyDataset {
 					}
 				}
 				writer.close();
-				log.report("Final file contains "	+ count + " records"
-										+ (header == null ? "" : "; plus a header"));
+				log.report("Final file contains " + count + " records"
+									 + (header == null ? "" : "; plus a header"));
 			} catch (Exception e) {
 				System.err.println("Error writing to " + outfile);
 				e.printStackTrace();
@@ -114,8 +114,8 @@ public class DummyDataset {
 			try {
 				reader = new BufferedReader(new FileReader(infile));
 				while (reader.ready()) {
-					line = reader	.readLine().trim()
-												.split(commaDelimited ? "," : (tabDelimited ? "\t" : "[\\s]+"));
+					line = reader.readLine().trim()
+											 .split(commaDelimited ? "," : (tabDelimited ? "\t" : "[\\s]+"));
 					if (hashes.containsKey(line[0])) {
 						hash = hashes.get(line[0]);
 					} else {

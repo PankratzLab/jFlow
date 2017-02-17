@@ -248,8 +248,8 @@ public class PlinkMendelianChecker {
 								mkrs.add(temp[3]);
 							}
 						} catch (NumberFormatException e) {
-							System.err.println("Warning - Non-integer mendelian error code ("	+ temp[4]
-																	+ ") ignored!");
+							System.err.println("Warning - Non-integer mendelian error code (" + temp[4]
+																 + ") ignored!");
 						}
 
 					}
@@ -270,21 +270,21 @@ public class PlinkMendelianChecker {
 	final String genomeFile; // from property - plink.genome
 	final boolean genomeDNA; // is the genome file FID/IID or DNA/DNA?
 	final String mendelFile; // from MarkerMetrics.fullQC - outputs a property file with an appended
-														// name
+													 // name
 	final String outDir;
 
 	public PlinkMendelianChecker(Project project) {
 		this.project = project;
 		pedFile = project.PEDIGREE_FILENAME.getValue(false, false);
 		mendelFile = ext.rootOf(project.MARKER_METRICS_FILENAME.getValue(true, false), false)
-									+ MarkerMetrics.DEFAULT_MENDEL_FILE_SUFFIX;
+								 + MarkerMetrics.DEFAULT_MENDEL_FILE_SUFFIX;
 		genomeFile = project.GENOME_CLUSTER_FILENAME.getValue();
 		genomeDNA = false;
 		outDir = project.PROJECT_DIRECTORY.getValue(false, false);
 	}
 
-	public PlinkMendelianChecker(	String pedFile, String mendelFile, String genomeFile,
-																boolean genomeDNA, String outDir) {
+	public PlinkMendelianChecker(String pedFile, String mendelFile, String genomeFile,
+															 boolean genomeDNA, String outDir) {
 		project = null;
 		this.pedFile = pedFile;
 		this.mendelFile = mendelFile;
@@ -344,11 +344,11 @@ public class PlinkMendelianChecker {
 			dnaLookup.put(ped.getFID(i) + "\t" + ped.getIID(i), ped.getDnas()[i]);
 			idLookup.put(ped.getDnas()[i], ped.getFID(i) + "\t" + ped.getIID(i));
 			pedDNA.add(ped.getDnas()[i]);
-			pedToFAMO.put(ped.getFID(i)	+ "\t" + ped.getIID(i),
-										new String[] {"0".equals(ped.getFA(i))	? "."
-																														: ped.getFID(i) + "\t" + ped.getFA(i),
-																	"0".equals(ped.getMO(i))	? "."
-																														: ped.getFID(i) + "\t" + ped.getMO(i)});
+			pedToFAMO.put(ped.getFID(i) + "\t" + ped.getIID(i),
+										new String[] {"0".equals(ped.getFA(i)) ? "."
+																													 : ped.getFID(i) + "\t" + ped.getFA(i),
+																	"0".equals(ped.getMO(i)) ? "."
+																													 : ped.getFID(i) + "\t" + ped.getMO(i)});
 			if (!"0".equals(ped.getFA(i))) {
 				ArrayList<String> children = childrenMap.get(ped.getFID(i) + "\t" + ped.getFA(i));
 				if (children == null) {
@@ -383,14 +383,14 @@ public class PlinkMendelianChecker {
 				if (parentDNA != null) {
 					if (genomeDNA) {
 						pairs.add(new Pair(childDNA, childDNA, parentDNA, parentDNA)); // for DNA/DNA genome
-																																						// file
+																																					 // file
 						pairs.add(new Pair(parentDNA, parentDNA, childDNA, childDNA)); // either bi-directional
-																																						// here or in genome
-																																						// loader
+																																					 // here or in genome
+																																					 // loader
 					} else {
 						pairs.add(new Pair(spl1[0], spl1[1], spl2[0], spl2[1])); // for fid/iid genome file
 						pairs.add(new Pair(spl2[0], spl2[1], spl1[0], spl1[1])); // either bi-directional here
-																																			// or in genomeloader
+																																		 // or in genomeloader
 					}
 				}
 
@@ -446,18 +446,18 @@ public class PlinkMendelianChecker {
 			gl = GenomeLoader.run(genomeFile, pairs);
 		} else {
 			project.getLog()
-			       .reportTimeWarning("No Genome data found - output will be limited. Is "
-			                          + project.GENOME_CLUSTER_FILENAME.getName()
-			                          + " set appropriately?");
+						 .reportTimeWarning("No Genome data found - output will be limited. Is "
+																+ project.GENOME_CLUSTER_FILENAME.getName()
+																+ " set appropriately?");
 		}
 		if (mendelFile != null && (new File(mendelFile)).exists()) {
 			System.out.println(ext.getTime() + "]\tLoading MendelianError data...");
 			ml = MendelLoader.run(mendelFile);
 		} else {
 			project.getLog()
-			       .reportTimeWarning("Mendelian data not found"
-			                          + (mendelFile == null ? "" : " at " + mendelFile)
-			                          + " - output will be limited");
+						 .reportTimeWarning("Mendelian data not found"
+																+ (mendelFile == null ? "" : " at " + mendelFile)
+																+ " - output will be limited");
 		}
 
 		StringBuilder sb;
@@ -674,8 +674,8 @@ public class PlinkMendelianChecker {
 				sb.append(ex1 ? "1" : "0").append("\t");
 				if (ped.getFaDNAIndex(i) == -1 || samples == null) {
 					if (dnaLookup.get(ped.getFID(i) + "\t" + ped.getFA(i)) != null) {
-						boolean ex = sampleData.individualShouldBeExcluded(dnaLookup.get(ped.getFID(i)	+ "\t"
-																																							+ ped.getFA(i)));
+						boolean ex = sampleData.individualShouldBeExcluded(dnaLookup.get(ped.getFID(i) + "\t"
+																																						 + ped.getFA(i)));
 						if (ex) {
 							excluded = true;
 						}
@@ -692,8 +692,8 @@ public class PlinkMendelianChecker {
 				}
 				if (ped.getMoDNAIndex(i) == -1 || samples == null) {
 					if (dnaLookup.get(ped.getFID(i) + "\t" + ped.getMO(i)) != null) {
-						boolean ex = sampleData.individualShouldBeExcluded(dnaLookup.get(ped.getFID(i)	+ "\t"
-																																							+ ped.getMO(i)));
+						boolean ex = sampleData.individualShouldBeExcluded(dnaLookup.get(ped.getFID(i) + "\t"
+																																						 + ped.getMO(i)));
 						if (ex) {
 							excluded = true;
 						}
@@ -718,16 +718,16 @@ public class PlinkMendelianChecker {
 		writer.flush();
 		writer.close();
 
-		System.out.println(ext.getTime()	+ "]\tMissing genome pair data for " + missingCount
-												+ " individuals");
+		System.out.println(ext.getTime() + "]\tMissing genome pair data for " + missingCount
+											 + " individuals");
 
 		writeFamily(gl, pedToFAMO, childrenMap, dnaLookup, idLookup, outDir);
 	}
 
-	private void writeFamily(	GenomeLoader gl, HashMap<String, String[]> pedToFAMO,
-														HashMap<String, ArrayList<String>> childrenMap,
-														HashMap<String, String> dnaLookup, HashMap<String, String> idLookup,
-														String outDir2) {
+	private void writeFamily(GenomeLoader gl, HashMap<String, String[]> pedToFAMO,
+													 HashMap<String, ArrayList<String>> childrenMap,
+													 HashMap<String, String> dnaLookup, HashMap<String, String> idLookup,
+													 String outDir2) {
 		PrintWriter writer;
 		StringBuilder sb;
 
@@ -737,7 +737,7 @@ public class PlinkMendelianChecker {
 
 		String header = "FID1\tIID1\tDNA1\tFID2\tIID2\tDNA2\tPUTATIVE_REL\t";
 		if (gl != null) {
-			header += "IBD0"	+ "\t" + "IBD1" + "\t" + "IBD2" + "\t" + "PIHAT" + "\t" + "DERIVED_REL"
+			header += "IBD0" + "\t" + "IBD1" + "\t" + "IBD2" + "\t" + "PIHAT" + "\t" + "DERIVED_REL"
 								+ "\t" + "REL_MATCH" + "\t";
 		}
 		writer.println(header);
@@ -991,7 +991,7 @@ public class PlinkMendelianChecker {
 		double piHat = Double.parseDouble(piHatStr);
 
 		for (int i = 0; i < Plink.THRESHOLDS.length; i++) {
-			if (z0 >= Plink.THRESHOLDS[i][0]	&& z1 >= Plink.THRESHOLDS[i][1]
+			if (z0 >= Plink.THRESHOLDS[i][0] && z1 >= Plink.THRESHOLDS[i][1]
 					&& z2 >= Plink.THRESHOLDS[i][2] && piHat >= Plink.THRESHOLDS[i][3]) {
 				return Plink.FLAGS[i];
 			}
@@ -1012,16 +1012,16 @@ public class PlinkMendelianChecker {
 		String out = null;
 		boolean genomeDNA = false;
 
-		String usage = "\n"	+ "gwas.PlinkMendelianChecker requires 0-1 arguments\n"
-										+ "   (1) Project properties filename (i.e. proj="
-										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-										+ "  OR \n"
-										+ "   (1) File with pedigree data (i.e. pedigree=pedigree.dat (not the default))\n"
-										+ "   (2) (optional) File with Mendelian Error data (i.e. mendel=markerQualityChecks.mendel (not the default))\n"
-										+ "   (3) (optional) File with genomic cluster data (i.e. genome=plink.genome (not the default))\n"
-										+ "   (4) (optional) If a genomeic cluster file is specified, specify if the id columns are FID/IID or DNA/DNA (i.e. genomeDNA=TRUE (not the default)) \n"
-										+ "   (5) (optional) Directory of output (i.e. out=/path/to/dir/ (not the default))\n"
-										+ "";
+		String usage = "\n" + "gwas.PlinkMendelianChecker requires 0-1 arguments\n"
+									 + "   (1) Project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + "  OR \n"
+									 + "   (1) File with pedigree data (i.e. pedigree=pedigree.dat (not the default))\n"
+									 + "   (2) (optional) File with Mendelian Error data (i.e. mendel=markerQualityChecks.mendel (not the default))\n"
+									 + "   (3) (optional) File with genomic cluster data (i.e. genome=plink.genome (not the default))\n"
+									 + "   (4) (optional) If a genomeic cluster file is specified, specify if the id columns are FID/IID or DNA/DNA (i.e. genomeDNA=TRUE (not the default)) \n"
+									 + "   (5) (optional) Directory of output (i.e. out=/path/to/dir/ (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

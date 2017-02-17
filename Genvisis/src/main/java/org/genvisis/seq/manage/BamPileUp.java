@@ -27,15 +27,14 @@ import htsjdk.samtools.filter.SamRecordFilter;
 
 public class BamPileUp implements Iterator<BamPile> {
 	public enum PILE_TYPE {
-													/**
-													 * Will only report positions with alternate alleles, and demands a
-													 * reference genome
-													 */
-													CONTAMINATION,
-													/**
-													 * Pileup to all positions passing filters supplied
-													 */
-													REGULAR;
+		/**
+		 * Will only report positions with alternate alleles, and demands a reference genome
+		 */
+		CONTAMINATION,
+		/**
+		 * Pileup to all positions passing filters supplied
+		 */
+		REGULAR;
 	}
 
 	private final String bam;
@@ -57,9 +56,9 @@ public class BamPileUp implements Iterator<BamPile> {
 	private WorkerTrain<TmpBamPile> train;
 	private final boolean optimize;
 
-	public BamPileUp(	String bam, ReferenceGenome referenceGenome, int refBinSize, FilterNGS filterNGS,
-										Segment[] intervals, PILE_TYPE type, SAM_FILTER_TYPE filterType,
-										boolean optimize, Logger log) {
+	public BamPileUp(String bam, ReferenceGenome referenceGenome, int refBinSize, FilterNGS filterNGS,
+									 Segment[] intervals, PILE_TYPE type, SAM_FILTER_TYPE filterType,
+									 boolean optimize, Logger log) {
 		super();
 		this.bam = bam;
 		binSize = refBinSize;
@@ -78,8 +77,8 @@ public class BamPileUp implements Iterator<BamPile> {
 		log.reportTimeInfo("Optimizing " + intervals.length + " queries for pile up");
 		queryIntervals = BamOps.convertSegsToQI(intervals, reader.getFileHeader(), 0, optimize, true,
 																						log);
-		log.reportTimeInfo("Finished Optimizing "	+ intervals.length + " queries to "
-												+ queryIntervals.length + " intervals for pile up");
+		log.reportTimeInfo("Finished Optimizing " + intervals.length + " queries to "
+											 + queryIntervals.length + " intervals for pile up");
 
 		sIterator = reader.query(queryIntervals, false);
 		filter = initializeFilters(filterNGS, filterType, log);
@@ -87,8 +86,8 @@ public class BamPileUp implements Iterator<BamPile> {
 		bamPilesToReturn = new ArrayList<BamPile>();
 		currentSegment = new Segment((byte) 0, 0, 0);
 		train = new WorkerTrain<BamPileUp.TmpBamPile>(null, 2, 200, log);// an extra thread should be
-																																			// about a half hour speed up
-																																			// per sample
+																																		 // about a half hour speed up
+																																		 // per sample
 		train.setAutoShutDown(false);
 		bamPileUpSummary = new BamPileUpSummary(log);
 	}
@@ -100,7 +99,7 @@ public class BamPileUp implements Iterator<BamPile> {
 	private boolean shutdown() {
 		boolean cleanShut = true;
 		if (sIterator.hasNext()) {
-			log.reportTimeWarning("The bam file "	+ bam
+			log.reportTimeWarning("The bam file " + bam
 														+ " has more recoreds and the shutdown method was called");
 			cleanShut = false;
 		}
@@ -123,22 +122,22 @@ public class BamPileUp implements Iterator<BamPile> {
 			if (!filter.filterOut(samRecord)) {
 				bamPileUpSummary.setReadsPiled(bamPileUpSummary.getReadsPiled() + 1);
 				if (bamPileUpSummary.getReadsPiled() % 100000 == 0) {
-					log.reportTimeInfo("~"	+ bamPileUpSummary.getReadsPiled() + " of "
-															+ bamPileUpSummary.getTotalReads() + " total reads piled to "
-															+ bamPileUpSummary.getPositionsPiled() + " positions ("
-															+ ext.getTimeElapsed(bamPileUpSummary.getTime()) + ") "
-															+ SamRecordOps.getDisplayLoc(samRecord));
+					log.reportTimeInfo("~" + bamPileUpSummary.getReadsPiled() + " of "
+														 + bamPileUpSummary.getTotalReads() + " total reads piled to "
+														 + bamPileUpSummary.getPositionsPiled() + " positions ("
+														 + ext.getTimeElapsed(bamPileUpSummary.getTime()) + ") "
+														 + SamRecordOps.getDisplayLoc(samRecord));
 					bamPileUpSummary.setTime(System.currentTimeMillis());
 				}
-				BamPileInitializer bamPileInitializer = new BamPileInitializer(	binSize, currentSegment,
-																																				samRecord, log);
+				BamPileInitializer bamPileInitializer = new BamPileInitializer(binSize, currentSegment,
+																																			 samRecord, log);
 				while (bamPileInitializer.hasNext()) {
 					bamPiles.add(bamPileInitializer.next());
 				}
 				currentSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
-				TmpBamPileProducer tmpBamPileProducer = new TmpBamPileProducer(	samRecord, currentSegment,
-																																				bamPiles.toArray(new BamPile[bamPiles.size()]),
-																																				filterNGS, log);
+				TmpBamPileProducer tmpBamPileProducer = new TmpBamPileProducer(samRecord, currentSegment,
+																																			 bamPiles.toArray(new BamPile[bamPiles.size()]),
+																																			 filterNGS, log);
 				train.setProducer(tmpBamPileProducer);
 				bamPiles = new ArrayList<BamPile>(bamPiles.size());
 				while (train.hasNext()) {
@@ -151,10 +150,10 @@ public class BamPileUp implements Iterator<BamPile> {
 						if (filterNGS.getReadDepthFilter() == null
 								|| bamPile.getTotalDepth(false, false) > filterNGS.getReadDepthFilter()[0]) {
 							int altAlleleDepth = filterNGS.getReadDepthFilter() != null
-																		&& filterNGS.getReadDepthFilter().length > 1	? filterNGS.getReadDepthFilter()[1]
-																																									: -1;
+																	 && filterNGS.getReadDepthFilter().length > 1 ? filterNGS.getReadDepthFilter()[1]
+																																								: -1;
 							if (pileType == PILE_TYPE.REGULAR
-									|| (bamPile.hasAltAllele(log)	&& bamPile.hasOnlyOneAlt(log)
+									|| (bamPile.hasAltAllele(log) && bamPile.hasOnlyOneAlt(log)
 											&& bamPile.getNumAlt(log) > altAlleleDepth
 											&& bamPile.getNumRef(log) > altAlleleDepth)) {
 								bamPileUpSummary.setPositionsPiled(bamPileUpSummary.getPositionsPiled() + 1);
@@ -185,8 +184,8 @@ public class BamPileUp implements Iterator<BamPile> {
 		return bamPileUpSummary;
 	}
 
-	private static AggregateFilter initializeFilters(	FilterNGS filterNGS, SAM_FILTER_TYPE filterType,
-																										Logger log) {
+	private static AggregateFilter initializeFilters(FilterNGS filterNGS, SAM_FILTER_TYPE filterType,
+																									 Logger log) {
 		ArrayList<SamRecordFilter> filters = filterNGS.getStandardSAMRecordFilters(filterType, log);
 		filters.add(filterNGS.getSamRecordMapQFilter(filterNGS.getMappingQualityFilter()));
 		AggregateFilter filter = new AggregateFilter(filters);
@@ -212,8 +211,8 @@ public class BamPileUp implements Iterator<BamPile> {
 			this.samRecord = samRecord;
 			this.log = log;
 			samRecordSeg = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
-			nextBin =
-							samRecordSeg.overlaps(previousBin) ? getNextBin(previousBin, binSize) : scanToNext();
+			nextBin = samRecordSeg.overlaps(previousBin) ? getNextBin(previousBin, binSize)
+																									 : scanToNext();
 		}
 
 		private Segment scanToNext() {
@@ -222,7 +221,7 @@ public class BamPileUp implements Iterator<BamPile> {
 					previousBin = new Segment(samRecordSeg.getChr(), 1, 1 + binSize);
 				}
 				while (!samRecordSeg.overlaps(previousBin)
-								&& previousBin.getStop() <= samRecordSeg.getStop()) {
+							 && previousBin.getStop() <= samRecordSeg.getStop()) {
 					previousBin = new Segment(previousBin.getChr(), previousBin.getStop() + 1,
 																		previousBin.getStop() + binSize);
 				}
@@ -265,8 +264,8 @@ public class BamPileUp implements Iterator<BamPile> {
 		private final Logger log;
 		private int index = 0;
 
-		private TmpBamPileProducer(	SAMRecord samRecord, Segment samRecordSegment, BamPile[] bamPiles,
-																FilterNGS filterNGS, Logger log) {
+		private TmpBamPileProducer(SAMRecord samRecord, Segment samRecordSegment, BamPile[] bamPiles,
+															 FilterNGS filterNGS, Logger log) {
 			super();
 			this.samRecord = samRecord;
 			this.bamPiles = bamPiles;
@@ -283,8 +282,8 @@ public class BamPileUp implements Iterator<BamPile> {
 
 		@Override
 		public Callable<TmpBamPile> next() {
-			TmpBamPile tmpBamPile = new TmpBamPile(	samRecord, samRecordSegment, bamPiles[index],
-																							filterNGS, log);
+			TmpBamPile tmpBamPile = new TmpBamPile(samRecord, samRecordSegment, bamPiles[index],
+																						 filterNGS, log);
 			index++;
 			return tmpBamPile;
 		}
@@ -298,8 +297,8 @@ public class BamPileUp implements Iterator<BamPile> {
 		private final Segment samRecordSegment;
 		private final Logger log;
 
-		private TmpBamPile(	SAMRecord samRecord, Segment samRecordSegment, BamPile bamPile,
-												FilterNGS filterNGS, Logger log) {
+		private TmpBamPile(SAMRecord samRecord, Segment samRecordSegment, BamPile bamPile,
+											 FilterNGS filterNGS, Logger log) {
 			super();
 			this.samRecord = samRecord;
 			this.bamPile = bamPile;
@@ -340,9 +339,9 @@ public class BamPileUp implements Iterator<BamPile> {
 		private final SAM_FILTER_TYPE filterType;
 		private final Logger log;
 
-		public bamPileWorker(	String bamFile, String outDir, Segment[] q, FilterNGS filterNGS,
-													ReferenceGenome referenceGenome, int binSize, PILE_TYPE type,
-													SAM_FILTER_TYPE filterType, Logger log) {
+		public bamPileWorker(String bamFile, String outDir, Segment[] q, FilterNGS filterNGS,
+												 ReferenceGenome referenceGenome, int binSize, PILE_TYPE type,
+												 SAM_FILTER_TYPE filterType, Logger log) {
 			super();
 			this.bamFile = bamFile;
 			this.outDir = outDir;
@@ -357,8 +356,8 @@ public class BamPileUp implements Iterator<BamPile> {
 
 		@Override
 		public DynamicHistogram call() throws Exception {
-			BamPileUp pileUp = new BamPileUp(	bamFile, referenceGenome, binSize, filterNGS, q, type,
-																				filterType, true, log);
+			BamPileUp pileUp = new BamPileUp(bamFile, referenceGenome, binSize, filterNGS, q, type,
+																			 filterType, true, log);
 			new File(outDir).mkdirs();
 			String output = outDir + ext.rootOf(bamFile, true) + ".bamPile.txt";
 			PrintWriter writer = Files.getAppropriateWriter(output);

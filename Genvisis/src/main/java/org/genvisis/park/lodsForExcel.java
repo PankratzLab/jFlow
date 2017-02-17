@@ -128,7 +128,7 @@ public class lodsForExcel {
 
 			poslar = HashVec.getNumericKeys(hash);
 			for (int j = Integer.parseInt(poslar[0]); j <= Integer.parseInt(poslar[poslar.length
-																																							- 1]); j++) {
+																																						 - 1]); j++) {
 				if (!hash.containsKey(j + "")) {
 					hash.put(j + "", new eStruct());
 				}
@@ -180,7 +180,7 @@ public class lodsForExcel {
 							num++;
 							handle = hash.get((count + num) + "");
 						} while (count + num <= Integer.parseInt(poslar[poslar.length - 1])
-											&& handle.values[meth] == -999);
+										 && handle.values[meth] == -999);
 						if (count + num > Integer.parseInt(poslar[poslar.length - 1])) {
 							count = Integer.parseInt(poslar[poslar.length - 1]);
 						} else {
@@ -217,7 +217,7 @@ public class lodsForExcel {
 				}
 
 				for (int j = Integer.parseInt(poslar[0]); j <= Integer.parseInt(poslar[poslar.length
-																																								- 1]); j++) {
+																																							 - 1]); j++) {
 					handle = hash.get(j + "");
 					writer.print(handle.markerName + "\t" + j + "\t" + (off == -1 ? "" : off + j));
 					for (int meth = 0; meth < DATA_POINTS.length; meth++) {
@@ -241,7 +241,7 @@ public class lodsForExcel {
 		all.close();
 		if (mapFailure.size() > 0) {
 			System.err.println("Map information was not available for the following chromosomes: "
-													+ ArrayUtils.toStr(ArrayUtils.toStringArray(mapFailure), " "));
+												 + ArrayUtils.toStr(ArrayUtils.toStringArray(mapFailure), " "));
 		}
 	}
 
@@ -249,9 +249,9 @@ public class lodsForExcel {
 		int numArgs = args.length;
 		IntVector iv = new IntVector();
 
-		String usage = "\n"	+ "park.lodsForExcel requires 0+ arguments:\n"
-										+ "   numbers of chromosomes to parse (i.e. 1 2 6 13 23 (nothing indicates the autosomes+23 (default)))\n"
-										+ "";
+		String usage = "\n" + "park.lodsForExcel requires 0+ arguments:\n"
+									 + "   numbers of chromosomes to parse (i.e. 1 2 6 13 23 (nothing indicates the autosomes+23 (default)))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

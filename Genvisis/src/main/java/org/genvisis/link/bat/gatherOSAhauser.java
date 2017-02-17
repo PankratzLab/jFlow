@@ -18,8 +18,8 @@ public class gatherOSAhauser {
 			chrome = (chromosome < 10) ? "0" + chromosome : "" + chromosome;
 			try {
 				writer.println("Chromosome " + chromosome + ":");
-				reader = new BufferedReader(new FileReader("chrom"	+ chrome + "/osa" + chrome
-																										+ ".dat.max"));
+				reader = new BufferedReader(new FileReader("chrom" + chrome + "/osa" + chrome
+																									 + ".dat.max"));
 				for (int i = 0; i < 14; i++) {
 					reader.readLine();
 				}

@@ -80,8 +80,8 @@ public class PhaserNGS {
 		command.add(Integer.toString(0));
 
 		String vcfOut = rootOut + ".vcf";
-		CmdLine.runCommandWithFileChecks(	ArrayUtils.toStringArray(command), "", new String[] {vcf},
-																			new String[] {vcfOut}, true, true, false, log);
+		CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", new String[] {vcf},
+																		 new String[] {vcfOut}, true, true, false, log);
 		return vcfOut;
 
 	}

@@ -36,10 +36,10 @@ public class OutlierHashtable implements Serializable {
 	public float getValue(int markerIndexInProj, int sampleIndexInProj, byte dataItem) {
 		if (outlierHashtableSmall == null) {
 			return outlierHashtableBig.get((long) markerIndexInProj * MAX_NUM_OF_SAMPLES_BIG_HASH
-																			+ sampleIndexInProj * 10 + dataItem);
+																		 + sampleIndexInProj * 10 + dataItem);
 		} else {
 			return outlierHashtableSmall.get(markerIndexInProj * MAX_NUM_OF_SAMPLES_SMALL_HASH
-																				+ sampleIndexInProj * 10 + dataItem);
+																			 + sampleIndexInProj * 10 + dataItem);
 		}
 	}
 

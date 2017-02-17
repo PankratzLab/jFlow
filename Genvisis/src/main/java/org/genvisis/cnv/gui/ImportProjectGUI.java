@@ -113,7 +113,7 @@ public class ImportProjectGUI extends JDialog {
 						txt = ext.verifyDirFormat(f.getCanonicalPath());
 					} catch (IOException e1) {
 					}
-					if (jfc.getFileSelectionMode() == FileChooser.FILES_ONLY	&& txt.length() > 1
+					if (jfc.getFileSelectionMode() == FileChooser.FILES_ONLY && txt.length() > 1
 							&& txt.endsWith("/")) {
 						txt = txt.substring(0, txt.length() - 1);
 					}
@@ -143,8 +143,8 @@ public class ImportProjectGUI extends JDialog {
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(new MigLayout(	"", "[grow][10px:10px:10px][grow 70][grow 40]",
-																					"[grow][][grow][][][][][][][][][][][][]"));
+		contentPanel.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow 70][grow 40]",
+																				 "[grow][][grow][][][][][][][][][][][][]"));
 		CaretListener caretListener = new CaretListener() {
 			@Override
 			public void caretUpdate(CaretEvent arg0) {
@@ -253,8 +253,7 @@ public class ImportProjectGUI extends JDialog {
 				JLabel lblSample = new JLabel("<html><u>Sample Import:</u></html>");
 				panel.add(lblSample, "cell 1 5,alignx left,growy");
 			}
-			JLabel lblFoundSamplesDirectory =
-																			new JLabel("<html>Found <code>samples/</code> Directory:</html>");
+			JLabel lblFoundSamplesDirectory = new JLabel("<html>Found <code>samples/</code> Directory:</html>");
 			panel.add(lblFoundSamplesDirectory, "cell 1 6,alignx right,growy");
 			lblFoundSamplesStatus = new JLabel(redX);
 			panel.add(lblFoundSamplesStatus, "cell 2 6,alignx left,growy");
@@ -268,8 +267,7 @@ public class ImportProjectGUI extends JDialog {
 			}
 			lblFoundTransposedStatus = new JLabel(redX);
 			panel.add(lblFoundTransposedStatus, "cell 2 8,alignx left,growy");
-			JLabel lblFoundMarkerlookupFile =
-																			new JLabel("<html>Found <code>MarkerLookup</code> File:</html>");
+			JLabel lblFoundMarkerlookupFile = new JLabel("<html>Found <code>MarkerLookup</code> File:</html>");
 			panel.add(lblFoundMarkerlookupFile, "cell 1 9,alignx right,growy");
 			{
 				lblFoundMarkerLookupStatus = new JLabel(redX);
@@ -280,8 +278,7 @@ public class ImportProjectGUI extends JDialog {
 				panel.add(lblpropertyImport, "cell 1 10,growy");
 			}
 			{
-				JLabel lblFoundImportMeta =
-																	new JLabel("<html>Found <code>import.ser</code> meta File:</html>");
+				JLabel lblFoundImportMeta = new JLabel("<html>Found <code>import.ser</code> meta File:</html>");
 				panel.add(lblFoundImportMeta, "cell 1 11,alignx right,growy");
 			}
 			{
@@ -358,11 +355,11 @@ public class ImportProjectGUI extends JDialog {
 
 	private boolean checkProjectName() {
 		String name = txtFldProjName.getText().trim();
-		if (name.isEmpty()	|| DEFAULT_PROJ_NAME.equals(name) || name.length() > 23
+		if (name.isEmpty() || DEFAULT_PROJ_NAME.equals(name) || name.length() > 23
 				|| new File(propertyFilePath + name + MitoPipeline.PROJECT_EXT).exists()) {
 			JOptionPane.showMessageDialog(null,
 																		"Project name must be 1-23 characters in length, must not be \""
-																						+ DEFAULT_PROJ_NAME
+																					+ DEFAULT_PROJ_NAME
 																					+ "\", and must not clash with an existing project.",
 																		"Error", JOptionPane.ERROR_MESSAGE);
 			return false;
@@ -440,7 +437,7 @@ public class ImportProjectGUI extends JDialog {
 		} else {
 			Files.write((new Project()).PROJECT_NAME.getName() + "=" + name, filename);
 		}
-		
+
 		String projDir = txtFldProjDir.getText().trim();
 		Project actualProj = new Project(filename, false);
 		actualProj.PROJECT_NAME.setValue(name);
@@ -455,20 +452,23 @@ public class ImportProjectGUI extends JDialog {
 				}
 			}
 		}
-		
-        boolean foundOldSampleList = Files.exists(projDir + DEFAULT_SAMPLELIST) && !Files.exists(projDir + DEFAULT_SAMPLELIST_ALT);
-        boolean foundOldMarkerList = Files.exists(projDir + DEFAULT_MARKERLIST) && !Files.exists(projDir + DEFAULT_MARKERLIST_ALT);
-        boolean foundOldMarkerLookup = Files.exists(projDir + DEFAULT_MARKERLOOKUP) && !Files.exists(projDir + DEFAULT_MARKERLOOKUP_ALT);
-        
-        if (foundOldMarkerList) {
-          actualProj.MARKERSET_FILENAME.setValue(projDir + DEFAULT_MARKERLIST);
-        }
-        if (foundOldMarkerLookup) {
-          actualProj.MARKERLOOKUP_FILENAME.setValue(projDir + DEFAULT_MARKERLOOKUP);
-        }
-        if (foundOldSampleList) {
-          actualProj.SAMPLELIST_FILENAME.setValue(projDir + DEFAULT_SAMPLELIST);
-        }
+
+		boolean foundOldSampleList = Files.exists(projDir + DEFAULT_SAMPLELIST)
+																 && !Files.exists(projDir + DEFAULT_SAMPLELIST_ALT);
+		boolean foundOldMarkerList = Files.exists(projDir + DEFAULT_MARKERLIST)
+																 && !Files.exists(projDir + DEFAULT_MARKERLIST_ALT);
+		boolean foundOldMarkerLookup = Files.exists(projDir + DEFAULT_MARKERLOOKUP)
+																	 && !Files.exists(projDir + DEFAULT_MARKERLOOKUP_ALT);
+
+		if (foundOldMarkerList) {
+			actualProj.MARKERSET_FILENAME.setValue(projDir + DEFAULT_MARKERLIST);
+		}
+		if (foundOldMarkerLookup) {
+			actualProj.MARKERLOOKUP_FILENAME.setValue(projDir + DEFAULT_MARKERLOOKUP);
+		}
+		if (foundOldSampleList) {
+			actualProj.SAMPLELIST_FILENAME.setValue(projDir + DEFAULT_SAMPLELIST);
+		}
 
 		// actualProj.SOURCE_DIRECTORY.setValue(srcDir);
 		// actualProj.SOURCE_FILENAME_EXTENSION.setValue(srcExt);

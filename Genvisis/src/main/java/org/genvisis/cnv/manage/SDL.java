@@ -36,14 +36,14 @@ public class SDL implements Iterator<Sample> {
 	}
 
 	public enum LOAD_TYPE {
-													/**
-													 * Loads everything
-													 */
-													FULL_SAMPLE,
-													/**
-													 * Load genos and gc only
-													 */
-													PARTIAL_GENO_ONLY;
+		/**
+		 * Loads everything
+		 */
+		FULL_SAMPLE,
+		/**
+		 * Load genos and gc only
+		 */
+		PARTIAL_GENO_ONLY;
 	}
 
 	@Override
@@ -106,8 +106,8 @@ public class SDL implements Iterator<Sample> {
 					case FULL_SAMPLE:
 						return proj.getFullSampleFromRandomAccessFile(sample);
 					case PARTIAL_GENO_ONLY:
-						return proj.getPartialSampleFromRandomAccessFile(	sample, true, false, false, false,
-																															true);
+						return proj.getPartialSampleFromRandomAccessFile(sample, true, false, false, false,
+																														 true);
 					default:
 						throw new IllegalArgumentException("Invalid load type " + lType);
 				}

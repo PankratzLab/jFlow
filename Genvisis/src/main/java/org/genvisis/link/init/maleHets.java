@@ -50,10 +50,10 @@ public class maleHets {
 						System.out.print(".");
 						listOfErrors.add(fam + "\t" + id + "\t" + i);
 						writer.println("Individual " + fam + "-" + id + " is heterozygous (" + first + "/"
-						               + second + ") at marker " + i);
+													 + second + ") at marker " + i);
 						if (hash.containsKey(fam + "-" + id)) {
 							hash.put(fam + "-" + id,
-							         (Integer.valueOf(hash.get(fam + "-" + id)).intValue() + 1) + "");
+											 (Integer.valueOf(hash.get(fam + "-" + id)).intValue() + 1) + "");
 						} else {
 							hash.put(fam + "-" + id, 1 + "");
 						}
@@ -145,7 +145,7 @@ public class maleHets {
 		Collections.sort(male_identity_crises);
 		for (String m : male_identity_crises) {
 			System.err.println("Warning - " + m + " is heterozygous for " + hash.get(m)
-			                   + " markers on the X chromosome");
+												 + " markers on the X chromosome");
 		}
 
 	}

@@ -36,8 +36,8 @@ import com.google.common.primitives.Ints;
 
 public class Beagle {
 	public static final double[] PI_HAT_THRESHOLDS = {0.3, 0.5};
-	public static final String[] SEGMENT_HEADER = {	"FID1", "IID1", "FID2", "IID2", "PHE", "CHR",
-																									"BP1", "BP2", "SNP1", "SNP2", "NSNP", "KB"};
+	public static final String[] SEGMENT_HEADER = {"FID1", "IID1", "FID2", "IID2", "PHE", "CHR",
+																								 "BP1", "BP2", "SNP1", "SNP2", "NSNP", "KB"};
 	public static final String[] ALLELES = {"0", "A", "C", "G", "T"};
 
 	public static final int[] FILTER_CM_THRESHOLDS = {1, 2, 3, 4, 5};
@@ -139,8 +139,8 @@ public class Beagle {
 			writer.println("			tmpdir=temp.$rep");
 			writer.println("			mkdir $tmpdir");
 			writer.println("#			" + Files.getRunString() + " park.temp chr$chr/$tmpdir 4 $rep");
-			writer.println("			"	+ Files.JAVA
-											+ " -Djava.io.tmpdir=$tmpdir -d64 -Xmx1600M -jar /home/npankrat/bin/beagle.jar unphased=ibds.pre_phase.bgl ibdpairs=../lists/$rep.list out=$rep missing=0 markers=markers.dat seed=1234 > $rep.out");
+			writer.println("			" + Files.JAVA
+										 + " -Djava.io.tmpdir=$tmpdir -d64 -Xmx1600M -jar /home/npankrat/bin/beagle.jar unphased=ibds.pre_phase.bgl ibdpairs=../lists/$rep.list out=$rep missing=0 markers=markers.dat seed=1234 > $rep.out");
 			writer.println("			rm -r $tmpdir");
 			writer.println("			echo \"Finished rep $rep at \" `date` >> $rep_times.log");
 			writer.println("			echo \"Starting to zip...\" >> $rep_times.log");
@@ -195,8 +195,8 @@ public class Beagle {
 				writer.println("cp " + file + " " + root + "/");
 			}
 			writer.println("cd " + root + "/");
-			writer.println("java -jar /home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
-											+ " gwas.Beagle pair=" + filename);
+			writer.println("java -jar /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS
+										 + " gwas.Beagle pair=" + filename);
 			if (files.length == 1) {
 				writer.println("plink --bfile ../plink --keep " + filename + " --make-bed");
 			} else {
@@ -208,15 +208,15 @@ public class Beagle {
 			writer.println("splitByChrAlt2 plink");
 			writer.println("cp " + root + ".list split/");
 			writer.println("cd split");
-			writer.println("java -jar /home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
-											+ " gwas.Beagle -prepFiles list=" + root + ".list step=" + step);
+			writer.println("java -jar /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS
+										 + " gwas.Beagle -prepFiles list=" + root + ".list step=" + step);
 			writer.println("for chr in {1..23}");
 			writer.println("do");
 			writer.println("echo \"Transposing chromosome $chr...\"");
 			writer.println("cd chr$chr/");
 			writer.println("/home/npankrat/bin/mine_ped_to_bgl plink.ped plink.map > ibds.pre_phase.bgl");
 			writer.println(Files.getRunString()
-											+ " parse.GenParser plink.bim out=markers.dat 1 2 4 5 noHeader");
+										 + " parse.GenParser plink.bim out=markers.dat 1 2 4 5 noHeader");
 			writer.println("cd ..");
 			writer.println("done");
 			// writer.println("./script."+root);
@@ -271,15 +271,15 @@ public class Beagle {
 		for (int chr = 1; chr <= 22; chr++) {
 			for (int rep = 1; rep <= numLists; rep++) {
 				if (new File("chr" + chr + "/" + rep + ".ibds.pre_phase.bgl.ibd.gz").exists()) {
-					sizes[chr - 1][rep - 1] = new File("chr"	+ chr + "/" + rep
-																							+ ".ibds.pre_phase.bgl.ibd.gz").length();
+					sizes[chr - 1][rep - 1] = new File("chr" + chr + "/" + rep
+																						 + ".ibds.pre_phase.bgl.ibd.gz").length();
 				} else if (new File("chr" + chr + "/" + rep + ".ibds.pre_phase.bgl.ibd").exists()) {
 					sizes[chr - 1][rep - 1] = -3;
 				} else if (new File("chr" + chr + "/" + rep + ".log").exists()) {
 					if (!new File("chr" + chr + "/temp." + rep).exists()) {
 						sizes[chr - 1][rep - 1] = -5;
 					} else if (new Date().getTime()
-											- Files.getMostRecentUpdate("chr" + chr + "/temp." + rep) > 1800000) {
+										 - Files.getMostRecentUpdate("chr" + chr + "/temp." + rep) > 1800000) {
 						// System.out.println("Current time: "+new Date().getTime()+"\tLast updated:
 						// "+Files.getMostRecentUpdate("chr"+chr+"/temp."+rep)+"\tDiff: "+(new Date().getTime()
 						// - Files.getMostRecentUpdate("chr"+chr+"/temp."+rep)));
@@ -303,8 +303,8 @@ public class Beagle {
 			}
 		}
 
-		System.out.println("Reps:\t"	+ ArrayUtils.toStr(ArrayUtils.stringArraySequence(numLists, ""))
-												+ "\tNum remaining");
+		System.out.println("Reps:\t" + ArrayUtils.toStr(ArrayUtils.stringArraySequence(numLists, ""))
+											 + "\tNum remaining");
 		for (int chr = 1; chr <= 22; chr++) {
 			compl = count = prob = miss = 0;
 			max = ArrayUtils.max(ArrayUtils.toDoubleArray(sizes[chr - 1]));
@@ -387,10 +387,9 @@ public class Beagle {
 		ids = HashVec.loadFileToStringMatrix(list, false, new int[] {0, 1}, false);
 		dir = ext.parseDirectoryOfFile(filename);
 		if (new File(dir + "plink.map").exists() || new File(dir + "plink.bim").exists()) {
-			markerSet = new SnpMarkerSet(
-																		new File(dir + "plink.map").exists()	? dir + "plink.map"
-																																					: dir + "plink.bim",
-																		false, new Logger());
+			markerSet = new SnpMarkerSet(new File(dir + "plink.map").exists() ? dir + "plink.map"
+																																				: dir + "plink.bim",
+																	 false, new Logger());
 			markerNames = markerSet.getMarkerNames();
 			chrs = markerSet.getChrs();
 			positions = markerSet.getPositions();
@@ -400,8 +399,8 @@ public class Beagle {
 			return;
 		}
 		if (new File(dir + "plink.fam").exists() || new File(dir + "plink.ped").exists()) {
-			pedfile = new Pedfile(new File(dir + "plink.fam").exists()	? dir + "plink.fam"
-																																	: dir + "plink.ped");
+			pedfile = new Pedfile(new File(dir + "plink.fam").exists() ? dir + "plink.fam"
+																																 : dir + "plink.ped");
 			famStruct = pedfile.getFamilyStructure();
 			pedIDs = famStruct.getIDs();
 			affs = famStruct.getAffections();
@@ -418,13 +417,13 @@ public class Beagle {
 				affs = new byte[] {(byte) -999, (byte) -999};
 				for (int j = 0; j < 2; j++) {
 					if (!hash.containsKey(ids[i][j])) {
-						log.reportError("Error - indiviudal "	+ ids[i][j]
+						log.reportError("Error - indiviudal " + ids[i][j]
 														+ " was not present in family stucture");
 						problem = true;
 					} else {
 						affs[j] = Byte.parseByte(hash.get(ids[i][j]));
 						if (affs[j] != 1 && affs[j] != 2) {
-							log.reportError("Error - indiviudal "	+ ids[i][j]
+							log.reportError("Error - indiviudal " + ids[i][j]
 															+ " has an invalid affection status: '" + hash.get(ids[i][j]) + "'");
 							problem = true;
 						}
@@ -455,7 +454,7 @@ public class Beagle {
 				for (int j = 0; j < ids.length; j++) {
 					for (int k = 0; k < 4; k++) {
 						if (!line[j * 4 + k + 1].equals(ids[j][i])) {
-							log.reportError("Error - mismatched ids: expecting "	+ ids[j][i] + " in column "
+							log.reportError("Error - mismatched ids: expecting " + ids[j][i] + " in column "
 															+ (j * 4 + k + 2) + ", but found " + line[j * 4 + k + 1]);
 						}
 					}
@@ -469,14 +468,14 @@ public class Beagle {
 			}
 			writers = new PrintWriter[PI_HAT_THRESHOLDS.length][2][2];
 			for (int j = 0; j < PI_HAT_THRESHOLDS.length; j++) {
-				writers[j][0][0] = new PrintWriter(new FileWriter(filename	+ "_PI_" + PI_HAT_THRESHOLDS[j]
+				writers[j][0][0] = new PrintWriter(new FileWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
 																													+ "_normal.segment"));
-				writers[j][0][1] = new PrintWriter(new FileWriter(filename	+ "_PI_" + PI_HAT_THRESHOLDS[j]
+				writers[j][0][1] = new PrintWriter(new FileWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
 																													+ "_normal.seginfo"));
 				// writers[j][0].println(Array.toStr(SEGMENT_HEADER)+"\tSCORE");
-				writers[j][1][0] = new PrintWriter(new FileWriter(filename	+ "_PI_" + PI_HAT_THRESHOLDS[j]
+				writers[j][1][0] = new PrintWriter(new FileWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
 																													+ "_nuanced.segment"));
-				writers[j][1][1] = new PrintWriter(new FileWriter(filename	+ "_PI_" + PI_HAT_THRESHOLDS[j]
+				writers[j][1][1] = new PrintWriter(new FileWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
 																													+ "_nuanced.seginfo"));
 				// writers[j][1].println(Array.toStr(SEGMENT_HEADER)+"\tSCORE");
 			}
@@ -504,23 +503,23 @@ public class Beagle {
 									}
 									for (int k = 0; k < 4; k++) {
 										segsInfo[i][j][strict][k] += (segsInfo[i][j][strict][k].equals("") ? "" : "\t")
-																									+ line[i * 4 + k + 1];
+																								 + line[i * 4 + k + 1];
 									}
 								} else if (starts[i][j][strict] != -1) {
-									writers[j][strict][0].print(famids.get(ids[i][0])	+ "\t" + ids[i][0] + "\t"
+									writers[j][strict][0].print(famids.get(ids[i][0]) + "\t" + ids[i][0] + "\t"
 																							+ famids.get(ids[i][1]) + "\t" + ids[i][1]); // FID1
-																																														// IID1
-																																														// FID2
-																																														// IID2
+																																													 // IID1
+																																													 // FID2
+																																													 // IID2
 									writers[j][strict][0].print("\t" + hash.get(ids[i][0] + "\t" + ids[i][1])); // PHE
 																																															// Phenotype
 																																															// concordance:
 																																															// -1,0,1
 									writers[j][strict][0].print("\t" + chrs[starts[i][j][strict]]); // CHR
 									end = count < markerNames.length - 1 ? count - 1 : count;
-									writers[j][strict][0].print("\t"	+ positions[starts[i][j][strict]] + "\t"
+									writers[j][strict][0].print("\t" + positions[starts[i][j][strict]] + "\t"
 																							+ positions[end]); // BP1 BP2
-									writers[j][strict][0].print("\t"	+ markerNames[starts[i][j][strict]] + "\t"
+									writers[j][strict][0].print("\t" + markerNames[starts[i][j][strict]] + "\t"
 																							+ markerNames[end]); // SNP1 SNP2
 									writers[j][strict][0].print("\t" + (end - starts[i][j][strict] + 1)); // NSNP
 																																												// Number of
@@ -529,30 +528,30 @@ public class Beagle {
 																																												// segment
 									writers[j][strict][0].print("\t" + (positions[end]
 																											- positions[starts[i][j][strict]] + 1)); // KB
-																																																// Physical
-																																																// length
-																																																// of
-																																																// segment
-																																																// (kb)
+																																															 // Physical
+																																															 // length
+																																															 // of
+																																															 // segment
+																																															 // (kb)
 									writers[j][strict][0].print("\t"
 																							+ ext.formDeci(segAvgs[i][j][strict]
-																																/ (end - starts[i][j][strict] + 1), 5,
-																															true)); // extra quality score not
-																																			// used/allowed by PLINK
+																														 / (end - starts[i][j][strict] + 1), 5,
+																														 true)); // extra quality score not
+																																		 // used/allowed by PLINK
 									writers[j][strict][0].print("\t" + ext.formDeci(segMaxes[i][j][strict], 3, true)); // extra
-																																																			// max
-																																																			// score
-																																																			// not
-																																																			// used/allowed
-																																																			// by
-																																																			// PLINK
+																																																		 // max
+																																																		 // score
+																																																		 // not
+																																																		 // used/allowed
+																																																		 // by
+																																																		 // PLINK
 									writers[j][strict][0].print("\t" + ext.formDeci(centiMorgans[end]
-																																		- centiMorgans[starts[i][j][strict]],
+																																	- centiMorgans[starts[i][j][strict]],
 																																	4, true)); // cM Genetic length of
-																																							// segment (cM)
+																																						 // segment (cM)
 									writers[j][strict][0].println();
 
-									writers[j][strict][1].println(ids[i][0]	+ "\t" + ids[i][1] + "\t"
+									writers[j][strict][1].println(ids[i][0] + "\t" + ids[i][1] + "\t"
 																								+ chrs[starts[i][j][strict]] + "\t"
 																								+ starts[i][j][strict] + "\t" + end + "\tchr"
 																								+ chrs[starts[i][j][strict]] + ":"
@@ -602,8 +601,8 @@ public class Beagle {
 		try {
 			writer = new PrintWriter(new FileWriter(filename + "_sum.xln"));
 			for (int i = 0; i < markerNames.length; i++) {
-				writer.println(markerNames[i]	+ "\t" + avgs[i][0] + "\t" + avgs[i][1] + "\t"
-												+ ArrayUtils.toStr(alleleCounts[i]));
+				writer.println(markerNames[i] + "\t" + avgs[i][0] + "\t" + avgs[i][1] + "\t"
+											 + ArrayUtils.toStr(alleleCounts[i]));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -655,18 +654,17 @@ public class Beagle {
 			if (new File("chr" + chr + "/").exists()) {
 				if (new File("chr" + chr + "/plink.map").exists()
 						|| new File("chr" + chr + "/plink.bim").exists()) {
-					markerSet = new SnpMarkerSet(
-																				new File("chr" + chr + "/plink.map").exists()
-																																												? "chr"	+ chr
-																																												+ "/plink.map"
-																																											: "chr"	+ chr
-																																												+ "/plink.bim",
-																				false, new Logger());
+					markerSet = new SnpMarkerSet(new File("chr" + chr + "/plink.map").exists()
+																																										 ? "chr" + chr
+																																											 + "/plink.map"
+																																										 : "chr" + chr
+																																											 + "/plink.bim",
+																			 false, new Logger());
 					markerNames[chr - 1] = markerSet.getMarkerNames();
 					chrs[chr - 1] = markerSet.getChrs();
 					positions[chr - 1] = markerSet.getPositions();
 				} else {
-					log.reportError("Error - could not find plink.map or plink.bim in chr"	+ chr
+					log.reportError("Error - could not find plink.map or plink.bim in chr" + chr
 													+ "/ -- required to define segments and perform a crucial datacheck");
 					return;
 				}
@@ -688,7 +686,7 @@ public class Beagle {
 		}
 		for (int i = 0; i < missings.length; i++) {
 			if (missings[i].size() > 0) {
-				log.reportError("For chr"	+ (i + 1) + ", missing rep" + (missings[i].size() > 1 ? "s" : "")
+				log.reportError("For chr" + (i + 1) + ", missing rep" + (missings[i].size() > 1 ? "s" : "")
 												+ ": " + ext.listRanges(Ints.toArray(missings[i])));
 			}
 		}
@@ -697,8 +695,8 @@ public class Beagle {
 		try {
 			writer = new PrintWriter(new FileWriter("avgIBD.xln"));
 			writer.println("MarkerName\tChr\tPosition\t"
-												+ ext.replaceDirectoryCharsWithUnderscore(new File(".").getCanonicalPath(), 1)
-											+ "\t" + ArrayUtils.toStr(ALLELES) + "\tConsensus\tFreq\tActualFreq\tpval");
+										 + ext.replaceDirectoryCharsWithUnderscore(new File(".").getCanonicalPath(), 1)
+										 + "\t" + ArrayUtils.toStr(ALLELES) + "\tConsensus\tFreq\tActualFreq\tpval");
 			writer.println("\t\t\t" + n);
 			for (int chr = 1; chr <= 22; chr++) {
 				if (new File("chr" + chr + "/").exists()) {
@@ -707,13 +705,13 @@ public class Beagle {
 					alleleCounts = new int[markerNames[chr - 1].length][ALLELES.length];
 					for (rep = 1; rep <= iv.size(); rep++) {
 						try {
-							reader = new BufferedReader(new FileReader("chr"	+ chr + "/" + rep
-																													+ ".ibds.pre_phase.bgl.ibd_sum.xln"));
+							reader = new BufferedReader(new FileReader("chr" + chr + "/" + rep
+																												 + ".ibds.pre_phase.bgl.ibd_sum.xln"));
 							count = 0;
 							while (reader.ready()) {
 								line = reader.readLine().trim().split("[\\s]+");
 								if (!line[0].equals(markerNames[chr - 1][count])) {
-									log.reportError("Error - mismatch in '"	+ "chr" + chr + "/" + rep
+									log.reportError("Error - mismatch in '" + "chr" + chr + "/" + rep
 																	+ ".ibds.pre_phase.bgl.ibd_sum.xln" + "' at line " + (count + 1)
 																	+ "; expecting " + markerNames[chr - 1][count] + " and found "
 																	+ line[0]);
@@ -729,24 +727,24 @@ public class Beagle {
 								count++;
 							}
 							if (count != markerNames[chr - 1].length) {
-								log.reportError("Error - mismatch in '"	+ "chr" + chr + "/" + rep
+								log.reportError("Error - mismatch in '" + "chr" + chr + "/" + rep
 																+ ".ibds.pre_phase.bgl.ibd_sum.xln" + "' at line " + (count + 1)
 																+ "; only processed " + count + " of " + markerNames.length
 																+ " markers");
 							}
 							reader.close();
 						} catch (FileNotFoundException fnfe) {
-							log.reportError("Error: file \""	+ "chr" + chr + "/" + rep
+							log.reportError("Error: file \"" + "chr" + chr + "/" + rep
 															+ ".ibds.pre_phase.bgl.ibd_sum.xln"
 															+ "\" not found in current directory");
 						} catch (IOException ioe) {
-							log.reportError("Error reading file \""	+ "chr" + chr + "/" + rep
+							log.reportError("Error reading file \"" + "chr" + chr + "/" + rep
 															+ ".ibds.pre_phase.bgl.ibd_sum.xln" + "\"");
 							log.reportException(ioe);
 						}
 					}
 					CmdLine.run("plink --bfile plink --freq", "chr" + chr + "/");
-					markerFreq = HashVec.loadFileToStringMatrix("chr"	+ chr + "/plink.frq", true,
+					markerFreq = HashVec.loadFileToStringMatrix("chr" + chr + "/plink.frq", true,
 																											new int[] {1, 2, 3, 4, 5}, false);
 					for (int i = 0; i < markerNames[chr - 1].length; i++) {
 						avgs[i][0] /= n;
@@ -755,14 +753,14 @@ public class Beagle {
 							System.err.println("Error - mismatch in freq file order");
 						}
 						actualAlleleCounts = Arrays.copyOfRange(alleleCounts[i], 1, alleleCounts[i].length);
-						conAllele = ALLELES[ext.indexOfStr(ArrayUtils.max(actualAlleleCounts)	+ "",
-																								ArrayUtils.toStr(actualAlleleCounts).split("\t"))
+						conAllele = ALLELES[ext.indexOfStr(ArrayUtils.max(actualAlleleCounts) + "",
+																							 ArrayUtils.toStr(actualAlleleCounts).split("\t"))
 																+ 1];
-						writer.print(markerNames[chr - 1][i]	+ "\t" + chrs[chr - 1][i] + "\t"
-													+ positions[chr - 1][i] + "\t" + avgs[i][0] + "\t"
-													+ ArrayUtils.toStr(alleleCounts[i]) + "\t" + conAllele + "\t"
-													+ ext.formDeci((double) ArrayUtils.max(actualAlleleCounts)
-																					/ (double) ArrayUtils.sum(actualAlleleCounts), 5));
+						writer.print(markerNames[chr - 1][i] + "\t" + chrs[chr - 1][i] + "\t"
+												 + positions[chr - 1][i] + "\t" + avgs[i][0] + "\t"
+												 + ArrayUtils.toStr(alleleCounts[i]) + "\t" + conAllele + "\t"
+												 + ext.formDeci((double) ArrayUtils.max(actualAlleleCounts)
+																				/ (double) ArrayUtils.sum(actualAlleleCounts), 5));
 						if (conAllele.equals("0")) {
 							writer.println("\t.\t.");
 						} else {
@@ -777,10 +775,10 @@ public class Beagle {
 							// Array.max(actualAlleleCounts)}, {conFreq*Double.parseDouble(markerFreq[i][4]),
 							// Double.parseDouble(markerFreq[i][4]) -
 							// conFreq*Double.parseDouble(markerFreq[i][4])}}, false, true), 1));
-							writer.println("\t"	+ ext.formDeci(conFreq, 5) + "\t"
-															+ ext.formDeci(((double) ArrayUtils.max(actualAlleleCounts)
-																							/ (double) ArrayUtils.sum(actualAlleleCounts))	/ conFreq,
-																							5));
+							writer.println("\t" + ext.formDeci(conFreq, 5) + "\t"
+														 + ext.formDeci(((double) ArrayUtils.max(actualAlleleCounts)
+																						 / (double) ArrayUtils.sum(actualAlleleCounts))
+																						/ conFreq, 5));
 						}
 
 					}
@@ -799,8 +797,8 @@ public class Beagle {
 		for (double element : PI_HAT_THRESHOLDS) {
 			for (int strict = 0; strict < 2; strict++) {
 				for (int suffix = 0; suffix < 2; suffix++) {
-					trav = "PI_"	+ element + "_" + (strict == 0 ? "normal" : "nuanced")
-									+ (suffix == 0 ? ".segment" : ".seginfo");
+					trav = "PI_" + element + "_" + (strict == 0 ? "normal" : "nuanced")
+								 + (suffix == 0 ? ".segment" : ".seginfo");
 					try {
 						writer = new PrintWriter(new FileWriter(trav + (suffix == 0 ? "Plus" : "")));
 						if (suffix == 0) {
@@ -810,15 +808,15 @@ public class Beagle {
 							if (new File("chr" + chr + "/").exists()) {
 								for (rep = 1; rep <= iv.size(); rep++) {
 									try {
-										reader = new BufferedReader(new FileReader("chr"	+ chr + "/" + rep
-																																+ ".ibds.pre_phase.bgl.ibd_"
-																																+ trav));
+										reader = new BufferedReader(new FileReader("chr" + chr + "/" + rep
+																															 + ".ibds.pre_phase.bgl.ibd_"
+																															 + trav));
 										while (reader.ready()) {
 											writer.println(reader.readLine());
 										}
 										reader.close();
 									} catch (FileNotFoundException fnfe) {
-										log.reportError("Error: file \""	+ "chr" + chr + "/" + rep
+										log.reportError("Error: file \"" + "chr" + chr + "/" + rep
 																		+ ".ibds.pre_phase.bgl.ibd_" + trav + "\" not found");
 									} catch (IOException ioe) {
 										log.reportException(ioe);
@@ -847,8 +845,8 @@ public class Beagle {
 								}
 								reader.close();
 							} catch (FileNotFoundException fnfe) {
-								System.err.println("Error: file \""	+ trav + "Plus"
-																		+ "\" not found in current directory");
+								System.err.println("Error: file \"" + trav + "Plus"
+																	 + "\" not found in current directory");
 								System.exit(1);
 							} catch (IOException ioe) {
 								System.err.println("Error reading file \"" + trav + "Plus" + "\"");
@@ -887,7 +885,7 @@ public class Beagle {
 			hash = new Hashtable<String, String>();
 			for (int i = 0; i < pedIDs.length; i++) {
 				if (affs[i] != 1 && affs[i] != 2) {
-					log.reportError("Error - indiviudal "	+ pedIDs[i][0] + "," + pedIDs[i][1]
+					log.reportError("Error - indiviudal " + pedIDs[i][0] + "," + pedIDs[i][1]
 													+ " has an invalid affection status: '" + affs[i] + "'");
 					problem = true;
 				}
@@ -915,7 +913,7 @@ public class Beagle {
 						affs = new byte[] {(byte) -999, (byte) -999};
 						for (int j = 0; j < 2; j++) {
 							if (!hash.containsKey(line[j * 2 + 0] + "\t" + line[j * 2 + 1])) {
-								log.reportError("Error - indiviudal "	+ line[j * 2 + 0] + "," + line[j * 2 + 1]
+								log.reportError("Error - indiviudal " + line[j * 2 + 0] + "," + line[j * 2 + 1]
 																+ " was not present in family stucture");
 								problem = true;
 							} else {
@@ -923,14 +921,14 @@ public class Beagle {
 							}
 						}
 						writer.print("\t" + (affs[0] + affs[1] - 3));
-						writer.print("\t"	+ line[4] + "\t" + line[5] + "\t" + line[6] + "\t" + line[7] + "\t"
-													+ line[8] + "\t" + line[9]);
+						writer.print("\t" + line[4] + "\t" + line[5] + "\t" + line[6] + "\t" + line[7] + "\t"
+												 + line[8] + "\t" + line[9]);
 						writer.print("\t" + (Integer.parseInt(line[6]) + Integer.parseInt(line[5]) + 1));
 						writer.println("\t" + line[10]);
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					log.reportError("Error: file \""	+ "chr" + chr + "/chr" + chr + ".match"
+					log.reportError("Error: file \"" + "chr" + chr + "/chr" + chr + ".match"
 													+ "\" not found");
 				} catch (IOException ioe) {
 					log.reportException(ioe);
@@ -956,8 +954,8 @@ public class Beagle {
 				}
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \""	+ "germline.segmentPlus"
-														+ "\" not found in current directory");
+				System.err.println("Error: file \"" + "germline.segmentPlus"
+													 + "\" not found in current directory");
 				System.exit(1);
 			} catch (IOException ioe) {
 				System.err.println("Error reading file \"" + "germline.segmentPlus" + "\"");
@@ -997,11 +995,11 @@ public class Beagle {
 
 		chr = -1;
 		dir = ext.parseDirectoryOfFile(segInfoFile);
-		intervalStartAndStopMarkers = HashVec.loadFileToStringMatrix(	intervalFile, false,
-																																	new int[] {0, 1}, false);
+		intervalStartAndStopMarkers = HashVec.loadFileToStringMatrix(intervalFile, false,
+																																 new int[] {0, 1}, false);
 		if (segFile != null) {
-			includes = HashVec.loadFileToHashVec(	segFile, new int[] {1, 3}, new int[] {5, 6, 7}, "\t",
-																						true, false);
+			includes = HashVec.loadFileToHashVec(segFile, new int[] {1, 3}, new int[] {5, 6, 7}, "\t",
+																					 true, false);
 			includeSegs = new Hashtable<String, Segment[]>();
 			keys = HashVec.getKeys(includes);
 			for (String key : keys) {
@@ -1021,7 +1019,7 @@ public class Beagle {
 
 		if (!new File(dir + "plink.map").exists()) {
 			System.err.println("Error - need a map file to align segments and plink.map does not exist in directory '"
-													+ dir + "'");
+												 + dir + "'");
 			return;
 		}
 		markerSet = new SnpMarkerSet(dir + "plink.map");
@@ -1037,8 +1035,8 @@ public class Beagle {
 			for (int j = 0; j < 2; j++) {
 				indices[j] = ext.indexOfStr(intervalStartAndStopMarkers[i][j], markerNames);
 				if (indices[j] == -1) {
-					System.err.println("Error - marker '"	+ intervalStartAndStopMarkers[i][j]
-															+ "' not found in plink.map; aborting");
+					System.err.println("Error - marker '" + intervalStartAndStopMarkers[i][j]
+														 + "' not found in plink.map; aborting");
 					System.exit(1);
 				}
 				if (chr == -1) {
@@ -1047,8 +1045,7 @@ public class Beagle {
 					System.err.println("Error - markers are on different chromosomes; can only process one chromosome at a time");
 				}
 			}
-			intervals[i] = new Segment(	chr, positions[indices[0]],
-																	positions[indices[1]]);
+			intervals[i] = new Segment(chr, positions[indices[0]], positions[indices[1]]);
 			intervalIndices.put(intervals[i], indices);
 			System.out.println(intervals[i].getUCSClocation());
 		}
@@ -1122,9 +1119,9 @@ public class Beagle {
 
 		for (int i = 0; i < intervals.length; i++) {
 			try {
-				writer = new PrintWriter(new FileWriter(dir	+ "SegAlignment_"
-																								+ ext.replaceAllWith(	intervals[i].getUCSClocation(),
-																																			":", "@")
+				writer = new PrintWriter(new FileWriter(dir + "SegAlignment_"
+																								+ ext.replaceAllWith(intervals[i].getUCSClocation(),
+																																		 ":", "@")
 																								+ ".xln"));
 				writer.print("IID\tPairing(s)");
 				int[] indices = intervalIndices.get(intervals[i]);
@@ -1141,7 +1138,7 @@ public class Beagle {
 						for (int i2 = 0; i2 < dataV.size(); i2++) {
 							for (int j2 = i2 + 1; j2 < dataV.size(); j2++) {
 								merge = ArrayUtils.merge(dataV.elementAt(i2), dataV.elementAt(j2),
-																		dataV.elementAt(i2).length / 10);
+																				 dataV.elementAt(i2).length / 10);
 								if (merge != null) {
 									dataV.removeElementAt(j2);
 									dataV.removeElementAt(i2);
@@ -1157,12 +1154,11 @@ public class Beagle {
 				}
 				writer.close();
 			} catch (Exception e) {
-				System.err.println("Error writing to "	+ dir + "SegAlignment_"
-														+ ext.replaceAllWith(intervals[i].getUCSClocation(), ":", "@")
-														+ ".xln");
+				System.err.println("Error writing to " + dir + "SegAlignment_"
+													 + ext.replaceAllWith(intervals[i].getUCSClocation(), ":", "@") + ".xln");
 				e.printStackTrace();
 			}
-			Files.transpose(dir	+ "SegAlignment_"
+			Files.transpose(dir + "SegAlignment_"
 											+ ext.replaceAllWith(intervals[i].getUCSClocation(), ":", "@") + ".xln", "\t",
 											null, "\t", new Logger());
 		}
@@ -1189,10 +1185,10 @@ public class Beagle {
 			for (int strict = 0; strict < 2; strict++) {
 				try {
 					reader = new BufferedReader(new FileReader(filename));
-					writer = new PrintWriter(new FileWriter(element	+ "cM" + (strict == 1
-																																									? "_max"
+					writer = new PrintWriter(new FileWriter(element + "cM" + (strict == 1
+																																								? "_max"
 																																									+ (int) (FILTER_MAX_THRESHOLD
-																																														* 100)
+																																													 * 100)
 																																								: "")
 																									+ ".segment"));
 					line = reader.readLine().trim().split("[\\s]+");
@@ -1277,8 +1273,8 @@ public class Beagle {
 
 						} else {
 							System.err.println("Error that should not happen - pair present in cluster file twice ("
-																		+ line[2] + "-" + line[3] + " and " + line[0] + "-" + line[1]
-																	+ ")");
+																 + line[2] + "-" + line[3] + " and " + line[0] + "-" + line[1]
+																 + ")");
 						}
 					} else if (!groupsHash.containsKey(line[0] + "\t" + line[1])) {
 						extras.put(line[0] + "\t" + line[1], "");
@@ -1291,20 +1287,18 @@ public class Beagle {
 				reader.close();
 
 				if (extras.size() > 0) {
-					Files.writeArray(	HashVec.getKeys(extras),
-														ext.parseDirectoryOfFile(groupsFile)	+ "SAMPLES_IN_"
-																											+ ext.removeDirectoryInfo(plinkFile)
-																											+ "_BUT_NOT_IN_"
-																											+ ext.removeDirectoryInfo(groupsFile)
-																											+ ".TXT");
+					Files.writeArray(HashVec.getKeys(extras),
+													 ext.parseDirectoryOfFile(groupsFile) + "SAMPLES_IN_"
+																										+ ext.removeDirectoryInfo(plinkFile)
+																										+ "_BUT_NOT_IN_"
+																										+ ext.removeDirectoryInfo(groupsFile) + ".TXT");
 				}
 				if (checks.size() > 0) {
-					Files.writeArray(	HashVec.getKeys(extras),
-														ext.parseDirectoryOfFile(groupsFile)	+ "SAMPLE_PAIRS_FROM_"
-																											+ ext.removeDirectoryInfo(groupsFile)
-																											+ "_BUT_NOT_IN_"
-																											+ ext.removeDirectoryInfo(plinkFile)
-																											+ ".TXT");
+					Files.writeArray(HashVec.getKeys(extras),
+													 ext.parseDirectoryOfFile(groupsFile) + "SAMPLE_PAIRS_FROM_"
+																										+ ext.removeDirectoryInfo(groupsFile)
+																										+ "_BUT_NOT_IN_"
+																										+ ext.removeDirectoryInfo(plinkFile) + ".TXT");
 				}
 			} catch (FileNotFoundException fnfe) {
 				System.err.println("Error: file \"" + plinkFile + "\" not found in current directory");
@@ -1323,8 +1317,8 @@ public class Beagle {
 				if (plinkFile == null) {
 					writer.print("\t.\t.");
 				} else {
-					writer.print("\t"	+ meanCounts[0][i] + "\t"
-												+ ext.formDeci(means[0][i] / meanCounts[0][i], 5));
+					writer.print("\t" + meanCounts[0][i] + "\t"
+											 + ext.formDeci(means[0][i] / meanCounts[0][i], 5));
 				}
 				if (segFile == null) {
 					writer.print("\t.\t.");
@@ -1360,36 +1354,36 @@ public class Beagle {
 		String groupsFile = null;
 		String plinkFile = null;
 
-		String usage = "\n"	+ "gwas.Beagle requires 0-1 arguments\n"
-										+ "   (1) pair up IIDs from a PLINK keep file (i.e. pair=keeps.txt (not the default))\n"
-										+ "  OR\n"
-										+ "   (1) generate list files and script for IBD run (i.e. -prepFiles (not the default))\n"
-										+ "   (2) list of pairs (i.e. list=" + list + " (default))\n"
-										+ "   (3) number of pairs to do at a time (i.e. step=" + step + " (default))\n"
-										+ "  OR\n" + "   (1) writeScript (i.e. -writeScript (not the default))\n"
-										+ "  OR\n"
-										+ "   (1) create batch file for entire IBD process (i.e. -batchIBD (not the default))\n"
-										+ "  OR\n"
-										+ "   (1) delete .log files for failed runs (i.e. -del (not the default))\n"
-										+ "  OR\n"
-										+ "   (1) check progress on IBD runs (i.e. -check (not the default))\n"
-										+ "  OR\n"
-										+ "   (1) summarize the IBD estimates of a single file (i.e. sumFile=10.ibds.pre_phase.bgl.ibd (not the default))\n"
-										+ "  OR\n"
-										+ "   (1) sumamrize all of the summarized IBD files (i.e. -sumAll (not the default))\n"
-										+ "  OR\n"
-										+ "   (1) sumamrize all GERMLINE .match files (i.e. -sumGermline (not the default))\n"
-										+ "  OR\n"
-										+ "   (1) filter a .segmentPlus (i.e. filter=PI_0.5_normal.segmentPlus (not the default))\n"
-										+ "  OR\n"
-										+ "   (1) align .seginfo files at specific intervals (i.e. align=1.ibds.pre_phase.bgl.ibd_PI_0.5_normal.seginfo (not the default))\n"
-										+ "   (2) list of those intervals containing two columns of start and stop markerNames  (i.e. ints=intervals.txt (not the default))\n"
-										+ "   (3) (optional) only use segments in the following file (i.e. seg=PI_0.5_normal.segment (not the default))\n"
-										+ "  OR\n"
-										+ "   (1) check relatedness between groups of individuals (3 cols: FID IID group) (i.e. related=ids_to_check.txt (not the default))\n"
-										+ "   (2) plink cluste file to check (i.e. plink=cluster.genome (not the default))\n"
-										+ "   (3) segments to use in calculation (i.e. seg=PI_0.5_normal.segment (not the default))\n"
-										+ "";
+		String usage = "\n" + "gwas.Beagle requires 0-1 arguments\n"
+									 + "   (1) pair up IIDs from a PLINK keep file (i.e. pair=keeps.txt (not the default))\n"
+									 + "  OR\n"
+									 + "   (1) generate list files and script for IBD run (i.e. -prepFiles (not the default))\n"
+									 + "   (2) list of pairs (i.e. list=" + list + " (default))\n"
+									 + "   (3) number of pairs to do at a time (i.e. step=" + step + " (default))\n"
+									 + "  OR\n" + "   (1) writeScript (i.e. -writeScript (not the default))\n"
+									 + "  OR\n"
+									 + "   (1) create batch file for entire IBD process (i.e. -batchIBD (not the default))\n"
+									 + "  OR\n"
+									 + "   (1) delete .log files for failed runs (i.e. -del (not the default))\n"
+									 + "  OR\n"
+									 + "   (1) check progress on IBD runs (i.e. -check (not the default))\n"
+									 + "  OR\n"
+									 + "   (1) summarize the IBD estimates of a single file (i.e. sumFile=10.ibds.pre_phase.bgl.ibd (not the default))\n"
+									 + "  OR\n"
+									 + "   (1) sumamrize all of the summarized IBD files (i.e. -sumAll (not the default))\n"
+									 + "  OR\n"
+									 + "   (1) sumamrize all GERMLINE .match files (i.e. -sumGermline (not the default))\n"
+									 + "  OR\n"
+									 + "   (1) filter a .segmentPlus (i.e. filter=PI_0.5_normal.segmentPlus (not the default))\n"
+									 + "  OR\n"
+									 + "   (1) align .seginfo files at specific intervals (i.e. align=1.ibds.pre_phase.bgl.ibd_PI_0.5_normal.seginfo (not the default))\n"
+									 + "   (2) list of those intervals containing two columns of start and stop markerNames  (i.e. ints=intervals.txt (not the default))\n"
+									 + "   (3) (optional) only use segments in the following file (i.e. seg=PI_0.5_normal.segment (not the default))\n"
+									 + "  OR\n"
+									 + "   (1) check relatedness between groups of individuals (3 cols: FID IID group) (i.e. related=ids_to_check.txt (not the default))\n"
+									 + "   (2) plink cluste file to check (i.e. plink=cluster.genome (not the default))\n"
+									 + "   (3) segments to use in calculation (i.e. seg=PI_0.5_normal.segment (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

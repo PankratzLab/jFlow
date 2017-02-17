@@ -55,12 +55,12 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 	public static final int NUM_PC_SVD_OVERIDE = 160;
-	private static final String[] MT_REPORT = {	"DNA", "FID", "IID", "Sex", "median_MT_LRR_raw",
-																							"median_MT_LRR_PC_residuals",
-																							"median_MT_LRR_PC_residuals_inverseTransformed"};
+	private static final String[] MT_REPORT = {"DNA", "FID", "IID", "Sex", "median_MT_LRR_raw",
+																						 "median_MT_LRR_PC_residuals",
+																						 "median_MT_LRR_PC_residuals_inverseTransformed"};
 	public static final String[] MT_REPORT_EXT = {".report.txt"};
-	public static final String[] MT_REPORT_MARKERS_USED = {	".MitoMarkers.MarkersUsed.txt",
-																													".MitoMarkers.RawValues.txt"};
+	public static final String[] MT_REPORT_MARKERS_USED = {".MitoMarkers.MarkersUsed.txt",
+																												 ".MitoMarkers.RawValues.txt"};
 	private static final String[] MT_RESIDUAL_CROSS_VALIDATED_REPORT = {"Time Completed",
 																																			"Time to complete(seconds)",
 																																			"PC",
@@ -139,13 +139,12 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	 * Compute the median data in project order, and then set back to pcfile order, just in case
 	 */
 	public void computeAssessmentDataMedians() {
-		markersToAssess =
-										PrincipalComponentsCompute.sortByProjectMarkers(proj,
-																																		HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue()
+		markersToAssess = PrincipalComponentsCompute.sortByProjectMarkers(proj,
+																																			HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue()
 																																																		+ markersToAssessFile,
-																																																	false,
-																																																	new int[] {0},
-																																																	true));
+																																																		false,
+																																																		new int[] {0},
+																																																		true));
 		getData();
 		double[] projectOrderMedians = getLRRMedian();
 		if (printFull) {
@@ -170,12 +169,12 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		// NUM_PC_SVD_OVERIDE + ", switching to " + LS_TYPE.QR_DECOMP + " decomp regression");
 		// lType = LS_TYPE.QR_DECOMP;
 		// }
-		RegressionModel model = new LeastSquares(	assesmentData, prepPcs(pcBasis), null, false, true,
-																							LS_TYPE.REGULAR);// auto
-																																// switch
-																																// in
-																																// reg
-																																// model
+		RegressionModel model = new LeastSquares(assesmentData, prepPcs(pcBasis), null, false, true,
+																						 LS_TYPE.REGULAR);// auto
+																															// switch
+																															// in
+																															// reg
+																															// model
 		double R2 = Double.NaN;
 		if (!model.analysisFailed()) {
 			residuals = model.getResiduals();
@@ -217,8 +216,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		SampleData sampleData = proj.getSampleData(0, false);
 		try {
 			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + residOutput)) {
-				Files.backup(	residOutput, proj.PROJECT_DIRECTORY.getValue(),
-											proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
+				Files.backup(residOutput, proj.PROJECT_DIRECTORY.getValue(),
+										 proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
 			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
 																													+ residOutput));
@@ -240,9 +239,9 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 				if (Double.isNaN(assesmentData[i])) {
 					writer.print("\tNA\tNA\tNA");
 				} else {
-					writer.print("\t"	+ assesmentData[i] + "\t"
-												+ (residuals == null ? "NA" : residuals[modelCount]) + "\t"
-												+ (invTResiduals == null ? "NA" : invTResiduals[modelCount]));
+					writer.print("\t" + assesmentData[i] + "\t"
+											 + (residuals == null ? "NA" : residuals[modelCount]) + "\t"
+											 + (invTResiduals == null ? "NA" : invTResiduals[modelCount]));
 					modelCount++;
 				}
 				for (int k = 0; k < numComponents; k++) {
@@ -252,7 +251,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			}
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \""	+ residOutput
+			log.reportError("Error: file \"" + residOutput
 											+ "\" could not be written to (it's probably open)");
 			log.reportException(fnfe);
 		} catch (IOException ioe) {
@@ -333,14 +332,13 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		ClusterFilterCollection cluster;
 
 		if (Files.exists(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME))) {
-			cluster =
-							ClusterFilterCollection.load(	proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME),
-																						false);
+			cluster = ClusterFilterCollection.load(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME),
+																						 false);
 		} else {
 			cluster = new ClusterFilterCollection();
 			log.report("Info - did not find the cluster filter file "
-										+ proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)
-									+ "; using original genotypes");
+								 + proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)
+								 + "; using original genotypes");
 		}
 		Hashtable<String, Integer> projectIndices = proj.getMarkerIndices();
 		if (params != null && recomputeLRR) {
@@ -364,15 +362,15 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 				// inaccurate applications of the clusters
 				// i.e Penncnv demands all three genotype clusters or none, we allow 1,2,and 3.
 				// this could pose a problem if a genotype for a missing cluster is used
-				lrrs = markerData.getRecomputedLRR_BAF(	null, null, false, 1, gcThreshold, cluster, true,
-																								true, log)[1];
+				lrrs = markerData.getRecomputedLRR_BAF(null, null, false, 1, gcThreshold, cluster, true,
+																							 true, log)[1];
 			} else {
 				lrrs = markerData.getLRRs();
 			}
 			if (params != null) {
-				lrrs = markerData.getGCCorrectedLRRBAF(	params,
-																								projectIndices.get(markerData.getMarkerName()),
-																								proj.getLog())[1];
+				lrrs = markerData.getGCCorrectedLRRBAF(params,
+																							 projectIndices.get(markerData.getMarkerName()),
+																							 proj.getLog())[1];
 			}
 			abGenos = markerData.getAbGenotypesAfterFilters(cluster, markersToAssess[index], gcThreshold,
 																											log);
@@ -432,7 +430,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	 */
 	private boolean useMarker(int sampIndex, int markerIndex) {
 		boolean good = false;
-		if (fullData[markerIndex] != null	&& !Double.isNaN(fullData[markerIndex][sampIndex])
+		if (fullData[markerIndex] != null && !Double.isNaN(fullData[markerIndex][sampIndex])
 				&& (gcThreshold == 0 || abGenotypesAfterFilters[markerIndex][sampIndex] >= 0)
 				&& (abGenotypesAfterFilters[markerIndex][sampIndex] == (byte) 0
 						|| abGenotypesAfterFilters[markerIndex][sampIndex] == (byte) 2 || !homozygousOnly)) {
@@ -504,18 +502,18 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 
 		for (int i = 0; i < fileOuts.length; i++) {
 			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + fileOuts[i])) {
-				Files.backup(	fileOuts[i], proj.PROJECT_DIRECTORY.getValue(),
-											proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
+				Files.backup(fileOuts[i], proj.PROJECT_DIRECTORY.getValue(),
+										 proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
 			try {
 				writers[i] = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
 																										+ fileOuts[i]));
 			} catch (FileNotFoundException fnfe) {
-				log.reportError("Error: file \""	+ proj.PROJECT_DIRECTORY.getValue() + fileOuts[i]
+				log.reportError("Error: file \"" + proj.PROJECT_DIRECTORY.getValue() + fileOuts[i]
 												+ "\" could not be written to (it's probably open)");
 				log.reportException(fnfe);
 			} catch (IOException ioe) {
-				log.reportError("Error reading file \""	+ proj.PROJECT_DIRECTORY.getValue() + fileOuts[i]
+				log.reportError("Error reading file \"" + proj.PROJECT_DIRECTORY.getValue() + fileOuts[i]
 												+ "\"");
 				log.reportException(ioe);
 			}
@@ -557,7 +555,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 				return;
 			}
 			if ((line.length - 2) < numComponents) {
-				log.reportError("Warning - cannot use "	+ numComponents + " components when only "
+				log.reportError("Warning - cannot use " + numComponents + " components when only "
 												+ (line.length - 2) + " are provided, only loading " + (line.length - 2));
 				numComponents = line.length - 2;
 			}
@@ -577,8 +575,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			}
 			reader.close();
 			pcBasis = new double[numComponents][numSamples];
-			reader = Files.getReader(	pcFilefull, proj == null ? false : proj.JAR_STATUS.getValue(), true,
-																false);
+			reader = Files.getReader(pcFilefull, proj == null ? false : proj.JAR_STATUS.getValue(), true,
+															 false);
 			reader.readLine();
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
@@ -691,7 +689,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	public static double[][] trimPcBasis(int numComponents, double[][] pcBasis, Logger log) {
 		double[][] trimmed = new double[0][];
 		if (numComponents > pcBasis.length) {
-			log.reportError("Error - we cannot trim the basis vectors to "	+ numComponents + ", only "
+			log.reportError("Error - we cannot trim the basis vectors to " + numComponents + ", only "
 											+ pcBasis.length + " remaining");
 			return trimmed;
 		} else if (numComponents != pcBasis.length) {
@@ -729,33 +727,33 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	 *        will become the validation set
 	 * @return the results of each training/validation combination
 	 */
-	public CrossValidation[][] crossValidate(	int kFolds, int[] numComponentsIter, int numThreads,
-																						LS_TYPE lType, String tmpOutput,
-																						PrincipalComponentsResiduals val_pcs) {
+	public CrossValidation[][] crossValidate(int kFolds, int[] numComponentsIter, int numThreads,
+																					 LS_TYPE lType, String tmpOutput,
+																					 PrincipalComponentsResiduals val_pcs) {
 		if (tmpOutput != null && Files.exists(tmpOutput)) {
 			new File(tmpOutput).delete();
 		}
 		CrossValidation[][] crossValidations = new CrossValidation[numComponentsIter.length][];
 		ExecutorService executor = Executors.newFixedThreadPool(numThreads);// da pool of threads
 		ArrayList<Future<CrossValidation[]>> tmpResults = new ArrayList<Future<CrossValidation[]>>();// stores
-																																																	// the
-																																																	// future
-																																																	// CrossValidation[]
-																																																	// that
-																																																	// will
-																																																	// be
-																																																	// actualized
-																																																	// once
-																																																	// the
-																																																	// thread
-																																																	// has
-																																																	// finished
+																																																 // the
+																																																 // future
+																																																 // CrossValidation[]
+																																																 // that
+																																																 // will
+																																																 // be
+																																																 // actualized
+																																																 // once
+																																																 // the
+																																																 // thread
+																																																 // has
+																																																 // finished
 		for (int element : numComponentsIter) {// need to submit the jobs first
-			WorkerPCThread worker = new WorkerPCThread(	assesmentData,
-																									prepPcs(trimPcBasis(Math.min(	element,
-																																								numComponents),
-																																			pcBasis, log)),
-																									kFolds, tmpOutput, lType, val_pcs, log);
+			WorkerPCThread worker = new WorkerPCThread(assesmentData,
+																								 prepPcs(trimPcBasis(Math.min(element,
+																																							numComponents),
+																																		 pcBasis, log)),
+																								 kFolds, tmpOutput, lType, val_pcs, log);
 			tmpResults.add(executor.submit(worker));// tracks the future object
 		}
 		for (int i = 0; i < numComponentsIter.length; i++) {
@@ -807,26 +805,26 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 
 		@Override
 		public CrossValidation[] call() {// acts like run
-			log.report(ext.getTime()	+ " Info - Starting validations for PC" + indeps[0].length
-									+ " on thread" + Thread.currentThread().getName());
+			log.report(ext.getTime() + " Info - Starting validations for PC" + indeps[0].length
+								 + " on thread" + Thread.currentThread().getName());
 			long time = System.currentTimeMillis();
 			CrossValidation[] crossValidation;
 			if (val_pcs == null) {
-				crossValidation =
-												CrossValidation.kFoldCrossValidate(deps, indeps, kFolds, true, lType, log);
+				crossValidation = CrossValidation.kFoldCrossValidate(deps, indeps, kFolds, true, lType,
+																														 log);
 			} else {
 				// if we cannot trim to a particular number of components, the crossvalidation will fail and
 				// will be ignored
-				double[][] val_basis = prepPcs(trimPcBasis(	Math.min(indeps[0].length,
+				double[][] val_basis = prepPcs(trimPcBasis(Math.min(indeps[0].length,
 																														val_pcs.getNumComponents()),
-																										val_pcs.getPcBasis(), log));
-				crossValidation =
-												CrossValidation.kFoldCrossValidateOutSample(deps, indeps,
-																																		val_pcs.getMedians(), val_basis,
-																																		kFolds, true, lType, log);
+																									 val_pcs.getPcBasis(), log));
+				crossValidation = CrossValidation.kFoldCrossValidateOutSample(deps, indeps,
+																																			val_pcs.getMedians(),
+																																			val_basis, kFolds, true,
+																																			lType, log);
 			}
-			log.report(ext.getTime()	+ " Info - finished validations for PC" + indeps[0].length
-									+ " and took " + ext.getTimeElapsed(time));
+			log.report(ext.getTime() + " Info - finished validations for PC" + indeps[0].length
+								 + " and took " + ext.getTimeElapsed(time));
 			char S = 'S';
 			computeFullModel();
 			writeToTmpFile(crossValidation, ext.getTimeSince(time, S) + "", log);
@@ -861,11 +859,11 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 				}
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(tmpOutput, true));
-					writer.println(ext.getTime()	+ "\t" + time + "\t" + indeps[0].length + "\t"
-													+ CrossValidation.getEstimateError(crossValidation) + "\t"
-													+ CrossValidation.getAverageR2(crossValidation) + "\t"
-													+ CrossValidation.getAverageSEbetas(crossValidation) + "\t" + fullModelR2
-													+ "\t" + fullModelSSerr);
+					writer.println(ext.getTime() + "\t" + time + "\t" + indeps[0].length + "\t"
+												 + CrossValidation.getEstimateError(crossValidation) + "\t"
+												 + CrossValidation.getAverageR2(crossValidation) + "\t"
+												 + CrossValidation.getAverageSEbetas(crossValidation) + "\t" + fullModelR2
+												 + "\t" + fullModelSSerr);
 					writer.close();
 				} catch (Exception e) {
 					log.reportError("Error writing to " + tmpOutput);
@@ -987,7 +985,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			} else {
 				proj.getLog()
 						.reportTimeWarning(numComponentsForModel
-																+ " components were specified, so only using the extra independen variables provided");
+															 + " components were specified, so only using the extra independen variables provided");
 			}
 
 		}
@@ -1002,11 +1000,11 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 				|| willFailNAN(data, numComponentsForModel, samplesTobuildModel, extraIndeps)) {
 			int numNonNaN = data == null ? 0 : ArrayUtils.removeNaN(data).length;
 			proj.getLog()
-					.reportError("Error - there are not enough samples with non NAN (n="	+ numNonNaN
-												+ ") data for " + title + " using " + numComponentsForModel + " "
-												+ (numComponentsForModel == 1	? "principal component "
-																											: "principal components")
-												+ " to run a regression");
+					.reportError("Error - there are not enough samples with non NAN (n=" + numNonNaN
+											 + ") data for " + title + " using " + numComponentsForModel + " "
+											 + (numComponentsForModel == 1 ? "principal component "
+																										 : "principal components")
+											 + " to run a regression");
 			go = false;
 		}
 		if (data.length != numSamples) {
@@ -1020,9 +1018,9 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 
 		if (numComponentsForModel > numComponents) {
 			proj.getLog()
-					.reportError("Error - too many components ("	+ numComponentsForModel
-												+ ") were specified for the model, only have " + numComponents
-												+ " available");
+					.reportError("Error - too many components (" + numComponentsForModel
+											 + ") were specified for the model, only have " + numComponents
+											 + " available");
 			go = false;
 		}
 
@@ -1032,19 +1030,19 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			go = false;
 		}
 		if (!sortedByProject) {// this could happen if the extrapolated pcs are not used...encourage the
-														// full pc file since it is matched to the project
+													 // full pc file since it is matched to the project
 			proj.getLog()
 					.report("Warning - detected that the PC file is not perfectly matched to the project");
 			if (numSamples != samplesInPc.size()) {
-				proj.getLog().report("Warning - missing individuals ("	+ (numSamples - samplesInPc.size())
-															+ ") will be set to NaN across all PCs");
+				proj.getLog().report("Warning - missing individuals (" + (numSamples - samplesInPc.size())
+														 + ") will be set to NaN across all PCs");
 			}
 			proj.getLog()
 					.report("Warning - an extra step will be taken to allign the principal components to individuals in the project");
 		}
 		if (!go) {
-			cval = new CrossValidation(	new double[0], new double[0][0], new double[0], new double[0][0],
-																	true, lType, proj.getLog());
+			cval = new CrossValidation(new double[0], new double[0][0], new double[0], new double[0][0],
+																 true, lType, proj.getLog());
 			cval.setAnalysisFailed(true);
 		} else {
 			// if (lType == LS_TYPE.SVD) {
@@ -1055,25 +1053,23 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			// }
 			// }
 
-			double[] train_deps = (samplesTobuildModel == null	? data
-																													: ArrayUtils.subArray(	data,
-																																						samplesTobuildModel));
-			double[][] train_indeps = numComponentsForModel > 0
-																														? getTrimmedPreppedIndepsProjectPCsFor(	samplesTobuildModel,
-																																																	extraIndeps,
-																																																	numComponentsForModel,
-																																																	log)
-																													: ArrayUtils.subArray(	extraIndeps,
-																																						samplesTobuildModel);
-			double[][] val_indeps = numComponentsForModel > 0
-																													? getTrimmedPreppedIndepsProjectPCsFor(	null,
-																																																extraIndeps,
-																																																numComponentsForModel,
-																																																log)
+			double[] train_deps = (samplesTobuildModel == null ? data
+																												 : ArrayUtils.subArray(data,
+																																							 samplesTobuildModel));
+			double[][] train_indeps = numComponentsForModel > 0 ? getTrimmedPreppedIndepsProjectPCsFor(samplesTobuildModel,
+																																																 extraIndeps,
+																																																 numComponentsForModel,
+																																																 log)
+																													: ArrayUtils.subArray(extraIndeps,
+																																								samplesTobuildModel);
+			double[][] val_indeps = numComponentsForModel > 0 ? getTrimmedPreppedIndepsProjectPCsFor(null,
+																																															 extraIndeps,
+																																															 numComponentsForModel,
+																																															 log)
 																												: extraIndeps;
 
-			cval = new CrossValidation(	train_deps, train_indeps, data, val_indeps, verbose, lType,
-																	proj.getLog());
+			cval = new CrossValidation(train_deps, train_indeps, data, val_indeps, verbose, lType,
+																 proj.getLog());
 			cval.train();
 			cval.computePredictedValues();
 			cval.computeResiduals();
@@ -1083,14 +1079,14 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 
 	/**
 	 */
-	public static CrossValidation getCorrectedDataAt(	PrincipalComponentsResiduals principalComponentsResiduals,
-																										float[] data, boolean[] samplesTobuildModel,
-																										int numComponentsForModel, LS_TYPE lType,
-																										String title) {
-		return principalComponentsResiduals.getCorrectedDataAt(	ArrayUtils.toDoubleArray(data),
-																														samplesTobuildModel,
-																														numComponentsForModel, lType, title,
-																														true);
+	public static CrossValidation getCorrectedDataAt(PrincipalComponentsResiduals principalComponentsResiduals,
+																									 float[] data, boolean[] samplesTobuildModel,
+																									 int numComponentsForModel, LS_TYPE lType,
+																									 String title) {
+		return principalComponentsResiduals.getCorrectedDataAt(ArrayUtils.toDoubleArray(data),
+																													 samplesTobuildModel,
+																													 numComponentsForModel, lType, title,
+																													 true);
 	}
 
 	/**
@@ -1105,7 +1101,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		double[][] preppedPcs = getTrimmedPreppedProjectPCsFor(toExtract, numComponents);
 		if (additionalData != null) {
 			double[][] tmp = new double[preppedPcs.length][numComponents + additionalData[0].length];
-			double[][] tmpAdd = toExtract == null	? additionalData
+			double[][] tmpAdd = toExtract == null ? additionalData
 																						: ArrayUtils.subArray(additionalData, toExtract);
 			if (preppedPcs.length != tmpAdd.length) {
 				log.reportError("Mismatched array addition for additional data");
@@ -1162,8 +1158,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		}
 	}
 
-	private static boolean willFailNAN(	double[] data, int numComponents,
-																			boolean[] samplesTobuildModel, double[][] extraIndeps) {
+	private static boolean willFailNAN(double[] data, int numComponents,
+																		 boolean[] samplesTobuildModel, double[][] extraIndeps) {
 
 		int test = numComponents + 1;
 		if (extraIndeps != null && extraIndeps[0].length > 0) {
@@ -1214,7 +1210,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		}
 		if (PC > numComponents) {
 			log.reportError("Requested PC must be less than or equal to the total number of components ("
-													+ numComponents + ")");
+											+ numComponents + ")");
 			return basis;
 		} else {
 			return pcBasis[PC - 1];
@@ -1225,9 +1221,9 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		boolean matched = true;
 		if (data.length != samplesInPc.size()) {
 			matched = false;
-			log.reportError("Input data ("	+ data.length
-													+ ") does not match the number of samples in the pc file ("
-													+ samplesInPc.size() + ")");
+			log.reportError("Input data (" + data.length
+											+ ") does not match the number of samples in the pc file ("
+											+ samplesInPc.size() + ")");
 			log.reportError("Consider masking ");
 
 		}
@@ -1246,14 +1242,14 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	 *
 	 *         NOTE: the data is only ranked against individual PCs, not
 	 */
-	public StatsCrossTabRank[] getStatRanksFor(	double[][] data, double[][] extraIndeps,
-																							boolean[] samplesForRanking, String[] titles,
-																							STAT_TYPE statType, VALUE_TYPE rankType,
-																							boolean stepwise, Logger log) {
+	public StatsCrossTabRank[] getStatRanksFor(double[][] data, double[][] extraIndeps,
+																						 boolean[] samplesForRanking, String[] titles,
+																						 STAT_TYPE statType, VALUE_TYPE rankType,
+																						 boolean stepwise, Logger log) {
 		StatsCrossTabRank[] sRanks = new StatsCrossTabRank[data.length];
 		for (int i = 0; i < sRanks.length; i++) {
-			sRanks[i] = getStatRankFor(	data[i], extraIndeps, samplesForRanking, titles[i], statType,
-																	rankType, stepwise, 1, log);
+			sRanks[i] = getStatRankFor(data[i], extraIndeps, samplesForRanking, titles[i], statType,
+																 rankType, stepwise, 1, log);
 		}
 		return sRanks;
 	}
@@ -1270,8 +1266,9 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			double[][] toRank = new double[basis.length + 1][];
 			toRank[0] = samplesForRanking == null ? data : ArrayUtils.subArray(data, samplesForRanking);
 			for (int i = 0; i < basis.length; i++) {
-				toRank[i + 1] = samplesForRanking == null	? basis[i]
-																									: ArrayUtils.subArray(basis[i], samplesForRanking);
+				toRank[i + 1] = samplesForRanking == null ? basis[i]
+																									: ArrayUtils.subArray(basis[i],
+																																				samplesForRanking);
 			}
 			if (extraIndeps != null && samplesForRanking != null) {
 				tmp = ArrayUtils.subArray(extraIndeps, samplesForRanking);
@@ -1279,29 +1276,28 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			if (stepwise) {
 				double[][] basisToStep = new double[basis.length][];
 				for (int i = 0; i < basis.length; i++) {
-					basisToStep[i] = samplesForRanking == null	? basis[i]
-																											: ArrayUtils.subArray(basis[i], samplesForRanking);
+					basisToStep[i] = samplesForRanking == null ? basis[i]
+																										 : ArrayUtils.subArray(basis[i],
+																																					 samplesForRanking);
 				}
-				Stepwise stepwiseIt = new Stepwise(
-																						samplesForRanking == null	? data
-																																			: ArrayUtils.subArray(	data,
-																																												samplesForRanking),
-																						samplesForRanking == null	? basis
-																																			: ArrayUtils.subArray(	getPreppedPCs(),
-																																												samplesForRanking),
-																						NUM_PC_SVD_OVERIDE, true, numThreads);
+				Stepwise stepwiseIt = new Stepwise(samplesForRanking == null ? data
+																																		 : ArrayUtils.subArray(data,
+																																													 samplesForRanking),
+																					 samplesForRanking == null ? basis
+																																		 : ArrayUtils.subArray(getPreppedPCs(),
+																																													 samplesForRanking),
+																					 NUM_PC_SVD_OVERIDE, true, numThreads);
 				stepwiseIt.setVarNames(getPcTitles());
 				StepWiseSummary stepWiseSummary = stepwiseIt.getStepWiseSummary(NUM_PC_SVD_OVERIDE,
 																																				numThreads);
 
 				if (stepWiseSummary != null) {
-					StatsCrossTabRank statsCrossTabRank =
-																							new StatsCrossTabRank(title,
-																																		stepWiseSummary.getOrderOfOriginal(),
-																																		stepWiseSummary.getSigs(),
-																																		stepWiseSummary.getStats(),
-																																		ArrayUtils.subArray(	getPcTitles(),
-																																										stepWiseSummary.getOrderOfOriginal()));
+					StatsCrossTabRank statsCrossTabRank = new StatsCrossTabRank(title,
+																																			stepWiseSummary.getOrderOfOriginal(),
+																																			stepWiseSummary.getSigs(),
+																																			stepWiseSummary.getStats(),
+																																			ArrayUtils.subArray(getPcTitles(),
+																																													stepWiseSummary.getOrderOfOriginal()));
 					return statsCrossTabRank;
 				} else {
 					log.reportTimeWarning("Stepwise regression did not find any signifcant variables");
@@ -1316,8 +1312,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			} else {
 				boolean[] mask = ArrayUtils.booleanArray(toRank.length, false);
 				mask[0] = true;
-				StatsCrossTabs sCrossTabs = new StatsCrossTabs(	toRank, tmp, mask, allTitles, statType, true,
-																												log);
+				StatsCrossTabs sCrossTabs = new StatsCrossTabs(toRank, tmp, mask, allTitles, statType, true,
+																											 log);
 				sCrossTabs.computeTable();
 				return sCrossTabs.getInOrder(0, rankType, log);
 			}
@@ -1364,8 +1360,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 
 	}
 
-	public static class PrincipalComponentsIterator	implements Iterator<PrincipalComponentsResiduals>,
-																									Serializable {
+	public static class PrincipalComponentsIterator implements Iterator<PrincipalComponentsResiduals>, Serializable {
 		/**
 		 *
 		 */
@@ -1384,9 +1379,9 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		@Override
 		public boolean hasNext() {
 			return index < (order == null ? pcResids.getNumComponents() + 1 : order.length + 1); // +1 to
-																																														// account
-																																														// for
-																																														// PC0
+																																													 // account
+																																													 // for
+																																													 // PC0
 
 		}
 
@@ -1406,10 +1401,9 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 					newBasis[i] = pcResids.getBasisAt(order == null ? i + 1 : order[i]);
 				}
 			}
-			PrincipalComponentsResiduals newPcResiduals =
-																									new PrincipalComponentsResiduals(	pcResids,
-																																										newBasis,
-																																										pcResids.getMedians());
+			PrincipalComponentsResiduals newPcResiduals = new PrincipalComponentsResiduals(pcResids,
+																																										 newBasis,
+																																										 pcResids.getMedians());
 
 			index++;
 			return newPcResiduals;
@@ -1442,7 +1436,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			for (int i = 0; i < samples.length; i++) {
 				if (ext.indexOfStr(samples[i], samples) < 0) {
 					throw new IllegalStateException("All sample must come from the project "
-																						+ proj.getPropertyFilename() + " , did not find "
+																					+ proj.getPropertyFilename() + " , did not find "
 																					+ samples[i] + " in the project");
 				} else if (samplesInPc.containsKey(samples[i])) {
 					sampleMap[i] = samplesInPc.get(samples[i]);
@@ -1464,19 +1458,20 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 					}
 				}
 			}
-			log.reportTimeInfo(ArrayUtils.booleanArraySum(samplesToUse)	+ " project samples had PC values, "
-													+ (samples.length - ArrayUtils.booleanArraySum(samplesToUse))
-													+ " samples were set to NaN");
+			log.reportTimeInfo(ArrayUtils.booleanArraySum(samplesToUse)
+												 + " project samples had PC values, "
+												 + (samples.length - ArrayUtils.booleanArraySum(samplesToUse))
+												 + " samples were set to NaN");
 
 			samplesInPc = tmpSampsInPC;
 			samplesToReport = samples;
 			allProjSamples = samples;
 			pcBasis = tmpBasis;
 			sortedByProject = true;
-			log.report(samplesInPc.size()	+ ": hash samples ; " + samplesToReport.length
-									+ " report Samples");
-			log.report(allProjSamples.length	+ ": project samples ; " + pcBasis[0].length
-									+ " pc Samples");
+			log.report(samplesInPc.size() + ": hash samples ; " + samplesToReport.length
+								 + " report Samples");
+			log.report(allProjSamples.length + ": project samples ; " + pcBasis[0].length
+								 + " pc Samples");
 		}
 	}
 }

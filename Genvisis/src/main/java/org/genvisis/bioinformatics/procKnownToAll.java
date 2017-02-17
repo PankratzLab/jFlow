@@ -62,8 +62,8 @@ public class procKnownToAll {
 		int numArgs = args.length;
 		Vector<String> v = null;
 
-		String usage = "\n"	+ "park.procKnownToAll requires 0+ arguments\n" + "   filenames (i.e. "
-										+ ArrayUtils.toStr(DEFAULT_FILES, " ") + " (default))\n" + "";
+		String usage = "\n" + "park.procKnownToAll requires 0+ arguments\n" + "   filenames (i.e. "
+									 + ArrayUtils.toStr(DEFAULT_FILES, " ") + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

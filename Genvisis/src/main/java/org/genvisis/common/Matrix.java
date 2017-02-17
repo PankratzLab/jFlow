@@ -502,9 +502,9 @@ public class Matrix {
 				continue;
 			}
 			if (data[i].length - 1 < col) {
-				System.err.println("Error - trying to extract column index "	+ (col)
-														+ " from a row that doesn't have " + (col + 1) + " columns (row index "
-														+ i + " only has " + (data[i].length - 1) + " columns)");
+				System.err.println("Error - trying to extract column index " + (col)
+													 + " from a row that doesn't have " + (col + 1) + " columns (row index "
+													 + i + " only has " + (data[i].length - 1) + " columns)");
 			}
 			array[i] = data[i][col];
 		}
@@ -528,10 +528,10 @@ public class Matrix {
 			array[i] = "";
 			for (int j = 0; j < cols.length; j++) {
 				if (data[i].length - 1 < cols[j]) {
-					System.err.println("Error - trying to extract column index "	+ (cols[j])
-															+ " from a row that doesn't have " + (cols[i] + 1)
-															+ " columns (row index " + i + " only has " + (data[i].length - 1)
-															+ " columns)");
+					System.err.println("Error - trying to extract column index " + (cols[j])
+														 + " from a row that doesn't have " + (cols[i] + 1)
+														 + " columns (row index " + i + " only has " + (data[i].length - 1)
+														 + " columns)");
 				}
 				array[i] += (j == 0 ? "" : delimiter) + data[i][cols[j]];
 			}
@@ -553,10 +553,10 @@ public class Matrix {
 		for (int i = 0; i < matrix.length; i++) {
 			for (int j = 0; j < cols.length; j++) {
 				if (data[i].length - 1 < cols[j]) {
-					System.err.println("Error - trying to extract column index "	+ (cols[j])
-															+ " from a row that doesn't have " + (cols[i] + 1)
-															+ " columns (row index " + i + " only has " + (data[i].length - 1)
-															+ " columns)");
+					System.err.println("Error - trying to extract column index " + (cols[j])
+														 + " from a row that doesn't have " + (cols[i] + 1)
+														 + " columns (row index " + i + " only has " + (data[i].length - 1)
+														 + " columns)");
 				}
 				matrix[i][j] = data[i][cols[j]];
 			}
@@ -578,10 +578,10 @@ public class Matrix {
 		for (int i = 0; i < matrix.length; i++) {
 			for (int j = 0; j < cols.length; j++) {
 				if (data[i].length - 1 < cols[j]) {
-					System.err.println("Error - trying to extract column index "	+ (cols[j])
-															+ " from a row that doesn't have " + (cols[i] + 1)
-															+ " columns (row index " + i + " only has " + (data[i].length - 1)
-															+ " columns)");
+					System.err.println("Error - trying to extract column index " + (cols[j])
+														 + " from a row that doesn't have " + (cols[i] + 1)
+														 + " columns (row index " + i + " only has " + (data[i].length - 1)
+														 + " columns)");
 				}
 				matrix[i][j] = data[i][cols[j]];
 			}
@@ -747,20 +747,19 @@ public class Matrix {
 	 * @param matrix a matrix of String
 	 * @return pruned matrix
 	 */
-	public static String[][] prune(	String[][] matrix, int[] rowsToKeep, int[] columnsToKeep,
-																	Logger log) {
+	public static String[][] prune(String[][] matrix, int[] rowsToKeep, int[] columnsToKeep,
+																 Logger log) {
 		if (matrix == null || matrix.length == 0) {
 			log.reportError("Error - null/empty matrix; can't be pruned");
 			return null;
 		}
 
-		return prune(	matrix,
-									rowsToKeep == null	? null
-																			: ArrayUtils.indicesToBooleanArray(rowsToKeep, matrix.length),
-									columnsToKeep == null	? null
-																				: ArrayUtils.indicesToBooleanArray(columnsToKeep,
-																																			matrix[0].length),
-									log);
+		return prune(matrix,
+								 rowsToKeep == null ? null
+																		: ArrayUtils.indicesToBooleanArray(rowsToKeep, matrix.length),
+								 columnsToKeep == null ? null : ArrayUtils.indicesToBooleanArray(columnsToKeep,
+																																								 matrix[0].length),
+								 log);
 	}
 
 	/**
@@ -769,8 +768,8 @@ public class Matrix {
 	 * @param matrix a matrix of String
 	 * @return pruned matrix
 	 */
-	public static String[][] prune(	String[][] matrix, boolean[] rowsToKeep, boolean[] columnsToKeep,
-																	Logger log) {
+	public static String[][] prune(String[][] matrix, boolean[] rowsToKeep, boolean[] columnsToKeep,
+																 Logger log) {
 		String[][] newMatrix;
 		int row, col;
 
@@ -785,10 +784,9 @@ public class Matrix {
 		}
 
 		row = 0;
-		newMatrix =
-							new String[rowsToKeep == null	? matrix.length
-																						: ArrayUtils.booleanArraySum(rowsToKeep)][columnsToKeep == null	? matrix[0].length
-																																																				: ArrayUtils.booleanArraySum(columnsToKeep)];
+		newMatrix = new String[rowsToKeep == null ? matrix.length
+																							: ArrayUtils.booleanArraySum(rowsToKeep)][columnsToKeep == null ? matrix[0].length
+																																																							: ArrayUtils.booleanArraySum(columnsToKeep)];
 		for (int i = 0; i < matrix.length; i++) {
 			if (rowsToKeep == null || rowsToKeep[i]) {
 				if (columnsToKeep == null) {

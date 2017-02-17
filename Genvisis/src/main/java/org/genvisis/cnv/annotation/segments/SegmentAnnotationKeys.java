@@ -9,22 +9,22 @@ package org.genvisis.cnv.annotation.segments;
  */
 public enum SegmentAnnotationKeys {
 
-																		/**
-																		 * Genes overlapped
-																		 */
-																		GENE("NA", false),
-																		/**
-																		 * GDI of genes overlapped
-																		 */
-																		GDI("NaN", true),
-																		/**
-																		 * Beast score of this region
-																		 */
-																		BEAST("NaN", true),
-																		/**
-																		 * Average mappability of this region
-																		 */
-																		MAPPABILITY("NaN", true);
+	/**
+	 * Genes overlapped
+	 */
+	GENE("NA", false),
+	/**
+	 * GDI of genes overlapped
+	 */
+	GDI("NaN", true),
+	/**
+	 * Beast score of this region
+	 */
+	BEAST("NaN", true),
+	/**
+	 * Average mappability of this region
+	 */
+	MAPPABILITY("NaN", true);
 
 	private String missingValue;
 	private boolean isNumeric;

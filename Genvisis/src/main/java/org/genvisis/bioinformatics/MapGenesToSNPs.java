@@ -45,9 +45,9 @@ public class MapGenesToSNPs {
 		if (paramV == null) {
 			return;
 		}
-		track =
-					GeneTrack.load(	Aliases.getPathToFileInReferenceDirectory(GeneSet.REFSEQ_TRACK, true, log),
-													false);
+		track = GeneTrack.load(Aliases.getPathToFileInReferenceDirectory(GeneSet.REFSEQ_TRACK, true,
+																																		 log),
+													 false);
 
 		line = paramV.remove(0).trim().split("[\\s]+");
 		genesFile = line[0];
@@ -124,7 +124,7 @@ public class MapGenesToSNPs {
 				passes = false;
 				for (int i = 0; i < locs.length && !passes; i++) {
 					if (Positions.chromosomeNumber(line[chrCol]) == locs[i][0]
-								&& Integer.parseInt(line[posCol]) >= locs[i][1] - buffer
+							&& Integer.parseInt(line[posCol]) >= locs[i][1] - buffer
 							&& Integer.parseInt(line[posCol]) <= locs[i][2] + buffer) {
 						passes = true;
 					}
@@ -146,7 +146,7 @@ public class MapGenesToSNPs {
 		}
 		log.report("Found " + snps.size() + " SNPs in these genes");
 
-		Files.combine(ArrayUtils.toStringArray(snps), ArrayUtils.toStringArray(paramV), "SNP", outputFilename,
-									log, true);
+		Files.combine(ArrayUtils.toStringArray(snps), ArrayUtils.toStringArray(paramV), "SNP",
+									outputFilename, log, true);
 	}
 }

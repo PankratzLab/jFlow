@@ -26,8 +26,7 @@ public class CNVTrioFilter extends CNVFilter {
 	public static final String COMMAND_MAX_TRIO_1585_SD = "maxTrio1585SD=";
 	public static final String COMMAND_MAX_NUM_CALLS = "numCalls=";
 	public static final String COMMAND_CNV_TRIO_CRF = "filterCNVTrios";
-	public static final String COMMAND_CNV_TRIO_CRF_DESCRIPTION =
-																															" - filter a file of cnv trio results";
+	public static final String COMMAND_CNV_TRIO_CRF_DESCRIPTION = " - filter a file of cnv trio results";
 
 	public static final double NO_FILTER_MAX_BEAST_HEIGHT_PARENTS = 0;
 	public static final double NO_FILTER_MIN_BEAST_HEIGHT_DIFFERENCE = 0;
@@ -41,8 +40,8 @@ public class CNVTrioFilter extends CNVFilter {
 	private double maxTrio1585SD;
 	private int numCalls;
 
-	public CNVTrioFilter(	double maxBeastHeightParents, double minBeastHeightDifference,
-												double maxTrioLrrSD, double maxTrio1585SD, int numCalls, Logger log) {
+	public CNVTrioFilter(double maxBeastHeightParents, double minBeastHeightDifference,
+											 double maxTrioLrrSD, double maxTrio1585SD, int numCalls, Logger log) {
 		super(log);
 		this.maxBeastHeightParents = maxBeastHeightParents;
 		this.minBeastHeightDifference = minBeastHeightDifference;
@@ -51,13 +50,13 @@ public class CNVTrioFilter extends CNVFilter {
 		this.numCalls = numCalls;
 	}
 
-	public CNVTrioFilter(	double maxBeastHeightParents, double minBeastHeightDifference,
-												double maxTrioLrrSD, double maxTrio1585SD, int numCalls, int minNumMarkers,
-												int maxNumMarkers, int minSize, int maxSize, double minScore,
-												double maxScore, Segment[] problemRegions, Segment[] centromereMidpoints,
-												Segment[] commonReference, int[][] centromereBoundaries,
-												boolean breakupCentromeres, boolean commonIn, HashSet<String> indHash,
-												int build, int CN, Logger log) {
+	public CNVTrioFilter(double maxBeastHeightParents, double minBeastHeightDifference,
+											 double maxTrioLrrSD, double maxTrio1585SD, int numCalls, int minNumMarkers,
+											 int maxNumMarkers, int minSize, int maxSize, double minScore,
+											 double maxScore, Segment[] problemRegions, Segment[] centromereMidpoints,
+											 Segment[] commonReference, int[][] centromereBoundaries,
+											 boolean breakupCentromeres, boolean commonIn, HashSet<String> indHash,
+											 int build, int CN, Logger log) {
 		super(minNumMarkers, maxNumMarkers, minSize, maxSize, minScore, maxScore, problemRegions,
 					centromereMidpoints, commonReference, centromereBoundaries, breakupCentromeres, commonIn,
 					indHash, build, CN, log);
@@ -158,8 +157,8 @@ public class CNVTrioFilter extends CNVFilter {
 				// filterPass.prepFail();
 				// filterPass.addReasonFailing("minimum beast height (" +
 				// CNVTrio.getMinBeastHeightDifference() + ") <" + minBeastHeightDifference, ";");
-				filterPass.setFailed("minimum beast height ("	+ CNVTrio.getMinBeastHeightDifference()
-															+ ") <" + minBeastHeightDifference, ";");
+				filterPass.setFailed("minimum beast height (" + CNVTrio.getMinBeastHeightDifference()
+														 + ") <" + minBeastHeightDifference, ";");
 			}
 			if (CNVTrio.getNumCalls() > numCalls) {
 				// filterPass.prepFail();
@@ -170,8 +169,8 @@ public class CNVTrioFilter extends CNVFilter {
 		return filterPass;
 	}
 
-	public static CNVTrioFilter setupCNVTrioFilterFromArgs(	Project proj, String[] args,
-																													boolean defaults, Logger log) {
+	public static CNVTrioFilter setupCNVTrioFilterFromArgs(Project proj, String[] args,
+																												 boolean defaults, Logger log) {
 		CNVTrioFilter filter = new CNVTrioFilter(log);
 		ProjectCNVFiltering.setupCNVFilterFromArgs(proj, args, filter, defaults, log);
 		if (defaults) {
@@ -221,8 +220,8 @@ public class CNVTrioFilter extends CNVFilter {
 	}
 
 	private static boolean checkTripleMax(double d1, double d2, double d3, double maxThreshold) {
-		return checkMaxThreshold(d1, maxThreshold)	&& checkMaxThreshold(d2, maxThreshold)
-						&& checkMaxThreshold(d3, maxThreshold);
+		return checkMaxThreshold(d1, maxThreshold) && checkMaxThreshold(d2, maxThreshold)
+					 && checkMaxThreshold(d3, maxThreshold);
 
 	}
 

@@ -168,10 +168,10 @@ class EvaluationResult implements Serializable {
 		return (EvaluationResult[]) SerializedFiles.readSerial(fileName, false, log, false, true);
 	}
 
-	public static EvalHeritabilityResult prepareHeritability(	Project proj, String ped,
-																														boolean[] samplesToEvaluate,
-																														String serFile, double[] otherData,
-																														String otherDataTitle) {
+	public static EvalHeritabilityResult prepareHeritability(Project proj, String ped,
+																													 boolean[] samplesToEvaluate,
+																													 String serFile, double[] otherData,
+																													 String otherDataTitle) {
 		Logger log = proj.getLog();
 		EvaluationResult[] evaluationResults = readSerial(serFile, log);
 		log.reportTimeInfo("Loaded " + evaluationResults.length + " evaluation results");
@@ -181,8 +181,8 @@ class EvaluationResult implements Serializable {
 		// System.out.println(crf);
 		// System.out.println(ext.rootOf(crf, false)+"_summary.xln");
 		// System.exit(1);
-		generateHeritabilityDb(	proj, evaluationResults, otherData, otherDataTitle, samplesToEvaluate,
-														db, ped, crf, log);
+		generateHeritabilityDb(proj, evaluationResults, otherData, otherDataTitle, samplesToEvaluate,
+													 db, ped, crf, log);
 		Heritability.fromParameters(crf, true, log);
 		EvalHeritabilityResult evalHeritabilityResult = new EvalHeritabilityResult(ped, db, crf);
 		return evalHeritabilityResult;
@@ -213,22 +213,21 @@ class EvaluationResult implements Serializable {
 		}
 	}
 
-	private static void generateHeritabilityDb(	Project proj, EvaluationResult[] results,
-																							double[] otherData, String otherDataTitle,
-																							boolean[] samplesToEvaluate, String output,
-																							String ped, String crf, Logger log) {
+	private static void generateHeritabilityDb(Project proj, EvaluationResult[] results,
+																						 double[] otherData, String otherDataTitle,
+																						 boolean[] samplesToEvaluate, String output, String ped,
+																						 String crf, Logger log) {
 		log.reportTimeWarning("Assuming stored estimate results are in project order to create heritability db "
 													+ output);
 		log.reportTimeWarning("Assuming ped file has DNA listed in the last column of  " + output);
 		if (samplesToEvaluate != null) {
-			log.reportTimeInfo("Using "	+ ArrayUtils.booleanArraySum(samplesToEvaluate)
-													+ " samples that are not excluded");
+			log.reportTimeInfo("Using " + ArrayUtils.booleanArraySum(samplesToEvaluate)
+												 + " samples that are not excluded");
 		}
 		try {
-			Hashtable<String, String> pedHash =
-																				HashVec.loadFileToHashString(	ped, 6,
-																																			new int[] {0, 1, 2, 3, 4, 5},
-																																			"\t", false);
+			Hashtable<String, String> pedHash = HashVec.loadFileToHashString(ped, 6,
+																																			 new int[] {0, 1, 2, 3, 4, 5},
+																																			 "\t", false);
 			String[] samples = proj.getSamples();
 			String[] titles = new String[results.length];
 			PrintWriter writer = new PrintWriter(new FileWriter(output));

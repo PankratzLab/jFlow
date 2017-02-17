@@ -80,7 +80,7 @@ public class GeneRegion {
 				cv = countVectors.get(i + "");
 				genes = cv.getValues();
 				counts = cv.getCounts();
-				writer2.println((i == 0 ? "NA" : i)	+ "\t" + boundaries[i][0] + "\t" + boundaries[i][1]
+				writer2.println((i == 0 ? "NA" : i) + "\t" + boundaries[i][0] + "\t" + boundaries[i][1]
 												+ "\t" + boundaries[i][2] + "\t" + cv.getSize() + "\t"
 												+ (i == 0 ? "too many to list" : ArrayUtils.toStr(genes)));
 				for (int j = 0; j < genes.length; j++) {
@@ -99,8 +99,8 @@ public class GeneRegion {
 		int numArgs = args.length;
 		String filename = "GeneRegion.dat";
 
-		String usage = "\n"	+ "parse.GeneRegion requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "parse.GeneRegion requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

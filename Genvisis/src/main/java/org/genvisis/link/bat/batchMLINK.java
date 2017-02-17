@@ -76,8 +76,8 @@ public class batchMLINK {
 				writer.println("cd chr" + i);
 				writer.println("cp chrom" + chrome + ".ped pedin.dat");
 				writer.println("cp map" + chrome + ".dat datain.dat");
-				writer.println("jcp makeMap4MLINK "	+ handle[0] + " " + handle[1] + " " + handle[2] + " "
-												+ handle[3]);
+				writer.println("jcp makeMap4MLINK " + handle[0] + " " + handle[1] + " " + handle[2] + " "
+											 + handle[3]);
 				writer.println("./pedin > /dev/null");
 				writer.println("cp stream.out stream" + (j + 5) + ".out");
 				writer.println("cd ..");

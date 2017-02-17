@@ -127,7 +127,7 @@ public class Samtools {
 							for (int chr = 1; chr <= 22; chr++) {
 								if (line[0].equals("chr" + chr)) {
 									if (ext.isMissingValue(line[1])) {
-										log.reportError("Error - invalid read count for "	+ file + " for chr" + chr
+										log.reportError("Error - invalid read count for " + file + " for chr" + chr
 																		+ ": " + line[1]);
 									} else {
 										autosomalCount += Integer.parseInt(line[1]);
@@ -139,7 +139,7 @@ public class Samtools {
 								if (ext.isValidInteger(line[1])) {
 									xCount = line[1];
 								} else {
-									log.reportError("Error - invalid read count for "	+ file + " for chrX: "
+									log.reportError("Error - invalid read count for " + file + " for chrX: "
 																	+ line[1]);
 									xCount = "-1";
 								}
@@ -148,7 +148,7 @@ public class Samtools {
 								if (ext.isValidInteger(line[1])) {
 									yCount = line[1];
 								} else {
-									log.reportError("Error - invalid read count for "	+ file + " for chrY: "
+									log.reportError("Error - invalid read count for " + file + " for chrY: "
 																	+ line[1]);
 									yCount = "-1";
 								}
@@ -162,22 +162,22 @@ public class Samtools {
 							}
 						}
 						reader.close();
-						writer.println(file	+ "\t" + xCount + "\t" + yCount + "\t" + autosomalCount + "\t"
-														+ ext.formDeci(Double.parseDouble(xCount) / autosomalCount, 6) + "\t"
-														+ ext.formDeci(Double.parseDouble(yCount) / autosomalCount, 6) + "\t"
-														+ ext.formDeci(Double.parseDouble(xCount) / autosomalCount * 21.75, 4)
-														+ "\t"
-														+ ext.formDeci(Double.parseDouble(yCount) / autosomalCount * 327, 4));
+						writer.println(file + "\t" + xCount + "\t" + yCount + "\t" + autosomalCount + "\t"
+													 + ext.formDeci(Double.parseDouble(xCount) / autosomalCount, 6) + "\t"
+													 + ext.formDeci(Double.parseDouble(yCount) / autosomalCount, 6) + "\t"
+													 + ext.formDeci(Double.parseDouble(xCount) / autosomalCount * 21.75, 4)
+													 + "\t"
+													 + ext.formDeci(Double.parseDouble(yCount) / autosomalCount * 327, 4));
 					} catch (FileNotFoundException fnfe) {
-						System.err.println("Error: file \""	+ file + ".chrCounts" + "\" not found in directory"
-																+ pwd);
+						System.err.println("Error: file \"" + file + ".chrCounts" + "\" not found in directory"
+															 + pwd);
 						System.exit(1);
 					} catch (IOException ioe) {
 						System.err.println("Error reading file \"" + file + ".chrCounts" + "\"");
 						System.exit(2);
 					}
 				} else {
-					Files.write(pwd	+ "samCountReadsPerChr " + dir + file + " 1>> " + pwd + file
+					Files.write(pwd + "samCountReadsPerChr " + dir + file + " 1>> " + pwd + file
 											+ ".chrCounts 2>> " + pwd + file + ".chrCounts",
 											"batches/" + file + ".batch");
 					Files.chmod(pwd + "batches/" + file + ".batch");
@@ -193,8 +193,8 @@ public class Samtools {
 
 		if (v.size() > 0) {
 			log.report("There are " + v.size() + " .bam files remaining to be counted");
-			Files.qsubMultiple(	v, null, pwd + "batches/", "countPerChr", filesPerBatch, true, null, -1,
-													500, 0.5);
+			Files.qsubMultiple(v, null, pwd + "batches/", "countPerChr", filesPerBatch, true, null, -1,
+												 500, 0.5);
 		}
 	}
 
@@ -206,11 +206,11 @@ public class Samtools {
 		boolean getSex = false;
 		int filesPerBatch = 8;
 
-		String usage = "\n"	+ "seq.Samtools requires 0-1 arguments\n" + "   (1) directory (i.e. dir="
-										+ dir + " (default))\n"
-										+ "   (2) determine sex for all bam files in directory (i.e. -getSex (not the default))\n"
-										+ "   (3) number of files per batch (i.e. filesPerBatch=" + filesPerBatch
-										+ " (default))\n" + "";
+		String usage = "\n" + "seq.Samtools requires 0-1 arguments\n" + "   (1) directory (i.e. dir="
+									 + dir + " (default))\n"
+									 + "   (2) determine sex for all bam files in directory (i.e. -getSex (not the default))\n"
+									 + "   (3) number of files per batch (i.e. filesPerBatch=" + filesPerBatch
+									 + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -102,7 +102,7 @@ public class MarkerEvalueHistogramAnnotation extends HistogramAnnotation {
 	}
 
 	public EvalueHistogram formatHistogram() {
-		if (blastEvalueCounts == null	|| blastEvalues == null
+		if (blastEvalueCounts == null || blastEvalues == null
 				|| blastEvalueCounts.size() != blastEvalues.size()) {
 			throw new IllegalStateException("Invalid sizes for counts and evalue arrays");
 

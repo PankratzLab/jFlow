@@ -37,8 +37,8 @@ public class prioritize {
 				}
 				lookupIndices[db] = ext.indexOfStr(lookup, line);
 				if (lookupIndices[db] == -1) {
-					System.err.println("Error - lookup variable '"	+ lookup + "' was not found in database '"
-															+ DBs[db] + "'");
+					System.err.println("Error - lookup variable '" + lookup + "' was not found in database '"
+														 + DBs[db] + "'");
 					System.exit(1);
 				}
 				l2 = (variables.split("\\|")[db]).split(":")[1].split(";");
@@ -48,9 +48,9 @@ public class prioritize {
 					variableOperators[db][i] = l2[i].substring(0, 1).charAt(0);
 					variableIndices[db][i] = ext.indexOfStr(l2[i].substring(1), line);
 					if (variableIndices[db][i] == -1) {
-						System.err.println("Error - variable '"	+ l2[i].substring(1)
-																+ "' was not found in database '" + DBs[db]
-																+ "' (do you need an operator)");
+						System.err.println("Error - variable '" + l2[i].substring(1)
+															 + "' was not found in database '" + DBs[db]
+															 + "' (do you need an operator)");
 						System.exit(1);
 					}
 				}
@@ -125,8 +125,8 @@ public class prioritize {
 			line = reader.readLine().split("\t", -1);
 			lookupIndices[DBs.length] = ext.indexOfStr(lookup, line);
 			if (lookupIndices[DBs.length] == -1) {
-				System.err.println("Error - lookup value for the databases ('"	+ lookup
-														+ "') does not match a column in the file " + filename);
+				System.err.println("Error - lookup value for the databases ('" + lookup
+													 + "') does not match a column in the file " + filename);
 				System.exit(1);
 			}
 			writer.print(ArrayUtils.toStr(line));
@@ -147,9 +147,9 @@ public class prioritize {
 				}
 				for (int i = 0; i < DBs.length; i++) {
 					for (int j = 0; j < variableIndices[i].length; j++) {
-						writer.print("\t" + (data == null	? "XXX"
-																							: (data[i][j].equals("-1")
-																									|| data[i][j].equals("") ? "." : data[i][j])));
+						writer.print("\t"
+												 + (data == null ? "XXX" : (data[i][j].equals("-1")
+																										|| data[i][j].equals("") ? "." : data[i][j])));
 					}
 				}
 				writer.println();
@@ -172,8 +172,8 @@ public class prioritize {
 		String database = tools.CRF_DIR + "crf_db.dat";
 		String variables = "FamID:^G2019S;>OtherLRRK2;^parkin;^VPD";
 
-		String usage = "\n"	+ "park.prioritize requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default)\n" + "";
+		String usage = "\n" + "park.prioritize requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -29,8 +29,8 @@ public class PennCNVFamilies {
 		CLI c = new CLI(PennCNVFamilies.class);
 		c.addArg(trios, "List of known trios", true);
 		c.addArg(jointSize,
-		         "Joint chunk size. Allow ~1hr/trio. Will create [#samples]/jointSize input files.",
-		         true, CLI.Arg.NUMBER);
+						 "Joint chunk size. Allow ~1hr/trio. Will create [#samples]/jointSize input files.",
+						 true, CLI.Arg.NUMBER);
 		c.addArg(pennData, "Directory containing zipped, exported penncnv data", true);
 		c.addFlag(sexSpecific, "Use samples from sex-specific subdirectores?");
 
@@ -39,7 +39,8 @@ public class PennCNVFamilies {
 		buildInputList(c.get(trios), c.get(pennData), c.getI(jointSize), c.has(sexSpecific));
 	}
 
-	private static void buildInputList(String trios, String pennDir, int chunkSize, boolean sexSpecific) {
+	private static void buildInputList(String trios, String pennDir, int chunkSize,
+																		 boolean sexSpecific) {
 		final String out = "trioInput.txt";
 		int jointChunk = 1;
 		try {
@@ -49,8 +50,8 @@ public class PennCNVFamilies {
 			PrintWriter writeJoints = Files.getAppropriateWriter("jointInput" + jointChunk + ".txt");
 
 			String[] header = r.readLine().split("\t");
-			int[] dnaIdxs = ext.indexFactors(new String[] {"FA_DNA", "MO_DNA", "DNA"}, header,
-			                                 false, true);
+			int[] dnaIdxs = ext.indexFactors(new String[] {"FA_DNA", "MO_DNA", "DNA"}, header, false,
+																			 true);
 
 			int sexIndex = ext.indexOfStr("SEX", header, false, true);
 
@@ -79,9 +80,8 @@ public class PennCNVFamilies {
 						dir += File.separator;
 					}
 
-					String pennDataFile = new StringBuilder().append(dir)
-					                                         .append(line[dnaIdxs[i]]).append(".gz")
-					                                         .toString();
+					String pennDataFile = new StringBuilder().append(dir).append(line[dnaIdxs[i]])
+																									 .append(".gz").toString();
 
 
 					valid = valid && new File(pennDataFile).exists();

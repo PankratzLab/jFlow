@@ -14,41 +14,41 @@ public class Protein {
 	public static final String[][] AMINO_ACID_LOOKUP = {
 																											// amino acid, three letter abbreviation, one
 																											// letter abbreviation, polarity, acidity
-																											{	"alanine", "Ala", "A", "nonpolar",
-																												"neutral"},
-																											{	"arginine", "Arg", "R", "polar",
-																												"strongly basic"},
-																											{	"asparagine", "Asn", "N", "polar",
-																												"neutral"},
-																											{	"aspartic acid", "Asp", "D", "polar",
-																												"acidic"},
-																											{	"cysteine", "Cys", "C", "nonpolar",
-																												"neutral"},
-																											{	"glutamic acid", "Glu", "E", "polar",
-																												"acidic"},
+																											{"alanine", "Ala", "A", "nonpolar",
+																											 "neutral"},
+																											{"arginine", "Arg", "R", "polar",
+																											 "strongly basic"},
+																											{"asparagine", "Asn", "N", "polar",
+																											 "neutral"},
+																											{"aspartic acid", "Asp", "D", "polar",
+																											 "acidic"},
+																											{"cysteine", "Cys", "C", "nonpolar",
+																											 "neutral"},
+																											{"glutamic acid", "Glu", "E", "polar",
+																											 "acidic"},
 																											{"glutamine", "Gln", "Q", "polar", "neutral"},
-																											{	"glycine", "Gly", "G", "nonpolar",
-																												"neutral"},
-																											{	"histidine", "His", "H", "polar",
-																												"weakly basic"},
-																											{	"isoleucine", "Ile", "I", "nonpolar",
-																												"neutral"},
-																											{	"leucine", "Leu", "L", "nonpolar",
-																												"neutral"},
+																											{"glycine", "Gly", "G", "nonpolar",
+																											 "neutral"},
+																											{"histidine", "His", "H", "polar",
+																											 "weakly basic"},
+																											{"isoleucine", "Ile", "I", "nonpolar",
+																											 "neutral"},
+																											{"leucine", "Leu", "L", "nonpolar",
+																											 "neutral"},
 																											{"lysine", "Lys", "K", "polar", "basic"},
-																											{	"methionine", "Met", "M", "nonpolar",
-																												"neutral"},
-																											{	"phenylalanine", "Phe", "F", "nonpolar",
-																												"neutral"},
-																											{	"proline", "Pro", "P", "nonpolar",
-																												"neutral"},
+																											{"methionine", "Met", "M", "nonpolar",
+																											 "neutral"},
+																											{"phenylalanine", "Phe", "F", "nonpolar",
+																											 "neutral"},
+																											{"proline", "Pro", "P", "nonpolar",
+																											 "neutral"},
 																											{"serine", "Ser", "S", "polar", "neutral"},
 																											{"threonine", "Thr", "T", "polar", "neutral"},
-																											{	"tryptophan", "Trp", "W", "nonpolar",
-																												"neutral"},
+																											{"tryptophan", "Trp", "W", "nonpolar",
+																											 "neutral"},
 																											{"tyrosine", "Tyr", "Y", "polar", "neutral"},
-																											{	"valine", "Val", "V", "nonpolar",
-																												"neutral"}};
+																											{"valine", "Val", "V", "nonpolar",
+																											 "neutral"}};
 
 	public static String[] lookup(String letterCode) {
 		int index = ext.indexOfStr(letterCode, Matrix.extractColumn(AMINO_ACID_LOOKUP, 2));
@@ -89,11 +89,10 @@ public class Protein {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename =
-										"C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Reviews\\24 Rouleau random sequencing\\GCK5.txt";
+		String filename = "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Reviews\\24 Rouleau random sequencing\\GCK5.txt";
 
-		String usage = "\n"	+ "bioinformatics.Protein requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "bioinformatics.Protein requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -34,9 +34,9 @@ public class gatherOmim {
 					while (reader.ready()) {
 						temp = reader.readLine();
 						if (temp.indexOf("<tr><td align=\"left\" colspan=\"2\" ") >= 0) {
-							writer.println(id	+ "\t"
-															+ temp.substring(temp.indexOf("<b>") + 3, temp.indexOf("</b>"))
-															+ (count > 0 ? "\t*******" : ""));
+							writer.println(id + "\t"
+														 + temp.substring(temp.indexOf("<b>") + 3, temp.indexOf("</b>"))
+														 + (count > 0 ? "\t*******" : ""));
 							writer.flush();
 							count++;
 						}
@@ -67,8 +67,8 @@ public class gatherOmim {
 		int numArgs = args.length;
 		String filename = "gatherOmim.dat";
 
-		String usage = "\n"	+ "park.gatherOmim requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "";
+		String usage = "\n" + "park.gatherOmim requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

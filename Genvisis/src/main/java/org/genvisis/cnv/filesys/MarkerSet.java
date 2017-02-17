@@ -44,7 +44,7 @@ public class MarkerSet implements Serializable, TextExport {
 	}
 
 	public MarkerSet(String[] rawMarkerNames, byte[] rawChrs, int[] rawPositions, int[] keys) {
-		if (rawMarkerNames.length != rawChrs.length	|| rawMarkerNames.length != rawPositions.length
+		if (rawMarkerNames.length != rawChrs.length || rawMarkerNames.length != rawPositions.length
 				|| rawMarkerNames.length != keys.length) {
 			System.err.println("Error - mismatched number of markers and positions/keys");
 			System.exit(1);
@@ -173,8 +173,8 @@ public class MarkerSet implements Serializable, TextExport {
 	}
 
 	public int[] getIndicesOfMarkersIn(Segment seg, int[][] indicesByChr, Logger log) {
-		return ext.indexLargeFactors(	getMarkersIn(seg, indicesByChr), markerNames, true, log, true,
-																	false);
+		return ext.indexLargeFactors(getMarkersIn(seg, indicesByChr), markerNames, true, log, true,
+																 false);
 	}
 
 
@@ -197,8 +197,8 @@ public class MarkerSet implements Serializable, TextExport {
 
 	public void checkFingerprint(Sample samp) {
 		if (samp.getFingerprint() != fingerprint) {
-			System.err.println("Error - Sample has a different fingerprint ("	+ samp.getFingerprint()
-													+ ") than the MarkerSet (" + fingerprint + ")");
+			System.err.println("Error - Sample has a different fingerprint (" + samp.getFingerprint()
+												 + ") than the MarkerSet (" + fingerprint + ")");
 		}
 	}
 
