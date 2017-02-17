@@ -34,9 +34,8 @@ public class CNV1000gConcordance {
 			samps.addAll(HashVec.loadFileToHashSet(dupFIle, new int[] {1}, "", false));
 			log.reportTimeInfo(samps.size() + "");
 			MarkerSet markerSet = MarkerSet.load("/Volumes/Beta/data/1000G/markers.ser", false);
-			LocusSet<CNVariant> set =
-															CNVariant.loadLocSet(	"/Volumes/Beta/data/1000G/GRCh37_hg19_variants_2015-07-23.txt.cnv",
-																										new Logger());
+			LocusSet<CNVariant> set = CNVariant.loadLocSet("/Volumes/Beta/data/1000G/GRCh37_hg19_variants_2015-07-23.txt.cnv",
+																										 new Logger());
 			int[][] indicesByChr = markerSet.getIndicesByChr();
 			int num = 0;
 			log.reportTimeInfo("HFD");

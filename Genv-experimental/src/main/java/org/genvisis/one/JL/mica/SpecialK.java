@@ -81,7 +81,7 @@ public class SpecialK {
 				key.put(repeatRef.toString() + AND + UPSTREAM_INSERTION, "A5.1_UPSTREAM_INSERTION");
 				key.put(repeatRef.toString() + AND + DOWNSTREAM_VARIANT, "A5.1_DOWNSTREAM_VARIANT");
 				key.put(repeatRef.toString() + AND + UPSTREAM_INSERTION + AND + DOWNSTREAM_VARIANT,
-						"A5.1_UPSTREAM_INSERTION_DOWNSTREAM_VARIANT");
+								"A5.1_UPSTREAM_INSERTION_DOWNSTREAM_VARIANT");
 
 				countMap.put(repeatRef.toString(), 0);
 				countMap.put(repeatRef.toString() + AND + UPSTREAM_INSERTION, 0);
@@ -97,7 +97,7 @@ public class SpecialK {
 			key.put(repeat.toString() + AND + UPSTREAM_INSERTION, "A" + i + "_UPSTREAM_INSERTION");
 			key.put(repeat.toString() + AND + DOWNSTREAM_VARIANT, "A" + i + "_DOWNSTREAM_VARIANT");
 			key.put(repeat.toString() + AND + UPSTREAM_INSERTION + AND + DOWNSTREAM_VARIANT,
-					"A" + i + "_UPSTREAM_INSERTION_DOWNSTREAM_VARIANT");
+							"A" + i + "_UPSTREAM_INSERTION_DOWNSTREAM_VARIANT");
 		}
 
 		countMap.put(TOTAL, 0);
@@ -144,8 +144,9 @@ public class SpecialK {
 		for (int i = 0; i < bams.length; i++) {
 			HashMap<String, Integer> countMapAll = getCountMap().countMap;
 			SamReader reader = BamOps.getDefaultReader(bams[i], ValidationStringency.STRICT);
-			QueryInterval[] queryInterestIntervals = BamOps.convertSegsToQI(new Segment[] { loc },
-					reader.getFileHeader(), 0, true, true, log);
+			QueryInterval[] queryInterestIntervals = BamOps.convertSegsToQI(new Segment[] {loc},
+																																			reader.getFileHeader(), 0,
+																																			true, true, log);
 			SAMRecordIterator sIterator = reader.query(queryInterestIntervals, false);
 			log.reportTimeInfo("Analyzing " + bams[i]);
 			while (sIterator.hasNext()) {
@@ -154,7 +155,8 @@ public class SpecialK {
 				// && samRecord.getUnclippedStart() ==
 				// samRecord.getAlignmentStart()
 				// &&
-				if (samRecord.getAlignmentStart() < loc.getStart() && samRecord.getAlignmentEnd() > loc.getStop()) {
+				if (samRecord.getAlignmentStart() < loc.getStart()
+						&& samRecord.getAlignmentEnd() > loc.getStop()) {
 					String seq = samRecord.getReadString();
 					boolean found = false;
 					HashSet<String> toIter = new HashSet<>();
@@ -163,7 +165,8 @@ public class SpecialK {
 						String[] combos = repeats.split(AND);
 						boolean foundAll = true;
 						for (String repeat : combos) {
-							if (!seq.toUpperCase().contains(repeat) && !repeat.equals(OTHER) && !repeat.equals(TOTAL)) {
+							if (!seq.toUpperCase().contains(repeat) && !repeat.equals(OTHER)
+									&& !repeat.equals(TOTAL)) {
 								foundAll = false;
 							}
 						}
@@ -187,8 +190,9 @@ public class SpecialK {
 				results.append("\t" + countMapAll.get(repeat));
 				resultsBasic.append("\t" + countMapAll.get(repeat));
 			}
-			double propOther = countMapAll.get(TOTAL) > 0 ? (double) countMapAll.get(OTHER) / countMapAll.get(TOTAL)
-					: 0;
+			double propOther = countMapAll.get(TOTAL) > 0 ? (double) countMapAll.get(OTHER)
+																											/ countMapAll.get(TOTAL)
+																										: 0;
 			results.append("\t" + propOther);
 			resultsBasic.append("\t" + propOther);
 

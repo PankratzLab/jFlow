@@ -28,8 +28,8 @@ public class BlastResults {
 			PrintWriter writer = new PrintWriter(new FileWriter(outSum));
 
 			writer.println("MarkerName\tPerfectMatch\tNonPerfectOnTarget\tOffTarget\tTotalAlignments");
-			VCFFileReader reader = new VCFFileReader(	new File(proj.BLAST_ANNOTATION_FILENAME.getValue()),
-																								true);
+			VCFFileReader reader = new VCFFileReader(new File(proj.BLAST_ANNOTATION_FILENAME.getValue()),
+																							 true);
 			int index = 0;
 			for (VariantContext vc : reader) {
 				// proj.getLog().reportTimeInfo(vc.getID());
@@ -38,8 +38,8 @@ public class BlastResults {
 				int numOff = blastResults[index].getNumOffTarget(proj.getLog());
 				int numOnNonPerf = blastResults[index].getNumOnTargetNonPerfect(proj.getLog());
 				int numTotal = ArrayUtils.sum(blastResults[index].getAlignmentHistogram(proj));
-				writer.println(vc.getID()	+ "\t" + pm + "\t" + numOnNonPerf + "\t" + numOff + "\t"
-												+ numTotal);
+				writer.println(vc.getID() + "\t" + pm + "\t" + numOnNonPerf + "\t" + numOff + "\t"
+											 + numTotal);
 				index++;
 			}
 			reader.close();

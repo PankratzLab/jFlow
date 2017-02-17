@@ -60,12 +60,12 @@ public class BoxPlot extends JFrame {
 	private static final String PROP_FILE = "boxplot.properties";
 	private static final String PROPKEY_DATAFILE = "DATA_FILE";
 	private static final String PROPKEY_SELECTED = "SELECTED";
-	private static final String[] PROPKEY_HOTKEYS = {	"HOTKEY_0", "HOTKEY_1", "HOTKEY_2", "HOTKEY_3",
-																										"HOTKEY_4", "HOTKEY_5", "HOTKEY_6", "HOTKEY_7",
-																										"HOTKEY_8", "HOTKEY_9",};
-	private static final int[] KEYS = {	KeyEvent.VK_0, KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3,
-																			KeyEvent.VK_4, KeyEvent.VK_5, KeyEvent.VK_6, KeyEvent.VK_7,
-																			KeyEvent.VK_8, KeyEvent.VK_9,};
+	private static final String[] PROPKEY_HOTKEYS = {"HOTKEY_0", "HOTKEY_1", "HOTKEY_2", "HOTKEY_3",
+																									 "HOTKEY_4", "HOTKEY_5", "HOTKEY_6", "HOTKEY_7",
+																									 "HOTKEY_8", "HOTKEY_9",};
+	private static final int[] KEYS = {KeyEvent.VK_0, KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3,
+																		 KeyEvent.VK_4, KeyEvent.VK_5, KeyEvent.VK_6, KeyEvent.VK_7,
+																		 KeyEvent.VK_8, KeyEvent.VK_9,};
 
 	// String testFile = "C:\\Users\\Ben\\Desktop\\hb hrs P1 sample 12-May-2016.wsp FlowJo table.csv";
 	String testFile = "F:\\Flow\\counts data\\hb hrs P1 sample 12-May-2016.wsp FlowJo table.csv";
@@ -77,8 +77,7 @@ public class BoxPlot extends JFrame {
 
 	private volatile boolean loadingProps = false;
 
-	private final HashMap<String, ArrayList<String>> hotkeyDefs =
-																															new HashMap<String, ArrayList<String>>();
+	private final HashMap<String, ArrayList<String>> hotkeyDefs = new HashMap<String, ArrayList<String>>();
 
 	public BoxPlot() {
 		super(TITLE_STR);
@@ -90,9 +89,9 @@ public class BoxPlot extends JFrame {
 
 		scrollContent = new JPanel(new MigLayout("", "", ""));
 		scrollContent.setBackground(Color.WHITE);
-		JScrollPane scrollPane = new JScrollPane(	scrollContent,
-																							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-																							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		JScrollPane scrollPane = new JScrollPane(scrollContent,
+																						 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+																						 JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.getVerticalScrollBar().setUnitIncrement(14);
 		scrollPane.getHorizontalScrollBar().setUnitIncrement(14);
 
@@ -179,8 +178,8 @@ public class BoxPlot extends JFrame {
 		DefaultTreeModel dtm = (DefaultTreeModel) ctrlPanel.tree.getModel();
 		for (String s : keyDef) {
 			String[] pts = s.split("\\|")[0].trim().split("/");
-			TreePath tp =
-									new TreePath(dtm.getPathToRoot(ctrlPanel.getNodeForKey(ArrayUtils.toStr(pts, "\t"))));
+			TreePath tp = new TreePath(dtm.getPathToRoot(ctrlPanel.getNodeForKey(ArrayUtils.toStr(pts,
+																																														"\t"))));
 			data.add(tp);
 		}
 		if (data.size() > 0) {
@@ -305,8 +304,8 @@ public class BoxPlot extends JFrame {
 			DefaultTreeModel dtm = (DefaultTreeModel) ctrlPanel.tree.getModel();
 			for (String s : sel) {
 				String[] pts = s.split("\\|")[0].trim().split("/");
-				TreePath tp = new TreePath(dtm.getPathToRoot(ctrlPanel.getNodeForKey(ArrayUtils.toStr(	pts,
-																																													"\t"))));
+				TreePath tp = new TreePath(dtm.getPathToRoot(ctrlPanel.getNodeForKey(ArrayUtils.toStr(pts,
+																																															"\t"))));
 				data.add(tp);
 			}
 			if (data.size() > 0) {
@@ -337,8 +336,9 @@ public class BoxPlot extends JFrame {
 			for (String element : PROPKEY_HOTKEYS) {
 				ArrayList<String> hotKeyDef = hotkeyDefs.get(element);
 				props.setProperty(element,
-													hotKeyDef == null	? ""
-																						: ArrayUtils.toStr(ArrayUtils.toStringArray(hotKeyDef), ";;"));
+													hotKeyDef == null ? ""
+																						: ArrayUtils.toStr(ArrayUtils.toStringArray(hotKeyDef),
+																															 ";;"));
 			}
 			File f = new File(PROP_FILE);
 			OutputStream out = new FileOutputStream(f);

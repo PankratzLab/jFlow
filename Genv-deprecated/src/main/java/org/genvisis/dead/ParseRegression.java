@@ -42,8 +42,7 @@ public class ParseRegression {
 	// Documents\\ADNI\\results\\"};
 	// public static final String[] DEFAULT_DIRS = {"C:\\Documents and Settings\\npankrat\\My
 	// Documents\\LOAD\\results\\"};
-	public static final String[] DEFAULT_DIRS =
-																						{"C:\\Documents and Settings\\npankrat\\My Documents\\UMN\\Myron\\ExcisionPathway\\ancestry\\cpru\\"};
+	public static final String[] DEFAULT_DIRS = {"C:\\Documents and Settings\\npankrat\\My Documents\\UMN\\Myron\\ExcisionPathway\\ancestry\\cpru\\"};
 
 	// public static final String[] METHODS = {"linear", "logistic"};
 	public static final String[] METHODS = {"logistic"};
@@ -89,16 +88,16 @@ public class ParseRegression {
 			for (String dir : dirs) {
 				for (int j = 0; j < MODELS.length; j++) {
 					try {
-						reader = new BufferedReader(new FileReader(dir	+ MODELS[j].toLowerCase() + ".assoc."
-																												+ element));
+						reader = new BufferedReader(new FileReader(dir + MODELS[j].toLowerCase() + ".assoc."
+																											 + element));
 						System.out.println("Parsing " + dir + MODELS[j].toLowerCase() + ".assoc." + element);
 						reader.readLine();
 						count = 0;
 						while (reader.ready()) {
 							line = reader.readLine().trim().split("[\\s]+");
 							if (line.length == 1 && line[0].equals("25")) {
-								System.err.println("Error - That weird thing with the last line of "	+ dir
-																		+ MODELS[j].toLowerCase() + ".assoc." + element);
+								System.err.println("Error - That weird thing with the last line of " + dir
+																	 + MODELS[j].toLowerCase() + ".assoc." + element);
 								continue;
 							}
 							if (line[0].equals("23") || line[0].equals("24") || line[0].equals("26")) {
@@ -115,25 +114,25 @@ public class ParseRegression {
 									allSNPs.put(line[1], data = Matrix.doubleMatrix(MODELS.length, 3, -999));
 								} else {
 									if (!line[1].equals(snpNames.elementAt(count))) {
-										System.err.println("Error - out of sync in "	+ dir + MODELS[j].toLowerCase()
-																				+ ".assoc." + element + " - expecting "
-																				+ snpNames.elementAt(count) + ", found " + line[1]);
+										System.err.println("Error - out of sync in " + dir + MODELS[j].toLowerCase()
+																			 + ".assoc." + element + " - expecting "
+																			 + snpNames.elementAt(count) + ", found " + line[1]);
 										System.exit(1);
 									}
 									data = allSNPs.get(line[1]);
 								}
 								data[j][0] = line[6
-																	+ MODEL_OFFSETS[j]].equals("NA")	? -999
-																																		: Double.parseDouble(line[6
-																																															+ MODEL_OFFSETS[j]]);
+																	+ MODEL_OFFSETS[j]].equals("NA") ? -999
+																																	 : Double.parseDouble(line[6
+																																														 + MODEL_OFFSETS[j]]);
 								data[j][1] = line[7
-																	+ MODEL_OFFSETS[j]].equals("NA")	? -999
-																																		: Double.parseDouble(line[7
-																																															+ MODEL_OFFSETS[j]]);
+																	+ MODEL_OFFSETS[j]].equals("NA") ? -999
+																																	 : Double.parseDouble(line[7
+																																														 + MODEL_OFFSETS[j]]);
 								data[j][2] = line[8
-																	+ MODEL_OFFSETS[j]].equals("NA")	? -999
-																																		: Double.parseDouble(line[8
-																																															+ MODEL_OFFSETS[j]]);
+																	+ MODEL_OFFSETS[j]].equals("NA") ? -999
+																																	 : Double.parseDouble(line[8
+																																														 + MODEL_OFFSETS[j]]);
 								if (data[j][2] != -999 && data[j][2] < CUTOFF) {
 									if (!topSNPs.contains(line[1])) {
 										topSNPs.add(line[1]);
@@ -144,12 +143,12 @@ public class ParseRegression {
 						}
 						reader.close();
 					} catch (FileNotFoundException fnfe) {
-						System.err.println("Error: file \""	+ dir + MODELS[j].toLowerCase() + ".assoc."
-																+ element + "\" not found in current directory");
+						System.err.println("Error: file \"" + dir + MODELS[j].toLowerCase() + ".assoc."
+															 + element + "\" not found in current directory");
 						System.exit(1);
 					} catch (IOException e) {
-						System.err.println("Error reading file \""	+ dir + MODELS[j].toLowerCase() + ".assoc."
-																+ element + "\"");
+						System.err.println("Error reading file \"" + dir + MODELS[j].toLowerCase() + ".assoc."
+															 + element + "\"");
 						e.printStackTrace();
 						System.exit(2);
 					}
@@ -166,7 +165,7 @@ public class ParseRegression {
 				}
 				if (map == null) {
 					System.err.println("Error - could not find a .MAP or .BIM file with any of the following roots: "
-															+ ArrayUtils.toStr(MAP_ROOTS, ", "));
+														 + ArrayUtils.toStr(MAP_ROOTS, ", "));
 					System.exit(1);
 				}
 				markerNames = map.getMarkerNames();
@@ -176,19 +175,18 @@ public class ParseRegression {
 				try {
 					writer = new PrintWriter(new FileWriter(dir + element + ".xls"));
 					writer.println("SNP\tChr\tPosition\tAllele\t"
-													+ ArrayUtils.toStr(MODELS, "\tstatistic\tp-value\t") + "\tstatistic\tp-value");
+												 + ArrayUtils.toStr(MODELS, "\tstatistic\tp-value\t")
+												 + "\tstatistic\tp-value");
 					for (int j = 0; j < markerNames.length; j++) {
 						if (allSNPs.containsKey(markerNames[j])) {
-							writer.print(markerNames[j]	+ "\t" + chrs[j] + "\t" + positions[j] + "\t"
-														+ alleles.get(markerNames[j]));
+							writer.print(markerNames[j] + "\t" + chrs[j] + "\t" + positions[j] + "\t"
+													 + alleles.get(markerNames[j]));
 							used.put(markerNames[j], data = allSNPs.remove(markerNames[j]));
 							for (int k = 0; k < MODELS.length; k++) {
-								writer.print("\t"	+ (data[k][0] == -999 ? "." : ext.formDeci(data[k][0], 3, true))
-															+ "\t"
-															+ (data[k][1] == -999 ? "." : ext.formDeci(data[k][1], 4, true))
-															+ "\t"
-															+ (data[k][2] == -999	? "."
-																										: ext.prettyP(data[k][2], 2, 5, 4, true)));
+								writer.print("\t" + (data[k][0] == -999 ? "." : ext.formDeci(data[k][0], 3, true))
+														 + "\t" + (data[k][1] == -999 ? "." : ext.formDeci(data[k][1], 4, true))
+														 + "\t"
+														 + (data[k][2] == -999 ? "." : ext.prettyP(data[k][2], 2, 5, 4, true)));
 							}
 
 							writer.println();
@@ -226,15 +224,15 @@ public class ParseRegression {
 						writer.print(topSNPs.elementAt(j));
 						data = used.get(topSNPs.elementAt(j));
 						for (int k = 0; k < MODELS.length; k++) {
-							writer.print("\t"	+ (data[k][0] == -999 ? "." : ext.formDeci(data[k][0], 3, true))
-														+ "\t" + (data[k][2] == -999 ? "." : data[k][2]));
+							writer.print("\t" + (data[k][0] == -999 ? "." : ext.formDeci(data[k][0], 3, true))
+													 + "\t" + (data[k][2] == -999 ? "." : data[k][2]));
 						}
 						writer.println();
 					}
 					writer.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ dir + element + "_topHits.xls"
-															+ "\" is currently in use");
+					System.err.println("Error: file \"" + dir + element + "_topHits.xls"
+														 + "\" is currently in use");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error writing to file \"" + dir + element + "_topHits.xls" + "\"");
@@ -248,11 +246,11 @@ public class ParseRegression {
 		int numArgs = args.length;
 		Vector<String> v = new Vector<String>();
 
-		String usage = "\n"	+ "park.parseLinear requires 0-1 arguments\n"
-										+ "   (1) directory (i.e. relevantDirectory/ (default))\n" + "";
+		String usage = "\n" + "park.parseLinear requires 0-1 arguments\n"
+									 + "   (1) directory (i.e. relevantDirectory/ (default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h")	|| args[i].equals("-help") || args[i].equals("/h")
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h")
 					|| args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);

@@ -196,8 +196,8 @@ public class HistogramPop extends Application {
 		areaChart.setHorizontalGridLinesVisible(true);
 		areaChart.setVerticalGridLinesVisible(false);
 		areaChart.setAnimated(false);
-		BasicHistogram[] histograms = getHistogram(	Math.max(1, (int) slider.getValue()),
-																								parseResult.data);
+		BasicHistogram[] histograms = getHistogram(Math.max(1, (int) slider.getValue()),
+																							 parseResult.data);
 		addDataToChart(histograms, new DecimalFormat("#.##"));
 		areaChart.getXAxis().setLabel("Bins " + (int) slider.getValue());
 
@@ -243,12 +243,12 @@ public class HistogramPop extends Application {
 			countsBin.setName(parseResult.titles[i]);
 			for (int j = 0; j < histogram.binMax.length; j++) {
 				if (Double.isFinite(histogram.binMin[j]) && Double.isFinite(histogram.binMax[j])) {
-					countsBin	.getData()
-										.add(new XYChart.Data<Number, Number>(Double.valueOf(twoDForm.format(histogram.binMin[j])),
-																													histogram.counts[j]));
-					countsBin	.getData()
-										.add(new XYChart.Data<Number, Number>(Double.valueOf(twoDForm.format(histogram.binMax[j])),
-																													histogram.counts[j]));
+					countsBin.getData()
+									 .add(new XYChart.Data<Number, Number>(Double.valueOf(twoDForm.format(histogram.binMin[j])),
+																												 histogram.counts[j]));
+					countsBin.getData()
+									 .add(new XYChart.Data<Number, Number>(Double.valueOf(twoDForm.format(histogram.binMax[j])),
+																												 histogram.counts[j]));
 				}
 			}
 			if (replace && i < areaChart.getData().size()) {

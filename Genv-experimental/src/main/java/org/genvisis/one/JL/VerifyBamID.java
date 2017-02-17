@@ -21,8 +21,7 @@ import htsjdk.variant.vcf.VCFFileReader;
 
 public class VerifyBamID {
 
-	private static final String VerifyBamIDLocation =
-																									"/panfs/roc/groups/5/pankrat2/public/bin/verifyBamID_1.1.0/verifyBamID/bin/verifyBamID";
+	private static final String VerifyBamIDLocation = "/panfs/roc/groups/5/pankrat2/public/bin/verifyBamID_1.1.0/verifyBamID/bin/verifyBamID";
 
 	public static void verifyBamID(String bamFile, String vcf) {
 		String dir = ext.parseDirectoryOfFile(vcf) + "verifyBamID/";
@@ -38,9 +37,9 @@ public class VerifyBamID {
 		// output+=
 		if (!Files.exists(verfifyVCF)) {
 			VCFFileReader reader = new VCFFileReader(new File(vcf), true);
-			VariantContextWriter writer =
-																	VCFOps.initWriter(verfifyVCF, null,
-																										reader.getFileHeader().getSequenceDictionary());
+			VariantContextWriter writer = VCFOps.initWriter(verfifyVCF, null,
+																											reader.getFileHeader()
+																														.getSequenceDictionary());
 			VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
 			int index = 0;
 			for (VariantContext vc : reader) {
@@ -57,8 +56,8 @@ public class VerifyBamID {
 			writer.close();
 		}
 
-		String[] command = new String[] {	VerifyBamIDLocation, "--vcf", verfifyVCF, "--bam", bamFile,
-																			"--out", output, "--verbose", "--ignoreRG", "--chip-none"};
+		String[] command = new String[] {VerifyBamIDLocation, "--vcf", verfifyVCF, "--bam", bamFile,
+																		 "--out", output, "--verbose", "--ignoreRG", "--chip-none"};
 		CmdLine.runCommandWithFileChecks(command, "", null, null, false, false, false, log);
 	}
 

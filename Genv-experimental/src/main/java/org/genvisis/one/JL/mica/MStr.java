@@ -29,7 +29,8 @@ public class MStr {
 			new File(outDir).mkdirs();
 			Segment mSeg = new Segment("chr6:31380150-31380165");
 			String outfile = outDir + ext.rootOf(vcf) + "_"
-					+ ext.replaceWithLinuxSafeCharacters(mSeg.getUCSClocation(), true) + ".matrix.txt";
+											 + ext.replaceWithLinuxSafeCharacters(mSeg.getUCSClocation(), true)
+											 + ".matrix.txt";
 			PrintWriter writer = Files.getAppropriateWriter(outfile);
 			Logger log = new Logger(outDir + "log.log");
 			VCFFileReader reader = new VCFFileReader(new File(vcf), false);
@@ -42,7 +43,8 @@ public class MStr {
 					if (vc.isIndel()) {
 						int index = 0;
 						StringBuilder builder = new StringBuilder(vc.getContig() + "\t" + vc.getStart() + "\t"
-								+ vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString());
+																											+ vc.getReference().getBaseString() + "\t"
+																											+ vc.getAlternateAlleles().toString());
 						for (Genotype g : vc.getGenotypes()) {
 
 							if (!g.getSampleName().equals(samples[index])) {
@@ -91,8 +93,10 @@ public class MStr {
 							} else {
 								builder2.append("\t.\t.");
 							}
-							builder2.append("\t" + g.getGQ() + "\t" + (g.getAD() == null ? g.getAnyAttribute("DPR")
-									: ArrayUtils.toStr(ArrayUtils.toStringArray((g.getAD())), ",")));
+							builder2.append("\t" + g.getGQ() + "\t"
+															+ (g.getAD() == null ? g.getAnyAttribute("DPR")
+																									 : ArrayUtils.toStr(ArrayUtils.toStringArray((g.getAD())),
+																																			",")));
 
 							builder2.append("\t" + (g.isCalled() ? (g.isHom() ? "HOM" : "HET") : "NA"));
 							builder2.append("\t" + g.toString());
@@ -106,8 +110,8 @@ public class MStr {
 			}
 			writer.close();
 			reader.close();
-			log.reportTimeInfo(
-					ArrayUtils.booleanArraySum(samplesWithOneGenotype) + " of " + samples.length + " samples had genotypes");
+			log.reportTimeInfo(ArrayUtils.booleanArraySum(samplesWithOneGenotype) + " of "
+												 + samples.length + " samples had genotypes");
 		}
 
 	}
@@ -116,8 +120,8 @@ public class MStr {
 		String fastaDb = "/Volumes/Beta/ref/hg19_canonical.fa";
 		Blast blast = new Blast(fastaDb, 60, 100, new Logger(), true, true);
 		FastaEntry fastaEntry = new FastaEntry("HDSIF",
-				"GAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTGTGTTAATTAATTAATGCTTGTAGGACATAATAATAACAATTGAAT");
-		blast.blastSequence(new FastaEntry[] { fastaEntry }, null);
+																					 "GAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTGTGTTAATTAATTAATGCTTGTAGGACATAATAATAACAATTGAAT");
+		blast.blastSequence(new FastaEntry[] {fastaEntry}, null);
 	}
 
 	public static void main(String[] args) {

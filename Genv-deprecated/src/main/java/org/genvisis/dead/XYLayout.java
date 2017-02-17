@@ -71,7 +71,7 @@ public class XYLayout implements LayoutManager2, Serializable {
 			Component component = container.getComponent(j);
 			if (component.isVisible()) {
 				Rectangle rectangle = getComponentBounds(component, true);
-				component.setBounds(insets.left	+ rectangle.x, insets.top + rectangle.y, rectangle.width,
+				component.setBounds(insets.left + rectangle.x, insets.top + rectangle.y, rectangle.width,
 														rectangle.height);
 			}
 		}

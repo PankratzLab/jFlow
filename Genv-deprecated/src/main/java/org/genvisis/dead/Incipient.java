@@ -259,17 +259,16 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 
 					// Error Modifier for Score (number of times wrong during last MAXHIST time points added
 					// to score)
-					if (menuHighErrOption.getState()	&& history.size() > 0
+					if (menuHighErrOption.getState() && history.size() > 0
 							&& !(history.elementAt(history.size() - 1).sameDay(today)
-										|| !history.elementAt(history.size() - 1).caughtUp())) {
+									 || !history.elementAt(history.size() - 1).caughtUp())) {
 						score += numWrongRecently;
 					}
 
 					// Latest Additions Modifier for Score (MAXHIST minus the number of times seen)
 					if (menuLatestOption.getState()
-							&& (history.size() == 0
-									|| !(history.elementAt(history.size() - 1).sameDay(today)
-												|| !history.elementAt(history.size() - 1).caughtUp()))) {
+							&& (history.size() == 0 || !(history.elementAt(history.size() - 1).sameDay(today)
+																					 || !history.elementAt(history.size() - 1).caughtUp()))) {
 						score += MAXHIST - history.size();
 					}
 
@@ -365,7 +364,7 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 				history = aHistory;
 			}
 
-			for (int i = history.size() - 1; i >= ((history.size() > MAXHIST)	? history.size() - MAXHIST
+			for (int i = history.size() - 1; i >= ((history.size() > MAXHIST) ? history.size() - MAXHIST
 																																				: 0); i--) {
 				trav = history.elementAt(i);
 				str += timeAgo(today - trav.when) + "  ";
@@ -385,13 +384,13 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 		@Override
 		public String toString() {
 			String stringToReturn = AnswerString + "|" + QuestionString + "|" + category;
-			for (int i = (qHistory.size() > MAXHIST)	? qHistory.size() - MAXHIST
-																								: 0; i < qHistory.size(); i++) {
+			for (int i = (qHistory.size() > MAXHIST) ? qHistory.size() - MAXHIST
+																							 : 0; i < qHistory.size(); i++) {
 				stringToReturn += "|" + qHistory.elementAt(i);
 			}
 			stringToReturn += "|<-Q and A->";
-			for (int i = (aHistory.size() > MAXHIST)	? aHistory.size() - MAXHIST
-																								: 0; i < aHistory.size(); i++) {
+			for (int i = (aHistory.size() > MAXHIST) ? aHistory.size() - MAXHIST
+																							 : 0; i < aHistory.size(); i++) {
 				stringToReturn += "|" + aHistory.elementAt(i);
 			}
 
@@ -403,7 +402,7 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 
 			stringToReturn += "\t" + qHistory.size() + "\t" + scoreHistory(qHistory);
 			stringToReturn += "\t" + aHistory.size() + "\t" + scoreHistory(aHistory);
-			stringToReturn += "\t" + ((MAXHIST - qHistory.size())	+ scoreHistory(qHistory)
+			stringToReturn += "\t" + ((MAXHIST - qHistory.size()) + scoreHistory(qHistory)
 																+ (5 - Math.min(aHistory.size(), 5)) + scoreHistory(aHistory));
 
 			return stringToReturn;
@@ -436,8 +435,7 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 	public static final String YES = "Yes", NO = "No";
 	public static final String SHOW_ANSWER = "Show", SKIP_WORD = "Skip", RIGHT = "Right",
 			WRONG = "Wrong", UNDO = "Undo last action";
-	public static final String DBFILE =
-																		"C:\\Documents and Settings\\npankrat\\My Documents\\jProjects\\Flash\\turk.database";
+	public static final String DBFILE = "C:\\Documents and Settings\\npankrat\\My Documents\\jProjects\\Flash\\turk.database";
 
 	private final int MAXSCORE = 25;
 	private final int RESET_Q_SCORE = 9;
@@ -479,7 +477,7 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 	private Vector<String> wrongHistory;
 	private boolean wrongFlag;
 	private final int[] previousWordAction = {-1, -1, -1, -1, -1}; // {word's hashNum, skipped?,
-																																	// wrong?, in wrongHistory?}
+																																 // wrong?, in wrongHistory?}
 	private int questionsLeft;
 	// private int answersLeft;
 	private JLabel leftLabel;
@@ -501,7 +499,7 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 
 	public JMenuItem createMenuItem(JMenu menu, String name, int mnemonic, String tooltip,
 																	int accelerator, boolean checkbox) {
-		JMenuItem menuItem = checkbox	? (JCheckBoxMenuItem) menu.add(new JCheckBoxMenuItem(name))
+		JMenuItem menuItem = checkbox ? (JCheckBoxMenuItem) menu.add(new JCheckBoxMenuItem(name))
 																	: (JMenuItem) menu.add(new JMenuItem(name));
 		menuItem.setMnemonic(mnemonic);
 		menuItem.setToolTipText(tooltip);
@@ -521,47 +519,47 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 		menuBar = new JMenuBar();
 
 		fileMenu = createMenu(menuBar, "File", 'F');
-		createMenuItem(	fileMenu, ENTERWORDS, KeyEvent.VK_N, "Enter new words into the database",
-										KeyEvent.VK_N, false);
-		createMenuItem(	fileMenu, CHANGE_LIST, KeyEvent.VK_C,
-										"Change list of words to something else... something worth changing to",
-										KeyEvent.VK_C, false);
+		createMenuItem(fileMenu, ENTERWORDS, KeyEvent.VK_N, "Enter new words into the database",
+									 KeyEvent.VK_N, false);
+		createMenuItem(fileMenu, CHANGE_LIST, KeyEvent.VK_C,
+									 "Change list of words to something else... something worth changing to",
+									 KeyEvent.VK_C, false);
 		fileMenu.addSeparator();
-		createMenuItem(	fileMenu, PROGRESS, KeyEvent.VK_P,
-										"Update database file (helpful if you might not want to save your progress on the next segment)",
-										KeyEvent.VK_P, false);
+		createMenuItem(fileMenu, PROGRESS, KeyEvent.VK_P,
+									 "Update database file (helpful if you might not want to save your progress on the next segment)",
+									 KeyEvent.VK_P, false);
 		fileMenu.addSeparator();
-		createMenuItem(	fileMenu, QUITWOSAVING, KeyEvent.VK_W,
-										"Quit without saving all changes made since opening the database",
-										KeyEvent.VK_W, false);
-		createMenuItem(	fileMenu, QUIT, KeyEvent.VK_Q, "Quit after saving the updated database",
-										KeyEvent.VK_Q, false);
+		createMenuItem(fileMenu, QUITWOSAVING, KeyEvent.VK_W,
+									 "Quit without saving all changes made since opening the database", KeyEvent.VK_W,
+									 false);
+		createMenuItem(fileMenu, QUIT, KeyEvent.VK_Q, "Quit after saving the updated database",
+									 KeyEvent.VK_Q, false);
 
 		editMenu = createMenu(menuBar, "Edit", 'E');
 		menuUndoItem = createMenuItem(editMenu, UNDO, KeyEvent.VK_U,
 																	"Backup one word and any undo changes to score", KeyEvent.VK_Z,
 																	false);
-		createMenuItem(	editMenu, SKIP_WORD, KeyEvent.VK_K, "Skip this word without logging any changes",
-										KeyEvent.VK_A, false);
+		createMenuItem(editMenu, SKIP_WORD, KeyEvent.VK_K, "Skip this word without logging any changes",
+									 KeyEvent.VK_A, false);
 		createMenuItem(editMenu, CUT, KeyEvent.VK_T, "Cut selected text", KeyEvent.VK_X, false);
 		createMenuItem(editMenu, COPY, KeyEvent.VK_C, "Copy selected text", KeyEvent.VK_C, false);
 		createMenuItem(editMenu, PASTE, KeyEvent.VK_P, "Paste text", KeyEvent.VK_V, false);
 
 		optionsMenu = createMenu(menuBar, "Options", 'O');
-		menuStatsOption = (JCheckBoxMenuItem) createMenuItem(	optionsMenu, STATS, KeyEvent.VK_S,
-																													"Show statistics", KeyEvent.VK_S, true);
+		menuStatsOption = (JCheckBoxMenuItem) createMenuItem(optionsMenu, STATS, KeyEvent.VK_S,
+																												 "Show statistics", KeyEvent.VK_S, true);
 		menuLeftOption = (JCheckBoxMenuItem) createMenuItem(optionsMenu, LEFT, KeyEvent.VK_L,
 																												"The number of remaining words above the threshold",
 																												KeyEvent.VK_3, true);
 		optionsMenu.addSeparator();
-		menuRefreshOption = (JCheckBoxMenuItem) createMenuItem(	optionsMenu, REFRESH, KeyEvent.VK_R,
-																														"Add 1 point per week not seen",
-																														KeyEvent.VK_R, true);
-		menuHighErrOption = (JCheckBoxMenuItem) createMenuItem(	optionsMenu, HIGHERR,
-																														KeyEvent.VK_E,
-																														"Add 1 point per error made beyond in the last "
-																																						+ MAXHIST + " tries",
-																														KeyEvent.VK_E, true);
+		menuRefreshOption = (JCheckBoxMenuItem) createMenuItem(optionsMenu, REFRESH, KeyEvent.VK_R,
+																													 "Add 1 point per week not seen",
+																													 KeyEvent.VK_R, true);
+		menuHighErrOption = (JCheckBoxMenuItem) createMenuItem(optionsMenu, HIGHERR,
+																													 KeyEvent.VK_E,
+																													 "Add 1 point per error made beyond in the last "
+																																					+ MAXHIST + " tries",
+																													 KeyEvent.VK_E, true);
 		menuLatestOption = (JCheckBoxMenuItem) createMenuItem(optionsMenu, LATEST, KeyEvent.VK_L,
 																													"Adds " + MAXHIST + " points minus the number of times the word has been seen",
 																													KeyEvent.VK_L, true);
@@ -571,19 +569,19 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 		menuTaggedOption = (JCheckBoxMenuItem) createMenuItem(optionsMenu, HIDETAGGED,
 																													KeyEvent.VK_T,
 																													"Removes tagged (wrong) entries from pool while "
-																																						+ REFRESH + ", " + HIGHERR
-																																					+ ", or " + LATEST
-																																					+ " is checked",
+																																				 + REFRESH + ", " + HIGHERR
+																																				 + ", or " + LATEST
+																																				 + " is checked",
 																													KeyEvent.VK_T, true);
-		menuBlenderOption = (JCheckBoxMenuItem) createMenuItem(	optionsMenu, BLENDER, KeyEvent.VK_D,
-																														"Shuffles definitions", KeyEvent.VK_D,
-																														true);
+		menuBlenderOption = (JCheckBoxMenuItem) createMenuItem(optionsMenu, BLENDER, KeyEvent.VK_D,
+																													 "Shuffles definitions", KeyEvent.VK_D,
+																													 true);
 
 		helpMenu = createMenu(menuBar, "Help", 'H');
 		createMenuItem(helpMenu, HELP, KeyEvent.VK_H, "Display help screen", -1, true);
 		helpMenu.addSeparator();
-		createMenuItem(	helpMenu, ABOUT, KeyEvent.VK_A, "Display information about this program", -1,
-										true);
+		createMenuItem(helpMenu, ABOUT, KeyEvent.VK_A, "Display information about this program", -1,
+									 true);
 
 		frame.setJMenuBar(menuBar);
 	}
@@ -690,15 +688,15 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 				if (wordStatsBox == null) {
 					IPanel wsPanel = new IPanel(400, 230);
 					wsPanel.setLayout(new XYLayout());
-					wsPanel.setBorder(BorderFactory.createCompoundBorder(	BorderFactory.createRaisedBevelBorder(),
-																																BorderFactory.createTitledBorder(	BorderFactory.createEtchedBorder(),
-																																																	"Statistics for \'" + currentWord.briefTitle() + "\'")));
+					wsPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createRaisedBevelBorder(),
+																															 BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
+																																																"Statistics for \'" + currentWord.briefTitle() + "\'")));
 
 					wordStatsBox = new JWindow(parentFrame);
 					wordStatsBox.getContentPane().add(wsPanel, BorderLayout.CENTER);
 
 					JLabel njl = new JLabel("Score = "
-																		+ (currentQ2A ? currentWord.q_score : currentWord.a_score) + ", "
+																	+ (currentQ2A ? currentWord.q_score : currentWord.a_score) + ", "
 																	+ currentWord.lastSeen(), JLabel.CENTER);
 					njl.setFont(new Font("Arial", Font.PLAIN, 20));
 					wsPanel.add(njl, new XYConstraints(0, 0, 400, 30));
@@ -841,8 +839,8 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 		}
 	}
 
-	private void pickNewWord(	int prevWord, int skipped, int wasWrong, int wasInWrongHistory,
-														int wasCyclingWrongHistory) {
+	private void pickNewWord(int prevWord, int skipped, int wasWrong, int wasInWrongHistory,
+													 int wasCyclingWrongHistory) {
 		int target, count, attempt = 0;
 		int scoreTotal;
 		int[] scoreArray;
@@ -882,7 +880,7 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 			}
 		}
 
-		if (scoreTotal == 0	&& menuBrandNewOption.getState() && brandNew
+		if (scoreTotal == 0 && menuBrandNewOption.getState() && brandNew
 				&& threshSlider.getValue() == (currentQ2A ? RESET_Q_SCORE : RESET_A_SCORE)) {
 			threshSlider.setValue(2);
 			if (currentQ2A) {
@@ -895,7 +893,7 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 				scoreArray = aScoreArray;
 			}
 		}
-		if (scoreTotal == 0	&& menuBrandNewOption.getState() && brandNewAnswers && !brandNewQuestions
+		if (scoreTotal == 0 && menuBrandNewOption.getState() && brandNewAnswers && !brandNewQuestions
 				&& threshSlider.getValue() == 2) {
 			answerButton.setSelected(true);
 			scoreTotal = aScoreTotal;
@@ -1041,7 +1039,7 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 		String temp, newtext = "";
 		// int within;
 
-		if (!menuBlenderOption.getState()	|| text.indexOf("[") >= 0 || text.indexOf(" or ") >= 0
+		if (!menuBlenderOption.getState() || text.indexOf("[") >= 0 || text.indexOf(" or ") >= 0
 				|| text.indexOf("...") >= 0) {
 			return text;
 		}
@@ -1294,15 +1292,14 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 			writer.println(questionLabel);
 			writer.println(answerLabel);
 
-			writer.println("threshold="	+ threshSlider.getValue() + " "
-											+ (menuRefreshOption.getState() ? "Refresh " : "")
-											+ (menuHighErrOption.getState() ? "HighErrors " : "")
-											+ (menuLatestOption.getState() ? "Latest " : "")
-											+ (menuBrandNewOption.getState() ? "BrandNew " : "")
-											+ (menuTaggedOption.getState() ? "HideTagged " : "")
-											+ (menuBlenderOption.getState() ? "Blender " : "")
-											+ (currentQ2A ? "" : "Answers ")
-											+ (menuLeftOption.getState() ? "Left " : ""));
+			writer.println("threshold=" + threshSlider.getValue() + " "
+										 + (menuRefreshOption.getState() ? "Refresh " : "")
+										 + (menuHighErrOption.getState() ? "HighErrors " : "")
+										 + (menuLatestOption.getState() ? "Latest " : "")
+										 + (menuBrandNewOption.getState() ? "BrandNew " : "")
+										 + (menuTaggedOption.getState() ? "HideTagged " : "")
+										 + (menuBlenderOption.getState() ? "Blender " : "")
+										 + (currentQ2A ? "" : "Answers ") + (menuLeftOption.getState() ? "Left " : ""));
 
 			for (int i = 0; i < hash.size(); i++) {
 				trav = hash.get(i + "");
@@ -1316,8 +1313,8 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 
 	public void loadData() {
 		try {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(	new FileInputStream(DBFILE),
-																																				"UnicodeLittle"));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(DBFILE),
+																																			 "UnicodeLittle"));
 			StringTokenizer st, st2;
 			int count = 0;
 			String temp;
@@ -1437,7 +1434,7 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 			(new File(DBFILE + ".out")).renameTo(new File(DBFILE + ".out" + ".bak"));
 			System.err.println("Saving database...");
 			PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(DBFILE
-																																												+ ".out"),
+																																											 + ".out"),
 																																	"UnicodeLittle"));
 			Word trav;
 

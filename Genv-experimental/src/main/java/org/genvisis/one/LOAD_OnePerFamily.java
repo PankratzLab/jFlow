@@ -20,8 +20,8 @@ public class LOAD_OnePerFamily {
 		int dxLevel, minDxLevel, minAOO;
 
 		dxHash = HashVec.loadFileToHashString(dir + phenotypeFile, "IndID", new String[] {"Dx"}, "\t");
-		aooHash = HashVec.loadFileToHashString(dir	+ phenotypeFile, "IndID", new String[] {"AgeDem"},
-																						"\t");
+		aooHash = HashVec.loadFileToHashString(dir + phenotypeFile, "IndID", new String[] {"AgeDem"},
+																					 "\t");
 
 		pedHash = HashVec.loadFileToHashVec(dir + pedigreeFile, 0, new int[] {1}, "\t", false, false);
 		try {
@@ -53,9 +53,9 @@ public class LOAD_OnePerFamily {
 						}
 					}
 				}
-				writer.println(fam	+ "\t"
-												+ (pick == -1	? ".\t.\t."
-																			: v.elementAt(pick) + "\t" + minDxLevel + "\t" + minAOO));
+				writer.println(fam + "\t"
+											 + (pick == -1 ? ".\t.\t."
+																		 : v.elementAt(pick) + "\t" + minDxLevel + "\t" + minAOO));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -74,9 +74,9 @@ public class LOAD_OnePerFamily {
 		String pedigree = "finalPedigree_geno.pre-trimmed.pre";
 		String phenotypeFile = "Phenotype.dat";
 
-		String usage = "\n"	+ "one.LOAD_OnePerFamily requires 0-1 arguments\n"
-										+ "   (1) pedigree file (i.e. ped=" + phenotypeFile + " (default))\n"
-										+ "   (2) phenotype file (i.e. pheno=" + phenotypeFile + " (default))\n" + "";
+		String usage = "\n" + "one.LOAD_OnePerFamily requires 0-1 arguments\n"
+									 + "   (1) pedigree file (i.e. ped=" + phenotypeFile + " (default))\n"
+									 + "   (2) phenotype file (i.e. pheno=" + phenotypeFile + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

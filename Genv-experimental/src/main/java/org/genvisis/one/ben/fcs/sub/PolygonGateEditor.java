@@ -68,8 +68,8 @@ public class PolygonGateEditor extends JDialog {
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(new MigLayout(	"", "[][grow][][grow][]",
-																					"[][][][][][grow][][][][][][][]"));
+		contentPanel.setLayout(new MigLayout("", "[][grow][][grow][]",
+																				 "[][][][][][grow][][][][][][][]"));
 		{
 			JLabel lbl = new JLabel("ID:");
 			contentPanel.add(lbl, "flowx,cell 1 0 3 1,alignx center");

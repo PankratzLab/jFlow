@@ -68,7 +68,7 @@ public class createAssociation {
 		writer = new PrintWriter(new FileWriter(filename.substring(0, filename.indexOf("."))
 																						+ "-map.dat"));
 		writer.println((markers.length + 1)
-										+ " 0 0 5  << NO. OF LOCI, RISK LOCUS, SEXLINKED (IF 1) PROGRAM");
+									 + " 0 0 5  << NO. OF LOCI, RISK LOCUS, SEXLINKED (IF 1) PROGRAM");
 		writer.println("0 0.0 0.0 0  << MUT LOCUS, MUT RATE, HAPLOTYPE FREQUENCIES (IF 1)");
 		for (int i = 1; i <= markers.length + 1; i++) {
 			writer.print((i == 1 ? "" : " ") + i);
@@ -98,8 +98,8 @@ public class createAssociation {
 		int numArgs = args.length;
 		String filename = "chromosome2.dat";
 
-		String usage = "\n"	+ "createLinkage requires 0-3 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "";
+		String usage = "\n" + "createLinkage requires 0-3 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

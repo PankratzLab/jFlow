@@ -14,9 +14,9 @@ import org.genvisis.common.ext;
 import org.genvisis.park.tools;
 
 public class gwaPedigreeMaker {
-	public static final String[] HEADER = {	"FamID", "IndID", "UniqueID", "Father", "Mother", "Family",
-																					"Individ", "Father", "Mother", "Sex", "DNA", "IRB",
-																					"Shipment_Site", "DNA_Source", "DNA_ExtMeth", "Local_ID"};
+	public static final String[] HEADER = {"FamID", "IndID", "UniqueID", "Father", "Mother", "Family",
+																				 "Individ", "Father", "Mother", "Sex", "DNA", "IRB",
+																				 "Shipment_Site", "DNA_Source", "DNA_ExtMeth", "Local_ID"};
 
 	public gwaPedigreeMaker(String filename) throws IOException {
 		BufferedReader reader = null;
@@ -57,9 +57,9 @@ public class gwaPedigreeMaker {
 							for (int j = 3; j <= 4; j++) {
 								if (!hash.containsKey(line[j])) {
 									count++;
-									writer.println(line[0]	+ "\t" + line[j] + "\t"
-																	+ tools.getUniqueID(line[0], line[j]) + "\t.\t.\t" + line[5]
-																	+ "\t" + line[5] + "1" + count + "\t0\t0\t" + (j - 2) + "\t0");
+									writer.println(line[0] + "\t" + line[j] + "\t"
+																 + tools.getUniqueID(line[0], line[j]) + "\t.\t.\t" + line[5] + "\t"
+																 + line[5] + "1" + count + "\t0\t0\t" + (j - 2) + "\t0");
 									hash.put(line[j], line[5] + "1" + count);
 								}
 								line[4 + j] = hash.get(line[j]);
@@ -92,8 +92,8 @@ public class gwaPedigreeMaker {
 		// String filename = "GWA_Sample_Pedigree_starter.txt";
 		String filename = "Boston_GWA_Sample-Pedigree_file-starter.txt";
 
-		String usage = "\n"	+ "park.gwaPedigreeMaker requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
+		String usage = "\n" + "park.gwaPedigreeMaker requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

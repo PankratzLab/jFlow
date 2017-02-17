@@ -93,8 +93,8 @@ public class ParseMinPvalue {
 				}
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \""	+ dir + element + ".xls"
-														+ "\" not found in current directory");
+				System.err.println("Error: file \"" + dir + element + ".xls"
+													 + "\" not found in current directory");
 				System.exit(1);
 			} catch (IOException ioe) {
 				System.err.println("Error reading file \"" + dir + element + ".xls" + "\"");
@@ -107,8 +107,8 @@ public class ParseMinPvalue {
 		count = 0;
 		for (int i = 0; i < markers.size(); i++) {
 			if (hash.containsKey(markers.elementAt(i))) {
-				writer.println(markers.elementAt(i)	+ "\t" + hash.get(markers.elementAt(i)) + "\t"
-												+ -1 * Math.log10(Double.parseDouble(hash.get(markers.elementAt(i)))));
+				writer.println(markers.elementAt(i) + "\t" + hash.get(markers.elementAt(i)) + "\t"
+											 + -1 * Math.log10(Double.parseDouble(hash.get(markers.elementAt(i)))));
 				count++;
 			}
 		}
@@ -156,8 +156,8 @@ public class ParseMinPvalue {
 		String dir = DEFAULT_DIR;
 		String filename = "min_pvalue.dat";
 
-		String usage = "\\n"	+ "park.gwa.ParseMinPvalue requires 0-2 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\\n" + "park.gwa.ParseMinPvalue requires 0-2 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

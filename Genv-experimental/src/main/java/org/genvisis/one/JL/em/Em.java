@@ -79,8 +79,8 @@ public class Em {
 
 		double[][] m = new double[][] {x, y};
 		MultivariateNormalMixtureExpectationMaximization mle = new MultivariateNormalMixtureExpectationMaximization(Matrix.transpose(m));
-		MixtureMultivariateNormalDistribution initialMix = MultivariateNormalMixtureExpectationMaximization.estimate(	Matrix.transpose(m),
-																																																									3);
+		MixtureMultivariateNormalDistribution initialMix = MultivariateNormalMixtureExpectationMaximization.estimate(Matrix.transpose(m),
+																																																								 3);
 		mle.fit(initialMix, 500, 1E-5);
 		MixtureMultivariateNormalDistribution finalMix = mle.getFittedModel();
 		List<Pair<Double, MultivariateNormalDistribution>> dists = finalMix.getComponents();

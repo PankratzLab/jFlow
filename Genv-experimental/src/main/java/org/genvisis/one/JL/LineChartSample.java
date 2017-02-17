@@ -35,13 +35,14 @@ public class LineChartSample extends Application {
 	@Override
 	public void start(Stage stage) {
 		String file = "C:/data/misc/betaPlots/Whites_WBC_TOTAL_SingleSNPmatched.final_beta_summary.txt";
-		double[] pcs = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(	file, true, new int[] {0},
-																																			false));
-		double[] pvals = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(	file, true, new int[] {22},
-																																				false));
+		double[] pcs = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(file, true, new int[] {0},
+																																					false));
+		double[] pvals = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(file, true,
+																																						new int[] {22}, false));
 
-		double[] correl = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(file, true, new int[] {15},
-																																				false));
+		double[] correl = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(file, true,
+																																						 new int[] {15},
+																																						 false));
 		String[] types = HashVec.loadFileToStringArray(file, true, new int[] {21}, false);
 		String[] uniqTypes = ArrayUtils.unique(types);
 		XYChart.Series[] all = new XYChart.Series[uniqTypes.length];

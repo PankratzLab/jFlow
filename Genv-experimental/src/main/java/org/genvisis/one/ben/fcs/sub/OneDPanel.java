@@ -53,7 +53,7 @@ public class OneDPanel extends AbstractPanel2 {
 	private static final int MISSING_SIZE_MULT = 3;
 
 	public static enum PLOT_TYPE {
-																BOX_PLOT, DOT_LINE_PLOT,
+		BOX_PLOT, DOT_LINE_PLOT,
 	}
 
 	private PLOT_TYPE currentPlot;
@@ -100,8 +100,7 @@ public class OneDPanel extends AbstractPanel2 {
 	String plotLabel;
 
 	HashMap<String, int[][]> regressionLimits = new HashMap<String, int[][]>();
-	HashMap<String, ArrayList<String>> locallyDroppedPoints =
-																													new HashMap<String, ArrayList<String>>();
+	HashMap<String, ArrayList<String>> locallyDroppedPoints = new HashMap<String, ArrayList<String>>();
 	HashSet<String> globallyDroppedPoints = new HashSet<String>();
 
 	public void setShowMean15Line(boolean showMean15Line) {
@@ -231,8 +230,8 @@ public class OneDPanel extends AbstractPanel2 {
 				points[ind] = new PlotPoint(dataLabels[d][i], type, xAxisValue, yAxisValue, size, color,
 																		(byte) 0);
 				if (i < data[d].length - 1) {
-					lineList.add(new GenericLine(	xAxisValue, yAxisValue, (float) ind + 1,
-																				(float) data[d][i + 1], (byte) 1, (byte) d, (byte) 0));
+					lineList.add(new GenericLine(xAxisValue, yAxisValue, (float) ind + 1,
+																			 (float) data[d][i + 1], (byte) 1, (byte) d, (byte) 0));
 				}
 				ind++;
 			}
@@ -243,22 +242,22 @@ public class OneDPanel extends AbstractPanel2 {
 		float sd = (float) ArrayUtils.stdev(data[0], true);
 		lineList.add(new GenericLine(0, mean, numPoints + 1, mean, (byte) 1, (byte) 0, (byte) 99));
 		if (showMean15Line) {
-			lineList.add(new GenericLine(	0, mean - mean15, numPoints + 1, mean - mean15, (byte) 1,
-																		(byte) getMeanColor(), (byte) 0));
-			lineList.add(new GenericLine(	0, mean + mean15, numPoints + 1, mean + mean15, (byte) 1,
-																		(byte) getMeanColor(), (byte) 0));
+			lineList.add(new GenericLine(0, mean - mean15, numPoints + 1, mean - mean15, (byte) 1,
+																	 (byte) getMeanColor(), (byte) 0));
+			lineList.add(new GenericLine(0, mean + mean15, numPoints + 1, mean + mean15, (byte) 1,
+																	 (byte) getMeanColor(), (byte) 0));
 		}
 		if (show1SDLines) {
-			lineList.add(new GenericLine(	0, mean - sd, numPoints + 1, mean - sd, (byte) 1,
-																		(byte) get1SDColor(), (byte) 0));
-			lineList.add(new GenericLine(	0, mean + sd, numPoints + 1, mean + sd, (byte) 1,
-																		(byte) get1SDColor(), (byte) 0));
+			lineList.add(new GenericLine(0, mean - sd, numPoints + 1, mean - sd, (byte) 1,
+																	 (byte) get1SDColor(), (byte) 0));
+			lineList.add(new GenericLine(0, mean + sd, numPoints + 1, mean + sd, (byte) 1,
+																	 (byte) get1SDColor(), (byte) 0));
 		}
 		if (show2SDLines) {
-			lineList.add(new GenericLine(	0, mean - 2 * sd, numPoints + 1, mean - 2 * sd, (byte) 1,
-																		(byte) get2SDColor(), (byte) 0));
-			lineList.add(new GenericLine(	0, mean + 2 * sd, numPoints + 1, mean + 2 * sd, (byte) 1,
-																		(byte) get2SDColor(), (byte) 0));
+			lineList.add(new GenericLine(0, mean - 2 * sd, numPoints + 1, mean - 2 * sd, (byte) 1,
+																	 (byte) get2SDColor(), (byte) 0));
+			lineList.add(new GenericLine(0, mean + 2 * sd, numPoints + 1, mean + 2 * sd, (byte) 1,
+																	 (byte) get2SDColor(), (byte) 0));
 		}
 
 		double dataMin = Math.min(mean - mean15, ArrayUtils.min(data[0])),
@@ -308,8 +307,8 @@ public class OneDPanel extends AbstractPanel2 {
 							double m = ls.getBetas()[1];
 							double yStart = b;
 							double yEnd = b + /* (limits[1] - limits[0] + 1) + */ m;
-							lineList.add(new GenericLine(	prevSum, (float) yStart, prevSum + data[d].length - 1,
-																						(float) yEnd, (byte) 2, (byte) d, (byte) 0));
+							lineList.add(new GenericLine(prevSum, (float) yStart, prevSum + data[d].length - 1,
+																					 (float) yEnd, (byte) 2, (byte) d, (byte) 0));
 						} else {
 							System.err.println("Error - regression failed");
 						}
@@ -317,12 +316,12 @@ public class OneDPanel extends AbstractPanel2 {
 						System.err.println("Error - regression failed with exception: " + e.getMessage());
 					}
 
-					rects.add(new GenericRectangle(prevSum	+ limits[2], (float) (dataMin - pad),
-																					prevSum + limits[0], (float) (dataMax + pad), (byte) 1,
-																					true, false, (byte) 0, (byte) 4, (byte) 99, false));
-					rects.add(new GenericRectangle(prevSum	+ limits[1], (float) (dataMin - pad),
-																					prevSum + limits[3], (float) (dataMax + pad), (byte) 1,
-																					true, false, (byte) 0, (byte) 4, (byte) 99, false));
+					rects.add(new GenericRectangle(prevSum + limits[2], (float) (dataMin - pad),
+																				 prevSum + limits[0], (float) (dataMax + pad), (byte) 1,
+																				 true, false, (byte) 0, (byte) 4, (byte) 99, false));
+					rects.add(new GenericRectangle(prevSum + limits[1], (float) (dataMin - pad),
+																				 prevSum + limits[3], (float) (dataMax + pad), (byte) 1,
+																				 true, false, (byte) 0, (byte) 4, (byte) 99, false));
 				}
 				prevSum += data[d].length;
 			}
@@ -388,10 +387,10 @@ public class OneDPanel extends AbstractPanel2 {
 				// line @ qr75
 				lns.add(new GenericLine(xLow, (float) qr75, xHigh, (float) qr75, (byte) 2, col, (byte) 0));
 				// small line at wiskLow
-				lns.add(new GenericLine(xMed	- (xMed - xLow) / 2, (float) wiskLow, xMed + (xMed - xLow) / 2,
+				lns.add(new GenericLine(xMed - (xMed - xLow) / 2, (float) wiskLow, xMed + (xMed - xLow) / 2,
 																(float) wiskLow, (byte) 2, col, (byte) 0));
 				// small line at wiskHigh
-				lns.add(new GenericLine(xMed	- (xMed - xLow) / 2, (float) wiskHigh,
+				lns.add(new GenericLine(xMed - (xMed - xLow) / 2, (float) wiskHigh,
 																xMed + (xMed - xLow) / 2, (float) wiskHigh, (byte) 2, col,
 																(byte) 0));
 				// line from qr25 -> wiskLow
@@ -496,20 +495,16 @@ public class OneDPanel extends AbstractPanel2 {
 			case 0:
 				return;
 			case 1:
-				regressionLimits.get(plotLabel)[dragInd][0] =
-																										Math.round((float) getXValueFromXPixel(e.getX())
-																																- sum);
-				regressionLimits.get(plotLabel)[dragInd][0] =
-																										Math.max(	regressionLimits.get(plotLabel)[dragInd][0],
-																															regressionLimits.get(plotLabel)[dragInd][2]);
+				regressionLimits.get(plotLabel)[dragInd][0] = Math.round((float) getXValueFromXPixel(e.getX())
+																																 - sum);
+				regressionLimits.get(plotLabel)[dragInd][0] = Math.max(regressionLimits.get(plotLabel)[dragInd][0],
+																															 regressionLimits.get(plotLabel)[dragInd][2]);
 				break;
 			case 2:
-				regressionLimits.get(plotLabel)[dragInd][1] =
-																										Math.round((float) getXValueFromXPixel(e.getX())
-																																- sum);
-				regressionLimits.get(plotLabel)[dragInd][1] =
-																										Math.min(	regressionLimits.get(plotLabel)[dragInd][1],
-																															regressionLimits.get(plotLabel)[dragInd][3]);
+				regressionLimits.get(plotLabel)[dragInd][1] = Math.round((float) getXValueFromXPixel(e.getX())
+																																 - sum);
+				regressionLimits.get(plotLabel)[dragInd][1] = Math.min(regressionLimits.get(plotLabel)[dragInd][1],
+																															 regressionLimits.get(plotLabel)[dragInd][3]);
 				break;
 		}
 		paintAgain();
@@ -634,7 +629,7 @@ public class OneDPanel extends AbstractPanel2 {
 
 		defaultSize = POINT_SIZE;
 		for (PlotPoint point : points) {
-			point.setSize((byte) ((point.getType() == PlotPoint.MISSING	? defaultSize * MISSING_SIZE_MULT
+			point.setSize((byte) ((point.getType() == PlotPoint.MISSING ? defaultSize * MISSING_SIZE_MULT
 																																	: defaultSize)
 														* (point.isHighlighted() ? 1.5 : 1)));
 		}

@@ -57,8 +57,8 @@ public class hweAPOE {
 			ejukashun = st.nextToken();
 			duration = st.nextToken();
 			if (duration.equals(".") && !aoo.equals(".") && !alleles.equals("0")) {
-				System.err.println("Error - "	+ trav + "-" + temp
-														+ " has an age of onset but not a duration; why?");
+				System.err.println("Error - " + trav + "-" + temp
+													 + " has an age of onset but not a duration; why?");
 				System.err.println("  removing " + trav + "-" + temp + " from analysis");
 				aoo = ".";
 			}
@@ -73,8 +73,8 @@ public class hweAPOE {
 
 			if (!mmse.equals(".") && (group != -1) && affStat.equals("2") && !aoo.equals(".")) {
 				if (smoked.equals(".")) {
-					System.err.println("Warning: "	+ trav + "-" + temp
-															+ " does not know if he/she ever smoked; assuming not");
+					System.err.println("Warning: " + trav + "-" + temp
+														 + " does not know if he/she ever smoked; assuming not");
 					smoked = "0";
 				}
 
@@ -83,13 +83,13 @@ public class hweAPOE {
 						&& Integer.valueOf(mmse).intValue() < 21) {
 					demented = "0";
 				} else if (Integer.valueOf(ejukashun).intValue() <= 12
-										&& Integer.valueOf(mmse).intValue() < 23) {
+									 && Integer.valueOf(mmse).intValue() < 23) {
 					demented = "0";
 				} else if (Integer.valueOf(mmse).intValue() < 24) {
 					demented = "0";
 				}
-				data = group	+ "\t" + demented + "\t" + aoo + "\t" + gender + "\t" + duration + "\t"
-								+ smoked + "\t" + ejukashun;
+				data = group + "\t" + demented + "\t" + aoo + "\t" + gender + "\t" + duration + "\t"
+							 + smoked + "\t" + ejukashun;
 
 				if (addPerson(hash, trav, data)) {
 					fams.add(trav);
@@ -120,8 +120,8 @@ public class hweAPOE {
 				aoo = st.nextToken();
 
 				counts[2 * group + Integer.valueOf(demented).intValue()]++;
-				means[2 * group + Integer.valueOf(demented).intValue()] +=
-																																Double.valueOf(aoo).doubleValue();
+				means[2 * group + Integer.valueOf(demented).intValue()] += Double.valueOf(aoo)
+																																				 .doubleValue();
 			}
 			for (int j = 0; j < counts.length; j++) {
 				means[j] /= counts[j];
@@ -153,11 +153,11 @@ public class hweAPOE {
 		writer.println("\tDemented\tNot Demented");
 		for (int j = 0; j < GENOTYPES.length; j++) {
 			means[2 * j] = (double) totals[2 * j] / (double) numReps;
-			writer.print(GENOTYPES[j]	+ "\t" + ext.formDeci(means[2 * j], 1, true) + " ("
-										+ ext.formDeci(100 * means[2 * j] / affTotal, 1, true) + "%)\t");
+			writer.print(GENOTYPES[j] + "\t" + ext.formDeci(means[2 * j], 1, true) + " ("
+									 + ext.formDeci(100 * means[2 * j] / affTotal, 1, true) + "%)\t");
 			means[2 * j + 1] = (double) totals[2 * j + 1] / (double) numReps;
-			writer.println(ext.formDeci(means[2 * j + 1], 1, true)	+ " ("
-											+ ext.formDeci(100 * means[2 * j + 1] / unaffTotal, 1, true) + "%)\t");
+			writer.println(ext.formDeci(means[2 * j + 1], 1, true) + " ("
+										 + ext.formDeci(100 * means[2 * j + 1] / unaffTotal, 1, true) + "%)\t");
 		}
 
 		temp = apoeOR(means);
@@ -186,8 +186,8 @@ public class hweAPOE {
 		return line;
 	}
 
-	public boolean addPerson(	Hashtable<String, Vector<String>> hash, String trav,
-														String data) throws IOException {
+	public boolean addPerson(Hashtable<String, Vector<String>> hash, String trav,
+													 String data) throws IOException {
 		boolean newPerson = false;
 		Vector<String> v;
 
@@ -210,10 +210,10 @@ public class hweAPOE {
 		logOR = Math.log(OR);
 		se_logOR = Math.sqrt(1 / N21 + 1 / N22 + 1 / N11 + 1 / N12);
 
-		line = ext.formDeci(OR, 2, true)	+ " (95% CI: ("
-						+ ext.formDeci(Math.exp(logOR - 1.96 * se_logOR), 2, true) + ", "
-						+ ext.formDeci(Math.exp(logOR + 1.96 * se_logOR), 2, true) + "); p="
-						+ ext.formDeci(ProbDist.NormDist(Math.abs(logOR / se_logOR)), 3, true) + ")";
+		line = ext.formDeci(OR, 2, true) + " (95% CI: ("
+					 + ext.formDeci(Math.exp(logOR - 1.96 * se_logOR), 2, true) + ", "
+					 + ext.formDeci(Math.exp(logOR + 1.96 * se_logOR), 2, true) + "); p="
+					 + ext.formDeci(ProbDist.NormDist(Math.abs(logOR / se_logOR)), 3, true) + ")";
 
 		N21 += 0.5;
 		N22 += 0.5;
@@ -224,7 +224,7 @@ public class hweAPOE {
 		logOR = Math.log(OR);
 		se_logOR = Math.sqrt(1 / N21 + 1 / N22 + 1 / N11 + 1 / N12);
 
-		line += " corrected: "	+ ext.formDeci(OR, 2, true) + " (95% CI: ("
+		line += " corrected: " + ext.formDeci(OR, 2, true) + " (95% CI: ("
 						+ ext.formDeci(Math.exp(logOR - 1.96 * se_logOR), 2, true) + ", "
 						+ ext.formDeci(Math.exp(logOR + 1.96 * se_logOR), 2, true) + "); p="
 						+ ext.formDeci(ProbDist.NormDist(Math.abs(logOR / se_logOR)), 3, true) + ")";
@@ -237,12 +237,12 @@ public class hweAPOE {
 		String filename = "struct111+white(APOE-MMSE-education,duration,tobacky).pre";
 		int numReps = 50000;
 
-		String usage = "\n"	+ "park.hweAPOE requires 2 arguments:\n"
-										+ "   (1) a pre-like file - FAMID INDID AFF/UNAFF group\n"
-										+ "       (for an APOE analysis this would be 2, 3 or 4)\n"
-										+ "       (i.e. file=" + filename + " (default))\n"
-										+ "   (2) number of replicates to perform\n" + "       (i.e. reps=" + numReps
-										+ " (default))\n" + "";
+		String usage = "\n" + "park.hweAPOE requires 2 arguments:\n"
+									 + "   (1) a pre-like file - FAMID INDID AFF/UNAFF group\n"
+									 + "       (for an APOE analysis this would be 2, 3 or 4)\n"
+									 + "       (i.e. file=" + filename + " (default))\n"
+									 + "   (2) number of replicates to perform\n" + "       (i.e. reps=" + numReps
+									 + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

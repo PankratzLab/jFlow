@@ -70,9 +70,9 @@ public class BlastAnnotationTesting {
 	public static void test(Project proj, String annoFile) {
 
 		new File(ext.parseDirectoryOfFile(annoFile)).mkdirs();
-		String[] blastResultFiles = Files.list(	"/home/pankrat2/shared/aric_exome_chip/Blasts/",
-																						"GPL18544_humanexome-12v1_a.csv.blasted.ws.30.rep.0.tmp",
-																						null, true, false, true);
+		String[] blastResultFiles = Files.list("/home/pankrat2/shared/aric_exome_chip/Blasts/",
+																					 "GPL18544_humanexome-12v1_a.csv.blasted.ws.30.rep.0.tmp",
+																					 null, true, false, true);
 		int minAlignmentLength = proj.getArrayType().getProbeLength() - 10;
 		int maxGaps = 10;
 		int maxMismatches = 10;
@@ -93,15 +93,15 @@ public class BlastAnnotationTesting {
 		blastAnnotation.summarizeResultFiles(true);
 		blastAnnotation.close();
 		// (Project proj, Annotation[] annotations, String annotationFilename, boolean overWriteExisting
-		AnnotationFileWriter test = new AnnotationFileWriter(	proj, null,
-																													new AnnotationData[] {new AnnotationData(	VCFHeaderLineType.String,
-																																																		null,
-																																																		1,
-																																																		"TestAdd",
-																																																		"TestAddidtion",
-																																																		"DSF",
-																																																		".")},
-																													annoFile, false) {};
+		AnnotationFileWriter test = new AnnotationFileWriter(proj, null,
+																												 new AnnotationData[] {new AnnotationData(VCFHeaderLineType.String,
+																																																	null,
+																																																	1,
+																																																	"TestAdd",
+																																																	"TestAddidtion",
+																																																	"DSF",
+																																																	".")},
+																												 annoFile, false) {};
 		LocusAnnotation[] testAdd = getTestAddition(proj);
 		for (LocusAnnotation element : testAdd) {
 			test.write(element, true, false);
@@ -125,10 +125,9 @@ public class BlastAnnotationTesting {
 		// t.add(markers[200003]);
 
 		MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(ArrayUtils.toStringArray(t));
-		MarkerAnnotationLoader annotationLoader =
-																						new MarkerAnnotationLoader(	proj, null,
-																																				proj.BLAST_ANNOTATION_FILENAME.getValue(),
-																																				proj.getMarkerSet(), true);
+		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(proj, null,
+																																				 proj.BLAST_ANNOTATION_FILENAME.getValue(),
+																																				 proj.getMarkerSet(), true);
 		ArrayList<AnnotationParser[]> toparse = new ArrayList<AnnotationParser[]>();
 		toparse.add(blastResults);
 		annotationLoader.fillAnnotations(ArrayUtils.toStringArray(t), toparse, QUERY_ORDER.NO_ORDER);
@@ -167,9 +166,9 @@ public class BlastAnnotationTesting {
 			// builder.alts(new String[] { alt });
 			// }
 			// }
-			builder.annotations(new AnnotationData[] {new AnnotationData(	VCFHeaderLineType.String, null,
-																																		1, "TestAdd", "TestAddidtion",
-																																		"DSF_" + markerNames[i], ".")});
+			builder.annotations(new AnnotationData[] {new AnnotationData(VCFHeaderLineType.String, null,
+																																	 1, "TestAdd", "TestAddidtion",
+																																	 "DSF_" + markerNames[i], ".")});
 			Segment markerSeg = new Segment(chrs[i], pos[i], pos[i]);
 			anDatas[i] = builder.build(markerNames[i], markerSeg);
 		}
@@ -183,7 +182,7 @@ public class BlastAnnotationTesting {
 		for (int i = 0; i < markerSet.getIndicesByChr().length; i++) {
 			if (markerSet.getIndicesByChr()[i].length - 1 >= 0) {
 				t.add(proj.getMarkerNames()[markerSet.getIndicesByChr()[i][markerSet.getIndicesByChr()[i].length
-																																		- 1]]);
+																																	 - 1]]);
 			}
 		}
 		return t;

@@ -17,8 +17,8 @@ import org.genvisis.common.ext;
 import org.genvisis.park.CheckIDsAgainstDNAs;
 
 public class CleanupSNPresults {
-	public static final String[][] REQS = {	{"plate"}, {"well"}, {"dna"}, {"FamInd"}, {"result"},
-																					{"call"}};
+	public static final String[][] REQS = {{"plate"}, {"well"}, {"dna"}, {"FamInd"}, {"result"},
+																				 {"call"}};
 
 	public static final String[] MISSING_CALL_CODES = {"undetermined", "lost"};
 
@@ -43,8 +43,8 @@ public class CleanupSNPresults {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
-			indices = ext.indexFactors(	REQS, reader.readLine().trim().split("\t", -1), false, false, true,
-																	true);
+			indices = ext.indexFactors(REQS, reader.readLine().trim().split("\t", -1), false, false, true,
+																 true);
 			while (reader.ready()) {
 				line = reader.readLine().toUpperCase().split("\t", -1);
 				checkLine = check.checkPair(line[indices[3]], line[indices[2]], false).split("[\\s]+");
@@ -56,11 +56,11 @@ public class CleanupSNPresults {
 				if (line[indices[0]].trim().equals("")) {
 					line[indices[0]] = "unlisted";
 				}
-				HashVec.addToHashVec(	hash,
-															line[indices[3]],
-															line[indices[2]]	+ "\t" + line[indices[4]] + "\t" + line[indices[5]]
-																								+ "\t" + line[indices[0]] + "\t" + line[indices[1]],
-															false);
+				HashVec.addToHashVec(hash,
+														 line[indices[3]],
+														 line[indices[2]] + "\t" + line[indices[4]] + "\t" + line[indices[5]]
+																							 + "\t" + line[indices[0]] + "\t" + line[indices[1]],
+														 false);
 				vicfam.add(line[indices[4]] + " (" + line[indices[5]] + ")");
 			}
 			reader.close();
@@ -81,8 +81,8 @@ public class CleanupSNPresults {
 						if (call.equals("nada")) {
 							call = line[1] + "/" + line[2];
 						} else if (!call.equals(line[1] + "/" + line[2])) {
-							System.err.println("Error - discrepant calls for "	+ hashKeys[keys[i]] + " (" + call
-																	+ " and " + line[1] + "/" + line[2] + ")");
+							System.err.println("Error - discrepant calls for " + hashKeys[keys[i]] + " (" + call
+																 + " and " + line[1] + "/" + line[2] + ")");
 						}
 						checkLine = check.checkPair(hashKeys[keys[i]], line[0], false).split("[\\s]+");
 						if (!checkLine[0].equals("yearbug")) {
@@ -115,9 +115,9 @@ public class CleanupSNPresults {
 		String dir = DEFAULT_DIRECTORY;
 		String filename = DEFAULT_FILENAME;
 
-		String usage = "\\n"	+ "kaput.CleanupSNPresults requires 0-1 arguments\n"
-										+ "   (1) directory (i.e. dir=" + dir + " (default))\n"
-										+ "   (2) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\\n" + "kaput.CleanupSNPresults requires 0-1 arguments\n"
+									 + "   (1) directory (i.e. dir=" + dir + " (default))\n"
+									 + "   (2) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

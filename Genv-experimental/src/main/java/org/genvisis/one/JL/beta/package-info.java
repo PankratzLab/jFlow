@@ -2,7 +2,7 @@
  * 
  */
 /**
- *Testing beta ops
+ * Testing beta ops
  *
  */
 package org.genvisis.one.JL.beta;

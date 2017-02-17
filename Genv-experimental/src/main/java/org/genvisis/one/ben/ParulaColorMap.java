@@ -41,8 +41,8 @@ public class ParulaColorMap {
 
 	public static int[][] getParulaMap(int num) {
 		if (num >= PARULA_254.length) {
-			System.err.println("Error - only "	+ PARULA_254.length
-													+ " colors available from PARULA map; if more are needed, code must be changed.");
+			System.err.println("Error - only " + PARULA_254.length
+												 + " colors available from PARULA map; if more are needed, code must be changed.");
 			return PARULA_254;
 		}
 		int[][] retMap = new int[num][];

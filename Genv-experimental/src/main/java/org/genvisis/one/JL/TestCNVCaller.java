@@ -11,8 +11,8 @@ import org.genvisis.cnv.hmm.CNVCaller.PFB_MANAGEMENT_TYPE;
 public class TestCNVCaller {
 
 	public static void main(String[] args) {
-		Project proj = new Project(	"/Users/Kitty/workspace.other/Genvisis/Genvisis/projects/gedi_gwas.properties",
-																false);
+		Project proj = new Project("/Users/Kitty/workspace.other/Genvisis/Genvisis/projects/gedi_gwas.properties",
+															 false);
 
 		CNVCaller.callAutosomalCNVs(proj, "test.cnvs", new String[] {"4874928039_R01C01"}, null, null,
 																CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF,

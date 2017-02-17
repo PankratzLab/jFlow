@@ -24,7 +24,7 @@ public class TestPipe {
 	public static void main(String[] args) {
 
 		SRARunTable sraRunTable = SRARunTable.load("/Volumes/Beta/data/aric_sra/prep/SraRunTable.txt",
-				PLATFORM.ILLUMINA, new Logger());
+																							 PLATFORM.ILLUMINA, new Logger());
 		String outDir = "/Volumes/Beta/data/aric_sra/test/";
 		new File(outDir).mkdirs();
 

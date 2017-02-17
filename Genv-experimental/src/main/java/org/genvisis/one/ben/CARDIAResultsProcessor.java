@@ -71,9 +71,9 @@ public class CARDIAResultsProcessor {
 		String dirR = "";
 		String dirP = "";
 
-		String usage = "\n"	+ "one.ben.CARDIAResultsProcessor requires 0-1 arguments\n"
-										+ "   (1) regression results directory (i.e. dirR=" + dirR + " (default))\n"
-										+ "   (2) SNP positions directory (i.e. dirP=" + dirP + " (default))\n" + "";
+		String usage = "\n" + "one.ben.CARDIAResultsProcessor requires 0-1 arguments\n"
+									 + "   (1) regression results directory (i.e. dirR=" + dirR + " (default))\n"
+									 + "   (2) SNP positions directory (i.e. dirP=" + dirP + " (default))\n" + "";
 
 
 		for (String arg : args) {

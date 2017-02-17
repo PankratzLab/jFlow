@@ -43,9 +43,9 @@ public class IntensityCorrectionQC {
 	public static final String INCLUDED_IN_PC = "INCLUDE_IN_MODEL";
 	public static final int INCLUDED_IN_PC_INT = 1;
 
-	public static void ICCtheClasses(	Project proj, double[] data, String output, String dir,
-																		int startPC, int stopPC, int jumpPC, LS_TYPE lType,
-																		int numThreads) {
+	public static void ICCtheClasses(Project proj, double[] data, String output, String dir,
+																	 int startPC, int stopPC, int jumpPC, LS_TYPE lType,
+																	 int numThreads) {
 		new File(dir).mkdirs();
 		PrincipalComponentsResiduals pcComponentsResiduals = proj.loadPcResids();
 		ClassDefinition[] classDefinitions = ClassDefinition.getClassDefinitionsFromSampleData(proj);
@@ -69,10 +69,10 @@ public class IntensityCorrectionQC {
 		Hashtable<String, Future<double[]>> tmpResults = new Hashtable<String, Future<double[]>>();
 		double[][] allResults = new double[numTests][];
 		for (int i = startPC; i < stopPC; i += jumpPC) {
-			tmpResults.put(i	+ "",
-											executor.submit(new WorkerResidual(	data, lType, pcComponentsResiduals,
-																													classDefinitions, modelDefMask, i,
-																													proj.getLog())));
+			tmpResults.put(i + "",
+										 executor.submit(new WorkerResidual(data, lType, pcComponentsResiduals,
+																												classDefinitions, modelDefMask, i,
+																												proj.getLog())));
 		}
 		index = 0;
 		for (int i = startPC; i < stopPC; i += jumpPC) {
@@ -138,27 +138,26 @@ public class IntensityCorrectionQC {
 
 		@Override
 		public double[] call() {
-			return IntensityCorrectionQC.computeAt(	data, lType, pcComponentsResiduals, classDefinitions,
-																							modelDefMask, pc, log);
+			return IntensityCorrectionQC.computeAt(data, lType, pcComponentsResiduals, classDefinitions,
+																						 modelDefMask, pc, log);
 		}
 	}
 
-	public static double[] computeAt(	double[] data, LS_TYPE lType,
-																		PrincipalComponentsResiduals pcComponentsResiduals,
-																		ClassDefinition[] classDefinitions, boolean[] modelDefMask,
-																		int pc, Logger log) {
+	public static double[] computeAt(double[] data, LS_TYPE lType,
+																	 PrincipalComponentsResiduals pcComponentsResiduals,
+																	 ClassDefinition[] classDefinitions, boolean[] modelDefMask,
+																	 int pc, Logger log) {
 		double[] currentData = null;
 		if (pc == 0) {
 			currentData = data;
 		} else {
-			CrossValidation crossValidation = pcComponentsResiduals.getCorrectedDataAt(	data, modelDefMask,
-																																									pc, lType,
-																																									"PC" + pc, false);
+			CrossValidation crossValidation = pcComponentsResiduals.getCorrectedDataAt(data, modelDefMask,
+																																								 pc, lType,
+																																								 "PC" + pc, false);
 			currentData = crossValidation.getResiduals();
 			if (pc == 100) {
-				Files.writeArray(	ArrayUtils.toStringArray(currentData),
-													pcComponentsResiduals.getProj().PROJECT_DIRECTORY.getValue()
-																														+ "DFSD.txt");
+				Files.writeArray(ArrayUtils.toStringArray(currentData),
+												 pcComponentsResiduals.getProj().PROJECT_DIRECTORY.getValue() + "DFSD.txt");
 				System.exit(1);
 			}
 		}
@@ -185,15 +184,14 @@ public class IntensityCorrectionQC {
 		return iccs;
 	}
 
-	public static void ICCtheClasses(	Project proj, String[] markers, int numCorrectionThreads,
-																		int numMarkerThreads, String output, String dir, int startPC,
-																		int stopPC, int jumpPC, boolean mitoMode) {
+	public static void ICCtheClasses(Project proj, String[] markers, int numCorrectionThreads,
+																	 int numMarkerThreads, String output, String dir, int startPC,
+																	 int stopPC, int jumpPC, boolean mitoMode) {
 		new File(dir).mkdirs();
 		PrincipalComponentsResiduals pcComponentsResiduals = proj.loadPcResids();
 		ClassDefinition[] classDefinitions = ClassDefinition.getClassDefinitionsFromSampleData(proj);
-		MarkerDataLoader markerDataLoader =
-																			MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
-																																															markers);
+		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+																																																markers);
 		int[] sampleSex = getSexDef(classDefinitions);
 		boolean[] samplesToUseCluster = proj.getSamplesToInclude(null);
 		output = proj.PROJECT_DIRECTORY.getValue() + dir + output + ".icc";
@@ -212,8 +210,8 @@ public class IntensityCorrectionQC {
 
 		ICCMarkerResultsBatch icMarkerResultsBatch = new ICCMarkerResultsBatch(markers.length);
 		for (int i = 0; i < markers.length; i++) {
-			icMarkerResultsBatch.addICCMarkerResults(i, new ICCMarkerResults(	markers[i], allClasses,
-																																				pcsTested));
+			icMarkerResultsBatch.addICCMarkerResults(i, new ICCMarkerResults(markers[i], allClasses,
+																																			 pcsTested));
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
 			proj.getLog().report("Info - marker " + i + " of " + markers.length);
 			float[] lrrs = markerData.getLRRs();
@@ -236,24 +234,24 @@ public class IntensityCorrectionQC {
 				if (j == 0) {
 					lrrICC = lrrs;
 				} else {
-					PrincipalComponentsIntensity principalComponentsIntensity =
-																																		new PrincipalComponentsIntensity(	pcComponentsResiduals,
-																																																			markerData,
-																																																			true,
-																																																			sampleSex,
-																																																			tmpSampleFilter,
-																																																			1.0D,
-																																																			0.0D,
-																																																			null,
-																																																			true,
-																																																			LS_TYPE.REGULAR,
-																																																			2,
-																																																			5,
-																																																			0.0D,
-																																																			0.1D,
-																																																			numCorrectionThreads,
-																																																			false,
-																																																			null,CHROMOSOME_X_STRATEGY.BIOLOGICAL);
+					PrincipalComponentsIntensity principalComponentsIntensity = new PrincipalComponentsIntensity(pcComponentsResiduals,
+																																																			 markerData,
+																																																			 true,
+																																																			 sampleSex,
+																																																			 tmpSampleFilter,
+																																																			 1.0D,
+																																																			 0.0D,
+																																																			 null,
+																																																			 true,
+																																																			 LS_TYPE.REGULAR,
+																																																			 2,
+																																																			 5,
+																																																			 0.0D,
+																																																			 0.1D,
+																																																			 numCorrectionThreads,
+																																																			 false,
+																																																			 null,
+																																																			 CHROMOSOME_X_STRATEGY.BIOLOGICAL);
 					principalComponentsIntensity.correctXYAt(j);
 					if (!principalComponentsIntensity.isFail()) {
 						lrrICC = principalComponentsIntensity.getCorrectedIntensity("BAF_LRR", true)[1];
@@ -373,8 +371,8 @@ public class IntensityCorrectionQC {
 			if (icMarkerResultsBatchs[i].verify(classDefs, pcsTested)) {
 				String[] classes = icMarkerResultsBatchs[i].getClasses();
 				for (int j = 0; j < classes.length; j++) {
-					String currentOutput = proj.PROJECT_DIRECTORY.getValue()	+ dir + classes[j]
-																	+ "_fullResults.txt";
+					String currentOutput = proj.PROJECT_DIRECTORY.getValue() + dir + classes[j]
+																 + "_fullResults.txt";
 					try {
 						double[][] iccs = icMarkerResultsBatchs[i].getAllICCsForClass(j);
 						for (int k = 0; k < iccs.length; k++) {
@@ -397,15 +395,15 @@ public class IntensityCorrectionQC {
 		}
 		for (int i = 0; i < icClassResults.length; i++) {
 			icClassResults[i].finalizeArrays();
-			String currentOutput = proj.PROJECT_DIRECTORY.getValue()	+ dir + classDefs[i]
-															+ "_summary.txt";
+			String currentOutput = proj.PROJECT_DIRECTORY.getValue() + dir + classDefs[i]
+														 + "_summary.txt";
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(currentOutput));
 				writer.println("NumMarkers\tPC\tAvgICC\tMedianICC\tStdevICC");
 				for (int j = 0; j < pcsTested.length; j++) {
-					writer.println(icClassResults[i].getSizeAt(j)	+ "\t" + pcsTested[j] + "\t"
-													+ icClassResults[i].getAvgAt(j) + "\t" + icClassResults[i].getMedianAt(j)
-													+ "\t" + icClassResults[i].getStdevAt(j));
+					writer.println(icClassResults[i].getSizeAt(j) + "\t" + pcsTested[j] + "\t"
+												 + icClassResults[i].getAvgAt(j) + "\t" + icClassResults[i].getMedianAt(j)
+												 + "\t" + icClassResults[i].getStdevAt(j));
 				}
 				writer.close();
 			} catch (Exception e) {
@@ -735,8 +733,8 @@ public class IntensityCorrectionQC {
 		return data;
 	}
 
-	public static void test2(	Project proj, String dataFile, LS_TYPE lType, int numThreads,
-														int jumpPC) {
+	public static void test2(Project proj, String dataFile, LS_TYPE lType, int numThreads,
+													 int jumpPC) {
 		double[] data = loadDataFile(proj, dataFile, proj.getLog());
 
 		ICCtheClasses(proj, data, "Mito", "mitos/", 0, proj.INTENSITY_PC_NUM_COMPONENTS.getValue(),
@@ -749,8 +747,8 @@ public class IntensityCorrectionQC {
 		// String[][] chunkMarkers = Array.splitUpStringArray(Array.subArray(proj.getMarkerNames(),
 		// chrInd[3]), 300, proj.getLog());
 
-		ICCtheClasses(proj, ArrayUtils.subArray(proj.getMarkerNames(), chrInd[26]), 6, 1, "Mito", "mitos/",
-									0, 1500, 5, true);
+		ICCtheClasses(proj, ArrayUtils.subArray(proj.getMarkerNames(), chrInd[26]), 6, 1, "Mito",
+									"mitos/", 0, 1500, 5, true);
 		dumpToText(proj, "mitos/");
 		for (int i = 0; i < 25; i++) {
 		}
@@ -771,7 +769,7 @@ public class IntensityCorrectionQC {
 		usage = usage + "   (4) number of threads (i.e. numThreads=" + numThreads + " ( default))\n";
 		usage = usage + "   (5) the jump for each pc tested(i.e. jump=" + jumpPC + " ( default))\n";
 		for (String arg : args) {
-			if ((arg.equals("-h"))	|| (arg.equals("-help")) || (arg.equals("/h"))
+			if ((arg.equals("-h")) || (arg.equals("-help")) || (arg.equals("/h"))
 					|| (arg.equals("/help"))) {
 				System.err.println(usage);
 				System.exit(1);

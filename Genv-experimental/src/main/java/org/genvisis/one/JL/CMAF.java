@@ -65,8 +65,10 @@ public class CMAF {
 							double maf = Double.NaN;
 							if (useAC) {
 								ac = ArrayUtils.sum(ArrayUtils.toIntArray(vc.getAttributeAsString("AC", "NaN")
-																									.replaceAll("\\[", "").replaceAll("\\]", "")
-																									.replaceAll(" ", "").trim().split(",")));
+																														.replaceAll("\\[", "")
+																														.replaceAll("\\]", "")
+																														.replaceAll(" ", "").trim()
+																														.split(",")));
 								maf = AlleleFreq.calcMAF(numSamples - ac, 0, ac);
 							} else {
 								maf = VCOps.getMAF(vc, null);
@@ -106,8 +108,8 @@ public class CMAF {
 		log.reportTimeInfo(ArrayUtils.toStr(numVars));
 		log.reportTimeInfo(ArrayUtils.toStr(numMuts));
 
-		Files.writeIterable(out, outDir	+ VCFOps.getAppropriateRoot(vcf, true)
-															+ (requiredAnno == null ? "" : requiredAnno) + ".cmaf.txt");
+		Files.writeIterable(out, outDir + VCFOps.getAppropriateRoot(vcf, true)
+														 + (requiredAnno == null ? "" : requiredAnno) + ".cmaf.txt");
 
 	}
 
@@ -122,8 +124,7 @@ public class CMAF {
 		double[] freqs = new double[] {1000, .01, .001, .0001};
 		int numSamples = 32059;
 		String outDir = "/Volumes/Beta/data/Cushings/mito/processDir/";
-		String second =
-									"/Volumes/Beta/data/Cushings/mito/CUSHING_FREQ_V2_Mito/CUSHING_FREQ_V2.maf_0.0.final.CUSHING_FREQ_V2.vcf.gz";
+		String second = "/Volumes/Beta/data/Cushings/mito/CUSHING_FREQ_V2_Mito/CUSHING_FREQ_V2.maf_0.0.final.CUSHING_FREQ_V2.vcf.gz";
 
 		compute(vcf, freqs, groups, numSamples, true, outDir, null, new Logger());
 		compute(second, freqs, groups, numSamples, false, outDir, null, new Logger());

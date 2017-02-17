@@ -58,14 +58,14 @@ public class QuickExtract {
 					VariantContext vcSub = VCOps.getSubset(vc, vpoppeer.getSubPop().get(VcfPopulation.CASE));
 					int numAlt = vc.getHetCount() + vc.getHomVarCount();
 					int numAltMinux = vcSub.getHetCount() + vcSub.getHomVarCount();
-					writer.println(vc.getContig()	+ "\t" + vc.getStart() + "\t"
-													+ vc.getReference().getBaseString() + "\t"
-													+ vc.getAlternateAlleles().toString() + "\t" + numAlt + "\t" + numAltMinux
-													+ "\t"
-													+ ArrayUtils.toStr(VCOps.getAnnotationsFor(new String[] {"g10002014oct_all",
-																																							"SNPEFF_IMPACT",
-																																							"SNPEFF_GENE_NAME"},
-																																vc, ".")));
+					writer.println(vc.getContig() + "\t" + vc.getStart() + "\t"
+												 + vc.getReference().getBaseString() + "\t"
+												 + vc.getAlternateAlleles().toString() + "\t" + numAlt + "\t" + numAltMinux
+												 + "\t"
+												 + ArrayUtils.toStr(VCOps.getAnnotationsFor(new String[] {"g10002014oct_all",
+																																									"SNPEFF_IMPACT",
+																																									"SNPEFF_GENE_NAME"},
+																																		vc, ".")));
 					found++;
 				}
 			}

@@ -42,8 +42,7 @@ public class DistributionPlot {
 	}
 
 	/**
-	 * @param proj
-	 *            Project to look at
+	 * @param proj Project to look at
 	 */
 	public static void launch(Project proj) {
 		BaCha.proj = proj;
@@ -71,8 +70,10 @@ public class DistributionPlot {
 		public void start(Stage primaryStage) throws Exception {
 			primaryStage.setTitle(proj.PROJECT_NAME.getValue());
 			MarkerSet markerSet = proj.getMarkerSet();
-			LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(proj.CNV_FILENAMES.getValue()[0], proj.getLog());
-			final Hashtable<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs, proj.getLog());
+			LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(proj.CNV_FILENAMES.getValue()[0],
+																											proj.getLog());
+			final Hashtable<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs,
+																																									proj.getLog());
 
 			lrrScat = initialize("LRR bin", "Log count");
 			lrrScat.setTitle("LRR values");
@@ -84,10 +85,10 @@ public class DistributionPlot {
 			bafVLrrScat = initialize("BAF", "LRR");
 			bafVLrrScat.setTitle("BAF v LRR");
 
-			final ComboBox<String> comboBox = new ComboBox<>(
-					FXCollections.observableArrayList(proj.getSamples()));
+			final ComboBox<String> comboBox = new ComboBox<>(FXCollections.observableArrayList(proj.getSamples()));
 			comboBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
-				public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+				public void changed(ObservableValue<? extends String> observable, String oldValue,
+														String newValue) {
 					Sample samp = proj.getFullSampleFromRandomAccessFile(newValue);
 					float[] bafs = samp.getBAFs();
 					float[] lrrs = samp.getLRRs();
@@ -98,8 +99,8 @@ public class DistributionPlot {
 						HashSet<Integer> markersInCnv = new HashSet<>();
 						for (int i = 0; i < markerSet.getChrs().length; i++) {
 							if (markerSet.getChrs()[i] > 0 && markerSet.getChrs()[i] < 23) {
-								Segment seg = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i]-1,
-										markerSet.getPositions()[i] + 1);
+								Segment seg = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i] - 1,
+																					markerSet.getPositions()[i] + 1);
 								int[] olaps = ind.getOverlappingIndices(seg);
 								if (olaps != null && olaps.length > 0) {
 									markersInCnv.add(i);
@@ -108,7 +109,8 @@ public class DistributionPlot {
 							}
 						}
 						int[] finals = Ints.toArray(markersInCnv);
-						proj.getLog().report(newValue+"\t"+ind.getLoci().length + " cnvs over " + finals.length + " markers");
+						proj.getLog().report(newValue + "\t" + ind.getLoci().length + " cnvs over "
+																 + finals.length + " markers");
 						bafs = ArrayUtils.subArray(bafs, finals);
 						lrrs = ArrayUtils.subArray(lrrs, finals);
 						if (copyNumbers.size() != bafs.length) {
@@ -121,8 +123,10 @@ public class DistributionPlot {
 					bafVLrrScat.setData(FXCollections.observableArrayList());
 
 					if (ind != null) {
-						XYChart.Series<Number, Number> newDataLrr = update(sampleData, newValue, bafs, lrrs, false);
-						XYChart.Series<Number, Number> newDataBaf = update(sampleData, newValue, bafs, lrrs, true);
+						XYChart.Series<Number, Number> newDataLrr = update(sampleData, newValue, bafs, lrrs,
+																															 false);
+						XYChart.Series<Number, Number> newDataBaf = update(sampleData, newValue, bafs, lrrs,
+																															 true);
 						bafScat.getData().add(newDataBaf);
 						lrrScat.getData().add(newDataLrr);
 
@@ -135,7 +139,7 @@ public class DistributionPlot {
 							for (int j = 0; j < lrrs.length; j++) {
 								if (Double.isFinite(bafs[j]) && Double.isFinite(lrrs[j])) {
 									cnSeries.get(copyNumbers.get(j)).getData()
-											.add(new XYChart.Data<Number, Number>(bafs[j], lrrs[j]));
+													.add(new XYChart.Data<Number, Number>(bafs[j], lrrs[j]));
 								}
 							}
 						}
@@ -157,8 +161,8 @@ public class DistributionPlot {
 		private static ScatterChart<Number, Number> initialize(String x, String y) {
 			NumberAxis yAxis = new NumberAxis();
 			yAxis.setAutoRanging(true);
-//			yAxis.setUpperBound(1);
-//			yAxis.setLowerBound(-1);
+			// yAxis.setUpperBound(1);
+			// yAxis.setLowerBound(-1);
 
 			yAxis.setLabel(y);
 			NumberAxis xAxis = new NumberAxis();
@@ -172,8 +176,8 @@ public class DistributionPlot {
 			return bc;
 		}
 
-		private XYChart.Series<Number, Number> update(SampleData sampleData, String sampleName, float[] bafs,
-				float[] lrrs, boolean baf) {
+		private XYChart.Series<Number, Number> update(SampleData sampleData, String sampleName,
+																									float[] bafs, float[] lrrs, boolean baf) {
 
 			double[] data = ArrayUtils.toDoubleArray(baf ? bafs : lrrs);
 			return getHistogram(data, sampleName);
