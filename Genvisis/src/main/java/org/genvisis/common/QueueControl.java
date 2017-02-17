@@ -31,6 +31,15 @@ public class QueueControl {
 		private boolean groupAccessControlEnabled;
 		private boolean groupControlSloppy = false;
 		private ArrayList<String> allowedUsers = new ArrayList<String>();
+		private boolean isDefaultQueue = false;
+
+		public boolean isDefaultQueue() {
+			return isDefaultQueue;
+		}
+
+		public void setDefaultQueue(boolean isDefaultQueue) {
+			this.isDefaultQueue = isDefaultQueue;
+		}
 
 		public String getName() {
 			return name;
@@ -224,8 +233,10 @@ public class QueueControl {
 	private static final String TAG_GROUPS = "acl_groups = ";
 	private static final String TAG_GROUP_CTRL_SLOPPY = "acl_group_sloppy = ";
 	private static final String TAG_ROUTE_DEST = "route_destinations = ";
-	private static final String TAG_MEM = "resources_default.mem = ";
-	private static final String TAG_WALLTIME_DEFAULT = "resources_default.walltime = ";
+	private static final String TAG_MEM_DEFAULT = "resources_default.mem = ";
+	private static final String TAG_WALLTIME_DEFAULT= "resources_default.walltime = ";
+	private static final String TAG_PROC_DEFAULT= "resources_default.proc = ";
+	private static final String TAG_NODE_DEFAULT= "resources_default.nodes = ";
 
 	private static String[] loadIDInfo() throws IOException {
 		Runtime rt = Runtime.getRuntime();
@@ -371,8 +382,8 @@ public class QueueControl {
 														+ s1.substring(0, s1.indexOf(':')).trim());
 					}
 				}
-				if (s.startsWith(TAG_MEM)) {
-					String b = s.substring(TAG_MEM.length());
+				if (s.startsWith(TAG_MEM_DEFAULT)) {
+					String b = s.substring(TAG_MEM_DEFAULT.length());
 					try {
 						curr.setDefaultMem(Long.parseLong(b.substring(0, b.length() - 1)));
 					} catch (NumberFormatException e1) {
@@ -394,6 +405,27 @@ public class QueueControl {
 					} catch (NumberFormatException e1) {
 						log.reportError("Found 'minimum processors' tag but couldn't parse value: "
 														+ s.substring(TAG_PROC_MIN.length()));
+					}
+				}
+				if (s.startsWith(TAG_PROC_DEFAULT)) {
+					try {
+						curr.setDefaultProcCnt(Integer.parseInt(s.substring(TAG_PROC_DEFAULT.length())));
+					} catch (NumberFormatException e1) {
+						log.reportError("Found 'default proc count' tag but couldn't parse value: " + s.substring(TAG_PROC_DEFAULT.length()));
+					}
+				}
+				if (s.startsWith(TAG_NODE_DEFAULT)) {
+					try {
+						curr.setDefaultNodeCnt(Integer.parseInt(s.substring(TAG_NODE_DEFAULT.length())));
+					} catch (NumberFormatException e1) {
+						log.reportError("Found 'default node count' tag but couldn't parse value: " + s.substring(TAG_NODE_DEFAULT.length()));
+					}
+				}
+				if (s.startsWith(TAG_WALLTIME_DEFAULT)) {
+					try {
+						curr.setDefaultWalltime(Integer.parseInt(s.substring(TAG_WALLTIME_DEFAULT.length())));
+					} catch (NumberFormatException e1) {
+						log.reportError("Found 'default walltime' tag but couldn't parse value: " + s.substring(TAG_WALLTIME_DEFAULT.length()));
 					}
 				}
 				if (s.startsWith(TAG_NODE_MAX)) {
