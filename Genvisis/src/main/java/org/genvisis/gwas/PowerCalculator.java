@@ -10,10 +10,10 @@ import org.genvisis.common.ext;
 public class PowerCalculator {
 	// public static final double[] MAFs = {0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09,
 	// 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50};
-	public static final double[] MAFs = {	0.001, 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.15, 0.20,
-																				0.25, 0.30, 0.40, 0.50};
-	public static final double[] RELATIVE_RISKS = {	1.10, 1.20, 1.30, 1.40, 1.60, 1.80, 2.00, 2.2, 2.4,
-																									2.6};
+	public static final double[] MAFs = {0.001, 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.15, 0.20,
+																			 0.25, 0.30, 0.40, 0.50};
+	public static final double[] RELATIVE_RISKS = {1.10, 1.20, 1.30, 1.40, 1.60, 1.80, 2.00, 2.2, 2.4,
+																								 2.6};
 	// public static final double[] MAFs = {0.20};
 	public static final String[] FORMATTING_TO_REMOVE = {"<em><font color=\"navy\">", "</font></em>"};
 	public static final double RR_INCREMENT = 0.01;
@@ -92,10 +92,10 @@ public class PowerCalculator {
 		return -9;
 	}
 
-	public static double getRelativeRiskAtEightyPercentPower(	double prevalence, double maf,
-																														int numCases, int numControls,
-																														double alpha,
-																														boolean unselected) throws Exception {
+	public static double getRelativeRiskAtEightyPercentPower(double prevalence, double maf,
+																													 int numCases, int numControls,
+																													 double alpha,
+																													 boolean unselected) throws Exception {
 		boolean found;
 		int index, prev;
 		int[] array;
@@ -108,11 +108,11 @@ public class PowerCalculator {
 		while (!found) {
 			rr = 1 + index * RR_INCREMENT;
 			if (array[index] == -1) {
-				array[index] = getSampleSize(	prevalence, rr, maf, numCases, numControls, alpha, unselected,
-																			false);
+				array[index] = getSampleSize(prevalence, rr, maf, numCases, numControls, alpha, unselected,
+																		 false);
 				if (array[index] == -9) {
-					array[index] = getSampleSize(	prevalence, rr, maf, numCases, numControls, alpha,
-																				unselected, true);
+					array[index] = getSampleSize(prevalence, rr, maf, numCases, numControls, alpha,
+																			 unselected, true);
 				}
 				// System.err.println("array["+index+"]: "+array[index]);
 			} else if (array[index] == -9) {
@@ -154,14 +154,14 @@ public class PowerCalculator {
 		for (double maf : MAFs) {
 			// System.out.println(MAFs[mafIndex]+"\t"+getSampleSize(prevalence, 1.6, MAFs[mafIndex],
 			// numCases, numControls, alpha, false));
-			rr = getRelativeRiskAtEightyPercentPower(	prevalence, maf, numCases, numControls, alpha,
-																								unselected);
+			rr = getRelativeRiskAtEightyPercentPower(prevalence, maf, numCases, numControls, alpha,
+																							 unselected);
 			System.out.println(maf + "\t" + (rr == -9 ? "failed" : ext.formDeci(rr, 2)));
 		}
 	}
 
-	public static void rangeOfRelativeRisk(	double prevalence, int numTests,
-																					boolean unselected) throws Exception {
+	public static void rangeOfRelativeRisk(double prevalence, int numTests,
+																				 boolean unselected) throws Exception {
 		double alpha;
 
 		alpha = 0.05 / numTests;
@@ -178,8 +178,8 @@ public class PowerCalculator {
 		for (double maf : MAFs) {
 			System.out.print(maf);
 			for (double element : RELATIVE_RISKS) {
-				System.out.print("\t" + getSampleSize(prevalence, element, maf, 1, 1, alpha, unselected,
-																							false));
+				System.out.print("\t"
+												 + getSampleSize(prevalence, element, maf, 1, 1, alpha, unselected, false));
 			}
 			System.out.println();
 		}
@@ -189,8 +189,8 @@ public class PowerCalculator {
 		int numArgs = args.length;
 		String filename = "PowerCalculator.dat";
 
-		String usage = "\n"	+ "gwas.PowerCalculator requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "gwas.PowerCalculator requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -240,9 +240,9 @@ public class PowerCalculator {
 			// rangeOfMaf(0.001, 0.01, 465, 1119, 5043, false); // Poynter's MDS-AML grant, MDS
 			// rangeOfMaf(0.001, 0.01, 434, 1119, 5043, false); // Poynter's MDS-AML grant, MDS
 			// rangeOfMaf(0.001, 0.01, 465+434, 1119, 5043, false); // Poynter's MDS-AML grant, MDS
-//			rangeOfMaf(0.001, 0.01, 465, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
-//			rangeOfMaf(0.001, 0.01, 434, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
-//			rangeOfMaf(0.001, 0.01, 465 + 434, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
+			// rangeOfMaf(0.001, 0.01, 465, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
+			// rangeOfMaf(0.001, 0.01, 434, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
+			// rangeOfMaf(0.001, 0.01, 465 + 434, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
 			rangeOfMaf(0.001, 0.01, 875 + 700, 875 + 700, 1000000, false); // Poynter's MDS-AML grant, MDS
 
 

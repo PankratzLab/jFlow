@@ -109,8 +109,8 @@ public class CNVariantAnnotated extends CNVariant {
 	 * @param key the annotation key to tally
 	 * @return count map
 	 */
-	public static Map<String, TallyResult> tallyAnnotation(	List<CNVariantAnnotated> cList,
-																													SegmentAnnotationKeys key) {
+	public static Map<String, TallyResult> tallyAnnotation(List<CNVariantAnnotated> cList,
+																												 SegmentAnnotationKeys key) {
 
 		Map<String, TallyResult> tally = new HashMap<String, TallyResult>();
 		for (CNVariantAnnotated cnVarAn : cList) {

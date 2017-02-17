@@ -40,8 +40,8 @@ public class CNVariantHash implements Serializable {
 		ProgressMonitor progMonitor = new ProgressMonitor(new JProgressBar(), log);
 		setFilename(filename);
 		String taskName = "CNV_CONVERSION";
-		progMonitor.beginDeterminateTask(	taskName, "Converting CNVs", Files.countLines(filename, 1),
-																			ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+		progMonitor.beginDeterminateTask(taskName, "Converting CNVs", Files.countLines(filename, 1),
+																		 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 
 		// time = new Date().getTime();
 		vHashes = new Hashtable<String, Hashtable<String, Vector<CNVariant>>>();
@@ -95,8 +95,8 @@ public class CNVariantHash implements Serializable {
 
 		inds = HashVec.getKeys(vHashes);
 		taskName = "CNV_SERIALIZATION";
-		progMonitor.beginDeterminateTask(	taskName, "Serializing CNVs", inds.length,
-																			ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+		progMonitor.beginDeterminateTask(taskName, "Serializing CNVs", inds.length,
+																		 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		for (String ind : inds) {
 			progMonitor.updateTask(taskName);
 			vHash = vHashes.get(ind);
@@ -200,7 +200,7 @@ public class CNVariantHash implements Serializable {
 							// We stop before the window, or start after it
 						} else {
 							int minSizeBases = minSizeKb * 1000;
-							if ((element.getNumMarkers() >= minProbes)	&& (element.getSize() >= minSizeBases)
+							if ((element.getNumMarkers() >= minProbes) && (element.getSize() >= minSizeBases)
 									&& (element.getScore() >= minQualityScore)) {
 								inRegion.add(element);
 							}
@@ -214,11 +214,10 @@ public class CNVariantHash implements Serializable {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename =
-										"C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\data\\penncnv_1SNP.cnv";
+		String filename = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\data\\penncnv_1SNP.cnv";
 
-		String usage = "\n"	+ "cnv.var.CNVariantHash requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "cnv.var.CNVariantHash requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

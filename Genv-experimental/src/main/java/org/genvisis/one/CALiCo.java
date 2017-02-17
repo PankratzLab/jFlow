@@ -54,7 +54,7 @@ public class CALiCo {
 						if (chrs[i] == (byte) -1) {
 							chrs[i] = Byte.parseByte(line[0]);
 						} else {
-							log.reportError(markers[i]	+ " has appeared more than once in " + genoFileDirPlusRoot
+							log.reportError(markers[i] + " has appeared more than once in " + genoFileDirPlusRoot
 															+ ".bim");
 						}
 					}
@@ -96,22 +96,22 @@ public class CALiCo {
 		String condGenoPlinkDirPlusRoot;
 		Logger[] logs;
 
-		args = new String[] {	null, null, "'MarkerName'", "'Chr'", "'Position'", "'P-value'",
-													"!'P-value'<0.001", "tab", "replace=."};
+		args = new String[] {null, null, "'MarkerName'", "'Chr'", "'Position'", "'P-value'",
+												 "!'P-value'<0.001", "tab", "replace=."};
 		new File(resultDir + "topHits.xln").delete();
 		if (Files.exists(phenoCovarDir + CONDITIONALS_TXT_FILE)) {
 			// TODO delete all the old topHists.xln
 
-			log.report("Performing conditional corvariate analysis based on file: "	+ phenoCovarDir
-									+ CONDITIONALS_TXT_FILE);
+			log.report("Performing conditional corvariate analysis based on file: " + phenoCovarDir
+								 + CONDITIONALS_TXT_FILE);
 			conditionals = new Hashtable<String, String[]>();
 			try {
 				reader = new BufferedReader(new FileReader(phenoCovarDir + CONDITIONALS_TXT_FILE));
 				while (reader.ready()) {
 					line = reader.readLine().split("[\\s]+");
 					root = ext.rootOf(line[0]);
-					conditionals.put(root	+ "_" + ext.replaceWithLinuxSafeCharacters(line[1], false),
-														new String[] {root, line[1]});
+					conditionals.put(root + "_" + ext.replaceWithLinuxSafeCharacters(line[1], false),
+													 new String[] {root, line[1]});
 				}
 				reader.close();
 			} catch (FileNotFoundException e1) {
@@ -134,9 +134,9 @@ public class CALiCo {
 				subDir = resultDir + models[i] + "/";
 				if (!new File(resultDir + models[i] + ".out").exists()) {
 					new File(subDir).mkdir();
-					logs[i] = new Logger(subDir	+ "Genvisis_CALiCo_"
-																+ (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()))
-																+ ".log");;
+					logs[i] = new Logger(subDir + "Genvisis_CALiCo_"
+															 + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()))
+															 + ".log");;
 
 					args[0] = resultDir + models[i] + ".out";
 					args[1] = "out=" + subDir + models[i] + "_hits.txt";
@@ -145,12 +145,12 @@ public class CALiCo {
 					if (markersConditional.length == 1) {
 						if (!new File(scratchDir + "plink_chr" + chrs[i] + ".bim").exists()
 								|| !new File(scratchDir + "plink_chr" + chrs[i] + ".bim").exists()) {
-							CmdLine.run("plink --bfile "	+ genoPlinkDirPlusRoot + " --chr " + chrs[i]
+							CmdLine.run("plink --bfile " + genoPlinkDirPlusRoot + " --chr " + chrs[i]
 													+ " --make-bed --out plink_chr" + chrs[i], scratchDir);
-							log.report("Generated new set of genotype files: "	+ scratchDir + "plink_chr"
-													+ chrs[i] + ".");
+							log.report("Generated new set of genotype files: " + scratchDir + "plink_chr"
+												 + chrs[i] + ".");
 						} else {
-							log.reportError("Warning --- Found existing set of genotype files: "	+ scratchDir
+							log.reportError("Warning --- Found existing set of genotype files: " + scratchDir
 															+ "plink_chr" + chrs[i]
 															+ ", and will use them for the analysis followed.");
 						}
@@ -160,28 +160,28 @@ public class CALiCo {
 					}
 					Files.writeArray(markersConditional, resultDir + models[i] + ".txt");
 
-					idVariable[0] = ext.indexOfStr(	Files.getHeaderOfFile(phenoCovarDir	+ root + ".xln",
-																																null)[0],
-																					SAMPLE_ID_SYNONYMS);
-					sexAsCovariate = parsePhenotypes(	condGenoPlinkDirPlusRoot, phenoCovarDir + root + ".xln",
-																						SAMPLE_ID_SYNONYMS[idVariable[0]], subDir, logs[i]);
-					Conditional.addCountsAsCovariate(	resultDir, models[i] + "/", condGenoPlinkDirPlusRoot,
-																						models[i] + "/" + root + "_covars.dat",
-																						models[i] + "_covars.dat", models[i] + ".txt", logs[i]);
+					idVariable[0] = ext.indexOfStr(Files.getHeaderOfFile(phenoCovarDir + root + ".xln",
+																															 null)[0],
+																				 SAMPLE_ID_SYNONYMS);
+					sexAsCovariate = parsePhenotypes(condGenoPlinkDirPlusRoot, phenoCovarDir + root + ".xln",
+																					 SAMPLE_ID_SYNONYMS[idVariable[0]], subDir, logs[i]);
+					Conditional.addCountsAsCovariate(resultDir, models[i] + "/", condGenoPlinkDirPlusRoot,
+																					 models[i] + "/" + root + "_covars.dat",
+																					 models[i] + "_covars.dat", models[i] + ".txt", logs[i]);
 					new File(resultDir + models[i] + ".txt").delete();
 					new File(resultDir + models[i] + "/" + root + "_covars.dat").delete();
 
-					runAndParseResults(	condGenoPlinkDirPlusRoot, resultDir + models[i] + "/" + root,
-															resultDir + models[i] + "/" + models[i] + "_covars.dat",
-															sexAsCovariate, scratchDir, resultDir + models[i] + "/", models[i],
-															true, plinkCommand, logs[i]);
+					runAndParseResults(condGenoPlinkDirPlusRoot, resultDir + models[i] + "/" + root,
+														 resultDir + models[i] + "/" + models[i] + "_covars.dat",
+														 sexAsCovariate, scratchDir, resultDir + models[i] + "/", models[i],
+														 true, plinkCommand, logs[i]);
 					// new File(resultDir + models[i] + "/" + models[i] + ".out").renameTo(new File(resultDir
 					// + models[i] + ".out"));
 
 					GenParser.parse(args, logs[i]);
 
 				} else {
-					log.reportError("\nWarning --- Found '"	+ resultDir + models[i]
+					log.reportError("\nWarning --- Found '" + resultDir + models[i]
 													+ ".out' already exists. Unless you rename or delete the file or directory,"
 													+ "the program does not regenerate this file and the '" + resultDir
 													+ models[i] + "/" + models[i] + "_hits.txt' file, "
@@ -200,8 +200,8 @@ public class CALiCo {
 			models = Files.list(phenoCovarDir, ".xln", false);
 			idVariable = new int[models.length];
 			for (int i = 0; i < models.length; i++) {
-				idVariable[i] = ext.indexOfStr(	Files.getHeaderOfFile(phenoCovarDir + models[i], null)[0],
-																				SAMPLE_ID_SYNONYMS);
+				idVariable[i] = ext.indexOfStr(Files.getHeaderOfFile(phenoCovarDir + models[i], null)[0],
+																			 SAMPLE_ID_SYNONYMS);
 				if (idVariable[i] < 0) {
 					System.out.println("Removing " + models[i] + ".");
 					ArrayUtils.removeFromArray(models, i);
@@ -220,15 +220,15 @@ public class CALiCo {
 				if (!Files.exists(resultDir + root + ".out")) {
 					parsePhenotypes(genoPlinkDirPlusRoot, phenoCovarDir + models[i],
 													SAMPLE_ID_SYNONYMS[idVariable[i]], scratchDir, log);
-					sexAsCovariate = parsePhenotypes(	genoPlinkDirPlusRoot, phenoCovarDir + models[i],
-																						SAMPLE_ID_SYNONYMS[idVariable[i]], resultDir, log);
+					sexAsCovariate = parsePhenotypes(genoPlinkDirPlusRoot, phenoCovarDir + models[i],
+																					 SAMPLE_ID_SYNONYMS[idVariable[i]], resultDir, log);
 					// runAndParseResults(genoFileDirPlusRoot, resultDir, ext.rootOf(files[i]),
 					// sexAsCovariate, scratchDir, log);
-					runAndParseResults(	genoPlinkDirPlusRoot, resultDir + root,
-															resultDir + root + "_covars.dat", sexAsCovariate, scratchDir,
-															resultDir, root, false, plinkCommand, log);
+					runAndParseResults(genoPlinkDirPlusRoot, resultDir + root,
+														 resultDir + root + "_covars.dat", sexAsCovariate, scratchDir,
+														 resultDir, root, false, plinkCommand, log);
 				} else {
-					log.reportError("\nWarning --- Found '"	+ resultDir + models[i]
+					log.reportError("\nWarning --- Found '" + resultDir + models[i]
 													+ ".out' already exists. Unless you rename or delete the file or directory,"
 													+ "the program does not regenerate this file and the '" + resultDir
 													+ models[i] + "_hits.txt' file, "
@@ -251,7 +251,7 @@ public class CALiCo {
 
 		minimumPvalueHash = new Hashtable<String, Double>();
 		markerPositionHash = new Hashtable<String, int[]>(); // key=markerName, values=new int[]
-																													// {chr,position,position}
+																												 // {chr,position,position}
 		// populate both hashtables
 		try {
 			reader = new BufferedReader(new FileReader(resultDir + "cat_hits.txt"));
@@ -259,9 +259,9 @@ public class CALiCo {
 				line = trav.trim().split("\\t");
 				if (!markerPositionHash.containsKey(line[0])) {
 					minimumPvalueHash.put(line[0], Double.parseDouble(line[3]));
-					markerPositionHash.put(	line[0],
-																	new int[] {	Integer.parseInt(line[1]), Integer.parseInt(line[2]),
-																							Integer.parseInt(line[2])});
+					markerPositionHash.put(line[0],
+																 new int[] {Integer.parseInt(line[1]), Integer.parseInt(line[2]),
+																						Integer.parseInt(line[2])});
 				} else if (minimumPvalueHash.get(line[0]) > Double.parseDouble(line[3])) {
 					minimumPvalueHash.put(line[0], Double.parseDouble(line[3]));
 				}
@@ -288,8 +288,8 @@ public class CALiCo {
 			writer.println("MarkerName\tminPval\tGenes");
 			for (int i = 0; i < minPvalues.length; i++) {
 				minPvalues[i] = minimumPvalueHash.get(uniqueMarkers[i]);
-				writer.println(uniqueMarkers[i]	+ "\t" + minPvalues[i] + "\t"
-												+ (genes[i].equals("") ? "." : genes[i]));
+				writer.println(uniqueMarkers[i] + "\t" + minPvalues[i] + "\t"
+											 + (genes[i].equals("") ? "." : genes[i]));
 			}
 			writer.close();
 			uniqueMarkers = Sort.getOrdered(uniqueMarkers, Sort.getSortedIndices(minPvalues));
@@ -304,7 +304,7 @@ public class CALiCo {
 			root = ext.rootOf(models[i]);
 			if (i == 0) {
 				// if (conditionals == null || conditionals.size() == 0) {
-				fileParameters[0] = resultDir	+ root
+				fileParameters[0] = resultDir + root
 														+ ".out 'MarkerName' 'Chr' 'Position' 'Effect_allele' 'Reference_allele'";
 				// } else {
 				// fileParameters[0] = resultDir + root + "/" + root + ".out 'MarkerName' 'Chr' 'Position'
@@ -313,7 +313,7 @@ public class CALiCo {
 				fileParameters[1] = resultDir + "minimumPvalues.txt 0 2=Gene(s) tab";
 			}
 			// if (conditionals == null || conditionals.size() == 0) {
-			fileParameters[i + 2] = resultDir	+ root
+			fileParameters[i + 2] = resultDir + root
 															+ ".out 'MarkerName' 'N' 'Effect_allele_frequency' 'BETA'=beta_"
 															+ root + " 'P-value'=pval_" + root;
 			// } else {
@@ -712,18 +712,19 @@ public class CALiCo {
 		temp = Files.getFirstNLinesOfFile(phenoCovarFilename, 1, log)[0];
 		header = temp.trim().split("[\\s]+");
 
-		args = new String[] {	phenoCovarFilename, "out=" + outputDir + root + "_pheno.dat",
-													"'" + idVarName + "'=FID", "'" + idVarName + "'=IID",
-													"'" + header[1] + "'", "tab", "replace=."};
+		args = new String[] {phenoCovarFilename, "out=" + outputDir + root + "_pheno.dat",
+												 "'" + idVarName + "'=FID", "'" + idVarName + "'=IID",
+												 "'" + header[1] + "'", "tab", "replace=."};
 		GenParser.parse(args, log);
 
 		// load phenotype to memory
-		phenos = HashVec.loadFileToStringArray(outputDir	+ root + "_pheno.dat", true, new int[] {2},
-																						false);
+		phenos = HashVec.loadFileToStringArray(outputDir + root + "_pheno.dat", true, new int[] {2},
+																					 false);
 		isBinary = RegressionModel.isBinaryTrait(phenos, log);
 		if (isBinary) {
-			if (ArrayUtils.max(ArrayUtils.toIntArray(phenos)) == 1 && ArrayUtils.min(ArrayUtils.toIntArray(phenos)) == 0) {
-				new File(outputDir + root + "_pheno.dat").renameTo(new File(outputDir	+ root
+			if (ArrayUtils.max(ArrayUtils.toIntArray(phenos)) == 1
+					&& ArrayUtils.min(ArrayUtils.toIntArray(phenos)) == 0) {
+				new File(outputDir + root + "_pheno.dat").renameTo(new File(outputDir + root
 																																		+ "_pheno.dat.temp"));
 
 				try {
@@ -754,8 +755,8 @@ public class CALiCo {
 					writer.close();
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ outputDir + root + "_pheno.dat.temp"
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + outputDir + root + "_pheno.dat.temp"
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + outputDir + root + "_pheno.dat.temp" + "\"");
@@ -800,13 +801,13 @@ public class CALiCo {
 
 		// determine which samples have complete data for pheotype AND all covariates
 		keysToRemove = new ArrayList<Integer>();
-		hashPheno = HashVec.loadFileToHashString(outputDir	+ root + "_pheno.dat", new int[] {0, 1},
-																							new int[] {2}, false, "\t", true, false, false);
-		hashCovariates = HashVec.loadFileToHashString(outputDir	+ root + "_covars.dat",
+		hashPheno = HashVec.loadFileToHashString(outputDir + root + "_pheno.dat", new int[] {0, 1},
+																						 new int[] {2}, false, "\t", true, false, false);
+		hashCovariates = HashVec.loadFileToHashString(outputDir + root + "_covars.dat",
 																									new int[] {0, 1},
-																									ArrayUtils.subArray(	ArrayUtils.arrayOfIndices(args.length
-																																												- 6),
-																																	2),
+																									ArrayUtils.subArray(ArrayUtils.arrayOfIndices(args.length
+																																																- 6),
+																																			2),
 																									false, "\t", true, false, false);
 		keys = HashVec.getKeys(hashPheno);
 		for (int i = 0; i < keys.length; i++) {
@@ -884,14 +885,14 @@ public class CALiCo {
 		}
 
 		commands = new String[] {// "Path = %Path%; C:\plink",
-															plinkCommand	+ " --bfile " + genoFileDirPlusRoot + " --pheno "
-															+ phenoFileDirPlusRoot + "_pheno.dat --covar " + covarFileDirPlusName
-															+ (sexAsCovariate ? " --sex" : "") + " --logistic --ci 0.95 --out "
-															+ scratchDir + outFileRoot,
-															plinkCommand								+ " --bfile " + genoFileDirPlusRoot + " --keep "
-																													+ phenoFileDirPlusRoot
-																													+ "_used.dat --freq --out " + scratchDir
-																													+ outFileRoot + "_freq"};
+														 plinkCommand + " --bfile " + genoFileDirPlusRoot + " --pheno "
+														 + phenoFileDirPlusRoot + "_pheno.dat --covar " + covarFileDirPlusName
+														 + (sexAsCovariate ? " --sex" : "") + " --logistic --ci 0.95 --out "
+														 + scratchDir + outFileRoot,
+														 plinkCommand + " --bfile " + genoFileDirPlusRoot + " --keep "
+																												 + phenoFileDirPlusRoot
+																												 + "_used.dat --freq --out " + scratchDir
+																												 + outFileRoot + "_freq"};
 		Files.writeArray(commands, resultDir + "run_" + outFileRoot + ".bat");
 		Files.chmod(resultDir + "run_" + outFileRoot + ".bat");
 
@@ -928,8 +929,8 @@ public class CALiCo {
 																						scratchDir + outFileRoot + "_freq.frq", null, 1,
 																						resultDir + outFileRoot + ".out", log);
 		ResultsPackager.parseStdFormatFromPlink("", plinkResultFile,
-																						outFileRoot	.substring(outFileRoot.indexOf("_") + 1)
-																												.replace("_", ":"),
+																						outFileRoot.substring(outFileRoot.indexOf("_") + 1)
+																											 .replace("_", ":"),
 																						genoFileDirPlusRoot + ".bim",
 																						scratchDir + outFileRoot + "_freq.frq", null, 1,
 																						resultDir + outFileRoot + "_cov.out", log);
@@ -955,7 +956,7 @@ public class CALiCo {
 		}
 
 		outFile = new Vector<String>();
-		outFile.add("model"	+ delimiterForOutputFile + "SNP.original" + delimiterForOutputFile + "rsID"
+		outFile.add("model" + delimiterForOutputFile + "SNP.original" + delimiterForOutputFile + "rsID"
 								+ delimiterForOutputFile + "CHR.build36" + delimiterForOutputFile + "CHR.build37"
 								+ delimiterForOutputFile + "bp.build36" + delimiterForOutputFile + "bp.build37"
 								+ delimiterForOutputFile + "analysis.locus" + delimiterForOutputFile
@@ -971,9 +972,9 @@ public class CALiCo {
 								+ delimiterForOutputFile + "index.NMISS" + delimiterForOutputFile + "index.CAF"
 								+ delimiterForOutputFile + "index.CAC" + delimiterForOutputFile + "index.coded"
 								+ delimiterForOutputFile + "index.noncoded");
-		modelList = SkatMeta2.loadFile(	modelListFileName, null, new String[] {"Name", "rsID"},
-																		new String[] {"Locus", "Chr", "bp36.start", "bp36.stop"}, null,
-																		true, log);
+		modelList = SkatMeta2.loadFile(modelListFileName, null, new String[] {"Name", "rsID"},
+																	 new String[] {"Locus", "Chr", "bp36.start", "bp36.stop"}, null,
+																	 true, log);
 		models = modelList.keys();
 		while (models.hasMoreElements()) {
 			model = models.nextElement();
@@ -984,21 +985,21 @@ public class CALiCo {
 			filename = model1[0] + "_" + ext.replaceWithLinuxSafeCharacters(model1[1], false);
 			// }
 			modelLine = modelList.get(model);
-			resultsSnp = SkatMeta2.loadFile(resultFilesDir	+ filename + ".out", null,
+			resultsSnp = SkatMeta2.loadFile(resultFilesDir + filename + ".out", null,
 																			new String[] {"MarkerName", "Chr", "Position"},
 																			new String[] {"Effect_allele", "Reference_allele",
 																										"Effect_allele_frequency", "N", "BETA", "SE",
 																										"P-value"},
-																			new String[] {"Chr =="	+ modelLine[1],
+																			new String[] {"Chr ==" + modelLine[1],
 																										"Position >= " + modelLine[2],
 																										"Position <= " + modelLine[3]},
 																			log);
-			resultsIndex = SkatMeta2.loadFile(resultFilesDir	+ filename + "_cov.out", null,
+			resultsIndex = SkatMeta2.loadFile(resultFilesDir + filename + "_cov.out", null,
 																				new String[] {"MarkerName", "Chr", "Position"},
 																				new String[] {"Effect_allele", "Reference_allele",
 																											"Effect_allele_frequency", "N", "BETA", "SE",
 																											"P-value"},
-																				new String[] {"Chr =="	+ modelLine[1],
+																				new String[] {"Chr ==" + modelLine[1],
 																											"Position >= " + modelLine[2],
 																											"Position <= " + modelLine[3]},
 																				log);
@@ -1010,7 +1011,7 @@ public class CALiCo {
 				indexLine = resultsIndex.get(snp);
 				line = snp.split("\t");
 				outLine = model1[0] // model
-										+ delimiterForOutputFile // SNP.original
+									+ delimiterForOutputFile // SNP.original
 									+ delimiterForOutputFile + line[0] // rsID
 									+ delimiterForOutputFile + line[1] // CHR.build36
 									+ delimiterForOutputFile // CHR.build37
@@ -1026,21 +1027,21 @@ public class CALiCo {
 									+ delimiterForOutputFile // snp.Stat
 									+ delimiterForOutputFile + snpLine[6] // snp.P
 									+ ((snpLine[4].equals("NA")
-											|| snpLine[4].equals("NA"))	? (delimiterForOutputFile
-																											+ delimiterForOutputFile)
+											|| snpLine[4].equals("NA")) ? (delimiterForOutputFile
+																										 + delimiterForOutputFile)
 																									: (delimiterForOutputFile
-																												+ (Double.parseDouble(snpLine[4])
-																													- 1.95 * Double.parseDouble(snpLine[5]))
-																											+ delimiterForOutputFile
-																											+ (Double.parseDouble(snpLine[4])
-																													+ 1.95 * Double.parseDouble(snpLine[5])))) // snp.L95
-																																																			// snp.U95
+																										 + (Double.parseDouble(snpLine[4])
+																												- 1.95 * Double.parseDouble(snpLine[5]))
+																										 + delimiterForOutputFile
+																										 + (Double.parseDouble(snpLine[4])
+																												+ 1.95 * Double.parseDouble(snpLine[5])))) // snp.L95
+																																																	 // snp.U95
 									+ delimiterForOutputFile + (numSamples - Integer.parseInt(snpLine[3])) // snp.NMISS
 									+ delimiterForOutputFile + snpLine[2] // snp.CAF
 									+ delimiterForOutputFile
-									+ (snpLine[2].equals("NA")	? ""
-																							: (Double.parseDouble(snpLine[2])
-																									* Integer.parseInt(snpLine[3]) * 2)) // snp.CAC
+									+ (snpLine[2].equals("NA") ? ""
+																						 : (Double.parseDouble(snpLine[2])
+																								* Integer.parseInt(snpLine[3]) * 2)) // snp.CAC
 									+ delimiterForOutputFile
 									+ (indexLine == null || indexLine.length < 5 ? "NA" : indexLine[4]) // index.BETA
 									+ delimiterForOutputFile
@@ -1048,31 +1049,31 @@ public class CALiCo {
 									+ delimiterForOutputFile // index.Stat
 									+ delimiterForOutputFile
 									+ (indexLine == null || indexLine.length < 5 ? "NA" : indexLine[6]) // index.P
-									+ ((indexLine == null	|| indexLine.length < 6
-											|| indexLine[4].equals("NA"))	? (delimiterForOutputFile
-																												+ delimiterForOutputFile)
+									+ ((indexLine == null || indexLine.length < 6
+											|| indexLine[4].equals("NA")) ? (delimiterForOutputFile
+																											 + delimiterForOutputFile)
 																										: (delimiterForOutputFile
-																													+ (Double.parseDouble(indexLine[4]) - 1.95
-																																															* Double.parseDouble(indexLine[5]))
-																												+ delimiterForOutputFile
-																												+ (Double.parseDouble(indexLine[4])
-																														+ 1.95
-																															* Double.parseDouble(indexLine[5])))) // index.L95
-																																																		// index.U95
+																											 + (Double.parseDouble(indexLine[4])
+																													- 1.95 * Double.parseDouble(indexLine[5]))
+																											 + delimiterForOutputFile
+																											 + (Double.parseDouble(indexLine[4])
+																													+ 1.95
+																														* Double.parseDouble(indexLine[5])))) // index.L95
+																																																	// index.U95
+									+ delimiterForOutputFile
+									+ (indexLine == null || indexLine.length < 5 ? "NA"
+																															 : (numSamples
+																																	- Integer.parseInt(indexLine[3]))) // index.NMISS
 									+ delimiterForOutputFile
 									+ (indexLine == null
-											|| indexLine.length < 5	? "NA"
-																							: (numSamples - Integer.parseInt(indexLine[3]))) // index.NMISS
-									+ delimiterForOutputFile
-									+ (indexLine == null
-											|| indexLine.length < 5	? "NA"
-																							: indexLine[2] // index.CAF
-																									+ delimiterForOutputFile
-																								+ (indexLine == null	|| indexLine.length < 4
-																										|| indexLine[2].equals("NA")	? ""
-																																									: (Double.parseDouble(indexLine[2])
-																																												* Integer.parseInt(indexLine[3])
-																																											* 2))) // index.CAC
+										 || indexLine.length < 5 ? "NA"
+																						 : indexLine[2] // index.CAF
+																							 + delimiterForOutputFile
+																							 + (indexLine == null || indexLine.length < 4
+																									|| indexLine[2].equals("NA") ? ""
+																																							 : (Double.parseDouble(indexLine[2])
+																																									* Integer.parseInt(indexLine[3])
+																																									* 2))) // index.CAC
 									+ delimiterForOutputFile
 									+ (indexLine == null || indexLine.length < 5 ? "NA" : indexLine[0]) // index.coded
 									+ delimiterForOutputFile
@@ -1082,8 +1083,8 @@ public class CALiCo {
 			}
 		}
 		Files.writeArray(outFile.toArray(new String[0]), outFileName);
-		log.report("Output is ready at: "	+ outFileName
-								+ "\nPlease use other software to sort by model ID, index.rsID, and positions.");
+		log.report("Output is ready at: " + outFileName
+							 + "\nPlease use other software to sort by model ID, index.rsID, and positions.");
 	}
 
 	public static void metaAnalyzeSOL(String dir, String filePattern, String root, String mapFile) {
@@ -1108,7 +1109,8 @@ public class CALiCo {
 					filename = ext.replaceAllWith(filePattern,
 																				new String[][] {{"#", count + ""}, {"%%", site}});
 				}
-				Files.cat(ArrayUtils.toStringArray(v), dir + root + site + ".out", new int[0], new Logger());
+				Files.cat(ArrayUtils.toStringArray(v), dir + root + site + ".out", new int[0],
+									new Logger());
 			}
 		}
 
@@ -1137,8 +1139,8 @@ public class CALiCo {
 				log.report(outfile + " already exists in " + dir);
 			} else {
 				log.report("Parsing " + filename);
-				ResultsPackager.parseSOLformat(	dir, filename, mapFile, freqFile, null, 1.0, 0.95, outfile,
-																				log);
+				ResultsPackager.parseSOLformat(dir, filename, mapFile, freqFile, null, 1.0, 0.95, outfile,
+																			 log);
 			}
 			qqFiles.add(outfile + ",9=" + ext.rootOf(outfile));
 			lowCallrateMarkerFiles.add(dir + outfile + "lowCallRateMarkers.out");
@@ -1159,15 +1161,17 @@ public class CALiCo {
 		} else {
 			log.report("Running sample size weighted meta-analysis...");
 			Metal.metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, root + "_NWeighted",
-												Metal.PVAL_ANALYSIS, null, ArrayUtils.doubleArray(inputFiles.length, -9), log);
+												Metal.PVAL_ANALYSIS, null, ArrayUtils.doubleArray(inputFiles.length, -9),
+												log);
 		}
 		qqFiles.add(root + "_NWeighted1.out" + ",7=" + ext.rootOf(root + "_NWeighted"));
 
 		Files.write("java -jar C:/home/npankrat/vis.jar cnv.plots.QQPlot files=\""
-									+ ArrayUtils.toStr(ArrayUtils.toStringArray(qqFiles), ";") + "\" maxToPlot=10",
+								+ ArrayUtils.toStr(ArrayUtils.toStringArray(qqFiles), ";") + "\" maxToPlot=10",
 								dir + "plotQQs.bat");
 		dir = dir.substring(dir.substring(0, dir.length() - 1).lastIndexOf("/") + 1, dir.length());
-		log.report("QQ_FILENAMES=" + dir + ArrayUtils.toStr(ArrayUtils.toStringArray(qqFiles), ";" + dir));
+		log.report("QQ_FILENAMES=" + dir
+							 + ArrayUtils.toStr(ArrayUtils.toStringArray(qqFiles), ";" + dir));
 	}
 
 	public static void main(String[] args) {
@@ -1184,12 +1188,11 @@ public class CALiCo {
 		// String resultDir = phenoCovarDir.substring(0, phenoCovarDir.substring(0,
 		// phenoCovarDir.length()-2).lastIndexOf("/")) + "/results/";
 		String resultDir = phenoCovarDir
-												+ (Files.exists(phenoCovarDir + CONDITIONALS_TXT_FILE)	? "conditionals/"
-																																								: "results/");
+											 + (Files.exists(phenoCovarDir + CONDITIONALS_TXT_FILE) ? "conditionals/"
+																																							: "results/");
 		String plinkCommand;
 		String modelListFileNameWhenParsingForPageGlucoseInsulinConditionalPaper = "D:/CALiCo_conditional/instructions/RequestedConditionalAnalyses.txt";
-		String outputFileNameWhenParsingForPageGlucoseInsulinConditionalPaper =
-																																					"D:/CALiCo_conditional/parsedResults.csv";
+		String outputFileNameWhenParsingForPageGlucoseInsulinConditionalPaper = "D:/CALiCo_conditional/parsedResults.csv";
 		Logger log;
 		boolean exists = true;
 
@@ -1220,25 +1223,25 @@ public class CALiCo {
 
 		plinkCommand = "C:/plink/plink";
 
-		String usage = "\n"	+ "one.CALiCo requires 0-1 arguments\n"
-										+ "  Note: to run conditional analysis, please save the file \"conditionals.txt\" in the directory of pheno and covariates.\n"
-										+ "   (1) plink command (i.e. plinkcommand=" + plinkCommand + " (default))\n"
-										+ "   (2) location of genotype files (i.e. geno=" + geno + " (default))\n"
-										+ "   (3) phenotype filename (i.e. phenocovarfile=" + phenoCovarFilename
-										+ " (default))\n" + " 	OR:\n"
-										+ "   (3) directory to perform for all *.xln files (i.e. phenocovardir=C:/test/ (not the default))\n"
-										+ "   (4) (optional) scratch directory (i.e. scratchdir=" + scratchDir
-										+ " (default; use null for directory of phenotype file))\n"
-										+ "   (5) (optional) results directory (i.e. resultdir=" + resultDir
-										+ " (default; use null for directory of phenotype file))\n" + "\n"
-										+ " To parse results per PAGE Glucose Insulin Paper's template:\n"
-										+ "   (1) full path to the model list file (i.e. pageglucoseinsulinmodellist="
-										+ modelListFileNameWhenParsingForPageGlucoseInsulinConditionalPaper
-										+ " (default))\n" + "   (2) results directory (i.e. resultdir=" + resultDir
-										+ " (default))\n"
-										+ "   (3) full path to the output file of this parsing (i.e. pageglucoseinsulinoutput="
-										+ outputFileNameWhenParsingForPageGlucoseInsulinConditionalPaper
-										+ " (default))\n" + "";
+		String usage = "\n" + "one.CALiCo requires 0-1 arguments\n"
+									 + "  Note: to run conditional analysis, please save the file \"conditionals.txt\" in the directory of pheno and covariates.\n"
+									 + "   (1) plink command (i.e. plinkcommand=" + plinkCommand + " (default))\n"
+									 + "   (2) location of genotype files (i.e. geno=" + geno + " (default))\n"
+									 + "   (3) phenotype filename (i.e. phenocovarfile=" + phenoCovarFilename
+									 + " (default))\n" + " 	OR:\n"
+									 + "   (3) directory to perform for all *.xln files (i.e. phenocovardir=C:/test/ (not the default))\n"
+									 + "   (4) (optional) scratch directory (i.e. scratchdir=" + scratchDir
+									 + " (default; use null for directory of phenotype file))\n"
+									 + "   (5) (optional) results directory (i.e. resultdir=" + resultDir
+									 + " (default; use null for directory of phenotype file))\n" + "\n"
+									 + " To parse results per PAGE Glucose Insulin Paper's template:\n"
+									 + "   (1) full path to the model list file (i.e. pageglucoseinsulinmodellist="
+									 + modelListFileNameWhenParsingForPageGlucoseInsulinConditionalPaper
+									 + " (default))\n" + "   (2) results directory (i.e. resultdir=" + resultDir
+									 + " (default))\n"
+									 + "   (3) full path to the output file of this parsing (i.e. pageglucoseinsulinoutput="
+									 + outputFileNameWhenParsingForPageGlucoseInsulinConditionalPaper
+									 + " (default))\n" + "";
 
 		phenoCovarDir = null;
 		phenoCovarFilename = null;
@@ -1319,15 +1322,15 @@ public class CALiCo {
 				new File(scratchDir).mkdir();
 			}
 
-			log = new Logger(resultDir	+ "Genvisis_CALiCo_"
-												+ (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
+			log = new Logger(resultDir + "Genvisis_CALiCo_"
+											 + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
 			log.report("Genvisis (R) 2013. \nCalico analysis "
-										+ (new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new Date()))
-									+ "\n\n-Geno data directory and prefix: " + geno
-									+ "\n-Pheno and covariate data directory: " + phenoCovarFilename
-									+ "\n-Scratch directory: " + scratchDir + "\n-Result directory: " + resultDir);
+								 + (new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new Date()))
+								 + "\n\n-Geno data directory and prefix: " + geno
+								 + "\n-Pheno and covariate data directory: " + phenoCovarFilename
+								 + "\n-Scratch directory: " + scratchDir + "\n-Result directory: " + resultDir);
 			if (exists) {
-				log.reportError("Warning --- Directory "	+ resultDir
+				log.reportError("Warning --- Directory " + resultDir
 												+ " already exists. Existing files might be reused or overwritten.");
 			} else {
 				log.report("Creating result directory " + resultDir);
@@ -1337,7 +1340,7 @@ public class CALiCo {
 				new File(scratchDir).mkdir();
 				log.report("Creating scratch directory " + scratchDir);
 			} else {
-				log.reportError("Warning --- Scratch directory "	+ scratchDir
+				log.reportError("Warning --- Scratch directory " + scratchDir
 												+ " already exists. Existing files might be reused or overwritten.");
 			}
 
@@ -1354,9 +1357,9 @@ public class CALiCo {
 
 			} else {
 				System.out.println("Parse Results");
-				parseResultsForPageGlucoseInsulinPaperFormat(	modelListFileNameWhenParsingForPageGlucoseInsulinConditionalPaper,
-																											resultDir,
-																											outputFileNameWhenParsingForPageGlucoseInsulinConditionalPaper);
+				parseResultsForPageGlucoseInsulinPaperFormat(modelListFileNameWhenParsingForPageGlucoseInsulinConditionalPaper,
+																										 resultDir,
+																										 outputFileNameWhenParsingForPageGlucoseInsulinConditionalPaper);
 			}
 
 			log.report("\nCalico analysis is finished.");

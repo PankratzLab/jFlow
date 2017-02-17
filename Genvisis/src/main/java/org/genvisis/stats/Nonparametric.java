@@ -11,7 +11,8 @@ public class Nonparametric {
 
 	public static double runWilcoxonRankSumTest(int[] groupings, double[] values, Logger log) {
 		return runWilcoxonRankSumTest(Ttest.splitOut(groupings, values, ArrayUtils.min(groupings)),
-																	Ttest.splitOut(groupings, values, ArrayUtils.min(groupings) + 1), log);
+																	Ttest.splitOut(groupings, values, ArrayUtils.min(groupings) + 1),
+																	log);
 	}
 
 	// nonparametric form of the independent T-Test, does not assume the traits are normally
@@ -126,8 +127,8 @@ public class Nonparametric {
 		String logfile = null;
 		Logger log;
 
-		String usage = "\n"	+ "stats.Nonparametric requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "stats.Nonparametric requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -150,13 +151,13 @@ public class Nonparametric {
 		try {
 			log = new Logger(logfile);
 			System.out.println(runWilcoxonRankSumTest(ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray("file1.txt",
-																																																	false,
-																																																	new int[] {0},
-																																																	false)),
+																																																			 false,
+																																																			 new int[] {0},
+																																																			 false)),
 																								ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray("file2.txt",
-																																																	false,
-																																																	new int[] {0},
-																																																	false)),
+																																																			 false,
+																																																			 new int[] {0},
+																																																			 false)),
 																								log));
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -39,7 +39,7 @@ public class FocusedRegion {
 														String variantSet, int numthreads) {
 		new File(outDir).mkdirs();
 
-		String output = outDir+ ext.replaceWithLinuxSafeCharacters(seg.getUCSClocation(), true)
+		String output = outDir + ext.replaceWithLinuxSafeCharacters(seg.getUCSClocation(), true)
 										+ "_focus.txt";
 
 		Logger log = new Logger(outDir + "focus.log");
@@ -64,8 +64,8 @@ public class FocusedRegion {
 		Files.write(seg.getChromosomeUCSC() + "\t" + seg.getStart() + "\t" + seg.getStop(), segFile);
 		String subOut = outDir + "extract/";
 		new File(subOut).mkdirs();
-		VCFOps.extractSegments(	vcf, segFile, 300, bamFile, subOut, false, true, true, true,
-														new String[] {variantSet}, numthreads, log);
+		VCFOps.extractSegments(vcf, segFile, 300, bamFile, subOut, false, true, true, true,
+													 new String[] {variantSet}, numthreads, log);
 	}
 
 	private static class FocusResults {
@@ -114,9 +114,9 @@ public class FocusedRegion {
 
 				@Override
 				public FocusResults call() throws Exception {
-					BamPileUp pileUp = new BamPileUp(	bamFiles[current], referenceGenome, 1, new FilterNGS(),
-																						new Segment[] {seg}, PILE_TYPE.REGULAR,
-																						SAM_FILTER_TYPE.COPY_NUMBER, true, log);
+					BamPileUp pileUp = new BamPileUp(bamFiles[current], referenceGenome, 1, new FilterNGS(),
+																					 new Segment[] {seg}, PILE_TYPE.REGULAR,
+																					 SAM_FILTER_TYPE.COPY_NUMBER, true, log);
 					ArrayList<BamPile> pile = new ArrayList<BamPile>();
 					while (pileUp.hasNext()) {
 						pile.add(pileUp.next());
@@ -155,8 +155,8 @@ public class FocusedRegion {
 		c.addArgWithDefault("ref", "reference genome", ref);
 		c.addArgWithDefault("threads", "number of threads", Integer.toString(numthreads));
 		c.parseWithExit(args);
-		focus(c.get("bams"), c.get("ref"), c.get(CLI.ARG_OUTDIR), c.get("vcf"), new Segment(c.get("seg")),
-					c.get("variantSet"), c.getI("threads"));
+		focus(c.get("bams"), c.get("ref"), c.get(CLI.ARG_OUTDIR), c.get("vcf"),
+					new Segment(c.get("seg")), c.get("variantSet"), c.getI("threads"));
 
 	}
 }

@@ -55,10 +55,10 @@ public class temp {
 				} else if (temp.indexOf(".mp4'>") > 0) {
 					temp = temp.substring(0, temp.indexOf(".mp4'>") + 4);
 					temp = temp.substring(temp.lastIndexOf("href='") + 6);
-					writer.println(ext.link(root, temp)	+ "\t"
-													+ ext.replaceWithLinuxSafeCharacters(annotation	+ " "
-																																+ ext.removeDirectoryInfo(temp),
-																																false));
+					writer.println(ext.link(root, temp) + "\t"
+												 + ext.replaceWithLinuxSafeCharacters(annotation + " "
+																															+ ext.removeDirectoryInfo(temp),
+																															false));
 				}
 
 			}
@@ -76,8 +76,8 @@ public class temp {
 	public static void downloadAll(String filename, String dir) {
 		String[][] files;
 
-		files = HashVec.loadFileToStringMatrix(	filename, false, new int[] {0, 1}, "\t", false, 1000,
-																						false);
+		files = HashVec.loadFileToStringMatrix(filename, false, new int[] {0, 1}, "\t", false, 1000,
+																					 false);
 
 		for (String[] file : files) {
 			Internat.downloadFile(file[0], dir + file[1]);
@@ -100,8 +100,8 @@ public class temp {
 		String[][] trios;
 		String commands;
 
-		trios = HashVec.loadFileToStringMatrix(	infile, true, new int[] {4, 5, 6}, "\t", false, 100,
-																						false);
+		trios = HashVec.loadFileToStringMatrix(infile, true, new int[] {4, 5, 6}, "\t", false, 100,
+																					 false);
 		for (int i = 0; i < trios.length; i++) {
 			boolean fine = true;
 			for (int j = 0; j < 3; j++) {
@@ -130,19 +130,19 @@ public class temp {
 		String dir;
 
 		dir = "D:/data/GEDI/";
-		samples = HashVec.loadFileToStringArray(dir	+ "samplesThatArePartOfTrios.txt", false,
+		samples = HashVec.loadFileToStringArray(dir + "samplesThatArePartOfTrios.txt", false,
 																						new int[] {0}, false);
 
 		new File(dir + "penn_data/trios/").mkdirs();
 		for (String sample : samples) {
-			new File(dir + "penn_data/" + sample + ".gz").renameTo(new File(dir	+ "penn_data/trios/"
+			new File(dir + "penn_data/" + sample + ".gz").renameTo(new File(dir + "penn_data/trios/"
 																																			+ sample + ".gz"));
 		}
 
 		String[] list, commands;
 
-		list = HashVec.loadFileToStringArray(	"C:/GEDI_exome/00src/SentrixBarcode_list.txt", false,
-																					new int[] {0}, false);
+		list = HashVec.loadFileToStringArray("C:/GEDI_exome/00src/SentrixBarcode_list.txt", false,
+																				 new int[] {0}, false);
 		commands = new String[list.length];
 		for (int i = 0; i < commands.length; i++) {
 			commands[i] = "move " + list[i] + ".zip batch1";
@@ -222,8 +222,8 @@ public class temp {
 		temp = Files.getFirstNLinesOfFile(filename, 1, log)[0];
 		header = temp.trim().split("[\\s]+");
 
-		args = new String[] {	filename, "out=pheno1.dat", "'ID'=FID", "'ID'=IID", "'" + header[1] + "'",
-													"tab", "replace=."};
+		args = new String[] {filename, "out=pheno1.dat", "'ID'=FID", "'ID'=IID", "'" + header[1] + "'",
+												 "tab", "replace=."};
 		GenParser.parse(args, log);
 
 
@@ -260,13 +260,12 @@ public class temp {
 		times = new long[files.length];
 		for (int i = 0; i < files.length; i++) {
 			times[i] = new File(dir + files[i]).lastModified();
-		}
-		;
+		} ;
 		files = Sort.getOrdered(files, Sort.getSortedIndices(times));
 		for (String file : files) {
 			try {
-				System.out.println(ext.getDate(new Date(new File(dir + file).lastModified()), " ")	+ "\t"
-														+ ext.getTime(new File(dir + file).lastModified()) + "\t" + file);
+				System.out.println(ext.getDate(new Date(new File(dir + file).lastModified()), " ") + "\t"
+													 + ext.getTime(new File(dir + file).lastModified()) + "\t" + file);
 			} catch (Exception e) {
 				System.err.println("Error - with '" + file + "'");
 				e.printStackTrace();
@@ -433,8 +432,8 @@ public class temp {
 		System.exit(1);
 
 
-		String usage = "\n"	+ ".temp requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "";
+		String usage = "\n" + ".temp requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -32,9 +32,9 @@ public class LaunchProperties {
 	 * enum of all available launch properties.
 	 */
 	public enum LaunchKey {
-		PROJECTS_DIR("projects/", true), 
-		DEBUG_PROJECT_FILENAME("DEBUG_PROJECT", false), 
-		LAST_PROJECT_OPENED(Project.EXAMPLE_PROJ + ".properties", false), 
+		PROJECTS_DIR("projects/", true),
+		DEBUG_PROJECT_FILENAME("DEBUG_PROJECT", false),
+		LAST_PROJECT_OPENED(Project.EXAMPLE_PROJ + ".properties", false),
 		RESOURCES_DIR("resources/", true);
 
 		private final String def;
@@ -73,7 +73,7 @@ public class LaunchProperties {
 				File propFile = new File(propertiesFile);
 				if (!propFile.exists() && !propFile.createNewFile()) {
 					System.err.println("Failed to create launch properties: " + propertiesFile
-					                   + ". Genvisis can not continue, please check error logs.");
+														 + ". Genvisis can not continue, please check error logs.");
 					System.exit(-1);
 				}
 				InputStream is = new FileInputStream(propFile);
@@ -87,14 +87,14 @@ public class LaunchProperties {
 					String val = props.getProperty(k.toString());
 					if (k.isDir() && !Files.exists(val)) {
 						new Logger().reportTimeWarning("Did not detect launch property: " + k.toString()
-						                               + ". Creating default: " + val);
+																					 + ". Creating default: " + val);
 						new File(val).mkdirs();
 					}
 				}
 				save();
 			} catch (Exception e) {
 				System.err.println("Failed to load launch properties: " + propertiesFile
-				                   + ". Genvisis can not continue, please check error logs.");
+													 + ". Genvisis can not continue, please check error logs.");
 				System.exit(-1);
 			}
 		}
@@ -146,7 +146,7 @@ public class LaunchProperties {
 
 	public static synchronized void updatePropertiesFile(String newLoc) {
 		System.err.println("Warning: changing genvisis properties file from: " + propertiesFile
-		                   + " to: " + newLoc + ". This could will fundamentally alter behavior.");
+											 + " to: " + newLoc + ". This could will fundamentally alter behavior.");
 		propertiesFile = newLoc;
 	}
 
@@ -193,12 +193,12 @@ public class LaunchProperties {
 		JButton projects = new EditFileButton(LaunchKey.PROJECTS_DIR);
 		JButton resources = new EditFileButton(LaunchKey.RESOURCES_DIR);
 		final JComponent[] inputs = new JComponent[] {new JLabel(LaunchKey.PROJECTS_DIR.toString()),
-		                                              projects,
-		                                              new JLabel(LaunchKey.RESOURCES_DIR.toString()),
-		                                              resources};
-		int res =
-		        JOptionPane.showConfirmDialog(null, inputs, "Genvisis preferences",
-		                                      JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+																									projects,
+																									new JLabel(LaunchKey.RESOURCES_DIR.toString()),
+																									resources};
+		int res = JOptionPane.showConfirmDialog(null, inputs, "Genvisis preferences",
+																						JOptionPane.OK_CANCEL_OPTION,
+																						JOptionPane.PLAIN_MESSAGE);
 		if (JOptionPane.OK_OPTION == res) {
 			put(LaunchKey.PROJECTS_DIR, projects.getText());
 			put(LaunchKey.RESOURCES_DIR, resources.getText());

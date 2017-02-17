@@ -84,10 +84,10 @@ public class PCMatrix {
 		String valuesOutPath = proj.PROJECT_DIRECTORY.getValue() + outDir + column + "_values.txt";
 
 		log.report("Creating matrix of Principal Component vs " + column + "...");
-		PrincipalComponentsResiduals pcResids = new PrincipalComponentsResiduals(	proj, pcFile, null,
-																																							proj.INTENSITY_PC_NUM_COMPONENTS.getValue(),
-																																							false, 0, false,
-																																							false, null);
+		PrincipalComponentsResiduals pcResids = new PrincipalComponentsResiduals(proj, pcFile, null,
+																																						 proj.INTENSITY_PC_NUM_COMPONENTS.getValue(),
+																																						 false, 0, false, false,
+																																						 null);
 
 		// PC values by pc index, sample
 		double[][] pcsForSample = pcResids.getPcBasis();
@@ -100,7 +100,7 @@ public class PCMatrix {
 		int[] keyCols = ext.indexFactors(new String[] {"FID", "IID"}, headerOfFile, false, false);
 
 		if (valCols == null || valCols.length == 0) {
-			log.reportError(PCMatrix.class	+ ": requested column (" + column
+			log.reportError(PCMatrix.class + ": requested column (" + column
 											+ ") not found in current project.");
 			return false;
 		}
@@ -145,12 +145,12 @@ public class PCMatrix {
 	}
 
 	private static String[][] filterSamples(SampleData sampleData, String[] pcSamples,
-																		Hashtable<String, Vector<String>> sampleVec) {
+																					Hashtable<String, Vector<String>> sampleVec) {
 		String[][] values = new String[2][];
 		values[0] = new String[pcSamples.length];
 		Set<String> unique = new HashSet<String>();
 
-		for (int i=0; i<pcSamples.length; i++) {
+		for (int i = 0; i < pcSamples.length; i++) {
 			// Convert the sample ID to FID\tIID key
 			String sample = sampleData.lookup(pcSamples[i])[1];
 			Vector<String> vector = sampleVec.get(sample);
@@ -177,20 +177,19 @@ public class PCMatrix {
 	 */
 	public static void main(String... args) {
 		CLI c = new CLI(PCMatrix.class);
-		c.addArgWithDefault(CLI.ARG_PROJ, CLI.DESC_PROJ,
-												Launch.getDefaultDebugProjectFile(false));
+		c.addArgWithDefault(CLI.ARG_PROJ, CLI.DESC_PROJ, Launch.getDefaultDebugProjectFile(false));
 		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, OUT_DEFAULT);
 		c.addArgWithDefault(ARGS_COLUMN, "Sample data column to compare with PCs", COLUMN_DEFAULT);
-		c.addArg(	ARGS_PC_FILE,
-							"Input principal component file. If not specified, will use project default.", false,
-							Arg.FILE);
+		c.addArg(ARGS_PC_FILE,
+						 "Input principal component file. If not specified, will use project default.", false,
+						 Arg.FILE);
 
 		c.parseWithExit(args);
 
 		Project proj = new Project(c.get(CLI.ARG_PROJ), false);
 		String column = c.get(ARGS_COLUMN);
-		String pcFile =
-									c.has(ARGS_PC_FILE) ? c.get(ARGS_PC_FILE) : proj.INTENSITY_PC_FILENAME.getValue();
+		String pcFile = c.has(ARGS_PC_FILE) ? c.get(ARGS_PC_FILE)
+																				: proj.INTENSITY_PC_FILENAME.getValue();
 		String outDir = c.get(CLI.ARG_OUTDIR);
 
 		createMatrix(proj, column, pcFile, outDir);

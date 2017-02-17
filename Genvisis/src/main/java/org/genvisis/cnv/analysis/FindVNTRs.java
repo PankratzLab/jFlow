@@ -211,8 +211,7 @@ public class FindVNTRs {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename =
-										"C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\cnvPositions.txt";
+		String filename = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\cnvPositions.txt";
 		// String workup = "C:\\Documents and Settings\\npankrat\\My
 		// Documents\\CNV_PD\\cnvPositions.txt_vntrs.xln";
 		// String workup = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\rand1000.txt";
@@ -220,8 +219,8 @@ public class FindVNTRs {
 		// String proj = Project.DEFAULT_SCATTER_PROJECT;
 		// String pedfile = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\conf1672.fam";
 
-		String usage = "\n"	+ "cnv.analysis.FindVNTRs requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "cnv.analysis.FindVNTRs requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

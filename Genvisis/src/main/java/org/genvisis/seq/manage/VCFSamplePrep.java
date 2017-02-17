@@ -20,7 +20,7 @@ public class VCFSamplePrep {
 	private GcModel gcModel;
 
 	public enum PREPPED_SAMPLE_TYPE {
-																		NORMALIZED_GC_CORRECTED, NORMALIZED;
+		NORMALIZED_GC_CORRECTED, NORMALIZED;
 	}
 
 	public VCFSamplePrep(Project proj, Sample samp, GcModel gcModel) {
@@ -29,8 +29,8 @@ public class VCFSamplePrep {
 		this.samp = samp;
 		this.gcModel = gcModel;
 		if (gcModel == null && Files.exists(proj.GC_MODEL_FILENAME.getValue())) {
-			this.gcModel = GcAdjustor.GcModel.populateFromFile(	proj.GC_MODEL_FILENAME.getValue(), false,
-																													proj.getLog());
+			this.gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(), false,
+																												 proj.getLog());
 		}
 	}
 
@@ -42,9 +42,9 @@ public class VCFSamplePrep {
 				break;
 			case NORMALIZED_GC_CORRECTED:
 				if (gcModel != null) {
-					normDepth = GcAdjustor.getComputedAdjustor(	proj, null, ArrayUtils.toFloatArray(normDepth),
-																											gcModel, GC_CORRECTION_METHOD.GENVISIS_GC,
-																											true, true, false)
+					normDepth = GcAdjustor.getComputedAdjustor(proj, null, ArrayUtils.toFloatArray(normDepth),
+																										 gcModel, GC_CORRECTION_METHOD.GENVISIS_GC,
+																										 true, true, false)
 																.getCorrectedIntensities();
 				} else {
 					proj.getLog()
@@ -110,8 +110,8 @@ public class VCFSamplePrep {
 		private final String sampleDir;
 		private final GcModel gcModel;
 
-		public VCFSamplePrepWorker(	Project proj, String sampleDir, PREPPED_SAMPLE_TYPE type,
-																GcModel gcModel) {
+		public VCFSamplePrepWorker(Project proj, String sampleDir, PREPPED_SAMPLE_TYPE type,
+															 GcModel gcModel) {
 			super();
 			this.proj = proj;
 			this.sampleDir = sampleDir;
@@ -133,18 +133,18 @@ public class VCFSamplePrep {
 				@Override
 				public Hashtable<String, Float> call() throws Exception {
 					Hashtable<String, Float> outliers = new Hashtable<String, Float>();
-					VCFSamplePrep prep = new VCFSamplePrep(	proj,
-																									proj.getFullSampleFromRandomAccessFile(sample),
-																									gcModel);
+					VCFSamplePrep prep = new VCFSamplePrep(proj,
+																								 proj.getFullSampleFromRandomAccessFile(sample),
+																								 gcModel);
 					Sample prepped = prep.getPreppedSample(type);
-					prepped.saveToRandomAccessFile(sampleDir	+ prepped.getSampleName()
-																					+ Sample.SAMPLE_FILE_EXTENSION, outliers,
-																					prepped.getSampleName());
+					prepped.saveToRandomAccessFile(sampleDir + prepped.getSampleName()
+																				 + Sample.SAMPLE_FILE_EXTENSION, outliers,
+																				 prepped.getSampleName());
 					byte[] genos = prepped.getAB_Genotypes();
 					for (byte geno : genos) {
 						if (geno == 3) {
 							System.out.println("genotype 3 in sample after normalizing "
-																	+ prepped.getSampleName());
+																 + prepped.getSampleName());
 							System.exit(1);
 						}
 					}

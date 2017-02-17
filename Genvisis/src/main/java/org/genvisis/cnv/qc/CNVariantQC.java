@@ -66,8 +66,8 @@ public class CNVariantQC implements Serializable {
 	}
 
 
-	public void findMarkerNamesinCNV(	Project proj, int[][] indices, int[] positions,
-																		String[] markerNames) {
+	public void findMarkerNamesinCNV(Project proj, int[][] indices, int[] positions,
+																	 String[] markerNames) {
 		int numMarkers = 0;
 		Logger log = proj.getLog();
 
@@ -76,8 +76,8 @@ public class CNVariantQC implements Serializable {
 			if (inCNV(position, cnVariant)) {
 				// will exit if found too many markers
 				checkNumMarkers(numMarkers, false, log);
-				markersIncnVariant.put(	markerNames[indices[cnVariant.getChr()][i]],
-																indices[cnVariant.getChr()][i]);
+				markersIncnVariant.put(markerNames[indices[cnVariant.getChr()][i]],
+															 indices[cnVariant.getChr()][i]);
 				markerList[numMarkers] = markerNames[indices[cnVariant.getChr()][i]];
 				numMarkers++;
 			}
@@ -97,8 +97,8 @@ public class CNVariantQC implements Serializable {
 		}
 	}
 
-	public static String[] getIDList(	CNVariantQC[] cnVariantQCs,
-																		Hashtable<String, Hashtable<String, Integer>> defineCompHash) {
+	public static String[] getIDList(CNVariantQC[] cnVariantQCs,
+																	 Hashtable<String, Hashtable<String, Integer>> defineCompHash) {
 		ArrayList<String> al = new ArrayList<String>();
 		Hashtable<String, Integer> tracker = new Hashtable<String, Integer>();
 		for (CNVariantQC cnVariantQC : cnVariantQCs) {
@@ -116,8 +116,7 @@ public class CNVariantQC implements Serializable {
 
 	public static Hashtable<String, CNVariantQC[]> getIndCNVQCs(String[] inds,
 																															CNVariantQC[] cnVariantQCs) {
-		Hashtable<String, ArrayList<CNVariantQC>> IndCNVQCs =
-																												new Hashtable<String, ArrayList<CNVariantQC>>();
+		Hashtable<String, ArrayList<CNVariantQC>> IndCNVQCs = new Hashtable<String, ArrayList<CNVariantQC>>();
 		for (int i = 0; i < cnVariantQCs.length; i++) {
 			if (!IndCNVQCs.containsKey(cnVariantQCs[i].getCnVariant().getFamilyID())) {
 				// TODO
@@ -136,8 +135,8 @@ public class CNVariantQC implements Serializable {
 		String[] inds = getIDList(cnVariantQCs, defineCompHash);
 		if (inds.length < 2) {
 			proj.getLog()
-					.reportError("Error - the cnvQC file "	+ proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs
-												+ " does not contain any matched IDs found in duplicates file");
+					.reportError("Error - the cnvQC file " + proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs
+											 + " does not contain any matched IDs found in duplicates file");
 			System.exit(1);
 		}
 		Hashtable<String, CNVariantQC[]> indCNVQCssArrays = getIndCNVQCs(inds, cnVariantQCs);
@@ -152,8 +151,8 @@ public class CNVariantQC implements Serializable {
 		String[] inds = getIDList(cnVariantQCs, defineCompHash);
 		if (inds.length < 2) {
 			proj.getLog()
-					.reportError("Error - the cnvQC file "	+ proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs
-												+ " does not contain any matched IDs found in duplicates file");
+					.reportError("Error - the cnvQC file " + proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs
+											 + " does not contain any matched IDs found in duplicates file");
 			System.exit(1);
 		}
 		Hashtable<String, CNVariantQC[]> indCNVQCssArrays = getIndCNVQCs(inds, cnVariantQCs);
@@ -167,13 +166,13 @@ public class CNVariantQC implements Serializable {
 			}
 		}
 		new CNVQC(filteredByComparision.toArray(new CNVariantQC[filteredByComparision.size()])).serialize(proj.PROJECT_DIRECTORY.getValue()
-																																																			+ plinkCnvQCs.replaceAll(	".ser",
-																																																																".comp.ser"));
+																																																			+ plinkCnvQCs.replaceAll(".ser",
+																																																															 ".comp.ser"));
 	}
 
 	public static CNVariantQC[] getCNVariantQCFromPlinkFile(Project proj, String plinkCnvs) {
-		CNVariant[] fileCNVs = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue()	+ plinkCnvs,
-																										false);
+		CNVariant[] fileCNVs = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue() + plinkCnvs,
+																									 false);
 		CNVariantQC[] cnVariantQCs = new CNVariantQC[fileCNVs.length];
 		for (int i = 0; i < fileCNVs.length; i++) {
 			cnVariantQCs[i] = new CNVariantQC(fileCNVs[i]);
@@ -234,8 +233,8 @@ public class CNVariantQC implements Serializable {
 	}
 
 	public String toPlinkPlusQCFormat() {
-		return cnVariant.toPlinkFormat()	+ "\t" + height + "\t" + bafQC + "\t" + numHetsBAF + "\t"
-						+ numHetsGenotype + "\t" + numPolyMAF + "\t" + sum2pq + "\t" + sourceFile;
+		return cnVariant.toPlinkFormat() + "\t" + height + "\t" + bafQC + "\t" + numHetsBAF + "\t"
+					 + numHetsGenotype + "\t" + numPolyMAF + "\t" + sum2pq + "\t" + sourceFile;
 	}
 
 	public int getNumPolyMAF() {
@@ -308,7 +307,7 @@ public class CNVariantQC implements Serializable {
 
 	private void checkNumMarkers(int numMarkers, boolean last, Logger log) {
 		if (numMarkers < cnVariant.getNumMarkers() && last) {
-			log.reportError(numMarkers	+ "Error - mismatched number of markers contained in cnv "
+			log.reportError(numMarkers + "Error - mismatched number of markers contained in cnv "
 											+ cnVariant.toPlinkFormat() + " and markers in the position file ");
 			System.exit(1);
 		} else if (numMarkers == cnVariant.getNumMarkers() && !last) {
@@ -326,8 +325,8 @@ public class CNVariantQC implements Serializable {
 		return stringList.toArray(new String[stringList.size()]);
 	}
 
-	private static Hashtable<String, CNVariantQC[]> getIndividualCNVQCArrays(	String[] inds,
-																																						Hashtable<String, ArrayList<CNVariantQC>> allIndCNVQCs) {
+	private static Hashtable<String, CNVariantQC[]> getIndividualCNVQCArrays(String[] inds,
+																																					 Hashtable<String, ArrayList<CNVariantQC>> allIndCNVQCs) {
 		Hashtable<String, CNVariantQC[]> allIndCNVQCsArray = new Hashtable<String, CNVariantQC[]>();
 		for (String ind : inds) {
 			allIndCNVQCsArray.put(ind, toCNVQCArray(allIndCNVQCs.get(ind)));
@@ -339,10 +338,10 @@ public class CNVariantQC implements Serializable {
 		return cnvQCs.toArray(new CNVariantQC[cnvQCs.size()]);
 	}
 
-	private static CNVariantQC[][][] assignCNVComparisions(	String[] inds,
-																													Hashtable<String, Hashtable<String, Integer>> defineCompHash,
-																													Hashtable<String, CNVariantQC[]> indCNVQCssArrays,
-																													Logger log) {
+	private static CNVariantQC[][][] assignCNVComparisions(String[] inds,
+																												 Hashtable<String, Hashtable<String, Integer>> defineCompHash,
+																												 Hashtable<String, CNVariantQC[]> indCNVQCssArrays,
+																												 Logger log) {
 		Hashtable<String, Boolean> compared = new Hashtable<String, Boolean>();
 		ArrayList<CNVariantQC[]> toCompare1 = new ArrayList<CNVariantQC[]>();
 		ArrayList<CNVariantQC[]> toCompare2 = new ArrayList<CNVariantQC[]>();
@@ -354,7 +353,7 @@ public class CNVariantQC implements Serializable {
 						toCompare1.add(indCNVQCssArrays.get(inds[j]));
 						toCompare2.add(indCNVQCssArrays.get(inds[k]));
 					} else {
-						log.reportError("Error -  CNVs were not found for comparison between "	+ inds[j]
+						log.reportError("Error -  CNVs were not found for comparison between " + inds[j]
 														+ " and " + inds[k]);
 						System.exit(1);
 					}
@@ -364,10 +363,10 @@ public class CNVariantQC implements Serializable {
 		return assignedToArray(toCompare1, toCompare2);
 	}
 
-	private static boolean doComparision(	Hashtable<String, Hashtable<String, Integer>> defineCompHash,
-																				Hashtable<String, Boolean> compared, String ind1,
-																				String ind2,
-																				Hashtable<String, CNVariantQC[]> allIndCNVsArrays) {
+	private static boolean doComparision(Hashtable<String, Hashtable<String, Integer>> defineCompHash,
+																			 Hashtable<String, Boolean> compared, String ind1,
+																			 String ind2,
+																			 Hashtable<String, CNVariantQC[]> allIndCNVsArrays) {
 		boolean doIt = false;
 		if (defineCompHash.containsKey(ind1) && defineCompHash.get(ind1).containsKey(ind2)) {
 			if (allIndCNVsArrays.containsKey(ind1) && allIndCNVsArrays.containsKey(ind2)) {
@@ -389,8 +388,8 @@ public class CNVariantQC implements Serializable {
 		}
 	}
 
-	private static CNVariantQC[][][] assignedToArray(	ArrayList<CNVariantQC[]> toCompare1,
-																										ArrayList<CNVariantQC[]> toCompare2) {
+	private static CNVariantQC[][][] assignedToArray(ArrayList<CNVariantQC[]> toCompare1,
+																									 ArrayList<CNVariantQC[]> toCompare2) {
 		CNVariantQC[][][] cnvQCsAssigned = new CNVariantQC[2][toCompare2.size()][];
 		if (toCompare1.size() == toCompare2.size()) {
 			for (int i = 0; i < toCompare2.size(); i++) {

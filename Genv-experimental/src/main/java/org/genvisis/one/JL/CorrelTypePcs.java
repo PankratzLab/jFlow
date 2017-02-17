@@ -32,7 +32,7 @@ public class CorrelTypePcs {
 
 	private static void run(Project proj, String[] fullPathPcFile) throws FileNotFoundException {
 		Logger log = new Logger();
-		String outDir = proj.PROJECT_DIRECTORY.getValue()	+ "comparePCMethods/"
+		String outDir = proj.PROJECT_DIRECTORY.getValue() + "comparePCMethods/"
 										+ ext.rootOf(fullPathPcFile[0]) + "/";
 		new File(outDir).mkdirs();
 		if (fullPathPcFile.length != 2) {
@@ -85,8 +85,8 @@ public class CorrelTypePcs {
 								ExtProjectDataParser parserComp = builderComp.build(proj, comp);
 								parserComp.determineIndicesFromTitles();
 								parserComp.loadData();
-								int min = Math.min(	parser.getNumericDataTitles().length,
-																		parserComp.getNumericDataTitles().length);
+								int min = Math.min(parser.getNumericDataTitles().length,
+																	 parserComp.getNumericDataTitles().length);
 								for (int pcIndex = 0; pcIndex < min; pcIndex++) {
 									ArrayList<String> outData = new ArrayList<String>();
 									outData.add(fullPathPcFile[pcFile1Index]);
@@ -134,8 +134,8 @@ public class CorrelTypePcs {
 		RScatter rsScatter = new RScatter(out, tmp1 + ".rscript", ext.removeDirectoryInfo(tmp1),
 																			tmp1 + ".jpeg", "PC", new String[] {"SPEARCorrelation"},
 																			"METHOD_FILE", SCATTER_TYPE.POINT, log);
-		rsScatter.setTitle(ext.removeDirectoryInfo(fullPathPcFile[0])	+ " vs "
-												+ ext.removeDirectoryInfo(fullPathPcFile[1]));
+		rsScatter.setTitle(ext.removeDirectoryInfo(fullPathPcFile[0]) + " vs "
+											 + ext.removeDirectoryInfo(fullPathPcFile[1]));
 		rsScatter.setOverWriteExisting(true);
 		rsScatter.setxLabel("PC");
 		rsScatter.setyLabel("SPEARMAN r");
@@ -143,10 +143,10 @@ public class CorrelTypePcs {
 		rsList.add(rsScatter);
 
 		String tmp2 = out + "_basicPear";
-		RScatter rsScatterP = new RScatter(	out, tmp2 + ".rscript", ext.removeDirectoryInfo(tmp2),
-																				tmp2 + ".jpeg", "PC", new String[] {"PEARCorrelation"},
-																				"METHOD_FILE", SCATTER_TYPE.POINT, log);
-		rsScatterP.setTitle(ext.removeDirectoryInfo(fullPathPcFile[0])	+ " vs "
+		RScatter rsScatterP = new RScatter(out, tmp2 + ".rscript", ext.removeDirectoryInfo(tmp2),
+																			 tmp2 + ".jpeg", "PC", new String[] {"PEARCorrelation"},
+																			 "METHOD_FILE", SCATTER_TYPE.POINT, log);
+		rsScatterP.setTitle(ext.removeDirectoryInfo(fullPathPcFile[0]) + " vs "
 												+ ext.removeDirectoryInfo(fullPathPcFile[1]));
 		rsScatterP.setOverWriteExisting(true);
 		rsScatterP.setxLabel("PC");
@@ -154,10 +154,10 @@ public class CorrelTypePcs {
 		rsScatterP.setyRange(new double[] {-.5, 1});
 		rsList.add(rsScatterP);
 
-		RScatters rsScatters = new RScatters(	rsList.toArray(new RScatter[rsList.size()]),
-																					out + ".rscript", out + ".pdf",
-																					COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF,
-																					log);
+		RScatters rsScatters = new RScatters(rsList.toArray(new RScatter[rsList.size()]),
+																				 out + ".rscript", out + ".pdf",
+																				 COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF,
+																				 log);
 		rsScatters.execute();
 		// new RScatter(out, out+".rscript", ext.removeDirectoryInfo(out), out+".jpeg", "PC", new
 		// String, sType, log)

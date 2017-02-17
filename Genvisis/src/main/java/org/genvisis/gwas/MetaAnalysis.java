@@ -30,11 +30,11 @@ public class MetaAnalysis {
 				// do nothing
 			} else {
 				if (line.length < 2) {
-					log.reportError("Line # "	+ (i + 1)
+					log.reportError("Line # " + (i + 1)
 													+ " did not have at least two columns with beta and standard error data: "
 													+ ArrayUtils.toStr(line, " / "));
 				} else if (line.length != numColumns) {
-					log.reportError("Line # "	+ (i + 1) + " had a different number of columns (n="
+					log.reportError("Line # " + (i + 1) + " had a different number of columns (n="
 													+ line.length + ") than the previous columns (n=" + numColumns + "): "
 													+ ArrayUtils.toStr(line, " / "));
 				}
@@ -53,7 +53,7 @@ public class MetaAnalysis {
 					v.add(new double[] {Double.parseDouble(line[0]), Double.parseDouble(line[1])});
 				} else {
 					if (countInvalids < 5) {
-						log.reportError("Line # "	+ (i + 1) + " had an invalid double: "
+						log.reportError("Line # " + (i + 1) + " had an invalid double: "
 														+ ArrayUtils.toStr(line, " / "));
 					}
 					countInvalids++;
@@ -69,8 +69,8 @@ public class MetaAnalysis {
 			result[1] *= Math.sqrt(totalN);
 		}
 		if (parentheses) {
-			return new String[] {ext.formDeci(result[0], 9)	+ " (" + ext.formDeci(result[1], 9) + ")"
-														+ (sdConversion ? "\t" + totalN : "")};
+			return new String[] {ext.formDeci(result[0], 9) + " (" + ext.formDeci(result[1], 9) + ")"
+													 + (sdConversion ? "\t" + totalN : "")};
 		} else {
 			return ArrayUtils.toStringArray(result);
 		}
@@ -82,7 +82,7 @@ public class MetaAnalysis {
 		weightedSum = sumInverseWeights = 0;
 		for (int i = 0; i < betaStderrs.length; i++) {
 			if (Double.isNaN(betaStderrs[i][0]) || Double.isNaN(betaStderrs[i][1])) {
-				log.reportError("Entry # "	+ (i + 1) + " had an invalid beta or stderr: "
+				log.reportError("Entry # " + (i + 1) + " had an invalid beta or stderr: "
 												+ ArrayUtils.toStr(ArrayUtils.toStringArray(betaStderrs[i]), " / "));
 			} else {
 				squaredWeight = betaStderrs[i][1] * betaStderrs[i][1];

@@ -54,8 +54,8 @@ public class haploGatherPerms {
 						df_probs++;
 					} else if (Integer.valueOf(line[5].substring(0, line[5].length() - 1)).intValue() > df) {
 						df = Integer.valueOf(line[5].substring(0, line[5].length() - 1)).intValue();
-						System.err.println("Uh oh - ned to redo reps 1-"	+ i
-																+ ", cause they have less df than subsequent runs.");
+						System.err.println("Uh oh - ned to redo reps 1-" + i
+															 + ", cause they have less df than subsequent runs.");
 					}
 				}
 				reader.close();
@@ -70,10 +70,10 @@ public class haploGatherPerms {
 		writer.close();
 		System.out.println();
 		System.err.println();
-		System.err.println("Warning - there are "	+ count
-												+ " missing replicates. Run gatherAdditionalPerms to rerun just these replicates.");
-		System.err.println("Warning - there are "	+ df_probs
-												+ " replicates, that dropped haplotypes. Run gatherAdditionalPerms to rerun just these replicates.");
+		System.err.println("Warning - there are " + count
+											 + " missing replicates. Run gatherAdditionalPerms to rerun just these replicates.");
+		System.err.println("Warning - there are " + df_probs
+											 + " replicates, that dropped haplotypes. Run gatherAdditionalPerms to rerun just these replicates.");
 
 		total = lt05 = lt01 = lt001 = lt0001 = lt00001 = 0;
 		average = 0;
@@ -101,8 +101,8 @@ public class haploGatherPerms {
 		}
 
 		average = average / total;
-		temp = "Mean stat: "	+ ext.formDeci(average, 3, true) + " with df=" + df + " (p="
-						+ ProbDist.ChiDist(average, df) + ")\n";
+		temp = "Mean stat: " + ext.formDeci(average, 3, true) + " with df=" + df + " (p="
+					 + ProbDist.ChiDist(average, df) + ")\n";
 		temp += "Alpha for p=0.05 is " + ext.formDeci(lt05 / (double) total, 5, true) + "\n";
 		temp += "Alpha for p=0.01 is " + ext.formDeci(lt01 / (double) total, 5, true) + "\n";
 		temp += "Alpha for p=0.001 is " + ext.formDeci(lt001 / (double) total, 5, true) + "\n";
@@ -137,8 +137,8 @@ public class haploGatherPerms {
 		writer.println("sink()");
 		// writer.println("bintest."+i+"<-haplo.score(affstat."+i+", geno,
 		// trait.type=\"binomial\", skip.haplo=0.005)");
-		writer.println("bintest."	+ i + "<-haplo.score(affstat." + i
-										+ ", geno, trait.type=\"binomial\")");
+		writer.println("bintest." + i + "<-haplo.score(affstat." + i
+									 + ", geno, trait.type=\"binomial\")");
 		writer.println("sink(\"" + i + "_bintest.out\")");
 		writer.println("");
 		writer.println("print(bintest." + i + ")");
@@ -150,9 +150,9 @@ public class haploGatherPerms {
 		int numArgs = args.length;
 		int numReps = 10000;
 
-		String usage = "\n"	+ "park.haploGatherPerms requires 1 arguments:\n"
-										+ "   (1) the number of replicates to perform (i.e. reps=" + numReps
-										+ " (default))\n" + "";
+		String usage = "\n" + "park.haploGatherPerms requires 1 arguments:\n"
+									 + "   (1) the number of replicates to perform (i.e. reps=" + numReps
+									 + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

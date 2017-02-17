@@ -34,14 +34,14 @@ import htsjdk.variant.vcf.VCFFileReader;
 public class TumorNormalSummary {
 
 
-	private static final String[] BASE_OUT = new String[] {	"CHROM", "POS", "ID", "REF", "FULL_ALT",
-																													"ALT", "HIGH||MODERATE||LOW", "TN_PAIR",
-																													"NORMAL_SAMPLE", "TUMOR_SAMPLE",
-																													"NORMAL_GENOTYPE", "TUMOR_GENOTYPE",
-																													"NORMAL_ALLELES", "TUMOR_ALLELES",
-																													"NORMAL_AD", "TUMOR_AD", "NORMAL_GQ",
-																													"TUMOR_GQ", "NORMAL_HAS_ALT",
-																													"TUMOR_HAS_ALT", "MIN_GQ", "TN_MATCH"};
+	private static final String[] BASE_OUT = new String[] {"CHROM", "POS", "ID", "REF", "FULL_ALT",
+																												 "ALT", "HIGH||MODERATE||LOW", "TN_PAIR",
+																												 "NORMAL_SAMPLE", "TUMOR_SAMPLE",
+																												 "NORMAL_GENOTYPE", "TUMOR_GENOTYPE",
+																												 "NORMAL_ALLELES", "TUMOR_ALLELES",
+																												 "NORMAL_AD", "TUMOR_AD", "NORMAL_GQ",
+																												 "TUMOR_GQ", "NORMAL_HAS_ALT",
+																												 "TUMOR_HAS_ALT", "MIN_GQ", "TN_MATCH"};
 
 	private TumorNormalSummary() {
 
@@ -83,53 +83,51 @@ public class TumorNormalSummary {
 					for (String tnPair : vpop.getSubPop().keySet()) {
 						Set<String> samps = vpop.getSubPop().get(tnPair);
 
-							String tumor = null;
-							String normal = null;
-							for (String samp : samps) {
-								if (vpop.getPopulationForInd(	samp,
-																							RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.TUMOR)) {
-									tumor = samp;
-								} else if (vpop.getPopulationForInd(samp,
-																										RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.NORMAL)) {
-									normal = samp;
-								} else {
-									writerSummary.close();
-									throw new IllegalStateException("Unknown types");
-								}
+						String tumor = null;
+						String normal = null;
+						for (String samp : samps) {
+							if (vpop.getPopulationForInd(samp,
+																					 RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.TUMOR)) {
+								tumor = samp;
+							} else if (vpop.getPopulationForInd(samp,
+																									RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.NORMAL)) {
+								normal = samp;
+							} else {
+								writerSummary.close();
+								throw new IllegalStateException("Unknown types");
 							}
+						}
 
-							Genotype gTumor = vc.getGenotype(tumor);
-							Genotype gNormal = vc.getGenotype(normal);
-							StringBuilder builder = new StringBuilder();
-							builder.append(vc.getContig());
-							builder.append("\t" + vc.getStart());
-							builder.append("\t" + vc.getID());
-							builder.append("\t" + vc.getReference().getDisplayString());
-							builder.append("\t" + vcFull.getAlternateAlleles());
-							builder.append("\t" + vc.getAlternateAlleles());
-							String impact = VCOps.getSNP_EFFImpact(vc);
-							builder.append("\t" + (impact.equals("HIGH")|| impact.equals("MODERATE")
-																			|| impact.equals("LOW")));
-							builder.append("\t" + tnPair);
-							builder.append("\t" + normal);
-							builder.append("\t" + tumor);
-							builder.append("\t" + gNormal.toString());
-							builder.append("\t" + gTumor.toString());
-							builder.append("\t" + gNormal.getGenotypeString());
-							builder.append("\t" + gTumor.getGenotypeString());
-							builder.append("\t"
-															+ ArrayUtils.toStr(ArrayUtils.toStringArray(gNormal.getAD()), ","));
-							builder.append("\t"
-															+ ArrayUtils.toStr(ArrayUtils.toStringArray(gTumor.getAD()), ","));
-							builder.append("\t" + gNormal.getGQ());
-							builder.append("\t" + gTumor.getGQ());
-							builder.append("\t" + (gNormal.isCalled() && !gNormal.isHomRef()));
-							builder.append("\t" + (gTumor.isCalled() && !gTumor.isHomRef()));
+						Genotype gTumor = vc.getGenotype(tumor);
+						Genotype gNormal = vc.getGenotype(normal);
+						StringBuilder builder = new StringBuilder();
+						builder.append(vc.getContig());
+						builder.append("\t" + vc.getStart());
+						builder.append("\t" + vc.getID());
+						builder.append("\t" + vc.getReference().getDisplayString());
+						builder.append("\t" + vcFull.getAlternateAlleles());
+						builder.append("\t" + vc.getAlternateAlleles());
+						String impact = VCOps.getSNP_EFFImpact(vc);
+						builder.append("\t" + (impact.equals("HIGH") || impact.equals("MODERATE")
+																	 || impact.equals("LOW")));
+						builder.append("\t" + tnPair);
+						builder.append("\t" + normal);
+						builder.append("\t" + tumor);
+						builder.append("\t" + gNormal.toString());
+						builder.append("\t" + gTumor.toString());
+						builder.append("\t" + gNormal.getGenotypeString());
+						builder.append("\t" + gTumor.getGenotypeString());
+						builder.append("\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(gNormal.getAD()), ","));
+						builder.append("\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(gTumor.getAD()), ","));
+						builder.append("\t" + gNormal.getGQ());
+						builder.append("\t" + gTumor.getGQ());
+						builder.append("\t" + (gNormal.isCalled() && !gNormal.isHomRef()));
+						builder.append("\t" + (gTumor.isCalled() && !gTumor.isHomRef()));
 
-							builder.append("\t" + Math.min(gNormal.getGQ(), gTumor.getGQ()));
-							builder.append("\t" + gTumor.sameGenotype(gNormal));
-							builder.append("\t" + ArrayUtils.toStr(VCOps.getAnnotationsFor(annos[0], vc, ".")));
-							writerSummary.println(builder.toString());
+						builder.append("\t" + Math.min(gNormal.getGQ(), gTumor.getGQ()));
+						builder.append("\t" + gTumor.sameGenotype(gNormal));
+						builder.append("\t" + ArrayUtils.toStr(VCOps.getAnnotationsFor(annos[0], vc, ".")));
+						writerSummary.println(builder.toString());
 					}
 				}
 			}

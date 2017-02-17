@@ -44,8 +44,8 @@ public class dbsnpParser {
 				temp = reader.readLine();
 				if (reader.ready()) {
 					if (temp.equals("")) {
-						hash.put(	trav = reader.readLine().split("[\\s]+")[0],
-											info = ArrayUtils.stringArray(9, "-1"));
+						hash.put(trav = reader.readLine().split("[\\s]+")[0],
+										 info = ArrayUtils.stringArray(9, "-1"));
 					}
 					line = temp.split("\\|");
 					if (temp.startsWith("SNP")) {
@@ -76,34 +76,34 @@ public class dbsnpParser {
 								info[3 + offset] = line[2];
 							} else if (!line[2].equals("?") && !info[3 + offset].equals(line[2])) {
 								System.err.println("Error - chromosomes don't agree between Celera/reference for marker "
-																		+ trav + " (" + info[3 + offset] + " and " + line[2] + ")");
+																	 + trav + " (" + info[3 + offset] + " and " + line[2] + ")");
 							}
 						} else {
-							System.err.println("Strange assembly="	+ (offset == 1 ? "Celera" : "reference")
-																	+ " line (no chr): '" + temp + "'");
+							System.err.println("Strange assembly=" + (offset == 1 ? "Celera" : "reference")
+																 + " line (no chr): '" + temp + "'");
 						}
 						offset = (temp.indexOf("assembly=Celera") > 0 ? 2 : 0)
-											+ (temp.indexOf("chr=Y") > 0 ? 1 : 0);
+										 + (temp.indexOf("chr=Y") > 0 ? 1 : 0);
 						if (line[3].startsWith(" chr-pos=")) {
 							line[3] = line[3].trim().split("=")[1];
 							if (info[5 + offset].equals("-1") && !line[3].equals("?")) {
 								info[5 + offset] = line[3];
 							} else if (!line[3].equals("?") && !line[3].equals(info[5 + offset])) {
-								System.err.println("Error - more than one "	+ (offset == 1 ? "Celera" : "reference")
-																		+ " chr-position for marker " + trav + " (" + info[5 + offset]
-																		+ " and " + line[3] + ")");
+								System.err.println("Error - more than one " + (offset == 1 ? "Celera" : "reference")
+																	 + " chr-position for marker " + trav + " (" + info[5 + offset]
+																	 + " and " + line[3] + ")");
 							}
 						} else {
-							System.err.println("Strange assembly="	+ (offset == 1 ? "Celera" : "reference")
-																	+ " line (no chr-pos): '" + temp + "'");
+							System.err.println("Strange assembly=" + (offset == 1 ? "Celera" : "reference")
+																 + " line (no chr-pos): '" + temp + "'");
 						}
 					}
 				}
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.print("Marker position data source \""	+ filename
-												+ "\" not found in current directory");
+			System.err.print("Marker position data source \"" + filename
+											 + "\" not found in current directory");
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + filename + "\"");
 			System.exit(2);
@@ -116,8 +116,8 @@ public class dbsnpParser {
 		int numArgs = args.length;
 		String filename = "070504153158_FLT.txt";
 
-		String usage = "\n"	+ "park.dbsnpParser requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
+		String usage = "\n" + "park.dbsnpParser requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

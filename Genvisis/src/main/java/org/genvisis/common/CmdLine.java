@@ -29,8 +29,8 @@ public class CmdLine {
 		 *        exist
 		 * @param dir directory to run the command in, and also directory to check for existing files
 		 */
-		public Command(	List<String> commandList, Collection<String> necessaryInputFiles,
-										Collection<String> expectedOutputFiles, String dir) {
+		public Command(List<String> commandList, Collection<String> necessaryInputFiles,
+									 Collection<String> expectedOutputFiles, String dir) {
 			super();
 			this.commandList = commandList;
 			this.necessaryInputFiles = necessaryInputFiles;
@@ -48,11 +48,11 @@ public class CmdLine {
 		 *        exist
 		 * @param dir directory to run the command in, and also directory to check for existing files
 		 */
-		public Command(	String[] commandArray, String[] necessaryInputFiles,
-										String[] expectedOutputFiles, String dir) {
-			this(	Arrays.asList(commandArray),
-						necessaryInputFiles == null ? null : Arrays.asList(necessaryInputFiles),
-						expectedOutputFiles == null ? null : Arrays.asList(expectedOutputFiles), dir);
+		public Command(String[] commandArray, String[] necessaryInputFiles,
+									 String[] expectedOutputFiles, String dir) {
+			this(Arrays.asList(commandArray),
+					 necessaryInputFiles == null ? null : Arrays.asList(necessaryInputFiles),
+					 expectedOutputFiles == null ? null : Arrays.asList(expectedOutputFiles), dir);
 		}
 
 		/**
@@ -64,8 +64,8 @@ public class CmdLine {
 		 * @param expectedOutputFiles will check these files for existence, will skip the command if all
 		 *        exist
 		 */
-		public Command(	String[] commandArray, String[] necessaryInputFiles,
-										String[] expectedOutputFiles) {
+		public Command(String[] commandArray, String[] necessaryInputFiles,
+									 String[] expectedOutputFiles) {
 			this(commandArray, necessaryInputFiles, expectedOutputFiles, "");
 		}
 
@@ -86,29 +86,29 @@ public class CmdLine {
 															boolean skipReporting, boolean treatEmptyAsMissing, Logger log) {
 			boolean success = false;
 			if (expectedOutputFiles == null
-						|| !Files.exists(dir, expectedOutputFiles, treatEmptyAsMissing)
+					|| !Files.exists(dir, expectedOutputFiles, treatEmptyAsMissing)
 					|| overWriteExistingOutput) {
 				if (necessaryInputFiles == null
 						|| Files.exists(dir, necessaryInputFiles, treatEmptyAsMissing)) {
 					if (verbose) {
-						log.report(ext.getTime()	+ " Info - running command "
-												+ IterableUtils.toStr(commandList, " "));
+						log.report(ext.getTime() + " Info - running command "
+											 + IterableUtils.toStr(commandList, " "));
 					}
 					if (run(commandList, dir, null, null, (skipReporting ? null : log), false)) {
 						if (expectedOutputFiles != null
 								&& !Files.exists(dir, expectedOutputFiles, treatEmptyAsMissing)) {
-							log.reportError("Error - the command "	+ IterableUtils.toStr(commandList, " ")
+							log.reportError("Error - the command " + IterableUtils.toStr(commandList, " ")
 															+ " appeared to run, but could not find all necessary output files:"
 															+ IterableUtils.toStr(expectedOutputFiles, "\n"));
 						} else {
 							if (verbose) {
-								log.report(ext.getTime()	+ " Info - finished running command "
-														+ IterableUtils.toStr(commandList, " "));
+								log.report(ext.getTime() + " Info - finished running command "
+													 + IterableUtils.toStr(commandList, " "));
 							}
 							success = true;
 						}
 					} else {
-						log.reportError("Error - the command "	+ IterableUtils.toStr(commandList, " ")
+						log.reportError("Error - the command " + IterableUtils.toStr(commandList, " ")
 														+ " has failed");
 					}
 				} else {
@@ -118,7 +118,7 @@ public class CmdLine {
 			} else {
 				if (verbose) {
 					log.report(ext.getTime()
-											+ " Info - all of the expected output files exist and the overwrite option was not flagged, skipping:");
+										 + " Info - all of the expected output files exist and the overwrite option was not flagged, skipping:");
 					log.report("COMMAND SKIPPED: " + IterableUtils.toStr(commandList, " "));
 				}
 				success = true;
@@ -156,8 +156,8 @@ public class CmdLine {
 	public static String[] prepareBatchForCommandLine(String[] commandArray, String batFile,
 																										boolean verbose, Logger log) {
 		if (verbose) {
-			log.report(ext.getTime()	+ " Info - running command " + ArrayUtils.toStr(commandArray, " ")
-									+ "\nUsing file " + batFile);
+			log.report(ext.getTime() + " Info - running command " + ArrayUtils.toStr(commandArray, " ")
+								 + "\nUsing file " + batFile);
 		}
 		Files.write(ArrayUtils.toStr(commandArray, " "), batFile);
 		Files.chmod(batFile);
@@ -179,17 +179,17 @@ public class CmdLine {
 
 	public static boolean run(Collection<String> commands, String dir, PrintStream inOs,
 														PrintStream errOS, Logger log, boolean ignoreIllegalStateExceptions) {
-		return run(	commands.toArray(new String[commands.size()]), dir, inOs, errOS, log,
-								ignoreIllegalStateExceptions);
+		return run(commands.toArray(new String[commands.size()]), dir, inOs, errOS, log,
+							 ignoreIllegalStateExceptions);
 	}
 
 	public static boolean run(String command, String dir, PrintStream inOs, PrintStream errOS,
 														Logger log, boolean ignoreIllegalStateExceptions) {
-//		StringTokenizer st = new StringTokenizer(command, " \t\n\r\f");
-//		String[] cmdarray = new String[st.countTokens()];
-//		for (int i = 0; st.hasMoreTokens(); i++) {
-//			cmdarray[i] = st.nextToken();
-//		}
+		// StringTokenizer st = new StringTokenizer(command, " \t\n\r\f");
+		// String[] cmdarray = new String[st.countTokens()];
+		// for (int i = 0; st.hasMoreTokens(); i++) {
+		// cmdarray[i] = st.nextToken();
+		// }
 		String regex = "[\"\']([^\"\']*)[\"\']|(\\S+)";
 		Matcher m = Pattern.compile(regex).matcher(command);
 		ArrayList<String> cmdList = new ArrayList<String>();
@@ -224,13 +224,13 @@ public class CmdLine {
 				if (Files.isWindows()) {
 					log.reportError("FYI - the Runtime.exec command will likely not work, since it contains a pipe or redirect, write command to a file and exec that instead");
 					break;
-				} else if (!commandArray[0].startsWith("/bin/")) { 
+				} else if (!commandArray[0].startsWith("/bin/")) {
 					log.reportTimeWarning("FYI - the command may not work as it contains a pipe or redirect and isn't prefaced by a shell invocation (such as \"/bin/bash\").  Try prefacing the command with \"/bin/bash -c\" and wrapping the command in quotes.");
 					break;
 				}
 			}
 		}
-		
+
 		try {
 			proc = Runtime.getRuntime().exec(commandArray, null, new File(dir));
 			// if (logfile != null) {
@@ -266,8 +266,8 @@ public class CmdLine {
 							}
 							if (log != null) {
 								log.report(new String(b, charSet), false, true);
-							}/* else  
-								 * else { }
+							} /*
+								 * else else { }
 								 */
 							b = null;
 						}
@@ -295,7 +295,7 @@ public class CmdLine {
 			message = ioe.getMessage();
 			if (message.startsWith("Cannot run program ")) {
 				message = message.substring(20);
-				log.reportError("Error - The program \""	+ message.substring(0, message.indexOf("\""))
+				log.reportError("Error - The program \"" + message.substring(0, message.indexOf("\""))
 												+ "\" is not installed or is not accessible "
 												+ message.substring(message.indexOf("("), message.indexOf(")") + 1));
 				noError = false;
@@ -327,11 +327,11 @@ public class CmdLine {
 	 * @param log
 	 * @return
 	 */
-	public static boolean runCommandWithFileChecks(	String[] commandArray, String dir,
-																									String[] necessaryInputFiles,
-																									String[] expectedOutputFiles, boolean verbose,
-																									boolean overWriteExistingOutput,
-																									boolean skipReporting, Logger log) {
+	public static boolean runCommandWithFileChecks(String[] commandArray, String dir,
+																								 String[] necessaryInputFiles,
+																								 String[] expectedOutputFiles, boolean verbose,
+																								 boolean overWriteExistingOutput,
+																								 boolean skipReporting, Logger log) {
 		return runCommandWithFileChecks(commandArray, dir, necessaryInputFiles, expectedOutputFiles,
 																		verbose, overWriteExistingOutput, skipReporting, true, log);
 	}
@@ -355,15 +355,15 @@ public class CmdLine {
 	 * @param log
 	 * @return
 	 */
-	public static boolean runCommandWithFileChecks(	String[] commandArray, String dir,
-																									String[] necessaryInputFiles,
-																									String[] expectedOutputFiles, boolean verbose,
-																									boolean overWriteExistingOutput,
-																									boolean skipReporting,
-																									boolean treatEmptyAsMissing, Logger log) {
-		return new Command(	commandArray, necessaryInputFiles, expectedOutputFiles,
-												dir).runCommand(verbose, overWriteExistingOutput, skipReporting,
-																				treatEmptyAsMissing, log);
+	public static boolean runCommandWithFileChecks(String[] commandArray, String dir,
+																								 String[] necessaryInputFiles,
+																								 String[] expectedOutputFiles, boolean verbose,
+																								 boolean overWriteExistingOutput,
+																								 boolean skipReporting, boolean treatEmptyAsMissing,
+																								 Logger log) {
+		return new Command(commandArray, necessaryInputFiles, expectedOutputFiles,
+											 dir).runCommand(verbose, overWriteExistingOutput, skipReporting,
+																			 treatEmptyAsMissing, log);
 	}
 
 	/**
@@ -381,14 +381,14 @@ public class CmdLine {
 	 * @param log
 	 * @return
 	 */
-	public static boolean runCommandWithFileChecks(	List<String> commandList, String dir,
-																									Collection<String> necessaryInputFiles,
-																									Collection<String> expectedOutputFiles,
-																									boolean verbose, boolean overWriteExistingOutput,
-																									boolean treatEmptyAsMissing, Logger log) {
-		return new Command(	commandList, necessaryInputFiles, expectedOutputFiles,
-												dir).runCommand(verbose, overWriteExistingOutput, true, treatEmptyAsMissing,
-																				log);
+	public static boolean runCommandWithFileChecks(List<String> commandList, String dir,
+																								 Collection<String> necessaryInputFiles,
+																								 Collection<String> expectedOutputFiles,
+																								 boolean verbose, boolean overWriteExistingOutput,
+																								 boolean treatEmptyAsMissing, Logger log) {
+		return new Command(commandList, necessaryInputFiles, expectedOutputFiles,
+											 dir).runCommand(verbose, overWriteExistingOutput, true, treatEmptyAsMissing,
+																			 log);
 	}
 
 
@@ -410,15 +410,15 @@ public class CmdLine {
 	 * @param log
 	 * @return
 	 */
-	public static boolean runCommandWithFileChecks(	List<String> commandList, String dir,
-																									Collection<String> necessaryInputFiles,
-																									Collection<String> expectedOutputFiles,
-																									boolean verbose, boolean overWriteExistingOutput,
-																									boolean skipReporting,
-																									boolean treatEmptyAsMissing, Logger log) {
-		return new Command(	commandList, necessaryInputFiles, expectedOutputFiles,
-												dir).runCommand(verbose, overWriteExistingOutput, skipReporting,
-																				treatEmptyAsMissing, log);
+	public static boolean runCommandWithFileChecks(List<String> commandList, String dir,
+																								 Collection<String> necessaryInputFiles,
+																								 Collection<String> expectedOutputFiles,
+																								 boolean verbose, boolean overWriteExistingOutput,
+																								 boolean skipReporting, boolean treatEmptyAsMissing,
+																								 Logger log) {
+		return new Command(commandList, necessaryInputFiles, expectedOutputFiles,
+											 dir).runCommand(verbose, overWriteExistingOutput, skipReporting,
+																			 treatEmptyAsMissing, log);
 	}
 
 	public static boolean runDefaults(String command, String dir) {
@@ -428,7 +428,7 @@ public class CmdLine {
 	public static boolean runDefaults(String command, String dir, Logger log) {
 		return run(command, dir, System.out, System.err, log, false);
 	}
-	
+
 	public static boolean runDefaults(Collection<String> command, String dir) {
 		return run(command, dir, System.out, System.err, null, false);
 	}

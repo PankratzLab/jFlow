@@ -37,9 +37,9 @@ public class Metal {
 	public static final int WEIGHTED_SE_ANALYSIS = 1;
 	public static final int PVAL_ANALYSIS = 2;
 
-	public static final String[][][] REQS =
-																				{	{Aliases.EFFECTS, Aliases.STD_ERRS}, {{"wbeta"}, {"wse"}},
-																					{	{"beta", "Direction", "Effect", "DIR"}, Aliases.PVALUES,
+	public static final String[][][] REQS = {{Aliases.EFFECTS, Aliases.STD_ERRS},
+																					 {{"wbeta"}, {"wse"}},
+																					 {{"beta", "Direction", "Effect", "DIR"}, Aliases.PVALUES,
 																						Aliases.NS},};
 
 	public static final String[][] FREQS = {Aliases.ALLELE_FREQS, {"sampleAA", "fAllele11"},
@@ -66,14 +66,14 @@ public class Metal {
 																																													// always
 																																													// computed
 
-	public static final String[] TEXT = {	"NADA", "STRAND_CONFIG_SAME", "STRAND_CONFIG_SAME_FLIPPED",
-																				"STRAND_CONFIG_OPPOSITE", "STRAND_CONFIG_OPPOSITE_FLIPPED",
-																				"STRAND_CONFIG_DIFFERENT_ALLELES",
-																				"STRAND_CONFIG_BOTH_NULL", "STRAND_CONFIG_SPECIAL_CASE"};
+	public static final String[] TEXT = {"NADA", "STRAND_CONFIG_SAME", "STRAND_CONFIG_SAME_FLIPPED",
+																			 "STRAND_CONFIG_OPPOSITE", "STRAND_CONFIG_OPPOSITE_FLIPPED",
+																			 "STRAND_CONFIG_DIFFERENT_ALLELES", "STRAND_CONFIG_BOTH_NULL",
+																			 "STRAND_CONFIG_SPECIAL_CASE"};
 
-	public static void convertPlinkResults(	String dir, String results, String test, String method,
-																					String freq, boolean useSE, boolean useMetalNomenclature,
-																					String outfile, boolean suppressWarning) {
+	public static void convertPlinkResults(String dir, String results, String test, String method,
+																				 String freq, boolean useSE, boolean useMetalNomenclature,
+																				 String outfile, boolean suppressWarning) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, header;
@@ -89,8 +89,8 @@ public class Metal {
 		} else if (method.equalsIgnoreCase("linear")) {
 			logistic = false;
 		} else {
-			System.err.println("Error - '"	+ method
-													+ "' is not a valid method, looking for logistic/linear");
+			System.err.println("Error - '" + method
+												 + "' is not a valid method, looking for logistic/linear");
 			logistic = false;
 		}
 
@@ -98,7 +98,7 @@ public class Metal {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + results));
-			writer = new PrintWriter(new FileWriter(outfile == null	? dir	+ results + (useSE ? ".se" : "")
+			writer = new PrintWriter(new FileWriter(outfile == null ? dir + results + (useSE ? ".se" : "")
 																																+ ".metal"
 																															: outfile));
 			// header = reader.readLine().trim().split("\t");
@@ -112,7 +112,7 @@ public class Metal {
 			testIndex = ext.indexOfStr(TEST, header);
 			if (useMetalNomenclature) {
 				writer.println("MarkerName\tAllele1\tAllele2\tWeight\tDirection\tP-value"
-												+ (useSE ? "\tEffect\tStdErr" : ""));
+											 + (useSE ? "\tEffect\tStdErr" : ""));
 			} else {
 				writer.println("MARKER\tREF\tOTHER\tN\tDIR\tPVALUE" + (useSE ? "\tbeta\tSE" : ""));
 			}
@@ -134,9 +134,9 @@ public class Metal {
 							alleles = new String[] {modelAllele, Sequence.flip(refAlleles[0])};
 						} else {
 							System.err.println("Error - could not match up the model allele for "
-																		+ line[indices[0]] + " (" + modelAllele
-																	+ ") with the alleles in the freq file (" + refAlleles[0] + "/"
-																	+ refAlleles[1] + ")");
+																 + line[indices[0]] + " (" + modelAllele
+																 + ") with the alleles in the freq file (" + refAlleles[0] + "/"
+																 + refAlleles[1] + ")");
 							alleles = new String[] {"???", "???"};
 						}
 						writer.print(line[indices[0]] + "\t" + alleles[0] + "\t" + alleles[1]);
@@ -144,20 +144,20 @@ public class Metal {
 						System.err.println("Error - no allele frequency for marker '" + line[indices[0]] + "'");
 						writer.print(line[indices[0]] + "\t" + line[indices[1]] + "\tU");
 					}
-					writer.println("\t"	+ line[indices[2]] + "\t"
-													+ (line[indices[3]].equals("NA") || line[indices[3]].equals(".")	? "?"
-																																														: (logistic	? (Double.parseDouble(line[indices[3]]) > 1	? "+"
-																																																																										: "-")
-																																																				: (Double.parseDouble(line[indices[3]]) > 0	? "+"
-																																																																										: "-")))
-													+ "\t"
-													+ (line[indices[4]].equals(".")	? "NA"
-																													: line[indices[4]])
-													+ (useSE	? "\t"
-																				+ (logistic	? Math.log(Double.parseDouble(line[indices[3]]))
-																									: line[indices[3]])
-																			+ "\t" + line[seIndex]
-																		: ""));
+					writer.println("\t" + line[indices[2]] + "\t"
+												 + (line[indices[3]].equals("NA") || line[indices[3]].equals(".") ? "?"
+																																													: (logistic ? (Double.parseDouble(line[indices[3]]) > 1 ? "+"
+																																																																									: "-")
+																																																			: (Double.parseDouble(line[indices[3]]) > 0 ? "+"
+																																																																									: "-")))
+												 + "\t"
+												 + (line[indices[4]].equals(".") ? "NA" : line[indices[4]]) + (useSE
+																																														 ? "\t"
+																																															 + (logistic ? Math.log(Double.parseDouble(line[indices[3]]))
+																																																					 : line[indices[3]])
+																																															 + "\t"
+																																															 + line[seIndex]
+																																														 : ""));
 				}
 			}
 			writer.close();
@@ -178,8 +178,8 @@ public class Metal {
 		}
 	}
 
-	public static void reformatResults(	String filename, String[] unitOfAnlaysis, int defaultN,
-																			String output, Logger log) {
+	public static void reformatResults(String filename, String[] unitOfAnlaysis, int defaultN,
+																		 String output, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -201,10 +201,10 @@ public class Metal {
 			hash = new Hashtable<String, String>();
 			header = reader.readLine().trim().split(delimiterIn);
 
-			markerIndices = ext.indexFactors(	new String[][] {unitOfAnlaysis}, header, false, true, false,
-																				log, false);
+			markerIndices = ext.indexFactors(new String[][] {unitOfAnlaysis}, header, false, true, false,
+																			 log, false);
 			if (markerIndices[0] == -1) {
-				log.reportError("Error - no unit of analysis in file "	+ filename + " ("
+				log.reportError("Error - no unit of analysis in file " + filename + " ("
 												+ ArrayUtils.toStr(unitOfAnlaysis, "/") + ")");
 				reader.close();
 				writer.close();
@@ -213,7 +213,7 @@ public class Metal {
 
 			alleleIndices = ext.indexFactors(Aliases.ALLELES, header, false, true, false, log, false);
 			if (ArrayUtils.min(alleleIndices) == -1 && ArrayUtils.sum(alleleIndices) != -2) {
-				log.reportError("Error - found only one allele in file "	+ filename + " (need "
+				log.reportError("Error - found only one allele in file " + filename + " (need "
 												+ ArrayUtils.toStr(Aliases.ALLELES[0], "/") + " AND "
 												+ ArrayUtils.toStr(Aliases.ALLELES[1], "/")
 												+ "); zeroing out and assuming uniform across studies...");
@@ -223,8 +223,8 @@ public class Metal {
 			nSNPsIndex = ext.indexFactors(new String[][] {{"NALLELES", "num_variants"}}, header, false,
 																		true, false, log, false)[0];
 
-			writer.print(unitOfAnlaysis[0]	+ delimiterOut + Aliases.ALLELES[0][0] + delimiterOut
-										+ Aliases.ALLELES[1][0]);
+			writer.print(unitOfAnlaysis[0] + delimiterOut + Aliases.ALLELES[0][0] + delimiterOut
+									 + Aliases.ALLELES[1][0]);
 			reqIndices = new int[REQS.length][];
 			for (int i = 0; i < REQS.length; i++) {
 				reqIndices[i] = ext.indexFactors(REQS[i], header, false, true, false, log, false);
@@ -265,8 +265,8 @@ public class Metal {
 					if (alleleIndices[1] == -1) {
 						writer.print(delimiterOut + "G" + delimiterOut + "A");
 					} else {
-						writer.print(delimiterOut	+ line[alleleIndices[0]] + delimiterOut
-													+ line[alleleIndices[1]]);
+						writer.print(delimiterOut + line[alleleIndices[0]] + delimiterOut
+												 + line[alleleIndices[1]]);
 					}
 					for (int[] reqIndice : reqIndices) {
 						if (reqIndice != null) {
@@ -288,14 +288,15 @@ public class Metal {
 							try {
 								freq = (Double.parseDouble(line[freqIndices[1]]) * 2
 												+ Double.parseDouble(line[freqIndices[2]]))
-												/ (Double.parseDouble(line[freqIndices[1]]) * 2
-															+ Double.parseDouble(line[freqIndices[2]]) * 2
-														+ Double.parseDouble(line[freqIndices[3]]) * 2);
+											 / (Double.parseDouble(line[freqIndices[1]]) * 2
+													+ Double.parseDouble(line[freqIndices[2]]) * 2
+													+ Double.parseDouble(line[freqIndices[3]]) * 2);
 							} catch (Exception e) {
 								System.err.println("Error - invalid allele count ("
-																			+ ArrayUtils.subArray(line, ArrayUtils.subArray(freqIndices, 1), "/")
-																		+ ") for marker " + line[markerIndices[0]] + " in file "
-																		+ filename);
+																	 + ArrayUtils.subArray(line, ArrayUtils.subArray(freqIndices, 1),
+																												 "/")
+																	 + ") for marker " + line[markerIndices[0]] + " in file "
+																	 + filename);
 								freq = -999;
 							}
 							writer.print(delimiterOut + freq);
@@ -323,12 +324,12 @@ public class Metal {
 		makeBatch(dir, file1, file2, "DEFAULTWEIGHT " + n1, "DEFAULTWEIGHT " + n2);
 	}
 
-	public static void makeBatch(	String dir, String file1, String file2, String weight1,
-																String weight2) {
+	public static void makeBatch(String dir, String file1, String file2, String weight1,
+															 String weight2) {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir	+ ext.rootRootOf(file1) + "_"
+			writer = new PrintWriter(new FileWriter(dir + ext.rootRootOf(file1) + "_"
 																							+ ext.rootRootOf(file2) + "_metal.batch"));
 			writer.println("metal << EOT");
 			writer.println("");
@@ -340,8 +341,8 @@ public class Metal {
 			writer.println("PROCESS " + file1);
 			writer.println(weight2);
 			writer.println("PROCESS " + file2);
-			writer.println("OUTFILE "	+ ext.rootRootOf(file1) + "_" + ext.rootRootOf(file2)
-											+ ".metal .out");
+			writer.println("OUTFILE " + ext.rootRootOf(file1) + "_" + ext.rootRootOf(file2)
+										 + ".metal .out");
 			writer.println("ANALYZE HETEROGENEITY");
 			writer.println("");
 			writer.println("QUIT");
@@ -353,24 +354,24 @@ public class Metal {
 		}
 	}
 
-	public static void metaAnalyze(	String dir, String[] filenames, String outputFile, boolean se,
-																	Logger log) {
+	public static void metaAnalyze(String dir, String[] filenames, String outputFile, boolean se,
+																 Logger log) {
 		metaAnalyze(dir, filenames, Aliases.MARKER_NAMES, outputFile, SE_ANALYSIS, null,
 								ArrayUtils.doubleArray(filenames.length, -9), null, null, null, log);
 	}
 
-	public static void metaAnalyze(	String dir, String[] filenames, String[] unitOfAnalysis,
-																	String outputFile, int analysisType, double[] defaultWeights,
-																	double[] gcValues/* boolean gcControlOn */, Logger log) {
+	public static void metaAnalyze(String dir, String[] filenames, String[] unitOfAnalysis,
+																 String outputFile, int analysisType, double[] defaultWeights,
+																 double[] gcValues/* boolean gcControlOn */, Logger log) {
 		metaAnalyze(dir, filenames, unitOfAnalysis, outputFile, analysisType, defaultWeights, gcValues,
 								null, null, null, log);
 	}
 
-	public static void metaAnalyze(	String dir, String[] filenames, String[] unitOfAnalysis,
-																	String outputFile, int analysisType, double[] defaultWeights,
-																	double[] gcValues/* boolean gcControlOn */, double[] seValues,
-																	double[] mafValues,
-																	Hashtable<String, ArrayList<String>> customCommands, Logger log) {
+	public static void metaAnalyze(String dir, String[] filenames, String[] unitOfAnalysis,
+																 String outputFile, int analysisType, double[] defaultWeights,
+																 double[] gcValues/* boolean gcControlOn */, double[] seValues,
+																 double[] mafValues,
+																 Hashtable<String, ArrayList<String>> customCommands, Logger log) {
 		PrintWriter writer;
 		Vector<String> mappings;
 		String[] header, travAlleles, prevAlleles, travReqs, prevReqs, travFreq, prevFreq;
@@ -404,7 +405,7 @@ public class Metal {
 			} else if (analysisType == PVAL_ANALYSIS) {
 				writer.println("SCHEME SAMPLESIZE");
 				if (defaultWeights != null && defaultWeights.length != filenames.length) {
-					log.reportError("Error - the number of weights included ("	+ defaultWeights.length
+					log.reportError("Error - the number of weights included (" + defaultWeights.length
 													+ ") did not match the number of filenames included (" + filenames.length
 													+ ")");
 					writer.close();
@@ -420,7 +421,7 @@ public class Metal {
 				mappings = new Vector<String>();
 
 				if (!new File(dir + filenames[i]).exists()) {
-					log.reportError("Error - file '"	+ filenames[i] + "' does not exist in directory '" + dir
+					log.reportError("Error - file '" + filenames[i] + "' does not exist in directory '" + dir
 													+ "'");
 					writer.close();
 					return;
@@ -428,8 +429,8 @@ public class Metal {
 				travCommaDelimited = filenames[i].endsWith(".csv") || filenames[i].endsWith(".csv.gz");
 				header = Files.getHeaderOfFile(dir + filenames[i], log);
 
-				indices = ext.indexFactors(	new String[][] {unitOfAnalysis}, header, false, true, true, log,
-																		false);
+				indices = ext.indexFactors(new String[][] {unitOfAnalysis}, header, false, true, true, log,
+																	 false);
 				if (indices[0] == -1) {
 					log.reportError("Error parsing '" + dir + filenames[i] + "'");
 					writer.close();
@@ -498,17 +499,17 @@ public class Metal {
 				}
 
 				if (mafValues != null) {
-					int freqIndex = ext.indexFactors(	new String[][] {Aliases.ALLELE_FREQS}, header, false,
-																						true, true, false)[0];
+					int freqIndex = ext.indexFactors(new String[][] {Aliases.ALLELE_FREQS}, header, false,
+																					 true, true, false)[0];
 					if (freqIndex < 0) {
 						writer.close();
-						throw new IllegalArgumentException("input file "	+ filenames[i]
-																								+ " did not have a valid freq column, please remove maf argument");
+						throw new IllegalArgumentException("input file " + filenames[i]
+																							 + " did not have a valid freq column, please remove maf argument");
 					} else {
 						mappings.add("ADDFILTER " + header[freqIndex] + " >= " + mafValues[i]);// TODO, make
-																																										// this filter
-																																										// dynamic based
-																																										// on mac
+																																									 // this filter
+																																									 // dynamic based
+																																									 // on mac
 					}
 				}
 				if (customCommands != null && customCommands.containsKey(filenames[i])) {
@@ -541,8 +542,8 @@ public class Metal {
 					log.report("Setting GENOMICCONTROL to {ON} for file {" + filenames[i] + "}");
 				} else {
 					writer.println("GENOMICCONTROL " + gcValues[i]);
-					log.report("Setting GENOMICCONTROL to {"	+ gcValues[i] + "} for file {" + filenames[i]
-											+ "}");
+					log.report("Setting GENOMICCONTROL to {" + gcValues[i] + "} for file {" + filenames[i]
+										 + "}");
 				}
 				writer.println("PROCESS " + filenames[i]);
 				// writer.println("REMOVEFILTERS");
@@ -564,7 +565,7 @@ public class Metal {
 		}
 
 		batchFile = "run_" + ext.rootOf(filename, false) + ".bat";
-		Files.write("metal < "	+ filename + " > " + ext.rootOf(filename, false) + ".log",
+		Files.write("metal < " + filename + " > " + ext.rootOf(filename, false) + ".log",
 								dir + batchFile);
 		Files.chmod(dir + batchFile, false);
 		if (!CmdLine.run("./" + batchFile, dir, System.out, false)) {
@@ -626,12 +627,12 @@ public class Metal {
 				indices[i][0] = ext.indexOfStr(roots[i] + "_A", header);
 				if (indices[i][0] == -1) {
 					System.err.println("Error - expecting, but did not find, a column header called "
-															+ roots[i] + "_A");
+														 + roots[i] + "_A");
 				}
 				indices[i][1] = ext.indexOfStr(roots[i] + "_B", header);
 				if (indices[i][1] == -1) {
 					System.err.println("Error - expecting, but did not find, a column header called "
-															+ roots[i] + "_B");
+														 + roots[i] + "_B");
 				}
 			}
 			count = 0;
@@ -646,8 +647,8 @@ public class Metal {
 
 				for (int i = 0; i < roots.length; i++) {
 					trav = line[indices[i][0]];
-					if (ext.indexOfStr(trav, VALID_ALLELES) < ext.indexOfStr(	line[indices[i][1]],
-																																		VALID_ALLELES)) {
+					if (ext.indexOfStr(trav, VALID_ALLELES) < ext.indexOfStr(line[indices[i][1]],
+																																	 VALID_ALLELES)) {
 						trav += line[indices[i][1]];
 					} else {
 						trav = line[indices[i][1]] + trav;
@@ -665,8 +666,10 @@ public class Metal {
 					order = Sort.getReverseIndices(counts);
 					writer.print(line[0] + "\t" + values[order[0]]);
 					for (int i = 1; i < values.length; i++) {
-						writer.print("\t"	+ ArrayUtils.toStr(ArrayUtils.toStringArray(hash.get(values[order[i]])), ",")
-													+ "\t" + values[order[i]]);
+						writer.print("\t"
+												 + ArrayUtils.toStr(ArrayUtils.toStringArray(hash.get(values[order[i]])),
+																						",")
+												 + "\t" + values[order[i]]);
 					}
 					writer.println();
 				}
@@ -684,8 +687,8 @@ public class Metal {
 
 	public static void splitCompFile(String filename, int numSplits) {
 		Files.splitFile(filename, numSplits, 1, 1, ext.rootOf(filename, false), ".dat", false);
-		Files.batchIt("strand", -1, 1, numSplits, 6, Files.getRunString()	+ " gwas.Metal check="
-																									+ ext.rootOf(filename, false) + "#.dat");
+		Files.batchIt("strand", -1, 1, numSplits, 6, Files.getRunString() + " gwas.Metal check="
+																								 + ext.rootOf(filename, false) + "#.dat");
 	}
 
 	public static void sortCompResults(String filename) {
@@ -799,8 +802,7 @@ public class Metal {
 		double mafThreshold = Double.NaN;
 		double[] seValues = null;
 		double[] mafValues = null;
-		Hashtable<String, ArrayList<String>> customCommands =
-																												new Hashtable<String, ArrayList<String>>();
+		Hashtable<String, ArrayList<String>> customCommands = new Hashtable<String, ArrayList<String>>();
 		if (params != null) {
 			outputFile = params.remove(0);
 			ArrayList<Integer> paramsToRemove = new ArrayList<Integer>();// to avoid modifying within loop
@@ -848,7 +850,7 @@ public class Metal {
 			params = remaining;
 			tempFiles = ArrayUtils.toStringArray(params);
 			gcValues = ArrayUtils.doubleArray(tempFiles.length, gcControlOn ? -9 : -1); // default to
-																																							// GENOMICCONTROL ON
+			// GENOMICCONTROL ON
 			inputFiles = new String[tempFiles.length];// Array.toStringArray(params);
 			for (int i = 0; i < tempFiles.length; i++) {
 				String[] parts = tempFiles[i].split("\t");
@@ -924,12 +926,11 @@ public class Metal {
 			fileParameters[2] = outputFile
 													+ "_InvVar1.out 0 'Allele1' 'Allele2' 'Effect'=Beta 'StdErr' 'P-value' 'Direction'";
 			fileParameters[3] = outputFile + "_NWeighted1.out 0 'Weight' 'P-value'";
-			Hashtable<String, Hashtable<String, String>> altHeaders =
-																															new Hashtable<String, Hashtable<String, String>>();
-			String[][] headersWithAlts = new String[][] {	Aliases.ALLELES[0], Aliases.ALLELES[1],
-																										Aliases.ALLELE_FREQS, Aliases.NS,
-																										Aliases.EFFECTS, Aliases.STD_ERRS,
-																										Aliases.PVALUES, Aliases.IMPUTATION_EFFICIENCY};
+			Hashtable<String, Hashtable<String, String>> altHeaders = new Hashtable<String, Hashtable<String, String>>();
+			String[][] headersWithAlts = new String[][] {Aliases.ALLELES[0], Aliases.ALLELES[1],
+																									 Aliases.ALLELE_FREQS, Aliases.NS,
+																									 Aliases.EFFECTS, Aliases.STD_ERRS,
+																									 Aliases.PVALUES, Aliases.IMPUTATION_EFFICIENCY};
 			for (int i = 0; i < inputFiles.length; i++) {
 				header = Files.getHeaderOfFile(inputFiles[i], log);
 				indices = ext.indexFactors(headersWithAlts, header, true, false, true, true, log, false);
@@ -945,16 +946,16 @@ public class Metal {
 				System.out.println(fileParameters[i + 4]);
 				for (String file : altHeaders.keySet()) {
 					for (String headerOrig : altHeaders.get(file).keySet()) {
-						System.out.println(file	+ "\toriginal: " + headerOrig + "\tnew: "
-																+ altHeaders.get(file).get(headerOrig));
+						System.out.println(file + "\toriginal: " + headerOrig + "\tnew: "
+															 + altHeaders.get(file).get(headerOrig));
 					}
 				}
-				indices = ext.indexFactors(	new String[][] {Aliases.CHRS, Aliases.POSITIONS}, header, true,
-																		false, true, true, log, false);
+				indices = ext.indexFactors(new String[][] {Aliases.CHRS, Aliases.POSITIONS}, header, true,
+																	 false, true, true, log, false);
 				if (indices[0] != -1) {
 					try {
 						reader = Files.getAppropriateReader(inputFiles[i]);// new BufferedReader(new
-																																// FileReader(inputFiles[i]));
+																															 // FileReader(inputFiles[i]));
 						String hdr = reader.readLine(); // header
 						String delim = ext.determineDelimiter(hdr);
 						while (reader.ready()) {
@@ -966,7 +967,7 @@ public class Metal {
 									chrPosition = markerPositionHash.get(line[0]);
 									if (trav[0] != chrPosition[0] || trav[1] != chrPosition[1]) {
 										if (countMismatches < 42) {
-											log.reportError("Error - mismatched positions for marker "	+ line[0] + " ("
+											log.reportError("Error - mismatched positions for marker " + line[0] + " ("
 																			+ ArrayUtils.toStr(trav, ":") + " versus "
 																			+ ArrayUtils.toStr(chrPosition, ":") + ")");
 										} else if (countMismatches == 42) {
@@ -1014,8 +1015,9 @@ public class Metal {
 					System.out.println(ext.getTime() + "\tfinished genes");
 
 					for (int i = 0; i < genes.length; i++) {
-						writer.println(hitList[i]	+ "\t" + ArrayUtils.toStr(markerPositionHash.get(hitList[i]), "\t")
-														+ "\t" + genes[i][1]);
+						writer.println(hitList[i] + "\t"
+													 + ArrayUtils.toStr(markerPositionHash.get(hitList[i]), "\t") + "\t"
+													 + genes[i][1]);
 					}
 				}
 				writer.close();
@@ -1046,8 +1048,8 @@ public class Metal {
 	private static String[][] includeExtraInfoFromTopHits(String[][] hwResults) throws IOException {
 		String[][] newResults = new String[hwResults.length][];
 
-		int[] hwInd = ext.indexFactors(	new String[][] {Aliases.MARKER_NAMES}, hwResults[0], false, true,
-																		false, false);
+		int[] hwInd = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES}, hwResults[0], false, true,
+																	 false, false);
 		int mkrInd = hwInd[0];
 
 		HashSet<String> hwMkrs = new HashSet<String>();
@@ -1134,20 +1136,20 @@ public class Metal {
 					files[i] = params.elementAt(i).trim().split("[\\s]+")[0];
 				}
 			}
-			Files.writeArray(	new String[] {"java -jar /home/npankrat/"
-																				+ org.genvisis.common.PSF.Java.GENVISIS
-																			+ " gwas.Metal test=ADD results=" + files[0]
-																			+ " method=logistic freq=plink.frq -se -metal out=" + files[0]
-																			+ ".se.metal",
-																			"java -jar /home/npankrat/"
-																												+ org.genvisis.common.PSF.Java.GENVISIS
-																											+ " gwas.Metal test=ADD results=" + files[1]
-																											+ " method=logistic freq=plink.frq -se -metal out="
-																											+ files[1] + ".se.metal"},
-												ext.rootOf(filename) + "_convert.bat");
-			Files.writeArray(	new String[] {"metal < "	+ ext.rootOf(filename) + "_metal_Nweighted.txt",
-																			"metal < " + ext.rootOf(filename) + "_metal_InvVar.txt"},
-												ext.rootOf(filename, false) + ".bat");
+			Files.writeArray(new String[] {"java -jar /home/npankrat/"
+																		 + org.genvisis.common.PSF.Java.GENVISIS
+																		 + " gwas.Metal test=ADD results=" + files[0]
+																		 + " method=logistic freq=plink.frq -se -metal out=" + files[0]
+																		 + ".se.metal",
+																		 "java -jar /home/npankrat/"
+																										+ org.genvisis.common.PSF.Java.GENVISIS
+																										+ " gwas.Metal test=ADD results=" + files[1]
+																										+ " method=logistic freq=plink.frq -se -metal out="
+																										+ files[1] + ".se.metal"},
+											 ext.rootOf(filename) + "_convert.bat");
+			Files.writeArray(new String[] {"metal < " + ext.rootOf(filename) + "_metal_Nweighted.txt",
+																		 "metal < " + ext.rootOf(filename) + "_metal_InvVar.txt"},
+											 ext.rootOf(filename, false) + ".bat");
 			// Files.writeList(new String[] {"MARKER MARKER", "ALLELE REF OTHER", "WEIGHT N", "EFFECT
 			// DIR", "PVALUE PVALUE", "", "PROCESS "+files[0], "PROCESS "+files[1], "", "OUTFILE
 			// "+files[2]+".Nweighted .out", "ANALYZE", "", "QUIT"},
@@ -1156,18 +1158,18 @@ public class Metal {
 			// SE", "SCHEME STDERR", "GENOMICCONTROL OFF", "", "PROCESS "+files[0], "PROCESS "+files[1],
 			// "", "OUTFILE "+files[2]+".InvVar .out", "ANALYZE", "", "QUIT"},
 			// ext.rootOf(filename)+"_metal_InvVar.txt");
-			Files.writeArray(	new String[] {"MARKER MarkerName", "ALLELE Allele1 Allele2", "WEIGHT Weight",
-																			"EFFECT Direction", "PVALUE P-value", "",
-																			"PROCESS " + files[0], "PROCESS " + files[1], "",
-																			"OUTFILE " + files[2] + ".Nweighted .out",
-																			"ANALYZE HETEROGENEITY", "", "QUIT"},
-												ext.rootOf(filename) + "_metal_Nweighted.txt");
-			Files.writeArray(	new String[] {"MARKER MarkerName", "ALLELE Allele1 Allele2", "EFFECT Effect",
-																			"STDERR StdErr", "SCHEME STDERR", "GENOMICCONTROL OFF", "",
-																			"PROCESS " + files[0], "PROCESS " + files[1], "",
-																			"OUTFILE " + files[2] + ".InvVar .out",
-																			"ANALYZE HETEROGENEITY", "", "QUIT"},
-												ext.rootOf(filename) + "_metal_InvVar.txt");
+			Files.writeArray(new String[] {"MARKER MarkerName", "ALLELE Allele1 Allele2", "WEIGHT Weight",
+																		 "EFFECT Direction", "PVALUE P-value", "",
+																		 "PROCESS " + files[0], "PROCESS " + files[1], "",
+																		 "OUTFILE " + files[2] + ".Nweighted .out",
+																		 "ANALYZE HETEROGENEITY", "", "QUIT"},
+											 ext.rootOf(filename) + "_metal_Nweighted.txt");
+			Files.writeArray(new String[] {"MARKER MarkerName", "ALLELE Allele1 Allele2", "EFFECT Effect",
+																		 "STDERR StdErr", "SCHEME STDERR", "GENOMICCONTROL OFF", "",
+																		 "PROCESS " + files[0], "PROCESS " + files[1], "",
+																		 "OUTFILE " + files[2] + ".InvVar .out",
+																		 "ANALYZE HETEROGENEITY", "", "QUIT"},
+											 ext.rootOf(filename) + "_metal_InvVar.txt");
 		}
 	}
 
@@ -1237,7 +1239,7 @@ public class Metal {
 				for (int j = 0; j < SUFFIXES.length - 1; j++) {
 					indices[i][j] = ext.indexOfStr(roots[i] + SUFFIXES[j], header);
 					if (j == 4 && indices[i][j] == -1) {
-						log.reportError("Warning - did not find an Rsq column header called "	+ roots[i]
+						log.reportError("Warning - did not find an Rsq column header called " + roots[i]
 														+ SUFFIXES[j]
 														+ "; assuming a weight of 1 (i.e. genotyped/not imputed)");
 					} else if (indices[i][j] == -1) {
@@ -1252,9 +1254,9 @@ public class Metal {
 			while (reader.ready()) {
 				count++;
 				if (count % 100000 == 0) {
-					System.out.println(count	+ "\t"
-															+ ext.formDeci((new Date().getTime() - time)	/ (double) count, 4,
-																							true));
+					System.out.println(count + "\t"
+														 + ext.formDeci((new Date().getTime() - time) / (double) count, 4,
+																						true));
 				}
 				// line = reader.readLine().trim().split("[\\s]+");
 				line = ext.replaceAllWith(reader.readLine(), ".-000", ".000").trim().split("[\\s]+");
@@ -1266,10 +1268,10 @@ public class Metal {
 					// present or the Rsq value is valid
 					if ((!line[indices[i][2]].equals(".") && !line[indices[i][2]].equals("NA"))
 							&& (indices[i][4] == -1
-									|| (!line[indices[i][4]].equals(".")	&& !line[indices[i][4]].equals("NA")
+									|| (!line[indices[i][4]].equals(".") && !line[indices[i][4]].equals("NA")
 											&& Double.parseDouble(line[indices[i][4]]) > thresholdForRsq))) {
 						effN = (indices[i][4] == -1 ? 1 : Math.min(Double.parseDouble(line[indices[i][4]]), 1))
-										* Double.parseDouble(line[indices[i][3]]);
+									 * Double.parseDouble(line[indices[i][3]]);
 						if (effN < 0) {
 							effN = 0;
 						}
@@ -1293,12 +1295,12 @@ public class Metal {
 							case STRAND_CONFIG_BOTH_NULL:
 								break;
 							case STRAND_CONFIG_DIFFERENT_ALLELES:
-								log.reportError("Error - "	+ roots[i] + " has different alleles for " + line[0]
+								log.reportError("Error - " + roots[i] + " has different alleles for " + line[0]
 																+ " (" + line[indices[i][0]] + "/" + line[indices[i][1]]
 																+ ") than had been seen previously (" + previousRef + ")");
 								break;
 							case STRAND_CONFIG_SPECIAL_CASE:
-								log.reportError("Warning - Special case starting with "	+ roots[i]
+								log.reportError("Warning - Special case starting with " + roots[i]
 																+ ": alleles for " + line[0] + " were " + line[indices[i][0]] + "/"
 																+ line[indices[i][1]] + " where only " + previousRef
 																+ " had been seem previously");
@@ -1310,13 +1312,14 @@ public class Metal {
 					}
 				}
 				maf = sumAlleles / sumEffN < 0.50 ? sumAlleles / sumEffN : 1 - sumAlleles / sumEffN;
-				writer.println(line[0]	+ "\t" + (refAlleles[0] == null ? "." : refAlleles[0]) + "\t"
-												+ (refAlleles[1] == null ? "." : refAlleles[1]) + "\t"
-												+ (sumEffN > 0	? ext.formDeci(sumAlleles / sumEffN, 4, true)	+ "\t"
-																					+ ext.formDeci(	sumEffN, 1,
-																													true)
-																					+ "\t" + ext.formDeci(maf, 4, true)
-																				: ".\t0\t."));
+				writer.println(line[0] + "\t" + (refAlleles[0] == null ? "." : refAlleles[0]) + "\t"
+											 + (refAlleles[1] == null ? "." : refAlleles[1]) + "\t"
+											 + (sumEffN > 0 ? ext.formDeci(sumAlleles / sumEffN, 4, true) + "\t"
+																				+ ext.formDeci(sumEffN, 1, true) + "\t" + ext.formDeci(
+																																															 maf,
+																																															 4,
+																																															 true)
+																			: ".\t0\t."));
 				if (thresholdForMAFfile > 0) {
 					if (maf > thresholdForMAFfile) {
 						w2.println(line[0]);
@@ -1401,8 +1404,8 @@ public class Metal {
 				for (String root : roots) {
 					writer.print("\t" + root + SUFFIXES[2]);
 				}
-				writer.print("\tflipped\tambiguous\tdiff\tdiff>"	+ diffThreshold + "_wFlip\tdiff>"
-											+ diffThreshold + "_woFlip");
+				writer.print("\tflipped\tambiguous\tdiff\tdiff>" + diffThreshold + "_wFlip\tdiff>"
+										 + diffThreshold + "_woFlip");
 				for (int i = 0; i < roots.length; i++) {
 					for (int j = 3; j < 6; j++) {
 						if (indices[i][j] >= 0) {
@@ -1415,9 +1418,9 @@ public class Metal {
 			while (reader.ready()) {
 				count++;
 				if (count % 100000 == 0) {
-					System.out.println(count	+ "\t"
-															+ ext.formDeci((new Date().getTime() - time)	/ (double) count, 4,
-																							true));
+					System.out.println(count + "\t"
+														 + ext.formDeci((new Date().getTime() - time) / (double) count, 4,
+																						true));
 				}
 				line = reader.readLine().trim().split("[\\s]+");
 
@@ -1444,12 +1447,12 @@ public class Metal {
 							case STRAND_CONFIG_BOTH_NULL:
 								break;
 							case STRAND_CONFIG_DIFFERENT_ALLELES:
-								log.reportError("Error - "	+ roots[i] + " has different alleles ("
+								log.reportError("Error - " + roots[i] + " has different alleles ("
 																+ line[indices[i][0]] + "/" + line[indices[i][1]]
 																+ ") than the rest (" + refAlleles[0] + "/" + refAlleles[1] + ")");
 								break;
 							case STRAND_CONFIG_SPECIAL_CASE:
-								log.reportError("Warning - Special case starting with "	+ roots[i] + ": alleles ("
+								log.reportError("Warning - Special case starting with " + roots[i] + ": alleles ("
 																+ line[indices[i][0]] + "/" + line[indices[i][1]]
 																+ ") where previous had only (" + refAlleles[0] + "/"
 																+ refAlleles[1] + ")");
@@ -1472,9 +1475,7 @@ public class Metal {
 					if (w == 0 || (w == 1 && flipped) || (w == 2 && ambiguous)) {
 						writer.print(line[0] + "\t" + refAlleles[0] + "\t" + refAlleles[1]);
 						for (int i = 0; i < roots.length; i++) {
-							writer.print("\t"
-														+ (Double.isNaN(freqs[i])	? "."
-																															: ext.formDeci(freqs[i], 4, true)));
+							writer.print("\t" + (Double.isNaN(freqs[i]) ? "." : ext.formDeci(freqs[i], 4, true)));
 						}
 						if (numNull > 0) {
 							writer.print("\t.\t.\t.\t.\t.");
@@ -1484,8 +1485,9 @@ public class Metal {
 							writer.print("\t" + ext.formDeci(Math.abs(freqs[0] - freqs[1]), 4, true));
 							writer.print("\t" + (Math.abs(freqs[0] - freqs[1]) > diffThreshold ? 1 : 0));
 							writer.print("\t"
-														+ (Math.abs(freqs[0] - (flipped	? 1 - freqs[1]
-																														: freqs[1])) > diffThreshold ? 1 : 0));
+													 + (Math.abs(freqs[0]
+																			 - (flipped ? 1 - freqs[1] : freqs[1])) > diffThreshold ? 1
+																																															: 0));
 						}
 						for (int i = 0; i < roots.length; i++) {
 							for (int j = 3; j < 6; j++) {
@@ -1553,14 +1555,14 @@ public class Metal {
 				if (alleles[0].equals(referenceAlleles[0]) && alleles[1].equals(referenceAlleles[1])) {
 					return STRAND_CONFIG_SAME_ORDER_SAME_STRAND;
 				} else if (alleles[0].equals(referenceAlleles[1])
-										&& alleles[1].equals(referenceAlleles[0])) {
+									 && alleles[1].equals(referenceAlleles[0])) {
 					return STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
 				} else {
 					flipped = new String[] {Sequence.flip(alleles[0]), Sequence.flip(alleles[1])};
 					if (flipped[0].equals(referenceAlleles[0]) && flipped[1].equals(referenceAlleles[1])) {
 						return STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND;
 					} else if (flipped[0].equals(referenceAlleles[1])
-											&& flipped[1].equals(referenceAlleles[0])) {
+										 && flipped[1].equals(referenceAlleles[0])) {
 						return STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
 					} else {
 						return STRAND_CONFIG_DIFFERENT_ALLELES;
@@ -1580,16 +1582,16 @@ public class Metal {
 				index = nullChecks[0] ? 1 : 0;
 				if (referenceAlleles[0] == null) {
 					referenceAlleles[0] = alleles[index];
-					return index == 0	? STRAND_CONFIG_SAME_ORDER_SAME_STRAND
+					return index == 0 ? STRAND_CONFIG_SAME_ORDER_SAME_STRAND
 														: STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
 				} else if (referenceAlleles[1] == null) {
 					if (alleles[index].equals(referenceAlleles[0])) {
-						return index == 0	? STRAND_CONFIG_SAME_ORDER_SAME_STRAND
+						return index == 0 ? STRAND_CONFIG_SAME_ORDER_SAME_STRAND
 															: STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
 					} else {
 						flipped = new String[] {Sequence.flip(alleles[index])};
 						if (flipped[0].equals(referenceAlleles[0])) {
-							return index == 0	? STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND
+							return index == 0 ? STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND
 																: STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
 						} else {
 							return STRAND_CONFIG_DIFFERENT_ALLELES;
@@ -1597,18 +1599,18 @@ public class Metal {
 					}
 				} else {
 					if (alleles[index].equals(referenceAlleles[0])) {
-						return index == 0	? STRAND_CONFIG_SAME_ORDER_SAME_STRAND
+						return index == 0 ? STRAND_CONFIG_SAME_ORDER_SAME_STRAND
 															: STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
 					} else if (alleles[index].equals(referenceAlleles[1])) {
-						return index == 1	? STRAND_CONFIG_SAME_ORDER_SAME_STRAND
+						return index == 1 ? STRAND_CONFIG_SAME_ORDER_SAME_STRAND
 															: STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
 					} else {
 						flipped = new String[] {Sequence.flip(alleles[index])};
 						if (flipped[0].equals(referenceAlleles[0])) {
-							return index == 0	? STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND
+							return index == 0 ? STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND
 																: STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
 						} else if (flipped[0].equals(referenceAlleles[1])) {
-							return index == 1	? STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND
+							return index == 1 ? STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND
 																: STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
 						} else {
 							return STRAND_CONFIG_DIFFERENT_ALLELES;
@@ -1642,30 +1644,30 @@ public class Metal {
 
 		indices = new int[filenames.length][2][];
 		for (int i = 0; i < filenames.length; i++) {
-			indices[i][0] = ext.indexFactors(	new String[][] {{"MarkerName"}},
-																				Files.getHeaderOfFile(filenames[i], log), false, true, true,
-																				log, true);
-			indices[i][1] = ext.indexFactors(	new String[][] {{"Direction"}},
-																				Files.getHeaderOfFile(filenames[i], log), false, true, true,
-																				log, true);
+			indices[i][0] = ext.indexFactors(new String[][] {{"MarkerName"}},
+																			 Files.getHeaderOfFile(filenames[i], log), false, true, true,
+																			 log, true);
+			indices[i][1] = ext.indexFactors(new String[][] {{"Direction"}},
+																			 Files.getHeaderOfFile(filenames[i], log), false, true, true,
+																			 log, true);
 		}
 
 		time = new Date().getTime();
 		log.report(ext.getTime() + "\tLoading " + filenames[0], false, true);
-		hash1 = HashVec.loadFileToHashString(	filenames[0], indices[0][0], indices[0][1], false, "\t",
-																					true, false, false);
+		hash1 = HashVec.loadFileToHashString(filenames[0], indices[0][0], indices[0][1], false, "\t",
+																				 true, false, false);
 		log.report("Finished loading " + hash1.size() + " markers in " + ext.getTimeElapsed(time));
 
 		time = new Date().getTime();
 		log.report(ext.getTime() + "\tLoading " + filenames[1], false, true);
-		hash2 = HashVec.loadFileToHashString(	filenames[1], indices[1][0], indices[1][1], false, "\t",
-																					true, false, false);
+		hash2 = HashVec.loadFileToHashString(filenames[1], indices[1][0], indices[1][1], false, "\t",
+																				 true, false, false);
 		log.report("Finished loading " + hash2.size() + " markers in " + ext.getTimeElapsed(time));
 
 		log.report(ext.getTime() + "\tParsing markers");
 		keys = HashVec.getKeys(hash1, false);
-		log.report(ext.getTime()	+ "\tThe following keys from " + filenames[0] + " were not found in "
-								+ filenames[1] + ":");
+		log.report(ext.getTime() + "\tThe following keys from " + filenames[0] + " were not found in "
+							 + filenames[1] + ":");
 		count = 0;
 		for (int i = 0; i < keys.length; i++) {
 			if (!hash2.containsKey(keys[i])) {
@@ -1683,8 +1685,8 @@ public class Metal {
 
 		log.report(ext.getTime() + "\tParsing markers");
 		keys = HashVec.getKeys(hash2, false);
-		log.report(ext.getTime()	+ "\tThe following keys from " + filenames[1] + " were not found in "
-								+ filenames[0] + ":");
+		log.report(ext.getTime() + "\tThe following keys from " + filenames[1] + " were not found in "
+							 + filenames[0] + ":");
 		count = 0;
 		for (int i = 0; i < keys.length; i++) {
 			if (!hash1.containsKey(keys[i])) {
@@ -1702,8 +1704,8 @@ public class Metal {
 
 		log.report(ext.getTime() + "\tParsing union of marker sets");
 		keys = HashVec.getKeys(hash1, false);
-		log.report(ext.getTime()	+ "\tDetermining differential counts for a combined " + keys.length
-								+ " markers");
+		log.report(ext.getTime() + "\tDetermining differential counts for a combined " + keys.length
+							 + " markers");
 		count = 0;
 		agreements = null;
 		// missings1 = new Vector<Hashtable<String,String>>();
@@ -1750,14 +1752,14 @@ public class Metal {
 					} else if (trav1.charAt(i) == '?') {
 						missHash1.put(key, "");
 					} else {
-						System.err.println("Mismatch: '"	+ trav1.charAt(i) + "' and '"
-																+ trav2.charAt(matches[i]) + "' for marker " + key);
+						System.err.println("Mismatch: '" + trav1.charAt(i) + "' and '"
+															 + trav2.charAt(matches[i]) + "' for marker " + key);
 					}
 				}
 			}
 
-			log.report("Study"	+ (i + 1) + "\tStudy" + (matches[i] + 1) + "\t" + agreements[i][matches[i]]
-									+ "\t" + missHash2.size() + "\t" + missHash1.size());
+			log.report("Study" + (i + 1) + "\tStudy" + (matches[i] + 1) + "\t" + agreements[i][matches[i]]
+								 + "\t" + missHash2.size() + "\t" + missHash1.size());
 			if (missHash2.size() > 0) {
 				Files.writeArray(HashVec.getKeys(missHash2), "Study" + (i + 1) + "_exclusiveTo.dat");
 			}
@@ -1900,46 +1902,46 @@ public class Metal {
 		// compResults = "META_ANALYSIS_beta_se_Final1.tbl,AllResults.txt";
 		// countMissing = "D:/mega/Discovery_allResults_23AndMe_just10K.tbl";
 
-		String usage = "\n"	+ "gwas.Metal requires 0-1 arguments\n" + "   (0) directory (i.e. dir="
-										+ dir + " (default))\n" + "   (1) plink results file (i.e. results=" + results
-										+ " (default))\n" + "   (2) TEST to parse (i.e. test=" + test + " (default))\n"
-										+ "   (3) method (logistic/linear) (i.e. method=" + method + " (default))\n"
-										+ "   (4) PLINK --freq output (i.e. freq=" + freq + " (default))\n"
-										+ "   (5) include standard error (i.e. -se (not the default))\n"
-										+ "   (6) name of output file (i.e. out=[results_file].metal (default))\n"
-										+ "   (7) column headers in output use Metal nomenclature (i.e. metalNom="
-										+ useMetalNomenclature + " (default))\n" + " OR\n"
-										+ "   (1) create batch file (i.e. -batch (not the default))\n"
-										+ "   (2) file #1 (i.e. file1=" + file1 + " (default))\n"
-										+ "   (3) weight for file #1 (i.e. weight1=" + weight1 + " (default))\n"
-										+ "   (4) file #2 (i.e. file2=" + file2 + " (default))\n"
-										+ "   (5) weight for file #2 (i.e. weight2=" + weight2 + " (default))\n"
-										+ " OR\n" + "   (1) check strand (i.e. check=filename.dat (not the default))\n"
-										+ " OR\n"
-										+ "   (1) split file to be checked for strand (i.e. split=filename.dat (not the default))\n"
-										+ "   (2) number of files to split it into (i.e. numSplits=" + numSplits
-										+ " (default))\n" + " OR\n"
-										+ "   (1) sort results of strand check (i.e. sort=filename.dat (not the default))\n"
-										+ " OR\n"
-										+ "   (1) calculate weighted allele frequency (i.e. calcFreq=filename.dat (not the default))\n"
-										+ "   (2) Rsq threshold (i.e. rsq=" + rsqThreshold + " (default))\n"
-										+ "   (3) MAF threshold for separate file listing those markers greater than threshold (i.e. maf>"
-										+ mafThreshold + " (default))\n" + " OR\n"
-										+ "   (1) compare allele frequencies (i.e. compFreq=filename.dat (not the default))\n"
-										+ "   (2) allele frequency difference threshold (i.e. diff=" + diffThreshold
-										+ " (default))\n" + " OR\n"
-										+ "   (1) meta-analyze a list of files (i.e. analyze=file1.metal,file2.metal,file3.metal (not the default))\n"
-										+ "   (2) unit of anlaysis (i.e. unit=gene (default=snp))\n"
-										+ "   (3) name of output root (i.e. out=" + output + " (default))\n"
-										+ "   (4) stderr scheme instead of sample-size weighting (i.e. se=" + se
-										+ " (default))\n" +
-										// " (5) use genomic control (i.e. gcControlOn="+gcControlOn+" (default))\n"+
-										"   (5) use genomic control (i.e. gcControl=-9,-9,-9 (default, one value per file, -1 for OFF, -9 for ON, other values used as given))\n"
-										+ " OR\n"
-										+ "   (1) compare two sets of meta-analysis results (i.e. compResults=fileA1.tbl,fileB1.tbl (not the default))\n"
-										+ " OR\n"
-										+ "   (1) count the number of studies missing each variant (i.e. countMissing=fileA1.tbl (not the default))\n"
-										+ "";
+		String usage = "\n" + "gwas.Metal requires 0-1 arguments\n" + "   (0) directory (i.e. dir="
+									 + dir + " (default))\n" + "   (1) plink results file (i.e. results=" + results
+									 + " (default))\n" + "   (2) TEST to parse (i.e. test=" + test + " (default))\n"
+									 + "   (3) method (logistic/linear) (i.e. method=" + method + " (default))\n"
+									 + "   (4) PLINK --freq output (i.e. freq=" + freq + " (default))\n"
+									 + "   (5) include standard error (i.e. -se (not the default))\n"
+									 + "   (6) name of output file (i.e. out=[results_file].metal (default))\n"
+									 + "   (7) column headers in output use Metal nomenclature (i.e. metalNom="
+									 + useMetalNomenclature + " (default))\n" + " OR\n"
+									 + "   (1) create batch file (i.e. -batch (not the default))\n"
+									 + "   (2) file #1 (i.e. file1=" + file1 + " (default))\n"
+									 + "   (3) weight for file #1 (i.e. weight1=" + weight1 + " (default))\n"
+									 + "   (4) file #2 (i.e. file2=" + file2 + " (default))\n"
+									 + "   (5) weight for file #2 (i.e. weight2=" + weight2 + " (default))\n"
+									 + " OR\n" + "   (1) check strand (i.e. check=filename.dat (not the default))\n"
+									 + " OR\n"
+									 + "   (1) split file to be checked for strand (i.e. split=filename.dat (not the default))\n"
+									 + "   (2) number of files to split it into (i.e. numSplits=" + numSplits
+									 + " (default))\n" + " OR\n"
+									 + "   (1) sort results of strand check (i.e. sort=filename.dat (not the default))\n"
+									 + " OR\n"
+									 + "   (1) calculate weighted allele frequency (i.e. calcFreq=filename.dat (not the default))\n"
+									 + "   (2) Rsq threshold (i.e. rsq=" + rsqThreshold + " (default))\n"
+									 + "   (3) MAF threshold for separate file listing those markers greater than threshold (i.e. maf>"
+									 + mafThreshold + " (default))\n" + " OR\n"
+									 + "   (1) compare allele frequencies (i.e. compFreq=filename.dat (not the default))\n"
+									 + "   (2) allele frequency difference threshold (i.e. diff=" + diffThreshold
+									 + " (default))\n" + " OR\n"
+									 + "   (1) meta-analyze a list of files (i.e. analyze=file1.metal,file2.metal,file3.metal (not the default))\n"
+									 + "   (2) unit of anlaysis (i.e. unit=gene (default=snp))\n"
+									 + "   (3) name of output root (i.e. out=" + output + " (default))\n"
+									 + "   (4) stderr scheme instead of sample-size weighting (i.e. se=" + se
+									 + " (default))\n" +
+									 // " (5) use genomic control (i.e. gcControlOn="+gcControlOn+" (default))\n"+
+									 "   (5) use genomic control (i.e. gcControl=-9,-9,-9 (default, one value per file, -1 for OFF, -9 for ON, other values used as given))\n"
+									 + " OR\n"
+									 + "   (1) compare two sets of meta-analysis results (i.e. compResults=fileA1.tbl,fileB1.tbl (not the default))\n"
+									 + " OR\n"
+									 + "   (1) count the number of studies missing each variant (i.e. countMissing=fileA1.tbl (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -2053,8 +2055,8 @@ public class Metal {
 			} else if (!strandFile.equals("")) {
 				checkStrand(strandFile);
 			} else if (!calcFreq.equals("")) {
-				calculateWeightedAlleleFrequency(	calcFreq, rsqThreshold, mafThreshold,
-																					new Logger(ext.rootOf(calcFreq, false) + "_freq.log"));
+				calculateWeightedAlleleFrequency(calcFreq, rsqThreshold, mafThreshold,
+																				 new Logger(ext.rootOf(calcFreq, false) + "_freq.log"));
 			} else if (!compFreq.equals("")) {
 				compareAlleleFrequencies(compFreq, diffThreshold);
 			} else if (analyze != null) {

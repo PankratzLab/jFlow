@@ -58,8 +58,8 @@ public class MitoGWAS {
 	 * @param covarFile covariates to use, full path
 	 * @param outputDir where the analysis will happen, full path
 	 */
-	public static void analyze(	Project proj, String pedFile, String pcFile, String covarFile,
-															String outputDir, boolean qc, boolean perm, int numthreads) {
+	public static void analyze(Project proj, String pedFile, String pcFile, String covarFile,
+														 String outputDir, boolean qc, boolean perm, int numthreads) {
 		Pedigree ped = new Pedigree(proj, pedFile, false);
 
 		String fullOut = outputDir + ext.rootOf(proj.getPropertyFilename()) + "/";
@@ -86,8 +86,8 @@ public class MitoGWAS {
 					markersToAnalyze.add(markerNames[i]);
 				}
 			}
-			proj.getLog().reportTimeInfo(numSkipped	+ " copy number or chr0 only probes  were removed, "
-																		+ markersToAnalyze.size() + " remaining");
+			proj.getLog().reportTimeInfo(numSkipped + " copy number or chr0 only probes  were removed, "
+																	 + markersToAnalyze.size() + " remaining");
 			String exportList = root + "_markers.txt";
 			Files.writeArray(ArrayUtils.toStringArray(markersToAnalyze), exportList);
 			String blankCluster = root + ".blankCluster.ser";
@@ -116,8 +116,8 @@ public class MitoGWAS {
 		plinkConverCommand.add(root);
 		plinkConverCommand.add("--make-bed");
 		plinkConverCommand.add("--out");
-		root = root	+ "_maf_" + ext.roundToSignificantFigures(maf, 5) + "_geno_" + geno + "_mind_"
-						+ mind;
+		root = root + "_maf_" + ext.roundToSignificantFigures(maf, 5) + "_geno_" + geno + "_mind_"
+					 + mind;
 		plinkConverCommand.add(root);
 		plinkConverCommand.add("--maf");
 		plinkConverCommand.add(maf + "");
@@ -141,8 +141,8 @@ public class MitoGWAS {
 		}
 
 		String[] out = new String[] {fam, bim, bed};
-		CmdLine.runCommandWithFileChecks(	ArrayUtils.toStringArray(plinkConverCommand), "", in, out, true,
-																			false, false, proj.getLog());
+		CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(plinkConverCommand), "", in, out,
+																		 true, false, false, proj.getLog());
 		ArrayList<PlinkAssoc> plinkCommands = new ArrayList<MitoGWAS.PlinkAssoc>();
 		String subDir = ext.rootOf(pcFile, false) + SUB_DIR;
 		String natty = subDir + "WITHOUT_BUILDERS_NATURAL_WITHOUT_INDEPS_finalSummary.estimates.txt.gz";
@@ -169,12 +169,12 @@ public class MitoGWAS {
 	private static void summarize(Project proj, String root, ArrayList<PlinkAssoc> plinkCommands) {
 		// MarkerMetrics.fullQC(proj, null, null, false, 24);
 		String[] qcpass = HashVec.loadFileToStringArray(ext.parseDirectoryOfFile(root)
-																											+ "ldPruning/plink.prune.out", false,
+																										+ "ldPruning/plink.prune.out", false,
 																										new int[] {0}, true);
-		qcpass = ArrayUtils.concatAll(	qcpass,
-															HashVec.loadFileToStringArray(ext.parseDirectoryOfFile(root)
-																															+ "ldPruning/plink.prune.in", false,
-																														new int[] {0}, true));
+		qcpass = ArrayUtils.concatAll(qcpass,
+																	HashVec.loadFileToStringArray(ext.parseDirectoryOfFile(root)
+																																+ "ldPruning/plink.prune.in", false,
+																																new int[] {0}, true));
 		Hashtable<String, String> qcHash = new Hashtable<String, String>();
 		for (String qcpas : qcpass) {
 			qcHash.put(qcpas, qcpas);
@@ -228,8 +228,8 @@ public class MitoGWAS {
 					return;
 				}
 			} else {
-				emp1s[j] = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(	pvalFiles[j], false,
-																																			new int[] {0}, false));
+				emp1s[j] = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(pvalFiles[j], false,
+																																					new int[] {0}, false));
 			}
 			if (emp1s[j].length != markerSet.getMarkerNames().length) {
 				throw new IllegalArgumentException("Invalid loading of pvalues");
@@ -247,12 +247,11 @@ public class MitoGWAS {
 		if (Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
 			annoReader = new VCFFileReader(new File(proj.BLAST_ANNOTATION_FILENAME.getValue()), true);
 		}
-		String[] annotations = annoReader == null	? new String[] {}
-																							: VCFOps.getAnnotationKeys(	proj.BLAST_ANNOTATION_FILENAME.getValue(),
-																																					proj.getLog())[0];
-		ExtProjectDataParser qcParser =
-																	MarkerMetrics.developParser(proj,
-																															proj.MARKER_METRICS_FILENAME.getValue());
+		String[] annotations = annoReader == null ? new String[] {}
+																							: VCFOps.getAnnotationKeys(proj.BLAST_ANNOTATION_FILENAME.getValue(),
+																																				 proj.getLog())[0];
+		ExtProjectDataParser qcParser = MarkerMetrics.developParser(proj,
+																																proj.MARKER_METRICS_FILENAME.getValue());
 		int[] qcindices = qcParser.getTypedFileParser().getNumericColumns()[0];
 		CloseableIterator<VariantContext> vcIter = annoReader == null ? null : annoReader.iterator();
 		try {
@@ -261,9 +260,10 @@ public class MitoGWAS {
 			PrintWriter writerSig = new PrintWriter(new FileWriter(pvalDB + ".sig"));
 			PrintWriter writerSigQc = new PrintWriter(new FileWriter(pvalDB + ".sig.qc"));
 
-			String header = "SNP\tCHR\tBP\tREF\tALT\tPlinkPruneOut\t"	+ ArrayUtils.toStr(empTitles)
+			String header = "SNP\tCHR\tBP\tREF\tALT\tPlinkPruneOut\t" + ArrayUtils.toStr(empTitles)
 											+ "\tMinPval\tMaxPval\tMaxDiffPval\tStdPval\t"
-											+ ArrayUtils.toStr(MarkerMetrics.FULL_QC_HEADER) + "\t" + ArrayUtils.toStr(annotations);
+											+ ArrayUtils.toStr(MarkerMetrics.FULL_QC_HEADER) + "\t"
+											+ ArrayUtils.toStr(annotations);
 			writer.println(header);
 			writerSig.println(header);
 			writerSigQc.println(header);
@@ -279,7 +279,7 @@ public class MitoGWAS {
 					annoReader.close();
 					vcIter.close();
 					throw new IllegalArgumentException("Invalid marker annotation "
-																							+ proj.BLAST_ANNOTATION_FILENAME.getValue());
+																						 + proj.BLAST_ANNOTATION_FILENAME.getValue());
 				}
 				VariantContext markVC = vcIter == null ? null : vcIter.next();
 				if (vcIter != null && !markVC.getID().equals(markerSet.getMarkerNames()[i])) {
@@ -289,7 +289,7 @@ public class MitoGWAS {
 					annoReader.close();
 					vcIter.close();
 					throw new IllegalArgumentException("Mismatched file/project order for "
-																							+ proj.BLAST_ANNOTATION_FILENAME.getValue());
+																						 + proj.BLAST_ANNOTATION_FILENAME.getValue());
 				}
 
 				boolean valid = true;
@@ -334,10 +334,10 @@ public class MitoGWAS {
 				}
 				if (valid) {
 					String data = ArrayUtils.toStr(ArrayUtils.toStringArray(line))
-												+ (markVC == null	? ""
+												+ (markVC == null ? ""
 																					: "\t"
 																						+ ArrayUtils.toStr(VCOps.getAnnotationsFor(annotations,
-																																									markVC, ".")));
+																																											 markVC, ".")));
 					writer.println(data);
 					if (min < 0.05) {
 						writerSig.println(data);
@@ -350,7 +350,7 @@ public class MitoGWAS {
 			if (numInvalid > 0) {
 				proj.getLog()
 						.reportTimeWarning(numInvalid
-																+ " markers had an NaN or chr 0 in one of the gwas runs ( or was not included in the analysis), removed");
+															 + " markers had an NaN or chr 0 in one of the gwas runs ( or was not included in the analysis), removed");
 			}
 			writer.close();
 			writerSig.close();
@@ -415,11 +415,10 @@ public class MitoGWAS {
 			rs.add(rScatterMIN);
 
 			String currentOutPruneMIN = ext.addToRoot(out, "GWAS_QC_METRICS_GROUP_MIN" + j);
-			RScatter rScatterPruneMIN =
-																new RScatter(	pvalDB, currentOutPruneMIN + ".rscript",
-																							ext.removeDirectoryInfo(currentOutPruneMIN),
-																							currentOutPruneMIN + ".jpeg", "MinPval", qcGroups[j],
-																							null, SCATTER_TYPE.POINT, proj.getLog());
+			RScatter rScatterPruneMIN = new RScatter(pvalDB, currentOutPruneMIN + ".rscript",
+																							 ext.removeDirectoryInfo(currentOutPruneMIN),
+																							 currentOutPruneMIN + ".jpeg", "MinPval", qcGroups[j],
+																							 null, SCATTER_TYPE.POINT, proj.getLog());
 
 			rScatterPruneMIN.setOverWriteExisting(overwrite);
 			Restrictions restrictionsMIN = new Restrictions(new String[] {"PlinkPruneOut"},
@@ -442,11 +441,10 @@ public class MitoGWAS {
 			rs.add(rScatterMAX);
 
 			String currentOutPruneMAX = ext.addToRoot(out, "GWAS_QC_METRICS_GROUP_MAX" + j);
-			RScatter rScatterPruneMAX =
-																new RScatter(	pvalDB, currentOutPruneMAX + ".rscript",
-																							ext.removeDirectoryInfo(currentOutPruneMAX),
-																							currentOutPruneMAX + ".jpeg", "MaxPval", qcGroups[j],
-																							null, SCATTER_TYPE.POINT, proj.getLog());
+			RScatter rScatterPruneMAX = new RScatter(pvalDB, currentOutPruneMAX + ".rscript",
+																							 ext.removeDirectoryInfo(currentOutPruneMAX),
+																							 currentOutPruneMAX + ".jpeg", "MaxPval", qcGroups[j],
+																							 null, SCATTER_TYPE.POINT, proj.getLog());
 
 			rScatterPruneMAX.setOverWriteExisting(overwrite);
 			Restrictions restrictionsMAX = new Restrictions(new String[] {"PlinkPruneOut"},
@@ -458,10 +456,10 @@ public class MitoGWAS {
 			rs.add(rScatterPruneMAX);
 
 			String currentOutSD = ext.addToRoot(out, "METRICS_SD" + j);
-			RScatter rScatterSD = new RScatter(	pvalDB, currentOutSD + ".rscript",
-																					ext.removeDirectoryInfo(currentOutSD),
-																					currentOutSD + ".jpeg", "StdPval", qcGroups[j], null,
-																					SCATTER_TYPE.POINT, proj.getLog());
+			RScatter rScatterSD = new RScatter(pvalDB, currentOutSD + ".rscript",
+																				 ext.removeDirectoryInfo(currentOutSD),
+																				 currentOutSD + ".jpeg", "StdPval", qcGroups[j], null,
+																				 SCATTER_TYPE.POINT, proj.getLog());
 			rScatterSD.setOverWriteExisting(overwrite);
 			rScatterSD.setrScriptLoc("/panfs/roc/itascasoft/R/3.2.1/bin/Rscript");
 			rScatterSD.setxLabel("SD pvals");
@@ -475,8 +473,8 @@ public class MitoGWAS {
 																							null, SCATTER_TYPE.POINT, proj.getLog());
 
 			rScatterPruneSD.setOverWriteExisting(overwrite);
-			Restrictions restrictionsSD = new Restrictions(	new String[] {"PlinkPruneOut"},
-																											new double[] {0}, new String[] {"!="}, null);
+			Restrictions restrictionsSD = new Restrictions(new String[] {"PlinkPruneOut"},
+																										 new double[] {0}, new String[] {"!="}, null);
 			rScatterPruneSD.setRestrictions(new Restrictions[] {restrictionsSD});
 			rScatterPruneSD.setxLabel(gwasQCFlag + "SD pvals");
 			rScatterPruneSD.setrScriptLoc("/panfs/roc/itascasoft/R/3.2.1/bin/Rscript");
@@ -484,10 +482,10 @@ public class MitoGWAS {
 			rs.add(rScatterPruneSD);
 
 			String currentOut = ext.addToRoot(out, "METRICS_" + j);
-			RScatter rScatter = new RScatter(	pvalDB, currentOut + ".rscript",
-																				ext.removeDirectoryInfo(currentOut), currentOut + ".jpeg",
-																				"MaxDiffPval", qcGroups[j], null, SCATTER_TYPE.POINT,
-																				proj.getLog());
+			RScatter rScatter = new RScatter(pvalDB, currentOut + ".rscript",
+																			 ext.removeDirectoryInfo(currentOut), currentOut + ".jpeg",
+																			 "MaxDiffPval", qcGroups[j], null, SCATTER_TYPE.POINT,
+																			 proj.getLog());
 			rScatter.setOverWriteExisting(overwrite);
 			rScatter.setrScriptLoc("/panfs/roc/itascasoft/R/3.2.1/bin/Rscript");
 			rScatter.setxLabel("Maximum Pval difference");
@@ -500,8 +498,8 @@ public class MitoGWAS {
 																						currentOutPrune + ".jpeg", "MaxDiffPval", qcGroups[j],
 																						null, SCATTER_TYPE.POINT, proj.getLog());
 			rScatterPrune.setOverWriteExisting(overwrite);
-			Restrictions restrictions = new Restrictions(	new String[] {"PlinkPruneOut"}, new double[] {0},
-																										new String[] {"!="}, null);
+			Restrictions restrictions = new Restrictions(new String[] {"PlinkPruneOut"}, new double[] {0},
+																									 new String[] {"!="}, null);
 			rScatterPrune.setRestrictions(new Restrictions[] {restrictions});
 			rScatterPrune.setxLabel(gwasQCFlag + "Maximum Pval difference");
 			rScatterPrune.setrScriptLoc("/panfs/roc/itascasoft/R/3.2.1/bin/Rscript");
@@ -510,9 +508,9 @@ public class MitoGWAS {
 
 		}
 
-		RScatters rsScatters = new RScatters(	rs.toArray(new RScatter[rs.size()]), out + "finalRscript",
-																					out + "final.pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1,
-																					PLOT_DEVICE.PDF, proj.getLog());
+		RScatters rsScatters = new RScatters(rs.toArray(new RScatter[rs.size()]), out + "finalRscript",
+																				 out + "final.pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1,
+																				 PLOT_DEVICE.PDF, proj.getLog());
 		rsScatters.execute();
 		// String[] script = generateManhatQQScript(pvalDB, empTitles, plot);
 		// String rscript = plot + ".rscript";
@@ -576,19 +574,20 @@ public class MitoGWAS {
 			builderCovar.hasHeader(true);
 			builderCovar.dataKeyColumnName("DNA");
 			builderCovar.requireAll(false);
-			builderCovar.numericDataTitles(ArrayUtils.subArray(Files.getHeaderOfFile(covarFile, proj.getLog()),
-																										1));
+			builderCovar.numericDataTitles(ArrayUtils.subArray(Files.getHeaderOfFile(covarFile,
+																																							 proj.getLog()),
+																												 1));
 			ExtProjectDataParser covarParser = builderCovar.build(proj, covarFile);
 			covarParser.determineIndicesFromTitles();
 			covarParser.loadData();
 			boolean[] hasVarianceWithinPed = ArrayUtils.booleanArray(covarParser.getNumericDataTitles().length,
-																													false);
+																															 false);
 			for (int i = 0; i < hasVarianceWithinPed.length; i++) {
 				Hashtable<String, String> varHash = new Hashtable<String, String>();
 				for (int j = 0; j < ped.getDnas().length; j++) {
 					int sampIndex = ext.indexOfStr(ped.getDnas()[j], proj.getSamples());
 					String val = covarParser.getNumericDataForTitle(covarParser.getNumericDataTitles()[i])[sampIndex]
-												+ "";
+											 + "";
 					varHash.put(val, val);
 					if (varHash.size() > 1) {
 						hasVarianceWithinPed[i] = true;
@@ -619,29 +618,29 @@ public class MitoGWAS {
 					writer.println();
 					for (int j = 0; j < ped.getDnas().length; j++) {
 						int sampIndex = ext.indexOfStr(ped.getDnas()[j], proj.getSamples());
-						writer.print(ped.getFID(j)	+ "\t" + ped.getIID(j) + "\t"
-													+ parser.getNumericDataForTitle(title)[sampIndex]);
+						writer.print(ped.getFID(j) + "\t" + ped.getIID(j) + "\t"
+												 + parser.getNumericDataForTitle(title)[sampIndex]);
 						for (int k = 0; k < covarParser.getNumericDataTitles().length; k++) {
 							if (hasVarianceWithinPed[k]) {
 								writer.print("\t"
-															+ covarParser.getNumericDataForTitle(covarParser.getNumericDataTitles()[k])[sampIndex]);
+														 + covarParser.getNumericDataForTitle(covarParser.getNumericDataTitles()[k])[sampIndex]);
 							}
 						}
 						writer.println();
 					}
 					writer.close();
 
-					String covarTitles = ArrayUtils.toStr(	ArrayUtils.subArray(covarParser.getNumericDataTitles(),
-																													hasVarianceWithinPed),
-																						",");
+					String covarTitles = ArrayUtils.toStr(ArrayUtils.subArray(covarParser.getNumericDataTitles(),
+																																		hasVarianceWithinPed),
+																								",");
 					String outPrepReg = ext.addToRoot(outCurrent, ".prepped");
 
-					PlinkAssoc regCommand = prepareAssoc(	root, false, outCurrent, title, covarTitles,
-																								outPrepReg, perm, proj.getLog());
+					PlinkAssoc regCommand = prepareAssoc(root, false, outCurrent, title, covarTitles,
+																							 outPrepReg, perm, proj.getLog());
 					plinkCommands.add(regCommand);
 					String outPrepInv = ext.addToRoot(outCurrent, ".prepped.inv");
-					PlinkAssoc invCommand = prepareAssoc(	root, true, outCurrent, title, covarTitles,
-																								outPrepInv, perm, proj.getLog());
+					PlinkAssoc invCommand = prepareAssoc(root, true, outCurrent, title, covarTitles,
+																							 outPrepInv, perm, proj.getLog());
 					plinkCommands.add(invCommand);
 
 				} catch (Exception e) {
@@ -701,13 +700,13 @@ public class MitoGWAS {
 
 		@Override
 		public Boolean call() throws Exception {
-			return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputs, outputs,
-																							true, false, false, log);
+			return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputs,
+																							outputs, true, false, false, log);
 		}
 	}
 
-	private static PlinkAssoc prepareAssoc(	String root, boolean inverse, String inputDb, String pheno,
-																					String covars, String output, boolean perm, Logger log) {
+	private static PlinkAssoc prepareAssoc(String root, boolean inverse, String inputDb, String pheno,
+																				 String covars, String output, boolean perm, Logger log) {
 		String processed = ext.addToRoot(output, "_pheno");
 		if (!Files.exists(processed)) {
 			PhenoPrep.parse("", inputDb, "IID", pheno, null, 3.0, false, false, true, false, inverse,
@@ -739,8 +738,8 @@ public class MitoGWAS {
 		String[] inputs = new String[] {processed, inputDb};
 		String[] outputs = new String[] {ext.rootOf(output, false) + ".assoc.linear"};
 		if (perm) {
-			outputs = ArrayUtils.concatAll(outputs,
-																new String[] {ext.rootOf(output, false) + ".assoc.linear.perm"});
+			outputs = ArrayUtils.concatAll(outputs, new String[] {ext.rootOf(output, false)
+																														+ ".assoc.linear.perm"});
 		}
 		PlinkAssoc assoc = new PlinkAssoc(plink, inputs, outputs, log);
 		return assoc;

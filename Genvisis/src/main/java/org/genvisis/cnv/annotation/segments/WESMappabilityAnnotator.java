@@ -74,9 +74,9 @@ public class WESMappabilityAnnotator extends BEDFileAnnotator {
 			throw new IllegalArgumentException(error);
 		}
 		// get all mapability segments overlapping segment of interest
-		CloseableIterator<BEDFeature> iterator = query(	Positions.getChromosomeUCSC(segment.getChr(),
-																																								true),
-																										segment.getStart(), segment.getStop());
+		CloseableIterator<BEDFeature> iterator = query(Positions.getChromosomeUCSC(segment.getChr(),
+																																							 true),
+																									 segment.getStart(), segment.getStop());
 		List<String> values = new ArrayList<String>();
 		double numBases = 0;
 		double cumulativeMapScore = 0;

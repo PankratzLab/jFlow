@@ -31,15 +31,15 @@ import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
 
 public class LrrSd extends Parallelizable {
-	private static final String BOUND_SD = "LRR_SD_"	+ CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_"
-																					+ CNVCaller.MAX_LRR_MEDIAN_ADJUST;
+	private static final String BOUND_SD = "LRR_SD_" + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_"
+																				 + CNVCaller.MAX_LRR_MEDIAN_ADJUST;
 	private static final String BOUND_SD_CORRECTED = "LRR_SD_Post_Correction_"
-																											+ CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_"
-																										+ CNVCaller.MAX_LRR_MEDIAN_ADJUST;
-	private static final String BOUND_MAD = "LRR_MAD_"	+ CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_"
+																									 + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_"
+																									 + CNVCaller.MAX_LRR_MEDIAN_ADJUST;
+	private static final String BOUND_MAD = "LRR_MAD_" + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_"
 																					+ CNVCaller.MAX_LRR_MEDIAN_ADJUST;
 	private static final String BOUND_MAD_CORRECTED = "LRR_MAD_Post_Correction_"
-																											+ CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_"
+																										+ CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_"
 																										+ CNVCaller.MAX_LRR_MEDIAN_ADJUST;
 
 	public static final String[] NUMERIC_COLUMNS = {"LRR_AVG", "LRR_SD", BOUND_SD, "LRR_MAD",
@@ -58,9 +58,9 @@ public class LrrSd extends Parallelizable {
 	private final boolean[] markersForCallrate, markersForEverythingElse;
 	private final GcModel gcModel;
 
-	public LrrSd(	Project proj, String[] samples, boolean[] markersForCallrate,
-								boolean[] markersForEverythingElse, String centroidsFile, GcModel gcModel,
-								int threadNumber, int numThreads) {
+	public LrrSd(Project proj, String[] samples, boolean[] markersForCallrate,
+							 boolean[] markersForEverythingElse, String centroidsFile, GcModel gcModel,
+							 int threadNumber, int numThreads) {
 		this.proj = proj;
 		this.samples = samples;
 		this.centroidsFile = centroidsFile;
@@ -91,8 +91,8 @@ public class LrrSd extends Parallelizable {
 		ProgressMonitor progMon = proj.getProgressMonitor();
 		if (progMon != null) {
 			System.out.println(progMon);
-			progMon.beginDeterminateTask(	PROG_KEY, progDesc, samples.length + 1,
-																		ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+			progMon.beginDeterminateTask(PROG_KEY, progDesc, samples.length + 1,
+																	 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		}
 
 		log = proj.getLog();
@@ -109,8 +109,8 @@ public class LrrSd extends Parallelizable {
 
 			chrs = proj.getMarkerSet().getChrs();
 			subIndex = ArrayUtils.indexOfFirstMaxByte(chrs, (byte) 23);// index is the first byte >= 23,
-																														// chrs.length if all are less, -1 if
-																														// none are less, 0 if all are greater!
+			// chrs.length if all are less, -1 if
+			// none are less, 0 if all are greater!
 			if (subIndex <= 0) {
 				// proj.getLog().reportError("Error - was not able to detect any autosomal markers for
 				// sample QC in " + proj.getFilename(proj.MARKERSET_FILENAME));
@@ -131,14 +131,14 @@ public class LrrSd extends Parallelizable {
 				}
 			}
 
-			int numAb = (markersForCallrate == null	? chrs.length
+			int numAb = (markersForCallrate == null ? chrs.length
 																							: ArrayUtils.booleanArraySum(markersForCallrate));
-			int numAllElse = (markersForEverythingElse == null	? subIndex
-																													: ArrayUtils.booleanArraySum(markersForEverythingElse));
+			int numAllElse = (markersForEverythingElse == null ? subIndex
+																												 : ArrayUtils.booleanArraySum(markersForEverythingElse));
 			if (threadNumber == 1) {// we can just show this once
 				proj.getLog().report("Info - using " + numAb + " markers for sample call rate qc");
-				proj.getLog().report("Info - using "	+ numAllElse
-															+ " autosomal markers for all other sample qc metrics");
+				proj.getLog().report("Info - using " + numAllElse
+														 + " autosomal markers for all other sample qc metrics");
 			}
 			if (numAb == 0 || numAllElse == 0) {
 				if (numAb == 0) {
@@ -151,12 +151,12 @@ public class LrrSd extends Parallelizable {
 			}
 			if (numAb < 1000) {
 				proj.getLog()
-						.report("Warning - using "	+ numAb + (numAb == 1 ? " marker" : " markers")
+						.report("Warning - using " + numAb + (numAb == 1 ? " marker" : " markers")
 										+ " for sample call rate may result in inaccurate sample qc, please consider using more");
 			}
 			if (numAllElse < 1000) {
 				proj.getLog()
-						.report("Warning - using "	+ numAllElse + (numAllElse == 1 ? " marker" : " markers")
+						.report("Warning - using " + numAllElse + (numAllElse == 1 ? " marker" : " markers")
 										+ " for other qc metrics may result in inaccurate sample qc, please consider using more");
 			}
 
@@ -171,13 +171,14 @@ public class LrrSd extends Parallelizable {
 				// log.report((i+1)+" of "+samples.length);
 				fsamp = proj.getFullSampleFromRandomAccessFile(sample);
 				if (fsamp == null) {
-					log.reportError("Error - "	+ sample + Sample.SAMPLE_FILE_EXTENSION
+					log.reportError("Error - " + sample + Sample.SAMPLE_FILE_EXTENSION
 													+ " not found in samples directory");
 				} else {
-					writer.println(ArrayUtils.toStr(	LrrSdPerSample(proj, markerSet, sample, fsamp, cents,
-																										markersForCallrate, markersForEverythingElse,
-																										gcModel, GC_CORRECTION_METHOD.GENVISIS_GC, log),
-																			"\t"));
+					writer.println(ArrayUtils.toStr(LrrSdPerSample(proj, markerSet, sample, fsamp, cents,
+																												 markersForCallrate,
+																												 markersForEverythingElse, gcModel,
+																												 GC_CORRECTION_METHOD.GENVISIS_GC, log),
+																					"\t"));
 					writer.flush();
 				}
 				if (progMon != null) {
@@ -242,13 +243,13 @@ public class LrrSd extends Parallelizable {
 		lrrs = cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents);
 		bafs = cents == null ? fsamp.getBAFs() : fsamp.getBAFs(cents);
 		bafsWide = bafs;
-		markersForEverythingElse = markersForEverythingElse == null	? proj.getAutosomalMarkerBoolean()
+		markersForEverythingElse = markersForEverythingElse == null ? proj.getAutosomalMarkerBoolean()
 																																: markersForEverythingElse;
 		if (markersForEverythingElse == null || markersForEverythingElse.length == 0) {
 			proj.getLog()
 					.reportTimeWarning("Could not determine appropriate marker subset, lrr_sd.xln data for sample "
-																+ fsamp.getSampleName()
-															+ " will be based on all markers, not just autosomal markers");
+														 + fsamp.getSampleName()
+														 + " will be based on all markers, not just autosomal markers");
 			markersForEverythingElse = null;
 		} else {
 			lrrs = ArrayUtils.subArray(lrrs, markersForEverythingElse);
@@ -259,11 +260,11 @@ public class LrrSd extends Parallelizable {
 		forwardGenotypes = fsamp.getForwardGenotypes();
 		// TODO, remove cnv only probes using proj Array type if markersForCallrate is not provided...
 		if (markersForCallrate != null) {// we do not need autosomal only markers here...
-			abGenotypes = (abGenotypes == null	? abGenotypes
-																					: ArrayUtils.subArray(abGenotypes, markersForCallrate));
-			forwardGenotypes = (forwardGenotypes == null	? forwardGenotypes
-																										: ArrayUtils.subArray(	forwardGenotypes,
-																																			markersForCallrate));
+			abGenotypes = (abGenotypes == null ? abGenotypes
+																				 : ArrayUtils.subArray(abGenotypes, markersForCallrate));
+			forwardGenotypes = (forwardGenotypes == null ? forwardGenotypes
+																									 : ArrayUtils.subArray(forwardGenotypes,
+																																				 markersForCallrate));
 		}
 
 		bafBinCounts = new int[101];
@@ -314,11 +315,11 @@ public class LrrSd extends Parallelizable {
 		lrrMadPost = Double.NaN;
 		lrrMadBoundPost = Double.NaN;
 		if (gcModel != null) {
-			GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(	proj, pMarkerSet,
-																															cents == null	? fsamp.getLRRs()
-																																						: fsamp.getLRRs(cents),
-																															gcModel, correctionMethod, true, true,
-																															false);
+			GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, pMarkerSet,
+																														 cents == null ? fsamp.getLRRs()
+																																					 : fsamp.getLRRs(cents),
+																														 gcModel, correctionMethod, true, true,
+																														 false);
 			if (!gcAdjustor.isFail()) {
 				wfPrior = gcAdjustor.getWfPrior();
 				gcwfPrior = gcAdjustor.getGcwfPrior();
@@ -333,40 +334,42 @@ public class LrrSd extends Parallelizable {
 																		CNVCaller.MIN_LRR_MEDIAN_ADJUST,
 																		CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
 				} else {
-					double[] subLrr = ArrayUtils.subArray(	gcAdjustor.getCorrectedIntensities(),
-																						markersForEverythingElse);
+					double[] subLrr = ArrayUtils.subArray(gcAdjustor.getCorrectedIntensities(),
+																								markersForEverythingElse);
 					lrrsdPost = ArrayUtils.stdev(subLrr, true);
 					lrrMadPost = ArrayUtils.mad(ArrayUtils.removeNaN(subLrr));
 					tmp = CNVCaller.adjustLrr(subLrr, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
 																		CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
 				}
-				tmp = ArrayUtils.removeNaN(ArrayUtils.getValuesBetween(	tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
-																											CNVCaller.MAX_LRR_MEDIAN_ADJUST, false));
+				tmp = ArrayUtils.removeNaN(ArrayUtils.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
+																															 CNVCaller.MAX_LRR_MEDIAN_ADJUST,
+																															 false));
 				lrrsdPostBound = ArrayUtils.stdev(tmp, true);
 				lrrMadBoundPost = ArrayUtils.mad(tmp);
 			}
 		}
 
-		multimodal = ArrayUtils.isMultimodal(ArrayUtils.toDoubleArray(ArrayUtils.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
+		multimodal = ArrayUtils.isMultimodal(ArrayUtils.toDoubleArray(ArrayUtils.removeNaN(bafsWide)),
+																				 0.1, 0.5, 0.01);
 		lrrs = ArrayUtils.replaceNonFinites(lrrs);
 		double[] dlrrs = ArrayUtils.toDoubleArray(lrrs);
-		double[] tmp = CNVCaller.adjustLrr(	dlrrs, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
-																				CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, proj.getLog());
-		tmp = ArrayUtils.removeNaN(ArrayUtils.getValuesBetween(	tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
-																									CNVCaller.MAX_LRR_MEDIAN_ADJUST, false));
+		double[] tmp = CNVCaller.adjustLrr(dlrrs, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
+																			 CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, proj.getLog());
+		tmp = ArrayUtils.removeNaN(ArrayUtils.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
+																													 CNVCaller.MAX_LRR_MEDIAN_ADJUST, false));
 		lrrsdBound = ArrayUtils.stdev(tmp, true);
 		lrrMadBound = ArrayUtils.mad(tmp);
 
-		String[] retVals = new String[] {	sampleID, ArrayUtils.mean(lrrs, true) + "",
-																			ArrayUtils.stdev(lrrs, true) + "", lrrsdBound + "",
-																			ArrayUtils.mad(ArrayUtils.removeNaN(dlrrs)) + "", lrrMadBound + "",
-																			ArrayUtils.stdev(bafs, true) + "",
-																			(abCallRate > 0 ? abCallRate : forwardCallRate) + "",
-																			(abCallRate > 0 ? abHetRate : forwardHetRate) + "",
-																			wfPrior + "", gcwfPrior + "", wfPost + "", gcwfPost + "",
-																			lrrsdPost + "", lrrsdPostBound + "", lrrMadPost + "",
-																			lrrMadBoundPost + "", multimodal + "",
-																			ArrayUtils.toStr(bafBinCounts),};
+		String[] retVals = new String[] {sampleID, ArrayUtils.mean(lrrs, true) + "",
+																		 ArrayUtils.stdev(lrrs, true) + "", lrrsdBound + "",
+																		 ArrayUtils.mad(ArrayUtils.removeNaN(dlrrs)) + "",
+																		 lrrMadBound + "", ArrayUtils.stdev(bafs, true) + "",
+																		 (abCallRate > 0 ? abCallRate : forwardCallRate) + "",
+																		 (abCallRate > 0 ? abHetRate : forwardHetRate) + "",
+																		 wfPrior + "", gcwfPrior + "", wfPost + "", gcwfPost + "",
+																		 lrrsdPost + "", lrrsdPostBound + "", lrrMadPost + "",
+																		 lrrMadBoundPost + "", multimodal + "",
+																		 ArrayUtils.toStr(bafBinCounts),};
 		return retVals;
 	}
 
@@ -380,7 +383,8 @@ public class LrrSd extends Parallelizable {
 		// Files.cat(files, proj.getFilename(proj.SAMPLE_QC_FILENAME), Array.intArray(files.length, 0),
 		// proj.getLog());
 		files = ArrayUtils.stringArraySequence(numThreads,
-																			ext.rootOf(proj.SAMPLE_QC_FILENAME.getValue(), false) + ".");
+																					 ext.rootOf(proj.SAMPLE_QC_FILENAME.getValue(), false)
+																											 + ".");
 		Files.cat(files, proj.SAMPLE_QC_FILENAME.getValue(), ArrayUtils.intArray(files.length, 0),
 							proj.getLog());
 		for (String file : files) {
@@ -406,8 +410,8 @@ public class LrrSd extends Parallelizable {
 					log.reportError("Error - did not find any samples in the subset file " + useFile);
 					return null;
 				} else {
-					log.report("Analysis will be performed starting with the subset of "	+ subset.size()
-											+ " samples found in " + useFile);
+					log.report("Analysis will be performed starting with the subset of " + subset.size()
+										 + " samples found in " + useFile);
 				}
 			} else {
 				log.reportError("Error - a file list of samples to use was provided, but the file "
@@ -439,7 +443,7 @@ public class LrrSd extends Parallelizable {
 			// ext.listWithCommas(SAMPLE_DATA_ADDITION_HEADERS, true) + "] in " +
 			// proj.getFilename(proj.SAMPLE_DATA_FILENAME));
 			log.reportError("If new thresholds were used, please remove the columns ["
-												+ ext.listWithCommas(MitoPipeline.SAMPLE_DATA_ADDITION_HEADERS, true)
+											+ ext.listWithCommas(MitoPipeline.SAMPLE_DATA_ADDITION_HEADERS, true)
 											+ "] in " + proj.SAMPLE_DATA_FILENAME.getValue());
 		}
 		return addToSampleData;
@@ -453,7 +457,7 @@ public class LrrSd extends Parallelizable {
 		for (int indice : indices) {
 			if (indice == -1) {
 				allGood = false;
-				proj.getLog().reportError("Error - The sample QC file "	+ proj.SAMPLE_QC_FILENAME.getValue()
+				proj.getLog().reportError("Error - The sample QC file " + proj.SAMPLE_QC_FILENAME.getValue()
 																	+ " did not contain the proper headings, this should not happen");
 			}
 		}
@@ -468,8 +472,8 @@ public class LrrSd extends Parallelizable {
 		// String[] header = Files.getHeaderOfFile(proj.getFilename(proj.SAMPLE_DATA_FILENAME),
 		// proj.getLog());
 		String[] header = Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(), proj.getLog());
-		int[] indices = ext.indexFactors(	MitoPipeline.SAMPLE_DATA_ADDITION_HEADERS, header, true,
-																			proj.getLog(), false, false);
+		int[] indices = ext.indexFactors(MitoPipeline.SAMPLE_DATA_ADDITION_HEADERS, header, true,
+																		 proj.getLog(), false, false);
 		for (int indice : indices) {
 			if (indice < 0) {
 				added = false;
@@ -509,12 +513,12 @@ public class LrrSd extends Parallelizable {
 		if (Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
 			log.report("The sample qc file " + proj.SAMPLE_QC_FILENAME.getValue() + " already exists");
 			log.report("Skipping qc computation, filtering on existing qc file "
-									+ proj.SAMPLE_QC_FILENAME.getValue());
+								 + proj.SAMPLE_QC_FILENAME.getValue());
 		} else {
 			log.report("Computing sample QC for all samples...");
 			log.report("Will be reporting sample qc to " + proj.SAMPLE_QC_FILENAME.getValue());
-			org.genvisis.cnv.qc.LrrSd.init(	proj, null, markersForABCallRate, markersForEverythingElse,
-																			numThreads, null, gcMetrics);
+			org.genvisis.cnv.qc.LrrSd.init(proj, null, markersForABCallRate, markersForEverythingElse,
+																		 numThreads, null, gcMetrics);
 			PSF.checkInterrupted();
 		}
 
@@ -522,14 +526,13 @@ public class LrrSd extends Parallelizable {
 		numPassing = 0;
 		try {
 			PSF.checkInterrupted();
-			BufferedReader reader =
-														Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true, false);
+			BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true,
+																							false);
 			PrintWriter writerUse = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																															+ outputBase + PCA.PCA_SAMPLES));
-			PrintWriter writerSummary =
-																new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																																	+ outputBase
-																																+ MitoPipeline.PCA_SAMPLES_SUMMARY));
+																														 + outputBase + PCA.PCA_SAMPLES));
+			PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+																																 + outputBase
+																																 + MitoPipeline.PCA_SAMPLES_SUMMARY));
 
 			writerSummary.println(ArrayUtils.toStr(MitoPipeline.SAMPLE_QC_SUMMARY));
 			if (!reader.ready()) {
@@ -558,24 +561,24 @@ public class LrrSd extends Parallelizable {
 					// if passes qc
 					if (Double.parseDouble(line[indices[1]]) < lrrSdFilter
 							&& Double.parseDouble(line[indices[2]]) > callRateFilter) {
-						sampDataQC.put(	line[indices[0]],
-														line[indices[1]] + "\t" + line[indices[2]] + "\t" + "0");
+						sampDataQC.put(line[indices[0]],
+													 line[indices[1]] + "\t" + line[indices[2]] + "\t" + "0");
 						// check the subset
 						if (subset.size() == 0 || subset.containsKey(line[indices[0]])) {
 							writerUse.println(line[indices[0]]);
-							writerSummary.println(line[indices[0]]	+ "\t" + line[indices[1]] + "\t"
+							writerSummary.println(line[indices[0]] + "\t" + line[indices[1]] + "\t"
 																		+ line[indices[2]] + "\t" + "TRUE");
 							numPassing++;
 						} else {
 							// sampDataQC.put(line[indices[0]], line[indices[1]] + "\t" + line[indices[2]] + "\t"
 							// + "1");
-							writerSummary.println(line[indices[0]]	+ "\t" + line[indices[1]] + "\t"
+							writerSummary.println(line[indices[0]] + "\t" + line[indices[1]] + "\t"
 																		+ line[indices[2]] + "\t" + "FALSE");
 						}
 					} else {
-						sampDataQC.put(	line[indices[0]],
-														line[indices[1]] + "\t" + line[indices[2]] + "\t" + "1");
-						writerSummary.println(line[indices[0]]	+ "\t" + line[indices[1]] + "\t"
+						sampDataQC.put(line[indices[0]],
+													 line[indices[1]] + "\t" + line[indices[2]] + "\t" + "1");
+						writerSummary.println(line[indices[0]] + "\t" + line[indices[1]] + "\t"
 																	+ line[indices[2]] + "\t" + "FALSE");
 					}
 					count++;
@@ -591,20 +594,21 @@ public class LrrSd extends Parallelizable {
 				log.reportError("If there are a large number of cnv-only probes on the array, try lowering the call rate threshold for samples or use the \"-markerQC\" option to only select markers with high quality call rates");
 				return new int[] {numPassing, count};
 			}
-			log.report("Info - "	+ numPassing + " " + (numPassing == 1 ? "sample" : "samples")
-									+ " passed the QC threshold"
-									+ (subset.size() > 0 ? " and were present in the subset file " + useFile : ""));
+			log.report("Info - " + numPassing + " " + (numPassing == 1 ? "sample" : "samples")
+								 + " passed the QC threshold"
+								 + (subset.size() > 0 ? " and were present in the subset file " + useFile : ""));
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \""	+ proj.SAMPLE_QC_FILENAME.getValue()
+			log.reportError("Error: file \"" + proj.SAMPLE_QC_FILENAME.getValue()
 											+ "\" not found in current directory");
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + proj.SAMPLE_QC_FILENAME.getValue() + "\"");
 		}
 
 		if (addToSampleData) {
-			sampleData.addData(	sampDataQC, MitoPipeline.DNA_LINKER,
-													ArrayUtils.tagOn(MitoPipeline.SAMPLE_DATA_ADDITION_HEADERS, outputBase, null),
-													ext.MISSING_VALUES[1], delim, log);
+			sampleData.addData(sampDataQC, MitoPipeline.DNA_LINKER,
+												 ArrayUtils.tagOn(MitoPipeline.SAMPLE_DATA_ADDITION_HEADERS, outputBase,
+																					null),
+												 ext.MISSING_VALUES[1], delim, log);
 		}
 		return new int[] {numPassing, count};
 	}
@@ -616,20 +620,19 @@ public class LrrSd extends Parallelizable {
 		double callRateFilter = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
 
 		if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
-			log.reportError("The sample qc file "	+ proj.SAMPLE_QC_FILENAME.getValue()
-													+ " does not exist");
+			log.reportError("The sample qc file " + proj.SAMPLE_QC_FILENAME.getValue()
+											+ " does not exist");
 			return null;
 		}
 
 		int count = 0;
 		int numPassing = 0;
 		try {
-			BufferedReader reader =
-														Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true, false);
+			BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true,
+																							false);
 			if (!reader.ready()) {
 				reader.close();
-				log.reportError("Error - QC file ("	+ proj.SAMPLE_QC_FILENAME.getValue()
-														+ ") was empty");
+				log.reportError("Error - QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ") was empty");
 				return null;
 			}
 			String delim = "\t";
@@ -639,7 +642,7 @@ public class LrrSd extends Parallelizable {
 			if (!checkIndices(proj, indices)) {
 				reader.close();
 				log.reportError("Error - could not detect proper header in QC file ("
-														+ proj.SAMPLE_QC_FILENAME.getValue() + ")");
+												+ proj.SAMPLE_QC_FILENAME.getValue() + ")");
 				return null;
 			}
 
@@ -656,13 +659,13 @@ public class LrrSd extends Parallelizable {
 				if (!line[indices[0]].equals(MitoPipeline.QC_COLUMNS[0])) {
 					// if passes qc
 					String sample = line[indices[0]];
-					Sample fsamp = proj.getPartialSampleFromRandomAccessFile(sample, false, false, false, true, true);
+					Sample fsamp = proj.getPartialSampleFromRandomAccessFile(sample, false, false, false,
+																																	 true, true);
 					hasGeno = fsamp.getAB_Genotypes() != null || fsamp.getForwardGenotypes() != null;
 					hasLrr = fsamp.getLRRs() != null;
 					if (!sampleIndices.containsKey(sample)) {
-						log.reportError("Sample "	+ sample + " is listed in "
-																+ proj.SAMPLE_QC_FILENAME.getValue()
-																+ " but is not in the project");
+						log.reportError("Sample " + sample + " is listed in "
+														+ proj.SAMPLE_QC_FILENAME.getValue() + " but is not in the project");
 						continue;
 					}
 					double lrrSd = Double.parseDouble(line[indices[1]]);
@@ -680,12 +683,12 @@ public class LrrSd extends Parallelizable {
 			if (numPassing == 0) {
 				log.reportError("Error - all samples were filtered out by the QC step");
 			} else {
-				log.report("Info - "	+ numPassing + " of " + count + " samples in "
-										+ proj.SAMPLE_QC_FILENAME.getValue() + " passed the QC threshold");
+				log.report("Info - " + numPassing + " of " + count + " samples in "
+									 + proj.SAMPLE_QC_FILENAME.getValue() + " passed the QC threshold");
 			}
 			return passingSamples;
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \""	+ proj.SAMPLE_QC_FILENAME.getValue()
+			log.reportError("Error: file \"" + proj.SAMPLE_QC_FILENAME.getValue()
 											+ "\" not found in current directory");
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + proj.SAMPLE_QC_FILENAME.getValue() + "\"");
@@ -700,8 +703,8 @@ public class LrrSd extends Parallelizable {
 			Arrays.fill(markerSubset, true);
 		} else {
 			Arrays.fill(markerSubset, false);
-			int[] indicesToUse = ext.indexLargeFactors(	subMarkers, markers, true, proj.getLog(), true,
-																									false);
+			int[] indicesToUse = ext.indexLargeFactors(subMarkers, markers, true, proj.getLog(), true,
+																								 false);
 			for (int i = 0; i < indicesToUse.length; i++) {
 				if (indicesToUse[i] < 0) {
 					return null;
@@ -761,13 +764,13 @@ public class LrrSd extends Parallelizable {
 
 		markers = proj.getMarkerNames();
 		if (markersForCallrateFile != null) {
-			markersForCallrate = getMarkerSubset(	proj,
-																						HashVec.loadFileToStringArray(markersForCallrateFile,
-																																					false, new int[] {0},
-																																					false),
-																						markers);
+			markersForCallrate = getMarkerSubset(proj,
+																					 HashVec.loadFileToStringArray(markersForCallrateFile,
+																																				 false, new int[] {0},
+																																				 false),
+																					 markers);
 			if (markersForCallrate == null) {
-				log.reportError("Error - Some markers listed in "	+ markersForCallrateFile
+				log.reportError("Error - Some markers listed in " + markersForCallrateFile
 												+ " were not found in the current project, or were duplicates");
 				return;
 			}
@@ -783,28 +786,27 @@ public class LrrSd extends Parallelizable {
 		}
 		markersForEverythingElse = null;
 		if (markersForEverythingElseFile != null) {
-			markersForEverythingElse = getMarkerSubset(	proj,
-																									HashVec.loadFileToStringArray(markersForEverythingElseFile,
-																																								false,
-																																								new int[] {0},
-																																								false),
-																									markers);
+			markersForEverythingElse = getMarkerSubset(proj,
+																								 HashVec.loadFileToStringArray(markersForEverythingElseFile,
+																																							 false, new int[] {0},
+																																							 false),
+																								 markers);
 			if (markersForEverythingElse == null) {
-				log.reportError("Error - Some markers listed in "	+ markersForEverythingElseFile
+				log.reportError("Error - Some markers listed in " + markersForEverythingElseFile
 												+ " were not found in the current project, or were duplicates");
 				return;
 			}
 		}
 
-		init(	proj, customSampleFileList, markersForCallrate, markersForEverythingElse, centroidsFile,
-					gcMetrics, numThreads);
+		init(proj, customSampleFileList, markersForCallrate, markersForEverythingElse, centroidsFile,
+				 gcMetrics, numThreads);
 	}
 
 	public static void init(Project proj, String customSampleFileList, boolean[] markersForCallrate,
 													boolean[] markersForEverythingElse, String centroidsFile,
 													int numThreads) {
-		init(	proj, customSampleFileList, markersForCallrate, markersForEverythingElse, centroidsFile,
-					true, numThreads);
+		init(proj, customSampleFileList, markersForCallrate, markersForEverythingElse, centroidsFile,
+				 true, numThreads);
 	}
 
 	public static void init(Project proj, String customSampleFileList, boolean[] markersForCallrate,
@@ -827,7 +829,7 @@ public class LrrSd extends Parallelizable {
 			subsamples = HashVec.loadFileToStringArray(customSampleFileList, false, new int[] {0}, false);
 			for (String subsample : subsamples) {
 				if (ext.indexOfStr(subsample, samples) == -1) {
-					log.reportError("Error - subsample '"	+ subsample
+					log.reportError("Error - subsample '" + subsample
 													+ "' was not found in the list of samples of project '"
 													+ proj.PROJECT_NAME.getValue() + "'");
 					error = true;
@@ -866,20 +868,20 @@ public class LrrSd extends Parallelizable {
 			gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false),
 																										false, log);
 			if (gcModel == null) {
-				log.reportError("Error - detected the gc model defined by "	+ proj.GC_MODEL_FILENAME
+				log.reportError("Error - detected the gc model defined by " + proj.GC_MODEL_FILENAME
 												+ " as " + proj.GC_MODEL_FILENAME.getValue(false, false)
 												+ " in property file " + proj.getPropertyFilename()
 												+ " exists, but an error occurred while loading the file");
 				log.reportError("      - If you would like to skip WF and GCWF qc metrics, either change the "
-													+ proj.GC_MODEL_FILENAME
+												+ proj.GC_MODEL_FILENAME
 												+ " property to a filename that does not exist, or change the name of "
 												+ proj.GC_MODEL_FILENAME.getValue(false, false));
 				return;
 			}
 		} else {
 			log.report("Info - did not find gc model file "
-										+ proj.GC_MODEL_FILENAME.getValue(false, false)
-									+ ", skipping gc correction and related qc");
+								 + proj.GC_MODEL_FILENAME.getValue(false, false)
+								 + ", skipping gc correction and related qc");
 		}
 
 		threadSeeds = Parallelizable.splitList(samples, numThreads, false);
@@ -907,21 +909,20 @@ public class LrrSd extends Parallelizable {
 		String outputBase = null;
 		boolean gcMetrics = true;
 
-		String usage = "\n"	+ "cnv.qc.LrrSd requires 0-6 arguments\n"
-										+ "   (1) project properties filename (i.e. proj="
-										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-										+ "   (2) centroids with which to compute LRRs (i.e. cents=genotype.cent (not the default; to be found in data/ directory))\n"
-										+ "   (3) number of threads to use (i.e. threads=" + numThreads
-										+ " (default))\n"
-										+ "   (4) optional: if you only want to look at a subset of the samples, filename of sample list (i.e. subsample=these.txt (not the default))\n"
-										+ "   (5) optional: if you only want to compute AB_callrate and Forward_callrate from a subset of the markers, filename of marker list (i.e. callRateMarkers=those.txt (not the default))\n"
-										+ "   (6) optional: if you only want to compute the other qc metrics (excluding AB_callrate and Forward_callrate) from a subset of the markers, filename of marker list (i.e. otherMarkers=this.txt (not the default))\n"
-										+ "   (7) optional: if you only want to compute metrics based on autosomal and non-CN markers (i.e. projectMarkers=TRUE (not the default))\n"
-										+ "   (8  optional: skip gc metrics (greatly speeds up QC if set to false) (i.e. gcMetrics=TRUE (the default))\n"
-										+
+		String usage = "\n" + "cnv.qc.LrrSd requires 0-6 arguments\n"
+									 + "   (1) project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + "   (2) centroids with which to compute LRRs (i.e. cents=genotype.cent (not the default; to be found in data/ directory))\n"
+									 + "   (3) number of threads to use (i.e. threads=" + numThreads + " (default))\n"
+									 + "   (4) optional: if you only want to look at a subset of the samples, filename of sample list (i.e. subsample=these.txt (not the default))\n"
+									 + "   (5) optional: if you only want to compute AB_callrate and Forward_callrate from a subset of the markers, filename of marker list (i.e. callRateMarkers=those.txt (not the default))\n"
+									 + "   (6) optional: if you only want to compute the other qc metrics (excluding AB_callrate and Forward_callrate) from a subset of the markers, filename of marker list (i.e. otherMarkers=this.txt (not the default))\n"
+									 + "   (7) optional: if you only want to compute metrics based on autosomal and non-CN markers (i.e. projectMarkers=TRUE (not the default))\n"
+									 + "   (8  optional: skip gc metrics (greatly speeds up QC if set to false) (i.e. gcMetrics=TRUE (the default))\n"
+									 +
 
-										"   Note: if a gc model is available as defined by the \"GC_MODEL_FILENAME\" property in the project properties file, WF and GCFW (after adjusting for GC content) will be reported\n"
-										+ "";
+									 "   Note: if a gc model is available as defined by the \"GC_MODEL_FILENAME\" property in the project properties file, WF and GCFW (after adjusting for GC content) will be reported\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -978,8 +979,8 @@ public class LrrSd extends Parallelizable {
 				if (projectDefinedMarkers) {
 					init(proj, filenameOfListOfSamples, centroids, numThreads, false);
 				} else {
-					init(	proj, filenameOfListOfSamples, markersForCallrateFile, markersForEverythingElseFile,
-								numThreads, centroids, gcMetrics);
+					init(proj, filenameOfListOfSamples, markersForCallrateFile, markersForEverythingElseFile,
+							 numThreads, centroids, gcMetrics);
 				}
 			}
 		} catch (Exception e) {

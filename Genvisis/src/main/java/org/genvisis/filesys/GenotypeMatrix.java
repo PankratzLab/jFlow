@@ -90,8 +90,8 @@ public class GenotypeMatrix implements Serializable {
 		log.report("Loading map from: " + markerFile);
 		markerFileType = SnpMarkerSet.determineType(markerFile);
 		if (markerFileType == -1) {
-			markerSet = new SnpMarkerSet(	markerFile, Files.determineDelimiter(markerFile, log), null,
-																		true, new String[][] {{"\"", ""}}, false, log);
+			markerSet = new SnpMarkerSet(markerFile, Files.determineDelimiter(markerFile, log), null,
+																	 true, new String[][] {{"\"", ""}}, false, log);
 			markerSet.sortMarkers();
 		} else {
 			markerSet = new SnpMarkerSet(markerFile, false, log);
@@ -125,7 +125,7 @@ public class GenotypeMatrix implements Serializable {
 				if (dominance == INDIVIDUAL_DOMINANT_FORMAT) {
 					for (int i = 0; i < markerNames.length; i++) {
 						if (!markerNames[i].equals(line[headerHead.length + i])) {
-							log.reportError("Error - mismatched name at marker "	+ (i + 1) + " of " + genotypeFile
+							log.reportError("Error - mismatched name at marker " + (i + 1) + " of " + genotypeFile
 															+ "; expecting " + markerNames[i] + " given map file " + markerFile
 															+ ", found " + line[headerHead.length + i]);
 							System.exit(1);
@@ -140,8 +140,9 @@ public class GenotypeMatrix implements Serializable {
 					}
 					if (problem) {
 						log.reportError("Error - mismatched head of header row: expecting '"
-															+ ArrayUtils.toStr(headerHead, "/") + "' but found '"
-														+ ArrayUtils.toStr(ArrayUtils.subArray(line, 0, headerHead.length), "/") + "'");
+														+ ArrayUtils.toStr(headerHead, "/") + "' but found '"
+														+ ArrayUtils.toStr(ArrayUtils.subArray(line, 0, headerHead.length), "/")
+														+ "'");
 					}
 					if (ids == null) {
 						ids = new String[line.length - headerHead.length];
@@ -151,7 +152,7 @@ public class GenotypeMatrix implements Serializable {
 					} else {
 						for (int i = 0; i < ids.length; i++) {
 							if (ids != null && !ids[i].equals(line[headerHead.length + i])) {
-								log.reportError("Error - mismatched IDs at individual "	+ (i + 1) + " of "
+								log.reportError("Error - mismatched IDs at individual " + (i + 1) + " of "
 																+ genotypeFile + "; expecting " + ids[i] + " given id file "
 																+ idFile + ", found " + line[headerHead.length + i]);
 								System.exit(1);
@@ -174,7 +175,7 @@ public class GenotypeMatrix implements Serializable {
 						line[0] = "chr" + line[0] + ":" + line[1];
 					}
 					if (!markerNames[i].equals(line[markerOrIdIndex])) {
-						log.reportError("Error - mismatched name at marker "	+ (i + 1) + " of " + genotypeFile
+						log.reportError("Error - mismatched name at marker " + (i + 1) + " of " + genotypeFile
 														+ "; expecting " + markerNames[i] + " given map file " + markerFile
 														+ ", found " + line[markerOrIdIndex]);
 						System.exit(1);
@@ -182,9 +183,9 @@ public class GenotypeMatrix implements Serializable {
 
 					if (line.length - firstGenotypeCol != ids.length) {
 						log.reportError("Error - mismatched number of elements in line "
-															+ (i + 1 + (headerRow ? 1 : 0)) + " of " + genotypeFile + "; expecting "
+														+ (i + 1 + (headerRow ? 1 : 0)) + " of " + genotypeFile + "; expecting "
 														+ ids.length + "+" + firstGenotypeCol + ", found " + line.length);
-						log.reportError("First few ids: '"	+ ids[0] + "', '" + ids[1] + "', '" + ids[2]
+						log.reportError("First few ids: '" + ids[0] + "', '" + ids[1] + "', '" + ids[2]
 														+ "'... '" + ids[ids.length - 2] + "', '" + ids[ids.length - 1] + "'");
 						System.exit(1);
 					}
@@ -201,7 +202,7 @@ public class GenotypeMatrix implements Serializable {
 					line = ext.replaceAllWith(reader.readLine(), "\"", "").trim().split(delimiter);
 					if (line.length - firstGenotypeCol != markerNames.length) {
 						log.reportError("Error - mismatched number of elements in line "
-															+ (i + 1 + (headerRow ? 1 : 0)) + " of " + genotypeFile + "; expecting "
+														+ (i + 1 + (headerRow ? 1 : 0)) + " of " + genotypeFile + "; expecting "
 														+ markerNames.length + "+" + firstGenotypeCol + ", found "
 														+ line.length);
 						System.exit(1);
@@ -256,8 +257,8 @@ public class GenotypeMatrix implements Serializable {
 		traits = Files.getHeaderOfFile(phenoFile, Files.determineDelimiter(phenoFile, log), log);
 		names = ArrayUtils.subArray(traits, 1);
 		hash = HashVec.loadFileToHashString(phenoFile, new int[] {0},
-																				Arrays.copyOfRange(	ArrayUtils.arrayOfIndices(traits.length), 1,
-																														traits.length),
+																				Arrays.copyOfRange(ArrayUtils.arrayOfIndices(traits.length),
+																													 1, traits.length),
 																				phenoFile.endsWith(".csv"), "\t", true, false, false);
 		traits = ArrayUtils.subArray(traits, 1);
 		log.report("Missing phenotype is set to '" + phenoMissingValue + "'");
@@ -305,10 +306,10 @@ public class GenotypeMatrix implements Serializable {
 			}
 		}
 		logistic = RegressionModel.isBinaryTrait(ArrayUtils.toStr(deps).split("[\\s]+"), log);
-		log.report("Running a "	+ (logistic ? "logistic" : "linear") + " model for trait '" + traits[0]
-								+ "'", true, verbose);
+		log.report("Running a " + (logistic ? "logistic" : "linear") + " model for trait '" + traits[0]
+							 + "'", true, verbose);
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(phenoFile, false)	+ ".results."
+			writer = new PrintWriter(new FileWriter(ext.rootOf(phenoFile, false) + ".results."
 																							+ (logistic ? "logistic" : "linear")));
 			w2 = new PrintWriter(new FileWriter(ext.rootOf(phenoFile, false) + ".se.metal"));
 			String[] arr = logistic ? Plink.LOGISTIC_SE_HEADER : Plink.LINEAR_SE_HEADER;
@@ -337,8 +338,8 @@ public class GenotypeMatrix implements Serializable {
 						}
 					}
 					names[0] = "SNP";
-					model = logistic	? new LogisticRegression(deps, indeps, names, false, false)
-														: new LeastSquares(deps, indeps, names, false, false);
+					model = logistic ? new LogisticRegression(deps, indeps, names, false, false)
+													 : new LeastSquares(deps, indeps, names, false, false);
 					betas = model.getBetas();
 					stderrs = model.getSEofBs();
 					pvals = model.getSigs();
@@ -347,40 +348,40 @@ public class GenotypeMatrix implements Serializable {
 					// System.err.println(betas.length+"\t"+traits.length);
 					namesUsed = model.getVarNames();
 					if (model.getFinalDependentVariables().length != countUsed) {
-						log.reportError("Mismatched number of missing values for marker '"	+ markerNames[i]
+						log.reportError("Mismatched number of missing values for marker '" + markerNames[i]
 														+ "' (" + model.getFinalDependentVariables().length + ", expected "
 														+ countUsed + "); might want to check missing value codes: "
 														+ model.getFinalIndependentVariables()[2][0]);
 					}
 					if (!namesUsed[1].equals("SNP")) {
-						writer.println(chrs[i]	+ "\t" + markerNames[i] + "\t" + positions[i] + "\t"
-														+ alleles[i][0] + "\tADD\t.\t.\t.\t.\t.\t.\t.");
-						w2.println(markerNames[i]	+ "\t" + alleles[i][0] + "\t" + alleles[i][1] + "\t"
-												+ deps.length + "\t.\t.\t.\t.");
+						writer.println(chrs[i] + "\t" + markerNames[i] + "\t" + positions[i] + "\t"
+													 + alleles[i][0] + "\tADD\t.\t.\t.\t.\t.\t.\t.");
+						w2.println(markerNames[i] + "\t" + alleles[i][0] + "\t" + alleles[i][1] + "\t"
+											 + deps.length + "\t.\t.\t.\t.");
 					} else {
-						writer.println(chrs[i]	+ "\t" + markerNames[i] + "\t" + positions[i] + "\t"
-														+ alleles[i][0] + "\tADD\t" + countUsed + "\t"
-														+ ext.formDeci(betas[1], sigfig, true) + "\t"
-														+ ext.formDeci(stderrs[1], sigfig, true) + "\t.\t.\t"
-														+ (stats[1] + "    ").substring(0, 6).trim() + "\t"
-														+ ext.prettyP(pvals[1], sigfig, 4, 3, true));
-						w2.println(markerNames[i]	+ "\t" + alleles[i][0] + "\t" + alleles[i][1] + "\t"
-												+ countUsed + "\t" + (betas[1] == 0 ? 0 : (betas[1] > 0 ? "+" : "-")) + "\t"
-												+ ext.prettyP(pvals[1], sigfig, 4, 3, true) + "\t"
-												+ ext.formDeci(betas[1], 6, true) + "\t"
-												+ ext.formDeci(stderrs[1], 6, true));
+						writer.println(chrs[i] + "\t" + markerNames[i] + "\t" + positions[i] + "\t"
+													 + alleles[i][0] + "\tADD\t" + countUsed + "\t"
+													 + ext.formDeci(betas[1], sigfig, true) + "\t"
+													 + ext.formDeci(stderrs[1], sigfig, true) + "\t.\t.\t"
+													 + (stats[1] + "    ").substring(0, 6).trim() + "\t"
+													 + ext.prettyP(pvals[1], sigfig, 4, 3, true));
+						w2.println(markerNames[i] + "\t" + alleles[i][0] + "\t" + alleles[i][1] + "\t"
+											 + countUsed + "\t" + (betas[1] == 0 ? 0 : (betas[1] > 0 ? "+" : "-")) + "\t"
+											 + ext.prettyP(pvals[1], sigfig, 4, 3, true) + "\t"
+											 + ext.formDeci(betas[1], 6, true) + "\t"
+											 + ext.formDeci(stderrs[1], 6, true));
 						// for (int j = 1; j < namesUsed.length; j++) {
 						for (int j = 2; j < namesUsed.length; j++) {
 							// writer.println(chrs[i]+"\t"+markerNames[i]+"\t"+positions[i]+"\t"+alleles[i][0]+"\t"+namesUsed[j]+"\t"+deps.length+"\t"+ext.formDeci(betas[1+j],
 							// sigfig, true)+"\t"+ext.formDeci(stderrs[1+j], sigfig,
 							// true)+"\t.\t.\t"+(stats[1+j]+"
 							// ").substring(0,6).trim()+"\t"+ext.prettyP(pvals[1+j], sigfig, 4, 3, true));
-							writer.println(chrs[i]	+ "\t" + markerNames[i] + "\t" + positions[i] + "\t"
-															+ alleles[i][0] + "\t" + namesUsed[j] + "\t" + deps.length + "\t"
-															+ ext.formDeci(betas[j], sigfig, true) + "\t"
-															+ ext.formDeci(stderrs[j], sigfig, true) + "\t.\t.\t"
-															+ (stats[j] + "     ").substring(0, 6).trim() + "\t"
-															+ ext.prettyP(pvals[j], sigfig, 4, 3, true));
+							writer.println(chrs[i] + "\t" + markerNames[i] + "\t" + positions[i] + "\t"
+														 + alleles[i][0] + "\t" + namesUsed[j] + "\t" + deps.length + "\t"
+														 + ext.formDeci(betas[j], sigfig, true) + "\t"
+														 + ext.formDeci(stderrs[j], sigfig, true) + "\t.\t.\t"
+														 + (stats[j] + "     ").substring(0, 6).trim() + "\t"
+														 + ext.prettyP(pvals[j], sigfig, 4, 3, true));
 						}
 					}
 					writer.flush();
@@ -406,8 +407,8 @@ public class GenotypeMatrix implements Serializable {
 			writer.close();
 			w2.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to "	+ ext.rootOf(phenoFile, false) + ".results."
-													+ (logistic ? "logistic" : "linear"));
+			System.err.println("Error writing to " + ext.rootOf(phenoFile, false) + ".results."
+												 + (logistic ? "logistic" : "linear"));
 			e.printStackTrace();
 		}
 	}
@@ -473,7 +474,7 @@ public class GenotypeMatrix implements Serializable {
 			e.printStackTrace();
 		}
 
-		CmdLine.run("plink --file "	+ root + " --make-bed --out " + root,
+		CmdLine.run("plink --file " + root + " --make-bed --out " + root,
 								ext.parseDirectoryOfFile(root));
 
 		try {
@@ -519,8 +520,8 @@ public class GenotypeMatrix implements Serializable {
 		Logger log;
 		String dir;
 
-		String usage = "\n"	+ "filesys.GenotypeMatrix requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "filesys.GenotypeMatrix requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

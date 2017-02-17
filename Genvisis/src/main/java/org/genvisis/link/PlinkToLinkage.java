@@ -67,7 +67,7 @@ public class PlinkToLinkage {
 			e.printStackTrace();
 		}
 
-		CmdLine.run("plink --bfile "	+ root + " --extract slimmedList.txt --make-bed --out slimmedDown",
+		CmdLine.run("plink --bfile " + root + " --extract slimmedList.txt --make-bed --out slimmedDown",
 								dir);
 
 		return "slimmedDown";
@@ -77,13 +77,13 @@ public class PlinkToLinkage {
 		for (int chr = 1; chr <= 23; chr++) {
 			new File(dir + "chrom" + ext.chrome(chr) + ".pre").delete();
 			new File(dir + "map" + ext.chrome(chr) + ".dat").delete();
-			CmdLine.run("plink --bfile "	+ root + " --chr " + chr + " --recode12 --out chrom"
+			CmdLine.run("plink --bfile " + root + " --chr " + chr + " --recode12 --out chrom"
 									+ ext.chrome(chr), dir);
 			if (new File(dir + "chrom" + ext.chrome(chr) + ".map").exists()) {
-				new File(dir	+ "chrom" + ext.chrome(chr)
-									+ ".ped").renameTo(new File(dir + "chrom" + ext.chrome(chr) + ".pre"));
+				new File(dir + "chrom" + ext.chrome(chr)
+								 + ".ped").renameTo(new File(dir + "chrom" + ext.chrome(chr) + ".pre"));
 				new SnpMarkerSet(dir + "chrom" + ext.chrome(chr) + ".map").createLinkageMap()
-																																	.createFile(dir	+ "map"
+																																	.createFile(dir + "map"
 																																							+ ext.chrome(chr) + ".dat");
 				new File(dir + "chrom" + ext.chrome(chr) + ".ped").delete();
 				new File(dir + "chrom" + ext.chrome(chr) + ".map").delete();
@@ -114,12 +114,12 @@ public class PlinkToLinkage {
 				}
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \""	+ dir + "chrom" + ext.chrome(chr) + ".pre"
-														+ "\" not found in current directory");
+				System.err.println("Error: file \"" + dir + "chrom" + ext.chrome(chr) + ".pre"
+													 + "\" not found in current directory");
 				System.exit(1);
 			} catch (IOException ioe) {
-				System.err.println("Error reading file \""	+ dir + "chrom" + ext.chrome(chr) + ".pre"
-														+ "\"");
+				System.err.println("Error reading file \"" + dir + "chrom" + ext.chrome(chr) + ".pre"
+													 + "\"");
 				System.exit(2);
 			}
 
@@ -169,14 +169,13 @@ public class PlinkToLinkage {
 		// String pedigree = "fullPedigree.dat";
 		// String pedigree = "FullPedigreeWithoutDuplicates.dat";
 
-		String usage = "\n"	+ "link.PlinkToLinkage requires 0-1 arguments\n"
-										+ "   (1) directory (i.e. dir=" + dir + " (default))\n"
-										+ "   (2) plink root name (i.e. root=" + root + " (default))\n"
-										+ "   (3) number of markers to slim down to (i.e. slim=" + slim
-										+ " (default))\n" + "   (4) make LinkageFormat files (i.e. -create ("
-										+ (create ? "" : "not the ") + " default))\n"
-										+ "   (5) pedigree file to update to (i.e. ped=" + pedigree + " (default))\n"
-										+ "";
+		String usage = "\n" + "link.PlinkToLinkage requires 0-1 arguments\n"
+									 + "   (1) directory (i.e. dir=" + dir + " (default))\n"
+									 + "   (2) plink root name (i.e. root=" + root + " (default))\n"
+									 + "   (3) number of markers to slim down to (i.e. slim=" + slim + " (default))\n"
+									 + "   (4) make LinkageFormat files (i.e. -create (" + (create ? "" : "not the ")
+									 + " default))\n" + "   (5) pedigree file to update to (i.e. ped=" + pedigree
+									 + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

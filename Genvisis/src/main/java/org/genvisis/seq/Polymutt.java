@@ -26,12 +26,12 @@ import org.genvisis.filesys.SegmentLists;
 public class Polymutt {
 	public static final String[] POLYMUTT_VCF_HEADER = {"#CHROM", "POS", "ID", "REF", "ALT", "QUAL",
 																											"FILTER", "INFO", "FORMAT", "2", "3", "1"};
-	public static final String[] COMMON_VCF_LOCATIONS = {	"/lustre/polymutt/",
-																												"/project/scratch/polymutt/",
-																												"c:/scratch/polymutt/",
-																												"D:/Logan/Polymutt/results/", "./"};
-	public static final String[] GENOTYPE_ORDER = {	"A/A", "A/C", "A/G", "A/T", "C/C", "C/G", "C/T",
-																									"G/G", "G/T", "T/T"};
+	public static final String[] COMMON_VCF_LOCATIONS = {"/lustre/polymutt/",
+																											 "/project/scratch/polymutt/",
+																											 "c:/scratch/polymutt/",
+																											 "D:/Logan/Polymutt/results/", "./"};
+	public static final String[] GENOTYPE_ORDER = {"A/A", "A/C", "A/G", "A/T", "C/C", "C/G", "C/T",
+																								 "G/G", "G/T", "T/T"};
 
 	public static void batchAllGlf(String sourceDir) {
 		String[] files;
@@ -51,7 +51,7 @@ public class Polymutt {
 		for (String file : files) {
 			root = ext.rootOf(file);
 			filename = root + "_batch";
-			Files.write("~/bin/samtools-hybrid pileup "	+ sourceDir + root
+			Files.write("~/bin/samtools-hybrid pileup " + sourceDir + root
 									+ ".bam -g -f ~/bin/ref/hg19_canonical.fa > " + dir + root + ".bam.glf",
 									dir + "batches/" + filename);
 			Files.chmod(dir + "batches/" + filename);
@@ -71,22 +71,22 @@ public class Polymutt {
 
 		v = new Vector<String>();
 		Files.write("T\tGLF_Index", "same_for_all.dat");
-		Files.writeArray(	new String[] {"fam	3	0	0	1	3", "fam	2	0	0	2	2", "fam	1	3	2	2	1"},
-											"same_for_all.ped");
+		Files.writeArray(new String[] {"fam	3	0	0	1	3", "fam	2	0	0	2	2", "fam	1	3	2	2	1"},
+										 "same_for_all.ped");
 		iterations = HashVec.loadFileToStringMatrix(triosFile, false, new int[] {0, 1, 2}, false);
 		for (String[] iteration : iterations) {
-			Files.writeArray(	new String[] {"1 "	+ iteration[0] + ".bam.glf",
-																			"2 " + iteration[1] + ".bam.glf",
-																			"3 " + iteration[2] + ".bam.glf"},
-												iteration[0] + ".gif");
+			Files.writeArray(new String[] {"1 " + iteration[0] + ".bam.glf",
+																		 "2 " + iteration[1] + ".bam.glf",
+																		 "3 " + iteration[2] + ".bam.glf"},
+											 iteration[0] + ".gif");
 
-			commands = "cd "	+ ext.pwd() + "\n"
-									+ "~/bin/polymutt -p same_for_all.ped -d same_for_all.dat -g " + iteration[0]
-									+ ".gif --nthreads 8  --out_vcf " + scratch + iteration[0]
-									+ ".denovo.out.vcf --denovo --rate_denovo 1.5e-07\n" + "cd " + scratch + "\n"
-									+ "more " + iteration[0]
-									+ ".denovo.out.vcf | grep -v 'DQ=-0' | grep -v 'DQ=0.00' > " + iteration[0]
-									+ ".vcf\n" + "gzip " + iteration[0] + ".denovo.out.vcf";
+			commands = "cd " + ext.pwd() + "\n"
+								 + "~/bin/polymutt -p same_for_all.ped -d same_for_all.dat -g " + iteration[0]
+								 + ".gif --nthreads 8  --out_vcf " + scratch + iteration[0]
+								 + ".denovo.out.vcf --denovo --rate_denovo 1.5e-07\n" + "cd " + scratch + "\n"
+								 + "more " + iteration[0]
+								 + ".denovo.out.vcf | grep -v 'DQ=-0' | grep -v 'DQ=0.00' > " + iteration[0]
+								 + ".vcf\n" + "gzip " + iteration[0] + ".denovo.out.vcf";
 
 			Files.qsub("batches/run_" + iteration[0], commands, 22000, 48, 8);
 			Files.chmod("batches/run_" + iteration[0]);
@@ -135,7 +135,7 @@ public class Polymutt {
 		iterations = HashVec.loadFileToStringMatrix(triosFile, false, new int[] {0, 1, 2}, false);
 		for (String[] iteration : iterations) {
 			if (Files.exists(vcfDir + iteration[0] + ".vcf")) {
-				parseDenovo(vcfDir	+ iteration[0] + ".vcf", parsedAnnotations, unknownAnnotations,
+				parseDenovo(vcfDir + iteration[0] + ".vcf", parsedAnnotations, unknownAnnotations,
 										finishedAnnotations, log);
 			} else {
 				System.err.println("Error - '" + vcfDir + iteration[0] + ".vcf' does not exist");
@@ -165,8 +165,8 @@ public class Polymutt {
 		}
 
 		finishedAnnotations.insertElementAt(temp, 0);
-		Files.writeArray(	ArrayUtils.toStringArray(finishedAnnotations),
-											ext.parseDirectoryOfFile(triosFile) + "summary.xln");
+		Files.writeArray(ArrayUtils.toStringArray(finishedAnnotations),
+										 ext.parseDirectoryOfFile(triosFile) + "summary.xln");
 	}
 
 	private static void parseDenovo(String filename, Hashtable<String, String[]> parsedAnnotations,
@@ -219,7 +219,7 @@ public class Polymutt {
 							}
 							for (int k = 0; k < denovoAllele.length(); k++) {
 								if (genotype.charAt(j) == denovoAllele.charAt(k)) {
-									log.reportError("Warning - double denovo for "	+ markerName + " in "
+									log.reportError("Warning - double denovo for " + markerName + " in "
 																	+ ext.removeDirectoryInfo(filename));
 									denovo = false;
 								}
@@ -264,18 +264,18 @@ public class Polymutt {
 				}
 
 				if (denovoAllele.length() > 1) {
-					log.reportError("Warning - double heterozygote denovo for "	+ markerName + " in "
+					log.reportError("Warning - double heterozygote denovo for " + markerName + " in "
 													+ ext.removeDirectoryInfo(filename));
 				}
 
 				for (int i = 0; i < denovoAllele.length(); i++) {
 					trav = markerName + "_" + refAllele + "_" + denovoAllele.charAt(i);
 					if (!parsedAnnotations.containsKey(trav)) {
-						unknownAnnotations.add(trav	+ "\t" + chr + "\t" + position + "\t" + refAllele + "\t"
-																		+ denovoAllele.charAt(i));
+						unknownAnnotations.add(trav + "\t" + chr + "\t" + position + "\t" + refAllele + "\t"
+																	 + denovoAllele.charAt(i));
 					} else {
 						if (parsedAnnotations.get(trav).length > 0) {
-							finishedAnnotations.add(ext.rootOf(filename)	+ "\t" + decrypt(ext.rootOf(filename))
+							finishedAnnotations.add(ext.rootOf(filename) + "\t" + decrypt(ext.rootOf(filename))
 																			+ "\t" + trav + "\t" + chr + "\t" + position + "\t"
 																			+ refAllele + "\t" + denovoAllele.charAt(i) + "\t"
 																			+ qualityScore + "\t" + mapQuality + "\t" + dqScore + ""
@@ -325,13 +325,13 @@ public class Polymutt {
 			try {
 				scores[i] = Integer.parseInt(stringScores[i]);
 			} catch (NumberFormatException nfe) {
-				System.err.println("Error - failed to convert '"	+ stringScores[i]
-														+ "' into an integer. Line: " + phredScores);
+				System.err.println("Error - failed to convert '" + stringScores[i]
+													 + "' into an integer. Line: " + phredScores);
 			}
 		}
 
 		if (scores.length != GENOTYPE_ORDER.length) {
-			log.reportError("Error - mismatched number of phred scores. Found "	+ scores.length
+			log.reportError("Error - mismatched number of phred scores. Found " + scores.length
 											+ " when expecting " + GENOTYPE_ORDER.length + ". scores: " + phredScores);
 		}
 
@@ -357,10 +357,10 @@ public class Polymutt {
 
 		filenames = Files.list(dir, ".vcf.gz", false);
 
-		Files.qsub(	"findAll", ext.pwd(), -1,
-								"java -jar ~/"							+ org.genvisis.common.PSF.Java.GENVISIS
-																					+ " seq.Polymutt findDenovo=[%0]",
-								Matrix.toMatrix(filenames), 1000, 12);
+		Files.qsub("findAll", ext.pwd(), -1,
+							 "java -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS
+																				 + " seq.Polymutt findDenovo=[%0]",
+							 Matrix.toMatrix(filenames), 1000, 12);
 	}
 
 	private static void findAllLocalDenovo(String dir) {
@@ -437,8 +437,8 @@ public class Polymutt {
 						Files.closeAll(writers);
 						return;
 					}
-					mostLikelyGenotypes =
-															getMostLikelyGenotypesFromPhredScores(line[9 + i].split(":")[3], log);
+					mostLikelyGenotypes = getMostLikelyGenotypesFromPhredScores(line[9 + i].split(":")[3],
+																																			log);
 					readDepths[i] = Integer.parseInt(line[9 + i].split(":")[2]);
 					if (mostLikelyGenotypes.length == GENOTYPE_ORDER.length) {
 						// writers[2].println(temp);
@@ -468,14 +468,14 @@ public class Polymutt {
 								}
 								for (int k = 0; k < denovoAllele.length(); k++) {
 									if (genotype.charAt(j) == denovoAllele.charAt(k)) {
-										log.reportError("Warning - double denovo for "	+ markerName + " in "
+										log.reportError("Warning - double denovo for " + markerName + " in "
 																		+ ext.removeDirectoryInfo(filename));
 										denovo = false;
 									}
 								}
 								// denovo and reasonably high mapping quality and high genotype quality for kid and
 								// at least 5 reads for all three individuals
-								if (denovo	&& Double.parseDouble(line[7].split(";")[3].split("=")[1]) > 50
+								if (denovo && Double.parseDouble(line[7].split(";")[3].split("=")[1]) > 50
 										&& Double.parseDouble(line[9 + 2].split(":")[1]) > 50
 										&& ArrayUtils.min(readDepths) >= minReadDepth) {
 									writers[0].println(temp);
@@ -596,8 +596,8 @@ public class Polymutt {
 		temp = "not even started";
 		try {
 			if (Files.exists(ext.rootOf(filename, false) + "_onTargetCoverage.vcf.gz")) {
-				log.report("Reading directly from '"	+ ext.rootOf(filename, false)
-										+ "_onTargetCoverage.vcf.gz" + "'");
+				log.report("Reading directly from '" + ext.rootOf(filename, false)
+									 + "_onTargetCoverage.vcf.gz" + "'");
 				reader = Files.getAppropriateReader(ext.rootOf(filename, false)
 																						+ "_onTargetCoverage.vcf.gz");
 				writer = null;
@@ -635,8 +635,8 @@ public class Polymutt {
 				}
 				chr = Positions.chromosomeNumber(line[0], log);
 				if (chr != prevChr) {
-					log.report(ext.getTimestampForFilename()	+ "\tStarting chromosome "
-											+ Positions.CHR_CODES[chr]);
+					log.report(ext.getTimestampForFilename() + "\tStarting chromosome "
+										 + Positions.CHR_CODES[chr]);
 					prevChr = chr;
 				}
 				if (writer == null) {
@@ -645,9 +645,9 @@ public class Polymutt {
 				} else {
 					if (segments == null
 							|| (segments[chr] != null
-									&& Segment.overlapsAny(	new Segment(chr, Integer.parseInt(line[1]),
-																											Integer.parseInt(line[1])),
-																					segments[chr]))) {
+									&& Segment.overlapsAny(new Segment(chr, Integer.parseInt(line[1]),
+																										 Integer.parseInt(line[1])),
+																				 segments[chr]))) {
 						readCounts = new int[] {Integer.parseInt(line[9].split(":")[2]),
 																		Integer.parseInt(line[10].split(":")[2]),
 																		Integer.parseInt(line[11].split(":")[2])};
@@ -690,16 +690,16 @@ public class Polymutt {
 		for (int i = 0; i < thresholds.length; i++) {
 			log.report("# reads >= " + thresholds[i], false, true);
 			for (int j = 0; j < 4; j++) {
-				log.report("\t"	+ ext.formPercent((double) runningCounts[i][j] / (double) onTargetReads, 1),
-										false, true);
+				log.report("\t" + ext.formPercent((double) runningCounts[i][j] / (double) onTargetReads, 1),
+									 false, true);
 			}
 			log.report("");
 		}
 	}
 
 	// bedfile can be null
-	public static void assessAllPossibleCoverage(	String controlFile, String coverages,
-																								String bedfile) {
+	public static void assessAllPossibleCoverage(String controlFile, String coverages,
+																							 String bedfile) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -778,8 +778,8 @@ public class Polymutt {
 						fill += "_" + reps[nCr[i][k]];
 					}
 					for (int j = 0; j < thresholds.length; j++) {
-						writer.println(pattern	+ "\t" + fill + "\t" + nCr[i].length + "\t>=" + thresholds[j]
-														+ "\t" + ArrayUtils.toStr(results[i][j]));
+						writer.println(pattern + "\t" + fill + "\t" + nCr[i].length + "\t>=" + thresholds[j]
+													 + "\t" + ArrayUtils.toStr(results[i][j]));
 					}
 				}
 
@@ -841,8 +841,8 @@ public class Polymutt {
 
 				if (chr != ArrayUtils.min(chrs)) {
 					chr = ArrayUtils.min(chrs);
-					log.report(ext.getTimestampForFilename()	+ "\tStarting chromosome "
-											+ Positions.CHR_CODES[chr]);
+					log.report(ext.getTimestampForFilename() + "\tStarting chromosome "
+										 + Positions.CHR_CODES[chr]);
 				}
 
 				minPosition = Integer.MAX_VALUE;
@@ -854,9 +854,9 @@ public class Polymutt {
 
 				for (int i = 0; i < filenames.length; i++) {
 					if (chrs[i] == chr && positions[i] == minPosition) {
-						readCounts[i] = new int[] {	Integer.parseInt(currents[i][2]),
-																				Integer.parseInt(currents[i][3]),
-																				Integer.parseInt(currents[i][4])};
+						readCounts[i] = new int[] {Integer.parseInt(currents[i][2]),
+																			 Integer.parseInt(currents[i][3]),
+																			 Integer.parseInt(currents[i][4])};
 						try {
 							temp = readers[i].readLine();
 							currents[i] = temp.split("[\\s]+");
@@ -865,16 +865,16 @@ public class Polymutt {
 								done = true;
 							}
 						} catch (Exception e) {
-							log.report("File '"	+ filenames[i] + "' is truncated. Last valid position was: " + chr
-													+ ":" + minPosition);
+							log.report("File '" + filenames[i] + "' is truncated. Last valid position was: " + chr
+												 + ":" + minPosition);
 							log.reportException(e);
 							done = true;
 						}
 						chrs[i] = Positions.chromosomeNumber(currents[i][0]);
 						positions[i] = Integer.parseInt(currents[i][1]);
 						if (!readers[i].ready()) {
-							log.report("First file to end was '"	+ filenames[i] + "'. Last valid position was: "
-													+ chr + ":" + minPosition);
+							log.report("First file to end was '" + filenames[i] + "'. Last valid position was: "
+												 + chr + ":" + minPosition);
 							done = true;
 						}
 					} else {
@@ -926,7 +926,7 @@ public class Polymutt {
 			for (int j = 0; j < thresholds.length; j++) {
 				for (int k = 0; k < 4; k++) {
 					results[i][j][k] = ext.formPercent((double) runningCounts[i][j][k]
-																							/ (double) onTargetReads, 1);
+																						 / (double) onTargetReads, 1);
 				}
 			}
 		}
@@ -948,11 +948,11 @@ public class Polymutt {
 			if (!Files.exists(dir + ext.rootOf(files[i], false) + "_onTargetCoverage.vcf.gz")) {
 				System.out.println(files[i]);
 				count++;
-				Files.qsub(dir	+ "chunks/runAssess" + count + ".qsub",
-										"cd "																		+ dir + "\nmodule load java\njava -jar ~/"
-																														+ org.genvisis.common.PSF.Java.GENVISIS
-																														+ " seq.Polymutt assess=" + files[i],
-										3000, 6, 1);
+				Files.qsub(dir + "chunks/runAssess" + count + ".qsub",
+									 "cd " + dir + "\nmodule load java\njava -jar ~/"
+																															 + org.genvisis.common.PSF.Java.GENVISIS
+																															 + " seq.Polymutt assess=" + files[i],
+									 3000, 6, 1);
 				v.add(dir + "chunks/runAssess" + count + ".qsub");
 			}
 		}
@@ -984,40 +984,40 @@ public class Polymutt {
 		assessAllPossibleCoverage(allAssess, coverages, bedfile);
 		System.exit(1);
 
-		String usage = "\n"	+ "seq.Polymutt requires 0-1 arguments\n"
-										+ "   (1) list of trio root names (i.e. trios=" + triosFile + " (default))\n"
-										+ "   (2) source directory containing the .bam files (i.e. bamDir=" + bamDir
-										+ " (default))\n"
-										+ "   (3) directory containing VCF files to create or parse (i.e. vcfDir="
-										+ vcfDir + " (default))\n"
-										+ "   (4) directory with SeattleSeq annotation (i.e. annotationDir=annotation/ (not the default))\n"
-										+ " AND:\n"
-										+ "   (5) batch BAM->GLF generation (requires bamDir) (i.e. -batchGLF (not the default))\n"
-										+ " OR:\n"
-										+ "   (5) batch Polymutt runs (requires vcfDir to output to) (i.e. -batchPolymutt (not the default))\n"
-										+ " OR:\n"
-										+ "   (5) batch BAM->GLF generation (requires bamDir) (i.e. -batchGLF (not the default))\n"
-										+ " OR:\n"
-										+ "   (1) find de novo events using Phred scores instead of DQ value (i.e. findDenovo=trio612.vcf (not the default))\n"
-										+ "   (2) minimum read depth across all members of trio (i.e. minReadDepth="
-										+ minReadDepth + " (default))\n" + " OR:\n"
-										+ "   (1) find all via Phred scores in directory (i.e. -findAll (not the default))\n"
-										+ "   (2) directory containing VCF files to create or parse (i.e. vcfDir="
-										+ vcfDir + " (default))\n" + " OR:\n"
-										+ "   (1) merge all possible bam files with a given pattern (i.e. controlFile=example.dat (not the default))\n"
-										+ "         Example line: pattern_N00[%%] 5 6 7 8\n" + " OR:\n"
-										+ "   (1) assess percent coverage for a particular vcf file (i.e. assess=somefile.vcf.gz (not the default))\n"
-										+ "   (2) use a bedfile to filter out off target regions (i.e. bed=" + bedfile
-										+ " (default))\n"
-										+ "   (3) summarize percent coverage at various read depth coverages (i.e. coverage="
-										+ coverages + " (default))\n" + " OR:\n"
-										+ "   (1) batch assess coverage for all .vcf.gz files in folder (i.e. -batchAssess (not the default))\n"
-										+ " OR:\n"
-										+ "   (1) assess all possible combinations of coverage (i.e. allAssess=control_list.txt (not the default))\n"
-										+ "   (2) various read depth coverages (i.e. coverage=" + coverages
-										+ " (default))\n"
-										+ "   (3) (optional) use monified bedfile to focus on specific areas of the genes/exone (i.e. bed="
-										+ bedfile + " (default))\n" + "";
+		String usage = "\n" + "seq.Polymutt requires 0-1 arguments\n"
+									 + "   (1) list of trio root names (i.e. trios=" + triosFile + " (default))\n"
+									 + "   (2) source directory containing the .bam files (i.e. bamDir=" + bamDir
+									 + " (default))\n"
+									 + "   (3) directory containing VCF files to create or parse (i.e. vcfDir="
+									 + vcfDir + " (default))\n"
+									 + "   (4) directory with SeattleSeq annotation (i.e. annotationDir=annotation/ (not the default))\n"
+									 + " AND:\n"
+									 + "   (5) batch BAM->GLF generation (requires bamDir) (i.e. -batchGLF (not the default))\n"
+									 + " OR:\n"
+									 + "   (5) batch Polymutt runs (requires vcfDir to output to) (i.e. -batchPolymutt (not the default))\n"
+									 + " OR:\n"
+									 + "   (5) batch BAM->GLF generation (requires bamDir) (i.e. -batchGLF (not the default))\n"
+									 + " OR:\n"
+									 + "   (1) find de novo events using Phred scores instead of DQ value (i.e. findDenovo=trio612.vcf (not the default))\n"
+									 + "   (2) minimum read depth across all members of trio (i.e. minReadDepth="
+									 + minReadDepth + " (default))\n" + " OR:\n"
+									 + "   (1) find all via Phred scores in directory (i.e. -findAll (not the default))\n"
+									 + "   (2) directory containing VCF files to create or parse (i.e. vcfDir="
+									 + vcfDir + " (default))\n" + " OR:\n"
+									 + "   (1) merge all possible bam files with a given pattern (i.e. controlFile=example.dat (not the default))\n"
+									 + "         Example line: pattern_N00[%%] 5 6 7 8\n" + " OR:\n"
+									 + "   (1) assess percent coverage for a particular vcf file (i.e. assess=somefile.vcf.gz (not the default))\n"
+									 + "   (2) use a bedfile to filter out off target regions (i.e. bed=" + bedfile
+									 + " (default))\n"
+									 + "   (3) summarize percent coverage at various read depth coverages (i.e. coverage="
+									 + coverages + " (default))\n" + " OR:\n"
+									 + "   (1) batch assess coverage for all .vcf.gz files in folder (i.e. -batchAssess (not the default))\n"
+									 + " OR:\n"
+									 + "   (1) assess all possible combinations of coverage (i.e. allAssess=control_list.txt (not the default))\n"
+									 + "   (2) various read depth coverages (i.e. coverage=" + coverages
+									 + " (default))\n"
+									 + "   (3) (optional) use monified bedfile to focus on specific areas of the genes/exone (i.e. bed="
+									 + bedfile + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

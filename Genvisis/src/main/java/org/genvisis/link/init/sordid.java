@@ -124,8 +124,8 @@ public class sordid {
 			for (int j = 0; j < numMarkers; j++) {
 				keys[i][j] = allMarkers.indexOf(orderedMarkers.elementAt(j));
 				if (keys[i][j] == -1) {
-					System.err.println("markers in data file are fubar at marker # "	+ j + " couldn't find "
-															+ orderedMarkers.elementAt(j));
+					System.err.println("markers in data file are fubar at marker # " + j + " couldn't find "
+														 + orderedMarkers.elementAt(j));
 				}
 			}
 			for (int j = 0; j < keys[i].length; j++) {
@@ -154,9 +154,9 @@ public class sordid {
 						System.exit(1);
 					}
 					if (st.countTokens() != expectedAlleleCounts[count]) {
-						System.err.println("Error - "	+ temp + " has " + st.countTokens()
-																+ " alleles instead of " + expectedAlleleCounts[count]
-																+ " in file data" + (count + 1) + ".txt");
+						System.err.println("Error - " + temp + " has " + st.countTokens()
+															 + " alleles instead of " + expectedAlleleCounts[count]
+															 + " in file data" + (count + 1) + ".txt");
 						System.exit(1);
 					}
 					while (st.hasMoreTokens()) {
@@ -164,8 +164,8 @@ public class sordid {
 						try {
 							Integer.valueOf(temp).intValue();
 						} catch (NumberFormatException nfe) {
-							System.err.println("Replaced a '"	+ temp + "' with a '0' for data" + (count + 1)
-																	+ ".txt");
+							System.err.println("Replaced a '" + temp + "' with a '0' for data" + (count + 1)
+																 + ".txt");
 							temp = "0";
 						}
 						markerdata[allele++] = temp;
@@ -180,16 +180,16 @@ public class sordid {
 				chrome = Integer.valueOf(chrsPresent.elementAt(i)).intValue();
 				writers[i].print(ID);
 				for (int j = 0; j < keys[i].length; j++) {
-					writers[i].print("\t"	+ markerdata[2 * keys[i][j]] + "\t"
-														+ markerdata[2 * keys[i][j] + 1]);
+					writers[i].print("\t" + markerdata[2 * keys[i][j]] + "\t"
+													 + markerdata[2 * keys[i][j] + 1]);
 				}
 				writers[i].println();
 			}
 		}
 		for (int count = 0; count < countFiles; count++) {
 			if (readers[count].ready()) {
-				System.err.println("Warning - it appears that data"	+ (count + 1)
-														+ ".txt had lines in addition to those previous.");
+				System.err.println("Warning - it appears that data" + (count + 1)
+													 + ".txt had lines in addition to those previous.");
 			}
 			readers[count].close();
 		}

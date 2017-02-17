@@ -86,8 +86,8 @@ public class QuantileMathCommonsNormalization {
 	 * @param useMean use mean for guessing the NA value if false use median
 	 * @param retainNA retain the NA values, put NA values back after normalization
 	 */
-	public static void QuantileNormAdressingNaValuesBeforeQN(	double[][] rawData, boolean useMedian,
-																														boolean retainNA) {
+	public static void QuantileNormAdressingNaValuesBeforeQN(double[][] rawData, boolean useMedian,
+																													 boolean retainNA) {
 		boolean[][] wasNA = new boolean[rawData.length][rawData[1].length];
 
 		for (int s = 0; s < rawData[1].length; ++s) {

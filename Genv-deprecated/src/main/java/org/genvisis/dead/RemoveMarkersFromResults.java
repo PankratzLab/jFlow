@@ -50,12 +50,12 @@ public class RemoveMarkersFromResults {
 			current = file.getAbsolutePath();
 			if (current.contains("\\")) {
 				new File(current.substring(0, current.lastIndexOf("\\")) + "\\backup").mkdirs();
-				future = current.substring(0, current.lastIndexOf("\\"))	+ "\\backup"
-									+ current.substring(current.lastIndexOf("\\"));
+				future = current.substring(0, current.lastIndexOf("\\")) + "\\backup"
+								 + current.substring(current.lastIndexOf("\\"));
 			} else {
 				new File(current.substring(0, current.lastIndexOf("/")) + "/backup").mkdirs();
-				future = current.substring(0, current.lastIndexOf("/"))	+ "/backup"
-									+ current.substring(current.lastIndexOf("/"));
+				future = current.substring(0, current.lastIndexOf("/")) + "/backup"
+								 + current.substring(current.lastIndexOf("/"));
 			}
 			System.out.println(current);
 			file.renameTo(new File(future));
@@ -95,10 +95,10 @@ public class RemoveMarkersFromResults {
 		String suffix = "logistic";
 		String dir = new File(DEFAULT_DIR).exists() ? DEFAULT_DIR : "";
 
-		String usage = "\\n"	+ "park.gwa.RemoveMarkersFromResults requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n"
-										+ "   (2) suffix of files to drop from (i.e. suffix=" + suffix + " (default))\n"
-										+ "";
+		String usage = "\\n" + "park.gwa.RemoveMarkersFromResults requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n"
+									 + "   (2) suffix of files to drop from (i.e. suffix=" + suffix + " (default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

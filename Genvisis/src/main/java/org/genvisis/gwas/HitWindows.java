@@ -20,9 +20,9 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.SnpMarkerSet;
 
 public class HitWindows {
-	public static String[][] determine(	String filename, float indexThreshold,
-																			int windowMinSizePerSide, float windowExtensionThreshold,
-																			String[] additionalAnnotationVariableNames, Logger log) {
+	public static String[][] determine(String filename, float indexThreshold,
+																		 int windowMinSizePerSide, float windowExtensionThreshold,
+																		 String[] additionalAnnotationVariableNames, Logger log) {
 		BufferedReader reader;
 		String[] line, header;
 		int count;
@@ -127,15 +127,15 @@ public class HitWindows {
 		pvals = Sort.getOrdered(pvals, order);
 		annotation = Sort.getOrdered(annotation, order);
 
-		return determine(	markerNames, chrs, positions, pvals, indexThreshold, windowMinSizePerSide,
-											windowExtensionThreshold, additionalAnnotationVariableNames, annotation);
+		return determine(markerNames, chrs, positions, pvals, indexThreshold, windowMinSizePerSide,
+										 windowExtensionThreshold, additionalAnnotationVariableNames, annotation);
 	}
 
-	public static String[][] determine(	String[] markerNames, byte[] chrs, int[] positions,
-																			double[] pvals, float indexThreshold,
-																			int windowMinSizePerSide, float windowExtensionThreshold,
-																			String[] additionalAnnotationVariableNames,
-																			String[][] annotation) {
+	public static String[][] determine(String[] markerNames, byte[] chrs, int[] positions,
+																		 double[] pvals, float indexThreshold, int windowMinSizePerSide,
+																		 float windowExtensionThreshold,
+																		 String[] additionalAnnotationVariableNames,
+																		 String[][] annotation) {
 		int startIndex, stopIndex, offset, minIndex;
 		double minPval;
 		int region;
@@ -144,9 +144,9 @@ public class HitWindows {
 		String[] line;
 
 		v = new Vector<String[]>();
-		line = new String[] {	"Region", "MarkerName", "Chr", "Position", "p-value", "Region+Window",
-													"RegionStart", "RegionStop", "NumSigMarkers", "NumSuggestiveMarkers",
-													"NumTotalMarkers", "SizeOfRegion"};
+		line = new String[] {"Region", "MarkerName", "Chr", "Position", "p-value", "Region+Window",
+												 "RegionStart", "RegionStop", "NumSigMarkers", "NumSuggestiveMarkers",
+												 "NumTotalMarkers", "SizeOfRegion"};
 		for (String additionalAnnotationVariableName : additionalAnnotationVariableNames) {
 			line = ArrayUtils.addStrToArray(additionalAnnotationVariableName, line);
 		}
@@ -163,30 +163,30 @@ public class HitWindows {
 				minPval = pvals[i];
 				offset = 0;
 				numSig = numSuggestive = 1;
-				while (startIndex - offset - 1 >= 0	&& chrs[startIndex] == chrs[startIndex - offset - 1]
-								&& positions[startIndex]
-										- windowMinSizePerSide * 2 <= positions[startIndex - offset - 1]) { // *2
-																																												// required
-																																												// to ensure
-																																												// that
-																																												// there
-																																												// are no
-																																												// overlapping
-																																												// SNPs
-																																												// 500kb
-																																												// after
-																																												// last
-																																												// hit and
-																																												// 500kb
-																																												// before
-																																												// next
-																																												// hit is
-																																												// technically
-																																												// a 1M
-																																												// region
-																																												// that
-																																												// should
-																																												// be merged
+				while (startIndex - offset - 1 >= 0 && chrs[startIndex] == chrs[startIndex - offset - 1]
+							 && positions[startIndex]
+									- windowMinSizePerSide * 2 <= positions[startIndex - offset - 1]) { // *2
+																																											// required
+																																											// to ensure
+																																											// that
+																																											// there
+																																											// are no
+																																											// overlapping
+																																											// SNPs
+																																											// 500kb
+																																											// after
+																																											// last
+																																											// hit and
+																																											// 500kb
+																																											// before
+																																											// next
+																																											// hit is
+																																											// technically
+																																											// a 1M
+																																											// region
+																																											// that
+																																											// should
+																																											// be merged
 					offset++;
 					if (pvals[startIndex - offset] < windowExtensionThreshold) {
 						startIndex -= offset;
@@ -202,11 +202,11 @@ public class HitWindows {
 				// chrs[stopIndex+offset+1] && positions[stopIndex] + windowMinSizePerSide*2 >=
 				// positions[stopIndex+offset+1]) {
 				while (stopIndex + offset + 1 < markerNames.length
-									&& chrs[stopIndex] == chrs[stopIndex + offset + 1]
-								&& positions[stopIndex]
-										+ windowMinSizePerSide >= positions[stopIndex + offset + 1]) { // don't want the
-																																										// 2* here,
-																																										// though
+							 && chrs[stopIndex] == chrs[stopIndex + offset + 1]
+							 && positions[stopIndex]
+									+ windowMinSizePerSide >= positions[stopIndex + offset + 1]) { // don't want the
+																																								 // 2* here,
+																																								 // though
 					offset++;
 					if (pvals[stopIndex + offset] < indexThreshold) {
 						// log.report(markerNames[stopIndex+offset]+"\t"+region);
@@ -225,17 +225,17 @@ public class HitWindows {
 				// log.report(markerNames[minIndex]+"\t"+region+"\t"+numSig+"\t"+numSuggestive);
 				// log.report(markerNames[minIndex]+"\t"+chrs[minIndex]+"\t"+positions[minIndex]+"\tchr"+chrs[startIndex]+":"+(positions[startIndex]-windowMinSizePerSide)+":"+(positions[stopIndex]+windowMinSizePerSide));
 
-				line = new String[] {region	+ "", markerNames[minIndex], chrs[minIndex] + "",
-															positions[minIndex] + "",
-															pvals[minIndex] + "",
-															"chr"									+ chrs[startIndex] + ":"
-																										+ Math.max(positions[startIndex]
-																																- windowMinSizePerSide, 1)
-																										+ "-"
-																										+ (positions[stopIndex] + windowMinSizePerSide),
-															positions[startIndex] + "", positions[stopIndex] + "", numSig + "",
-															numSuggestive + "", (stopIndex - startIndex + 1) + "",
-															(positions[stopIndex] - positions[startIndex] + 1) + ""};
+				line = new String[] {region + "", markerNames[minIndex], chrs[minIndex] + "",
+														 positions[minIndex] + "",
+														 pvals[minIndex] + "",
+														 "chr" + chrs[startIndex] + ":"
+																									 + Math.max(positions[startIndex]
+																															- windowMinSizePerSide, 1)
+																									 + "-"
+																									 + (positions[stopIndex] + windowMinSizePerSide),
+														 positions[startIndex] + "", positions[stopIndex] + "", numSig + "",
+														 numSuggestive + "", (stopIndex - startIndex + 1) + "",
+														 (positions[stopIndex] - positions[startIndex] + 1) + ""};
 				for (int j = 0; j < additionalAnnotationVariableNames.length; j++) {
 					line = ArrayUtils.addStrToArray(annotation[minIndex][j], line);
 				}
@@ -266,8 +266,8 @@ public class HitWindows {
 		try {
 			reader = new BufferedReader(new FileReader(inputHits));
 			header = reader.readLine().trim().split("[\\s]+");
-			indices = ext.indexFactors(	new String[][] {{"Trait"}, Aliases.CHRS, Aliases.POSITIONS},
-																	header, false, true, true, true);
+			indices = ext.indexFactors(new String[][] {{"Trait"}, Aliases.CHRS, Aliases.POSITIONS},
+																 header, false, true, true, true);
 			if (!ArrayUtils.equals(indices, new int[] {0, 1, 2})) {
 				log.reportError("Error - currently expecting format: Trait\tChr\tPosition");
 			}
@@ -292,9 +292,9 @@ public class HitWindows {
 			segs[i] = new Segment[v.size()];
 			for (int j = 0; j < segs[i].length; j++) {
 				line = v.elementAt(j).split("[\\s]+");
-				segs[i][j] = new Segment(	Positions.chromosomeNumber(line[0]),
-																	Integer.parseInt(line[1]) - window,
-																	Integer.parseInt(line[1]) + window);
+				segs[i][j] = new Segment(Positions.chromosomeNumber(line[0]),
+																 Integer.parseInt(line[1]) - window,
+																 Integer.parseInt(line[1]) + window);
 			}
 		}
 
@@ -314,8 +314,8 @@ public class HitWindows {
 					}
 				}
 			}
-			log.report(markerNames[m]	+ "\t"
-									+ (v.size() == 0 ? "." : ArrayUtils.toStr(ArrayUtils.toStringArray(v), "/")));
+			log.report(markerNames[m] + "\t"
+								 + (v.size() == 0 ? "." : ArrayUtils.toStr(ArrayUtils.toStringArray(v), "/")));
 		}
 	}
 
@@ -342,16 +342,16 @@ public class HitWindows {
 		}
 	}
 
-	public static void determineLD(	String targetFile, String mapFile, String ldFile, int window,
-																	int column, double filter, String output, Logger log) {
+	public static void determineLD(String targetFile, String mapFile, String ldFile, int window,
+																 int column, double filter, String output, Logger log) {
 		HitWindowsLD.determineLD(targetFile, mapFile, output, ldFile, window, filter, column, log);
 	}
 
-	public static void determineLD(	String[] targets, String regionName, String mapFile, String output,
-																	String ldFile, int window, double filter, int column,
-																	boolean region, Logger log) {
-		HitWindowsLD.determineLD(	targets, regionName, mapFile, output, ldFile, window, filter, column,
-															region, log);
+	public static void determineLD(String[] targets, String regionName, String mapFile, String output,
+																 String ldFile, int window, double filter, int column,
+																 boolean region, Logger log) {
+		HitWindowsLD.determineLD(targets, regionName, mapFile, output, ldFile, window, filter, column,
+														 region, log);
 	}
 
 	public static void main(String[] args) {
@@ -360,9 +360,9 @@ public class HitWindows {
 		String outfile = "hits.out";
 		float indexThreshold = (float) 0.00000005;
 		int windowMinSizePerSide = 500000; // 500kb each side is technically a 1M window until the next
-																				// hit region, but we now take this into consideration in
-																				// the
-																				// main algorithm
+																			 // hit region, but we now take this into consideration in
+																			 // the
+																			 // main algorithm
 		int windowMaxSizePerSide = 100000;
 		float windowExtensionThreshold = (float) 0.00000005; // (float)0.00001;
 		String knownHits = null;
@@ -375,37 +375,37 @@ public class HitWindows {
 		Logger log;
 		String logfile = null;
 
-		String usage = "\n"	+ "gwas.HitWindows requires 0-1 arguments\n"
-										+ "   (1) input filename (i.e. file=" + filename + " (default))\n"
-										+ "   (2) filename of output (i.e. out=" + outfile
-										+ " (default; set to null to print to stdout))\n"
-										+ "   (3) p-value threshold for index SNPs (i.e. indexThresh=" + indexThreshold
-										+ " (default))\n" + "   (4) minimum num bp per side of window (i.e. minWinSize="
-										+ windowMinSizePerSide + " (default))\n"
-										+ "   (5) p-value threshold to extend the window (i.e. winThresh="
-										+ windowExtensionThreshold + " (default))\n"
-										+ "   (6) (optional) additional column headers to include (i.e. annotationCols=betaCol,sdCol,mafCol (not the default))\n"
-										+
+		String usage = "\n" + "gwas.HitWindows requires 0-1 arguments\n"
+									 + "   (1) input filename (i.e. file=" + filename + " (default))\n"
+									 + "   (2) filename of output (i.e. out=" + outfile
+									 + " (default; set to null to print to stdout))\n"
+									 + "   (3) p-value threshold for index SNPs (i.e. indexThresh=" + indexThreshold
+									 + " (default))\n" + "   (4) minimum num bp per side of window (i.e. minWinSize="
+									 + windowMinSizePerSide + " (default))\n"
+									 + "   (5) p-value threshold to extend the window (i.e. winThresh="
+									 + windowExtensionThreshold + " (default))\n"
+									 + "   (6) (optional) additional column headers to include (i.e. annotationCols=betaCol,sdCol,mafCol (not the default))\n"
+									 +
 
-										" OR\n"
-										+ "   (1) list of known hits, 3 columns=trait+chr+position (i.e. knownHits=filenameOfKnownHits.dat (not the default))\n"
-										+ "   (2) window around hit to extend (i.e. minWinSize=" + windowMinSizePerSide
-										+ " (default))\n" + "   (3) map file for lookup (i.e. map=" + map
-										+ " (default))\n" +
+									 " OR\n"
+									 + "   (1) list of known hits, 3 columns=trait+chr+position (i.e. knownHits=filenameOfKnownHits.dat (not the default))\n"
+									 + "   (2) window around hit to extend (i.e. minWinSize=" + windowMinSizePerSide
+									 + " (default))\n" + "   (3) map file for lookup (i.e. map=" + map
+									 + " (default))\n" +
 
-										" OR\n"
-										+ "   (1) input filename for LD-based hits (plink .flt, plink .ld , or Haploview export (i.e. ldFile="
-										+ ldFile + " \n"
-										+ "   (2) list of known hits, 1 column=SNP identifier (i.e. knownHits=filenameOfKnownHits.dat (not the default))\n"
-										+ "   (3) map file for lookup (i.e. map=" + map + " (default))\n" +
+									 " OR\n"
+									 + "   (1) input filename for LD-based hits (plink .flt, plink .ld , or Haploview export (i.e. ldFile="
+									 + ldFile + " \n"
+									 + "   (2) list of known hits, 1 column=SNP identifier (i.e. knownHits=filenameOfKnownHits.dat (not the default))\n"
+									 + "   (3) map file for lookup (i.e. map=" + map + " (default))\n" +
 
-										"   OPTIONAL: \n"
-										+ "   (4) maximum window around hit for LD search (i.e. maxWinSize="
-										+ windowMaxSizePerSide + " (default))\n"
-										+ "   (5) R2/D'/LOD threshold (.flt files are prefiltered. For .ld files filter will apply to R2 values. For haploview format files filter will apply to column in (6))(i.e. ldFilter="
-										+ ldFilter + " (default))\n"
-										+ "   (6) if input file is in haploview format, column on which to filter (i.e. column="
-										+ column + " (default))\n" + "";
+									 "   OPTIONAL: \n"
+									 + "   (4) maximum window around hit for LD search (i.e. maxWinSize="
+									 + windowMaxSizePerSide + " (default))\n"
+									 + "   (5) R2/D'/LOD threshold (.flt files are prefiltered. For .ld files filter will apply to R2 values. For haploview format files filter will apply to column in (6))(i.e. ldFilter="
+									 + ldFilter + " (default))\n"
+									 + "   (6) if input file is in haploview format, column on which to filter (i.e. column="
+									 + column + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

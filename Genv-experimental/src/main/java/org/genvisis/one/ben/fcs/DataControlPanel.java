@@ -181,8 +181,8 @@ public class DataControlPanel extends JPanel {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				btnLoad.setIcon(Grafik.getImageIcon(loaded	? "images/tick_sm.png"
-																										: "images/tick-empty_sm.png"));
+				btnLoad.setIcon(Grafik.getImageIcon(loaded ? "images/tick_sm.png"
+																									 : "images/tick-empty_sm.png"));
 				repaint();
 			}
 		});

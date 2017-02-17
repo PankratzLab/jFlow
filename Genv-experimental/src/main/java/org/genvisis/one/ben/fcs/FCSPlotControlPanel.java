@@ -386,22 +386,22 @@ public class FCSPlotControlPanel extends JPanel {
 
 		JRadioButton chkRegGate = new JRadioButton("Standard", true);
 		chkRegGate.addItemListener(new ItemListener() {
-		  @Override
-		  public void itemStateChanged(ItemEvent arg0) {
-		    plot.setLeafgating(arg0.getStateChange() != ItemEvent.SELECTED);
-		    plot.setBackgating(arg0.getStateChange() != ItemEvent.SELECTED);
-		  }
+			@Override
+			public void itemStateChanged(ItemEvent arg0) {
+				plot.setLeafgating(arg0.getStateChange() != ItemEvent.SELECTED);
+				plot.setBackgating(arg0.getStateChange() != ItemEvent.SELECTED);
+			}
 		});
 		chkRegGate.setHorizontalAlignment(SwingConstants.CENTER);
 		panel.add(chkRegGate, "cell 0 6, grow");
-		
+
 		JRadioButton chkLeafgate = new JRadioButton("Leafgate");
 		chkLeafgate.addItemListener(new ItemListener() {
-		  @Override
-		  public void itemStateChanged(ItemEvent arg0) {
-		    plot.setLeafgating(arg0.getStateChange() == ItemEvent.SELECTED);
-		    plot.setBackgating(arg0.getStateChange() != ItemEvent.SELECTED);
-		  }
+			@Override
+			public void itemStateChanged(ItemEvent arg0) {
+				plot.setLeafgating(arg0.getStateChange() == ItemEvent.SELECTED);
+				plot.setBackgating(arg0.getStateChange() != ItemEvent.SELECTED);
+			}
 		});
 		chkLeafgate.setHorizontalAlignment(SwingConstants.CENTER);
 		panel.add(chkLeafgate, "cell 0 7, grow");
@@ -411,12 +411,12 @@ public class FCSPlotControlPanel extends JPanel {
 			@Override
 			public void itemStateChanged(ItemEvent arg0) {
 				plot.setBackgating(arg0.getStateChange() == ItemEvent.SELECTED);
-	            plot.setLeafgating(arg0.getStateChange() != ItemEvent.SELECTED);
+				plot.setLeafgating(arg0.getStateChange() != ItemEvent.SELECTED);
 			}
 		});
 		chkBackgate.setHorizontalAlignment(SwingConstants.CENTER);
 		panel.add(chkBackgate, "cell 0 8, grow");
-		
+
 		ButtonGroup bg1 = new ButtonGroup();
 		bg1.add(chkRegGate);
 		bg1.add(chkLeafgate);
@@ -569,7 +569,7 @@ public class FCSPlotControlPanel extends JPanel {
 		@Override
 		public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
 			return ((orientation == SwingConstants.VERTICAL) ? visibleRect.height : visibleRect.width)
-							- 10;
+						 - 10;
 		}
 
 		@Override
@@ -765,8 +765,8 @@ public class FCSPlotControlPanel extends JPanel {
 			jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			jfc.setMultiSelectionEnabled(false);
 			jfc.addChoosableFileFilter(new FileNameExtensionFilter("Gating-ML File", "xml"));
-			jfc.addChoosableFileFilter(new FileNameExtensionFilter(	"FlowJo Workspace or WorkspaceTemplate File",
-																															"wsp", "wspt"));
+			jfc.addChoosableFileFilter(new FileNameExtensionFilter("FlowJo Workspace or WorkspaceTemplate File",
+																														 "wsp", "wspt"));
 			jfc.setDialogTitle("Select Gating File");
 			int resp = jfc.showOpenDialog(FCSPlotControlPanel.this);
 			if (resp == JFileChooser.APPROVE_OPTION) {

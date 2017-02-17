@@ -40,13 +40,13 @@ public class haploCount {
 			dir = "";
 			line = new File(".").list();
 			for (String element : line) {
-				if (element.startsWith(prefix)	&& new File(element).isDirectory()
+				if (element.startsWith(prefix) && new File(element).isDirectory()
 						&& new File(element + "/" + prefix + "_haplos.out").exists()) {
 					if (dir.equals("")) {
 						dir = element + "/";
 					} else {
-						System.err.println("Error - there are 2+ directories starting with the prefix "	+ prefix
-																+ "; using " + dir);
+						System.err.println("Error - there are 2+ directories starting with the prefix " + prefix
+															 + "; using " + dir);
 					}
 				}
 			}
@@ -94,18 +94,18 @@ public class haploCount {
 		numHaps = haps.size();
 		if (deleterious != null && protective != null) {
 			if (model[0] == -1) {
-				System.err.println("Deleterious haplotype not found or not specified for "	+ prefix
-														+ "; skipping summary for deleterious haplotype");
+				System.err.println("Deleterious haplotype not found or not specified for " + prefix
+													 + "; skipping summary for deleterious haplotype");
 				deleterious = null;
 			}
 			if (model[1] == -1) {
-				System.err.println("Protective haplotype not found or not specified for "	+ prefix
-														+ "; skipping summary for protective haplotype");
+				System.err.println("Protective haplotype not found or not specified for " + prefix
+													 + "; skipping summary for protective haplotype");
 				protective = null;
 			}
 			if (model[0] == model[1] && model[0] >= 0) {
-				System.err.println("Error - deleterious haplotype specified for "	+ prefix
-														+ " is the same as the protective haplotype; summarizing only one of them");
+				System.err.println("Error - deleterious haplotype specified for " + prefix
+													 + " is the same as the protective haplotype; summarizing only one of them");
 				protective = null;
 			}
 		}
@@ -182,15 +182,14 @@ public class haploCount {
 			if (!done) {
 				counts[Integer.valueOf(hash.get(line[1 + offset]))
 											.intValue()][Integer.valueOf(line[2 + offset]).intValue()
-																		- 1] += Double.valueOf(line[4 + offset]).doubleValue();
+																	 - 1] += Double.valueOf(line[4 + offset]).doubleValue();
 				counts[Integer.valueOf(hash.get(line[1 + offset]))
 											.intValue()][Integer.valueOf(line[3 + offset]).intValue()
-																		- 1] += Double.valueOf(line[4 + offset]).doubleValue();
-				genotypes[Integer	.valueOf(hash.get(line[1 + offset]))
-													.intValue()][Integer.valueOf(line[2 + offset]).intValue()
-																				- 1][Integer.valueOf(line[3 + offset]).intValue()
-																							- 1] +=
-																										Double.valueOf(line[4 + offset]).doubleValue();
+																	 - 1] += Double.valueOf(line[4 + offset]).doubleValue();
+				genotypes[Integer.valueOf(hash.get(line[1 + offset]))
+												 .intValue()][Integer.valueOf(line[2 + offset]).intValue()
+																			- 1][Integer.valueOf(line[3 + offset]).intValue()
+																					 - 1] += Double.valueOf(line[4 + offset]).doubleValue();
 				count++;
 			}
 		}
@@ -208,22 +207,22 @@ public class haploCount {
 		writer.println("Haplostats summary");
 		writer.println("Haplotype\tCases\tfreq\tControls\tfreq\tHapScore\tp-value");
 		for (int i = 0; i < numHaps + 1; i++) {
-			writer.println((i < numHaps ? "'" + haps.elementAt(i) : "Sum total")	+ "\t"
-											+ ext.formDeci(counts[1][i], 2, true) + "\t"
-											+ ext.formDeci(counts[1][i] / counts[1][numHaps], 3, true) + "\t"
-											+ ext.formDeci(counts[0][i], 2, true) + "\t"
-											+ ext.formDeci(counts[0][i] / counts[0][numHaps], 3, true) + "\t"
-											+ (i == numHaps || scores[i][0].equals(".")	? ""
-																																	: ext.formDeci(	Double.valueOf(scores[i][0])
-																																												.doubleValue(),
-																																									3, true)
-																																		+ "")
-											+ "\t"
-											+ (i == numHaps || scores[i][1].equals("-")	? ""
-																																	: ext.formDeci(	Double.valueOf(scores[i][1])
-																																												.doubleValue(),
-																																									5, true)
-																																		+ ""));
+			writer.println((i < numHaps ? "'" + haps.elementAt(i) : "Sum total") + "\t"
+										 + ext.formDeci(counts[1][i], 2, true) + "\t"
+										 + ext.formDeci(counts[1][i] / counts[1][numHaps], 3, true) + "\t"
+										 + ext.formDeci(counts[0][i], 2, true) + "\t"
+										 + ext.formDeci(counts[0][i] / counts[0][numHaps], 3, true) + "\t"
+										 + (i == numHaps || scores[i][0].equals(".") ? ""
+																																 : ext.formDeci(Double.valueOf(scores[i][0])
+																																											.doubleValue(),
+																																								3, true)
+																																	 + "")
+										 + "\t"
+										 + (i == numHaps || scores[i][1].equals("-") ? ""
+																																 : ext.formDeci(Double.valueOf(scores[i][1])
+																																											.doubleValue(),
+																																								5, true)
+																																	 + ""));
 		}
 		writer.println();
 		writer.println(global);
@@ -249,17 +248,17 @@ public class haploCount {
 				for (int i = 1; i >= -1; i--) {
 					writer.print(i == 1 ? "cases" : (i == 0 ? "controls" : "diff"));
 					for (int j = 1; j <= 3; j++) {
-						writer.print("\t" + ext.formDeci(	i == -1
-																												? counts[1][j] / counts[1][0]
-																												- counts[0][j] / counts[0][0]
-																											: counts[i][j] / counts[i][0],
-																							3, true));
+						writer.print("\t" + ext.formDeci(i == -1
+																										 ? counts[1][j] / counts[1][0]
+																											 - counts[0][j] / counts[0][0]
+																										 : counts[i][j] / counts[i][0],
+																						 3, true));
 					}
 					logModel = new int[][] {{(i == -1 ? 2 : 1)}, {(i == 0 ? 0 : 1)}, {0}};
 					output = fakeLogistic(counts, logModel, 10);
-					writer.println("\t\t"	+ (i == 1 ? "dominant" : (i == 0 ? "recessive" : "additive")) + "\t"
-													+ ext.formDeci(output[0][0], 3, true) + "\t"
-													+ ext.formDeci(output[1][0], 3, true));
+					writer.println("\t\t" + (i == 1 ? "dominant" : (i == 0 ? "recessive" : "additive")) + "\t"
+												 + ext.formDeci(output[0][0], 3, true) + "\t"
+												 + ext.formDeci(output[1][0], 3, true));
 				}
 			}
 		}
@@ -297,21 +296,21 @@ public class haploCount {
 			for (int i = 1; i >= -1; i--) {
 				writer.print(i == 1 ? "cases" : (i == 0 ? "controls" : "diff"));
 				for (int j = 1; j <= 6; j++) {
-					writer.print("\t" + ext.formDeci(	i == -1
-																											? counts[1][j] / counts[1][0]
-																											- counts[0][j] / counts[0][0]
-																										: counts[i][j] / counts[i][0],
-																						3, true));
+					writer.print("\t" + ext.formDeci(i == -1
+																									 ? counts[1][j] / counts[1][0]
+																										 - counts[0][j] / counts[0][0]
+																									 : counts[i][j] / counts[i][0],
+																					 3, true));
 				}
 				logModel = new int[][] {{(i == -1 ? 2 : 1), 0}, {(i == 0 ? 0 : 1), 0},
 																{(i == 0 ? 0 : 1), (i == 0 ? 0 : 1)}, {0, 0}, {0, (i == 0 ? 0 : 1)},
 																{0, (i == -1 ? 2 : 1)}};
 				output = fakeLogistic(counts, logModel, 10);
-				writer.println("\t\t"	+ (i == 1 ? "dominant" : (i == 0 ? "recessive" : "additive")) + "\t"
-												+ ext.formDeci(output[0][0], 3, true) + "\t"
-												+ ext.formDeci(output[1][0], 3, true) + "\t"
-												+ ext.formDeci(output[0][1], 3, true) + "\t"
-												+ ext.formDeci(output[1][1], 3, true));
+				writer.println("\t\t" + (i == 1 ? "dominant" : (i == 0 ? "recessive" : "additive")) + "\t"
+											 + ext.formDeci(output[0][0], 3, true) + "\t"
+											 + ext.formDeci(output[1][0], 3, true) + "\t"
+											 + ext.formDeci(output[0][1], 3, true) + "\t"
+											 + ext.formDeci(output[1][1], 3, true));
 			}
 		}
 
@@ -321,16 +320,16 @@ public class haploCount {
 		writer.println("Haplotype1\tHaplotype2\tCases\tfreq\tControls\tfreq");
 		for (int i = 0; i < numHaps; i++) {
 			for (int j = i; j < numHaps; j++) {
-				writer.println("'"	+ haps.elementAt(i) + "\t'" + haps.elementAt(j) + "\t"
-												+ ext.formDeci(genotypes[1][i][j], 2, true) + "\t"
-												+ ext.formDeci(genotypes[1][i][j] / genotypes[1][numHaps][numHaps], 3, true)
-												+ "\t" + ext.formDeci(genotypes[0][i][j], 2, true) + "\t"
-												+ ext.formDeci(genotypes[0][i][j]	/ genotypes[0][numHaps][numHaps], 3,
-																				true));
+				writer.println("'" + haps.elementAt(i) + "\t'" + haps.elementAt(j) + "\t"
+											 + ext.formDeci(genotypes[1][i][j], 2, true) + "\t"
+											 + ext.formDeci(genotypes[1][i][j] / genotypes[1][numHaps][numHaps], 3, true)
+											 + "\t" + ext.formDeci(genotypes[0][i][j], 2, true) + "\t"
+											 + ext.formDeci(genotypes[0][i][j] / genotypes[0][numHaps][numHaps], 3,
+																			true));
 			}
 		}
-		writer.println("Sum total\t\t"	+ ext.formDeci(genotypes[1][numHaps][numHaps], 2, true)
-										+ "\t1.0\t" + ext.formDeci(genotypes[0][numHaps][numHaps], 2, true) + "\t1.0");
+		writer.println("Sum total\t\t" + ext.formDeci(genotypes[1][numHaps][numHaps], 2, true)
+									 + "\t1.0\t" + ext.formDeci(genotypes[0][numHaps][numHaps], 2, true) + "\t1.0");
 		writer.close();
 
 	}
@@ -369,12 +368,12 @@ public class haploCount {
 		int numArgs = args.length;
 		String prefix = "4by4", phenofile = "aft.dat";
 
-		String usage = "\n"	+ "park.haploCount requires 2 arguments:\n"
-										+ "   (1) the prefix for the output from haplostats (i.e. prefix=" + prefix
-										+ " (default))\n"
-										+ "       (for the individual haplotypes, the em and the binary test output)\n"
-										+ "   (2) the pheno file used in haplostats (i.e. pheno=" + phenofile
-										+ " (default))\n" + "";
+		String usage = "\n" + "park.haploCount requires 2 arguments:\n"
+									 + "   (1) the prefix for the output from haplostats (i.e. prefix=" + prefix
+									 + " (default))\n"
+									 + "       (for the individual haplotypes, the em and the binary test output)\n"
+									 + "   (2) the pheno file used in haplostats (i.e. pheno=" + phenofile
+									 + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -393,8 +392,8 @@ public class haploCount {
 			System.exit(1);
 		}
 		if (args.length == 0) {
-			System.err.println("Using defaults (prefix="	+ prefix + "), corresponding to " + prefix
-													+ "_haplos.out, " + prefix + "_em.out and " + prefix + "_bintest.out)");
+			System.err.println("Using defaults (prefix=" + prefix + "), corresponding to " + prefix
+												 + "_haplos.out, " + prefix + "_em.out and " + prefix + "_bintest.out)");
 		}
 
 		try {

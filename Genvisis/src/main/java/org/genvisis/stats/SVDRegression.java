@@ -56,9 +56,9 @@ public class SVDRegression {
 	public void svdRegression() {
 		numComponents = indepsT.length;// number of independent variables, plus the constant = full rank
 		betas = new double[numComponents];
-		principalComponentsCompute = PrincipalComponentsCompute.getPrincipalComponents(	numComponents,
-																																										false, indepsT,
-																																										verbose, log);
+		principalComponentsCompute = PrincipalComponentsCompute.getPrincipalComponents(numComponents,
+																																									 false, indepsT,
+																																									 verbose, log);
 		extractU();
 		extractW();
 		computeV();
@@ -84,7 +84,7 @@ public class SVDRegression {
 
 	private void extractW() {
 		W = principalComponentsCompute.getSingularValues();// W -singular values - must be sorted in
-																												// descending order or else things blow up
+																											 // descending order or else things blow up
 	}
 
 	private void computeV() {// components are the rows of the V matrix

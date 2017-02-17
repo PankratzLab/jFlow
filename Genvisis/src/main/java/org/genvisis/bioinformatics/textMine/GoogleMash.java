@@ -42,7 +42,7 @@ public class GoogleMash implements Serializable {
 	private final Logger log;
 
 	public enum QUERY_TYPE {
-													GOOGLE_SCHOLAR(DEFAULT_GOOGLE_SCHOLAR), GOOGLE_REGULAR(DEFAULT_GOOGLE);
+		GOOGLE_SCHOLAR(DEFAULT_GOOGLE_SCHOLAR), GOOGLE_REGULAR(DEFAULT_GOOGLE);
 
 		private String address;
 
@@ -82,8 +82,8 @@ public class GoogleMash implements Serializable {
 	public void queryAll(int numThreads) {
 		GQuery[] tmp = new GQuery[queries.length];
 		QueryProducer producer = new QueryProducer(queries);
-		WorkerTrain<GQuery> train = new WorkerTrain<GoogleMash.GQuery>(	producer, numThreads, numThreads,
-																																		log);
+		WorkerTrain<GQuery> train = new WorkerTrain<GoogleMash.GQuery>(producer, numThreads, numThreads,
+																																	 log);
 		int index = 0;
 		while (train.hasNext()) {
 			tmp[index] = train.next();
@@ -196,8 +196,8 @@ public class GoogleMash implements Serializable {
 
 		public void query() {
 			try {
-				String spec =
-										type.getAddress() + URLEncoder.encode(base + " + \"" + extra + "\"", CHAR_SET);
+				String spec = type.getAddress()
+											+ URLEncoder.encode(base + " + \"" + extra + "\"", CHAR_SET);
 				URL url = new URL(spec);
 				log.reportTimeInfo(spec);
 				try {
@@ -282,10 +282,10 @@ public class GoogleMash implements Serializable {
 		Logger log;
 
 		String usage = "\n" + "bioinformatics.textMine.GoogleMash requires 0-1 arguments\n";
-		usage += "   (1) full path to base query file, like a file of genes (i.e. baseFile="	+ baseFile
-							+ " (default))\n" + "";
+		usage += "   (1) full path to base query file, like a file of genes (i.e. baseFile=" + baseFile
+						 + " (default))\n" + "";
 		usage += "   (2) full path to query extras file, like a file of phenotypes  (i.e. queryFile="
-							+ queryFile + " (default))\n" + "";
+						 + queryFile + " (default))\n" + "";
 		usage += PSF.Ext.getNumThreadsCommand(3, numThreads);
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

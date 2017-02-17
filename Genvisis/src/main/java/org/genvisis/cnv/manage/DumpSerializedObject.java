@@ -14,7 +14,7 @@ public class DumpSerializedObject {
 
 		if (object instanceof TextExport) {
 			((TextExport) object).exportToText(proj, ext.parseDirectoryOfFile(filename)
-																								+ ext.rootOf(filename) + "_dump.xln");
+																							 + ext.rootOf(filename) + "_dump.xln");
 			return;
 		} else if (object instanceof PlainTextExport) {
 			((PlainTextExport) object).exportToText(ext.parseDirectoryOfFile(filename)
@@ -22,7 +22,7 @@ public class DumpSerializedObject {
 		}
 
 		proj.getLog()
-				.report("Information on class:"	+ "\n" + "object.getClass().getName()="
+				.report("Information on class:" + "\n" + "object.getClass().getName()="
 								+ object.getClass().getName() + "\n" + "object.getClass()=" + object.getClass()
 								+ "\n" + "object.toString()=" + object.toString());
 		/**
@@ -61,8 +61,8 @@ public class DumpSerializedObject {
 		String filename = null;
 		String logfile = null;
 
-		String usage = "\n"	+ "widgets.DumpSerializedObject requires 0-1 arguments\n"
-										+ "   (1) filename (e.g. file=outliers.ser (default))\n" + "";
+		String usage = "\n" + "widgets.DumpSerializedObject requires 0-1 arguments\n"
+									 + "   (1) filename (e.g. file=outliers.ser (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

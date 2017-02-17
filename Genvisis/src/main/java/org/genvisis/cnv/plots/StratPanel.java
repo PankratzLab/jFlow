@@ -19,8 +19,7 @@ import org.genvisis.common.IntVector;
 import org.genvisis.common.Matrix;
 import org.genvisis.mining.Distance;
 
-public class StratPanel extends AbstractPanel
-												implements MouseListener, MouseMotionListener, ComponentListener {
+public class StratPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
 	public static final long serialVersionUID = 3L;
 	public static final int HEAD_BUFFER = 25;
 	// public static final int HEIGHT_X_AXIS = 55;
@@ -85,19 +84,19 @@ public class StratPanel extends AbstractPanel
 																								new Color(153, 102, 51), // light brown
 	};
 
-	public static final Color[] BLUES = {	new Color(25, 25, 112), new Color(0, 0, 128),
-																				new Color(100, 149, 237), new Color(72, 61, 139),
-																				new Color(106, 90, 205), new Color(123, 104, 238),
-																				new Color(132, 112, 255), new Color(0, 0, 205),
-																				new Color(65, 105, 225), new Color(0, 0, 255),
-																				new Color(30, 144, 255), new Color(0, 191, 255),
-																				new Color(135, 206, 250), new Color(135, 206, 250),
-																				new Color(70, 130, 180), new Color(176, 196, 222),
-																				new Color(173, 216, 230), new Color(176, 224, 230),
-																				new Color(175, 238, 238), new Color(0, 206, 209),
-																				new Color(72, 209, 204), new Color(64, 224, 208),
-																				new Color(0, 255, 255), new Color(224, 255, 255),
-																				new Color(95, 158, 160)};
+	public static final Color[] BLUES = {new Color(25, 25, 112), new Color(0, 0, 128),
+																			 new Color(100, 149, 237), new Color(72, 61, 139),
+																			 new Color(106, 90, 205), new Color(123, 104, 238),
+																			 new Color(132, 112, 255), new Color(0, 0, 205),
+																			 new Color(65, 105, 225), new Color(0, 0, 255),
+																			 new Color(30, 144, 255), new Color(0, 191, 255),
+																			 new Color(135, 206, 250), new Color(135, 206, 250),
+																			 new Color(70, 130, 180), new Color(176, 196, 222),
+																			 new Color(173, 216, 230), new Color(176, 224, 230),
+																			 new Color(175, 238, 238), new Color(0, 206, 209),
+																			 new Color(72, 209, 204), new Color(64, 224, 208),
+																			 new Color(0, 255, 255), new Color(224, 255, 255),
+																			 new Color(95, 158, 160)};
 
 	private final String[][] names;
 	private final Hashtable<String, float[][]> hash;
@@ -152,22 +151,22 @@ public class StratPanel extends AbstractPanel
 			if (currentPair[0][0] == -1) {
 				displayXaxis = false;
 			} else {
-				xAxisLabel = names[currentPair[0][0]][0]	+ "_"
-											+ names[currentPair[0][0]][currentPair[0][1] + 1];
+				xAxisLabel = names[currentPair[0][0]][0] + "_"
+										 + names[currentPair[0][0]][currentPair[0][1] + 1];
 				displayXaxis = true;
 			}
 			if (currentPair[1][0] == -1) {
 				displayYaxis = false;
 			} else {
-				yAxisLabel = names[currentPair[1][0]][0]	+ "_"
-											+ names[currentPair[1][0]][currentPair[1][1] + 1];
+				yAxisLabel = names[currentPair[1][0]][0] + "_"
+										 + names[currentPair[1][0]][currentPair[1][1] + 1];
 				displayYaxis = true;
 			}
 		} else {
-			xAxisLabel = names[currentPair[0][0]][0]	+ "_"
-										+ names[currentPair[0][0]][currentPair[0][1] + 1];
-			yAxisLabel = names[currentPair[1][0]][0]	+ "_"
-										+ names[currentPair[1][0]][currentPair[1][1] + 1];
+			xAxisLabel = names[currentPair[0][0]][0] + "_"
+									 + names[currentPair[0][0]][currentPair[0][1] + 1];
+			yAxisLabel = names[currentPair[1][0]][0] + "_"
+									 + names[currentPair[1][0]][currentPair[1][1] + 1];
 			sp.setDescriptor(xAxisLabel + " x " + yAxisLabel);
 			displayXaxis = displayYaxis = true;
 		}
@@ -210,7 +209,7 @@ public class StratPanel extends AbstractPanel
 			classCounts.clear();
 			for (int i = 0; i < sampleList.length; i++) {
 				data = hash.get(sampleList[i]);
-				if (data[currentPair[0][0]] != null	&& data[currentPair[1][0]] != null
+				if (data[currentPair[0][0]] != null && data[currentPair[1][0]] != null
 						&& !Float.isNaN(data[currentPair[0][0]][currentPair[0][1]])
 						&& !Float.isNaN(data[currentPair[1][0]][currentPair[1][1]])) {
 					sampleID = sampleData.lookup(sampleList[i]);
@@ -237,8 +236,8 @@ public class StratPanel extends AbstractPanel
 																																																	// file
 						} else if (countFails == 10) {
 							sp.getProject().getLog().reportError("..."); // looks up any individual present in any
-																														// .mds file that was loaded, even those
-																														// not in the current file
+																													 // .mds file that was loaded, even those
+																													 // not in the current file
 							countFails++;
 						}
 						tagalong = true;
@@ -263,8 +262,8 @@ public class StratPanel extends AbstractPanel
 
 			if (countFails > 10) {
 				sp.getProject().getLog()
-					.reportError("There were a total of "	+ (countFails - 1)
-												+ " sample ID pairs found in any of the files that were not found in SampleData");
+					.reportError("There were a total of " + (countFails - 1)
+											 + " sample ID pairs found in any of the files that were not found in SampleData");
 			}
 		}
 		sp.updateColorKey(getClassCounts().convertToHash());
@@ -297,9 +296,9 @@ public class StratPanel extends AbstractPanel
 			for (int i = 0; i < iv.size(); i++) {
 				data = hash.get(sampleList[iv.elementAt(i)]);
 
-				if (Distance.euclidean(	new int[] {x, y},
-																new int[] {	getXPixel(data[currentPair[0][0]][currentPair[0][1]]),
-																						getYPixel(data[currentPair[1][0]][currentPair[1][1]])}) < HIGHLIGHT_DISTANCE) {
+				if (Distance.euclidean(new int[] {x, y},
+															 new int[] {getXPixel(data[currentPair[0][0]][currentPair[0][1]]),
+																					getYPixel(data[currentPair[1][0]][currentPair[1][1]])}) < HIGHLIGHT_DISTANCE) {
 					g.setColor(Color.RED);
 					prox.add(iv.elementAt(i));
 					Grafik.drawCircle(g, getXPixel(data[currentPair[0][0]][currentPair[0][1]]),

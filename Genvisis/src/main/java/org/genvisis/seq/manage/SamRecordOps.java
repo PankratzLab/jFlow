@@ -104,8 +104,8 @@ public class SamRecordOps {
 			if (cigarElement.getOperator() == CigarOperator.S) {
 				String softy = ArrayUtils.toStr(ArrayUtils.subArray(bases, curStart, readIndex), "");
 				// soft clips are at begining and ends of reads....
-				int refPos = curStart == 0	? samRecord.getReferencePositionAtReadPosition(readIndex)
-																		: samRecord.getReferencePositionAtReadPosition(curStart);
+				int refPos = curStart == 0 ? samRecord.getReferencePositionAtReadPosition(readIndex)
+																	 : samRecord.getReferencePositionAtReadPosition(curStart);
 				softies.add(new SoftClipped(softy, new Segment(chr, refPos, refPos)));
 			}
 			if (cigarElement.getOperator().consumesReadBases()) {

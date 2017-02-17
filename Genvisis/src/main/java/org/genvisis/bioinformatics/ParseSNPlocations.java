@@ -54,8 +54,8 @@ public class ParseSNPlocations {
 	// useExistingPositions, log);
 	// }
 
-	private static String[] TAG_SET = {	"NSF", "NSM", "NSN", "SYN", "U3", "U5", "ASS", "DSS", "INT",
-																			"R3", "R5"};
+	private static String[] TAG_SET = {"NSF", "NSM", "NSN", "SYN", "U3", "U5", "ASS", "DSS", "INT",
+																		 "R3", "R5"};
 	private static String[] TAG_SET_2 = {"PM", "MUT"};
 
 	public static int[][] parseSNPLocations(String snpListFile, String vcfFile, String unmappedVCF,
@@ -74,18 +74,18 @@ public class ParseSNPlocations {
 		String PROG_KEY = "PARSESNPS";
 		int lineCnt = Files.countLines(snpListFile, 0);
 		if (monitor != null) {
-			monitor.beginDeterminateTask(	PROG_KEY, "Processing " + lineCnt + " SNPs", lineCnt,
-																		ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+			monitor.beginDeterminateTask(PROG_KEY, "Processing " + lineCnt + " SNPs", lineCnt,
+																	 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		} else {
 			System.out.println("Processing " + lineCnt + " SNPs");
 		}
 		VCFFileReader vcfReader = new VCFFileReader(new File(vcfFile), true);
-		VCFFileReader unmappedVCFReader = unmappedVCF == null	? null
+		VCFFileReader unmappedVCFReader = unmappedVCF == null ? null
 																													: new VCFFileReader(new File(unmappedVCF),
 																																							true);
-		VCFFileReader mergedVCFReader =
-																	mergedVCF == null	? null
-																										: new VCFFileReader(new File(mergedVCF), true);
+		VCFFileReader mergedVCFReader = mergedVCF == null ? null
+																											: new VCFFileReader(new File(mergedVCF),
+																																					true);
 		try {
 			reader = Files.getAppropriateReader(snpListFile);
 
@@ -109,8 +109,8 @@ public class ParseSNPlocations {
 					int rsNumber = Integer.parseInt(rs.substring(2));// error checking on RS w/ allele
 					int chrom = rsNumber / (512 * 1024 * 1024) + 1;
 
-					CloseableIterator<VariantContext> vcIter = vcfReader.query("chr"	+ chrom, rsNumber - 2,
-																																			rsNumber + 2);
+					CloseableIterator<VariantContext> vcIter = vcfReader.query("chr" + chrom, rsNumber - 2,
+																																		 rsNumber + 2);
 					VariantContext markerVC = null;
 					while (vcIter.hasNext()) {
 						VariantContext vc = vcIter.next();
@@ -125,9 +125,9 @@ public class ParseSNPlocations {
 						// System.err.println("Error - couldn't find {" + rs + "} in the regular database.
 						// Checking merged and unmapped marker databases...");
 						if (unmappedVCFReader != null) {
-							CloseableIterator<VariantContext> vcIterUn = unmappedVCFReader.query("chr"	+ chrom,
-																																										rsNumber - 2,
-																																										rsNumber + 2);
+							CloseableIterator<VariantContext> vcIterUn = unmappedVCFReader.query("chr" + chrom,
+																																									 rsNumber - 2,
+																																									 rsNumber + 2);
 							while (vcIterUn.hasNext()) {
 								VariantContext vc = vcIterUn.next();
 								if (vc.getID().equals(rs)) {
@@ -153,9 +153,9 @@ public class ParseSNPlocations {
 								int rsCurr = Integer.parseInt(curr.startsWith("rs") ? curr.substring(2) : curr);
 								int chromCurr = rsCurr / (512 * 1024 * 1024) + 1;
 								CloseableIterator<VariantContext> vcIterUn = mergedVCFReader.query("chr"
-																																											+ chromCurr,
-																																										rsCurr - 2,
-																																										rsCurr + 2);
+																																									 + chromCurr,
+																																									 rsCurr - 2,
+																																									 rsCurr + 2);
 								while (vcIterUn.hasNext()) {
 									VariantContext vc = vcIterUn.next();
 									if (vc.getID().equals(curr)) {
@@ -232,8 +232,8 @@ public class ParseSNPlocations {
 		return resultList.toArray(new int[resultList.size()][]);
 	}
 
-	public static void parseSNPlocations(	String snpListFile, String vcfFile, String unmappedVCF,
-																				String mergedVCF, Logger log, ProgressMonitor monitor) {
+	public static void parseSNPlocations(String snpListFile, String vcfFile, String unmappedVCF,
+																			 String mergedVCF, Logger log, ProgressMonitor monitor) {
 		BufferedReader reader;
 		PrintWriter writer;
 
@@ -247,18 +247,18 @@ public class ParseSNPlocations {
 		String PROG_KEY = "PARSESNPS";
 		int lineCnt = Files.countLines(snpListFile, 0);
 		if (monitor != null) {
-			monitor.beginDeterminateTask(	PROG_KEY, "Processing " + lineCnt + " SNPs", lineCnt,
-																		ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+			monitor.beginDeterminateTask(PROG_KEY, "Processing " + lineCnt + " SNPs", lineCnt,
+																	 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		} else {
 			System.out.println("Processing " + lineCnt + " SNPs");
 		}
 		VCFFileReader vcfReader = new VCFFileReader(new File(vcfFile), true);
-		VCFFileReader unmappedVCFReader = unmappedVCF == null	? null
+		VCFFileReader unmappedVCFReader = unmappedVCF == null ? null
 																													: new VCFFileReader(new File(unmappedVCF),
 																																							true);
-		VCFFileReader mergedVCFReader =
-																	mergedVCF == null	? null
-																										: new VCFFileReader(new File(mergedVCF), true);
+		VCFFileReader mergedVCFReader = mergedVCF == null ? null
+																											: new VCFFileReader(new File(mergedVCF),
+																																					true);
 
 		try {
 			reader = Files.getAppropriateReader(snpListFile);
@@ -272,11 +272,11 @@ public class ParseSNPlocations {
 				}
 				index++;
 				if (!parts[0].startsWith("rs")) {
-					writer.println(parts[0]	+ "\t" + (parts.length > 1 ? parts[1] : ".") + "\t"
-													+ (parts.length > 2 ? parts[2] : ".") + "\t"
-													+ (parts.length > 3 ? parts[3] : ".") + "\t"
-													+ (parts.length > 4 ? parts[4] : ".") + "\t" + "." + "\t" + "." + "\t"
-													+ "." + "\t" + ".");
+					writer.println(parts[0] + "\t" + (parts.length > 1 ? parts[1] : ".") + "\t"
+												 + (parts.length > 2 ? parts[2] : ".") + "\t"
+												 + (parts.length > 3 ? parts[3] : ".") + "\t"
+												 + (parts.length > 4 ? parts[4] : ".") + "\t" + "." + "\t" + "." + "\t"
+												 + "." + "\t" + ".");
 					nonRS.add(parts[0]);
 					indexMap.put(parts[0], index);
 					// parse chr:pos:alleles markers later
@@ -288,8 +288,8 @@ public class ParseSNPlocations {
 					int rsNumber = Integer.parseInt(rs.substring(2));// error checking on RS w/ allele
 					int chrom = rsNumber / (512 * 1024 * 1024) + 1;
 
-					CloseableIterator<VariantContext> vcIter = vcfReader.query("chr"	+ chrom, rsNumber - 2,
-																																			rsNumber + 2);
+					CloseableIterator<VariantContext> vcIter = vcfReader.query("chr" + chrom, rsNumber - 2,
+																																		 rsNumber + 2);
 					VariantContext markerVC = null;
 					while (vcIter.hasNext()) {
 						VariantContext vc = vcIter.next();
@@ -304,9 +304,9 @@ public class ParseSNPlocations {
 						// System.err.println("Error - couldn't find {" + rs + "} in the regular database.
 						// Checking merged and unmapped marker databases...");
 						if (unmappedVCFReader != null) {
-							CloseableIterator<VariantContext> vcIterUn = unmappedVCFReader.query("chr"	+ chrom,
-																																										rsNumber - 2,
-																																										rsNumber + 2);
+							CloseableIterator<VariantContext> vcIterUn = unmappedVCFReader.query("chr" + chrom,
+																																									 rsNumber - 2,
+																																									 rsNumber + 2);
 							while (vcIterUn.hasNext()) {
 								VariantContext vc = vcIterUn.next();
 								if (vc.getID().equals(rs)) {
@@ -332,9 +332,9 @@ public class ParseSNPlocations {
 								int rsCurr = Integer.parseInt(curr.startsWith("rs") ? curr.substring(2) : curr);
 								int chromCurr = rsCurr / (512 * 1024 * 1024) + 1;
 								CloseableIterator<VariantContext> vcIterUn = mergedVCFReader.query("chr"
-																																											+ chromCurr,
-																																										rsCurr - 2,
-																																										rsCurr + 2);
+																																									 + chromCurr,
+																																									 rsCurr - 2,
+																																									 rsCurr + 2);
 								while (vcIterUn.hasNext()) {
 									VariantContext vc = vcIterUn.next();
 									if (vc.getID().equals(curr)) {
@@ -372,14 +372,14 @@ public class ParseSNPlocations {
 						String attr = (String) markerVC.getAttribute("CHRPOS");
 						String[] pts = attr.split(":");
 						StringBuilder newLine = new StringBuilder();
-						newLine	.append(rs).append("\t").append(parts.length > 1 ? parts[1] : pts[0])
-										.append("\t").append(parts.length > 2 ? parts[2] : pts[1]).append("\t");
+						newLine.append(rs).append("\t").append(parts.length > 1 ? parts[1] : pts[0])
+									 .append("\t").append(parts.length > 2 ? parts[2] : pts[1]).append("\t");
 						String ref = markerVC.getReference().toString();
 						if (ref.endsWith("*")) {
 							ref = ref.substring(0, ref.length() - 1);
 						}
-						newLine	.append(ref).append("\t").append(markerVC.getAltAlleleWithHighestAlleleCount())
-										.append("\t");
+						newLine.append(ref).append("\t").append(markerVC.getAltAlleleWithHighestAlleleCount())
+									 .append("\t");
 						boolean found = false;
 						for (String funcKey : TAG_SET) {
 							if (markerVC.getAttributes().keySet().contains(funcKey)) {
@@ -429,11 +429,11 @@ public class ParseSNPlocations {
 						}
 						writer.println(newLine.toString());
 					} else {
-						writer.println(rs	+ "\t" + (parts.length > 1 ? parts[1] : ".") + "\t"
-														+ (parts.length > 2 ? parts[2] : ".") + "\t"
-														+ (parts.length > 3 ? parts[3] : ".") + "\t"
-														+ (parts.length > 4 ? parts[4] : ".") + "\t" + "." + "\t" + "." + "\t"
-														+ "." + "\t" + ".");
+						writer.println(rs + "\t" + (parts.length > 1 ? parts[1] : ".") + "\t"
+													 + (parts.length > 2 ? parts[2] : ".") + "\t"
+													 + (parts.length > 3 ? parts[3] : ".") + "\t"
+													 + (parts.length > 4 ? parts[4] : ".") + "\t" + "." + "\t" + "." + "\t"
+													 + "." + "\t" + ".");
 						rsNotFound.add(rs);
 						indexMap.put(rs, index);
 					}
@@ -469,8 +469,8 @@ public class ParseSNPlocations {
 		}
 	}
 
-	public static void lowMemParse(	String snpListFile, String db, String mergeDB,
-																	boolean useExistingPositions, Logger log) {
+	public static void lowMemParse(String snpListFile, String db, String mergeDB,
+																 boolean useExistingPositions, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -527,10 +527,10 @@ public class ParseSNPlocations {
 							rs = rs.substring(0, rs.indexOf(":")); // remove alleles if they exist
 						}
 						index = ArrayUtils.binarySearch(dbRSnumbers, Integer.parseInt(rs.substring(2)), true); // TODO
-																																															// parse
-																																															// RS
-																																															// w/
-																																															// alleles
+						// parse
+						// RS
+						// w/
+						// alleles
 						if (index == -1) {
 							if (mergeDB != null) {
 								if (mergeHash == null) {
@@ -550,14 +550,14 @@ public class ParseSNPlocations {
 									next = mergeHash.get(trav);
 								}
 								if (rs.equals("rs" + trav)) {
-									log.reportError("\n\n****ERROR**** failed to find "	+ rs
+									log.reportError("\n\n****ERROR**** failed to find " + rs
 																	+ " in any NCBI database ****ERROR****\n\n");
 								} else if (trav != null) {
 									log.reportError("FYI - " + rs + " has merged with rs" + trav);
 									index = ArrayUtils.binarySearch(dbRSnumbers, trav.intValue(), true);
 
 									if (index == -1) {
-										log.reportError("Error - could not find rs"	+ trav + " in " + db
+										log.reportError("Error - could not find rs" + trav + " in " + db
 																		+ "; must have been added after this db was released");
 										chr = (byte) 0;
 										position = 0;
@@ -581,7 +581,7 @@ public class ParseSNPlocations {
 								chr = 0;
 								position = -1;
 							} else if (dbPositions[index] == ParseSNPlocations.MULTIPLE_POSITIONS) {
-								log.reportError("Warning - marker "	+ rs
+								log.reportError("Warning - marker " + rs
 																+ " likely has multiple positions on chromosome " + dbChrs[index]);
 								chr = dbChrs[index];
 								position = -1;
@@ -634,8 +634,8 @@ public class ParseSNPlocations {
 		log.report("Done with the positions! " + ext.getTime());
 	}
 
-	public static void hashParse(	String snpListFile, String db, String mergeDB,
-																boolean useExistingPositions, Logger log) {
+	public static void hashParse(String snpListFile, String db, String mergeDB,
+															 boolean useExistingPositions, Logger log) {
 		// boolean reminderToCode = true;
 		// TODO Auto-generated catch block
 		BufferedReader reader;
@@ -688,7 +688,8 @@ public class ParseSNPlocations {
 
 					}
 					if (line[0].startsWith("rs")) {
-						index = ArrayUtils.binarySearch(dbRSnumbers, Integer.parseInt(line[0].substring(2)), true);
+						index = ArrayUtils.binarySearch(dbRSnumbers, Integer.parseInt(line[0].substring(2)),
+																						true);
 						if (index == -1) {
 							if (mergeDB != null) {
 								if (mergeHash == null) {
@@ -708,7 +709,7 @@ public class ParseSNPlocations {
 									next = mergeHash.get(trav);
 								}
 								if (line[0].equals("rs" + trav)) {
-									log.reportError("\n\n****ERROR**** failed to find "	+ line[0]
+									log.reportError("\n\n****ERROR**** failed to find " + line[0]
 																	+ " in any NCBI database ****ERROR****\n\n");
 								} else if (trav != null) {
 									log.reportError("FYI - " + line[0] + " has merged with rs" + trav);
@@ -731,7 +732,7 @@ public class ParseSNPlocations {
 								chr = 0;
 								position = -1;
 							} else if (dbPositions[index] == ParseSNPlocations.MULTIPLE_POSITIONS) {
-								log.reportError("Warning - marker "	+ line[0]
+								log.reportError("Warning - marker " + line[0]
 																+ " likely has multiple positions on chromosome " + dbChrs[index]);
 								chr = dbChrs[index];
 								position = -1;
@@ -805,8 +806,8 @@ public class ParseSNPlocations {
 							try {
 								positions[count] = Integer.parseInt(line[2]);
 							} catch (NumberFormatException nfe) {
-								System.err.println("Error - parsing line #"	+ (count + 1) + ": "
-																		+ ArrayUtils.toStr(line));
+								System.err.println("Error - parsing line #" + (count + 1) + ": "
+																	 + ArrayUtils.toStr(line));
 							}
 						} else {
 							positions[count] = MULTIPLE_POSITIONS;
@@ -828,8 +829,8 @@ public class ParseSNPlocations {
 			}
 			reader.close();
 			if (countPARys > 0) {
-				System.err.println("Warning - there were "	+ countPARys
-														+ " instances where the chromosome was listed as PAR and the position was nothing but 'y'");
+				System.err.println("Warning - there were " + countPARys
+													 + " instances where the chromosome was listed as PAR and the position was nothing but 'y'");
 			}
 			// already in order, d'uh!
 			// System.out.println("Sorting...");
@@ -919,15 +920,15 @@ public class ParseSNPlocations {
 		String filename = "list.txt";
 		boolean plinkFormat = false;
 
-		String usage = "\n"	+ "bioinformatics.ParseSNPlocations requires 0-1 arguments\n"
-										+ "   (1) file from which to create snp db (i.e. source="
-										+ DEFAULT_B37_SOURCE_FILENAME + " (not the default))\n" + "  OR:\n"
-										+ "   (1) file from which to create merge db (i.e. source="
-										+ DEFAULT_MERGE_SOURCE_FILENAME + " (not the default))\n" + "  OR:\n"
-										+ "   (1) snpDB (i.e. db=" + db + " (default))\n"
-										+ "   (2) merge DB (i.e. merge=" + merge + " (default))\n"
-										+ "   (3) dir (i.e. dir=" + dir + " (default))\n"
-										+ "   (4) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "bioinformatics.ParseSNPlocations requires 0-1 arguments\n"
+									 + "   (1) file from which to create snp db (i.e. source="
+									 + DEFAULT_B37_SOURCE_FILENAME + " (not the default))\n" + "  OR:\n"
+									 + "   (1) file from which to create merge db (i.e. source="
+									 + DEFAULT_MERGE_SOURCE_FILENAME + " (not the default))\n" + "  OR:\n"
+									 + "   (1) snpDB (i.e. db=" + db + " (default))\n"
+									 + "   (2) merge DB (i.e. merge=" + merge + " (default))\n"
+									 + "   (3) dir (i.e. dir=" + dir + " (default))\n" + "   (4) filename (i.e. file="
+									 + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -968,17 +969,17 @@ public class ParseSNPlocations {
 			} else {
 				if (vcf != null) {
 					long t = System.currentTimeMillis();
-					parseSNPlocations(dir	+ filename, vcf, unmappedvcf, mergedvcf, log,
+					parseSNPlocations(dir + filename, vcf, unmappedvcf, mergedvcf, log,
 														new ProgressMonitor(null, log));
 					System.out.println("Took " + ext.getTimeElapsed(t));
 				} else {
 					long t = System.currentTimeMillis();
-					SnpMarkerSet map = new SnpMarkerSet(dir	+ filename,
-																							plinkFormat	? SnpMarkerSet.PLINK_MAP_FORMAT
+					SnpMarkerSet map = new SnpMarkerSet(dir + filename,
+																							plinkFormat ? SnpMarkerSet.PLINK_MAP_FORMAT
 																													: SnpMarkerSet.NAMES_ONLY,
 																							true, log);
 					map.parseSNPlocations(db, merge, log);
-					map.writeToFile(dir	+ ext.rootOf(filename) + "_newPositions.out",
+					map.writeToFile(dir + ext.rootOf(filename) + "_newPositions.out",
 													SnpMarkerSet.GENERIC_FORMAT, log);
 					System.out.println("Took " + ext.getTimeElapsed(t));
 				}

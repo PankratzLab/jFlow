@@ -35,7 +35,7 @@ public class Correlation {
 	}
 
 	public static double[] Spearman(double[][] data) {
-		return Pearson(new double[][] {	Transformations.rankTransform(data[0]),
-																		Transformations.rankTransform(data[1])});
+		return Pearson(new double[][] {Transformations.rankTransform(data[0]),
+																	 Transformations.rankTransform(data[1])});
 	}
 }

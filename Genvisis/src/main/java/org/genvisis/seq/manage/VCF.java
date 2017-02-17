@@ -87,7 +87,7 @@ public class VCF {
 		String[] infos = new String[vcfInfoHeaderLines.size()];
 		int index = 0;
 		for (VCFInfoHeaderLine vcfInfoHeaderLine : vcfInfoHeaderLines) {
-			infos[index] = (vcfInfoHeaderLine.getID()	+ "\t" + vcfInfoHeaderLine.getType() + "\t"
+			infos[index] = (vcfInfoHeaderLine.getID() + "\t" + vcfInfoHeaderLine.getType() + "\t"
 											+ vcfInfoHeaderLine.getDescription() + "\t");
 			index++;
 		}
@@ -119,10 +119,10 @@ public class VCF {
 		return true;
 	}
 
-	public void filter(	String[] jexpression, VcfPopulation vpop, String[] name, String[] toDump,
-											String bamDir, String outputDir,
-											Hashtable<String, Vector<String>> IDsToExtract, String segFile,
-											int numThreads, int bpBuffer, int mac) {
+	public void filter(String[] jexpression, VcfPopulation vpop, String[] name, String[] toDump,
+										 String bamDir, String outputDir,
+										 Hashtable<String, Vector<String>> IDsToExtract, String segFile, int numThreads,
+										 int bpBuffer, int mac) {
 		BamExtractor.BamSample bamSample = null;
 		ArrayList<String> toDumpTmp = new ArrayList<String>();
 		ArrayList<String> keys = new ArrayList<String>();
@@ -142,7 +142,8 @@ public class VCF {
 		}
 		if (hasAllInfos(toDump)) {
 			if (toDump != null) {
-				log.reportTimeInfo("Will be dumping the following annotations " + ArrayUtils.toStr(toDump, ","));
+				log.reportTimeInfo("Will be dumping the following annotations "
+													 + ArrayUtils.toStr(toDump, ","));
 				toDumpTmp.add("CHR\tPOS\t" + ArrayUtils.toStr(toDump) + "\tNumAlleles");
 			}
 			if (outputDir == null) {
@@ -159,8 +160,8 @@ public class VCF {
 			if (bamDir != null) {
 				log.reportTimeInfo("Since a bam directory was provided, we will verify that all samples in the vcf have a corresponding bam file prior to filtering");
 				extractBams = true;
-				bamSample =
-									new BamExtractor.BamSample(Files.listFullPaths(bamDir, ".bam", false), log, true);
+				bamSample = new BamExtractor.BamSample(Files.listFullPaths(bamDir, ".bam", false), log,
+																							 true);
 				bamSample.generateMap();
 				bamSample.getBamSampleMap();
 				if ((!bamSample.isFail()) && (bamSample.verify(getSamplesInVcf(), null))) {
@@ -209,12 +210,12 @@ public class VCF {
 				}
 				if ((count != 0) && (count % 100000 == 0)) {
 					log.report(ext.getTime() + " Info - scanned " + count + " variants");
-					log.report(ext.getTime()	+ " Info - " + countPass
-											+ " variants have passed the filter thus far...currently on chromosome "
-											+ variantContext.getContig());
+					log.report(ext.getTime() + " Info - " + countPass
+										 + " variants have passed the filter thus far...currently on chromosome "
+										 + variantContext.getContig());
 					if (IDsToExtract.size() > 0) {
-						log.report(ext.getTime()	+ " Info - " + countPass + " variants ( " + IDsToExtract.size()
-												+ " eligible ) have passed the filter(s) thus far...");
+						log.report(ext.getTime() + " Info - " + countPass + " variants ( " + IDsToExtract.size()
+											 + " eligible ) have passed the filter(s) thus far...");
 					}
 				}
 				if (write) {
@@ -233,11 +234,11 @@ public class VCF {
 						String tmp = variantContext.getContig() + "\t" + variantContext.getStart();
 						int numAlts = variantContext.getHomVarCount() * 2 + variantContext.getHetCount();
 						for (String element : toDump) {
-							String key = element	+ "\t"
-														+ variantContext.getCommonInfo().getAttributeAsString(element, ".");
+							String key = element + "\t"
+													 + variantContext.getCommonInfo().getAttributeAsString(element, ".");
 							try {
-								Double.parseDouble(variantContext.getCommonInfo().getAttributeAsString(	element,
-																																												"."));
+								Double.parseDouble(variantContext.getCommonInfo().getAttributeAsString(element,
+																																											 "."));
 							} catch (NumberFormatException nfe) {
 								if (!histCOUNT.containsKey(key)) {
 									histALLELE.put(key, Integer.valueOf(0));
@@ -258,14 +259,14 @@ public class VCF {
 			vcfFileReader.close();
 			variantContextWriter.close();
 			if (toDump != null) {
-				Files.writeArray(	ArrayUtils.toStringArray(toDumpTmp),
-													ext.rootOf(outputVCF, false) + ".filteredAnno");
+				Files.writeArray(ArrayUtils.toStringArray(toDumpTmp),
+												 ext.rootOf(outputVCF, false) + ".filteredAnno");
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(ext.rootOf(outputVCF, false)
 																															+ ".hist"));
 					for (int i = 0; i < keys.size(); i++) {
-						writer.println(keys.get(i)	+ "\t" + histCOUNT.get(keys.get(i)) + "\t"
-														+ histALLELE.get(keys.get(i)));
+						writer.println(keys.get(i) + "\t" + histCOUNT.get(keys.get(i)) + "\t"
+													 + histALLELE.get(keys.get(i)));
 					}
 					writer.close();
 				} catch (Exception e) {
@@ -275,8 +276,8 @@ public class VCF {
 			}
 			if (extractBams) {
 				BamExtractor.extractAll(bamSample, outputDir, bpBuffer, true, true, numThreads, log);
-				bamSample = new BamExtractor.BamSample(	Files.listFullPaths(outputDir, ".bam", false), log,
-																								true);
+				bamSample = new BamExtractor.BamSample(Files.listFullPaths(outputDir, ".bam", false), log,
+																							 true);
 				bamSample.generateMap();
 				bamSample.dumpToIGVMap(outputVCF, null);
 			}
@@ -294,28 +295,27 @@ public class VCF {
 		String rootOut = ext.rootOf(vcfFile, false);
 		String[] outFiles = PSF.Plink.getPlinkBedBimFam(rootOut);
 		String[] plinkCommand = PSF.Plink.getPlinkVCFCommand(vcfFile, rootOut);
-		CmdLine.runCommandWithFileChecks(	plinkCommand, "", new String[] {vcfFile}, outFiles, true, true,
-																			false, log);
+		CmdLine.runCommandWithFileChecks(plinkCommand, "", new String[] {vcfFile}, outFiles, true, true,
+																		 false, log);
 	}
 
-	private static VariantContextWriter initWriter(	VCFFileReader vcfFileReader, String output,
-																									boolean siteOnly) {
-		VCFHeader inputVcfHeader = siteOnly	? new VCFHeader(vcfFileReader	.getFileHeader()
-																																			.getMetaDataInInputOrder())
+	private static VariantContextWriter initWriter(VCFFileReader vcfFileReader, String output,
+																								 boolean siteOnly) {
+		VCFHeader inputVcfHeader = siteOnly ? new VCFHeader(vcfFileReader.getFileHeader()
+																																		 .getMetaDataInInputOrder())
 																				: vcfFileReader.getFileHeader();
 		SAMSequenceDictionary sequenceDictionary = inputVcfHeader.getSequenceDictionary();
-		VariantContextWriterBuilder builder =
-																				new VariantContextWriterBuilder()	.setOutputFile(output)
-																																					.setReferenceDictionary(sequenceDictionary);
+		VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(output)
+																																					 .setReferenceDictionary(sequenceDictionary);
 		builder.setOption(Options.INDEX_ON_THE_FLY);
 		VariantContextWriter writer = builder.build();
-		writer.writeHeader(siteOnly	? new VCFHeader(inputVcfHeader.getMetaDataInInputOrder(), SAMPLE)
+		writer.writeHeader(siteOnly ? new VCFHeader(inputVcfHeader.getMetaDataInInputOrder(), SAMPLE)
 																: inputVcfHeader);
 		return writer;
 	}
 
-	private static VariantContext subsetToSamplesWithOriginalAnnotations(	VariantContext ctx,
-																																				Set<String> samples) {
+	private static VariantContext subsetToSamplesWithOriginalAnnotations(VariantContext ctx,
+																																			 Set<String> samples) {
 		VariantContextBuilder builder = new VariantContextBuilder(ctx);
 		GenotypesContext newGenotypes = ctx.getGenotypes().subsetToSamples(samples);
 		builder.alleles(ctx.getAlleles());
@@ -333,8 +333,7 @@ public class VCF {
 			log.report("Info - creating index file " + indexFile);
 			try {
 				Index index = IndexFactory.createLinearIndex(new File(vcfFile), new VCFCodec());
-				LittleEndianOutputStream stream =
-																				new LittleEndianOutputStream(new FileOutputStream(indexFile));
+				LittleEndianOutputStream stream = new LittleEndianOutputStream(new FileOutputStream(indexFile));
 				index.write(stream);
 				stream.close();
 				created = true;
@@ -374,18 +373,18 @@ public class VCF {
 		return params;
 	}
 
-	public static String getIgvXmlScript(	String miniSamDir, String chr, String pos,
-																				String[] miniSamFilenamesOfOneTrio) {
+	public static String getIgvXmlScript(String miniSamDir, String chr, String pos,
+																			 String[] miniSamFilenamesOfOneTrio) {
 		return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n<Session genome=\"hg19\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"chr"
-							+ chr + ":" + pos + "\" version=\"8\">" + "\n<Resources>" + "\n<Resource path=\""
-						+ miniSamDir + miniSamFilenamesOfOneTrio[1] + "\"/>" + "\n<Resource path=\""
-						+ miniSamDir + miniSamFilenamesOfOneTrio[2] + "\"/>" + "\n<Resource path=\""
-						+ miniSamDir + miniSamFilenamesOfOneTrio[3] + "\"/>" + "\n</Resources>" + "</Session>";
+					 + chr + ":" + pos + "\" version=\"8\">" + "\n<Resources>" + "\n<Resource path=\""
+					 + miniSamDir + miniSamFilenamesOfOneTrio[1] + "\"/>" + "\n<Resource path=\"" + miniSamDir
+					 + miniSamFilenamesOfOneTrio[2] + "\"/>" + "\n<Resource path=\"" + miniSamDir
+					 + miniSamFilenamesOfOneTrio[3] + "\"/>" + "\n</Resources>" + "</Session>";
 	}
 
 	public static String getIgvLaunchScript(String fulPathToXml) {
 		return "java -Xmx1200m -Dproduction=true -Djava.net.preferIPv4Stack=true -Dsun.java2d.noddraw=true -jar D:/logan/DeNovos/IGV/IGV_2.3.36/igv.jar "
-						+ fulPathToXml;
+					 + fulPathToXml;
 	}
 
 	public static void extractAvaliableAnnotations(String vcfFile, Logger log) {
@@ -423,14 +422,14 @@ public class VCF {
 			IDsToExtract = HashVec.loadFileToHashVec(idFile, 0, new int[1], "\t", false, true);
 			log.reportTimeInfo("Subsetting the search to " + IDsToExtract.size() + " ID(s)");
 		}
-		vcf.filter(	new String[] {jexp == null ? null : jexp}, vpop, new String[] {jexpName}, toDump,
-								bamDir, outputDir, IDsToExtract, segFile, numThreads, bpBuffer, mac);
+		vcf.filter(new String[] {jexp == null ? null : jexp}, vpop, new String[] {jexpName}, toDump,
+							 bamDir, outputDir, IDsToExtract, segFile, numThreads, bpBuffer, mac);
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params = Files.parseControlFile(	filename, "VCFilt",
-																										getParserParams(ext.parseDirectoryOfFile(filename)),
-																										log);
+		Vector<String> params = Files.parseControlFile(filename, "VCFilt",
+																									 getParserParams(ext.parseDirectoryOfFile(filename)),
+																									 log);
 		if (params != null) {
 			main(ArrayUtils.toStringArray(params));
 		}
@@ -460,14 +459,14 @@ public class VCF {
 		usage = usage + "   (2) filter expression to use on the vcf file (i.e. filter= (no default))\n";
 		usage = usage + "   (3) filter name (i.e. name=" + filterName + " (no default))\n";
 		usage = usage
-							+ "   (4) bam directory containing .bam files to match with variants in the vcf, defaults to not matching (i.e. bamDir="
+						+ "   (4) bam directory containing .bam files to match with variants in the vcf, defaults to not matching (i.e. bamDir="
 						+ bamDir + " (no default))\n";
-		usage =
-					usage	+ "   (5) output directory, defualts to directory of the vcf file (i.e. outputdir="
+		usage = usage
+						+ "   (5) output directory, defualts to directory of the vcf file (i.e. outputdir="
 						+ bamDir + " (no default))\n";
-		usage = usage	+ "   (6) number of threads to use if extracting bams (i.e. numthreads="
+		usage = usage + "   (6) number of threads to use if extracting bams (i.e. numthreads="
 						+ numThreads + " ( default))\n";
-		usage = usage	+ "   (7) up and downstream base-pair buffer if extracting bams (i.e. bpBuffer="
+		usage = usage + "   (7) up and downstream base-pair buffer if extracting bams (i.e. bpBuffer="
 						+ bpBuffer + " ( default))\n";
 		usage = usage
 						+ "   (8) ids to filter from the \"ID\" column (note that any other filters will also be applied) (i.e. IDFile= (no default))\n";
@@ -477,13 +476,13 @@ public class VCF {
 		usage = usage + "   (11) mac for case    (i.e. mac=" + mac + " ( default))\n";
 
 		usage = usage + "   OR:";
-		usage = usage	+ "   (1) extract available annotations from a vcf for filtering (i.e. name="
+		usage = usage + "   (1) extract available annotations from a vcf for filtering (i.e. name="
 						+ filterName + " (no default))\n";
 		usage = usage + "   OR:";
-		usage = usage	+ "   (1) dump to a site only vcf (no genotypes) (i.e. -dump" + filterName
+		usage = usage + "   (1) dump to a site only vcf (no genotypes) (i.e. -dump" + filterName
 						+ " (no default))\n";
 		for (String arg : args) {
-			if ((arg.equals("-h"))	|| (arg.equals("-help")) || (arg.equals("/h"))
+			if ((arg.equals("-h")) || (arg.equals("-help")) || (arg.equals("/h"))
 					|| (arg.equals("/help"))) {
 				System.err.println(usage);
 				System.exit(1);
@@ -544,8 +543,8 @@ public class VCF {
 			Logger log = new Logger(logfile);
 			String expression = null;
 			if (filterExpression.size() > 0) {
-				expression = ArrayUtils.toStr(	filterExpression.toArray(new String[filterExpression.size()]),
-																	"&&");
+				expression = ArrayUtils.toStr(filterExpression.toArray(new String[filterExpression.size()]),
+																			"&&");
 			}
 			if (extractAnnotation) {
 				extractAvaliableAnnotations(vcfFile, log);
@@ -553,8 +552,8 @@ public class VCF {
 			if (dump) {
 				dumpToSiteOnly(vcfFile, log);
 			} else {
-				filterByExpression(	vcfFile, vpop, expression, filterName, toDump, bamDir, outputDir, idFile,
-														segFile, numThreads, bpBuffer, mac, log);
+				filterByExpression(vcfFile, vpop, expression, filterName, toDump, bamDir, outputDir, idFile,
+													 segFile, numThreads, bpBuffer, mac, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

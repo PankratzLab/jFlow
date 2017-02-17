@@ -7,9 +7,9 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 
 public class Rvtests {
-	public static void generateRvtestsScript(	String dirOfRvtestsCommands, String dirOfPedFiles,
-																						String fullpathToVcf, String scriptsDir,
-																						String resultsDir, Logger log) {
+	public static void generateRvtestsScript(String dirOfRvtestsCommands, String dirOfPedFiles,
+																					 String fullpathToVcf, String scriptsDir,
+																					 String resultsDir, Logger log) {
 		String[] files;
 		String command = null;
 		String[][] iterations;
@@ -30,12 +30,12 @@ public class Rvtests {
 			iterations[i][1] = files[i].split("_pheno")[0];
 		}
 
-		command =
-						dirOfRvtestsCommands	+ "vcf2kinship" + " --ped " + dirOfPedFiles + "[%0]" + " --inVcf "
-							+ fullpathToVcf + " --bn" + " --out " + resultsDir + "[%1]" + " --xLabel X --xHemi"
-							+ "\n" + dirOfRvtestsCommands + "rvtest" + " --pheno " + dirOfPedFiles + "[%0]"
-							+ " --inVcf " + fullpathToVcf + " --out " + resultsDir + "[%1]" + " --kinship "
-							+ resultsDir + "[%1].kinship" + " --xLabel X --meta score,cov,dominant,recessive";
+		command = dirOfRvtestsCommands + "vcf2kinship" + " --ped " + dirOfPedFiles + "[%0]"
+							+ " --inVcf " + fullpathToVcf + " --bn" + " --out " + resultsDir + "[%1]"
+							+ " --xLabel X --xHemi" + "\n" + dirOfRvtestsCommands + "rvtest" + " --pheno "
+							+ dirOfPedFiles + "[%0]" + " --inVcf " + fullpathToVcf + " --out " + resultsDir
+							+ "[%1]" + " --kinship " + resultsDir + "[%1].kinship"
+							+ " --xLabel X --meta score,cov,dominant,recessive";
 
 		// Files.qsub("rvtests", command, Matrix.toMatrix(files), -1, 6, -1);
 		Files.qsub(scriptsDir + "[%1]", command, iterations, -1, 6, -1);
@@ -78,7 +78,7 @@ public class Rvtests {
 		for (int i = 0; i < conversionTable.size(); i++) {
 			for (int j = 0; j < conversionTable.size(); j++) {
 				if (i != j && conversionTable.elementAt(i)[1].contains(conversionTable.elementAt(j)[0])) {
-					log.reportError("Error - chained conversion: "	+ conversionTable.elementAt(i)[0] + "="
+					log.reportError("Error - chained conversion: " + conversionTable.elementAt(i)[0] + "="
 													+ conversionTable.elementAt(i)[1] + ";\t"
 													+ conversionTable.elementAt(j)[0] + "="
 													+ conversionTable.elementAt(j)[1]);
@@ -134,38 +134,35 @@ public class Rvtests {
 		isScripts = false;
 		dirOfRvtestsCommands = "/home/pankrat2/shared/skatMeta/giant_hematology/rvtests/executable/";
 		dirOfPedFiles = "/home/pankrat2/shared/skatMeta/giant_hematology/pedigrees/";
-		fullpathToVcf =
-									"/home/pankrat2/shared/skatMeta/giant_hematology/vcf_files/CARDIA_AA_CHR1_23_STRANDALIGNED_FINAL_nochr.vcf.gz";
+		fullpathToVcf = "/home/pankrat2/shared/skatMeta/giant_hematology/vcf_files/CARDIA_AA_CHR1_23_STRANDALIGNED_FINAL_nochr.vcf.gz";
 		rScriptDir = "/home/pankrat2/shared/skatMeta/giant_hematology/scripts/";
 		resultsDir = "/home/pankrat2/shared/skatMeta/giant_hematology/results/";
 
 		isRename = false;
-		filenameConversionTable =
-														"RBC,HCT,HGB,MCV,MCH,MCHC,RDW,WBC_TOTAL=WBC,WBC_BASO=BAS,WBC_EOS=EOS,WBC_LYMPH=LYM,WBC_MONO=MON,WBC_NEUTRO=NEU,PLT,MPV";
+		filenameConversionTable = "RBC,HCT,HGB,MCV,MCH,MCHC,RDW,WBC_TOTAL=WBC,WBC_BASO=BAS,WBC_EOS=EOS,WBC_LYMPH=LYM,WBC_MONO=MON,WBC_NEUTRO=NEU,PLT,MPV";
 		filenameSegmentIndices = "0,2,COHORT,1,'121114',np";
 
 		String usage = "\nTo generate scripts for all the .ped files in a single directory:"
-											+ "\n   (1) command for generating scripts (i.e. " + commandIsScript
-										+ " (default))" + "\n   (2) directory of the RvTests executable files (i.e. "
-										+ commandRvExecutable + dirOfRvtestsCommands + " (default))"
-										+ "\n   (3) directory of the .ped files (i.e. " + commandPedDir + dirOfPedFiles
-										+ " (default))" + "\n   (4) directory of the condition files (i.e. "
-										+ commandVcf + fullpathToVcf + " (default))"
-										+ "\n   (5) directory to output the RvTests results files (i.e. "
-										+ commandResultsDir + resultsDir + " (default))"
-										+ "\n   (6) directory to output the scripts (i.e. " + commandScriptDir
-										+ rScriptDir + " (default))" + "\n"
-										+ "\nTo rename the output files per naming scheme:"
-										+ "\n   (1) command for renaming file (i.e. " + commandIsScript + " (default))"
-										+ "\n   (2) directory to output the RvTests results files (i.e. "
-										+ commandResultsDir + resultsDir + " (default))"
-										+ "\n   (3) indices of file name segements (i.e. " + resultsDir + " (default))"
-										+ "\n" + "";
+									 + "\n   (1) command for generating scripts (i.e. " + commandIsScript
+									 + " (default))" + "\n   (2) directory of the RvTests executable files (i.e. "
+									 + commandRvExecutable + dirOfRvtestsCommands + " (default))"
+									 + "\n   (3) directory of the .ped files (i.e. " + commandPedDir + dirOfPedFiles
+									 + " (default))" + "\n   (4) directory of the condition files (i.e. " + commandVcf
+									 + fullpathToVcf + " (default))"
+									 + "\n   (5) directory to output the RvTests results files (i.e. "
+									 + commandResultsDir + resultsDir + " (default))"
+									 + "\n   (6) directory to output the scripts (i.e. " + commandScriptDir
+									 + rScriptDir + " (default))" + "\n"
+									 + "\nTo rename the output files per naming scheme:"
+									 + "\n   (1) command for renaming file (i.e. " + commandIsScript + " (default))"
+									 + "\n   (2) directory to output the RvTests results files (i.e. "
+									 + commandResultsDir + resultsDir + " (default))"
+									 + "\n   (3) indices of file name segements (i.e. " + resultsDir + " (default))"
+									 + "\n" + "";
 
 		// resultsDir = "D:/RvTests/";
 		resultsDir = "/home/pankrat2/shared/skatMeta/giant_hematology/results/";
-		filenameConversionTable =
-														"RBC,HCT,HGB,MCV,MCH,MCHC,RDW,WBC_TOTAL=WBC,WBC_BASO=BAS,WBC_EOS=EOS,WBC_LYMPH=LYM,WBC_MONO=MON,WBC_NEUTRO=NEU,PLT,MPV";
+		filenameConversionTable = "RBC,HCT,HGB,MCV,MCH,MCHC,RDW,WBC_TOTAL=WBC,WBC_BASO=BAS,WBC_EOS=EOS,WBC_LYMPH=LYM,WBC_MONO=MON,WBC_NEUTRO=NEU,PLT,MPV";
 		filenameSegmentIndices = "0,2,COHORT,1,'121114',np";
 		isRename = true;
 
@@ -213,8 +210,8 @@ public class Rvtests {
 														resultsDir, log);
 		} else if (isRename) {
 			log = new Logger();
-			renameToNamingScheme(	resultsDir, filenameConversionTable.split(","),
-														filenameSegmentIndices.split(","), log);
+			renameToNamingScheme(resultsDir, filenameConversionTable.split(","),
+													 filenameSegmentIndices.split(","), log);
 		} else {
 			log = new Logger();
 			log.reportError("No command executed, due to none of the following is specified: "

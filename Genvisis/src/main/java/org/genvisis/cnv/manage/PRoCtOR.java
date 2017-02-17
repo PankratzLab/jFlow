@@ -67,20 +67,20 @@ public class PRoCtOR {
 		if (retCode != 42) {
 			return PCAPrep.errorMessage(retCode);
 		}
-		PrincipalComponentsApply pcApply = PCA.generateFullPCA(	proj, numComponents, outputBase,
-																														recomputeLRR_PCs, true, null,
-																														proj.getLog());
+		PrincipalComponentsApply pcApply = PCA.generateFullPCA(proj, numComponents, outputBase,
+																													 recomputeLRR_PCs, true, null,
+																													 proj.getLog());
 		proj.getLog().reportTime("Setting PCs file: " + pcApply.getExtrapolatedPCsFile());
 		proj.INTENSITY_PC_FILENAME.setValue(pcApply.getExtrapolatedPCsFile());
 
 		if (correctionType == CORRECTION_TYPE.GENERATE_PCS_ONLY) {
 			return "";
 		}
-		PennCNVPrep.prepExport(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
-														numMarkerThreads, LS_TYPE.REGULAR, false, correctionType, strategy);
-		PennCNVPrep.exportSpecialPennCNV(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
-																			numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false,
-																			false, correctionType, strategy);
+		PennCNVPrep.prepExport(proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
+													 numMarkerThreads, LS_TYPE.REGULAR, false, correctionType, strategy);
+		PennCNVPrep.exportSpecialPennCNV(proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
+																		 numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false,
+																		 false, correctionType, strategy);
 		return "";
 	}
 
@@ -96,29 +96,29 @@ public class PRoCtOR {
 		CHROMOSOME_X_STRATEGY strategy = CHROMOSOME_X_STRATEGY.BIOLOGICAL;
 		int numThreads = Runtime.getRuntime().availableProcessors();
 
-		String usage = "\n"+ "cnv.manage.PRoCtOR requires 0-1 arguments\n"
-										+ "   (1) project properties filename (i.e. proj=" + filename + " (default))\n"
-										+ "   (2) Number of principal components for correction (i.e. numComponents="
-										+ numComponents + " (default))\n"
-										+ "   (3) Output file full path and baseName for principal components correction files (i.e. outputBase="
-										+ outputBase + " (default))\n"
-										+ "   (4) Call-rate filter for determining high-quality markers (i.e. callrate="
-										+ callrate + " (default))\n"
-										+ "   (5) Flag specifying whether or not to re-compute Log-R Ratio values (usually false if LRRs already exist) (i.e. recomputeLRR="
-										+ recomputeLRR + " (default))\n"
-										+ "   (6) Type of correction.  Options include: "
-										+ ArrayUtils.toStr(CORRECTION_TYPE.values(), ", ") + " (i.e. type=" + correctionType
-										+ " (default))\n"
+		String usage = "\n" + "cnv.manage.PRoCtOR requires 0-1 arguments\n"
+									 + "   (1) project properties filename (i.e. proj=" + filename + " (default))\n"
+									 + "   (2) Number of principal components for correction (i.e. numComponents="
+									 + numComponents + " (default))\n"
+									 + "   (3) Output file full path and baseName for principal components correction files (i.e. outputBase="
+									 + outputBase + " (default))\n"
+									 + "   (4) Call-rate filter for determining high-quality markers (i.e. callrate="
+									 + callrate + " (default))\n"
+									 + "   (5) Flag specifying whether or not to re-compute Log-R Ratio values (usually false if LRRs already exist) (i.e. recomputeLRR="
+									 + recomputeLRR + " (default))\n"
+									 + "   (6) Type of correction.  Options include: "
+									 + ArrayUtils.toStr(CORRECTION_TYPE.values(), ", ") + " (i.e. type="
+									 + correctionType + " (default))\n"
 
-										+ "   (7) Chromosome X correction strategy.  Options include: "
-										+ ArrayUtils.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy="
-										+ strategy + " (default))\n"
+									 + "   (7) Chromosome X correction strategy.  Options include: "
+									 + ArrayUtils.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy="
+									 + strategy + " (default))\n"
 
-										+ "   (8) Total number of threads to use (i.e. numThreads=" + numThreads
-										+ " (default))\n"
+									 + "   (8) Total number of threads to use (i.e. numThreads=" + numThreads
+									 + " (default))\n"
 
-										+ "   (8) OPTIONAL: temp directory for intermediate files (which tend to be very large) (i.e. tmp="
-										+ tempDir + " (default))\n" + "";
+									 + "   (8) OPTIONAL: temp directory for intermediate files (which tend to be very large) (i.e. tmp="
+									 + tempDir + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -162,7 +162,8 @@ public class PRoCtOR {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			String err = shadow(proj, tempDir, outputBase, callrate, recomputeLRR, correctionType, strategy, numComponents, numThreads);
+			String err = shadow(proj, tempDir, outputBase, callrate, recomputeLRR, correctionType,
+													strategy, numComponents, numThreads);
 			if (!"".equals(err)) {
 				System.err.println("Error - " + err);
 			}

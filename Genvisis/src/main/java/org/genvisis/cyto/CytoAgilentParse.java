@@ -24,15 +24,14 @@ import org.genvisis.common.ext;
 public class CytoAgilentParse {
 	public static final String[] SYSTEMATIC_NAME = {"SystematicName"};
 	public static final String[] MARKER_POSITION_HEADER = {"Marker", "Chr", "Position"};
-	public static final String[] DATA_TO_GRAB = {	"ProbeName", "gProcessedSignal", "rProcessedSignal",
-																								"LogRatio", "gMedianSignal", "rMedianSignal"};
-	public static final String[] CONVERT_TO =
-																					{	"SNP Name", Sample.DATA_FIELDS[7][0],
-																						Sample.DATA_FIELDS[8][0], Sample.DATA_FIELDS[3][0],
-																						Sample.DATA_FIELDS[4][0], Sample.GENOTYPE_FIELDS[0][0],
-																						Sample.GENOTYPE_FIELDS[1][0],
-																						Sample.GENOTYPE_FIELDS[2][0],
-																						Sample.GENOTYPE_FIELDS[3][0]};
+	public static final String[] DATA_TO_GRAB = {"ProbeName", "gProcessedSignal", "rProcessedSignal",
+																							 "LogRatio", "gMedianSignal", "rMedianSignal"};
+	public static final String[] CONVERT_TO = {"SNP Name", Sample.DATA_FIELDS[7][0],
+																						 Sample.DATA_FIELDS[8][0], Sample.DATA_FIELDS[3][0],
+																						 Sample.DATA_FIELDS[4][0], Sample.GENOTYPE_FIELDS[0][0],
+																						 Sample.GENOTYPE_FIELDS[1][0],
+																						 Sample.GENOTYPE_FIELDS[2][0],
+																						 Sample.GENOTYPE_FIELDS[3][0]};
 
 	private static final String[] SPLITS = {"\t"};
 	private static final String CHR = "chr";
@@ -83,8 +82,8 @@ public class CytoAgilentParse {
 		boolean createdMarkerPostions = false;
 		String[] parsedFiles = new String[filesToParse.length];
 		for (int i = 0; i < filesToParse.length; i++) {
-			String genOutput = proj.SOURCE_DIRECTORY.getValue(true, true)	+ ext.rootOf(filesToParse[i])
-													+ GENVISIS_EXT;
+			String genOutput = proj.SOURCE_DIRECTORY.getValue(true, true) + ext.rootOf(filesToParse[i])
+												 + GENVISIS_EXT;
 			parsedFiles[i] = genOutput;
 			// TODO change to not , currently this overwrites existing files?
 			// if (!Files.exists(genOutput)) {
@@ -93,7 +92,7 @@ public class CytoAgilentParse {
 				// !Files.exists(proj.getFilename(proj.MARKER_POSITION_FILENAME, null, false, false))) ||
 				// !createdMarkerPostions) {
 				if ((!Files.exists(proj.MARKERSET_FILENAME.getValue(false, false))
-							&& !Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false)))
+						 && !Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false)))
 						|| !createdMarkerPostions) {
 					// generateMarkerPositions(filesToParse[i],
 					// proj.getFilename(proj.MARKER_POSITION_FILENAME), log);
@@ -102,8 +101,8 @@ public class CytoAgilentParse {
 					createdMarkerPostions = true;
 				}
 			} else {
-				log.report("Error - could not parse file "	+ filesToParse[i]
-										+ ", if this is not an actual sample file, then this is not actually an error and will simply be skipped");
+				log.report("Error - could not parse file " + filesToParse[i]
+									 + ", if this is not an actual sample file, then this is not actually an error and will simply be skipped");
 			}
 			// } else {
 			// log.report("Warning - skipping parsing of " + filesToParse[i] + ", the output file " +
@@ -147,7 +146,7 @@ public class CytoAgilentParse {
 
 			for (int i = 0; i < indices.length; i++) {
 				if (indices[i] == -1) {
-					log.reportError("Error - could not find neccesary column "	+ DATA_TO_GRAB[i] + " in file "
+					log.reportError("Error - could not find neccesary column " + DATA_TO_GRAB[i] + " in file "
 													+ fileToParse);
 					valid = false;
 				}
@@ -255,9 +254,9 @@ public class CytoAgilentParse {
 	public static void generateMarkerPositions(String input, String output, Logger log) {
 		log.report(ext.getTime() + " Info - generating a marker position file from " + input);
 		log.report(ext.getTime()
-								+ " Info - positions will be parsed from UCSC locations only, using only the start position of the probe");
+							 + " Info - positions will be parsed from UCSC locations only, using only the start position of the probe");
 		log.report(ext.getTime()
-								+ " Info - probes without a valid UCSC location will be set to chr=0, position=0");
+							 + " Info - probes without a valid UCSC location will be set to chr=0, position=0");
 
 		try {
 			BufferedReader reader = Files.getAppropriateReader(input);

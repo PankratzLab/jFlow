@@ -31,8 +31,8 @@ public class BlastFastaq extends BlastSeqProducer {
 	 * @param numSeqsPerThread number of sequences given to each thread
 	 * @param log
 	 */
-	public BlastFastaq(	String fastaqFile, int numToTest, String fastaDb, int blastWordSize,
-											int reportWordSize, int numSeqsPerThread, Logger log) {
+	public BlastFastaq(String fastaqFile, int numToTest, String fastaDb, int blastWordSize,
+										 int reportWordSize, int numSeqsPerThread, Logger log) {
 		super(fastaDb, blastWordSize, reportWordSize, numSeqsPerThread, log);
 		numTested = 0;
 		this.numToTest = numToTest;
@@ -61,17 +61,17 @@ public class BlastFastaq extends BlastSeqProducer {
 			numTested++;
 			FastqRecord record = reader.next();
 			String safeRecord = ext.replaceWithLinuxSafeCharacters(record.getReadHeader(), true);// everything
-																																														// after
-																																														// a
-																																														// space
-																																														// is
-																																														// truncated
-																																														// otherwise
+																																													 // after
+																																													 // a
+																																													 // space
+																																													 // is
+																																													 // truncated
+																																													 // otherwise
 			FastaEntry entry = new FastaEntry(safeRecord, record.getReadString());
 			curEntries.add(entry);
 			numAdded++;
 		}
-		return new Blast.BlastWorker(	blast, curEntries.toArray(new FastaEntry[curEntries.size()]),
-																	null);
+		return new Blast.BlastWorker(blast, curEntries.toArray(new FastaEntry[curEntries.size()]),
+																 null);
 	}
 }

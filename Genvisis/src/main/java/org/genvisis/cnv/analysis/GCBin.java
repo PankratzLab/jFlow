@@ -49,11 +49,10 @@ public class GCBin extends Segment {
 		new OpdfGaussian(ArrayUtils.mean(gcs, true), Math.pow(ArrayUtils.stdev(gcs, true), 2));
 		int numStates = 50;
 		int zeroState = 5;
-		NormalDistribution nd =
-													new org.apache.commons.math3.distribution.NormalDistribution(	ArrayUtils.mean(gcs,
-																																																	true),
-																																												ArrayUtils.stdev(gcs,
-																																																		true));
+		NormalDistribution nd = new org.apache.commons.math3.distribution.NormalDistribution(ArrayUtils.mean(gcs,
+																																																				 true),
+																																												 ArrayUtils.stdev(gcs,
+																																																					true));
 		int[] stateSequence = new int[gcs.length];
 		for (int i = 0; i < gcs.length; i++) {
 			double cdf = nd.cumulativeProbability(gcs[i]);
@@ -70,8 +69,8 @@ public class GCBin extends Segment {
 				int[] positions = ArrayUtils.subArray(markerSet.getPositions(), indices[i]);
 				byte chr = (byte) i;
 				ViterbiResult vtr = new ViterbiResult(currentStates, null);
-				LocusSet<CNVariant> tmp = vtr.analyzeStateSequence(	proj, "GC_CONTENT", "chr" + i, chr,
-																														positions, null, 0, false, true);
+				LocusSet<CNVariant> tmp = vtr.analyzeStateSequence(proj, "GC_CONTENT", "chr" + i, chr,
+																													 positions, null, 0, false, true);
 				ArrayList<int[]> indicesStates = vtr.getIndexStateChange();
 				for (int j = 0; j < tmp.getLoci().length; j++) {
 					CNVariant gcv = tmp.getLoci()[j];
@@ -83,8 +82,8 @@ public class GCBin extends Segment {
 			}
 		}
 
-		LocusSet<GCBin> binset = new LocusSet<GCBin>(	allGc.toArray(new GCBin[allGc.size()]), true,
-																									proj.getLog()) {
+		LocusSet<GCBin> binset = new LocusSet<GCBin>(allGc.toArray(new GCBin[allGc.size()]), true,
+																								 proj.getLog()) {
 
 			/**
 			 * 

@@ -25,15 +25,15 @@ public class MarkerQC {
 	public static final String DEFAULT_FILENAME = "thresholds.properties";
 	public static final String[] FRQ_HEADER = {"CHR", "SNP", "A1", "A2", "MAF", "NCHROBS"};
 	public static final String[] LMISS_HEADER = {"CHR", "SNP", "N_MISS", "N_GENO", "F_MISS"};
-	public static final String[] HWE_HEADER = {	"CHR", "SNP", "TEST", "A1", "A2", "GENO", "O(HET)",
-																							"E(HET)", "P"};
-	public static final String[] MISSHAP_HEADER = {	"SNP", "HAPLOTYPE", "F_0", "F_1", "M_H1", "M_H2",
-																									"CHISQ", "P", "FLANKING"};
+	public static final String[] HWE_HEADER = {"CHR", "SNP", "TEST", "A1", "A2", "GENO", "O(HET)",
+																						 "E(HET)", "P"};
+	public static final String[] MISSHAP_HEADER = {"SNP", "HAPLOTYPE", "F_0", "F_1", "M_H1", "M_H2",
+																								 "CHISQ", "P", "FLANKING"};
 	public static final String[] MISSTEST_HEADER = {"CHR", "SNP", "F_MISS_A", "F_MISS_U", "P"};
 	public static final String[] GENDER_ASSOC_HEADER = {"CHR", "SNP", "BP", "A1", "F_A", "F_U", "A2",
 																											"CHISQ", "P", "OR"};
-	public static final String[] FINAL_HEADER = {	"SNP", "CHR", "MAF", "F_MISS", "P", "HETERO p-value",
-																								"miss.hap min p-value", "P_MISS"};
+	public static final String[] FINAL_HEADER = {"SNP", "CHR", "MAF", "F_MISS", "P", "HETERO p-value",
+																							 "miss.hap min p-value", "P_MISS"};
 	// public static final String[] THRESHOLDS = {"snp", "chr", "maf", "f_miss", "hwe", "hetero",
 	// "minmishap", "p_miss"};
 
@@ -63,20 +63,20 @@ public class MarkerQC {
 					headers.add(LMISS_HEADER);
 				} else if (params[i][0].equals("hwe")) {
 					v.add("\"" + dir + params[i][1] + "\" !2!ALL !2!AFF 1 8=" + params[i][0]); // allow for
-																																											// the
-																																											// possibility
-																																											// of a
-																																											// quantitative
-																																											// trait,
-																																											// which
-																																											// lists the
-																																											// test as
-																																											// ALL(QT);
-																																											// otherwise
-																																											// it
-																																											// should only
-																																											// accept the
-																																											// UNAFF test
+																																										 // the
+																																										 // possibility
+																																										 // of a
+																																										 // quantitative
+																																										 // trait,
+																																										 // which
+																																										 // lists the
+																																										 // test as
+																																										 // ALL(QT);
+																																										 // otherwise
+																																										 // it
+																																										 // should only
+																																										 // accept the
+																																										 // UNAFF test
 					headers.add(HWE_HEADER);
 				} else if (params[i][0].equals("mishap_hetero")) {
 					v.add("\"" + dir + params[i][1] + "\" !1=HETERO 0 7=" + params[i][0]);
@@ -115,9 +115,9 @@ public class MarkerQC {
 						hash.put("!colNames", new String[] {params[i][0]});
 						reader.close();
 						SerialHash.createSerializedStringArrayHash(dir
-																													+ GenParser.parseSerialFilename(new String[] {params[i][1],
-																																																			"0", "$MIN7"}),
-																												hash);
+																											 + GenParser.parseSerialFilename(new String[] {params[i][1],
+																																																		 "0", "$MIN7"}),
+																											 hash);
 					} catch (FileNotFoundException fnfe) {
 						log.reportError("Error: file \"" + params[i][1] + "\" not found in current directory");
 						log.reportException(fnfe);
@@ -150,16 +150,15 @@ public class MarkerQC {
 					headers.add(MISSTEST_HEADER);
 				} else {
 					log.report("Using user-defined file: " + params[i][1]);
-					v.add("\""	+ dir + params[i][1] + "\" " + (params[i].length > 3 ? params[i][3] : "0 1")
+					v.add("\"" + dir + params[i][1] + "\" " + (params[i].length > 3 ? params[i][3] : "0 1")
 								+ "=" + params[i][0]); // allows for additional user-defined files
 					headers.add(null);
 				}
 			}
-			markerNames =
-									HashVec.loadFileToStringArray(dir	+ params[1][1],
-																								params[1].length > 3
-																																&& params[1][3].equals("header"),
-																								new int[] {Integer.parseInt(params[1][2])}, false);
+			markerNames = HashVec.loadFileToStringArray(dir + params[1][1],
+																									params[1].length > 3 && params[1][3].equals("header"),
+																									new int[] {Integer.parseInt(params[1][2])},
+																									false);
 			log.report("Found " + markerNames.length + " markers to parse in " + params[1][1]);
 			Files.writeArray(ArrayUtils.toStringArray(v), dir + "whatGoesIn.out");
 			// Files.combine(markerNames, Array.toStringArray(v), Matrix.toStringArrays(headers),
@@ -212,14 +211,14 @@ public class MarkerQC {
 						// }
 					}
 					if (ops[i] == null) {
-						log.reportError("Error - invalid operator for "	+ params[i + 3][0] + " ('"
+						log.reportError("Error - invalid operator for " + params[i + 3][0] + " ('"
 														+ params[i + 3][2] + "')");
 						System.exit(1);
 					}
 					try {
 						thresholds[i] = Double.parseDouble(params[i + 3][2].substring(ops[i].length()));
 					} catch (NumberFormatException nfe) {
-						log.reportError("Error - threshold for "	+ params[i + 3][0] + " ('"
+						log.reportError("Error - threshold for " + params[i + 3][0] + " ('"
 														+ params[i + 3][2].substring(1) + "') is not a valid number");
 						if (kill) {
 							System.exit(1);
@@ -241,8 +240,8 @@ public class MarkerQC {
 				writers[2] = new PrintWriter(new FileWriter(dir + params[2][1] + "_annotated.xln"));
 				writers[3] = new PrintWriter(new FileWriter(dir + params[2][1] + "_allAnnotations.out"));
 				line = reader.readLine().trim().split("\\t");
-				indices = ext.indexFactors(	ArrayUtils.subArray(Matrix.extractColumn(params, 0), 3), line, false,
-																		log, true, false);
+				indices = ext.indexFactors(ArrayUtils.subArray(Matrix.extractColumn(params, 0), 3), line,
+																	 false, log, true, false);
 				counts = new int[3][indices.length]; // all, primary, only
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("\\t");
@@ -251,16 +250,16 @@ public class MarkerQC {
 					simpleReason = "";
 					for (int lap = 0; lap < 2; lap++) {
 						for (int i = 0; i < indices.length; i++) {
-							if (indices[i] >= 0	&& !ext.isMissingValue(line[indices[i]])
+							if (indices[i] >= 0 && !ext.isMissingValue(line[indices[i]])
 									&& Maths.op(Double.parseDouble(line[indices[i]]), thresholds[i], ops[i])) {
 								if (lap == 0) {
 									counts[0][i]++;
 									if (fail == 0) {
 										counts[1][i]++;
 									}
-									reason += (reason.length() == 0 ? "" : "; ")	+ params[i + 3][0] + "="
+									reason += (reason.length() == 0 ? "" : "; ") + params[i + 3][0] + "="
 														+ line[indices[i]];
-									simpleReason += (simpleReason.length() == 0 ? "" : ";")	+ params[i + 3][0]
+									simpleReason += (simpleReason.length() == 0 ? "" : ";") + params[i + 3][0]
 																	+ params[i + 3][2];
 									fail++;
 								} else if (fail == 1) {
@@ -305,34 +304,36 @@ public class MarkerQC {
 			}
 
 			writer = new PrintWriter(new FileWriter(dir + params[2][1] + ".out"));
-			writer.println("Number of markers failed: "	+ ArrayUtils.sum(counts[1]) + " of " + count + " ("
-											+ ext.formDeci((double) ArrayUtils.sum(counts[1]) / (double) count * 100, 2)
-											+ "%)");
+			writer.println("Number of markers failed: " + ArrayUtils.sum(counts[1]) + " of " + count
+										 + " ("
+										 + ext.formDeci((double) ArrayUtils.sum(counts[1]) / (double) count * 100, 2)
+										 + "%)");
 			writer.println();
 
 			writer.println("Number of total markers failed for each filter: ");
 			for (int i = 0; i < indices.length; i++) {
 				writer.println(ext.formStr(params[i + 3][0] + params[i + 3][2] + ":", maxSize + 2, true)
-													+ "\t" + counts[0][i] + " ("
-												+ ext.formDeci((double) counts[0][i] / (double) count * 100, 2) + "%)");
+											 + "\t" + counts[0][i] + " ("
+											 + ext.formDeci((double) counts[0][i] / (double) count * 100, 2) + "%)");
 			}
 			writer.println();
 
 			writer.println("Number of additional markers failed for each consecutive filter: ");
 			for (int i = 0; i < indices.length; i++) {
 				writer.println(ext.formStr(params[i + 3][0] + params[i + 3][2] + ":", maxSize + 2, true)
-													+ "\t" + counts[1][i] + " ("
-												+ ext.formDeci((double) counts[1][i] / (double) count * 100, 2) + "%)");
+											 + "\t" + counts[1][i] + " ("
+											 + ext.formDeci((double) counts[1][i] / (double) count * 100, 2) + "%)");
 			}
 			writer.println();
 
-			writer.println("Number of markers failed for only a single reason: "	+ ArrayUtils.sum(counts[2])
-											+ " (" + ext.formDeci((double) ArrayUtils.sum(counts[2]) / (double) count * 100, 2)
-											+ "%)");
+			writer.println("Number of markers failed for only a single reason: "
+										 + ArrayUtils.sum(counts[2]) + " ("
+										 + ext.formDeci((double) ArrayUtils.sum(counts[2]) / (double) count * 100, 2)
+										 + "%)");
 			for (int i = 0; i < indices.length; i++) {
 				writer.println(ext.formStr(params[i + 3][0] + params[i + 3][2] + ":", maxSize + 2, true)
-													+ "\t" + counts[2][i] + " ("
-												+ ext.formDeci((double) counts[2][i] / (double) count * 100, 2) + "%)");
+											 + "\t" + counts[2][i] + " ("
+											 + ext.formDeci((double) counts[2][i] / (double) count * 100, 2) + "%)");
 			}
 			writer.println();
 
@@ -440,8 +441,8 @@ public class MarkerQC {
 		String filename = DEFAULT_FILENAME;
 		Logger log;
 
-		String usage = "\n"	+ "gwas.MarkerQC requires 0-1 arguments\n"
-										+ "   (0) properties file (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "gwas.MarkerQC requires 0-1 arguments\n"
+									 + "   (0) properties file (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -77,13 +77,13 @@ public class ColorKeyPanel extends JPanel {
 		this(newSampleData, newSisterPanel, DEFAULT_COLORS);
 	}
 
-	public ColorKeyPanel(	SampleData newSampleData, AbstractPanel newSisterPanel,
-												Color[] newColorScheme) {
+	public ColorKeyPanel(SampleData newSampleData, AbstractPanel newSisterPanel,
+											 Color[] newColorScheme) {
 		this(newSampleData, newSisterPanel, newColorScheme, null, 0);
 	}
 
-	public ColorKeyPanel(	SampleData newSampleData, AbstractPanel newSisterPanel,
-												Color[] newColorScheme, ItemListener listener, int clazz) {
+	public ColorKeyPanel(SampleData newSampleData, AbstractPanel newSisterPanel,
+											 Color[] newColorScheme, ItemListener listener, int clazz) {
 		sampleData = newSampleData;
 		setSisterPanel(newSisterPanel);
 		colorScheme = newColorScheme;
@@ -238,7 +238,7 @@ public class ColorKeyPanel extends JPanel {
 			colorKeys = new String[][] {{"0", "Not in a CNV"}, {"1", "Homozygous deletion"},
 																	{"2", "Heterozygous deletion"}, {"4", "Duplication"},
 																	{"5", "Triplication"},};
-		} else if (currentClass < numBasicClasses	+ numRegularClasses + numCNVClasses
+		} else if (currentClass < numBasicClasses + numRegularClasses + numCNVClasses
 															+ numPLINKClasses) {
 			// colorKeys = new String[][] {{"-1", "Missing"}, {"0", "AA"}, {"1", "AB"}, {"2", "BB"}};
 			colorKeys = new String[][] {{"0", "Missing"}, {"1", "AA"}, {"2", "AB"}, {"3", "BB"}};
@@ -258,10 +258,10 @@ public class ColorKeyPanel extends JPanel {
 			block = new JLabel(new ColorIcon(12, 12, colorScheme[Integer.parseInt(colorKey[0])]));
 			block.setName(currentClass + "\t" + colorKey[0]);
 			block.addMouseListener(mouseListenerForColorKey);
-			label = new JLabel(colorKey[1]	+ " (n="
-													+ (currentClassUniqueValues.containsKey(colorKey[0])	? currentClassUniqueValues.get(colorKey[0])
-																																								: "0")
-													+ ")");
+			label = new JLabel(colorKey[1] + " (n="
+												 + (currentClassUniqueValues.containsKey(colorKey[0]) ? currentClassUniqueValues.get(colorKey[0])
+																																							: "0")
+												 + ")");
 			label.setToolTipText("Remove " + colorKey[1] + " from the display by selecting here");
 			label.setName(currentClass + "\t" + colorKey[0]);
 			label.addMouseListener(mouseListenerForColorKey);
@@ -283,8 +283,8 @@ public class ColorKeyPanel extends JPanel {
 																																			colorScheme.length - 1)]));
 				block.setName(currentClass + "\t" + keys[i]);
 				block.addMouseListener(mouseListenerForColorKey);
-				label = new JLabel((keys[i].equals("0") ? "missing" : keys[i])	+ " (n="
-														+ currentClassUniqueValues.get(keys[i]) + ")");
+				label = new JLabel((keys[i].equals("0") ? "missing" : keys[i]) + " (n="
+													 + currentClassUniqueValues.get(keys[i]) + ")");
 				label.setName(currentClass + "\t" + keys[i]);
 				label.setFont(new Font("Arial", 0, 14));
 				label.addMouseListener(mouseListenerForColorKey);

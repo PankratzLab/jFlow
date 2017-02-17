@@ -113,9 +113,9 @@ public class CreateDatabaseFromPlink {
 			}
 		}
 
-		if (!ArrayUtils.equals(markerNames,
-											HashVec.loadFileToStringArray(dir + freqfile, true, new int[] {1}, false),
-											true)) {
+		if (!ArrayUtils.equals(markerNames, HashVec.loadFileToStringArray(dir + freqfile, true,
+																																			new int[] {1}, false),
+													 true)) {
 			log.reportError("Error - the freq file does not match the map file");
 			return;
 		}
@@ -131,7 +131,7 @@ public class CreateDatabaseFromPlink {
 			if (!maskModel) {
 				maskModel = true;
 				System.out.println("Since all markers are being exported, masking the default model ("
-														+ POSSIBLE_MODELS[0] + ")");
+													 + POSSIBLE_MODELS[0] + ")");
 			}
 			for (int i = 0; i < markerNames.length; i++) {
 				vModels.add(new int[] {i, 0});
@@ -168,63 +168,61 @@ public class CreateDatabaseFromPlink {
 			reader = new BufferedReader(new FileReader(dir + pedfile));
 			writer = new PrintWriter(new FileWriter(dir + outfile));
 			if (listPositions) {
-				writer.print((maskFIDs ? "" : delimiter)	+ (maskSex ? "" : delimiter)
-											+ (maskAffStat ? "" : delimiter) + "Chr:");
+				writer.print((maskFIDs ? "" : delimiter) + (maskSex ? "" : delimiter)
+										 + (maskAffStat ? "" : delimiter) + "Chr:");
 				for (int[] model : models) {
 					writer.print(delimiter + chrs[model[0]]);
 				}
 				writer.println();
-				writer.print((maskFIDs ? "" : delimiter)	+ (maskSex ? "" : delimiter)
-											+ (maskAffStat ? "" : delimiter) + "Position:");
+				writer.print((maskFIDs ? "" : delimiter) + (maskSex ? "" : delimiter)
+										 + (maskAffStat ? "" : delimiter) + "Position:");
 				for (int[] model : models) {
 					writer.print(delimiter + positions[model[0]]);
 				}
 				writer.println();
 			}
 			if (labelAlleles) {
-				writer.print((maskFIDs ? "" : delimiter)	+ (maskSex ? "" : delimiter)
-											+ (maskAffStat ? "" : delimiter) + "Minor allele, counted:");
+				writer.print((maskFIDs ? "" : delimiter) + (maskSex ? "" : delimiter)
+										 + (maskAffStat ? "" : delimiter) + "Minor allele, counted:");
 				for (int[] model : models) {
 					writer.print(delimiter + alleles[model[0]][0]);
 				}
 				writer.println();
-				writer.print((maskFIDs ? "" : delimiter)	+ (maskSex ? "" : delimiter)
-											+ (maskAffStat ? "" : delimiter) + "Other allele:");
+				writer.print((maskFIDs ? "" : delimiter) + (maskSex ? "" : delimiter)
+										 + (maskAffStat ? "" : delimiter) + "Other allele:");
 				for (int[] model : models) {
 					writer.print(delimiter + alleles[model[0]][1]);
 				}
 				writer.println();
 			}
 			if (displayNotes) {
-				writer.print((maskFIDs ? "" : delimiter)	+ (maskSex ? "" : delimiter)
-											+ (maskAffStat ? "" : delimiter) + "Note:");
+				writer.print((maskFIDs ? "" : delimiter) + (maskSex ? "" : delimiter)
+										 + (maskAffStat ? "" : delimiter) + "Note:");
 				for (int[] model : models) {
 					writer.print(delimiter
-												+ (notes.containsKey(markerNames[model[0]])	? notes.get(markerNames[model[0]])
-																																		: "."));
+											 + (notes.containsKey(markerNames[model[0]]) ? notes.get(markerNames[model[0]])
+																																	 : "."));
 				}
 				writer.println();
 			}
-			writer.print((maskFIDs ? "" : "FID" + delimiter)	+ "IID"
-										+ (maskSex ? "" : delimiter + "Gender")
-										+ (maskAffStat ? "" : delimiter + "Affected"));
+			writer.print((maskFIDs ? "" : "FID" + delimiter) + "IID"
+									 + (maskSex ? "" : delimiter + "Gender")
+									 + (maskAffStat ? "" : delimiter + "Affected"));
 			for (int[] model : models) {
-				writer.print(delimiter	+ markerNames[model[0]]
-											+ (maskModel ? "" : "_" + POSSIBLE_MODELS[model[1]]));
+				writer.print(delimiter + markerNames[model[0]]
+										 + (maskModel ? "" : "_" + POSSIBLE_MODELS[model[1]]));
 			}
 			writer.println();
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				writer.print((maskFIDs ? "" : line[0] + delimiter)	+ line[1]
-											+ (maskSex	? ""
-																	: delimiter
-																		+ (line[4].equals("1")	? "1"
-																														: (line[4].equals("2") ? "0" : ".")))
-											+ (maskAffStat	? ""
-																			: delimiter
-																				+ (line[5].equals("2")	? "1"
-																																: (line[5].equals("1")	? "0"
-																																												: "."))));
+				writer.print((maskFIDs ? "" : line[0] + delimiter) + line[1]
+										 + (maskSex ? ""
+																: delimiter
+																	+ (line[4].equals("1") ? "1" : (line[4].equals("2") ? "0" : ".")))
+										 + (maskAffStat ? ""
+																		: delimiter
+																			+ (line[5].equals("2") ? "1"
+																														 : (line[5].equals("1") ? "0" : "."))));
 				for (int i = 0; i < models.length; i++) {
 					count = 0;
 					for (int j = 0; j < 2; j++) {
@@ -234,7 +232,7 @@ public class CreateDatabaseFromPlink {
 						} else if (allele.equals(alleles[models[i][0]][0])) {
 							count++;
 						} else if (!allele.equals(alleles[models[i][0]][1])) {
-							log.reportError("Error - mismatched alleles, expecting "	+ alleles[models[i][0]][0]
+							log.reportError("Error - mismatched alleles, expecting " + alleles[models[i][0]][0]
 															+ " or " + alleles[models[i][0]][1] + " and got '" + allele + "'");
 						}
 
@@ -373,8 +371,8 @@ public class CreateDatabaseFromPlink {
 					writer = new PrintWriter(new FileWriter(outfile));
 					writer.println(header[0] + "\t" + header[1] + "\tscore\tnormalized\tlogit");
 					for (int i = 0; i < ids.length; i++) {
-						writer.println(ids[i]	+ "\t" + scores[i] + "\t" + normalized[i] + "\t"
-														+ Maths.logit(scores[i]));
+						writer.println(ids[i] + "\t" + scores[i] + "\t" + normalized[i] + "\t"
+													 + Maths.logit(scores[i]));
 					}
 					writer.close();
 				} catch (Exception e) {
@@ -429,7 +427,7 @@ public class CreateDatabaseFromPlink {
 				hash = new Hashtable<String, String>();
 				line = reader.readLine().trim().split("[\\s]+");
 				if (!line[1].equals(markerNames[i])) {
-					log.reportError("Error - the freq file does not match the map file at line "	+ (i + 1)
+					log.reportError("Error - the freq file does not match the map file at line " + (i + 1)
 													+ "; expecting " + markerNames[i] + ", found " + line[1]);
 					reader.close();
 					writer.close();
@@ -438,7 +436,7 @@ public class CreateDatabaseFromPlink {
 				if (i == 0) {
 					numIndividuals = (line.length - 4) / 2;
 				} else if ((line.length - 4) / 2 != numIndividuals) {
-					log.reportError("Error - mismatched number of indiviudals in line "	+ (i + 1)
+					log.reportError("Error - mismatched number of indiviudals in line " + (i + 1)
 													+ "; due to previous lines, expecting " + numIndividuals + "*2+4="
 													+ (numIndividuals * 2 + 4) + ", found " + line.length);
 				}
@@ -451,7 +449,7 @@ public class CreateDatabaseFromPlink {
 						} else if (allele.equals(alleles[i][0])) {
 							count++;
 						} else if (!allele.equals(alleles[i][1])) {
-							log.reportError("Error - mismatched alleles, expecting "	+ alleles[i][0] + " or "
+							log.reportError("Error - mismatched alleles, expecting " + alleles[i][0] + " or "
 															+ alleles[i][1] + " and got '" + allele + "'");
 						}
 					}
@@ -486,10 +484,10 @@ public class CreateDatabaseFromPlink {
 		}
 
 		if (monomorphs.size() > 0) {
-			log.report("There were "	+ monomorphs.size()
-									+ " monomorphic markers that will be filtered out");
-			Files.writeArray(	ArrayUtils.subArray(markerNames, Ints.toArray(monomorphs)),
-												ext.parseDirectoryOfFile(filename) + "monomorphs.dat");
+			log.report("There were " + monomorphs.size()
+								 + " monomorphic markers that will be filtered out");
+			Files.writeArray(ArrayUtils.subArray(markerNames, Ints.toArray(monomorphs)),
+											 ext.parseDirectoryOfFile(filename) + "monomorphs.dat");
 			temp = outfile + ".bak";
 			new File(outfile).renameTo(new File(temp));
 			try {
@@ -532,8 +530,8 @@ public class CreateDatabaseFromPlink {
 			reader.close();
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ "/home/npankrat/bin/simpleM_Exec.R"
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + "/home/npankrat/bin/simpleM_Exec.R"
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + "/home/npankrat/bin/simpleM_Exec.R" + "\"");
@@ -565,7 +563,7 @@ public class CreateDatabaseFromPlink {
 		}
 		for (int i = 0; i < markerNames.length; i++) {
 			if (markerNames[i].equals(alleles[i][0])) {
-				log.reportError("Error - marker name mismatch at index "	+ i + ": found " + markerNames[i]
+				log.reportError("Error - marker name mismatch at index " + i + ": found " + markerNames[i]
 												+ " in map file and " + alleles[i][0] + " in frq file");
 				System.exit(1);
 			}
@@ -594,8 +592,8 @@ public class CreateDatabaseFromPlink {
 					if (hash.containsKey(line[1])) {
 						line[1] = hash.get(line[1]);
 					} else {
-						System.err.println("Error - failed to lookup "	+ line[1] + " in the Rlinker file: "
-																+ rlinker);
+						System.err.println("Error - failed to lookup " + line[1] + " in the Rlinker file: "
+															 + rlinker);
 					}
 				}
 				writer.print(line[1]);
@@ -608,8 +606,8 @@ public class CreateDatabaseFromPlink {
 						} else if (allele.equals(alleles[i][1])) {
 							count++;
 						} else if (!allele.equals(alleles[i][2])) {
-							System.err.println("Error - mismatched alleles, expecting "	+ alleles[i][1] + " or "
-																	+ alleles[i][2] + " and got '" + allele + "'");
+							System.err.println("Error - mismatched alleles, expecting " + alleles[i][1] + " or "
+																 + alleles[i][2] + " and got '" + allele + "'");
 						}
 
 					}
@@ -699,17 +697,17 @@ public class CreateDatabaseFromPlink {
 				count++;
 				line = reader.readLine().trim().split("[\\s]+");
 				if (line.length != markerNames.length * 2 + 6) {
-					System.err.println("Error - line "	+ count + " has " + line.length
-															+ " columns instead of the expected " + markerNames.length * 2 + 6
-															+ " (#markers*2+6)");
+					System.err.println("Error - line " + count + " has " + line.length
+														 + " columns instead of the expected " + markerNames.length * 2 + 6
+														 + " (#markers*2+6)");
 					try {
 						writer = new PrintWriter(new FileWriter("ERROR_NUMBER_OF_COLUMNS_DON'T_MATCHUP_FOR_THESE_LINES.TXT",
 																										true));
 						writer.println(count);
 						writer.close();
 					} catch (Exception e) {
-						System.err.println("Error writing to "	+ "ERROR_COULD_NOT_OPEN_" + root
-																+ ".map_FILE.TXT");
+						System.err.println("Error writing to " + "ERROR_COULD_NOT_OPEN_" + root
+															 + ".map_FILE.TXT");
 						e.printStackTrace();
 					}
 				}
@@ -724,8 +722,8 @@ public class CreateDatabaseFromPlink {
 									writer.println("line" + count + "\t" + line[i]);
 									writer.close();
 								} catch (Exception e) {
-									System.err.println("Error writing to "	+ "ERROR_COULD_NOT_OPEN_" + root
-																			+ ".map_FILE.TXT");
+									System.err.println("Error writing to " + "ERROR_COULD_NOT_OPEN_" + root
+																		 + ".map_FILE.TXT");
 									e.printStackTrace();
 								}
 								writer.print(line[i] + "\t" + line[i]);
@@ -760,18 +758,18 @@ public class CreateDatabaseFromPlink {
 		String output = "plink.txt";
 		boolean split = false;
 
-		String usage = "\n"	+ "gwas.CreateDatabaseFromPlink\n"
-										+ " *** see Launch for createDatabase, createScore, and createCountsMatrix (for simpleM)***\n"
-										+ "  For convert toGWAF, use the following arguments:\n"
-										+ "   (1) .ped filename (i.e. ped=" + pedfile + " (default))\n"
-										+ "   (2) .map filename (i.e. map=" + mapfile + " (default))\n"
-										+ "   (3) .frq filename (i.e. frq=" + freqfile + " (default))\n"
-										+ "   (4) String->int Rlinker filename with CARe_ID FID IID (i.e. rlinker="
-										+ rlinker + " (default))\n" + "   (5) output filename (i.e. gwaf=" + outfile
-										+ " (default))\n" + " OR\n" + "   (1) root of plink file (i.e. root=" + root
-										+ " (default))\n" + "   (2) name of output file (i.e. output=" + output
-										+ " (default))\n" + "   (3) split the FID (i.e. -split (not the default))\n"
-										+ "";
+		String usage = "\n" + "gwas.CreateDatabaseFromPlink\n"
+									 + " *** see Launch for createDatabase, createScore, and createCountsMatrix (for simpleM)***\n"
+									 + "  For convert toGWAF, use the following arguments:\n"
+									 + "   (1) .ped filename (i.e. ped=" + pedfile + " (default))\n"
+									 + "   (2) .map filename (i.e. map=" + mapfile + " (default))\n"
+									 + "   (3) .frq filename (i.e. frq=" + freqfile + " (default))\n"
+									 + "   (4) String->int Rlinker filename with CARe_ID FID IID (i.e. rlinker="
+									 + rlinker + " (default))\n" + "   (5) output filename (i.e. gwaf=" + outfile
+									 + " (default))\n" + " OR\n" + "   (1) root of plink file (i.e. root=" + root
+									 + " (default))\n" + "   (2) name of output file (i.e. output=" + output
+									 + " (default))\n" + "   (3) split the FID (i.e. -split (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

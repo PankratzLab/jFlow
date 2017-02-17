@@ -18,38 +18,22 @@ import org.genvisis.common.ext;
 import org.genvisis.stats.ProbDist;
 
 public class CARDIA2017ResultsProcessor {
-	
-	String[] IN_HDR = {
-	                   "name", "A1", "A2", "Freq1", "MAF", "Quality", 
-	                   "Rsq", // 6
-	                   "n", 
-	                   "Mean_predictor_allele", // 8 ----- EffAF??
-	                   "beta_SNP_add", 
-	                   "sebeta_SNP_add", // 10
-	                   "beta_SNP_DPA", 
-	                   "sebeta_SNP_DPA", // 12
-	                   "cov_SNP_int_SNP_DPA", 
-	                   "chi2_SNP" // 14
+
+	String[] IN_HDR = {"name", "A1", "A2", "Freq1", "MAF", "Quality", "Rsq", // 6
+										 "n", "Mean_predictor_allele", // 8 ----- EffAF??
+										 "beta_SNP_add", "sebeta_SNP_add", // 10
+										 "beta_SNP_DPA", "sebeta_SNP_DPA", // 12
+										 "cov_SNP_int_SNP_DPA", "chi2_SNP" // 14
 	};
-	String[] OUT_HDR = {
-	                    "chr", 
-	                    "pos", 
-	                    "marker_name", 
-	                    "strand", 
-	                    "base_allele", 
-	                    "effect_allele", 
-	                    "N", // IN_7
-	                    "effect_allele_freq", 
-	                    "imputation_type", 
-	                    "Imputation_value", // IN_6
-	                    "beta_main", // IN_9
-	                    "se_main", // IN_10
-	                    "beta_int", // IN_11
-	                    "se_int", // IN_12
-	                    "cov", // IN_13
-	                    "chi_2df", // IN_14 
-	                    "chi_P_2df", 
-  };
+	String[] OUT_HDR = {"chr", "pos", "marker_name", "strand", "base_allele", "effect_allele", "N", // IN_7
+											"effect_allele_freq", "imputation_type", "Imputation_value", // IN_6
+											"beta_main", // IN_9
+											"se_main", // IN_10
+											"beta_int", // IN_11
+											"se_int", // IN_12
+											"cov", // IN_13
+											"chi_2df", // IN_14
+											"chi_P_2df",};
 	String STRAND = "+";
 	String TYPE = "1";
 	String dir = "/scratch.global/cole0482/CARDIA_DATA/";
@@ -58,14 +42,14 @@ public class CARDIA2017ResultsProcessor {
 	String LOOKUP = "vcfLookup/";
 	String[] MODEL_VARS = {"FEV1", "FVC", "FEV1", "FVC"};
 	String[] NUTR_VARS = {"DHA", "DHA", "DPA", "DPA"};
-	
+
 	static final class SNP {
 		String name;
 		int chr;
 		int pos;
 		String base;
 		String eff;
-		
+
 		@Override
 		public int hashCode() {
 			final int prime = 31;
@@ -73,6 +57,7 @@ public class CARDIA2017ResultsProcessor {
 			result = prime * result + ((name == null) ? 0 : name.hashCode());
 			return result;
 		}
+
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
@@ -89,9 +74,9 @@ public class CARDIA2017ResultsProcessor {
 				return false;
 			return true;
 		}
-		
+
 	}
-	
+
 	private String getAnc(String prefix) {
 		if (AA.equals(prefix)) {
 			return "AA";
@@ -99,7 +84,7 @@ public class CARDIA2017ResultsProcessor {
 			return "Cauc";
 		}
 	}
-	
+
 	private void process(String prefix) throws IOException {
 		BufferedReader reader;
 		PrintWriter writer;
@@ -107,28 +92,29 @@ public class CARDIA2017ResultsProcessor {
 		String dir = "/scratch.global/cole0482/CARDIA_2017/";
 		String modelPref = "model_";
 		int numModels = 4;
-		
+
 		int numChrs = EA.equals(prefix) ? 23 : 24;
 
 		String form = "ddMMMyy";
 		SimpleDateFormat sdf = new SimpleDateFormat(form);
 		String date = sdf.format(new Date()).toUpperCase();
-		
+
 		String skipFile = this.dir + prefix + "removeSnpsLowQual.txt";
 		HashSet<String> ignore = HashVec.loadFileToHashSet(skipFile, false);
-		
+
 		HashMap<Integer, PrintWriter> writers = new HashMap<>();
 		HashMap<Integer, PrintWriter> missWriters = new HashMap<>();
 		ChiSquaredDistribution csd = new ChiSquaredDistribution(2);
 		NormalDistribution nd = new NormalDistribution(0, 1);
-		
+
 		for (int chr = 1; chr < numChrs; chr++) {
 			HashMap<String, SNP> info = processChrFile(chr, prefix);
 			for (int i = 0; i < numModels; i++) {
 				String modelDir = dir + prefix + modelPref + (i + 1) + "/";
 				String regFile = modelDir + "regression_chr" + chr + ".out_add.out.txt";
-				String outFile = modelDir + "out/" + "CARDIA_" + MODEL_VARS[i] + "_" + getAnc(prefix) + "_" + NUTR_VARS[i] + "_" + (i + 1) + "_" + date + ".txt";
-				
+				String outFile = modelDir + "out/" + "CARDIA_" + MODEL_VARS[i] + "_" + getAnc(prefix) + "_"
+												 + NUTR_VARS[i] + "_" + (i + 1) + "_" + date + ".txt";
+
 				reader = Files.getAppropriateReader(regFile);
 				writer = writers.get(i);
 				if (writer == null) {
@@ -151,7 +137,8 @@ public class CARDIA2017ResultsProcessor {
 					StringBuilder sb = new StringBuilder();
 					SNP snp = info.get(parts[0]);
 					if (snp == null) {
-						System.err.println("Error - missing SNP INFO for SNP: " + parts[0] + " in chr " + chr + " results file for EA.");
+						System.err.println("Error - missing SNP INFO for SNP: " + parts[0] + " in chr " + chr
+															 + " results file for EA.");
 						continue;
 					}
 					if (ignore.contains(parts[0])) {
@@ -160,44 +147,44 @@ public class CARDIA2017ResultsProcessor {
 					if (snp.pos == -1 || snp.chr == -1) {
 						missWriter.println(parts[0]);
 					}
-					
+
 					double chi = ext.isMissingValue(parts[14]) ? Double.NaN : Double.parseDouble(parts[14]);
 					double pval = 1 - csd.cumulativeProbability(chi);
-					String pvalStr = Double.isNaN(pval) ? "NA" : pval > 0.001 ? ext.formDeci(pval, 4) : ext.formSciNot(pval, 4, false);
-					String eaf = ext.isMissingValue(parts[8]) ? "NA" : ext.formDeci(Double.parseDouble(parts[8]), 4);
-					
-					sb.append(snp.chr).append("\t")
-						.append(snp.pos).append("\t")
-						.append(parts[0]).append("\t")
+					String pvalStr = Double.isNaN(pval) ? "NA"
+																							: pval > 0.001 ? ext.formDeci(pval, 4)
+																														 : ext.formSciNot(pval, 4, false);
+					String eaf = ext.isMissingValue(parts[8]) ? "NA"
+																										: ext.formDeci(Double.parseDouble(parts[8]), 4);
+
+					sb.append(snp.chr).append("\t").append(snp.pos).append("\t").append(parts[0]).append("\t")
 						.append(STRAND).append("\t");
 					if (EA.equals(prefix)) {
-						sb
-							.append(snp.base.charAt(0)).append("\t")
-							.append(snp.eff.charAt(0)).append("\t");
+						sb.append(snp.base.charAt(0)).append("\t").append(snp.eff.charAt(0)).append("\t");
 					} else {
-						sb
-						.append(snp.eff.charAt(0)).append("\t")
-						.append(snp.base.charAt(0)).append("\t");
+						sb.append(snp.eff.charAt(0)).append("\t").append(snp.base.charAt(0)).append("\t");
 					}
-					sb
-						.append(parts[7]).append("\t")
-						.append(eaf).append("\t")
-						.append(TYPE).append("\t")
+					sb.append(parts[7]).append("\t").append(eaf).append("\t").append(TYPE).append("\t")
 						.append(parts[6]).append("\t")
-						.append(ext.isMissingValue(parts[9]) ? "NA" : ext.formDeci(Double.parseDouble(parts[9]), 5)).append("\t")
-						.append(ext.isMissingValue(parts[10]) ? "NA" : ext.formDeci(Double.parseDouble(parts[10]), 5)).append("\t")
-						.append(ext.isMissingValue(parts[11]) ? "NA" : ext.formDeci(Double.parseDouble(parts[11]), 5)).append("\t")
-						.append(ext.isMissingValue(parts[12]) ? "NA" : ext.formDeci(Double.parseDouble(parts[12]), 5)).append("\t")
-						.append(parts[13]).append("\t")
-						.append(parts[14]).append("\t")
+						.append(ext.isMissingValue(parts[9]) ? "NA"
+																								 : ext.formDeci(Double.parseDouble(parts[9]), 5))
+						.append("\t")
+						.append(ext.isMissingValue(parts[10]) ? "NA"
+																									: ext.formDeci(Double.parseDouble(parts[10]), 5))
+						.append("\t")
+						.append(ext.isMissingValue(parts[11]) ? "NA"
+																									: ext.formDeci(Double.parseDouble(parts[11]), 5))
+						.append("\t")
+						.append(ext.isMissingValue(parts[12]) ? "NA"
+																									: ext.formDeci(Double.parseDouble(parts[12]), 5))
+						.append("\t").append(parts[13]).append("\t").append(parts[14]).append("\t")
 						.append(pvalStr);
-					
+
 					writer.println(sb.toString());
 				}
 				reader.close();
 			}
 		}
-		
+
 		for (PrintWriter wr : writers.values()) {
 			wr.flush();
 			wr.close();
@@ -206,36 +193,39 @@ public class CARDIA2017ResultsProcessor {
 			wr.flush();
 			wr.close();
 		}
-		
+
 	}
-	
+
 	String mapDirAA = "/scratch.global/cole0482/CARDIA_DATA/AA/src/map_1000G_mach2dat_qtl/";
 	String mapDirEA = dir + EA + "map/";
-	
+
 	private HashMap<String, SNP> processChrFile(int chr, String prefix) {
 		String infoFile = dir + prefix + "chr" + chr + ".info";
 		boolean isEA = EA.equals(prefix);
 		String mapFile = (isEA ? mapDirEA : mapDirAA) + "chr" + chr + ".map";
-		
+
 		HashMap<String, SNP> mapMap = new HashMap<>();
 		HashMap<String, SNP> map = new HashMap<>();
-		
-		String[][] matr = HashVec.loadFileToStringMatrix(mapFile, true, new int[]{0, 1, 2, 3, 4}, false);
+
+		String[][] matr = HashVec.loadFileToStringMatrix(mapFile, true, new int[] {0, 1, 2, 3, 4},
+																										 false);
 		for (String[] line : matr) {
 			SNP snp = new SNP();
 			snp.name = isEA ? line[0] : line[2];
-			snp.chr = "X".equals(isEA ? line[1] : line[0]) ? 23 : Integer.parseInt(isEA ? line[1] : line[0]);
+			snp.chr = "X".equals(isEA ? line[1] : line[0]) ? 23
+																										 : Integer.parseInt(isEA ? line[1] : line[0]);
 			snp.pos = Integer.parseInt(isEA ? line[2] : line[1]);
 			snp.base = line[3];
 			snp.eff = line[4];
 			mapMap.put(snp.name, snp);
 		}
-		
-		matr = HashVec.loadFileToStringMatrix(infoFile, true, new int[]{0, 1, 2, 3, 4}, false);
+
+		matr = HashVec.loadFileToStringMatrix(infoFile, true, new int[] {0, 1, 2, 3, 4}, false);
 		for (String[] line : matr) {
 			SNP snp = mapMap.get(line[0]);
 			if (snp == null) {
-				System.err.println("Error - snp found in .info file that wasn't found in the map file: " + line[0]);
+				System.err.println("Error - snp found in .info file that wasn't found in the map file: "
+													 + line[0]);
 				snp = new SNP();
 				snp.name = line[0];
 				snp.chr = chr;
@@ -245,22 +235,22 @@ public class CARDIA2017ResultsProcessor {
 			snp.eff = line[2];
 			map.put(line[0], snp);
 		}
-		
+
 		return map;
 	}
-	
-	
+
+
 	public static void combineChrXDose() throws IOException {
 		String dir = "/scratch.global/cole0482/CARDIA_DATA/AA/";
 		String femD = "chrX.female.dose";
 		String malD = "chrX.male.dose";
 		String outD = "chrX.dose";
 		String ids = "ids.txt";
-		
+
 		PrintWriter writerD;
 		BufferedReader readerF;
 		BufferedReader readerM;
-		
+
 		String[] idsArr = HashVec.loadFileToStringArray(dir + ids, false, null, false);
 		HashMap<String, Integer> idIndexLookup = new HashMap<>();
 		for (int i = 0; i < idsArr.length; i++) {
@@ -271,7 +261,7 @@ public class CARDIA2017ResultsProcessor {
 		for (String s : idsArr) {
 			outLines.add(null);
 		}
-		
+
 		readerF = Files.getAppropriateReader(dir + femD);
 		// no header
 		String line;
@@ -279,28 +269,30 @@ public class CARDIA2017ResultsProcessor {
 			String id = line.substring(0, line.indexOf(' '));
 			Integer ind = idIndexLookup.get(id);
 			if (ind == null) {
-				System.err.println("Error - ID found in female dosage data that wasn't present in the IDs file: " + id);
+				System.err.println("Error - ID found in female dosage data that wasn't present in the IDs file: "
+													 + id);
 			} else {
 				outLines.set(ind, line);
 				found[ind] = true;
 			}
 		}
 		readerF.close();
-		
+
 		readerM = Files.getAppropriateReader(dir + malD);
 		// no header
 		while ((line = readerM.readLine()) != null) {
 			String id = line.substring(0, line.indexOf(' '));
 			Integer ind = idIndexLookup.get(id);
 			if (ind == null) {
-				System.err.println("Error - ID found in male dosage data that wasn't present in the IDs file: " + id);
+				System.err.println("Error - ID found in male dosage data that wasn't present in the IDs file: "
+													 + id);
 			} else {
 				outLines.set(ind, line);
 				found[ind] = true;
 			}
 		}
 		readerM.close();
-		
+
 		writerD = Files.getAppropriateWriter(dir + outD);
 		for (int i = 0; i < idsArr.length; i++) {
 			if (!found[i]) {
@@ -311,22 +303,22 @@ public class CARDIA2017ResultsProcessor {
 		}
 		writerD.flush();
 		writerD.close();
-		
+
 	}
-	
+
 	public static void combineChrXInfo() throws IOException {
 		String dir = "/scratch.global/cole0482/CARDIA_DATA/AA/";
-		
+
 		String femI = "chrX.female.info";
 		String malI = "chrX.male.info";
 		String outI = "chrX.info";
-		
+
 		PrintWriter writerI;
-		
+
 		BufferedReader readerMI = Files.getAppropriateReader(dir + malI);
 		BufferedReader readerFI = Files.getAppropriateReader(dir + femI);
 		writerI = Files.getAppropriateWriter(dir + outI);
-		
+
 		String lineM, lineF;
 		readerFI.readLine();
 		writerI.println(readerMI.readLine());
@@ -337,7 +329,7 @@ public class CARDIA2017ResultsProcessor {
 			if (!partsM[0].equals(partsF[0])) {
 				System.err.println("Error - mismatched markers: " + partsM[0] + " / " + partsF[0]);
 			}
-			
+
 			String mkr = partsF[0];
 			String a1M = partsM[1];
 			String a1F = partsF[1];
@@ -351,7 +343,7 @@ public class CARDIA2017ResultsProcessor {
 			String nFStr = partsF[5];
 			String rSqMStr = partsM[6];
 			String rSqFStr = partsF[6];
-			
+
 			Double freq1M = Double.parseDouble(freq1MStr);
 			Double freq1F = Double.parseDouble(freq1FStr);
 			Double mafM = Double.parseDouble(mafMStr);
@@ -360,7 +352,7 @@ public class CARDIA2017ResultsProcessor {
 			int nF = Integer.parseInt(nFStr);
 			Double rSqM = "-".equals(rSqMStr) ? Double.NaN : Double.parseDouble(rSqMStr);
 			Double rSqF = "-".equals(rSqFStr) ? Double.NaN : Double.parseDouble(rSqFStr);
-			
+
 			newLine.append(mkr).append("\t");
 			if (a1M.equals(a1F)) {
 				newLine.append(a1M).append("\t");
@@ -377,7 +369,8 @@ public class CARDIA2017ResultsProcessor {
 				newLine.append(nM + nF).append("\t");
 				newLine.append(combine(rSqM, rSqF, nM, nF));
 			} else {
-				System.err.println("Error - mismatched alleles for marker " + mkr + " Male: " + a1M + "/" + a2M + " | Female: " + a1F + "/" + a2F);
+				System.err.println("Error - mismatched alleles for marker " + mkr + " Male: " + a1M + "/"
+													 + a2M + " | Female: " + a1F + "/" + a2F);
 			}
 			writerI.println(newLine.toString());
 		}
@@ -386,7 +379,7 @@ public class CARDIA2017ResultsProcessor {
 		readerMI.close();
 		readerFI.close();
 	}
-	
+
 	private static String combine(double m, double f, int mN, int fN) {
 		if (Double.isNaN(m)) {
 			if (Double.isNaN(f)) {
@@ -409,8 +402,8 @@ public class CARDIA2017ResultsProcessor {
 		int numArgs = args.length;
 
 		String usage = "FAILED";
-		String pop = null; 
-		
+		String pop = null;
+
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h")
 					|| args[i].equals("/help")) {
@@ -429,11 +422,11 @@ public class CARDIA2017ResultsProcessor {
 		}
 		try {
 			new CARDIA2017ResultsProcessor().process(pop);
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-	
+
+
 }

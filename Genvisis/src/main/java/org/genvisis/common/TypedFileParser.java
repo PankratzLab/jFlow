@@ -139,8 +139,8 @@ public class TypedFileParser extends FileParser {
 		private final boolean validLine;
 		private final int numInvalidNumerics;
 
-		public TypedFileLine(	double[][] numericData, String[][] stringData, boolean validLine,
-													int numInvalidNumerics) {
+		public TypedFileLine(double[][] numericData, String[][] stringData, boolean validLine,
+												 int numInvalidNumerics) {
 			super();
 			this.numericData = numericData;
 			this.stringData = stringData;

@@ -13,10 +13,10 @@ public class Stats {
 		int numArgs = args.length;
 		String filename = null;
 
-		String usage = "\n"	+ "cnv.manage.Stats requires 0-1 arguments\n"
-										+ "   (1) project properties filename (i.e. proj="
-										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-										+ "";
+		String usage = "\n" + "cnv.manage.Stats requires 0-1 arguments\n"
+									 + "   (1) project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

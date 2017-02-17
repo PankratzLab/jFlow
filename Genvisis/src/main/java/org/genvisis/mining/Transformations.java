@@ -93,7 +93,7 @@ public class Transformations {
 				return ArrayUtils.multiply(array, 5);
 
 			default:
-				log.reportError("Error - '"	+ type
+				log.reportError("Error - '" + type
 												+ "' does not map to an implemented method; using NORMALIZE");
 				return ArrayUtils.normalize(array);
 		}
@@ -142,7 +142,7 @@ public class Transformations {
 		while (count < array.length) {
 			plus = 0;
 			while (count + plus + 1 < array.length
-							&& array[order[count]] == array[order[count + plus + 1]]) {
+						 && array[order[count]] == array[order[count + plus + 1]]) {
 				plus++;
 			}
 			for (int i = 0; i < plus + 1; i++) {
@@ -252,9 +252,9 @@ public class Transformations {
 		return trans;
 	}
 
-	public static void transformFile(	String filename, String outfile, boolean ignoreFirstLine,
-																		int column, boolean commaDelimited, boolean replace, int type,
-																		Logger log) {
+	public static void transformFile(String filename, String outfile, boolean ignoreFirstLine,
+																	 int column, boolean commaDelimited, boolean replace, int type,
+																	 Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, transformed;
@@ -262,8 +262,8 @@ public class Transformations {
 		IntVector duds;
 		int count;
 
-		line = HashVec.loadFileToStringArray(	filename, false, ignoreFirstLine, new int[] {column}, true,
-																					false, commaDelimited ? "," : "[\\s]+");
+		line = HashVec.loadFileToStringArray(filename, false, ignoreFirstLine, new int[] {column}, true,
+																				 false, commaDelimited ? "," : "[\\s]+");
 		dv = new DoubleVector();
 		duds = new IntVector();
 		for (int i = 0; i < line.length; i++) {
@@ -284,8 +284,8 @@ public class Transformations {
 			if (ignoreFirstLine) {
 				line = reader.readLine().trim().split(commaDelimited ? "," : "[\\s]+");
 				if (!replace) {
-					line = ArrayUtils.insertStringAt(line[column]	+ "_" + Transformations.LABELS[type], line,
-																			column + 1);
+					line = ArrayUtils.insertStringAt(line[column] + "_" + Transformations.LABELS[type], line,
+																					 column + 1);
 				}
 				writer.println(ArrayUtils.toStr(line, commaDelimited ? "," : "\t"));
 			}
@@ -320,9 +320,8 @@ public class Transformations {
 		for (int i = 0; i < LABELS.length; i++) {
 			types += " " + i + "=" + LABELS[i];
 		}
-		defaults = new String[] {	"file=input.txt", "out=output.txt", "ignoreFirstLine=false", "col=0",
-															"comma=false", "replace=false", "type=11",
-															"#possible types:" + types};
+		defaults = new String[] {"file=input.txt", "out=output.txt", "ignoreFirstLine=false", "col=0",
+														 "comma=false", "replace=false", "type=11", "#possible types:" + types};
 		for (int i = 0; i < LABELS.length; i++) {
 			ArrayUtils.addStrToArray("# " + i + "=" + LABELS[i], defaults);
 		}
@@ -344,16 +343,16 @@ public class Transformations {
 		int type = NORMALIZE;
 		String logfile = null;
 
-		String usage = "\n"	+ "mining.Transformations requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n"
-										+ "   (2) outfile (i.e. out=" + filename + "." + LABELS[type] + " (default))\n"
-										+ "   (3) ignore first [header] line (i.e. ignoreFirstLine=" + ignoreFirstLine
-										+ " (default))\n" + "   (4) column to be transformed (i.e. col=" + col
-										+ " (default))\n" + "   (5) comma delimited (i.e. comma=" + commaDelimited
-										+ " (default))\n" + "   (6) replace previous variables (i.e. replace=" + replace
-										+ " (default))\n"
-										+ "   (7) type of transformation (see below for options) (i.e. type=" + type
-										+ " (default))\n" + "";
+		String usage = "\n" + "mining.Transformations requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n"
+									 + "   (2) outfile (i.e. out=" + filename + "." + LABELS[type] + " (default))\n"
+									 + "   (3) ignore first [header] line (i.e. ignoreFirstLine=" + ignoreFirstLine
+									 + " (default))\n" + "   (4) column to be transformed (i.e. col=" + col
+									 + " (default))\n" + "   (5) comma delimited (i.e. comma=" + commaDelimited
+									 + " (default))\n" + "   (6) replace previous variables (i.e. replace=" + replace
+									 + " (default))\n"
+									 + "   (7) type of transformation (see below for options) (i.e. type=" + type
+									 + " (default))\n" + "";
 		for (int i = 0; i < LABELS.length; i++) {
 			usage += "       " + i + "=" + LABELS[i];
 		}

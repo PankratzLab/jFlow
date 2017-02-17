@@ -60,33 +60,31 @@ public class showMe {
 					if (pelican) {
 						peeps.add(new String[] {line[0], line[1], (line[4].equals(".") ? "0" : line[4]),
 																		(line[5].equals(".") ? "0" : line[5]),
-																		(line[2].toUpperCase().equals("M")	? "1"
-																																				: line[2]	.toUpperCase()
-																																									.equals("F")	? "2"
-																																																: "0"),
+																		(line[2].toUpperCase().equals("M") ? "1"
+																																			 : line[2].toUpperCase()
+																																								.equals("F") ? "2"
+																																														 : "0"),
 																		aff, (veeps.contains(line[0] + "\t" + line[1]) ? "1" : "0"),
 																		(veeps.contains(line[0] + "\t" + line[1]) ? "1" : "0"),
 																		(ages.containsKey(line[0] + "\t" + line[1])
-																			&& aff.equals("2")	? ages.get(line[0] + "\t" + line[1])
-																													: "-"),
-																		(affection.containsKey(line[0]	+ "\t"
-																														+ line[1])	? affection.get(line[0]
-																																													+ "\t"
-																																												+ line[1])
-																																				: "-"),
-																		"<< <PelicanData>"													+ (line[3].equals("TRUE")	? "1"
-																																																					: "0")
-																																								+ (line[1].equals("1")	? "1"
-																																																				: "0")
-																																								+ aff
-																																								+ "</PelicanData>"});
+																		 && aff.equals("2") ? ages.get(line[0] + "\t" + line[1]) : "-"),
+																		(affection.containsKey(line[0] + "\t"
+																													 + line[1]) ? affection.get(line[0] + "\t"
+																																											+ line[1])
+																																			: "-"),
+																		"<< <PelicanData>" + (line[3].equals("TRUE") ? "1"
+																																								 : "0")
+																																							+ (line[1].equals("1") ? "1"
+																																																		 : "0")
+																																							+ aff
+																																							+ "</PelicanData>"});
 					} else {
 						peeps.add(new String[] {line[0], line[1], (line[4].equals(".") ? "0" : line[4]),
 																		(line[5].equals(".") ? "0" : line[5]),
-																		(line[2].toUpperCase().equals("M")	? "1"
-																																				: line[2]	.toUpperCase()
-																																									.equals("F")	? "2"
-																																																: "0"),
+																		(line[2].toUpperCase().equals("M") ? "1"
+																																			 : line[2].toUpperCase()
+																																								.equals("F") ? "2"
+																																														 : "0"),
 																		aff, (veeps.contains(line[0] + "\t" + line[1]) ? "1" : "0"),
 																		(veeps.contains(line[0] + "\t" + line[1]) ? "1" : "0")});
 
@@ -130,11 +128,11 @@ public class showMe {
 		boolean trimmed = true;
 		boolean pelican = true;
 
-		String usage = "\n"	+ "park.showMe requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n"
-										+ "   (2) put families in separate files (i.e. '-separate' (optional))\n"
-										+ "   (3) trim families down to those genotyped (i.e. '-all' (optional))\n"
-										+ "   (4) add in pelican info (i.e. '-pelican' (optional))\n" + "";
+		String usage = "\n" + "park.showMe requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n"
+									 + "   (2) put families in separate files (i.e. '-separate' (optional))\n"
+									 + "   (3) trim families down to those genotyped (i.e. '-all' (optional))\n"
+									 + "   (4) add in pelican info (i.e. '-pelican' (optional))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

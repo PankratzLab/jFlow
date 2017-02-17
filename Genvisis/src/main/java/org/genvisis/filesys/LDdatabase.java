@@ -55,14 +55,13 @@ public class LDdatabase implements Serializable {
 	public static final String[] HAPLOVIEW_LD_HEADER = {"L1", "L2", "D'", "LOD", "r^2", "CIlow",
 																											"CIhi", "Dist", "T-int"};
 	public static final String[] FREQ_HEADER = {"CHR", "SNP", "A1", "A2", "MAF", "NCHROBS"};
-	public static final String MASTER_HAPMAP_ROOT = ext.rootOf(
-																															Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS,
-																																															"HapMap/CEU_founders/CEU_founders"
-																																																													+ ".bim",
-																																															true,
-																																															false,
-																																															new Logger()),
-																															false);
+	public static final String MASTER_HAPMAP_ROOT = ext.rootOf(Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS,
+																																														 "HapMap/CEU_founders/CEU_founders"
+																																																												+ ".bim",
+																																														 true,
+																																														 false,
+																																														 new Logger()),
+																														 false);
 	public static final String HAPLOVIEW_LOC = "/home/npankrat/Haploview.jar";
 	public static final String LDDB_ROOT = "lddb";
 	public static final String LDDB_TARGETS = "targets";
@@ -103,8 +102,8 @@ public class LDdatabase implements Serializable {
 			return subHash;
 		} else {
 			if (chrHash == null) {
-				chrHash = SnpMarkerSet.loadSnpMarkerSetToChrHash(root	+ ".bim",
-																													SnpMarkerSet.PLINK_BIM_FORMAT);
+				chrHash = SnpMarkerSet.loadSnpMarkerSetToChrHash(root + ".bim",
+																												 SnpMarkerSet.PLINK_BIM_FORMAT);
 			}
 			return chrHash;
 		}
@@ -135,8 +134,8 @@ public class LDdatabase implements Serializable {
 
 		if (listName != null) {
 			if (Files.exists(dir + listName + ".list", false)) {
-				check =
-							HashVec.loadFileToStringArray(dir + listName + ".list", false, new int[] {0}, false);
+				check = HashVec.loadFileToStringArray(dir + listName + ".list", false, new int[] {0},
+																							false);
 				if (ArrayUtils.equals(targets, check, false)) {
 					unchanged = true;
 					subHash = SerialHash.loadSerializedStringHash(dir + listName + ".chrHash.ser");
@@ -150,8 +149,8 @@ public class LDdatabase implements Serializable {
 		}
 
 		if (chrHash == null) {
-			chrHash =
-							SnpMarkerSet.loadSnpMarkerSetToChrHash(root + ".bim", SnpMarkerSet.PLINK_BIM_FORMAT);
+			chrHash = SnpMarkerSet.loadSnpMarkerSetToChrHash(root + ".bim",
+																											 SnpMarkerSet.PLINK_BIM_FORMAT);
 		}
 		subHash = new Hashtable<String, String>();
 
@@ -175,7 +174,7 @@ public class LDdatabase implements Serializable {
 
 		if (missing.containsKey("0") && missing.get("0").size() > 0) {
 			v = missing.get("0");
-			log.reportError("Warning - the following "	+ v.size() + " marker" + (v.size() > 1 ? "s" : "")
+			log.reportError("Warning - the following " + v.size() + " marker" + (v.size() > 1 ? "s" : "")
 											+ " were not found in the " + root + " dataset:");
 			for (int i = 0; i < v.size(); i++) {
 				log.reportError(v.elementAt(i));
@@ -214,8 +213,8 @@ public class LDdatabase implements Serializable {
 								if (writer == null) {
 									writer = new PrintWriter(new FileWriter(dir + "pairs.xln"));
 								}
-								writer.println(subset[i]	+ "\t" + subset[j] + "\t"
-																+ Math.abs(positions[i] - positions[j]));
+								writer.println(subset[i] + "\t" + subset[j] + "\t"
+															 + Math.abs(positions[i] - positions[j]));
 							}
 						}
 					}
@@ -234,12 +233,12 @@ public class LDdatabase implements Serializable {
 					log.report("Extracting chr" + chr + " markers from " + root, false, true);
 					Files.writeArray(ArrayUtils.toStringArray(v), dir + LDDB_TARGETS + "_snplist.txt");
 					if (!new File(root + ".chr" + chr + ".bed").exists()) {
-						CmdLine.run("plink --bfile "	+ root + " --chr " + chr + " --noweb --make-bed --out "
+						CmdLine.run("plink --bfile " + root + " --chr " + chr + " --noweb --make-bed --out "
 												+ root + ".chr" + chr, "./");
 					}
-					CmdLine.run("plink --bfile "	+ root + ".chr" + chr + " --noweb --extract " + dir
+					CmdLine.run("plink --bfile " + root + ".chr" + chr + " --noweb --extract " + dir
 											+ LDDB_TARGETS + "_snplist.txt --recode --out " + dir + LDDB_TARGETS, "./");
-					CmdLine.run("plink --file "	+ dir + LDDB_TARGETS + " --noweb --freq --out " + dir
+					CmdLine.run("plink --file " + dir + LDDB_TARGETS + " --noweb --freq --out " + dir
 											+ "freqCheck", "./");
 					try {
 						reader = new BufferedReader(new FileReader(dir + "freqCheck.frq"));
@@ -254,25 +253,25 @@ public class LDdatabase implements Serializable {
 						chrLDdb.addMonomorphs(monomorphs);
 						reader.close();
 					} catch (FileNotFoundException fnfe) {
-						log.reportError("Error: file \""	+ dir + "freqCheck.frq"
+						log.reportError("Error: file \"" + dir + "freqCheck.frq"
 														+ "\" not found in current directory");
 						System.exit(1);
 					} catch (IOException ioe) {
 						log.reportError("Error reading file \"" + dir + "freqCheck.frq" + "\"");
 						System.exit(2);
 					}
-					new SnpMarkerSet(dir + LDDB_TARGETS + ".map").writeToFile(dir	+ LDDB_TARGETS + ".info",
+					new SnpMarkerSet(dir + LDDB_TARGETS + ".map").writeToFile(dir + LDDB_TARGETS + ".info",
 																																		SnpMarkerSet.HAPLOVIEW_INFO_FORMAT,
 																																		log);
 					log.report("  ...done");
 					log.report("Computing LD for chr" + chr + "...", false, true);
 					if (new File(HAPLOVIEW_LOC).exists()) {
-						CmdLine.run("java -jar "	+ HAPLOVIEW_LOC + " -nogui -pedfile " + dir + LDDB_TARGETS
+						CmdLine.run("java -jar " + HAPLOVIEW_LOC + " -nogui -pedfile " + dir + LDDB_TARGETS
 												+ ".ped -info " + dir + LDDB_TARGETS + ".info -dprime -chromosome "
 												+ Positions.chromosomeNumberInverse(chr)
 												+ " -maxDistance 500 -hwcutoff 0 -minGeno 0 -missingCutoff 1", "./");
 					} else {
-						log.reportError("\n\nError - could not find haploview JAR file at: "	+ HAPLOVIEW_LOC
+						log.reportError("\n\nError - could not find haploview JAR file at: " + HAPLOVIEW_LOC
 														+ "\nAborting...");
 						System.exit(1);
 					}
@@ -286,7 +285,7 @@ public class LDdatabase implements Serializable {
 						}
 						reader.close();
 					} catch (FileNotFoundException fnfe) {
-						log.reportError("Error: file \""	+ dir + LDDB_TARGETS + ".ped.LD"
+						log.reportError("Error: file \"" + dir + LDDB_TARGETS + ".ped.LD"
 														+ "\" not found in current directory");
 						System.exit(1);
 					} catch (IOException ioe) {
@@ -333,8 +332,8 @@ public class LDdatabase implements Serializable {
 		return chrLDdbs;
 	}
 
-	public static float multiCheck(	LongLDdb[] chrLDdbs, String marker1, String marker2, int compType,
-																	Logger log) {
+	public static float multiCheck(LongLDdb[] chrLDdbs, String marker1, String marker2, int compType,
+																 Logger log) {
 		float[] r2s;
 		float r2;
 
@@ -420,7 +419,7 @@ public class LDdatabase implements Serializable {
 						pos = poslar[i];
 					} else if (!poslar[i].equals(pos)) {
 						if (reportType == REPORT_VERBOSE) {
-							log.reportError("Error - inconsistent position for marker "	+ markerName + ": " + pos
+							log.reportError("Error - inconsistent position for marker " + markerName + ": " + pos
 															+ " and " + poslar[i]);
 						}
 						return REPORT_INCONSISTENT;

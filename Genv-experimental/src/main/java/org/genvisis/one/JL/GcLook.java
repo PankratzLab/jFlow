@@ -31,15 +31,15 @@ import org.genvisis.stats.Rscript.SCATTER_TYPE;
 public class GcLook {
 	private static final int[] CHRS = new int[] {-1, 26};
 	// private static final int[] CHRS = new int[] { -1, 26, 23, 24 };
-	private static final int[][] QC_GROUPINGS = new int[][] {	{1}, {2, 3, 4}, {5, 6}, {7, 8, 9},
-																														{10, 11, 12}, {23}};
-	private static final String[] QC_TITLES =
-																					new String[] {"CallRate", "MeanClusterTheta", "DiffTheta",
-																												"SDClusterTheta", "MeanClusterR", "LRR_SD"};
+	private static final int[][] QC_GROUPINGS = new int[][] {{1}, {2, 3, 4}, {5, 6}, {7, 8, 9},
+																													 {10, 11, 12}, {23}};
+	private static final String[] QC_TITLES = new String[] {"CallRate", "MeanClusterTheta",
+																													"DiffTheta", "SDClusterTheta",
+																													"MeanClusterR", "LRR_SD"};
 	private static final String GC_CONTENT = "GC_Content";
 
 	public enum CROSS_HYBE_FILTER {
-																	ALL(-1), ALIGN_25(25), ALIGN_30(30), ALIGN_35(35), ALIGN_45(45);
+		ALL(-1), ALIGN_25(25), ALIGN_30(30), ALIGN_35(35), ALIGN_45(45);
 
 		private final int minTally;
 
@@ -55,7 +55,7 @@ public class GcLook {
 	}
 
 	public enum KB_BUFFER {
-													DESIGN(-1);
+		DESIGN(-1);
 		// , BP_50(50), BP_100(100), BP_250(250), BP_500(500), BP_1000(1000), BP_10000(10000);
 
 		private final int buffer;
@@ -85,9 +85,8 @@ public class GcLook {
 		new File(dir).mkdirs();
 		String out = dir + "gcLook.txt";
 
-		ReferenceGenome referenceGenome =
-																		new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
-																												proj.getLog());
+		ReferenceGenome referenceGenome = new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
+																													proj.getLog());
 
 		ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 		builder.separator("\t");
@@ -101,14 +100,13 @@ public class GcLook {
 			parser.loadData();
 			ArrayList<String> titles = new ArrayList<String>();
 
-			DynamicAveragingHistogram[][][] dHistograms =
-																									new DynamicAveragingHistogram[parser.getNumericData().length][CHRS.length][KB_BUFFER.values().length];
+			DynamicAveragingHistogram[][][] dHistograms = new DynamicAveragingHistogram[parser.getNumericData().length][CHRS.length][KB_BUFFER.values().length];
 			for (int qcMetric = 0; qcMetric < parser.getNumericData().length; qcMetric++) {
 				for (int chrIndex = 0; chrIndex < CHRS.length; chrIndex++) {
 					for (int bufferIndex = 0; bufferIndex < KB_BUFFER.values().length; bufferIndex++) {
-						String title = parser.getNumericDataTitles()[qcMetric]	+ "_chr"
-														+ (CHRS[chrIndex] >= 0 ? CHRS[chrIndex] : "All") + "_"
-														+ KB_BUFFER.values()[bufferIndex] + "_bp";
+						String title = parser.getNumericDataTitles()[qcMetric] + "_chr"
+													 + (CHRS[chrIndex] >= 0 ? CHRS[chrIndex] : "All") + "_"
+													 + KB_BUFFER.values()[bufferIndex] + "_bp";
 						titles.add(title);
 						dHistograms[qcMetric][chrIndex][bufferIndex] = new DynamicAveragingHistogram(0, 1, 2);
 						dHistograms[qcMetric][chrIndex][bufferIndex].setTitle(title);
@@ -116,14 +114,14 @@ public class GcLook {
 				}
 			}
 			if (!Files.exists(out)) {
-				MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(	proj, null,
-																																										proj.BLAST_ANNOTATION_FILENAME.getValue(),
-																																										proj.getMarkerSet(),
-																																										true);
+				MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(proj, null,
+																																									 proj.BLAST_ANNOTATION_FILENAME.getValue(),
+																																									 proj.getMarkerSet(),
+																																									 true);
 				markerAnnotationLoader.setReportEvery(500000);
-				MarkerGCAnnotation[] gcAnnotations = MarkerGCAnnotation.initForMarkers(	proj, markerNames,
-																																								markerAnnotationLoader.getMarkerSet(),
-																																								markerAnnotationLoader.getIndices());
+				MarkerGCAnnotation[] gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, markerNames,
+																																							 markerAnnotationLoader.getMarkerSet(),
+																																							 markerAnnotationLoader.getIndices());
 				MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(markerNames);
 
 				ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
@@ -155,8 +153,7 @@ public class GcLook {
 							double gc = Double.NaN;
 							if (KB_BUFFER.values()[bufferIndex] != KB_BUFFER.DESIGN) {
 								Segment markerSegment = new Segment(chrs[i], pos[i], pos[i]);
-								markerSegment =
-															markerSegment.getBufferedSegment(KB_BUFFER.values()[bufferIndex].getBuffer());
+								markerSegment = markerSegment.getBufferedSegment(KB_BUFFER.values()[bufferIndex].getBuffer());
 								gc = referenceGenome.getGCContentFor(markerSegment);
 							} else {
 								try {
@@ -169,8 +166,8 @@ public class GcLook {
 							for (int qcMetric = 0; qcMetric < parser.getNumericData().length; qcMetric++) {
 								for (int chrIndex = 0; chrIndex < CHRS.length; chrIndex++) {
 									if (CHRS[chrIndex] < 0 || CHRS[chrIndex] == chrs[i]) {
-										dHistograms[qcMetric][chrIndex][bufferIndex].addDataPair(	gc,
-																																							parser.getNumericData()[qcMetric][i]);
+										dHistograms[qcMetric][chrIndex][bufferIndex].addDataPair(gc,
+																																						 parser.getNumericData()[qcMetric][i]);
 									}
 								}
 							}
@@ -190,7 +187,7 @@ public class GcLook {
 							for (int chrIndex = 0; chrIndex < CHRS.length; chrIndex++) {
 								for (int bufferIndex = 0; bufferIndex < KB_BUFFER.values().length; bufferIndex++) {
 									writer.print("\t"
-																+ dHistograms[qcMetric][chrIndex][bufferIndex].getAverages()[i]);
+															 + dHistograms[qcMetric][chrIndex][bufferIndex].getAverages()[i]);
 
 								}
 							}
@@ -209,19 +206,19 @@ public class GcLook {
 			for (int l = 0; l < QC_GROUPINGS.length; l++) {
 				for (int chrIndex = 0; chrIndex < CHRS.length; chrIndex++) {
 					for (int bufferIndex = 0; bufferIndex < KB_BUFFER.values().length; bufferIndex++) {
-						String groupPlot = ext.rootOf(out, false)	+ "_" + QC_TITLES[l] + "_chr"
-																+ (CHRS[chrIndex] >= 0 ? CHRS[chrIndex] : "All") + "_"
-																+ KB_BUFFER.values()[bufferIndex] + "bp";
+						String groupPlot = ext.rootOf(out, false) + "_" + QC_TITLES[l] + "_chr"
+															 + (CHRS[chrIndex] >= 0 ? CHRS[chrIndex] : "All") + "_"
+															 + KB_BUFFER.values()[bufferIndex] + "bp";
 						String title = "n=" + ArrayUtils.sum(dHistograms[0][chrIndex][bufferIndex].getCounts());
 						ArrayList<String> ys = new ArrayList<String>();
 						for (int k = 0; k < QC_GROUPINGS[l].length; k++) {
 							ys.add(dHistograms[QC_GROUPINGS[l][k]][chrIndex][bufferIndex].getTitle());
 						}
 						String[] yColumns = ys.toArray(new String[ys.size()]);
-						RScatter rScatterGroupAvg = new RScatter(	out, groupPlot + ".rscript",
-																											ext.removeDirectoryInfo(groupPlot),
-																											groupPlot + ".pdf", GC_CONTENT, yColumns,
-																											SCATTER_TYPE.POINT, proj.getLog());
+						RScatter rScatterGroupAvg = new RScatter(out, groupPlot + ".rscript",
+																										 ext.removeDirectoryInfo(groupPlot),
+																										 groupPlot + ".pdf", GC_CONTENT, yColumns,
+																										 SCATTER_TYPE.POINT, proj.getLog());
 						rScatterGroupAvg.setxLabel(GC_CONTENT);
 						rScatterGroupAvg.setyLabel(QC_TITLES[l]);
 						rScatterGroupAvg.setOverWriteExisting(false);
@@ -232,10 +229,10 @@ public class GcLook {
 						rScatters.add(rScatterGroupAvg);
 					}
 				}
-				RScatters rScattersAll = new RScatters(	rScatters.toArray(new RScatter[rScatters.size()]),
-																								out + ".rscript", out + ".pdf",
-																								COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1,
-																								PLOT_DEVICE.PDF, proj.getLog());
+				RScatters rScattersAll = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]),
+																							 out + ".rscript", out + ".pdf",
+																							 COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1,
+																							 PLOT_DEVICE.PDF, proj.getLog());
 
 				rScattersAll.execute();
 			}
@@ -247,8 +244,8 @@ public class GcLook {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = null;
-		String usage = "\n"	+ "one.JL.GcLook requires 0-1 arguments\n"
-										+ "   (1) project filename (i.e. proj=" + filename + " (default))\n" + "";
+		String usage = "\n" + "one.JL.GcLook requires 0-1 arguments\n"
+									 + "   (1) project filename (i.e. proj=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

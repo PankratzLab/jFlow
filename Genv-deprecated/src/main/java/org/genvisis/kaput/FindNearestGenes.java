@@ -66,8 +66,8 @@ public class FindNearestGenes {
 					genePositions[j][k] = Integer.parseInt(line[k]);
 				}
 			} else {
-				System.err.println("Error - "	+ markers[j] + " was listed in " + filename
-														+ " but was not found in the map loaded (" + MAP + ")");
+				System.err.println("Error - " + markers[j] + " was listed in " + filename
+													 + " but was not found in the map loaded (" + MAP + ")");
 				System.exit(1);
 			}
 		}
@@ -88,7 +88,7 @@ public class FindNearestGenes {
 				}
 
 				for (int j = 0; j < markers.length; j++) {
-					if (genePositions[j][0] == chr_start_stop[0]	&& genePositions[j][1] < chr_start_stop[1]
+					if (genePositions[j][0] == chr_start_stop[0] && genePositions[j][1] < chr_start_stop[1]
 							&& genes[j].equals("")) {
 						if (queuePoslar.size() == 0) {
 							genes[j] = "xx";
@@ -96,27 +96,25 @@ public class FindNearestGenes {
 							nearestPosition = -99999999;
 						} else {
 							nearestMarker = queueNames.elementAt(queuePoslar.size() - 1);
-							nearestPosition =
-															(genePositions[j][1] < queuePoslar.elementAt(queuePoslar.size()
-																																						- 1)[2]	? 0
-																																										: -1
-																																											* (genePositions[j][1]
+							nearestPosition = (genePositions[j][1] < queuePoslar.elementAt(queuePoslar.size()
+																																						 - 1)[2] ? 0
+																																										 : -1
+																																											 * (genePositions[j][1]
 																																													- queuePoslar.elementAt(queuePoslar.size()
 																																																									- 1)[2]));
 							for (int i = 0; i < queuePoslar.size(); i++) {
-								genes[j] += (genes[j].equals("") ? "" : "|")	+ queueNames.elementAt(i) + "["
+								genes[j] += (genes[j].equals("") ? "" : "|") + queueNames.elementAt(i) + "["
 														+ (queuePoslar.elementAt(i)[2] - queuePoslar.elementAt(i)[1]) + "] ("
-														+ (genePositions[j][1] < queuePoslar.elementAt(i)[2]	? "within"
-																																									: "-"
-																																										+ (genePositions[j][1]
-																																												- queuePoslar.elementAt(i)[2]))
+														+ (genePositions[j][1] < queuePoslar.elementAt(i)[2] ? "within"
+																																								 : "-"
+																																									 + (genePositions[j][1]
+																																											- queuePoslar.elementAt(i)[2]))
 														+ ")";
 								if (genePositions[j][1] - queuePoslar.elementAt(i)[2] < Math.abs(nearestPosition)) {
 									nearestMarker = queueNames.elementAt(i);
-									nearestPosition =
-																	(genePositions[j][1] < queuePoslar.elementAt(i)[2]	? 0
-																																											: -1
-																																												* (genePositions[j][1]
+									nearestPosition = (genePositions[j][1] < queuePoslar.elementAt(i)[2] ? 0
+																																											 : -1
+																																												 * (genePositions[j][1]
 																																														- queuePoslar.elementAt(i)[2]));
 								}
 
@@ -127,7 +125,7 @@ public class FindNearestGenes {
 							travLine = i == 0 ? line : reader.readLine().trim().split("[\\s]+");
 							trav = parseChrInfo(travLine);
 							if (genePositions[j][0] == trav[0]) {
-								genes[j] += "|"	+ travLine[1] + "[" + (trav[2] - trav[1]) + "] (+"
+								genes[j] += "|" + travLine[1] + "[" + (trav[2] - trav[1]) + "] (+"
 														+ (trav[1] - genePositions[j][1]) + ")";
 							}
 							if (i == 0 && trav[1] - genePositions[j][1] < Math.abs(nearestPosition)) {
@@ -137,12 +135,12 @@ public class FindNearestGenes {
 						}
 						reader.reset();
 
-						genes[j] = nearestMarker	+ "("
-												+ (nearestPosition == 0	? "within"
-																								: (nearestPosition < 0 ? "-" : "+")
-																									+ ext.prettyUpDistance(	Math.abs(nearestPosition),
-																																					0))
-												+ ")\t" + genes[j];
+						genes[j] = nearestMarker + "("
+											 + (nearestPosition == 0 ? "within"
+																							 : (nearestPosition < 0 ? "-" : "+")
+																								 + ext.prettyUpDistance(Math.abs(nearestPosition),
+																																				0))
+											 + ")\t" + genes[j];
 					}
 				}
 
@@ -164,7 +162,7 @@ public class FindNearestGenes {
 
 		System.out.println("Writing to files...");
 		try {
-			writer = new PrintWriter(new FileWriter(DIR	+ filename.substring(0, filename.indexOf("."))
+			writer = new PrintWriter(new FileWriter(DIR + filename.substring(0, filename.indexOf("."))
 																							+ "_described.out"));
 			writer.println("SNP\tChr\tloc_36.1\tGene");
 			for (int j = 0; j < markers.length; j++) {
@@ -182,13 +180,12 @@ public class FindNearestGenes {
 	public static int[] parseChrInfo(String[] line) {
 		int[] chr_start_stop = new int[3];
 
-		chr_start_stop[0] =
-											line[2].equals("X")	? 23
-																					: (line[2].equals("Y")	? 24
-																																	: (line[2].equals("XY")	? 25
-																																													: (line[2].equals("MT")	? 26
-																																																									: (line[2].equals("Un")	? 27
-																																																																					: Integer.parseInt(line[2])))));
+		chr_start_stop[0] = line[2].equals("X") ? 23
+																						: (line[2].equals("Y") ? 24
+																																	 : (line[2].equals("XY") ? 25
+																																													 : (line[2].equals("MT") ? 26
+																																																									 : (line[2].equals("Un") ? 27
+																																																																					 : Integer.parseInt(line[2])))));
 		chr_start_stop[1] = Integer.parseInt(line[3]);
 		chr_start_stop[2] = Integer.parseInt(line[4]);
 
@@ -199,8 +196,8 @@ public class FindNearestGenes {
 		int numArgs = args.length;
 		String filename = DEFAULT_HIT_LIST;
 
-		String usage = "\\n"	+ "gwas.FindNearestGenes requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\\n" + "gwas.FindNearestGenes requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

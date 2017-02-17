@@ -22,10 +22,10 @@ import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 
 public class ThetaOutliers {
-	public static final String[] QC_HEADS = {	"LRR_mean", "LRR_median", "LRR_SD", "BAF_mean",
-																						"BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF"};
-	public static final String[] ERRORS = {	"large SD for LRR", "drifting BAF values",
-																					"waviness factor values", "Small-sized CNV calls"};
+	public static final String[] QC_HEADS = {"LRR_mean", "LRR_median", "LRR_SD", "BAF_mean",
+																					 "BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF"};
+	public static final String[] ERRORS = {"large SD for LRR", "drifting BAF values",
+																				 "waviness factor values", "Small-sized CNV calls"};
 	public static final String QC_SUMMARY_FILE = "Sample_QC.xln";
 
 
@@ -80,8 +80,8 @@ public class ThetaOutliers {
 					result = reclusterNullGenotypeByTheta(markerData, null, stdDev, log);
 				}
 				for (int k = 0; result != null && k < result.length; k++) {
-					writer.println(markerData.getMarkerName()	+ "\t" + markerData.getChr() + "\t"
-													+ markerData.getPosition() + "\t" + sampleList[k]);
+					writer.println(markerData.getMarkerName() + "\t" + markerData.getChr() + "\t"
+												 + markerData.getPosition() + "\t" + sampleList[k]);
 				}
 				markerDataLoader.releaseIndex(i);
 			}
@@ -94,9 +94,9 @@ public class ThetaOutliers {
 		}
 	}
 
-	public static int[] reclusterNullGenotypeByTheta(	MarkerData markerData,
-																										ClusterFilterCollection clusterFilterCollection,
-																										int numberOfStdDev, Logger log) {
+	public static int[] reclusterNullGenotypeByTheta(MarkerData markerData,
+																									 ClusterFilterCollection clusterFilterCollection,
+																									 int numberOfStdDev, Logger log) {
 		byte[] genotypes;
 		double[] rs, thetas;
 		DoubleVector[] rsByGenotype, thetasByGenotype;
@@ -163,10 +163,9 @@ public class ThetaOutliers {
 					for (byte i = 1; i < 4; i++) {
 						if (rsByGenotype[i].size() != 0) {
 							// TODO actually need to standardize the R and Theta
-							distance[i] = Distance.euclidean(
-																								new double[] {rsByGenotype[0].elementAt(j),
-																															thetasByGenotype[0].elementAt(j)},
-																								new double[] {meanR[i], meanTheta[i]});
+							distance[i] = Distance.euclidean(new double[] {rsByGenotype[0].elementAt(j),
+																														 thetasByGenotype[0].elementAt(j)},
+																							 new double[] {meanR[i], meanTheta[i]});
 						}
 					}
 					if (distance[nonMissingGenotype.elementAt((byte) 0)] < distance[nonMissingGenotype.elementAt((byte) 1)]) {

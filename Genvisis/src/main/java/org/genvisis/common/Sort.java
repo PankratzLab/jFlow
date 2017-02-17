@@ -106,7 +106,7 @@ public class Sort {
 	}
 
 	public static <C1 extends Comparable<C1>, C2 extends Comparable<C2>> int[] getSort2DIndices(List<C1> list1,
-	                                                                                            List<C2> list2) {
+																																															List<C2> list2) {
 		@SuppressWarnings("unchecked")
 		IndexedCC<C1, C2>[] icc = new IndexedCC[list1.size()];
 		for (int i = 0; i < icc.length; i++) {
@@ -118,13 +118,13 @@ public class Sort {
 	private static int[] getSortedIndices(SortableWrapper w) {
 		int[] indices = new int[w.size()];
 		if (w.size() == 0) {
-		  return indices;
+			return indices;
 		}
 		for (int i = 1; i < indices.length; i++) {
 			indices[i] = i;
 		}
 
-		quicksort(indices, w, 0, indices.length-1);
+		quicksort(indices, w, 0, indices.length - 1);
 
 		return indices;
 	}
@@ -392,8 +392,7 @@ public class Sort {
 	 * Store two comparable objects with an external index, to facilitate sorting by the first object,
 	 * then the second, and finally the original index
 	 */
-	private static class IndexedCC<C1 extends Comparable<C1>, C2 extends Comparable<C2>>
-	                              implements Comparable<IndexedCC<C1, C2>>, IndexedWrapper {
+	private static class IndexedCC<C1 extends Comparable<C1>, C2 extends Comparable<C2>> implements Comparable<IndexedCC<C1, C2>>, IndexedWrapper {
 		private final C1 c1;
 		private final C2 c2;
 		private final int index;

@@ -127,8 +127,8 @@ public class HitWindowsLD {
 		return markers;
 	}
 
-	public void checkHit(	String hit1, int position1, String hit2, int position2, int checkchr,
-												ReferenceMap referenceMap) {
+	public void checkHit(String hit1, int position1, String hit2, int position2, int checkchr,
+											 ReferenceMap referenceMap) {
 		if (checkchr == chr && hit1.equals(target)) {
 			checkMin(hit2, position2, referenceMap);
 			checkMax(hit2, position2, referenceMap);
@@ -216,70 +216,70 @@ public class HitWindowsLD {
 			if (liberal) {
 				setLiberal(referenceMap);
 			}
-			summary += target	+ "\t" + chr + "\t" + pos + "\t" + numHits + "\t" + numRefHits + "\t"
-									+ minHitPos + "\t" + minHitMarker + "\t" + maxHitPos + "\t" + maxHitMarker + "\t"
-									+ inRef + "\t" + UCSC + "\t" + UCSCLink + "\t" + window;
+			summary += target + "\t" + chr + "\t" + pos + "\t" + numHits + "\t" + numRefHits + "\t"
+								 + minHitPos + "\t" + minHitMarker + "\t" + maxHitPos + "\t" + maxHitMarker + "\t"
+								 + inRef + "\t" + UCSC + "\t" + UCSCLink + "\t" + window;
 		}
 		return summary;
 	}
 
-	public static void analyzeLD(	String dir, String[] targetFile, String refMap, int window,
-																boolean liberal, String fileExt, boolean filtered, boolean region,
-																String output, double filter, int filterOnColumn, Logger log) {
+	public static void analyzeLD(String dir, String[] targetFile, String refMap, int window,
+															 boolean liberal, String fileExt, boolean filtered, boolean region,
+															 String output, double filter, int filterOnColumn, Logger log) {
 		analyzeLD(dir, targetFile, ReferenceMap.getMap(refMap, log), window, liberal, fileExt, filtered,
 							region, output, filter, filterOnColumn, log);
 	}
 
-	public static void analyzeLD(	String dir, String[] targetFiles, ReferenceMap referenceMap,
-																int window, boolean liberal, String fileExt, boolean filtered,
-																boolean region, String output, double filter, int filterOnColumn,
-																Logger log) {
+	public static void analyzeLD(String dir, String[] targetFiles, ReferenceMap referenceMap,
+															 int window, boolean liberal, String fileExt, boolean filtered,
+															 boolean region, String output, double filter, int filterOnColumn,
+															 Logger log) {
 		int fileType = ext.indexOfStr(fileExt, FILE_TYPES);
 		if (fileType == -1) {
 			log.reportError("Warning - assuming haploview format");
 			fileType = 2;
 		}
 		String[] files = Files.list(dir, fileExt, false);
-		log.report("Info - found "	+ files.length + " files with extension " + fileExt
-								+ " in directory " + dir);
+		log.report("Info - found " + files.length + " files with extension " + fileExt
+							 + " in directory " + dir);
 		for (String file : files) {
 			log.report(ext.getTime() + " Info - checking file " + file);
 			for (String targetFile : targetFiles) {
-				analyzeTargetLDCombo(	targetFile, referenceMap, window, liberal, region, output, log,
-															fileType, filter, filterOnColumn, dir + file);
+				analyzeTargetLDCombo(targetFile, referenceMap, window, liberal, region, output, log,
+														 fileType, filter, filterOnColumn, dir + file);
 			}
 		}
 	}
 
-	public static void determineLD(	String targetFile, String mapFile, String output, String ldFile,
-																	int window, double filter, int column, Logger log) {
+	public static void determineLD(String targetFile, String mapFile, String output, String ldFile,
+																 int window, double filter, int column, Logger log) {
 		int fileType = determineFileType(ldFile, log);
-		analyzeTargetLDCombo(	targetFile, ReferenceMap.getMap(mapFile, log), window, true, true, output,
-													log, fileType, filter, column, ldFile);
+		analyzeTargetLDCombo(targetFile, ReferenceMap.getMap(mapFile, log), window, true, true, output,
+												 log, fileType, filter, column, ldFile);
 	}
 
 	public static void analyzeTargetLDCombo(String targetFile, ReferenceMap referenceMap, int window,
 																					boolean liberal, boolean region, String output,
 																					Logger log, int fileType, double filter,
 																					int filterOnColumn, String ldFile) {
-		HitWindowsLD[] hitWindowsLD =
-																prepWindows(targetFile, referenceMap, window, region, filter, log);
+		HitWindowsLD[] hitWindowsLD = prepWindows(targetFile, referenceMap, window, region, filter,
+																							log);
 		harvestLD(ldFile, hitWindowsLD, referenceMap, fileType, filter, filterOnColumn, log);
 		summarize(targetFile, ldFile, referenceMap, liberal, hitWindowsLD, region, output, log);
 	}
 
 	private static HitWindowsLD[] prepWindows(String targetFile, ReferenceMap referenceMap,
 																						int window, boolean region, double filter, Logger log) {
-		return prepWindows(	getTargetWindows(targetFile, window, log), referenceMap, window, region,
-												filter, log);
+		return prepWindows(getTargetWindows(targetFile, window, log), referenceMap, window, region,
+											 filter, log);
 	}
 
-	public static void determineLD(	String[] targets, String regionName, String mapFile, String output,
-																	String ldFile, int window, double filter, int column,
-																	boolean region, Logger log) {
+	public static void determineLD(String[] targets, String regionName, String mapFile, String output,
+																 String ldFile, int window, double filter, int column,
+																 boolean region, Logger log) {
 		int fileType = determineFileType(ldFile, log);
-		analyzeTargetLDCombo(	targets, regionName, ReferenceMap.getMap(mapFile, log), window, true,
-													region, output, log, fileType, filter, column, ldFile);
+		analyzeTargetLDCombo(targets, regionName, ReferenceMap.getMap(mapFile, log), window, true,
+												 region, output, log, fileType, filter, column, ldFile);
 	}
 
 	public static void analyzeTargetLDCombo(String[] targets, String regionName,
@@ -292,11 +292,11 @@ public class HitWindowsLD {
 		summarize(regionName, ldFile, referenceMap, liberal, hitWindowsLD, region, output, log);
 	}
 
-	public static HitWindowsLD[] prepWindows(	HitWindowsLD[] hitWindowsLD, ReferenceMap referenceMap,
-																						int window, boolean region, double filter, Logger log) {
+	public static HitWindowsLD[] prepWindows(HitWindowsLD[] hitWindowsLD, ReferenceMap referenceMap,
+																					 int window, boolean region, double filter, Logger log) {
 		for (int i = 0; i < hitWindowsLD.length; i++) {
 			if (!referenceMap.inReference(hitWindowsLD[i].getTarget())) {
-				log.reportError("Warning - marker "	+ hitWindowsLD[i].getTarget()
+				log.reportError("Warning - marker " + hitWindowsLD[i].getTarget()
 												+ " was not present in the reference LD dataset/map file");
 			} else {
 				hitWindowsLD[i].setInRef(true);
@@ -376,7 +376,7 @@ public class HitWindowsLD {
 			boolean add = true;
 			if (trackpos.containsKey(marker)) {
 				add = false;
-				log.reportError("Error - a duplicate marker "	+ marker
+				log.reportError("Error - a duplicate marker " + marker
 												+ " was found in the reference map, only retaining map info for the first seen");
 			}
 			if (chr < loadingChr) {
@@ -503,9 +503,9 @@ public class HitWindowsLD {
 		}
 	}
 
-	public static void harvestLD(	String ldfile, HitWindowsLD[] hitWindowsLD,
-																ReferenceMap referenceMap, int fileType, double filter,
-																int filterOnColumn, Logger log) {
+	public static void harvestLD(String ldfile, HitWindowsLD[] hitWindowsLD,
+															 ReferenceMap referenceMap, int fileType, double filter,
+															 int filterOnColumn, Logger log) {
 		BufferedReader reader;
 		try {
 			reader = Files.getAppropriateReader(ldfile);
@@ -516,19 +516,19 @@ public class HitWindowsLD {
 						try {
 							double R2 = Double.parseDouble(line[7]);
 							if (line[4].equals(line[1]) && R2 > element.getFilter()) {
-								element.checkHit(	line[3], Integer.parseInt(line[2]), line[6],
-																	Integer.parseInt(line[5]), Integer.parseInt(line[1]),
-																	referenceMap);
+								element.checkHit(line[3], Integer.parseInt(line[2]), line[6],
+																 Integer.parseInt(line[5]), Integer.parseInt(line[1]),
+																 referenceMap);
 							}
 						} catch (NumberFormatException e) {
 							if (!line[7].equals("R2")) {
-								log.report("Warning - skipping R2 value "	+ line[7] + " in file " + ldfile
-														+ ", not a number");
+								log.report("Warning - skipping R2 value " + line[7] + " in file " + ldfile
+													 + ", not a number");
 							}
 						}
 					} else if (fileType == 1) {
-						element.checkHit(	line[2], Integer.parseInt(line[1]), line[4], Integer.parseInt(line[3]),
-															Integer.parseInt(line[0]), referenceMap);
+						element.checkHit(line[2], Integer.parseInt(line[1]), line[4], Integer.parseInt(line[3]),
+														 Integer.parseInt(line[0]), referenceMap);
 					}
 
 					else if (fileType == 2) {
@@ -537,18 +537,18 @@ public class HitWindowsLD {
 							if (referenceMap.getChr(line[0]) == referenceMap.getChr(line[1])
 									&& metric >= element.getFilter()) {
 								try {
-									element.checkHit(	line[0], referenceMap.getPos(line[0]), line[1],
-																		referenceMap.getPos(line[1]), referenceMap.getChr(line[0]),
-																		referenceMap);
+									element.checkHit(line[0], referenceMap.getPos(line[0]), line[1],
+																	 referenceMap.getPos(line[1]), referenceMap.getChr(line[0]),
+																	 referenceMap);
 								} catch (NullPointerException npe) {
-									log.reportError("Error - could not find both markers ("	+ line[0] + " and "
+									log.reportError("Error - could not find both markers (" + line[0] + " and "
 																	+ line[1] + " in reference map");
 									log.reportException(npe);
 								}
 							}
 						} catch (NumberFormatException e) {
-							log.report("Warning - skipping value "	+ line[filterOnColumn - 1] + " in file "
-													+ ldfile + ", not a number");
+							log.report("Warning - skipping value " + line[filterOnColumn - 1] + " in file "
+												 + ldfile + ", not a number");
 						}
 					}
 				}
@@ -582,12 +582,12 @@ public class HitWindowsLD {
 			}
 			if (region) {
 				writer.println("\n" + ArrayUtils.toStr(REGION_REPORT_HEADER));
-				writer.println(ext.rootOf(targetFile, true)	+ "\t" + getRegionSummary(hitWindowsLD, log)
-												+ "\t" + source);
+				writer.println(ext.rootOf(targetFile, true) + "\t" + getRegionSummary(hitWindowsLD, log)
+											 + "\t" + source);
 			}
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \""	+ output + "." + source
+			log.reportError("Error: file \"" + output + "." + source
 											+ "\" could not be written to (it's probably open)");
 			log.reportException(fnfe);
 			System.exit(1);
@@ -649,9 +649,9 @@ public class HitWindowsLD {
 		int[] posUCSC = {chr, regionMinPos, regionMaxPos};
 		String UCSC = Positions.getUCSCformat(posUCSC);
 		String UCSCLink = Positions.getUCSClinkInExcel(posUCSC);
-		String summary = chr	+ "\t" + uniqHits + "\t" + regionMinPos + "\t" + regionMinMark + "\t"
-											+ regionMaxPos + "\t" + regionMaxMark + "\t" + numinLD + " of "
-											+ hitWindowsLD.length + "\t" + UCSC + "\t" + UCSCLink + "\t" + window;
+		String summary = chr + "\t" + uniqHits + "\t" + regionMinPos + "\t" + regionMinMark + "\t"
+										 + regionMaxPos + "\t" + regionMaxMark + "\t" + numinLD + " of "
+										 + hitWindowsLD.length + "\t" + UCSC + "\t" + UCSCLink + "\t" + window;
 		return summary;
 	}
 
@@ -671,21 +671,21 @@ public class HitWindowsLD {
 		int column = 4;
 		double filter = 0.3;
 		String output = "C:/data/gedi_exomechip/LD_windows/testHap";
-		String usage = "\n"	+ "gwas.HitWindowsLD requires 3 arguments\n"
-										+ "   (1) files (comma-separated) with a list of rs# targets (i.e. targets="
-										+ ArrayUtils.toStr(targetFiles) + ")\n"
-										+ "   (2) plink format map file for lookup (i.e. refMap=" + refMap
-										+ " (default))\n" + "   (3) directory containing LD input files (i.e. dir="
-										+ dir + " (default))\n" + "   OPTIONAL: "
-										+ "   (4) file extension of LD input files (options are "
-										+ ArrayUtils.toStr(FILE_TYPES) + ")(i.e. fileExt=" + fileExt + " (default))\n"
-										+ "   (5) window around hit to extend (i.e. window=" + window + " (default))\n"
-										+ "   (6) for \".ld\" and haploview format files, the cutoff for R2,D',or LOD  (i.e. filter="
-										+ filter + " (default))\n"
-										+ "   (7) for haploview format files, the column to filter on (i.e. column="
-										+ column + " (default))\n" + "   (8) output file base name (i.e. out=" + output
-										+ " (default))\n"
-										+ "   (9) do not treat each input target file as a region (i.e. -noRegion(not the default))\n";
+		String usage = "\n" + "gwas.HitWindowsLD requires 3 arguments\n"
+									 + "   (1) files (comma-separated) with a list of rs# targets (i.e. targets="
+									 + ArrayUtils.toStr(targetFiles) + ")\n"
+									 + "   (2) plink format map file for lookup (i.e. refMap=" + refMap
+									 + " (default))\n" + "   (3) directory containing LD input files (i.e. dir=" + dir
+									 + " (default))\n" + "   OPTIONAL: "
+									 + "   (4) file extension of LD input files (options are "
+									 + ArrayUtils.toStr(FILE_TYPES) + ")(i.e. fileExt=" + fileExt + " (default))\n"
+									 + "   (5) window around hit to extend (i.e. window=" + window + " (default))\n"
+									 + "   (6) for \".ld\" and haploview format files, the cutoff for R2,D',or LOD  (i.e. filter="
+									 + filter + " (default))\n"
+									 + "   (7) for haploview format files, the column to filter on (i.e. column="
+									 + column + " (default))\n" + "   (8) output file base name (i.e. out=" + output
+									 + " (default))\n"
+									 + "   (9) do not treat each input target file as a region (i.e. -noRegion(not the default))\n";
 
 		// String usage = "\n" +
 		// "gwas.HitWindowsLD requires 3 arguments\n" +

@@ -52,12 +52,12 @@ public class MeAnd23 {
 	}
 
 	private static boolean mergeResults(String toMergeFile, String mergedRoot, Logger log) {
-		log.reportTimeInfo("Attempting to merge files listed in "	+ toMergeFile + " to plink root "
-												+ mergedRoot);
+		log.reportTimeInfo("Attempting to merge files listed in " + toMergeFile + " to plink root "
+											 + mergedRoot);
 		boolean merged = true;
 		boolean addedExclude = false;
-		String[] command = new String[] {	"plink2", "--noweb", "--make-bed", "--merge-list", toMergeFile,
-																			"--out", mergedRoot};
+		String[] command = new String[] {"plink2", "--noweb", "--make-bed", "--merge-list", toMergeFile,
+																		 "--out", mergedRoot};
 		String problematicMarkers = ext.parseDirectoryOfFile(toMergeFile) + PROBLEMATIC_MARKERS;
 		if (Files.exists(problematicMarkers)) {
 			command = addExclude(command, problematicMarkers);
@@ -79,7 +79,7 @@ public class MeAnd23 {
 				String[] cats = ArrayUtils.concatAll(missnps, new String[] {problematicMarkers + "2"});
 				Files.cat(cats, problematicMarkers, null, log);
 				log.reportTimeInfo("Job failed, but since .missnp file(s) exist, we are going to try and just remove these snps (and any others listed in "
-														+ problematicMarkers + ") ");
+													 + problematicMarkers + ") ");
 				merged = CmdLine.runCommandWithFileChecks(command, "", new String[] {toMergeFile},
 																									PSF.Plink.getPlinkBedBimFam(mergedRoot), true,
 																									true, false, log);
@@ -140,16 +140,16 @@ public class MeAnd23 {
 
 		@Override
 		public PlinkGenerator call() throws Exception {
-			String[] command = new String[] {	"plink2", "--make-bed", "--23file", input, name, name,
-																				"--out", outRoot, "--noweb"};
+			String[] command = new String[] {"plink2", "--make-bed", "--23file", input, name, name,
+																			 "--out", outRoot, "--noweb"};
 			String problematicMarkers = ext.parseDirectoryOfFile(input) + PROBLEMATIC_MARKERS;
 			if (Files.exists(problematicMarkers)) {
 				command = addExclude(command, problematicMarkers);
 			}
-			log.reportTimeInfo(Thread.currentThread().getName()	+ ":" + name + " ( "
-													+ ArrayUtils.toStr(command, " ") + " )");
-			created = CmdLine.runCommandWithFileChecks(	command, "", new String[] {input}, plinks, true,
-																									true, true, log);
+			log.reportTimeInfo(Thread.currentThread().getName() + ":" + name + " ( "
+												 + ArrayUtils.toStr(command, " ") + " )");
+			created = CmdLine.runCommandWithFileChecks(command, "", new String[] {input}, plinks, true,
+																								 true, true, log);
 			return this;
 		}
 	}

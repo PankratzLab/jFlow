@@ -42,7 +42,7 @@ public class PLINK2GenomePackager {
 		});
 		if (covars.length == 0) {
 			System.err.println(ext.getTime()
-													+ "]\tWARNING - no covariate files found.  If covar files exist, ensure they are named *_covars.dat and try again.  Otherwise, skipping covariate analysis.");
+												 + "]\tWARNING - no covariate files found.  If covar files exist, ensure they are named *_covars.dat and try again.  Otherwise, skipping covariate analysis.");
 			// return;
 		}
 
@@ -52,8 +52,8 @@ public class PLINK2GenomePackager {
 		for (String covarFile : covars) {
 			String[] parts = covarFile.split("_");
 			if (parts.length == 1) {
-				System.err.println(ext.getTime()	+ "]\tError - covariate file {" + covarFile
-														+ "} is named incorrectly.  Correct naming is *_covars.dat for covariate files.");
+				System.err.println(ext.getTime() + "]\tError - covariate file {" + covarFile
+													 + "} is named incorrectly.  Correct naming is *_covars.dat for covariate files.");
 				continue;
 			} else if (parts.length == 2) {
 				covarPrefices.put(parts[0], covarFile);
@@ -71,7 +71,7 @@ public class PLINK2GenomePackager {
 		});
 		if (phenos.length == 0) {
 			System.err.println(ext.getTime()
-													+ "]\tError - no phenotype files found.  Ensure that files are named *_pheno.dat and try again.");
+												 + "]\tError - no phenotype files found.  Ensure that files are named *_pheno.dat and try again.");
 			return;
 		}
 
@@ -96,16 +96,16 @@ public class PLINK2GenomePackager {
 		for (String pheno : phenos) {
 			String[] parts = pheno.split("_");
 			if (parts.length == 1) {
-				System.err.println(ext.getTime()	+ "]\tError - phenotype file {" + pheno
-														+ "} is named incorrectly.  Correct naming is *_pheno.dat for phenotype files.");
+				System.err.println(ext.getTime() + "]\tError - phenotype file {" + pheno
+													 + "} is named incorrectly.  Correct naming is *_pheno.dat for phenotype files.");
 				continue;
 			} else if (parts.length == 2) {
 				// if (covarPrefices.containsKey(parts[0])) {
 				if (setupForScript(dir, fileList, famFile, covarPrefices.get(parts[0]), pheno)) {
 					String phenoPrefix = pheno.substring(0, pheno.length() - "_pheno.dat".length());
 					String phenoDir = dir + phenoPrefix + "/";
-					String script = createScript(	fileList, famFile, covarPrefices.get(parts[0]), pheno,
-																				phenoDir);
+					String script = createScript(fileList, famFile, covarPrefices.get(parts[0]), pheno,
+																			 phenoDir);
 					plinkRuns.put(phenoDir, script);
 				}
 				// } else {
@@ -120,12 +120,12 @@ public class PLINK2GenomePackager {
 					covar = covarPrefices.get(parts[0]);
 				}
 				// if (covarPrefices.containsKey(phenoCovarCheck)) {
-				if (setupForScript(	dir, fileList, famFile, covar/* Prefices.get(phenoCovarCheck) */,
-														pheno)) {
+				if (setupForScript(dir, fileList, famFile, covar/* Prefices.get(phenoCovarCheck) */,
+													 pheno)) {
 					String phenoPrefix = pheno.substring(0, pheno.length() - "_pheno.dat".length());
 					String phenoDir = dir + phenoPrefix + "/";
-					String script = createScript(	fileList, famFile, covar/* Prefices.get(phenoCovarCheck) */,
-																				pheno, phenoDir);
+					String script = createScript(fileList, famFile, covar/* Prefices.get(phenoCovarCheck) */,
+																			 pheno, phenoDir);
 					plinkRuns.put(phenoDir, script);
 				}
 				// } else if (covarPrefices.containsKey(parts[0])) {
@@ -150,8 +150,8 @@ public class PLINK2GenomePackager {
 		}
 
 		for (java.util.Map.Entry<String, String> plinkRun : plinkRuns.entrySet()) {
-			Files.qsub(plinkRun.getKey()	+ "runPlink2.qsub", plinkRun.getValue(), QSUB_RAM, QSUB_HRS,
-									QSUB_PRC);
+			Files.qsub(plinkRun.getKey() + "runPlink2.qsub", plinkRun.getValue(), QSUB_RAM, QSUB_HRS,
+								 QSUB_PRC);
 		}
 
 		StringBuilder sb = new StringBuilder("cd ").append(dir).append("\n");
@@ -168,8 +168,8 @@ public class PLINK2GenomePackager {
 		setupProcess(dir, plinkRuns, pmAllFile, qsubQueue);
 	}
 
-	boolean setupForScript(	String dir, String fileList, String famFile, String covarFile,
-													String phenoFile) {
+	boolean setupForScript(String dir, String fileList, String famFile, String covarFile,
+												 String phenoFile) {
 
 		String phenoPrefix = phenoFile.substring(0, phenoFile.length() - "_pheno.dat".length());
 
@@ -181,8 +181,8 @@ public class PLINK2GenomePackager {
 		boolean createdPhenoDir;
 		createdPhenoDir = phenoDirFile.mkdir();
 		if (!createdPhenoDir) {
-			System.err.println(ext.getTime()	+ "]\tError - couldn't create directory {" + phenoDir
-													+ "}.");
+			System.err.println(ext.getTime() + "]\tError - couldn't create directory {" + phenoDir
+												 + "}.");
 			return false;
 		}
 		boolean fileCopy;
@@ -190,23 +190,23 @@ public class PLINK2GenomePackager {
 			fileCopy = Files.copyFile(dir + covarFile, phenoDir + covarFile);
 			if (!fileCopy) {
 				System.err.println(ext.getTime()
-															+ "]\tError - couldn't copy covariate file into phenotype subdirectory {"
-														+ phenoDir + "}.");
+													 + "]\tError - couldn't copy covariate file into phenotype subdirectory {"
+													 + phenoDir + "}.");
 				return false;
 			}
 		}
 		fileCopy = Files.copyFile(dir + phenoFile, phenoDir + phenoFile);
 		if (!fileCopy) {
 			System.err.println(ext.getTime()
-														+ "]\tError - couldn't copy phenotype file into phenotype subdirectory {"
-													+ phenoDir + "}.");
+												 + "]\tError - couldn't copy phenotype file into phenotype subdirectory {"
+												 + phenoDir + "}.");
 			return false;
 		}
 		fileCopy = Files.copyFile(dir + famFile, phenoDir + famFile);
 		if (!fileCopy) {
 			System.err.println(ext.getTime()
-														+ "]\tError - couldn't copy .fam file into phenotype subdirectory {"
-													+ phenoDir + "}.");
+												 + "]\tError - couldn't copy .fam file into phenotype subdirectory {"
+												 + phenoDir + "}.");
 			return false;
 		}
 
@@ -215,7 +215,7 @@ public class PLINK2GenomePackager {
 
 	String createScript(String fileList, String famFile, String covarFile, String phenoFile,
 											String phenoDir) {
-		String script = "cd "	+ phenoDir + "\nplink2 --threads " + QSUB_PRC + " --dosage ../" + fileList
+		String script = "cd " + phenoDir + "\nplink2 --threads " + QSUB_PRC + " --dosage ../" + fileList
 										+ " list format=1 Zout --fam " + famFile
 										+ (covarFile != null ? " --covar " + covarFile : "") + " --pheno " + phenoFile;
 		return script;
@@ -226,11 +226,11 @@ public class PLINK2GenomePackager {
 		StringBuilder masterProc = new StringBuilder();
 		for (String plinkDir : plinkRuns.keySet()) {
 			StringBuilder procCmd = new StringBuilder();
-			procCmd	.append("cd " + plinkDir + "\n").append(Files.getRunString())
-							.append(" one.PLINK2GenomePackager -process dir=").append(plinkDir).append(" pmFile=")
-							.append(pmAllFile)
-							.append(" N=`grep -o -E '[0-9]+ people pass filters and QC' *.o | sed 's/.*://g' | sed 's/[^0-9]*//g'`")
-							.append("\n");
+			procCmd.append("cd " + plinkDir + "\n").append(Files.getRunString())
+						 .append(" one.PLINK2GenomePackager -process dir=").append(plinkDir).append(" pmFile=")
+						 .append(pmAllFile)
+						 .append(" N=`grep -o -E '[0-9]+ people pass filters and QC' *.o | sed 's/.*://g' | sed 's/[^0-9]*//g'`")
+						 .append("\n");
 			Files.qsub(plinkDir + "process.qsub", procCmd.toString(), 5000, 3, 1);
 			masterProc.append("cd ").append(plinkDir).append("\n");
 			masterProc.append("qsub");
@@ -250,8 +250,8 @@ public class PLINK2GenomePackager {
 		}
 
 		if (!(new File(pmAllFile)).exists()) {
-			System.err.println(ext.getTime()	+ "]\tError - specified PM_ALL file {" + pmAllFile
-													+ "} doesn't exist.");
+			System.err.println(ext.getTime() + "]\tError - specified PM_ALL file {" + pmAllFile
+												 + "} doesn't exist.");
 			return;
 		}
 
@@ -260,8 +260,8 @@ public class PLINK2GenomePackager {
 
 
 		System.out.println(ext.getTime() + "]\tLoading PM_ALL file...");
-		Hashtable<String, String> pmAll = HashVec.loadFileToHashString(	pmAllFile, 1, new int[] {0, 3},
-																																		"\t", false, false);
+		Hashtable<String, String> pmAll = HashVec.loadFileToHashString(pmAllFile, 1, new int[] {0, 3},
+																																	 "\t", false, false);
 		System.out.println(ext.getTime() + "]\tPM_ALL file successfully loaded.");
 
 		System.out.println(ext.getTime() + "]\tProcessing results file...");
@@ -308,12 +308,12 @@ public class PLINK2GenomePackager {
 		boolean gc = true;
 
 		System.out.println(ext.getTime() + "]\tRunning METAL...");
-		StringBuilder metalCRF = new StringBuilder("metal\n")	.append(temp).append("\n")
-																													.append("build=37\n")
-																													.append("hits_p<=" + pvalThresh + "\n")
-																													.append("genomic_control="
-																																	+ (gc ? "TRUE" : "FALSE") + "\n")
-																													.append(temp + ".plink.assoc.dosage.gz");
+		StringBuilder metalCRF = new StringBuilder("metal\n").append(temp).append("\n")
+																												 .append("build=37\n")
+																												 .append("hits_p<=" + pvalThresh + "\n")
+																												 .append("genomic_control="
+																																 + (gc ? "TRUE" : "FALSE") + "\n")
+																												 .append(temp + ".plink.assoc.dosage.gz");
 		String metalName = "metal_" + temp + ".crf";
 		String metalDir = (new File(phenoDir)).getAbsolutePath();
 		Files.write(metalCRF.toString(), ext.verifyDirFormat(metalDir) + metalName);
@@ -342,16 +342,16 @@ public class PLINK2GenomePackager {
 		String pmAll = "D:/test/PM_all";
 		String qsub = null;
 
-		String usage = "\n"	+ "one.PLINK2GenomePackager requires 3-4 arguments\n"
-										+ "   (1) directory (i.e. dir=" + dir + " (default))\n"
-										+ "   (2) file list of source data files, indexed (i.e. file=" + fileList
-										+ " (default))\n"
-										+ "   (3) location of PM_ALL file (i.e. pmFile=PM_ALL (not the default))\n"
-										+ " OR:\n" + "   (1) directory of PLINK2 run (i.e. dir=" + dir
-										+ " (not the default))\n"
-										+ "   (2) location of PM_ALL file (i.e. pmFile=PM_ALL (not the default))\n"
-										+ "   (3) Number of individuals in analysis (i.e. N=1000 (not the default))\n"
-										+ "   (4) -process flag" + "";
+		String usage = "\n" + "one.PLINK2GenomePackager requires 3-4 arguments\n"
+									 + "   (1) directory (i.e. dir=" + dir + " (default))\n"
+									 + "   (2) file list of source data files, indexed (i.e. file=" + fileList
+									 + " (default))\n"
+									 + "   (3) location of PM_ALL file (i.e. pmFile=PM_ALL (not the default))\n"
+									 + " OR:\n" + "   (1) directory of PLINK2 run (i.e. dir=" + dir
+									 + " (not the default))\n"
+									 + "   (2) location of PM_ALL file (i.e. pmFile=PM_ALL (not the default))\n"
+									 + "   (3) Number of individuals in analysis (i.e. N=1000 (not the default))\n"
+									 + "   (4) -process flag" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

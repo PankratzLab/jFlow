@@ -30,7 +30,7 @@ public class TelSeq {
 																															"LENGTH_ESTIMATE"};
 
 	private enum TYPE {
-											BASE, BED, BUFFERED_BED;
+		BASE, BED, BUFFERED_BED;
 	}
 
 	private static class TelSeqResult {
@@ -99,8 +99,8 @@ public class TelSeq {
 
 			command.add(inputBam);
 
-			boolean valid = CmdLine.runCommandWithFileChecks(	ArrayUtils.toStringArray(command), "", input,
-																												outputs, true, false, false, log);
+			boolean valid = CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", input,
+																											 outputs, true, false, false, log);
 			return new Ran(valid, command);
 		}
 	}
@@ -131,8 +131,8 @@ public class TelSeq {
 
 		@Override
 		public Callable<TelSeqResult> next() {
-			TelSeqWorker worker =
-													new TelSeqWorker(inputBams[index], additionalArgs, outputDir, type, log);
+			TelSeqWorker worker = new TelSeqWorker(inputBams[index], additionalArgs, outputDir, type,
+																						 log);
 			index++;
 			return worker;
 		}
@@ -155,9 +155,9 @@ public class TelSeq {
 	 * @param aName {@link ASSEMBLY_NAME}
 	 * @param captureBufferSize number of base pairs to buffer the caputure bed file
 	 */
-	public static String runTelSeq(	String[] bams, String outDir, String captureBed, int threads,
-																	ASSAY_TYPE aType, ASSEMBLY_NAME aName, int captureBufferSize,
-																	Logger log) {
+	public static String runTelSeq(String[] bams, String outDir, String captureBed, int threads,
+																 ASSAY_TYPE aType, ASSEMBLY_NAME aName, int captureBufferSize,
+																 Logger log) {
 
 		log.reportTimeInfo("Assuming telseq is on system path");
 		ArrayList<TelSeqResult> results = new ArrayList<TelSeq.TelSeqResult>();
@@ -169,8 +169,8 @@ public class TelSeq {
 				runType(threads, log, bams, results, argPopulator, outDir, TYPE.BASE);
 				break;
 			case WXS:
-				processWXS(	bams, outDir, captureBed, threads, aName, captureBufferSize, log, results,
-										argPopulator);
+				processWXS(bams, outDir, captureBed, threads, aName, captureBufferSize, log, results,
+									 argPopulator);
 				break;
 			default:
 				break;
@@ -195,9 +195,10 @@ public class TelSeq {
 			if (Files.exists(telSeqResult.output)) {
 				String[][] data = HashVec.loadFileToStringMatrix(telSeqResult.output, true, null, false);
 				for (String[] element : data) {
-					result.add(ext.rootOf(telSeqResult.output)	+ "\t"
-											+ ArrayUtils.toStr(ArrayUtils.subArray(element, indices)) + "\t" + telSeqResult.type
-											+ "\t" + telSeqResult.sample + "\t" + telSeqResult.readSizeUsed);
+					result.add(ext.rootOf(telSeqResult.output) + "\t"
+										 + ArrayUtils.toStr(ArrayUtils.subArray(element, indices)) + "\t"
+										 + telSeqResult.type + "\t" + telSeqResult.sample + "\t"
+										 + telSeqResult.readSizeUsed);
 				}
 			}
 		}
@@ -205,9 +206,9 @@ public class TelSeq {
 		return finalOut;
 	}
 
-	private static void processWXS(	String[] bams, String outDir, String captureBed, int threads,
-																	ASSEMBLY_NAME aName, int captureBufferSize, Logger log,
-																	ArrayList<TelSeqResult> results, ArrayList<String> argPopulator) {
+	private static void processWXS(String[] bams, String outDir, String captureBed, int threads,
+																 ASSEMBLY_NAME aName, int captureBufferSize, Logger log,
+																 ArrayList<TelSeqResult> results, ArrayList<String> argPopulator) {
 		if (Files.exists(captureBed)) {
 
 			BEDFileReader reader = new BEDFileReader(captureBed, false);
@@ -217,8 +218,8 @@ public class TelSeq {
 
 			String buffDir = outDir + "buff_" + captureBufferSize + "_" + ext.rootOf(captureBed) + "/";
 			new File(buffDir).mkdirs();
-			String buffBed = buffDir	+ "buff_" + captureBufferSize + "bp_" + ext.rootOf(captureBed)
-												+ ".bed";
+			String buffBed = buffDir + "buff_" + captureBufferSize + "bp_" + ext.rootOf(captureBed)
+											 + ".bed";
 			log.reportTimeInfo("writing bed to " + buffBed);
 			segs.getBufferedSegmentSet(captureBufferSize)
 					.writeSegmentRegions(buffBed, aName == ASSEMBLY_NAME.GRCH37, log);
@@ -237,8 +238,8 @@ public class TelSeq {
 															ArrayList<TelSeqResult> results, ArrayList<String> argPopulator,
 															String baseDir, TYPE type) {
 		TelSeqProducer producer = new TelSeqProducer(bams, argPopulator, baseDir, type, log);
-		WorkerTrain<TelSeqResult> train = new WorkerTrain<TelSeq.TelSeqResult>(	producer, threads, 100,
-																																						log);
+		WorkerTrain<TelSeqResult> train = new WorkerTrain<TelSeq.TelSeqResult>(producer, threads, 100,
+																																					 log);
 		while (train.hasNext()) {
 			results.add(train.next());
 		}

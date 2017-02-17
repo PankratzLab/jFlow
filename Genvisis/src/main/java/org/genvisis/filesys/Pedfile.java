@@ -44,8 +44,8 @@ public class Pedfile {
 				if (numMarkers == -1) {
 					numMarkers = (line.length - 6) / 2;
 				} else if ((line.length - 6) / 2 != numMarkers) {
-					System.err.println("Error - different number of markers listed on line "	+ (count + 1)
-															+ " (" + line[0] + "/" + line[1] + ")");
+					System.err.println("Error - different number of markers listed on line " + (count + 1)
+														 + " (" + line[0] + "/" + line[1] + ")");
 				}
 				count++;
 			}
@@ -78,9 +78,9 @@ public class Pedfile {
 								markerCounts[i][j]++;
 								freqs[j]++;
 							} else {
-								System.err.println("Error - more than 2 alleles for marker "	+ (i + 1) + "; first "
-																		+ alleles[j][0] + " and " + alleles[j][1] + " and now "
-																		+ allele);
+								System.err.println("Error - more than 2 alleles for marker " + (i + 1) + "; first "
+																	 + alleles[j][0] + " and " + alleles[j][1] + " and now "
+																	 + allele);
 							}
 						}
 					}
@@ -177,9 +177,8 @@ public class Pedfile {
 				FileReader in;
 				String pheno;
 
-				in = new FileReader(Files.getBakFilename("re_chrom"	+ ext.chrome(chr) + ".pre",
-																									ext.rootOf(phenotypeFile) + "-" + phenoCol,
-																									true));
+				in = new FileReader(Files.getBakFilename("re_chrom" + ext.chrome(chr) + ".pre",
+																								 ext.rootOf(phenotypeFile) + "-" + phenoCol, true));
 				writer = new PrintWriter(new FileWriter("re_chrom" + ext.chrome(chr) + ".pre"));
 
 				c = 0;
@@ -234,13 +233,13 @@ public class Pedfile {
 		System.out.println("Finished in " + ext.getTimeElapsed(time));
 
 		System.out.println("Successfully updated chromosomes: "
-												+ (ivs[0].size() == 0 ? "none" : ext.listRanges(Ints.toArray(ivs[0]))));
+											 + (ivs[0].size() == 0 ? "none" : ext.listRanges(Ints.toArray(ivs[0]))));
 		if (ivs[1].size() > 0) {
 			System.out.println("Missing files for chromosomes: " + ext.listRanges(Ints.toArray(ivs[1])));
 		}
 		if (ivs[2].size() > 0) {
 			System.out.println("Error parsing files for chromosomes: "
-													+ ext.listRanges(Ints.toArray(ivs[2])));
+												 + ext.listRanges(Ints.toArray(ivs[2])));
 		}
 	}
 
@@ -250,11 +249,11 @@ public class Pedfile {
 		int col = 2;
 		String missVal = "x";
 
-		String usage = "\n"	+ "filesys.Pedfile requires 0-3 arguments\n"
-										+ "   (1) phenotype file to use (i.e. pheno=" + pheno + " (default))\n"
-										+ "   (2) columns to use (i.e. col=" + col + " (default))\n"
-										+ "   (3) value to use for those missing phenotype (i.e. missing=" + missVal
-										+ " (default))\n" + "";
+		String usage = "\n" + "filesys.Pedfile requires 0-3 arguments\n"
+									 + "   (1) phenotype file to use (i.e. pheno=" + pheno + " (default))\n"
+									 + "   (2) columns to use (i.e. col=" + col + " (default))\n"
+									 + "   (3) value to use for those missing phenotype (i.e. missing=" + missVal
+									 + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

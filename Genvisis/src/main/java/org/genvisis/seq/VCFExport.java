@@ -41,8 +41,8 @@ public class VCFExport {
 				String description = line.substring(ind1, ind2);
 				if (description.contains("|")) {
 					infoTags.remove(id);
-					String[] desc = description	.substring(description.indexOf("'") + 1)
-																			.split("[\\s]*" + TAG_SPLIT_SET + "[\\s]*");
+					String[] desc = description.substring(description.indexOf("'") + 1)
+																		 .split("[\\s]*" + TAG_SPLIT_SET + "[\\s]*");
 					multiTags.put(id, desc);
 					for (String descTag : desc) {
 						infoTags.add(id + "_" + descTag);
@@ -63,13 +63,13 @@ public class VCFExport {
 		while ((line = reader.readLine()) != null) {
 			vcfParts = line.split("\t");
 			StringBuilder outLine = new StringBuilder();
-			outLine	.append(vcfParts[2]).append("\t") // rs
-							.append(vcfParts[0]).append("\t") // chr
-							.append(vcfParts[1]).append("\t") // pos
-							.append(vcfParts[3]).append("\t") // ref
-							.append(vcfParts[4]).append("\t") // alt
-							.append(vcfParts[5]).append("\t") // qual
-							.append(vcfParts[6]); // filt
+			outLine.append(vcfParts[2]).append("\t") // rs
+						 .append(vcfParts[0]).append("\t") // chr
+						 .append(vcfParts[1]).append("\t") // pos
+						 .append(vcfParts[3]).append("\t") // ref
+						 .append(vcfParts[4]).append("\t") // alt
+						 .append(vcfParts[5]).append("\t") // qual
+						 .append(vcfParts[6]); // filt
 			if (vcfParts[7].startsWith(".;")) {
 				vcfParts[7] = vcfParts[7].substring(2);
 			}
@@ -113,8 +113,8 @@ public class VCFExport {
 		int numArgs = args.length;
 		String filename = "F:/variants.vcf";// "VCFExport.dat";
 
-		String usage = "\n"	+ "one.ben.VCFExport requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "one.ben.VCFExport requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

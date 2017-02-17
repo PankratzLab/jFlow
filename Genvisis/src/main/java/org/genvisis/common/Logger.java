@@ -259,7 +259,7 @@ public class Logger implements Serializable {
 		long memory;
 
 		report("Total heap size is: "
-						+ ext.prettyUpSize(memory = Runtime.getRuntime().totalMemory(), 1));
+					 + ext.prettyUpSize(memory = Runtime.getRuntime().totalMemory(), 1));
 
 		return memory;
 	}
@@ -286,8 +286,8 @@ public class Logger implements Serializable {
 	public double memoryPercentFree() {
 		double percentFree;
 
-		percentFree = ((float) 100	* Runtime.getRuntime().freeMemory()
-										/ Runtime.getRuntime().totalMemory());
+		percentFree = ((float) 100 * Runtime.getRuntime().freeMemory()
+									 / Runtime.getRuntime().totalMemory());
 
 		report("Percent free heap size is: " + ext.formDeci(percentFree, 1) + "%");
 

@@ -122,8 +122,8 @@ public class LocusSet<T extends Segment> implements Serializable {
 	 *
 	 *
 	 */
-	public <E extends Segment> LocusSet<Segment> removeThese(	final LocusSet<E> setToRemove,
-																														int bpBuffer) {
+	public <E extends Segment> LocusSet<Segment> removeThese(final LocusSet<E> setToRemove,
+																													 int bpBuffer) {
 		ArrayList<Segment> newLoci = new ArrayList<Segment>();
 		LocusSet<Segment> operateSet = setToRemove.getStrictSegmentSet();
 		if (bpBuffer > 0) {
@@ -140,8 +140,8 @@ public class LocusSet<T extends Segment> implements Serializable {
 				}
 			}
 		}
-		LocusSet<Segment> toReturn = new LocusSet<Segment>(	newLoci.toArray(new Segment[newLoci.size()]),
-																												true, log);
+		LocusSet<Segment> toReturn = new LocusSet<Segment>(newLoci.toArray(new Segment[newLoci.size()]),
+																											 true, log);
 		for (int i = 0; i < operateSet.getLoci().length; i++) {
 			if (toReturn.getOverLappingLoci(operateSet.getLoci()[i]) != null) {
 				String error = "BUG: found overlapping loci from the removed set in the set to be returned";
@@ -158,8 +158,8 @@ public class LocusSet<T extends Segment> implements Serializable {
 			buffered.add(element.getBufferedSegment(bpBuffer));
 		}
 
-		LocusSet<Segment> bufSet = new LocusSet<Segment>(	buffered.toArray(new Segment[buffered.size()]),
-																											true, log);
+		LocusSet<Segment> bufSet = new LocusSet<Segment>(buffered.toArray(new Segment[buffered.size()]),
+																										 true, log);
 		return bufSet;
 	}
 
@@ -218,9 +218,8 @@ public class LocusSet<T extends Segment> implements Serializable {
 			if (verbose) {
 				log.reportTimeInfo("Merged " + originalSize + " segments to " + merged.size());
 			}
-			LocusSet<Segment> mergedSet =
-																	new LocusSet<Segment>(merged.toArray(new Segment[merged.size()]),
-																												true, log);
+			LocusSet<Segment> mergedSet = new LocusSet<Segment>(merged.toArray(new Segment[merged.size()]),
+																													true, log);
 			return mergedSet;
 		}
 	}
@@ -283,14 +282,14 @@ public class LocusSet<T extends Segment> implements Serializable {
 	}
 
 	public enum TO_STRING_TYPE {
-															/**
-															 * calls the {@link Segment#getUCSClocation()}, or any overide
-															 */
-															UCSC,
-															/**
-															 * calls the {@link Segment#toString()}, or any override
-															 */
-															REGULAR;
+		/**
+		 * calls the {@link Segment#getUCSClocation()}, or any overide
+		 */
+		UCSC,
+		/**
+		 * calls the {@link Segment#toString()}, or any override
+		 */
+		REGULAR;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -324,8 +323,8 @@ public class LocusSet<T extends Segment> implements Serializable {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(filename));
 			for (T seg : loci) {
-				writer.println(Positions.getChromosomeUCSC(seg.getChr(), !numericChrs)+ "\t"
-												+ seg.getStart() + "\t" + seg.getStop());
+				writer.println(Positions.getChromosomeUCSC(seg.getChr(), !numericChrs) + "\t"
+											 + seg.getStart() + "\t" + seg.getStop());
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -385,13 +384,13 @@ public class LocusSet<T extends Segment> implements Serializable {
 		return newArray;
 	}
 
-	public static LocusSet<Segment> loadSegmentSetFromFile(	String file, int chrCol, int startCol,
-																													int stopCol, int skipNumLines,
-																													boolean inclusiveStart,
-																													boolean inclusiveStop, int bpBuffer,
-																													Logger log) {
-		Segment[] segs = Segment.loadRegions(	file, chrCol, startCol, stopCol, skipNumLines,
-																					inclusiveStart, inclusiveStop, bpBuffer);
+	public static LocusSet<Segment> loadSegmentSetFromFile(String file, int chrCol, int startCol,
+																												 int stopCol, int skipNumLines,
+																												 boolean inclusiveStart,
+																												 boolean inclusiveStop, int bpBuffer,
+																												 Logger log) {
+		Segment[] segs = Segment.loadRegions(file, chrCol, startCol, stopCol, skipNumLines,
+																				 inclusiveStart, inclusiveStop, bpBuffer);
 		LocusSet<Segment> lSet = new LocusSet<Segment>(segs, true, log);
 		return lSet;
 	}

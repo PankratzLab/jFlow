@@ -13,8 +13,8 @@ public class AlleleFreq {
 
 	public static double calcFrequency(double[] genotypes) {
 		if (genotypes.length != 3) {
-			System.err.println("Error - can't compute an allele frequency from "	+ genotypes.length
-													+ " classes of genotypes");
+			System.err.println("Error - can't compute an allele frequency from " + genotypes.length
+												 + " classes of genotypes");
 		}
 		return calcFrequency(genotypes[0], genotypes[1], genotypes[2]);
 	}
@@ -115,8 +115,8 @@ public class AlleleFreq {
 			return HWEsig(genotypes[0], genotypes[1], genotypes[2], genotypes[3], genotypes[4],
 										genotypes[5]);
 		}
-		System.err.println("Error - can't compute Hardy Weinberg from "	+ genotypes.length
-												+ " classes of genotypes");
+		System.err.println("Error - can't compute Hardy Weinberg from " + genotypes.length
+											 + " classes of genotypes");
 		return Double.NaN;
 	}
 

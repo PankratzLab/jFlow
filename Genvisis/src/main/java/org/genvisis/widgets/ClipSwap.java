@@ -127,8 +127,8 @@ public class ClipSwap {
 			line = lines[i].split("\t", -1);
 			if (line.length > 1) {
 				if (countMoreThan < 5) {
-					System.out.println("Line # "	+ (i + 1) + " had more than one column: "
-															+ ArrayUtils.toStr(line, " / "));
+					System.out.println("Line # " + (i + 1) + " had more than one column: "
+														 + ArrayUtils.toStr(line, " / "));
 				}
 				countMoreThan++;
 			}
@@ -137,13 +137,13 @@ public class ClipSwap {
 			} else if (line[0].startsWith("step=")) {
 				sigfigsExtrastep = Histogram.reverseStep(ext.parseDoubleArg(line[0]));
 				System.out.println("Overriding step to be " + ext.formDeci(
-																																		Histogram.determineStep(sigfigsExtrastep[0],
-																																														sigfigsExtrastep[1]),
-																																		sigfigsExtrastep[0] + 2));
+																																	 Histogram.determineStep(sigfigsExtrastep[0],
+																																													 sigfigsExtrastep[1]),
+																																	 sigfigsExtrastep[0] + 2));
 			} else if (ext.isMissingValue(line[0])) {
 				if (countInvalids < 5) {
-					System.out.println("Line # "	+ (i + 1) + " had an invalid double: "
-															+ ArrayUtils.toStr(line, " / "));
+					System.out.println("Line # " + (i + 1) + " had an invalid double: "
+														 + ArrayUtils.toStr(line, " / "));
 				}
 				countInvalids++;
 			} else {
@@ -161,8 +161,8 @@ public class ClipSwap {
 		if (sigfigsExtrastep == null) {
 			histo = new Histogram(array);
 		} else {
-			histo = new Histogram(array, ArrayUtils.min(array), ArrayUtils.max(array), sigfigsExtrastep[0],
-														sigfigsExtrastep[1]);
+			histo = new Histogram(array, ArrayUtils.min(array), ArrayUtils.max(array),
+														sigfigsExtrastep[0], sigfigsExtrastep[1]);
 		}
 		return histo;
 	}
@@ -170,9 +170,9 @@ public class ClipSwap {
 	public static void inverseVarianceMeta() {
 		// System.out.println(Array.toStr(MetaAnalysis.inverseVarianceWeighting(ext.getClipboard().trim().split("\\n"),
 		// new Logger()), "/"));
-		ext.setClipboard(ArrayUtils.toStr(MetaAnalysis.inverseVarianceWeighting(	ext.getClipboard().trim()
-																																					.split("\\n"),
-																																				new Logger())));
+		ext.setClipboard(ArrayUtils.toStr(MetaAnalysis.inverseVarianceWeighting(ext.getClipboard()
+																																							 .trim().split("\\n"),
+																																						new Logger())));
 	}
 
 	public static void nominalVariable() {
@@ -206,8 +206,8 @@ public class ClipSwap {
 	public static void saveKeysToFile() {
 		long time = new Date().getTime();
 
-		new SerialStringArray(ext	.getClipboard().trim()
-															.split("\\n")).serialize("savedKeysForLookup.ser");
+		new SerialStringArray(ext.getClipboard().trim()
+														 .split("\\n")).serialize("savedKeysForLookup.ser");
 
 		if (new Date().getTime() - time > 1 * 1000) { // report if it took more than a second
 			System.out.println("Converted lookup result to text in " + ext.getTimeElapsed(time));
@@ -233,15 +233,15 @@ public class ClipSwap {
 		}
 
 		if (new Date().getTime() - new File("savedKeysForLookup.ser").lastModified() > 10 * 60 * 1000) { // if
-																																																			// file
-																																																			// is
-																																																			// more
-																																																			// than
-																																																			// 10
-																																																			// minutes
-																																																			// old
+																																																		 // file
+																																																		 // is
+																																																		 // more
+																																																		 // than
+																																																		 // 10
+																																																		 // minutes
+																																																		 // old
 			log.reportError("Our expected file 'savedKeysForLookup.ser' was created "
-												+ ext.getTimeElapsed(new File("savedKeysForLookup.ser").lastModified())
+											+ ext.getTimeElapsed(new File("savedKeysForLookup.ser").lastModified())
 											+ " ago; resave keys using -saveKeys");
 			return false;
 		}
@@ -254,9 +254,9 @@ public class ClipSwap {
 		time = new Date().getTime();
 		temp = new StringBuilder();
 		try {
-			result = Files.combineInMemory(	keys,
-																			Matrix.toMatrix(ext.getClipboard().trim().split("\\n"), "\t"),
-																			".", false, false, log);
+			result = Files.combineInMemory(keys,
+																		 Matrix.toMatrix(ext.getClipboard().trim().split("\\n"), "\t"),
+																		 ".", false, false, log);
 			if (new Date().getTime() - time > 1 * 1000) { // report if it took more than a second
 				log.report("Performed lookup in " + ext.getTimeElapsed(time));
 			}
@@ -279,8 +279,8 @@ public class ClipSwap {
 			}
 			if (count > 0) {
 				log.report("(There "
-											+ (count == 1 ? "was one key that was" : "were " + count + " keys that were")
-										+ " blank)" + lineEnding);
+									 + (count == 1 ? "was one key that was" : "were " + count + " keys that were")
+									 + " blank)" + lineEnding);
 			}
 
 			if (new Date().getTime() - time > 1 * 1000) { // report if it took more than a second
@@ -314,19 +314,19 @@ public class ClipSwap {
 		boolean saveKeysToFile = false;
 		boolean lookupValuesForSavedKeys = false;
 
-		String usage = "\n"	+ "widgets.ClipSwap requires 0-1 arguments\n"
-										+ "   (1) Fix slashes (i.e. -slash (not the default))\n"
-										+ "   (2) Contracts contents of clipboard (i.e. -contract (not the default))\n"
-										+ "   (3) Expands contents of clipboard (i.e. -expand (not the default))\n"
-										+ "   (4) Find unique set and count counts (i.e. -unique (not the default))\n"
-										+ "   (5) Remove formatting, leaving only plain text (i.e. -removeFormatting (not the default))\n"
-										+ "   (6) Make p-values pretty (i.e. -prettyP (not the default))\n"
-										+ "   (7) Create bins and counts for a histogram (i.e. -histogram (not the default))\n"
-										+ "   (8) Perform an inverse-variance weighted meta-analysis on a series of betas/stderrs (i.e. -inverseVariance (not the default))\n"
-										+ "   (9) Split a nominal variable into binary columns (i.e. -nominalVariable (not the default))\n"
-										+ "   (10) Extracts keys from clipboard and saves them to a serialized file, with tabs maintained in lookup values (i.e. -saveKeys (not the default))\n"
-										+ "   (11) Lookup the values for the stored keys using the contents of the clipboard (i.e. -lookupValuesForSavedKeys (not the default))\n"
-										+ "";
+		String usage = "\n" + "widgets.ClipSwap requires 0-1 arguments\n"
+									 + "   (1) Fix slashes (i.e. -slash (not the default))\n"
+									 + "   (2) Contracts contents of clipboard (i.e. -contract (not the default))\n"
+									 + "   (3) Expands contents of clipboard (i.e. -expand (not the default))\n"
+									 + "   (4) Find unique set and count counts (i.e. -unique (not the default))\n"
+									 + "   (5) Remove formatting, leaving only plain text (i.e. -removeFormatting (not the default))\n"
+									 + "   (6) Make p-values pretty (i.e. -prettyP (not the default))\n"
+									 + "   (7) Create bins and counts for a histogram (i.e. -histogram (not the default))\n"
+									 + "   (8) Perform an inverse-variance weighted meta-analysis on a series of betas/stderrs (i.e. -inverseVariance (not the default))\n"
+									 + "   (9) Split a nominal variable into binary columns (i.e. -nominalVariable (not the default))\n"
+									 + "   (10) Extracts keys from clipboard and saves them to a serialized file, with tabs maintained in lookup values (i.e. -saveKeys (not the default))\n"
+									 + "   (11) Lookup the values for the stored keys using the contents of the clipboard (i.e. -lookupValuesForSavedKeys (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

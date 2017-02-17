@@ -58,7 +58,7 @@ public class StringListProperty extends Property<String[]> {
 		String[] values = super.getValue();
 		if (isFile || isDir) {
 			for (int i = 0; i < values.length; i++) {
-				if (!"".equals(values[i])	&& !values[i].startsWith(".") && !values[i].startsWith("/")
+				if (!"".equals(values[i]) && !values[i].startsWith(".") && !values[i].startsWith("/")
 						&& values[i].indexOf(":") == -1) {
 					values[i] = getProject().PROJECT_DIRECTORY.getValue() + values[i];
 				}

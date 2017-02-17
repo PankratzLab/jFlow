@@ -25,8 +25,7 @@ public class ComparePlinkResults {
 	// Documents\\CNV\\allresults\\";
 	// public static final String DEFAULT_ROOT = "C:\\Documents and Settings\\npankrat\\My
 	// Documents\\CNV_PD\\results\\homozygosity\\";
-	public static final String DEFAULT_ROOT =
-																					"C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\results\\paperComp\\";
+	public static final String DEFAULT_ROOT = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\results\\paperComp\\";
 	// public static final String DEFAULT_ROOT = "C:\\Documents and Settings\\npankrat\\My
 	// Documents\\CNV_PD\\results\\HLA\\";
 	// public static final String DEFAULT_ROOT = "C:\\Documents and Settings\\npankrat\\My
@@ -83,8 +82,8 @@ public class ComparePlinkResults {
 				try {
 					reader = new BufferedReader(new FileReader(file));
 					System.out.println(file.getName());
-					indices = ext.indexFactors(	MPERM_REQUIRED, reader.readLine().trim().split("[\\s]+"),
-																			false, true);
+					indices = ext.indexFactors(MPERM_REQUIRED, reader.readLine().trim().split("[\\s]+"),
+																		 false, true);
 					begin = end = "";
 					while (reader.ready()) {
 						line = reader.readLine().trim().split("[\\s]+");
@@ -120,7 +119,7 @@ public class ComparePlinkResults {
 				for (int l = 0; l < composite.size(); l++) {
 					region = composite.elementAt(l);
 					if (chr == region[0] && (isBetween(start, region[1] - BLUR, region[2] + BLUR)
-																		|| isBetween(stop, region[1] - BLUR, region[2] + BLUR))) {
+																	 || isBetween(stop, region[1] - BLUR, region[2] + BLUR))) {
 						region[1] = Math.min(start, region[1]);
 						region[2] = Math.max(stop, region[2]);
 						hits.elementAt(keys[j])[0] = -1;
@@ -135,8 +134,8 @@ public class ComparePlinkResults {
 			for (int j = 0; j < files.length; j++) {
 				try {
 					reader = new BufferedReader(new FileReader(files[j]));
-					indices = ext.indexFactors(	MPERM_REQUIRED, reader.readLine().trim().split("[\\s]+"),
-																			false, true);
+					indices = ext.indexFactors(MPERM_REQUIRED, reader.readLine().trim().split("[\\s]+"),
+																		 false, true);
 					begin = end = "";
 					while (reader.ready()) {
 						line = reader.readLine().trim().split("[\\s]+");
@@ -162,7 +161,7 @@ public class ComparePlinkResults {
 			}
 
 			try {
-				writer = new PrintWriter(new FileWriter(rootDirectory	+ dir.substring(0, dir.length() - 1)
+				writer = new PrintWriter(new FileWriter(rootDirectory + dir.substring(0, dir.length() - 1)
 																								+ "_comparison.xln"));
 				writer.print("Chromosome\tStart\tStop\tUCSClink");
 				for (File file : files) {
@@ -170,8 +169,8 @@ public class ComparePlinkResults {
 				}
 				writer.println();
 				for (int j = 0; j < composite.size(); j++) {
-					writer.print(ArrayUtils.toStr(composite.elementAt(j))	+ "\t=HYPERLINK(\""
-												+ Positions.getUCSClink(composite.elementAt(j)) + "\", \"link\")");
+					writer.print(ArrayUtils.toStr(composite.elementAt(j)) + "\t=HYPERLINK(\""
+											 + Positions.getUCSClink(composite.elementAt(j)) + "\", \"link\")");
 					for (int k = 0; k < files.length; k++) {
 						writer.print("\t" + ext.prettyP(minPs[j][k], 2, 5, 1, false));
 					}
@@ -212,8 +211,8 @@ public class ComparePlinkResults {
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ files[i].getName()
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + files[i].getName()
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + files[i].getName() + "\"");
@@ -237,9 +236,9 @@ public class ComparePlinkResults {
 				}
 			}
 			writer = new PrintWriter(new FileWriter(rootDirectory
-																								+ globalDirectory.substring(0,
+																							+ globalDirectory.substring(0,
 																																					globalDirectory.length()
-																																							- 1)
+																																						 - 1)
 																							+ "_comparison.xln"));
 			writer.print("Test\t");
 			for (File file : files) {
@@ -257,8 +256,8 @@ public class ComparePlinkResults {
 				for (int cc = 1; cc >= 0; cc--) {
 					writer.print(cc == 1 ? TESTS[test] + "\tcases" : "\tcontrols");
 					for (int i = 0; i < files.length; i++) {
-						writer.print("\t"	+ ext.formDeci(sums[i][cc][test + 1] / sums[i][cc][0], 2)
-													+ TEST_SUFFIX[test]);
+						writer.print("\t" + ext.formDeci(sums[i][cc][test + 1] / sums[i][cc][0], 2)
+												 + TEST_SUFFIX[test]);
 					}
 					writer.println();
 				}
@@ -315,7 +314,7 @@ public class ComparePlinkResults {
 
 			list = HashVec.getKeys(hash);
 			writer = new PrintWriter(new FileWriter(rootDirectory
-																								+ callDirectory.substring(0,
+																							+ callDirectory.substring(0,
 																																				callDirectory.length() - 1)
 																							+ "_comparison.xln"));
 			writer.print("CNV");
@@ -324,14 +323,14 @@ public class ComparePlinkResults {
 			}
 			writer.println();
 			for (String element : list) {
-				writer.println(element	+ "\t"
-												+ ArrayUtils.toStr(ArrayUtils.booleanArrayToStringArray(hash.get(element))));
+				writer.println(element + "\t"
+											 + ArrayUtils.toStr(ArrayUtils.booleanArrayToStringArray(hash.get(element))));
 			}
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to "	+ rootDirectory
-													+ callDirectory.substring(0, callDirectory.length() - 1)
-													+ "_comparison.xln");
+			System.err.println("Error writing to " + rootDirectory
+												 + callDirectory.substring(0, callDirectory.length() - 1)
+												 + "_comparison.xln");
 			e.printStackTrace();
 		}
 
@@ -345,8 +344,8 @@ public class ComparePlinkResults {
 		String calls = DEFAULT_CALLS_DIR;
 		String global = DEFAULT_GLOBAL_DIR;
 
-		String usage = "\\n"	+ "park.cnv.ComparePlinkResults requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\\n" + "park.cnv.ComparePlinkResults requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

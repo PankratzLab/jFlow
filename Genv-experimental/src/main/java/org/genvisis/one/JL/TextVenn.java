@@ -57,8 +57,8 @@ public class TextVenn {
 		int maxOverlap = 0;
 		for (int i = 0; i < cats.size(); i++) {
 			for (int j = i + 1; j < cats.size(); j++) {
-				comp.add(header[i]	+ "(n=" + cats.get(i).size() + ") vs " + header[j] + " (n= "
-									+ cats.get(j).size() + ")");
+				comp.add(header[i] + "(n=" + cats.get(i).size() + ") vs " + header[j] + " (n= "
+								 + cats.get(j).size() + ")");
 				int overlap = 0;
 				ArrayList<String> tmp = new ArrayList<String>();
 				for (String hit : cats.get(i)) {
@@ -106,8 +106,8 @@ public class TextVenn {
 		String logfile = null;
 		Logger log;
 
-		String usage = "\n"	+ "one.JL.Overlapper requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "one.JL.Overlapper requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

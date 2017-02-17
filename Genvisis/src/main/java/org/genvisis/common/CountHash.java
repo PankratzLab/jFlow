@@ -41,8 +41,8 @@ public class CountHash {
 			totalCount -= Integer.parseInt(hash.get(value));
 			hash.remove(value);
 		} else if (reportIfAbsent) {
-			System.err.println("Error - '"	+ value
-													+ "' was not seen in this instance of CountHash and therefore could not be removed");
+			System.err.println("Error - '" + value
+												 + "' was not seen in this instance of CountHash and therefore could not be removed");
 		}
 	}
 

@@ -54,7 +54,7 @@ public class BamSample {
 		double data = (double) numMappedReads / bin.getSize();
 		if (Double.isNaN(data)) {
 			throw new IllegalArgumentException("Size and num mapped reads cannot be NaN, size cannot be 0"
-																					+ bin.getUCSClocation());
+																				 + bin.getUCSClocation());
 		}
 		double scale = numTotalMappedReads > 0 ? SCALE_FACTOR_NUM_READS / numTotalMappedReads : 0;
 		return data * scale;
@@ -125,7 +125,7 @@ public class BamSample {
 				throw new IllegalArgumentException("A major mismatching issue");
 			}
 			int bamPileIndex = lookup.get(markerSeg.getUCSClocation());// if more than 1, identical so
-																																	// does'nt matter
+																																 // does'nt matter
 			traversalOrder[i] = bamPileIndex;
 			BamPile currentPile = bamPiles[bamPileIndex];
 
@@ -141,8 +141,8 @@ public class BamSample {
 
 		proj.getLog().reportTimeInfo("Computing Normalized depths");
 		proj.getLog().reportTimeInfo(
-																	"Percent het will be reported at variant sites with alt depth greater than "
-																	+ MIN_NUM_MISMATCH);
+																 "Percent het will be reported at variant sites with alt depth greater than "
+																 + MIN_NUM_MISMATCH);
 		if (ArrayUtils.countIf(traversalOrder, -1) > 0) {
 			throw new IllegalArgumentException("Not all indices accounted for");
 		}
@@ -161,8 +161,8 @@ public class BamSample {
 
 			mapQs[i] = Math.min(currentPile.getOverallAvgMapQ() / MAX_MAPQ, 1);
 			if (Double.isNaN(rawDepth[i])) {
-				String warning = "Found invalid scale raw depth for "+ bamFile + ", bin "
-													+ markerSet.getMarkerNames()[i];
+				String warning = "Found invalid scale raw depth for " + bamFile + ", bin "
+												 + markerSet.getMarkerNames()[i];
 				proj.getLog().reportTimeWarning(warning);
 				throw new IllegalArgumentException(warning);
 			}
@@ -198,8 +198,8 @@ public class BamSample {
 
 				if (!Numbers.isFinite(scaleMAD[index])) {// should only happen if the MAD is NaN
 					if (!error) {
-						String warning = "Found invalid scale MAD depth for "+ bamFile + ", bin "
-															+ markerSet.getMarkerNames()[chrIndices[i][j]];
+						String warning = "Found invalid scale MAD depth for " + bamFile + ", bin "
+														 + markerSet.getMarkerNames()[chrIndices[i][j]];
 						warning += "Setting all of chr" + i + " to 0";
 						warning += "This is usually caused by having zero passing reads for chr " + i;
 						proj.getLog().reportTimeWarning(warning);
@@ -217,8 +217,8 @@ public class BamSample {
 		normDepth = ArrayUtils.scaleMinTo(ArrayUtils.toDoubleArray(scaleMAD), 1);
 		for (int j = 0; j < normDepth.length; j++) {
 			if (Double.isNaN(normDepth[j])) {
-				String error = "Found invalid normalized depth for "+ bamFile + ", bin "
-												+ markerSet.getMarkerNames()[j];
+				String error = "Found invalid normalized depth for " + bamFile + ", bin "
+											 + markerSet.getMarkerNames()[j];
 				proj.getLog().reportError(error);
 				if (markerSet.getMarkerNames()[j].contains(NGS_MARKER_TYPE.OFF_TARGET.getFlag())) {
 					normDepth[j] = 1;
@@ -233,12 +233,13 @@ public class BamSample {
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 		byte[] genos = ArrayUtils.byteArray(bamPiles.length, (byte) 1);
 		float[] blankLRRs = ArrayUtils.floatArray(bamPiles.length, 1);
-		String sampleFile =
-											proj.SAMPLE_DIRECTORY.getValue() + sampleName + Sample.SAMPLE_FILE_EXTENSION;
-		Sample sample = new Sample(	sampleFile, fingerprint, ArrayUtils.toFloatArray(mapQs),
-																ArrayUtils.toFloatArray(normDepth), ArrayUtils.toFloatArray(normDepth),
-																ArrayUtils.toFloatArray(percentWithMismatch), blankLRRs, genos, genos,
-																false);
+		String sampleFile = proj.SAMPLE_DIRECTORY.getValue() + sampleName
+												+ Sample.SAMPLE_FILE_EXTENSION;
+		Sample sample = new Sample(sampleFile, fingerprint, ArrayUtils.toFloatArray(mapQs),
+															 ArrayUtils.toFloatArray(normDepth),
+															 ArrayUtils.toFloatArray(normDepth),
+															 ArrayUtils.toFloatArray(percentWithMismatch), blankLRRs, genos,
+															 genos, false);
 		sample.saveToRandomAccessFile(sampleFile, outliers, sampleName);
 		return outliers;
 	}

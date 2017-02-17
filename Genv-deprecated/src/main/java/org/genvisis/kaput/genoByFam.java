@@ -39,8 +39,8 @@ public class genoByFam {
 		for (int fam = 0; fam < fams.size(); fam++) {
 			i = fams.elementAt(fam);
 			writer.println("mkdir fam" + i);
-			writer.println("java -classpath /home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
-											+ " park.zeroByFam " + i);
+			writer.println("java -classpath /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS
+										 + " park.zeroByFam " + i);
 			writer.println("mv solar_marker." + i + ".* fam" + i);
 			writer.println("cp solar_freq.* fam" + i);
 			writer.println("cp solar_map.* fam" + i);
@@ -51,7 +51,7 @@ public class genoByFam {
 			// writer.println("cp correct.this fam"+i);
 			writer.println("cd fam" + i);
 			for (int chromosome = 2; chromosome <= 2; chromosome++) {
-				chrome = (Integer.valueOf(chromosome + "").intValue() < 10)	? "0" + chromosome
+				chrome = (Integer.valueOf(chromosome + "").intValue() < 10) ? "0" + chromosome
 																																		: "" + chromosome;
 				writer.println("mv solar_marker." + i + "." + chrome + " solar_marker." + chrome);
 			}

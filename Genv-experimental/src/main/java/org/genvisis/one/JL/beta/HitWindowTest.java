@@ -12,7 +12,7 @@ import org.genvisis.gwas.windows.HitWindow;
 
 public class HitWindowTest {
 
-	
+
 
 	private static List<BasicHit> loadHits(String betaFile) {
 
@@ -24,7 +24,7 @@ public class HitWindowTest {
 				String[] line = reader.readLine().trim().split("\t");
 				try {
 					BasicHit test = new BasicHit(line[0], Byte.parseByte(line[1]), Integer.parseInt(line[2]),
-							Double.parseDouble(line[3]));
+																			 Double.parseDouble(line[3]));
 					hits.add(test);
 				} catch (NumberFormatException nfe) {
 
@@ -48,8 +48,10 @@ public class HitWindowTest {
 		System.out.println(hits.size());
 		// 0.00001 0.0001 500000
 
-		GeneralHitWindowDetector<BasicHit> generalHitWindowDetector = new GeneralHitWindowDetector<BasicHit>(hits, 500000,
-				0.0001, 0.00001);
+		GeneralHitWindowDetector<BasicHit> generalHitWindowDetector = new GeneralHitWindowDetector<BasicHit>(hits,
+																																																				 500000,
+																																																				 0.0001,
+																																																				 0.00001);
 		while (generalHitWindowDetector.hasNext()) {
 			HitWindow<BasicHit> hit = generalHitWindowDetector.next();
 			System.out.println(hit.toString());

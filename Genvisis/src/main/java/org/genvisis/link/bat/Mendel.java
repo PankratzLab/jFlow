@@ -17,8 +17,8 @@ import org.genvisis.link.LinkageFormat;
 import org.genvisis.link.LinkageMap;
 
 public class Mendel {
-	public static final String[] THETAS = {	"0.00", "0.01", "0.05", "0.10", "0.15", "0.20", "0.30",
-																					"0.40", "0.50"};
+	public static final String[] THETAS = {"0.00", "0.01", "0.05", "0.10", "0.15", "0.20", "0.30",
+																				 "0.40", "0.50"};
 
 	public static void createFiles(String dir, String pedfile, String mapfile, boolean xLinked) {
 		BufferedReader reader;
@@ -172,8 +172,8 @@ public class Mendel {
 			for (String markerName : markerNames) {
 				trav = chrHash.get(markerName);
 				if (trav == null) {
-					System.err.println("Error - marker '"	+ markerName
-															+ "' was not present in the SnpMarkerSet, assuming it is autosomal");
+					System.err.println("Error - marker '" + markerName
+														 + "' was not present in the SnpMarkerSet, assuming it is autosomal");
 					autosomalMarkers.add(markerName);
 				} else {
 					chr = Integer.parseInt(trav.split("[\\s]+")[0]);
@@ -182,8 +182,8 @@ public class Mendel {
 					} else if (chr == 23) {
 						xLinkedMarkers.add(markerName);
 					} else {
-						System.err.println("Error - the chromosome listed for '"	+ markerName + "' (" + chr
-																+ ") is invalid, marker will not be analyzed");
+						System.err.println("Error - the chromosome listed for '" + markerName + "' (" + chr
+															 + ") is invalid, marker will not be analyzed");
 					}
 				}
 			}
@@ -198,7 +198,7 @@ public class Mendel {
 		if (autosomalMarkers.size() > 0) {
 			map = new LinkageMap(dir + mapfile);
 			map.alterPenetrance(dir + "autosomal.dat", disease, pp, pq, qq, false);
-			LinkageFormat.filterMarkers(dir	+ pedfile, dir + "autosomal.pre", dir + "autosomal.dat",
+			LinkageFormat.filterMarkers(dir + pedfile, dir + "autosomal.pre", dir + "autosomal.dat",
 																	dir + "autosomal.dat", ArrayUtils.toStringArray(autosomalMarkers),
 																	null);
 			Mendel.createFiles(dir, "autosomal.pre", "autosomal.dat", false);
@@ -213,8 +213,9 @@ public class Mendel {
 			map = new LinkageMap(dir + "map.dat");
 			map.setChr(23);
 			map.alterPenetrance(dir + "map23.dat", disease, pp, pq, qq, false);
-			LinkageFormat.filterMarkers(dir	+ pedfile, dir + "chr23.pre", dir + "map23.dat",
-																	dir + "map23.dat", ArrayUtils.toStringArray(xLinkedMarkers), null);
+			LinkageFormat.filterMarkers(dir + pedfile, dir + "chr23.pre", dir + "map23.dat",
+																	dir + "map23.dat", ArrayUtils.toStringArray(xLinkedMarkers),
+																	null);
 			Mendel.createFiles(dir, "chr23.pre", "map23.dat", true);
 			CmdLine.run("mendel", dir);
 			results = Mendel.parseMaxLods(dir + "mendel.sum");
@@ -232,11 +233,11 @@ public class Mendel {
 		String mapfile = "map16.dat";
 		boolean xLinked = false;
 
-		String usage = "\\n"	+ "park.Mendel requires 0-1 arguments\n"
-										+ "   (1) pedigree file (i.e. ped=" + pedfile + " (default))\n"
-										+ "   (2) map file (i.e. map=" + mapfile + " (default))\n"
-										+ "   (3) all markers are on the X chromosome (i.e. xLinked=" + xLinked
-										+ " (default))\n" + "  OR\n" + "   (1) chromosome number (i.e. chr=1)\n" + "";
+		String usage = "\\n" + "park.Mendel requires 0-1 arguments\n"
+									 + "   (1) pedigree file (i.e. ped=" + pedfile + " (default))\n"
+									 + "   (2) map file (i.e. map=" + mapfile + " (default))\n"
+									 + "   (3) all markers are on the X chromosome (i.e. xLinked=" + xLinked
+									 + " (default))\n" + "  OR\n" + "   (1) chromosome number (i.e. chr=1)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

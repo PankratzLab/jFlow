@@ -31,8 +31,8 @@ public class Pathways implements Serializable {
 	private static final String RS = "rs:";
 
 	private static final String KEGG_HUMAN_PATHWAY_LIST = "http://rest.kegg.jp/list/pathway/" + HUMAN;
-	private static final String KEGG_HUMAN_PATHWAY_GENE_LINK = "http://rest.kegg.jp/link/"	+ HUMAN
-																															+ "/";
+	private static final String KEGG_HUMAN_PATHWAY_GENE_LINK = "http://rest.kegg.jp/link/" + HUMAN
+																														 + "/";
 	private static final String REF_SEQ_GENE_LINK = "http://rest.genome.jp/link/refnuc/";
 	private static final String PATH = "path";
 	private Pathway[] pathways;
@@ -209,7 +209,7 @@ public class Pathways implements Serializable {
 			}
 		}
 		if (pathGenes.size() != lookup.size()) {
-			log.reportTimeWarning("Could not match all entries for pathway "	+ path
+			log.reportTimeWarning("Could not match all entries for pathway " + path
 														+ " , setting incomplete flag");
 			// return new Pathway(path + ":Invalid", new GeneData[] {}, false, log);
 		}
@@ -221,8 +221,8 @@ public class Pathways implements Serializable {
 				genes.add(element);
 			}
 		}
-		return new Pathway(	pathName, genes.toArray(new GeneData[genes.size()]), true,
-												pathGenes.size() == lookup.size(), log);
+		return new Pathway(pathName, genes.toArray(new GeneData[genes.size()]), true,
+											 pathGenes.size() == lookup.size(), log);
 	}
 
 	private static Hashtable<String, ArrayList<String>> getNCBILookupForPathway(String pathway,
@@ -230,10 +230,9 @@ public class Pathways implements Serializable {
 		ArrayList<String> keggGenes = new ArrayList<String>();
 
 		try {
-			BufferedReader in =
-												new BufferedReader(new InputStreamReader(new URL(KEGG_HUMAN_PATHWAY_GENE_LINK
-																																						+ "/"
-																																					+ pathway).openStream()));
+			BufferedReader in = new BufferedReader(new InputStreamReader(new URL(KEGG_HUMAN_PATHWAY_GENE_LINK
+																																					 + "/"
+																																					 + pathway).openStream()));
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException ie) {

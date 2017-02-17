@@ -80,8 +80,7 @@ public class PCImputeRace {
 
 	public static enum RACE {
 
-														WHITE("White", 1), AA("African American",
-																									2), HISPANIC("Hispanic", 3), ASIAN("Asian", 4);
+		WHITE("White", 1), AA("African American", 2), HISPANIC("Hispanic", 3), ASIAN("Asian", 4);
 
 		private final String description;
 		private final int sampleDataClassNum;
@@ -103,13 +102,12 @@ public class PCImputeRace {
 	}
 
 	public static final String[] STEP_PCS_HEADER = {"FID", "IID", "PC1", "PC2"};
-	public static final String[] CORRECTED_PCS_HEADER = {	"FID", "IID", "PC1", "PC2", "%African",
-																												"%Asian", "%White"};
-	public static final String[] IMPUTED_RACE_SAMPLE_DATA_HEADERS =
-																																new String[] {"Class=ImputedRace;1=White;2=African American;3=Hispanic;4=Asian",
-																																							"% African",
-																																							"% Asian",
-																																							"% European"};
+	public static final String[] CORRECTED_PCS_HEADER = {"FID", "IID", "PC1", "PC2", "%African",
+																											 "%Asian", "%White"};
+	public static final String[] IMPUTED_RACE_SAMPLE_DATA_HEADERS = new String[] {"Class=ImputedRace;1=White;2=African American;3=Hispanic;4=Asian",
+																																								"% African",
+																																								"% Asian",
+																																								"% European"};
 
 	private static final Comparator<Sample> PC1_COMPARATOR = new Comparator<Sample>() {
 		@Override
@@ -206,9 +204,9 @@ public class PCImputeRace {
 		Map<String, String> dataToAdd = Maps.newHashMap();
 		for (Sample sample : samples) {
 			dataToAdd.put(sampleData.lookup(sample.getFidIid())[0],
-										Joiner.on('\t').join(	imputedRaces.get(sample).getSampleDataClassNum(),
-																					pctsAfrican.get(sample), pctsAsian.get(sample),
-																					pctsEuropean.get(sample)));
+										Joiner.on('\t').join(imputedRaces.get(sample).getSampleDataClassNum(),
+																				 pctsAfrican.get(sample), pctsAsian.get(sample),
+																				 pctsEuropean.get(sample)));
 		}
 
 
@@ -334,14 +332,14 @@ public class PCImputeRace {
 		double asianMeanPC2 = meanPC2(asianSeeds);
 
 		if (Math.abs(africanMeanPC1) > Math.abs(asianMeanPC1)
-					&& Math.abs(asianMeanPC2) > Math.abs(africanMeanPC2)
+				&& Math.abs(asianMeanPC2) > Math.abs(africanMeanPC2)
 				&& Math.abs(africanMeanPC1) > Math.abs(europeanMeanPC1)
 				&& Math.abs(asianMeanPC2) > Math.abs(europeanMeanPC2)) {
 			// PC1 = African, PC2 = Asian
 		} else if (Math.abs(asianMeanPC1) > Math.abs(africanMeanPC1)
-									&& Math.abs(africanMeanPC2) > Math.abs(asianMeanPC2)
-								&& Math.abs(asianMeanPC1) > Math.abs(europeanMeanPC1)
-								&& Math.abs(africanMeanPC2) > Math.abs(europeanMeanPC2)) {
+							 && Math.abs(africanMeanPC2) > Math.abs(asianMeanPC2)
+							 && Math.abs(asianMeanPC1) > Math.abs(europeanMeanPC1)
+							 && Math.abs(africanMeanPC2) > Math.abs(europeanMeanPC2)) {
 			// PC1 = Asian, PC2 = African
 			for (Sample sample : samples) {
 				double pc1 = sample.getPc1();
@@ -428,7 +426,7 @@ public class PCImputeRace {
 		Map<RACE, String> raceFilenames = Maps.newEnumMap(RACE.class);
 		String root = ext.rootOf(resultFile, false);
 		for (RACE race : RACE.values()) {
-			String filename = root	+ "_" + ext.replaceWithLinuxSafeCharacters(race.description, true)
+			String filename = root + "_" + ext.replaceWithLinuxSafeCharacters(race.description, true)
 												+ "s.dat";
 			raceFilenames.put(race, filename);
 		}
@@ -437,13 +435,13 @@ public class PCImputeRace {
 
 	private static int countFounders(String plinkroot, String keepFile) {
 		int founders = 0;
-		Hashtable<String, String> plinkFam = HashVec.loadFileToHashString(plinkroot	+ ".fam",
+		Hashtable<String, String> plinkFam = HashVec.loadFileToHashString(plinkroot + ".fam",
 																																			new int[] {0, 1},
 																																			new int[] {2, 3}, false, "\t",
 																																			false, false, false);
-		Set<String> keeps = keepFile == null	? plinkFam.keySet()
-																					: HashVec.loadFileToHashSet(keepFile, new int[] {0, 1},
-																																			"\t", false);
+		Set<String> keeps = keepFile == null ? plinkFam.keySet()
+																				 : HashVec.loadFileToHashSet(keepFile, new int[] {0, 1},
+																																		 "\t", false);
 		for (Entry<String, String> famEntry : plinkFam.entrySet()) {
 			if (famEntry.getValue().equals("0\t0") && keeps.contains(famEntry.getKey())) {
 				founders++;
@@ -457,14 +455,14 @@ public class PCImputeRace {
 		plinkroot = ext.rootOf(plinkroot);
 
 		String overallFrqFile = ext.rootOf(resultFile, false) + "_all.frq";
-		CmdLine.runDefaults("plink2 --noweb --bfile "	+ plinkroot + " --freq" + " --out "
+		CmdLine.runDefaults("plink2 --noweb --bfile " + plinkroot + " --freq" + " --out "
 												+ ext.rootOf(overallFrqFile, false), dir);
 		String[] header = Files.getHeaderOfFile(overallFrqFile, log);
 		int key = ext.indexOfStr("SNP", header);
-		int[] targets = new int[] {	ext.indexOfStr("A1", header), ext.indexOfStr("A2", header),
-																ext.indexOfStr("MAF", header)};
-		Hashtable<String, String> overallFreq = HashVec.loadFileToHashString(	overallFrqFile, key,
-																																					targets, "\t", true);
+		int[] targets = new int[] {ext.indexOfStr("A1", header), ext.indexOfStr("A2", header),
+															 ext.indexOfStr("MAF", header)};
+		Hashtable<String, String> overallFreq = HashVec.loadFileToHashString(overallFrqFile, key,
+																																				 targets, "\t", true);
 
 		Map<RACE, String> raceListFiles = raceListFilenames(resultFile);
 		@SuppressWarnings("unchecked")
@@ -477,12 +475,12 @@ public class PCImputeRace {
 			RACE race = raceListFileEntry.getKey();
 			String raceListFile = raceListFileEntry.getValue();
 			String raceFrqFile = ext.rootOf(raceListFile, false) + ".frq";
-			CmdLine.runDefaults("plink2 --noweb --bfile "	+ plinkroot + " --keep " + raceListFile
+			CmdLine.runDefaults("plink2 --noweb --bfile " + plinkroot + " --keep " + raceListFile
 													+ " --freq" + " --out " + ext.rootOf(raceFrqFile, false), dir);
 			header = Files.getHeaderOfFile(raceFrqFile, log);
 			key = ext.indexOfStr("SNP", header);
-			targets = new int[] {	ext.indexOfStr("A1", header), ext.indexOfStr("A2", header),
-														ext.indexOfStr("MAF", header)};
+			targets = new int[] {ext.indexOfStr("A1", header), ext.indexOfStr("A2", header),
+													 ext.indexOfStr("MAF", header)};
 			raceFreqs.put(race, HashVec.loadFileToHashString(raceFrqFile, key, targets, "\t", true));
 
 			writer.print("\t" + race + " A1F (n=" + countFounders(dir + plinkroot, raceListFile) + ")");
@@ -522,13 +520,13 @@ public class PCImputeRace {
 						} else if (A1.equals(raceA2) && A2.equals(raceA1)) {
 							a1f = Double.toString(ext.roundToSignificantFigures(1.0 - raceMaf, 4));
 						} else {
-							log.reportError("Alleles for SNP '"	+ marker + "' and " + raceListFiles.get(race)
+							log.reportError("Alleles for SNP '" + marker + "' and " + raceListFiles.get(race)
 															+ " (" + raceA1 + ", " + raceA2 + ") do not match overall alleles ("
 															+ A1 + ", " + A2 + " )");
 							a1f = ".";
 						}
 					} catch (NumberFormatException nfe) {
-						log.reportError("Invalid MAF ("	+ raceData[2] + ") for SNP '" + marker + "' and "
+						log.reportError("Invalid MAF (" + raceData[2] + ") for SNP '" + marker + "' and "
 														+ raceListFiles.get(race));
 						a1f = ".";
 					}

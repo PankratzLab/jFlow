@@ -25,26 +25,25 @@ public class eQTLs {
 	public static final int DEFAULT_CIS_DISTANCE = 50000;
 	public static final double DEFAULT_CIS_THRESHOLD = 0.001;
 
-	public static final String[][] REQS_WITH_STDERR =
-																									{	{"SNP", "Marker", "Name", "MarkerName", "name"},
-																										{"A1", "Allele1", "REF"},
-																										{"Effect", "beta", "beta_SNP_add"},
-																										{"P", "pval", "p-val", "p-value"},
-																										{"SE", "StdErr", "sebeta_SNP_add"}};
-	public static final String[][] REQS_WITHOUT_STDERR = {{	"SNP", "Marker", "Name", "MarkerName",
-																													"name"},
+	public static final String[][] REQS_WITH_STDERR = {{"SNP", "Marker", "Name", "MarkerName",
+																											"name"},
+																										 {"A1", "Allele1", "REF"},
+																										 {"Effect", "beta", "beta_SNP_add"},
+																										 {"P", "pval", "p-val", "p-value"},
+																										 {"SE", "StdErr", "sebeta_SNP_add"}};
+	public static final String[][] REQS_WITHOUT_STDERR = {{"SNP", "Marker", "Name", "MarkerName",
+																												 "name"},
 																												{"A1", "Allele1", "REF"},
 																												{"Effect", "beta", "beta_SNP_add"},
 																												{"P", "pval", "p-val", "p-value"}};
 
-	public static final String DEFAULT_TRANSCRIPT_BED =
-																										"D:/Myron/eQTLs/GEO_DataSet_GSE9703/GPL5188-122_withData.bed";
+	public static final String DEFAULT_TRANSCRIPT_BED = "D:/Myron/eQTLs/GEO_DataSet_GSE9703/GPL5188-122_withData.bed";
 
 	public static void parse(String filename) {
 		for (int chr = 1; chr <= 22; chr++) {
-			System.out.println(Files.getRunString()	+ " gwas.Minimac extract=snps/EUR.chr" + chr
-													+ ".snps hapFile=hap/EUR/unzipped/EUR.chr" + chr
-													+ ".hap mapFile=map/EUR.chr" + chr + ".map");
+			System.out.println(Files.getRunString() + " gwas.Minimac extract=snps/EUR.chr" + chr
+												 + ".snps hapFile=hap/EUR/unzipped/EUR.chr" + chr
+												 + ".hap mapFile=map/EUR.chr" + chr + ".map");
 		}
 	}
 
@@ -60,8 +59,8 @@ public class eQTLs {
 		// CmdLine.run("plink --bfile YRI --freq --out YRI", dir);
 
 		if (!new File(dir + "allSNPs.dat").exists()) {
-			SnpMarkerSet.merge(new SnpMarkerSet[] {	new SnpMarkerSet(dir + "CEU.bim"),
-																							new SnpMarkerSet(dir + "YRI.bim")})
+			SnpMarkerSet.merge(new SnpMarkerSet[] {new SnpMarkerSet(dir + "CEU.bim"),
+																						 new SnpMarkerSet(dir + "YRI.bim")})
 									.writeToFile(dir + "allSNPs.dat", SnpMarkerSet.GENERIC_FORMAT_ANNOTATED, log);
 		}
 
@@ -87,14 +86,14 @@ public class eQTLs {
 																"YRI.frq", true, true, dir + "YRI_" + phenos[i] + ".se.metal",
 																false);
 			Metal.metaAnalyze(dir,
-												new String[] {"CEU_"	+ phenos[i] + ".se.metal",
+												new String[] {"CEU_" + phenos[i] + ".se.metal",
 																			"YRI_" + phenos[i] + ".se.metal"},
 												phenos[i] + "_SE", true, log);
 
 			parameters[i * 3 + 0] = dir + phenos[i] + "_SE1.out" + " 0 5=Meta_" + phenos[i] + "_pval";
-			parameters[i * 3 + 1] = dir	+ "CEU_" + phenos[i] + ".se.metal" + " 0 5=CEU_" + phenos[i]
+			parameters[i * 3 + 1] = dir + "CEU_" + phenos[i] + ".se.metal" + " 0 5=CEU_" + phenos[i]
 															+ "_pval";
-			parameters[i * 3 + 2] = dir	+ "YRI_" + phenos[i] + ".se.metal" + " 0 5=YRI_" + phenos[i]
+			parameters[i * 3 + 2] = dir + "YRI_" + phenos[i] + ".se.metal" + " 0 5=YRI_" + phenos[i]
 															+ "_pval";
 		}
 		// Files.combineWithLessMemory(HashVec.loadFileToStringArray(dir+"allSNPs.dat", false, new int[]
@@ -124,8 +123,8 @@ public class eQTLs {
 			segs = null;
 		}
 
-		region = new Segment(	probeSeg.getChr(), probeSeg.getStart() - cisDistance,
-													probeSeg.getStop() + cisDistance);
+		region = new Segment(probeSeg.getChr(), probeSeg.getStart() - cisDistance,
+												 probeSeg.getStop() + cisDistance);
 
 		try {
 			header = Files.getHeaderOfFile(filename, "\t", log);
@@ -143,12 +142,13 @@ public class eQTLs {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (!ext.isMissingValue(line[indices[3]])) {
 					pval = Double.parseDouble(line[indices[3]]);
-					if (pval < transThreshold || (pval < cisThreshold	&& segs != null
+					if (pval < transThreshold || (pval < cisThreshold && segs != null
 																				&& region.overlaps(segs.get(line[indices[0]])))) {
-						writer.println(line[indices[0]]	+ "\t" + line[indices[1]].toUpperCase() + "\t"
-														+ (divideByStderr	? ext.formDeci(Double.parseDouble(line[indices[2]])
-																															/ Double.parseDouble(line[indices[4]]), 5)
-																							: line[indices[2]]));
+						writer.println(line[indices[0]] + "\t" + line[indices[1]].toUpperCase() + "\t"
+													 + (divideByStderr ? ext.formDeci(Double.parseDouble(line[indices[2]])
+																														/ Double.parseDouble(line[indices[4]]),
+																														5)
+																						 : line[indices[2]]));
 					}
 				}
 			}
@@ -184,36 +184,42 @@ public class eQTLs {
 		probeSeg = new Segment(chr, start, stop);
 
 		for (String pheno : phenos) {
-			parseWeights(dir	+ pheno + "_SE1.out", dir + "allSNPs.dat", dir + pheno + "_meta.weights",
-										transThreshold, probeSeg, cisDistance, cisThreshold, false);
+			parseWeights(dir + pheno + "_SE1.out", dir + "allSNPs.dat", dir + pheno + "_meta.weights",
+									 transThreshold, probeSeg, cisDistance, cisThreshold, false);
 			// CmdLine.run("plink --bfile full --pheno plink_pheno.dat --keep whites.txt --score
 			// "+phenos[i]+"_meta.weights --out "+phenos[i]+"_meta", dir);
-			CmdLine.run("plink --bfile CEU --pheno pheno.dat --pheno-name "	+ pheno + " --score " + pheno
+			CmdLine.run("plink --bfile CEU --pheno pheno.dat --pheno-name " + pheno + " --score " + pheno
 									+ "_meta.weights --out " + pheno + "_meta", dir);
-			pairs = new double[][] {
-															ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(dir	+ pheno
-																																								+ "_meta.profile",
-																																								true, new int[] {2},
-																																								false)),
-															ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(dir	+ pheno
-																																								+ "_meta.profile", true, new int[] {5}, false))};
+			pairs = new double[][] {ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(dir + pheno
+																																										 + "_meta.profile",
+																																										 true,
+																																										 new int[] {2},
+																																										 false)),
+															ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(dir + pheno
+																																										 + "_meta.profile",
+																																										 true,
+																																										 new int[] {5},
+																																										 false))};
 			pairs = Matrix.transpose(Matrix.removeRowsWithNaN(Matrix.transpose(pairs)));
 			System.out.println(pheno + "_meta\t" + ArrayUtils.toStr(Correlation.Pearson(pairs)));
 
-			parseWeights(dir	+ "CEU_" + pheno + ".se.metal", dir + "allSNPs.dat",
-										dir + pheno + "_CEU.weights", transThreshold, probeSeg, cisDistance,
-										cisThreshold, false);
+			parseWeights(dir + "CEU_" + pheno + ".se.metal", dir + "allSNPs.dat",
+									 dir + pheno + "_CEU.weights", transThreshold, probeSeg, cisDistance,
+									 cisThreshold, false);
 			// CmdLine.run("plink --bfile full --pheno plink_pheno.dat --keep whites.txt --score
 			// "+phenos[i]+"_CEU.weights --out "+phenos[i]+"_CEU", dir);
-			CmdLine.run("plink --bfile CEU --pheno pheno.dat --pheno-name "	+ pheno + " --score " + pheno
+			CmdLine.run("plink --bfile CEU --pheno pheno.dat --pheno-name " + pheno + " --score " + pheno
 									+ "_CEU.weights --out " + pheno + "_CEU", dir);
-			pairs = new double[][] {
-															ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(dir	+ pheno
-																																								+ "_CEU.profile",
-																																								true, new int[] {2},
-																																								false)),
-															ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(dir	+ pheno
-																																								+ "_CEU.profile", true, new int[] {5}, false))};
+			pairs = new double[][] {ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(dir + pheno
+																																										 + "_CEU.profile",
+																																										 true,
+																																										 new int[] {2},
+																																										 false)),
+															ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(dir + pheno
+																																										 + "_CEU.profile",
+																																										 true,
+																																										 new int[] {5},
+																																										 false))};
 			pairs = Matrix.transpose(Matrix.removeRowsWithNaN(Matrix.transpose(pairs)));
 			System.out.println(pheno + "_CEU\t" + ArrayUtils.toStr(Correlation.Pearson(pairs)));
 		}
@@ -225,8 +231,8 @@ public class eQTLs {
 		String filename = "pheno.dat";
 		String dir = "";
 
-		String usage = "\n"	+ "gwas.eQTLs requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "";
+		String usage = "\n" + "gwas.eQTLs requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -256,8 +262,8 @@ public class eQTLs {
 		// dir = "D:/Myron/eQTLs/GEO_DataSet_GSE9703/HapMap2/icam1/";
 		try {
 			// run(dir, filename);
-			generateScores(	dir, filename, DEFAULT_TRANS_THRESHOLD, DEFAULT_CIS_DISTANCE,
-											DEFAULT_CIS_THRESHOLD, true);
+			generateScores(dir, filename, DEFAULT_TRANS_THRESHOLD, DEFAULT_CIS_DISTANCE,
+										 DEFAULT_CIS_THRESHOLD, true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

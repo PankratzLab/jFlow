@@ -44,11 +44,10 @@ public class Haplotypes {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename =
-										"D:\\umn\\Myron\\CARe\\Pathway analysis\\results\\haplo.phase-CAGCA_parsed.xln";
+		String filename = "D:\\umn\\Myron\\CARe\\Pathway analysis\\results\\haplo.phase-CAGCA_parsed.xln";
 
-		String usage = "\n"	+ "gwas.Haplotypes requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "";
+		String usage = "\n" + "gwas.Haplotypes requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

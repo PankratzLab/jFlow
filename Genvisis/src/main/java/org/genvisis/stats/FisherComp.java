@@ -40,14 +40,13 @@ public class FisherComp {
 				}
 				prunedMatrix = Matrix.prune(matrix);
 				time = new Date().getTime();
-				writer.println(ArrayUtils.toStr(line)	+ "\t"
-												+ ProbDist.ChiDist(	ContingencyTable.ChiSquare(prunedMatrix, false),
-																						(prunedMatrix.length - 1) * (prunedMatrix[0].length
-																																					- 1))
-												+ "\t" + FishersExact.calc(prunedMatrix, 0, false) + "\t"
-												+ (new Date().getTime() - time) + "\t"
-												+ (matrix.length == prunedMatrix.length
-														&& matrix[0].length == prunedMatrix[0].length ? 0 : 1));
+				writer.println(ArrayUtils.toStr(line) + "\t"
+											 + ProbDist.ChiDist(ContingencyTable.ChiSquare(prunedMatrix, false),
+																					(prunedMatrix.length - 1) * (prunedMatrix[0].length - 1))
+											 + "\t" + FishersExact.calc(prunedMatrix, 0, false) + "\t"
+											 + (new Date().getTime() - time) + "\t"
+											 + (matrix.length == prunedMatrix.length
+													&& matrix[0].length == prunedMatrix[0].length ? 0 : 1));
 				writer.flush();
 			}
 			reader.close();
@@ -65,13 +64,12 @@ public class FisherComp {
 		int numArgs = args.length;
 		// String filename = "C:\\Documents and Settings\\npankrat\\My
 		// Documents\\tWork\\Consortium\\00src\\Miami\\fishFood1.dat";
-		String filename =
-										"C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\00src\\Miami\\homogeneityTests_NaNs.xln";
+		String filename = "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\00src\\Miami\\homogeneityTests_NaNs.xln";
 		int perms = 10000;
 
-		String usage = "\n"	+ "stats.FisherComp requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n"
-										+ "   (2) number of permutations (i.e. perms=" + perms + " (default))\n" + "";
+		String usage = "\n" + "stats.FisherComp requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n"
+									 + "   (2) number of permutations (i.e. perms=" + perms + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

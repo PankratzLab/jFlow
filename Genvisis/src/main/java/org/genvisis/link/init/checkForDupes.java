@@ -110,19 +110,19 @@ public class checkForDupes {
 						dupeGenos[dupeGenos.length - 1][j] = temp.equals("-1") ? "0" : temp;
 					}
 
-					copy.println("Genotypes agree "	+ numAgree + " times in " + dupeGenos[0].length
-												+ " markers, and "
-												+ (numDisagree == 0	? "never disagree."
-																						: "disagree " + numDisagree + " time(s)!"));
+					copy.println("Genotypes agree " + numAgree + " times in " + dupeGenos[0].length
+											 + " markers, and "
+											 + (numDisagree == 0 ? "never disagree."
+																					 : "disagree " + numDisagree + " time(s)!"));
 					if (numDisagree != 0) {
-						System.out.println(dupeTravs.elementAt(i)	+ " genotypes agree " + numAgree
-																+ " times in " + dupeGenos[0].length + " markers, and disagree "
-																+ numDisagree + " time(s)!");
+						System.out.println(dupeTravs.elementAt(i) + " genotypes agree " + numAgree
+															 + " times in " + dupeGenos[0].length + " markers, and disagree "
+															 + numDisagree + " time(s)!");
 					}
 					for (int j = 0; j < dupeGenos.length; j++) {
-						copy.print(((j < dupeGenos.length - 1)	? DNAs.elementAt(j)
-																										: dupeTravs.elementAt(i) + "/CO")
-												+ "\t" + (dupeTravs.elementAt(i)).replace('-', '\t'));
+						copy.print(((j < dupeGenos.length - 1) ? DNAs.elementAt(j)
+																									 : dupeTravs.elementAt(i) + "/CO")
+											 + "\t" + (dupeTravs.elementAt(i)).replace('-', '\t'));
 						for (int k = 0; k < dupeGenos[0].length; k++) {
 							if (numDisagree > 3) {
 								dupeGenos[dupeGenos.length - 1][k] = "0";
@@ -137,12 +137,12 @@ public class checkForDupes {
 
 				if (fix) {
 					if (!new File("chromosome" + chromosome + ".dat").exists()) {
-						System.err.println("Error - could not find "	+ "chromosome" + chromosome + ".dat"
-																+ " in current directory");
+						System.err.println("Error - could not find " + "chromosome" + chromosome + ".dat"
+															 + " in current directory");
 						System.exit(2);
 					}
-					bakFilename = Files.getBakFilename("chromosome"	+ chromosome + ".dat",
-																							super.getClass().getName());
+					bakFilename = Files.getBakFilename("chromosome" + chromosome + ".dat",
+																						 super.getClass().getName());
 					(new File("chromosome" + chromosome + ".dat")).renameTo(new File(bakFilename));
 					reader = new BufferedReader(new FileReader(bakFilename));
 					writer = new PrintWriter(new FileWriter("chromosome" + chromosome + ".dat"));
@@ -190,9 +190,9 @@ public class checkForDupes {
 		int numArgs = args.length;
 		boolean fix = true;
 
-		String usage = "\n"	+ "park.checkForDupes requires 0-1 arguments\n"
-										+ "   (1) backup and fix chromosome#.dat files with composite (i.e. -fix (not default)\n"
-										+ "";
+		String usage = "\n" + "park.checkForDupes requires 0-1 arguments\n"
+									 + "   (1) backup and fix chromosome#.dat files with composite (i.e. -fix (not default)\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -93,8 +93,8 @@ public class AIMsPicker {
 					line = allInfo.get(cluster.elementAt(pick));
 					chr = Byte.parseByte(line[5]);
 					position = Integer.parseInt(line[6]);
-					picks[i] = line[1]	+ "\t" + chr + "\t" + position + "\t" + line[7] + "\t" + line[0] + "\t"
-											+ (pick + 1) + " of " + cluster.size();
+					picks[i] = line[1] + "\t" + chr + "\t" + position + "\t" + line[7] + "\t" + line[0] + "\t"
+										 + (pick + 1) + " of " + cluster.size();
 					chrs[i] = chr;
 					positions[i] = position;
 					count++;
@@ -126,8 +126,8 @@ public class AIMsPicker {
 		String logfile = null;
 		Logger log;
 
-		String usage = "\n"	+ "one.AIMsPicker requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "";
+		String usage = "\n" + "one.AIMsPicker requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

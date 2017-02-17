@@ -44,8 +44,8 @@ public class MergeDuplicateCalls {
 							if (line[i].equals("0") || line[i].equals(".")) {
 								line[i] = trav[i];
 							} else if (!trav[i].equals("0") && !line[i].equals(trav[i])) {
-								System.err.println("Error - mismatch in column "	+ (i + 1) + " for " + id + ": "
-																		+ line[i] + " versus " + trav[i]);
+								System.err.println("Error - mismatch in column " + (i + 1) + " for " + id + ": "
+																	 + line[i] + " versus " + trav[i]);
 							}
 						}
 					} else {

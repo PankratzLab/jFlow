@@ -36,7 +36,7 @@ public class solarGatherByFam {
 		while (st.countTokens() > 3) {
 			st.nextElement();
 		}
-		writer = new PrintWriter(new FileWriter(st.nextToken()	+ "-" + st.nextToken()
+		writer = new PrintWriter(new FileWriter(st.nextToken() + "-" + st.nextToken()
 																						+ " linkage summary.xls"));
 
 		chromosome = new int[args.length];
@@ -57,8 +57,8 @@ public class solarGatherByFam {
 			writer.print(fam);
 			for (int i = 0; i < args.length; i++) {
 				try {
-					reader = new BufferedReader(new FileReader("fam"	+ fam + "/chrom" + chrome[i]
-																											+ "/AAO/multipoint1.out"));
+					reader = new BufferedReader(new FileReader("fam" + fam + "/chrom" + chrome[i]
+																										 + "/AAO/multipoint1.out"));
 
 					for (int j = 0; j < position[i] + 2; j++) {
 						reader.readLine();

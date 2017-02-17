@@ -26,13 +26,13 @@ public class parametric {
 			reader = new BufferedReader(new FileReader("map" + chrome + ".dat"));
 		} catch (Exception e) {
 			try {
-				reader = new BufferedReader(new FileReader("/home/npankrat/park/00masters/map"	+ chrome
-																										+ ".dat"));
+				reader = new BufferedReader(new FileReader("/home/npankrat/park/00masters/map" + chrome
+																									 + ".dat"));
 				System.err.println("Could not find map" + chrome + ".dat in the current directory");
 				System.err.println("  using the one in /home/npankrat/park/00masters/");
 			} catch (Exception e2) {
-				System.err.println("Could not find map"	+ chrome
-														+ ".dat in /home/npankrat/park/00masters/ or in the current directory");
+				System.err.println("Could not find map" + chrome
+													 + ".dat in /home/npankrat/park/00masters/ or in the current directory");
 				System.exit(1);
 			}
 
@@ -52,12 +52,12 @@ public class parametric {
 		}
 
 		writer.println("1  2  << AFFECTATION, NO. OF ALLELES");
-		writer.println(ext.formDeci(1 - freq, 8, true)	+ " " + ext.formDeci(freq, 8, true)
-										+ "  << GENE FREQUENCIES");
+		writer.println(ext.formDeci(1 - freq, 8, true) + " " + ext.formDeci(freq, 8, true)
+									 + "  << GENE FREQUENCIES");
 		writer.println("1  << NO. OF LIABILITY CLASSES");
-		writer.println(ext.formDeci(phenocopy, 4, true)	+ " "
-										+ ext.formDeci((dominant ? penetrance : phenocopy), 4, true) + " "
-										+ ext.formDeci(penetrance, 4, true));
+		writer.println(ext.formDeci(phenocopy, 4, true) + " "
+									 + ext.formDeci((dominant ? penetrance : phenocopy), 4, true) + " "
+									 + ext.formDeci(penetrance, 4, true));
 
 		if (chromosome == 23) {
 			reader.readLine();
@@ -75,19 +75,19 @@ public class parametric {
 		boolean dominant = true;
 		double freq = 0.005, penetrance = 0.80, phenocopy = 0.03;
 
-		String usage = "\n"	+ "park.bat.parametric requires 2-5 arguments:\n"
-										+ "   (1) a chromosome number (i.e. 2)\n"
-										+ "   (2) dominant/recessive (i.e. dominant)\n"
-										+ "   (3) disease allele freq (i.e. freq=" + freq + " (default))\n"
-										+ "   (4) penetrance (i.e. pen=" + penetrance + " (default))\n"
-										+ "   (5) phenocopy rate (i.e. phenocopy=" + phenocopy + " (default))\n" + "";
+		String usage = "\n" + "park.bat.parametric requires 2-5 arguments:\n"
+									 + "   (1) a chromosome number (i.e. 2)\n"
+									 + "   (2) dominant/recessive (i.e. dominant)\n"
+									 + "   (3) disease allele freq (i.e. freq=" + freq + " (default))\n"
+									 + "   (4) penetrance (i.e. pen=" + penetrance + " (default))\n"
+									 + "   (5) phenocopy rate (i.e. phenocopy=" + phenocopy + " (default))\n" + "";
 
 		if (!args[1].equals("dominant")) {
 			freq = 0.10;
 		}
 
 		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h")	|| args[i].equals("-help") || args[i].equals("/h")
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h")
 					|| args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);

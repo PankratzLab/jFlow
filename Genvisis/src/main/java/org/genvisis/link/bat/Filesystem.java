@@ -43,8 +43,7 @@ public class Filesystem {
 		String temp, IDed, first, second;
 		int tempI, total, count = 0, alleleCount;
 		Hashtable<String, String> handle, changes;
-		Hashtable<String, Hashtable<String, String>> hash =
-																											new Hashtable<String, Hashtable<String, String>>();
+		Hashtable<String, Hashtable<String, String>> hash = new Hashtable<String, Hashtable<String, String>>();
 		String[] alleles;
 		Vector<Vector<String>> alleleSizes;
 		int[][] problemAlleles;
@@ -55,8 +54,8 @@ public class Filesystem {
 		try {
 			gen = new BufferedReader(new FileReader("chromosome" + chr + ".dat"));
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("chromosome"	+ chr + ".dat was not found, failed to make mrkr" + chrome
-													+ ".dat");
+			System.err.println("chromosome" + chr + ".dat was not found, failed to make mrkr" + chrome
+												 + ".dat");
 			System.exit(1);
 		}
 		writer = new PrintWriter(new FileWriter("mrkr" + chrome + ".dat"));
@@ -108,8 +107,8 @@ public class Filesystem {
 				}
 			}
 			if (key[i] == -1) {
-				System.err.println("markers in data file are fubar at marker # "	+ i + " couldn't find "
-														+ orderedMarkers.elementAt(i));
+				System.err.println("markers in data file are fubar at marker # " + i + " couldn't find "
+													 + orderedMarkers.elementAt(i));
 			}
 		}
 
@@ -182,7 +181,7 @@ public class Filesystem {
 						writer.print("   0   0");
 						if (first.equals("0") && second.equals("0")) {
 						} else {
-							error.println(IDed	+ " has one allele missing (" + ext.formStr(first, 4)
+							error.println(IDed + " has one allele missing (" + ext.formStr(first, 4)
 														+ ext.formStr(second, 4) + ") for marker number " + i
 														+ " on chromosome " + chr);
 						}
@@ -220,14 +219,14 @@ public class Filesystem {
 			alleleFreqs[i] = new double[alleles.length - numMissing];
 			for (int j = numMissing; j < alleles.length; j++) {
 				alleleFreqs[i][j - numMissing] = Double.valueOf(handle.get(alleles[j])) / (double) total;
-				for (int k = 0; k < Integer	.valueOf(handle.get(alleles[j])); k++) {
+				for (int k = 0; k < Integer.valueOf(handle.get(alleles[j])); k++) {
 					allAlleles[alleleCount++] = Integer.valueOf(alleles[j]);
 				}
 
 			}
 			if (alleleCount != total) {
-				System.err.println("Error - for some reason the number of genotypes ("	+ alleleCount
-														+ ") did not reach the expected (" + total + ")");
+				System.err.println("Error - for some reason the number of genotypes (" + alleleCount
+													 + ") did not reach the expected (" + total + ")");
 			}
 
 			if (reportOutliers) {
@@ -236,8 +235,8 @@ public class Filesystem {
 		}
 		error.close();
 
-		new LinkageMap(	chr, ArrayUtils.toStringArray(orderedMarkers), alleleFreqs,
-										Doubles.toArray(distMarkers), false, false).createFile("map" + chrome + ".dat");
+		new LinkageMap(chr, ArrayUtils.toStringArray(orderedMarkers), alleleFreqs,
+									 Doubles.toArray(distMarkers), false, false).createFile("map" + chrome + ".dat");
 
 		changes = new Hashtable<String, String>();
 
@@ -250,10 +249,10 @@ public class Filesystem {
 					for (int j = 0; j < problemAlleles[i].length; j++) {
 						if (line[i * 2 + 2].equals(problemAlleles[i][j] + "")
 								|| line[i * 2 + 2 + 1].equals(problemAlleles[i][j] + "")) {
-							if (!changes.containsKey(line[0]	+ "\t" + line[1] + "\t"
-																				+ orderedMarkers.elementAt(i))) {
-								writer.println(line[0]	+ "\t" + line[1] + "\t" + orderedMarkers.elementAt(i) + "\t"
-																+ line[i * 2 + 2] + "\t" + line[i * 2 + 2 + 1] + "\t\t");
+							if (!changes.containsKey(line[0] + "\t" + line[1] + "\t"
+																			 + orderedMarkers.elementAt(i))) {
+								writer.println(line[0] + "\t" + line[1] + "\t" + orderedMarkers.elementAt(i) + "\t"
+															 + line[i * 2 + 2] + "\t" + line[i * 2 + 2 + 1] + "\t\t");
 								changes.put(line[0] + "\t" + line[1] + "\t" + orderedMarkers.elementAt(i), "");
 							}
 						}
@@ -321,10 +320,9 @@ public class Filesystem {
 		}
 
 		for (int i = 0; i < missedOpps.length; i++) {
-			System.err.print(missedOpps[i]	+ " "
-												+ (missedCounts.elementAt(i) == 1	? ""
-																													: "("	+ missedCounts.elementAt(i)
-																														+ "x) "));
+			System.err.print(missedOpps[i] + " "
+											 + (missedCounts.elementAt(i) == 1 ? "" : "(" + missedCounts.elementAt(i)
+																																+ "x) "));
 		}
 		if (missedOpps.length > 0) {
 			System.err.println("-- out of the usual range of " + lb + " - " + ub + " for " + header);
@@ -351,8 +349,8 @@ public class Filesystem {
 
 		for (int element : source) {
 			if (element < lf || element > uf) {
-				System.err.println(element	+ " is out of the expected range of " + lf + " - " + uf + " for "
-														+ header);
+				System.err.println(element + " is out of the expected range of " + lf + " - " + uf + " for "
+													 + header);
 				missedOpportunities.add(element + "");
 			}
 		}

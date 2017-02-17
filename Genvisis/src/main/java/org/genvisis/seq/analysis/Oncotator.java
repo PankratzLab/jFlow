@@ -32,8 +32,8 @@ public class Oncotator {
 	 * @param overWriteExistingOutput if true, existing output will be over written
 	 * @param log
 	 */
-	public Oncotator(	String oncoDBLoc, String genomeBuild, boolean overWriteExistingOutput,
-										Logger log) {
+	public Oncotator(String oncoDBLoc, String genomeBuild, boolean overWriteExistingOutput,
+									 Logger log) {
 		super();
 		this.oncoDBLoc = oncoDBLoc;
 		this.genomeBuild = genomeBuild;
@@ -113,8 +113,7 @@ public class Oncotator {
 		} else {
 			ver = Files.exists(oncoDBLoc);
 			if (!ver) {
-				log.reportError(ONCOTATOR	+ " db directory " + oncoDBLoc
-														+ " did not exist, cannot run ");
+				log.reportError(ONCOTATOR + " db directory " + oncoDBLoc + " did not exist, cannot run ");
 			}
 		}
 		return ver;

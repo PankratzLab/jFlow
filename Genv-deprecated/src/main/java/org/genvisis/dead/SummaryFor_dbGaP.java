@@ -15,16 +15,16 @@ import org.genvisis.common.ext;
 public class SummaryFor_dbGaP {
 	public static final String HWE_FILE = "plink.hwe";
 	public static final String CHIP_BATCH_NAME = "IlluminaHumanCNV370Duo";
-	public static final String[] FINAL_HEADER = {	"Chip_batch_name",
-																								"SNP_ID  # original ID or ss#  used by the chip vender. ",
-																								"Original Allele 1  (probe allele)",
-																								"Original Allele 2  (probe allele)",
-																								"Genotype 1-1 Case", "Genotype 1-2 Case",
-																								"Genotype 2-2 Case", "Genotype 1-1 Control",
-																								"Genotype 1-2 Control", "Genotype 2-2 Control",
-																								"HWE Cases", "HWE Controls",
-																								"Odds ratio (for allele 1)", "Test Statistic",
-																								"P value"};
+	public static final String[] FINAL_HEADER = {"Chip_batch_name",
+																							 "SNP_ID  # original ID or ss#  used by the chip vender. ",
+																							 "Original Allele 1  (probe allele)",
+																							 "Original Allele 2  (probe allele)",
+																							 "Genotype 1-1 Case", "Genotype 1-2 Case",
+																							 "Genotype 2-2 Case", "Genotype 1-1 Control",
+																							 "Genotype 1-2 Control", "Genotype 2-2 Control",
+																							 "HWE Cases", "HWE Controls",
+																							 "Odds ratio (for allele 1)", "Test Statistic",
+																							 "P value"};
 
 	public static void summarize(String dir, String results, String test) {
 		BufferedReader reader;
@@ -79,16 +79,16 @@ public class SummaryFor_dbGaP {
 					System.exit(1);
 				}
 				caseP = line[pCol];
-				writer.print(CHIP_BATCH_NAME	+ "\t" + line[snpCol] + "\t" + line[a1Col] + "\t" + line[a2Col]
-											+ "\t" + ArrayUtils.toStr(line[genoCol].split("/")));
+				writer.print(CHIP_BATCH_NAME + "\t" + line[snpCol] + "\t" + line[a1Col] + "\t" + line[a2Col]
+										 + "\t" + ArrayUtils.toStr(line[genoCol].split("/")));
 
 				line = reader.readLine().trim().split("[\\s]+");
 				if (!line[testCol].equalsIgnoreCase("unaff")) {
 					System.err.println("Error - out of sync at " + line[snpCol]);
 					System.exit(1);
 				}
-				writer.print("\t"	+ ArrayUtils.toStr(line[genoCol].split("/")) + "\t" + line[pCol] + "\t"
-											+ caseP);
+				writer.print("\t" + ArrayUtils.toStr(line[genoCol].split("/")) + "\t" + line[pCol] + "\t"
+										 + caseP);
 
 				data = hash.get(line[snpCol]);
 				if (data == null) {
@@ -120,10 +120,10 @@ public class SummaryFor_dbGaP {
 		String results = "plink.assoc.recessive.logistic";
 		String test = "REC";
 
-		String usage = "\n"	+ "gwas.SummaryFor_dbGaP requires 0-1 arguments\n"
-										+ "   (1) directory (i.e. dir=results/ (not the default))\n"
-										+ "   (2) results file (i.e. dir=" + results + " (default))\n"
-										+ "   (3) test (i.e. test=" + test + " (default))\n" + "";
+		String usage = "\n" + "gwas.SummaryFor_dbGaP requires 0-1 arguments\n"
+									 + "   (1) directory (i.e. dir=results/ (not the default))\n"
+									 + "   (2) results file (i.e. dir=" + results + " (default))\n"
+									 + "   (3) test (i.e. test=" + test + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

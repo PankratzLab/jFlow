@@ -23,9 +23,9 @@ public class Pedigree extends FamilyStructure {
 	public static class PedigreeUtils {
 
 		// also loads trios and p-o hash
-		public static ArrayList<String[]> loadSibs(	FamilyStructure ped, boolean completeOnly,
-																								HashSet<String> excludedFIDIIDs,
-																								HashSet<String> includedFIDIIDs, boolean cache) {
+		public static ArrayList<String[]> loadSibs(FamilyStructure ped, boolean completeOnly,
+																							 HashSet<String> excludedFIDIIDs,
+																							 HashSet<String> includedFIDIIDs, boolean cache) {
 			if (ped.cached_all_trios == null) {
 				loadCompleteTrios(ped, excludedFIDIIDs, includedFIDIIDs, true); // will also create
 																																				// all_trios
@@ -36,11 +36,11 @@ public class Pedigree extends FamilyStructure {
 			if (ped.cached_sib_pairs != null) {
 				return ped.cached_sib_pairs;
 			}
-			HashMap<String, ArrayList<String>> parentToChildren =
-																													loadParentToChildrenMap(ped, completeOnly,
-																																									excludedFIDIIDs,
-																																									includedFIDIIDs,
-																																									cache);
+			HashMap<String, ArrayList<String>> parentToChildren = loadParentToChildrenMap(ped,
+																																										completeOnly,
+																																										excludedFIDIIDs,
+																																										includedFIDIIDs,
+																																										cache);
 
 			// at this point, only non-excluded IDs are present in all_trios and parentToChildren
 			ArrayList<String[]> sibPairs = new ArrayList<String[]>();
@@ -77,11 +77,11 @@ public class Pedigree extends FamilyStructure {
 			return sibPairs;
 		}
 
-		public static HashMap<String, ArrayList<String>> loadParentToChildrenMap(	FamilyStructure ped,
-																																							boolean completeOnly,
-																																							HashSet<String> excludedFIDIIDs,
-																																							HashSet<String> includedFIDIIDs,
-																																							boolean cache) {
+		public static HashMap<String, ArrayList<String>> loadParentToChildrenMap(FamilyStructure ped,
+																																						 boolean completeOnly,
+																																						 HashSet<String> excludedFIDIIDs,
+																																						 HashSet<String> includedFIDIIDs,
+																																						 boolean cache) {
 			if (ped.cached_parentToChildrenMap != null) {
 				return ped.cached_parentToChildrenMap;
 			}
@@ -89,10 +89,10 @@ public class Pedigree extends FamilyStructure {
 
 			for (int i = 0; i < ped.getIDs().length; i++) {
 				if (!FamilyStructure.MISSING_ID_STR.equals(ped.getFA(i))
-							&& (excludedFIDIIDs == null
+						&& (excludedFIDIIDs == null
 								|| !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))
-										&& (includedFIDIIDs == null
-												|| includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))))
+									 && (includedFIDIIDs == null
+											 || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))))
 						&& (!completeOnly || (/* faInd = */ped.getIndexOfFaInIDs(i)) >= 0)) {
 					ArrayList<String> children = parentMap.get(ped.getFID(i) + "\t" + ped.getFA(i));
 					if (children == null) {
@@ -102,10 +102,10 @@ public class Pedigree extends FamilyStructure {
 					children.add(ped.getFID(i) + "\t" + ped.getIID(i));
 				}
 				if (!FamilyStructure.MISSING_ID_STR.equals(ped.getMO(i))
-							&& (excludedFIDIIDs == null
+						&& (excludedFIDIIDs == null
 								|| !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))
-										&& (includedFIDIIDs == null
-												|| includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))))
+									 && (includedFIDIIDs == null
+											 || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))))
 						&& (!completeOnly || (/* moInd = */ped.getIndexOfMoInIDs(i)) >= 0)) {
 					ArrayList<String> children = parentMap.get(ped.getFID(i) + "\t" + ped.getMO(i));
 					if (children == null) {
@@ -134,24 +134,24 @@ public class Pedigree extends FamilyStructure {
 				int faInd = -1;
 				int moInd = -1;
 				if (!FamilyStructure.MISSING_ID_STR.equals(ped.getFA(i))
-							&& (excludedFIDIIDs == null
+						&& (excludedFIDIIDs == null
 								|| !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))
-										&& (includedFIDIIDs == null
-												|| includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))))
+									 && (includedFIDIIDs == null
+											 || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))))
 						&& (!completeOnly || (faInd = ped.getIndexOfFaInIDs(i)) >= 0)) {
-					pairs.add(new String[] {ped.getFID(i)	+ "\t" + ped.getFA(i),
+					pairs.add(new String[] {ped.getFID(i) + "\t" + ped.getFA(i),
 																	ped.getFID(i) + "\t" + ped.getIID(i)});
 					if (completeOnly) {
 						completePairs.add(new int[] {faInd, i});
 					}
 				}
 				if (!FamilyStructure.MISSING_ID_STR.equals(ped.getMO(i))
-							&& (excludedFIDIIDs == null
+						&& (excludedFIDIIDs == null
 								|| !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))
-										&& (includedFIDIIDs == null
-												|| includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))))
+									 && (includedFIDIIDs == null
+											 || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))))
 						&& (!completeOnly || (moInd = ped.getIndexOfMoInIDs(i)) >= 0)) {
-					pairs.add(new String[] {ped.getFID(i)	+ "\t" + ped.getMO(i),
+					pairs.add(new String[] {ped.getFID(i) + "\t" + ped.getMO(i),
 																	ped.getFID(i) + "\t" + ped.getIID(i)});
 					if (completeOnly) {
 						completePairs.add(new int[] {moInd, i});
@@ -167,10 +167,10 @@ public class Pedigree extends FamilyStructure {
 			return pairs;
 		}
 
-		public static ArrayList<int[]> loadCompleteTrios(	FamilyStructure ped,
-																											HashSet<String> excludedFIDIIDs,
-																											HashSet<String> includedFIDIIDs,
-																											boolean cache) {
+		public static ArrayList<int[]> loadCompleteTrios(FamilyStructure ped,
+																										 HashSet<String> excludedFIDIIDs,
+																										 HashSet<String> includedFIDIIDs,
+																										 boolean cache) {
 			if (ped.cached_complete_trios != null) {
 				return ped.cached_complete_trios;
 			}
@@ -180,19 +180,19 @@ public class Pedigree extends FamilyStructure {
 				int faInd = -1;
 				int moInd = -1;
 				if (!FamilyStructure.MISSING_ID_STR.equals(ped.getFA(i))
-							&& (excludedFIDIIDs == null
+						&& (excludedFIDIIDs == null
 								|| !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))
-										&& (includedFIDIIDs == null
-												|| includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))))
+									 && (includedFIDIIDs == null
+											 || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))))
 						&& !FamilyStructure.MISSING_ID_STR.equals(ped.getMO(i))
 						&& (excludedFIDIIDs == null
 								|| !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))
-										&& (includedFIDIIDs == null
-												|| includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))))) {
+									 && (includedFIDIIDs == null
+											 || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))))) {
 					if (cache) {
-						allTrios.add(new String[] {ped.getFID(i)	+ "\t" + ped.getIID(i),
-																				ped.getFID(i) + "\t" + ped.getFA(i),
-																				ped.getFID(i) + "\t" + ped.getMO(i)});
+						allTrios.add(new String[] {ped.getFID(i) + "\t" + ped.getIID(i),
+																			 ped.getFID(i) + "\t" + ped.getFA(i),
+																			 ped.getFID(i) + "\t" + ped.getMO(i)});
 					}
 					if ((faInd = ped.getIndexOfFaInIDs(i)) >= 0 && (moInd = ped.getIndexOfMoInIDs(i)) >= 0) {
 						trios.add(new int[] {i, faInd, moInd});
@@ -206,19 +206,19 @@ public class Pedigree extends FamilyStructure {
 			return trios;
 		}
 
-		public static MendelErrorCheck[] checkMendelErrors(	Pedigree pedigree, MarkerData markerData,
-																												boolean[] samplesToCheck, String[] sex,
-																												ClusterFilterCollection clusterFilters,
-																												float gcThreshold, Logger log) {
+		public static MendelErrorCheck[] checkMendelErrors(Pedigree pedigree, MarkerData markerData,
+																											 boolean[] samplesToCheck, String[] sex,
+																											 ClusterFilterCollection clusterFilters,
+																											 float gcThreshold, Logger log) {
 			if (pedigree.getProject() == null) {
 				log.reportError(ext.getTime()
 												+ "]\t Error - cannot run checkMendelErrors without a Project");
 				return null;
 			}
 			MendelErrorCheck[] mendelErrorChecks = new MendelErrorCheck[pedigree.getIDs().length];
-			byte[] genotypes = markerData.getAbGenotypesAfterFilters(	clusterFilters,
-																																markerData.getMarkerName(),
-																																gcThreshold, log);
+			byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilters,
+																															 markerData.getMarkerName(),
+																															 gcThreshold, log);
 			if (!pedigree.isProjectOrder()) {
 				log.reportError("Pedigree file must be in project order, internal error");
 				return null;
@@ -248,9 +248,9 @@ public class Pedigree extends FamilyStructure {
 
 						}
 						// System.out.println(faGenotype+"\t"+moGenotype);
-						MendelErrors mendelErrors = new MendelErrors(	markerData.getChr(), sampleSex,
-																													genotypes[sampleIndex], faGenotype,
-																													moGenotype);
+						MendelErrors mendelErrors = new MendelErrors(markerData.getChr(), sampleSex,
+																												 genotypes[sampleIndex], faGenotype,
+																												 moGenotype);
 						mendelErrorChecks[i] = mendelErrors.checkMendelError();
 					} else {
 						mendelErrorChecks[i] = new MendelErrors(markerData.getChr(), -1, (byte) -1, (byte) -1,
@@ -328,7 +328,7 @@ public class Pedigree extends FamilyStructure {
 
 	private static int getSampleIndex(String sample, SampleData sampleData, String[] projectSamples) {
 		int sampleIndex = MISSING_DNA_INDEX;
-		if (sample != null	&& !sample.equals(FamilyStructure.MISSING_ID_STR) && sampleData != null
+		if (sample != null && !sample.equals(FamilyStructure.MISSING_ID_STR) && sampleData != null
 				&& projectSamples != null && sampleData.lookup(sample) != null) {
 			sampleIndex = ext.indexOfStr(sampleData.lookup(sample)[0], projectSamples);
 		}
@@ -370,7 +370,7 @@ public class Pedigree extends FamilyStructure {
 		log = proj.getLog();
 		file = newPedFile == null ? proj.PEDIGREE_FILENAME.getValue() : newPedFile;
 		if (Files.exists(file) && !overwrite) {
-			log.reportError("Error - file "	+ file
+			log.reportError("Error - file " + file
 											+ " already exists; overwrite flag must be set or a different output file must be specified.");
 			return;
 		}
@@ -381,8 +381,8 @@ public class Pedigree extends FamilyStructure {
 			log.report("Found sex check file.");
 			// sexDict = HashVec.loadFileToHashString(sexFile, new int[]{1, 2}, new int[]{3, 4}, false,
 			// "\t", true, false, true);
-			sexDict = HashVec.loadFileToHashString(	sexFile, new int[] {0}, new int[] {3, 4}, false, "\t",
-																							true, false, true);
+			sexDict = HashVec.loadFileToHashString(sexFile, new int[] {0}, new int[] {3, 4}, false, "\t",
+																						 true, false, true);
 		} else {
 			log.report("Warning - no sex check file found, sex will be set to '0' for all individuals.  Otherwise, first run SexChecks and then re-run.");
 			sexDict = new Hashtable<String, String>();
@@ -417,13 +417,13 @@ public class Pedigree extends FamilyStructure {
 		boolean overwrite = false;
 		Project proj;
 
-		String usage = "\n"	+ "cnv.filesys.Pedigree requires 1-3 arguments\n"
-										+ "   (1) project properties filename (i.e. proj="
-										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-										+ "   (2) OPTIONAL: Pedigree output filename (if omitted, output file will be project property) (i.e. out="
-										+ out + " (default))\n"
-										+ "   (1) OPTIONAL: overwrite flag, will overwrite the output file if it already exists (i.e. -overwrite (not the default))\n"
-										+ "";
+		String usage = "\n" + "cnv.filesys.Pedigree requires 1-3 arguments\n"
+									 + "   (1) project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + "   (2) OPTIONAL: Pedigree output filename (if omitted, output file will be project property) (i.e. out="
+									 + out + " (default))\n"
+									 + "   (1) OPTIONAL: overwrite flag, will overwrite the output file if it already exists (i.e. -overwrite (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

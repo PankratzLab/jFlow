@@ -105,7 +105,7 @@ public class info {
 						// zeroGoodness.insertElementAt((Integer.valueOf(zeroGoodness.elementAt(count)).intValue()+1)+"",
 						// count);
 						// }
-						victor.setElementAt((Double.valueOf(victor.elementAt(count)).doubleValue() + inf)	+ "",
+						victor.setElementAt((Double.valueOf(victor.elementAt(count)).doubleValue() + inf) + "",
 																0);
 						first = false;
 						prev = trav;
@@ -116,20 +116,20 @@ public class info {
 				for (int i = 0; i < victor.size(); i++) {
 					// writer.println(positron.elementAt(i)+"\t"+ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue()/(numFams-Integer.valueOf(zeroGoodness.elementAt(count)).intValue()),
 					// 5));
-					writer.println(positron.elementAt(i)	+ "\t"
-													+ ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue()
-																					/ numFams, 5));
-					masterWriter.println(positron.elementAt(i)	+ "\t"
-																+ ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue()
-																								/ numFams, 5));
+					writer.println(positron.elementAt(i) + "\t"
+												 + ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue() / numFams,
+																				5));
+					masterWriter.println(positron.elementAt(i) + "\t"
+															 + ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue()
+																							/ numFams, 5));
 					if (!markerNames.elementAt(i).equals("-")) {
-						markerWriter.println(markerNames.elementAt(i)	+ "\t"
-																	+ ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue()
-																									/ numFams, 5));
+						markerWriter.println(markerNames.elementAt(i) + "\t"
+																 + ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue()
+																								/ numFams, 5));
 						masterMarkerWriter.println(markerNames.elementAt(i) + "\t" + ext.formDeci(
 																																											Double.valueOf(victor.elementAt(i))
 																																														.doubleValue()
-																																												/ numFams,
+																																											/ numFams,
 																																											5));
 					}
 				}

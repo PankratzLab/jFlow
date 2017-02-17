@@ -56,9 +56,9 @@ public class SexCheck {
 			writer.println(ArrayUtils.toStr(SEX_CHECK_HEADER));
 			while (train.hasNext()) {
 				SexCheckResults sexCheckResults = train.next();
-				writer.println(sexCheckResults.getSample()+ "\t" + sexCheckResults.getBamFile() + "\t"
-												+ sexCheckResults.getNumXReads() + "\t" + sexCheckResults.getNumYReads()
-												+ "\t" + sexCheckResults.getPropX() + "\t" + sexCheckResults.getPropY());
+				writer.println(sexCheckResults.getSample() + "\t" + sexCheckResults.getBamFile() + "\t"
+											 + sexCheckResults.getNumXReads() + "\t" + sexCheckResults.getNumYReads()
+											 + "\t" + sexCheckResults.getPropX() + "\t" + sexCheckResults.getPropY());
 				writer.flush();
 			}
 
@@ -126,7 +126,7 @@ public class SexCheck {
 		reader.indexing();
 		SexCheckResults sexCheckResults = new SexCheckResults(0, 0, bamFile, bamFile);
 		if (!reader.hasIndex()) {
-			log.reportError("Error - the bam file "+ bamFile
+			log.reportError("Error - the bam file " + bamFile
 											+ " must have a \".bai\" index file associated with it, halting");
 			try {
 				reader.close();
@@ -145,8 +145,8 @@ public class SexCheck {
 
 			QueryInterval qX = new QueryInterval(refX, 0, -1);
 			QueryInterval qY = new QueryInterval(refY, 0, -1);
-			sexCheckResults = getCountsForSexChr(	new QueryInterval[] {qX, qY}, reader, bamFile, sample,
-																						log);
+			sexCheckResults = getCountsForSexChr(new QueryInterval[] {qX, qY}, reader, bamFile, sample,
+																					 log);
 			try {
 				reader.close();
 			} catch (IOException e) {
@@ -181,14 +181,14 @@ public class SexCheck {
 				}
 			}
 			if (totalReads % 1000000 == 0) {
-				log.reportTimeInfo("Sample: "+ sample + " Read " + totalReads + " from chrs " + X + " and "
-														+ Y + ", " + goodReads + " passed standard filter, " + numXReads
-														+ " chr " + X + ", " + numYReads + " chr " + Y);
+				log.reportTimeInfo("Sample: " + sample + " Read " + totalReads + " from chrs " + X + " and "
+													 + Y + ", " + goodReads + " passed standard filter, " + numXReads
+													 + " chr " + X + ", " + numYReads + " chr " + Y);
 			}
 		}
-		log.reportTimeInfo("Sample: "+ sample + " Finished with " + totalReads + " from chrs " + X
-												+ " and " + Y + ", " + goodReads + " passed standard filter, " + numXReads
-												+ " chr " + X + ", " + numYReads + " chr " + Y);
+		log.reportTimeInfo("Sample: " + sample + " Finished with " + totalReads + " from chrs " + X
+											 + " and " + Y + ", " + goodReads + " passed standard filter, " + numXReads
+											 + " chr " + X + ", " + numYReads + " chr " + Y);
 
 		return new SexCheckResults(numXReads, numYReads, bamFile, sample);
 	}

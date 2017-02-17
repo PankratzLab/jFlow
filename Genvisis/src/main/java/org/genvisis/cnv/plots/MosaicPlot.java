@@ -30,13 +30,14 @@ import org.genvisis.common.ext;
 
 public class MosaicPlot extends JFrame implements ActionListener {
 	public static final long serialVersionUID = 1L;
-	public static final String[] MOSAICISM_HEADER =
-																								{	"Sample", "Arm", "LRR N", "mean LRR", "BAF N",
-																									"SD of BAF (0.15-0.85)", "IQR of BAF (0.15-0.85)",
-																									"%Homo", "ForcedCallArmPercentMosaicism",
-																									"BpWeightedAverageArm", "BpWeightedAverageCalled",
-																									"NumberRegionsDetected", "BpCalledMosaic",
-																									"BpInArm", "ProportionArmCalledMosaic"};
+	public static final String[] MOSAICISM_HEADER = {"Sample", "Arm", "LRR N", "mean LRR", "BAF N",
+																									 "SD of BAF (0.15-0.85)",
+																									 "IQR of BAF (0.15-0.85)", "%Homo",
+																									 "ForcedCallArmPercentMosaicism",
+																									 "BpWeightedAverageArm",
+																									 "BpWeightedAverageCalled",
+																									 "NumberRegionsDetected", "BpCalledMosaic",
+																									 "BpInArm", "ProportionArmCalledMosaic"};
 
 	MosaicPanel panel;
 
@@ -55,9 +56,8 @@ public class MosaicPlot extends JFrame implements ActionListener {
 		label.setFont(new Font("Arial", 0, 20));
 		descrPanel.add(label);
 
-		label =
-					new JLabel(	"Only those B Allele Frequency (BAF) values between 0.15 and 0.85 are used in these calculations",
-											JLabel.CENTER);
+		label = new JLabel("Only those B Allele Frequency (BAF) values between 0.15 and 0.85 are used in these calculations",
+											 JLabel.CENTER);
 		label.setFont(new Font("Arial", 0, 14));
 		descrPanel.add(label);
 		descrPanel.setBackground(Color.WHITE);
@@ -132,7 +132,7 @@ public class MosaicPlot extends JFrame implements ActionListener {
 			}
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\t", -1);
-				if (!line[5].equals(".")	&& !line[6].equals(".")
+				if (!line[5].equals(".") && !line[6].equals(".")
 						&& Integer.parseInt(line[1].substring(3, line[1].length() - 1)) < 23) {
 					samples.add(new String[] {line[0], line[1]});
 					datapoints.add(new double[] {Double.parseDouble(line[5]), Double.parseDouble(line[6])});
@@ -154,10 +154,10 @@ public class MosaicPlot extends JFrame implements ActionListener {
 		int numArgs = args.length;
 		String filename = null;
 
-		String usage = "\n"	+ "plot.MosaicPlot requires 0-1 arguments\n"
-										+ "   (1) project properties filename (i.e. proj="
-										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-										+ "";
+		String usage = "\n" + "plot.MosaicPlot requires 0-1 arguments\n"
+									 + "   (1) project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

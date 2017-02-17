@@ -99,9 +99,9 @@ public class jlin {
 		// String filename = "negneuros.ped";
 		String mapfile = "map.info";
 
-		String usage = "\n"	+ "park.jlin requires 2 arguments:\n" + "   (1) a pre file (i.e. file="
-										+ filename + " (default))\n" + "   (2) a Haploview-style map file (i.e. map="
-										+ mapfile + " (default))\n" + "";
+		String usage = "\n" + "park.jlin requires 2 arguments:\n" + "   (1) a pre file (i.e. file="
+									 + filename + " (default))\n" + "   (2) a Haploview-style map file (i.e. map="
+									 + mapfile + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

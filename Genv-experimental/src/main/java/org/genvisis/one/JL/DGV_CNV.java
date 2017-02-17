@@ -19,15 +19,14 @@ import org.genvisis.filesys.CNVariant;
  *         http://dgv.tcag.ca/dgv/app/downloads?ref=GRCh37/hg19
  */
 public class DGV_CNV {
-	private static final String[] HEADER_DGV = new String[] {	"variantaccession", "chr", "start",
-																														"end", "varianttype", "variantsubtype",
-																														"reference", "pubmedid", "method",
-																														"platform", "mergedvariants",
-																														"supportingvariants", "mergedorsample",
-																														"frequency", "samplesize",
-																														"observedgains", "observedlosses",
-																														"cohortdescription", "genes",
-																														"samples"};
+	private static final String[] HEADER_DGV = new String[] {"variantaccession", "chr", "start",
+																													 "end", "varianttype", "variantsubtype",
+																													 "reference", "pubmedid", "method",
+																													 "platform", "mergedvariants",
+																													 "supportingvariants", "mergedorsample",
+																													 "frequency", "samplesize",
+																													 "observedgains", "observedlosses",
+																													 "cohortdescription", "genes", "samples"};
 	private static final String[] COPY_NUMBER_VARIATION_MAP = new String[] {"chr", "start", "end",
 																																					"state", "id", "type",
 																																					"num_variants",
@@ -77,11 +76,11 @@ public class DGV_CNV {
 				BufferedReader reader = Files.getAppropriateReader(element);
 				reader.readLine();
 
-				int[] indices = ext.indexFactors(	HEADER_DGV, Files.getHeaderOfFile(element, log), true,
-																					false);
+				int[] indices = ext.indexFactors(HEADER_DGV, Files.getHeaderOfFile(element, log), true,
+																				 false);
 				if (ArrayUtils.countIf(indices, -1) > 0) {
-					indices = ext.indexFactors(	COPY_NUMBER_VARIATION_MAP, Files.getHeaderOfFile(element, log),
-																			true, false);
+					indices = ext.indexFactors(COPY_NUMBER_VARIATION_MAP, Files.getHeaderOfFile(element, log),
+																		 true, false);
 					dgv = false;
 				}
 				int lineNum = 0;
@@ -133,7 +132,7 @@ public class DGV_CNV {
 						int stop = Integer.parseInt(line[indices[3]]);
 						String type = line[indices[5]];
 						String reference = line[indices[6]];
-						if (indices[19] < line.length	&& !skipTypes.containsKey(type)
+						if (indices[19] < line.length && !skipTypes.containsKey(type)
 								&& (reference.startsWith("1000_Genomes") || reference.startsWith("Conrad_"))) {
 
 							try {
@@ -141,13 +140,13 @@ public class DGV_CNV {
 								int numDup = Integer.parseInt(line[indices[15]]);
 								int numDel = Integer.parseInt(line[indices[16]]);
 								if (numDel + numDup != samples.length && !type.equals("gain+loss")) {// gain plus
-																																											// loss does
-																																											// not equal
-																																											// sample size
+																																										 // loss does
+																																										 // not equal
+																																										 // sample size
 									System.out.println(ArrayUtils.toStr(line));
 									System.out.println(lineNum + "\t" + line.length + "\t" + element);
-									log.reportError("Del: "	+ numDel + " and Dup: " + numDup
-																			+ " does not add up to " + samples.length);
+									log.reportError("Del: " + numDel + " and Dup: " + numDup + " does not add up to "
+																	+ samples.length);
 									System.exit(1);
 								} else {
 									int sampIndex = 0;
@@ -225,8 +224,8 @@ public class DGV_CNV {
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(out));
 				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
-				int[] indices = ext.indexFactors(	HEADER_DGV, Files.getHeaderOfFile(element, log), true,
-																					false);
+				int[] indices = ext.indexFactors(HEADER_DGV, Files.getHeaderOfFile(element, log), true,
+																				 false);
 				try {
 					BufferedReader reader = Files.getAppropriateReader(element);
 					reader.readLine();
@@ -315,8 +314,8 @@ public class DGV_CNV {
 		int numArgs = args.length;
 		String dir = "C:/bin/ref/1000GCNV/";
 
-		String usage = "\n"	+ "one.JL.DGV_CNV requires 0-1 arguments\n" + "   (1) directory (i.e. dir="
-										+ dir + " (default))\n" + "";
+		String usage = "\n" + "one.JL.DGV_CNV requires 0-1 arguments\n" + "   (1) directory (i.e. dir="
+									 + dir + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

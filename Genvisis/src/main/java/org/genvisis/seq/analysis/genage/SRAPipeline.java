@@ -80,10 +80,10 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 	 * @param cleanup clean up by deleting the .sra and .bam file after completion
 	 * @param log
 	 */
-	public SRAPipeline(	SRASample sraSample, String inputSRA, String rootOutDir,
-											GENOME_BUILD genomeBuild, String captureBed, String binBed, String vcf,
-											String computelLocation, int numThreads, boolean cleanup,
-											List<PIPELINE_PARTS> parts, Logger log) {
+	public SRAPipeline(SRASample sraSample, String inputSRA, String rootOutDir,
+										 GENOME_BUILD genomeBuild, String captureBed, String binBed, String vcf,
+										 String computelLocation, int numThreads, boolean cleanup,
+										 List<PIPELINE_PARTS> parts, Logger log) {
 		super();
 		this.sraSample = sraSample;
 		this.inputSRA = inputSRA;
@@ -124,9 +124,9 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 				cleanup = new File(inputSRA).delete();
 			}
 
-			List<PipelinePart> parts = Pipeline.pipeline(	bam, rootOutDir, genomeBuild, captureBed, binBed,
-																										vcfFile, sraSample, partsToRun,
-																										computelLocation, numThreads, log);
+			List<PipelinePart> parts = Pipeline.pipeline(bam, rootOutDir, genomeBuild, captureBed, binBed,
+																									 vcfFile, sraSample, partsToRun, computelLocation,
+																									 numThreads, log);
 
 			if (cleanup) {
 				cleanup = new File(bam).delete();
@@ -183,7 +183,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		for (SRASample sample : samples) {
 			String bam = getBamDirectory(rootOutDir) + ext.rootOf(sample.getSraFile()) + ".bam";
 			if (!Files.exists(bam)) {
-				log.reportTimeWarning("Associated bam "	+ bam + " for " + sample.getSraFile()
+				log.reportTimeWarning("Associated bam " + bam + " for " + sample.getSraFile()
 															+ " did not exist, will not compile...run the import pipeline again");
 			} else {
 				bams.add(bam);
@@ -193,9 +193,9 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
 	}
 
-	private static void runCompile(	List<SRASample> samples, String rootOutDir,
-																	GENOME_BUILD genomeBuild, String captureBed, String binBed,
-																	String vcf, int numThreads, Logger log) {
+	private static void runCompile(List<SRASample> samples, String rootOutDir,
+																 GENOME_BUILD genomeBuild, String captureBed, String binBed,
+																 String vcf, int numThreads, Logger log) {
 
 		String[] bams = getAssociatedBams(samples, rootOutDir, log);
 		ASSAY_TYPE atType = samples.get(0).getaType();
@@ -212,8 +212,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		}
 		Project proj = Pipeline.getProjectFor(atType, rootOutDir, genomeBuild);
 
-		BamImport.importTheWholeBamProject(	proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER, 4,
-																				true, atType, aName, bams, numThreads);
+		BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER, 4,
+																			 true, atType, aName, bams, numThreads);
 	}
 
 	private static void compilePrep(String sraInput, String sraRunTableFile, String rootOutDir,
@@ -237,24 +237,24 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 			}
 		}
 
-		log.reportTimeInfo("Found "	+ wgsSamples.size() + " " + ASSAY_TYPE.WGS + " samples and "
-												+ wxsSamples.size() + " " + ASSAY_TYPE.WXS + " samples");
+		log.reportTimeInfo("Found " + wgsSamples.size() + " " + ASSAY_TYPE.WGS + " samples and "
+											 + wxsSamples.size() + " " + ASSAY_TYPE.WXS + " samples");
 		runCompile(wxsSamples, rootOutDir, genomeBuild, captureBed, binBed, vcf, numThreads, log);
 		runCompile(wgsSamples, rootOutDir, genomeBuild, captureBed, binBed, vcf, numThreads, log);
 
 	}
 
-	private static void runAll(	String sraInput, String sraRunTableFile, String rootOutDir,
-															GENOME_BUILD genomeBuild, String captureBed, String binBed,
-															String vcf, String computelLocation, int numThreads,
-															int numThreadsPipeline, int numBatches, CLI c, boolean cleanup) {
+	private static void runAll(String sraInput, String sraRunTableFile, String rootOutDir,
+														 GENOME_BUILD genomeBuild, String captureBed, String binBed, String vcf,
+														 String computelLocation, int numThreads, int numThreadsPipeline,
+														 int numBatches, CLI c, boolean cleanup) {
 		Logger log = new Logger();
 
 		WorkerHive<List<PipelinePart>> hive = new WorkerHive<List<PipelinePart>>(numThreads, 10, log);
 		boolean prelimGenvisisWGS = false;
 		boolean prelimGenvisisWXS = false;
-		List<SRASample> samples = loadSraSamples(	sraInput, sraRunTableFile,
-																							PLATFORM.valueOf(c.get(PLATFORM_TYPE)), log);
+		List<SRASample> samples = loadSraSamples(sraInput, sraRunTableFile,
+																						 PLATFORM.valueOf(c.get(PLATFORM_TYPE)), log);
 		ArrayList<String> sampleSummary = new ArrayList<String>();
 		ArrayList<String> sraFiles = new ArrayList<String>();
 
@@ -282,9 +282,9 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		for (SRASample sample : samples) {
 			sraFiles.add(sample.getSraFile());
 			sampleSummary.add(sample.getSraFile() + "\t" + sample.toString());
-			SRAPipeline pipeline = new SRAPipeline(	sample, sample.getSraFile(), rootOutDir, genomeBuild,
-																							captureBed, binBed, vcf, computelLocation,
-																							numThreadsPipeline, cleanup, partsToRun, log);
+			SRAPipeline pipeline = new SRAPipeline(sample, sample.getSraFile(), rootOutDir, genomeBuild,
+																						 captureBed, binBed, vcf, computelLocation,
+																						 numThreadsPipeline, cleanup, partsToRun, log);
 			switch (sample.getaType()) {// create the required markerSets for
 				// import...prior to threading
 				case WGS:
@@ -296,8 +296,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 					break;
 				case WXS:
 					if (!prelimGenvisisWXS) {
-						generatePrelim(	rootOutDir, genomeBuild, captureBed, binBed, vcf, log,
-														sample.getaType());
+						generatePrelim(rootOutDir, genomeBuild, captureBed, binBed, vcf, log,
+													 sample.getaType());
 						prelimGenvisisWXS = true;
 					}
 					break;
@@ -315,14 +315,14 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		}
 	}
 
-	private static void generatePrelim(	String rootOutDir, GENOME_BUILD genomeBuild, String captureBed,
-																			String binBed, String vcf, Logger log, ASSAY_TYPE aType) {
+	private static void generatePrelim(String rootOutDir, GENOME_BUILD genomeBuild, String captureBed,
+																		 String binBed, String vcf, Logger log, ASSAY_TYPE aType) {
 		Project proj = Pipeline.getProjectFor(aType, rootOutDir, genomeBuild);
 		if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
 
 			BamImport.generateAnalysisSet(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER, aType,
-																		log, new ReferenceGenome(	proj.getReferenceGenomeFASTAFilename(),
-																															log));
+																		log, new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
+																														 log));
 		}
 	}
 
@@ -342,11 +342,12 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 				sraFilesToAnalyze.add(sraFiles[i]);
 			}
 		}
-		log.reportTimeInfo("Detected "	+ sraFilesToAnalyze.size() + " samples to analyze for platform "
-												+ platform + "," + (sraFiles.length - sraFilesToAnalyze.size())
-												+ " samples are already complete");
+		log.reportTimeInfo("Detected " + sraFilesToAnalyze.size() + " samples to analyze for platform "
+											 + platform + "," + (sraFiles.length - sraFilesToAnalyze.size())
+											 + " samples are already complete");
 
-		String[][] batches = batch(ArrayUtils.toStringArray(sraFilesToAnalyze), c.get(CLI.ARG_OUTDIR), c, log);
+		String[][] batches = batch(ArrayUtils.toStringArray(sraFilesToAnalyze), c.get(CLI.ARG_OUTDIR),
+															 c, log);
 
 		ArrayList<String> process = new ArrayList<String>();
 		int num = 0;
@@ -356,17 +357,18 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		for (int i = 0; i < batches.length; i++) {
 			for (int j = 0; j < batches[i].length; j++) {
 				process.add("cd " + ext.parseDirectoryOfFile(batches[i][j]));
-				process.add("echo \"start "	+ ext.rootOf(batches[i][j]) + "\" `date` >>" + processDir
+				process.add("echo \"start " + ext.rootOf(batches[i][j]) + "\" `date` >>" + processDir
 										+ "sraDL.times");
 
 				process.add("prefetch.2.6.3 -a \"/home/pankrat2/lanej/.aspera/connect/bin/ascp|/home/pankrat2/lanej/.aspera/connect/etc/asperaweb_id_dsa.openssh\" --max-size 100000000000 "
 										+ ext.rootOf(batches[i][j]));
-				process.add("echo \"end "	+ ext.rootOf(batches[i][j]) + "\" `date` >>"
+				process.add("echo \"end " + ext.rootOf(batches[i][j]) + "\" `date` >>"
 										+ ext.parseDirectoryOfFile(batches[i][j]) + ".times");
 				num++;
 			}
 			process.add("cd " + processDir);// so the qsubs get placed there
-			process.add("qsub -q small " + getBatch(getBatchDirectory(c.get(CLI.ARG_OUTDIR)), i) + ".qsub");
+			process.add("qsub -q small " + getBatch(getBatchDirectory(c.get(CLI.ARG_OUTDIR)), i)
+									+ ".qsub");
 			if (num >= 1500) {
 				Files.writeIterable(process, ext.addToRoot(processFile, "_" + processBatch));
 				num = 0;
@@ -379,20 +381,21 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		}
 		if (c.has(GENVISIS_PART) || c.has(ALL_PART)) {
 			GENOME_BUILD genomeBuild = GENOME_BUILD.valueOf(c.get(REF_GENOME_BUILD));
-			generatePrelim(	c.get(CLI.ARG_OUTDIR), genomeBuild, c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF),
-											log, ASSAY_TYPE.WXS);
-			generatePrelim(c.get(CLI.ARG_OUTDIR), genomeBuild, null, null, c.get(VCF), log, ASSAY_TYPE.WGS);
+			generatePrelim(c.get(CLI.ARG_OUTDIR), genomeBuild, c.get(CAPTURE_BED), c.get(BIN_BED),
+										 c.get(VCF), log, ASSAY_TYPE.WXS);
+			generatePrelim(c.get(CLI.ARG_OUTDIR), genomeBuild, null, null, c.get(VCF), log,
+										 ASSAY_TYPE.WGS);
 		}
 
 	}
 
 	private static String[][] batch(String[] sraFiles, String rootOutDir, CLI c, Logger log) {
 		String[][] splits = ArrayUtils.splitUpStringArray(sraFiles, c.getI(NUM_BATCHES), log);
-		String runningJar = SRAPipeline.class	.getProtectionDomain().getCodeSource().getLocation()
-																					.getFile();
+		String runningJar = SRAPipeline.class.getProtectionDomain().getCodeSource().getLocation()
+																				 .getFile();
 		PLATFORM platform = PLATFORM.valueOf(c.get(PLATFORM_TYPE));
 
-		String jarRun = ext.parseDirectoryOfFile(runningJar)	+ "sraJars/" + ext.rootOf(runningJar)
+		String jarRun = ext.parseDirectoryOfFile(runningJar) + "sraJars/" + ext.rootOf(runningJar)
 										+ ext.getTimestampForFilename() + ".jar";
 		new File(ext.parseDirectoryOfFile(jarRun)).mkdirs();
 		Files.copyFileUsingFileChannels(runningJar, jarRun, log);
@@ -416,22 +419,22 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		if (c.has(ALL_PART)) {
 			baseCommand.add("-" + ALL_PART);
 			if (platform != PLATFORM.ILLUMINA) {
-				throw new IllegalArgumentException("Pipeline "	+ ALL_PART
-																						+ " not completely implemented for " + platform);
+				throw new IllegalArgumentException("Pipeline " + ALL_PART
+																					 + " not completely implemented for " + platform);
 			}
 		}
 		if (c.has(COMPUTEL_PART)) {
 			baseCommand.add("-" + COMPUTEL_PART);
 			if (platform != PLATFORM.ILLUMINA) {
-				throw new IllegalArgumentException("Pipeline "	+ COMPUTEL_PART
-																						+ " not completely implemented for " + platform);
+				throw new IllegalArgumentException("Pipeline " + COMPUTEL_PART
+																					 + " not completely implemented for " + platform);
 			}
 		}
 		if (c.has(TELSEQ_PART)) {
 			baseCommand.add("-" + TELSEQ_PART);
 			if (platform != PLATFORM.ILLUMINA) {
-				throw new IllegalArgumentException("Pipeline "	+ TELSEQ_PART
-																						+ " not completely implemented for " + platform);
+				throw new IllegalArgumentException("Pipeline " + TELSEQ_PART
+																					 + " not completely implemented for " + platform);
 			}
 		}
 		if (c.has(MTDNACN_PART)) {
@@ -440,8 +443,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		if (c.has(GENVISIS_PART)) {
 			baseCommand.add("-" + GENVISIS_PART);
 			if (platform != PLATFORM.ILLUMINA) {
-				throw new IllegalArgumentException("Pipeline "	+ GENVISIS_PART
-																						+ " not completely implemented for " + platform);
+				throw new IllegalArgumentException("Pipeline " + GENVISIS_PART
+																					 + " not completely implemented for " + platform);
 			}
 		}
 		String batchDir = getBatchDirectory(rootOutDir);
@@ -453,8 +456,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 			ArrayList<String> currentCommand = new ArrayList<String>();
 			currentCommand.addAll(baseCommand);
 			currentCommand.add(SRA_INPUT + "=" + batch);
-			Files.qsub(	qsub, ArrayUtils.toStr(ArrayUtils.toStringArray(currentCommand), " "), 55000, 55,
-									c.getI(NUM_THREADS) * c.getI(NUM_THREADS_PIPELINE));
+			Files.qsub(qsub, ArrayUtils.toStr(ArrayUtils.toStringArray(currentCommand), " "), 55000, 55,
+								 c.getI(NUM_THREADS) * c.getI(NUM_THREADS_PIPELINE));
 		}
 		return splits;
 	}
@@ -537,10 +540,10 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		} else if (c.has(FULL_PIPELINE)) {
 			fullPipeline(c);
 		} else {
-			runAll(	c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(CLI.ARG_OUTDIR), genomeBuild,
-							c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.get(COMPUTEL_LOCATION),
-							c.getI(NUM_THREADS), c.getI(NUM_THREADS_PIPELINE), c.getI(NUM_BATCHES), c,
-							c.has(CLEANUP));
+			runAll(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(CLI.ARG_OUTDIR), genomeBuild,
+						 c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.get(COMPUTEL_LOCATION),
+						 c.getI(NUM_THREADS), c.getI(NUM_THREADS_PIPELINE), c.getI(NUM_BATCHES), c,
+						 c.has(CLEANUP));
 		}
 	}
 }

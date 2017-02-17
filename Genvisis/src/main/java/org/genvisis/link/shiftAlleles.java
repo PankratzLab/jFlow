@@ -119,14 +119,14 @@ public class shiftAlleles {
 				newAlleles.add(element);
 			}
 			if (!markers.containsKey(markerName)) {
-				System.err.println("Error - '"	+ markerName + "' (number " + (i + 1)
-														+ " in the keyfile) is not listed as a marker in the Marshfield database");
+				System.err.println("Error - '" + markerName + "' (number " + (i + 1)
+													 + " in the keyfile) is not listed as a marker in the Marshfield database");
 				System.exit(4);
 			}
 			chr = Integer.valueOf(markers.get(markerName)).intValue();
 			if (!new File("chromosome" + chr + ".dat").exists()) {
-				System.err.println("Error - could not find "	+ "chromosome" + chr + ".dat"
-														+ " in current directory");
+				System.err.println("Error - could not find " + "chromosome" + chr + ".dat"
+													 + " in current directory");
 				System.err.println("      - necessary to shift alleles for marker " + markerName);
 				System.exit(5);
 			}
@@ -140,9 +140,9 @@ public class shiftAlleles {
 				touched[chr - 1] = true;
 			}
 			if (!plateNames.contains(plateAffected)) {
-				System.err.println("Error - '"	+ plateAffected
-														+ "' (from one of the second lines in the key file) was not the name of a plate seen in file "
-														+ plateList);
+				System.err.println("Error - '" + plateAffected
+													 + "' (from one of the second lines in the key file) was not the name of a plate seen in file "
+													 + plateList);
 				System.exit(7);
 			}
 			shift(markerName, chr, oldAlleles, newAlleles,
@@ -176,8 +176,8 @@ public class shiftAlleles {
 			}
 		}
 		if (index == -1) {
-			System.err.println("Error - could not find '"	+ markerName + "' in " + "chromosome" + chr
-													+ ".dat");
+			System.err.println("Error - could not find '" + markerName + "' in " + "chromosome" + chr
+												 + ".dat");
 			System.err.println("        skipping marker and continuing with file");
 			reader.close();
 			writer.close();
@@ -191,8 +191,8 @@ public class shiftAlleles {
 			}
 			if (line.length != 3 + 2 * numMarkers) {
 				System.err.println("Error - invalid number of columns for " + line[0] + "-" + line[1]);
-				System.err.println("        expecting 3 + 2*numMarkers ("	+ (3 + 2 * numMarkers)
-														+ " columns) and found " + line.length);
+				System.err.println("        expecting 3 + 2*numMarkers (" + (3 + 2 * numMarkers)
+													 + " columns) and found " + line.length);
 				System.exit(3);
 			}
 			for (int i = 0; i < 3; i++) {
@@ -202,8 +202,8 @@ public class shiftAlleles {
 				if (i == index && impacted.containsKey(line[1] + "\t" + line[2])) {
 					for (int j = 0; j < 2; j++) {
 						if (oldAlleles.indexOf(line[3 + i * 2 + j]) == -1) {
-							System.err.println("Error - Allele "	+ line[3 + i * 2 + j]
-																	+ " was not found in the key for marker " + markerName);
+							System.err.println("Error - Allele " + line[3 + i * 2 + j]
+																 + " was not found in the key for marker " + markerName);
 							System.err.println("      - and therefore was not shifted");
 							writer.print("\t" + line[3 + i * 2 + j]);
 						} else {
@@ -228,12 +228,12 @@ public class shiftAlleles {
 		String keyfile = "shiftAllelesForPlates.txt";
 		String plateList = "plateList.dat";
 
-		String usage = "\n"	+ "park.shiftAlleles requires 2 arguments:\n"
-										+ "   (1) list of markers, plates affected, and the key to the new alleles (i.e. key="
-										+ keyfile + " (default))\n"
-										+ "       start the old alleles with the marker name and the new alleles with the plates affected"
-										+ "   (2) list of individuals and their plates (i.e. pl=" + plateList
-										+ " (default))\n" + "";
+		String usage = "\n" + "park.shiftAlleles requires 2 arguments:\n"
+									 + "   (1) list of markers, plates affected, and the key to the new alleles (i.e. key="
+									 + keyfile + " (default))\n"
+									 + "       start the old alleles with the marker name and the new alleles with the plates affected"
+									 + "   (2) list of individuals and their plates (i.e. pl=" + plateList
+									 + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -251,9 +251,9 @@ public class shiftAlleles {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		System.out.println("Using "	+ keyfile
-												+ " to recode appropriate chromosomeX.dat files using plateList file "
-												+ plateList);
+		System.out.println("Using " + keyfile
+											 + " to recode appropriate chromosomeX.dat files using plateList file "
+											 + plateList);
 		try {
 			new shiftAlleles(keyfile, plateList);
 		} catch (Exception e) {

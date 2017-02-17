@@ -93,7 +93,7 @@ public class SNPSIFT {
 		}
 		if (!Files.exists(snpSiftLocation + SNP_SIFT_JAR)) {
 			verify = false;
-			log.reportError("Warning - could not find the SNP SIFT jar file "	+ snpSiftLocation
+			log.reportError("Warning - could not find the SNP SIFT jar file " + snpSiftLocation
 											+ SNP_SIFT_JAR);
 		}
 		return verify;

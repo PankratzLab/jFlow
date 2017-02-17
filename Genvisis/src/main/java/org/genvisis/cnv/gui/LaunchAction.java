@@ -48,8 +48,8 @@ public class LaunchAction extends AbstractAction {
 		plotWidth = Toolkit.getDefaultToolkit().getScreenSize().width - 30 - Trailer.DEFAULT_STARTX;
 		plotHeight = (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / loc.length;
 		for (int i = 0; i < loc.length; i++) {
-			plotStartY[i] =
-										1 + i * (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / loc.length;
+			plotStartY[i] = 1
+											+ i * (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / loc.length;
 		}
 		putValue(Action.SMALL_ICON, new ColorIcon(12, 12, color));
 	}
@@ -119,9 +119,9 @@ public class LaunchAction extends AbstractAction {
 				String[] cnvs = {};
 				for (int i = 0; i < loc.length; i++) {
 					String pos = loc[i].endsWith("p") || loc[i].endsWith("q")
-																																			? loc[i].substring(	0,
-																																												loc[i].length()
-																																														- 1)
+																																		? loc[i].substring(0,
+																																											 loc[i].length()
+																																													- 1)
 																																		: loc[i];
 					new Trailer(proj, sample, cnvs, pos, new String[][] {{sample, pos}}, plotStartX,
 											plotStartY[i], plotWidth, plotHeight);
@@ -152,7 +152,7 @@ public class LaunchAction extends AbstractAction {
 	public boolean isEnabled() {
 		switch (type) {
 			case LAUNCH_TRAILER:
-				return Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true)	+ sample
+				return Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true) + sample
 														+ Sample.SAMPLE_FILE_EXTENSION, jar); // needs to be updated anyway
 			default:
 				return true;

@@ -242,20 +242,20 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 */
 	private synchronized void initProjects() {
 		String[] properties = LaunchProperties.getListOfProjectProperties();
-		
+
 		String[] projNames = LaunchProperties.getListOfProjectNames();
 		Map<String, Integer> indMap = new HashMap<String, Integer>();
 		for (int i = 0; i < projNames.length; i++) {
 			indMap.put(projNames[i], i);
 		}
-		
+
 		projNames = ArrayUtils.sortedCopyAlphanum(projNames);
 		String[] propsSorted = new String[properties.length];
 		for (int i = 0; i < projNames.length; i++) {
 			propsSorted[i] = properties[indMap.get(projNames[i])];
 		}
 
-		projects =  Arrays.asList(propsSorted);
+		projects = Arrays.asList(propsSorted);
 
 		// update the project box
 		if (projectsBox != null) {
@@ -280,14 +280,15 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @return Currently selected {@link Project} instance.
 	 */
 	public Project loadProject() {
-		proj = new Project(LaunchProperties.get(LaunchKey.PROJECTS_DIR) + projects.get(indexOfCurrentProj), jar);
+		proj = new Project(LaunchProperties.get(LaunchKey.PROJECTS_DIR)
+											 + projects.get(indexOfCurrentProj), jar);
 		proj.setGuiState(true);
 		timestampOfPropertiesFile = new Date().getTime();
 		timestampOfSampleDataFile = new Date().getTime();
 		// Warn if no project directory
 		if (!Files.exists(proj.PROJECT_DIRECTORY.getValue(), proj.JAR_STATUS.getValue())) {
 			JOptionPane.showMessageDialog(null,
-																		"Error - the directory ('"	+ proj.PROJECT_DIRECTORY.getValue()
+																		"Error - the directory ('" + proj.PROJECT_DIRECTORY.getValue()
 																					+ "') for project '" + proj.PROJECT_NAME.getValue()
 																					+ "' did not exist; creating now. If this was in error, please edit the property file.",
 																		"Error", JOptionPane.ERROR_MESSAGE);
@@ -358,8 +359,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	private static final class ExceptionHandler implements Thread.UncaughtExceptionHandler {
 		static final String X11_ERROR_MSG_FORE = "Error occurred with X11 forwarding - ";
 		static final String X11_ERROR_DISABLED = "it's likely that X11 forwarding is disabled; please check your SSH client settings and try again.";
-		static final String X11_ERROR_XMING_REC =
-																						"it's likely that X11 forwarding is enabled but you are missing an X11 forwarding server (we recommend Xming - http://sourceforge.net/projects/xming/)";
+		static final String X11_ERROR_XMING_REC = "it's likely that X11 forwarding is enabled but you are missing an X11 forwarding server (we recommend Xming - http://sourceforge.net/projects/xming/)";
 
 		public Logger log;
 
@@ -392,14 +392,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			if (e.getMessage().contains("X11")) {
 				// java 8, X11 forwarding enabled [in PUTTY], XMing not found
 				System.err.println(ExceptionHandler.X11_ERROR_MSG_FORE
-														+ ExceptionHandler.X11_ERROR_XMING_REC);
+													 + ExceptionHandler.X11_ERROR_XMING_REC);
 				return;
 			}
 		} catch (InternalError e) {
 			if (e.getMessage().contains("X11")) {
 				// java 6, X11 forwarding enabled, XMing not found
 				System.err.println(ExceptionHandler.X11_ERROR_MSG_FORE
-														+ ExceptionHandler.X11_ERROR_XMING_REC);
+													 + ExceptionHandler.X11_ERROR_XMING_REC);
 				return;
 			}
 		} catch (Exception e2) {
@@ -501,7 +501,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				launchUI.setVisible(true);
 				System.out.println(ext.getTime() + "]\tGenvisis Loaded.");
 				if (!StartupValidation.warnings().isEmpty()) {
-					JOptionPane.showMessageDialog(null, StartupValidation.warnings(), "Startup warnings", JOptionPane.WARNING_MESSAGE);
+					JOptionPane.showMessageDialog(null, StartupValidation.warnings(), "Startup warnings",
+																				JOptionPane.WARNING_MESSAGE);
 				}
 			}
 		});
@@ -676,14 +677,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		iconBar.setLayout(new FlowLayout(FlowLayout.LEFT));
 
 		// Add leftmost system icons
-		addButtons(	iconBar,
-								new String[] {ProjectPropertiesEditor.ICON, "images/refresh.svg.png", "images/gen_pipe_1.png"},
-								new String[] {EDIT, REFRESH, PIPELINE});
+		addButtons(iconBar, new String[] {ProjectPropertiesEditor.ICON, "images/refresh.svg.png",
+																			"images/gen_pipe_1.png"},
+							 new String[] {EDIT, REFRESH, PIPELINE});
 
 		// Add plot icons
 		iconBar.add(Box.createHorizontalStrut(15));
-		addButtons(	iconBar, plotIcons.values().toArray(new String[plotIcons.size()]),
-								plotIcons.keySet().toArray(new String[plotIcons.size()]));
+		addButtons(iconBar, plotIcons.values().toArray(new String[plotIcons.size()]),
+							 plotIcons.keySet().toArray(new String[plotIcons.size()]));
 
 		// Add project selector
 		iconBar.add(Box.createHorizontalStrut(15));
@@ -701,8 +702,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 */
 	private void addButtons(final Container pane, String[] icons, String[] commands) {
 		if (icons.length != commands.length) {
-			throw new IllegalArgumentException("Error creating topbar buttons. Got "	+ icons.length
-																					+ " icons but " + commands.length + "commands.");
+			throw new IllegalArgumentException("Error creating topbar buttons. Got " + icons.length
+																				 + " icons but " + commands.length + "commands.");
 		}
 
 		for (int i = 0; i < icons.length; i++) {
@@ -743,8 +744,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 					loadProject();
 					log.report("\nCurrent project: " + ext.rootOf(projects.get(indexOfCurrentProj)) + "\n");
 
-					LaunchProperties.put(	LaunchKey.LAST_PROJECT_OPENED,
-																				projects.get(projectsBox.getSelectedIndex()));
+					LaunchProperties.put(LaunchKey.LAST_PROJECT_OPENED,
+															 projects.get(projectsBox.getSelectedIndex()));
 				}
 			}
 		});
@@ -783,8 +784,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			 * SwingUtilities.invokeLater();
 			 */
 			if (command.equals(MAP_FILES)) {
-				org.genvisis.cnv.manage.SourceFileParser.mapFilenamesToSamples(	proj,
-																																				"filenamesMappedToSamples.txt");
+				org.genvisis.cnv.manage.SourceFileParser.mapFilenamesToSamples(proj,
+																																			 "filenamesMappedToSamples.txt");
 			} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
 				org.genvisis.cnv.manage.Markers.generateMarkerPositions(proj,
 																																proj.getLocationOfSNP_Map(true));
@@ -792,12 +793,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, proj.NUM_THREADS.getValue());
 			} else if (command.equals(CHECK_SEX)) {
 				String blastAnnotationFile = proj.BLAST_ANNOTATION_FILENAME.getValue();
-				String nonCrossHybridizingMarkersFile =
-																							MarkerBlastQC.defaultOneHitWondersFilename(blastAnnotationFile);
+				String nonCrossHybridizingMarkersFile = MarkerBlastQC.defaultOneHitWondersFilename(blastAnnotationFile);
 				if (!Files.exists(nonCrossHybridizingMarkersFile)) {
 					if (Files.exists(blastAnnotationFile)) {
-						MarkerBlastQC.getOneHitWonders(	proj, blastAnnotationFile,
-																						nonCrossHybridizingMarkersFile, 0.8, proj.getLog());
+						MarkerBlastQC.getOneHitWonders(proj, blastAnnotationFile,
+																					 nonCrossHybridizingMarkersFile, 0.8, proj.getLog());
 					} else {
 						nonCrossHybridizingMarkersFile = null;
 					}
@@ -810,7 +810,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				String filename;
 
 				filename = proj.PROJECT_DIRECTORY.getValue()
-										+ ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+									 + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
 				if (!Files.exists(filename)) {
 					abLookup = new ABLookup();
 					abLookup.parseFromAnnotationVCF(proj);
@@ -830,7 +830,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 					return;
 				}
 				String pedFile = peo.getPedigree();// will change the value of PEDIGREE_FILENAME, so the
-																						// return value here isn't necessary
+																					 // return value here isn't necessary
 				if (!new File(pedFile).exists()) {
 					log.reportFileNotFound(pedFile);
 					return;
@@ -845,7 +845,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 						ABLookup abLookup;
 						String filename;
 						filename = proj.PROJECT_DIRECTORY.getValue()
-												+ ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+											 + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
 						if (!Files.exists(filename)) {
 							abLookup = new ABLookup();
 							abLookup.parseFromOriginalGenotypes(proj);
@@ -971,9 +971,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				int lociPerFile = Integer.MAX_VALUE;
 				int window = 0;
 
-				ExportCNVsToPedFormat.export(	cnvFilename, pedFilename, outputRoot, endOfLine, fileFormat,
-																			includeDele, includeDupl, ordered, collapsed, homozygous,
-																			excludeMonomorphicLoci, lociPerFile, window, proj.getLog());
+				ExportCNVsToPedFormat.export(cnvFilename, pedFilename, outputRoot, endOfLine, fileFormat,
+																		 includeDele, includeDupl, ordered, collapsed, homozygous,
+																		 excludeMonomorphicLoci, lociPerFile, window, proj.getLog());
 
 			} else if (command.equals(CYTO_WORKBENCH)) {
 				SwingUtilities.invokeLater(new Runnable() {
@@ -1004,8 +1004,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 																									proj.PROJECT_DIRECTORY.getValue() + "data/custom.gcModel",
 																									100);
 			} else if (command.equals(MARKER_METRICS)) {
-				org.genvisis.cnv.qc.MarkerMetrics.fullQC(	proj, proj.getSamplesToExclude(), null, true,
-																									proj.NUM_THREADS.getValue());
+				org.genvisis.cnv.qc.MarkerMetrics.fullQC(proj, proj.getSamplesToExclude(), null, true,
+																								 proj.NUM_THREADS.getValue());
 			} else if (command.equals(FILTER_MARKER_METRICS)) {
 				org.genvisis.cnv.qc.MarkerMetrics.filterMetrics(proj);
 			} else if (command.equals(TALLY_MARKER_ANNOTATIONS)) {
@@ -1041,8 +1041,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				String[] list = proj.getSampleData(SampleData.BASIC_CLASSES.length, false).getMetaHeaders();
 				JComboBox jcb = new JComboBox(list);
 				jcb.setEditable(false);
-				int selectColumn = JOptionPane.showConfirmDialog(	null, jcb, "Select a column of interest",
-																													JOptionPane.OK_CANCEL_OPTION);
+				int selectColumn = JOptionPane.showConfirmDialog(null, jcb, "Select a column of interest",
+																												 JOptionPane.OK_CANCEL_OPTION);
 
 				if (JOptionPane.OK_OPTION == selectColumn) {
 					final String column = (String) jcb.getSelectedItem();
@@ -1100,11 +1100,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			// Command requested requires an active project, so ensure
 			// current project is valid
 			log.report("No project currently selected. Attempting to create one now.");
-			int i = JOptionPane.showOptionDialog(	null,
-																						"No projects available. You can create or import one now.",
-																						"Create project?", JOptionPane.OK_CANCEL_OPTION,
-																						JOptionPane.INFORMATION_MESSAGE, null,
-																						new Object[] {"Create", "Import"}, "Create");
+			int i = JOptionPane.showOptionDialog(null,
+																					 "No projects available. You can create or import one now.",
+																					 "Create project?", JOptionPane.OK_CANCEL_OPTION,
+																					 JOptionPane.INFORMATION_MESSAGE, null,
+																					 new Object[] {"Create", "Import"}, "Create");
 			if (i == 0) {
 				createProject();
 			} else if (i == 1) {
@@ -1134,11 +1134,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		} else if (command.equals(DELETE_PROJECT)) {
 			String toDelete = projects.get(indexOfCurrentProj);
 
-			int delete = JOptionPane.showConfirmDialog(	null,
-																									"<html>Would you like to delete this project properties: "
-																													+ toDelete
-																												+ " ?<br /><br />Project source directory will <b>NOT</b> be deleted.</html>",
-																									"Delete Project", JOptionPane.WARNING_MESSAGE);
+			int delete = JOptionPane.showConfirmDialog(null,
+																								 "<html>Would you like to delete this project properties: "
+																											 + toDelete
+																											 + " ?<br /><br />Project source directory will <b>NOT</b> be deleted.</html>",
+																								 "Delete Project", JOptionPane.WARNING_MESSAGE);
 			if (delete != JOptionPane.YES_OPTION) {
 				return;
 			}
@@ -1251,14 +1251,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	private void refreshTimestamps() {
 		if (timestampOfPropertiesFile < new File(proj.getPropertyFilename()).lastModified()) {
 			log.report("Detected a change in the project properties file; reloading from '"
-									+ proj.getPropertyFilename() + "'");
+								 + proj.getPropertyFilename() + "'");
 			proj = null;
 			loadProject();
 		}
 
 		if (proj != null
-				&& timestampOfSampleDataFile < new File(proj.SAMPLE_DATA_FILENAME.getValue(	false,
-																																										false)).lastModified()) {
+				&& timestampOfSampleDataFile < new File(proj.SAMPLE_DATA_FILENAME.getValue(false,
+																																									 false)).lastModified()) {
 			log.report("Detected a change in the sampleData file; reloading sample data");
 			proj.resetSampleData();
 		}
@@ -1332,11 +1332,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @param relativePath If true, relative paths will be written instead of fully qualified
 	 * @return A {@link LaunchProperties} instance containing all parsed metadata
 	 */
-	public static void createLaunchProperties(boolean force,
-																												boolean relativePath) {
-		String path =
-								relativePath	? ""
-															: LaunchProperties.directoryOfLaunchProperties();
+	public static void createLaunchProperties(boolean force, boolean relativePath) {
+		String path = relativePath ? "" : LaunchProperties.directoryOfLaunchProperties();
 
 		File launchProps = new File(LaunchProperties.propertiesFile());
 		if (force && launchProps.exists()) {
@@ -1373,7 +1370,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	private static void createExampleProject(String path) {
 		Logger log = new Logger();
 		String examplePath = path + Project.EXAMPLE_PROJ + File.separatorChar;
-		String exampleProperties = LaunchProperties.get(LaunchKey.PROJECTS_DIR) + Project.EXAMPLE_PROJ + ".properties";
+		String exampleProperties = LaunchProperties.get(LaunchKey.PROJECTS_DIR) + Project.EXAMPLE_PROJ
+															 + ".properties";
 
 		File f = new File(examplePath);
 		if (!f.exists()) {
@@ -1383,9 +1381,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
 		if (!new File(exampleProperties).exists()) {
 			log.reportTime("Creating example project properties: " + exampleProperties);
-			Files.writeArray(	new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/",
-																			"SOURCE_DIRECTORY=sourceFiles/"},
-												exampleProperties);
+			Files.writeArray(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/",
+																		 "SOURCE_DIRECTORY=sourceFiles/"},
+											 exampleProperties);
 		}
 	}
 
@@ -1402,21 +1400,21 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			if (dir == null || filename == null) {
 				if (verbose) {
 					System.err.println("Warning - you are trying to access the default debug project properties file, but there is no '"
-																+ LaunchKey.DEBUG_PROJECT_FILENAME + "=' property listed in '"
-															+ LaunchProperties.propertiesFile()
-															+ "'. The default filename is being set to \"default.properties\" in the current directory. However, if that does not exist either, then the program will likely end in an error.");
+														 + LaunchKey.DEBUG_PROJECT_FILENAME + "=' property listed in '"
+														 + LaunchProperties.propertiesFile()
+														 + "'. The default filename is being set to \"default.properties\" in the current directory. However, if that does not exist either, then the program will likely end in an error.");
 				}
 				dir = "./";
 				filename = "default.properties";
 			} else if (!Files.exists(dir) || !Files.exists(dir + filename)) {
 				if (verbose) {
-					System.err.println("Error - default debug project properties file does not exist: "	+ dir
-															+ filename);
+					System.err.println("Error - default debug project properties file does not exist: " + dir
+														 + filename);
 				}
 			} else {
 				if (verbose) {
-					System.out.println("The default debug project properties file is currently set to '"	+ dir
-															+ filename + "'");
+					System.out.println("The default debug project properties file is currently set to '" + dir
+														 + filename + "'");
 				}
 			}
 		} else {
@@ -1453,8 +1451,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			createAndShowGUI();
 		} catch (InternalError e) {
 			if (e.getMessage().contains("X11")) {
-				System.err.println(ExceptionHandler.X11_ERROR_MSG_FORE	+ "cause of error unknown: "
-														+ e.toString());
+				System.err.println(ExceptionHandler.X11_ERROR_MSG_FORE + "cause of error unknown: "
+													 + e.toString());
 			}
 		}
 	}

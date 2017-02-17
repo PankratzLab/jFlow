@@ -33,8 +33,8 @@ public class temp {
 		int numArgs = args.length;
 		String filename = "Aff.txt";
 
-		String usage = "\n"	+ "gaw17.temp requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "";
+		String usage = "\n" + "gaw17.temp requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

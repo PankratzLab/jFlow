@@ -38,8 +38,8 @@ public class SequenceVariants {
 		double altCaseFreq, altControlFreq, refCaseFreq, refControlFreq, mafCase, mafControl;
 
 		if (annotationFile != null && Files.exists(annotationFile)) {
-			hash = HashVec.loadFileToHashVec(	annotationFile, new int[] {1, 2, 3, 4}, new int[] {8}, "\t",
-																				true, true);
+			hash = HashVec.loadFileToHashVec(annotationFile, new int[] {1, 2, 3, 4}, new int[] {8}, "\t",
+																			 true, true);
 			dbsnpHash = HashVec.loadFileToHashVec(annotationFile, new int[] {1, 2, 3, 4}, new int[] {0},
 																						"\t", true, true);
 		} else {
@@ -86,18 +86,18 @@ public class SequenceVariants {
 							mafControl = 1 - mafControl;
 						}
 
-						trav = line[0].substring(3)	+ "\t" + line[1] + "\t" + line[2] + "\t"
-										+ Sequence.ALLELES[element];
-						writer.println(trav	+ "\t" + (order[0] == refIndex ? "1" : "0") + "\t" + refCaseFreq
-														+ "\t" + refControlFreq + "\t" + altCaseFreq + "\t" + altControlFreq
-														+ "\t" + (refCaseFreq + altCaseFreq) + "\t"
-														+ (refControlFreq + altControlFreq) + "\t" + mafCase + "\t" + mafControl
-														+ "\t"
-														+ ext.formDeci((mafCase + FREQ_BUFFER) / (mafControl + FREQ_BUFFER), 2)
-														+ "\t"
-														+ ext.prettyP(mafCase * penetrance + mafControl * (1 - penetrance))
-														+ "\t" + (dbsnpHash.containsKey(trav) ? dbsnpHash.get(trav) : ".")
-														+ "\t" + (hash.containsKey(trav) ? hash.get(trav) : "."));
+						trav = line[0].substring(3) + "\t" + line[1] + "\t" + line[2] + "\t"
+									 + Sequence.ALLELES[element];
+						writer.println(trav + "\t" + (order[0] == refIndex ? "1" : "0") + "\t" + refCaseFreq
+													 + "\t" + refControlFreq + "\t" + altCaseFreq + "\t" + altControlFreq
+													 + "\t" + (refCaseFreq + altCaseFreq) + "\t"
+													 + (refControlFreq + altControlFreq) + "\t" + mafCase + "\t" + mafControl
+													 + "\t"
+													 + ext.formDeci((mafCase + FREQ_BUFFER) / (mafControl + FREQ_BUFFER), 2)
+													 + "\t"
+													 + ext.prettyP(mafCase * penetrance + mafControl * (1 - penetrance))
+													 + "\t" + (dbsnpHash.containsKey(trav) ? dbsnpHash.get(trav) : ".") + "\t"
+													 + (hash.containsKey(trav) ? hash.get(trav) : "."));
 
 						writer2.println(trav);
 					}
@@ -124,8 +124,8 @@ public class SequenceVariants {
 		int numArgs = args.length;
 		String filename = "SequenceVariants.dat";
 
-		String usage = "\n"	+ "bioinformatics.SequenceVariants requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "bioinformatics.SequenceVariants requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -62,8 +62,8 @@ public class XYConstraints implements Cloneable, Serializable {
 	public boolean equals(Object obj) {
 		if (obj instanceof XYConstraints) {
 			XYConstraints xyconstraints = (XYConstraints) obj;
-			return xyconstraints.x == x	&& xyconstraints.y == y && xyconstraints.width == width
-							&& xyconstraints.height == height;
+			return xyconstraints.x == x && xyconstraints.y == y && xyconstraints.width == width
+						 && xyconstraints.height == height;
 		} else {
 			return false;
 		}

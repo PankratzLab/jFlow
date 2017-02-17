@@ -30,7 +30,7 @@ public class MarkerGraphics {
 	 * Smoothing strategy for moving averages - dictates the unit of the window distance.
 	 */
 	public enum Smoothing {
-													KBASEPAIRS, MARKERS, PIXELS
+		KBASEPAIRS, MARKERS, PIXELS
 	}
 
 	public static final int DEFAULT_MOVING_AVG = 0;
@@ -70,7 +70,7 @@ public class MarkerGraphics {
 
 		int genomeBuild = proj.GENOME_BUILD_VERSION.getValue().getBuildInt();
 		centromereBoundaries = Positions.determineCentromereBoundariesFromMarkerSet(markerSetFilename,
-		                                                                            genomeBuild, log);
+																																								genomeBuild, log);
 		int count = 0;
 		for (String col : Files.getHeaderOfFile(markerStatsFile, log)) {
 			columnMap.put(col, count++);
@@ -102,7 +102,7 @@ public class MarkerGraphics {
 		List<RenderParams> params = new ArrayList<RenderParams>();
 		for (String comp : markerComponents) {
 			params.add(new RenderParams(comp));
-			
+
 		}
 		return params;
 	}
@@ -116,9 +116,11 @@ public class MarkerGraphics {
 	 * @param genomeEnd Last genome position, in base pairs, that is in view
 	 * @param pixelWidth Width of the UI component to fill
 	 * @param height Height of the UI component to fill
-	 * @param params A list of {@link RenderParams} indicating component, moving average, smoothing, etc... to be drawn
+	 * @param params A list of {@link RenderParams} indicating component, moving average, smoothing,
+	 *        etc... to be drawn
 	 */
-	public void draw(Graphics g, int chr, int genomeStart, int genomeEnd, int pixelWidth, int height, List<RenderParams> params) {
+	public void draw(Graphics g, int chr, int genomeStart, int genomeEnd, int pixelWidth, int height,
+									 List<RenderParams> params) {
 		if (this.loadedChr != chr) {
 			load(chr);
 		}
@@ -143,7 +145,8 @@ public class MarkerGraphics {
 				}
 			} else {
 				// Smooth using a moving average
-				BinnedMovingStatistic<Double> bma = new BinnedMovingStatistic<Double>(p.getMovingWindow(), p.getMovingStat());
+				BinnedMovingStatistic<Double> bma = new BinnedMovingStatistic<Double>(p.getMovingWindow(),
+																																							p.getMovingStat());
 
 				// If pixel smoothing, each bin covers 1 X position
 				// If marker smoothing, each bin covers 1 marker
@@ -159,7 +162,7 @@ public class MarkerGraphics {
 							do {
 								// Draw remaining points
 								drawBinned(g, genomeStart, pixelWidth, height, p.getSmoothing(), genomeWidth, bma);
-							} while(bma.forceBinPop());
+							} while (bma.forceBinPop());
 						}
 						bma.clear();
 					} else {
@@ -192,7 +195,7 @@ public class MarkerGraphics {
 				do {
 					// Draw remaining points
 					drawBinned(g, genomeStart, pixelWidth, height, p.getSmoothing(), genomeWidth, bma);
-				} while(bma.forceBinPop());
+				} while (bma.forceBinPop());
 			}
 		}
 		// Restore original grahpics color
@@ -201,7 +204,7 @@ public class MarkerGraphics {
 	}
 
 	private void drawBinned(Graphics g, int genomeStart, int pixelWidth, int height,
-	                      Smoothing smoothing, int genomeWidth, BinnedMovingStatistic<Double> bma) {
+													Smoothing smoothing, int genomeWidth, BinnedMovingStatistic<Double> bma) {
 		double v = bma.getValue();
 		if (v > -1) {
 			int x = bma.mid();
@@ -280,7 +283,7 @@ public class MarkerGraphics {
 		return (int) (((double) (pos - genomeStart) / genomeWidth) * pixelWidth) + Trailer.WIDTH_BUFFER;
 	}
 
-		/**
+	/**
 	 * Scales y for rendering in the given height
 	 * 
 	 * @return The column value for the given component, scaled to the specified height. NB: smaller
@@ -335,7 +338,8 @@ public class MarkerGraphics {
 	}
 
 	/**
-	 * Container class for parameters for {@link MarkerGraphics#draw(Graphics, int, int, int, int, int, List)}
+	 * Container class for parameters for
+	 * {@link MarkerGraphics#draw(Graphics, int, int, int, int, int, List)}
 	 */
 	public static class RenderParams {
 		private int movingWindow;
@@ -347,7 +351,8 @@ public class MarkerGraphics {
 			this(0, Smoothing.MARKERS, MovingStat.MEAN, component);
 		}
 
-		public RenderParams(int movingWindow, Smoothing smoothing, MovingStat movingType, String component) {
+		public RenderParams(int movingWindow, Smoothing smoothing, MovingStat movingType,
+												String component) {
 			this.movingWindow = movingWindow;
 			this.smoothing = smoothing;
 			this.movingType = movingType;

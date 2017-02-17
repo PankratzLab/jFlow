@@ -61,8 +61,8 @@ public class SystemLinkage {
 			}
 		} else {
 			System.err.println("Error - this only works on a chromosomeX.dat file");
-			System.err.println("      - you have '"	+ filename + "' with a length of "
-													+ filename.length());
+			System.err.println("      - you have '" + filename + "' with a length of "
+												 + filename.length());
 		}
 
 		ext.waitForResponse();

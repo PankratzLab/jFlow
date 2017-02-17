@@ -156,16 +156,16 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 							// The middle one should be drawn with the position centered with full-height ticks
 							g.fillRect(getX(tickPos), rulerRowStart, 2, height);
 							posWidth = g.getFontMetrics(g.getFont()).stringWidth(Integer.toString(tickPos));
-							g.drawString(	Integer.toString(tickPos), getX(tickPos) - (posWidth / 2),
-														tickBottom + height);
+							g.drawString(Integer.toString(tickPos), getX(tickPos) - (posWidth / 2),
+													 tickBottom + height);
 							break;
 						case 10:
 							// The last one should be drawn with the position right-justified with full-height
 							// ticks
 							g.fillRect(getX(tickPos) - 2, rulerRowStart, 2, height);
 							posWidth = g.getFontMetrics(g.getFont()).stringWidth(Integer.toString(tickPos));
-							g.drawString(	Integer.toString(tickPos), getX(stopPosition) - posWidth,
-														tickBottom + height);
+							g.drawString(Integer.toString(tickPos), getX(stopPosition) - posWidth,
+													 tickBottom + height);
 							break;
 						default:
 							// Make the intermediate ticks half-height

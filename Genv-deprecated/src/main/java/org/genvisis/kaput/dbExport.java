@@ -26,10 +26,9 @@ public class dbExport {
 
 	public static String DEFAULT_TRAIT = "AOO";
 
-	public static String[] ALT_DIRS =
-																	{	"C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\",
-																		"/home/npankrat/park/00masters/crf_db/",
-																		"/home/npankrat/reed/CRFdb/"};
+	public static String[] ALT_DIRS = {"C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\",
+																		 "/home/npankrat/park/00masters/crf_db/",
+																		 "/home/npankrat/reed/CRFdb/"};
 
 	public static String DEFAULT_DB = "crf_db.dat";
 
@@ -67,7 +66,7 @@ public class dbExport {
 			line = reader.readLine().split("\t", -1);
 			if (line.length != allTraits.length) {
 				System.err.println("Error - problem with crf_db.dat file; not enough columns for line starting with '"
-														+ line[0] + "'");
+													 + line[0] + "'");
 				System.exit(5);
 			}
 			data = new String[traits.size()];
@@ -100,7 +99,7 @@ public class dbExport {
 			for (int i = 0; i < inds.size(); i++) {
 				trav = inds.elementAt(keys[i]);
 				writer.println(formatData(uniqueIDs ? trav : trav.substring(0, 5),
-																	uniqueIDs	? trav
+																	uniqueIDs ? trav
 																						: Integer.valueOf(trav.substring(5)).intValue() + "",
 																	hash.get(trav)));
 				if (hash.containsKey(trav)) {
@@ -117,8 +116,8 @@ public class dbExport {
 				line = reader.readLine().split("[\\s\\,]+");
 				trav = uniqueIDs ? line[1] : line[0] + ext.formNum(line[1], 3);
 				writer.println(formatData(line[0], line[1],
-																	hash.containsKey(trav)	? hash.get(trav)
-																													: new String[traits.size()]));
+																	hash.containsKey(trav) ? hash.get(trav)
+																												 : new String[traits.size()]));
 				if (hash.containsKey(trav)) {
 					dv.add(Double.parseDouble((hash.get(trav))[0]));
 				}
@@ -135,8 +134,8 @@ public class dbExport {
 		writer.close();
 
 		if (Math.abs(ArrayUtils.kurtosis(dist)) > 1) {
-			System.err.println("Warning!  Kurtosis is "	+ ext.formDeci(ArrayUtils.kurtosis(dist), 3)
-													+ " which is too high.");
+			System.err.println("Warning!  Kurtosis is " + ext.formDeci(ArrayUtils.kurtosis(dist), 3)
+												 + " which is too high.");
 			System.err.println("See if the kurtosis looks any better for the following transformations...");
 			// for (int k = 0; k<Transformations.NUM_TRANSFORMATIONS; k++) {
 			// System.err.println(Transformations.getLabel(k)+":
@@ -168,7 +167,7 @@ public class dbExport {
 					// data[0] =
 					// ""+(bc.lookUpValue_MaxLL(Double.parseDouble(data[0]))*mFactor);
 					writer.println(formatData(uniqueIDs ? trav : trav.substring(0, 5),
-																		uniqueIDs	? trav
+																		uniqueIDs ? trav
 																							: Integer.valueOf(trav.substring(5)).intValue() + "",
 																		data));
 				}
@@ -203,7 +202,7 @@ public class dbExport {
 
 		for (String element : data) {
 			output += delimit
-								+ (element == null || element.equals(".") || element.equals("")	? SOLAR ? "" : "."
+								+ (element == null || element.equals(".") || element.equals("") ? SOLAR ? "" : "."
 																																								: element);
 		}
 
@@ -222,14 +221,14 @@ public class dbExport {
 		db_file = "database.txt";
 		uniqueIDs = true;
 
-		String usage = "\n"	+ "park.dbExport requires 1-4 arguments\n"
-										+ "   (1) the database file (default: db=" + DEFAULT_DB + ")\n"
-										+ "   (2) either a struct file (default: file=" + DEFAULT_FILE + ") or -all\n"
-										+ "   (3) match based on unique IndID (i.e. -uniqueids (not the default))\n"
-										+ "   (4+) the traits to be extracted (default: " + DEFAULT_TRAIT + ")\n"
-										+ "   (optional) -solar (will create comma delimited file with header)\n"
-										+ "   (optional) -miss (removes data for individuals with any missing values)\n"
-										+ "";
+		String usage = "\n" + "park.dbExport requires 1-4 arguments\n"
+									 + "   (1) the database file (default: db=" + DEFAULT_DB + ")\n"
+									 + "   (2) either a struct file (default: file=" + DEFAULT_FILE + ") or -all\n"
+									 + "   (3) match based on unique IndID (i.e. -uniqueids (not the default))\n"
+									 + "   (4+) the traits to be extracted (default: " + DEFAULT_TRAIT + ")\n"
+									 + "   (optional) -solar (will create comma delimited file with header)\n"
+									 + "   (optional) -miss (removes data for individuals with any missing values)\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -281,16 +280,16 @@ public class dbExport {
 		} while (!temp.equals("\n"));
 
 		if (!traits.contains(firstBlood)) {
-			System.err.println("Error - main variable '"	+ firstBlood
-													+ "' was not found in the database; aborting");
+			System.err.println("Error - main variable '" + firstBlood
+												 + "' was not found in the database; aborting");
 			System.exit(1);
 		}
 		traits.insertElementAt(traits.remove(traits.indexOf(firstBlood)), 0);
 
 		if (filename.equals("default")) {
 			if (!new File(DEFAULT_FILE).exists()) {
-				System.out.println("Warning - default file ("	+ DEFAULT_FILE
-														+ ") does not exist, so exporting info for all individuals");
+				System.out.println("Warning - default file (" + DEFAULT_FILE
+													 + ") does not exist, so exporting info for all individuals");
 				filename = "";
 			} else {
 				System.out.println("Using default file (" + DEFAULT_FILE + ")");

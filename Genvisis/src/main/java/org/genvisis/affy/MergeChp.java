@@ -71,14 +71,14 @@ public class MergeChp implements Runnable {
 
 				for (int i = 0; i < dirList.length; i++) {
 					try {
-						reader = Files.getAppropriateReader(affyResultsDir	+ dirList[i] + commonSubFolder + "/"
+						reader = Files.getAppropriateReader(affyResultsDir + dirList[i] + commonSubFolder + "/"
 																								+ files[j]);
 						// filter comments
 						do {
 							line = reader.readLine().trim().split(delimiter, -1);
 
-						} while (reader.ready() && (ext.indexFactors(	SourceFileParser.SNP_HEADER_OPTIONS, line,
-																													false, true, false, false)[0] == -1));
+						} while (reader.ready() && (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line,
+																												 false, true, false, false)[0] == -1));
 						// if its the first directory, print the header
 
 						if (i == 0) {
@@ -93,12 +93,12 @@ public class MergeChp implements Runnable {
 						reader.close();
 
 					} catch (FileNotFoundException fnfe) {
-						log.reportError("Error: file \""	+ files[j] + "\" not found in " + affyResultsDir
-																+ dirList[i]);
+						log.reportError("Error: file \"" + files[j] + "\" not found in " + affyResultsDir
+														+ dirList[i]);
 						return;
 					} catch (IOException ioe) {
-						log.reportError("Error reading file \""	+ affyResultsDir + dirList[i] + files[j]
-																+ "\"");
+						log.reportError("Error reading file \"" + affyResultsDir + dirList[i] + files[j]
+														+ "\"");
 						return;
 					}
 				}
@@ -110,9 +110,9 @@ public class MergeChp implements Runnable {
 		}
 	}
 
-	public static void combineChpFiles(	String affyResultsDir, int numThreads,
-																			String commonSubFolderPattern, String commonFilename,
-																			String output, Logger log) {
+	public static void combineChpFiles(String affyResultsDir, int numThreads,
+																		 String commonSubFolderPattern, String commonFilename,
+																		 String output, Logger log) {
 		Vector<Vector<String>> fileCabinet;
 		Thread[] threads;
 		boolean complete;
@@ -127,7 +127,7 @@ public class MergeChp implements Runnable {
 		}
 
 		String[] dirList = Files.listDirectories(affyResultsDir, false);
-		String[] files = Files.list(affyResultsDir	+ dirList[0] + commonSubFolder, commonFilename,
+		String[] files = Files.list(affyResultsDir + dirList[0] + commonSubFolder, commonFilename,
 																false);
 		fileCabinet = new Vector<Vector<String>>();
 		for (int i = 0; i < numThreads; i++) {
@@ -140,11 +140,11 @@ public class MergeChp implements Runnable {
 		System.out.println("beginning to merge " + files.length + " files");
 		threads = new Thread[numThreads];
 		for (int i = 0; i < numThreads; i++) {
-			threads[i] = new Thread(new MergeChp(	affyResultsDir,
-																						fileCabinet	.elementAt(i)
-																												.toArray(new String[fileCabinet	.elementAt(i)
-																																												.size()]),
-																						timeBegan, i, commonSubFolder, output, log));
+			threads[i] = new Thread(new MergeChp(affyResultsDir,
+																					 fileCabinet.elementAt(i)
+																											.toArray(new String[fileCabinet.elementAt(i)
+																																										 .size()]),
+																					 timeBegan, i, commonSubFolder, output, log));
 			threads[i].start();
 			try {
 				Thread.sleep(100L);
@@ -178,10 +178,10 @@ public class MergeChp implements Runnable {
 		String commonSubFolderPattern = "";
 		String commonFilename = ".txt";
 		String affyResultsDir = "";
-		String usage = "\n"	+ "affy.MergeChp requires 0-1 arguments\n"
-										+ "   (1) Affy results directory (i.e. affyResultsDir= (default))\n"
-										+ "   (2) number of threads to use (i.e. threads=" + numThreads + " (default))"
-										+ "   (3) output directory (i.e. output=" + output + " (default))" + "\n";
+		String usage = "\n" + "affy.MergeChp requires 0-1 arguments\n"
+									 + "   (1) Affy results directory (i.e. affyResultsDir= (default))\n"
+									 + "   (2) number of threads to use (i.e. threads=" + numThreads + " (default))"
+									 + "   (3) output directory (i.e. output=" + output + " (default))" + "\n";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

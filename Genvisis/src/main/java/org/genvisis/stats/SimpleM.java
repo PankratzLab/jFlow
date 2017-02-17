@@ -20,21 +20,21 @@ import org.genvisis.stats.StatsCrossTabs.STAT_TYPE;
 public class SimpleM {
 
 	public enum MODE {
-										/**
-										 * We divide the data into blocks and process each block separately
-										 */
-										BLOCK_MODE,
-										/**
-										 * All data is processed at once
-										 */
-										SINGLE_FRAME_MODE;
+		/**
+		 * We divide the data into blocks and process each block separately
+		 */
+		BLOCK_MODE,
+		/**
+		 * All data is processed at once
+		 */
+		SINGLE_FRAME_MODE;
 	}
 
 	private static int BLOCK_SIZE_FROM_PAPER = 133;
 	private static double PCA_CUT_OFF_FROM_PAPER = 0.995;
 
 	private final double[][] dataM;// has length of number of variables to test, i.e.
-																	// data[marker][genotypes for marker],
+																 // data[marker][genotypes for marker],
 	private String[] dataTitles;
 	private final double pcaCutoff;
 	private final int blockSize;
@@ -55,8 +55,8 @@ public class SimpleM {
 		if (valid) {
 			int m = 0;
 
-			log.reportTimeInfo("Determining effective M using mode "	+ mode + " and pca cutoff of "
-													+ pcaCutoff);
+			log.reportTimeInfo("Determining effective M using mode " + mode + " and pca cutoff of "
+												 + pcaCutoff);
 			if (precorrelated) {
 				log.reportTimeInfo("Treating data as a pre-correlated matrix");
 			}
@@ -67,17 +67,17 @@ public class SimpleM {
 					m = scanBlocks();
 					break;
 				case SINGLE_FRAME_MODE:
-					PrincipalComponentsCompute principalComponentsCompute = computePcs(	dataM, dataTitles,
-																																							precorrelated,
-																																							verbose, log);
+					PrincipalComponentsCompute principalComponentsCompute = computePcs(dataM, dataTitles,
+																																						 precorrelated, verbose,
+																																						 log);
 					m = getMeff(principalComponentsCompute, pcaCutoff);
 					break;
 				default:
 					log.reportError("Invalid mode " + mode);
 					break;
 			}
-			log.reportTimeInfo("Finished determining effective M using mode "	+ mode
-													+ " and pca cutoff of " + pcaCutoff);
+			log.reportTimeInfo("Finished determining effective M using mode " + mode
+												 + " and pca cutoff of " + pcaCutoff);
 			log.reportTimeInfo("Total variables = " + dataM.length + " , Inferred effective M = " + m);
 			return m;
 		} else {
@@ -103,9 +103,9 @@ public class SimpleM {
 				double[][] block = ArrayUtils.subArray(dataM, start, stop);
 				String[] blockTitles = ArrayUtils.subArray(dataTitles, start, stop);
 				start = stop;
-				PrincipalComponentsCompute principalComponentsCompute = computePcs(	block, blockTitles,
-																																						precorrelated, verbose,
-																																						log);
+				PrincipalComponentsCompute principalComponentsCompute = computePcs(block, blockTitles,
+																																					 precorrelated, verbose,
+																																					 log);
 				int mTmp = getMeff(principalComponentsCompute, pcaCutoff);
 				m += mTmp;
 
@@ -116,9 +116,9 @@ public class SimpleM {
 			double[][] block = ArrayUtils.subArray(dataM, start, numTotal);
 			String[] blockTitles = ArrayUtils.subArray(dataTitles, start, numTotal);
 			System.out.println("Subsetting from " + start + " -> " + numTotal);
-			PrincipalComponentsCompute principalComponentsCompute = computePcs(	block, blockTitles,
-																																					precorrelated, verbose,
-																																					log);
+			PrincipalComponentsCompute principalComponentsCompute = computePcs(block, blockTitles,
+																																				 precorrelated, verbose,
+																																				 log);
 			int mTmp = getMeff(principalComponentsCompute, pcaCutoff);
 			log.reportTimeInfo("Index :" + index + " Current m = " + mTmp + " Total m = " + m);
 			m += mTmp;
@@ -126,8 +126,8 @@ public class SimpleM {
 		return m;
 	}
 
-	private static int getMeff(	PrincipalComponentsCompute principalComponentsCompute,
-															double pcaCutoff) {
+	private static int getMeff(PrincipalComponentsCompute principalComponentsCompute,
+														 double pcaCutoff) {
 		int m = 0;
 		double[] singularValues = principalComponentsCompute.getSingularValues();
 		double cut = pcaCutoff * ArrayUtils.sum(singularValues);
@@ -141,23 +141,23 @@ public class SimpleM {
 		return m;
 	}
 
-	private static PrincipalComponentsCompute computePcs(	double[][] data, String[] dataTitles,
-																												boolean preCorrelated, boolean verbose,
-																												Logger log) {
+	private static PrincipalComponentsCompute computePcs(double[][] data, String[] dataTitles,
+																											 boolean preCorrelated, boolean verbose,
+																											 Logger log) {
 		PrincipalComponentsCompute principalComponentsCompute = null;
 		if (!preCorrelated) {
-			StatsCrossTabs statsCrossTabs = new StatsCrossTabs(	data, null, null, dataTitles,
-																													STAT_TYPE.PEARSON_CORREL, verbose, log);
+			StatsCrossTabs statsCrossTabs = new StatsCrossTabs(data, null, null, dataTitles,
+																												 STAT_TYPE.PEARSON_CORREL, verbose, log);
 			statsCrossTabs.computeTable(true);
 			principalComponentsCompute = PrincipalComponentsCompute.getPrincipalComponents(data.length
-																																												- 1, false,
-																																											statsCrossTabs.getStatisticTable(),
-																																											verbose, log);
+																																										 - 1, false,
+																																										 statsCrossTabs.getStatisticTable(),
+																																										 verbose, log);
 		} else {
 			principalComponentsCompute = PrincipalComponentsCompute.getPrincipalComponents(data.length
-																																												- 1, false,
-																																											data, verbose,
-																																											log);
+																																										 - 1, false,
+																																										 data, verbose,
+																																										 log);
 
 		}
 		return principalComponentsCompute;

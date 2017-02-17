@@ -90,8 +90,8 @@ public class SeattleSeq {
 						alleles[i] = 'A';
 					}
 				}
-				writer.println(line[indices[0]]	+ "\t" + line[indices[1]] + "\t0\t" + alleles[0] + "\t"
-												+ alleles[1]);
+				writer.println(line[indices[0]] + "\t" + line[indices[1]] + "\t0\t" + alleles[0] + "\t"
+											 + alleles[1]);
 			}
 			writer.close();
 			reader.close();
@@ -182,7 +182,7 @@ public class SeattleSeq {
 			reader = Files.getAppropriateReader(filename);
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_summary.out"));
 			writer.println(ArrayUtils.toStr(Matrix.extractColumn(RELEVANTS, 0))
-											+ "\tAlleleFrequency\tMAF<1%\tMAF<5%");
+										 + "\tAlleleFrequency\tMAF<1%\tMAF<5%");
 			log = new Logger(ext.rootOf(filename, false) + ".log");
 			temp = reader.readLine().trim();
 			// if (temp.startsWith("#"));
@@ -234,10 +234,10 @@ public class SeattleSeq {
 							writer.print((i == 0 ? "" : "\t") + trav[indices[i]]);
 						}
 						if (hashFreq.containsKey(trav[indices[0]].toLowerCase() + "^" + trav[indices[1]])) {
-							freq = Double.parseDouble(hashFreq.get(trav[indices[0]].toLowerCase()	+ "^"
-																											+ trav[indices[1]]));
-							writer.print("\t"	+ freq + "\t" + (freq < 0.01 ? 1 : 0) + "\t"
-														+ (freq < 0.05 ? 1 : 0));
+							freq = Double.parseDouble(hashFreq.get(trav[indices[0]].toLowerCase() + "^"
+																										 + trav[indices[1]]));
+							writer.print("\t" + freq + "\t" + (freq < 0.01 ? 1 : 0) + "\t"
+													 + (freq < 0.05 ? 1 : 0));
 						} else {
 							writer.print("\t.\t.\t.");
 						}
@@ -291,8 +291,8 @@ public class SeattleSeq {
 									function = line[8];
 									if (!line[11].equals("none")) {
 										function += " "
-																+ ext.replaceAllWith(	line[11], ",",
-																											line[12].substring(0, line[12].indexOf("/")));
+																+ ext.replaceAllWith(line[11], ",",
+																										 line[12].substring(0, line[12].indexOf("/")));
 									}
 									function += "\t" + line[0];
 									hash.put(markerName, new String[] {function});
@@ -306,8 +306,8 @@ public class SeattleSeq {
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ directory + file
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + directory + file
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + directory + file + "\"");
@@ -345,12 +345,12 @@ public class SeattleSeq {
 			log.reportError("        returning an empty hashtable");
 		} else {
 			files = Files.list(directory, "SeattleSeqAnnotation", ".txt.gz", false, false);
-			log.report(ext.getTime()	+ "\tFound " + files.length
-									+ " file(s) with a .SeattleSeq extension to include");
+			log.report(ext.getTime() + "\tFound " + files.length
+								 + " file(s) with a .SeattleSeq extension to include");
 			for (int f = 0; f < files.length; f++) {
 				time = new Date().getTime();
-				log.report("Processing SeattleSeq file "	+ (f + 1) + " of " + files.length + "\t"
-										+ files[f], false, true);
+				log.report("Processing SeattleSeq file " + (f + 1) + " of " + files.length + "\t"
+									 + files[f], false, true);
 				try {
 					reader = Files.getAppropriateReader(directory + files[f]);
 
@@ -379,8 +379,8 @@ public class SeattleSeq {
 						try {
 							markerName = "chr" + line[1] + ":" + line[2] + "_" + line[3] + "_" + line[4];
 							if (line[4].startsWith("I") || line[4].startsWith("D")) {
-								markerName = "chr"	+ line[1] + ":" + line[2] + "_" + line[3].charAt(0) + "_"
-															+ line[5];
+								markerName = "chr" + line[1] + ":" + line[2] + "_" + line[3].charAt(0) + "_"
+														 + line[5];
 							}
 							if (done || (v.size() > 0 && !markerName.equals(prev))) {
 								worst = -1;
@@ -407,13 +407,14 @@ public class SeattleSeq {
 								}
 
 								trav = ArrayUtils.subArray(trav, indices); // trim to the relevant columns
-								trav = ArrayUtils.addStrToArray(ext.indexOfStr(trav[4], BAD) >= 0 ? "1" : "0", trav, 0); // determine
-																																																		// if
-																																																		// mutation
-																																																		// is
-																																																		// missense/splice
-																																																		// or
-																																																		// worse
+								trav = ArrayUtils.addStrToArray(ext.indexOfStr(trav[4], BAD) >= 0 ? "1" : "0", trav,
+																								0); // determine
+								// if
+								// mutation
+								// is
+								// missense/splice
+								// or
+								// worse
 								finalHash.put(prev, trav);
 								v = new Vector<String[]>();
 							}
@@ -428,12 +429,12 @@ public class SeattleSeq {
 
 					}
 
-					log.report(" ...skipped "	+ linesSkipped + " line(s); finished in "
-											+ ext.getTimeElapsed(time));
+					log.report(" ...skipped " + linesSkipped + " line(s); finished in "
+										 + ext.getTimeElapsed(time));
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ directory + files[f]
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + directory + files[f]
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + directory + files[f] + "\"");
@@ -465,14 +466,14 @@ public class SeattleSeq {
 		// }
 		// System.exit(1);
 
-		String usage = "\n"	+ "bioinformatics.SeattleSeq requires 0-1 arguments\n"
-										+ "   (1) filename of SeattleSeq annotation (i.e. file=" + filename
-										+ " (default))\n" + "   (2) filename of allele frequency data (i.e. freqFile="
-										+ freqFilename + " (default))\n" + " OR:\n"
-										+ "   (1) name of file to prep for input to SeattleSeq (i.e. prep=filename.txt (not the default))\n"
-										+ " OR:\n"
-										+ "   (1) name of allele freq file to process (i.e. prepFreq=freqInfo.out (not the default))\n"
-										+ "";
+		String usage = "\n" + "bioinformatics.SeattleSeq requires 0-1 arguments\n"
+									 + "   (1) filename of SeattleSeq annotation (i.e. file=" + filename
+									 + " (default))\n" + "   (2) filename of allele frequency data (i.e. freqFile="
+									 + freqFilename + " (default))\n" + " OR:\n"
+									 + "   (1) name of file to prep for input to SeattleSeq (i.e. prep=filename.txt (not the default))\n"
+									 + " OR:\n"
+									 + "   (1) name of allele freq file to process (i.e. prepFreq=freqInfo.out (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

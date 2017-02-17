@@ -57,7 +57,7 @@ public class PrincipalComponentsApply {
 		super();
 		this.proj = proj;
 		log = proj.getLog();
-		singularValues = new SingularValues(proj.PROJECT_DIRECTORY.getValue()	+ singularFile,
+		singularValues = new SingularValues(proj.PROJECT_DIRECTORY.getValue() + singularFile,
 																				numComponents, log);
 		this.numComponents = numComponents;
 		this.samplesToUse = samplesToUse;
@@ -98,8 +98,8 @@ public class PrincipalComponentsApply {
 		if (Files.exists(output)) {
 			if (warn) {
 				proj.getLog().report(
-															"Detected that the following extrapolated principal component file already exists:\n"
-															+ output + "\n");
+														 "Detected that the following extrapolated principal component file already exists:\n"
+														 + output + "\n");
 				proj.getLog()
 						.report("Skipping the principal component extrapolation and using this file instead");
 				proj.getLog()
@@ -142,10 +142,10 @@ public class PrincipalComponentsApply {
 					float usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 					float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
 					float maxMemory = Runtime.getRuntime().maxMemory();
-					log.report(ext.getTime()	+ "\tData loaded = "
-											+ Math.round(((double) index / (double) markers.length * 100.0))
-											+ "%\tFree memory: "
-											+ Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
+					log.report(ext.getTime() + "\tData loaded = "
+										 + Math.round(((double) index / (double) markers.length * 100.0))
+										 + "%\tFree memory: "
+										 + Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
 				}
 				MarkerData markerData = mdl.next();
 				float[] lrrs;
@@ -157,19 +157,19 @@ public class PrincipalComponentsApply {
 
 				if (params != null) {
 
-					lrrs = markerData.getGCCorrectedLRRBAF(	params,
-																									projectIndices.get(markerData.getMarkerName()),
-																									proj.getLog())[1];
+					lrrs = markerData.getGCCorrectedLRRBAF(params,
+																								 projectIndices.get(markerData.getMarkerName()),
+																								 proj.getLog())[1];
 				}
 
 				if (!hasNAN(lrrs)) {
 					applyMarkerLoading(lrrs, index);
 				} else if (imputeMeanForNaN) {
-					lrrs = PrincipalComponentsCompute.imputeMeanForNaN(	markers[index], lrrs, samplesToUse,
-																															log);
+					lrrs = PrincipalComponentsCompute.imputeMeanForNaN(markers[index], lrrs, samplesToUse,
+																														 log);
 					applyMarkerLoading(lrrs, index);
 				} else {
-					log.reportError("Warning - marker "	+ markers[index]
+					log.reportError("Warning - marker " + markers[index]
 													+ " contained a NaN value in the extrapolated dataset, skipping it for extrapolation");
 				}
 				index++;
@@ -189,8 +189,8 @@ public class PrincipalComponentsApply {
 		extrapolatedPCsFile = output;
 		try {
 			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + output)) {
-				Files.backup(	output, proj.PROJECT_DIRECTORY.getValue(),
-											proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
+				Files.backup(output, proj.PROJECT_DIRECTORY.getValue(),
+										 proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
 			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
 																													+ output));
@@ -214,7 +214,7 @@ public class PrincipalComponentsApply {
 			}
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \""	+ output
+			log.reportError("Error: file \"" + output
 											+ "\" could not be written to (it's probably open)");
 			log.reportException(fnfe);
 			System.exit(1);
@@ -322,20 +322,20 @@ public class PrincipalComponentsApply {
 			return marker;
 		}
 
-		public static MarkerLoadings[] getLoadings(	String markerLoadingFile, int numComponents,
-																								Logger log) {
+		public static MarkerLoadings[] getLoadings(String markerLoadingFile, int numComponents,
+																							 Logger log) {
 			ArrayList<MarkerLoadings> ml = new ArrayList<MarkerLoadings>();
 			try {
 				BufferedReader reader = Files.getReader(markerLoadingFile, false, true, false);
 				String[] line = reader.readLine().trim().split("\t");
 				int[] indices = ext.indexFactors(LOADING_FIRST, line, true, true);
 				if (indices == null || indices[0] != 0) {
-					log.reportError("Error - Marker Loading file  must have "	+ ArrayUtils.toStr(LOADING_FIRST)
-													+ " in the first column");
+					log.reportError("Error - Marker Loading file  must have "
+													+ ArrayUtils.toStr(LOADING_FIRST) + " in the first column");
 					System.exit(1);
 				}
 				if ((line.length - 1) < numComponents) {
-					log.reportError("Error - Can only apply "	+ (line.length - 1)
+					log.reportError("Error - Can only apply " + (line.length - 1)
 													+ " marker loadings (as provided in " + markerLoadingFile
 													+ ", not enough for " + numComponents + " components");
 					log.reportError("Please apply a smaller number of components, or provide a file with more loadings");
@@ -349,7 +349,7 @@ public class PrincipalComponentsApply {
 						try {
 							loadings[i - 1] = Double.parseDouble(line[i]);
 						} catch (NumberFormatException nfe) {
-							log.reportError("Error - could not parse marking loading value "	+ line[i]
+							log.reportError("Error - could not parse marking loading value " + line[i]
 															+ " to a double");
 							System.exit(1);
 						}
@@ -424,7 +424,7 @@ public class PrincipalComponentsApply {
 				log.reportError("Error reading file \"" + singularFile + "\"");
 			}
 			if (numSingular != singularValues.length) {
-				log.reportError("Error - not enough singular values were found in "	+ singularFile + " for "
+				log.reportError("Error - not enough singular values were found in " + singularFile + " for "
 												+ numComponents + " components");
 				log.reportError("Please select a smaller number of components, or provide a file with more singular values");
 			}

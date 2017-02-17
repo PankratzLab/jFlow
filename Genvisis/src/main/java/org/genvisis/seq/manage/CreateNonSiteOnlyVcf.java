@@ -38,13 +38,13 @@ public class CreateNonSiteOnlyVcf {
 		VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 		if (reader.getFileHeader().getNGenotypeSamples() > 0) {
 			reader.close();
-			throw new IllegalArgumentException("VCF "+ vcf
-																					+ " did not appear to be site only, will not add mock sample");
+			throw new IllegalArgumentException("VCF " + vcf
+																				 + " did not appear to be site only, will not add mock sample");
 
 		}
 		Logger log = new Logger(ext.parseDirectoryOfFile(vcf) + "log.log");
 		String randSample = "FAKE_SAMPLE_WITH_HET_ONLY_CALLS"; // will create all het calls for this
-																														// sample
+																													 // sample
 		HashSet<String> samps = new HashSet<String>();
 		samps.add(randSample);
 
@@ -54,14 +54,12 @@ public class CreateNonSiteOnlyVcf {
 		VCFHeader header = reader.getFileHeader();
 
 		VCFFormatHeaderLine format = new VCFFormatHeaderLine("GT", -1, VCFHeaderLineType.String, "GT");
-		VCFInfoHeaderLine info = new VCFInfoHeaderLine(	"LEN", -1, VCFHeaderLineType.String,
+		VCFInfoHeaderLine info = new VCFInfoHeaderLine("LEN", -1, VCFHeaderLineType.String,
+																									 "Don't know what this is, was not properly in the header -jlanej");
+		VCFInfoHeaderLine info2 = new VCFInfoHeaderLine("TYPE", -1, VCFHeaderLineType.String,
 																										"Don't know what this is, was not properly in the header -jlanej");
-		VCFInfoHeaderLine info2 =
-														new VCFInfoHeaderLine("TYPE", -1, VCFHeaderLineType.String,
-				"Don't know what this is, was not properly in the header -jlanej");
-		VCFInfoHeaderLine info3 =
-														new VCFInfoHeaderLine("OLD_VARIANT", -1, VCFHeaderLineType.String,
-																									"Don't know what this is, was not properly in the header -jlanej");
+		VCFInfoHeaderLine info3 = new VCFInfoHeaderLine("OLD_VARIANT", -1, VCFHeaderLineType.String,
+																										"Don't know what this is, was not properly in the header -jlanej");
 
 
 

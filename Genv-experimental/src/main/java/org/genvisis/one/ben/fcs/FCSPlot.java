@@ -118,10 +118,14 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 			try {
 				Properties props = new Properties();
 				if (getGatingStrategy() != null) {
-					props.setProperty(PROPKEY_GATEFILE, getGatingStrategy().getFile() == null ? "" : getGatingStrategy().getFile());
+					props.setProperty(PROPKEY_GATEFILE,
+														getGatingStrategy().getFile() == null ? ""
+																																	: getGatingStrategy().getFile());
 				}
 				ArrayList<String> files = fcsControls.getAddedFiles();
-				props.setProperty(PROPKEY_FCSFILES, files.isEmpty() ? "" : ArrayUtils.toStr(ArrayUtils.toStringArray(files), ";"));
+				props.setProperty(PROPKEY_FCSFILES,
+													files.isEmpty() ? ""
+																					: ArrayUtils.toStr(ArrayUtils.toStringArray(files), ";"));
 				File f = new File(PROPERTIES_FILE);
 				OutputStream out = new FileOutputStream(f);
 				props.store(out, "");
@@ -255,33 +259,33 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 
 				String g1 = "ID2134458972";
 				String g2 = "ID1343278548";
-				
+
 				ArrayList<Gate> gates = workbench.getSample(currentSampleID).gating.getGatesForParam("Comp-BV 605-A (CD95)");
-				
-				
+
+
 				Gate gt1 = workbench.getSample(currentSampleID).gating.gateMap.get(g1);
 				Gate gt2 = workbench.getSample(currentSampleID).gating.gateMap.get(g2);
-				
+
 				boolean[] gating11 = gt1.gate(dataLoader);
 				boolean[] gating12 = gt1.getParentGating(dataLoader);
 				boolean[] gating121 = gt1.getParentGate().getParentGate().gate(dataLoader);
 				boolean[] gating21 = gt2.gate(dataLoader);
 				boolean[] gating22 = gt2.getParentGating(dataLoader);
 				boolean[] gating221 = gt2.getParentGate().getParentGate().gate(dataLoader);
-				
-//				gating13 should equals gating22
+
+				// gating13 should equals gating22
 				int s1, s2, s3, s4, s5, s6;
 				s1 = ArrayUtils.booleanArraySum(gating11);
 				s2 = ArrayUtils.booleanArraySum(gating12);
 				s4 = ArrayUtils.booleanArraySum(gating21);
 				s5 = ArrayUtils.booleanArraySum(gating22);
 				s6 = ArrayUtils.booleanArraySum(gating221);
-				
+
 				System.out.println(s1 / (double) s2);
 				System.out.println(s4 / (double) s5);
 				System.out.println();
-				
-//				fcsControls.showGateControls();
+
+				// fcsControls.showGateControls();
 			}
 		});
 		actionMap.put("DATA", new AbstractAction() {
@@ -314,7 +318,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 	private void openFile(ActionEvent e) {
 		fcsControls.dirSelectListener.actionPerformed(e);
 	}
-	
+
 	private void saveImage() {
 		JFileChooser fileChooser = new JFileChooser(".");
 		int fileOpenActionSelected = fileChooser.showSaveDialog(FCSPlot.this);
@@ -323,13 +327,13 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 			fcsPanel.screenCapture(fileToOpen.toString() + ".png");
 		}
 	}
-	
+
 	private void doClose() {
 		setVisible(false);
 		Component parent = getParentComponent();
 		parent.dispatchEvent(new WindowEvent((JFrame) parent, WindowEvent.WINDOW_CLOSING));
 	}
-	
+
 	private JMenuBar menuBar() {
 		JMenuBar menuBar;
 		JMenu menu;
@@ -345,7 +349,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		menuItemSave = new JMenuItem("Save Current Image", KeyEvent.VK_S);
 		menuItemSave.addActionListener(e -> saveImage());
 		menu.add(menuItemSave);
-		
+
 		menuItemDump = new JMenuItem("Dump Data", KeyEvent.VK_D);
 		menuItemDump.addActionListener(e -> dumpData());
 		menu.add(menuItemDump);
@@ -407,8 +411,8 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 			fcsControls.setXData(xDataName);
 		}
 		if (dataLoader != null) {
-		  fcsControls.setScale(dataLoader.getScaleForParam(xDataName), true);
-		  setXScale(dataLoader.getScaleForParam(xDataName));
+			fcsControls.setScale(dataLoader.getScaleForParam(xDataName), true);
+			setXScale(dataLoader.getScaleForParam(xDataName));
 		}
 	}
 
@@ -418,8 +422,8 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 			fcsControls.setYData(yDataName);
 		}
 		if (dataLoader != null) {
-		  fcsControls.setScale(dataLoader.getScaleForParam(yDataName), false);
-		  setYScale(dataLoader.getScaleForParam(yDataName));
+			fcsControls.setScale(dataLoader.getScaleForParam(yDataName), false);
+			setYScale(dataLoader.getScaleForParam(yDataName));
 		}
 	}
 
@@ -433,11 +437,11 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 			default:
 				fcsPanel.setForcePlotXMin(-1);
 				break;
-		} 
+		}
 		fcsPanel.setXAxis(scale);
-        if (dataLoader != null) {
-          dataLoader.setScaleForParam(getXDataName(), scale);
-        }
+		if (dataLoader != null) {
+			dataLoader.setScaleForParam(getXDataName(), scale);
+		}
 	}
 
 	public void setYScale(AXIS_SCALE scale) {
@@ -453,9 +457,9 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		}
 		fcsPanel.setYAxis(scale);
 		if (dataLoader != null) {
-		  dataLoader.setScaleForParam(getYDataName(), scale);
+			dataLoader.setScaleForParam(getYDataName(), scale);
 		}
-	}  
+	}
 
 	public void setPlotType(PLOT_TYPE type) {
 		fcsPanel.chartType = type;
@@ -497,15 +501,15 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		fcsPanel.setForceGatesChanged();
 		updateGUI();
 	}
-	
+
 	public boolean isLeafgating() {
-	  return leafgating;
+		return leafgating;
 	}
 
 	public void setLeafgating(boolean leaf) {
-	  leafgating = leaf;
-	  fcsPanel.setForceGatesChanged();
-	  updateGUI();
+		leafgating = leaf;
+		fcsPanel.setForceGatesChanged();
+		updateGUI();
 	}
 
 	public boolean isDrawPolysAsFlowJo() {
@@ -560,7 +564,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 	@Override
 	public void windowOpened(WindowEvent e) {
 		// unused
-		}
+	}
 
 	public List<String> getAddedFiles() {
 		return fcsControls.getAddedFiles();
@@ -592,7 +596,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 				boolean[] gating = parentGate.gate(dataLoader);
 				data = ArrayUtils.subArray(data, gating);
 				if (fullClusterAssigns != null) {
-				  clusterAssigns = ArrayUtils.subArray(fullClusterAssigns, gating);
+					clusterAssigns = ArrayUtils.subArray(fullClusterAssigns, gating);
 				}
 			}
 		}
@@ -619,20 +623,20 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 			setXDataName(colNames.get(1));
 			setYScale(newDataLoader.getScaleForParam(colNames.get(0)));
 			setXScale(newDataLoader.getScaleForParam(colNames.get(1)));
-			
-//			fcsControls.setPlotType(PLOT_TYPE.DOT_PLOT);
-//			fcsControls.setScale(AXIS_SCALE.BIEX, false);
-//			fcsControls.setScale(AXIS_SCALE.BIEX, true);
-//			setYDataName("Comp-APC-A (CD3)");
-//			setXDataName("Comp-PE-Cy7-A (CD19)");
-//			setYScale(AXIS_SCALE.BIEX);
-//			setXScale(AXIS_SCALE.BIEX);
+
+			// fcsControls.setPlotType(PLOT_TYPE.DOT_PLOT);
+			// fcsControls.setScale(AXIS_SCALE.BIEX, false);
+			// fcsControls.setScale(AXIS_SCALE.BIEX, true);
+			// setYDataName("Comp-APC-A (CD3)");
+			// setXDataName("Comp-PE-Cy7-A (CD19)");
+			// setYScale(AXIS_SCALE.BIEX);
+			// setXScale(AXIS_SCALE.BIEX);
 		} else {
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
 					while (newDataLoader.getLoadState() == LOAD_STATE.UNLOADED
-									|| newDataLoader.getLoadState() == LOAD_STATE.LOADING) {
+								 || newDataLoader.getLoadState() == LOAD_STATE.LOADING) {
 						Thread.yield();
 					}
 					final ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
@@ -688,14 +692,17 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 
 
 	public void loadFile(final String filename, final boolean display) {
-		if (filename == null	|| !Files.exists(filename) || (dataLoader != null && dataLoader.getLoadedFile().equals(filename))) {
+		if (filename == null || !Files.exists(filename)
+				|| (dataLoader != null && dataLoader.getLoadedFile().equals(filename))) {
 			return;
 		}
 
 		boolean applyTemplate = false;
-		currentSampleID = workbench.containsSampleFile(filename) ? workbench.getSampleID(filename) : workbench.addNewSample(filename, applyTemplate);
-    refreshGating();
-		
+		currentSampleID = workbench.containsSampleFile(filename) ? workbench.getSampleID(filename)
+																														 : workbench.addNewSample(filename,
+																																											applyTemplate);
+		refreshGating();
+
 		if (loadedData.containsKey(filename)) {
 			if (display) {
 				setData(loadedData.get(filename));
@@ -718,20 +725,21 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 			dataLoaderThread.start();
 		}
 	}
-  
-    public void loadWorkspaceFile(String gateFile) {
-      try {
-        this.workbench = GateFileReader.loadWorkspace(gateFile, dataLoader);
-        saveProps();
-    		refreshGating();
-      } catch (ParserConfigurationException | SAXException | IOException e) {
-        log.reportException(e);
-      }
-    }
+
+	public void loadWorkspaceFile(String gateFile) {
+		try {
+			this.workbench = GateFileReader.loadWorkspace(gateFile, dataLoader);
+			saveProps();
+			refreshGating();
+		} catch (ParserConfigurationException | SAXException | IOException e) {
+			log.reportException(e);
+		}
+	}
 
 	public void saveGating() {
 		if (getGatingStrategy().getRootGates().isEmpty()) {
-			JOptionPane.showMessageDialog(this, "Error - no gates found!", "Error!", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this, "Error - no gates found!", "Error!",
+																		JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		JFileChooser jfc = new JFileChooser();
@@ -753,21 +761,21 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 	}
 
 	public Gating getGatingStrategy() {
-	  if (currentSampleID != null) {
-	  	return workbench.getSample(currentSampleID).getGating();
-	  } else {
-	    return new Gating();
-	  }
+		if (currentSampleID != null) {
+			return workbench.getSample(currentSampleID).getGating();
+		} else {
+			return new Gating();
+		}
 	}
 
 	public void clearGating() {
-	  if (currentSampleID == null) {
-	  	return;
-	  }
-	  workbench.clearGating(currentSampleID);
-    parentGate = null;
-    gatingSelector.resetGating(getGatingStrategy(), null);
-    fcsPanel.clearGating();
+		if (currentSampleID == null) {
+			return;
+		}
+		workbench.clearGating(currentSampleID);
+		parentGate = null;
+		gatingSelector.resetGating(getGatingStrategy(), null);
+		fcsPanel.clearGating();
 	}
 
 	public void setGating(Gating gateStrat) {
@@ -786,37 +794,38 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		fcsPanel.setForceGatesChanged();
 		updateGUI();
 	}
-	
+
 	protected HashMap<Gate, boolean[]> gateAllDataForLeafGates() {
-	  HashSet<Gate> leafGates = getGatingStrategy().getAllLeafGates();
-	  HashMap<Gate, boolean[]> gatings = new HashMap<>();
-	  log.reportTime("Gating on " + leafGates.size() + " leaf gates...");
-	  long t1 = System.currentTimeMillis();
-	  for (Gate g : leafGates) {
-	    gatings.put(g, g.gate(dataLoader));
-	  }
-	  log.reportTimeElapsed("Gating complete - ", t1);
-	  return gatings;
+		HashSet<Gate> leafGates = getGatingStrategy().getAllLeafGates();
+		HashMap<Gate, boolean[]> gatings = new HashMap<>();
+		log.reportTime("Gating on " + leafGates.size() + " leaf gates...");
+		long t1 = System.currentTimeMillis();
+		for (Gate g : leafGates) {
+			gatings.put(g, g.gate(dataLoader));
+		}
+		log.reportTimeElapsed("Gating complete - ", t1);
+		return gatings;
 	}
 
-  public List<Gate> getGatingForCurrentPlot() {
-    ArrayList<Gate> gateList = new ArrayList<>();
-    ArrayList<Gate> children = parentGate == null ? getGatingStrategy().getRootGates() : parentGate.getChildGates();
-    for (Gate g : children) {
-      boolean y = getYDataName().equals(FCSPlot.HISTOGRAM_COL) ? true : false;
-      if (g.getYDimension() == null || y) {
-        if (y && g.getXDimension().getParam().equals(getXDataName())) {
-          gateList.add(g);
-        }
-        continue;
-      }
-      if (g.getXDimension().getParam().equals(getXDataName())
-          && g.getYDimension().getParam().equals(getYDataName())) {
-        gateList.add(g);
-      }
-    }
-    return gateList;
-  }
+	public List<Gate> getGatingForCurrentPlot() {
+		ArrayList<Gate> gateList = new ArrayList<>();
+		ArrayList<Gate> children = parentGate == null ? getGatingStrategy().getRootGates()
+																									: parentGate.getChildGates();
+		for (Gate g : children) {
+			boolean y = getYDataName().equals(FCSPlot.HISTOGRAM_COL) ? true : false;
+			if (g.getYDimension() == null || y) {
+				if (y && g.getXDimension().getParam().equals(getXDataName())) {
+					gateList.add(g);
+				}
+				continue;
+			}
+			if (g.getXDimension().getParam().equals(getXDataName())
+					&& g.getYDimension().getParam().equals(getYDataName())) {
+				gateList.add(g);
+			}
+		}
+		return gateList;
+	}
 
 	public void setData(FCSDataLoader newDataLoader) {
 		if (dataLoader != null && dataLoader.getLoadedFile().equals(newDataLoader.getLoadedFile())) {
@@ -914,9 +923,9 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 
 	public void addGate(Gate rg) {
 		if (parentGate == null) {
-		  getGatingStrategy().addRootGate(rg);
+			getGatingStrategy().addRootGate(rg);
 		} else {
-		  parentGate.addChildGate(rg);
+			parentGate.addChildGate(rg);
 		}
 		gatingSelector.resetGating(getGatingStrategy(), parentGate);
 	}
@@ -947,50 +956,51 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 
 	int[] fullClusterAssigns = null;
 	int[] clusterAssigns = null;
-	
+
 	public int[] getClusterAssignments() {
-	  return clusterAssigns;
+		return clusterAssigns;
 	}
-	
+
 	private void setupEM() {
-	  EMModel model = EMModel.run(dataLoader);
-	  fullClusterAssigns = model.getClusterAssigns();
-	  clusterAssigns = fullClusterAssigns;
-	  updateGUI();
+		EMModel model = EMModel.run(dataLoader);
+		fullClusterAssigns = model.getClusterAssigns();
+		clusterAssigns = fullClusterAssigns;
+		updateGUI();
 	}
-	
+
 	private void dumpData() {
-	  boolean[] toDump = getParentGating();
-	  ArrayList<String> params = dataLoader.getAllDisplayableNames(DATA_SET.COMPENSATED);
-	  PrintWriter writer = Files.getAppropriateWriter(ext.rootOf(dataLoader.getLoadedFile(), false) + ".xln");
-	  for (int i = 0, count = params.size(); i < count; i++) {
-	    writer.print(params.get(i));
-	    if (i < count - 1) {
-	      writer.print("\t");
-	    }
-	  }
-	  writer.println();
-	  
-	  double[][] data = new double[params.size()][];
-	  for (int i = 0, count = params.size(); i < count; i++) {
-	    data[i] = dataLoader.getData(params.get(i), true);
-	  }
-  
-      for (int i = 0, count = data[0].length; i < count; i++) {
-        if (toDump[i]) {
-          for (int p = 0, pcount = params.size(); p < pcount; p++) {
-            writer.print(data[p][i]);
-            if (p < pcount - 1) {
-              writer.print("\t");
-            }
-          }
-          writer.println();
-        }
-      }
-	  writer.flush();
-	  writer.close();
+		boolean[] toDump = getParentGating();
+		ArrayList<String> params = dataLoader.getAllDisplayableNames(DATA_SET.COMPENSATED);
+		PrintWriter writer = Files.getAppropriateWriter(ext.rootOf(dataLoader.getLoadedFile(), false)
+																										+ ".xln");
+		for (int i = 0, count = params.size(); i < count; i++) {
+			writer.print(params.get(i));
+			if (i < count - 1) {
+				writer.print("\t");
+			}
+		}
+		writer.println();
+
+		double[][] data = new double[params.size()][];
+		for (int i = 0, count = params.size(); i < count; i++) {
+			data[i] = dataLoader.getData(params.get(i), true);
+		}
+
+		for (int i = 0, count = data[0].length; i < count; i++) {
+			if (toDump[i]) {
+				for (int p = 0, pcount = params.size(); p < pcount; p++) {
+					writer.print(data[p][i]);
+					if (p < pcount - 1) {
+						writer.print("\t");
+					}
+				}
+				writer.println();
+			}
+		}
+		writer.flush();
+		writer.close();
 	}
-	
+
 	private void setupDataExport() {
 		if (getAddedFiles().isEmpty()) {
 			JOptionPane.showMessageDialog(this, "Error - no data files available to export!", "Error!",
@@ -1077,11 +1087,11 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 	}
 
 	public void deleteGate(Gate g) {
-	  if (g == parentGate) {
-	    parentGate = null;
-	  }
-      getGatingStrategy().deleteGate(g);
-      gatingSelector.resetGating(getGatingStrategy(), parentGate);
+		if (g == parentGate) {
+			parentGate = null;
+		}
+		getGatingStrategy().deleteGate(g);
+		gatingSelector.resetGating(getGatingStrategy(), parentGate);
 	}
 
 	public static void main(String[] args) {

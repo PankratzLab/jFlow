@@ -57,8 +57,8 @@ public class haploPerm {
 			writer.println("sink()");
 			// writer.println("bintest."+i+"<-haplo.score(affstat."+i+", geno,
 			// trait.type=\"binomial\", skip.haplo=0.005)");
-			writer.println("bintest."	+ i + "<-haplo.score(affstat." + i
-											+ ", geno, trait.type=\"binomial\", skip.haplo=0.02)");
+			writer.println("bintest." + i + "<-haplo.score(affstat." + i
+										 + ", geno, trait.type=\"binomial\", skip.haplo=0.02)");
 			// writer.println("bintest."+i+"<-haplo.score(affstat."+i+", geno,
 			// trait.type=\"binomial\")");
 			writer.println("sink(\"" + i + "_bintest.out\")");
@@ -80,9 +80,9 @@ public class haploPerm {
 		int numArgs = args.length;
 		int numReps = 10;
 
-		String usage = "\n"	+ "park.haploPerm requires 1 arguments:\n"
-										+ "   (1) the number of replicates to perform (i.e. reps=" + numReps
-										+ " (default))\n" + "";
+		String usage = "\n" + "park.haploPerm requires 1 arguments:\n"
+									 + "   (1) the number of replicates to perform (i.e. reps=" + numReps
+									 + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

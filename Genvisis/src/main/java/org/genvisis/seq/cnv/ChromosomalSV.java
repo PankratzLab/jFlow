@@ -28,8 +28,7 @@ public class ChromosomalSV {
 
 	public static void run(Project proj, int numthreads) {
 		Logger log = proj.getLog();
-		PreparedMarkerSet preparedMarkerSet =
-																				PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
+		PreparedMarkerSet preparedMarkerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
 		String[] samples = proj.getSamples();
 		ChrProducer producer = new ChrProducer(proj, samples, preparedMarkerSet);
 		WorkerTrain<ChrResult[][]> train = new WorkerTrain<ChrResult[][]>(producer, numthreads, 10,
@@ -74,8 +73,8 @@ public class ChromosomalSV {
 					for (int j2 = 0; j2 < allResults[i][j].length; j2++) {
 						double median = allResults[i][j][j2].getMedian();
 						if (!Double.isNaN(median)) {
-							writer.println(samples[i]	+ "\t" + j + "\t" + median + "\t"
-															+ allResults[i][j][j2].getType());
+							writer.println(samples[i] + "\t" + j + "\t" + median + "\t"
+														 + allResults[i][j][j2].getType());
 						}
 					}
 				}
@@ -88,7 +87,7 @@ public class ChromosomalSV {
 	}
 
 	enum TYPE {
-							LEFT, RIGHT, ALL;
+		LEFT, RIGHT, ALL;
 	}
 
 	private static class ChrResult {
@@ -164,8 +163,8 @@ public class ChromosomalSV {
 
 	}
 
-	private static ChrResult[][] tallyChrs(	Project proj, String sample,
-																					PreparedMarkerSet preparedMarkerSet) {
+	private static ChrResult[][] tallyChrs(Project proj, String sample,
+																				 PreparedMarkerSet preparedMarkerSet) {
 		Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
 		int[] pos = preparedMarkerSet.getPositions();
 		int[][] boundaries = Positions.determineCentromereBoundariesFromMarkerSet(preparedMarkerSet.getChrs(),
@@ -227,8 +226,8 @@ public class ChromosomalSV {
 		String filename = null;
 		int numthreads = 7;
 
-		String usage = "\n"	+ "seq.cnv.ChromosomalSV requires 0-1 arguments\n"
-										+ "   (1) proj (i.e. proj=" + filename + " (default))\n" + "";
+		String usage = "\n" + "seq.cnv.ChromosomalSV requires 0-1 arguments\n"
+									 + "   (1) proj (i.e. proj=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

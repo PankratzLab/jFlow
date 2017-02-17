@@ -69,11 +69,11 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
 	/**
 	 * Create the frame.
 	 */
-	public NewRegionListDialog(	String[] sampleNames, final String dir, boolean allowMissing,
-															String missingValue) {
+	public NewRegionListDialog(String[] sampleNames, final String dir, boolean allowMissing,
+														 String missingValue) {
 		this.allowMissing = allowMissing;
-		this.missingValue = allowMissing && missingValue == null	? DEFAULT_MISSING_UCSC_LOCATION
-																															: missingValue;
+		this.missingValue = allowMissing && missingValue == null ? DEFAULT_MISSING_UCSC_LOCATION
+																														 : missingValue;
 		this.dir = dir;
 		setTitle("Create New UCSC Regions List");
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -89,8 +89,8 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
 		textArea = new JTextArea();
 		scrollPane.setViewportView(textArea);
 
-		String label = sampleNames == null	? "UCSC regions (one per line, with optional tab-separated comments): "
-																				: "Sample IDs with (optional) UCSC regions and comments (tab-separated, one set per line): ";
+		String label = sampleNames == null ? "UCSC regions (one per line, with optional tab-separated comments): "
+																			 : "Sample IDs with (optional) UCSC regions and comments (tab-separated, one set per line): ";
 		JLabel lblMarkerNamesone = new JLabel(label);
 		contentPane.add(lblMarkerNamesone, "cell 0 0,growx,aligny top");
 
@@ -186,31 +186,28 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
 		}
 		if (invalidPositions.size() > 0) {
 			String[] options = {"Ignore and Continue", "Return"};
-			StringBuilder msg =
-												new StringBuilder("Warning - ")	.append(invalidPositions.size())
-																												.append(" regions are not valid UCSC regions:");
+			StringBuilder msg = new StringBuilder("Warning - ").append(invalidPositions.size())
+																												 .append(" regions are not valid UCSC regions:");
 			for (String inv : invalidPositions) {
 				msg.append("\n").append(inv);
 			}
-			int opt =
-							JOptionPane.showOptionDialog(	this, msg.toString(), "Warning - invalid regions!",
-																						JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-																						null, options, options[1]);
+			int opt = JOptionPane.showOptionDialog(this, msg.toString(), "Warning - invalid regions!",
+																						 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+																						 null, options, options[1]);
 			if (opt != 0) {
 				return false;
 			}
 		}
 		if (invalidIDs.size() > 0) {
 			String[] options = {"Ignore and Continue", "Return"};
-			StringBuilder msg = new StringBuilder("Warning - ")	.append(invalidIDs.size())
-																													.append(" sample IDs are not valid:");
+			StringBuilder msg = new StringBuilder("Warning - ").append(invalidIDs.size())
+																												 .append(" sample IDs are not valid:");
 			for (String inv : invalidIDs) {
 				msg.append("\n").append(inv);
 			}
-			int opt =
-							JOptionPane.showOptionDialog(	this, msg.toString(), "Warning - invalid sample IDs!",
-																						JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-																						null, options, options[1]);
+			int opt = JOptionPane.showOptionDialog(this, msg.toString(), "Warning - invalid sample IDs!",
+																						 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+																						 null, options, options[1]);
 			if (opt != 0) {
 				return false;
 			}

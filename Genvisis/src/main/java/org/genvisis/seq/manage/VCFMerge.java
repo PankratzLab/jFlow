@@ -14,8 +14,8 @@ import org.genvisis.seq.analysis.GATK;
  */
 public class VCFMerge {
 
-	public static void merge(	String[] vcfs, String mergeOut, String gatkLoc,
-														String referenceGenomeFasta, int numthreads, Logger log) {
+	public static void merge(String[] vcfs, String mergeOut, String gatkLoc,
+													 String referenceGenomeFasta, int numthreads, Logger log) {
 		GATK gatk = new GATK(gatkLoc, referenceGenomeFasta, true, false, log);
 		System.out.println("HID1");
 
@@ -36,8 +36,8 @@ public class VCFMerge {
 								log.reportTimeInfo("Merged " + ArrayUtils.toStr(vcfs, "\n") + " to " + mergeOut);
 								VCFOps.extractSamps(mergeOut, log);
 							} else {
-								log.reportError("Could not merge "	+ ArrayUtils.toStr(vcfs, "\n") + " to "
-																		+ mergeOut);
+								log.reportError("Could not merge " + ArrayUtils.toStr(vcfs, "\n") + " to "
+																+ mergeOut);
 							}
 						} else {
 							log.reportError("Could not verify all index files ");
@@ -69,7 +69,7 @@ public class VCFMerge {
 		usage += "   (2) full path to the merged output (i.e. mergeOut= (no default))\n" + "";
 		usage += "   (3) full path to the gatk directory (i.e. gatk=" + gatk + " (default))\n" + "";
 		usage += "   (4) full path to the reference genome  (i.e. ref=refGenome.fasta (default is for "
-							+ genomeBuild + "))\n" + "";
+						 + genomeBuild + "))\n" + "";
 		usage += PSF.Ext.getNumThreadsCommand(5, numthreads);
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -146,8 +146,8 @@ public abstract class RegressionModel {
 
 	public void setVarNames(String[] names) {
 		if (names.length != M) {
-			System.err.println("Error naming independent variables: "	+ M + " variables, and "
-													+ names.length + " names");
+			System.err.println("Error naming independent variables: " + M + " variables, and "
+												 + names.length + " names");
 			return;
 		}
 		varNames = new String[M + 1];
@@ -382,7 +382,7 @@ public abstract class RegressionModel {
 			}
 			if (hash.size() < 2) {
 				if (verbose) {
-					log.reportError("No variance in independent variable number "	+ (j + 1)
+					log.reportError("No variance in independent variable number " + (j + 1)
 													+ "; collapsing and ignoring");
 				}
 				oldIndeps = indeps.clone();
@@ -465,8 +465,8 @@ public abstract class RegressionModel {
 		return indeps;
 	}
 
-	public static RegressionModel determineAppropriate(	double[] deps, double[] indeps,
-																											boolean bypassDataCheck, boolean verbose) {
+	public static RegressionModel determineAppropriate(double[] deps, double[] indeps,
+																										 boolean bypassDataCheck, boolean verbose) {
 		double[][] newIndeps = new double[indeps.length][1];
 
 		for (int i = 0; i < indeps.length; i++) {
@@ -476,8 +476,8 @@ public abstract class RegressionModel {
 		return determineAppropriate(deps, newIndeps, bypassDataCheck, verbose);
 	}
 
-	public static RegressionModel determineAppropriate(	double[] deps, double[][] indeps,
-																											boolean bypassDataCheck, boolean verbose) {
+	public static RegressionModel determineAppropriate(double[] deps, double[][] indeps,
+																										 boolean bypassDataCheck, boolean verbose) {
 		Vector<String> depCount = new Vector<String>();
 
 		for (int i = 0; i < deps.length && depCount.size() <= 2; i++) {
@@ -486,7 +486,7 @@ public abstract class RegressionModel {
 			}
 		}
 
-		return depCount.size() == 2	? new LogisticRegression(deps, indeps, bypassDataCheck, verbose)
+		return depCount.size() == 2 ? new LogisticRegression(deps, indeps, bypassDataCheck, verbose)
 																: new LeastSquares(deps, indeps, bypassDataCheck, verbose);
 	}
 
@@ -548,9 +548,9 @@ public abstract class RegressionModel {
 			while (reader.ready()) {
 				line = reader.readLine().split(delimiter);
 				if (line.length != numElements) {
-					System.err.println("Error - mismatched number of elements for ID '"	+ line[0]
-															+ "' (expecting " + numElements + ", found " + line.length
-															+ "); check delimiter or for trailing whitespace");
+					System.err.println("Error - mismatched number of elements for ID '" + line[0]
+														 + "' (expecting " + numElements + ", found " + line.length
+														 + "); check delimiter or for trailing whitespace");
 				}
 				use = true;
 				for (int i = 1; i < line.length; i++) {
@@ -576,19 +576,22 @@ public abstract class RegressionModel {
 
 	/**
 	 * 
-	 * @param deps an array that matches the length of {@code indeps}, or null to only use {@code indeps}
-	 * @param indeps a matrix that matches the length of {@code deps}, or null to only use {@code deps}
+	 * @param deps an array that matches the length of {@code indeps}, or null to only use
+	 *        {@code indeps}
+	 * @param indeps a matrix that matches the length of {@code deps}, or null to only use
+	 *        {@code deps}
 	 * @param log
-	 * @return a boolean array where an index, {@code i} is false if {@code deps[i]} or any value in {@code indeps[i][]} is a missing value
+	 * @return a boolean array where an index, {@code i} is false if {@code deps[i]} or any value in
+	 *         {@code indeps[i][]} is a missing value
 	 */
 	public static boolean[] getRowsWithCompleteData(String[] deps, String[][] indeps, Logger log) {
 		boolean[] use;
-		
+
 		if (deps != null && indeps != null && deps.length != indeps.length) {
 			log.reportError("Error - cannot determine rows with complete data since the deps length and the indeps length are not equal");
 			return null;
 		}
-		
+
 		if (deps != null) {
 			use = ArrayUtils.booleanArray(deps.length, true);
 		} else if (indeps != null) {
@@ -609,7 +612,7 @@ public abstract class RegressionModel {
 				}
 			}
 		}
-		
+
 		return use;
 	}
 }

@@ -31,7 +31,7 @@ public class solarZeroByInd {
 		reader.close();
 
 		for (int chromosome = start; chromosome <= stop; chromosome++) {
-			String bakFilename = Files.getBakFilename("solar.gtypes."	+ chromosome,
+			String bakFilename = Files.getBakFilename("solar.gtypes." + chromosome,
 																								super.getClass().getName());
 			(new File("solar.gtypes." + chromosome)).renameTo(new File(bakFilename));
 			reader = new BufferedReader(new FileReader(bakFilename));
@@ -74,8 +74,8 @@ public class solarZeroByInd {
 					new solarZeroByInd(args[0]);
 				}
 				if (args.length == 2) {
-					new solarZeroByInd(	args[0], Integer.valueOf(args[1]).intValue(),
-															Integer.valueOf(args[1]).intValue());
+					new solarZeroByInd(args[0], Integer.valueOf(args[1]).intValue(),
+														 Integer.valueOf(args[1]).intValue());
 				}
 			} catch (Exception e) {
 				e.printStackTrace();

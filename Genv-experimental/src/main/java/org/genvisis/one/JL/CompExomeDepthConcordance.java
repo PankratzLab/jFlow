@@ -35,8 +35,8 @@ public class CompExomeDepthConcordance {
 					inds.get(ind).addAll(indsForThisFile);
 				}
 			}
-			LocusSet<CNVariant> indSet = new LocusSet<CNVariant>(	indsForThisFile.toArray(new CNVariant[indsForThisFile.size()]),
-																														true, log) {
+			LocusSet<CNVariant> indSet = new LocusSet<CNVariant>(indsForThisFile.toArray(new CNVariant[indsForThisFile.size()]),
+																													 true, log) {
 
 				/**
 				 *
@@ -89,8 +89,8 @@ public class CompExomeDepthConcordance {
 				// System.out.println(match.get(j).toPlinkFormat());
 			}
 			// System.exit(1);
-			LocusSet<CNVariant> matchSet = new LocusSet<CNVariant>(	match.toArray(new CNVariant[match.size()]),
-																															true, log) {
+			LocusSet<CNVariant> matchSet = new LocusSet<CNVariant>(match.toArray(new CNVariant[match.size()]),
+																														 true, log) {
 
 				/**
 				 *
@@ -102,8 +102,8 @@ public class CompExomeDepthConcordance {
 
 			String outNOMatch = resultDir + ext.addToRoot(ext.removeDirectoryInfo(files[i]), ".noMatch");
 
-			LocusSet<CNVariant> noMatchSet = new LocusSet<CNVariant>(	noMatch.toArray(new CNVariant[noMatch.size()]),
-																																true, log) {
+			LocusSet<CNVariant> noMatchSet = new LocusSet<CNVariant>(noMatch.toArray(new CNVariant[noMatch.size()]),
+																															 true, log) {
 
 				/**
 				 *
@@ -122,24 +122,24 @@ public class CompExomeDepthConcordance {
 		}
 	}
 
-	private static void dumpAndSummarize(	LocusSet<CNVariant> out, String outFile,
-																				String mappabilityFile, String callSubsetBed,
-																				String problematicRegionFIle, Logger log) {
+	private static void dumpAndSummarize(LocusSet<CNVariant> out, String outFile,
+																			 String mappabilityFile, String callSubsetBed,
+																			 String problematicRegionFIle, Logger log) {
 		Mappability<CNVariant> cnMappability = new Mappability<CNVariant>(out, mappabilityFile,
 																																			callSubsetBed, log);
 		cnMappability.computeMappability();
-		LocusSet<Segment> pSet = LocusSet.loadSegmentSetFromFile(	problematicRegionFIle, 0, 1, 2, 0,
-																															true, true, 0, log);
+		LocusSet<Segment> pSet = LocusSet.loadSegmentSetFromFile(problematicRegionFIle, 0, 1, 2, 0,
+																														 true, true, 0, log);
 
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(outFile));
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER)
-											+ "\tmappability\tInProblematicRegion");
+										 + "\tmappability\tInProblematicRegion");
 			for (int i = 0; i < out.getLoci().length; i++) {
 				CNVariant tmp = out.getLoci()[i];
-				writer.println(tmp.toPlinkFormat()	+ "\t"
-												+ (cnMappability.getMappabilityResults().get(i).getAverageMapScore() * 100)
-												+ "\t" + (pSet.getOverLappingLoci(tmp) != null));
+				writer.println(tmp.toPlinkFormat() + "\t"
+											 + (cnMappability.getMappabilityResults().get(i).getAverageMapScore() * 100)
+											 + "\t" + (pSet.getOverLappingLoci(tmp) != null));
 			}
 
 			writer.close();
@@ -159,10 +159,10 @@ public class CompExomeDepthConcordance {
 		String dir = "D:/data/Project_Tsai_21_25_26_spector/cnvs/compConcord/";
 		String[] cnvFiles = Files.listFullPaths(dir, ".cnvs", false);
 		Hashtable<String, String> iidMatch = new Hashtable<String, String>();
-		iidMatch.put(	"D100\tD100",
-									"HapMap_Control_CAGAGAGG-CTCTCTAT\tHapMap_Control_CAGAGAGG-CTCTCTAT");
-		iidMatch.put(	"HapMap_Control_CAGAGAGG-CTCTCTAT\tHapMap_Control_CAGAGAGG-CTCTCTAT",
-									"D100\tD100");
+		iidMatch.put("D100\tD100",
+								 "HapMap_Control_CAGAGAGG-CTCTCTAT\tHapMap_Control_CAGAGAGG-CTCTCTAT");
+		iidMatch.put("HapMap_Control_CAGAGAGG-CTCTCTAT\tHapMap_Control_CAGAGAGG-CTCTCTAT",
+								 "D100\tD100");
 		String mapFile = "C:/bin/ref/mappability/hg19/wgEncodeCrgMapabilityAlign100mer.bedGraph";
 		String callSubset = "C:/bin/ExomeDepth/exons.hg19.chr.bed";
 		String problematicRegionFIle = dir + "problematicRegions.txt";

@@ -56,7 +56,7 @@ public final class Resources {
 		@Override
 		protected void doCheck() {
 			// TODO Auto-generated method stub
-			
+
 		}
 	}
 
@@ -91,12 +91,13 @@ public final class Resources {
 				if (!knownPaths.contains(localFile)) {
 					addMessage(localFile);
 				}
-			}		}
+			}
+		}
 
 		@Override
 		protected String warningHeader() {
 			return "WARNING: the following local file(s) in "
-			       + LaunchProperties.get(LaunchKey.RESOURCES_DIR) + " are not tracked:";
+						 + LaunchProperties.get(LaunchKey.RESOURCES_DIR) + " are not tracked:";
 		}
 	}
 
@@ -158,7 +159,8 @@ public final class Resources {
 		 * @return A resource for the MiniMac3 app
 		 */
 		public Resource getMiniMac3() {
-			return getTarGzResource("Minimac3/bin/Minimac3", remotePath() + "Minimac3.v2.0.1.tar.gz", "Minimac3");
+			return getTarGzResource("Minimac3/bin/Minimac3", remotePath() + "Minimac3.v2.0.1.tar.gz",
+															"Minimac3");
 		}
 	}
 
@@ -250,7 +252,8 @@ public final class Resources {
 	 */
 	public static class Shapeit extends AbstractResourceFactory {
 		public Shapeit(Logger log) {
-			super(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + BIN_DIR + "/shapeit/", "", log, Shapeit.class);
+			super(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + BIN_DIR + "/shapeit/", "", log,
+						Shapeit.class);
 		}
 
 		/**
@@ -258,7 +261,7 @@ public final class Resources {
 		 */
 		public Resource getShapeit() {
 			return getTarGzResource("bin/shapeit",
-			                        "https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz");
+															"https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz");
 		}
 	}
 
@@ -658,7 +661,7 @@ public final class Resources {
 		 */
 		public AbstractResourceFactory(String subPath, Logger log, Class<?>... classes) {
 			this(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + subPath + File.separator,
-			     DEFAULT_URL + subPath + "/", log, classes);
+					 DEFAULT_URL + subPath + "/", log, classes);
 		}
 
 		/**
@@ -681,7 +684,7 @@ public final class Resources {
 			for (Class<?> c : classes) {
 				for (Method m : c.getDeclaredMethods()) {
 					if (m.getReturnType().equals(Resources.Resource.class)
-					    && m.getParameterTypes().length == 0) {
+							&& m.getParameterTypes().length == 0) {
 						try {
 							resources.add((Resource) m.invoke(this));
 						} catch (Exception e) {
@@ -716,7 +719,8 @@ public final class Resources {
 		}
 
 		/**
-		 * Use this method when the remote and local path are not consistent, but Make does not need to be called.
+		 * Use this method when the remote and local path are not consistent, but Make does not need to
+		 * be called.
 		 *
 		 * @param remotePath Absolute path to remote download location
 		 */
@@ -727,7 +731,8 @@ public final class Resources {
 		/**
 		 * Use this when Make needs to be called in the extracted directory
 		 *
-		 * @param makeFile Relative (from local) path to make file, or null if this resource does not need to be built.
+		 * @param makeFile Relative (from local) path to make file, or null if this resource does not
+		 *        need to be built.
 		 */
 		protected Resource getTarGzResource(String rsrc, String remotePath, String makePath) {
 			String makeDir = makePath == null ? null : localPath() + makePath;
@@ -771,7 +776,8 @@ public final class Resources {
 	 * Resource that is .tar.gz compressed
 	 */
 	// FIXME: this class is currently doing too much.
-	// It would be nice to split out things that need to be built and things that need to be chmodded into some sort of merge-able stack,
+	// It would be nice to split out things that need to be built and things that need to be chmodded
+	// into some sort of merge-able stack,
 	// e.g. by constructing multiple Resources wrapping each other.
 	public static class TarGzResource extends AbstractResource {
 		private final String unzippedPath;
@@ -781,7 +787,8 @@ public final class Resources {
 		 * @param path Local path to unzipped indicator file
 		 * @param url Remote tar.gz path
 		 */
-		public TarGzResource(String unzippedPath, String extractionDir, String url, Logger log, String makeDir) {
+		public TarGzResource(String unzippedPath, String extractionDir, String url, Logger log,
+												 String makeDir) {
 			super(extractionDir + new File(url).getName(), url, log);
 			this.unzippedPath = unzippedPath;
 			this.makeDir = makeDir;
@@ -813,14 +820,14 @@ public final class Resources {
 		private String extractTarGz(String targzPath) {
 			final File inputFile = new File(targzPath);
 			final String destination = inputFile.getParent() + File.separator;
-			 inputFile.deleteOnExit();
+			inputFile.deleteOnExit();
 
 			// from: http://stackoverflow.com/a/7556307/1027800
 			try {
 				// Unzip the downloaded targz
 				// Not all files end with .tar.gz.. some are .tgz.. so handle both cases
-				String unzippedName =
-				                    inputFile.getName().substring(0, inputFile.getName().lastIndexOf('.'));
+				String unzippedName = inputFile.getName().substring(0,
+																														inputFile.getName().lastIndexOf('.'));
 				if (!unzippedName.endsWith(".tar")) {
 					unzippedName += ".tar";
 				}
@@ -835,22 +842,21 @@ public final class Resources {
 
 				// Extract all entries in the tar
 				final InputStream is = new FileInputStream(unzippedTar);
-				final TarArchiveInputStream tarStream =
-				                                      (TarArchiveInputStream) new ArchiveStreamFactory().createArchiveInputStream("tar",
-				                                                                                                                  is);
+				final TarArchiveInputStream tarStream = (TarArchiveInputStream) new ArchiveStreamFactory().createArchiveInputStream("tar",
+																																																														is);
 				TarArchiveEntry entry = null;
 				while ((entry = (TarArchiveEntry) tarStream.getNextEntry()) != null) {
 					final File outputFile = new File(destination, entry.getName());
 					if (entry.isDirectory()) {
 						if (!outputFile.exists() && !outputFile.mkdirs()) {
 							throw new IllegalStateException(String.format("Couldn't create directory %s.",
-							                                              outputFile.getAbsolutePath()));
+																														outputFile.getAbsolutePath()));
 						}
 					} else {
 						final File parentDir = outputFile.getParentFile();
 						if (!parentDir.exists() && !parentDir.mkdirs()) {
 							throw new IllegalStateException(String.format("Couldn't create directory %s.",
-							                                              parentDir));
+																														parentDir));
 						} else {
 							final OutputStream outputFileStream = new FileOutputStream(outputFile);
 							IOUtils.copy(tarStream, outputFileStream);
@@ -978,7 +984,7 @@ public final class Resources {
 					return true;
 				} catch (IOException e) {
 					log.reportError("Could not retrieve resource from " + url + " and save it to"
-					                + downloadPath);
+													+ downloadPath);
 					log.reportException(e);
 				}
 			} else {
@@ -993,7 +999,7 @@ public final class Resources {
 				return localPath;
 			}
 			log.report("Resource is not available at " + localPath + ", will attempt to download from "
-			           + remotePath);
+								 + remotePath);
 
 			if (!downloadResource(remotePath, localPath)) {
 				log.reportError("Download failed for: " + remotePath);
@@ -1021,8 +1027,8 @@ public final class Resources {
 
 			if (!isAvailable) {
 				log.reportError("Could not find local file " + localPath
-				                + " and could not download it from " + remotePath
-				                + " please manually download and save to " + localPath);
+												+ " and could not download it from " + remotePath
+												+ " please manually download and save to " + localPath);
 			}
 
 			return isAvailable;
@@ -1076,7 +1082,7 @@ public final class Resources {
 	 * Supported genome reference builds
 	 */
 	public enum GENOME_BUILD {
-														HG19("hg19", 37), HG18("hg18", 36);
+		HG19("hg19", 37), HG18("hg18", 36);
 
 		private final String build;
 		private final int buildInt;
@@ -1099,7 +1105,30 @@ public final class Resources {
 	 * Supported chromosomes
 	 */
 	public enum CHROMOSOME {
-													C1("1"), C2("2"), C3("3"), C4("4"), C5("5"), C6("6"), C7("7"), C8("8"), C9("9"), C10("10"), C11("11"), C12("12"), C13("13"), C14("14"), C15("15"), C16("16"), C17("17"), C18("18"), C19("19"), C20("20"), C21("21"), C22("22"), CX_PAR("X_PAR"), CX_nonPAR("X_nonPAR");
+		C1("1"),
+		C2("2"),
+		C3("3"),
+		C4("4"),
+		C5("5"),
+		C6("6"),
+		C7("7"),
+		C8("8"),
+		C9("9"),
+		C10("10"),
+		C11("11"),
+		C12("12"),
+		C13("13"),
+		C14("14"),
+		C15("15"),
+		C16("16"),
+		C17("17"),
+		C18("18"),
+		C19("19"),
+		C20("20"),
+		C21("21"),
+		C22("22"),
+		CX_PAR("X_PAR"),
+		CX_nonPAR("X_nonPAR");
 
 		private String label;
 

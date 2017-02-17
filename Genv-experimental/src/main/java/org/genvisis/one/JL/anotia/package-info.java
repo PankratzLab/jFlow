@@ -2,7 +2,7 @@
  * 
  */
 /**
- * @author Kitty exploring anotia 
+ * @author Kitty exploring anotia
  *
  */
 package org.genvisis.one.JL.anotia;

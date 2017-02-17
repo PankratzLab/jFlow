@@ -16,8 +16,8 @@ public class Images {
 																	boolean drawInnerBorder,
 																	boolean drawOuterBorder/* , boolean pack */) {
 		System.out.print("Loading input file...");
-		String[] imageFiles =
-												HashVec.loadFileToStringArray(dir + listFile, false, new int[] {0}, false);
+		String[] imageFiles = HashVec.loadFileToStringArray(dir + listFile, false, new int[] {0},
+																												false);
 		System.out.println("Complete!");
 		int maxWid = 0;
 		int maxHgt = 0;
@@ -50,8 +50,8 @@ public class Images {
 		int bufferCols = (arrSzCols + 1) * BUFFER_SZ;
 		int bufferRows = (arrSzRows + 1) * BUFFER_SZ;
 
-		finalImage = new BufferedImage((maxWid * arrSzCols)	+ bufferCols,
-																		(maxHgt * arrSzRows) + bufferRows, BufferedImage.TYPE_INT_ARGB);
+		finalImage = new BufferedImage((maxWid * arrSzCols) + bufferCols,
+																	 (maxHgt * arrSzRows) + bufferRows, BufferedImage.TYPE_INT_ARGB);
 		if (bgColor != null) {
 			finalImage.createGraphics().setColor(bgColor);
 			finalImage.createGraphics().fillRect(0, 0, finalImage.getWidth(), finalImage.getHeight());
@@ -169,9 +169,9 @@ public class Images {
 		boolean outerBorder = true;
 		boolean innerBorder = true;
 
-		String usage = "\n"	+ "common.Images requires 3+ arguments\n" + "   (1) directory (i.e. dir="
-										+ dir + " (default))\n" + "   (2) filename (i.e. file=" + file + " (default))\n"
-										+ "   (3) output filename (i.e. out=" + out + " (default))\n" + "";
+		String usage = "\n" + "common.Images requires 3+ arguments\n" + "   (1) directory (i.e. dir="
+									 + dir + " (default))\n" + "   (2) filename (i.e. file=" + file + " (default))\n"
+									 + "   (3) output filename (i.e. out=" + out + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

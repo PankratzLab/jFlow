@@ -128,12 +128,12 @@ public class FilterSNPsByRegion {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				passes = false;
-				mark = new Segment(	Positions.chromosomeNumber(line[chrCol]), Integer.parseInt(line[posCol]),
-														Integer.parseInt(line[posCol]));
+				mark = new Segment(Positions.chromosomeNumber(line[chrCol]), Integer.parseInt(line[posCol]),
+													 Integer.parseInt(line[posCol]));
 				for (int i = 0; i < regions.length && !passes; i++) {
 					if (mark.overlaps(regions[i])) {
 						passes = true;
-						snpsWithRegionNumbers.add(line[snpCol]	+ "\t" + (i + 1)
+						snpsWithRegionNumbers.add(line[snpCol] + "\t" + (i + 1)
 																			+ (regionNameIndex >= 0 ? "\t" + regionNames[i] : ""));
 					}
 				}
@@ -157,7 +157,7 @@ public class FilterSNPsByRegion {
 		if (regionNumber) {
 			Files.writeArray(ArrayUtils.toStringArray(snpsWithRegionNumbers), "snp_region_matchup.dat");
 			paramV.add("snp_region_matchup.dat 0 1=RegionNumber"
-									+ (regionNameIndex >= 0 ? "\t2=RegionName" : ""));
+								 + (regionNameIndex >= 0 ? "\t2=RegionName" : ""));
 		}
 
 		Files.combine(ArrayUtils.toStringArray(snps), ArrayUtils.toStringArray(paramV), "MarkerName",

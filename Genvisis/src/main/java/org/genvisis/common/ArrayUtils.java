@@ -594,18 +594,18 @@ public class ArrayUtils {
 	}
 
 	public enum BYTE_DECODE_FORMAT {
-																	/**
-																	 * String will be converted to upper case
-																	 */
-																	UPPER_CASE,
-																	/**
-																	 * String will be converted to lower case
-																	 */
-																	LOWER_CASE,
-																	/**
-																	 * String will be left as is
-																	 */
-																	AS_IS
+		/**
+		 * String will be converted to upper case
+		 */
+		UPPER_CASE,
+		/**
+		 * String will be converted to lower case
+		 */
+		LOWER_CASE,
+		/**
+		 * String will be left as is
+		 */
+		AS_IS
 	}
 
 	public static String[] decodeByteArray(byte[] b, BYTE_DECODE_FORMAT format, Logger log) {
@@ -623,8 +623,8 @@ public class ArrayUtils {
 	 * @param log
 	 * @return
 	 */
-	public static String[] decodeByteArray(	byte[] b, String charsetName, BYTE_DECODE_FORMAT format,
-																					Logger log) {
+	public static String[] decodeByteArray(byte[] b, String charsetName, BYTE_DECODE_FORMAT format,
+																				 Logger log) {
 		String[] s = new String[b.length];
 		for (int i = 0; i < s.length; i++) {
 			if ((i + 1) % 2000000 == 0) {
@@ -633,8 +633,8 @@ public class ArrayUtils {
 			try {
 				s[i] = new String(new byte[] {b[i]}, charsetName).toUpperCase();
 			} catch (UnsupportedEncodingException e) {
-				log.reportError("Could not convert reference byte "	+ b[i]
-														+ " to string with charsetName" + charsetName);
+				log.reportError("Could not convert reference byte " + b[i] + " to string with charsetName"
+												+ charsetName);
 				e.printStackTrace();
 			}
 		}
@@ -1454,7 +1454,7 @@ public class ArrayUtils {
 			}
 		}
 
-		return (float) Math.sqrt(sum / (count- 1));
+		return (float) Math.sqrt(sum / (count - 1));
 	}
 
 	/**
@@ -1599,7 +1599,7 @@ public class ArrayUtils {
 		}
 
 		kurt = n * (n + 1) / ((n - 1) * (n - 2) * (n - 3)) * m4s
-						- 3 * Math.pow(n - 1, 2) / ((n - 2) * (n - 3));
+					 - 3 * Math.pow(n - 1, 2) / ((n - 2) * (n - 3));
 
 		return kurt;
 	}
@@ -1718,7 +1718,7 @@ public class ArrayUtils {
 					return array[keys[(int) index - 1]];
 				} else {
 					return q * array[keys[(int) Math.floor(index) - 1]]
-									+ (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
+								 + (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
 				}
 			}
 		} catch (Exception e) {
@@ -1752,7 +1752,7 @@ public class ArrayUtils {
 					return array[keys[(int) index - 1]];
 				} else {
 					return q * array[keys[(int) Math.floor(index) - 1]]
-									+ (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
+								 + (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
 				}
 			}
 		} catch (Exception e) {
@@ -1786,7 +1786,7 @@ public class ArrayUtils {
 					return array[keys[(int) index - 1]];
 				} else {
 					return q * array[keys[(int) Math.floor(index) - 1]]
-									+ (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
+								 + (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
 				}
 			}
 		} catch (Exception e) {
@@ -1880,7 +1880,7 @@ public class ArrayUtils {
 						quantiles[i] = array[keys[(int) index - 1]];
 					} else {
 						quantiles[i] = qs[i] * array[keys[(int) Math.floor(index) - 1]]
-														+ (1 - qs[i]) * array[keys[(int) Math.ceil(index) - 1]];
+													 + (1 - qs[i]) * array[keys[(int) Math.ceil(index) - 1]];
 					}
 				}
 			} catch (Exception e) {
@@ -1914,7 +1914,7 @@ public class ArrayUtils {
 		double median = quantExclusive(array, 0.50f);
 		float[] tmp = new float[array.length];
 		for (int i = 0; i < array.length; i++) {
-			tmp[i] = (float)Math.abs(array[i] - median);
+			tmp[i] = (float) Math.abs(array[i] - median);
 		}
 		return quantExclusive(tmp, 0.50f) * constant;
 	}
@@ -2038,7 +2038,7 @@ public class ArrayUtils {
 	public static String toStr(Collection<?> c, String delim) {
 		return toStr(c, delim, null);
 	}
-	
+
 	/**
 	 * Returns a Collection of Objects as a String separated by the specified delimiter
 	 *
@@ -2047,7 +2047,7 @@ public class ArrayUtils {
 	 * @param nullValue value to use in place of nulls
 	 * @return String of printed objects
 	 */
-	public static String toStr(	final Collection<?> collection, String delimiter, String nullValue) {
+	public static String toStr(final Collection<?> collection, String delimiter, String nullValue) {
 		List<String> cleanList = Lists.newArrayListWithCapacity(collection.size());
 		boolean commaDelimited;
 
@@ -2200,9 +2200,9 @@ public class ArrayUtils {
 	 * @param delimiter String delimiter
 	 * @return String of printed objects
 	 */
-	public static String toStr(	String[] array, boolean[] display, String delimiter,
-															String nullValue) {
-			return toStr((Object[])array, display, delimiter, nullValue);
+	public static String toStr(String[] array, boolean[] display, String delimiter,
+														 String nullValue) {
+		return toStr((Object[]) array, display, delimiter, nullValue);
 	}
 
 	/**
@@ -2250,8 +2250,8 @@ public class ArrayUtils {
 	 * @param delimiter String delimiter
 	 * @return String of printed objects
 	 */
-	public static String toStr(	Object[] array, boolean[] display, String delimiter,
-															String nullValue) {
+	public static String toStr(Object[] array, boolean[] display, String delimiter,
+														 String nullValue) {
 		boolean commaDelimited = delimiter.equals(",");
 		List<String> cleanList = Lists.newArrayList();
 		for (int i = 0; i < array.length; i++) {
@@ -2345,8 +2345,8 @@ public class ArrayUtils {
 
 		for (int i = 0; i < array.length; i++) {
 			str += (i == 0 ? "" : delimiter)
-							+ (maxSigFigs == -1	? ext.formDeci(array[i], 10)
-																	: ext.formDeci(array[i], minSigFigs, maxSigFigs));
+						 + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
+																 : ext.formDeci(array[i], minSigFigs, maxSigFigs));
 		}
 
 		return str;
@@ -2375,8 +2375,8 @@ public class ArrayUtils {
 
 		for (int i = 0; i < array.length; i++) {
 			str += (i == 0 ? "" : delimiter)
-							+ (maxSigFigs == -1	? ext.formDeci(array[i], 10)
-																	: ext.formDeci(array[i], minSigFigs, maxSigFigs));
+						 + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
+																 : ext.formDeci(array[i], minSigFigs, maxSigFigs));
 		}
 
 		return str;
@@ -2395,12 +2395,12 @@ public class ArrayUtils {
 	public static <T> List<T[]> splitUpArray(T[] array, int nChunks, Logger log) {
 		int index = 0;
 		if (array.length < nChunks) {
-			log.reportError("Error - too many chunks ("	+ nChunks + ") for " + array.length
+			log.reportError("Error - too many chunks (" + nChunks + ") for " + array.length
 											+ " things, setting to " + array.length);
 			nChunks = array.length;
 		}
 		if (nChunks <= 0) {
-			log.reportError("Error - not enough chunks ("	+ nChunks + ") for " + array.length
+			log.reportError("Error - not enough chunks (" + nChunks + ") for " + array.length
 											+ " things, setting to 1");
 			nChunks = 1;
 		}
@@ -2428,7 +2428,7 @@ public class ArrayUtils {
 	 * @param log
 	 */
 	public static String[][] splitUpStringArray(String[] strings, int nChunks, Logger log) {
-		return splitUpArray(strings, nChunks, log).toArray(new String[][]{});
+		return splitUpArray(strings, nChunks, log).toArray(new String[][] {});
 	}
 
 	/**
@@ -2443,8 +2443,8 @@ public class ArrayUtils {
 		String[][] stringSplits = splitUpStringArray(strings, nChunks, log);
 		boolean[][] stringBoolSplits = new boolean[stringSplits.length][];
 		for (int i = 0; i < stringBoolSplits.length; i++) {
-			int[] indicesThisChunk = ext.indexLargeFactors(	stringSplits[i], strings, true, log, true,
-																											false);
+			int[] indicesThisChunk = ext.indexLargeFactors(stringSplits[i], strings, true, log, true,
+																										 false);
 			stringBoolSplits[i] = new boolean[strings.length];
 			Arrays.fill(stringBoolSplits[i], false);
 			for (int j = 0; j < indicesThisChunk.length; j++) {
@@ -2496,7 +2496,7 @@ public class ArrayUtils {
 			splits[numSplits - 1] = remainder;
 		}
 		if (ArrayUtils.sum(splits) != total) {
-			log.reportError("Internal Error - could not properly split up "	+ total + " into "
+			log.reportError("Internal Error - could not properly split up " + total + " into "
 											+ numSplits);
 			splits = null;
 		}
@@ -2532,6 +2532,7 @@ public class ArrayUtils {
 
 	/**
 	 * Creates an array and copies the contents of a List into it in the specified order
+	 * 
 	 * @param <T>
 	 *
 	 * @param list
@@ -2541,12 +2542,12 @@ public class ArrayUtils {
 	public static <T> T[] toStringArray(List<T> list, int[] order) {
 		if (order.length != list.size()) {
 			System.err.println("Error - order does not have the same number of elements (n="
-													+ order.length + ") as the List (n=" + list.size() + ")");
+												 + order.length + ") as the List (n=" + list.size() + ")");
 			return null;
 		}
 		@SuppressWarnings("unchecked")
 		T[] array = (T[]) new Object[list.size()];
-		
+
 		for (int i = 0; i < array.length; i++) {
 			array[i] = list.get(order[i]);
 		}
@@ -2650,8 +2651,8 @@ public class ArrayUtils {
 	}
 
 	/**
-	 * Creates an array and copies the Keys of a Map into it according to the order specified 
-	 * by the Values
+	 * Creates an array and copies the Keys of a Map into it according to the order specified by the
+	 * Values
 	 *
 	 * @param map Map with intended index position as the Value
 	 * @return array of Keys from map indexed by Values
@@ -2681,7 +2682,7 @@ public class ArrayUtils {
 		}
 		return v;
 	}
-	
+
 	public static <T> List<T> toList(T[] array) {
 		return Lists.newArrayList(array);
 	}
@@ -2870,8 +2871,8 @@ public class ArrayUtils {
 	 * Tries to find the instance in a sorted array where all values up to, but not including, that
 	 * index are less than a given maximum target
 	 * <p>
-	 * For example, calling {@link ArrayUtils#indexOfLastMinByte} using (new byte[] {0,1,2,24,25}, 23),
-	 * would return 3 (all values up to index 3 are less than 23);
+	 * For example, calling {@link ArrayUtils#indexOfLastMinByte} using (new byte[] {0,1,2,24,25},
+	 * 23), would return 3 (all values up to index 3 are less than 23);
 	 *
 	 * @param array an array of bytes
 	 * @param maxByte the number to find
@@ -2928,8 +2929,8 @@ public class ArrayUtils {
 		int count;
 
 		if (array.length != use.length) {
-			System.err.println("Error - mismatched array lengths for the aray (n="	+ array.length
-													+ ") and the boolean subset (n=" + use.length + ")");
+			System.err.println("Error - mismatched array lengths for the aray (n=" + array.length
+												 + ") and the boolean subset (n=" + use.length + ")");
 			return null;
 		}
 
@@ -2975,8 +2976,8 @@ public class ArrayUtils {
 				subarray[i] = array[use[i]];
 			}
 		} catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
-			System.err.println("Error - out of bounds index ("	+ currentIndex + ") for subsetting (n="
-													+ array.length + ")");
+			System.err.println("Error - out of bounds index (" + currentIndex + ") for subsetting (n="
+												 + array.length + ")");
 			return null;
 		}
 		return subarray;
@@ -2995,8 +2996,8 @@ public class ArrayUtils {
 				subarray[i] = array[use[i]];
 			}
 		} catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
-			System.err.println("Error - out of bounds index ("	+ currentIndex + ") for subsetting (n="
-													+ array.length + ")");
+			System.err.println("Error - out of bounds index (" + currentIndex + ") for subsetting (n="
+												 + array.length + ")");
 			return null;
 		}
 		return subarray;
@@ -3019,8 +3020,8 @@ public class ArrayUtils {
 				subarray[i] = array[use[i]];
 			}
 		} catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
-			System.err.println("Error - out of bounds index ("	+ currentIndex + ") for subsetting (n="
-													+ array.length + ")");
+			System.err.println("Error - out of bounds index (" + currentIndex + ") for subsetting (n="
+												 + array.length + ")");
 			return null;
 		}
 		return subarray;
@@ -3043,8 +3044,8 @@ public class ArrayUtils {
 				subarray[i] = array[use[i]];
 			}
 		} catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
-			System.err.println("Error - out of bounds index ("	+ currentIndex + ") for subsetting (n="
-													+ array.length + ")");
+			System.err.println("Error - out of bounds index (" + currentIndex + ") for subsetting (n="
+												 + array.length + ")");
 			return null;
 		}
 		return subarray;
@@ -3062,8 +3063,8 @@ public class ArrayUtils {
 		int count;
 
 		if (array.length != use.length) {
-			System.err.println("Error - mismatched array lengths for the aray (n="	+ array.length
-													+ ") and the boolean subset (n=" + use.length + ")");
+			System.err.println("Error - mismatched array lengths for the aray (n=" + array.length
+												 + ") and the boolean subset (n=" + use.length + ")");
 			return null;
 		}
 
@@ -3091,8 +3092,8 @@ public class ArrayUtils {
 		int count;
 
 		if (array.length != use.length) {
-			System.err.println("Error - mismatched array lengths for the aray (n="	+ array.length
-													+ ") and the boolean subset (n=" + use.length + ")");
+			System.err.println("Error - mismatched array lengths for the aray (n=" + array.length
+												 + ") and the boolean subset (n=" + use.length + ")");
 			return null;
 		}
 
@@ -3120,8 +3121,8 @@ public class ArrayUtils {
 		double[] arr;
 
 		if (start < 0 || stopBefore > array.length || stopBefore <= start) {
-			System.err.println("Error - invalid start ("	+ start + ") and stopBefore (" + stopBefore
-													+ ") indicies for an array");
+			System.err.println("Error - invalid start (" + start + ") and stopBefore (" + stopBefore
+												 + ") indicies for an array");
 		}
 		arr = new double[stopBefore - start];
 		for (int i = start; i < stopBefore; i++) {
@@ -3155,8 +3156,8 @@ public class ArrayUtils {
 		int count;
 
 		if (array.length != use.length) {
-			System.err.println("Error - mismatched array lengths for the aray (n="	+ array.length
-													+ ") and the boolean subset (n=" + use.length + ")");
+			System.err.println("Error - mismatched array lengths for the aray (n=" + array.length
+												 + ") and the boolean subset (n=" + use.length + ")");
 			return null;
 		}
 
@@ -3184,8 +3185,8 @@ public class ArrayUtils {
 		int count;
 
 		if (array.length != use.length) {
-			System.err.println("Error - mismatched array lengths for the aray (n="	+ array.length
-													+ ") and the boolean subset (n=" + use.length + ")");
+			System.err.println("Error - mismatched array lengths for the aray (n=" + array.length
+												 + ") and the boolean subset (n=" + use.length + ")");
 			return null;
 		}
 
@@ -3253,8 +3254,8 @@ public class ArrayUtils {
 		double[][] arr;
 
 		if (start < 0 || stopBefore > array.length || stopBefore <= start) {
-			System.err.println("Error - invalid start ("	+ start + ") and stopBefore (" + stopBefore
-													+ ") indicies for an array");
+			System.err.println("Error - invalid start (" + start + ") and stopBefore (" + stopBefore
+												 + ") indicies for an array");
 		}
 		arr = new double[stopBefore - start][];
 		for (int i = start; i < stopBefore; i++) {
@@ -3276,8 +3277,8 @@ public class ArrayUtils {
 		float[] arr;
 
 		if (start < 0 || stopBefore > array.length || stopBefore <= start) {
-			System.err.println("Error - invalid start ("	+ start + ") and stopBefore (" + stopBefore
-													+ ") indicies for an array");
+			System.err.println("Error - invalid start (" + start + ") and stopBefore (" + stopBefore
+												 + ") indicies for an array");
 		}
 		arr = new float[stopBefore - start];
 		for (int i = start; i < stopBefore; i++) {
@@ -3298,8 +3299,8 @@ public class ArrayUtils {
 	public static boolean[] subArray(boolean[] array, int start, int stopBefore) {
 		boolean[] arr;
 		if (start < 0 || stopBefore > array.length || stopBefore <= start) {
-			System.err.println("Error - invalid start ("	+ start + ") and stopBefore (" + stopBefore
-													+ ") indicies for an array");
+			System.err.println("Error - invalid start (" + start + ") and stopBefore (" + stopBefore
+												 + ") indicies for an array");
 		}
 		arr = new boolean[stopBefore - start];
 		for (int i = start; i < stopBefore; i++) {
@@ -3316,7 +3317,8 @@ public class ArrayUtils {
 	}
 
 	/**
-	 * Creates a new array using only the float values within the given range. Prunes out {@link Float#NaN} as well.
+	 * Creates a new array using only the float values within the given range. Prunes out
+	 * {@link Float#NaN} as well.
 	 *
 	 * @param array base array to filter
 	 * @param use indices of array to use
@@ -3326,8 +3328,9 @@ public class ArrayUtils {
 	 */
 	public static float[] subArrayInRange(float[] array, boolean[] use, float min, float max) {
 		boolean[] samples = new boolean[array.length];
-		for (int i=0; i<array.length; i++) {
-			samples[i] = (use == null || use[i]) && !Float.isNaN(array[i]) && (Float.compare(array[i], min) >= 0 && Float.compare(array[i], max) <= 0);
+		for (int i = 0; i < array.length; i++) {
+			samples[i] = (use == null || use[i]) && !Float.isNaN(array[i])
+									 && (Float.compare(array[i], min) >= 0 && Float.compare(array[i], max) <= 0);
 		}
 		return subArray(array, samples);
 	}
@@ -3344,8 +3347,8 @@ public class ArrayUtils {
 		int count;
 
 		if (array.length != use.length) {
-			System.err.println("Error - mismatched array lengths for the aray (n="	+ array.length
-													+ ") and the boolean subset (n=" + use.length + ")");
+			System.err.println("Error - mismatched array lengths for the aray (n=" + array.length
+												 + ") and the boolean subset (n=" + use.length + ")");
 			return null;
 		}
 
@@ -3373,8 +3376,8 @@ public class ArrayUtils {
 		String[] arr;
 
 		if (start < 0 || stopBefore > array.length || stopBefore < start) {
-			System.err.println("Error - invalid start ("	+ start + ") and stopBefore (" + stopBefore
-													+ ") indicies for an array of size " + array.length);
+			System.err.println("Error - invalid start (" + start + ") and stopBefore (" + stopBefore
+												 + ") indicies for an array of size " + array.length);
 		}
 		arr = new String[stopBefore - start];
 		for (int i = start; i < stopBefore; i++) {
@@ -3447,8 +3450,8 @@ public class ArrayUtils {
 		int count;
 
 		if (array.length != use.length) {
-			System.err.println("Error - mismatched array lengths for the aray (n="	+ array.length
-													+ ") and the boolean subset (n=" + use.length + ")");
+			System.err.println("Error - mismatched array lengths for the aray (n=" + array.length
+												 + ") and the boolean subset (n=" + use.length + ")");
 			return null;
 		}
 
@@ -3469,7 +3472,7 @@ public class ArrayUtils {
 	 */
 	public static <T> List<T> subList(List<T> listIn, boolean[] use) {
 		List<T> listOut = new ArrayList<T>();
-		for (int i=0; i<listIn.size(); i++) {
+		for (int i = 0; i < listIn.size(); i++) {
 			if (use[i]) {
 				listOut.add(listIn.get(i));
 			}
@@ -3568,14 +3571,14 @@ public class ArrayUtils {
 		return ret;
 	}
 
-	public static <T extends Comparable<T>> int binarySearch(	ArrayList<T[]> list, T[] value,
-																														int keyIndex, boolean exact) {
+	public static <T extends Comparable<T>> int binarySearch(ArrayList<T[]> list, T[] value,
+																													 int keyIndex, boolean exact) {
 		return binarySearch(list, value, keyIndex, 0, list.size() - 1, exact);
 	}
 
-	public static <T extends Comparable<T>> int binarySearch(	ArrayList<T[]> list, T[] value,
-																														int keyIndex, int low, int high,
-																														boolean exact) {
+	public static <T extends Comparable<T>> int binarySearch(ArrayList<T[]> list, T[] value,
+																													 int keyIndex, int low, int high,
+																													 boolean exact) {
 		int mid;
 
 		while (low <= high) {
@@ -3717,8 +3720,8 @@ public class ArrayUtils {
 	 */
 	public static double iqrExclusive(double[] array) {
 		if (array.length < 2) {
-			System.err.println("Error - can't calculate an IQR for an array with "	+ array.length
-													+ " datapoint(s)");
+			System.err.println("Error - can't calculate an IQR for an array with " + array.length
+												 + " datapoint(s)");
 			return -1;
 		}
 
@@ -3743,8 +3746,8 @@ public class ArrayUtils {
 	 */
 	public static float iqrExclusive(float[] array) {
 		if (array.length < 2) {
-			System.err.println("Error - can't calculate an IQR for an array with "	+ array.length
-													+ " datapoint(s)");
+			System.err.println("Error - can't calculate an IQR for an array with " + array.length
+												 + " datapoint(s)");
 			return -1;
 		}
 
@@ -3764,6 +3767,7 @@ public class ArrayUtils {
 
 	/**
 	 * Trims null values from the end of an array
+	 * 
 	 * @param <T>
 	 *
 	 * @param array an array of Strings
@@ -3990,7 +3994,7 @@ public class ArrayUtils {
 	 */
 	public static float[] replaceNonFinites(float[] array) {
 		float[] ret = new float[array.length];
-		for (int i=0; i<array.length; i++) {
+		for (int i = 0; i < array.length; i++) {
 			if (Numbers.isFinite(array[i])) {
 				ret[i] = array[i];
 			} else {
@@ -4149,7 +4153,7 @@ public class ArrayUtils {
 		Class<?> arrClz = srcArr[0][0].getClass();
 		@SuppressWarnings("unchecked")
 		T[] arr = (T[]) java.lang.reflect.Array.newInstance(arrClz, srcArr.length);// new
-																																								// Object[srcArr.length];
+																																							 // Object[srcArr.length];
 		for (int i = 0; i < srcArr.length; i++) {
 			arr[i] = srcArr[i][index];
 		}
@@ -4319,12 +4323,12 @@ public class ArrayUtils {
 	 *         neither
 	 */
 	public static int determineType(String filename, int col, String[] exclusions, boolean allow21) {
-		return determineType(	allow21,
-													ArrayUtils.toDoubleArray(ArrayUtils.removeFromArray(HashVec.loadFileToStringArray(filename,
-																																																	true,
-																																																	new int[] {col},
-																																																	true),
-																																		exclusions)));
+		return determineType(allow21,
+												 ArrayUtils.toDoubleArray(ArrayUtils.removeFromArray(HashVec.loadFileToStringArray(filename,
+																																																					 true,
+																																																					 new int[] {col},
+																																																					 true),
+																																						 exclusions)));
 	}
 
 	/**
@@ -4347,7 +4351,8 @@ public class ArrayUtils {
 
 		Collections.sort(bds);
 
-		return determineType(allow21, new double[]{bds.get(0).doubleValue(), bds.get(1).doubleValue()});
+		return determineType(allow21,
+												 new double[] {bds.get(0).doubleValue(), bds.get(1).doubleValue()});
 	}
 
 	/**
@@ -4367,11 +4372,12 @@ public class ArrayUtils {
 			return -1;
 		} else if (array.length == 2 && ArrayUtils.min(array) == 0 && ArrayUtils.max(array) == 1) {
 			return 0;
-		} else if (allow21 && array.length == 2 && ArrayUtils.min(array) == 1 && ArrayUtils.max(array) == 2) {
+		} else if (allow21 && array.length == 2 && ArrayUtils.min(array) == 1
+							 && ArrayUtils.max(array) == 2) {
 			return 0;
 		} else if (array.length == 2) {
 			System.err.println("Error - flag was set to prevent binary trait from being anything other than 0/1 ("
-													+ array[0] + "/" + array[1] + " is not valid)");
+												 + array[0] + "/" + array[1] + " is not valid)");
 			return -1;
 		} else if (array.length > 2) {
 			return 1;
@@ -4567,8 +4573,8 @@ public class ArrayUtils {
 			freqBinCountsSmooth[i] = (freqBinCounts[i - 1] + freqBinCounts[i] + freqBinCounts[i + 1]) / 3;
 		}
 		freqBinCountsSmooth[0] = (freqBinCounts[0] + freqBinCounts[1]) / 2;
-		freqBinCountsSmooth[numBins - 1] =
-																			(freqBinCounts[numBins - 2] + freqBinCounts[numBins - 1]) / 2;
+		freqBinCountsSmooth[numBins - 1] = (freqBinCounts[numBins - 2] + freqBinCounts[numBins - 1])
+																			 / 2;
 
 		maxFreq = Double.NEGATIVE_INFINITY;
 		localMinFreq = Double.POSITIVE_INFINITY;
@@ -4576,7 +4582,7 @@ public class ArrayUtils {
 			if (freqBinCountsSmooth[i] > maxFreq) {
 				maxFreq = freqBinCountsSmooth[i];
 			} else if (freqBinCountsSmooth[i] < (maxFreq * percentDropInPeak)
-									&& freqBinCountsSmooth[i] < localMinFreq) {
+								 && freqBinCountsSmooth[i] < localMinFreq) {
 				localMinFreq = freqBinCountsSmooth[i];
 			} else if (freqBinCountsSmooth[i] >= (maxFreq * percentDropInPeak)) {
 				return true;
@@ -4585,26 +4591,26 @@ public class ArrayUtils {
 		return false;
 	}
 
-	public static boolean isMultimodal(	double[] array,
-																			double proportionOfLastPeakRequiredForNewLocalMinima,
-																			double proportionOfGlobalMaxRequiredForLocalMaxima,
-																			double binSize) {
-		return getLocalModes(	array, proportionOfLastPeakRequiredForNewLocalMinima,
-													proportionOfGlobalMaxRequiredForLocalMaxima, binSize, true).length > 1;
+	public static boolean isMultimodal(double[] array,
+																		 double proportionOfLastPeakRequiredForNewLocalMinima,
+																		 double proportionOfGlobalMaxRequiredForLocalMaxima,
+																		 double binSize) {
+		return getLocalModes(array, proportionOfLastPeakRequiredForNewLocalMinima,
+												 proportionOfGlobalMaxRequiredForLocalMaxima, binSize, true).length > 1;
 	}
 
-	public static double[] getLocalModes(	double[] array,
-																				double proportionOfLastPeakRequiredForNewLocalMinima,
-																				double proportionOfGlobalMaxRequiredForLocalMaxima) {
-		return getLocalModes(	array, proportionOfLastPeakRequiredForNewLocalMinima,
-													proportionOfGlobalMaxRequiredForLocalMaxima,
-													(max(array) - min(array)) / 40, true);
+	public static double[] getLocalModes(double[] array,
+																			 double proportionOfLastPeakRequiredForNewLocalMinima,
+																			 double proportionOfGlobalMaxRequiredForLocalMaxima) {
+		return getLocalModes(array, proportionOfLastPeakRequiredForNewLocalMinima,
+												 proportionOfGlobalMaxRequiredForLocalMaxima,
+												 (max(array) - min(array)) / 40, true);
 	}
 
-	public static double[] getLocalModes(	double[] array,
-																				double proportionOfLastPeakRequiredForNewLocalMinima,
-																				double proportionOfGlobalMaxRequiredForLocalMaxima,
-																				double binSize, boolean sensitiveToSmallNumbers) {
+	public static double[] getLocalModes(double[] array,
+																			 double proportionOfLastPeakRequiredForNewLocalMinima,
+																			 double proportionOfGlobalMaxRequiredForLocalMaxima,
+																			 double binSize, boolean sensitiveToSmallNumbers) {
 		int numBins;
 		int[] freqBinCounts;
 		double[] freqBinCountsSmooth;
@@ -4627,24 +4633,23 @@ public class ArrayUtils {
 		if (freqBinCounts.length >= 2) {
 			freqBinCountsSmooth[0] = (freqBinCounts[0] + freqBinCounts[1]) / 2;
 			freqBinCountsSmooth[numBins - 1] = (freqBinCounts[numBins - 2] + freqBinCounts[numBins - 1])
-																					/ 2;
+																				 / 2;
 		}
 
 		if (sensitiveToSmallNumbers) {
-			proportionOfGlobalMaxRequiredForLocalMaxima =
-																									Math.max(	proportionOfGlobalMaxRequiredForLocalMaxima,
-																														Math.min(	0.50,
+			proportionOfGlobalMaxRequiredForLocalMaxima = Math.max(proportionOfGlobalMaxRequiredForLocalMaxima,
+																														 Math.min(0.50,
 																																			proportionOfGlobalMaxRequiredForLocalMaxima
-																																							* proportionOfGlobalMaxRequiredForLocalMaxima
+																																						* proportionOfGlobalMaxRequiredForLocalMaxima
 																																						* 300 / array.length));
 			if (array.length < 50) {
 				// System.out.println(array.length+"\t"+proportionOfGlobalMaxRequiredForLocalMaxima);
 			}
 		}
 
-		indicesOfLocalMaxima = getIndicesOfLocalMaxima(	freqBinCountsSmooth,
-																										proportionOfLastPeakRequiredForNewLocalMinima,
-																										proportionOfGlobalMaxRequiredForLocalMaxima);
+		indicesOfLocalMaxima = getIndicesOfLocalMaxima(freqBinCountsSmooth,
+																									 proportionOfLastPeakRequiredForNewLocalMinima,
+																									 proportionOfGlobalMaxRequiredForLocalMaxima);
 		modes = new double[indicesOfLocalMaxima.length];
 		for (int i = 0; i < modes.length; i++) {
 			modes[i] = minValue + indicesOfLocalMaxima[i] * binSize + binSize / 2;
@@ -4697,7 +4702,7 @@ public class ArrayUtils {
 			}
 		}
 		if (localMin != Double.POSITIVE_INFINITY
-					&& localMax >= globalMax * proportionOfGlobalMaxRequiredForLocalMaxima
+				&& localMax >= globalMax * proportionOfGlobalMaxRequiredForLocalMaxima
 				&& indexOfLocalMax != -1) {
 			// System.out.println("localMax="+localMax+" at index "+indexOfLocalMax);
 			indicesOfMaxima.add(indexOfLocalMax);
@@ -4763,7 +4768,7 @@ public class ArrayUtils {
 		for (int i = 0; i < newArray.length; i++) {
 			if (array[i].length() != 1) {
 				System.err.println("Error - cannot convert string to char since it is longer than 1 byte: "
-														+ array[i]);
+													 + array[i]);
 			}
 			newArray[i] = array[i].charAt(0);
 		}
@@ -5032,11 +5037,12 @@ public class ArrayUtils {
 		Arrays.sort(sorted);
 		return sorted;
 	}
-	
+
 	public static String[] sortedCopyAlphanum(String[] array) {
 		String[] sorted = Arrays.copyOf(array, array.length);
 		Arrays.sort(sorted, new Comparator<String>() {
 			final Pattern p = Pattern.compile("^\\d+");
+
 			@Override
 			public int compare(String object1, String object2) {
 				Matcher m = p.matcher(object1);
@@ -5065,17 +5071,17 @@ public class ArrayUtils {
 	}
 
 	public static void main(String[] args) {
-		double[] data = {	11.8, 0.93, 1.76, 14, 16.5, 17.1, 32.5, 33.4, 16.8, 21.5, 13.1, 22.2, 22.2, 16,
-											16.2};
+		double[] data = {11.8, 0.93, 1.76, 14, 16.5, 17.1, 32.5, 33.4, 16.8, 21.5, 13.1, 22.2, 22.2, 16,
+										 16.2};
 		// float[] data = {11.8f, 0.93f, 1.76f, 14, 16.5f, 17.1f, 32.5f, 33.4f, 16.8f, 21.5f, 13.1f,
 		// 22.2f, 22.2f, 16, 16.2f};
 
 		System.out.println(ArrayUtils.toStr(quantiles(data)));
 
-		System.out.println(1.1 - (int) 1 == 0.1); //false
-		System.out.println(Math.abs((1.1 - 1) - 0.1) <= 0.00000001); //true
+		System.out.println(1.1 - (int) 1 == 0.1); // false
+		System.out.println(Math.abs((1.1 - 1) - 0.1) <= 0.00000001); // true
 
-		System.out.println(stdev(new double[]{2, 4, 4, 4, 5, 5, 7, 9}, true));
+		System.out.println(stdev(new double[] {2, 4, 4, 4, 5, 5, 7, 9}, true));
 		// double alleleFreq = 0.2;
 		// double stdev = 0.12;
 		// double[] array = new double[10000];

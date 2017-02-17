@@ -28,8 +28,8 @@ public class SummarizeOSTrioCoverage {
 	private static final int[] covTargets = new int[] {5, 10, 20, 30, 40};
 
 	// /home/spectorl/lanej0/OS_seq/bamQC
-	public static void summarize(	String vpopFile, String indir, String outDir, int numThreads,
-																Logger log) throws IllegalStateException {
+	public static void summarize(String vpopFile, String indir, String outDir, int numThreads,
+															 Logger log) throws IllegalStateException {
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.ANY, log);
 		vpop.report();
 		String[] files = Files.listFullPaths(indir, ".sorted.dedup.realigned.recal.txt", false);
@@ -46,9 +46,9 @@ public class SummarizeOSTrioCoverage {
 
 			ArrayList<String> famsNotFound = new ArrayList<String>();
 			SumFamProducer producer = new SumFamProducer(vpop, outDir, log, map);
-			WorkerTrain<FamSum> train =
-																new WorkerTrain<SummarizeOSTrioCoverage.FamSum>(producer,
-																																								numThreads, 2, log);
+			WorkerTrain<FamSum> train = new WorkerTrain<SummarizeOSTrioCoverage.FamSum>(producer,
+																																									numThreads, 2,
+																																									log);
 
 			int num = 0;
 			ArrayList<FamSum> haveData = new ArrayList<FamSum>();
@@ -100,20 +100,20 @@ public class SummarizeOSTrioCoverage {
 		String scripAINMIN = outputFinal + ".avgCIMin.rscript";
 		String plotAInMIN = ext.removeDirectoryInfo(scripAINMIN);
 		String outAINMIN = outputFinal + ".avgCIMin.jpeg";
-		RScatter rscatterAvgINMIN = new RScatter(	outputFinal, scripAINMIN, plotAInMIN, outAINMIN,
-																							"MIN_AVG_COVERAGE",
-																							new String[] {"INTERSECT_ProportionCoveredAt5X",
-																														"INTERSECT_ProportionCoveredAt10X",
-																														"INTERSECT_ProportionCoveredAt20X",
-																														"INTERSECT_ProportionCoveredAt30X",
-																														"INTERSECT_ProportionCoveredAt40X"},
-																							null, SCATTER_TYPE.POINT, log);
-		rscatterAvgINMIN.setrSafeAltYColumnNames(new String[] {	"5X Coverage", "10X Coverage",
-																														"20X Coverage", "30X Coverage",
-																														"40X Coverage"});
+		RScatter rscatterAvgINMIN = new RScatter(outputFinal, scripAINMIN, plotAInMIN, outAINMIN,
+																						 "MIN_AVG_COVERAGE",
+																						 new String[] {"INTERSECT_ProportionCoveredAt5X",
+																													 "INTERSECT_ProportionCoveredAt10X",
+																													 "INTERSECT_ProportionCoveredAt20X",
+																													 "INTERSECT_ProportionCoveredAt30X",
+																													 "INTERSECT_ProportionCoveredAt40X"},
+																						 null, SCATTER_TYPE.POINT, log);
+		rscatterAvgINMIN.setrSafeAltYColumnNames(new String[] {"5X Coverage", "10X Coverage",
+																													 "20X Coverage", "30X Coverage",
+																													 "40X Coverage"});
 		rscatterAvgINMIN.setOverWriteExisting(true);
 		rscatterAvgINMIN.setxLabel("Minimum average coverage of trio (n="
-																+ Files.countLines(outputFinal, 1) + ")");
+															 + Files.countLines(outputFinal, 1) + ")");
 		rscatterAvgINMIN.setyLabel("Proportion of targets covered in all members of trio");
 		rscatterAvgINMIN.setyRange(new double[] {0, 1});
 		rscatterAvgINMIN.setxRange(new double[] {15, 55});
@@ -124,20 +124,20 @@ public class SummarizeOSTrioCoverage {
 		String scripBOX = outputFinal + ".avgCIMinbox.rscript";
 		String plotABOX = ext.removeDirectoryInfo(scripBOX);
 		String outAINBOX = outputFinal + ".avgCIMinbox.jpeg";
-		RScatter rscatterAvgBOX = new RScatter(	outputFinal, scripBOX, plotABOX, outAINBOX,
-																						"MIN_AVG_COVERAGE",
-																						new String[] {"INTERSECT_ProportionCoveredAt5X",
-																													"INTERSECT_ProportionCoveredAt10X",
-																													"INTERSECT_ProportionCoveredAt20X",
-																													"INTERSECT_ProportionCoveredAt30X",
-																													"INTERSECT_ProportionCoveredAt40X"},
-																						null, SCATTER_TYPE.BOX_NO_MELT, log);
-		rscatterAvgBOX.setrSafeAltYColumnNames(new String[] {	"5X Coverage", "10X Coverage",
-																													"20X Coverage", "30X Coverage",
-																													"40X Coverage"});
+		RScatter rscatterAvgBOX = new RScatter(outputFinal, scripBOX, plotABOX, outAINBOX,
+																					 "MIN_AVG_COVERAGE",
+																					 new String[] {"INTERSECT_ProportionCoveredAt5X",
+																												 "INTERSECT_ProportionCoveredAt10X",
+																												 "INTERSECT_ProportionCoveredAt20X",
+																												 "INTERSECT_ProportionCoveredAt30X",
+																												 "INTERSECT_ProportionCoveredAt40X"},
+																					 null, SCATTER_TYPE.BOX_NO_MELT, log);
+		rscatterAvgBOX.setrSafeAltYColumnNames(new String[] {"5X Coverage", "10X Coverage",
+																												 "20X Coverage", "30X Coverage",
+																												 "40X Coverage"});
 		rscatterAvgBOX.setOverWriteExisting(true);
 		rscatterAvgBOX.setxLabel("Minimum average coverage of trio (n="
-															+ Files.countLines(outputFinal, 1) + ")");
+														 + Files.countLines(outputFinal, 1) + ")");
 		rscatterAvgBOX.setyLabel("Proportion of targets covered in all members of trio");
 		rscatterAvgBOX.setyRange(new double[] {0, 1});
 		rscatterAvgBOX.setFontsize(10);
@@ -307,9 +307,9 @@ public class SummarizeOSTrioCoverage {
 
 	}
 
-	private static FamCoverageResults sumFam(	String outDir, Logger log, Hashtable<String, String> map,
-																						String fam,
-																						Set<String> famInds) throws IllegalStateException {
+	private static FamCoverageResults sumFam(String outDir, Logger log, Hashtable<String, String> map,
+																					 String fam,
+																					 Set<String> famInds) throws IllegalStateException {
 		String off = null;
 		String offFile = null;
 		String mo = null;
@@ -375,8 +375,8 @@ public class SummarizeOSTrioCoverage {
 			try {
 				BufferedReader reader = Files.getAppropriateReader(coverageTrio);
 				String[] header = new String[] {avgC + "_" + off, avgC + "_" + mo, avgC + "_" + fa};
-				int[] indices = ext.indexFactors(	header, Files.getHeaderOfFile(coverageTrio, log), true,
-																					true);
+				int[] indices = ext.indexFactors(header, Files.getHeaderOfFile(coverageTrio, log), true,
+																				 true);
 				reader.readLine();
 
 				while (reader.ready()) {
@@ -401,7 +401,7 @@ public class SummarizeOSTrioCoverage {
 							numCoveredAtFa[i]++;
 
 						}
-						if (faC >= coverageTargets[i]	&& moC >= coverageTargets[i]
+						if (faC >= coverageTargets[i] && moC >= coverageTargets[i]
 								&& offC >= coverageTargets[i]) {
 							numCoveredAtIntersect[i]++;
 						}

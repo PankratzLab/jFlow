@@ -77,8 +77,7 @@ import org.genvisis.parse.GenParser;
 
 import com.google.common.base.Strings;
 
-public class TwoDPlot extends JPanel
-											implements WindowListener, ActionListener, TreeSelectionListener {
+public class TwoDPlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener {
 	public static final long serialVersionUID = 1L;
 	public static final byte DEFAULT_SIZE = 8;
 	public static final int DEFAULT_GC_THRESHOLD = 25;
@@ -114,7 +113,7 @@ public class TwoDPlot extends JPanel
 	public static final String[][] LINKERS = {Aliases.INDIVIDUAL_ID, Aliases.FAMILY_ID, Aliases.DNA,
 																						Aliases.MARKER_NAMES, Aliases.REGION, Aliases.CHRS,
 																						ArrayUtils.combine(Aliases.POSITIONS,
-																													Aliases.POSITIONS_START),
+																															 Aliases.POSITIONS_START),
 																						Aliases.POSITIONS_STOP};
 	public static final int IID_INDEX_IN_LINKERS = 0;
 	public static final int FID_INDEX_IN_LINKERS = 1;
@@ -162,11 +161,9 @@ public class TwoDPlot extends JPanel
 	private JScrollPane scrollPane;
 	private final HashSet<String> selectedDataHash = new HashSet<String>();
 	private final ImageIcon flip1_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg");
-	private final ImageIcon flip1_2 =
-																	Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue_3.jpg");
+	private final ImageIcon flip1_2 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue_3.jpg");
 	private final ImageIcon flip2_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv.jpg");
-	private final ImageIcon flip2_2 =
-																	Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv_blue_3.jpg");
+	private final ImageIcon flip2_2 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv_blue_3.jpg");
 	private final ImageIcon flipX1_1 = Grafik.getImageIcon("images/flip_and_invert/right_10.gif");
 	private final ImageIcon flipX1_2 = Grafik.getImageIcon("images/flip_and_invert/right_10_blue.jpg");
 	private final ImageIcon flipX2_1 = Grafik.getImageIcon("images/flip_and_invert/left_10.gif");
@@ -188,8 +185,8 @@ public class TwoDPlot extends JPanel
 		log = proj.getLog();
 		size = DEFAULT_SIZE;
 
-		if (Files.exists(	proj.SAMPLE_DATA_FILENAME.getValue(false, false),
-											proj.JAR_STATUS.getValue())) {
+		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
+										 proj.JAR_STATUS.getValue())) {
 			sampleData = proj.getSampleData(2, false);
 		} else {
 			sampleData = null;
@@ -301,8 +298,8 @@ public class TwoDPlot extends JPanel
 				if (Files.isRelativePath(fileSel[0])) {
 					fileSel[0] = proj.PROJECT_DIRECTORY.getValue() + fileSel[0];
 				}
-				tree.performCheckBoxAction(	dataColumnsHash.get(fileSel[0])[Integer.parseInt(fileSel[1])],
-																		ItemEvent.SELECTED);
+				tree.performCheckBoxAction(dataColumnsHash.get(fileSel[0])[Integer.parseInt(fileSel[1])],
+																	 ItemEvent.SELECTED);
 			}
 		}
 
@@ -505,8 +502,8 @@ public class TwoDPlot extends JPanel
 		menuItemSave.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser(proj != null	? proj.PROJECT_DIRECTORY.getValue()
-																																	: ".");
+				JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue()
+																																 : ".");
 				int fileOpenActionSelected = fileChooser.showSaveDialog(TwoDPlot.this);
 				if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 					File fileToOpen = fileChooser.getSelectedFile();
@@ -633,8 +630,8 @@ public class TwoDPlot extends JPanel
 	}
 
 	private void createScreenshotsFromFile() {
-		JFileChooser jfc = new JFileChooser(proj != null	? proj.PROJECT_DIRECTORY.getValue()
-																											: (new File(".")).toString());
+		JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue()
+																										 : (new File(".")).toString());
 		jfc.setMultiSelectionEnabled(true);
 		if (jfc.showOpenDialog(TwoDPlot.this) == JFileChooser.APPROVE_OPTION) {
 			File selFile = jfc.getSelectedFile();
@@ -654,8 +651,8 @@ public class TwoDPlot extends JPanel
 		if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 			for (int i = 0; tree != null
 											&& i < tree.getModel().getChildCount(tree.getModel().getRoot()); i++) {
-				if (ext	.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/")
-								.equals(tree.getModel().getChild(tree.getModel().getRoot(), i).toString())) {
+				if (ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/")
+							 .equals(tree.getModel().getChild(tree.getModel().getRoot(), i).toString())) {
 					found = true;
 					break;
 				}
@@ -690,7 +687,7 @@ public class TwoDPlot extends JPanel
 																				// time something is added or deleted
 			tree.deleteSelectedNode();
 			dataHash.remove(keys[numberOfSelectedNodes]);// TODO tree.getSelectionValues()[0][0] is not
-																										// the branch to delete.
+																									 // the branch to delete.
 			dataColumnsHash.remove(keys[numberOfSelectedNodes]);
 			linkerIndices.remove(keys[numberOfSelectedNodes]);
 			validColumnsHash.remove(keys[numberOfSelectedNodes]);
@@ -901,8 +898,8 @@ public class TwoDPlot extends JPanel
 		// Hashtable<String, Integer> linkKeyIndexCopy = new Hashtable<String,
 		// Integer>(sampleData.getLinkKeyIndex());
 		proj.resetSampleData();
-		if (Files.exists(	proj.SAMPLE_DATA_FILENAME.getValue(false, false),
-											proj.JAR_STATUS.getValue())) {
+		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
+										 proj.JAR_STATUS.getValue())) {
 			sampleData = proj.getSampleData(2, false);
 		}
 		sampleData = proj.getSampleData(2, false);
@@ -1002,9 +999,9 @@ public class TwoDPlot extends JPanel
 		String[][] metaData = getCurrentColumnMetaData();
 		String[][] selectedValues = tree.getSelectionValues();
 		for (int i = 0; i < metaData.length; i++) {
-			resultList.add(metaData[i] == null	? dataColumnsHash.get(selectedValues[i][0])[Integer.parseInt(selectedValues[i][1])]
-																					: metaData[i][4]	+ " chr" + metaData[i][0] + ":"
-																						+ metaData[i][1]);
+			resultList.add(metaData[i] == null ? dataColumnsHash.get(selectedValues[i][0])[Integer.parseInt(selectedValues[i][1])]
+																				 : metaData[i][4] + " chr" + metaData[i][0] + ":"
+																					 + metaData[i][1]);
 		}
 		String[] result = resultList.toArray(new String[resultList.size()]);
 		return result;
@@ -1164,14 +1161,14 @@ public class TwoDPlot extends JPanel
 
 						int sampColorKey = 0;
 						if (indi != null) {
-							sampColorKey = sampleData.determineCodeFromClass(	currentClass, (byte) 0, indi,
-																																(byte) 0, 0);
+							sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, indi,
+																															 (byte) 0, 0);
 						}
 						if (hideExcludes && sampleData.individualShouldBeExcluded(curSample)) {
 							continue outer;
 						}
-						if (colorKeyPanel	.getDisabledClassValues()
-															.containsKey(currentClass + "\t" + sampColorKey)) {
+						if (colorKeyPanel.getDisabledClassValues()
+														 .containsKey(currentClass + "\t" + sampColorKey)) {
 							continue outer;
 						}
 					}
@@ -1179,7 +1176,7 @@ public class TwoDPlot extends JPanel
 			}
 			xData.put(inLine[linkerIndices.get(selectedFileX)[IID_INDEX_IN_LINKERS]], inLine);
 		}
-		if (selectedNodes.length > 1	&& selectedNodes[1] != null && selectedNodes[1][0] != null
+		if (selectedNodes.length > 1 && selectedNodes[1] != null && selectedNodes[1][0] != null
 				&& linkerIndices.get(selectedNodes[1][0]) != null) {
 			selectedColumnY = Integer.parseInt(selectedNodes[1][1]);
 			selectedFileY = selectedNodes[1][0];
@@ -1218,7 +1215,8 @@ public class TwoDPlot extends JPanel
 			if (outLine != null) {
 				inLine = ArrayUtils.combine(inLine, outLine);
 			}
-			genParseData.add(ArrayUtils.toStr(inLine, ",")); // TODO should use comma here? use tab instead?
+			genParseData.add(ArrayUtils.toStr(inLine, ",")); // TODO should use comma here? use tab
+																											 // instead?
 		}
 
 		ArrayList<String[]> genParserLines = genParserFiltersMap.get(filterKey);
@@ -1227,7 +1225,7 @@ public class TwoDPlot extends JPanel
 		}
 		for (String[] parser : genParserLines) {
 			genParseData = GenParser.parse(parser, genParseData, log); // TODO parser needs to return data
-																																	// for all columns[?????]
+																																 // for all columns[?????]
 		}
 		String selX = dataHeaderX[selectedColumnX];
 		String selY = dataHeaderY != null ? dataHeaderY[selectedColumnY] : null;
@@ -1329,14 +1327,14 @@ public class TwoDPlot extends JPanel
 
 							int sampColorKey = 0;
 							if (indi != null) {
-								sampColorKey = sampleData.determineCodeFromClass(	currentClass, (byte) 0, indi,
-																																	(byte) 0, 0);
+								sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, indi,
+																																 (byte) 0, 0);
 							}
 							if (hideExcludes && sampleData.individualShouldBeExcluded(curSample)) {
 								continue outer;
 							}
-							if (colorKeyPanel	.getDisabledClassValues()
-																.containsKey(currentClass + "\t" + sampColorKey)) {
+							if (colorKeyPanel.getDisabledClassValues()
+															 .containsKey(currentClass + "\t" + sampColorKey)) {
 								continue outer;
 							}
 						}
@@ -1352,7 +1350,7 @@ public class TwoDPlot extends JPanel
 				}
 				xHash.put(inLine[linkerIndices.get(selectedFile)[IID_INDEX_IN_LINKERS]], outLine);
 			}
-			if (selectedNodes.length > 1	&& selectedNodes[1] != null && selectedNodes[1][0] != null
+			if (selectedNodes.length > 1 && selectedNodes[1] != null && selectedNodes[1][0] != null
 					&& linkerIndices.get(selectedNodes[1][0]) != null) {
 				selectedColumn = Integer.parseInt(selectedNodes[1][1]);
 				selectedFile = selectedNodes[1][0];
@@ -1670,7 +1668,7 @@ public class TwoDPlot extends JPanel
 		// find the selected nodes in the plot and create a string from them delimited by ;
 		String[][] selectedNodes = tree.getSelectionValues();
 		for (int i = 0; i < selectedNodes.length; i++) {
-			if (selectedNodes[i] != null	&& selectedNodes[i].length == 2 && selectedNodes[i][0] != null
+			if (selectedNodes[i] != null && selectedNodes[i].length == 2 && selectedNodes[i][0] != null
 					&& selectedNodes[i][1] != null) {
 				selections += selectedNodes[i][0] + "|" + selectedNodes[i][1];
 				if (i < selectedNodes.length - 1) {
@@ -1773,9 +1771,9 @@ public class TwoDPlot extends JPanel
 		boolean createColorKey;
 		boolean includeColorKey;
 
-		public ScreenToCapture(	String[] files, int[] dataIndices, int[] idIndices,
-														float[] displayWindow, boolean excluded, boolean colorKey,
-														boolean appendColorKey, boolean hist) {
+		public ScreenToCapture(String[] files, int[] dataIndices, int[] idIndices,
+													 float[] displayWindow, boolean excluded, boolean colorKey,
+													 boolean appendColorKey, boolean hist) {
 			dataXFile = files[0];
 			dataYFile = files[1];
 			colorFile = files[2];
@@ -1808,8 +1806,8 @@ public class TwoDPlot extends JPanel
 		return params;
 	}
 
-	private static ArrayList<ScreenToCapture> condenseCtrlFile(	java.util.List<String> ctrlLines,
-																															boolean fail) {
+	private static ArrayList<ScreenToCapture> condenseCtrlFile(java.util.List<String> ctrlLines,
+																														 boolean fail) {
 		HashSet<String> tagSet = new HashSet<String>();
 		tagSet.add("fileX");
 		tagSet.add("fileY");
@@ -1850,8 +1848,8 @@ public class TwoDPlot extends JPanel
 					if (lineTagEntries.contains(tagKey)) {
 						System.err.println("Error - duplicate argument \"" + tagKey + "\" detected.");
 						if (fail) {
-							throw new IllegalArgumentException("Error - duplicate argument \""	+ tagKey
-																									+ "\" detected.");
+							throw new IllegalArgumentException("Error - duplicate argument \"" + tagKey
+																								 + "\" detected.");
 						}
 					} else {
 						lineTagEntries.add(tagKey);
@@ -1867,8 +1865,8 @@ public class TwoDPlot extends JPanel
 					if (values.isEmpty()) {
 						System.err.println("Error - missing argument \"" + tag + "\" detected.");
 						if (fail) {
-							throw new IllegalArgumentException("Error - missing argument \""	+ tag
-																									+ "\" detected.");
+							throw new IllegalArgumentException("Error - missing argument \"" + tag
+																								 + "\" detected.");
 						}
 					} else {
 						values.add(values.get(values.size() - 1));
@@ -1913,8 +1911,8 @@ public class TwoDPlot extends JPanel
 			colorKey = Boolean.parseBoolean(tagValues.get("colorKey").get(i));
 			inclKey = Boolean.parseBoolean(tagValues.get("includeColorKey").get(i));
 
-			ScreenToCapture sc = new ScreenToCapture(	files, dataCols, idCols, window, hideExcludes,
-																								colorKey, inclKey, isHistogram);
+			ScreenToCapture sc = new ScreenToCapture(files, dataCols, idCols, window, hideExcludes,
+																							 colorKey, inclKey, isHistogram);
 			caps.add(sc);
 		}
 
@@ -1962,24 +1960,24 @@ public class TwoDPlot extends JPanel
 			}
 
 			if (screencap.dataXFile != null) {
-				tree.performCheckBoxAction(	screencap.dataXFile,
-																		dataColumnsHash.get(baseDir
-																												+ screencap.dataXFile)[screencap.xDataIndex],
-																		ItemEvent.SELECTED);
+				tree.performCheckBoxAction(screencap.dataXFile,
+																	 dataColumnsHash.get(baseDir
+																											 + screencap.dataXFile)[screencap.xDataIndex],
+																	 ItemEvent.SELECTED);
 			}
 			if (screencap.dataYFile != null) {
 				// 07/23/15 BRC -- this was screencap.dataXFile, which doesn't make sense (changed it to
 				// dataYFile). If it breaks, put it back.
-				tree.performCheckBoxAction(	screencap.dataYFile,
-																		dataColumnsHash.get(baseDir
-																												+ screencap.dataYFile)[screencap.yDataIndex],
-																		ItemEvent.SELECTED);
+				tree.performCheckBoxAction(screencap.dataYFile,
+																	 dataColumnsHash.get(baseDir
+																											 + screencap.dataYFile)[screencap.yDataIndex],
+																	 ItemEvent.SELECTED);
 			}
 
 			twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
-			colorKeyPanel.getClassRadioButtons()[colorLoaded	? (colorKeyPanel.getClassRadioButtons().length
-																														- 1)
-																												: 0].setSelected(true);
+			colorKeyPanel.getClassRadioButtons()[colorLoaded ? (colorKeyPanel.getClassRadioButtons().length
+																													- 1)
+																											 : 0].setSelected(true);
 
 			twoDPanel.createImage();
 
@@ -1999,8 +1997,8 @@ public class TwoDPlot extends JPanel
 				basename += dataColumnsHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex];
 			}
 			String screenname = basename;
-			while ((new File(baseDir	+ ext.replaceWithLinuxSafeCharacters(screenname, true)
-												+ ".png")).exists()) {
+			while ((new File(baseDir + ext.replaceWithLinuxSafeCharacters(screenname, true)
+											 + ".png")).exists()) {
 				screenname = basename + "_v" + count;
 				count++;
 			}
@@ -2015,13 +2013,13 @@ public class TwoDPlot extends JPanel
 				colorKeyPanel.classValuesPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
 				frame.add(colorKeyPanel.classValuesPanel);
 				frame.pack();
-				BufferedImage bi = new BufferedImage(	colorKeyPanel.classValuesPanel.getWidth(),
-																							colorKeyPanel.classValuesPanel.getHeight(),
-																							BufferedImage.TYPE_INT_ARGB);
+				BufferedImage bi = new BufferedImage(colorKeyPanel.classValuesPanel.getWidth(),
+																						 colorKeyPanel.classValuesPanel.getHeight(),
+																						 BufferedImage.TYPE_INT_ARGB);
 				colorKeyPanel.classValuesPanel.paint(bi.createGraphics());
 				// then reset and dispose of extra resources
-				colorKeyPanel.classValuesPanel.setLayout(new org.genvisis.cnv.gui.WrapLayout(	FlowLayout.CENTER,
-																																											0, 0));
+				colorKeyPanel.classValuesPanel.setLayout(new org.genvisis.cnv.gui.WrapLayout(FlowLayout.CENTER,
+																																										 0, 0));
 				frame.removeAll();
 				frame.dispose();
 				frame = null;
@@ -2043,11 +2041,11 @@ public class TwoDPlot extends JPanel
 				} else {
 					twoDPanel.screenCapture(screenname);
 
-					String legName = baseDir	+ ext.replaceWithLinuxSafeCharacters(basename, true)
-														+ "_legend.png";
+					String legName = baseDir + ext.replaceWithLinuxSafeCharacters(basename, true)
+													 + "_legend.png";
 					count = 1;
 					while ((new File(legName).exists())) {
-						legName = baseDir	+ ext.replaceWithLinuxSafeCharacters(basename, true) + "_legend_v"
+						legName = baseDir + ext.replaceWithLinuxSafeCharacters(basename, true) + "_legend_v"
 											+ count + ".png";
 						count++;
 					}
@@ -2066,11 +2064,11 @@ public class TwoDPlot extends JPanel
 	}
 
 	private void loadColor(String baseDir, ScreenToCapture screencap) {
-		Hashtable<String, String> colorData =
-																				HashVec.loadFileToHashString(baseDir	+ screencap.colorFile,
-																																			screencap.colorIDIndex,
-																																			new int[] {screencap.colorIndex},
-																																			"\t", true);
+		Hashtable<String, String> colorData = HashVec.loadFileToHashString(baseDir
+																																			 + screencap.colorFile,
+																																			 screencap.colorIDIndex,
+																																			 new int[] {screencap.colorIndex},
+																																			 "\t", true);
 		this.colorData = new HashMap<String, Integer>();
 		for (java.util.Map.Entry<String, String> entry : colorData.entrySet()) {
 			this.colorData.put(entry.getKey(), Integer.valueOf(entry.getValue()));
@@ -2126,7 +2124,7 @@ public class TwoDPlot extends JPanel
 				}
 			}
 			if (!found) {
-				log.reportError("Error - extension of file {"	+ filename
+				log.reportError("Error - extension of file {" + filename
 												+ "} is invalid.  Valid extensions are: {" + validExts.toString() + "}");
 				return;
 			}
@@ -2157,8 +2155,8 @@ public class TwoDPlot extends JPanel
 				}
 				line = tempLine.trim().split(delim);
 				if (line.length < lineLength) {
-					proj.message("Error on line "	+ cnt + " of file " + filename + ": expected "
-												+ header.length + " columns, but only found " + line.length);
+					proj.message("Error on line " + cnt + " of file " + filename + ": expected "
+											 + header.length + " columns, but only found " + line.length);
 					reader.close();
 					return;
 				}
@@ -2183,7 +2181,7 @@ public class TwoDPlot extends JPanel
 	}
 
 	enum OP {
-						GT, LT, EQ;
+		GT, LT, EQ;
 	}
 	class Filter {
 		OP oper;
@@ -2199,8 +2197,8 @@ public class TwoDPlot extends JPanel
 		linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, log, false);
 
 		if (linkKeyIndices[IID_INDEX_IN_LINKERS] == -1) {
-			log.report("ID linker not automatically identified for file '"	+ filename
-									+ "'; assuming the first column.");
+			log.report("ID linker not automatically identified for file '" + filename
+								 + "'; assuming the first column.");
 			linkKeyIndices[IID_INDEX_IN_LINKERS] = 0;
 		}
 
@@ -2209,7 +2207,7 @@ public class TwoDPlot extends JPanel
 		String region, chr, start, stop, lbl;
 		String[] regSplit;
 		// REGION
-		if (linkKeyIndices[REGION_INDEX_IN_LINKERS] == -1	|| linkKeyIndices[CHR_INDEX_IN_LINKERS] == -1
+		if (linkKeyIndices[REGION_INDEX_IN_LINKERS] == -1 || linkKeyIndices[CHR_INDEX_IN_LINKERS] == -1
 				|| linkKeyIndices[POS_INDEX_IN_LINKERS] == -1
 				|| linkKeyIndices[STOP_POS_INDEX_IN_LINKERS] == -1) {
 			// columnMetaData
@@ -2275,8 +2273,8 @@ public class TwoDPlot extends JPanel
 					}
 				}
 				if (!found) {
-					tree.addNode(	ext.removeDirectoryInfo(key), key, treeFileVariableNameLookup[i],
-												validColumnsHash.get(key), checkBoxMouseListener);
+					tree.addNode(ext.removeDirectoryInfo(key), key, treeFileVariableNameLookup[i],
+											 validColumnsHash.get(key), checkBoxMouseListener);
 				}
 			}
 		}
@@ -2292,8 +2290,8 @@ public class TwoDPlot extends JPanel
 	 * @param fileExts allowed file extensions for files (null for all files)
 	 * @return
 	 */
-	public static TwoDPlot createGUI(	Project proj, boolean show, boolean promptOnClose,
-																		String... fileExts) {
+	public static TwoDPlot createGUI(Project proj, boolean show, boolean promptOnClose,
+																	 String... fileExts) {
 		JFrame frame = new JFrame("Genvisis - 2D Plot - " + proj.PROJECT_NAME.getValue());
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
@@ -2332,8 +2330,8 @@ public class TwoDPlot extends JPanel
 					String colName = dataColumnsHash.get(file)[col];
 					Matcher m = headerPattern.matcher(colName);
 					if (m.matches()) {
-						result = new String[] {	m.group(2), m.group(3), m.group(3).split("-")[0],
-																		m.group(3).split("-")[1], m.group(1)};
+						result = new String[] {m.group(2), m.group(3), m.group(3).split("-")[0],
+																	 m.group(3).split("-")[1], m.group(1)};
 					} else {
 						result = null;
 					}

@@ -197,8 +197,8 @@ public class ContingencyTable {
 		return ChiSquare(data, true, true);
 	}
 
-	public static double ChiSquare(	double[][] data, boolean verbose,
-																	boolean possibleYatesCorrection) {
+	public static double ChiSquare(double[][] data, boolean verbose,
+																 boolean possibleYatesCorrection) {
 		double[][] expecteds;
 		double chi;
 		int numCellsLT5, numCells;
@@ -223,13 +223,13 @@ public class ContingencyTable {
 		numCells = data.length * data[0].length;
 		if ((double) numCellsLT5 / (double) numCells >= 0.20) {
 			if (verbose) {
-				System.out.println("FYI, "	+ numCellsLT5 + " cells ("
-														+ ext.formDeci((double) numCellsLT5 / (double) numCells, 1, true)
-														+ "%) have expected count less than 5. The minimum expected count is "
-														+ ext.formDeci(minExpected, 2, true)
-														+ ". Might consider using Fisher's exact test"
-														+ (possibleYatesCorrection	? "; in the meantime using a Yates continuity correction"
-																												: ""));
+				System.out.println("FYI, " + numCellsLT5 + " cells ("
+													 + ext.formDeci((double) numCellsLT5 / (double) numCells, 1, true)
+													 + "%) have expected count less than 5. The minimum expected count is "
+													 + ext.formDeci(minExpected, 2, true)
+													 + ". Might consider using Fisher's exact test"
+													 + (possibleYatesCorrection ? "; in the meantime using a Yates continuity correction"
+																											: ""));
 			}
 			useYates = true;
 		}
@@ -238,7 +238,7 @@ public class ContingencyTable {
 		for (int i = 0; i < data.length; i++) {
 			for (int j = 0; j < data[i].length; j++) {
 				diff = Math.abs((data[i][j] - expecteds[i][j]))
-								- (useYates && possibleYatesCorrection ? 0.5 : 0);
+							 - (useYates && possibleYatesCorrection ? 0.5 : 0);
 				chi += diff * diff / expecteds[i][j];
 			}
 		}
@@ -284,7 +284,7 @@ public class ContingencyTable {
 		for (int i = 0; i < data.length; i++) {
 			for (int j = 0; j < data[i].length; j++) {
 				residuals[i][j] = (data[i][j] - expecteds[i][j])
-													/ Math.sqrt(expecteds[i][j]	* (1 - rowSums[i] / total)
+													/ Math.sqrt(expecteds[i][j] * (1 - rowSums[i] / total)
 																			* (1 - colSums[j] / total));
 			}
 		}
@@ -293,8 +293,8 @@ public class ContingencyTable {
 	}
 
 	public static double linearCorrelation(double[][] data) {
-		return linearCorrelation(	data, ArrayUtils.toDoubleArray(ArrayUtils.arrayOfIndices(data.length)),
-															ArrayUtils.toDoubleArray(ArrayUtils.arrayOfIndices(data[0].length)));
+		return linearCorrelation(data, ArrayUtils.toDoubleArray(ArrayUtils.arrayOfIndices(data.length)),
+														 ArrayUtils.toDoubleArray(ArrayUtils.arrayOfIndices(data[0].length)));
 	}
 
 	public static double linearCorrelation(double[][] data, double[] rowScores, double[] colScores) {
@@ -344,7 +344,8 @@ public class ContingencyTable {
 	}
 
 	public static double linearTrendStatistic(double[][] data) {
-		return linearTrendStatistic(data, ArrayUtils.toDoubleArray(ArrayUtils.arrayOfIndices(data.length)),
+		return linearTrendStatistic(data,
+																ArrayUtils.toDoubleArray(ArrayUtils.arrayOfIndices(data.length)),
 																ArrayUtils.toDoubleArray(ArrayUtils.arrayOfIndices(data[0].length)));
 	}
 
@@ -500,32 +501,32 @@ public class ContingencyTable {
 		// { 25, 21}};
 		// data = new double[][] {{ 3, 1}, // Random data test
 		// { 1, 3}};
-		data = new double[][] {	{3, 500}, // Max spread to get significance for CNVs
-														{1, 6000}};
+		data = new double[][] {{3, 500}, // Max spread to get significance for CNVs
+													 {1, 6000}};
 
 		System.out.println("For the following table: ");
 		System.out.println("                  Response");
 		System.out.println("              Yes          No");
-		System.out.println("Group 1"	+ ext.formStr(data[0][0] + "", 10) + "\t"
-												+ ext.formStr(data[0][1] + "", 10));
-		System.out.println("Group 2"	+ ext.formStr(data[1][0] + "", 10) + "\t"
-												+ ext.formStr(data[1][1] + "", 10));
+		System.out.println("Group 1" + ext.formStr(data[0][0] + "", 10) + "\t"
+											 + ext.formStr(data[0][1] + "", 10));
+		System.out.println("Group 2" + ext.formStr(data[1][0] + "", 10) + "\t"
+											 + ext.formStr(data[1][1] + "", 10));
 
 		System.out.println("p1 = " + ext.formDeci(data[0][0] / (data[0][0] + data[0][1]), 4, true));
 		System.out.println("p2 = " + ext.formDeci(data[1][0] / (data[1][0] + data[1][1]), 4, true));
 		System.out.println();
 		ci = diffCI(data);
 		System.out.println("The difference of proportions is "
-													+ ext.formDeci(diffProportions(data), 4, true) + " ("
-												+ ext.formDeci(ci[0], 4, true) + ", " + ext.formDeci(ci[1], 4, true) + ")");
+											 + ext.formDeci(diffProportions(data), 4, true) + " ("
+											 + ext.formDeci(ci[0], 4, true) + ", " + ext.formDeci(ci[1], 4, true) + ")");
 		System.out.println();
 		ci = relativeRiskCI(data);
-		System.out.println("The relative risk is "	+ ext.formDeci(relativeRisk(data), 4, true) + " ("
-												+ ext.formDeci(ci[0], 4, true) + ", " + ext.formDeci(ci[1], 4, true) + ")");
+		System.out.println("The relative risk is " + ext.formDeci(relativeRisk(data), 4, true) + " ("
+											 + ext.formDeci(ci[0], 4, true) + ", " + ext.formDeci(ci[1], 4, true) + ")");
 		System.out.println();
 		ci = oddsRatioCI(data);
-		System.out.println("The odds ratio is "	+ ext.formDeci(oddsRatio(data), 4, true) + " ("
-												+ ext.formDeci(ci[0], 4, true) + ", " + ext.formDeci(ci[1], 4, true) + ")");
+		System.out.println("The odds ratio is " + ext.formDeci(oddsRatio(data), 4, true) + " ("
+											 + ext.formDeci(ci[0], 4, true) + ", " + ext.formDeci(ci[1], 4, true) + ")");
 		System.out.println();
 
 		// data = new int[][] {{ 762, 327, 468},
@@ -548,15 +549,14 @@ public class ContingencyTable {
 		// { 77, 243, 746 }};
 
 		System.out.println("The Pearson (score) chi-square statistic is "
-													+ ext.formDeci(ChiSquare(data), 4, true)
-												+ " (p=" + ProbDist.ChiDist(ChiSquare(data),
-																										(data.length - 1) * (data[0].length - 1))
-												+ ")");
+											 + ext.formDeci(ChiSquare(data), 4, true) + " (p="
+											 + ProbDist.ChiDist(ChiSquare(data), (data.length - 1) * (data[0].length - 1))
+											 + ")");
 		System.out.println("The Likelihood-Ratio chi-square statistic is "
-													+ ext.formDeci(likelihoodRatioStatistic(data), 4, true)
-												+ " (p=" + ProbDist.ChiDist(likelihoodRatioStatistic(data),
-																										(data.length - 1) * (data[0].length - 1))
-												+ ")");
+											 + ext.formDeci(likelihoodRatioStatistic(data), 4, true) + " (p="
+											 + ProbDist.ChiDist(likelihoodRatioStatistic(data),
+																					(data.length - 1) * (data[0].length - 1))
+											 + ")");
 		System.out.println();
 		System.out.println("The residuals are:");
 		residuals = residuals(data);
@@ -590,24 +590,24 @@ public class ContingencyTable {
 		System.out.println("Using equally spaced ranks:");
 		System.out.println("The linear correlation is " + ext.formDeci(linearCorrelation(data), 5));
 		System.out.println("The linear trend test statistic is "
-													+ ext.formDeci(linearTrendStatistic(data), 3) + " (p="
-												+ ext.prettyP(ProbDist.ChiDist(linearTrendStatistic(data), 1)) + ")");
+											 + ext.formDeci(linearTrendStatistic(data), 3) + " (p="
+											 + ext.prettyP(ProbDist.ChiDist(linearTrendStatistic(data), 1)) + ")");
 		System.out.println("Using midranks:");
 		System.out.println(ArrayUtils.toStr(midRanks(computeColSums(data))));
 		System.out.println("The linear correlation is "
-												+ ext.formDeci(	linearCorrelation(data, midRanks(computeRowSums(data)),
-																													midRanks(computeColSums(data))),
-																				5));
+											 + ext.formDeci(linearCorrelation(data, midRanks(computeRowSums(data)),
+																												midRanks(computeColSums(data))),
+																			5));
 		System.out.println("The linear trend test statistic is "
-													+ ext.formDeci(	linearTrendStatistic(	data, midRanks(computeRowSums(data)),
-																															midRanks(computeColSums(data))),
-																				3)
-												+ " (p="
-												+ ext.prettyP(ProbDist.ChiDist(	linearTrendStatistic(	data,
-																																							midRanks(computeRowSums(data)),
-																																							midRanks(computeColSums(data))),
-																												1))
-												+ ")");
+											 + ext.formDeci(linearTrendStatistic(data, midRanks(computeRowSums(data)),
+																													 midRanks(computeColSums(data))),
+																			3)
+											 + " (p="
+											 + ext.prettyP(ProbDist.ChiDist(linearTrendStatistic(data,
+																																					 midRanks(computeRowSums(data)),
+																																					 midRanks(computeColSums(data))),
+																											1))
+											 + ")");
 		System.out.println();
 
 		// data = new int[][] {{ 3, 1},
@@ -628,8 +628,8 @@ public class ContingencyTable {
 		// { 2, 59}};
 		// iData = new int[][] {{ 39, 15}, // Random data test
 		// { 25, 21}};
-		iData = new int[][] {	{8, 456}, // Our L444P variant data (GBA)
-													{0, 344}};
+		iData = new int[][] {{8, 456}, // Our L444P variant data (GBA)
+												 {0, 344}};
 
 		System.out.println("Exact, one-sided p=" + FishersExact(iData));
 		System.out.println("Exact, two-sided p=" + FishersExact(iData, true, false));
@@ -661,9 +661,9 @@ public class ContingencyTable {
 
 		numCells = data.length * data[0].length;
 		if ((double) numCellsLT5 / (double) numCells >= 0.20) {
-			System.out.print(numCellsLT5	+ " cell" + (numCellsLT5 > 1 ? "s have" : "  has ")
-												+ " an expected count less than 5 (min="
-												+ ext.formDeci(minExpected, 2, true) + "); ");
+			System.out.print(numCellsLT5 + " cell" + (numCellsLT5 > 1 ? "s have" : "  has ")
+											 + " an expected count less than 5 (min=" + ext.formDeci(minExpected, 2, true)
+											 + "); ");
 			if (numCells == 4) {
 				System.out.println("using Fisher's exact");
 				fishy = true;

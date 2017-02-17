@@ -31,10 +31,10 @@ public class BOSS_Analyses {
 
 		new File(dir + "gwaf/").mkdirs();
 		for (int chr = 1; chr <= 23; chr++) {
-			CreateDatabaseFromPlink.toGWAF(dir	+ "split/chr" + chr + ".ped",
-																			dir + "split/chr" + chr + ".map",
-																			dir + "split/chr" + chr + ".frq", null,
-																			dir + "gwaf/chr" + chr + ".fhsR");
+			CreateDatabaseFromPlink.toGWAF(dir + "split/chr" + chr + ".ped",
+																		 dir + "split/chr" + chr + ".map",
+																		 dir + "split/chr" + chr + ".frq", null,
+																		 dir + "gwaf/chr" + chr + ".fhsR");
 		}
 	}
 
@@ -86,12 +86,12 @@ public class BOSS_Analyses {
 					mapReader.close();
 					infoReader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ dir + "leslie_lange.FHS.IBC.CEU.chr1.gen"
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + dir + "leslie_lange.FHS.IBC.CEU.chr1.gen"
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
-					System.err.println("Error reading file \""	+ dir + "leslie_lange.FHS.IBC.CEU.chr1.gen"
-															+ "\"");
+					System.err.println("Error reading file \"" + dir + "leslie_lange.FHS.IBC.CEU.chr1.gen"
+														 + "\"");
 					System.exit(2);
 				}
 			}
@@ -138,7 +138,7 @@ public class BOSS_Analyses {
 			}
 
 			hits.writeHits(resultDir + "top_snps.txt");
-			array_of_hits = HashVec.loadFileToStringArray(resultDir	+ "top_snps.txt", false,
+			array_of_hits = HashVec.loadFileToStringArray(resultDir + "top_snps.txt", false,
 																										new int[] {0}, false);
 
 			params = new String[filenames.length * 2 + 2];
@@ -148,7 +148,7 @@ public class BOSS_Analyses {
 
 			for (byte i = 0; i < filenames.length; i++) {
 				root = ext.rootOf(filenames[i]);
-				params[2 + i * 2 + 0] = resultDir	+ filenames[i] + " 0 1=beta_" + root + " 2=pval_" + root
+				params[2 + i * 2 + 0] = resultDir + filenames[i] + " 0 1=beta_" + root + " 2=pval_" + root
 																+ " skip=0";
 				params[2 + i * 2 + 1] = resultDir + root + ".mac 0 1=MAC_" + root;
 
@@ -174,10 +174,10 @@ public class BOSS_Analyses {
 			reader.readLine();
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				writer.println(line[1]	+ "\t"
-												+ (line[4].equalsIgnoreCase("NA")	? "."
-																													: (int) (Double.parseDouble(line[4])
-																																		* Integer.parseInt(line[5]))));
+				writer.println(line[1] + "\t"
+											 + (line[4].equalsIgnoreCase("NA") ? "."
+																												 : (int) (Double.parseDouble(line[4])
+																																	* Integer.parseInt(line[5]))));
 			}
 			reader.close();
 			writer.close();
@@ -202,13 +202,13 @@ public class BOSS_Analyses {
 		isStandardize = false;
 		isParse = true;
 		isProcessMacs = false;
-		String usage = "\n"	+ "one.BOSS_Analyses requires 0-1 arguments\n"
-										+ "   (1) directory (i.e. dir=" + dir + " (default))\n"
-										+ "   (2) to parse result (i.e. parseresult=" + isParse + " (default))\n"
-										+ "   (3) result directory (i.e. resultdir=" + resultDir + " (default))\n"
-										+ "   (4) minor allele frequency file directory (i.e. mafdir=" + mafDir
-										+ " (default))\n" + "   (5) gene list file full path (i.e. genelist="
-										+ geneListFile + " (default))\n" + "";
+		String usage = "\n" + "one.BOSS_Analyses requires 0-1 arguments\n"
+									 + "   (1) directory (i.e. dir=" + dir + " (default))\n"
+									 + "   (2) to parse result (i.e. parseresult=" + isParse + " (default))\n"
+									 + "   (3) result directory (i.e. resultdir=" + resultDir + " (default))\n"
+									 + "   (4) minor allele frequency file directory (i.e. mafdir=" + mafDir
+									 + " (default))\n" + "   (5) gene list file full path (i.e. genelist="
+									 + geneListFile + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -237,8 +237,8 @@ public class BOSS_Analyses {
 
 
 		if (createGwaf) {
-			CreateDatabaseFromPlink.toGWAF(dir	+ "ICAM1/plink.ped", dir + "ICAM1/plink.map",
-																			dir + "ICAM1/plink.frq", null, dir + "ICAM1/gwaf.fhsR");
+			CreateDatabaseFromPlink.toGWAF(dir + "ICAM1/plink.ped", dir + "ICAM1/plink.map",
+																		 dir + "ICAM1/plink.frq", null, dir + "ICAM1/gwaf.fhsR");
 		} else if (isGenerate) {
 			generate(dir);
 		} else if (isStandardize) {

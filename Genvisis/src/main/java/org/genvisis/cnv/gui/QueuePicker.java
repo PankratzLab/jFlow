@@ -188,7 +188,7 @@ public class QueuePicker extends JDialog {
 		}
 		pack();
 	}
-	
+
 	protected void customQueue() {
 		System.out.println("Creating custom queue");
 	}
@@ -201,28 +201,25 @@ public class QueuePicker extends JDialog {
 		}
 		setLimits(jq);
 	}
-	
+
 	private void setLimits(JobQueue jq) {
 		StringBuilder sb = new StringBuilder();
-		
-		sb.append(jq.getMinProc() > 0 ? jq.getMinProc() : "??")
-			.append(" / ")
+
+		sb.append(jq.getMinProc() > 0 ? jq.getMinProc() : "??").append(" / ")
 			.append(jq.getMaxProc() > 0 ? jq.getMaxProc() : "??");
 		lblProcMinMax.setText(sb.toString());
 		sb = new StringBuilder();
-		
-		sb.append(jq.getMinMem() > 0 ? jq.getMinProc() : "??")
-			.append(" / ")
+
+		sb.append(jq.getMinMem() > 0 ? jq.getMinProc() : "??").append(" / ")
 			.append(jq.getMaxProc() > 0 ? jq.getMaxProc() : "??");
 		lblMemMinMax.setText(sb.toString());
 		sb = new StringBuilder();
-		
-		sb.append(jq.getMinWalltime() > 0 ? jq.getMinWalltime() + "hr(s)" : "??")
-			.append(" / ")
+
+		sb.append(jq.getMinWalltime() > 0 ? jq.getMinWalltime() + "hr(s)" : "??").append(" / ")
 			.append(jq.getMinWalltime() > 0 ? jq.getMinWalltime() + "hrs(s)" : "??");
 		lblWalltimeMinMax.setText(sb.toString());
 	}
-	
+
 	HashMap<String, JobQueue> premadeQueues = new HashMap<String, QueueControl.JobQueue>();
 	private JLabel lblProcMinMax;
 	private JLabel lblMemMinMax;
@@ -233,6 +230,6 @@ public class QueuePicker extends JDialog {
 			premadeQueues.put(jq.getName(), jq);
 		}
 	}
-	
-	
+
+
 }

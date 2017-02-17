@@ -29,8 +29,8 @@ public class HitWindow<T extends Hittable> {
 	 * @param numSuggestiveHits number of suggestive hits
 	 * @param numTotalHits total hits in window
 	 */
-	public HitWindow(	int window, List<T> indexHits, T firstHit, T lastHit, int numSigHits,
-										int numSuggestiveHits, int numTotalHits) {
+	public HitWindow(int window, List<T> indexHits, T firstHit, T lastHit, int numSigHits,
+									 int numSuggestiveHits, int numTotalHits) {
 		super();
 		this.window = window;
 		this.indexHits = indexHits;
@@ -43,9 +43,9 @@ public class HitWindow<T extends Hittable> {
 
 	@Override
 	public String toString() {
-		return "HitWindow [indexHit="+ indexHits + ", firstHit=" + firstHit + ", lastHit=" + lastHit
-						+ ", window=" + window + ", numSigHits=" + numSigHits + ", numSuggestiveHits="
-						+ numSuggestiveHits + ", numTotalHits=" + numTotalHits + "]";
+		return "HitWindow [indexHit=" + indexHits + ", firstHit=" + firstHit + ", lastHit=" + lastHit
+					 + ", window=" + window + ", numSigHits=" + numSigHits + ", numSuggestiveHits="
+					 + numSuggestiveHits + ", numTotalHits=" + numTotalHits + "]";
 	}
 
 	public List<T> getIndexHits() {

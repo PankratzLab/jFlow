@@ -19,13 +19,12 @@ public class parkGenes {
 
 
 	public static void main(String[] args) {
-		GeneTrack geneTrack = GeneTrack.load(	Resources.genome(GENOME_BUILD.HG19, new Logger())
+		GeneTrack geneTrack = GeneTrack.load(Resources.genome(GENOME_BUILD.HG19, new Logger())
 																									.getGTrack().get(),
-																					false);
+																				 false);
 
-		LocusSet<CNVariant> set =
-														CNVariant.loadLocSet(	"D:/data/NGRC/cnvs/decentCalls_centromeresBroken.cnv",
-																									new Logger());
+		LocusSet<CNVariant> set = CNVariant.loadLocSet("D:/data/NGRC/cnvs/decentCalls_centromeresBroken.cnv",
+																									 new Logger());
 		ArrayList<CNVariant> found = new ArrayList<CNVariant>();
 		ArrayList<String> genes = new ArrayList<String>();
 		genes.add("HTRA2");

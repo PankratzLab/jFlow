@@ -54,11 +54,10 @@ public class VCFHistogram implements Serializable {
 																																"GC_1000bp"};
 
 	public enum HIST_WALKER {
-														/**
-														 * Two histograms for each metric, one for CASE only, and one for Case
-														 * with Control
-														 */
-														CASE_V_CONTROL_PRESENT;
+		/**
+		 * Two histograms for each metric, one for CASE only, and one for Case with Control
+		 */
+		CASE_V_CONTROL_PRESENT;
 
 	}
 
@@ -93,8 +92,8 @@ public class VCFHistogram implements Serializable {
 
 	public RScatters dumpAndPlot(String dir, String root) {
 		ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
-		LocusSet<Segment> toDump = new LocusSet<Segment>(	tested.toArray(new Segment[tested.size()]),
-																											true, log) {
+		LocusSet<Segment> toDump = new LocusSet<Segment>(tested.toArray(new Segment[tested.size()]),
+																										 true, log) {
 
 			/**
 			 * 
@@ -118,9 +117,8 @@ public class VCFHistogram implements Serializable {
 			String[] aTmpTitles = tmpTitles.toArray(new String[tmpTitles.size()]);
 			DynamicHistogram.dumpToSameFile(tmpHists.toArray(new DynamicHistogram[tmpHists.size()]),
 																			aTmpTitles, output, true, log);
-			RScatter rScatter =
-												new RScatter(	output, output + ".rscript", ext.rootOf(output),
-																			output + ".pdf", "Bin", aTmpTitles, SCATTER_TYPE.POINT, log);
+			RScatter rScatter = new RScatter(output, output + ".rscript", ext.rootOf(output),
+																			 output + ".pdf", "Bin", aTmpTitles, SCATTER_TYPE.POINT, log);
 			rScatter.setOverWriteExisting(true);
 			rScatter.setyLabel("Proportion");
 			rScatter.setxLabel(METRICS_TRACKED[i]);
@@ -141,10 +139,10 @@ public class VCFHistogram implements Serializable {
 			rScatter.execute();
 			rScatters.add(rScatter);
 		}
-		RScatters rScattersAll = new RScatters(	rScatters.toArray(new RScatter[rScatters.size()]),
-																						dir + root + "full.rscript", dir + root + "full.pdf",
-																						COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF,
-																						log);
+		RScatters rScattersAll = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]),
+																					 dir + root + "full.rscript", dir + root + "full.pdf",
+																					 COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF,
+																					 log);
 		rScattersAll.execute();
 		return rScattersAll;
 	}
@@ -160,8 +158,8 @@ public class VCFHistogram implements Serializable {
 		for (VariantContext vc : reader) {
 			count++;
 			if (count % 50000 == 0) {
-				log.reportTimeInfo("Scanned "	+ count + " variants " + caseUniqueCount
-														+ " were unique to cases " + caseControlShared + " were shared");
+				log.reportTimeInfo("Scanned " + count + " variants " + caseUniqueCount
+													 + " were unique to cases " + caseControlShared + " were shared");
 				// reader.close();
 				// return;
 			}
@@ -292,8 +290,8 @@ public class VCFHistogram implements Serializable {
 		}
 	}
 
-	private static String[] divideToNewCaseControlStatus(	VcfPopulation vcfPopulation, String dir,
-																												Logger log) {
+	private static String[] divideToNewCaseControlStatus(VcfPopulation vcfPopulation, String dir,
+																											 Logger log) {
 		ArrayList<String> newVpops = new ArrayList<String>();
 		for (String superPop : vcfPopulation.getSuperPop().keySet()) {
 			for (String superPopComp : vcfPopulation.getSuperPop().keySet()) {
@@ -392,9 +390,9 @@ public class VCFHistogram implements Serializable {
 		@Override
 		public Callable<VCFHistogram> next() {
 			final String currentRoot = ext.rootOf(histInits[index].getVpop())
-																	+ histInits[index].getOutputRoot();
-			HistWorker worker = new HistWorker(	histInits[index], vcf, referenceGenomeFasta, outputDir,
-																					currentRoot, log);
+																 + histInits[index].getOutputRoot();
+			HistWorker worker = new HistWorker(histInits[index], vcf, referenceGenomeFasta, outputDir,
+																				 currentRoot, log);
 			index++;
 			return worker;
 		}
@@ -421,8 +419,8 @@ public class VCFHistogram implements Serializable {
 
 		@Override
 		public VCFHistogram call() throws Exception {
-			return createHistogram(	vcf, histInits.getVpop(), outputDir, outputRoot, referenceGenomeFasta,
-															histInits.getMaf(), histInits.getVaSample(), log);
+			return createHistogram(vcf, histInits.getVpop(), outputDir, outputRoot, referenceGenomeFasta,
+														 histInits.getMaf(), histInits.getVaSample(), log);
 		}
 	}
 
@@ -458,14 +456,13 @@ public class VCFHistogram implements Serializable {
 		new File(outputDir).mkdirs();
 		String[] allIters = divideToNewCaseControlStatus(vcfPopulation, outputDir, log);
 
-		VariantFilterSample[] vfSamples =
-																		new VariantFilterSample[] {	new AricWesFilter(log).getARICVariantContextFilters(),
-																																null};
+		VariantFilterSample[] vfSamples = new VariantFilterSample[] {new AricWesFilter(log).getARICVariantContextFilters(),
+																																 null};
 		HistInit[] histInits = new HistInit[mafs.length * allIters.length * vfSamples.length];
 		log.reportTimeInfo(histInits.length + " total comparisions");
-		String[] roots = new String[] {	new AricWesFilter(log).getARICVariantContextFilters()
-																													.getFilterName(),
-																		"NO_FILTER"};
+		String[] roots = new String[] {new AricWesFilter(log).getARICVariantContextFilters()
+																												 .getFilterName(),
+																	 "NO_FILTER"};
 		int index = 0;
 		for (double maf : mafs) {
 			for (String allIter : allIters) {
@@ -477,8 +474,8 @@ public class VCFHistogram implements Serializable {
 			}
 		}
 
-		HistProducer producer = new HistProducer(	histInits, vcf, outputDir, outputRoot,
-																							referenceGenomeFasta, log);
+		HistProducer producer = new HistProducer(histInits, vcf, outputDir, outputRoot,
+																						 referenceGenomeFasta, log);
 		WorkerTrain<VCFHistogram> train = new WorkerTrain<VCFHistogram>(producer, numthreads,
 																																		numthreads, log);
 		VCFHistogram[] hists = new VCFHistogram[histInits.length];
@@ -557,8 +554,8 @@ public class VCFHistogram implements Serializable {
 		}
 		try {
 			log = new Logger(logfile);
-			createHistograms(	vcf, vpop, outputDir, outputRoot, referenceGenomeFasta, mafs, numthreads,
-												log);
+			createHistograms(vcf, vpop, outputDir, outputRoot, referenceGenomeFasta, mafs, numthreads,
+											 log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

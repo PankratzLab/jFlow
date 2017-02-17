@@ -55,12 +55,10 @@ public class BeastScore {
 										Logger log) {
 		super();
 		this.inputData = inputData;
-		this.indicesToChunk =
-												indicesToChunk == null	? new int[][] {ArrayUtils.arrayOfIndices(inputData.length)}
-																								: indicesToChunk;
-		this.indicesForScores =
-													indicesForScores == null	? new int[][] {ArrayUtils.arrayOfIndices(inputData.length)}
-																										: indicesForScores;
+		this.indicesToChunk = indicesToChunk == null ? new int[][] {ArrayUtils.arrayOfIndices(inputData.length)}
+																								 : indicesToChunk;
+		this.indicesForScores = indicesForScores == null ? new int[][] {ArrayUtils.arrayOfIndices(inputData.length)}
+																										 : indicesForScores;
 		beastHeights = new float[this.indicesForScores.length];
 		beastScores = new float[this.indicesForScores.length];
 		beastLengths = new int[this.indicesForScores.length];
@@ -92,8 +90,8 @@ public class BeastScore {
 		if (index >= beastScores.length) {
 			log.reportError("Error - requested a summary for an index that is too big");
 		}
-		return getBeastHeights()[index]	+ "\t" + getBeastLengths()[index] + "\t"
-						+ getBeastScores()[index];
+		return getBeastHeights()[index] + "\t" + getBeastLengths()[index] + "\t"
+					 + getBeastScores()[index];
 	}
 
 	/**
@@ -128,8 +126,8 @@ public class BeastScore {
 		float[] inverseTransformedData = transformData(inputData, indicesToChunk, use, log);
 		float[] indicesMADScaled = getscaleMADIndices(indicesToChunk, inverseTransformedData, use,
 																									scaleFactorMAD, log);
-		float[] inverseTransformedDataScaleMAD = getscaleMADData(	inverseTransformedData, indicesToChunk,
-																															use, indicesMADScaled, log);
+		float[] inverseTransformedDataScaleMAD = getscaleMADData(inverseTransformedData, indicesToChunk,
+																														 use, indicesMADScaled, log);
 		return inverseTransformedDataScaleMAD;
 	}// JOHN hijack this
 
@@ -149,7 +147,7 @@ public class BeastScore {
 	public static float[] transformData(float[] inputData, int[][] indicesToChunk, boolean[] use,
 																			Logger log) {
 		return Transforms.transform(inputData, 2, indicesToChunk,
-																use == null	? ArrayUtils.booleanArray(indicesToChunk.length, true)
+																use == null ? ArrayUtils.booleanArray(indicesToChunk.length, true)
 																						: use);
 	}
 
@@ -165,8 +163,8 @@ public class BeastScore {
 	 * @param log
 	 * @return
 	 */
-	public static float[] getscaleMADIndices(	int[][] indicesToScale, float[] inverseTransformedData,
-																						boolean[] use, double scaleFactorMAD, Logger log) {
+	public static float[] getscaleMADIndices(int[][] indicesToScale, float[] inverseTransformedData,
+																					 boolean[] use, double scaleFactorMAD, Logger log) {
 		float[] indicesMADScaled = new float[indicesToScale.length];
 		for (int i = 0; i < indicesToScale.length; i++) {
 			if (indicesToScale[i] != null && indicesToScale[i].length > 0) {
@@ -177,8 +175,8 @@ public class BeastScore {
 						medianIndices.add(Math.abs(inverseTransformedData[index]));
 					}
 				}
-				indicesMADScaled[i] =
-														(float) (ArrayUtils.median(Doubles.toArray(medianIndices)) / scaleFactorMAD);
+				indicesMADScaled[i] = (float) (ArrayUtils.median(Doubles.toArray(medianIndices))
+																			 / scaleFactorMAD);
 			}
 		}
 		return indicesMADScaled;
@@ -273,8 +271,8 @@ public class BeastScore {
 	 * @param log
 	 * @return the beast scores for each index of beastHeights and beastLengths
 	 */
-	public static float[] getBeastScores(	float[] beastHeights, int[] beastLengths, float alpha,
-																				Logger log) {
+	public static float[] getBeastScores(float[] beastHeights, int[] beastLengths, float alpha,
+																			 Logger log) {
 		float[] beastScores = new float[beastHeights.length];
 		if (beastHeights.length != beastLengths.length) {
 			log.reportError("Error - heights and lengths must contain the same number of inputs to compute a Beast Score");
@@ -324,7 +322,7 @@ public class BeastScore {
 			}
 		}
 		if (count > indices.length) {
-			log.reportError("Warning - found too many markers ("	+ count + ") for cnVariant "
+			log.reportError("Warning - found too many markers (" + count + ") for cnVariant "
 											+ cnVariant.toPlinkFormat()
 											+ "\n Perhaps some markers were filtered out prior to calling?");
 			log.reportError("Warning - the beast score will be computed for the first "
@@ -384,11 +382,11 @@ public class BeastScore {
 				try {
 					ind = sampleData.lookup(key)[0];
 				} catch (NullPointerException npe) {
-					log.reportError("Error - could not look up the sample "	+ key
+					log.reportError("Error - could not look up the sample " + key
 													+ " in the sample data file " + proj.SAMPLE_DATA_FILENAME.getValue()
 													+ ", cannot load sample to compute beast score");
 					log.reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID="
-														+ cNVariantInd[0].getFamilyID() + " and IID="
+													+ cNVariantInd[0].getFamilyID() + " and IID="
 													+ cNVariantInd[0].getIndividualID());
 					return score;
 				}
@@ -405,7 +403,7 @@ public class BeastScore {
 				try {
 					lrrs = proj.getFullSampleFromRandomAccessFile(ind).getLRRs();
 				} catch (NullPointerException npe) {
-					log.reportError("Error - could not load data for the sample "	+ ind + "\t" + key
+					log.reportError("Error - could not load data for the sample " + ind + "\t" + key
 													+ ", please ensure samples have been parsed prior to computing beast score");
 					log.report("Skipping beast score for sample " + ind + "\t" + key);
 					return score;

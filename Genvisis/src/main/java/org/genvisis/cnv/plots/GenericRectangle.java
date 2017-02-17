@@ -17,8 +17,8 @@ public class GenericRectangle {
 	public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness,
 													boolean fill, boolean roundedCorners, byte color, byte layer,
 													boolean editable) {
-		this(	null, startX, startY, stopX, stopY, thickness, fill, roundedCorners, color, layer,
-					editable);
+		this(null, startX, startY, stopX, stopY, thickness, fill, roundedCorners, color, layer,
+				 editable);
 	}
 
 	public GenericRectangle(String lbl, float startX, float startY, float stopX, float stopY,

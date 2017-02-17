@@ -16,8 +16,7 @@ public class tools {
 	public static final String NINFO_DIR = "C:\\Documents and Settings\\npankrat\\My Documents\\00ninfos\\";
 	public static final String CRF_DIR = "C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\";
 	public static final String PARKIN_DIR = CRF_DIR + "parkin\\";
-	public static final String MASTER_PLATELIST_DIR =
-																									"C:\\Documents and Settings\\npankrat\\My Documents\\2_platelists\\";
+	public static final String MASTER_PLATELIST_DIR = "C:\\Documents and Settings\\npankrat\\My Documents\\2_platelists\\";
 	public static final String[] NINFO1_HEADER = {"FamNo", "IndNo", "AgeOfOnset", "IllnessStatusCode",
 																								"DNA", "Sex", "IllnessCode", "RaceCode"};
 	public static final String[] NINFO2_HEADER = {"FamNo", "IndNo", "Sex", "Deceased", "FatherInd",
@@ -39,8 +38,8 @@ public class tools {
 		}
 
 		if (famid.length() != 5 || indid.length() > 3) {
-			System.err.println("Warning - '"	+ famid + "' and '" + indid
-													+ "', wrong lengths for a PD identifier");
+			System.err.println("Warning - '" + famid + "' and '" + indid
+												 + "', wrong lengths for a PD identifier");
 		}
 		return famid + ext.formNum(Integer.parseInt(indid), 3);
 	}
@@ -48,7 +47,7 @@ public class tools {
 	public static String[] getFamID(String famIndId) {
 		int index = famIndId.indexOf("-");
 
-		if (index == -1	&& famIndId.length() == 8
+		if (index == -1 && famIndId.length() == 8
 				&& (famIndId.startsWith("7") || famIndId.startsWith("95"))) {
 			return new String[] {famIndId.substring(0, 5), Integer.parseInt(famIndId.substring(5)) + ""};
 		}
@@ -63,8 +62,8 @@ public class tools {
 
 		if (index == -1) {
 			if (famIndId.startsWith("7")) {
-				System.err.println("Error - couldn't split '"	+ famIndId
-														+ "' into a FamilyID and an IndID");
+				System.err.println("Error - couldn't split '" + famIndId
+													 + "' into a FamilyID and an IndID");
 			}
 			return new String[] {famIndId, famIndId};
 		}
@@ -98,11 +97,11 @@ public class tools {
 						} else if (ext.indexOfStr(line[7], UNAFFECTED) >= 0) {
 							trav = line[7];
 						} else {
-							System.err.println("Error - Unknown PD designation for individual "	+ line[0] + "-"
-																	+ line[1] + ": '" + line[7] + "'");
+							System.err.println("Error - Unknown PD designation for individual " + line[0] + "-"
+																 + line[1] + ": '" + line[7] + "'");
 							trav = "0";
 						}
-						prev = hash.containsKey(line[0] + "\t" + line[1])	? hash.get(line[0] + "\t" + line[1])
+						prev = hash.containsKey(line[0] + "\t" + line[1]) ? hash.get(line[0] + "\t" + line[1])
 																															: "0";
 						if (prev.equals("VPD")) {
 							trav = "VPD";
@@ -154,11 +153,11 @@ public class tools {
 						} else if (ext.indexOfStr(line[7], UNAFFECTED) >= 0) {
 							trav = line[7];
 						} else {
-							System.err.println("Error - Unknown PD designation for individual "	+ line[0] + "-"
-																	+ line[1] + ": '" + line[7] + "'");
+							System.err.println("Error - Unknown PD designation for individual " + line[0] + "-"
+																 + line[1] + ": '" + line[7] + "'");
 							trav = "0";
 						}
-						prev = hash.containsKey(line[0] + "\t" + line[1])	? hash.get(line[0] + "\t" + line[1])
+						prev = hash.containsKey(line[0] + "\t" + line[1]) ? hash.get(line[0] + "\t" + line[1])
 																															: "0";
 						if (prev.equals("CONF_PD")) {
 							trav = "CONF_PD";
@@ -284,8 +283,8 @@ public class tools {
 				} else if (line[2].equals("N") || line[2].equals("?")) {
 					trav = "0";
 				} else {
-					System.err.println("Error - unknown gender code for "	+ line[0] + "-" + line[1] + " ("
-															+ line[2] + ")");
+					System.err.println("Error - unknown gender code for " + line[0] + "-" + line[1] + " ("
+														 + line[2] + ")");
 					trav = "0";
 				}
 				hash.put(line[0] + "\t" + line[1], trav);
@@ -325,8 +324,8 @@ public class tools {
 				reader.reset();
 			}
 		} catch (Exception e) {
-			System.err.println("Error - ninfo"	+ whichNinfo
-													+ ".dat not found in the current, 00ninfos, or 00masters directories");
+			System.err.println("Error - ninfo" + whichNinfo
+												 + ".dat not found in the current, 00ninfos, or 00masters directories");
 			if (whichNinfo == 3) {
 				System.err.println("        --> assuming there are no autopsies, MZ twins, half sibs or ID-DNA# mixups that need to be addressed");
 			} else {
@@ -354,15 +353,15 @@ public class tools {
 		} else if (new File(ALT_DIR + dbFile).exists()) {
 			dbFile = ALT_DIR + dbFile;
 		} else {
-			System.err.println("Error - could not find the database ("	+ DB_FILE
-													+ ") in current directory or alternate:\n" + ALT_DIR);
+			System.err.println("Error - could not find the database (" + DB_FILE
+												 + ") in current directory or alternate:\n" + ALT_DIR);
 			System.exit(2);
 		}
 
 		try {
 			reader = new BufferedReader(new FileReader(dbFile));
-			index = ext.indexFactors(	new String[] {trait}, reader.readLine().split("[\\s]+"), true,
-																true)[0];
+			index = ext.indexFactors(new String[] {trait}, reader.readLine().split("[\\s]+"), true,
+															 true)[0];
 			while (reader.ready()) {
 				line = reader.readLine().split("[\\s]+");
 				hash.put(line[1] + "\t" + line[2], line[index]);
@@ -385,8 +384,8 @@ public class tools {
 	 * @return a matrix with a row for each family whith famid, father, mother, and the IndID of each
 	 *         member of the sibship
 	 */
-	public static String[][] getCombonentsOfTheMajorSibships(	boolean onlyIncludeAffecteds,
-																														boolean onlyCountVPD) {
+	public static String[][] getCombonentsOfTheMajorSibships(boolean onlyIncludeAffecteds,
+																													 boolean onlyCountVPD) {
 		BufferedReader reader;
 		String[] line, fams, rents;
 		String trav;
@@ -412,7 +411,7 @@ public class tools {
 					famHash.put(line[0], hash = new Hashtable<String, Vector<String>>());
 				}
 				if (!onlyIncludeAffecteds
-							|| (onlyCountVPD && isVPD(bestDx.get(line[0] + "\t" + line[1])).equals("1"))
+						|| (onlyCountVPD && isVPD(bestDx.get(line[0] + "\t" + line[1])).equals("1"))
 						|| (!onlyCountVPD
 								&& isAffectedAndSeen(bestDx.get(line[0] + "\t" + line[1])).equals("1"))) {
 					HashVec.addToHashVec(hash, line[4] + "\t" + line[5], line[1], true);
@@ -442,7 +441,7 @@ public class tools {
 						count++;
 					}
 				}
-				if (count > max	&& !rents[j].split("[\\s]+")[0].equals("0")
+				if (count > max && !rents[j].split("[\\s]+")[0].equals("0")
 						&& !rents[j].split("[\\s]+")[1].equals("0")) {
 					max = count;
 					pick = j;

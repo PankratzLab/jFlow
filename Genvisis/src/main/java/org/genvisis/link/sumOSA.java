@@ -103,7 +103,7 @@ public class sumOSA {
 		writer = new PrintWriter(new FileWriter("osa_summary.xls"));
 		for (int run = 0; run < runDirs.size(); run++) {
 			writer.print((run == 0 ? "\t" : "") + "\t" + runDirs.elementAt(run) + "\t\t\t\t\t\t\t\t");
-			temp += "\t"	+ (run == 0 ? "Direction" : "")
+			temp += "\t" + (run == 0 ? "Direction" : "")
 							+ "\tPosition\tmaxLOD\tbaseLOD\tIncrease\tSignificance\tFamsUsed\tTotalFams\tProportion";
 		}
 		writer.println();
@@ -115,15 +115,15 @@ public class sumOSA {
 				for (int run = 0; run < runs.size(); run++) {
 					osac = runs.elementAt(run);
 					if (osac[k][i] != null) {
-						writer.print("\t"	+ osac[k][i].maxPos + "\t" + ext.formDeci(osac[k][i].maxLOD, 2, true)
-													+ "\t" + ext.formDeci(osac[k][i].baseLOD, 2, true) + "\t"
-													+ ext.formDeci(osac[k][i].maxLOD - osac[k][i].baseLOD, 2, true) + "\t"
-													+ osac[k][i].pval + "\t" + osac[k][i].maxFams + "\t"
-													+ osac[k][i].totalFams
-													+ "\t" + ext.formDeci(((double) osac[k][i].maxFams
-																									/ (double) osac[k][i].totalFams),
-																								3, true)
-													+ "\t");
+						writer.print("\t" + osac[k][i].maxPos + "\t" + ext.formDeci(osac[k][i].maxLOD, 2, true)
+												 + "\t" + ext.formDeci(osac[k][i].baseLOD, 2, true) + "\t"
+												 + ext.formDeci(osac[k][i].maxLOD - osac[k][i].baseLOD, 2, true) + "\t"
+												 + osac[k][i].pval + "\t" + osac[k][i].maxFams + "\t"
+												 + osac[k][i].totalFams + "\t" + ext.formDeci(
+																																			((double) osac[k][i].maxFams
+																																			 / (double) osac[k][i].totalFams),
+																																			3, true)
+												 + "\t");
 					} else {
 						writer.print("\t\t\t\t\t\t\t\t\t");
 					}
@@ -169,8 +169,8 @@ public class sumOSA {
 				if (!new File(temp).exists() || !(new BufferedReader(new FileReader(temp))).ready()) {
 					continue;
 				}
-				osac[i][j] = new osaChrom(Integer	.valueOf(cutLookup.elementAt(cutLookup.size() - 1))
-																					.intValue());
+				osac[i][j] = new osaChrom(Integer.valueOf(cutLookup.elementAt(cutLookup.size() - 1))
+																				 .intValue());
 
 				reader = new BufferedReader(new FileReader(temp));
 				reader.readLine();
@@ -191,8 +191,8 @@ public class sumOSA {
 
 				count = total = 0;
 				if (new File(base + "chrom" + chrome + "/sims/perm" + chrome + ".out").exists()) {
-					reader = new BufferedReader(new FileReader(base	+ "chrom" + chrome + "/sims/perm" + chrome
-																											+ ".out"));
+					reader = new BufferedReader(new FileReader(base + "chrom" + chrome + "/sims/perm" + chrome
+																										 + ".out"));
 					while (reader.ready()) {
 						line = reader.readLine().split("[\\s]+");
 						if (Double.valueOf(line[2]).doubleValue() >= osac[i][j].maxLOD) {
@@ -222,7 +222,7 @@ public class sumOSA {
 			chr = j + 1;
 			chrome = (chr < 10) ? "0" + chr : "" + chr;
 			reps = (osac[0][j] != null ? osac[0][j].repsRequested : 0)
-							+ (osac[1][j] != null ? osac[1][j].repsRequested : 0);
+						 + (osac[1][j] != null ? osac[1][j].repsRequested : 0);
 			if (reps > 0) {
 				if (reps > 200) {
 					reps = 100;
@@ -232,9 +232,9 @@ public class sumOSA {
 					batch.println("mkdir sims");
 				}
 				batch.println("cd sims");
-				batch.println("cp ../../trait.dat ../../re_chrom"	+ chrome + ".pre ../../map" + chrome
+				batch.println("cp ../../trait.dat ../../re_chrom" + chrome + ".pre ../../map" + chrome
 											+ ".dat .");
-				batch.println(Files.getRunString()	+ " permOSA trait.dat " + chr + " " + reps + " d " + plug
+				batch.println(Files.getRunString() + " permOSA trait.dat " + chr + " " + reps + " d " + plug
 											+ " >> perm" + chrome + ".out");
 			}
 		}

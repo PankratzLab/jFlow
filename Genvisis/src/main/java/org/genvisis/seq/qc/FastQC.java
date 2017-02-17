@@ -40,8 +40,8 @@ public class FastQC {
 	public static final String FAST_SUMMARY_FILE = ".fastqc.allSamples.summary.txt";
 
 	public static final String ZIP = ".zip";
-	public static final String[] MODULES_TO_EXTRACT = {	">>Sequence Duplication Levels",
-																											">>Adapter Content"};
+	public static final String[] MODULES_TO_EXTRACT = {">>Sequence Duplication Levels",
+																										 ">>Adapter Content"};
 	public static final String FASTA_QC_LOCATION_COMMAND = "fastaQCLocation=";
 	public static final String NUM_THREADS_COMMAND = "numThreads=";
 	private final String fastQCLocation;
@@ -76,10 +76,10 @@ public class FastQC {
 			ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 			Hashtable<String, Future<Boolean>> tmpResults = new Hashtable<String, Future<Boolean>>();
 			for (int i = 0; i < fastaQFiles.length; i++) {
-				tmpResults.put(i	+ "",
-												executor.submit(new FastQCWorkerThread(	fastQCLocation, fastaQFiles[i],
-																																rootOutputDir, verbose,
-																																overWriteExistingOutput, log)));
+				tmpResults.put(i + "",
+											 executor.submit(new FastQCWorkerThread(fastQCLocation, fastaQFiles[i],
+																															rootOutputDir, verbose,
+																															overWriteExistingOutput, log)));
 			}
 			for (int i = 0; i < fastaQFiles.length; i++) {
 				try {
@@ -110,7 +110,7 @@ public class FastQC {
 		if (!fail) {
 			String[] zipFiles = Files.toFullPaths(Files.list(rootOutputDir, ZIP, false), rootOutputDir);
 			if (zipFiles == null || zipFiles.length < 1) {
-				log.reportError("Error - did not find any files with extension"	+ ZIP
+				log.reportError("Error - did not find any files with extension" + ZIP
 												+ " in output directory " + rootOutputDir);
 				fail = true;
 			} else {
@@ -136,8 +136,8 @@ public class FastQC {
 							for (FastaQCModuleResults[] fastaQCModuleResult : fastaQCModuleResults) {
 								String[] allKeys = fastaQCModuleResult[i].getAllArrayKeys();
 								for (String allKey : allKeys) {
-									writer.println(fastaQCModuleResult[i].getSourceFile()	+ "\t" + allKey + "\t"
-																	+ ArrayUtils.toStr(fastaQCModuleResult[i].getValueForKey(allKey)));
+									writer.println(fastaQCModuleResult[i].getSourceFile() + "\t" + allKey + "\t"
+																 + ArrayUtils.toStr(fastaQCModuleResult[i].getValueForKey(allKey)));
 								}
 							}
 							writer.println();
@@ -171,11 +171,11 @@ public class FastQC {
 							rscaScatters.add(gcContent);
 						} else if (currentModule.startsWith("Per_base_sequence_quality")) {
 							String qual = rootOutputDir + currentModule + "_plot";
-							RScatter qualPlot = new RScatter(	currentOutput, qual + ".rscript",
-																								ext.removeDirectoryInfo(qual), qual + ".jpeg",
-																								"InternalKey",
-																								new String[] {"Mean", "Median", "Lower Quartile"},
-																								null, SCATTER_TYPE.POINT, log);
+							RScatter qualPlot = new RScatter(currentOutput, qual + ".rscript",
+																							 ext.removeDirectoryInfo(qual), qual + ".jpeg",
+																							 "InternalKey",
+																							 new String[] {"Mean", "Median", "Lower Quartile"},
+																							 null, SCATTER_TYPE.POINT, log);
 							qualPlot.setyLabel("Phred");
 							qualPlot.setxLabel("Base");
 							qualPlot.setTitle(currentModule);
@@ -193,19 +193,19 @@ public class FastQC {
 							qualError.setxLabel("Base");
 							qualError.setTitle(currentModule);
 							qualError.setOverWriteExisting(true);
-							ErrorBars errorBars =
-																	new ErrorBars(new String[] {"Median"},
-																								new String[] {"Lower Quartile", "Upper Quartile"});
+							ErrorBars errorBars = new ErrorBars(new String[] {"Median"},
+																									new String[] {"Lower Quartile",
+																																"Upper Quartile"});
 							errorBars.setDoubleCoded(true);
 							qualError.setErrorBars(errorBars);
 							rscaScatters.add(qualError);
 
 							String justMedian = rootOutputDir + currentModule + "Median_plot";
-							RScatter qualMedian = new RScatter(	currentOutput, justMedian + ".rscript",
-																									ext.removeDirectoryInfo(justMedian),
-																									justMedian + ".jpeg", "InternalKey",
-																									new String[] {"Median"}, null, SCATTER_TYPE.POINT,
-																									log);
+							RScatter qualMedian = new RScatter(currentOutput, justMedian + ".rscript",
+																								 ext.removeDirectoryInfo(justMedian),
+																								 justMedian + ".jpeg", "InternalKey",
+																								 new String[] {"Median"}, null, SCATTER_TYPE.POINT,
+																								 log);
 							qualMedian.setyLabel("Phred");
 							qualMedian.setxLabel("Base");
 							qualMedian.setTitle(currentModule);
@@ -229,11 +229,11 @@ public class FastQC {
 							rscaScatters.add(gcContent);
 						} else if (currentModule.startsWith("Sequence_Duplication_Levels")) {
 							String gcOut = rootOutputDir + currentModule + "_plot";
-							RScatter seqQuality = new RScatter(	currentOutput, gcOut + ".rscript",
-																									ext.removeDirectoryInfo(gcOut), gcOut + ".jpeg",
-																									"Duplication Level",
-																									new String[] {"Percentage of total"}, null,
-																									SCATTER_TYPE.POINT, log);
+							RScatter seqQuality = new RScatter(currentOutput, gcOut + ".rscript",
+																								 ext.removeDirectoryInfo(gcOut), gcOut + ".jpeg",
+																								 "Duplication Level",
+																								 new String[] {"Percentage of total"}, null,
+																								 SCATTER_TYPE.POINT, log);
 							seqQuality.setyLabel("Duplication Percent");
 							seqQuality.setxLabel("Duplication Level");
 							seqQuality.setTitle(currentModule);
@@ -242,11 +242,11 @@ public class FastQC {
 							rscaScatters.add(seqQuality);
 						} else if (currentModule.startsWith("Per_sequence_quality_scores")) {
 							String outSame = rootOutputDir + currentModule + "same_plot";
-							RScatter seqQuality =
-																	new RScatter(	currentOutput, outSame + ".rscript",
-																								ext.removeDirectoryInfo(outSame), outSame + ".jpeg",
-																								"Quality", new String[] {"Count"}, null,
-																								SCATTER_TYPE.POINT, log);
+							RScatter seqQuality = new RScatter(currentOutput, outSame + ".rscript",
+																								 ext.removeDirectoryInfo(outSame),
+																								 outSame + ".jpeg", "Quality",
+																								 new String[] {"Count"}, null, SCATTER_TYPE.POINT,
+																								 log);
 							seqQuality.setyLabel("Read Count");
 							seqQuality.setxLabel("Sequence Quality");
 							seqQuality.setTitle(currentModule);
@@ -255,10 +255,10 @@ public class FastQC {
 							rscaScatters.add(seqQuality);
 
 							String out = rootOutputDir + currentModule + "_plot";
-							RScatter seqQualitySample = new RScatter(	currentOutput, out + ".rscript",
-																												ext.removeDirectoryInfo(out), out + ".jpeg",
-																												"Quality", new String[] {"Count"}, "Sample",
-																												SCATTER_TYPE.POINT, log);
+							RScatter seqQualitySample = new RScatter(currentOutput, out + ".rscript",
+																											 ext.removeDirectoryInfo(out), out + ".jpeg",
+																											 "Quality", new String[] {"Count"}, "Sample",
+																											 SCATTER_TYPE.POINT, log);
 							seqQualitySample.setyLabel("Read Count");
 							seqQualitySample.setxLabel("Sequence Quality");
 							seqQualitySample.setTitle(currentModule);
@@ -268,19 +268,18 @@ public class FastQC {
 						}
 					}
 					String finalOut = rootOutputDir + "FastQC_summary";
-					RScatters rscScatters =
-																new RScatters(rscaScatters.toArray(new RScatter[rscaScatters.size()]),
-																							finalOut + ".rscript", finalOut + ".pdf",
-																							COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1,
-																							PLOT_DEVICE.PDF, log);
+					RScatters rscScatters = new RScatters(rscaScatters.toArray(new RScatter[rscaScatters.size()]),
+																								finalOut + ".rscript", finalOut + ".pdf",
+																								COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1,
+																								PLOT_DEVICE.PDF, log);
 					rscScatters.execute();
 				}
 			}
 		}
 	}
 
-	private static FastaQCModuleResults[] parseFastaQCResult(	String fullPathFastQCZipFile,
-																														boolean allModules, Logger log) {
+	private static FastaQCModuleResults[] parseFastaQCResult(String fullPathFastQCZipFile,
+																													 boolean allModules, Logger log) {
 		ArrayList<FastaQCModuleResults> fastaQCModuleResults = new ArrayList<FastQC.FastaQCModuleResults>(10);
 		try {
 			ZipFile zipFile = new ZipFile(fullPathFastQCZipFile);
@@ -307,8 +306,8 @@ public class FastQC {
 						if (scanningToHeader || scanningToModule) {
 							int index = ext.indexOfStr(line[0], MODULES_TO_EXTRACT, true, true);
 							if (scanningToModule
-									&& (index >= 0 || (allModules	&& line[0].startsWith(FASTA_QC_BEGIN_MODULE)
-																			&& !line[0].equals(FASTA_QC_END_MODULE)))) {
+									&& (index >= 0 || (allModules && line[0].startsWith(FASTA_QC_BEGIN_MODULE)
+																		 && !line[0].equals(FASTA_QC_END_MODULE)))) {
 								currentModule = line[0];
 								scanningToModule = false;
 							}
@@ -350,8 +349,8 @@ public class FastQC {
 			fail = !verify(rootInputDirs);
 			if (!fail) {
 				if (verbose) {
-					log.report(ext.getTime()	+ " Info - gathering files from "
-											+ ArrayUtils.toStr(rootInputDirs, "\n"));
+					log.report(ext.getTime() + " Info - gathering files from "
+										 + ArrayUtils.toStr(rootInputDirs, "\n"));
 				}
 				ArrayList<String> tmpAllFiles = new ArrayList<String>();
 
@@ -361,8 +360,8 @@ public class FastQC {
 						String[] tmpFiles = Files.list(rootInputDir, element, false);
 						if (tmpFiles != null && tmpFiles.length > 0) {
 							if (verbose) {
-								log.report("Info - found "	+ tmpFiles.length + " of type " + element + " in "
-														+ rootInputDir);
+								log.report("Info - found " + tmpFiles.length + " of type " + element + " in "
+													 + rootInputDir);
 							}
 							tmpFiles = Files.toFullPaths(tmpFiles, rootInputDir);
 							for (String tmpFile : tmpFiles) {
@@ -380,7 +379,8 @@ public class FastQC {
 		if (fastaQFiles == null || fastaQFiles.length < 1) {
 			fail = true;
 			log.reportError("Error - could not find any input files in "
-												+ ArrayUtils.toStr(rootInputDirs, "\n") + "\nwith any of the following extensions:"
+											+ ArrayUtils.toStr(rootInputDirs, "\n")
+											+ "\nwith any of the following extensions:"
 											+ ArrayUtils.toStr(BWA_Analysis.FQ_EXTS, "\n"));
 		} else {
 			log.report(ext.getTime() + " Info - found " + fastaQFiles.length + " file(s) to QC");
@@ -431,11 +431,11 @@ public class FastQC {
 			if (verbose) {
 				log.report(ext.getTime() + " Info - beginning fastaQC for " + fastaQFile);
 			}
-			boolean success = CmdLine.runCommandWithFileChecks(	command, "", new String[] {fastaQFile},
-																													new String[] {baseOutput	+ FASTQC_ZIP,
-																																				baseOutput + FASTQC_HTML},
-																													verbose, overWriteExistingOutput, true,
-																													log);
+			boolean success = CmdLine.runCommandWithFileChecks(command, "", new String[] {fastaQFile},
+																												 new String[] {baseOutput + FASTQC_ZIP,
+																																			 baseOutput + FASTQC_HTML},
+																												 verbose, overWriteExistingOutput, true,
+																												 log);
 			if (verbose && success) {
 				log.report(ext.getTime() + " Info - finished fastaQC for " + fastaQFile);
 			} else if (!success) {
@@ -445,11 +445,11 @@ public class FastQC {
 		}
 	}
 
-	public static void run(	String fastQCLocation, String[] rootInputDirs, String rootOutputDir,
-													int numThreads, boolean verbose, boolean overWriteExistingOutput,
-													boolean batch, Logger log) {
-		FastQC fastQC = new FastQC(	fastQCLocation, rootInputDirs, rootOutputDir, numThreads, verbose,
-																overWriteExistingOutput, log);
+	public static void run(String fastQCLocation, String[] rootInputDirs, String rootOutputDir,
+												 int numThreads, boolean verbose, boolean overWriteExistingOutput,
+												 boolean batch, Logger log) {
+		FastQC fastQC = new FastQC(fastQCLocation, rootInputDirs, rootOutputDir, numThreads, verbose,
+															 overWriteExistingOutput, log);
 		if (!fastQC.isFail()) {
 			fastQC.fastaQC();
 		}
@@ -552,19 +552,19 @@ public class FastQC {
 
 		String usage = "\n" + "seq.FastaQC requires 2 argument\n";
 		usage += "   (1) root input directory (if multiple, use the argument for each directory) (i.e. "
-							+ BWA_Analysis.ROOT_INPUT_COMMAND + " (no default))\n" + "";
-		usage += "   (2) root output directory (i.e. "	+ BWA_Analysis.ROOT_OUTPUT_COMMAND
-							+ rootOutputDir + " (default))\n" + "";
-		usage += "   (3) the full path to the fastaQC executable (i.e. "	+ FASTA_QC_LOCATION_COMMAND
-							+ fastQCLocation + " (defualts to systems path))\n" + "";
-		usage += "   (4) run in quiet mode (i.e. "	+ BWA_Analysis.QUIET_COMMAND
-							+ " (not tbe default))\n" + "";
-		usage += "   (5) number of threads for fastaQC (i.e."	+ NUM_THREADS_COMMAND + numThreads
-							+ " (default))\n" + "";
-		usage += "   (6) filename for a log (i.e. "	+ BWA_Analysis.LOG_FILE_COMMAND + logFile
-							+ " (default))\n" + "";
-		usage += "   (7) over-write exsiting files (i.e. "	+ BWA_Analysis.OVERWRITE_EXISTING_COMMAND
-							+ " (not the default))\n" + "";
+						 + BWA_Analysis.ROOT_INPUT_COMMAND + " (no default))\n" + "";
+		usage += "   (2) root output directory (i.e. " + BWA_Analysis.ROOT_OUTPUT_COMMAND
+						 + rootOutputDir + " (default))\n" + "";
+		usage += "   (3) the full path to the fastaQC executable (i.e. " + FASTA_QC_LOCATION_COMMAND
+						 + fastQCLocation + " (defualts to systems path))\n" + "";
+		usage += "   (4) run in quiet mode (i.e. " + BWA_Analysis.QUIET_COMMAND
+						 + " (not tbe default))\n" + "";
+		usage += "   (5) number of threads for fastaQC (i.e." + NUM_THREADS_COMMAND + numThreads
+						 + " (default))\n" + "";
+		usage += "   (6) filename for a log (i.e. " + BWA_Analysis.LOG_FILE_COMMAND + logFile
+						 + " (default))\n" + "";
+		usage += "   (7) over-write exsiting files (i.e. " + BWA_Analysis.OVERWRITE_EXISTING_COMMAND
+						 + " (not the default))\n" + "";
 
 		// usage += " (7) set up an analysis for a compute node (i.e. " + BWA_Analysis.BATCH_COMMAND + "
 		// (not the default))\n" + "";

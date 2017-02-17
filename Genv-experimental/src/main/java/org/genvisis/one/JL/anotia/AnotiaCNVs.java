@@ -26,17 +26,17 @@ import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
 public class AnotiaCNVs {
 
 	public static void main(String[] args) {
-		String[] cnvFiles = new String[] {
-				"/Volumes/Beta/data/ANOTIA/CNVs/CUSHINGS_FP_EXOME_DEPTH/results/ExomeDepthAll.all.cnvs",
-				"/Volumes/Beta/data/ANOTIA/CNVs/CUSHINGS_FP_EXOME_DEPTH/results/ExomeDepthAll.all.noCNVR.cnvs" };
+		String[] cnvFiles = new String[] {"/Volumes/Beta/data/ANOTIA/CNVs/CUSHINGS_FP_EXOME_DEPTH/results/ExomeDepthAll.all.cnvs",
+																			"/Volumes/Beta/data/ANOTIA/CNVs/CUSHINGS_FP_EXOME_DEPTH/results/ExomeDepthAll.all.noCNVR.cnvs"};
 
 		for (String cnvFile : cnvFiles) {
 			String vpopFile = "/Volumes/Beta/data/ANOTIA/CNVs/CUSHINGS_FP_EXOME_DEPTH/CUSHING_FP.vpop";
 			String outDir = "/Volumes/Beta/data/ANOTIA/CNVs/CUSHINGS_FP_EXOME_DEPTH/cnvResults/";
 			Logger log = new Logger(outDir + "log.log");
 			VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.ANY, log);
-			Hashtable<String, LocusSet<CNVariant>> set = CNVariant.breakIntoInds(CNVariant.loadLocSet(cnvFile, log),
-					log);
+			Hashtable<String, LocusSet<CNVariant>> set = CNVariant.breakIntoInds(CNVariant.loadLocSet(cnvFile,
+																																																log),
+																																					 log);
 			ArrayList<CNVariant> anotia = new ArrayList<>();
 			ArrayList<CNVariant> controls = new ArrayList<>();
 
@@ -74,7 +74,8 @@ public class AnotiaCNVs {
 					} else {
 						boolean add = true;
 						for (CNVariant cnv : overlaps) {
-							double bpOlap = (double) anotiaCnv.amountOfOverlapInBasepairs(cnv) / anotiaCnv.getSize();
+							double bpOlap = (double) anotiaCnv.amountOfOverlapInBasepairs(cnv)
+															/ anotiaCnv.getSize();
 							// System.out.println(bpOlap);
 							if (bpOlap > .5) {
 								add = false;
@@ -87,12 +88,12 @@ public class AnotiaCNVs {
 				}
 			}
 			String gdi = "/Volumes/Beta/data/ANOTIA/CNVs/CUSHINGS_FP_EXOME_DEPTH/GDI_percentile.txt";
-			Hashtable<String, String> gdiHash = HashVec.loadFileToHashString(gdi, new int[] { 0 }, new int[] { 4 },
-					false, "\t", true, false, true);
-			LocusSet<GeneData> geneSet = GeneTrack
-					.load("/Users/Kitty/workspace.other/Genvisis/Genvisis/resources/Genome/hg19/RefSeq_hg19.gtrack",
-							false)
-					.convertToLocusSet(log);
+			Hashtable<String, String> gdiHash = HashVec.loadFileToHashString(gdi, new int[] {0},
+																																			 new int[] {4}, false, "\t",
+																																			 true, false, true);
+			LocusSet<GeneData> geneSet = GeneTrack.load("/Users/Kitty/workspace.other/Genvisis/Genvisis/resources/Genome/hg19/RefSeq_hg19.gtrack",
+																									false)
+																						.convertToLocusSet(log);
 			ArrayList<SeqCNVariant> seqCNVariantsFiltered = new ArrayList<>();
 			HashMap<String, HashSet<String>> counts = new HashMap<>();
 
@@ -101,7 +102,7 @@ public class AnotiaCNVs {
 				AnotiaEI geneInfo = new AnotiaEI(EXTRA_INFO_TYPE.EXOME_DEPTH, "GENE", "");
 				AnotiaEI gdiInfo = new AnotiaEI(EXTRA_INFO_TYPE.EXOME_DEPTH, "GDI", "");
 				AnotiaEI ucscLink = new AnotiaEI(EXTRA_INFO_TYPE.EXOME_DEPTH, "UCSC", "");
-				int[] pos = new int[] { filteredCNV.getChr(), filteredCNV.getStart(), filteredCNV.getStop() };
+				int[] pos = new int[] {filteredCNV.getChr(), filteredCNV.getStart(), filteredCNV.getStop()};
 				String link = Positions.getUCSClink(pos, "hg19");
 				ucscLink.setdExtra("[" + filteredCNV.getUCSClocation() + "](" + link + ")");
 				if (genes != null) {
@@ -110,21 +111,24 @@ public class AnotiaCNVs {
 							counts.put(gene.getGeneName(), new HashSet<>());
 						}
 						geneInfo.setdExtra((geneInfo.getdExtra().equals("") ? gene.getGeneName()
-								: geneInfo.getdExtra() + ";" + gene.getGeneName()));
+																																: geneInfo.getdExtra() + ";"
+																																	+ gene.getGeneName()));
 						counts.get(gene.getGeneName()).add(filteredCNV.getIndividualID());
 						if (gdiHash.containsKey(gene.getGeneName())) {
 							gdiInfo.setdExtra(gdiInfo.getdExtra().equals("") ? gdiHash.get(gene.getGeneName())
-									: gdiInfo.getdExtra() + ";" + gdiHash.get(gene.getGeneName()));
+																															 : gdiInfo.getdExtra() + ";"
+																																 + gdiHash.get(gene.getGeneName()));
 						} else {
-							gdiInfo.setdExtra(gdiInfo.getdExtra().equals("") ? "NA" : gdiInfo.getdExtra() + ";NA");
+							gdiInfo.setdExtra(gdiInfo.getdExtra().equals("") ? "NA"
+																															 : gdiInfo.getdExtra() + ";NA");
 
 						}
 						System.out.println(filteredCNV.getIndividualID() + "\t" + gene.getGeneName() + "\t"
-								+ gdiHash.get(gene.getGeneName()));
+															 + gdiHash.get(gene.getGeneName()));
 					}
 				}
 				SeqCNVariant seqCNVariant = new SeqCNVariant(filteredCNV,
-						new AnotiaEI[] { geneInfo, gdiInfo, ucscLink });
+																										 new AnotiaEI[] {geneInfo, gdiInfo, ucscLink});
 				seqCNVariantsFiltered.add(seqCNVariant);
 			}
 			String outCounts = outDir + ext.rootOf(cnvFile) + "rareGeneCounts.txt";

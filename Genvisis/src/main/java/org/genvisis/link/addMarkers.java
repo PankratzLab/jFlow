@@ -60,8 +60,8 @@ public class addMarkers {
 			hash = new Hashtable<String, String>();
 			while (reader.ready()) {
 				line = reader.readLine().split("[\\s]+");
-				hash.put(	line[0],
-									line[1] + "\t" + line[2] + "\t" + line[i * 2 + 3] + "\t" + line[i * 2 + 4]);
+				hash.put(line[0],
+								 line[1] + "\t" + line[2] + "\t" + line[i * 2 + 3] + "\t" + line[i * 2 + 4]);
 			}
 			reader.close();
 
@@ -82,8 +82,8 @@ public class addMarkers {
 		int chr;
 
 		if (!markers.containsKey(newMarker.toUpperCase())) {
-			System.err.println("Error - "	+ newMarker.toUpperCase()
-													+ " was not found in the Marshfield database");
+			System.err.println("Error - " + newMarker.toUpperCase()
+												 + " was not found in the Marshfield database");
 			System.err.println("      - make sure you have your placeholder line holding its place");
 			System.exit(3);
 		}
@@ -94,8 +94,8 @@ public class addMarkers {
 		if (new File("chromosome" + chr + ".dat").exists()) {
 			new File("chromosome" + chr + ".dat").renameTo(new File(bakFilename));
 		} else {
-			System.err.println("Error - "	+ "chromosome" + chr + ".dat"
-													+ " was not found in current directory");
+			System.err.println("Error - " + "chromosome" + chr + ".dat"
+												 + " was not found in current directory");
 			System.exit(5);
 		}
 
@@ -111,8 +111,8 @@ public class addMarkers {
 			if (offset == -1) {
 				data = (markers.get(line[i].toUpperCase())).split("[\\s]+");
 				if (Integer.valueOf(data[0]).intValue() != chr) {
-					System.err.println("Error - Marker "	+ line[i] + " in chromosome" + chr
-															+ ".dat is not on chromosome " + chr);
+					System.err.println("Error - Marker " + line[i] + " in chromosome" + chr
+														 + ".dat is not on chromosome " + chr);
 					quitProperly(reader, writer, bakFilename, "chromosome" + chr + ".dat");
 					System.exit(2);
 				}
@@ -142,9 +142,9 @@ public class addMarkers {
 					if (hash.containsKey(line[0])) {
 						data = (hash.get(line[0])).split("[\\s]+");
 						if (!(line[1] + "\t" + line[2]).equals(data[0] + "\t" + data[1])) {
-							System.err.println("Error - DNA mismatch with regards to "	+ line[0] + " (" + line[1]
-																	+ "\t" + line[2] + " in chromosome" + chr + ".dat and " + data[0]
-																	+ "\t" + data[1] + " in file with new marker(s)");
+							System.err.println("Error - DNA mismatch with regards to " + line[0] + " (" + line[1]
+																 + "\t" + line[2] + " in chromosome" + chr + ".dat and " + data[0]
+																 + "\t" + data[1] + " in file with new marker(s)");
 							System.err.println("      - but letting it slide... THIS time, matching up using DNA numbers");
 							// quitProperly(reader, writer, bakFilename,
 							// "chromosome"+chr+".dat");
@@ -153,8 +153,8 @@ public class addMarkers {
 						writer.print("\t" + data[2] + "\t" + data[3]);
 					} else {
 						if ((markers.get("currentMarker")).equals("0")) {
-							System.err.println("Warning - "	+ line[1] + "\t" + line[2]
-																	+ " does not have data for the new marker.");
+							System.err.println("Warning - " + line[1] + "\t" + line[2]
+																 + " does not have data for the new marker.");
 						}
 						writer.print("\t0\t0");
 					}
@@ -178,8 +178,8 @@ public class addMarkers {
 		}
 	}
 
-	public void quitProperly(	BufferedReader reader, PrintWriter writer, String bakFilename,
-														String filename) throws IOException {
+	public void quitProperly(BufferedReader reader, PrintWriter writer, String bakFilename,
+													 String filename) throws IOException {
 		reader.close();
 		writer.close();
 		new File(filename).delete();
@@ -193,9 +193,9 @@ public class addMarkers {
 		// String filename = "finemarkers.dat";
 		// String filename = "chr5fine.dat";
 
-		String usage = "\n"	+ "park.addMarker requires 1 argument:\n"
-										+ "   (1) a chromosom-like file - DNA FAMID INDID genotypes...\n"
-										+ "       (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "park.addMarker requires 1 argument:\n"
+									 + "   (1) a chromosom-like file - DNA FAMID INDID genotypes...\n"
+									 + "       (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

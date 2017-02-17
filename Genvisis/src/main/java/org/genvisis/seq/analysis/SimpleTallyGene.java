@@ -32,8 +32,8 @@ public class SimpleTallyGene {
 		 * @param filter
 		 * @param maf max maf
 		 */
-		private Params(	String vcf, Segment seg, String name, String vpopFile, String omimDir,
-										VariantContextFilter filter, double maf) {
+		private Params(String vcf, Segment seg, String name, String vpopFile, String omimDir,
+									 VariantContextFilter filter, double maf) {
 			super();
 			this.vcf = vcf;
 			this.seg = seg;
@@ -54,13 +54,13 @@ public class SimpleTallyGene {
 			String newVpop = dir + ext.removeDirectoryInfo(vpopFile);
 			String segFile = dir + name + ".segs";
 			Files.write(seg.getChr() + "\t" + seg.getStart() + "\t" + seg.getStop(), segFile);
-			String subVcf = VCFOps.extractSegments(	vcf, segFile, 100, null,
-																							ext.rootOf(vpopFile, false) + "_extractedVcfs/",
-																							false, true, true, false, null, 1, log);
+			String subVcf = VCFOps.extractSegments(vcf, segFile, 100, null,
+																						 ext.rootOf(vpopFile, false) + "_extractedVcfs/", false,
+																						 true, true, false, null, 1, log);
 			Files.copyFile(vpopFile, newVpop);
 			if (Files.exists(ext.rootOf(vpopFile, false) + ".lowerQualitySamples.txt")) {
-				Files.copyFile(ext.rootOf(vpopFile, false)+ ".lowerQualitySamples.txt",
-												dir + ext.rootOf(vpopFile, true) + ".lowerQualitySamples.txt");
+				Files.copyFile(ext.rootOf(vpopFile, false) + ".lowerQualitySamples.txt",
+											 dir + ext.rootOf(vpopFile, true) + ".lowerQualitySamples.txt");
 			}
 			VCFSimpleTally.test(subVcf, new String[] {newVpop}, omimDir, null, null, maf, true, true,
 													filter, false);
@@ -77,8 +77,8 @@ public class SimpleTallyGene {
 	 * @param name
 	 * @param omimDir
 	 */
-	public static void run(	String vcf, String vpop, double maf, Segment seg, String name,
-													String omimDir) {
+	public static void run(String vcf, String vpop, double maf, Segment seg, String name,
+												 String omimDir) {
 
 		WorkerHive<Params> hive = new WorkerHive<SimpleTallyGene.Params>(1, 1, new Logger());
 		hive.addCallable(new Params(vcf, seg, name, vpop, omimDir, null, maf));

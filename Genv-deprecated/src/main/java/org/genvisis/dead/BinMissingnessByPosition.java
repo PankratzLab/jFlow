@@ -103,8 +103,8 @@ public class BinMissingnessByPosition {
 				pos = Integer.parseInt(line[5]);
 				index = (int) Math.floor(pos / binSizes[chr - 1]);
 				if (index >= numBins[chr - 1]) {
-					System.err.println("Error - marker "	+ line[1] + " was set to bin " + index + " (max: "
-															+ numBins[chr - 1] + " for chr " + chr + ")");
+					System.err.println("Error - marker " + line[1] + " was set to bin " + index + " (max: "
+														 + numBins[chr - 1] + " for chr " + chr + ")");
 				}
 				pval = Double.parseDouble(line[4]);
 				for (int i = 0; i < THRESHOLDS.length; i++) {
@@ -120,8 +120,8 @@ public class BinMissingnessByPosition {
 			writer.println("Chr\tbin start pos\tbin stop pos\t" + ArrayUtils.toStr(THRESHOLDS));
 			for (int i = 0; i < counts.length; i++) {
 				for (int j = 0; j < counts[i].length; j++) {
-					writer.print((i + 1)	+ "\t" + ext.formDeci((j + 0) * binSizes[i], 1) + "\t"
-												+ ext.formDeci((j + 1) * binSizes[i], 1));
+					writer.print((i + 1) + "\t" + ext.formDeci((j + 0) * binSizes[i], 1) + "\t"
+											 + ext.formDeci((j + 1) * binSizes[i], 1));
 					for (int k = 0; k < THRESHOLDS.length; k++) {
 						prop = (double) counts[i][j][k] / (double) counts[i][j][THRESHOLDS.length];
 						writer.print("\t" + (Double.isNaN(prop) ? "-0.1" : ext.formDeci(prop, 4)));
@@ -147,13 +147,12 @@ public class BinMissingnessByPosition {
 		// WGA\\blood_v_WGA.missing";
 		// String filename = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\blood v
 		// WGA\\blood_v_WGA2.missing";
-		String filename =
-										"C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\blood v WGA\\blood_v_LCL.missing";
+		String filename = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\blood v WGA\\blood_v_LCL.missing";
 		// String filename = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\blood v
 		// WGA\\testmissi.missing";
 
-		String usage = "\\n"	+ "park.gwa.BinMissingnessByPosition requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\\n" + "park.gwa.BinMissingnessByPosition requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

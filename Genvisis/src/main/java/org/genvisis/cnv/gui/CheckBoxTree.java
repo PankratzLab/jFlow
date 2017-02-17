@@ -179,11 +179,11 @@ public class CheckBoxTree extends JTree implements ItemListener {
 			JCheckBox thisCheckBox = (JCheckBox) searchNode.getUserObject();
 			if (action == ItemEvent.SELECTED) {
 				if (thisCheckBox.isSelected()) { // if action is selected and the checkbox is already
-																					// selected then
+																				 // selected then
 					// deselect first
 					thisCheckBox.setSelected(false);
-					itemStateChanged(new ItemEvent(	thisCheckBox, ItemEvent.ITEM_LAST, thisCheckBox,
-																					ItemEvent.DESELECTED));
+					itemStateChanged(new ItemEvent(thisCheckBox, ItemEvent.ITEM_LAST, thisCheckBox,
+																				 ItemEvent.DESELECTED));
 				}
 				thisCheckBox.setSelected(true); // then select the checkbox again
 			} else if (action == ItemEvent.DESELECTED) {
@@ -250,8 +250,8 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		// DynamicUtilTreeNode.createChildren(root, new Branch(nameOfBranch, boxes));
 		// Object ob = new Branch(nameOfBranch, boxes);
 		((DefaultMutableTreeNode) root).setAllowsChildren(true);
-		DynamicUtilTreeNode.createChildren(	(DefaultMutableTreeNode) root,
-																				new Branch[] {new Branch(nameOfBranch, boxes)});
+		DynamicUtilTreeNode.createChildren((DefaultMutableTreeNode) root,
+																			 new Branch[] {new Branch(nameOfBranch, boxes)});
 
 		dynamic = true;
 		((DefaultTreeModel) model).reload();
@@ -604,8 +604,8 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		return new Branch("Root", branches);
 	}
 
-	public static Branch createTreeStructure(	String[] namesOfBranches, String[] branchHandles,
-																						String[][] namesOfNodes, boolean[] active) {
+	public static Branch createTreeStructure(String[] namesOfBranches, String[] branchHandles,
+																					 String[][] namesOfNodes, boolean[] active) {
 		if (namesOfBranches == null || namesOfBranches.length == 0) {
 			return null;
 		}
@@ -690,8 +690,8 @@ class CheckBoxNodeRenderer implements TreeCellRenderer {
 			}
 			return new JCheckBox("messed", true);
 		} else {
-			return branchRenderer.getTreeCellRendererComponent(	tree, value, selected, expanded, leaf, row,
-																													hasFocus);
+			return branchRenderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row,
+																												 hasFocus);
 		}
 	}
 }
@@ -732,8 +732,8 @@ class CheckBoxCellEditor extends AbstractCellEditor implements TreeCellEditor {
 	@Override
 	public Component getTreeCellEditorComponent(JTree tree, Object value, boolean selected,
 																							boolean expanded, boolean leaf, int row) {
-		Component editor = renderer.getTreeCellRendererComponent(	tree, value, true, expanded, leaf, row,
-																															true);
+		Component editor = renderer.getTreeCellRendererComponent(tree, value, true, expanded, leaf, row,
+																														 true);
 
 		// ItemListener itemListener = new ItemListener() {
 		// public void itemStateChanged(ItemEvent itemEvent) {

@@ -55,8 +55,8 @@ public class ExomeDepthEvaluation {
 			CONSENSUS_TYPE cType = CNVariant.CONSENSUS_TYPE.values()[i];
 			for (int j = 0; j < CNVariant.OVERLAP_TYPE.values().length; j++) {
 				OVERLAP_TYPE otype = CNVariant.OVERLAP_TYPE.values()[j];
-				String serFile = ext.parseDirectoryOfFile(exomeDepthCNVFile)	+ ext.rootOf(exomeDepthCNVFile)
-													+ "_v_" + ext.rootOf(pennCNVFile) + cType + "_" + otype + ".ser";
+				String serFile = ext.parseDirectoryOfFile(exomeDepthCNVFile) + ext.rootOf(exomeDepthCNVFile)
+												 + "_v_" + ext.rootOf(pennCNVFile) + cType + "_" + otype + ".ser";
 				if (removeExcludeArray) {
 					serFile = ext.addToRoot(serFile, "._EX_");
 				}
@@ -69,13 +69,13 @@ public class ExomeDepthEvaluation {
 				} else {
 					matchResults = MatchResults.readSerial(serFile, log);
 				}
-				HistogramComparison[] comparisons = new HistogramComparison[] {	new HistogramComparison(),
-																																				new HistogramComparison()};// with
-																																																		// sig
-																																																		// overlap,
-																																																		// without
-																																																		// sig
-																																																		// overlap
+				HistogramComparison[] comparisons = new HistogramComparison[] {new HistogramComparison(),
+																																			 new HistogramComparison()};// with
+																																																	// sig
+																																																	// overlap,
+																																																	// without
+																																																	// sig
+																																																	// overlap
 				log.reportTimeInfo(matchResults.getMatched1().size() + " cnvs matching");
 				log.reportTimeInfo(matchResults.getUnmatched1().size() + " cnvs not matching");
 
@@ -96,10 +96,10 @@ public class ExomeDepthEvaluation {
 
 				DynamicHistogram[] exomeDMisses = comparisons[1].getAll();
 				if (cType == CONSENSUS_TYPE.CN_AWARE && otype == OVERLAP_TYPE.OVERLAP_LOC_AND_INDIVIDUAL) {
-					String cnvHitsFile = ext.parseDirectoryOfFile(serFile)	+ cType + "_" + otype
-																+ "probeCoverage_" + probeCoverage + "_hits.cnv";
-					String cnvMissFile = ext.parseDirectoryOfFile(serFile)	+ cType + "_" + otype
-																+ "_probeCoverage_" + probeCoverage + "_miss.cnv";
+					String cnvHitsFile = ext.parseDirectoryOfFile(serFile) + cType + "_" + otype
+															 + "probeCoverage_" + probeCoverage + "_hits.cnv";
+					String cnvMissFile = ext.parseDirectoryOfFile(serFile) + cType + "_" + otype
+															 + "_probeCoverage_" + probeCoverage + "_miss.cnv";
 
 					if (removeExcludeArray) {
 						cnvHitsFile = ext.addToRoot(cnvHitsFile, "._EX_");
@@ -109,8 +109,8 @@ public class ExomeDepthEvaluation {
 					cnvHitsFile = ext.parseDirectoryOfFile(serFile) + "ExomeDepth_Hits.cnv";
 					cnvMissFile = ext.parseDirectoryOfFile(serFile) + "ExomeDepth_Miss.cnv";
 
-					LocusSet<CNVariant> hitSet = new LocusSet<CNVariant>(	comparisons[0].getCnvsToStore(true),
-																																false, log) {
+					LocusSet<CNVariant> hitSet = new LocusSet<CNVariant>(comparisons[0].getCnvsToStore(true),
+																															 false, log) {
 
 						/**
 						 *
@@ -119,25 +119,24 @@ public class ExomeDepthEvaluation {
 
 					};
 					hitSet.writeRegions(cnvHitsFile, TO_STRING_TYPE.REGULAR, true, log);
-					LocusSet<CNVariant> missSet =
-																			new LocusSet<CNVariant>(comparisons[1].getCnvsToStore(true),
-																															false, log) {
+					LocusSet<CNVariant> missSet = new LocusSet<CNVariant>(comparisons[1].getCnvsToStore(true),
+																																false, log) {
 
-																				/**
-																				 * 
-																				 */
-																				private static final long serialVersionUID = 1L;
+						/**
+						 * 
+						 */
+						private static final long serialVersionUID = 1L;
 
-																			};
+					};
 					ArrayList<String> listHit = new ArrayList<String>();
 					ArrayList<String> listMiss = new ArrayList<String>();
 
 					for (int k = 0; k < missSet.getLoci().length; k++) {
-						listMiss.add(missSet.getLoci()[k].getFamilyID()	+ "\t"
-													+ missSet.getLoci()[k].getUCSClocation());
+						listMiss.add(missSet.getLoci()[k].getFamilyID() + "\t"
+												 + missSet.getLoci()[k].getUCSClocation());
 					}
 					for (int k = 0; k < hitSet.getLoci().length; k++) {
-						listHit.add(hitSet.getLoci()[k].getFamilyID()	+ "\t"
+						listHit.add(hitSet.getLoci()[k].getFamilyID() + "\t"
 												+ hitSet.getLoci()[k].getUCSClocation());
 					}
 					String listHitFile = ext.rootOf(serFile) + ".list.hits.txt";
@@ -145,10 +144,10 @@ public class ExomeDepthEvaluation {
 
 					proj.INDIVIDUAL_CNV_LIST_FILENAMES.setValue(new String[] {listHitFile, listMissFile});
 
-					Files.writeArray(	listHit.toArray(new String[listHit.size()]),
-														proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue()[0]);
-					Files.writeArray(	listMiss.toArray(new String[listMiss.size()]),
-														proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue()[1]);
+					Files.writeArray(listHit.toArray(new String[listHit.size()]),
+													 proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue()[0]);
+					Files.writeArray(listMiss.toArray(new String[listMiss.size()]),
+													 proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue()[1]);
 
 					missSet.writeRegions(cnvMissFile, TO_STRING_TYPE.REGULAR, true, log);
 					proj.CNV_FILENAMES.setValue(new String[] {pennCNVFile, cnvMissFile, cnvHitsFile});
@@ -163,10 +162,10 @@ public class ExomeDepthEvaluation {
 
 				}
 				String finalOut = ext.rootOf(serFile, false) + "_probeCoverage_" + probeCoverage;
-				RScatters rScatters2 = new RScatters(	rScatters.toArray(new RScatter[rScatters.size()]),
-																							finalOut + ".rscript", finalOut + ".pdf",
-																							COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1,
-																							PLOT_DEVICE.PDF, log);
+				RScatters rScatters2 = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]),
+																						 finalOut + ".rscript", finalOut + ".pdf",
+																						 COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF,
+																						 log);
 				rScatters2.execute();
 			}
 		}
@@ -175,19 +174,19 @@ public class ExomeDepthEvaluation {
 	private String plot(DynamicHistogram[] exomeDHits, DynamicHistogram[] exomeDMisses,
 											ArrayList<RScatter> rScatters, int i, boolean prop,
 											CNVariant.CONSENSUS_TYPE cType, CNVariant.OVERLAP_TYPE oType) {
-		String output = ext.parseDirectoryOfFile(exomeDepthCNVFile)	+ HistogramComparison.XLABELS[i]
+		String output = ext.parseDirectoryOfFile(exomeDepthCNVFile) + HistogramComparison.XLABELS[i]
 										+ (prop ? ".prop" : ".count") + cType + "_" + oType + ".txt";
 		DynamicHistogram.dumpToSameFile(new DynamicHistogram[] {exomeDHits[i], exomeDMisses[i]},
 																		HistogramComparison.TITLES[i], output, prop, log);
 		String root = ext.rootOf(output, false);
-		RScatter rsScatterCount = new RScatter(	output, root + ".rescript",
-																						ext.removeDirectoryInfo(output), root + ".pdf", "Bin",
-																						HistogramComparison.TITLES[i], SCATTER_TYPE.POINT, log);
+		RScatter rsScatterCount = new RScatter(output, root + ".rescript",
+																					 ext.removeDirectoryInfo(output), root + ".pdf", "Bin",
+																					 HistogramComparison.TITLES[i], SCATTER_TYPE.POINT, log);
 		rsScatterCount.setxLabel(HistogramComparison.XLABELS[i]);
 		rsScatterCount.setyLabel((prop ? "Proportion" : "Count"));
-		rsScatterCount.setTitle("n="	+ ArrayUtils.sum(exomeDHits[i].getCounts()) + " match; n="
-														+ ArrayUtils.sum(exomeDMisses[i].getCounts()) + " not match\n " + cType + ";"
-														+ oType);
+		rsScatterCount.setTitle("n=" + ArrayUtils.sum(exomeDHits[i].getCounts()) + " match; n="
+														+ ArrayUtils.sum(exomeDMisses[i].getCounts()) + " not match\n " + cType
+														+ ";" + oType);
 		// rsScatterCount.execute();
 		rScatters.add(rsScatterCount);
 		return root;
@@ -196,14 +195,14 @@ public class ExomeDepthEvaluation {
 	private static class HistogramComparison {
 		private static final String[] XLABELS = new String[] {"SCORE", "SITES_exons", "log_LENGTH",
 																													"ArrayProbeCoverage"};
-		private static final String[][] TITLES = new String[][] {	{"ExomeDepthMatch_Score",
+		private static final String[][] TITLES = new String[][] {{"ExomeDepthMatch_Score",
 																															"ExomeDepthMiss_Score"},
-																															{	"ExomeDepthMatch_Sites",
-																																"ExomeDepthMiss_Sites"},
-																															{	"ExomeDepthMatch_Length",
-																																"ExomeDepthMiss_Length"},
-																															{	"ExomeDepthMatch_ProbeCoverage",
-																																"ExomeDepthMiss_ProbeCoverage"}};
+																														 {"ExomeDepthMatch_Sites",
+																															"ExomeDepthMiss_Sites"},
+																														 {"ExomeDepthMatch_Length",
+																															"ExomeDepthMiss_Length"},
+																														 {"ExomeDepthMatch_ProbeCoverage",
+																															"ExomeDepthMiss_ProbeCoverage"}};
 		private final DynamicHistogram scoreHistogram;
 		private final DynamicHistogram sitesHistogram;
 		private final DynamicHistogram lengthHistogram;
@@ -218,8 +217,8 @@ public class ExomeDepthEvaluation {
 			cnvsToStore = new ArrayList<CNVariant>();
 		}
 
-		public void addCNV(	CNVariant cnVariant, MarkerSet markerSet, int[][] indicesByChr,
-												int probesRequired) {
+		public void addCNV(CNVariant cnVariant, MarkerSet markerSet, int[][] indicesByChr,
+											 int probesRequired) {
 			int numprobes = markerSet.getMarkersIn(cnVariant.getBufferedSegment(50), indicesByChr).length;
 			if (numprobes > probesRequired) {
 				scoreHistogram.addDataPointToHistogram(cnVariant.getScore());
@@ -236,14 +235,14 @@ public class ExomeDepthEvaluation {
 		}
 
 		public DynamicHistogram[] getAll() {
-			return new DynamicHistogram[] {	scoreHistogram, sitesHistogram, lengthHistogram,
-																			probeCoverageHistogram};
+			return new DynamicHistogram[] {scoreHistogram, sitesHistogram, lengthHistogram,
+																		 probeCoverageHistogram};
 		}
 
 	}
 
-	public static void compareIt(	Project proj, String exomeDepthCNVFile, String pennCNVFile,
-																int probeCoverage, boolean removeExcludeArray) {
+	public static void compareIt(Project proj, String exomeDepthCNVFile, String pennCNVFile,
+															 int probeCoverage, boolean removeExcludeArray) {
 		ExomeDepthEvaluation exomeDepthOsteo = new ExomeDepthEvaluation(proj, proj.getLog(),
 																																		exomeDepthCNVFile, pennCNVFile,
 																																		probeCoverage,

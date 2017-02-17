@@ -31,8 +31,8 @@ public class ScriptExecutor {
 			return false;
 		}
 		String[] lines = HashVec.loadFileToStringArray(outLog, false, null, false);
-		return !(outLogEndToken == null)	&& lines.length > 0
-						&& (lines[lines.length - 1].contains(outLogEndToken));
+		return !(outLogEndToken == null) && lines.length > 0
+					 && (lines[lines.length - 1].contains(outLogEndToken));
 	}
 
 	public void run(String file, String outLogEndToken) throws IOException {
@@ -53,7 +53,7 @@ public class ScriptExecutor {
 			String outLogTemp = "output/" + fileRoot + ".log_" + index + ".out";
 			boolean foundCompleteOutLog = outLogExistsComplete(dir + outLogTemp, outLogEndToken);
 			if (foundCompleteOutLog) {
-				outWriter.println("Ignoring runnable "	+ index + "/" + lines.length + "; output logfile ["
+				outWriter.println("Ignoring runnable " + index + "/" + lines.length + "; output logfile ["
 													+ outLogTemp + "] contains given token [" + outLogEndToken + "]");
 				continue;
 			}
@@ -109,11 +109,11 @@ public class ScriptExecutor {
 		int numThreads = 1;
 
 		String usage = "one.ScriptExecutor requires 3 arguments\n"
-											+ "   (1) filename with one command per line (i.e. file=" + inputFile
-										+ " (default))\n"
-										+ "   (2) token indicating successful completion in last line of log files (i.e. token="
-										+ outlogToken + " (default))\n" + "   (3) number of threads (i.e. threads="
-										+ numThreads + " (default))\n" + "";
+									 + "   (1) filename with one command per line (i.e. file=" + inputFile
+									 + " (default))\n"
+									 + "   (2) token indicating successful completion in last line of log files (i.e. token="
+									 + outlogToken + " (default))\n" + "   (3) number of threads (i.e. threads="
+									 + numThreads + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

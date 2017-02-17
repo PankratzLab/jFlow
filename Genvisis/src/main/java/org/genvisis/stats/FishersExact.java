@@ -254,8 +254,8 @@ public class FishersExact {
 								work[3][0] = a4;
 								for (int a5 = 0; a5 <= c[0] - a1 - a2 - a3 - a4; a5++) {
 									work[4][0] = a5;
-									work[5][0] = c[0]	- work[0][0] - work[1][0] - work[2][0] - work[3][0]
-																- work[4][0];
+									work[5][0] = c[0] - work[0][0] - work[1][0] - work[2][0] - work[3][0]
+															 - work[4][0];
 									for (int b1 = 0; b1 <= c[1]; b1++) {
 										work[0][1] = b1;
 										for (int b2 = 0; b2 <= c[1] - b1; b2++) {
@@ -266,8 +266,8 @@ public class FishersExact {
 													work[3][1] = b4;
 													for (int b5 = 0; b5 <= c[1] - b1 - b2 - b3 - b4; b5++) {
 														work[4][1] = b5;
-														work[5][1] = c[1]	- work[0][1] - work[1][1] - work[2][1] - work[3][1]
-																					- work[4][1];
+														work[5][1] = c[1] - work[0][1] - work[1][1] - work[2][1] - work[3][1]
+																				 - work[4][1];
 
 														work[0][2] = r[0] - work[0][0] - work[0][1];
 														work[1][2] = r[1] - work[1][0] - work[1][1];
@@ -320,7 +320,8 @@ public class FishersExact {
 				facts[work[0].length * i + j + 1] = lookup[work[i][j]];
 			}
 		}
-		//FIXME MCH - I don't see any reason to sum in sorted order. If there is a reason, it should be documented
+		// FIXME MCH - I don't see any reason to sum in sorted order. If there is a reason, it should be
+		// documented
 		denom = ArrayUtils.sum(ArrayUtils.sortedCopy(facts));
 		temp = Math.exp(num - denom);
 		if (temp <= pex) {
@@ -385,14 +386,13 @@ public class FishersExact {
 				System.out.print((j == 0 ? "" : " / ") + ArrayUtils.toStr(matrix[j], ","));
 			}
 			d = calc(matrix, 0, true);
-			System.out.print("\tExact: "	+ d + "\t"
-												+ (Math.abs(d - probs[i]) < 0.000000000000001	? "checks out"
-																																			: "FAILED!!!"));
+			System.out.print("\tExact: " + d + "\t"
+											 + (Math.abs(d - probs[i]) < 0.000000000000001 ? "checks out" : "FAILED!!!"));
 			System.out.print(" in " + ext.getTimeElapsed(time));
 			System.out.println();
 			System.out.println("Chi Sq: "
-													+ ProbDist.ChiDist(	ContingencyTable.ChiSquare(matrix, false),
-																							(matrix.length - 1) * (matrix[0].length - 1)));
+												 + ProbDist.ChiDist(ContingencyTable.ChiSquare(matrix, false),
+																						(matrix.length - 1) * (matrix[0].length - 1)));
 		}
 	}
 }

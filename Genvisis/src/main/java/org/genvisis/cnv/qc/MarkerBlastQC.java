@@ -39,14 +39,14 @@ public class MarkerBlastQC {
 		}
 		MarkerSet markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
-		MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(	proj, null,
-																																								proj.BLAST_ANNOTATION_FILENAME.getValue(),
-																																								proj.getMarkerSet(),
-																																								true);
+		MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(proj, null,
+																																							 proj.BLAST_ANNOTATION_FILENAME.getValue(),
+																																							 proj.getMarkerSet(),
+																																							 true);
 		markerAnnotationLoader.setReportEvery(500000);
-		MarkerGCAnnotation[] gcAnnotations = MarkerGCAnnotation.initForMarkers(	proj, markerNames,
-																																						markerAnnotationLoader.getMarkerSet(),
-																																						markerAnnotationLoader.getIndices());
+		MarkerGCAnnotation[] gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, markerNames,
+																																					 markerAnnotationLoader.getMarkerSet(),
+																																					 markerAnnotationLoader.getIndices());
 		MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(markerNames);
 		ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
 		parsers.add(gcAnnotations);
@@ -58,9 +58,8 @@ public class MarkerBlastQC {
 
 		for (int i = 0; i < blastResults.length; i++) {
 			MarkerBlastAnnotation current = blastResults[i];
-			ArrayList<BlastAnnotation> perfectMatches =
-																								current.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
-																																					log);
+			ArrayList<BlastAnnotation> perfectMatches = current.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
+																																						log);
 			if (perfectMatches.size() == 1) {
 				int[] alignmentHistogram = current.getAlignmentHistogram(proj);
 				int sub = (int) Math.round(crossHybePercent * alignmentHistogram.length);
@@ -86,8 +85,8 @@ public class MarkerBlastQC {
 			}
 		}
 
-		log.reportTime(oneHitters.size()	+ " one hit wonder markers identified out of "
-										+ markerNames.length + " total markers");
+		log.reportTime(oneHitters.size() + " one hit wonder markers identified out of "
+									 + markerNames.length + " total markers");
 		log.report("Writing results to " + outFile);
 		Files.writeIterable(oneHitters, outFile);
 	}
@@ -99,10 +98,10 @@ public class MarkerBlastQC {
 		double crossHybridizationThreshold = DEFAULT_CROSS_HYBE_THRESHOLD;
 		String usage = "\n" + "cnv.qc.MarkerBlast requires 3 arguments\n";
 		usage += "   (1) Project file name (i.e. proj=" + filename + " (default))\n" + "";
-		usage += "   (2) Blast.vcf filename  (i.e. blastVCF="	+ "./blast.vcf.gz "
-							+ " (default based on project properties))\n" + "";
+		usage += "   (2) Blast.vcf filename  (i.e. blastVCF=" + "./blast.vcf.gz "
+						 + " (default based on project properties))\n" + "";
 		usage += "   (3) Cross hybridization threshold  (i.e. crossHybridizationThreshold="
-							+ crossHybridizationThreshold + " (default))\n" + "";
+						 + crossHybridizationThreshold + " (default))\n" + "";
 
 
 		for (String arg : args) {
@@ -142,8 +141,8 @@ public class MarkerBlastQC {
 			if (blastVCF == null) {
 				blastVCF = proj.BLAST_ANNOTATION_FILENAME.getValue();
 			}
-			getOneHitWonders(	proj, blastVCF, defaultOneHitWondersFilename(blastVCF),
-												crossHybridizationThreshold, proj.getLog());
+			getOneHitWonders(proj, blastVCF, defaultOneHitWondersFilename(blastVCF),
+											 crossHybridizationThreshold, proj.getLog());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

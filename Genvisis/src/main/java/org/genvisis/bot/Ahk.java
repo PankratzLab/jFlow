@@ -78,14 +78,14 @@ public class Ahk {
 		return pixels;
 	}
 
-	public static void outline(	Robot bot, int ScanStartX, int ScanEndX, int ScanStartY,
-															int ScanEndY) {
+	public static void outline(Robot bot, int ScanStartX, int ScanEndX, int ScanStartY,
+														 int ScanEndY) {
 		moveMouseSlowly(bot, ScanStartX, ScanStartY, 25);
 		moveMouseSlowly(bot, ScanEndX, ScanEndY, 25);
 	}
 
-	public static int[] findMatrix(	Robot bot, int ScanStartX, int ScanEndX, int ScanStartY,
-																	int ScanEndY, int Dimension, String Matrix) {
+	public static int[] findMatrix(Robot bot, int ScanStartX, int ScanEndX, int ScanStartY,
+																 int ScanEndY, int Dimension, String Matrix) {
 		String[] Pix;
 		int Length, count, MatchFound;
 		int StartX, StartY, EndX, EndY;
@@ -205,9 +205,9 @@ public class Ahk {
 	}
 
 	public static int[][] findAllMatricesFast(Robot bot, int[] matrix, Logger log) {
-		return findAllMatricesFast(	bot.createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit()
+		return findAllMatricesFast(bot.createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit()
 																																						.getScreenSize())),
-																matrix, log);
+															 matrix, log);
 	}
 
 	public static int[][] findAllMatricesFast(BufferedImage screencapture, int[] matrix, Logger log) {

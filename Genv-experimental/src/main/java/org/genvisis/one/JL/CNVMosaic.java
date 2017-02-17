@@ -56,8 +56,8 @@ public class CNVMosaic {
 				callSegs.add(new Segment((byte) i, 0, Integer.MAX_VALUE));
 			}
 		}
-		LocusSet<Segment> segs = new LocusSet<Segment>(	callSegs.toArray(new Segment[callSegs.size()]),
-																										true, proj.getLog()) {
+		LocusSet<Segment> segs = new LocusSet<Segment>(callSegs.toArray(new Segment[callSegs.size()]),
+																									 true, proj.getLog()) {
 
 			/**
 			 *
@@ -72,27 +72,27 @@ public class CNVMosaic {
 
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(output));
-				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER)	+ "\t"
-												+ ArrayUtils.toStr(MosaicRegion.ADD_HEADER) + "\tEXCLUDED\tDNA\tUCSC");
+				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
+											 + ArrayUtils.toStr(MosaicRegion.ADD_HEADER) + "\tEXCLUDED\tDNA\tUCSC");
 
-				MosaicProducer producer = new MosaicProducer(	proj, builder, ArrayUtils.toStringArray(samples),
-																											markerSet, segs);
-				WorkerTrain<LocusSet<MosaicRegion>> train =
-																									new WorkerTrain<LocusSet<MosaicRegion>>(producer,
-																																													numThreads,
-																																													2,
-																																													proj.getLog());
+				MosaicProducer producer = new MosaicProducer(proj, builder,
+																										 ArrayUtils.toStringArray(samples), markerSet,
+																										 segs);
+				WorkerTrain<LocusSet<MosaicRegion>> train = new WorkerTrain<LocusSet<MosaicRegion>>(producer,
+																																														numThreads,
+																																														2,
+																																														proj.getLog());
 				int index = 0;
 				while (train.hasNext()) {
 					index++;
 					LocusSet<MosaicRegion> tmp = train.next();
 					tmp.addAll(all);
 					for (int i = 0; i < tmp.getLoci().length; i++) {
-						String sampKey = sampleData.lookup(tmp.getLoci()[i].getFamilyID()	+ "\t"
-																								+ tmp.getLoci()[i].getIndividualID())[0];
-						writer.println(tmp.getLoci()[i].toAnalysisString()	+ "\t"
-														+ sampleData.individualShouldBeExcluded(sampKey) + "\t" + sampKey + "\t"
-														+ tmp.getLoci()[i].getUCSClocation());
+						String sampKey = sampleData.lookup(tmp.getLoci()[i].getFamilyID() + "\t"
+																							 + tmp.getLoci()[i].getIndividualID())[0];
+						writer.println(tmp.getLoci()[i].toAnalysisString() + "\t"
+													 + sampleData.individualShouldBeExcluded(sampKey) + "\t" + sampKey + "\t"
+													 + tmp.getLoci()[i].getUCSClocation());
 					}
 					proj.getLog().reportTimeInfo("Calling mos for sample " + index + " of " + samples.size());
 				}
@@ -101,8 +101,8 @@ public class CNVMosaic {
 				proj.getLog().reportError("Error writing to " + output);
 				proj.getLog().reportException(e);
 			}
-			results = new LocusSet<MosaicRegion>(	all.toArray(new MosaicRegion[all.size()]), true,
-																						proj.getLog()) {
+			results = new LocusSet<MosaicRegion>(all.toArray(new MosaicRegion[all.size()]), true,
+																					 proj.getLog()) {
 
 				/**
 				 *
@@ -123,9 +123,9 @@ public class CNVMosaic {
 		String mosaicOut = proj.PROJECT_DIRECTORY.getValue() + "mosaicCalls.mos";
 		callMosaic(proj, mosaicOut, proj.NUM_THREADS.getValue());
 		int[] cns = new int[] {0};
-		Restrictions[] restrictions = new Restrictions[] {new Restrictions(	new String[] {"SITES",},
-																																				new double[] {75},
-																																				new String[] {">",}, null)};
+		Restrictions[] restrictions = new Restrictions[] {new Restrictions(new String[] {"SITES",},
+																																			 new double[] {75},
+																																			 new String[] {">",}, null)};
 		plot(proj, mosaicOut, cns, restrictions, true);
 		// plot(proj, mosaicOut);
 		String[] cnvFiles = proj.CNV_FILENAMES.getValue();
@@ -134,8 +134,8 @@ public class CNVMosaic {
 			String output = ext.addToRoot(cnvFile, ".mosaicMetrics");
 			if (!Files.exists(output)) {
 				LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(cnvFile, proj.getLog());
-				Hashtable<String, LocusSet<CNVariant>> indSets = CNVariant.breakIntoInds(	cnvs,
-																																									proj.getLog());
+				Hashtable<String, LocusSet<CNVariant>> indSets = CNVariant.breakIntoInds(cnvs,
+																																								 proj.getLog());
 				int numSampsRemoved = 0;
 				int numCNVsRemoved = 0;
 				ArrayList<String> remove = new ArrayList<String>();
@@ -153,8 +153,8 @@ public class CNVMosaic {
 				}
 				proj.getLog().reportTimeInfo(indSets.size() + " current samples after excludes");
 
-				proj.getLog().reportTimeInfo("Removed "	+ numSampsRemoved + "  samples and "
-																			+ numCNVsRemoved + " cnvs");
+				proj.getLog().reportTimeInfo("Removed " + numSampsRemoved + "  samples and "
+																		 + numCNVsRemoved + " cnvs");
 				MosaicForceProducer producer = new MosaicForceProducer(proj, indSets);
 				WorkerTrain<MosaicRegion[]> train = new WorkerTrain<MosaicRegion[]>(producer,
 																																						proj.NUM_THREADS.getValue(),
@@ -162,17 +162,17 @@ public class CNVMosaic {
 
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(output));
-					writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER)	+ "\t"
-													+ ArrayUtils.toStr(MosaicRegion.ADD_HEADER) + "\tEXCLUDED\tDNA\tUCSC");
+					writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
+												 + ArrayUtils.toStr(MosaicRegion.ADD_HEADER) + "\tEXCLUDED\tDNA\tUCSC");
 					int index = 0;
 					while (train.hasNext()) {
 						MosaicRegion[] regions = train.next();
 						for (MosaicRegion region : regions) {
-							String sampKey = sampleData.lookup(region.getFamilyID()	+ "\t"
-																									+ region.getIndividualID())[0];
-							writer.println(region.toAnalysisString()	+ "\t"
-															+ sampleData.individualShouldBeExcluded(sampKey) + "\t" + sampKey
-															+ "\t" + region.getUCSClocation());
+							String sampKey = sampleData.lookup(region.getFamilyID() + "\t"
+																								 + region.getIndividualID())[0];
+							writer.println(region.toAnalysisString() + "\t"
+														 + sampleData.individualShouldBeExcluded(sampKey) + "\t" + sampKey
+														 + "\t" + region.getUCSClocation());
 						}
 						index++;
 						proj.getLog().reportTimeInfo(index + " of " + indSets.size());
@@ -188,8 +188,8 @@ public class CNVMosaic {
 
 	}
 
-	private static void plot(	Project proj, String output, int[] cns, Restrictions[] restrictions,
-														boolean mos) {
+	private static void plot(Project proj, String output, int[] cns, Restrictions[] restrictions,
+													 boolean mos) {
 
 		ArrayList<RScatter> rscatters = new ArrayList<RScatter>();
 
@@ -209,11 +209,11 @@ public class CNVMosaic {
 			rScatterMarkBOX.setRestrictions(restrictionss);
 
 			String outPlot9 = ext.addToRoot(output, ".markMarkbox_limit.d" + cn);
-			RScatter rScatterMarkBOXLimit = new RScatter(	output, outPlot9 + ".rscript",
-																										ext.removeDirectoryInfo(outPlot9),
-																										outPlot9 + ".jpeg", "numCustomFMarkers",
-																										new String[] {"customF"}, null,
-																										SCATTER_TYPE.BOX, proj.getLog());
+			RScatter rScatterMarkBOXLimit = new RScatter(output, outPlot9 + ".rscript",
+																									 ext.removeDirectoryInfo(outPlot9),
+																									 outPlot9 + ".jpeg", "numCustomFMarkers",
+																									 new String[] {"customF"}, null, SCATTER_TYPE.BOX,
+																									 proj.getLog());
 			rScatterMarkBOXLimit.setyLabel("customF");
 			rScatterMarkBOXLimit.setxLabel("NumCustomF Markers");
 			rScatterMarkBOXLimit.setTitle("customF v NumCustomF Markers, copy number " + cn);
@@ -236,10 +236,10 @@ public class CNVMosaic {
 		}
 
 		String outPlot1 = ext.addToRoot(output, ".height");
-		RScatter rScatterHeight = new RScatter(	output, outPlot1 + ".rscript",
-																						ext.removeDirectoryInfo(outPlot1), outPlot1 + ".jpeg",
-																						"customF", new String[] {"beastHeight"}, "TYPE",
-																						SCATTER_TYPE.POINT, proj.getLog());
+		RScatter rScatterHeight = new RScatter(output, outPlot1 + ".rscript",
+																					 ext.removeDirectoryInfo(outPlot1), outPlot1 + ".jpeg",
+																					 "customF", new String[] {"beastHeight"}, "TYPE",
+																					 SCATTER_TYPE.POINT, proj.getLog());
 		rScatterHeight.setyLabel("BEAST_HEIGHT");
 		rScatterHeight.setxLabel("CustomF");
 		rScatterHeight.setTitle("CUSTOM_F vs BEAST Height");
@@ -318,10 +318,10 @@ public class CNVMosaic {
 		rscatters.add(rScatterMarkersPenn);
 
 		String outPlot5 = ext.addToRoot(output, ".markMark");
-		RScatter rScatterMarkMark = new RScatter(	output, outPlot5 + ".rscript",
-																							ext.removeDirectoryInfo(outPlot5), outPlot5 + ".jpeg",
-																							"SITES", new String[] {"numCustomFMarkers"},
-																							"customF", SCATTER_TYPE.POINT, proj.getLog());
+		RScatter rScatterMarkMark = new RScatter(output, outPlot5 + ".rscript",
+																						 ext.removeDirectoryInfo(outPlot5), outPlot5 + ".jpeg",
+																						 "SITES", new String[] {"numCustomFMarkers"}, "customF",
+																						 SCATTER_TYPE.POINT, proj.getLog());
 		rScatterMarkMark.setRestrictions(restrictions);
 
 		rScatterMarkMark.setyLabel("NumCustomF Markers");
@@ -334,11 +334,11 @@ public class CNVMosaic {
 		rscatters.add(rScatterMarkMark);
 
 		String outPlot6 = ext.addToRoot(output, ".markMarkType");
-		RScatter rScatterMarkMarkType = new RScatter(	output, outPlot6 + ".rscript",
-																									ext.removeDirectoryInfo(outPlot6),
-																									outPlot6 + ".jpeg", "SITES",
-																									new String[] {"numCustomFMarkers"}, "TYPE",
-																									SCATTER_TYPE.POINT, proj.getLog());
+		RScatter rScatterMarkMarkType = new RScatter(output, outPlot6 + ".rscript",
+																								 ext.removeDirectoryInfo(outPlot6),
+																								 outPlot6 + ".jpeg", "SITES",
+																								 new String[] {"numCustomFMarkers"}, "TYPE",
+																								 SCATTER_TYPE.POINT, proj.getLog());
 		rScatterMarkMarkType.setRestrictions(restrictions);
 
 		rScatterMarkMarkType.setyLabel("NumCustomF Markers");
@@ -348,10 +348,10 @@ public class CNVMosaic {
 		rScatterMarkMarkType.setyRange(new double[] {0, 100});
 		rScatterMarkMarkType.setxRange(new double[] {0, 200});
 
-		RScatters rs = new RScatters(	rscatters.toArray(new RScatter[rscatters.size()]),
-																	output + ".rscript", output + "final.pdf",
-																	COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF,
-																	proj.getLog());
+		RScatters rs = new RScatters(rscatters.toArray(new RScatter[rscatters.size()]),
+																 output + ".rscript", output + "final.pdf",
+																 COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF,
+																 proj.getLog());
 		rs.execute();
 	}
 
@@ -399,8 +399,8 @@ public class CNVMosaic {
 					ArrayList<MosaicRegion> all = new ArrayList<MosaicRegion>();
 					MosaicBuilder builderMosaic = new MosaicBuilder();
 					builderMosaic.verbose(true);
-					MosaicismDetect md = builderMosaic.build(	proj, sample, markerSet,
-																										ArrayUtils.toDoubleArray(samp.getBAFs()));
+					MosaicismDetect md = builderMosaic.build(proj, sample, markerSet,
+																									 ArrayUtils.toDoubleArray(samp.getBAFs()));
 					// MosaicQuantWorker worker = new MosaicQuantWorker(sampCNVs.getLoci(), proj, sample,
 					// MOSAIC_TYPE.values(), 5);
 					// WorkerHive<MosaicQuantResults[]> hive = new
@@ -421,8 +421,8 @@ public class CNVMosaic {
 
 							for (int j = 0; j < mosSet.getLoci().length; j++) {
 
-								MosaicRegion recaptured = new MosaicRegion(	sampCNVs.getLoci()[i],
-																														mosSet.getLoci()[j]);
+								MosaicRegion recaptured = new MosaicRegion(sampCNVs.getLoci()[i],
+																													 mosSet.getLoci()[j]);
 								recaptured.setF(f);
 								recaptured.setNumCustomFMarkers(mosSet.getLoci()[j].getNumMarkers());
 								recaptured.setNumFMarkers(numFMarkers);
@@ -466,8 +466,8 @@ public class CNVMosaic {
 		int numArgs = args.length;
 		String filename = null;
 
-		String usage = "\n"	+ "one.JL.CNVMosaic requires 0-1 arguments\n"
-										+ "   (1) project  (i.e. proj=" + filename + " (default))\n" + "";
+		String usage = "\n" + "one.JL.CNVMosaic requires 0-1 arguments\n"
+									 + "   (1) project  (i.e. proj=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

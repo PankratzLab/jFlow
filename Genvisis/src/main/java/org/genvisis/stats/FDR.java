@@ -90,8 +90,8 @@ public class FDR {
 
 
 	private static void computeFromFile(String pvalFile, double q, String output, Logger log) {
-		double[] pvals = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(	pvalFile, false,
-																																				new int[] {0}, false));
+		double[] pvals = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(pvalFile, false,
+																																						new int[] {0}, false));
 		log.reportTimeInfo("False discovery rate set to " + q);
 		FDR f = compute(pvals, q);
 		StringBuilder builder = new StringBuilder();

@@ -27,8 +27,7 @@ import org.genvisis.link.bat.Mendel;
 
 public class GinsburgDavid {
 	public static final String LOG_FILE = "logfile.txt";
-	public static final String DEFAULT_ROOT =
-																					"C:\\Documents and Settings\\npankrat\\My Documents\\murine\\";
+	public static final String DEFAULT_ROOT = "C:\\Documents and Settings\\npankrat\\My Documents\\murine\\";
 	// public static final String DEFAULT_ROOT = "C:\\transfer\\forSeattle\\murine\\";
 
 	// public static final String DEFAULT_DIR = "DBALine\\doublecheck\\";
@@ -142,7 +141,7 @@ public class GinsburgDavid {
 		}
 		sStrain = dnaList.elementAt(0);
 		bStrain = dnaList.elementAt(1);
-		logIt("Assuming we're taking the F1s of a "	+ sStrain + " x " + bStrain
+		logIt("Assuming we're taking the F1s of a " + sStrain + " x " + bStrain
 					+ " cross and backcrossing into " + bStrain, false);
 
 		try {
@@ -153,11 +152,11 @@ public class GinsburgDavid {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\t");
 				if (lookup.containsKey(line[1])) {
-					logIt("Error - You have more than two individuals with the same ID ('"	+ line[1] + "')",
+					logIt("Error - You have more than two individuals with the same ID ('" + line[1] + "')",
 								true);
 				}
 				if (line[6].contains(sStrain) && line[6].contains(bStrain)) {
-					logIt("Error - '"	+ line[6] + "' contains identifiers for both strains ('" + sStrain
+					logIt("Error - '" + line[6] + "' contains identifiers for both strains ('" + sStrain
 								+ "' and '" + bStrain + "')", true);
 					logIt("failed at " + ext.getTime(), true);
 					System.exit(1);
@@ -187,13 +186,13 @@ public class GinsburgDavid {
 						temp = temp.substring(0, temp.indexOf("/"));
 					}
 					if (temp.startsWith(TRAIT_STRAIN_PREFIX)) {
-						logIt("Error - '"	+ temp + "' (parsed from '" + line[6]
+						logIt("Error - '" + temp + "' (parsed from '" + line[6]
 									+ "') uses the reserved susceptibility strain prefix", true);
 						logIt("failed at " + ext.getTime(), true);
 						System.exit(1);
 					}
 					if (temp.startsWith(BACKCROSS_STRAIN_PREFIX)) {
-						logIt("Error - '"	+ temp + "' (parsed from '" + line[6]
+						logIt("Error - '" + temp + "' (parsed from '" + line[6]
 									+ "') uses the reserved backcross strain prefix", true);
 						logIt("failed at " + ext.getTime(), true);
 						System.exit(1);
@@ -202,7 +201,7 @@ public class GinsburgDavid {
 					try {
 						Integer.parseInt(temp);
 					} catch (NumberFormatException nfe) {
-						logIt("Error - failed to parse strain from '"	+ temp + "' (for indiviudal " + line[1]
+						logIt("Error - failed to parse strain from '" + temp + "' (for indiviudal " + line[1]
 									+ "); not either of the ancestral strains (" + sStrain + " or " + bStrain + ")",
 									true);
 						logIt("failed at " + ext.getTime(), true);
@@ -252,15 +251,15 @@ public class GinsburgDavid {
 			}
 			while (reader.ready()) {
 				line = reader.readLine().split("\t", -1);
-				writer.println("1\t"	+ lookup.get(line[pedNum]) + "\t"
-												+ (line[father].equals("") ? "0" : lookup.get(line[father].trim())) + "\t"
-												+ (line[mother].equals("") ? "0" : lookup.get(line[mother].trim())) + "\t"
-												+ (line[sex].equals("m") ? "1" : (line[sex].equals("f") ? "2" : "0")) + "\t"
-												+ (lookup.get(line[pedNum]).startsWith(TRAIT_STRAIN_PREFIX)
-														|| dnaList.contains(lookup.get(line[pedNum]))	? "2"
-																																					: lookup.get(line[pedNum])
-																																									.startsWith(TRAIT_STRAIN_PREFIX)	? "1"
-																																																										: "0"));
+				writer.println("1\t" + lookup.get(line[pedNum]) + "\t"
+											 + (line[father].equals("") ? "0" : lookup.get(line[father].trim())) + "\t"
+											 + (line[mother].equals("") ? "0" : lookup.get(line[mother].trim())) + "\t"
+											 + (line[sex].equals("m") ? "1" : (line[sex].equals("f") ? "2" : "0")) + "\t"
+											 + (lookup.get(line[pedNum]).startsWith(TRAIT_STRAIN_PREFIX)
+													|| dnaList.contains(lookup.get(line[pedNum])) ? "2"
+																																				: lookup.get(line[pedNum])
+																																								.startsWith(TRAIT_STRAIN_PREFIX) ? "1"
+																																																								 : "0"));
 			}
 			reader.close();
 			writer.close();
@@ -303,7 +302,7 @@ public class GinsburgDavid {
 							Integer.parseInt(temp);
 						} catch (Exception e) {
 							if (report) {
-								logIt("\nError - '"	+ line[i]
+								logIt("\nError - '" + line[i]
 											+ "' could not be parsed into an integer (closest I got was '" + temp + "')",
 											true);
 							}
@@ -326,7 +325,7 @@ public class GinsburgDavid {
 		}
 
 		if (dnaList.size() < 3) {
-			logIt("Error - parsed less than three DNAs from the genotype file (n="	+ dnaList.size() + ")",
+			logIt("Error - parsed less than three DNAs from the genotype file (n=" + dnaList.size() + ")",
 						true);
 			logIt("failed at " + ext.getTime(), true);
 			System.exit(1);
@@ -355,8 +354,8 @@ public class GinsburgDavid {
 				if (line[1].startsWith(traitStrainPrefix)) {
 					dnaList.add(line[1]);
 				}
-				preData.add(temp	+ "\t"
-										+ (dnaList.contains(line[1]) || line[1].startsWith(traitStrainPrefix)	? "1"
+				preData.add(temp + "\t"
+										+ (dnaList.contains(line[1]) || line[1].startsWith(traitStrainPrefix) ? "1"
 																																													: "0"));
 			}
 			reader.close();
@@ -382,8 +381,8 @@ public class GinsburgDavid {
 			writer = new PrintWriter(new FileWriter(dir + "trimmed.pre"));
 			for (int i = 0; i < v.size(); i++) {
 				line = v.elementAt(i).split("[\\s]+");
-				writer.println(line[0]	+ "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
-												+ "\t" + (line[1].startsWith(bcStrainPrefix) ? "1" : "2"));
+				writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
+											 + "\t" + (line[1].startsWith(bcStrainPrefix) ? "1" : "2"));
 				dnaList.remove(line[1]);
 			}
 			writer.close();
@@ -423,8 +422,8 @@ public class GinsburgDavid {
 			for (int i = 0; i < GENOTYPIC_HEADER.length; i++) {
 				if (!line[i].toLowerCase().startsWith(GENOTYPIC_HEADER[i])) {
 					logIt("Error - expecting the first three columns in the genotypes file to be "
-									+ ArrayUtils.toStr(GENOTYPIC_HEADER, " ") + " (found " + line[0] + " " + line[1] + " "
-								+ line[2] + ")", true);
+								+ ArrayUtils.toStr(GENOTYPIC_HEADER, " ") + " (found " + line[0] + " " + line[1]
+								+ " " + line[2] + ")", true);
 					logIt("failed at " + ext.getTime(), true);
 					System.exit(1);
 				}
@@ -468,9 +467,9 @@ public class GinsburgDavid {
 								genos[i][count] = 1;
 							} else if (temp.equals("BB")) {
 								genos[i][count] = 0;
-							} else if (temp.equals("oo")	|| temp.equals("0") || temp.equals("")
-													|| temp.equals("--") || temp.equals("NoCall") || temp.equals("NoCAAll")
-													|| temp.equals("X") || temp.equals("-") || temp.equals("?")) {
+							} else if (temp.equals("oo") || temp.equals("0") || temp.equals("")
+												 || temp.equals("--") || temp.equals("NoCall") || temp.equals("NoCAAll")
+												 || temp.equals("X") || temp.equals("-") || temp.equals("?")) {
 								genos[i][count] = -1;
 							} else {
 								logIt("Error - unknown genotype: " + temp, true);
@@ -501,7 +500,8 @@ public class GinsburgDavid {
 				writer.println((1 - maf) + " " + maf);
 			}
 			writer.println("0 0");
-			writer.println("10.0 " + ArrayUtils.toStr(ArrayUtils.stringArray(markers.size() + 1, "0.0"), " "));
+			writer.println("10.0 "
+										 + ArrayUtils.toStr(ArrayUtils.stringArray(markers.size() + 1, "0.0"), " "));
 			writer.println("1 0.1 0.45");
 
 			writer.close();
@@ -709,7 +709,7 @@ public class GinsburgDavid {
 
 						line = reader.readLine().trim().split("[\\s]+");
 						if (!line[1].endsWith(":") || !line[4].endsWith(":")) {
-							logIt("Error - could not parse either father ("	+ line[1] + ") or mother (" + line[4]
+							logIt("Error - could not parse either father (" + line[1] + ") or mother (" + line[4]
 										+ ")", true);
 
 						}
@@ -743,7 +743,7 @@ public class GinsburgDavid {
 					markerMap.put(line[1], line[2]);
 				}
 				if (!line[2].equals(markerMap.get(line[1]))) {
-					logIt("Error - two markers ("	+ line[2] + " and " + markerMap.get(line[1])
+					logIt("Error - two markers (" + line[2] + " and " + markerMap.get(line[1])
 								+ ") were mapped to the same locus (" + line[1]
 								+ "); this really should be impossible", true);
 				}
@@ -845,19 +845,19 @@ public class GinsburgDavid {
 		Vector<String> xMarkers;
 
 		if (!new File(dir + filename).exists()) {
-			logIt("Running Mendel using default models; expecting file '"	+ filename
+			logIt("Running Mendel using default models; expecting file '" + filename
 						+ "' for custom models", false);
-			models = new double[][] {	{DEFAULT_FREQ, DEFAULT_MODEL1[0], DEFAULT_MODEL1[1],
+			models = new double[][] {{DEFAULT_FREQ, DEFAULT_MODEL1[0], DEFAULT_MODEL1[1],
 																DEFAULT_MODEL1[2]},
-																{	DEFAULT_FREQ, DEFAULT_MODEL2[0], DEFAULT_MODEL2[1],
-																	DEFAULT_MODEL2[2]}};
+															 {DEFAULT_FREQ, DEFAULT_MODEL2[0], DEFAULT_MODEL2[1],
+																DEFAULT_MODEL2[2]}};
 		} else {
 			logIt("Running Mendel using models listed in " + filename, false);
 			models = LinkageMap.parseModels(dir + filename);
 		}
 
-		markerSet = new SnpMarkerSet(dir	+ "markers.dat", SnpMarkerSet.PLINK_MAP_FORMAT, false,
-																	new Logger());
+		markerSet = new SnpMarkerSet(dir + "markers.dat", SnpMarkerSet.PLINK_MAP_FORMAT, false,
+																 new Logger());
 		markerNames = markerSet.getMarkerNames();
 		chrs = markerSet.getChrs();
 		positions = markerSet.getPositions();
@@ -880,8 +880,8 @@ public class GinsburgDavid {
 			writer = new PrintWriter(new FileWriter(dir + "results.xln"));
 			writer.print("Marker\tChromosome\tPosition");
 			for (double[] model : models) {
-				writer.print("\tModel: dxFreq="	+ model[0] + " penetrance=" + model[1] + "," + model[2]
-											+ "," + model[3] + "\tMax Theta");
+				writer.print("\tModel: dxFreq=" + model[0] + " penetrance=" + model[1] + "," + model[2]
+										 + "," + model[3] + "\tMax Theta");
 			}
 			writer.println();
 			writer.flush();
@@ -913,8 +913,8 @@ public class GinsburgDavid {
 
 		root = ext.rootOf(exploreFile, true);
 
-		markerSet = new SnpMarkerSet(dir	+ "markers.dat", SnpMarkerSet.PLINK_MAP_FORMAT, false,
-																	new Logger());
+		markerSet = new SnpMarkerSet(dir + "markers.dat", SnpMarkerSet.PLINK_MAP_FORMAT, false,
+																 new Logger());
 		chrHash = markerSet.getChrHash();
 
 		// markerNames = Matrix.extractColumn(Markers.readIn(dir+"markers.dat"), 0);
@@ -926,13 +926,13 @@ public class GinsburgDavid {
 		// }
 
 		if (!new File(exploreFile).exists()) {
-			logIt("Did not find a '"	+ exploreFile
+			logIt("Did not find a '" + exploreFile
 						+ "' file; create this list of markers if you want to explore different models", false);
 			return;
 		}
 
 		new File(dir + exploreDir).mkdirs();
-		LinkageFormat.filterMarkers(dir	+ "mended_pedfile.pre", dir + exploreDir + root + ".pre",
+		LinkageFormat.filterMarkers(dir + "mended_pedfile.pre", dir + exploreDir + root + ".pre",
 																dir + "map.dat", dir + exploreDir + root + ".dat", exploreFile,
 																null);
 
@@ -941,7 +941,7 @@ public class GinsburgDavid {
 		map = new LinkageMap(dir + root + ".dat");
 		markerNames = map.getMarkerNames();
 
-		logIt("Exploring "	+ markerNames.length + " marker" + (markerNames.length > 1 ? "s" : "")
+		logIt("Exploring " + markerNames.length + " marker" + (markerNames.length > 1 ? "s" : "")
 					+ " using 2x" + EXPLORE_PEN.length + "x" + EXPLORE_HET.length + " models using Mendel",
 					false);
 		allResults = new String[2][EXPLORE_PEN.length][EXPLORE_HET.length][][];
@@ -972,8 +972,8 @@ public class GinsburgDavid {
 					for (int i = 0; i < EXPLORE_PEN.length; i++) {
 						writer.print("PEN=" + EXPLORE_PEN[i]);
 						for (int j = 0; j < EXPLORE_HET.length; j++) {
-							writer.print("\t"	+ allResults[model][i][j][k][1] + "\t"
-														+ allResults[model][i][j][k][2]);
+							writer.print("\t" + allResults[model][i][j][k][1] + "\t"
+													 + allResults[model][i][j][k][2]);
 						}
 						writer.println();
 					}
@@ -1003,9 +1003,9 @@ public class GinsburgDavid {
 					writer.print(markerNames[k] + "\t" + chrHash.get(markerNames[k]));
 					for (int i = 0; i < 3; i++) {
 						indices = Matrix.indicesInMatrix(keys[i], EXPLORE_HET.length);
-						writer.print("\t"	+ allResults[model][indices[0]][indices[1]][k][1] + "\tTheta="
-													+ allResults[model][indices[0]][indices[1]][k][2] + ", PEN="
-													+ EXPLORE_PEN[indices[0]] + ", HET=" + EXPLORE_HET[indices[1]]);
+						writer.print("\t" + allResults[model][indices[0]][indices[1]][k][1] + "\tTheta="
+												 + allResults[model][indices[0]][indices[1]][k][2] + ", PEN="
+												 + EXPLORE_PEN[indices[0]] + ", HET=" + EXPLORE_HET[indices[1]]);
 					}
 					writer.println();
 				}
@@ -1081,8 +1081,8 @@ public class GinsburgDavid {
 
 		try {
 			reader = new BufferedReader(new FileReader(phenoFile));
-			indices = ext.indexFactors(	headerTargets, reader.readLine().trim().split("[\\s]+"), false,
-																	true);
+			indices = ext.indexFactors(headerTargets, reader.readLine().trim().split("[\\s]+"), false,
+																 true);
 			writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(phenoFile) + "trimmed.pre"));
 			writer.println("1\t99901\t0\t0\t1\t2");
 			writer.println("1\t77701\t0\t0\t2\t1");
@@ -1096,9 +1096,9 @@ public class GinsburgDavid {
 					writer.println("1\t" + cagePrefix + "2\t88801\t77702\t2\t0");
 					hash.put(cagePrefix, "");
 				}
-				writer.println("1\t"	+ line[indices[0]] + "\t" + cagePrefix + "1\t" + cagePrefix + "2\t"
-												+ ext.replaceAllWith(line[indices[2]], genderCodes) + "\t"
-												+ line[indices[3]]);
+				writer.println("1\t" + line[indices[0]] + "\t" + cagePrefix + "1\t" + cagePrefix + "2\t"
+											 + ext.replaceAllWith(line[indices[2]], genderCodes) + "\t"
+											 + line[indices[3]]);
 			}
 			reader.close();
 			writer.close();
@@ -1110,8 +1110,8 @@ public class GinsburgDavid {
 			System.exit(2);
 		}
 
-		Files.copyFile(ext.parseDirectoryOfFile(phenoFile)	+ "trimmed.pre",
-										ext.parseDirectoryOfFile(phenoFile) + "untrimmed.pre");
+		Files.copyFile(ext.parseDirectoryOfFile(phenoFile) + "trimmed.pre",
+									 ext.parseDirectoryOfFile(phenoFile) + "untrimmed.pre");
 
 	}
 
@@ -1136,14 +1136,14 @@ public class GinsburgDavid {
 		// Documents\\murine\\yossi\\2010.02.03\\phenotype.dat");
 		// System.exit(1);
 
-		String usage = "\\n"	+ "oneoff.GinsburgPedigree requires 0-3 arguments\n"
-										+ "   (1) pedigree file (i.e. ped=" + pedigree + " (default))\n"
-										+ "   (2) genotype file (i.e. geno=" + genotypes + " (default))\n"
-										+ "   (3) minor allele frequency (i.e. maf=" + maf + " (default))\n"
-										+ "   (4) (optional) list of models (i.e. models=" + models + ")\n" + "\n"
-										+ " Note: you can pick one of the following steps to perform; otherwise the step to be performed at each iteration will be determined by which files are already present:\n"
-										+ "   -makePedigree\n" + "   -trimPedigree\n" + "   -addGenotypes\n"
-										+ "   -mendErrors\n" + "   -runMendel\n" + "";
+		String usage = "\\n" + "oneoff.GinsburgPedigree requires 0-3 arguments\n"
+									 + "   (1) pedigree file (i.e. ped=" + pedigree + " (default))\n"
+									 + "   (2) genotype file (i.e. geno=" + genotypes + " (default))\n"
+									 + "   (3) minor allele frequency (i.e. maf=" + maf + " (default))\n"
+									 + "   (4) (optional) list of models (i.e. models=" + models + ")\n" + "\n"
+									 + " Note: you can pick one of the following steps to perform; otherwise the step to be performed at each iteration will be determined by which files are already present:\n"
+									 + "   -makePedigree\n" + "   -trimPedigree\n" + "   -addGenotypes\n"
+									 + "   -mendErrors\n" + "   -runMendel\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -1188,7 +1188,7 @@ public class GinsburgDavid {
 			System.exit(1);
 		}
 		try {
-			dir = jar	? "./"
+			dir = jar ? "./"
 								: (new File(DEFAULT_ROOT + DEFAULT_DIR).exists() ? DEFAULT_ROOT + DEFAULT_DIR : "");
 			if (option == 0) {
 				makePedigree(dir, pedigree, genotypes);

@@ -34,8 +34,8 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
 	}
 
 	public CNVRectangle(CNVariant variant, int offset) {
-		this(	(variant.getStart() - offset), (variant.getStop() - offset), (byte) 2, true, true,
-					(byte) 2, (byte) 1);
+		this((variant.getStart() - offset), (variant.getStop() - offset), (byte) 2, true, true,
+				 (byte) 2, (byte) 1);
 	}
 
 	/**
@@ -118,8 +118,8 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
 		}
 
 		// Need to adjust the brightness
-		float[] hsbVals = Color.RGBtoHSB(	CNVColor.getRed(), CNVColor.getGreen(), CNVColor.getBlue(),
-																			null);
+		float[] hsbVals = Color.RGBtoHSB(CNVColor.getRed(), CNVColor.getGreen(), CNVColor.getBlue(),
+																		 null);
 		float newBrightness = hsbVals[2];
 
 		if (copies > 2) {

@@ -52,8 +52,8 @@ public class FindMarkersNearGenes {
 
 	public static final int NUM_BATCHES = 1;
 
-	public static void findMarkers(	String dir, String filename, String root, double mafCutoff,
-																	int windowSize) {
+	public static void findMarkers(String dir, String filename, String root, double mafCutoff,
+																 int windowSize) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String trav;
@@ -101,7 +101,7 @@ public class FindMarkersNearGenes {
 		}
 		if (!trav.equals("")) {
 			System.err.println("Error - the following genes were not found in the genes database: "
-													+ trav);
+												 + trav);
 			System.exit(1);
 		}
 
@@ -114,7 +114,7 @@ public class FindMarkersNearGenes {
 				chr = Integer.parseInt(line[0]);
 				pos = Integer.parseInt(line[3]);
 				for (int i = 0; i < genePositions.length; i++) {
-					if (chr == genePositions[i][0]	&& pos >= genePositions[i][1]
+					if (chr == genePositions[i][0] && pos >= genePositions[i][1]
 							&& pos <= genePositions[i][2]) {
 						HashVec.addIfAbsent(line[1], markers);
 						trav = geneLookup.containsKey(line[1]) ? geneLookup.get(line[1]) : "";
@@ -126,8 +126,8 @@ public class FindMarkersNearGenes {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ dir + root + ".bim"
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + dir + root + ".bim"
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + dir + root + ".bim" + "\"");
@@ -139,25 +139,25 @@ public class FindMarkersNearGenes {
 		// mafLookup = new Hashtable<String, String>();
 
 		markerNames = ArrayUtils.toStringArray(markers);
-		System.out.println(ext.getTime()	+ "  Filtering " + markers.size() + " SNPs; discarding MAF <"
-												+ mafCutoff);
+		System.out.println(ext.getTime() + "  Filtering " + markers.size() + " SNPs; discarding MAF <"
+											 + mafCutoff);
 		try {
 			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_markers.xln"));
 			for (String markerName : markerNames) {
 				trav = mafLookup.get(markerName);
 				if (trav == null) {
-					System.err.println("Error - "	+ markerName
-															+ " was listed in the map file but not the frq file");
+					System.err.println("Error - " + markerName
+														 + " was listed in the map file but not the frq file");
 				} else if (Double.parseDouble(trav) < mafCutoff) {
 					markers.remove(markerName);
 				}
-				writer.println(markerName	+ "\t" + markerPositions.get(markerName) + "\t"
-												+ (trav == null ? "??" : trav) + "\t" + geneLookup.get(markerName));
+				writer.println(markerName + "\t" + markerPositions.get(markerName) + "\t"
+											 + (trav == null ? "??" : trav) + "\t" + geneLookup.get(markerName));
 			}
 			writer.close();
 		} catch (IOException ioe) {
-			System.err.println("Error writing to file \""	+ dir + ext.rootOf(filename) + "_markers.xln"
-													+ "\"");
+			System.err.println("Error writing to file \"" + dir + ext.rootOf(filename) + "_markers.xln"
+												 + "\"");
 			System.exit(2);
 		}
 		System.out.println(ext.getTime() + "  " + markers.size() + " SNPs survived filter");
@@ -176,8 +176,8 @@ public class FindMarkersNearGenes {
 				writer.close();
 			}
 		} catch (IOException ioe) {
-			System.err.println("Error writing to file \""	+ dir + ext.rootOf(filename) + "_qualified.txt"
-													+ "\"");
+			System.err.println("Error writing to file \"" + dir + ext.rootOf(filename) + "_qualified.txt"
+												 + "\"");
 			System.exit(2);
 		}
 	}
@@ -190,10 +190,10 @@ public class FindMarkersNearGenes {
 		if (!new File(dir + ext.rootOf(filename) + ".ped").exists()
 				|| !new File(dir + ext.rootOf(filename) + ".info").exists()) {
 			System.out.println(ext.getTime() + "  Creating plink files for root " + ext.rootOf(filename));
-			CmdLine.run("plink --noweb --bfile "	+ root + " --extract " + ext.rootOf(filename)
+			CmdLine.run("plink --noweb --bfile " + root + " --extract " + ext.rootOf(filename)
 									+ "_qualified.txt --out " + ext.rootOf(filename) + " --recode", "./");
 			try {
-				new File(dir + ext.rootOf(filename) + ".ped").renameTo(new File(dir	+ ext.rootOf(filename)
+				new File(dir + ext.rootOf(filename) + ".ped").renameTo(new File(dir + ext.rootOf(filename)
 																																				+ ".ped.bak"));
 				reader = new BufferedReader(new FileReader(dir + ext.rootOf(filename) + ".ped.bak"));
 				writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + ".ped"));
@@ -219,8 +219,8 @@ public class FindMarkersNearGenes {
 				reader.close();
 				writer.close();
 			} catch (IOException e) {
-				System.err.println("Error converting "	+ ext.rootOf(filename) + ".map to "
-														+ ext.rootOf(filename) + ".info");
+				System.err.println("Error converting " + ext.rootOf(filename) + ".map to "
+													 + ext.rootOf(filename) + ".info");
 				System.exit(2);
 			}
 			System.out.println(ext.getTime() + " ...all set!");
@@ -242,13 +242,12 @@ public class FindMarkersNearGenes {
 	public static int[] parseChrInfo(String[] line) {
 		int[] chr_start_stop = new int[3];
 
-		chr_start_stop[0] =
-											line[2].equals("X")	? 23
-																					: (line[2].equals("Y")	? 24
-																																	: (line[2].equals("XY")	? 25
-																																													: (line[2].equals("MT")	? 26
-																																																									: (line[2].equals("Un")	? 27
-																																																																					: Integer.parseInt(line[2])))));
+		chr_start_stop[0] = line[2].equals("X") ? 23
+																						: (line[2].equals("Y") ? 24
+																																	 : (line[2].equals("XY") ? 25
+																																													 : (line[2].equals("MT") ? 26
+																																																									 : (line[2].equals("Un") ? 27
+																																																																					 : Integer.parseInt(line[2])))));
 		chr_start_stop[1] = Integer.parseInt(line[3]);
 		chr_start_stop[2] = Integer.parseInt(line[4]);
 
@@ -275,12 +274,12 @@ public class FindMarkersNearGenes {
 		tags = new String[TAG_SUFFIXES.length][];
 		for (int i = 0; i < TAG_SUFFIXES.length; i++) {
 			if (new File(dir + ext.rootOf(filename) + "_tags" + TAG_SUFFIXES[i] + ".txt").exists()) {
-				tags[i] = ArrayUtils.toStringArray(HashVec.loadFileToVec(dir	+ ext.rootOf(filename) + "_tags"
-																														+ TAG_SUFFIXES[i] + ".txt", false, true,
-																														true));
+				tags[i] = ArrayUtils.toStringArray(HashVec.loadFileToVec(dir + ext.rootOf(filename)
+																																 + "_tags" + TAG_SUFFIXES[i]
+																																 + ".txt", false, true, true));
 			} else {
-				System.err.println("Error - "	+ ext.rootOf(filename) + "_tags" + TAG_SUFFIXES[i]
-														+ ".txt failed");
+				System.err.println("Error - " + ext.rootOf(filename) + "_tags" + TAG_SUFFIXES[i]
+													 + ".txt failed");
 			}
 		}
 		System.out.println("            Found " + tags.length + " tags...");
@@ -315,7 +314,7 @@ public class FindMarkersNearGenes {
 		}
 		if (!trav.equals("")) {
 			System.err.println("Error - the following genes were not found in the genes database: "
-													+ trav);
+												 + trav);
 			System.exit(1);
 		}
 
@@ -329,7 +328,7 @@ public class FindMarkersNearGenes {
 				chr = Integer.parseInt(line[1]);
 				pos = Integer.parseInt(line[2]);
 				for (int i = 0; i < genePositions.length; i++) {
-					if (chr == genePositions[i][0]	&& pos >= genePositions[i][1]
+					if (chr == genePositions[i][0] && pos >= genePositions[i][1]
 							&& pos <= genePositions[i][2]) {
 						geneCounts[i][0]++;
 						if (seen.containsKey(line[0])) {
@@ -348,12 +347,12 @@ public class FindMarkersNearGenes {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("\""	+ dir + ext.rootOf(filename) + "_markers.xln"
-													+ "\" was not found; please re-run findMarkers algorithm");
+			System.err.println("\"" + dir + ext.rootOf(filename) + "_markers.xln"
+												 + "\" was not found; please re-run findMarkers algorithm");
 			System.exit(1);
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""	+ dir + ext.rootOf(filename) + "_markers.xln"
-													+ "\"");
+			System.err.println("Error reading file \"" + dir + ext.rootOf(filename) + "_markers.xln"
+												 + "\"");
 			System.exit(2);
 		}
 
@@ -365,8 +364,8 @@ public class FindMarkersNearGenes {
 			}
 			writer.println();
 			for (int i = 0; i < genes.length; i++) {
-				writer.print(genes[i]	+ "\t" + genePositions[i][0] + "\t" + genePositions[i][1] + "\t"
-											+ genePositions[i][2] + "\t" + (genePositions[i][2] - genePositions[i][1]));
+				writer.print(genes[i] + "\t" + genePositions[i][0] + "\t" + genePositions[i][1] + "\t"
+										 + genePositions[i][2] + "\t" + (genePositions[i][2] - genePositions[i][1]));
 				for (int j = 0; j < 3; j++) {
 					writer.print("\t" + geneCounts[i][j]);
 				}
@@ -377,8 +376,8 @@ public class FindMarkersNearGenes {
 			}
 			writer.close();
 		} catch (IOException ioe) {
-			System.err.println("Error writing to file \""	+ dir + ext.rootOf(filename) + "_summary.xln"
-													+ "\"");
+			System.err.println("Error writing to file \"" + dir + ext.rootOf(filename) + "_summary.xln"
+												 + "\"");
 			System.exit(2);
 		}
 	}
@@ -407,12 +406,12 @@ public class FindMarkersNearGenes {
 				} else {
 					done = true;
 				}
-				if (done	|| Integer.parseInt(line[2]) > chr
+				if (done || Integer.parseInt(line[2]) > chr
 						|| (count >= SPLIT_SIZE && Integer.parseInt(line[3]) - prev > GAP_MIN)) {
 					if (count > 0) {
 						writer.close();
-						System.out.println("Filled chr"	+ chr + ext.getExcelColumn(suffix) + ".txt (n=" + count
-																+ ")");
+						System.out.println("Filled chr" + chr + ext.getExcelColumn(suffix) + ".txt (n=" + count
+															 + ")");
 						v.add(new String[] {"chr" + chr + ext.getExcelColumn(suffix)});
 					}
 					if (Integer.parseInt(line[2]) > chr) {
@@ -425,7 +424,7 @@ public class FindMarkersNearGenes {
 						done = true;
 					}
 					if (!done) {
-						writer = new PrintWriter(new FileWriter("chr"	+ chr + ext.getExcelColumn(suffix)
+						writer = new PrintWriter(new FileWriter("chr" + chr + ext.getExcelColumn(suffix)
 																										+ ".txt"));
 						count = 0;
 					}
@@ -448,16 +447,16 @@ public class FindMarkersNearGenes {
 		}
 
 		commands = "jcpm gwa.FindMarkersNearGenes dir=./ file=[%0].txt\n"
-									+ "jcp gwa.FindMarkersNearGenes dir=./ file=[%0].txt -createPlink\n"
-								+ "java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile [%0].ped -info [%0].info -pairwiseTagging\n"
-								+ "mv [%0].ped.TESTS [%0]_tags.txt\n"
-								+ "java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile [%0].ped -info [%0].info -aggressiveTagging -aggressiveNumMarkers 3\n"
-								+ "mv [%0].ped.TESTS [%0]_tags23.txt\n"
-								+ "java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile [%0].ped -info [%0].info -tagrsqcutoff 0.9 -pairwiseTagging\n"
-								+ "mv [%0].ped.TESTS [%0]_tags-0.9.txt\n"
-								+ "java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile [%0].ped -info [%0].info -tagrsqcutoff 0.9 -aggressiveTagging -aggressiveNumMarkers 3\n"
-								+ "mv [%0].ped.TESTS [%0]_tags23-0.9.txt\n" + "rm [%0].ped.TAGS\n"
-								+ "jcpm gwa.FindMarkersNearGenes dir=./ file=[%0].txt\n" + "";
+							 + "jcp gwa.FindMarkersNearGenes dir=./ file=[%0].txt -createPlink\n"
+							 + "java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile [%0].ped -info [%0].info -pairwiseTagging\n"
+							 + "mv [%0].ped.TESTS [%0]_tags.txt\n"
+							 + "java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile [%0].ped -info [%0].info -aggressiveTagging -aggressiveNumMarkers 3\n"
+							 + "mv [%0].ped.TESTS [%0]_tags23.txt\n"
+							 + "java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile [%0].ped -info [%0].info -tagrsqcutoff 0.9 -pairwiseTagging\n"
+							 + "mv [%0].ped.TESTS [%0]_tags-0.9.txt\n"
+							 + "java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile [%0].ped -info [%0].info -tagrsqcutoff 0.9 -aggressiveTagging -aggressiveNumMarkers 3\n"
+							 + "mv [%0].ped.TESTS [%0]_tags23-0.9.txt\n" + "rm [%0].ped.TAGS\n"
+							 + "jcpm gwa.FindMarkersNearGenes dir=./ file=[%0].txt\n" + "";
 		commands = "jcpm gwa.FindMarkersNearGenes dir=./ file=[%0].txt\n";
 		Files.batchIt("batch", null, NUM_BATCHES, commands, Matrix.toStringArrays(v));
 	}
@@ -483,38 +482,34 @@ public class FindMarkersNearGenes {
 				commands = "";
 				count = 0;
 				if (!new File(trav + "_tags.txt").exists()) {
-					commands +=
-										"java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile "
-												+ trav + ".ped -info " + trav + ".info -pairwiseTagging\n" + "mv " + trav
+					commands += "java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile "
+											+ trav + ".ped -info " + trav + ".info -pairwiseTagging\n" + "mv " + trav
 											+ ".ped.TESTS " + trav + "_tags.txt\n";
 					count++;
 				}
 				if (!new File(trav + "_tags23.txt").exists()) {
-					commands +=
-										"java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile "
-												+ trav + ".ped -info " + trav
+					commands += "java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile "
+											+ trav + ".ped -info " + trav
 											+ ".info -aggressiveTagging -aggressiveNumMarkers 3\n" + "mv " + trav
 											+ ".ped.TESTS " + trav + "_tags23.txt\n";
 					count++;
 				}
 				if (!new File(trav + "_tags-0.9.txt").exists()) {
-					commands +=
-										"java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile "
-												+ trav + ".ped -info " + trav + ".info -tagrsqcutoff 0.9 -pairwiseTagging\n"
+					commands += "java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile "
+											+ trav + ".ped -info " + trav + ".info -tagrsqcutoff 0.9 -pairwiseTagging\n"
 											+ "mv " + trav + ".ped.TESTS " + trav + "_tags-0.9.txt\n";
 					count++;
 				}
 				if (!new File(trav + "_tags23-0.9.txt").exists()) {
-					commands +=
-										"java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile "
-												+ trav + ".ped -info " + trav
+					commands += "java -Dsun.java2d.noddraw=true -Xms2048M -Xmx2048M -classpath Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -pedfile "
+											+ trav + ".ped -info " + trav
 											+ ".info -tagrsqcutoff 0.9 -aggressiveTagging -aggressiveNumMarkers 3\n"
 											+ "mv " + trav + ".ped.TESTS " + trav + "_tags23-0.9.txt\n";
 					count++;
 				}
 
 				if (count > 0) {
-					commands += "rm "	+ trav + ".ped.TAGS\n" + "jcpm gwa.FindMarkersNearGenes dir=./ file="
+					commands += "rm " + trav + ".ped.TAGS\n" + "jcpm gwa.FindMarkersNearGenes dir=./ file="
 											+ trav + ".txt\n\n";
 				}
 				writer.print(commands);
@@ -539,16 +534,16 @@ public class FindMarkersNearGenes {
 		boolean createPlink = false;
 		boolean fillIn = false;
 
-		String usage = "\n"	+ "park.gwa.FindNearestGenes requires 0-1 arguments\n"
-										+ "   (1) directory (i.e. dir=" + dir + " (default))\n"
-										+ "   (2) list of genes (i.e. file=" + filename + " (default))\n"
-										+ "   (3) plink root for hapmap data (i.e. root=" + root + " (default))\n"
-										+ "   (4) MAF cutoff (i.e. maf=" + mafCutoff + " (default))\n"
-										+ "   (5) window size (i.e. win=" + windowSize + " (default))\n"
-										+ "   (6) (optional) split genes (i.e. -splitGenes (not the default))\n"
-										+ "   (7) (optional) creates plink file if needed (i.e. -createPlink (not the default))\n"
-										+ "   (8) (optional) fill in missing tags (i.e. -fillIn (not the default))\n"
-										+ "";
+		String usage = "\n" + "park.gwa.FindNearestGenes requires 0-1 arguments\n"
+									 + "   (1) directory (i.e. dir=" + dir + " (default))\n"
+									 + "   (2) list of genes (i.e. file=" + filename + " (default))\n"
+									 + "   (3) plink root for hapmap data (i.e. root=" + root + " (default))\n"
+									 + "   (4) MAF cutoff (i.e. maf=" + mafCutoff + " (default))\n"
+									 + "   (5) window size (i.e. win=" + windowSize + " (default))\n"
+									 + "   (6) (optional) split genes (i.e. -splitGenes (not the default))\n"
+									 + "   (7) (optional) creates plink file if needed (i.e. -createPlink (not the default))\n"
+									 + "   (8) (optional) fill in missing tags (i.e. -fillIn (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -594,7 +589,7 @@ public class FindMarkersNearGenes {
 			} else if (createPlink) {
 				createPlink(dir, filename, root);
 			} else if (!new File(dir + ext.rootOf(filename) + "_qualified.txt").exists()
-									|| !new File(dir + ext.rootOf(filename) + "_tags.txt").exists()) {
+								 || !new File(dir + ext.rootOf(filename) + "_tags.txt").exists()) {
 				findMarkers(dir, filename, root, mafCutoff, windowSize);
 			} else {
 				System.out.println("Found qualified.txt and tags.txt; processing results");

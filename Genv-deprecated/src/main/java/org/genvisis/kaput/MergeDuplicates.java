@@ -66,8 +66,8 @@ public class MergeDuplicates {
 			samples = new String[numSamples + 1][];
 			for (int j = 0; j < numSamples; j++) {
 				if (!new File(dir + PEDS + line[j] + ".ped").exists()) {
-					System.err.println("Error - file '"	+ line[j] + ".ped' not found in directory '" + dir
-															+ PEDS + "'");
+					System.err.println("Error - file '" + line[j] + ".ped' not found in directory '" + dir
+														 + PEDS + "'");
 					System.exit(1);
 				}
 				try {
@@ -80,9 +80,9 @@ public class MergeDuplicates {
 						System.exit(1);
 					}
 					if (samples[j].length != numMarkers * 2) {
-						System.err.println("Error - number of columns ("	+ (samples[j].length + 1)
-																+ ") does not equal 2*#markers for DNA (" + numMarkers * 2 + "): "
-																+ line[j]);
+						System.err.println("Error - number of columns (" + (samples[j].length + 1)
+															 + ") does not equal 2*#markers for DNA (" + numMarkers * 2 + "): "
+															 + line[j]);
 						System.exit(1);
 					}
 					reader.close();
@@ -102,27 +102,27 @@ public class MergeDuplicates {
 						source = k;
 					} else if ((samples[numSamples][j * 2 + 0].equals("0")
 											|| samples[numSamples][j * 2 + 1].equals("0"))
-											&& !samples[k][j * 2 + 0].equals("0") && !samples[k][j * 2 + 1].equals("0")) {
+										 && !samples[k][j * 2 + 0].equals("0") && !samples[k][j * 2 + 1].equals("0")) {
 						samples[numSamples][j * 2 + 0] = samples[k][j * 2 + 0];
 						samples[numSamples][j * 2 + 1] = samples[k][j * 2 + 1];
-						temp = line[0]	+ "\t" + ArrayUtils.toStr(ArrayUtils.subArray(line, 1), "|") + "\t"
-										+ markers.elementAt(j) + "\t" + samples[numSamples][j * 2 + 0] + "\t"
-										+ samples[numSamples][j * 2 + 1] + "\t" + line[k] + "\tmerged";
+						temp = line[0] + "\t" + ArrayUtils.toStr(ArrayUtils.subArray(line, 1), "|") + "\t"
+									 + markers.elementAt(j) + "\t" + samples[numSamples][j * 2 + 0] + "\t"
+									 + samples[numSamples][j * 2 + 1] + "\t" + line[k] + "\tmerged";
 						for (int m = 0; m < numSamples; m++) {
 							temp += "\t" + samples[m][j * 2 + 0] + "\t" + samples[m][j * 2 + 1];
 						}
 						source = k;
 					} else if ((samples[k][j * 2 + 0].equals("0") || samples[k][j * 2 + 1].equals("0"))
-												&& !samples[numSamples][j * 2 + 0].equals("0")
-											&& !samples[numSamples][j * 2 + 1].equals("0")) {
-						temp = line[0]	+ "\t" + ArrayUtils.toStr(ArrayUtils.subArray(line, 1), "|") + "\t"
-										+ markers.elementAt(j) + "\t" + samples[numSamples][j * 2 + 0] + "\t"
-										+ samples[numSamples][j * 2 + 1] + "\t" + line[source] + "\tmerged";
+										 && !samples[numSamples][j * 2 + 0].equals("0")
+										 && !samples[numSamples][j * 2 + 1].equals("0")) {
+						temp = line[0] + "\t" + ArrayUtils.toStr(ArrayUtils.subArray(line, 1), "|") + "\t"
+									 + markers.elementAt(j) + "\t" + samples[numSamples][j * 2 + 0] + "\t"
+									 + samples[numSamples][j * 2 + 1] + "\t" + line[source] + "\tmerged";
 						for (int m = 0; m < numSamples; m++) {
 							temp += "\t" + samples[m][j * 2 + 0] + "\t" + samples[m][j * 2 + 1];
 						}
 					} else if (!samples[numSamples][j * 2 + 0].equals(samples[k][j * 2 + 0])
-											|| !samples[numSamples][j * 2 + 1].equals(samples[k][j * 2 + 1])) {
+										 || !samples[numSamples][j * 2 + 1].equals(samples[k][j * 2 + 1])) {
 						samples[numSamples][j * 2 + 0] = "X";
 						samples[numSamples][j * 2 + 1] = "X";
 					}
@@ -130,8 +130,8 @@ public class MergeDuplicates {
 				if (samples[numSamples][j * 2 + 0].equals("X")) {
 					samples[numSamples][j * 2 + 0] = "0";
 					samples[numSamples][j * 2 + 1] = "0";
-					temp = line[0]	+ "\t" + ArrayUtils.toStr(ArrayUtils.subArray(line, 1), "|") + "\t"
-									+ markers.elementAt(j) + "\t0\t0\tnull\tmismatch";
+					temp = line[0] + "\t" + ArrayUtils.toStr(ArrayUtils.subArray(line, 1), "|") + "\t"
+								 + markers.elementAt(j) + "\t0\t0\tnull\tmismatch";
 					for (int m = 0; m < numSamples; m++) {
 						temp += "\t" + samples[m][j * 2 + 0] + "\t" + samples[m][j * 2 + 1];
 					}
@@ -159,9 +159,9 @@ public class MergeDuplicates {
 		String filename = "MergeDuplicates.dat";
 		String markers = "markers.dat";
 
-		String usage = "\\n"	+ "park.gwa.MergeDuplicates requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n"
-										+ "   (2) filename of markers (i.e. markers=" + markers + " (default))\n" + "";
+		String usage = "\\n" + "park.gwa.MergeDuplicates requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n"
+									 + "   (2) filename of markers (i.e. markers=" + markers + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

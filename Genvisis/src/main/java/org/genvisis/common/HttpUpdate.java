@@ -22,8 +22,7 @@ import javax.swing.JTextArea;
  *
  */
 public class HttpUpdate {
-	private static final String CHANGELOG =
-																				"https://github.com/npankrat/Genvisis/blob/master/CHANGELOG.md";
+	private static final String CHANGELOG = "https://github.com/npankrat/Genvisis/blob/master/CHANGELOG.md";
 	public static final String REMOTE_JAR = "http://genvisis.org/genvisis.jar";
 	public static final String UNDETERMINED_VERSION = "v.-1.-1.-1";
 
@@ -80,15 +79,15 @@ public class HttpUpdate {
 			RemoteJarStatus remoteJarStatus = getRemoteJarVersion(REMOTE_JAR, log);
 			CurrentManifest currentManifest = CurrentManifest.loadGenvisisManifest();
 			if (currentManifest.getVersion().isLessThan(remoteJarStatus.getVersion())) {
-				return "Your version of Genvisis ("	+ currentManifest.getVersion().getVersion()
-								+ ") is not up to date. Latest version is "
-								+ remoteJarStatus.getVersion().getVersion();
+				return "Your version of Genvisis (" + currentManifest.getVersion().getVersion()
+							 + ") is not up to date. Latest version is "
+							 + remoteJarStatus.getVersion().getVersion();
 			} else if (currentManifest.getVersion().isGreaterThan(remoteJarStatus.getVersion())) {
 				if (!remoteJarStatus.getVersion().getVersion().equals(UNDETERMINED_VERSION)) {
 					String fun = "Looks like you are using a bleeding edge version of genvisis ("
-												+ currentManifest.getVersion().getVersion() + ")\n";
-					fun += "The latest released version at "	+ REMOTE_JAR + " is "
-									+ remoteJarStatus.getVersion().getVersion() + ", good luck to ya";
+											 + currentManifest.getVersion().getVersion() + ")\n";
+					fun += "The latest released version at " + REMOTE_JAR + " is "
+								 + remoteJarStatus.getVersion().getVersion() + ", good luck to ya";
 					return fun;
 				} else {
 					return "Unable to determine genvisis version";
@@ -103,7 +102,7 @@ public class HttpUpdate {
 	}
 
 	public enum CHECK_STATUS {
-														OK, HTTP_ERROR, FILE_NOT_FOUND, LINE_NOT_FOUND, OTHER_ERROR;
+		OK, HTTP_ERROR, FILE_NOT_FOUND, LINE_NOT_FOUND, OTHER_ERROR;
 	}
 
 	public static class Version {
@@ -216,7 +215,7 @@ public class HttpUpdate {
 			manifest = CurrentManifest.loadGenvisisManifest();
 			new File(newFileDir).mkdirs();
 			newJarFile = newFileDir
-										+ ext.addToRoot(PSF.Java.GENVISIS, remoteJarStatus.getVersion().getVersion());
+									 + ext.addToRoot(PSF.Java.GENVISIS, remoteJarStatus.getVersion().getVersion());
 			this.remoteJarStatus = remoteJarStatus;
 			initComponents();
 			this.log = log;
@@ -225,18 +224,18 @@ public class HttpUpdate {
 		private String generateMessage() {
 			StringBuilder builder = new StringBuilder();
 			if (manifest.getVersion().isLessThan(remoteJarStatus.getVersion())) {
-				builder.append("The current version of Genvisis is "	+ manifest.getVersion().getVersion()
-												+ "\n");
+				builder.append("The current version of Genvisis is " + manifest.getVersion().getVersion()
+											 + "\n");
 				builder.append("You can check out the latest change log at " + CHANGELOG + "\n");
-				builder.append("Would you like to update to "	+ remoteJarStatus.getVersion().getVersion()
-												+ "\n");
+				builder.append("Would you like to update to " + remoteJarStatus.getVersion().getVersion()
+											 + "\n");
 				builder.append("The latest version will be saved to " + newJarFile);
 				upToDate = false;
 			} else {
-				builder.append("Genvisis is up to date "	+ remoteJarStatus.getVersion().getVersion()
-												+ "\n");
+				builder.append("Genvisis is up to date " + remoteJarStatus.getVersion().getVersion()
+											 + "\n");
 				builder.append("If you think this is an error, you can just download "
-												+ remoteJarStatus.getJarChecked() + "\n");
+											 + remoteJarStatus.getJarChecked() + "\n");
 				upToDate = true;
 			}
 			return builder.toString();
@@ -297,8 +296,8 @@ public class HttpUpdate {
 			if (!upToDate) {
 				if (HttpDownloadUtility.canDownload(remoteJarStatus.getJarChecked(), log)) {
 					try {
-						HttpDownloadUtility.downloadFile(	remoteJarStatus.getJarChecked(), newJarFile, true,
-																							log);
+						HttpDownloadUtility.downloadFile(remoteJarStatus.getJarChecked(), newJarFile, true,
+																						 log);
 						success = Files.exists(newJarFile);
 						if (success) {
 							log.reportTimeInfo("New version of Genvisis can be found at " + newJarFile);

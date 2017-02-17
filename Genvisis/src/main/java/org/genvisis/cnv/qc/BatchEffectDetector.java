@@ -19,8 +19,8 @@ import org.genvisis.common.ext;
  */
 public class BatchEffectDetector {
 
-	private static String[] determineMarkers(	Project proj, String outDir, int numMarks,
-																						int threads) throws FileNotFoundException {
+	private static String[] determineMarkers(Project proj, String outDir, int numMarks,
+																					 int threads) throws FileNotFoundException {
 		if (numMarks < 0) {
 			return proj.getAutosomalMarkers();
 		} else {
@@ -69,7 +69,7 @@ public class BatchEffectDetector {
 		String[] markers = ArrayUtils.subArray(proj.getMarkerNames(), parser.getDataPresent());
 		MarkerLRRPair[] pairs = new MarkerLRRPair[lrrSD.length];
 
-		for (int i=0; i<pairs.length; i++) {
+		for (int i = 0; i < pairs.length; i++) {
 			pairs[i] = new MarkerLRRPair(lrrSD[i], markers[i]);
 		}
 
@@ -94,17 +94,17 @@ public class BatchEffectDetector {
 		String outDir = "BatchEffects/";
 		String batchFile = "batches.txt";
 		int numSDMarkers = 5000;
-		String usage = "\n"	+ "cnv.qc.BatchEffectDetector requires 0-1 arguments\n"
-										+ "   (1) project (i.e. proj=" + filename + " (default))\n"
-										+ "   (2) output directory relative to project (i.e. outDir=" + outDir
-										+ " (default))\n" +
+		String usage = "\n" + "cnv.qc.BatchEffectDetector requires 0-1 arguments\n"
+									 + "   (1) project (i.e. proj=" + filename + " (default))\n"
+									 + "   (2) output directory relative to project (i.e. outDir=" + outDir
+									 + " (default))\n" +
 
-										"   (3) batch definition file (i.e. outDir=" + batchFile + " (default))\n" +
+									 "   (3) batch definition file (i.e. outDir=" + batchFile + " (default))\n" +
 
-										"   (4) num markers (SD ranked) (i.e. numSDMarkers=" + numSDMarkers
-										+ " (default))\n" + PSF.Ext.getNumThreadsCommand(5, numthreads) +
+									 "   (4) num markers (SD ranked) (i.e. numSDMarkers=" + numSDMarkers
+									 + " (default))\n" + PSF.Ext.getNumThreadsCommand(5, numthreads) +
 
-										"";
+									 "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

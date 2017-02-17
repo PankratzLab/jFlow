@@ -43,12 +43,12 @@ public class MtDNAGenotypePrep {
 		command.add("F2=");
 		command.add(r2);
 
-		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputs, outputs, true,
-																						false, false, log);
+		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputs, outputs,
+																						true, false, false, log);
 	}
 
-	private static void prepBams(	String bams, final String outDir, final String tag,
-																final String samToFastQ, int numThreads) {
+	private static void prepBams(String bams, final String outDir, final String tag,
+															 final String samToFastQ, int numThreads) {
 		new File(outDir).mkdirs();
 		final Logger log = new Logger(outDir + "mtdnaPrep.log");
 		final String[] bamsFiles = HashVec.loadFileToStringArray(bams, false, new int[] {0}, true);
@@ -74,8 +74,8 @@ public class MtDNAGenotypePrep {
 						String sampleName = null;
 						try {
 							sampleName = BamOps.getSampleName(bamFile, log);
-							String rootOut = outDir+ (tag == null ? "" : tag + "-") + sampleName
-																+ "_UUUUU-UUUUU_L001_.fastq";
+							String rootOut = outDir + (tag == null ? "" : tag + "-") + sampleName
+															 + "_UUUUU-UUUUU_L001_.fastq";
 							String r1 = ext.addToRoot(rootOut, "R1_001");
 							String r2 = ext.addToRoot(rootOut, "R2_001");
 							boolean success = convertToFasta(bamFile, samToFastQ, r1, r2, log);
@@ -123,7 +123,8 @@ public class MtDNAGenotypePrep {
 		c.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS, "24");
 		c.parseWithExit(args);
 
-		prepBams(c.get("bams"), c.get(CLI.ARG_OUTDIR), c.get("tag"), c.get("samToFastq"), c.getI(CLI.ARG_THREADS));
+		prepBams(c.get("bams"), c.get(CLI.ARG_OUTDIR), c.get("tag"), c.get("samToFastq"),
+						 c.getI(CLI.ARG_THREADS));
 
 	}
 

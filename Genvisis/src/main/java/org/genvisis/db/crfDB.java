@@ -46,7 +46,7 @@ public class crfDB {
 	}
 
 	public crfDB(String dir, String keyFilename, boolean logging) throws Elision { // dir is necessary
-																																									// for UpdateCRFdb
+																																								 // for UpdateCRFdb
 		BufferedReader reader = null;
 		PrintWriter writer = null;
 		String[] line, subline;
@@ -198,7 +198,7 @@ public class crfDB {
 					dropFromFinal[i] = true;
 				}
 				if (colHash.containsKey(subline[0])) {
-					log.reportError("Error - duplicate variable name ("	+ subline[0]
+					log.reportError("Error - duplicate variable name (" + subline[0]
 													+ ") for final database (detailed in " + keyFilename + ")");
 					throw new Elision();
 				} else {
@@ -207,7 +207,7 @@ public class crfDB {
 				if (delimiters.split(subline[0]).length > 1) {
 					log.reportError("Error - Final variable names may not contain characters used as operators (i.e. "
 													+ DELIMITERS + ")");
-					log.reportError("        "	+ subline[0] + " has "
+					log.reportError("        " + subline[0] + " has "
 													+ (delimiters.split(subline[0]).length - 1) + " of them");
 					throw new Elision();
 				}
@@ -221,7 +221,7 @@ public class crfDB {
 				bounds[fn] = new double[line.length - 2][2];
 				subline = line[1].split("=");
 				if (!subline[0].equals("KEY")) {
-					log.reportError("Error - "	+ line[1]
+					log.reportError("Error - " + line[1]
 													+ " is in the second position but does not use proper key syntax");
 					log.reportError("  example - if the unique id joins columns named FAM_NO and SUBJ_NO, use KEY=FAM_NO:SUBJ_NO");
 					throw new Elision();
@@ -237,7 +237,7 @@ public class crfDB {
 				colHash = new Hashtable<String, String>();
 				for (int i = 0; i < expecteds[fn].length; i++) {
 					if (colHash.containsKey(expecteds[fn][i])) {
-						log.reportError("Error - duplicate column header ("	+ expecteds[fn][i] + ") in file '"
+						log.reportError("Error - duplicate column header (" + expecteds[fn][i] + ") in file '"
 														+ filenameKey[fn][0] + "'");
 						throw new Elision();
 					} else {
@@ -246,12 +246,12 @@ public class crfDB {
 				}
 
 				reader = new BufferedReader(new FileReader((new File(line[0]).exists() ? "" : POSS_DIR)
-																										+ filenameKey[fn][0]));
+																									 + filenameKey[fn][0]));
 				subline = reader.readLine().split(delimiter);
 
 				for (int i = 0; i < expecteds[fn].length; i++) {
 					if (i >= subline.length) {
-						log.reportError("Error - too many column headers in "	+ keyFilename + " for file "
+						log.reportError("Error - too many column headers in " + keyFilename + " for file "
 														+ filenameKey[fn][0]);
 						temp = "      - extra columns not in actual file:";
 						for (int j = subline.length; j < expecteds[fn].length; j++) {
@@ -265,7 +265,7 @@ public class crfDB {
 					if (!expecteds[fn][i].equals(ext.replaceAllWith(subline[i], "-", "_"))) {
 						log.reportError("Error - column headers do not match up with expected values for file "
 														+ filenameKey[fn][0]);
-						log.reportError("      - expecting "	+ expecteds[fn][i] + " in column " + (i + 1)
+						log.reportError("      - expecting " + expecteds[fn][i] + " in column " + (i + 1)
 														+ ", instead found, " + subline[i]);
 						reader.close();
 						throw new Elision();
@@ -273,7 +273,7 @@ public class crfDB {
 				}
 
 				if (subline.length > expecteds[fn].length) {
-					log.reportError("Error - too few column headers in "	+ keyFilename + " for file "
+					log.reportError("Error - too few column headers in " + keyFilename + " for file "
 													+ filenameKey[fn][0]);
 					temp = "      - additional columns not anticipated:";
 					for (int j = expecteds[fn].length; j < subline.length; j++) {
@@ -302,7 +302,7 @@ public class crfDB {
 							temp += ".";
 							line = temp.split(delimiter);
 						} else {
-							log.reportError("Error - expecting "	+ expecteds[fn].length
+							log.reportError("Error - expecting " + expecteds[fn].length
 															+ " columns of data in file '" + filenameKey[fn][0] + "', got "
 															+ line.length + " some of the time.");
 							log.reportError(temp);
@@ -326,9 +326,9 @@ public class crfDB {
 						unique_id = data[ext.indexOfStr(subline[0], expecteds[fn])];
 					} else {
 						unique_id = data[ext.indexOfStr(subline[0], expecteds[fn])] + ext.formNum(
-																																											Integer	.valueOf(data[ext.indexOfStr(subline[1],
+																																											Integer.valueOf(data[ext.indexOfStr(subline[1],
 																																																													expecteds[fn])])
-																																															.intValue(),
+																																														 .intValue(),
 																																											3);
 					}
 					if (fn == 0) {
@@ -341,14 +341,14 @@ public class crfDB {
 							allData = hash.get(unique_id);
 						} else {
 							if (!filenameKey[fn][0].equals("ninfo1.csv")
-										&& !filenameKey[fn][0].equals("ninfo2.csv")
+									&& !filenameKey[fn][0].equals("ninfo2.csv")
 									&& !filenameKey[fn][0].equals("ninfo5.csv")
 									&& !filenameKey[fn][0].equals("ninfo6.csv")) { // these
 								// have
 								// additional
 								// unrequired
 								// indviduals
-								log.reportError("Error - Unique ID '"	+ unique_id + "' was in file '"
+								log.reportError("Error - Unique ID '" + unique_id + "' was in file '"
 																+ filenameKey[fn][0] + "' but not in previous file(s)");
 							}
 							allData = new String[numFiles + 1][];
@@ -359,7 +359,7 @@ public class crfDB {
 					}
 
 					for (int i = 0; i < expecteds[fn].length; i++) {
-						checkBounds(filenameKey[fn][0]	+ ":" + expecteds[fn][i],
+						checkBounds(filenameKey[fn][0] + ":" + expecteds[fn][i],
 												subline.length == 1 ? unique_id : formatUniqueID(unique_id), data[i],
 												bounds[fn][i][0], bounds[fn][i][1]);
 					}
@@ -378,7 +378,7 @@ public class crfDB {
 				for (int fn = 0; fn < numFiles; fn++) {
 					if (allData[fn] == null) {
 						if (allData[0] != null && !filenameKey[fn][0].equals("G2019S.csv") && SHOW_ABSENTS) {
-							log.reportError("Error - "	+ unique_id + " was absent from file '"
+							log.reportError("Error - " + unique_id + " was absent from file '"
 															+ filenameKey[fn][0] + "'");
 						}
 					}
@@ -481,7 +481,7 @@ public class crfDB {
 							indices[j] = getVector(element, expecteds, filenameKey);
 							if (indices[j][0] == numFiles && indices[j][1] >= i) {
 								log.reportError("Error - cannot reference a variable (final:"
-																	+ expecteds[numFiles][indices[j][1]]
+																+ expecteds[numFiles][indices[j][1]]
 																+ ") before it is rendered. Reorder the final variables.");
 								throw new Elision();
 							}
@@ -527,14 +527,14 @@ public class crfDB {
 						count++;
 					}
 					if (v.size() == 1) {
-						log.reportError("Error - dependent variable has zero variation ("	+ v.elementAt(0)
+						log.reportError("Error - dependent variable has zero variation (" + v.elementAt(0)
 														+ "); " + temp + " will not be calculated");
 						used = new boolean[used.length];
 					} else {
 						logistic = (v.size() == 2);
 
-						model =
-									logistic ? new LogisticRegression(deps, indeps) : new LeastSquares(deps, indeps);
+						model = logistic ? new LogisticRegression(deps, indeps)
+														 : new LeastSquares(deps, indeps);
 						dataline = temp.startsWith("$RESIDUAL") ? model.getResiduals() : model.getPredicteds();
 
 						count = 0;
@@ -557,8 +557,8 @@ public class crfDB {
 						} else if (indices.length == 1 && operator[0] == '@') {
 							allData[numFiles][i] = dateIt(idCollection.elementAt(j), subline[1],
 																						allData[indices[0][0]][indices[0][1]]);
-						} else if (indices.length == 1	&& operator[0] == '$'
-												&& subline[1].startsWith("RECODE")) {
+						} else if (indices.length == 1 && operator[0] == '$'
+											 && subline[1].startsWith("RECODE")) {
 							line = subline[1].split("[,]+");
 							if (line.length % 2 != 1) {
 								log.reportError("Error - improper use of the RECODE function. Requires a variable name, a recoded value for each variable specified, as well as a final default value for non-missing but non-specified values");
@@ -598,11 +598,11 @@ public class crfDB {
 							} else if (!hashes.elementAt(index)
 																.containsKey(allData[functionIndicies[0][0]][functionIndicies[0][1]])) {
 								allData[numFiles][i] = "Hashtable did not have key '"
-																					+ allData[functionIndicies[0][0]][functionIndicies[0][1]]
-																				+ "'";
+																			 + allData[functionIndicies[0][0]][functionIndicies[0][1]]
+																			 + "'";
 							} else {
-								allData[numFiles][i] = hashes	.elementAt(index)
-																							.get(allData[functionIndicies[0][0]][functionIndicies[0][1]]);
+								allData[numFiles][i] = hashes.elementAt(index)
+																						 .get(allData[functionIndicies[0][0]][functionIndicies[0][1]]);
 							}
 						} else {
 							score = 0;
@@ -640,8 +640,8 @@ public class crfDB {
 										if (allData[indices[k][0]][indices[k][1]].equals("0")) {
 											score += 1;
 										} else if (procInt(allData[indices[k][0]][indices[k][1]]) != 0
-																&& procInt(allData[indices[k][0]][indices[k][1]]) != 1) {
-											log.reportError("Error - '"	+ allData[indices[k][0]][indices[k][1]]
+															 && procInt(allData[indices[k][0]][indices[k][1]]) != 1) {
+											log.reportError("Error - '" + allData[indices[k][0]][indices[k][1]]
 																			+ "' cannot be inversed for " + subline[k + 1]);
 										}
 										break;
@@ -654,9 +654,8 @@ public class crfDB {
 											}
 											functionIndicies = new int[1][];
 											functionIndicies[0] = getVector(line[1], expecteds, filenameKey);
-											score +=
-														allData[functionIndicies[0][0]][functionIndicies[0][1]].equals(line[2])	? 1
-																																																		: 0;
+											score += allData[functionIndicies[0][0]][functionIndicies[0][1]].equals(line[2]) ? 1
+																																																			 : 0;
 										} else if (line[0].equals("AND")) {
 											if (line.length % 2 != 1) {
 												log.reportError("Error - improper use of the AND function. Requires an even number of additional arguments: (variable_name, target_value)*n");
@@ -708,7 +707,7 @@ public class crfDB {
 												functionIndicies[1] = getVector(line[2], expecteds, filenameKey);
 												if (functionIndicies[1][0] == numFiles && functionIndicies[1][1] >= i) {
 													log.reportError("Error - cannot reference a variable (final:"
-																						+ expecteds[numFiles][functionIndicies[1][1]]
+																					+ expecteds[numFiles][functionIndicies[1][1]]
 																					+ ") before it is rendered. Reorder the final variables.");
 													throw new Elision();
 												}
@@ -716,13 +715,12 @@ public class crfDB {
 											if (allData[functionIndicies[0][0]][functionIndicies[0][1]].equals(".")) {
 												missing++;
 											} else if (functionIndicies[1] != null
-																	&& allData[functionIndicies[1][0]][functionIndicies[1][1]].equals(".")) {
+																 && allData[functionIndicies[1][0]][functionIndicies[1][1]].equals(".")) {
 												missing++;
 											} else {
-												score +=
-															procDouble(allData[functionIndicies[0][0]][functionIndicies[0][1]]) >= procDouble(line[2].indexOf(":") > 0	? allData[functionIndicies[1][0]][functionIndicies[1][1]]
-																																																																					: line[2])	? 1
-																																																																											: 0;
+												score += procDouble(allData[functionIndicies[0][0]][functionIndicies[0][1]]) >= procDouble(line[2].indexOf(":") > 0 ? allData[functionIndicies[1][0]][functionIndicies[1][1]]
+																																																																						: line[2]) ? 1
+																																																																											 : 0;
 											}
 										} else if (line[0].equals("LTE")) {
 											if (line.length != 3) {
@@ -735,7 +733,7 @@ public class crfDB {
 												functionIndicies[1] = getVector(line[2], expecteds, filenameKey);
 												if (functionIndicies[1][0] == numFiles && functionIndicies[1][1] >= i) {
 													log.reportError("Error - cannot reference a variable (final:"
-																						+ expecteds[numFiles][functionIndicies[1][1]]
+																					+ expecteds[numFiles][functionIndicies[1][1]]
 																					+ ") before it is rendered. Reorder the final variables.");
 													throw new Elision();
 												}
@@ -743,13 +741,12 @@ public class crfDB {
 											if (allData[functionIndicies[0][0]][functionIndicies[0][1]].equals(".")) {
 												missing++;
 											} else if (functionIndicies[1] != null
-																	&& allData[functionIndicies[1][0]][functionIndicies[1][1]].equals(".")) {
+																 && allData[functionIndicies[1][0]][functionIndicies[1][1]].equals(".")) {
 												missing++;
 											} else {
-												score +=
-															procDouble(allData[functionIndicies[0][0]][functionIndicies[0][1]]) <= procDouble(line[2].indexOf(":") > 0	? allData[functionIndicies[1][0]][functionIndicies[1][1]]
-																																																																					: line[2])	? 1
-																																																																											: 0;
+												score += procDouble(allData[functionIndicies[0][0]][functionIndicies[0][1]]) <= procDouble(line[2].indexOf(":") > 0 ? allData[functionIndicies[1][0]][functionIndicies[1][1]]
+																																																																						: line[2]) ? 1
+																																																																											 : 0;
 											}
 										} else if (line[0].equals("FLOOR")) {
 											if (line.length != 2) {
@@ -761,10 +758,9 @@ public class crfDB {
 											if (allData[functionIndicies[0][0]][functionIndicies[0][1]].equals(".")) {
 												missing++;
 											} else {
-												score +=
-															procDouble(allData[functionIndicies[0][0]][functionIndicies[0][1]].indexOf(".") > 0	? allData[functionIndicies[0][0]][functionIndicies[0][1]].substring(0,
-																																																																																											allData[functionIndicies[0][0]][functionIndicies[0][1]].indexOf("."))
-																																																									: allData[functionIndicies[0][0]][functionIndicies[0][1]]);
+												score += procDouble(allData[functionIndicies[0][0]][functionIndicies[0][1]].indexOf(".") > 0 ? allData[functionIndicies[0][0]][functionIndicies[0][1]].substring(0,
+																																																																																												 allData[functionIndicies[0][0]][functionIndicies[0][1]].indexOf("."))
+																																																										 : allData[functionIndicies[0][0]][functionIndicies[0][1]]);
 											}
 										} else {
 											log.reportError("Error - Unrecognized function header: " + line[0]);
@@ -774,16 +770,16 @@ public class crfDB {
 									default:
 								}
 							}
-							if (missingThreshold == 0	? missing == indices.length
+							if (missingThreshold == 0 ? missing == indices.length
 																				: (double) missing
 																					/ (double) indices.length >= missingThreshold) {
 								allData[numFiles][i] = ".";
 							} else {
-								allData[numFiles][i] = (doubleFun	? ext.formDeci(score, 2, true)
+								allData[numFiles][i] = (doubleFun ? ext.formDeci(score, 2, true)
 																									: ext.formDeci(score, 0));
 							}
 						}
-						checkBounds(filenameKey[numFiles][0]	+ ":" + expecteds[numFiles][i],
+						checkBounds(filenameKey[numFiles][0] + ":" + expecteds[numFiles][i],
 												idCollection.elementAt(j).length() == 8
 																																? formatUniqueID(idCollection.elementAt(j)) : idCollection.elementAt(j),
 												allData[numFiles][i], bounds[numFiles][i][0], bounds[numFiles][i][1]);
@@ -801,13 +797,12 @@ public class crfDB {
 			temp = "";
 			for (int i = 0; i < specials.size(); i++) {
 				writer.print(dropFromFinal[i] ? "" : "\t" + expecteds[numFiles][i]);
-				temp +=
-							dropFromFinal[i]	? ""
-																: (ext.indexOfStr(expecteds[numFiles][i], DONT_COMP) == -1
+				temp += dropFromFinal[i] ? ""
+																 : (ext.indexOfStr(expecteds[numFiles][i], DONT_COMP) == -1
 																		&& ext.indexOfStr(expecteds[numFiles][i],
-																											DONT_COMP_DEP) == -1	? "\t"
-																																							+ expecteds[numFiles][i]
-																																						: "");
+																											DONT_COMP_DEP) == -1 ? "\t"
+																																						 + expecteds[numFiles][i]
+																																					 : "");
 			}
 			writer.println();
 			temp = temp.length() > 0 ? temp.substring(1) : temp;
@@ -816,13 +811,13 @@ public class crfDB {
 			for (int i = 0; i < idCollection.size(); i++) {
 				unique_id = sortedIds[i];
 				writer.print(unique_id + (filenameKey[0][1].split(":").length == 2
-																																							? "\t"
-																																								+ unique_id.substring(0,
-																																																		5)
-																																							+ "\t"
-																																							+ Integer	.valueOf(unique_id.substring(5))
-																																												.intValue()
-																																						: ""));
+																																					 ? "\t"
+																																						 + unique_id.substring(0,
+																																																	 5)
+																																						 + "\t"
+																																						 + Integer.valueOf(unique_id.substring(5))
+																																											.intValue()
+																																					 : ""));
 				allData = hash.get(sortedIds[i]);
 				for (int j = 0; j < allData[numFiles].length; j++) {
 					writer.print(dropFromFinal[j] ? "" : "\t" + allData[numFiles][j]);
@@ -855,19 +850,19 @@ public class crfDB {
 		} else if (subline.length == 2) {
 			bounds[1] = Double.parseDouble(subline[1]);
 			if (bounds[1] < 0) {
-				log.reportError("Warning - upper bound for variable "	+ subline[0]
+				log.reportError("Warning - upper bound for variable " + subline[0]
 												+ " is below the default lower (zero); define new lower or else all will be flagged as invalid");
 			}
 		} else if (subline.length == 3) {
 			bounds[0] = Double.parseDouble(subline[1]);
 			bounds[1] = Double.parseDouble(subline[2]);
 			if (bounds[1] < bounds[0]) {
-				log.reportError("Error - upper bound "	+ bounds[1] + " for variable " + subline[0]
+				log.reportError("Error - upper bound " + bounds[1] + " for variable " + subline[0]
 												+ " is less than the lower bound " + bounds[0]
 												+ "; all will be flagged as invalid");
 			}
 		} else {
-			log.reportError("Error - Don't know what to do with "	+ subline.length
+			log.reportError("Error - Don't know what to do with " + subline.length
 											+ " arguments for variable '" + subline[0] + "'");
 		}
 
@@ -878,11 +873,11 @@ public class crfDB {
 		if (!value.equals(".") && lower < upper) {
 			try {
 				if (Double.parseDouble(value) < lower) {
-					log.reportError("Error - "	+ variable + " for " + id + " was below the lower bound ("
+					log.reportError("Error - " + variable + " for " + id + " was below the lower bound ("
 													+ lower + "): " + value);
 				}
 				if (Double.parseDouble(value) > upper) {
-					log.reportError("Error - "	+ variable + " for " + id + " was above the upper bound ("
+					log.reportError("Error - " + variable + " for " + id + " was above the upper bound ("
 													+ upper + "): " + value);
 				}
 			} catch (NumberFormatException nfe) {
@@ -926,13 +921,13 @@ public class crfDB {
 		}
 
 		if (date.length() == 4) {
-			log.reportError("Error - "	+ variable + " for " + unique_id
+			log.reportError("Error - " + variable + " for " + unique_id
 											+ " is lacking missing data characters: '" + date + "'; should be 'UUUU"
 											+ date + "'");
 			date = "UUUU" + date;
 		}
 		if (date.length() == 6) {
-			log.reportError("Error - "	+ variable + " for " + unique_id
+			log.reportError("Error - " + variable + " for " + unique_id
 											+ " is lacking missing data characters: '" + date + "'; should be 'UU" + date
 											+ "'");
 			date = "UU" + date;
@@ -945,20 +940,20 @@ public class crfDB {
 				}
 			}
 			if (date.length() == day) {
-				log.reportError("Error - "	+ variable + " for " + unique_id
+				log.reportError("Error - " + variable + " for " + unique_id
 												+ " has the wrong number of characters: '" + date
 												+ "'; should be 8 characters, not " + date.length());
 				return ".";
 			}
 
-			log.reportError("Error - "	+ variable + " for " + unique_id
+			log.reportError("Error - " + variable + " for " + unique_id
 											+ " has a malformed date and is currently considered missing data: '" + date
 											+ "'");
 			return ".";
 		}
 		for (int i = 0; i < errorChars.length; i++) {
 			if (date.indexOf(errorChars[i]) != -1) {
-				log.reportError("Error - "	+ variable + " for " + unique_id + " has an invalid character: '"
+				log.reportError("Error - " + variable + " for " + unique_id + " has an invalid character: '"
 												+ date + "'" + " -> replace letter '" + errorChars[i] + "' with "
 												+ (i == 0 ? "number '0'" : "letter 'U'"));
 				date = date.replaceAll(errorChars[i], (i == 0 ? "0" : "U"));
@@ -975,7 +970,7 @@ public class crfDB {
 			month = Integer.valueOf(date.substring(0, 2)).intValue();
 			day = Integer.valueOf(date.substring(2, 4)).intValue();
 		} catch (NumberFormatException nfe) {
-			log.reportError("Error - "	+ variable + " for " + unique_id
+			log.reportError("Error - " + variable + " for " + unique_id
 											+ " has a malformed data and is currently considered missing data: '" + date
 											+ "'");
 			return ".";
@@ -990,8 +985,8 @@ public class crfDB {
 		day--;
 
 		return ext.formDeci(((double) ((new GregorianCalendar(year, month, day).getTimeInMillis()
-																		- new GregorianCalendar(year, 0, 0).getTimeInMillis())	/ 1000
-																		/ 60 / 60 / 24))
+																		- new GregorianCalendar(year, 0, 0).getTimeInMillis())
+																	 / 1000 / 60 / 60 / 24))
 												/ 365 + year, 2, true);
 	}
 
@@ -1012,7 +1007,7 @@ public class crfDB {
 			}
 		}
 		if (vec[0] == -1) {
-			log.reportError("Error - malformed variable: "	+ subline[0]
+			log.reportError("Error - malformed variable: " + subline[0]
 											+ " is not a filename delineated at the top of the file");
 			return null;
 		}
@@ -1042,8 +1037,8 @@ public class crfDB {
 		for (int i = 1; i < str.length(); i++) {
 			if (str.charAt(i - 1) == ',' && str.charAt(i) == '\"' && on != 1) {
 				on = 1;
-			} else if (str.charAt(i) == '\"'	&& str.length() > (i + 1) && str.charAt(i + 1) == ','
-									&& on == 1) {
+			} else if (str.charAt(i) == '\"' && str.length() > (i + 1) && str.charAt(i + 1) == ','
+								 && on == 1) {
 				on = 2;
 			} else if (str.charAt(i) == ',') {
 				if (on == 1) {
@@ -1099,7 +1094,7 @@ public class crfDB {
 	}
 
 	public static String checkData(String str) {
-		if (str.equals(".")	|| str.equals("N") || str.equals("U") || str.equals("N.N")
+		if (str.equals(".") || str.equals("N") || str.equals("U") || str.equals("N.N")
 				|| str.equals("U.U") || str.equals("NN") || str.equals("UU") || str.equals("NN.NN")
 				|| str.equals("UU.UU") || str.equals("NNNN") || str.equals("UUUU") || str.equals("UUU")
 				|| str.equals("NNN") || str.equals("N.A") || str.equals("NA")) {
@@ -1121,9 +1116,9 @@ public class crfDB {
 		boolean logging = true;
 		boolean suppress = false;
 
-		String usage = "\n"	+ "park.crfDB requires 0-1 arguments\n" + "   (1) filename (i.e. "
-										+ filename + " (default)\n" + "   (2) log errors (i.e. log=" + logging
-										+ " (default)\n" + "";
+		String usage = "\n" + "park.crfDB requires 0-1 arguments\n" + "   (1) filename (i.e. "
+									 + filename + " (default)\n" + "   (2) log errors (i.e. log=" + logging
+									 + " (default)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

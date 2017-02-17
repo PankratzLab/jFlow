@@ -213,12 +213,12 @@ public class gatherQuant {
 		Vector<String> directories = new Vector<String>();
 		String[] dirs;
 
-		String usage = "\n"	+ "park.gatherQuant requires at least 1 argument\n"
-										+ "   names of directories to be parsed\n" + "   (optional) trait (i.e. 'trait="
-										+ trait + "' (default))\n" + "";
+		String usage = "\n" + "park.gatherQuant requires at least 1 argument\n"
+									 + "   names of directories to be parsed\n" + "   (optional) trait (i.e. 'trait="
+									 + trait + "' (default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h")	|| args[i].equals("-help") || args[i].equals("/h")
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h")
 					|| args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);

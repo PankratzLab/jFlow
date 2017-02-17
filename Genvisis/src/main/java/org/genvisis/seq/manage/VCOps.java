@@ -40,7 +40,18 @@ public class VCOps {
 	private static final String[] SNPEFF_IMPACT_IMPACTS = new String[] {"HIGH", "MODERATE", "LOW"};
 
 	public enum GENOTYPE_INFO {
-															GQ("GQ"), AD_REF("AD"), AD_ALT("AD"), DP("DP"), AD_TUMOR("AD_TUMOR"), AD_NORMAL("AD_NORMAL"), ALT_AD_TUMOR("AD_TUMOR"), AF_TUMOR("AF"), ALT_AD_NORMAL("AD_NORMAL"), MUTECT_FILTERS("MUTF"), TLOD("TLOD"), NLOD("NLOD");
+		GQ("GQ"),
+		AD_REF("AD"),
+		AD_ALT("AD"),
+		DP("DP"),
+		AD_TUMOR("AD_TUMOR"),
+		AD_NORMAL("AD_NORMAL"),
+		ALT_AD_TUMOR("AD_TUMOR"),
+		AF_TUMOR("AF"),
+		ALT_AD_NORMAL("AD_NORMAL"),
+		MUTECT_FILTERS("MUTF"),
+		TLOD("TLOD"),
+		NLOD("NLOD");
 
 
 		private final String flag;
@@ -55,7 +66,7 @@ public class VCOps {
 	}
 
 	public enum GENOTYPE_FLAG_INFO {
-																	HQ_DNM("HQ_DNM"), EHQ_DNM("EHQ_DNM");
+		HQ_DNM("HQ_DNM"), EHQ_DNM("EHQ_DNM");
 
 		private final String flag;
 
@@ -73,19 +84,19 @@ public class VCOps {
 	 *
 	 */
 	public enum COMMON_INFO {
-														/**
-														 * Read depth
-														 */
-														DP("DP"),
-														/**
-														 * Mapping quality
-														 */
-														MQ("MQ"),
+		/**
+		 * Read depth
+		 */
+		DP("DP"),
+		/**
+		 * Mapping quality
+		 */
+		MQ("MQ"),
 
-														/**
-														 * Mapping quality
-														 */
-														GQ("GQ");
+		/**
+		 * Mapping quality
+		 */
+		GQ("GQ");
 
 		/**
 		 * flag represented in vcf file
@@ -108,8 +119,8 @@ public class VCOps {
 	 * @param defaultValue if anno is not found, this will be returned
 	 * @return
 	 */
-	public static String[] getAnnotationsFor(	String[] annosToGet, VariantContext vc,
-																						String defaultValue) {
+	public static String[] getAnnotationsFor(String[] annosToGet, VariantContext vc,
+																					 String defaultValue) {
 		String[] annos = new String[annosToGet.length];
 		for (int i = 0; i < annos.length; i++) {
 			annos[i] = vc.getCommonInfo().getAttributeAsString(annosToGet[i], defaultValue);
@@ -218,8 +229,8 @@ public class VCOps {
 	}
 
 	public static Segment getSegment(VariantContext vc) {
-		return new Segment(	Positions.chromosomeNumber(vc.getContig()), vc.getStart(),
-												vc.getEnd() <= vc.getStart() ? vc.getStart() : vc.getEnd());
+		return new Segment(Positions.chromosomeNumber(vc.getContig()), vc.getStart(),
+											 vc.getEnd() <= vc.getStart() ? vc.getStart() : vc.getEnd());
 	}
 
 	/**
@@ -245,31 +256,28 @@ public class VCOps {
 	 *
 	 */
 	public enum ALT_ALLELE_CONTEXT_TYPE {
-																				/**
-																				 * All genotypes with a one or two non-reference allele(s)
-																				 * will be returned
-																				 */
-																				HET_ONLY,
-																				/**
-																				 * All genotypes with a homozygous non-reference allele will
-																				 * be returned
-																				 */
-																				HOM_ONLY,
-																				/**
-																				 * All genotypes with a non-reference allele will be
-																				 * returned
-																				 */
-																				ALL;
+		/**
+		 * All genotypes with a one or two non-reference allele(s) will be returned
+		 */
+		HET_ONLY,
+		/**
+		 * All genotypes with a homozygous non-reference allele will be returned
+		 */
+		HOM_ONLY,
+		/**
+		 * All genotypes with a non-reference allele will be returned
+		 */
+		ALL;
 	}
 
-	public static VariantContext getAltAlleleContext(	final VariantContext vc, FilterNGS filterNGS,
-																										Logger log) {
+	public static VariantContext getAltAlleleContext(final VariantContext vc, FilterNGS filterNGS,
+																									 Logger log) {
 		return getAltAlleleContext(vc, filterNGS, null, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
 	}
 
-	public static VariantContext getIndividualPassingContext(	final VariantContext vc,
-																														final VariantContextFilter variantContextFilter,
-																														Logger log) {
+	public static VariantContext getIndividualPassingContext(final VariantContext vc,
+																													 final VariantContextFilter variantContextFilter,
+																													 Logger log) {
 		HashSet<String> passing = new HashSet<String>();
 		Set<String> curSamps = vc.getSampleNames();
 		for (String samp : curSamps) {
@@ -291,28 +299,28 @@ public class VCOps {
 	 * @param log
 	 * @return
 	 */
-	public static VariantContext getAltAlleleContext(	final VariantContext vc, FilterNGS filterNGS,
-																										final VariantContextFilter variantContextFilter,
-																										final ALT_ALLELE_CONTEXT_TYPE type,
-																										final Logger log) {
+	public static VariantContext getAltAlleleContext(final VariantContext vc, FilterNGS filterNGS,
+																									 final VariantContextFilter variantContextFilter,
+																									 final ALT_ALLELE_CONTEXT_TYPE type,
+																									 final Logger log) {
 		return getAltAlleleContext(vc, filterNGS, variantContextFilter, type, true, log);
 	}
 
-	public static VariantContext getAltAlleleContext(	final VariantContext vc, FilterNGS filterNGS,
-																										final VariantContextFilter variantContextFilter,
-																										final ALT_ALLELE_CONTEXT_TYPE type,
-																										boolean verbose, final Logger log) {
+	public static VariantContext getAltAlleleContext(final VariantContext vc, FilterNGS filterNGS,
+																									 final VariantContextFilter variantContextFilter,
+																									 final ALT_ALLELE_CONTEXT_TYPE type,
+																									 boolean verbose, final Logger log) {
 		GenotypesContext gc = vc.getGenotypes();
 		HashSet<String> samplesWithAlt = new HashSet<String>();
 		int altAlleleDepth = -1;
 		double altAlleleDepthRatio = -1;
-		if (filterNGS != null&& filterNGS.getAltAlleleDepthFilter() != null
+		if (filterNGS != null && filterNGS.getAltAlleleDepthFilter() != null
 				&& filterNGS.getAltAlleleDepthFilter()[0] > 0) {
 			// log.reportTimeError("Alt Allele depth filter is currently not in here, JOHN");
 			altAlleleDepth = filterNGS.getAltAlleleDepthFilter()[0];
 			// return null;
 		}
-		if (filterNGS != null&& filterNGS.getAltAlleleDepthRatioFilter() != null
+		if (filterNGS != null && filterNGS.getAltAlleleDepthRatioFilter() != null
 				&& filterNGS.getAltAlleleDepthRatioFilter()[0] > 0) {
 			// log.reportTimeError("Alt Allele depth filter is currently not in here, JOHN");
 			altAlleleDepthRatio = filterNGS.getAltAlleleDepthRatioFilter()[0];
@@ -406,8 +414,8 @@ public class VCOps {
 		return avg;
 	}
 
-	public static int[] getAppropriateAlleleDepths(	VariantContext vc, Genotype g, boolean verbose,
-																									Logger log) {
+	public static int[] getAppropriateAlleleDepths(VariantContext vc, Genotype g, boolean verbose,
+																								 Logger log) {
 		int[] AD = new int[2];
 		if (!vc.isBiallelic()) {
 			log.reportTimeWarning("JOHN REMEMBER THE BIALLELIC ISSUE!");
@@ -509,7 +517,7 @@ public class VCOps {
 					}
 				}
 
-				if (g.isHet()&& (AD[1] == 0 || AD[0] == 0) && ArrayUtils.sum(gAD) != AD[0]
+				if (g.isHet() && (AD[1] == 0 || AD[0] == 0) && ArrayUtils.sum(gAD) != AD[0]
 						&& ArrayUtils.sum(gAD) != AD[1]) {// there can actually be het calls with 0 ref or 0
 																							// alt, or
 					// both...apparently, I would'nt do that but whatever. So
@@ -524,8 +532,8 @@ public class VCOps {
 						log.reportError(g.toString());
 					}
 					throw new IllegalStateException("Invalid Het allele depth");
-				} else if (g.isHomVar()&& AD[1] == 0 && ArrayUtils.sum(gAD) > 0
-										&& ArrayUtils.sum(gAD) != ArrayUtils.sum(AD)) {
+				} else if (g.isHomVar() && AD[1] == 0 && ArrayUtils.sum(gAD) > 0
+									 && ArrayUtils.sum(gAD) != ArrayUtils.sum(AD)) {
 					if (verbose) {
 
 						log.reportError("Invalid Hom Var allele depth");
@@ -623,19 +631,19 @@ public class VCOps {
 	}
 
 	public enum VC_SUBSET_TYPE {
-															/**
-															 * Samples not contained in the vcf will be given missing genotypes
-															 */
-															SUBSET_LOOSE,
-															/**
-															 * A check will be performed and only samples present in the input set
-															 * and the vcf file will be exported
-															 */
-															SUBSET_STRICT,
-															/**
-															 * Original variant context will be returned
-															 */
-															NO_SUBSET;
+		/**
+		 * Samples not contained in the vcf will be given missing genotypes
+		 */
+		SUBSET_LOOSE,
+		/**
+		 * A check will be performed and only samples present in the input set and the vcf file will be
+		 * exported
+		 */
+		SUBSET_STRICT,
+		/**
+		 * Original variant context will be returned
+		 */
+		NO_SUBSET;
 
 	}
 
@@ -658,8 +666,8 @@ public class VCOps {
 	/**
 	 * Subsets to particular samples
 	 */
-	public static VariantContext getSubset(	final VariantContext vc, final String sampleName,
-																					VC_SUBSET_TYPE type) {
+	public static VariantContext getSubset(final VariantContext vc, final String sampleName,
+																				 VC_SUBSET_TYPE type) {
 		HashSet<String> tmp = new HashSet<String>();
 		tmp.add(sampleName);
 		return getSubset(vc, tmp, type);
@@ -669,12 +677,12 @@ public class VCOps {
 	 * Subsets to particular samples
 	 */
 	public static VariantContext getSubset(final VariantContext vc, final Set<String> sampleNames) {
-		return getSubset(vc, sampleNames, sampleNames == null	? VC_SUBSET_TYPE.NO_SUBSET
-																													: VC_SUBSET_TYPE.SUBSET_STRICT);
+		return getSubset(vc, sampleNames,
+										 sampleNames == null ? VC_SUBSET_TYPE.NO_SUBSET : VC_SUBSET_TYPE.SUBSET_STRICT);
 	}
 
-	public static VariantContext getSubset(	final VariantContext vc, final Set<String> sampleNames,
-																					VC_SUBSET_TYPE type) {
+	public static VariantContext getSubset(final VariantContext vc, final Set<String> sampleNames,
+																				 VC_SUBSET_TYPE type) {
 		return getSubset(vc, sampleNames, type, true);
 	}
 
@@ -690,17 +698,17 @@ public class VCOps {
 	/**
 	 * Subsets to particular samples
 	 */
-	public static VariantContext getSubset(	final VariantContext vc, final Set<String> sampleNames,
-																					VC_SUBSET_TYPE type,
-																					boolean rederiveAllelesFromGenotypes) {
+	public static VariantContext getSubset(final VariantContext vc, final Set<String> sampleNames,
+																				 VC_SUBSET_TYPE type,
+																				 boolean rederiveAllelesFromGenotypes) {
 		VariantContext vcSub = null;
 		switch (type) {
 			case SUBSET_LOOSE:
 				vcSub = vc.subContextFromSamples(sampleNames, rederiveAllelesFromGenotypes);
 				break;
 			case SUBSET_STRICT:
-				vcSub = vc.subContextFromSamples(	getOverlap(sampleNames, vc.getSampleNames()),
-																					rederiveAllelesFromGenotypes);
+				vcSub = vc.subContextFromSamples(getOverlap(sampleNames, vc.getSampleNames()),
+																				 rederiveAllelesFromGenotypes);
 				break;
 			case NO_SUBSET:
 				vcSub = vc;
@@ -762,8 +770,8 @@ public class VCOps {
 	}
 
 	public static int[] getAlleleCounts(VariantContext vc) {
-		if ((vc.getHomRefCount()+ vc.getHetCount() + vc.getHomVarCount()
-					+ vc.getNoCallCount()) != vc.getNSamples()) {
+		if ((vc.getHomRefCount() + vc.getHetCount() + vc.getHomVarCount()
+				 + vc.getNoCallCount()) != vc.getNSamples()) {
 			System.err.println("Un accounted for genotypes...");
 		}
 		return new int[] {vc.getHomRefCount(), vc.getHetCount(), vc.getHomVarCount()};

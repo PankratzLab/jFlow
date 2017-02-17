@@ -171,11 +171,11 @@ public class Fst {
 		if (new File(dir + root + ".bim.ser").exists()) {
 			markerInfo = SerialStringMatrix.load(dir + root + ".bim.ser", false).getMatrix();
 		} else if (!new File(dir + root + ".bim").exists()) {
-			System.err.println("Error - algorithm requires a '"	+ root
-													+ ".bim' file to ensure marker order and allelic strand");
+			System.err.println("Error - algorithm requires a '" + root
+												 + ".bim' file to ensure marker order and allelic strand");
 			return null;
 		} else {
-			markerInfo = HashVec.loadFileToStringMatrix(dir	+ root + ".bim", false,
+			markerInfo = HashVec.loadFileToStringMatrix(dir + root + ".bim", false,
 																									new int[] {1, 0, 3, 4, 5}, false);
 			new SerialStringMatrix(markerInfo).serialize(dir + root + ".bim.ser");
 			files = Files.list(dir, ".hwe.ser", false);
@@ -197,27 +197,27 @@ public class Fst {
 			v = hash.get(keys[i]);
 			if (v.size() == 1) {
 				if (!v.elementAt(0).equals("FID\tIID")) {
-					System.err.println("Error - found population subgroup ("	+ keys[i]
-															+ ") with only one member: " + v.elementAt(0)
-															+ "; this will not be run");
+					System.err.println("Error - found population subgroup (" + keys[i]
+														 + ") with only one member: " + v.elementAt(0)
+														 + "; this will not be run");
 					return null;
 				}
 			} else {
 				if (v.size() < 20) {
-					System.err.println("Warning - subgroup "	+ keys[i] + " only has " + v.size()
-															+ " members");
+					System.err.println("Warning - subgroup " + keys[i] + " only has " + v.size()
+														 + " members");
 				}
 				list = keys[i] + ".list";
 				v.insertElementAt("FID\tIID", 0);
 				array = ArrayUtils.toStringArray(v);
 				if (!new File(dir + list).exists()
-							|| !ArrayUtils.equals(	array,
-															HashVec.loadFileToStringArray(dir	+ list, false, new int[] {0, 1},
-																														false),
-															false)
+						|| !ArrayUtils.equals(array,
+																	HashVec.loadFileToStringArray(dir + list, false, new int[] {0, 1},
+																																false),
+																	false)
 						|| !new File(dir + keys[i] + ".hwe.ser").exists()) {
 					Files.writeArray(array, dir + list);
-					CmdLine.run("plink --bfile "	+ root + " --keep " + keys[i] + ".list --hardy --out "
+					CmdLine.run("plink --bfile " + root + " --keep " + keys[i] + ".list --hardy --out "
 											+ keys[i], dir);
 					line = new String[] {dir + keys[i] + ".hwe", "!2=ALL", "1", "3", "4", "5"};
 					parser = new GenParser(line, null);
@@ -228,19 +228,19 @@ public class Fst {
 						line = parser.nextLine();
 						if (line != null) {
 							if (!line[0].equals(markerInfo[count][0])) {
-								System.err.println("Error - mismatched marker order for "	+ keys[i] + ".hwe"
-																		+ "; expecting " + markerInfo[count][0]
-																		+ " from .bim file, found " + line[0]);
+								System.err.println("Error - mismatched marker order for " + keys[i] + ".hwe"
+																	 + "; expecting " + markerInfo[count][0]
+																	 + " from .bim file, found " + line[0]);
 								return null;
 							} else if (line[1].equals(markerInfo[count][4])
-													&& line[2].equals(markerInfo[count][3])) {
+												 && line[2].equals(markerInfo[count][3])) {
 								reverse = true;
 							} else if (!line[1].equals(markerInfo[count][3])
-													|| !line[2].equals(markerInfo[count][4])) {
-								System.err.println("Error - mismatched alleles in "	+ keys[i] + ".hwe"
-																		+ " for marker " + line[0] + "; expecting "
-																		+ markerInfo[count][3] + "/" + markerInfo[count][4] + ", found "
-																		+ line[1] + "/" + line[2]);
+												 || !line[2].equals(markerInfo[count][4])) {
+								System.err.println("Error - mismatched alleles in " + keys[i] + ".hwe"
+																	 + " for marker " + line[0] + "; expecting "
+																	 + markerInfo[count][3] + "/" + markerInfo[count][4] + ", found "
+																	 + line[1] + "/" + line[2]);
 								return null;
 							} else {
 								reverse = false;
@@ -292,8 +292,8 @@ public class Fst {
 				}
 			}
 			if (count > 0) {
-				System.err.println("Error - could not find "	+ count + " of the " + incl.length
-														+ " necessary files to perform calculations");
+				System.err.println("Error - could not find " + count + " of the " + incl.length
+													 + " necessary files to perform calculations");
 				return;
 			}
 		}
@@ -325,8 +325,8 @@ public class Fst {
 				for (int j = 0; j < alleleCounts.length; j++) {
 					counts[j] = alleleCounts[j][i];
 				}
-				writer.println(markerInfo[i][0]	+ "\t" + calcFst(counts, true) + "\t"
-												+ calcFst(counts, false) + "\t" + ArrayUtils.toStr(calcPs(counts)));
+				writer.println(markerInfo[i][0] + "\t" + calcFst(counts, true) + "\t"
+											 + calcFst(counts, false) + "\t" + ArrayUtils.toStr(calcPs(counts)));
 
 			}
 			writer.close();
@@ -359,8 +359,8 @@ public class Fst {
 
 		for (int i = 0; i < fileContents.length; i++) {
 			String[] s = new String[fileContents[i].size()];
-			Files.writeArray(	fileContents[i].toArray(s),
-												ext.rootOf(filename, false) + "." + (i + 1) + ".dat");
+			Files.writeArray(fileContents[i].toArray(s),
+											 ext.rootOf(filename, false) + "." + (i + 1) + ".dat");
 		}
 	}
 
@@ -371,12 +371,12 @@ public class Fst {
 		String[] incl = null;
 		int n = -1;
 
-		String usage = "\n"	+ "gwas.Fst requires 0-1 arguments\n"
-										+ "   (1) filename with ancestry (i.e. file=" + filename + " (default))\n"
-										+ "   (2) ethnicities to include in calculations (i.e. incl=Ashk,Brit,Ital (default all defined populations))\n"
-										+ "   (3) PLINK root (i.e. root=" + plinkRoot + " (default))\n" + "  OR\n"
-										+ "   (2) number of files to evenly split ethnicites into (i.e. split=2 (not the default))\n"
-										+ "";
+		String usage = "\n" + "gwas.Fst requires 0-1 arguments\n"
+									 + "   (1) filename with ancestry (i.e. file=" + filename + " (default))\n"
+									 + "   (2) ethnicities to include in calculations (i.e. incl=Ashk,Brit,Ital (default all defined populations))\n"
+									 + "   (3) PLINK root (i.e. root=" + plinkRoot + " (default))\n" + "  OR\n"
+									 + "   (2) number of files to evenly split ethnicites into (i.e. split=2 (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -413,8 +413,7 @@ public class Fst {
 		// n = 2;
 
 		filename = "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\Fst\\Discovery\\EuropeanClasses.1clean.dat";
-		plinkRoot =
-							"C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\Fst\\Discovery\\plink";
+		plinkRoot = "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\Fst\\Discovery\\plink";
 		// incl = new String[] {"Ashk", "British"};
 		incl = new String[] {"Ashk", "Italian"};
 

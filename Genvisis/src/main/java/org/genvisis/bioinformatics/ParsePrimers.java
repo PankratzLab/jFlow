@@ -57,15 +57,15 @@ public class ParsePrimers {
 					seqs = hash.get(trav).split("\t", -1);
 					if (!seqs[0].equals(line[2])) {
 						System.err.println("Error - mismatched reference alleles between input and seq for position "
-																+ trav + " (file=" + line[2] + ", seq=" + seqs[0] + ")");
+															 + trav + " (file=" + line[2] + ", seq=" + seqs[0] + ")");
 					}
 					writer.print(seqs[1] + "[" + line[3] + "/" + line[2] + "]" + seqs[2]);
 				} else {
-					System.err.println("Error - did not find sequence for variant: "	+ line[0] + ":"
-															+ line[1]);
+					System.err.println("Error - did not find sequence for variant: " + line[0] + ":"
+														 + line[1]);
 				}
-				writer.println(","	+ line[0].substring(3) + "," + line[1]
-												+ ",37,resequencing,0,Forward,Plus,FALSE");
+				writer.println("," + line[0].substring(3) + "," + line[1]
+											 + ",37,resequencing,0,Forward,Plus,FALSE");
 
 			}
 			reader.close();
@@ -88,11 +88,11 @@ public class ParsePrimers {
 		String sequence = "Galaxy28-[VariantSequence60flanked]-allVariants.tabular";
 		String output = "primers.csv";
 
-		String usage = "\n"	+ "bioinformatics.ParsePrimers requires 0-1 arguments\n"
-										+ "   (0) working directory (i.e. dir=" + dir + " (default))\n"
-										+ "   (1) variants list filename (i.e. var=" + variants + " (default))\n"
-										+ "   (2) flanking sequence file (i.e. seq=" + sequence + " (default))\n"
-										+ "   (3) filename of output (i.e. out=" + output + " (default))\n" + "";
+		String usage = "\n" + "bioinformatics.ParsePrimers requires 0-1 arguments\n"
+									 + "   (0) working directory (i.e. dir=" + dir + " (default))\n"
+									 + "   (1) variants list filename (i.e. var=" + variants + " (default))\n"
+									 + "   (2) flanking sequence file (i.e. seq=" + sequence + " (default))\n"
+									 + "   (3) filename of output (i.e. out=" + output + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

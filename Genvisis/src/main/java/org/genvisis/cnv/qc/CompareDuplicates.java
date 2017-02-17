@@ -42,8 +42,8 @@ public class CompareDuplicates {
 				fsamps[i] = proj.getFullSampleFromRandomAccessFile(pair[i]);
 				xs[i] = fsamps[i].getXs();
 				ys[i] = fsamps[i].getYs();
-				genos[i] = fsamps[i].getAB_GenotypesAfterFilters(	markerNames, clusterFilterCollection,
-																													gcThreshold);
+				genos[i] = fsamps[i].getAB_GenotypesAfterFilters(markerNames, clusterFilterCollection,
+																												 gcThreshold);
 				// genos[i] = fsamps[i].getForwardGenotypes();
 			}
 
@@ -89,8 +89,8 @@ public class CompareDuplicates {
 			for (int i = 0; i < pair.length; i++) {
 				correl_icin[i] = ArrayUtils.subArray(correl_icin[i], 0, count);
 			}
-			summary += (sameGeno / ((double) pair.length - 1) / count)	+ "\t"
-									+ ArrayUtils.toStr(Correlation.Pearson(correl_icin)) + "\t" + diffGeno;
+			summary += (sameGeno / ((double) pair.length - 1) / count) + "\t"
+								 + ArrayUtils.toStr(Correlation.Pearson(correl_icin)) + "\t" + diffGeno;
 
 			// writer.close();
 		} catch (Exception e) {
@@ -109,9 +109,9 @@ public class CompareDuplicates {
 		markerNames = proj.getMarkerNames();
 		discordantCounts = new int[markerNames.length];
 
-		pairs = HashVec.loadFileToStringMatrix(proj.PROJECT_DIRECTORY.getValue()	+ pairFile, false,
-																						new int[] {0, 1}, "\t", proj.JAR_STATUS.getValue(), 100,
-																						false);
+		pairs = HashVec.loadFileToStringMatrix(proj.PROJECT_DIRECTORY.getValue() + pairFile, false,
+																					 new int[] {0, 1}, "\t", proj.JAR_STATUS.getValue(), 100,
+																					 false);
 
 		try {
 			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
@@ -119,13 +119,13 @@ public class CompareDuplicates {
 			writer.println("DNA1\tDNA2\tgenotypeConcordance\tx_correlation\tcorr_pval\t#diffGeno");
 			for (int i = 0; i < pairs.length; i++) {
 				System.out.println((i + 1) + " of " + pairs.length);
-				writer.println(ArrayUtils.toStr(pairs[i])	+ "\t"
-												+ doIt(proj, pairs[i], markerNames, discordantCounts));
+				writer.println(ArrayUtils.toStr(pairs[i]) + "\t"
+											 + doIt(proj, pairs[i], markerNames, discordantCounts));
 			}
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to "	+ proj.PROJECT_DIRECTORY.getValue()
-													+ "DuplicateQC.xln");
+			System.err.println("Error writing to " + proj.PROJECT_DIRECTORY.getValue()
+												 + "DuplicateQC.xln");
 			e.printStackTrace();
 		}
 
@@ -148,11 +148,11 @@ public class CompareDuplicates {
 		String filename = null;
 		String pairs = "duplicatePairs.txt";
 
-		String usage = "\n"	+ "cnv.qc.CompareDuplicates requires 0-1 arguments\n"
-										+ "   (1) project properties filename (i.e. proj="
-										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-										+ "   (2) file with list of sample pairs (i.e. pairs=" + pairs
-										+ " (default; to be found in project directory))\n" + "";
+		String usage = "\n" + "cnv.qc.CompareDuplicates requires 0-1 arguments\n"
+									 + "   (1) project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + "   (2) file with list of sample pairs (i.e. pairs=" + pairs
+									 + " (default; to be found in project directory))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

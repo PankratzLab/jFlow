@@ -67,15 +67,15 @@ public class QueueControl {
 		public long getMinMem() {
 			return minMem;
 		}
-		
+
 		public void setMinMem(long minMem) {
 			this.minMem = minMem;
 		}
-		
+
 		public long getMaxMem() {
 			return maxMem;
 		}
-		
+
 		public void setMaxMem(long maxMem) {
 			this.maxMem = maxMem;
 		}
@@ -187,7 +187,7 @@ public class QueueControl {
 		public int getDefaultProc() {
 			return this.defaultProc;
 		}
-		
+
 		public int getDefaultNodeCnt() {
 			return this.defaultNodeCnt;
 		}
@@ -207,8 +207,7 @@ public class QueueControl {
 	}
 
 	public enum QueueType {
-		EXEC,
-		ROUTE;
+		EXEC, ROUTE;
 	}
 
 	private static final String TAG_WALLTIME_MIN = "resources_min.walltime = ";
@@ -226,7 +225,7 @@ public class QueueControl {
 	private static final String TAG_GROUP_CTRL_SLOPPY = "acl_group_sloppy = ";
 	private static final String TAG_ROUTE_DEST = "route_destinations = ";
 	private static final String TAG_MEM = "resources_default.mem = ";
-	private static final String TAG_WALLTIME_DEFAULT= "resources_default.walltime = ";
+	private static final String TAG_WALLTIME_DEFAULT = "resources_default.walltime = ";
 
 	private static String[] loadIDInfo() throws IOException {
 		Runtime rt = Runtime.getRuntime();
@@ -240,7 +239,7 @@ public class QueueControl {
 	}
 
 	/**
-	 * Runs 'id' command and parses current user name. 
+	 * Runs 'id' command and parses current user name.
 	 * 
 	 * @return
 	 */
@@ -256,7 +255,7 @@ public class QueueControl {
 	}
 
 	/**
-	 * Runs 'id' command and parses user's current group. 
+	 * Runs 'id' command and parses user's current group.
 	 * 
 	 * @return
 	 * @throws IOException Thrown by Runtime.exec and BufferedReader when reading command output
@@ -273,7 +272,7 @@ public class QueueControl {
 	}
 
 	/**
-	 * Runs 'id' command and parses all groups for current user. 
+	 * Runs 'id' command and parses all groups for current user.
 	 * 
 	 * @return
 	 * @throws IOException Thrown by Runtime.exec and BufferedReader when reading command output
@@ -286,30 +285,33 @@ public class QueueControl {
 			// error from running 'id' or from reading input; either way, unable to determine groups
 		}
 		ArrayList<String> groups = new ArrayList<String>();
-		for (String g : grps) { 
+		for (String g : grps) {
 			groups.add(g.substring(g.indexOf('(') + 1, g.length() - 1));
 		}
 		return groups;
 	}
-	
+
 	public static List<JobQueue> parseAllowedQueues(Logger log) {
-		return parseAllowedQueues(getUserName(), getCurrentGroup(), getUserGroups().toArray(new String[0]), log);
+		return parseAllowedQueues(getUserName(), getCurrentGroup(),
+															getUserGroups().toArray(new String[0]), log);
 	}
 
-	public static List<JobQueue> parseAllowedQueues(String username, String currgroup, String[] allGroups, Logger log) {
+	public static List<JobQueue> parseAllowedQueues(String username, String currgroup,
+																									String[] allGroups, Logger log) {
 		return filterAllowed(parseQueues(username, currgroup, allGroups, log));
 	}
 
 	/**
-	 * Runs 'qstat -Qf' command and parses queue information. 
+	 * Runs 'qstat -Qf' command and parses queue information.
 	 * 
 	 * @return
 	 */
-	public static List<JobQueue> parseQueues(String username, String currGroup, String[] allGroups, Logger log) {
+	public static List<JobQueue> parseQueues(String username, String currGroup, String[] allGroups,
+																					 Logger log) {
 		Runtime rt = Runtime.getRuntime();
 		String[] commands = {"qstat", "-Qf"};
 		BufferedReader stdInput = null;
-		
+
 		try {
 			Process proc = rt.exec(commands);
 			stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
@@ -318,11 +320,11 @@ public class QueueControl {
 		}
 
 		ArrayList<JobQueue> queues = new ArrayList<JobQueue>();
-		
+
 		if (stdInput == null) {
 			return queues;
 		}
-		
+
 		JobQueue curr = null;
 		String s;
 		try {
@@ -347,7 +349,8 @@ public class QueueControl {
 					try {
 						curr.setJobsInQueue(Integer.parseInt(s.substring(TAG_TOTAL_JOBS.length()).trim()));
 					} catch (NumberFormatException e1) {
-						log.reportError("Found 'total jobs' tag but couldn't parse value: " + s.substring(13).trim());
+						log.reportError("Found 'total jobs' tag but couldn't parse value: "
+														+ s.substring(13).trim());
 					}
 				}
 				if (s.startsWith(TAG_WALLTIME_MIN)) {
@@ -355,7 +358,8 @@ public class QueueControl {
 					try {
 						curr.setMinWalltime(Integer.parseInt(s1.substring(0, s1.indexOf(':'))));
 					} catch (NumberFormatException e1) {
-						log.reportError("Found 'minimum walltime' tag but couldn't parse value: " + s1.substring(0, s1.indexOf(':')).trim());
+						log.reportError("Found 'minimum walltime' tag but couldn't parse value: "
+														+ s1.substring(0, s1.indexOf(':')).trim());
 					}
 				}
 				if (s.startsWith(TAG_WALLTIME_MAX)) {
@@ -363,7 +367,8 @@ public class QueueControl {
 					try {
 						curr.setMaxWalltime(Integer.parseInt(s1.substring(0, s1.indexOf(':'))));
 					} catch (NumberFormatException e1) {
-						log.reportError("Found 'maximum walltime' tag but couldn't parse value: " + s1.substring(0, s1.indexOf(':')).trim());
+						log.reportError("Found 'maximum walltime' tag but couldn't parse value: "
+														+ s1.substring(0, s1.indexOf(':')).trim());
 					}
 				}
 				if (s.startsWith(TAG_MEM)) {
@@ -371,35 +376,40 @@ public class QueueControl {
 					try {
 						curr.setDefaultMem(Long.parseLong(b.substring(0, b.length() - 1)));
 					} catch (NumberFormatException e1) {
-						log.reportError("Found 'assigned memory' tag but couldn't parse value: " + b.substring(0, b.indexOf(':')).trim());
+						log.reportError("Found 'assigned memory' tag but couldn't parse value: "
+														+ b.substring(0, b.indexOf(':')).trim());
 					}
 				}
 				if (s.startsWith(TAG_PROC_MAX)) {
 					try {
 						curr.setMaxProc(Integer.parseInt(s.substring(TAG_PROC_MAX.length())));
 					} catch (NumberFormatException e1) {
-						log.reportError("Found 'maximum processors' tag but couldn't parse value: " + s.substring(TAG_PROC_MAX.length()));
+						log.reportError("Found 'maximum processors' tag but couldn't parse value: "
+														+ s.substring(TAG_PROC_MAX.length()));
 					}
 				}
 				if (s.startsWith(TAG_PROC_MIN)) {
 					try {
 						curr.setMinProc(Integer.parseInt(s.substring(TAG_PROC_MIN.length())));
 					} catch (NumberFormatException e1) {
-						log.reportError("Found 'minimum processors' tag but couldn't parse value: " + s.substring(TAG_PROC_MIN.length()));
+						log.reportError("Found 'minimum processors' tag but couldn't parse value: "
+														+ s.substring(TAG_PROC_MIN.length()));
 					}
 				}
 				if (s.startsWith(TAG_NODE_MAX)) {
 					try {
 						curr.setMaxNodeCnt(Integer.parseInt(s.substring(TAG_NODE_MAX.length())));
 					} catch (NumberFormatException e1) {
-						log.reportError("Found 'maximum nodes' tag but couldn't parse value: " + s.substring(TAG_NODE_MAX.length()));
+						log.reportError("Found 'maximum nodes' tag but couldn't parse value: "
+														+ s.substring(TAG_NODE_MAX.length()));
 					}
 				}
 				if (s.startsWith(TAG_NODE_MIN)) {
 					try {
 						curr.setMinNodeCnt(Integer.parseInt(s.substring(TAG_NODE_MIN.length())));
 					} catch (NumberFormatException e1) {
-						log.reportError("Found 'minimum processors' tag but couldn't parse value: " + s.substring(TAG_NODE_MIN.length()));
+						log.reportError("Found 'minimum processors' tag but couldn't parse value: "
+														+ s.substring(TAG_NODE_MIN.length()));
 					}
 				}
 				if (s.startsWith(TAG_USERS_LIST)) {
@@ -447,7 +457,8 @@ public class QueueControl {
 	}
 
 
-	private static void checkIfQueueAllowed(JobQueue curr, String username, String currGroup, String[] allGroups) {
+	private static void checkIfQueueAllowed(JobQueue curr, String username, String currGroup,
+																					String[] allGroups) {
 		if (!curr.isGroupAccessControlEnabled() && !curr.isUserAccessControlEnabled()) {
 			curr.setAllowed(true);
 		} else {
@@ -540,5 +551,5 @@ public class QueueControl {
 
 		return exclusive != null ? exclusive : routeQueueMost != null ? routeQueueMost : mostUsed;
 	}
-	
+
 }

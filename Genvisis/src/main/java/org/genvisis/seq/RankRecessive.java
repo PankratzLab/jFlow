@@ -18,8 +18,8 @@ public class RankRecessive {
 	// Hashtable is generated
 	// public static final String[] REQS = {"Position", "Gene", "Ref_Allele", "GT of Siblings", "rs",
 	// "merged_MAF"};
-	public static final String[] REQS = {	"Position", "Gene", "Ref_Allele", "GT_of_Siblings", "rs",
-																				"merged_MAF"};
+	public static final String[] REQS = {"Position", "Gene", "Ref_Allele", "GT_of_Siblings", "rs",
+																			 "merged_MAF"};
 
 	public static void rank(String filename, double mafForMissingValues, double mafFloor) {
 		BufferedReader reader;
@@ -79,8 +79,8 @@ public class RankRecessive {
 							try {
 								mafs[j] = Double.parseDouble(line[2]);
 							} catch (NumberFormatException nfe) {
-								System.err.println("Error parsing MAF ('"	+ line[2] + "') for " + line[0]
-																		+ " in gene " + gene + "; setting to missing value");
+								System.err.println("Error parsing MAF ('" + line[2] + "') for " + line[0]
+																	 + " in gene " + gene + "; setting to missing value");
 								mafs[j] = mafForMissingValues;
 							}
 							if (mafs[j] < mafFloor) {
@@ -92,8 +92,8 @@ public class RankRecessive {
 					writer.print(gene + "\t" + ext.formDeci(mafs[order[0]] * mafs[order[1]], 5));
 					for (int j = 0; j < 2; j++) {
 						line = variants.elementAt(order[j]);
-						writer.print("\t"	+ line[0] + "\t" + line[1] + "\t" + line[3] + "\t"
-													+ line[4].substring(line[4].indexOf("/") + 1) + "\t" + line[2]);
+						writer.print("\t" + line[0] + "\t" + line[1] + "\t" + line[3] + "\t"
+												 + line[4].substring(line[4].indexOf("/") + 1) + "\t" + line[2]);
 					}
 					writer.println("\t" + (variants.size() == 2 ? "." : (variants.size() - 2)));
 				}
@@ -112,12 +112,12 @@ public class RankRecessive {
 		double mafForMissingValues = 0.01;
 		double mafFloor = 0.01;
 
-		String usage = "\n"	+ "seq.RankRecessive requires 1-3 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (required; not the default))\n"
-										+ "   (2) MAF for any position with a missing value (i.e. mafForMissingValues="
-										+ mafForMissingValues + " (default))\n"
-										+ "   (3) minimum MAF, all values below this will be set to this value (i.e. mafFloor="
-										+ mafFloor + " (default))\n" + "";
+		String usage = "\n" + "seq.RankRecessive requires 1-3 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (required; not the default))\n"
+									 + "   (2) MAF for any position with a missing value (i.e. mafForMissingValues="
+									 + mafForMissingValues + " (default))\n"
+									 + "   (3) minimum MAF, all values below this will be set to this value (i.e. mafFloor="
+									 + mafFloor + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

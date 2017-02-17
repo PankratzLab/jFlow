@@ -52,10 +52,8 @@ public class GateTreePanel extends JPanel {
 	private final JPanel topPanel;
 	private final JScrollPane scrollPane;
 	private final FCSPlot plot;
-	private final HashMap<DefaultMutableTreeNode, Gate> gateMap =
-																															new HashMap<DefaultMutableTreeNode, Gate>();
-	private final HashMap<Gate, DefaultMutableTreeNode> nodeMap =
-																															new HashMap<Gate, DefaultMutableTreeNode>();
+	private final HashMap<DefaultMutableTreeNode, Gate> gateMap = new HashMap<DefaultMutableTreeNode, Gate>();
+	private final HashMap<Gate, DefaultMutableTreeNode> nodeMap = new HashMap<Gate, DefaultMutableTreeNode>();
 	private volatile boolean showing = false;
 
 	/**
@@ -109,8 +107,8 @@ public class GateTreePanel extends JPanel {
 			@Override
 			public void componentResized(ComponentEvent e) {
 				super.componentResized(e);
-				Rectangle rect = new Rectangle(breadcrumbPanel.getWidth()	- 10, 10,
-																				breadcrumbPanel.getWidth(), 10);
+				Rectangle rect = new Rectangle(breadcrumbPanel.getWidth() - 10, 10,
+																			 breadcrumbPanel.getWidth(), 10);
 				((JComponent) breadcrumbPanel.getParent()).scrollRectToVisible(rect);
 				breadcrumbPanel.repaint();
 
@@ -178,13 +176,13 @@ public class GateTreePanel extends JPanel {
 	private void addGatesToTree(DefaultMutableTreeNode root, Gate g) {
 		StringBuilder ident = new StringBuilder();
 		ident.append(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
-    
-        ident.append(" (");
-        ident.append(g.getXDimension().paramName);
-        if (g.getYDimension() != null) {
-          ident.append(" v ");
-          ident.append(g.getYDimension().paramName);
-        }
+
+		ident.append(" (");
+		ident.append(g.getXDimension().paramName);
+		if (g.getYDimension() != null) {
+			ident.append(" v ");
+			ident.append(g.getYDimension().paramName);
+		}
 		ident.append(")");
 		DefaultMutableTreeNode child = new DefaultMutableTreeNode(ident.toString(), true);
 		gateMap.put(child, g);
@@ -219,8 +217,8 @@ public class GateTreePanel extends JPanel {
 				DefaultMutableTreeNode obj = (DefaultMutableTreeNode) path[i];
 				String nm = (String) obj.getUserObject();
 				String chNm = (String) (i == path.length
-																			- 1	? ""
-																					: ((DefaultMutableTreeNode) path[i + 1]).getUserObject());
+																		 - 1 ? ""
+																				 : ((DefaultMutableTreeNode) path[i + 1]).getUserObject());
 				final JLabel lbl = new JLabel(nm);
 				lbl.setBorder(breadcrumbBorder);
 				lbl.setFont(breadcrumbFont);
@@ -240,8 +238,8 @@ public class GateTreePanel extends JPanel {
 			}
 			breadcrumbPanel.revalidate();
 			breadcrumbPanel.repaint();
-			Rectangle rect = new Rectangle(breadcrumbPanel.getWidth()	- 10, 10,
-																			breadcrumbPanel.getWidth(), 10);
+			Rectangle rect = new Rectangle(breadcrumbPanel.getWidth() - 10, 10,
+																		 breadcrumbPanel.getWidth(), 10);
 			((JComponent) breadcrumbPanel.getParent()).scrollRectToVisible(rect);
 			if (!selecting) {
 				plot.gateSelected(gateMap.get(path[path.length - 1]), false);

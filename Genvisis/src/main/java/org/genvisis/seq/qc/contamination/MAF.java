@@ -69,8 +69,8 @@ public class MAF {
 		int numArgs = args.length;
 		String filename = null;
 
-		String usage = "\n"	+ "one.JL.MAF requires 0-1 arguments\n" + "   (1) filename (i.e. proj="
-										+ filename + " (default))\n" + "";
+		String usage = "\n" + "one.JL.MAF requires 0-1 arguments\n" + "   (1) filename (i.e. proj="
+									 + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

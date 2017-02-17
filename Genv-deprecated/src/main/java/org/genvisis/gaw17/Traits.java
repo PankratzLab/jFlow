@@ -25,8 +25,8 @@ public class Traits {
 	// public static final String[] POPS = {"Caucasians", "Asians", "Africans"};
 	// public static final String[] POPS = {"Caucasians", "Asians", "Africans", "All"};
 	// public static final String[] POPS = {"all697"};
-	public static final String[] POPS = {	"CEPH", "Denver", "Han", "Japanese", "Luhya", "Tuscan",
-																				"Yoruban"};
+	public static final String[] POPS = {"CEPH", "Denver", "Han", "Japanese", "Luhya", "Tuscan",
+																			 "Yoruban"};
 	// public static final String[] PHENOS = {"aff", "q1", "q2", "q4"};
 	public static final String[] PHENOS = {"q1"};
 	// public static final String[] PHENOS = {"affected", "q1", "q2", "q4", "AffResids",
@@ -35,8 +35,8 @@ public class Traits {
 	// "Q1resids", "Q1residsMinusQ2", "Q2residsQ1", "Q4resids"};
 	// public static final String[][] COVARS = {{"SEX", "AGE", "SMOKE", "C1", "C2"}, {"SEX", "AGE",
 	// "SMOKE", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10"}};
-	public static final String[][] COVARS = {	{"SEX", "SMOKE"}, {"SEX", "SMOKE"}, {},
-																						{"SEX", "AGE", "SMOKE"}};
+	public static final String[][] COVARS = {{"SEX", "SMOKE"}, {"SEX", "SMOKE"}, {},
+																					 {"SEX", "AGE", "SMOKE"}};
 
 	public static void analyzeCovariates(String analysis_dir, String pheno_dir) {
 		BufferedReader reader;
@@ -72,24 +72,27 @@ public class Traits {
 						count++;
 					}
 					writer.print("\t" + ArrayUtils.toStr(ArrayUtils.subArray(
-																													new LogisticRegression(deps[0], indeps)
-																																																	.getSigs(),
-																													1, 4)));
-					writer.print("\t"
-												+ ArrayUtils.toStr(ArrayUtils.subArray(	new LeastSquares(deps[1], indeps).getSigs(), 1,
-																											4)));
-					writer.print("\t"
-												+ ArrayUtils.toStr(ArrayUtils.subArray(	new LeastSquares(deps[2], indeps).getSigs(), 1,
-																											4)));
-					writer.print("\t"
-												+ ArrayUtils.toStr(ArrayUtils.subArray(	new LeastSquares(deps[3], indeps).getSigs(), 1,
-																											4)));
+																																	 new LogisticRegression(deps[0],
+																																													indeps).getSigs(),
+																																	 1, 4)));
+					writer.print("\t" + ArrayUtils.toStr(ArrayUtils.subArray(
+																																	 new LeastSquares(deps[1], indeps)
+																																																		.getSigs(),
+																																	 1, 4)));
+					writer.print("\t" + ArrayUtils.toStr(ArrayUtils.subArray(
+																																	 new LeastSquares(deps[2], indeps)
+																																																		.getSigs(),
+																																	 1, 4)));
+					writer.print("\t" + ArrayUtils.toStr(ArrayUtils.subArray(
+																																	 new LeastSquares(deps[3], indeps)
+																																																		.getSigs(),
+																																	 1, 4)));
 					writer.println();
 					writer.flush();
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ "unr_phen." + rep
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + "unr_phen." + rep
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + "unr_phen." + rep + "\"");
@@ -154,24 +157,27 @@ public class Traits {
 						count++;
 					}
 					writer.print("\t" + ArrayUtils.toStr(ArrayUtils.subArray(
-																													new LogisticRegression(deps[0], indeps[0])
-																																																		.getSigs(),
-																													1, 7)));
-					writer.print("\t"
-												+ ArrayUtils.toStr(ArrayUtils.subArray(	new LeastSquares(deps[1], indeps[1]).getSigs(),
-																											1, 6)));
-					writer.print("\t"
-												+ ArrayUtils.toStr(ArrayUtils.subArray(	new LeastSquares(deps[2], indeps[2]).getSigs(),
-																											1, 6)));
-					writer.print("\t"
-												+ ArrayUtils.toStr(ArrayUtils.subArray(	new LeastSquares(deps[3], indeps[3]).getSigs(),
-																											1, 6)));
+																																	 new LogisticRegression(deps[0],
+																																													indeps[0]).getSigs(),
+																																	 1, 7)));
+					writer.print("\t" + ArrayUtils.toStr(ArrayUtils.subArray(
+																																	 new LeastSquares(deps[1],
+																																										indeps[1]).getSigs(),
+																																	 1, 6)));
+					writer.print("\t" + ArrayUtils.toStr(ArrayUtils.subArray(
+																																	 new LeastSquares(deps[2],
+																																										indeps[2]).getSigs(),
+																																	 1, 6)));
+					writer.print("\t" + ArrayUtils.toStr(ArrayUtils.subArray(
+																																	 new LeastSquares(deps[3],
+																																										indeps[3]).getSigs(),
+																																	 1, 6)));
 					writer.println();
 					writer.flush();
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ "unr_phen." + rep
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + "unr_phen." + rep
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + "unr_phen." + rep + "\"");
@@ -199,15 +205,15 @@ public class Traits {
 				writer.println("FID\tI" + ArrayUtils.toStr(reader.readLine().trim().split(",")));
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(",");
-					writer.println(line[0]	+ "\t" + line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3]
-													+ "\t" + line[4] + "\t" + line[5] + "\t" + line[6] + "\t"
-													+ (line[7].equals("1") ? "2" : "1"));
+					writer.println(line[0] + "\t" + line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3]
+												 + "\t" + line[4] + "\t" + line[5] + "\t" + line[6] + "\t"
+												 + (line[7].equals("1") ? "2" : "1"));
 				}
 				writer.close();
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \""	+ pheno_dir + "unr_phen." + rep
-														+ "\" not found in current directory");
+				System.err.println("Error: file \"" + pheno_dir + "unr_phen." + rep
+													 + "\" not found in current directory");
 				System.exit(1);
 			} catch (IOException ioe) {
 				System.err.println("Error reading file \"" + pheno_dir + "unr_phen." + rep + "\"");
@@ -228,10 +234,10 @@ public class Traits {
 					// writer.println("plink --bfile ../"+POPS[i]+" --pheno "+pheno_dir+"unr_phen."+rep+".tab
 					// --pheno-name AFFECTED --covar "+pheno_dir+"unr_phen."+rep+".tab --covar-name SEX,SMOKE
 					// --logistic --ci 0.95 --out "+POPS[i]+".aff."+rep+"");
-					writer.println("plink --bfile ../"	+ element + " --pheno " + pheno_dir + "unr_phen." + rep
-													+ ".tab --pheno-name Q1 --covar " + pheno_dir + "unr_phen." + rep
-													+ ".tab --covar-name SEX,SMOKE --logistic --ci 0.95 --out " + element
-													+ ".q1." + rep + "");
+					writer.println("plink --bfile ../" + element + " --pheno " + pheno_dir + "unr_phen." + rep
+												 + ".tab --pheno-name Q1 --covar " + pheno_dir + "unr_phen." + rep
+												 + ".tab --covar-name SEX,SMOKE --logistic --ci 0.95 --out " + element
+												 + ".q1." + rep + "");
 					// writer.println("plink --bfile ../"+POPS[i]+" --pheno "+pheno_dir+"unr_phen."+rep+".tab
 					// --pheno-name Q2 --logistic --ci 0.95 --out "+POPS[i]+".q2."+rep+"");
 					// writer.println("plink --bfile ../"+POPS[i]+" --pheno "+pheno_dir+"unr_phen."+rep+".tab
@@ -249,7 +255,7 @@ public class Traits {
 		for (String element : POPS) {
 			for (int pheno = 0; pheno < PHENOS.length; pheno++) {
 				try {
-					writer = new PrintWriter(new FileWriter(analysis_dir	+ "metal_" + element + "_"
+					writer = new PrintWriter(new FileWriter(analysis_dir + "metal_" + element + "_"
 																									+ PHENOS[pheno] + ".txt"));
 					writer.println("MARKER SNP");
 					writer.println("ALLELE A1 TEST");
@@ -259,8 +265,8 @@ public class Traits {
 					writer.println("ADDFILTER TEST IN (ADD)");
 					writer.println("");
 					for (int rep = 1; rep <= 200; rep++) {
-						writer.println("PROCESS "	+ element + ".aff." + rep + ".assoc."
-														+ (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear"));
+						writer.println("PROCESS " + element + ".aff." + rep + ".assoc."
+													 + (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear"));
 					}
 					writer.println("");
 					writer.println("OUTFILE meta_" + element + " .tbl");
@@ -268,8 +274,8 @@ public class Traits {
 
 					writer.close();
 				} catch (Exception e) {
-					System.err.println("Error writing to "	+ analysis_dir + "metal_" + element + "_"
-															+ PHENOS[pheno] + ".txt");
+					System.err.println("Error writing to " + analysis_dir + "metal_" + element + "_"
+														 + PHENOS[pheno] + ".txt");
 					e.printStackTrace();
 				}
 				log.report("metal < metal_" + element + "_" + PHENOS[pheno] + ".txt");
@@ -280,7 +286,7 @@ public class Traits {
 		for (int pheno = 0; pheno < PHENOS.length; pheno++) {
 			for (int rep = 1; rep <= 200; rep++) {
 				try {
-					writer = new PrintWriter(new FileWriter(analysis_dir	+ "metal_" + PHENOS[pheno] + "."
+					writer = new PrintWriter(new FileWriter(analysis_dir + "metal_" + PHENOS[pheno] + "."
 																									+ rep + ".txt"));
 					writer.println("MARKER SNP");
 					writer.println("ALLELE A1 TEST");
@@ -290,8 +296,8 @@ public class Traits {
 					writer.println("ADDFILTER TEST IN (ADD)");
 					writer.println("");
 					for (String element : POPS) {
-						writer.println("PROCESS "	+ element + "." + PHENOS[pheno] + "." + rep + ".assoc."
-														+ (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear"));
+						writer.println("PROCESS " + element + "." + PHENOS[pheno] + "." + rep + ".assoc."
+													 + (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear"));
 					}
 					writer.println("");
 					writer.println("OUTFILE meta_" + rep + " .tbl");
@@ -299,8 +305,8 @@ public class Traits {
 
 					writer.close();
 				} catch (Exception e) {
-					System.err.println("Error writing to "	+ analysis_dir + "metal_" + "_" + PHENOS[pheno]
-															+ "." + rep + ".txt");
+					System.err.println("Error writing to " + analysis_dir + "metal_" + "_" + PHENOS[pheno]
+														 + "." + rep + ".txt");
 					e.printStackTrace();
 				}
 				log.report("metal < metal_" + PHENOS[pheno] + "." + rep + ".txt");
@@ -358,7 +364,7 @@ public class Traits {
 		snps = HashVec.loadFileToStringArray(analysis_dir + "snps.txt", false, new int[] {0}, false);
 
 		for (String element : POPS) {
-			hash = HashVec.loadFileToHashString(analysis_dir	+ element + ".frq", 1, new int[] {2, 3},
+			hash = HashVec.loadFileToHashString(analysis_dir + element + ".frq", 1, new int[] {2, 3},
 																					"\t", true);
 			System.out.print(element);
 			for (int rep = 1; rep <= 200; rep++) {
@@ -367,11 +373,11 @@ public class Traits {
 				}
 				for (int pheno = 0; pheno < PHENOS.length; pheno++) {
 					try {
-						reader = new BufferedReader(new FileReader(analysis_dir	+ element + "." + PHENOS[pheno]
-																												+ "." + rep + ".assoc."
-																												+ (!PHENOS[pheno].startsWith("q")	? "logistic"
-																																													: "linear")));
-						writer = new PrintWriter(new FileWriter(analysis_dir	+ element + "." + PHENOS[pheno]
+						reader = new BufferedReader(new FileReader(analysis_dir + element + "." + PHENOS[pheno]
+																											 + "." + rep + ".assoc."
+																											 + (!PHENOS[pheno].startsWith("q") ? "logistic"
+																																												 : "linear")));
+						writer = new PrintWriter(new FileWriter(analysis_dir + element + "." + PHENOS[pheno]
 																										+ "." + rep + ".in"));
 						// writer.println("SNP\tA1\tA2\tbeta\tse");
 						writer.println("SNP\tA1\tA2\tbeta\tpval\tweight");
@@ -380,9 +386,9 @@ public class Traits {
 						while (reader.ready()) {
 							line = reader.readLine().trim().split("[\\s]+");
 							if (!line[1].equals(snps[count])) {
-								System.err.println("Error - out of sync in "	+ element + ".aff." + rep + ".assoc."
-																		+ (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
-																		+ " expecting " + snps[count] + " found " + line[1]);
+								System.err.println("Error - out of sync in " + element + ".aff." + rep + ".assoc."
+																	 + (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
+																	 + " expecting " + snps[count] + " found " + line[1]);
 							}
 							if (!line[11].equals("NA")) {
 								String alleles;
@@ -390,20 +396,20 @@ public class Traits {
 								if (alleles == null) {
 									System.err.println("Error - no frq for " + line[1] + " in " + element);
 								} else if (!alleles.startsWith(line[3])) {
-									System.err.println("Error - wrong A1 for "	+ line[1] + " found " + line[3]
-																			+ " expecting " + alleles);
+									System.err.println("Error - wrong A1 for " + line[1] + " found " + line[3]
+																		 + " expecting " + alleles);
 								}
 								// writer.println(line[1]+"\t"+alleles+"\t"+line[6]+"\t"+line[7]);
 								// writer.println(line[1]+"\t"+alleles+"\t"+line[6]+"\t"+line[11]+"\t"+(Double.parseDouble(line[6])<0?"-":"+")+"\t"+line[5]);
-								writer.println(line[1]	+ "\t" + alleles + "\t" + line[6] + "\t" + line[11] + "\t"
-																+ "\t" + line[5]);
+								writer.println(line[1] + "\t" + alleles + "\t" + line[6] + "\t" + line[11] + "\t"
+															 + "\t" + line[5]);
 							}
 							for (int j = 0; j < COVARS[pheno].length; j++) {
 								line = reader.readLine().trim().split("[\\s]+");
 								if (!line[4].equals(COVARS[pheno][j])) {
-									System.err.println("Error - out of sync in "	+ element + ".aff." + rep + ".assoc."
-																			+ (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
-																			+ " expecting " + snps[count] + " found " + line[1]);
+									System.err.println("Error - out of sync in " + element + ".aff." + rep + ".assoc."
+																		 + (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
+																		 + " expecting " + snps[count] + " found " + line[1]);
 								}
 							}
 							count++;
@@ -411,15 +417,15 @@ public class Traits {
 						reader.close();
 						writer.close();
 					} catch (FileNotFoundException fnfe) {
-						System.err.println("Error: file \""	+ analysis_dir + element + "." + PHENOS[pheno] + "."
-																+ rep + ".assoc."
-																+ (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
-																+ "\" not found in current directory");
+						System.err.println("Error: file \"" + analysis_dir + element + "." + PHENOS[pheno] + "."
+															 + rep + ".assoc."
+															 + (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
+															 + "\" not found in current directory");
 						System.exit(1);
 					} catch (IOException ioe) {
-						System.err.println("Error reading file \""	+ analysis_dir + element + "."
-																+ PHENOS[pheno] + "." + rep + ".assoc."
-																+ (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear") + "\"");
+						System.err.println("Error reading file \"" + analysis_dir + element + "."
+															 + PHENOS[pheno] + "." + rep + ".assoc."
+															 + (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear") + "\"");
 						System.exit(2);
 					}
 				}
@@ -444,21 +450,21 @@ public class Traits {
 			// int[] {0}, true, false, ","), new String[] {pheno_dir+"unr_phen."+rep+" 0 0=IID 4=Q1 1=SEX
 			// 2=AGE 3=SMOKE ,", mds_file+" 0 3=C1 4=C2 5=C3 6=C4 7=C5 8=C6 9=C7 10=C8 11=C9 12=C10"},
 			// "FID", pheno_dir+"pheno_C10."+rep, new Logger(), false);
-			Files.combine(HashVec.loadFileToStringArray(pheno_dir	+ "unr_phen." + rep, false, true,
+			Files.combine(HashVec.loadFileToStringArray(pheno_dir + "unr_phen." + rep, false, true,
 																									new int[] {0}, true, false, ","),
-										new String[] {pheno_dir	+ "unr_phen." + rep
+										new String[] {pheno_dir + "unr_phen." + rep
 																	+ " 0 0=IID 7=Affected 4=Q1 5=Q2 1=SEX 2=AGE 3=SMOKE ,",
 																	mds_file + comps},
 										"FID", pheno_dir + "pheno_C" + numComps + "." + rep, new Logger(), false);
 		}
 	}
 
-	public static void normPheno(	String pheno_dir, String output_dir, String filename_root,
-																int column, int normType) {
+	public static void normPheno(String pheno_dir, String output_dir, String filename_root,
+															 int column, int normType) {
 		output_dir = ext.verifyDirFormat(output_dir);
 		new File(output_dir).mkdirs();
 		for (int rep = 1; rep <= 200; rep++) {
-			Transformations.transformFile(pheno_dir	+ filename_root + "." + rep,
+			Transformations.transformFile(pheno_dir + filename_root + "." + rep,
 																		output_dir + filename_root + "." + rep, true, column, false,
 																		true, normType, new Logger());
 		}
@@ -477,11 +483,11 @@ public class Traits {
 		// Files.qsub("C10", 1, 200, "/home/npankrat/bin/plink --bfile all697 --pheno phenos/pheno_C10.#
 		// --pheno-name Q1 --covar phenos/pheno_C10.# --covar-name
 		// SEX,AGE,SMOKE,C1,C2,C3,C4,C5,C6,C7,C8,C9,C10 --linear --ci 0.95 --out C10.#");
-		Files.qsub("C"	+ numComps, 1, 200,
-								"/home/npankrat/bin/plink --bfile all697 --pheno phenos/"	+ rootPheno
-																		+ ".# --pheno-name " + trait + " --covar phenos/" + rootPheno
-																		+ ".# --covar-name SEX,AGE,SMOKE" + comps
-																		+ " --linear --ci 0.95 --out C" + numComps + ".#");
+		Files.qsub("C" + numComps, 1, 200,
+							 "/home/npankrat/bin/plink --bfile all697 --pheno phenos/" + rootPheno
+																			 + ".# --pheno-name " + trait + " --covar phenos/" + rootPheno
+																			 + ".# --covar-name SEX,AGE,SMOKE" + comps
+																			 + " --linear --ci 0.95 --out C" + numComps + ".#");
 	}
 
 	public static void sumSigs(String analysis_dir, double cutoff) {
@@ -502,18 +508,18 @@ public class Traits {
 				}
 				for (int pheno = 0; pheno < PHENOS.length; pheno++) {
 					try {
-						reader = new BufferedReader(new FileReader(analysis_dir	+ element + "." + PHENOS[pheno]
-																												+ "." + rep + ".assoc."
-																												+ (!PHENOS[pheno].startsWith("q")	? "logistic"
-																																													: "linear")));
+						reader = new BufferedReader(new FileReader(analysis_dir + element + "." + PHENOS[pheno]
+																											 + "." + rep + ".assoc."
+																											 + (!PHENOS[pheno].startsWith("q") ? "logistic"
+																																												 : "linear")));
 						reader.readLine();
 						count = 0;
 						while (reader.ready()) {
 							line = reader.readLine().trim().split("[\\s]+");
 							if (!line[1].equals(snps[count])) {
-								System.err.println("Error - out of sync in "	+ element + ".aff." + rep + ".assoc."
-																		+ (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
-																		+ " expecting " + snps[count] + " found " + line[1]);
+								System.err.println("Error - out of sync in " + element + ".aff." + rep + ".assoc."
+																	 + (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
+																	 + " expecting " + snps[count] + " found " + line[1]);
 							}
 							if (!line[11].equals("NA")) {
 								if (Double.parseDouble(line[11]) < cutoff) {
@@ -524,24 +530,24 @@ public class Traits {
 							for (int j = 0; j < COVARS[pheno].length; j++) {
 								line = reader.readLine().trim().split("[\\s]+");
 								if (!line[4].equals(COVARS[pheno][j])) {
-									System.err.println("Error - out of sync in "	+ element + ".aff." + rep + ".assoc."
-																			+ (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
-																			+ " expecting " + snps[count] + " found " + line[1]);
+									System.err.println("Error - out of sync in " + element + ".aff." + rep + ".assoc."
+																		 + (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
+																		 + " expecting " + snps[count] + " found " + line[1]);
 								}
 							}
 							count++;
 						}
 						reader.close();
 					} catch (FileNotFoundException fnfe) {
-						System.err.println("Error: file \""	+ analysis_dir + element + "." + PHENOS[pheno] + "."
-																+ rep + ".assoc."
-																+ (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
-																+ "\" not found in current directory");
+						System.err.println("Error: file \"" + analysis_dir + element + "." + PHENOS[pheno] + "."
+															 + rep + ".assoc."
+															 + (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
+															 + "\" not found in current directory");
 						System.exit(1);
 					} catch (IOException ioe) {
-						System.err.println("Error reading file \""	+ analysis_dir + element + "."
-																+ PHENOS[pheno] + "." + rep + ".assoc."
-																+ (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear") + "\"");
+						System.err.println("Error reading file \"" + analysis_dir + element + "."
+															 + PHENOS[pheno] + "." + rep + ".assoc."
+															 + (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear") + "\"");
 						System.exit(2);
 					}
 				}
@@ -573,8 +579,8 @@ public class Traits {
 					line = reader.readLine().trim().split("[\\s]+");
 					if (line[4].equals("ADD")) {
 						if (!line[1].equals(snps[count])) {
-							System.err.println("Error - out of sync in "	+ prefix + "." + rep + ".assoc." + method
-																	+ " expecting " + snps[count] + " found " + line[1]);
+							System.err.println("Error - out of sync in " + prefix + "." + rep + ".assoc." + method
+																 + " expecting " + snps[count] + " found " + line[1]);
 						}
 						if (!line[11].equals("NA")) {
 							if (Double.parseDouble(line[11]) < cutoff) {
@@ -597,12 +603,12 @@ public class Traits {
 				}
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \""	+ prefix + "." + rep + ".assoc." + method
-														+ "\" not found in current directory");
+				System.err.println("Error: file \"" + prefix + "." + rep + ".assoc." + method
+													 + "\" not found in current directory");
 				// System.exit(1);
 			} catch (IOException ioe) {
-				System.err.println("Error reading file \""	+ prefix + "." + rep + ".assoc." + method
-														+ "\"");
+				System.err.println("Error reading file \"" + prefix + "." + rep + ".assoc." + method
+													 + "\"");
 				// System.exit(2);
 			}
 		}
@@ -610,9 +616,9 @@ public class Traits {
 			writer = new PrintWriter(new FileWriter(prefix + "_sigCounts_" + cutoff + ".xln"));
 			writer.println("SNP\tsigs\tcount\t%");
 			for (int j = 0; j < snps.length; j++) {
-				writer.println(snps[j]	+ "\t" + counts[j][0] + "\t" + counts[j][1] + "\t"
-												+ ext.formDeci((double) counts[j][0] / (double) counts[j][1] * 100, 1)
-												+ "%");
+				writer.println(snps[j] + "\t" + counts[j][0] + "\t" + counts[j][1] + "\t"
+											 + ext.formDeci((double) counts[j][0] / (double) counts[j][1] * 100, 1)
+											 + "%");
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -666,10 +672,10 @@ public class Traits {
 			writer.println("SNP\tQ1_sigs\tQ1_count\tQ1_%");
 			for (String snp : snps) {
 				index = ext.indexOfStr(snp, values);
-				writer.println(snp	+ "\t" + (index == -1 ? 0 : counts[index]) + "\t200\t"
-												+ ext.formDeci((double) (index == -1 ? 0 : counts[index])	/ (double) 200
-																				* 100, 1)
-												+ "%");
+				writer.println(snp + "\t" + (index == -1 ? 0 : counts[index]) + "\t200\t"
+											 + ext.formDeci((double) (index == -1 ? 0 : counts[index]) / (double) 200
+																			* 100, 1)
+											 + "%");
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -680,15 +686,15 @@ public class Traits {
 
 	public static void splitPops(String analysis_dir) {
 		for (String element : POPS) {
-			CmdLine.run("plink --bfile all697 --keep data/"	+ element + ".txt --make-bed --out "
+			CmdLine.run("plink --bfile all697 --keep data/" + element + ".txt --make-bed --out "
 									+ element, analysis_dir);
 			CmdLine.run("plink --bfile " + element + " --freq --out " + element, analysis_dir);
 		}
 	}
 
-	public static void analyzeDistribution(	String pheno_dir, String pheno_root, int col,
-																					boolean commaDelimited, double[] stddevThresholds,
-																					String output_file) {
+	public static void analyzeDistribution(String pheno_dir, String pheno_root, int col,
+																				 boolean commaDelimited, double[] stddevThresholds,
+																				 String output_file) {
 		PrintWriter writer;
 		String[] ids;
 		double[] values;
@@ -696,18 +702,21 @@ public class Traits {
 		double mean, stdev;
 		double[][] matrix;
 
-		ids = HashVec.loadFileToStringArray(pheno_dir	+ pheno_root + ".1", false, true, new int[] {0},
+		ids = HashVec.loadFileToStringArray(pheno_dir + pheno_root + ".1", false, true, new int[] {0},
 																				true, false, commaDelimited ? "," : "[\\s]+");
 
 		counts = new int[ids.length][stddevThresholds.length];
 		matrix = new double[ids.length][200];
 		for (int rep = 1; rep <= 200; rep++) {
-			values = ArrayUtils.toDoubleArray(ArrayUtils.toStringArray(HashVec.loadFileToVec(pheno_dir	+ pheno_root
-																																							+ "." + rep, true,
-																																							new int[] {col}, true,
-																																							false, false,
-																																							commaDelimited	? ","
-																																															: "[\\s]+")));
+			values = ArrayUtils.toDoubleArray(ArrayUtils.toStringArray(HashVec.loadFileToVec(pheno_dir
+																																											 + pheno_root
+																																											 + "." + rep,
+																																											 true,
+																																											 new int[] {col},
+																																											 true, false,
+																																											 false,
+																																											 commaDelimited ? ","
+																																																			: "[\\s]+")));
 			mean = ArrayUtils.mean(values);
 			stdev = ArrayUtils.stdev(values);
 			for (int i = 0; i < ids.length; i++) {
@@ -728,8 +737,8 @@ public class Traits {
 			}
 			writer.println();
 			for (int i = 0; i < ids.length; i++) {
-				writer.println(ids[i]	+ "\t" + ArrayUtils.mean(matrix[i]) + "\t" + ArrayUtils.stdev(matrix[i]) + "\t"
-												+ ArrayUtils.toStr(counts[i]));
+				writer.println(ids[i] + "\t" + ArrayUtils.mean(matrix[i]) + "\t"
+											 + ArrayUtils.stdev(matrix[i]) + "\t" + ArrayUtils.toStr(counts[i]));
 			}
 			writer.close();
 		} catch (Exception e) {
