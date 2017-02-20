@@ -56,7 +56,11 @@ public class MarkerQC {
 	public static final List<String> DEFAULT_GWAS_QC_THRESHOLDS = ImmutableList.of("file=markerQC.xln",
 																																								 "markers=freq.frq,1,header",
 																																								 "chr=freq.frq,<1,1:0",
-																																								 "maf=freq.frq,<0.01",
+																																								 // TODO: Determine
+																																								 // if MAF is a
+																																								 // valuable filter
+																																								 // for GWAS
+																																								 // "maf=freq.frq,<0.01",
 																																								 "callrate=missing.lmiss,<0.98",
 																																								 "hwe=hardy.hwe,<1E-7",
 																																								 "mishap_hetero=mishap.missing.hap,<1E-7",
