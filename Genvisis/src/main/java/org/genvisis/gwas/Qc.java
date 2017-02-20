@@ -21,15 +21,20 @@ public class Qc {
 
 	public static final String QC_DIR = "quality_control/";
 
-	public static final String MARKER_QC_DIR = QC_DIR + "marker_qc/";
-	public static final String SAMPLE_QC_DIR = QC_DIR + "sample_qc/";
-	public static final String LD_PRUNING_DIR = QC_DIR + "ld_pruning/";
-	public static final String GENOME_DIR = QC_DIR + "genome/";
-	public static final String ANCESTRY_DIR = QC_DIR + "ancestry/";
+	public static final String MARKER_QC_DIR = "marker_qc/";
+	public static final String SAMPLE_QC_DIR = "sample_qc/";
+	public static final String LD_PRUNING_DIR = "ld_pruning/";
+	public static final String GENOME_DIR = "genome/";
+	public static final String ANCESTRY_DIR = "ancestry/";
+	public static final String FURTHER_ANALYSIS_DIR = "further_analysis_QC/";
+
+	public static final String FURTHER_ANALYSIS_QC_PLINK_SUFFIX = "_QCd";
 
 	/** A rough listing of the Folders created by fullGamut */
-	public static String[] FOLDERS_CREATED = {MARKER_QC_DIR, SAMPLE_QC_DIR, LD_PRUNING_DIR,
-																						GENOME_DIR, ANCESTRY_DIR};
+	public static String[] FOLDERS_CREATED = {QC_DIR + MARKER_QC_DIR, QC_DIR + SAMPLE_QC_DIR,
+																						QC_DIR + LD_PRUNING_DIR,
+																						QC_DIR + GENOME_DIR, QC_DIR + ANCESTRY_DIR,
+																						QC_DIR + FURTHER_ANALYSIS_DIR};
 	/** A rough listing of the files created, by folder, by fullGamut */
 	public static String[][] FILES_CREATED = {{"plink.bed", "freq.frq", "missing.imiss",
 																						 /* "test.missing.missing", *//*
@@ -40,7 +45,9 @@ public class Qc {
 																						{"plink.bed", "missing.imiss"},
 																						{"plink.bed", "plink.prune.in"},
 																						{"plink.bed", "plink.genome", "plink.genome_keep.dat"},
-																						{"plink.bed", "unrelateds.txt"}};
+																						{"plink.bed", "unrelateds.txt"},
+																						PSF.Plink.getPlinkBedBimFam("plink"
+																																				+ FURTHER_ANALYSIS_QC_PLINK_SUFFIX)};
 
 	private final String dir;
 	private final String plink;
@@ -249,19 +256,19 @@ public class Qc {
 	}
 
 	private void runFurtherAnalysisQC() {
-		final String subDir = "further_analysis_QC/";
-		final String plinkQCd = plink + "_QCd";
+		final String subDir = FURTHER_ANALYSIS_DIR;
+		final String plinkQCd = plink + FURTHER_ANALYSIS_QC_PLINK_SUFFIX;
 		if (!markerQc(subDir, MarkerQC.DEFAULT_GWAS_QC_THRESHOLDS))
 			return;
 		List<String> applyQCCommand = ImmutableList.of("plink2", "--noweb", "--bfile", plink,
 																									 "--exclude", "miss_drops.dat", "--mind", "0.05",
 																									 "--make-bed", "--out", plinkQCd);
-		List<String> requiredOutputs = Lists.newArrayList(PSF.Plink.getPlinkBedBimFam(plink));
+		List<String> requiredOutputs = Lists.newArrayList(PSF.Plink.getPlinkBedBimFam(plinkQCd));
 		requiredOutputs.add("miss_drops.dat");
 		requiredOutputs = Collections.unmodifiableList(requiredOutputs);
-		List<String> requiredInputs = ImmutableList.copyOf(PSF.Plink.getPlinkBedBimFam(plinkQCd));
+		List<String> requiredInputs = ImmutableList.copyOf(PSF.Plink.getPlinkBedBimFam(plink));
 		CmdLine.runCommandWithFileChecks(applyQCCommand, dir + subDir, requiredInputs, requiredOutputs,
-																		 false, false, true, log);
+																		 true, false, true, log);
 	}
 
 	public void run() {

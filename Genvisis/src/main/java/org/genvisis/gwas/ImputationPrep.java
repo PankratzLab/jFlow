@@ -379,9 +379,12 @@ public class ImputationPrep {
 			return false;
 		}
 
-		String qcPlinkroot = Qc.fullGamut(proj.PROJECT_DIRECTORY.getValue() + targetDir,
-																			filteredPlinkroot, true, log);
-		if (qcPlinkroot == null || !PSF.Plink.allFilesExist(qcPlinkroot, true)) {
+		Qc.fullGamut(proj.PROJECT_DIRECTORY.getValue() + targetDir,
+								 filteredPlinkroot, true, log);
+		String qcPlinkroot = proj.PROJECT_DIRECTORY.getValue() + targetDir + Qc.QC_DIR
+												 + Qc.FURTHER_ANALYSIS_DIR + filteredPlinkroot
+												 + Qc.FURTHER_ANALYSIS_QC_PLINK_SUFFIX;
+		if (!PSF.Plink.allFilesExist(qcPlinkroot, true)) {
 			log.reportError("GWAS QC failed");
 			return false;
 		}
