@@ -263,12 +263,12 @@ public class Qc {
 		List<String> applyQCCommand = ImmutableList.of("plink2", "--noweb", "--bfile", plink,
 																									 "--exclude", "miss_drops.dat", "--mind", "0.05",
 																									 "--make-bed", "--out", plinkQCd);
-		List<String> requiredOutputs = Lists.newArrayList(PSF.Plink.getPlinkBedBimFam(plink));
+		List<String> requiredOutputs = Lists.newArrayList(PSF.Plink.getPlinkBedBimFam(plinkQCd));
 		requiredOutputs.add("miss_drops.dat");
 		requiredOutputs = Collections.unmodifiableList(requiredOutputs);
-		List<String> requiredInputs = ImmutableList.copyOf(PSF.Plink.getPlinkBedBimFam(plinkQCd));
+		List<String> requiredInputs = ImmutableList.copyOf(PSF.Plink.getPlinkBedBimFam(plink));
 		CmdLine.runCommandWithFileChecks(applyQCCommand, dir + subDir, requiredInputs, requiredOutputs,
-																		 false, false, true, log);
+																		 true, false, true, log);
 	}
 
 	public void run() {
