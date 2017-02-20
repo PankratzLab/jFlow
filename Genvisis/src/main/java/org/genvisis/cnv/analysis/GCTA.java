@@ -492,10 +492,10 @@ public class GCTA {
 		// excluded one of each pair of individuals with an estimated genetic
 		// relationship > 0.025.
 		Qc.fullGamut(outDir, "gcta", false, proj.getLog());
-		String plinkInput = outDir + "quality_control/ld_pruning/gcta";
+		String plinkInput = outDir + Qc.QC_DIR + Qc.LD_PRUNING_DIR + "gcta";
 
 		// ArrayList<GRM> grms = splitRunGCTA(outDir +
-		// "quality_control/ld_pruning/gcta", plinkRootQC, 0.01, 1, numthreads,
+		// Qc.QC_DIR + Qc.LD_PRUNING_DIR + "gcta", plinkRootQC, 0.01, 1, numthreads,
 		// proj.getLog());
 		String mergedGRM = outDir + "gcta_qc_merge";
 		// boolean success = mergeGRMs(grms, mergedGRM, numthreads,

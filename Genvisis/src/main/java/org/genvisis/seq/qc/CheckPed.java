@@ -1,10 +1,5 @@
 package org.genvisis.seq.qc;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Table;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,6 +24,12 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Plink;
+import org.genvisis.gwas.Qc;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Table;
 
 /**
  * Utility class for validating information in a pedigree. For each family in a pedigree, a full
@@ -41,7 +42,7 @@ import org.genvisis.gwas.Plink;
  * </ul>
  */
 public class CheckPed {
-	private static final String GENOME_PATH = "./plink/quality_control/genome/plink.genome";
+	private static final String GENOME_PATH = "./plink/" + Qc.QC_DIR + Qc.GENOME_DIR + "plink.genome";
 	private static final String SEXCHECK_PATH = "./results/sexCheck.xln";
 	private static final Double RELATED_THRESHOLD = 0.1;
 

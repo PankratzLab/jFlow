@@ -1070,15 +1070,15 @@ public class GenvisisWorkflow {
 				}
 			}
 			Qc.fullGamut(dir, null, keepUnrelatedsOnly, proj.getLog());
-			if (new File(dir + "genome/plink.genome").exists()) {
-				proj.GENOME_CLUSTER_FILENAME.setValue(dir + "genome/plink.genome");
+			if (new File(dir + Qc.QC_DIR + Qc.GENOME_DIR + "plink.genome").exists()) {
+				proj.GENOME_CLUSTER_FILENAME.setValue(dir + Qc.QC_DIR + Qc.GENOME_DIR + "plink.genome");
 				proj.saveProperties();
 			}
 			if (!keepUnrelatedsOnly) {
 				new PlinkMendelianChecker(proj).run();
 			}
 			if (!skipAncestry) {
-				String ancestryDir = dir + Qc.ANCESTRY_DIR;
+				String ancestryDir = dir + Qc.QC_DIR + Qc.ANCESTRY_DIR;
 				Ancestry.runPipeline(ancestryDir, putativeWhites, hapMapPlinkRoot, proj,
 														 new Logger(ancestryDir + "ancestry.log"));
 			}
@@ -1127,8 +1127,9 @@ public class GenvisisWorkflow {
 					}
 				}
 			}
-			if (!skipAncestry && (!Files.exists(dir + Qc.ANCESTRY_DIR + "freqsByRace.xln")
-														|| !Files.exists(dir + Qc.ANCESTRY_DIR + "raceImputations.mds"))) {
+			if (!skipAncestry && (!Files.exists(dir + Qc.QC_DIR + Qc.ANCESTRY_DIR + "freqsByRace.xln")
+														|| !Files.exists(dir + Qc.QC_DIR + Qc.ANCESTRY_DIR
+																						 + "raceImputations.mds"))) {
 				allExist = false;
 			}
 			return allExist;
@@ -1154,14 +1155,14 @@ public class GenvisisWorkflow {
 			command += Files.getRunString() + " org.genvisis.cnv.filesys.Project proj="
 								 + proj.getPropertyFilename();
 			command += " " + proj.GENOME_CLUSTER_FILENAME.getName() + "=" + dir
-								 + "quality_control/genome/plink.genome";
+								 + Qc.QC_DIR + Qc.GENOME_DIR + "plink.genome";
 			if (!keepUnrelatedsOnly) {
 				command += "\n";
 				command += Files.getRunString() + " org.genvisis.gwas.PlinkMendelianChecker proj="
 									 + proj.getPropertyFilename();
 			}
 			if (!skipAncestry) {
-				String ancestryDir = dir + Qc.ANCESTRY_DIR;
+				String ancestryDir = dir + Qc.QC_DIR + Qc.ANCESTRY_DIR;
 				command += "\n";
 				command += Files.getRunString() + " gwas.Ancestry -runPipeline dir=" + ancestryDir;
 				command += " putativeWhites=" + putativeWhites;
@@ -1306,7 +1307,7 @@ public class GenvisisWorkflow {
 			if (checkDuplicates) {
 				String dir = "plink/";
 				duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir
-														+ "/quality_control/genome/plink.genome_duplicatesSet.dat";
+														+ Qc.QC_DIR + Qc.GENOME_DIR + "plink.genome_duplicatesSet.dat";
 			}
 			boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this).get(1));
 			int numQ = Integer.parseInt(variables.get(this).get(4));
@@ -1325,8 +1326,8 @@ public class GenvisisWorkflow {
 			String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue();
 			boolean checkDuplicates = !Boolean.parseBoolean(variables.get(this).get(0));
 			String dir = "plink/";
-			String duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir
-																 + "/quality_control/genome/plink.genome_duplicatesSet.dat";
+			String duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir + Qc.QC_DIR
+																 + Qc.GENOME_DIR + "plink.genome_duplicatesSet.dat";
 			boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this).get(1));
 			boolean gcCorrectedLrrSdExists = false;
 			if (sampleQCFileExists
@@ -1345,7 +1346,8 @@ public class GenvisisWorkflow {
 															{!checkDuplicates,
 															 stepSelections.get(S11_GWAS_QC)
 																								 && S11_GWAS_QC.hasRequirements(proj,
-																																								stepSelections, variables)
+																																								stepSelections,
+																																								variables)
 																								 || Files.exists(duplicatesSetFile)},
 															{!gcCorrectedLrrSd, gcCorrectedLrrSdExists},
 															{lrrSdThreshold > proj.LRRSD_CUTOFF.getMinValue()
@@ -1398,7 +1400,7 @@ public class GenvisisWorkflow {
 			if (checkDuplicates) {
 				String dir = "plink/";
 				duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir
-														+ "/quality_control/genome/plink.genome_duplicatesSet.dat";
+														+ Qc.QC_DIR + Qc.GENOME_DIR + "plink.genome_duplicatesSet.dat";
 			}
 			boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this).get(1));
 			int numQ = Integer.parseInt(variables.get(this).get(4));

@@ -33,6 +33,7 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.gwas.MatchSamples;
 import org.genvisis.gwas.MatchesVisualized;
 import org.genvisis.gwas.MergeDatasets;
+import org.genvisis.gwas.Qc;
 import org.genvisis.seq.analysis.GATK;
 import org.genvisis.seq.analysis.PlinkSeq;
 import org.genvisis.seq.analysis.PlinkSeq.ANALYSIS_TYPES;
@@ -501,12 +502,12 @@ public class VCFOps {
 
 				org.genvisis.gwas.Qc.fullGamut(dir, rootOut, false,
 																			 new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
-				String mdsFile = dir + "genome/mds20.mds";
+				String mdsFile = dir + Qc.GENOME_DIR + "mds20.mds";
 				if (Files.exists(mdsFile)) {
 					// fixMdsFile(log, dir, newIDS, mdsFile);
-					// CmdLine.run("runEigenstratWoHapMap", dir + "ancestry/");
-					// CmdLine.run("runEigenstrat2", dir + "ancestry/");
-					// fixMdsFile(log, dir + "ancestry/", newIDS, combo_fancy_postnormed_eigens.xln);
+					// CmdLine.run("runEigenstratWoHapMap", dir + Qc.GENOME_DIR);
+					// CmdLine.run("runEigenstrat2", dir + Qc.GENOME_DIR);
+					// fixMdsFile(log, dir + Qc.GENOME_DIR, newIDS, combo_fancy_postnormed_eigens.xln);
 				}
 			} else if (mode == PLINK_SET_MODE.HOMOGENEITY) {
 

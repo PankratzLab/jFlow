@@ -81,7 +81,7 @@ public class GenomeFileMergePipeline {
 	public void addProject(String propertiesFile) {
 		Project proj = new Project(propertiesFile, false);
 		String plinkDir = proj.PROJECT_DIRECTORY.getValue() + "plink/";
-		String genDir = plinkDir + Qc.GENOME_DIR;
+		String genDir = plinkDir + Qc.QC_DIR + Qc.GENOME_DIR;
 		String genFile = genDir = "plink.genome";
 		String[] rel = Files.list(genDir, SEARCHFOR_RELATEDS_SUFF, false);
 		boolean plink = false;
@@ -99,7 +99,8 @@ public class GenomeFileMergePipeline {
 				return;
 			}
 		} else if (!Files.exists(genDir)) {
-			msg = "no \"genome/\" directory in QC folders for PLINK data; looking for " + genDir;
+			msg = "no \"" + Qc.GENOME_DIR + "\" directory in QC folders for PLINK data; looking for "
+						+ genDir;
 			if (runPlinkOrQCIfMissing) {
 				log.reportTime("Warning - " + msg);
 				log.reportTime("PLINK files will be QC'd for project " + proj.PROJECT_NAME.getValue());
@@ -267,7 +268,8 @@ public class GenomeFileMergePipeline {
 
 		for (int p = 0; p < projects.size(); p++) {
 			String name = projects.get(p).PROJECT_NAME.getValue();
-			String dir = projects.get(p).PROJECT_DIRECTORY.getValue() + "plink/" + Qc.GENOME_DIR;
+			String dir = projects.get(p).PROJECT_DIRECTORY.getValue() + "plink/" + Qc.QC_DIR
+									 + Qc.GENOME_DIR;
 			addFiles(name, dir);
 		}
 

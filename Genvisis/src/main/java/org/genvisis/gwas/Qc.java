@@ -36,6 +36,8 @@ public class Qc {
 																						QC_DIR + GENOME_DIR, QC_DIR + ANCESTRY_DIR,
 																						QC_DIR + FURTHER_ANALYSIS_DIR};
 	/** A rough listing of the files created, by folder, by fullGamut */
+	// TODO: This does not accommodate cases where the plinkroot is something other than "plink"
+	// Also ought to be automated...
 	public static String[][] FILES_CREATED = {{"plink.bed", "freq.frq", "missing.imiss",
 																						 /* "test.missing.missing", *//*
 																																					 * not actually necessary
@@ -62,7 +64,7 @@ public class Qc {
 	 */
 	public Qc(String dir, String plinkPrefix, Logger log) {
 		super();
-		dir = ext.verifyDirFormat(dir) + "quality_control/";
+		dir = ext.verifyDirFormat(dir) + QC_DIR;
 		if (!dir.startsWith("/") && !dir.contains(":")) {
 			dir = ext.verifyDirFormat((new File("./" + dir)).getAbsolutePath());
 		}
@@ -167,89 +169,93 @@ public class Qc {
 	}
 
 	private void runRelationAncestryQC(boolean keepGenomeInfoForRelatedsOnly) {
-		if (!markerQc("marker_qc/", MarkerQC.DEFAULT_STRICT_QC_THRESHOLDS)) {
+		if (!markerQc(MARKER_QC_DIR, MarkerQC.DEFAULT_STRICT_QC_THRESHOLDS)) {
 			return;
 		}
 
-		new File(dir + "sample_qc/").mkdirs();
-		if (!Files.exists(dir + "sample_qc/" + plink + ".bed")) {
+		new File(dir + SAMPLE_QC_DIR).mkdirs();
+		if (!Files.exists(dir + SAMPLE_QC_DIR + plink + ".bed")) {
 			log.report(ext.getTime() + "]\tRunning --exclude miss_drops.dat");
-			CmdLine.runDefaults("plink2 --bfile ../marker_qc/" + plink
-													+ " --exclude ../marker_qc/miss_drops.dat --make-bed --noweb --out "
-													+ plink, dir + "sample_qc/", log);
+			CmdLine.runDefaults("plink2 --bfile ../" + MARKER_QC_DIR + plink
+													+ " --exclude ../" + MARKER_QC_DIR
+													+ "miss_drops.dat --make-bed --noweb --out "
+													+ plink, dir + SAMPLE_QC_DIR, log);
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + "sample_qc/missing.imiss")) {
+		if (!Files.exists(dir + SAMPLE_QC_DIR + "missing.imiss")) {
 			log.report(ext.getTime() + "]\tRunning --missing");
 			CmdLine.runDefaults("plink2 --bfile " + plink
 													+ " --geno 1 --mind 1 --missing --out missing --noweb",
-													dir + "sample_qc/", log);
+													dir + SAMPLE_QC_DIR, log);
 		}
 		PSF.checkInterrupted();
 
-		new File(dir + "ld_pruning/").mkdirs();
-		if (!Files.exists(dir + "ld_pruning/" + plink + ".bed")) {
+		new File(dir + LD_PRUNING_DIR).mkdirs();
+		if (!Files.exists(dir + LD_PRUNING_DIR + plink + ".bed")) {
 			log.report(ext.getTime()
 								 + "]\tRunning --mind 0.05 (removes samples with callrate <95% for the markers that did pass QC)");
-			CmdLine.runDefaults("plink2 --bfile ../sample_qc/" + plink
-													+ " --mind 0.05 --make-bed --noweb --out " + plink, dir + "ld_pruning/",
+			CmdLine.runDefaults("plink2 --bfile ../" + SAMPLE_QC_DIR + plink
+													+ " --mind 0.05 --make-bed --noweb --out " + plink, dir + LD_PRUNING_DIR,
 													log);
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + "ld_pruning/" + plink + ".prune.in")) {
+		if (!Files.exists(dir + LD_PRUNING_DIR + plink + ".prune.in")) {
 			log.report(ext.getTime() + "]\tRunning --indep-pairwise 50 5 0.3");
 			CmdLine.runDefaults("plink2 --noweb --bfile " + plink + " --indep-pairwise 50 5 0.3 --out "
-													+ plink, dir + "ld_pruning/", log);
+													+ plink, dir + LD_PRUNING_DIR, log);
 		}
 		PSF.checkInterrupted();
 
-		new File(dir + "genome/").mkdirs();
-		if (!Files.exists(dir + "genome/" + plink + ".bed")) {
+		new File(dir + GENOME_DIR).mkdirs();
+		if (!Files.exists(dir + GENOME_DIR + plink + ".bed")) {
 			log.report(ext.getTime() + "]\tRunning --extract " + plink + ".prune.in");
-			CmdLine.runDefaults("plink2 --bfile ../ld_pruning/" + plink + " --extract ../ld_pruning/"
-													+ plink + ".prune.in --make-bed --noweb --out " + plink, dir + "genome/",
+			CmdLine.runDefaults("plink2 --bfile ../" + LD_PRUNING_DIR + plink + " --extract ../"
+													+ LD_PRUNING_DIR
+													+ plink + ".prune.in --make-bed --noweb --out " + plink, dir + GENOME_DIR,
 													log);
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + "genome/" + plink + ".genome")) {
+		if (!Files.exists(dir + GENOME_DIR + plink + ".genome")) {
 			log.report(ext.getTime() + "]\tRunning --genome"
 								 + (keepGenomeInfoForRelatedsOnly ? " --min 0.1" : ""));
 			CmdLine.runDefaults("plink2 --noweb --bfile " + plink + " --genome"
 													+ (keepGenomeInfoForRelatedsOnly ? " --min 0.1" : "") + " --out " + plink,
-													dir + "genome/", log);
+													dir + GENOME_DIR, log);
 		}
 		PSF.checkInterrupted();
-		if (!keepGenomeInfoForRelatedsOnly && !Files.exists(dir + "genome/mds20.mds")) {
+		if (!keepGenomeInfoForRelatedsOnly && !Files.exists(dir + GENOME_DIR + "mds20.mds")) {
 			log.report(ext.getTime() + "]\tRunning --mds-plot 20");
 			CmdLine.runDefaults("plink2 --bfile " + plink + " --read-genome " + plink
-													+ ".genome --cluster --mds-plot 20 --out mds20 --noweb", dir + "genome/",
+													+ ".genome --cluster --mds-plot 20 --out mds20 --noweb", dir + GENOME_DIR,
 													log);
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + "genome/" + plink + ".genome_keep.dat")) {
+		if (!Files.exists(dir + GENOME_DIR + plink + ".genome_keep.dat")) {
 			log.report(ext.getTime() + "]\tRunning flagRelateds");
-			String lrrFile = dir + "genome/lrr_sd.xln";
+			String lrrFile = dir + GENOME_DIR + "lrr_sd.xln";
 			if (!Files.exists(lrrFile)) {
 				lrrFile = dir + "../../lrr_sd.xln";
 			}
-			Plink.flagRelateds(dir + "genome/" + plink + ".genome", dir + "genome/" + plink + ".fam",
-												 dir + "marker_qc/missing.imiss", lrrFile, Plink.FLAGS, Plink.THRESHOLDS, 4,
+			Plink.flagRelateds(dir + GENOME_DIR + plink + ".genome", dir + GENOME_DIR + plink + ".fam",
+												 dir + MARKER_QC_DIR + "missing.imiss", lrrFile, Plink.FLAGS,
+												 Plink.THRESHOLDS, 4,
 												 false);
 		}
 		PSF.checkInterrupted();
 
-		new File(dir + "ancestry/").mkdirs();
-		if (!Files.exists(dir + "ancestry/unrelateds.txt")) {
-			log.report(ext.getTime() + "]\tCopying genome/" + plink
-								 + ".genome_keep.dat to ancestry/unrelateds.txt");
-			Files.copyFile(dir + "genome/" + plink + ".genome_keep.dat", dir + "ancestry/unrelateds.txt");
+		new File(dir + ANCESTRY_DIR).mkdirs();
+		if (!Files.exists(dir + ANCESTRY_DIR + "unrelateds.txt")) {
+			log.report(ext.getTime() + "]\tCopying " + GENOME_DIR + plink
+								 + ".genome_keep.dat to " + ANCESTRY_DIR + "unrelateds.txt");
+			Files.copyFile(dir + GENOME_DIR + plink + ".genome_keep.dat",
+										 dir + ANCESTRY_DIR + "unrelateds.txt");
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + "ancestry/" + plink + ".bed")) {
+		if (!Files.exists(dir + ANCESTRY_DIR + plink + ".bed")) {
 			log.report(ext.getTime() + "]\tRunning --extract " + plink
-								 + ".prune.in (again, this time to ancestry/)");
-			CmdLine.runDefaults("plink2 --bfile ../genome/" + plink + " --make-bed --noweb --out "
-													+ plink, dir + "ancestry/", log);
+								 + ".prune.in (again, this time to " + ANCESTRY_DIR + ")");
+			CmdLine.runDefaults("plink2 --bfile ../" + GENOME_DIR + plink + " --make-bed --noweb --out "
+													+ plink, dir + ANCESTRY_DIR, log);
 		}
 		PSF.checkInterrupted();
 
@@ -324,7 +330,7 @@ public class Qc {
 		String usage = "\n" + "gwas.Qc requires 0-1 arguments\n"
 									 + "   (1) directory with plink.* files (i.e. dir=" + dir + " (default))\n"
 									 + "   (2) if no MDS will be run, smaller file (i.e. keepGenomeInfoForRelatedsOnly="
-									 + keepGenomeInfoForRelatedsOnly + " (default))\n" + "";
+									 + keepGenomeInfoForRelatedsOnly + " (default))\n";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
