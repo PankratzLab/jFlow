@@ -979,6 +979,7 @@ public class CNVCaller {
 		int minNumMarkers = DEFAULT_MIN_SITES;
 		double minConf = DEFAULT_MIN_CONF;
 		boolean callGen = false;
+		boolean useCentroids = true;
 
 		String usage = "\n" + "cnv.hmm.CNVCaller requires 0-1 arguments\n";
 		usage += "   (1) proj (i.e. proj=" + filename + " (default))\n" + "";
@@ -989,6 +990,7 @@ public class CNVCaller {
 		usage += "   (4) minimum confidence report a cnv  (i.e. minConf=" + minConf + " (default))\n"
 						 + "";
 		usage += "   (5) optional: Call genome CNVs (chromosomes 23 and 24) (will also call autosomal cnvs for known male/female samples) (i.e. -genome (not the default))\n"
+					 + "   (6) optional: if calling genome CNVs, don't use sex-specific centroids to recompute LRRs (i.e. -noCentroids (not the default))\n"
 						 + "";
 
 		usage += PSF.Ext.getNumThreadsCommand(24, numThreads);
@@ -1011,6 +1013,9 @@ public class CNVCaller {
 				numArgs--;
 			} else if (arg.startsWith("-genome")) {
 				callGen = true;
+				numArgs--;
+			} else if (arg.startsWith("-noCentroids")) {
+				useCentroids = false;
 				numArgs--;
 			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(arg);
@@ -1045,17 +1050,19 @@ public class CNVCaller {
 					}
 				}
 
-				Centroids[] sexCents = null;
-				if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())
-						&& Files.exists(proj.SEX_CENTROIDS_MALE_FILENAME.getValue())) {
-					sexCents = new Centroids[] {Files.exists(proj.CUSTOM_CENTROIDS_FILENAME.getValue()) ? Centroids.load(proj.CUSTOM_CENTROIDS_FILENAME.getValue(),
-																																																							 proj.JAR_STATUS.getValue())
-																																															: null,
-																			Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue(),
-																										 proj.JAR_STATUS.getValue()),
-																			Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue(),
-																										 proj.JAR_STATUS.getValue())};
-				}
+				Centroids[] sexCents = new Centroids[]{null, null, null};
+				if (useCentroids) {
+  				if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())
+  						&& Files.exists(proj.SEX_CENTROIDS_MALE_FILENAME.getValue())) {
+  					sexCents = new Centroids[] {Files.exists(proj.CUSTOM_CENTROIDS_FILENAME.getValue()) ? Centroids.load(proj.CUSTOM_CENTROIDS_FILENAME.getValue(),
+  																																																							 proj.JAR_STATUS.getValue())
+  																																															: null,
+  																			Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue(),
+  																										 proj.JAR_STATUS.getValue()),
+  																			Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue(),
+  																										 proj.JAR_STATUS.getValue())};
+  				}
+				} 
 
 				callGenomeCnvs(proj, output, males.toArray(new String[males.size()]),
 											 females.toArray(new String[females.size()]), sexCents, minNumMarkers,
