@@ -123,8 +123,9 @@ public class LaunchAction extends AbstractAction {
 																																											 loc[i].length()
 																																													- 1)
 																																		: loc[i];
-					new Trailer(proj, sample, cnvs, pos, new String[][] {{sample, pos}}, plotStartX,
+					Trailer t = new Trailer(proj, sample, cnvs, pos, new String[][] {{sample, pos}}, plotStartX,
 											plotStartY[i], plotWidth, plotHeight);
+					t.setVisible(true);
 				}
 				break;
 			case LAUNCH_SCATTER:

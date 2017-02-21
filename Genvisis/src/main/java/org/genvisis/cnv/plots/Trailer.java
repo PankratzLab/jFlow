@@ -33,6 +33,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -862,7 +863,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			}
 		});
 
-		new Thread(new Runnable() {
+		initThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				final long t = new Date().getTime();
@@ -904,31 +905,50 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 						setBounds(startX, startY, width, height);
 						setPosition(startingLocation);
 						updateSample(sample);
-						setVisible(true);
-						updateGUI();
-
-						showRegion(0);
-						System.out.println("Loaded regions in " + ext.getTimeElapsed(t));
 					}
 				});
 			}
-		}).start();
-		// cnvLabels = sampleData.getCnvClasses();
-		// updateSample(sample);
-		// updateLocation(startingLocation);
-		// setBounds(startX, startY, width, height);
-		// setVisible(true);
-		//
-		// Trailer.this.regionFileName = REGION_LIST_USE_CNVS;
-		// loadCNVsAsRegions();
-		// updateCNVs(chr);
-		// updateGUI();
-		// if (startingLocation.equals(DEFAULT_LOCATION)) {
-		// showRegion(0);
-		// }
-
+		});
+		initThread.start();
 	}
+	
+	Thread initThread = null;
 
+	private JPanel dataPanel;
+
+	private JPanel tracksPanel;
+	
+	@Override
+	public void setVisible(boolean b) {
+		if (initThread != null && initThread.isAlive()) {
+			try {
+				initThread.join(0);
+				initThread = null;
+			} catch (InterruptedException e) {
+				// swallow
+			}
+		}
+		if (b) {
+			if (!SwingUtilities.isEventDispatchThread()) {
+  			try {
+  				SwingUtilities.invokeAndWait(new Runnable() {
+  					@Override
+  					public void run() {
+  						updateGUI();
+  						showRegion(0);
+  					}
+  				});
+  			} catch (InvocationTargetException e) {
+  			} catch (InterruptedException e) {
+  			}
+			} else {
+				updateGUI();
+				showRegion(0);
+			}
+		}
+		super.setVisible(b);
+	}
+	
 	/**
 	 * Respond to mouse events in the marker panel
 	 */
@@ -1285,9 +1305,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	}
 
 	public void generateComponents() {
-		JPanel dataPanel = new JPanel();
-		dataPanel.setLayout(new MigLayout("ins 0, gap 0, hidemode 3, fillx, filly, flowy", "[grow]",
-																			""));
+		dataPanel = new JPanel();
+		dataPanel.setLayout(new MigLayout("ins 0, gap 0, hidemode 3, fillx, filly, flowy", "[grow]", ""));
 
 		lrrPanel = new JPanel() {
 			public static final long serialVersionUID = 2L;
@@ -1417,7 +1436,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		registerMouse(lrrPanel);
 		dataPanel.add(lrrPanel, "grow");
 
-		JPanel tracksPanel = new JPanel();
+		tracksPanel = new JPanel();
 		tracksPanel.setLayout(new MigLayout("ins 0, gap 0, fillx, filly, hidemode 3", "[grow]",
 																				"[grow]0px[grow]0px[grow]"));
 
@@ -1943,6 +1962,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				genePanel.setVisible(viewGeneTrack.isSelected());
+				checkTrackPanelVisibility();
 			}
 		});
 		viewGeneTrack.setText("Show Gene Tracks");
@@ -1956,6 +1976,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				cnvPanel.setVisible(viewCNVTrack.isSelected());
+				checkTrackPanelVisibility();
 			}
 		});
 		viewCNVTrack.setText("Show CNV Tracks");
@@ -1969,6 +1990,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				markerPanel.setVisible(viewMarkerTrack.isSelected());
+				checkTrackPanelVisibility();
 			}
 		});
 		viewMarkerTrack.setText("Show Marker Tracks");
@@ -2564,6 +2586,13 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 		}
 		return menuBar;
+	}
+
+	protected void checkTrackPanelVisibility() {
+		boolean c = viewCNVTrack.isSelected();
+		boolean g = viewGeneTrack.isSelected();
+		boolean m = viewMarkerTrack.isSelected();
+		tracksPanel.setVisible(c || g || m);
 	}
 
 	@Override

@@ -478,7 +478,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		if (sampleRegions.length == 0) {
 			proj.message("Error - no valid selected CNVs; cannot launch Trailer without knowing which DNA sample to open");
 		} else {
-			new Trailer(proj, proj.CNV_FILENAMES.getValue(), sampleRegions);
+			Trailer t = new Trailer(proj, proj.CNV_FILENAMES.getValue(), sampleRegions);
+			t.setVisible(true);
 		}
 	}
 

@@ -191,9 +191,12 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 																	 Toolkit.getDefaultToolkit().getScreenSize().width - 30
 																						- Trailer.DEFAULT_STARTX,
 																	 (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / 2);
-
+		
 		xTrailer.loadRegionFile(xRegionsFile);
 		yTrailer.loadRegionFile(yRegionsFile);
+		
+		xTrailer.setVisible(true);
+		yTrailer.setVisible(true);
 	}
 
 	public void savePlotToFile() {

@@ -909,7 +909,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			} else if (command.equals(SEX_PLOT)) {
 				SexPlot.loadSexCheckResults(proj);
 			} else if (command.equals(TRAILER)) {
-				new Trailer(proj, null, proj.CNV_FILENAMES.getValue(), Trailer.DEFAULT_LOCATION);
+				Trailer t = new Trailer(proj, null, proj.CNV_FILENAMES.getValue(), Trailer.DEFAULT_LOCATION);
+				t.setVisible(true);
 			} else if (command.equals(TWOD)) {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
