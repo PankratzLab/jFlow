@@ -489,7 +489,7 @@ public class Emim {
 		commands = "cd " + currDir + "\n" + commands;
 
 
-		Files.qsub(emimPBS, commands, 8000, 6, 1);
+		Files.qsub(emimPBS, commands, 32000, 6, 1);
 
 		return runPremimPBS ? premimPBS : emimPBS;
 	}
