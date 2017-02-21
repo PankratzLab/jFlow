@@ -25,7 +25,7 @@ import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.PhenoPrep;
-import org.genvisis.gwas.Qc;
+import org.genvisis.gwas.RelationAncestryQc;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
 import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
@@ -137,7 +137,7 @@ public class MitoGWAS {
 			Files.copyFileUsingFileChannels(bed, fullOut + "plink.bed", proj.getLog());
 		}
 		if (qc) {
-			Qc.fullGamut(fullOut, "plink", true, proj.getLog());
+			RelationAncestryQc.fullGamut(fullOut, "plink", true, proj.getLog());
 		}
 
 		String[] out = new String[] {fam, bim, bed};

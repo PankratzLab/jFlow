@@ -24,6 +24,7 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Qc;
+import org.genvisis.gwas.RelationAncestryQc;
 
 import com.google.common.primitives.Doubles;
 
@@ -491,8 +492,8 @@ public class GCTA {
 		// the autosomal SNPs using the method we recently developed4,10, and
 		// excluded one of each pair of individuals with an estimated genetic
 		// relationship > 0.025.
-		Qc.fullGamut(outDir, "gcta", false, proj.getLog());
-		String plinkInput = outDir + Qc.QC_DIR + Qc.LD_PRUNING_DIR + "gcta";
+		RelationAncestryQc.fullGamut(outDir, "gcta", false, proj.getLog());
+		String plinkInput = outDir + Qc.QC_DIR + RelationAncestryQc.LD_PRUNING_DIR + "gcta";
 
 		// ArrayList<GRM> grms = splitRunGCTA(outDir +
 		// Qc.QC_DIR + Qc.LD_PRUNING_DIR + "gcta", plinkRootQC, 0.01, 1, numthreads,

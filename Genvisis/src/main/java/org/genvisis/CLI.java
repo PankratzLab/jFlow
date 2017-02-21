@@ -47,10 +47,16 @@ public class CLI {
 	// common argument constants
 	public static final String ARG_PROJ = "proj";
 	public static final String DESC_PROJ = "project properties filename";
+	public static final String ARG_LOG = "log";
+	public static final String DESC_LOG = "filename to log to";
+	public static final String ARG_INDIR = "dir";
+	public static final String DESC_INDIR = "input directory";
 	public static final String ARG_OUTDIR = "outDir";
 	public static final String DESC_OUTDIR = "directory to write output";
 	public static final String ARG_OUTFILE = "out";
 	public static final String DESC_OUTFILE = "output filename";
+	public static final String ARG_PLINKROOT = "plinkroot";
+	public static final String DESC_PLINKROOT = "root of plink binary fileset (i.e. .bed, .bim, .fam)";
 	public static final String ARG_THREADS = "threads";
 	public static final String DESC_THREADS = "number of threads";
 	public static final String ARG_VCF = "vcf";
@@ -73,7 +79,6 @@ public class CLI {
 	private final Map<String, String> defaults = new HashMap<String, String>();
 
 	private Map<String, String> parsed;
-
 	/**
 	 * @see #CLI(String)
 	 * @param program Program class for command invocation

@@ -25,6 +25,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Plink;
 import org.genvisis.gwas.Qc;
+import org.genvisis.gwas.RelationAncestryQc;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashBasedTable;
@@ -42,7 +43,7 @@ import com.google.common.collect.Table;
  * </ul>
  */
 public class CheckPed {
-	private static final String GENOME_PATH = "./plink/" + Qc.QC_DIR + Qc.GENOME_DIR + "plink.genome";
+	private static final String GENOME_PATH = "./plink/" + Qc.QC_DIR + RelationAncestryQc.GENOME_DIR + "plink.genome";
 	private static final String SEXCHECK_PATH = "./results/sexCheck.xln";
 	private static final Double RELATED_THRESHOLD = 0.1;
 

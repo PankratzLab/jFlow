@@ -33,7 +33,7 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.gwas.MatchSamples;
 import org.genvisis.gwas.MatchesVisualized;
 import org.genvisis.gwas.MergeDatasets;
-import org.genvisis.gwas.Qc;
+import org.genvisis.gwas.RelationAncestryQc;
 import org.genvisis.seq.analysis.GATK;
 import org.genvisis.seq.analysis.PlinkSeq;
 import org.genvisis.seq.analysis.PlinkSeq.ANALYSIS_TYPES;
@@ -505,9 +505,9 @@ public class VCFOps {
 			log.reportTimeInfo("MODE=" + mode);
 			if (mode == PLINK_SET_MODE.GWAS_QC) {
 
-				org.genvisis.gwas.Qc.fullGamut(dir, rootOut, false,
+				org.genvisis.gwas.RelationAncestryQc.fullGamut(dir, rootOut, false,
 																			 new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
-				String mdsFile = dir + Qc.GENOME_DIR + "mds20.mds";
+				String mdsFile = dir + RelationAncestryQc.GENOME_DIR + "mds20.mds";
 				if (Files.exists(mdsFile)) {
 					// fixMdsFile(log, dir, newIDS, mdsFile);
 					// CmdLine.run("runEigenstratWoHapMap", dir + Qc.GENOME_DIR);
@@ -632,7 +632,7 @@ public class VCFOps {
 	}
 
 	/**
-	 * @param vcf runs {@link org.genvisis.gwas.Qc#fullGamut(String, boolean)} after converting to
+	 * @param vcf runs {@link org.genvisis.gwas.RelationAncestryQc#fullGamut(String, boolean)} after converting to
 	 *        plink* files if neccesary
 	 * @param log
 	 */

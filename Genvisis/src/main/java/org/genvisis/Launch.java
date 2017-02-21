@@ -35,7 +35,7 @@ import org.genvisis.gwas.MarkerQC;
 import org.genvisis.gwas.MatchSamples;
 import org.genvisis.gwas.Metal;
 import org.genvisis.gwas.PhenoPrep;
-import org.genvisis.gwas.Qc;
+import org.genvisis.gwas.RelationAncestryQc;
 import org.genvisis.gwas.ResultsPackager;
 import org.genvisis.gwas.SummarizePhenotype;
 import org.genvisis.link.Heritability;
@@ -212,7 +212,7 @@ public class Launch {
 			} else if (temp.equalsIgnoreCase("transpose")) {
 				Files.transposeFromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("gwas.Qc")) {
-				Qc.fromParameters(filename, log);
+				RelationAncestryQc.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("peakat")) {
 				org.genvisis.widgets.peakAt.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("grep")) {

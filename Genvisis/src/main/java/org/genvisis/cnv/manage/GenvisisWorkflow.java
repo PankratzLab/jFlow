@@ -46,6 +46,7 @@ import org.genvisis.common.ext;
 import org.genvisis.gwas.Ancestry;
 import org.genvisis.gwas.PlinkMendelianChecker;
 import org.genvisis.gwas.Qc;
+import org.genvisis.gwas.RelationAncestryQc;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -1069,16 +1070,16 @@ public class GenvisisWorkflow {
 					hapMapPlinkRoot = hapMapPlinkRoot.substring(0, hapMapPlinkRoot.lastIndexOf('.'));
 				}
 			}
-			Qc.fullGamut(dir, null, keepUnrelatedsOnly, proj.getLog());
-			if (new File(dir + Qc.QC_DIR + Qc.GENOME_DIR + "plink.genome").exists()) {
-				proj.GENOME_CLUSTER_FILENAME.setValue(dir + Qc.QC_DIR + Qc.GENOME_DIR + "plink.genome");
+			RelationAncestryQc.fullGamut(dir, null, keepUnrelatedsOnly, proj.getLog());
+			if (new File(dir + Qc.QC_DIR + RelationAncestryQc.GENOME_DIR + "plink.genome").exists()) {
+				proj.GENOME_CLUSTER_FILENAME.setValue(dir + Qc.QC_DIR + RelationAncestryQc.GENOME_DIR + "plink.genome");
 				proj.saveProperties();
 			}
 			if (!keepUnrelatedsOnly) {
 				new PlinkMendelianChecker(proj).run();
 			}
 			if (!skipAncestry) {
-				String ancestryDir = dir + Qc.QC_DIR + Qc.ANCESTRY_DIR;
+				String ancestryDir = dir + Qc.QC_DIR + RelationAncestryQc.ANCESTRY_DIR;
 				Ancestry.runPipeline(ancestryDir, putativeWhites, hapMapPlinkRoot, proj,
 														 new Logger(ancestryDir + "ancestry.log"));
 			}
@@ -1118,17 +1119,17 @@ public class GenvisisWorkflow {
 			String dir = getPlinkDir(proj, variables);
 			boolean allExist = true;
 			boolean skipAncestry = Boolean.parseBoolean(variables.get(this).get(1));
-			folders: for (int i = 0; i < org.genvisis.gwas.Qc.FOLDERS_CREATED.length; i++) {
-				for (int j = 0; j < org.genvisis.gwas.Qc.FILES_CREATED[i].length; j++) {
-					if (!Files.exists(dir + org.genvisis.gwas.Qc.FOLDERS_CREATED[i]
-														+ org.genvisis.gwas.Qc.FILES_CREATED[i][j])) {
+			folders: for (int i = 0; i < org.genvisis.gwas.RelationAncestryQc.FOLDERS_CREATED.length; i++) {
+				for (int j = 0; j < org.genvisis.gwas.RelationAncestryQc.FILES_CREATED[i].length; j++) {
+					if (!Files.exists(dir + org.genvisis.gwas.RelationAncestryQc.FOLDERS_CREATED[i]
+														+ org.genvisis.gwas.RelationAncestryQc.FILES_CREATED[i][j])) {
 						allExist = false;
 						break folders;
 					}
 				}
 			}
-			if (!skipAncestry && (!Files.exists(dir + Qc.QC_DIR + Qc.ANCESTRY_DIR + "freqsByRace.xln")
-														|| !Files.exists(dir + Qc.QC_DIR + Qc.ANCESTRY_DIR
+			if (!skipAncestry && (!Files.exists(dir + Qc.QC_DIR + RelationAncestryQc.ANCESTRY_DIR + "freqsByRace.xln")
+														|| !Files.exists(dir + Qc.QC_DIR + RelationAncestryQc.ANCESTRY_DIR
 																						 + "raceImputations.mds"))) {
 				allExist = false;
 			}
@@ -1155,14 +1156,14 @@ public class GenvisisWorkflow {
 			command += Files.getRunString() + " org.genvisis.cnv.filesys.Project proj="
 								 + proj.getPropertyFilename();
 			command += " " + proj.GENOME_CLUSTER_FILENAME.getName() + "=" + dir
-								 + Qc.QC_DIR + Qc.GENOME_DIR + "plink.genome";
+								 + Qc.QC_DIR + RelationAncestryQc.GENOME_DIR + "plink.genome";
 			if (!keepUnrelatedsOnly) {
 				command += "\n";
 				command += Files.getRunString() + " org.genvisis.gwas.PlinkMendelianChecker proj="
 									 + proj.getPropertyFilename();
 			}
 			if (!skipAncestry) {
-				String ancestryDir = dir + Qc.QC_DIR + Qc.ANCESTRY_DIR;
+				String ancestryDir = dir + Qc.QC_DIR + RelationAncestryQc.ANCESTRY_DIR;
 				command += "\n";
 				command += Files.getRunString() + " gwas.Ancestry -runPipeline dir=" + ancestryDir;
 				command += " putativeWhites=" + putativeWhites;
@@ -1307,7 +1308,7 @@ public class GenvisisWorkflow {
 			if (checkDuplicates) {
 				String dir = "plink/";
 				duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir
-														+ Qc.QC_DIR + Qc.GENOME_DIR + "plink.genome_duplicatesSet.dat";
+														+ Qc.QC_DIR + RelationAncestryQc.GENOME_DIR + "plink.genome_duplicatesSet.dat";
 			}
 			boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this).get(1));
 			int numQ = Integer.parseInt(variables.get(this).get(4));
@@ -1327,7 +1328,7 @@ public class GenvisisWorkflow {
 			boolean checkDuplicates = !Boolean.parseBoolean(variables.get(this).get(0));
 			String dir = "plink/";
 			String duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir + Qc.QC_DIR
-																 + Qc.GENOME_DIR + "plink.genome_duplicatesSet.dat";
+																 + RelationAncestryQc.GENOME_DIR + "plink.genome_duplicatesSet.dat";
 			boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this).get(1));
 			boolean gcCorrectedLrrSdExists = false;
 			if (sampleQCFileExists
@@ -1400,7 +1401,7 @@ public class GenvisisWorkflow {
 			if (checkDuplicates) {
 				String dir = "plink/";
 				duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir
-														+ Qc.QC_DIR + Qc.GENOME_DIR + "plink.genome_duplicatesSet.dat";
+														+ Qc.QC_DIR + RelationAncestryQc.GENOME_DIR + "plink.genome_duplicatesSet.dat";
 			}
 			boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this).get(1));
 			int numQ = Integer.parseInt(variables.get(this).get(4));
