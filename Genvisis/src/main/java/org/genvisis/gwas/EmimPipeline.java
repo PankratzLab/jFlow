@@ -283,7 +283,7 @@ public class EmimPipeline {
 
 		String processCommand = "cd " + runDir + "\n";
 
-		processCommand += Files.getRunString() + " gwas.EmimPipeline -process -forest dir=" + runDir;
+		processCommand += Files.getRunString() + " gwas.EmimPipeline -process dir=" + runDir;
 		if (cnvFiles != null) {
 			processCommand += " cnvs=" + ArrayUtils.toStr(cnvFiles, ",");
 		}
