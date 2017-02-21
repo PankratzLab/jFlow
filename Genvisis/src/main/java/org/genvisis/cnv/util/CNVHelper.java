@@ -1,12 +1,35 @@
 package org.genvisis.cnv.util;
 
+import java.io.PrintWriter;
+
+import org.genvisis.common.Files;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.CNVariant;
+
 import htsjdk.tribble.annotation.Strand;
 
 /**
  * Static utility helper methods for working with CNVs
  */
 public final class CNVHelper {
-
+	
+	public static void generateRegionsFileFromCNVFile(String cnvFile) {
+		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile, false);
+		String outFile = ext.rootOf(cnvFile, false) + "_regions.txt";
+		PrintWriter writer = Files.getAppropriateWriter(outFile);
+		
+		for (CNVariant cnv : cnvs) {
+			String ucsc = cnv.getUCSClocation();
+			if (ucsc == null) {
+				ucsc = "chr" + cnv.getChr() + ":" + cnv.getStart() + "-" + cnv.getStop();
+			}
+			writer.println(cnv.getIndividualID() + "\t" + ucsc);
+		}
+		
+		writer.flush();
+		writer.close();
+	}
+	
 	/**
 	 * @param strand
 	 * @return Single-character string equivalent of the given Strand enum.

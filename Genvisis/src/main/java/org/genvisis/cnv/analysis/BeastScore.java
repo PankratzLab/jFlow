@@ -1,13 +1,20 @@
 package org.genvisis.cnv.analysis;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
+import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.Segment;
 
@@ -337,6 +344,85 @@ public class BeastScore {
 		return indices;
 	}
 
+	/**
+	 * Create a new CNV file with BEAST height, score, and individual sex annotations for each CNV.
+	 * 
+	 * @param proj Project
+	 * @param cnvFile CNV File to score
+	 * @param isSexCNVs This flag applies sex-specific centroids to recompute LRRs.  If not, original LRRs will be used for scoring.
+	 */
+	private static void scoreCNVFile(Project proj, String cnvFile, boolean recomputeLRRsFromSexCentroids) {
+		SampleData sd = proj.getSampleData(0, false);
+
+		MarkerSet markerSet = proj.getMarkerSet();
+		byte[] chr = markerSet.getChrs();
+		int[] positions = markerSet.getPositions();
+		int[][] indicesByChr = markerSet.getIndicesByChr();
+		
+		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile, false);
+
+		HashSet<String> inds = new HashSet<String>();
+		for (CNVariant cnv : cnvs) {
+			inds.add(cnv.getIndividualID());
+		}
+		ArrayList<String> ids = new ArrayList<String>(inds);
+		HashMap<String, ArrayList<CNVariant>> cnvMap = new HashMap<String, ArrayList<CNVariant>>();
+		for (String s : ids) {
+			cnvMap.put(s, new ArrayList<CNVariant>());
+		}
+		
+		for (CNVariant cnv : cnvs) {
+			cnvMap.get(cnv.getIndividualID()).add(cnv);
+		}
+		
+		CNVariant[][] cnvArr = new CNVariant[ids.size()][];
+		for (int i = 0; i < cnvArr.length; i++) {
+			cnvArr[i] = cnvMap.get(ids.get(i)).toArray(new CNVariant[0]); 
+		}
+
+		float[][][] centFem = null;
+		float[][][] centMal = null;
+		if (recomputeLRRsFromSexCentroids) {
+			if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())) {
+				centFem = Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue(), false).getCentroids();
+			} else {
+				proj.getLog().reportError("Female-specific centroid file {" + proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue() + "} doesn't exist - LRR correction cannot complete.");
+				return;
+			}
+			if (Files.exists(proj.SEX_CENTROIDS_MALE_FILENAME.getValue())) {
+				centMal = Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue(), false).getCentroids();
+			} else {
+				proj.getLog().reportError("Male-specific centroid file {" + proj.SEX_CENTROIDS_MALE_FILENAME.getValue() + "} doesn't exist - LRR correction cannot complete.");
+				return;
+			}
+		}
+		
+		BeastScore[] idScores = new BeastScore[ids.size()];
+		for (int i = 0; i < ids.size(); i++) {
+			Sample samp = proj.getPartialSampleFromRandomAccessFile(ids.get(i), false, false, false, true, false);
+			float[] lrrs = recomputeLRRsFromSexCentroids ? samp.getLRRs((sd.getSexForIndividual(ids.get(i)) == 1) ? centMal : centFem) : samp.getLRRs();
+			idScores[i] = BeastScore.beastInd(proj, sd, lrrs, cnvArr[i], chr, positions, indicesByChr);
+		}
+		
+		String outFile = ext.rootOf(cnvFile, false) + "_beast.cnv";
+		 	
+		PrintWriter writer = Files.getAppropriateWriter(outFile);
+		writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t") + "\tSEX\tSCORE\tHEIGHT");
+		for (int i = 0; i < ids.size(); i++) {
+			CNVariant[] idCnvs = cnvArr[i];
+			float[] scores = idScores[i].getBeastScores();
+			float[] heights = idScores[i].getBeastHeights();
+			
+			for (int c = 0; c < idCnvs.length; c++) {
+				writer.println(idCnvs[c].toPlinkFormat() + "\t" + sd.getSexForIndividual(ids.get(i)) + "\t" + scores[c] + "\t" + heights[c]);
+			}
+			
+		}
+		writer.flush();
+		writer.close();
+		
+	}
+	
 	/**
 	 * Helper Function to compute the beast scores for cNVariantInds[][], where cNVariantInds.lenght =
 	 * number of individuals and cNVariantInds[i].length is the number of cnvs per indivdual
