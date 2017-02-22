@@ -1411,10 +1411,10 @@ public class DosageData implements Serializable {
 
 					float[] dd1Data = (mkrIn1 && idIn1)
 																							? dd1.genotypeProbabilities[dd1MarkersAndIndices.get(mkr)][dd1IdsAndIndices.get(id)]
-																							: null;
+																							: ArrayUtils.floatArray(ddNewNumGeno, missingGeno);
 					float[] dd2Data = (mkrIn2 && idIn2)
 																							? dd2.genotypeProbabilities[dd2MarkersAndIndices.get(mkr)][dd2IdsAndIndices.get(id)]
-																							: null;
+																							: ArrayUtils.floatArray(ddNewNumGeno, missingGeno);
 
 					if (dd1Data != null && dd2Data == null) {
 						ddNew.genotypeProbabilities[m][s] = dd1Data;
@@ -1483,17 +1483,13 @@ public class DosageData implements Serializable {
 					String id = ddNew.ids[s][0] + "\t" + ddNew.ids[s][1];
 
 					boolean idIn1, mkrIn1, idIn2, mkrIn2;
-					mkrIn1 = dd1MarkersAndIndices.containsKey(mkr);
-					idIn1 = dd1IdsAndIndices.containsKey(id);
-					mkrIn2 = dd2MarkersAndIndices.containsKey(mkr);
-					idIn2 = dd2IdsAndIndices.containsKey(id);
-
-					float dd1Data = (mkrIn1 && idIn1)
-																						? dd1.dosageValues[dd1MarkersAndIndices.get(mkr)][dd1IdsAndIndices.get(id)]
-																						: null;
-					float dd2Data = (mkrIn2 && idIn2)
-																						? dd2.dosageValues[dd2MarkersAndIndices.get(mkr)][dd2IdsAndIndices.get(id)]
-																						: null;
+					mkrIn1 = dd1MarkersAndIndices.containsKey(mkr) && dd1MarkersAndIndices.get(mkr) != null;
+					idIn1 = dd1IdsAndIndices.containsKey(id) && dd1IdsAndIndices.get(id) != null;
+					mkrIn2 = dd2MarkersAndIndices.containsKey(mkr) && dd2MarkersAndIndices.get(mkr) != null;
+					idIn2 = dd2IdsAndIndices.containsKey(id) && dd2IdsAndIndices.get(id) != null;
+					
+					float dd1Data = (mkrIn1 && idIn1) ? dd1.dosageValues[dd1MarkersAndIndices.get(mkr)][dd1IdsAndIndices.get(id)] : missingDosage;
+					float dd2Data = (mkrIn2 && idIn2) ? dd2.dosageValues[dd2MarkersAndIndices.get(mkr)][dd2IdsAndIndices.get(id)] : missingDosage;
 
 					// "data" may be present, but also may be set to missing - check and respond appropriately
 					boolean miss1, miss2;
