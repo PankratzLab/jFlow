@@ -1,16 +1,14 @@
 package org.genvisis.gwas;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
+import java.util.Map;
 
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
-
-import com.google.common.collect.Lists;
+import org.genvisis.gwas.MarkerQC.QC_METRIC;
 
 public abstract class Qc {
 
@@ -41,7 +39,7 @@ public abstract class Qc {
 
 
 
-	protected boolean markerQc(String subDir, final Collection<String> markerQcParams) {
+	protected boolean markerQc(String subDir, final Map<QC_METRIC, String> markerQcThresholds) {
 		subDir = ext.verifyDirFormat(subDir);
 		new File(dir + subDir).mkdirs();
 		if (!Files.exists(dir + subDir + plink + ".bed")) {
@@ -121,11 +119,7 @@ public abstract class Qc {
 		}
 		PSF.checkInterrupted();
 		if (!Files.exists(dir + subDir + "miss_drops.dat")) {
-			List<String> writeToFile = Lists.newArrayList();
-			writeToFile.add(MarkerQC.COMMAND);
-			writeToFile.add("dir=" + dir + subDir);
-			writeToFile.addAll(markerQcParams);
-			Files.writeIterable(writeToFile, dir + subDir + "miss.crf");
+			MarkerQC.generateCRF(dir + subDir + "miss.crf", markerQcThresholds);
 			int runCode = MarkerQC.parseParameters(dir + subDir + "miss.crf", log, false);
 			if (runCode != 0) {
 				log.reportError("Failed to perform marker QC with " + dir + subDir + "miss.crf");

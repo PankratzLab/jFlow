@@ -50,8 +50,10 @@ public class RelationAncestryQc extends Qc {
 		super(dir, plinkPrefix, log);
 	}
 
-	private void runRelationAncestryQC(boolean keepGenomeInfoForRelatedsOnly) {
-		if (!markerQc(RelationAncestryQc.MARKER_QC_DIR, MarkerQC.DEFAULT_STRICT_QC_THRESHOLDS)) {
+	public void run(boolean keepGenomeInfoForRelatedsOnly) {
+		long time = new Date().getTime();
+
+		if (!markerQc(RelationAncestryQc.MARKER_QC_DIR, MarkerQC.DEFAULT_METRIC_THRESHOLDS)) {
 			return;
 		}
 
@@ -148,13 +150,6 @@ public class RelationAncestryQc extends Qc {
 													+ plink, dir + RelationAncestryQc.ANCESTRY_DIR, log);
 		}
 		PSF.checkInterrupted();
-
-	}
-
-	public void run(boolean keepGenomeInfoForRelatedsOnly) {
-		long time = new Date().getTime();
-
-		runRelationAncestryQC(keepGenomeInfoForRelatedsOnly);
 
 		System.out.println("Finished this round in " + ext.getTimeElapsed(time));
 	}

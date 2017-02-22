@@ -7,9 +7,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -23,6 +25,8 @@ import org.genvisis.parse.GenParser;
 import org.genvisis.stats.Maths;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.googlecode.charts4j.collect.Maps;
 
 public class MarkerQC {
 	public static final String DEFAULT_FILENAME = "thresholds.properties";
@@ -41,33 +45,116 @@ public class MarkerQC {
 	// public static final String[] THRESHOLDS = {"snp", "chr", "maf", "f_miss", "hwe", "hetero",
 	// "minmishap", "p_miss"};
 
-	public static final List<String> DEFAULT_STRICT_QC_THRESHOLDS = ImmutableList.of("file=markerQC.xln",
-																																									 "markers=freq.frq,1,header",
-																																									 "chr=freq.frq,<1,1:0",
-																																									 "maf=freq.frq,<0.01",
-																																									 "callrate=missing.lmiss,<0.98",
-																																									 "hwe=hardy.hwe,<0.00001",
-																																									 "mishap_hetero=mishap.missing.hap,<0.0001",
-																																									 "mishap_min=mishap.missing.hap,<0.0001",
-																																									 "p_miss=test.missing.missing,<0.0001",
-																																									 "p_gender=gender.assoc,<1E-7",
-																																									 "p_gender_miss=gender.missing,<0.0001");
+	public static final Map<QC_METRIC, String> DEFAULT_METRIC_THRESHOLDS;
+	public static final Map<QC_METRIC, String> DEFAULT_METRIC_FILENAMES;
 
-	public static final List<String> DEFAULT_GWAS_QC_THRESHOLDS = ImmutableList.of("file=markerQC.xln",
-																																								 "markers=freq.frq,1,header",
-																																								 "chr=freq.frq,<1,1:0",
-																																								 // TODO: Determine
-																																								 // if MAF is a
-																																								 // valuable filter
-																																								 // for GWAS
-																																								 // "maf=freq.frq,<0.01",
-																																								 "callrate=missing.lmiss,<0.98",
-																																								 "hwe=hardy.hwe,<1E-7",
-																																								 "mishap_hetero=mishap.missing.hap,<1E-7",
-																																								 "mishap_min=mishap.missing.hap,<1E-7",
-																																								 "p_miss=test.missing.missing,<1E-7",
-																																								 "p_gender=gender.assoc,<1E-7",
-																																								 "p_gender_miss=gender.missing,<1E-7");
+	private static final List<String> DEFAULT_CRF_START_LINES = ImmutableList.of("file=markerQC.xln",
+																																							 "markers=freq.frq,1,header");
+
+	static {
+		Map<QC_METRIC, String> defaultMetricThresholds = Maps.newHashMap();
+		defaultMetricThresholds.put(QC_METRIC.CHR, "<1");
+		defaultMetricThresholds.put(QC_METRIC.MAF, "<0.01");
+		defaultMetricThresholds.put(QC_METRIC.CALLRATE, "<0.98");
+		defaultMetricThresholds.put(QC_METRIC.HWE, "<0.00001");
+		defaultMetricThresholds.put(QC_METRIC.MISHAP_HETERO, "<0.0001");
+		defaultMetricThresholds.put(QC_METRIC.MISHAP_MIN, "<0.0001");
+		defaultMetricThresholds.put(QC_METRIC.P_MISS, "<0.0001");
+		defaultMetricThresholds.put(QC_METRIC.P_GENDER, "<1E-7");
+		defaultMetricThresholds.put(QC_METRIC.P_GENDER_MISS, "<0.0001");
+		DEFAULT_METRIC_THRESHOLDS = Collections.unmodifiableMap(defaultMetricThresholds);
+
+
+		Map<QC_METRIC, String> defaultMetricFilenames = Maps.newHashMap();
+		defaultMetricFilenames.put(QC_METRIC.CHR, "freq.frq");
+		defaultMetricFilenames.put(QC_METRIC.MAF, "freq.frq");
+		defaultMetricFilenames.put(QC_METRIC.CALLRATE, "missing.lmiss");
+		defaultMetricFilenames.put(QC_METRIC.HWE, "hardy.hwe");
+		defaultMetricFilenames.put(QC_METRIC.MISHAP_HETERO, "mishap.missing.hap");
+		defaultMetricFilenames.put(QC_METRIC.MISHAP_MIN, "mishap.missing.hap");
+		defaultMetricFilenames.put(QC_METRIC.P_MISS, "test.missing.missing");
+		defaultMetricFilenames.put(QC_METRIC.P_GENDER, "gender.assoc");
+		defaultMetricFilenames.put(QC_METRIC.P_GENDER_MISS, "gender.missing");
+		DEFAULT_METRIC_FILENAMES = Collections.unmodifiableMap(defaultMetricThresholds);
+	}
+
+	public static enum QC_METRIC {
+		CHR,
+		MAF,
+		CALLRATE,
+		HWE,
+		MISHAP_HETERO,
+		MISHAP_MIN,
+		P_MISS,
+		P_GENDER,
+		P_GENDER_MISS;
+
+		final private String key;
+
+		private QC_METRIC() {
+			this(null);
+		}
+
+		private QC_METRIC(String key) {
+			this.key = key != null ? key : this.name().toLowerCase();
+		}
+
+		protected final String getKey() {
+			return key;
+		}
+
+	}
+
+
+	/**
+	 * 
+	 * @param metricThresholds Map from {@link QC_METRIC} to desired threshold, all of the keys will
+	 *        be included
+	 * @param metricFilenames Map from QC_METRIC to filenames, keys not in {@code metricThresholds}
+	 *        will be ignored
+	 * @return lines to use in CRF
+	 */
+	private static List<String> generateCRFLines(Map<QC_METRIC, String> metricThresholds,
+																							 Map<QC_METRIC, String> metricFilenames) {
+		List<String> crfLines = Lists.newArrayList(DEFAULT_CRF_START_LINES);
+		for (Map.Entry<QC_METRIC, String> metricThreshold : metricThresholds.entrySet()) {
+			QC_METRIC metric = metricThreshold.getKey();
+			String threshold = metricThreshold.getValue();
+			crfLines.add(metric.getKey() + "=" + metricFilenames.get(metric) + "," + threshold);
+		}
+		return crfLines;
+	}
+
+	/**
+	 * 
+	 * {@link #generateCRF(String, Map, Map)} using the default thresholds and filenames
+	 */
+	public static void generateCRF(String outfile) {
+		generateCRF(outfile, DEFAULT_METRIC_THRESHOLDS);
+	}
+
+	/**
+	 * {@link #generateCRF(String, Map, Map)} using the default filenames
+	 */
+	public static void generateCRF(String outfile, Map<QC_METRIC, String> metricThresholds) {
+		generateCRF(outfile, metricThresholds, DEFAULT_METRIC_FILENAMES);
+	}
+
+
+	/**
+	 * Generates an appropriate {@link MarkerQC} CRF
+	 * 
+	 * @param outfile the filename of the CRF to generate
+	 * @param metricThresholds thresholds to use for each desired {@link QC_METRIC}
+	 * @param metricFilenames filenames to use for each desired {@code QC_METRIC}, any not in
+	 *        {@code metricThresholds} are ignored
+	 */
+	public static void generateCRF(String outfile, Map<QC_METRIC, String> metricThresholds,
+																 Map<QC_METRIC, String> metricFilenames) {
+		List<String> lines = generateCRFLines(metricThresholds, metricFilenames);
+		lines.add(0, COMMAND);
+		Files.writeIterable(lines, outfile);
+	}
 
 	public static int parse(String dir, String[][] params, Logger log, boolean kill) {
 		BufferedReader reader;
@@ -393,7 +480,9 @@ public class MarkerQC {
 
 		dir = "";
 		paramV = Files.parseControlFile(filename, COMMAND,
-																		ArrayUtils.toStringArray(DEFAULT_STRICT_QC_THRESHOLDS), log);
+																		ArrayUtils.toStringArray(generateCRFLines(DEFAULT_METRIC_THRESHOLDS,
+																																							DEFAULT_METRIC_FILENAMES)),
+																		log);
 		if (paramV != null) {
 			file = null;
 			markers = null;
