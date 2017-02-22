@@ -127,32 +127,36 @@ public class MarkerQC {
 
 	/**
 	 * 
-	 * {@link #generateCRF(String, Map, Map)} using the default thresholds and filenames
+	 * {@link #generateCRF(String, String, Map, Map)} using the default thresholds and filenames
 	 */
-	public static void generateCRF(String outfile) {
-		generateCRF(outfile, DEFAULT_METRIC_THRESHOLDS);
+	public static void generateCRF(String targetDir, String outfile) {
+		generateCRF(targetDir, outfile, DEFAULT_METRIC_THRESHOLDS);
 	}
 
 	/**
-	 * {@link #generateCRF(String, Map, Map)} using the default filenames
+	 * {@link #generateCRF(String, String, Map, Map)} using the default filenames
 	 */
-	public static void generateCRF(String outfile, Map<QC_METRIC, String> metricThresholds) {
-		generateCRF(outfile, metricThresholds, DEFAULT_METRIC_FILENAMES);
+	public static void generateCRF(String targetDir, String outfile,
+																 Map<QC_METRIC, String> metricThresholds) {
+		generateCRF(targetDir, outfile, metricThresholds, DEFAULT_METRIC_FILENAMES);
 	}
 
 
 	/**
 	 * Generates an appropriate {@link MarkerQC} CRF
 	 * 
+	 * @param targetDir directory with files to parse
 	 * @param outfile the filename of the CRF to generate
 	 * @param metricThresholds thresholds to use for each desired {@link QC_METRIC}
 	 * @param metricFilenames filenames to use for each desired {@code QC_METRIC}, any not in
 	 *        {@code metricThresholds} are ignored
 	 */
-	public static void generateCRF(String outfile, Map<QC_METRIC, String> metricThresholds,
+	public static void generateCRF(String targetDir, String outfile,
+																 Map<QC_METRIC, String> metricThresholds,
 																 Map<QC_METRIC, String> metricFilenames) {
 		List<String> lines = generateCRFLines(metricThresholds, metricFilenames);
 		lines.add(0, COMMAND);
+		lines.add(1, "dir=" + targetDir);
 		Files.writeIterable(lines, outfile);
 	}
 

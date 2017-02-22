@@ -119,7 +119,7 @@ public abstract class Qc {
 		}
 		PSF.checkInterrupted();
 		if (!Files.exists(dir + subDir + "miss_drops.dat")) {
-			MarkerQC.generateCRF(dir + subDir + "miss.crf", markerQcThresholds);
+			MarkerQC.generateCRF(dir + subDir, dir + subDir + "miss.crf", markerQcThresholds);
 			int runCode = MarkerQC.parseParameters(dir + subDir + "miss.crf", log, false);
 			if (runCode != 0) {
 				log.reportError("Failed to perform marker QC with " + dir + subDir + "miss.crf");
