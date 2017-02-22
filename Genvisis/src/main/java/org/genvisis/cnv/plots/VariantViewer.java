@@ -73,6 +73,7 @@ import javax.swing.border.EtchedBorder;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.NewRegionListDialog;
 import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.var.Region;
 import org.genvisis.common.Aliases;
@@ -470,7 +471,14 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
 		time = new Date().getTime();
 
-		Resource geneTrack = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getGTrack();
+		GENOME_BUILD build;
+		if (proj == null) {
+			log.report("Project is null, defaulting to HG19.");
+			build = GENOME_BUILD.HG19;
+		} else {
+			build = proj.GENOME_BUILD_VERSION.getValue();
+		}
+		Resource geneTrack = Resources.genome(build, log).getGTrack();
 		if (geneTrack.isAvailable()) {
 			String trackPath = geneTrack.get();
 			log.report("Loading track from " + trackPath);
@@ -3066,7 +3074,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
 	public static void main(String[] args) {
 		Project proj = null;
-		// new Project("D:/projects/gedi_gwas.properties", false);
+//		 new Project("D:/projects/gedi_gwas.properties", false);
 		String geneList = "N:/statgen/VariantMapper/test2/genes.txt";
 		// Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
 

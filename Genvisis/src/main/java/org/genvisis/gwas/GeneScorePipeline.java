@@ -136,8 +136,7 @@ public class GeneScorePipeline {
 			SnpMarkerSet markerSet = new SnpMarkerSet(hitMkrs);
 			markerSet.parseSNPlocations(log);
 			int[][] markerLocations = markerSet.getChrAndPositionsAsInts();
-			dataSources = MergeExtractPipeline.parseDataFile(null, markerLocations, null, dataSource, 0,
-																											 log);
+			dataSources = MergeExtractPipeline.parseDataFile(null, markerLocations, null, dataSource, 0, log);
 			if (dataSources.size() == 0) {
 				// error
 				log.reportError("Error - no data sources loaded from file: " + dataSource);
