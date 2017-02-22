@@ -32,7 +32,7 @@ public class CNVToFamilyRegions {
 	}
 
 	private static void buildRegions(String cnvs, String pedigree) {
-		final Pedigree ped = new Pedigree(null, pedigree, false);
+		final Pedigree ped = new Pedigree(null, pedigree);
 
 		try {
 			final String out = "familyRegions.txt";

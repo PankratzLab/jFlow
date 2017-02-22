@@ -272,35 +272,29 @@ public class Pedigree extends FamilyStructure {
 	private final String pedigreeFile;
 
 	public Pedigree(Project proj) {
-		this(proj, proj.PEDIGREE_FILENAME.getValue(), true);
+		this(proj, proj.PEDIGREE_FILENAME.getValue());
 	}
 
-	/**
-	 *
-	 * @param proj
-	 * @param projectOrder (Used for ProjectUtils.checkMendelErrors()) Indicates if the order of
-	 *        entries in the project's pedigree file (from the PEDIGREE_FILENAME property) matches the
-	 *        internal order of the project samples.
-	 */
-	public Pedigree(Project proj, boolean projectOrder) {
-		this(proj, proj.PEDIGREE_FILENAME.getValue(), projectOrder);
-	}
 
 	/**
-	 *
 	 * @param proj
 	 * @param pedigreeFile
-	 * @param projectOrder (Used for ProjectUtils.checkMendelErrors()) Indicates if the order of
-	 *        entries in the given pedigree file matches the internal order of the project samples.
 	 */
-	public Pedigree(Project proj, String pedigreeFile, boolean projectOrder) {
+	public Pedigree(Project proj, String pedigreeFile) {
 		super(pedigreeFile, true, proj == null ? new Logger() : proj.getLog());
 		project = proj;
 		nullProject = proj == null;
 		dnaIndicesInProject = new int[ids.length][];
-		this.projectOrder = projectOrder;
 		SampleData sampleData = nullProject ? null : proj.getSampleData(0, false);
 		String[] samples = nullProject ? null : proj.getSamples();
+		if (dnas != null && samples != null && samples.length == dnas.length) {
+			projectOrder = true;
+			// Compare project samples and dnas. If we find a mismatch, set projectOrder to false
+			for (int i = 0; i < samples.length && projectOrder; i++) {
+				projectOrder = samples[i].equals(dnas[i]);
+			}
+		}
+
 		this.pedigreeFile = pedigreeFile;
 		for (int i = 0; i < ids.length; i++) {
 			int iDNAIndex = MISSING_DNA_INDEX;
@@ -335,6 +329,10 @@ public class Pedigree extends FamilyStructure {
 		return sampleIndex;
 	}
 
+	/**
+	 * @return true iff the order and number of samples in this pedigree matches those of the
+	 *         (non-null) accompanying project.
+	 */
 	public boolean isProjectOrder() {
 		return projectOrder;
 	}

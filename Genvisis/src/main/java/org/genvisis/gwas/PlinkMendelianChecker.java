@@ -308,7 +308,7 @@ public class PlinkMendelianChecker {
 		GenomeLoader gl = null;
 		MendelLoader ml = null;
 
-		ped = new Pedigree(project, pedFile, false);
+		ped = new Pedigree(project, pedFile);
 
 		if (project != null) {
 			System.out.println(ext.getTime() + "]\tLoading Project data...");

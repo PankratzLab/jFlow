@@ -60,7 +60,7 @@ public class MitoGWAS {
 	 */
 	public static void analyze(Project proj, String pedFile, String pcFile, String covarFile,
 														 String outputDir, boolean qc, boolean perm, int numthreads) {
-		Pedigree ped = new Pedigree(proj, pedFile, false);
+		Pedigree ped = new Pedigree(proj, pedFile);
 
 		String fullOut = outputDir + ext.rootOf(proj.getPropertyFilename()) + "/";
 		new File(fullOut).mkdirs();
@@ -337,7 +337,8 @@ public class MitoGWAS {
 												+ (markVC == null ? ""
 																					: "\t"
 																						+ ArrayUtils.toStr(VCOps.getAnnotationsFor(annotations,
-																																											 markVC, ".")));
+																																											 markVC,
+																																											 ".")));
 					writer.println(data);
 					if (min < 0.05) {
 						writerSig.println(data);
