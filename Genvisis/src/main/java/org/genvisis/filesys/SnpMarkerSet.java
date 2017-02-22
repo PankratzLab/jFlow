@@ -826,9 +826,39 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 						annotation[i][0] = markerNames[i];
 					}
 				}
+			} else if (markerNames[i].contains(":")) {
+				log.reportError("Error - can't look up a SNP without an rs number - attempting to parse location from marker name.");
+				String[] pts = markerNames[i].split(":");
+				int c = -1, p = -1;
+				try {
+					c = Integer.parseInt(pts[0]);
+				} catch (NumberFormatException e) {
+					log.reportError("Couldn't parse chr from marker name {" + markerNames[i] + "}; Skipping marker.");
+					chrs[i] = (byte) 0;
+					positions[i] = 0;
+					if (annotateMerges) {
+						annotation[i][0] = ".";
+					}
+					continue;
+				}
+				try {
+					p = Integer.parseInt(pts[1]);
+				} catch (NumberFormatException e) {
+					log.reportError("Couldn't parse position from marker name {" + markerNames[i] + "}; Skipping marker.");
+					chrs[i] = (byte) 0;
+					positions[i] = 0;
+					if (annotateMerges) {
+						annotation[i][0] = ".";
+					}
+					continue;
+				}
+				chrs[i] = (byte) c;
+				positions[i] = p;
+				if (annotateMerges) {
+					annotation[i][0] = markerNames[i];
+				}
 			} else {
-				log.reportError("Error - can't look up a SNP without an rs number (" + markerNames[i]
-												+ ")");
+				log.reportError("Error - can't look up a SNP without an rs number (" + markerNames[i] + ")");
 				chrs[i] = (byte) 0;
 				positions[i] = 0;
 				if (annotateMerges) {
