@@ -737,9 +737,13 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 			drawnFreqs.clear();
 			int maxExonRise = 0;
 			for (int j = 0; j < exons.length; j++) {
-				int exonNumber = determineExonNumber(geneToIsoformMap.get(geneList.get(geneIndex))
-																														 .get(COLLAPSE_ISOFORMS_KEY),
-																						 exons[j]);
+				GeneData geneData = getCurrentGeneData();
+//				if (ind == -1) {
+//					geneData = geneToIsoformMap.get(geneList.get(geneIndex)).get(isoformsPresent[0]);
+//				} else {
+//					geneData = geneToIsoformMap.get(geneList.get(geneIndex)).get(COLLAPSE_ISOFORMS_KEY);
+//				}
+				int exonNumber = determineExonNumber(geneData, exons[j]);
 				tempPx = getX(tempX);
 				len = equalizeExonLength ? EQUALIZED_EXON_BP_LENGTH : exons[j][1] - exons[j][0];
 				lenPx = getX(tempX + len) - tempPx;
@@ -842,9 +846,10 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 			len = equalizeExonLength ? EQUALIZED_EXON_BP_LENGTH : exons[j][1] - exons[j][0];
 			lenPx = getX(tempX + len) - tempPx;
 
-			exonNumber = determineExonNumber(geneToIsoformMap.get(geneList.get(geneIndex))
-																											 .get(COLLAPSE_ISOFORMS_KEY),
-																			 exons[j]);
+//			exonNumber = determineExonNumber(geneToIsoformMap.get(geneList.get(geneIndex)).get(COLLAPSE_ISOFORMS_KEY), exons[j]);
+
+			GeneData geneData = getCurrentGeneData();
+			exonNumber = determineExonNumber(geneData, exons[j]);
 			vcfInSeg = getExonVCFRecords(j);
 			if (vcfInSeg.size() > 0) {
 				if (lenPx <= dataPntSize + 2 && !displayIfSmooshed) {
@@ -1430,7 +1435,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
 		int maxWidth, maxHeight;
 		maxWidth = lblMaxWidth + 40 + dataPntSize;
-		maxHeight = 100 + 25 * popColorMap.size();
+		maxHeight = 100 + 40 * popColorMap.size();
 		legendPanel.setBounds(10, 10, maxWidth, maxHeight);
 	}
 
@@ -2881,8 +2886,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		}
 		geneListCmb.setSelectedIndex(geneIndex);
 		createIsoformList();
-		isoformList.setSelectedItem(COLLAPSE_ISOFORMS_KEY);
-		parseLocation(geneToRegionMap.get(geneList.get(geneIndex)).get(COLLAPSE_ISOFORMS_KEY));
+		isoformList.setSelectedItem(isoformsPresent[0]);//COLLAPSE_ISOFORMS_KEY);
+		parseLocation(geneToRegionMap.get(geneList.get(geneIndex)).get(isoformsPresent[0]));//COLLAPSE_ISOFORMS_KEY));
 		if (geneToCommentMap.containsKey(geneList.get(geneIndex))
 				&& geneToCommentMap.get(geneList.get(geneIndex)) != null) {
 			commentLabel.setText("gene #" + (geneIndex + 1) + ":  "
@@ -3075,7 +3080,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	public static void main(String[] args) {
 		Project proj = null;
 //		 new Project("D:/projects/gedi_gwas.properties", false);
-		String geneList = "N:/statgen/VariantMapper/test2/genes.txt";
+//		String geneList = "N:/statgen/VariantMapper/test2/genes.txt";
 		// Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
 
 		// String[] vcfFiles = new String[] {
@@ -3095,9 +3100,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		// String popFile3 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS.vpop";
 		// new VariantViewer(proj, vcfFiles3, popFile3);
 		//
-		String[] vcfFiles4 = new String[] {"N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz"};
-		String popFile4 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS_OTEHRS.vpop";
-		new VariantViewer(proj, geneList, vcfFiles4, popFile4);
+//		String[] vcfFiles4 = new String[] {"N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz"};
+//		String popFile4 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS_OTEHRS.vpop";
+//		new VariantViewer(proj, geneList, vcfFiles4, popFile4);
 		//
 		// OSTEO_OFF_INHERIT.maf_0.01.chr17.vcf.gz.tbi
 
@@ -3111,12 +3116,19 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		// new VariantViewer(proj, vcfFiles2, popFile2);
 
 		// String dir = "C:/temp/VCF/";
-		String dir = "N:/statgen/VariantMapper/Fibrinogen/";
-		geneList = dir + "genes.txt";
-		String[] vcfFiles = new String[] {dir
-																			+ "charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.blanks.segs_noquotes.vcf"};
-		VCFOps.verifyIndex(vcfFiles[0], new Logger());
+//		String dir = "N:/statgen/VariantMapper/Fibrinogen/";
+//		geneList = dir + "genes.txt";
+//		String[] vcfFiles = new String[] {dir
+//																			+ "charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.blanks.segs_noquotes.vcf"};
+//		VCFOps.verifyIndex(vcfFiles[0], new Logger());
 		// new VariantViewer(proj, geneList, vcfFiles, popFile);
+		
+		String geneList = "F:/temp/variantviewer/genes.txt";
+		String[] vcfFiles = {"F:/temp/variantviewer/data.vcf"};
+		String popFile = "F:/temp/variantviewer/pop.vpop";
+		
+		new VariantViewer(proj, geneList, vcfFiles, popFile);
+		
 	}
 }
 
