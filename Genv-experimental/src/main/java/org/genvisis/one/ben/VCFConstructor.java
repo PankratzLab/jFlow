@@ -113,7 +113,7 @@ public class VCFConstructor {
 		builder.clearOptions();
 		builder.setOption(Options.INDEX_ON_THE_FLY);
 		VCFHeader vcfHeader = new VCFHeader();
-
+		vcfHeader.addMetaDataLine(new VCFFormatHeaderLine("FORMAT=<ID=GT,Number=1,Type=String,Description=\"A blank genotype\">", VCFHeaderVersion.VCF4_2));
 		
 		SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(Resources.genome(GENOME_BUILD.HG19, log).getFASTA().getAbsolute(), log)
 				.getIndexedFastaSequenceFile().getSequenceDictionary();
@@ -131,6 +131,7 @@ public class VCFConstructor {
 			builderVc.start(locations[i][1]);
 			builderVc.stop(locations[i][1] + len);
 			builderVc.id(markers[i]);
+			Collection<Genotype> g = genotypes.get(markers[i]);
 			builderVc.genotypes(genotypes.get(markers[i]));
 
 			writer.add(builderVc.make());
