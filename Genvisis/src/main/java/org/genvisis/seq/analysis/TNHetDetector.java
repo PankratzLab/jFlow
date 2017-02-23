@@ -34,9 +34,9 @@ import htsjdk.variant.vcf.VCFFileReader;
  */
 public class TNHetDetector {
 
-	private static void filter(	String vcfTumor, String vcfNormals, String vcfPop, String outputDir,
-															String omimDir, String[] otherGenesOfInterest, double maf,
-															Logger log) {
+	private static void filter(String vcfTumor, String vcfNormals, String vcfPop, String outputDir,
+														 String omimDir, String[] otherGenesOfInterest, double maf,
+														 Logger log) {
 		log.reportTimeInfo("Building normal hash");
 		VcfPopulation vpop = VcfPopulation.load(vcfPop, POPULATION_TYPE.TUMOR_NORMAL, log);
 		Hashtable<String, Genotype> normalHash = new Hashtable<String, Genotype>();
@@ -52,7 +52,7 @@ public class TNHetDetector {
 			for (String normalSamp : vcNormal.getSampleNames()) {
 				Genotype g = vcNormal.getGenotype(normalSamp);
 
-				if (!g.isHomRef()	&& g.isCalled()
+				if (!g.isHomRef() && g.isCalled()
 						&& ext.indexOfStr(VCOps.getSNP_EFFImpact(vc), VCFSimpleTally.EFF) >= 0) {
 					normalHash.put(normalSamp + "_" + VCOps.getSNP_EFFGeneName(vc), g);
 				}
@@ -63,14 +63,14 @@ public class TNHetDetector {
 		VCFFileReader readerTumor = new VCFFileReader(new File(vcfTumor), true);
 		String output = outputDir + VCFOps.getAppropriateRoot(vcfTumor, true) + ".HET.vcf.gz";
 		VariantContextWriter writer = VCFOps.initWriter(output, VCFOps.DEFUALT_WRITER_OPTIONS,
-																										readerTumor	.getFileHeader()
-																																.getSequenceDictionary());
+																										readerTumor.getFileHeader()
+																															 .getSequenceDictionary());
 		VCFOps.copyHeader(readerTumor, writer, vpop.getSuperPop().get(VcfPopulation.TUMOR),
 											HEADER_COPY_TYPE.FULL_COPY, log);
 		int num = 0;
 		for (VariantContext vc : readerTumor) {
-			VariantContext vcTumor = VCOps.getSubset(	vc, vpop.getSuperPop().get(VcfPopulation.TUMOR),
-																								VC_SUBSET_TYPE.SUBSET_STRICT);
+			VariantContext vcTumor = VCOps.getSubset(vc, vpop.getSuperPop().get(VcfPopulation.TUMOR),
+																							 VC_SUBSET_TYPE.SUBSET_STRICT);
 			VariantContextBuilder builder = new VariantContextBuilder(vcTumor);
 			ArrayList<Genotype> genotypes = new ArrayList<Genotype>();
 			for (String tumorSamp : vcTumor.getSampleNames()) {

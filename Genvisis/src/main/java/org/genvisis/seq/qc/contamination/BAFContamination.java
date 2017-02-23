@@ -13,7 +13,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.qc.SampleQC;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
@@ -56,15 +56,15 @@ public class BAFContamination {
 
 	public BAFContaminationResults getContamination() {
 		byte[] chrs = proj.getMarkerSet().getChrs();
-		int subIndex = Array.indexOfFirstMaxByte(chrs, (byte) 23);
+		int subIndex = ArrayUtils.indexOfFirstMaxByte(chrs, (byte) 23);
 		// mafs = getMafs(mafs);
-		boolean[] use = getPFBsToUse(	getMafs(mafs), callRate, sampGenotypes, minFreq, minCallRate,
-																	subIndex);
-		double[][] indeps = new double[Array.booleanArraySum(use)][2];
+		boolean[] use = getPFBsToUse(getMafs(mafs), callRate, sampGenotypes, minFreq, minCallRate,
+																 subIndex);
+		double[][] indeps = new double[ArrayUtils.booleanArraySum(use)][2];
 
-		log.reportTimeInfo("Found "	+ Array.booleanArraySum(use)
-												+ " homozygous autosomal markers passing freq threashold of " + minFreq
-												+ " and callrate " + minCallRate);
+		log.reportTimeInfo("Found " + ArrayUtils.booleanArraySum(use)
+											 + " homozygous autosomal markers passing freq threashold of " + minFreq
+											 + " and callrate " + minCallRate);
 		int index = 0;
 		for (int i = 0; i < indeps.length; i++) {
 			if (use[i]) {
@@ -79,13 +79,13 @@ public class BAFContamination {
 			}
 		}
 
-		RegressionModel model = new LeastSquares(	Array.subArray(sampBAF, use), indeps, null, false,
-																							verbose, LS_TYPE.REGULAR);
+		RegressionModel model = new LeastSquares(ArrayUtils.subArray(sampBAF, use), indeps, null, false,
+																						 verbose, LS_TYPE.REGULAR);
 		BAFContaminationResults results = new BAFContaminationResults(model.getOverallSig(),
 																																	model.getRsquare(),
 																																	model.getBetas());
-		results.setsAlleleDeviation(new StandardAlleleDeviation(Array.subArray(sampGenotypes, use),
-																														Array.subArray(sampBAF, use)));
+		results.setsAlleleDeviation(new StandardAlleleDeviation(ArrayUtils.subArray(sampGenotypes, use),
+																														ArrayUtils.subArray(sampBAF, use)));
 		// System.out.println(Array.toStr(results.getBetas()));
 		return results;
 	}
@@ -94,7 +94,7 @@ public class BAFContamination {
 																				double minFreq, double minCallRate, int sexStart) {
 		boolean[] use = new boolean[maf.length];
 		for (int i = 0; i < use.length; i++) {
-			if (maf[i] >= minFreq	&& (sampGenotypes[i] == 0 || sampGenotypes[i] == 2) && i < sexStart
+			if (maf[i] >= minFreq && (sampGenotypes[i] == 0 || sampGenotypes[i] == 2) && i < sexStart
 					&& callRate[i] >= minCallRate) {
 				use[i] = true;
 			}
@@ -183,7 +183,7 @@ public class BAFContamination {
 				}
 			}
 			double[] tmp2 = Doubles.toArray(tmp);
-			double cv = Array.stdev(tmp2, true) / Array.mean(tmp2, true);
+			double cv = ArrayUtils.stdev(tmp2, true) / ArrayUtils.mean(tmp2, true);
 			System.out.println(geno + "\t" + cv);
 
 			return cv;
@@ -225,8 +225,8 @@ public class BAFContamination {
 
 		@Override
 		public Callable<BAFContaminationResults> next() {
-			BAFContaminationWorker worker =
-																		new BAFContaminationWorker(proj, samples[index], pfb, callRate);
+			BAFContaminationWorker worker = new BAFContaminationWorker(proj, samples[index], pfb,
+																																 callRate);
 			index++;
 			return worker;
 		}
@@ -252,10 +252,10 @@ public class BAFContamination {
 			ClusterFilterCollection clusterFilterCollection = new ClusterFilterCollection();
 			byte[] genos = samp.getAB_GenotypesAfterFilters(proj.getMarkerNames(),
 																											clusterFilterCollection, (float) 0.20);
-			BAFContamination bafContamination = new BAFContamination(	proj,
-																																Array.toDoubleArray(samp.getBAFs()),
-																																genos, pfbs, callRate, MIN_MAF,
-																																MIN_CALL_RATE, true, proj.getLog());
+			BAFContamination bafContamination = new BAFContamination(proj,
+																															 ArrayUtils.toDoubleArray(samp.getBAFs()),
+																															 genos, pfbs, callRate, MIN_MAF,
+																															 MIN_CALL_RATE, true, proj.getLog());
 			BAFContaminationResults results = bafContamination.getContamination();
 			return results;
 		}
@@ -264,8 +264,7 @@ public class BAFContamination {
 
 	private static ExtProjectDataParser getParser(Project proj, String file, String dataKeyColumnName,
 																								String[] numericColumns) throws FileNotFoundException {
-		ExtProjectDataParser.ProjectDataParserBuilder builder =
-																													new ExtProjectDataParser.ProjectDataParserBuilder();
+		ExtProjectDataParser.ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 		builder.sampleBased(false);
 		builder.treatAllNumeric(false);
 		builder.requireAll(true);
@@ -295,8 +294,8 @@ public class BAFContamination {
 			PennCNV.populationBAF(proj);
 		}
 		if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
-			proj.getLog().reportTimeInfo("Creating "	+ proj.SAMPLE_QC_FILENAME.getValue()
-																		+ " for contamination detection");
+			proj.getLog().reportTimeInfo("Creating " + proj.SAMPLE_QC_FILENAME.getValue()
+																	 + " for contamination detection");
 			LrrSd.init(proj, null, null, numThreads);
 		}
 
@@ -314,8 +313,8 @@ public class BAFContamination {
 
 		try {
 			ExtProjectDataParser parserPfb = getParser(proj, pfb, "Name", new String[] {"PFB"});
-			ExtProjectDataParser parserMaf = getParser(	proj, mafs, "NAME",
-																									new String[] {"MAF", "CALLRATE"});
+			ExtProjectDataParser parserMaf = getParser(proj, mafs, "NAME",
+																								 new String[] {"MAF", "CALLRATE"});
 			parserPfb.determineIndicesFromTitles();
 			parserMaf.determineIndicesFromTitles();
 			parserPfb.loadData();
@@ -325,12 +324,12 @@ public class BAFContamination {
 			double[] callRates = parserMaf.getNumericData()[1];
 			proj.getLog().reportTimeInfo("found " + pfbs.length + "pfbs");
 			String output = proj.PROJECT_DIRECTORY.getValue() + "contamination.txt";
-			ContaminationProducer producer = new ContaminationProducer(	proj, pfbs, callRates,
-																																	proj.getSamples());
-			WorkerTrain<BAFContaminationResults> train = new WorkerTrain<BAFContamination.BAFContaminationResults>(	producer,
-																																																							numThreads,
-																																																							1,
-																																																							proj.getLog());
+			ContaminationProducer producer = new ContaminationProducer(proj, pfbs, callRates,
+																																 proj.getSamples());
+			WorkerTrain<BAFContaminationResults> train = new WorkerTrain<BAFContamination.BAFContaminationResults>(producer,
+																																																						 numThreads,
+																																																						 1,
+																																																						 proj.getLog());
 
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(output));
@@ -339,13 +338,13 @@ public class BAFContamination {
 				while (train.hasNext()) {
 					BAFContaminationResults results = train.next();
 					// System.out.println(results.getBetas().length);
-					String result = testSamps[index]	+ "\t" + sampleQC.getDataFor("LRR_SD")[index] + "\t"
+					String result = testSamps[index] + "\t" + sampleQC.getDataFor("LRR_SD")[index] + "\t"
 													+ sampleQC.getDataFor("BAF1585_SD")[index] + "\t"
 													+ sampleQC.getDataFor("AB_callrate")[index];
-					result += "\t"	+ results.getsAlleleDeviation().getAA_stdev() + "\t"
+					result += "\t" + results.getsAlleleDeviation().getAA_stdev() + "\t"
 										+ results.getsAlleleDeviation().getBB_stdev();
-					result += "\t"	+ sampleQC.getDataFor("AB_callrate")[index] + "\t"
-										+ Array.toStr(results.getBetas());
+					result += "\t" + sampleQC.getDataFor("AB_callrate")[index] + "\t"
+										+ ArrayUtils.toStr(results.getBetas());
 					writer.println(result);
 					index++;
 					writer.flush();

@@ -3,7 +3,7 @@ package org.genvisis.parse;
 
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -87,16 +87,15 @@ public class LookupTable {
 
 			log.report("Memory available: " + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + "");
 			log.report("Loading keys from '" + hitsFile + "'");
-			hits = HashVec.loadFileToStringArray(	hitsFile, false, ignoreFirstLine, new int[] {col}, true,
-																						false,
-																						commaDelimited	? ","
-																														: (tabDelimited ? "\t" : "[\\s]+"));
+			hits = HashVec.loadFileToStringArray(hitsFile, false, ignoreFirstLine, new int[] {col}, true,
+																					 false,
+																					 commaDelimited ? "," : (tabDelimited ? "\t" : "[\\s]+"));
 			if (lessMemoryButSlower) {
-				Files.combineWithLessMemory(hits, Array.toStringArray(params), new String[params.size()][],
-																		head, missingValue, outfile, log, ignoreCase, finalHeader,
-																		hideIndex, keepIntermediateFiles);
+				Files.combineWithLessMemory(hits, ArrayUtils.toStringArray(params),
+																		new String[params.size()][], head, missingValue, outfile, log,
+																		ignoreCase, finalHeader, hideIndex, keepIntermediateFiles);
 			} else {
-				Files.combine(hits, Array.toStringArray(params), new String[params.size()][], head,
+				Files.combine(hits, ArrayUtils.toStringArray(params), new String[params.size()][], head,
 											missingValue, outfile, log, ignoreCase, finalHeader, hideIndex);
 			}
 		}

@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 public class TabVersion {
 	public static void make(String filename) {
@@ -18,7 +18,7 @@ public class TabVersion {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(filename + ".xln"));
 			while (reader.ready()) {
-				writer.println(Array.toStr(reader.readLine().trim().split("[\\s]+")));
+				writer.println(ArrayUtils.toStr(reader.readLine().trim().split("[\\s]+")));
 			}
 			reader.close();
 			writer.close();
@@ -35,8 +35,8 @@ public class TabVersion {
 		int numArgs = args.length;
 		String filename = "MakeTabVersion.dat";
 
-		String usage = "\n"	+ "widgets.TabVersion requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "widgets.TabVersion requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

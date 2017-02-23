@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -73,15 +73,15 @@ public class GeneTrack implements Serializable {
 		v = new Vector<GeneData>();
 		region = new Segment((byte) chr, start, stop);
 		if (chr < starts.length && starts[chr].length > 0) {
-			first = Array.binarySearch(starts[chr], start, false);
+			first = ArrayUtils.binarySearch(starts[chr], start, false);
 			if (first == starts[chr].length) {
 				return new GeneData[0];
 			}
 			try {
-				last = Array.binarySearch(starts[chr], stop, first, starts[chr].length, false);
+				last = ArrayUtils.binarySearch(starts[chr], stop, first, starts[chr].length, false);
 			} catch (Exception e) {
 				System.out.println("uh oh");
-				last = Array.binarySearch(starts[chr], stop, first, starts[chr].length, false);
+				last = ArrayUtils.binarySearch(starts[chr], stop, first, starts[chr].length, false);
 			}
 			if (last == starts[chr].length) {
 				last--;

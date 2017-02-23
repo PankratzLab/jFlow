@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
@@ -90,17 +90,17 @@ public class GenParser {
 		numTruncatedLines = 0;
 
 		filename = data == null ? line[0] : "in-memory";
-		commaDelimited = (data == null	? Files.suggestDelimiter(filename, log)
-																		: ext.determineDelimiter(data.get(0))).equals(",")
-											|| ext.indexOfStr(",", line) >= 0;
+		commaDelimited = (data == null ? Files.suggestDelimiter(filename, log)
+																	 : ext.determineDelimiter(data.get(0))).equals(",")
+										 || ext.indexOfStr(",", line) >= 0;
 		tabDelimited = ext.indexOfStr("tab", line, false, true, log, false) >= 0;
 		simplifyQuotes = ext.indexOfStr("doNotSimplifyQuotes", line) == -1;
 
-		String delim = commaDelimited	? "," + (simplifyQuotes ? "!" : "")
+		String delim = commaDelimited ? "," + (simplifyQuotes ? "!" : "")
 																	: (tabDelimited ? "\t" : "[\\s]+");
-		columnHeaders = data == null	? Files.getHeaderOfFile(filename, delim, log)
-																	: ext.splitLine(data.get(0), delim, log);
-		if (Array.toStr(line).contains("'")) {
+		columnHeaders = data == null ? Files.getHeaderOfFile(filename, delim, log)
+																 : ext.splitLine(data.get(0), delim, log);
+		if (ArrayUtils.toStr(line).contains("'")) {
 			for (int i = 0; i < line.length; i++) {
 				indices = ext.indicesWithinString("'", line[i]);
 				if (indices.length % 2 != 0) {
@@ -112,12 +112,12 @@ public class GenParser {
 					trav = line[i].substring(indices[j * 2 + 0] + 1, indices[j * 2 + 1]);
 					index = ext.indexOfStr(trav, columnHeaders);
 					if (index == -1) {
-						System.err.println("Error - could not find a column labeled \""	+ trav + "\" in file "
-																+ filename);
+						System.err.println("Error - could not find a column labeled \"" + trav + "\" in file "
+															 + filename);
 						failed = true;
 						return;
 					} else {
-						line[i] = line[i].substring(0, indices[j * 2 + 0])	+ index
+						line[i] = line[i].substring(0, indices[j * 2 + 0]) + index
 											+ line[i].substring(indices[j * 2 + 1] + 1);
 					}
 				}
@@ -142,8 +142,8 @@ public class GenParser {
 				replaceBlanks = ext.parseStringArg(line[j], "");
 			} else if (line[j].equals("simplifyQuotes")) {
 				log.report("The GenParser argument \"simplifyQuotes\" has been deprecated; it is now the default functionality and you must use \"doNotSimplifyQuotes\" if you don't want it");
-			} else if (line[j].equalsIgnoreCase("tab")	|| line[j].equals(",")
-									|| line[j].equalsIgnoreCase("doNotSimplifyQuotes")) {
+			} else if (line[j].equalsIgnoreCase("tab") || line[j].equals(",")
+								 || line[j].equalsIgnoreCase("doNotSimplifyQuotes")) {
 				// already taken care of
 			} else if (line[j].equalsIgnoreCase("fail")) {
 				forceFailCodes = true;
@@ -182,7 +182,7 @@ public class GenParser {
 
 		cols = new int[columns.size()];
 		colNames = new String[columns.size()];
-		failCodes = Array.stringArray(columns.size(), ".");
+		failCodes = ArrayUtils.stringArray(columns.size(), ".");
 		comps = new Vector<String>();
 		for (int j = 0; j < columns.size(); j++) {
 			trav = columns.elementAt(j);
@@ -231,19 +231,17 @@ public class GenParser {
 			reader = data == null ? Files.getAppropriateReader(filename) : new StringListReader(data);
 			if (skip == -2) {
 				if (commaDelimited) {
-					originalColumnNames = ext.splitCommasIntelligently(
-																															ext.replaceAllWith(	reader.readLine()
-																																												.trim(),
-																																									replaces),
-																															simplifyQuotes, log);
+					originalColumnNames = ext.splitCommasIntelligently(ext.replaceAllWith(reader.readLine()
+																																											.trim(),
+																																								replaces),
+																														 simplifyQuotes, log);
 				} else {
-					originalColumnNames = ext
-																		.replaceAllWith(commaDelimited	|| tabDelimited
-																																											? reader.readLine()
-																																										: reader.readLine()
-																																														.trim(),
-																										replaces)
-																		.split(tabDelimited ? "\t" : "[\\s]+", -1);
+					originalColumnNames = ext.replaceAllWith(commaDelimited || tabDelimited
+																																									? reader.readLine()
+																																									: reader.readLine()
+																																													.trim(),
+																									 replaces)
+																	 .split(tabDelimited ? "\t" : "[\\s]+", -1);
 				}
 				for (int j = 0; j < cols.length; j++) {
 					if (colNames[j] == null) {
@@ -334,7 +332,7 @@ public class GenParser {
 			}
 		} catch (IOException ioe) {
 			log.reportException(ioe);
-			return Array.stringArray(cols.length, "NaN");
+			return ArrayUtils.stringArray(cols.length, "NaN");
 		}
 
 		truncatedLine = false;
@@ -362,13 +360,13 @@ public class GenParser {
 						passedFilter = false;
 					}
 				} else if (ext.isMissingValue(line[filterCols[i]])
-										|| !Maths.op(	Double.parseDouble(line[filterCols[i]]),
-																	Double.parseDouble(filterValues[i]), filterOps[i])) {
+									 || !Maths.op(Double.parseDouble(line[filterCols[i]]),
+																Double.parseDouble(filterValues[i]), filterOps[i])) {
 					passedFilter = false;
 				}
 			}
 
-			parsed = Array.stringArray(cols.length, "!found or failed");
+			parsed = ArrayUtils.stringArray(cols.length, "!found or failed");
 			if (forceFailCodes && cols[0] >= 0) {
 				parsed[0] = line[cols[0]];
 			}
@@ -399,7 +397,7 @@ public class GenParser {
 									try {
 										d = procDouble(line[Integer.parseInt(computes[spi][i])], Double.NaN, log);
 									} catch (NumberFormatException nfe) {
-										log.reportError("Error - invalid operator or something... \""	+ computes[spi][i]
+										log.reportError("Error - invalid operator or something... \"" + computes[spi][i]
 																		+ "\"");
 										log.reportException(nfe);
 										failed = true;
@@ -449,11 +447,11 @@ public class GenParser {
 				log.reportError("Error trying to parse: " + temp);
 				log.reportException(aioobe);
 			}
-			return Array.stringArray(cols.length, "NaN");
+			return ArrayUtils.stringArray(cols.length, "NaN");
 		} catch (Exception e) {
 			log.reportError("Error trying to parse: " + temp);
 			log.reportException(e);
-			return Array.stringArray(cols.length, "NaN");
+			return ArrayUtils.stringArray(cols.length, "NaN");
 		}
 
 		return parsed;
@@ -510,12 +508,12 @@ public class GenParser {
 			}
 		}
 		if (nonNull > 0 && parser.hasHeader()) {
-			returnData.add(Array.toStr(header, delimiter));
+			returnData.add(ArrayUtils.toStr(header, delimiter));
 		}
 		while (parser.ready()) {
 			trav = parser.nextLine();
 			if (trav != null) {
-				returnData.add(Array.toStr(trav, delimiter));
+				returnData.add(ArrayUtils.toStr(trav, delimiter));
 			}
 		}
 		parser.close();
@@ -551,12 +549,12 @@ public class GenParser {
 			}
 		}
 		if (nonNull > 0 && parser.hasHeader()) {
-			writer.println(Array.toStr(header, delimiter));
+			writer.println(ArrayUtils.toStr(header, delimiter));
 		}
 		while (parser.ready()) {
 			trav = parser.nextLine();
 			if (trav != null) {
-				writer.println(Array.toStr(trav, delimiter));
+				writer.println(ArrayUtils.toStr(trav, delimiter));
 			}
 		}
 		writer.flush();
@@ -613,36 +611,36 @@ public class GenParser {
 
 	public static void main(String[] args) throws IOException {
 		String usage = "\n"
-											+ "parse.GenParser requires 2+ arguments and will take the form of something like:\n"
-										+ "    data.csv , out=parsed_data.xln !1=2 !11!NA !10>-5 !10<5 0 1 2 10 11\n"
-										+ "\n"
-										+ "  where at a minimum you will have the file name and the columns you are intrested in.\n"
-										+ "\n" + "  Optional parameters include:\n"
-										+ "    ,               file is comma delimited (default is whitespace delimited, unless filename ends with .csv)\n"
-										+ "    tab             file is tab delimited (i.e. fields can include blanks and spaces)\n"
-										+ "    out=file.txt    delineates a specific output file name\n"
-										+ "    skip=5          skip the first 5 rows (default is skip=1)\n"
-										+ "    noHeader        will start parsing the first row (i.e. skip=0)\n"
-										+ "    RS=>rs          replaces all instances of 'RS' in the line with 'rs'\n"
-										+ "    'beta'          report the column called \"beta\"\n"
-										+ "    1=chr           report index 1 and call the column \"chr\"\n"
-										+ "    !               anything starting with ! indicates a filter\n"
-										+ "    !1=2            includes only those rows with a 2 in column index 1 (column 2)\n"
-										+ "    !11!NA          will filter out any line where column index 11 equals 'NA'\n"
-										+ "    !10>-5          includes lines where the number in column index 10 is greater than -5\n"
-										+ "    !10>=-5         includes lines where the number in column index 10 is greater than or equal to -5\n"
-										+ "    $               anything starting with $ indicates a computation\n"
-										+ "    $12*13=effN     multiply column index 13 by column index 12\n"
-										+ "    $'n'*'Rsq'=effN multiply column with header 'n' by column with header 'Rsq'\n"
-										+ "    $#12*13=rate    multiply column index 13 by a constant (here 12.0)\n"
-										+ "    replace=.       replace empty columns with a period\n"
-										+ "    fail            normally row is absent if the row fails criteria, this will force fail codes\n"
-										+ "    12=Needed;NA    fail code for this column will be set to \"NA\" instead of the default \".\"\n"
-										+ "    @1.1 or @fini   set to this value no matter what\n"
-										+ "    $%2;3:1;2:1;1:0;.	check value in column index 2 and if it is 3 or 2 then replace with 1, if 1 then replace with 0, otherwise set to missing\n"
-										+ "    *               all columns in file with the original header\n"
-										+ "    doNotSimplifyQuotes  after smartCommaSplit, the surrounding quotes are normally removed and the rest are simplified; this will prevent that\n"
-										+ "";
+									 + "parse.GenParser requires 2+ arguments and will take the form of something like:\n"
+									 + "    data.csv , out=parsed_data.xln !1=2 !11!NA !10>-5 !10<5 0 1 2 10 11\n"
+									 + "\n"
+									 + "  where at a minimum you will have the file name and the columns you are intrested in.\n"
+									 + "\n" + "  Optional parameters include:\n"
+									 + "    ,               file is comma delimited (default is whitespace delimited, unless filename ends with .csv)\n"
+									 + "    tab             file is tab delimited (i.e. fields can include blanks and spaces)\n"
+									 + "    out=file.txt    delineates a specific output file name\n"
+									 + "    skip=5          skip the first 5 rows (default is skip=1)\n"
+									 + "    noHeader        will start parsing the first row (i.e. skip=0)\n"
+									 + "    RS=>rs          replaces all instances of 'RS' in the line with 'rs'\n"
+									 + "    'beta'          report the column called \"beta\"\n"
+									 + "    1=chr           report index 1 and call the column \"chr\"\n"
+									 + "    !               anything starting with ! indicates a filter\n"
+									 + "    !1=2            includes only those rows with a 2 in column index 1 (column 2)\n"
+									 + "    !11!NA          will filter out any line where column index 11 equals 'NA'\n"
+									 + "    !10>-5          includes lines where the number in column index 10 is greater than -5\n"
+									 + "    !10>=-5         includes lines where the number in column index 10 is greater than or equal to -5\n"
+									 + "    $               anything starting with $ indicates a computation\n"
+									 + "    $12*13=effN     multiply column index 13 by column index 12\n"
+									 + "    $'n'*'Rsq'=effN multiply column with header 'n' by column with header 'Rsq'\n"
+									 + "    $#12*13=rate    multiply column index 13 by a constant (here 12.0)\n"
+									 + "    replace=.       replace empty columns with a period\n"
+									 + "    fail            normally row is absent if the row fails criteria, this will force fail codes\n"
+									 + "    12=Needed;NA    fail code for this column will be set to \"NA\" instead of the default \".\"\n"
+									 + "    @1.1 or @fini   set to this value no matter what\n"
+									 + "    $%2;3:1;2:1;1:0;.	check value in column index 2 and if it is 3 or 2 then replace with 1, if 1 then replace with 0, otherwise set to missing\n"
+									 + "    *               all columns in file with the original header\n"
+									 + "    doNotSimplifyQuotes  after smartCommaSplit, the surrounding quotes are normally removed and the rest are simplified; this will prevent that\n"
+									 + "";
 
 		// args = new String [] {"subset.genome_parsed.xln out=admixedUnrelatedsCheck.txt 0 1 2 3 6 7 8
 		// 9 !9>0.2"};

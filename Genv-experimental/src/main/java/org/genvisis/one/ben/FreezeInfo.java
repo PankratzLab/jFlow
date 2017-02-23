@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -27,8 +27,7 @@ public class FreezeInfo {
 	// "10:100003785:T:C","10",100003785,"T","C","intronic","R3HCC1L",NA,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,"10:100003785:T:C",0,FALSE
 	// "10:100003796:T:A","10",100003796,"T","A","intronic","R3HCC1L",NA,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,"10:100003796:T:A",0,FALSE
 
-	static String FRZ_4_SRC =
-													"F:/freeze4/snpinfo_ChargeSFreeze3Freeze4_ESP_RS_ERF_Broad_Analytic_04112014.csv";
+	static String FRZ_4_SRC = "F:/freeze4/snpinfo_ChargeSFreeze3Freeze4_ESP_RS_ERF_Broad_Analytic_04112014.csv";
 	static String FRZ_5_SRC = "F:/freeze4/snpinfo_WES_v13_Analytic_10202015.csv.gz";
 
 	static String ALTERED_OUT = "F:/freeze4/freeze4.altered.out";
@@ -66,7 +65,7 @@ public class FreezeInfo {
 		while ((line = frz4reader.readLine()) != null) {
 			parts = ext.splitCommasIntelligently(line, true, null);
 			if (!ALL && !line.contains("exonic")) {
-				finalWriter.println(Array.toStr(parts, "\t"));
+				finalWriter.println(ArrayUtils.toStr(parts, "\t"));
 				continue;
 			}
 			int ind = parts[5].indexOf(":", 4);
@@ -148,14 +147,14 @@ public class FreezeInfo {
 				noMatchWriter.println(line);
 				if (frz5Info != null) {
 					for (String[] data : frz5Info) {
-						noMatchWriter.println(Array.toStr(data, "\t"));
+						noMatchWriter.println(ArrayUtils.toStr(data, "\t"));
 					}
 				}
 				noMatchWriter.println();
 				noMatchWriter.println();
 			}
 
-			finalWriter.println(Array.toStr(parts, "\t"));
+			finalWriter.println(ArrayUtils.toStr(parts, "\t"));
 		}
 		finalWriter.flush();
 		finalWriter.close();

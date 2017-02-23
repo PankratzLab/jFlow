@@ -16,7 +16,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -43,8 +43,7 @@ public class simulateNullDistribution {
 		PrintWriter writer = null;
 		String[] line = null, trav, fams;
 		String temp;
-		Hashtable<String, Hashtable<String, String>> phenos =
-																												new Hashtable<String, Hashtable<String, String>>();
+		Hashtable<String, Hashtable<String, String>> phenos = new Hashtable<String, Hashtable<String, String>>();
 		Hashtable<String, String> affs;
 		Hashtable<String, Vector<String>> vips = new Hashtable<String, Vector<String>>(), backup;
 		Hashtable<String, Vector<String>> genos = new Hashtable<String, Vector<String>>();
@@ -69,7 +68,7 @@ public class simulateNullDistribution {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			numCols = reader.readLine().split("\t").length;
-			if (numCols < Array.max(new int[] {famCol, indCol, affCol, allCol})) {
+			if (numCols < ArrayUtils.max(new int[] {famCol, indCol, affCol, allCol})) {
 				System.err.println("Error - there are fewer columns than the max column specified");
 				System.exit(1);
 			}
@@ -78,7 +77,7 @@ public class simulateNullDistribution {
 				if (line.length != numCols) {
 					System.err.println("Inconsistent number of columns");
 				}
-				if (!line[allCol + 0].equals(".")	&& !line[allCol + 0].equals("0")
+				if (!line[allCol + 0].equals(".") && !line[allCol + 0].equals("0")
 						&& !line[allCol + 1].equals(".") && !line[allCol + 1].equals("0")) {
 					HashVec.addToHashVec(vips, line[famCol], line[indCol], false);
 					HashVec.addToHashVec(genos, line[famCol], line[allCol + 0], false);
@@ -112,18 +111,18 @@ public class simulateNullDistribution {
 					if (vips.containsKey(prev)) {
 						System.err.println("ERROR! YOU HAVE YET TO CONVERT TO THE NEW INPUT FOR TrimFam!");
 						// tf = new TrimFam(pre, vips.get(prev), false, true);
-						tf = new TrimFam(	pre, false, false, true, TrimFam.SCORE_99_NAMING_SCHEME, 0, false,
-															false, new Logger());
+						tf = new TrimFam(pre, false, false, true, TrimFam.SCORE_99_NAMING_SCHEME, 0, false,
+														 false, new Logger());
 						v = tf.getExtendedFamilyInformation();
 						affs = phenos.get(prev);
 						for (int i = 0; i < v.size(); i++) {
 							trav = v.elementAt(i).split("[\\s]+");
-							writer.println(Array.toStr(trav, "\t")	+ "\t" + (affs.containsKey(trav[1])
-																																														? (Integer.parseInt(affs.get(trav[1]))
-																																															+ 1)
-																																														+ "\t1\t1"
-																																													: "0\t0\t0")
-															+ "");
+							writer.println(ArrayUtils.toStr(trav, "\t") + "\t" + (affs.containsKey(trav[1])
+																																															? (Integer.parseInt(affs.get(trav[1]))
+																																																 + 1)
+																																																+ "\t1\t1"
+																																															: "0\t0\t0")
+														 + "");
 						}
 					}
 					pre.removeAllElements();
@@ -132,7 +131,7 @@ public class simulateNullDistribution {
 						genos.remove(prev);
 					}
 				}
-				pre.add(line[0]	+ "\t" + line[1] + "\t" + line[4] + "\t" + line[5] + "\t"
+				pre.add(line[0] + "\t" + line[1] + "\t" + line[4] + "\t" + line[5] + "\t"
 								+ (line[2].equals("F") ? "2" : (line[2].equals("M") ? "1" : "0")));
 				prev = line[0];
 			}
@@ -142,17 +141,18 @@ public class simulateNullDistribution {
 				affs = phenos.get(fam);
 				if (v.size() > 1) {
 					System.err.println("Error - more than one individual found in a family not found in ninfo2: "
-																+ fam + "\n"
-															+ "        The following indivuals will be listed as unrelated: "
-															+ Array.toStr(Array.toStringArray(v), ",") + "");
+														 + fam + "\n"
+														 + "        The following indivuals will be listed as unrelated: "
+														 + ArrayUtils.toStr(ArrayUtils.toStringArray(v), ",") + "");
 				}
 				for (int j = 0; j < v.size(); j++) {
-					writer.println(fam	+ "\t" + v.elementAt(j) + "\t0\t0\t2\t"
-													+ (affs.containsKey(v.elementAt(j))	? (Integer.parseInt(affs.get(v.elementAt(j)))
-																																	+ 1)
-																																+ "\t1\t1"
-																															: "0\t9\t9")
-													+ "");
+					writer.println(fam + "\t" + v.elementAt(j)
+												 + "\t0\t0\t2\t" + (affs.containsKey(v.elementAt(j))
+																																						 ? (Integer.parseInt(affs.get(v.elementAt(j)))
+																																								+ 1)
+																																							 + "\t1\t1"
+																																						 : "0\t9\t9")
+												 + "");
 				}
 
 			}
@@ -164,8 +164,8 @@ public class simulateNullDistribution {
 			System.err.println("Error: file \"" + outputfile + "\" is otherwise occupied");
 			System.exit(1);
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""	+ filename + "\" or writing file \"" + outputfile
-													+ "\"");
+			System.err.println("Error reading file \"" + filename + "\" or writing file \"" + outputfile
+												 + "\"");
 			System.exit(2);
 		}
 
@@ -186,8 +186,8 @@ public class simulateNullDistribution {
 			}
 
 		}
-		System.out.println("Allele frequencies were permuted one per family ("	+ numParticipants
-												+ " from " + fams.length + " families)");
+		System.out.println("Allele frequencies were permuted one per family (" + numParticipants
+											 + " from " + fams.length + " families)");
 		keys = Sort.getReverseIndices(alleles);
 		line = targets.split(",");
 		targetIndices = new int[line.length];
@@ -203,14 +203,14 @@ public class simulateNullDistribution {
 		for (int i = 0; i < REP_STEP; i++) {
 			alleleFreqs[i] = freqs;
 		}
-		new LinkageMap(	1, Array.stringArraySequence(REP_STEP, "Rep"), alleleFreqs,
-										Array.doubleArray(REP_STEP, 50), false, false).createFile("map.dat");
+		new LinkageMap(1, ArrayUtils.stringArraySequence(REP_STEP, "Rep"), alleleFreqs,
+									 ArrayUtils.doubleArray(REP_STEP, 50), false, false).createFile("map.dat");
 
 		try {
 			writer = new PrintWriter(new FileWriter("simulate.opt"));
-			writer.println("% Read input in LINKAGE style format:\n"	+ "PREFILE " + outputfile + "\n"
-											+ "DATFILE map.dat\n\n" + "% Simulate stroke reconstruction pedigrees\n"
-											+ "SIMULATE het:1\n\n" + "% Other options:\n" + "MAXMEMORY 100");
+			writer.println("% Read input in LINKAGE style format:\n" + "PREFILE " + outputfile + "\n"
+										 + "DATFILE map.dat\n\n" + "% Simulate stroke reconstruction pedigrees\n"
+										 + "SIMULATE het:1\n\n" + "% Other options:\n" + "MAXMEMORY 100");
 			writer.close();
 		} catch (IOException ioe) {
 			System.err.println("Problem writing map.dat");
@@ -229,17 +229,17 @@ public class simulateNullDistribution {
 				while (reader.ready()) {
 					temp = reader.readLine();
 					for (int j = 0; j < temp.length(); j++) {
-						writer.print(temp.charAt(j) == 32	? "\t"
-																							: (temp.charAt(j) < 10	? (char) (temp.charAt(j) + 48)
-																																			: temp.charAt(j)));
+						writer.print(temp.charAt(j) == 32 ? "\t"
+																							: (temp.charAt(j) < 10 ? (char) (temp.charAt(j) + 48)
+																																		 : temp.charAt(j)));
 					}
 					writer.println();
 				}
 				reader.close();
 				writer.close();
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \""	+ outputfile + ".1"
-														+ "\" not found in current directory");
+				System.err.println("Error: file \"" + outputfile + ".1"
+													 + "\" not found in current directory");
 				System.exit(1);
 			} catch (IOException ioe) {
 				System.err.println("Error reading file \"" + outputfile + ".1" + "\"");
@@ -273,8 +273,8 @@ public class simulateNullDistribution {
 				}
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \""	+ "tr_" + outputfile + ".1"
-														+ "\" not found in current directory");
+				System.err.println("Error: file \"" + "tr_" + outputfile + ".1"
+													 + "\" not found in current directory");
 				System.exit(1);
 			} catch (IOException ioe) {
 				System.err.println("Error reading file \"" + "tr_" + outputfile + ".1" + "\"");
@@ -286,7 +286,8 @@ public class simulateNullDistribution {
 				for (int j = 0; j < REP_STEP; j++) {
 					model = new LogisticRegression(deps, indeps[j], false, false);
 					model.onePerFamily(fams, FAM_REPS_DEFAULT, BOOT_REPS_DEFAULT);
-					writer.println(Array.toStr(model.getStats()) + "\t" + Array.toStr(model.getBetas()));
+					writer.println(ArrayUtils.toStr(model.getStats()) + "\t"
+												 + ArrayUtils.toStr(model.getBetas()));
 					writer.flush();
 				}
 				writer.close();
@@ -323,16 +324,16 @@ public class simulateNullDistribution {
 		// String targets = "263,259";
 		String targets = "2";
 
-		String usage = "\n"	+ "park.simulateNullDistribution requires 0-7 arguments\n"
-										+ "   (1) input filename (i.e. file=" + filename + " (default)\n"
-										+ "   (2) output filename (i.e. out=" + filename + " (default)\n"
-										+ "   (3) number of replicates to create (i.e. reps=" + numReps + " (default)\n"
-										+ "   (4) column of FamIDs (i.e. fam=" + famIDcol + " (default)\n"
-										+ "   (5) column of IndIDs (i.e. ind=" + indIDcol + " (default)\n"
-										+ "   (6) column of affection status (i.e. aff=" + affCol + " (default)\n"
-										+ "   (7) column of first allele (i.e. allele=" + alleleCol + " (default)\n"
-										+ "   (8) target alleles (separated by commas) (i.e. target=" + alleleCol
-										+ " (default)\n" + "";
+		String usage = "\n" + "park.simulateNullDistribution requires 0-7 arguments\n"
+									 + "   (1) input filename (i.e. file=" + filename + " (default)\n"
+									 + "   (2) output filename (i.e. out=" + filename + " (default)\n"
+									 + "   (3) number of replicates to create (i.e. reps=" + numReps + " (default)\n"
+									 + "   (4) column of FamIDs (i.e. fam=" + famIDcol + " (default)\n"
+									 + "   (5) column of IndIDs (i.e. ind=" + indIDcol + " (default)\n"
+									 + "   (6) column of affection status (i.e. aff=" + affCol + " (default)\n"
+									 + "   (7) column of first allele (i.e. allele=" + alleleCol + " (default)\n"
+									 + "   (8) target alleles (separated by commas) (i.e. target=" + alleleCol
+									 + " (default)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -369,8 +370,8 @@ public class simulateNullDistribution {
 			System.exit(1);
 		}
 		try {
-			new simulateNullDistribution(	filename, outputfile, numReps, controlFreqs, famIDcol - 1,
-																		indIDcol - 1, affCol - 1, alleleCol - 1, targets);
+			new simulateNullDistribution(filename, outputfile, numReps, controlFreqs, famIDcol - 1,
+																	 indIDcol - 1, affCol - 1, alleleCol - 1, targets);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

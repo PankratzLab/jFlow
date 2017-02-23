@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -31,16 +31,16 @@ public class RareVariants {
 		time = new Date().getTime();
 		for (String[] subset : subsets) {
 			System.out.println(subset[0]);
-			wss.setSubset(Array.subArray(subset, 1));
+			wss.setSubset(ArrayUtils.subArray(subset, 1));
 			wss.setThresholdMAF(0.02);
 			perms = wss.getPermutations();
-			mean = Array.mean(perms);
-			stdev = Array.stdev(perms);
+			mean = ArrayUtils.mean(perms);
+			stdev = ArrayUtils.stdev(perms);
 			z = (wss.getStat() - mean) / stdev;
 
-			System.out.println(wss.getMarkerNames().length	+ "\t" + ext.formDeci(z, 3) + "\t"
-													+ ext.prettyP(ProbDist.NormDist(Math.abs(z) * -1)) + "\t"
-													+ ext.prettyP(wss.getEmpiricalSig()));
+			System.out.println(wss.getMarkerNames().length + "\t" + ext.formDeci(z, 3) + "\t"
+												 + ext.prettyP(ProbDist.NormDist(Math.abs(z) * -1)) + "\t"
+												 + ext.prettyP(wss.getEmpiricalSig()));
 		}
 		System.out.println("Finished in " + ext.getTimeElapsed(time));
 
@@ -74,21 +74,20 @@ public class RareVariants {
 				System.out.println(ext.getTime() + "\t" + element);
 				// filename = "phenos/unr_phen."+rep+".tab";
 				filename = "phenos/pheno1_adj.xln";
-				hash = HashVec.loadFileToHashString(analysis_dir	+ filename, new int[] {0, 1},
-																						ext.indexFactors(	new String[] {element},
-																															Files.getHeaderOfFile(analysis_dir
-																																											+ filename,
-																																										"\t",
-																																										new Logger()),
-																															false, true),
+				hash = HashVec.loadFileToHashString(analysis_dir + filename, new int[] {0, 1},
+																						ext.indexFactors(new String[] {element},
+																														 Files.getHeaderOfFile(analysis_dir
+																																									 + filename, "\t",
+																																									 new Logger()),
+																														 false, true),
 																						false, "\t", true, false, false);
 				ids = wss.getIDs();
 				trait = new double[ids.length];
 				for (int i = 0; i < ids.length; i++) {
 					trav = hash.get(ids[i][0] + "\t" + ids[i][1]);
 					if (trav == null) {
-						System.err.println("Error - no pheno '"	+ element + "' for indiviudal " + ids[i][0]
-																+ "," + ids[i][1]);
+						System.err.println("Error - no pheno '" + element + "' for indiviudal " + ids[i][0]
+															 + "," + ids[i][1]);
 						System.exit(1);
 					}
 					trait[i] = Double.parseDouble(trav);
@@ -103,7 +102,7 @@ public class RareVariants {
 				wss.setAffectionStatus(controlDesignations);
 				for (int k = 0; k < markerSets.length; k++) {
 					try {
-						writer = new PrintWriter(new FileWriter(analysis_dir	+ "mid_" + pop + "." + rep + "."
+						writer = new PrintWriter(new FileWriter(analysis_dir + "mid_" + pop + "." + rep + "."
 																										+ element + ".maf" + maf + "."
 																										+ markerSets[k]));
 						writer.println("Gene\tn_SNPs\tpval\tEMP1");
@@ -112,16 +111,16 @@ public class RareVariants {
 								System.out.print(".");
 								writer.flush();
 							}
-							wss.setSubset(Array.subArray(subsets[k][m], 1));
-							writer.println(subsets[k][m][0]	+ "\t" + wss.getMarkerNames().length + "\t"
-															+ ext.prettyP(wss.getSig()) + "\t"
-															+ ext.prettyP(wss.getEmpiricalSig()));
+							wss.setSubset(ArrayUtils.subArray(subsets[k][m], 1));
+							writer.println(subsets[k][m][0] + "\t" + wss.getMarkerNames().length + "\t"
+														 + ext.prettyP(wss.getSig()) + "\t"
+														 + ext.prettyP(wss.getEmpiricalSig()));
 						}
 						System.out.println();
 						writer.close();
 					} catch (Exception e) {
-						System.err.println("Error writing to "	+ analysis_dir + pop + "." + rep + "." + element
-																+ ".maf" + maf + "." + markerSets[k]);
+						System.err.println("Error writing to " + analysis_dir + pop + "." + rep + "." + element
+															 + ".maf" + maf + "." + markerSets[k]);
 						e.printStackTrace();
 					}
 				}
@@ -144,9 +143,9 @@ public class RareVariants {
 				for (String element2 : Traits.PHENOS) {
 					for (String markerSet : markerSets) {
 						for (String element3 : Traits.POPS) {
-							writer.println("mid_"	+ element3 + "." + 1 + "." + element2 + ".maf" + element + "."
-															+ markerSet + " 0 3=" + element3 + "." + 1 + "." + element2 + ".maf"
-															+ element + "." + markerSet);
+							writer.println("mid_" + element3 + "." + 1 + "." + element2 + ".maf" + element + "."
+														 + markerSet + " 0 3=" + element3 + "." + 1 + "." + element2 + ".maf"
+														 + element + "." + markerSet);
 						}
 					}
 				}
@@ -169,10 +168,10 @@ public class RareVariants {
 		String pop = "Caucasians";
 		double maf = 0.01;
 
-		String usage = "\n"	+ "gaw17.RareVariants requires 0-1 arguments\n"
-										+ "   (1) directory (i.e. dir=" + analysis_dir + " (default))\n"
-										+ "   (2) markerSet filenames (i.e. files=" + filenames + " (default))\n"
-										+ "   (3) population (i.e. pop=" + pop + " (default))\n" + "";
+		String usage = "\n" + "gaw17.RareVariants requires 0-1 arguments\n"
+									 + "   (1) directory (i.e. dir=" + analysis_dir + " (default))\n"
+									 + "   (2) markerSet filenames (i.e. files=" + filenames + " (default))\n"
+									 + "   (3) population (i.e. pop=" + pop + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

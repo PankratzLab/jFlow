@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.manage.Markers;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -16,12 +16,12 @@ public class Scratch {
 		String dir = "C:/data/ARIC/scratch/";
 		Logger log = new Logger(dir + "log");
 		String[] pcMarks = HashVec.loadFileToStringArray(dir
-																												+ "autosomal_PC_markers.oneHitWonders_20.txt",
-																											false, new int[] {0}, false);
-		String[] mito = HashVec.loadFileToStringArray(dir	+ "gw6_MT_USE.oneHitWonders_20.txt", false,
+																										 + "autosomal_PC_markers.oneHitWonders_20.txt",
+																										 false, new int[] {0}, false);
+		String[] mito = HashVec.loadFileToStringArray(dir + "gw6_MT_USE.oneHitWonders_20.txt", false,
 																									new int[] {0}, false);
 
-		String[] combo = Array.concatAll(pcMarks, mito);
+		String[] combo = ArrayUtils.concatAll(pcMarks, mito);
 		log.reportTimeInfo("PCMarks " + pcMarks.length);
 		log.reportTimeInfo("Mito" + mito.length);
 
@@ -30,19 +30,19 @@ public class Scratch {
 		Markers.orderMarkers(null, pos, mset, log);
 		MarkerSet markerSet = MarkerSet.load(mset, false);
 
-		int[] pcmarks =
-									ext.indexLargeFactors(pcMarks, markerSet.getMarkerNames(), true, log, true, true);
+		int[] pcmarks = ext.indexLargeFactors(pcMarks, markerSet.getMarkerNames(), true, log, true,
+																					true);
 		int[][] indices = markerSet.getIndicesByChr();
 		ArrayList<String> outMarks = new ArrayList<String>();
 		outMarks.add("SNP Name\tChr\tPosition");
 		for (int pcmark : pcmarks) {
-			outMarks.add(markerSet.getMarkerNames()[pcmark]	+ "\t" + markerSet.getChrs()[pcmark] + "\t"
-										+ markerSet.getPositions()[pcmark]);
+			outMarks.add(markerSet.getMarkerNames()[pcmark] + "\t" + markerSet.getChrs()[pcmark] + "\t"
+									 + markerSet.getPositions()[pcmark]);
 		}
 		for (int i = 0; i < indices[26].length; i++) {
-			outMarks.add(markerSet.getMarkerNames()[indices[26][i]]	+ "\t"
-										+ markerSet.getChrs()[indices[26][i]] + "\t"
-										+ markerSet.getPositions()[indices[26][i]]);
+			outMarks.add(markerSet.getMarkerNames()[indices[26][i]] + "\t"
+									 + markerSet.getChrs()[indices[26][i]] + "\t"
+									 + markerSet.getPositions()[indices[26][i]]);
 		}
 
 		String out = ext.addToRoot(pos, ".PC.mito.subset");

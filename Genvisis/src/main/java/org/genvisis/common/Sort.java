@@ -16,7 +16,7 @@ public class Sort {
 	 * As {@link #getSortedIndices(long[])} but returns in reverse order.
 	 */
 	public static int[] getReverseIndices(long[] arr) {
-		return Array.reverseInPlace(getSortedIndices(arr));
+		return ArrayUtils.reverseInPlace(getSortedIndices(arr));
 	}
 
 	/**
@@ -43,7 +43,7 @@ public class Sort {
 	 * As {@link #getSortedIndices(int[])} but returns in reverse order.
 	 */
 	public static int[] getReverseIndices(int[] arr) {
-		return Array.reverseInPlace(getSortedIndices(arr));
+		return ArrayUtils.reverseInPlace(getSortedIndices(arr));
 	}
 
 	/**
@@ -60,7 +60,7 @@ public class Sort {
 	 * As {@link #getSortedIndices(double[])} but returns in reverse order.
 	 */
 	public static int[] getReverseIndices(double[] arr) {
-		return Array.reverseInPlace(getSortedIndices(arr));
+		return ArrayUtils.reverseInPlace(getSortedIndices(arr));
 	}
 
 	/**
@@ -78,7 +78,7 @@ public class Sort {
 	}
 
 	public static <T extends Comparable<T>> int[] getReverseIndices(List<T> list) {
-		return Array.reverseInPlace(getSortedIndices(list));
+		return ArrayUtils.reverseInPlace(getSortedIndices(list));
 	}
 
 	public static <T extends Comparable<T>> int[] getSortedIndices(List<T> list) {
@@ -106,7 +106,7 @@ public class Sort {
 	}
 
 	public static <C1 extends Comparable<C1>, C2 extends Comparable<C2>> int[] getSort2DIndices(List<C1> list1,
-	                                                                                            List<C2> list2) {
+																																															List<C2> list2) {
 		@SuppressWarnings("unchecked")
 		IndexedCC<C1, C2>[] icc = new IndexedCC[list1.size()];
 		for (int i = 0; i < icc.length; i++) {
@@ -118,13 +118,13 @@ public class Sort {
 	private static int[] getSortedIndices(SortableWrapper w) {
 		int[] indices = new int[w.size()];
 		if (w.size() == 0) {
-		  return indices;
+			return indices;
 		}
 		for (int i = 1; i < indices.length; i++) {
 			indices[i] = i;
 		}
 
-		quicksort(indices, w, 0, indices.length-1);
+		quicksort(indices, w, 0, indices.length - 1);
 
 		return indices;
 	}
@@ -291,17 +291,17 @@ public class Sort {
 
 	public static void reverseSort(String[] array) {
 		Arrays.sort(array);
-		Array.reverseInPlace(array);
+		ArrayUtils.reverseInPlace(array);
 	}
 
 	public static void reverseSort(long[] array) {
 		Arrays.sort(array);
-		Array.reverseInPlace(array);
+		ArrayUtils.reverseInPlace(array);
 	}
 
 	public static void reverseSort(int[] array) {
 		Arrays.sort(array);
-		Array.reverseInPlace(array);
+		ArrayUtils.reverseInPlace(array);
 	}
 
 	/**
@@ -327,7 +327,7 @@ public class Sort {
 		}
 
 		if (reverse) {
-			Array.reverseInPlace(ranks);
+			ArrayUtils.reverseInPlace(ranks);
 		}
 
 		return ranks;
@@ -392,8 +392,7 @@ public class Sort {
 	 * Store two comparable objects with an external index, to facilitate sorting by the first object,
 	 * then the second, and finally the original index
 	 */
-	private static class IndexedCC<C1 extends Comparable<C1>, C2 extends Comparable<C2>>
-	                              implements Comparable<IndexedCC<C1, C2>>, IndexedWrapper {
+	private static class IndexedCC<C1 extends Comparable<C1>, C2 extends Comparable<C2>> implements Comparable<IndexedCC<C1, C2>>, IndexedWrapper {
 		private final C1 c1;
 		private final C2 c2;
 		private final int index;

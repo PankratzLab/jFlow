@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -57,7 +57,7 @@ public class SRAUtils {
 			command.add(">");
 			command.add(outputBam);
 
-			String[] bat = CmdLine.prepareBatchForCommandLine(Array.toStringArray(command),
+			String[] bat = CmdLine.prepareBatchForCommandLine(ArrayUtils.toStringArray(command),
 																												outputBam + ".bat", true, log);
 			return CmdLine.runCommandWithFileChecks(bat, "", inputs, outputs, true, false, false, false,
 																							log);
@@ -149,10 +149,10 @@ public class SRAUtils {
 		String outDir = "/scratch.global/lanej/aric_raw/";
 		int threads = 24;
 
-		String usage = "\n"	+ " SRAUtils requires 0-1 arguments\n"
-										+ "   (1) SRA directory (i.e. sraDir=" + sraDir + " (default))\n"
-										+ "   (2) out directory (i.e. outDir=" + outDir + " (default))\n"
-										+ PSF.Ext.getNumThreadsCommand(3, threads) + "";
+		String usage = "\n" + " SRAUtils requires 0-1 arguments\n"
+									 + "   (1) SRA directory (i.e. sraDir=" + sraDir + " (default))\n"
+									 + "   (2) out directory (i.e. outDir=" + outDir + " (default))\n"
+									 + PSF.Ext.getNumThreadsCommand(3, threads) + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

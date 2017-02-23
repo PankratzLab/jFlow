@@ -47,8 +47,8 @@ public class FamilyHistory {
 
 		try {
 			reader = new BufferedReader(new FileReader(CRF_DIR + db_file));
-			index = ext.indexFactors(	new String[] {trait}, reader.readLine().split("\t", -1), true,
-																true)[0];
+			index = ext.indexFactors(new String[] {trait}, reader.readLine().split("\t", -1), true,
+															 true)[0];
 			while (reader.ready()) {
 				line = reader.readLine().split("\t", -1);
 				if (hashVecStringArray.containsKey(line[1])) {
@@ -81,8 +81,8 @@ public class FamilyHistory {
 			} else {
 				writer.println("FamID,IndID,NumRelativesWithHistory,NumFirstDegreesWithHistory,FamHist,FirstDegreeHist");
 			}
-			index = ext.indexFactors(	new String[] {trait}, reader.readLine().split("\t", -1), true,
-																true)[0];
+			index = ext.indexFactors(new String[] {trait}, reader.readLine().split("\t", -1), true,
+															 true)[0];
 			while (reader.ready()) {
 				line = reader.readLine().split("\t", -1);
 				v = hashVecStringArray.get(line[1]);
@@ -100,21 +100,21 @@ public class FamilyHistory {
 							if (quant) {
 								counts[0]++;
 								avg_max[0] += Double.parseDouble(data[1]);
-								avg_max[1] = Double.parseDouble(data[1]) > avg_max[1]	? Double.parseDouble(data[1])
+								avg_max[1] = Double.parseDouble(data[1]) > avg_max[1] ? Double.parseDouble(data[1])
 																																			: avg_max[1];
 								// first degree relatives calculations
-								if ((data[2].equals(trav[2]) && data[3].equals(trav[3]))	|| data[0].equals(trav[2])
+								if ((data[2].equals(trav[2]) && data[3].equals(trav[3])) || data[0].equals(trav[2])
 										|| data[0].equals(trav[3]) || data[2].equals(trav[0])
 										|| data[3].equals(trav[0])) {
 									counts[1]++;
 									avg_max[2] += Double.parseDouble(data[1]);
-									avg_max[3] = Double.parseDouble(data[1]) > avg_max[3]	? Double.parseDouble(data[1])
+									avg_max[3] = Double.parseDouble(data[1]) > avg_max[3] ? Double.parseDouble(data[1])
 																																				: avg_max[3];
 								}
 							} else if (data[1].equals("1")) {
 								counts[0]++;
 								// first degree relatives calculations
-								if ((data[2].equals(trav[2]) && data[3].equals(trav[3]))	|| data[0].equals(trav[2])
+								if ((data[2].equals(trav[2]) && data[3].equals(trav[3])) || data[0].equals(trav[2])
 										|| data[0].equals(trav[3]) || data[2].equals(trav[0])
 										|| data[3].equals(trav[0])) {
 									counts[1]++;
@@ -135,15 +135,15 @@ public class FamilyHistory {
 					avg_max[2] = Double.parseDouble(trav[1]);
 				}
 				if (quant) {
-					writer.println(line[1]	+ "," + line[2] + ","
-													+ (counts[0] > 0 ? (avg_max[0] / counts[0]) + "," + avg_max[1] : ".,.")
-													+ ","
-													+ (counts[1] > 0 ? (avg_max[2] / counts[1]) + "," + avg_max[3] : ".,.")
-													+ "," + (counts[2] > 0 ? (avg_max[4] / counts[2]) : ".") + ","
-													+ counts[2]);
+					writer.println(line[1] + "," + line[2] + ","
+												 + (counts[0] > 0 ? (avg_max[0] / counts[0]) + "," + avg_max[1] : ".,.")
+												 + ","
+												 + (counts[1] > 0 ? (avg_max[2] / counts[1]) + "," + avg_max[3] : ".,.")
+												 + "," + (counts[2] > 0 ? (avg_max[4] / counts[2]) : ".") + ","
+												 + counts[2]);
 				} else {
-					writer.println(line[1]	+ "," + line[2] + "," + counts[0] + "," + counts[1] + ","
-													+ (counts[0] > 0 ? 1 : 0) + "," + (counts[1] > 0 ? 1 : 0));
+					writer.println(line[1] + "," + line[2] + "," + counts[0] + "," + counts[1] + ","
+												 + (counts[0] > 0 ? 1 : 0) + "," + (counts[1] > 0 ? 1 : 0));
 				}
 			}
 			reader.close();
@@ -161,8 +161,8 @@ public class FamilyHistory {
 		String trait = "AOO";
 		String dbfile = DEFAULT_DB_FILE;
 
-		String usage = "\n"	+ "db.FamilyHistory requires 0-1 arguments\n" + "   (1) trait (i.e. trait="
-										+ trait + " (default)\n" + "";
+		String usage = "\n" + "db.FamilyHistory requires 0-1 arguments\n" + "   (1) trait (i.e. trait="
+									 + trait + " (default)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

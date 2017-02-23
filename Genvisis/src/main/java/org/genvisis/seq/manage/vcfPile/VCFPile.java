@@ -5,7 +5,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
@@ -27,8 +27,8 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
 	private final RegionIteratorVCF<T> rIteratorVCF;
 	private final Logger log;
 
-	public VCFPile(	String vcfFile, ReferenceGenome referenceGenome, String[] samplesTopile,
-									LocusSet<T> toPile, Logger log) {
+	public VCFPile(String vcfFile, ReferenceGenome referenceGenome, String[] samplesTopile,
+								 LocusSet<T> toPile, Logger log) {
 		super();
 		this.vcfFile = vcfFile;
 		this.samplesTopile = samplesTopile;
@@ -63,13 +63,13 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
 		// TODO Auto-generated method stub
 	}
 
-	public static void pileVCF(	String vcfFile, String referenceGenomeFile, String regionsFile,
-															String outputDirectory) {
+	public static void pileVCF(String vcfFile, String referenceGenomeFile, String regionsFile,
+														 String outputDirectory) {
 		if (outputDirectory == null) {
 			outputDirectory = ext.parseDirectoryOfFile(vcfFile);
 		}
 		new File(outputDirectory).mkdirs();
-		Logger log = new Logger(outputDirectory	+ VCFOps.getAppropriateRoot(vcfFile, true)
+		Logger log = new Logger(outputDirectory + VCFOps.getAppropriateRoot(vcfFile, true)
 														+ ".vcfPile.log");
 
 		log.reportTimeInfo("Loading regions from " + regionsFile);
@@ -86,7 +86,7 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
 		ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFile, log);
 		String[] samples = VCFOps.getSamplesInFile(new VCFFileReader(new File(vcfFile), true));
 		VCFPile<Segment> vcfPile = new VCFPile<Segment>(vcfFile, referenceGenome, samples, toPile, log);
-		String output = outputDirectory	+ VCFOps.getAppropriateRoot(vcfFile, true)
+		String output = outputDirectory + VCFOps.getAppropriateRoot(vcfFile, true)
 										+ ".vcfPile.summary.txt";
 		try {
 
@@ -99,10 +99,10 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
 				log.reportTimeInfo("On Region " + index + "\t" + pRegion.getRegion().getUCSClocation());
 				String out = "";
 				out += pRegion.getRegion().getUCSClocation();
-				out += "\t" + Array.mean(pRegion.getTotalCalledVar());
+				out += "\t" + ArrayUtils.mean(pRegion.getTotalCalledVar());
 				out += "\t" + pRegion.getAvgGC();
-				out += "\t" + Array.mean(pRegion.getAvgDP());
-				out += "\t" + Array.mean(pRegion.getAvgGQ());
+				out += "\t" + ArrayUtils.mean(pRegion.getAvgDP());
+				out += "\t" + ArrayUtils.mean(pRegion.getAvgGQ());
 				writer.println(out);
 				writer.flush();
 			}

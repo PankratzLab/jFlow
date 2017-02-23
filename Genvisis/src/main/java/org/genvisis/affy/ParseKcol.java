@@ -20,7 +20,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.TransposeData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountHash;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -37,20 +37,20 @@ public class ParseKcol implements Runnable {
 	public static final String CANCEL_OPTION_FILE = ".cancel_option";
 	public static final String HOLD_OPTION_FILE = ".hold_option";
 	public static final String FILENAME_AS_ID_OPTION = "[FILENAME_ROOT]";
-	public static final String[][] SNP_TABLE_FIELDS = {	{"Name", "SNP Name"}, {"Chr", "Chromosome"},
-																											{"Position"}};
+	public static final String[][] SNP_TABLE_FIELDS = {{"Name", "SNP Name"}, {"Chr", "Chromosome"},
+																										 {"Position"}};
 	public static final String[][] DATA_FIELDS = {{"GC Score", "GCscore", "Confidence"}, {"X Raw"},
 																								{"Y Raw"},
-																								{	"X", "Chr", "Xvalue", "Log Ratio", "intensity_1",
-																									"Signal A"},
-																								{	"Y", "Yvalue", "Chr", "Strength", "intensity_2",
-																									"Signal B"},
+																								{"X", "Chr", "Xvalue", "Log Ratio", "intensity_1",
+																								 "Signal A"},
+																								{"Y", "Yvalue", "Chr", "Strength", "intensity_2",
+																								 "Signal B"},
 																								{"Theta"}, {"R"}, {"B Allele Freq"},
 																								{"Log R Ratio"}};
-	public static final String[][] GENOTYPE_FIELDS = {{	"Allele1 - Forward", "Position", "Allele1",
-																											"genotype1", "Call"},
-																										{	"Allele2 - Forward", "Position", "Allele2",
-																											"genotype2", "Forced Call"},
+	public static final String[][] GENOTYPE_FIELDS = {{"Allele1 - Forward", "Position", "Allele1",
+																										 "genotype1", "Call"},
+																										{"Allele2 - Forward", "Position", "Allele2",
+																										 "genotype2", "Forced Call"},
 																										{"Allele1 - AB"}, {"Allele2 - AB"},
 																										{"Forward Strand Base Calls"}, {"Call Codes"}};
 	// Log R Ratio
@@ -65,15 +65,15 @@ public class ParseKcol implements Runnable {
 	private final long timeBegan;
 	private final int threadId;
 
-	public ParseKcol(	Project proj, String[] files, String[] markerNames, int[] keysKeys,
-										char[][] abLookup, long fingerprint, Hashtable<String, String> fixes,
-										long timeBegan) {
+	public ParseKcol(Project proj, String[] files, String[] markerNames, int[] keysKeys,
+									 char[][] abLookup, long fingerprint, Hashtable<String, String> fixes,
+									 long timeBegan) {
 		this(proj, files, markerNames, keysKeys, abLookup, fingerprint, fixes, timeBegan, -1);
 	}
 
-	public ParseKcol(	Project proj, String[] files, String[] markerNames, int[] keysKeys,
-										char[][] abLookup, long fingerprint, Hashtable<String, String> fixes,
-										long timeBegan, int threadId) {
+	public ParseKcol(Project proj, String[] files, String[] markerNames, int[] keysKeys,
+									 char[][] abLookup, long fingerprint, Hashtable<String, String> fixes,
+									 long timeBegan, int threadId) {
 		this.proj = proj;
 		this.files = files;
 		this.markerNames = markerNames;
@@ -149,8 +149,8 @@ public class ParseKcol implements Runnable {
 																							+ files[i]);
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
-					} while (reader.ready() && (ext.indexFactors(	SNP_HEADER_OPTIONS, line, false, true, false,
-																												false)[0] == -1
+					} while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false,
+																											 false)[0] == -1
 																			|| (!idHeader.equals(FILENAME_AS_ID_OPTION)
 																					&& ext.indexOfStr(idHeader, line) == -1)));
 
@@ -165,19 +165,19 @@ public class ParseKcol implements Runnable {
 
 					if (dataIndices[3] == -1 || dataIndices[4] == -1) {
 						System.err.println("Error - File format not consistent! At the very least the files need to contain "
-																	+ Array.toStr(DATA_FIELDS[3], "/") + " and "
-																+ Array.toStr(DATA_FIELDS[4], "/"));
+															 + ArrayUtils.toStr(DATA_FIELDS[3], "/") + " and "
+															 + ArrayUtils.toStr(DATA_FIELDS[4], "/"));
 						return;
 					}
 					if (genotypeIndices[4] == -1 && (genotypeIndices[0] == -1 || genotypeIndices[1] == -1)) {
 						System.err.println("Error - File format not consistent! The files need to contain "
-																	+ Array.toStr(GENOTYPE_FIELDS[0], "/") + " and "
-																+ Array.toStr(GENOTYPE_FIELDS[1], "/") + " or "
-																+ Array.toStr(GENOTYPE_FIELDS[4], ",")
-																+ " (for single token calls)");
+															 + ArrayUtils.toStr(GENOTYPE_FIELDS[0], "/") + " and "
+															 + ArrayUtils.toStr(GENOTYPE_FIELDS[1], "/") + " or "
+															 + ArrayUtils.toStr(GENOTYPE_FIELDS[4], ",")
+															 + " (for single token calls)");
 						return;
 					}
-					if (genotypeIndices[5] == -1	&& (genotypeIndices[2] == -1 || genotypeIndices[3] == -1)
+					if (genotypeIndices[5] == -1 && (genotypeIndices[2] == -1 || genotypeIndices[3] == -1)
 							&& abLookup == null) {
 						ignoreAB = true;
 					} else {
@@ -198,17 +198,19 @@ public class ParseKcol implements Runnable {
 						}
 					}
 					genotypes = new byte[2][];
-					genotypes[0] = Array.byteArray(markerNames.length, (byte) 0); // used to be initialized to
-																																				// Byte.MIN_VALUE when AB
-																																				// genotypes && abLookup
-																																				// were both absent
+					genotypes[0] = ArrayUtils.byteArray(markerNames.length, (byte) 0); // used to be
+																																						 // initialized to
+					// Byte.MIN_VALUE when AB
+					// genotypes && abLookup
+					// were both absent
 					if (!ignoreAB) {
-						genotypes[1] = Array.byteArray(markerNames.length, (byte) -1); // used to be initialized
-																																						// to Byte.MIN_VALUE
-																																						// when
-																																						// AB genotypes &&
-																																						// abLookup were both
-																																						// absent
+						genotypes[1] = ArrayUtils.byteArray(markerNames.length, (byte) -1); // used to be
+																																								// initialized
+						// to Byte.MIN_VALUE
+						// when
+						// AB genotypes &&
+						// abLookup were both
+						// absent
 					}
 
 					count = 0;
@@ -219,8 +221,8 @@ public class ParseKcol implements Runnable {
 						String testline = reader.readLine();
 						linecount++;
 						if (testline == null) {
-							System.err.println("Warning - "	+ files[i] + " has a blank line on line "
-																	+ linecount);
+							System.err.println("Warning - " + files[i] + " has a blank line on line "
+																 + linecount);
 							break;
 						}
 						line = testline.split(delimiter);
@@ -229,28 +231,28 @@ public class ParseKcol implements Runnable {
 																				files[i].indexOf(proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)));;
 						} else {
 							if (parseAtAt && line[sampIndex].indexOf("@") == -1) {
-								System.err.println("Error - "	+ idHeader + " '" + line[sampIndex]
-																		+ "' did not contain an @ sample");
+								System.err.println("Error - " + idHeader + " '" + line[sampIndex]
+																	 + "' did not contain an @ sample");
 								parseAtAt = false;
 							}
-							trav = parseAtAt	? line[sampIndex].substring(0, line[sampIndex].indexOf("@"))
-																: line[sampIndex];
+							trav = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@"))
+															 : line[sampIndex];
 						}
 
 						if (count == 0) {
 							sampleName = trav;
 						} else if (!trav.equals(sampleName)) {
-							System.err.println("Found more than one ID in file "	+ files[i] + "(found " + trav
-																	+ ", expecting " + sampleName + ")");
+							System.err.println("Found more than one ID in file " + files[i] + "(found " + trav
+																 + ", expecting " + sampleName + ")");
 							return;
 						} else if (count > markerNames.length) {
-							System.err.println("Error - expecting only "	+ markerNames.length
-																	+ " markers and found more than that in file " + files[i]);
+							System.err.println("Error - expecting only " + markerNames.length
+																 + " markers and found more than that in file " + files[i]);
 							return;
 						} else if (!markerNames[count].equals(line[snpIndex])
-												&& !markerNames[count].startsWith("Blank")) {
-							System.err.println("Found "	+ line[snpIndex] + " at marker #" + (count + 1)
-																	+ " in file " + files[i] + "; expecting " + markerNames[count]);
+											 && !markerNames[count].startsWith("Blank")) {
+							System.err.println("Found " + line[snpIndex] + " at marker #" + (count + 1)
+																 + " in file " + files[i] + "; expecting " + markerNames[count]);
 							return;
 						}
 						key = keysKeys[count];
@@ -280,8 +282,8 @@ public class ParseKcol implements Runnable {
 									}
 								}
 							} catch (NumberFormatException nfe) {
-								System.err.println("Error - failed to parse '"	+ line[dataIndices[j]]
-																		+ "' into a valid " + Array.toStr(DATA_FIELDS[j], "/"));
+								System.err.println("Error - failed to parse '" + line[dataIndices[j]]
+																	 + "' into a valid " + ArrayUtils.toStr(DATA_FIELDS[j], "/"));
 								return;
 							}
 						}
@@ -297,14 +299,14 @@ public class ParseKcol implements Runnable {
 
 						}
 						genotypes[0][key] = (byte) ext.indexOfStr(line[genotypeIndices[0]]
-																												+ line[genotypeIndices[1]],
+																											+ line[genotypeIndices[1]],
 																											Sample.ALLELE_PAIRS);
 						if (genotypes[0][key] == -1) {
-							if (ext.indexOfStr(line[genotypeIndices[0]]	+ line[genotypeIndices[1]],
-																	Sample.ALT_NULLS) == -1) {
-								System.err.println("Error - failed to lookup "	+ line[genotypeIndices[0]]
-																		+ line[genotypeIndices[1]] + " for marker " + markerNames[count]
-																		+ " of sample " + files[i]);
+							if (ext.indexOfStr(line[genotypeIndices[0]] + line[genotypeIndices[1]],
+																 Sample.ALT_NULLS) == -1) {
+								System.err.println("Error - failed to lookup " + line[genotypeIndices[0]]
+																	 + line[genotypeIndices[1]] + " for marker " + markerNames[count]
+																	 + " of sample " + files[i]);
 							} else {
 								genotypes[0][key] = 0;
 							}
@@ -312,9 +314,9 @@ public class ParseKcol implements Runnable {
 						if (ignoreAB) {
 							// do nothing, will need to use these files to determine AB lookup table
 						} else if (abLookup == null) {
-							genotypes[1][key] =
-																(byte) ext.indexOfStr(line[genotypeIndices[2]]
-																											+ line[genotypeIndices[3]], Sample.AB_PAIRS);
+							genotypes[1][key] = (byte) ext.indexOfStr(line[genotypeIndices[2]]
+																												+ line[genotypeIndices[3]],
+																												Sample.AB_PAIRS);
 						} else {
 							if (genotypes[0][key] == 0) {
 								genotypes[1][key] = -1;
@@ -324,11 +326,11 @@ public class ParseKcol implements Runnable {
 									if (line[genotypeIndices[j]].charAt(0) == abLookup[count][1]) {
 										genotypes[1][key]++;
 									} else if (line[genotypeIndices[j]].charAt(0) != abLookup[count][0]) {
-										System.err.println("Error - alleles for individual '"	+ line[sampIndex] + "' ("
-																				+ line[genotypeIndices[0]] + "/" + line[genotypeIndices[1]]
-																				+ ") do not match up with the defined AB lookup alleles ("
-																				+ abLookup[count][0] + "/" + abLookup[count][1]
-																				+ ") for marker " + markerNames[count]);
+										System.err.println("Error - alleles for individual '" + line[sampIndex] + "' ("
+																			 + line[genotypeIndices[0]] + "/" + line[genotypeIndices[1]]
+																			 + ") do not match up with the defined AB lookup alleles ("
+																			 + abLookup[count][0] + "/" + abLookup[count][1]
+																			 + ") for marker " + markerNames[count]);
 									}
 								}
 							}
@@ -345,8 +347,8 @@ public class ParseKcol implements Runnable {
 					}
 					reader.close();
 					if (count != markerNames.length) {
-						System.err.println("Error - expecting "	+ markerNames.length
-																+ " markers and only found " + count + " in file " + files[i]);
+						System.err.println("Error - expecting " + markerNames.length
+															 + " markers and only found " + count + " in file " + files[i]);
 						return;
 					}
 
@@ -354,8 +356,8 @@ public class ParseKcol implements Runnable {
 						sampleName = fixes.get(sampleName);
 					}
 
-					filename = determineFilename(	proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName,
-																				timeBegan);
+					filename = determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName,
+																			 timeBegan);
 					if (filename == null) {
 						return;
 					}
@@ -376,24 +378,24 @@ public class ParseKcol implements Runnable {
 
 			if (allOutliers.size() > 0) {
 				if (threadId >= 0) {
-					if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true)	+ "outliers" + threadId
-												+ ".ser").exists()) {
+					if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + threadId
+											 + ".ser").exists()) {
 						System.err.println("Error - the following file already exists: "
-																	+ proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + threadId
-																+ ".ser");
+															 + proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + threadId
+															 + ".ser");
 						System.exit(1);
 					} else {
 						SerializedFiles.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true)
-																											+ "outliers" + threadId + ".ser");
+																										 + "outliers" + threadId + ".ser");
 					}
 				} else {
 					if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers0.ser").exists()) {
 						System.err.println("Error - the following file already exists: "
-																+ proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers0.ser");
+															 + proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers0.ser");
 						System.exit(1);
 					} else {
 						SerializedFiles.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true)
-																											+ "outliers0.ser");
+																										 + "outliers0.ser");
 					}
 				}
 			}
@@ -407,9 +409,9 @@ public class ParseKcol implements Runnable {
 		}
 	}
 
-	private static byte[] parseGenotypes(	String[] line, int[] genotypeIndices, boolean ignoreAB,
-																				char[][] abLookup, int count, String sampleName,
-																				String markerName, String filename) {
+	private static byte[] parseGenotypes(String[] line, int[] genotypeIndices, boolean ignoreAB,
+																			 char[][] abLookup, int count, String sampleName,
+																			 String markerName, String filename) {
 		String genotype;
 		byte genoForward, genoAB;
 
@@ -440,8 +442,8 @@ public class ParseKcol implements Runnable {
 			genoAB = (byte) ext.indexOfStr(genotype, Sample.AB_PAIRS);
 			if (genoAB == -1) {
 				if (ext.indexOfStr(genotype, Sample.ALT_NULLS) == -1) {
-					System.err.println("Error - failed to lookup "	+ genotype + " for marker " + markerName
-															+ " of sample " + filename);
+					System.err.println("Error - failed to lookup " + genotype + " for marker " + markerName
+														 + " of sample " + filename);
 				}
 			}
 		} else {
@@ -458,10 +460,10 @@ public class ParseKcol implements Runnable {
 					if (genotype.charAt(j) == abLookup[count][1]) {
 						genoAB++;
 					} else if (genotype.charAt(j) != abLookup[count][0]) {
-						System.err.println("Error - alleles for individual '"	+ sampleName + "' (" + genotype
-																+ ") do not match up with the defined AB lookup alleles ("
-																+ abLookup[count][0] + "/" + abLookup[count][1] + ") for marker "
-																+ markerName);
+						System.err.println("Error - alleles for individual '" + sampleName + "' (" + genotype
+															 + ") do not match up with the defined AB lookup alleles ("
+															 + abLookup[count][0] + "/" + abLookup[count][1] + ") for marker "
+															 + markerName);
 					}
 				}
 			}
@@ -482,18 +484,18 @@ public class ParseKcol implements Runnable {
 			trav = sampleName + (version == 0 ? "" : "." + version);
 			version++;
 			filename = dir + trav + Sample.SAMPLE_FILE_EXTENSION;
-			if (new File(filename).exists()	&& new File(filename).lastModified() < timeBegan
+			if (new File(filename).exists() && new File(filename).lastModified() < timeBegan
 					&& versionToOverwrite == -1) {
 				versionToOverwrite = version - 1;
 			}
 		} while (new File(filename).exists());
 
-		overwriteOptions = new String[] {"Rename new file "	+ trav + Sample.SAMPLE_FILE_EXTENSION,
-																			"Overwrite existing file "							+ sampleName + (versionToOverwrite == 0	? ""
-																																																					: "."
-																																																						+ versionToOverwrite)
-																																							+ Sample.SAMPLE_FILE_EXTENSION,
-																			"Overwrite this and all future files", "Cancel parser"};
+		overwriteOptions = new String[] {"Rename new file " + trav + Sample.SAMPLE_FILE_EXTENSION,
+																		 "Overwrite existing file " + sampleName + (versionToOverwrite == 0 ? ""
+																																																				: "."
+																																																					+ versionToOverwrite)
+																																															 + Sample.SAMPLE_FILE_EXTENSION,
+																		 "Overwrite this and all future files", "Cancel parser"};
 
 		if (versionToOverwrite != -1) {
 			while (new File(dir + HOLD_OPTION_FILE).exists()) {
@@ -512,7 +514,7 @@ public class ParseKcol implements Runnable {
 			} else {
 				do {
 					response = JOptionPane.showOptionDialog(null,
-																									"Error - the same sample name '"	+ sampleName
+																									"Error - the same sample name '" + sampleName
 																												+ "' is being parsed again and the previous file existed before the current command began.\n"
 																												+ "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"
 																												+ "If you would like to start from scratch, the safest thing would be to cancel now and delete all files in the sample directory.\n"
@@ -529,8 +531,8 @@ public class ParseKcol implements Runnable {
 				case 2:
 					Files.write("", dir + OVERWRITE_OPTION_FILE);
 				case 1:
-					return dir	+ sampleName + (versionToOverwrite == 0 ? "" : "." + versionToOverwrite)
-									+ Sample.SAMPLE_FILE_EXTENSION;
+					return dir + sampleName + (versionToOverwrite == 0 ? "" : "." + versionToOverwrite)
+								 + Sample.SAMPLE_FILE_EXTENSION;
 				case 3:
 					Files.write("", dir + CANCEL_OPTION_FILE);
 					return null;
@@ -584,29 +586,29 @@ public class ParseKcol implements Runnable {
 		if (!proj.SOURCE_DIRECTORY.getValue(false, true).equals("")
 				&& !new File(proj.SOURCE_DIRECTORY.getValue(false, true)).exists()) {
 			System.err.println("Error - the Project source location is invalid: "
-													+ proj.SOURCE_DIRECTORY.getValue(false, true));
+												 + proj.SOURCE_DIRECTORY.getValue(false, true));
 			return;
 		}
 
 		if (!new File(proj.MARKER_POSITION_FILENAME.getValue(false, false)).exists()) {
 			System.err.println("Error - missing markerPositions: "
-													+ proj.MARKER_POSITION_FILENAME.getValue(false, false));
+												 + proj.MARKER_POSITION_FILENAME.getValue(false, false));
 			return;
 		}
 
 		delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
 		idHeader = proj.getProperty(proj.ID_HEADER);
-		System.out.println(ext.getTime()	+ "\tSearching for "
-												+ proj.getProperty(proj.SOURCE_FILENAME_EXTENSION) + " files in: "
-												+ proj.SOURCE_DIRECTORY.getValue(false, true));
+		System.out.println(ext.getTime() + "\tSearching for "
+											 + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION) + " files in: "
+											 + proj.SOURCE_DIRECTORY.getValue(false, true));
 		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true), "gw6_split", "", false, false);
 		// Files.list(kColDir+dirList[0], prefix ,suffix,false ,false);
-		System.out.println("\t\tFound "	+ files.length + " file" + (files.length == 1 ? "" : "s")
-												+ " with a " + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)
-												+ " extension");
+		System.out.println("\t\tFound " + files.length + " file" + (files.length == 1 ? "" : "s")
+											 + " with a " + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)
+											 + " extension");
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].equals("Sample_Map.csv") || files[i].equals("SNP_Map.csv")) {
-				files = Array.removeFromArray(files, i);
+				files = ArrayUtils.removeFromArray(files, i);
 				i--;
 			}
 		}
@@ -617,8 +619,8 @@ public class ParseKcol implements Runnable {
 		}
 
 		abLookupRequired = false;
-		System.out.println("\t\tFound "	+ files.length + " file" + (files.length == 1 ? "" : "s")
-												+ " to parse");
+		System.out.println("\t\tFound " + files.length + " file" + (files.length == 1 ? "" : "s")
+											 + " to parse");
 		fixes = new Hashtable<String, String>();
 		if (new File(proj.PROJECT_DIRECTORY.getValue() + "fixes.dat").exists()) {
 			System.out.println("Also found a 'fixes.dat' file in the project directory, which will be used to rename samples");
@@ -631,7 +633,7 @@ public class ParseKcol implements Runnable {
 			// reader = new BufferedReader(new FileReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[0]));
 			reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[0]);
 			System.out.println("Found appropriate reader for: "
-													+ proj.SOURCE_DIRECTORY.getValue(false, true) + files[0]);
+												 + proj.SOURCE_DIRECTORY.getValue(false, true) + files[0]);
 			count = 0;
 			do {
 				line = reader.readLine().trim().split(delimiter, -1);
@@ -640,13 +642,13 @@ public class ParseKcol implements Runnable {
 				// System.out.println(Array.toStr(line));
 				// }
 			} while (reader.ready()
-								&& (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1
-										|| (!idHeader.equals(FILENAME_AS_ID_OPTION)
-												&& ext.indexOfStr(idHeader, line) == -1)));
+							 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1
+									 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
+											 && ext.indexOfStr(idHeader, line) == -1)));
 
 			if (!reader.ready()) {
 				System.err.println("Error - reached the end of the file without finding a line with the following tokens: "
-														+ Array.toStr(SNP_HEADER_OPTIONS[0]));
+													 + ArrayUtils.toStr(SNP_HEADER_OPTIONS[0]));
 				System.err.println("      - perhaps the delimiter is set incorrectly? Determing most stable delimiter...");
 
 				reader.close();
@@ -660,9 +662,9 @@ public class ParseKcol implements Runnable {
 				}
 				delimiter = null;
 				for (int j = 0; j < DELIMITERS.length; j++) {
-					if (Array.quantWithExtremeForTie(delimiterCounts[j], 0.5) > 4
-							&& Array.quantWithExtremeForTie(delimiterCounts[j], 0.9)
-									- Array.quantWithExtremeForTie(delimiterCounts[j], 0.1) == 0) {
+					if (ArrayUtils.quantWithExtremeForTie(delimiterCounts[j], 0.5) > 4
+							&& ArrayUtils.quantWithExtremeForTie(delimiterCounts[j], 0.9)
+								 - ArrayUtils.quantWithExtremeForTie(delimiterCounts[j], 0.1) == 0) {
 						if (delimiter == null) {
 							delimiter = DELIMITERS[j];
 						} else {
@@ -689,9 +691,9 @@ public class ParseKcol implements Runnable {
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
 				} while (reader.ready()
-									&& (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1
-											|| (!idHeader.equals(FILENAME_AS_ID_OPTION)
-													&& ext.indexOfStr(idHeader, line) == -1)));
+								 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1
+										 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
+												 && ext.indexOfStr(idHeader, line) == -1)));
 				System.out.println(1);
 			}
 
@@ -699,19 +701,20 @@ public class ParseKcol implements Runnable {
 			indices = ext.indexFactors(DATA_FIELDS, line, false, true, true, false); // dataIndices
 			if (indices[3] == -1 || indices[4] == -1) {
 				System.err.println("Error - at the very least the files need to contain "
-															+ Array.toStr(DATA_FIELDS[3], "/") + " and "
-														+ Array.toStr(DATA_FIELDS[4], "/"));
+													 + ArrayUtils.toStr(DATA_FIELDS[3], "/") + " and "
+													 + ArrayUtils.toStr(DATA_FIELDS[4], "/"));
 				System.err.println("      - failed to see that in " + files[0]);
-				System.err.println(Array.toStr(line));
+				System.err.println(ArrayUtils.toStr(line));
 
 				return;
 			}
 			indices = ext.indexFactors(GENOTYPE_FIELDS, line, false, true, true, false); // genotypeIndices
 			if (indices[4] == -1 && (indices[0] == -1 || indices[1] == -1)) {
 				System.err.println("Error - the files need to contain "
-															+ Array.toStr(GENOTYPE_FIELDS[0], "/") + " and "
-														+ Array.toStr(GENOTYPE_FIELDS[1], "/") + " or "
-														+ Array.toStr(GENOTYPE_FIELDS[4], "/") + " (for single token calls)");
+													 + ArrayUtils.toStr(GENOTYPE_FIELDS[0], "/") + " and "
+													 + ArrayUtils.toStr(GENOTYPE_FIELDS[1], "/") + " or "
+													 + ArrayUtils.toStr(GENOTYPE_FIELDS[4], "/")
+													 + " (for single token calls)");
 				return;
 			}
 			if (indices[5] == -1 && (indices[2] == -1 || indices[3] == -1)) {
@@ -731,23 +734,23 @@ public class ParseKcol implements Runnable {
 				reader.mark(1000);
 				line = reader.readLine().split(delimiter);
 				if (parseAtAt && line[sampIndex].indexOf("@") == -1) {
-					System.err.println("Error - "	+ idHeader + " '" + line[sampIndex]
-															+ "' did not contain an @ sample");
+					System.err.println("Error - " + idHeader + " '" + line[sampIndex]
+														 + "' did not contain an @ sample");
 					parseAtAt = false;
 				}
-				sampleName = parseAtAt	? line[sampIndex].substring(0, line[sampIndex].indexOf("@"))
-																: line[sampIndex];
+				sampleName = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@"))
+															 : line[sampIndex];
 				reader.reset();
 			}
 
-			if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true)	+ sampleName
-										+ Sample.SAMPLE_FILE_EXTENSION).exists()) {
+			if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + sampleName
+									 + Sample.SAMPLE_FILE_EXTENSION).exists()) {
 
 				overwriteOptions = new String[] {"Delete All", "Customize", "Cancel parser"};
 
 				response = JOptionPane.showOptionDialog(null,
 																								"These data (at least the first sample '"
-																												+ sampleName
+																											+ sampleName
 																											+ "') have already been parsed.\n"
 																											+ "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"
 																											+ "If you would like to start from scratch, select \"Delete All\" earlier files.\n"
@@ -761,8 +764,8 @@ public class ParseKcol implements Runnable {
 					case -1:
 						break;
 					case 0:
-						filesToDelete = Files.list(	proj.SAMPLE_DIRECTORY.getValue(false, true),
-																				Sample.SAMPLE_FILE_EXTENSION, false);
+						filesToDelete = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true),
+																			 Sample.SAMPLE_FILE_EXTENSION, false);
 						for (String element : filesToDelete) {
 							new File(proj.SAMPLE_DIRECTORY.getValue(false, true) + element).delete();
 						}
@@ -817,12 +820,12 @@ public class ParseKcol implements Runnable {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ proj.SOURCE_DIRECTORY.getValue(false, true) + files[0]
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + proj.SOURCE_DIRECTORY.getValue(false, true) + files[0]
+												 + "\" not found in current directory");
 			return;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""	+ proj.SOURCE_DIRECTORY.getValue(false, true)
-													+ files[0] + "\"");
+			System.err.println("Error reading file \"" + proj.SOURCE_DIRECTORY.getValue(false, true)
+												 + files[0] + "\"");
 			return;
 		}
 
@@ -831,7 +834,7 @@ public class ParseKcol implements Runnable {
 		// new File(proj.getDir(proj.DATA_DIRECTORY)).mkdirs();
 
 		// markerNames = Array.toStringArray(markerNameHash);
-		markerNames = Array.toStringArray(alNames);
+		markerNames = ArrayUtils.toStringArray(alNames);
 		// keys = Markers.orderMarkers(markerNames, proj.getFilename(proj.MARKER_POSITION_FILENAME),
 		// proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
 		keys = Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
@@ -841,8 +844,8 @@ public class ParseKcol implements Runnable {
 		}
 		keysKeys = Sort.getSortedIndices(keys); // very important
 		fingerprint = proj.getMarkerSet().getFingerprint();
-		System.out.println("There are "	+ markerNames.length + " markers being processed (fingerprint: "
-												+ fingerprint + ")");
+		System.out.println("There are " + markerNames.length + " markers being processed (fingerprint: "
+											 + fingerprint + ")");
 
 		lookup = getABLookup(abLookupRequired, markerNames, proj);
 
@@ -856,9 +859,9 @@ public class ParseKcol implements Runnable {
 		threads = new Thread[numThreads];
 		for (int i = 0; i < numThreads; i++) {
 			threads[i] = new Thread(new ParseKcol(proj,
-																						fileCabinet	.elementAt(i)
-																												.toArray(new String[fileCabinet	.elementAt(i)
-																																												.size()]),
+																						fileCabinet.elementAt(i)
+																											 .toArray(new String[fileCabinet.elementAt(i)
+																																											.size()]),
 																						markerNames, keysKeys, lookup, fingerprint, fixes,
 																						timeBegan, i));
 			threads[i].start();
@@ -889,8 +892,8 @@ public class ParseKcol implements Runnable {
 			if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + i + ".ser").exists()) {
 				allOutliers.putAll((Hashtable<String, Float>) SerializedFiles.readSerial(proj.SAMPLE_DIRECTORY.getValue(true,
 																																																								true)
-																																										+ "outliers" + i
-																																									+ ".ser"));
+																																								 + "outliers" + i
+																																								 + ".ser"));
 				new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + i + ".ser").delete();
 			}
 		}
@@ -913,11 +916,11 @@ public class ParseKcol implements Runnable {
 															proj.getLog());
 			lookup = abLookup.getLookup();
 			if (lookup == null) {
-				System.err.println("Warning - filed to provide columns \""	+ GENOTYPE_FIELDS[2][0]
-														+ "\" / \"" + GENOTYPE_FIELDS[3][0]
-														+ "\" and the specificed AB_lookup file '"
-														+ proj.getProperty(proj.AB_LOOKUP_FILENAME)
-														+ "' does not exist; you'll need reconstruct the B allele for analysis");
+				System.err.println("Warning - filed to provide columns \"" + GENOTYPE_FIELDS[2][0]
+													 + "\" / \"" + GENOTYPE_FIELDS[3][0]
+													 + "\" and the specificed AB_lookup file '"
+													 + proj.getProperty(proj.AB_LOOKUP_FILENAME)
+													 + "' does not exist; you'll need reconstruct the B allele for analysis");
 			} else {
 				abLookup.writeToFile(proj.PROJECT_DIRECTORY.getValue() + "checkAB.xln", proj.getLog());
 			}
@@ -928,9 +931,9 @@ public class ParseKcol implements Runnable {
 		return lookup;
 	}
 
-	public static void createFilesFromLongFormat(	Project proj, String[] files, String idHeader,
-																								Hashtable<String, String> fixes, String delimiter,
-																								boolean abLookupRequired, long timeBegan) {
+	public static void createFilesFromLongFormat(Project proj, String[] files, String idHeader,
+																							 Hashtable<String, String> fixes, String delimiter,
+																							 boolean abLookupRequired, long timeBegan) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, markerNames, list;
@@ -946,8 +949,8 @@ public class ParseKcol implements Runnable {
 
 		// Markers.orderMarkers(null, proj.getFilename(proj.MARKER_POSITION_FILENAME),
 		// proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
-		Markers.orderMarkers(	null, proj.MARKER_POSITION_FILENAME.getValue(),
-													proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+		Markers.orderMarkers(null, proj.MARKER_POSITION_FILENAME.getValue(),
+												 proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		fingerprint = proj.getMarkerSet().getFingerprint();
@@ -959,10 +962,10 @@ public class ParseKcol implements Runnable {
 			markerIndices.put(markerNames[i], new Integer(i));
 		}
 
-		System.out.println("There were "	+ markerNames.length + " markers present in '"
-												+ proj.MARKERSET_FILENAME.getValue(true, true)
-												+ "' that will be processed from the source files (fingerprint: "
-												+ fingerprint + ")");
+		System.out.println("There were " + markerNames.length + " markers present in '"
+											 + proj.MARKERSET_FILENAME.getValue(true, true)
+											 + "' that will be processed from the source files (fingerprint: "
+											 + fingerprint + ")");
 
 		int snpIndex, sampIndex, key;
 		String trav;
@@ -985,8 +988,8 @@ public class ParseKcol implements Runnable {
 		try {
 			for (int i = 0; i < files.length; i++) {
 				try {
-					System.out.println(ext.getTime()	+ "\t" + (i + 1) + " of " + files.length + " ("
-															+ files[i] + ")");
+					System.out.println(ext.getTime() + "\t" + (i + 1) + " of " + files.length + " ("
+														 + files[i] + ")");
 					// reader = new BufferedReader(new
 					// FileReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[i]));
 					reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)
@@ -994,11 +997,11 @@ public class ParseKcol implements Runnable {
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
 					} while (reader.ready()
-										&& (ext.indexFactors(	SNP_HEADER_OPTIONS, line, false, true, false,
-																					false)[0] == -1
-												|| ext.indexOfStr(idHeader, line) == -1));
+									 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false,
+																				false)[0] == -1
+											 || ext.indexOfStr(idHeader, line) == -1));
 
-					System.err.println("Searching: " + Array.toStr(line));
+					System.err.println("Searching: " + ArrayUtils.toStr(line));
 					dataIndices = ext.indexFactors(DATA_FIELDS, line, false, true, false, false);
 					genotypeIndices = ext.indexFactors(GENOTYPE_FIELDS, line, false, true, false, false);
 					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
@@ -1006,19 +1009,19 @@ public class ParseKcol implements Runnable {
 
 					if (dataIndices[3] == -1 || dataIndices[4] == -1) {
 						System.err.println("Error - File format not consistent! At the very least the files need to contain "
-																	+ Array.toStr(DATA_FIELDS[3], "/") + " and "
-																+ Array.toStr(DATA_FIELDS[4], "/"));
+															 + ArrayUtils.toStr(DATA_FIELDS[3], "/") + " and "
+															 + ArrayUtils.toStr(DATA_FIELDS[4], "/"));
 						return;
 					}
 					if (genotypeIndices[4] == -1 && (genotypeIndices[0] == -1 || genotypeIndices[1] == -1)) {
 						System.err.println("Error - File format not consistent! The files need to contain "
-																	+ Array.toStr(GENOTYPE_FIELDS[0], "/") + " and "
-																+ Array.toStr(GENOTYPE_FIELDS[1], "/") + " or "
-																+ Array.toStr(GENOTYPE_FIELDS[4], ",")
-																+ " (for single token calls)");
+															 + ArrayUtils.toStr(GENOTYPE_FIELDS[0], "/") + " and "
+															 + ArrayUtils.toStr(GENOTYPE_FIELDS[1], "/") + " or "
+															 + ArrayUtils.toStr(GENOTYPE_FIELDS[4], ",")
+															 + " (for single token calls)");
 						return;
 					}
-					if (genotypeIndices[5] == -1	&& (genotypeIndices[2] == -1 || genotypeIndices[3] == -1)
+					if (genotypeIndices[5] == -1 && (genotypeIndices[2] == -1 || genotypeIndices[3] == -1)
 							&& abLookup == null) {
 						ignoreAB = true;
 					} else {
@@ -1035,12 +1038,12 @@ public class ParseKcol implements Runnable {
 						if (reader.ready()) {
 							line = reader.readLine().split(delimiter);
 							if (parseAtAt && line[sampIndex].indexOf("@") == -1) {
-								System.err.println("Error - "	+ idHeader + " '" + line[sampIndex]
-																		+ "' did not contain an @ sample");
+								System.err.println("Error - " + idHeader + " '" + line[sampIndex]
+																	 + "' did not contain an @ sample");
 								parseAtAt = false;
 							}
-							trav = parseAtAt	? line[sampIndex].substring(0, line[sampIndex].indexOf("@"))
-																: line[sampIndex];
+							trav = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@"))
+															 : line[sampIndex];
 						} else {
 							done = true;
 							trav = null;
@@ -1052,8 +1055,8 @@ public class ParseKcol implements Runnable {
 									sampleName = fixes.get(sampleName);
 								}
 
-								filename = determineFilename(	proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName,
-																							timeBegan);
+								filename = determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName,
+																						 timeBegan);
 								if (filename == null) {
 									return;
 								}
@@ -1061,37 +1064,37 @@ public class ParseKcol implements Runnable {
 								samp = new Sample(sampleName, fingerprint, data, genotypes, true);
 								samp.saveToRandomAccessFile(filename, allOutliers, sampleName);
 							}
-							if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true)	+ trav
-														+ Sample.SAMPLE_FILE_EXTENSION).exists()) {
+							if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + trav
+													 + Sample.SAMPLE_FILE_EXTENSION).exists()) {
 								samp = Sample.loadFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true)
-																													+ (fixes.containsKey(trav)	? fixes.get(trav)
-																																										: trav)
-																												+ Sample.SAMPLE_FILE_EXTENSION,
-																												proj.JAR_STATUS.getValue());
+																											 + (fixes.containsKey(trav) ? fixes.get(trav)
+																																									: trav)
+																											 + Sample.SAMPLE_FILE_EXTENSION,
+																											 proj.JAR_STATUS.getValue());
 								data = samp.getAllData();
 								genotypes = samp.getAllGenotypes();
 							} else {
 								data = new float[DATA_FIELDS.length][];
 								for (int j = 0; j < data.length; j++) {
 									if (dataIndices[j] != -1) {
-										data[j] = Array.floatArray(markerNames.length, Float.POSITIVE_INFINITY);
+										data[j] = ArrayUtils.floatArray(markerNames.length, Float.POSITIVE_INFINITY);
 									}
 								}
 								genotypes = new byte[2][];
-								genotypes[0] = Array.byteArray(markerNames.length, (byte) 0); // used to be
-																																							// initialized to
-																																							// Byte.MIN_VALUE when
-																																							// AB genotypes &&
-																																							// abLookup were both
-																																							// absent
+								genotypes[0] = ArrayUtils.byteArray(markerNames.length, (byte) 0); // used to be
+								// initialized to
+								// Byte.MIN_VALUE when
+								// AB genotypes &&
+								// abLookup were both
+								// absent
 								if (!ignoreAB) {
-									genotypes[1] = Array.byteArray(markerNames.length, (byte) -1); // used to be
-																																									// initialized to
-																																									// Byte.MIN_VALUE
-																																									// when AB
-																																									// genotypes &&
-																																									// abLookup were
-																																									// both absent
+									genotypes[1] = ArrayUtils.byteArray(markerNames.length, (byte) -1); // used to be
+									// initialized to
+									// Byte.MIN_VALUE
+									// when AB
+									// genotypes &&
+									// abLookup were
+									// both absent
 								}
 							}
 							sampleName = trav;
@@ -1107,21 +1110,21 @@ public class ParseKcol implements Runnable {
 										if (dataIndices[j] != -1) {
 											if (!(data[j][key] + "").equals("Infinity")) {
 												dupHash.add(line[snpIndex]);
-												System.err.println("Sample "	+ trav + " already has data for marker "
-																						+ line[snpIndex]
-																						+ " (Was the parsing restarted? Delete the old directories first)");
+												System.err.println("Sample " + trav + " already has data for marker "
+																					 + line[snpIndex]
+																					 + " (Was the parsing restarted? Delete the old directories first)");
 											}
 											data[j][key] = Float.parseFloat(line[dataIndices[j]]);
 										}
 									} catch (NumberFormatException nfe) {
-										System.err.println("Error - failed to parse"	+ line[dataIndices[j]]
-																				+ " into a valid " + Array.toStr(DATA_FIELDS[j], ","));
+										System.err.println("Error - failed to parse" + line[dataIndices[j]]
+																			 + " into a valid " + ArrayUtils.toStr(DATA_FIELDS[j], ","));
 										return;
 									}
 								}
 
-								genos = parseGenotypes(	line, genotypeIndices, ignoreAB, abLookup, count, sampleName,
-																				markerNames[count], files[i]);
+								genos = parseGenotypes(line, genotypeIndices, ignoreAB, abLookup, count, sampleName,
+																			 markerNames[count], files[i]);
 								genotypes[0][key] = genos[0];
 								if (!ignoreAB) {
 									genotypes[1][key] = genos[1];
@@ -1143,7 +1146,7 @@ public class ParseKcol implements Runnable {
 			if (allOutliers.size() > 0) {
 				if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser").exists()) {
 					System.err.println("Error - the following file already exists: "
-															+ proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+														 + proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 					System.exit(1);
 				} else {
 					SerializedFiles.writeSerial(allOutliers,
@@ -1165,8 +1168,8 @@ public class ParseKcol implements Runnable {
 																							+ "ListOfMarkers.txt"));
 			writer.println("Marker\tExpected\tTimesSeen\tTimesDuplicated");
 			for (String markerName : markerNames) {
-				writer.println(markerName	+ "\t1\t" + countHash.getCount(markerName) + "\t"
-												+ dupHash.getCount(markerName));
+				writer.println(markerName + "\t1\t" + countHash.getCount(markerName) + "\t"
+											 + dupHash.getCount(markerName));
 				countHash.remove(markerName, false);
 			}
 			list = countHash.getValues();
@@ -1194,13 +1197,13 @@ public class ParseKcol implements Runnable {
 
 		delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
 		idHeader = proj.getProperty(proj.ID_HEADER);
-		System.out.println(ext.getTime()	+ "\tSearching for "
-												+ proj.getProperty(proj.SOURCE_FILENAME_EXTENSION) + " files in: "
-												+ proj.SOURCE_DIRECTORY.getValue(false, true));
-		files = Files.list(	proj.SOURCE_DIRECTORY.getValue(false, true),
-												proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
-		System.out.println("\t\tFound "	+ files.length + " file" + (files.length == 1 ? "" : "s")
-												+ " to parse");
+		System.out.println(ext.getTime() + "\tSearching for "
+											 + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION) + " files in: "
+											 + proj.SOURCE_DIRECTORY.getValue(false, true));
+		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true),
+											 proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+		System.out.println("\t\tFound " + files.length + " file" + (files.length == 1 ? "" : "s")
+											 + " to parse");
 
 		try {
 			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + filename));
@@ -1215,19 +1218,19 @@ public class ParseKcol implements Runnable {
 
 					if (!reader.ready()) {
 						System.err.println("Error - went through enitre file without finding a line containing the user-defined ID header: "
-																+ idHeader);
+															 + idHeader);
 						return;
 					}
 					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
 
 					line = reader.readLine().split(delimiter);
-					writer.println(file	+ "\t" + line[sampIndex] + "\t"
-													+ (line[sampIndex].indexOf("@") >= 0	? line[sampIndex].split("@")[0]
-																																: line[sampIndex]));
+					writer.println(file + "\t" + line[sampIndex] + "\t"
+												 + (line[sampIndex].indexOf("@") >= 0 ? line[sampIndex].split("@")[0]
+																															: line[sampIndex]));
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ file + "\" not found in "
-															+ proj.SOURCE_DIRECTORY.getValue(false, true));
+					System.err.println("Error: file \"" + file + "\" not found in "
+														 + proj.SOURCE_DIRECTORY.getValue(false, true));
 					writer.close();
 					return;
 				} catch (IOException ioe) {
@@ -1257,14 +1260,14 @@ public class ParseKcol implements Runnable {
 		if (!proj.SOURCE_DIRECTORY.getValue(false, true).equals("")
 				&& !new File(proj.SOURCE_DIRECTORY.getValue(false, true)).exists()) {
 			System.err.println("Error - the Project source location is invalid: "
-													+ proj.SOURCE_DIRECTORY.getValue(false, true));
+												 + proj.SOURCE_DIRECTORY.getValue(false, true));
 			return;
 		}
 
 		String[] dirList = Files.listDirectories(proj.SOURCE_DIRECTORY.getValue(false, true), false);
-		String[] chunkFiles = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true)	+ dirList[0]
-																			+ commonSubFolder,
-																			proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+		String[] chunkFiles = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true) + dirList[0]
+																		 + commonSubFolder,
+																		 proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
 
 		int counts = 0;
 
@@ -1280,30 +1283,30 @@ public class ParseKcol implements Runnable {
 					// filter comments
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
-					} while (reader.ready() && (ext.indexFactors(	SNP_HEADER_OPTIONS, line, false, true, false,
-																												false)[0] == -1
+					} while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false,
+																											 false)[0] == -1
 																			|| (!idHeader.equals(FILENAME_AS_ID_OPTION)
 																					&& ext.indexOfStr(idHeader, line) == -1)));
 					// if its the first directory, print the header
 
 					if (i == 0) {
-						writer.println(Array.toStr(line));
+						writer.println(ArrayUtils.toStr(line));
 					}
 
 					while (reader.ready()) {
 						line = reader.readLine().trim().split(delimiter, -1);
-						writer.println(Array.toStr(line));
+						writer.println(ArrayUtils.toStr(line));
 						counts++;
 					}
 					System.out.println(counts);
 					counts = 0;
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ chunkFiles[j] + "\" not found in "
-															+ proj.SOURCE_DIRECTORY.getValue(false, true) + dirList[i]);
+					System.err.println("Error: file \"" + chunkFiles[j] + "\" not found in "
+														 + proj.SOURCE_DIRECTORY.getValue(false, true) + dirList[i]);
 					return;
 				} catch (IOException ioe) {
-					System.err.println("Error reading file \""	+ proj.SOURCE_DIRECTORY.getValue(false, true)
-															+ dirList[i] + chunkFiles[j] + "\"");
+					System.err.println("Error reading file \"" + proj.SOURCE_DIRECTORY.getValue(false, true)
+														 + dirList[i] + chunkFiles[j] + "\"");
 					return;
 				}
 			}
@@ -1377,14 +1380,14 @@ public class ParseKcol implements Runnable {
 		String[] alleles;
 		int expIndex;
 
-		files = Files.list(	proj.SOURCE_DIRECTORY.getValue(false, true),
-												proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true),
+											 proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
 		if (files.length == 0) {
 			System.err.println("Error - no files to parse");
 			return;
 		}
-		System.out.println("\t\tFound "	+ files.length + " file" + (files.length == 1 ? "" : "s")
-												+ " to parse");
+		System.out.println("\t\tFound " + files.length + " file" + (files.length == 1 ? "" : "s")
+											 + " to parse");
 
 		idHeader = proj.getProperty(proj.ID_HEADER);
 		delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
@@ -1401,13 +1404,13 @@ public class ParseKcol implements Runnable {
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
 				} while (reader.ready()
-									&& (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1
-											|| (!idHeader.equals(FILENAME_AS_ID_OPTION)
-													&& ext.indexOfStr(idHeader, line) == -1)));
+								 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1
+										 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
+												 && ext.indexOfStr(idHeader, line) == -1)));
 
 				snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
-				indices = ext.indexFactors(	Sample.ALL_STANDARD_GENOTYPE_FIELDS, line, false, proj.getLog(),
-																		false, false);
+				indices = ext.indexFactors(Sample.ALL_STANDARD_GENOTYPE_FIELDS, line, false, proj.getLog(),
+																	 false, false);
 
 				while (reader.ready()) {
 					line = reader.readLine().split(delimiter);
@@ -1415,11 +1418,11 @@ public class ParseKcol implements Runnable {
 						alleles = hash.get(line[snpIndex]);
 					} else {
 						if (i != 0) {
-							System.err.println("Error - snp '"	+ line[snpIndex] + "' first seen in file #" + i
-																	+ " (" + files[i] + ") and not earlier");
+							System.err.println("Error - snp '" + line[snpIndex] + "' first seen in file #" + i
+																 + " (" + files[i] + ") and not earlier");
 						}
-						hash.put(	line[snpIndex],
-											alleles = new String[Sample.ALL_STANDARD_GENOTYPE_FIELDS.length]);
+						hash.put(line[snpIndex],
+										 alleles = new String[Sample.ALL_STANDARD_GENOTYPE_FIELDS.length]);
 					}
 					for (int j = 0; j < 2; j++) {
 						if (ext.indexOfStr(line[indices[j]], Sample.ALT_NULL) == -1) {
@@ -1434,9 +1437,9 @@ public class ParseKcol implements Runnable {
 							} else if (line[indices[j]].equals(alleles[1])) {
 								expIndex = 1;
 							} else {
-								System.err.println("Error - snp '"	+ line[snpIndex] + "' has a new allele in file #"
-																		+ i + " (" + files[i] + "): " + line[indices[j]]
-																		+ " (previously " + alleles[0] + "/" + alleles[1] + ")");
+								System.err.println("Error - snp '" + line[snpIndex] + "' has a new allele in file #"
+																	 + i + " (" + files[i] + "): " + line[indices[j]]
+																	 + " (previously " + alleles[0] + "/" + alleles[1] + ")");
 								expIndex = -9;
 							}
 
@@ -1482,25 +1485,25 @@ public class ParseKcol implements Runnable {
 		writeToLookupFile(proj, hash, 0);
 	}
 
-	public static void writeToLookupFile(	Project proj, Hashtable<String, String[]> hash,
-																				int fileNumber) {
+	public static void writeToLookupFile(Project proj, Hashtable<String, String[]> hash,
+																			 int fileNumber) {
 		PrintWriter writer;
 		String[] keys;
 
 		System.out.print("Writing to file...");
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()	+ "alleleLookup"
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "alleleLookup"
 																							+ (fileNumber > 0 ? "_atFile" + fileNumber : "")
 																							+ ".xln"));
 			keys = HashVec.getKeys(hash, false);
-			writer.println("SNP\t" + Array.toStr(Sample.ALL_STANDARD_GENOTYPE_FIELDS));
+			writer.println("SNP\t" + ArrayUtils.toStr(Sample.ALL_STANDARD_GENOTYPE_FIELDS));
 			for (String key : keys) {
-				writer.println(key + "\t" + Array.toStr(hash.get(key)));
+				writer.println(key + "\t" + ArrayUtils.toStr(hash.get(key)));
 			}
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to "	+ proj.PROJECT_DIRECTORY.getValue()
-													+ "alleleLookup.xln");
+			System.err.println("Error writing to " + proj.PROJECT_DIRECTORY.getValue()
+												 + "alleleLookup.xln");
 			e.printStackTrace();
 		}
 		System.out.println("done");
@@ -1548,17 +1551,16 @@ public class ParseKcol implements Runnable {
 		boolean combineChpFiles = false;
 		String mapOutput = "filenamesMappedToSamples.txt";
 
-		String usage = "\n"	+ "cnv.manage.ParseKcol requires 0-1 arguments\n"
-										+ "   (1) project properties filename (i.e. proj="
-										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-										+ "   (2) number of threads to use (i.e. threads=" + numThreads
-										+ " (default))\n" + " OPTIONAL:\n"
-										+ "   (3) map filenames to sample IDs (i.e. -mapFiles ("
-										+ (map ? "" : "not the ") + "default))\n"
-										+ "   (4) output file for mappings (i.e. out=" + mapOutput + " (default))\n" +
-										" OR:\n"
-										+ "   (1) parse Forward/TOP/AB/etc lookup (i.e. --parseAlleleLookup (not the default))\n"
-										+ "";
+		String usage = "\n" + "cnv.manage.ParseKcol requires 0-1 arguments\n"
+									 + "   (1) project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + "   (2) number of threads to use (i.e. threads=" + numThreads + " (default))\n"
+									 + " OPTIONAL:\n" + "   (3) map filenames to sample IDs (i.e. -mapFiles ("
+									 + (map ? "" : "not the ") + "default))\n"
+									 + "   (4) output file for mappings (i.e. out=" + mapOutput + " (default))\n"
+									 + " OR:\n"
+									 + "   (1) parse Forward/TOP/AB/etc lookup (i.e. --parseAlleleLookup (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

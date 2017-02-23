@@ -1,11 +1,11 @@
 package org.genvisis.common;
 
 public class Aliases {
-	public static final String[] MARKER_NAMES = {	"MarkerName", "Marker", "Name", "SNP", "SNP Name",
-																								"SNPID", "SNP.id", "rs_id", "rsID", "Probe Set ID",
-																								"ProbeSetName", "ProbeSet", "Variant",
-																								"VariantName", "AnalysisUnit", "Variant_ID",
-																								"SingleVariant", "BurdenTests", "RSID", "BinName"};
+	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP", "SNP Name",
+																							 "SNPID", "SNP.id", "rs_id", "rsID", "Probe Set ID",
+																							 "ProbeSetName", "ProbeSet", "Variant", "VariantName",
+																							 "AnalysisUnit", "Variant_ID", "SingleVariant",
+																							 "BurdenTests", "RSID", "BinName"};
 	public static final String[] GENE_UNITS = {"Gene", "SKATgene"};
 
 	public static final String[] REGION = {"Region", "UCSC", "Band", "Arm"};
@@ -16,11 +16,11 @@ public class Aliases {
 	public static final String[] POSITIONS_STOP = {"Stop", "End", "Stop Position"};
 	public static final String[] CENTIMORGANS = {"centiMorgans", "cM"};
 
-	public static final String[][] ALLELES = {{	"coded_all", "A1", "Al1", "Allele1", "ALT",
-																							"Effect_allele", "EA", "Coded.Allele"},
-																						{	"noncoded_all", "A2", "Al2", "Allele2", "REF", "OTHER",
-																							"Reference_allele", "NEA", "Other_allele",
-																							"NonCoded.Allele", "NON_EFFECT_ALLELE"},};
+	public static final String[][] ALLELES = {{"coded_all", "A1", "Al1", "Allele1", "ALT",
+																						 "Effect_allele", "EA", "Coded.Allele"},
+																						{"noncoded_all", "A2", "Al2", "Allele2", "REF", "OTHER",
+																						 "Reference_allele", "NEA", "Other_allele",
+																						 "NonCoded.Allele", "NON_EFFECT_ALLELE"},};
 	public static final String[] EFFECTS = {"beta", "beta_SNP_add", "Effect", "BETA_SNP"};
 	public static final String[] STD_ERRS = {"se", "StdErr", "sebeta_SNP_add", "ROBUST_SE_SNP"};
 
@@ -28,9 +28,9 @@ public class Aliases {
 																					"minPval", "ROBUST_PVAL_SNP"};
 	public static final String[] NS = {"N", "NMISS", "sampleN", "n_total", "ESampleSize"};
 
-	public static final String[] ALLELE_FREQS = {	"freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF",
-																								"sampleMAF", "Effect_allele_frequency", "EAF",
-																								"FRQ", "Coded.Af", "AF_coded_all"};
+	public static final String[] ALLELE_FREQS = {"freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF",
+																							 "sampleMAF", "Effect_allele_frequency", "EAF", "FRQ",
+																							 "Coded.Af", "AF_coded_all"};
 
 	public static final String[] IMPUTATION_EFFICIENCY = {"imp_info", "rsq", "Qual"};
 
@@ -53,8 +53,8 @@ public class Aliases {
 	 * @return the full path to the file of interest if it exists in one of the directories, otherwise
 	 *         null
 	 */
-	public static String getPathToFileInReferenceDirectory(	String filename, boolean verbose,
-																													Logger log) {
+	public static String getPathToFileInReferenceDirectory(String filename, boolean verbose,
+																												 Logger log) {
 		// TODO allow customizable paths from some future Genvisis global properties file
 		return Files.firstPathToFileThatExists(REFERENCE_FOLDERS, filename, verbose, false, log);
 	}

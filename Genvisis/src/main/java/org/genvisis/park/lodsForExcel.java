@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.ext;
@@ -61,7 +61,7 @@ public class lodsForExcel {
 
 		public eStruct() {
 			markerName = BLANK;
-			values = Array.doubleArray(DATA_POINTS.length, -999);
+			values = ArrayUtils.doubleArray(DATA_POINTS.length, -999);
 		}
 	}
 
@@ -84,7 +84,7 @@ public class lodsForExcel {
 		double posi, off;
 
 		all = new PrintWriter(new FileWriter("excel-all.xls"));
-		all.println("Marker\tPosition\tAdj.Position\t" + Array.toStr(DATA_POINTS, "\t"));
+		all.println("Marker\tPosition\tAdj.Position\t" + ArrayUtils.toStr(DATA_POINTS, "\t"));
 
 		for (int chr : chrs) {
 			chrome = ext.chrome(chr);
@@ -128,7 +128,7 @@ public class lodsForExcel {
 
 			poslar = HashVec.getNumericKeys(hash);
 			for (int j = Integer.parseInt(poslar[0]); j <= Integer.parseInt(poslar[poslar.length
-																																							- 1]); j++) {
+																																						 - 1]); j++) {
 				if (!hash.containsKey(j + "")) {
 					hash.put(j + "", new eStruct());
 				}
@@ -180,7 +180,7 @@ public class lodsForExcel {
 							num++;
 							handle = hash.get((count + num) + "");
 						} while (count + num <= Integer.parseInt(poslar[poslar.length - 1])
-											&& handle.values[meth] == -999);
+										 && handle.values[meth] == -999);
 						if (count + num > Integer.parseInt(poslar[poslar.length - 1])) {
 							count = Integer.parseInt(poslar[poslar.length - 1]);
 						} else {
@@ -206,7 +206,7 @@ public class lodsForExcel {
 			poslar = HashVec.getNumericKeys(hash);
 			try {
 				writer = new PrintWriter(new FileWriter("excel" + chrome + ".xls"));
-				writer.println("Marker\tPosition\tAdj.Position\t" + Array.toStr(DATA_POINTS, "\t"));
+				writer.println("Marker\tPosition\tAdj.Position\t" + ArrayUtils.toStr(DATA_POINTS, "\t"));
 
 				handle = hash.get(poslar[0]);
 				off = -1;
@@ -217,7 +217,7 @@ public class lodsForExcel {
 				}
 
 				for (int j = Integer.parseInt(poslar[0]); j <= Integer.parseInt(poslar[poslar.length
-																																								- 1]); j++) {
+																																							 - 1]); j++) {
 					handle = hash.get(j + "");
 					writer.print(handle.markerName + "\t" + j + "\t" + (off == -1 ? "" : off + j));
 					for (int meth = 0; meth < DATA_POINTS.length; meth++) {
@@ -241,7 +241,7 @@ public class lodsForExcel {
 		all.close();
 		if (mapFailure.size() > 0) {
 			System.err.println("Map information was not available for the following chromosomes: "
-													+ Array.toStr(Array.toStringArray(mapFailure), " "));
+												 + ArrayUtils.toStr(ArrayUtils.toStringArray(mapFailure), " "));
 		}
 	}
 
@@ -249,9 +249,9 @@ public class lodsForExcel {
 		int numArgs = args.length;
 		IntVector iv = new IntVector();
 
-		String usage = "\n"	+ "park.lodsForExcel requires 0+ arguments:\n"
-										+ "   numbers of chromosomes to parse (i.e. 1 2 6 13 23 (nothing indicates the autosomes+23 (default)))\n"
-										+ "";
+		String usage = "\n" + "park.lodsForExcel requires 0+ arguments:\n"
+									 + "   numbers of chromosomes to parse (i.e. 1 2 6 13 23 (nothing indicates the autosomes+23 (default)))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -276,7 +276,7 @@ public class lodsForExcel {
 		}
 		try {
 			if (iv.size() == 0) {
-				new lodsForExcel(Array.toIntArray(Array.stringArraySequence(23, "")));
+				new lodsForExcel(ArrayUtils.toIntArray(ArrayUtils.stringArraySequence(23, "")));
 			} else {
 				new lodsForExcel(Ints.toArray(iv));
 			}

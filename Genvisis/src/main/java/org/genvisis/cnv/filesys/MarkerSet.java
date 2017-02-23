@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import org.genvisis.cnv.manage.TextExport;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -44,7 +44,7 @@ public class MarkerSet implements Serializable, TextExport {
 	}
 
 	public MarkerSet(String[] rawMarkerNames, byte[] rawChrs, int[] rawPositions, int[] keys) {
-		if (rawMarkerNames.length != rawChrs.length	|| rawMarkerNames.length != rawPositions.length
+		if (rawMarkerNames.length != rawChrs.length || rawMarkerNames.length != rawPositions.length
 				|| rawMarkerNames.length != keys.length) {
 			System.err.println("Error - mismatched number of markers and positions/keys");
 			System.exit(1);
@@ -173,8 +173,8 @@ public class MarkerSet implements Serializable, TextExport {
 	}
 
 	public int[] getIndicesOfMarkersIn(Segment seg, int[][] indicesByChr, Logger log) {
-		return ext.indexLargeFactors(	getMarkersIn(seg, indicesByChr), markerNames, true, log, true,
-																	false);
+		return ext.indexLargeFactors(getMarkersIn(seg, indicesByChr), markerNames, true, log, true,
+																 false);
 	}
 
 
@@ -192,13 +192,13 @@ public class MarkerSet implements Serializable, TextExport {
 				break;
 			}
 		}
-		return Array.toStringArray(markersIn);
+		return ArrayUtils.toStringArray(markersIn);
 	}
 
 	public void checkFingerprint(Sample samp) {
 		if (samp.getFingerprint() != fingerprint) {
-			System.err.println("Error - Sample has a different fingerprint ("	+ samp.getFingerprint()
-													+ ") than the MarkerSet (" + fingerprint + ")");
+			System.err.println("Error - Sample has a different fingerprint (" + samp.getFingerprint()
+												 + ") than the MarkerSet (" + fingerprint + ")");
 		}
 	}
 
@@ -251,7 +251,7 @@ public class MarkerSet implements Serializable, TextExport {
 		byte[] result;
 		String geno;
 
-		result = Array.byteArray(abGenotypes.length, (byte) -3);
+		result = ArrayUtils.byteArray(abGenotypes.length, (byte) -3);
 		for (int i = 0; i < abGenotypes.length; i++) {
 			switch (abGenotypes[i]) {
 				case 0:

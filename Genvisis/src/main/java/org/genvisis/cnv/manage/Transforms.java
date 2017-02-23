@@ -1,7 +1,7 @@
 package org.genvisis.cnv.manage;
 
 import org.genvisis.cnv.filesys.MarkerSet;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.mining.Transformations;
 
 public class Transforms {
@@ -10,9 +10,9 @@ public class Transforms {
 	// public static final int[] TRANSFORMATION_TYPES = {Transformations.IDENTITY,
 	// Transformations.QUANTILE, Transformations.INVERSE_NORMALIZE,
 	// Transformations.INVERSE_TDIST_5DF};
-	public static final String[] TRANFORMATIONS = {	"Raw Values", "Inverse normalized",
-																									"Inverse T-distribution with 5 df",
-																									"BEAST vision", "5X multiply"};
+	public static final String[] TRANFORMATIONS = {"Raw Values", "Inverse normalized",
+																								 "Inverse T-distribution with 5 df", "BEAST vision",
+																								 "5X multiply"};
 	public static final int[] TRANSFORMATION_TYPES = {Transformations.IDENTITY,
 																										Transformations.INVERSE_NORMALIZE,
 																										Transformations.INVERSE_TDIST_5DF,
@@ -30,10 +30,11 @@ public class Transforms {
 			}
 			indices = markerSet.getIndicesByChr();
 		} else {
-			indices = new int[][] {Array.arrayOfIndices(input.length)};
+			indices = new int[][] {ArrayUtils.arrayOfIndices(input.length)};
 		}
 
-		return transform(input, transformation_type, indices, Array.booleanArray(indices.length, true));
+		return transform(input, transformation_type, indices,
+										 ArrayUtils.booleanArray(indices.length, true));
 	}
 
 	public static float[] transform(float[] input, int transformation_type, int[][] indices,
@@ -62,8 +63,8 @@ public class Transforms {
 					}
 				}
 
-				trav = Transformations.transform(	Array.subArray(trav, 0, count),
-																					TRANSFORMATION_TYPES[transformation_type]);
+				trav = Transformations.transform(ArrayUtils.subArray(trav, 0, count),
+																				 TRANSFORMATION_TYPES[transformation_type]);
 
 				count = 0;
 				for (int j = 0; j < indices[i].length; j++) {

@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -57,12 +57,12 @@ public class BatchEffects {
 		try {
 			reader = new BufferedReader(new FileReader(pedfile));
 			writer = new PrintWriter(new FileWriter("batchListing.txt"));
-			writer.println("FID\tIID\t" + Array.toStr(Array.toStringArray(v)));
+			writer.println("FID\tIID\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(v)));
 			while (reader.ready()) {
 				line = reader.readLine().split("[\\s]+");
-				set = Array.intArray(numBatches, 1);
+				set = ArrayUtils.intArray(numBatches, 1);
 				set[v.indexOf(hash.get(line[6]))] = 2;
-				writer.println(line[0] + "\t" + line[1] + "\t" + Array.toStr(set));
+				writer.println(line[0] + "\t" + line[1] + "\t" + ArrayUtils.toStr(set));
 			}
 			reader.close();
 			writer.close();
@@ -87,7 +87,7 @@ public class BatchEffects {
 				// 0 --geno 1 --mind 1 --out missing."+i);
 
 				writer.println("plink --bfile pd_gwas --keep noWGAs.txt --pheno batchListing.txt --mpheno "
-												+ i + " --assoc --out assoc." + i);
+											 + i + " --assoc --out assoc." + i);
 				// writer.println("plink --bfile pd_gwas --keep noWGAs.txt
 				// --pheno batchListing.txt --mpheno "+i+" --test-missing --maf
 				// 0 --geno 1 --mind 1 --out missing."+i);
@@ -111,11 +111,11 @@ public class BatchEffects {
 		try {
 			reader = new BufferedReader(new FileReader("batchListing.txt"));
 			line = reader.readLine().split("[\\s]+");
-			bins = Array.subArray(line, 2);
+			bins = ArrayUtils.subArray(line, 2);
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ "batchListing.txt"
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + "batchListing.txt"
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + "batchListing.txt" + "\"");
@@ -171,8 +171,8 @@ public class BatchEffects {
 		try {
 			writer = new PrintWriter(new FileWriter("batchEffectsCounts.xln"));
 			for (int i = 0; i < bins.length; i++) {
-				writer.println(bins[i] + "\tASSOC\t" + Array.toStr(sigCounts[i]));
-				writer.println(bins[i] + "\tMISS\t" + Array.toStr(missCounts[i]));
+				writer.println(bins[i] + "\tASSOC\t" + ArrayUtils.toStr(sigCounts[i]));
+				writer.println(bins[i] + "\tMISS\t" + ArrayUtils.toStr(missCounts[i]));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -185,10 +185,10 @@ public class BatchEffects {
 		String pedfile = "pedfile.txt";
 		String dnas = "dnas.txt";
 
-		String usage = "\\n"	+ "park.gwa.BatchEffects requires 0-1 arguments\n"
-										+ "   (1) pedigree file (i.e. ped=" + pedfile + " (default))\n"
-										+ "   (2) list of DNAs and their batch (i.e. dnas=" + dnas + " (default))\n"
-										+ "";
+		String usage = "\\n" + "park.gwa.BatchEffects requires 0-1 arguments\n"
+									 + "   (1) pedigree file (i.e. ped=" + pedfile + " (default))\n"
+									 + "   (2) list of DNAs and their batch (i.e. dnas=" + dnas + " (default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

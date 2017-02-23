@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
@@ -30,9 +30,9 @@ import htsjdk.variant.vcf.VCFHeader;
  *
  */
 public class SeqError {
-	public static final String[] OUTPUT_HEADER = new String[] {	"Samp1", "Samp2", "total", "missing",
-																															"matched", "proportionMissing",
-																															"proportionAgree", "averageGC"};
+	public static final String[] OUTPUT_HEADER = new String[] {"Samp1", "Samp2", "total", "missing",
+																														 "matched", "proportionMissing",
+																														 "proportionAgree", "averageGC"};
 	private final String vcfFile;
 	private DuplicateETwo[] dETwos;
 	private final Logger log;
@@ -65,20 +65,20 @@ public class SeqError {
 		log.reportTimeInfo("Computing concordance for (" + dETwos.length + ") comparisons per variant");
 		int numTotal = 0;
 		int numSetPass = 0;
-		WorkerTrain<DuplicateETwo> train = new WorkerTrain<SeqError.DuplicateETwo>(	null, numthreads,
-																																								numthreads, log);
+		WorkerTrain<DuplicateETwo> train = new WorkerTrain<SeqError.DuplicateETwo>(null, numthreads,
+																																							 numthreads, log);
 		train.setAutoShutDown(false);
 		long time = System.currentTimeMillis();
 		for (VariantContext vcTmp : reader) {
 			numTotal++;
 			if (numTotal % 10000 == 0) {
-				log.reportTimeInfo(numTotal	+ " variants processed...with " + numSetPass
-														+ " passing the set filter " + ext.getTimeElapsed(time));
+				log.reportTimeInfo(numTotal + " variants processed...with " + numSetPass
+													 + " passing the set filter " + ext.getTimeElapsed(time));
 				time = System.currentTimeMillis();
 			}
 			if (numVariantsToTest >= 0 && numSetPass == numVariantsToTest) {
-				log.reportTimeInfo(numTotal	+ " variants processed...," + numVariantsToTest
-														+ " variants to test reached " + ext.getTimeElapsed(time));
+				log.reportTimeInfo(numTotal + " variants processed...," + numVariantsToTest
+													 + " variants to test reached " + ext.getTimeElapsed(time));
 				reader.close();
 				train.shutdown();
 				return;
@@ -107,7 +107,7 @@ public class SeqError {
 	public void summarize(String fullPathToOutput) {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutput));
-			writer.println(Array.toStr(OUTPUT_HEADER));
+			writer.println(ArrayUtils.toStr(OUTPUT_HEADER));
 			for (DuplicateETwo dETwo : dETwos) {
 				writer.println(dETwo.getSummary());
 			}
@@ -176,8 +176,8 @@ public class SeqError {
 				HashSet<String> curDups = new HashSet<String>();
 				curDups.add(allSamps[i]);
 				curDups.add(allSamps[j]);
-				dETwos[index] =
-											new DuplicateETwo(curDups, type, mode, vContextFilterSample, filterNGS, log);
+				dETwos[index] = new DuplicateETwo(curDups, type, mode, vContextFilterSample, filterNGS,
+																					log);
 				index++;
 			}
 		}
@@ -185,14 +185,14 @@ public class SeqError {
 	}
 
 	public enum DUPLICATE_COMP_TYPE {
-																		/**
-																		 * Variant must past the sample filter for both
-																		 */
-																		ALL_PASS,
-																		/**
-																		 * Variant must past the sample filter for one
-																		 */
-																		ONE_PASS,
+		/**
+		 * Variant must past the sample filter for both
+		 */
+		ALL_PASS,
+		/**
+		 * Variant must past the sample filter for one
+		 */
+		ONE_PASS,
 		/**
 		 * // * // * Variant must past the sample filter on the average of the two //
 		 */
@@ -201,15 +201,15 @@ public class SeqError {
 	}
 
 	public enum MODE {
-										/**
-										 * Will only compute concordance if both samples are called and pass according
-										 * to {@link DUPLICATE_COMP_TYPE}
-										 */
-										BOTH_MUST_BE_CALLED,
-										/**
-										*
-										*/
-										ONE_MUST_BE_CALLED;
+		/**
+		 * Will only compute concordance if both samples are called and pass according to
+		 * {@link DUPLICATE_COMP_TYPE}
+		 */
+		BOTH_MUST_BE_CALLED,
+		/**
+		*
+		*/
+		ONE_MUST_BE_CALLED;
 	}
 
 	/**
@@ -230,9 +230,9 @@ public class SeqError {
 
 		// private Logger log;
 
-		public DuplicateETwo(	Set<String> dups, DUPLICATE_COMP_TYPE type, MODE mode,
-													VariantContextFilter vContextFilterSample, FilterNGS filterNGS,
-													Logger log) {
+		public DuplicateETwo(Set<String> dups, DUPLICATE_COMP_TYPE type, MODE mode,
+												 VariantContextFilter vContextFilterSample, FilterNGS filterNGS,
+												 Logger log) {
 			super();
 			this.dups = dups;
 			this.type = type;
@@ -279,42 +279,42 @@ public class SeqError {
 			VariantContext vcSub = VCOps.getSubset(vc, dups, VC_SUBSET_TYPE.SUBSET_LOOSE);
 			VariantContext vcAlts = VCOps.getAltAlleleContext(vcSub, null, null,
 																												ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);// start
-																																																	// with
-																																																	// unfiltered
-																																																	// easy
-																																																	// test;
+																																																 // with
+																																																 // unfiltered
+																																																 // easy
+																																																 // test;
 			if (vcAlts.getSampleNames().size() > 0) {// no variant calls, we do not care
 				boolean tally = true;
 				VariantContext vcFilteredAlts = null;
 				switch (type) {
 					case ALL_PASS:
-						vcFilteredAlts = VCOps.getAltAlleleContext(	vcSub, filterNGS, vContextFilterSample,
-																												ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);
+						vcFilteredAlts = VCOps.getAltAlleleContext(vcSub, filterNGS, vContextFilterSample,
+																											 ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);
 						tally = vcFilteredAlts.getSampleNames().size() == vcAlts.getSampleNames().size();// all
-																																															// dup
-																																															// variants
-																																															// pass
+																																														 // dup
+																																														 // variants
+																																														 // pass
 						if (tally) {
-							tally = vContextFilterSample == null	? true
-																										: VCOps	.getIndividualPassingContext(vcSub,
-																																												vContextFilterSample,
-																																												log)
-																														.getSampleNames().size() == dups.size();// all
-																																																		// dups
-																																																		// pass
+							tally = vContextFilterSample == null ? true
+																									 : VCOps.getIndividualPassingContext(vcSub,
+																																											 vContextFilterSample,
+																																											 log)
+																													.getSampleNames().size() == dups.size();// all
+																																																	// dups
+																																																	// pass
 
 						}
 						break;
 					case ONE_PASS:
-						vcFilteredAlts = VCOps.getAltAlleleContext(	vcSub, filterNGS, vContextFilterSample,
-																												ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);
+						vcFilteredAlts = VCOps.getAltAlleleContext(vcSub, filterNGS, vContextFilterSample,
+																											 ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);
 						tally = vcFilteredAlts.getSampleNames().size() > 0;// one of the dup variants pass
 						if (tally) {
-							tally = vContextFilterSample == null	? true
-																										: VCOps	.getIndividualPassingContext(vcSub,
-																																												vContextFilterSample,
-																																												log)
-																														.getSampleNames().size() > 0;
+							tally = vContextFilterSample == null ? true
+																									 : VCOps.getIndividualPassingContext(vcSub,
+																																											 vContextFilterSample,
+																																											 log)
+																													.getSampleNames().size() > 0;
 						}
 						break;
 					default:

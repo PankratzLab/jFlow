@@ -44,7 +44,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
@@ -233,7 +233,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
-				JFileChooser jfc = new JFileChooser(new File(proj == null	? ext.parseDirectoryOfFile(forestPlot.getMarkerFileName())
+				JFileChooser jfc = new JFileChooser(new File(proj == null ? ext.parseDirectoryOfFile(forestPlot.getMarkerFileName())
 																																	: proj.PROJECT_DIRECTORY.getValue()));
 				int returnVal = jfc.showOpenDialog(null);
 
@@ -323,7 +323,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 				try {
 					int trav = Integer.valueOf(((JTextField) e.getSource()).getText().split("[\\s]+")[0])
 														.intValue()
-											- 1;
+										 - 1;
 					if (trav >= 0 && trav < forestPlot.getDataIndices().size()) {
 						forestPlot.setCurrentData(trav);
 						updateForestPlot();
@@ -380,7 +380,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String shortName = (String) ((JComboBox) e.getSource()).getSelectedItem();
-				if (!forestPlot.isLoadingFile()	&& !MARKER_LIST_NEW_FILE.equals(shortName)
+				if (!forestPlot.isLoadingFile() && !MARKER_LIST_NEW_FILE.equals(shortName)
 						&& !MARKER_LIST_PLACEHOLDER.equals(shortName)) {
 					String file = markerFileNameLoc.get(shortName);
 					if (file != null && file.equals(forestPlot.getMarkerFileName())) {
@@ -547,13 +547,13 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 	}
 
 	private void chooseNewFiles() {
-		JFileChooser jfc = new JFileChooser((proj != null	? proj.PROJECT_DIRECTORY.getValue()
+		JFileChooser jfc = new JFileChooser((proj != null ? proj.PROJECT_DIRECTORY.getValue()
 																											: ext.parseDirectoryOfFile(forestPlot.getMarkerFileName())));
 		jfc.setMultiSelectionEnabled(true);
 		if (jfc.showOpenDialog(ForestPlotFrame.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();
 			if (files.length > 0) {
-				boolean[] keep = Array.booleanArray(files.length, true);
+				boolean[] keep = ArrayUtils.booleanArray(files.length, true);
 				for (int i = 0; i < files.length; i++) {
 					for (String fileName : markerFileNameLoc.keySet()) {
 						if (ext.rootOf(files[i].toString()).equals(fileName)) {
@@ -561,8 +561,8 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 						}
 					}
 				}
-				File[] keptFiles = Array.subArray(files, keep);
-				File[] discards = Array.subArray(files, Array.booleanNegative(keep));
+				File[] keptFiles = ArrayUtils.subArray(files, keep);
+				File[] discards = ArrayUtils.subArray(files, ArrayUtils.booleanNegative(keep));
 
 				if (discards.length > 0) {
 					StringBuilder msg = new StringBuilder("The following data file(s) are already present:");
@@ -585,8 +585,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 				}
 
 				if (!keep) {
-					StringBuilder msg =
-														new StringBuilder("The following data file is already present:\n").append(file.getName());
+					StringBuilder msg = new StringBuilder("The following data file is already present:\n").append(file.getName());
 					JOptionPane.showMessageDialog(ForestPlotFrame.this, msg.toString());
 				} else {
 					addFileToList(file.getAbsolutePath());
@@ -634,7 +633,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 		if (forestPlot.getDataIndices().size() == 0) {
 			field.setText("0 of 0");
 		} else {
-			field.setText((forestPlot.getCurrentDataIndex() + 1)	+ " of "
+			field.setText((forestPlot.getCurrentDataIndex() + 1) + " of "
 										+ forestPlot.getDataIndices().size());
 		}
 	}
@@ -804,11 +803,11 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 		String logfile = null;
 		final Logger log;
 
-		String usage = "\n"	+ "cnv.plots.ForestPlot requires 1 arguments\n"
-										+ "  (1) Name of the file with the list of markers (SeqMeta format), files, and comments, to display (i.e. markerList="
-										+ markerList + " (default))\n" + "OR\n"
-										+ "  (1) project properties filename (i.e. proj="
-										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n";
+		String usage = "\n" + "cnv.plots.ForestPlot requires 1 arguments\n"
+									 + "  (1) Name of the file with the list of markers (SeqMeta format), files, and comments, to display (i.e. markerList="
+									 + markerList + " (default))\n" + "OR\n"
+									 + "  (1) project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -11,13 +11,13 @@ import java.io.PrintWriter;
 // import java.util.*;
 import java.text.DecimalFormat;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class Prest {
-	public static final String[] RELATIONSHIP_TRANSLATION = {	".", "FS", "HS", "GG", "AV", "CO", "UN",
-																														"HA", "2C", "2C", "PO"};
+	public static final String[] RELATIONSHIP_TRANSLATION = {".", "FS", "HS", "GG", "AV", "CO", "UN",
+																													 "HA", "2C", "2C", "PO"};
 
 	public static void createFiles() {
 		BufferedReader reader;
@@ -42,7 +42,9 @@ public class Prest {
 			reader = new BufferedReader(new FileReader("re_chrom" + chrome + ".pre"));
 			writer = new PrintWriter(new FileWriter("pedigrees"));
 			while (reader.ready()) {
-				writer.println(Array.toStr(Array.subArray(reader.readLine().trim().split("[\\s]+"), 0, 6)));
+				writer.println(ArrayUtils.toStr(ArrayUtils.subArray(reader.readLine().trim()
+																																	.split("[\\s]+"),
+																														0, 6)));
 			}
 			reader.close();
 			writer.close();
@@ -114,8 +116,8 @@ public class Prest {
 			writer = new PrintWriter(new FileWriter(dir + genome + ".slim"));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				writer.println(line[0]	+ "-" + line[1] + ":" + line[2] + "-" + line[3] + "\t" + line[5]
-												+ "\t" + line[6] + "\t" + line[7] + "\t" + line[8] + "\t" + line[9]);
+				writer.println(line[0] + "-" + line[1] + ":" + line[2] + "-" + line[3] + "\t" + line[5]
+											 + "\t" + line[6] + "\t" + line[7] + "\t" + line[8] + "\t" + line[9]);
 			}
 			reader.close();
 			writer.close();
@@ -147,11 +149,10 @@ public class Prest {
 						min = Math.min(Double.parseDouble(line[i]), min);
 					}
 				}
-				writer.println(line[0]	+ "-" + line[1] + ":" + line[0] + "-" + line[2] + "\t" + line[3]
-												+ "\t" + RELATIONSHIP_TRANSLATION[Integer.parseInt(line[3])] + "\t"
-												+ line[4] + "\t" + line[5] + "\t" + line[6] + "\t" + line[7] + "\t"
-												+ line[8] + "\t" + line[9] + "\t" + line[10] + "\t" + line[11] + "\t"
-												+ min);
+				writer.println(line[0] + "-" + line[1] + ":" + line[0] + "-" + line[2] + "\t" + line[3]
+											 + "\t" + RELATIONSHIP_TRANSLATION[Integer.parseInt(line[3])] + "\t" + line[4]
+											 + "\t" + line[5] + "\t" + line[6] + "\t" + line[7] + "\t" + line[8] + "\t"
+											 + line[9] + "\t" + line[10] + "\t" + line[11] + "\t" + min);
 			}
 			reader.close();
 			writer.close();
@@ -166,7 +167,7 @@ public class Prest {
 
 	public static void mergePrestWithPlink(String dir) {
 		try {
-			Files.merge(dir	+ "plink.genome.slim", 0, new int[] {0, 1, 2, 3, 4, 5}, false,
+			Files.merge(dir + "plink.genome.slim", 0, new int[] {0, 1, 2, 3, 4, 5}, false,
 									dir + "prest_out2.slim", 0, new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, true,
 									dir + "PlinkVersusPrest.xln");
 		} catch (Exception e) {
@@ -185,12 +186,12 @@ public class Prest {
 		boolean slimPrest = true;
 		boolean merge = true;
 
-		String usage = "\n"	+ "link.bat.Prest requires 0-1 arguments\n"
-										+ "   (1) create files for Prest (i.e. -create (not the default))\n"
-										+ "   (2) slim genome (i.e. -slimGenome (not the default))\n"
-										+ "   (3) slim prest2 file (i.e. -slimPrest (not the default))\n"
-										+ "   (4) merge Prest results with slimmed plink results (i.e. -merge (not the default))\n"
-										+ "";
+		String usage = "\n" + "link.bat.Prest requires 0-1 arguments\n"
+									 + "   (1) create files for Prest (i.e. -create (not the default))\n"
+									 + "   (2) slim genome (i.e. -slimGenome (not the default))\n"
+									 + "   (3) slim prest2 file (i.e. -slimPrest (not the default))\n"
+									 + "   (4) merge Prest results with slimmed plink results (i.e. -merge (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

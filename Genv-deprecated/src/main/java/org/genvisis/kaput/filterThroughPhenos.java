@@ -10,8 +10,8 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 public class filterThroughPhenos {
-	public filterThroughPhenos(	String structfile, String phenoFile, int affectedThreshold,
-															int unaffectedThreshold, String unknownValue) throws IOException {
+	public filterThroughPhenos(String structfile, String phenoFile, int affectedThreshold,
+														 int unaffectedThreshold, String unknownValue) throws IOException {
 		BufferedReader reader = null;
 		PrintWriter conAff = null, conUnaff = null, discord = null, unused = null, diskey = null;
 		String temp, ID, trav, prev = "", rents = "shtoops";
@@ -44,8 +44,8 @@ public class filterThroughPhenos {
 			if (trav.equals(prev)) {
 				ID = st.nextToken();
 				while (Integer.valueOf(ID).intValue() > 100) {
-					rents += "\n"	+ trav + "\t" + ID + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t"
-										+ st.nextToken() + "\t" + unknownValue;
+					rents += "\n" + trav + "\t" + ID + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t"
+									 + st.nextToken() + "\t" + unknownValue;
 					st.nextToken();
 					while (st.hasMoreTokens()) {
 						rents += "\t" + st.nextToken();
@@ -55,8 +55,8 @@ public class filterThroughPhenos {
 					ID = st.nextToken();
 				}
 				if (!hash.containsKey(trav + ":" + ID)) {
-					temp = trav	+ "\t" + ID + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t"
-									+ st.nextToken() + "\t" + unknownValue;
+					temp = trav + "\t" + ID + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t"
+								 + st.nextToken() + "\t" + unknownValue;
 					st.nextToken();
 					while (st.hasMoreTokens()) {
 						temp += "\t" + st.nextToken();
@@ -65,8 +65,8 @@ public class filterThroughPhenos {
 				} else {
 					pheno = Integer.valueOf(hash.get(trav + ":" + ID)).intValue();
 					if (pheno >= affectedThreshold) {
-						temp = trav	+ "\t" + ID + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t"
-										+ st.nextToken() + "\t" + 2;
+						temp = trav + "\t" + ID + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t"
+									 + st.nextToken() + "\t" + 2;
 						st.nextToken();
 						while (st.hasMoreTokens()) {
 							temp += "\t" + st.nextToken();
@@ -74,8 +74,8 @@ public class filterThroughPhenos {
 						affs.add(temp);
 						disc.add(temp);
 					} else if (pheno >= unaffectedThreshold) {
-						temp = trav	+ "\t" + ID + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t"
-										+ st.nextToken() + "\t" + 2;
+						temp = trav + "\t" + ID + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t"
+									 + st.nextToken() + "\t" + 2;
 						st.nextToken();
 						while (st.hasMoreTokens()) {
 							temp += "\t" + st.nextToken();
@@ -83,16 +83,16 @@ public class filterThroughPhenos {
 						unfs.add(temp);
 						disc.add(temp);
 					} else if (unknownValue.equals(pheno + "")) {
-						temp = trav	+ "\t" + ID + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t"
-										+ st.nextToken() + "\t" + 0;
+						temp = trav + "\t" + ID + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t"
+									 + st.nextToken() + "\t" + 0;
 						st.nextToken();
 						while (st.hasMoreTokens()) {
 							temp += "\t" + st.nextToken();
 						}
 						splats.add(temp + " crappy phenotype");
 					} else {
-						System.err.println("Error: Individual "	+ trav + "-" + ID + " has illegal phenotype: "
-																+ pheno);
+						System.err.println("Error: Individual " + trav + "-" + ID + " has illegal phenotype: "
+															 + pheno);
 					}
 				}
 			} else {
@@ -178,15 +178,15 @@ public class filterThroughPhenos {
 				splats.removeAllElements();
 				disc.removeAllElements();
 				prev = trav;
-				rents = trav	+ "\t" + st.nextToken() + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t"
+				rents = trav + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t"
 								+ st.nextToken() + "\t" + unknownValue;
 				st.nextToken();
 				while (st.hasMoreTokens()) {
 					rents += "\t" + st.nextToken();
 				}
 				st = new StringTokenizer(reader.readLine());
-				rents += "\n"	+ st.nextToken() + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t"
-									+ st.nextToken() + "\t" + st.nextToken() + "\t" + unknownValue;
+				rents += "\n" + st.nextToken() + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t"
+								 + st.nextToken() + "\t" + st.nextToken() + "\t" + unknownValue;
 				st.nextToken();
 				while (st.hasMoreTokens()) {
 					rents += "\t" + st.nextToken();

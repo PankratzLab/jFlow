@@ -107,8 +107,8 @@ public class computeLODs {
 				for (int i = 225; i < 235; i++) {
 					System.out.println(calculatePVal(dRay[i], n));
 					writer.println(Math.log(Math.exp(ProbDist.ChiDistReverse(2 * calculatePVal(dRay[i], n), 1)
-																						/ 2))
-													/ Math.log(10));
+																					 / 2))
+												 / Math.log(10));
 				}
 				writer.close();
 

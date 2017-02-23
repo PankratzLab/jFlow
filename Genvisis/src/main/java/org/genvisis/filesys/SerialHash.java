@@ -49,8 +49,8 @@ public class SerialHash implements Serializable {
 		return stringArrayHash;
 	}
 
-	public static void createSerializedStringArrayHash(	String filename,
-																											Hashtable<String, String[]> stringArrayHash) {
+	public static void createSerializedStringArrayHash(String filename,
+																										 Hashtable<String, String[]> stringArrayHash) {
 		SerialHash sHash = new SerialHash();
 		sHash.setStringArrayHash(stringArrayHash);
 		sHash.serialize(filename);

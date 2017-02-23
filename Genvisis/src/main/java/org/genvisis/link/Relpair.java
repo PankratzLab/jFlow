@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ByteVector;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
@@ -21,8 +21,8 @@ import com.google.common.primitives.Bytes;
 public class Relpair {
 	public static final int MAX_NUM_DIGITS_IN_ALLELE = 2;
 
-	public static final String[][] FILTER_PAIRS = {	{"UN", "CO"}, {"UN", "AV"}, {"CO", "UN"},
-																									{"CO", "AV"}};
+	public static final String[][] FILTER_PAIRS = {{"UN", "CO"}, {"UN", "AV"}, {"CO", "UN"},
+																								 {"CO", "AV"}};
 
 	public static void createFiles(String dir) {
 		BufferedReader[] readers;
@@ -52,15 +52,15 @@ public class Relpair {
 		chrs = Bytes.toArray(found);
 		if (missing.size() > 0) {
 			System.err.println("Warning - Files not found for chromosome"
-														+ (missing.size() > 1 ? "s" : "") + ": "
-													+ Array.toStr(missing.toArray(), " "));
+												 + (missing.size() > 1 ? "s" : "") + ": "
+												 + ArrayUtils.toStr(missing.toArray(), " "));
 		}
 		numMarkers = new int[chrs.length];
 		readers = new BufferedReader[chrs.length];
 		for (int i = 0; i < chrs.length; i++) {
 			try {
-				readers[i] = new BufferedReader(new FileReader(dir	+ "re_chrom" + ext.chrome(chrs[i])
-																												+ ".pre"));
+				readers[i] = new BufferedReader(new FileReader(dir + "re_chrom" + ext.chrome(chrs[i])
+																											 + ".pre"));
 			} catch (FileNotFoundException fnfe) {
 				fnfe.printStackTrace();
 			}
@@ -75,11 +75,11 @@ public class Relpair {
 				}
 			}
 			readers[0].close();
-			readers[0] = new BufferedReader(new FileReader(dir	+ "re_chrom" + ext.chrome(chrs[0])
-																											+ ".pre"));
+			readers[0] = new BufferedReader(new FileReader(dir + "re_chrom" + ext.chrome(chrs[0])
+																										 + ".pre"));
 		} catch (IOException ioe) {
-			System.err.println("Error parsing first file: "	+ dir + "re_chrom" + ext.chrome(chrs[0])
-													+ ".pre");
+			System.err.println("Error parsing first file: " + dir + "re_chrom" + ext.chrome(chrs[0])
+												 + ".pre");
 			ioe.printStackTrace();
 		}
 		fams = cv.getValues();
@@ -94,18 +94,18 @@ public class Relpair {
 					alleleFreqs = map.getAlleleFreqs();
 					cumulativePositions = map.getCumulativePositions(true);
 					for (int i = 0; i < markerNames.length; i++) {
-						writer.println(ext.formStr(	(markerNames[i].length() < 10	? markerNames[i]
-																																			: markerNames[i].substring(	0,
-																																																	8)
-																																				+ "-"),
-																				10, true)
-															+ ((chrs[chrI] < 23) ? "AUTOSOME" : "X-LINKED") + " "
-														+ ext.formStr(alleleFreqs[i].length + "", 2, true)
-														+ ext.formStr(chrs[chrI] + "", 4, false) + "    "
-														+ ext.formDeci(cumulativePositions[i], 3, true));
+						writer.println(ext.formStr((markerNames[i].length() < 10 ? markerNames[i]
+																																		 : markerNames[i].substring(0,
+																																																8)
+																																			 + "-"),
+																			 10, true)
+													 + ((chrs[chrI] < 23) ? "AUTOSOME" : "X-LINKED") + " "
+													 + ext.formStr(alleleFreqs[i].length + "", 2, true)
+													 + ext.formStr(chrs[chrI] + "", 4, false) + "    "
+													 + ext.formDeci(cumulativePositions[i], 3, true));
 						for (int j = 0; j < alleleFreqs[i].length; j++) {
 							writer.println(ext.formStr((j + 1) + "", 8, true)
-															+ ext.formStr(ext.formDeci(alleleFreqs[i][j], 6, true), 8, true));
+														 + ext.formStr(ext.formDeci(alleleFreqs[i][j], 6, true), 8, true));
 						}
 					}
 					numMarkers[chrI] = markerNames.length;
@@ -120,16 +120,16 @@ public class Relpair {
 			System.exit(1);
 		}
 
-		System.out.println("Using " + Array.sum(numMarkers) + " markers.");
+		System.out.println("Using " + ArrayUtils.sum(numMarkers) + " markers.");
 
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "relpair.ped"));
 			System.out.print("Processing families");
 
 			writer.println("(I2,1X,A" + maxfamIDsize + ")");
-			writer.println("(3A"	+ (maxindIDsize + 1) + ",2A1,A" + (MAX_NUM_DIGITS_IN_ALLELE * 2 + 1)
-											+ "," + Array.sum(numMarkers) + "(1X,A" + (MAX_NUM_DIGITS_IN_ALLELE * 2 + 1)
-											+ "))");
+			writer.println("(3A" + (maxindIDsize + 1) + ",2A1,A" + (MAX_NUM_DIGITS_IN_ALLELE * 2 + 1)
+										 + "," + ArrayUtils.sum(numMarkers) + "(1X,A"
+										 + (MAX_NUM_DIGITS_IN_ALLELE * 2 + 1) + "))");
 
 			for (int fam = 0; fam < indsPerFam.length; fam++) {
 				writer.println(ext.formStr(indsPerFam[fam] + "", 2, false) + " " + fams[fam]);
@@ -145,26 +145,26 @@ public class Relpair {
 										line[3] = " ";
 									}
 									writer.print(ext.formStr(line[2], maxindIDsize + 1, true)
-																+ ext.formStr(line[3], maxindIDsize + 1, true));
+															 + ext.formStr(line[3], maxindIDsize + 1, true));
 									writer.print((line[4].equals("1")) ? "M" : "F");
 								}
 
 								for (int j = 0; j < numMarkers[i]; j++) {
 									if (line.length < 6 + j * 2 + 2) {
-										System.err.println("Error - what's up with chromosome "	+ chrs[i] + " for "
-																				+ line[0] + "," + line[1]);
+										System.err.println("Error - what's up with chromosome " + chrs[i] + " for "
+																			 + line[0] + "," + line[1]);
 									}
 									if (line[6 + j * 2 + 0].equals("0") || line[6 + j * 2 + 1].equals("0")) {
 										writer.print("      ");
 									} else {
-										writer.print(" " + ext.formStr(line[6 + j * 2 + 0]	+ "/" + line[6 + j * 2 + 1],
-																										MAX_NUM_DIGITS_IN_ALLELE * 2 + 1, true));
+										writer.print(" " + ext.formStr(line[6 + j * 2 + 0] + "/" + line[6 + j * 2 + 1],
+																									 MAX_NUM_DIGITS_IN_ALLELE * 2 + 1, true));
 									}
 								}
 							}
 						} catch (Exception ex2) {
-							System.err.println("Error in processing the re_chrom"	+ ext.chrome(chrs[i])
-																	+ ".pre files");
+							System.err.println("Error in processing the re_chrom" + ext.chrome(chrs[i])
+																 + ".pre files");
 							ex2.printStackTrace();
 						}
 					}
@@ -238,10 +238,10 @@ public class Relpair {
 						line[6] = "";
 					}
 					if (genome == null) {
-						withinWriter.println(Array.toStr(line));
+						withinWriter.println(ArrayUtils.toStr(line));
 					} else {
-						within.put(line[0]	+ "\t" + line[1] + "\t" + line[2],
-												line[3] + "\t" + line[4] + "\t" + line[5]);
+						within.put(line[0] + "\t" + line[1] + "\t" + line[2],
+											 line[3] + "\t" + line[4] + "\t" + line[5]);
 					}
 				}
 			} while (line.length > 1);
@@ -264,9 +264,9 @@ public class Relpair {
 						line[6] = "10^6";
 					}
 					if (genome == null) {
-						betweenWriter.println(Array.toStr(line));
+						betweenWriter.println(ArrayUtils.toStr(line));
 					} else {
-						between.put(line[0]	+ "\t" + line[1] + "\t" + line[2] + "\t" + line[3],
+						between.put(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3],
 												line[4] + "\t" + line[5] + "\t" + line[6]);
 					}
 				}
@@ -276,8 +276,8 @@ public class Relpair {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ dir + "relpair.out"
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + dir + "relpair.out"
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + dir + "relpair.out" + "\"");
@@ -295,17 +295,16 @@ public class Relpair {
 					line = reader.readLine().trim().split("[\\s]+");
 
 					if (within.containsKey(line[0] + "\t" + line[1] + "\t" + line[3])) {
-						withinWriter.println(line[0]	+ "\t" + line[1] + "\t" + line[3] + "\t" + line[5] + "\t"
-																	+ line[6] + "\t" + line[7] + "\t" + line[8] + "\t" + line[9]
-																	+ "\t"
-																	+ within.remove(line[0] + "\t" + line[1] + "\t" + line[3]));
+						withinWriter.println(line[0] + "\t" + line[1] + "\t" + line[3] + "\t" + line[5] + "\t"
+																 + line[6] + "\t" + line[7] + "\t" + line[8] + "\t" + line[9] + "\t"
+																 + within.remove(line[0] + "\t" + line[1] + "\t" + line[3]));
 						withinWriter.flush();
 					}
 
 					if (between.containsKey(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3])) {
-						betweenWriter.println(line[0]	+ "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t"
+						betweenWriter.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t"
 																	+ line[6] + "\t" + line[7] + "\t" + line[8] + "\t" + line[9]
-																	+ "\t" + between.remove(line[0]	+ "\t" + line[1] + "\t" + line[2]
+																	+ "\t" + between.remove(line[0] + "\t" + line[1] + "\t" + line[2]
 																													+ "\t" + line[3]));
 						betweenWriter.flush();
 					}
@@ -319,12 +318,12 @@ public class Relpair {
 			}
 			keys = HashVec.getKeys(within);
 			for (String key : keys) {
-				withinWriter.println(key	+ "\t" + Array.toStr(Array.stringArray(5, ".")) + "\t"
-															+ within.get(key));
+				withinWriter.println(key + "\t" + ArrayUtils.toStr(ArrayUtils.stringArray(5, ".")) + "\t"
+														 + within.get(key));
 			}
 			keys = HashVec.getKeys(between);
 			for (String key : keys) {
-				betweenWriter.println(key	+ "\t" + Array.toStr(Array.stringArray(4, ".")) + "\t"
+				betweenWriter.println(key + "\t" + ArrayUtils.toStr(ArrayUtils.stringArray(4, ".")) + "\t"
 															+ within.get(key));
 			}
 
@@ -362,12 +361,12 @@ public class Relpair {
 		boolean filter = true;
 
 		String usage = "\n"
-											+ "link.Relpair requires 1-4 arguments (make sure you use -Xms1024M -Xmx1024M for parsing)\n"
-										+ "   (1) create files using all available re_chrom##.pre files (i.e. -createFiles (not the default))\n"
-										+ "   (2) parse results files (i.e. -parseResults (not the default))\n"
-										+ "   (3) include data from a plink genome file when parsing (i.e. genome=plink.genome (not the default))\n"
-										+ "   (4) filter out distantly related pairs (i.e. -filter (not the default))\n"
-										+ "";
+									 + "link.Relpair requires 1-4 arguments (make sure you use -Xms1024M -Xmx1024M for parsing)\n"
+									 + "   (1) create files using all available re_chrom##.pre files (i.e. -createFiles (not the default))\n"
+									 + "   (2) parse results files (i.e. -parseResults (not the default))\n"
+									 + "   (3) include data from a plink genome file when parsing (i.e. genome=plink.genome (not the default))\n"
+									 + "   (4) filter out distantly related pairs (i.e. -filter (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

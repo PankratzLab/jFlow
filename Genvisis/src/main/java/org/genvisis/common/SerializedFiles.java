@@ -81,9 +81,9 @@ public class SerializedFiles {
 
 	private static synchronized Object readSerialFixClassname(final String filename, boolean jar,
 																														final Logger log, boolean kill,
-																														boolean gzipped)	throws FileNotFoundException,
-																																							IOException,
-																																							ClassNotFoundException {
+																														boolean gzipped) throws FileNotFoundException,
+																																						 IOException,
+																																						 ClassNotFoundException {
 		InputStream in;
 		ObjectInputStream ois;
 		Object o;
@@ -97,7 +97,7 @@ public class SerializedFiles {
 		}
 		ois = new ObjectInputStream(in) {
 			@Override
-			protected Class<?> resolveClass(ObjectStreamClass desc)	throws IOException,
+			protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException,
 																															ClassNotFoundException {
 				try {
 					return super.resolveClass(desc);
@@ -111,11 +111,11 @@ public class SerializedFiles {
 							break;
 						}
 					}
-					String convertedClassDesc = name.substring(0, startInsert)	+ "org.genvisis."
+					String convertedClassDesc = name.substring(0, startInsert) + "org.genvisis."
 																			+ name.substring(startInsert);
 					Class<?> convertedClass = Class.forName(convertedClassDesc, false,
 																									ClassLoader.getSystemClassLoader());
-					log.reportTimeWarning("The Class ("	+ name + ") for the Serialized Object " + filename
+					log.reportTimeWarning("The Class (" + name + ") for the Serialized Object " + filename
 																+ " cannot be resolved, attempting to use " + convertedClassDesc);
 					return convertedClass;
 
@@ -130,8 +130,8 @@ public class SerializedFiles {
 		if (writeSerial(o, filename, gzipped)) {
 			log.report("Succesfully rewrote " + filename + " as a serialized " + o.getClass().getName());
 		} else {
-			log.reportError("Could not rewrite "	+ filename + " as a serialized "
-													+ o.getClass().getName());
+			log.reportError("Could not rewrite " + filename + " as a serialized "
+											+ o.getClass().getName());
 			if (Files.copyFile(backupFile, filename)) {
 				new File(backupFile).delete();
 			}
@@ -156,7 +156,10 @@ public class SerializedFiles {
 
 	public static boolean writeSerial(Object o, String filename, boolean gzip) {
 		ObjectOutputStream oos;
-		
+		if (!Files.ensurePathExists(filename)) {
+			new Logger().reportTimeWarning("No valid path to file: " + filename);
+		}
+
 		try {
 			if (gzip) {
 				oos = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(filename)));

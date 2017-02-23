@@ -68,8 +68,8 @@ public class GenericPath {
 	private boolean editable;
 	private double[][] foci;
 
-	public GenericPath(	String label, Path2D path, byte color, byte fillColor, byte layer,
-											boolean fill, boolean editable) {
+	public GenericPath(String label, Path2D path, byte color, byte fillColor, byte layer,
+										 boolean fill, boolean editable) {
 		this.label = label;
 		myPath = path;
 		this.color = color;

@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -27,16 +27,16 @@ import org.genvisis.seq.qc.SeqError.DuplicateETwo;
 import org.genvisis.seq.qc.SeqError.MODE;
 
 public class SeqQCValidation {
-	private static String[] SNP_SETS = new String[] {	"(esp6500si_all=='.'||esp6500si_all <= 0.01)&&(g10002014oct_all=='.'||g10002014oct_all <= 0.01)",
-																										"snp138=='.'", "snp138!='.'"};
+	private static String[] SNP_SETS = new String[] {"(esp6500si_all=='.'||esp6500si_all <= 0.01)&&(g10002014oct_all=='.'||g10002014oct_all <= 0.01)",
+																									 "snp138=='.'", "snp138!='.'"};
 	// , "(esp6500si_all=='.'||esp6500si_all <= 0.01)"
 
 	private final SeqError seqError;
 	private final VariantContextFilter setFilter;
 	private final ReferenceGenome referenceGenome;
 
-	public SeqQCValidation(	SeqError seqError, VariantContextFilter setFilter,
-													ReferenceGenome referenceGenome) {
+	public SeqQCValidation(SeqError seqError, VariantContextFilter setFilter,
+												 ReferenceGenome referenceGenome) {
 		super();
 		this.seqError = seqError;
 		this.setFilter = setFilter;
@@ -61,8 +61,8 @@ public class SeqQCValidation {
 		private final int numthreads;
 		private final int numVariantsToTest;
 
-		public SeqQCValidationWorker(	SeqQCValidation seqQCValidation, int numVariantsToTest,
-																	int numthreads) {
+		public SeqQCValidationWorker(SeqQCValidation seqQCValidation, int numVariantsToTest,
+																 int numthreads) {
 			super();
 			this.seqQCValidation = seqQCValidation;
 			this.numthreads = numthreads;
@@ -85,8 +85,8 @@ public class SeqQCValidation {
 		int numInternalThreads;
 		// private Logger log;
 
-		public SeqQCValidationProducer(	SeqQCValidation[] validations, int numVariantsToTest,
-																		int numInternalThreads, Logger log) {
+		public SeqQCValidationProducer(SeqQCValidation[] validations, int numVariantsToTest,
+																	 int numInternalThreads, Logger log) {
 			super();
 			this.validations = validations;
 			this.numVariantsToTest = numVariantsToTest;
@@ -102,17 +102,17 @@ public class SeqQCValidation {
 
 		@Override
 		public Callable<SeqQCValidation> next() {
-			SeqQCValidationWorker worker = new SeqQCValidationWorker(	validations[index],
-																																numVariantsToTest,
-																																numInternalThreads);
+			SeqQCValidationWorker worker = new SeqQCValidationWorker(validations[index],
+																															 numVariantsToTest,
+																															 numInternalThreads);
 			index++;
 			return worker;
 		}
 	}
 
 	private static VariantContextFilter[] getSampleVariantFilters(Logger log) {
-		double[] GQ_Values = new double[] {	-1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 90,
-																				98};
+		double[] GQ_Values = new double[] {-1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 90,
+																			 98};
 		// double[] GQ_Values = new double[] { -1 };
 
 		double[] VQSLOD_Values = new double[] {-1};
@@ -122,8 +122,8 @@ public class SeqQCValidation {
 		VARIANT_FILTER_BOOLEAN fail = VARIANT_FILTER_BOOLEAN.FAILURE_FILTER;
 
 		VariantContextFilter[] vContextFilterSample = new VariantContextFilter[VQSLOD_Values.length
-																																							* GQ_Values.length
-																																						* DEPTH.length];
+																																					 * GQ_Values.length
+																																					 * DEPTH.length];
 		int index = 0;
 		for (double vqslod_Value : VQSLOD_Values) {
 			for (double gq_Value : GQ_Values) {
@@ -134,11 +134,11 @@ public class SeqQCValidation {
 					gq.setDFilter(gq_Value);
 					VARIANT_FILTER_DOUBLE dp = VARIANT_FILTER_DOUBLE.DP;
 					dp.setDFilter(element);
-					vContextFilterSample[index] =
-																			new VariantContextFilter(	new VARIANT_FILTER_DOUBLE[] {vq, gq,
-																																														dp},
-																																new VARIANT_FILTER_BOOLEAN[] {fail},
-																																null, null, log);
+					vContextFilterSample[index] = new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {vq,
+																																															gq,
+																																															dp},
+																																 new VARIANT_FILTER_BOOLEAN[] {fail},
+																																 null, null, log);
 					index++;
 				}
 			}
@@ -198,15 +198,15 @@ public class SeqQCValidation {
 		FilterNGS[] altDepthFilterNGSs = getAltAlleleDepthFilters(-1, 12, 1, 0.0, 0.7, 0.1);
 		log.reportTimeInfo(altDepthFilterNGSs.length + " alt depth filters");
 		VariantContextFilter[] vContextFilterSamples = getSampleVariantFilters(log);
-		int numComp =
-								altDepthFilterNGSs.length * vContextFilterSamples.length * sampsForPairWise.length;
-		log.reportTimeInfo("Running "	+ (altDepthFilterNGSs.length * vContextFilterSamples.length)
-												+ " validations over " + sampsForPairWise.length
-												+ " pairwise comparisons for a total of " + numComp
-												+ " tests on each variant");
-		ReferenceGenome referenceGenome = referenceGenomeFasta == null	? null
-																																		: new ReferenceGenome(referenceGenomeFasta,
-																																													log);
+		int numComp = altDepthFilterNGSs.length * vContextFilterSamples.length
+									* sampsForPairWise.length;
+		log.reportTimeInfo("Running " + (altDepthFilterNGSs.length * vContextFilterSamples.length)
+											 + " validations over " + sampsForPairWise.length
+											 + " pairwise comparisons for a total of " + numComp
+											 + " tests on each variant");
+		ReferenceGenome referenceGenome = referenceGenomeFasta == null ? null
+																																	 : new ReferenceGenome(referenceGenomeFasta,
+																																												 log);
 		if (referenceGenome == null) {
 			log.reportTimeWarning("Was unable to find a reference genome, skipping gc computations");
 		} else {
@@ -225,8 +225,8 @@ public class SeqQCValidation {
 				}
 			}
 		}
-		List<DuplicateETwo[]> duplicateETwos = Array.splitUpArray(	deETwos.toArray(new DuplicateETwo[deETwos.size()]),
-																																	numthreads, log);
+		List<DuplicateETwo[]> duplicateETwos = ArrayUtils.splitUpArray(deETwos.toArray(new DuplicateETwo[deETwos.size()]),
+																																	 numthreads, log);
 		SeqQCValidation[] setSeqQCValidations = new SeqQCValidation[SNP_SETS.length
 																																* duplicateETwos.size()];
 
@@ -244,20 +244,20 @@ public class SeqQCValidation {
 		}
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
-			writer.println(Array.toStr(SeqError.OUTPUT_HEADER)	+ "\t"
-											+ "SET\tAltDepth\tAltDepthRatio\tGQ\tVQSLOD\tDepth");
-			SeqQCValidationProducer producer = new SeqQCValidationProducer(	setSeqQCValidations,
-																																			numVariantsToTest, 1, log);
+			writer.println(ArrayUtils.toStr(SeqError.OUTPUT_HEADER) + "\t"
+										 + "SET\tAltDepth\tAltDepthRatio\tGQ\tVQSLOD\tDepth");
+			SeqQCValidationProducer producer = new SeqQCValidationProducer(setSeqQCValidations,
+																																		 numVariantsToTest, 1, log);
 			WorkerTrain<SeqQCValidation> train = new WorkerTrain<SeqQCValidation>(producer, numthreads, 1,
 																																						log);
 			while (train.hasNext()) {
 				SeqQCValidation tmp = train.next();
 				DuplicateETwo[] dETwos = tmp.getSeqError().getdETwos();
 				for (DuplicateETwo dETwo : dETwos) {
-					writer.print(dETwo.getSummary()	+ "\t"
-												+ tmp.getSetFilter().getvFilterJEXL().getjExps().get(0).name + "\t"
-												+ dETwo.getFilterNGS().getAltAlleleDepthFilter()[0] + "\t"
-												+ dETwo.getFilterNGS().getAltAlleleDepthRatioFilter()[0]);
+					writer.print(dETwo.getSummary() + "\t"
+											 + tmp.getSetFilter().getvFilterJEXL().getjExps().get(0).name + "\t"
+											 + dETwo.getFilterNGS().getAltAlleleDepthFilter()[0] + "\t"
+											 + dETwo.getFilterNGS().getAltAlleleDepthRatioFilter()[0]);
 					VcFilterDouble[] doubles = dETwo.getvContextFilterSample().getvDoubles();
 					int GQIndex = -1;
 					int VQSLODIndex = -1;
@@ -316,10 +316,10 @@ public class SeqQCValidation {
 
 		String usage = "\n" + "seq.qc.SeqErrorIterator requires 0-1 arguments\n";
 		usage += "   (1) vcf filename (i.e. vcf=" + vcf + " (default))\n" + "";
-		usage +=
-					"   (2) a file of samples for pairwise comparisions (i.e. samples= (no default))\n" + "";
-		usage += "   (3) number of variants to test per comparision (i.e. numVar="	+ numVariantsToTest
-							+ " (defaults to all variants))\n" + "";
+		usage += "   (2) a file of samples for pairwise comparisions (i.e. samples= (no default))\n"
+						 + "";
+		usage += "   (3) number of variants to test per comparision (i.e. numVar=" + numVariantsToTest
+						 + " (defaults to all variants))\n" + "";
 		usage += "   (4) full path to a reference genome file (i.e. ref=(no default))\n" + "";
 
 		usage += PSF.Ext.getNumThreadsCommand(3, numThreads);
@@ -351,10 +351,10 @@ public class SeqQCValidation {
 			System.exit(1);
 		}
 		try {
-			log = new Logger(Files.exists(fileOFSamplesForPairWise)	? fileOFSamplesForPairWise + "er.log"
+			log = new Logger(Files.exists(fileOFSamplesForPairWise) ? fileOFSamplesForPairWise + "er.log"
 																															: null);
-			validate(	vcf, fileOFSamplesForPairWise, referenceGenomeFasta, numVariantsToTest, numThreads,
-								log);
+			validate(vcf, fileOFSamplesForPairWise, referenceGenomeFasta, numVariantsToTest, numThreads,
+							 log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

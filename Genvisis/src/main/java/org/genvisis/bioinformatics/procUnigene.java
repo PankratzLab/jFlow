@@ -14,12 +14,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class procUnigene {
-	public static final String[] VARS = {	"ID", "GENE ", "TITLE", "GENE_ID", "CHROMOSOME", "CYTOBAND",
-																				"EXPRESS"};
+	public static final String[] VARS = {"ID", "GENE ", "TITLE", "GENE_ID", "CHROMOSOME", "CYTOBAND",
+																			 "EXPRESS"};
 
 	public procUnigene(String filename) {
 		BufferedReader reader = null;
@@ -29,16 +29,16 @@ public class procUnigene {
 		Set<String> v = new LinkedHashSet<String>();
 		Map<String, Integer> vCounts = new HashMap<String, Integer>();
 		int count = 0;
-		String[] data = Array.stringArray(VARS.length + 1, ".");
+		String[] data = ArrayUtils.stringArray(VARS.length + 1, ".");
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(filename + ".xls"));
-			writer.println("NM_ID\t" + Array.toStr(VARS));
+			writer.println("NM_ID\t" + ArrayUtils.toStr(VARS));
 			while (reader.ready()) {
 				temp = reader.readLine();
 				if (temp.equals("//")) {
-					writer.println(Array.toStr(data));
+					writer.println(ArrayUtils.toStr(data));
 					line = data[ext.indexOfStr("EXPRESS", VARS) + 1].split("\\|");
 					if (!line[0].equals(".") && !data[3 + 1].equals(".")) {
 						count++;
@@ -52,7 +52,7 @@ public class procUnigene {
 							}
 						}
 					}
-					data = Array.stringArray(VARS.length + 1, ".");
+					data = ArrayUtils.stringArray(VARS.length + 1, ".");
 				}
 				for (int i = 0; i < VARS.length; i++) {
 					if (temp.startsWith(VARS[i])) {
@@ -60,10 +60,10 @@ public class procUnigene {
 					}
 				}
 				if (temp.indexOf("ACC=NM_") > 0) {
-					temp = temp.indexOf(";") > 0	? temp.substring(temp.indexOf("ACC=NM_")	+ 4,
-																													temp.indexOf(";"))
-																				: temp.substring(temp.indexOf("ACC=NM_") + 4)
-																							.split("[\\s]+")[0];
+					temp = temp.indexOf(";") > 0 ? temp.substring(temp.indexOf("ACC=NM_") + 4,
+																												temp.indexOf(";"))
+																			 : temp.substring(temp.indexOf("ACC=NM_") + 4)
+																						 .split("[\\s]+")[0];
 					if (data[0].equals(".")) {
 						data[0] = temp;
 					} else {
@@ -80,8 +80,8 @@ public class procUnigene {
 			Collections.sort(sortedVals);
 			for (int i = 0; i < sortedVals.size(); i++) {
 				String s = sortedVals.get(i);
-				writer.println(s	+ "\t" + vCounts.get(s) + "\t"
-												+ ((double) vCounts.get(s) / (double) count));
+				writer.println(s + "\t" + vCounts.get(s) + "\t"
+											 + ((double) vCounts.get(s) / (double) count));
 			}
 			writer.println();
 			writer.println("Total\t" + count);
@@ -100,8 +100,8 @@ public class procUnigene {
 		int numArgs = args.length;
 		String filename = "C:\\Download\\Hs.data";
 
-		String usage = "\n"	+ "park.procUnigene requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "park.procUnigene requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

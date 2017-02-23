@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.GeneData;
@@ -19,13 +19,12 @@ public class parkGenes {
 
 
 	public static void main(String[] args) {
-		GeneTrack geneTrack = GeneTrack.load(	Resources.genome(GENOME_BUILD.HG19, new Logger())
+		GeneTrack geneTrack = GeneTrack.load(Resources.genome(GENOME_BUILD.HG19, new Logger())
 																									.getGTrack().get(),
-																					false);
+																				 false);
 
-		LocusSet<CNVariant> set =
-														CNVariant.loadLocSet(	"D:/data/NGRC/cnvs/decentCalls_centromeresBroken.cnv",
-																									new Logger());
+		LocusSet<CNVariant> set = CNVariant.loadLocSet("D:/data/NGRC/cnvs/decentCalls_centromeresBroken.cnv",
+																									 new Logger());
 		ArrayList<CNVariant> found = new ArrayList<CNVariant>();
 		ArrayList<String> genes = new ArrayList<String>();
 		genes.add("HTRA2");
@@ -57,7 +56,7 @@ public class parkGenes {
 		String out = "D:/data/NGRC/cnvs/pdGenes.cnv";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\tGENE");
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\tGENE");
 			for (CNVariant cnv : found) {
 				for (GeneData gene : genLocs) {
 					if (cnv.overlaps(gene)) {

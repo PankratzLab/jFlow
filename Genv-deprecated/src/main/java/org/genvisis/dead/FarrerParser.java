@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -28,8 +28,7 @@ public class FarrerParser {
 		PrintWriter writer;
 		String[] line;
 		String model, trav;
-		Hashtable<String, Hashtable<String, String>> hashes =
-																												new Hashtable<String, Hashtable<String, String>>();
+		Hashtable<String, Hashtable<String, String>> hashes = new Hashtable<String, Hashtable<String, String>>();
 		Hashtable<String, String> hash;
 		Vector<String> v;
 		String[] markers, models, files, finalSummary;
@@ -48,15 +47,15 @@ public class FarrerParser {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (ext.indexOfStr(line[1], markers) >= 0) {
 					freq = Double.parseDouble(line[4]);
-					summary = line[2]	+ "(" + ext.formDeci(freq, 4, true) + ")\t" + line[3] + "("
+					summary = line[2] + "(" + ext.formDeci(freq, 4, true) + ")\t" + line[3] + "("
 										+ ext.formDeci(1 - freq, 4, true) + ")";
 					HashVec.addToHashHash(hashes, "freq", line[1], summary);
 				}
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ dir + "plink.frq"
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + dir + "plink.frq"
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + dir + "plink.frq" + "\"");
@@ -75,28 +74,28 @@ public class FarrerParser {
 				line = reader.readLine().trim().split("[\\s]+");
 				for (int j = 0; j < PROBABEL_HEADER.length; j++) {
 					if (!line[j].equalsIgnoreCase(PROBABEL_HEADER[j])) {
-						System.err.println("Error - Expecting "	+ PROBABEL_HEADER[j] + " in column " + (j + 1)
-																+ "; got " + line[j]);
+						System.err.println("Error - Expecting " + PROBABEL_HEADER[j] + " in column " + (j + 1)
+															 + "; got " + line[j]);
 					}
 				}
 				numTerms = (line.length - PROBABEL_HEADER.length - 1) / 2;
 				terms = new String[numTerms];
 				for (int j = 0; j < numTerms; j++) {
 					if (line[PROBABEL_HEADER.length + j * 2 + 0].startsWith("beta_")
-								&& line[PROBABEL_HEADER.length + j * 2 + 1].startsWith("sebeta_")
-							&& line[PROBABEL_HEADER.length	+ j * 2
+							&& line[PROBABEL_HEADER.length + j * 2 + 1].startsWith("sebeta_")
+							&& line[PROBABEL_HEADER.length + j * 2
 											+ 0].substring(("beta_").length())
-													.equals(line[PROBABEL_HEADER.length	+ j * 2
-																				+ 1].substring(("sebeta_").length()))) {
+													.equals(line[PROBABEL_HEADER.length + j * 2
+																			 + 1].substring(("sebeta_").length()))) {
 						terms[j] = line[PROBABEL_HEADER.length + j * 2 + 0].substring(("beta_").length());
 					} else {
 						System.err.println("Error - expecting beta_ and sebeta_ prefixes on each of the "
-																+ terms.length + " term(s), but found: ");
-						System.err.println("        "	+ line[PROBABEL_HEADER.length + j * 2 + 0] + " and "
-																+ line[PROBABEL_HEADER.length + j * 2 + 1]);
+															 + terms.length + " term(s), but found: ");
+						System.err.println("        " + line[PROBABEL_HEADER.length + j * 2 + 0] + " and "
+															 + line[PROBABEL_HEADER.length + j * 2 + 1]);
 					}
 				}
-				HashVec.addToHashHash(hashes, model, "terms", Array.toStr(terms));
+				HashVec.addToHashHash(hashes, model, "terms", ArrayUtils.toStr(terms));
 
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
@@ -106,23 +105,23 @@ public class FarrerParser {
 							beta = Double.parseDouble(line[PROBABEL_HEADER.length + j * 2 + 0]);
 							stderr = Double.parseDouble(line[PROBABEL_HEADER.length + j * 2 + 1]);
 							if (freq > 0.50) {
-								summary = line[2]	+ "(" + ext.formDeci(1 - freq, 4, true) + ")\t" + line[1] + "("
+								summary = line[2] + "(" + ext.formDeci(1 - freq, 4, true) + ")\t" + line[1] + "("
 													+ ext.formDeci(freq, 4, true) + ")\t";
 								if (terms[j].startsWith("SNP_")) {
 									beta *= -1;
 								}
 							} else {
-								summary = line[1]	+ "(" + ext.formDeci(freq, 4, true) + ")\t" + line[2] + "("
+								summary = line[1] + "(" + ext.formDeci(freq, 4, true) + ")\t" + line[2] + "("
 													+ ext.formDeci(1 - freq, 4, true) + ")\t";
 							}
 							// summary +=
 							// ext.formDeci(Math.exp(beta),3,true)+"\t("+ext.formDeci(Math.exp(beta-1.96*stderr),3,true)+",
 							// "+ext.formDeci(Math.exp(beta+1.96*stderr),3,true)+")\t"+ProbDist.ChiDist(Double.parseDouble(line[interaction?14:12]),
 							// 1);
-							summary += ext.formDeci(Math.exp(beta), 3, true)	+ "\t("
-													+ ext.formDeci(Math.exp(beta - 1.96 * stderr), 3, true) + ", "
-													+ ext.formDeci(Math.exp(beta + 1.96 * stderr), 3, true) + ")\t"
-													+ ProbDist.NormDist(beta / stderr);
+							summary += ext.formDeci(Math.exp(beta), 3, true) + "\t("
+												 + ext.formDeci(Math.exp(beta - 1.96 * stderr), 3, true) + ", "
+												 + ext.formDeci(Math.exp(beta + 1.96 * stderr), 3, true) + ")\t"
+												 + ProbDist.NormDist(beta / stderr);
 							// summary +=
 							// ext.formDeci(Math.exp(beta),3,true)+"\t("+ext.formDeci(Math.exp(beta-1.96*stderr),3,true)+",
 							// "+ext.formDeci(Math.exp(beta+1.96*stderr),3,true)+")\t=NORMSDIST("+(-1*Math.abs(beta/stderr))+")*2";
@@ -151,16 +150,16 @@ public class FarrerParser {
 					line = reader.readLine().trim().split("[\\s]+");
 					if (ext.indexOfStr(line[1], markers) >= 0) {
 						summary = ".\t.\t"
-												+ (line[6].equals("NA")	? "NA"
+											+ (line[6].equals("NA") ? "NA"
 																							: ext.formDeci(Double.parseDouble(line[6]), 3, true))
 											+ "\t("
-											+ (line[6].equals("NA")	? "NA"
+											+ (line[6].equals("NA") ? "NA"
 																							: ext.formDeci(Double.parseDouble(line[8]), 3, true))
 											+ ", "
-											+ (line[9].equals("inf")	? "inf"
-																								: (line[6].equals("NA")	? "NA"
-																																				: ext.formDeci(	Double.parseDouble(line[9]),
-																																												3, true)))
+											+ (line[9].equals("inf") ? "inf"
+																							 : (line[6].equals("NA") ? "NA"
+																																			 : ext.formDeci(Double.parseDouble(line[9]),
+																																											3, true)))
 											+ ")\t" + line[11];
 						if (line[4].equals("ADD")) {
 							trav = "SNP_add";
@@ -174,7 +173,8 @@ public class FarrerParser {
 					}
 				}
 				if (!hashes.get(model).containsKey("terms")) {
-					HashVec.addToHashHash(hashes, model, "terms", Array.toStr(Array.toStringArray(v)));
+					HashVec.addToHashHash(hashes, model, "terms",
+																ArrayUtils.toStr(ArrayUtils.toStringArray(v)));
 				}
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
@@ -214,7 +214,7 @@ public class FarrerParser {
 					} else {
 						writer.print("\t.\t.");
 					}
-					finalSummary = Array.stringArray(2 + 3 * numTerms, "");
+					finalSummary = ArrayUtils.stringArray(2 + 3 * numTerms, "");
 					count = 0;
 					for (String model2 : models) {
 						hash = hashes.get(model2);
@@ -237,7 +237,7 @@ public class FarrerParser {
 							count++;
 						}
 					}
-					writer.println("\t" + Array.toStr(finalSummary));
+					writer.println("\t" + ArrayUtils.toStr(finalSummary));
 				}
 			}
 			writer.close();
@@ -258,8 +258,8 @@ public class FarrerParser {
 		String models = "models.txt";
 		String prefix = "LOAD_Aff_";
 
-		String usage = "\n"	+ "dead.FarrerParser requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "dead.FarrerParser requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

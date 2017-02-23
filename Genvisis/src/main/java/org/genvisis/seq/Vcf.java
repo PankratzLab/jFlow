@@ -12,7 +12,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
@@ -26,8 +26,8 @@ import com.google.common.primitives.Ints;
 public class Vcf {
 	public static final String[] BITS_TO_KEEP = {"AC=", "AN=", "DB"};
 
-	private static void lookup(	String variantList, String vcfFile, String outfile,
-															String lookupReadyFile, Logger log) {
+	private static void lookup(String variantList, String vcfFile, String outfile,
+														 String lookupReadyFile, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -59,8 +59,8 @@ public class Vcf {
 		}
 
 		if (iv.size() > 0) {
-			log.report("Found existing hashed databases from "	+ vcfFile
-									+ " for the following chromomosomes: " + ext.listRanges(Ints.toArray(iv)));
+			log.report("Found existing hashed databases from " + vcfFile
+								 + " for the following chromomosomes: " + ext.listRanges(Ints.toArray(iv)));
 		} else {
 			log.report(ext.getTime() + "\tLoading data from : " + vcfFile);
 			hash = new Hashtable<String, String[]>();
@@ -70,8 +70,8 @@ public class Vcf {
 					temp = reader.readLine();
 				} while (reader.ready() && temp.startsWith("#") && !temp.startsWith("#CHROM"));
 
-				indices = ext.indexFactors(	new String[] {"#CHROM", "POS", "REF", "ALT", "ID", "INFO"},
-																		temp.trim().split("[\\s]+"), false, log, true, true);
+				indices = ext.indexFactors(new String[] {"#CHROM", "POS", "REF", "ALT", "ID", "INFO"},
+																	 temp.trim().split("[\\s]+"), false, log, true, true);
 				currentChrom = "";
 				// while (reader.ready()) { // returning false at the same places in the file every time for
 				// no reason
@@ -81,7 +81,7 @@ public class Vcf {
 						line = temp.trim().split("[\\s]+");
 						if (line[0].startsWith("#")) {
 							log.reportError("Error - ran into some unexpected trailing comments: "
-															+ Array.toStr(line));
+															+ ArrayUtils.toStr(line));
 						} else {
 							infoToKeep = "";
 							splitInfo = line[indices[5]].split(";");
@@ -93,9 +93,9 @@ public class Vcf {
 									}
 								}
 							}
-							hash.put(line[indices[0]]	+ "\t" + line[indices[1]],
-												new String[] {line[indices[2]], line[indices[3]], line[indices[4]],
-																			infoToKeep});
+							hash.put(line[indices[0]] + "\t" + line[indices[1]],
+											 new String[] {line[indices[2]], line[indices[3]], line[indices[4]],
+																		 infoToKeep});
 							// if (line[indices[1]].equals("193768186")) {
 							// System.err.println("hola");
 							// System.err.println(Array.toStr(line));
@@ -112,10 +112,10 @@ public class Vcf {
 					}
 
 					if (temp == null || !line[indices[0]].equals(currentChrom)) {
-						log.report(ext.getTime()	+ "\tSaving hash (n=" + hash.size() + " entries) to " + vcfFile
-												+ "." + currentChrom + ".serHash");
-						SerialHash.createSerializedStringArrayHash(vcfFile	+ "." + currentChrom + ".serHash",
-																												hash);
+						log.report(ext.getTime() + "\tSaving hash (n=" + hash.size() + " entries) to " + vcfFile
+											 + "." + currentChrom + ".serHash");
+						SerialHash.createSerializedStringArrayHash(vcfFile + "." + currentChrom + ".serHash",
+																											 hash);
 						hash.clear();
 						if (temp != null) {
 							currentChrom = line[indices[0]];
@@ -145,7 +145,7 @@ public class Vcf {
 				if (!variants[i][0].equals(currentChrom)) {
 					currentChrom = variants[i][0];
 					log.report("Loading hash for chr" + currentChrom);
-					hash = SerialHash.loadSerializedStringArrayHash(vcfFile	+ "." + currentChrom
+					hash = SerialHash.loadSerializedStringArrayHash(vcfFile + "." + currentChrom
 																													+ ".serHash");
 				}
 				if (hash.containsKey(variants[i][0] + "\t" + variants[i][1])) {
@@ -153,14 +153,14 @@ public class Vcf {
 					// if (hash.containsKey(variants[i][0])) {
 					// line = hash.get(variants[i][0]);
 					if (!variants[i][2].equalsIgnoreCase(line[0])) {
-						log.reportError("Error - mismatched reference allele at position chr"	+ variants[i][0]
+						log.reportError("Error - mismatched reference allele at position chr" + variants[i][0]
 														+ ":" + variants[0][1] + " (found " + variants[i][2] + ", expecting "
 														+ line[0] + ")");
 					}
 					alleles = line[1].split(",");
-					alleleCounts = Array.intArray(alleles.length, -1);
-					numAlleleCalled = Array.intArray(alleles.length, -1);
-					freqs = Array.doubleArray(alleles.length, -2);
+					alleleCounts = ArrayUtils.intArray(alleles.length, -1);
+					numAlleleCalled = ArrayUtils.intArray(alleles.length, -1);
+					freqs = ArrayUtils.doubleArray(alleles.length, -2);
 					index = -1;
 					dbsnp = false;
 					for (int j = 0; j < alleles.length; j++) {
@@ -198,24 +198,24 @@ public class Vcf {
 					// writer.println(variants[i][0]+"\t"+Maths.min(freqs[0], 1-freqs[0])+"\t"+dbsnp);
 					if (index == -1) {
 						log.reportError("Warning - the alternate allele that was seen at position chr"
-															+ variants[i][0] + ":" + variants[i][1] + " (" + variants[i][3]
+														+ variants[i][0] + ":" + variants[i][1] + " (" + variants[i][3]
 														+ ") was not seen in the reference vcf");
-						writer.println(variants[i][0]	+ "\t" + variants[i][1] + "\t" + variants[i][2] + "\t"
-														+ variants[i][3] + "\t.\t.\t.\t" + alleles.length + "\t"
-														+ (dbsnp ? "1" : "0") + "\t" + line[2]);
+						writer.println(variants[i][0] + "\t" + variants[i][1] + "\t" + variants[i][2] + "\t"
+													 + variants[i][3] + "\t.\t.\t.\t" + alleles.length + "\t"
+													 + (dbsnp ? "1" : "0") + "\t" + line[2]);
 					} else {
-						writer.println(variants[i][0]	+ "\t" + variants[i][1] + "\t" + variants[i][2] + "\t"
-														+ variants[i][3] + "\t" + alleleCounts[index] + "\t"
-														+ numAlleleCalled[index] + "\t" + freqs[index] + "\t" + alleles.length
-														+ "\t" + (dbsnp ? "1" : "0") + "\t" + line[2]);
+						writer.println(variants[i][0] + "\t" + variants[i][1] + "\t" + variants[i][2] + "\t"
+													 + variants[i][3] + "\t" + alleleCounts[index] + "\t"
+													 + numAlleleCalled[index] + "\t" + freqs[index] + "\t" + alleles.length
+													 + "\t" + (dbsnp ? "1" : "0") + "\t" + line[2]);
 					}
 				} else {
-					writer.println(variants[i][0]	+ "\t" + variants[i][1] + "\t" + variants[i][2] + "\t"
-													+ variants[i][3] + "\t.\t.\t.\t.\t.\t.");
+					writer.println(variants[i][0] + "\t" + variants[i][1] + "\t" + variants[i][2] + "\t"
+												 + variants[i][3] + "\t.\t.\t.\t.\t.\t.");
 				}
 			}
 			if (missingSplitAlleleCounts > 0) {
-				log.reportError("       - there were "	+ missingSplitAlleleCounts
+				log.reportError("       - there were " + missingSplitAlleleCounts
 												+ " sites with multiple alleles that only listed a single allele count");
 			}
 			writer.close();
@@ -225,8 +225,8 @@ public class Vcf {
 			e.printStackTrace();
 		}
 
-		Files.makeVLookupReadyFile(	outfile, lookupReadyFile, new int[] {0, 1, 2, 3},
-																new int[] {4, 5, 6, 7, 8, 9});
+		Files.makeVLookupReadyFile(outfile, lookupReadyFile, new int[] {0, 1, 2, 3},
+															 new int[] {4, 5, 6, 7, 8, 9});
 	}
 
 	public static void createFromParameters(String filename, Logger log) {
@@ -241,7 +241,7 @@ public class Vcf {
 
 		if (params != null) {
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 
@@ -256,12 +256,12 @@ public class Vcf {
 		Logger log;
 		String errors = "";
 
-		String usage = "\n"	+ "seq.Vcf requires 0-4 arguments\n"
-										+ "   (1) filename of variants of interest (i.e. list=" + variantList
-										+ " (default))\n" + "   (2) VCF file (i.e. vcf=" + vcfFile + " (default))\n"
-										+ "   (3) tab-delimited outfile (i.e. out1=[listFile].out (default))\n"
-										+ "   (4) ^-delimited VLOOKUP-ready outfile (i.e. out2=[listFile].xln (default))\n"
-										+ "";
+		String usage = "\n" + "seq.Vcf requires 0-4 arguments\n"
+									 + "   (1) filename of variants of interest (i.e. list=" + variantList
+									 + " (default))\n" + "   (2) VCF file (i.e. vcf=" + vcfFile + " (default))\n"
+									 + "   (3) tab-delimited outfile (i.e. out1=[listFile].out (default))\n"
+									 + "   (4) ^-delimited VLOOKUP-ready outfile (i.e. out2=[listFile].xln (default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -12,7 +12,7 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.MDL;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
@@ -43,31 +43,25 @@ public class Cables1 {
 		private double sampPopLogProbDel;
 		private double sampPopLogProbDup;
 
-		private static final String[] Header = new String[] { "SAMPLE", "MARKER", "LRR", "SAMP_PROB", "POP_PROB",
-				"POP_MEAN", "POP_SD", "SAMP_MEAN", "SAMP_SD", "SAMP_POP_LOG_DEL", "SAMP_POP_LOG_DUP" };
+		private static final String[] Header = new String[] {"SAMPLE", "MARKER", "LRR", "SAMP_PROB",
+																												 "POP_PROB", "POP_MEAN", "POP_SD",
+																												 "SAMP_MEAN", "SAMP_SD", "SAMP_POP_LOG_DEL",
+																												 "SAMP_POP_LOG_DUP"};
 
 		/**
-		 * @param sample
-		 *            sample represented
-		 * @param marker
-		 *            current marker
-		 * @param lrr
-		 *            lrr value
-		 * @param sampPdense
-		 *            sample-relative probability
-		 * @param popPdense
-		 *            population-relative probabiliyt
-		 * @param popMean
-		 *            population mean of marker
-		 * @param popSd
-		 *            population sd of marker
-		 * @param sampMean
-		 *            sample mean lrr
-		 * @param sampSd
-		 *            sample sd
+		 * @param sample sample represented
+		 * @param marker current marker
+		 * @param lrr lrr value
+		 * @param sampPdense sample-relative probability
+		 * @param popPdense population-relative probabiliyt
+		 * @param popMean population mean of marker
+		 * @param popSd population sd of marker
+		 * @param sampMean sample mean lrr
+		 * @param sampSd sample sd
 		 */
-		public CNDataPoint(String sample, String marker, double lrr, double sampPdense, double popPdense,
-				double popMean, double popSd, double sampMean, double sampSd) {
+		public CNDataPoint(String sample, String marker, double lrr, double sampPdense,
+											 double popPdense, double popMean, double popSd, double sampMean,
+											 double sampSd) {
 			super();
 			this.sample = sample;
 			this.marker = marker;
@@ -85,8 +79,9 @@ public class Cables1 {
 
 		@Override
 		public String toString() {
-			return sample + "\t" + marker + "\t" + lrr + "\t" + sampPdense + "\t" + popPdense + "\t" + popMean + "\t"
-					+ popSd + "\t" + sampMean + "\t" + sampSd + "\t" + sampPopLogProbDel + "\t" + sampPopLogProbDup;
+			return sample + "\t" + marker + "\t" + lrr + "\t" + sampPdense + "\t" + popPdense + "\t"
+						 + popMean + "\t" + popSd + "\t" + sampMean + "\t" + sampSd + "\t" + sampPopLogProbDel
+						 + "\t" + sampPopLogProbDup;
 		}
 
 	}
@@ -109,11 +104,14 @@ public class Cables1 {
 
 	}
 
-	private static SampleDistParams[] generateSampleParams(Project proj, PreparedMarkerSet preparedMarkerSet,
-			String outputDir, String[] pattersToExclude) {
+	private static SampleDistParams[] generateSampleParams(Project proj,
+																												 PreparedMarkerSet preparedMarkerSet,
+																												 String outputDir,
+																												 String[] pattersToExclude) {
 		String serFile = outputDir + "sampleLrrParams.ser";
 		if (Files.exists(serFile)) {
-			return (SampleDistParams[]) SerializedFiles.readSerial(serFile, false, proj.getLog(), false, true);
+			return (SampleDistParams[]) SerializedFiles.readSerial(serFile, false, proj.getLog(), false,
+																														 true);
 		} else {
 			String[] names = preparedMarkerSet.getMarkerNames();
 			ArrayList<Integer> toUse = new ArrayList<>();
@@ -139,9 +137,9 @@ public class Cables1 {
 			for (int i = 0; i < samples.length; i++) {
 				proj.getLog().reportTimeInfo("Sample " + i);
 				Sample samp = proj.getFullSampleFromRandomAccessFile(samples[i]);
-				float[] lrrs = Array.subArray(samp.getLRRs(), indices);
-				float mean = Array.mean(lrrs, true);
-				float sd = Array.stdev(lrrs, true);
+				float[] lrrs = ArrayUtils.subArray(samp.getLRRs(), indices);
+				float mean = ArrayUtils.mean(lrrs, true);
+				float sd = ArrayUtils.stdev(lrrs, true);
 				sampleDistParams[i] = new SampleDistParams(samples[i], mean, sd);
 				raw.append("\n" + samples[i] + "\t" + mean + "\t" + sd);
 				proj.getLog().reportTimeInfo("Sample " + i + "\t" + samples[i] + "\t" + mean + "\t" + sd);
@@ -156,14 +154,14 @@ public class Cables1 {
 	}
 
 	public static void main(String[] args) {
-		Project proj = new Project(
-				"/Users/Kitty/workspace.other/Genvisis/Genvisis/projects/cushings_corrected.properties", false);
+		Project proj = new Project("/Users/Kitty/workspace.other/Genvisis/Genvisis/projects/cushings_corrected.properties",
+															 false);
 		proj.verifyAndGenerateOutliers(true);
 		Segment cables1Loc = new Segment("chr18:20,714,528-20,840,434");
 		Segment alk = new Segment("chr2:28,961,923-31,735,067");
 		Segment test = new Segment("chr6:306,447-338,866");
 		Segment test2 = new Segment("chr3:141,874,465-142,094,208");
-		Segment bai1 =new Segment("chr8:143,545,377-143,626,368");
+		Segment bai1 = new Segment("chr8:143,545,377-143,626,368");
 		ArrayList<Segment> segs = new ArrayList<>();
 		segs.add(cables1Loc);
 		segs.add(alk);
@@ -178,8 +176,10 @@ public class Cables1 {
 
 		for (Segment seg : segs) {
 			SampleDistParams[] sampleDistParams = generateSampleParams(proj, preparedMarkerSet, outDir,
-					new String[] { "VARIANT_SITE", "OFF_TARGET" });
-			String[] markersInSeg = preparedMarkerSet.getMarkersIn(seg, preparedMarkerSet.getIndicesByChr());
+																																 new String[] {"VARIANT_SITE",
+																																							 "OFF_TARGET"});
+			String[] markersInSeg = preparedMarkerSet.getMarkersIn(seg,
+																														 preparedMarkerSet.getIndicesByChr());
 
 			MDL mdl = new MDL(proj, preparedMarkerSet, markersInSeg);
 
@@ -193,33 +193,36 @@ public class Cables1 {
 
 			while (mdl.hasNext()) {
 				MarkerData md = mdl.next();
-				if (!md.getMarkerName().contains("VARIANT_SITE") && !md.getMarkerName().contains("OFF_TARGET")) {
+				if (!md.getMarkerName().contains("VARIANT_SITE")
+						&& !md.getMarkerName().contains("OFF_TARGET")) {
 					proj.getLog().reportTimeInfo("Marker " + md.getMarkerName());
 
-					NormalDistribution nd = new NormalDistribution(Array.mean(md.getLRRs(), true),
-							Array.stdev(md.getLRRs(), true));
+					NormalDistribution nd = new NormalDistribution(ArrayUtils.mean(md.getLRRs(), true),
+																												 ArrayUtils.stdev(md.getLRRs(), true));
 
 					for (int i = 0; i < samples.length; i++) {
 
 						double sampProb = ndsample[i].density(md.getLRRs()[i]);
 						double popProb = nd.density(md.getLRRs()[i]);
-//						sampProb *= ndsample[i].getStandardDeviation();
-//						popProb *= nd.getStandardDeviation();
+						// sampProb *= ndsample[i].getStandardDeviation();
+						// popProb *= nd.getStandardDeviation();
 						// if (md.getLRRs()[i] > 0) {
 						// sampProb = 1 - sampProb;
 						// popProb = 1 - popProb;
 						// }
 
-						CNDataPoint cnDataPointNorm = new CNDataPoint(samples[i], md.getMarkerName(), md.getLRRs()[i],
-								sampProb, popProb, nd.getMean(), nd.getStandardDeviation(), ndsample[i].getMean(),
-								ndsample[i].getStandardDeviation());
+						CNDataPoint cnDataPointNorm = new CNDataPoint(samples[i], md.getMarkerName(),
+																													md.getLRRs()[i], sampProb, popProb,
+																													nd.getMean(), nd.getStandardDeviation(),
+																													ndsample[i].getMean(),
+																													ndsample[i].getStandardDeviation());
 
 						points.add(cnDataPointNorm);
 					}
 				}
 			}
 			PrintWriter writer = Files.getAppropriateWriter(outDir + seg.getUCSClocation() + "cnvs.txt");
-			writer.println(Array.toStr(CNDataPoint.Header));
+			writer.println(ArrayUtils.toStr(CNDataPoint.Header));
 			for (CNDataPoint cDataPoint : points) {
 				writer.println(cDataPoint.toString());
 			}

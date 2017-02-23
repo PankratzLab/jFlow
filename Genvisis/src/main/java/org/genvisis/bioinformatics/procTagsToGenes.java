@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 
 public class procTagsToGenes {
@@ -63,8 +63,8 @@ public class procTagsToGenes {
 		int numArgs = args.length;
 		Vector<String> v = null;
 
-		String usage = "\n"	+ "park.procTagsToGenes requires 0+ arguments\n" + "   filenames (i.e. "
-										+ Array.toStr(DEFAULT_FILES, " ") + " (default))\n" + "";
+		String usage = "\n" + "park.procTagsToGenes requires 0+ arguments\n" + "   filenames (i.e. "
+									 + ArrayUtils.toStr(DEFAULT_FILES, " ") + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -83,7 +83,7 @@ public class procTagsToGenes {
 			System.exit(1);
 		}
 		try {
-			runProcTagsToGenes(v == null ? DEFAULT_FILES : Array.toStringArray(v));
+			runProcTagsToGenes(v == null ? DEFAULT_FILES : ArrayUtils.toStringArray(v));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -12,7 +12,7 @@ import java.util.Vector;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -31,9 +31,9 @@ public class grep {
 
 		try {
 			writer = Files.getAppropriateWriter(ext.parseDirectoryOfFile(filename)
-																					+ (outputFilename.endsWith(".gz")	? outputFilename.substring(	0,
-																																																				outputFilename.length()
-																																																						- 3)
+																					+ (outputFilename.endsWith(".gz") ? outputFilename.substring(0,
+																																																			 outputFilename.length()
+																																																					- 3)
 																																						: outputFilename));
 			isReader = null;
 			if (outputFilename.endsWith(".gz")) {
@@ -83,7 +83,7 @@ public class grep {
 		boolean not;
 
 		params = Files.parseControlFile(filename, "grep",
-																		new String[] {"input="	+ inputFilename,
+																		new String[] {"input=" + inputFilename,
 																									"output=" + outputFilename,
 																									"# any line below will be treated as a string of interest, (though any line starting with a has \"#\" will still be considered a comment). If the line starts with an exclamation point (\"!\"), then this will be treated as a NOT, as in no line with this phrase will pass on to the final file",
 																									"first pattern", " second pattern ",
@@ -107,12 +107,12 @@ public class grep {
 						not = false;
 					}
 					if (trav.startsWith(" ")) {
-						log.report("Warning- \""	+ trav
-												+ "\" starts with whitespace, and will require an exact match");
+						log.report("Warning- \"" + trav
+											 + "\" starts with whitespace, and will require an exact match");
 					}
 					if (trav.endsWith(" ")) {
-						log.report("Warning- \""	+ trav
-												+ "\" ends with whitespace, and will require an exact match");
+						log.report("Warning- \"" + trav
+											 + "\" ends with whitespace, and will require an exact match");
 					}
 
 					if (not) {
@@ -123,8 +123,8 @@ public class grep {
 				}
 			}
 
-			filter(	inputFilename, outputFilename, Array.toStringArray(withs),
-							Array.toStringArray(withouts));
+			filter(inputFilename, outputFilename, ArrayUtils.toStringArray(withs),
+						 ArrayUtils.toStringArray(withouts));
 		}
 	}
 
@@ -135,12 +135,12 @@ public class grep {
 		String searchTerm = "pattern_to_find";
 		String exclusionCriteria = "pattern_to_exclude";
 
-		String usage = "\n"	+ "widgets.grep requires 0-1 arguments\n"
-										+ "   (1) input filename (i.e. file=" + filename + " (default))\n"
-										+ "   (2) output filename (i.e. out=" + outputFilename + " (default))\n"
-										+ "   (3) term to require (i.e. include=" + searchTerm + " (default))\n"
-										+ "   (4) term to exclude (i.e. exclude=" + exclusionCriteria + " (default))\n"
-										+ "";
+		String usage = "\n" + "widgets.grep requires 0-1 arguments\n"
+									 + "   (1) input filename (i.e. file=" + filename + " (default))\n"
+									 + "   (2) output filename (i.e. out=" + outputFilename + " (default))\n"
+									 + "   (3) term to require (i.e. include=" + searchTerm + " (default))\n"
+									 + "   (4) term to exclude (i.e. exclude=" + exclusionCriteria + " (default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -167,8 +167,8 @@ public class grep {
 			System.exit(1);
 		}
 		try {
-			filter(	filename, filename + ".grepped", new String[] {searchTerm},
-							new String[] {exclusionCriteria});
+			filter(filename, filename + ".grepped", new String[] {searchTerm},
+						 new String[] {exclusionCriteria});
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

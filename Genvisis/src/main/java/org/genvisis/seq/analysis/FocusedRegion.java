@@ -39,7 +39,7 @@ public class FocusedRegion {
 														String variantSet, int numthreads) {
 		new File(outDir).mkdirs();
 
-		String output = outDir	+ ext.replaceWithLinuxSafeCharacters(seg.getUCSClocation(), true)
+		String output = outDir + ext.replaceWithLinuxSafeCharacters(seg.getUCSClocation(), true)
 										+ "_focus.txt";
 
 		Logger log = new Logger(outDir + "focus.log");
@@ -64,8 +64,8 @@ public class FocusedRegion {
 		Files.write(seg.getChromosomeUCSC() + "\t" + seg.getStart() + "\t" + seg.getStop(), segFile);
 		String subOut = outDir + "extract/";
 		new File(subOut).mkdirs();
-		VCFOps.extractSegments(	vcf, segFile, 300, bamFile, subOut, false, true, true, true,
-														new String[] {variantSet}, numthreads, log);
+		VCFOps.extractSegments(vcf, segFile, 300, bamFile, subOut, false, true, true, true,
+													 new String[] {variantSet}, numthreads, log);
 	}
 
 	private static class FocusResults {
@@ -114,9 +114,9 @@ public class FocusedRegion {
 
 				@Override
 				public FocusResults call() throws Exception {
-					BamPileUp pileUp = new BamPileUp(	bamFiles[current], referenceGenome, 1, new FilterNGS(),
-																						new Segment[] {seg}, PILE_TYPE.REGULAR,
-																						SAM_FILTER_TYPE.COPY_NUMBER, true, log);
+					BamPileUp pileUp = new BamPileUp(bamFiles[current], referenceGenome, 1, new FilterNGS(),
+																					 new Segment[] {seg}, PILE_TYPE.REGULAR,
+																					 SAM_FILTER_TYPE.COPY_NUMBER, true, log);
 					ArrayList<BamPile> pile = new ArrayList<BamPile>();
 					while (pileUp.hasNext()) {
 						pile.add(pileUp.next());

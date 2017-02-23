@@ -2,7 +2,7 @@ package org.genvisis.stats;
 
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
@@ -31,7 +31,7 @@ public class CategoricalPredictor {
 	}
 
 	public DummyCoding createDummyCoding(boolean debug) {
-		String[] uniq = Array.unique(catVariables);
+		String[] uniq = ArrayUtils.unique(catVariables);
 		ArrayList<String> finalUniq = new ArrayList<String>();
 		for (String element : uniq) {
 			if (ext.indexOfStr(element, masks) < 0) {
@@ -40,10 +40,10 @@ public class CategoricalPredictor {
 				log.reportTimeWarning("Category " + element + " is being masked");
 			}
 		}
-		uniq = Array.toStringArray(finalUniq);
+		uniq = ArrayUtils.toStringArray(finalUniq);
 		log.reportTimeInfo(uniq.length + " categories");
 		double[][] dummyData = new double[uniq.length - 1][catVariables.length];
-		boolean[] dummyBoolean = Array.booleanArray(catVariables.length, true);
+		boolean[] dummyBoolean = ArrayUtils.booleanArray(catVariables.length, true);
 		for (int i = 0; i < catVariables.length; i++) {
 			if (ext.indexOfStr(catVariables[i], masks) < 0) {
 				int index = ext.indexOfStr(catVariables[i], uniq);
@@ -69,7 +69,7 @@ public class CategoricalPredictor {
 				}
 			}
 		}
-		return new DummyCoding(dummyData, dummyBoolean, Array.subArray(uniq, 0, uniq.length - 1));
+		return new DummyCoding(dummyData, dummyBoolean, ArrayUtils.subArray(uniq, 0, uniq.length - 1));
 	}
 
 	public static class DummyCoding {

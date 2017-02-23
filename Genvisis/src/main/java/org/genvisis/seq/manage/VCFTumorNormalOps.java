@@ -55,9 +55,9 @@ public class VCFTumorNormalOps {
 
 	private static final String NORMAL_TAG = "_NORMAL";
 
-	public static void renameAndTransferInfo(	String vcf, String tumorSamp, String tumorDef,
-																						String normalSamp, String normalDef, String output,
-																						String outputFiltered, Logger log) {
+	public static void renameAndTransferInfo(String vcf, String tumorSamp, String tumorDef,
+																					 String normalSamp, String normalDef, String output,
+																					 String outputFiltered, Logger log) {
 
 		if (VCFOps.getSamplesInFile(vcf).length != 2) {
 			throw new IllegalArgumentException("This method is only designed for tumor normal renaming");
@@ -83,12 +83,11 @@ public class VCFTumorNormalOps {
 					// oldHeaderLine.remove(vcfInfoHeaderLine);// remove "variant" level annotations
 					attsRemoveVCAddGT.add(vcfInfoHeaderLine.getID());
 
-					VCFFormatHeaderLine newFormat =
-																				new VCFFormatHeaderLine(vcfInfoHeaderLine.getID(),
-																																vcfInfoHeaderLine.isFixedCount()	? vcfInfoHeaderLine.getCount()
-																																																	: 1,
-																																vcfInfoHeaderLine.getType(),
-																																vcfInfoHeaderLine.getDescription());
+					VCFFormatHeaderLine newFormat = new VCFFormatHeaderLine(vcfInfoHeaderLine.getID(),
+																																	vcfInfoHeaderLine.isFixedCount() ? vcfInfoHeaderLine.getCount()
+																																																	 : 1,
+																																	vcfInfoHeaderLine.getType(),
+																																	vcfInfoHeaderLine.getDescription());
 
 					newHeaderLines.add(newFormat);// transfer to genotype level annotations for merging
 				}
@@ -96,26 +95,26 @@ public class VCFTumorNormalOps {
 			newHeaderLines.add(vcfInfoHeaderLine);
 		}
 
-		VCFFormatHeaderLine ADPreserve = new VCFFormatHeaderLine(	GENOTYPE_INFO.AD_TUMOR.getFlag(),
-																															VCFHeaderLineCount.UNBOUNDED,
-																															VCFHeaderLineType.Integer,
-																															"Allelic depths for the ref and alt alleles in the order listed for the tumor sample");
-		VCFFormatHeaderLine filterPreserve = new VCFFormatHeaderLine(	GENOTYPE_INFO.MUTECT_FILTERS.getFlag(),
-																																	VCFHeaderLineCount.UNBOUNDED,
-																																	VCFHeaderLineType.String,
-																																	"Filters applied by mutect to somatic calls");
+		VCFFormatHeaderLine ADPreserve = new VCFFormatHeaderLine(GENOTYPE_INFO.AD_TUMOR.getFlag(),
+																														 VCFHeaderLineCount.UNBOUNDED,
+																														 VCFHeaderLineType.Integer,
+																														 "Allelic depths for the ref and alt alleles in the order listed for the tumor sample");
+		VCFFormatHeaderLine filterPreserve = new VCFFormatHeaderLine(GENOTYPE_INFO.MUTECT_FILTERS.getFlag(),
+																																 VCFHeaderLineCount.UNBOUNDED,
+																																 VCFHeaderLineType.String,
+																																 "Filters applied by mutect to somatic calls");
 
 		newHeaderLines.add(ADPreserve);
 		newHeaderLines.add(filterPreserve);
 		newHeaderLines.addAll(reader.getFileHeader().getFormatHeaderLines());
 		ArrayList<String> attsToTransferFromNormal = new ArrayList<String>();
 		for (VCFFormatHeaderLine vcfFormatHeaderLine : reader.getFileHeader().getFormatHeaderLines()) {
-			VCFFormatHeaderLine normal = new VCFFormatHeaderLine(vcfFormatHeaderLine.getID()	+ NORMAL_TAG,
-																														vcfFormatHeaderLine.isFixedCount()	? vcfFormatHeaderLine.getCount()
-																																																: 1,
-																														vcfFormatHeaderLine.getType(),
-																														vcfFormatHeaderLine.getDescription()
-																																														+ " in the normal sample from mutect calls");
+			VCFFormatHeaderLine normal = new VCFFormatHeaderLine(vcfFormatHeaderLine.getID() + NORMAL_TAG,
+																													 vcfFormatHeaderLine.isFixedCount() ? vcfFormatHeaderLine.getCount()
+																																															: 1,
+																													 vcfFormatHeaderLine.getType(),
+																													 vcfFormatHeaderLine.getDescription()
+																																													+ " in the normal sample from mutect calls");
 			newHeaderLines.add(normal);
 			attsToTransferFromNormal.add(vcfFormatHeaderLine.getID());
 		}
@@ -163,7 +162,7 @@ public class VCFTumorNormalOps {
 			VariantContext vcRename = builder.make(true);
 			writer.add(vcRename);
 			if (!vcRename.isFiltered() || (vcRename.getFilters().size() == 1
-																			&& vcRename.getFilters().contains("str_contraction"))) {
+																		 && vcRename.getFilters().contains("str_contraction"))) {
 				writerFiltered.add(vcRename);
 				pass++;
 			}
@@ -175,9 +174,9 @@ public class VCFTumorNormalOps {
 
 	}
 
-	private static Genotype transferFormat(	Genotype gTumor, Genotype gNormal, VariantContext vc,
-																					List<String> attsToadd,
-																					List<String> attsToTransferFromNormal) {
+	private static Genotype transferFormat(Genotype gTumor, Genotype gNormal, VariantContext vc,
+																				 List<String> attsToadd,
+																				 List<String> attsToTransferFromNormal) {
 		GenotypeBuilder builder = new GenotypeBuilder(gTumor);
 		for (String att : attsToadd) {
 			if (vc.hasAttribute(att)) {
@@ -305,8 +304,8 @@ public class VCFTumorNormalOps {
 			}
 
 			if (!all.containsKey(tumor) || !all.containsKey(normal)) {
-				throw new IllegalArgumentException("Could not find bam file for Tumor "	+ tumor
-																						+ " or for Normal " + normal);
+				throw new IllegalArgumentException("Could not find bam file for Tumor " + tumor
+																					 + " or for Normal " + normal);
 			} else {
 				TNSample tSample = new TNSample(tumor, normal, all.get(tumor), all.get(normal));
 				tnSamples.add(tSample);

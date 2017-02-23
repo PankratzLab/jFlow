@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
@@ -20,7 +20,7 @@ public class temp {
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + "_genes.dat"));
 			for (String key : keys) {
-				writer.println(key + "\t" + Array.toStr(Array.toStringArray(hash.get(key))));
+				writer.println(key + "\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(hash.get(key))));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -33,8 +33,8 @@ public class temp {
 		int numArgs = args.length;
 		String filename = "Aff.txt";
 
-		String usage = "\n"	+ "gaw17.temp requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "";
+		String usage = "\n" + "gaw17.temp requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

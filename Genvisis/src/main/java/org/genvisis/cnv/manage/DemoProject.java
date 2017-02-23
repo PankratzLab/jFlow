@@ -9,7 +9,7 @@ import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.prop.FileProperty;
 import org.genvisis.cnv.prop.StringListProperty;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -17,7 +17,7 @@ public class DemoProject extends Project {
 	private final Project proj;
 
 	public static enum DEMO_TYPE {
-																MARKER_FOCUS, SAMPLE_FOCUS
+		MARKER_FOCUS, SAMPLE_FOCUS
 	}
 
 	/**
@@ -28,8 +28,8 @@ public class DemoProject extends Project {
 	private boolean fail;
 	private final DEMO_TYPE dType;
 
-	public DemoProject(	Project proj, String demoDirectory, boolean overwriteExisting,
-											DEMO_TYPE dType) {
+	public DemoProject(Project proj, String demoDirectory, boolean overwriteExisting,
+										 DEMO_TYPE dType) {
 		super();
 		this.proj = proj;// (Project) proj.clone();
 		this.demoDirectory = demoDirectory;
@@ -48,7 +48,7 @@ public class DemoProject extends Project {
 	}
 
 	private void init() {
-		String demoProjectDirectory = demoDirectory	+ proj.PROJECT_NAME.getValue().replaceAll(" ", "")
+		String demoProjectDirectory = demoDirectory + proj.PROJECT_NAME.getValue().replaceAll(" ", "")
 																	+ "_" + dType + "/";
 		setProperty(PROJECT_DIRECTORY, demoProjectDirectory);
 		if (!Files.exists(PROJECT_DIRECTORY.getValue()) || overwriteExisting) {
@@ -71,8 +71,8 @@ public class DemoProject extends Project {
 			copyFileIfExists(proj.CLUSTER_FILTER_COLLECTION_FILENAME, CLUSTER_FILTER_COLLECTION_FILENAME);
 			copyFileIfExists(proj.ANNOTATION_FILENAME, ANNOTATION_FILENAME);
 			copyFileIfExists(proj.BLAST_ANNOTATION_FILENAME, BLAST_ANNOTATION_FILENAME);
-			Files.copyFile(proj.BLAST_ANNOTATION_FILENAME.getValue()	+ ".tbi",
-											BLAST_ANNOTATION_FILENAME.getValue() + ".tbi");
+			Files.copyFile(proj.BLAST_ANNOTATION_FILENAME.getValue() + ".tbi",
+										 BLAST_ANNOTATION_FILENAME.getValue() + ".tbi");
 			// copyFileIfExists(proj.MARKER_POSITION_FILENAME.getName());
 			// copyFileIfExists(proj.SAMPLE_DATA_FILENAME.getName());
 			// copyFileIfExists(proj.SAMPLE_QC_FILENAME.getName());
@@ -96,7 +96,7 @@ public class DemoProject extends Project {
 
 		} else {
 			proj.getLog().reportError(demoProjectDirectory
-																		+ " exists and the overwrite option was not flagged, halting");
+																+ " exists and the overwrite option was not flagged, halting");
 			fail = true;
 		}
 	}
@@ -106,7 +106,7 @@ public class DemoProject extends Project {
 		if (geneTrack != null && Files.exists(geneTrack)) {
 			demo.setProperty(demo.GENETRACK_FILENAME, ext.removeDirectoryInfo(geneTrack));
 			original.getLog()
-							.reportTimeInfo("Detected "	+ geneTrack + ", copying to "
+							.reportTimeInfo("Detected " + geneTrack + ", copying to "
 															+ demo.GENETRACK_FILENAME.getValue(false, false)
 															+ "\n\t (this takes a while due to byte by byte copying)");
 			if (!Files.exists(demo.GENETRACK_FILENAME.getValue(false, false))) {
@@ -116,7 +116,7 @@ public class DemoProject extends Project {
 	}
 
 	private static void copyStratResults(Project original, Project demo) {
-		String[] strats = Array.toStringArray(original.getStratResults());
+		String[] strats = ArrayUtils.toStringArray(original.getStratResults());
 		if (strats != null && strats.length > 0) {
 			for (String strat : strats) {
 				Files.copyFile(strat, demo.PROJECT_DIRECTORY.getValue() + ext.removeDirectoryInfo(strat));
@@ -140,8 +140,8 @@ public class DemoProject extends Project {
 		// proj.<MultiFileProperty>getProperty(propertyWithMultipleFiles).getValue();
 		// String[] filesNew =
 		// this.<MultiFileProperty>getProperty(propertyWithMultipleFiles).getValue(true);
-		String[] filesOriginal = proj	.<StringListProperty>getProperty(propertyWithMultipleFiles)
-																	.getValue();
+		String[] filesOriginal = proj.<StringListProperty>getProperty(propertyWithMultipleFiles)
+																 .getValue();
 		String[] filesNew = this.<StringListProperty>getProperty(propertyWithMultipleFiles).getValue();
 		copyFiles(filesOriginal, filesNew);
 	}
@@ -182,12 +182,12 @@ public class DemoProject extends Project {
 		} else {
 			if (dType == DEMO_TYPE.SAMPLE_FOCUS) {
 				proj.getLog()
-						.reportTimeWarning("A sample subset file was not provided and "	+ sampleSubsetFile
-																+ " did not exist, exporting all samples");
+						.reportTimeWarning("A sample subset file was not provided and " + sampleSubsetFile
+															 + " did not exist, exporting all samples");
 			} else {
 				proj.getLog().reportTimeInfo(
-																			"A sample subset file was not provided, exporting all samples for demotype "
-																			+ DEMO_TYPE.MARKER_FOCUS);
+																		 "A sample subset file was not provided, exporting all samples for demotype "
+																		 + DEMO_TYPE.MARKER_FOCUS);
 			}
 		}
 		return samplesToUse;
@@ -202,12 +202,12 @@ public class DemoProject extends Project {
 			markersToUse = getParserFor(proj, targetMarkerFile, false).getStringDataAt(0, true);
 		} else {
 			if (dType == DEMO_TYPE.MARKER_FOCUS) {
-				proj.getLog().reportTimeWarning("A marker subset file was not provided and "	+ markersFile
+				proj.getLog().reportTimeWarning("A marker subset file was not provided and " + markersFile
 																				+ " did not exist, exporting all markers");
 			} else {
 				proj.getLog().reportTimeInfo(
-																			"A marker subset file was not provided, exporting all markers for demotype "
-																			+ DEMO_TYPE.SAMPLE_FOCUS);
+																		 "A marker subset file was not provided, exporting all markers for demotype "
+																		 + DEMO_TYPE.SAMPLE_FOCUS);
 
 			}
 		}
@@ -236,15 +236,15 @@ public class DemoProject extends Project {
 	public boolean createProjectDemo(String markersFile, String samplesFile, int numThreads) {
 		if (!fail) {
 			System.out.println(proj.MARKERSET_FILENAME.getValue());
-			return createProjectDemo(	loadMarkers(proj, markersFile, dType),
-																loadSamples(proj, samplesFile, dType), numThreads);
+			return createProjectDemo(loadMarkers(proj, markersFile, dType),
+															 loadSamples(proj, samplesFile, dType), numThreads);
 		} else {
 			return false;
 		}
 	}
 
-	public boolean createProjectDemo(	String[] markersToExport, boolean[] samplesToUse,
-																		int numThreads) {
+	public boolean createProjectDemo(String[] markersToExport, boolean[] samplesToUse,
+																	 int numThreads) {
 
 		boolean created = true;
 		if (!fail) {
@@ -260,15 +260,15 @@ public class DemoProject extends Project {
 																				+ samplesToUse.length + " samples will be exported");
 			}
 			if (samplesToUse.length != proj.getSamples().length) {
-				proj.getLog().reportError("The array length provided does ("	+ samplesToUse.length
-																			+ ") does not contain boolean values for all samples");
+				proj.getLog().reportError("The array length provided does (" + samplesToUse.length
+																	+ ") does not contain boolean values for all samples");
 				created = false;
 				return created;
 			} else {
 				// Markers.orderMarkers(markersToExport, getFilename(proj.MARKER_POSITION_FILENAME),
 				// getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
-				Markers.orderMarkers(	markersToExport, proj.MARKER_POSITION_FILENAME.getValue(),
-															MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+				Markers.orderMarkers(markersToExport, proj.MARKER_POSITION_FILENAME.getValue(),
+														 MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 				long fingerPrint = getMarkerSet().getFingerprint();
 				proj.getLog().reportTimeInfo("Attempting to subset the samples...");
 				new File(SAMPLELIST_FILENAME.getValue(false, false)).delete();

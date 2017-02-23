@@ -70,7 +70,7 @@ public abstract class Parallelizable implements Runnable {
 		}
 
 		for (int i = 0; i < threadSeeds.length; i++) {
-			threadSeeds[i] = Array.trimArray(threadSeeds[i]);
+			threadSeeds[i] = ArrayUtils.trimArray(threadSeeds[i]);
 		}
 
 		return threadSeeds;

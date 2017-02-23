@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -47,9 +47,9 @@ public class GeneQC {
 			// int totalMrna = 0;
 			// int mrnaNoUtrs = 0;
 			for (int j = 0; j < genes.getLoci()[i].getExonBoundaries().length; j++) {
-				Segment exon = new Segment(	genes.getLoci()[i].getChr(),
-																		genes.getLoci()[i].getExonBoundaries()[j][0],
-																		genes.getLoci()[i].getExonBoundaries()[j][1]);
+				Segment exon = new Segment(genes.getLoci()[i].getChr(),
+																	 genes.getLoci()[i].getExonBoundaries()[j][0],
+																	 genes.getLoci()[i].getExonBoundaries()[j][1]);
 				// totalMrna += exon.getSize();
 				// mrnaNoUtrs += exon.getSize();
 				Segment[] utrsOlap = utrs.getOverLappingLoci(exon);
@@ -69,15 +69,15 @@ public class GeneQC {
 
 	public void qcByGene() {
 		String output = bamQCFile + ".quickSummary";
-		String[] targets = new String[] {	"GENE", "NumOtherGenes", "NumExons", "averageCoverage",
-																			"averageGC", "numBaitsPerTarget", "MRNA_Overlap",
-																			"NonUTRMrnaOverlap"};
+		String[] targets = new String[] {"GENE", "NumOtherGenes", "NumExons", "averageCoverage",
+																		 "averageGC", "numBaitsPerTarget", "MRNA_Overlap",
+																		 "NonUTRMrnaOverlap"};
 
 		try {
 			BufferedReader reader = Files.getAppropriateReader(bamQCFile);
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 			writer.println("GENE\tNumExons\tNumOtherGenes\tMRNA_Overlap\tNonUTRMrnaOverlap\t"
-											+ Array.toStr(Files.getHeaderOfFile(bamQCFile, log)));
+										 + ArrayUtils.toStr(Files.getHeaderOfFile(bamQCFile, log)));
 
 			reader.readLine();
 			while (reader.ready()) {
@@ -109,8 +109,8 @@ public class GeneQC {
 							}
 						}
 						if (mrna > 0) {
-							writer.println(gene	+ "\t" + numExons + "\t" + numOtherGenes + "\t" + mrna + "\t"
-															+ Math.max(0, mrnaNonUtr) + "\t" + Array.toStr(line));
+							writer.println(gene + "\t" + numExons + "\t" + numOtherGenes + "\t" + mrna + "\t"
+														 + Math.max(0, mrnaNonUtr) + "\t" + ArrayUtils.toStr(line));
 						}
 					}
 				}
@@ -128,12 +128,12 @@ public class GeneQC {
 			return;
 		}
 
-		String[][] toSumm = HashVec.loadFileToStringMatrix(	output, true,
-																												ext.indexFactors(	targets,
-																																					Files.getHeaderOfFile(output,
-																																																log),
-																																					true, true),
-																												false);
+		String[][] toSumm = HashVec.loadFileToStringMatrix(output, true,
+																											 ext.indexFactors(targets,
+																																				Files.getHeaderOfFile(output,
+																																															log),
+																																				true, true),
+																											 false);
 		ArrayList<Integer> numMrnaTotal = new ArrayList<Integer>();
 		ArrayList<Integer> numMrnaNonUTR = new ArrayList<Integer>();
 		Hashtable<String, Integer> index = new Hashtable<String, Integer>();
@@ -152,7 +152,7 @@ public class GeneQC {
 				// numMrnaTotal.get(in)
 			}
 
-			System.out.println(Array.toStr(toSumm[i]));
+			System.out.println(ArrayUtils.toStr(toSumm[i]));
 		}
 
 	}
@@ -273,9 +273,9 @@ public class GeneQC {
 		LocusSet<Segment> utr3pSegs = LocusSet.loadSegmentSetFromFile(utr3p, 0, 1, 2, 0, true, true, 0,
 																																	log);
 		log.reportTimeInfo("Loaded " + utr3pSegs.getLoci().length + " 3' UTRs");
-		LocusSet<Segment> utrs = new LocusSet<Segment>(	Array.concatAll(utr5pSegs.getLoci(),
-																																		utr3pSegs.getLoci()),
-																										true, log) {
+		LocusSet<Segment> utrs = new LocusSet<Segment>(ArrayUtils.concatAll(utr5pSegs.getLoci(),
+																																				utr3pSegs.getLoci()),
+																									 true, log) {
 
 			/**
 			 * 

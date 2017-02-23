@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Date;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class FisherTemp {
@@ -85,11 +85,11 @@ public class FisherTemp {
 			time = new Date().getTime();
 			writer = new PrintWriter(new FileWriter("master.out"));
 			for (int[] element : matrix) {
-				writer.println(Array.toStr(element));
+				writer.println(ArrayUtils.toStr(element));
 			}
 			writer.println();
-			writer.println("r:\t" + Array.toStr(r));
-			writer.println("c:\t" + Array.toStr(c));
+			writer.println("r:\t" + ArrayUtils.toStr(r));
+			writer.println("c:\t" + ArrayUtils.toStr(c));
 			writer.println();
 			for (int o = 0; o <= c[0]; o++) {
 				for (int p = 0; p <= c[0] - o; p++) {
@@ -113,7 +113,7 @@ public class FisherTemp {
 							// }
 							// if(tot==n) {
 							for (int i = 0; i < r.length; i++) {
-								writer.println(Array.toStr(work[i]));
+								writer.println(ArrayUtils.toStr(work[i]));
 							}
 							writer.println();
 							// }
@@ -133,11 +133,11 @@ public class FisherTemp {
 			time = new Date().getTime();
 			writer = new PrintWriter(new FileWriter("checks.out"));
 			for (int[] element : matrix) {
-				writer.println(Array.toStr(element));
+				writer.println(ArrayUtils.toStr(element));
 			}
 			writer.println();
-			writer.println("r:\t" + Array.toStr(r));
-			writer.println("c:\t" + Array.toStr(c));
+			writer.println("r:\t" + ArrayUtils.toStr(r));
+			writer.println("c:\t" + ArrayUtils.toStr(c));
 			writer.println();
 			// numR = r.length;
 			// numC = c.length;
@@ -165,7 +165,7 @@ public class FisherTemp {
 				}
 
 				for (int i = 0; i < r.length; i++) {
-					writer.println(Array.toStr(work[i]));
+					writer.println(ArrayUtils.toStr(work[i]));
 				}
 				writer.println();
 			}

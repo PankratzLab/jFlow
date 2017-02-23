@@ -19,7 +19,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.plots.ColorExt;
 import org.genvisis.cnv.plots.ColorExt.ColorItem;
 import org.genvisis.cnv.plots.ColorExt.ColorManager;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -169,7 +169,7 @@ public class GcAdjustor {
 	private final GcModel gcModel;
 	private CrossValidation crossValidation;
 	private int[] correctedIndices;// the indices we were able to correct, as ordered by the input
-																	// data
+																 // data
 	private int[][] qcIndices;// the indices used to compute qc metrics, as ordered by the input-gc
 														// matched arrays
 	private int[][] chr11qcIndices;// only used if defualy penncnv GCWF calculation is desired
@@ -197,16 +197,14 @@ public class GcAdjustor {
 	private PreparedMarkerSet preparedMarkerSet;
 
 	public enum GC_CORRECTION_METHOD {
-																		/**
-																		 * Perform gc correction using the penncnv defaults (chr 11,
-																		 * etc)
-																		 */
-																		PENNCNV_GC,
-																		/**
-																		 * Perform gc correction using genvisis defaults (all available
-																		 * markers)
-																		 */
-																		GENVISIS_GC;
+		/**
+		 * Perform gc correction using the penncnv defaults (chr 11, etc)
+		 */
+		PENNCNV_GC,
+		/**
+		 * Perform gc correction using genvisis defaults (all available markers)
+		 */
+		GENVISIS_GC;
 	}
 
 	// /**
@@ -317,7 +315,7 @@ public class GcAdjustor {
 			} else {
 				if (verbose) {
 					proj.getLog()
-							.reportTimeInfo("regression model determined to be "	+ crossValidation.getBetas()[0]
+							.reportTimeInfo("regression model determined to be " + crossValidation.getBetas()[0]
 															+ " + " + crossValidation.getBetas()[1] + " * GC content");
 				}
 				assignCorrectedIntensities();
@@ -358,7 +356,7 @@ public class GcAdjustor {
 				} else {
 					if (computePost) {
 						double[] wavesCorrected = getWave(crossValidation.getResiduals(), fullGcs, qcIndices,
-																							correctionMethod == GC_CORRECTION_METHOD.PENNCNV_GC	? chr11qcIndices
+																							correctionMethod == GC_CORRECTION_METHOD.PENNCNV_GC ? chr11qcIndices
 																																																	: null,
 																							verbose, proj.getLog());
 						wfPost = wavesCorrected[0];
@@ -366,10 +364,10 @@ public class GcAdjustor {
 					}
 				}
 				if (computePrior) {
-					double[] wavesOriginal = getWave(	fullIntensity, fullGcs, qcIndices,
-																						correctionMethod == GC_CORRECTION_METHOD.PENNCNV_GC	? chr11qcIndices
-																																																: null,
-																						verbose, proj.getLog());
+					double[] wavesOriginal = getWave(fullIntensity, fullGcs, qcIndices,
+																					 correctionMethod == GC_CORRECTION_METHOD.PENNCNV_GC ? chr11qcIndices
+																																															 : null,
+																					 verbose, proj.getLog());
 					wfPrior = wavesOriginal[0];
 					gcwfPrior = wavesOriginal[1];
 				}
@@ -404,8 +402,8 @@ public class GcAdjustor {
 	}
 
 	public String getAnnotatedQCString() {
-		return "WF_PRIOR: "	+ wfPrior + "\tWF_POST: " + wfPost + "\tGCWF_PRIOR" + gcwfPrior
-						+ "\tGCWF_POST" + gcwfPost;
+		return "WF_PRIOR: " + wfPrior + "\tWF_POST: " + wfPost + "\tGCWF_PRIOR" + gcwfPrior
+					 + "\tGCWF_POST" + gcwfPost;
 	}
 
 	public double[] getCorrectedIntensities() {
@@ -449,9 +447,8 @@ public class GcAdjustor {
 			}
 		} else {
 
-			preparedMarkerSet =
-												preparedMarkerSet == null	? PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet())
-																									: preparedMarkerSet;
+			preparedMarkerSet = preparedMarkerSet == null ? PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet())
+																										: preparedMarkerSet;
 			String[] markers = preparedMarkerSet.getMarkerNames();
 			int[][] indicesByChr = preparedMarkerSet.getIndicesByChr();
 			byte[] chrs = preparedMarkerSet.getChrs();
@@ -463,14 +460,14 @@ public class GcAdjustor {
 																																					// stores info for
 																																					// regression model
 			ArrayList<Double> tmpFullGcs = new ArrayList<Double>(markers.length);// can't be more than
-																																						// this, stores data for
-																																						// full correction
+																																					 // this, stores data for
+																																					 // full correction
 			ArrayList<Double> tmpFullIntensity = new ArrayList<Double>(markers.length);// can't be more
-																																									// than this,
-																																									// stores data for
-																																									// full correction
+																																								 // than this,
+																																								 // stores data for
+																																								 // full correction
 			ArrayList<int[]> tmpQcIndices = new ArrayList<int[]>(3000);// refers to the index matched
-																																	// gc/LRR values
+																																 // gc/LRR values
 			ArrayList<int[]> tmpchr11qcIndices = new ArrayList<int[]>(3000);// refers to the index matched
 																																			// gc/LRR values on chromosome
 																																			// 11 only
@@ -486,10 +483,10 @@ public class GcAdjustor {
 				int currentBin = 0;
 				ArrayList<Integer> tmpCurrentBin = new ArrayList<Integer>(1000);
 				ArrayList<Integer> tmpCurrentBinChr11 = new ArrayList<Integer>(1000);// only used for
-																																							// chromosome 11...for
-																																							// defualt pennCNV
-																																							// behavior, and track
-																																							// even if not needed
+																																						 // chromosome 11...for
+																																						 // defualt pennCNV
+																																						 // behavior, and track
+																																						 // even if not needed
 
 				for (int j = 0; j < indicesByChr[i].length; j++) {
 
@@ -517,9 +514,9 @@ public class GcAdjustor {
 																																							// few markers per
 																																							// chromosome
 							if (markerMask == null || markerMask[indicesByChr[i][j]]) {// so we can skip poor
-																																					// quality
-																																					// markers/customize the
-																																					// qc
+																																				 // quality
+																																				 // markers/customize the
+																																				 // qc
 								// note that this binning procedure is slightly different than the regression
 								// indices
 								if (positions[indicesByChr[i][j]] >= regressionDistance * currentBin
@@ -548,22 +545,22 @@ public class GcAdjustor {
 									tmpCurrentBin = new ArrayList<Integer>(1000);
 									tmpCurrentBinChr11 = new ArrayList<Integer>(1000);
 									if (correctionMethod == GC_CORRECTION_METHOD.GENVISIS_GC) {// PennCNV skips this
-																																							// marker, even though
-																																							// it can be added to
-																																							// a
-																																							// bin, especially if
-																																							// bins are small
+																																						 // marker, even though
+																																						 // it can be added to
+																																						 // a
+																																						 // bin, especially if
+																																						 // bins are small
 										if (regressionDistance * (currentBin + 1) <= positions[indicesByChr[i][j]]) {// this
-																																																	// is
-																																																	// in
-																																																	// order
-																																																	// to
-																																																	// handle
-																																																	// smaller
-																																																	// regression
-																																																	// distances
+																																																 // is
+																																																 // in
+																																																 // order
+																																																 // to
+																																																 // handle
+																																																 // smaller
+																																																 // regression
+																																																 // distances
 											while (regressionDistance
-															* (currentBin + 1) <= positions[indicesByChr[i][j]]) {
+														 * (currentBin + 1) <= positions[indicesByChr[i][j]]) {
 												numPossibleBins++;
 												currentBin++;
 											}
@@ -578,9 +575,9 @@ public class GcAdjustor {
 												}
 											}
 										} else {
-											System.out.println(positions[indicesByChr[i][j]]	+ "\t"
-																					+ (regressionDistance * currentBin) + "\t"
-																					+ regressionDistance * (1 + currentBin));
+											System.out.println(positions[indicesByChr[i][j]] + "\t"
+																				 + (regressionDistance * currentBin) + "\t"
+																				 + regressionDistance * (1 + currentBin));
 											proj.getLog().reportError("SHould not happen");
 											System.exit(1);
 										}
@@ -640,10 +637,10 @@ public class GcAdjustor {
 				fullIntensity = Doubles.toArray(tmpFullIntensity);
 				correctedIndices = Ints.toArray(tmpCorrectedIndices);
 				if (verbose) {
-					proj.getLog().report("Info - using "	+ regressionIntensity.length + " of "
-																+ markers.length + " markers for regression model");
-					proj.getLog().report("Info - "	+ fullIntensity.length + " of " + markers.length
-																+ " markers had a valid gc and a valid LRR for correction ");
+					proj.getLog().report("Info - using " + regressionIntensity.length + " of "
+															 + markers.length + " markers for regression model");
+					proj.getLog().report("Info - " + fullIntensity.length + " of " + markers.length
+															 + " markers had a valid gc and a valid LRR for correction ");
 				}
 				if (regressionIntensity.length == 0) {
 					proj.getLog().reportError("Error - did not find enough valid markers for regression");
@@ -666,7 +663,7 @@ public class GcAdjustor {
 						}
 					}
 					proj.getLog()
-							.report("Info - Correction method="	+ correctionMethod + ", detected "
+							.report("Info - Correction method=" + correctionMethod + ", detected "
 											+ qcIndices.length + " " + ext.prettyUpDistance(regressionDistance, 2)
 											+ " sliding windows with >" + numSnpMAD + " markers out of a possible "
 											+ numPossibleBins + " windows (" + totalMarkers
@@ -696,16 +693,16 @@ public class GcAdjustor {
 		ArrayList<Double> medianGc = new ArrayList<Double>();
 		for (int[] wFbin : WFbins) {
 			if (wFbin != null) {
-				medianIntensity.add(Array.median(Array.subArray(intensities, wFbin)));
-				medianGc.add(Array.median(Array.subArray(gcs, wFbin)));
+				medianIntensity.add(ArrayUtils.median(ArrayUtils.subArray(intensities, wFbin)));
+				medianGc.add(ArrayUtils.median(ArrayUtils.subArray(gcs, wFbin)));
 			}
 		}
 
-		double wf = Array.mad(Doubles.toArray(medianIntensity));
+		double wf = ArrayUtils.mad(Doubles.toArray(medianIntensity));
 		if (pennCNVGCBins != null) {// Used for PennCNV bins, if not supplied we use what we found above
 			if (pennCNVGCBins.length != DEFUALT_PENNCNV_CHR11_GC_BINS.length) {
 				log.reportError("Error - default PennCNV GC bins and current data do not match up, computing using full autosomal bins instead");
-				log.reportError("Error - should have "	+ DEFUALT_PENNCNV_CHR11_GC_BINS.length
+				log.reportError("Error - should have " + DEFUALT_PENNCNV_CHR11_GC_BINS.length
 												+ " bins, but found " + pennCNVGCBins.length + " bins instead");
 
 			} else {
@@ -714,7 +711,8 @@ public class GcAdjustor {
 				for (int i = 0; i < pennCNVGCBins.length; i++) {
 					if (pennCNVGCBins[i] != null) {
 						medianGc.add(DEFUALT_PENNCNV_CHR11_GC_BINS[i]);
-						medianIntensity.add(Array.median(Array.subArray(intensities, pennCNVGCBins[i])));
+						medianIntensity.add(ArrayUtils.median(ArrayUtils.subArray(intensities,
+																																			pennCNVGCBins[i])));
 					}
 				}
 			}
@@ -722,8 +720,8 @@ public class GcAdjustor {
 				log.report("Info - computing GCWF using " + medianGc.size() + " elements");
 			}
 		}
-		double cc = org.genvisis.stats.Correlation.Pearson(	Doubles.toArray(medianIntensity),
-																												Doubles.toArray(medianGc))[0];
+		double cc = org.genvisis.stats.Correlation.Pearson(Doubles.toArray(medianIntensity),
+																											 Doubles.toArray(medianGc))[0];
 		waves[0] = cc > 0 ? -1 * wf : wf;
 		waves[1] = waves[0] * Math.abs(cc);
 		return waves;
@@ -754,9 +752,9 @@ public class GcAdjustor {
 		return prepped;
 	}
 
-	private static boolean useMarker(	double intensity, double gc, double minimumAutosomalGC,
-																		double maximimumAutosomalGC, double minIntensity,
-																		double maxIntensity) {
+	private static boolean useMarker(double intensity, double gc, double minimumAutosomalGC,
+																	 double maximimumAutosomalGC, double minIntensity,
+																	 double maxIntensity) {
 		if (Double.isNaN(intensity)) {
 			return false;
 		}
@@ -780,8 +778,8 @@ public class GcAdjustor {
 		private static final long serialVersionUID = 1L;
 		public static final String[] GC_HEADER = {"Name", "Chr", "Position", "GC"};
 		public static final int DEFAULT_GC_MODEL_BIN_FASTA = 5120 * 100; // default bin generation for
-																																			// reference genome-based gc
-																																			// model
+																																		 // reference genome-based gc
+																																		 // model
 		private final String[] markers;
 		private final byte[] chrs;
 		private final int[] positions;
@@ -800,8 +798,8 @@ public class GcAdjustor {
 			// this.log = gcmodel.log;
 		}
 
-		public GcModel(	String[] markers, byte[] chrs, int[] positions, double[] gcs,
-										Hashtable<String, Integer> index, Logger log) {
+		public GcModel(String[] markers, byte[] chrs, int[] positions, double[] gcs,
+									 Hashtable<String, Integer> index, Logger log) {
 			super();
 			this.markers = markers;
 			this.chrs = chrs;
@@ -814,19 +812,19 @@ public class GcAdjustor {
 		private void developColorManager(int numBins, boolean redevelop) {
 			if (redevelop || colorManager == null) {
 
-				NormalDistribution nd = new NormalDistribution(	Array.mean(gcs, true),
-																												Array.stdev(getGcs(), true));
+				NormalDistribution nd = new NormalDistribution(ArrayUtils.mean(gcs, true),
+																											 ArrayUtils.stdev(getGcs(), true));
 				Color[] colors = ColorExt.generatRGBScale(numBins); // bin gc to 100 bins
 				Hashtable<String, String> lookup = new Hashtable<String, String>();// items associated with
-																																						// category
-																																						// (marker->PoorQualityCategory)
+																																					 // category
+																																					 // (marker->PoorQualityCategory)
 				Hashtable<String, ColorItem<String>> manager = new Hashtable<String, ColorExt.ColorItem<String>>();
 				for (int i = 0; i < gcs.length; i++) {
 					int gcColorIndex = (int) Math.round(nd.cumulativeProbability(gcs[i]) * numBins - 1);
 					gcColorIndex = Math.max(0, gcColorIndex);
 					gcColorIndex = Math.min(numBins, gcColorIndex);
 					lookup.put(markers[i], gcColorIndex + "");
-					manager.put(gcColorIndex	+ "",
+					manager.put(gcColorIndex + "",
 											new ColorItem<String>(gcColorIndex + "", colors[gcColorIndex]));
 				}
 				colorManager = new ColorManager<String>(lookup, manager) {
@@ -925,26 +923,26 @@ public class GcAdjustor {
 				for (int i = 0; i < markerSet.getMarkerNames().length; i++) {
 					if (i % 10000 == 0) {
 						proj.getLog()
-								.reportTimeInfo("Generating snp window gc model for window of "	+ snpWindow + " ("
+								.reportTimeInfo("Generating snp window gc model for window of " + snpWindow + " ("
 																+ (i + 1) + " of " + markerSet.getMarkerNames().length + ")");
 					}
 					Segment seg = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i],
 																		markerSet.getPositions()[i]).getBufferedSegment(snpWindow);
 					double gc = 100 * referenceGenome.getGCContentFor(seg, snpWindow > 100000);// not sure
-																																											// about the
-																																											// optimal
-																																											// query size
+																																										 // about the
+																																										 // optimal
+																																										 // query size
 					gcs[i] = gc;
 					if (Double.isNaN(gc) && seg.getChr() > 0) {
 						proj.getLog()
-								.reportError("Invalid gc content returned for query "	+ seg.getChromosomeUCSC()
-																	+ " and marker " + markerSet.getMarkerNames()[i]);
+								.reportError("Invalid gc content returned for query " + seg.getChromosomeUCSC()
+														 + " and marker " + markerSet.getMarkerNames()[i]);
 						return null;
 					}
 				}
 
-				return new GcModel(	markerSet.getMarkerNames(), markerSet.getChrs(),
-														markerSet.getPositions(), gcs, indices, proj.getLog());
+				return new GcModel(markerSet.getMarkerNames(), markerSet.getChrs(),
+													 markerSet.getPositions(), gcs, indices, proj.getLog());
 			}
 
 		}
@@ -1074,12 +1072,12 @@ public class GcAdjustor {
 			}
 			log.report("Info - parsing gc model file " + fullPathToGcModel);
 
-			int[] indices = ext.indexFactors(	Files.getHeaderOfFile(fullPathToGcModel, log), GC_HEADER,
-																				true, false);
-			if (Array.countIf(indices, -1) > 0) {
+			int[] indices = ext.indexFactors(Files.getHeaderOfFile(fullPathToGcModel, log), GC_HEADER,
+																			 true, false);
+			if (ArrayUtils.countIf(indices, -1) > 0) {
 				log.reportError("Error - could not find correct header for gc model file "
 												+ fullPathToGcModel);
-				log.reportError("		 - header must be:" + Array.toStr(GC_HEADER));
+				log.reportError("		 - header must be:" + ArrayUtils.toStr(GC_HEADER));
 				return null;
 			} else {
 				BufferedReader reader;
@@ -1102,14 +1100,14 @@ public class GcAdjustor {
 							lineNum++;
 						} catch (NumberFormatException nfe) {
 							if (verbose) {
-								log.reportError("Error - found invalid number format on line "	+ Array.toStr(line)
-																+ " , skipping");
+								log.reportError("Error - found invalid number format on line "
+																+ ArrayUtils.toStr(line) + " , skipping");
 							}
 						}
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					log.reportError("Error: file \""	+ fullPathToGcModel
+					log.reportError("Error: file \"" + fullPathToGcModel
 													+ "\" not found in current directory");
 					return null;
 				} catch (IOException ioe) {
@@ -1121,9 +1119,9 @@ public class GcAdjustor {
 													+ fullPathToGcModel);
 					return null;
 				} else {
-					log.report("Info - loaded "	+ markers.size() + " markers from gc model file "
-											+ fullPathToGcModel);
-					GcModel gcModel = new GcModel(Array.toStringArray(markers), Bytes.toArray(chrs),
+					log.report("Info - loaded " + markers.size() + " markers from gc model file "
+										 + fullPathToGcModel);
+					GcModel gcModel = new GcModel(ArrayUtils.toStringArray(markers), Bytes.toArray(chrs),
 																				Ints.toArray(positions), Doubles.toArray(gcs), index, log);
 					gcModel.Serialize(fullPathToGcSer);
 					return gcModel;
@@ -1136,23 +1134,22 @@ public class GcAdjustor {
 	 * Similar to {@link GcAdjustor#getComputedAdjustor()} except it takes a {@link Sample} object as
 	 * input
 	 */
-	public static GcAdjustor getComputedAdjustor(	Project proj, Sample sample,
-																								PreparedMarkerSet preparedMarkerSet,
-																								GcModel gcModel,
-																								GC_CORRECTION_METHOD correctionMethod,
-																								boolean computePrior, boolean computePost,
-																								boolean verbose) {
-		return getComputedAdjustor(	proj, preparedMarkerSet, sample.getLRRs(), gcModel, correctionMethod,
-																computePrior, computePost, verbose);
+	public static GcAdjustor getComputedAdjustor(Project proj, Sample sample,
+																							 PreparedMarkerSet preparedMarkerSet, GcModel gcModel,
+																							 GC_CORRECTION_METHOD correctionMethod,
+																							 boolean computePrior, boolean computePost,
+																							 boolean verbose) {
+		return getComputedAdjustor(proj, preparedMarkerSet, sample.getLRRs(), gcModel, correctionMethod,
+															 computePrior, computePost, verbose);
 	}
 
-	public static GcAdjustor getComputedAdjustor(	Project proj, PreparedMarkerSet preparedMarkerSet,
-																								float[] markerIntensities, GcModel gcModel,
-																								GC_CORRECTION_METHOD correctionMethod,
-																								boolean computePrior, boolean computePost,
-																								boolean verbose) {
-		return getComputedAdjustor(	proj, null, null, preparedMarkerSet, markerIntensities, gcModel,
-																correctionMethod, computePrior, computePost, verbose);
+	public static GcAdjustor getComputedAdjustor(Project proj, PreparedMarkerSet preparedMarkerSet,
+																							 float[] markerIntensities, GcModel gcModel,
+																							 GC_CORRECTION_METHOD correctionMethod,
+																							 boolean computePrior, boolean computePost,
+																							 boolean verbose) {
+		return getComputedAdjustor(proj, null, null, preparedMarkerSet, markerIntensities, gcModel,
+															 correctionMethod, computePrior, computePost, verbose);
 	}
 
 	/**
@@ -1170,27 +1167,27 @@ public class GcAdjustor {
 	 * @param verbose reports things akin to PennCNV
 	 * @return a {@link GcAdjustor} object with corrected intensities and qc metrics
 	 */
-	public static GcAdjustor getComputedAdjustor(	Project proj, String sample,
-																								GcAdjustorParameter gcParameters,
-																								PreparedMarkerSet preparedMarkerSet,
-																								float[] markerIntensities, GcModel gcModel,
-																								GC_CORRECTION_METHOD correctionMethod,
-																								boolean computePrior, boolean computePost,
-																								boolean verbose) {
+	public static GcAdjustor getComputedAdjustor(Project proj, String sample,
+																							 GcAdjustorParameter gcParameters,
+																							 PreparedMarkerSet preparedMarkerSet,
+																							 float[] markerIntensities, GcModel gcModel,
+																							 GC_CORRECTION_METHOD correctionMethod,
+																							 boolean computePrior, boolean computePost,
+																							 boolean verbose) {
 		GCAdjustorBuilder builder = new GCAdjustorBuilder();
 		builder.correctionMethod(correctionMethod);
-		return getComputedAdjustor(	proj, builder, sample, gcParameters, preparedMarkerSet,
-																markerIntensities, gcModel, computePrior, computePost, verbose);
+		return getComputedAdjustor(proj, builder, sample, gcParameters, preparedMarkerSet,
+															 markerIntensities, gcModel, computePrior, computePost, verbose);
 	}
 
-	public static GcAdjustor getComputedAdjustor(	Project proj, GCAdjustorBuilder builder,
-																								String sample, GcAdjustorParameter gcParameters,
-																								PreparedMarkerSet preparedMarkerSet,
-																								float[] markerIntensities, GcModel gcModel,
-																								boolean computePrior, boolean computePost,
-																								boolean verbose) {
+	public static GcAdjustor getComputedAdjustor(Project proj, GCAdjustorBuilder builder,
+																							 String sample, GcAdjustorParameter gcParameters,
+																							 PreparedMarkerSet preparedMarkerSet,
+																							 float[] markerIntensities, GcModel gcModel,
+																							 boolean computePrior, boolean computePost,
+																							 boolean verbose) {
 		GcAdjustor gcAdjustor = builder.build(proj, preparedMarkerSet, gcModel,
-																					Array.toDoubleArray(markerIntensities));
+																					ArrayUtils.toDoubleArray(markerIntensities));
 		builder.verbose(verbose);
 		gcAdjustor.correctIntensities(sample, gcParameters);
 		gcAdjustor.computeQCMetrics(computePrior, computePost);
@@ -1200,8 +1197,8 @@ public class GcAdjustor {
 	public static void test(Project proj, String fullPathToGcModel,
 													String fullPathToFileOfTestSamples) {
 		GcModel gcModel = GcModel.populateFromFile(fullPathToGcModel, false, proj.getLog());
-		String[] samplesToTest = Array.subArray(proj.getSamples(),
-																						proj.getSamplesToInclude(fullPathToFileOfTestSamples));
+		String[] samplesToTest = ArrayUtils.subArray(proj.getSamples(),
+																								 proj.getSamplesToInclude(fullPathToFileOfTestSamples));
 		String fileTest = proj.PROJECT_DIRECTORY.getValue() + "testGCWF.txt";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(fileTest));
@@ -1210,12 +1207,12 @@ public class GcAdjustor {
 				Sample samp = proj.getFullSampleFromRandomAccessFile(element);
 				proj.getLog().report("Testing sample " + samp.getSampleName());
 				GCAdjustorBuilder builder = new GCAdjustorBuilder();
-				GcAdjustor gcAdjusterNew = builder.build(	proj, null, gcModel,
-																									Array.toDoubleArray(samp.getLRRs()));
+				GcAdjustor gcAdjusterNew = builder.build(proj, null, gcModel,
+																								 ArrayUtils.toDoubleArray(samp.getLRRs()));
 				gcAdjusterNew.correctIntensities();
 				gcAdjusterNew.computeQCMetrics(true, true);
-				writer.println(samp.getSampleName()	+ "\t" + gcAdjusterNew.getQCString() + "\t"
-												+ ext.getTimeElapsed(time));
+				writer.println(samp.getSampleName() + "\t" + gcAdjusterNew.getQCString() + "\t"
+											 + ext.getTimeElapsed(time));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -1324,8 +1321,8 @@ public class GcAdjustor {
 		}
 	}
 
-	private GcAdjustor(	GCAdjustorBuilder builder, Project proj, PreparedMarkerSet markerSet,
-											GcModel gcModel, double[] markerIntensities) {
+	private GcAdjustor(GCAdjustorBuilder builder, Project proj, PreparedMarkerSet markerSet,
+										 GcModel gcModel, double[] markerIntensities) {
 		numSnpMAD = builder.numSnpMAD;
 		minimumAutosomalGC = builder.minimumAutosomalGC;
 		maximimumAutosomalGC = builder.maximimumAutosomalGC;

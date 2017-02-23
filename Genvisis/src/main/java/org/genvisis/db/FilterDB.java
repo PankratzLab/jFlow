@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -39,7 +39,7 @@ public class FilterDB {
 				line = reader.readLine().trim().split("\t", -1);
 				if (!line[0].startsWith("#") && !line[0].startsWith("//")) {
 					if (line.length != 2) {
-						log.reportError("Malformed filter: " + Array.toStr(line, " "));
+						log.reportError("Malformed filter: " + ArrayUtils.toStr(line, " "));
 						log.reportError("     must have two values separated by a tab, where the first token is the filter and the second is the label to be used to describe it");
 						reader.close();
 						return;
@@ -109,8 +109,8 @@ public class FilterDB {
 			System.err.println("Error reading file \"" + dbFilename + "\"");
 			return;
 		}
-		log.report("Program finished in "	+ (new Date().getTime() - time) / 1000
-								+ " sec. Marker filter results are now available at " + outputFile);
+		log.report("Program finished in " + (new Date().getTime() - time) / 1000
+							 + " sec. Marker filter results are now available at " + outputFile);
 	}
 
 	public static void fromParameters(String filename, Logger log) {
@@ -169,12 +169,12 @@ public class FilterDB {
 		String outputFilename = null;
 		String logFilename = null;
 
-		String usage = "\n"	+ "db.FilterDB requires 0-1 arguments\n"
-										+ "   (1) database filename (i.e. db=" + dbFilename + " (default))\n"
-										+ "   (2) filters filename (i.e. filters=" + dbFilename + " (default))\n"
-										+ "   (3) (optional) output filename (i.e. out=" + logFilename + " (default))\n"
-										+ "   (4) (optional) log filename (i.e. log=" + logFilename + " (default))\n"
-										+ "";
+		String usage = "\n" + "db.FilterDB requires 0-1 arguments\n"
+									 + "   (1) database filename (i.e. db=" + dbFilename + " (default))\n"
+									 + "   (2) filters filename (i.e. filters=" + dbFilename + " (default))\n"
+									 + "   (3) (optional) output filename (i.e. out=" + logFilename + " (default))\n"
+									 + "   (4) (optional) log filename (i.e. log=" + logFilename + " (default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -202,12 +202,12 @@ public class FilterDB {
 		}
 		try {
 			if (logFilename == null) {
-				logFilename = ext.parseDirectoryOfFile(filterFilename, false)	+ ext.rootOf(filterFilename)
+				logFilename = ext.parseDirectoryOfFile(filterFilename, false) + ext.rootOf(filterFilename)
 											+ ".log";
 			}
 			if (outputFilename == null) {
 				outputFilename = ext.parseDirectoryOfFile(filterFilename, false)
-													+ ext.rootOf(filterFilename) + ".out";
+												 + ext.rootOf(filterFilename) + ".out";
 			}
 			filter(dbFilename, filterFilename, outputFilename, new Logger(logFilename));
 		} catch (Exception e) {

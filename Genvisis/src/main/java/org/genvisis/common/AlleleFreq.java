@@ -8,13 +8,13 @@ import org.genvisis.stats.ProbDist;
 
 public class AlleleFreq {
 	public static double calcFrequency(int[] genotypes) {
-		return calcFrequency(Array.toDoubleArray(genotypes));
+		return calcFrequency(ArrayUtils.toDoubleArray(genotypes));
 	}
 
 	public static double calcFrequency(double[] genotypes) {
 		if (genotypes.length != 3) {
-			System.err.println("Error - can't compute an allele frequency from "	+ genotypes.length
-													+ " classes of genotypes");
+			System.err.println("Error - can't compute an allele frequency from " + genotypes.length
+												 + " classes of genotypes");
 		}
 		return calcFrequency(genotypes[0], genotypes[1], genotypes[2]);
 	}
@@ -40,7 +40,7 @@ public class AlleleFreq {
 	}
 
 	public static double computeHeterozygosity(int[] counts) {
-		double p = (double) (counts[0] * 2 + counts[1]) / (double) (Array.sum(counts) * 2);
+		double p = (double) (counts[0] * 2 + counts[1]) / (double) (ArrayUtils.sum(counts) * 2);
 		return 1 - p * p - (1 - p) * (1 - p);
 	}
 
@@ -115,13 +115,13 @@ public class AlleleFreq {
 			return HWEsig(genotypes[0], genotypes[1], genotypes[2], genotypes[3], genotypes[4],
 										genotypes[5]);
 		}
-		System.err.println("Error - can't compute Hardy Weinberg from "	+ genotypes.length
-												+ " classes of genotypes");
+		System.err.println("Error - can't compute Hardy Weinberg from " + genotypes.length
+											 + " classes of genotypes");
 		return Double.NaN;
 	}
 
 	public static double HWEsig(int[] genotypes) {
-		return HWEsig(Array.toDoubleArray(genotypes));
+		return HWEsig(ArrayUtils.toDoubleArray(genotypes));
 	}
 
 	public static double HWEsig(int pp, int pq, int qq) {

@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -30,8 +30,7 @@ public class DeleteGenotypes {
 		String[] line, marks;
 		int count;
 		String id = "", dir, trav;
-		Hashtable<String, Hashtable<String, String>> hash =
-																											new Hashtable<String, Hashtable<String, String>>();
+		Hashtable<String, Hashtable<String, String>> hash = new Hashtable<String, Hashtable<String, String>>();
 		Hashtable<String, String> markers, markerList;
 		Hashtable<String, Vector<String>> lookup;
 		Vector<String> sources;
@@ -90,17 +89,17 @@ public class DeleteGenotypes {
 			for (int i = 0; i < marks.length; i++) {
 				sources = lookup.get(marks[i]);
 				if (sources == null) {
-					System.err.println("Error - Could not find '"	+ marks[i]
-															+ "' in the lookup file. Either this is not a valid local_id or the lookup table is outdated (delete and I'll create a new one) or the directory I'm pointed too ('"
-															+ dir + "') is not the one you wanted.");
+					System.err.println("Error - Could not find '" + marks[i]
+														 + "' in the lookup file. Either this is not a valid local_id or the lookup table is outdated (delete and I'll create a new one) or the directory I'm pointed too ('"
+														 + dir + "') is not the one you wanted.");
 					System.exit(1);
 				}
 				for (int j = 0; j < sources.size(); j++) {
 					markers = (Hashtable<String, String>) hash.get(marks[i]).clone();
 					if (!new File(dir + sources.elementAt(j)).exists()) {
-						System.err.println("Error - Could not find file '"	+ dir + sources.elementAt(j)
-																+ "'. Either this lookup table is outdated (delete and I'll create a new one) or the directory I'm pointed too ('"
-																+ dir + "') is not the one you wanted.");
+						System.err.println("Error - Could not find file '" + dir + sources.elementAt(j)
+															 + "'. Either this lookup table is outdated (delete and I'll create a new one) or the directory I'm pointed too ('"
+															 + dir + "') is not the one you wanted.");
 						System.exit(1);
 					}
 					try {
@@ -118,8 +117,8 @@ public class DeleteGenotypes {
 								id = trav;
 								if (!marks[i].startsWith(id)) {
 									System.err.println("Error - incorrect match up. Is the lookup table incorrect? Opened '"
-																				+ dir + sources.elementAt(j) + "' and found '" + id
-																			+ "' instead of '" + marks[i] + "'");
+																		 + dir + sources.elementAt(j) + "' and found '" + id
+																		 + "' instead of '" + marks[i] + "'");
 									System.exit(1);
 								}
 							}
@@ -130,7 +129,7 @@ public class DeleteGenotypes {
 								}
 								markers.remove(line[0]);
 							}
-							writer.println(Array.toStr(line, ","));
+							writer.println(ArrayUtils.toStr(line, ","));
 							count++;
 						}
 						reader.close();
@@ -210,8 +209,8 @@ public class DeleteGenotypes {
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ file.getName()
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + file.getName()
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + file.getName() + "\"");
@@ -230,10 +229,10 @@ public class DeleteGenotypes {
 		String filename = "deleteThese.txt";
 		int lookup = 0;
 
-		String usage = "\\n"	+ "park.gwa.DeleteGenotypes requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n"
-										+ "   (2) --createLookupWithoutSerialNumbers (not the default)\n"
-										+ "   (3) --createLookupWithSerialNumbers (not the default)\n" + "";
+		String usage = "\\n" + "park.gwa.DeleteGenotypes requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n"
+									 + "   (2) --createLookupWithoutSerialNumbers (not the default)\n"
+									 + "   (3) --createLookupWithSerialNumbers (not the default)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

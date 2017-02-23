@@ -18,7 +18,7 @@ import javax.swing.JSeparator;
 import javax.swing.border.EmptyBorder;
 
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -105,8 +105,8 @@ public class SourceFileHeaderGUI extends JDialog {
 		panel.add(lblSnpIndex, "cell 1 2");
 
 		String[] headerParts = reportHdr.cols;
-		String[] headerOptions = Array.addStrToArray(MISSING_STR, headerParts, 0);
-		String[] sampOptions = Array.addStrToArray(FILENAME_STR, headerParts, 0);
+		String[] headerOptions = ArrayUtils.addStrToArray(MISSING_STR, headerParts, 0);
+		String[] sampOptions = ArrayUtils.addStrToArray(FILENAME_STR, headerParts, 0);
 
 		cbSnpInd = new JComboBox(headerParts);
 		cbSnpInd.setSelectedIndex(reportHdr.colSnpIdent == -1 ? 0 : reportHdr.colSnpIdent); // TODO SNP

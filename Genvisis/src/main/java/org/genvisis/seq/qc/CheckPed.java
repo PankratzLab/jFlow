@@ -1,10 +1,5 @@
 package org.genvisis.seq.qc;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Table;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,6 +24,12 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Plink;
+import org.genvisis.gwas.Qc;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Table;
 
 /**
  * Utility class for validating information in a pedigree. For each family in a pedigree, a full
@@ -41,7 +42,7 @@ import org.genvisis.gwas.Plink;
  * </ul>
  */
 public class CheckPed {
-	private static final String GENOME_PATH = "./plink/quality_control/genome/plink.genome";
+	private static final String GENOME_PATH = "./plink/" + Qc.QC_DIR + Qc.GENOME_DIR + "plink.genome";
 	private static final String SEXCHECK_PATH = "./results/sexCheck.xln";
 	private static final Double RELATED_THRESHOLD = 0.1;
 
@@ -59,8 +60,8 @@ public class CheckPed {
 			sexPath = proj.SEXCHECK_RESULTS_FILENAME.getValue();
 		}
 
-		validate(	pedigree.getPedigreeFile(), genomePath, sexPath, minRel, proj.getLog(),
-							proj.RESULTS_DIRECTORY.getValue());
+		validate(pedigree.getPedigreeFile(), genomePath, sexPath, minRel, proj.getLog(),
+						 proj.RESULTS_DIRECTORY.getValue());
 	}
 
 	/**
@@ -86,10 +87,10 @@ public class CheckPed {
 
 			// Load SexCheck file
 			if (sexCheck != null && new File(sexCheck).exists()) {
-				sexDict = HashVec.loadFileToHashString(	sexCheck, new int[] {0},
-																								new int[] {ext.indexOfStr("Sex",
-																																					SexChecks.SEX_HEADER)},
-																								false, "\t", true, false, true);
+				sexDict = HashVec.loadFileToHashString(sexCheck, new int[] {0},
+																							 new int[] {ext.indexOfStr("Sex",
+																																				 SexChecks.SEX_HEADER)},
+																							 false, "\t", true, false, true);
 			} else {
 				if (sexCheck != null) {
 					log.reportError("Sex check file: " + sexCheck + " is not valid.");
@@ -124,8 +125,7 @@ public class CheckPed {
 			// For each FID, we'll create an IIDxIID table, with 1 row per individual in the family and a
 			// column entry for each related member of the family. The cell values will be used to store
 			// expected/actual information about the given relationship.
-			Map<String, Table<String, String, Relation>> familyTables =
-																																new HashMap<String, Table<String, String, Relation>>();
+			Map<String, Table<String, String, Relation>> familyTables = new HashMap<String, Table<String, String, Relation>>();
 
 			// STEP 2 - Traverse family networks, populating expected relatedness values for all
 			// relationships
@@ -145,10 +145,9 @@ public class CheckPed {
 			// STEP 3 - Parse the genome and update Relations with computed values
 			if (genome != null && new File(genome).exists()) {
 				BufferedReader genomeReader = Files.getAppropriateReader(genome);
-				int[] indices = ext.indexFactors(
-																					new String[] {"FID1", "IID1", "FID2", "IID2", "Z0", "Z1",
-																												"Z2", "PI_HAT"},
-																					Plink.CLUSTER_HEADER, false, true);
+				int[] indices = ext.indexFactors(new String[] {"FID1", "IID1", "FID2", "IID2", "Z0", "Z1",
+																											 "Z2", "PI_HAT"},
+																				 Plink.CLUSTER_HEADER, false, true);
 				int fid1 = indices[0];
 				int iid1 = indices[1];
 				int fid2 = indices[2];
@@ -202,9 +201,9 @@ public class CheckPed {
 	/**
 	 * Helper method to write {@link #validate} results.
 	 */
-	private static void writeResults(	Map<String, Person> peopleByFidIid,
-																		Map<String, Table<String, String, Relation>> familyTables,
-																		String outputDir, Logger log) {
+	private static void writeResults(Map<String, Person> peopleByFidIid,
+																	 Map<String, Table<String, String, Relation>> familyTables,
+																	 String outputDir, Logger log) {
 		if (outputDir == null) {
 			outputDir = "";
 		}
@@ -326,7 +325,8 @@ public class CheckPed {
 	private static void populateRelations(Person base, Person relation, double relatedness,
 																				int distance, boolean visitParents, Set<String> history,
 																				Table<String, String, Relation> t,
-																				Map<String, Person> peopleByFidIid, Map<String, Double> mzRelated, Double minRel) {
+																				Map<String, Person> peopleByFidIid,
+																				Map<String, Double> mzRelated, Double minRel) {
 		// Account for MZ twins - save or restore the relatedness value for the relation's MZ grouping
 		String mzId = relation.mzId();
 		if (mzId != null && !mzId.isEmpty()) {
@@ -355,18 +355,18 @@ public class CheckPed {
 			// We can only visit parents if we have a direct parental lineage
 			// e.g. if this is my nephew through my aunt, I'm not related to the father
 			Person father = peopleByFidIid.get(relation.fatherId());
-			populateRelationsRecursive(	base, relation, father, relatedness, distance - 1, true, history,
-																	t, peopleByFidIid, mzRelated, minRel);
+			populateRelationsRecursive(base, relation, father, relatedness, distance - 1, true, history,
+																 t, peopleByFidIid, mzRelated, minRel);
 			Person mother = peopleByFidIid.get(relation.motherId());
-			populateRelationsRecursive(	base, relation, mother, relatedness, distance - 1, true, history,
-																	t, peopleByFidIid, mzRelated, minRel);
+			populateRelationsRecursive(base, relation, mother, relatedness, distance - 1, true, history,
+																 t, peopleByFidIid, mzRelated, minRel);
 		}
 
 		// recursive step - children
 		for (Person child : relation.children()) {
 			// If we're related to this person we're half as related to their children
-			populateRelationsRecursive(	base, relation, child, relatedness, distance + 1, false, history,
-																	t, peopleByFidIid, mzRelated, minRel);
+			populateRelationsRecursive(base, relation, child, relatedness, distance + 1, false, history,
+																 t, peopleByFidIid, mzRelated, minRel);
 		}
 	}
 
@@ -374,17 +374,16 @@ public class CheckPed {
 	 * Recursive helper step for {@link #populateRelations}. Tests the relation > next linkage for
 	 * validity. If valid, consumes the link and populates the base > next relationship.
 	 */
-	private static void populateRelationsRecursive(	Person base, Person relation, Person next,
-																									double relatedness, int distance,
-																									boolean visitParents, Set<String> history,
-																									Table<String, String, Relation> t,
-																									Map<String, Person> peopleByFidIid,
-																									Map<String, Double> mzRelated,
-	                                               Double minRel) {
+	private static void populateRelationsRecursive(Person base, Person relation, Person next,
+																								 double relatedness, int distance,
+																								 boolean visitParents, Set<String> history,
+																								 Table<String, String, Relation> t,
+																								 Map<String, Person> peopleByFidIid,
+																								 Map<String, Double> mzRelated, Double minRel) {
 		if (next != null && !visited(history, relation, next)) {
 			noteVisit(history, relation, next);
 			populateRelations(base, next, relatedness, distance, visitParents, history, t, peopleByFidIid,
-			                  mzRelated, minRel);
+												mzRelated, minRel);
 		}
 	}
 
@@ -451,7 +450,7 @@ public class CheckPed {
 			baseEstSex = base.estSex();
 			relEstSex = relation.estSex();
 			siblings = base.fatherId().equals(relation.fatherId())
-									|| base.motherId().equals(relation.motherId());
+								 || base.motherId().equals(relation.motherId());
 			this.relation = 0.0;
 			this.distance = distance;
 			identity = base == relation;
@@ -576,20 +575,12 @@ public class CheckPed {
 	 * thresholds.
 	 */
 	public enum Relatedness {
-														DUPLICATE("Dup", 0, 0, 0,
-																			0.9), PARENTCHILD("PO", 0, 0.8, 0,
-																												0.49), SIBLING(	"Sib", 0, 0.3, 0.1,
-																																				0.35), SECOND("2nd", 0, 0.4,
-																																											0,
-																																											0), THIRD("3rd",
-																																																0,
-																																																0.2,
-																																																0,
-																																																0), UNRELATED("UN",
-																																																							0,
-																																																							0,
-																																																							0,
-																																																							0);
+		DUPLICATE("Dup", 0, 0, 0, 0.9),
+		PARENTCHILD("PO", 0, 0.8, 0, 0.49),
+		SIBLING("Sib", 0, 0.3, 0.1, 0.35),
+		SECOND("2nd", 0, 0.4, 0, 0),
+		THIRD("3rd", 0, 0.2, 0, 0),
+		UNRELATED("UN", 0, 0, 0, 0);
 
 		private String label;
 		private double ibd0;
@@ -617,8 +608,8 @@ public class CheckPed {
 		 *         Relatedness.
 		 */
 		public boolean matches(double z0, double z1, double z2, double propIbd) {
-			return Double.compare(z0, ibd0) >= 0&& Double.compare(z1, ibd1) >= 0
-							&& Double.compare(z2, ibd2) >= 0 && Double.compare(propIbd, piHat) >= 0;
+			return Double.compare(z0, ibd0) >= 0 && Double.compare(z1, ibd1) >= 0
+						 && Double.compare(z2, ibd2) >= 0 && Double.compare(propIbd, piHat) >= 0;
 		}
 	}
 
@@ -759,8 +750,8 @@ public class CheckPed {
 		 *         estimated relatedness between this and the base individual.
 		 */
 		public String ref() {
-			return new StringBuilder(fid)	.append("+").append(iid).append("(").append(r.label())
-																		.append(")").toString();
+			return new StringBuilder(fid).append("+").append(iid).append("(").append(r.label())
+																	 .append(")").toString();
 		}
 
 		@Override
@@ -788,8 +779,8 @@ public class CheckPed {
 		CLI c = new CLI(CheckPed.class);
 		c.addArg(CLI.ARG_PROJ, CLI.DESC_PROJ);
 		c.addArg(pedigree, "standalone pedigree file to validate", "./pedigree.dat", CLI.Arg.FILE);
-		c.addArg(	sexCheck, "output from " + SexCheck.class.getName() + " for validating pedigree sexes",
-							SEXCHECK_PATH);
+		c.addArg(sexCheck, "output from " + SexCheck.class.getName() + " for validating pedigree sexes",
+						 SEXCHECK_PATH);
 		c.addArg(genome, "plink .genome for validating pedigree relationships", GENOME_PATH);
 		c.addArgWithDefault(relatedThresh,
 												"minimum relatedness in .genome to identify pedigree mismatch",

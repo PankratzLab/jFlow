@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -22,8 +22,8 @@ public class Phenotype {
 	public static final String[] OTHER_FILES = {"map##.dat", "chr##.dat", "chr##.map", "chr##.freq",
 																							"run#.qsub", "chr#_vc.qsub"};
 
-	private static void update(	String dir, String pheno, String pattern, int index,
-															String missingValue, Logger log) {
+	private static void update(String dir, String pheno, String pattern, int index,
+														 String missingValue, Logger log) {
 		BufferedReader reader;
 		PrintWriter[] writers;
 		String[] line, phenoNames, phenos;
@@ -36,10 +36,11 @@ public class Phenotype {
 		phenoNames = Files.getHeaderOfFile(dir + pheno, log);
 		ext.checkHeader(phenoNames, new String[] {"FID", "IID"}, new int[] {0, 1}, false, log, false);
 		System.out.println("Loading " + pheno);
-		hash = HashVec.loadFileToHashString(dir	+ pheno, new int[] {0, 1},
-																				Array.subArray(Array.arrayOfIndices(phenoNames.length), 2),
+		hash = HashVec.loadFileToHashString(dir + pheno, new int[] {0, 1},
+																				ArrayUtils.subArray(ArrayUtils.arrayOfIndices(phenoNames.length),
+																														2),
 																				pheno.endsWith(".csv"), "\t", true, false, false);
-		phenoNames = Array.subArray(phenoNames, 2);
+		phenoNames = ArrayUtils.subArray(phenoNames, 2);
 		writers = new PrintWriter[phenoNames.length];
 		for (int i = 0; i < writers.length; i++) {
 			new File(dir + phenoNames[i] + "/").mkdirs();
@@ -58,13 +59,13 @@ public class Phenotype {
 						line = reader.readLine().trim().split("[\\s]+");
 						trav = hash.get(line[0] + "\t" + line[1]);
 						if (trav == null) {
-							phenos = Array.stringArray(phenoNames.length, missingValue);
+							phenos = ArrayUtils.stringArray(phenoNames.length, missingValue);
 						} else {
 							phenos = trav.split("[\\s]+");
 						}
 						for (int i = 0; i < writers.length; i++) {
 							line[index] = phenos[i];
-							writers[i].println(Array.toStr(line));
+							writers[i].println(ArrayUtils.toStr(line));
 						}
 
 					}
@@ -79,8 +80,8 @@ public class Phenotype {
 						}
 					}
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ dir + filename
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + dir + filename
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + dir + filename + "\"");
@@ -111,12 +112,12 @@ public class Phenotype {
 		String logfile = null;
 		Logger log;
 
-		String usage = "\n"	+ "link.Phenotype requires 0-1 arguments\n" + "   (1) directory (i.e. dir="
-										+ dir + " (default))\n" + "   (2) phenotype filename (i.e. pheno=" + pheno
-										+ " (default))\n" + "   (3) pattern of files to update (i.e. pattern=" + pattern
-										+ " (default))\n" + "   (4) index of column to swap out (i.e. index=" + index
-										+ " (default))\n" + "   (5) missing value (i.e. missingValue=" + missingValue
-										+ " (default))\n" + "";
+		String usage = "\n" + "link.Phenotype requires 0-1 arguments\n" + "   (1) directory (i.e. dir="
+									 + dir + " (default))\n" + "   (2) phenotype filename (i.e. pheno=" + pheno
+									 + " (default))\n" + "   (3) pattern of files to update (i.e. pattern=" + pattern
+									 + " (default))\n" + "   (4) index of column to swap out (i.e. index=" + index
+									 + " (default))\n" + "   (5) missing value (i.e. missingValue=" + missingValue
+									 + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

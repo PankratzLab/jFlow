@@ -45,9 +45,8 @@ public class CNVMarkerQC implements Runnable {
 		// TODO is loading in a separate thread within a separate thread a good thing or bad
 		// TODO add sex specific calculation, and include/exclude from sampleData
 
-		MarkerDataLoader markerDataLoader =
-																			MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
-																																															markerNames);
+		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+																																																markerNames);
 		for (int i = 0; i < markerNames.length; i++) {
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
 			mafs[i] = markerData.getMAF(samplesToBeUsed, null, null, 0, log);
@@ -55,8 +54,8 @@ public class CNVMarkerQC implements Runnable {
 		}
 	}
 
-	public static void computeMAFs(	Project proj, int threads, boolean excludeSamples,
-																	String outputSer) {
+	public static void computeMAFs(Project proj, int threads, boolean excludeSamples,
+																 String outputSer) {
 		MarkerLookup markerLookup = proj.getMarkerLookup();
 		MarkerSet markerSet = proj.getMarkerSet();
 		SampleData sampleData = proj.getSampleData(2, false);
@@ -86,8 +85,8 @@ public class CNVMarkerQC implements Runnable {
 		}
 	}
 
-	private static boolean shouldExclude(	Project proj, boolean excludeSamples,
-																				SampleData sampleData) {
+	private static boolean shouldExclude(Project proj, boolean excludeSamples,
+																			 SampleData sampleData) {
 		boolean doExclude = false;
 		if (!excludeSamples) {
 			doExclude = false;
@@ -116,7 +115,7 @@ public class CNVMarkerQC implements Runnable {
 			if (mafBuilder.containsKey(markerNames[i])) {
 				mafs[i] = mafBuilder.get(markerNames[i]);
 			} else {
-				proj.getLog().reportError("Error - could not find marker "	+ markerNames[i]
+				proj.getLog().reportError("Error - could not find marker " + markerNames[i]
 																	+ ", this should not happen");
 				System.exit(1);
 			}
@@ -124,14 +123,14 @@ public class CNVMarkerQC implements Runnable {
 		return mafs;
 	}
 
-	private static CNVMarkerQC[] computeFileMAFS(	Project proj, int threads,
-																								ArrayList<ArrayList<String>> cabinet,
-																								boolean[] samplesToBeUsed) {
+	private static CNVMarkerQC[] computeFileMAFS(Project proj, int threads,
+																							 ArrayList<ArrayList<String>> cabinet,
+																							 boolean[] samplesToBeUsed) {
 		CNVMarkerQC[] markerFrequencies = new CNVMarkerQC[threads];
 		Thread[] runningthreads = new Thread[threads];
 		for (int i = 0; i < threads; i++) {
-			markerFrequencies[i] = new CNVMarkerQC(	proj, toStringArray(cabinet.get(i)), samplesToBeUsed,
-																							proj.getLog());
+			markerFrequencies[i] = new CNVMarkerQC(proj, toStringArray(cabinet.get(i)), samplesToBeUsed,
+																						 proj.getLog());
 			runningthreads[i] = new Thread(markerFrequencies[i]);
 			runningthreads[i].start();
 		}
@@ -158,8 +157,8 @@ public class CNVMarkerQC implements Runnable {
 		}
 	}
 
-	private static ArrayList<ArrayList<String>> getcabinet(	Hashtable<String, ArrayList<String>> markerFiles,
-																													int threads) {
+	private static ArrayList<ArrayList<String>> getcabinet(Hashtable<String, ArrayList<String>> markerFiles,
+																												 int threads) {
 		ArrayList<ArrayList<String>> cabinet = new ArrayList<ArrayList<String>>();
 		Set<String> keys = markerFiles.keySet();
 		for (int i = 0; i < threads; i++) {
@@ -198,15 +197,15 @@ public class CNVMarkerQC implements Runnable {
 		boolean convert = false;
 		String markerFreqSer = "MarkerFreq.ser";
 		String markerFreqTxt = "MarkerFreq.txt";
-		String usage = "\n"	+ "cnv.filesys.MarkerFrequencies requires 0-4 arguments\n"
-										+ "   (1) project properties filename (i.e. proj=" + filename + " (default))\n"
-										+ " OPTIONAL:\n" + "   (2) number of threads to use (i.e. threads=" + numThreads
-										+ " (default))\n" + "   (3) name of serialized  MarkerFreq file (i.e ser="
-										+ markerFreqSer + " (default))\n"
-										+ "   (4) name of text MarkerFreq file (i.e txt=" + markerFreqTxt
-										+ " (default))\n"
-										+ "   (5) exclude samples as defined in sampleData (i.e -exclude (not the default ,currently not supported))\n"
-										+ "   (6) convert from an existing .txt file (i.e -convert (not the default))\n";
+		String usage = "\n" + "cnv.filesys.MarkerFrequencies requires 0-4 arguments\n"
+									 + "   (1) project properties filename (i.e. proj=" + filename + " (default))\n"
+									 + " OPTIONAL:\n" + "   (2) number of threads to use (i.e. threads=" + numThreads
+									 + " (default))\n" + "   (3) name of serialized  MarkerFreq file (i.e ser="
+									 + markerFreqSer + " (default))\n"
+									 + "   (4) name of text MarkerFreq file (i.e txt=" + markerFreqTxt
+									 + " (default))\n"
+									 + "   (5) exclude samples as defined in sampleData (i.e -exclude (not the default ,currently not supported))\n"
+									 + "   (6) convert from an existing .txt file (i.e -convert (not the default))\n";
 		// String usage = "\n"+
 		// "cnv.filesys.MarkerFrequencies requires 0-4 arguments\n"+
 		// " (1) project properties filename (i.e. proj="+filename+" (default))\n"+

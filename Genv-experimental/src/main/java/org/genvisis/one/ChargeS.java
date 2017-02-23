@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.Hashtable;
 
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -31,27 +31,25 @@ public class ChargeS {
 	public static final String[][] BURDEN_REQUIREMENTS = {{"SNP"}, {"Chr", "CHROM"},
 																												{"Position", "POS"}, {"ALT"}, {"REF"},
 																												{"gene"}, {"AAF"}, {"sc_nonsynSplice"}}; // ,
-																																																	// {"Function",
-																																																	// "RFG"}
-																																																	// //
-																																																	// ,
-																																																	// {"MAF"}
-																																																	// doesn't
-																																																	// flip
-																																																	// alleles
+																																																 // {"Function",
+																																																 // "RFG"}
+																																																 // //
+																																																 // ,
+																																																 // {"MAF"}
+																																																 // doesn't
+																																																 // flip
+																																																 // alleles
 
 	// public static final String[] STUDIES = {"ARIC", "CHS", "FHS"}; // +ESP
 	// public static final String[] STUDIES = {"ARIC", "CHS", "FHS", "ESP"};
 	public static final String[] STUDIES = {"ARIC", "CHS", "FHS", "ESP6800", "RS", "Rergo3"};
 	public static final String[] STUDY_GROUPS = {"CHARGE", "CHARGE", "CHARGE", "ESP", "RS"}; // +ESP
 
-	public static final String[][][] ALL_PHENOTYPES = {
-																											{	{	"Fibrinogen", "fibrinogen", ".lnFB.",
-																													".ln_fib."},
-																												{"F7", ".FVII.", "_FVII_"},
-																												{"F8", ".FVIII.", "_FVIII_"},
-																												{"vWF", "VWF"}},
-																											{{"CRP"},},
+	public static final String[][][] ALL_PHENOTYPES = {{{"Fibrinogen", "fibrinogen", ".lnFB.",
+																											 ".ln_fib."},
+																											{"F7", ".FVII.", "_FVII_"},
+																											{"F8", ".FVIII.", "_FVIII_"}, {"vWF", "VWF"}},
+																										 {{"CRP"},},
 
 	};
 
@@ -70,8 +68,8 @@ public class ChargeS {
 	};
 	public static final String[][] METHODS = {{"SingleSNP", "singleSnpRes", ".LR."},
 																						{"T5Count", ".T5."}, {"T5MB", "MBT5"}};
-	public static final String[][] UNIT_OF_ANALYSIS = {	Aliases.MARKER_NAMES, Aliases.GENE_UNITS,
-																											Aliases.GENE_UNITS};
+	public static final String[][] UNIT_OF_ANALYSIS = {Aliases.MARKER_NAMES, Aliases.GENE_UNITS,
+																										 Aliases.GENE_UNITS};
 	public static final boolean[] SINGLE_VARIANTS = {true, false, false};
 	public static final boolean[] WEIGHTED = {true, false, false};
 	public static final String[] GROUPS = {"SingleVariant", "BurdenTests", "BurdenTests"};
@@ -284,10 +282,10 @@ public class ChargeS {
 		log = new Logger(ext.rootOf(phenoFile, false) + ".log");
 		if (!Files.exists(genoFile + ".burdenInfo")) {
 			cols = ext.indexFactors(BURDEN_REQUIREMENTS,
-															ext	.replaceAllWith(Files.getFirstNLinesOfFile(	annotationFile, 1,
-																																							log)[0],
-																									"\"", "")
-																	.split(Files.determineDelimiter(annotationFile, log)),
+															ext.replaceAllWith(Files.getFirstNLinesOfFile(annotationFile, 1,
+																																						log)[0],
+																								 "\"", "")
+																 .split(Files.determineDelimiter(annotationFile, log)),
 															false, true, true, log, true);
 			log.report("Loading map positions");
 			annotationHash = HashVec.loadFileToHashString(annotationFile, new int[] {cols[0]}, cols,
@@ -326,7 +324,7 @@ public class ChargeS {
 					} else {
 						line = ext.replaceAllWith(temp, "\"", "").split("\t", -1);
 						// writer.println(line[1]+"\t"+trav+"\t0\t"+line[2]+"\t"+line[3]+"\t"+line[4]);
-						writer.println(Array.toStr(line));
+						writer.println(ArrayUtils.toStr(line));
 					}
 				}
 				writer.close();
@@ -347,16 +345,15 @@ public class ChargeS {
 		System.out.println("Analyzing single variants with " + phenoFile);
 		gens.analyze(phenoFile, "NA", null, true, log);
 		System.out.println("Generating T5 burden dataset");
-		BurdenMatrix burdenMatrix = new BurdenMatrix(	gens, 0.05,
-																									BurdenMatrix.DEFAULT_ANNOTATIONS_TO_INCLUDE,
-																									BurdenMatrix.ALL_KNOWN_ANNOTATIONS, false, 0.01,
-																									new String[] {}, null, log);
+		BurdenMatrix burdenMatrix = new BurdenMatrix(gens, 0.05,
+																								 BurdenMatrix.DEFAULT_ANNOTATIONS_TO_INCLUDE,
+																								 BurdenMatrix.ALL_KNOWN_ANNOTATIONS, false, 0.01,
+																								 new String[] {}, null, log);
 		System.out.println("Running T1 burden test with " + phenoFile);
-		burdenMatrix.analyze(	phenoFile, "NA", null,
-													ext.parseDirectoryOfFile(phenoFile)	+ "ARIC." + ext.rootOf(phenoFile)
-																									+ ".T5.EA." + ext.getDate(new Date(), "")
-																									+ ".csv",
-													true, log);
+		burdenMatrix.analyze(phenoFile, "NA", null,
+												 ext.parseDirectoryOfFile(phenoFile) + "ARIC." + ext.rootOf(phenoFile)
+																								+ ".T5.EA." + ext.getDate(new Date(), "") + ".csv",
+												 true, log);
 	}
 
 	public static void convertESP(String plinkResults, String plinkHWE, String outfile) {
@@ -388,18 +385,18 @@ public class ChargeS {
 					subline = line[5].trim().split("/");
 					try {
 						freq = (Double.parseDouble(subline[0]) * 2 + Double.parseDouble(subline[1]) * 1)
-										/ (Double.parseDouble(subline[0]) * 2	+ Double.parseDouble(subline[1]) * 2
-												+ Double.parseDouble(subline[2]) * 2);
+									 / (Double.parseDouble(subline[0]) * 2 + Double.parseDouble(subline[1]) * 2
+											+ Double.parseDouble(subline[2]) * 2);
 					} catch (Exception e) {
 						System.err.println("Error - parsing " + line[5]);
 						freq = -999;
 					}
 					if (line[2].equals("ALL")) {
-						hash.put(	ext.replaceAllWith(line[1], "_", ":"),
-											new String[] {line[4], line[3],
-																		(Integer.parseInt(subline[0])	+ Integer.parseInt(subline[1])
-																			+ Integer.parseInt(subline[2])) + "",
-																		freq + "", subline[0], subline[1], subline[2]});
+						hash.put(ext.replaceAllWith(line[1], "_", ":"),
+										 new String[] {line[4], line[3],
+																	 (Integer.parseInt(subline[0]) + Integer.parseInt(subline[1])
+																		+ Integer.parseInt(subline[2])) + "",
+																	 freq + "", subline[0], subline[1], subline[2]});
 					}
 				}
 				reader.close();
@@ -423,10 +420,11 @@ public class ChargeS {
 			ext.checkHeader(line,
 											new String[] {"CHR", "SNP", "BP", "A1", "TEST", "NMISS", "BETA", "STAT", "P"},
 											true);
-			writer.println(Array.toStr(	new String[] {"snp", "noncoded_all", "coded_all", "sampleSumN",
-																								"AF", "sampleAA", "sampleAR", "sampleRR", "beta",
-																								"se", "pval", "NMISS", "wbeta", "wse"},
-																	delimiter));
+			writer.println(ArrayUtils.toStr(new String[] {"snp", "noncoded_all", "coded_all",
+																										"sampleSumN", "AF", "sampleAA", "sampleAR",
+																										"sampleRR", "beta", "se", "pval", "NMISS",
+																										"wbeta", "wse"},
+																			delimiter));
 
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
@@ -435,7 +433,7 @@ public class ChargeS {
 					// if (hash.containsKey(line[1])) {
 					subline = hash.get(line[1]);
 					if (!line[3].equals(subline[1])) { // A1 alleles
-						log.reportError("Error - mismatched A1 alleles for plink "	+ line[3] + " and hwe "
+						log.reportError("Error - mismatched A1 alleles for plink " + line[3] + " and hwe "
 														+ subline[0] + " in " + plinkResults);
 					}
 					// } else {
@@ -447,9 +445,9 @@ public class ChargeS {
 						log.reportError("Could not divide: " + line[6] + "/" + line[7]);
 						se = -999;
 					}
-					writer.println(line[1]	+ delimiter + Array.toStr(subline, delimiter) + delimiter + line[6]
-													+ delimiter + se + delimiter + line[8] + delimiter + line[5] + delimiter
-													+ line[6] + delimiter + se);
+					writer.println(line[1] + delimiter + ArrayUtils.toStr(subline, delimiter) + delimiter
+												 + line[6] + delimiter + se + delimiter + line[8] + delimiter + line[5]
+												 + delimiter + line[6] + delimiter + se);
 				}
 			}
 			reader.close();
@@ -489,15 +487,15 @@ public class ChargeS {
 		log = new Logger(dir + "plinkConversion.log");
 		header = Files.getHeaderOfFile(dir + annotationFile, log);
 
-		indices =
-						ext.indexFactors(	new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS,
-																							Aliases.ALLELES[0], Aliases.ALLELES[1]},
-															header, true, false, true, true, log, true);
-		annotationHash = HashVec.loadFileToHashString(dir	+ annotationFile, new int[] {indices[0]},
-																									Array.subArray(indices, 1),
-																									Files	.determineDelimiter(dir	+ annotationFile,
-																																						log)
-																												.equals(","),
+		indices = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS,
+																							 Aliases.POSITIONS, Aliases.ALLELES[0],
+																							 Aliases.ALLELES[1]},
+															 header, true, false, true, true, log, true);
+		annotationHash = HashVec.loadFileToHashString(dir + annotationFile, new int[] {indices[0]},
+																									ArrayUtils.subArray(indices, 1),
+																									Files.determineDelimiter(dir + annotationFile,
+																																					 log)
+																											 .equals(","),
 																									"\t", true, false, false);
 
 		ids = null;
@@ -521,7 +519,7 @@ public class ChargeS {
 						return;
 					}
 					if (chr == 1) {
-						ids = Array.subArray(header, 2);
+						ids = ArrayUtils.subArray(header, 2);
 						try {
 							famWriter = new PrintWriter(new FileWriter(dir + "plink.tfam"));
 							for (String id : ids) {
@@ -533,7 +531,7 @@ public class ChargeS {
 							e.printStackTrace();
 						}
 
-					} else if (!Array.equals(ids, Array.subArray(header, 2), true)) {
+					} else if (!ArrayUtils.equals(ids, ArrayUtils.subArray(header, 2), true)) {
 						log.reportError("The ids in " + filename + " are not the same as for chr1");
 						reader.close();
 						return;
@@ -574,8 +572,8 @@ public class ChargeS {
 								} else if (line[2 + i].equals("2")) {
 									writer.print("\t" + alt + "\t" + alt);
 								} else {
-									System.err.println("Error - unexpected allele code ("	+ line[2 + i] + ") for "
-																			+ ids[i] + " in file " + filename);
+									System.err.println("Error - unexpected allele code (" + line[2 + i] + ") for "
+																		 + ids[i] + " in file " + filename);
 									writer.print("\t0\t0");
 								}
 							}
@@ -606,7 +604,7 @@ public class ChargeS {
 		CmdLine.run("plink --tfile plink --make-bed", dir);
 
 		System.out.println("Finished making binary files after an additional "
-												+ ext.getTimeElapsed(time));
+											 + ext.getTimeElapsed(time));
 
 		System.exit(1);
 
@@ -614,10 +612,10 @@ public class ChargeS {
 
 		if (!Files.exists(genoFile + ".burdenInfo")) {
 			cols = ext.indexFactors(BURDEN_REQUIREMENTS,
-															ext	.replaceAllWith(Files.getFirstNLinesOfFile(	annotationFile, 1,
-																																							log)[0],
-																									"\"", "")
-																	.split(Files.determineDelimiter(annotationFile, log)),
+															ext.replaceAllWith(Files.getFirstNLinesOfFile(annotationFile, 1,
+																																						log)[0],
+																								 "\"", "")
+																 .split(Files.determineDelimiter(annotationFile, log)),
 															false, true, true, log, true);
 			log.report("Loading map positions");
 			annotationHash = HashVec.loadFileToHashString(annotationFile, new int[] {cols[0]}, cols,
@@ -653,7 +651,7 @@ public class ChargeS {
 					} else {
 						line = ext.replaceAllWith(temp, "\"", "").split("\t", -1);
 						// writer.println(line[1]+"\t"+trav+"\t0\t"+line[2]+"\t"+line[3]+"\t"+line[4]);
-						writer.println(Array.toStr(line));
+						writer.println(ArrayUtils.toStr(line));
 					}
 				}
 				writer.close();
@@ -690,12 +688,12 @@ public class ChargeS {
 		String annotationFile = "C:/LITE/CHARGE-S/ARIC_CHAGE_S_Freeze2/SNPInfo_ExomeFreeze2_120810.csv";
 		boolean makePlink = false;
 
-		String usage = "\n"	+ "one.ChargeS requires 0-1 arguments\n"
-										+ "   (1) phenotype filename (i.e. file=" + phenoFile + " (default))\n"
-										+ "   (2) genotype filename (i.e. file=" + genoFile + " (default))\n"
-										+ "   (3) annotation filename (i.e. snpInfo=" + annotationFile + " (default))\n"
-										+ "   (4) turn into PLINK transposed format files (i.e. -makePlink (not the default))\n"
-										+ "";
+		String usage = "\n" + "one.ChargeS requires 0-1 arguments\n"
+									 + "   (1) phenotype filename (i.e. file=" + phenoFile + " (default))\n"
+									 + "   (2) genotype filename (i.e. file=" + genoFile + " (default))\n"
+									 + "   (3) annotation filename (i.e. snpInfo=" + annotationFile + " (default))\n"
+									 + "   (4) turn into PLINK transposed format files (i.e. -makePlink (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

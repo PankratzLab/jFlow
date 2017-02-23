@@ -260,19 +260,19 @@ public class Zip {
 
 		@Override
 		public Callable<Boolean> next() {
-			log.report("compressing file #"	+ (index + 1) + " of " + filesToGzip.length + " ("
-									+ filesToGzip[index] + ")");
-			GzipWorker worker = new GzipWorker(	filesToGzip[index],
-																					outputDir						+ ext.removeDirectoryInfo(filesToGzip[index])
-																															+ ".gz",
-																					log);
+			log.report("compressing file #" + (index + 1) + " of " + filesToGzip.length + " ("
+								 + filesToGzip[index] + ")");
+			GzipWorker worker = new GzipWorker(filesToGzip[index],
+																				 outputDir + ext.removeDirectoryInfo(filesToGzip[index])
+																														 + ".gz",
+																				 log);
 			index++;
 			return worker;
 		}
 	}
 
-	public static void gzipAllTextFilesInDirectory(	String dirin, String dirout, int numThreads,
-																									Logger log) {
+	public static void gzipAllTextFilesInDirectory(String dirin, String dirout, int numThreads,
+																								 Logger log) {
 		String[] files;
 
 		if (dirin == null) {
@@ -337,7 +337,7 @@ public class Zip {
 				ZipEntry entry = in.getNextEntry();
 				String filename = destination + entry.getName();
 
-				if (ext.indexOfStr(entry.getName(), targets) != -1	&& !filename.endsWith("/")
+				if (ext.indexOfStr(entry.getName(), targets) != -1 && !filename.endsWith("/")
 						&& !filename.endsWith("\\")) {
 					int index = Math.max(filename.lastIndexOf("/"), filename.lastIndexOf("\\"));
 
@@ -381,7 +381,7 @@ public class Zip {
 			e.printStackTrace();
 		}
 
-		return Array.toStringArray(v);
+		return ArrayUtils.toStringArray(v);
 	}
 
 	public static void fromParameters(String filename, Logger log) {
@@ -394,16 +394,14 @@ public class Zip {
 
 		// get all files in the directory, excluding the crf itself and its corresponding log
 		files = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false, false);
-		files =
-					Array.addStrToArray("# Output directory (i.e., sometimes more efficient if on a different drive); default is the same directory as the original file",
-															files, 0);
-		files = Array.addStrToArray("outputDirectory=", files, 1);
-		files = Array.addStrToArray("# retain the timestamp of the original file", files, 2);
-		files = Array.addStrToArray("retainTimestamp=" + retainOriginalTimestamp, files, 3);
-		files =
-					Array.addStrToArray("# Number of minutes to wait before beginning a step (can be used more than once)",
-															files, 4);
-		files = Array.addStrToArray("delay_in_minutes=0", files, 5);
+		files = ArrayUtils.addStrToArray("# Output directory (i.e., sometimes more efficient if on a different drive); default is the same directory as the original file",
+																		 files, 0);
+		files = ArrayUtils.addStrToArray("outputDirectory=", files, 1);
+		files = ArrayUtils.addStrToArray("# retain the timestamp of the original file", files, 2);
+		files = ArrayUtils.addStrToArray("retainTimestamp=" + retainOriginalTimestamp, files, 3);
+		files = ArrayUtils.addStrToArray("# Number of minutes to wait before beginning a step (can be used more than once)",
+																		 files, 4);
+		files = ArrayUtils.addStrToArray("delay_in_minutes=0", files, 5);
 
 		params = Files.parseControlFile(filename, "gzip", files, log);
 
@@ -415,7 +413,7 @@ public class Zip {
 					if (filename.startsWith("delay_in_minutes=")) {
 						minutesToSleep = ext.parseIntArg(params.elementAt(i));
 						log.report("Going to sleep for "
-												+ ext.getTimeElapsed(new Date().getTime() - minutesToSleep * 60 * 1000));
+											 + ext.getTimeElapsed(new Date().getTime() - minutesToSleep * 60 * 1000));
 						try {
 							Thread.sleep(minutesToSleep * 60 * 1000);
 						} catch (InterruptedException ie) {
@@ -434,10 +432,10 @@ public class Zip {
 					} else if (filename.startsWith("retainTimestamp=")) {
 						retainOriginalTimestamp = ext.parseBooleanArg(params.elementAt(i));
 						log.report("The timestamp from the original file will "
-												+ (retainOriginalTimestamp ? "" : "NOT ") + "be retained");
+											 + (retainOriginalTimestamp ? "" : "NOT ") + "be retained");
 					} else if (Files.exists(filename)) {
-						log.report("\n"	+ ext.getTime() + "\tCompressing " + filename + " to " + outputDirectory
-												+ filename + ".gz");
+						log.report("\n" + ext.getTime() + "\tCompressing " + filename + " to " + outputDirectory
+											 + filename + ".gz");
 						gzip(filename, outputDirectory + filename + ".gz", retainOriginalTimestamp);
 					} else {
 						log.reportError("Error - could not find file " + filename);
@@ -462,12 +460,12 @@ public class Zip {
 		int numthreads = 1;
 		Logger log;
 
-		String usage = "\n"	+ "common.Zip requires 0-1 arguments\n"
-										+ "   (1) name of file to be gzipped (i.e. file=in.csv (not the default))\n"
-										+ " OR:\n" + "   (1) directory containing files to be gzipped (i.e. dirin="
-										+ dirin + " (default))\n"
-										+ "   (2) directory where the compressed files should be written to (i.e. dirout=[dirin]/compressed/ (default))\n"
-										+ PSF.Ext.getNumThreadsCommand(3, numthreads) + "";
+		String usage = "\n" + "common.Zip requires 0-1 arguments\n"
+									 + "   (1) name of file to be gzipped (i.e. file=in.csv (not the default))\n"
+									 + " OR:\n" + "   (1) directory containing files to be gzipped (i.e. dirin="
+									 + dirin + " (default))\n"
+									 + "   (2) directory where the compressed files should be written to (i.e. dirout=[dirin]/compressed/ (default))\n"
+									 + PSF.Ext.getNumThreadsCommand(3, numthreads) + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -102,11 +102,11 @@ public class swapDNA {
 				reader.close();
 
 				if (famInd1.equals("")) {
-					System.err.println("Error: could not find first DNA, "	+ DNA1 + ", in file \'chromosome"
-															+ i + ".dat\'");
+					System.err.println("Error: could not find first DNA, " + DNA1 + ", in file \'chromosome"
+														 + i + ".dat\'");
 				} else if (famInd2.equals("") && !DNA2.equalsIgnoreCase("trash")) {
-					System.err.println("Error: could not find second DNA, "	+ DNA2 + ", in file \'chromosome"
-															+ i + ".dat\'");
+					System.err.println("Error: could not find second DNA, " + DNA2 + ", in file \'chromosome"
+														 + i + ".dat\'");
 				} else {
 					(new File("chromosome" + i + ".dat")).renameTo(new File("temp"));
 					reader = new BufferedReader(new FileReader("temp"));
@@ -157,14 +157,14 @@ public class swapDNA {
 		int start = 1, stop = 23;
 		// int start=5, stop=5;
 
-		String usage = "\n"	+ "park.swapDNA requires 1-3 arguments:\n"
-										+ "   (1) either a file with two columns: DNA#1 DNA#2\n" + "       (i.e. file="
-										+ filename + " (default))\n" + "                   OR\n"
-										+ "       two arguments for the DNA numbers to switch\n"
-										+ "       (i.e. DNA1=2000PD0137 DNA2=2000PD0138)\n"
-										+ "       (note: DNA2 can equal 'trash' if you want to destroy)\n"
-										+ "   (2/3) chromosome number, if only doing one\n"
-										+ "         (i.e. chr=5 (default is all chromosomes))\n" + "";
+		String usage = "\n" + "park.swapDNA requires 1-3 arguments:\n"
+									 + "   (1) either a file with two columns: DNA#1 DNA#2\n" + "       (i.e. file="
+									 + filename + " (default))\n" + "                   OR\n"
+									 + "       two arguments for the DNA numbers to switch\n"
+									 + "       (i.e. DNA1=2000PD0137 DNA2=2000PD0138)\n"
+									 + "       (note: DNA2 can equal 'trash' if you want to destroy)\n"
+									 + "   (2/3) chromosome number, if only doing one\n"
+									 + "         (i.e. chr=5 (default is all chromosomes))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

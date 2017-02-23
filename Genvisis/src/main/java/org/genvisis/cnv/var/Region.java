@@ -90,7 +90,7 @@ public class Region {
 
 		if (!location.startsWith("chr")) {
 			if (track == null) {
-				throw new IllegalStateException("Cannot parse gene name: '"	+ location
+				throw new IllegalStateException("Cannot parse gene name: '" + location
 																				+ "' since the gene track has either not been installed or did not load properly.");
 			}
 			loc = track.lookupPosition(location);
@@ -98,8 +98,8 @@ public class Region {
 			loc = Positions.parseUCSClocation(location);
 		}
 		if (loc[0] == -1) {
-			throw new IllegalArgumentException("'"	+ location
-																					+ "' is not a valid gene name or is not a valid UCSC location.");
+			throw new IllegalArgumentException("'" + location
+																				 + "' is not a valid gene name or is not a valid UCSC location.");
 		}
 		setLoc(loc);
 	}

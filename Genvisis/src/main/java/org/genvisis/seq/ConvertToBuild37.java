@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Positions;
@@ -42,7 +42,7 @@ public class ConvertToBuild37 {
 		err = new Hashtable<String, String>();
 		files = Files.list(dir, ".err", false);
 		for (String file : files) {
-			lines = HashVec.loadFileToStringArray(dir	+ file, false, false, new int[] {0}, true, false,
+			lines = HashVec.loadFileToStringArray(dir + file, false, false, new int[] {0}, true, false,
 																						",");
 			for (int j = 0; j < lines.length; j++) {
 				if (lines[j].equals("#Deleted in new")) {
@@ -57,8 +57,8 @@ public class ConvertToBuild37 {
 
 		if (new File(dir + "liftOver.in").exists() && new File(dir + "liftOver.bed").exists()) {
 			locs = HashVec.loadFileToStringArray(dir + "liftOver.in", false, new int[] {0}, false);
-			conversions =
-									HashVec.loadFileToStringArray(dir + "liftOver.bed", false, new int[] {0}, false);
+			conversions = HashVec.loadFileToStringArray(dir + "liftOver.bed", false, new int[] {0},
+																									false);
 			if (locs.length == conversions.length) {
 				for (int i = 0; i < locs.length; i++) {
 					hash.put(locs[i], conversions[i]);
@@ -114,17 +114,17 @@ public class ConvertToBuild37 {
 			order = Sort.getSort2DIndices(chrs, positions);
 			locs = Sort.getOrdered(locs, order);
 			if (new File(dir + "liftOver.in").exists()
-					&& Array.equals(locs, HashVec.loadFileToStringArray(dir	+ "liftOver.in", false,
-																															new int[] {0}, false),
-													false)) {
+					&& ArrayUtils.equals(locs, HashVec.loadFileToStringArray(dir + "liftOver.in", false,
+																																	 new int[] {0}, false),
+															 false)) {
 				System.err.println("Error - getting the same list of positions to convert and it's not the same number as is in liftOver.bed");
 			} else {
 				Files.writeArray(locs, dir + "liftOver.in");
-				System.out.println("Found "	+ locs.length + " new positions that have yet to be parsed:\n"
-														+ "     1) upload file 'liftOver.in' to liftOver on UCSC\n"
-														+ "     2) copy any .err files to the current directory\n"
-														+ "     3) copy the bed file to the current directory and rename to liftOver.bed"
-														+ "     4) re-run once more (you'll still get this message if there were new errors being filtered out, simply re-run");
+				System.out.println("Found " + locs.length + " new positions that have yet to be parsed:\n"
+													 + "     1) upload file 'liftOver.in' to liftOver on UCSC\n"
+													 + "     2) copy any .err files to the current directory\n"
+													 + "     3) copy the bed file to the current directory and rename to liftOver.bed"
+													 + "     4) re-run once more (you'll still get this message if there were new errors being filtered out, simply re-run");
 			}
 			return;
 		}
@@ -135,7 +135,7 @@ public class ConvertToBuild37 {
 		for (String file : files) {
 			try {
 				reader = new BufferedReader(new FileReader(dir + file));
-				writer = new PrintWriter(new FileWriter(dir	+ "inputs/"
+				writer = new PrintWriter(new FileWriter(dir + "inputs/"
 																								+ file.substring(0, file.lastIndexOf("_"))
 																								+ "_input.txt"));
 				while (reader.ready()) {
@@ -151,10 +151,10 @@ public class ConvertToBuild37 {
 							count++;
 						} else {
 							if (pos.length < 3) {
-								System.err.println("Error - invalid positions: " + Array.toStr(pos));
+								System.err.println("Error - invalid positions: " + ArrayUtils.toStr(pos));
 							}
-							writer.println("chr"	+ pos[0] + "\t" + pos[1] + "\t" + pos[2] + "\t" + line[3] + "\t"
-															+ line[4]);
+							writer.println("chr" + pos[0] + "\t" + pos[1] + "\t" + pos[2] + "\t" + line[3] + "\t"
+														 + line[4]);
 						}
 					}
 				}
@@ -179,8 +179,8 @@ public class ConvertToBuild37 {
 		String dir = "D:\\tWork\\2qSequencing\\OnTarget\\";
 		String suffix = ".txt";
 
-		String usage = "\n"	+ "seq.ConvertToBuild37 requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + dir + " (default))\n" + "";
+		String usage = "\n" + "seq.ConvertToBuild37 requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + dir + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

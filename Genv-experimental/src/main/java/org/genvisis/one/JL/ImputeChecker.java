@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -38,20 +38,20 @@ public class ImputeChecker {
 		String out = dir + ext.rootOf(immunoChip) + ".imputationSummary";
 
 		if (!Files.exists(out)) {
-			boolean[] foundMask = Array.booleanArray(immunoRs.length, false);
+			boolean[] foundMask = ArrayUtils.booleanArray(immunoRs.length, false);
 			int snpIndex = ext.indexOfStr("rs_id", headerAric);
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(out));
-				writer.println(Array.toStr(immunoRs[0])	+ "\t" + Array.toStr(headerAric)
-												+ "\tFound\tDirectMatch");
+				writer.println(ArrayUtils.toStr(immunoRs[0]) + "\t" + ArrayUtils.toStr(headerAric)
+											 + "\tFound\tDirectMatch");
 				BufferedReader reader = Files.getAppropriateReader(aricImpute);
 				int totalFound = 0;
 				while (reader.ready()) {
 					String[] line = reader.readLine().trim().split("[\\s]+");
 					String snp = line[snpIndex];
 					if (index.containsKey(snp)) {
-						writer.println(Array.toStr(immunoRs[index.get(snp)])	+ "\t" + Array.toStr(line)
-														+ "\t1\t" + (line[0] == snp ? 1 : 0));
+						writer.println(ArrayUtils.toStr(immunoRs[index.get(snp)]) + "\t"
+													 + ArrayUtils.toStr(line) + "\t1\t" + (line[0] == snp ? 1 : 0));
 						foundMask[index.get(snp)] = true;
 						totalFound++;
 						log.reportTimeInfo("Found " + snp + " (" + totalFound + "of " + immunoRs.length + ")");
@@ -59,10 +59,11 @@ public class ImputeChecker {
 					}
 				}
 
-				String[] blank = Array.stringArray(headerAric.length, "NA");
+				String[] blank = ArrayUtils.stringArray(headerAric.length, "NA");
 				for (int i = 0; i < foundMask.length; i++) {
 					if (!foundMask[i]) {
-						writer.println(Array.toStr(immunoRs[i]) + "\t" + Array.toStr(blank) + "\t0\t0");
+						writer.println(ArrayUtils.toStr(immunoRs[i]) + "\t" + ArrayUtils.toStr(blank)
+													 + "\t0\t0");
 					}
 				}
 
@@ -89,8 +90,9 @@ public class ImputeChecker {
 		Restrictions[] restrictionTN = new Restrictions[] {new Restrictions(new String[] {"type"},
 																																				new double[] {0},
 																																				new String[] {"=="}, null)};
-		String title = " DirectMatch="	+ Array.countIf(aricType, "2") + " Impute="
-										+ Array.countIf(aricType, "0") + " No match = " + Array.countIf(aricType, "NA");
+		String title = " DirectMatch=" + ArrayUtils.countIf(aricType, "2") + " Impute="
+									 + ArrayUtils.countIf(aricType, "0") + " No match = "
+									 + ArrayUtils.countIf(aricType, "NA");
 
 		for (String type : types) {
 			String outtype = rootR + type;
@@ -106,9 +108,9 @@ public class ImputeChecker {
 			// rsArrayList.add(rsScatter);
 
 			String outtypeBox = rootR + type + "_box";
-			RScatter rsScatterBox = new RScatter(	out, outtypeBox + "rscript", ext.rootOf(outtypeBox),
-																						outtypeBox + ".jpg", "type", new String[] {type},
-																						SCATTER_TYPE.BOX, log);
+			RScatter rsScatterBox = new RScatter(out, outtypeBox + "rscript", ext.rootOf(outtypeBox),
+																					 outtypeBox + ".jpg", "type", new String[] {type},
+																					 SCATTER_TYPE.BOX, log);
 			rsScatterBox.setRestrictions(restrictionTN);
 			rsScatterBox.setTitle(title);
 			rsScatterBox.setyLabel(type);
@@ -122,10 +124,10 @@ public class ImputeChecker {
 		}
 
 		String outtypeFreqCer = rootR + "certfreq";
-		RScatter rsScatterBoxFreq = new RScatter(	out, outtypeFreqCer + "rscript",
-																							ext.rootOf(outtypeFreqCer), outtypeFreqCer + ".jpg",
-																							"exp_freq_a1", new String[] {"certainty"},
-																							SCATTER_TYPE.POINT, log);
+		RScatter rsScatterBoxFreq = new RScatter(out, outtypeFreqCer + "rscript",
+																						 ext.rootOf(outtypeFreqCer), outtypeFreqCer + ".jpg",
+																						 "exp_freq_a1", new String[] {"certainty"},
+																						 SCATTER_TYPE.POINT, log);
 		rsScatterBoxFreq.setRestrictions(restrictionTN);
 		rsScatterBoxFreq.setTitle(title);
 		rsScatterBoxFreq.setxLabel("exp_freq_a1");
@@ -151,11 +153,11 @@ public class ImputeChecker {
 		rsArrayList.add(rsScatterBoxINF);
 
 		String outtypeFreqOmfpce = rootR + "freqCertinfo";
-		RScatter rsScatterBoxINFd = new RScatter(	out, outtypeFreqOmfpce + "rscript",
-																							ext.rootOf(outtypeFreqOmfpce),
-																							outtypeFreqOmfpce + ".jpg", "info",
-																							new String[] {"certainty"}, "exp_freq_a1",
-																							SCATTER_TYPE.POINT, log);
+		RScatter rsScatterBoxINFd = new RScatter(out, outtypeFreqOmfpce + "rscript",
+																						 ext.rootOf(outtypeFreqOmfpce),
+																						 outtypeFreqOmfpce + ".jpg", "info",
+																						 new String[] {"certainty"}, "exp_freq_a1",
+																						 SCATTER_TYPE.POINT, log);
 		rsScatterBoxINFd.setRestrictions(restrictionTN);
 		rsScatterBoxINFd.setTitle(title);
 		rsScatterBoxINFd.setxLabel("info");
@@ -169,10 +171,10 @@ public class ImputeChecker {
 
 		String finalR = dir + "final";
 
-		RScatters rsScatters = new RScatters(	rsArrayList.toArray(new RScatter[rsArrayList.size()]),
-																					finalR + ".rscript", finalR + ".pdf",
-																					COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF,
-																					log);
+		RScatters rsScatters = new RScatters(rsArrayList.toArray(new RScatter[rsArrayList.size()]),
+																				 finalR + ".rscript", finalR + ".pdf",
+																				 COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF,
+																				 log);
 		rsScatters.execute();
 	}
 

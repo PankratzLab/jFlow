@@ -4,7 +4,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
@@ -26,14 +26,14 @@ public class Haplotypes {
 		try {
 			keys = HashVec.getKeys(hash);
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_counts.xln"));
-			writer.println("FID\tIID\t" + Array.toStr(keys));
+			writer.println("FID\tIID\t" + ArrayUtils.toStr(keys));
 			int[] counts;
 			for (int i = 0; i < data.length; i++) {
 				counts = new int[keys.length];
 				for (int j = 0; j < 2; j++) {
 					counts[ext.indexOfStr(data[i][2 + j], keys)]++;
 				}
-				writer.println(data[i][0] + "\t" + data[i][1] + "\t" + Array.toStr(counts));
+				writer.println(data[i][0] + "\t" + data[i][1] + "\t" + ArrayUtils.toStr(counts));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -44,11 +44,10 @@ public class Haplotypes {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename =
-										"D:\\umn\\Myron\\CARe\\Pathway analysis\\results\\haplo.phase-CAGCA_parsed.xln";
+		String filename = "D:\\umn\\Myron\\CARe\\Pathway analysis\\results\\haplo.phase-CAGCA_parsed.xln";
 
-		String usage = "\n"	+ "gwas.Haplotypes requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "";
+		String usage = "\n" + "gwas.Haplotypes requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

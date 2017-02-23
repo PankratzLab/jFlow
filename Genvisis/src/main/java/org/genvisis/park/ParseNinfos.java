@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -46,8 +46,8 @@ public class ParseNinfos {
 
 	public static final int[] DOB_INDICES = {7, 8, 9};
 
-	public static void parseNinfos(	String dir, String ninfo1, String ninfo2, String ninfo5,
-																	String ninfo6) throws IOException {
+	public static void parseNinfos(String dir, String ninfo1, String ninfo2, String ninfo5,
+																 String ninfo6) throws IOException {
 		Vector<String> inds;
 
 		System.out.println("Processing ninfo1...");
@@ -115,11 +115,11 @@ public class ParseNinfos {
 				temp = reader.readLine();
 				line = temp.split("\t");
 				if (line.length != header.length) {
-					if (line.length >= lastCol	&& line.length <= header.length
+					if (line.length >= lastCol && line.length <= header.length
 							&& (line[lastCol].equals("TRUE") || line[lastCol].equals("FALSE"))) {
 					} else {
-						System.err.println("Error - Expecting "	+ header.length + " columns, finding only "
-																+ line.length);
+						System.err.println("Error - Expecting " + header.length + " columns, finding only "
+															 + line.length);
 						System.err.println("      - " + temp);
 						System.exit(3);
 					}
@@ -156,14 +156,14 @@ public class ParseNinfos {
 								master[k] = line[k];
 							} else {
 								if (k < 3 && k > 6) {
-									System.err.println("Error - Unexpectedly inconsistent data for "	+ line[0] + "-"
-																			+ line[1]);
+									System.err.println("Error - Unexpectedly inconsistent data for " + line[0] + "-"
+																		 + line[1]);
 								}
 							}
 						}
 					}
 				}
-				if (phenos.contains("CONF-PD")	|| phenos.contains("CONF-DLB")
+				if (phenos.contains("CONF-PD") || phenos.contains("CONF-DLB")
 						|| phenos.contains("CONF-LB")) {
 					master[3] = "CONF_PD";
 					master[6] = "PD";
@@ -183,17 +183,17 @@ public class ParseNinfos {
 					master[3] = "NOEV";
 					master[6] = "PD";
 				} else if (phenos.contains("-") || phenos.contains("-PD")) {
-					missingPheno.add(master[0]	+ "\t" + master[1] + "\t"
-														+ Array.toStr(Array.toStringArray(dnas), "\t"));
+					missingPheno.add(master[0] + "\t" + master[1] + "\t"
+													 + ArrayUtils.toStr(ArrayUtils.toStringArray(dnas), "\t"));
 					master[3] = ".";
 					master[6] = ".";
 				} else if (phenos.contains("VPD-PD") && phenos.contains("NVPD-PD")) {
-					System.err.println("Error - "	+ master[0] + "-" + master[1]
-															+ " is listed as both VPD and NVPD");
+					System.err.println("Error - " + master[0] + "-" + master[1]
+														 + " is listed as both VPD and NVPD");
 				} else if (phenos.size() > 1) {
-					System.err.println("Error - "	+ master[0] + "-" + master[1]
-															+ " is listed as several things, none of which are PD ("
-															+ ext.listWithCommas(Array.toStringArray(phenos)) + ")");
+					System.err.println("Error - " + master[0] + "-" + master[1]
+														 + " is listed as several things, none of which are PD ("
+														 + ext.listWithCommas(ArrayUtils.toStringArray(phenos)) + ")");
 				}
 				if (dnas.size() > 1) {
 					master[4] = "";
@@ -215,8 +215,8 @@ public class ParseNinfos {
 				}
 				for (int j = 0; j < FINAL_NINFO1_INDICES.length; j++) {
 					writer_DAT.print((j == 0 ? "" : "\t")
-														+ (master[FINAL_NINFO1_INDICES[j]].equals("")	? "."
-																																					: master[FINAL_NINFO1_INDICES[j]])); // altered
+													 + (master[FINAL_NINFO1_INDICES[j]].equals("") ? "."
+																																				 : master[FINAL_NINFO1_INDICES[j]])); // altered
 					// to .
 					// out
 					// blanks
@@ -228,9 +228,9 @@ public class ParseNinfos {
 			writer_DAT.close();
 
 			if (missingPheno.size() > 0) {
-				System.err.println("There was no phenotypic information for "	+ missingPheno.size()
-														+ " individual" + (missingPheno.size() > 1 ? "s" : "")
-														+ "; see missingPhenos.xls for details.");
+				System.err.println("There was no phenotypic information for " + missingPheno.size()
+													 + " individual" + (missingPheno.size() > 1 ? "s" : "")
+													 + "; see missingPhenos.xls for details.");
 				writer = new PrintWriter(new FileWriter(trav + "_missingPhenos.xln"));
 				writer.println("FamID\tIndID\tDNAs");
 				for (int i = 0; i < missingPheno.size(); i++) {
@@ -240,9 +240,9 @@ public class ParseNinfos {
 			}
 
 			if (missingPheno.size() > 0) {
-				System.err.println("There was no DOB information for "	+ missingDOB.size() + " individual"
-														+ (missingDOB.size() > 1 ? "s" : "")
-														+ "; see missingDOBs.xls for details.");
+				System.err.println("There was no DOB information for " + missingDOB.size() + " individual"
+													 + (missingDOB.size() > 1 ? "s" : "")
+													 + "; see missingDOBs.xls for details.");
 				writer = new PrintWriter(new FileWriter(trav + "_missingDOBs.xln"));
 				writer.println("FamID\tIndID\tDNA");
 				for (int i = 0; i < missingDOB.size(); i++) {
@@ -328,18 +328,18 @@ public class ParseNinfos {
 			if (line[indices[i]].equals("")) {
 				str += "UU";
 			} else if (Integer.parseInt(line[indices[i]]) < 1
-									|| Integer.parseInt(line[indices[i]]) > (i == 0 ? 12 : 31)) {
-				System.err.println("Error - '"	+ line[indices[i]] + "' is not a valid "
-														+ (i == 0 ? "" : "day of the ") + "month to be born into (" + line[0]
-														+ "-" + line[1] + ")");
+								 || Integer.parseInt(line[indices[i]]) > (i == 0 ? 12 : 31)) {
+				System.err.println("Error - '" + line[indices[i]] + "' is not a valid "
+													 + (i == 0 ? "" : "day of the ") + "month to be born into (" + line[0]
+													 + "-" + line[1] + ")");
 				str += "UU";
 			} else {
 				try {
 					str += ext.formNum(Integer.parseInt(line[indices[i]]), 2);
 				} catch (NumberFormatException nfe) {
-					System.err.println("Error - '"	+ line[indices[i]] + "' is not a valid "
-															+ (i == 0 ? "" : "day of the ") + "month to be born into (" + line[0]
-															+ "-" + line[1] + ")");
+					System.err.println("Error - '" + line[indices[i]] + "' is not a valid "
+														 + (i == 0 ? "" : "day of the ") + "month to be born into (" + line[0]
+														 + "-" + line[1] + ")");
 					str += "UU";
 				}
 			}
@@ -349,17 +349,17 @@ public class ParseNinfos {
 			missingDOB.add(line[0] + "\t" + line[1] + "\t" + line[4]);
 			str += "UUUU";
 		} else if (line[indices[2]].length() == 4 && Integer.parseInt(line[indices[2]]) < 1900
-								|| Integer.parseInt(line[indices[2]]) > 2000) {
-			System.err.println("Error - '"	+ line[indices[2]] + "' is not a valid year to be born into ("
-													+ line[0] + "-" + line[1] + ")");
+							 || Integer.parseInt(line[indices[2]]) > 2000) {
+			System.err.println("Error - '" + line[indices[2]] + "' is not a valid year to be born into ("
+												 + line[0] + "-" + line[1] + ")");
 			str += "UUUU";
 		} else {
 			try {
 				str += Integer.parseInt(line[indices[2]]);
 			} catch (NumberFormatException nfe) {
-				System.err.println("Error - '"	+ line[indices[2]]
-														+ "' is not a valid year to be born into (" + line[0] + "-" + line[1]
-														+ ")");
+				System.err.println("Error - '" + line[indices[2]]
+													 + "' is not a valid year to be born into (" + line[0] + "-" + line[1]
+													 + ")");
 				str += "UUUU";
 			}
 		}
@@ -375,14 +375,14 @@ public class ParseNinfos {
 		String ninfo5 = "ninfo5.txt";
 		String ninfo6 = "ninfo6.txt";
 
-		String usage = "\n"	+ "park.ParseNinfos requires 0-2 arguments\n"
-										+ "   (1) the tab-delimited Nathan's-info-1 file (default: ninfo1=" + ninfo1
-										+ ")\n" + "   (2) the tab-delimited Nathan's-info-2 file (default: ninfo2="
-										+ ninfo2 + ")\n"
-										+ "   (2) the tab-delimited Cares-Nathan's Info-1 file (default: ninfo5="
-										+ ninfo5 + ")\n"
-										+ "   (2) the tab-delimited Cares-Nathan's-info-2 file (default: ninfo6="
-										+ ninfo6 + ")\n" + "";
+		String usage = "\n" + "park.ParseNinfos requires 0-2 arguments\n"
+									 + "   (1) the tab-delimited Nathan's-info-1 file (default: ninfo1=" + ninfo1
+									 + ")\n" + "   (2) the tab-delimited Nathan's-info-2 file (default: ninfo2="
+									 + ninfo2 + ")\n"
+									 + "   (2) the tab-delimited Cares-Nathan's Info-1 file (default: ninfo5="
+									 + ninfo5 + ")\n"
+									 + "   (2) the tab-delimited Cares-Nathan's-info-2 file (default: ninfo6="
+									 + ninfo6 + ")\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -423,8 +423,8 @@ public class ParseNinfos {
 			System.exit(1);
 		}
 		if (args.length == 0) {
-			System.out.println("Warning - using defaults (processing data in "	+ ninfo1 + ", " + ninfo2
-													+ ", " + ninfo5 + " and " + ninfo6 + ")");
+			System.out.println("Warning - using defaults (processing data in " + ninfo1 + ", " + ninfo2
+												 + ", " + ninfo5 + " and " + ninfo6 + ")");
 		}
 		try {
 			parseNinfos(dir, ninfo1, ninfo2, ninfo5, ninfo6);

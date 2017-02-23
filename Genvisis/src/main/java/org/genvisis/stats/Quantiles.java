@@ -3,7 +3,7 @@ package org.genvisis.stats;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Sort;
@@ -39,12 +39,12 @@ public class Quantiles {
 
 	private static double[] initQuantiles(double[] data, double[] qs, Logger log) {
 		double[] quantiles = null;
-		double[] tmp = Array.removeNaN(data);
+		double[] tmp = ArrayUtils.removeNaN(data);
 		if (tmp.length == 0) {
 			log.reportError("Found all NaN values, setting all to quantiles 0");
 			quantiles = new double[] {.5};
 		} else {
-			quantiles = Array.quantsExclusive(tmp, qs);
+			quantiles = ArrayUtils.quantsExclusive(tmp, qs);
 		}
 		return quantiles;
 
@@ -75,10 +75,10 @@ public class Quantiles {
 	}
 
 	public int[] getQuantileMembershipAsRoundedInt() {
-		int mult = quantiles.length <= 10	? 10
-																			: quantiles.length <= 100	? 100
-																																: quantiles.length <= 1000	? 1000
-																																														: 10000;
+		int mult = quantiles.length <= 10 ? 10
+																			: quantiles.length <= 100 ? 100
+																																: quantiles.length <= 1000 ? 1000
+																																													 : 10000;
 		return roundInt(quantileMembership, mult, log);
 	}
 
@@ -150,7 +150,7 @@ public class Quantiles {
 																						String[] variableTitles, Logger log) {
 		if (variableTitles != null && variableTitles.length != variableDominantMatrix.length) {
 			log.reportError("titles must be the same length as the data matrix, titles="
-													+ variableTitles.length + " vs " + variableDominantMatrix.length);
+											+ variableTitles.length + " vs " + variableDominantMatrix.length);
 			return null;
 		}
 
@@ -198,7 +198,7 @@ public class Quantiles {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 			for (int i = 0; i < memberships[0].length; i++) {// for sample,
-				writer.print(Array.toStr(toQ[i]));
+				writer.print(ArrayUtils.toStr(toQ[i]));
 				for (int[] membership : memberships) {
 					writer.print("\t" + membership[i]);
 				}
@@ -218,8 +218,8 @@ public class Quantiles {
 		// String logfile = null;
 
 		developQuantiles(filename, new int[] {1, 2}, 10, new Logger());
-		String usage = "\n"	+ "stats.Quantiles requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "";
+		String usage = "\n" + "stats.Quantiles requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

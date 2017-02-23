@@ -45,8 +45,8 @@ public class Lookup {
 		return lookupTable;
 	}
 
-	public static Hashtable<String, String> lookupDNABatch(	java.util.Collection<String> ids,
-																													Project project) {
+	public static Hashtable<String, String> lookupDNABatch(java.util.Collection<String> ids,
+																												 Project project) {
 		SampleData sd = project.getSampleData(0, false);
 		Hashtable<String, String> lookupTable = new Hashtable<String, String>();
 		for (String key : ids) {
@@ -64,8 +64,8 @@ public class Lookup {
 		return lookupTable;
 	}
 
-	public static Hashtable<String, String> lookupIDsBatch(	java.util.Collection<String> dnas,
-																													Project project) {
+	public static Hashtable<String, String> lookupIDsBatch(java.util.Collection<String> dnas,
+																												 Project project) {
 		SampleData sd = project.getSampleData(0, false);
 		Hashtable<String, String> lookupTable = new Hashtable<String, String>();
 		for (String key : dnas) {

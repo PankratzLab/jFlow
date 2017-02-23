@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
@@ -25,9 +25,9 @@ public class ExtractPlots {
 	public static final String LOOKUP_DIR = "lookup/";
 	public static final String PLOT_HEADER = "Sample\tGC Score\tTheta\tR\tX\tY\tX Raw\tY Raw\tB Allele Freq\tLog R Ratio\tAlleleCalls\tAlleleCount";
 	public static final String MARKERS_IN_INDEX_ORDER = "markersInIndexOrder.dat";
-	public static final String[] PLOT_NEEDS = {	"GC Score", "Theta", "R", "X", "Y", "X Raw", "Y Raw",
-																							"B Allele Freq", "Log R Ratio", "Allele1 - Forward",
-																							"Allele2 - Forward", "Allele1 - AB", "Allele2 - AB"};
+	public static final String[] PLOT_NEEDS = {"GC Score", "Theta", "R", "X", "Y", "X Raw", "Y Raw",
+																						 "B Allele Freq", "Log R Ratio", "Allele1 - Forward",
+																						 "Allele2 - Forward", "Allele1 - AB", "Allele2 - AB"};
 
 	public static void extractPlotsInMemoryAndIndexed(String filename) {
 		BufferedReader reader = null;
@@ -69,10 +69,10 @@ public class ExtractPlots {
 			}
 		});
 		numSamples = files.length;
-		ids = Array.stringArray(numSamples);
+		ids = ArrayUtils.stringArray(numSamples);
 
-		markerNameIndices = Array.intArray(numMarkers, -1);
-		markerLocationIndices = Array.intArray(numMarkers, -1);
+		markerNameIndices = ArrayUtils.intArray(numMarkers, -1);
+		markerLocationIndices = ArrayUtils.intArray(numMarkers, -1);
 		try {
 			reader = new BufferedReader(new FileReader(files[0]));
 			do {
@@ -91,7 +91,7 @@ public class ExtractPlots {
 			}
 			reader.close();
 
-			if (Array.min(markerNameIndices) == -1) {
+			if (ArrayUtils.min(markerNameIndices) == -1) {
 				for (int markerNameIndice : markerNameIndices) {
 					if (markerNameIndice != -1) {
 						markers.removeElementAt(markerNameIndice);
@@ -100,11 +100,11 @@ public class ExtractPlots {
 				}
 				for (int i = 0; i < markers.size(); i++) {
 					if (!markers.elementAt(i).equals("")) {
-						System.err.println("Error - marker '"	+ markers.elementAt(i)
-																+ "' was not found in the index file: " + files[0]);
+						System.err.println("Error - marker '" + markers.elementAt(i)
+															 + "' was not found in the index file: " + files[0]);
 						writer = new PrintWriter(new FileWriter("../MAJOR_PROBLEMS_WITH_INDICES!!.out", true));
-						writer.println("Error - marker '"	+ markers.elementAt(i)
-														+ "' was not found in the index file: " + files[0]);
+						writer.println("Error - marker '" + markers.elementAt(i)
+													 + "' was not found in the index file: " + files[0]);
 						writer.close();
 
 					}
@@ -120,8 +120,8 @@ public class ExtractPlots {
 			System.exit(2);
 		}
 
-		System.out.println(ext.getTime()	+ " " + ext.getDate() + " (all in memory, but indexed; "
-												+ filename + " had " + markers.size() + " markers)");
+		System.out.println(ext.getTime() + " " + ext.getDate() + " (all in memory, but indexed; "
+											 + filename + " had " + markers.size() + " markers)");
 		Date date = new Date();
 		data = new String[numSamples][numMarkers];
 		try {
@@ -148,9 +148,9 @@ public class ExtractPlots {
 						line = reader.readLine().split(",");
 						try {
 							if (!line[snpNameIndex].equals(markers.elementAt(markerNameIndices[j]))) {
-								System.err.println("Error - out of sync in file "	+ files[i].getName()
-																		+ ": expecting " + markers.elementAt(markerNameIndices[j])
-																		+ ", found " + line[snpNameIndex]);
+								System.err.println("Error - out of sync in file " + files[i].getName()
+																	 + ": expecting " + markers.elementAt(markerNameIndices[j])
+																	 + ", found " + line[snpNameIndex]);
 								System.exit(1);
 							}
 						} catch (Exception e) {
@@ -159,7 +159,7 @@ public class ExtractPlots {
 						}
 						count++;
 						if (ids[i].equals("")) {
-							ids[i] = pdgwas	? line[sampleNameIndex].substring(0,
+							ids[i] = pdgwas ? line[sampleNameIndex].substring(0,
 																																line[sampleNameIndex].indexOf("@"))
 															: line[sampleNameIndex];
 							version = 0;
@@ -168,19 +168,19 @@ public class ExtractPlots {
 							}
 							ids[i] += (version == 0 ? "" : "__" + version);
 						}
-						data[i][j] = line[indices[0]]	+ "\t" + line[indices[1]] + "\t" + line[indices[2]] + "\t"
-													+ line[indices[3]] + "\t" + line[indices[4]] + "\t" + line[indices[5]]
-													+ "\t" + line[indices[6]] + "\t" + line[indices[7]] + "\t"
-													+ line[indices[8]] + "\t" + line[indices[9]] + line[indices[10]] + "\t"
-													+ (line[indices[11]].equals("-")	? "-1"
-																														: (line[indices[12]].equals("B")	? (line[indices[11]].equals("B")	? "2"
-																																																																: "1")
-																																															: "0"));
+						data[i][j] = line[indices[0]] + "\t" + line[indices[1]] + "\t" + line[indices[2]] + "\t"
+												 + line[indices[3]] + "\t" + line[indices[4]] + "\t" + line[indices[5]]
+												 + "\t" + line[indices[6]] + "\t" + line[indices[7]] + "\t"
+												 + line[indices[8]] + "\t" + line[indices[9]] + line[indices[10]] + "\t"
+												 + (line[indices[11]].equals("-") ? "-1"
+																													: (line[indices[12]].equals("B") ? (line[indices[11]].equals("B") ? "2"
+																																																														: "1")
+																																													 : "0"));
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ files[i].getName()
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + files[i].getName()
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + files[i].getName() + "\"");
@@ -196,8 +196,8 @@ public class ExtractPlots {
 				}
 				writer.close();
 			}
-			System.out.println(ext.getTime()	+ " " + ext.getDate() + " (finished in "
-													+ ext.getTimeElapsed(date.getTime()));
+			System.out.println(ext.getTime() + " " + ext.getDate() + " (finished in "
+												 + ext.getTimeElapsed(date.getTime()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -249,8 +249,8 @@ public class ExtractPlots {
 					sampleNameIndex = ext.indexOfStr("Sample Name", line);
 
 					writer = new PrintWriter(new FileWriter(SLIM + files[i].getName()));
-					writer.println(line[sampleNameIndex]	+ "," + line[snpNameIndex] + ","
-													+ Array.toStr(PLOT_NEEDS, ","));
+					writer.println(line[sampleNameIndex] + "," + line[snpNameIndex] + ","
+												 + ArrayUtils.toStr(PLOT_NEEDS, ","));
 					while (reader.ready()) {
 						line = reader.readLine().split(",");
 						writer.print(line[sampleNameIndex] + "," + line[snpNameIndex]);
@@ -262,16 +262,16 @@ public class ExtractPlots {
 					reader.close();
 					writer.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ files[i].getName()
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + files[i].getName()
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + files[i].getName() + "\"");
 					System.exit(2);
 				}
 			}
-			System.out.println(ext.getTime()	+ " " + ext.getDate() + " (finished in "
-													+ ext.getTimeElapsed(date.getTime()));
+			System.out.println(ext.getTime() + " " + ext.getDate() + " (finished in "
+												 + ext.getTimeElapsed(date.getTime()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -286,8 +286,8 @@ public class ExtractPlots {
 		int count, numSamples;
 		long time;
 
-		markers =
-						Array.toStringArray(HashVec.loadFileToVec(MARKERS_IN_INDEX_ORDER, false, false, false));
+		markers = ArrayUtils.toStringArray(HashVec.loadFileToVec(MARKERS_IN_INDEX_ORDER, false, false,
+																														 false));
 
 		if (new File(WINDOWS_DIRECTORY).exists()) {
 			trav = WINDOWS_DIRECTORY;
@@ -309,8 +309,8 @@ public class ExtractPlots {
 		});
 		numSamples = files.length;
 
-		System.out.println(ext.getTime()	+ " " + ext.getDate() + " " + MARKERS_IN_INDEX_ORDER + " had "
-												+ markers.length + " markers)");
+		System.out.println(ext.getTime() + " " + ext.getDate() + " " + MARKERS_IN_INDEX_ORDER + " had "
+											 + markers.length + " markers)");
 		time = new Date().getTime();
 		new File("fixed/").mkdirs();
 		try {
@@ -331,15 +331,17 @@ public class ExtractPlots {
 						while (reader.ready()) {
 							line = reader.readLine().split(",", -1);
 							if (line.length == header.length) {
-								writer.println(Array.toStr(line, ","));
+								writer.println(ArrayUtils.toStr(line, ","));
 							} else if (line.length == header.length * 2 - 1) {
-								writer.println(Array.toStr(Array.subArray(line, 0, header.length - 1), ","));
+								writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, header.length - 1),
+																								","));
 								count++;
-								writer.println(Array.toStr(Array.subArray(line, 0, 3), ",")	+ ","
-																+ Array.toStr(Array.subArray(line, header.length - 1 + 3), ","));
+								writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, 3), ",") + ","
+															 + ArrayUtils.toStr(ArrayUtils.subArray(line, header.length - 1 + 3),
+																									","));
 							} else {
-								System.out.println(count	+ " Expecting either " + header.length + " or "
-																		+ (header.length * 2 - 1) + "; found: " + line.length);
+								System.out.println(count + " Expecting either " + header.length + " or "
+																	 + (header.length * 2 - 1) + "; found: " + line.length);
 							}
 							count++;
 						}
@@ -350,16 +352,16 @@ public class ExtractPlots {
 						writer.close();
 					}
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ files[i].getName()
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + files[i].getName()
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + files[i].getName() + "\"");
 					System.exit(2);
 				}
 			}
-			System.out.println(ext.getTime()	+ " " + ext.getDate() + " (finished in "
-													+ ext.getTimeElapsed(time) + ")");
+			System.out.println(ext.getTime() + " " + ext.getDate() + " (finished in "
+												 + ext.getTimeElapsed(time) + ")");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -442,16 +444,16 @@ public class ExtractPlots {
 			for (int i = 0; i < reps; i++) {
 				// writer.println("jcp gwas.ExtractPlots
 				// file="+prefix+(char)(i+97)+".txt");
-				writer.println("java -jar /home/genanal/"	+ org.genvisis.common.PSF.Java.GENVISIS
-												+ " gwas.ExtractPlots file=" + prefix + (char) (i + 97) + ".txt");
+				writer.println("java -jar /home/genanal/" + org.genvisis.common.PSF.Java.GENVISIS
+											 + " gwas.ExtractPlots file=" + prefix + (char) (i + 97) + ".txt");
 
 			}
 			writer.println("cd ..");
 			writer.close();
 
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ "../" + MARKERS_IN_INDEX_ORDER
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + "../" + MARKERS_IN_INDEX_ORDER
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + "../" + MARKERS_IN_INDEX_ORDER + "\"");
@@ -506,11 +508,11 @@ public class ExtractPlots {
 		boolean slim = false;
 		boolean batchAll = false;
 
-		String usage = "\\n"	+ "park.gwa.ExtractPlots requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n"
-										+ "   (2) fix ADNI files (i.e. -fixadni (not the default))\n"
-										+ "   (3) slim down files (i.e. -slim (not the default))\n"
-										+ "   (4) batch extraction of all (i.e. -batch (not the default))\n" + "";
+		String usage = "\\n" + "park.gwa.ExtractPlots requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n"
+									 + "   (2) fix ADNI files (i.e. -fixadni (not the default))\n"
+									 + "   (3) slim down files (i.e. -slim (not the default))\n"
+									 + "   (4) batch extraction of all (i.e. -batch (not the default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

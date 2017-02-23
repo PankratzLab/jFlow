@@ -30,9 +30,9 @@ public class genoOnIBD {
 		reader.readLine();
 		while (reader.ready()) {
 			line = reader.readLine().split("[\\s]+");
-			hash.put(line[1]	+ "\t" + line[2],
-								(Integer.valueOf(line[3]).intValue() + Integer.valueOf(line[4]).intValue() - 2)
-																	+ "");
+			hash.put(line[1] + "\t" + line[2],
+							 (Integer.valueOf(line[3]).intValue() + Integer.valueOf(line[4]).intValue() - 2)
+																				 + "");
 		}
 		reader.close();
 
@@ -56,8 +56,8 @@ public class genoOnIBD {
 			}
 			if (!trav.equals(prev)) {
 				if (founders.size() != 2 && prev != "") {
-					System.err.println("Error - there should only be sibpairs in file "	+ pre
-															+ "; problem encountered with family " + prev);
+					System.err.println("Error - there should only be sibpairs in file " + pre
+														 + "; problem encountered with family " + prev);
 					System.exit(3);
 				}
 				preIDs.put(prev, ids);
@@ -91,15 +91,15 @@ public class genoOnIBD {
 		while (reader.ready()) {
 			line = reader.readLine().split("[\\s]+");
 			if (Math.abs(Double.valueOf(line[0]).doubleValue()
-										- Double.valueOf(pos).doubleValue()) < 0.5) {
+									 - Double.valueOf(pos).doubleValue()) < 0.5) {
 				ids = preIDs.get(line[1]);
 				pair = line[2].split("-");
 				for (int i = 0; i <= 1; i++) {
 					if (Integer.valueOf(pair[i]).intValue() <= ids.size()) {
 						pair[i] = ids.elementAt(Integer.valueOf(pair[i]).intValue() - 1);
 					} else {
-						System.err.println("Error - Individual "	+ line[1] + "-" + pair[i]
-																+ " was not found in " + pre);
+						System.err.println("Error - Individual " + line[1] + "-" + pair[i]
+															 + " was not found in " + pre);
 					}
 				}
 				geno1 = hash.get(line[1] + "\t" + pair[0]);
@@ -118,11 +118,11 @@ public class genoOnIBD {
 				if (Integer.valueOf(geno1).intValue() == 2 && Integer.valueOf(geno2).intValue() == 2) {
 					temp = "2";
 				}
-				writer.print(line[1]	+ "\t" + pair[0] + "\t" + geno1 + "\t" + line[1] + "\t" + pair[1]
-											+ "\t" + geno2 + "\t" + line[3] + "\t" + line[4] + "\t" + line[5]);
-				writer.println("\t"	+ temp + "\t"
-												+ ext.formDeci(Double.valueOf(line[4]).doubleValue() / 2
-																				+ Double.valueOf(line[5]).doubleValue(), 6, true));
+				writer.print(line[1] + "\t" + pair[0] + "\t" + geno1 + "\t" + line[1] + "\t" + pair[1]
+										 + "\t" + geno2 + "\t" + line[3] + "\t" + line[4] + "\t" + line[5]);
+				writer.println("\t" + temp + "\t"
+											 + ext.formDeci(Double.valueOf(line[4]).doubleValue() / 2
+																			+ Double.valueOf(line[5]).doubleValue(), 6, true));
 			}
 		}
 
@@ -147,13 +147,13 @@ public class genoOnIBD {
 
 	public static void main(String[] args) throws IOException {
 		String mutation = "BRI3.dat", dump = "mibds02.dat", pos = "233", pre = "re_chrom02.pre";
-		String usage = "\n"	+ "park.genoOnIBD requires 3 arguments:\n"
-										+ "   (1) a chromosome#.dat-like file with genotypes of the putative mutation (i.e. mut="
-										+ mutation + " (default))\n" + "   (2) a mapmaker dumpIBD file (i.e. dump="
-										+ dump + " (default))\n" + "   (3) position to regress (i.e. pos=" + pos
-										+ " (default))\n"
-										+ "   (4) the (re)chrom##.pre file used to create the dump (i.e. pre=" + pre
-										+ " (default))\n" + "";
+		String usage = "\n" + "park.genoOnIBD requires 3 arguments:\n"
+									 + "   (1) a chromosome#.dat-like file with genotypes of the putative mutation (i.e. mut="
+									 + mutation + " (default))\n" + "   (2) a mapmaker dumpIBD file (i.e. dump="
+									 + dump + " (default))\n" + "   (3) position to regress (i.e. pos=" + pos
+									 + " (default))\n"
+									 + "   (4) the (re)chrom##.pre file used to create the dump (i.e. pre=" + pre
+									 + " (default))\n" + "";
 		int numArgs = args.length;
 
 		for (String arg : args) {
@@ -178,8 +178,8 @@ public class genoOnIBD {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		System.out.println("Regressing the counts of "	+ mutation + " on the IBD estimates of " + dump
-												+ " at position " + pos + " using the IDs from " + pre);
+		System.out.println("Regressing the counts of " + mutation + " on the IBD estimates of " + dump
+											 + " at position " + pos + " using the IDs from " + pre);
 		try {
 			new genoOnIBD(mutation, dump, pos, pre);
 		} catch (Exception e) {

@@ -2,7 +2,7 @@ package org.genvisis.stats;
 
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
@@ -31,19 +31,19 @@ public class LogisticRegression extends RegressionModel {
 	}
 
 	public LogisticRegression(int[] deps, double[][] indeps) {
-		this(Array.toDoubleArray(deps), indeps);
+		this(ArrayUtils.toDoubleArray(deps), indeps);
 	}
 
 	public LogisticRegression(int[] deps, int[][] indeps) {
-		this(Array.toDoubleArray(deps), Matrix.toDoubleArrays(indeps));
+		this(ArrayUtils.toDoubleArray(deps), Matrix.toDoubleArrays(indeps));
 	}
 
 	public LogisticRegression(int[] deps, int[][] indeps, boolean bypassDataChecks, boolean verbose) {
-		this(Array.toDoubleArray(deps), Matrix.toDoubleArrays(indeps), bypassDataChecks, verbose);
+		this(ArrayUtils.toDoubleArray(deps), Matrix.toDoubleArrays(indeps), bypassDataChecks, verbose);
 	}
 
 	public LogisticRegression(int[] deps, double[] indeps) {
-		this(Array.toDoubleArray(deps), Matrix.toMatrix(indeps), false, true);
+		this(ArrayUtils.toDoubleArray(deps), Matrix.toMatrix(indeps), false, true);
 	}
 
 	public LogisticRegression(double[] deps, double[] indeps) {
@@ -239,10 +239,10 @@ public class LogisticRegression extends RegressionModel {
 				for (int j = 0; j <= M; j++) {
 					double xij = X[ix(i, j, M + 1)];
 					Arr[ix(j, M + 1, M + 2)] = Arr[ix(j, M + 1, M + 2)]
-																			+ xij * (Y1[i] * (1 - v) + Y0[i] * (-v));
+																		 + xij * (Y1[i] * (1 - v) + Y0[i] * (-v));
 					for (int k = j; k <= M; k++) {
 						Arr[ix(j, k, M + 2)] = Arr[ix(j, k, M + 2)]
-																		+ xij * X[ix(i, k, M + 1)] * q * (Y0[i] + Y1[i]);
+																	 + xij * X[ix(i, k, M + 1)] * q * (Y0[i] + Y1[i]);
 					}
 				}
 			}
@@ -311,7 +311,7 @@ public class LogisticRegression extends RegressionModel {
 
 		computeOddsRatios();
 		for (int j = 1; j <= M; j++) {
-			output += "\t"	+ ext.formDeci(odds_ratios[j][0], 3, true) + "\t"
+			output += "\t" + ext.formDeci(odds_ratios[j][0], 3, true) + "\t"
 								+ ext.formDeci(odds_ratios[j][1], 3, true) + "\t"
 								+ ext.formDeci(odds_ratios[j][2], 3, true);
 		}
@@ -384,11 +384,11 @@ public class LogisticRegression extends RegressionModel {
 			str += "One per family was permuted " + numPermutations + " times" + eol;
 			str += "Statistics were bootstrapped " + numBootReps + " times" + eol;
 			str += "" + eol;
-			str += "Average of "	+ ext.formDeci((double) logCounts[0] / numPermutations, 2)
-							+ " cases with Y=" + offset + "" + eol;
-			str += "Average of "	+ ext.formDeci((double) logCounts[1] / numPermutations, 2)
-							+ " cases with Y=" + (offset + 1) + "" + eol;
-			str += "Number of independent observations: " + Array.unique(famIDs).length + "" + eol;
+			str += "Average of " + ext.formDeci((double) logCounts[0] / numPermutations, 2)
+						 + " cases with Y=" + offset + "" + eol;
+			str += "Average of " + ext.formDeci((double) logCounts[1] / numPermutations, 2)
+						 + " cases with Y=" + (offset + 1) + "" + eol;
+			str += "Number of independent observations: " + ArrayUtils.unique(famIDs).length + "" + eol;
 			str += "" + eol;
 		} else {
 			str += sY0 + " cases with Y=" + offset + "" + eol;
@@ -397,16 +397,16 @@ public class LogisticRegression extends RegressionModel {
 			str += "" + eol;
 			str += "-2 Log likelihood = " + ext.formDeci(logLikeNull, 3) + " (Null)" + eol;
 			str += "-2 Log likelihood = " + ext.formDeci(logLikeFinal, 3) + " (Converged)" + eol;
-			str += "ChiSquare = "	+ ext.formDeci(overall, 3) + ", df = " + overallDF + ", p = "
-							+ ext.formDeci(overallSig, 3, true) + "" + eol;
-			str += "Cox & Snell R-square = "	+ ext.formDeci(CSRsquare, 3, true)
-							+ ", Nagelkerke R-square = " + ext.formDeci(Rsquare, 4, true) + "" + eol;
+			str += "ChiSquare = " + ext.formDeci(overall, 3) + ", df = " + overallDF + ", p = "
+						 + ext.formDeci(overallSig, 3, true) + "" + eol;
+			str += "Cox & Snell R-square = " + ext.formDeci(CSRsquare, 3, true)
+						 + ", Nagelkerke R-square = " + ext.formDeci(Rsquare, 4, true) + "" + eol;
 			str += "" + eol;
 		}
 
 		str += "Coefficients:" + eol;
-		str += ext.formStr("Model", maxNameSize, true)	+ "\t   Beta\t StdErr\t   Wald\t   Sig.\t  O.R."
-						+ eol;
+		str += ext.formStr("Model", maxNameSize, true) + "\t   Beta\t StdErr\t   Wald\t   Sig.\t  O.R."
+					 + eol;
 		str += modelSummary() + "" + eol;
 
 		if (!onePer) {
@@ -430,22 +430,22 @@ public class LogisticRegression extends RegressionModel {
 
 		eol = Files.isWindows() ? "\r\n" : "\n";
 		for (int i = 1; i < betas.length; i++) {
-			str += ext.formStr(varNames[i], maxNameSize, true)	+ "\t"
-							+ ext.formStr(ext.formDeci(betas[i], sigfigs, true), 7) + "\t"
-							+ ext.formStr(ext.formDeci(SEofBs[i], sigfigs, true), 7) + "\t"
-							+ ext.formStr(ext.formDeci(stats[i], sigfigs, true), 7) + "\t" + ext.prettyP(sigs[i])
-							+ "\t=CHIDIST(" + Math.abs(stats[i]) + ",1)" + "\t  "
-							+ ext.formDeci(odds_ratios[i][0], sigfigs, true) + " ("
-							+ ext.formDeci(odds_ratios[i][1], sigfigs, true) + ", "
-							+ ext.formDeci(odds_ratios[i][2], sigfigs, true) + ")" + eol;
+			str += ext.formStr(varNames[i], maxNameSize, true) + "\t"
+						 + ext.formStr(ext.formDeci(betas[i], sigfigs, true), 7) + "\t"
+						 + ext.formStr(ext.formDeci(SEofBs[i], sigfigs, true), 7) + "\t"
+						 + ext.formStr(ext.formDeci(stats[i], sigfigs, true), 7) + "\t" + ext.prettyP(sigs[i])
+						 + "\t=CHIDIST(" + Math.abs(stats[i]) + ",1)" + "\t  "
+						 + ext.formDeci(odds_ratios[i][0], sigfigs, true) + " ("
+						 + ext.formDeci(odds_ratios[i][1], sigfigs, true) + ", "
+						 + ext.formDeci(odds_ratios[i][2], sigfigs, true) + ")" + eol;
 			// str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i],
 			// sigfigs, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], sigfigs, true),
 			// 7)+"\t"+ext.formStr((stats[i]>100?ext.formSciNot(stats[i], 1, true):ext.formDeci(stats[i],
 			// sigfigs, true)), 7)+"\t"+ext.formStr(ext.formDeci(sigs[i], sigfigs, true),
 			// 7)+"\t"+ext.prettyP(sigs[i])+"\t=CHIDIST("+Math.abs(stats[i])+",1)"+eol;
 		}
-		str += ext.formStr(varNames[0], maxNameSize, true)	+ "\t"
-						+ ext.formStr(ext.formDeci(betas[0], sigfigs, true), 7) + eol;
+		str += ext.formStr(varNames[0], maxNameSize, true) + "\t"
+					 + ext.formStr(ext.formDeci(betas[0], sigfigs, true), 7) + eol;
 
 		return str;
 	}
@@ -503,10 +503,10 @@ public class LogisticRegression extends RegressionModel {
 		eol = Files.isWindows() ? "\r\n" : "\n";
 
 		str += "\t\tcut pt\taccuracy\tspecificity\tsensitivity" + eol;
-		str += "Maxed:\t"	+ ext.formDeci(accs[0][0], 4, true) + "\t" + ext.formDeci(accs[0][1], 3)
-						+ "\t\t" + ext.formDeci(accs[0][2], 3) + "\t\t" + ext.formDeci(accs[0][3], 3) + eol;
-		str += "Cross:\t"	+ ext.formDeci(accs[1][0], 4, true) + "\t" + ext.formDeci(accs[1][1], 3)
-						+ "\t\t" + ext.formDeci(accs[1][2], 3) + "\t\t" + ext.formDeci(accs[1][3], 3) + eol;
+		str += "Maxed:\t" + ext.formDeci(accs[0][0], 4, true) + "\t" + ext.formDeci(accs[0][1], 3)
+					 + "\t\t" + ext.formDeci(accs[0][2], 3) + "\t\t" + ext.formDeci(accs[0][3], 3) + eol;
+		str += "Cross:\t" + ext.formDeci(accs[1][0], 4, true) + "\t" + ext.formDeci(accs[1][1], 3)
+					 + "\t\t" + ext.formDeci(accs[1][2], 3) + "\t\t" + ext.formDeci(accs[1][3], 3) + eol;
 
 		return str;
 	}

@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.Scanner;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -55,7 +55,7 @@ public class SkatMetaOutliers {
 					// if (line[1].equals("NA")) {
 					// System.out.println("");
 					// }
-					if (!line[1].equals("NA")	&& !line[1].equals("N/A") && !line[1].equals("Inf")
+					if (!line[1].equals("NA") && !line[1].equals("N/A") && !line[1].equals("Inf")
 							&& !line[1].equals("") && !(line[1] == null)) {
 						pvals.add(Double.parseDouble(line[1]));
 					}
@@ -91,14 +91,14 @@ public class SkatMetaOutliers {
 
 		log = new Logger();
 
-		String usage = "\n"	+ "gwas.PhenoPrep requires 0-1 arguments\n"
-										+ "   (1) name of pheno file (i.e. pheno=" + phenoFilename + " (default))\n"
-										+ "   (2) list of processing to apply to phenotype (i.e. processing="
-										+ Array.toStr(processing, ",") + " (default))\n"
-										+ "   (3) list of transformation to apply to phenotype (i.e. transform="
-										+ Array.toStr(transform, ",") + " (default))\n"
-										+ "   (4) list of regression to apply to phenotype (i.e. regression="
-										+ Array.toStr(regression, ",") + " (default))\n" + "";
+		String usage = "\n" + "gwas.PhenoPrep requires 0-1 arguments\n"
+									 + "   (1) name of pheno file (i.e. pheno=" + phenoFilename + " (default))\n"
+									 + "   (2) list of processing to apply to phenotype (i.e. processing="
+									 + ArrayUtils.toStr(processing, ",") + " (default))\n"
+									 + "   (3) list of transformation to apply to phenotype (i.e. transform="
+									 + ArrayUtils.toStr(transform, ",") + " (default))\n"
+									 + "   (4) list of regression to apply to phenotype (i.e. regression="
+									 + ArrayUtils.toStr(regression, ",") + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -138,15 +138,15 @@ public class SkatMetaOutliers {
 		// Array.removeNaN(Matrix.toDoubleArrays(HashVec.loadFileToStringMatrix(phenoFilename, true,
 		// Array.subArray(Array.intArray(header.length), 1), false)));
 		phenoTmp = Matrix.toDoubleArrays(HashVec.loadFileToStringMatrix(phenoFilename, true,
-																																		Array.subArray(	Array.arrayOfIndices(header.length),
-																																										1),
+																																		ArrayUtils.subArray(ArrayUtils.arrayOfIndices(header.length),
+																																												1),
 																																		false));
 		pheno = new double[phenoTmp.length];
 		for (int i = 0; i < pheno.length; i++) {
 			pheno[i] = phenoTmp[i][0];
 		}
-		log.report("lambda: "	+ calculateLambda(dir, ".csv", log) + "\tskewness: "
-								+ Array.skewness(pheno) + "\tkurtosis: " + Array.kurtosis(pheno));
+		log.report("lambda: " + calculateLambda(dir, ".csv", log) + "\tskewness: "
+							 + ArrayUtils.skewness(pheno) + "\tkurtosis: " + ArrayUtils.kurtosis(pheno));
 
 		// for (int i = 0; i < processing.length; i ++) {
 		// for (int j = 0; j < transform.length; j++) {

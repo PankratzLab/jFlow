@@ -11,7 +11,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.plots.ScatterPlot;
 import org.genvisis.cnv.plots.Trailer;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -37,7 +37,7 @@ public class LaunchAction extends AbstractAction {
 	private int plotHeight;
 
 	public LaunchAction(Project proj, String sample, String[] loc, Color color) {
-		super(sample + " " + Array.toStr(loc, " / "));
+		super(sample + " " + ArrayUtils.toStr(loc, " / "));
 		type = LAUNCH_TRAILER;
 		this.proj = proj;
 		jar = proj.JAR_STATUS.getValue();
@@ -48,8 +48,8 @@ public class LaunchAction extends AbstractAction {
 		plotWidth = Toolkit.getDefaultToolkit().getScreenSize().width - 30 - Trailer.DEFAULT_STARTX;
 		plotHeight = (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / loc.length;
 		for (int i = 0; i < loc.length; i++) {
-			plotStartY[i] =
-										1 + i * (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / loc.length;
+			plotStartY[i] = 1
+											+ i * (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / loc.length;
 		}
 		putValue(Action.SMALL_ICON, new ColorIcon(12, 12, color));
 	}
@@ -119,16 +119,17 @@ public class LaunchAction extends AbstractAction {
 				String[] cnvs = {};
 				for (int i = 0; i < loc.length; i++) {
 					String pos = loc[i].endsWith("p") || loc[i].endsWith("q")
-																																			? loc[i].substring(	0,
-																																												loc[i].length()
-																																														- 1)
+																																		? loc[i].substring(0,
+																																											 loc[i].length()
+																																													- 1)
 																																		: loc[i];
-					new Trailer(proj, sample, cnvs, pos, new String[][] {{sample, pos}}, plotStartX,
+					Trailer t = new Trailer(proj, sample, cnvs, pos, new String[][] {{sample, pos}}, plotStartX,
 											plotStartY[i], plotWidth, plotHeight);
+					t.setVisible(true);
 				}
 				break;
 			case LAUNCH_SCATTER:
-				ext.setClipboard(sample + "\t" + Array.toStr(loc));
+				ext.setClipboard(sample + "\t" + ArrayUtils.toStr(loc));
 				ScatterPlot.createAndShowGUI(proj, new String[] {marker}, null, false);
 				break;
 			case COPY_ID:
@@ -152,7 +153,7 @@ public class LaunchAction extends AbstractAction {
 	public boolean isEnabled() {
 		switch (type) {
 			case LAUNCH_TRAILER:
-				return Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true)	+ sample
+				return Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true) + sample
 														+ Sample.SAMPLE_FILE_EXTENSION, jar); // needs to be updated anyway
 			default:
 				return true;

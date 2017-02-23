@@ -75,21 +75,21 @@ public class Samtools {
 					index = getIndex(v.elementAt(i), samFilenamesByTrios, log);
 
 					writer = new PrintWriter(new FileWriter(xmlDir + ".bamScript"));
-					writer.println("samtools view "	+ samFilenamesByTrios[index][1] + "-b " + chr + ":"
-													+ (pos - windowInBp) + "-" + (pos + windowInBp) + " > "
-													+ samFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos + "_C");
+					writer.println("samtools view " + samFilenamesByTrios[index][1] + "-b " + chr + ":"
+												 + (pos - windowInBp) + "-" + (pos + windowInBp) + " > "
+												 + samFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos + "_C");
 					writer.close();
 
 					writer = new PrintWriter(new FileWriter(filename + ".bamScript"));
-					writer.println("samtools view "	+ samFilenamesByTrios[index][2] + "-b " + chr + ":"
-													+ (pos - windowInBp) + "-" + (pos + windowInBp) + " > "
-													+ samFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos + "_D");
+					writer.println("samtools view " + samFilenamesByTrios[index][2] + "-b " + chr + ":"
+												 + (pos - windowInBp) + "-" + (pos + windowInBp) + " > "
+												 + samFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos + "_D");
 					writer.close();
 
 					writer = new PrintWriter(new FileWriter(filename + ".bamScript"));
-					writer.println("samtools view "	+ samFilenamesByTrios[index][3] + "-b " + chr + ":"
-													+ (pos - windowInBp) + "-" + (pos + windowInBp) + " > "
-													+ samFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos + "_M");
+					writer.println("samtools view " + samFilenamesByTrios[index][3] + "-b " + chr + ":"
+												 + (pos - windowInBp) + "-" + (pos + windowInBp) + " > "
+												 + samFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos + "_M");
 					writer.close();
 
 					writer = new PrintWriter(new FileWriter(filename + ".IGV_Script"));
@@ -116,19 +116,19 @@ public class Samtools {
 		return index;
 	}
 
-	public static String getIgvXmlScript(	String miniSamDir, String chr, String pos,
-																				String[] miniSamFilenamesOfOneTrio) {
+	public static String getIgvXmlScript(String miniSamDir, String chr, String pos,
+																			 String[] miniSamFilenamesOfOneTrio) {
 		return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
-							+ "\n<Session genome=\"hg19\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"chr"
-						+ chr + ":" + pos + "\" version=\"8\">" + "\n<Resources>" + "\n<Resource path=\""
-						+ miniSamDir + miniSamFilenamesOfOneTrio[1] + "\"/>" + "\n<Resource path=\""
-						+ miniSamDir + miniSamFilenamesOfOneTrio[2] + "\"/>" + "\n<Resource path=\""
-						+ miniSamDir + miniSamFilenamesOfOneTrio[3] + "\"/>" + "\n</Resources>" + "</Session>";
+					 + "\n<Session genome=\"hg19\" hasGeneTrack=\"true\" hasSequenceTrack=\"true\" locus=\"chr"
+					 + chr + ":" + pos + "\" version=\"8\">" + "\n<Resources>" + "\n<Resource path=\""
+					 + miniSamDir + miniSamFilenamesOfOneTrio[1] + "\"/>" + "\n<Resource path=\"" + miniSamDir
+					 + miniSamFilenamesOfOneTrio[2] + "\"/>" + "\n<Resource path=\"" + miniSamDir
+					 + miniSamFilenamesOfOneTrio[3] + "\"/>" + "\n</Resources>" + "</Session>";
 	}
 
 	public static String getIgvLaunchScript(String fulPathToXml) {
 		return "java -Xmx1200m -Dproduction=true -Djava.net.preferIPv4Stack=true -Dsun.java2d.noddraw=true -jar D:/logan/DeNovos/IGV/IGV_2.3.36/igv.jar "
-						+ fulPathToXml;
+					 + fulPathToXml;
 	}
 
 	/**
@@ -159,25 +159,25 @@ public class Samtools {
 				index = getIndex(line[0], samFilenamesByTrios, log);
 
 				if (index < 0) {
-					log.reportError("Trio ID ("	+ line[0]
+					log.reportError("Trio ID (" + line[0]
 													+ ") from a phase 1 output file does not match any row of the Trio ID List file, - skipped generating some scripts for mini bam files");
 				} else {
-					writer.print("samtools view "	+ samFilenamesByTrios[index][1] + " -b chr" + line[1] + ":"
-												+ Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > "
-												+ miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_"
-												+ line[2] + "_C.bam\n" + "samtools index " + miniSamDir
-												+ samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2]
-												+ "_C.bam\n" + "samtools view " + samFilenamesByTrios[index][2] + " -b chr"
-												+ line[1] + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp)
-												+ " > " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1]
-												+ "_" + line[2] + "_D.bam\n" + "samtools index " + miniSamDir
-												+ samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2]
-												+ "_D.bam\n" + "samtools view " + samFilenamesByTrios[index][3] + " -b chr"
-												+ line[1] + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp)
-												+ " > " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1]
-												+ "_" + line[2] + "_M.bam\n" + "samtools index " + miniSamDir
-												+ samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2]
-												+ "_M.bam\n");
+					writer.print("samtools view " + samFilenamesByTrios[index][1] + " -b chr" + line[1] + ":"
+											 + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > "
+											 + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_"
+											 + line[2] + "_C.bam\n" + "samtools index " + miniSamDir
+											 + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2]
+											 + "_C.bam\n" + "samtools view " + samFilenamesByTrios[index][2] + " -b chr"
+											 + line[1] + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp)
+											 + " > " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_"
+											 + line[2] + "_D.bam\n" + "samtools index " + miniSamDir
+											 + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2]
+											 + "_D.bam\n" + "samtools view " + samFilenamesByTrios[index][3] + " -b chr"
+											 + line[1] + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp)
+											 + " > " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_"
+											 + line[2] + "_M.bam\n" + "samtools index " + miniSamDir
+											 + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2]
+											 + "_M.bam\n");
 				}
 			}
 
@@ -195,11 +195,11 @@ public class Samtools {
 	 * @param windowInBp
 	 * @param log
 	 */
-	public static void saveScriptsGeneratingMiniSamsAllGenesAtOnce(	String scriptFileName,
-																																	String miniSamDir,
-																																	Hashtable<String, Vector<String>> miniSamNeeded,
-																																	String[][] samFilenamesByTrios,
-																																	int windowInBp, Logger log) {
+	public static void saveScriptsGeneratingMiniSamsAllGenesAtOnce(String scriptFileName,
+																																 String miniSamDir,
+																																 Hashtable<String, Vector<String>> miniSamNeeded,
+																																 String[][] samFilenamesByTrios,
+																																 int windowInBp, Logger log) {
 		PrintWriter writer;
 		int index;
 		Vector<String> trioIdChrPos;
@@ -218,25 +218,25 @@ public class Samtools {
 					index = getIndex(line[0], samFilenamesByTrios, log);
 
 					if (index < 0) {
-						log.reportError("Trio ID ("	+ line[0]
+						log.reportError("Trio ID (" + line[0]
 														+ ") from a phase 1 output file does not match any row of the Trio ID List file, - skipped generating some scripts for mini bam files");
 					} else {
-						writer.print("samtools view "	+ samFilenamesByTrios[index][1] + " -b chr" + line[1]
-													+ ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > "
-													+ miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_"
-													+ line[2] + "_C.bam\n" + "samtools index " + miniSamDir
-													+ samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2]
-													+ "_C.bam\n" + "samtools view " + samFilenamesByTrios[index][2]
-													+ " -b chr" + line[1] + ":" + Math.max(0, pos - windowInBp) + "-"
-													+ (pos + windowInBp) + " > " + miniSamDir + samFilenamesByTrios[index][0]
-													+ "_chr" + line[1] + "_" + line[2] + "_D.bam\n" + "samtools index "
-													+ miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_"
-													+ line[2] + "_D.bam\n" + "samtools view " + samFilenamesByTrios[index][3]
-													+ " -b chr" + line[1] + ":" + Math.max(0, pos - windowInBp) + "-"
-													+ (pos + windowInBp) + " > " + miniSamDir + samFilenamesByTrios[index][0]
-													+ "_chr" + line[1] + "_" + line[2] + "_M.bam\n" + "samtools index "
-													+ miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_"
-													+ line[2] + "_M.bam\n");
+						writer.print("samtools view " + samFilenamesByTrios[index][1] + " -b chr" + line[1]
+												 + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > "
+												 + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_"
+												 + line[2] + "_C.bam\n" + "samtools index " + miniSamDir
+												 + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2]
+												 + "_C.bam\n" + "samtools view " + samFilenamesByTrios[index][2] + " -b chr"
+												 + line[1] + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp)
+												 + " > " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1]
+												 + "_" + line[2] + "_D.bam\n" + "samtools index " + miniSamDir
+												 + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2]
+												 + "_D.bam\n" + "samtools view " + samFilenamesByTrios[index][3] + " -b chr"
+												 + line[1] + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp)
+												 + " > " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1]
+												 + "_" + line[2] + "_M.bam\n" + "samtools index " + miniSamDir
+												 + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2]
+												 + "_M.bam\n");
 					}
 				}
 			}
@@ -246,10 +246,10 @@ public class Samtools {
 		}
 	}
 
-	public static void saveScriptsLaunchingIgv(	String igvScriptDir, String miniSamDir,
-																							Vector<String> trioIdChrPos,
-																							String[][] samFilenamesByTrios, int windowInBp,
-																							Logger log) {
+	public static void saveScriptsLaunchingIgv(String igvScriptDir, String miniSamDir,
+																						 Vector<String> trioIdChrPos,
+																						 String[][] samFilenamesByTrios, int windowInBp,
+																						 Logger log) {
 		int index;
 		String[] line;
 
@@ -258,22 +258,23 @@ public class Samtools {
 			index = getIndex(line[0], samFilenamesByTrios, log);
 
 			if (index < 0) {
-				log.reportError("Trio ID ("	+ line[0]
+				log.reportError("Trio ID (" + line[0]
 												+ ") from a phase 1 output file does not match any row of the Trio ID List file, - skipped generating some scripts for mini bam files");
 			} else {
 				if (!new File(igvScriptDir + line[0] + "_" + line[1] + "_" + line[2] + ".xml").exists()) {
 					Files.write(getIgvXmlScript(miniSamDir, line[1], line[2],
 																			new String[] {line[0],
-																										samFilenamesByTrios[index][0]	+ "_chr"
-																															+ line[1] + "_" + line[2] + "_C.bam",
-																										samFilenamesByTrios[index][0]										+ "_chr" + line[1] + "_"
-																																																		+ line[2]
-																																																		+ "_D.bam",
-																										samFilenamesByTrios[index][0]																+ "_chr" + line[1] + "_" + line[2]
-																																																								+ "_M.bam"}),
+																										samFilenamesByTrios[index][0] + "_chr" + line[1]
+																														 + "_" + line[2]
+																														 + "_C.bam",
+																										samFilenamesByTrios[index][0] + "_chr" + line[1]
+																																				 + "_" + line[2] + "_D.bam",
+																										samFilenamesByTrios[index][0] + "_chr" + line[1] + "_"
+																																																		 + line[2]
+																																																		 + "_M.bam"}),
 											igvScriptDir + line[0] + "_chr" + line[1] + "_" + line[2] + ".xml");
-					Files.write(getIgvLaunchScript(igvScriptDir	+ line[0] + "_chr" + line[1] + "_" + line[2]
-																					+ ".xml"),
+					Files.write(getIgvLaunchScript(igvScriptDir + line[0] + "_chr" + line[1] + "_" + line[2]
+																				 + ".xml"),
 											igvScriptDir + line[0] + "_chr" + line[1] + "_" + line[2] + ".bat");
 				}
 			}
@@ -298,16 +299,16 @@ public class Samtools {
 				line1 = filenames[i].split("_");
 				for (int j = 0; j < filenames.length; j++) {
 					line2 = filenames[j].split("_");
-					if (!isVisited[j]	&& j != i && line2[0].equals(line1[0]) && line2[1].equals(line1[1])
+					if (!isVisited[j] && j != i && line2[0].equals(line1[0]) && line2[1].equals(line1[1])
 							&& line2[2].equals(line1[2])) {
 						isVisited[j] = true;
 						currentTrio.add(filenames[j]);
 					}
 				}
 				if (currentTrio.size() == 3) {
-					result.add(line1[0]	+ "\t" + line1[1].substring(line1[1].indexOf("chr") + 3) + "\t"
-											+ line1[2]);
-					if (!new File(miniSamDir	+ line1[0] + "_" + line1[1] + "_" + line1[2]
+					result.add(line1[0] + "\t" + line1[1].substring(line1[1].indexOf("chr") + 3) + "\t"
+										 + line1[2]);
+					if (!new File(miniSamDir + line1[0] + "_" + line1[1] + "_" + line1[2]
 												+ ".xml").exists()) {
 						Files.write(getIgvXmlScript(miniSamDir, line1[1], line1[2],
 																				new String[] {line1[0], currentTrio.elementAt(0),
@@ -331,8 +332,8 @@ public class Samtools {
 		String logfile = null;
 		Logger log;
 
-		String usage = "\n"	+ "bioinformatics.Samtools requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "bioinformatics.Samtools requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -357,8 +358,8 @@ public class Samtools {
 		}
 		try {
 			log = new Logger(logfile);
-			extractRegions(	filename, fullPathToSuperNovoPhase2Output, fullPathToTrioNameList, windowInBp,
-											log);
+			extractRegions(filename, fullPathToSuperNovoPhase2Output, fullPathToTrioNameList, windowInBp,
+										 log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

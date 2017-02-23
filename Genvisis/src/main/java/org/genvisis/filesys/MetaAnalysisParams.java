@@ -7,7 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
@@ -15,11 +15,11 @@ import org.genvisis.common.ext;
 
 public class MetaAnalysisParams {
 	public static final String DEFAULT_PARAMETERS = "filesys/default_meta_anlaysis.params";
-	public static final String[] KEY_PARAMETERS = {	"STUDIES", "PHENOTYPES", "RACES", "METHODS",
-																									"GROUP_ANNOTATION_PARAMS"};
-	public static final String[] KEY_PROPERTIES = {	"SNP_INFO_FILE=", "VARIANT_NAME=", "CHROM_NAME=",
-																									"GENE_NAME=", "FUNCTIONAL=", "R_EXEC=",
-																									"RUN_BY_CHR="};
+	public static final String[] KEY_PARAMETERS = {"STUDIES", "PHENOTYPES", "RACES", "METHODS",
+																								 "GROUP_ANNOTATION_PARAMS"};
+	public static final String[] KEY_PROPERTIES = {"SNP_INFO_FILE=", "VARIANT_NAME=", "CHROM_NAME=",
+																								 "GENE_NAME=", "FUNCTIONAL=", "R_EXEC=",
+																								 "RUN_BY_CHR="};
 
 	private String[] studies;
 	private String[] studyGroupings;
@@ -48,14 +48,14 @@ public class MetaAnalysisParams {
 		runByChr = true;
 
 		if (!Files.exists(filename)) {
-			log.report("File '"	+ filename
-									+ "' does not exist; if you create an empty text file with this same filename, then it will be filled with example parameters and instructions");
+			log.report("File '" + filename
+								 + "' does not exist; if you create an empty text file with this same filename, then it will be filled with example parameters and instructions");
 			System.exit(1);
 		}
 
 		if (new File(filename).length() == 0) {
-			log.report("File '"	+ filename
-									+ "' is being populated with example parameters and instructions; tailor to your datasets and then re-run");
+			log.report("File '" + filename
+								 + "' is being populated with example parameters and instructions; tailor to your datasets and then re-run");
 			Files.copyFileFromJar(DEFAULT_PARAMETERS, filename);
 			System.exit(1);
 		}
@@ -95,15 +95,15 @@ public class MetaAnalysisParams {
 								log.reportError("Found: " + v.elementAt(i));
 								problem = true;
 							} else if (methods[i].length == 3) {
-								log.reportError("Warning - no 4th token for method "	+ methods[i][0]
+								log.reportError("Warning - no 4th token for method " + methods[i][0]
 																+ "; all markers will be included in the analysis");
 							} else if (!ext.isValidDouble(methods[i][3])
-													&& !methods[i][2].equals("singlesnpMeta")) {
+												 && !methods[i][2].equals("singlesnpMeta")) {
 								log.reportError("Warning - no discernable MAF threshold token for method "
-																	+ methods[i][0] + " since '" + methods[i][3]
+																+ methods[i][0] + " since '" + methods[i][3]
 																+ "' is referring to something else; all markers will be included in the analysis");
 							} else if (ext.isValidDouble(methods[i][3])
-													&& methods[i][2].equals("singlesnpMeta")) {
+												 && methods[i][2].equals("singlesnpMeta")) {
 								log.reportError("Error - MAF threshold token cannot be used for singlesnpMeta (as was done for '"
 																+ methods[i][0] + "')");
 								problem = true;
@@ -114,16 +114,15 @@ public class MetaAnalysisParams {
 						for (String[] groupAnnotationParam : groupAnnotationParams) {
 							if (groupAnnotationParam.length != 2) {
 								log.reportError("Error - additional group annotation params must have exactly 2 tokens: a method grouping and a space separated GenParser parameter set");
-								log.reportError("Found: " + Array.toStr(groupAnnotationParam));
+								log.reportError("Found: " + ArrayUtils.toStr(groupAnnotationParam));
 								problem = true;
 							}
 						}
 					}
 				} else if (ext.indexOfStartsWith(trav, KEY_PROPERTIES, true) >= 0) {
 					if (trav.startsWith("SNP_INFO_FILE=")) {
-						snpInfoFilename =
-														ext.parseStringArg(	trav,
-																								"default_snp_info_file_that_probably_does_not_exist.RData");
+						snpInfoFilename = ext.parseStringArg(trav,
+																								 "default_snp_info_file_that_probably_does_not_exist.RData");
 					} else if (trav.startsWith("VARIANT_NAME=")) {
 						variantName = ext.parseStringArg(trav, "Name");
 					} else if (trav.startsWith("CHROM_NAME=")) {
@@ -137,7 +136,7 @@ public class MetaAnalysisParams {
 					} else if (trav.startsWith("RUN_BY_CHR=")) {
 						runByChr = ext.parseBooleanArg(trav);
 					} else {
-						log.reportError("Error - property '"	+ trav
+						log.reportError("Error - property '" + trav
 														+ "' was defined in MetaAnalysisParams.KEY_PROPERTIES but is not yet mapped to a variable name");
 						problem = true;
 					}
@@ -200,7 +199,7 @@ public class MetaAnalysisParams {
 				} while (trav.equals("") || trav.startsWith("#"));
 
 				return ext.indexOfStr(trav, KEY_PARAMETERS) == -1
-								&& ext.indexOfStartsWith(trav, KEY_PROPERTIES, true) == -1;
+							 && ext.indexOfStartsWith(trav, KEY_PROPERTIES, true) == -1;
 			} else {
 				return false;
 			}
@@ -287,7 +286,7 @@ public class MetaAnalysisParams {
 		groups = new String[] {};
 		for (String[] method : methods) {
 			if (ext.indexOfStr(method[1], groups) == -1) {
-				groups = Array.addStrToArray(method[1], groups);
+				groups = ArrayUtils.addStrToArray(method[1], groups);
 			}
 		}
 

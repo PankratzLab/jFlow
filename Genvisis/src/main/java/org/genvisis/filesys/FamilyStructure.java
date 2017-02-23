@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
@@ -63,8 +63,8 @@ public class FamilyStructure {
 		this(ids, genders, affections, dnas, new String[ids.length], new Logger());
 	}
 
-	public FamilyStructure(	String[][] ids, byte[] genders, byte[] affections, String[] dnas,
-													String[] mzTwinIds, Logger log) {
+	public FamilyStructure(String[][] ids, byte[] genders, byte[] affections, String[] dnas,
+												 String[] mzTwinIds, Logger log) {
 		this.ids = ids;
 		this.genders = genders;
 		this.affections = affections;
@@ -83,8 +83,8 @@ public class FamilyStructure {
 
 	public FamilyStructure(String filename, boolean loadDNAs, Logger log) {
 
-		String[][] pedCols = Matrix.transpose(HashVec.loadFileToStringMatrix(	filename, false, null,
-																																					false));
+		String[][] pedCols = Matrix.transpose(HashVec.loadFileToStringMatrix(filename, false, null,
+																																				 false));
 		if (pedCols == null) {
 			return;
 		}
@@ -101,9 +101,9 @@ public class FamilyStructure {
 		mzTwinIds = new String[count];
 		for (int i = 0; i < count; i++) {
 			ids[i] = new String[] {fids[i], iids[i], fas[i], mos[i]};
-			genders[i] = ext.isMissingValue(pedCols[4][i])	? FamilyStructure.MISSING_VALUE_BYTE
-																											: Byte.parseByte(pedCols[4][i]);
-			affections[i] = ext.isMissingValue(pedCols[5][i])	? FamilyStructure.MISSING_VALUE_BYTE
+			genders[i] = ext.isMissingValue(pedCols[4][i]) ? FamilyStructure.MISSING_VALUE_BYTE
+																										 : Byte.parseByte(pedCols[4][i]);
+			affections[i] = ext.isMissingValue(pedCols[5][i]) ? FamilyStructure.MISSING_VALUE_BYTE
 																												: Byte.parseByte(pedCols[5][i]);
 
 			if (pedCols.length > 7) {
@@ -128,12 +128,15 @@ public class FamilyStructure {
 		return cached_fidiidToIndexMap;
 	}
 
-	private void buildfidiidToIndexMap() {
-		cached_fidiidToIndexMap = new HashMap<String, Integer>();
-		for (int i = 0; i < ids.length; i++) {
-			if (cached_fidiidToIndexMap.put(fids[i] + "\t" + iids[i], i) != null) {
-				System.err.println("Warning - Pedigree contains non-unique FID/IID combinations!");
+	private synchronized void buildfidiidToIndexMap() {
+		if (cached_fidiidToIndexMap == null) {
+			HashMap<String, Integer> fidiidMap = new HashMap<String, Integer>();
+			for (int i = 0; i < ids.length; i++) {
+				if (fidiidMap.put(fids[i] + "\t" + iids[i], i) != null) {
+					System.err.println("Warning - Pedigree contains non-unique FID/IID combinations!");
+				}
 			}
+			cached_fidiidToIndexMap = fidiidMap;
 		}
 	}
 
@@ -154,12 +157,12 @@ public class FamilyStructure {
 	}
 
 	public int getIndexOfFaInIDs(int indivIndex) {
-		return MISSING_ID_STR.equals(fas[indivIndex])	? -1
+		return MISSING_ID_STR.equals(fas[indivIndex]) ? -1
 																									: getIndIndex(fids[indivIndex], fas[indivIndex]);
 	}
 
 	public int getIndexOfMoInIDs(int indivIndex) {
-		return MISSING_ID_STR.equals(mos[indivIndex])	? -1
+		return MISSING_ID_STR.equals(mos[indivIndex]) ? -1
 																									: getIndIndex(fids[indivIndex], mos[indivIndex]);
 	}
 
@@ -196,8 +199,8 @@ public class FamilyStructure {
 	}
 
 	public String getIndividualHeader(int index, boolean displayDNA) {
-		return Array.toStr(ids[index])	+ "\t" + genders[index] + "\t" + affections[index]
-						+ (displayDNA && dnas != null ? "\t" + dnas[index] : "");
+		return ArrayUtils.toStr(ids[index]) + "\t" + genders[index] + "\t" + affections[index]
+					 + (displayDNA && dnas != null ? "\t" + dnas[index] : "");
 	}
 
 	public void writeToFile(String filename, boolean displayDNA) {
@@ -215,7 +218,7 @@ public class FamilyStructure {
 	}
 
 	public static boolean likelyPedHeader(String[] line) {
-		return Array.countIf(	ext.indexFactors(TYPICAL_HEADERS, line, false, true, false, false),
-													-1) < 3;
+		return ArrayUtils.countIf(ext.indexFactors(TYPICAL_HEADERS, line, false, true, false, false),
+															-1) < 3;
 	}
 }

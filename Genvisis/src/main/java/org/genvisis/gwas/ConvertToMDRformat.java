@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 
 public class ConvertToMDRformat {
@@ -36,12 +36,12 @@ public class ConvertToMDRformat {
 		try {
 			reader = new BufferedReader(new FileReader(dir + prefix + ".ped"));
 			writer = new PrintWriter(new FileWriter(dir + prefix + ".mdr"));
-			writer.println(Array.toStr(markers) + "\tClass");
+			writer.println(ArrayUtils.toStr(markers) + "\tClass");
 			while (reader.ready()) {
 				line = reader.readLine().split("[\\s]+");
 				if (!line[5].equals("0")) {
 					for (int i = 0; i < markers.size(); i++) {
-						if (line[6 + i * 2 + 0].equals("0")	|| line[6 + i * 2 + 0].equals(".")
+						if (line[6 + i * 2 + 0].equals("0") || line[6 + i * 2 + 0].equals(".")
 								|| line[6 + i * 2 + 1].equals("0") || line[6 + i * 2 + 1].equals(".")) {
 							writer.print(".\t");
 						} else {
@@ -61,8 +61,8 @@ public class ConvertToMDRformat {
 			reader.close();
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ dir + prefix + ".ped"
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + dir + prefix + ".ped"
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + dir + prefix + ".ped" + "\"");
@@ -76,9 +76,8 @@ public class ConvertToMDRformat {
 		String dir = DEFAULT_DIR;
 		String prefix = DEFAULT_FILES;
 
-		String usage = "\\n"	+ "park.gwa.ConvertToMDRformat requires 0-1 arguments\n"
-										+ "   (1) prefix of ped/map files (i.e. prefix=" + prefix + " (default))\n"
-										+ "";
+		String usage = "\\n" + "park.gwa.ConvertToMDRformat requires 0-1 arguments\n"
+									 + "   (1) prefix of ped/map files (i.e. prefix=" + prefix + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

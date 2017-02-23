@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 import org.genvisis.link.LinkageMap;
 
@@ -23,8 +23,8 @@ public class Mlink {
 	// public static final double[] DEFAULT_MODEL = {0.0, 1.0, 1.0};
 	public static final int MAX_MARKERS = 49;
 
-	public static final String[] THETAS = {	" 0.000", " 0.010", " 0.050", " 0.100", " 0.200", " 0.300",
-																					" 0.400"};
+	public static final String[] THETAS = {" 0.000", " 0.010", " 0.050", " 0.100", " 0.200", " 0.300",
+																				 " 0.400"};
 
 	public static final boolean DEFAULT_PED = true;
 
@@ -42,8 +42,8 @@ public class Mlink {
 		} else {
 			models = LinkageMap.parseModels(filename);
 			for (int i = 0; i < models.length; i++) {
-				doChrome(	chr, models[i][0], new double[] {models[i][1], models[i][2], models[i][3]},
-									pedformat, i + 1);
+				doChrome(chr, models[i][0], new double[] {models[i][1], models[i][2], models[i][3]},
+								 pedformat, i + 1);
 			}
 		}
 	}
@@ -78,8 +78,8 @@ public class Mlink {
 				Runtime.getRuntime().exec("be batch").waitFor();
 				System.out.println("Running chromosome " + chr);
 				System.out.println("(if this runs for what seems like forever, check that there are no Mendelian errors: pedcheck  -p "
-															+ "re_chrom" + chrome + ".pre" + " -d " + "map" + chrome + ".dat"
-														+ " -o error.out  -4)");
+													 + "re_chrom" + chrome + ".pre" + " -d " + "map" + chrome + ".dat"
+													 + " -o error.out  -4)");
 				Runtime.getRuntime().exec("./batch >> batch.log").waitFor();
 				parseStreams(markerNames, map.getCumulativePositions(false), chr, dir);
 			} catch (InterruptedException ie) {
@@ -111,11 +111,10 @@ public class Mlink {
 
 		try {
 			for (int i = 0; i < numFiles; i++) {
-				reader = new BufferedReader(new FileReader(dir	+ "stream" + chrome + "-" + (i + 1)
-																										+ ".out"));
-				for (int j = 0; j < (i == numFiles - 1	? (markerNames.length
-																										- (numFiles - 1) * MAX_MARKERS)
-																								: MAX_MARKERS); j++) {
+				reader = new BufferedReader(new FileReader(dir + "stream" + chrome + "-" + (i + 1)
+																									 + ".out"));
+				for (int j = 0; j < (i == numFiles - 1 ? (markerNames.length - (numFiles - 1) * MAX_MARKERS)
+																							 : MAX_MARKERS); j++) {
 					for (int k = 0; k < 53; k++) {
 						temp = reader.readLine();
 						if ((k == 2 || k == 39) && !temp.equals("MLINK")) {
@@ -125,8 +124,8 @@ public class Mlink {
 					for (int k = 0; k < THETAS.length; k++) {
 						temp = reader.readLine();
 						if (!temp.equals(THETAS[k])) {
-							System.err.println("Error - change in file format, expecting theta of '"	+ THETAS[k]
-																	+ "', found '" + temp + "'");
+							System.err.println("Error - change in file format, expecting theta of '" + THETAS[k]
+																 + "', found '" + temp + "'");
 						}
 						reader.readLine();
 						reader.readLine();
@@ -138,13 +137,13 @@ public class Mlink {
 			}
 
 			writer = new PrintWriter(new FileWriter("chrom" + chrome + ".xls"));
-			writer.println("Chr.\tpos\tMarker\t" + Array.toStr(THETAS) + "\tThetaMax");
+			writer.println("Chr.\tpos\tMarker\t" + ArrayUtils.toStr(THETAS) + "\tThetaMax");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.print(chr + "\t" + cumulative_cM_positions[i] + "\t" + markerNames[i]);
 				for (int j = 0; j < THETAS.length; j++) {
 					writer.print("\t" + ext.formDeci(lods[i][j], 2));
 				}
-				writer.println("\t" + Array.max(lods[i]));
+				writer.println("\t" + ArrayUtils.max(lods[i]));
 
 			}
 
@@ -180,23 +179,23 @@ public class Mlink {
 			numFiles = (int) (Math.ceil(numMarkers / (double) MAX_MARKERS));
 			writers = new PrintWriter[numFiles];
 			for (int i = 0; i < numFiles; i++) {
-				writers[i] = new PrintWriter(new FileWriter(destination	+ "map" + chrome + "-" + (i + 1)
+				writers[i] = new PrintWriter(new FileWriter(destination + "map" + chrome + "-" + (i + 1)
 																										+ ".dat"));
-				line[0] = i == numFiles - 1	? "" + (numMarkers - (numFiles - 1) * MAX_MARKERS + 1)
+				line[0] = i == numFiles - 1 ? "" + (numMarkers - (numFiles - 1) * MAX_MARKERS + 1)
 																		: "" + (MAX_MARKERS + 1);
-				writers[i].println(Array.toStr(line, " "));
+				writers[i].println(ArrayUtils.toStr(line, " "));
 			}
 			ext.writeToAll(reader.readLine(), writers);
 			reader.readLine();
 			for (int i = 0; i < numFiles - 1; i++) {
-				writers[i].println(Array.toStr(Array.stringArraySequence(MAX_MARKERS + 1, ""), " "));
+				writers[i].println(ArrayUtils.toStr(ArrayUtils.stringArraySequence(MAX_MARKERS + 1, ""),
+																						" "));
 			}
-			writers[numFiles - 1].println(Array.toStr(
-																								Array.stringArraySequence(numMarkers
-																																						- (numFiles - 1)
-																																						* MAX_MARKERS
-																																					+ 1, ""),
-																								" "));
+			writers[numFiles - 1].println(ArrayUtils.toStr(ArrayUtils.stringArraySequence(numMarkers
+																																										- (numFiles - 1)
+																																											* MAX_MARKERS
+																																										+ 1, ""),
+																										 " "));
 			for (int i = 0; i < (chr == 23 ? 5 : 4); i++) {
 				ext.writeToAll(reader.readLine(), writers);
 			}
@@ -214,8 +213,8 @@ public class Mlink {
 					writers[(int) Math.floor(i / MAX_MARKERS)].print(" " + line[i]);
 				}
 			}
-			ext.writeToAll(" "	+ line[line.length - 3] + " " + line[line.length - 2] + " "
-											+ line[line.length - 1], writers);
+			ext.writeToAll(" " + line[line.length - 3] + " " + line[line.length - 2] + " "
+										 + line[line.length - 1], writers);
 			ext.writeToAll(reader.readLine(), writers);
 
 			for (int i = 0; i < numFiles; i++) {
@@ -224,22 +223,22 @@ public class Mlink {
 			reader.close();
 
 			if (!new File("re_chrom" + chrome + ".pre").exists()) {
-				System.err.println("Error - failed to find "	+ "re_chrom" + chrome + ".pre"
-														+ " for processing");
+				System.err.println("Error - failed to find " + "re_chrom" + chrome + ".pre"
+													 + " for processing");
 				System.exit(1);
 			}
 			reader = new BufferedReader(new FileReader("re_chrom" + chrome + ".pre"));
 			for (int i = 0; i < numFiles; i++) {
-				writers[i] = new PrintWriter(new FileWriter(destination	+ "chrom" + chrome + "-" + (i + 1)
+				writers[i] = new PrintWriter(new FileWriter(destination + "chrom" + chrome + "-" + (i + 1)
 																										+ (pedformat ? ".ped" : ".pre")));
 			}
 			if (pedformat) {
-				pedStruct2 = procPedStruct(	new File("re_chrom" + chrome + ".ped").exists()
-																																											? "re_chrom"
-																																												+ chrome
-																																											+ ".ped"
-																																										: searchForPedStruct(),
-																		true);
+				pedStruct2 = procPedStruct(new File("re_chrom" + chrome + ".ped").exists()
+																																									 ? "re_chrom"
+																																										 + chrome
+																																										 + ".ped"
+																																									 : searchForPedStruct(),
+																	 true);
 			} else {
 				pedStruct2 = procPedStruct("re_chrom" + chrome + ".pre", false);
 			}
@@ -247,16 +246,16 @@ public class Mlink {
 				line = reader.readLine().split("[\\s]+");
 				temp = pedStruct2.get(line[0] + "\t" + line[1]);
 				if (temp == null) {
-					System.err.println("Error - .ped file is out of sync with "	+ "re_chrom" + chrome
-															+ ".pre (could not find individual " + line[0] + "-" + line[1] + ")");
+					System.err.println("Error - .ped file is out of sync with " + "re_chrom" + chrome
+														 + ".pre (could not find individual " + line[0] + "-" + line[1] + ")");
 					System.exit(1);
 				}
 				pedinfo = temp.trim().split("[\\s]+");
 				trav = pedinfo[0] + "\t" + pedinfo[pedformat ? 7 : 4];
 				if (!trav.equals(line[0] + "\t" + line[4])) {
-					System.err.println("Error - .ped file does not match "	+ "re_chrom" + chrome + ".pre"
-															+ " (found '" + line[0] + "/" + line[4] + "', expecting '"
-															+ trav.replace('\t', '/') + "'); aborting");
+					System.err.println("Error - .ped file does not match " + "re_chrom" + chrome + ".pre"
+														 + " (found '" + line[0] + "/" + line[4] + "', expecting '"
+														 + trav.replace('\t', '/') + "'); aborting");
 					System.err.println("        This has happened before when makeped reorders the individuals, but we made an automatic lookup table, so they must not matchup");
 					System.exit(1);
 				}
@@ -264,8 +263,8 @@ public class Mlink {
 					writers[j].print(temp);
 				}
 				for (int j = 0; j < numMarkers; j++) {
-					writers[(int) Math.floor(j / MAX_MARKERS)].print("\t"	+ line[6 + j * 2 + 0] + "\t"
-																														+ line[6 + j * 2 + 1]);
+					writers[(int) Math.floor(j / MAX_MARKERS)].print("\t" + line[6 + j * 2 + 0] + "\t"
+																													 + line[6 + j * 2 + 1]);
 				}
 				ext.writeToAll(pedformat ? "'  Ped: " + line[0] + "  Per: " + line[1] : "", writers);
 			}
@@ -276,7 +275,7 @@ public class Mlink {
 
 			if (pedformat) {
 				for (int i = 0; i < numFiles; i++) {
-					pedinXX(destination	+ "pedin" + chrome + "-" + (i + 1),
+					pedinXX(destination + "pedin" + chrome + "-" + (i + 1),
 									i == numFiles - 1 ? (numMarkers - (numFiles - 1) * MAX_MARKERS) : MAX_MARKERS,
 									"chrom" + chrome + "-" + (i + 1) + ".ped",
 									"map" + chrome + "-" + (i + 1) + ".dat",
@@ -335,8 +334,8 @@ public class Mlink {
 					}
 					count++;
 				}
-				hash.put(line[line.length - 3]	+ "\t" + line[line.length - 1],
-									temp.substring(0, count - 1));
+				hash.put(line[line.length - 3] + "\t" + line[line.length - 1],
+								 temp.substring(0, count - 1));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
@@ -350,8 +349,8 @@ public class Mlink {
 		return hash;
 	}
 
-	public static void pedinXX(	String batchfile, int numMarkers, String pedfile, String mapfile,
-															String finalfile, String streamfile) {
+	public static void pedinXX(String batchfile, int numMarkers, String pedfile, String mapfile,
+														 String finalfile, String streamfile) {
 		PrintWriter writer = null;
 
 		try {
@@ -463,18 +462,18 @@ public class Mlink {
 		String filename = null;
 		boolean pedformat = DEFAULT_PED;
 
-		String usage = "\n"	+ "park.mlink requires 0-4 arguments\n"
-										+ "   (1) chromosome start number (i.e. start=" + start + " (default))\n"
-										+ "   (2) chromosome stop number (i.e. stop=" + stop + " (default))\n"
-										+ " OR simply a single chromosome number\n"
-										+ "   (1) chromosome number (i.e. 2)\n" + " PLUS\n"
-										+ "   (3) filename of models (i.e. file=models.dat (default is a dominant model)\n"
-										+ "   (4) use PED format (i.e. ped=" + pedformat
-										+ " (default, required to run mlink)\n" + "\n" + "\n"
-										+ "   NOTE #1: you'll need both a .pre and .ped, as makped truncates after around 50 markers worth of data\n"
-										+ "   NOTE #2: makeped often reorders individuals, but thankfully you created a lookup function to address this\n"
-										+ "   NOTE #3: makeped treats the last line differently than the rest so you'll have to mannually delete the newline character until you come up with a work around\n"
-										+ "";
+		String usage = "\n" + "park.mlink requires 0-4 arguments\n"
+									 + "   (1) chromosome start number (i.e. start=" + start + " (default))\n"
+									 + "   (2) chromosome stop number (i.e. stop=" + stop + " (default))\n"
+									 + " OR simply a single chromosome number\n"
+									 + "   (1) chromosome number (i.e. 2)\n" + " PLUS\n"
+									 + "   (3) filename of models (i.e. file=models.dat (default is a dominant model)\n"
+									 + "   (4) use PED format (i.e. ped=" + pedformat
+									 + " (default, required to run mlink)\n" + "\n" + "\n"
+									 + "   NOTE #1: you'll need both a .pre and .ped, as makped truncates after around 50 markers worth of data\n"
+									 + "   NOTE #2: makeped often reorders individuals, but thankfully you created a lookup function to address this\n"
+									 + "   NOTE #3: makeped treats the last line differently than the rest so you'll have to mannually delete the newline character until you come up with a work around\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -502,8 +501,8 @@ public class Mlink {
 					}
 					numArgs--;
 				} else {
-					System.err.println("Error - tried to specify more than one flagless option ("	+ chr
-															+ " and " + arg + ")");
+					System.err.println("Error - tried to specify more than one flagless option (" + chr
+														 + " and " + arg + ")");
 				}
 			}
 		}

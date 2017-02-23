@@ -15,7 +15,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.AlleleFreq;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -39,11 +39,10 @@ import com.google.common.primitives.Ints;
 
 public class comp {
 	public static String DEFAULT_TRAIT = "AOO";
-	public static String[][] DEFAULT_ID_NAMES = {	{"UniqueID", "UID"}, {"FID", "FamID"},
-																								{"IID", "IndID"}};
+	public static String[][] DEFAULT_ID_NAMES = {{"UniqueID", "UID"}, {"FID", "FamID"},
+																							 {"IID", "IndID"}};
 	public static String DEFAULT_INPUT = "linear.ctl";
-	public static String DEFAULT_DB =
-																	"\"C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\crf_db.dat\"";
+	public static String DEFAULT_DB = "\"C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\crf_db.dat\"";
 	public static String[] DEFAULT_USE = {"BirthDate", "AgeAtOnset", "AgeAtExam", "Duration", "AOO",
 																				"DurationFromAOO", "EarlyOnset45", "EarlyOnset50",
 																				"EarlyOnset60", "VPD", "CONF_PD", "Male", "Caucasian",
@@ -91,7 +90,7 @@ public class comp {
 		PrintWriter writer = new PrintWriter(new FileWriter(DEFAULT_INPUT));
 		writer.println(DEFAULT_DB);
 		writer.println(DEFAULT_TRAIT);
-		writer.println(Array.toStr(DEFAULT_USE));
+		writer.println(ArrayUtils.toStr(DEFAULT_USE));
 		writer.println();
 		writer.println("user notes: ");
 		writer.close();
@@ -207,7 +206,7 @@ public class comp {
 			for (int i = 0; i < traits.length; i++) {
 				if (traits[i].startsWith("suffix=")) {
 					suffix = ext.parseStringArg(traits[i], "");
-					traits = Array.removeFromArray(traits, i);
+					traits = ArrayUtils.removeFromArray(traits, i);
 					i--;
 				}
 			}
@@ -244,7 +243,7 @@ public class comp {
 		}
 		reader.close();
 		noMissing = optionFlagged("chis") || optionFlagged("hwe"); // not sure quite what this did when
-																																// I added hwe
+																															 // I added hwe
 		for (int trt = 0; trt < traits.length; trt++) {
 			try {
 				reader = new BufferedReader(new FileReader(db_file));
@@ -254,21 +253,23 @@ public class comp {
 			}
 			factorNames = reader.readLine().split(delimiter);
 
-			indices = ext.indexFactors(	Array.addStrToArray(traits[trt], Array.toStringArray(included), 0),
-																	factorNames, true, log, true, true);
-			limits = ext.indexFactors(Array.addStrToArray(traits[trt], Array.toStringArray(limitKeys), 0),
+			indices = ext.indexFactors(ArrayUtils.addStrToArray(traits[trt],
+																													ArrayUtils.toStringArray(included), 0),
+																 factorNames, true, log, true, true);
+			limits = ext.indexFactors(ArrayUtils.addStrToArray(traits[trt],
+																												 ArrayUtils.toStringArray(limitKeys), 0),
 																factorNames, true, log, true, true);
 			idIndices = ext.indexFactors(DEFAULT_ID_NAMES, factorNames, false, true, false, false);
 			M = indices.length - 1;
 
 			if (optionFlagged("oneperfamily") && idIndices[1] == -1) {
 				System.err.println("Error - OnePerFamily option was enabled, but the default FamID name ('"
-															+ DEFAULT_ID_NAMES[1][1]
-														+ "') was not found in the database; disabling option");
+													 + DEFAULT_ID_NAMES[1][1]
+													 + "') was not found in the database; disabling option");
 				flagOption("oneperfamily", false);
 			}
 
-			if ((optionFlagged("chis") || optionFlagged("hwe")) && Array.min(idIndices) < 0) {
+			if ((optionFlagged("chis") || optionFlagged("hwe")) && ArrayUtils.min(idIndices) < 0) {
 				System.err.println("Error - chis option was enabled, but family and indiviudal ids were not found; disabling option");
 				flagOption("chis", false);
 				flagOption("hwe", false);
@@ -282,13 +283,13 @@ public class comp {
 				line = reader.readLine().split(delimiter);
 				if (factorNames.length != line.length) {
 					reader.close();
-					throw new RuntimeException("Error - different number of values ("	+ line.length
-																			+ " versus " + factorNames.length + " factors) for "
-																			+ line[0]);
+					throw new RuntimeException("Error - different number of values (" + line.length
+																		 + " versus " + factorNames.length + " factors) for "
+																		 + line[0]);
 				}
-				idline = new String[] {	idIndices[0] == -1 ? null : line[idIndices[0]],
-																idIndices[1] == -1 ? null : line[idIndices[1]],
-																idIndices[2] == -1 ? null : line[idIndices[2]]};
+				idline = new String[] {idIndices[0] == -1 ? null : line[idIndices[0]],
+															 idIndices[1] == -1 ? null : line[idIndices[1]],
+															 idIndices[2] == -1 ? null : line[idIndices[2]]};
 				dataline = new double[M + 1];
 				limits[0] = 1;
 				for (int i = 1; i < limits.length; i++) {
@@ -340,8 +341,8 @@ public class comp {
 
 			if (optionFlagged("chis")) {
 				if (M != 2) {
-					System.err.println("Error - \"chis\" is flagged, but there are "	+ M
-															+ " variables instead of 2 (the two alleles); aborting analyses");
+					System.err.println("Error - \"chis\" is flagged, but there are " + M
+														 + " variables instead of 2 (the two alleles); aborting analyses");
 				} else if (!logistic) {
 					System.err.println("Error - \"chis\" is flagged, but the dependent variable is not binary");
 				} else {
@@ -351,8 +352,8 @@ public class comp {
 
 			if (optionFlagged("hwe")) {
 				if (M != 2) {
-					System.err.println("Error - \"hwe\" is flagged, but there are "	+ M
-															+ " variables instead of 2 (the two alleles); aborting analyses");
+					System.err.println("Error - \"hwe\" is flagged, but there are " + M
+														 + " variables instead of 2 (the two alleles); aborting analyses");
 				} else if (!logistic) {
 					System.err.println("Error - \"hwe\" is flagged, but the dependent variable is not binary");
 				} else {
@@ -360,8 +361,8 @@ public class comp {
 				}
 			}
 
-			System.out.println("Performing serial "	+ (logistic ? "logistic" : "linear")
-													+ " regressions for variable '" + traits[trt] + "'");
+			System.out.println("Performing serial " + (logistic ? "logistic" : "linear")
+												 + " regressions for variable '" + traits[trt] + "'");
 			sigs = new double[M + 1][3];
 			means = new double[M + 1][2];
 			factorNs = new int[M + 1];
@@ -380,16 +381,15 @@ public class comp {
 							indeps.add(new double[] {(data[i][factor])});
 						}
 					}
-					model = logistic
-															? (RegressionModel) new LogisticRegression(	deps, indeps, false,
-																																				optionFlagged("verbose"))
-														: (RegressionModel) new LeastSquares(	deps, indeps, false,
-																																	optionFlagged("verbose"));
+					model = logistic ? (RegressionModel) new LogisticRegression(deps, indeps, false,
+																																			optionFlagged("verbose"))
+													 : (RegressionModel) new LeastSquares(deps, indeps, false,
+																																optionFlagged("verbose"));
 					if (optionFlagged("oneperfamily") && !optionFlagged("noserialperm")) {
 						Date date = new Date();
 						System.out.print("Running " + factorNames[indices[factor]] + "... ");
-						model.onePerFamily(	Matrix.extractColumn(Matrix.toStringArrays(idV), 1), famReps,
-																bootReps);
+						model.onePerFamily(Matrix.extractColumn(Matrix.toStringArrays(idV), 1), famReps,
+															 bootReps);
 						System.out.println(ext.getTimeElapsed(date.getTime()));
 						failures[factor] = model.getNumFailures();
 					}
@@ -433,7 +433,7 @@ public class comp {
 				}
 				writer.println();
 				for (int i = 0; i < N; i++) {
-					writer.print(Array.toStr(ids[i]));
+					writer.print(ArrayUtils.toStr(ids[i]));
 					for (int j = 0; j < M + 1; j++) {
 						writer.print("\t" + (data[i][j] == Double.MIN_VALUE ? "." : data[i][j] + ""));
 					}
@@ -466,8 +466,8 @@ public class comp {
 								if (factor == 0) {
 									writer.print((i == 0 ? "N" : "") + "\t" + trends[i].size());
 								} else {
-									writer.print((i == 0 ? factorNames[indices[factor]] : "")	+ "\t"
-																+ Array.mean(Doubles.toArray(trends[i])));
+									writer.print((i == 0 ? factorNames[indices[factor]] : "") + "\t"
+															 + ArrayUtils.mean(Doubles.toArray(trends[i])));
 								}
 							}
 							writer.println();
@@ -487,11 +487,11 @@ public class comp {
 							writer.println("   input " + validNames[0] + " " + validNames[factor] + ";");
 							writer.println("   datalines;");
 							for (int i = 0; i < N; i++) {
-								writer.println(ext.formDeci(data[i][0], 5)	+ " "
-																+ (data[i][factor] == Double.MIN_VALUE	? "."
-																																				: ext.formDeci(	data[i][factor],
-																																												5)));
-								if (data[i][factor] != Double.MIN_VALUE	&& trends[factor].size() < 3
+								writer.println(ext.formDeci(data[i][0], 5) + " "
+															 + (data[i][factor] == Double.MIN_VALUE ? "."
+																																			: ext.formDeci(data[i][factor],
+																																										 5)));
+								if (data[i][factor] != Double.MIN_VALUE && trends[factor].size() < 3
 										&& !trends[factor].contains(data[i][factor])) {
 									trends[factor].add(data[i][factor]);
 								}
@@ -501,25 +501,25 @@ public class comp {
 
 							if (trends[factor].size() < 3) {
 								writer.println("proc freq data=Rocks;");
-								writer.println("   tables "	+ validNames[0] + "*" + validNames[factor]
-																+ " / trend;");
+								writer.println("   tables " + validNames[0] + "*" + validNames[factor]
+															 + " / trend;");
 								writer.println("   exact trend / maxtime=60;");
 								writer.println("   title1 'Cochran-Armitage Trend Test for "
-																+ factorNames[indices[factor]] + "';");
+															 + factorNames[indices[factor]] + "';");
 								writer.println("run;");
 								writer.println("");
 							} else {
 								writer.println("proc glm data=Rocks;");
 								writer.println("   class " + validNames[0] + ";");
-								writer.println("   model "	+ validNames[factor] + " = " + validNames[0]
-																+ " / ss3;");
+								writer.println("   model " + validNames[factor] + " = " + validNames[0]
+															 + " / ss3;");
 								writer.println("   lsmeans " + validNames[0] + ";");
 								writer.println("   contrast \"Blessed linear\" " + validNames[0] + " -1 0 1;");
 								writer.println("   estimate \"Blessed linear\" " + validNames[0] + " -1 0 1;");
 								writer.println("   contrast \"Blessed quadratic\" " + validNames[0] + " 1 -2 1;");
 								writer.println("   estimate \"Blessed quadratic\" " + validNames[0] + " 1 -2 1;");
-								writer.println("   title1 'GLM Trend Test for "	+ factorNames[indices[factor]]
-																+ "';");
+								writer.println("   title1 'GLM Trend Test for " + factorNames[indices[factor]]
+															 + "';");
 								writer.println("run;");
 								writer.println("");
 							}
@@ -596,26 +596,27 @@ public class comp {
 											System.err.println("'" + temp + "'");
 										}
 										line = temp.split("[\\s]+");
-										writer.print("\t"	+ line[6] + "\t" + "=TDIST("
-																	+ Math.abs(Double.parseDouble(line[3])
-																							/ Double.parseDouble(line[4]))
-																	+ ", " + (n - 1) + ", 2)");
+										writer.print("\t" + line[6] + "\t" + "=TDIST("
+																 + Math.abs(Double.parseDouble(line[3])
+																						/ Double.parseDouble(line[4]))
+																 + ", " + (n - 1) + ", 2)");
 										line = reader.readLine().split("[\\s]+");
-										writer.print("\t"	+ line[6] + "\t" + "=TDIST("
-																	+ Math.abs(Double.parseDouble(line[3])
-																							/ Double.parseDouble(line[4]))
-																	+ ", " + (n - 1) + ", 2)");
-										writer.println("\t"	+ "=IF(G" + (count + 1) + ">I" + (count + 1)
-																		+ ", \"*\",\"\")");
+										writer.print("\t" + line[6] + "\t" + "=TDIST("
+																 + Math.abs(Double.parseDouble(line[3])
+																						/ Double.parseDouble(line[4]))
+																 + ", " + (n - 1) + ", 2)");
+										writer.println("\t" + "=IF(G" + (count + 1) + ">I" + (count + 1)
+																	 + ", \"*\",\"\")");
 									} else if (line[1].equals("Cochran-Armitage")) {
 										while (temp.indexOf("---------+--------+--------+") == -1) {
 											temp = reader.readLine();
 										}
 										for (int i = 0; i < k; i++) {
 											line = reader.readLine().split("[\\s]+");
-											writer.print("\t"	+ ext.formDeci((Double.parseDouble(line[5])
-																												/ Double.parseDouble(line[7])) * 100, 0)
-																		+ "%");
+											writer.print("\t" + ext.formDeci((Double.parseDouble(line[5])
+																												/ Double.parseDouble(line[7]))
+																											 * 100, 0)
+																	 + "%");
 											for (int j = 0; j < 4; j++) {
 												temp = reader.readLine();
 											}
@@ -637,7 +638,7 @@ public class comp {
 							reader.close();
 						} catch (Exception e) {
 							System.err.println("Sorry yo, error parsing results of trend analysis found in '"
-																	+ traits[trt] + "-trend.lst" + "'");
+																 + traits[trt] + "-trend.lst" + "'");
 							writer.close();
 							reader.close();
 						}
@@ -669,20 +670,20 @@ public class comp {
 										counts[0]++;
 									} else {
 										System.err.println("Error - cannot create a table for "
-																					+ factorNames[indices[0]] + " and "
-																				+ factorNames[indices[factor]] + " (invalid value: "
-																				+ data[i][factor] + "; requires 1 or 0)");
+																			 + factorNames[indices[0]] + " and "
+																			 + factorNames[indices[factor]] + " (invalid value: "
+																			 + data[i][factor] + "; requires 1 or 0)");
 										failed = true;
 									}
 								}
 							}
-							writer.println(factorNames[indices[factor]]	+ "\t"
-															+ ext.formDeci(Array.mean(Doubles.toArray(dv1s)), sigfigs, true)
-															+ "\t" + counts[1] + "\t"
-															+ ext.formDeci(Array.mean(Doubles.toArray(dv0s)), sigfigs, true)
-															+ "\t" + counts[0] + "\t"
-															+ ext.prettyP(new Ttest(Doubles.toArray(dv1s),
-																											Doubles.toArray(dv0s)).getPvalue()));
+							writer.println(factorNames[indices[factor]] + "\t"
+														 + ext.formDeci(ArrayUtils.mean(Doubles.toArray(dv1s)), sigfigs, true)
+														 + "\t" + counts[1] + "\t"
+														 + ext.formDeci(ArrayUtils.mean(Doubles.toArray(dv0s)), sigfigs, true)
+														 + "\t" + counts[0] + "\t"
+														 + ext.prettyP(new Ttest(Doubles.toArray(dv1s),
+																										 Doubles.toArray(dv0s)).getPvalue()));
 						}
 						writer.close();
 
@@ -714,41 +715,44 @@ public class comp {
 								}
 								counts[depCount.indexOf(data[i][0] + "")]++;
 							}
-							results =
-											new PermuteOnePer(optionFlagged("oneperfamily")	? Matrix.extractColumn(	Matrix.toStringArrays(idV),
-																																															1)
-																																			: Array.stringArraySequence(idV.size(),
-																																																	"IND"),
-																				Doubles.toArray(dv1), dummyIntMatrix(Doubles.toArray(dv2)),
-																				new String[][] {{factorNames[indices[0]]},
-																												{factorNames[indices[factor]]}}).getResults()[0];
+							results = new PermuteOnePer(optionFlagged("oneperfamily") ? Matrix.extractColumn(Matrix.toStringArrays(idV),
+																																															 1)
+																																				: ArrayUtils.stringArraySequence(idV.size(),
+																																																				 "IND"),
+																					Doubles.toArray(dv1),
+																					dummyIntMatrix(Doubles.toArray(dv2)),
+																					new String[][] {{factorNames[indices[0]]},
+																													{factorNames[indices[factor]]}}).getResults()[0];
 							for (int i = 0; i < k; i++) {
 								percentMe = vString.size() == 2;
 								writer.print((i == 0 ? (factor == 0 ? "N" : factorNames[indices[factor]]) : "")
-																+ "\t=CONCATENATE(\""
-															+ (percentMe	? ext.formDeci(results[i][0]	* 100, SIG_FIGS_PERCENTAGES,
-																														true)
-																							+ "%"
-																						: ext.formDeci(	results[i][0], sigfigs,
-																														true)
-																							+ (optionFlagged("sdtable")	? " ("
-																																							+ ext.formDeci(	results[i][1],
-																																														sigfigs,
-																																														true)
-																																						+ ")"
-																																					: ""))
-															+ "\")" + "\t" + ext.formDeci(results[i][2], sigfigs, true)
-															+ (i == k - 1 && factor != 0	? "\t"	+ ext.prettyP(results[k][0])
-																															+ (percentMe	? "\t=CHIDIST("
-																																								+ Math.abs(results[k][1])
-																																							+ ",1)"
-																																						: "\t=TDIST("
-																																								+ Math.abs(results[k][1])
-																																							+ ","
-																																							+ (Math.round(results[k][2])
-																																									- 2)
-																																							+ ",2)")
-																														: ""));
+														 + "\t=CONCATENATE(\""
+														 + (percentMe ? ext.formDeci(results[i][0] * 100, SIG_FIGS_PERCENTAGES,
+																												 true)
+																						+ "%"
+																					: ext.formDeci(results[i][0], sigfigs,
+																												 true)
+																						+ (optionFlagged("sdtable") ? " ("
+																																					+ ext.formDeci(results[i][1],
+																																												 sigfigs,
+																																												 true)
+																																					+ ")"
+																																				: ""))
+														 + "\")" + "\t"
+														 + ext.formDeci(results[i][2], sigfigs,
+																						true)
+														 + (i == k - 1 && factor != 0
+																													? "\t" + ext.prettyP(results[k][0])
+																														+ (percentMe ? "\t=CHIDIST("
+																																					 + Math.abs(results[k][1])
+																																					 + ",1)"
+																																				 : "\t=TDIST("
+																																					 + Math.abs(results[k][1])
+																																					 + ","
+																																					 + (Math.round(results[k][2])
+																																							- 2)
+																																					 + ",2)")
+																													: ""));
 							}
 							writer.println();
 						}
@@ -763,23 +767,23 @@ public class comp {
 
 			if (optionFlagged("exactRegressionValues")) {
 				try {
-					writer = new PrintWriter(new FileWriter(traits[trt]	+ suffix
+					writer = new PrintWriter(new FileWriter(traits[trt] + suffix
 																									+ "-exactRegressionValues.xln"));
 					writer.println("Factor\tT\tp-value\tcalcP");
 					for (int i = 1; i <= M; i++) {
-						writer.println(factorNames[indices[i]]	+ "\t" + sigs[i][2] + "\t" + sigs[i][0]
-														+ (logistic	? "\t=CHIDIST(" + Math.abs(sigs[i][2]) + ",1)"
-																				: "\t=TDIST("	+ Math.abs(sigs[i][2]) + ","
-																					+ (factorNs[i] - 2) + ",2)")
-														+ "\t" + (factorDirections[i] ? "+" : "-") + "\t"
-														+ ext.formStr(ext.formDeci(sigs[i][1] * 100, SIG_FIGS_PERCENTAGES, true)
-																					+ "%", 5)
-														+ "");
+						writer.println(factorNames[indices[i]] + "\t" + sigs[i][2] + "\t" + sigs[i][0]
+													 + (logistic ? "\t=CHIDIST(" + Math.abs(sigs[i][2]) + ",1)"
+																			 : "\t=TDIST(" + Math.abs(sigs[i][2]) + ","
+																				 + (factorNs[i] - 2) + ",2)")
+													 + "\t" + (factorDirections[i] ? "+" : "-") + "\t"
+													 + ext.formStr(ext.formDeci(sigs[i][1] * 100, SIG_FIGS_PERCENTAGES, true)
+																				 + "%", 5)
+													 + "");
 					}
 					writer.close();
 				} catch (IOException ioe) {
-					System.err.println("Error creating "	+ traits[trt] + suffix
-															+ "-exactRegressionValues.xln");
+					System.err.println("Error creating " + traits[trt] + suffix
+														 + "-exactRegressionValues.xln");
 				}
 			}
 
@@ -806,10 +810,11 @@ public class comp {
 						writer.print("\tbootreps=" + bootReps);
 					}
 					if (order != null) {
-						writer.print("\torder=" + Array.toStr(order, ","));
+						writer.print("\torder=" + ArrayUtils.toStr(order, ","));
 					}
 					writer.println();
-					writer.println(Array.toStr(traits) + (suffix.equals("") ? "" : "\tsuffix=" + suffix));
+					writer.println(ArrayUtils.toStr(traits)
+												 + (suffix.equals("") ? "" : "\tsuffix=" + suffix));
 					for (int i = 0; i < included.size(); i++) {
 						writer.print((i == 0 ? "" : "\t") + included.elementAt(i));
 					}
@@ -840,7 +845,7 @@ public class comp {
 				writer.print("\tbootreps=" + bootReps);
 			}
 			if (order != null) {
-				writer.print("\torder=" + Array.toStr(order, ","));
+				writer.print("\torder=" + ArrayUtils.toStr(order, ","));
 			}
 
 			writer.println();
@@ -884,23 +889,23 @@ public class comp {
 			writer.println();
 			writer.println();
 
-			double min = Math.min(Array.max(Matrix.extractColumn(means, 0)),
-														Array.max(Matrix.extractColumn(means, 1)));
-			double max = Math.max(Array.max(Matrix.extractColumn(means, 0)),
-														Array.max(Matrix.extractColumn(means, 1)));
+			double min = Math.min(ArrayUtils.max(Matrix.extractColumn(means, 0)),
+														ArrayUtils.max(Matrix.extractColumn(means, 1)));
+			double max = Math.max(ArrayUtils.max(Matrix.extractColumn(means, 0)),
+														ArrayUtils.max(Matrix.extractColumn(means, 1)));
 
 			int maxFigs = Math.max(10, (int) Math.floor(Math.log10(Math.max(
-																																			Math.max(	Math.abs(min),
-																																								Math.abs(max)),
+																																			Math.max(Math.abs(min),
+																																							 Math.abs(max)),
 																																			1))));
 
-			line = new String[] {	"R-Sqr", "  Sig  ", "N",
-														(logistic	? ext.formStr("MeanAff", maxFigs, true)
-																				+ ext.formStr("MeanUnaff", maxFigs, true)
-																			: "") + "dir",
-														(logistic ? "Odds ratio (95% CI)   " : "Beta (95% CI)         "),
-														"Factor", "Mean +/- SD", "Failures", "p-value"};
-			writer.println(Array.toStr(order == null ? line : Sort.getOrdered(line, order)));
+			line = new String[] {"R-Sqr", "  Sig  ", "N",
+													 (logistic ? ext.formStr("MeanAff", maxFigs, true)
+																			 + ext.formStr("MeanUnaff", maxFigs, true)
+																		 : "") + "dir",
+													 (logistic ? "Odds ratio (95% CI)   " : "Beta (95% CI)         "),
+													 "Factor", "Mean +/- SD", "Failures", "p-value"};
+			writer.println(ArrayUtils.toStr(order == null ? line : Sort.getOrdered(line, order)));
 
 			for (int i = 1; i <= M; i++) {
 				// count = 0;
@@ -911,42 +916,42 @@ public class comp {
 				min = Math.min(means[i][0], means[i][1]);
 				max = Math.max(means[i][0], means[i][1]);
 
-				int meanFigs = 5 - (int) Math.floor(Math.log10(Math.max(Math.max(	Math.abs(min),
-																																					Math.abs(max)),
+				int meanFigs = 5 - (int) Math.floor(Math.log10(Math.max(Math.max(Math.abs(min),
+																																				 Math.abs(max)),
 																																1)));
 
-				line = Array.stringArray(9, "error");
+				line = ArrayUtils.stringArray(9, "error");
 				try {
-					line[0] =
-									ext.formStr(ext.formDeci(sigs[i][1] * 100, SIG_FIGS_PERCENTAGES * 2, true)	+ "%",
-															5);
+					line[0] = ext.formStr(ext.formDeci(sigs[i][1] * 100, SIG_FIGS_PERCENTAGES * 2, true)
+																+ "%", 5);
 					line[1] = ext.formDeci(sigs[i][0], 5, true);
 					line[2] = factorNs[i] + "";
-					line[3] =
-									(logistic	? ext.formStr(ext.formDeci(means[i][1], meanFigs, true), maxFigs, true)
-															+ ext.formStr(ext.formDeci(means[i][0], meanFigs, true), maxFigs,
+					line[3] = (logistic ? ext.formStr(ext.formDeci(means[i][1], meanFigs, true), maxFigs,
 																						true)
-														: "")
+																+ ext.formStr(ext.formDeci(means[i][0], meanFigs, true), maxFigs,
+																							true)
+															: "")
 										+ (factorDirections[i] ? "+" : "-");
-					line[4] = ext.formDeci(effectsAndConfidenceIntervals[i][0], 3, true)	+ " ("
+					line[4] = ext.formDeci(effectsAndConfidenceIntervals[i][0], 3, true) + " ("
 										+ ext.formDeci(effectsAndConfidenceIntervals[i][1], 3, true) + ", "
 										+ ext.formDeci(effectsAndConfidenceIntervals[i][2], 3, true) + ")";
 					line[5] = factorNames[indices[i]];
-					line[6] = "("	+ ext.formDeci(Array.mean(filterArray(data, i, Double.MIN_VALUE)), 3)
-										+ " +/- " + ext.formDeci(Array.stdev(filterArray(data, i, Double.MIN_VALUE)), 3)
+					line[6] = "(" + ext.formDeci(ArrayUtils.mean(filterArray(data, i, Double.MIN_VALUE)), 3)
+										+ " +/- "
+										+ ext.formDeci(ArrayUtils.stdev(filterArray(data, i, Double.MIN_VALUE)), 3)
 										+ ")";
-					line[7] = (failures[i] > 0	? ", " + failures[i] + " failures (potential cause of bias)"
-																			: "");
+					line[7] = (failures[i] > 0 ? ", " + failures[i] + " failures (potential cause of bias)"
+																		 : "");
 					// line[8] = "("+ext.formSciNot(sigs[i][0], 1, true)+")";
-					line[8] = factorNs[i] == 0	? "."
-																			: (logistic	? "=NORMSDIST(-" + Math.sqrt(sigs[i][2]) + ")"
-																									: "=TDIST("	+ Math.abs(sigs[i][2]) + ","
-																										+ factorNs[i] + ",2)");
+					line[8] = factorNs[i] == 0 ? "."
+																		 : (logistic ? "=NORMSDIST(-" + Math.sqrt(sigs[i][2]) + ")"
+																								 : "=TDIST(" + Math.abs(sigs[i][2]) + ","
+																									 + factorNs[i] + ",2)");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 
-				writer.println(Array.toStr(order == null ? line : Sort.getOrdered(line, order)));
+				writer.println(ArrayUtils.toStr(order == null ? line : Sort.getOrdered(line, order)));
 			}
 			writer.println();
 			writer.println();
@@ -970,11 +975,10 @@ public class comp {
 						idV.add(ids[i]);
 					}
 				}
-				model = logistic
-														? (RegressionModel) new LogisticRegression(	deps, indeps, false,
-																																			optionFlagged("verbose"))
-													: (RegressionModel) new LeastSquares(	deps, indeps, false,
-																																optionFlagged("verbose"));
+				model = logistic ? (RegressionModel) new LogisticRegression(deps, indeps, false,
+																																		optionFlagged("verbose"))
+												 : (RegressionModel) new LeastSquares(deps, indeps, false,
+																															optionFlagged("verbose"));
 				model.setSigFigs(sigfigs);
 				line = new String[indices.length - 1];
 				for (int i = 0; i < M; i++) {
@@ -984,8 +988,8 @@ public class comp {
 				if (optionFlagged("oneperfamily")) {
 					Date date = new Date();
 					System.out.print("Forcing all variables into the model... ");
-					model.onePerFamily(	Matrix.extractColumn(Matrix.toStringArrays(idV), 1), famReps,
-															bootReps);
+					model.onePerFamily(Matrix.extractColumn(Matrix.toStringArrays(idV), 1), famReps,
+														 bootReps);
 					System.out.println(ext.getTimeElapsed(date.getTime()));
 				}
 				if (optionFlagged("dump")) {
@@ -993,8 +997,8 @@ public class comp {
 				}
 				writer.println(model.getSummary());
 				if (model.getNumFailures() > 0) {
-					writer.println("There were "	+ model.getNumFailures()
-													+ " failures (potential cause of bias)");
+					writer.println("There were " + model.getNumFailures()
+												 + " failures (potential cause of bias)");
 				}
 				writer.println();
 				writer.println();
@@ -1102,7 +1106,7 @@ public class comp {
 			}
 
 			if ((optionFlagged("sw") || optionFlagged("force"))
-					&& (optionFlagged("residuals")	|| optionFlagged("normalized")
+					&& (optionFlagged("residuals") || optionFlagged("normalized")
 							|| optionFlagged("inverseNormalized"))) {
 				if (optionFlagged("normalized")) {
 					residuals[1] = Transformations.transform(residuals[0], Transformations.NORMALIZE);
@@ -1167,7 +1171,7 @@ public class comp {
 		double[][] avgCounts, baseCounts;
 		DoubleVector dv, dv1, dv2;
 
-		fams = Array.unique(Matrix.extractColumn(ids, 1));
+		fams = ArrayUtils.unique(Matrix.extractColumn(ids, 1));
 
 		hashVec = new Hashtable<String, Vector<String>>();
 		hashVecData = new Hashtable<String, Vector<double[]>>();
@@ -1189,10 +1193,10 @@ public class comp {
 			} else {
 				dataline = vDoubleArray.elementAt(members.indexOf(ids[i][2]));
 				if (data[i][0] != dataline[0] || data[i][1] != dataline[1] || data[i][2] != dataline[2]) {
-					System.err.println("Error - "	+ ids[i][1] + "-" + ids[i][2]
-															+ " has been genotyped twice; first as " + dataline[1] + "/"
-															+ dataline[2] + " and second as " + data[i][1] + "/" + data[i][2]
-															+ "; ignoring second");
+					System.err.println("Error - " + ids[i][1] + "-" + ids[i][2]
+														 + " has been genotyped twice; first as " + dataline[1] + "/"
+														 + dataline[2] + " and second as " + data[i][1] + "/" + data[i][2]
+														 + "; ignoring second");
 				}
 			}
 		}
@@ -1204,13 +1208,13 @@ public class comp {
 			dv.addIfAbsent(dv2.elementAt(i));
 		}
 		if (dv.size() == dv1.size() + dv2.size()) {
-			throw new RuntimeException("Error - no overlap in alleles between "	+ factorNames[indices[1]]
-																	+ " and " + factorNames[indices[2]]);
+			throw new RuntimeException("Error - no overlap in alleles between " + factorNames[indices[1]]
+																 + " and " + factorNames[indices[2]]);
 		}
 		if (dv.size() > MAX_CLASSES) {
-			throw new RuntimeException("Error - more than "	+ MAX_CLASSES + " alleles (n=" + dv.size()
-																	+ ") between " + factorNames[indices[1]] + " and "
-																	+ factorNames[indices[2]] + "; aborting analyses.");
+			throw new RuntimeException("Error - more than " + MAX_CLASSES + " alleles (n=" + dv.size()
+																 + ") between " + factorNames[indices[1]] + " and "
+																 + factorNames[indices[2]] + "; aborting analyses.");
 		}
 
 		if (audit) {
@@ -1232,7 +1236,7 @@ public class comp {
 			}
 		}
 
-		min = Array.min(Matrix.extractColumn(data, 0));
+		min = ArrayUtils.min(Matrix.extractColumn(data, 0));
 
 		avgCounts = new double[2][dv.size()];
 		for (String fam : fams) {
@@ -1243,12 +1247,12 @@ public class comp {
 				baseCounts[dataline[0] == min ? 0 : 1][dv.indexOf(dataline[1])]++;
 				baseCounts[dataline[0] == min ? 0 : 1][dv.indexOf(dataline[2])]++;
 			}
-			count = Array.sum(baseCounts[1]) > 0 ? 1 : 0;
+			count = ArrayUtils.sum(baseCounts[1]) > 0 ? 1 : 0;
 			for (int j = 0; j < dv.size(); j++) {
-				avgCounts[count][j] += baseCounts[count][j] / (Array.sum(baseCounts[count]) / 2);
+				avgCounts[count][j] += baseCounts[count][j] / (ArrayUtils.sum(baseCounts[count]) / 2);
 			}
 		}
-		subtotals = new double[] {Array.sum(avgCounts[0]), Array.sum(avgCounts[1])};
+		subtotals = new double[] {ArrayUtils.sum(avgCounts[0]), ArrayUtils.sum(avgCounts[1])};
 
 		try {
 			writer = new PrintWriter(new FileWriter("chis.out"));
@@ -1259,12 +1263,12 @@ public class comp {
 			for (int i = avgCounts.length - 1; i >= 0; i--) {
 				writer.print(i == 1 ? "Affected" : "Unaffected");
 				for (int j = 0; j < avgCounts[0].length; j++) {
-					writer.print("\t"	+ ext.formDeci(avgCounts[i][j], 3, true) + " ("
-												+ ext.formDeci(avgCounts[i][j] / subtotals[i], 2, true) + ")");
+					writer.print("\t" + ext.formDeci(avgCounts[i][j], 3, true) + " ("
+											 + ext.formDeci(avgCounts[i][j] / subtotals[i], 2, true) + ")");
 				}
 				if (i == 0) {
-					writer.print("\tp=" + ext.prettyP(ProbDist.ChiDist(	ContingencyTable.ChiSquare(avgCounts),
-																															avgCounts[0].length - 1)
+					writer.print("\tp=" + ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(avgCounts),
+																														 avgCounts[0].length - 1)
 																						+ ""));
 				}
 				writer.println();
@@ -1280,14 +1284,14 @@ public class comp {
 			// writer.println();
 			writer.print("Pairwise");
 			for (int i = 0; i < avgCounts[0].length; i++) {
-				writer.print("\tp="	+ ext.prettyP(ProbDist.ChiDist(
-																														ContingencyTable.ChiSquare(new double[][] {	{	avgCounts[0][i],
-																																																					avgCounts[1][i]},
-																																																				{	subtotals[0],
-																																																					subtotals[1]}}),
-																														1)
+				writer.print("\tp=" + ext.prettyP(ProbDist.ChiDist(
+																													 ContingencyTable.ChiSquare(new double[][] {{avgCounts[0][i],
+																																																			 avgCounts[1][i]},
+																																																			{subtotals[0],
+																																																			 subtotals[1]}}),
+																													 1)
 																					+ "")
-											+ "      ");
+										 + "      ");
 
 			}
 			writer.println();
@@ -1296,28 +1300,28 @@ public class comp {
 			writer.println("Allele\tAffected\t% of Affecteds\tUnaffected\t% of Unaffecteds\tOR\tp-value");
 			for (int i = 0; i < dv.size(); i++) {
 				writer.print(dv.elementAt(i).intValue());
-				writer.print("\t"	+ ext.formDeci(avgCounts[1][i], 3, true) + "\t"
-											+ ext.formDeci(avgCounts[1][i] / subtotals[1] * 100, 1, true));
-				writer.print("\t"	+ ext.formDeci(avgCounts[0][i], 3, true) + "\t"
-											+ ext.formDeci(avgCounts[0][i] / subtotals[0] * 100, 1, true));
+				writer.print("\t" + ext.formDeci(avgCounts[1][i], 3, true) + "\t"
+										 + ext.formDeci(avgCounts[1][i] / subtotals[1] * 100, 1, true));
+				writer.print("\t" + ext.formDeci(avgCounts[0][i], 3, true) + "\t"
+										 + ext.formDeci(avgCounts[0][i] / subtotals[0] * 100, 1, true));
 				writer.print("\t" + ext.formDeci(
-																					(avgCounts[1][i]	/ subtotals[1]
-																						* (1 - avgCounts[0][i] / subtotals[0]))
-																						/ (avgCounts[0][i]	/ subtotals[0]
-																							* (1 - avgCounts[1][i] / subtotals[1])),
-																					2, true));
+																				 (avgCounts[1][i] / subtotals[1]
+																					* (1 - avgCounts[0][i] / subtotals[0]))
+																				 / (avgCounts[0][i] / subtotals[0]
+																						* (1 - avgCounts[1][i] / subtotals[1])),
+																				 2, true));
 				writer.print("\t" + ext.prettyP(ProbDist.ChiDist(
-																													ContingencyTable.ChiSquare(new double[][] {	{	avgCounts[0][i],
-																																																				avgCounts[1][i]},
-																																																			{	subtotals[0],
-																																																				subtotals[1]}}),
-																													1)
+																												 ContingencyTable.ChiSquare(new double[][] {{avgCounts[0][i],
+																																																		 avgCounts[1][i]},
+																																																		{subtotals[0],
+																																																		 subtotals[1]}}),
+																												 1)
 																				+ ""));
 				writer.println();
 			}
 			writer.println("\tOverall significance");
-			writer.print("\tp=" + ext.prettyP(ProbDist.ChiDist(	ContingencyTable.ChiSquare(avgCounts),
-																													avgCounts[0].length - 1)
+			writer.print("\tp=" + ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(avgCounts),
+																												 avgCounts[0].length - 1)
 																				+ ""));
 
 			writer.close();
@@ -1329,8 +1333,8 @@ public class comp {
 	}
 
 	// FIXME repeated code between doChis and doHWE
-	public static void doHWE(	String[][] ids, double[][] data, String[] factorNames, int[] indices,
-														boolean audit) {
+	public static void doHWE(String[][] ids, double[][] data, String[] factorNames, int[] indices,
+													 boolean audit) {
 		PrintWriter writer;
 		String[] fams;
 		int count;
@@ -1348,7 +1352,7 @@ public class comp {
 		double[] countsInOrder;
 		String[] alleleLabels;
 
-		fams = Array.unique(Matrix.extractColumn(ids, 1));
+		fams = ArrayUtils.unique(Matrix.extractColumn(ids, 1));
 
 		hashVec = new Hashtable<String, Vector<String>>();
 		hashVecData = new Hashtable<String, Vector<int[]>>();
@@ -1371,10 +1375,10 @@ public class comp {
 			} else {
 				dataline = genotypes.elementAt(members.indexOf(ids[i][2]));
 				if (data[i][0] != dataline[0] || data[i][1] != dataline[1] || data[i][2] != dataline[2]) {
-					System.err.println("Error - "	+ ids[i][1] + "-" + ids[i][2]
-															+ " has been genotyped twice; first as " + dataline[1] + "/"
-															+ dataline[2] + " and second as " + data[i][1] + "/" + data[i][2]
-															+ "; ignoring second");
+					System.err.println("Error - " + ids[i][1] + "-" + ids[i][2]
+														 + " has been genotyped twice; first as " + dataline[1] + "/"
+														 + dataline[2] + " and second as " + data[i][1] + "/" + data[i][2]
+														 + "; ignoring second");
 				}
 			}
 		}
@@ -1386,13 +1390,13 @@ public class comp {
 			iv.addIfAbsent(iv2.elementAt(i));
 		}
 		if (iv.size() == iv1.size() + iv2.size()) {
-			throw new RuntimeException("Error - no overlap in alleles between "	+ factorNames[indices[1]]
-																	+ " and " + factorNames[indices[2]]);
+			throw new RuntimeException("Error - no overlap in alleles between " + factorNames[indices[1]]
+																 + " and " + factorNames[indices[2]]);
 		}
 		if (iv.size() > MAX_CLASSES) {
-			throw new RuntimeException("Error - more than "	+ MAX_CLASSES + " alleles (n=" + iv.size()
-																	+ ") between " + factorNames[indices[1]] + " and "
-																	+ factorNames[indices[2]] + "; aborting analyses.");
+			throw new RuntimeException("Error - more than " + MAX_CLASSES + " alleles (n=" + iv.size()
+																 + ") between " + factorNames[indices[1]] + " and "
+																 + factorNames[indices[2]] + "; aborting analyses.");
 		}
 
 		if (audit) {
@@ -1413,7 +1417,7 @@ public class comp {
 			}
 		}
 
-		min = (int) Array.min(Matrix.extractColumn(data, 0));
+		min = (int) ArrayUtils.min(Matrix.extractColumn(data, 0));
 
 		avgCounts = new double[2][types.size()];
 		for (String fam : fams) {
@@ -1423,31 +1427,27 @@ public class comp {
 				dataline = genotypes.elementAt(j);
 				baseCounts[dataline[0] == min ? 0 : 1][types.indexOf(dataline[1] + "/" + dataline[2])]++;
 			}
-			count = Array.sum(baseCounts[1]) > 0 ? 1 : 0;
+			count = ArrayUtils.sum(baseCounts[1]) > 0 ? 1 : 0;
 			for (int j = 0; j < types.size(); j++) {
-				avgCounts[count][j] += baseCounts[count][j] / Array.sum(baseCounts[count]);
+				avgCounts[count][j] += baseCounts[count][j] / ArrayUtils.sum(baseCounts[count]);
 			}
 		}
-		subtotals = new double[] {Array.sum(avgCounts[0]), Array.sum(avgCounts[1])};
+		subtotals = new double[] {ArrayUtils.sum(avgCounts[0]), ArrayUtils.sum(avgCounts[1])};
 
 		try {
-			writer = new PrintWriter(new FileWriter(factorNames[indices[1]]	+ "_"
+			writer = new PrintWriter(new FileWriter(factorNames[indices[1]] + "_"
 																							+ factorNames[indices[2]] + "_hwe.out"));
 			Collections.sort(iv);
 			if (iv.size() == 3) {
-				alleleLabels = new String[] {iv.get(0)	+ "/" + iv.get(0),
-																			iv.get(0) + "/" + iv.get(1),
-																			iv.get(0) + "/" + iv.get(2),
-																			iv.get(1) + "/" + iv.get(1),
-																			iv.get(1) + "/" + iv.get(2),
-																			iv.get(2) + "/" + iv.get(2)};
+				alleleLabels = new String[] {iv.get(0) + "/" + iv.get(0), iv.get(0) + "/" + iv.get(1),
+																		 iv.get(0) + "/" + iv.get(2), iv.get(1) + "/" + iv.get(1),
+																		 iv.get(1) + "/" + iv.get(2), iv.get(2) + "/" + iv.get(2)};
 			} else if (iv.size() < 3) {
-				alleleLabels = new String[] {iv.get(0)	+ "/" + iv.get(0),
-																			iv.get(0) + "/" + iv.get(1),
-																			iv.get(1) + "/" + iv.get(1)};
+				alleleLabels = new String[] {iv.get(0) + "/" + iv.get(0), iv.get(0) + "/" + iv.get(1),
+																		 iv.get(1) + "/" + iv.get(1)};
 			} else {
 				System.err.println("Error - HWE is not currently set up to handle more than 3 alleles");
-				System.err.println("   (found " + Array.toStr(iv.toArray()) + ")");
+				System.err.println("   (found " + ArrayUtils.toStr(iv.toArray()) + ")");
 				System.exit(1);
 				alleleLabels = null;
 			}
@@ -1466,8 +1466,8 @@ public class comp {
 					if (order[j] == -1) {
 						writer.print("\t0.000 (0.00%)");
 					} else {
-						writer.print("\t"	+ ext.formDeci(avgCounts[i][order[j]], 3, true) + " ("
-													+ ext.formDeci(avgCounts[i][order[j]] / subtotals[i], 2, true) + ")");
+						writer.print("\t" + ext.formDeci(avgCounts[i][order[j]], 3, true) + " ("
+												 + ext.formDeci(avgCounts[i][order[j]] / subtotals[i], 2, true) + ")");
 					}
 				}
 				if (iv.size() <= 3) {
@@ -1488,7 +1488,7 @@ public class comp {
 					countsInOrder[j] = order[j] == -1 ? 0 : avgCounts[0][order[j]] + avgCounts[1][order[j]];
 				}
 				writer.println("Hardy-Weinberg for combined sample is: p="
-												+ ext.prettyP(AlleleFreq.HWEsig(countsInOrder)));
+											 + ext.prettyP(AlleleFreq.HWEsig(countsInOrder)));
 			}
 			writer.println();
 			writer.println();
@@ -1503,10 +1503,10 @@ public class comp {
 					if (order[j] == -1) {
 						writer.print("\t0.000\t(0.00%)");
 					} else {
-						writer.print("\t"	+ ext.formDeci(avgCounts[i][order[j]], 3, true) + "\t("
-													+ ext.formDeci(avgCounts[i][order[j]]	/ subtotals[i] * 100,
-																					SIG_FIGS_PERCENTAGES, true)
-													+ "%)");
+						writer.print("\t" + ext.formDeci(avgCounts[i][order[j]], 3, true) + "\t("
+												 + ext.formDeci(avgCounts[i][order[j]] / subtotals[i] * 100,
+																				SIG_FIGS_PERCENTAGES, true)
+												 + "%)");
 					}
 				}
 				writer.println();
@@ -1559,8 +1559,8 @@ public class comp {
 
 		for (int i = 0; i < array.length; i++) {
 			if (Math.abs(array[i] - (int) array[i]) > 0.00001) {
-				System.err.println("Error - there may be less than "	+ MAX_CLASSES
-														+ " classes, but their not integers (found a '" + array[i] + "')");
+				System.err.println("Error - there may be less than " + MAX_CLASSES
+													 + " classes, but their not integers (found a '" + array[i] + "')");
 			}
 			matrix[i][0] = (int) array[i];
 		}
@@ -1609,8 +1609,8 @@ public class comp {
 		// String filename = "residuals.ctl";
 		String filename = "analyzeSignals.ctl";
 
-		String usage = "\n"	+ "park.comp requires 1 argument\n" + "   (1) filename (i.e. 'file="
-										+ DEFAULT_INPUT + "')\n" + "";
+		String usage = "\n" + "park.comp requires 1 argument\n" + "   (1) filename (i.e. 'file="
+									 + DEFAULT_INPUT + "')\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -1630,14 +1630,14 @@ public class comp {
 		}
 		try {
 			if (new File(filename).exists() && new File(filename).length() == 0) {
-				System.err.println("Using all available info to predict "	+ DEFAULT_TRAIT
-														+ " (also creating '" + DEFAULT_INPUT + "' if you want to alter)");
+				System.err.println("Using all available info to predict " + DEFAULT_TRAIT
+													 + " (also creating '" + DEFAULT_INPUT + "' if you want to alter)");
 				DEFAULT_INPUT = filename;
 				new comp();
 			} else if (args.length == 0
-									&& (!new File(filename).exists() || new File(filename).length() == 0)) {
-				System.err.println("Using all available info to predict "	+ DEFAULT_TRAIT
-														+ " (also creating '" + DEFAULT_INPUT + "' if you want to alter)");
+								 && (!new File(filename).exists() || new File(filename).length() == 0)) {
+				System.err.println("Using all available info to predict " + DEFAULT_TRAIT
+													 + " (also creating '" + DEFAULT_INPUT + "' if you want to alter)");
 				new comp();
 			} else {
 				new comp(filename);

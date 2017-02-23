@@ -55,14 +55,14 @@ public class GenotypeRefinement {
 		String inputVcf = null;
 		String ped = null;
 		String usage = "\n" + "seq.analysis.DeNovoMatic requires 0-1 arguments\n";
-		usage += "   (1) full path to a reference genome (i.e. ref="	+ referenceGenomeFasta
-							+ " (default))\n" + "";
+		usage += "   (1) full path to a reference genome (i.e. ref=" + referenceGenomeFasta
+						 + " (default))\n" + "";
 		usage += "   (2) output root directory (i.e. outputDir=" + outputDir + " (default))\n" + "";
 		usage += "   (3) gatk directory (i.e. gatk=" + gatkLocation + " (default))\n" + "";
 		usage += "   (4) input vcf (i.e. vcf= (no default))\n" + "";
 		usage += "   (5) full to a ped file (i.e. ped= (no default))\n" + "";
-		usage +=
-					"   (6) full path to a file of supporting snps (i.e. supportSnps= (no default))\n" + "";
+		usage += "   (6) full path to a file of supporting snps (i.e. supportSnps= (no default))\n"
+						 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

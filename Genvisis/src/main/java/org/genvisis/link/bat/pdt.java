@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -18,8 +18,8 @@ public class pdt {
 
 	public static final String DEFAULT_DIR = "C:\\Documents and Settings\\npankrat\\My Documents\\David Ginsburg\\pdt_equalFreq\\";
 
-	public static void createFiles(	int chr, int markerIncrement,
-																	String templateFile) throws IOException {
+	public static void createFiles(int chr, int markerIncrement,
+																 String templateFile) throws IOException {
 		BufferedReader reader = null;
 		PrintWriter writer = null;
 		Vector<String> v = new Vector<String>();
@@ -32,15 +32,15 @@ public class pdt {
 		try {
 			reader = new BufferedReader(new FileReader(templateFile));
 			while (reader.ready()) {
-				pedinfo.add(Array.subArray(reader.readLine().split("[\\s]+"), 0, 10));
+				pedinfo.add(ArrayUtils.subArray(reader.readLine().split("[\\s]+"), 0, 10));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \"" + templateFile + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""	+ templateFile
-													+ "\" (possible there are not 10 columns for every row?)");
+			System.err.println("Error reading file \"" + templateFile
+												 + "\" (possible there are not 10 columns for every row?)");
 			ioe.printStackTrace();
 			System.exit(2);
 		}
@@ -70,8 +70,8 @@ public class pdt {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ "map" + chrome + ".dat"
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + "map" + chrome + ".dat"
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + "map" + chrome + ".dat" + "\"");
@@ -95,8 +95,8 @@ public class pdt {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ "re_chrom" + chrome + ".pre"
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + "re_chrom" + chrome + ".pre"
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + "re_chrom" + chrome + ".pre" + "\"");
@@ -109,15 +109,15 @@ public class pdt {
 			splitThis("re_chrom" + chrome + ".pre", 0, numMarkers, numFams, pedinfo);
 		} else {
 			for (int count = 0; count < numMarkers; count += markerIncrement) {
-				splitThis("re_chrom"	+ chrome + ".pre", count,
+				splitThis("re_chrom" + chrome + ".pre", count,
 									count + markerIncrement <= numMarkers ? count + markerIncrement : numMarkers,
 									numFams, pedinfo);
 			}
 		}
 	}
 
-	public static void splitThis(	String prefile, int startAt, int stopAt, int numFams,
-																Vector<String[]> pedinfo) {
+	public static void splitThis(String prefile, int startAt, int stopAt, int numFams,
+															 Vector<String[]> pedinfo) {
 		BufferedReader reader = null;
 		PrintWriter writer = null;
 		Vector<String[]> data = new Vector<String[]>();
@@ -147,8 +147,8 @@ public class pdt {
 				// int count = 0;
 				for (int j = 0; j < data.size(); j++) {
 					dataline = data.elementAt(j);
-					writer.println(Array.toStr(pedinfo.elementAt(j))	+ "\t" + dataline[i * 2 + 0] + "\t"
-													+ dataline[i * 2 + 1]);
+					writer.println(ArrayUtils.toStr(pedinfo.elementAt(j)) + "\t" + dataline[i * 2 + 0] + "\t"
+												 + dataline[i * 2 + 1]);
 					// count++;
 				}
 				writer.close();
@@ -189,8 +189,8 @@ public class pdt {
 					dists = reader.readLine().split("[\\s]+");
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ "map" + chrome + ".dat"
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + "map" + chrome + ".dat"
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + "map" + chrome + ".dat" + "\"");
@@ -211,13 +211,13 @@ public class pdt {
 							}
 						}
 						if (avg.equals(".") || sum.equals(".")) {
-							System.err.println("Missing data for marker "	+ markerNames.elementAt(j - 1) + " ("
-																	+ j + ".out)");
+							System.err.println("Missing data for marker " + markerNames.elementAt(j - 1) + " ("
+																 + j + ".out)");
 						}
 						reader.close();
 						posi += Double.parseDouble(j != 1 ? dists[j - 1] : "0");
-						writer.println(markerNames.elementAt(j - 1)	+ "\t" + i + "\t" + posi + "\t" + sum + "\t"
-														+ avg);
+						writer.println(markerNames.elementAt(j - 1) + "\t" + i + "\t" + posi + "\t" + sum + "\t"
+													 + avg);
 
 						reader.close();
 					} catch (Exception e) {
@@ -243,11 +243,11 @@ public class pdt {
 		String dir = DEFAULT_DIR;
 		boolean summarize = true;
 
-		String usage = "\n"	+ "pdt requires 0-1 arguments\n" + "   (1) chromosome (i.e. chr=" + chr
-										+ " (default is all chromosomes))\n" + "   (2) marker increment (i.e. inc="
-										+ markerIncrement + " (default))\n"
-										+ "   (3) template for additional .ped info (i.e. ped=" + template
-										+ " (default))\n" + "";
+		String usage = "\n" + "pdt requires 0-1 arguments\n" + "   (1) chromosome (i.e. chr=" + chr
+									 + " (default is all chromosomes))\n" + "   (2) marker increment (i.e. inc="
+									 + markerIncrement + " (default))\n"
+									 + "   (3) template for additional .ped info (i.e. ped=" + template
+									 + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

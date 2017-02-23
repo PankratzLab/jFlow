@@ -50,9 +50,9 @@ public class CountVector {
 
 	public String[] getValues() {
 		if (order == null) {
-			return Array.toStringArray(v);
+			return ArrayUtils.toStringArray(v);
 		} else {
-			return Array.toStringArray(v, order);
+			return ArrayUtils.toStringArray(v, order);
 		}
 	}
 

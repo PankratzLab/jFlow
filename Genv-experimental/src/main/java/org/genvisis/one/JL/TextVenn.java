@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -22,7 +22,7 @@ public class TextVenn {
 		String[] header = Files.getHeaderOfFile(inputFile, log);
 
 		log.reportTimeInfo("Found " + header.length + " categories in " + inputFile);
-		log.reportTimeInfo(Array.toStr(header));
+		log.reportTimeInfo(ArrayUtils.toStr(header));
 		ArrayList<HashSet<String>> cats = new ArrayList<HashSet<String>>();
 		for (String element : header) {
 			cats.add(new HashSet<String>());
@@ -57,8 +57,8 @@ public class TextVenn {
 		int maxOverlap = 0;
 		for (int i = 0; i < cats.size(); i++) {
 			for (int j = i + 1; j < cats.size(); j++) {
-				comp.add(header[i]	+ "(n=" + cats.get(i).size() + ") vs " + header[j] + " (n= "
-									+ cats.get(j).size() + ")");
+				comp.add(header[i] + "(n=" + cats.get(i).size() + ") vs " + header[j] + " (n= "
+								 + cats.get(j).size() + ")");
 				int overlap = 0;
 				ArrayList<String> tmp = new ArrayList<String>();
 				for (String hit : cats.get(i)) {
@@ -79,8 +79,8 @@ public class TextVenn {
 		String output = ext.addToRoot(inputFile, ".overlapSummary.txt");
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
-			writer.println(Array.toStr(comp.toArray(new String[comp.size()])));
-			writer.println(Array.toStr(compSummary.toArray(new String[compSummary.size()])));
+			writer.println(ArrayUtils.toStr(comp.toArray(new String[comp.size()])));
+			writer.println(ArrayUtils.toStr(compSummary.toArray(new String[compSummary.size()])));
 			for (int i = 0; i < maxOverlap; i++) {
 				for (int j = 0; j < overlaps.size(); j++) {
 					if (overlaps.get(j).size() > 0) {
@@ -106,8 +106,8 @@ public class TextVenn {
 		String logfile = null;
 		Logger log;
 
-		String usage = "\n"	+ "one.JL.Overlapper requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "one.JL.Overlapper requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

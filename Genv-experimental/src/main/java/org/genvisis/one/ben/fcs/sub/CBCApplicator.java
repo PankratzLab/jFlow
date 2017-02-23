@@ -12,7 +12,7 @@ import java.util.HashMap;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -97,8 +97,8 @@ public class CBCApplicator implements Runnable {
 				}
 			}
 		}
-		String[] hdr = Files.getHeaderOfFile(cbcDir	+ files[0], files[0].endsWith(".csv") ? "," : null,
-																					log);
+		String[] hdr = Files.getHeaderOfFile(cbcDir + files[0], files[0].endsWith(".csv") ? "," : null,
+																				 log);
 		if (hdr == null) {
 			log.reportError("couldn't load header of file: " + cbcDir + files[0]);
 			return;
@@ -106,14 +106,13 @@ public class CBCApplicator implements Runnable {
 		panel1DataColumn = ext.indexOfStr(PNL_1_CBC_START, hdr);
 		panel2DataColumns = ext.indexFactors(PNL_2_CBC_COLS, hdr, false, false);
 		if (panel1DataColumn == -1) {
-			log.reportError("missing column "	+ PNL_1_CBC_START + " from CBC file: " + cbcDir
-													+ files[0]);
+			log.reportError("missing column " + PNL_1_CBC_START + " from CBC file: " + cbcDir + files[0]);
 			return;
 		}
-		if (Array.countIf(panel2DataColumns, -1) > 0) {
+		if (ArrayUtils.countIf(panel2DataColumns, -1) > 0) {
 			log.reportError("missing column "
-														+ PNL_2_CBC_COLS[Arrays.asList(panel2DataColumns).indexOf(-1)]
-													+ " CBC file: " + cbcDir + files[0]);
+											+ PNL_2_CBC_COLS[Arrays.asList(panel2DataColumns).indexOf(-1)] + " CBC file: "
+											+ cbcDir + files[0]);
 			return;
 		}
 	}
@@ -130,8 +129,8 @@ public class CBCApplicator implements Runnable {
 		File dataDirFile = new File(dataDir);
 		filesP1 = dataDirFile.list(FILTER_P1);
 		filesP2 = dataDirFile.list(FILTER_P2);
-		log.reportTime("Discovered "	+ filesP1.length + " Panel_1 files and " + filesP2.length
-										+ " Panel_2 files in " + dataDir);
+		log.reportTime("Discovered " + filesP1.length + " Panel_1 files and " + filesP2.length
+									 + " Panel_2 files in " + dataDir);
 	}
 
 	private void runPanel1() {
@@ -222,8 +221,8 @@ public class CBCApplicator implements Runnable {
 		try {
 			line = reader.readLine();
 			delim = file.endsWith("csv") ? "," : ext.determineDelimiter(line);
-			header = delim.equals(",")	? ext.splitCommasIntelligently(line, true, log)
-																	: line.replaceAll("\"", "").split(delim, -1);
+			header = delim.equals(",") ? ext.splitCommasIntelligently(line, true, log)
+																 : line.replaceAll("\"", "").split(delim, -1);
 			outLine = new StringBuilder();
 			for (int i = "".equals(header[0]) ? 1 : 0; i < header.length; i++) {
 				if ("".equals(header[i])) {
@@ -266,9 +265,10 @@ public class CBCApplicator implements Runnable {
 				}
 				cbcCnt = cbcData[panel1DataColumn];
 				if ("NULL".equals(cbcCnt) || "NA".equals(cbcCnt)) {
-					writer.println(id	+ "\t"
-													+ Array.toStr(Array.stringArray(parts.length	- (skipFirstCol ? 2 : 1),
-																													"NaN")));
+					writer.println(id + "\t"
+												 + ArrayUtils.toStr(ArrayUtils.stringArray(parts.length
+																																	 - (skipFirstCol ? 2 : 1),
+																																	 "NaN")));
 				} else {
 					double[] cnts = new double[parts.length - (skipFirstCol ? 2 : 1)];
 					cnts[0] = Double.parseDouble(cbcCnt);
@@ -295,8 +295,8 @@ public class CBCApplicator implements Runnable {
 				}
 			}
 		} catch (IOException e) {
-			log.reportError("Exception occurred while reading file "	+ file
-													+ " - aborting.  Partial output file will be removed.");
+			log.reportError("Exception occurred while reading file " + file
+											+ " - aborting.  Partial output file will be removed.");
 			try {
 				reader.close();
 			} catch (IOException e1) {
@@ -344,8 +344,8 @@ public class CBCApplicator implements Runnable {
 		try {
 			line = reader.readLine();
 			delim = file.endsWith("csv") ? "," : ext.determineDelimiter(line);
-			header = delim.equals(",")	? ext.splitCommasIntelligently(line, true, log)
-																	: line.replaceAll("\"", "").split(delim, -1);
+			header = delim.equals(",") ? ext.splitCommasIntelligently(line, true, log)
+																 : line.replaceAll("\"", "").split(delim, -1);
 			outLine = new StringBuilder();
 			for (int i = 1; i < header.length; i++) {
 				if ("".equals(header[i])) {
@@ -396,9 +396,10 @@ public class CBCApplicator implements Runnable {
 				}
 				cbcCnt = getCBCCountPanel2(cbcData);
 				if (Double.isNaN(cbcCnt)) {
-					writer.println(id	+ "\t"
-													+ Array.toStr(Array.stringArray(parts.length	- (skipFirstCol ? 2 : 1),
-																													"NaN")));
+					writer.println(id + "\t"
+												 + ArrayUtils.toStr(ArrayUtils.stringArray(parts.length
+																																	 - (skipFirstCol ? 2 : 1),
+																																	 "NaN")));
 				} else {
 					double[] cnts = new double[parts.length - (skipFirstCol ? 2 : 1)];
 					cnts[0] = cbcCnt;
@@ -425,8 +426,8 @@ public class CBCApplicator implements Runnable {
 				}
 			}
 		} catch (IOException e) {
-			log.reportError("Exception occurred while reading file "	+ file
-													+ " - aborting.  Partial output file will be removed.");
+			log.reportError("Exception occurred while reading file " + file
+											+ " - aborting.  Partial output file will be removed.");
 			try {
 				reader.close();
 			} catch (IOException e1) {
@@ -463,7 +464,7 @@ public class CBCApplicator implements Runnable {
 
 	private String getOutFile(String file) {
 		return ((outDir == null || "".equals(outDir) || !Files.exists(outDir)) ? dataDir : outDir)
-						+ ext.rootOf(file, true) + "_COUNTS.tab.txt";
+					 + ext.rootOf(file, true) + "_COUNTS.tab.txt";
 	}
 
 	private int getParentIndex(String[] header, String column) {

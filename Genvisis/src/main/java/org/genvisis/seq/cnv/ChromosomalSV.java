@@ -10,7 +10,7 @@ import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerTrain;
@@ -28,8 +28,7 @@ public class ChromosomalSV {
 
 	public static void run(Project proj, int numthreads) {
 		Logger log = proj.getLog();
-		PreparedMarkerSet preparedMarkerSet =
-																				PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
+		PreparedMarkerSet preparedMarkerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
 		String[] samples = proj.getSamples();
 		ChrProducer producer = new ChrProducer(proj, samples, preparedMarkerSet);
 		WorkerTrain<ChrResult[][]> train = new WorkerTrain<ChrResult[][]>(producer, numthreads, 10,
@@ -57,8 +56,8 @@ public class ChromosomalSV {
 			allMedians[i] = Double.NaN;
 			if (summaryMedian.containsKey(i + "") && summaryMedian.get(i + "").size() > 2) {
 				ArrayList<Double> tmp = summaryMedian.get(i + "");
-				double[] d = Array.removeNaN(Doubles.toArray(tmp));
-				allMedians[i] = Array.median(d);
+				double[] d = ArrayUtils.removeNaN(Doubles.toArray(tmp));
+				allMedians[i] = ArrayUtils.median(d);
 			}
 		}
 
@@ -67,15 +66,15 @@ public class ChromosomalSV {
 		String outFile = outDir + "chr.svs.txt";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(outFile));
-			writer.println(Array.toStr(new String[] {"Sample", "Chr", "Median", "TYPE"}));
+			writer.println(ArrayUtils.toStr(new String[] {"Sample", "Chr", "Median", "TYPE"}));
 
 			for (int i = 0; i < allResults.length; i++) {
 				for (int j = 0; j < allResults[i].length; j++) {
 					for (int j2 = 0; j2 < allResults[i][j].length; j2++) {
 						double median = allResults[i][j][j2].getMedian();
 						if (!Double.isNaN(median)) {
-							writer.println(samples[i]	+ "\t" + j + "\t" + median + "\t"
-															+ allResults[i][j][j2].getType());
+							writer.println(samples[i] + "\t" + j + "\t" + median + "\t"
+														 + allResults[i][j][j2].getType());
 						}
 					}
 				}
@@ -88,7 +87,7 @@ public class ChromosomalSV {
 	}
 
 	enum TYPE {
-							LEFT, RIGHT, ALL;
+		LEFT, RIGHT, ALL;
 	}
 
 	private static class ChrResult {
@@ -164,14 +163,14 @@ public class ChromosomalSV {
 
 	}
 
-	private static ChrResult[][] tallyChrs(	Project proj, String sample,
-																					PreparedMarkerSet preparedMarkerSet) {
+	private static ChrResult[][] tallyChrs(Project proj, String sample,
+																				 PreparedMarkerSet preparedMarkerSet) {
 		Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
 		int[] pos = preparedMarkerSet.getPositions();
 		int[][] boundaries = Positions.determineCentromereBoundariesFromMarkerSet(preparedMarkerSet.getChrs(),
 																																							preparedMarkerSet.getPositions(),
 																																							37, proj.getLog());
-		double[] lrrs = Array.toDoubleArray(samp.getLRRs());
+		double[] lrrs = ArrayUtils.toDoubleArray(samp.getLRRs());
 		ChrResult[][] results = new ChrResult[preparedMarkerSet.getIndicesByChr().length][3];
 		String[] markerNames = preparedMarkerSet.getMarkerNames();
 		for (int i = 0; i < preparedMarkerSet.getIndicesByChr().length; i++) {
@@ -211,11 +210,11 @@ public class ChromosomalSV {
 		double mad = Double.NaN;
 		double stDev = Double.NaN;
 		if (indices.length > 0) {
-			double[] subLrr = Array.removeNaN(Array.subArray(lrrs, indices));
+			double[] subLrr = ArrayUtils.removeNaN(ArrayUtils.subArray(lrrs, indices));
 			if (subLrr.length > 2) {
-				median = Array.median(subLrr);
-				mad = Array.mad(subLrr);
-				stDev = Array.stdev(subLrr);
+				median = ArrayUtils.median(subLrr);
+				mad = ArrayUtils.mad(subLrr);
+				stDev = ArrayUtils.stdev(subLrr);
 			}
 		}
 		ChrResult chrResult = new ChrResult(chr, median, mad, stDev, type);
@@ -227,8 +226,8 @@ public class ChromosomalSV {
 		String filename = null;
 		int numthreads = 7;
 
-		String usage = "\n"	+ "seq.cnv.ChromosomalSV requires 0-1 arguments\n"
-										+ "   (1) proj (i.e. proj=" + filename + " (default))\n" + "";
+		String usage = "\n" + "seq.cnv.ChromosomalSV requires 0-1 arguments\n"
+									 + "   (1) proj (i.e. proj=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

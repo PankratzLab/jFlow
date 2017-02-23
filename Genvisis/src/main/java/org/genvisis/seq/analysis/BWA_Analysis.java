@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -224,7 +224,8 @@ public class BWA_Analysis {
 				lane = split[split.length - 3];
 				batch = split[split.length - 1];
 				barcode = split[split.length - 4];
-				ID = Array.toStr(Array.subArray(split, 0, split.length - 4), SPLIT);// we do not include
+				ID = ArrayUtils.toStr(ArrayUtils.subArray(split, 0, split.length - 4), SPLIT);// we do not
+																																											// include
 																																						// barcode in the id,
 																																						// instead adding it to
 																																						// the RG
@@ -376,7 +377,8 @@ public class BWA_Analysis {
 		for (int i = 0; i < allFilesMatched.length; i++) {
 			allFilesMatched[i] = bwAnalysisIndividuals[i].getAvailableFiles("\t");
 		}
-		String[][] batchedMatchedFiles = Array.splitUpStringArray(allFilesMatched, numBatches, log);
+		String[][] batchedMatchedFiles = ArrayUtils.splitUpStringArray(allFilesMatched, numBatches,
+																																	 log);
 
 		String[][] batches = new String[batchedMatchedFiles.length][1];
 		for (int i = 0; i < batches.length; i++) {
@@ -485,11 +487,11 @@ public class BWA_Analysis {
 					if (fileNameParser1.isValid() && fileNameParser2.isValid()) {
 						if (!fileNameParser1.getLane().equals(fileNameParser2.getLane())) {
 							log.reportError("Warning - the determined lane for the two samples "
-																+ Array.toStr(line)
+															+ ArrayUtils.toStr(line)
 															+ " did not match up, please make sure this is what you want to do");
 						}
 						if (!fileNameParser1.getID().equals(fileNameParser2.getID())) {
-							log.reportError("the determined root ID for the two samples "	+ Array.toStr(line)
+							log.reportError("the determined root ID for the two samples "	+ ArrayUtils.toStr(line)
 															+ " did not match up");
 							fail = true;
 						} else {
@@ -575,7 +577,7 @@ public class BWA_Analysis {
 				}
 				if (currIndex != bwAnalysisIndividuals.length) {
 					log.reportError("could not match all files for input set\n"
-													+ Array.toStr(inputFiles, "\n"));
+													+ ArrayUtils.toStr(inputFiles, "\n"));
 					fail = true;
 				}
 			}
@@ -616,9 +618,9 @@ public class BWA_Analysis {
 													int numBatches, int memoryInMB, int wallTimeInHours, String baseName,
 													Logger log) {
 		BWA bwa = new BWA(bwaLocation, overwriteExisting, verbose, log);
-		BWA_Analysis bwa_Analysis =
-															new BWA_Analysis(	rootInputDir, rootOutputDir, referenceGenomeFasta,
-																								verbose, numMemThreads, numSampleThreads, bwa, log);
+		BWA_Analysis bwa_Analysis = new BWA_Analysis(rootInputDir, rootOutputDir, referenceGenomeFasta,
+																								 verbose, numMemThreads, numSampleThreads, bwa,
+																								 log);
 		bwa_Analysis.init(fileOfSamplePairs);
 		if (batch) {
 			bwa_Analysis.batch(numBatches, memoryInMB, wallTimeInHours, baseName);
@@ -686,8 +688,8 @@ public class BWA_Analysis {
 							+ numBatches + " (the default))\n" + "";
 		usage += "   (11) over-write exsiting files (i.e. "	+ OVERWRITE_EXISTING_COMMAND
 							+ " (not the default))\n" + "";
-		usage +=
-					"   (11) base-name for batch analysis (i.e. " + BASE_NAME_COMMAND + " (default))\n" + "";
+		usage += "   (11) base-name for batch analysis (i.e. " + BASE_NAME_COMMAND + " (default))\n"
+						 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

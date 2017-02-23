@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Sort;
@@ -17,8 +17,8 @@ import org.genvisis.common.ext;
 import org.genvisis.park.CheckIDsAgainstDNAs;
 
 public class CleanupSNPresults {
-	public static final String[][] REQS = {	{"plate"}, {"well"}, {"dna"}, {"FamInd"}, {"result"},
-																					{"call"}};
+	public static final String[][] REQS = {{"plate"}, {"well"}, {"dna"}, {"FamInd"}, {"result"},
+																				 {"call"}};
 
 	public static final String[] MISSING_CALL_CODES = {"undetermined", "lost"};
 
@@ -43,24 +43,24 @@ public class CleanupSNPresults {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
-			indices = ext.indexFactors(	REQS, reader.readLine().trim().split("\t", -1), false, false, true,
-																	true);
+			indices = ext.indexFactors(REQS, reader.readLine().trim().split("\t", -1), false, false, true,
+																 true);
 			while (reader.ready()) {
 				line = reader.readLine().toUpperCase().split("\t", -1);
 				checkLine = check.checkPair(line[indices[3]], line[indices[2]], false).split("[\\s]+");
 				if (checkLine[0].equals("yearbug")) {
 					// line[indices[2]] = checkLine[1];
-					System.err.println("  " + Array.toStr(checkLine));
+					System.err.println("  " + ArrayUtils.toStr(checkLine));
 
 				}
 				if (line[indices[0]].trim().equals("")) {
 					line[indices[0]] = "unlisted";
 				}
-				HashVec.addToHashVec(	hash,
-															line[indices[3]],
-															line[indices[2]]	+ "\t" + line[indices[4]] + "\t" + line[indices[5]]
-																								+ "\t" + line[indices[0]] + "\t" + line[indices[1]],
-															false);
+				HashVec.addToHashVec(hash,
+														 line[indices[3]],
+														 line[indices[2]] + "\t" + line[indices[4]] + "\t" + line[indices[5]]
+																							 + "\t" + line[indices[0]] + "\t" + line[indices[1]],
+														 false);
 				vicfam.add(line[indices[4]] + " (" + line[indices[5]] + ")");
 			}
 			reader.close();
@@ -68,7 +68,7 @@ public class CleanupSNPresults {
 			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_clean.xln"));
 			writer.println("FamInd\tDNA\tResult\tCall\tPlate\tWell\t2nd_DNA\t2nd_Result\t2nd_Call\t2nd_Plate\t2nd_Well\t...");
 			hashKeys = HashVec.getKeys(hash);
-			keys = Sort.getSortedIndices(Array.toIntArray(hashKeys));
+			keys = Sort.getSortedIndices(ArrayUtils.toIntArray(hashKeys));
 			for (int i = 0; i < hashKeys.length; i++) {
 				v = hash.get(hashKeys[keys[i]]);
 				best = -1;
@@ -81,8 +81,8 @@ public class CleanupSNPresults {
 						if (call.equals("nada")) {
 							call = line[1] + "/" + line[2];
 						} else if (!call.equals(line[1] + "/" + line[2])) {
-							System.err.println("Error - discrepant calls for "	+ hashKeys[keys[i]] + " (" + call
-																	+ " and " + line[1] + "/" + line[2] + ")");
+							System.err.println("Error - discrepant calls for " + hashKeys[keys[i]] + " (" + call
+																 + " and " + line[1] + "/" + line[2] + ")");
 						}
 						checkLine = check.checkPair(hashKeys[keys[i]], line[0], false).split("[\\s]+");
 						if (!checkLine[0].equals("yearbug")) {
@@ -93,7 +93,7 @@ public class CleanupSNPresults {
 				if (best >= 0) {
 					v.insertElementAt(v.remove(best), 0);
 				}
-				writer.println(hashKeys[keys[i]] + "\t" + Array.toStr(Array.toStringArray(v)));
+				writer.println(hashKeys[keys[i]] + "\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(v)));
 			}
 			writer.close();
 
@@ -115,9 +115,9 @@ public class CleanupSNPresults {
 		String dir = DEFAULT_DIRECTORY;
 		String filename = DEFAULT_FILENAME;
 
-		String usage = "\\n"	+ "kaput.CleanupSNPresults requires 0-1 arguments\n"
-										+ "   (1) directory (i.e. dir=" + dir + " (default))\n"
-										+ "   (2) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\\n" + "kaput.CleanupSNPresults requires 0-1 arguments\n"
+									 + "   (1) directory (i.e. dir=" + dir + " (default))\n"
+									 + "   (2) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

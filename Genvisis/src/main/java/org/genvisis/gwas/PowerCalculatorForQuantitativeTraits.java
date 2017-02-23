@@ -5,7 +5,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Map;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Internat;
 import org.genvisis.common.Matrix;
@@ -18,9 +18,9 @@ public class PowerCalculatorForQuantitativeTraits {
 	// 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50};
 	// public static final double[] MAFs = {0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.15, 0.20, 0.25,
 	// 0.30, 0.40, 0.50};
-	public static final double[] MAFs = {	0.0001, 0.0002, 0.0004, 0.0005, 0.0007, 0.001, 0.002, 0.004,
-																				0.005, 0.007, 0.01, 0.02, 0.04, 0.05, 0.07, 0.10, 0.20,
-																				0.40, 0.50}; //
+	public static final double[] MAFs = {0.0001, 0.0002, 0.0004, 0.0005, 0.0007, 0.001, 0.002, 0.004,
+																			 0.005, 0.007, 0.01, 0.02, 0.04, 0.05, 0.07, 0.10, 0.20, 0.40,
+																			 0.50}; //
 	public static final double[] ALPHAS = {0.05, 0.01, 0.0000025, 0.000000227, 0.00000005};
 	public static final double[] SIGMAS = {0.10, 0.20, 0.40, 0.60, 0.80, 1.00};
 	public static final double[] VARIANCES_EXPLAINED = {0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005,
@@ -94,7 +94,7 @@ public class PowerCalculatorForQuantitativeTraits {
 
 		found = false;
 		index = 20;
-		array = Array.intArray(10000, -1);
+		array = ArrayUtils.intArray(10000, -1);
 		while (!found) {
 			varianceExplained = 1 + index * VARIANCE_INCREMENT;
 			if (array[index] == -1) {
@@ -133,9 +133,9 @@ public class PowerCalculatorForQuantitativeTraits {
 			// System.out.println(MAFs[mafIndex]+"\t"+getSampleSize(prevalence, 1.6, MAFs[mafIndex],
 			// numCases, numControls, alpha, false));
 			varianceExplained = getVarianceExplainedAtEightyPercentPower(maf, sampleSize, alpha);
-			System.out.println(maf	+ "\t"
-													+ (varianceExplained == -9	? "failed"
-																											: ext.formDeci(varianceExplained, 2)));
+			System.out.println(maf + "\t"
+												 + (varianceExplained == -9 ? "failed"
+																										: ext.formDeci(varianceExplained, 2)));
 		}
 	}
 
@@ -230,7 +230,7 @@ public class PowerCalculatorForQuantitativeTraits {
 		}
 		// System.out.println();
 
-		return new double[] {Array.mean(rsqs), Array.mean(power)};
+		return new double[] {ArrayUtils.mean(rsqs), ArrayUtils.mean(power)};
 	}
 
 	public static void rangeOfSigmaShiftsAndMAFsViaSimulation(int n, int numReps,
@@ -254,8 +254,8 @@ public class PowerCalculatorForQuantitativeTraits {
 			System.out.print(maf);
 			for (double element : SIGMAS) {
 				meanRsqAndPower = determineMeanRsqAndPower(n, element, maf, numReps, alpha);
-				System.out.print("\t"	+ ext.formDeci(meanRsqAndPower[0], 4, true) + ";"
-													+ (int) (meanRsqAndPower[1] * 100) + "%");
+				System.out.print("\t" + ext.formDeci(meanRsqAndPower[0], 4, true) + ";"
+												 + (int) (meanRsqAndPower[1] * 100) + "%");
 			}
 			System.out.println();
 		}
@@ -282,8 +282,8 @@ public class PowerCalculatorForQuantitativeTraits {
 			System.out.print(maf);
 			for (double element : SIGMAS) {
 				meanRsqAndPower = determineMeanRsqAndPower(n, element, maf, numReps, alpha);
-				System.out.print("\t"	+ ext.formDeci(meanRsqAndPower[0], 4, true) + ";"
-													+ (int) (meanRsqAndPower[1] * 100) + "%");
+				System.out.print("\t" + ext.formDeci(meanRsqAndPower[0], 4, true) + ";"
+												 + (int) (meanRsqAndPower[1] * 100) + "%");
 			}
 			System.out.println();
 		}
@@ -294,8 +294,8 @@ public class PowerCalculatorForQuantitativeTraits {
 		int numArgs = args.length;
 		String filename = "PowerCalculator.dat";
 
-		String usage = "\n"	+ "gwas.PowerCalculator requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "gwas.PowerCalculator requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

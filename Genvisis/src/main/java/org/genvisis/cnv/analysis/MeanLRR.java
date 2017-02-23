@@ -15,7 +15,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.Transforms;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -67,7 +67,7 @@ public class MeanLRR {
 		components = Vectors.initializedArray(IntVector.class, regions.length);
 		for (int i = 0; i < positions.length; i++) {
 			for (int j = 0; j < regions.length; j++) {
-				if (chrs[i] == regions[j].getChr()	&& positions[i] >= regions[j].getStart()
+				if (chrs[i] == regions[j].getChr() && positions[i] >= regions[j].getStart()
 						&& positions[i] <= regions[j].getStop()) {
 					if (hash.containsKey(markerNames[i])) {
 						log.report(markerNames[i] + " was filtered out");
@@ -83,14 +83,14 @@ public class MeanLRR {
 			numberOfMarkers[i] = indices[i].length;
 		}
 
-		transChrs = Array.booleanArray(27, false);
+		transChrs = ArrayUtils.booleanArray(27, false);
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()	+ "MarkersIn_"
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "MarkersIn_"
 																							+ ext.rootOf(regionsFile) + ".xln"));
 			for (int i = 0; i < regions.length; i++) {
-				writer.print(regions[i].getUCSClocation()	+ "\t" + numberOfMarkers[i] + "\t"
-											+ regions[i].getChr() + "\t" + regions[i].getStart() + "\t"
-											+ regions[i].getStop());
+				writer.print(regions[i].getUCSClocation() + "\t" + numberOfMarkers[i] + "\t"
+										 + regions[i].getChr() + "\t" + regions[i].getStart() + "\t"
+										 + regions[i].getStop());
 				transChrs[regions[i].getChr()] = true;
 				for (int j = 0; j < indices[i].length; j++) {
 					writer.print("\t" + markerNames[indices[i][j]]);
@@ -134,11 +134,10 @@ public class MeanLRR {
 			}
 		}
 
-		new MeanLRRset(	sampleList.getFingerprint(), regions, numberOfMarkers,
-										data, Transforms.TRANFORMATIONS).serialize(
-																																proj.PROJECT_DIRECTORY.getValue()
-																																	+ ext.rootOf(regionsFile)
-																																+ ".mlrr");
+		new MeanLRRset(sampleList.getFingerprint(), regions, numberOfMarkers,
+									 data, Transforms.TRANFORMATIONS).serialize(
+																															proj.PROJECT_DIRECTORY.getValue()
+																															+ ext.rootOf(regionsFile) + ".mlrr");
 	}
 
 	public static void createFilesFromMarkerData(Project proj, String regionsFile) {
@@ -176,7 +175,7 @@ public class MeanLRR {
 		components = new Hashtable<String, Vector<String>>();
 		for (int i = 0; i < positions.length; i++) {
 			for (int j = 0; j < regions.length; j++) {
-				if (chrs[i] == regions[j].getChr()	&& positions[i] >= regions[j].getStart()
+				if (chrs[i] == regions[j].getChr() && positions[i] >= regions[j].getStart()
 						&& positions[i] <= regions[j].getStop()) {
 					if (hash.containsKey(markerNames[i])) {
 						log.report(markerNames[i] + " was filtered out");
@@ -191,19 +190,19 @@ public class MeanLRR {
 		samples = sampleList.getSamples();
 		numberOfMarkers = new int[regions.length];
 		data = new float[regions.length][samples.length][1]; // only mean will be computed; no
-																													// normalization
+																												 // normalization
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()	+ "MarkersIn_"
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "MarkersIn_"
 																							+ ext.rootOf(regionsFile) + ".xln"));
 			for (int i = 0; i < regions.length; i++) {
-				markerNames = Array.toStringArray(components.get(i + ""));
+				markerNames = ArrayUtils.toStringArray(components.get(i + ""));
 				numberOfMarkers[i] = markerNames.length;
-				writer.println(regions[i].getUCSClocation()	+ "\t" + markerNames.length + "\t"
-												+ regions[i].getChr() + "\t" + regions[i].getStart() + "\t"
-												+ regions[i].getStop() + "\t" + Array.toStr(markerNames));
+				writer.println(regions[i].getUCSClocation() + "\t" + markerNames.length + "\t"
+											 + regions[i].getChr() + "\t" + regions[i].getStart() + "\t"
+											 + regions[i].getStop() + "\t" + ArrayUtils.toStr(markerNames));
 				log.report("Computing mean Log R ratios for: " + regions[i].getUCSClocation());
-				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(	proj,
-																																										markerNames);
+				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+																																									 markerNames);
 				counts = new int[samples.length];
 				for (int j = 0; j < markerNames.length; j++) {
 					markerData = markerDataLoader.requestMarkerData(j);
@@ -229,11 +228,11 @@ public class MeanLRR {
 			e.printStackTrace();
 		}
 
-		new MeanLRRset(	sampleList.getFingerprint(), regions, numberOfMarkers,
-										data, new String[] {Transforms.TRANFORMATIONS[0]}).serialize(
-																																									proj.PROJECT_DIRECTORY.getValue()
-																																										+ ext.rootOf(regionsFile)
-																																									+ ".mlrr");
+		new MeanLRRset(sampleList.getFingerprint(), regions, numberOfMarkers,
+									 data, new String[] {Transforms.TRANFORMATIONS[0]}).serialize(
+																																								proj.PROJECT_DIRECTORY.getValue()
+																																								+ ext.rootOf(regionsFile)
+																																								+ ".mlrr");
 	}
 
 	public static void analyze(Project proj, String phenotype, String mlrrSetFile) {
@@ -278,7 +277,7 @@ public class MeanLRR {
 		numberOfMarkers = mlrrSet.getNumerOfMarkersPerRegion();
 		if (mlrrSet.getSampleFingerprint() != sampleList.getFingerprint()) {
 			log.reportError("Error - the SampleList fingerprint for the MeanLRRset ("
-												+ mlrrSet.getSampleFingerprint()
+											+ mlrrSet.getSampleFingerprint()
 											+ ") does not match the Project's SampleList fingerprint ("
 											+ sampleList.getFingerprint() + ")");
 			return;
@@ -289,22 +288,22 @@ public class MeanLRR {
 																							+ ext.rootOf(mlrrSetFile) + ".xln"));
 			writer.println("Region\tNumberOfMarkersInRegion\tChr\tStart\tStop\tBeta\tOR\tStat\tp-value");
 			for (int i = 0; i < regions.length; i++) {
-				writer.print(regions[i].getUCSClocation()	+ "\t" + numberOfMarkers[i] + "\t"
-											+ regions[i].getChr() + "\t" + regions[i].getStart() + "\t"
-											+ regions[i].getStop());
+				writer.print(regions[i].getUCSClocation() + "\t" + numberOfMarkers[i] + "\t"
+										 + regions[i].getChr() + "\t" + regions[i].getStart() + "\t"
+										 + regions[i].getStop());
 				if (numberOfMarkers[i] > 0) {
-					model = RegressionModel.determineAppropriate(	pheno,
-																												Doubles.toArray(Floats.asList(Matrix.extractColumn(	data[i],
-																																																						0))),
-																												false, false);
+					model = RegressionModel.determineAppropriate(pheno,
+																											 Doubles.toArray(Floats.asList(Matrix.extractColumn(data[i],
+																																																					0))),
+																											 false, false);
 					if (model.analysisFailed()) {
 						writer.println("\t.\t.\t.\t.");
 					} else {
-						writer.println("\t"	+ ext.formDeci(model.getBetas()[1], 5) + "\t"
-														+ (model.isLogistic()	? ext.formDeci(Math.exp(model.getBetas()[1]), 3)
-																									: ".")
-														+ "\t" + ext.formDeci(model.getStats()[1], 3) + "\t"
-														+ ext.prettyP(model.getSigs()[1]));
+						writer.println("\t" + ext.formDeci(model.getBetas()[1], 5) + "\t"
+													 + (model.isLogistic() ? ext.formDeci(Math.exp(model.getBetas()[1]), 3)
+																								 : ".")
+													 + "\t" + ext.formDeci(model.getStats()[1], 3) + "\t"
+													 + ext.prettyP(model.getSigs()[1]));
 					}
 				} else {
 					writer.println("\t.\t.\t.\t.");
@@ -349,7 +348,7 @@ public class MeanLRR {
 		regions = mlrrSet.getRegions();
 		if (mlrrSet.getSampleFingerprint() != sampleList.getFingerprint()) {
 			log.reportError("Error - the SampleList fingerprint for the MeanLRRset ("
-												+ mlrrSet.getSampleFingerprint()
+											+ mlrrSet.getSampleFingerprint()
 											+ ") does not match the Project's SampleList fingerprint ("
 											+ sampleList.getFingerprint() + ")");
 			return;
@@ -367,8 +366,8 @@ public class MeanLRR {
 																								+ ext.rootOf(mlrrSetFile) + "_dump.xln"));
 			} else {
 				writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																									+ ext.replaceAllWith(	regionToDumpOrNullForAll, ":",
-																																			"_")
+																								+ ext.replaceAllWith(regionToDumpOrNullForAll, ":",
+																																		 "_")
 																								+ ".xln"));
 
 				for (int i = 0; i < regions.length; i++) {
@@ -377,7 +376,7 @@ public class MeanLRR {
 					}
 				}
 				if (index == -1) {
-					log.reportError("Error - Region flagged to be dumped ("	+ regionToDumpOrNullForAll
+					log.reportError("Error - Region flagged to be dumped (" + regionToDumpOrNullForAll
 													+ ") was not found in the MeanLRRset's regions list");
 					return;
 				}
@@ -391,30 +390,31 @@ public class MeanLRR {
 			for (Segment region : regions) {
 				if (transformationToUse == -1) {
 					for (String transformation : transformations) {
-						writer.print("\t"	+ region.getUCSClocation() + "_"
-													+ ext.replaceWithLinuxSafeCharacters(transformation, false));
+						writer.print("\t" + region.getUCSClocation() + "_"
+												 + ext.replaceWithLinuxSafeCharacters(transformation, false));
 					}
 				} else {
-					writer.print("\t"	+ region.getUCSClocation() + "_"
-												+ ext.replaceWithLinuxSafeCharacters(	transformations[transformationToUse],
-																															false));
+					writer.print("\t" + region.getUCSClocation() + "_"
+											 + ext.replaceWithLinuxSafeCharacters(transformations[transformationToUse],
+																														false));
 				}
 			}
 			writer.println();
 			for (int i = 0; i < samples.length; i++) {
-				writer.print(samples[i]	+ "\t"
-											+ (hash.containsKey(samples[i])	? hash.get(samples[i])
-																											: Array.stringArray(phenotypes.length, ".")));
+				writer.print(samples[i] + "\t"
+										 + (hash.containsKey(samples[i]) ? hash.get(samples[i])
+																										 : ArrayUtils.stringArray(phenotypes.length,
+																																							".")));
 				if (regionToDumpOrNullForAll == null) {
 					for (int j = 0; j < regions.length; j++) {
 						if (transformationToUse == -1) {
-							writer.print("\t" + Array.toStr(data[j][i]));
+							writer.print("\t" + ArrayUtils.toStr(data[j][i]));
 						} else {
 							writer.print("\t" + data[j][i][transformationToUse]);
 						}
 					}
 				} else {
-					writer.print("\t" + Array.toStr(data[index][i]));
+					writer.print("\t" + ArrayUtils.toStr(data[index][i]));
 				}
 				writer.println();
 			}
@@ -445,7 +445,7 @@ public class MeanLRR {
 
 		if (params != null) {
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 
@@ -498,22 +498,22 @@ public class MeanLRR {
 
 		Project proj;
 
-		String usage = "\n"	+ "cnv.analysis.MeanLRR requires 0-1 arguments\n" + ""
-										+ "   (1) project properties filename (i.e. proj="
-										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-										+ "   (2) filename of the regions in UCSC format (chr8:25129632-25130278) (i.e. regions="
-										+ regions + " (default))\n"
-										+ "   (3) phenotype in SampleData.txt; delimit with a comma for export, only first will be analyzed (i.e. pheno="
-										+ Array.toStr(phenotypes, ",") + " (default))\n"
-										+ "   (4) compute transforms as well (takes much much longer) (i.e. transform=false (default))\n"
-										+ "   (5) run a regression model using the first phenotype (i.e. analyze=false (default))\n"
-										+ "  ADD the following if you want to dump the data to a text file\n"
-										+ "   (6) dump all regions for a particular transformation (i.e. dumpAll="
-										+ dumpAll + " (default))\n"
-										+ "   (7) the index of the transformation to export or -1 for all (i.e. transIndex="
-										+ transIndex + " (default))\n" + "  OR:\n"
-										+ "   (6) dump all transformations for a particular region (i.e. dump=chr8:25129632-25130278 (not the default))\n"
-										+ "";
+		String usage = "\n" + "cnv.analysis.MeanLRR requires 0-1 arguments\n" + ""
+									 + "   (1) project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + "   (2) filename of the regions in UCSC format (chr8:25129632-25130278) (i.e. regions="
+									 + regions + " (default))\n"
+									 + "   (3) phenotype in SampleData.txt; delimit with a comma for export, only first will be analyzed (i.e. pheno="
+									 + ArrayUtils.toStr(phenotypes, ",") + " (default))\n"
+									 + "   (4) compute transforms as well (takes much much longer) (i.e. transform=false (default))\n"
+									 + "   (5) run a regression model using the first phenotype (i.e. analyze=false (default))\n"
+									 + "  ADD the following if you want to dump the data to a text file\n"
+									 + "   (6) dump all regions for a particular transformation (i.e. dumpAll="
+									 + dumpAll + " (default))\n"
+									 + "   (7) the index of the transformation to export or -1 for all (i.e. transIndex="
+									 + transIndex + " (default))\n" + "  OR:\n"
+									 + "   (6) dump all transformations for a particular region (i.e. dump=chr8:25129632-25130278 (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -567,12 +567,12 @@ public class MeanLRR {
 			}
 			if (dumpAll) {
 				log.report("Dumping all regions");
-				dump(	proj, phenotypes, proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(regions) + ".mlrr",
-							null, transIndex);
+				dump(proj, phenotypes, proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(regions) + ".mlrr",
+						 null, transIndex);
 			} else if (dump != null) {
 				log.report("Dumping " + dump);
-				dump(	proj, phenotypes, proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(regions) + ".mlrr",
-							dump, -1);
+				dump(proj, phenotypes, proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(regions) + ".mlrr",
+						 dump, -1);
 			}
 			if (analyze) {
 				log.report("Analyzing " + regions + " using " + phenotypes[0]);

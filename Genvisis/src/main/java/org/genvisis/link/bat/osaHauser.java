@@ -27,16 +27,16 @@ public class osaHauser {
 			}
 
 			writer = new PrintWriter(new FileWriter("chrom" + chrome + "/seeds"));
-			writer.println((int) (Math.random() * 10000)	+ "\t" + (int) (Math.random() * 10000) + "\t"
-											+ (int) (Math.random() * 10000));
+			writer.println((int) (Math.random() * 10000) + "\t" + (int) (Math.random() * 10000) + "\t"
+										 + (int) (Math.random() * 10000));
 			writer.close();
 
 			Calendar calendar = new GregorianCalendar();
 			writer = new PrintWriter(new FileWriter("chrom" + chrome + "/summary"));
 			writer.println((new File(".")).getAbsolutePath());
-			writer.println(calendar.get(Calendar.MONTH)	+ "/" + calendar.get(Calendar.DAY_OF_MONTH) + "/"
-											+ calendar.get(Calendar.YEAR) + " at " + calendar.get(Calendar.HOUR_OF_DAY)
-											+ ":" + calendar.get(Calendar.MINUTE));
+			writer.println(calendar.get(Calendar.MONTH) + "/" + calendar.get(Calendar.DAY_OF_MONTH) + "/"
+										 + calendar.get(Calendar.YEAR) + " at " + calendar.get(Calendar.HOUR_OF_DAY)
+										 + ":" + calendar.get(Calendar.MINUTE));
 			writer.println("npankrat");
 			writer.println("morton");
 			writer.println(chromosome + "   " + filename);

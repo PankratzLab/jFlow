@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.genvisis.CLI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -29,7 +29,7 @@ public class DeNovoPValParser {
 		CLI c = new CLI(PennCNVFamilies.class);
 		c.addArg(trioOut, "A .trio.cnv file from running the cnvTrio QC metrics", true);
 		c.addArg(denovoDir,
-		         "A directory containing .gen and .log files from the de novo PennCNV output", true);
+						 "A directory containing .gen and .log files from the de novo PennCNV output", true);
 
 		c.parseWithExit(args);
 
@@ -50,18 +50,20 @@ public class DeNovoPValParser {
 			String[] trioHeader = reader.readLine().split("\t");
 			String[] outHeader = Arrays.copyOf(trioHeader, trioHeader.length + 3);
 			outHeader[trioHeader.length] = "FA_ORIGIN";
-			outHeader[trioHeader.length+1] = "MO_ORIGIN";
-			outHeader[trioHeader.length+2] = "P-Val";
-			writer.println(Array.toStr(outHeader, "\t"));
-			int[] idxs = ext.indexFactors(new String[]{"FID", "IID", "CHR", "BP1", "BP2"}, trioHeader, true, false);
-			String[] colsOfInterest = new String[]{"Paternal_origin(F)=", "Maternal_origin(M)=", "P-value="};
+			outHeader[trioHeader.length + 1] = "MO_ORIGIN";
+			outHeader[trioHeader.length + 2] = "P-Val";
+			writer.println(ArrayUtils.toStr(outHeader, "\t"));
+			int[] idxs = ext.indexFactors(new String[] {"FID", "IID", "CHR", "BP1", "BP2"}, trioHeader,
+																		true, false);
+			String[] colsOfInterest = new String[] {"Paternal_origin(F)=", "Maternal_origin(M)=",
+																							"P-value="};
 
 			while (reader.ready()) {
 				String[] line = reader.readLine().split("\t");
 				String[] lineOut = Arrays.copyOf(line, line.length + 3);
 				Arrays.fill(lineOut, line.length, lineOut.length, ".");
 				String key = line[idxs[0]];
-				for (int i=1; i<idxs.length; i++) {
+				for (int i = 1; i < idxs.length; i++) {
 					key += "_" + line[idxs[i]];
 				}
 				key += ".log";
@@ -74,7 +76,7 @@ public class DeNovoPValParser {
 						if (dnvLine.contains(colsOfInterest[0])) {
 							String[] dnvSplit = dnvLine.split(" ");
 							int[] outIdxs = ext.indexFactors(colsOfInterest, dnvSplit, true, false);
-							for (int i=0; i<outIdxs.length; i++) {
+							for (int i = 0; i < outIdxs.length; i++) {
 								lineOut[line.length + i] = dnvSplit[outIdxs[i] + 1];
 							}
 							foundPval = true;
@@ -82,7 +84,7 @@ public class DeNovoPValParser {
 					}
 					dnvReader.close();
 				}
-				writer.println(Array.toStr(lineOut, "\t"));
+				writer.println(ArrayUtils.toStr(lineOut, "\t"));
 			}
 
 			writer.close();
@@ -103,7 +105,7 @@ public class DeNovoPValParser {
 	private static Map<String, File> getLogs(String denovoDir) {
 		Map<String, File> m = new HashMap<String, File>();
 		File[] files = new File(denovoDir).listFiles(new FilenameFilter() {
-			
+
 			@Override
 			public boolean accept(File dir, String name) {
 				return name.endsWith(".log");
@@ -112,7 +114,7 @@ public class DeNovoPValParser {
 
 		for (File f : files) {
 			m.put(f.getName(), f);
-			
+
 		}
 
 		return m;

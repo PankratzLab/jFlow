@@ -29,13 +29,13 @@ public class bootstrapSNP {
 
 		bootstrapped = Bootstrap(hash);
 
-		System.out.println("bootstrapped mean (95% CI):\t"	+ ext.formDeci(bootstrapped[0], 4, true)
-												+ " (" + ext.formDeci(bootstrapped[1], 4, true) + ","
-												+ ext.formDeci(bootstrapped[2], 4, true) + ")");
+		System.out.println("bootstrapped mean (95% CI):\t" + ext.formDeci(bootstrapped[0], 4, true)
+											 + " (" + ext.formDeci(bootstrapped[1], 4, true) + ","
+											 + ext.formDeci(bootstrapped[2], 4, true) + ")");
 		System.out.println("corresponding p-values:\t"
-													+ ext.formDeci(ProbDist.ChiDist(bootstrapped[0], 1), 4, true) + " ("
-												+ ext.formDeci(ProbDist.ChiDist(bootstrapped[1], 1), 4, true) + ","
-												+ ext.formDeci(ProbDist.ChiDist(bootstrapped[2], 1), 4, true) + ")");
+											 + ext.formDeci(ProbDist.ChiDist(bootstrapped[0], 1), 4, true) + " ("
+											 + ext.formDeci(ProbDist.ChiDist(bootstrapped[1], 1), 4, true) + ","
+											 + ext.formDeci(ProbDist.ChiDist(bootstrapped[2], 1), 4, true) + ")");
 		System.out.println();
 
 	}
@@ -98,38 +98,38 @@ public class bootstrapSNP {
 
 		bootstrapped = Bootstrap(hash22);
 		writer.println("average chi square for the 22 genotype:\t"
-										+ ext.formDeci(sums[6] / count, 4, true));
-		writer.println("\t\tbootstrapped mean (95% CI):\t"	+ ext.formDeci(bootstrapped[0], 4, true)
-										+ " (" + ext.formDeci(bootstrapped[1], 4, true) + ","
-										+ ext.formDeci(bootstrapped[2], 4, true) + ")");
+									 + ext.formDeci(sums[6] / count, 4, true));
+		writer.println("\t\tbootstrapped mean (95% CI):\t" + ext.formDeci(bootstrapped[0], 4, true)
+									 + " (" + ext.formDeci(bootstrapped[1], 4, true) + ","
+									 + ext.formDeci(bootstrapped[2], 4, true) + ")");
 		writer.println("\t\tcorresponding p-values:\t"
-											+ ext.formDeci(ProbDist.ChiDist(bootstrapped[0], 1), 4, true) + " ("
-										+ ext.formDeci(ProbDist.ChiDist(bootstrapped[1], 1), 4, true) + ","
-										+ ext.formDeci(ProbDist.ChiDist(bootstrapped[2], 1), 4, true) + ")");
+									 + ext.formDeci(ProbDist.ChiDist(bootstrapped[0], 1), 4, true) + " ("
+									 + ext.formDeci(ProbDist.ChiDist(bootstrapped[1], 1), 4, true) + ","
+									 + ext.formDeci(ProbDist.ChiDist(bootstrapped[2], 1), 4, true) + ")");
 		writer.println();
 
 		bootstrapped = Bootstrap(hash12);
 		writer.println("average chi square for the 12 genotype:\t"
-										+ ext.formDeci(sums[7] / count, 4, true));
-		writer.println("\t\tbootstrapped mean (95% CI):\t"	+ ext.formDeci(bootstrapped[0], 4, true)
-										+ " (" + ext.formDeci(bootstrapped[1], 4, true) + ","
-										+ ext.formDeci(bootstrapped[2], 4, true) + ")");
+									 + ext.formDeci(sums[7] / count, 4, true));
+		writer.println("\t\tbootstrapped mean (95% CI):\t" + ext.formDeci(bootstrapped[0], 4, true)
+									 + " (" + ext.formDeci(bootstrapped[1], 4, true) + ","
+									 + ext.formDeci(bootstrapped[2], 4, true) + ")");
 		writer.println("\t\tcorresponding p-values:\t"
-											+ ext.formDeci(ProbDist.ChiDist(bootstrapped[0], 1), 4, true) + " ("
-										+ ext.formDeci(ProbDist.ChiDist(bootstrapped[1], 1), 4, true) + ","
-										+ ext.formDeci(ProbDist.ChiDist(bootstrapped[2], 1), 4, true) + ")");
+									 + ext.formDeci(ProbDist.ChiDist(bootstrapped[0], 1), 4, true) + " ("
+									 + ext.formDeci(ProbDist.ChiDist(bootstrapped[1], 1), 4, true) + ","
+									 + ext.formDeci(ProbDist.ChiDist(bootstrapped[2], 1), 4, true) + ")");
 		writer.println();
 
 		bootstrapped = Bootstrap(hash11);
 		writer.println("average chi square for the 11 genotype:\t"
-										+ ext.formDeci(sums[8] / count, 4, true));
-		writer.println("\t\tbootstrapped mean (95% CI):\t"	+ ext.formDeci(bootstrapped[0], 4, true)
-										+ " (" + ext.formDeci(bootstrapped[1], 4, true) + ","
-										+ ext.formDeci(bootstrapped[2], 4, true) + ")");
+									 + ext.formDeci(sums[8] / count, 4, true));
+		writer.println("\t\tbootstrapped mean (95% CI):\t" + ext.formDeci(bootstrapped[0], 4, true)
+									 + " (" + ext.formDeci(bootstrapped[1], 4, true) + ","
+									 + ext.formDeci(bootstrapped[2], 4, true) + ")");
 		writer.println("\t\tcorresponding p-values:\t"
-											+ ext.formDeci(ProbDist.ChiDist(bootstrapped[0], 1), 4, true) + " ("
-										+ ext.formDeci(ProbDist.ChiDist(bootstrapped[1], 1), 4, true) + ","
-										+ ext.formDeci(ProbDist.ChiDist(bootstrapped[2], 1), 4, true) + ")");
+									 + ext.formDeci(ProbDist.ChiDist(bootstrapped[0], 1), 4, true) + " ("
+									 + ext.formDeci(ProbDist.ChiDist(bootstrapped[1], 1), 4, true) + ","
+									 + ext.formDeci(ProbDist.ChiDist(bootstrapped[2], 1), 4, true) + ")");
 		writer.println();
 
 		writer.close();
@@ -162,7 +162,7 @@ public class bootstrapSNP {
 
 	public static void main(String[] args) throws IOException {
 		String usage = "Expecting 1-2 arguments: name of file created by randomSNP (default: \"randomSample.xls\")\n"
-										+ "                       : or file with one column (add \"-single\" after filename).\n";
+									 + "                       : or file with one column (add \"-single\" after filename).\n";
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
 				System.err.println(usage);

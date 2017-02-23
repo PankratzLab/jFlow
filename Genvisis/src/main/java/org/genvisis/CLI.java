@@ -41,7 +41,7 @@ public class CLI {
 	 * {@link PatternOptionBuilder} class constants.
 	 */
 	public enum Arg {
-										STRING, NUMBER, FILE
+		STRING, NUMBER, FILE
 	}
 
 	// common argument constants
@@ -53,6 +53,9 @@ public class CLI {
 	public static final String DESC_OUTFILE = "output filename";
 	public static final String ARG_THREADS = "threads";
 	public static final String DESC_THREADS = "number of threads";
+	public static final String ARG_VCF = "vcf";
+	public static final String DESC_VCF = "input vcf file";
+
 
 	private static final String HELP_CHAR = "h"; // short string to print usage
 	private static final String HELP_STRING = "help"; // long string to print usage
@@ -401,7 +404,7 @@ public class CLI {
 
 			// Pop the indentation off non-required args
 			o.setDescription("(select one) "
-												+ o.getDescription().substring(o.isRequired() ? 0 : INDENT.length()));
+											 + o.getDescription().substring(o.isRequired() ? 0 : INDENT.length()));
 			g.addOption(o);
 			defaults.remove(getName(o));
 		}

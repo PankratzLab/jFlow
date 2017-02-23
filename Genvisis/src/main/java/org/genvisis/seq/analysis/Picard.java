@@ -11,7 +11,7 @@ import java.util.Arrays;
 
 import com.google.common.collect.Lists;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -63,10 +63,10 @@ public class Picard {
 	}
 
 	public boolean sortSam(String inputFile, String outputFile, Logger altLog) {
-		String[] command = new String[] {	javaLocation, JAR, picardLocation + PICARD_JAR, SORT_SAM,
-																			INPUT + inputFile, OUTPUT + outputFile,
-																			SORT_ORDER + DEFAULT_SORT_ORDER,
-																			getTMPdirectory(inputFile, outputFile)};
+		String[] command = new String[] {javaLocation, JAR, picardLocation + PICARD_JAR, SORT_SAM,
+																		 INPUT + inputFile, OUTPUT + outputFile,
+																		 SORT_ORDER + DEFAULT_SORT_ORDER,
+																		 getTMPdirectory(inputFile, outputFile)};
 		return CmdLine.runCommandWithFileChecks(command, "", new String[] {inputFile},
 																						new String[] {outputFile}, verbose, overwriteExisting,
 																						true, (altLog == null ? log : altLog));
@@ -94,9 +94,9 @@ public class Picard {
 	}
 
 	public boolean indexBAM(String inputFile, String expectedOutput, Logger altLog) {
-		String[] command = new String[] {	javaLocation, JAR, picardLocation + PICARD_JAR,
-																			BUILD_BAM_INDEX, INPUT + inputFile,
-																			getTMPdirectory(inputFile, expectedOutput)};
+		String[] command = new String[] {javaLocation, JAR, picardLocation + PICARD_JAR,
+																		 BUILD_BAM_INDEX, INPUT + inputFile,
+																		 getTMPdirectory(inputFile, expectedOutput)};
 		return CmdLine.runCommandWithFileChecks(command, "", new String[] {inputFile},
 																						new String[] {expectedOutput}, verbose,
 																						overwriteExisting, true,
@@ -109,18 +109,18 @@ public class Picard {
 
 	private static String getTMPdirectory(String inputFile, String expectedOutput) {
 
-		return TMP_DIR	+ ext.parseDirectoryOfFile(expectedOutput) + ext.rootOf(inputFile)
-						+ "picard_tmp/";
+		return TMP_DIR + ext.parseDirectoryOfFile(expectedOutput) + ext.rootOf(inputFile)
+					 + "picard_tmp/";
 	}
 
-	public PicardAnalysis picardASam(	String baseId, String fullPathToSamFile, double memoryRatio,
-																		Logger altLog) {
+	public PicardAnalysis picardASam(String baseId, String fullPathToSamFile, double memoryRatio,
+																	 Logger altLog) {
 		boolean progress = false;
 		PicardAnalysis picard_Analysis = new PicardAnalysis(baseId, fullPathToSamFile,
 																												(altLog == null ? log : altLog));
 		picard_Analysis.parseInput();
-		progress = sortSam(	picard_Analysis.getFullPathToSamFile(),
-												picard_Analysis.getFullPathToSortedBamFile(), picard_Analysis.getLog());
+		progress = sortSam(picard_Analysis.getFullPathToSamFile(),
+											 picard_Analysis.getFullPathToSortedBamFile(), picard_Analysis.getLog());
 		if (progress) {
 			progress = markDuplicates(picard_Analysis.getFullPathToSortedBamFile(),
 																picard_Analysis.getFullPathToSortedDeDuppedBamFile(),
@@ -139,9 +139,9 @@ public class Picard {
 		return picard_Analysis;
 	}
 
-	public PicardMergeDedupe mergeDedupeBams(	String baseID, String[] fullPathsToBamFiles,
-																						String[] fullPathsToBamFileIndices, String outputDir,
-																						double memoryRatio, Logger altLog) {
+	public PicardMergeDedupe mergeDedupeBams(String baseID, String[] fullPathsToBamFiles,
+																					 String[] fullPathsToBamFileIndices, String outputDir,
+																					 double memoryRatio, Logger altLog) {
 		boolean progress = true;
 		PicardMergeDedupe picardMergeDedupe = new PicardMergeDedupe(fullPathsToBamFiles,
 																																fullPathsToBamFileIndices,
@@ -184,13 +184,13 @@ public class Picard {
 		 * @param baseID
 		 * @param log
 		 */
-		public PicardMergeDedupe(	String[] fullPathsToInputBams, String[] fullPathsToInputBamIndices,
-															String outputDir, String baseID, Logger log) {
+		public PicardMergeDedupe(String[] fullPathsToInputBams, String[] fullPathsToInputBamIndices,
+														 String outputDir, String baseID, Logger log) {
 			super();
-			if (fullPathsToInputBams == null	|| fullPathsToInputBamIndices == null
+			if (fullPathsToInputBams == null || fullPathsToInputBamIndices == null
 					|| fullPathsToInputBamIndices.length != fullPathsToInputBams.length) {
 				throw new IllegalArgumentException(this.getClass().getName()
-																						+ " requires fullPathsToInputBams and fullPathsToInputBamIndices of equal length");
+																					 + " requires fullPathsToInputBams and fullPathsToInputBamIndices of equal length");
 			}
 			this.fullPathsToInputBams = fullPathsToInputBams;
 			this.fullPathsToInputBamIndices = fullPathsToInputBamIndices;
@@ -203,8 +203,8 @@ public class Picard {
 		public void parseInput() {
 			if (shouldMerge) {
 				fullPathToMergedDedupedBam = outputDir + baseID + MERGED + BAM;
-				fullPathToMergedDedupedBamFileIndex =
-																						ext.rootOf(fullPathToMergedDedupedBam, false) + INDEXED;
+				fullPathToMergedDedupedBamFileIndex = ext.rootOf(fullPathToMergedDedupedBam, false)
+																							+ INDEXED;
 				fullPathToMetricsTxt = ext.rootOf(fullPathToMergedDedupedBam, false) + METRICS;
 			} else {
 				fullPathToMergedDedupedBam = fullPathsToInputBams[0];
@@ -300,10 +300,10 @@ public class Picard {
 			fullPathToSortedDeDuppedBamFile = ext.addToRoot(fullPathToSortedBamFile, DE_DUPPED);
 			fullPathToMetricsTxt = ext.rootOf(fullPathToSortedDeDuppedBamFile, false) + METRICS;
 			fullPathToSortedDeDuppedBamFileIndex = ext.rootOf(fullPathToSortedDeDuppedBamFile, false)
-																							+ INDEXED;
+																						 + INDEXED;
 			if (baseID.split(BWA_Analysis.FileNameParser.SPLIT).length != 3) {
 				barcode = "";
-				log.reportTimeWarning("The current baseId "	+ baseID + " did not have 3 "
+				log.reportTimeWarning("The current baseId " + baseID + " did not have 3 "
 															+ BWA_Analysis.FileNameParser.SPLIT
 															+ " - delimited fields, assuming no barcodes are present in the ids");
 			} else {
@@ -358,13 +358,12 @@ public class Picard {
 	}
 
 	public static class PicardMetricsParser {
-		public static final String[] PICARD_METRICS =
-																								{	"LIBRARY", "UNPAIRED_READS_EXAMINED",
-																									"READ_PAIRS_EXAMINED", "UNMAPPED_READS",
-																									"UNPAIRED_READ_DUPLICATES",
-																									"READ_PAIR_DUPLICATES",
-																									"READ_PAIR_OPTICAL_DUPLICATES",
-																									"PERCENT_DUPLICATION", "ESTIMATED_LIBRARY_SIZE"};
+		public static final String[] PICARD_METRICS = {"LIBRARY", "UNPAIRED_READS_EXAMINED",
+																									 "READ_PAIRS_EXAMINED", "UNMAPPED_READS",
+																									 "UNPAIRED_READ_DUPLICATES",
+																									 "READ_PAIR_DUPLICATES",
+																									 "READ_PAIR_OPTICAL_DUPLICATES",
+																									 "PERCENT_DUPLICATION", "ESTIMATED_LIBRARY_SIZE"};
 		private final String[] picardMetricsFiles;
 		private final double[][] consolidatedMetrics;
 		private final boolean fail;
@@ -383,10 +382,10 @@ public class Picard {
 			parseMetricsFiles();
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(outputSummaryFile));
-				writer.println("SAMPLE\t" + Array.toStr(PICARD_METRICS));
+				writer.println("SAMPLE\t" + ArrayUtils.toStr(PICARD_METRICS));
 				for (int i = 0; i < consolidatedMetrics.length; i++) {
-					writer.println(ext.rootOf(picardMetricsFiles[i])	+ "\t"
-													+ Array.toStr(consolidatedMetrics[i]));
+					writer.println(ext.rootOf(picardMetricsFiles[i]) + "\t"
+												 + ArrayUtils.toStr(consolidatedMetrics[i]));
 				}
 				writer.close();
 			} catch (Exception e) {
@@ -413,11 +412,11 @@ public class Picard {
 				String[] line;
 				do {
 					line = reader.readLine().trim().split("[\\s]+");
-				} while (reader.ready() && (ext.indexFactors(	new String[][] {PICARD_METRICS}, line, false,
-																											true, false, false)[0] == -1));
+				} while (reader.ready() && (ext.indexFactors(new String[][] {PICARD_METRICS}, line, false,
+																										 true, false, false)[0] == -1));
 				if (!reader.ready()) {
-					log.reportError("Error - could not find neccesary header "	+ Array.toStr(PICARD_METRICS)
-													+ " in file " + picardMetricsFile);
+					log.reportError("Error - could not find neccesary header "
+													+ ArrayUtils.toStr(PICARD_METRICS) + " in file " + picardMetricsFile);
 				} else {
 					int[] indices = ext.indexFactors(PICARD_METRICS, line, true, false);
 					line = reader.readLine().trim().split("[\\s]+");
@@ -425,8 +424,8 @@ public class Picard {
 						try {
 							curMetrics[i] = Double.parseDouble(line[indices[i]]);
 						} catch (NumberFormatException numberFormatException) {
-							log.reportError("Error - invalid number on line "	+ Array.toStr(line) + " in file "
-															+ picardMetricsFile);
+							log.reportError("Error - invalid number on line " + ArrayUtils.toStr(line)
+															+ " in file " + picardMetricsFile);
 						}
 					}
 				}

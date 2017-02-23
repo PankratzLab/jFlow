@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
@@ -43,28 +43,28 @@ public class ParkinAudit {
 	public static final String[] KNOWN_POLYMORPHISMS = {"S167N", "Ser167Asn", "V380L", "D394N",
 																											"A91A", "C238C", "H279H", "L174L", "L228L",
 																											"L261L", "L307L", "P37P"};
-	public static final String[][] CATEGORY_CRITERIA = {{	"KnownPolymorphisms", "equals", "S167N",
-																												"Ser167Asn", "V380L", "D394N"},
-																											{	"SynonymousMissense", "equals", "A91A",
-																												"C238C", "H279H", "L174L", "L228L", "L261L",
-																												"L307L", "P37P"},
-																											{	"BenignMissense", "equals", "R33Q", "A82E",
-																												"T83A", "M192V", "E310D", "T240M", "R256C",
-																												"P437L"},
-																											{	"DeleteriousMissense", "equals", "T173M",
-																												"K211N", "R275W", "G430D"},
+	public static final String[][] CATEGORY_CRITERIA = {{"KnownPolymorphisms", "equals", "S167N",
+																											 "Ser167Asn", "V380L", "D394N"},
+																											{"SynonymousMissense", "equals", "A91A",
+																											 "C238C", "H279H", "L174L", "L228L", "L261L",
+																											 "L307L", "P37P"},
+																											{"BenignMissense", "equals", "R33Q", "A82E",
+																											 "T83A", "M192V", "E310D", "T240M", "R256C",
+																											 "P437L"},
+																											{"DeleteriousMissense", "equals", "T173M",
+																											 "K211N", "R275W", "G430D"},
 																											{"Nonsense", "endswith", "x"},
 																											{"Frameshift", "contains", "fs"},
 																											{"Deletion", "contains", "deletion"},
-																											{	"Duplication", "contains", "duplication",
-																												"triplication"},
+																											{"Duplication", "contains", "duplication",
+																											 "triplication"},
 																											{"Indel", "contains", "dup"},
 																											{"SpliceSite", "contains", "IVS"}};
 	public static final String[] MUT_CLASSES = {"nada", "het", "homo", "comp het", "odd"};
 	public static final String[] DIANE_LIST_HEADER = {"DNA # ", "Fam. and Ind. #",
 																										"Sequencing Plate"};
-	public static final String[] DIANE_RESULTS_HEADER = {	"Exon", "DNA #", "Family and Ind. #",
-																												"Nucleotide Change", "Amino Acid change"};
+	public static final String[] DIANE_RESULTS_HEADER = {"Exon", "DNA #", "Family and Ind. #",
+																											 "Nucleotide Change", "Amino Acid change"};
 	public static final String[] SEAN_RESULTS_HEADER = {"Family", "ID", "UniqueID", "nummuts",
 																											"AR lod", "Age of Onset", "dx",
 																											"unique mutation", "mutation", "Exon", "type",
@@ -73,54 +73,53 @@ public class ParkinAudit {
 	public static final String[] MLPA_HEADER = {"DNA #", "Fam.& Ind. #", "Exon 2", "Exon 3", "Exon 4",
 																							"Exon 5", "Exon 6", "Exon 7", "Exon 8", "Exon 9",
 																							"Exon 10", "Exon 11", "Exon 12"};
-	public static final String[] PLATE_HEADER = {	"FamID", "IndID", "UniqueID", "time 1", "time 2",
-																								"time 3"};
+	public static final String[] PLATE_HEADER = {"FamID", "IndID", "UniqueID", "time 1", "time 2",
+																							 "time 3"};
 	public static final String[] LODS_HEADER = {"Family", "linearLOD", "NPL", "AD LOD", "AR LOD", "",
 																							"positive"};
 	public static final String[] INLAB_HEADER = {"FamNo", "IndNo", "DNA.", "CountOfIndNo"};
 
 	// Recorded: Sean, Diane, MLPA
 	// Change to: Sean, Diane, MLPA
-	public static final String[][][][] INTERPRETATIONS = {{	{	{	"Gln57fs (+328 amino acids)",
-																															"Gln57fs (+328 amino acids)"},
-																														{}, {"deletion 3", "deletion 2-4"}},
-																													{	{}, {},
-																														{"deletion 2-3", "deletion 3-4"}}},
-																												{	{	{	"Q57fs (+328 amino acids)",
-																															"Q57fs (+328 amino acids)"},
-																														{}, {"deletion 3", "deletion 2-4"}},
-																													{	{}, {},
-																														{"deletion 2-3", "deletion 3-4"}}},
-																												{	{	{	"Gln57fs (+35 amino acids)",
-																															"Gln57fs (+35 amino acids)"},
-																														{}, {"deletion 3-4", "deletion 3-4"}},
-																													{	{}, {},
-																														{"deletion 3-4", "deletion 3-4"}}},
-																												{	{	{	"Q57fs (+35 amino acids)",
-																															"Q57fs (+35 amino acids)"},
-																														{}, {"deletion 3-4", "deletion 3-4"}},
-																													{	{}, {},
-																														{"deletion 3-4", "deletion 3-4"}}},
-																												{	{	{}, {"G430D"},
-																														{"duplication 2-4", "duplication 2-4"}},
-																													{{}, {"G430D"}, {"triplication 2-4"}}},
-																												{	{	{}, {},
-																														{"duplication 2-4", "duplication 2-4"}},
-																													{{}, {}, {"triplication 2-4"}}},
-																												{	{	{}, {"T240M", "T240M"},
-																														{"deletion 5-6"}},
-																													{{}, {"T240M"}, {"deletion 5-6"}}},
-																												{	{{	"P113fs (+51 amino acids)",
-																														"P113fs (+51 amino acids)"},
+	public static final String[][][][] INTERPRETATIONS = {{{{"Gln57fs (+328 amino acids)",
+																													 "Gln57fs (+328 amino acids)"},
+																													{}, {"deletion 3", "deletion 2-4"}},
+																												 {{}, {},
+																													{"deletion 2-3", "deletion 3-4"}}},
+																												{{{"Q57fs (+328 amino acids)",
+																													 "Q57fs (+328 amino acids)"},
+																													{}, {"deletion 3", "deletion 2-4"}},
+																												 {{}, {},
+																													{"deletion 2-3", "deletion 3-4"}}},
+																												{{{"Gln57fs (+35 amino acids)",
+																													 "Gln57fs (+35 amino acids)"},
+																													{}, {"deletion 3-4", "deletion 3-4"}},
+																												 {{}, {},
+																													{"deletion 3-4", "deletion 3-4"}}},
+																												{{{"Q57fs (+35 amino acids)",
+																													 "Q57fs (+35 amino acids)"},
+																													{}, {"deletion 3-4", "deletion 3-4"}},
+																												 {{}, {},
+																													{"deletion 3-4", "deletion 3-4"}}},
+																												{{{}, {"G430D"},
+																													{"duplication 2-4", "duplication 2-4"}},
+																												 {{}, {"G430D"}, {"triplication 2-4"}}},
+																												{{{}, {},
+																													{"duplication 2-4", "duplication 2-4"}},
+																												 {{}, {}, {"triplication 2-4"}}},
+																												{{{}, {"T240M", "T240M"}, {"deletion 5-6"}},
+																												 {{}, {"T240M"}, {"deletion 5-6"}}},
+																												{{{"P113fs (+51 amino acids)",
+																													 "P113fs (+51 amino acids)"},
 																													{}, {"deletion 3-4"}},
-																													{	{"P113fs (+51 amino acids)"}, {},
-																														{"deletion 3-4"}}},
-																												{	{{},
-																													{	"P113fs (+51 amino acids)",
-																														"P113fs (+51 amino acids)"},
+																												 {{"P113fs (+51 amino acids)"}, {},
+																													{"deletion 3-4"}}},
+																												{{{},
+																													{"P113fs (+51 amino acids)",
+																													 "P113fs (+51 amino acids)"},
 																													{"deletion 2-3"}},
-																													{	{}, {"P113fs (+51 amino acids)"},
-																														{"deletion 2-3"}}}};
+																												 {{}, {"P113fs (+51 amino acids)"},
+																													{"deletion 2-3"}}}};
 
 	public static void audit() throws IOException {
 		BufferedReader reader;
@@ -243,8 +242,8 @@ public class ParkinAudit {
 				if (indData.containsKey(uniqueID)) {
 					indData.get(uniqueID).inLab = true;
 				} else {
-					System.err.println("Error - a nonexistent person was sent to lab: "	+ line[0] + "-"
-															+ line[1]);
+					System.err.println("Error - a nonexistent person was sent to lab: " + line[0] + "-"
+														 + line[1]);
 				}
 			}
 			reader.close();
@@ -265,8 +264,8 @@ public class ParkinAudit {
 				if (indData.containsKey(uniqueID)) {
 					indData.get(uniqueID).seanSeqd = true;
 				} else {
-					System.err.println("Error - Sean sequenced a nonexistent person: "	+ line[0] + "-t"
-															+ line[1]);
+					System.err.println("Error - Sean sequenced a nonexistent person: " + line[0] + "-t"
+														 + line[1]);
 				}
 			}
 			reader.close();
@@ -337,18 +336,18 @@ public class ParkinAudit {
 					if (line[8].equals("point")) {
 						for (int i = 0; i < (line.length > 13 && line[13].startsWith("Homo") ? 2 : 1); i++) {
 							if (line.length > 12 && ext.indexOfStr(line[12], KNOWN_POLYMORPHISMS) != -1) {
-								mc.knownPolymorphisms = Array.addStrToArray(line[12], mc.knownPolymorphisms);
+								mc.knownPolymorphisms = ArrayUtils.addStrToArray(line[12], mc.knownPolymorphisms);
 							} else {
-								mc.seanMutations = Array.addStrToArray(line.length > 12	&& !line[12].equals("")
-																																																	? line[12]
-																																																: line[11],
-																												mc.seanMutations);
+								mc.seanMutations = ArrayUtils.addStrToArray(line.length > 12 && !line[12].equals("")
+																																																		 ? line[12]
+																																																		 : line[11],
+																														mc.seanMutations);
 							}
 						}
 					}
 				} else {
-					System.err.println("Error - Sean results for a nonexistent person: "	+ line[0] + "-"
-															+ line[1]);
+					System.err.println("Error - Sean results for a nonexistent person: " + line[0] + "-"
+														 + line[1]);
 				}
 			}
 			reader.close();
@@ -381,8 +380,8 @@ public class ParkinAudit {
 				} else {
 					trav = tools.getFamID(line[2]);
 					if (!idCheck.checkPair(line[2], line[1], false).equals("")) {
-						System.err.println("  (from "	+ dianeResults + ": " + line[2] + " and " + line[1]
-																+ ")");
+						System.err.println("  (from " + dianeResults + ": " + line[2] + " and " + line[1]
+															 + ")");
 					}
 					uniqueID = unique(trav[0], trav[1]);
 				}
@@ -390,25 +389,24 @@ public class ParkinAudit {
 					mc = indData.get(uniqueID);
 					for (int i = 0; i < (temp.indexOf("Homozygous") > 0 ? 2 : 1); i++) {
 						if (line.length > 4 && ext.indexOfStr(line[4], KNOWN_POLYMORPHISMS) != -1) {
-							mc.knownPolymorphisms = Array.addStrToArray(line[4], mc.knownPolymorphisms);
+							mc.knownPolymorphisms = ArrayUtils.addStrToArray(line[4], mc.knownPolymorphisms);
 						} else {
-							mc.dianeMutations =
-																Array.addStrToArray(line.length > 4	&& !line[4].equals("")
-																																															? line[4]
-																																														: line[3],
-																										mc.dianeMutations);
+							mc.dianeMutations = ArrayUtils.addStrToArray(line.length > 4 && !line[4].equals("")
+																																																	? line[4]
+																																																	: line[3],
+																													 mc.dianeMutations);
 						}
 					}
 					if (mc.dna.equals("")) {
 						mc.dna = line[1];
 					} else if (!mc.dna.equals(line[1])) {
-						System.err.println("Different DNAs used between methods for "	+ mc.FamID + "-"
-																+ mc.IndID + " (" + mc.dna + " and " + line[1] + ")");
+						System.err.println("Different DNAs used between methods for " + mc.FamID + "-"
+															 + mc.IndID + " (" + mc.dna + " and " + line[1] + ")");
 						mc.dna += "/" + line[1];
 					}
 				} else {
-					System.err.println("Error - Diane results for a nonexistent person: "	+ line[1] + "/"
-															+ line[2]);
+					System.err.println("Error - Diane results for a nonexistent person: " + line[1] + "/"
+														 + line[2]);
 				}
 			}
 			reader.close();
@@ -449,19 +447,19 @@ public class ParkinAudit {
 						if (mc.dna.equals("")) {
 							mc.dna = line[0];
 						} else if (!mc.dna.equals(line[0]) && !line[0].equals("")) {
-							System.err.println("Different DNAs used between methods for "	+ mc.FamID + "-"
-																	+ mc.IndID + " (" + mc.dna + " and " + line[0] + ")");
+							System.err.println("Different DNAs used between methods for " + mc.FamID + "-"
+																 + mc.IndID + " (" + mc.dna + " and " + line[0] + ")");
 							mc.dna += "/" + line[0];
 						}
 						if (temp.substring(line[0].length() + 1 + line[1].length()).trim().length() > 0) {
 							line = temp.split("\t", -1);
 							if (temp.indexOf("Deletion") > 0 && temp.indexOf("Duplication") > 0) {
 								System.err.println("Warning - Both a deletion and a duplication found in individual "
-																		+ mc.FamID + "-" + mc.IndID);
+																	 + mc.FamID + "-" + mc.IndID);
 							}
 							if (temp.indexOf("Deletion") == -1 && temp.indexOf("Duplication") == -1) {
 								System.err.println("Warning - MLPA result that is neither a deletion nor a duplication for individual "
-																		+ mc.FamID + "-" + mc.IndID);
+																	 + mc.FamID + "-" + mc.IndID);
 							}
 							parkinExons = new int[12];
 							try {
@@ -471,37 +469,37 @@ public class ParkinAudit {
 									} else if (line[1 + i].equals("Duplication")) {
 										parkinExons[i] = 1;
 									} else if (line[1 + i].equals("Homo. Duplication")
-															|| line[1 + i].equals("Hom. Duplication")) {
+														 || line[1 + i].equals("Hom. Duplication")) {
 										parkinExons[i] = 2;
 									} else if (line[1 + i].equals("Deletion")) {
 										parkinExons[i] = -1;
 									} else if (line[1 + i].equals("Homo. Deletion")
-															|| line[1 + i].equals("Hom. Deletion")) {
+														 || line[1 + i].equals("Hom. Deletion")) {
 										parkinExons[i] = -2;
 									} else {
-										System.err.println("Error - invalid mutation for "	+ mc.FamID + "-" + mc.IndID
-																				+ " in MLPA file: " + line[1 + i]);
+										System.err.println("Error - invalid mutation for " + mc.FamID + "-" + mc.IndID
+																			 + " in MLPA file: " + line[1 + i]);
 									}
 								}
 							} catch (Exception e) {
-								System.err.println("Error - invalid size for "	+ mc.FamID + "-" + mc.IndID
-																		+ " in MLPA file");
+								System.err.println("Error - invalid size for " + mc.FamID + "-" + mc.IndID
+																	 + " in MLPA file");
 							}
 							trav = parseMLPAMutations(parkinExons);
 							if (trav.length == 0) {
-								System.err.println("Error - parse zero mutations for individual "	+ mc.FamID + "-"
-																		+ mc.IndID + " (the file format expected some)");
+								System.err.println("Error - parse zero mutations for individual " + mc.FamID + "-"
+																	 + mc.IndID + " (the file format expected some)");
 							}
 							for (String element : trav) {
-								mc.MLPAresults = Array.addStrToArray(element, mc.MLPAresults);
+								mc.MLPAresults = ArrayUtils.addStrToArray(element, mc.MLPAresults);
 							}
 							// System.err.println(mc.FamID+"-"+mc.IndID+"\t"+Array.toStr(mc.MLPAresults,
 							// "\t\t") +"\t\t"+Array.toStr(parkinExons, " "));
 
 						}
 					} else {
-						System.err.println("Error - MLPA results for a nonexistent person: "	+ line[0] + "/"
-																+ line[1]);
+						System.err.println("Error - MLPA results for a nonexistent person: " + line[0] + "/"
+															 + line[1]);
 					}
 				}
 			}
@@ -521,7 +519,7 @@ public class ParkinAudit {
 
 			for (int j = 0; j < 2; j++) {
 				if (j == 0) {
-					trav = mc.seanMutations.length > mc.dianeMutations.length	? mc.seanMutations
+					trav = mc.seanMutations.length > mc.dianeMutations.length ? mc.seanMutations
 																																		: mc.dianeMutations;
 				} else {
 					trav = mc.MLPAresults;
@@ -532,7 +530,7 @@ public class ParkinAudit {
 						if (CATEGORY_CRITERIA[l][1].equals("equals")) {
 							for (int m = 2; m < CATEGORY_CRITERIA[l].length; m++) {
 								if (element.toLowerCase().equals(CATEGORY_CRITERIA[l][m].toLowerCase())) {
-									mc.categories[l] = Array.addStrToArray(element, mc.categories[l]);
+									mc.categories[l] = ArrayUtils.addStrToArray(element, mc.categories[l]);
 									m = CATEGORY_CRITERIA[l].length - 1;
 									l = CATEGORY_CRITERIA.length - 1;
 								}
@@ -540,7 +538,7 @@ public class ParkinAudit {
 						} else if (CATEGORY_CRITERIA[l][1].equals("contains")) {
 							for (int m = 2; m < CATEGORY_CRITERIA[l].length; m++) {
 								if (element.toLowerCase().contains(CATEGORY_CRITERIA[l][m].toLowerCase())) {
-									mc.categories[l] = Array.addStrToArray(element, mc.categories[l]);
+									mc.categories[l] = ArrayUtils.addStrToArray(element, mc.categories[l]);
 									m = CATEGORY_CRITERIA[l].length - 1;
 									l = CATEGORY_CRITERIA.length - 1;
 								}
@@ -548,14 +546,14 @@ public class ParkinAudit {
 						} else if (CATEGORY_CRITERIA[l][1].equals("endswith")) {
 							for (int m = 2; m < CATEGORY_CRITERIA[l].length; m++) {
 								if (element.toLowerCase().endsWith(CATEGORY_CRITERIA[l][m].toLowerCase())) {
-									mc.categories[l] = Array.addStrToArray(element, mc.categories[l]);
+									mc.categories[l] = ArrayUtils.addStrToArray(element, mc.categories[l]);
 									m = CATEGORY_CRITERIA[l].length - 1;
 									l = CATEGORY_CRITERIA.length - 1;
 								}
 							}
 						} else {
 							System.err.println("Error - Don't know how to process category with operator: "
-																	+ CATEGORY_CRITERIA[l][1]);
+																 + CATEGORY_CRITERIA[l][1]);
 							System.exit(1);
 						}
 					}
@@ -567,12 +565,11 @@ public class ParkinAudit {
 
 			mc.fullyChecked = (mc.seanSeqd || mc.dianeSeqd) && mc.MLPAd;
 			mc.partiallyChecked = mc.seanSeqd || mc.dianeSeqd || mc.MLPAd;
-			mc.numMutations =
-											(mc.seanMutations.length > mc.dianeMutations.length	? mc.seanMutations.length
-																																					: mc.dianeMutations.length)
+			mc.numMutations = (mc.seanMutations.length > mc.dianeMutations.length ? mc.seanMutations.length
+																																						: mc.dianeMutations.length)
 												+ mc.MLPAresults.length;
-			mc.numSeq = mc.seanMutations.length > mc.dianeMutations.length	? mc.seanMutations.length
-																																			: mc.dianeMutations.length;
+			mc.numSeq = mc.seanMutations.length > mc.dianeMutations.length ? mc.seanMutations.length
+																																		 : mc.dianeMutations.length;
 			mc.numDosage = mc.MLPAresults.length;
 
 			if (mc.numMutations == 0) {
@@ -619,7 +616,7 @@ public class ParkinAudit {
 				}
 			}
 
-			if (!mc.shouldBe	&& !mc.partiallyChecked && mc.lod < 0
+			if (!mc.shouldBe && !mc.partiallyChecked && mc.lod < 0
 					&& diagnoses.containsKey(mc.FamID + "\t" + mc.IndID)
 					&& (diagnoses.get(mc.FamID + "\t" + mc.IndID)).equals("VPD")) {
 				mc.randomCandidate = true;
@@ -641,35 +638,35 @@ public class ParkinAudit {
 		writer = new PrintWriter(new FileWriter("park_audit.xln"));
 		for (int i = -1; i < inds.size(); i++) {
 			mc = indData.get(inds.elementAt(i == -1 ? 0 : i));
-			writer.println((i == -1 ? "UniqueID" : mc.UniqueID)	+ "\t"
-											+ (i == -1 ? "DNA#" : (mc.dna.equals("") ? "" : mc.dna)) + "\t"
-											+ (i == -1 ? "FamID" : mc.FamID) + "\t" + (i == -1 ? "IndID" : mc.IndID)
-											+ "\t" + (i == -1 ? "Sean seq" : (mc.seanSeqd ? "1" : "0")) + "\t"
-											+ (i == -1 ? "Sean Found" : mc.seanMutations.length) + "\t"
-											+ (i == -1 ? "Diane Seq" : (mc.dianeSeqd ? "1" : "0")) + "\t"
-											+ (i == -1 ? "Diane Found" : mc.dianeMutations.length) + "\t"
-											+ (i == -1 ? "MLPA'd" : (mc.MLPAd ? "1" : "0")) + "\t"
-											+ (i == -1 ? "MLPA found" : mc.MLPAresults.length) + "\t"
-											+ (i == -1 ? "Num Mutations" : mc.numMutations) + "\t"
-											+ (i == -1 ? "DNA sent" : (mc.inLab ? "1" : "0")) + "\t"
-											+ (i == -1 ? "# additional fam members" : mc.numberFamMems) + "\t"
-											+ (i == -1 ? "Partially Checked" : (mc.partiallyChecked ? "1" : "0")) + "\t"
-											+ (i == -1 ? "Fully Checked" : (mc.fullyChecked ? "1" : "0")) + "\t"
-											+ (i == -1	? "Family member fully checked"
-																	: (mc.familyMemberFullyChecked ? "1" : "0"))
-											+ "\t"
-											+ (i == -1 ? "First Plate" : (mc.firstPlate == -1 ? "." : mc.firstPlate))
-											+ "\t" + (i == -1 ? "NPL score" : (mc.lod == -999 ? "." : mc.lod)) + "\t"
-											+ (i == -1	? "Dx"
-																	: (diagnoses.containsKey(mc.FamID + "\t" + mc.IndID)
-																																													? diagnoses.get(mc.FamID
-																																																					+ "\t"
-																																																				+ mc.IndID)
-																																												: "."))
-											+ "\t" + (i == -1 ? "AOO" : (mc.AOO == -1 ? "." : mc.AOO)) + "\t"
-											+ (i == -1 ? "Random Candidate" : (mc.randomCandidate ? "1" : "0")) + "\t"
-											+ (i == -1 ? "Should Be" : (mc.shouldBe ? "1" : "0")) + "\t"
-											+ (i == -1 ? "But Wasn't" : (mc.butWasnt ? "1\t*" : "0")) + "\t" + "");
+			writer.println((i == -1 ? "UniqueID" : mc.UniqueID) + "\t"
+										 + (i == -1 ? "DNA#" : (mc.dna.equals("") ? "" : mc.dna)) + "\t"
+										 + (i == -1 ? "FamID" : mc.FamID) + "\t" + (i == -1 ? "IndID" : mc.IndID) + "\t"
+										 + (i == -1 ? "Sean seq" : (mc.seanSeqd ? "1" : "0")) + "\t"
+										 + (i == -1 ? "Sean Found" : mc.seanMutations.length) + "\t"
+										 + (i == -1 ? "Diane Seq" : (mc.dianeSeqd ? "1" : "0")) + "\t"
+										 + (i == -1 ? "Diane Found" : mc.dianeMutations.length) + "\t"
+										 + (i == -1 ? "MLPA'd" : (mc.MLPAd ? "1" : "0")) + "\t"
+										 + (i == -1 ? "MLPA found" : mc.MLPAresults.length) + "\t"
+										 + (i == -1 ? "Num Mutations" : mc.numMutations) + "\t"
+										 + (i == -1 ? "DNA sent" : (mc.inLab ? "1" : "0")) + "\t"
+										 + (i == -1 ? "# additional fam members" : mc.numberFamMems) + "\t"
+										 + (i == -1 ? "Partially Checked" : (mc.partiallyChecked ? "1" : "0")) + "\t"
+										 + (i == -1 ? "Fully Checked" : (mc.fullyChecked ? "1" : "0")) + "\t"
+										 + (i == -1 ? "Family member fully checked"
+																: (mc.familyMemberFullyChecked ? "1" : "0"))
+										 + "\t"
+										 + (i == -1 ? "First Plate" : (mc.firstPlate == -1 ? "." : mc.firstPlate))
+										 + "\t" + (i == -1 ? "NPL score" : (mc.lod == -999 ? "." : mc.lod)) + "\t"
+										 + (i == -1 ? "Dx"
+																: (diagnoses.containsKey(mc.FamID + "\t" + mc.IndID)
+																																										 ? diagnoses.get(mc.FamID
+																																																		 + "\t"
+																																																		 + mc.IndID)
+																																										 : "."))
+										 + "\t" + (i == -1 ? "AOO" : (mc.AOO == -1 ? "." : mc.AOO)) + "\t"
+										 + (i == -1 ? "Random Candidate" : (mc.randomCandidate ? "1" : "0")) + "\t"
+										 + (i == -1 ? "Should Be" : (mc.shouldBe ? "1" : "0")) + "\t"
+										 + (i == -1 ? "But Wasn't" : (mc.butWasnt ? "1\t*" : "0")) + "\t" + "");
 		}
 		writer.close();
 
@@ -678,15 +675,15 @@ public class ParkinAudit {
 		for (int i = 0; i < inds.size(); i++) {
 			mc = indData.get(inds.elementAt(i == -1 ? 0 : i));
 			if (mc.numMutations > 0) {
-				writer.print((mc.dna.equals("") ? "unknown" : mc.dna)	+ "\t" + mc.UniqueID + "\t" + mc.FamID
-											+ "\t" + mc.IndID);
-				writer.print("\t"	+ mc.numMutations + "\t" + MUT_CLASSES[mc.mutClass] + "\t"
-											+ (diagnoses.containsKey(mc.FamID + "\t" + mc.IndID)
-																																							? diagnoses.get(mc.FamID
-																																															+ "\t"
-																																														+ mc.IndID)
-																																						: ".")
-											+ "\t" + (mc.AOO == -1 ? "." : mc.AOO));
+				writer.print((mc.dna.equals("") ? "unknown" : mc.dna) + "\t" + mc.UniqueID + "\t" + mc.FamID
+										 + "\t" + mc.IndID);
+				writer.print("\t" + mc.numMutations + "\t" + MUT_CLASSES[mc.mutClass] + "\t"
+										 + (diagnoses.containsKey(mc.FamID + "\t" + mc.IndID)
+																																					? diagnoses.get(mc.FamID
+																																													+ "\t"
+																																													+ mc.IndID)
+																																					: ".")
+										 + "\t" + (mc.AOO == -1 ? "." : mc.AOO));
 				for (String seanMutation : mc.seanMutations) {
 					writer.print("\tSean: " + seanMutation);
 				}
@@ -716,8 +713,8 @@ public class ParkinAudit {
 		for (int i = 0; i < inds.size(); i++) {
 			mc = indData.get(inds.elementAt(i == -1 ? 0 : i));
 			if (mc.fullyChecked || mc.numMutations > 0 || mc.knownPolymorphisms.length > 0) {
-				writer.print((mc.dna.equals("") ? "unknown" : mc.dna)	+ "," + mc.UniqueID + "," + mc.FamID
-											+ "," + mc.IndID + "," + (mc.fullyChecked ? 1 : 0) + "," + mc.numMutations);
+				writer.print((mc.dna.equals("") ? "unknown" : mc.dna) + "," + mc.UniqueID + "," + mc.FamID
+										 + "," + mc.IndID + "," + (mc.fullyChecked ? 1 : 0) + "," + mc.numMutations);
 				for (int j = 0; j < CATEGORY_CRITERIA.length; j++) {
 					writer.print("," + mc.categories[j].length);
 				}
@@ -725,7 +722,7 @@ public class ParkinAudit {
 					writer.print("," + (mc.numMutations == 1 ? mc.categories[j].length : 0));
 				}
 				for (int j = 0; j < CATEGORY_CRITERIA.length; j++) {
-					writer.print("," + Array.toStr(mc.categories[j], "/"));
+					writer.print("," + ArrayUtils.toStr(mc.categories[j], "/"));
 				}
 				writer.println();
 			}
@@ -737,15 +734,15 @@ public class ParkinAudit {
 		for (int i = 0; i < inds.size(); i++) {
 			mc = indData.get(inds.elementAt(i == -1 ? 0 : i));
 			if (mc.knownPolymorphisms.length > 0) {
-				writer.print((mc.dna.equals("") ? "unknown" : mc.dna)	+ "\t" + mc.UniqueID + "\t" + mc.FamID
-											+ "\t" + mc.IndID);
-				writer.print("\t"	+ mc.numMutations + "\t" + MUT_CLASSES[mc.mutClass] + "\t"
-											+ (diagnoses.containsKey(mc.FamID + "\t" + mc.IndID)
-																																							? diagnoses.get(mc.FamID
-																																															+ "\t"
-																																														+ mc.IndID)
-																																						: ".")
-											+ "\t" + (mc.AOO == -1 ? "." : mc.AOO) + "\t" + mc.knownPolymorphisms.length);
+				writer.print((mc.dna.equals("") ? "unknown" : mc.dna) + "\t" + mc.UniqueID + "\t" + mc.FamID
+										 + "\t" + mc.IndID);
+				writer.print("\t" + mc.numMutations + "\t" + MUT_CLASSES[mc.mutClass] + "\t"
+										 + (diagnoses.containsKey(mc.FamID + "\t" + mc.IndID)
+																																					? diagnoses.get(mc.FamID
+																																													+ "\t"
+																																													+ mc.IndID)
+																																					: ".")
+										 + "\t" + (mc.AOO == -1 ? "." : mc.AOO) + "\t" + mc.knownPolymorphisms.length);
 				for (String knownPolymorphism : mc.knownPolymorphisms) {
 					writer.print("\t" + knownPolymorphism);
 				}
@@ -760,18 +757,18 @@ public class ParkinAudit {
 			mc = indData.get(inds.elementAt(i == -1 ? 0 : i));
 			// if (mc.fullyChecked || mc.numMutations>0) {
 			if (mc.partiallyChecked || mc.numMutations > 0) {
-				writer.println((mc.dna.equals("") ? "." : mc.dna)	+ "," + mc.FamID + "," + mc.IndID + ","
-												+ mc.UniqueID + "," + mc.numMutations + "," + (mc.numMutations > 0 ? 1 : 0)
-												+ "," + (mc.numMutations > 1 ? 1 : 0) + "," + (mc.numMutations == 1 ? 1 : 0)
-												+ "," + mc.knownPolymorphisms.length + "," + mc.numSeq + "," + mc.numDosage
-												+ "," + (mc.numSeq > 0 ? 1 : 0) + "," + (mc.numDosage > 0 ? 1 : 0) + ","
-												+ (mc.numMutations >= 2 || mc.numDosage >= 1	? "."
-																																			: (mc.numSeq == 1 ? 1 : 0))
-												+ ","
-												+ (mc.numMutations >= 2 || mc.numSeq >= 1	? "."
-																																	: (mc.numDosage == 1 ? 1 : 0))
-												+ "," + (mc.numMutations == 1 ? "." : (mc.numMutations >= 2 ? 1 : 0)) + ","
-												+ (mc.fullyChecked ? 1 : 0));
+				writer.println((mc.dna.equals("") ? "." : mc.dna) + "," + mc.FamID + "," + mc.IndID + ","
+											 + mc.UniqueID + "," + mc.numMutations + "," + (mc.numMutations > 0 ? 1 : 0)
+											 + "," + (mc.numMutations > 1 ? 1 : 0) + "," + (mc.numMutations == 1 ? 1 : 0)
+											 + "," + mc.knownPolymorphisms.length + "," + mc.numSeq + "," + mc.numDosage
+											 + "," + (mc.numSeq > 0 ? 1 : 0) + "," + (mc.numDosage > 0 ? 1 : 0) + ","
+											 + (mc.numMutations >= 2 || mc.numDosage >= 1 ? "."
+																																		: (mc.numSeq == 1 ? 1 : 0))
+											 + ","
+											 + (mc.numMutations >= 2 || mc.numSeq >= 1 ? "."
+																																 : (mc.numDosage == 1 ? 1 : 0))
+											 + "," + (mc.numMutations == 1 ? "." : (mc.numMutations >= 2 ? 1 : 0)) + ","
+											 + (mc.fullyChecked ? 1 : 0));
 			}
 		}
 		writer.close();
@@ -805,8 +802,8 @@ public class ParkinAudit {
 			try {
 				return Integer.parseInt(famID) * 1000 + Integer.parseInt(indID) + "";
 			} catch (NumberFormatException nfe) {
-				System.err.println("Error - could not form a unique identifier with Family ID = '"	+ famID
-														+ "' and Individual ID = '" + indID + "'");
+				System.err.println("Error - could not form a unique identifier with Family ID = '" + famID
+													 + "' and Individual ID = '" + indID + "'");
 				return "error";
 			}
 		}
@@ -823,14 +820,14 @@ public class ParkinAudit {
 				if (trav2.endsWith("-")) {
 					trav2 += count;
 				}
-				mutations = Array.addStrToArray(trav2, mutations);
+				mutations = ArrayUtils.addStrToArray(trav2, mutations);
 				trav2 = "";
 			}
 			if (!trav1.equals("") && exons[count] == 0) {
 				if (trav1.endsWith("-")) {
 					trav1 += count;
 				}
-				mutations = Array.addStrToArray(trav1, mutations);
+				mutations = ArrayUtils.addStrToArray(trav1, mutations);
 				trav1 = "";
 			}
 			if (Math.abs(exons[count]) == 2) {
@@ -851,14 +848,15 @@ public class ParkinAudit {
 		}
 
 		if (mutations.length > 2) {
-			System.err.println("Error - more than 2 mutations parsed for: " + Array.toStr(exons, " "));
+			System.err.println("Error - more than 2 mutations parsed for: "
+												 + ArrayUtils.toStr(exons, " "));
 		}
 		return mutations;
 	}
 
 	public static void transformMe(MutationCarrier mc) throws IOException {
 		for (String[][][] element : INTERPRETATIONS) {
-			if (eqArrays(mc.seanMutations, element[0][0])	&& eqArrays(mc.dianeMutations, element[0][1])
+			if (eqArrays(mc.seanMutations, element[0][0]) && eqArrays(mc.dianeMutations, element[0][1])
 					&& eqArrays(mc.MLPAresults, element[0][2])) {
 
 				mc.seanMutations = element[1][0].clone();
@@ -954,9 +952,9 @@ class MutationCarrier {
 		} catch (NumberFormatException nfe) {
 			UniqueID = FamID;
 			if (!newFamID.equals(newIndID)) {
-				System.err.println("Warning - new MutationCarrier has either a FamID ("	+ newFamID
-														+ ") or an IndID (" + newIndID
-														+ ") that is non-numeric, and yet not identical. Declaring UniqueID = IndID.");
+				System.err.println("Warning - new MutationCarrier has either a FamID (" + newFamID
+													 + ") or an IndID (" + newIndID
+													 + ") that is non-numeric, and yet not identical. Declaring UniqueID = IndID.");
 			}
 		}
 	}

@@ -2,7 +2,7 @@ package org.genvisis.stats;
 
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
@@ -33,9 +33,8 @@ public class CrossValidation {
 	 * @param log Note training and validation dependent variables can have different lengths,
 	 *        however, the number of independent variables must be the same
 	 */
-	public CrossValidation(	double[] train_deps, double[][] train_indeps, double[] validation_deps,
-													double[][] validation_indeps, boolean verbose, LS_TYPE lType,
-													Logger log) {
+	public CrossValidation(double[] train_deps, double[][] train_indeps, double[] validation_deps,
+												 double[][] validation_indeps, boolean verbose, LS_TYPE lType, Logger log) {
 		super();
 		this.train_deps = train_deps;
 		this.train_indeps = train_indeps;
@@ -75,7 +74,7 @@ public class CrossValidation {
 			} else {
 				betas = model.getBetas();
 				SEofBs = model.getSEofBs();
-				avgSEofBs = Array.mean(SEofBs);
+				avgSEofBs = ArrayUtils.mean(SEofBs);
 				Rsquare = model.getRsquare();
 				stats = model.getStats();
 				sigs = model.getSigs();
@@ -132,9 +131,9 @@ public class CrossValidation {
 				}
 			}
 			if (droppedNaN > 0 && verbose) {
-				log.report("Warning - "+ droppedNaN + " "
-										+ (droppedNaN > 1 ? "individuals were" : "individual was")
-										+ " not included in the residual sum of squares calculation due to missing independent or dependent variables");
+				log.report("Warning - " + droppedNaN + " "
+									 + (droppedNaN > 1 ? "individuals were" : "individual was")
+									 + " not included in the residual sum of squares calculation due to missing independent or dependent variables");
 			}
 		} else {
 			log.reportError("Error - could not train data set, cannot compute residuals values");
@@ -306,12 +305,12 @@ public class CrossValidation {
 	 * <p>
 	 * Note: this is an in-sample cross-validation, the training and test data is created on the fly
 	 */
-	public static CrossValidation[] kFoldCrossValidate(	double[] deps, double[][] indeps, int kFolds,
-																											boolean verbose, LS_TYPE lType, Logger log) {
+	public static CrossValidation[] kFoldCrossValidate(double[] deps, double[][] indeps, int kFolds,
+																										 boolean verbose, LS_TYPE lType, Logger log) {
 		if (!foldCheck(deps, kFolds, log)) {
 			return new CrossValidation[0];
 		}
-		int[] chunks = Array.splitUp(deps.length, kFolds);
+		int[] chunks = ArrayUtils.splitUp(deps.length, kFolds);
 		CrossValidation[] crossValidations = new CrossValidation[chunks.length];
 		boolean[][] folds = getFolds(deps, chunks, log);
 		for (int i = 0; i < chunks.length; i++) {
@@ -338,7 +337,7 @@ public class CrossValidation {
 		if (!foldCheck(deps, kFolds, log)) {
 			return new CrossValidation[0];
 		}
-		int[] chunks = Array.splitUp(deps.length, kFolds);
+		int[] chunks = ArrayUtils.splitUp(deps.length, kFolds);
 		CrossValidation[] crossValidations = new CrossValidation[chunks.length];
 		boolean[][] folds = getFolds(deps, chunks, log);
 		for (int i = 0; i < chunks.length; i++) {
@@ -354,8 +353,8 @@ public class CrossValidation {
 	/**
 	 * If you only care about the average error
 	 */
-	public static double kfoldAverageSSerr(	double[] deps, double[][] indeps, int kFolds,
-																					boolean verbose, LS_TYPE lType, Logger log) {
+	public static double kfoldAverageSSerr(double[] deps, double[][] indeps, int kFolds,
+																				 boolean verbose, LS_TYPE lType, Logger log) {
 		CrossValidation[] crossValidations = kFoldCrossValidate(deps, indeps, kFolds, verbose, lType,
 																														log);
 		return getEstimateError(crossValidations);
@@ -422,7 +421,7 @@ public class CrossValidation {
 	 * @return
 	 */
 	private static double[] extractDeps(double[] deps, boolean[] fold, boolean train, Logger log) {
-		int num = Array.booleanArraySum(fold);
+		int num = ArrayUtils.booleanArraySum(fold);
 		num = train ? num : fold.length - num;
 		double[] extract = new double[num];
 		int depIndex = 0;
@@ -445,7 +444,7 @@ public class CrossValidation {
 	 */
 	private static double[][] extractIndeps(double[][] indeps, boolean[] fold, boolean train,
 																					Logger log) {
-		int num = Array.booleanArraySum(fold);
+		int num = ArrayUtils.booleanArraySum(fold);
 		num = train ? num : fold.length - num;
 		double[][] extract = new double[num][];
 		int depIndex = 0;

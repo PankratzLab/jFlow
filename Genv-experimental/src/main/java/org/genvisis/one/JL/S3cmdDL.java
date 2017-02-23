@@ -3,7 +3,7 @@ package org.genvisis.one.JL;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -30,7 +30,7 @@ public class S3cmdDL {
 		cmd1.add(bucket);
 		cmd1.add(">");
 		cmd1.add(txt);
-		Files.write(Array.toStr(Array.toStringArray(cmd1), " "), sh);
+		Files.write(ArrayUtils.toStr(ArrayUtils.toStringArray(cmd1), " "), sh);
 		Files.chmod(sh);
 		CmdLine.runCommandWithFileChecks(new String[] {sh}, "", null, null, true, true, false, log);
 
@@ -59,7 +59,7 @@ public class S3cmdDL {
 			}
 		}
 
-		Files.write(Array.toStr(Array.toStringArray(filesGet), ""), get);
+		Files.write(ArrayUtils.toStr(ArrayUtils.toStringArray(filesGet), ""), get);
 		Files.chmod(get);
 		log.reportTimeInfo("Beginning retrieve : " + filesGet.size() + " files of type " + exten);
 		ScriptExecutor executor = new ScriptExecutor(numThreads);

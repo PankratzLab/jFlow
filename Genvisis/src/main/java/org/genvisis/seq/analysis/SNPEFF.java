@@ -1,6 +1,6 @@
 package org.genvisis.seq.analysis;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -74,12 +74,12 @@ public class SNPEFF {
 
 	public boolean runSnpEffCountOnBamDirectory(String inputDirectory, String output, String build,
 																							String match, String bedFile, int numThreads) {
-		String[] inputBams = Files.toFullPaths(	Files.list(inputDirectory, match, false),
-																						inputDirectory);
+		String[] inputBams = Files.toFullPaths(Files.list(inputDirectory, match, false),
+																					 inputDirectory);
 		if (inputBams != null && inputBams.length > 0) {
 			return runSnpEFFCount(inputBams, output, build, bedFile, numThreads);
 		} else {
-			log.reportError("Error - no files ending with "	+ match + " were found in dirctory "
+			log.reportError("Error - no files ending with " + match + " were found in dirctory "
 											+ inputDirectory);
 			return false;
 		}
@@ -91,17 +91,17 @@ public class SNPEFF {
 		String[] command = new String[] {JAVA, JAR, snpEffLocation + SNP_EFF, COUNT};
 		String[] inputs = inputBams;
 		if (bedFile != null) {
-			inputs = Array.concatAll(inputBams, new String[] {bedFile});
-			command = Array.concatAll(command, new String[] {INTERVAL, bedFile});
+			inputs = ArrayUtils.concatAll(inputBams, new String[] {bedFile});
+			command = ArrayUtils.concatAll(command, new String[] {INTERVAL, bedFile});
 		}
-		command = Array.concatAll(command, new String[] {V, build});
+		command = ArrayUtils.concatAll(command, new String[] {V, build});
 
 		// command = Array.concatAll(command, new String[] { V, build });
 
-		command = Array.concatAll(command, inputBams);
-		command = Array.concatAll(command, new String[] {CARROT, output});
+		command = ArrayUtils.concatAll(command, inputBams);
+		command = ArrayUtils.concatAll(command, new String[] {CARROT, output});
 		String batFile = ext.addToRoot(output, ".bat");
-		Files.write(Array.toStr(command, " "), batFile);
+		Files.write(ArrayUtils.toStr(command, " "), batFile);
 		Files.chmod(batFile);
 		progress = CmdLine.runCommandWithFileChecks(new String[] {batFile}, "", inputs,
 																								new String[] {output}, verbose,
@@ -121,11 +121,11 @@ public class SNPEFF {
 		boolean progress = true;
 		String[] inputFiles = new String[] {snpEffResult.getInputVCF()};
 		String[] outputFiles = new String[] {snpEffResult.getOutputSnpEffVCF()};
-		String[] command = new String[] {	JAVA, JAR, snpEffLocation + SNP_EFF, V, O, GATK, build,
-																			snpEffResult.getInputVCF(), CARROT,
-																			snpEffResult.getOutputSnpEffVCF()};
+		String[] command = new String[] {JAVA, JAR, snpEffLocation + SNP_EFF, V, O, GATK, build,
+																		 snpEffResult.getInputVCF(), CARROT,
+																		 snpEffResult.getOutputSnpEffVCF()};
 		String batFile = ext.addToRoot(snpEffResult.getInputVCF(), ".bat");
-		Files.write(Array.toStr(command, " "), batFile);
+		Files.write(ArrayUtils.toStr(command, " "), batFile);
 		Files.chmod(batFile);
 		progress = CmdLine.runCommandWithFileChecks(new String[] {batFile}, "", inputFiles, outputFiles,
 																								verbose, overWriteExistingOutput, false, log);

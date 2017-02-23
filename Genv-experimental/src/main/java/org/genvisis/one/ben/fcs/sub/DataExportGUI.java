@@ -47,8 +47,7 @@ public class DataExportGUI extends JDialog {
 	private static final long serialVersionUID = 1L;
 	private final JPanel contentPane;
 	private final JTree tree;
-	private final HashMap<DefaultMutableTreeNode, Gate> gateMap =
-																															new HashMap<DefaultMutableTreeNode, Gate>();
+	private final HashMap<DefaultMutableTreeNode, Gate> gateMap = new HashMap<DefaultMutableTreeNode, Gate>();
 	private Gating gating;
 	private final FCSPlot plot;
 	private ArrayList<JCheckBox> boxes;
@@ -153,8 +152,7 @@ public class DataExportGUI extends JDialog {
 		tree.setRootVisible(false);
 		tree.setShowsRootHandles(true);
 
-		lbl =
-				new JLabel("(Hold Ctrl to select multiple gates | Hold Shift to select a range of gates)");
+		lbl = new JLabel("(Hold Ctrl to select multiple gates | Hold Shift to select a range of gates)");
 		lbl.setFont(lblFont);
 		pnl.add(lbl, "cell 0 0");
 		pnl.add(tree, "cell 0 1, grow");
@@ -277,7 +275,7 @@ public class DataExportGUI extends JDialog {
 
 	private void addGatesToTree(DefaultMutableTreeNode root, Gate g) {
 		DefaultMutableTreeNode child = new DefaultMutableTreeNode(g.getName() == null
-																																|| "".equals(g.getName())	? g.getID()
+																															|| "".equals(g.getName()) ? g.getID()
 																																												: g.getName(),
 																															true);
 		gateMap.put(child, g);

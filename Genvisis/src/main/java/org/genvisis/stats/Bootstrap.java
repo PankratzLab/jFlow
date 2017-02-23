@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class Bootstrap {
@@ -52,30 +52,29 @@ public class Bootstrap {
 				array[count] = Double.parseDouble(line[column - 1]);
 				count++;
 			}
-			mean = Array.mean(array);
-			System.out.println("mean: "	+ mean + " (chi-square, 1 df p-value: "
-													+ ext.formDeci(ProbDist.ChiDist(mean, 1), 4, true) + ")");
-			bs = Array.bootstrap(array, reps, true);
-			System.out.println("bootstrapped mean (95% CI):\t"	+ ext.formDeci(bs[0], 4, true) + " ("
-													+ ext.formDeci(bs[1], 4, true) + "," + ext.formDeci(bs[2], 4, true)
-													+ ")");
+			mean = ArrayUtils.mean(array);
+			System.out.println("mean: " + mean + " (chi-square, 1 df p-value: "
+												 + ext.formDeci(ProbDist.ChiDist(mean, 1), 4, true) + ")");
+			bs = ArrayUtils.bootstrap(array, reps, true);
+			System.out.println("bootstrapped mean (95% CI):\t" + ext.formDeci(bs[0], 4, true) + " ("
+												 + ext.formDeci(bs[1], 4, true) + "," + ext.formDeci(bs[2], 4, true) + ")");
 			System.out.println("corresponding chi-square, 1 df p-values:\t"
-														+ ext.formDeci(ProbDist.ChiDist(bs[0], 1), 4, true) + " ("
-													+ ext.formDeci(ProbDist.ChiDist(bs[1], 1), 4, true) + ","
-													+ ext.formDeci(ProbDist.ChiDist(bs[2], 1), 4, true) + ")");
+												 + ext.formDeci(ProbDist.ChiDist(bs[0], 1), 4, true) + " ("
+												 + ext.formDeci(ProbDist.ChiDist(bs[1], 1), 4, true) + ","
+												 + ext.formDeci(ProbDist.ChiDist(bs[2], 1), 4, true) + ")");
 			reader.close();
 
 			writer = new PrintWriter(new FileWriter(filename + "-bootsrapped.out"));
 			writer.println("Using all " + count + " records.");
 			writer.println("Bootstrapping column " + column + " a total of " + reps + " times.");
 			writer.println();
-			writer.println("mean: " + Array.mean(array));
-			writer.println("bootstrapped mean (95% CI):\t"	+ ext.formDeci(bs[0], 4, true) + " ("
-											+ ext.formDeci(bs[1], 4, true) + "," + ext.formDeci(bs[2], 4, true) + ")");
+			writer.println("mean: " + ArrayUtils.mean(array));
+			writer.println("bootstrapped mean (95% CI):\t" + ext.formDeci(bs[0], 4, true) + " ("
+										 + ext.formDeci(bs[1], 4, true) + "," + ext.formDeci(bs[2], 4, true) + ")");
 			writer.println("corresponding chi-square, 1 df p-values:\t"
-												+ ext.formDeci(ProbDist.ChiDist(bs[0], 1), 4, true) + " ("
-											+ ext.formDeci(ProbDist.ChiDist(bs[1], 1), 4, true) + ","
-											+ ext.formDeci(ProbDist.ChiDist(bs[2], 1), 4, true) + ")");
+										 + ext.formDeci(ProbDist.ChiDist(bs[0], 1), 4, true) + " ("
+										 + ext.formDeci(ProbDist.ChiDist(bs[1], 1), 4, true) + ","
+										 + ext.formDeci(ProbDist.ChiDist(bs[2], 1), 4, true) + ")");
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \"" + filename + "\" not found in current directory");
@@ -92,8 +91,8 @@ public class Bootstrap {
 		// String filename = "Bootstrap.dat";
 		String filename = "Survival_Rep1-ALL_VPD.500K_summary.out";
 
-		String usage = "\n"	+ "park.Bootstrap requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default)\n" + "";
+		String usage = "\n" + "park.Bootstrap requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

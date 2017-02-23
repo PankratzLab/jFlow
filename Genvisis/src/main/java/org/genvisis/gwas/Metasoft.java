@@ -7,14 +7,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
 public class Metasoft {
-	public static void generateRawFile(	String[] markers, String[] filenamesAndColumnIDs,
-																			String outputFilename, Logger log) {
+	public static void generateRawFile(String[] markers, String[] filenamesAndColumnIDs,
+																		 String outputFilename, Logger log) {
 		Files.combineWithLessMemory(markers, filenamesAndColumnIDs, null, "MarkerName", ".",
 																outputFilename, log, true, false, false, false);
 	}
@@ -68,17 +68,17 @@ public class Metasoft {
 							case Metal.STRAND_CONFIG_BOTH_NULL:
 								break;
 							case Metal.STRAND_CONFIG_DIFFERENT_ALLELES:
-								System.err.println("Error - for marker "	+ line[0] + " Study" + (i + 1)
-																		+ " has different alleles (" + line[1 + i * 4 + 0] + "/"
-																		+ line[1 + i * 4 + 1] + ") than the rest (" + stdAlleles[0]
-																		+ "/" + stdAlleles[1] + ")");
+								System.err.println("Error - for marker " + line[0] + " Study" + (i + 1)
+																	 + " has different alleles (" + line[1 + i * 4 + 0] + "/"
+																	 + line[1 + i * 4 + 1] + ") than the rest (" + stdAlleles[0] + "/"
+																	 + stdAlleles[1] + ")");
 								break;
 							case Metal.STRAND_CONFIG_SPECIAL_CASE:
-								System.err.println("Warning - marker "	+ line[0]
-																		+ " has a special case starting with Study" + (i + 1)
-																		+ ": alleles (" + line[1 + i * 4 + 0] + "/"
-																		+ line[1 + i * 4 + 1] + ") where previous had only ("
-																		+ stdAlleles[0] + "/" + stdAlleles[1] + ")");
+								System.err.println("Warning - marker " + line[0]
+																	 + " has a special case starting with Study" + (i + 1)
+																	 + ": alleles (" + line[1 + i * 4 + 0] + "/" + line[1 + i * 4 + 1]
+																	 + ") where previous had only (" + stdAlleles[0] + "/"
+																	 + stdAlleles[1] + ")");
 								break;
 							default:
 								System.err.println("Error - unknown determineStrandConfig return code");
@@ -121,17 +121,17 @@ public class Metasoft {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (line.length != lambdas.length * 2 + 1) {
-					System.err.println("Error - mismatched number of lambdas and/or columns in '"	+ inputFile
-															+ "' (with " + lambdas.length + " lambdas, expecting "
-															+ (lambdas.length * 2 + 1) + " (1+" + lambdas.length + "*2) columns");
+					System.err.println("Error - mismatched number of lambdas and/or columns in '" + inputFile
+														 + "' (with " + lambdas.length + " lambdas, expecting "
+														 + (lambdas.length * 2 + 1) + " (1+" + lambdas.length + "*2) columns");
 				}
 				for (int i = 0; i < lambdas.length; i++) {
 					if (!line[1 + i * 2 + 1].equals("NA")) {
-						line[1 + i * 2 + 1] = ext.formDeci(Double.parseDouble(line[1 + i * 2 + 1])	* lambdas[i],
-																								9);
+						line[1 + i * 2 + 1] = ext.formDeci(Double.parseDouble(line[1 + i * 2 + 1]) * lambdas[i],
+																							 9);
 					}
 				}
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 			}
 			writer.close();
 			reader.close();

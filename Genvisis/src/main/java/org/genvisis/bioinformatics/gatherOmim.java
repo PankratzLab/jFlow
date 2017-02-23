@@ -8,7 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Internat;
 
@@ -20,7 +20,7 @@ public class gatherOmim {
 		String temp;
 		int count;
 
-		ids = Array.toStringArray(HashVec.loadFileToVec(filename, false, false, true));
+		ids = ArrayUtils.toStringArray(HashVec.loadFileToVec(filename, false, false, true));
 
 		try {
 			writer = new PrintWriter(new FileWriter("omim_names.out"));
@@ -34,9 +34,9 @@ public class gatherOmim {
 					while (reader.ready()) {
 						temp = reader.readLine();
 						if (temp.indexOf("<tr><td align=\"left\" colspan=\"2\" ") >= 0) {
-							writer.println(id	+ "\t"
-															+ temp.substring(temp.indexOf("<b>") + 3, temp.indexOf("</b>"))
-															+ (count > 0 ? "\t*******" : ""));
+							writer.println(id + "\t"
+														 + temp.substring(temp.indexOf("<b>") + 3, temp.indexOf("</b>"))
+														 + (count > 0 ? "\t*******" : ""));
 							writer.flush();
 							count++;
 						}
@@ -67,8 +67,8 @@ public class gatherOmim {
 		int numArgs = args.length;
 		String filename = "gatherOmim.dat";
 
-		String usage = "\n"	+ "park.gatherOmim requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "";
+		String usage = "\n" + "park.gatherOmim requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -73,10 +73,11 @@ import javax.swing.border.EtchedBorder;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.NewRegionListDialog;
 import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.var.Region;
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Fonts;
 import org.genvisis.common.Grafik;
@@ -99,8 +100,7 @@ import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
 import net.miginfocom.swing.MigLayout;
 
-public class VariantViewer extends JFrame	implements ActionListener, MouseListener,
-														MouseMotionListener, MouseWheelListener {
+public class VariantViewer extends JFrame implements ActionListener, MouseListener, MouseMotionListener, MouseWheelListener {
 	private static final String COLLAPSE_ISOFORMS_KEY = "Collapse Isoforms";
 
 	public static final long serialVersionUID = 1L;
@@ -239,7 +239,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 	private int drawType = DRAW_AS_INDIVS;
 
 	private enum DrawType {
-													FILLED_CIRCLE, EMPTY_CIRCLE, X, DIAMOND;
+		FILLED_CIRCLE, EMPTY_CIRCLE, X, DIAMOND;
 
 		public static DrawType getDrawType(String text) {
 			if ("Low Impact".equals(text)) {
@@ -274,9 +274,9 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		}
 	}
 	private static class BlockDraw {
-		public BlockDraw(	int basePairLoc, int xPixel, int numGenotypes, int totalAffected,
-											HashMap<String, Integer> popCnts, DrawType drawType,
-											VariantContextWithFile vc) {
+		public BlockDraw(int basePairLoc, int xPixel, int numGenotypes, int totalAffected,
+										 HashMap<String, Integer> popCnts, DrawType drawType,
+										 VariantContextWithFile vc) {
 			bpX = basePairLoc;
 			x = xPixel;
 			aff = totalAffected;
@@ -293,8 +293,8 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		VariantContextWithFile vcRecord;
 	}
 	private static class DrawPoint {
-		public DrawPoint(	int x2, int y2, int height, int width, DrawType drawType, Color color,
-											String sampleID, VariantContextWithFile vc) {
+		public DrawPoint(int x2, int y2, int height, int width, DrawType drawType, Color color,
+										 String sampleID, VariantContextWithFile vc) {
 			x = x2;
 			y = y2;
 			type = drawType;
@@ -329,16 +329,16 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String shortName = ((JCheckBoxMenuItem) e.getSource()).getText();
-			if (!loadingFile	&& !REGION_LIST_NEW_FILE.equals(shortName)
+			if (!loadingFile && !REGION_LIST_NEW_FILE.equals(shortName)
 					&& !REGION_LIST_PLACEHOLDER.equals(shortName)) {
 				String file = regionFileNameLoc.get(shortName);
 				if (file == null || file.equals(geneFileName)) {
 					return;
 				}
-				String tempFile =
-												(file.startsWith("./") && proj != null)	? proj.PROJECT_DIRECTORY.getValue()
-																																	+ file
-																																: file;
+				String tempFile = (file.startsWith("./") && proj != null)
+																																	? proj.PROJECT_DIRECTORY.getValue()
+																																		+ file
+																																	: file;
 				if (!Files.exists(tempFile)) {
 					String msg = "Error - region file '" + shortName + "' doesn't exist.";
 					if (proj != null) {
@@ -471,7 +471,14 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 
 		time = new Date().getTime();
 
-		Resource geneTrack = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getGTrack();
+		GENOME_BUILD build;
+		if (proj == null) {
+			log.report("Project is null, defaulting to HG19.");
+			build = GENOME_BUILD.HG19;
+		} else {
+			build = proj.GENOME_BUILD_VERSION.getValue();
+		}
+		Resource geneTrack = Resources.genome(build, log).getGTrack();
 		if (geneTrack.isAvailable()) {
 			String trackPath = geneTrack.get();
 			log.report("Loading track from " + trackPath);
@@ -498,7 +505,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 			loadPopulationFile();
 		} catch (IOException e) {
 			System.err.println("Error - problem occurred when loading population file: "
-													+ e.getMessage());
+												 + e.getMessage());
 			e.printStackTrace();
 			return;
 		}
@@ -545,10 +552,9 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		geneToRegionMap = new HashMap<String, HashMap<String, String>>();
 		geneToExonSegmentMap = new HashMap<String, HashMap<String, Segment[]>>();
 		geneToCommentMap = new HashMap<String, String>();
-		loadedVCFData =
-									new HashMap<String, HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>>>();
+		loadedVCFData = new HashMap<String, HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>>>();
 		headerMap = new HashMap<String, VCFHeader>();
-		String[] genes = Array.extract(geneFile, 0);
+		String[] genes = ArrayUtils.extract(geneFile, 0);
 		GeneData[][] geneData = track.lookupAllGeneData(genes);
 
 		for (int i = 0; i < geneFile.length; i++) {
@@ -572,13 +578,13 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 						isoMap = new HashMap<String, GeneData>();
 						chrMap.put((int) geneData[i][g].getChr(), isoMap);
 					}
-					isoMap.put(	geneData[i][g].isCollapsedIsoforms()	? COLLAPSE_ISOFORMS_KEY
+					isoMap.put(geneData[i][g].isCollapsedIsoforms() ? COLLAPSE_ISOFORMS_KEY
 																													: geneData[i][g].getNcbiAssessionNumbers()[0],
-											geneData[i][g]);
+										 geneData[i][g]);
 				}
 				for (Entry<Integer, HashMap<String, GeneData>> chrEntry : chrMap.entrySet()) {
-					geneToIsoformMap.put(genes[i].toUpperCase()	+ " - chr" + chrEntry.getKey().intValue(),
-																chrEntry.getValue());
+					geneToIsoformMap.put(genes[i].toUpperCase() + " - chr" + chrEntry.getKey().intValue(),
+															 chrEntry.getValue());
 					geneList.add(genes[i].toUpperCase() + " - chr" + chrEntry.getKey().intValue());
 				}
 
@@ -639,8 +645,8 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		geneListCmb.setPreferredSize(new Dimension(maxWidth + 50, 30));
 	}
 
-	private ArrayList<VariantContextWithFile> filter(	Segment exon,
-																										ArrayList<VariantContextWithFile> all) {
+	private ArrayList<VariantContextWithFile> filter(Segment exon,
+																									 ArrayList<VariantContextWithFile> all) {
 		ArrayList<VariantContextWithFile> retArr = new ArrayList<VariantContextWithFile>();
 		for (VariantContextWithFile vc : all) {
 			if (exon.overlaps(new Segment(vc.vc.getContig(), vc.vc.getStart(), vc.vc.getEnd()))) {
@@ -684,7 +690,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 
 		boolean snpIncl = !isoAttrSnpEff.equals(".")
 											&& (selectedIsoform.equals(COLLAPSE_ISOFORMS_KEY)
-														|| selectedIsoform.equals(isoAttrSnpEff)
+													|| selectedIsoform.equals(isoAttrSnpEff)
 													|| selectedIsoform.equals(isoAttrSnpEff.split("\\.")[0]));
 		boolean annIncl = getANNOVARProteinChanges(vcF).length > 0;
 		return new boolean[] {snpIncl, annIncl};
@@ -701,10 +707,10 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		boolean antiAlias = true;
 		if (g instanceof Graphics2D) {
 			((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-																				antiAlias	? RenderingHints.VALUE_ANTIALIAS_ON
+																				antiAlias ? RenderingHints.VALUE_ANTIALIAS_ON
 																									: RenderingHints.VALUE_ANTIALIAS_OFF);
 			((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-																				antiAlias	? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+																				antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
 																									: RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 		}
 		display = genePanel.getVisibleRect();
@@ -731,9 +737,13 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 			drawnFreqs.clear();
 			int maxExonRise = 0;
 			for (int j = 0; j < exons.length; j++) {
-				int exonNumber = determineExonNumber(	geneToIsoformMap.get(geneList.get(geneIndex))
-																															.get(COLLAPSE_ISOFORMS_KEY),
-																							exons[j]);
+				GeneData geneData = getCurrentGeneData();
+//				if (ind == -1) {
+//					geneData = geneToIsoformMap.get(geneList.get(geneIndex)).get(isoformsPresent[0]);
+//				} else {
+//					geneData = geneToIsoformMap.get(geneList.get(geneIndex)).get(COLLAPSE_ISOFORMS_KEY);
+//				}
+				int exonNumber = determineExonNumber(geneData, exons[j]);
 				tempPx = getX(tempX);
 				len = equalizeExonLength ? EQUALIZED_EXON_BP_LENGTH : exons[j][1] - exons[j][0];
 				lenPx = getX(tempX + len) - tempPx;
@@ -762,8 +772,8 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 						} else if (exonLabelLocation == EXON_LBL_RIGHT) {
 							exonX = getX(tempX + len) - width - 2;
 						}
-						g.drawString(EXON_PREFIX	+ exonNumber, exonX,
-													height + GENE_HEIGHT / 2 + g.getFontMetrics().getHeight() - 2);
+						g.drawString(EXON_PREFIX + exonNumber, exonX,
+												 height + GENE_HEIGHT / 2 + g.getFontMetrics().getHeight() - 2);
 						if (fillExons) {
 							g.setColor(Color.BLACK);
 						}
@@ -782,8 +792,8 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 					if (j < exons.length - 1) {
 						int intronLen = paintIntrons ? exons[j + 1][0] - exons[j][1] : intronBPWidth + 1;
 						if (!paintInternalLine) {
-							g.fillRect(	getX(tempX), height + GENE_HEIGHT / 2 - 1,
-													getX(tempX + intronLen) - getX(tempX), 2);
+							g.fillRect(getX(tempX), height + GENE_HEIGHT / 2 - 1,
+												 getX(tempX + intronLen) - getX(tempX), 2);
 						}
 						tempX += intronLen;
 					}
@@ -800,8 +810,8 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 					int inc = (stop - start) > 700 ? (stop - start) > 3000 ? 50 : 10 : 1;
 					for (int i = tempX; i < tempX + len; i += inc) {
 						dist = (i - tempX) % 10 == 0 ? 11 : (i - tempX) % 5 == 0 ? 9 : 6;
-						g.drawLine(	getX(i), height + (GENE_HEIGHT / 2) - 1, getX(i),
-												height + (GENE_HEIGHT / 2) - dist);
+						g.drawLine(getX(i), height + (GENE_HEIGHT / 2) - 1, getX(i),
+											 height + (GENE_HEIGHT / 2) - dist);
 					}
 					tempX += len;
 					if (intronBPWidth > 0 || paintIntrons) {
@@ -818,8 +828,8 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 			g.setFont(new Font("Arial", 0, 14));
 			begin = getX(gene.getStart());
 			width = g.getFontMetrics().stringWidth(gene.getGeneName());
-			g.drawString(	gene.getGeneName(), begin - width - 3,
-										height + GENE_HEIGHT / 2 + g.getFontMetrics().getHeight() / 2 - 3);
+			g.drawString(gene.getGeneName(), begin - width - 3,
+									 height + GENE_HEIGHT / 2 + g.getFontMetrics().getHeight() / 2 - 3);
 			drawFreqs(g, freqLocs, begin);
 		}
 
@@ -836,9 +846,10 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 			len = equalizeExonLength ? EQUALIZED_EXON_BP_LENGTH : exons[j][1] - exons[j][0];
 			lenPx = getX(tempX + len) - tempPx;
 
-			exonNumber = determineExonNumber(	geneToIsoformMap.get(geneList.get(geneIndex))
-																												.get(COLLAPSE_ISOFORMS_KEY),
-																				exons[j]);
+//			exonNumber = determineExonNumber(geneToIsoformMap.get(geneList.get(geneIndex)).get(COLLAPSE_ISOFORMS_KEY), exons[j]);
+
+			GeneData geneData = getCurrentGeneData();
+			exonNumber = determineExonNumber(geneData, exons[j]);
 			vcfInSeg = getExonVCFRecords(j);
 			if (vcfInSeg.size() > 0) {
 				if (lenPx <= dataPntSize + 2 && !displayIfSmooshed) {
@@ -857,7 +868,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 							}
 							if (geno.getType() != GenotypeType.HOM_REF
 									&& geno.getType() != GenotypeType.NO_CALL) { // anything besides Homozygous
-																																// Reference
+																															 // Reference
 								DrawType vcType = DrawType.getDrawType(vc.vc);
 								if (vcType != null && !hiddenDrawTypes.contains(vcType)) {
 									String pop = popMap.get(geno.getSampleName());
@@ -894,7 +905,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 								}
 								if (geno.getType() != GenotypeType.HOM_REF
 										&& geno.getType() != GenotypeType.NO_CALL) { // anything besides Homozygous
-																																	// Reference
+																																 // Reference
 									String pop = popMap.get(geno.getSampleName());
 									if (hiddenPops.contains(pop)) {
 										continue;
@@ -902,7 +913,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 									totAff++;
 									if (pop == null) {
 										System.err.println("Error - no population entry found for ID: "
-																				+ geno.getSampleName());
+																			 + geno.getSampleName());
 									}
 									Integer cnt = popGenoCnt.get(pop);
 									if (cnt == null) {
@@ -922,8 +933,8 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 								}
 
 								freqLocs.add(new VCFLocation(tempPx + diffPx, vc.vc));
-								BlockDraw bd = new BlockDraw(	vc.vc.getStart(), tempPx + diffPx, gctx.size(), totAff,
-																							popGenoCnt, vcType, vc);
+								BlockDraw bd = new BlockDraw(vc.vc.getStart(), tempPx + diffPx, gctx.size(), totAff,
+																						 popGenoCnt, vcType, vc);
 								toDraw.add(bd);
 							}
 						}
@@ -963,7 +974,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 								}
 								if (geno.getType() != GenotypeType.HOM_REF
 										&& geno.getType() != GenotypeType.NO_CALL) { // anything besides Homozygous
-																																	// Reference
+																																 // Reference
 									// if (spillover) {
 									// DrawType dt = DrawType.getDrawType(vc.vc);
 									// if (dt != null) {
@@ -986,14 +997,14 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 											}
 										}
 										if (overlap) {
-											vcRect = new Rectangle(	vcRect.x, vcRect.y + vcRect.height, dataPntSize + 2,
-																							dataPntSize + 2);
+											vcRect = new Rectangle(vcRect.x, vcRect.y + vcRect.height, dataPntSize + 2,
+																						 dataPntSize + 2);
 											indiRise++;
 										}
-									} while (overlap && (vcRect.y	+ vcRect.height + yStart + GENE_HEIGHT + dataPntSize
-																				+ 2) < display.height/* && xOffset <= 20 */); // running off
-																																											// top of
-																																											// screen
+									} while (overlap && (vcRect.y + vcRect.height + yStart + GENE_HEIGHT + dataPntSize
+																			 + 2) < display.height/* && xOffset <= 20 */); // running off
+																																										 // top of
+																																										 // screen
 									maxIndiRise = Math.max(indiRise, maxIndiRise);
 									DrawType dt = DrawType.getDrawType(vc.vc);
 									if (dt != null && !hiddenDrawTypes.contains(dt) && !overlap) {
@@ -1002,20 +1013,20 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 											continue;
 										}
 										plotted.add(vcRect);
-										if ((vcRect.y	+ vcRect.height + yStart + GENE_HEIGHT + dataPntSize
-													+ 2) < display.height) {
-											DrawPoint dp = new DrawPoint(	vcRect.x, vcRect.y, vcRect.height, vcRect.width,
-																										DrawType.getDrawType(vc.vc),
-																										popColorMap.get(pop), geno.getSampleName(), vc);
+										if ((vcRect.y + vcRect.height + yStart + GENE_HEIGHT + dataPntSize
+												 + 2) < display.height) {
+											DrawPoint dp = new DrawPoint(vcRect.x, vcRect.y, vcRect.height, vcRect.width,
+																									 DrawType.getDrawType(vc.vc),
+																									 popColorMap.get(pop), geno.getSampleName(), vc);
 											activePoints.add(dp);
 											activeRects.add(vcRect);
 											if (selectedDrawPoint != null
-														&& dp.sampleID.equals(selectedDrawPoint.sampleID)
+													&& dp.sampleID.equals(selectedDrawPoint.sampleID)
 													&& dp.vcRecord.equals(selectedDrawPoint.vcRecord)) {
 												selectedRect = vcRect;
 											}
 											drawn.add(dp);
-											if (vcRect.y	+ vcRect.height + yStart + GENE_HEIGHT + dataPntSize
+											if (vcRect.y + vcRect.height + yStart + GENE_HEIGHT + dataPntSize
 													+ 2 > display.height) {
 												break; // stop doing things if we're off the screen
 												// spillover = true;
@@ -1280,9 +1291,9 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		};
 		legendPanel.add(jlbl, "cell 0 2, grow");
 		jlbl = new JLabel("Low Impact");
-		jlbl.setFont(jlbl	.getFont()
-											.deriveFont(hiddenDrawTypes.contains(DrawType.getDrawType("Low Impact"))	? Font.ITALIC
-																																																: Font.PLAIN));
+		jlbl.setFont(jlbl.getFont()
+										 .deriveFont(hiddenDrawTypes.contains(DrawType.getDrawType("Low Impact")) ? Font.ITALIC
+																																															: Font.PLAIN));
 		jlbl.addMouseListener(hideType);
 		legendPanel.add(jlbl, "cell 1 2");
 
@@ -1306,9 +1317,9 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		};
 		legendPanel.add(jlbl, "cell 0 3, grow");
 		jlbl = new JLabel("Moderate Impact");
-		jlbl.setFont(jlbl	.getFont()
-											.deriveFont(hiddenDrawTypes.contains(DrawType.getDrawType("Moderate Impact"))	? Font.ITALIC
-																																																		: Font.PLAIN));
+		jlbl.setFont(jlbl.getFont()
+										 .deriveFont(hiddenDrawTypes.contains(DrawType.getDrawType("Moderate Impact")) ? Font.ITALIC
+																																																	 : Font.PLAIN));
 		jlbl.addMouseListener(hideType);
 		legendPanel.add(jlbl, "cell 1 3");
 
@@ -1338,9 +1349,9 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		};
 		legendPanel.add(jlbl, "cell 0 4, grow");
 		jlbl = new JLabel("High Impact");
-		jlbl.setFont(jlbl	.getFont()
-											.deriveFont(hiddenDrawTypes.contains(DrawType.getDrawType("High Impact"))	? Font.ITALIC
-																																																: Font.PLAIN));
+		jlbl.setFont(jlbl.getFont()
+										 .deriveFont(hiddenDrawTypes.contains(DrawType.getDrawType("High Impact")) ? Font.ITALIC
+																																															 : Font.PLAIN));
 		jlbl.addMouseListener(hideType);
 		legendPanel.add(jlbl, "cell 1 4");
 
@@ -1363,19 +1374,19 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		};
 		legendPanel.add(jlbl, "cell 0 5, grow");
 		jlbl = new JLabel("Modifier");
-		jlbl.setFont(jlbl	.getFont()
-											.deriveFont(hiddenDrawTypes.contains(DrawType.getDrawType("Modifier"))	? Font.ITALIC
-																																															: Font.PLAIN));
+		jlbl.setFont(jlbl.getFont()
+										 .deriveFont(hiddenDrawTypes.contains(DrawType.getDrawType("Modifier")) ? Font.ITALIC
+																																														: Font.PLAIN));
 		jlbl.addMouseListener(hideType);
 		legendPanel.add(jlbl, "cell 1 5");
 
 		int row = 7;
 		if (popColorMap != null) {
 			for (final Entry<String, Color> colEntry : popColorMap.entrySet()) {
-				String lbl = lblMap.containsKey(colEntry.getKey())	? lblMap.get(colEntry.getKey())
-																														: colEntry.getKey()	+ " (n="
-																															+ getPopulationCount(colEntry.getKey())
-																															+ ")";
+				String lbl = lblMap.containsKey(colEntry.getKey()) ? lblMap.get(colEntry.getKey())
+																													 : colEntry.getKey() + " (n="
+																														 + getPopulationCount(colEntry.getKey())
+																														 + ")";
 				jlbl = new JLabel() {
 					/**
 					*
@@ -1400,9 +1411,9 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 				jlbl.setSize(d);
 				legendPanel.add(jlbl, "gapx 5, cell 0 " + row);
 				final JLabel jlbl1 = new JLabel(lbl);
-				jlbl1.setFont(jlbl1	.getFont()
-														.deriveFont(hiddenPops.contains(colEntry.getKey())	? Font.ITALIC
-																																								: Font.PLAIN));
+				jlbl1.setFont(jlbl1.getFont()
+													 .deriveFont(hiddenPops.contains(colEntry.getKey()) ? Font.ITALIC
+																																							: Font.PLAIN));
 				jlbl1.addMouseListener(new MouseAdapter() {
 					@Override
 					public void mouseClicked(MouseEvent e) {
@@ -1424,7 +1435,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 
 		int maxWidth, maxHeight;
 		maxWidth = lblMaxWidth + 40 + dataPntSize;
-		maxHeight = 100 + 25 * popColorMap.size();
+		maxHeight = 100 + 40 * popColorMap.size();
 		legendPanel.setBounds(10, 10, maxWidth, maxHeight);
 	}
 
@@ -1438,7 +1449,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		double prop = spanCur / (double) spanAll;
 		float fsz = (float) Math.min(14d, 11 / prop);
 		// float fsz = 11f;
-		Font newFont = (Fonts.SOURCE_CODE_PRO_REGULAR == null	? Font.decode(Font.MONOSPACED)
+		Font newFont = (Fonts.SOURCE_CODE_PRO_REGULAR == null ? Font.decode(Font.MONOSPACED)
 																													: Fonts.SOURCE_CODE_PRO_REGULAR).deriveFont(fsz);
 		g.setFont(newFont);
 		FontMetrics fm = g.getFontMetrics();
@@ -1449,7 +1460,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 
 		ArrayList<String> pops = new ArrayList<String>();
 
-		for (Entry<String, HashSet<String>> popSetEntry : (showExcludes	? popIndiMapWithExcludes.entrySet()
+		for (Entry<String, HashSet<String>> popSetEntry : (showExcludes ? popIndiMapWithExcludes.entrySet()
 																																		: popIndiMap.entrySet())) {
 			for (VCFLocation vcfLoc : vcfLocs) {
 				if (DrawType.getDrawType(vcfLoc.vc) == null) {
@@ -1476,10 +1487,9 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 					if (DrawType.getDrawType(vcfLocs.get(v).vc) == null) {
 						continue;
 					}
-					String draw =
-											vcfLocs.get(v).mafMap.containsKey(pops.get(i))	? ext.formDeci(	vcfLocs.get(v).mafMap.get(pops.get(i)),
+					String draw = vcfLocs.get(v).mafMap.containsKey(pops.get(i)) ? ext.formDeci(vcfLocs.get(v).mafMap.get(pops.get(i)),
 																																											4)
-																																			: "--";
+																																			 : "--";
 					int width = fm.stringWidth(draw);
 					if (v < vcfLocs.size() - 1) {
 						if (vcfLocs.get(v).x + width > vcfLocs.get(v + 1).x) {
@@ -1487,10 +1497,10 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 						}
 					} else if (v > 0) {
 						String prevDraw = vcfLocs.get(v - 1).mafMap.containsKey(pops.get(i))
-																																										? ext.formDeci(	vcfLocs.get(v
-																																																							- 1).mafMap.get(pops.get(i)),
-																																																	4)
-																																									: "--";
+																																								 ? ext.formDeci(vcfLocs.get(v
+																																																						- 1).mafMap.get(pops.get(i)),
+																																																4)
+																																								 : "--";
 						if (vcfLocs.get(v).x < vcfLocs.get(v - 1).x + fm.stringWidth(prevDraw)) {
 							draw = "*";
 						}
@@ -1527,10 +1537,9 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 					if (DrawType.getDrawType(vcfLocs.get(v).vc) == null) {
 						continue;
 					}
-					String draw =
-											vcfLocs.get(v).macMap.containsKey(pops.get(i))	? ext.formDeci(	vcfLocs.get(v).macMap.get(pops.get(i)),
+					String draw = vcfLocs.get(v).macMap.containsKey(pops.get(i)) ? ext.formDeci(vcfLocs.get(v).macMap.get(pops.get(i)),
 																																											4)
-																																			: "--";
+																																			 : "--";
 					int width = fm.stringWidth(draw);
 					if (v < vcfLocs.size() - 1) {
 						if (vcfLocs.get(v).x + width > vcfLocs.get(v + 1).x) {
@@ -1538,10 +1547,10 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 						}
 					} else if (v > 0) {
 						String prevDraw = vcfLocs.get(v - 1).macMap.containsKey(pops.get(i))
-																																										? ext.formDeci(	vcfLocs.get(v
-																																																							- 1).macMap.get(pops.get(i)),
-																																																	4)
-																																									: "--";
+																																								 ? ext.formDeci(vcfLocs.get(v
+																																																						- 1).macMap.get(pops.get(i)),
+																																																4)
+																																								 : "--";
 						if (vcfLocs.get(v).x < vcfLocs.get(v - 1).x + fm.stringWidth(prevDraw)) {
 							draw = "*";
 						}
@@ -1590,20 +1599,20 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 	}
 
 	private int getX(int pos) {
-		return (int) ((double) (pos - start)	/ (double) (stop - start)
+		return (int) ((double) (pos - start) / (double) (stop - start)
 									* (getWidth() - 2 * WIDTH_BUFFER))
-						+ WIDTH_BUFFER;
+					 + WIDTH_BUFFER;
 	}
 
 	private String chooseNewFiles() {
 		JFileChooser jfc = new JFileChooser((proj != null
-																					|| geneFileName == null	? proj.PROJECT_DIRECTORY.getValue()
-																																	: ext.parseDirectoryOfFile(geneFileName)));
+																				 || geneFileName == null ? proj.PROJECT_DIRECTORY.getValue()
+																																 : ext.parseDirectoryOfFile(geneFileName)));
 		jfc.setMultiSelectionEnabled(true);
 		if (jfc.showOpenDialog(VariantViewer.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();
 			if (files.length > 0) {
-				boolean[] keep = Array.booleanArray(files.length, true);
+				boolean[] keep = ArrayUtils.booleanArray(files.length, true);
 				for (int i = 0; i < files.length; i++) {
 					for (String fileName : regionFileNameLoc.keySet()) {
 						if (ext.rootOf(files[i].toString()).equals(fileName)) {
@@ -1611,8 +1620,8 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 						}
 					}
 				}
-				File[] keptFiles = Array.subArray(files, keep);
-				File[] discards = Array.subArray(files, Array.booleanNegative(keep));
+				File[] keptFiles = ArrayUtils.subArray(files, keep);
+				File[] discards = ArrayUtils.subArray(files, ArrayUtils.booleanNegative(keep));
 
 				if (discards.length > 0) {
 					StringBuilder msg = new StringBuilder("The following data file(s) are already present:");
@@ -1636,8 +1645,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 				}
 
 				if (!keep) {
-					StringBuilder msg =
-														new StringBuilder("The following data file is already present:\n").append(file.getName());
+					StringBuilder msg = new StringBuilder("The following data file is already present:\n").append(file.getName());
 					JOptionPane.showMessageDialog(VariantViewer.this, msg.toString());
 					return null;
 				} else {
@@ -1739,10 +1747,10 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 				boolean antiAlias = true;
 				if (g instanceof Graphics2D) {
 					((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-																						antiAlias	? RenderingHints.VALUE_ANTIALIAS_ON
+																						antiAlias ? RenderingHints.VALUE_ANTIALIAS_ON
 																											: RenderingHints.VALUE_ANTIALIAS_OFF);
 					((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-																						antiAlias	? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+																						antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
 																											: RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 				}
 				super.paintComponent(g);
@@ -1828,8 +1836,8 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 					geneToCommentMap.put(geneList.get(geneIndex), newComment);
 				}
 				if (newComment != null) {
-					commentLabel.setText("gene #"	+ (geneIndex + 1) + ":  "
-																+ geneToCommentMap.get(geneList.get(geneIndex)));
+					commentLabel.setText("gene #" + (geneIndex + 1) + ":  "
+															 + geneToCommentMap.get(geneList.get(geneIndex)));
 				} else {
 					commentLabel.setText(" -- no comment -- ");
 				}
@@ -1866,8 +1874,8 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 				selectedBlockDraw = null;
 				selectedDrawPoint = null;
 				selectedRect = null;
-				parseLocation(geneToRegionMap	.get(geneList.get(geneIndex))
-																			.get(isoformList.getSelectedItem()));
+				parseLocation(geneToRegionMap.get(geneList.get(geneIndex))
+																		 .get(isoformList.getSelectedItem()));
 
 				updateGUI();
 			}
@@ -1993,11 +2001,11 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				NewRegionListDialog newRgnList = new NewRegionListDialog(	proj == null	? null
-																																								: proj.getSamples(),
-																																	proj == null	? null
-																																								: proj.PROJECT_DIRECTORY.getValue(),
-																																	true);
+				NewRegionListDialog newRgnList = new NewRegionListDialog(proj == null ? null
+																																							: proj.getSamples(),
+																																 proj == null ? null
+																																							: proj.PROJECT_DIRECTORY.getValue(),
+																																 true);
 				newRgnList.setModal(true);
 				newRgnList.setVisible(true);
 				if (newRgnList.getReturnCode() == JOptionPane.YES_OPTION) {
@@ -2132,8 +2140,8 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 			public void actionPerformed(ActionEvent e) {
 				paintIntrons = paintIntronsChk.isSelected();
 				// parseLocation(geneRegions[geneIndex][1]);
-				parseLocation(geneToRegionMap	.get(geneList.get(geneIndex))
-																			.get(isoformList.getSelectedItem()));
+				parseLocation(geneToRegionMap.get(geneList.get(geneIndex))
+																		 .get(isoformList.getSelectedItem()));
 				updateGUI();
 			}
 		});
@@ -2183,8 +2191,8 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 			public void actionPerformed(ActionEvent e) {
 				equalizeExonLength = equalizeExonsChk.isSelected();
 				// parseLocation(geneRegions[geneIndex][1]);
-				parseLocation(geneToRegionMap	.get(geneList.get(geneIndex))
-																			.get(isoformList.getSelectedItem()));
+				parseLocation(geneToRegionMap.get(geneList.get(geneIndex))
+																		 .get(isoformList.getSelectedItem()));
 				updateGUI();
 			}
 		});
@@ -2575,13 +2583,13 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 				} else if (drawType == DRAW_AS_INDIVS) {
 					selectedDrawPoint = activePoints.get(i);
 				}
-				genePanel.setToolTipText(selectedBlockDraw == null	? selectedDrawPoint == null	? null
-																																												: buildToolTip(selectedDrawPoint)
-																														: buildToolTip(selectedBlockDraw));
+				genePanel.setToolTipText(selectedBlockDraw == null ? selectedDrawPoint == null ? null
+																																											 : buildToolTip(selectedDrawPoint)
+																													 : buildToolTip(selectedBlockDraw));
 				MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED,
 																						System.currentTimeMillis(), 0, x, e.getY(), 0, false);
 				ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't
-																															// matter, but both are necessary
+																														 // matter, but both are necessary
 				// this.mouseMoved(phantom);
 				VariantViewer.this.repaint();
 				return;
@@ -2598,7 +2606,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 
 	private int getStart(boolean buffered) {
 		GeneData gd = getCurrentGeneData();
-		return gd == null	? (buffered ? -1 * MIN_BUFFER : 0)
+		return gd == null ? (buffered ? -1 * MIN_BUFFER : 0)
 											: getCurrentGeneData().getStart() - (buffered ? MIN_BUFFER : 0);
 	}
 
@@ -2807,7 +2815,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		if (!location.startsWith("chr")) {
 			if (track == null) {
 				JOptionPane.showMessageDialog(this,
-																			"Cannot parse '"	+ location
+																			"Cannot parse '" + location
 																						+ "' since the gene track has either not been installed or did not load properly.",
 																			"Error", JOptionPane.ERROR_MESSAGE);
 				return;
@@ -2815,7 +2823,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 				loc = track.lookupPosition(location);
 				if (loc[0] == -1) {
 					JOptionPane.showMessageDialog(this,
-																				"'"		+ location
+																				"'" + location
 																							+ "' is not a valid gene name and is not a valid UCSC location.",
 																				"Error", JOptionPane.ERROR_MESSAGE);
 					return;
@@ -2878,12 +2886,12 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		}
 		geneListCmb.setSelectedIndex(geneIndex);
 		createIsoformList();
-		isoformList.setSelectedItem(COLLAPSE_ISOFORMS_KEY);
-		parseLocation(geneToRegionMap.get(geneList.get(geneIndex)).get(COLLAPSE_ISOFORMS_KEY));
+		isoformList.setSelectedItem(isoformsPresent[0]);//COLLAPSE_ISOFORMS_KEY);
+		parseLocation(geneToRegionMap.get(geneList.get(geneIndex)).get(isoformsPresent[0]));//COLLAPSE_ISOFORMS_KEY));
 		if (geneToCommentMap.containsKey(geneList.get(geneIndex))
 				&& geneToCommentMap.get(geneList.get(geneIndex)) != null) {
-			commentLabel.setText("gene #"	+ (geneIndex + 1) + ":  "
-														+ geneToCommentMap.get(geneList.get(geneIndex)));
+			commentLabel.setText("gene #" + (geneIndex + 1) + ":  "
+													 + geneToCommentMap.get(geneList.get(geneIndex)));
 		} else {
 			commentLabel.setText(" -- no comment -- ");
 		}
@@ -2892,8 +2900,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 
 	private ArrayList<VariantContextWithFile> getExonVCFRecords(int exonIndex) {
 		String gene = geneList.get(geneIndex);
-		HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> isoformData =
-																																							loadedVCFData.get(gene);
+		HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> isoformData = loadedVCFData.get(gene);
 		if (isoformData == null) {
 			return new ArrayList<VariantContextWithFile>();
 		}
@@ -3035,8 +3042,8 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 				VCFFileReader vcfReader = new VCFFileReader(new File(vcfFile), true);
 				VCFHeader header = vcfReader.getFileHeader();
 				vcfHeader = header;
-				CloseableIterator<VariantContext> vcIter = vcfReader.query(	gd.getChromosomeUCSC(),
-																																		gd.getStart(), gd.getStop());
+				CloseableIterator<VariantContext> vcIter = vcfReader.query(gd.getChromosomeUCSC(),
+																																	 gd.getStart(), gd.getStop());
 				// System.out.println(gd.getChromosomeUCSC() + ":" + gd.getStart() + "-" + gd.getStop());
 				while (vcIter.hasNext()) {
 					VariantContext vc = VCOps.getSubset(vcIter.next(), sub);
@@ -3052,8 +3059,7 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 	}
 
 	private HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> sortData(ArrayList<VariantContextWithFile> vcfEntries) {
-		HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> isoformMapToVCFList =
-																																											new HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>>();
+		HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> isoformMapToVCFList = new HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>>();
 		HashMap<String, Segment[]> isoToExonSegMap = geneToExonSegmentMap.get(geneList.get(geneIndex));
 
 		for (Entry<String, Segment[]> isoSegEntry : isoToExonSegMap.entrySet()) {
@@ -3073,8 +3079,8 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 
 	public static void main(String[] args) {
 		Project proj = null;
-		// new Project("D:/projects/gedi_gwas.properties", false);
-		String geneList = "N:/statgen/VariantMapper/test2/genes.txt";
+//		 new Project("D:/projects/gedi_gwas.properties", false);
+//		String geneList = "N:/statgen/VariantMapper/test2/genes.txt";
 		// Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
 
 		// String[] vcfFiles = new String[] {
@@ -3094,9 +3100,9 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		// String popFile3 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS.vpop";
 		// new VariantViewer(proj, vcfFiles3, popFile3);
 		//
-		String[] vcfFiles4 = new String[] {"N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz"};
-		String popFile4 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS_OTEHRS.vpop";
-		new VariantViewer(proj, geneList, vcfFiles4, popFile4);
+//		String[] vcfFiles4 = new String[] {"N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz"};
+//		String popFile4 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS_OTEHRS.vpop";
+//		new VariantViewer(proj, geneList, vcfFiles4, popFile4);
 		//
 		// OSTEO_OFF_INHERIT.maf_0.01.chr17.vcf.gz.tbi
 
@@ -3110,13 +3116,19 @@ public class VariantViewer extends JFrame	implements ActionListener, MouseListen
 		// new VariantViewer(proj, vcfFiles2, popFile2);
 
 		// String dir = "C:/temp/VCF/";
-		String dir = "N:/statgen/VariantMapper/Fibrinogen/";
-		geneList = dir + "genes.txt";
-		String[] vcfFiles =
-											new String[] {dir
-																		+ "charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.blanks.segs_noquotes.vcf"};
-		VCFOps.verifyIndex(vcfFiles[0], new Logger());
+//		String dir = "N:/statgen/VariantMapper/Fibrinogen/";
+//		geneList = dir + "genes.txt";
+//		String[] vcfFiles = new String[] {dir
+//																			+ "charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.blanks.segs_noquotes.vcf"};
+//		VCFOps.verifyIndex(vcfFiles[0], new Logger());
 		// new VariantViewer(proj, geneList, vcfFiles, popFile);
+		
+		String geneList = "F:/temp/variantviewer/genes.txt";
+		String[] vcfFiles = {"F:/temp/variantviewer/data.vcf"};
+		String popFile = "F:/temp/variantviewer/pop.vpop";
+		
+		new VariantViewer(proj, geneList, vcfFiles, popFile);
+		
 	}
 }
 

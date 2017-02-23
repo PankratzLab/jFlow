@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -52,8 +52,8 @@ public class kNN {
 		run = false;
 	}
 
-	public kNN(	double[] newTargets, double[][] newPredictors,
-							int[][] newPartitions) throws IOException {
+	public kNN(double[] newTargets, double[][] newPredictors,
+						 int[][] newPartitions) throws IOException {
 		this();
 		targets = newTargets;
 		predictors = newPredictors;
@@ -98,8 +98,8 @@ public class kNN {
 
 			for (int i = startK; i <= stopK; i++) {
 				for (int j = 0; j < 3; j++) {
-					errorRates[i][j] = calcError(	targetsFromPartition(j),
-																				score(predictorsFromPartition(j), i, false));
+					errorRates[i][j] = calcError(targetsFromPartition(j),
+																			 score(predictorsFromPartition(j), i, false));
 				}
 				if (errorRates[i][1] < minError) {
 					minError = errorRates[i][1];
@@ -198,7 +198,7 @@ public class kNN {
 
 			for (int j = 0; j < K; j++) {
 				predicteds[i] += (quant && weighted ? (1 / distances[keys[j]]) / sum : 1 / (double) K)
-													* targets[partitions[0][keys[j]]];
+												 * targets[partitions[0][keys[j]]];
 			}
 
 			if (!raw && !quant) {
@@ -223,12 +223,12 @@ public class kNN {
 			writer.println("k-nearest neighbors report:");
 			writer.println("k\tT Error\tV Error" + (partitions[2].length == 0 ? "" : "\tTest Error"));
 			for (int i = startK; i <= stopK; i++) {
-				writer.println(i	+ "\t" + ext.formDeci(errorRates[i][0], 4, true) + "\t"
-												+ ext.formDeci(errorRates[i][1], 4, true)
-												+ (partitions[2].length == 0	? ""
-																											: "\t"
-																												+ ext.formDeci(errorRates[i][2], 4, true))
-												+ (i == bestK ? "\t<-- Best K" : ""));
+				writer.println(i + "\t" + ext.formDeci(errorRates[i][0], 4, true) + "\t"
+											 + ext.formDeci(errorRates[i][1], 4, true)
+											 + (partitions[2].length == 0 ? ""
+																										: "\t"
+																											+ ext.formDeci(errorRates[i][2], 4, true))
+											 + (i == bestK ? "\t<-- Best K" : ""));
 			}
 			writer.println();
 			writer.println();
@@ -244,7 +244,7 @@ public class kNN {
 
 						writer.println("Cut off Prob.Val. for Success (Updatable)			" + cutoff);
 						writer.println((set == 0 ? "Training" : (set == 0 ? "Validation" : "Test"))
-														+ " Data scoring - Summary Report (for k=" + bestK + ")");
+													 + " Data scoring - Summary Report (for k=" + bestK + ")");
 						writer.println("\nClassification Confusion Matrix");
 						writer.println("\tPredicted Class");
 						writer.println("Actual\t1\t0");
@@ -253,16 +253,16 @@ public class kNN {
 						writer.println();
 						writer.println("\nError Report");
 						writer.println("Class\t# Cases\t# Errors\t% Error");
-						writer.println("1\t"	+ (counts[0][0] + counts[0][1]) + "\t\t" + counts[0][1] + "\t\t"
-														+ ext.formDeci(((double) counts[0][1]
-																						/ (double) (counts[0][0] + counts[0][1]))	* 100, 2,
-																						true)
-														+ "%");
-						writer.println("0\t"	+ (counts[1][0] + counts[1][1]) + "\t\t" + counts[1][0] + "\t\t"
-														+ ext.formDeci(((double) counts[1][0]
-																						/ (double) (counts[1][0] + counts[1][1]))	* 100, 2,
-																						true)
-														+ "%");
+						writer.println("1\t" + (counts[0][0] + counts[0][1]) + "\t\t" + counts[0][1] + "\t\t"
+													 + ext.formDeci(((double) counts[0][1]
+																					 / (double) (counts[0][0] + counts[0][1]))
+																					* 100, 2, true)
+													 + "%");
+						writer.println("0\t" + (counts[1][0] + counts[1][1]) + "\t\t" + counts[1][0] + "\t\t"
+													 + ext.formDeci(((double) counts[1][0]
+																					 / (double) (counts[1][0] + counts[1][1]))
+																					* 100, 2, true)
+													 + "%");
 						writer.println();
 
 					}
@@ -274,8 +274,8 @@ public class kNN {
 			writer.println("Classification of Validation Data (for k=" + bestK + ")");
 			writer.println(quant ? "Actual\tPredicted" : "Predicted\tActual\tprobability");
 			for (int i = 0; i < predicteds.length; i++) {
-				writer.println((quant ? "" : (predicteds[i] >= cutoff ? 1 : 0) + "\t")	+ actuals[i] + "\t"
-												+ predicteds[i]);
+				writer.println((quant ? "" : (predicteds[i] >= cutoff ? 1 : 0) + "\t") + actuals[i] + "\t"
+											 + predicteds[i]);
 			}
 
 			writer.close();
@@ -299,25 +299,25 @@ public class kNN {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			output = (filename.indexOf(".") >= 0	? filename.substring(0, filename.lastIndexOf("."))
-																						: filename)
-								+ "-report.out";
+			output = (filename.indexOf(".") >= 0 ? filename.substring(0, filename.lastIndexOf("."))
+																					 : filename)
+							 + "-report.out";
 			header = reader.readLine().split("\t", -1);
-			System.out.println("Assuming the last column ("	+ header[header.length - 1]
-													+ ") is the dependent variable");
+			System.out.println("Assuming the last column (" + header[header.length - 1]
+												 + ") is the dependent variable");
 			if (manualPartition = header[0].equals("Partition")) {
-				System.out.println("Assuming the first column ("	+ header[0]
-														+ ") will be used to partition the data");
+				System.out.println("Assuming the first column (" + header[0]
+													 + ") will be used to partition the data");
 			} else {
 				System.out.println("Assuming there is no provided 'Partition' column; using defaults ("
-															+ PARTITION_DEFAULTS[0] + ":" + PARTITION_DEFAULTS[1] + ":"
-														+ PARTITION_DEFAULTS[2] + ")");
+													 + PARTITION_DEFAULTS[0] + ":" + PARTITION_DEFAULTS[1] + ":"
+													 + PARTITION_DEFAULTS[2] + ")");
 			}
 			while (reader.ready()) {
 				line = reader.readLine().split("\t");
 				if (line.length != header.length) {
-					System.err.println("Error - number of columns for row "	+ (count + 1)
-															+ " does not match that for header");
+					System.err.println("Error - number of columns for row " + (count + 1)
+														 + " does not match that for header");
 					System.exit(3);
 				}
 				dataline = new double[header.length - (manualPartition ? 2 : 1)];
@@ -329,8 +329,8 @@ public class kNN {
 						} else if (manualPartition && i == 0) {
 							if (line[0].length() != 1
 									|| (!line[0].equals("T") && !line[0].equals("V") && !line[0].equals("S"))) {
-								System.err.println("Error - '"	+ line[0]
-																		+ "' is not a  valid partition setting (use T for Training, V for Validation, and S for test set)");
+								System.err.println("Error - '" + line[0]
+																	 + "' is not a  valid partition setting (use T for Training, V for Validation, and S for test set)");
 								System.exit(4);
 							}
 							partitionIndices[line[0].equals("T") ? 0 : (line[0].equals("V") ? 1 : 2)].add(count);
@@ -338,8 +338,8 @@ public class kNN {
 							dataline[i - (manualPartition ? 1 : 0)] = Double.parseDouble(line[i]);
 						}
 					} catch (NumberFormatException nfe) {
-						System.err.println("Error - '"	+ line[i]
-																+ "' is not a valid integer, and we're not currently not set up to process missing fields");
+						System.err.println("Error - '" + line[i]
+															 + "' is not a valid integer, and we're not currently not set up to process missing fields");
 						System.exit(5);
 					}
 				}
@@ -386,9 +386,9 @@ public class kNN {
 			System.exit(1);
 		}
 		while (percentages.length < 3) {
-			percentages = Array.addIntToArray(0, percentages);
+			percentages = ArrayUtils.addIntToArray(0, percentages);
 		}
-		if (Array.sum(percentages) != 100) {
+		if (ArrayUtils.sum(percentages) != 100) {
 			System.err.println("Error - partition percentages do not sum to 100");
 			System.exit(2);
 		}
@@ -396,7 +396,7 @@ public class kNN {
 		partitions[1] = new int[(int) Math.round((double) (percentages[1]) * n / 100)];
 		partitions[2] = new int[n - partitions[0].length - partitions[1].length];
 
-		randIndices = Array.random(n);
+		randIndices = ArrayUtils.random(n);
 		count = 0;
 		for (int j = 0; j < 3; j++) {
 			for (int i = 0; i < partitions[j].length; i++) {
@@ -413,8 +413,8 @@ public class kNN {
 		String filename = "kNNdata5.txt";
 		kNN knn;
 
-		String usage = "\n"	+ "park.kNN requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default)\n" + "";
+		String usage = "\n" + "park.kNN requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

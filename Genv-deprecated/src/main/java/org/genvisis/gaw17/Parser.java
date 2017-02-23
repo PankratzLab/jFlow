@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
@@ -23,10 +23,10 @@ public class Parser {
 		String trav;
 		Hashtable<String, String> snpInfo, sexInfo;
 
-		snpInfo = HashVec.loadFileToHashString(	snpFile, new int[] {0}, new int[] {1, 2}, true, "\t",
-																						true, false, false);
-		sexInfo = HashVec.loadFileToHashString(	sexFile, new int[] {0}, new int[] {1}, true, "\t", true,
-																						false, false);
+		snpInfo = HashVec.loadFileToHashString(snpFile, new int[] {0}, new int[] {1, 2}, true, "\t",
+																					 true, false, false);
+		sexInfo = HashVec.loadFileToHashString(sexFile, new int[] {0}, new int[] {1}, true, "\t", true,
+																					 false, false);
 
 		for (int chr = 1; chr <= 22; chr++) {
 			try {
@@ -58,7 +58,7 @@ public class Parser {
 					}
 					writer.print(line[0] + "\t" + line[0] + "\t0\t0\t" + trav + "\t1");
 					for (int i = 1; i < line.length; i++) {
-						if (line[i].length() != 3	|| ext.indexOfStr(line[i].substring(0, 1), ALLELES) == -1
+						if (line[i].length() != 3 || ext.indexOfStr(line[i].substring(0, 1), ALLELES) == -1
 								|| ext.indexOfStr(line[i].substring(2, 3), ALLELES) == -1
 								|| !line[i].substring(1, 2).equals("/")) {
 							System.err.println("Error - invalid genotype: " + line[i]);
@@ -136,8 +136,8 @@ public class Parser {
 			writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename)
 																							+ "markerSets.dat"));
 			for (int i = 0; i < genes.size(); i++) {
-				writer.println(genes.elementAt(i)	+ "\t"
-												+ Array.toStr(Array.toStringArray(hash.get(genes.elementAt(i)))));
+				writer.println(genes.elementAt(i) + "\t"
+											 + ArrayUtils.toStr(ArrayUtils.toStringArray(hash.get(genes.elementAt(i)))));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -150,8 +150,8 @@ public class Parser {
 																							+ "nonynonMarkerSets.dat"));
 			for (int i = 0; i < genes.size(); i++) {
 				if (nonsynon.containsKey(genes.elementAt(i))) {
-					writer.println(genes.elementAt(i)	+ "\t"
-													+ Array.toStr(Array.toStringArray(nonsynon.get(genes.elementAt(i)))));
+					writer.println(genes.elementAt(i) + "\t"
+												 + ArrayUtils.toStr(ArrayUtils.toStringArray(nonsynon.get(genes.elementAt(i)))));
 				}
 			}
 			writer.close();

@@ -64,10 +64,10 @@ public class CountProxies {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + "_proxies.xls"));
 			writer.print("Region\tIndexName\tIndexPval\tIndexSignificant\tIndexAvailableOnReplicationArray\tIndexRsq\tIndexReplicationPval\tIndexNominallySigReplication\tIndexSigReplication");
 			for (double element : RSQ_THRESHOLDS) {
-				writer.print("\tRsq>"	+ element + "_Available\tRsq>" + element + "_IsIndex\tRsq>" + element
-											+ "_Name\tRsq>" + element + "_Pval\tRsq>" + element + "_Rsq\tRsq>" + element
-											+ "_ReplicationPval\tRsq>" + element + "NominallySigReplication\tRsq>"
-											+ element + "SigReplication");
+				writer.print("\tRsq>" + element + "_Available\tRsq>" + element + "_IsIndex\tRsq>" + element
+										 + "_Name\tRsq>" + element + "_Pval\tRsq>" + element + "_Rsq\tRsq>" + element
+										 + "_ReplicationPval\tRsq>" + element + "NominallySigReplication\tRsq>"
+										 + element + "SigReplication");
 			}
 			writer.println();
 			keys = HashVec.getNumericKeys(hash);
@@ -85,7 +85,7 @@ public class CountProxies {
 					markerNames[i] = line[indices[1]];
 					rsqs[i] = line[indices[4]].equals("NA") ? -1 : Double.parseDouble(line[indices[4]]);
 					pvalues[i] = line[indices[5]].equals("NA") ? 999 : Double.parseDouble(line[indices[5]]);
-					replications[i] = line[indices[6]].equals("NA")	? 999
+					replications[i] = line[indices[6]].equals("NA") ? 999
 																													: Double.parseDouble(line[indices[6]]);
 				}
 
@@ -95,11 +95,11 @@ public class CountProxies {
 
 				index = order[0];
 				if (pvalues[index] <= INDEX_THRESHOLD) {
-					writer.print("\t"	+ markerNames[index] + "\t" + pvalues[index] + "\t1\t"
-												+ (rsqs[index] > RSQ_THRESHOLDS[RSQ_THRESHOLDS.length - 1] ? 1 : 0) + "\t"
-												+ rsqs[index] + "\t" + replications[index] + "\t"
-												+ (replications[index] < 0.05 ? 1 : 0) + "\t"
-												+ (replications[index] < 0.000373 ? 1 : 0));
+					writer.print("\t" + markerNames[index] + "\t" + pvalues[index] + "\t1\t"
+											 + (rsqs[index] > RSQ_THRESHOLDS[RSQ_THRESHOLDS.length - 1] ? 1 : 0) + "\t"
+											 + rsqs[index] + "\t" + replications[index] + "\t"
+											 + (replications[index] < 0.05 ? 1 : 0) + "\t"
+											 + (replications[index] < 0.000373 ? 1 : 0));
 				} else {
 					writer.print("\t.\t.\t0\t0\t.\t.\t0\t0");
 				}
@@ -114,10 +114,10 @@ public class CountProxies {
 					if (best == -1) {
 						writer.print("\t0\t0\t.\t.\t.\t.\t0\t0");
 					} else {
-						writer.print("\t1\t"	+ (best == order[0] ? 1 : 0) + "\t" + markerNames[best] + "\t"
-													+ pvalues[best] + "\t" + rsqs[best] + "\t" + replications[best] + "\t"
-													+ (replications[best] < 0.05 ? 1 : 0) + "\t"
-													+ (replications[best] < 0.000373 ? 1 : 0));
+						writer.print("\t1\t" + (best == order[0] ? 1 : 0) + "\t" + markerNames[best] + "\t"
+												 + pvalues[best] + "\t" + rsqs[best] + "\t" + replications[best] + "\t"
+												 + (replications[best] < 0.05 ? 1 : 0) + "\t"
+												 + (replications[best] < 0.000373 ? 1 : 0));
 					}
 				}
 				writer.println();
@@ -136,8 +136,8 @@ public class CountProxies {
 		int numArgs = args.length;
 		String filename = "input.txt";
 
-		String usage = "\n"	+ "gwas.SelectProxies requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "gwas.SelectProxies requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

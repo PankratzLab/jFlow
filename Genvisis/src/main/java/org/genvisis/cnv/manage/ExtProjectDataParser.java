@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Hashtable;
 
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.TypedFileParser;
 import org.genvisis.common.TypedFileParser.TypedFileLine;
@@ -50,7 +50,7 @@ public class ExtProjectDataParser {
 	public void loadData() {
 		Hashtable<String, Integer> markerIndices = proj.getMarkerIndices();
 		proj.getLog()
-				.reportTimeInfo("Attempting to load "	+ (sampleBased ? "sample based" : "marker based")
+				.reportTimeInfo("Attempting to load " + (sampleBased ? "sample based" : "marker based")
 												+ " data from " + fullPathToDataFile);
 		if (treatAllNumeric) {
 			treatAllNumeric();
@@ -77,12 +77,12 @@ public class ExtProjectDataParser {
 						if (skipUnFound) {
 							if (verbose) {
 								proj.getLog()
-										.reportTimeWarning("Did not find "	+ data + " in project's "
-																				+ (sampleBased ? "samples" : "markers") + ", skipping");
+										.reportTimeWarning("Did not find " + data + " in project's "
+																			 + (sampleBased ? "samples" : "markers") + ", skipping");
 							}
 						} else {
-							proj.getLog().reportError("Did not find "	+ data + " in project's "
-																						+ (sampleBased ? "samples" : "markers") + ", halting");
+							proj.getLog().reportError("Did not find " + data + " in project's "
+																				+ (sampleBased ? "samples" : "markers") + ", halting");
 							typedFileParser.close();
 							return;
 						}
@@ -93,14 +93,14 @@ public class ExtProjectDataParser {
 								if (typedFileLine.hasNumericData()) {
 									proj.getLog()
 											.reportError("Multiple entries for the same "
-																					+ (sampleBased ? "sample" : "marker") + " " + data
-																				+ " were found and numeric indices were requested, cannot load...");
+																	 + (sampleBased ? "sample" : "marker") + " " + data
+																	 + " were found and numeric indices were requested, cannot load...");
 
 								} else {
 									proj.getLog()
 											.reportError("Multiple entries for the same "
-																					+ (sampleBased ? "sample" : "marker") + " " + data
-																				+ " were found, consider setting the concatMultipleStringEntries option if only string data is needed");
+																	 + (sampleBased ? "sample" : "marker") + " " + data
+																	 + " were found, consider setting the concatMultipleStringEntries option if only string data is needed");
 								}
 								return;
 							}
@@ -119,14 +119,14 @@ public class ExtProjectDataParser {
 							}
 							if (typedFileLine.hasStringData() && stringData != null) {
 								for (int i = 0; i < stringData.length; i++) {
-									stringData[i][dataIndex] = (concat	? stringData[i][dataIndex]
-																													+ typedFileParser.getSeparator()
-																												+ typedFileLine.getStringData()[1][i]
-																											: typedFileLine.getStringData()[1][i]);// 0 is
-																																															// reserved
-																																															// for
-																																															// the
-																																															// samples
+									stringData[i][dataIndex] = (concat ? stringData[i][dataIndex]
+																											 + typedFileParser.getSeparator()
+																											 + typedFileLine.getStringData()[1][i]
+																										 : typedFileLine.getStringData()[1][i]);// 0 is
+																																														// reserved
+																																														// for
+																																														// the
+																																														// samples
 								}
 							}
 						}
@@ -134,7 +134,7 @@ public class ExtProjectDataParser {
 				}
 			}
 			typedFileParser.close();
-			int dataLoaded = Array.booleanArraySum(dataPresent);
+			int dataLoaded = ArrayUtils.booleanArraySum(dataPresent);
 			if (requireAll && dataLoaded != dataToLoad.length) {
 				proj.getLog()
 						.reportError("All data were required to be present, but did not see all of them");
@@ -142,13 +142,13 @@ public class ExtProjectDataParser {
 				numericData = null;
 			} else {
 				proj.getLog()
-						.reportTimeInfo("Loaded data for "	+ dataLoaded + " "
+						.reportTimeInfo("Loaded data for " + dataLoaded + " "
 														+ (sampleBased ? "sample(s)" : "marker(s) ") + " of "
 														+ dataPresent.length);
 				if (numInvalidNumerics > 0) {
 					proj.getLog()
 							.reportTimeWarning(numInvalidNumerics
-																	+ "numeric entries had invalid doubles and were set to NaN");
+																 + "numeric entries had invalid doubles and were set to NaN");
 				}
 			}
 		} catch (IOException e) {
@@ -180,12 +180,12 @@ public class ExtProjectDataParser {
 				if (verbose) {
 					proj.getLog().reportTimeInfo("Skipping line " + line);
 				}
-			} while (line != null && Array.countIf(
-																							ext.indexFactors(	headerFlags,
-																																line.trim()
-																																		.split(typedFileParser.getSeparator()),
-																																true, proj.getLog(), false, false),
-																							-1) > 0);
+			} while (line != null
+							 && ArrayUtils.countIf(ext.indexFactors(headerFlags,
+																											line.trim()
+																													.split(typedFileParser.getSeparator()),
+																											true, proj.getLog(), false, false),
+																		 -1) > 0);
 		} else {
 
 			proj.getLog()
@@ -195,7 +195,7 @@ public class ExtProjectDataParser {
 	}
 
 	public String[] getStringDataAt(int index, boolean subset) {
-		return subset ? Array.subArray(stringData[index], dataPresent) : stringData[index];
+		return subset ? ArrayUtils.subArray(stringData[index], dataPresent) : stringData[index];
 	}
 
 	public boolean determineIndicesFromTitles() {
@@ -203,11 +203,11 @@ public class ExtProjectDataParser {
 		if (hasHeader) {
 			String[] header;
 			if (headerFlags == null) {
-				header = Files.getHeaderOfFile(	fullPathToDataFile, typedFileParser.getSeparator(),
-																				new String[] {commentString}, proj.getLog());
+				header = Files.getHeaderOfFile(fullPathToDataFile, typedFileParser.getSeparator(),
+																			 new String[] {commentString}, proj.getLog());
 			} else {
-				header = Files.getLineContaining(	fullPathToDataFile, typedFileParser.getSeparator(),
-																					headerFlags, proj.getLog());
+				header = Files.getLineContaining(fullPathToDataFile, typedFileParser.getSeparator(),
+																				 headerFlags, proj.getLog());
 			}
 			if (header != null) {
 				if (numericDataTitles == null && stringDataTitles == null) {
@@ -225,11 +225,11 @@ public class ExtProjectDataParser {
 								.reportTimeWarning("String columns were already provided, skipping string column assignment");
 					} else {
 						int[] tmp = ext.indexFactors(stringDataTitles, header, true, false);
-						determined = stringDataTitles.length == 0 || Array.min(tmp) >= 0;
+						determined = stringDataTitles.length == 0 || ArrayUtils.min(tmp) >= 0;
 						if (!determined) {
 							if (verbose) {
 								proj.getLog().reportError("Could not find all string indices in header "
-																							+ Array.toStr(header));
+																					+ ArrayUtils.toStr(header));
 							}
 						} else {
 							typedFileParser.setStringColumns(new int[][] {tmp});
@@ -244,12 +244,12 @@ public class ExtProjectDataParser {
 
 						int[] tmp = ext.indexFactors(numericDataTitles, header, true, false);
 
-						determined = numericDataTitles.length == 0 || Array.min(tmp) >= 0;
+						determined = numericDataTitles.length == 0 || ArrayUtils.min(tmp) >= 0;
 						if (!determined) {
 							proj.getLog()
 									.reportError("Could not find all numeric indices"
-																			+ Array.toStr(numericDataTitles) + " in header "
-																		+ Array.toStr(header));
+															 + ArrayUtils.toStr(numericDataTitles) + " in header "
+															 + ArrayUtils.toStr(header));
 						} else {
 							typedFileParser.setNumericColumns(new int[][] {tmp});
 						}
@@ -290,8 +290,8 @@ public class ExtProjectDataParser {
 		String[] data = new String[] {};
 		if (index < 0 || stringData == null) {
 			proj.getLog().reportError("Data for " + title + " was not found");
-			proj.getLog().reportError(stringDataTitles == null	? "No String data Titles available"
-																															: Array.toStr(stringDataTitles));
+			proj.getLog().reportError(stringDataTitles == null ? "No String data Titles available"
+																												 : ArrayUtils.toStr(stringDataTitles));
 			if (stringData == null) {
 				proj.getLog().reportError("No string data available");
 			}
@@ -315,9 +315,9 @@ public class ExtProjectDataParser {
 		if (index < 0 || numericData == null) {
 			proj.getLog().reportError("Data for " + title + " was not found");
 			proj.getLog()
-					.reportError(numericData == null	? "No Numeric data Titles available"
-																								: "Titles available: "
-																									+ Array.toStr(numericDataTitles));
+					.reportError(numericData == null ? "No Numeric data Titles available"
+																					 : "Titles available: "
+																						 + ArrayUtils.toStr(numericDataTitles));
 			if (numericData == null) {
 				proj.getLog().reportError("No Numeric data available");
 			}
@@ -347,10 +347,9 @@ public class ExtProjectDataParser {
 		if (determined && !dataKeyColumnName.equals(DEFUALT_SAMPLE_NAME_COLUMN)) {
 			dataKeyColumnIndex = ext.indexOfStr(dataKeyColumnName, header);
 			if (dataKeyColumnIndex < 0) {
-				proj.getLog()
-						.reportError("Header must contain sample name column " + dataKeyColumnName);
+				proj.getLog().reportError("Header must contain sample name column " + dataKeyColumnName);
 				determined = false;
-				proj.getLog().reportError("Header found was" + Array.toStr(header));
+				proj.getLog().reportError("Header found was" + ArrayUtils.toStr(header));
 			}
 		}
 		return determined;
@@ -383,16 +382,16 @@ public class ExtProjectDataParser {
 		}
 
 		typedFileParser.addStringColumns(new int[] {dataKeyColumnIndex});// samples will be in first
-																																			// array position
+																																		 // array position
 
 		if (typedFileParser.getNumericColumns() != null) {
 			numericData = new double[typedFileParser.getNumericColumns()[0].length][dataToLoad.length];
 			if (numericDataTitles == null) {
 				proj.getLog().reportTimeInfo("Numeric titles were not provided, assigning...");
 				if (hasHeader) {
-					numericDataTitles = Array.subArray(header, typedFileParser.getNumericColumns()[0]);
+					numericDataTitles = ArrayUtils.subArray(header, typedFileParser.getNumericColumns()[0]);
 				} else {
-					numericDataTitles = Array.toStringArray(typedFileParser.getNumericColumns()[0]);
+					numericDataTitles = ArrayUtils.toStringArray(typedFileParser.getNumericColumns()[0]);
 				}
 			}
 			for (double[] element : numericData) {
@@ -401,14 +400,14 @@ public class ExtProjectDataParser {
 		}
 		if (typedFileParser.getStringColumns() != null
 				&& typedFileParser.getStringColumns().length > 1) {// more than just the sample column we
-																														// added above
+																													 // added above
 			stringData = new String[typedFileParser.getStringColumns()[1].length][dataToLoad.length];
 			if (stringDataTitles == null) {
 				proj.getLog().reportTimeInfo("String titles were not provided, assigning...");
 				if (hasHeader) {
-					stringDataTitles = Array.subArray(header, typedFileParser.getStringColumns()[1]);
+					stringDataTitles = ArrayUtils.subArray(header, typedFileParser.getStringColumns()[1]);
 				} else {
-					stringDataTitles = Array.toStringArray(typedFileParser.getStringColumns()[1]);
+					stringDataTitles = ArrayUtils.toStringArray(typedFileParser.getStringColumns()[1]);
 				}
 			}
 
@@ -421,8 +420,8 @@ public class ExtProjectDataParser {
 	private void treatAllNumeric() {
 		String[] header = Files.getHeaderOfFile(fullPathToDataFile, proj.getLog());
 		if (!hasHeader || determineSampleIndex(true, header)) {
-			proj.getLog().reportTimeInfo("Treating all columns besides index "	+ dataKeyColumnIndex + " ("
-																		+ dataKeyColumnName + ") as numeric column(s)");
+			proj.getLog().reportTimeInfo("Treating all columns besides index " + dataKeyColumnIndex + " ("
+																	 + dataKeyColumnName + ") as numeric column(s)");
 			proj.getLog()
 					.reportTimeInfo("If data titles are present, they are assumed to be in order of the column header");
 
@@ -431,9 +430,9 @@ public class ExtProjectDataParser {
 						.reportTimeInfo("Since no header or data titles are present, numeric titles will be the relative indices");
 			} else if (numericDataTitles != null && numericDataTitles.length != header.length - 1) {
 				proj.getLog()
-						.reportError("The length of the data title ("	+ numericDataTitles.length
-															+ ") does not match the data in the file's length ("
-															+ (header.length - 1) + ")");
+						.reportError("The length of the data title (" + numericDataTitles.length
+												 + ") does not match the data in the file's length (" + (header.length - 1)
+												 + ")");
 				return;
 			}
 			int[] tmpNumeric = new int[header.length - 1];
@@ -456,7 +455,7 @@ public class ExtProjectDataParser {
 			typedFileParser.setNumericColumns(new int[][] {tmpNumeric});
 			proj.getLog().reportTimeInfo("Using " + numericDataTitles.length + " numeric data columns");
 			if (numericDataTitles.length < 10) {
-				proj.getLog().reportTimeInfo("Data columns are: " + Array.toStr(numericDataTitles));
+				proj.getLog().reportTimeInfo("Data columns are: " + ArrayUtils.toStr(numericDataTitles));
 
 			}
 		} else {
@@ -685,9 +684,9 @@ public class ExtProjectDataParser {
 		}
 	}
 
-	private ExtProjectDataParser(	ProjectDataParserBuilder builder, Project proj,
-																TypedFileParser.Builder typeBuilder,
-																String fullPathToDataFile) throws FileNotFoundException {
+	private ExtProjectDataParser(ProjectDataParserBuilder builder, Project proj,
+															 TypedFileParser.Builder typeBuilder,
+															 String fullPathToDataFile) throws FileNotFoundException {
 		this.proj = proj;
 		numericDataTitles = builder.numericDataTitles;
 		stringDataTitles = builder.stringDataTitles;

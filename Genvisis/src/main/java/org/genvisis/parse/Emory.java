@@ -8,7 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
@@ -28,21 +28,21 @@ public class Emory {
 			reader = new BufferedReader(new FileReader(dir + filename));
 			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + ".ped"));
 			line = reader.readLine().trim().split("[\\s]+");
-			ext.checkHeader(Array.subArray(line, 0, 4), HEADER_STARTER, false, true);
-			markerNames = Array.subArray(line, 4);
+			ext.checkHeader(ArrayUtils.subArray(line, 0, 4), HEADER_STARTER, false, true);
+			markerNames = ArrayUtils.subArray(line, 4);
 			while (reader.ready()) {
 				line = reader.readLine().split("\t", -1);
 				if (line.length != markerNames.length + 4) {
 					System.err.println("Error - mismatched number of columns for record '" + line[0] + "'");
 				}
-				writer.print(line[0]	+ "\t" + line[1] + "\t0\t0\t" + line[2] + "\t"
-											+ (line[3].equals(".") ? "0" : (Integer.parseInt(line[3]) + 1)));
+				writer.print(line[0] + "\t" + line[1] + "\t0\t0\t" + line[2] + "\t"
+										 + (line[3].equals(".") ? "0" : (Integer.parseInt(line[3]) + 1)));
 				for (int i = 0; i < markerNames.length; i++) {
 					if (line[4 + i].equals("")) {
 						writer.print("\t0\t0");
 					} else {
-						writer.print("\t"	+ line[4 + i].charAt(0) + "\t"
-													+ line[4 + i].charAt(line[4 + i].length() == 2 ? 1 : 0));
+						writer.print("\t" + line[4 + i].charAt(0) + "\t"
+												 + line[4 + i].charAt(line[4 + i].length() == 2 ? 1 : 0));
 					}
 				}
 				writer.println();

@@ -9,7 +9,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Numbers;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
@@ -20,7 +20,7 @@ public class VCFSamplePrep {
 	private GcModel gcModel;
 
 	public enum PREPPED_SAMPLE_TYPE {
-																		NORMALIZED_GC_CORRECTED, NORMALIZED;
+		NORMALIZED_GC_CORRECTED, NORMALIZED;
 	}
 
 	public VCFSamplePrep(Project proj, Sample samp, GcModel gcModel) {
@@ -29,8 +29,8 @@ public class VCFSamplePrep {
 		this.samp = samp;
 		this.gcModel = gcModel;
 		if (gcModel == null && Files.exists(proj.GC_MODEL_FILENAME.getValue())) {
-			this.gcModel = GcAdjustor.GcModel.populateFromFile(	proj.GC_MODEL_FILENAME.getValue(), false,
-																													proj.getLog());
+			this.gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(), false,
+																												 proj.getLog());
 		}
 	}
 
@@ -42,9 +42,9 @@ public class VCFSamplePrep {
 				break;
 			case NORMALIZED_GC_CORRECTED:
 				if (gcModel != null) {
-					normDepth = GcAdjustor.getComputedAdjustor(	proj, null, Array.toFloatArray(normDepth),
-																											gcModel, GC_CORRECTION_METHOD.GENVISIS_GC,
-																											true, true, false)
+					normDepth = GcAdjustor.getComputedAdjustor(proj, null, ArrayUtils.toFloatArray(normDepth),
+																										 gcModel, GC_CORRECTION_METHOD.GENVISIS_GC,
+																										 true, true, false)
 																.getCorrectedIntensities();
 				} else {
 					proj.getLog()
@@ -67,7 +67,7 @@ public class VCFSamplePrep {
 	}
 
 	private static float[] scale(float[] d, float[] totalDepth, double[] normDepth) {
-		double minNorm = Array.min(normDepth);
+		double minNorm = ArrayUtils.min(normDepth);
 		float[] scaleNorm = new float[d.length];
 		for (int i = 0; i < scaleNorm.length; i++) {
 			if (!Numbers.isFinite((float) normDepth[i])) {
@@ -82,7 +82,7 @@ public class VCFSamplePrep {
 				scaleNorm[i] = (float) ((d[i] * normDepth[i]) / totalDepth[i]);
 			}
 		}
-		double min = Math.abs(Array.min(scaleNorm));
+		double min = Math.abs(ArrayUtils.min(scaleNorm));
 		for (int i = 0; i < scaleNorm.length; i++) {
 			scaleNorm[i] += min;
 		}
@@ -91,7 +91,7 @@ public class VCFSamplePrep {
 	}
 
 	private static double[] normDepth(float[] totalDepth) {
-		return Array.normalize(Array.toDoubleArray(totalDepth));
+		return ArrayUtils.normalize(ArrayUtils.toDoubleArray(totalDepth));
 	}
 
 	private static float[] getTotalDepth(float[] xs, float[] ys) {
@@ -110,8 +110,8 @@ public class VCFSamplePrep {
 		private final String sampleDir;
 		private final GcModel gcModel;
 
-		public VCFSamplePrepWorker(	Project proj, String sampleDir, PREPPED_SAMPLE_TYPE type,
-																GcModel gcModel) {
+		public VCFSamplePrepWorker(Project proj, String sampleDir, PREPPED_SAMPLE_TYPE type,
+															 GcModel gcModel) {
 			super();
 			this.proj = proj;
 			this.sampleDir = sampleDir;
@@ -133,18 +133,18 @@ public class VCFSamplePrep {
 				@Override
 				public Hashtable<String, Float> call() throws Exception {
 					Hashtable<String, Float> outliers = new Hashtable<String, Float>();
-					VCFSamplePrep prep = new VCFSamplePrep(	proj,
-																									proj.getFullSampleFromRandomAccessFile(sample),
-																									gcModel);
+					VCFSamplePrep prep = new VCFSamplePrep(proj,
+																								 proj.getFullSampleFromRandomAccessFile(sample),
+																								 gcModel);
 					Sample prepped = prep.getPreppedSample(type);
-					prepped.saveToRandomAccessFile(sampleDir	+ prepped.getSampleName()
-																					+ Sample.SAMPLE_FILE_EXTENSION, outliers,
-																					prepped.getSampleName());
+					prepped.saveToRandomAccessFile(sampleDir + prepped.getSampleName()
+																				 + Sample.SAMPLE_FILE_EXTENSION, outliers,
+																				 prepped.getSampleName());
 					byte[] genos = prepped.getAB_Genotypes();
 					for (byte geno : genos) {
 						if (geno == 3) {
 							System.out.println("genotype 3 in sample after normalizing "
-																	+ prepped.getSampleName());
+																 + prepped.getSampleName());
 							System.exit(1);
 						}
 					}

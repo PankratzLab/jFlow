@@ -20,8 +20,8 @@ public class GenotypeOps {
 		return noCall;
 	}
 
-	public static String[] getGenoAnnotationsFor(	String[] annosToGet, Genotype g,
-																								String defaultValue) {
+	public static String[] getGenoAnnotationsFor(String[] annosToGet, Genotype g,
+																							 String defaultValue) {
 		String[] annos = new String[annosToGet.length];
 		for (int i = 0; i < annos.length; i++) {
 			String tmp = defaultValue;

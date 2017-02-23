@@ -2,7 +2,7 @@ package org.genvisis.common;
 
 import java.util.ArrayList;
 
-import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 
 import htsjdk.samtools.Cigar;
 

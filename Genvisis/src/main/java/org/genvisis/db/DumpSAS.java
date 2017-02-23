@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.CountHash;
 import org.genvisis.common.Files;
@@ -63,8 +63,8 @@ public class DumpSAS {
 				if (!Files.isWindows()) {
 					new File(file).renameTo(new File(file.toLowerCase()));
 				}
-				writer.println("DATA "	+ ext.rootOf(file) + "; SET a." + ext.rootOf(file)
-												+ (password != null ? " (pw=\"" + password + "\")" : "") + "; RUN;");
+				writer.println("DATA " + ext.rootOf(file) + "; SET a." + ext.rootOf(file)
+											 + (password != null ? " (pw=\"" + password + "\")" : "") + "; RUN;");
 
 				writer.println("PROC EXPORT DATA=" + ext.rootOf(file));
 				writer.println("OUTFILE=\"" + ext.rootOf(file) + ".xln\"");
@@ -130,7 +130,7 @@ public class DumpSAS {
 
 		log = new Logger(dir + ext.rootOf(filename) + ".log");
 		hash = HashVec.loadFileToHashVec(dir + filename, 0, new int[] {1}, "\t", false, false);
-		descriptions = HashVec.loadFileToHashString(dir	+ filename, new int[] {0, 1}, new int[] {2},
+		descriptions = HashVec.loadFileToHashString(dir + filename, new int[] {0, 1}, new int[] {2},
 																								false, "\t", false, false, false);
 		dbs = HashVec.getKeys(hash);
 		cells = new Hashtable<String, int[]>();
@@ -145,11 +145,11 @@ public class DumpSAS {
 				writer.println(db);
 				header = Files.getHeaderOfFile(dir + db.toLowerCase() + ".xln", "\t", log);
 				v = hash.get(db);
-				vars = Array.toStringArray(v);
+				vars = ArrayUtils.toStringArray(v);
 				v.insertElementAt("CAReID", 0);
 				// v.insertElementAt("ID", 0);
-				indices = ext.indexFactors(Array.toStringArray(v), header, false, true);
-				writer.println("\t" + Array.toStr(Array.subArray(header, indices)));
+				indices = ext.indexFactors(ArrayUtils.toStringArray(v), header, false, true);
+				writer.println("\t" + ArrayUtils.toStr(ArrayUtils.subArray(header, indices)));
 				writer.print("\t");
 				for (int j = 1; j < indices.length; j++) {
 					writer.print("\t" + descriptions.get(db + "\t" + vars[j - 1]));
@@ -160,24 +160,24 @@ public class DumpSAS {
 					try {
 						reader = new BufferedReader(new FileReader(dir + db.toLowerCase() + ".xln"));
 						if (Files.exists(dir + db.substring(0, db.indexOf("_")) + "_Whites" + ".fam", false)) {
-							typedWhites = HashVec.loadFileToHashString(dir	+ db.substring(0, db.indexOf("_"))
-																													+ "_Whites" + ".fam", 1, new int[] {4},
-																													"\t", false);
+							typedWhites = HashVec.loadFileToHashString(dir + db.substring(0, db.indexOf("_"))
+																												 + "_Whites" + ".fam", 1, new int[] {4},
+																												 "\t", false);
 						} else {
 							typedWhites = new Hashtable<String, String>();
 						}
 						if (Files.exists(dir + db.substring(0, db.indexOf("_")) + "_Blacks" + ".fam", false)) {
-							typedBlacks = HashVec.loadFileToHashString(dir	+ db.substring(0, db.indexOf("_"))
-																													+ "_Blacks" + ".fam", 1, new int[] {4},
-																													"\t", false);
+							typedBlacks = HashVec.loadFileToHashString(dir + db.substring(0, db.indexOf("_"))
+																												 + "_Blacks" + ".fam", 1, new int[] {4},
+																												 "\t", false);
 						} else {
 							typedBlacks = new Hashtable<String, String>();
 						}
 						counts = new int[vars.length + 1][3];
 						while (reader.ready()) {
 							line = reader.readLine().split("\t", -1);
-							line = Array.subArray(line, indices);
-							iWriter.println(Array.toStr(line));
+							line = ArrayUtils.subArray(line, indices);
+							iWriter.println(ArrayUtils.toStr(line));
 							for (int j = 0; j < indices.length; j++) {
 								if (!line[j].equals("")) {
 									counts[j][0]++;
@@ -188,8 +188,8 @@ public class DumpSAS {
 										} else if (typedWhites.get(line[0]).equals("1")) {
 											validWhiteMales.put(line[0], "");
 										} else {
-											System.err.println(line[0]	+ "\t" + typedWhites.get(line[0]) + "\t" + db
-																					+ "\twhite");
+											System.err.println(line[0] + "\t" + typedWhites.get(line[0]) + "\t" + db
+																				 + "\twhite");
 											ch.add(typedWhites.get(line[0]) + "\t" + db + "\twhite");
 										}
 									}
@@ -200,8 +200,8 @@ public class DumpSAS {
 										} else if (typedBlacks.get(line[0]).equals("1")) {
 											validBlackMales.put(line[0], "");
 										} else {
-											System.err.println(line[0]	+ "\t" + typedBlacks.get(line[0]) + "\t" + db
-																					+ "\tblack");
+											System.err.println(line[0] + "\t" + typedBlacks.get(line[0]) + "\t" + db
+																				 + "\tblack");
 											ch.add(typedWhites.get(line[0]) + "\t" + db + "\tblack");
 										}
 									}
@@ -232,8 +232,8 @@ public class DumpSAS {
 
 						reader.close();
 					} catch (FileNotFoundException fnfe) {
-						System.err.println("Error: file \""	+ dir + db + ".xln"
-																+ "\" not found in current directory");
+						System.err.println("Error: file \"" + dir + db + ".xln"
+															 + "\" not found in current directory");
 						System.exit(1);
 					} catch (IOException ioe) {
 						System.err.println("Error reading file \"" + dir + db + ".xln" + "\"");
@@ -265,9 +265,9 @@ public class DumpSAS {
 
 		try {
 			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_tables.xln"));
-			tableOrder = HashVec.loadFileToHashVec(dir	+ tableFormat, new int[] {0}, new int[] {1, 2},
-																							"\t", false, false);
-			descriptions = HashVec.loadFileToHashString(dir	+ tableFormat, new int[] {1, 2},
+			tableOrder = HashVec.loadFileToHashVec(dir + tableFormat, new int[] {0}, new int[] {1, 2},
+																						 "\t", false, false);
+			descriptions = HashVec.loadFileToHashString(dir + tableFormat, new int[] {1, 2},
 																									new int[] {3}, false, "\t", false, false, false);
 			keys = HashVec.getKeys(tableOrder);
 			for (String key : keys) {
@@ -341,7 +341,7 @@ public class DumpSAS {
 
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "all_contents.xln"));
-			writer.println(Array.toStr(ALL_CONTENTS_HEADER));
+			writer.println(ArrayUtils.toStr(ALL_CONTENTS_HEADER));
 			for (String file : files) {
 				System.out.println("Parsing " + file);
 				try {
@@ -351,7 +351,7 @@ public class DumpSAS {
 					while (reader.ready()) {
 						line = ext.removeQuotesFromExcelToken(reader.readLine(), new String[][] {{"\t", ""}})
 											.split("\t", -1);
-						hash.put(line[7], line[1]	+ "\t" + line[4] + "\t" + line[8] + "\t" + line[5] + "\t"
+						hash.put(line[7], line[1] + "\t" + line[4] + "\t" + line[8] + "\t" + line[5] + "\t"
 															+ line[6] + "\t" + line[7]);
 					}
 					reader.close();
@@ -381,7 +381,7 @@ public class DumpSAS {
 		mani = HashVec.loadFileToStringMatrix(dir + manifest, false, new int[] {0, 1}, false);
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "master_contents.xln"));
-			writer.println("Group\t" + Array.toStr(ALL_CONTENTS_HEADER));
+			writer.println("Group\t" + ArrayUtils.toStr(ALL_CONTENTS_HEADER));
 			for (String[] element : mani) {
 				try {
 					reader = new BufferedReader(new FileReader(dir + element[1] + "all_contents.xln"));
@@ -394,12 +394,12 @@ public class DumpSAS {
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ dir + element[1] + "all_contents.xln"
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + dir + element[1] + "all_contents.xln"
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
-					System.err.println("Error reading file \""	+ dir + element[1] + "all_contents.xln"
-															+ "\"");
+					System.err.println("Error reading file \"" + dir + element[1] + "all_contents.xln"
+														 + "\"");
 					System.exit(2);
 				}
 			}
@@ -461,7 +461,7 @@ public class DumpSAS {
 				}
 				line[0] = ext.verifyDirFormat(line[0]);
 				if (!new File(rootDir + line[0]).exists() || !new File(rootDir + line[0]).isDirectory()) {
-					log.reportError("Error - could not find subdirectory '"	+ line[0] + "' within '" + rootDir
+					log.reportError("Error - could not find subdirectory '" + line[0] + "' within '" + rootDir
 													+ "'");
 					error = true;
 				}
@@ -469,7 +469,7 @@ public class DumpSAS {
 				if (!new File(rootDir + file).exists()) {
 					file = line[0] + "dump/" + line[1] + ".xln";
 					if (!new File(rootDir + file).exists()) {
-						log.reportError("Error - could not find file '"	+ line[1] + ".xln" + "' in '" + rootDir
+						log.reportError("Error - could not find file '" + line[1] + ".xln" + "' in '" + rootDir
 														+ line[0] + "' or '" + rootDir + line[0] + "dump/'");
 						error = true;
 					}
@@ -497,29 +497,31 @@ public class DumpSAS {
 															+ file + "'");
 							error = true;
 						} else if (ext.indexOfStr(idName, header) == -1) {
-							log.reportError("\nError - Since there were more than 4 columns for file '"	+ file
+							log.reportError("\nError - Since there were more than 4 columns for file '" + file
 															+ "', the algorithm assumes that you are specifying a specific ID to use (in this case '"
 															+ idName
 															+ "'). However, there was no such column header in the file.");
 							error = true;
 						}
-						indices = ext.indexFactors(Array.toStringArray(ids), header, true, log, false, false);
+						indices = ext.indexFactors(ArrayUtils.toStringArray(ids), header, true, log, false,
+																			 false);
 					} else {
 						foundAnID = false;
 						// TODO If case insensitivity is necessary, make sure all downstream calls can and do
 						// ignore case (including GenParser)
-						indices = ext.indexFactors(Array.toStringArray(ids), header, true, log, false, false);
+						indices = ext.indexFactors(ArrayUtils.toStringArray(ids), header, true, log, false,
+																			 false);
 						for (int j = 0; j < ids.size(); j++) {
 							if (indices[j] != -1) {
 								if (foundAnID) {
-									log.reportError("More than one \"valid\" ID available for file '"	+ file
+									log.reportError("More than one \"valid\" ID available for file '" + file
 																	+ "'; only the first will be used");
 								} else {
 									writer.print(" '" + ids.elementAt(j) + "'");
 									foundAnID = true;
-									keys = Array.toStringArray(HashVec.loadFileToVec(rootDir	+ file, true,
-																																		new int[] {indices[j]}, false,
-																																		false, false, "\t"));
+									keys = ArrayUtils.toStringArray(HashVec.loadFileToVec(rootDir + file, true,
+																																				new int[] {indices[j]},
+																																				false, false, false, "\t"));
 									for (String key : keys) {
 										masterIDs.put(key, "");
 									}
@@ -527,7 +529,7 @@ public class DumpSAS {
 							}
 						}
 						if (!foundAnID) {
-							log.reportError("Error - could not find a valid ID to match on within '"	+ file
+							log.reportError("Error - could not find a valid ID to match on within '" + file
 															+ "'");
 							error = true;
 						}
@@ -539,18 +541,18 @@ public class DumpSAS {
 					indices = ext.indexFactors(keys, header, true, false);
 					Arrays.sort(indices);
 					for (int indice : indices) {
-						writer.print(" '"	+ header[indice] + "'=" + header[indice]
-													+ (hash	.get(header[indice])
-																	.equals("")	? ""
-																							: "_" + ext.replaceAllWith(	hash.get(header[indice]),
-																																					" ", "_")));
+						writer.print(" '" + header[indice] + "'=" + header[indice]
+												 + (hash.get(header[indice]).equals("") ? ""
+																																: "_"
+																																	+ ext.replaceAllWith(hash.get(header[indice]),
+																																											 " ", "_")));
 					}
 					writer.println();
 				}
 				writer.close();
 				Files.writeArray(HashVec.getKeys(masterIDs), idfile);
 				if (error) {
-					log.reportError("\nFailed to generate all bits of "	+ crffile
+					log.reportError("\nFailed to generate all bits of " + crffile
 													+ "; the hits algorithm was not attempted");
 					return;
 				}
@@ -568,12 +570,12 @@ public class DumpSAS {
 		String sasExecutable = DEFAULT_SAS_EXECUTABLE;
 		String password = null;
 
-		String usage = "\n"	+ "db.DumpSAS requires 0-1 arguments\n"
-										+ "   (1) directory containing .sas7bdat files to dump (i.e. dir=" + dir
-										+ " (default))\n" + "   (2) path to SAS executable (i.e. executable="
-										+ sasExecutable + " (default))\n"
-										+ "   (3) (optional) password, if one is required for datasets (i.e. password=whatever (not the default))\n"
-										+ "";
+		String usage = "\n" + "db.DumpSAS requires 0-1 arguments\n"
+									 + "   (1) directory containing .sas7bdat files to dump (i.e. dir=" + dir
+									 + " (default))\n" + "   (2) path to SAS executable (i.e. executable="
+									 + sasExecutable + " (default))\n"
+									 + "   (3) (optional) password, if one is required for datasets (i.e. password=whatever (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

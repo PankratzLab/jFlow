@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ArraySpecialList.ArrayIntList;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -39,10 +39,10 @@ import com.google.common.primitives.Ints;
  *
  */
 public class CnvBamQC {
-	private static final String[] QC_HEADER =
-																					new String[] {"Ref_Map_score", "Samp_MapQ",
-																												"Population_MapQ", "Samp_Depth",
-																												"Population_Depth", "Diff_Depth", "STATE"};
+	private static final String[] QC_HEADER = new String[] {"Ref_Map_score", "Samp_MapQ",
+																													"Population_MapQ", "Samp_Depth",
+																													"Population_Depth", "Diff_Depth",
+																													"STATE"};
 	private final String[] bams;
 	private final CallSplit callSplit;
 	private final BamPile[][] bamPiles;
@@ -65,7 +65,8 @@ public class CnvBamQC {
 
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\t" + Array.toStr(QC_HEADER));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
+										 + ArrayUtils.toStr(QC_HEADER));
 			LocusSet<CNVariant> cnLocusSet = callSplit.getCnLocusSet();
 
 			for (int i = 0; i < cnLocusSet.getLoci().length; i++) {
@@ -107,21 +108,20 @@ public class CnvBamQC {
 	}
 
 	private static RScatter[] plotResults(String summary, HistogramQC histogramQC, Logger log) {
-		String[] plotFiles = Array.concatAll(new String[] {summary}, splitCn(summary, log));
+		String[] plotFiles = ArrayUtils.concatAll(new String[] {summary}, splitCn(summary, log));
 		String rscatterAll = ext.parseDirectoryOfFile(summary) + "summary.qc";
 		ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
-		ArrayList<RScatter> rScatterHists = histogramQC.plotAndDumpMapQPop(
-																																				ext.addToRoot(summary,
-																																											".histogram"),
-																																				log);
+		ArrayList<RScatter> rScatterHists = histogramQC.plotAndDumpMapQPop(ext.addToRoot(summary,
+																																										 ".histogram"),
+																																			 log);
 		rScatters.addAll(rScatterHists);
 		for (String plotFile : plotFiles) {
 
 			String plotBox = ext.removeDirectoryInfo(plotFile) + "_boxCN";
 			String outBox = ext.rootOf(plotFile, false) + "_boxCN";
 			String[] ysBox = new String[] {QC_HEADER[3], QC_HEADER[4], QC_HEADER[5]};
-			RScatter rsScatterBox = new RScatter(	plotFile, outBox + ".rscript", plotBox, outBox + ".jpeg",
-																						QC_HEADER[6], ysBox, SCATTER_TYPE.BOX, log);
+			RScatter rsScatterBox = new RScatter(plotFile, outBox + ".rscript", plotBox, outBox + ".jpeg",
+																					 QC_HEADER[6], ysBox, SCATTER_TYPE.BOX, log);
 			rsScatterBox.setyLabel("X coverage");
 			rsScatterBox.setOverWriteExisting(true);
 			rsScatterBox.execute();
@@ -130,8 +130,8 @@ public class CnvBamQC {
 			String plotMap = ext.removeDirectoryInfo(plotFile) + "_mapQ";
 			String outMap = ext.rootOf(plotFile, false) + "_mapQ";
 			String[] ysMap = new String[] {QC_HEADER[1], QC_HEADER[2]};
-			RScatter rsScatterMap = new RScatter(	plotFile, outMap + ".rscript", plotMap, outMap + ".jpeg",
-																						QC_HEADER[0], ysMap, SCATTER_TYPE.POINT, log);
+			RScatter rsScatterMap = new RScatter(plotFile, outMap + ".rscript", plotMap, outMap + ".jpeg",
+																					 QC_HEADER[0], ysMap, SCATTER_TYPE.POINT, log);
 			rsScatterMap.setOverWriteExisting(true);
 			rsScatterMap.setxLabel(QC_HEADER[0]);
 			rsScatterMap.setyLabel("Phred-scaled MapQ");
@@ -143,9 +143,9 @@ public class CnvBamQC {
 			String outDepth = ext.rootOf(plotFile, false) + "_depth";
 			System.out.println(plotMap + "\t" + plotDepth);
 			String[] ys = new String[] {QC_HEADER[5]};
-			RScatter rsScatterDepth = new RScatter(	plotFile, outDepth + ".rscript", plotDepth,
-																							outDepth + ".jpeg", QC_HEADER[4], ys,
-																							SCATTER_TYPE.POINT, log);
+			RScatter rsScatterDepth = new RScatter(plotFile, outDepth + ".rscript", plotDepth,
+																						 outDepth + ".jpeg", QC_HEADER[4], ys,
+																						 SCATTER_TYPE.POINT, log);
 			rsScatterDepth.setOverWriteExisting(true);
 			rsScatterDepth.setxLabel(QC_HEADER[4]);
 			rsScatterDepth.setyLabel(QC_HEADER[5]);
@@ -154,10 +154,10 @@ public class CnvBamQC {
 			rScatters.add(rsScatterDepth);
 		}
 
-		RScatters rsScatters = new RScatters(	rScatters.toArray(new RScatter[rScatters.size()]),
-																					rscatterAll + ".rscript", rscatterAll + ".pdf",
-																					COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF,
-																					log);
+		RScatters rsScatters = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]),
+																				 rscatterAll + ".rscript", rscatterAll + ".pdf",
+																				 COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF,
+																				 log);
 
 		rsScatters.execute();
 		return null;
@@ -173,9 +173,10 @@ public class CnvBamQC {
 		ArrayList<String> splits = new ArrayList<String>();
 		splits.add(ext.addToRoot(summary, ".DUP"));
 		splits.add(ext.addToRoot(summary, ".DEL"));
-		PrintWriter[] writers = Files.getAppropriateWriters(Array.toStringArray(splits));
+		PrintWriter[] writers = Files.getAppropriateWriters(ArrayUtils.toStringArray(splits));
 		for (PrintWriter writer : writers) {
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\t" + Array.toStr(QC_HEADER));
+			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
+										 + ArrayUtils.toStr(QC_HEADER));
 		}
 		try {
 			BufferedReader reader = Files.getAppropriateReader(summary);
@@ -186,9 +187,9 @@ public class CnvBamQC {
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("[\\s]+");
 				if (cnvs[index].getCN() > 2) {
-					writers[0].println(Array.toStr(line));
+					writers[0].println(ArrayUtils.toStr(line));
 				} else if (cnvs[index].getCN() < 2) {
-					writers[1].println(Array.toStr(line));
+					writers[1].println(ArrayUtils.toStr(line));
 				} else {
 					log.reportError("Invalid cnv " + cnvs[index].toPlinkFormat());
 					return null;
@@ -204,7 +205,7 @@ public class CnvBamQC {
 			return null;
 		}
 		Files.closeAllWriters(writers);
-		return Array.toStringArray(splits);
+		return ArrayUtils.toStringArray(splits);
 
 	}
 
@@ -277,7 +278,7 @@ public class CnvBamQC {
 			DynamicAveragingHistogram[] popsMapQ = new DynamicAveragingHistogram[] {mapQPopAll,
 																																							mapQPopDel,
 																																							mapQPopDup};
-			String[] titles = new String[] {QC_HEADER[2]	+ "_all_CN", QC_HEADER[2] + "_Deletions",
+			String[] titles = new String[] {QC_HEADER[2] + "_all_CN", QC_HEADER[2] + "_Deletions",
 																			QC_HEADER[2] + "_Duplications"};
 			DynamicAveragingHistogram.dumpToSameFile(popsMapQ, titles, output, log);
 			System.out.println(output);
@@ -286,8 +287,8 @@ public class CnvBamQC {
 			RScatter rScatterAverage = new RScatter(output, rootOutAverage + ".rscript",
 																							ext.removeDirectoryInfo(rootOutAverage),
 																							rootOutAverage + ".pdf", "Bin",
-																							Array.tagOn(titles, null,
-																													DynamicAveragingHistogram.DUMP_AVG),
+																							ArrayUtils.tagOn(titles, null,
+																															 DynamicAveragingHistogram.DUMP_AVG),
 																							SCATTER_TYPE.POINT, log);
 			rScatterAverage.setTitle("MapQ average");
 			rScatterAverage.setxLabel(QC_HEADER[0]);
@@ -300,8 +301,8 @@ public class CnvBamQC {
 			RScatter rScatterCount = new RScatter(output, rootOutCount + ".rscript",
 																						ext.removeDirectoryInfo(rootOutCount),
 																						rootOutCount + ".pdf", "Bin",
-																						Array.tagOn(titles, null,
-																												DynamicAveragingHistogram.DUMP_COUNT),
+																						ArrayUtils.tagOn(titles, null,
+																														 DynamicAveragingHistogram.DUMP_COUNT),
 																						SCATTER_TYPE.POINT, log);
 			rScatterCount.setTitle("Count by " + QC_HEADER[0]);
 			rScatterCount.setxLabel(QC_HEADER[0]);
@@ -310,12 +311,12 @@ public class CnvBamQC {
 			rScatters.add(rScatterCount);
 			String rootOutProp = ext.addToRoot(output, ".prop");
 
-			RScatter rScatterProp = new RScatter(	output, rootOutProp + ".rscript",
-																						ext.removeDirectoryInfo(rootOutProp),
-																						rootOutProp + ".pdf", "Bin",
-																						Array.tagOn(titles, null,
-																												DynamicAveragingHistogram.DUMP_PROP),
-																						SCATTER_TYPE.POINT, log);
+			RScatter rScatterProp = new RScatter(output, rootOutProp + ".rscript",
+																					 ext.removeDirectoryInfo(rootOutProp),
+																					 rootOutProp + ".pdf", "Bin",
+																					 ArrayUtils.tagOn(titles, null,
+																														DynamicAveragingHistogram.DUMP_PROP),
+																					 SCATTER_TYPE.POINT, log);
 			rScatterProp.setTitle("Proportion by " + QC_HEADER[0]);
 
 			rScatterProp.setxLabel(QC_HEADER[0]);
@@ -379,7 +380,7 @@ public class CnvBamQC {
 		}
 		if (index < 0) {
 			String error = "Could not find corresponding bam file for sample "
-											+ cnVariant.getIndividualID();
+										 + cnVariant.getIndividualID();
 			log.reportError(error);
 			throw new IllegalStateException(error);
 		}
@@ -405,9 +406,9 @@ public class CnvBamQC {
 		callSplit.matchAndSplit();
 
 		String serToReport = serDir + ext.rootOf(cnvFile) + "_QC/";
-		PileupProducer producer = new PileupProducer(	bamFiles, serToReport, null, null,
-																									callSplit.getSegsToSearch(), ASSEMBLY_NAME.HG19,
-																									log);
+		PileupProducer producer = new PileupProducer(bamFiles, serToReport, null, null,
+																								 callSplit.getSegsToSearch(), ASSEMBLY_NAME.HG19,
+																								 log);
 		WorkerTrain<BamPileResult> train = new WorkerTrain<BamPileResult>(producer, numThreads, 2, log);
 		BamPile[][] bamPiles = new BamPile[bamFiles.length][];
 		int index = 0;
@@ -437,7 +438,7 @@ public class CnvBamQC {
 				callSubsetBedReader = new BEDFileReader(callSubsetBed, true);
 
 			}
-			hadProblem = Array.booleanArray(cnLocusSet.getLoci().length, false);
+			hadProblem = ArrayUtils.booleanArray(cnLocusSet.getLoci().length, false);
 			this.log = log;
 			matched = new ArrayIntList[cnLocusSet.getLoci().length];
 		}
@@ -456,8 +457,8 @@ public class CnvBamQC {
 			int currentIndex = 0;
 			for (int i = 0; i < cnLocusSet.getLoci().length; i++) {
 				matched[i] = new ArrayIntList(100);
-				LocusSet<BEDFeatureSeg> segs = callSubsetBedReader.loadSegsFor(	cnLocusSet.getLoci()[i],
-																																				log);
+				LocusSet<BEDFeatureSeg> segs = callSubsetBedReader.loadSegsFor(cnLocusSet.getLoci()[i],
+																																			 log);
 				Segment[] overlaps = segs.getOverLappingLoci(cnLocusSet.getLoci()[i]);
 				for (Segment overlap : overlaps) {
 					tmpSplit.add(overlap.getIntersection(cnLocusSet.getLoci()[i], log));
@@ -494,8 +495,8 @@ public class CnvBamQC {
 		String serDir = "/home/tsaim/shared/Project_Tsai_Project_021/ExomeDepth/QC/";
 		Logger log = new Logger(ext.rootOf(cnvFile, false) + ".qc.log");
 		int numThreads = 24;
-		qcCNVs(	bams, cnvFile, serDir, mappabilityFile, callSubsetBed, referenceGenomeFasta, numThreads,
-						log);
+		qcCNVs(bams, cnvFile, serDir, mappabilityFile, callSubsetBed, referenceGenomeFasta, numThreads,
+					 log);
 	}
 
 	// public static void maina(String[] args) {

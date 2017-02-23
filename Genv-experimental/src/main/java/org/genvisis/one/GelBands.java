@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Maths;
 
@@ -44,11 +44,11 @@ public class GelBands {
 					if (betweenLadders) {
 						ladderCoordinates[1] = parseLadderCoordinates(ladder, line);
 						for (int i = 0; i < v.size(); i++) {
-							writer.print(Array.toStr(v.elementAt(i)));
+							writer.print(ArrayUtils.toStr(v.elementAt(i)));
 							values = translateIntoAlleles(ladder, ladderCoordinates, v.elementAt(i));
-							writer.print("\t" + Array.toStr(values));
+							writer.print("\t" + ArrayUtils.toStr(values));
 							values = translateAllelesIntoRepeats(values);
-							writer.print("\t" + Array.toStr(values));
+							writer.print("\t" + ArrayUtils.toStr(values));
 							writer.println();
 						}
 						v.removeAllElements();
@@ -58,11 +58,11 @@ public class GelBands {
 						betweenLadders = true;
 						// count++;
 					}
-					writer.println(Array.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 				} else if (betweenLadders) {
 					v.add(line);
 				} else if (line[0].equalsIgnoreCase(LADDER_HEADER)) {
-					ladder = Array.intArray((line.length - 1) / 2, -1);
+					ladder = ArrayUtils.intArray((line.length - 1) / 2, -1);
 					for (int i = 0; i < ladder.length; i++) {
 						for (int j = 0; j < 2; j++) {
 							cell = line[i * 2 + 1 + j].split("[\\s]+");
@@ -70,23 +70,23 @@ public class GelBands {
 								if (ladder[i] == -1) {
 									ladder[i] = Integer.parseInt(cell[0]);
 								} else if (ladder[i] != Integer.parseInt(cell[0])) {
-									System.err.println("Error - mismatched ladder sizes ('"	+ line[i * 2 + 1 + 0]
-																			+ "' and '" + line[i * 2 + 1 + 1]
-																			+ "'); expecting the same size with X and Y suffixes");
+									System.err.println("Error - mismatched ladder sizes ('" + line[i * 2 + 1 + 0]
+																		 + "' and '" + line[i * 2 + 1 + 1]
+																		 + "'); expecting the same size with X and Y suffixes");
 								}
 								if (!cell[1].equals(SUFFIXES[j])) {
 									System.err.println("Error - mismatched ladder format; expecting the same size with X and Y suffixes");
 								}
 							} catch (Exception e) {
-								System.err.println("Error parsing ladder size: " + Array.toStr(cell));
+								System.err.println("Error parsing ladder size: " + ArrayUtils.toStr(cell));
 								e.printStackTrace();
 							}
 						}
 					}
-					writer.println(Array.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 				} else {
-					System.out.println("ignoring line: " + Array.toStr(line));
-					writer.println(Array.toStr(line));
+					System.out.println("ignoring line: " + ArrayUtils.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 				}
 
 			}
@@ -119,8 +119,8 @@ public class GelBands {
 				try {
 					ladderCoordinates[i][j] = Integer.parseInt(values[1 + i * 2 + j]);
 				} catch (Exception e) {
-					System.err.println("Error parsing "	+ SUFFIXES[j] + " coordinate for " + ladder[i]
-															+ " bp ladder rung : " + values[1 + i * 2 + j]);
+					System.err.println("Error parsing " + SUFFIXES[j] + " coordinate for " + ladder[i]
+														 + " bp ladder rung : " + values[1 + i * 2 + j]);
 					e.printStackTrace();
 				}
 			}
@@ -157,8 +157,8 @@ public class GelBands {
 
 		d = (values.length - 1.0) / 2.0;
 		if (d - Math.floor(d) > 0.0001) {
-			System.err.println("Error - odd number of coordinates after identifier '"	+ values[0]
-													+ "'; translation requires pairs of coordinates");
+			System.err.println("Error - odd number of coordinates after identifier '" + values[0]
+												 + "'; translation requires pairs of coordinates");
 		}
 
 		numPoints = (int) Math.floor(d);
@@ -176,8 +176,8 @@ public class GelBands {
 					count++;
 				}
 			} catch (Exception e) {
-				System.err.println("Error parsing point "	+ (i + 1) + " for sample " + values[0] + ": "
-														+ values[i * 2 + 1 + 0] + "," + values[i * 2 + 1 + 1]);
+				System.err.println("Error parsing point " + (i + 1) + " for sample " + values[0] + ": "
+													 + values[i * 2 + 1 + 0] + "," + values[i * 2 + 1 + 1]);
 			}
 		}
 		meanX /= count;
@@ -248,8 +248,7 @@ public class GelBands {
 		//
 		// System.exit(1);
 
-		String filename =
-										"C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\DOCK5\\Bill's replication\\points.txt";
+		String filename = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\DOCK5\\Bill's replication\\points.txt";
 
 		try {
 			call(filename);

@@ -3,15 +3,15 @@ package org.genvisis.cnv.qc;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 
 // class to determine the percent concordance given QC parameters, currently only alpha, confidence,
 // numMarkers, and LRR_SD
 
 public class CNVComparison {
-	static final String[] QC_PARAMETERs = {	"0 - No Filtering ", " 1 - CNVQC and Sample QC",
-																					"2 -Sample QC only"};
+	static final String[] QC_PARAMETERs = {"0 - No Filtering ", " 1 - CNVQC and Sample QC",
+																				 "2 -Sample QC only"};
 	private final CNVariantQC[][] filteredcnvQCs1;
 	private CNVariantQC[][] filteredcnvQCs2;
 	private ArrayList<CNVariantQC> misses;;
@@ -27,9 +27,9 @@ public class CNVComparison {
 
 	// TODO undefined sampleQCFile, or missing QC info
 
-	public CNVComparison(	CNVariantQC[][] unfilteredcnvsQCs1, CNVariantQC[][] unfilteredcnvsQCs2,
-												Hashtable<String, CNVSampleQC> cnvSampleQCHash,
-												OptimizedQCThresholds qcThresholds, int filterType, Logger log) {
+	public CNVComparison(CNVariantQC[][] unfilteredcnvsQCs1, CNVariantQC[][] unfilteredcnvsQCs2,
+											 Hashtable<String, CNVSampleQC> cnvSampleQCHash,
+											 OptimizedQCThresholds qcThresholds, int filterType, Logger log) {
 		totalCallsAvailable = getCallsAvailable(unfilteredcnvsQCs1, unfilteredcnvsQCs2);
 		this.cnvSampleQCHash = cnvSampleQCHash;
 		this.qcThresholds = qcThresholds;
@@ -45,9 +45,9 @@ public class CNVComparison {
 
 	}
 
-	public CNVComparison(	CNVariantQC[][] unfilteredcnvsQCs1,
-												Hashtable<String, CNVSampleQC> cnvSampleQCHash,
-												OptimizedQCThresholds qcThresholds, int filterType, Logger log) {
+	public CNVComparison(CNVariantQC[][] unfilteredcnvsQCs1,
+											 Hashtable<String, CNVSampleQC> cnvSampleQCHash,
+											 OptimizedQCThresholds qcThresholds, int filterType, Logger log) {
 		this.cnvSampleQCHash = cnvSampleQCHash;
 		this.qcThresholds = qcThresholds;
 		this.filterType = filterType;
@@ -178,7 +178,7 @@ public class CNVComparison {
 					}
 				} else {
 					log.reportError("Error - invaled filter Type , need to use "
-													+ Array.toStr(QC_PARAMETERs));
+													+ ArrayUtils.toStr(QC_PARAMETERs));
 					System.exit(1);
 				}
 			}
@@ -195,12 +195,12 @@ public class CNVComparison {
 	}
 
 	private boolean passesSampleQC(CNVariantQC unfilteredcnvQC, int numCNVs) {
-		String lookup = unfilteredcnvQC.getCnVariant().getFamilyID()	+ "\t"
+		String lookup = unfilteredcnvQC.getCnVariant().getFamilyID() + "\t"
 										+ unfilteredcnvQC.getCnVariant().getIndividualID();
 		boolean passSampleQC = false;
 		if (cnvSampleQCHash.containsKey(lookup)) {
 			CNVSampleQC cnvSampleQC = cnvSampleQCHash.get(lookup);
-			if (lrr_SD(cnvSampleQC.getLrrSDev())	&& gcwf(cnvSampleQC.getGCWF()) && numberCNVs(numCNVs)
+			if (lrr_SD(cnvSampleQC.getLrrSDev()) && gcwf(cnvSampleQC.getGCWF()) && numberCNVs(numCNVs)
 					&& callRate(unfilteredcnvQC.getSampleCallRate()) && bafDrift(cnvSampleQC.getBafDrift())) {
 				passSampleQC = true;
 
@@ -241,7 +241,7 @@ public class CNVComparison {
 			// }
 			// }
 			// }
-			if (goodScore(numMarkers, height)	&& checkKbSize(kbSize) && checkKbDensity(kbDensity)
+			if (goodScore(numMarkers, height) && checkKbSize(kbSize) && checkKbDensity(kbDensity)
 					&& goodNumMarkers(numMarkers) && checkPennConf(pennConf)) {
 				cnvQCs.add(unfilteredcnvQC);
 			}
@@ -318,8 +318,8 @@ public class CNVComparison {
 		if (Double.isNaN(qcThresholds.getAlpha()) || Double.isNaN(qcThresholds.getBeastConfCutoff())) {
 			return true;
 		} else {
-			return score(	numMarkers, qcThresholds.getAlpha(),
-										height) >= qcThresholds.getBeastConfCutoff();
+			return score(numMarkers, qcThresholds.getAlpha(),
+									 height) >= qcThresholds.getBeastConfCutoff();
 		}
 	}
 
@@ -353,8 +353,8 @@ public class CNVComparison {
 	// return Maths.min(baf, 1 - baf);
 	// }
 
-	private int[][] countMatches(	CNVariantQC[] filteredcnvQCs1, CNVariantQC[] filteredcnvQCs2,
-																int[][] counts) {
+	private int[][] countMatches(CNVariantQC[] filteredcnvQCs1, CNVariantQC[] filteredcnvQCs2,
+															 int[][] counts) {
 		// CN states as defined here are ,0,1,2,3,4,5...where 2 is a total non-copy number aware count,
 		// and 5 is for non matching (overlap,exact,sigoverlap)
 		int match;
@@ -368,7 +368,7 @@ public class CNVComparison {
 						element2.getCnVariant().setSource(99);
 						CN = element2.getCnVariant().getCN();
 					} else if (match < 2
-											&& element.getCnVariant().significantOverlap(element2.getCnVariant())) {
+										 && element.getCnVariant().significantOverlap(element2.getCnVariant())) {
 						match = 4;
 						CN = element2.getCnVariant().getCN();
 
@@ -396,12 +396,12 @@ public class CNVComparison {
 							&& element.getCnVariant().equals(element2.getCnVariant())) {
 						match = 3;
 						CN = element.getCnVariant().getCN();
-					} else if (match < 2	&& element.getCnVariant().getSource() != 99
-											&& element.getCnVariant().significantOverlap(element2.getCnVariant())) {
+					} else if (match < 2 && element.getCnVariant().getSource() != 99
+										 && element.getCnVariant().significantOverlap(element2.getCnVariant())) {
 						match = 4;
 						CN = element.getCnVariant().getCN();
-					} else if (match < 2	&& element.getCnVariant().getSource() != 99
-											&& element.getCnVariant().overlaps(element2.getCnVariant())) {
+					} else if (match < 2 && element.getCnVariant().getSource() != 99
+										 && element.getCnVariant().overlaps(element2.getCnVariant())) {
 						match = 2;
 						CN = element.getCnVariant().getCN();
 					}

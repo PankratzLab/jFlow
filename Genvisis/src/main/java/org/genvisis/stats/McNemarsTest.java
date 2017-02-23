@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
@@ -75,9 +75,9 @@ public class McNemarsTest {
 			return Double.NaN;
 		}
 		if (b + c < 20) {
-			System.err.println("Error - Since b ("	+ b + ") + c (" + c + ") is less than 20"
-													+ (variable == null ? "" : " for variable " + variable)
-													+ ", a sign test should be used instead of McNemar's test (unfortunately not yet implemented)");
+			System.err.println("Error - Since b (" + b + ") + c (" + c + ") is less than 20"
+												 + (variable == null ? "" : " for variable " + variable)
+												 + ", a sign test should be used instead of McNemar's test (unfortunately not yet implemented)");
 		}
 		return Math.pow((double) Math.abs(b - c) - (continuity ? 1 : 0), 2) / (b + c);
 	}
@@ -95,7 +95,7 @@ public class McNemarsTest {
 	}
 
 	public double getPvalue() {
-		return (b + c < THRESHOLD	? getPvalueFromBinomialDistribution()
+		return (b + c < THRESHOLD ? getPvalueFromBinomialDistribution()
 															: getPvalueFromMcNemarTestNoMatterWhat());
 	}
 
@@ -150,8 +150,8 @@ public class McNemarsTest {
 			for (int j = 0; j < 2; j++) {
 				trav = hash.get(pairings[i][j]);
 				if (trav == null) {
-					System.err.println("Error - UniqueID '"	+ pairings[i][j] + "' was not found in the file '"
-															+ database + "'");
+					System.err.println("Error - UniqueID '" + pairings[i][j] + "' was not found in the file '"
+														 + database + "'");
 				} else {
 					data[i][j] = trav.split("[\\s]+");
 				}
@@ -183,8 +183,9 @@ public class McNemarsTest {
 				}
 				mt = new McNemarsTest(round);
 				mt.setContinuity(false);
-				writer.print(analysisVariables[i]	+ "\t" + count + "\t" + Array.toStr(mt.getABCD()) + "\t"
-											+ mt.getDirectionOfRisk() + "\t" + mt.getChiSq() + "\t" + mt.getPvalue());
+				writer.print(analysisVariables[i] + "\t" + count + "\t" + ArrayUtils.toStr(mt.getABCD())
+										 + "\t" + mt.getDirectionOfRisk() + "\t" + mt.getChiSq() + "\t"
+										 + mt.getPvalue());
 				mt.setContinuity(true);
 				writer.print("\t" + mt.getChiSq() + "\t" + mt.getPvalue());
 				writer.print("\t" + mt.getPvalueFromBinomialDistribution());

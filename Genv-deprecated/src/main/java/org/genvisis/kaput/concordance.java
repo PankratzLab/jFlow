@@ -76,7 +76,7 @@ public class concordance {
 				writer.println(a1 + "\t" + a2);
 
 				counts[2 * (Integer.valueOf(a1).intValue() - 1)
-								+ ((Integer.valueOf(a2).intValue() <= MMSE_CUTOFF_LTE) ? 0 : 1)]++;
+							 + ((Integer.valueOf(a2).intValue() <= MMSE_CUTOFF_LTE) ? 0 : 1)]++;
 			}
 			for (int j = 0; j < counts.length; j++) {
 				System.out.print(counts[j] + "\t");
@@ -89,10 +89,10 @@ public class concordance {
 	}
 
 	public static void main(String[] args) throws IOException {
-		String usage = "\n"	+ "park.concordance requires 2 arguments:\n"
-										+ "   (1) a pre-like file - FAMID INDID AFF/UNAFF group\n"
-										+ "       (for an APOE analysis this would be 2, 3 or 4)\n"
-										+ "   (2) number of replicates to perform\n" + "";
+		String usage = "\n" + "park.concordance requires 2 arguments:\n"
+									 + "   (1) a pre-like file - FAMID INDID AFF/UNAFF group\n"
+									 + "       (for an APOE analysis this would be 2, 3 or 4)\n"
+									 + "   (2) number of replicates to perform\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

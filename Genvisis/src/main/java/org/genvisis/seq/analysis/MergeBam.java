@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -55,8 +55,8 @@ public class MergeBam {
 		this.fail = fail;
 	}
 
-	public boolean mergeSomeBams(	String[] baseIds, String newBaseID, String[] inputBams,
-																String outputBam, Logger altLog) {
+	public boolean mergeSomeBams(String[] baseIds, String newBaseID, String[] inputBams,
+															 String outputBam, Logger altLog) {
 		boolean progress = true;
 		if (!fail) {
 			if (inputBams.length >= 2) {
@@ -87,8 +87,8 @@ public class MergeBam {
 					outputHeader = outputHeader + ".rh";
 					String regex = "";
 					String sed = buildSedCommand(baseIds, newBaseID, outputHeader, originalHeader, regex);
-					log.report(ext.getTime()	+ " Info - running command " + sed
-											+ " to properly format header with new ID");
+					log.report(ext.getTime() + " Info - running command " + sed
+										 + " to properly format header with new ID");
 					String batFile = outputHeader + ".sed";
 					Files.write(sed, batFile);
 					Files.chmod(batFile);
@@ -107,8 +107,8 @@ public class MergeBam {
 																											(altLog == null ? log : altLog));
 				}
 			} else {
-				log.report(ext.getTime()	+ " Info - since there were less than two input bams, "
-										+ Array.toStr(inputBams) + " will not be merged");
+				log.report(ext.getTime() + " Info - since there were less than two input bams, "
+									 + ArrayUtils.toStr(inputBams) + " will not be merged");
 				progress = true;
 			}
 		} else {
@@ -118,8 +118,8 @@ public class MergeBam {
 		return progress;
 	}
 
-	private String buildSedCommand(	String[] baseIds, String newBaseID, String outputHeader,
-																	String originalHeader, String regex) {
+	private String buildSedCommand(String[] baseIds, String newBaseID, String outputHeader,
+																 String originalHeader, String regex) {
 		for (int i = 0; i < baseIds.length; i++) {
 			if (i == 0) {
 				regex = "SM:" + baseIds[i];
@@ -127,39 +127,39 @@ public class MergeBam {
 				regex += "\\|SM:" + baseIds[i];
 			}
 		}
-		String sed = "sed \"s/"	+ regex + "/SM:" + newBaseID + "/\" " + originalHeader + " > "
-									+ outputHeader;
+		String sed = "sed \"s/" + regex + "/SM:" + newBaseID + "/\" " + originalHeader + " > "
+								 + outputHeader;
 		return sed;
 	}
 
-	public BamMerger mergeABam(	String[] baseIds, String newBaseID, String[] inputBams,
-															String outputDir, String mergeStage, Logger altLog) {
-		altLog.report("trying to merge " + newBaseID + "\t" + Array.toStr(inputBams));
+	public BamMerger mergeABam(String[] baseIds, String newBaseID, String[] inputBams,
+														 String outputDir, String mergeStage, Logger altLog) {
+		altLog.report("trying to merge " + newBaseID + "\t" + ArrayUtils.toStr(inputBams));
 		BamMerger bamMerger = new BamMerger(newBaseID, outputDir, inputBams, altLog);
 		bamMerger.parse(mergeStage);
 		boolean progress = true;
 		if (!fail && bamMerger.shouldMerge()) {
-			progress = mergeSomeBams(	baseIds, newBaseID, bamMerger.getInputBams(),
-																bamMerger.getOutputBam(), altLog);
+			progress = mergeSomeBams(baseIds, newBaseID, bamMerger.getInputBams(),
+															 bamMerger.getOutputBam(), altLog);
 		}
 		bamMerger.setFail(!progress);
 		return bamMerger;
 	}
 
-	public ReHeader reHejaderBamFilePriorToMerge(	String bamFile, String oldSM, String newSM,
-																								Logger log) {
+	public ReHeader reHejaderBamFilePriorToMerge(String bamFile, String oldSM, String newSM,
+																							 Logger log) {
 		ReHeader reHeader = new ReHeader(bamFile);
 		reHeader.parse();
 		boolean progress = true;
 		String[] output = new String[] {reHeader.getReHeaderBam()};
-		log.report(ext.getTime()	+ " Info - sample name " + oldSM + " will be replaced with " + newSM
-								+ " in  the header of " + bamFile);
+		log.report(ext.getTime() + " Info - sample name " + oldSM + " will be replaced with " + newSM
+							 + " in  the header of " + bamFile);
 		String sed = "sed \"s/SM:" + oldSM + "/SM:" + newSM + "/\"";
-		String[] command = new String[] {	samtoolsLocation, VIEW, H, bamFile, "|", sed, "|",
-																			samtoolsLocation, REHEADER, "-", bamFile, ">",
-																			reHeader.getReHeaderBam()};
+		String[] command = new String[] {samtoolsLocation, VIEW, H, bamFile, "|", sed, "|",
+																		 samtoolsLocation, REHEADER, "-", bamFile, ">",
+																		 reHeader.getReHeaderBam()};
 		String bat = ext.rootOf(bamFile, false) + ".rh.bat";
-		Files.write(Array.toStr(command, " "), bat);
+		Files.write(ArrayUtils.toStr(command, " "), bat);
 		Files.chmod(bat);
 		progress = CmdLine.runCommandWithFileChecks(new String[] {bat}, "", new String[] {bamFile, bat},
 																								output, verbose, overwriteExisting, false, log);
@@ -168,7 +168,7 @@ public class MergeBam {
 	}
 
 	private boolean validSamtools() {
-		if (samtoolsLocation != null	&& !samtoolsLocation.equals("")
+		if (samtoolsLocation != null && !samtoolsLocation.equals("")
 				&& !samtoolsLocation.equals(SAMTOOLS_LOCATION)) {
 			if (Files.exists(samtoolsLocation)) {
 				if (verbose) {
@@ -292,10 +292,10 @@ public class MergeBam {
 	private static String getFullHeader(String samtoolsLocation, String inputBam, String outputHeader,
 																			boolean full, Logger log) {
 		String headerFile = ext.addToRoot(inputBam, ".header");
-		String[] fullHeaderCommand = new String[] {	samtoolsLocation, "view", H, inputBam, ">",
-																								headerFile};
+		String[] fullHeaderCommand = new String[] {samtoolsLocation, "view", H, inputBam, ">",
+																							 headerFile};
 		String bat = ext.addToRoot(inputBam, ".header.bat");
-		Files.write(Array.toStr(fullHeaderCommand, " "), bat);
+		Files.write(ArrayUtils.toStr(fullHeaderCommand, " "), bat);
 		Files.chmod(bat);
 		CmdLine.run(bat, "");
 		// CmdLine.runCommandWithFileChecks(fullHeaderCommand, "", new String[] { inputBam }, new

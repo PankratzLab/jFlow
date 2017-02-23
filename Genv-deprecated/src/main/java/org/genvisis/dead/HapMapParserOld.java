@@ -34,7 +34,7 @@ public class HapMapParserOld {
 			temp = reader.readLine();
 			indIDs = (temp.substring(temp.indexOf("[") + 1, temp.indexOf("]"))).split("[\\s]+");
 
-			writer = new PrintWriter(new FileWriter((new File(dir).exists() ? dir : "")	+ root
+			writer = new PrintWriter(new FileWriter((new File(dir).exists() ? dir : "") + root
 																							+ ".info"));
 			while (reader.ready()) {
 				line = reader.readLine().split("[\\s]+");
@@ -78,9 +78,9 @@ public class HapMapParserOld {
 		}
 
 		try {
-			reader = Files.getReader(	famstruct,
-																new String[] {dir, "/home/npankrat/NCBI/",
-																							"C:\\Documents and Settings\\npankrat\\My Documents\\jProjects\\park\\runtime\\"});
+			reader = Files.getReader(famstruct,
+															 new String[] {dir, "/home/npankrat/NCBI/",
+																						 "C:\\Documents and Settings\\npankrat\\My Documents\\jProjects\\park\\runtime\\"});
 			writer = new PrintWriter(new FileWriter((new File(dir).exists() ? dir : "") + root + ".pre"));
 			while (reader.ready()) {
 				line = reader.readLine().split("[\\s]+");
@@ -104,8 +104,8 @@ public class HapMapParserOld {
 					}
 				}
 				if (index == -2) {
-					System.err.println("Error - Could not find sample "	+ trav
-															+ " from the pedigree file in the genotype file");
+					System.err.println("Error - Could not find sample " + trav
+														 + " from the pedigree file in the genotype file");
 				}
 				for (int i = 0; i < v.size(); i++) {
 					line = hash.get(v.elementAt(i));
@@ -170,9 +170,9 @@ public class HapMapParserOld {
 		// String famstruct = "famstruct_CEU.dat";
 		String famstruct = "/home/npankrat/NCBI/pedinfo2sample_CEU.txt";
 
-		String usage = "\n"	+ "CommonTools.bioinformatics.hapmapParser requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default)\n"
-										+ "   (2) famstruct (i.e. struct=" + famstruct + " (default)\n" + "";
+		String usage = "\n" + "CommonTools.bioinformatics.hapmapParser requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default)\n"
+									 + "   (2) famstruct (i.e. struct=" + famstruct + " (default)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

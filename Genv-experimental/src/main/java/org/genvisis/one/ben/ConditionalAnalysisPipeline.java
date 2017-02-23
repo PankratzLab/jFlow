@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Positions;
@@ -50,8 +50,8 @@ public class ConditionalAnalysisPipeline {
 
 		@Override
 		public String toString() {
-			StringBuilder sb = new StringBuilder("region[id:"	+ label + ", SNP:" + indexSNP + ", UCSC:chr"
-																						+ chr + ":" + start + ":" + stop + "]");
+			StringBuilder sb = new StringBuilder("region[id:" + label + ", SNP:" + indexSNP + ", UCSC:chr"
+																					 + chr + ":" + start + ":" + stop + "]");
 			return sb.toString();
 		}
 
@@ -73,14 +73,14 @@ public class ConditionalAnalysisPipeline {
 				public boolean accept(File dir, String name) {
 					// TODO assuming datafile names start with "chr#."
 					return name.startsWith("chr" + region.chr + DATA_FILE_DELIMITER)
-									&& name.endsWith(dataDefs.dataSuffix);
+								 && name.endsWith(dataDefs.dataSuffix);
 				}
 			});
 
 			if (chrDataFiles.length == 0) {
 				throw new RuntimeException("ERROR - no data files found in directory.  Looking for files with pattern 'chr#.<>.<>' or 'chr#' ending with suffix "
-																			+ dataDefs.dataSuffix + " in directory {" + dataDefs.dataDir
-																		+ "}");
+																	 + dataDefs.dataSuffix + " in directory {" + dataDefs.dataDir
+																	 + "}");
 			}
 
 			// TODO generic parsing for file-name template: is it in chr#.<>.<> format [chunked], or chr#
@@ -99,7 +99,7 @@ public class ConditionalAnalysisPipeline {
 					inclDataFiles.add(chrDataFile);
 				}
 			}
-			log("Found "	+ inclDataFiles.size() + " out of " + chrDataFiles.length
+			log("Found " + inclDataFiles.size() + " out of " + chrDataFiles.length
 					+ " possibly-matching data files!");
 			return inclDataFiles.toArray(new String[inclDataFiles.size()]);
 		}
@@ -110,19 +110,18 @@ public class ConditionalAnalysisPipeline {
 																													boolean baseline) {
 			// TODO currently only partially reuses data files. This increases space used, but we have
 			// problems reading from shared files in a multi-threaded environment
-			String tempDataDir = tempDir	+ region.label
-														+ "/" /* + (baseline ? "baseline" : region.indexSNP) + "/" */
-														+ dataDefs.study + "_" + dataDefs.popcode + "/";
+			String tempDataDir = tempDir + region.label
+													 + "/" /* + (baseline ? "baseline" : region.indexSNP) + "/" */
+													 + dataDefs.study + "_" + dataDefs.popcode + "/";
 			File dirFile = new File(tempDataDir);
 			if (!dirFile.exists()) {
 				if (!new File(tempDataDir).mkdirs()) {
 					throw new RuntimeException("ERROR - failed to create temporary data directory {"
-																			+ tempDataDir + "}");
+																		 + tempDataDir + "}");
 				}
 			}
 
-			String infoHeader =
-												"snp_id rs_id position exp_freq_a1 info certainty type info_type0 concord_type0 r2_type0";
+			String infoHeader = "snp_id rs_id position exp_freq_a1 info certainty type info_type0 concord_type0 r2_type0";
 
 			TreeSet<String> sortedFiles = new TreeSet<String>(new Comparator<String>() {
 				@Override
@@ -140,10 +139,10 @@ public class ConditionalAnalysisPipeline {
 				sortedFiles.add(file);
 			}
 
-			String newGenoFileName = "chr"	+ region.chr + "." + region.start + "." + region.stop
-																+ ".temp.gz";
-			String newInfoFileName = "chr"	+ region.chr + "." + region.start + "." + region.stop
-																+ ".temp_info";
+			String newGenoFileName = "chr" + region.chr + "." + region.start + "." + region.stop
+															 + ".temp.gz";
+			String newInfoFileName = "chr" + region.chr + "." + region.start + "." + region.stop
+															 + ".temp_info";
 
 			boolean found = false;
 			if (Files.exists(tempDataDir + newGenoFileName)
@@ -165,36 +164,35 @@ public class ConditionalAnalysisPipeline {
 			for (String file : sortedFiles) {
 				try {
 					BufferedReader genoReader = Files.getAppropriateReader(dataDefs.dataDir + file);
-					BufferedReader infoReader =
-																		Files.getAppropriateReader(dataDefs.dataDir
-																																	+ file.substring(	0,
+					BufferedReader infoReader = Files.getAppropriateReader(dataDefs.dataDir
+																																 + file.substring(0,
 																																									file.length() - 3)
-																																+ "_info");
+																																 + "_info");
 
 					String infoLine = infoReader.readLine();
 					String delim = ext.determineDelimiter(infoLine);
 					String genoLine = null;
 					int count = 0;
 					while ((infoLine = infoReader.readLine()) != null
-									&& (genoLine = genoReader.readLine()) != null) {
+								 && (genoLine = genoReader.readLine()) != null) {
 						count++;
 						// geno/info lines should be one to one
 						String[] infoParts = infoLine.split(delim);
 						if (!baseline && infoParts[1].trim().equals(region.indexSNP)) {
-							region.genoData.put(dataDefs.study	+ "\t" + dataDefs.popcode,
+							region.genoData.put(dataDefs.study + "\t" + dataDefs.popcode,
 																	genoLine.split("[\\s]+"));
-							region.infoData.put(dataDefs.study	+ "\t" + dataDefs.popcode,
+							region.infoData.put(dataDefs.study + "\t" + dataDefs.popcode,
 																	infoLine.split("[\\s]+"));
 							// if (found) {
 							// break; // don't break anymore - we have to load data for each index SNP we've
 							// tracked
 							// }
-						} else if (region.prevSNPs.contains(dataDefs.study	+ "\t" + dataDefs.popcode + "\t"
+						} else if (region.prevSNPs.contains(dataDefs.study + "\t" + dataDefs.popcode + "\t"
 																								+ infoParts[1])) {
-							region.prevSNPdata.put(dataDefs.study	+ "\t" + dataDefs.popcode + "\t" + infoParts[1],
-																			genoLine.split("[\\s]+"));
-							region.prevSNPinfo.put(dataDefs.study	+ "\t" + dataDefs.popcode + "\t" + infoParts[1],
-																			infoLine.split("[\\s]+"));
+							region.prevSNPdata.put(dataDefs.study + "\t" + dataDefs.popcode + "\t" + infoParts[1],
+																		 genoLine.split("[\\s]+"));
+							region.prevSNPinfo.put(dataDefs.study + "\t" + dataDefs.popcode + "\t" + infoParts[1],
+																		 infoLine.split("[\\s]+"));
 						}
 						int mkrPos = Integer.parseInt(infoParts[2]);
 						if (mkrPos < region.start || mkrPos > region.stop) {
@@ -262,7 +260,7 @@ public class ConditionalAnalysisPipeline {
 			String factor = pts[2];
 			String newTraitFile = study + "_" + pop + "_" + factor + ".trait";
 			String dir = region.analysisRootDir
-										+ (baseline ? region.label + "_iter0_baseline/" : region.regionDirNameRoot);
+									 + (baseline ? region.label + "_iter0_baseline/" : region.regionDirNameRoot);
 
 			int offset = 5; // column index offset to start of geno data
 
@@ -317,10 +315,12 @@ public class ConditionalAnalysisPipeline {
 							int iidInd = iidIndex.intValue();
 							// double geno1 = Double.parseDouble(genoData[offset + (3 * iidInd)]);
 							double geno2 = Double.parseDouble(region.genoData.get(study + "\t" + pop)[offset
-																																													+ (3 * iidInd)
+																																												+ (3
+																																													 * iidInd)
 																																												+ 1]);
 							double geno3 = Double.parseDouble(region.genoData.get(study + "\t" + pop)[offset
-																																													+ (3 * iidInd)
+																																												+ (3
+																																													 * iidInd)
 																																												+ 2]);
 							geno = (geno2 + (2 * geno3));
 							lineData.add(geno);
@@ -330,10 +330,10 @@ public class ConditionalAnalysisPipeline {
 								if (snp.contains(study) && snp.contains(pop)) {
 									// log("Including data for: {" + snp + "}");
 									// log("Keys: {" + region.prevSNPdata.keySet() + "}");
-									geno2 =
-												Double.parseDouble(region.prevSNPdata.get(snp)[offset + (3 * iidInd) + 1]);
-									geno3 =
-												Double.parseDouble(region.prevSNPdata.get(snp)[offset + (3 * iidInd) + 2]);
+									geno2 = Double.parseDouble(region.prevSNPdata.get(snp)[offset + (3 * iidInd)
+																																				 + 1]);
+									geno3 = Double.parseDouble(region.prevSNPdata.get(snp)[offset + (3 * iidInd)
+																																				 + 2]);
 									geno = (geno2 + (2 * geno3));
 									lineData.add(geno);
 								}
@@ -355,15 +355,15 @@ public class ConditionalAnalysisPipeline {
 				String[] cols = colNames.toArray(new String[colNames.size()]);
 
 				LeastSquares lsReg = new LeastSquares(phenoData, indepData, cols, false, false); // TODO
-																																													// should
-																																													// bypass
-																																													// data
-																																													// check??
-																																													// - could
-																																													// easily
-																																													// have
-																																													// NaNs in
-																																													// there
+																																												 // should
+																																												 // bypass
+																																												 // data
+																																												 // check??
+																																												 // - could
+																																												 // easily
+																																												 // have
+																																												 // NaNs in
+																																												 // there
 
 				double[] resids = lsReg.getResiduals();
 				if (resids.length != traitCount) {
@@ -385,8 +385,8 @@ public class ConditionalAnalysisPipeline {
 
 					if (iidIndex != null) {
 						StringBuilder lineStr = new StringBuilder();
-						lineStr	.append(parts[0]).append("\t").append(parts[1]).append("\t").append(parts[2])
-										.append("\t").append(parts[3]).append("\t").append(parts[4]).append("\t");
+						lineStr.append(parts[0]).append("\t").append(parts[1]).append("\t").append(parts[2])
+									 .append("\t").append(parts[3]).append("\t").append(parts[4]).append("\t");
 
 						lineStr.append(resids[cnt++]);
 
@@ -417,10 +417,10 @@ public class ConditionalAnalysisPipeline {
 		HashMap<String, HashMap<String, DataDefinitions>> dataDefs;
 		boolean isBaseline;
 
-		public ConditionalAnalysisToolset_FAST(	Region region, String dataFile, String traitDir,
-																						String tempDir,
-																						HashMap<String, HashMap<String, DataDefinitions>> dataDefs,
-																						boolean baseline) {
+		public ConditionalAnalysisToolset_FAST(Region region, String dataFile, String traitDir,
+																					 String tempDir,
+																					 HashMap<String, HashMap<String, DataDefinitions>> dataDefs,
+																					 boolean baseline) {
 			this.region = region;
 			this.dataFile = dataFile;
 			this.traitDir = traitDir;
@@ -458,11 +458,11 @@ public class ConditionalAnalysisPipeline {
 			String regionDir = isBaseline ? region.label + "_iter0_baseline/" : region.regionDirNameRoot;
 
 			log("Writing new data.txt file...");
-			String newDataFile = region.analysisRootDir	+ regionDir
-														+ "data_" + (isBaseline	? "baseline"
-																										: ext.replaceWithLinuxSafeCharacters(	region.indexSNP,
-																																													false))
-														+ ".txt";
+			String newDataFile = region.analysisRootDir + regionDir
+													 + "data_" + (isBaseline ? "baseline"
+																									 : ext.replaceWithLinuxSafeCharacters(region.indexSNP,
+																																												false))
+													 + ".txt";
 			Files.writeArray(newDataDefs.toArray(new String[newDataDefs.size()]), newDataFile);
 
 			return new String[] {region.analysisRootDir + regionDir, newDataFile};
@@ -474,15 +474,14 @@ public class ConditionalAnalysisPipeline {
 
 			try {
 				log("Preparing FAST analysis in directory [" + regionPathAndDataFile[0] + "]...");
-				String[] analysisDirs =
-															FAST.prepareFAST(	regionPathAndDataFile[0], regionPathAndDataFile[1],
-																								regionPathAndDataFile[0], true, false, true, null);
+				String[] analysisDirs = FAST.prepareFAST(regionPathAndDataFile[0], regionPathAndDataFile[1],
+																								 regionPathAndDataFile[0], true, false, true, null);
 
 				log("Running " + analysisDirs.length + " FAST analyses...");
-				boolean[] runs = Array.booleanArray(analysisDirs.length, false);
+				boolean[] runs = ArrayUtils.booleanArray(analysisDirs.length, false);
 				for (int i = 0; i < analysisDirs.length; i++) {
 					(new ScriptExecutor(NUM_THREADS)).run(analysisDirs[i] + "input.txt", "took");
-					runs[i] = ScriptExecutor.outLogExistsComplete(analysisDirs[i]	+ "output/input.log_0.out",
+					runs[i] = ScriptExecutor.outLogExistsComplete(analysisDirs[i] + "output/input.log_0.out",
 																												"took");
 					if (!runs[i]) {
 						// TODO Error - FAST failed!
@@ -494,8 +493,8 @@ public class ConditionalAnalysisPipeline {
 					String studyDir = regionPathAndDataFile[0] + study + "/";
 
 					if (!Files.exists(studyDir)) {
-						System.err.println(ext.getTime()	+ "ERROR - analysis directory [" + studyDir
-																+ "] does not exist.");
+						System.err.println(ext.getTime() + "ERROR - analysis directory [" + studyDir
+															 + "] does not exist.");
 						continue;
 					}
 
@@ -519,7 +518,7 @@ public class ConditionalAnalysisPipeline {
 							String newSNP = extractIndexSnp(dir + file, region, PVAL_THRESHOLD);
 
 							if (isBaseline) {
-								log("Baseline analysis for region "	+ region.label
+								log("Baseline analysis for region " + region.label
 										+ " complete!  Index snp for analysis determined to be [" + newSNP + "]");
 							} else if (newSNP == null) {
 								dumpRegion(region, false); // dump data
@@ -540,7 +539,7 @@ public class ConditionalAnalysisPipeline {
 								r2.label = region.label;
 								r2.indexSNP = newSNP;
 
-								String newDir = r2.label	+ "_iter" + ((region.prevSNPs.size() / popDefs.size()) + 2)
+								String newDir = r2.label + "_iter" + ((region.prevSNPs.size() / popDefs.size()) + 2)
 																+ "_" + ext.replaceWithLinuxSafeCharacters(r2.indexSNP, false)
 																+ "/";
 								new File(region.analysisRootDir + newDir).mkdirs();
@@ -550,8 +549,8 @@ public class ConditionalAnalysisPipeline {
 								for (String def : popDefs.keySet()) {
 									r2.prevSNPs.add(study + "\t" + def + "\t" + region.indexSNP);
 								}
-								(new ConditionalAnalysisToolset_FAST(	r2, dataFile, traitDir, tempDir, dataDefs,
-																											false)).run();
+								(new ConditionalAnalysisToolset_FAST(r2, dataFile, traitDir, tempDir, dataDefs,
+																										 false)).run();
 							}
 						} else {
 							log("Error - file [" + dir + file + "] not found!");
@@ -585,7 +584,7 @@ public class ConditionalAnalysisPipeline {
 			dosageData = pullFrom.get(dd.study + "\t" + dd.popcode);
 
 			iids = HashVec.loadFileToStringArray(dd.indivFile, false, new int[] {0}, false);
-			writer = Files.getAppropriateWriter(region.analysisRootDir	+ region.label + "_" + dd.study
+			writer = Files.getAppropriateWriter(region.analysisRootDir + region.label + "_" + dd.study
 																					+ "_" + dd.popcode + "_snpDosages.txt");
 
 			sb = new StringBuilder();
@@ -631,8 +630,8 @@ public class ConditionalAnalysisPipeline {
 		}
 
 		private static void dumpRegion(Region region, boolean dumpInfo) {
-			PrintWriter writer = Files.getAppropriateWriter(region.analysisRootDir	+ region.label
-																											+ (dumpInfo	? "_snpInfo.txt"
+			PrintWriter writer = Files.getAppropriateWriter(region.analysisRootDir + region.label
+																											+ (dumpInfo ? "_snpInfo.txt"
 																																	: "_snpData.txt"));
 			StringBuilder sb = new StringBuilder();
 			ArrayList<String> studyPopOrder = new ArrayList<String>();
@@ -771,13 +770,13 @@ public class ConditionalAnalysisPipeline {
 	}
 
 	private boolean[] buildAnalysisFolders(String dir, Region[] rgns) {
-		boolean[] results = Array.booleanArray(rgns.length, false);
+		boolean[] results = ArrayUtils.booleanArray(rgns.length, false);
 		for (int i = 0; i < rgns.length; i++) {
 			String newDir = rgns[i].label + "_iter0_baseline/";
 			results[i] = new File(dir + newDir).mkdirs();
-			newDir = rgns[i].label	+ "_iter1_"
-								+ (ext.replaceWithLinuxSafeCharacters(rgns[i].indexSNP, false).replaceAll("_", ""))
-								+ "/";
+			newDir = rgns[i].label + "_iter1_"
+							 + (ext.replaceWithLinuxSafeCharacters(rgns[i].indexSNP, false).replaceAll("_", ""))
+							 + "/";
 			results[i] = results[i] && new File(dir + newDir).mkdirs();
 			rgns[i].analysisRootDir = dir;
 			rgns[i].regionDirNameRoot = newDir;
@@ -883,9 +882,9 @@ public class ConditionalAnalysisPipeline {
 	public static void processOnly(String analysisDir, String inputFile, String dataFile) {
 		Region[] rgns = parseSetupFile(inputFile);
 		for (Region rgn : rgns) {
-			String newDir =
-										rgn.label	+ "_iter1_" + (ext				.replaceWithLinuxSafeCharacters(rgn.indexSNP, false)
-																								.replaceAll("_", ""))
+			String newDir = rgn.label + "_iter1_"
+											+ (ext.replaceWithLinuxSafeCharacters(rgn.indexSNP, false)
+														.replaceAll("_", ""))
 											+ "/";
 			rgn.analysisRootDir = analysisDir;
 			rgn.regionDirNameRoot = newDir;
@@ -908,8 +907,8 @@ public class ConditionalAnalysisPipeline {
 	/*
 	 * Input file format: Tab-delimited columns: REGION_LABEL INDEX_SNP UCSC_REGION
 	 */
-	private void setup(	final String analysisDir, String inputFile, final String dataFile,
-											String tempDataDir, String traitDir) {
+	private void setup(final String analysisDir, String inputFile, final String dataFile,
+										 String tempDataDir, String traitDir) {
 		log("Parsing regions from input file...");
 		Region[] rgns = parseSetupFile(inputFile);
 		log("Found " + rgns.length + " regions for analysis");
@@ -931,10 +930,10 @@ public class ConditionalAnalysisPipeline {
 
 		// TODO error checking on folder creation
 		for (Region rgn : rgns) {
-			ConditionalAnalysisToolset_FAST run =
-																					new ConditionalAnalysisToolset_FAST(rgn, dataFile,
-																																							traitDir, tempDataDir,
-																																							dataDefs, true);
+			ConditionalAnalysisToolset_FAST run = new ConditionalAnalysisToolset_FAST(rgn, dataFile,
+																																								traitDir,
+																																								tempDataDir,
+																																								dataDefs, true);
 			executor.execute(run);
 		}
 
@@ -990,10 +989,8 @@ public class ConditionalAnalysisPipeline {
 																							HashMap<String, HashMap<String, DataDefinitions>> dataDefs) {
 		String[] iterDirs = getIterDirs(region);
 
-		HashMap<String, HashMap<String, StringBuilder>> headerMap =
-																															new HashMap<String, HashMap<String, StringBuilder>>();
-		HashMap<String, HashMap<String, ArrayList<StringBuilder>>> resultsMap =
-																																					new HashMap<String, HashMap<String, ArrayList<StringBuilder>>>();
+		HashMap<String, HashMap<String, StringBuilder>> headerMap = new HashMap<String, HashMap<String, StringBuilder>>();
+		HashMap<String, HashMap<String, ArrayList<StringBuilder>>> resultsMap = new HashMap<String, HashMap<String, ArrayList<StringBuilder>>>();
 		ArrayList<String> popCodeOrder = new ArrayList<String>();
 
 		for (String study : dataDefs.keySet()) {
@@ -1003,8 +1000,8 @@ public class ConditionalAnalysisPipeline {
 			String iterStudyDir = iterPath + study + "/";
 			String[] factorDirs = Files.listDirectories(iterStudyDir, false);
 			for (String factorDir : factorDirs) {
-				StringBuilder hdr1SB = new StringBuilder(study)	.append("\t").append(factorDir)
-																												.append("\t\t\tMeta\tMeta\tMeta");
+				StringBuilder hdr1SB = new StringBuilder(study).append("\t").append(factorDir)
+																											 .append("\t\t\tMeta\tMeta\tMeta");
 				String perHdr = "\tbeta\tSE\tpval";
 				StringBuilder hdr2SB = new StringBuilder("Condition\tTopHit\tChr\tPosition").append(perHdr);
 				HashMap<String, DataDefinitions> popDefs = dataDefs.get(study);
@@ -1019,8 +1016,7 @@ public class ConditionalAnalysisPipeline {
 		}
 
 		for (String study : dataDefs.keySet()) {
-			HashMap<String, ArrayList<StringBuilder>> map =
-																										new HashMap<String, ArrayList<StringBuilder>>();
+			HashMap<String, ArrayList<StringBuilder>> map = new HashMap<String, ArrayList<StringBuilder>>();
 			resultsMap.put(study, map);
 		}
 
@@ -1071,10 +1067,10 @@ public class ConditionalAnalysisPipeline {
 					String minSNP = null;
 					try {
 						double thresh = i == iterDirs.length
-																	- 1 ? 1d : ConditionalAnalysisToolset_FAST.PVAL_THRESHOLD;
+																 - 1 ? 1d : ConditionalAnalysisToolset_FAST.PVAL_THRESHOLD;
 						minSNP = extractIndexSnp(dir + metaFile, region, thresh);
 						resultLine.append("\t").append(minSNP).append("\t\t\t");
-						resultLine.append(Array.toStr(extractSnpDetails(dir + metaFile, minSNP)));
+						resultLine.append(ArrayUtils.toStr(extractSnpDetails(dir + metaFile, minSNP)));
 						for (String code : popCodeOrder) {
 							String[] newParts = extractSnpDetails(dir + popFiles.get(code), minSNP);
 							if (newParts[0] == null) {
@@ -1086,7 +1082,7 @@ public class ConditionalAnalysisPipeline {
 							if (newParts[2] == null) {
 								newParts[2] = ".";
 							}
-							resultLine.append("\t").append(Array.toStr(newParts));
+							resultLine.append("\t").append(ArrayUtils.toStr(newParts));
 						}
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
@@ -1104,7 +1100,7 @@ public class ConditionalAnalysisPipeline {
 			String iterStudyDir = iterPath + study + "/";
 			String[] factorDirs = Files.listDirectories(iterStudyDir, false);
 			for (String factorDir : factorDirs) {
-				PrintWriter writer = Files.getAppropriateWriter(region.analysisRootDir	+ "/" + region.label
+				PrintWriter writer = Files.getAppropriateWriter(region.analysisRootDir + "/" + region.label
 																												+ "_" + study + "_" + factorDir
 																												+ "_topSNPs.xln");
 
@@ -1120,16 +1116,14 @@ public class ConditionalAnalysisPipeline {
 		}
 	}
 
-	private static void processAndWriteResults(	final Region region,
-																							HashMap<String, HashMap<String, DataDefinitions>> dataDefs) {
+	private static void processAndWriteResults(final Region region,
+																						 HashMap<String, HashMap<String, DataDefinitions>> dataDefs) {
 		String[] iterDirs = getIterDirs(region);
-		String[][] factors = new String[][] {	Aliases.MARKER_NAMES, Aliases.EFFECTS, Aliases.STD_ERRS,
-																					Aliases.PVALUES};
+		String[][] factors = new String[][] {Aliases.MARKER_NAMES, Aliases.EFFECTS, Aliases.STD_ERRS,
+																				 Aliases.PVALUES};
 
-		HashMap<String, HashMap<String, StringBuilder>> headerMap =
-																															new HashMap<String, HashMap<String, StringBuilder>>();
-		HashMap<String, HashMap<String, HashMap<String, StringBuilder>>> resultsMap =
-																																								new HashMap<String, HashMap<String, HashMap<String, StringBuilder>>>();
+		HashMap<String, HashMap<String, StringBuilder>> headerMap = new HashMap<String, HashMap<String, StringBuilder>>();
+		HashMap<String, HashMap<String, HashMap<String, StringBuilder>>> resultsMap = new HashMap<String, HashMap<String, HashMap<String, StringBuilder>>>();
 
 		for (String regionIter : iterDirs) {
 			String iterMarker = regionIter.split("_")[2];
@@ -1181,8 +1175,8 @@ public class ConditionalAnalysisPipeline {
 						factorHeaderMap.put(factorDir, sb); // because StringBuilders are immutable, we need to
 																								// replace the instance each time [is this true?]
 
-						int[] indices = ext.indexFactors(	factors, Files.getHeaderOfFile(dir + file, null),
-																							false, true, false, false);
+						int[] indices = ext.indexFactors(factors, Files.getHeaderOfFile(dir + file, null),
+																						 false, true, false, false);
 						String[][] fileData = HashVec.loadFileToStringMatrix(dir + file, true, indices, false);
 
 						HashMap<String, StringBuilder> markerResultsMap = factorResultsMap.get(factorDir);
@@ -1202,8 +1196,8 @@ public class ConditionalAnalysisPipeline {
 								markerResults = new StringBuilder(mkr);
 								markerResultsMap.put(mkr, markerResults);
 							}
-							markerResults	.append("\t").append(beta).append("\t").append(se).append("\t")
-														.append(pval);
+							markerResults.append("\t").append(beta).append("\t").append(se).append("\t")
+													 .append(pval);
 							markerResultsMap.put(mkr, markerResults);
 						}
 					}
@@ -1217,7 +1211,7 @@ public class ConditionalAnalysisPipeline {
 			for (Entry<String, StringBuilder> headerByFactorDir : headerByStudy.getValue().entrySet()) {
 				String factor = headerByFactorDir.getKey();
 
-				String file = region.analysisRootDir	+ region.label + "_" + study + "_" + factor
+				String file = region.analysisRootDir + region.label + "_" + study + "_" + factor
 											+ "_iterations.xln";
 
 				PrintWriter writer = Files.getAppropriateWriter(file);
@@ -1285,7 +1279,7 @@ public class ConditionalAnalysisPipeline {
 		}
 		if (numArgs != 0) {
 			System.err.println(usage);
-			System.err.println(Array.toStr(args, "\n"));
+			System.err.println(ArrayUtils.toStr(args, "\n"));
 			System.exit(1);
 		}
 		(new ConditionalAnalysisPipeline()).setup(ext.verifyDirFormat(analysisDir), inputFile, dataFile,

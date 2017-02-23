@@ -4,13 +4,13 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 public class Maths {
-	
+
 	public static final List<String> OPERATORS;
 
 	static {
@@ -25,7 +25,7 @@ public class Maths {
 		// Prevent construction
 	}
 
-	
+
 	public enum OPERATOR {
 		// Valid operators that will be searched for in the following order:
 		LESS_THAN_OR_EQUAL("<="),
@@ -34,7 +34,7 @@ public class Maths {
 		GREATER_THAN(">"),
 		EQUAL("="),
 		NOT("!");
-		
+
 		private static final Map<String, OPERATOR> SYMBOL_MAP;
 		static {
 			ImmutableMap.Builder<String, OPERATOR> builder = ImmutableMap.builder();
@@ -43,9 +43,9 @@ public class Maths {
 			}
 			SYMBOL_MAP = builder.build();
 		}
-		
+
 		private final String symbol;
-		
+
 		OPERATOR(String symbol) {
 			this.symbol = symbol;
 		}
@@ -53,11 +53,11 @@ public class Maths {
 		public String getSymbol() {
 			return symbol;
 		}
-		
+
 		public static OPERATOR forSymbol(String symbol) {
 			return SYMBOL_MAP.get(symbol);
 		}
-		
+
 		public boolean check(double num1, double num2) {
 			switch (this) {
 				case LESS_THAN_OR_EQUAL:
@@ -73,13 +73,14 @@ public class Maths {
 				case NOT:
 					return num1 != num2;
 				default:
-					System.err.println("Cannot perform check, invalid " + getClass().getName() + ":" + this.name());
+					System.err.println("Cannot perform check, invalid " + getClass().getName() + ":"
+														 + this.name());
 					return false;
 			}
 		}
 
 	}
-	
+
 	public static double limit(double d, double min, double max) {
 		return d < min ? min : (d > max ? max : d);
 	}
@@ -116,7 +117,7 @@ public class Maths {
 
 		total = Maths.nCr(n, r);
 		indices = new int[total][];
-		indices[0] = Array.arrayOfIndices(r);
+		indices[0] = ArrayUtils.arrayOfIndices(r);
 
 		for (int i = 1; i < total; i++) {
 			indices[i] = indices[i - 1].clone();
@@ -202,8 +203,8 @@ public class Maths {
 	public static String[] parseOp(String str) {
 		for (String element : OPERATORS) {
 			if (str.indexOf(element) >= 0) {
-				return new String[] {	str.substring(0, str.indexOf(element)), element,
-															str.substring(str.indexOf(element) + element.length())};
+				return new String[] {str.substring(0, str.indexOf(element)), element,
+														 str.substring(str.indexOf(element) + element.length())};
 			}
 		}
 
@@ -213,25 +214,43 @@ public class Maths {
 	public static boolean op(double num1, double num2, String operatorSymbol) {
 		OPERATOR operator = OPERATOR.forSymbol(operatorSymbol);
 		if (operator == null) {
-			System.err.println("Cannot perform operation, " + OPERATOR.class.getName() + " for symbol " + operatorSymbol + " does not exist");
+			System.err.println("Cannot perform operation, " + OPERATOR.class.getName() + " for symbol "
+												 + operatorSymbol + " does not exist");
 			return false;
 		}
 		return operator.check(num1, num2);
 	}
+
 	public static void main(String[] args) {
 		// System.out.println(nCr(11, 5));
 		// System.out.println(Array.toStr(slopeAndIntercept(432, 234, 132, 324)));
-		System.out.println(Array.toStr(slopeAndIntercept(188, 900, 154, 1000)));
+		System.out.println(ArrayUtils.toStr(slopeAndIntercept(188, 900, 154, 1000)));
 
+	}
+
+	public static double cartesianToPolarTheta(double x, double y) {
+		return Math.atan2(y, x);
+	}
+
+	public static double cartesianToPolarR(double x, double y) {
+		return Math.hypot(x, y);
 	}
 
 	public static double[][] cartesianToPolar(double[] x, double[] y) {
 		double[][] polar = new double[x.length][2];
 		for (int i = 0; i < x.length; i++) {
-			polar[i][0] = Math.atan2(y[i], x[i]);
-			polar[i][1] = Math.hypot(x[i], y[i]);
+			polar[i][0] = cartesianToPolarTheta(x[i], y[i]);
+			polar[i][1] = cartesianToPolarR(x[i], y[i]);
 		}
 		return polar;
+	}
+
+	public static double polarToCartesianX(double theta, double r) {
+		return r * Math.cos(theta);
+	}
+
+	public static double polarToCartesianY(double theta, double r) {
+		return r * Math.sin(theta);
 	}
 
 	public static double[][] polarToCartesian(double[][] polar) {
@@ -241,8 +260,8 @@ public class Maths {
 		for (int i = 0; i < polar.length; i++) {
 			double theta = polar[i][0];
 			double r = polar[i][1];
-			x[i] = r * Math.cos(theta);
-			y[i] = r * Math.sin(theta);
+			x[i] = polarToCartesianX(theta, r);
+			y[i] = polarToCartesianY(theta, r);
 		}
 
 		return new double[][] {x, y};

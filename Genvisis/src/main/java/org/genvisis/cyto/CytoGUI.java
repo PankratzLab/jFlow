@@ -29,8 +29,8 @@ public class CytoGUI extends JFrame {
 		setSize(400, 100);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		// launch to middle of screen
-		this.setLocation(dim.width / 2	- this.getSize().width / 2,
-											dim.height / 2 - this.getSize().height / 2);
+		this.setLocation(dim.width / 2 - this.getSize().width / 2,
+										 dim.height / 2 - this.getSize().height / 2);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		cytoPanel = new CytoPanel(proj, this, (startDir == null ? "" : startDir), log);
 		cytoPanel.setVisible(true);

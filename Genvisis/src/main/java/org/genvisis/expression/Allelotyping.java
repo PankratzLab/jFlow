@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -33,7 +33,7 @@ public class Allelotyping {
 		DoubleVector values, regionMeans, regionStdevs, allObs, allObsAroundZero, regionLog2ratios;
 		IntVector regionCounts;
 		String ind, region, snpName;
-		Hashtable<String, String> lookup = HashVec.loadFileToHashString(dir	+ "snpGeneLookup.txt",
+		Hashtable<String, String> lookup = HashVec.loadFileToHashString(dir + "snpGeneLookup.txt",
 																																		false);
 		double mean, stdev, z, t, val, ciLow, ciHigh;
 		double[] log2ratios;
@@ -116,8 +116,8 @@ public class Allelotyping {
 					countBelow = 0;
 					for (int k = 0; k < indKeys.length; k++) {
 						values = inds.get(indKeys[k]);
-						regionMeans.add(Array.mean(Doubles.toArray(values)));
-						regionStdevs.add(Array.stdev(Doubles.toArray(values)));
+						regionMeans.add(ArrayUtils.mean(Doubles.toArray(values)));
+						regionStdevs.add(ArrayUtils.stdev(Doubles.toArray(values)));
 						regionCounts.add(values.size());
 						log2ratios = new double[values.size()];
 						for (int l = 0; l < values.size(); l++) {
@@ -126,26 +126,27 @@ public class Allelotyping {
 							allObsAroundZero.add(val - 0.5);
 							log2ratios[l] = Maths.log2(val / (1 - val));
 						}
-						regionLog2ratios.add(Array.mean(log2ratios));
-						writer.println((j == 0
-														&& k == 0	? lookup.get(snpKey)	+ "\t" + snpKey + "\t"
-																				+ (swaps.get(snpKey)
-																								.split("[\\s]+")[0].equals("yes")	? swaps	.get(snpKey)
-																																													.split("[\\s]+")[2]
-																																									: swaps	.get(snpKey)
-																																													.split("[\\s]+")[1])
-																			: "\t\t")
-															+ "\t" + (k == 0 ? regionKeys[j] : "") + "\t" + indKeys[k] + "\t"
-														+ values.size() + "\t" + Array.mean(Doubles.toArray(values)) + "\t"
-														+ Array.stdev(Doubles.toArray(values)) + "\t=NORMSDIST(-1*ABS("
-														+ Array.mean(Doubles.toArray(values)) + "-0.5)/"
-														+ Array.stdev(Doubles.toArray(values)) + ")*2" + "\t"
-														+ Array.mean(log2ratios) + "\t" + Array.stdev(log2ratios)
-														+ "\t=NORMSDIST(-1*ABS(" + Array.mean(log2ratios) + ")/"
-														+ Array.stdev(log2ratios) + ")*2" + "\t=POWER(2,"
-														+ Array.mean(log2ratios) + ")");
-						if (ProbDist.NormDist(Array.mean(log2ratios) / Array.stdev(log2ratios)) < 0.05) {
-							if (Array.mean(log2ratios) > 0) {
+						regionLog2ratios.add(ArrayUtils.mean(log2ratios));
+						writer.println((j == 0 && k == 0
+																						 ? lookup.get(snpKey) + "\t" + snpKey + "\t"
+																							 + (swaps.get(snpKey).split("[\\s]+")[0].equals("yes")
+																																																		 ? swaps.get(snpKey)
+																																																						.split("[\\s]+")[2]
+																																																		 : swaps.get(snpKey)
+																																																						.split("[\\s]+")[1])
+																						 : "\t\t")
+													 + "\t" + (k == 0 ? regionKeys[j] : "") + "\t" + indKeys[k] + "\t"
+													 + values.size() + "\t" + ArrayUtils.mean(Doubles.toArray(values)) + "\t"
+													 + ArrayUtils.stdev(Doubles.toArray(values)) + "\t=NORMSDIST(-1*ABS("
+													 + ArrayUtils.mean(Doubles.toArray(values)) + "-0.5)/"
+													 + ArrayUtils.stdev(Doubles.toArray(values)) + ")*2" + "\t"
+													 + ArrayUtils.mean(log2ratios) + "\t" + ArrayUtils.stdev(log2ratios)
+													 + "\t=NORMSDIST(-1*ABS(" + ArrayUtils.mean(log2ratios) + ")/"
+													 + ArrayUtils.stdev(log2ratios) + ")*2" + "\t=POWER(2,"
+													 + ArrayUtils.mean(log2ratios) + ")");
+						if (ProbDist.NormDist(ArrayUtils.mean(log2ratios)
+																	/ ArrayUtils.stdev(log2ratios)) < 0.05) {
+							if (ArrayUtils.mean(log2ratios) > 0) {
 								countAbove++;
 							} else {
 								countBelow++;
@@ -155,28 +156,28 @@ public class Allelotyping {
 						// writer.println(lookup.get(snpKeys[i])+"\t"+snpKeys[i]+"\t"+regionKeys[j]+"\t"+indKeys[k]+"\t"+values.size()+"\t"+ext.formDeci(Array.mean(values.toArray()),
 						// 3, true)+"\t"+ext.formDeci(Array.stdev(values.toArray()), 3, true));
 					}
-					mean = Array.mean(Doubles.toArray(regionMeans));
-					stdev = Array.stdev(Doubles.toArray(regionMeans));
+					mean = ArrayUtils.mean(Doubles.toArray(regionMeans));
+					stdev = ArrayUtils.stdev(Doubles.toArray(regionMeans));
 					z = Stats.ztest(mean, stdev, 0.5);
 					t = Stats.ttestOneSample(mean, stdev, regionMeans.size(), 0.5);
-					writer.println("\t\t\t\t\t\t\t\t\t\t\t\t\t"	+ mean + "\t" + stdev + "\t" + z + "\t"
-													+ ProbDist.NormDist(z) + "\t" + t + "\t\t"
-													+ ProbDist.TDist(t, indKeys.length - 1)
-													+ "\tOne observation (mean) per sample");
+					writer.println("\t\t\t\t\t\t\t\t\t\t\t\t\t" + mean + "\t" + stdev + "\t" + z + "\t"
+												 + ProbDist.NormDist(z) + "\t" + t + "\t\t"
+												 + ProbDist.TDist(t, indKeys.length - 1)
+												 + "\tOne observation (mean) per sample");
 					if (j == 0) {
-						summary.print(lookup.get(snpKey)	+ "\t" + snpKey + "\t"
-													+ (swaps.get(snpKey)
-																	.split("[\\s]+")[0].equals("yes")	? swaps	.get(snpKey)
-																																						.split("[\\s]+")[2]
-																																		: swaps	.get(snpKey)
-																																						.split("[\\s]+")[1])
+						summary.print(lookup.get(snpKey) + "\t" + snpKey + "\t"
+													+ (swaps.get(snpKey).split("[\\s]+")[0].equals("yes")
+																																								? swaps.get(snpKey)
+																																											 .split("[\\s]+")[2]
+																																								: swaps.get(snpKey)
+																																											 .split("[\\s]+")[1])
 													+ "\t" + indKeys.length + "\t" + mean + "\t" + stdev + "\t" + t + "\t"
 													+ (indKeys.length - 1));
 					}
 					// summary.print("\t"+ext.prettyP(ProbDist.TDist(t, indKeys.length-1)));
 
-					mean = Array.mean(Doubles.toArray(regionLog2ratios));
-					stdev = Array.stdev(Doubles.toArray(regionLog2ratios));
+					mean = ArrayUtils.mean(Doubles.toArray(regionLog2ratios));
+					stdev = ArrayUtils.stdev(Doubles.toArray(regionLog2ratios));
 					// ciLow = mean-1.96*stdev/Math.sqrt(regionLog2ratios.size()); // for z-test
 					// ciHigh = mean+1.96*stdev/Math.sqrt(regionLog2ratios.size());
 					t = ProbDist.TDistReverse(0.05, regionLog2ratios.size() - 1);
@@ -185,35 +186,35 @@ public class Allelotyping {
 					z = Stats.ztest(mean, stdev, 0);
 					t = Stats.ttestOneSample(mean, stdev, regionMeans.size(), 0);
 
-					writer.println("\t\t\t\t\t\t\t\t\t\t\t\t\t"	+ mean + "\t" + stdev + "\t" + z + "\t"
-													+ ProbDist.NormDist(z) + "\t" + t + "\t"
-													+ ext.formDeci(Math.pow(2, mean), 3, true) + " ("
-													+ ext.formDeci(Math.pow(2, ciLow), 3, true) + ", "
-													+ ext.formDeci(Math.pow(2, ciHigh), 3, true) + ")" + "\t"
-													+ ProbDist.TDist(t, indKeys.length - 1)
-													+ "\tOne observation (ratio) per sample");
+					writer.println("\t\t\t\t\t\t\t\t\t\t\t\t\t" + mean + "\t" + stdev + "\t" + z + "\t"
+												 + ProbDist.NormDist(z) + "\t" + t + "\t"
+												 + ext.formDeci(Math.pow(2, mean), 3, true) + " ("
+												 + ext.formDeci(Math.pow(2, ciLow), 3, true) + ", "
+												 + ext.formDeci(Math.pow(2, ciHigh), 3, true) + ")" + "\t"
+												 + ProbDist.TDist(t, indKeys.length - 1)
+												 + "\tOne observation (ratio) per sample");
 
-					summary.print("\t"	+ ext.formDeci(Math.pow(2, mean), 3, true) + " ("
+					summary.print("\t" + ext.formDeci(Math.pow(2, mean), 3, true) + " ("
 												+ ext.formDeci(Math.pow(2, ciLow), 3, true) + ", "
 												+ ext.formDeci(Math.pow(2, ciHigh), 3, true) + ")" + "\t"
 												+ ext.prettyP(ProbDist.TDist(t, indKeys.length - 1)));
 					summary.print("\t" + countAbove + "\t" + countBelow);
 
-					mean = Array.mean(Doubles.toArray(regionMeans));
-					stdev = Array.stdev(Doubles.toArray(allObs));
+					mean = ArrayUtils.mean(Doubles.toArray(regionMeans));
+					stdev = ArrayUtils.stdev(Doubles.toArray(allObs));
 					z = Stats.ztest(mean, stdev, 0.5);
 					t = Stats.ttestOneSample(mean, stdev, regionMeans.size(), 0.5);
-					writer.println("\t\t\t\t\t\t\t\t\t\t\t\t\t"	+ mean + "\t" + stdev + "\t" + z + "\t"
-													+ ProbDist.NormDist(z) + "\t" + t + "\t\t"
-													+ ProbDist.TDist(t, indKeys.length - 1) + "\tAll observations");
+					writer.println("\t\t\t\t\t\t\t\t\t\t\t\t\t" + mean + "\t" + stdev + "\t" + z + "\t"
+												 + ProbDist.NormDist(z) + "\t" + t + "\t\t"
+												 + ProbDist.TDist(t, indKeys.length - 1) + "\tAll observations");
 
 					stdev = pool(regionStdevs, regionCounts);
 					z = Stats.ztest(mean, stdev, 0.5);
 					t = Stats.ttestOneSample(mean, stdev, regionMeans.size(), 0.5);
-					writer.println("\t\t\t\t\t\t\t\t\t\t\t\t\t"	+ mean + "\t" + stdev + "\t" + z + "\t"
-													+ ProbDist.NormDist(z) + "\t" + t + "\t\t"
-													+ ProbDist.TDist(t, indKeys.length - 1)
-													+ "\tWith pooled variance estimator");
+					writer.println("\t\t\t\t\t\t\t\t\t\t\t\t\t" + mean + "\t" + stdev + "\t" + z + "\t"
+												 + ProbDist.NormDist(z) + "\t" + t + "\t\t"
+												 + ProbDist.TDist(t, indKeys.length - 1)
+												 + "\tWith pooled variance estimator");
 				}
 				summary.println();
 			}
@@ -271,8 +272,8 @@ public class Allelotyping {
 		String dir = "D:\\tWork\\Expression\\Alleleotypes\\Econs2\\\\";
 		String filename = "Allelotypes.dat";
 
-		String usage = "\\n"	+ "expression.Allelotyping requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\\n" + "expression.Allelotyping requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

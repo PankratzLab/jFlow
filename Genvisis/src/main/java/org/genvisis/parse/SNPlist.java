@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
@@ -56,7 +56,7 @@ public class SNPlist {
 			System.exit(2);
 		}
 
-		markers = new SnpMarkerSet(Array.toStringArray(snps));
+		markers = new SnpMarkerSet(ArrayUtils.toStringArray(snps));
 		markers.parseSNPlocations();
 		markers.sortMarkers();
 		markers.writeToFile(dir + ext.rootOf(filename) + ".map", SnpMarkerSet.PLINK_MAP_FORMAT, log);
@@ -72,8 +72,8 @@ public class SNPlist {
 				hash = hashes.get(inds[i]);
 				writer.print(famStruct.getIndividualHeader(i, false));
 				if (hash == null) {
-					System.err.println("Error - '"	+ inds[i]
-															+ "' was listed in the pedigree as a dna, but was not found among the list of genotypes");
+					System.err.println("Error - '" + inds[i]
+														 + "' was listed in the pedigree as a dna, but was not found among the list of genotypes");
 					for (String markerName : markerNames) {
 						writer.print("\t0\t0");
 					}
@@ -95,14 +95,14 @@ public class SNPlist {
 				}
 				writer.println();
 			}
-			System.out.println("There were "	+ (missingInds > 0 ? missingInds : "no") + " indiviudal"
-													+ (missingInds == 1 ? "" : "s")
-													+ " in the pedigree file that were completely missing data");
-			System.out.println("There were "	+ (missingInds > 0 ? "an additional " : "")
-													+ (iv.size() > 0 ? iv.size() : "no") + " indiviudal"
-													+ (iv.size() == 1 ? "" : "s") + " with DNA missing "
-													+ (missingGenotypes > 0 ? "a total of " + missingGenotypes : "any")
-													+ " genotypes");
+			System.out.println("There were " + (missingInds > 0 ? missingInds : "no") + " indiviudal"
+												 + (missingInds == 1 ? "" : "s")
+												 + " in the pedigree file that were completely missing data");
+			System.out.println("There were " + (missingInds > 0 ? "an additional " : "")
+												 + (iv.size() > 0 ? iv.size() : "no") + " indiviudal"
+												 + (iv.size() == 1 ? "" : "s") + " with DNA missing "
+												 + (missingGenotypes > 0 ? "a total of " + missingGenotypes : "any")
+												 + " genotypes");
 			writer.close();
 		} catch (Exception e) {
 			System.err.println("Error writing to " + dir + ext.rootOf(filename) + ".ped");
@@ -118,10 +118,10 @@ public class SNPlist {
 		String snps = "W1_W2.dat";
 		String pedigree = "secondPedigree.dat";
 
-		String usage = "\n"	+ "parse.SNPlist requires 0-1 arguments\n" + "   (1) dir (i.e. dir=" + dir
-										+ " (default))\n" + "   (2) SNPs filename (i.e. snps=" + snps + " (default))\n"
-										+ "   (2) pedigree (with DNA in column 7) filename (i.e. ped=" + pedigree
-										+ " (default))\n" + "";
+		String usage = "\n" + "parse.SNPlist requires 0-1 arguments\n" + "   (1) dir (i.e. dir=" + dir
+									 + " (default))\n" + "   (2) SNPs filename (i.e. snps=" + snps + " (default))\n"
+									 + "   (2) pedigree (with DNA in column 7) filename (i.e. ped=" + pedigree
+									 + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

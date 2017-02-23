@@ -86,8 +86,8 @@ public class RectangleGateEditor extends JDialog {
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(new MigLayout(	"", "[][grow][grow][grow][]",
-																					"[][][][][][][][][][][][][][]"));
+		contentPanel.setLayout(new MigLayout("", "[][grow][grow][grow][]",
+																				 "[][][][][][][][][][][][][][]"));
 		{
 			JLabel lbl = new JLabel("ID:");
 			contentPanel.add(lbl, "flowx,cell 1 0 3 1,alignx center");
@@ -329,23 +329,23 @@ public class RectangleGateEditor extends JDialog {
 	}
 
 	public float getXMin() {
-		return chkXMinUnbnd.isSelected()	? Float.NEGATIVE_INFINITY
-																			: Float.parseFloat(txtXMin.getText());
+		return chkXMinUnbnd.isSelected() ? Float.NEGATIVE_INFINITY
+																		 : Float.parseFloat(txtXMin.getText());
 	}
 
 	public float getXMax() {
-		return chkXMaxUnbnd.isSelected()	? Float.POSITIVE_INFINITY
-																			: Float.parseFloat(txtXMax.getText());
+		return chkXMaxUnbnd.isSelected() ? Float.POSITIVE_INFINITY
+																		 : Float.parseFloat(txtXMax.getText());
 	}
 
 	public float getYMin() {
-		return chkYMinUnbnd.isSelected()	? Float.NEGATIVE_INFINITY
-																			: Float.parseFloat(txtYMin.getText());
+		return chkYMinUnbnd.isSelected() ? Float.NEGATIVE_INFINITY
+																		 : Float.parseFloat(txtYMin.getText());
 	}
 
 	public float getYMax() {
-		return chkYMaxUnbnd.isSelected()	? Float.POSITIVE_INFINITY
-																			: Float.parseFloat(txtYMax.getText());
+		return chkYMaxUnbnd.isSelected() ? Float.POSITIVE_INFINITY
+																		 : Float.parseFloat(txtYMax.getText());
 	}
 
 	// https://stackoverflow.com/questions/1313390/is-there-any-way-to-accept-only-numeric-values-in-a-jtextfield

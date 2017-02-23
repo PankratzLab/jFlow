@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -41,7 +41,8 @@ public class Hearing {
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
 					if (chr == 1) {
-						names.add(Array.toStr(Array.subArray(line, 0, 6)) + "\t" + line[1] + "\t.\t.");
+						names.add(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, 6)) + "\t" + line[1]
+											+ "\t.\t.");
 					}
 					writer.print(line[0] + "\t" + line[1]);
 					for (int i = 6; i < line.length; i++) {
@@ -56,12 +57,12 @@ public class Hearing {
 				reader.close();
 				writer.close();
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \""	+ dir + source + "chr" + chr + "_SNP.noLD.ped"
-														+ "\" not found in current directory");
+				System.err.println("Error: file \"" + dir + source + "chr" + chr + "_SNP.noLD.ped"
+													 + "\" not found in current directory");
 				System.exit(1);
 			} catch (IOException ioe) {
-				System.err.println("Error reading file \""	+ dir + source + "chr" + chr + "_SNP.noLD.ped"
-														+ "\"");
+				System.err.println("Error reading file \"" + dir + source + "chr" + chr + "_SNP.noLD.ped"
+													 + "\"");
 				System.exit(2);
 			}
 		}
@@ -76,10 +77,10 @@ public class Hearing {
 					System.err.println("No phenotype for individual '" + line[1] + "'");
 					line[5] = "0";
 				} else {
-					line[5] =
-									trav.equals("A") ? "2" : (trav.equals("U") ? (AFFECTEDS_ONLY ? "0" : "1") : "0");
+					line[5] = trav.equals("A") ? "2"
+																		 : (trav.equals("U") ? (AFFECTEDS_ONLY ? "0" : "1") : "0");
 				}
-				writer.println(Array.toStr(line));
+				writer.println(ArrayUtils.toStr(line));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -95,12 +96,12 @@ public class Hearing {
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
 					if (line.length != 3) {
-						System.err.println("Error - what am I supposed to do with '"	+ Array.toStr(line)
-																+ "'??");
+						System.err.println("Error - what am I supposed to do with '" + ArrayUtils.toStr(line)
+															 + "'??");
 					}
 					if (Integer.parseInt(line[0]) != chr) {
-						System.err.println("Error - a marker for chromosome "	+ line[0] + " was found in "
-																+ source + "chr" + chr + "_SNP.noLD.map");
+						System.err.println("Error - a marker for chromosome " + line[0] + " was found in "
+															 + source + "chr" + chr + "_SNP.noLD.map");
 					}
 					for (String[] element : RENAMES) {
 						if (line[1].equalsIgnoreCase(element[0])) {
@@ -112,15 +113,15 @@ public class Hearing {
 				}
 				reader.close();
 
-				new LinkageMap(	chr, Array.toStringArray(names), 2, Doubles.toArray(positions), false,
-												true).createFile(dir + "map" + ext.chrome(chr) + ".dat");
+				new LinkageMap(chr, ArrayUtils.toStringArray(names), 2, Doubles.toArray(positions), false,
+											 true).createFile(dir + "map" + ext.chrome(chr) + ".dat");
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \""	+ dir + source + "chr" + chr + "_SNP.noLD.ped"
-														+ "\" not found in current directory");
+				System.err.println("Error: file \"" + dir + source + "chr" + chr + "_SNP.noLD.ped"
+													 + "\" not found in current directory");
 				System.exit(1);
 			} catch (IOException ioe) {
-				System.err.println("Error reading file \""	+ dir + source + "chr" + chr + "_SNP.noLD.ped"
-														+ "\"");
+				System.err.println("Error reading file \"" + dir + source + "chr" + chr + "_SNP.noLD.ped"
+													 + "\"");
 				System.exit(2);
 			}
 		}
@@ -137,15 +138,15 @@ public class Hearing {
 			writer = new PrintWriter(new FileWriter(dir + runtime + "re_chrom01.pre"));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				writer.println(line[0]	+ "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
-												+ "\t" + line[5] + "\t" + (int) (Math.random() * 2 + 1) + "\t"
-												+ (int) (Math.random() * 2 + 1));
+				writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
+											 + "\t" + line[5] + "\t" + (int) (Math.random() * 2 + 1) + "\t"
+											 + (int) (Math.random() * 2 + 1));
 			}
 			reader.close();
 			writer.close();
 
-			new LinkageMap(	1, new String[] {"dummy"}, 2, new double[] {0}, false,
-											false).createFile(dir + runtime + "map01.dat");
+			new LinkageMap(1, new String[] {"dummy"}, 2, new double[] {0}, false,
+										 false).createFile(dir + runtime + "map01.dat");
 
 			writer = new PrintWriter(new FileWriter(dir + runtime + "useful.opt"));
 			writer.println("% Read input in LINKAGE style format:");
@@ -221,11 +222,11 @@ public class Hearing {
 		int cmIndex = 4;
 		String db = RUTGERS_GENETIC_MAP;
 
-		String usage = "\\n"	+ "parse.Hearing requires 0-1 arguments\n" + "   (1) directory (i.e. dir="
-										+ dir + " (default))\n" + "   (2) source (i.e. src=" + source + " (default))\n"
-										+ "   (3) update genetic positions (i.e. -update (" + (update ? "" : "not the ")
-										+ "default))\n" + "   (4) database of snp cM positions (i.e. db=" + db
-										+ " (default for updating))\n" + "";
+		String usage = "\\n" + "parse.Hearing requires 0-1 arguments\n" + "   (1) directory (i.e. dir="
+									 + dir + " (default))\n" + "   (2) source (i.e. src=" + source + " (default))\n"
+									 + "   (3) update genetic positions (i.e. -update (" + (update ? "" : "not the ")
+									 + "default))\n" + "   (4) database of snp cM positions (i.e. db=" + db
+									 + " (default for updating))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -28,8 +28,8 @@ public class LiftOverProcessing {
 	private static final String NEWFILES_APPEND = "_lifted";
 
 
-	protected static void prepPlinkFiles(	String plinkDirAndRoot, int conversion,
-																				boolean deleteTempFiles) {
+	protected static void prepPlinkFiles(String plinkDirAndRoot, int conversion,
+																			 boolean deleteTempFiles) {
 		boolean writeTemp, writeDrops, writeNew;
 		String cmd;
 		HashMap<String, int[]> results;
@@ -41,7 +41,7 @@ public class LiftOverProcessing {
 
 		if (!PSF.Plink.allFilesExist(plinkDirAndRoot, FORCE_BINARY)) {
 			System.err.println("Error - unable to find all binary PLINK files (bed/bim/fam) in given directory with specified root: "
-													+ plinkDirAndRoot);
+												 + plinkDirAndRoot);
 			return;
 		}
 
@@ -56,7 +56,7 @@ public class LiftOverProcessing {
 			return;
 		}
 
-		cmd = EXEC_LOC	+ EXEC_NAME + " " + plinkDirAndRoot + TEMP_EXT + " " + DB_LOCS[conversion] + " "
+		cmd = EXEC_LOC + EXEC_NAME + " " + plinkDirAndRoot + TEMP_EXT + " " + DB_LOCS[conversion] + " "
 					+ plinkDirAndRoot + RESULT_EXT + " " + plinkDirAndRoot + UNMAPPED_EXT;
 		System.out.println("## Running liftOver...");
 		CmdLine.runDefaults(cmd, "./");
@@ -87,7 +87,7 @@ public class LiftOverProcessing {
 		}
 
 		System.out.println("## Excluding unconverted markers...");
-		cmd = "plink2 --bfile "	+ plinkDirAndRoot + " --exclude " + plinkDirAndRoot + DROPS_EXT
+		cmd = "plink2 --bfile " + plinkDirAndRoot + " --exclude " + plinkDirAndRoot + DROPS_EXT
 					+ " --make-bed --out " + plinkDirAndRoot + NEWFILES_APPEND;
 		CmdLine.runDefaults(cmd, "./");
 		if (deleteTempFiles) {
@@ -109,14 +109,14 @@ public class LiftOverProcessing {
 		}
 
 		System.out.println("## Moving new .bim file to a temp file...");
-		(new File(PSF.Plink.getBIM(plinkDirAndRoot + NEWFILES_APPEND))).renameTo(new File(
-																																											plinkDirAndRoot
-																																												+ NEWFILES_APPEND
+		(new File(PSF.Plink.getBIM(plinkDirAndRoot + NEWFILES_APPEND)))
+																																	 .renameTo(new File(plinkDirAndRoot
+																																											+ NEWFILES_APPEND
 																																											+ TEMP_BIM));
 
 		System.out.println("## Writing new .bim file...");
 		try {
-			writeNew = writeNew(plinkDirAndRoot	+ NEWFILES_APPEND + TEMP_BIM,
+			writeNew = writeNew(plinkDirAndRoot + NEWFILES_APPEND + TEMP_BIM,
 													PSF.Plink.getBIM(plinkDirAndRoot + NEWFILES_APPEND), results);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -154,8 +154,8 @@ public class LiftOverProcessing {
 				writer.println(line);
 				continue;
 			}
-			writer.println(data[0]	+ "\t" + temp[1] + "\t0\t" + data[1] + "\t" + temp[4] + "\t"
-											+ temp[5]);
+			writer.println(data[0] + "\t" + temp[1] + "\t0\t" + data[1] + "\t" + temp[4] + "\t"
+										 + temp[5]);
 		}
 		writer.flush();
 		writerMissing.flush();
@@ -230,8 +230,8 @@ public class LiftOverProcessing {
 		line = null;
 		while ((line = reader.readLine()) != null) {
 			temp = line.split("\t");
-			writer.println("chr"	+ temp[0] + "\t" + (Integer.parseInt(temp[3]) - 1) + "\t" + temp[3]
-											+ "\t" + temp[1]);
+			writer.println("chr" + temp[0] + "\t" + (Integer.parseInt(temp[3]) - 1) + "\t" + temp[3]
+										 + "\t" + temp[1]);
 		}
 		writer.flush();
 		writer.close();
@@ -246,10 +246,10 @@ public class LiftOverProcessing {
 		int conversion = 0; // hg18 to hg19
 		boolean deleteTemp = true;
 
-		String usage = "\n"	+ "one.ben.LiftOverProcessing requires 1+ arguments\n"
-										+ "   (1) PLINK directory and root (i.e. plink=" + filename + " (default))\n"
-										+ "   (2) delete temporary files? (i.e. deleteTemp=" + deleteTemp
-										+ " (default))\n" + "";
+		String usage = "\n" + "one.ben.LiftOverProcessing requires 1+ arguments\n"
+									 + "   (1) PLINK directory and root (i.e. plink=" + filename + " (default))\n"
+									 + "   (2) delete temporary files? (i.e. deleteTemp=" + deleteTemp
+									 + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

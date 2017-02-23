@@ -8,8 +8,8 @@ import java.util.Arrays;
 
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.Array;
-import org.genvisis.common.Array.BYTE_DECODE_FORMAT;
+import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.ArrayUtils.BYTE_DECODE_FORMAT;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -32,7 +32,7 @@ public class ReferenceGenome {
 	private int defaultBuffer;
 	private ReferenceSequence referenceSequence;
 	private final Logger log;
-	
+
 	public ReferenceGenome(GENOME_BUILD genomeBuild, Logger log) {
 		this(Resources.genome(genomeBuild, log).getFASTA().get(), log);
 	}
@@ -72,7 +72,7 @@ public class ReferenceGenome {
 				currentStop += bpBinSize + 1;
 				currentStop = Math.min(length, currentStop);
 				if (seg.getSize() != bpBinSize) {
-					log.reportTimeWarning("bin "	+ seg.getUCSClocation() + " size (" + seg.getSize()
+					log.reportTimeWarning("bin " + seg.getUCSClocation() + " size (" + seg.getSize()
 																+ ") does not equal the bin size of " + bpBinSize);
 				}
 				bins.add(seg);
@@ -82,21 +82,21 @@ public class ReferenceGenome {
 				Segment seg = new Segment(chr, currentStart, currentStop);
 				bins.add(seg);
 				if (seg.getSize() != bpBinSize) {
-					log.reportTimeWarning("bin "	+ seg.getUCSClocation() + " size (" + seg.getSize()
+					log.reportTimeWarning("bin " + seg.getUCSClocation() + " size (" + seg.getSize()
 																+ ") does not equal the bin size of " + bpBinSize);
 				}
 			} else {
-				String error = "BUG: End of bin for "	+ samSequenceRecord.getSequenceName()
-												+ " did not end at " + length;
+				String error = "BUG: End of bin for " + samSequenceRecord.getSequenceName()
+											 + " did not end at " + length;
 				log.reportError(error);
 				throw new IllegalStateException(error);
 			}
-			log.reportTimeInfo(samSequenceRecord.getSequenceName()	+ " -> " + length + "bp; "
-													+ (binsAdded + 1) + " " + bpBinSize + "bp bins");
+			log.reportTimeInfo(samSequenceRecord.getSequenceName() + " -> " + length + "bp; "
+												 + (binsAdded + 1) + " " + bpBinSize + "bp bins");
 		}
 
-		LocusSet<Segment> binsToReturn = new LocusSet<Segment>(	bins.toArray(new Segment[bins.size()]),
-																														true, log) {
+		LocusSet<Segment> binsToReturn = new LocusSet<Segment>(bins.toArray(new Segment[bins.size()]),
+																													 true, log) {
 
 			/**
 			 * 
@@ -140,8 +140,8 @@ public class ReferenceGenome {
 		String[][] seqs = new String[segs.length][];
 		for (int i = 0; i < seqs.length; i++) {
 			if (reportEvery > 0 && i % reportEvery == 0) {
-				log.reportTimeInfo((i + 1)	+ " segments queried of " + segs.length + " total from "
-														+ referenceFasta);
+				log.reportTimeInfo((i + 1) + " segments queried of " + segs.length + " total from "
+													 + referenceFasta);
 				log.memoryFree();
 				log.memoryTotal();
 			}
@@ -152,7 +152,7 @@ public class ReferenceGenome {
 
 	public boolean hasContig(String contig) {
 		if (indexedFastaSequenceFile.getSequenceDictionary() == null) {
-			log.reportError("Could not find sequence dictionary for "+ referenceFasta + " ("
+			log.reportError("Could not find sequence dictionary for " + referenceFasta + " ("
 											+ ext.rootOf(referenceFasta) + ".dict)"
 											+ ", will not be able to check if contig " + contig + " is present");
 			return false;
@@ -174,8 +174,8 @@ public class ReferenceGenome {
 
 	public int getContigLength(String contig) {
 		if (hasContig(contig)) {
-			return indexedFastaSequenceFile	.getSequenceDictionary().getSequence(contig)
-																			.getSequenceLength();
+			return indexedFastaSequenceFile.getSequenceDictionary().getSequence(contig)
+																		 .getSequenceLength();
 		} else {
 			return -1;
 		}
@@ -212,26 +212,26 @@ public class ReferenceGenome {
 					referenceSequence = indexedFastaSequenceFile.getSequence(requestedContig);
 					log.reportTimeInfo("Converting reference sequence to String for " + requestedContig);
 
-					inMemoryContig = Array.decodeByteArray(	referenceSequence.getBases(),
-																									BYTE_DECODE_FORMAT.UPPER_CASE, log);
+					inMemoryContig = ArrayUtils.decodeByteArray(referenceSequence.getBases(),
+																											BYTE_DECODE_FORMAT.UPPER_CASE, log);
 					log.reportTimeInfo("reference sequence in memory for " + requestedContig);
 
 				} else {
 					// log.reportTimeInfo("Memory works");
 				}
 				try {
-					requestedSeq = Array.subArray(inMemoryContig, Math.max(0, start - 1),
-																				Math.min(inMemoryContig.length - 1, stop));
+					requestedSeq = ArrayUtils.subArray(inMemoryContig, Math.max(0, start - 1),
+																						 Math.min(inMemoryContig.length - 1, stop));
 				} catch (Exception e) {
-					log.reportError("Invalid query "	+ segment.getUCSClocation() + "; buffer "
-															+ defaultBuffer + "; current contig " + referenceSequence.getName());
+					log.reportError("Invalid query " + segment.getUCSClocation() + "; buffer " + defaultBuffer
+													+ "; current contig " + referenceSequence.getName());
 				}
 			} else {
-				ReferenceSequence subReferenceSequence = indexedFastaSequenceFile.getSubsequenceAt(	requestedContig,
-																																														start,
-																																														stop);
-				requestedSeq = Array.decodeByteArray(	subReferenceSequence.getBases(),
-																							BYTE_DECODE_FORMAT.UPPER_CASE, log);
+				ReferenceSequence subReferenceSequence = indexedFastaSequenceFile.getSubsequenceAt(requestedContig,
+																																													 start,
+																																													 stop);
+				requestedSeq = ArrayUtils.decodeByteArray(subReferenceSequence.getBases(),
+																									BYTE_DECODE_FORMAT.UPPER_CASE, log);
 			}
 			return requestedSeq;
 
@@ -249,7 +249,7 @@ public class ReferenceGenome {
 	@Deprecated
 	public String[] getSequenceForOld(Segment segment) {
 		String requestedContig = Positions.getChromosomeUCSC(segment.getChr(), true);
-		if (referenceSequence == null	|| currentSeq == null
+		if (referenceSequence == null || currentSeq == null
 				|| !referenceSequence.getName().equals(requestedContig)) {
 			referenceSequence = indexedFastaSequenceFile.getSequence(requestedContig);
 			currentSeq = referenceSequence.getBases();
@@ -257,13 +257,13 @@ public class ReferenceGenome {
 		int start = segment.getStart() - 1 - defaultBuffer;
 		int stop = segment.getStop() + defaultBuffer;
 		if (start < 0) {
-			log.reportTimeWarning("Buffer of "	+ defaultBuffer
+			log.reportTimeWarning("Buffer of " + defaultBuffer
 														+ " adjusts base pair extraction to index less than 0, adjusting start to index 0 (bp 1)");
 			start = 0;
 		}
 		if (stop >= currentSeq.length) {
 			stop = currentSeq.length - 1;
-			log.reportTimeWarning("Buffer of "	+ defaultBuffer
+			log.reportTimeWarning("Buffer of " + defaultBuffer
 														+ " ,adjusts base pair extraction to index greater than sequence length,  adjusting stop to index "
 														+ (currentSeq.length - 1));
 		}

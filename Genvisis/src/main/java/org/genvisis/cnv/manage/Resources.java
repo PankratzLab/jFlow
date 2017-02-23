@@ -1,24 +1,34 @@
 package org.genvisis.cnv.manage;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.compress.utils.IOUtils;
+import org.genvisis.CLI;
+import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.LaunchProperties.LaunchKey;
+import org.genvisis.common.AbstractStartupCheck;
+import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HttpDownloadUtility;
 import org.genvisis.common.Logger;
+import org.genvisis.common.StartupCheck;
 import org.genvisis.filesys.FASTA;
+import org.genvisis.seq.manage.BedOps;
 import org.genvisis.seq.manage.VCFOps;
 
 /**
@@ -27,12 +37,107 @@ import org.genvisis.seq.manage.VCFOps;
 public final class Resources {
 
 	public static final String DEFAULT_URL = "http://genvisis.org/rsrc/";
-	public static final String DEFAULT_LOCAL_DIR = "resources" + File.separator;
 	public static final String BIN_DIR = "bin";
 	public static final String GENOME_DIR = "Genome";
+	private static Set<Resource> allResources = null;
 
 	private Resources() {
 		// prevent instantiation of utility class
+	}
+
+	public static class ResourceVersionCheck extends AbstractStartupCheck {
+
+		@Override
+		protected String warningHeader() {
+			// TODO Auto-generated method stub
+			return "";
+		}
+
+		@Override
+		protected void doCheck() {
+			// TODO Auto-generated method stub
+
+		}
+	}
+
+	/**
+	 * {@link StartupCheck} for ensuring things in the resources directory are actually resources.
+	 */
+	public static class LocalResourceCheck extends AbstractStartupCheck {
+		private List<String> localResources;
+
+		public LocalResourceCheck() {
+			// Build the list of files in the local resource dir
+			localResources = new ArrayList<String>();
+			String resourceDir = LaunchProperties.get(LaunchKey.RESOURCES_DIR);
+			if (Files.exists(resourceDir)) {
+				for (String resource : Files.listAllFilesInTree(resourceDir, false)) {
+					localResources.add(new File(resourceDir + resource).getAbsolutePath());
+				}
+			}
+		}
+
+		/**
+		 * Check all local resources against a list of known resources. Report any resources present
+		 * locally not in the known list.
+		 */
+		@Override
+		protected void doCheck() {
+			Set<String> knownPaths = new HashSet<String>();
+			for (Resource r : listAll()) {
+				knownPaths.add(r.getLocalPath());
+			}
+			for (String localFile : localResources) {
+				if (!knownPaths.contains(localFile)) {
+					addMessage(localFile);
+				}
+			}
+		}
+
+		@Override
+		protected String warningHeader() {
+			return "WARNING: the following local file(s) in "
+						 + LaunchProperties.get(LaunchKey.RESOURCES_DIR) + " are not tracked:";
+		}
+	}
+
+	/**
+	 * @return A list of all available resource instances.
+	 */
+	public static Set<Resource> listAll() {
+		if (allResources == null) {
+			initResourceList();
+		}
+		return allResources;
+	}
+
+	/**
+	 * Synchronized initialization method to ensure resource list is only generated once.
+	 */
+	private static synchronized void initResourceList() {
+		if (allResources == null) {
+			Set<Resource> resources = new HashSet<Resource>();
+			resources.addAll(path(null).getResources());
+			resources.addAll(mitoCN(null).getResources());
+			resources.addAll(cnv(null).getResources());
+			resources.addAll(affy(null).getResources());
+
+			resources.addAll(miniMac(null).getResources());
+			resources.addAll(shapeit(null).getResources());
+			resources.addAll(eigenstrat(null).getResources());
+			resources.addAll(convertf(null).getResources());
+			resources.addAll(smartpca(null).getResources());
+
+			for (GENOME_BUILD build : GENOME_BUILD.values()) {
+				resources.addAll(genome(build, null).getResources());
+				resources.addAll(cnv(null).genome(build).getResources());
+				resources.addAll(affy(null).genome(build).getResources());
+				for (CHROMOSOME c : CHROMOSOME.values()) {
+					resources.addAll(genome(build, null).chr(c).getResources());
+				}
+			}
+			allResources = Collections.unmodifiableSet(resources);
+		}
 	}
 
 	/**
@@ -54,7 +159,8 @@ public final class Resources {
 		 * @return A resource for the MiniMac3 app
 		 */
 		public Resource getMiniMac3() {
-			return getTarGzResource(localPath() + "Minimac3", remotePath() + "Minimac3.v1.0.14.tar.gz");
+			return getTarGzResource("Minimac3/bin/Minimac3", remotePath() + "Minimac3.v2.0.1.tar.gz",
+															"Minimac3");
 		}
 	}
 
@@ -146,14 +252,15 @@ public final class Resources {
 	 */
 	public static class Shapeit extends AbstractResourceFactory {
 		public Shapeit(Logger log) {
-			super(DEFAULT_LOCAL_DIR + BIN_DIR + "/shapeit" + File.separator, "", log, Shapeit.class);
+			super(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + BIN_DIR + "/shapeit/", "", log,
+						Shapeit.class);
 		}
 
 		/**
 		 * @return A resource for the shapeit app
 		 */
 		public Resource getShapeit() {
-			return getTarGzResource(localPath()	+ "bin/shapeit",
+			return getTarGzResource("bin/shapeit",
 															"https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz");
 		}
 	}
@@ -260,6 +367,14 @@ public final class Resources {
 		}
 
 		/**
+		 * @return The 100-mer mappability track for this {@link GENOME_BUILD}, note we do not download
+		 *         the index - generate if needed with {@link BedOps#verifyBedIndex(String, Logger)}
+		 */
+		public Resource get100MerMappabilityTrack() {
+			return getResource(getPath() + "_wgEncodeCrgMapabilityAlign100mer.bedGraph");
+		}
+
+		/**
 		 * @return b138 DB .ser resource
 		 */
 		public Resource getB138() {
@@ -281,7 +396,15 @@ public final class Resources {
 		}
 
 		/**
-		 * Helper method for formatting resource path
+		 * @return .dat list of known problematic regions (e.g. centromere, chromosome ends)
+		 */
+		public Resource getProblematicRegions() {
+			return getResource(build.getBuild() + "/problematicRegions_" + build.getBuild() + ".dat");
+		}
+
+		/**
+		 * Helper method for formatting resource path: formatted "{build}/{build}", e.g. for
+		 * "hg19/hg19.fa"
 		 */
 		private String getPath() {
 			String b = build.getBuild();
@@ -455,6 +578,39 @@ public final class Resources {
 		}
 	}
 
+
+	/**
+	 * Get general annotation resources
+	 */
+	public static class Annotation extends AbstractResourceFactory {
+		private static final String DIR = "Annotation";
+
+		public Annotation(Logger log) {
+			super(DIR, log, Annotation.class);
+		}
+
+		public Resource getGDI() {
+			return getResource("GDI.txt");
+		}
+
+
+		/**
+		 * Helper method for chaining resource calls.
+		 */
+		public Annotation annotation() {
+			return new Annotation(log());
+		}
+	}
+
+	/**
+	 * Helper method for chaining resource calls
+	 */
+	public static Annotation annotation(Logger log) {
+		return new Annotation(log);
+	}
+
+
+
 	/**
 	 * Get general CNV resources
 	 */
@@ -497,10 +653,23 @@ public final class Resources {
 		private final Logger log;
 		private final Class<?>[] classes;
 
+		/**
+		 * Use this constructor when resource strucutre is consistent between remote and local paths
+		 *
+		 * @param subPath Relative path to this resource's top-level for both local (to the RESOURCES
+		 *        directory) and remote (where resources are hosted) locations.
+		 */
 		public AbstractResourceFactory(String subPath, Logger log, Class<?>... classes) {
-			this(DEFAULT_LOCAL_DIR + subPath + File.separator, DEFAULT_URL + subPath + "/", log, classes);
+			this(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + subPath + File.separator,
+					 DEFAULT_URL + subPath + "/", log, classes);
 		}
 
+		/**
+		 * Use this constructor when URL and local dir must be significantly different.
+		 *
+		 * @param localPath Fully qualified local path to a base directory for this resource
+		 * @param url Fully qualified URL
+		 */
 		public AbstractResourceFactory(String localPath, String url, Logger log, Class<?>... classes) {
 			this.localPath = localPath;
 			remotePath = url;
@@ -539,12 +708,35 @@ public final class Resources {
 			return log;
 		}
 
+		/**
+		 * Use this method when the resource a) follows consistent structure on local and remote dirs
+		 * and b) does not require Make to be called
+		 *
+		 * @param rsrc Relative (from local dir) path to the "essential" archived file
+		 */
 		protected Resource getTarGzResource(String rsrc) {
-			return getTarGzResource(localPath() + rsrc, remotePath() + rsrc + ".tar.gz");
+			return getTarGzResource(rsrc, remotePath() + rsrc + ".tar.gz");
 		}
 
-		protected Resource getTarGzResource(String unzippedPath, String remotePath) {
-			return new TarGzResource(unzippedPath, localPath(), remotePath, log);
+		/**
+		 * Use this method when the remote and local path are not consistent, but Make does not need to
+		 * be called.
+		 *
+		 * @param remotePath Absolute path to remote download location
+		 */
+		protected Resource getTarGzResource(String rsrc, String remotePath) {
+			return getTarGzResource(rsrc, remotePath, null);
+		}
+
+		/**
+		 * Use this when Make needs to be called in the extracted directory
+		 *
+		 * @param makeFile Relative (from local) path to make file, or null if this resource does not
+		 *        need to be built.
+		 */
+		protected Resource getTarGzResource(String rsrc, String remotePath, String makePath) {
+			String makeDir = makePath == null ? null : localPath() + makePath;
+			return new TarGzResource(localPath() + rsrc, localPath(), remotePath, log, makeDir);
 		}
 
 		protected Resource getVCFResource(String rsrc) {
@@ -554,7 +746,7 @@ public final class Resources {
 		protected Resource getVCFResource(String localPath, String remotePath) {
 			return new VCFResource(localPath, remotePath, log);
 		}
-		
+
 		protected Resource getFASTAResource(String rsrc) {
 			return getFASTAResource(localPath + rsrc, remotePath + rsrc);
 		}
@@ -583,16 +775,23 @@ public final class Resources {
 	/**
 	 * Resource that is .tar.gz compressed
 	 */
+	// FIXME: this class is currently doing too much.
+	// It would be nice to split out things that need to be built and things that need to be chmodded
+	// into some sort of merge-able stack,
+	// e.g. by constructing multiple Resources wrapping each other.
 	public static class TarGzResource extends AbstractResource {
 		private final String unzippedPath;
+		private final String makeDir;
 
 		/**
 		 * @param path Local path to unzipped indicator file
 		 * @param url Remote tar.gz path
 		 */
-		public TarGzResource(String unzippedPath, String extractionDir, String url, Logger log) {
+		public TarGzResource(String unzippedPath, String extractionDir, String url, Logger log,
+												 String makeDir) {
 			super(extractionDir + new File(url).getName(), url, log);
 			this.unzippedPath = unzippedPath;
+			this.makeDir = makeDir;
 		}
 
 		@Override
@@ -603,70 +802,76 @@ public final class Resources {
 
 			String path = super.get();
 			if (path != null) {
-				return extractTarGz(path);
+				String extracted = extractTarGz(path);
+				if (extracted != null) {
+					// Run make if the zipped archive requires compilation
+					if (makeDir != null && !CmdLine.runDefaults("make -s", makeDir)) {
+						return null;
+					}
+					// Ensure extracted file can be used
+					Files.chmod(extracted);
+				}
+				return extracted;
 			}
 
 			return null;
 		}
 
 		private String extractTarGz(String targzPath) {
-			final int BUFFER = 2048;
+			final File inputFile = new File(targzPath);
+			final String destination = inputFile.getParent() + File.separator;
+			inputFile.deleteOnExit();
 
+			// from: http://stackoverflow.com/a/7556307/1027800
 			try {
-				FileInputStream fin = new FileInputStream(targzPath);
-				BufferedInputStream in = new BufferedInputStream(fin);
-				GzipCompressorInputStream gzIn = new GzipCompressorInputStream(in);
-				TarArchiveInputStream tarIn = new TarArchiveInputStream(gzIn);
+				// Unzip the downloaded targz
+				// Not all files end with .tar.gz.. some are .tgz.. so handle both cases
+				String unzippedName = inputFile.getName().substring(0,
+																														inputFile.getName().lastIndexOf('.'));
+				if (!unzippedName.endsWith(".tar")) {
+					unzippedName += ".tar";
+				}
+				final File unzippedTar = new File(destination, unzippedName);
 
+				final GZIPInputStream in = new GZIPInputStream(new FileInputStream(inputFile));
+				final FileOutputStream out = new FileOutputStream(unzippedTar);
+				IOUtils.copy(in, out);
+				in.close();
+				out.close();
+				unzippedTar.deleteOnExit();
+
+				// Extract all entries in the tar
+				final InputStream is = new FileInputStream(unzippedTar);
+				final TarArchiveInputStream tarStream = (TarArchiveInputStream) new ArchiveStreamFactory().createArchiveInputStream("tar",
+																																																														is);
 				TarArchiveEntry entry = null;
-				String destination = new File(targzPath).getParent() + File.separator;
-
-				/** Read the tar entries using the getNextEntry method **/
-				Set<TarArchiveEntry> dirs = new HashSet<TarArchiveEntry>();
-				Set<TarArchiveEntry> files = new HashSet<TarArchiveEntry>();
-
-				while ((entry = (TarArchiveEntry) tarIn.getNextEntry()) != null) {
-					// Sort out the directories and files. Ensure the directories are all created first.
+				while ((entry = (TarArchiveEntry) tarStream.getNextEntry()) != null) {
+					final File outputFile = new File(destination, entry.getName());
 					if (entry.isDirectory()) {
-						dirs.add(entry);
+						if (!outputFile.exists() && !outputFile.mkdirs()) {
+							throw new IllegalStateException(String.format("Couldn't create directory %s.",
+																														outputFile.getAbsolutePath()));
+						}
 					} else {
-						files.add(entry);
+						final File parentDir = outputFile.getParentFile();
+						if (!parentDir.exists() && !parentDir.mkdirs()) {
+							throw new IllegalStateException(String.format("Couldn't create directory %s.",
+																														parentDir));
+						} else {
+							final OutputStream outputFileStream = new FileOutputStream(outputFile);
+							IOUtils.copy(tarStream, outputFileStream);
+							outputFileStream.close();
+						}
 					}
 				}
+				tarStream.close();
 
-				/** If the entry is a directory, create the directory. **/
-				for (TarArchiveEntry e : dirs) {
-					File f = new File(destination + e.getName());
-					f.mkdirs();
-				}
-
-				/**
-				 * If the entry is a file,write the decompressed file to the disk and close destination
-				 * stream.
-				 **/
-				for (TarArchiveEntry e : files) {
-					int count;
-					byte[] data = new byte[BUFFER];
-					String fileName = destination + e.getName();
-					File f = new File(fileName).getParentFile();
-					f.mkdirs();
-
-					FileOutputStream fos = new FileOutputStream(fileName);
-					BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER);
-
-					while ((count = tarIn.read(data, 0, BUFFER)) != -1) {
-						dest.write(data, 0, count);
-					}
-					dest.close();
-				}
-
-				/** Close the input stream **/
-				tarIn.close();
-				new File(targzPath).delete();
 				return unzippedPath;
 			} catch (Exception e) {
 				log().reportError("Failed to extract: " + targzPath);
 				log().reportException(e);
+				// Remove the base dir as this is the marker of success
+				new File(unzippedPath).deleteOnExit();
 				return null;
 			}
 		}
@@ -778,8 +983,8 @@ public final class Resources {
 					HttpDownloadUtility.downloadFile(url, downloadPath, true, log);
 					return true;
 				} catch (IOException e) {
-					log.reportError("Could not retrieve resource from "	+ url + " and save it to"
-															+ downloadPath);
+					log.reportError("Could not retrieve resource from " + url + " and save it to"
+													+ downloadPath);
 					log.reportException(e);
 				}
 			} else {
@@ -793,8 +998,8 @@ public final class Resources {
 			if (isLocallyAvailable(localPath)) {
 				return localPath;
 			}
-			log.report("Resource is not available at "	+ localPath + ", will attempt to download from "
-									+ remotePath);
+			log.report("Resource is not available at " + localPath + ", will attempt to download from "
+								 + remotePath);
 
 			if (!downloadResource(remotePath, localPath)) {
 				log.reportError("Download failed for: " + remotePath);
@@ -821,9 +1026,9 @@ public final class Resources {
 			boolean isAvailable = isLocallyAvailable(localPath) || isRemotelyAvailable(remotePath);
 
 			if (!isAvailable) {
-				log.reportError("Could not find local file "	+ localPath
-														+ " and could not download it from " + remotePath
-														+ " please manually download and save to " + localPath);
+				log.reportError("Could not find local file " + localPath
+												+ " and could not download it from " + remotePath
+												+ " please manually download and save to " + localPath);
 			}
 
 			return isAvailable;
@@ -877,7 +1082,7 @@ public final class Resources {
 	 * Supported genome reference builds
 	 */
 	public enum GENOME_BUILD {
-														HG19("hg19", 37), HG18("hg18", 36);
+		HG19("hg19", 37), HG18("hg18", 36);
 
 		private final String build;
 		private final int buildInt;
@@ -900,7 +1105,30 @@ public final class Resources {
 	 * Supported chromosomes
 	 */
 	public enum CHROMOSOME {
-													C1("1"), C2("2"), C3("3"), C4("4"), C5("5"), C6("6"), C7("7"), C8("8"), C9("9"), C10("10"), C11("11"), C12("12"), C13("13"), C14("14"), C15("15"), C16("16"), C17("17"), C18("18"), C19("19"), C20("20"), C21("21"), C22("22"), CX_PAR("X_PAR"), CX_nonPAR("X_nonPAR");
+		C1("1"),
+		C2("2"),
+		C3("3"),
+		C4("4"),
+		C5("5"),
+		C6("6"),
+		C7("7"),
+		C8("8"),
+		C9("9"),
+		C10("10"),
+		C11("11"),
+		C12("12"),
+		C13("13"),
+		C14("14"),
+		C15("15"),
+		C16("16"),
+		C17("17"),
+		C18("18"),
+		C19("19"),
+		C20("20"),
+		C21("21"),
+		C22("22"),
+		CX_PAR("X_PAR"),
+		CX_nonPAR("X_nonPAR");
 
 		private String label;
 
@@ -910,6 +1138,21 @@ public final class Resources {
 
 		public String getLabel() {
 			return label;
+		}
+	}
+
+	public static void main(String... args) {
+		CLI c = new CLI(Resources.class);
+		final String localCheck = "local";
+
+		c.addFlag(localCheck, "Check local resources for untracked files.");
+		c.parseWithExit(args);
+
+		if (c.has(localCheck)) {
+			List<String> checkResults = new LocalResourceCheck().check();
+			for (String s : checkResults) {
+				System.err.println(s);
+			}
 		}
 	}
 }

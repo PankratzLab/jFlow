@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -63,7 +63,7 @@ public class Coverage {
 
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + "_list.xln"));
-			writer.println("Sample\tIndex\t" + Array.toStr(COVERAGE_HEADER));
+			writer.println("Sample\tIndex\t" + ArrayUtils.toStr(COVERAGE_HEADER));
 			inds = HashVec.getKeys(hashes, false);
 			for (int i = 0; i < inds.length; i++) {
 				System.out.println("Analyzing indiviudal " + (i + 1) + " of " + inds.length);
@@ -91,16 +91,16 @@ public class Coverage {
 						while (reader.ready()) {
 							line = reader.readLine().trim().split("[\\s]+");
 							if (hash.containsKey(line[0] + "_" + line[1])) {
-								writer.println(inds[i]	+ "\t" + hash.get(line[0] + "_" + line[1]) + "\t"
-																+ Array.toStr(line));
+								writer.println(inds[i] + "\t" + hash.get(line[0] + "_" + line[1]) + "\t"
+															 + ArrayUtils.toStr(line));
 								writer.flush();
 								hash.put(line[0] + "_" + line[1], "dup");
 							}
 						}
 						reader.close();
 					} catch (FileNotFoundException fnfe) {
-						System.err.println("Error: file \""	+ dir + files[fileIndex]
-																+ "\" not found in current directory");
+						System.err.println("Error: file \"" + dir + files[fileIndex]
+															 + "\" not found in current directory");
 						System.exit(1);
 					} catch (IOException ioe) {
 						System.err.println("Error reading file \"" + dir + files[fileIndex] + "\"");
@@ -158,11 +158,11 @@ public class Coverage {
 		boolean parseCoverageFiles = false;
 		String filter = "";
 
-		String usage = "\n"	+ "seq.Coverage requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "   (2) directory of coverage files (i.e. cov="
-										+ dir + " (default))\n" + " OR\n"
-										+ "   (1) files to filter (i.e. filter=fileToFilter.pileup,variants.txt (not the default))\n"
-										+ "";
+		String usage = "\n" + "seq.Coverage requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "   (2) directory of coverage files (i.e. cov="
+									 + dir + " (default))\n" + " OR\n"
+									 + "   (1) files to filter (i.e. filter=fileToFilter.pileup,variants.txt (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

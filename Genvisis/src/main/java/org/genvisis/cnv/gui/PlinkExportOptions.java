@@ -30,7 +30,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
 
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
@@ -206,8 +206,8 @@ public class PlinkExportOptions extends JDialog {
 					if (arg0.getStateChange() == ItemEvent.SELECTED) {
 						String val = (String) comboBoxTargetMarkers.getSelectedItem();
 						if (NEW_MARKERS_LIST.equals(val)) {
-							NewMarkerListDialog nmld = new NewMarkerListDialog(	proj.getMarkerNames(),
-																																	proj.PROJECT_DIRECTORY.getValue());
+							NewMarkerListDialog nmld = new NewMarkerListDialog(proj.getMarkerNames(),
+																																 proj.PROJECT_DIRECTORY.getValue());
 							nmld.setModal(true);
 							nmld.setVisible(true);
 							if (nmld.getReturnCode() == JOptionPane.YES_OPTION) {
@@ -279,8 +279,7 @@ public class PlinkExportOptions extends JDialog {
 		{
 			lblGcCutoff = new JLabel("GC Cutoff:");
 			contentPanel.add(lblGcCutoff, "cell 0 15");
-			tooltipExportType =
-												Grafik.getToolTipIconLabel("<html><p width=\"380\">The minimum GC quality score for a sample to be exported.</p></html>");
+			tooltipExportType = Grafik.getToolTipIconLabel("<html><p width=\"380\">The minimum GC quality score for a sample to be exported.</p></html>");
 			contentPanel.add(tooltipExportType, "cell 0 15");
 			SpinnerNumberModel model = new SpinnerNumberModel(proj.GC_THRESHOLD.getValue().doubleValue(),
 																												0, 1, 0.01);
@@ -297,8 +296,7 @@ public class PlinkExportOptions extends JDialog {
 			contentPanel.add(rdbtnBinary, "cell 0 10 2 1");
 		}
 		{
-			tooltipPedigree =
-											Grafik.getToolTipIconLabel("<html><p width=\"380\">The pedigree file has the standard 6 columns (Family ID, Individual ID, Father's ID, Mother's ID, Sex, Affection/Phenotype) as well as a 7th column with the DNA/Sample ID from the raw data to match it up to. There is no header row. See manual for more detail.</p></html>");
+			tooltipPedigree = Grafik.getToolTipIconLabel("<html><p width=\"380\">The pedigree file has the standard 6 columns (Family ID, Individual ID, Father's ID, Mother's ID, Sex, Affection/Phenotype) as well as a 7th column with the DNA/Sample ID from the raw data to match it up to. There is no header row. See manual for more detail.</p></html>");
 			contentPanel.add(tooltipPedigree, "cell 0 0");
 		}
 		{
@@ -306,26 +304,22 @@ public class PlinkExportOptions extends JDialog {
 			contentPanel.add(tooltipTgtMkrs, "cell 0 2");
 		}
 		{
-			tooltipClusterFilters =
-														Grafik.getToolTipIconLabel("<html><p width=\"380\">The list of cluster filter files is generated from any file ending with \"*clusterFilters.ser\" in the project's data/ directory. The clusters can be manually added from within the ScatterPlot module. See manual for more detail.</p></html>");
+			tooltipClusterFilters = Grafik.getToolTipIconLabel("<html><p width=\"380\">The list of cluster filter files is generated from any file ending with \"*clusterFilters.ser\" in the project's data/ directory. The clusters can be manually added from within the ScatterPlot module. See manual for more detail.</p></html>");
 			contentPanel.add(tooltipClusterFilters, "cell 0 4");
 		}
 		{
-			tooltipExportType =
-												Grafik.getToolTipIconLabel("<html><p width=\"380\">The path to an AB lookup file.</p></html>"); // TODO
+			tooltipExportType = Grafik.getToolTipIconLabel("<html><p width=\"380\">The path to an AB lookup file.</p></html>"); // TODO
 			// ab
 			// lookup
 			// tooltip
 			contentPanel.add(tooltipExportType, "cell 0 6");
 		}
 		{
-			tooltipExportType =
-												Grafik.getToolTipIconLabel("<html><p width=\"380\">PLINK format can either be compressed in a binary format or in full text. See the PLINK website for more detail.</p></html>");
+			tooltipExportType = Grafik.getToolTipIconLabel("<html><p width=\"380\">PLINK format can either be compressed in a binary format or in full text. See the PLINK website for more detail.</p></html>");
 			contentPanel.add(tooltipExportType, "cell 0 9");
 		}
 		{
-			tooltipFileroot =
-											Grafik.getToolTipIconLabel("<html><p width=\"380\">The root of the filenames to be generated. If these already exist, you must click the checkbox to overwrite them.</p></html>");
+			tooltipFileroot = Grafik.getToolTipIconLabel("<html><p width=\"380\">The root of the filenames to be generated. If these already exist, you must click the checkbox to overwrite them.</p></html>");
 			contentPanel.add(tooltipFileroot, "cell 0 11");
 		}
 		{
@@ -461,10 +455,10 @@ public class PlinkExportOptions extends JDialog {
 	}
 
 	private String[] getClusterFiltersOptions() {
-		return Array.addStrToArray(	NO_CLUSTER_FILTERS,
-																Files.list(	proj.DATA_DIRECTORY.getValue(false, true), null,
-																						ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)),
-																						false, proj.JAR_STATUS.getValue()));
+		return ArrayUtils.addStrToArray(NO_CLUSTER_FILTERS,
+																		Files.list(proj.DATA_DIRECTORY.getValue(false, true), null,
+																							 ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)),
+																							 false, proj.JAR_STATUS.getValue()));
 	}
 
 	private String[] getTargetMarkersOptions() {
@@ -520,7 +514,7 @@ public class PlinkExportOptions extends JDialog {
 	}
 
 	public String[] getFileExtensions() {
-		return rdbtnBinary.isSelected()	? new String[] {".bim", ".bed", ".fam"}
+		return rdbtnBinary.isSelected() ? new String[] {".bim", ".bed", ".fam"}
 																		: new String[] {".map", ".ped"};
 	}
 
@@ -543,7 +537,7 @@ public class PlinkExportOptions extends JDialog {
 
 	public String getABFilename() {
 		return chckbxGenerateAbLookup.isEnabled()
-						&& chckbxGenerateAbLookup.isSelected() ? null : textFieldABLookup.getText().trim();
+					 && chckbxGenerateAbLookup.isSelected() ? null : textFieldABLookup.getText().trim();
 	}
 
 }

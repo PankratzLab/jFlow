@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -41,7 +41,7 @@ public class GenVCFTrio {
 		String ouput = ext.addToRoot(list, ".vcfPop");
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(ouput));
-			writer.println(Array.toStr(VcfPopulation.HEADER));
+			writer.println(ArrayUtils.toStr(VcfPopulation.HEADER));
 			Set<String> fams = trios.keySet();
 			for (String fam : fams) {
 				HashSet<String> tmp = trios.get(fam);

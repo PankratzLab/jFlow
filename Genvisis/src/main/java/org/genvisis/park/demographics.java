@@ -21,8 +21,7 @@ public class demographics {
 	public demographics(String filename) throws IOException {
 		BufferedReader reader;
 		PrintWriter writer;
-		Hashtable<String, Hashtable<String, String[]>> hash =
-																												new Hashtable<String, Hashtable<String, String[]>>();
+		Hashtable<String, Hashtable<String, String[]>> hash = new Hashtable<String, Hashtable<String, String[]>>();
 		Hashtable<String, String> unaffs = new Hashtable<String, String>();
 		Hashtable<String, String[]> h;
 		Vector<String> fams = new Vector<String>();
@@ -68,8 +67,8 @@ public class demographics {
 					Double.valueOf(line[7]).doubleValue();
 					aoos.add(line[7]);
 				} catch (NumberFormatException nfe) {
-					System.err.println("Error - Could not parse age of onset for "	+ line[0] + "-" + line[1]
-															+ ": " + line[7]);
+					System.err.println("Error - Could not parse age of onset for " + line[0] + "-" + line[1]
+														 + ": " + line[7]);
 					System.err.println("        Looking for a number or a missing value character of '.' or '-99'");
 					System.exit(3);
 				}
@@ -84,8 +83,9 @@ public class demographics {
 				if (h.containsKey(line[2] + "/" + line[3])) {
 					info = h.get(line[2] + "/" + line[3]);
 					info[Integer.valueOf(line[4]).intValue()
-								- 1] = (Integer.valueOf(info[Integer.valueOf(line[4]).intValue() - 1]).intValue()
-												+ 1) + "";
+							 - 1] = (Integer.valueOf(info[Integer.valueOf(line[4]).intValue() - 1]).intValue()
+											 + 1)
+											+ "";
 					total = Integer.valueOf(info[0]).intValue() + Integer.valueOf(info[1]).intValue();
 				} else {
 					info = new String[2];
@@ -156,33 +156,32 @@ public class demographics {
 			writer.println("Age of onset information was not present in this stuct file");
 		} else {
 			writer.println("Age of onset information estimated from " + aoos.size() + " individuals:");
-			writer.println(ext.formDeci(meanAOO, 1, true)	+ " \u00B1 " + ext.formDeci(stdev, 1, true)
-											+ " (" + aoos.elementAt(0) + "-"
-											+ aoos.elementAt(aoos.size() - 1) + ")");
+			writer.println(ext.formDeci(meanAOO, 1, true) + " \u00B1 " + ext.formDeci(stdev, 1, true)
+										 + " (" + aoos.elementAt(0) + "-" + aoos.elementAt(aoos.size() - 1) + ")");
 		}
 
 		total = bb_bs_ss[0] + bb_bs_ss[1] + bb_bs_ss[2];
 
 		writer.println();
-		writer.println(males	+ " males (" + ext.formDeci((double) males / (males + females), 2, true)
-										+ ")");
-		writer.println(females	+ " females ("
-										+ ext.formDeci((double) females / (males + females), 2, true) + ")");
+		writer.println(males + " males (" + ext.formDeci((double) males / (males + females), 2, true)
+									 + ")");
+		writer.println(females + " females ("
+									 + ext.formDeci((double) females / (males + females), 2, true) + ")");
 		writer.println();
-		writer.println(bb_bs_ss[0]	+ " brother-brother pairs ("
-										+ ext.formDeci((double) bb_bs_ss[0] / (double) total, 2, true) + ")");
-		writer.println(bb_bs_ss[1]	+ " brother-sister pairs ("
-										+ ext.formDeci((double) bb_bs_ss[1] / (double) total, 2, true) + ")");
-		writer.println(bb_bs_ss[2]	+ " sister-sister pairs ("
-										+ ext.formDeci((double) bb_bs_ss[2] / (double) total, 2, true) + ")");
+		writer.println(bb_bs_ss[0] + " brother-brother pairs ("
+									 + ext.formDeci((double) bb_bs_ss[0] / (double) total, 2, true) + ")");
+		writer.println(bb_bs_ss[1] + " brother-sister pairs ("
+									 + ext.formDeci((double) bb_bs_ss[1] / (double) total, 2, true) + ")");
+		writer.println(bb_bs_ss[2] + " sister-sister pairs ("
+									 + ext.formDeci((double) bb_bs_ss[2] / (double) total, 2, true) + ")");
 		writer.println(total + " total pairs");
 
 		writer.println();
 		for (int i = 0; i < 20; i++) {
 			if (affPairs[i] > 0) {
 				writer.println("families with "
-													+ (i == 1 ? " singlets/halfsibs = " : i + " affected sibpairs = ")
-												+ affPairs[i]);
+											 + (i == 1 ? " singlets/halfsibs = " : i + " affected sibpairs = ")
+											 + affPairs[i]);
 				if (i != 2) {
 					writer.println(listFamsPairs[i]);
 				}
@@ -256,8 +255,8 @@ public class demographics {
 		int numArgs = args.length;
 		String filename = "struct.dat";
 
-		String usage = "\n"	+ "park.demographics requires 0-1 arguments\n"
-										+ "   (1) a struct file (default: file=" + filename + ")\n" + "";
+		String usage = "\n" + "park.demographics requires 0-1 arguments\n"
+									 + "   (1) a struct file (default: file=" + filename + ")\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

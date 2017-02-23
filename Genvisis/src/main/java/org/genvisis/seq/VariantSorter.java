@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Collapsed;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -19,15 +19,15 @@ import org.genvisis.common.ext;
 
 public class VariantSorter {
 	public static final double MAF_LOWER_BOUND = 0.01;
-	public static final String[] SEATTLE_SEQ_REQS = {	"geneList", "functionGVS", "# inDBSNPOrNot",
-																										"chromosome", "position", "referenceBase",
-																										"sampleGenotype", "AfricanHapMapFreq",
-																										"EuropeanHapMapFreq", "AsianHapMapFreq"};
+	public static final String[] SEATTLE_SEQ_REQS = {"geneList", "functionGVS", "# inDBSNPOrNot",
+																									 "chromosome", "position", "referenceBase",
+																									 "sampleGenotype", "AfricanHapMapFreq",
+																									 "EuropeanHapMapFreq", "AsianHapMapFreq"};
 	public static final String[] SIFT_REQS = {"Coordinates", "Prediction"};
-	public static final String[] CATS = {	"Total", "dbSNP>" + (MAF_LOWER_BOUND * 100) + "%",
-																				"dbSNP<" + (MAF_LOWER_BOUND * 100) + "%", "dbSNP_noFreq",
-																				"not_in_dbSNP", "deleterious", "deleteriousRare",
-																				"deleteriousNotInDBSNP"};
+	public static final String[] CATS = {"Total", "dbSNP>" + (MAF_LOWER_BOUND * 100) + "%",
+																			 "dbSNP<" + (MAF_LOWER_BOUND * 100) + "%", "dbSNP_noFreq",
+																			 "not_in_dbSNP", "deleterious", "deleteriousRare",
+																			 "deleteriousNotInDBSNP"};
 	public static final String[] FUNCS = {"missense", "nonsense", "coding-synonymous",
 																				"coding-notMod3", "splice-5", "splice-3", "utr-5", "utr-3",
 																				"near-gene-5", "near-gene-3", "intron", "intergenic"};
@@ -74,8 +74,8 @@ public class VariantSorter {
 				System.out.print(".");
 				try {
 					reader = new BufferedReader(new FileReader(dir + files[i]));
-					indices = Collapsed.indexFactors(	SEATTLE_SEQ_REQS, reader.readLine().trim().split("\\t"),
-																						true, true);
+					indices = Collapsed.indexFactors(SEATTLE_SEQ_REQS, reader.readLine().trim().split("\\t"),
+																					 true, true);
 					while (reader.ready()) {
 						line = reader.readLine().trim().split("\\t");
 						if (!line[0].startsWith("#")) {
@@ -93,9 +93,9 @@ public class VariantSorter {
 								Collapsed.addToHashVec(hash, gene, trav, true);
 								if (func.equals("missense")) {
 									if (gene.indexOf(",") > 0 || !geneNames.containsKey(gene)) {
-										variants.put(line[indices[3]]	+ "," + line[indices[4]] + "," + "1" + ","
-																	+ line[indices[5]] + "/"
-																	+ convertIUBlookupCodes(line[indices[6]], line[indices[5]]), "");
+										variants.put(line[indices[3]] + "," + line[indices[4]] + "," + "1" + ","
+																 + line[indices[5]] + "/"
+																 + convertIUBlookupCodes(line[indices[6]], line[indices[5]]), "");
 									} else {
 										name = geneNames.get(gene);
 										if (geneInfo.containsKey(name)) {
@@ -105,28 +105,28 @@ public class VariantSorter {
 											} else if (strand.equals("-")) {
 												orientation = -1;
 											} else {
-												System.err.println("Error - '"	+ strand
-																						+ "' is an invalid strand designation in knownGene");
+												System.err.println("Error - '" + strand
+																					 + "' is an invalid strand designation in knownGene");
 												orientation = -999;
 											}
 											if (orientation == 1) {
-												variants.put(line[indices[3]]	+ "," + line[indices[4]] + ",1,"
-																			+ line[indices[5]] + "/"
-																			+ convertIUBlookupCodes(line[indices[6]], line[indices[5]]),
-																			"");
+												variants.put(line[indices[3]] + "," + line[indices[4]] + ",1,"
+																		 + line[indices[5]] + "/"
+																		 + convertIUBlookupCodes(line[indices[6]], line[indices[5]]),
+																		 "");
 											} else if (orientation == -1) {
-												variants.put(line[indices[3]]	+ "," + line[indices[4]] + ",-1,"
-																			+ ANTISENSE[Collapsed.indexOfStr(	line[indices[5]], SENSE,
-																																				false, true)]
-																			+ "/"
-																			+ ANTISENSE[Collapsed.indexOfStr(	convertIUBlookupCodes(line[indices[6]],
-																																															line[indices[5]]),
-																																				SENSE, false, true)],
-																			"");
+												variants.put(line[indices[3]] + "," + line[indices[4]] + ",-1,"
+																		 + ANTISENSE[Collapsed.indexOfStr(line[indices[5]], SENSE,
+																																			false, true)]
+																		 + "/"
+																		 + ANTISENSE[Collapsed.indexOfStr(convertIUBlookupCodes(line[indices[6]],
+																																														line[indices[5]]),
+																																			SENSE, false, true)],
+																		 "");
 											}
 										} else {
-											System.err.println("Error - no gene name lookup for '"	+ gene
-																					+ "' in kgAlias");
+											System.err.println("Error - no gene name lookup for '" + gene
+																				 + "' in kgAlias");
 											name = null;
 										}
 									}
@@ -136,8 +136,8 @@ public class VariantSorter {
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ dir + files[i]
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + dir + files[i]
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + dir + files[i] + "\"");
@@ -152,19 +152,19 @@ public class VariantSorter {
 		if (Collapsed.exists(dir + "siftOutput.dat", false)) {
 			try {
 				reader = new BufferedReader(new FileReader(dir + "siftOutput.dat"));
-				indices = Collapsed.indexFactors(	SIFT_REQS, reader.readLine().trim().split("\\t"), true,
-																					true);
+				indices = Collapsed.indexFactors(SIFT_REQS, reader.readLine().trim().split("\\t"), true,
+																				 true);
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("\\t");
 					if (line[indices[1]].startsWith("DAMAGING")) {
-						siftInfo.put(line[indices[0]].split(",")[0]	+ "\t" + line[indices[0]].split(",")[1],
-													"");
+						siftInfo.put(line[indices[0]].split(",")[0] + "\t" + line[indices[0]].split(",")[1],
+												 "");
 					}
 				}
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \""	+ dir + "siftOutput.dat"
-														+ "\" not found in current directory");
+				System.err.println("Error: file \"" + dir + "siftOutput.dat"
+													 + "\" not found in current directory");
 				System.exit(1);
 			} catch (IOException ioe) {
 				System.err.println("Error reading file \"" + dir + "siftOutput.dat" + "\"");
@@ -227,8 +227,8 @@ public class VariantSorter {
 						Collapsed.addToHashVec(favHits, gene2, Collapsed.toStr(line), false);
 					}
 					if (funcIndex <= 1 && catIndex == 4) {
-						Collapsed.addToHashVec(	favHits, "novelMissense", gene2 + "\t" + Collapsed.toStr(line),
-																		false);
+						Collapsed.addToHashVec(favHits, "novelMissense", gene2 + "\t" + Collapsed.toStr(line),
+																	 false);
 					}
 
 					counts[0][funcIndex]++;
@@ -276,15 +276,15 @@ public class VariantSorter {
 		String str, remaining;
 
 		if (ref.length() != 1) {
-			System.err.println("Error - reference allele must be a single nucleotide (not '"	+ ref
-													+ "')");
+			System.err.println("Error - reference allele must be a single nucleotide (not '" + ref
+												 + "')");
 			return null;
 		}
 
 		refAllele = ref.toUpperCase().charAt(0);
 		if (refAllele != 'A' && refAllele != 'C' && refAllele != 'G' && refAllele != 'T') {
-			System.err.println("Error - reference allele must be a single nucleotide (not '"	+ ref
-													+ "')");
+			System.err.println("Error - reference allele must be a single nucleotide (not '" + ref
+												 + "')");
 			return null;
 		}
 
@@ -307,9 +307,9 @@ public class VariantSorter {
 		}
 
 		if (remaining.length() > 1) {
-			System.err.println("Error - '"	+ code
-													+ "' is an ambiguous IUB code; codes for more than 2 alleles (" + str
-													+ ") ");
+			System.err.println("Error - '" + code
+												 + "' is an ambiguous IUB code; codes for more than 2 alleles (" + str
+												 + ") ");
 			return null;
 		}
 
@@ -365,8 +365,8 @@ public class VariantSorter {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ dir + "known_2q.xln"
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + dir + "known_2q.xln"
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + dir + "known_2q.xln" + "\"");
@@ -387,7 +387,7 @@ public class VariantSorter {
 							plusHits = new Vector<String>();
 							minusHits = new Vector<String>();
 							for (int j = 0; j < geneLocs.length; j++) {
-								if (loc[0] == geneLocs[j][0][0]	&& loc[1] >= geneLocs[j][1][0] - 5
+								if (loc[0] == geneLocs[j][0][0] && loc[1] >= geneLocs[j][1][0] - 5
 										&& loc[1] <= geneLocs[j][1][1] + 5) {
 									exonic = false;
 									for (int k = 2; k < geneLocs[j].length; k++) {
@@ -405,19 +405,19 @@ public class VariantSorter {
 								}
 							}
 							for (int j = 0; j < plusHits.size(); j++) {
-								HashVec.addToHashVec(	hash, plusHits.elementAt(j),
-																			files[i] + "\t" + Array.toStr(line), false);
+								HashVec.addToHashVec(hash, plusHits.elementAt(j),
+																		 files[i] + "\t" + ArrayUtils.toStr(line), false);
 							}
 							for (int j = 0; j < minusHits.size(); j++) {
-								HashVec.addToHashVec(	hash, minusHits.elementAt(j),
-																			files[i] + "\t" + Array.toStr(line), false);
+								HashVec.addToHashVec(hash, minusHits.elementAt(j),
+																		 files[i] + "\t" + ArrayUtils.toStr(line), false);
 							}
 						}
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ dir + "siftOutput.dat"
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + dir + "siftOutput.dat"
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + dir + "siftOutput.dat" + "\"");
@@ -469,14 +469,14 @@ public class VariantSorter {
 		String genes = "ESPNL,ARMC9,DNER,FAM132B,ALPPL2,DGKD,DIS3L2,EFHD1,MMRN1,MYEOV2,COL4A3,HRB,LRRK2,SH3BP4";
 		boolean indels = true;
 
-		String usage = "\n"	+ "seq.VariantSorter requires 0-1 arguments\n"
-										+ "  ## run once to get SIFT input files; concatenate results into siftOutput.dat and re-run this program to incorporate data ##\n"
-										+ "   (1) directory with SeattleSeq files (i.e. dir=" + dir + " (default))\n"
-										+ "   (2) suffix with which to filter files (i.e. suffix=" + suffix
-										+ " (default))\n" + "   (3) comma delimited list of favorite genes (i.e. genes="
-										+ genes + " (default))\n"
-										+ "   (4) files are snplists with indels (i.e. -indels (not the default))\n"
-										+ "";
+		String usage = "\n" + "seq.VariantSorter requires 0-1 arguments\n"
+									 + "  ## run once to get SIFT input files; concatenate results into siftOutput.dat and re-run this program to incorporate data ##\n"
+									 + "   (1) directory with SeattleSeq files (i.e. dir=" + dir + " (default))\n"
+									 + "   (2) suffix with which to filter files (i.e. suffix=" + suffix
+									 + " (default))\n" + "   (3) comma delimited list of favorite genes (i.e. genes="
+									 + genes + " (default))\n"
+									 + "   (4) files are snplists with indels (i.e. -indels (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

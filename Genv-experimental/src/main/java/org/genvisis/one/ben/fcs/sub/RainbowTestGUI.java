@@ -69,7 +69,7 @@ import javax.swing.table.TableColumnModel;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.genvisis.cnv.gui.IncludeExcludeGUI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
@@ -110,8 +110,7 @@ public class RainbowTestGUI extends JFrame {
 	HashMap<String, ArrayList<Double>> paramMeanLists = new HashMap<String, ArrayList<Double>>();
 	HashMap<String, ArrayList<Double>> paramSDLists = new HashMap<String, ArrayList<Double>>();
 	HashMap<String, ArrayList<Double>> paramCVLists = new HashMap<String, ArrayList<Double>>();
-	HashMap<String, HashMap<String, Double>> fileParamMeanMap =
-																														new HashMap<String, HashMap<String, Double>>();
+	HashMap<String, HashMap<String, Double>> fileParamMeanMap = new HashMap<String, HashMap<String, Double>>();
 	HashSet<Integer> boldRows = new HashSet<Integer>();
 	HashSet<Integer> statRows = new HashSet<Integer>();
 	HashMap<String, Double> paramMeans = new HashMap<String, Double>();
@@ -339,8 +338,8 @@ public class RainbowTestGUI extends JFrame {
 
 				Color col = Color.WHITE;
 				if (column > 0 && !statRows.contains(row)) {
-					Object val = table.getModel().getValueAt(	table.convertRowIndexToModel(row),
-																										table.convertColumnIndexToModel(column));
+					Object val = table.getModel().getValueAt(table.convertRowIndexToModel(row),
+																									 table.convertColumnIndexToModel(column));
 					if (val != null) {
 						if (val instanceof Number) {
 							String colNm = table.getModel()
@@ -1062,8 +1061,8 @@ public class RainbowTestGUI extends JFrame {
 			} else if (cache.containsKey(f)) {
 				baseFiles.put(f, null);
 			}
-			List<String> p = (cache.containsKey(f)	? Arrays.asList(cache.get(f).params)
-																							: baseFiles.get(f).getAllDisplayableNames(currData));
+			List<String> p = (cache.containsKey(f) ? Arrays.asList(cache.get(f).params)
+																						 : baseFiles.get(f).getAllDisplayableNames(currData));
 			paramNames.addAll(p);
 			paramSet.addAll(p);
 		}
@@ -1075,13 +1074,13 @@ public class RainbowTestGUI extends JFrame {
 			} else if (cache.containsKey(f)) {
 				compFiles.put(f, null);
 			}
-			List<String> p = (cache.containsKey(f)	? Arrays.asList(cache.get(f).params)
-																							: compFiles.get(f).getAllDisplayableNames(currData));
+			List<String> p = (cache.containsKey(f) ? Arrays.asList(cache.get(f).params)
+																						 : compFiles.get(f).getAllDisplayableNames(currData));
 			paramNames.addAll(p);
 			paramSet.addAll(p);
 		}
 		String[] paramNames = paramSet.toArray(new String[paramSet.size()]);
-		String[] colNames = Array.addStrToArray("", paramNames, 0);
+		String[] colNames = ArrayUtils.addStrToArray("", paramNames, 0);
 		for (String p : paramNames) {
 			paramMeanLists.put(p, new ArrayList<Double>());
 			paramSDLists.put(p, new ArrayList<Double>());
@@ -1143,7 +1142,7 @@ public class RainbowTestGUI extends JFrame {
 		for (int i = 1; i < colNames.length; i++) {
 			String colNm = colNames[i];
 			if (paramMeanLists.containsKey(colNm)) {
-				Double mn = Array.mean(Doubles.toArray(paramMeanLists.get(colNm)), true);
+				Double mn = ArrayUtils.mean(Doubles.toArray(paramMeanLists.get(colNm)), true);
 				paramMeans.put(colNm, mn);
 				meanRow[i] = mn;
 			}
@@ -1158,7 +1157,7 @@ public class RainbowTestGUI extends JFrame {
 		for (int i = 1; i < colNames.length; i++) {
 			String colNm = colNames[i];
 			if (paramMeanLists.containsKey(colNm)) {
-				Double sd = Array.stdev(paramMeanLists.get(colNm).toArray(new Double[0]), true);
+				Double sd = ArrayUtils.stdev(paramMeanLists.get(colNm).toArray(new Double[0]), true);
 				paramSDs.put(colNm, sd);
 				sdRow[i] = sd;
 			}
@@ -1217,8 +1216,8 @@ public class RainbowTestGUI extends JFrame {
 
 		TreeMap<Date, ArrayList<String>> fileMap = new TreeMap<Date, ArrayList<String>>();
 		for (Entry<String, FCSDataLoader> l : compFiles.entrySet()) {
-			Date key = cache.containsKey(l.getKey())	? cache.get(l.getKey()).runDate
-																								: l.getValue().getRunDate();
+			Date key = cache.containsKey(l.getKey()) ? cache.get(l.getKey()).runDate
+																							 : l.getValue().getRunDate();
 			ArrayList<String> files = fileMap.get(key);
 			if (files == null) {
 				files = new ArrayList<String>();
@@ -1269,8 +1268,8 @@ public class RainbowTestGUI extends JFrame {
 			}
 
 			if (cnt >= params.length * PCT_OF_EVENTS_DEV_TREND) {
-				warnings.add("Source "	+ f + " has " + cnt
-											+ " events greater than 1SD from parameter means.");
+				warnings.add("Source " + f + " has " + cnt
+										 + " events greater than 1SD from parameter means.");
 			}
 
 		}
@@ -1331,8 +1330,8 @@ public class RainbowTestGUI extends JFrame {
 				}
 			}
 			all15TrendsForParam.add(any15);
-			trendMap.put(	param,
-										new ArrayList[] {all1TrendsForParam, all2TrendsForParam, all15TrendsForParam});
+			trendMap.put(param,
+									 new ArrayList[] {all1TrendsForParam, all2TrendsForParam, all15TrendsForParam});
 		}
 
 		ArrayList<String> trendWarnings = new ArrayList<String>();
@@ -1345,7 +1344,7 @@ public class RainbowTestGUI extends JFrame {
 						continue;
 					}
 					String[] p = entry.getKey().split("\\|")[0].trim().split("/");
-					String warn = trend.size()	+ "-count trend in parameter " + p[p.length - 1]
+					String warn = trend.size() + "-count trend in parameter " + p[p.length - 1]
 												+ " greater than 1SD from the mean.";
 					trendWarnings.add(warn);
 				}
@@ -1354,7 +1353,7 @@ public class RainbowTestGUI extends JFrame {
 						continue;
 					}
 					String[] p = entry.getKey().split("\\|")[0].trim().split("/");
-					String warn = trend.size()	+ "-count trend in parameter " + p[p.length - 1]
+					String warn = trend.size() + "-count trend in parameter " + p[p.length - 1]
 												+ " greater than 2SD from the mean.";
 					trendWarnings.add(warn);
 				}
@@ -1364,7 +1363,7 @@ public class RainbowTestGUI extends JFrame {
 					}
 					String[] p = entry.getKey().split("\\|")[0].trim().split("/");
 					for (String s : trend) {
-						String warn = "Source "	+ s + " has a deviant (>15% of mean) value for parameter "
+						String warn = "Source " + s + " has a deviant (>15% of mean) value for parameter "
 													+ p[p.length - 1];
 						trendWarnings.add(warn);
 					}
@@ -1521,9 +1520,9 @@ public class RainbowTestGUI extends JFrame {
 
 				CacheObject co = cache.get(f);
 				if (co != null
-							&& ((gateStrat == null && "".equals(co.gateFileApplied))
+						&& ((gateStrat == null && "".equals(co.gateFileApplied))
 								|| gateStrat.getFile().equals(co.gateFileApplied))
-						&& Array.equals(paramNames, co.params, false)) {
+						&& ArrayUtils.equals(paramNames, co.params, false)) {
 					System.out.println("Loading data for " + f + " from cache");
 					for (int i = 0; i < paramNames.length; i++) {
 						Double mn = co.paramMeans.get(paramNames[i]);
@@ -1551,24 +1550,24 @@ public class RainbowTestGUI extends JFrame {
 						boolean[] gating = null;
 						if (gateStrat != null && rdbtnGated.isSelected()) {
 							ArrayList<Gate> gates = gateStrat.getGatesForParamOnly(paramNames[i]);
-							System.out.println("Applying "	+ gates.size()
-																	+ " gates (not including parent-gates) to parameter "
-																	+ paramNames[i]);
+							System.out.println("Applying " + gates.size()
+																 + " gates (not including parent-gates) to parameter "
+																 + paramNames[i]);
 							for (Gate g : gates) {
 								if (gating == null) {
 									gating = g.gate(loader);
 								} else {
-									Array.booleanArrayAndInPlace(gating, g.gate(loader));
+									ArrayUtils.booleanArrayAndInPlace(gating, g.gate(loader));
 								}
 							}
 						}
 
 						double[] data = loader.getData(paramNames[i], true);
 						if (gating != null) {
-							data = Array.subArray(data, gating);
+							data = ArrayUtils.subArray(data, gating);
 						}
-						Double mn = Array.mean(data, true);
-						Double sd = Array.stdev(data, true);
+						Double mn = ArrayUtils.mean(data, true);
+						Double sd = ArrayUtils.stdev(data, true);
 						Double cv = 100 * (sd / mn);
 						paramMeanLists.get(paramNames[i]).add(mn);
 						paramSDLists.get(paramNames[i]).add(sd);
@@ -1622,9 +1621,9 @@ public class RainbowTestGUI extends JFrame {
 			// load from cache
 			CacheObject co = cache.get(f);
 			if (co != null
-						&& ((gateStrat == null && "".equals(co.gateFileApplied))
+					&& ((gateStrat == null && "".equals(co.gateFileApplied))
 							|| gateStrat.getFile().equals(co.gateFileApplied))
-					&& Array.equals(paramNames, co.params, false)) {
+					&& ArrayUtils.equals(paramNames, co.params, false)) {
 				System.out.println("Loading data for " + f + " from cache");
 				for (int i = 0; i < paramNames.length; i++) {
 					Double mn = co.paramMeans.get(paramNames[i]);
@@ -1657,17 +1656,17 @@ public class RainbowTestGUI extends JFrame {
 								gating = g.gate(loader);
 							} else {
 							}
-							Array.booleanArrayAndInPlace(gating, g.gate(loader));
+							ArrayUtils.booleanArrayAndInPlace(gating, g.gate(loader));
 						}
 					}
 
 					double[] data = loader.getData(paramNames[i], true);
 					if (gating != null) {
-						data = Array.subArray(data, gating);
+						data = ArrayUtils.subArray(data, gating);
 					}
-					Double mn = Array.mean(data, true);
+					Double mn = ArrayUtils.mean(data, true);
 					fileParamMeanMap.get(f).put(paramNames[i], mn);
-					Double sd = Array.stdev(data, true);
+					Double sd = ArrayUtils.stdev(data, true);
 					Double cv = 100 * (sd / mn);
 					rowDataM[i + 1] = mn;
 					rowDataS[i + 1] = sd;

@@ -19,14 +19,14 @@ public class SexOps {
 	 *
 	 */
 	public enum SEX_LOAD_TYPE {
-															/**
-															 * 0,1,2
-															 */
-															MAPPED_SEX,
-															/**
-															 * Number of X chromosomes, facilitates regressing out triple X, etc
-															 */
-															NUM_X_SEX;
+		/**
+		 * 0,1,2
+		 */
+		MAPPED_SEX,
+		/**
+		 * Number of X chromosomes, facilitates regressing out triple X, etc
+		 */
+		NUM_X_SEX;
 	}
 
 	/**

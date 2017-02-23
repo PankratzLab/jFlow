@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -42,17 +42,17 @@ public class DummyDataset {
 			countV = new IntVector();
 			for (int i = 1; i < params.length; i++) {
 				if (params[i][0].equalsIgnoreCase("header")) {
-					header = Array.subArray(params[i], 1);
+					header = ArrayUtils.subArray(params[i], 1);
 				} else if (!params[i][0].startsWith("#") && !params[i][0].equals("")) {
 					try {
 						num = Integer.parseInt(params[i][0]);
 						countV.add(num);
 					} catch (Exception e) {
-						log.reportError("Error - '"	+ params[i][0]
+						log.reportError("Error - '" + params[i][0]
 														+ "' is an invalid integer; first column contains the number of time series is repreated");
 						return;
 					}
-					v.add(Array.subArray(params[i], 1));
+					v.add(ArrayUtils.subArray(params[i], 1));
 				}
 			}
 
@@ -60,11 +60,11 @@ public class DummyDataset {
 				count = 0;
 				writer = new PrintWriter(new FileWriter(outfile));
 				if (header != null) {
-					writer.println(Array.toStr(header));
+					writer.println(ArrayUtils.toStr(header));
 					for (int i = 0; i < v.size(); i++) {
 						num = countV.elementAt(i);
 						line = v.elementAt(i);
-						trav = Array.toStr(line);
+						trav = ArrayUtils.toStr(line);
 						for (int j = 0; j < num; j++) {
 							writer.println(trav);
 							count++;
@@ -72,8 +72,8 @@ public class DummyDataset {
 					}
 				}
 				writer.close();
-				log.report("Final file contains "	+ count + " records"
-										+ (header == null ? "" : "; plus a header"));
+				log.report("Final file contains " + count + " records"
+									 + (header == null ? "" : "; plus a header"));
 			} catch (Exception e) {
 				System.err.println("Error writing to " + outfile);
 				e.printStackTrace();
@@ -114,8 +114,8 @@ public class DummyDataset {
 			try {
 				reader = new BufferedReader(new FileReader(infile));
 				while (reader.ready()) {
-					line = reader	.readLine().trim()
-												.split(commaDelimited ? "," : (tabDelimited ? "\t" : "[\\s]+"));
+					line = reader.readLine().trim()
+											 .split(commaDelimited ? "," : (tabDelimited ? "\t" : "[\\s]+"));
 					if (hashes.containsKey(line[0])) {
 						hash = hashes.get(line[0]);
 					} else {
@@ -139,8 +139,8 @@ public class DummyDataset {
 
 			try {
 				writer = new PrintWriter(new FileWriter(outfile));
-				line = Array.toStringArray(v);
-				writer.println("Unit\t" + Array.toStr(line));
+				line = ArrayUtils.toStringArray(v);
+				writer.println("Unit\t" + ArrayUtils.toStr(line));
 				keys = HashVec.getKeys(hashes);
 				for (String key : keys) {
 					writer.print(key);

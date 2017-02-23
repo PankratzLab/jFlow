@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -241,11 +241,11 @@ public class TrimFam {
 				}
 				temp += "\t" + (genotyped || !rename ? id : recoded_id);
 				temp += "\t"
-									+ (father.isRoot()	? "0"
-																		: (father.genotyped || !rename ? father.id : father.recoded_id))
+								+ (father.isRoot() ? "0"
+																	 : (father.genotyped || !rename ? father.id : father.recoded_id))
 								+ "\t"
-								+ (mother.isRoot()	? "0"
-																		: (mother.genotyped || !rename ? mother.id : mother.recoded_id))
+								+ (mother.isRoot() ? "0"
+																	 : (mother.genotyped || !rename ? mother.id : mother.recoded_id))
 								+ "\t" + sex + "\t" + (phenotyped ? "2" : "0") + "\t"
 								+ (genotyped ? "1\t1" : "0\t0");
 
@@ -279,7 +279,7 @@ public class TrimFam {
 						poss.put(temp, v);
 					}
 
-					v.add(famid	+ "\t" + kid.id + "\t"
+					v.add(famid + "\t" + kid.id + "\t"
 								+ (kid.father.genotyped || !rename ? kid.father.id : kid.father.recoded_id) + "\t"
 								+ (kid.mother.genotyped || !rename ? kid.mother.id : kid.mother.recoded_id) + "\t"
 								+ kid.sex + "\t" + (kid.phenotyped ? "2" : "0") + "\t"
@@ -304,7 +304,7 @@ public class TrimFam {
 			v = poss.get(maxtMom);
 
 			nukular.add(famid + "\t" + (genotyped || !rename ? id : recoded_id) + "\t0\t0\t" + sex);
-			nukular.add(famid	+ "\t" + (purse.genotyped || !rename ? purse.id : purse.recoded_id)
+			nukular.add(famid + "\t" + (purse.genotyped || !rename ? purse.id : purse.recoded_id)
 									+ "\t0\t0\t" + purse.sex);
 
 			for (int i = 0; i < v.size(); i++) {
@@ -318,9 +318,9 @@ public class TrimFam {
 		this(preinfo, true, false, true, DEFAULT_NAMING_SCHEME, 0, false, false, new Logger());
 	}
 
-	public TrimFam(	Vector<String> preinfo, boolean deleteSinglets, boolean unrelatedsOnly,
-									boolean canRename, int scheme, int favorGeneration, boolean listGeneration,
-									boolean allowMissingIndividuals, Logger logger) {
+	public TrimFam(Vector<String> preinfo, boolean deleteSinglets, boolean unrelatedsOnly,
+								 boolean canRename, int scheme, int favorGeneration, boolean listGeneration,
+								 boolean allowMissingIndividuals, Logger logger) {
 		Hashtable<String, String> genoed;
 		String[] line, keys;
 		String famid;
@@ -369,7 +369,7 @@ public class TrimFam {
 				purse.genotyped = true;
 				genoed.put(line[1], "unused");
 			} else if (!line[6].equals("0")) {
-				log.reportError("Error - individual "	+ line[0] + "-" + line[1]
+				log.reportError("Error - individual " + line[0] + "-" + line[1]
 												+ " was not properly declared as genotyped (1) or not genotyped (0): '"
 												+ line[6] + "'");
 			}
@@ -439,8 +439,8 @@ public class TrimFam {
 			if (!unrelatedsOnly) {
 				numSubFams = detectSplitFams();
 				if (numSubFams > 1) {
-					log.report("Family "	+ famid + " needs to be split into " + numSubFams
-											+ " sub families.");
+					log.report("Family " + famid + " needs to be split into " + numSubFams
+										 + " sub families.");
 				}
 				hash.get(mostKids).createNuclearOutput();
 			}
@@ -523,7 +523,7 @@ public class TrimFam {
 						purse.father.priorityScore = -1;
 						hash.put(purse.dad, purse.father);
 					} else {
-						log.reportError("Link error - Pedigree '"	+ purse.famid
+						log.reportError("Link error - Pedigree '" + purse.famid
 														+ "' does not contain all the indivudals referenced as parents (father: "
 														+ purse.dad + ")");
 						error = true;
@@ -539,7 +539,7 @@ public class TrimFam {
 						purse.mother.priorityScore = -1;
 						hash.put(purse.mom, purse.mother);
 					} else {
-						log.reportError("Link error - Pedigree '"	+ purse.famid
+						log.reportError("Link error - Pedigree '" + purse.famid
 														+ "' does not contain all the indivudals referenced as parents (mother: "
 														+ purse.mom + ")");
 						error = true;
@@ -572,7 +572,7 @@ public class TrimFam {
 		source = hash.get("root");
 		for (int i = 0; i < source.children.size(); i++) {
 			purse = source.children.elementAt(i);
-			if (purse.children.size() == 1	&& purse.children.firstElement().father.children.size() == 1
+			if (purse.children.size() == 1 && purse.children.firstElement().father.children.size() == 1
 					&& purse.children.firstElement().mother.children.size() == 1
 					&& !purse.children.firstElement().father.genotyped
 					&& !purse.children.firstElement().mother.genotyped
@@ -632,7 +632,7 @@ public class TrimFam {
 			}
 			subfams = HashVec.getKeys(famIndHash);
 			for (String subfam : subfams) {
-				inds = Array.toStringArray(famIndHash.get(subfam));
+				inds = ArrayUtils.toStringArray(famIndHash.get(subfam));
 				scores = new double[inds.length];
 				for (int j = 0; j < scores.length; j++) {
 					scores[j] = hash.get(inds[j]).priorityScore;
@@ -649,7 +649,7 @@ public class TrimFam {
 		}
 		for (int i = 0; i < source.children.size(); i++) {
 			purse = source.children.elementAt(i);
-			if (purse.children.size() == 1	&& purse.children.firstElement().father.children.size() == 1
+			if (purse.children.size() == 1 && purse.children.firstElement().father.children.size() == 1
 					&& purse.children.firstElement().mother.children.size() == 1
 					&& !purse.children.firstElement().father.genotyped
 					&& !purse.children.firstElement().mother.genotyped
@@ -769,7 +769,7 @@ public class TrimFam {
 			try {
 				id = Integer.parseInt(line[1]);
 			} catch (NumberFormatException nfe) {
-				return Array.arrayOfIndices(original.size());
+				return ArrayUtils.arrayOfIndices(original.size());
 			}
 			if (id > maxID) {
 				maxID = id;
@@ -853,11 +853,11 @@ public class TrimFam {
 
 	// priority scores are not required, default scores will favor those genotyped over those
 	// ungenotyped, need a separate file to favor affected over unaffected
-	public static void trimAllFams(	String pedigreeFile, String outfile,
-																	boolean renameUngenotypedFounders, boolean deleteSinglets,
-																	boolean unrelatedsOnly, String priorityScoresFile,
-																	int namingScheme, int favorGeneration, boolean listGeneration,
-																	boolean allowMissingIndividuals, Logger log) {
+	public static void trimAllFams(String pedigreeFile, String outfile,
+																 boolean renameUngenotypedFounders, boolean deleteSinglets,
+																 boolean unrelatedsOnly, String priorityScoresFile,
+																 int namingScheme, int favorGeneration, boolean listGeneration,
+																 boolean allowMissingIndividuals, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -899,10 +899,10 @@ public class TrimFam {
 					score = "\t" + priorityScores.get(line[0] + "\t" + line[1]);
 				} else if (count < line.length - 6) {
 					if (countMissing <= 20) {
-						log.reportError("Error - no valid value in hash for individual "	+ line[0] + "-"
+						log.reportError("Error - no valid value in hash for individual " + line[0] + "-"
 														+ line[1]);
 					} else {
-						log.reportError("Error - no valid value in hash for individual "	+ line[0] + "-"
+						log.reportError("Error - no valid value in hash for individual " + line[0] + "-"
 														+ line[1], true, false);
 					}
 					score = "\t-1";
@@ -910,16 +910,16 @@ public class TrimFam {
 				} else {
 					score = "\t-1";
 				}
-				HashVec.addToHashVec(	preHash,
-															line[0],
-															line[0]		+ "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t"
-																				+ line[4] + "\t" + line[5] + "\t"
-																				+ (count == line.length - 6 ? "0" : "1") + score,
-															false);
+				HashVec.addToHashVec(preHash,
+														 line[0],
+														 line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t"
+																			+ line[4] + "\t" + line[5] + "\t"
+																			+ (count == line.length - 6 ? "0" : "1") + score,
+														 false);
 				HashVec.addIfAbsent(line[0], fams);
 			}
 			if (countMissing > 0) {
-				log.reportError("Just so you know... "	+ countMissing
+				log.reportError("Just so you know... " + countMissing
 												+ " indiviudal(s) are missing priority scores");
 			}
 			reader.close();
@@ -935,9 +935,9 @@ public class TrimFam {
 			writer = new PrintWriter(new FileWriter(outfile));
 			count = 0;
 			for (int i = 0; i < fams.size(); i++) {
-				tfam = new TrimFam(	preHash.get(fams.elementAt(i)), deleteSinglets, unrelatedsOnly,
-														renameUngenotypedFounders, namingScheme, favorGeneration,
-														listGeneration, allowMissingIndividuals, log);
+				tfam = new TrimFam(preHash.get(fams.elementAt(i)), deleteSinglets, unrelatedsOnly,
+													 renameUngenotypedFounders, namingScheme, favorGeneration, listGeneration,
+													 allowMissingIndividuals, log);
 				if (tfam.hadError()) {
 					log.reportError("Aborting trimFam due to error");
 					writer.close();
@@ -987,7 +987,7 @@ public class TrimFam {
 																		log);
 		if (paramV != null) {
 			paramV.addElement("logfile=" + log.getFilename());
-			main(Array.toStringArray(paramV));
+			main(ArrayUtils.toStringArray(paramV));
 		}
 	}
 
@@ -1022,24 +1022,24 @@ public class TrimFam {
 		boolean listGeneration = false;
 		boolean allowMissingIndividuals = false;
 
-		String usage = "\n"	+ "link.TrimFam requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n"
-										+ "   (2) output filename (i.e. out=[input file]-trimmed.pre (default))\n"
-										+ "   (3) delete singlets (i.e. deleteSinglets=" + deleteSinglets
-										+ " (default))\n"
-										+ "   (4) only keep unrelated indiviudals (i.e. unrelatedsOnly="
-										+ unrelatedsOnly + " (default))\n"
-										+ "   (5) priority scores filename (i.e. score=" + priorityScoresFile
-										+ " (default))\n" + "   (6) naming scheme for split fams (i.e. scheme="
-										+ NAMING_SCHEME_KEY[namingScheme] + " (default))\n"
-										+ "   (7) favor older or earlier generations if unrelatedsOnly (i.e. favorGeneration="
-										+ favorGeneration + " (default; +1 for older, -1 for younger, 0 for neither))\n"
-										+ "   (8) rename ungenotyped founders 101, 102, etc. (i.e. renameUngenotypedFounders="
-										+ renameUngenotypedFounders + " (default))\n"
-										+ "   (9) list generation in final file (i.e. listGeneration=" + listGeneration
-										+ " (default))\n"
-										+ "   (10) if an individual is missing, create them and code as a founder of appropriateSex (i.e. allowMissing="
-										+ allowMissingIndividuals + " (default))\n" + "";
+		String usage = "\n" + "link.TrimFam requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n"
+									 + "   (2) output filename (i.e. out=[input file]-trimmed.pre (default))\n"
+									 + "   (3) delete singlets (i.e. deleteSinglets=" + deleteSinglets
+									 + " (default))\n"
+									 + "   (4) only keep unrelated indiviudals (i.e. unrelatedsOnly=" + unrelatedsOnly
+									 + " (default))\n" + "   (5) priority scores filename (i.e. score="
+									 + priorityScoresFile + " (default))\n"
+									 + "   (6) naming scheme for split fams (i.e. scheme="
+									 + NAMING_SCHEME_KEY[namingScheme] + " (default))\n"
+									 + "   (7) favor older or earlier generations if unrelatedsOnly (i.e. favorGeneration="
+									 + favorGeneration + " (default; +1 for older, -1 for younger, 0 for neither))\n"
+									 + "   (8) rename ungenotyped founders 101, 102, etc. (i.e. renameUngenotypedFounders="
+									 + renameUngenotypedFounders + " (default))\n"
+									 + "   (9) list generation in final file (i.e. listGeneration=" + listGeneration
+									 + " (default))\n"
+									 + "   (10) if an individual is missing, create them and code as a founder of appropriateSex (i.e. allowMissing="
+									 + allowMissingIndividuals + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

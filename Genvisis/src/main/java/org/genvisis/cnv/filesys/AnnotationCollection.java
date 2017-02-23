@@ -22,7 +22,7 @@ import java.util.Vector;
 import javax.swing.JOptionPane;
 
 import org.genvisis.cnv.manage.TextExport;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -34,14 +34,14 @@ public class AnnotationCollection implements Serializable, TextExport {
 
 	private final Hashtable<Character, String> commentsHash; // annotation keys
 	private final Hashtable<String, Vector<String>> markerAnnotations; // annotations organized by
-																																			// markers. markerName ->
-																																			// AnnotationA, AnnotationB,
-																																			// ...
+																																		 // markers. markerName ->
+																																		 // AnnotationA, AnnotationB,
+																																		 // ...
 	private final Hashtable<String, Vector<String>> annotationMarkerLists; // annotations organized by
-																																					// annotation keys.
-																																					// Annotation ->
-																																					// marker1Name,
-																																					// marker2Name, ...
+																																				 // annotation keys.
+																																				 // Annotation ->
+																																				 // marker1Name,
+																																				 // marker2Name, ...
 
 	public AnnotationCollection() {
 		commentsHash = new Hashtable<Character, String>();
@@ -58,14 +58,14 @@ public class AnnotationCollection implements Serializable, TextExport {
 		int response;
 		Vector<String> markers;
 
-		response = JOptionPane.showConfirmDialog(	null,
-																							"This will remove the annotation '"
-																											+ commentsHash.get(c) + "' from all markers (n="
-																										+ annotationMarkerLists.get(c + "").size()
-																										+ ") from the annotation database",
-																							"Warning", JOptionPane.ERROR_MESSAGE);
+		response = JOptionPane.showConfirmDialog(null,
+																						 "This will remove the annotation '"
+																									 + commentsHash.get(c) + "' from all markers (n="
+																									 + annotationMarkerLists.get(c + "").size()
+																									 + ") from the annotation database",
+																						 "Warning", JOptionPane.ERROR_MESSAGE);
 		if (response == 0) {
-			serialize(proj.BACKUP_DIRECTORY.getValue(true, true)	+ "annotationsBeforeRemoving_"
+			serialize(proj.BACKUP_DIRECTORY.getValue(true, true) + "annotationsBeforeRemoving_"
 								+ ext.replaceWithLinuxSafeCharacters(commentsHash.get(c), true) + ".ser."
 								+ (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
 			commentsHash.remove(c);
@@ -100,15 +100,15 @@ public class AnnotationCollection implements Serializable, TextExport {
 				markerAnnotations.get(markerName).remove(c + "");
 				annotationMarkerLists.get(c + "").remove(markerName);
 			} else {
-				System.err.println("Error - cannot remove "	+ c + " from " + markerName
-														+ " if it's not already checked");
+				System.err.println("Error - cannot remove " + c + " from " + markerName
+													 + " if it's not already checked");
 			}
 			if (markerAnnotations.get(markerName).size() == 0) {
 				markerAnnotations.remove(markerName);
 			}
 		} else {
-			System.err.println("Error - cannot remove "	+ c + " from " + markerName
-													+ " if the marker does not have any annotation");
+			System.err.println("Error - cannot remove " + c + " from " + markerName
+												 + " if the marker does not have any annotation");
 		}
 	}
 
@@ -122,7 +122,7 @@ public class AnnotationCollection implements Serializable, TextExport {
 
 	public char[] annotationsForMarker(String markerName) {
 		if (markerAnnotations.containsKey(markerName)) {
-			return Array.toCharArray(Array.toStringArray(markerAnnotations.get(markerName)));
+			return ArrayUtils.toCharArray(ArrayUtils.toStringArray(markerAnnotations.get(markerName)));
 		} else {
 			return new char[0];
 		}
@@ -145,12 +145,12 @@ public class AnnotationCollection implements Serializable, TextExport {
 
 		keysAnnotations = HashVec.getKeyList(annotationMarkerLists);
 		for (String keysAnnotation : keysAnnotations) {
-			Files.writeArray(	Array.toStringArray(annotationMarkerLists.get(keysAnnotation)),
-												outputDir																												+ "annotation_" + keysAnnotation + "_" + ext.replaceWithLinuxSafeCharacters(getDescriptionForComment(	keysAnnotation.charAt(0),
-																																																																				false,
-																																																																				false),
-																																																							true)
-																																												+ ".xln");
+			Files.writeArray(ArrayUtils.toStringArray(annotationMarkerLists.get(keysAnnotation)),
+											 outputDir + "annotation_" + keysAnnotation + "_" + ext.replaceWithLinuxSafeCharacters(getDescriptionForComment(keysAnnotation.charAt(0),
+																																																																			false,
+																																																																			false),
+																																																						 true)
+																																														+ ".xln");
 		}
 
 		list = new String[markerAnnotations.size()];
@@ -166,7 +166,7 @@ public class AnnotationCollection implements Serializable, TextExport {
 		for (int i = 0; i < list.length; i++) {
 			annotationsVector = markerAnnotations.get(keysMarkers.get(i));
 			annotationsOfTheMarker = "";
-			matrix[i + 2] = Array.stringArray(keysAnnotations.size() + 1, "0");
+			matrix[i + 2] = ArrayUtils.stringArray(keysAnnotations.size() + 1, "0");
 			matrix[i + 2][0] = keysMarkers.get(i);
 			for (int j = 0; j < annotationsVector.size(); j++) {
 				annotationsOfTheMarker += (j == 0 ? "" : ";")
@@ -187,9 +187,9 @@ public class AnnotationCollection implements Serializable, TextExport {
 		return annotationCollection;
 	}
 
-	public static void appendFromLists(	String filename,
-																			AnnotationCollection currentAnnotationCollection,
-																			String[] markerNamesProj, Logger log) {
+	public static void appendFromLists(String filename,
+																		 AnnotationCollection currentAnnotationCollection,
+																		 String[] markerNamesProj, Logger log) {
 		BufferedReader reader;
 		String[] line;
 		char key;
@@ -200,8 +200,8 @@ public class AnnotationCollection implements Serializable, TextExport {
 		annotationKeys = new Hashtable<String, Character>();
 		keys = currentAnnotationCollection.getKeys();
 		for (char key2 : keys) {
-			annotationKeys.put(	currentAnnotationCollection.getDescriptionForComment(key2, false, false),
-													key2);
+			annotationKeys.put(currentAnnotationCollection.getDescriptionForComment(key2, false, false),
+												 key2);
 		}
 		try {
 			reader = new BufferedReader(new FileReader(filename));
@@ -217,7 +217,7 @@ public class AnnotationCollection implements Serializable, TextExport {
 					}
 				}
 				if (markerNamesProj != null && !found) {
-					log.reportError("Skipped importing annotations for marker "	+ line[0]
+					log.reportError("Skipped importing annotations for marker " + line[0]
 													+ ", which is found in the annotation file " + filename
 													+ ", but not in the marker name list of the project.");
 				} else {
@@ -229,11 +229,11 @@ public class AnnotationCollection implements Serializable, TextExport {
 							if (key == 0) {
 								if (log == null) {
 									System.out.println("cannot automatically assign a shortcut to the annotation key '"
-																				+ line[i] + "'. Skipped importing this annotation for marker "
-																			+ line[0] + ".");
+																		 + line[i] + "'. Skipped importing this annotation for marker "
+																		 + line[0] + ".");
 								} else {
 									log.reportError("cannot automatically assign a shortcut to the annotation key '"
-																		+ line[i] + "'. Skipped importing this annotation for marker "
+																	+ line[i] + "'. Skipped importing this annotation for marker "
 																	+ line[0] + ".");
 								}
 							} else {
@@ -259,7 +259,7 @@ public class AnnotationCollection implements Serializable, TextExport {
 		key = 0;
 		letters = comment.toLowerCase().toCharArray();
 		for (int j = 0; j < letters.length; j++) {
-			if (letters[j] >= 97	&& letters[j] <= 122
+			if (letters[j] >= 97 && letters[j] <= 122
 					&& !currentAnnotationCollection.containsKey(letters[j])) {
 				key = letters[j];
 				break;
@@ -295,7 +295,7 @@ public class AnnotationCollection implements Serializable, TextExport {
 
 		char[] result = new char[values.size()];
 
-		for (int i=0; i<values.size(); i++) {
+		for (int i = 0; i < values.size(); i++) {
 			result[i] = reverseMap.get(values.get(i));
 		}
 
@@ -319,15 +319,15 @@ public class AnnotationCollection implements Serializable, TextExport {
 	}
 
 	public String[] getMarkerLists(char key) {
-		return Array.toStringArray(annotationMarkerLists.get(key + ""));
+		return ArrayUtils.toStringArray(annotationMarkerLists.get(key + ""));
 	}
 
 	public String getDescriptionForComment(char c, boolean includeShortcuts, boolean includeNumbers) {
 		return (includeShortcuts ? "'" + c + "' " : "") + commentsHash.get(c) + (includeNumbers
-																																															? " (n="
-																																																+ annotationMarkerLists	.get(c
-																																																														+ "")
-																																																											.size()
+																																														? " (n="
+																																															+ annotationMarkerLists.get(c
+																																																													+ "")
+																																																										 .size()
 																																															+ ")"
 																																														: "");
 	}
@@ -356,9 +356,9 @@ public class AnnotationCollection implements Serializable, TextExport {
 		char[] keys;
 
 		keys = getKeys();
-		newMappings = HashVec.loadFileToStringMatrix(	importList, false, new int[] {0, 1},
-																									Files.determineDelimiter(importList, log), false,
-																									keys.length, false);
+		newMappings = HashVec.loadFileToStringMatrix(importList, false, new int[] {0, 1},
+																								 Files.determineDelimiter(importList, log), false,
+																								 keys.length, false);
 
 		for (String[] newMapping : newMappings) {
 			if (commentsHash.containsKey(newMapping[0].charAt(0))) {
@@ -405,17 +405,17 @@ public class AnnotationCollection implements Serializable, TextExport {
 		boolean dump = false;
 		String recoverDir = null;
 
-		String usage = "\n"	+ "cnv.filesys.AnnotationCollection requires 0-1 arguments\n"
-										+ "   (1) project properties filename (i.e. proj="
-										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-										+ "  AND\n" + "   (2) list annotations (i.e. exportList=" + exportList
-										+ " (default))\n" + "  OR\n"
-										+ "   (2) rename annotations (i.e. importList=importNewList.txt (not the default))\n"
-										+ "  OR\n"
-										+ "   (2) dump lists for the project's AnnotationCollection (i.e. -dump (not the default))\n"
-										+ "  OR\n"
-										+ "   (1) recover temp annotations from a directory (i.e. recover=C:/data/recover/ (not the default))\n"
-										+ "";
+		String usage = "\n" + "cnv.filesys.AnnotationCollection requires 0-1 arguments\n"
+									 + "   (1) project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + "  AND\n" + "   (2) list annotations (i.e. exportList=" + exportList
+									 + " (default))\n" + "  OR\n"
+									 + "   (2) rename annotations (i.e. importList=importNewList.txt (not the default))\n"
+									 + "  OR\n"
+									 + "   (2) dump lists for the project's AnnotationCollection (i.e. -dump (not the default))\n"
+									 + "  OR\n"
+									 + "   (1) recover temp annotations from a directory (i.e. recover=C:/data/recover/ (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -1,13 +1,20 @@
 package org.genvisis.cnv.analysis;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
+import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.Segment;
 
@@ -55,12 +62,10 @@ public class BeastScore {
 										Logger log) {
 		super();
 		this.inputData = inputData;
-		this.indicesToChunk =
-												indicesToChunk == null	? new int[][] {Array.arrayOfIndices(inputData.length)}
-																								: indicesToChunk;
-		this.indicesForScores =
-													indicesForScores == null	? new int[][] {Array.arrayOfIndices(inputData.length)}
-																										: indicesForScores;
+		this.indicesToChunk = indicesToChunk == null ? new int[][] {ArrayUtils.arrayOfIndices(inputData.length)}
+																								 : indicesToChunk;
+		this.indicesForScores = indicesForScores == null ? new int[][] {ArrayUtils.arrayOfIndices(inputData.length)}
+																										 : indicesForScores;
 		beastHeights = new float[this.indicesForScores.length];
 		beastScores = new float[this.indicesForScores.length];
 		beastLengths = new int[this.indicesForScores.length];
@@ -92,8 +97,8 @@ public class BeastScore {
 		if (index >= beastScores.length) {
 			log.reportError("Error - requested a summary for an index that is too big");
 		}
-		return getBeastHeights()[index]	+ "\t" + getBeastLengths()[index] + "\t"
-						+ getBeastScores()[index];
+		return getBeastHeights()[index] + "\t" + getBeastLengths()[index] + "\t"
+					 + getBeastScores()[index];
 	}
 
 	/**
@@ -128,8 +133,8 @@ public class BeastScore {
 		float[] inverseTransformedData = transformData(inputData, indicesToChunk, use, log);
 		float[] indicesMADScaled = getscaleMADIndices(indicesToChunk, inverseTransformedData, use,
 																									scaleFactorMAD, log);
-		float[] inverseTransformedDataScaleMAD = getscaleMADData(	inverseTransformedData, indicesToChunk,
-																															use, indicesMADScaled, log);
+		float[] inverseTransformedDataScaleMAD = getscaleMADData(inverseTransformedData, indicesToChunk,
+																														 use, indicesMADScaled, log);
 		return inverseTransformedDataScaleMAD;
 	}// JOHN hijack this
 
@@ -149,7 +154,7 @@ public class BeastScore {
 	public static float[] transformData(float[] inputData, int[][] indicesToChunk, boolean[] use,
 																			Logger log) {
 		return Transforms.transform(inputData, 2, indicesToChunk,
-																use == null	? Array.booleanArray(indicesToChunk.length, true)
+																use == null ? ArrayUtils.booleanArray(indicesToChunk.length, true)
 																						: use);
 	}
 
@@ -165,8 +170,8 @@ public class BeastScore {
 	 * @param log
 	 * @return
 	 */
-	public static float[] getscaleMADIndices(	int[][] indicesToScale, float[] inverseTransformedData,
-																						boolean[] use, double scaleFactorMAD, Logger log) {
+	public static float[] getscaleMADIndices(int[][] indicesToScale, float[] inverseTransformedData,
+																					 boolean[] use, double scaleFactorMAD, Logger log) {
 		float[] indicesMADScaled = new float[indicesToScale.length];
 		for (int i = 0; i < indicesToScale.length; i++) {
 			if (indicesToScale[i] != null && indicesToScale[i].length > 0) {
@@ -177,8 +182,8 @@ public class BeastScore {
 						medianIndices.add(Math.abs(inverseTransformedData[index]));
 					}
 				}
-				indicesMADScaled[i] =
-														(float) (Array.median(Doubles.toArray(medianIndices)) / scaleFactorMAD);
+				indicesMADScaled[i] = (float) (ArrayUtils.median(Doubles.toArray(medianIndices))
+																			 / scaleFactorMAD);
 			}
 		}
 		return indicesMADScaled;
@@ -237,7 +242,7 @@ public class BeastScore {
 				}
 			}
 			if (medianHeightIndices.size() > 0) {
-				beastHeights[i] = (float) (Array.median(Doubles.toArray(medianHeightIndices)));
+				beastHeights[i] = (float) (ArrayUtils.median(Doubles.toArray(medianHeightIndices)));
 			} else {
 				beastHeights[i] = Float.NaN;
 			}
@@ -273,8 +278,8 @@ public class BeastScore {
 	 * @param log
 	 * @return the beast scores for each index of beastHeights and beastLengths
 	 */
-	public static float[] getBeastScores(	float[] beastHeights, int[] beastLengths, float alpha,
-																				Logger log) {
+	public static float[] getBeastScores(float[] beastHeights, int[] beastLengths, float alpha,
+																			 Logger log) {
 		float[] beastScores = new float[beastHeights.length];
 		if (beastHeights.length != beastLengths.length) {
 			log.reportError("Error - heights and lengths must contain the same number of inputs to compute a Beast Score");
@@ -324,7 +329,7 @@ public class BeastScore {
 			}
 		}
 		if (count > indices.length) {
-			log.reportError("Warning - found too many markers ("	+ count + ") for cnVariant "
+			log.reportError("Warning - found too many markers (" + count + ") for cnVariant "
 											+ cnVariant.toPlinkFormat()
 											+ "\n Perhaps some markers were filtered out prior to calling?");
 			log.reportError("Warning - the beast score will be computed for the first "
@@ -339,6 +344,85 @@ public class BeastScore {
 		return indices;
 	}
 
+	/**
+	 * Create a new CNV file with BEAST height, score, and individual sex annotations for each CNV.
+	 * 
+	 * @param proj Project
+	 * @param cnvFile CNV File to score
+	 * @param isSexCNVs This flag applies sex-specific centroids to recompute LRRs.  If not, original LRRs will be used for scoring.
+	 */
+	private static void scoreCNVFile(Project proj, String cnvFile, boolean recomputeLRRsFromSexCentroids) {
+		SampleData sd = proj.getSampleData(0, false);
+
+		MarkerSet markerSet = proj.getMarkerSet();
+		byte[] chr = markerSet.getChrs();
+		int[] positions = markerSet.getPositions();
+		int[][] indicesByChr = markerSet.getIndicesByChr();
+		
+		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile, false);
+
+		HashSet<String> inds = new HashSet<String>();
+		for (CNVariant cnv : cnvs) {
+			inds.add(cnv.getIndividualID());
+		}
+		ArrayList<String> ids = new ArrayList<String>(inds);
+		HashMap<String, ArrayList<CNVariant>> cnvMap = new HashMap<String, ArrayList<CNVariant>>();
+		for (String s : ids) {
+			cnvMap.put(s, new ArrayList<CNVariant>());
+		}
+		
+		for (CNVariant cnv : cnvs) {
+			cnvMap.get(cnv.getIndividualID()).add(cnv);
+		}
+		
+		CNVariant[][] cnvArr = new CNVariant[ids.size()][];
+		for (int i = 0; i < cnvArr.length; i++) {
+			cnvArr[i] = cnvMap.get(ids.get(i)).toArray(new CNVariant[0]); 
+		}
+
+		float[][][] centFem = null;
+		float[][][] centMal = null;
+		if (recomputeLRRsFromSexCentroids) {
+			if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())) {
+				centFem = Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue(), false).getCentroids();
+			} else {
+				proj.getLog().reportError("Female-specific centroid file {" + proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue() + "} doesn't exist - LRR correction cannot complete.");
+				return;
+			}
+			if (Files.exists(proj.SEX_CENTROIDS_MALE_FILENAME.getValue())) {
+				centMal = Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue(), false).getCentroids();
+			} else {
+				proj.getLog().reportError("Male-specific centroid file {" + proj.SEX_CENTROIDS_MALE_FILENAME.getValue() + "} doesn't exist - LRR correction cannot complete.");
+				return;
+			}
+		}
+		
+		BeastScore[] idScores = new BeastScore[ids.size()];
+		for (int i = 0; i < ids.size(); i++) {
+			Sample samp = proj.getPartialSampleFromRandomAccessFile(ids.get(i), false, false, false, true, false);
+			float[] lrrs = recomputeLRRsFromSexCentroids ? samp.getLRRs((sd.getSexForIndividual(ids.get(i)) == 1) ? centMal : centFem) : samp.getLRRs();
+			idScores[i] = BeastScore.beastInd(proj, sd, lrrs, cnvArr[i], chr, positions, indicesByChr);
+		}
+		
+		String outFile = ext.rootOf(cnvFile, false) + "_beast.cnv";
+		 	
+		PrintWriter writer = Files.getAppropriateWriter(outFile);
+		writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t") + "\tSEX\tSCORE\tHEIGHT");
+		for (int i = 0; i < ids.size(); i++) {
+			CNVariant[] idCnvs = cnvArr[i];
+			float[] scores = idScores[i].getBeastScores();
+			float[] heights = idScores[i].getBeastHeights();
+			
+			for (int c = 0; c < idCnvs.length; c++) {
+				writer.println(idCnvs[c].toPlinkFormat() + "\t" + sd.getSexForIndividual(ids.get(i)) + "\t" + scores[c] + "\t" + heights[c]);
+			}
+			
+		}
+		writer.flush();
+		writer.close();
+		
+	}
+	
 	/**
 	 * Helper Function to compute the beast scores for cNVariantInds[][], where cNVariantInds.lenght =
 	 * number of individuals and cNVariantInds[i].length is the number of cnvs per indivdual
@@ -384,11 +468,11 @@ public class BeastScore {
 				try {
 					ind = sampleData.lookup(key)[0];
 				} catch (NullPointerException npe) {
-					log.reportError("Error - could not look up the sample "	+ key
+					log.reportError("Error - could not look up the sample " + key
 													+ " in the sample data file " + proj.SAMPLE_DATA_FILENAME.getValue()
 													+ ", cannot load sample to compute beast score");
 					log.reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID="
-														+ cNVariantInd[0].getFamilyID() + " and IID="
+													+ cNVariantInd[0].getFamilyID() + " and IID="
 													+ cNVariantInd[0].getIndividualID());
 					return score;
 				}
@@ -405,7 +489,7 @@ public class BeastScore {
 				try {
 					lrrs = proj.getFullSampleFromRandomAccessFile(ind).getLRRs();
 				} catch (NullPointerException npe) {
-					log.reportError("Error - could not load data for the sample "	+ ind + "\t" + key
+					log.reportError("Error - could not load data for the sample " + ind + "\t" + key
 													+ ", please ensure samples have been parsed prior to computing beast score");
 					log.report("Skipping beast score for sample " + ind + "\t" + key);
 					return score;

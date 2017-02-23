@@ -2,7 +2,7 @@ package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 import com.google.common.primitives.Doubles;
@@ -57,7 +57,7 @@ public class CNVBDeviation {
 		boolean added = true;
 		double dBaf = baf;
 
-		if (Float.isNaN(baf)	|| ext.indexOfStartsWith(markerName, intensityOnlyFlags, false) > 0
+		if (Float.isNaN(baf) || ext.indexOfStartsWith(markerName, intensityOnlyFlags, false) > 0
 				|| gc < gcThreshold) {// skip intensity only, and gc filtered
 			added = false;
 		} else {
@@ -85,11 +85,11 @@ public class CNVBDeviation {
 	public void summarize() {
 		if (bDeviationsAll.size() > 0) {
 			double[] bDeviationsDAll = Doubles.toArray(bDeviationsAll);
-			medianBDeviationAll = Array.median(bDeviationsDAll);
+			medianBDeviationAll = ArrayUtils.median(bDeviationsDAll);
 		}
 		if (bDeviationsHet.size() > 0) {
 			double[] bDeviationsDHet = Doubles.toArray(bDeviationsHet);
-			medianBDeviationHet = Array.median(bDeviationsDHet);
+			medianBDeviationHet = ArrayUtils.median(bDeviationsDHet);
 		}
 	}
 

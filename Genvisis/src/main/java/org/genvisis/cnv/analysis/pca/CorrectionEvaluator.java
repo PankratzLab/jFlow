@@ -8,8 +8,8 @@ import java.util.concurrent.Callable;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals.PrincipalComponentsIterator;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
-import org.genvisis.common.Array;
-import org.genvisis.common.Array.BooleanClassifier;
+import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.ArrayUtils.BooleanClassifier;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
@@ -21,8 +21,7 @@ import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 import com.google.common.primitives.Doubles;
 
-public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
-																	implements Serializable {
+public class CorrectionEvaluator extends AbstractProducer<EvaluationResult> implements Serializable {
 	/**
 	 *
 	 */
@@ -30,8 +29,8 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
 	private static final String[][] EVAL_MASKS = new String[][] {{"0", "-1", "NaN"}, {"0", "-1"}};
 	public static final String[] DOUBLE_DATA = new String[] {"AGE"};
 	public static final String[] DOUBLE_DATA_PATTERN = new String[] {"EVAL_DATA", "AGE"};// For
-																																												// Correlation(Spearman
-																																												// by ICC)
+																																											 // Correlation(Spearman
+																																											 // by ICC)
 	public static final String[] STRING_DATA_PATTERN = new String[] {"EVAL_CLASS", "AGE"};// For ICC
 	public static final String[] STRAT_STRING_PATTERN = new String[] {"STRAT_CLASS"};// For ICC
 
@@ -51,19 +50,19 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
 	private final Logger log;
 	private final LS_TYPE lType;
 
-	public CorrectionEvaluator(	Project proj, PrincipalComponentsResiduals pcResiduals,
-															EvaluationResult[] precomputeds, int[] order,
-															boolean[][] samplesToInclude, double[][] extraIndeps, LS_TYPE lType) {
+	public CorrectionEvaluator(Project proj, PrincipalComponentsResiduals pcResiduals,
+														 EvaluationResult[] precomputeds, int[] order,
+														 boolean[][] samplesToInclude, double[][] extraIndeps, LS_TYPE lType) {
 		super();
 		this.proj = proj;
 		this.samplesToInclude = samplesToInclude;
 		log = proj.getLog();
-		matchDouble =
-								gatherPatternTitles(proj.SAMPLE_DATA_FILENAME.getValue(), DOUBLE_DATA_PATTERN, log);
-		matchString =
-								gatherPatternTitles(proj.SAMPLE_DATA_FILENAME.getValue(), STRING_DATA_PATTERN, log);
+		matchDouble = gatherPatternTitles(proj.SAMPLE_DATA_FILENAME.getValue(), DOUBLE_DATA_PATTERN,
+																			log);
+		matchString = gatherPatternTitles(proj.SAMPLE_DATA_FILENAME.getValue(), STRING_DATA_PATTERN,
+																			log);
 		stratString = gatherPatternTitles(proj.SAMPLE_DATA_FILENAME.getValue(),
-																			Array.concatAll(STRAT_STRING_PATTERN, INDEPS_CATS), log);
+																			ArrayUtils.concatAll(STRAT_STRING_PATTERN, INDEPS_CATS), log);
 		loadSampleData();
 		this.extraIndeps = extraIndeps;
 		iterator = precomputeds == null ? new PrincipalComponentsIterator(pcResiduals, order) : null;
@@ -104,12 +103,12 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
 
 	@Override
 	public Callable<EvaluationResult> next() {
-		EvaluationWorker worker =
-														new EvaluationWorker(	precomputeds == null ? iterator.next() : null,
-																									precomputeds == null ? null : precomputeds[index],
-																									extraIndeps, matchString, matchDouble,
-																									stratString, samplesToInclude, parser, lType,
-																									log);
+		EvaluationWorker worker = new EvaluationWorker(precomputeds == null ? iterator.next() : null,
+																									 precomputeds == null ? null
+																																				: precomputeds[index],
+																									 extraIndeps, matchString, matchDouble,
+																									 stratString, samplesToInclude, parser, lType,
+																									 log);
 		index++;
 		return worker;
 	}
@@ -135,7 +134,7 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
 			this.extraIndeps = extraIndeps;
 			this.matchString = matchString;
 			this.matchDouble = matchDouble;
-			this.stratString = Array.concatAll(new String[] {NO_STRAT}, stratString);
+			this.stratString = ArrayUtils.concatAll(new String[] {NO_STRAT}, stratString);
 			this.samplesToInclude = samplesToInclude;
 			this.parser = parser;
 			this.lType = lType;
@@ -151,12 +150,11 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
 
 	}
 
-	private static EvaluationResult evaluate(	PrincipalComponentsResiduals tmpResiduals,
-																						EvaluationResult precomputed, double[][] extraIndeps,
-																						String[] matchString, String[] matchDouble,
-																						String[] stratString, boolean[][] samplesToInclude,
-																						ExtProjectDataParser parser, LS_TYPE lType,
-																						Logger log) {
+	private static EvaluationResult evaluate(PrincipalComponentsResiduals tmpResiduals,
+																					 EvaluationResult precomputed, double[][] extraIndeps,
+																					 String[] matchString, String[] matchDouble,
+																					 String[] stratString, boolean[][] samplesToInclude,
+																					 ExtProjectDataParser parser, LS_TYPE lType, Logger log) {
 		String baseTitle = "";
 		double[] estimate = null;
 		double rsquare = Double.NaN;
@@ -189,41 +187,41 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
 		EvaluationResult evaluationResult = new EvaluationResult(baseTitle, estimate, rsquare);
 
 		for (int i = 0; i < stratString.length; i++) {
-			boolean[][] strat = new boolean[][] {Array.booleanArray(samplesToInclude[1].length, true)};
+			boolean[][] strat = new boolean[][] {ArrayUtils.booleanArray(samplesToInclude[1].length,
+																																	 true)};
 			String[] stratTitles = new String[] {NO_STRAT};
 			if (!stratString[i].equals(NO_STRAT)) {
-				BooleanClassifier bClassifier =
-																			Array.classifyStringsToBoolean(	parser.getStringDataForTitle(stratString[i]),
-																																			new String[] {"NaN"});
+				BooleanClassifier bClassifier = ArrayUtils.classifyStringsToBoolean(parser.getStringDataForTitle(stratString[i]),
+																																						new String[] {"NaN"});
 				stratTitles = bClassifier.getTitles();
 				strat = bClassifier.getClassified();
 			}
 			for (int j = 0; j < stratTitles.length; j++) {
-				boolean[] finalEval = Array.booleanArray(strat[j].length, false);
+				boolean[] finalEval = ArrayUtils.booleanArray(strat[j].length, false);
 				for (int k = 0; k < strat[j].length; k++) {
 					finalEval[k] = strat[j][k] && samplesToInclude[1][k];
 				}
 
 				for (String element : matchString) {
-					String[] response = Array.subArray(parser.getStringDataForTitle(element), finalEval);
-					double[] data = Array.subArray(estimate, finalEval);
+					String[] response = ArrayUtils.subArray(parser.getStringDataForTitle(element), finalEval);
+					double[] data = ArrayUtils.subArray(estimate, finalEval);
 					ICC icc = new ICC(data, response, EVAL_MASKS[0], null, false, log);
 					icc.computeICC();
 					evaluationResult.getIccs().add(icc);
-					evaluationResult.getNumIndsIcc().add(Array.booleanArraySum(finalEval));
+					evaluationResult.getNumIndsIcc().add(ArrayUtils.booleanArraySum(finalEval));
 					evaluationResult.getIccTitles().add(element + "_" + stratTitles[j]);
-					log.reportTimeInfo("ICC: "	+ element + "_" + stratTitles[j] + " -> " + icc.getICC()
-															+ " NumComps = " + Integer.parseInt(baseTitle));
+					log.reportTimeInfo("ICC: " + element + "_" + stratTitles[j] + " -> " + icc.getICC()
+														 + " NumComps = " + Integer.parseInt(baseTitle));
 				}
 				for (String element : matchDouble) {
 
-					StatPrep result = prepData(	estimate, parser.getNumericDataForTitle(element), finalEval,
-																			element, true, log);
-					ICC icc =
-									new ICC(result.getFinalData(), result.getFinalResponse(), null, null, false, log);
+					StatPrep result = prepData(estimate, parser.getNumericDataForTitle(element), finalEval,
+																		 element, true, log);
+					ICC icc = new ICC(result.getFinalData(), result.getFinalResponse(), null, null, false,
+														log);
 					icc.computeICC();
 					evaluationResult.getIccs().add(icc);
-					evaluationResult.getNumIndsIcc().add(Array.booleanArraySum(finalEval));
+					evaluationResult.getNumIndsIcc().add(ArrayUtils.booleanArraySum(finalEval));
 					evaluationResult.getIccTitles().add(element + "_" + stratTitles[j]);
 					double[][] correlData = new double[][] {result.getInternalEstimate(),
 																									result.getExternalEstimate()};
@@ -233,23 +231,23 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
 					evaluationResult.getNumIndsCorrel().add(result.getInternalEstimate().length);
 					evaluationResult.getSpearmanCorrel().add(spearman);
 					evaluationResult.getCorrelTitles().add(element + "_" + stratTitles[j]);
-					log.reportTimeInfo("Spearman: "	+ element + "_" + stratTitles[j] + " -> "
-															+ Array.toStr(spearman) + " NumComps = "
-															+ Integer.parseInt(baseTitle));
+					log.reportTimeInfo("Spearman: " + element + "_" + stratTitles[j] + " -> "
+														 + ArrayUtils.toStr(spearman) + " NumComps = "
+														 + Integer.parseInt(baseTitle));
 				}
 			}
 		}
 		return evaluationResult;
 	}
 
-	private static StatPrep prepData(	double[] internalEstimate, double[] externalEstimate,
-																		boolean[] samplesToInclude, String title, boolean normalize,
-																		Logger log) {
+	private static StatPrep prepData(double[] internalEstimate, double[] externalEstimate,
+																	 boolean[] samplesToInclude, String title, boolean normalize,
+																	 Logger log) {
 		StatPrep result = null;
 		if (internalEstimate.length != externalEstimate.length) {
-			log.reportError("For "	+ title + ", internal n=" + internalEstimate.length
-													+ " data points do not match external n=" + externalEstimate.length
-													+ " datapoints");
+			log.reportError("For " + title + ", internal n=" + internalEstimate.length
+											+ " data points do not match external n=" + externalEstimate.length
+											+ " datapoints");
 
 		} else {
 			ArrayList<Double> tmpInternals = new ArrayList<Double>();
@@ -258,7 +256,7 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
 			ArrayList<String> tmpResponseExternal = new ArrayList<String>();
 
 			for (int i = 0; i < externalEstimate.length; i++) {
-				if (samplesToInclude[i]	&& !Double.isNaN(internalEstimate[i])
+				if (samplesToInclude[i] && !Double.isNaN(internalEstimate[i])
 						&& !Double.isNaN(externalEstimate[i])) {
 					tmpResponseInternal.add(i + "");
 					tmpInternals.add(internalEstimate[i]);
@@ -276,8 +274,8 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
 			String[] finalResponse = new String[externals.length * 2];
 			int index = 0;
 			if (normalize) {
-				internals = Array.normalize(internals);
-				externals = Array.normalize(externals);
+				internals = ArrayUtils.normalize(internals);
+				externals = ArrayUtils.normalize(externals);
 			}
 			for (int i = 0; i < externals.length; i++) {
 				finalData[index] = internals[i];
@@ -326,14 +324,13 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
 	}
 
 	private void loadSampleData() {
-		log.reportTimeInfo("Found "	+ matchDouble.length + "(" + Array.toStr(matchDouble)
-												+ ") data columns to load matching the patterns defined by "
-												+ Array.toStr(DOUBLE_DATA_PATTERN));
-		log.reportTimeInfo("Found "	+ matchString.length + "(" + Array.toStr(matchString)
-												+ ") String columns to load matching the patterns defined by "
-												+ Array.toStr(STRING_DATA_PATTERN));
-		ExtProjectDataParser.ProjectDataParserBuilder builder =
-																													new ExtProjectDataParser.ProjectDataParserBuilder();
+		log.reportTimeInfo("Found " + matchDouble.length + "(" + ArrayUtils.toStr(matchDouble)
+											 + ") data columns to load matching the patterns defined by "
+											 + ArrayUtils.toStr(DOUBLE_DATA_PATTERN));
+		log.reportTimeInfo("Found " + matchString.length + "(" + ArrayUtils.toStr(matchString)
+											 + ") String columns to load matching the patterns defined by "
+											 + ArrayUtils.toStr(STRING_DATA_PATTERN));
+		ExtProjectDataParser.ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 		builder.sampleBased(true);
 		builder.treatAllNumeric(false);
 		builder.requireAll(true);
@@ -341,8 +338,8 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
 		builder.dataKeyColumnName("DNA");
 		// System.out.println(Array.toStr(matchDouble));
 		// System.exit(1);
-		builder.stringDataTitles(Array.concatAll(matchString, stratString));
-		builder.numericDataTitles(Array.concatAll(matchDouble));
+		builder.stringDataTitles(ArrayUtils.concatAll(matchString, stratString));
+		builder.numericDataTitles(ArrayUtils.concatAll(matchDouble));
 		try {
 			log.reportTimeInfo("Loading " + proj.SAMPLE_DATA_FILENAME.getValue());
 			parser = builder.build(proj, proj.SAMPLE_DATA_FILENAME.getValue());

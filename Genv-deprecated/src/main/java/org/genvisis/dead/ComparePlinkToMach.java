@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -32,7 +32,7 @@ public class ComparePlinkToMach {
 		Hashtable<String, String[]> plinkData = new Hashtable<String, String[]>();
 		String[] markers;
 
-		markers = Array.toStringArray(HashVec.loadFileToVec(markersToDo, false, true, true));
+		markers = ArrayUtils.toStringArray(HashVec.loadFileToVec(markersToDo, false, true, true));
 
 		plinkPeopleIndicies = new Vector<String>();
 		try {
@@ -45,8 +45,8 @@ public class ComparePlinkToMach {
 			}
 			reader1.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ dir + "chr" + chr + ".fam"
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + dir + "chr" + chr + ".fam"
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + dir + "chr" + chr + ".fam" + "\"");
@@ -69,12 +69,12 @@ public class ComparePlinkToMach {
 			reader1.close();
 			reader2.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ dir + "chr" + chr + ".proxy.impute.dosage"
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + dir + "chr" + chr + ".proxy.impute.dosage"
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""	+ dir + "chr" + chr + ".proxy.impute.dosage"
-													+ "\"");
+			System.err.println("Error reading file \"" + dir + "chr" + chr + ".proxy.impute.dosage"
+												 + "\"");
 			System.exit(2);
 		}
 
@@ -86,7 +86,7 @@ public class ComparePlinkToMach {
 		String[] line;
 		int count;
 		String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\imputation\\MACH comparison\\Mach_chr"
-									+ chr + "\\";
+								 + chr + "\\";
 
 		Vector<String> machMarkerIndices;
 
@@ -100,12 +100,12 @@ public class ComparePlinkToMach {
 			e.printStackTrace();
 		}
 
-		machMarkerIndices = HashVec.loadFileToVec(dir	+ "mach_step2_chr" + chr + ".mlinfo", true, true,
+		machMarkerIndices = HashVec.loadFileToVec(dir + "mach_step2_chr" + chr + ".mlinfo", true, true,
 																							false);
 
 		try {
-			reader = new BufferedReader(new FileReader(dir	+ "mach_step2_chr" + chr
-																									+ ".mldose-transposeHuge.xln"));
+			reader = new BufferedReader(new FileReader(dir + "mach_step2_chr" + chr
+																								 + ".mldose-transposeHuge.xln"));
 			writer = new PrintWriter(new FileWriter(dir + "mach_step2_chr" + chr + ".trans.mldose"));
 			line = reader.readLine().trim().split("[\\s]+");
 			writer.print("Marker");
@@ -122,12 +122,12 @@ public class ComparePlinkToMach {
 			reader.close();
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ dir + "mach_step2_chr" + chr
-													+ ".mldose-transposeHuge.xln" + "\" not found in current directory");
+			System.err.println("Error: file \"" + dir + "mach_step2_chr" + chr
+												 + ".mldose-transposeHuge.xln" + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""	+ dir + "mach_step2_chr" + chr
-													+ ".mldose-transposeHuge.xln" + "\"");
+			System.err.println("Error reading file \"" + dir + "mach_step2_chr" + chr
+												 + ".mldose-transposeHuge.xln" + "\"");
 			System.exit(2);
 		}
 
@@ -139,11 +139,11 @@ public class ComparePlinkToMach {
 		int chr = 21;
 		String markersToDo = "markers.txt";
 
-		String usage = "\\n"	+ "park.gwa.ComparePlinkToMach requires 0-1 arguments\n"
-										+ "   (1) directory (i.e. dir=" + dir + " (default))\n"
-										+ "   (2) chromosome (i.e. chr=" + chr + " (default))\n"
-										+ "   (3) file with list of markers to do (i.e. file=" + chr + " (default))\n"
-										+ "";
+		String usage = "\\n" + "park.gwa.ComparePlinkToMach requires 0-1 arguments\n"
+									 + "   (1) directory (i.e. dir=" + dir + " (default))\n"
+									 + "   (2) chromosome (i.e. chr=" + chr + " (default))\n"
+									 + "   (3) file with list of markers to do (i.e. file=" + chr + " (default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

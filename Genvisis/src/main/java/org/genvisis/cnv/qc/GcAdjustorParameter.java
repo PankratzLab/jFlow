@@ -14,7 +14,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
@@ -59,10 +59,10 @@ public class GcAdjustorParameter implements Serializable {
 	 * @param lrrsdPost
 	 * @param correctionMethod
 	 */
-	public GcAdjustorParameter(	String sample, double[] betas, double wfPrior, double wfPost,
-															double gcwfPrior, double gcwfPost, double meanPrior, double meanPost,
-															double lrrsdPrior, double lrrsdPost,
-															GC_CORRECTION_METHOD correctionMethod, Logger log) {
+	public GcAdjustorParameter(String sample, double[] betas, double wfPrior, double wfPost,
+														 double gcwfPrior, double gcwfPost, double meanPrior, double meanPost,
+														 double lrrsdPrior, double lrrsdPost,
+														 GC_CORRECTION_METHOD correctionMethod, Logger log) {
 		super();
 		this.sample = sample;
 		this.betas = betas;
@@ -77,7 +77,7 @@ public class GcAdjustorParameter implements Serializable {
 		this.correctionMethod = correctionMethod;
 		if (betas == null || betas.length != 2) {
 			this.betas = new double[] {0, 0};
-			log.reportTimeWarning("gc content betas were not able to be computed, sample "	+ sample
+			log.reportTimeWarning("gc content betas were not able to be computed, sample " + sample
 														+ " will not be gc corrected.");
 			// throw new IllegalArgumentException("betas must be length 2");
 		}
@@ -95,7 +95,7 @@ public class GcAdjustorParameter implements Serializable {
 		qc.add(meanPost + "");
 		qc.add(lrrsdPrior + "");
 		qc.add(lrrsdPost + "");
-		return Array.toStringArray(qc);
+		return ArrayUtils.toStringArray(qc);
 
 	}
 
@@ -180,8 +180,8 @@ public class GcAdjustorParameter implements Serializable {
 	public CrossValidation adjust(GC_CORRECTION_METHOD method, String sampleName, double[] intensity,
 																double[][] gc, boolean verbose, Logger log) {
 		verify(method, sampleName, gc);
-		CrossValidation cv = new CrossValidation(	null, null, intensity, gc, verbose, LS_TYPE.REGULAR,
-																							log);
+		CrossValidation cv = new CrossValidation(null, null, intensity, gc, verbose, LS_TYPE.REGULAR,
+																						 log);
 		cv.setBetas(betas);
 		cv.computePredictedValues();
 		cv.computeResiduals();
@@ -190,15 +190,15 @@ public class GcAdjustorParameter implements Serializable {
 
 	private void verify(GC_CORRECTION_METHOD method, String sampleName, double[][] gc) {
 		if (!sample.equals(sampleName)) {
-			throw new IllegalArgumentException("Mismatched samples, object is storing "	+ sample + " and "
-																					+ sampleName + " was provided");
+			throw new IllegalArgumentException("Mismatched samples, object is storing " + sample + " and "
+																				 + sampleName + " was provided");
 		}
 		if (gc != null && betas.length != gc[0].length + 1) {
 			throw new IllegalArgumentException("Independant variable sizes do not match beta length");
 		}
 		if (method != correctionMethod) {
 			throw new IllegalArgumentException("Mismatched correction methods, obect is storing "
-																					+ correctionMethod + " and " + method + " was provided");
+																				 + correctionMethod + " and " + method + " was provided");
 		}
 	}
 
@@ -237,7 +237,7 @@ public class GcAdjustorParameter implements Serializable {
 			Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
 			int[] autoIndices = proj.getAutosomalMarkerIndices();
 			proj.getLog().reportTimeInfo("sample " + sample);
-			GcAdjustorParameter[][][] params = new GcAdjustorParameter[builders.length][centroids == null	? 1
+			GcAdjustorParameter[][][] params = new GcAdjustorParameter[builders.length][centroids == null ? 1
 																																																		: 1
 																																																			+ centroids.length][];
 			float[] intensites = samp.getLRRs();
@@ -248,9 +248,9 @@ public class GcAdjustorParameter implements Serializable {
 				if (centroids != null) {
 					for (int j = 0; j < centroids.length; j++) {
 						float[] centIntensites = samp.getLRRs(centroids[j].getCentroids());
-						ArrayList<GcAdjustorParameter> centParameters =
-																													getParams(builders[i], compute[i][j + 1],
-																																		centIntensites, autoIndices);
+						ArrayList<GcAdjustorParameter> centParameters = getParams(builders[i],
+																																			compute[i][j + 1],
+																																			centIntensites, autoIndices);
 						params[i][j
 											+ 1] = centParameters.toArray(new GcAdjustorParameter[centParameters.size()]);
 					}
@@ -259,37 +259,37 @@ public class GcAdjustorParameter implements Serializable {
 			return params;
 		}
 
-		private ArrayList<GcAdjustorParameter> getParams(	GCAdjustorBuilder builder,
-																											boolean[] computeMethods, float[] intensites,
-																											int[] autosomalIndices) {
+		private ArrayList<GcAdjustorParameter> getParams(GCAdjustorBuilder builder,
+																										 boolean[] computeMethods, float[] intensites,
+																										 int[] autosomalIndices) {
 			ArrayList<GcAdjustorParameter> parameters = new ArrayList<GcAdjustorParameter>();
 			for (int i = 0; i < correction_METHODs.length; i++) {
 				if (computeMethods[i]) {
 					builder.correctionMethod(correction_METHODs[i]);
-					GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(	proj, builder, sample, null,
-																																	markerSet, intensites, gcmodel,
-																																	true, true, debugMode);
+					GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, builder, sample, null,
+																																 markerSet, intensites, gcmodel,
+																																 true, true, debugMode);
 					GcAdjustorParameter gcAdjustorParameters;
 					if (gcAdjustor.isFail()) {
 						// proj.getLog().reportTimeWarning("Sample "+sample +" failed GC correction");
-						gcAdjustorParameters = new GcAdjustorParameter(	sample, null, Double.NaN, Double.NaN,
-																														Double.NaN, Double.NaN, Double.NaN,
-																														Double.NaN, Double.NaN, Double.NaN,
-																														correction_METHODs[i], proj.getLog());
+						gcAdjustorParameters = new GcAdjustorParameter(sample, null, Double.NaN, Double.NaN,
+																													 Double.NaN, Double.NaN, Double.NaN,
+																													 Double.NaN, Double.NaN, Double.NaN,
+																													 correction_METHODs[i], proj.getLog());
 					} else {
 						double[] meandSdPrior = getMeanSd(intensites, autosomalIndices);
-						double[] meandSdPost = getMeanSd(	Array.toFloatArray(gcAdjustor.getCorrectedIntensities()),
-																							autosomalIndices);
-						gcAdjustorParameters = new GcAdjustorParameter(	sample,
-																														gcAdjustor.getCrossValidation()
-																																			.getBetas(),
-																														gcAdjustor.getWfPrior(),
-																														gcAdjustor.getWfPost(),
-																														gcAdjustor.getGcwfPrior(),
-																														gcAdjustor.getGcwfPost(),
-																														meandSdPrior[0], meandSdPost[0],
-																														meandSdPrior[1], meandSdPost[1],
-																														correction_METHODs[i], proj.getLog());
+						double[] meandSdPost = getMeanSd(ArrayUtils.toFloatArray(gcAdjustor.getCorrectedIntensities()),
+																						 autosomalIndices);
+						gcAdjustorParameters = new GcAdjustorParameter(sample,
+																													 gcAdjustor.getCrossValidation()
+																																		 .getBetas(),
+																													 gcAdjustor.getWfPrior(),
+																													 gcAdjustor.getWfPost(),
+																													 gcAdjustor.getGcwfPrior(),
+																													 gcAdjustor.getGcwfPost(),
+																													 meandSdPrior[0], meandSdPost[0],
+																													 meandSdPrior[1], meandSdPost[1],
+																													 correction_METHODs[i], proj.getLog());
 					}
 					parameters.add(gcAdjustorParameters);
 				} else {
@@ -300,13 +300,13 @@ public class GcAdjustorParameter implements Serializable {
 		}
 
 		private static double[] getMeanSd(float[] intensites, int[] autosomalIndices) {
-			float[] tmp = Array.subArray(intensites, autosomalIndices);
-			float[] clean = Array.removeNaN(tmp);
+			float[] tmp = ArrayUtils.subArray(intensites, autosomalIndices);
+			float[] clean = ArrayUtils.removeNaN(tmp);
 			float sd = Float.NaN;
 			float mean = Float.NaN;
 			if (clean.length > 0) {
-				sd = Array.stdev(clean, false);
-				mean = Array.mean(clean);
+				sd = ArrayUtils.stdev(clean, false);
+				mean = ArrayUtils.mean(clean);
 			}
 			return new double[] {mean, sd};
 		}
@@ -347,9 +347,9 @@ public class GcAdjustorParameter implements Serializable {
 		@Override
 		public Callable<GcAdjustorParameter[][][]> next() {
 
-			GcAdjustorWorker worker = new GcAdjustorWorker(	proj, compute, builders, markerSet,
-																											samples[index], gcmodel, centroids,
-																											correction_METHODs, debugMode);
+			GcAdjustorWorker worker = new GcAdjustorWorker(proj, compute, builders, markerSet,
+																										 samples[index], gcmodel, centroids,
+																										 correction_METHODs, debugMode);
 			index++;
 			return worker;
 		}
@@ -368,7 +368,7 @@ public class GcAdjustorParameter implements Serializable {
 		new File(outDir).mkdirs();
 		String gcSerModelFile = outDir + "gcModel_" + gcModelWindow + ".ser";
 		String centroids = outDir + "gc_Centroids.ser";
-		if ((referenceGenome != null && Files.exists(referenceGenome))	|| Files.exists(gcSerModelFile)
+		if ((referenceGenome != null && Files.exists(referenceGenome)) || Files.exists(gcSerModelFile)
 				|| Files.exists(proj.GC_MODEL_FILENAME.getValue())) {
 			GcModel gcModel = null;
 			if (Files.exists(gcSerModelFile)) {
@@ -389,14 +389,14 @@ public class GcAdjustorParameter implements Serializable {
 					}
 				}
 			} else {
-				gcSerModelFile = outDir	+ ext.removeDirectoryInfo(proj.GC_MODEL_FILENAME.getValue())
-													+ ".ser";
+				gcSerModelFile = outDir + ext.removeDirectoryInfo(proj.GC_MODEL_FILENAME.getValue())
+												 + ".ser";
 				proj.getLog()
-						.reportTimeWarning("gc model file "	+ proj.GC_MODEL_FILENAME.getValue()
-																+ " exists and a valid reference was not provided, ignoring gc model window argument");
+						.reportTimeWarning("gc model file " + proj.GC_MODEL_FILENAME.getValue()
+															 + " exists and a valid reference was not provided, ignoring gc model window argument");
 				gcModel = GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(), true, proj.getLog());
 				gcModel.Serialize(gcSerModelFile);
-				proj.getLog().reportTimeWarning("copied existing  gc model file to "	+ gcSerModelFile
+				proj.getLog().reportTimeWarning("copied existing  gc model file to " + gcSerModelFile
 																				+ " for paramater computation");
 			}
 			if (!Files.exists(centroids)) {
@@ -423,8 +423,7 @@ public class GcAdjustorParameter implements Serializable {
 			proj.getLog().reportTimeInfo("Using gc parameter file " + file);
 			return GcAdjustorParameters.readSerial(file, proj.getLog());
 		} else {
-			proj.getLog()
-					.reportError("Internal error, not enough preliminary files for gc correction");
+			proj.getLog().reportError("Internal error, not enough preliminary files for gc correction");
 			return null;
 		}
 	}
@@ -448,6 +447,8 @@ public class GcAdjustorParameter implements Serializable {
 	// numThreads);
 	// }
 
+	// TODO each builder has a methods so shouldn't we use those methods instead of providing another
+	// parallel array?
 	public static String[][][] generateAdjustmentParameters(Project proj,
 																													GCAdjustorBuilder builders[],
 																													String[] centroidFiles,
@@ -471,13 +472,12 @@ public class GcAdjustorParameter implements Serializable {
 		//
 		// samples = Array.subArray(samples, 10, 10 + numThreads);
 
-		String[][][] outputs = new String[builders.length][centroids == null	? 1
-																																					: 1
-																																						+ centroids.length][methods.length];
-		boolean[][][] compute =
-													new boolean[builders.length][centroids == null	? 1
-																																					: 1
-																																						+ centroids.length][methods.length];
+		String[][][] outputs = new String[builders.length][centroids == null ? 1
+																																				 : 1
+																																					 + centroids.length][methods.length];
+		boolean[][][] compute = new boolean[builders.length][centroids == null ? 1
+																																					 : 1
+																																						 + centroids.length][methods.length];
 		boolean skip = true;
 		double[] gcContent = gcModel.getGcsFor(proj.getMarkerNames());
 
@@ -485,7 +485,7 @@ public class GcAdjustorParameter implements Serializable {
 
 			for (int centIndex = 0; centIndex < outputs[builderIndex].length; centIndex++) {
 				for (int methodIndex = 0; methodIndex < outputs[builderIndex][centIndex].length; methodIndex++) {
-					String output = proj.PROJECT_DIRECTORY.getValue()	+ rootOuts[builderIndex]
+					String output = proj.PROJECT_DIRECTORY.getValue() + rootOuts[builderIndex]
 													+ "gc_parameters." + methods[methodIndex] + ".ser";
 					if (centIndex != 0) {
 						output = ext.addToRoot(output, "." + ext.rootOf(centroidFiles[centIndex - 1]));
@@ -513,18 +513,17 @@ public class GcAdjustorParameter implements Serializable {
 			proj.getLog().reportTimeWarning("All potential parameter files exist, skipping");
 		} else {
 
-			GcAdjustorProducer producer = new GcAdjustorProducer(	proj, compute, builders, gcModel,
-																														samples, verbose, centroids, methods);
+			GcAdjustorProducer producer = new GcAdjustorProducer(proj, compute, builders, gcModel,
+																													 samples, verbose, centroids, methods);
 			WorkerTrain<GcAdjustorParameter[][][]> train = new WorkerTrain<GcAdjustorParameter[][][]>(producer,
 																																																numThreads,
 																																																2,
 																																																proj.getLog());
 			int sampleIndex = 0;
 
-			GcAdjustorParameter[][][][] finalParams =
-																							new GcAdjustorParameter[builders.length][centroids == null	? 1
-																																																					: 1
-																																																						+ centroids.length][methods.length][samples.length];
+			GcAdjustorParameter[][][][] finalParams = new GcAdjustorParameter[builders.length][centroids == null ? 1
+																																																					 : 1
+																																																						 + centroids.length][methods.length][samples.length];
 
 			while (train.hasNext()) {
 				GcAdjustorParameter[][][] tmp = train.next();// builders, cents,methods
@@ -542,8 +541,8 @@ public class GcAdjustorParameter implements Serializable {
 				}
 				sampleIndex++;
 				if (sampleIndex % 100 == 0) {
-					proj.getLog().reportTimeInfo("Generated gc correction parameters for "	+ sampleIndex
-																				+ " of " + proj.getSamples().length + " samples");
+					proj.getLog().reportTimeInfo("Generated gc correction parameters for " + sampleIndex
+																			 + " of " + proj.getSamples().length + " samples");
 				}
 			}
 			proj.GC_CORRECTION_PARAMETERS_FILENAMES.setValue(new String[] {});
@@ -649,8 +648,12 @@ public class GcAdjustorParameter implements Serializable {
 		}
 
 		public void writeSerial(String filename) {
-			System.out.println("writing " + filename);
-			SerializedFiles.writeSerial(this, filename, true);
+			if (!SerializedFiles.writeSerial(this, filename, true)) {
+				System.out.println("Writing " + filename + " failed.");
+				System.exit(-1);
+			} else {
+				System.out.println("Created " + filename);
+			}
 		}
 
 		public static GcAdjustorParameters readSerial(String filename, Logger log) {

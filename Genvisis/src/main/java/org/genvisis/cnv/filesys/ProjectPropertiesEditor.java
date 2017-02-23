@@ -4,6 +4,7 @@ package org.genvisis.cnv.filesys;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -21,6 +22,7 @@ import java.util.EventObject;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -52,22 +54,29 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.LaunchProperties.LaunchKey;
 import org.genvisis.cnv.filesys.Project.GROUP;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.prop.DoubleProperty;
 import org.genvisis.cnv.prop.FileProperty;
 import org.genvisis.cnv.prop.IntegerProperty;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.cnv.prop.StringListProperty;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
 import net.miginfocom.swing.MigLayout;
 
 public class ProjectPropertiesEditor extends JFrame {
+
+	public static final String ICON = "images/edit.png";
 
 	private static final long serialVersionUID = 1L;
 
@@ -114,8 +123,8 @@ public class ProjectPropertiesEditor extends JFrame {
 				return true;
 			}
 			if (newValue instanceof String[] || newValue instanceof String) {
-				String[] vals = newValue instanceof String[]	? (String[]) newValue
-																											: new String[] {(String) newValue};
+				String[] vals = newValue instanceof String[] ? (String[]) newValue
+																										 : new String[] {(String) newValue};
 				if (vals.length == 1 && "".equals(vals[0])) {
 					return true;
 				}
@@ -136,7 +145,7 @@ public class ProjectPropertiesEditor extends JFrame {
 							String[] sub = pts[i].split("=");
 							if (sub.length == 1 || sub.length > 2) {
 								log.reportError("Malformed header replacement token (missing or extra '=' sign) in "
-																		+ PropertyKeys.KEY_QQ_FILENAMES + ": {" + pts[i] + "}");
+																+ PropertyKeys.KEY_QQ_FILENAMES + ": {" + pts[i] + "}");
 								return false;
 							}
 							int ind = -1;
@@ -144,13 +153,13 @@ public class ProjectPropertiesEditor extends JFrame {
 								ind = Integer.parseInt(sub[0]);
 							} catch (NumberFormatException e) {
 								log.reportError("Malformed header replacement token (non-integer index) in "
-																		+ PropertyKeys.KEY_QQ_FILENAMES + ": {" + pts[i] + "}");
+																+ PropertyKeys.KEY_QQ_FILENAMES + ": {" + pts[i] + "}");
 								return false;
 							}
 							if (ind < 0 || ind >= hdr.length) {
 								log.reportError("Malformed header replacement token (index < 0 or > header length [HEADER: "
-																			+ Array.toStr(hdr) + "]) in " + PropertyKeys.KEY_QQ_FILENAMES
-																		+ ": {" + pts[i] + "}");
+																+ ArrayUtils.toStr(hdr) + "]) in " + PropertyKeys.KEY_QQ_FILENAMES
+																+ ": {" + pts[i] + "}");
 								return false;
 							}
 						}
@@ -177,8 +186,7 @@ public class ProjectPropertiesEditor extends JFrame {
 				}
 				return newFiles;
 			} else {
-				proj.getLog()
-						.reportError("setting PLINK property: new value should be a File[] (array)!");
+				proj.getLog().reportError("setting PLINK property: new value should be a File[] (array)!");
 				return oldValue;
 			}
 		}
@@ -193,14 +201,13 @@ public class ProjectPropertiesEditor extends JFrame {
 				for (File f : files) {
 					if (!hasAllPLINKFiles(f)) {
 						proj.message("Error - couldn't find all files {.bim/.fam/.bed} for PLINK root ["
-													+ ext.rootOf(f.getPath(), true) + "]");
+												 + ext.rootOf(f.getPath(), true) + "]");
 						return false;
 					}
 				}
 				return true;
 			} else {
-				proj.getLog()
-						.reportError("setting PLINK property: new value should be a File[] (array)!");
+				proj.getLog().reportError("setting PLINK property: new value should be a File[] (array)!");
 				return false;
 			}
 		}
@@ -239,9 +246,12 @@ public class ProjectPropertiesEditor extends JFrame {
 	 * Create the frame.
 	 */
 	public ProjectPropertiesEditor(Project project) {
+		this(project, new String[0]);
+	}
+
+	public ProjectPropertiesEditor(Project project, String... propertyNames) {
 		setTitle("Genvisis - " + project.PROJECT_NAME.getValue() + " - Project Properties Editor");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		setBounds(100, 100, 700, 800);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -251,29 +261,26 @@ public class ProjectPropertiesEditor extends JFrame {
 		JPanel panel = new JPanel();
 		getContentPane().add(panel, BorderLayout.SOUTH);
 
-		JButton notepad = new JButton("Edit with Notepad");
-		notepad.addActionListener(new ActionListener() {
+		JButton textEdit = new JButton("Edit Text");
+		textEdit.setToolTipText("Open properties file in your default text editor (closes this dialog)");
+		final Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+		textEdit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				proj.getLog().report("Launching notepad...");
+				proj.getLog().report("Launching default text editor...");
 				try {
-					/* Process p = */Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""
-																											+ proj.getPropertyFilename() + "\"");
+					desktop.open(new File(proj.getPropertyFilename()));
 					ProjectPropertiesEditor.this.setVisible(false);
 					// TODO update properties in Project and Configurator - they may have changed
 				} catch (IOException ioe) {
-					proj.getLog().reportError("Error - failed to open Notepad");
+					proj.getLog().reportError("Error - file could not open in text editor");
 				}
 			}
 		});
-		panel.add(notepad);
+		panel.add(textEdit);
 
-
-		boolean includeNotepad = false;
-		if (Files.isWindows()) {
-			includeNotepad = Files.programExists("notepad.exe");
-		}
-		notepad.setVisible(includeNotepad);
+		boolean includeTextButton = desktop != null && desktop.isSupported(Desktop.Action.OPEN);
+		textEdit.setVisible(includeTextButton);
 
 		JButton btnSave = new JButton("Save");
 		btnSave.addActionListener(new ActionListener() {
@@ -320,9 +327,9 @@ public class ProjectPropertiesEditor extends JFrame {
 		final JSpinner rendererSpinner = new JSpinner();
 		rendererSpinner.setBorder(null);
 		final SpinnerEditor numberEditor = new SpinnerEditor();
-		final JPanel fileRenderer =
-															new JPanel(new MigLayout("ins -1 0 0 0, hidemode 3", "[grow][]", ""));// new
-																																																		// BorderLayout());
+		final JPanel fileRenderer = new JPanel(new MigLayout("ins -1 0 0 0, hidemode 3", "[grow][]",
+																												 ""));// new
+																															// BorderLayout());
 		final JLabel fileLabel = new JLabel();
 		final JButton fileBtn2 = new JButton("...");
 		final JButton fileAddBtn2 = new JButton(" + ");
@@ -334,8 +341,8 @@ public class ProjectPropertiesEditor extends JFrame {
 		fileRenderer.add(fileLabel, "cell 0 0");
 		fileRenderer.add(fileAddBtn2, "cell 1 0, width 21px, split 1");
 		fileRenderer.add(fileBtn2, "cell 1 0, width 21px");
-		final FileChooserCellEditor fileEditor = new FileChooserCellEditor(	true,
-																																				proj.getProperty(proj.PROJECT_DIRECTORY));
+		final FileChooserCellEditor fileEditor = new FileChooserCellEditor(true,
+																																			 proj.getProperty(proj.PROJECT_DIRECTORY));
 		final DefaultCellEditor stringEditor = new DefaultCellEditor(new JTextField()) {
 			private static final long serialVersionUID = 1L;
 
@@ -365,10 +372,10 @@ public class ProjectPropertiesEditor extends JFrame {
 			}
 
 			@Override
-			public Component getTableCellEditorComponent(	JTable table, Object value, boolean isSelected,
-																										int row, int column) {
+			public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
+																									 int row, int column) {
 				String[] val = (String[]) value;
-				String valueString = Array.toStr(val, ";");
+				String valueString = ArrayUtils.toStr(val, ";");
 				return super.getTableCellEditorComponent(table, valueString, isSelected, row, column);
 			}
 
@@ -391,18 +398,18 @@ public class ProjectPropertiesEditor extends JFrame {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Component getTableCellRendererComponent(	final JTable table, Object value,
-																											boolean isSelected, boolean hasFocus,
-																											final int row, final int column) {
+			public Component getTableCellRendererComponent(final JTable table, Object value,
+																										 boolean isSelected, boolean hasFocus,
+																										 final int row, final int column) {
 				String projDir = proj.PROJECT_DIRECTORY.getValue();
 				String tempKey = (String) table.getValueAt(row, 0);
 				Component returnComp;
 				if (labelRows.contains(row)) {
-					returnComp = super.getTableCellRendererComponent(	table, value, isSelected, hasFocus, row,
-																														column);
+					returnComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
+																													 column);
 					((JComponent) returnComp).setToolTipText(null);
-					((JComponent) returnComp).setFont(((JComponent) returnComp)	.getFont()
-																																			.deriveFont(Font.BOLD, 14f));
+					((JComponent) returnComp).setFont(((JComponent) returnComp).getFont()
+																																		 .deriveFont(Font.BOLD, 14f));
 					return returnComp;
 				}
 				String desc = proj.getProperty(tempKey).getDescription();
@@ -517,8 +524,8 @@ public class ProjectPropertiesEditor extends JFrame {
 						fileBtn2.setVisible(false);
 						returnComp = fileRenderer;
 					} else {
-						returnComp = super.getTableCellRendererComponent(	table, sb.toString(), isSelected,
-																															hasFocus, row, column);
+						returnComp = super.getTableCellRendererComponent(table, sb.toString(), isSelected,
+																														 hasFocus, row, column);
 					}
 				} else if (value instanceof Number) {
 					String propKey = (String) table.getModel().getValueAt(row, 0);
@@ -529,18 +536,18 @@ public class ProjectPropertiesEditor extends JFrame {
 					// System.out.println("Found ENUM; values: [" + Array.toStr(((Enum)
 					// value).getDeclaringClass(), ",") + "]");
 					// use string renderer for enums
-					returnComp = super.getTableCellRendererComponent(	table, value, isSelected, hasFocus, row,
-																														column);
+					returnComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
+																													 column);
 				} else {
 					if (column == 0) {
-						returnComp = super.getTableCellRendererComponent(	table, "            " + value,
-																															isSelected, hasFocus, row, column);
+						returnComp = super.getTableCellRendererComponent(table, "            " + value,
+																														 isSelected, hasFocus, row, column);
 						((JComponent) returnComp).setFont(((JComponent) returnComp).getFont().deriveFont(
-																																															Font.PLAIN,
-																																															12f));
+																																														 Font.PLAIN,
+																																														 12f));
 					} else {
-						returnComp = super.getTableCellRendererComponent(	table, value, isSelected, hasFocus,
-																															row, column);
+						returnComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus,
+																														 row, column);
 					}
 				}
 				if (!"".equals(desc)) {
@@ -595,9 +602,8 @@ public class ProjectPropertiesEditor extends JFrame {
 				} else if (propVal instanceof String) {
 					editor = stringEditor;
 				} else if (propVal instanceof String[]) {
-					StringListProperty prop =
-																	((StringListProperty) proj.getProperty((String) table.getValueAt(	row,
-																																																		0)));
+					StringListProperty prop = ((StringListProperty) proj.getProperty((String) table.getValueAt(row,
+																																																		 0)));
 					if (prop.isFile() || prop.isDirectory()) {
 						String[] valStrs = (String[]) propVal;
 						File[] vals = new File[valStrs.length];
@@ -640,7 +646,7 @@ public class ProjectPropertiesEditor extends JFrame {
 					superComp.setBackground(Color.WHITE);
 				}
 				superComp.setEnabled(!proj.containsKey((String) table.getValueAt(row, 0))
-															|| proj.getProperty((String) table.getValueAt(row, 0)).isEditable());
+														 || proj.getProperty((String) table.getValueAt(row, 0)).isEditable());
 				return superComp;
 			}
 
@@ -663,46 +669,49 @@ public class ProjectPropertiesEditor extends JFrame {
 			}
 		};
 
-		DefaultTableModel model =
-														new DefaultTableModel(new String[] {"Property Name", "Property Value"},
-																									0) {
-															private static final long serialVersionUID = 1L;
+		DefaultTableModel model = new DefaultTableModel(new String[] {"Property Name",
+																																	"Property Value"},
+																										0) {
+			private static final long serialVersionUID = 1L;
 
-															@Override
-															public boolean isCellEditable(int row, int column) {
-																return column != 0	&& !labelRows.contains(row)
-																				&& super.isCellEditable(row, column)
-																				&& proj	.getProperty((String) table.getValueAt(row, 0))
-																								.isEditable();
-															}
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return column != 0 && !labelRows.contains(row) && super.isCellEditable(row, column)
+							 && proj.getProperty((String) table.getValueAt(row, 0)).isEditable();
+			}
 
-														};
+		};
 
 		int count = 0;
-		HashMap<GROUP, ArrayList<String>> allGroupsAndKeys = new HashMap<GROUP, ArrayList<String>>();
-		for (String key : proj.getPropertyKeys()) {
-			ArrayList<String> keys = allGroupsAndKeys.get(proj.getProperty(key).getGroup());
-			if (keys == null) {
-				keys = new ArrayList<String>();
-				allGroupsAndKeys.put(proj.getProperty(key).getGroup(), keys);
+
+		// If we were passed a filter of Project property names, we want to whitelist them so
+		// they are the only keys accepted
+		Set<String> whitelistKeys = new HashSet<String>();
+		if (propertyNames != null) {
+			for (String key : propertyNames) {
+				whitelistKeys.add(key);
 			}
-			keys.add(key);
+		}
+
+		Multimap<GROUP, String> groupToKeys = ArrayListMultimap.create();
+		for (String key : proj.getPropertyKeys()) {
+			if (whitelistKeys.isEmpty() || whitelistKeys.contains(key)) {
+				groupToKeys.put(proj.getProperty(key).getGroup(), key);
+			}
 		}
 
 		for (GROUP g : GROUP.values()) {
-			if (g == GROUP.SPECIAL_HIDDEN) {
+			if (GROUP.SPECIAL_HIDDEN.equals(g) || !groupToKeys.containsKey(g)) {
 				continue;
 			}
 			String setName = g.getDescription();
 			model.addRow(new Object[] {setName, ""});
 			labelRows.add(count);
 			count++;
-			if (allGroupsAndKeys.containsKey(g)) {
-				for (String s : allGroupsAndKeys.get(g)) {
-					Object[] values = parseProperty(proj, s);
-					model.addRow(values);
-					count++;
-				}
+			for (String propertyKey : groupToKeys.get(g)) {
+				Object[] values = parseProperty(proj, propertyKey);
+				model.addRow(values);
+				count++;
 			}
 		}
 
@@ -716,6 +725,9 @@ public class ProjectPropertiesEditor extends JFrame {
 		table.setShowVerticalLines(false);
 		table.setShowHorizontalLines(false);
 
+		// Estimate the desired height at 26 pixels per row plus a buffer for other UI elements
+		int height = (26 * count) + 100;
+		UITools.setSize(this, 700, height);
 
 		InputMap inMap = table.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		ActionMap actMap = table.getActionMap();
@@ -768,19 +780,20 @@ public class ProjectPropertiesEditor extends JFrame {
 			}
 		});
 
+		pack();
+		UITools.centerComponent(this);
 	}
 
 	protected void doClose(boolean save, boolean promptChanges) {
 		HashMap<String, String> changes = extract();
 		if (changes.size() > 0) {
 			if (promptChanges) {
-				StringBuilder message =
-															new StringBuilder("The following properties have been changed.  Would you like to save your changes?");
+				StringBuilder message = new StringBuilder("The following properties have been changed.  Would you like to save your changes?");
 				int cnt = 0;
 				for (String key : changes.keySet()) {
 					if (cnt == 10) {
-						message	.append("\n... and ").append(changes.size() - cnt)
-										.append(" additional changes...");
+						message.append("\n... and ").append(changes.size() - cnt)
+									 .append(" additional changes...");
 						break;
 					}
 					message.append("\n").append(key);
@@ -805,7 +818,7 @@ public class ProjectPropertiesEditor extends JFrame {
 
 	private HashMap<String, String> extract() {
 		table.editingStopped(new ChangeEvent(table));
-		String projectsDir = new LaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE).getProperty(LaunchProperties.PROJECTS_DIR);
+		String projectsDir = LaunchProperties.get(LaunchKey.PROJECTS_DIR);
 		String currProjDir = proj.PROJECT_DIRECTORY.getValue();
 		int rowCount = table.getRowCount();
 
@@ -824,17 +837,15 @@ public class ProjectPropertiesEditor extends JFrame {
 				if (set.length > 0) {
 					value = set[0].getPath();
 					if (!set[0].exists()) {
-						value =
-									((StringListProperty) proj.getProperty(key)).isDirectory()	? ext.verifyDirFormat(value)
-																																							: ext.replaceAllWith(	value,
-																																																		"\\",
-																																																		"/");
+						value = ((StringListProperty) proj.getProperty(key)).isDirectory() ? ext.verifyDirFormat(value)
+																																							 : ext.replaceAllWith(value,
+																																																		"\\", "/");
 					} else {
-						value = set[0].isDirectory()	? ext.verifyDirFormat(value)
-																					: ext.replaceAllWith(value, "\\", "/");
+						value = set[0].isDirectory() ? ext.verifyDirFormat(value)
+																				 : ext.replaceAllWith(value, "\\", "/");
 					}
-					value = set[0].isDirectory()	? ext.verifyDirFormat(value)
-																				: ext.replaceAllWith(value, "\\", "/");
+					value = set[0].isDirectory() ? ext.verifyDirFormat(value)
+																			 : ext.replaceAllWith(value, "\\", "/");
 					if (value.startsWith(projectsDir)) {
 						value = value.substring(projectsDir.length());
 					} else if (value.startsWith(currProjDir)) {
@@ -843,14 +854,12 @@ public class ProjectPropertiesEditor extends JFrame {
 					for (int k = 1; k < set.length; k++) {
 						String fNm = set[k].getPath();
 						if (!set[k].exists()) {
-							fNm =
-									((StringListProperty) proj.getProperty(key)).isDirectory()	? ext.verifyDirFormat(fNm)
-																																							: ext.replaceAllWith(	fNm,
-																																																		"\\",
-																																																		"/");
+							fNm = ((StringListProperty) proj.getProperty(key)).isDirectory() ? ext.verifyDirFormat(fNm)
+																																							 : ext.replaceAllWith(fNm,
+																																																		"\\", "/");
 						} else {
-							fNm = set[k].isDirectory()	? ext.verifyDirFormat(fNm)
-																					: ext.replaceAllWith(fNm, "\\", "/");
+							fNm = set[k].isDirectory() ? ext.verifyDirFormat(fNm)
+																				 : ext.replaceAllWith(fNm, "\\", "/");
 						}
 						if (fNm.startsWith(projectsDir)) {
 							fNm = fNm.substring(projectsDir.length());
@@ -864,12 +873,11 @@ public class ProjectPropertiesEditor extends JFrame {
 				File set = (File) rawValue;
 				value = set.getPath();
 				if (!set.exists()) {
-					value = ((FileProperty) proj.getProperty(key)).isDirectory()	? ext.verifyDirFormat(value)
-																																				: ext.replaceAllWith(	value,
-																																															"\\",
-																																															"/");
+					value = ((FileProperty) proj.getProperty(key)).isDirectory() ? ext.verifyDirFormat(value)
+																																			 : ext.replaceAllWith(value,
+																																														"\\", "/");
 				} else {
-					value = set.isDirectory()	? ext.verifyDirFormat(value)
+					value = set.isDirectory() ? ext.verifyDirFormat(value)
 																		: ext.replaceAllWith(value, "\\", "/");
 				}
 				if (!key.equals(proj.SOURCE_DIRECTORY.getName())
@@ -1026,7 +1034,7 @@ public class ProjectPropertiesEditor extends JFrame {
 			setBackground(Color.WHITE);
 
 			panel = new JPanel(new MigLayout("insets -1 0 0 0, hidemode 3", "[grow][]", ""));// new
-																																												// BorderLayout());
+																																											 // BorderLayout());
 			panel.setBackground(Color.WHITE);
 
 			// Using a JButton as the editor component
@@ -1105,7 +1113,7 @@ public class ProjectPropertiesEditor extends JFrame {
 				String[] pts = newLoc.split(";");
 				newValue = new File[pts.length];
 				for (int i = 0; i < pts.length; i++) {
-					if (!"".equals(pts[i])	&& !pts[i].startsWith(".") && !pts[i].startsWith("/")
+					if (!"".equals(pts[i]) && !pts[i].startsWith(".") && !pts[i].startsWith("/")
 							&& pts[i].indexOf(":") == -1) {
 						((File[]) newValue)[i] = new File(defaultLocation + pts[i]);
 					} else {
@@ -1113,7 +1121,7 @@ public class ProjectPropertiesEditor extends JFrame {
 					}
 				}
 			} else {
-				if (!"".equals(newLoc)	&& !newLoc.startsWith(".") && !newLoc.startsWith("/")
+				if (!"".equals(newLoc) && !newLoc.startsWith(".") && !newLoc.startsWith("/")
 						&& newLoc.indexOf(":") == -1) {
 					newValue = new File(defaultLocation + newLoc);
 				} else {
@@ -1187,9 +1195,9 @@ public class ProjectPropertiesEditor extends JFrame {
 		}
 
 		@Override
-		public Component getTableCellEditorComponent(	final JTable table, final Object value,
-																									boolean isSelected, final int row,
-																									final int column) {
+		public Component getTableCellEditorComponent(final JTable table, final Object value,
+																								 boolean isSelected, final int row,
+																								 final int column) {
 			this.table = table;
 			StringBuilder labelText = new StringBuilder();
 			ActionListener listener = null;
@@ -1408,8 +1416,8 @@ public class ProjectPropertiesEditor extends JFrame {
 
 		// Prepares the spinner component and returns it.
 		@Override
-		public Component getTableCellEditorComponent(	JTable table, Object value, boolean isSelected,
-																									int row, int column) {
+		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
+																								 int row, int column) {
 			this.table = table;
 			if (!valueSet) {
 				spinner.setValue(value);

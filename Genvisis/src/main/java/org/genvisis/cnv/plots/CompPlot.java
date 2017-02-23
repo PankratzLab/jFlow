@@ -51,7 +51,7 @@ import org.genvisis.cnv.manage.UCSCtrack;
 import org.genvisis.cnv.var.CNVRectangles;
 import org.genvisis.cnv.var.Region;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -72,8 +72,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
 	public static final String DEFAULT_LOCATION = "chr6:161,624,000-163,776,000"; // PARK2 region
 	private static final String REGION_LIST_NEW_FILE = "Load Region File";
 
-	public static Color[] colorScheme = {	Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA,
-																				Color.CYAN, Color.ORANGE, Color.YELLOW};
+	public static Color[] colorScheme = {Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA,
+																			 Color.CYAN, Color.ORANGE, Color.YELLOW};
 
 	Project proj;
 	private String[] files;
@@ -147,8 +147,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
 			chrBoundaries[0][1] = markerNames.length - 1;
 		}
 		allSamples = proj.getSamples();
-		subSamples = Array.subArray(proj.getSamples(),
-																Array.booleanNegative(proj.getSamplesToExclude()));
+		subSamples = ArrayUtils.subArray(proj.getSamples(),
+																		 ArrayUtils.booleanNegative(proj.getSamplesToExclude()));
 		init();
 
 		addWindowListener(new WindowAdapter() {
@@ -217,8 +217,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
 			filterFiles.add(filename.getName());
 			if (Files.exists(file, false)) {
 				// Load the CNVs out of the files
-				CNVariantHash cnvHash = CNVariantHash.load(	file, CNVariantHash.CONSTRUCT_ALL, false,
-																										proj.getLog());
+				CNVariantHash cnvHash = CNVariantHash.load(file, CNVariantHash.CONSTRUCT_ALL, false,
+																									 proj.getLog());
 				hashes.add(cnvHash);
 			} else {
 				JOptionPane.showMessageDialog(null, "Error - File " + file + " does not exist");
@@ -250,15 +250,13 @@ public class CompPlot extends JFrame implements ChrNavigator {
 	public static final int DEFAULT_STARTY = 20;
 	public static final int DEFAULT_WIDTH = 1000;
 	public static final int DEFAULT_HEIGHT = 720;
-	
+
 	private void setupGUI() {
 		// Set the default window size
 		setBounds(DEFAULT_STARTX, DEFAULT_STARTY, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
 		// Close this window but not the entire application on close
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		// Close the whole thing for debugging purposes
-		// setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		cpcl = new CompPropertyChangeListener(this);
 
@@ -319,10 +317,10 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				NewRegionListDialog newRgnList = new NewRegionListDialog(	null,
-																																	proj == null	? null
-																																								: proj.PROJECT_DIRECTORY.getValue(),
-																																	false);
+				NewRegionListDialog newRgnList = new NewRegionListDialog(null,
+																																 proj == null ? null
+																																							: proj.PROJECT_DIRECTORY.getValue(),
+																																 false);
 				newRgnList.setModal(true);
 				newRgnList.setVisible(true);
 				if (newRgnList.getReturnCode() == JOptionPane.YES_OPTION) {
@@ -462,7 +460,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		String[][] sampleRegions = new String[selectedCNVs.size()][];
 		for (int i = 0; i < sampleRegions.length; i++) {
 			CNVariant cnv = selectedCNVs.get(i);
-			String markerPosition = "chr"	+ location[0] + ":" + (cnv.getStart() - window) + "-"
+			String markerPosition = "chr" + location[0] + ":" + (cnv.getStart() - window) + "-"
 															+ (cnv.getStop() + window);
 
 			// Strip p or q from the end
@@ -480,7 +478,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		if (sampleRegions.length == 0) {
 			proj.message("Error - no valid selected CNVs; cannot launch Trailer without knowing which DNA sample to open");
 		} else {
-			new Trailer(proj, proj.CNV_FILENAMES.getValue(), sampleRegions);
+			Trailer t = new Trailer(proj, proj.CNV_FILENAMES.getValue(), sampleRegions);
+			t.setVisible(true);
 		}
 	}
 
@@ -539,8 +538,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
 				// Direct the user to the BED upload page at UCSC Genome Browser
 				Desktop desktop = Desktop.getDesktop();
-				String URL = Positions.getUCSCUploadLink(	Positions.parseUCSClocation(regionNavigator.getChrText()),
-																									compressedFile);
+				String URL = Positions.getUCSCUploadLink(Positions.parseUCSClocation(regionNavigator.getChrText()),
+																								 compressedFile);
 
 				// UCSC uses chrX and chrY instead of 23 and 24
 				URL = URL.replaceAll("chr23", "chrX");
@@ -586,10 +585,10 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			int opt =
-							JOptionPane.showConfirmDialog(CompPlot.this, "Delete file from disk?",
-																						"Delete region file?", JOptionPane.YES_NO_CANCEL_OPTION,
-																						JOptionPane.QUESTION_MESSAGE, null);
+			int opt = JOptionPane.showConfirmDialog(CompPlot.this, "Delete file from disk?",
+																							"Delete region file?",
+																							JOptionPane.YES_NO_CANCEL_OPTION,
+																							JOptionPane.QUESTION_MESSAGE, null);
 			switch (opt) {
 				case JOptionPane.CANCEL_OPTION:
 					return;
@@ -597,8 +596,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
 					boolean deleted = (new File(e.getActionCommand())).delete();
 					if (!deleted) {
 						JOptionPane.showMessageDialog(CompPlot.this,
-																					"Error - failed to delete file {"	+ e.getActionCommand()
-																													+ "}",
+																					"Error - failed to delete file {" + e.getActionCommand()
+																												 + "}",
 																					"Delete File Failed...", JOptionPane.ERROR_MESSAGE);
 					}
 					break;
@@ -695,16 +694,16 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
 
 	private String chooseNewFiles() {
-		JFileChooser jfc = new JFileChooser((proj != null	/* || regionFileName == null */ ? proj.PROJECT_DIRECTORY.getValue()
+		JFileChooser jfc = new JFileChooser((proj != null /* || regionFileName == null */ ? proj.PROJECT_DIRECTORY.getValue()
 																											: null /*
-																															 * ext.parseDirectoryOfFile(
-																															 * regionFileName)
-																															 */));
+																														  * ext.parseDirectoryOfFile(
+																														  * regionFileName)
+																														  */));
 		jfc.setMultiSelectionEnabled(true);
 		if (jfc.showOpenDialog(CompPlot.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();
 			if (files.length > 0) {
-				boolean[] keep = Array.booleanArray(files.length, true);
+				boolean[] keep = ArrayUtils.booleanArray(files.length, true);
 				for (int i = 0; i < files.length; i++) {
 					for (String fileName : proj.REGION_LIST_FILENAMES.getValue()) {
 						if (ext.rootOf(files[i].toString()).equals(fileName)) {
@@ -712,8 +711,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
 						}
 					}
 				}
-				File[] keptFiles = Array.subArray(files, keep);
-				File[] discards = Array.subArray(files, Array.booleanNegative(keep));
+				File[] keptFiles = ArrayUtils.subArray(files, keep);
+				File[] discards = ArrayUtils.subArray(files, ArrayUtils.booleanNegative(keep));
 
 				if (discards.length > 0) {
 					StringBuilder msg = new StringBuilder("The following data file(s) are already present:");
@@ -727,7 +726,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 					if (verifyValidFile(kept.getAbsolutePath())) {
 						addFileToList(kept.getAbsolutePath());
 					} else {
-						proj.getLog().reportError("Error - contents of file {"	+ kept.getAbsolutePath()
+						proj.getLog().reportError("Error - contents of file {" + kept.getAbsolutePath()
 																			+ "} are not valid UCSC regions");
 					}
 				}
@@ -742,15 +741,14 @@ public class CompPlot extends JFrame implements ChrNavigator {
 				}
 
 				if (!keep) {
-					StringBuilder msg =
-														new StringBuilder("The following data file is already present:\n").append(file.getName());
+					StringBuilder msg = new StringBuilder("The following data file is already present:\n").append(file.getName());
 					JOptionPane.showMessageDialog(CompPlot.this, msg.toString());
 				} else {
 					if (verifyValidFile(file.getAbsolutePath())) {
 						addFileToList(file.getAbsolutePath());
 						return file.getAbsolutePath();
 					} else {
-						proj.getLog().reportError("Error - contents of file {"	+ file.getAbsolutePath()
+						proj.getLog().reportError("Error - contents of file {" + file.getAbsolutePath()
 																			+ "} are not valid UCSC regions");
 						return null;
 					}
@@ -786,10 +784,10 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
 	public void loadCNVs(int[] location) {
 		// long startTime = Calendar.getInstance().getTimeInMillis();
-		cnvRects = new CNVRectangles(	hashes, allFiles, filterFiles, location, probes, minSize,
-																	qualityScore,
-																	proj.getSampleData(SampleData.BASIC_CLASSES.length, false),
-																	showExcludes ? allSamples : subSamples);
+		cnvRects = new CNVRectangles(hashes, allFiles, filterFiles, location, probes, minSize,
+																 qualityScore,
+																 proj.getSampleData(SampleData.BASIC_CLASSES.length, false),
+																 showExcludes ? allSamples : subSamples);
 		cnvRects.setRectangleHeight(rectangleHeight);
 		compPanel.setWindow(location[1], location[2]);
 		cnvRects.setScalingFactor(compPanel.getScalingFactor());

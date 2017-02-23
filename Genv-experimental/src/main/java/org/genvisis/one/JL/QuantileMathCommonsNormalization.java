@@ -6,7 +6,7 @@ import org.apache.commons.math3.stat.ranking.NaNStrategy;
 import org.apache.commons.math3.stat.ranking.NaturalRanking;
 import org.apache.commons.math3.stat.ranking.RankingAlgorithm;
 import org.apache.commons.math3.stat.ranking.TiesStrategy;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 import com.google.common.primitives.Doubles;
 
@@ -86,8 +86,8 @@ public class QuantileMathCommonsNormalization {
 	 * @param useMean use mean for guessing the NA value if false use median
 	 * @param retainNA retain the NA values, put NA values back after normalization
 	 */
-	public static void QuantileNormAdressingNaValuesBeforeQN(	double[][] rawData, boolean useMedian,
-																														boolean retainNA) {
+	public static void QuantileNormAdressingNaValuesBeforeQN(double[][] rawData, boolean useMedian,
+																													 boolean retainNA) {
 		boolean[][] wasNA = new boolean[rawData.length][rawData[1].length];
 
 		for (int s = 0; s < rawData[1].length; ++s) {
@@ -109,9 +109,9 @@ public class QuantileMathCommonsNormalization {
 			if (needsReplacement) {
 				double replacementValue;
 				if (useMedian) {
-					replacementValue = Array.median(Doubles.toArray(nonNAvalues));
+					replacementValue = ArrayUtils.median(Doubles.toArray(nonNAvalues));
 				} else {
-					replacementValue = Array.mean(Doubles.toArray(nonNAvalues));
+					replacementValue = ArrayUtils.mean(Doubles.toArray(nonNAvalues));
 
 				}
 

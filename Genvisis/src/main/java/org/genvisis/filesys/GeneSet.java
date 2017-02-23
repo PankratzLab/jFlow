@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
@@ -69,11 +69,11 @@ public class GeneSet implements Serializable {
 			} else {
 				hash.put(element.getChr() + "", segs = new Vector<Segment>());
 			}
-			segs.add(new Segment(	element.getChr(), element.getStart() - window,
-														element.getStop() + window));
+			segs.add(new Segment(element.getChr(), element.getStart() - window,
+													 element.getStop() + window));
 		}
-		chrs = Array.toIntArray(HashVec.getKeys(hash));
-		lists = new Segment[Array.max(chrs) + 1][];
+		chrs = ArrayUtils.toIntArray(HashVec.getKeys(hash));
+		lists = new Segment[ArrayUtils.max(chrs) + 1][];
 		for (int i = 0; i < chrs.length; i++) {
 			segs = hash.get(chrs[i] + "");
 			Segment.mergeOverlapsAndSort(segs);
@@ -105,8 +105,8 @@ public class GeneSet implements Serializable {
 				segs.add(new Segment(exonBoundarie[0], exonBoundarie[1]));
 			}
 		}
-		chrs = Array.toIntArray(HashVec.getKeys(hash));
-		lists = new Segment[Array.max(chrs) + 1][];
+		chrs = ArrayUtils.toIntArray(HashVec.getKeys(hash));
+		lists = new Segment[ArrayUtils.max(chrs) + 1][];
 		for (int i = 0; i < chrs.length; i++) {
 			segs = hash.get(chrs[i] + "");
 			Segment.mergeOverlapsAndSort(segs);
@@ -181,7 +181,7 @@ public class GeneSet implements Serializable {
 					}
 				}
 				count++; // genes can be in more than one "finished" location, and even be on different
-									// chromosomes (though half the time it's an X/Y pairing)
+								 // chromosomes (though half the time it's an X/Y pairing)
 
 				assessionNumbers = new Vector<String>();
 				exons = new Vector<Segment>();
@@ -209,11 +209,11 @@ public class GeneSet implements Serializable {
 						System.out.println(i + "\t" + overlapping.get(j2).getUCSClocation() + "\t" + count);
 					}
 				}
-				finalList.add(new GeneData(	geneNames[i], Array.toStringArray(assessionNumbers),
-																		overlapping.elementAt(0).getChr(), true, strand,
-																		exonBoundaries[0][0], exonBoundaries[exons.size() - 1][1],
-																		exonBoundaries, (count == 1 && v.size() == 0 ? 0 : count),
-																		true));
+				finalList.add(new GeneData(geneNames[i], ArrayUtils.toStringArray(assessionNumbers),
+																	 overlapping.elementAt(0).getChr(), true, strand,
+																	 exonBoundaries[0][0], exonBoundaries[exons.size() - 1][1],
+																	 exonBoundaries, (count == 1 && v.size() == 0 ? 0 : count),
+																	 true));
 			}
 		}
 
@@ -238,9 +238,9 @@ public class GeneSet implements Serializable {
 		boolean refseq = true;
 		boolean known = false;
 
-		String usage = "\n"	+ "filesys.GeneSet requires 0-1 arguments\n"
-										+ "   (1) parse RefSeq genes (i.e. -refseq (not the default))\n"
-										+ "   (2) parse UCSC known genes (i.e. -known (not the default))\n" + "";
+		String usage = "\n" + "filesys.GeneSet requires 0-1 arguments\n"
+									 + "   (1) parse RefSeq genes (i.e. -refseq (not the default))\n"
+									 + "   (2) parse UCSC known genes (i.e. -known (not the default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -142,7 +142,7 @@ class HaploTrie {
 				crawl.getInds().removeAll(used);
 				child.get(ch).getInds().removeAll(used);
 			}
-			if (child.containsKey(ch)&& !child.get(ch).getInds().isEmpty()
+			if (child.containsKey(ch) && !child.get(ch).getInds().isEmpty()
 					&& !crawl.getInds().isEmpty()) {
 				result.append(ch); // Update result
 

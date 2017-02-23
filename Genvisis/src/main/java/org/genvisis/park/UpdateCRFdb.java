@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.db.crfDB;
@@ -19,9 +19,9 @@ public class UpdateCRFdb {
 
 	public static final String PLATE_LIST_DIR = tools.MASTER_PLATELIST_DIR;
 
-	public static final String[] TRAITS = {	"Depressed", "MajorDepression", "MinorDepression",
-																					"Depression", "AOO", "parkin", "AnyLRRK2", "GBA_carrier",
-																					"GBA_del"};
+	public static final String[] TRAITS = {"Depressed", "MajorDepression", "MinorDepression",
+																				 "Depression", "AOO", "parkin", "AnyLRRK2", "GBA_carrier",
+																				 "GBA_del"};
 
 	public static void update() throws IOException {
 		System.out.println("Parsing ninfos...");
@@ -75,8 +75,8 @@ public class UpdateCRFdb {
 			reader.readLine();
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				writer.println(Array.toStr(tools.getFamID(line[1]), ",")	+ ",1,"
-												+ (line[6].equals("VPD") || line[6].equals("CONF_PD") ? "1" : "0"));
+				writer.println(ArrayUtils.toStr(tools.getFamID(line[1]), ",") + ",1,"
+											 + (line[6].equals("VPD") || line[6].equals("CONF_PD") ? "1" : "0"));
 			}
 			writer.close();
 			reader.close();

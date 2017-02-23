@@ -13,7 +13,7 @@ import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.PSF;
@@ -33,7 +33,7 @@ public class AutoMito {
 		if (arrayLength >= Integer.MAX_VALUE) {
 			proj.getLog().reportTimeWarning("Maximum number of markers set to: " + maxNumMarkers);
 			proj.getLog().reportTimeWarning("Number of samples : " + proj.getSamples().length);
-			proj.getLog().reportTimeWarning(proj.getSamples().length	+ " X " + maxNumMarkers + " = "
+			proj.getLog().reportTimeWarning(proj.getSamples().length + " X " + maxNumMarkers + " = "
 																			+ arrayLength + " , which is greater than max java integer");
 			maxNumMarkers = Math.round(Integer.MAX_VALUE / (proj.getSamples().length + 1f));
 			proj.getLog().reportTimeWarning("Updated max num markers to " + maxNumMarkers);
@@ -53,9 +53,9 @@ public class AutoMito {
 
 		String temporarySampleDataWithSex = qcDir + ext.addToRoot(temporarySampleData, ".withSex.txt");
 
-		if (ext.indexOfStr(	SexChecks.EST_SEX_HEADER,
-												Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(),
-																							proj.getLog())) < 0) {
+		if (ext.indexOfStr(SexChecks.EST_SEX_HEADER,
+											 Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(),
+																						 proj.getLog())) < 0) {
 			ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
 			builder.sampleBased(true);
 			builder.dataKeyColumnName("Sample");
@@ -67,8 +67,8 @@ public class AutoMito {
 																															proj.getLog())));
 			ExtProjectDataParser parser = builder.build(proj, proj.SEXCHECK_RESULTS_FILENAME.getValue());
 
-			String[][] matrix = HashVec.loadFileToStringMatrix(	proj.SAMPLE_DATA_FILENAME.getValue(),
-																													false, null, false);
+			String[][] matrix = HashVec.loadFileToStringMatrix(proj.SAMPLE_DATA_FILENAME.getValue(),
+																												 false, null, false);
 			int sexIndex = ext.indexOfStr("CLASS=" + SampleData.EUPHEMISMS[1], matrix[0]);
 
 			for (int i = 1; i < matrix.length; i++) {
@@ -101,7 +101,7 @@ public class AutoMito {
 		}
 
 		SampleQC sampleQC = SampleQC.loadSampleQC(proj);
-		boolean[] samplesPassing = Array.booleanArray(proj.getSamples().length, false);
+		boolean[] samplesPassing = ArrayUtils.booleanArray(proj.getSamples().length, false);
 		String sampleFiltRound1 = qcDir + name + "_base_sampleFilter.txt";
 		double[] lrr = sampleQC.getDataFor("LRR_SD");
 		double[] callRate = sampleQC.getDataFor("Genotype_callrate");
@@ -111,8 +111,8 @@ public class AutoMito {
 			}
 		}
 		proj.getLog()
-				.reportTimeInfo(Array.booleanArraySum(samplesPassing) + " samples passed initial QC");
-		Files.writeArray(Array.subArray(proj.getSamples(), samplesPassing), sampleFiltRound1);
+				.reportTimeInfo(ArrayUtils.booleanArraySum(samplesPassing) + " samples passed initial QC");
+		Files.writeArray(ArrayUtils.subArray(proj.getSamples(), samplesPassing), sampleFiltRound1);
 
 		if (!Files.exists(proj.MARKER_METRICS_FILENAME.getValue())) {
 			MarkerMetrics.fullQC(proj, samplesPassing, baseMarkers, false, numThreads);
@@ -141,13 +141,13 @@ public class AutoMito {
 		double sexZscore = 2.5;
 		double lrrSDSamp = Double.NaN;
 
-		String usage = "\n"	+ "one.JL.AutoMito requires 0-1 arguments\n"
-										+ "   (1) an existing project filename (i.e. proj=" + filename + " (default))\n"
-										+ "   (2) full path to mitochondrial markers (i.e. mitoMarks=" + mitoMarks
-										+ " (default))\n" + "   (3) analysis name (i.e. name=" + name + " (default))\n"
-										+ PSF.Ext.getNumThreadsCommand(4, numThreads)
-										+ "   (5) maximum Number of markers(i.e. maxNumMarkers=" + maxNumMarkers
-										+ " (default))\n" + "";
+		String usage = "\n" + "one.JL.AutoMito requires 0-1 arguments\n"
+									 + "   (1) an existing project filename (i.e. proj=" + filename + " (default))\n"
+									 + "   (2) full path to mitochondrial markers (i.e. mitoMarks=" + mitoMarks
+									 + " (default))\n" + "   (3) analysis name (i.e. name=" + name + " (default))\n"
+									 + PSF.Ext.getNumThreadsCommand(4, numThreads)
+									 + "   (5) maximum Number of markers(i.e. maxNumMarkers=" + maxNumMarkers
+									 + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -182,11 +182,11 @@ public class AutoMito {
 				if (proj.getArrayType() == ARRAY.ILLUMINA) {
 					lrrSDSamp = 0.30;
 				} else if (proj.getArrayType() == ARRAY.AFFY_GW6
-										|| proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
+									 || proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
 					lrrSDSamp = 0.35;
 				} else {
 					throw new IllegalArgumentException("did not expect to see array type "
-																							+ proj.getArrayType() + " here");
+																						 + proj.getArrayType() + " here");
 				}
 			}
 			run(proj, name, mitoMarks, maxNumMarkers, callRateSamp, callRateMarker, hetExMarker,

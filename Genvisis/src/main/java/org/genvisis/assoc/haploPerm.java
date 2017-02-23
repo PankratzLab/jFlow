@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 public class haploPerm {
 	public haploPerm(int numReps) throws IOException {
@@ -35,7 +35,7 @@ public class haploPerm {
 
 		for (int i = 1; i <= numReps; i++) {
 			writer = new PrintWriter(new FileWriter("aff." + i));
-			randKey = Array.random(n);
+			randKey = ArrayUtils.random(n);
 			for (int j = 0; j < n; j++) {
 				writer.println(inds.elementAt(j) + "\t" + affstat.elementAt(randKey[j]));
 			}
@@ -57,8 +57,8 @@ public class haploPerm {
 			writer.println("sink()");
 			// writer.println("bintest."+i+"<-haplo.score(affstat."+i+", geno,
 			// trait.type=\"binomial\", skip.haplo=0.005)");
-			writer.println("bintest."	+ i + "<-haplo.score(affstat." + i
-											+ ", geno, trait.type=\"binomial\", skip.haplo=0.02)");
+			writer.println("bintest." + i + "<-haplo.score(affstat." + i
+										 + ", geno, trait.type=\"binomial\", skip.haplo=0.02)");
 			// writer.println("bintest."+i+"<-haplo.score(affstat."+i+", geno,
 			// trait.type=\"binomial\")");
 			writer.println("sink(\"" + i + "_bintest.out\")");
@@ -80,9 +80,9 @@ public class haploPerm {
 		int numArgs = args.length;
 		int numReps = 10;
 
-		String usage = "\n"	+ "park.haploPerm requires 1 arguments:\n"
-										+ "   (1) the number of replicates to perform (i.e. reps=" + numReps
-										+ " (default))\n" + "";
+		String usage = "\n" + "park.haploPerm requires 1 arguments:\n"
+									 + "   (1) the number of replicates to perform (i.e. reps=" + numReps
+									 + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

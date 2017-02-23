@@ -54,7 +54,7 @@ public class ext {
 				done = true;
 			} else {
 				try {
-					str = str.substring(0, str.indexOf(from))	+ to
+					str = str.substring(0, str.indexOf(from)) + to
 								+ str.substring(str.indexOf(from) + from.length());
 				} catch (Exception e) {
 					System.err.println("Error with " + from + " to " + to + ": " + original);
@@ -75,7 +75,7 @@ public class ext {
 			if (index == -1) {
 				done = true;
 			} else {
-				str = str.substring(0, str.indexOf(from))	+ to
+				str = str.substring(0, str.indexOf(from)) + to
 							+ str.substring(str.indexOf(from) + from.length());
 			}
 		}
@@ -177,7 +177,7 @@ public class ext {
 
 	public static int indexOfStr(String target, String[][] array, boolean caseSensitive) {
 		for (int i = 0; i < array.length; i++) {
-			if (caseSensitive	? array[i][0].equals(target)
+			if (caseSensitive ? array[i][0].equals(target)
 												: array[i][0].toLowerCase().equals(target.toLowerCase())) {
 				return i;
 			}
@@ -200,13 +200,13 @@ public class ext {
 		return indexOfStr(target, array, true, true, new Logger(), false);
 	}
 
-	public static int indexOfStr(	String target, String[] array, boolean caseSensitive,
-																boolean exactMatch) {
+	public static int indexOfStr(String target, String[] array, boolean caseSensitive,
+															 boolean exactMatch) {
 		return indexOfStr(target, array, caseSensitive, exactMatch, new Logger(), false);
 	}
 
-	public static int indexOfStr(	String target, String[] array, boolean caseSensitive,
-																boolean exactMatch, Logger log, boolean verbose) {
+	public static int indexOfStr(String target, String[] array, boolean caseSensitive,
+															 boolean exactMatch, Logger log, boolean verbose) {
 		int[] indices;
 
 		indices = indicesOfStr(target, array, caseSensitive, exactMatch);
@@ -233,19 +233,19 @@ public class ext {
 		return indices[0];
 	}
 
-	public static int[] indicesOfStr(	String target, String[] array, boolean caseSensitive,
-																		boolean exactMatch) {
+	public static int[] indicesOfStr(String target, String[] array, boolean caseSensitive,
+																	 boolean exactMatch) {
 		IntVector indices;
 
 		indices = new IntVector();
 		for (int i = 0; i < array.length; i++) {
 			if (exactMatch) {
-				if (caseSensitive	? array[i].equals(target)
+				if (caseSensitive ? array[i].equals(target)
 													: array[i].toLowerCase().equals(target.toLowerCase())) {
 					indices.add(i);
 				}
 			} else {
-				if (caseSensitive	? array[i].contains(target) || target.contains(array[i])
+				if (caseSensitive ? array[i].contains(target) || target.contains(array[i])
 													: array[i].toLowerCase().contains(target.toLowerCase())
 														|| target.toLowerCase().contains(array[i].toLowerCase())) {
 					indices.add(i);
@@ -370,8 +370,9 @@ public class ext {
 		}
 		tokens.add(hist);
 
-		return new String[][] {	Array.toStringArray(operatorsPresent),
-														Array.toStringArray(operatorIndices), Array.toStringArray(tokens)};
+		return new String[][] {ArrayUtils.toStringArray(operatorsPresent),
+													 ArrayUtils.toStringArray(operatorIndices),
+													 ArrayUtils.toStringArray(tokens)};
 	}
 
 	public static boolean eqArrays(Object[] arr1, Object[] arr2) {
@@ -536,8 +537,8 @@ public class ext {
 		return prettyP(nummer, 2, 5, 1, false);
 	}
 
-	public static String prettyP(	double d, int sigfigs, int sigfigWhenConverting,
-																int sigfigWhenConverted, boolean useE) {
+	public static String prettyP(double d, int sigfigs, int sigfigWhenConverting,
+															 int sigfigWhenConverted, boolean useE) {
 		return prettyP(d + "", sigfigs, sigfigWhenConverting, sigfigWhenConverted, useE);
 	}
 
@@ -555,8 +556,8 @@ public class ext {
 	 * @param useE use E-0# instead of x 10^-#
 	 * @return the pretty version of the number
 	 */
-	public static String prettyP(	String nummer, int sigfigs, int sigfigBeforeConverting,
-																int sigfigWhenConverted, boolean useE) {
+	public static String prettyP(String nummer, int sigfigs, int sigfigBeforeConverting,
+															 int sigfigWhenConverted, boolean useE) {
 		String str = "";
 		double d = -999;
 		int power;
@@ -607,8 +608,8 @@ public class ext {
 	public static String getDate(Date date, String delimiter) {
 		GregorianCalendar gc = new GregorianCalendar();
 		gc.setTime(date);
-		return gc.get(Calendar.YEAR)	+ delimiter + chrome((gc.get(Calendar.MONTH) + 1)) + delimiter
-						+ chrome(gc.get(Calendar.DAY_OF_MONTH));
+		return gc.get(Calendar.YEAR) + delimiter + chrome((gc.get(Calendar.MONTH) + 1)) + delimiter
+					 + chrome(gc.get(Calendar.DAY_OF_MONTH));
 	}
 
 	public static String getDate(String delimiter) {
@@ -626,9 +627,9 @@ public class ext {
 	public static String getTime(long time) {
 		GregorianCalendar gc = new GregorianCalendar();
 		gc.setTime(new Date(time));
-		return formNum(gc.get(Calendar.HOUR) == 0 ? 12 : gc.get(Calendar.HOUR), 2)	+ ":"
-						+ formNum(gc.get(Calendar.MINUTE), 2) + ":" + formNum(gc.get(Calendar.SECOND), 2)
-						+ (gc.get(Calendar.AM_PM) == 0 ? "AM" : "PM");
+		return formNum(gc.get(Calendar.HOUR) == 0 ? 12 : gc.get(Calendar.HOUR), 2) + ":"
+					 + formNum(gc.get(Calendar.MINUTE), 2) + ":" + formNum(gc.get(Calendar.SECOND), 2)
+					 + (gc.get(Calendar.AM_PM) == 0 ? "AM" : "PM");
 	}
 
 	public static void timestamp() {
@@ -700,8 +701,8 @@ public class ext {
 			return timeElapsed;
 		}
 
-		System.err.println("Error - '"	+ returnType
-												+ "' is an invalid return type: only S(econds), M(inutes), and H(ours) are allowed");
+		System.err.println("Error - '" + returnType
+											 + "' is an invalid return type: only S(econds), M(inutes), and H(ours) are allowed");
 
 		return -1;
 	}
@@ -847,20 +848,20 @@ public class ext {
 		return indices;
 	}
 
-	public static int[] indexFactors(	String[] subset, String[] superset, boolean casesensitive,
-																		boolean kill) {
+	public static int[] indexFactors(String[] subset, String[] superset, boolean casesensitive,
+																	 boolean kill) {
 		return indexFactors(subset, superset, casesensitive, new Logger(), true, kill);
 	}
 
-	public static int[] indexFactors(	String[] subset, String[] superset, boolean casesensitive,
-																		Logger log, boolean verbose, boolean kill) {
+	public static int[] indexFactors(String[] subset, String[] superset, boolean casesensitive,
+																	 Logger log, boolean verbose, boolean kill) {
 		int[] indices = new int[subset.length];
 		boolean err = false;
 
 		for (int i = 0; i < subset.length; i++) {
 			indices[i] = -1;
 			for (int j = 0; j < superset.length; j++) {
-				if (casesensitive	? subset[i].equals(superset[j])
+				if (casesensitive ? subset[i].equals(superset[j])
 													: subset[i].equalsIgnoreCase(superset[j])) {
 					if (indices[i] == -1) {
 						indices[i] = j;
@@ -907,24 +908,24 @@ public class ext {
 	// return attendance;
 	// }
 	//
-	public static int[] indexFactors(	String[][] targetsWithAlts, String[] superset,
-																		boolean caseSensitive, boolean exactMatch, boolean verbose,
-																		boolean kill) {
+	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
+																	 boolean caseSensitive, boolean exactMatch, boolean verbose,
+																	 boolean kill) {
 		return indexFactors(targetsWithAlts, superset, caseSensitive, exactMatch, verbose, new Logger(),
 												kill);
 	}
 
-	public static int[] indexFactors(	String[][] targetsWithAlts, String[] superset,
-																		boolean caseSensitive, boolean exactMatch, boolean verbose,
-																		Logger log, boolean kill) {
+	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
+																	 boolean caseSensitive, boolean exactMatch, boolean verbose,
+																	 Logger log, boolean kill) {
 		return indexFactors(targetsWithAlts, superset, false, caseSensitive, exactMatch, verbose, log,
 												kill);
 	}
 
-	public static int[] indexFactors(	String[][] targetsWithAlts, String[] superset,
-																		boolean preferFirstInTargetsOverFirstInSuperset,
-																		boolean caseSensitive, boolean exactMatch, boolean verbose,
-																		Logger log, boolean kill) {
+	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
+																	 boolean preferFirstInTargetsOverFirstInSuperset,
+																	 boolean caseSensitive, boolean exactMatch, boolean verbose,
+																	 Logger log, boolean kill) {
 		int[] finalIndices;
 		IntVector[] possibleIndices;
 		boolean err = false;
@@ -961,8 +962,8 @@ public class ext {
 			if (possibleIndices[i].size() == 0) {
 				if (verbose) {
 					if (log != null) {
-						log.reportError((kill ? "Error" : "Warning")	+ " - no factor named '"
-														+ Array.toStr(targetsWithAlts[i], "/") + "'");
+						log.reportError((kill ? "Error" : "Warning") + " - no factor named '"
+														+ ArrayUtils.toStr(targetsWithAlts[i], "/") + "'");
 					}
 				}
 				finalIndices[i] = -1;
@@ -972,9 +973,10 @@ public class ext {
 				if (possibleIndices[i].size() > 1) {
 					if (verbose) {
 						if (log != null) {
-							String msg = "Warning - multiple factors matched; using " + superset[possibleIndices[i].elementAt(0)] + " and not ";
+							String msg = "Warning - multiple factors matched; using "
+													 + superset[possibleIndices[i].elementAt(0)] + " and not ";
 							for (int j = 1; j < possibleIndices[i].size(); j++) {
-								msg += (j == 1 ? "" : " or ")	+ superset[possibleIndices[i].elementAt(j)];
+								msg += (j == 1 ? "" : " or ") + superset[possibleIndices[i].elementAt(j)];
 							}
 							log.reportError(msg, true, true);
 						}
@@ -1064,20 +1066,20 @@ public class ext {
 		}
 
 		if (observed.length != expected.length) {
-			log.reportError("Error - file has an unexpected header; expecting "	+ expected.length
+			log.reportError("Error - file has an unexpected header; expecting " + expected.length
 											+ " columns, found " + observed.length);
-			log.reportError("Expected: " + Array.toStr(expected));
-			log.reportError("Observed: " + Array.toStr(observed));
+			log.reportError("Expected: " + ArrayUtils.toStr(expected));
+			log.reportError("Observed: " + ArrayUtils.toStr(observed));
 			kosher = false;
 			if (kill) {
 				System.exit(1);
 			}
 		}
-		for (int i = 0; i < (observed.length < expected.length	? observed.length
-																														: expected.length); i++) {
+		for (int i = 0; i < (observed.length < expected.length ? observed.length
+																													 : expected.length); i++) {
 			if (!observed[i].equalsIgnoreCase(expected[i])
 					|| (caseSensitive && !observed[i].equals(expected[i]))) {
-				log.reportError("Error - Expecting "	+ expected[i] + " in column " + (i + 1) + "; got "
+				log.reportError("Error - Expecting " + expected[i] + " in column " + (i + 1) + "; got "
 												+ observed[i]);
 				kosher = false;
 			}
@@ -1286,7 +1288,7 @@ public class ext {
 			stop = str.substring(start + 1).indexOf("\"") + start + 1;
 			try {
 				str = str.substring(0, start)
-								+ replaceAllWith(str.substring(start + 1, stop), theReplacements)
+							+ replaceAllWith(str.substring(start + 1, stop), theReplacements)
 							+ str.substring(stop + 1);
 			} catch (Exception e) {
 				System.err.println("Error - failed to parse: '" + ori + "'");
@@ -1323,8 +1325,8 @@ public class ext {
 			System.err.println("Error parsing date ('" + str + "'); assuming MM/DD/YYYY format");
 		}
 
-		return new GregorianCalendar(	Integer.parseInt(line[2]), Integer.parseInt(line[0]) - 1,
-																	Integer.parseInt(line[1])).getTime();
+		return new GregorianCalendar(Integer.parseInt(line[2]), Integer.parseInt(line[0]) - 1,
+																 Integer.parseInt(line[1])).getTime();
 	}
 
 	public static int calcDays(Date start, Date end) {
@@ -1353,8 +1355,8 @@ public class ext {
 	}
 
 	public static String addToRoot(String filename, String addition) {
-		return ext.rootOf(filename, false)	+ addition
-						+ (filename.lastIndexOf(".") > 0 ? filename.substring(filename.lastIndexOf(".")) : "");
+		return ext.rootOf(filename, false) + addition
+					 + (filename.lastIndexOf(".") > 0 ? filename.substring(filename.lastIndexOf(".")) : "");
 	}
 
 	public static String removeDirectoryInfo(String filename) {
@@ -1453,7 +1455,7 @@ public class ext {
 		} else if (arg.split("=")[1].trim().equalsIgnoreCase("false")) {
 			return false;
 		} else {
-			log.reportError("Error - invalid "	+ arg.split("=")[0] + "= argument (expecting true/false): "
+			log.reportError("Error - invalid " + arg.split("=")[0] + "= argument (expecting true/false): "
 											+ arg.split("=")[1].trim());
 			System.exit(1);
 			return false;
@@ -1478,8 +1480,8 @@ public class ext {
 		try {
 			return Integer.parseInt(arg.split("=")[1].trim());
 		} catch (NumberFormatException nfe) {
-			System.err.println("Error - invalid "	+ arg.split("=")[0] + "= argument: "
-													+ arg.split("=")[1].trim());
+			System.err.println("Error - invalid " + arg.split("=")[0] + "= argument: "
+												 + arg.split("=")[1].trim());
 			System.exit(1);
 			return Integer.MIN_VALUE;
 		}
@@ -1532,8 +1534,8 @@ public class ext {
 		try {
 			return Byte.parseByte(arg.split("=")[1].trim());
 		} catch (NumberFormatException nfe) {
-			System.err.println("Error - invalid "	+ arg.split("=")[0] + "= argument: "
-													+ arg.split("=")[1]);
+			System.err.println("Error - invalid " + arg.split("=")[0] + "= argument: "
+												 + arg.split("=")[1]);
 			System.exit(1);
 			return Byte.MIN_VALUE;
 		}
@@ -1543,8 +1545,8 @@ public class ext {
 		try {
 			return Double.parseDouble(arg.split("=")[1].trim());
 		} catch (NumberFormatException nfe) {
-			System.err.println("Error - invalid "	+ arg.split("=")[0] + "= argument: "
-													+ arg.split("=")[1]);
+			System.err.println("Error - invalid " + arg.split("=")[0] + "= argument: "
+												 + arg.split("=")[1]);
 			System.exit(1);
 			return Double.NaN;
 		}
@@ -1610,21 +1612,21 @@ public class ext {
 	}
 
 	public static boolean isValidByte(String str) {
-		return isValidInteger(str)	&& Integer.parseInt(str) >= Byte.MIN_VALUE
-						&& Integer.parseInt(str) <= Byte.MAX_VALUE;
+		return isValidInteger(str) && Integer.parseInt(str) >= Byte.MIN_VALUE
+					 && Integer.parseInt(str) <= Byte.MAX_VALUE;
 	}
 
 	public static boolean isValidChromosome(String str) {
 		return ext.indexOfStr(str, Positions.CHR_CODES) != -1
-						|| (isValidInteger(str) && Integer.parseInt(str) >= 1 && Integer.parseInt(str) <= 26);
+					 || (isValidInteger(str) && Integer.parseInt(str) >= 1 && Integer.parseInt(str) <= 26);
 	}
 
 	public static float parseFloatArg(String arg) {
 		try {
 			return Float.parseFloat(arg.split("=")[1].trim());
 		} catch (NumberFormatException nfe) {
-			System.err.println("Error - invalid "	+ arg.split("=")[0] + "= argument: "
-													+ arg.split("=")[1]);
+			System.err.println("Error - invalid " + arg.split("=")[0] + "= argument: "
+												 + arg.split("=")[1]);
 			System.exit(1);
 			return Float.NaN;
 		}
@@ -1688,7 +1690,7 @@ public class ext {
 		if (str.contains("\t")) {
 			return "\t";
 		} else if (countInstancesOf(str, ",") > countInstancesOf(str, " ")
-								|| (spaceAsLastResort && countInstancesOf(str, ",") > 0)) {
+							 || (spaceAsLastResort && countInstancesOf(str, ",") > 0)) {
 			return ",";
 		} else {
 			return "[\\s]+";
@@ -1719,7 +1721,7 @@ public class ext {
 		for (int i = 0; i < str.length(); i++) {
 			if (str.charAt(i) == ',') {
 				if (numCommas % 2 == 0) {
-					v.add(removeAndSimplifyQuotes	? removeAndSimplifyQuotes(str.substring(startIndex, i), log)
+					v.add(removeAndSimplifyQuotes ? removeAndSimplifyQuotes(str.substring(startIndex, i), log)
 																				: str.substring(startIndex, i));
 					// System.out.println(v.elementAt(v.size()-1));
 					startIndex = i + 1;
@@ -1737,10 +1739,10 @@ public class ext {
 				insideQuotes = true;
 			}
 		}
-		v.add(removeAndSimplifyQuotes	? removeAndSimplifyQuotes(str.substring(startIndex), log)
+		v.add(removeAndSimplifyQuotes ? removeAndSimplifyQuotes(str.substring(startIndex), log)
 																	: str.substring(startIndex));
 
-		return Array.toStringArray(v);
+		return ArrayUtils.toStringArray(v);
 	}
 
 	public static String reportMemoryUsage() {
@@ -1762,11 +1764,11 @@ public class ext {
 		// " NonHeapUsed: " + ext.prettyUpSize(muNonHeap.getUsed(),1)
 		// ;
 
-		return "Used: "	+ ext.prettyUpSize(muHeap.getUsed(), 1) + "\tInit: "
-						+ ext.prettyUpSize(muHeap.getInit(), 1) + "\tCommit: "
-						+ ext.prettyUpSize(muHeap.getCommitted(), 1) + "\tMax: "
-						+ ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + "\tFree: "
-						+ ext.prettyUpSize(Runtime.getRuntime().freeMemory(), 1);
+		return "Used: " + ext.prettyUpSize(muHeap.getUsed(), 1) + "\tInit: "
+					 + ext.prettyUpSize(muHeap.getInit(), 1) + "\tCommit: "
+					 + ext.prettyUpSize(muHeap.getCommitted(), 1) + "\tMax: "
+					 + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + "\tFree: "
+					 + ext.prettyUpSize(Runtime.getRuntime().freeMemory(), 1);
 	}
 
 	public static String pwd() {
@@ -1832,8 +1834,8 @@ public class ext {
 	 * @param toAddFrom hash to add counts from
 	 * @return NOTE: couldn't make this generic for {@link Numbers}. Go for it if it's easy
 	 */
-	public static Hashtable<String, Integer> addHashCounts(	Hashtable<String, Integer> toAddTo,
-																													Hashtable<String, Integer> toAddFrom) {
+	public static Hashtable<String, Integer> addHashCounts(Hashtable<String, Integer> toAddTo,
+																												 Hashtable<String, Integer> toAddFrom) {
 		Set<String> keys = toAddFrom.keySet();
 		for (String key : keys) {
 			if (!toAddTo.containsKey(key)) {
@@ -1870,7 +1872,7 @@ public class ext {
 			costs[0] = i;
 			int nw = i - 1;
 			for (int j = 1; j <= b.length(); j++) {
-				int cj = Math.min(1	+ Math.min(costs[j], costs[j - 1]),
+				int cj = Math.min(1 + Math.min(costs[j], costs[j - 1]),
 													a.charAt(i - 1) == b.charAt(j - 1) ? nw : nw + 1);
 				nw = costs[j];
 				costs[j] = cj;
@@ -1882,8 +1884,8 @@ public class ext {
 	public static void main(String[] args) {
 		String[] data = {"kitten", "sitting", "saturday", "sunday", "rosettacode", "raisethysword"};
 		for (int i = 0; i < data.length; i += 2) {
-			System.out.println("distance("	+ data[i] + ", " + data[i + 1] + ") = "
-													+ distanceLevenshtein(data[i], data[i + 1]));
+			System.out.println("distance(" + data[i] + ", " + data[i + 1] + ") = "
+												 + distanceLevenshtein(data[i], data[i + 1]));
 		}
 		System.exit(1);
 	}

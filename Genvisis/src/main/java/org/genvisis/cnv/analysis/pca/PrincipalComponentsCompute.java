@@ -23,7 +23,7 @@ import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -36,15 +36,14 @@ import org.genvisis.common.ext;
  * @author Peter Abeles , John Lane
  */
 public class PrincipalComponentsCompute {
-	public static final String[] OUTPUT_EXT = {	".PCs.txt", ".PCs.MarkerReport.txt",
-																							".PCs.MarkerLoadings.txt", ".PCs.SingularValues.txt",
-																							".Summary.txt"};
+	public static final String[] OUTPUT_EXT = {".PCs.txt", ".PCs.MarkerReport.txt",
+																						 ".PCs.MarkerLoadings.txt", ".PCs.SingularValues.txt",
+																						 ".Summary.txt"};
 	public static final String PC_STRING = "PC";
 	public static final String[] SAMPLE = {"sample", "FID", "IID"};
 	public static final String MARKER = "markerName";
-	private static final String[] MARKER_REPORT_SMALL =
-																										{	"Marker",
-																											"Used for PCA (Contains at least one value that is not NaN)"};
+	private static final String[] MARKER_REPORT_SMALL = {"Marker",
+																											 "Used for PCA (Contains at least one value that is not NaN)"};
 	private static final String SV_STRING = "Singular Value";
 	// principle component subspace is stored in the rows
 	private DenseMatrix64F V_t;
@@ -126,8 +125,8 @@ public class PrincipalComponentsCompute {
 	public void computeBasis(int numComponents, boolean center) {
 		if (numComponents > A.getNumCols()) {
 			throw new IllegalArgumentException("More components requested than the data's length. Have "
-																						+ A.getNumCols() + " available and " + numComponents
-																					+ " were requested");
+																				 + A.getNumCols() + " available and " + numComponents
+																				 + " were requested");
 		}
 		if (sampleIndex != A.getNumRows()) {
 			throw new IllegalArgumentException("Not all the data has been added");
@@ -173,9 +172,10 @@ public class PrincipalComponentsCompute {
 		// strip off unneeded components and find the basis
 		V_t.reshape(numComponents, mean.length, true);
 
-		singularValues = Array.subArray(getDiagonal(W), 0, numComponents);// W is the sorted (descending
-																																			// order on the diagonal)
-																																			// matrix of singular values
+		singularValues = ArrayUtils.subArray(getDiagonal(W), 0, numComponents);// W is the sorted
+																																					 // (descending
+		// order on the diagonal)
+		// matrix of singular values
 
 	}
 
@@ -241,11 +241,11 @@ public class PrincipalComponentsCompute {
 
 		boolean[] samplesToUse = getSamples(proj, excludeSamples, useFile);
 		String[] markers = getMarkers(proj);
-		int numSamples = Array.booleanArraySum(samplesToUse);
+		int numSamples = ArrayUtils.booleanArraySum(samplesToUse);
 
 		if (numComponents > numSamples) {
 			int newNumComp = numSamples;
-			log.reportTimeWarning("cannot request more principal components (n="	+ numComponents
+			log.reportTimeWarning("cannot request more principal components (n=" + numComponents
 														+ ") than there are valid samples (n=" + numSamples
 														+ "), try setting number of components to " + newNumComp);
 			throw new IllegalArgumentException("Too many principal components were requested");
@@ -255,7 +255,7 @@ public class PrincipalComponentsCompute {
 
 		if (numComponents > markers.length) {
 			int newNumComp = markers.length;
-			log.reportTimeWarning(" cannot request more principal components (n="	+ numComponents
+			log.reportTimeWarning(" cannot request more principal components (n=" + numComponents
 														+ ") than there are markers (n=" + markers.length
 														+ "), try setting number of components to " + newNumComp);
 			throw new IllegalArgumentException("Too many principal components were requested");
@@ -263,8 +263,8 @@ public class PrincipalComponentsCompute {
 		}
 
 		// deals with NaN on the fly
-		double[][] dataToUse = getData(	proj, markers, samplesToUse, printFullData, imputeMeanForNaN,
-																		true, recomputeLRR, output, parameters);
+		double[][] dataToUse = getData(proj, markers, samplesToUse, printFullData, imputeMeanForNaN,
+																	 true, recomputeLRR, output, parameters);
 		pcs = getPrincipalComponents(numComponents, center, dataToUse, true, log);
 		double[][] pcsBasis = getPCs(pcs, numComponents, true, log);
 		reportPCs(proj, pcs, numComponents, output, samplesToUse, pcsBasis);
@@ -302,8 +302,8 @@ public class PrincipalComponentsCompute {
 				}
 			}
 			if (verbose) {
-				log.report(ext.getTime()	+ " Using " + initpc + (initpc > 1 ? " inputs" : " input")
-										+ " with valid (not NaN) data for SVD across " + numSamples + " samples");
+				log.report(ext.getTime() + " Using " + initpc + (initpc > 1 ? " inputs" : " input")
+									 + " with valid (not NaN) data for SVD across " + numSamples + " samples");
 			}
 			// adding on a per marker basis
 			for (double[] element : dataToUse) {
@@ -372,12 +372,12 @@ public class PrincipalComponentsCompute {
 		singularValuesFile = ext.rootOf(output) + OUTPUT_EXT[3];
 		markerLoadingFile = ext.rootOf(output) + OUTPUT_EXT[2];
 		if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + pcFile)
-					&& Files.exists(proj.PROJECT_DIRECTORY.getValue() + singularValuesFile)
+				&& Files.exists(proj.PROJECT_DIRECTORY.getValue() + singularValuesFile)
 				&& Files.exists(proj.PROJECT_DIRECTORY.getValue() + markerLoadingFile)) {
 			log.report("Detected that the following principal component files already exist:\n"
-										+ proj.PROJECT_DIRECTORY.getValue() + pcFile + "\n"
-									+ proj.PROJECT_DIRECTORY.getValue() + singularValuesFile + "\n"
-									+ proj.PROJECT_DIRECTORY.getValue() + markerLoadingFile + "\n");
+								 + proj.PROJECT_DIRECTORY.getValue() + pcFile + "\n"
+								 + proj.PROJECT_DIRECTORY.getValue() + singularValuesFile + "\n"
+								 + proj.PROJECT_DIRECTORY.getValue() + markerLoadingFile + "\n");
 			log.report("Skipping the principal component computation and using these files instead.");
 			log.report("If this is incorrect (using a different number of components, new samples, etc...),  please remove or change the name of the files listed above.\n Alternatively, specify a new analysis name");
 			pcs = new PrincipalComponentsCompute();
@@ -448,13 +448,13 @@ public class PrincipalComponentsCompute {
 			}
 		}
 		if (used != samplesToUseFromFile.length) {
-			log.reportError("Error - "	+ used + " " + (used > 1 ? "samples were " : "sample was ")
+			log.reportError("Error - " + used + " " + (used > 1 ? "samples were " : "sample was ")
 											+ " not found in the sample data file "
 											+ proj.getProperty(proj.SAMPLE_DATA_FILENAME));
 			return null;
 		}
-		log.report(ext.getTime()	+ " Using the " + used + " samples in the project that passed QC "
-								+ (useFile != null ? " and that were also in the useFile" : ""));
+		log.report(ext.getTime() + " Using the " + used + " samples in the project that passed QC "
+							 + (useFile != null ? " and that were also in the useFile" : ""));
 
 		return samplesToUse;
 	}
@@ -464,8 +464,8 @@ public class PrincipalComponentsCompute {
 		if (proj.INTENSITY_PC_MARKERS_FILENAME.getValue() == null
 				|| !Files.exists(proj.INTENSITY_PC_MARKERS_FILENAME.getValue())) {
 			proj.getLog()
-					.reportError("Internal error "	+ proj.INTENSITY_PC_MARKERS_FILENAME.getName()
-														+ " did not have a valid setting, please update in the properties file");
+					.reportError("Internal error " + proj.INTENSITY_PC_MARKERS_FILENAME.getName()
+											 + " did not have a valid setting, please update in the properties file");
 		}
 		String[] markers = proj.getTargetMarkers(proj.INTENSITY_PC_MARKERS_FILENAME.getValue());
 		return sortByProjectMarkers(proj, markers);
@@ -502,11 +502,11 @@ public class PrincipalComponentsCompute {
 
 		if (tracker.size() != 0) {
 			proj.getLog()
-			    .reportError("Warning: only found " + sorted.size()
-			                 + " markers present in this project, of " + (sorted.size() + tracker.size())
-			                 + " input markers. Please double-check that the "
-			                 + PropertyKeys.KEY_INTENSITY_PC_MARKERS_FILENAME
-			                 + " property is appropriate for this project.");
+					.reportError("Warning: only found " + sorted.size()
+											 + " markers present in this project, of " + (sorted.size() + tracker.size())
+											 + " input markers. Please double-check that the "
+											 + PropertyKeys.KEY_INTENSITY_PC_MARKERS_FILENAME
+											 + " property is appropriate for this project.");
 		}
 
 		return sorted.toArray(new String[sorted.size()]);
@@ -541,10 +541,10 @@ public class PrincipalComponentsCompute {
 	 * @param log
 	 * @return
 	 */
-	public static double[][] getData(	Project proj, String[] markers, boolean[] samplesToUse,
-																		boolean printFullData, boolean imputeMeanForNaN,
-																		boolean dealWithNaN, boolean recomputeLRR, String output,
-																		GcAdjustorParameters parameters) {
+	public static double[][] getData(Project proj, String[] markers, boolean[] samplesToUse,
+																	 boolean printFullData, boolean imputeMeanForNaN,
+																	 boolean dealWithNaN, boolean recomputeLRR, String output,
+																	 GcAdjustorParameters parameters) {
 		double[][] dataToUse = getAppropriateArray(markers.length, samplesToUse);
 		MDL mdl = new MDL(proj, proj.getMarkerSet(), markers, 2, 1);
 		// MarkerDataLoader markerDataLoader =
@@ -572,10 +572,9 @@ public class PrincipalComponentsCompute {
 				float usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 				float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
 				float maxMemory = Runtime.getRuntime().maxMemory();
-				log.report(ext.getTime()	+ "\tData loaded = "
-										+ Math.round(((double) i / (double) markers.length * 100.0))
-										+ "%\tFree memory: "
-										+ Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
+				log.report(ext.getTime() + "\tData loaded = "
+									 + Math.round(((double) i / (double) markers.length * 100.0)) + "%\tFree memory: "
+									 + Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
 			}
 			// MarkerData markerData = markerDataLoader.requestMarkerData(i);
 			MarkerData markerData = mdl.next();
@@ -583,8 +582,8 @@ public class PrincipalComponentsCompute {
 				// Warning - assuming only autosomal, not providing sex. Not caring about gc Threshold or
 				// call rate either
 				// TODO Recompute only from samplesToUse??
-				data[0] =
-								markerData.getRecomputedLRR_BAF(null, null, false, 1, 0, null, true, true, log)[1];
+				data[0] = markerData.getRecomputedLRR_BAF(null, null, false, 1, 0, null, true, true,
+																									log)[1];
 			} else {
 				data[0] = markerData.getLRRs();
 			}
@@ -627,8 +626,8 @@ public class PrincipalComponentsCompute {
 		return dataToUse;
 	}
 
-	public static float[] imputeMeanForNaN(	String markerName, float[] data, boolean[] samplesToUse,
-																					Logger log) {
+	public static float[] imputeMeanForNaN(String markerName, float[] data, boolean[] samplesToUse,
+																				 Logger log) {
 		float sum = 0;
 		int count = 0;
 		float mean = 0;
@@ -647,7 +646,7 @@ public class PrincipalComponentsCompute {
 				data[toImpute.get(i)] = mean;
 			}
 		} else {
-			log.reportError("Error - could not impute mean values for marker "	+ markerName
+			log.reportError("Error - could not impute mean values for marker " + markerName
 											+ " (all values were NaN), skipping this marker...");
 			data = null;
 		}
@@ -680,18 +679,18 @@ public class PrincipalComponentsCompute {
 	private static void reportMarkersUsed(Project proj, String[] markers, boolean[] markerUsed,
 																				double[][] dataToUse, boolean printFullData,
 																				boolean[] samplesToUse, String output) {
-		String markersUsedForPCA = proj.PROJECT_DIRECTORY.getValue()	+ ext.rootOf(output)
-																+ OUTPUT_EXT[1];
+		String markersUsedForPCA = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(output)
+															 + OUTPUT_EXT[1];
 		Logger log = proj.getLog();
 
 		try {
 			if (Files.exists(markersUsedForPCA)) {
-				Files.backup(ext.rootOf(output)	+ OUTPUT_EXT[1], proj.PROJECT_DIRECTORY.getValue(),
-											proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
+				Files.backup(ext.rootOf(output) + OUTPUT_EXT[1], proj.PROJECT_DIRECTORY.getValue(),
+										 proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
 			PrintWriter writer = new PrintWriter(new FileWriter(markersUsedForPCA));
 			if (!printFullData) {
-				writer.println(Array.toStr(MARKER_REPORT_SMALL));
+				writer.println(ArrayUtils.toStr(MARKER_REPORT_SMALL));
 				for (int i = 0; i < markers.length; i++) {
 					writer.println(markers[i] + "\t" + markerUsed[i]);
 				}
@@ -700,7 +699,7 @@ public class PrincipalComponentsCompute {
 			}
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \""	+ markersUsedForPCA
+			log.reportError("Error: file \"" + markersUsedForPCA
 											+ "\" could not be written to (it's probably open)");
 			log.reportException(fnfe);
 			System.exit(1);
@@ -750,8 +749,8 @@ public class PrincipalComponentsCompute {
 		pcs.setSingularValuesFile(output);
 		try {
 			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + output)) {
-				Files.backup(	output, proj.PROJECT_DIRECTORY.getValue(),
-											proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
+				Files.backup(output, proj.PROJECT_DIRECTORY.getValue(),
+										 proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
 			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
 																													+ output));
@@ -762,7 +761,7 @@ public class PrincipalComponentsCompute {
 			}
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \""	+ output
+			log.reportError("Error: file \"" + output
 											+ "\" could not be written to (it's probably open)");
 			log.reportException(fnfe);
 			System.exit(1);
@@ -779,17 +778,17 @@ public class PrincipalComponentsCompute {
 	 * Report the marker loadings for the corresponding components, instead of storing loadings in
 	 * memory, we track the related file
 	 */
-	private static void reportLoadings(	Project proj, PrincipalComponentsCompute pcs,
-																			double[][] dataToUse, double[][] pcsBasis, String[] markers,
-																			String output) {
+	private static void reportLoadings(Project proj, PrincipalComponentsCompute pcs,
+																		 double[][] dataToUse, double[][] pcsBasis, String[] markers,
+																		 String output) {
 		Logger log = proj.getLog();
 
 		output = ext.rootOf(output) + OUTPUT_EXT[2];
 		pcs.setMarkerLoadingFile(output);
 		try {
 			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + output)) {
-				Files.backup(	output, proj.PROJECT_DIRECTORY.getValue(),
-											proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
+				Files.backup(output, proj.PROJECT_DIRECTORY.getValue(),
+										 proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
 			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
 																													+ output));
@@ -810,7 +809,7 @@ public class PrincipalComponentsCompute {
 			}
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \""	+ output
+			log.reportError("Error: file \"" + output
 											+ "\" could not be written to (it's probably open)");
 			log.reportException(fnfe);
 			System.exit(1);
@@ -872,13 +871,13 @@ public class PrincipalComponentsCompute {
 		pcs.setPcFile(output);
 		try {
 			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + output)) {
-				Files.backup(	output, proj.PROJECT_DIRECTORY.getValue(),
-											proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
+				Files.backup(output, proj.PROJECT_DIRECTORY.getValue(),
+										 proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
-			log.report(ext.getTime()	+ " Free memory: "
-									+ Math.round(((double) Runtime.getRuntime().freeMemory()
-																/ (double) Runtime.getRuntime().totalMemory() * 100.0))
-									+ "%");
+			log.report(ext.getTime() + " Free memory: "
+								 + Math.round(((double) Runtime.getRuntime().freeMemory()
+															 / (double) Runtime.getRuntime().totalMemory() * 100.0))
+								 + "%");
 			log.report(ext.getTime() + " Reporting top " + numComponents + " PCs");
 			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
 																													+ output));
@@ -902,7 +901,7 @@ public class PrincipalComponentsCompute {
 			}
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \""	+ output
+			log.reportError("Error: file \"" + output
 											+ "\" could not be written to (it's probably open)");
 			log.reportException(fnfe);
 			System.exit(1);

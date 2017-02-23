@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
@@ -146,8 +146,8 @@ public abstract class RegressionModel {
 
 	public void setVarNames(String[] names) {
 		if (names.length != M) {
-			System.err.println("Error naming independent variables: "	+ M + " variables, and "
-													+ names.length + " names");
+			System.err.println("Error naming independent variables: " + M + " variables, and "
+												 + names.length + " names");
 			return;
 		}
 		varNames = new String[M + 1];
@@ -190,7 +190,7 @@ public abstract class RegressionModel {
 		double[][] statPerms = new double[stats.length][numReps];
 		double[][] betaPerms = new double[betas.length][numReps];
 		onePer = true;
-		String[] fams = Array.unique(famIDs);
+		String[] fams = ArrayUtils.unique(famIDs);
 		Hashtable<String, IntVector> hash = new Hashtable<String, IntVector>();
 		IntVector iv;
 		double[] rDeps = new double[fams.length];
@@ -262,8 +262,8 @@ public abstract class RegressionModel {
 		}
 
 		for (int i = 1; i <= M; i++) {
-			betas[i] = Array.bootstrap(betaPerms[i], numBootReps, verbose)[0];
-			stats[i] = Array.bootstrap(statPerms[i], numBootReps, verbose)[0];
+			betas[i] = ArrayUtils.bootstrap(betaPerms[i], numBootReps, verbose)[0];
+			stats[i] = ArrayUtils.bootstrap(statPerms[i], numBootReps, verbose)[0];
 			sigs[i] = logistic ? ProbDist.ChiDist(stats[i], 1) : ProbDist.TDist(stats[i], N - M - 1);
 			SEofBs[i] = Double.NaN;
 		}
@@ -296,7 +296,7 @@ public abstract class RegressionModel {
 			}
 		}
 
-		count = Array.booleanArraySum(use);
+		count = ArrayUtils.booleanArraySum(use);
 		newDeps = new double[count];
 		newIndeps = new double[count][];
 		count = 0;
@@ -382,7 +382,7 @@ public abstract class RegressionModel {
 			}
 			if (hash.size() < 2) {
 				if (verbose) {
-					log.reportError("No variance in independent variable number "	+ (j + 1)
+					log.reportError("No variance in independent variable number " + (j + 1)
 													+ "; collapsing and ignoring");
 				}
 				oldIndeps = indeps.clone();
@@ -397,7 +397,7 @@ public abstract class RegressionModel {
 						indeps[i][k - 1] = oldIndeps[i][k];
 					}
 				}
-				varNames = Array.removeFromArray(varNames, j + 1);
+				varNames = ArrayUtils.removeFromArray(varNames, j + 1);
 				j--;
 			} else {
 				// newVariableNames.add(varNames[j+1]);
@@ -456,7 +456,7 @@ public abstract class RegressionModel {
 
 		for (int i = 0; i < indeps.length; i++) {
 			if (vIndeps.elementAt(i).getClass() == intarray.getClass()) {
-				indeps[i] = Array.toDoubleArray((int[]) vIndeps.elementAt(i));
+				indeps[i] = ArrayUtils.toDoubleArray((int[]) vIndeps.elementAt(i));
 			} else {
 				indeps[i] = (double[]) vIndeps.elementAt(i);
 			}
@@ -465,8 +465,8 @@ public abstract class RegressionModel {
 		return indeps;
 	}
 
-	public static RegressionModel determineAppropriate(	double[] deps, double[] indeps,
-																											boolean bypassDataCheck, boolean verbose) {
+	public static RegressionModel determineAppropriate(double[] deps, double[] indeps,
+																										 boolean bypassDataCheck, boolean verbose) {
 		double[][] newIndeps = new double[indeps.length][1];
 
 		for (int i = 0; i < indeps.length; i++) {
@@ -476,8 +476,8 @@ public abstract class RegressionModel {
 		return determineAppropriate(deps, newIndeps, bypassDataCheck, verbose);
 	}
 
-	public static RegressionModel determineAppropriate(	double[] deps, double[][] indeps,
-																											boolean bypassDataCheck, boolean verbose) {
+	public static RegressionModel determineAppropriate(double[] deps, double[][] indeps,
+																										 boolean bypassDataCheck, boolean verbose) {
 		Vector<String> depCount = new Vector<String>();
 
 		for (int i = 0; i < deps.length && depCount.size() <= 2; i++) {
@@ -486,7 +486,7 @@ public abstract class RegressionModel {
 			}
 		}
 
-		return depCount.size() == 2	? new LogisticRegression(deps, indeps, bypassDataCheck, verbose)
+		return depCount.size() == 2 ? new LogisticRegression(deps, indeps, bypassDataCheck, verbose)
 																: new LeastSquares(deps, indeps, bypassDataCheck, verbose);
 	}
 
@@ -548,9 +548,9 @@ public abstract class RegressionModel {
 			while (reader.ready()) {
 				line = reader.readLine().split(delimiter);
 				if (line.length != numElements) {
-					System.err.println("Error - mismatched number of elements for ID '"	+ line[0]
-															+ "' (expecting " + numElements + ", found " + line.length
-															+ "); check delimiter or for trailing whitespace");
+					System.err.println("Error - mismatched number of elements for ID '" + line[0]
+														 + "' (expecting " + numElements + ", found " + line.length
+														 + "); check delimiter or for trailing whitespace");
 				}
 				use = true;
 				for (int i = 1; i < line.length; i++) {
@@ -571,28 +571,31 @@ public abstract class RegressionModel {
 			System.exit(2);
 		}
 
-		return Array.toStringArray(v);
+		return ArrayUtils.toStringArray(v);
 	}
 
 	/**
 	 * 
-	 * @param deps an array that matches the length of {@code indeps}, or null to only use {@code indeps}
-	 * @param indeps a matrix that matches the length of {@code deps}, or null to only use {@code deps}
+	 * @param deps an array that matches the length of {@code indeps}, or null to only use
+	 *        {@code indeps}
+	 * @param indeps a matrix that matches the length of {@code deps}, or null to only use
+	 *        {@code deps}
 	 * @param log
-	 * @return a boolean array where an index, {@code i} is false if {@code deps[i]} or any value in {@code indeps[i][]} is a missing value
+	 * @return a boolean array where an index, {@code i} is false if {@code deps[i]} or any value in
+	 *         {@code indeps[i][]} is a missing value
 	 */
 	public static boolean[] getRowsWithCompleteData(String[] deps, String[][] indeps, Logger log) {
 		boolean[] use;
-		
+
 		if (deps != null && indeps != null && deps.length != indeps.length) {
 			log.reportError("Error - cannot determine rows with complete data since the deps length and the indeps length are not equal");
 			return null;
 		}
-		
+
 		if (deps != null) {
-			use = Array.booleanArray(deps.length, true);
+			use = ArrayUtils.booleanArray(deps.length, true);
 		} else if (indeps != null) {
-			use = Array.booleanArray(indeps.length, true);
+			use = ArrayUtils.booleanArray(indeps.length, true);
 		} else {
 			log.reportError("Error - cannot determine rows with complete data from two null arrays");
 			return null;
@@ -609,7 +612,7 @@ public abstract class RegressionModel {
 				}
 			}
 		}
-		
+
 		return use;
 	}
 }

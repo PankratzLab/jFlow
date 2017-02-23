@@ -15,8 +15,8 @@ import org.genvisis.filesys.Segment;
 public class filterByLocPval {
 
 	public static void filter(String segFile, String locPvalFile, boolean mafOnly, Logger log) {
-		LocusSet<Segment> set =
-													LocusSet.loadSegmentSetFromFile(segFile, 0, 1, 2, 0, true, true, 0, log);
+		LocusSet<Segment> set = LocusSet.loadSegmentSetFromFile(segFile, 0, 1, 2, 0, true, true, 0,
+																														log);
 		String output = ext.rootOf(locPvalFile, false) + (mafOnly ? ".maf.txt" : ".maf.union.txt");
 		try {
 			BufferedReader reader = Files.getAppropriateReader(locPvalFile);
@@ -67,10 +67,8 @@ public class filterByLocPval {
 		filter(segFile, locPvalFile, true, log);
 		filter(segFile, locPvalFile, false, log);
 
-		segFile =
-						"D:/data/Project_Tsai_21_25_26_spector/MergeAric/EPP_V_ARIC_hists_ARIC_FILTER.MAF_0.segments";
-		locPvalFile =
-								"D:/data/Project_Tsai_21_25_26_spector/NORMALIZED_GC_CORRECTED/NORMALIZED_GC_CORRECTED/p.loc.filt.txt";
+		segFile = "D:/data/Project_Tsai_21_25_26_spector/MergeAric/EPP_V_ARIC_hists_ARIC_FILTER.MAF_0.segments";
+		locPvalFile = "D:/data/Project_Tsai_21_25_26_spector/NORMALIZED_GC_CORRECTED/NORMALIZED_GC_CORRECTED/p.loc.filt.txt";
 		filter(segFile, locPvalFile, true, log);
 		filter(segFile, locPvalFile, false, log);
 

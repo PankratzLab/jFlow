@@ -65,7 +65,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 import org.genvisis.cnv.gui.IncludeExcludeGUI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
@@ -130,8 +130,8 @@ public class ControlsQCGUI extends JFrame {
 			return; // same as already loaded
 		}
 		baseData = DataFile.construct(fileOrDir, log);
-		String[] pnls = Array.addStrToArray("All", baseData.getPanels(), 0);
-		String[] ctrls = Array.addStrToArray("All", baseData.getControlGroups(), 0);
+		String[] pnls = ArrayUtils.addStrToArray("All", baseData.getPanels(), 0);
+		String[] ctrls = ArrayUtils.addStrToArray("All", baseData.getControlGroups(), 0);
 
 		String currPanel, currCtrl;
 		currCtrl = (String) comboControl.getSelectedItem();
@@ -282,8 +282,8 @@ public class ControlsQCGUI extends JFrame {
 				} else {
 					pts = curr.split(";");
 				}
-				IncludeExcludeGUI dialog = new IncludeExcludeGUI(	ControlsQCGUI.this, pts,
-																													Array.booleanArray(pts.length, true));
+				IncludeExcludeGUI dialog = new IncludeExcludeGUI(ControlsQCGUI.this, pts,
+																												 ArrayUtils.booleanArray(pts.length, true));
 				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 				dialog.pack();
 				dialog.setVisible(true);
@@ -336,12 +336,12 @@ public class ControlsQCGUI extends JFrame {
 
 				Color col = Color.WHITE;
 				if (column > 0 && !statRows.contains(row)) {
-					Object val = table.getModel().getValueAt(	table.convertRowIndexToModel(row),
-																										table.convertColumnIndexToModel(column));
+					Object val = table.getModel().getValueAt(table.convertRowIndexToModel(row),
+																									 table.convertColumnIndexToModel(column));
 					if (val != null) {
 						if (val instanceof Number) {
-							String colNm = (String) table	.getModel()
-																						.getValueAt(0, table.convertColumnIndexToModel(column));
+							String colNm = (String) table.getModel()
+																					 .getValueAt(0, table.convertColumnIndexToModel(column));
 							double value = ((Number) val).doubleValue();
 							if (paramMeans.containsKey(colNm)) {
 								if (value > (paramMeans.get(colNm) + paramSDs.get(colNm))
@@ -630,8 +630,7 @@ public class ControlsQCGUI extends JFrame {
 		}
 
 		ArrayList<CtrlFileMetaData> metaData = baseData.getMetaDataFor(currCtrl, currPanel);
-		HashMap<CtrlFileMetaData, Integer> metaIndMap =
-																									new HashMap<ControlsQCGUI.CtrlFileMetaData, Integer>();
+		HashMap<CtrlFileMetaData, Integer> metaIndMap = new HashMap<ControlsQCGUI.CtrlFileMetaData, Integer>();
 		for (int i = 0; i < metaData.size(); i++) {
 			metaIndMap.put(metaData.get(i), i);
 		}
@@ -682,8 +681,8 @@ public class ControlsQCGUI extends JFrame {
 											new String[][] {baseLbls, compLbls.toArray(new String[compLbls.size()])},
 											new double[][] {yDataBase, Doubles.toArray(compDbls)});
 		// meanPanel.paintAgain();
-		meanFrame.setTitle("jFlow - Control QC - Overall Mean/SD - "	+ lbls[lbls.length - 1] + " | "
-												+ gateName);
+		meanFrame.setTitle("jFlow - Control QC - Overall Mean/SD - " + lbls[lbls.length - 1] + " | "
+											 + gateName);
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -858,19 +857,17 @@ public class ControlsQCGUI extends JFrame {
 		private String initials;
 		private String number;
 
-		public static final Comparator<CtrlFileMetaData> COMPARATOR =
-																																new Comparator<CtrlFileMetaData>() {
-																																	@Override
-																																	public int compare(	CtrlFileMetaData o1,
-																																											CtrlFileMetaData o2) {
-																																		int comp;
-																																		comp = o1.fileDate.compareTo(o2.fileDate);
-																																		if (comp == 0) {
-																																			comp = o1.number.compareTo(o2.number);
-																																		}
-																																		return comp;
-																																	}
-																																};
+		public static final Comparator<CtrlFileMetaData> COMPARATOR = new Comparator<CtrlFileMetaData>() {
+			@Override
+			public int compare(CtrlFileMetaData o1, CtrlFileMetaData o2) {
+				int comp;
+				comp = o1.fileDate.compareTo(o2.fileDate);
+				if (comp == 0) {
+					comp = o1.number.compareTo(o2.number);
+				}
+				return comp;
+			}
+		};
 
 		private CtrlFileMetaData() {}
 
@@ -890,7 +887,7 @@ public class ControlsQCGUI extends JFrame {
 																								Integer.parseInt(dtPts[1]) - 1,
 																								Integer.parseInt(dtPts[2])).getTime();
 				} catch (NumberFormatException e) {
-					log.reportError("Error - filename "	+ filename
+					log.reportError("Error - filename " + filename
 													+ " does not contain a date (YYYY-MM-DD format) as the first token!");
 					return null;
 				}
@@ -1000,10 +997,10 @@ public class ControlsQCGUI extends JFrame {
 				int rowInd = fileInd.get(df.internalFiles.get(f));
 				float[] arr = new float[df.allParams.size()];
 				for (int i = 0; i < df.allParams.size(); i++) {
-					arr[i] = "".equals(data[rowInd][i + 1])	? Float.NaN
+					arr[i] = "".equals(data[rowInd][i + 1]) ? Float.NaN
 																									: Float.parseFloat(data[rowInd][i + 1]
-																																												.replace(	"%",
-																																																	"")
+																																												.replace("%",
+																																																 "")
 																																												.trim());
 				}
 				df.fileData[f] = arr;
@@ -1050,7 +1047,7 @@ public class ControlsQCGUI extends JFrame {
 											&& (panel == null || cfmd.isPanel(panel));
 
 					}
-					retArr = Array.subArray(retArr, incl);
+					retArr = ArrayUtils.subArray(retArr, incl);
 					paramDataCache.put(param + "\t" + ctrl + "\t" + panel, retArr);
 				}
 			}
@@ -1147,14 +1144,13 @@ public class ControlsQCGUI extends JFrame {
 
 		public void fetchRecentData(ArrayList<String> params, String currCtrl, String currPanel,
 																int numOfMostRecentToAdd, Logger log) {
-			HashMap<CtrlFileMetaData, DataFile> metaMap =
-																									new HashMap<ControlsQCGUI.CtrlFileMetaData, ControlsQCGUI.DataFile>();
+			HashMap<CtrlFileMetaData, DataFile> metaMap = new HashMap<ControlsQCGUI.CtrlFileMetaData, ControlsQCGUI.DataFile>();
 			HashMap<CtrlFileMetaData, float[]> allData = new HashMap<ControlsQCGUI.CtrlFileMetaData, float[]>();
 			for (DataFile df : files.values()) {
 				ArrayList<CtrlFileMetaData> metaData = df.getMetaDataFor(currCtrl, currPanel);
 				for (int i = 0; i < metaData.size(); i++) {
 					if (allData.containsKey(metaData.get(i))) {
-						log.reportError("Error - duplicate data entry found: "	+ metaData.toString()
+						log.reportError("Error - duplicate data entry found: " + metaData.toString()
 														+ " in files: " + df.fileName + " || "
 														+ metaMap.get(metaData.get(i)).fileName);
 					}
@@ -1170,9 +1166,8 @@ public class ControlsQCGUI extends JFrame {
 			String prevSrc = null;
 			ArrayList<String> sourceLine = null;
 			ArrayList<float[]> dataLines = null;
-			for (int c = 0, count =
-														(numOfMostRecentToAdd == 0	? sorted.size()
-																												: Math.min(	sorted.size(),
+			for (int c = 0, count = (numOfMostRecentToAdd == 0 ? sorted.size()
+																												 : Math.min(sorted.size(),
 																																		numOfMostRecentToAdd)); c < count; c++) {
 				CtrlFileMetaData cfmd = sorted.get(c);
 				String src = metaMap.get(cfmd).fileName;
@@ -1210,7 +1205,7 @@ public class ControlsQCGUI extends JFrame {
 				sourceLines.add(sourceLine.toArray(new String[sourceLine.size()]));
 				sourceData.add(dataLines.toArray(new float[dataLines.size()][]));
 			} else {
-				log.reportError("Error - no data found for CtrlGroup "	+ currCtrl + " and Panel "
+				log.reportError("Error - no data found for CtrlGroup " + currCtrl + " and Panel "
 												+ currPanel);
 			}
 
@@ -1267,8 +1262,8 @@ public class ControlsQCGUI extends JFrame {
 
 		boldRows.clear();
 
-		String[] firstRow = Array.addStrToArray("", paramNames.clone(), 0);
-		firstRow = Array.addStrToArray("", firstRow, 0);
+		String[] firstRow = ArrayUtils.addStrToArray("", paramNames.clone(), 0);
+		firstRow = ArrayUtils.addStrToArray("", firstRow, 0);
 		firstRow[0] = "Include?";
 		firstRow[1] = "Source";
 		dtmMean.addRow(firstRow);
@@ -1285,7 +1280,7 @@ public class ControlsQCGUI extends JFrame {
 		for (int i = 2; i < colNames.length; i++) {
 			String colNm = paramNames[i - 2];
 			if (paramMeanLists.containsKey(colNm)) {
-				Float mn = Array.mean(Floats.toArray(paramMeanLists.get(colNm)), true);
+				Float mn = ArrayUtils.mean(Floats.toArray(paramMeanLists.get(colNm)), true);
 				paramMeans.put(colNm, mn);
 				meanRow[i] = mn;
 			}
@@ -1299,7 +1294,7 @@ public class ControlsQCGUI extends JFrame {
 		for (int i = 2; i < colNames.length; i++) {
 			String colNm = paramNames[i - 2];
 			if (paramMeanLists.containsKey(colNm)) {
-				Float sd = Array.stdev(paramMeanLists.get(colNm).toArray(new Float[0]), true);
+				Float sd = ArrayUtils.stdev(paramMeanLists.get(colNm).toArray(new Float[0]), true);
 				paramSDs.put(colNm, sd);
 				sdRow[i] = sd;
 			}
@@ -1420,7 +1415,7 @@ public class ControlsQCGUI extends JFrame {
 			if (!paramTrendsAbove1.isEmpty()) {
 				for (String s : paramTrendsAbove1.keySet()) {
 					String[] p = s.split("\\|")[0].trim().split("/");
-					String warn = paramTrendsAbove1.get(s)	+ "-count trend in parameter " + p[p.length - 1]
+					String warn = paramTrendsAbove1.get(s) + "-count trend in parameter " + p[p.length - 1]
 												+ " greater than 1SD from the mean.";
 					warnings.add(warn);
 					if (paramTrendsAbove1.get(s) == max) {
@@ -1432,7 +1427,7 @@ public class ControlsQCGUI extends JFrame {
 			if (!paramTrendsAbove2.isEmpty()) {
 				for (String s : paramTrendsAbove2.keySet()) {
 					String[] p = s.split("\\|")[0].trim().split("/");
-					String warn = paramTrendsAbove2.get(s)	+ "-count trend in parameter " + p[p.length - 1]
+					String warn = paramTrendsAbove2.get(s) + "-count trend in parameter " + p[p.length - 1]
 												+ " greater than 2SD from the mean.";
 					warnings.add(warn);
 					if (paramTrendsAbove2.get(s) == max) {
@@ -1457,8 +1452,8 @@ public class ControlsQCGUI extends JFrame {
 					}
 
 					if (cnt >= params.size() * PCT_OF_EVENTS_DEV_TREND) {
-						warnings.add("Source "	+ srcs[i][s] + " has " + cnt
-													+ " events greater than 1SD from parameter means.");
+						warnings.add("Source " + srcs[i][s] + " has " + cnt
+												 + " events greater than 1SD from parameter means.");
 					}
 
 				}

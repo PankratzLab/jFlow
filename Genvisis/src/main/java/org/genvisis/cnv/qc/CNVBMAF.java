@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MarkerDataLoader;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 
@@ -31,8 +31,7 @@ public class CNVBMAF extends CNVBDeviation {
 	/**
 	 * Metric is divided by all markers, and the average heterzygous bmaf is subtracted from the score
 	 */
-	public static final String SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY =
-																																				"SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY";
+	public static final String SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY = "SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY";
 
 	/**
 	 * Metric is divided by sum of all markers
@@ -98,16 +97,16 @@ public class CNVBMAF extends CNVBDeviation {
 												Logger log) {
 		super.summarize();
 		if (bmafNonHet.size() > 0) {
-			bmafMetric = Array.sum(Doubles.toArray(bmafNonHet));
+			bmafMetric = ArrayUtils.sum(Doubles.toArray(bmafNonHet));
 			if (summaryType.equals(SUMMARY_BY_NUM_ALL_MARKERS)) {
 				bmafMetric /= bmafAll.size();
 			} else if (summaryType.equals(SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY)) {
 				bmafMetric /= bmafAll.size();
 				if (bmafHet.size() > 0) {
-					bmafMetric -= Array.mean(Doubles.toArray(bmafHet));
+					bmafMetric -= ArrayUtils.mean(Doubles.toArray(bmafHet));
 				}
 			} else if (summaryType.equals(SUMMARY_BY_SUM_BMAF_ALL_MARKERS)) {
-				bmafMetric /= Array.sum(Doubles.toArray(bmafAll));
+				bmafMetric /= ArrayUtils.sum(Doubles.toArray(bmafAll));
 			} else {
 				log.reportError("Error - internal error, invalid summary type");
 				bmafMetric = Double.NaN;
@@ -145,7 +144,7 @@ public class CNVBMAF extends CNVBDeviation {
 		}
 
 		public void add(String markerName, byte[] genotypes, float[] bafs, float[] gcs) {
-			float bamf = (float) Array.median(Array.toDoubleArray(Array.removeNaN(bafs)));
+			float bamf = (float) ArrayUtils.median(ArrayUtils.toDoubleArray(ArrayUtils.removeNaN(bafs)));
 			bamf = Math.min(bamf, 1 - bamf);
 			for (int i = 0; i < cnvbmafs.length; i++) {
 				cnvbmafs[i].add(markerName, genotypes[i], bafs[i], bamf, gcs[i]);
@@ -187,9 +186,8 @@ public class CNVBMAF extends CNVBDeviation {
 		// String display = proj.getFilename(proj.DISPLAY_MARKERS_FILENAME);
 		String display = proj.DISPLAY_MARKERS_FILENAMES.getValue()[0];
 		String[] markers = HashVec.loadFileToStringArray(display, false, new int[] {0}, true);
-		MarkerDataLoader markerDataLoader =
-																			MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
-																																															markers);
+		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+																																																markers);
 		PoplulationBAFs poplulationBDeviation = new PoplulationBAFs(proj.getSamples().length,
 																																DEFAULT_INTENSITY_ONLY_FLAGS,
 																																DEFAULT_GC_THRESHOLD);

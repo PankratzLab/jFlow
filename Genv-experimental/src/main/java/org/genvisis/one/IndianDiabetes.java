@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.genvisis.bioinformatics.Sequence;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
@@ -32,7 +32,7 @@ public class IndianDiabetes {
 			ext.checkHeader(line, new String[] {"NUMBER ", "Sex", "Affected"}, new int[] {0, 1, 2}, false,
 											log, true);
 			numMarkers = line.length - 3;
-			markerNames = Array.subArray(line, 3);
+			markerNames = ArrayUtils.subArray(line, 3);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(",", -1);
 				writer.print(line[0] + "\t" + line[0] + "\t0\t0" + "\t" + line[1] + "\t" + line[2]);
@@ -44,12 +44,12 @@ public class IndianDiabetes {
 					if (line[i + 3].equals("")) {
 						writer.print("\t0\t0");
 					} else if (line[i + 3].length() != 2) {
-						log.reportError("Error - mishapen alleles for indiviudal "	+ line[0] + " marker "
+						log.reportError("Error - mishapen alleles for indiviudal " + line[0] + " marker "
 														+ markerNames[i] + ": '" + line[i + 3] + "'");
 					} else {
 						for (int j = 0; j < 2; j++) {
 							if (Chars.indexOf(Sequence.ALLELES, line[i + 3].charAt(j)) == -1) {
-								log.reportError("Error - invalid allele for indiviudal "	+ line[0] + " marker "
+								log.reportError("Error - invalid allele for indiviudal " + line[0] + " marker "
 																+ markerNames[i] + ": '" + line[i + 3] + "'");
 							}
 							writer.print("\t" + line[i + 3].charAt(j));
@@ -73,7 +73,7 @@ public class IndianDiabetes {
 					writer.println(line[0] + "\t" + markerNames[i] + "\t0\t" + line[1]);
 				} else {
 					System.err.println("Error - don't know how to parse the position for marker: "
-															+ markerNames[i]);
+														 + markerNames[i]);
 					writer.println("0\t" + markerNames[i] + "\t0\t0");
 				}
 			}

@@ -55,9 +55,9 @@ public class peakAt {
 			numLines = DEFAULT_NUM_LINES;
 		}
 
-		outputFilename = "PeakAt_"	+ (tail ? "last" : "first") + numLines
-											+ (columnsNotLines ? "column" : "line") + (numLines == 1 ? "" : "s") + "_"
-											+ ext.removeDirectoryInfo(temp);
+		outputFilename = "PeakAt_" + (tail ? "last" : "first") + numLines
+										 + (columnsNotLines ? "column" : "line") + (numLines == 1 ? "" : "s") + "_"
+										 + ext.removeDirectoryInfo(temp);
 
 		actualPeak(filename, outputFilename, numLines, tail, counting, columnsNotLines);
 	}
@@ -74,9 +74,9 @@ public class peakAt {
 
 		try {
 			writer = Files.getAppropriateWriter(ext.parseDirectoryOfFile(filename)
-																					+ (outputFilename.endsWith(".gz")	? outputFilename.substring(	0,
-																																																				outputFilename.length()
-																																																						- 3)
+																					+ (outputFilename.endsWith(".gz") ? outputFilename.substring(0,
+																																																			 outputFilename.length()
+																																																					- 3)
 																																						: outputFilename));
 			if (counting) {
 				System.out.println("Counting the number of rows.");
@@ -145,7 +145,7 @@ public class peakAt {
 		boolean columnsNotLines = false;
 
 		params = Files.parseControlFile(filename, "peakat",
-																		new String[] {"input="	+ inputFilename,
+																		new String[] {"input=" + inputFilename,
 																									"output=" + outputFilename,
 																									"numLines=" + numLines, "tailNotHead=" + tail,
 																									"countLines=" + counting,
@@ -178,8 +178,8 @@ public class peakAt {
 		int numArgs = args.length;
 		String filename = "peakAt.dat";
 
-		String usage = "\n"	+ "widgets.peakAt requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n" + "";
+		String usage = "\n" + "widgets.peakAt requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n" + "";
 
 		try {
 			for (String arg : args) {

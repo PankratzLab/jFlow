@@ -162,9 +162,9 @@ public class procAOO {
 		// String filename = "duration_residuals.dat";
 		String filename = "struct.dat";
 
-		String usage = "\n"	+ "park.procAOO requires 0-1 arguments\n"
-										+ "   (1) the file to be processed (default: file=" + filename + ") or -all\n"
-										+ "";
+		String usage = "\n" + "park.procAOO requires 0-1 arguments\n"
+									 + "   (1) the file to be processed (default: file=" + filename + ") or -all\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

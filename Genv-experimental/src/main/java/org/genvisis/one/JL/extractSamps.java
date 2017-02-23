@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashSet;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -26,7 +26,7 @@ public class extractSamps {
 				int numTotal = 0;
 				int numSamps = 0;
 				PrintWriter writer = new PrintWriter(new FileWriter(sampCNVs));
-				writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 				for (int i = 0; i < cnvs.getLoci().length; i++) {
 					numTotal++;
 					if (sampSet.contains(cnvs.getLoci()[i].getIndividualID())) {

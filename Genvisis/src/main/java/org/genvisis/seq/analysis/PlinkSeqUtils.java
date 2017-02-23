@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Properties;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -141,11 +141,11 @@ public class PlinkSeqUtils {
 		private final PseqPhenoTypes[] phenotypes;
 
 		public static enum PROPERTIES {
-																		PROJN, OUTPUT, RESOURCES, METAMETA, VARDB, INDDB, LOCDB, REFDB, SEQDB, VCF
+			PROJN, OUTPUT, RESOURCES, METAMETA, VARDB, INDDB, LOCDB, REFDB, SEQDB, VCF
 		}
 
-		public PseqProject(	String filename, String[] vcfs, String phenoFile, String resourceDirectory,
-												Logger log) {
+		public PseqProject(String filename, String[] vcfs, String phenoFile, String resourceDirectory,
+											 Logger log) {
 			super();
 			this.filename = filename;
 			projectName = ext.rootOf(filename);
@@ -245,9 +245,9 @@ public class PlinkSeqUtils {
 			writer.println("#CHR\tPOS1\tPOS2\tID");
 			for (GeneData[] gData : gDatas) {
 				for (GeneData element : gData) {
-					writer.println(Positions.getChromosomeUCSC(element.getChr(), true)	+ "\t"
-													+ element.getStart() + "\t" + element.getStop() + "\t"
-													+ element.getGeneName() + GENVISIS_GENE);
+					writer.println(Positions.getChromosomeUCSC(element.getChr(), true) + "\t"
+												 + element.getStart() + "\t" + element.getStop() + "\t"
+												 + element.getGeneName() + GENVISIS_GENE);
 				}
 			}
 			// }
@@ -276,8 +276,8 @@ public class PlinkSeqUtils {
 		 *
 		 */
 		private static final long serialVersionUID = 1L;
-		private static final String[] HEADER = new String[] {	"LOCUS", "POS", "ALIAS", "NVAR", "TEST",
-																													"P", "I", "DESC"};
+		private static final String[] HEADER = new String[] {"LOCUS", "POS", "ALIAS", "NVAR", "TEST",
+																												 "P", "I", "DESC"};
 		public static final double[] I_THRESHOLDS = new double[] {0.5, 0.1, 0.01, 0.001};
 		private final String analysis;
 		private final String resultsFile;
@@ -377,7 +377,7 @@ public class PlinkSeqUtils {
 																																		desc, type, log);
 
 								} catch (NumberFormatException nfe) {
-									log.reportTimeInfo("Invalid number on line " + Array.toStr(line));
+									log.reportTimeInfo("Invalid number on line " + ArrayUtils.toStr(line));
 									log.reportException(nfe);
 								}
 
@@ -577,8 +577,8 @@ public class PlinkSeqUtils {
 	}
 
 	public static class PlinkSeqBurdenResults {
-		private static final String[] HEADER = new String[] {	"LOCUS", "POS", "ALIAS", "NVAR", "TEST",
-																													"P", "I", "DESC"};
+		private static final String[] HEADER = new String[] {"LOCUS", "POS", "ALIAS", "NVAR", "TEST",
+																												 "P", "I", "DESC"};
 		private final String resultsFile;
 		private final int numTests;
 		private final double bonferoniP;
@@ -613,8 +613,8 @@ public class PlinkSeqUtils {
 				String[] header = Files.getLineContaining(resultsFile, "\t", HEADER, log);
 				if (header != null) {
 					int locusIndex = ext.indexOfStr(HEADER[0], header);
-					return HashVec.loadFileToStringArray(	resultsFile, true, new int[] {locusIndex},
-																								true).length;
+					return HashVec.loadFileToStringArray(resultsFile, true, new int[] {locusIndex},
+																							 true).length;
 				} else {
 					return 0;
 				}

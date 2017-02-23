@@ -47,8 +47,8 @@ public class CheckIDsAgainstDNAs {
 				if (line[0].equals("SWAPPED")) {
 					trav = line[1] + "-" + line[2];
 					if (!hashMatches.containsKey(trav)) {
-						System.err.println("Error - '"	+ trav
-																+ "' is listed as a swap in ninfo3 but was not found in ninfo1");
+						System.err.println("Error - '" + trav
+															 + "' is listed as a swap in ninfo3 but was not found in ninfo1");
 					} else {
 						idMatches = hashMatches.get(trav);
 						if (line[4].equals("resent")) {
@@ -81,8 +81,8 @@ public class CheckIDsAgainstDNAs {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ DNA_YEAR_BUG_SOURCE
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + DNA_YEAR_BUG_SOURCE
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + DNA_YEAR_BUG_SOURCE + "\"");
@@ -173,8 +173,8 @@ public class CheckIDsAgainstDNAs {
 			System.err.print(trav + " appears to have been typed, but was not found in ninfo1 file");
 			if (hashDNAs.containsKey(dna)) {
 				System.err.println("; its DNA '" + dna + "' maps to individual " + hashDNAs.get(dna));
-				return dna	+ "\t" + famID + "\t" + indID + ":" + dna + "\t"
-								+ hashDNAs.get(dna).replace('-', '\t');
+				return dna + "\t" + famID + "\t" + indID + ":" + dna + "\t"
+							 + hashDNAs.get(dna).replace('-', '\t');
 			} else {
 				System.err.println("; its DNA '" + dna + "' similarly doesn't match to squat");
 				return dna + "\t" + famID + "\t" + indID + ":???????????????????????????????";
@@ -190,8 +190,8 @@ public class CheckIDsAgainstDNAs {
 				return "";
 			} else {
 				if (verbose) {
-					System.err.println("Having trouble filling in the blank for "	+ trav
-															+ " -- possibilities include:");
+					System.err.println("Having trouble filling in the blank for " + trav
+														 + " -- possibilities include:");
 				}
 				// temp = dna+"\t"+famID+"\t"+indID;
 				for (int i = 0; i < idMatches.elementAt(0).size(); i++) {
@@ -208,8 +208,8 @@ public class CheckIDsAgainstDNAs {
 			if (idMatches.elementAt(0).contains(dna)) {
 				if (idMatches.elementAt(3).contains(dna)) {
 					if (verbose) {
-						System.out.println("Make sure "	+ dna + " (for " + trav
-																+ ") is data from the resent vial; there were problems with data before Jan 1st, 2007");
+						System.out.println("Make sure " + dna + " (for " + trav
+															 + ") is data from the resent vial; there were problems with data before Jan 1st, 2007");
 					}
 				} else if (idMatches.elementAt(2).contains(dna)) {
 					if (verbose) {
@@ -224,8 +224,8 @@ public class CheckIDsAgainstDNAs {
 							yearIssue = true;
 							System.err.println("Error - note this set of samples has that weird year issue!!!!");
 						}
-						return "yearbug\t"	+ yearBugs.get(famID + ":" + indID + ":" + dna) + "\t" + famID + "\t"
-										+ indID;
+						return "yearbug\t" + yearBugs.get(famID + ":" + indID + ":" + dna) + "\t" + famID + "\t"
+									 + indID;
 					}
 					// if (dna.substring(4,6).equals("PD")) {
 					// int year = Integer.parseInt(dna.substring(0,4));
@@ -251,13 +251,17 @@ public class CheckIDsAgainstDNAs {
 					return dna + "\t" + famID + "\t" + indID + ":???????????????????????????????";
 				} else {
 					if (idMatches.elementAt(0).size() == 1) {
-						System.err.println("; did you mean "	+ idMatches.elementAt(0).elementAt(0)
-																+ (hashDNAs.containsKey(dna) ? " or " + hashDNAs.get(dna) : ""));
-						return dna	+ "\t" + famID + "\t" + indID + ":" + idMatches.elementAt(0).elementAt(0)
-										+ "\t" + famID + "\t" + indID
-										+ (hashDNAs.containsKey(dna)	? ":"	+ dna + "\t"
-																										+ hashDNAs.get(dna).replace('-', '\t')
-																									: "");
+						System.err.println("; did you mean " + idMatches.elementAt(0).elementAt(0)
+															 + (hashDNAs.containsKey(dna) ? " or " + hashDNAs.get(dna) : ""));
+						return dna + "\t" + famID + "\t" + indID + ":" + idMatches.elementAt(0).elementAt(0)
+									 + "\t" + famID
+									 + "\t" + indID + (hashDNAs.containsKey(dna)
+																															 ? ":" + dna
+																																 + "\t"
+																																 + hashDNAs.get(dna)
+																																					 .replace('-',
+																																										'\t')
+																															 : "");
 					} else {
 						System.err.print("; is this a typo? Valid choices include:");
 						// temp = dna+"\t"+famID+"\t"+indID;
@@ -265,7 +269,7 @@ public class CheckIDsAgainstDNAs {
 							System.err.print(" " + idMatches.elementAt(0).elementAt(i));
 							// temp += ":"+idMatches.elementAt(0).elementAt(i)+"\t"+famID+"\t"+indID;
 						}
-						System.err.println((hashDNAs.containsKey(dna)	? " or perhaps " + hashDNAs.get(dna)
+						System.err.println((hashDNAs.containsKey(dna) ? " or perhaps " + hashDNAs.get(dna)
 																													: ""));
 						return (hashDNAs.containsKey(dna) ? ":" + dna + "\t" + famID + "\t" + indID : "");
 					}
@@ -351,7 +355,7 @@ public class CheckIDsAgainstDNAs {
 			while (reader.ready()) {
 				temp = reader.readLine();
 				line = temp.split(":", -1);
-				if (line.length == 1	|| line[0].split("\t", -1).length != 3
+				if (line.length == 1 || line[0].split("\t", -1).length != 3
 						|| line[1].split("\t", -1).length != 3) {
 					System.err.println("Error - malformed fixit syntax, expecting 3 tab delimited Strings on each side of a single semicolon(:)");
 					System.err.println("        '" + temp + "'");
@@ -412,14 +416,14 @@ public class CheckIDsAgainstDNAs {
 		String filename = "check this.txt";
 		String fixit = "fix this.txt";
 
-		String usage = "\n"	+ "park.init.CheckIDsAgainstDNAs requires 0-1 arguments\n"
-										+ "     (1) verbose (i.e. verbose=" + verbose + " (default))\n"
-										+ "     (2) name of file to check (i.e. file=" + filename + " (default))\n"
-										+ "     (3) name of file containing corrections  (i.e. fixit=" + fixit
-										+ " (default))\n" + "";
+		String usage = "\n" + "park.init.CheckIDsAgainstDNAs requires 0-1 arguments\n"
+									 + "     (1) verbose (i.e. verbose=" + verbose + " (default))\n"
+									 + "     (2) name of file to check (i.e. file=" + filename + " (default))\n"
+									 + "     (3) name of file containing corrections  (i.e. fixit=" + fixit
+									 + " (default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h")	|| args[i].equals("-help") || args[i].equals("/h")
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h")
 					|| args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);

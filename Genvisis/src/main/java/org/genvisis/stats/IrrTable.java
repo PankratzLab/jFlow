@@ -5,7 +5,7 @@ import java.util.Hashtable;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.SampleQC;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 
 /**
@@ -86,10 +86,10 @@ public class IrrTable {
 			log.reportTimeWarning("Generally cohen's kappa is only used on two raters, currently computing with "
 														+ ratings.length + " raters ");
 		}
-		double chance = Array.sum(byChance);
+		double chance = ArrayUtils.sum(byChance);
 		// System.out.println("CHANCE"+chance);
 
-		double numerator = (double) Array.sum(judgedAgreementsBySample) / ratings[0].length;
+		double numerator = (double) ArrayUtils.sum(judgedAgreementsBySample) / ratings[0].length;
 
 		if (verbose) {
 			log.reportTimeInfo("Pr(a) -agreement by judges: " + numerator);
@@ -107,16 +107,16 @@ public class IrrTable {
 	 */
 	public boolean parseAgreement() {
 		agreementIndex = initIndices(uniqRatings);
-		log.reportTimeInfo("Finding agreement among "	+ ratings.length + " judges over "
-												+ uniqRatings.size() + " categories ");
+		log.reportTimeInfo("Finding agreement among " + ratings.length + " judges over "
+											 + uniqRatings.size() + " categories ");
 		boolean parsed = true;
 		judgedAgreementsBySample = new int[ratings[0].length];
 		judgedAgreementsByCategory = new int[uniqRatings.size()];
 		int shouldHave = ratings.length * ratings[0].length;
 
 		if (totalRated != shouldHave) {
-			log.reportError("Found "	+ totalRated + " total ratings and was expecting " + shouldHave
-													+ " total ratings");
+			log.reportError("Found " + totalRated + " total ratings and was expecting " + shouldHave
+											+ " total ratings");
 			parsed = false;
 		} else {
 			for (int i = 0; i < ratings[0].length; i++) {// for each sample
@@ -138,8 +138,9 @@ public class IrrTable {
 				}
 			}
 		}
-		log.reportTimeInfo(ratings.length	+ " judges agreed on " + Array.sum(judgedAgreementsBySample)
-												+ " of " + judgedAgreementsBySample.length + " subjects");
+		log.reportTimeInfo(ratings.length + " judges agreed on "
+											 + ArrayUtils.sum(judgedAgreementsBySample) + " of "
+											 + judgedAgreementsBySample.length + " subjects");
 		if (parsed) {
 			parsed = parseByChance();
 		}
@@ -154,9 +155,9 @@ public class IrrTable {
 	public boolean addRatings(int judge, int[] judgedRatings) {
 		boolean added = true;
 		if (judgedRatings.length != ratings[judge].length) {
-			log.reportError("Mismatched array size for judge "	+ judge + ", trying to add "
-													+ judgedRatings.length + " judgments and should have "
-													+ ratings[judge].length);
+			log.reportError("Mismatched array size for judge " + judge + ", trying to add "
+											+ judgedRatings.length + " judgments and should have "
+											+ ratings[judge].length);
 			added = false;
 		} else {
 			for (int i = 0; i < judgedRatings.length; i++) {
@@ -187,7 +188,7 @@ public class IrrTable {
 					chance *= (double) judgeTotals[j].get(uniqs[i]) / numSubjects;
 				} else {
 					if (verbose) {
-						log.reportTimeWarning("judge "	+ j + " did not make any judgments for category "
+						log.reportTimeWarning("judge " + j + " did not make any judgments for category "
 																	+ uniqs[i]);
 					}
 					chance = 0;
@@ -205,8 +206,8 @@ public class IrrTable {
 	private boolean addRating(int judge, int judgedRating, int subject) {
 		boolean added = true;
 		if (rated.containsKey(getJudgeSubjectKey(judge, subject))) {
-			log.reportError(JUDGE	+ " " + judge + " has already rated " + SUBJECT + " " + subject
-													+ ", skipping");
+			log.reportError(JUDGE + " " + judge + " has already rated " + SUBJECT + " " + subject
+											+ ", skipping");
 			added = false;
 		} else {
 			rated.put(getJudgeSubjectKey(judge, subject), getJudgeSubjectKey(judge, subject));

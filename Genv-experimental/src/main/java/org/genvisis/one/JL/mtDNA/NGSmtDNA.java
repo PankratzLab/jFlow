@@ -44,9 +44,9 @@ public class NGSmtDNA {
 
 			VCFOpsMT.convertHg19ToRCRS(cVcf, rcrsC, new Logger());
 
-			GATK gatk = new GATK(	"/Users/Kitty/bin/GenomeAnalysisTK-3.6/",
-														"/Volumes/Beta/ref/GRCh37_canon.fa", "MT", SEQ_TARGET.TARGETED,
-														PSF.Ext.DEFAULT_MEMORY_MB, true, true, log);
+			GATK gatk = new GATK("/Users/Kitty/bin/GenomeAnalysisTK-3.6/",
+													 "/Volumes/Beta/ref/GRCh37_canon.fa", "MT", SEQ_TARGET.TARGETED,
+													 PSF.Ext.DEFAULT_MEMORY_MB, true, true, log);
 
 			String outAnno = ext.addToRoot(rcrsC, ".poly");
 			gatk.annotateWithAnotherVCF(rcrsC, polyVCF, outAnno, new String[] {"AF", "AC"}, "mtPoly",
@@ -63,7 +63,7 @@ public class NGSmtDNA {
 			String remoteVcf = "/home/pankrat2/lanej/tmp/cushings/" + ext.removeDirectoryInfo(finalOut);
 			// SSH.copyLocalToRemote(finalOut, remoteVcf, log);
 			String annotateCommand = "java -jar /home/pankrat2/lanej/genvisis.jar one.JL.quickAnno vcf="
-																+ remoteVcf;
+															 + remoteVcf;
 			System.out.println(annotateCommand);
 		} else {
 

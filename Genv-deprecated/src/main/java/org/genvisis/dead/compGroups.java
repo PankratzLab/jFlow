@@ -43,25 +43,24 @@ public class compGroups {
 																"Tremor_score", "PIGD_scale", "PIGD_dominant", "PIGD_intermediate",
 																"Tremor_dominant", "SpeechScore", "RestTremorScore",
 																"ActionTremorScore", "CombinedTremorScore"};
-	public static String[] IGNORE =
-																{	"UniqueID", "FamID", "IndID", "Site", "OnsetDate", "DiagnosisDate",
-																	"ExamDate", "Dx", "Gender", "BirthMonth", "BirthDay", "BirthYear",
-																	"Race", "OtherLRRK2", "InitialSymptom", "Levodopa(mg)",
-																	"Levodopa(yrs)", "Speech", "Salivation", "Swallowing",
-																	"Handwriting", "Utensils", "Dressing", "Hygiene", "BedTurning",
-																	"Falling", "FreezeWalk", "RightHanded", "Walking", "Tremor",
-																	"Sensory", "Speech_motor", "FacialExpression", "T_face",
-																	"T_r_hand", "T_l_hand", "T_r_foot", "T_l_foot", "PT_r_hand",
-																	"PT_l_hand", "R_neck", "R_r_ue", "R_l_ue", "R_r_le", "R_l_le",
-																	"FingerTabsR", "FingerTapsL", "HandR", "HandL", "RapidAltR",
-																	"RapidAltL", "LegR", "LegL", "Arising", "Posture", "Gait",
-																	"PosturalStability", "BradykinesiaUPDRS", "Ethnicity", "Onset>20",
-																	"S_Examiner_dur", "S_Subject_dur", "HY_dur", "S_Examiner_durAOO",
-																	"S_Subject_durAOO", "HY_durAOO", "S_Examiner_regress",
-																	"S_Subject_regress", "HY_regress", "S_Examiner_regressAOO",
-																	"S_Subject_regressAOO", "HY_regressAOO", "MMSEcutoff",
-																	"MMSE_edu_adj", "ExpressionScore", "ChairScore", "PostureScore",
-																	"GaitScore", "InstabilityScore", "APOE"};
+	public static String[] IGNORE = {"UniqueID", "FamID", "IndID", "Site", "OnsetDate",
+																	 "DiagnosisDate", "ExamDate", "Dx", "Gender", "BirthMonth",
+																	 "BirthDay", "BirthYear", "Race", "OtherLRRK2", "InitialSymptom",
+																	 "Levodopa(mg)", "Levodopa(yrs)", "Speech", "Salivation",
+																	 "Swallowing", "Handwriting", "Utensils", "Dressing", "Hygiene",
+																	 "BedTurning", "Falling", "FreezeWalk", "RightHanded", "Walking",
+																	 "Tremor", "Sensory", "Speech_motor", "FacialExpression",
+																	 "T_face", "T_r_hand", "T_l_hand", "T_r_foot", "T_l_foot",
+																	 "PT_r_hand", "PT_l_hand", "R_neck", "R_r_ue", "R_l_ue", "R_r_le",
+																	 "R_l_le", "FingerTabsR", "FingerTapsL", "HandR", "HandL",
+																	 "RapidAltR", "RapidAltL", "LegR", "LegL", "Arising", "Posture",
+																	 "Gait", "PosturalStability", "BradykinesiaUPDRS", "Ethnicity",
+																	 "Onset>20", "S_Examiner_dur", "S_Subject_dur", "HY_dur",
+																	 "S_Examiner_durAOO", "S_Subject_durAOO", "HY_durAOO",
+																	 "S_Examiner_regress", "S_Subject_regress", "HY_regress",
+																	 "S_Examiner_regressAOO", "S_Subject_regressAOO", "HY_regressAOO",
+																	 "MMSEcutoff", "MMSE_edu_adj", "ExpressionScore", "ChairScore",
+																	 "PostureScore", "GaitScore", "InstabilityScore", "APOE"};
 
 	public compGroups(String filename) throws IOException {
 		BufferedReader reader = null;
@@ -153,8 +152,8 @@ public class compGroups {
 		while (reader.ready()) {
 			line = reader.readLine().split("[\\s]+");
 			if (phenoNames.length != line.length) {
-				System.err.println("Error - different number of values ("	+ line.length + " versus "
-														+ phenoNames.length + " phenotypes) for " + line[0]);
+				System.err.println("Error - different number of values (" + line.length + " versus "
+													 + phenoNames.length + " phenotypes) for " + line[0]);
 				System.exit(1);
 			}
 			trav = line[0];
@@ -165,8 +164,8 @@ public class compGroups {
 					if (group == -1) {
 						group = i;
 					} else {
-						System.err.println("Error - \""	+ trav + "\" belongs to both group " + groups[group]
-																+ " and group " + groups[i]);
+						System.err.println("Error - \"" + trav + "\" belongs to both group " + groups[group]
+															 + " and group " + groups[i]);
 						System.exit(1);
 					}
 				}
@@ -214,22 +213,22 @@ public class compGroups {
 					binaryData = false;
 				} else if (v.size() == 2) {
 					if (Math.abs(Integer.valueOf(v.elementAt(0)).intValue()
-												- Integer.valueOf(v.elementAt(1)).intValue()) != 1) {
-						System.err.println("Error: Phenotype "	+ pheno + " (" + phenoNames[phenos[pheno]]
-																+ ") has 2 values that are not sequential (" + v.elementAt(0)
-																+ " and " + v.elementAt(1) + ")");
+											 - Integer.valueOf(v.elementAt(1)).intValue()) != 1) {
+						System.err.println("Error: Phenotype " + pheno + " (" + phenoNames[phenos[pheno]]
+															 + ") has 2 values that are not sequential (" + v.elementAt(0)
+															 + " and " + v.elementAt(1) + ")");
 					}
-					lowestVal = Integer	.valueOf(v.elementAt(0))
-															.intValue() < Integer	.valueOf(v.elementAt(1))
-																										.intValue()	? Integer	.valueOf(v.elementAt(0))
-																																					.intValue()
-																																: Integer	.valueOf(v.elementAt(1))
-																																					.intValue();
+					lowestVal = Integer.valueOf(v.elementAt(0))
+														 .intValue() < Integer.valueOf(v.elementAt(1))
+																									.intValue() ? Integer.valueOf(v.elementAt(0))
+																																			 .intValue()
+																															: Integer.valueOf(v.elementAt(1))
+																																			 .intValue();
 				} else if (v.size() == 1) {
 					lowestVal = Integer.valueOf(v.elementAt(0)).intValue();
 				} else {
 					System.err.println("Warning - did you know there was no data for any group for "
-															+ phenoNames[phenos[pheno]] + "?");
+														 + phenoNames[phenos[pheno]] + "?");
 				}
 
 				dep = new double[count];
@@ -297,9 +296,9 @@ public class compGroups {
 					writer.print("\t        ");
 					writer.print("\t        ");
 
-					writer.print(lr.analysisFailed()	? "\tfailed"
-																						: "\t"	+ ext.formDeci(lr.getSigs()[0], 5, true)
-																							+ (lr.getSigs()[0] < 0.05 ? "*" : ""));
+					writer.print(lr.analysisFailed() ? "\tfailed"
+																					 : "\t" + ext.formDeci(lr.getSigs()[0], 5, true)
+																						 + (lr.getSigs()[0] < 0.05 ? "*" : ""));
 					writer.print("\t        ");
 					writer.print("\t" + phenoNames[phenos[pheno]]);
 
@@ -334,8 +333,8 @@ public class compGroups {
 		// String filename = "novel_lrrks_in.dat";
 		String filename = "PIGD.dat";
 
-		String usage = "\n"	+ "park.compGroups requires 1 argument\n"
-										+ "   (1) filename (i.e. 'file=in.dat')\n" + "";
+		String usage = "\n" + "park.compGroups requires 1 argument\n"
+									 + "   (1) filename (i.e. 'file=in.dat')\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -14,7 +14,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.genvisis.CLI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -102,15 +102,15 @@ public class DBGAPMerge {
 					if (dict == null) {
 						dict = f;
 					} else {
-						System.err.println("Error - duplicate data dictionary file detected: "	+ dict + " / "
-																+ f);
+						System.err.println("Error - duplicate data dictionary file detected: " + dict + " / "
+															 + f);
 					}
 				} else if (f.endsWith(VAR_RPT_SUFF)) {
 					if (varRpt == null) {
 						varRpt = f;
 					} else {
-						System.err.println("Error - duplicate variable report file detected: "	+ varRpt + " / "
-																+ f);
+						System.err.println("Error - duplicate variable report file detected: " + varRpt + " / "
+															 + f);
 					}
 				}
 			}
@@ -135,7 +135,7 @@ public class DBGAPMerge {
 		return fss;
 	}
 
-	public ArrayList<DataColumn> readDataDict(FileSet fs)	throws ParserConfigurationException,
+	public ArrayList<DataColumn> readDataDict(FileSet fs) throws ParserConfigurationException,
 																												SAXException, IOException {
 		ArrayList<DataColumn> dict = new ArrayList<DBGAPMerge.DataColumn>();
 
@@ -218,9 +218,9 @@ public class DBGAPMerge {
 				parts = line.split("\t", -1);
 				fs.ids.add(parts[0]);
 				while (parts.length - 1 < fs.dataDefs.size()) {
-					parts = Array.addStrToArray(MISSING_DATA, parts);
+					parts = ArrayUtils.addStrToArray(MISSING_DATA, parts);
 				}
-				fs.idDataMap.put(parts[0], Array.subArray(parts, 1));
+				fs.idDataMap.put(parts[0], ArrayUtils.subArray(parts, 1));
 			}
 		}
 		reader.close();
@@ -417,15 +417,15 @@ public class DBGAPMerge {
 			String logfile = null;
 			Logger log;
 
-			String usage = "\n"	+ "one.ben.DBGAPExtract requires 4+ arguments\n"
-											+ "   (1) Searched variables file (output from DBGapLookup) (i.e. variables="
-											+ varFile + " (default))\n"
-											+ "   (2) Merged dbGap data file (data output from DBGapMerge ) (i.e. dataFile="
-											+ dataFile + " (default))\n"
-											+ "   (3) Extracted output filename (i.e. outputFile=" + outputFile
-											+ " (default))\n" + "   (4) ID column name in output file (i.e. head="
-											+ headIdent + " (default))\n" + "   (5) OPTIONAL: Log file (i.e. log="
-											+ logfile + " (default))\n" + "";
+			String usage = "\n" + "one.ben.DBGAPExtract requires 4+ arguments\n"
+										 + "   (1) Searched variables file (output from DBGapLookup) (i.e. variables="
+										 + varFile + " (default))\n"
+										 + "   (2) Merged dbGap data file (data output from DBGapMerge ) (i.e. dataFile="
+										 + dataFile + " (default))\n"
+										 + "   (3) Extracted output filename (i.e. outputFile=" + outputFile
+										 + " (default))\n" + "   (4) ID column name in output file (i.e. head="
+										 + headIdent + " (default))\n" + "   (5) OPTIONAL: Log file (i.e. log="
+										 + logfile + " (default))\n" + "";
 
 			for (String arg : args) {
 				if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -466,8 +466,8 @@ public class DBGAPMerge {
 
 	public static class DBGapLookup {
 
-		private static void search(	String map, String[] search, int[] searchCols, int[] outputCols,
-																String output, String crf, Logger log) throws IOException {
+		private static void search(String map, String[] search, int[] searchCols, int[] outputCols,
+															 String output, String crf, Logger log) throws IOException {
 			String line, delim, outputDelim;
 			String[] parts;
 			StringBuilder sb;
@@ -499,11 +499,11 @@ public class DBGAPMerge {
 				}
 				parts = line.trim().split(delim, -1);
 
-				int[] searchInds = Array.intArray(search.length, -1);
+				int[] searchInds = ArrayUtils.intArray(search.length, -1);
 				for (int s = 0; s < search.length; s++) {
 					for (int col : searchCols) {
-						searchInds[s] = Math.max(	searchInds[s],
-																			parts[col].toLowerCase().indexOf(search[s].toLowerCase()));
+						searchInds[s] = Math.max(searchInds[s],
+																		 parts[col].toLowerCase().indexOf(search[s].toLowerCase()));
 					}
 				}
 				boolean foundAny = false;
@@ -581,18 +581,18 @@ public class DBGAPMerge {
 			String logfile = null;
 			Logger log;
 
-			String usage = "\n"	+ "one.ben.DBGAPMerge requires 6+ arguments\n"
-											+ "   (1) dbGap Map File (from merged files) (i.e. map=" + map
-											+ " (default))\n"
-											+ "   (2) Column indices in which to search (i.e. searchCols="
-											+ Array.toStr(searchCols, ",") + " (default))\n"
-											+ "   (3) Column indices from which to export data (i.e. outputCols="
-											+ Array.toStr(outputCols, ",") + " (default))\n"
-											+ "   (4) Output File (i.e. out=" + output + " (default))\n"
-											+ "   (5) Data export CRF filename (i.e. crf=" + crf + " (default))\n"
-											+ "   (6) Search terms (i.e. search=" + Array.toStr(search, ",")
-											+ " (default))\n" + "   (7) OPTIONAL: Log file (i.e. log=" + logfile
-											+ " (default))\n" + "";
+			String usage = "\n" + "one.ben.DBGAPMerge requires 6+ arguments\n"
+										 + "   (1) dbGap Map File (from merged files) (i.e. map=" + map
+										 + " (default))\n"
+										 + "   (2) Column indices in which to search (i.e. searchCols="
+										 + ArrayUtils.toStr(searchCols, ",") + " (default))\n"
+										 + "   (3) Column indices from which to export data (i.e. outputCols="
+										 + ArrayUtils.toStr(outputCols, ",") + " (default))\n"
+										 + "   (4) Output File (i.e. out=" + output + " (default))\n"
+										 + "   (5) Data export CRF filename (i.e. crf=" + crf + " (default))\n"
+										 + "   (6) Search terms (i.e. search=" + ArrayUtils.toStr(search, ",")
+										 + " (default))\n" + "   (7) OPTIONAL: Log file (i.e. log=" + logfile
+										 + " (default))\n" + "";
 
 			for (String arg : args) {
 				if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -633,10 +633,10 @@ public class DBGAPMerge {
 				if (Files.exists(crf)) {
 					log.reportError("Error - specified .CRF file already exists! -- " + crf);
 				} else {
-					Files.parseControlFile(	crf, "dbgap",
-																	new String[] {"variables="	+ output, "dataFile=mergeOut.xln.gz",
-																								"outputFile=searchedVariables.xln", "head=IID",},
-																	log);
+					Files.parseControlFile(crf, "dbgap",
+																 new String[] {"variables=" + output, "dataFile=mergeOut.xln.gz",
+																							 "outputFile=searchedVariables.xln", "head=IID",},
+																 log);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();

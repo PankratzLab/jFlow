@@ -10,44 +10,45 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
 public class SummarizePhenotype {
 	public static final String PARAMETERS_FILE_NAME = "parameters.txt";
-	public static final String[][] FILETYPE_DELIMINATOR = {	{".csv", ","}, {".xln", "\t"},
-																													{".txt", "\t"}};
+	public static final String[][] FILETYPE_DELIMINATOR = {{".csv", ","}, {".xln", "\t"},
+																												 {".txt", "\t"}};
 	public static final String PARAMETERS_FILE_DELIMITER_FOR_DATAFILES = "[;|]";
 	public static final String PARAMETERS_FILE_DELIMITER_FOR_VARIABLES_IN_MODEL = "[~=+*]";
-	public static final String[] ID_NAMES = {	"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID",
-																						"Sample"};
+	public static final String[] ID_NAMES = {"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID",
+																					 "Sample"};
 	public static final String FILENAME_EXTIONSION_TO_OUTPUT_PHENOTYPE_DATA_WITH = ".xln";
-	public static final String[][] DEFAULT_PARAMS =
-																								{	{"Description", "statOperation", "columnLabel",
-																									"columnCriteria", "parameter"},
-																									{	"Trait - Minimum", "0 percentile", "trait",
+	public static final String[][] DEFAULT_PARAMS = {{"Description", "statOperation", "columnLabel",
+																										"columnCriteria", "parameter"},
+																									 {"Trait - Minimum", "0 percentile", "trait",
 																										"trait=ValidDouble", "-blank", "-sf=2"},
-																									{	"Trait - 1st Quartile", "25 percentile", "trait",
+																									 {"Trait - 1st Quartile", "25 percentile",
+																										"trait", "trait=ValidDouble", "-blank",
+																										"-sf=2"},
+																									 {"Trait - Median", "50 percentile", "trait",
 																										"trait=ValidDouble", "-blank", "-sf=2"},
-																									{	"Trait - Median", "50 percentile", "trait",
+																									 {"Trait - Mean", "mean", "trait",
 																										"trait=ValidDouble", "-blank", "-sf=2"},
-																									{	"Trait - Mean", "mean", "trait",
+																									 {"Trait - 3rd Quartile", "75 percentile",
+																										"trait", "trait=ValidDouble", "-blank",
+																										"-sf=2"},
+																									 {"Trait - maximum", "100 percentile", "trait",
 																										"trait=ValidDouble", "-blank", "-sf=2"},
-																									{	"Trait - 3rd Quartile", "75 percentile", "trait",
+																									 {"Trait- standard deviation", "stdev", "trait",
 																										"trait=ValidDouble", "-blank", "-sf=2"},
-																									{	"Trait - maximum", "100 percentile", "trait",
-																										"trait=ValidDouble", "-blank", "-sf=2"},
-																									{	"Trait- standard deviation", "stdev", "trait",
-																										"trait=ValidDouble", "-blank", "-sf=2"},
-																									{	"N", "count", "Female", "Female=ValidDouble",
+																									 {"N", "count", "Female", "Female=ValidDouble",
 																										"-blank", "-sf=0"},
-																									{	"N - Female", "count", "Female", "Female=1",
+																									 {"N - Female", "count", "Female", "Female=1",
 																										"-blank", "-sf=0"},
-																									{	"Age - Mean", "mean", "Age", "Age=ValidDouble",
+																									 {"Age - Mean", "mean", "Age", "Age=ValidDouble",
 																										"-blank", "-sf=2"},
-																									{	"Age - standard deviation", "stdev", "Age",
+																									 {"Age - standard deviation", "stdev", "Age",
 																										"Age=ValidDouble", "-blank", "-sf=2",
 																										"-stdev"},};
 
@@ -59,39 +60,39 @@ public class SummarizePhenotype {
 		String result;
 
 		if (statOperation.equalsIgnoreCase("mean")) {
-			mean = (Array.sum(data) / data.length);
+			mean = (ArrayUtils.sum(data) / data.length);
 			if (includeStdev) {
-				stdev = Array.stdev(data);
+				stdev = ArrayUtils.stdev(data);
 			}
-			result = (mean != 0	? (showPercent	? ext.formDeci(mean * 100, sf) + "%"
-																					: ext.formDeci(mean, sf))
-														+ (includeStdev	? " ("
-																								+ (showPercent	? ext.formDeci(stdev * 100, sf) + "%"
-																															: ext.formDeci(stdev, sf))
+			result = (mean != 0 ? (showPercent ? ext.formDeci(mean * 100, sf) + "%"
+																				 : ext.formDeci(mean, sf))
+														+ (includeStdev ? " ("
+																							+ (showPercent ? ext.formDeci(stdev * 100, sf) + "%"
+																														 : ext.formDeci(stdev, sf))
 																							+ ")"
 																						: "")
 													: (useBlankForNull ? "" : "."));
 
 		} else if (statOperation.equalsIgnoreCase("stdev")) {
-			stdev = Array.stdev(data);
-			result = (!Double.isNaN(stdev))	? (showPercent	? ext.formDeci(stdev * 100, sf) + "%"
-																											: ext.formDeci(stdev, sf))
+			stdev = ArrayUtils.stdev(data);
+			result = (!Double.isNaN(stdev)) ? (showPercent ? ext.formDeci(stdev * 100, sf) + "%"
+																										 : ext.formDeci(stdev, sf))
 																			: (useBlankForNull ? "" : ".");
 
 		} else if (statOperation.equalsIgnoreCase("count")) {
-			result = Array.sum(data) > 0 ? data.length + "" : (useBlankForNull ? "" : ".");
+			result = ArrayUtils.sum(data) > 0 ? data.length + "" : (useBlankForNull ? "" : ".");
 
 		} else if (statOperation.contains("percentile")) {
 			percentile = Integer.parseInt(statOperation.split(" ")[0].trim());
 			Arrays.sort(data);
 			if (percentile == 100) {
-				result = (data.length == 0	? (useBlankForNull ? "" : "0")
-																		: ext.formDeci(data[data.length - 1], sf));
+				result = (data.length == 0 ? (useBlankForNull ? "" : "0")
+																	 : ext.formDeci(data[data.length - 1], sf));
 			} else {
-				result = (data.length == 0	? (useBlankForNull ? "" : "0")
-																		: ext.formDeci(	data[(int) (((double) percentile / 100)
-																																* data.length + .5)],
-																										sf));
+				result = (data.length == 0 ? (useBlankForNull ? "" : "0")
+																	 : ext.formDeci(data[(int) (((double) percentile / 100)
+																															* data.length + .5)],
+																									sf));
 			}
 
 		} else {
@@ -103,9 +104,9 @@ public class SummarizePhenotype {
 	}
 
 
-	public static String[] parseStatisticsFromParameters(	Vector<String[]> modelData,
-																												String[] columnLabels,
-																												String[][] parameters, Logger log) {
+	public static String[] parseStatisticsFromParameters(Vector<String[]> modelData,
+																											 String[] columnLabels, String[][] parameters,
+																											 Logger log) {
 		boolean isStdev, isBlank, isPercent, isToInclude;
 		int sf, numParameters, columnIndex, theSize;
 		Vector<Integer> filters;
@@ -141,7 +142,7 @@ public class SummarizePhenotype {
 				} else {
 					line = parameters[i][j].split("=");
 					if (line.length < 2 || line[1].equals("")) {
-						log.reportError("Parameter contains invalid filter: "	+ parameters[i][j]
+						log.reportError("Parameter contains invalid filter: " + parameters[i][j]
 														+ ". Should include an '=' sign.");
 						return null;
 					}
@@ -163,9 +164,9 @@ public class SummarizePhenotype {
 					}
 					// }
 					line[1] = line[1].trim();
-					if (!line[1].equalsIgnoreCase("validDouble")	&& !line[1].equalsIgnoreCase("validInteger")
+					if (!line[1].equalsIgnoreCase("validDouble") && !line[1].equalsIgnoreCase("validInteger")
 							&& !ext.isValidInteger(line[1]) && !ext.isValidDouble(line[1])) {
-						log.reportError("Unrecognized parameter: "	+ parameters[i][j]
+						log.reportError("Unrecognized parameter: " + parameters[i][j]
 														+ ". Expecting 'variableName = validDouble' or 'variableName = validInteger'.");
 					}
 					filters.add(columnIndex);
@@ -238,9 +239,9 @@ public class SummarizePhenotype {
 		size = data.size();
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
-			writer.println(Array.toStr(header));
+			writer.println(ArrayUtils.toStr(header));
 			for (int i = 0; i < size; i++) {
-				writer.println(Array.toStr(data.elementAt(i)));
+				writer.println(ArrayUtils.toStr(data.elementAt(i)));
 			}
 			writer.close();
 		} catch (IOException e) {
@@ -389,12 +390,12 @@ public class SummarizePhenotype {
 						System.exit(1);
 					} else {
 						modelName = line[0].trim().toLowerCase();
-						models.put(	modelName,
-												new String[][] {splitAndTrim(	line[1],
-																											PARAMETERS_FILE_DELIMITER_FOR_DATAFILES),
-																				splitAndTrim(	line[2],
-																											PARAMETERS_FILE_DELIMITER_FOR_VARIABLES_IN_MODEL),
-																				new String[] {line[3].toLowerCase()}});
+						models.put(modelName,
+											 new String[][] {splitAndTrim(line[1],
+																										PARAMETERS_FILE_DELIMITER_FOR_DATAFILES),
+																			 splitAndTrim(line[2],
+																										PARAMETERS_FILE_DELIMITER_FOR_VARIABLES_IN_MODEL),
+																			 new String[] {line[3].toLowerCase()}});
 						modelList.add(modelName);
 					}
 				}
@@ -445,8 +446,8 @@ public class SummarizePhenotype {
 				for (int j = 1; j < line.length; j++) {
 					line[j] = variablesInModel[j - 1];
 				}
-				exportData(wkDir	+ modelName + FILENAME_EXTIONSION_TO_OUTPUT_PHENOTYPE_DATA_WITH, line,
-										currentData);
+				exportData(wkDir + modelName + FILENAME_EXTIONSION_TO_OUTPUT_PHENOTYPE_DATA_WITH, line,
+									 currentData);
 				// result[i] = parseStatisticsFromParameters(currentData, variablesInModel, parameters,
 				// log);
 				result[i] = parseStatisticsFromParameters(currentData, line,
@@ -493,10 +494,10 @@ public class SummarizePhenotype {
 						} else {
 							index = ext.indexOfStr(line[0], columnLabels, false, false, log, true);
 							if (index > -1) {
-								log.report("No exact match for parameter "	+ result[i][j]
-														+ " in column labels. Instead, used " + columnLabels[index]);
+								log.report("No exact match for parameter " + result[i][j]
+													 + " in column labels. Instead, used " + columnLabels[index]);
 							} else {
-								log.reportError("No exact match for parameter "	+ result[i][j]
+								log.reportError("No exact match for parameter " + result[i][j]
 																+ " in the column labels. Program exit on error.");
 								System.exit(0);
 							}
@@ -525,7 +526,7 @@ public class SummarizePhenotype {
 		defaults[0] = "in=phenoDataFile.csv";
 		defaults[1] = "out=statisticsResults.xln";
 		for (int i = 0; i < DEFAULT_PARAMS.length; i++) {
-			defaults[i + 2] = Array.toStr(DEFAULT_PARAMS[i]);
+			defaults[i + 2] = ArrayUtils.toStr(DEFAULT_PARAMS[i]);
 		}
 
 		params = Files.parseControlFile(filename, "descriptive", defaults, log);
@@ -564,8 +565,8 @@ public class SummarizePhenotype {
 		columnLabels = Files.getHeaderOfFile(filename, "\t", log);
 		parameters = adjustParameters(parameters, columnLabels, log);
 
-		Files.generateTables(	resultFileName, new String[] {phenoDataFileName},
-													new String[] {ext.rootOf(phenoDataFileName)}, parameters, log);
+		Files.generateTables(resultFileName, new String[] {phenoDataFileName},
+												 new String[] {ext.rootOf(phenoDataFileName)}, parameters, log);
 	}
 
 
@@ -659,7 +660,7 @@ public class SummarizePhenotype {
 			}
 		} else {
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 
@@ -692,10 +693,10 @@ public class SummarizePhenotype {
 		String outFile = "result.xln";
 		Logger log;
 
-		String usage = "\n"	+ "gwas.SummarizePhenotype requires 0-1 arguments\n"
-										+ "   (1) name of model list file (i.e. models=" + modelList + " (default))\n"
-										+ "   (2) name of output file (i.e. out=" + outFile + " (default))\n"
-										+ "   (3) name of log file (i.e. log=mylog.txt (not the default))\n" + "";
+		String usage = "\n" + "gwas.SummarizePhenotype requires 0-1 arguments\n"
+									 + "   (1) name of model list file (i.e. models=" + modelList + " (default))\n"
+									 + "   (2) name of output file (i.e. out=" + outFile + " (default))\n"
+									 + "   (3) name of log file (i.e. log=mylog.txt (not the default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

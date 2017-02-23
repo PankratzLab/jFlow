@@ -36,7 +36,7 @@ import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.manage.SourceFileParser;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
@@ -47,8 +47,7 @@ public class ProjectCreationGUI extends JDialog {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final String PROJECT_DIR_TOOLTIP =
-																									"<html>Directory in which to create, store, and manage all project files.</html>";
+	private static final String PROJECT_DIR_TOOLTIP = "<html>Directory in which to create, store, and manage all project files.</html>";
 	private static final String SOURCE_DIR_TOOLTIP = "<html>Directory of source (e.g. FinalReport.txt.gz) files; this can be different than the Project Directory.</html>";
 	private static final String SOURCE_EXT_TOOLTIP = "<html>Extension of source files (e.g. for \"FinalReport.txt.gz\", the extension would be \".txt.gz\".</html>";
 	private static final String XY_TOOLTIP = "<html>Suggested values for X/Y correction:<br />Illumina: use the default of 1.<br />Affymetrix: use 100.<br />DBGAP: use 2000.</html>";
@@ -114,7 +113,7 @@ public class ProjectCreationGUI extends JDialog {
 						txt = ext.verifyDirFormat(f.getCanonicalPath());
 					} catch (IOException e1) {
 					}
-					if (jfc.getFileSelectionMode() == FileChooser.FILES_ONLY	&& txt.length() > 1
+					if (jfc.getFileSelectionMode() == FileChooser.FILES_ONLY && txt.length() > 1
 							&& txt.endsWith("/")) {
 						txt = txt.substring(0, txt.length() - 1);
 					}
@@ -263,10 +262,10 @@ public class ProjectCreationGUI extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (checkValues()) {
-					int resp = JOptionPane.showConfirmDialog(	ProjectCreationGUI.this,
-																										"<html>You are waiving the opporunity to review your project structure.<br />Are you sure that all source files are valid, correct, and uniform in structure?<br /><br />[If not, select 'Validate and Create' to interactively review project structure]</html>",
-																										"Confirm File Validity",
-																										JOptionPane.YES_NO_OPTION);
+					int resp = JOptionPane.showConfirmDialog(ProjectCreationGUI.this,
+																									 "<html>You are waiving the opporunity to review your project structure.<br />Are you sure that all source files are valid, correct, and uniform in structure?<br /><br />[If not, select 'Validate and Create' to interactively review project structure]</html>",
+																									 "Confirm File Validity",
+																									 JOptionPane.YES_NO_OPTION);
 					if (resp == JOptionPane.YES_OPTION) {
 						// Don't care if createProject doesn't work nicely
 						if (!createProject(false)) {
@@ -362,7 +361,7 @@ public class ProjectCreationGUI extends JDialog {
 												// !idHdr.equals("") ,
 												validTgtMkrs};// Files.exists(tgtMkrs)};
 
-		if (Array.booleanArraySum(checks) < checks.length) {
+		if (ArrayUtils.booleanArraySum(checks) < checks.length) {
 			StringBuilder errorMsg = new StringBuilder();
 			for (int i = 0; i < checks.length; i++) {
 				if (!checks[i]) {
@@ -509,9 +508,9 @@ public class ProjectCreationGUI extends JDialog {
 			if (file.mkdirs()) {
 				dummy.getLog().report("\n" + ext.getTime() + " Created directory " + projDir);
 			} else {
-				dummy.getLog().reportError("Error - failed to create  "	+ projDir
-																		+ ", please manually create it unless it already exists");
-				dummy.message("Error - failed to create  "	+ projDir
+				dummy.getLog().reportError("Error - failed to create  " + projDir
+																	 + ", please manually create it unless it already exists");
+				dummy.message("Error - failed to create  " + projDir
 											+ ", please manually create it unless it already exists");
 				return false;
 			}
@@ -536,7 +535,7 @@ public class ProjectCreationGUI extends JDialog {
 		// if (abLookup != null && Files.exists(projectDirectory + abLookup)) {
 		// proj.setProperty(proj.AB_LOOKUP_FILENAME, ext.removeDirectoryInfo(abLookup));
 		// }
-		actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND	? SourceFileParser.FILENAME_AS_ID_OPTION
+		actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND ? SourceFileParser.FILENAME_AS_ID_OPTION
 																																							: cols[sampCol]);
 		actualProj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(sourceDelim));
 		actualProj.saveProperties();

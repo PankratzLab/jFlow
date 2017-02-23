@@ -11,7 +11,7 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Sort;
 
 public class interpolateMicrosatellites {
@@ -45,8 +45,8 @@ public class interpolateMicrosatellites {
 		try {
 			reader = new BufferedReader(new FileReader(oriname));
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error - could not find the original chromesome file, '"	+ finename
-													+ "'.");
+			System.err.println("Error - could not find the original chromesome file, '" + finename
+												 + "'.");
 			System.exit(1);
 		}
 
@@ -106,8 +106,8 @@ public class interpolateMicrosatellites {
 				writer.println();
 				hash.remove(trav);
 			} else {
-				System.err.println("Warning - individual "	+ id + " (" + trav
-														+ ") does not have finemapping data");
+				System.err.println("Warning - individual " + id + " (" + trav
+													 + ") does not have finemapping data");
 			}
 		}
 		reader.close();
@@ -123,7 +123,7 @@ public class interpolateMicrosatellites {
 			v.add(id + " (" + trav + ")");
 		}
 		if (v.size() > 0) {
-			keys = Sort.getSortedIndices(Array.toStringArray(v));
+			keys = Sort.getSortedIndices(ArrayUtils.toStringArray(v));
 			System.err.println("Warning - the following IDs did not have an original entry.");
 			for (int i = 0; i < v.size(); i++) {
 				System.err.println("        - " + v.elementAt(keys[i]));
@@ -132,9 +132,9 @@ public class interpolateMicrosatellites {
 	}
 
 	public static void main(String[] args) throws IOException {
-		String usage = "\n"	+ "interpolateMicrosatellites requires 2 arguments:\n"
-										+ "   (1) the original chromosome file (i.e. 'chromosome5ori.dat')\n"
-										+ "   (2) the fine mapping chromosome file (i.e. 'chromosome5fine.dat')\n" + "";
+		String usage = "\n" + "interpolateMicrosatellites requires 2 arguments:\n"
+									 + "   (1) the original chromosome file (i.e. 'chromosome5ori.dat')\n"
+									 + "   (2) the fine mapping chromosome file (i.e. 'chromosome5fine.dat')\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

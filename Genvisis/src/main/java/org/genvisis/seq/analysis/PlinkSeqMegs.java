@@ -7,7 +7,7 @@ import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -52,15 +52,15 @@ public class PlinkSeqMegs {
 		GenomeRegions gRegions = new GenomeRegions(geneTrack, pathways, log);
 
 		VCFOps.verifyIndex(vcf, log);
-		String locFile = resourceDirectory	+ ext.rootOf(gRegions.getGeneTrack().getGeneSetFilename())
-											+ "_Gen.reg";
+		String locFile = resourceDirectory + ext.rootOf(gRegions.getGeneTrack().getGeneSetFilename())
+										 + "_Gen.reg";
 		PlinkSeqUtils.generatePlinkSeqLoc(gRegions, locFile, log);
 
 		PlinkSeq plinkSeq = new PlinkSeq(false, true, log);
 
 		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()),
 																									ext.parseDirectoryOfFile(vpop.getFileName())
-																																															+ VCFOps.getAppropriateRoot(vcf,
+																																														+ VCFOps.getAppropriateRoot(vcf,
 																																																												true)
 																																														+ "/",
 																									vcf, vpop, resourceDirectory, true, true, log);
@@ -150,42 +150,41 @@ public class PlinkSeqMegs {
 		}
 	}
 
-	public static void runVcfs(	String vcfFile, String vpopFile, String resourceDirectory,
-															String geneTrackFile, String keggPathwayFile, double maf,
-															int numthreads, boolean loadLoc, Logger log) {
+	public static void runVcfs(String vcfFile, String vpopFile, String resourceDirectory,
+														 String geneTrackFile, String keggPathwayFile, double maf,
+														 int numthreads, boolean loadLoc, Logger log) {
 
 		String[] vcfs = HashVec.loadFileToStringArray(vcfFile, false, new int[] {0}, true);
-		System.out.println(Array.toStr(vcfs));
+		System.out.println(ArrayUtils.toStr(vcfs));
 
 		ArrayList<PlinkSeqWorker> workers = new ArrayList<PlinkSeq.PlinkSeqWorker>();
-		ImportProducer importer = new ImportProducer(	vcfs, vpopFile, resourceDirectory, geneTrackFile,
-																									keggPathwayFile, maf, loadLoc, log);
-		WorkerTrain<PlinkSeqWorker[]> importTrain = new WorkerTrain<PlinkSeq.PlinkSeqWorker[]>(	importer,
-																																														numthreads,
-																																														numthreads,
-																																														log);
+		ImportProducer importer = new ImportProducer(vcfs, vpopFile, resourceDirectory, geneTrackFile,
+																								 keggPathwayFile, maf, loadLoc, log);
+		WorkerTrain<PlinkSeqWorker[]> importTrain = new WorkerTrain<PlinkSeq.PlinkSeqWorker[]>(importer,
+																																													 numthreads,
+																																													 numthreads,
+																																													 log);
 		while (importTrain.hasNext()) {
 			PlinkSeqWorker[] tmp = importTrain.next();
 			for (PlinkSeqWorker element : tmp) {
 				workers.add(element);
 			}
 		}
-		PlinkSeqProducer producer =
-															new PlinkSeqProducer(	workers.toArray(new PlinkSeqWorker[workers.size()]),
-																										log);
-		WorkerTrain<PlinkSeqWorker> train =
-																			new WorkerTrain<PlinkSeq.PlinkSeqWorker>(	producer, numthreads,
-																																								numthreads, log);
+		PlinkSeqProducer producer = new PlinkSeqProducer(workers.toArray(new PlinkSeqWorker[workers.size()]),
+																										 log);
+		WorkerTrain<PlinkSeqWorker> train = new WorkerTrain<PlinkSeq.PlinkSeqWorker>(producer,
+																																								 numthreads,
+																																								 numthreads, log);
 		while (train.hasNext()) {
 			train.next();
 		}
 	}
 
-	private static PlinkSeqWorker[] prepToImport(	String vcf, String vpopFile,
-																								String resourceDirectory, String directory,
-																								String geneTrackFile, String keggPathwayFile,
-																								double maf, boolean loadLoc, int numthreads,
-																								Logger log) {
+	private static PlinkSeqWorker[] prepToImport(String vcf, String vpopFile,
+																							 String resourceDirectory, String directory,
+																							 String geneTrackFile, String keggPathwayFile,
+																							 double maf, boolean loadLoc, int numthreads,
+																							 Logger log) {
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.CASE_CONTROL, log);
 		vpop.report();
 
@@ -196,20 +195,20 @@ public class PlinkSeqMegs {
 		GenomeRegions gRegions = new GenomeRegions(geneTrack, pathways, log);
 
 		VCFOps.verifyIndex(vcf, log);
-		String locFile = resourceDirectory	+ ext.rootOf(gRegions.getGeneTrack().getGeneSetFilename())
-											+ "_Gen.reg";
+		String locFile = resourceDirectory + ext.rootOf(gRegions.getGeneTrack().getGeneSetFilename())
+										 + "_Gen.reg";
 		PlinkSeqUtils.generatePlinkSeqLoc(gRegions, locFile, log);
 
 		PlinkSeq plinkSeq = new PlinkSeq(false, true, log);
 		// ext.parseDirectoryOfFile(vpop.getFileName())
-		PseqProject pseqProject =
-														PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()), directory,
-																								vcf, vpop, resourceDirectory, true, loadLoc, log);
+		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()),
+																									directory, vcf, vpop, resourceDirectory, true,
+																									loadLoc, log);
 		VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 		// int macFilter = (int) Math.round((float) VCFOps.getSamplesInFile(reader).length * maf);
 		reader.close();
-		return plinkSeq.fullGamutAssoc(	pseqProject, new String[] {ext.rootOf(locFile)}, null, -1,
-																		maf + "", ext.rootOf(vpop.getFileName()), false, numthreads);
+		return plinkSeq.fullGamutAssoc(pseqProject, new String[] {ext.rootOf(locFile)}, null, -1,
+																	 maf + "", ext.rootOf(vpop.getFileName()), false, numthreads);
 	}
 
 	public static void prepareBatches(String vcf, String vpopFile, String fullPathTojarFile,
@@ -217,12 +216,13 @@ public class PlinkSeqMegs {
 																		int numthreads, int numBatches, Logger log) {
 		log.reportTimeInfo("Utilizing " + (numthreads) + " total threads per batch");
 		ChrSplitResults[] cSplitResults = VCFOps.splitByChrs(vcf, numthreads, true, log);
-		List<ChrSplitResults[]> cSplitResultsBatched = Array.splitUpArray(	cSplitResults,
-																																						numBatches, log);
-		String[] baseCommand = Array.concatAll(	PSF.Java.buildJavaCP(fullPathTojarFile),
-																						new String[] {"seq.analysis.PlinkSeqMegs",
-																													"vpop=" + vpopFile, PSF.Ext.NUM_THREADS_COMMAND
-																																							+ numthreads + ""});
+		List<ChrSplitResults[]> cSplitResultsBatched = ArrayUtils.splitUpArray(cSplitResults,
+																																					 numBatches, log);
+		String[] baseCommand = ArrayUtils.concatAll(PSF.Java.buildJavaCP(fullPathTojarFile),
+																								new String[] {"seq.analysis.PlinkSeqMegs",
+																															"vpop=" + vpopFile, PSF.Ext.NUM_THREADS_COMMAND
+																																									+ numthreads
+																																									+ ""});
 		ArrayList<String> batches = new ArrayList<String>();
 		ArrayList<String> masterVCFS = new ArrayList<String>();
 		String rootOut = ext.parseDirectoryOfFile(vpopFile);
@@ -239,13 +239,13 @@ public class PlinkSeqMegs {
 			String[] batchCommand = new String[] {"vcfs=" + vcfFile, (i == 0 ? "-loadLoc" : "")};
 
 			batches.add("qsub -q " + batch);
-			Files.qsub(	batch, Array.toStr(Array.concatAll(baseCommand, batchCommand), " "),
-									totalMemoryRequestedInMb, walltimeRequestedInHours, numthreads);
+			Files.qsub(batch, ArrayUtils.toStr(ArrayUtils.concatAll(baseCommand, batchCommand), " "),
+								 totalMemoryRequestedInMb, walltimeRequestedInHours, numthreads);
 		}
-		Files.writeArray(	batches.toArray(new String[batches.size()]),
-											rootOut + ext.rootOf(vpopFile) + "master.sh");
-		Files.writeArray(	masterVCFS.toArray(new String[masterVCFS.size()]),
-											rootOut + ext.rootOf(vpopFile) + "master.vcfs.txt");
+		Files.writeArray(batches.toArray(new String[batches.size()]),
+										 rootOut + ext.rootOf(vpopFile) + "master.sh");
+		Files.writeArray(masterVCFS.toArray(new String[masterVCFS.size()]),
+										 rootOut + ext.rootOf(vpopFile) + "master.vcfs.txt");
 
 		// Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir, batchRoot, maxJobsPerBatch,
 		// forceMaxJobs, queueName, memoryPerProcRequestedInMb, totalMemoryRequestedInMb,
@@ -267,8 +267,7 @@ public class PlinkSeqMegs {
 		String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf";
 		String fileOfVcfs = null;
 		boolean batch = false;
-		String vpopFile =
-										"/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControl.txt";
+		String vpopFile = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControl.txt";
 		// String resourceDirectory = "/home/tsaim/public/bin/pseqRef/hg19/";
 		String resourceDirectory = "/home/spectorl/public/bin/pseqRef/hg19/";
 		Logger log = new Logger(ext.rootOf(vcf, false) + "tally.log");
@@ -338,14 +337,14 @@ public class PlinkSeqMegs {
 		try {
 			log = new Logger(logfile);
 			if (batch) {
-				prepareBatches(	vcf, vpopFile, fullPathTojarFile, memoryInMb, wallTimeInHours, numthreads,
-												numBatches, log);
+				prepareBatches(vcf, vpopFile, fullPathTojarFile, memoryInMb, wallTimeInHours, numthreads,
+											 numBatches, log);
 			} else if (fileOfVcfs != null) {
 				runVcfs(fileOfVcfs, vpopFile, resourceDirectory, geneTrackFile, keggPathwayFile, maf,
 								numthreads, loadLoc, log);
 			} else {
-				runBig(	vcf, vpopFile, resourceDirectory, geneTrackFile, keggPathwayFile, maf, numthreads,
-								log);
+				runBig(vcf, vpopFile, resourceDirectory, geneTrackFile, keggPathwayFile, maf, numthreads,
+							 log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

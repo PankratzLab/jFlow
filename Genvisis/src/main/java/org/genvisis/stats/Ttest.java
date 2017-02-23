@@ -6,15 +6,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.ext;
 
 import com.google.common.primitives.Doubles;
 
-	/**
-	 * @see org.apache.commons.math3.stat.inference.TTest
-	 */
+/**
+ * @see org.apache.commons.math3.stat.inference.TTest
+ */
 public class Ttest {
 	private double meanDiff;
 	private double stdev;
@@ -70,8 +70,8 @@ public class Ttest {
 	}
 
 	public Ttest(double[] data1, double[] data2) {
-		this(	Array.mean(data1), Array.stdev(data1), data1.length, Array.mean(data2), Array.stdev(data2),
-					data2.length);
+		this(ArrayUtils.mean(data1), ArrayUtils.stdev(data1), data1.length, ArrayUtils.mean(data2),
+				 ArrayUtils.stdev(data2), data2.length);
 
 		Ftest = LevenesTest(new double[][] {data1, data2});
 		Fprob = ProbDist.FDist(Ftest, 1, df);
@@ -79,8 +79,8 @@ public class Ttest {
 	}
 
 	public Ttest(int[] groupings, double[] values) {
-		this(	splitOut(groupings, values, Array.min(groupings)),
-					splitOut(groupings, values, Array.min(groupings) + 1));
+		this(splitOut(groupings, values, ArrayUtils.min(groupings)),
+				 splitOut(groupings, values, ArrayUtils.min(groupings) + 1));
 	}
 
 	/**
@@ -123,7 +123,7 @@ public class Ttest {
 			}
 		}
 
-		return new double[][]{Doubles.toArray(match), Doubles.toArray(noMatch)};
+		return new double[][] {Doubles.toArray(match), Doubles.toArray(noMatch)};
 	}
 
 	public static double[] splitOut(int[] groupings, double[] values, int group) {
@@ -139,14 +139,14 @@ public class Ttest {
 	}
 
 	public Ttest(double x1Hat, double s1, int n1, double x2Hat, double s2, int n2) { // independent
-																																										// sample
-																																										// t-test
+																																									 // sample
+																																									 // t-test
 		this(x1Hat, s1, (double) n1, x2Hat, s2, (double) n2);
 	}
 
 	public Ttest(double x1Hat, double s1, double n1, double x2Hat, double s2, double n2) { // independent
-																																													// sample
-																																													// t-test
+																																												 // sample
+																																												 // t-test
 		double pooledVariance, se;
 
 		t = new double[2];
@@ -196,21 +196,21 @@ public class Ttest {
 		String str = "";
 
 		if (testType == 1) {
-			str += "Difference in means: "	+ ext.formDeci(meanDiff, 2, true) + "\n"
-							+ (testType < 3 ? "Standard Deviation: " + ext.formDeci(stdev, 2, true) + "\n" : "")
-							+ "t: " + ext.formDeci(t[0], 2, true) + "\n" + "df: " + df + "\n"
-							+ "one-tailed test: p=" + ext.formDeci(p[0] / 2, 4) + " ("
-							+ ext.formDeci(meanDiff - ci05[0], 2) + " OR " + ext.formDeci(meanDiff + ci05[0], 2)
-							+ ")" + "\n" + "two-tailed test: p=" + ext.formDeci(p[0], 4) + " ("
-							+ ext.formDeci(meanDiff - ci025[0], 2) + ", " + ext.formDeci(meanDiff + ci025[0], 2)
-							+ ")" + "\n";
+			str += "Difference in means: " + ext.formDeci(meanDiff, 2, true) + "\n"
+						 + (testType < 3 ? "Standard Deviation: " + ext.formDeci(stdev, 2, true) + "\n" : "")
+						 + "t: " + ext.formDeci(t[0], 2, true) + "\n" + "df: " + df + "\n"
+						 + "one-tailed test: p=" + ext.formDeci(p[0] / 2, 4) + " ("
+						 + ext.formDeci(meanDiff - ci05[0], 2) + " OR " + ext.formDeci(meanDiff + ci05[0], 2)
+						 + ")" + "\n" + "two-tailed test: p=" + ext.formDeci(p[0], 4) + " ("
+						 + ext.formDeci(meanDiff - ci025[0], 2) + ", " + ext.formDeci(meanDiff + ci025[0], 2)
+						 + ")" + "\n";
 		} else {
-			str += "Difference in means: "	+ ext.formDeci(meanDiff, 2, true) + "\n"
-							+ "Variances\tT\tDF\t\tp-value\n" + "Equal\t" + ext.formDeci(t[0], 3, true) + "\t"
-							+ df + "\t\t" + ext.formDeci(p[0], 3) + "\n" + "Unqual\t"
-							+ ext.formDeci(t[1], 3, true) + "\t" + ext.formDeci(v, 3, true) + "\t"
-							+ ext.formDeci(p[1], 3) + "\n" + "\n" + "For H0: Variances are equal. "
-							+ ext.formDeci(Ftest, 3, true) + ", p=" + ext.formDeci(Fprob, 3, true);
+			str += "Difference in means: " + ext.formDeci(meanDiff, 2, true) + "\n"
+						 + "Variances\tT\tDF\t\tp-value\n" + "Equal\t" + ext.formDeci(t[0], 3, true) + "\t" + df
+						 + "\t\t" + ext.formDeci(p[0], 3) + "\n" + "Unqual\t" + ext.formDeci(t[1], 3, true)
+						 + "\t" + ext.formDeci(v, 3, true) + "\t" + ext.formDeci(p[1], 3) + "\n" + "\n"
+						 + "For H0: Variances are equal. " + ext.formDeci(Ftest, 3, true) + ", p="
+						 + ext.formDeci(Fprob, 3, true);
 		}
 
 		return str;
@@ -260,7 +260,7 @@ public class Ttest {
 		for (int i = 0; i < k; i++) {
 			Ns[i] = data[i].length;
 			N += Ns[i];
-			means[i] = Array.mean(data[i]);
+			means[i] = ArrayUtils.mean(data[i]);
 		}
 
 		for (int i = 0; i < k; i++) {
@@ -268,8 +268,8 @@ public class Ttest {
 			for (int j = 0; j < Ns[i]; j++) {
 				Zijs[i][j] = Math.abs(data[i][j] - means[i]);
 			}
-			ZiMeans[i] = Array.mean(Zijs[i]);
-			ZiMeansMean += Array.sum(Zijs[i]);
+			ZiMeans[i] = ArrayUtils.mean(Zijs[i]);
+			ZiMeansMean += ArrayUtils.sum(Zijs[i]);
 		}
 		ZiMeansMean /= N;
 
@@ -278,13 +278,13 @@ public class Ttest {
 			for (int j = 0; j < Ns[i]; j++) {
 				ZiMeansSq[i][j] = Math.pow(Zijs[i][j] - ZiMeans[i], 2);
 			}
-			denomin += Array.sum(ZiMeansSq[i]);
+			denomin += ArrayUtils.sum(ZiMeansSq[i]);
 		}
 
 		for (int i = 0; i < k; i++) {
 			ZiMeansMeanSqN[i] = Ns[i] * Math.pow(ZiMeans[i] - ZiMeansMean, 2);
 		}
-		numer = (N - k) * Array.sum(ZiMeansMeanSqN);
+		numer = (N - k) * ArrayUtils.sum(ZiMeansMeanSqN);
 
 		return numer / denomin;
 	}

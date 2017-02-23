@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.ext;
 
@@ -38,8 +38,9 @@ public class temp {
 
 		dist = Doubles.toArray(dv);
 		for (int k = 0; k < Transformations.NUM_TRANSFORMATIONS; k++) {
-			System.err.println(Transformations.getLabel(k)	+ ": "
-													+ ext.formDeci(Array.kurtosis(Transformations.transform(dist, k)), 4));
+			System.err.println(Transformations.getLabel(k) + ": "
+												 + ext.formDeci(ArrayUtils.kurtosis(Transformations.transform(dist, k)),
+																				4));
 		}
 
 		System.exit(1);
@@ -98,8 +99,8 @@ public class temp {
 		int numArgs = args.length;
 		String filename = "temp.dat";
 
-		String usage = "\n"	+ "park.temp requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default)\n" + "";
+		String usage = "\n" + "park.temp requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

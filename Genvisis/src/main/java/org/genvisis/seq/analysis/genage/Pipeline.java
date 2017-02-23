@@ -90,9 +90,9 @@ public class Pipeline {
 		private final int numthreads;
 		private final Logger log;
 
-		private MitoPipePart(	String bamFile, String rootOutDir, String captureBed,
-													GENOME_BUILD genomeBuild, NGSSample ngsSample, int numthreads,
-													Logger log) {
+		private MitoPipePart(String bamFile, String rootOutDir, String captureBed,
+												 GENOME_BUILD genomeBuild, NGSSample ngsSample, int numthreads,
+												 Logger log) {
 			super();
 			this.bamFile = bamFile;
 			this.rootOutDir = rootOutDir;
@@ -135,8 +135,8 @@ public class Pipeline {
 		private final int captureBufferSize;
 		private final Logger log;
 
-		private TelSeqPart(	String bam, String rootOutDir, String captureBed, NGSSample ngsSample,
-												int numthreads, int captureBufferSize, Logger log) {
+		private TelSeqPart(String bam, String rootOutDir, String captureBed, NGSSample ngsSample,
+											 int numthreads, int captureBufferSize, Logger log) {
 			super();
 			bamFile = bam;
 			this.rootOutDir = rootOutDir;
@@ -151,9 +151,9 @@ public class Pipeline {
 		public PipelinePart call() throws Exception {
 			String telSeqDir = rootOutDir + TELSEQ_DIR + ext.rootOf(bamFile) + "/";
 			new File(telSeqDir).mkdir();
-			String result = TelSeq.runTelSeq(	new String[] {bamFile}, telSeqDir, captureBed, numthreads,
-																				ngsSample.getaType(), ngsSample.getaName(),
-																				captureBufferSize, log);
+			String result = TelSeq.runTelSeq(new String[] {bamFile}, telSeqDir, captureBed, numthreads,
+																			 ngsSample.getaType(), ngsSample.getaName(),
+																			 captureBufferSize, log);
 			ArrayList<String> input = new ArrayList<String>();
 			input.add(bamFile);
 			setInput(input);
@@ -181,8 +181,8 @@ public class Pipeline {
 
 
 
-		private GenvisisPart(	String bam, String rootOutDir, GENOME_BUILD genomeBuild, String captureBed,
-													String binBed, String vcf, NGSSample ngsSample, int captureBufferSize) {
+		private GenvisisPart(String bam, String rootOutDir, GENOME_BUILD genomeBuild, String captureBed,
+												 String binBed, String vcf, NGSSample ngsSample, int captureBufferSize) {
 			super();
 			bamFile = bam;
 			this.rootOutDir = rootOutDir;
@@ -204,9 +204,9 @@ public class Pipeline {
 		@Override
 		public PipelinePart call() throws Exception {
 			Project proj = getProjectFor(ngsSample.getaType(), rootOutDir, genomeBuild);
-			BamImport.importTheWholeBamProject(	proj, binBed, captureBed, vcf, captureBufferSize, -1,
-																					false, ngsSample.getaType(), ngsSample.getaName(),
-																					new String[] {bamFile}, 1);
+			BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBufferSize, -1,
+																				 false, ngsSample.getaType(), ngsSample.getaName(),
+																				 new String[] {bamFile}, 1);
 
 			ArrayList<String> input = new ArrayList<String>();
 			input.add(bamFile);
@@ -257,8 +257,8 @@ public class Pipeline {
 		private final String computelLocation;
 		private final Logger log;
 
-		private ComputelPart(	String bam, String rootOutDir, String computelLocation, String captureBed,
-													NGSSample ngsSample, int numthreads, int captureBufferSize, Logger log) {
+		private ComputelPart(String bam, String rootOutDir, String computelLocation, String captureBed,
+												 NGSSample ngsSample, int numthreads, int captureBufferSize, Logger log) {
 			super();
 			bamFile = bam;
 			this.rootOutDir = rootOutDir;
@@ -298,9 +298,9 @@ public class Pipeline {
 		String projectFile = projectDir + projectName + ".properties";
 		if (!Files.exists(projectFile)) {
 			new File(projectDir).mkdirs();
-			Files.writeArray(	new String[] {"PROJECT_NAME="+ projectName,
-																			"PROJECT_DIRECTORY=" + projectDir},
-												projectFile);
+			Files.writeArray(new String[] {"PROJECT_NAME=" + projectName,
+																		 "PROJECT_DIRECTORY=" + projectDir},
+											 projectFile);
 		}
 		Project proj = new Project(projectFile, false);
 		proj.ARRAY_TYPE.setValue(ARRAY.NGS);
@@ -317,22 +317,22 @@ public class Pipeline {
 	 *
 	 */
 	public enum PIPELINE_PARTS {
-															/**
-															 * Create temporary source files for genvisis
-															 */
-															GENVISIS,
-															/**
-															 * Generate mtDNA CN estimates
-															 */
-															MTDNACN,
-															/**
-															 * Compute telomere length with TelSeq
-															 */
-															TELSEQ,
-															/**
-															 * Compute telomere length with Computel
-															 */
-															COMPUTEL;
+		/**
+		 * Create temporary source files for genvisis
+		 */
+		GENVISIS,
+		/**
+		 * Generate mtDNA CN estimates
+		 */
+		MTDNACN,
+		/**
+		 * Compute telomere length with TelSeq
+		 */
+		TELSEQ,
+		/**
+		 * Compute telomere length with Computel
+		 */
+		COMPUTEL;
 	}
 
 	/**

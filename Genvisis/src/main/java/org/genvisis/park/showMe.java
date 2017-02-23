@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class showMe {
@@ -60,33 +60,31 @@ public class showMe {
 					if (pelican) {
 						peeps.add(new String[] {line[0], line[1], (line[4].equals(".") ? "0" : line[4]),
 																		(line[5].equals(".") ? "0" : line[5]),
-																		(line[2].toUpperCase().equals("M")	? "1"
-																																				: line[2]	.toUpperCase()
-																																									.equals("F")	? "2"
-																																																: "0"),
+																		(line[2].toUpperCase().equals("M") ? "1"
+																																			 : line[2].toUpperCase()
+																																								.equals("F") ? "2"
+																																														 : "0"),
 																		aff, (veeps.contains(line[0] + "\t" + line[1]) ? "1" : "0"),
 																		(veeps.contains(line[0] + "\t" + line[1]) ? "1" : "0"),
 																		(ages.containsKey(line[0] + "\t" + line[1])
-																			&& aff.equals("2")	? ages.get(line[0] + "\t" + line[1])
-																													: "-"),
-																		(affection.containsKey(line[0]	+ "\t"
-																														+ line[1])	? affection.get(line[0]
-																																													+ "\t"
-																																												+ line[1])
-																																				: "-"),
-																		"<< <PelicanData>"													+ (line[3].equals("TRUE")	? "1"
-																																																					: "0")
-																																								+ (line[1].equals("1")	? "1"
-																																																				: "0")
-																																								+ aff
-																																								+ "</PelicanData>"});
+																		 && aff.equals("2") ? ages.get(line[0] + "\t" + line[1]) : "-"),
+																		(affection.containsKey(line[0] + "\t"
+																													 + line[1]) ? affection.get(line[0] + "\t"
+																																											+ line[1])
+																																			: "-"),
+																		"<< <PelicanData>" + (line[3].equals("TRUE") ? "1"
+																																								 : "0")
+																																							+ (line[1].equals("1") ? "1"
+																																																		 : "0")
+																																							+ aff
+																																							+ "</PelicanData>"});
 					} else {
 						peeps.add(new String[] {line[0], line[1], (line[4].equals(".") ? "0" : line[4]),
 																		(line[5].equals(".") ? "0" : line[5]),
-																		(line[2].toUpperCase().equals("M")	? "1"
-																																				: line[2]	.toUpperCase()
-																																									.equals("F")	? "2"
-																																																: "0"),
+																		(line[2].toUpperCase().equals("M") ? "1"
+																																			 : line[2].toUpperCase()
+																																								.equals("F") ? "2"
+																																														 : "0"),
 																		aff, (veeps.contains(line[0] + "\t" + line[1]) ? "1" : "0"),
 																		(veeps.contains(line[0] + "\t" + line[1]) ? "1" : "0")});
 
@@ -107,7 +105,7 @@ public class showMe {
 				writer = new PrintWriter(new FileWriter(peeps.elementAt(0)[0] + ".pre"));
 				do {
 					line = peeps.remove(0);
-					writer.println(Array.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 					prev = line[0];
 				} while (!peeps.isEmpty() && (separate && peeps.elementAt(0)[0].equals(prev)));
 				writer.close();
@@ -115,7 +113,7 @@ public class showMe {
 		} else {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + ".pre"));
 			for (int i = 0; i < peeps.size(); i++) {
-				writer.println(Array.toStr(peeps.elementAt(i)));
+				writer.println(ArrayUtils.toStr(peeps.elementAt(i)));
 			}
 			writer.close();
 		}
@@ -130,11 +128,11 @@ public class showMe {
 		boolean trimmed = true;
 		boolean pelican = true;
 
-		String usage = "\n"	+ "park.showMe requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-										+ filename + " (default))\n"
-										+ "   (2) put families in separate files (i.e. '-separate' (optional))\n"
-										+ "   (3) trim families down to those genotyped (i.e. '-all' (optional))\n"
-										+ "   (4) add in pelican info (i.e. '-pelican' (optional))\n" + "";
+		String usage = "\n" + "park.showMe requires 0-1 arguments\n" + "   (1) filename (i.e. file="
+									 + filename + " (default))\n"
+									 + "   (2) put families in separate files (i.e. '-separate' (optional))\n"
+									 + "   (3) trim families down to those genotyped (i.e. '-all' (optional))\n"
+									 + "   (4) add in pelican info (i.e. '-pelican' (optional))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

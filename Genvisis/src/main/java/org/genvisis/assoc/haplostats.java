@@ -47,8 +47,8 @@ public class haplostats {
 			line = reader.readLine().split("[\\s]+");
 			data = new int[line.length - 6];
 			if (data.length % 2 != 0) {
-				System.err.println("Error - Expecting "	+ (line.length - 6)
-														+ " columns (including affection status) followed by an even number of alleles");
+				System.err.println("Error - Expecting " + (line.length - 6)
+													 + " columns (including affection status) followed by an even number of alleles");
 				System.exit(4);
 			}
 			score = 0;
@@ -66,7 +66,7 @@ public class haplostats {
 					v = new Vector<haploguy>();
 					fams.add(line[0]);
 				}
-				dude = new haploguy(""	+ (Integer.valueOf(line[0]).intValue() * 1000
+				dude = new haploguy("" + (Integer.valueOf(line[0]).intValue() * 1000
 																	+ Integer.valueOf(line[1]).intValue()),
 														line[4], data);
 				v.add(dude);
@@ -125,8 +125,8 @@ public class haplostats {
 		// String filename = "progeni-haploview.ped";
 		String filename = "markers390-395.pre";
 
-		String usage = "\n"	+ "park.haplostats requires 1 arguments:\n"
-										+ "   (1) a pre file (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "park.haplostats requires 1 arguments:\n"
+									 + "   (1) a pre file (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -15,13 +15,10 @@ public class CARDIAConcatenator {
 	// String fileDir2 = ext.verifyDirFormat("F:/CARDIA processing/consent 2/");
 	//
 	// String outDir = ext.verifyDirFormat("F:/CARDIA processing/all/");
-	String fileDir1 =
-									ext.verifyDirFormat("/home/pankarne/pankratz/CARDIA/CARDIA.whites.1000G.imputed/imputed/consent_level_1/");
-	String fileDir2 =
-									ext.verifyDirFormat("/home/pankarne/pankratz/CARDIA/CARDIA.whites.1000G.imputed/imputed/consent_level_2/");
+	String fileDir1 = ext.verifyDirFormat("/home/pankarne/pankratz/CARDIA/CARDIA.whites.1000G.imputed/imputed/consent_level_1/");
+	String fileDir2 = ext.verifyDirFormat("/home/pankarne/pankratz/CARDIA/CARDIA.whites.1000G.imputed/imputed/consent_level_2/");
 
-	String outDir =
-								ext.verifyDirFormat("/home/pankarne/pankratz/CARDIA/CARDIA.whites.1000G.imputed/imputed/consent_level_all/");
+	String outDir = ext.verifyDirFormat("/home/pankarne/pankratz/CARDIA/CARDIA.whites.1000G.imputed/imputed/consent_level_all/");
 
 	String fileIDs = "ids_chr#.txt";
 
@@ -37,7 +34,7 @@ public class CARDIAConcatenator {
 					BufferedReader reader2 = Files.getAppropriateReader(fileDir2 + format);
 					PrintWriter writer = Files.getAppropriateWriter(outDir + format);
 					PrintWriter writerIDs = Files.getAppropriateWriter(outDir
-																															+ fileIDs.replace("#", chrInd + ""));
+																														 + fileIDs.replace("#", chrInd + ""));
 
 					String line1 = reader1.readLine();
 					String line2 = reader2.readLine();
@@ -51,8 +48,8 @@ public class CARDIAConcatenator {
 					}
 
 					if (line1 != null) {
-						PrintWriter excess1 = Files.getAppropriateWriter(outDir	+ "chr" + chrInd
-																															+ "_excess_c1.out");
+						PrintWriter excess1 = Files.getAppropriateWriter(outDir + "chr" + chrInd
+																														 + "_excess_c1.out");
 						excess1.println(line1);
 						while ((line1 = reader1.readLine()) != null) {
 							excess1.println(line1);
@@ -63,8 +60,8 @@ public class CARDIAConcatenator {
 					}
 
 					if (line2 != null) {
-						PrintWriter excess2 = Files.getAppropriateWriter(outDir	+ "chr" + chrInd
-																															+ "_excess_c2.out");
+						PrintWriter excess2 = Files.getAppropriateWriter(outDir + "chr" + chrInd
+																														 + "_excess_c2.out");
 						excess2.println(line2);
 						while ((line2 = reader2.readLine()) != null) {
 							excess2.println(line2);
@@ -104,16 +101,16 @@ public class CARDIAConcatenator {
 		String[] line2Parts = line2.split("[\\s]+");
 
 		if (!line1Parts[0].trim().equals(line2Parts[0].trim())) {
-			throw new RuntimeException("Error - mismatched marker names: <"	+ line1Parts[0] + "> and <"
-																	+ line2Parts[0] + ">");
+			throw new RuntimeException("Error - mismatched marker names: <" + line1Parts[0] + "> and <"
+																 + line2Parts[0] + ">");
 		}
 		if (!line1Parts[1].trim().equalsIgnoreCase(line2Parts[1].trim())) {
-			throw new RuntimeException("Error - mismatched allele 1: <"	+ line1Parts[1] + "> and <"
-																	+ line2Parts[1] + ">");
+			throw new RuntimeException("Error - mismatched allele 1: <" + line1Parts[1] + "> and <"
+																 + line2Parts[1] + ">");
 		}
 		if (!line1Parts[2].trim().equalsIgnoreCase(line2Parts[2].trim())) {
-			throw new RuntimeException("Error - mismatched allele 2: <"	+ line1Parts[2] + "> and <"
-																	+ line2Parts[2] + ">");
+			throw new RuntimeException("Error - mismatched allele 2: <" + line1Parts[2] + "> and <"
+																 + line2Parts[2] + ">");
 		}
 
 
@@ -129,7 +126,7 @@ public class CARDIAConcatenator {
 			newLine[line1Parts.length + (i - 3)] = line2Parts[i];
 		}
 
-		return Array.toStr(newLine, " ");
+		return ArrayUtils.toStr(newLine, " ");
 	}
 
 	private String combineHeader(String line1, String line2, PrintWriter writerIDs) {
@@ -150,7 +147,7 @@ public class CARDIAConcatenator {
 			writerIDs.println(line2Parts[i]);
 		}
 
-		return Array.toStr(newLine, " ");
+		return ArrayUtils.toStr(newLine, " ");
 	}
 
 	public static void main(String[] args) {

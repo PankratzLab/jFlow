@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -18,9 +18,9 @@ import org.genvisis.seq.manage.ReferenceGenome;
 
 public class PrimerBuffer {
 	private static final String[] HEADER = new String[] {"CHR", "START", "STOP", "TARGET_SEQUENCE"};
-	private static final String[] HEADER_OUT_ADD = new String[] {	"BUFFER_LOCATION",
-																																"BUFFER_SEQUENCE_TOTAL_LENGTH",
-																																"BUFFER_SEQUENCE"};
+	private static final String[] HEADER_OUT_ADD = new String[] {"BUFFER_LOCATION",
+																															 "BUFFER_SEQUENCE_TOTAL_LENGTH",
+																															 "BUFFER_SEQUENCE"};
 
 	private static void extractBuffer(String queryFile, String referenceGenomeFast, int bpBuffer,
 																		Logger log) {
@@ -30,9 +30,9 @@ public class PrimerBuffer {
 		try {
 			BufferedReader reader = Files.getAppropriateReader(queryFile);
 			int[] header = ext.indexFactors(reader.readLine().trim().split("\t"), HEADER, true, true);
-			if (Array.countIf(header, -1) > 0) {
-				log.reportError("Did not detect complete header "	+ Array.toStr(HEADER) + " in "
-														+ queryFile);
+			if (ArrayUtils.countIf(header, -1) > 0) {
+				log.reportError("Did not detect complete header " + ArrayUtils.toStr(HEADER) + " in "
+												+ queryFile);
 				return;
 			}
 			while (reader.ready()) {
@@ -64,10 +64,10 @@ public class PrimerBuffer {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 			writer.println("##Reference = " + ext.removeDirectoryInfo(referenceGenomeFast));
 			writer.println("##bp buffer on either side = " + bpBuffer);
-			writer.println(Array.toStr(HEADER) + "\t" + Array.toStr(HEADER_OUT_ADD));
+			writer.println(ArrayUtils.toStr(HEADER) + "\t" + ArrayUtils.toStr(HEADER_OUT_ADD));
 			for (int i = 0; i < rAlleleQueries.size(); i++) {
 				rAlleleQueries.get(i).populateQuery(referenceGenome, bpBuffer);
-				writer.println(Array.toStr(rAlleleQueries.get(i).getResult()));
+				writer.println(ArrayUtils.toStr(rAlleleQueries.get(i).getResult()));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -89,7 +89,8 @@ public class PrimerBuffer {
 			super();
 			this.seg = seg;
 			this.sequence = sequence;
-			if (seg.getSize() != sequence.length && Array.countIf(sequence, BLANK) != sequence.length) {
+			if (seg.getSize() != sequence.length
+					&& ArrayUtils.countIf(sequence, BLANK) != sequence.length) {
 				throw new IllegalArgumentException("Segment size must equal sequence size");
 			}
 		}
@@ -104,11 +105,11 @@ public class PrimerBuffer {
 			result.add(seg.getChr() + "");
 			result.add(seg.getStart() + "");
 			result.add(seg.getStop() + "");
-			result.add(Array.toStr(sequence, ""));
+			result.add(ArrayUtils.toStr(sequence, ""));
 			result.add(buffered.getUCSClocation());
 			result.add(buffered.getSize() + "");
-			result.add(Array.toStr(surroundingSeguence, ""));
-			return Array.toStringArray(result);
+			result.add(ArrayUtils.toStr(surroundingSeguence, ""));
+			return ArrayUtils.toStringArray(result);
 
 		}
 
@@ -117,10 +118,10 @@ public class PrimerBuffer {
 			surroundingSeguence = referenceGenome.getSequenceFor(buffered);
 			targetStart = seg.getStart() - buffered.getStart();
 			targetStop = targetStart + seg.getSize() - 1;
-			String[] targets = Array.subArray(surroundingSeguence, targetStart, targetStop + 1);
+			String[] targets = ArrayUtils.subArray(surroundingSeguence, targetStart, targetStop + 1);
 			if (targets.length != sequence.length) {
-				System.out.println(Array.toStr(targets));
-				System.out.println(Array.toStr(sequence));
+				System.out.println(ArrayUtils.toStr(targets));
+				System.out.println(ArrayUtils.toStr(sequence));
 
 				throw new IllegalStateException("Internal error, extracted mismatching bases");
 			} else {

@@ -10,7 +10,7 @@ import java.util.Date;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.SourceFileParser;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -69,18 +69,18 @@ public class AffySNP6Tables {
 
 	public void parseSNPLine(String[] calls, String[] confs, String[] sigA, String[] sigB) {
 		for (int j = 1; j < calls.length; j++) {
-			indFiles[j - 1].append(calls[0]	+ "\t" + parseCall(calls[j]) + "\t" + confs[j] + "\t"
-															+ Double.toString(power2(sigA[j])) + "\t"
-															+ Double.toString(power2(sigB[j])) + "\t" + parseCall(calls[j])
-															+ "\n");
+			indFiles[j - 1].append(calls[0] + "\t" + parseCall(calls[j]) + "\t" + confs[j] + "\t"
+														 + Double.toString(power2(sigA[j])) + "\t"
+														 + Double.toString(power2(sigB[j])) + "\t" + parseCall(calls[j])
+														 + "\n");
 		}
 	}
 
 	// setting CN probeset calls to NC (-1), confidence to 0, and sigB to 0;
 	public void parseCNLine(String[] sigA) {
 		for (int j = 1; j < sigA.length; j++) {
-			indFiles[j - 1].append(sigA[0]	+ "\tNC\t0\t" + Double.toString(power2(sigA[j])) + "\t"
-															+ Double.toString(power2(sigA[j])) + "\tNC\n");
+			indFiles[j - 1].append(sigA[0] + "\tNC\t0\t" + Double.toString(power2(sigA[j])) + "\t"
+														 + Double.toString(power2(sigA[j])) + "\tNC\n");
 		}
 	}
 
@@ -90,8 +90,8 @@ public class AffySNP6Tables {
 
 			writer = new PrintWriter(new FileWriter(filename, append));
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \""	+ filename
-													+ "\" could not be written to (it's probably open)");
+			log.reportError("Error: file \"" + filename
+											+ "\" could not be written to (it's probably open)");
 			System.exit(1);
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + filename + "\"");
@@ -125,7 +125,7 @@ public class AffySNP6Tables {
 				if (header.length < maxWriters) {
 					if (writers == null) {
 						log.reportTimeInfo("Initializing static writers since number of samples is less than "
-																+ maxWriters);
+															 + maxWriters);
 						writers = new PrintWriter[header.length - 1];
 					}
 					writers[j - 1] = writer;
@@ -200,8 +200,8 @@ public class AffySNP6Tables {
 				}
 				sigReader.close();
 			} else {
-				log.reportTimeInfo("All files exist in "	+ outputDirectory
-														+ ", skipping parsing. Please delete these files if you would like to re-parse");
+				log.reportTimeInfo("All files exist in " + outputDirectory
+													 + ", skipping parsing. Please delete these files if you would like to re-parse");
 
 			}
 		} catch (FileNotFoundException fnfe) {
@@ -251,7 +251,7 @@ public class AffySNP6Tables {
 
 					while (callReader.ready()) {
 						// totalLines++;
-						if (callLine[0].equals(confLine[0])	&& sigALine[0].equals(callLine[0] + "-A")
+						if (callLine[0].equals(confLine[0]) && sigALine[0].equals(callLine[0] + "-A")
 								&& sigBLine[0].equals(callLine[0] + "-B")) {
 							parseSNPLine(callLine, confLine, sigALine, sigBLine);
 							lineCount++;
@@ -265,8 +265,8 @@ public class AffySNP6Tables {
 									log.reportTimeInfo("Static writers: parsed " + chunkCount + " lines");
 								}
 							}
-						} else if (!callLine[0].equals(confLine[0])	|| !sigALine[0].equals(callLine[0] + "-A")
-												|| !sigBLine[0].equals(callLine[0] + "-B")) {
+						} else if (!callLine[0].equals(confLine[0]) || !sigALine[0].equals(callLine[0] + "-A")
+											 || !sigBLine[0].equals(callLine[0] + "-B")) {
 							log.reportError("Error: probeset identifier mismatch between calls/confidence/signal files ");
 							System.exit(1);
 						} else if (!sigReader.ready()) {
@@ -292,8 +292,8 @@ public class AffySNP6Tables {
 					confReader.close();
 					sigReader.close();
 				} else {
-					log.reportTimeInfo("All files exist in "	+ outputDirectory
-															+ ", skipping parsing. Please delete these files if you would like to re-parse");
+					log.reportTimeInfo("All files exist in " + outputDirectory
+														 + ", skipping parsing. Please delete these files if you would like to re-parse");
 				}
 			} else {
 				log.reportTimeInfo("table headers do not match ");
@@ -317,8 +317,8 @@ public class AffySNP6Tables {
 		printIt(header, chunkCount);
 	}
 
-	private String[] allignFiles(	BufferedReader sigReader, String[] callLine, String[] confLine,
-																String delimiter) throws IOException {
+	private String[] allignFiles(BufferedReader sigReader, String[] callLine, String[] confLine,
+															 String delimiter) throws IOException {
 		String[] sigALine;
 
 		do {
@@ -334,9 +334,9 @@ public class AffySNP6Tables {
 		try {
 			do {
 				line = reader.readLine().trim().split(delimiter, -1);
-			} while (reader.ready() && (ext.indexFactors(	SNP_HEADER_OPTIONS, line, false, true, false,
-																										false)[0] == -1));
-			header = Array.toStr(line);
+			} while (reader.ready()
+							 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1));
+			header = ArrayUtils.toStr(line);
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + tableName + "\"");
 			return "Error reading file \"" + tableName + "\"";
@@ -420,8 +420,8 @@ public class AffySNP6Tables {
 		}
 		try {
 			if (SNP) {
-				AffySNP6Tables AS6T =
-														new AffySNP6Tables(output, calls, conf, sig, maxwriters, new Logger());
+				AffySNP6Tables AS6T = new AffySNP6Tables(output, calls, conf, sig, maxwriters,
+																								 new Logger());
 				AS6T.parseSNPTables(numLinesBuffer);
 			}
 			if (CN) {
@@ -429,15 +429,15 @@ public class AffySNP6Tables {
 				AS6T.parseCNTable(numLinesBuffer);
 			}
 			if (merge && !comboMergeCreate) {
-				MergeChp.combineChpFiles(	affyResultsDir, numThreads, commonSubFolderPattern,
-																	inputFileNameExt, output, new Logger());
+				MergeChp.combineChpFiles(affyResultsDir, numThreads, commonSubFolderPattern,
+																 inputFileNameExt, output, new Logger());
 
 			}
 			if (create && !comboMergeCreate) {
 				SourceFileParser.createFiles(proj, numThreads);
 			} else if (comboMergeCreate) {
-				MergeChp.combineChpFiles(	affyResultsDir, numThreads, commonSubFolderPattern,
-																	inputFileNameExt, output, new Logger());
+				MergeChp.combineChpFiles(affyResultsDir, numThreads, commonSubFolderPattern,
+																 inputFileNameExt, output, new Logger());
 				SourceFileParser.createFiles(proj, numThreads);
 			}
 

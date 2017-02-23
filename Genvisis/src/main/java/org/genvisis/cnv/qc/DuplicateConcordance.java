@@ -8,7 +8,7 @@ import java.util.Set;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -29,8 +29,8 @@ public class DuplicateConcordance {
 	 * @param markersChecked number of markers checked
 	 * @param duplicatePairsChecked number of duplicate pairs checked
 	 */
-	private DuplicateConcordance(	int discordantCalls, int nonMissingDiscordantCalls,
-																int markersChecked, int duplicatePairsChecked) {
+	private DuplicateConcordance(int discordantCalls, int nonMissingDiscordantCalls,
+															 int markersChecked, int duplicatePairsChecked) {
 		super();
 		int totalChecks = markersChecked * duplicatePairsChecked;
 		projectConcordance = (double) (totalChecks - discordantCalls) / totalChecks;
@@ -56,10 +56,10 @@ public class DuplicateConcordance {
 	}
 
 	public String getConcordanceString() {
-		return "Duplicate Concordance was calculated to be "	+ projectConcordance
-						+ " (including missing calls) and " + projectNonMissingConcordance
-						+ " (excluding missing calls) using " + duplicatePairsChecked
-						+ " pairs of duplicates at " + markersChecked + " markers.";
+		return "Duplicate Concordance was calculated to be " + projectConcordance
+					 + " (including missing calls) and " + projectNonMissingConcordance
+					 + " (excluding missing calls) using " + duplicatePairsChecked
+					 + " pairs of duplicates at " + markersChecked + " markers.";
 	}
 
 	/**
@@ -94,23 +94,23 @@ public class DuplicateConcordance {
 			return null;
 		}
 		if (!Files.exists(sampleData)) {
-			log.reportError("Project Sample Data file, "	+ sampleData
-													+ " could not be found, cannot determine duplicates");
+			log.reportError("Project Sample Data file, " + sampleData
+											+ " could not be found, cannot determine duplicates");
 			return null;
 		}
 		String[] sampleDataHeader = Files.getHeaderOfFile(sampleData, log);
 		String[] sampleDataCols = new String[] {"DNA", "CLASS=Exclude", "DuplicateId"};
-		int[] sampleDataIndices = ext.indexFactors(	sampleDataCols, sampleDataHeader, false, log, false,
-																								false);
+		int[] sampleDataIndices = ext.indexFactors(sampleDataCols, sampleDataHeader, false, log, false,
+																							 false);
 		for (int i = 0; i < sampleDataIndices.length; i++) {
 			if (sampleDataIndices[i] == -1) {
-				log.reportError("Could not find "	+ sampleDataCols[i]
-														+ " in Sample Data file, cannot determine duplicates");
+				log.reportError("Could not find " + sampleDataCols[i]
+												+ " in Sample Data file, cannot determine duplicates");
 				return null;
 			}
 		}
-		String[][] sampleInfo = HashVec.loadFileToStringMatrix(	sampleData, true, sampleDataIndices,
-																														proj.JAR_STATUS.getValue());
+		String[][] sampleInfo = HashVec.loadFileToStringMatrix(sampleData, true, sampleDataIndices,
+																													 proj.JAR_STATUS.getValue());
 		HashVec.loadFileToStringArray(sampleData, true, sampleDataIndices, false);
 		HashMap<String, HashSet<String>> duplicateSets = new HashMap<String, HashSet<String>>();
 		for (String[] sampleLine : sampleInfo) {
@@ -138,15 +138,15 @@ public class DuplicateConcordance {
 				if (!duplicateSet.isEmpty()) {
 					Sample sample1 = proj.getFullSampleFromRandomAccessFile(dna1);
 					if (sample1 == null) {
-						log.reportError("Could not find data for Sample "	+ dna1
-																+ ", will not be used to calculate concordance");
+						log.reportError("Could not find data for Sample " + dna1
+														+ ", will not be used to calculate concordance");
 						continue;
 					}
 					for (String dna2 : duplicateSet) {
 						Sample sample2 = proj.getFullSampleFromRandomAccessFile(dna2);
 						if (sample2 == null) {
-							log.reportError("Could not find data for Sample "	+ dna2
-																	+ ", will not be used to calculate concordance");
+							log.reportError("Could not find data for Sample " + dna2
+															+ ", will not be used to calculate concordance");
 							continue;
 						}
 						pairsChecked++;
@@ -189,14 +189,14 @@ public class DuplicateConcordance {
 		String markerKeeps = null;
 		String markerDrops = null;
 
-		String usage = "\n"	+ "cnv.qc.DuplicateConcordance requires 1-2 arguments\n"
-										+ "   (1) Project properties filename (i.e. proj="
-										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)
-										+ " (not the default))\n" + "AND\n"
-										+ "   (2) File of markers to use (i.e. markerKeeps=keeps.txt (not the default))\n"
-										+ "OR\n"
-										+ "   (2) File of markers to not use (i.e. markerDrops=drops.txt (not the default))\n"
-										+ "";
+		String usage = "\n" + "cnv.qc.DuplicateConcordance requires 1-2 arguments\n"
+									 + "   (1) Project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)
+									 + " (not the default))\n" + "AND\n"
+									 + "   (2) File of markers to use (i.e. markerKeeps=keeps.txt (not the default))\n"
+									 + "OR\n"
+									 + "   (2) File of markers to not use (i.e. markerDrops=drops.txt (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -241,13 +241,13 @@ public class DuplicateConcordance {
 						markers.add(marker);
 					}
 				}
-				targetMarkers = Array.toStringArray(markers);
+				targetMarkers = ArrayUtils.toStringArray(markers);
 			} else {
 				targetMarkers = null;
 			}
 
-			DuplicateConcordance duplicateConcordance =
-																								calculateDuplicateConcordances(proj, targetMarkers);
+			DuplicateConcordance duplicateConcordance = calculateDuplicateConcordances(proj,
+																																								 targetMarkers);
 			if (duplicateConcordance != null) {
 				proj.getLog().report(duplicateConcordance.getConcordanceString());
 			}

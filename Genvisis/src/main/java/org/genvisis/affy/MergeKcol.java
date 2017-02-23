@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -56,22 +56,22 @@ public class MergeKcol implements Runnable {
 					// filter comments
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
-					} while (reader.ready() && (ext.indexFactors(	SNP_HEADER_OPTIONS, line, false, true, false,
-																												false)[0] == -1));
+					} while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false,
+																											 false)[0] == -1));
 					// if its the first directory, print the header
 
 					if (i == 0) {
-						writer.println(Array.toStr(line));
+						writer.println(ArrayUtils.toStr(line));
 					}
 					while (reader.ready()) {
 						line = reader.readLine().trim().split(delimiter, -1);
-						writer.println(Array.toStr(line));
+						writer.println(ArrayUtils.toStr(line));
 						counts++;
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ files[j] + "\" not found in " + kColDir
-															+ dirList[i]);
+					System.err.println("Error: file \"" + files[j] + "\" not found in " + kColDir
+														 + dirList[i]);
 					return;
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + kColDir + dirList[i] + files[j] + "\"");
@@ -107,9 +107,9 @@ public class MergeKcol implements Runnable {
 		}
 		threads = new Thread[numThreads];
 		for (int i = 0; i < numThreads; i++) {
-			threads[i] = new Thread(new MergeKcol(fileCabinet	.elementAt(i)
-																												.toArray(new String[fileCabinet	.elementAt(i)
-																																												.size()]),
+			threads[i] = new Thread(new MergeKcol(fileCabinet.elementAt(i)
+																											 .toArray(new String[fileCabinet.elementAt(i)
+																																											.size()]),
 																						timeBegan, i, kColDir));
 			threads[i].start();
 			try {
@@ -142,9 +142,9 @@ public class MergeKcol implements Runnable {
 		String kColDir = "";
 		String suffix = null;
 		String prefix = "gw6_split";
-		String usage = "\n"	+ "affy.MergeChprequires 0-1 arguments\n"
-										+ "   (2) number of threads to use (i.e. threads=" + numThreads
-										+ " (default))\n";
+		String usage = "\n" + "affy.MergeChprequires 0-1 arguments\n"
+									 + "   (2) number of threads to use (i.e. threads=" + numThreads
+									 + " (default))\n";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

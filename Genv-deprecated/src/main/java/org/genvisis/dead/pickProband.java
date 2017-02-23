@@ -40,7 +40,7 @@ public class pickProband {
 				} else {
 					writer.print(",0");
 				}
-				if (vpdpro == 1	&& hash.containsKey(line[0] + "\t" + line[1])
+				if (vpdpro == 1 && hash.containsKey(line[0] + "\t" + line[1])
 						&& hash.get(line[0] + "\t" + line[1]).equals("VPD")) {
 					writer.print(",1");
 					vpdpro = 0;

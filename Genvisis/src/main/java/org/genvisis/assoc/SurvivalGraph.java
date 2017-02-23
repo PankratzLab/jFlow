@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -38,7 +38,7 @@ public class SurvivalGraph {
 				line = temp.split("\t");
 				if (line.length != 3) {
 					System.err.println("Error - line does not have exactly 3 tab-delimited columns:\n"
-															+ temp);
+														 + temp);
 				}
 				if (!line[0].equals(".") && !line[1].equals(".") && !line[2].equals(".")) {
 					if (hash.containsKey(line[0])) {
@@ -60,8 +60,8 @@ public class SurvivalGraph {
 			System.exit(2);
 		}
 
-		classes = Array.toStringArray(classV);
-		ages = Array.toStringArray(ageV);
+		classes = ArrayUtils.toStringArray(classV);
+		ages = ArrayUtils.toStringArray(ageV);
 		keys = Sort.getSortedIndices(ages);
 		fams = HashVec.getKeys(hash);
 		counts = new double[classes.length][ages.length];
@@ -75,14 +75,14 @@ public class SurvivalGraph {
 
 		sums = new double[counts.length];
 		for (int i = 0; i < counts.length; i++) {
-			sums[i] = Array.sum(counts[i]);
+			sums[i] = ArrayUtils.sum(counts[i]);
 		}
 
 		try {
 			writer = new PrintWriter(new FileWriter(filename + "-survival.xls"));
-			freqs = Array.doubleArray(classes.length, 1);
-			writer.println("\t" + Array.toStr(classes));
-			writer.println("0\t" + Array.toStr(Array.stringArray(classes.length, "1")));
+			freqs = ArrayUtils.doubleArray(classes.length, 1);
+			writer.println("\t" + ArrayUtils.toStr(classes));
+			writer.println("0\t" + ArrayUtils.toStr(ArrayUtils.stringArray(classes.length, "1")));
 			for (int j = 0; j < ages.length; j++) {
 				writer.print(ages[keys[j]]);
 				for (int i = 0; i < classes.length; i++) {
@@ -108,8 +108,8 @@ public class SurvivalGraph {
 		// String filename = "graph_Rep1-ALL_VPD_noParkin.dat";
 		String filename = "GBA_survivial_Graph.dat";
 
-		String usage = "\n"	+ "assoc.SurvivalGraph requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
+		String usage = "\n" + "assoc.SurvivalGraph requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

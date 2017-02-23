@@ -332,11 +332,15 @@ public final class CFCSSystem implements CFCSErrorCodes
 
     private void setFileKeyword(final CFCSDataSet dataset)
     {
-        final URL url = connection.getURL();
-
-        final CFCSKeywords keywords = dataset.getKeywords();
-
-        keywords.addSystemKeyword(new CFCSKeyword(CFCSKeywords.FILE_KEYWORD, url.getFile()));
+    	  if (connection != null) 
+    	  {
+	        	final URL url = connection.getURL();
+	
+	        	final CFCSKeywords keywords = dataset.getKeywords();
+	
+	        	keywords.addSystemKeyword(new CFCSKeyword(CFCSKeywords.FILE_KEYWORD, url.getFile()));
+    	  } 
+    	  
     }
 
     

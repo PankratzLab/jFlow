@@ -13,7 +13,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountHashHash;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -23,8 +23,8 @@ public class ParseRawSNPs {
 	public static final String[] MISSING_GENOTYPE_CODES = {"1", "*Undetermined", "U", ""};
 	public static final String[] CONTROL_DNA_TYPES = {"Control", "Ceph", "From Core"};
 	public static final String[] CONTROL_ID_TYPES = {"H2O", "Blank"};
-	public static final String[][] REPLACEMENTS = {	{"SNP VIC", "snp_vic"}, {"VIC", "snp_vic"},
-																									{"undetermined", "Undetermined"},};
+	public static final String[][] REPLACEMENTS = {{"SNP VIC", "snp_vic"}, {"VIC", "snp_vic"},
+																								 {"undetermined", "Undetermined"},};
 	public static final String SNP_POSITIONS = "snp_positions.dat";
 
 	// public static final String DEFAULT_DIR = "C:\\Documents and
@@ -81,7 +81,7 @@ public class ParseRawSNPs {
 					Thread.sleep(500);
 				} catch (InterruptedException ie) {
 				}
-				indices = Array.intArray(4, -1);
+				indices = ArrayUtils.intArray(4, -1);
 				count = 0;
 				if (verbosity >= 5) {
 					writer = new PrintWriter(new FileWriter(dir + file.getName() + "-discarded.out"));
@@ -98,44 +98,44 @@ public class ParseRawSNPs {
 						if (temp.contains("Fam")) {
 							indices[1] = ext.indexOfStr("Fam", line, false, false);
 							if (!line[indices[1]].contains("Ind") && verbosity >= 10) {
-								System.err.println("Warning - Make sure column "	+ ext.getExcelColumn(indices[1])
-																		+ " is the proper one to find the lab's Fam-Id");
+								System.err.println("Warning - Make sure column " + ext.getExcelColumn(indices[1])
+																	 + " is the proper one to find the lab's Fam-Id");
 							}
 						} else if (verbosity >= 10) {
-							System.err.println("Error - found 'DNA' on line "	+ count
-																	+ " but did not find 'Fam'");
+							System.err.println("Error - found 'DNA' on line " + count
+																 + " but did not find 'Fam'");
 						}
 						if (temp.contains("Genotype")) {
 							indices[3] = ext.indexOfStr("Genotype", line, false, false);
 							if (temp.contains("Call")) {
 								indices[2] = ext.indexOfStr("Call", line, false, false);
 							} else if (verbosity >= 10) {
-								System.err.println("Error - found 'DNA' on line "	+ count
-																		+ " but did not find 'Call'");
+								System.err.println("Error - found 'DNA' on line " + count
+																	 + " but did not find 'Call'");
 							}
 						} else if (temp.contains("Result")) {
 							indices[2] = ext.indexOfStr("Result", line, false, false);
 							if (temp.contains("Call")) {
 								indices[3] = ext.indexOfStr("Call", line, false, false);
 							} else if (verbosity >= 10) {
-								System.err.println("Error - found 'DNA' on line "	+ count
-																		+ " but did not find 'Call'");
+								System.err.println("Error - found 'DNA' on line " + count
+																	 + " but did not find 'Call'");
 							}
 						} else if (verbosity >= 10) {
-							System.err.println("Error - found 'DNA' on line "	+ count
-																	+ " but did not find 'Genotype' or 'Result'");
+							System.err.println("Error - found 'DNA' on line " + count
+																 + " but did not find 'Genotype' or 'Result'");
 						}
 						if (verbosity >= 5) {
 							writer.println(temp);
 						}
 					} else {
-						if (("!" + temp).trim().split("\t").length >= Math.max(Array.max(indices) + 1, 2)
-									&& indices[0] != -1 && !line[indices[1]].trim().equals("")
+						if (("!" + temp).trim().split("\t").length >= Math.max(ArrayUtils.max(indices) + 1, 2)
+								&& indices[0] != -1 && !line[indices[1]].trim().equals("")
 								&& (line[indices[0]].trim().equals("")
 										|| ext.indexOfStr(line[indices[0]], CONTROL_DNA_TYPES, false, false) == -1)
 								&& ext.indexOfStr(line[indices[1]], CONTROL_ID_TYPES, false, false) == -1) {
 							// // doesn't pick up controls
-							if (Array.min(indices) == -1) {
+							if (ArrayUtils.min(indices) == -1) {
 								System.err.println("Error - could not match up all indices for DNA, Fam-Id, Call, and Genotype before trying to add line:");
 								System.err.println("    '" + temp + "'");
 							}
@@ -162,15 +162,15 @@ public class ParseRawSNPs {
 
 							if (ext.indexOfStr(line[indices[2]], MISSING_CALL_CODES) >= 0
 									&& ext.indexOfStr(line[indices[3]], MISSING_GENOTYPE_CODES) == -1) {
-								System.err.println("Error - Call for "	+ line[indices[0]]
-																		+ " is set to missing, but the genotype (" + line[indices[3]]
-																		+ ") is not; add new missing genotype code if necessary");
+								System.err.println("Error - Call for " + line[indices[0]]
+																	 + " is set to missing, but the genotype (" + line[indices[3]]
+																	 + ") is not; add new missing genotype code if necessary");
 							}
 							if (ext.indexOfStr(line[indices[2]], MISSING_CALL_CODES) == -1
 									&& ext.indexOfStr(line[indices[3]], MISSING_GENOTYPE_CODES) >= 0) {
-								System.err.println("Error - Genotype for "	+ line[indices[0]]
-																		+ " is set to missing, but the call (" + line[indices[2]]
-																		+ ") is not; add new missing call code if necessary");
+								System.err.println("Error - Genotype for " + line[indices[0]]
+																	 + " is set to missing, but the call (" + line[indices[2]]
+																	 + ") is not; add new missing call code if necessary");
 							}
 
 							if (!mergeDNAs.containsKey(line[indices[0]])) {
@@ -179,9 +179,9 @@ public class ParseRawSNPs {
 								if (ext.indexOfStr(mergeDNAs.get(line[indices[0]]), MISSING_GENOTYPE_CODES) >= 0) {
 									mergeDNAs.put(line[indices[0]], line[indices[3]]);
 								} else if (ext.indexOfStr(line[indices[3]], MISSING_GENOTYPE_CODES) == -1) {
-									System.err.println("Error - mismatched Genotype for "	+ line[indices[0]]
-																			+ " (was " + mergeDNAs.get(line[indices[0]])
-																			+ ", but it is also " + line[indices[3]] + ")");
+									System.err.println("Error - mismatched Genotype for " + line[indices[0]]
+																		 + " (was " + mergeDNAs.get(line[indices[0]])
+																		 + ", but it is also " + line[indices[3]] + ")");
 								}
 							}
 							if (!mergeIDs.containsKey(line[indices[1]])) {
@@ -190,13 +190,13 @@ public class ParseRawSNPs {
 								if (ext.indexOfStr(mergeDNAs.get(line[indices[1]]), MISSING_GENOTYPE_CODES) >= 0) {
 									mergeDNAs.put(line[indices[1]], line[indices[3]]);
 								} else if (ext.indexOfStr(line[indices[3]], MISSING_GENOTYPE_CODES) == -1) {
-									System.err.println("Error - mismatched Genotype for "	+ line[indices[1]]
-																			+ " (was " + mergeDNAs.get(line[indices[1]])
-																			+ ", but it is also " + line[indices[3]] + ")");
+									System.err.println("Error - mismatched Genotype for " + line[indices[1]]
+																		 + " (was " + mergeDNAs.get(line[indices[1]])
+																		 + ", but it is also " + line[indices[3]] + ")");
 								}
 							}
-							if (checker	.checkPair(line[indices[1]], line[indices[0]], verbosity >= 9)
-													.startsWith("\t")) {
+							if (checker.checkPair(line[indices[1]], line[indices[0]], verbosity >= 9)
+												 .startsWith("\t")) {
 								v.add(line);
 							}
 
@@ -212,8 +212,8 @@ public class ParseRawSNPs {
 					writer.close();
 				}
 
-				System.out.println("    for a total of "	+ v.size() + " individuals (" + mergeIDs.size()
-														+ " unique)");
+				System.out.println("    for a total of " + v.size() + " individuals (" + mergeIDs.size()
+													 + " unique)");
 				values = new String[v.size()];
 				for (int j = 0; j < v.size(); j++) {
 					line = v.elementAt(j);
@@ -226,8 +226,8 @@ public class ParseRawSNPs {
 					} else if (line[indices[0]].contains("AD")) {
 						values[j] = "D_" + line[indices[0]];
 					} else {
-						System.err.println("Error - unknown study pattern ("	+ line[indices[1]] + " / "
-																+ line[indices[0]] + ")");
+						System.err.println("Error - unknown study pattern (" + line[indices[1]] + " / "
+															 + line[indices[0]] + ")");
 					}
 				}
 				keys = Sort.getSortedIndices(values);
@@ -235,7 +235,7 @@ public class ParseRawSNPs {
 				line = checkCall.getKeys();
 				if (line.length > 4) {
 					System.err.println("Error - There were more than 4 Call types: "
-															+ Array.toStr(line, ", "));
+														 + ArrayUtils.toStr(line, ", "));
 				}
 
 				count = 0;
@@ -246,8 +246,8 @@ public class ParseRawSNPs {
 					if (values.length > 1) {
 						System.err.print("Error - Call '" + element + "' was matched to multiple Genotypes (");
 						for (int k = 0; k < values.length; k++) {
-							System.err.print((k == 0 ? "" : ", ")	+ "'" + values[k] + "' found " + counts[k]
-																+ " time" + (counts[k] == 1 ? "" : "s"));
+							System.err.print((k == 0 ? "" : ", ") + "'" + values[k] + "' found " + counts[k]
+															 + " time" + (counts[k] == 1 ? "" : "s"));
 						}
 						System.err.println(")");
 					} else if (ext.indexOfStr(element, MISSING_CALL_CODES) == -1) {
@@ -264,8 +264,8 @@ public class ParseRawSNPs {
 								count -= counts[0];
 							} else {
 								System.err.println("Error - more than two alleles are present for this SNP ("
-																			+ allele1 + ", " + allele2 + ", and now we see " + values[0]
-																		+ ")");
+																	 + allele1 + ", " + allele2 + ", and now we see " + values[0]
+																	 + ")");
 							}
 						}
 					}
@@ -291,7 +291,7 @@ public class ParseRawSNPs {
 						if (!genotype.equals("used")) {
 							mergeIDs.put(line[indices[1]], "used");
 							writer.print(line[indices[0]] + "," + ids[0] + "," + ids[1]);
-							if (line[indices[0]].startsWith("ND")	|| line[indices[0]].contains("AD")
+							if (line[indices[0]].startsWith("ND") || line[indices[0]].contains("AD")
 									|| ids[0].startsWith("71") || ids[0].startsWith("95")) {
 								writer.print("," + line[indices[0]]);
 							} else {
@@ -299,9 +299,9 @@ public class ParseRawSNPs {
 							}
 							writer.print("," + genotype);
 							if (ext.indexOfStr(genotype, MISSING_GENOTYPE_CODES) == -1) {
-								writer.println("," + Array.toStr(alleleTranslation.get(genotype), ","));
+								writer.println("," + ArrayUtils.toStr(alleleTranslation.get(genotype), ","));
 							} else {
-								writer.println("," + Array.toStr(alleleTranslation.get("."), ","));
+								writer.println("," + ArrayUtils.toStr(alleleTranslation.get("."), ","));
 							}
 						}
 					}
@@ -426,9 +426,9 @@ public class ParseRawSNPs {
 		String dir = DEFAULT_DIR;
 		int verbosity = DEFAULT_VERBOSITY;
 
-		String usage = "\n"	+ "park.ParseRawSNPs requires 0-1 arguments\n" + "   (1) dir (i.e. dir="
-										+ dir + " (default)\n" + "   (2) level of verbosity (i.e. verb=" + verbosity
-										+ " (default)\n" + "";
+		String usage = "\n" + "park.ParseRawSNPs requires 0-1 arguments\n" + "   (1) dir (i.e. dir="
+									 + dir + " (default)\n" + "   (2) level of verbosity (i.e. verb=" + verbosity
+									 + " (default)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

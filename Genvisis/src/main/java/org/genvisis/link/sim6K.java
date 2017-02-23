@@ -23,7 +23,7 @@ public class sim6K {
 			chrome = (i < 10) ? "0" + i : "" + i;
 
 			optfile = new PrintWriter(new FileWriter(file + ".opt"));
-			optfile.println("% Read input in LINKAGE style format:\n"	+ "PREFILE " + struct + "\n"
+			optfile.println("% Read input in LINKAGE style format:\n" + "PREFILE " + struct + "\n"
 											+ "DATFILE map" + chrome + ".dat\n\n"
 											+ "% Simulate stroke reconstruction pedigrees\n" + "SIMULATE dloc:32.0 npre:"
 											+ reps + " rep:" + 1 + " err:0.00 yield:1.0 het:1.0\n\n"
@@ -66,10 +66,10 @@ public class sim6K {
 		String pre = "fam.pre", map = "6Kpanel_map.dat";
 		int numReps = 1000;
 
-		String usage = "\n"	+ "park.sim6K requires 0-1 arguments\n"
-										+ "   (1) family structure file (i.e. pre=" + pre + " (default)\n"
-										+ "   (2) map data (i.e. map=" + map + " (default)\n"
-										+ "   (3) number of replicates (i.e. reps=" + numReps + " (default)\n" + "";
+		String usage = "\n" + "park.sim6K requires 0-1 arguments\n"
+									 + "   (1) family structure file (i.e. pre=" + pre + " (default)\n"
+									 + "   (2) map data (i.e. map=" + map + " (default)\n"
+									 + "   (3) number of replicates (i.e. reps=" + numReps + " (default)\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

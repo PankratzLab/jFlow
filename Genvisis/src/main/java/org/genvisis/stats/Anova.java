@@ -139,9 +139,9 @@ public class Anova {
 		dfD = totalN - data.length;
 		Fstat = (SSb / dfN) / (SSw / dfD);
 		MSE = SSw / dfD;
-		LSD05 = ProbDist.TDistReverse(0.05, totalN)	* Math.sqrt(2 * MSE)
+		LSD05 = ProbDist.TDistReverse(0.05, totalN) * Math.sqrt(2 * MSE)
 						/ Math.sqrt(totalN / data.length);
-		LSD01 = ProbDist.TDistReverse(0.01, totalN)	* Math.sqrt(2 * MSE)
+		LSD01 = ProbDist.TDistReverse(0.01, totalN) * Math.sqrt(2 * MSE)
 						/ Math.sqrt(totalN / data.length);
 		HSD05 = Q05_3g * Math.sqrt(2 * MSE) / Math.sqrt(totalN / data.length);
 		Fsig = ProbDist.FDist(Fstat, dfN, dfD);
@@ -160,18 +160,18 @@ public class Anova {
 			}
 			list += "SSb = " + ext.formDeci(SSb, 2, true) + "\n";
 			list += "SSw = " + ext.formDeci(SSw, 2, true) + "\n";
-			list += "f = "	+ ext.formDeci(Fstat, 5, true) + " with " + dfN + " df in numerator, " + dfD
+			list += "f = " + ext.formDeci(Fstat, 5, true) + " with " + dfN + " df in numerator, " + dfD
 							+ " df in denominator\n";
 			list += "p-value = " + ProbDist.FDist(Fstat, dfN, dfD) + "\n";
-			list += "The LSD minimum mean difference for alpha = 0.05 is "	+ ext.formDeci(LSD05, 5, true)
+			list += "The LSD minimum mean difference for alpha = 0.05 is " + ext.formDeci(LSD05, 5, true)
 							+ "\n";
-			list += "The LSD minimum mean difference for alpha = 0.01 is "	+ ext.formDeci(LSD01, 5, true)
+			list += "The LSD minimum mean difference for alpha = 0.01 is " + ext.formDeci(LSD01, 5, true)
 							+ "\n";
-			list += "The HSD minimum mean difference for alpha = 0.05 is "	+ ext.formDeci(HSD05, 5, true)
+			list += "The HSD minimum mean difference for alpha = 0.05 is " + ext.formDeci(HSD05, 5, true)
 							+ "\n";
 			for (int i = 0; i < data.length; i++) {
 				for (int j = i + 1; j < data.length; j++) {
-					list += "Mean diff b/w "	+ groupNames.elementAt(i) + " & " + groupNames.elementAt(j)
+					list += "Mean diff b/w " + groupNames.elementAt(i) + " & " + groupNames.elementAt(j)
 									+ " = " + ext.formDeci(groupMeans[i] - groupMeans[j], 2, true)
 									+ ((Math.abs(groupMeans[i] - groupMeans[j]) > LSD05) ? "*" : "")
 									+ ((Math.abs(groupMeans[i] - groupMeans[j]) > LSD01) ? "*" : "") + "\n";

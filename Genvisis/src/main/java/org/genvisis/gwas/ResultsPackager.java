@@ -6,13 +6,15 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
 import org.genvisis.bioinformatics.Alleles;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -21,59 +23,90 @@ import org.genvisis.common.ext;
 import org.genvisis.stats.ProbDist;
 
 public class ResultsPackager {
-	public static final String[] IBC_OUTPUT_FORMAT1 = {	"CHR", "POS", "SNP", "STRAND (Illumina)",
-																											"STRAND (HapMap)", "N", "EFFECT_ALLELE1",
-																											"NON_EFFECT_ALLELE", "EA_FREQ", "BETA", "SE",
-																											"P_VAL"};
+	public static final String[] IBC_OUTPUT_FORMAT1 = {"CHR", "POS", "SNP", "STRAND (Illumina)",
+																										 "STRAND (HapMap)", "N", "EFFECT_ALLELE1",
+																										 "NON_EFFECT_ALLELE", "EA_FREQ", "BETA", "SE",
+																										 "P_VAL"};
 	public static final String[] TRADITIONAL_OUTPUT_FORMAT = {"Chr", "Position", "MarkerName",
 																														"Strand", "HapMapStrand", "N",
 																														"Effect_allele", "Reference_allele",
 																														"Freq1", "BETA", "SE", "P-value"};
-	public static final String[] STANDARD_OUTPUT_FORMAT = {	"MarkerName", "Chr", "Position",
-																													"Effect_allele", "Reference_allele",
-																													"Effect_allele_frequency", "N", "BETA",
-																													"SE", "P-value"};
+	public static final String[] STANDARD_OUTPUT_FORMAT = {"MarkerName", "Chr", "Position",
+																												 "Effect_allele", "Reference_allele",
+																												 "Effect_allele_frequency", "N", "BETA",
+																												 "SE", "P-value"};
 	// public static final String[] ABSOLUTE_MINIMUM_OUTPUT_FORMAT = {"MarkerName", "Effect_allele",
 	// "BETA", "SE", "P-value"}; // ChiSquare value
 	public static final String[] EMIM_OUTPUT_FORMAT_SNPS = {"Chr", "Pos", "MarkerName", "allele_A",
 																													"allele_B"};
 	public static final String[] EMIM_OUTPUT_FORMAT_MENDEL_ERRORS = {"Mendel_Errors"};
 	public static final String[] EMIM_OUTPUT_FORMAT_HWE = {"HWE_GENO", "HWE_P", "SigHWE"};
-	public static final String[] EMIM_OUTPUT_FORMAT_TDT =
-																											{	"tdt_T", "tdt_U", "tdt_OR", "tdt_P",
-																												"tdt_L95", "tdt_U95", "tdt_BETA", "tdt_SE"};
-	public static final String[] EMIM_OUTPUT_FORMAT_EMIM_RESULTS = {"freq", "C_lnR1", "C_se_lnR1",
-																																	"C_lnR2", "C_se_lnR2", "C_lnS1",
+	public static final String[] EMIM_OUTPUT_FORMAT_TDT = {"tdt_T", "tdt_U", "tdt_OR", "tdt_P",
+																												 "tdt_L95", "tdt_U95", "tdt_BETA",
+																												 "tdt_SE"};
+	public static final String[] EMIM_OUTPUT_FORMAT_EMIM_RESULTS = {"freq",
+
+																																	"C_lnR1", "C_se_lnR1", "C_lnR2",
+																																	"C_se_lnR2", "C_lnS1",
 																																	"C_se_lnS1", "C_lnS2",
-																																	"C_se_lnS2", "CM_lnR1",
-																																	"CM_se_lnR1", "CM_lnR2",
-																																	"CM_se_lnR2", "CM_lnS1",
-																																	"CM_se_lnS1", "CM_lnS2",
-																																	"CM_se_lnS2", "M_lnR1",
-																																	"M_se_lnR1", "M_lnR2",
+																																	"C_se_lnS2",
+
+																																	"CM_lnR1", "CM_se_lnR1",
+																																	"CM_lnR2", "CM_se_lnR2",
+																																	"CM_lnS1", "CM_se_lnS1",
+																																	"CM_lnS2", "CM_se_lnS2",
+
+																																	"CIm_lnR1", "CIm_se_lnR1",
+																																	"CIm_lnR2", "CIm_se_lnR2",
+																																	"CIm_lnIm", "CIm_se_lnIm",
+
+																																	"CIp_lnR1", "CIp_se_lnR1",
+																																	"CIp_lnR2", "CIp_se_lnR2",
+																																	"CIp_lnIp", "CIp_se_lnIp",
+
+																																	"M_lnR1", "M_se_lnR1", "M_lnR2",
 																																	"M_se_lnR2", "M_lnS1",
 																																	"M_se_lnS1", "M_lnS2",
-																																	"M_se_lnS2"};
+																																	"M_se_lnS2",
+
+																																	"POO_lnIm", "POO_se_lnIm",
+																																	"POO_lnIp", "POO_se_lnIp"};
 	public static final String[] EMIM_OUTPUT_FORMAT_EMIM_PVALS = {"pVal_C_df2", "pVal_C_df2_Excel",
 																																"pVal_C_df1", "pVal_C_df1_Excel",
+
 																																"pVal_M_df2", "pVal_M_df2_Excel",
 																																"pVal_M_df1", "pVal_M_df1_Excel",
+
 																																"pVal_CM-C_df2",
 																																"pVal_CM-C_df2_Excel",
 																																"pVal_CM-C_df1",
 																																"pVal_CM-C_df1_Excel",
+
 																																"pVal_CM-M_df2",
 																																"pVal_CM-M_df2_Excel",
 																																"pVal_CM-M_df1",
-																																"pVal_CM-M_df1_Excel"};
+																																"pVal_CM-M_df1_Excel",
+
+																																"pVal_CIm-C_df2",
+																																"pVal_CIm-C_df2_Excel",
+																																"pVal_CIm-C_df1",
+																																"pVal_CIm-C_df1_Excel",
+
+																																"pVal_CIp-C_df2",
+																																"pVal_CIp-C_df2_Excel",
+																																"pVal_CIp-C_df1",
+																																"pVal_CIp-C_df1_Excel",
+
+																																"pVal_Im_df1", "pVal_Im_df1_Excel",
+																																"pVal_Ip_df1", "pVal_Ip_df1_Excel"};
 
 	public static final String[] PLINK_REQS = {"SNP", "A1", "TEST", "NMISS", "OR", "BETA", "SE", "P"};
-	public static final String[] SOL_REQS = {	"Variant_ID", "Beta", "Se", "Pvalue", "CAF", "CAC", "N0",
-																						"N1", "N2", "NMISS"};
+	public static final String[] SOL_REQS = {"Variant_ID", "Beta", "Se", "Pvalue", "CAF", "CAC", "N0",
+																					 "N1", "N2", "NMISS"};
 	// Standard Errors in emimsummary.out are currently labeled "sd"
 	public static final String[] EMIM_REQS = {"snpID", "freq", "lnR1", "sd_lnR1", "lnR2", "sd_lnR2",
-																						"lnS1", "sd_lnS1", "lnS2", "sd_lnS2", "lnliknull",
-																						"lnlikfull"};
+																						"lnS1", "sd_lnS1", "lnS2", "sd_lnS2", "lnIm", "sd_lnIm",
+																						"lnIp", "sd_lnIp", "lnliknull", "lnlikfull"};
 	public static final String[] TDT_REQS = {"T", "U", "OR", "P", "L95", "U95"};
 
 	public static void parseIBCFormatFromGWAF(String dir, String resultsFile, String mapFile,
@@ -100,9 +133,9 @@ public class ResultsPackager {
 			markerHash = null;
 		}
 
-		mapHash = HashVec.loadFileToHashString(dir	+ mapFile, new int[] {1}, new int[] {0, 3}, false,
-																						"\t", false, false, false);
-		originalFreqHash = HashVec.loadFileToHashString(dir	+ originalFrqFile, new int[] {1},
+		mapHash = HashVec.loadFileToHashString(dir + mapFile, new int[] {1}, new int[] {0, 3}, false,
+																					 "\t", false, false, false);
+		originalFreqHash = HashVec.loadFileToHashString(dir + originalFrqFile, new int[] {1},
 																										new int[] {2, 3}, false, "\t", false, false,
 																										false); // add 4 if you want global
 																														// frequency
@@ -126,11 +159,11 @@ public class ResultsPackager {
 			line = temp.split(delimiter);
 			ext.checkHeader(line, GWAF.HEADER_SUMMARY, true);
 			// writer.println(Array.toStr(IBC_OUTPUT_FORMAT));
-			writer.println(Array.toStr(TRADITIONAL_OUTPUT_FORMAT));
+			writer.println(ArrayUtils.toStr(TRADITIONAL_OUTPUT_FORMAT));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiter);
 				trav = line[0];
-				if ((markerHash == null || markerHash.contains(trav))	&& !line[3].equals("")
+				if ((markerHash == null || markerHash.contains(trav)) && !line[3].equals("")
 						&& (filter >= 1
 								|| (!ext.isMissingValue(line[3]) && Double.parseDouble(line[3]) <= filter))) {
 					if (mapHash.containsKey(trav)) {
@@ -151,7 +184,7 @@ public class ResultsPackager {
 						alleles = new String[] {".", "."};
 						log.reportError("Error - no alleles from original .frq file for " + trav);
 					}
-					writer.print("\t" + Array.toStr(alleles));
+					writer.print("\t" + ArrayUtils.toStr(alleles));
 
 					freq = line[5];
 					if (customFreqHash != null) {
@@ -182,10 +215,10 @@ public class ResultsPackager {
 		}
 	}
 
-	public static void parseStdFormatFromPlink(	String dir, String resultsFile, String test,
-																							String mapFile, String freqFile,
-																							String markersToReport, double filter, String outfile,
-																							Logger log) {
+	public static void parseStdFormatFromPlink(String dir, String resultsFile, String test,
+																						 String mapFile, String freqFile,
+																						 String markersToReport, double filter, String outfile,
+																						 Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -202,7 +235,7 @@ public class ResultsPackager {
 
 		if (markersToReport != null) {
 			if (!Files.exists(dir + markersToReport)) {
-				log.reportError("Error: could not find markers to report file '"	+ dir + markersToReport
+				log.reportError("Error: could not find markers to report file '" + dir + markersToReport
 												+ "'");
 				return;
 			}
@@ -223,11 +256,11 @@ public class ResultsPackager {
 			log.reportError("Error: could not find results file '" + dir + resultsFile + "'");
 			return;
 		}
-		mapHash = HashVec.loadFileToHashString(dir	+ mapFile, new int[] {1}, new int[] {0, 3}, false,
-																						"\t", false, false, false);
-		freqHash = HashVec.loadFileToHashString(dir	+ freqFile, new int[] {1}, new int[] {2, 3, 4},
+		mapHash = HashVec.loadFileToHashString(dir + mapFile, new int[] {1}, new int[] {0, 3}, false,
+																					 "\t", false, false, false);
+		freqHash = HashVec.loadFileToHashString(dir + freqFile, new int[] {1}, new int[] {2, 3, 4},
 																						false, "\t", false, false, false); // 4 gets global
-																																								// frequency
+																																							 // frequency
 
 		try {
 			reader = Files.getAppropriateReader(dir + resultsFile);
@@ -254,11 +287,11 @@ public class ResultsPackager {
 			}
 
 
-			writer.println(Array.toStr(STANDARD_OUTPUT_FORMAT));
+			writer.println(ArrayUtils.toStr(STANDARD_OUTPUT_FORMAT));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiter);
 				trav = line[indices[0]];
-				if ((markerHash == null || markerHash.contains(trav))	&& !line[3].equals("")
+				if ((markerHash == null || markerHash.contains(trav)) && !line[3].equals("")
 						&& line[indices[2]].equalsIgnoreCase(test)
 						&& (filter >= 1 || (!ext.isMissingValue(line[indices[7]])
 																&& Double.parseDouble(line[indices[7]]) <= filter))) {
@@ -276,19 +309,21 @@ public class ResultsPackager {
 					} else {
 						// try {
 						if (freqHash.containsKey(trav)) {
-							writer.print("\t" + Array.toStr(Alleles.getAlleleFreqForA1(	line[indices[1]],
-																																					freqHash.get(trav)
-																																									.split("\t")))); // a1,
-																																																		// a2,
-																																																		// a1_freq
+							writer.print("\t"
+													 + ArrayUtils.toStr(Alleles.getAlleleFreqForA1(line[indices[1]],
+																																				 freqHash.get(trav)
+																																								 .split("\t")))); // a1,
+																																																	// a2,
+																																																	// a1_freq
 						} else if (freqHash.containsKey(ext.replaceAllWith(trav, ".", "-"))) {
-							writer.print("\t" + Array.toStr(Alleles.getAlleleFreqForA1(	line[indices[1]],
-																																					freqHash.get(ext.replaceAllWith(trav,
-																																																					".",
-																																																					"-"))
-																																									.split("\t")))); // a1,
-																																																		// a2,
-																																																		// a1_freq
+							writer.print("\t"
+													 + ArrayUtils.toStr(Alleles.getAlleleFreqForA1(line[indices[1]],
+																																				 freqHash.get(ext.replaceAllWith(trav,
+																																																				 ".",
+																																																				 "-"))
+																																								 .split("\t")))); // a1,
+																																																	// a2,
+																																																	// a1_freq
 						} else {
 							log.reportError("Error - no frequency for " + trav);
 							writer.print("\t" + line[indices[1]] + "\t.\t."); // a1, null, null
@@ -302,17 +337,17 @@ public class ResultsPackager {
 						if (line[indices[4]].equals("NA")) {
 							writer.print("\t" + line[indices[4]]); // NA OR -> NA beta
 						} else {
-							writer.print("\t" + ext.formDeci(	Math.log(Double.parseDouble(line[indices[4]])), 5,
-																								true)); // OR
-																												// ->
-																												// beta
+							writer.print("\t"
+													 + ext.formDeci(Math.log(Double.parseDouble(line[indices[4]])), 5, true)); // OR
+																																																		 // ->
+																																																		 // beta
 						}
 					} else {
 						writer.print("\t" + line[indices[5]]); // beta
 					}
 					// writer.println("\t"+line[indices[6]]+"\t"+line[indices[7]]); // se, pval
-					writer.println("\t"	+ (indices[6] == -1 ? "NA" : line[indices[6]]) + "\t"
-													+ line[indices[7]]); // se, pval
+					writer.println("\t" + (indices[6] == -1 ? "NA" : line[indices[6]]) + "\t"
+												 + line[indices[7]]); // se, pval
 				}
 			}
 			reader.close();
@@ -357,7 +392,7 @@ public class ResultsPackager {
 		if (Files.exists(dir + mapFile)) {
 			mapFile = dir + mapFile;
 		} else if (!Files.exists(mapFile)) {
-			log.reportError("Error: could not find map file '"	+ mapFile
+			log.reportError("Error: could not find map file '" + mapFile
 											+ "' in its absolute path or in '" + dir + "'");
 			return;
 		}
@@ -369,8 +404,8 @@ public class ResultsPackager {
 			log.reportError("Error: could not find results file '" + dir + resultsFile + "'");
 			return;
 		}
-		mapHash = HashVec.loadFileToHashString(	mapFile, new int[] {1}, new int[] {0, 2, 3, 4}, false,
-																						"\t", false, false, false);
+		mapHash = HashVec.loadFileToHashString(mapFile, new int[] {1}, new int[] {0, 2, 3, 4}, false,
+																					 "\t", false, false, false);
 
 		// TODO
 		// freqHash = HashVec.loadFileToHashString(dir+freqFile, new int[] {1}, new int[] {2,3,4},
@@ -409,18 +444,18 @@ public class ResultsPackager {
 			}
 
 			lowCallrateMarkers = new Vector<String>();
-			writer.println(Array.toStr(STANDARD_OUTPUT_FORMAT));
+			writer.println(ArrayUtils.toStr(STANDARD_OUTPUT_FORMAT));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiter);
 				trav = line[indices[0]];
-				nnmiss = Integer.parseInt(line[indices[6]])	+ Integer.parseInt(line[indices[7]])
-									+ Integer.parseInt(line[indices[8]]);
+				nnmiss = Integer.parseInt(line[indices[6]]) + Integer.parseInt(line[indices[7]])
+								 + Integer.parseInt(line[indices[8]]);
 				callrate = (double) nnmiss / (double) (nnmiss + Integer.parseInt(line[indices[9]]));
 				if (callrate <= callRateThreshold) {
 					lowCallrateMarkers.add(trav);
 				}
 
-				if ((markerHash == null || markerHash.contains(trav))	&& (callrate > callRateThreshold)
+				if ((markerHash == null || markerHash.contains(trav)) && (callrate > callRateThreshold)
 						&& (filter >= 1 || (!ext.isMissingValue(line[indices[3]])
 																&& Double.parseDouble(line[indices[3]]) <= filter))) {
 					writer.print(trav); // MarkerName
@@ -450,8 +485,8 @@ public class ResultsPackager {
 					// writer.print("\t"+line[indices[9]]); // NMISS here means number missing not, "non
 					// missing"
 
-					nnmiss = Integer.parseInt(line[indices[6]])	+ Integer.parseInt(line[indices[7]])
-										+ Integer.parseInt(line[indices[8]]);
+					nnmiss = Integer.parseInt(line[indices[6]]) + Integer.parseInt(line[indices[7]])
+									 + Integer.parseInt(line[indices[8]]);
 					mac = Integer.parseInt(line[indices[7]]) + Integer.parseInt(line[indices[8]]) * 2;
 
 					writer.print("\t" + ext.formDeci((double) mac / (double) nnmiss / 2.0, 6));
@@ -463,16 +498,16 @@ public class ResultsPackager {
 						if (line[indices[1]].equals("NA")) {
 							writer.print("\t" + line[indices[1]]); // NA OR -> NA beta
 						} else {
-							writer.print("\t" + ext.formDeci(	Math.log(Double.parseDouble(line[indices[1]])), 5,
-																								true)); // OR
-																												// ->
-																												// beta
+							writer.print("\t"
+													 + ext.formDeci(Math.log(Double.parseDouble(line[indices[1]])), 5, true)); // OR
+																																																		 // ->
+																																																		 // beta
 						}
 					} else {
 						writer.print("\t" + line[indices[1]]); // beta
 					}
-					writer.println("\t"	+ (indices[2] == -1 ? "NA" : line[indices[2]]) + "\t"
-													+ line[indices[3]]); // se, pval
+					writer.println("\t" + (indices[2] == -1 ? "NA" : line[indices[2]]) + "\t"
+												 + line[indices[3]]); // se, pval
 				}
 			}
 			reader.close();
@@ -485,8 +520,8 @@ public class ResultsPackager {
 			return;
 		}
 
-		Files.writeArray(	Array.toStringArray(lowCallrateMarkers),
-											dir + outfile + "lowCallRateMarkers.out");
+		Files.writeArray(ArrayUtils.toStringArray(lowCallrateMarkers),
+										 dir + outfile + "lowCallRateMarkers.out");
 	}
 
 	public static void parseBP() {
@@ -500,62 +535,60 @@ public class ResultsPackager {
 			for (String pheno : phenos) {
 				// parseIBCFormatFromGWAF(dir, phenos[j]+"."+types[i]+".results.csv", "plink.map",
 				// "PLINK.FRQ", null, null, "BOSS-EHLS."+phenos[j]+"."+types[i]+".txt");
-				parseIBCFormatFromGWAF(	dir, pheno + "." + type + ".results.csv", "plink.map", "plink.frq",
-																null, "list.txt", 1,
-																"BOSS-EHLS_" + pheno + "_" + type + "_072512.txt", new Logger());
+				parseIBCFormatFromGWAF(dir, pheno + "." + type + ".results.csv", "plink.map", "plink.frq",
+															 null, "list.txt", 1,
+															 "BOSS-EHLS_" + pheno + "_" + type + "_072512.txt", new Logger());
 				System.out.print(";BOSS-EHLS_" + pheno + "_" + type + "_072512.txt,11");
 			}
 		}
 	}
 
-	public static void parseEmimFormat(	String childResultsFile, String momResultsFile,
-																			String childMomResultsFile, String tdtResultsFile,
-																			String mapFile, String mendelErrorFile, String hweFile,
-																			String frqFile, double pValueThreshold, String outfile,
-																			Logger log) {
-		BufferedReader reader1, reader2, reader3;
+
+	public static void parseEmimFormat(String resultsFileC, String resultsFileM, String resultsFileCM,
+																		 String resultsFileCIm, String resultsFileCIp,
+																		 String resultsFileIm, String resultsFileIp,
+																		 String tdtResultsFile, String mapFile, String mendelErrorFile,
+																		 String hweFile, String frqFile, double pValueThreshold,
+																		 String outfile, Logger log) {
 		PrintWriter writer;
-		String[] lineC, lineM, lineCM, pvalEquations;
 		String temp;
 		Hashtable<Long, String> snpList; // , freqHash; // , customFreqHash;
-		String delimiter1, delimiter2, delimiter3;
-		Map<String, Integer> indicesC, indicesM, indicesCM;
 		double hweThreshold;
 		double[] pvals;
 		long index;
 		Hashtable<String, String[]> mendelErrors = null, hwe = null, tdtResults = null, freqs = null;
 
 		if (outfile == null) {
-			outfile = ext.rootOf(childResultsFile, false) + "parsedResults.txt";
+			outfile = ext.rootOf(resultsFileC, false) + "parsedResults.txt";
 		}
 
-		if (!Files.exists(childResultsFile)) {
-			log.reportError("Error: could not find results file '" + childResultsFile + "'");
+		if (!Files.exists(resultsFileC)) {
+			log.reportError("Error: could not find results file '" + resultsFileC + "'");
 			return;
 		}
 		try {
 			snpList = new Hashtable<Long, String>();
 			index = 1;
-			reader1 = Files.getAppropriateReader(mapFile);
-			while (reader1.ready()) {
-				lineC = reader1.readLine().split("\t");
-				snpList.put(index, lineC[0]	+ "\t" + lineC[3] + "\t" + lineC[1] + "\t" + lineC[4] + "\t"
-														+ lineC[5]);
+			BufferedReader mapReader = Files.getAppropriateReader(mapFile);
+			while (mapReader.ready()) {
+				String[] line = mapReader.readLine().split("\t");
+				snpList.put(index,
+										line[0] + "\t" + line[3] + "\t" + line[1] + "\t" + line[4] + "\t" + line[5]);
 				index++;
 			}
-			reader1.close();
+			mapReader.close();
 
 			if (mendelErrorFile != null) {
 				mendelErrors = SkatMeta2.loadFile(mendelErrorFile, null, new String[] {"SNP"},
 																					new String[] {"N"}, null, null);
 			}
 			if (hweFile != null) {
-				hwe = SkatMeta2.loadFile(	hweFile, null, new String[] {"SNP"}, new String[] {"GENO", "p"},
-																	new String[] {"TEST==UNAFF"}, log);
+				hwe = SkatMeta2.loadFile(hweFile, null, new String[] {"SNP"}, new String[] {"GENO", "p"},
+																 new String[] {"TEST==UNAFF"}, log);
 			}
 			if (frqFile != null) {
-				freqs = SkatMeta2.loadFile(	frqFile, null, new String[] {"SNP"}, new String[] {"MAF"}, null,
-																		log);
+				freqs = SkatMeta2.loadFile(frqFile, null, new String[] {"SNP"}, new String[] {"MAF"}, null,
+																	 log);
 			}
 			if (tdtResultsFile != null) {
 				// tdtResults = one.SkatMeta.loadFile(tdtResultsFile, null, new String[] {"SNP"}, new
@@ -563,41 +596,89 @@ public class ResultsPackager {
 				tdtResults = SkatMeta2.loadFile(tdtResultsFile, null, new String[] {"SNP"}, TDT_REQS, null,
 																				null);
 			}
-
-			hweThreshold = 0.05 / Files.countLines(childResultsFile, 1);
+			hweThreshold = 0.05 / Files.countLines(resultsFileC, 1);
 			log.report("");
-			reader1 = Files.getAppropriateReader(childResultsFile);
-			reader3 = Files.getAppropriateReader(childMomResultsFile);
-			reader2 = Files.getAppropriateReader(momResultsFile);
-			writer = Files.getAppropriateWriter(outfile);
-			temp = reader1.readLine().trim();
-			delimiter1 = ext.determineDelimiter(temp);
-			lineC = temp.split(delimiter1);
-			indicesC = ext.indexMap(EMIM_REQS, lineC, false, log, false, false);
-			temp = reader2.readLine().trim();
-			delimiter2 = ext.determineDelimiter(temp);
-			lineM = temp.split(delimiter2);
-			indicesM = ext.indexMap(EMIM_REQS, lineM, false, log, false, false); // TODO EMIM_REQS
-			temp = reader3.readLine().trim();
-			delimiter3 = ext.determineDelimiter(temp);
-			lineCM = temp.split(delimiter3);
-			indicesCM = ext.indexMap(EMIM_REQS, lineCM, false, log, false, false); // TODO EMIM_REQS
 
-			writer.println(Array.toStr(EMIM_OUTPUT_FORMAT_SNPS)
-												+ (mendelErrorFile == null	? ""
-																									: ("\t"
-																											+ Array.toStr(EMIM_OUTPUT_FORMAT_MENDEL_ERRORS)))
-											+ (hweFile == null ? "" : ("\t" + Array.toStr(EMIM_OUTPUT_FORMAT_HWE)))
-											+ (tdtResultsFile == null ? "" : ("\t" + Array.toStr(EMIM_OUTPUT_FORMAT_TDT)))
-											+ "\t" + Array.toStr(EMIM_OUTPUT_FORMAT_EMIM_RESULTS) + "\t"
-											+ Array.toStr(EMIM_OUTPUT_FORMAT_EMIM_PVALS));
-			while (reader1.ready()) {
+			writer = Files.getAppropriateWriter(outfile);
+
+			BufferedReader readerC = Files.getAppropriateReader(resultsFileC);
+
+			temp = readerC.readLine().trim();
+			String delimiterC = ext.determineDelimiter(temp);
+			String[] lineC = temp.split(delimiterC);
+			Map<String, Integer> indicesC = ext.indexMap(EMIM_REQS, lineC, false, log, false, false);
+
+
+			BufferedReader readerM = Files.getAppropriateReader(resultsFileM);
+			temp = readerM.readLine().trim();
+			String delimiterM = ext.determineDelimiter(temp);
+			String[] lineM = temp.split(delimiterM);
+			Map<String, Integer> indicesM = ext.indexMap(EMIM_REQS, lineM, false, log, false, false); // TODO
+																																																// EMIM_REQS
+																																																// specific
+																																																// to
+																																																// estimate
+
+			BufferedReader readerCM = Files.getAppropriateReader(resultsFileCM);
+			temp = readerCM.readLine().trim();
+			String delimiterCM = ext.determineDelimiter(temp);
+			String[] lineCM = temp.split(delimiterCM);
+			Map<String, Integer> indicesCM = ext.indexMap(EMIM_REQS, lineCM, false, log, false, false); // TODO
+																																																	// EMIM_REQS
+																																																	// specific
+																																																	// to
+																																																	// estimate
+
+			BufferedReader readerCIm = Files.getAppropriateReader(resultsFileCIm);
+			temp = readerCIm.readLine().trim();
+			String delimiterCIm = ext.determineDelimiter(temp);
+			String[] lineCIm = temp.split(delimiterCIm);
+			Map<String, Integer> indicesCIm = ext.indexMap(EMIM_REQS, lineCIm, false, log, false, false); // TODO
+																																																		// EMIM_REQS
+																																																		// specific
+																																																		// to
+																																																		// estimate
+
+			BufferedReader readerCIp = Files.getAppropriateReader(resultsFileCIp);
+			temp = readerCIp.readLine().trim();
+			String delimiterCIp = ext.determineDelimiter(temp);
+			String[] lineCIp = temp.split(delimiterCIp);
+			Map<String, Integer> indicesCIp = ext.indexMap(EMIM_REQS, lineCIp, false, log, false, false); // TODO
+																																																		// EMIM_REQS
+																																																		// specific
+																																																		// to
+																																																		// estimate
+
+
+			BufferedReader readerIm = Files.getAppropriateReader(resultsFileIm);
+			temp = readerIm.readLine().trim();
+			String delimiterIm = ext.determineDelimiter(temp);
+			String[] lineIm = temp.split(delimiterIm);
+			Map<String, Integer> indicesIm = ext.indexMap(EMIM_REQS, lineIm, false, log, false, false);
+
+			BufferedReader readerIp = Files.getAppropriateReader(resultsFileIp);
+			temp = readerIp.readLine().trim();
+			String delimiterIp = ext.determineDelimiter(temp);
+			String[] lineIp = temp.split(delimiterIp);
+			Map<String, Integer> indicesIp = ext.indexMap(EMIM_REQS, lineIp, false, log, false, false);
+
+
+			writer.println(ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_SNPS)
+										 + (mendelErrorFile == null ? ""
+																								: ("\t"
+																									 + ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_MENDEL_ERRORS)))
+										 + (hweFile == null ? "" : ("\t" + ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_HWE)))
+										 + (tdtResultsFile == null ? ""
+																							 : ("\t" + ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_TDT)))
+										 + "\t" + ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_EMIM_RESULTS) + "\t"
+										 + ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_EMIM_PVALS));
+			while (readerC.ready()) {
 				// lineC = reader1.readLine().replaceAll("\\*", " ").trim().split(delimiter1, -1);
-				lineC = reader1	.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
+				lineC = readerC.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
 																							"            NaN")
-												.trim().split(delimiter1, -1);
-				String snp = snpList.get(Long.parseLong(lineC[indicesC.get("snpID")].substring(	0,
-																																												lineC[indicesC.get("snpID")].indexOf("."))))
+											 .trim().split(delimiterC, -1);
+				String snp = snpList.get(Long.parseLong(lineC[indicesC.get("snpID")].substring(0,
+																																											 lineC[indicesC.get("snpID")].indexOf("."))))
 														.split("\t")[2];
 				String freq;
 				if (freqs == null) {
@@ -607,26 +688,55 @@ public class ResultsPackager {
 				}
 				// lineM = reader2.readLine().replaceAll("\\*", " ").trim().split(delimiter2, -1);
 				// lineCM = reader3.readLine().replaceAll("\\*", " ").trim().split(delimiter3, -1);
-				lineM = reader2	.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
+				lineM = readerM.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
 																							"            NaN")
-												.trim().split(delimiter2, -1);
-				lineCM = reader3.readLine().replaceAll(	"\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
+											 .trim().split(delimiterM, -1);
+				lineCM = readerCM.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
 																								"            NaN")
-												.trim().split(delimiter3, -1);
+												 .trim().split(delimiterCM, -1);
+
+				lineCIm = readerCIm.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
+																									"            NaN")
+													 .trim().split(delimiterCIm, -1);
+
+				lineCIp = readerCIp.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
+																									"            NaN")
+													 .trim().split(delimiterCIp, -1);
+
+				lineIm = readerIm.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
+																								"            NaN")
+												 .trim().split(delimiterIm, -1);
+				lineIp = readerIp.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
+																								"            NaN")
+												 .trim().split(delimiterIp, -1);
 
 				if (!lineC[indicesC.get("snpID")].equals(lineM[indicesM.get("snpID")])
-						|| !lineC[indicesC.get("snpID")].equals(lineCM[indicesCM.get("snpID")])) {
+						|| !lineC[indicesC.get("snpID")].equals(lineCM[indicesCM.get("snpID")])
+						|| !lineC[indicesC.get("snpID")].equals(lineCIm[indicesIm.get("snpID")])
+						|| !lineC[indicesC.get("snpID")].equals(lineCIp[indicesIp.get("snpID")])
+						|| !lineC[indicesC.get("snpID")].equals(lineIm[indicesIm.get("snpID")])
+						|| !lineC[indicesC.get("snpID")].equals(lineIp[indicesIp.get("snpID")])) {
 					log.reportError("Error - SNP ID in the files are not lined up. Child SNP ID: "
-														+ lineC[indicesC.get("snpID")] + "; Mom SNP ID: "
+													+ lineC[indicesC.get("snpID")] + "; Mom SNP ID: "
 													+ lineM[indicesM.get("snpID")] + "; ChildMom SNP ID: "
-													+ lineCM[indicesCM.get("snpID")] + ".");
+													+ lineCM[indicesCM.get("snpID")] + "; ChildMat Imp SNP ID: "
+													+ lineCIm[indicesCIm.get("snpID")] + "; ChildPat Imp SNP ID: "
+													+ lineCIp[indicesCIp.get("snpID")] + "; Mat Imprinting SNP ID: "
+													+ lineIm[indicesIm.get("snpID")] + "; Pat Imprinting SNP ID: "
+													+ lineIp[indicesIp.get("snpID")] + ".");
 					return;
 				}
-				pvals = getPvalues(	Double.parseDouble(lineC[indicesC.get("lnliknull")]),
-														Double.parseDouble(lineC[indicesC.get("lnlikfull")]),
-														Double.parseDouble(lineM[indicesM.get("lnliknull")]),
-														Double.parseDouble(lineM[indicesM.get("lnlikfull")]),
-														Double.parseDouble(lineCM[indicesCM.get("lnlikfull")]), log);
+				pvals = getPvalues(Double.parseDouble(lineC[indicesC.get("lnliknull")]),
+													 Double.parseDouble(lineC[indicesC.get("lnlikfull")]),
+													 Double.parseDouble(lineM[indicesM.get("lnliknull")]),
+													 Double.parseDouble(lineM[indicesM.get("lnlikfull")]),
+													 Double.parseDouble(lineCM[indicesCM.get("lnlikfull")]),
+													 Double.parseDouble(lineCIm[indicesCIm.get("lnlikfull")]),
+													 Double.parseDouble(lineCIp[indicesCIp.get("lnlikfull")]),
+													 Double.parseDouble(lineIm[indicesIm.get("lnliknull")]),
+													 Double.parseDouble(lineIm[indicesIm.get("lnlikfull")]),
+													 Double.parseDouble(lineIp[indicesIp.get("lnliknull")]),
+													 Double.parseDouble(lineIp[indicesIp.get("lnlikfull")]), log);
 				temp = tdtResults.get(snp)[3];
 				// if (tdtResults.get(temp)[3].equals("NA")) {
 				// System.out.println(temp + "\t" + tdtResults.get(test)[3]);
@@ -634,14 +744,20 @@ public class ResultsPackager {
 				// }
 				if (pValueThreshold >= 1
 						|| ((!temp.equals("NA")
-									&& pvalsPass(	Array.addDoubleToArray(Double.parseDouble(temp), pvals),
-																pValueThreshold))
+								 && pvalsPass(ArrayUtils.addDoubleToArray(Double.parseDouble(temp), pvals),
+															pValueThreshold))
 								&& Double.parseDouble(freq) >= .01)) {
-					pvalEquations = getPvalEquations(	lineC[indicesC.get("lnliknull")],
-																						lineC[indicesC.get("lnlikfull")],
-																						lineM[indicesM.get("lnliknull")],
-																						lineM[indicesM.get("lnlikfull")],
-																						lineCM[indicesCM.get("lnlikfull")], log);
+					String[] pvalEquations = getPvalEquations(lineC[indicesC.get("lnliknull")],
+																										lineC[indicesC.get("lnlikfull")],
+																										lineM[indicesM.get("lnliknull")],
+																										lineM[indicesM.get("lnlikfull")],
+																										lineCM[indicesCM.get("lnlikfull")],
+																										lineCIm[indicesCIm.get("lnlikfull")],
+																										lineCIp[indicesCIp.get("lnlikfull")],
+																										lineIm[indicesIm.get("lnliknull")],
+																										lineIm[indicesIm.get("lnlikfull")],
+																										lineIp[indicesIp.get("lnliknull")],
+																										lineIp[indicesIp.get("lnlikfull")], log);
 					// writer.println(getOutputString(snpList, lineC, indicesC, lineM, indicesM, lineCM,
 					// indicesCM, log) + "\t" + pvals[0] + "\t" + pvalEquations[0] + "\t" + pvals[1] + "\t" +
 					// pvalEquations[1] + "\t" + pvals[2] + "\t" + pvalEquations[2]);
@@ -649,40 +765,54 @@ public class ResultsPackager {
 					// indicesC, lineM, indicesM, lineCM, indicesCM, tdtResults, log) + "\t" + pvals[0] + "\t"
 					// + pvalEquations[0] + "\t" + pvals[1] + "\t" + pvalEquations[1] + "\t" + pvals[2] + "\t"
 					// + pvalEquations[2]);
-					writer.println(getOutputString(	snpList, mendelErrors, hwe, hweThreshold, freq, lineC,
-																					indicesC, lineM, indicesM, lineCM, indicesCM, tdtResults,
-																					pvals, pvalEquations, log));
+					writer.println(getOutputString(snpList, mendelErrors, hwe, hweThreshold, freq, lineC,
+																				 indicesC, lineM, indicesM, lineCM, indicesCM, lineCIm,
+																				 indicesCIm, lineCIp, indicesCIp, lineIm, indicesIm, lineIp,
+																				 indicesIp, tdtResults, pvals, pvalEquations, log));
 				}
 			}
-			reader1.close();
-			reader3.close();
-			reader2.close();
+			readerC.close();
+			readerCM.close();
+			readerCIm.close();
+			readerCIp.close();
+			readerM.close();
+			readerIm.close();
+			readerIp.close();
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: one of the files was not found within the directory");
 			fnfe.printStackTrace();
 			return;
 		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + childResultsFile + "\"");
+			log.reportError("Error reading file \"" + resultsFileC + "\"");
 			return;
 		}
 
 		log.report("Parsed Emim result is ready at: " + outfile);
 	}
 
-	private static double[] getPvalues(	double logLikilihood_null_C, double logLikilihood_full_C,
-																			double logLikilihood_null_M, double logLikilihood_full_M,
-																			double logLikilihood_full_CM, Logger log) {
+	private static double[] getPvalues(double logLikilihood_null_C, double logLikilihood_full_C,
+																		 double logLikilihood_null_M, double logLikilihood_full_M,
+																		 double logLikilihood_full_CM, double logLikilihood_full_CIm,
+																		 double logLikilihood_full_CIp, double logLikilihood_null_Im,
+																		 double logLikilihood_full_Im, double logLikilihood_null_Ip,
+																		 double logLikilihood_full_Ip, Logger log) {
 
 		// Lines up with even entries in EMIM_OUTPUT_FORMAT_EMIM_PVALS
-		return new double[] {	getPvalue(2 * (logLikilihood_full_C - logLikilihood_null_C), 2, log),
-													getPvalue(2 * (logLikilihood_full_C - logLikilihood_null_C), 1, log),
-													getPvalue(2 * (logLikilihood_full_M - logLikilihood_null_M), 2, log),
-													getPvalue(2 * (logLikilihood_full_M - logLikilihood_null_M), 1, log),
-													getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_C), 2, log),
-													getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_C), 1, log),
-													getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_M), 2, log),
-													getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_M), 1, log)};
+		return new double[] {getPvalue(2 * (logLikilihood_full_C - logLikilihood_null_C), 2, log),
+												 getPvalue(2 * (logLikilihood_full_C - logLikilihood_null_C), 1, log),
+												 getPvalue(2 * (logLikilihood_full_M - logLikilihood_null_M), 2, log),
+												 getPvalue(2 * (logLikilihood_full_M - logLikilihood_null_M), 1, log),
+												 getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_C), 2, log),
+												 getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_C), 1, log),
+												 getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_M), 2, log),
+												 getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_M), 1, log),
+												 getPvalue(2 * (logLikilihood_full_CIm - logLikilihood_full_C), 2, log),
+												 getPvalue(2 * (logLikilihood_full_CIm - logLikilihood_full_C), 1, log),
+												 getPvalue(2 * (logLikilihood_full_CIp - logLikilihood_full_C), 2, log),
+												 getPvalue(2 * (logLikilihood_full_CIp - logLikilihood_full_C), 1, log),
+												 getPvalue(2 * (logLikilihood_full_Im - logLikilihood_null_Im), 1, log),
+												 getPvalue(2 * (logLikilihood_full_Ip - logLikilihood_null_Ip), 1, log)};
 	}
 
 
@@ -704,22 +834,33 @@ public class ResultsPackager {
 		return false;
 	}
 
-	private static String[] getPvalEquations(	String logLikilihood_null_C, String logLikilihood_full_C,
-																						String logLikilihood_null_M,
-																						String logLikilihood_full_M,
-																						String logLikilihood_full_CM, Logger log) {
+	private static String[] getPvalEquations(String logLikilihood_null_C, String logLikilihood_full_C,
+																					 String logLikilihood_null_M, String logLikilihood_full_M,
+																					 String logLikilihood_full_CM,
+																					 String logLikilihood_full_CIm,
+																					 String logLikilihood_full_CIp,
+																					 String logLikilihood_null_Im,
+																					 String logLikilihood_full_Im,
+																					 String logLikilihood_null_Ip,
+																					 String logLikilihood_full_Ip, Logger log) {
 
 		// Lines up with odd entries in EMIM_OUTPUT_FORMAT_EMIM_PVALS
-		return new String[] {"=1-CHISQ.DIST(2 * ("
-														+ logLikilihood_full_C + "-" + logLikilihood_null_C + "),2,TRUE)",
-													"=1-CHISQ.DIST(2 * ("																								+ logLikilihood_full_C + "-" + logLikilihood_null_C
-																																															+ "),1,TRUE)",
-													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_M + "-" + logLikilihood_null_M + "),2,TRUE)",
-													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_M + "-" + logLikilihood_null_M + "),1,TRUE)",
-													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_C + "),2,TRUE)",
-													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_C + "),1,TRUE)",
-													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M + "),2,TRUE)",
-													"=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M + "),1,TRUE)"};
+		return new String[] {"=1-CHISQ.DIST(2 * (" + logLikilihood_full_C + "-"
+												 + logLikilihood_null_C + "),2,TRUE)",
+												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_C + "-" + logLikilihood_null_C
+																															 + "),1,TRUE)",
+												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_M + "-" + logLikilihood_null_M + "),2,TRUE)",
+												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_M + "-" + logLikilihood_null_M + "),1,TRUE)",
+												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_C + "),2,TRUE)",
+												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_C + "),1,TRUE)",
+												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M + "),2,TRUE)",
+												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M + "),1,TRUE)",
+												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CIm + "-" + logLikilihood_full_C + "),2,TRUE)",
+												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CIm + "-" + logLikilihood_full_C + "),1,TRUE)",
+												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CIp + "-" + logLikilihood_full_C + "),2,TRUE)",
+												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CIp + "-" + logLikilihood_full_C + "),1,TRUE)",
+												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_Im + "-" + logLikilihood_null_Im + "),1,TRUE)",
+												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_Ip + "-" + logLikilihood_null_Ip + "),1,TRUE)"};
 	}
 
 	private static String getOutputString(Hashtable<Long, String> snpList,
@@ -728,15 +869,18 @@ public class ResultsPackager {
 																				String freq, String[] lineC, Map<String, Integer> indicesC,
 																				String[] lineM, Map<String, Integer> indicesM,
 																				String[] lineCM, Map<String, Integer> indicesCM,
+																				String[] lineCIm, Map<String, Integer> indicesCIm,
+																				String[] lineCIp, Map<String, Integer> indicesCIp,
+																				String[] lineIm, Map<String, Integer> indicesIm,
+																				String[] lineIp, Map<String, Integer> indicesIp,
 																				Hashtable<String, String[]> tdtResults, double[] pvals,
 																				String[] pvalEquations, Logger log) {
 		String result = null, tmp, snp;
 		String[] tmp2;
 		long index;
 
-		index =
-					Long.parseLong(lineC[indicesC.get("snpID")].substring(0,
-																																lineC[indicesC.get("snpID")].indexOf(".")));
+		index = Long.parseLong(lineC[indicesC.get("snpID")].substring(0,
+																																	lineC[indicesC.get("snpID")].indexOf(".")));
 		if (snpList.containsKey(index)) {
 			tmp = "";
 			snp = snpList.get(index).split("\t")[2];
@@ -768,9 +912,10 @@ public class ResultsPackager {
 					try {
 						se = ((Math.abs(Math.log(Double.parseDouble(tmp2[ext.indexOfStr("L95", TDT_REQS)]))
 														- beta)
-										+ Math.abs(Math.log(Double.parseDouble(tmp2[ext.indexOfStr("U95", TDT_REQS)]))
-																- beta))
-									/ 2) / 1.96;
+									 + Math.abs(Math.log(Double.parseDouble(tmp2[ext.indexOfStr("U95", TDT_REQS)]))
+															- beta))
+									/ 2)
+								 / 1.96;
 					} catch (NumberFormatException nfe) {
 						se = Double.NaN;
 					}
@@ -781,19 +926,34 @@ public class ResultsPackager {
 				tmp += "\t" + (!Numbers.isFinite(beta) ? "." : beta);
 				tmp += "\t" + (!Numbers.isFinite(se) ? "." : se);
 			}
-			result = snpList.get(index)	+ tmp + "\t" + freq + "\t" + lineC[indicesC.get("lnR1")] + "\t"
-								+ lineC[indicesC.get("sd_lnR1")] + "\t" + lineC[indicesC.get("lnR2")] + "\t"
-								+ lineC[indicesC.get("sd_lnR2")] + "\t" + lineC[indicesC.get("lnS1")] + "\t"
-								+ lineC[indicesC.get("sd_lnS1")] + "\t" + lineC[indicesC.get("lnS2")] + "\t"
-								+ lineC[indicesC.get("sd_lnS2")] + "\t" + lineCM[indicesCM.get("lnR1")] + "\t"
-								+ lineCM[indicesCM.get("sd_lnR1")] + "\t" + lineCM[indicesCM.get("lnR2")] + "\t"
-								+ lineCM[indicesCM.get("sd_lnR2")] + "\t" + lineCM[indicesCM.get("lnS1")] + "\t"
-								+ lineCM[indicesCM.get("sd_lnS1")] + "\t" + lineCM[indicesCM.get("lnS2")] + "\t"
-								+ lineCM[indicesCM.get("sd_lnS2")] + "\t" + lineM[indicesM.get("lnR1")] + "\t"
-								+ lineM[indicesM.get("sd_lnR1")] + "\t" + lineM[indicesM.get("lnR2")] + "\t"
-								+ lineM[indicesM.get("sd_lnR2")] + "\t" + lineM[indicesM.get("lnS1")] + "\t"
-								+ lineM[indicesM.get("sd_lnS1")] + "\t" + lineM[indicesM.get("lnS2")] + "\t"
-								+ lineM[indicesM.get("sd_lnS2")];
+			result = snpList.get(index) + tmp + "\t" + freq + "\t"
+
+							 + lineC[indicesC.get("lnR1")] + "\t" + lineC[indicesC.get("sd_lnR1")] + "\t"
+							 + lineC[indicesC.get("lnR2")] + "\t" + lineC[indicesC.get("sd_lnR2")] + "\t"
+							 + lineC[indicesC.get("lnS1")] + "\t" + lineC[indicesC.get("sd_lnS1")] + "\t"
+							 + lineC[indicesC.get("lnS2")] + "\t" + lineC[indicesC.get("sd_lnS2")] + "\t"
+
+							 + lineCM[indicesCM.get("lnR1")] + "\t" + lineCM[indicesCM.get("sd_lnR1")] + "\t"
+							 + lineCM[indicesCM.get("lnR2")] + "\t" + lineCM[indicesCM.get("sd_lnR2")] + "\t"
+							 + lineCM[indicesCM.get("lnS1")] + "\t" + lineCM[indicesCM.get("sd_lnS1")] + "\t"
+							 + lineCM[indicesCM.get("lnS2")] + "\t" + lineCM[indicesCM.get("sd_lnS2")] + "\t"
+
+							 + lineCIm[indicesCIm.get("lnR1")] + "\t" + lineCIm[indicesCIm.get("sd_lnR1")] + "\t"
+							 + lineCIm[indicesCIm.get("lnR2")] + "\t" + lineCIm[indicesCIm.get("sd_lnR2")] + "\t"
+							 + lineCIm[indicesCIm.get("lnIm")] + "\t" + lineCIm[indicesCIm.get("sd_lnIm")] + "\t"
+
+							 + lineCIp[indicesCIp.get("lnR1")] + "\t" + lineCIp[indicesCIp.get("sd_lnR1")] + "\t"
+							 + lineCIp[indicesCIp.get("lnR2")] + "\t" + lineCIp[indicesCIp.get("sd_lnR2")] + "\t"
+							 + lineCIp[indicesCIp.get("lnIp")] + "\t" + lineCIp[indicesCIp.get("sd_lnIp")] + "\t"
+
+							 + lineM[indicesM.get("lnR1")] + "\t" + lineM[indicesM.get("sd_lnR1")] + "\t"
+							 + lineM[indicesM.get("lnR2")] + "\t" + lineM[indicesM.get("sd_lnR2")] + "\t"
+							 + lineM[indicesM.get("lnS1")] + "\t" + lineM[indicesM.get("sd_lnS1")] + "\t"
+							 + lineM[indicesM.get("lnS2")] + "\t" + lineM[indicesM.get("sd_lnS2")] + "\t"
+
+							 + lineIm[indicesIm.get("lnIm")] + "\t" + lineIm[indicesIm.get("sd_lnIm")] + "\t"
+
+							 + lineIp[indicesIp.get("lnIp")] + "\t" + lineIp[indicesIp.get("sd_lnIp")];
 			// result = snpList.get(index) + "\t" + lineC[indicesC[1]];
 			for (int i = 0; i < pvals.length; i++) {
 				result += "\t" + pvals[i] + "\t" + pvalEquations[i];
@@ -892,10 +1052,10 @@ public class ResultsPackager {
 		out2 = new String[analyses.length * markers.length];
 		mainIndex = -1;
 		for (int i = 0; i < analyses.length; i++) {
-			filename = ext.rootOf(fullPathOutFile)	+ "_"
-									+ (analyses[i].equalsIgnoreCase("tdt") ? "_" : "")
-									+ ext.replaceWithLinuxSafeCharacters(analyses[i], true)
-									+ fullPathOutFile.substring(fullPathOutFile.lastIndexOf("."));
+			filename = ext.rootOf(fullPathOutFile) + "_"
+								 + (analyses[i].equalsIgnoreCase("tdt") ? "_" : "")
+								 + ext.replaceWithLinuxSafeCharacters(analyses[i], true)
+								 + fullPathOutFile.substring(fullPathOutFile.lastIndexOf("."));
 			out1 = new String[markers.length + 1];
 			out1[0] = "Gene\t" + markerColumnName;
 
@@ -906,14 +1066,14 @@ public class ResultsPackager {
 				if (isMain && mainIndex == -1) {
 					mainIndex = j;
 				}
-				out1[0] += "\tbeta"	+ (isMain ? "" : "." + fullPathStatResults[j][0]) + "\tse"
-										+ (isMain ? "" : "." + fullPathStatResults[j][0]) + "\tOR"
-										+ (isMain ? "" : "." + fullPathStatResults[j][0]) + "\tLowerCI"
-										+ (isMain ? "" : "." + fullPathStatResults[j][0]) + "\tUpperCI"
-										+ (isMain ? "" : "." + fullPathStatResults[j][0]);
+				out1[0] += "\tbeta" + (isMain ? "" : "." + fullPathStatResults[j][0]) + "\tse"
+									 + (isMain ? "" : "." + fullPathStatResults[j][0]) + "\tOR"
+									 + (isMain ? "" : "." + fullPathStatResults[j][0]) + "\tLowerCI"
+									 + (isMain ? "" : "." + fullPathStatResults[j][0]) + "\tUpperCI"
+									 + (isMain ? "" : "." + fullPathStatResults[j][0]);
 				for (int k = 2; k < columnNamesOfAnalyses[i].length; k++) {
-					out1[0] += "\t"	+ columnNamesOfAnalyses[i][k]
-											+ (isMain ? "" : "." + fullPathStatResults[j][0]);
+					out1[0] += "\t" + columnNamesOfAnalyses[i][k]
+										 + (isMain ? "" : "." + fullPathStatResults[j][0]);
 				}
 				// } else {
 				// for (int k = 0; k < columnNamesOfAnalyses[i].length; k++) {
@@ -944,16 +1104,16 @@ public class ResultsPackager {
 							beta = Math.log(Double.parseDouble(statResults[k][markerIndex][betaInd]));
 							se = ((Math.log(Double.parseDouble(statResults[k][markerIndex][seInd])) - beta)
 										/ 1.96);
-							out1[j] += "\t"	+ beta + "\t" + se + "\t" + Math.exp(beta) + "\t"
-													+ Math.exp(beta - 1.96 * se) + "\t" + Math.exp(beta + 1.96 * se);
+							out1[j] += "\t" + beta + "\t" + se + "\t" + Math.exp(beta) + "\t"
+												 + Math.exp(beta - 1.96 * se) + "\t" + Math.exp(beta + 1.96 * se);
 						} else {
 							int betaInd = ext.indexOfStr(columnNamesOfAnalyses[i][0], columnNamesToLoad);
 							int seInd = ext.indexOfStr(columnNamesOfAnalyses[i][1], columnNamesToLoad);
 							beta = Double.parseDouble(statResults[k][markerIndex][betaInd]);
 							se = Double.parseDouble(statResults[k][markerIndex][seInd]);
-							out1[j] += "\t"	+ statResults[k][markerIndex][betaInd] + "\t"
-													+ statResults[k][markerIndex][seInd] + "\t" + Math.exp(beta) + "\t"
-													+ Math.exp(beta - 1.96 * se) + "\t" + Math.exp(beta + 1.96 * se);
+							out1[j] += "\t" + statResults[k][markerIndex][betaInd] + "\t"
+												 + statResults[k][markerIndex][seInd] + "\t" + Math.exp(beta) + "\t"
+												 + Math.exp(beta - 1.96 * se) + "\t" + Math.exp(beta + 1.96 * se);
 						}
 
 						for (int l = 2; l < columnNamesOfAnalyses[i].length; l++) {
@@ -966,12 +1126,12 @@ public class ResultsPackager {
 
 							if (k == mainIndex) {
 								if (l == 2) {
-									out2[out2index] += " "	+ columnDisplayNames[i][l] + "="
-																			+ ext.prettyP(Double.parseDouble(statResults[mainIndex][markerIndex][columnIndex]));
+									out2[out2index] += " " + columnDisplayNames[i][l] + "="
+																		 + ext.prettyP(Double.parseDouble(statResults[mainIndex][markerIndex][columnIndex]));
 								} else {
-									out2[out2index] += " ("	+ columnDisplayNames[i][l] + "="
-																			+ ext.prettyP(Double.parseDouble(statResults[mainIndex][markerIndex][columnIndex]))
-																			+ ")";
+									out2[out2index] += " (" + columnDisplayNames[i][l] + "="
+																		 + ext.prettyP(Double.parseDouble(statResults[mainIndex][markerIndex][columnIndex]))
+																		 + ")";
 								}
 
 							}
@@ -989,8 +1149,8 @@ public class ResultsPackager {
 			}
 		}
 
-		Files.writeArray(out2, ext.parseDirectoryOfFile(fullPathOutFile)	+ ext.rootOf(fullPathOutFile)
-														+ ".input");
+		Files.writeArray(out2, ext.parseDirectoryOfFile(fullPathOutFile) + ext.rootOf(fullPathOutFile)
+													 + ".input");
 	}
 
 	public static String[][] loadFile(String fullPathStatResults, String nameOfMarkerColumn,
@@ -1043,7 +1203,7 @@ public class ResultsPackager {
 
 		if (params != null) {
 			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
+			main(ArrayUtils.toStringArray(params));
 		}
 	}
 
@@ -1059,9 +1219,13 @@ public class ResultsPackager {
 		String outfile = null;
 		String dir = "";
 		String type = "plink";
-		String resultsFileChild = null;
-		String resultsFileMom = null;
-		String resultsFileChildMom = null;
+		String resultsFileC = null;
+		String resultsFileM = null;
+		String resultsFileCM = null;
+		String resultsFileCIm = null;
+		String resultsFileCIp = null;
+		String resultsFileIm = null;
+		String resultsFileIp = null;
 		String resultsFileTdt = null;
 		Logger log;
 		String logfile = null;
@@ -1069,23 +1233,24 @@ public class ResultsPackager {
 		double callRateThreshold = 0;
 		double pThreshold = .000001;
 
-		String usage = "\n"	+ "gwas.ResultsPackager requires 0-1 arguments\n"
-										+ "   (0) name of directory of all other files (i.e. dir=" + dir
-										+ " (default))\n"
-										+ "   (1) name of results file (i.e. results=all_results.csv (not the default))\n"
-										+ "   (2) type of gwas file (i.e. type=plink (default) other options include =gwaf, =forest, =sol, and =emim)\n"
-										+ "   (3) name of map file (i.e. map=" + mapFile + " (default))\n"
-										+ "   (4) name of original freq file used to generate the gwaf files (i.e. freq="
-										+ freqFile
-										+ " (default; needs to be original freq file from when the gwaf files were made))\n"
-										+ "   (5) (optional) name of freq file limited to those indiviudals used in anlayses (i.e. customFreq=femalesOnly.frq (not the default; only used in gwaf))\n"
-										+ "   (6) (optional) list of markers to include (i.e. list=list.txt (not the default))\n"
-										+ "   (7) (optional) name of output file (i.e. out=[results file]_out.csv (default; when I get around to coding it, it will be comma instead of tab delimited if ending in .csv))\n"
-										+ "   (8) (optional) limit to those results with a p-value less than the specified filter (i.e. filter=0.001 (not the default))\n"
-										+ "   (9) (optional) minimum call rate threshold (currently for SOL parser only) (i.e. callRateThreshold="
-										+ callRateThreshold + " (default))\n" +
+		// TODO Update usage to match options (e.g. for EMIM) or remove/split out this functionality
+		String usage = "\n" + "gwas.ResultsPackager requires 0-1 arguments\n"
+									 + "   (0) name of directory of all other files (i.e. dir=" + dir
+									 + " (default))\n"
+									 + "   (1) name of results file (i.e. results=all_results.csv (not the default))\n"
+									 + "   (2) type of gwas file (i.e. type=plink (default) other options include =gwaf, =forest, =sol, and =emim)\n"
+									 + "   (3) name of map file (i.e. map=" + mapFile + " (default))\n"
+									 + "   (4) name of original freq file used to generate the gwaf files (i.e. freq="
+									 + freqFile
+									 + " (default; needs to be original freq file from when the gwaf files were made))\n"
+									 + "   (5) (optional) name of freq file limited to those indiviudals used in anlayses (i.e. customFreq=femalesOnly.frq (not the default; only used in gwaf))\n"
+									 + "   (6) (optional) list of markers to include (i.e. list=list.txt (not the default))\n"
+									 + "   (7) (optional) name of output file (i.e. out=[results file]_out.csv (default; when I get around to coding it, it will be comma instead of tab delimited if ending in .csv))\n"
+									 + "   (8) (optional) limit to those results with a p-value less than the specified filter (i.e. filter=0.001 (not the default))\n"
+									 + "   (9) (optional) minimum call rate threshold (currently for SOL parser only) (i.e. callRateThreshold="
+									 + callRateThreshold + " (default))\n" +
 
-										"";
+									 "";
 
 		type = null;
 		mendelErrorFile = null;
@@ -1102,14 +1267,27 @@ public class ResultsPackager {
 				resultsFile = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("resultschild=")) {
-				resultsFileChild = arg.split("=")[1];
+				resultsFileC = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("resultsmom=")) {
-				resultsFileMom = arg.split("=")[1];
+				resultsFileM = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("resultschildmom=")) {
-				resultsFileChildMom = arg.split("=")[1];
+				resultsFileCM = arg.split("=")[1];
 				numArgs--;
+			} else if (arg.startsWith("resultschildImpM=")) {
+				resultsFileCIm = arg.split("=")[1];
+				numArgs--;
+			} else if (arg.startsWith("resultschildImpP=")) {
+				resultsFileCIp = arg.split("=")[1];
+				numArgs--;
+			} else if (arg.startsWith("resultsImpM=")) {
+				resultsFileIm = arg.split("=")[1];
+				numArgs--;
+			} else if (arg.startsWith("resultsImpP=")) {
+				resultsFileIp = arg.split("=")[1];
+				numArgs--;
+
 			} else if (arg.startsWith("resultstdt=")) {
 				resultsFileTdt = arg.split("=")[1];
 				numArgs--;
@@ -1326,18 +1504,19 @@ public class ResultsPackager {
 
 			log = new Logger(logfile);
 			if (type.equalsIgnoreCase("gwaf")) {
-				parseIBCFormatFromGWAF(	dir, resultsFile, mapFile, freqFile, customFreqFile, markersToReport,
-																filter, outfile, log);
+				parseIBCFormatFromGWAF(dir, resultsFile, mapFile, freqFile, customFreqFile, markersToReport,
+															 filter, outfile, log);
 			} else if (type.equalsIgnoreCase("plink")) {
 				parseStdFormatFromPlink(dir, resultsFile, "Add", mapFile, freqFile, markersToReport, filter,
 																outfile, log);
 			} else if (type.equalsIgnoreCase("sol")) {
-				parseSOLformat(	dir, resultsFile,
-												"N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt", freqFile,
-												markersToReport, filter, callRateThreshold, outfile, log);
+				parseSOLformat(dir, resultsFile,
+											 "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt", freqFile,
+											 markersToReport, filter, callRateThreshold, outfile, log);
 			} else if (type.equalsIgnoreCase("emim")) {
-				parseEmimFormat(resultsFileChild, resultsFileMom, resultsFileChildMom, resultsFileTdt,
-												mapFile, mendelErrorFile, hweFile, freqFile, pThreshold, outfile, log);
+				parseEmimFormat(resultsFileC, resultsFileM, resultsFileCM, resultsFileCIm, resultsFileCIp,
+												resultsFileIm, resultsFileIp, resultsFileTdt, mapFile, mendelErrorFile,
+												hweFile, freqFile, pThreshold, outfile, log);
 			} else if (type.equalsIgnoreCase("forest")) {
 				String mkrFile = "/home/pankrat2/shared/Poynter_emim/gwasHits.txt";
 				String mkrColNm = "markerName";
@@ -1346,33 +1525,33 @@ public class ResultsPackager {
 																	{"C_lnR1", "C_se_lnR1", "pVal_C_df1"},
 																	{"CM_lnS1", "CM_se_lnS1", "pVal_CM-C_df1"}};
 
-				String[][] files = {{	"/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/fileList_allFinalWhitePoynter.txt",
-															"/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/allFinalWhitePoynter_forestplot.xln"},
-														{	"/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/fileList_completeTriosPoynter.txt",
-															"/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/completeTriosPoynter_forestplot.xln"},
-														{	"/home/pankrat2/shared/Poynter_emim/allFinalPoynter/fileList_allFinalPoynter.txt",
-															"/home/pankrat2/shared/Poynter_emim/allFinalPoynter/allFinalPoynter_forestplot.xln"},
-														{	"/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/fileList_completeWhiteTriosPoynter.txt",
-															"/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/completeWhiteTriosPoynter_forestplot.xln"},};
+				String[][] files = {{"/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/fileList_allFinalWhitePoynter.txt",
+														 "/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/allFinalWhitePoynter_forestplot.xln"},
+														{"/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/fileList_completeTriosPoynter.txt",
+														 "/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/completeTriosPoynter_forestplot.xln"},
+														{"/home/pankrat2/shared/Poynter_emim/allFinalPoynter/fileList_allFinalPoynter.txt",
+														 "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/allFinalPoynter_forestplot.xln"},
+														{"/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/fileList_completeWhiteTriosPoynter.txt",
+														 "/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/completeWhiteTriosPoynter_forestplot.xln"},};
 
 				boolean oddsRatio = true;
 				String sortFileName = "/home/pankrat2/shared/Poynter_emim/forestPlotDisplayOrder.txt";
 				for (String[] fileSet : files) {
-					getForestPlotParameterFile(	HashVec.loadFileToStringMatrix(fileSet[0], false, null, false),
-																			mkrFile, mkrColNm, analyses, analysisNms, null, fileSet[1],
-																			null);
+					getForestPlotParameterFile(HashVec.loadFileToStringMatrix(fileSet[0], false, null, false),
+																		 mkrFile, mkrColNm, analyses, analysisNms, null, fileSet[1],
+																		 null);
 					org.genvisis.cnv.plots.ForestPlot fp = new org.genvisis.cnv.plots.ForestPlot(ext.rootOf(fileSet[1],
 																																																	false)
-																																													+ ".input",
-																																												null);
+																																											 + ".input",
+																																											 null);
 					fp.setOddsRatioDisplay(oddsRatio);
 					fp.loadOrderFile(sortFileName, true);
 					fp.screenCapAll("forestPlots", oddsRatio, false);
 				}
-				String[] dirs = {	"/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/",
-													"/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/",
-													"/home/pankrat2/shared/Poynter_emim/allFinalPoynter/",
-													"/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/"};
+				String[] dirs = {"/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/",
+												 "/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/",
+												 "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/",
+												 "/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/"};
 				for (String rundir : dirs) {
 					String fileOut = ext.rootOf(mkrFile, true);
 					String temp = rundir.substring(0, rundir.length() - 1);

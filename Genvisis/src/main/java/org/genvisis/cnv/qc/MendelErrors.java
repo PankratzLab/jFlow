@@ -2,6 +2,7 @@ package org.genvisis.cnv.qc;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.Map;
 
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Pedigree;
@@ -240,14 +241,15 @@ public class MendelErrors {
 				MDL mdl = new MDL(proj, proj.getMarkerSet(), proj.getMarkerNames(), 2, 100);
 				while (mdl.hasNext()) {
 					MarkerData markerData = mdl.next();
-					MendelErrorCheck[] mendelErrorChecks = Pedigree.PedigreeUtils.checkMendelErrors(pedigree,
-																																													markerData,
-																																													samplesToCheck,
-																																													null,
-																																													null, 0,
-																																													log);
+					Map<String, MendelErrorCheck> mendelErrorChecks = Pedigree.PedigreeUtils.checkMendelErrors(pedigree,
+																																																		 markerData,
+																																																		 samplesToCheck,
+																																																		 null,
+																																																		 null,
+																																																		 0,
+																																																		 log);
 					int num = 0;
-					for (MendelErrorCheck mendelErrorCheck : mendelErrorChecks) {
+					for (MendelErrorCheck mendelErrorCheck : mendelErrorChecks.values()) {
 						if (mendelErrorCheck.getErrorCode() > 0) {
 							num++;
 						}
@@ -273,8 +275,8 @@ public class MendelErrors {
 		int numArgs = args.length;
 		String filename = "C:/workspace/Genvisis/projects/Poynter_PCs.properties";
 
-		String usage = "\n"	+ "cnv.qc.MendelErrors requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. proj=" + filename + " (default))\n" + "";
+		String usage = "\n" + "cnv.qc.MendelErrors requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. proj=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

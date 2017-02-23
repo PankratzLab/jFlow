@@ -32,10 +32,11 @@ public class AddId {
 		VCFOps.verifyIndex(vcfFile, new Logger());
 		String out = VCFOps.getAppropriateRoot(vcfFile, false) + ".ids.vcf";
 		VCFFileReader reader = new VCFFileReader(new File(vcfFile), true);
-		VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, out, VCFOps.DEFUALT_WRITER_OPTIONS,
-				new Logger());
+		VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, out,
+																															VCFOps.DEFUALT_WRITER_OPTIONS,
+																															new Logger());
 		for (VariantContext vc : reader) {
-			String id = VCOps.getAnnotationsFor(new String[] { "snp138" }, vc, ".")[0];
+			String id = VCOps.getAnnotationsFor(new String[] {"snp138"}, vc, ".")[0];
 			if (".".equals(id)) {
 				id = new VCOps.LocusID(vc).getId();
 			} else {
@@ -43,8 +44,10 @@ public class AddId {
 			}
 			VariantContextBuilder builder = new VariantContextBuilder(vc);
 
-			builder.id(id + "--" + VCOps.getAnnotationsFor(new String[] { "EFF" }, vc, ".")[0].split("\\(")[0]
-					+ "--PopFreqMax--" + VCOps.getAnnotationsFor(new String[] { "PopFreqMax" }, vc, ".")[0]);
+			builder.id(id + "--"
+								 + VCOps.getAnnotationsFor(new String[] {"EFF"}, vc, ".")[0].split("\\(")[0]
+								 + "--PopFreqMax--"
+								 + VCOps.getAnnotationsFor(new String[] {"PopFreqMax"}, vc, ".")[0]);
 			writer.add(builder.make());
 		}
 		reader.close();

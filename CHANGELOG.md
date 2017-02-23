@@ -3,8 +3,13 @@ All notable changes to Genvisis will be documented in this file.
 
 ##[Unreleased]
 
+### Added
+Sex specific chrX shadowing using artificial or biological strategies, addresses [#153](https://github.com/PankratzLab/Genvisis/issues/153)
+
 ### Fixed
-Bug fixes for mis-indexed on the fly gc Correction (#141)
+Fixed issue where affy import was producing homozygous only calls [#164](https://github.com/PankratzLab/Genvisis/issues/164)
+
+Bug fixes for mis-indexed on the fly gc Correction [#141](https://github.com/PankratzLab/Genvisis/issues/141)
 
 ##[0.1.7]
 Genvisis is now a Maven project!

@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
@@ -28,7 +29,7 @@ import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.AlleleFreq;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -47,13 +48,13 @@ import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 
 public class MarkerMetrics {
-	public static final String[] FULL_QC_HEADER = {	"MarkerName", "Chr", "CallRate", "meanTheta_AA",
-																									"meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA",
-																									"diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB",
-																									"sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB",
-																									"num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB",
-																									"pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_z",
-																									"LRR_SD", "LRR_num_NaNs", "MendelianErrors"};
+	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA",
+																								 "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA",
+																								 "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB",
+																								 "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB",
+																								 "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB",
+																								 "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_z",
+																								 "LRR_SD", "LRR_num_NaNs", "MendelianErrors"};
 	public static final String[] LRR_VARIANCE_HEADER = {"MarkerName", "Chr", "Position", "SD_LRR",
 																											"MeanAbsLRR", "SD_BAF1585", "MeanAbsBAF1585"};
 	private static final String[] MENDEL_HEADER = {"FID", "KID", "CHR", "SNP", "CODE", "ERROR"};
@@ -79,9 +80,13 @@ public class MarkerMetrics {
 			if (Files.exists(markersToInclude)) {
 				markerNames = HashVec.loadFileToStringArray(markersToInclude, false, new int[] {0}, false);
 			} else if (Files.exists(proj.PROJECT_DIRECTORY.getValue(false, true) + markersToInclude)) {
-				markerNames = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue(false, true) + markersToInclude, false, new int[] {0}, false);
+				markerNames = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue(false, true)
+																										+ markersToInclude, false, new int[] {0},
+																										false);
 			} else {
-				proj.getLog().reportTimeWarning("Markers to QC file not found, using all markers in project: " + markersToInclude);
+				proj.getLog().reportTimeWarning(
+																				"Markers to QC file not found, using all markers in project: "
+																				+ markersToInclude);
 				markerNames = proj.getMarkerNames();
 			}
 		} else {
@@ -93,13 +98,13 @@ public class MarkerMetrics {
 			fullQC(proj, samplesToExclude, markerNames, finalQcFile, checkMendel);
 		} else {
 			WorkerHive<Boolean> hive = new WorkerHive<Boolean>(numThreads, 10, proj.getLog());
-			List<String[]> batches = Array.splitUpArray(markerNames, numThreads, proj.getLog());
+			List<String[]> batches = ArrayUtils.splitUpArray(markerNames, numThreads, proj.getLog());
 			String[] tmpQc = new String[batches.size()];
 			String[] tmpMendel = new String[batches.size()];
 			for (int i = 0; i < batches.size(); i++) {
 				String tmp = ext.addToRoot(finalQcFile, "tmp" + i);
-				hive.addCallable(new MarkerMetricsWorker(	proj, samplesToExclude, batches.get(i), tmp,
-																									checkMendel));
+				hive.addCallable(new MarkerMetricsWorker(proj, samplesToExclude, batches.get(i), tmp,
+																								 checkMendel));
 				tmpQc[i] = tmp;
 				if (checkMendel) {
 					tmpMendel[i] = ext.rootOf(tmp, false) + DEFAULT_MENDEL_FILE_SUFFIX;
@@ -108,15 +113,14 @@ public class MarkerMetrics {
 
 			hive.execute(true);
 			ArrayList<Boolean> complete = hive.getResults();
-			if (Array.booleanArraySum(Booleans.toArray(complete)) == complete.size()) {
+			if (ArrayUtils.booleanArraySum(Booleans.toArray(complete)) == complete.size()) {
 				Files.cat(tmpQc, finalQcFile, new int[0], proj.getLog());
 				if (Files.exists(finalQcFile) && Files.countLines(finalQcFile, 1) == markerNames.length) {
 					for (String element : tmpQc) {
 						new File(element).delete();
 					}
 				} else {
-					proj.getLog()
-							.reportError("Could not collapse temporary marker files to " + finalQcFile);
+					proj.getLog().reportError("Could not collapse temporary marker files to " + finalQcFile);
 				}
 
 				if (checkMendel) {
@@ -129,7 +133,7 @@ public class MarkerMetrics {
 					} else {
 						proj.getLog()
 								.reportError("Could not collapse temporary mendel files to "
-																	+ ext.rootOf(finalQcFile, false) + DEFAULT_MENDEL_FILE_SUFFIX);
+														 + ext.rootOf(finalQcFile, false) + DEFAULT_MENDEL_FILE_SUFFIX);
 					}
 				}
 			} else {
@@ -139,8 +143,8 @@ public class MarkerMetrics {
 	}
 
 
-	private static void fullQC(	Project proj, boolean[] samplesToExclude, String[] markerNames,
-															String fullPathToOutput, boolean checkMendel) {
+	private static void fullQC(Project proj, boolean[] samplesToExclude, String[] markerNames,
+														 String fullPathToOutput, boolean checkMendel) {
 		PrintWriter writer, mendelWriter = null;
 		String[] samples;
 		float[] thetas, rs, lrrs;
@@ -159,7 +163,7 @@ public class MarkerMetrics {
 		ArrayList<Float> aLRR;
 		Logger log;
 		boolean[] toInclude;
-		MendelErrorCheck[] mecArr;
+		Map<String, MendelErrorCheck> mecArr;
 
 		log = proj.getLog();
 
@@ -177,12 +181,12 @@ public class MarkerMetrics {
 
 		try {
 			writer = new PrintWriter(new FileWriter(fullPathToOutput));
-			writer.println(Array.toStr(FULL_QC_HEADER));
+			writer.println(ArrayUtils.toStr(FULL_QC_HEADER));
 
 			if (pedigree != null && checkMendel) {
 				mendelWriter = new PrintWriter(new FileWriter(ext.rootOf(fullPathToOutput, false)
 																											+ DEFAULT_MENDEL_FILE_SUFFIX));
-				mendelWriter.println(Array.toStr(MENDEL_HEADER));
+				mendelWriter.println(ArrayUtils.toStr(MENDEL_HEADER));
 			}
 
 			// markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
@@ -246,7 +250,7 @@ public class MarkerMetrics {
 				}
 
 				if (lrrs != null && aLRR.size() > 0) {
-					lrrsd = Array.stdev(Floats.toArray(aLRR), true);
+					lrrsd = ArrayUtils.stdev(Floats.toArray(aLRR), true);
 					lrrSexZ = getSexZscore(sexes, lrrs, samplesToExclude, log);
 				} else {
 					lrrsd = Float.NaN;
@@ -255,22 +259,24 @@ public class MarkerMetrics {
 
 				String mecCnt = ".";
 				if (pedigree != null && checkMendel) {
-					toInclude = samplesToExclude == null	? Array.booleanArray(samples.length, true)
-																								: Array.booleanNegative(samplesToExclude);
+					toInclude = samplesToExclude == null ? ArrayUtils.booleanArray(samples.length, true)
+																							 : ArrayUtils.booleanNegative(samplesToExclude);
 					mecArr = Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData, toInclude, null,
 																														clusterFilterCollection, gcThreshold,
 																														log);
 					count = 0;
-					for (int i = 0; i < mecArr.length; i++) {
+					for (int i = 0; i < pedigree.getDnas().length; i++) {
 						if (!toInclude[i]) {
 							continue;
 						}
-						if (mecArr[i].getErrorCode() != -1) {
+						MendelErrorCheck mendelErrorCheck = mecArr.get(pedigree.getiDNA(i));
+						if (mendelErrorCheck.getErrorCode() != -1) {
 							count++;
 
-							mendelLine = pedigree.getFID(i)	+ "\t" + pedigree.getIID(i) + "\t"
-														+ markerData.getChr() + "\t" + markerName + "\t"
-														+ mecArr[i].getErrorCode() + "\t" + mecArr[i].getError() + eol;
+							mendelLine = pedigree.getFID(i) + "\t" + pedigree.getIID(i) + "\t"
+													 + markerData.getChr() + "\t" + markerName + "\t"
+													 + mendelErrorCheck.getErrorCode() + "\t" + mendelErrorCheck.getError()
+													 + eol;
 
 							mendelWriter.print(mendelLine);
 						}
@@ -279,7 +285,7 @@ public class MarkerMetrics {
 				}
 
 
-				String line = markerName	+ "\t" + markerData.getChr() + "\t"
+				String line = markerName + "\t" + markerData.getChr() + "\t"
 											+ (1 - ((float) counts[0] / (counts[0] + counts[1] + counts[2] + counts[3])))
 											+ "\t" + meanTheta[1] + "\t" + meanTheta[2] + "\t" + meanTheta[3] + "\t"
 											+ (meanTheta[2] - meanTheta[1]) + "\t" + (meanTheta[3] - meanTheta[2]) + "\t"
@@ -290,8 +296,8 @@ public class MarkerMetrics {
 											+ ((float) counts[1] / (counts[0] + counts[1] + counts[2] + counts[3])) + "\t"
 											+ ((float) counts[2] / (counts[0] + counts[1] + counts[2] + counts[3])) + "\t"
 											+ ((float) counts[3] / (counts[0] + counts[1] + counts[2] + counts[3])) + "\t"
-											+ (float) (counts[1] < counts[3]	? (counts[1] + counts[2])
-																												: (counts[2] + counts[3]))
+											+ (float) (counts[1] < counts[3] ? (counts[1] + counts[2])
+																											 : (counts[2] + counts[3]))
 												/ (counts[0] + counts[1] + 2 * counts[2] + counts[3])
 											+ "\t" + AlleleFreq.HetExcess(counts[1], counts[2], counts[3])[0] + "\t"
 											+ numNaNs + "\t" + lrrSexZ + "\t" + lrrsd + "\t" + numLRRNaNs + "\t" + mecCnt;
@@ -347,7 +353,7 @@ public class MarkerMetrics {
 		double zscore = Double.NaN;
 		DoubleVector[] values = new DoubleVector[3];
 		for (int s = 0; s < sexes.length; s++) {
-			if (!Double.isNaN(independantData[s])	&& sexes != null && (sexes[s] == 1 || sexes[s] == 2)
+			if (!Double.isNaN(independantData[s]) && sexes != null && (sexes[s] == 1 || sexes[s] == 2)
 					&& (samplesToExclude == null || !samplesToExclude[s])) {
 				if (values[sexes[s]] == null) {
 					values[sexes[s]] = new DoubleVector();
@@ -357,14 +363,14 @@ public class MarkerMetrics {
 		}
 		if (values[1] != null && values[2] != null) {
 			double[] maleValues = Doubles.toArray(values[1]);
-			zscore = (Array.mean(maleValues) - Array.mean(Doubles.toArray(values[2])))
-								/ Array.stdev(maleValues, false);
+			zscore = (ArrayUtils.mean(maleValues) - ArrayUtils.mean(Doubles.toArray(values[2])))
+							 / ArrayUtils.stdev(maleValues, false);
 		}
 		return zscore;
 	}
 
-	public static void lrrVariance(	Project proj, boolean[] samplesToInclude,
-																	String markersToInclude) {
+	public static void lrrVariance(Project proj, boolean[] samplesToInclude,
+																 String markersToInclude) {
 		PrintWriter writer;
 		float[] lrrs, bafs;
 		boolean[] useBAFs;
@@ -386,12 +392,12 @@ public class MarkerMetrics {
 		try {
 			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
 																							+ "lrrVariance.xln"));
-			writer.println(Array.toStr(LRR_VARIANCE_HEADER));
+			writer.println(ArrayUtils.toStr(LRR_VARIANCE_HEADER));
 
 			if (markersToInclude != null) {
-				markerNames =
-										HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue(false, true)
-																									+ markersToInclude, false, new int[] {0}, false);
+				markerNames = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue(false, true)
+																										+ markersToInclude, false, new int[] {0},
+																										false);
 			} else {
 				markerNames = proj.getMarkerNames();
 			}
@@ -410,12 +416,12 @@ public class MarkerMetrics {
 				if (lrrs == null) {
 					log.reportError("Error - null lrr array for marker " + markerName);
 				}
-				lrrs = Array.removeNaN(Array.subArray(lrrs, samplesToInclude));
-				line += "\t" + Array.stdev(lrrs, true);
+				lrrs = ArrayUtils.removeNaN(ArrayUtils.subArray(lrrs, samplesToInclude));
+				line += "\t" + ArrayUtils.stdev(lrrs, true);
 				for (int j = 0; j < lrrs.length; j++) {
 					lrrs[j] = Math.abs(lrrs[j]);
 				}
-				line += "\t" + Array.mean(lrrs);
+				line += "\t" + ArrayUtils.mean(lrrs);
 
 				useBAFs = Arrays.copyOf(samplesToInclude, samplesToInclude.length);
 				for (int j = 0; j < bafs.length; j++) {
@@ -423,12 +429,12 @@ public class MarkerMetrics {
 						useBAFs[j] = false;
 					}
 				}
-				bafs = Array.removeNaN(Array.subArray(bafs, useBAFs));
-				line += "\t" + Array.stdev(bafs, true);
+				bafs = ArrayUtils.removeNaN(ArrayUtils.subArray(bafs, useBAFs));
+				line += "\t" + ArrayUtils.stdev(bafs, true);
 				for (int j = 0; j < bafs.length; j++) {
 					bafs[j] = Math.abs(bafs[j] - 0.50f);
 				}
-				line += "\t" + Array.mean(bafs);
+				line += "\t" + ArrayUtils.mean(bafs);
 
 				line += eol;
 
@@ -496,7 +502,7 @@ public class MarkerMetrics {
 
 			if (subset != null) {
 				markerList = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue(false, true)
-																										+ subset, false, new int[] {0}, false);
+																									 + subset, false, new int[] {0}, false);
 			} else {
 				markerList = proj.getMarkerNames();
 			}
@@ -555,11 +561,11 @@ public class MarkerMetrics {
 							} else {
 								// log.report(markerName+"\t"+FullSample.AB_PAIRS[ab-1]+"/"+(k==0?"X":"Y")+"\t"+femaleValues.length+"
 								// females\t"+Array.mean(femaleValues));
-								femaleComp = Array.mean(femaleValues);
+								femaleComp = ArrayUtils.mean(femaleValues);
 								tVals[k][ab - 1] = Math.abs(new Ttest(maleValues, femaleValues).getT());
 							}
-							zScores[k][ab - 1] = (Array.mean(maleValues) - femaleComp)
-																		/ Array.stdev(maleValues, false);
+							zScores[k][ab - 1] = (ArrayUtils.mean(maleValues) - femaleComp)
+																	 / ArrayUtils.stdev(maleValues, false);
 						} else {
 							zScores[k][ab - 1] = Double.NaN;
 							tVals[k][ab - 1] = Double.NaN;
@@ -578,7 +584,7 @@ public class MarkerMetrics {
 					} else {
 						line += "\t" + zScores[interestedPair[0]][interestedPair[1]];
 						zMean += zScores[interestedPair[0]][interestedPair[1]]
-											* counts[interestedPair[0]][interestedPair[1]];
+										 * counts[interestedPair[0]][interestedPair[1]];
 						zMin = Math.min(zMin, zScores[interestedPair[0]][interestedPair[1]]);
 						count += counts[interestedPair[0]][interestedPair[1]];
 					}
@@ -594,7 +600,7 @@ public class MarkerMetrics {
 					} else {
 						line += "\t" + tVals[interestedPair[0]][interestedPair[1]];
 						tMean += tVals[interestedPair[0]][interestedPair[1]]
-											* counts[interestedPair[0]][interestedPair[1]];
+										 * counts[interestedPair[0]][interestedPair[1]];
 						tMin = Math.min(tMin, tVals[interestedPair[0]][interestedPair[1]]);
 						count += counts[interestedPair[0]][interestedPair[1]];
 					}
@@ -648,8 +654,8 @@ public class MarkerMetrics {
 		if (Files.exists(reviewCriteriaFilename)) {
 			log.report("Using " + reviewCriteriaFilename + " for the review criteria");
 		} else {
-			log.report("Could not find "	+ reviewCriteriaFilename
-									+ ", so generating from default parameters");
+			log.report("Could not find " + reviewCriteriaFilename
+								 + ", so generating from default parameters");
 			Files.copyFileFromJar(DEFAULT_REVIEW_CRITERIA, reviewCriteriaFilename);
 		}
 
@@ -657,8 +663,8 @@ public class MarkerMetrics {
 		if (Files.exists(exclusionCriteriaFilename)) {
 			log.report("Using " + exclusionCriteriaFilename + " for the review criteria");
 		} else {
-			log.report("Could not find "	+ reviewCriteriaFilename
-									+ ", so generating from default parameters");
+			log.report("Could not find " + reviewCriteriaFilename
+								 + ", so generating from default parameters");
 			Files.copyFileFromJar(DEFAULT_EXCLUSION_CRITERIA, exclusionCriteriaFilename);
 		}
 
@@ -666,8 +672,8 @@ public class MarkerMetrics {
 		if (Files.exists(combinedCriteriaFilename)) {
 			log.report("Using " + combinedCriteriaFilename + " for the review criteria");
 		} else {
-			log.report("Could not find "	+ combinedCriteriaFilename
-									+ ", so generating from default parameters");
+			log.report("Could not find " + combinedCriteriaFilename
+								 + ", so generating from default parameters");
 			Files.copyFileFromJar(DEFAULT_COMBINED_CRITERIA, combinedCriteriaFilename);
 		}
 
@@ -680,8 +686,8 @@ public class MarkerMetrics {
 										log);
 	}
 
-	public static void tallyFlaggedReviewedChangedAndDropped(	Project proj,
-																														boolean checkForDeletedMarkers) {
+	public static void tallyFlaggedReviewedChangedAndDropped(Project proj,
+																													 boolean checkForDeletedMarkers) {
 		BufferedReader reader;
 		PrintWriter writer, writerMissed;
 		String[] line;
@@ -773,8 +779,8 @@ public class MarkerMetrics {
 					flaggedMarkers.put(line[0], flaggedMarkers.get(line[0]) + ";" + line[1]);
 					warnings = line[1].split(";");
 					for (String warning2 : warnings) {
-						warning = warning2.substring(0, warning2.indexOf(" (") > 0	? warning2.indexOf(" (")
-																																				: warning2.length());
+						warning = warning2.substring(0, warning2.indexOf(" (") > 0 ? warning2.indexOf(" (")
+																																			 : warning2.length());
 						if (!warningHash.containsKey(warning)) {
 							warningHash.put(warning, new Vector<String>());
 						}
@@ -792,11 +798,11 @@ public class MarkerMetrics {
 				return;
 			}
 
-			markerNames = Array.toStringArray(v);
+			markerNames = ArrayUtils.toStringArray(v);
 			log.report(markerNames.length + " markers met at least one criterion in " + filename);
 			if (checkForDeletedMarkers) {
-				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(	proj,
-																																										markerNames);
+				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+																																									 markerNames);
 			} else {
 				markerDataLoader = null;
 			}
@@ -854,8 +860,8 @@ public class MarkerMetrics {
 							numDropped++;
 						}
 					}
-					writer.println(warningKey	+ "\t" + v.size() + "\t" + numAnnotated + "\t" + numReclustered
-													+ "\t" + numDropped);
+					writer.println(warningKey + "\t" + v.size() + "\t" + numAnnotated + "\t" + numReclustered
+												 + "\t" + numDropped);
 				}
 				numReclustered = numAnnotated = numDropped = 0;
 				for (String markerName : markerNames) {
@@ -869,8 +875,8 @@ public class MarkerMetrics {
 						numDropped++;
 					}
 				}
-				writer.println("Any criteria\t"	+ markerNames.length + "\t" + numAnnotated + "\t"
-												+ numReclustered + "\t" + numDropped);
+				writer.println("Any criteria\t" + markerNames.length + "\t" + numAnnotated + "\t"
+											 + numReclustered + "\t" + numDropped);
 
 				missedOutputFile = dir + filename + "_missed.out";
 				writerMissed = new PrintWriter(new FileWriter(missedOutputFile));
@@ -902,8 +908,8 @@ public class MarkerMetrics {
 
 				markerNames = allOtherMarkers.toArray(new String[allOtherMarkers.size()]);
 				if (checkForDeletedMarkers) {
-					markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(	proj,
-																																											markerNames);
+					markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+																																										 markerNames);
 				}
 				for (int j = 0; j < markerNames.length; j++) {
 					if (checkForDeletedMarkers) {
@@ -955,13 +961,14 @@ public class MarkerMetrics {
 			warningCounts = new int[warningKeys.length];
 			for (int k = 0; k < warningKeys.length; k++) {
 				String key = warningKeys[k];
-				warningHashHash.put(key, HashVec.loadToHashSet(Array.toStringArray(warningHash.get(key))));
+				warningHashHash.put(key,
+														HashVec.loadToHashSet(ArrayUtils.toStringArray(warningHash.get(key))));
 				warningCounts[k] = warningHashHash.get(key).size();
 			}
 			try {
 				writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename, false) + "_matrix.out"));
-				writer.println("\tN=\t" + Array.toStr(warningCounts));
-				writer.println("Annotation\tCounts\t" + Array.toStr(warningKeys));
+				writer.println("\tN=\t" + ArrayUtils.toStr(warningCounts));
+				writer.println("Annotation\tCounts\t" + ArrayUtils.toStr(warningKeys));
 
 				annotationKeys = annotationCollection.getKeys();
 				for (char annotationKey : annotationKeys) {
@@ -976,8 +983,8 @@ public class MarkerMetrics {
 						}
 					}
 					writer.println(annotationCollection.getDescriptionForComment(annotationKey, false, false)
-														+ "\t" + annotationCollection.getMarkerLists(annotationKey).length + "\t"
-													+ Array.toStr(warningCounts));
+												 + "\t" + annotationCollection.getMarkerLists(annotationKey).length + "\t"
+												 + ArrayUtils.toStr(warningCounts));
 				}
 				writer.close();
 			} catch (Exception e) {
@@ -990,8 +997,8 @@ public class MarkerMetrics {
 											proj.RESULTS_DIRECTORY.getValue(false, true) + "annotationReport.xln");
 	}
 
-	public static void tallyClusterFilters(	Project proj, boolean[] samplesToInclude,
-																					String markersSubset) {
+	public static void tallyClusterFilters(Project proj, boolean[] samplesToInclude,
+																				 String markersSubset) {
 		PrintWriter writer;
 		String[] markerNames;
 		MarkerDataLoader markerDataLoader;
@@ -1024,8 +1031,8 @@ public class MarkerMetrics {
 				markerData = markerDataLoader.requestMarkerData(i);
 				numGenotypesAffected = numNonMissingBefore = numNonMissingAfter = 0;
 				genotypesBefore = markerData.getAbGenotypes();
-				genotypesAfter = markerData.getAbGenotypesAfterFilters(	clusterFilterCollection,
-																																markerNames[i], gcThreshold, log);
+				genotypesAfter = markerData.getAbGenotypesAfterFilters(clusterFilterCollection,
+																															 markerNames[i], gcThreshold, log);
 				for (int k = 0; k < genotypesBefore.length; k++) {
 					if (samplesToInclude[k]) {
 						if (genotypesBefore[k] != genotypesAfter[k]) {
@@ -1039,17 +1046,20 @@ public class MarkerMetrics {
 						}
 					}
 				}
-				writer.println(markerNames[i]	+ "\t" + markerData.getChr() + "\t" + markerData.getPosition()
-												+ "\t" + clusterFilterCollection.getClusterFilters(markerNames[i]).size()
-												+ "\t" + numGenotypesAffected + "\t"
-												+ ((double) numGenotypesAffected / (double) genotypesBefore.length) + "\t"
-												+ ((double) numNonMissingBefore / (double) genotypesBefore.length) + "\t"
-												+ ((double) numNonMissingAfter / (double) genotypesBefore.length) + "\t"
-												+ (((double) numNonMissingAfter / (double) genotypesBefore.length)
-														- ((double) numNonMissingBefore / (double) genotypesBefore.length))
-												+ "\t" + (Array.mean(Array.removeAllValues(genotypesBefore, (byte) -1)) / 2)
-												+ "\t"
-												+ (Array.mean(Array.removeAllValues(genotypesAfter, (byte) -1)) / 2));
+				writer.println(markerNames[i] + "\t" + markerData.getChr() + "\t" + markerData.getPosition()
+											 + "\t" + clusterFilterCollection.getClusterFilters(markerNames[i]).size()
+											 + "\t" + numGenotypesAffected + "\t"
+											 + ((double) numGenotypesAffected / (double) genotypesBefore.length) + "\t"
+											 + ((double) numNonMissingBefore / (double) genotypesBefore.length) + "\t"
+											 + ((double) numNonMissingAfter / (double) genotypesBefore.length) + "\t"
+											 + (((double) numNonMissingAfter / (double) genotypesBefore.length)
+													- ((double) numNonMissingBefore / (double) genotypesBefore.length))
+											 + "\t"
+											 + (ArrayUtils.mean(ArrayUtils.removeAllValues(genotypesBefore, (byte) -1))
+													/ 2)
+											 + "\t"
+											 + (ArrayUtils.mean(ArrayUtils.removeAllValues(genotypesAfter, (byte) -1))
+													/ 2));
 				markerDataLoader.releaseIndex(i);
 			}
 			writer.close();
@@ -1060,8 +1070,8 @@ public class MarkerMetrics {
 		log.report("Output successfully written to " + filename);
 	}
 
-	public static void annotationReports(	Project proj, boolean checkForDeletedMarkers,
-																				String outputFile) {
+	public static void annotationReports(Project proj, boolean checkForDeletedMarkers,
+																			 String outputFile) {
 		PrintWriter writer, writerMissed;
 		Hashtable<String, String> reclusteredMarkers, droppedMarkers;
 		HashSet<String> allOtherMarkers;
@@ -1142,11 +1152,11 @@ public class MarkerMetrics {
 						numDropped++;
 					}
 				}
-				writer.println(annotation	+ "\t" + markersWithAnnotation.length + "\t" + numReclustered
-												+ "\t" + numDropped);
+				writer.println(annotation + "\t" + markersWithAnnotation.length + "\t" + numReclustered
+											 + "\t" + numDropped);
 			}
-			writer.println("Any annotation\t"	+ markerNames.length + "\t" + reclusteredMarkers.size()
-											+ "\t" + droppedMarkers.size());
+			writer.println("Any annotation\t" + markerNames.length + "\t" + reclusteredMarkers.size()
+										 + "\t" + droppedMarkers.size());
 			Files.writeArray(HashVec.getKeys(droppedMarkers), proj.RESULTS_DIRECTORY.getValue(false, true)
 																												+ "markers_that_were_dropped.out");
 
@@ -1172,8 +1182,8 @@ public class MarkerMetrics {
 
 			markerNames = allOtherMarkers.toArray(new String[allOtherMarkers.size()]);
 			if (checkForDeletedMarkers) {
-				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(	proj,
-																																										markerNames);
+				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+																																									 markerNames);
 			} else {
 				markerDataLoader = null;
 			}
@@ -1245,19 +1255,19 @@ public class MarkerMetrics {
 			trav = hash.get(samples[i]);
 			deps[i] = trav == null || ext.isMissingValue(trav) ? Double.NaN : Double.parseDouble(trav);
 		}
-		binary = RegressionModel.isBinaryTrait(Array.toStringArray(deps), log);
+		binary = RegressionModel.isBinaryTrait(ArrayUtils.toStringArray(deps), log);
 
 		markerNames = proj.getMarkerNames();
 		try {
 			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																								+ ext.replaceWithLinuxSafeCharacters(phenotype, true)
+																							+ ext.replaceWithLinuxSafeCharacters(phenotype, true)
 																							+ "_regress.xln"));
 			writer.println("MarkerName\tBAF_p");
 			// markerDataLoader = new MarkerDataLoader(proj, markerNames, -1, log);
 			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 			for (int i = 0; i < markerNames.length; i++) {
 				markerData = markerDataLoader.requestMarkerData(i);
-				indeps = Array.toDoubleArray(markerData.getBAFs());
+				indeps = ArrayUtils.toDoubleArray(markerData.getBAFs());
 				if (binary) {
 					model = new LogisticRegression(deps, indeps);
 				} else {
@@ -1272,7 +1282,7 @@ public class MarkerMetrics {
 
 			writer.close();
 		} catch (Exception e) {
-			log.reportError("Error writing to "	+ proj.PROJECT_DIRECTORY.getValue()
+			log.reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue()
 											+ ext.replaceWithLinuxSafeCharacters(phenotype, true) + "_regress.xln");
 			log.reportException(e);
 		}
@@ -1288,8 +1298,8 @@ public class MarkerMetrics {
 		private final String fullPathToOutput;
 		private final boolean checkMendel;
 
-		public MarkerMetricsWorker(	Project proj, boolean[] samplesToExclude, String[] markerNames,
-																String fullPathToOutput, boolean checkMendel) {
+		public MarkerMetricsWorker(Project proj, boolean[] samplesToExclude, String[] markerNames,
+															 String fullPathToOutput, boolean checkMendel) {
 			super();
 			this.proj = proj;
 			this.samplesToExclude = samplesToExclude;
@@ -1308,13 +1318,12 @@ public class MarkerMetrics {
 			} else {
 				if (!Files.exists(fullPathToOutput)) {
 					proj.getLog().reportError("Could not compute marker metrics on "
-																				+ Thread.currentThread().toString());
+																		+ Thread.currentThread().toString());
 					proj.getLog().reportFileNotFound(fullPathToOutput);
 				} else {
 					proj.getLog()
-							.reportError("Found "	+ Files.countLines(fullPathToOutput, 1) + " markers in "
-																+ fullPathToOutput + " but should have found "
-																+ markerNames.length);
+							.reportError("Found " + Files.countLines(fullPathToOutput, 1) + " markers in "
+													 + fullPathToOutput + " but should have found " + markerNames.length);
 				}
 				return false;
 			}
@@ -1359,32 +1368,31 @@ public class MarkerMetrics {
 		int numThreads = 1;
 		boolean checkMendel = true;
 
-		String usage = "\n"	+ "cnv.qc.MarkerMetrics requires 0-1 arguments\n"
-										+ "   (1) project properties filename (i.e. proj="
-										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-										+ "   (2) filename of subset of samples to include (i.e. samples=" + samples
-										+ " (default; if null, uses all samples except those marked in the \"Excluded\" column in SampleData.txt))\n"
-										+ "   (3) filename of subset of markers to include / otherwise all markers (i.e. markers="
-										+ markersSubset + " (default))\n" + PSF.Ext.getNumThreadsCommand(4, numThreads)
-										+
+		String usage = "\n" + "cnv.qc.MarkerMetrics requires 0-1 arguments\n"
+									 + "   (1) project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + "   (2) filename of subset of samples to include (i.e. samples=" + samples
+									 + " (default; if null, uses all samples except those marked in the \"Excluded\" column in SampleData.txt))\n"
+									 + "   (3) filename of subset of markers to include / otherwise all markers (i.e. markers="
+									 + markersSubset + " (default))\n" + PSF.Ext.getNumThreadsCommand(4, numThreads) +
 
-										"  AND\n"
-										+ "   (4) look at intensity separation between males and females (i.e. -separation (not the default))\n"
-										+ "  OR\n"
-										+ "   (4) perform full list of checks on marker quality (i.e. -fullQC (not the default))\n"
-										+ "   (5) do not check for mendelian errors when performing full qc (i.e. -skipMendel (not the default))\n"
-										+ "  OR\n"
-										+ "   (4) filter markers based on filter criteria (i.e. -filter (not the default))\n"
-										+ "  OR\n"
-										+ "   (4) check variance of LRR to help determine regions of instability (i.e. -lrrVar (not the default))\n"
-										+ "  OR\n"
-										+ "   (4) tally the number of reviewed markers that were changed or dropped (i.e. -tally (not the default))\n"
-										+ "   (5) check for deleted markers (i.e. checkForDeleted="
-										+ checkForDeletedMarkers + " (default))\n" + "  OR\n"
-										+ "   (3) list which markers were adjusted using a cluster filter and how many genotypes changed class (i.e. -countFilters (not the default))\n"
-										+ "  OR\n"
-										+ "   (2) variable name in SampleData.txt to use as the outcome variable in the regression analyses (i.e. pheno=Class=ExamplePheno (not the default))\n"
-										+ "";
+									 "  AND\n"
+									 + "   (4) look at intensity separation between males and females (i.e. -separation (not the default))\n"
+									 + "  OR\n"
+									 + "   (4) perform full list of checks on marker quality (i.e. -fullQC (not the default))\n"
+									 + "   (5) do not check for mendelian errors when performing full qc (i.e. -skipMendel (not the default))\n"
+									 + "  OR\n"
+									 + "   (4) filter markers based on filter criteria (i.e. -filter (not the default))\n"
+									 + "  OR\n"
+									 + "   (4) check variance of LRR to help determine regions of instability (i.e. -lrrVar (not the default))\n"
+									 + "  OR\n"
+									 + "   (4) tally the number of reviewed markers that were changed or dropped (i.e. -tally (not the default))\n"
+									 + "   (5) check for deleted markers (i.e. checkForDeleted="
+									 + checkForDeletedMarkers + " (default))\n" + "  OR\n"
+									 + "   (3) list which markers were adjusted using a cluster filter and how many genotypes changed class (i.e. -countFilters (not the default))\n"
+									 + "  OR\n"
+									 + "   (2) variable name in SampleData.txt to use as the outcome variable in the regression analyses (i.e. pheno=Class=ExamplePheno (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -1473,10 +1481,10 @@ public class MarkerMetrics {
 				separationOfSexes(proj, markersSubset);
 			}
 			if (fullQC) {
-				fullQC(	proj,
-								(samples == null)	? proj.getSamplesToExclude()
-																	: Array.booleanNegative(proj.getSamplesToInclude(samples)),
-								markersSubset, checkMendel, numThreads);
+				fullQC(proj,
+							 (samples == null) ? proj.getSamplesToExclude()
+																 : ArrayUtils.booleanNegative(proj.getSamplesToInclude(samples)),
+							 markersSubset, checkMendel, numThreads);
 			}
 			if (lrrVariance) {
 				lrrVariance(proj, proj.getSamplesToInclude(samples), markersSubset);

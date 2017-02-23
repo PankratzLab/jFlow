@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -40,12 +40,12 @@ public class CALiCoResultsPackager {
 			// MODEL_INDEX_MODEL_DESC,
 	};
 
-	static final int[] FREQ_INDICES = {	0, // CHR
-																			1, // SNP
-																			2, // A1
-																			3, // A2
-																			4, // MAF
-																			5, // NCHROBS
+	static final int[] FREQ_INDICES = {0, // CHR
+																		 1, // SNP
+																		 2, // A1
+																		 3, // A2
+																		 4, // MAF
+																		 5, // NCHROBS
 	};
 	static final int[] ASSOC_INDICES = {0, // CHR
 																			1, // SNP
@@ -151,14 +151,14 @@ public class CALiCoResultsPackager {
 
 	public static ModelSNP[] loadModels(ModelData md) throws IOException {
 		ArrayList<ModelSNP> keys = new ArrayList<ModelSNP>();
-		String[][] keyLines = HashVec.loadFileToStringMatrix(runDir	+ "conditionals.txt", false,
-																													new int[] {0, 1}, false);
+		String[][] keyLines = HashVec.loadFileToStringMatrix(runDir + "conditionals.txt", false,
+																												 new int[] {0, 1}, false);
 		for (String[] keyLine : keyLines) {
 			ModelSNP m = new ModelSNP();
 			m.modelSNP = keyLine[1];
-			m.modelName = keyLine[0].substring(0, keyLine[0].indexOf("."))	+ "_"
+			m.modelName = keyLine[0].substring(0, keyLine[0].indexOf(".")) + "_"
 										+ ext.replaceWithLinuxSafeCharacters(keyLine[1], false);
-			String file = runDir	+ resultsDir + m.modelName + "/"
+			String file = runDir + resultsDir + m.modelName + "/"
 										+ m.modelName.substring(0, m.modelName.indexOf("_")) + "_pheno.dat";
 			m.n = Files.countLines(file, 1);
 
@@ -272,7 +272,7 @@ public class CALiCoResultsPackager {
 		String a1final = a1assoc;
 		String a2final = (a1assoc.equals(a1) ? a2 : a1);
 		if (!a1assoc.equals(a1)) {
-			logWriter.println("Error - Mismatched Alleles! SNP: ["	+ snp + "] ::>> A1_a: [" + a1assoc
+			logWriter.println("Error - Mismatched Alleles! SNP: [" + snp + "] ::>> A1_a: [" + a1assoc
 												+ "] <-> A1/A2: [" + a1 + "/" + a2 + "]");
 		}
 
@@ -343,7 +343,7 @@ public class CALiCoResultsPackager {
 			a1final = a1assoc;
 			a2final = (a1assoc.equals(a1) ? a2 : a1);
 			if (!a1assoc.equals(a1)) {
-				logWriter.println("Error - Mismatched Alleles! INDEXSNP: ["	+ rsID + "] ::>> A1_a: ["
+				logWriter.println("Error - Mismatched Alleles! INDEXSNP: [" + rsID + "] ::>> A1_a: ["
 													+ a1assoc + "] <-> A1/A2: [" + a1 + "/" + a2 + "]");
 			}
 
@@ -366,7 +366,7 @@ public class CALiCoResultsPackager {
 														"index#.coded", "index#.noncoded"};
 
 	private static String getHeader(ModelData md) {
-		StringBuilder header = new StringBuilder(Array.toStr(hdr1, "\t"));
+		StringBuilder header = new StringBuilder(ArrayUtils.toStr(hdr1, "\t"));
 		int rsCount = md.RS_INDICES.length;
 		for (int i = 0; i < rsCount; i++) {
 			header.append("\tindex");
@@ -375,10 +375,10 @@ public class CALiCoResultsPackager {
 			}
 			header.append(".rsID");
 		}
-		header.append("\t").append(Array.toStr(hdr2, "\t")).append("\t");
+		header.append("\t").append(ArrayUtils.toStr(hdr2, "\t")).append("\t");
 		for (int i = 0; i < rsCount; i++) {
 			String repl = rsCount > 1 ? (i + 1) + "" : "";
-			header.append(Array.toStr(hdrInd, "\t").replaceAll("#", repl)).append("\t");
+			header.append(ArrayUtils.toStr(hdrInd, "\t").replaceAll("#", repl)).append("\t");
 		}
 		return header.toString();
 	}
@@ -395,14 +395,14 @@ public class CALiCoResultsPackager {
 			count = 0;
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\\s+");
-				hash.put(line[1], ":\t"	+ count + "\t" + line[0] + "\t" + line[3] + "\t" + line[4] + "\t"
-													+ line[5]);
+				hash.put(line[1],
+								 ":\t" + count + "\t" + line[0] + "\t" + line[3] + "\t" + line[4] + "\t" + line[5]);
 				count++;
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""	+ plinkFileRoot + ".bim"
-													+ "\" not found in current directory");
+			System.err.println("Error: file \"" + plinkFileRoot + ".bim"
+												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + plinkFileRoot + ".bim" + "\"");

@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -15,9 +15,8 @@ import org.genvisis.common.ext;
 public class Markers {
 	public static final String DEFAULT_MARKER_DATABASE = "marker.database";
 
-	public static final String[] ALT_LOCS =
-																				{	"C:\\Documents and Settings\\npankrat\\My Documents\\jProjects\\park\\",
-																					"/home/npankrat/"};
+	public static final String[] ALT_LOCS = {"C:\\Documents and Settings\\npankrat\\My Documents\\jProjects\\park\\",
+																					 "/home/npankrat/"};
 
 	public static int[] order(String[] markers, boolean shouldBeOnSameChromosome) {
 		return order(markers, DEFAULT_MARKER_DATABASE, shouldBeOnSameChromosome);
@@ -29,7 +28,7 @@ public class Markers {
 		PrintWriter writer;
 		String[] line;
 		int[] chrs = new int[markers.length];
-		double[] distances = Array.doubleArray(markers.length, -1);
+		double[] distances = ArrayUtils.doubleArray(markers.length, -1);
 		DecimalFormat myFormatter = new DecimalFormat("##0.00");
 		int[] keys = new int[markers.length];
 		int index, chr = -1;
@@ -68,17 +67,17 @@ public class Markers {
 				writer = new PrintWriter(new FileWriter("markerMap.dat"));
 				for (int i = 0; i < keys.length; i++) {
 					if (distances[keys[i]] == -1) {
-						System.err.println("Error - marker '"	+ markers[i]
-																+ "' could not be found in the database");
+						System.err.println("Error - marker '" + markers[i]
+															 + "' could not be found in the database");
 					}
 					if (chrs[keys[i]] != chr) {
 						System.err.println("Error - all markers were not on the same chromosome ('"
-																+ markers[keys[i]] + "' for instance)");
+															 + markers[keys[i]] + "' for instance)");
 					}
 					if (i > 0) {
 						diff = distances[keys[i]] - distances[keys[i - 1]];
 						writer.print(myFormatter.format(diff) + " ");
-						output += "\n     "	+ myFormatter.format(diff) + "\n" + markers[keys[i]] + "    "
+						output += "\n     " + myFormatter.format(diff) + "\n" + markers[keys[i]] + "    "
 											+ distances[keys[i]];
 					}
 				}

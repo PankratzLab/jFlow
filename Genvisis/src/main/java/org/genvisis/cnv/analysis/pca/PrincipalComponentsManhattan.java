@@ -22,7 +22,7 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MarkerDataLoader;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -74,7 +74,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	 * @param mTests can add more tests here,just call before populating results
 	 */
 	public void addManhattanTest(ManhattanTest[] mTests) {
-		manhattanTests = Array.concatAll(manhattanTests, mTests);
+		manhattanTests = ArrayUtils.concatAll(manhattanTests, mTests);
 		updateResultSize();
 	}
 
@@ -82,11 +82,10 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	 * computes for all markers
 	 */
 	public void populateResults(int numThreads, boolean verbose, LS_TYPE lType) {
-		getProj().getLog().reportTimeInfo("Generating Manhattan plot(s) from "	+ markersToTest.length
+		getProj().getLog().reportTimeInfo("Generating Manhattan plot(s) from " + markersToTest.length
 																			+ " markers");
-		MarkerDataLoader markerDataLoader =
-																			MarkerDataLoader.loadMarkerDataFromListInSeparateThread(getProj(),
-																																															markersToTest);
+		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(getProj(),
+																																																markersToTest);
 		for (int i = 0; i < markersToTest.length; i++) {
 			if (i != 0 && i % 50 == 0) {
 				getProj().getLog().reportTimeInfo("marker " + i + " of " + markersToTest.length);
@@ -102,13 +101,13 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	 */
 	public void populateDataForMarker(int numThreads, boolean verbose, LS_TYPE lType, int i,
 																		MarkerData markerData) {
-		double[] lrrs = Array.toDoubleArray(markerData.getLRRs());
+		double[] lrrs = ArrayUtils.toDoubleArray(markerData.getLRRs());
 		ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 		Hashtable<String, Future<double[]>> tmpResults = new Hashtable<String, Future<double[]>>();
 		for (int j = 0; j < manhattanTests.length; j++) {
-			tmpResults.put(j	+ "",
-											executor.submit(new ManhattanTestWorker(manhattanTests[j], lrrs, verbose,
-																															lType, getProj().getLog())));
+			tmpResults.put(j + "",
+										 executor.submit(new ManhattanTestWorker(manhattanTests[j], lrrs, verbose,
+																														 lType, getProj().getLog())));
 		}
 		for (int j = 0; j < manhattanTests.length; j++) {
 			try {
@@ -134,24 +133,23 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	 */
 	public void dumpResults(String fullPathToOutputBase) {
 		MarkerSet markerSet = proj.getMarkerSet();
-		int[] markerIndicesInProject = ext.indexLargeFactors(	markersToTest, markerSet.getMarkerNames(),
-																													true, getProj().getLog(), true, false);
+		int[] markerIndicesInProject = ext.indexLargeFactors(markersToTest, markerSet.getMarkerNames(),
+																												 true, getProj().getLog(), true, false);
 		byte[] chrs = markerSet.getChrs();
 		int[] pos = markerSet.getPositions();
 		for (int i = 0; i < manhattanTests.length; i++) {
 			String output = fullPathToOutputBase
-												+ ext.replaceWithLinuxSafeCharacters(manhattanTests[i].getTitle(), true)
+											+ ext.replaceWithLinuxSafeCharacters(manhattanTests[i].getTitle(), true)
 											+ EXT;
 
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(output));
-				writer.println(Array.toStr(HEADER));
+				writer.println(ArrayUtils.toStr(HEADER));
 				for (int j = 0; j < markersToTest.length; j++) {
-					writer.println((j + 1)	+ "\t" + markersToTest[j] + "\t" + chrs[markerIndicesInProject[j]]
-													+ "\t" + pos[markerIndicesInProject[j]] + "\t"
-													+ (results[i][j] == null	? "NaN\tNaN"
-																										: results[i][j][0]	+ "\t"
-																											+ Math.abs(results[i][j][1])));
+					writer.println((j + 1) + "\t" + markersToTest[j] + "\t" + chrs[markerIndicesInProject[j]]
+												 + "\t" + pos[markerIndicesInProject[j]] + "\t"
+												 + (results[i][j] == null ? "NaN\tNaN" : results[i][j][0] + "\t"
+																																 + Math.abs(results[i][j][1])));
 				}
 				writer.close();
 			} catch (Exception e) {
@@ -170,7 +168,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 		if (fullPathToaltDataFile != null) {
 			proj.getLog().reportTimeInfo("Attempting to load " + fullPathToaltDataFile);
 			ManhattanTest[] tmp = loadManhattanTestFromFile(getProj(), fullPathToaltDataFile);
-			manhattanTests = Array.concatAll(tmp, manhattanTests);
+			manhattanTests = ArrayUtils.concatAll(tmp, manhattanTests);
 		}
 		updateResultSize();
 	}
@@ -179,8 +177,8 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 		results = new double[manhattanTests.length][markersToTest.length][];
 	}
 
-	private static ManhattanTest[] getManhattanTestsForPCs(	PrincipalComponentsManhattan pcManhattan,
-																													int numPCs) {
+	private static ManhattanTest[] getManhattanTestsForPCs(PrincipalComponentsManhattan pcManhattan,
+																												 int numPCs) {
 		ManhattanTest[] manhattanTests = new ManhattanTest[numPCs];
 		for (int i = 0; i < numPCs; i++) {
 			manhattanTests[i] = new ManhattanTest("PC" + (i + 1), pcManhattan.getBasisAt((i + 1)), null);
@@ -195,8 +193,8 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 		private final LS_TYPE lType;
 		private final Logger log;
 
-		public ManhattanTestWorker(	ManhattanTest mTest, double[] dataToTest, boolean verbose,
-																LS_TYPE lType, Logger log) {
+		public ManhattanTestWorker(ManhattanTest mTest, double[] dataToTest, boolean verbose,
+															 LS_TYPE lType, Logger log) {
 			super();
 			this.mTest = mTest;
 			this.dataToTest = dataToTest;
@@ -236,8 +234,8 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 			double[] tmpdep = dataTest;
 			double[] tmpInd = dataToTest;
 			if (dataMask != null) {
-				tmpdep = Array.subArray(tmpdep, dataMask);
-				tmpInd = Array.subArray(tmpInd, dataMask);
+				tmpdep = ArrayUtils.subArray(tmpdep, dataMask);
+				tmpInd = ArrayUtils.subArray(tmpInd, dataMask);
 			}
 			CrossValidation crossValidation = new CrossValidation(tmpdep, Matrix.toMatrix(tmpInd), tmpdep,
 																														Matrix.toMatrix(tmpInd), verbose, lType,
@@ -317,8 +315,8 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 			}
 			maTests = new ManhattanTest[titleIndices.length];
 			for (int i = 0; i < maTests.length; i++) {
-				proj.getLog().reportTimeInfo("Found "	+ Array.booleanArraySum(masks[i])
-																			+ " samples for column " + titles[i]);
+				proj.getLog().reportTimeInfo("Found " + ArrayUtils.booleanArraySum(masks[i])
+																		 + " samples for column " + titles[i]);
 				maTests[i] = new ManhattanTest(titles[i], data[i], masks[i]);
 			}
 		}
@@ -334,8 +332,8 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 			// project properties file", "Error", JOptionPane.ERROR_MESSAGE);
 			JOptionPane.showMessageDialog(parentComponent,
 																		"Failed to load target markers '"
-																												+ proj.TARGET_MARKERS_FILENAMES.getValue()[0]
-																											+ "'; this is the designated marker in the project properties file",
+																										 + proj.TARGET_MARKERS_FILENAMES.getValue()[0]
+																										 + "'; this is the designated marker in the project properties file",
 																		"Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
@@ -347,10 +345,10 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 			// component(s)?", "Manhattan Plot", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 			// null, ObjButtons, ObjButtons[1]);
 			int promptResult = JOptionPane.showOptionDialog(parentComponent,
-																											"Generate manhattan plots for "	+ numMarkers
-																																				+ " marker(s) over "
-																																				+ proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
-																																				+ " component(s)?",
+																											"Generate manhattan plots for " + numMarkers
+																																			 + " marker(s) over "
+																																			 + proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
+																																			 + " component(s)?",
 																											"Manhattan Plot", JOptionPane.DEFAULT_OPTION,
 																											JOptionPane.WARNING_MESSAGE, null, ObjButtons,
 																											ObjButtons[1]);
@@ -359,8 +357,8 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 			}
 		} else {
 			JOptionPane.showMessageDialog(parentComponent,
-																		"Failed to detect "	+ proj.INTENSITY_PC_FILENAME + " " + pcFile
-																											+ " ; this is the designated intensity pc filename in the project properties file",
+																		"Failed to detect " + proj.INTENSITY_PC_FILENAME + " " + pcFile
+																										 + " ; this is the designated intensity pc filename in the project properties file",
 																		"Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
@@ -371,8 +369,8 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	public static void createManhattans(Project proj) {
 		// int numComponents = proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS);
 		int numComponents = proj.INTENSITY_PC_NUM_COMPONENTS.getValue();
-		createManhattans(	proj, "Manhattan/manhattan", null, numComponents, 1, false,
-											numComponents >= 250 ? LS_TYPE.SVD : LS_TYPE.REGULAR);
+		createManhattans(proj, "Manhattan/manhattan", null, numComponents, 1, false,
+										 numComponents >= 250 ? LS_TYPE.SVD : LS_TYPE.REGULAR);
 	}
 
 	public static void createManhattans(Project proj, String outputBase, String altDataFile,
@@ -384,15 +382,14 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 		// int[] { 0 }, true);
 		proj.getLog()
 				.reportTimeInfo("Loading markers from " + proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
-		String[] markers = HashVec.loadFileToStringArray(	proj.TARGET_MARKERS_FILENAMES.getValue()[0],
-																											false, new int[] {0}, true);
-		PrincipalComponentsManhattan principalComponentsManhattan =
-																															new PrincipalComponentsManhattan(	proj,
-																																																markers,
-																																																altDataFile == null	? null
-																																																										: proj.PROJECT_DIRECTORY.getValue()
-																																																											+ altDataFile,
-																																																numPCs);
+		String[] markers = HashVec.loadFileToStringArray(proj.TARGET_MARKERS_FILENAMES.getValue()[0],
+																										 false, new int[] {0}, true);
+		PrincipalComponentsManhattan principalComponentsManhattan = new PrincipalComponentsManhattan(proj,
+																																																 markers,
+																																																 altDataFile == null ? null
+																																																										 : proj.PROJECT_DIRECTORY.getValue()
+																																																											 + altDataFile,
+																																																 numPCs);
 		principalComponentsManhattan.populateResults(numThreads, verbose, ltType);
 		outputBase = proj.PROJECT_DIRECTORY.getValue() + outputBase;
 		new File(ext.parseDirectoryOfFile(outputBase)).mkdirs();
@@ -412,12 +409,10 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 		String usage = "\n" + "cnv.analysis.pca.PrincipalComponentsManhattan requires 0-1 arguments\n";
 		usage += "   (1) project filename (i.e. proj=" + filename + " (default))\n" + "";
 		usage += "   (2) number of PCs to test (i.e. numPCs=" + numPCs + " (default))\n" + "";
-		usage +=
-					"   (3) another data file (under the project's directory) to use in the tests, must have a header with at least this column "
-								+ ManhattanTest.SAMPLE + " (i.e. altDataFile=" + altDataFile + " (no default))\n"
-							+ "";
-		usage += "   (4) number of threads (i.e. "	+ PSF.Ext.NUM_THREADS_COMMAND + numThreads
-							+ " (default))\n" + "";
+		usage += "   (3) another data file (under the project's directory) to use in the tests, must have a header with at least this column "
+						 + ManhattanTest.SAMPLE + " (i.e. altDataFile=" + altDataFile + " (no default))\n" + "";
+		usage += "   (4) number of threads (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + numThreads
+						 + " (default))\n" + "";
 		usage += "   (5) output base name (i.e.  outputBase=" + outputBase + " (default))\n" + "";
 
 		for (String arg : args) {

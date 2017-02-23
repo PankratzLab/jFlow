@@ -5,7 +5,7 @@ package org.genvisis.seq.analysis;
 
 import java.io.File;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -29,16 +29,16 @@ public class Dinumt {
 	private static QCParams getQCParams(String bamQCOutput, String bamFile, Logger log) {
 		String[] dataToLoad = new String[] {"numOnTarget", "Total Base Pairs Targeted",
 																				"AverageOnTargetInsertSize", "OnTargetInsertSizeStdev"};
-		int[] indices = ext.indexFactors(	dataToLoad, Files.getHeaderOfFile(bamQCOutput, log), true,
-																			false);
+		int[] indices = ext.indexFactors(dataToLoad, Files.getHeaderOfFile(bamQCOutput, log), true,
+																		 false);
 
 
-		String[] stats = HashVec.loadFileToStringArray(	bamQCOutput, true, indices,
-																										false)[0].split("\t");
+		String[] stats = HashVec.loadFileToStringArray(bamQCOutput, true, indices,
+																									 false)[0].split("\t");
 		double bpCoverage = Double.parseDouble(stats[0]) * BamOps.estimateReadSize(bamFile, log);
 		double targeted = Double.parseDouble(stats[1]);
 		double averageCoverage = bpCoverage / targeted;
-		System.out.println(Array.toStr(stats));
+		System.out.println(ArrayUtils.toStr(stats));
 		return new QCParams(Double.parseDouble(stats[2]), Double.parseDouble(stats[3]),
 												averageCoverage);
 	}
@@ -73,8 +73,8 @@ public class Dinumt {
 			int[] readDepth = {0, 1, 2, 3, 4, 10, 20, 30, 40};
 			FilterNGS filterNGS = new FilterNGS(mappingQuality, phreadScore, readDepth);
 
-			BamQC.qcBams(	null, bamQCDir, null, bamList, targetLibraryFile, null, 2, filterNGS, numThreads,
-										bamQCOutput, null, false, 0, false, log);
+			BamQC.qcBams(null, bamQCDir, null, bamList, targetLibraryFile, null, 2, filterNGS, numThreads,
+									 bamQCOutput, null, false, 0, false, log);
 		}
 
 		return getQCParams(bamQCDir + bamQCOutput, inputBam, log);

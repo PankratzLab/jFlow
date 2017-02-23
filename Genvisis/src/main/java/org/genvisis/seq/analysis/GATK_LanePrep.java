@@ -9,7 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -28,9 +28,9 @@ public class GATK_LanePrep extends BWA_Analysis {
 	private final GATK gatk;
 	private GATK.BaseRecalibration[] gRecalibrations;
 
-	public GATK_LanePrep(	String rootInputDir, String rootOutputDir, String referenceGenomeFasta,
-												boolean verbose, int numWithinSampleThreads, int numBetweenSampleThreads,
-												BWA bwa, Picard picard, GATK gatk, Logger log) {
+	public GATK_LanePrep(String rootInputDir, String rootOutputDir, String referenceGenomeFasta,
+											 boolean verbose, int numWithinSampleThreads, int numBetweenSampleThreads,
+											 BWA bwa, Picard picard, GATK gatk, Logger log) {
 		super(rootInputDir, (rootOutputDir == null ? rootInputDir : rootOutputDir),
 					referenceGenomeFasta, verbose, numWithinSampleThreads, numBetweenSampleThreads, bwa, log);
 		this.picard = picard;
@@ -51,22 +51,21 @@ public class GATK_LanePrep extends BWA_Analysis {
 				picardAnalyses = new Picard.PicardAnalysis[bwAnalysisIndividuals.length];
 				double memoryRatio = calcMemoryRatio(bwAnalysisIndividuals.length, getLog());
 				ExecutorService executor = Executors.newFixedThreadPool(getNumBetweenSampleThreads());
-				Hashtable<String, Future<Picard.PicardAnalysis>> tmpResults =
-																																		new Hashtable<String, Future<Picard.PicardAnalysis>>();
+				Hashtable<String, Future<Picard.PicardAnalysis>> tmpResults = new Hashtable<String, Future<Picard.PicardAnalysis>>();
 				for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
-					Logger altLog = new Logger(ext.rootOf(getLog().getFilename(), false)	+ "_Picard_ID_"
-																			+ bwAnalysisIndividuals[i].getID() + "_Lane_"
-																			+ bwAnalysisIndividuals[i].getLane() + ".log");
-					tmpResults.put(	Integer.toString(i),
-													executor.submit(new WorkerPicard(	picard, bwAnalysisIndividuals[i].getID(),
-																														bwAnalysisIndividuals[i].getOutput(),
-																														memoryRatio, altLog)));
+					Logger altLog = new Logger(ext.rootOf(getLog().getFilename(), false) + "_Picard_ID_"
+																		 + bwAnalysisIndividuals[i].getID() + "_Lane_"
+																		 + bwAnalysisIndividuals[i].getLane() + ".log");
+					tmpResults.put(Integer.toString(i),
+												 executor.submit(new WorkerPicard(picard, bwAnalysisIndividuals[i].getID(),
+																													bwAnalysisIndividuals[i].getOutput(),
+																													memoryRatio, altLog)));
 				}
 				for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
 					try {
 						getLog().memoryPercentFree();
 						picardAnalyses[i] = tmpResults.get(Integer.toString(i)).get();
-						getLog().report(ext.getTime()	+ "Info - retrieving picard results for "
+						getLog().report(ext.getTime() + "Info - retrieving picard results for "
 														+ picardAnalyses[i].getFullPathToSamFile());
 						if (picardAnalyses[i].isFail() && !isFail()) {
 							getLog().reportError("Failed picard for " + picardAnalyses[i].getFullPathToSamFile());
@@ -94,13 +93,13 @@ public class GATK_LanePrep extends BWA_Analysis {
 						picardFiles[i] = picardAnalyses[i].getFullPathToMetricsTxt();
 					} else {
 						getLog().reportError("Could not find picard metrics file for root input files:\n"
-																	+ bwAnalysisIndividuals[i].getAvailableFiles("\n"));
+																 + bwAnalysisIndividuals[i].getAvailableFiles("\n"));
 					}
 				}
 				getLog().report(ext.getTime() + "Info - parsing picard metrics files");
 
-				Picard.PicardMetricsParser pMetricsParser = new Picard.PicardMetricsParser(	picardFiles,
-																																										getLog());
+				Picard.PicardMetricsParser pMetricsParser = new Picard.PicardMetricsParser(picardFiles,
+																																									 getLog());
 				pMetricsParser.parse(getRootOutputDir() + PICARD_METRICS_SUMMARY);
 				getLog().report(ext.getTime() + "Info - finished parsing picard metrics files");
 
@@ -126,36 +125,36 @@ public class GATK_LanePrep extends BWA_Analysis {
 	private void runMergeDedupe() {
 		if (!isFail()) {
 			if (picardAnalyses != null) {
-				Picard.PicardAnalysis[][] picardAnalysesToMerge = getPicardAnalysesToMerge(	picardAnalyses,
-																																										getLog());
+				Picard.PicardAnalysis[][] picardAnalysesToMerge = getPicardAnalysesToMerge(picardAnalyses,
+																																									 getLog());
 				picardMergeDedupes = new Picard.PicardMergeDedupe[picardAnalysesToMerge.length];
 				double memoryRatio = calcMemoryRatio(picardAnalysesToMerge.length, getLog());
 				ExecutorService executor = Executors.newFixedThreadPool(getNumBetweenSampleThreads());
 				Hashtable<String, Future<Picard.PicardMergeDedupe>> tmpResults = new Hashtable<String, Future<Picard.PicardMergeDedupe>>();
 				for (int i = 0; i < picardMergeDedupes.length; i++) {
 					Logger altLog = new Logger(ext.rootOf(getLog().getFilename(), false)
-																				+ "_Picard.PicardMergeDedupe_ID_"
-																			+ picardAnalysesToMerge[i][0].getBaseID() + ".log");
+																		 + "_Picard.PicardMergeDedupe_ID_"
+																		 + picardAnalysesToMerge[i][0].getBaseID() + ".log");
 					String[] inputBams = new String[picardAnalysesToMerge[i].length];
 					String[] inputBamIndices = new String[inputBams.length];
 					for (int j = 0; j < picardAnalysesToMerge[i].length; j++) {
 						inputBams[j] = picardAnalysesToMerge[i][j].getFullPathToSortedDeDuppedBamFile();
 						inputBamIndices[j] = picardAnalysesToMerge[i][j].getFullPathToSortedDeDuppedBamFileIndex();
 					}
-					tmpResults.put(	Integer.toString(i),
-													executor.submit(new WorkerMergeDedupe(picard,
-																																picardAnalysesToMerge[i][0].getBaseID(),
-																																inputBams, inputBamIndices,
-																																getRootOutputDir(), memoryRatio,
-																																altLog)));
+					tmpResults.put(Integer.toString(i),
+												 executor.submit(new WorkerMergeDedupe(picard,
+																															 picardAnalysesToMerge[i][0].getBaseID(),
+																															 inputBams, inputBamIndices,
+																															 getRootOutputDir(), memoryRatio,
+																															 altLog)));
 				}
 				for (int i = 0; i < picardMergeDedupes.length; i++) {
 					try {
 						picardMergeDedupes[i] = tmpResults.get(Integer.toString(i)).get();
 						if ((picardMergeDedupes[i].isFail()) && !isFail()) {
 							getLog().reportError("Failed merging and deduping for "
-																		+ Array.toStr(picardMergeDedupes[i].getFullPathsToInputBams(),
-																									"\n"));
+																	 + ArrayUtils.toStr(picardMergeDedupes[i].getFullPathsToInputBams(),
+																											"\n"));
 							setFail(true);
 						}
 					} catch (InterruptedException e) {
@@ -196,20 +195,20 @@ public class GATK_LanePrep extends BWA_Analysis {
 				Hashtable<String, Future<GATK.BaseRecalibration>> tmpResults = new Hashtable<String, Future<GATK.BaseRecalibration>>();
 				for (int i = 0; i < picardMergeDedupes.length; i++) {
 					Logger altLog = new Logger(ext.rootOf(getLog().getFilename(), false)
-																				+ "_BaseRecalibration_ID_"
-																			+ getBwAnalysisIndividuals()[i].getID() + ".log");
-					tmpResults.put(	Integer.toString(i),
-													executor.submit(new WorkerRecalibration(gatk,
-																																	picardMergeDedupes[i].getBaseID(),
-																																	picardMergeDedupes[i].getFullPathToMergedDedupedBam(),
-																																	altLog)));
+																		 + "_BaseRecalibration_ID_"
+																		 + getBwAnalysisIndividuals()[i].getID() + ".log");
+					tmpResults.put(Integer.toString(i),
+												 executor.submit(new WorkerRecalibration(gatk,
+																																 picardMergeDedupes[i].getBaseID(),
+																																 picardMergeDedupes[i].getFullPathToMergedDedupedBam(),
+																																 altLog)));
 				}
 				for (int i = 0; i < picardMergeDedupes.length; i++) {
 					try {
 						gRecalibrations[i] = tmpResults.get(Integer.toString(i)).get();
 						if (gRecalibrations[i].isFail() && !isFail()) {
 							getLog().reportError("Failed recalibration for "
-																		+ gRecalibrations[i].getDedup_reads_bam());
+																	 + gRecalibrations[i].getDedup_reads_bam());
 							setFail(true);
 						}
 					} catch (InterruptedException e) {
@@ -235,10 +234,10 @@ public class GATK_LanePrep extends BWA_Analysis {
 	}
 
 	private void genotype() {
-		GATK_Genotyper gatk_Genotyper = new GATK_Genotyper(	gatk, null, null, null,
-																												getNumBetweenSampleThreads(),
-																												getNumWithinSampleThreads(), isVerbose(),
-																												getLog());
+		GATK_Genotyper gatk_Genotyper = new GATK_Genotyper(gatk, null, null, null,
+																											 getNumBetweenSampleThreads(),
+																											 getNumWithinSampleThreads(), isVerbose(),
+																											 getLog());
 		String[] genotypeBams = new String[gRecalibrations.length];
 		for (int i = 0; i < genotypeBams.length; i++) {
 			genotypeBams[i] = gRecalibrations[i].getRrd_bam();
@@ -261,48 +260,49 @@ public class GATK_LanePrep extends BWA_Analysis {
 	@Override
 	public void batch(int numBatches, int memoryInMB, int wallTimeInHours, String baseName) {
 		String[] batchesByLane = BWA_AnalysisIndividual.getBatchesByLane(getBwAnalysisIndividuals());// we
-																																																	// force
-																																																	// different
-																																																	// lanes
-																																																	// from
-																																																	// the
-																																																	// same
-																																																	// sample
-																																																	// to
-																																																	// be
-																																																	// in
-																																																	// the
-																																																	// same
-																																																	// batch...for
-																																																	// downstream
-																																																	// merging
-		String[][] batchedMatchedFiles = Array.splitUpStringArray(batchesByLane, numBatches, getLog());
+																																																 // force
+																																																 // different
+																																																 // lanes
+																																																 // from
+																																																 // the
+																																																 // same
+																																																 // sample
+																																																 // to
+																																																 // be
+																																																 // in
+																																																 // the
+																																																 // same
+																																																 // batch...for
+																																																 // downstream
+																																																 // merging
+		String[][] batchedMatchedFiles = ArrayUtils.splitUpStringArray(batchesByLane, numBatches,
+																																	 getLog());
 		String[][] batches = new String[batchedMatchedFiles.length][1];
 		for (int i = 0; i < batches.length; i++) {
 			batches[i][0] = "batch_" + i + "_" + baseName;
 			Files.writeArray(batchedMatchedFiles[i], getRootOutputDir() + batches[i][0] + ".txt");
 		}
-		String command = Array.toStr(PSF.Load.getAllModules(), "\n");
-		command += "\njava -Xmx"	+ memoryInMB + "m -jar ~/genvisisGATK3.6.jar "
-								+ this.getClass().getName() + SPACE + ROOT_INPUT_COMMAND + getRootInputDir() + SPACE
-								+ ROOT_OUTPUT_COMMAND + getRootOutputDir() + SPACE;
-		command += REFERENCE_GENOME_COMMAND	+ getReferenceGenomeFasta() + SPACE + BWA_LOCATION_COMMAND
-								+ getBwa().getBwaLocation() + SPACE;
+		String command = ArrayUtils.toStr(PSF.Load.getAllModules(), "\n");
+		command += "\njava -Xmx" + memoryInMB + "m -jar ~/genvisisGATK3.6.jar "
+							 + this.getClass().getName() + SPACE + ROOT_INPUT_COMMAND + getRootInputDir() + SPACE
+							 + ROOT_OUTPUT_COMMAND + getRootOutputDir() + SPACE;
+		command += REFERENCE_GENOME_COMMAND + getReferenceGenomeFasta() + SPACE + BWA_LOCATION_COMMAND
+							 + getBwa().getBwaLocation() + SPACE;
 		if (gatk.getRegionsFile() != null) {
 			command += REGIONS_FILE_COMMAND + gatk.getRegionsFile() + SPACE;
 		}
-		command += NUM_BETWEEN_THREADS_COMMAND	+ getNumBetweenSampleThreads() + SPACE
-								+ FILE_OF_SAMPLE_PAIRS_COMMAND + getRootOutputDir() + "[%0].txt" + SPACE
-								+ NUM_WITHIN_THREADS_COMMAND + getNumWithinSampleThreads() + SPACE;
+		command += NUM_BETWEEN_THREADS_COMMAND + getNumBetweenSampleThreads() + SPACE
+							 + FILE_OF_SAMPLE_PAIRS_COMMAND + getRootOutputDir() + "[%0].txt" + SPACE
+							 + NUM_WITHIN_THREADS_COMMAND + getNumWithinSampleThreads() + SPACE;
 		command += PSF.Ext.MEMORY_MB + memoryInMB + SPACE;
 		command += Picard.PICARD_LOCATION_COMMAND + getPicard().getPicardLocation() + SPACE;
 		command += GATK.GATK_LOCATION_COMMAND + getGatk().getGATKLocation() + SPACE;
 		command += GATK.KNOWN_SITES_SNP_LOCATION_COMMAND
-								+ Array.toStr(getGatk().getKnownSitesSnpFile(), GATK.SPLIT) + SPACE;
+							 + ArrayUtils.toStr(getGatk().getKnownSitesSnpFile(), GATK.SPLIT) + SPACE;
 		command += GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND
-								+ Array.toStr(getGatk().getKnownSitesIndelFile(), GATK.SPLIT);
-		Files.qsub("GATK_Lane_Prep"	+ baseName, command, batches, memoryInMB, wallTimeInHours,
-								getNumWithinSampleThreads() * getNumBetweenSampleThreads());
+							 + ArrayUtils.toStr(getGatk().getKnownSitesIndelFile(), GATK.SPLIT);
+		Files.qsub("GATK_Lane_Prep" + baseName, command, batches, memoryInMB, wallTimeInHours,
+							 getNumWithinSampleThreads() * getNumBetweenSampleThreads());
 	}
 
 	private static class WorkerPicard implements Callable<Picard.PicardAnalysis> {
@@ -332,8 +332,8 @@ public class GATK_LanePrep extends BWA_Analysis {
 		private final String fullPathToDedupReadsBam, baseId;
 		private final Logger altLog;
 
-		public WorkerRecalibration(	GATK gATK, String baseId, String fullPathToDedupReadsBam,
-																Logger altLog) {
+		public WorkerRecalibration(GATK gATK, String baseId, String fullPathToDedupReadsBam,
+															 Logger altLog) {
 			super();
 			GATK = gATK;
 			this.baseId = baseId;
@@ -356,9 +356,9 @@ public class GATK_LanePrep extends BWA_Analysis {
 		private final Logger altLog;
 		private final double memoryRatio;
 
-		public WorkerMergeDedupe(	Picard picard, String baseId, String[] fullPathsToInputBams,
-															String[] fullPathsToInputBamIndices, String outputDir,
-															double memoryRatio, Logger altLog) {
+		public WorkerMergeDedupe(Picard picard, String baseId, String[] fullPathsToInputBams,
+														 String[] fullPathsToInputBamIndices, String outputDir,
+														 double memoryRatio, Logger altLog) {
 			super();
 			this.picard = picard;
 			this.baseID = baseId;
@@ -380,13 +380,16 @@ public class GATK_LanePrep extends BWA_Analysis {
 																String bwaLocation, String picardLocation, String gATKLocation,
 																String referenceGenomeFasta, String regionsFile,
 																SEQ_TARGET seqTarget, String[] knownSitesSnpFile,
-																String[] knownSitesIndelFile, boolean overwriteExisting, boolean verbose,
-																int numSampleThreads, int numOtherThreads, int memoryInMB, int wallTimeInHours,
+																String[] knownSitesIndelFile, boolean overwriteExisting,
+																boolean verbose,
+																int numSampleThreads, int numOtherThreads, int memoryInMB,
+																int wallTimeInHours,
 																boolean batch, int numBatches, Logger log) {
 		BWA bwa = new BWA(bwaLocation, overwriteExisting, verbose, log);
 		Picard picard = new Picard(picardLocation, null, overwriteExisting, verbose, log);
-		GATK gatk = new GATK(	gATKLocation, referenceGenomeFasta, regionsFile, seqTarget, null,
-													memoryInMB, knownSitesSnpFile, knownSitesIndelFile, verbose, overwriteExisting, log);
+		GATK gatk = new GATK(gATKLocation, referenceGenomeFasta, regionsFile, seqTarget, null,
+												 memoryInMB, knownSitesSnpFile, knownSitesIndelFile, verbose,
+												 overwriteExisting, log);
 		GATK_LanePrep gLanePrep = new GATK_LanePrep(rootInputDir, rootOutputDir, referenceGenomeFasta,
 																								verbose, numSampleThreads, numOtherThreads, bwa,
 																								picard, gatk, log);
@@ -416,8 +419,8 @@ public class GATK_LanePrep extends BWA_Analysis {
 		if (memoryRatio > Picard.DEFAULT_SORTING_COLLECTION_SIZE_RATIO) {
 			memoryRatio = Picard.DEFAULT_SORTING_COLLECTION_SIZE_RATIO;
 		} else {
-			log.report(ext.getTime()	+ " Info - adjusting Picard's memory ratio to " + memoryRatio
-									+ " since there are more than 3 samples...");
+			log.report(ext.getTime() + " Info - adjusting Picard's memory ratio to " + memoryRatio
+								 + " since there are more than 3 samples...");
 		}
 		return memoryRatio;
 	}
@@ -426,8 +429,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 																																		Logger log) {
 		// log.report("Warning - assuming that unique sample Ids are the first two \"_\"-delimited
 		// fields of the input fastaq files, and barcodes are the third");
-		Hashtable<String, ArrayList<Picard.PicardAnalysis>> track =
-																															new Hashtable<String, ArrayList<Picard.PicardAnalysis>>();
+		Hashtable<String, ArrayList<Picard.PicardAnalysis>> track = new Hashtable<String, ArrayList<Picard.PicardAnalysis>>();
 		ArrayList<String> unique = new ArrayList<String>();
 		for (Picard.PicardAnalysis picardAnalysis : picardAnalyses) {
 			String baseId = parseBaseId(picardAnalysis.getBaseID());
@@ -446,17 +448,17 @@ public class GATK_LanePrep extends BWA_Analysis {
 			ArrayList<String> barcodesToAdd = new ArrayList<String>();
 			for (int j = 0; j < analysesToMerge[i].length; j++) {
 				if (!analysesToMerge[i][j].getBarcode().equals(barcode)) {
-					log.report(ext.getTime()	+ " Info - since " + analysesToMerge[i][0].getBaseID() + " and "
-											+ analysesToMerge[i][j].getBaseID()
-											+ " appear to be the same sample with different barcodes, they will be merged");
+					log.report(ext.getTime() + " Info - since " + analysesToMerge[i][0].getBaseID() + " and "
+										 + analysesToMerge[i][j].getBaseID()
+										 + " appear to be the same sample with different barcodes, they will be merged");
 					barcodesToAdd.add(analysesToMerge[i][j].getBarcode());
 				}
 			}
 			if (barcodesToAdd.size() > 0) {// we will re-header the file here
-				String barcodesAdded = Array.toStr(	Array.unique(barcodesToAdd.toArray(new String[barcodesToAdd.size()])),
-																						FileNameParser.SPLIT);
-				String newSampleId = analysesToMerge[i][0].getBaseID()	+ FileNameParser.SPLIT
-															+ barcodesAdded;
+				String barcodesAdded = ArrayUtils.toStr(ArrayUtils.unique(barcodesToAdd.toArray(new String[barcodesToAdd.size()])),
+																								FileNameParser.SPLIT);
+				String newSampleId = analysesToMerge[i][0].getBaseID() + FileNameParser.SPLIT
+														 + barcodesAdded;
 				for (int j = 0; j < analysesToMerge[i].length; j++) {
 					analysesToMerge[i][j].setNewBaseID(newSampleId);
 					// ReHeader reHeader =
@@ -486,7 +488,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 		if (len < 3) {
 			return baseId;
 		} else {
-			return Array.toStr(Array.subArray(baseId.split(FileNameParser.SPLIT), 0, 2));
+			return ArrayUtils.toStr(ArrayUtils.subArray(baseId.split(FileNameParser.SPLIT), 0, 2));
 		}
 	}
 
@@ -519,48 +521,61 @@ public class GATK_LanePrep extends BWA_Analysis {
 
 		int argNum = 1;
 		String usage = "\n" + "seq.BWA_Analysis requires 2 argument\n";
-		usage += "   (" + argNum++ + ") root input directory (i.e. "	+ ROOT_INPUT_COMMAND + rootInputDir
-							+ " (no default))\n" + "";
-		usage += "   (" + argNum++ + ") root output directory (i.e. "	+ ROOT_OUTPUT_COMMAND + rootOutputDir
-							+ " (no default))\n" + "";
+		usage += "   (" + argNum++ + ") root input directory (i.e. " + ROOT_INPUT_COMMAND + rootInputDir
+						 + " (no default))\n" + "";
+		usage += "   (" + argNum++ + ") root output directory (i.e. " + ROOT_OUTPUT_COMMAND
+						 + rootOutputDir
+						 + " (no default))\n" + "";
 		usage += "   (" + argNum++ + ") tab-delimited file with no header of paired .fastq (i.e. "
-								+ FILE_OF_SAMPLE_PAIRS_COMMAND + fileOfSamplePairs + " (optional, no default))\n"
-							+ "";
+						 + FILE_OF_SAMPLE_PAIRS_COMMAND + fileOfSamplePairs + " (optional, no default))\n" + "";
 		usage += "   (" + argNum++ + ") the full path to a  reference genome in fasta format (i.e."
-							+ REFERENCE_GENOME_COMMAND + referenceGenomeFasta + " (no default))\n" + "";
-		usage +=
-				"   (" + argNum++ + ") full path to a file for restricting the analysis to a list of intervals (i.e. "
-						+ GATK_LanePrep.REGIONS_FILE_COMMAND + " (optional for WGS; required otherwise, no default))\n" + "";
-		usage += "   (" + argNum++ + ") Region targeted by sequencing ("	+ Array.toStr(SEQ_TARGET.values(), ",")
-		+ ") ( (i.e. " + GATK.TARGETED_REGION_COMMAND + " ( no default))\n" + "";
-		usage += "   (" + argNum++ + ") the full path to the bwa executable (i.e. "	+ BWA_LOCATION_COMMAND
-							+ bwaLocation + " (defualts to systems path))\n" + "";
-		usage += "   (" + argNum++ + ") the full path to the picard (2.6.0) directory containing the .jar (i.e. "
-							+ Picard.PICARD_LOCATION_COMMAND + picardLocation + " (default))\n" + "";
-		usage += "   (" + argNum++ + ") the full path to the GATK (3.6) executable (i.e. "	+ GATK.GATK_LOCATION_COMMAND
-							+ gATKLocation + " (defualts to systems path))\n" + "";
-		usage += "   (" + argNum++ + ") the full path to reference indel files (comma delimited if multiple) (i.e. "
-								+ GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND + Array.toStr(knownSitesIndelFile, ",")
-							+ " (default))\n" + "";
-		usage += "   (" + argNum++ + ") the full path to reference snp files (comma delimited if multiple) (i.e. "
-								+ GATK.KNOWN_SITES_SNP_LOCATION_COMMAND
-							+ Array.toStr(new String[] {"site1", "site2", "site3"}, ",") + " (not the default))\n"
-							+ "";
+						 + REFERENCE_GENOME_COMMAND + referenceGenomeFasta + " (no default))\n" + "";
+		usage += "   (" + argNum++
+						 + ") full path to a file for restricting the analysis to a list of intervals (i.e. "
+						 + GATK_LanePrep.REGIONS_FILE_COMMAND
+						 + " (optional for WGS; required otherwise, no default))\n" + "";
+		usage += "   (" + argNum++ + ") Region targeted by sequencing ("
+						 + ArrayUtils.toStr(SEQ_TARGET.values(), ",")
+						 + ") ( (i.e. " + GATK.TARGETED_REGION_COMMAND + " ( no default))\n" + "";
+		usage += "   (" + argNum++ + ") the full path to the bwa executable (i.e. "
+						 + BWA_LOCATION_COMMAND
+						 + bwaLocation + " (defualts to systems path))\n" + "";
+		usage += "   (" + argNum++
+						 + ") the full path to the picard (2.6.0) directory containing the .jar (i.e. "
+						 + Picard.PICARD_LOCATION_COMMAND + picardLocation + " (default))\n" + "";
+		usage += "   (" + argNum++ + ") the full path to the GATK (3.6) executable (i.e. "
+						 + GATK.GATK_LOCATION_COMMAND
+						 + gATKLocation + " (defualts to systems path))\n" + "";
+		usage += "   (" + argNum++
+						 + ") the full path to reference indel files (comma delimited if multiple) (i.e. "
+						 + GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND + ArrayUtils.toStr(knownSitesIndelFile, ",")
+						 + " (default))\n" + "";
+		usage += "   (" + argNum++
+						 + ") the full path to reference snp files (comma delimited if multiple) (i.e. "
+						 + GATK.KNOWN_SITES_SNP_LOCATION_COMMAND
+						 + ArrayUtils.toStr(new String[] {"site1", "site2", "site3"}, ",")
+						 + " (not the default))\n"
+						 + "";
 
-		usage += "   (" + argNum++ + ") run in quiet mode (i.e. " + QUIET_COMMAND + " (not tbe default))\n" + "";
-		usage += "   (" + argNum++ + ") number of threads per sample for bwa mem (i.e."	+ NUM_BETWEEN_THREADS_COMMAND
-							+ numBetweenSampleThreads + " (default))\n" + "";
-		usage += "   (" + argNum++ + ") number of sample threads for bwa mem (i.e."	+ NUM_WITHIN_THREADS_COMMAND
-							+ numWithinSampleThreads + " (default))\n" + "";
+		usage += "   (" + argNum++ + ") run in quiet mode (i.e. " + QUIET_COMMAND
+						 + " (not tbe default))\n" + "";
+		usage += "   (" + argNum++ + ") number of threads per sample for bwa mem (i.e."
+						 + NUM_BETWEEN_THREADS_COMMAND
+						 + numBetweenSampleThreads + " (default))\n" + "";
+		usage += "   (" + argNum++ + ") number of sample threads for bwa mem (i.e."
+						 + NUM_WITHIN_THREADS_COMMAND
+						 + numWithinSampleThreads + " (default))\n" + "";
 
-		usage +=
-					"   (" + argNum++ + ") filename for a log (i.e. " + LOG_FILE_COMMAND + logFile + " (default))\n" + "";
-		usage += "   (" + argNum++ + ") set up a batch analysis for the root input directory for a log (i.e. "
-							+ BATCH_COMMAND + " (not the default))\n" + "";
-		usage += "   (" + argNum++ + ") number of batches for a batched analysis (i.e. "	+ NUMBATCHES_COMMAND
-							+ numBatches + " (the default))\n" + "";
-		usage += "   (" + argNum++ + ") over-write exsiting files (i.e. "	+ OVERWRITE_EXISTING_COMMAND
-							+ " (not the default))\n" + "";
+		usage += "   (" + argNum++ + ") filename for a log (i.e. " + LOG_FILE_COMMAND + logFile
+						 + " (default))\n" + "";
+		usage += "   (" + argNum++
+						 + ") set up a batch analysis for the root input directory for a log (i.e. "
+						 + BATCH_COMMAND + " (not the default))\n" + "";
+		usage += "   (" + argNum++ + ") number of batches for a batched analysis (i.e. "
+						 + NUMBATCHES_COMMAND
+						 + numBatches + " (the default))\n" + "";
+		usage += "   (" + argNum++ + ") over-write exsiting files (i.e. " + OVERWRITE_EXISTING_COMMAND
+						 + " (not the default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -586,8 +601,8 @@ public class GATK_LanePrep extends BWA_Analysis {
 					seqTarget = SEQ_TARGET.valueOf(ext.parseStringArg(arg));
 					numArgs--;
 				} catch (IllegalArgumentException iae) {
-					System.err.println(GATK.TARGETED_REGION_COMMAND	+ " must be one of: "
-															+ Array.toStr(SEQ_TARGET.values()));
+					System.err.println(GATK.TARGETED_REGION_COMMAND + " must be one of: "
+														 + ArrayUtils.toStr(SEQ_TARGET.values()));
 				}
 			} else if (arg.startsWith(BWA_LOCATION_COMMAND)) {
 				bwaLocation = ext.parseStringArg(arg, "");
@@ -644,7 +659,8 @@ public class GATK_LanePrep extends BWA_Analysis {
 														+ "GATK_PREP.log");
 		runPrep(rootInputDir, rootOutputDir, fileOfSamplePairs, bwaLocation, picardLocation,
 						gATKLocation, referenceGenomeFasta, regionsFile, seqTarget,
-						knownSitesSnpFile, knownSitesIndelFile, overwriteExisting, verbose, numWithinSampleThreads,
+						knownSitesSnpFile, knownSitesIndelFile, overwriteExisting, verbose,
+						numWithinSampleThreads,
 						numBetweenSampleThreads, memoryInMB, wallTimeInHours, batch, numBatches, log);
 	}
 }

@@ -6,13 +6,12 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
 public class OptimalSet {
-	public static final String DEFAULT_FILENAME =
-																							"C:\\Documents and Settings\\npankrat\\My Documents\\nostalgia\\ninjas.txt";
+	public static final String DEFAULT_FILENAME = "C:\\Documents and Settings\\npankrat\\My Documents\\nostalgia\\ninjas.txt";
 	// public static final double[] THRESHOLDS = {0, 0.05, 0.10, 0.20, 0.53, 1.00};
 	// public static final double[] THRESHOLDS = {0.30, 0.35, 0.40, 0.45, 0.55};
 	public static final double[] THRESHOLDS = {0.30, 0.45, 0.60, 0.75, 0.90, 1.0};
@@ -68,12 +67,12 @@ public class OptimalSet {
 		}
 		bestSets = new int[THRESHOLDS.length][3][types.length];
 		bestSetValues = new int[THRESHOLDS.length][3][4];
-		counters = Array.intArray(names.length, 0);
+		counters = ArrayUtils.intArray(names.length, 0);
 		time = new Date().getTime();
 		while (counters[0] < names[0].length) {
 			if (counters[0] == 21 && counters[1] == 18 && counters[2] == 23) {
-				System.out.println(names[0][counters[0]]	+ "/" + names[1][counters[1]] + "/"
-														+ names[2][counters[2]]);
+				System.out.println(names[0][counters[0]] + "/" + names[1][counters[1]] + "/"
+													 + names[2][counters[2]]);
 			}
 			sumUpkeep = 0;
 			for (int j = 0; j < counters.length; j++) {
@@ -126,15 +125,15 @@ public class OptimalSet {
 					} else {
 						System.out.print("Max PTS: ");
 					}
-					System.out.print(ext.formStr(bestSetValues[i][k][1] * CREW + "", 5)	+ " atk "
-														+ ext.formStr(bestSetValues[i][k][2] * CREW + "", 5) + " def "
-														+ ext.formStr(bestSetValues[i][k][3] + "", 5) + " ("
-														+ ext.formDeci(bestSetValues[i][k][3]	/ ((double) DOLLAR / CREW) * 100,
-																						1)
-														+ "%) upkeep each using ");
+					System.out.print(ext.formStr(bestSetValues[i][k][1] * CREW + "", 5) + " atk "
+													 + ext.formStr(bestSetValues[i][k][2] * CREW + "", 5) + " def "
+													 + ext.formStr(bestSetValues[i][k][3] + "", 5) + " ("
+													 + ext.formDeci(bestSetValues[i][k][3] / ((double) DOLLAR / CREW) * 100,
+																					1)
+													 + "%) upkeep each using ");
 					for (int j = 0; j < types.length; j++) {
-						System.out.print((j == 0 ? "" : "/")	+ names[j][bestSets[i][k][j]] + "("
-															+ atk[j][bestSets[i][k][j]] + "," + def[j][bestSets[i][k][j]] + ")");
+						System.out.print((j == 0 ? "" : "/") + names[j][bestSets[i][k][j]] + "("
+														 + atk[j][bestSets[i][k][j]] + "," + def[j][bestSets[i][k][j]] + ")");
 					}
 					System.out.println();
 				}
@@ -167,14 +166,14 @@ public class OptimalSet {
 			sumUpkeep += upkeep[i][counters[i]];
 		}
 		System.out.print("Check  : ");
-		System.out.print(ext.formStr(sums[0] * CREW + "", 5)	+ " atk "
-											+ ext.formStr(sums[1] * CREW + "", 5) + " def "
-											+ ext.formStr(sumUpkeep + "", 5) + " ("
-											+ ext.formDeci(sumUpkeep / ((double) DOLLAR / CREW) * 100, 1)
-											+ "%) upkeep each using ");
+		System.out.print(ext.formStr(sums[0] * CREW + "", 5) + " atk "
+										 + ext.formStr(sums[1] * CREW + "", 5) + " def "
+										 + ext.formStr(sumUpkeep + "", 5) + " ("
+										 + ext.formDeci(sumUpkeep / ((double) DOLLAR / CREW) * 100, 1)
+										 + "%) upkeep each using ");
 		for (int j = 0; j < types.length; j++) {
-			System.out.print((j == 0 ? "" : "/")	+ names[j][counters[j]] + "(" + atk[j][counters[j]] + ","
-												+ def[j][counters[j]] + ")");
+			System.out.print((j == 0 ? "" : "/") + names[j][counters[j]] + "(" + atk[j][counters[j]] + ","
+											 + def[j][counters[j]] + ")");
 		}
 		System.out.println();
 		System.out.println();
@@ -186,8 +185,8 @@ public class OptimalSet {
 		int numArgs = args.length;
 		String filename = DEFAULT_FILENAME;
 
-		String usage = "\n"	+ "eglence.OptimalSet requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "eglence.OptimalSet requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

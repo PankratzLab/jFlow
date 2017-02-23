@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 
@@ -39,22 +39,21 @@ public class OMIM {
 			return gHashtable.get(gene);
 		} else {
 			ArrayList<OMIMGene> blank = new ArrayList<OMIM.OMIMGene>();
-			blank.add(new OMIMGene(	new String[] {"NA"}, new String[] {"NA"}, "NA", "NA", "NA", "NA", "NA",
-															"NA", "NA", "NA"));
+			blank.add(new OMIMGene(new String[] {"NA"}, new String[] {"NA"}, "NA", "NA", "NA", "NA", "NA",
+														 "NA", "NA", "NA"));
 			return blank;
 		}
 	}
 
 	private static Hashtable<String, ArrayList<OMIMGene>> loadGeneOmimMap(String filename,
 																																				Logger log) {
-		Hashtable<String, ArrayList<OMIMGene>> gHashtable =
-																											new Hashtable<String, ArrayList<OMIMGene>>();
+		Hashtable<String, ArrayList<OMIMGene>> gHashtable = new Hashtable<String, ArrayList<OMIMGene>>();
 		Hashtable<String, String> status = new Hashtable<String, String>();
 		status.put("C", "confirmed - observed in at least two laboratories or in several families");
 		status.put("P", "based on evidence from one laboratory or one family");
 		status.put("I", "inconsistent - results of different laboratories disagree");
-		status.put(	"L",
-								"limbo - evidence not as strong as that provisional, but included for heuristic reasons");
+		status.put("L",
+							 "limbo - evidence not as strong as that provisional, but included for heuristic reasons");
 
 		try {
 			BufferedReader reader = Files.getAppropriateReader(filename);
@@ -66,7 +65,7 @@ public class OMIM {
 				if (tmp.length != 15) {
 					throw new IllegalArgumentException(filename + " must have 15 entries per line");
 				}
-				String[] genes = Array.unique(line[5].split(","));
+				String[] genes = ArrayUtils.unique(line[5].split(","));
 				for (int i = 0; i < genes.length; i++) {
 					if (!gHashtable.containsKey(genes[i])) {
 						gHashtable.put(genes[i], new ArrayList<OMIM.OMIMGene>());

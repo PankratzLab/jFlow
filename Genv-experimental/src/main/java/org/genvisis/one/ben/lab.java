@@ -5,24 +5,34 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.cnv.analysis.FilterCalls;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
+import org.genvisis.common.QueueControl;
+import org.genvisis.common.QueueControl.JobQueue;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.DosageData;
 import org.genvisis.filesys.Segment;
 import org.genvisis.gwas.MergeExtractPipeline;
+import org.genvisis.one.ben.fcs.FCSFileDuplicator;
+import org.genvisis.one.ben.fcs.FCSDataLoader;
+import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
 
 import com.google.common.io.Closeables;
 
@@ -60,16 +70,16 @@ public class lab {
 		while (reader.ready()) {
 			String line = reader.readLine();
 			String[] keyVal = sampleData.lookup(line);
-			writer.println(Array.toStr(keyVal, "\t"));
+			writer.println(ArrayUtils.toStr(keyVal, "\t"));
 		}
 		writer.flush();
 		writer.close();
 		reader.close();
 	}
 
-	public static void filterCentromeric(	String dir, String in, String out,
-																				String markerSetFilenameToBreakUpCentromeres, int build,
-																				Logger log) {
+	public static void filterCentromeric(String dir, String in, String out,
+																			 String markerSetFilenameToBreakUpCentromeres, int build,
+																			 Logger log) {
 		PrintWriter writer;
 		String[] line;
 		CNVariant cnv;
@@ -91,7 +101,7 @@ public class lab {
 				line = reader.readLine().trim().split("[\\s]+");
 				cnv = new CNVariant(line);
 				if (cnv.overlaps(centromereMidpoints[cnv.getChr()])) {
-					writer.println(Array.toStr(line));
+					writer.println(ArrayUtils.toStr(line));
 				}
 			}
 			fr.close();
@@ -130,7 +140,7 @@ public class lab {
 		CNVariant[] centromeric = CNVariant.loadPlinkFile("D:/SIDS and IQ/IQ/merged.cnv", false);
 
 		PrintWriter writer = new PrintWriter(new FileWriter("D:/SIDS and IQ/IQ/merged_split.cnv"));
-		writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+		writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 
 		for (CNVariant cnv : centromeric) {
 			CNVFilterPass fp = filter.getCNVFilterPass(cnv);
@@ -148,18 +158,76 @@ public class lab {
 
 	}
 
+	private static void breakSeqMetaDataFileIntoChrs() throws IOException {
+		String dir = "/panfs/roc/groups/5/pankrat2/shared/skatMeta/snpInfos/exome_chip_v7/";
+		String dataFile = "SNPInfo_HumanExome-12v1_rev7b2_slim_wChr.txt";
 
-	public enum TEST {
-										TEST1, TEST2, TEST3;
+		String[] outHdr = {"SNP", "CHR", "MapInfo", "sc_exonic", "sc_nonsynSplice", "sc_damaging",
+											 "sc_lof", "SKATgene"};
+
+		HashMap<String, PrintWriter> chrWriters = new HashMap<>();
+		for (int i = 1; i < 27; i++) {
+			PrintWriter writer = Files.getAppropriateWriter(dir + "chr" + i + ".csv");
+			writer.println(ArrayUtils.toStr(outHdr, ","));
+			chrWriters.put(Positions.CHR_CODES[i], writer);
+		}
+
+		BufferedReader reader = Files.getAppropriateReader(dir + dataFile);
+		reader.readLine();
+		String line;
+		while ((line = reader.readLine()) != null) {
+			String[] parts = line.split("\t");
+			chrWriters.get(parts[1]).println(ArrayUtils.toStr(parts, ","));
+		}
+		reader.close();
+
+		for (PrintWriter writer : chrWriters.values()) {
+			writer.flush();
+			writer.close();
+		}
+
 	}
 
-	public static <T extends Enum<T>> void enumValues(Class<T> enumType) {
-		for (T c : enumType.getEnumConstants()) {
-			System.out.println(c.name());
+	private static void filterNYChoanalCNVs() {
+		String filenameOfProblematicRegions = null;
+		String individualsToKeepFile = null;
+		int commonInOutOrIgnore = FilterCalls.COMMON_IGNORED;
+		String markerSetFilenameToBreakUpCentromeres_1 = "/scratch.global/cole0482/ny_choanal/shadow11combo/markerPositions.txt";
+		String markerSetFilenameToBreakUpCentromeres_2 = "/scratch.global/cole0482/ny_choanal/shadow12combo/markerPositions.txt";
+		int build = 37;
+		boolean makeUCSC = false;
+		int[] del = new int[] {10, 0};
+		int[] dup = new int[] {10, 10};
+		int[] number = new int[] {5, 3};
+		int score = 10;
+
+		String[][] files = new String[][] {{"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/",
+																				"23Mgen_merged.cnv", "23_M_filtered.cnv",
+																				markerSetFilenameToBreakUpCentromeres_1},
+																			 {"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/",
+																				"23Fgen_merged.cnv", "23_F_filtered.cnv",
+																				markerSetFilenameToBreakUpCentromeres_1},
+																			 {"/scratch.global/cole0482/ny_choanal/shadow12combo/cnv/",
+																				"23Mgen_merged.cnv", "23_M_filtered.cnv",
+																				markerSetFilenameToBreakUpCentromeres_2},
+																			 {"/scratch.global/cole0482/ny_choanal/shadow12combo/cnv/",
+																				"23Fgen_merged.cnv", "23_F_filtered.cnv",
+																				markerSetFilenameToBreakUpCentromeres_2},
+																			 {"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/",
+																				"24_M_genvisis.cnv", "24_M_filtered.cnv",
+																				markerSetFilenameToBreakUpCentromeres_1}};
+
+		for (String[] fileSet : files) {
+			FilterCalls.filterCNVs(fileSet[0], fileSet[1], fileSet[2], del, dup, number, score,
+														 filenameOfProblematicRegions, commonInOutOrIgnore,
+														 individualsToKeepFile, true, fileSet[3], makeUCSC, build,
+														 new Logger());
 		}
 	}
 
-	public static void main(String[] args) {
+
+
+	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		Project proj;
 		String filename = "lab.dat";
@@ -169,34 +237,51 @@ public class lab {
 		boolean test = true;
 		if (test) {
 
-			HashMap<Integer, Integer> testMap = new HashMap<>();
-			for (int i = 0; i < 10; i++) {
-				testMap.put(i * 2, i);
-			}
-			Integer[] testArr = Array.mapToValueSortedArray(testMap);
-			System.out.println(Array.toStr(testArr));
-			
-			
-//			Files.check32Bit();
-			
-//			String outFile = "/scratch.global/cole0482/test.db.xln.gz";
-//			String mapOutFile = "/scratch.global/cole0482/mapOut.xln";
-//
-//
-//			MergeExtractPipeline pipeline = new MergeExtractPipeline();
-//			// pipeline.setMarkers(markersFile);
-//			pipeline.setRunDirectory("/scratch.global/cole0482/merge/", true);
-//			pipeline.setOutputFormat(DosageData.DATABASE_DOSE_FORMAT);
-//			pipeline.setOutputFiles(outFile, mapOutFile);
-//			pipeline.setRenameMarkers(true);
-//			// pipeline.addDataSource("/scratch.global/cole0482/merge/blacks/", "gwas.bed", "gwas.bim",
-//			// "gwas.fam");
-//			pipeline.addDataSource(	"exome", "/scratch.global/cole0482/merge/blacks/", "exome.bed",
-//															"exome.bim", "exome.fam");
-//			pipeline.addDataSource(	"metab", "/scratch.global/cole0482/merge/blacks/", "metab.bed",
-//															"metab.bim", "metab.fam");
-//			// add more;
-//			pipeline.run();
+
+			// System.out.println("Username: " + QueueControl.getUserName());
+			// System.out.println("Group: " + QueueControl.getCurrentGroup());
+			// System.out.println("All Groups: " + QueueControl.getUserGroups().toString());
+			// System.out.println();
+			// System.out.println("Default Queue: " +
+			// QueueControl.findSensibleDefault(QueueControl.parseAllowedQueues(new Logger())).getName());
+			//
+			// String dir = "F:/temp/filter/";
+			// String in = "recodedM.cnv";
+			// String out = "recodedM_excl.cnv";
+			// String indivFile = "F:/temp/filter/exclude.txt";
+			// boolean exclude = true;
+			// FilterCalls.filterExclusions(dir, in, out, indivFile, exclude);
+			// in = "recodedF.cnv";
+			// out = "recodedF_excl.cnv";
+			// FilterCalls.filterExclusions(dir, in, out, indivFile, exclude);
+			//
+			// System.out.println("Removed excluded");
+			//
+			// CNVFilter cnvF = new CNVFilter(new Logger());
+			// cnvF.setProblemRegionsFromFile("F:/temp/filter/problematicRegions_hg19.dat");
+			//
+			// in = dir + "recodedM_excl.cnv";
+			// out = dir + "recodedM_filt.cnv";
+			// CNVFilter.filterCNVs(in, out, cnvF, new Logger());
+			//
+			// in = dir + "recodedF_excl.cnv";
+			// out = dir + "recodedF_filt.cnv";
+			// CNVFilter.filterCNVs(in, out, cnvF, new Logger());
+
+			// MergeExtractPipeline pipeline = new MergeExtractPipeline();
+			// // pipeline.setMarkers(markersFile);
+			// pipeline.setRunDirectory("/scratch.global/cole0482/merge/", true);
+			// pipeline.setOutputFormat(DosageData.DATABASE_DOSE_FORMAT);
+			// pipeline.setOutputFiles(outFile, mapOutFile);
+			// pipeline.setRenameMarkers(true);
+			// // pipeline.addDataSource("/scratch.global/cole0482/merge/blacks/", "gwas.bed", "gwas.bim",
+			// // "gwas.fam");
+			// pipeline.addDataSource( "exome", "/scratch.global/cole0482/merge/blacks/", "exome.bed",
+			// "exome.bim", "exome.fam");
+			// pipeline.addDataSource( "metab", "/scratch.global/cole0482/merge/blacks/", "metab.bed",
+			// "metab.bim", "metab.fam");
+			// // add more;
+			// pipeline.run();
 
 
 			// String doseFile1 =
@@ -228,59 +313,6 @@ public class lab {
 			// dd3 = DosageData.combine(dd2, dd1);
 			// dd3.writeToFile(outFile, mapOutFile, null, DosageData.DATABASE_DOSE_FORMAT, null);
 			// System.out.println("complete!");
-
-			// createRandomSelectionFile();
-			// try {
-			// String checkfile = "D:/data/gedi_gwas/data/cluster.genome.gz";
-			// BufferedReader reader = Files.getAppropriateReader(checkfile);
-			// String line = reader.readLine();
-			// int cnt = 1;
-			// while ((line = reader.readLine()) != null) {
-			// cnt++;
-			// }
-			// reader.close();
-			// System.out.println("Read " + cnt + " lines");
-
-
-
-			// String s = "10000000000";
-			// long l = Long.parseLong(s);
-			// System.out.println(l > Integer.MAX_VALUE);
-			// int d = Integer.parseInt(s);
-
-			//
-			// Process p = Runtime.getRuntime().exec("where notepad.exe");
-			// int waitCode = p.waitFor();
-			// int outCode = p.exitValue();
-			// System.out.println("wait: " + waitCode + "| out: " + outCode);
-			// processData();
-			// concatData();
-			// ConditionalAnalysisPipeline.processOnly(args[0], args[1], args[2]);
-			// } catch (IOException e) {
-			// // TODO Auto-generated catch block
-			// e.printStackTrace();
-			// } /*catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			// e.printStackTrace();
-			// }*/
-			//
-			// String dir = "F:/CARDIA processing/";
-			//
-			// String[] files = (new File(dir)).list(new FilenameFilter() {
-			// @Override
-			// public boolean accept(File dir, String name) {
-			// return name.endsWith("positions.xln");
-			// }
-			// });
-			//
-			// for (String file2 : files) {
-			// try {
-			// processSNPPositions(dir + file2, dir + ext.rootOf(file2) + ".proc.xln");
-			// } catch (IOException e) {
-			// TODO Auto-generated catch block
-			// e.printStackTrace();
-			// }
-			// }
 
 
 			return;

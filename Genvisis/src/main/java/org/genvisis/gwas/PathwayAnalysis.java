@@ -12,7 +12,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.bioinformatics.MapGenesToSNPs;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
@@ -48,8 +48,8 @@ class KEGGpathway {
 				if (temp.startsWith("PATHWAY")) {
 					temp = temp.substring(("PATHWAY").length());
 					if (v.size() > 0) {
-						System.err.println("Error - did not reset after ENTRY "	+ entry + " starting at: "
-																+ temp);
+						System.err.println("Error - did not reset after ENTRY " + entry + " starting at: "
+															 + temp);
 					}
 					v = new Vector<String>();
 					while (temp.startsWith(" ")) {
@@ -59,8 +59,8 @@ class KEGGpathway {
 						if (!pathwayLookup.containsKey(pathway)) {
 							pathwayLookup.put(pathway, pathwayName);
 						} else if (!pathwayLookup.get(pathway).equals(pathwayName)) {
-							System.err.println("Error - mismatched ID ("	+ pathway + ") with pathway name (was '"
-																	+ pathwayLookup.get(pathway) + "', now '" + pathwayName + "')");
+							System.err.println("Error - mismatched ID (" + pathway + ") with pathway name (was '"
+																 + pathwayLookup.get(pathway) + "', now '" + pathwayName + "')");
 						}
 						v.add(pathway);
 						temp = reader.readLine();
@@ -91,7 +91,7 @@ class KEGGpathway {
 								}
 								for (int j = 0; j < v.size(); j++) {
 									HashVec.addToHashVec(genes, gene, v.elementAt(j), true); // count both ways and
-																																						// compare
+																																					 // compare
 									HashVec.addToHashVec(pathways, v.elementAt(j), gene, true); // count both ways and
 																																							// compare
 								}
@@ -126,7 +126,7 @@ class KEGGpathway {
 				for (int i = 1; i < line.length; i++) {
 					HashVec.addToHashVec(genes, line[0], "ko" + line[i], true); // count both ways and compare
 					HashVec.addToHashVec(pathways, "ko" + line[i], line[0], true); // count both ways and
-																																					// compare
+																																				 // compare
 				}
 			}
 			reader.close();
@@ -204,8 +204,8 @@ class KEGGpathway {
 							HashVec.addToHashVec(genesToSNPs, geneIDs[chrs[i]][j], markerNames[i], true);
 						}
 					} catch (Exception e) {
-						System.err.println("Error - problem trying to overlap "	+ seg.getUCSClocation()
-																+ " and " + geneIDs[chrs[i]][j]);
+						System.err.println("Error - problem trying to overlap " + seg.getUCSClocation()
+															 + " and " + geneIDs[chrs[i]][j]);
 					}
 				}
 			}
@@ -213,8 +213,8 @@ class KEGGpathway {
 		noChrValues = noChr.getValues();
 		noChrCounts = noChr.getCounts();
 		for (int i = 0; i < noChrValues.length; i++) {
-			System.err.println("Error - no genes on chromosome "	+ noChrValues[i] + " (affects "
-													+ noChrCounts[i] + " snps)");
+			System.err.println("Error - no genes on chromosome " + noChrValues[i] + " (affects "
+												 + noChrCounts[i] + " snps)");
 		}
 	}
 }
@@ -251,18 +251,18 @@ public class PathwayAnalysis {
 
 		filenames = new String[2];
 		filenames[0] = ext.rootOf(pheno, false) + "." + rep + pheno.substring(pheno.lastIndexOf("."));
-		filenames[1] = ext.rootOf(pheno, false)	+ "_cov." + rep
-										+ pheno.substring(pheno.lastIndexOf("."));
+		filenames[1] = ext.rootOf(pheno, false) + "_cov." + rep
+									 + pheno.substring(pheno.lastIndexOf("."));
 		trait = HashVec.loadFileToStringArray(pheno, true, new int[] {2}, false);
 		line = Files.getHeaderOfFile(pheno, "[\\s]+", new Logger());
 		if (!line[0].equals("FID") || !line[1].equals("IID")) {
 			System.err.println("Error - need to use FID/IID in both pheno and covar files");
-			Files.writeArray(	new String[] {"Error - need to use FID/IID in both pheno and covar files"},
-												"NEED_TO_USE_FID-IID_IN_BOTH_PHENO_AND_COVAR_FILES.txt");
+			Files.writeArray(new String[] {"Error - need to use FID/IID in both pheno and covar files"},
+											 "NEED_TO_USE_FID-IID_IN_BOTH_PHENO_AND_COVAR_FILES.txt");
 			new File("wait").delete();
 			System.exit(1);
 		}
-		keys = Array.random(trait.length);
+		keys = ArrayUtils.random(trait.length);
 		try {
 			reader = new BufferedReader(new FileReader(pheno));
 			writer = new PrintWriter(new FileWriter(filenames[0]));
@@ -283,12 +283,12 @@ public class PathwayAnalysis {
 
 		if (covars != null) {
 			if (!new File("pheno_covar_checks_out").exists()) {
-				if (!Array.equals(HashVec.loadFileToStringArray(pheno, true, new int[] {0, 1}, false),
-													HashVec.loadFileToStringArray(covars, true, new int[] {0, 1}, false),
-													false)) {
+				if (!ArrayUtils.equals(HashVec.loadFileToStringArray(pheno, true, new int[] {0, 1}, false),
+															 HashVec.loadFileToStringArray(covars, true, new int[] {0, 1}, false),
+															 false)) {
 					System.err.println("Error - the covars files needs to match the ids in the pheno file line for line");
-					Files.writeArray(	new String[] {"Error - the covars files needs to match the ids in the pheno file line for line"},
-														"NEED_TO_SYNC_PHENO_AND_COVAR_FILES.txt");
+					Files.writeArray(new String[] {"Error - the covars files needs to match the ids in the pheno file line for line"},
+													 "NEED_TO_SYNC_PHENO_AND_COVAR_FILES.txt");
 					new File("wait").delete();
 					System.exit(1);
 				}
@@ -332,7 +332,7 @@ public class PathwayAnalysis {
 		long time;
 		int rep;
 
-		quant = Array.determineType(pheno, 2, true) == 1;
+		quant = ArrayUtils.determineType(pheno, 2, true) == 1;
 
 		time = new Date().getTime();
 		Files.writeArray(new String[0], "plug");
@@ -359,11 +359,11 @@ public class PathwayAnalysis {
 				new File("wait").delete();
 
 				if (covars == null && !sex) {
-					CmdLine.run(ROOT_DIRECTORY	+ "bin/plink --bfile plink --noweb --assoc --pheno "
+					CmdLine.run(ROOT_DIRECTORY + "bin/plink --bfile plink --noweb --assoc --pheno "
 											+ filenames[0] + " --out " + root + "." + rep, "./");
 					results = root + "." + rep + "." + (quant ? "q" : "") + "assoc";
 				} else {
-					CmdLine.run(ROOT_DIRECTORY	+ "bin/plink --bfile plink --noweb --"
+					CmdLine.run(ROOT_DIRECTORY + "bin/plink --bfile plink --noweb --"
 											+ (quant ? "linear" : "logistic") + " --pheno " + filenames[0] + " --covar "
 											+ (linkCovToPheno ? filenames[1] : covars) + (sex ? " --sex" : "") + " --out "
 											+ root + "." + rep, "./");
@@ -401,9 +401,9 @@ public class PathwayAnalysis {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			indices = ext.indexFactors(	new String[] {"SNP", "TEST", "P"},
-																	reader.readLine().trim().split("[\\s]+"), false, new Logger(),
-																	false, false);
+			indices = ext.indexFactors(new String[] {"SNP", "TEST", "P"},
+																 reader.readLine().trim().split("[\\s]+"), false, new Logger(),
+																 false, false);
 			results = new float[markerNames.length];
 			root = ext.rootOf(filename);
 			if (root.endsWith(".assoc")) {
@@ -414,13 +414,13 @@ public class PathwayAnalysis {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (indices[1] == -1 || line[indices[1]].equals("ADD")) {
 					if (!line[indices[0]].equals(markerNames[count])) {
-						System.err.println("Error - marker mismatch at marker "	+ (count + 1) + " (expecting "
-																+ markerNames[count] + ", found " + line[indices[0]] + ")");
+						System.err.println("Error - marker mismatch at marker " + (count + 1) + " (expecting "
+															 + markerNames[count] + ", found " + line[indices[0]] + ")");
 						reader.close();
 						return;
 					}
-					results[count] = line[indices[2]].equals("NA")	? Float.NaN
-																													: Float.parseFloat(line[indices[2]]);
+					results[count] = line[indices[2]].equals("NA") ? Float.NaN
+																												 : Float.parseFloat(line[indices[2]]);
 					count++;
 				}
 			}
@@ -448,9 +448,9 @@ public class PathwayAnalysis {
 		boolean quant, done;
 		int count;
 
-		quant = Array.determineType(pheno, 2, true) == 1;
-		markerNames =
-								SerialStringArray.load(ext.rootOf(pheno, false) + ".markerNames", false).getArray();
+		quant = ArrayUtils.determineType(pheno, 2, true) == 1;
+		markerNames = SerialStringArray.load(ext.rootOf(pheno, false) + ".markerNames", false)
+																	 .getArray();
 
 		count = 0;
 		done = false;
@@ -459,8 +459,8 @@ public class PathwayAnalysis {
 			if (covars == null) {
 				filename = ext.rootOf(pheno, false) + "." + count + "." + (quant ? "q" : "") + "assoc";
 			} else {
-				filename = ext.rootOf(pheno, false)	+ "." + count + ".assoc."
-										+ (quant ? "linear" : "logistic");
+				filename = ext.rootOf(pheno, false) + "." + count + ".assoc."
+									 + (quant ? "linear" : "logistic");
 			}
 			if (new File(filename).exists()) {
 				compress(filename, markerNames, true);
@@ -471,8 +471,8 @@ public class PathwayAnalysis {
 		}
 	}
 
-	public static String evaluateGeneset(	String pheno, String[] markerList, String results,
-																				String repDir, double p_thresh, double nrss_thresh) {
+	public static String evaluateGeneset(String pheno, String[] markerList, String results,
+																			 String repDir, double p_thresh, double nrss_thresh) {
 		int count, hits;
 		long time;
 		float[] pvals;
@@ -501,15 +501,15 @@ public class PathwayAnalysis {
 		markerNames = HashVec.loadFileToStringArray(repDir + "plink.bim", false, new int[] {1}, false);
 
 		if (!new File(repDir + ext.rootOf(pheno, false) + ".markerNames").exists()) {
-			System.err.println("Error - need file '"	+ repDir + ext.rootOf(pheno, false)
-													+ ".markerNames' to verify marker order");
+			System.err.println("Error - need file '" + repDir + ext.rootOf(pheno, false)
+												 + ".markerNames' to verify marker order");
 			return "error";
 		}
-		if (Array.equals(	markerNames,
-											SerialStringArray	.load(repDir	+ ext.rootOf(pheno, false) + ".markerNames",
-																							false)
-																				.getArray(),
-											false)) {
+		if (ArrayUtils.equals(markerNames,
+													SerialStringArray.load(repDir + ext.rootOf(pheno, false) + ".markerNames",
+																								 false)
+																					 .getArray(),
+													false)) {
 			System.out.println("Marker order matches with replicates");
 		} else {
 			System.err.println("Error - marker order does not match between results file and replicate files");
@@ -557,15 +557,15 @@ public class PathwayAnalysis {
 			}
 		}
 		System.out.println("Finished in " + ext.getTimeElapsed(time));
-		System.out.println("score = "	+ score + "; final permutation: " + hits + "/" + count + "="
-												+ ext.prettyP(((double) hits + 1) / ((double) count + 1)));
+		System.out.println("score = " + score + "; final permutation: " + hits + "/" + count + "="
+											 + ext.prettyP(((double) hits + 1) / ((double) count + 1)));
 
 		return ext.prettyP(((double) hits + 1) / ((double) count + 1));
 	}
 
-	public static void evaluateAllSets(	String pheno, String mapfile, int offset, String results,
-																			String repDir, String groupings_file, double p_thresh,
-																			double nrss_thresh) {
+	public static void evaluateAllSets(String pheno, String mapfile, int offset, String results,
+																		 String repDir, String groupings_file, double p_thresh,
+																		 double nrss_thresh) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String temp;
@@ -612,13 +612,13 @@ public class PathwayAnalysis {
 					}
 
 					System.out.println(subheader + "\t" + snpsInPathway.size());
-					pvalue = evaluateGeneset(	pheno, Array.toStringArray(snpsInPathway), results, repDir,
-																		p_thresh, nrss_thresh);
+					pvalue = evaluateGeneset(pheno, ArrayUtils.toStringArray(snpsInPathway), results, repDir,
+																	 p_thresh, nrss_thresh);
 
-					writer.print("\t"	+ "\t" + pathway + "\t" + kegg.pathwayLookup.get(pathway) + "\t"
-												+ subheader + "\t"
-												+ (kegg.pathways.containsKey(pathway)	? kegg.pathways.get(pathway).size()
-																															: 0));
+					writer.print("\t" + "\t" + pathway + "\t" + kegg.pathwayLookup.get(pathway) + "\t"
+											 + subheader + "\t"
+											 + (kegg.pathways.containsKey(pathway) ? kegg.pathways.get(pathway).size()
+																														 : 0));
 					writer.println("\t" + countGene + "\t" + snpsInPathway.size() + "\t" + pvalue);
 					writer.flush();
 				}
@@ -665,13 +665,13 @@ public class PathwayAnalysis {
 		new File(dir + "pathways/").mkdirs();
 		keys = HashVec.getKeys(kegg.pathways);
 		for (String key : keys) {
-			Files.writeArray(	Array.toStringArray(kegg.pathways.get(key)),
-												dir + "pathways/" + key + ".list");
+			Files.writeArray(ArrayUtils.toStringArray(kegg.pathways.get(key)),
+											 dir + "pathways/" + key + ".list");
 			try {
 				writer = new PrintWriter(new FileWriter(dir + "pathways/" + key + ".crf"));
 				writer.println("genes");
-				writer.println(dir	+ "pathways/" + key + ".list 0 out=" + dir + "pathways/" + key
-												+ ".snps");
+				writer.println(dir + "pathways/" + key + ".list 0 out=" + dir + "pathways/" + key
+											 + ".snps");
 				writer.println(dir + "plink.bim 1 0 3");
 				writer.println("buffer=" + DEFAULT_BUFFER);
 				writer.close();
@@ -686,8 +686,8 @@ public class PathwayAnalysis {
 			writer = new PrintWriter(new FileWriter(dir + "genes.xln"));
 			keys = HashVec.getKeys(kegg.genes);
 			for (String key : keys) {
-				writer.println(key	+ "\t" + kegg.genes.get(key).size() + "\t"
-												+ Array.toStr(Array.toStringArray(kegg.genes.get(key))));
+				writer.println(key + "\t" + kegg.genes.get(key).size() + "\t"
+											 + ArrayUtils.toStr(ArrayUtils.toStringArray(kegg.genes.get(key))));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -710,10 +710,10 @@ public class PathwayAnalysis {
 				} else if (temp.contains("/kegg/pathway/")) {
 					pathway = "ko" + temp.substring(temp.indexOf(".html") - 5, temp.indexOf(".html"));
 					subheader = temp.substring(temp.indexOf(".html") + 7, temp.indexOf("</a>"));
-					writer.println("\t"	+ "\t" + pathway + "\t" + kegg.pathwayLookup.get(pathway) + "\t"
-													+ subheader + "\t"
-													+ (kegg.pathways.containsKey(pathway)	? kegg.pathways.get(pathway).size()
-																																: 0));
+					writer.println("\t" + "\t" + pathway + "\t" + kegg.pathwayLookup.get(pathway) + "\t"
+												 + subheader + "\t"
+												 + (kegg.pathways.containsKey(pathway) ? kegg.pathways.get(pathway).size()
+																															 : 0));
 				}
 				temp = reader.readLine();
 			}
@@ -777,7 +777,7 @@ public class PathwayAnalysis {
 		dir = ext.verifyDirFormat(ext.parseDirectoryOfFile(filename));
 		hash = HashVec.loadFileToHashVec(filename, 0, new int[] {0}, "", false, false);
 
-		Files.writeArray(Array.toStringArray(kegg.pathways.get("ko05010")), dir + "AlzGenes.xln");
+		Files.writeArray(ArrayUtils.toStringArray(kegg.pathways.get("ko05010")), dir + "AlzGenes.xln");
 
 		try {
 			reader = new BufferedReader(new FileReader(groupings_file));
@@ -804,10 +804,10 @@ public class PathwayAnalysis {
 							}
 						}
 					}
-					writer.print("\t"	+ "\t" + pathway + "\t" + kegg.pathwayLookup.get(pathway) + "\t"
-												+ subheader + "\t"
-												+ (kegg.pathways.containsKey(pathway)	? kegg.pathways.get(pathway).size()
-																															: 0));
+					writer.print("\t" + "\t" + pathway + "\t" + kegg.pathwayLookup.get(pathway) + "\t"
+											 + subheader + "\t"
+											 + (kegg.pathways.containsKey(pathway) ? kegg.pathways.get(pathway).size()
+																														 : 0));
 					writer.println("\t" + countGene + "\t" + countTimesGene);
 				}
 				temp = reader.readLine();
@@ -843,9 +843,9 @@ public class PathwayAnalysis {
 					}
 				}
 			}
-			Files.writeArray(	Array.toStringArray(snpsInPathway),
-												ext.parseDirectoryOfFile(mapfile)		+ pathway + "_"
-																														+ ((int) (offset / 1000.0)) + "K.dat");
+			Files.writeArray(ArrayUtils.toStringArray(snpsInPathway),
+											 ext.parseDirectoryOfFile(mapfile) + pathway + "_" + ((int) (offset / 1000.0))
+																																+ "K.dat");
 		} else {
 			System.err.println("Error - '" + pathway + "' is not a valid pathway");
 		}
@@ -900,31 +900,31 @@ public class PathwayAnalysis {
 		double p_threshold = DEFAULT_P_THRESHOLD;
 		double nrss_index_threshold = DEFAULT_NRSS_INDEX_THRESHOLD;
 
-		String usage = "\n"	+ "gwas.PathwayAnalysis requires 0-1 arguments\n"
-										+ "   (1) phenotype filename (i.e. pheno=" + pheno + " (default))\n"
-										+ "   (2) covariates filename (i.e. covars=" + covars
-										+ " (optional) (default))\n" + "   (2b) include sex as a covariate (i.e. sex="
-										+ sex + " (optional) (default))\n"
-										+ "   (3) link covariates to pheno, not geno (i.e. link=" + linkCovToPheno
-										+ " (default))\n"
-										+ "   (3) permute pheno and run until plug is pulled (i.e. -permAndRun (not the default))\n"
-										+ "   (4) compress by keeping only pvalues (i.e. -compress (not the default))\n"
-										+ "   (4b) compress all existing result files (i.e. -compress (same flag; not the default))\n"
-										+ "   (5) gene-set with which to evaluate (i.e. evaluate=markerList.txt (not the default))\n"
-										+ "   (6) result set to compare against (i.e. results=" + results
-										+ " (default))\n"
-										+ "   (7) name of directory containing replicates (i.e. repDir=" + repDir
-										+ " (default))\n"
-										+ "   (8) parse gene location info (i.e. -parseGeneInfo (not the default))\n" +
-										// " (9) evaluate set of snps (i.e. set=list.txt (not the default))\n"+
-										"   (10) evaluate all KEGG sets (i.e. -allSets (not the default))\n"
-										+ "   (11) mapfile to map to KEGG sets (i.e. map=" + mapfile + " (default))\n"
-										+ "   (12) max offset from SNP position to gene start/stop (i.e. offset="
-										+ offset + " (default))\n"
-										+ "   (13) p-value threshold for inclusion in score (i.e. p_thresh="
-										+ p_threshold + " (default))\n"
-										+ "   (14) index threhsold for NRS score (i.e. nrss_thresh="
-										+ nrss_index_threshold + " (default; 1=nrss_not_used))\n" + "";
+		String usage = "\n" + "gwas.PathwayAnalysis requires 0-1 arguments\n"
+									 + "   (1) phenotype filename (i.e. pheno=" + pheno + " (default))\n"
+									 + "   (2) covariates filename (i.e. covars=" + covars
+									 + " (optional) (default))\n" + "   (2b) include sex as a covariate (i.e. sex="
+									 + sex + " (optional) (default))\n"
+									 + "   (3) link covariates to pheno, not geno (i.e. link=" + linkCovToPheno
+									 + " (default))\n"
+									 + "   (3) permute pheno and run until plug is pulled (i.e. -permAndRun (not the default))\n"
+									 + "   (4) compress by keeping only pvalues (i.e. -compress (not the default))\n"
+									 + "   (4b) compress all existing result files (i.e. -compress (same flag; not the default))\n"
+									 + "   (5) gene-set with which to evaluate (i.e. evaluate=markerList.txt (not the default))\n"
+									 + "   (6) result set to compare against (i.e. results=" + results
+									 + " (default))\n"
+									 + "   (7) name of directory containing replicates (i.e. repDir=" + repDir
+									 + " (default))\n"
+									 + "   (8) parse gene location info (i.e. -parseGeneInfo (not the default))\n" +
+									 // " (9) evaluate set of snps (i.e. set=list.txt (not the default))\n"+
+									 "   (10) evaluate all KEGG sets (i.e. -allSets (not the default))\n"
+									 + "   (11) mapfile to map to KEGG sets (i.e. map=" + mapfile + " (default))\n"
+									 + "   (12) max offset from SNP position to gene start/stop (i.e. offset="
+									 + offset + " (default))\n"
+									 + "   (13) p-value threshold for inclusion in score (i.e. p_thresh="
+									 + p_threshold + " (default))\n"
+									 + "   (14) index threhsold for NRS score (i.e. nrss_thresh="
+									 + nrss_index_threshold + " (default; 1=nrss_not_used))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

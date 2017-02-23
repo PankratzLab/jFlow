@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -70,10 +70,10 @@ public class BamOps {
 		String index = getAssociatedBamIndex(bamFile);
 		if (!Files.exists(index)) {
 			log.reportTimeInfo("Attempting to generate index " + index);
-			htsjdk.samtools.BAMIndexer.createIndex(	BamOps.getDefaultReader(bamFile,
-																																			ValidationStringency.STRICT,
-																																			options),
-																							new File(index));
+			htsjdk.samtools.BAMIndexer.createIndex(BamOps.getDefaultReader(bamFile,
+																																		 ValidationStringency.STRICT,
+																																		 options),
+																						 new File(index));
 		}
 		return Files.exists(index);
 	}
@@ -103,10 +103,10 @@ public class BamOps {
 	 */
 	public static void dumpUnMappedReads(String bamFile, String outputBam, Logger log) {
 		SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
-		SAMFileWriter sAMFileWriter =
-																new SAMFileWriterFactory().setCreateIndex(true)
-																													.makeSAMOrBAMWriter(reader.getFileHeader(),
-																																							true, new File(outputBam));
+		SAMFileWriter sAMFileWriter = new SAMFileWriterFactory().setCreateIndex(true)
+																														.makeSAMOrBAMWriter(reader.getFileHeader(),
+																																								true,
+																																								new File(outputBam));
 
 		for (SAMRecord samRecord : reader) {
 			if (samRecord.getReadUnmappedFlag()) {
@@ -134,10 +134,10 @@ public class BamOps {
 	public static boolean subsetBam(String bamFile, String outputBam, LocusSet<Segment> set,
 																	boolean include, Logger log) {
 		SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
-		SAMFileWriter sAMFileWriter =
-																new SAMFileWriterFactory().setCreateIndex(true)
-																													.makeSAMOrBAMWriter(reader.getFileHeader(),
-																																							true, new File(outputBam));
+		SAMFileWriter sAMFileWriter = new SAMFileWriterFactory().setCreateIndex(true)
+																														.makeSAMOrBAMWriter(reader.getFileHeader(),
+																																								true,
+																																								new File(outputBam));
 
 		for (SAMRecord samRecord : reader) {
 			Segment seg = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
@@ -166,8 +166,8 @@ public class BamOps {
 	 * @param options {@link SamReaderFactory.Option} to apply to the reader
 	 * @return new reader
 	 */
-	public static SamReader getDefaultReader(	String bamOrSam, ValidationStringency stringency,
-																						List<Option> options) {
+	public static SamReader getDefaultReader(String bamOrSam, ValidationStringency stringency,
+																					 List<Option> options) {
 		SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();
 		samReaderFactory.validationStringency(stringency);
 		for (Option option : options) {
@@ -189,14 +189,14 @@ public class BamOps {
 																								int bpBuffer, boolean optimize, boolean chr,
 																								Logger log) {
 		QueryInterval[] qIntervals = new QueryInterval[segs.length];
-		segs = Array.sortedCopy(segs);
+		segs = ArrayUtils.sortedCopy(segs);
 		for (int i = 0; i < qIntervals.length; i++) {
 			String sequenceName = Positions.getChromosomeUCSC(segs[i].getChr(), chr);
 			int referenceIndex = sFileHeader.getSequenceIndex(sequenceName);
 			if (referenceIndex < 0) {
 				referenceIndex = sFileHeader.getSequenceIndex(sequenceName + "T");// MT
 				if (referenceIndex < 0) {
-					log.reportError("Error - could not find "+ sequenceName
+					log.reportError("Error - could not find " + sequenceName
 													+ " in the sequence dictionary, halting");
 					return null;
 				}
@@ -210,12 +210,11 @@ public class BamOps {
 		return qIntervals;
 	}
 
-	public static Segment[] converQItoSegs(	QueryInterval[] qIntervals, SAMFileHeader sFileHeader,
-																					Logger log) {
+	public static Segment[] converQItoSegs(QueryInterval[] qIntervals, SAMFileHeader sFileHeader,
+																				 Logger log) {
 		Segment[] segs = new Segment[qIntervals.length];
 		for (int i = 0; i < segs.length; i++) {
-			segs[i] = new Segment(
-														Positions.chromosomeNumber(sFileHeader.getSequence(qIntervals[i].referenceIndex)
+			segs[i] = new Segment(Positions.chromosomeNumber(sFileHeader.getSequence(qIntervals[i].referenceIndex)
 																																	.getSequenceName()),
 														qIntervals[i].start, qIntervals[i].end);
 		}
@@ -268,13 +267,13 @@ public class BamOps {
 			String[] id = samReadGroupRecord.getId().split("_");
 			String[] tmpCodes = id[id.length - 3].split("-");
 			if (tmpCodes.length != 2) {
-				throw new IllegalArgumentException("Could not parse barcodes for RG "+ samReadGroupRecord
-																						+ " in bam file " + bam);
+				throw new IllegalArgumentException("Could not parse barcodes for RG " + samReadGroupRecord
+																					 + " in bam file " + bam);
 
 			} else {
 				for (String tmpCode : tmpCodes) {
-					if (tmpCode	.replaceAll("A", "").replaceAll("C", "").replaceAll("T", "")
-											.replaceAll("G", "").length() != 0) {
+					if (tmpCode.replaceAll("A", "").replaceAll("C", "").replaceAll("T", "")
+										 .replaceAll("G", "").length() != 0) {
 						throw new IllegalArgumentException("Invalid barcode " + tmpCode);
 					} else {
 						barcodesUnique.add(tmpCode);
@@ -393,8 +392,8 @@ public class BamOps {
 		}
 
 		public String getSummary() {
-			return "AvgInsertSize\t"+ avgInsertSize + "\nStDevInsertSize\t"
-							+ stDevInsertSize + "\nmad\t" + mad;
+			return "AvgInsertSize\t" + avgInsertSize + "\nStDevInsertSize\t" + stDevInsertSize + "\nmad\t"
+						 + mad;
 
 		}
 
@@ -423,7 +422,7 @@ public class BamOps {
 		int readsScanned = 0;
 		while (iterator.hasNext()) {
 			SAMRecord samRecord = iterator.next();
-			if (samRecord.getProperPairFlag()&& !samRecord.getReadUnmappedFlag()
+			if (samRecord.getProperPairFlag() && !samRecord.getReadUnmappedFlag()
 					&& samRecord.getCigar().getCigarElements().size() == 1) {
 				insertSizes.add((double) samRecord.getInferredInsertSize());
 				readsScanned++;
@@ -441,9 +440,9 @@ public class BamOps {
 		}
 		if (readsScanned > 0) {
 			double[] finals = Doubles.toArray(insertSizes);
-			double averageInsertSize = Array.mean(finals);
-			double stDevInsertSize = Array.stdev(finals);
-			double mad = Array.mad(finals);
+			double averageInsertSize = ArrayUtils.mean(finals);
+			double stDevInsertSize = ArrayUtils.stdev(finals);
+			double mad = ArrayUtils.mad(finals);
 			return new InsertSizeEstimate(averageInsertSize, stDevInsertSize, mad);
 
 		}
@@ -512,7 +511,7 @@ public class BamOps {
 			}
 		} catch (IndexOutOfBoundsException indexOutOfBoundsException) {
 			log.reportException(indexOutOfBoundsException);
-			log.reportTimeWarning("Could not determine sample name for "+ bamFile
+			log.reportTimeWarning("Could not determine sample name for " + bamFile
 														+ ", calling it root of bam");
 			return ext.rootOf(bamFile);
 		}
@@ -611,15 +610,15 @@ public class BamOps {
 				log.reportTimeWarning("Did not find matching bam file for " + samples[i]);
 			} else {
 				if (matched.containsKey(samples[i])) {
-					throw new IllegalArgumentException("Multiple bam files matched sample "+ samples[i]
-																							+ ", perhaps because of variant sets?");
+					throw new IllegalArgumentException("Multiple bam files matched sample " + samples[i]
+																						 + ", perhaps because of variant sets?");
 				}
 				matched.put(samples[i], bamSamples.get(samples[i]));
 			}
 		}
 
-		log.reportTimeInfo("Found matching bam files for"+ matched.size() + " of " + samples.length
-												+ " samples");
+		log.reportTimeInfo("Found matching bam files for" + matched.size() + " of " + samples.length
+											 + " samples");
 
 		return matched;
 

@@ -41,34 +41,33 @@ public class SNPVCFTesting {
 
 	static String UNIX_unzippedVCFFile = "/scratch.global/coleb/DBSNP/All_20150605.vcf";
 	static String UNIX_numberedVCFFile = "/scratch.global/coleb/DBSNP/All_20150605_noRS.vcf.gz";
-	static String UNIX_numberedVCFFile2 =
-																			"/scratch.global/coleb/DBSNP/All_20150605_noRS_rerun.vcf.gz";
+	static String UNIX_numberedVCFFile2 = "/scratch.global/coleb/DBSNP/All_20150605_noRS_rerun.vcf.gz";
 	// static String tbiFile = "D:/All_20150605.vcf.gz.tbi";
 
 	static String papu = "D:/All_20150605_papu.vcf";
 	static String papu_out = "D:/All_20150605_papu_trimmedNoRS.vcf.gz";
 	static String papu_out2 = "D:/All_20150605_papu_trimmedNoRS_rerun.vcf.gz";
 
-	static String[] header = new String[] {	"##fileformat=VCFv4.0", "##fileDate=20150605",
-																					"##source=dbSNP", "##dbSNP_BUILD_ID=144",
-																					"##reference=GRCh37.p13", "##phasing=partial",
-																					"##INFO=<ID=GENEINFO,Number=1,Type=String,Description=\"Pairs each of gene symbol:gene id.  The gene symbol and id are delimited by a colon (:) and each pair is delimited by a vertical bar (|)\">",
-																					"##INFO=<ID=PM,Number=0,Type=Flag,Description=\"Variant is Precious(Clinical,Pubmed Cited)\">",
-																					"##INFO=<ID=NSF,Number=0,Type=Flag,Description=\"Has non-synonymous frameshift A coding region variation where one allele in the set changes all downstream amino acids. FxnClass = 44\">",
-																					"##INFO=<ID=NSM,Number=0,Type=Flag,Description=\"Has non-synonymous missense A coding region variation where one allele in the set changes protein peptide. FxnClass = 42\">",
-																					"##INFO=<ID=NSN,Number=0,Type=Flag,Description=\"Has non-synonymous nonsense A coding region variation where one allele in the set changes to STOP codon (TER). FxnClass = 41\">",
-																					"##INFO=<ID=REF,Number=0,Type=Flag,Description=\"Has reference A coding region variation where one allele in the set is identical to the reference sequence. FxnCode = 8\">",
-																					"##INFO=<ID=SYN,Number=0,Type=Flag,Description=\"Has synonymous A coding region variation where one allele in the set does not change the encoded amino acid. FxnCode = 3\">",
-																					"##INFO=<ID=U3,Number=0,Type=Flag,Description=\"In 3' UTR Location is in an untranslated region (UTR). FxnCode = 53\">",
-																					"##INFO=<ID=U5,Number=0,Type=Flag,Description=\"In 5' UTR Location is in an untranslated region (UTR). FxnCode = 55\">",
-																					"##INFO=<ID=ASS,Number=0,Type=Flag,Description=\"In acceptor splice site FxnCode = 73\">",
-																					"##INFO=<ID=DSS,Number=0,Type=Flag,Description=\"In donor splice-site FxnCode = 75\">",
-																					"##INFO=<ID=INT,Number=0,Type=Flag,Description=\"In Intron FxnCode = 6\">",
-																					"##INFO=<ID=R3,Number=0,Type=Flag,Description=\"In 3' gene region FxnCode = 13\">",
-																					"##INFO=<ID=R5,Number=0,Type=Flag,Description=\"In 5' gene region FxnCode = 15\">",
-																					"##INFO=<ID=MUT,Number=0,Type=Flag,Description=\"Is mutation (journal citation, explicit fact): a low frequency variation that is cited in journal and other reputable sources\">",
-																					"##INFO=<ID=CAF,Number=.,Type=String,Description=\"An ordered, comma delimited list of allele frequencies based on 1000Genomes, starting with the reference allele followed by alternate alleles as ordered in the ALT column. Where a 1000Genomes alternate allele is not in the dbSNPs alternate allele set, the allele is added to the ALT column.  The minor allele is the second largest value in the list, and was previuosly reported in VCF as the GMAF.  This is the GMAF reported on the RefSNP and EntrezSNP pages and VariationReporter\">",
-																					"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO"};
+	static String[] header = new String[] {"##fileformat=VCFv4.0", "##fileDate=20150605",
+																				 "##source=dbSNP", "##dbSNP_BUILD_ID=144",
+																				 "##reference=GRCh37.p13", "##phasing=partial",
+																				 "##INFO=<ID=GENEINFO,Number=1,Type=String,Description=\"Pairs each of gene symbol:gene id.  The gene symbol and id are delimited by a colon (:) and each pair is delimited by a vertical bar (|)\">",
+																				 "##INFO=<ID=PM,Number=0,Type=Flag,Description=\"Variant is Precious(Clinical,Pubmed Cited)\">",
+																				 "##INFO=<ID=NSF,Number=0,Type=Flag,Description=\"Has non-synonymous frameshift A coding region variation where one allele in the set changes all downstream amino acids. FxnClass = 44\">",
+																				 "##INFO=<ID=NSM,Number=0,Type=Flag,Description=\"Has non-synonymous missense A coding region variation where one allele in the set changes protein peptide. FxnClass = 42\">",
+																				 "##INFO=<ID=NSN,Number=0,Type=Flag,Description=\"Has non-synonymous nonsense A coding region variation where one allele in the set changes to STOP codon (TER). FxnClass = 41\">",
+																				 "##INFO=<ID=REF,Number=0,Type=Flag,Description=\"Has reference A coding region variation where one allele in the set is identical to the reference sequence. FxnCode = 8\">",
+																				 "##INFO=<ID=SYN,Number=0,Type=Flag,Description=\"Has synonymous A coding region variation where one allele in the set does not change the encoded amino acid. FxnCode = 3\">",
+																				 "##INFO=<ID=U3,Number=0,Type=Flag,Description=\"In 3' UTR Location is in an untranslated region (UTR). FxnCode = 53\">",
+																				 "##INFO=<ID=U5,Number=0,Type=Flag,Description=\"In 5' UTR Location is in an untranslated region (UTR). FxnCode = 55\">",
+																				 "##INFO=<ID=ASS,Number=0,Type=Flag,Description=\"In acceptor splice site FxnCode = 73\">",
+																				 "##INFO=<ID=DSS,Number=0,Type=Flag,Description=\"In donor splice-site FxnCode = 75\">",
+																				 "##INFO=<ID=INT,Number=0,Type=Flag,Description=\"In Intron FxnCode = 6\">",
+																				 "##INFO=<ID=R3,Number=0,Type=Flag,Description=\"In 3' gene region FxnCode = 13\">",
+																				 "##INFO=<ID=R5,Number=0,Type=Flag,Description=\"In 5' gene region FxnCode = 15\">",
+																				 "##INFO=<ID=MUT,Number=0,Type=Flag,Description=\"Is mutation (journal citation, explicit fact): a low frequency variation that is cited in journal and other reputable sources\">",
+																				 "##INFO=<ID=CAF,Number=.,Type=String,Description=\"An ordered, comma delimited list of allele frequencies based on 1000Genomes, starting with the reference allele followed by alternate alleles as ordered in the ALT column. Where a 1000Genomes alternate allele is not in the dbSNPs alternate allele set, the allele is added to the ALT column.  The minor allele is the second largest value in the list, and was previuosly reported in VCF as the GMAF.  This is the GMAF reported on the RefSNP and EntrezSNP pages and VariationReporter\">",
+																				 "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO"};
 
 	static String chrPosInfo = "##INFO=<ID=CHRPOS,Number=1,Type=String,Description=\"Chromosome and Position, separated by a colon (:)\">";
 
@@ -100,10 +99,9 @@ public class SNPVCFTesting {
 
 	static void createTBI() {
 		String refGenome = "D:/hg19_canonical.fa";
-		SAMSequenceDictionary samSequenceDictionary =
-																								new ReferenceGenome(refGenome,
-																																		new Logger())	.getIndexedFastaSequenceFile()
-																																									.getSequenceDictionary();
+		SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(refGenome,
+																																			new Logger()).getIndexedFastaSequenceFile()
+																																									 .getSequenceDictionary();
 
 		// VCFFileReader fileReader1 = new VCFFileReader(new File(trimmedVCFFile), false);
 		// VariantContextWriter vcw = VCFOps.initWriter(trimmedVCFFile2, VCFOps.DEFUALT_WRITER_OPTIONS,

@@ -25,37 +25,38 @@ public class ShadowRework {
 	}
 
 	/**
-	 * @param proj
-	 *            Project to correct
-	 * @param principalComponentsResiduals
-	 *            PCs to do the correcting
-	 * @param preserveBafs
-	 *            preserve BAF values (NGS specific), you likely want false here
-	 * @param sampleSex
-	 *            for Sex specific clustering
-	 * @param samplesToUseCluster
-	 *            samples to seed correction
+	 * @param proj Project to correct
+	 * @param principalComponentsResiduals PCs to do the correcting
+	 * @param preserveBafs preserve BAF values (NGS specific), you likely want false here
+	 * @param sampleSex for Sex specific clustering
+	 * @param samplesToUseCluster samples to seed correction
 	 * @param lType
-	 * @param numComponents
-	 *            number of PCs to correct for
-	 * @param numCorrectionThreads
-	 *            number of threads within a marker (max of 6 can be utilized)
-	 * @param numMarkerThreads
-	 *            number of markers corrected at once
+	 * @param numComponents number of PCs to correct for
+	 * @param numCorrectionThreads number of threads within a marker (max of 6 can be utilized)
+	 * @param numMarkerThreads number of markers corrected at once
 	 */
-	public static void correctProject(Project proj, PrincipalComponentsResiduals principalComponentsResiduals,
-			boolean preserveBafs, int[] sampleSex, boolean[] samplesToUseCluster, int numComponents,
-			int numCorrectionThreads, int numMarkerThreads) {
+	public static void correctProject(Project proj,
+																		PrincipalComponentsResiduals principalComponentsResiduals,
+																		boolean preserveBafs, int[] sampleSex,
+																		boolean[] samplesToUseCluster, int numComponents,
+																		int numCorrectionThreads, int numMarkerThreads) {
 
 		Project shadowProject = new Project();
 		// TODO update shadow project for new location of files,
 		// transposed/samples dirs, etc
 
 		String[] markers = proj.getMarkerNames(); // Correct the entire thing
-		PcCorrectionProducer producer = new PcCorrectionProducer(principalComponentsResiduals, numComponents, sampleSex,
-				samplesToUseCluster, LS_TYPE.REGULAR, numCorrectionThreads, 1, proj.getMarkerNames(),CORRECTION_TYPE.XY,CHROMOSOME_X_STRATEGY.BIOLOGICAL);
+		PcCorrectionProducer producer = new PcCorrectionProducer(principalComponentsResiduals,
+																														 numComponents, sampleSex,
+																														 samplesToUseCluster, LS_TYPE.REGULAR,
+																														 numCorrectionThreads, 1,
+																														 proj.getMarkerNames(),
+																														 CORRECTION_TYPE.XY,
+																														 CHROMOSOME_X_STRATEGY.BIOLOGICAL);
 		WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<PrincipalComponentsIntensity>(producer,
-				numMarkerThreads, 10, proj.getLog());
+																																																		numMarkerThreads,
+																																																		10,
+																																																		proj.getLog());
 		ArrayList<String> notCorrected = new ArrayList<String>();
 		int index = 0;
 
@@ -73,14 +74,16 @@ public class ShadowRework {
 			} else {
 				byte[] abGenotypes = principalComponentsIntensity.getGenotypesUsed();// for
 				// now
-				float[][] correctedXY = principalComponentsIntensity
-						.getCorrectedIntensity(PrincipalComponentsIntensity.XY_RETURN, true);
-				float[][] correctedLRRBAF = principalComponentsIntensity
-						.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN, true);
-				markerData = new MarkerData(markerData.getMarkerName(), markerData.getChr(), markerData.getPosition(),
-						markerData.getFingerprint(), markerData.getGCs(), null, null, correctedXY[0], correctedXY[1],
-						null, null, preserveBafs ? markerData.getBAFs() : correctedLRRBAF[0], correctedLRRBAF[1],
-						abGenotypes, abGenotypes);
+				float[][] correctedXY = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.XY_RETURN,
+																																									 true);
+				float[][] correctedLRRBAF = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN,
+																																											 true);
+				markerData = new MarkerData(markerData.getMarkerName(), markerData.getChr(),
+																		markerData.getPosition(), markerData.getFingerprint(),
+																		markerData.getGCs(), null, null, correctedXY[0], correctedXY[1],
+																		null, null,
+																		preserveBafs ? markerData.getBAFs() : correctedLRRBAF[0],
+																		correctedLRRBAF[1], abGenotypes, abGenotypes);
 			}
 
 			// TODO manage outliers
@@ -96,8 +99,8 @@ public class ShadowRework {
 		}
 		if (!notCorrected.isEmpty()) {
 			Files.writeArray(notCorrected.toArray(new String[notCorrected.size()]),
-					shadowProject.PROJECT_DIRECTORY.getValue() + notCorrected.size()
-							+ "_markersThatFailedCorrection.txt");
+											 shadowProject.PROJECT_DIRECTORY.getValue() + notCorrected.size()
+																																							+ "_markersThatFailedCorrection.txt");
 		}
 
 		// Magic method to reverse transpose - if needed, not sure if this works

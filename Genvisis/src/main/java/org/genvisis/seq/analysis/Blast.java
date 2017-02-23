@@ -4,7 +4,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.CmdLineProcess;
 import org.genvisis.common.CmdLineProcess.ERR_Mode;
@@ -41,7 +41,7 @@ public class Blast {
 	public static final double DEFAULT_EVALUE = 10;
 
 	private enum BLAST_COMMANDS {
-																MAKE_DB("makeblastdb"), BLASTN("blastn");
+		MAKE_DB("makeblastdb"), BLASTN("blastn");
 		private String command;
 
 		private BLAST_COMMANDS(String command) {
@@ -54,7 +54,7 @@ public class Blast {
 	}
 
 	private enum BLAST_DB_TYPE {
-															NUCL("nucl");
+		NUCL("nucl");
 		private String type;
 
 		private BLAST_DB_TYPE(String type) {
@@ -74,8 +74,8 @@ public class Blast {
 	private final int blastWordSize, reportWordSize;
 	private double evalue;
 
-	public Blast(	String fastaDb, int blastWordSize, int reportWordSize, Logger log,
-								boolean overwriteExisting, boolean verbose) {
+	public Blast(String fastaDb, int blastWordSize, int reportWordSize, Logger log,
+							 boolean overwriteExisting, boolean verbose) {
 		super();
 
 		this.fastaDb = fastaDb;
@@ -115,12 +115,12 @@ public class Blast {
 
 		if (!Files.isWindows()) {
 			if (!fail) {
-				String[] command = new String[] {	BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb,
-																					OUT_FMT, DEFAULT_OUT_FMT	+ " std"
-																										+ (taxonMode ? " staxids" : " btop"),
-																					WORD_SIZE, blastWordSize + "",
-																					evalue != DEFAULT_EVALUE ? E : "",
-																					evalue != DEFAULT_EVALUE ? evalue + "" : ""};
+				String[] command = new String[] {BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb,
+																				 OUT_FMT, DEFAULT_OUT_FMT + " std"
+																									+ (taxonMode ? " staxids" : " btop"),
+																				 WORD_SIZE, blastWordSize + "",
+																				 evalue != DEFAULT_EVALUE ? E : "",
+																				 evalue != DEFAULT_EVALUE ? evalue + "" : ""};
 				FastaEntryInputStream fStream = new FastaEntryInputStream(fastaEntries, log);
 				CmdLineProcess.Builder builder = new CmdLineProcess.Builder();
 				builder.STIN(fStream);
@@ -144,7 +144,7 @@ public class Blast {
 							if (bResults.getAlignmentLength() >= reportWordSize) {
 								bSummaries[i].addBlastResult(bResults, log);
 								if (tmpFile != null) {
-									tmpFile.println(Array.toStr(bResults.getResults()));
+									tmpFile.println(ArrayUtils.toStr(bResults.getResults()));
 								}
 							}
 						}
@@ -161,13 +161,13 @@ public class Blast {
 	public static boolean initDb(BLAST_DB_TYPE type, String fastaDb, Logger log) {
 		boolean dbCreated = true;
 		if (!Files.exists("", getDBFiles(fastaDb))) {
-			String[] dbCommand = new String[] {	BLAST_COMMANDS.MAKE_DB.getCommand(), IN, fastaDb, DB_TYPE,
-																					type.getTYPE()};
-			dbCreated = CmdLine.runCommandWithFileChecks(	dbCommand, "", new String[] {fastaDb},
-																										getDBFiles(fastaDb), true, false, false, log);
+			String[] dbCommand = new String[] {BLAST_COMMANDS.MAKE_DB.getCommand(), IN, fastaDb, DB_TYPE,
+																				 type.getTYPE()};
+			dbCreated = CmdLine.runCommandWithFileChecks(dbCommand, "", new String[] {fastaDb},
+																									 getDBFiles(fastaDb), true, false, false, log);
 		} else {
-			log.reportTimeInfo("Using existing data base files : "	+ ext.rootOf(fastaDb) + " ("
-													+ Array.toStr(DB_EXTs, ",") + ")");
+			log.reportTimeInfo("Using existing data base files : " + ext.rootOf(fastaDb) + " ("
+												 + ArrayUtils.toStr(DB_EXTs, ",") + ")");
 
 		}
 		return dbCreated;
@@ -190,7 +190,7 @@ public class Blast {
 				&& !CmdLine.run(BLAST_COMMANDS.MAKE_DB.getCommand(), "")) {
 			log.reportError("It is assumed that the program "	+ BLAST_COMMANDS.BLASTN.getCommand()
 											+ " can be found on the system's path, or the following files are present...");
-			log.reportError(Array.toStr(getDBFiles(fastaDb), "\n"));
+			log.reportError(ArrayUtils.toStr(getDBFiles(fastaDb), "\n"));
 			verified = false;
 		}
 		return verified;
@@ -325,8 +325,8 @@ public class Blast {
 		}
 
 		public Segment getSegment() {
-			return new Segment(	Positions.chromosomeNumber(subjectID, false, new Logger()),
-													Math.min(sstart, sstop), Math.max(sstart, sstop));
+			return new Segment(Positions.chromosomeNumber(subjectID, false, new Logger()),
+												 Math.min(sstart, sstop), Math.max(sstart, sstop));
 
 		}
 
@@ -394,9 +394,9 @@ public class Blast {
 		}
 
 		public String[] getResults() {
-			return new String[] {	queryID, subjectID, percentIdentity + "", alignmentLength + "",
-														mismatches + "", gapOpens + "", qstart + "", qstop + "", sstart + "",
-														sstop + "", evalue + "", bitScore + "", btop};
+			return new String[] {queryID, subjectID, percentIdentity + "", alignmentLength + "",
+													 mismatches + "", gapOpens + "", qstart + "", qstop + "", sstart + "",
+													 sstop + "", evalue + "", bitScore + "", btop};
 		}
 
 		private double tryDouble(String ad, Logger log) {
@@ -460,9 +460,8 @@ public class Blast {
 				if (blastResults.getPercentIdentity() == 100) {
 					if (numPerfectMatches == 0) {
 						if (blastResults.getSubjectID().startsWith("chr")) {
-							perfectMatchSegment =
-																	new Segment(Positions.chromosomeNumber(blastResults.getSubjectID()),
-																							blastResults.getSstart(), blastResults.getSstop());
+							perfectMatchSegment = new Segment(Positions.chromosomeNumber(blastResults.getSubjectID()),
+																								blastResults.getSstart(), blastResults.getSstop());
 						}
 
 					} else {
@@ -517,7 +516,7 @@ public class Blast {
 			if (tmpFile != null) {
 				blast.getLog().reportTimeInfo("Output sent to " + tmpFile);
 				writer = Files.getAppropriateWriter(tmpFile);
-				writer.println(Array.toStr(BLAST_HEADER));
+				writer.println(ArrayUtils.toStr(BLAST_HEADER));
 
 			}
 
@@ -533,9 +532,8 @@ public class Blast {
 	public static void test() {
 		String fastaDb = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
 		Blast blast = new Blast(fastaDb, 60, 100, new Logger(), true, true);
-		FastaEntry fastaEntry =
-													new FastaEntry(	"HDSIF",
-																					"GAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTGTGTTAATTAATTAATGCTTGTAGGACATAATAATAACAATTGAAT");
+		FastaEntry fastaEntry = new FastaEntry("HDSIF",
+																					 "GAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTGTGTTAATTAATTAATGCTTGTAGGACATAATAATAACAATTGAAT");
 		blast.blastSequence(new FastaEntry[] {fastaEntry}, null);
 	}
 
@@ -546,8 +544,8 @@ public class Blast {
 		// String logfile = null;
 		// Logger log;
 
-		String usage = "\n"	+ "seq.analysis.Blast requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "seq.analysis.Blast requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

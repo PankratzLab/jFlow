@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -99,16 +99,16 @@ public class Adapter {
 	/**
 	 * blast a sequence (typically soft clipped) against a blast database of adapter content
 	 */
-	public static String[] blast(	int blastWordSize, ArrayList<Adapter> adapters, String[] sequences,
-																String outputDir, String root, int numThreads, Logger log) {
+	public static String[] blast(int blastWordSize, ArrayList<Adapter> adapters, String[] sequences,
+															 String outputDir, String root, int numThreads, Logger log) {
 		new File(outputDir).mkdirs();
 		String db = outputDir + "adapter.db.fa";
 		String containsFile = db + ".adapterContent";
 		String[] names = getAllNames(adapters);
 
-		if (!Files.exists(containsFile)	|| !Files.exists(db)
-				|| !ext.containsAll(names, HashVec.loadFileToStringArray(	containsFile, false, new int[] {0},
-																																	true))) {
+		if (!Files.exists(containsFile) || !Files.exists(db)
+				|| !ext.containsAll(names, HashVec.loadFileToStringArray(containsFile, false, new int[] {0},
+																																 true))) {
 			String contains = "";
 			String adapterFasta = "";
 			for (Adapter adapter : adapters) {
@@ -134,7 +134,7 @@ public class Adapter {
 		for (int i = 0; i < sequences.length; i++) {
 			fastaEntries[i] = new FastaEntry(sequences[i] + "_softClippedSequence", sequences[i]);
 		}
-		List<FastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, log);
+		List<FastaEntry[]> splits = ArrayUtils.splitUpArray(fastaEntries, numThreads, log);
 		ArrayList<BlastWorker> workers = new ArrayList<Blast.BlastWorker>();
 		String[] tmps = new String[splits.size()];
 		if (fastaEntries != null && fastaEntries.length > 0) {
@@ -145,9 +145,9 @@ public class Adapter {
 				tmps[i] = tmp;
 			}
 		}
-		WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<Blast.BlastResultsSummary[]>(	numThreads,
-																																																10,
-																																																log);
+		WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<Blast.BlastResultsSummary[]>(numThreads,
+																																															 10,
+																																															 log);
 		hive.addCallables(workers.toArray(new BlastWorker[workers.size()]));
 		hive.setReportEvery(1);
 		hive.execute(true);

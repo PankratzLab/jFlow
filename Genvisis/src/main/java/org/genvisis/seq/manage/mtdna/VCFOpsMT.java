@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.genvisis.CLI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.seq.manage.VCFOps;
@@ -42,19 +42,18 @@ public class VCFOpsMT {
 
 	private static final String VCF = "vcf";
 
-	private static final int[] BP_DIFFS =
-																			new int[] {	73, 150, 195, 263, 408, 750, 1438, 2352, 2483,
-																									2706, 4769, 5580, 7028, 8701, 8860, 9377, 9540,
-																									10398, 10819, 10873, 11017, 11719, 11722, 12705,
-																									12850, 14212, 14580, 14766, 14905, 15301, 15326,
-																									15932, 16172, 16183, 16189, 16223, 16320, 16519};
+	private static final int[] BP_DIFFS = new int[] {73, 150, 195, 263, 408, 750, 1438, 2352, 2483,
+																									 2706, 4769, 5580, 7028, 8701, 8860, 9377, 9540,
+																									 10398, 10819, 10873, 11017, 11719, 11722, 12705,
+																									 12850, 14212, 14580, 14766, 14905, 15301, 15326,
+																									 15932, 16172, 16183, 16189, 16223, 16320, 16519};
 
 	/**
 	 * Which mitochondriome is represented
 	 *
 	 */
 	public enum MT_GENOME {
-													HG19, RCRS;
+		HG19, RCRS;
 	}
 
 
@@ -96,7 +95,7 @@ public class VCFOpsMT {
 			} else {
 				Allele rcrsRef = getRcrsAllles(vc);
 				if (!rcrsRef.basesMatch(vc.getReference())) {
-					throw new IllegalStateException("Reference alleles for "	+ vc.toStringWithoutGenotypes()
+					throw new IllegalStateException("Reference alleles for " + vc.toStringWithoutGenotypes()
 																					+ "\n" + "do not match rcrs " + rcrsRef.getBaseString());
 				}
 
@@ -113,7 +112,7 @@ public class VCFOpsMT {
 			}
 			if (!vc.getAlleles().contains(Allele.create(rcrsRef, true))) {
 
-				log.reportError(vc.toStringWithoutGenotypes()	+ "\n -->>" + rcrsRef.getBaseString() + "\t"
+				log.reportError(vc.toStringWithoutGenotypes() + "\n -->>" + rcrsRef.getBaseString() + "\t"
 												+ vc.getAlleles().contains(rcrsRef));
 				throw new IllegalStateException("not surprisingly, assumptions about allele swapping have been violated");
 			}
@@ -130,8 +129,8 @@ public class VCFOpsMT {
 			return builder.make();
 		}
 
-		private void reDeriveGenotypes(	VariantContext vc, VariantContextBuilder builder,
-																		Allele rcrsRef) {
+		private void reDeriveGenotypes(VariantContext vc, VariantContextBuilder builder,
+																	 Allele rcrsRef) {
 			GenotypesContext gc = vc.getGenotypes();// original genotypes
 			ArrayList<Genotype> newGenos = new ArrayList<Genotype>();
 			for (Genotype g : gc) {// handle the new alleles on a genotype basis
@@ -160,8 +159,9 @@ public class VCFOpsMT {
 		}
 
 		private Allele getRcrsAllles(VariantContext vc) {
-			String rcrsS = Array.toStr(	Array.subArray(rcrs.getBases(), vc.getStart() - 1, vc.getEnd()),
-																	"");
+			String rcrsS = ArrayUtils.toStr(ArrayUtils.subArray(rcrs.getBases(), vc.getStart() - 1,
+																													vc.getEnd()),
+																			"");
 			return Allele.create(rcrsS, true);
 		}
 	}
@@ -191,7 +191,7 @@ public class VCFOpsMT {
 			builder.start(shift(vc.getStart(), from));
 			builder.stop(shift(vc.getEnd(), from));
 			if (vc.getStart() < 309 && vc.getEnd() > 309) {// cushings had a deletion that spanned the 309
-																											// del
+																										 // del
 				builder.start((long) vc.getStart() - 1);
 				builder.stop((long) vc.getEnd() - 1);
 			}
@@ -281,8 +281,8 @@ public class VCFOpsMT {
 
 		VariantContextWriter writer = VCFOps.initWriter(outputVCF, VCFOps.DEFUALT_WRITER_OPTIONS,
 																										header.getSequenceDictionary());
-		VariantContextWriter writerError = VCFOps.initWriter(	errorOut, VCFOps.DEFUALT_WRITER_OPTIONS,
-																													header.getSequenceDictionary());
+		VariantContextWriter writerError = VCFOps.initWriter(errorOut, VCFOps.DEFUALT_WRITER_OPTIONS,
+																												 header.getSequenceDictionary());
 		writer.writeHeader(header);
 		writerError.writeHeader(header);
 
@@ -306,7 +306,7 @@ public class VCFOpsMT {
 			}
 			if (vcSwap != null) {
 				if (sameAlleleCounts(vc, vcSwap)) {// allele counts should match despite any
-																						// alt/ref position switches
+																					 // alt/ref position switches
 					VariantContextBuilder builder = new VariantContextBuilder(vcSwap);
 					builder.chr("MT");// GRCh mitochondrial contig
 					builder.attribute(HG_19_POS, vc.getStart());
@@ -345,8 +345,8 @@ public class VCFOpsMT {
 																											"HG 19 variant position");
 		VCFInfoHeaderLine hg19REF = new VCFInfoHeaderLine(HG_19_REF, 1, VCFHeaderLineType.String,
 																											"HG 19 reference allele");
-		VCFInfoHeaderLine hg19Alts = new VCFInfoHeaderLine(	HG_19_ALTS, 1, VCFHeaderLineType.String,
-																												"HG 19 alternate alleles");
+		VCFInfoHeaderLine hg19Alts = new VCFInfoHeaderLine(HG_19_ALTS, 1, VCFHeaderLineType.String,
+																											 "HG 19 alternate alleles");
 		header.addMetaDataLine(hg19Pos);
 		header.addMetaDataLine(hg19REF);
 		header.addMetaDataLine(hg19Alts);

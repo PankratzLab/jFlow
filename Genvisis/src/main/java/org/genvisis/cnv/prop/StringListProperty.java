@@ -2,7 +2,7 @@ package org.genvisis.cnv.prop;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.GROUP;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class StringListProperty extends Property<String[]> {
@@ -41,12 +41,12 @@ public class StringListProperty extends Property<String[]> {
 
 	@Override
 	public String getValueString() {
-		return Array.toStr(getValue(), delim);
+		return ArrayUtils.toStr(getValue(), delim);
 	}
 
 	@Override
 	public String getDefaultValueString() {
-		return Array.toStr(getDefaultValue(), delim);
+		return ArrayUtils.toStr(getDefaultValue(), delim);
 	}
 
 	public String getDelimiter() {
@@ -58,7 +58,7 @@ public class StringListProperty extends Property<String[]> {
 		String[] values = super.getValue();
 		if (isFile || isDir) {
 			for (int i = 0; i < values.length; i++) {
-				if (!"".equals(values[i])	&& !values[i].startsWith(".") && !values[i].startsWith("/")
+				if (!"".equals(values[i]) && !values[i].startsWith(".") && !values[i].startsWith("/")
 						&& values[i].indexOf(":") == -1) {
 					values[i] = getProject().PROJECT_DIRECTORY.getValue() + values[i];
 				}
@@ -120,6 +120,6 @@ public class StringListProperty extends Property<String[]> {
 			value = ext.verifyDirFormat(value);
 			value = value.substring(0, value.length() - 1);
 		}
-		setValue(Array.addStrToArray(value, curValue, index));
+		setValue(ArrayUtils.addStrToArray(value, curValue, index));
 	}
 }

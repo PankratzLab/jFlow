@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -60,7 +60,7 @@ public class SegmentLists implements Serializable, PlainTextExport {
 			}
 			vSegs.add(new Segment(seg.getChr(), seg.getStart(), seg.getStop()));
 		}
-		chrs = Array.toIntArray(HashVec.getKeys(hash));
+		chrs = ArrayUtils.toIntArray(HashVec.getKeys(hash));
 		// lists = new Segment[Array.max(chrs)+1][];
 		lists = new Segment[27][];
 		for (int i = 0; i < chrs.length; i++) {
@@ -101,7 +101,7 @@ public class SegmentLists implements Serializable, PlainTextExport {
 			}
 			vSegs.add(new Segment(seg.getChr(), seg.getStart(), seg.getStop()));
 		}
-		chrs = Array.toIntArray(HashVec.getKeys(hash));
+		chrs = ArrayUtils.toIntArray(HashVec.getKeys(hash));
 		lists = new Segment[27][];
 		for (int i = 0; i < chrs.length; i++) {
 			vSegs = hash.get(chrs[i] + "");

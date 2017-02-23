@@ -1,6 +1,6 @@
 package org.genvisis.db;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -60,7 +60,7 @@ public class Filter {
 					}
 				}
 				if (operator == -1) {
-					throw new Elision("Element '"	+ elements[i] + "' does not contain a valid operator ( "
+					throw new Elision("Element '" + elements[i] + "' does not contain a valid operator ( "
 														+ ext.listWithCommas(OPERATORS, true) + " )");
 				}
 
@@ -72,7 +72,7 @@ public class Filter {
 					dThresholds[i] = Double.parseDouble(thresholds[i]);
 				} catch (NumberFormatException nfe) {
 					if (ext.indexOfStr(operators[i], OPERATORS) < 4) {
-						throw new Elision("Threshold "	+ thresholds[i]
+						throw new Elision("Threshold " + thresholds[i]
 															+ " is not a valid number and cannot be used with " + operators[i]
 															+ " as listed in " + filter);
 					}
@@ -92,8 +92,8 @@ public class Filter {
 		str = "";
 		for (int i = 0; i < variableNames.length; i++) {
 			str += (i == 0 ? "" : ", ")
-							+ (line[variableIndices[i]].length() > 5	? line[variableIndices[i]].substring(0, 5)
-																												: line[variableIndices[i]]);
+						 + (line[variableIndices[i]].length() > 5 ? line[variableIndices[i]].substring(0, 5)
+																											: line[variableIndices[i]]);
 		}
 
 		if (line != null) {
@@ -109,8 +109,8 @@ public class Filter {
 		str = "";
 		for (int i = 0; i < variableNames.length; i++) {
 			str += (i == 0 ? "" : " ")
-							+ (line[variableIndices[i]].length() > 5	? line[variableIndices[i]].substring(0, 5)
-																												: line[variableIndices[i]]);
+						 + (line[variableIndices[i]].length() > 5 ? line[variableIndices[i]].substring(0, 5)
+																											: line[variableIndices[i]]);
 		}
 
 		return str;
@@ -119,7 +119,7 @@ public class Filter {
 	public void determineIndices(String[] header) throws Elision {
 		try {
 			variableIndices = ext.indexFactors(variableNames, header, false, false);
-			if (Array.min(variableIndices) == -1) {
+			if (ArrayUtils.min(variableIndices) == -1) {
 				throw new Elision("Filter variable name was not found in the file to be filtered");
 			}
 		} catch (Exception e) {
@@ -155,7 +155,7 @@ public class Filter {
 					}
 				}
 				if (ext.isMissingValue(line[variableIndices[i]]) && value == Double.MAX_VALUE) {
-					log.reportError("Error - a missing value ("	+ line[variableIndices[i]] + ") in column "
+					log.reportError("Error - a missing value (" + line[variableIndices[i]] + ") in column "
 													+ (variableIndices[i] + 1)
 													+ " was not properly recoded; could cause a filter to malfunction");
 					return false;

@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class CountHets {
@@ -18,8 +18,8 @@ public class CountHets {
 	public static final String LINUX_DIRECTORY = "/home/npankrat/penncnv/allMarkers/cnvs/";
 	public static final String[] EXPECTED_HEADER = {"Sample", "FID", "IID", "CHR", "BP1", "BP2",
 																									"TYPE", "SCORE", "SITES"};
-	public static final String[] CNV_SUFFIXES = {	"Name", "Chr", "Position", ".GType", ".Log R Ratio",
-																								".B Allele Freq"};
+	public static final String[] CNV_SUFFIXES = {"Name", "Chr", "Position", ".GType", ".Log R Ratio",
+																							 ".B Allele Freq"};
 
 	public static void count(String dir, String filename) {
 		BufferedReader reader;
@@ -75,8 +75,8 @@ public class CountHets {
 
 		try {
 			writer = new PrintWriter(new FileWriter(dir + filename + "_hetCounts.xln"));
-			writer.println(Array.toStr(EXPECTED_HEADER)
-											+ "\t#Markers\t%CalledHet\t%0.15<BAF,0.85\t%0.25<BAF,0.75");
+			writer.println(ArrayUtils.toStr(EXPECTED_HEADER)
+										 + "\t#Markers\t%CalledHet\t%0.15<BAF,0.85\t%0.25<BAF,0.75");
 			for (int i = 0; i < hashKeys.size(); i++) {
 				v = hash.get(hashKeys.elementAt(i));
 				try {
@@ -85,8 +85,8 @@ public class CountHets {
 					line = reader.readLine().trim().split("\t");
 					for (int j = 0; j < CNV_SUFFIXES.length; j++) {
 						if (!line[j].endsWith(CNV_SUFFIXES[j])) {
-							System.err.println("Error - expecting column "	+ (j + 1) + " to end in "
-																	+ CNV_SUFFIXES[j] + " (found " + line[j] + ")");
+							System.err.println("Error - expecting column " + (j + 1) + " to end in "
+																 + CNV_SUFFIXES[j] + " (found " + line[j] + ")");
 							problem = true;
 						}
 					}
@@ -101,8 +101,8 @@ public class CountHets {
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""	+ cnvDirectory + hashKeys.elementAt(i)
-															+ "\" not found in current directory");
+					System.err.println("Error: file \"" + cnvDirectory + hashKeys.elementAt(i)
+														 + "\" not found in current directory");
 					System.exit(1);
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + cnvDirectory + hashKeys.elementAt(i) + "\"");
@@ -127,9 +127,9 @@ public class CountHets {
 		String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\allMarkers\\";
 		String filename = "chr14.cnv";
 
-		String usage = "\\n"	+ "park.cnv.CountHets requires 0-1 arguments\n"
-										+ "   (1) directory (i.e. dir=" + dir + " (default; use dir=./ for pwd))\n"
-										+ "   (2) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\\n" + "park.cnv.CountHets requires 0-1 arguments\n"
+									 + "   (1) directory (i.e. dir=" + dir + " (default; use dir=./ for pwd))\n"
+									 + "   (2) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -222,10 +222,10 @@ class CNVregion {
 
 	@Override
 	public String toString() {
-		return sample	+ "\t" + famID + "\t" + indID + "\t" + chr + "\t" + start + "\t" + stop + "\t"
-						+ type + "\t" + countMarkers + "\t"
-						+ ext.formDeci((double) countHet / (double) countCalled, 3) + "\t"
-						+ ext.formDeci((double) baf15 / (double) countValidBAF, 3) + "\t"
-						+ ext.formDeci((double) baf25 / (double) countValidBAF, 3); // countHet+"\t"+countCalled+"\t"+
+		return sample + "\t" + famID + "\t" + indID + "\t" + chr + "\t" + start + "\t" + stop + "\t"
+					 + type + "\t" + countMarkers + "\t"
+					 + ext.formDeci((double) countHet / (double) countCalled, 3) + "\t"
+					 + ext.formDeci((double) baf15 / (double) countValidBAF, 3) + "\t"
+					 + ext.formDeci((double) baf25 / (double) countValidBAF, 3); // countHet+"\t"+countCalled+"\t"+
 	}
 }

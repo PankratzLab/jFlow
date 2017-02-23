@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -19,7 +19,8 @@ import org.genvisis.common.ext;
 public class PlinkMarkerLoader implements Runnable {
 
 	public static void main(String[] args) {
-		String[] markerNames = HashVec.loadFileToStringArray(	"D:/PlinkGeno/mkrs10000.txt", false, null, false);
+		String[] markerNames = HashVec.loadFileToStringArray("D:/PlinkGeno/mkrs10000.txt", false, null,
+																												 false);
 		String plinkFileRoot = "D:/PlinkGeno/plink";
 		(new PlinkMarkerLoader(null, plinkFileRoot, markerNames)).run();
 		System.out.println(ext.getTime() + "]\tFinished");
@@ -60,7 +61,7 @@ public class PlinkMarkerLoader implements Runnable {
 
 		markerPosInBim = new int[markerList.length];
 		genotypes = new byte[markerList.length][];
-		loaded = Array.booleanArray(markerList.length, false);
+		loaded = ArrayUtils.booleanArray(markerList.length, false);
 
 		lookupMarkerPositions();
 		lookupIDs();
@@ -117,7 +118,9 @@ public class PlinkMarkerLoader implements Runnable {
 			reader.close();
 
 			for (int i = 0; i < markerList.length; i++) {
-				markerPosInBim[i] = markerIndicesLookupTemp.get(markerList[i]) == null ? -1 : markerIndicesLookupTemp.get(markerList[i]).intValue();
+				markerPosInBim[i] = markerIndicesLookupTemp.get(markerList[i]) == null ? -1
+																																							 : markerIndicesLookupTemp.get(markerList[i])
+																																																				.intValue();
 				markerIndicesLookup.put(markerList[i], i);
 			}
 		} catch (FileNotFoundException fnfe) {
@@ -187,7 +190,7 @@ public class PlinkMarkerLoader implements Runnable {
 				for (int i = 0; i < markerList.length; i++) {
 					if (markerPosInBim[i] == -1) {
 						// missing marker, not present in PLINK files
-						mkrGenotypes.put(markerList[i], Array.byteArray(famIDList.length, (byte) -1));
+						mkrGenotypes.put(markerList[i], ArrayUtils.byteArray(famIDList.length, (byte) -1));
 						cnt++;
 						continue;
 					}
@@ -201,7 +204,13 @@ public class PlinkMarkerLoader implements Runnable {
 						byte[] genos = PlinkData.decodeBedByte(bedByte);
 
 						for (int g = 0; g < genos.length; g++) {
-							int idInd = (bitInd * 4 + g) >= famIDList.length ? -1 : famIDLookup.get(famIDList[bitInd * 4 + g]) == null ? -1 : famIDLookup.get(famIDList[bitInd * 4 + g]);
+							int idInd = (bitInd * 4
+													 + g) >= famIDList.length ? -1
+																										: famIDLookup.get(famIDList[bitInd * 4
+																																								+ g]) == null ? -1
+																																															: famIDLookup.get(famIDList[bitInd
+																																																													* 4
+																																																													+ g]);
 							if (idInd == -1 || idInd > sampGeno.length) {
 								continue;
 							}
@@ -239,7 +248,7 @@ public class PlinkMarkerLoader implements Runnable {
 				}
 			}
 		}
-		
+
 		int aa, ab, bb, m;
 		aa = 0;
 		ab = 0;
@@ -257,7 +266,8 @@ public class PlinkMarkerLoader implements Runnable {
 				m++;
 			}
 		}
-		System.out.println("PLINK GENOTYPES  --->  AA: " + aa + " AB: " + ab + " BB: " + bb + " Miss: " + m);
+		System.out.println("PLINK GENOTYPES  --->  AA: " + aa + " AB: " + ab + " BB: " + bb + " Miss: "
+											 + m);
 
 		if (killed) {
 			log.report("PlinkMarkerLoader killed");
@@ -268,8 +278,8 @@ public class PlinkMarkerLoader implements Runnable {
 			System.gc();
 			killComplete = true;
 		} else {
-			log.report("Independent thread has finished loading "	+ cnt + " markers in "
-									+ ext.getTimeElapsed(time));
+			log.report("Independent thread has finished loading " + cnt + " markers in "
+								 + ext.getTimeElapsed(time));
 		}
 
 	}
@@ -279,14 +289,15 @@ public class PlinkMarkerLoader implements Runnable {
 		if (idIndex == -1) {
 			return (byte) -1;
 		} else {
-			int markerIndex = markerIndicesLookup.get(marker) == null	? -1 : markerIndicesLookup.get(marker);
+			int markerIndex = markerIndicesLookup.get(marker) == null ? -1
+																																: markerIndicesLookup.get(marker);
 			if (markerIndex == -1) {
 				return (byte) -1;
 			}
 			while (!loaded[markerIndex]) {
 				Thread.yield();
 			}
-			return genotypes[markerIndex][idIndex]; 
+			return genotypes[markerIndex][idIndex];
 		}
 	}
 

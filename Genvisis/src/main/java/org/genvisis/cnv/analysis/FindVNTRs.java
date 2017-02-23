@@ -11,7 +11,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -74,7 +74,7 @@ public class FindVNTRs {
 					// for (int j = 0; j<v.size(); j++) {
 					// writer.println(v.elementAt(j));
 					// }
-					writer.println(Array.toStr(Array.toStringArray(v)));
+					writer.println(ArrayUtils.toStr(ArrayUtils.toStringArray(v)));
 				}
 			}
 			cv.sort(true);
@@ -211,8 +211,7 @@ public class FindVNTRs {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename =
-										"C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\cnvPositions.txt";
+		String filename = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\cnvPositions.txt";
 		// String workup = "C:\\Documents and Settings\\npankrat\\My
 		// Documents\\CNV_PD\\cnvPositions.txt_vntrs.xln";
 		// String workup = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\rand1000.txt";
@@ -220,8 +219,8 @@ public class FindVNTRs {
 		// String proj = Project.DEFAULT_SCATTER_PROJECT;
 		// String pedfile = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\conf1672.fam";
 
-		String usage = "\n"	+ "cnv.analysis.FindVNTRs requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "cnv.analysis.FindVNTRs requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

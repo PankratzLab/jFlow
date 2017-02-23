@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
@@ -17,8 +17,8 @@ import org.genvisis.stats.Rscript;
 
 public class SkatMetaPrimary {
 
-	public static void batch(	String cohort, String genos, String phenoFilename, String snpInfo,
-														int qsubMem, double qsubWalltime) {
+	public static void batch(String cohort, String genos, String phenoFilename, String snpInfo,
+													 int qsubMem, double qsubWalltime) {
 		String phenoDir;
 		String phenoRoot;
 		String resultDir;
@@ -76,23 +76,23 @@ public class SkatMetaPrimary {
 				if (new File(currentGeno).exists() && new File(currentSnpInfo).exists()) {
 					foundGenos = true;
 					foundSnpInfo = true;
-					rCode = "library(\"skatMeta\")\n"	+ "setwd(\"" + resultDir + "\")\n" + "\n"
-									+ (currentSnpInfo	.toLowerCase()
-																		.endsWith(".rdata")	? "obj_name <- load(\""	+ currentSnpInfo
-																													+ "\")\n" + "SNPInfo <- get(obj_name)\n"
-																													+ "rm(list=obj_name)\n" + "rm(obj_name)\n"
-																												: "SNPInfo <- read.csv(\""	+ currentSnpInfo
-																													+ "\", header=T, as.is=T)\n")
+					rCode = "library(\"skatMeta\")\n" + "setwd(\"" + resultDir + "\")\n" + "\n"
+									+ (currentSnpInfo.toLowerCase()
+																	 .endsWith(".rdata") ? "obj_name <- load(\"" + currentSnpInfo
+																												 + "\")\n" + "SNPInfo <- get(obj_name)\n"
+																												 + "rm(list=obj_name)\n" + "rm(obj_name)\n"
+																											 : "SNPInfo <- read.csv(\"" + currentSnpInfo
+																												 + "\", header=T, as.is=T)\n")
 									+ "\n"
 
 									+ (genos.toLowerCase().endsWith(".rdata")
-																															? "genoName <- load(\""	+ currentGeno
+																														? "genoName <- load(\"" + currentGeno
 																															+ "\")\n" + "Z <- get(genoName)\n"
 																															+ "names <- colnames(Z)\n"
 																															+ "for (i in 1:ncol(Z)) {\n"
 																															+ "    names[i] <- paste(\"chr\", names[i], sep=\"\")\n"
 																															+ "}\n"
-																														: "Z <- t(read.csv(\""	+ currentGeno
+																														: "Z <- t(read.csv(\"" + currentGeno
 																															+ "\", header=T, as.is=T, row.names=1))\n"
 																															+ "names <- colnames(Z)\n"
 																															+ "for (i in 1:ncol(Z)) {\n"
@@ -147,7 +147,7 @@ public class SkatMetaPrimary {
 				System.err.println("Error - Files not found " + snpInfo);
 			}
 
-			iterations = Matrix.toMatrix(Array.toStringArray(v));
+			iterations = Matrix.toMatrix(ArrayUtils.toStringArray(v));
 			System.out.println(iterations.length + "\tremaining to run for " + cohort);
 			if (Files.isWindows()) {
 				commands = "Rscript --no-save [%0]";
@@ -156,10 +156,10 @@ public class SkatMetaPrimary {
 				// commands = "/soft/R/3.0.1/bin/Rscript --no-save [%0]";
 				commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save [%0]";
 				// Files.qsub("checkObject", dir, -1, commands, iterations, qsubMem, qsubWalltime);
-				Files.qsub(batchDir	+ "run_" + cohort, batchDir, -1, commands, iterations, qsubMem,
-										qsubWalltime);
+				Files.qsub(batchDir + "run_" + cohort, batchDir, -1, commands, iterations, qsubMem,
+									 qsubWalltime);
 				if (iterations.length == 0) {
-					new File(batchDir + "master.run_" + cohort).renameTo(new File(batchDir	+ "master.run_"
+					new File(batchDir + "master.run_" + cohort).renameTo(new File(batchDir + "master.run_"
 																																				+ cohort + ".bak"));
 				}
 			}
@@ -173,13 +173,13 @@ public class SkatMetaPrimary {
 						commands += "./run_" + cohort + "_" + (j + 1) + ".qsub\n";
 					}
 				}
-				Files.qsub(batchDir	+ "finishUpOnSB_" + cohort, commands, 60000,
-										(int) Math.ceil(iterations.length / 2.0), 16);
+				Files.qsub(batchDir + "finishUpOnSB_" + cohort, commands, 60000,
+									 (int) Math.ceil(iterations.length / 2.0), 16);
 			} else {
 				new File(batchDir + "finishUpOnSB_" + cohort).delete();
 			}
 
-			iterations = Matrix.toMatrix(Array.toStringArray(consolidateVector));
+			iterations = Matrix.toMatrix(ArrayUtils.toStringArray(consolidateVector));
 			v = new Vector<String>();
 			jobNamesWithAbsolutePaths = new Vector<String>();
 			jobSizes = new IntVector();
@@ -190,34 +190,33 @@ public class SkatMetaPrimary {
 				consolidate += (i == 0 ? "" : ", ") + ext.rootOf(iterations[i][0]);
 				jobNamesWithAbsolutePaths.add(batchDir + "run_" + cohort + "_" + (i + 1) + ".qsub");
 				jobSizes.add(Integer.MAX_VALUE
-											- (int) new File(ext.replaceAllWith(genos, "#", (i + 1) + "")).length());
+										 - (int) new File(ext.replaceAllWith(genos, "#", (i + 1) + "")).length());
 			}
 			consolidate += ")";
 			v.add(consolidate);
 			v.add("class(" + cohort + ") <- \"skatCohort\"");
 			v.add("save(" + cohort + ", file=\"" + cohort + ".RData\", compress=\"bzip2\")");
-			Files.writeArray(Array.toStringArray(v), batchDir + "mergeRdataFiles.R");
-			commands = Rscript.getRscriptExecutable(new Logger())	+ " --no-save " + batchDir
-									+ "mergeRdataFiles.R";
-			Files.qsub(batchDir	+ "run_mergeRdataFiles_" + cohort, commands, qsubMem * 4, qsubWalltime,
-									1);
-			Files.qsubMultiple(	jobNamesWithAbsolutePaths, jobSizes, batchDir,
-													batchDir + "chunk_" + cohort, 8, true, null, -1, qsubMem, qsubWalltime);
-			Files.qsubMultiple(	jobNamesWithAbsolutePaths, jobSizes, batchDir,
-													batchDir + "chunkSB256_" + cohort, 16, true, "sb256", -1, qsubMem,
-													qsubWalltime);
-			Files.qsubMultiple(	jobNamesWithAbsolutePaths, jobSizes, batchDir,
-													batchDir + "chunkSB_" + cohort, 16, true, "sb", -1, qsubMem,
-													qsubWalltime);
+			Files.writeArray(ArrayUtils.toStringArray(v), batchDir + "mergeRdataFiles.R");
+			commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save " + batchDir
+								 + "mergeRdataFiles.R";
+			Files.qsub(batchDir + "run_mergeRdataFiles_" + cohort, commands, qsubMem * 4, qsubWalltime,
+								 1);
+			Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
+												 batchDir + "chunk_" + cohort, 8, true, null, -1, qsubMem, qsubWalltime);
+			Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
+												 batchDir + "chunkSB256_" + cohort, 16, true, "sb256", -1, qsubMem,
+												 qsubWalltime);
+			Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
+												 batchDir + "chunkSB_" + cohort, 16, true, "sb", -1, qsubMem, qsubWalltime);
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static void batchMany(	String cohort, String genos, String phenosCommaDelimited,
-																String racesCommaDelimited, String snpInfo, int qsubMem,
-																double qsubWalltime) {
+	public static void batchMany(String cohort, String genos, String phenosCommaDelimited,
+															 String racesCommaDelimited, String snpInfo, int qsubMem,
+															 double qsubWalltime) {
 		String[] phenos, races;
 		Vector<String> v;
 
@@ -228,7 +227,7 @@ public class SkatMetaPrimary {
 		for (String pheno : phenos) {
 			for (String race : races) {
 				try {
-					batch(cohort	+ "_" + race + "_" + pheno, ext.replaceAllWith(genos, "[%race]", race),
+					batch(cohort + "_" + race + "_" + pheno, ext.replaceAllWith(genos, "[%race]", race),
 								ext.pwd() + cohort + "_" + race + "_" + pheno + ".csv", snpInfo, qsubMem,
 								qsubWalltime);
 				} catch (Exception e) {
@@ -240,7 +239,7 @@ public class SkatMetaPrimary {
 				v.add("");
 			}
 		}
-		Files.writeArray(Array.toStringArray(v), "scriptAll");
+		Files.writeArray(ArrayUtils.toStringArray(v), "scriptAll");
 		Files.chmod("scriptAll");
 
 		v = new Vector<String>();
@@ -252,14 +251,14 @@ public class SkatMetaPrimary {
 				v.add("");
 			}
 		}
-		Files.writeArray(Array.toStringArray(v), "scriptAllItasca");
+		Files.writeArray(ArrayUtils.toStringArray(v), "scriptAllItasca");
 		Files.chmod("scriptAllItasca");
 
 		v = new Vector<String>();
 		for (String pheno : phenos) {
 			for (String race : races) {
-				if (Files.exists(cohort	+ "_" + race + "_" + pheno + "/batchFiles/finishUpOnSB_" + cohort
-													+ "_" + race + "_" + pheno)) {
+				if (Files.exists(cohort + "_" + race + "_" + pheno + "/batchFiles/finishUpOnSB_" + cohort
+												 + "_" + race + "_" + pheno)) {
 					v.add("cd " + cohort + "_" + race + "_" + pheno + "/batchFiles/");
 					v.add("qsub -q sb finishUpOnSB_" + cohort + "_" + race + "_" + pheno);
 					v.add("cd ../../");
@@ -267,7 +266,7 @@ public class SkatMetaPrimary {
 				}
 			}
 		}
-		Files.writeArray(Array.toStringArray(v), "finishUpOnSB");
+		Files.writeArray(ArrayUtils.toStringArray(v), "finishUpOnSB");
 		Files.chmod("finishUpOnSB");
 
 		v = new Vector<String>();
@@ -280,21 +279,21 @@ public class SkatMetaPrimary {
 				v.add("");
 			}
 		}
-		Files.writeArray(Array.toStringArray(v), "mergeAll");
+		Files.writeArray(ArrayUtils.toStringArray(v), "mergeAll");
 		Files.chmod("mergeAll");
 
 		v = new Vector<String>();
 		for (String pheno : phenos) {
 			for (String race : races) {
 				v.add("cd " + cohort + "_" + race + "_" + pheno + "/results/");
-				v.add("tar -zcvf ../../"	+ cohort + "_" + race + "_" + pheno + "_"
+				v.add("tar -zcvf ../../" + cohort + "_" + race + "_" + pheno + "_"
 							+ ext.getDate(new Date(), "") + ".tar.gz " + cohort + "_" + race + "_" + pheno
 							+ "*.RData");
 				v.add("cd ../../");
 				v.add("");
 			}
 		}
-		Files.writeArray(Array.toStringArray(v), "packageUpAll");
+		Files.writeArray(ArrayUtils.toStringArray(v), "packageUpAll");
 		Files.chmod("packageUpAll");
 	}
 
@@ -317,12 +316,12 @@ public class SkatMetaPrimary {
 			v.add("cd ../../");
 			v.add("");
 		}
-		Files.writeArray(Array.toStringArray(v), "addAll");
+		Files.writeArray(ArrayUtils.toStringArray(v), "addAll");
 		Files.chmod("addAll");
 	}
 
-	private static void batchAdditionals(	String phenoDirectory, String cohort, String snpInfo,
-																				int qsubMem, double qsubWalltime) {
+	private static void batchAdditionals(String phenoDirectory, String cohort, String snpInfo,
+																			 int qsubMem, double qsubWalltime) {
 		String phenoDir;
 		// String phenoRoot;
 		String resultDir;
@@ -365,13 +364,13 @@ public class SkatMetaPrimary {
 				if (new File(resultDir + cohort + "_chr" + i + ".RData").exists()) {
 					// foundGenos = true;
 					// foundSnpInfo = true;
-					rCode = "library(\"skatMeta\")\n"	+ "setwd(\"" + resultDir + "\")\n" + "\n"
-									+ (currentSnpInfo	.toLowerCase()
-																		.endsWith(".rdata")	? "obj_name <- load(\""	+ currentSnpInfo
-																													+ "\")\n" + "SNPInfo <- get(obj_name)\n"
-																													+ "rm(list=obj_name)\n" + "rm(obj_name)\n"
-																												: "SNPInfo <- read.csv(\""	+ currentSnpInfo
-																													+ "\", header=T, as.is=T)\n")
+					rCode = "library(\"skatMeta\")\n" + "setwd(\"" + resultDir + "\")\n" + "\n"
+									+ (currentSnpInfo.toLowerCase()
+																	 .endsWith(".rdata") ? "obj_name <- load(\"" + currentSnpInfo
+																												 + "\")\n" + "SNPInfo <- get(obj_name)\n"
+																												 + "rm(list=obj_name)\n" + "rm(obj_name)\n"
+																											 : "SNPInfo <- read.csv(\"" + currentSnpInfo
+																												 + "\", header=T, as.is=T)\n")
 									+ "\n"
 
 									+ "cohortName <- load(\"" + resultDir + cohort + "_chr" + i + ".RData" + "\")\n"
@@ -420,19 +419,19 @@ public class SkatMetaPrimary {
 				}
 			}
 
-			iterations = Matrix.toMatrix(Array.toStringArray(v));
+			iterations = Matrix.toMatrix(ArrayUtils.toStringArray(v));
 			System.out.println(iterations.length + "\tremaining to run for " + cohort);
 			if (Files.isWindows()) {
 				commands = "Rscript --no-save [%0]";
 				Files.batchIt(batchDir + "run", "", 5, commands, iterations);
 			} else {
 				commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save [%0]";
-				Files.qsub(batchDir	+ "run_additionals", batchDir, -1, commands, iterations, qsubMem,
-										qsubWalltime);
+				Files.qsub(batchDir + "run_additionals", batchDir, -1, commands, iterations, qsubMem,
+									 qsubWalltime);
 				if (iterations.length == 0) {
 					new File(batchDir
-										+ "master.run_additionals").renameTo(new File(batchDir
-																																	+ "master.run_additionals.bak"));
+									 + "master.run_additionals").renameTo(new File(batchDir
+																																 + "master.run_additionals.bak"));
 				}
 			}
 
@@ -472,10 +471,10 @@ public class SkatMetaPrimary {
 
 		for (String pheno : phenos) {
 			for (String race : races) {
-				new File(cohort	+ "_" + race + "_"
-									+ pheno + ".RData")
-																			.renameTo(new File(cohort	+ insert + "_" + race + "_" + pheno
-																													+ ".RData"));
+				new File(cohort + "_" + race + "_"
+								 + pheno + ".RData")
+																		.renameTo(new File(cohort + insert + "_" + race + "_" + pheno
+																											 + ".RData"));
 			}
 		}
 	}
@@ -499,22 +498,22 @@ public class SkatMetaPrimary {
 		qsubMem = 15000;
 		qsubWalltime = 2;
 
-		String usage = "\n"	+ "gwas.SkatMetaPrimary requires 4 arguments\n"
-										+ "   (1) cohort name (i.e. cohort=" + cohort + " (not the default))\n"
-										+ "   (2) genotype file name (i.e. geno=" + genos + " (not the default))\n"
-										+ "   (3) phenotype file name (i.e. pheno=" + pheno + " (not the default))\n"
-										+ "   (4) snpInfo file name (i.e. snpInfo=" + snpInfo + " (not the default))\n"
-										+ "   (5) qsub memory in megabytes (i.e. qsubmem=" + qsubMem + " (default))\n"
-										+ "   (6) qsub walltime in hours (i.e. qsubwalltime=" + qsubWalltime
-										+ " (default))\n"
-										+ "   (7) (optional) phenotypes to run (i.e. phenos=CRP,ICAM1,TNFA (not the default))\n"
-										+ "   (8) (optional) races to run (i.e. races=" + races + " (default))\n"
-										+ " ( the final optional parameters require a fixed phenotype format of [cohort name]_[race]_[phenotype]_.csv )\n"
-										+ " ( as well as a genotype file with the format of regular_filename_[%race]_chr#.csv )\n"
-										+ "   (9) (optional) run additional models for Rdata files (i.e. -additionals  (not the default))\n"
-										+ " OR\n"
-										+ "   (9) (optional) rename Rdata files with this insert (i.e. rename=42PCs (not the default))\n"
-										+ "";
+		String usage = "\n" + "gwas.SkatMetaPrimary requires 4 arguments\n"
+									 + "   (1) cohort name (i.e. cohort=" + cohort + " (not the default))\n"
+									 + "   (2) genotype file name (i.e. geno=" + genos + " (not the default))\n"
+									 + "   (3) phenotype file name (i.e. pheno=" + pheno + " (not the default))\n"
+									 + "   (4) snpInfo file name (i.e. snpInfo=" + snpInfo + " (not the default))\n"
+									 + "   (5) qsub memory in megabytes (i.e. qsubmem=" + qsubMem + " (default))\n"
+									 + "   (6) qsub walltime in hours (i.e. qsubwalltime=" + qsubWalltime
+									 + " (default))\n"
+									 + "   (7) (optional) phenotypes to run (i.e. phenos=CRP,ICAM1,TNFA (not the default))\n"
+									 + "   (8) (optional) races to run (i.e. races=" + races + " (default))\n"
+									 + " ( the final optional parameters require a fixed phenotype format of [cohort name]_[race]_[phenotype]_.csv )\n"
+									 + " ( as well as a genotype file with the format of regular_filename_[%race]_chr#.csv )\n"
+									 + "   (9) (optional) run additional models for Rdata files (i.e. -additionals  (not the default))\n"
+									 + " OR\n"
+									 + "   (9) (optional) rename Rdata files with this insert (i.e. rename=42PCs (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

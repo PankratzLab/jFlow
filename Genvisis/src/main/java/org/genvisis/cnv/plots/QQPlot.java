@@ -14,7 +14,7 @@ import java.util.Arrays;
 
 import javax.swing.JOptionPane;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -137,9 +137,9 @@ public class QQPlot {
 	 * @param maxValue maximum -log10 p-value to plot
 	 * @param log
 	 */
-	public static QQPlot loadPvals(	String[] filenames, String plotLabel, boolean displayQuantiles,
-																	boolean displayStandardQQ, boolean displayRotatedQQ,
-																	double maxToPlot, boolean symmetric, float maxValue, Logger log) {
+	public static QQPlot loadPvals(String[] filenames, String plotLabel, boolean displayQuantiles,
+																 boolean displayStandardQQ, boolean displayRotatedQQ,
+																 double maxToPlot, boolean symmetric, float maxValue, Logger log) {
 		BufferedReader reader;
 		String[] labels;
 		double[][] pvals;
@@ -167,7 +167,7 @@ public class QQPlot {
 		error = false;
 		labels = new String[filenames.length];
 		pvals = new double[filenames.length][];
-		cols = Array.intArray(filenames.length, 0);
+		cols = ArrayUtils.intArray(filenames.length, 0);
 		for (int i = 0; i < filenames.length; i++) {
 			if (filenames[i].indexOf("=") > 0) {
 				labels[i] = filenames[i].substring(filenames[i].lastIndexOf("=") + 1);
@@ -209,7 +209,7 @@ public class QQPlot {
 				try {
 					if (!ext.isMissingValue(trav)) {
 						if (Double.parseDouble(trav) <= 0) {
-							reportQQError("Error - one of the p-values in file "	+ filenames[i]
+							reportQQError("Error - one of the p-values in file " + filenames[i]
 														+ " is near zero (" + trav + ") for line:\n"
 														+ ext.replaceAllWith(temp, delimiter, "  "), log);
 							invalids++;
@@ -233,7 +233,7 @@ public class QQPlot {
 						try {
 							if (Double.parseDouble(trav) <= 0) {
 								if (invalids < 3) {
-									reportQQError("Error - one of the p-values in file "	+ filenames[i]
+									reportQQError("Error - one of the p-values in file " + filenames[i]
 																+ " is near zero (" + trav + ") for line:\n"
 																+ ext.replaceAllWith(temp, delimiter, "  "), log);
 								}
@@ -243,7 +243,7 @@ public class QQPlot {
 							}
 						} catch (NumberFormatException nfe) {
 							if (invalids < 3) {
-								reportQQError("Error - one of the p-values in file "	+ filenames[i]
+								reportQQError("Error - one of the p-values in file " + filenames[i]
 															+ " is not a number (" + trav + ") for line:\n"
 															+ ext.replaceAllWith(temp, delimiter, "  "), log);
 							}
@@ -253,7 +253,7 @@ public class QQPlot {
 				}
 				reader.close();
 				if (invalids > 2) {
-					reportQQError("There were "	+ invalids
+					reportQQError("There were " + invalids
 												+ " total markers that had an invalid p-value for file " + filenames[i],
 												log);
 				}
@@ -285,7 +285,7 @@ public class QQPlot {
 				}
 				reader.close();
 				if (count != pvals[i].length) {
-					reportQQError("Error - mismatched number of values: "	+ count + " of " + pvals[i].length
+					reportQQError("Error - mismatched number of values: " + count + " of " + pvals[i].length
 												+ " were valid", log);
 					return null;
 				}
@@ -365,7 +365,8 @@ public class QQPlot {
 			writer = new PrintWriter(new FileWriter(dir + "CIs.xln"));
 			writer.println("2.5%ile\t5%ile\t95%ile\t97.5%ile");
 			for (float[] dist : dists) {
-				writer.println(Array.toStr(Array.quants(dist, new double[] {0.025, 0.05, 0.95, 0.975})));
+				writer.println(ArrayUtils.toStr(ArrayUtils.quants(dist, new double[] {0.025, 0.05, 0.95,
+																																							0.975})));
 			}
 			writer.close();
 		} catch (Exception e) {

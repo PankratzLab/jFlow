@@ -17,7 +17,7 @@ import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.cnv.qc.LrrSd;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
@@ -48,15 +48,15 @@ public class GcCorrection {
 	public void correct(int numThreads) {
 		String outliersSer = projCorrected.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser";
 
-		GCProducer producer = new GCProducer(	projOriginal, projCorrected, gcModel,
-																					!Files.exists(outliersSer));
+		GCProducer producer = new GCProducer(projOriginal, projCorrected, gcModel,
+																				 !Files.exists(outliersSer));
 		WorkerTrain<GcCorrectedSample> train = new WorkerTrain<GcCorrectedSample>(producer, numThreads,
 																																							2,
 																																							projOriginal.getLog());
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 		String[] samples = projOriginal.getSamples();
-		String firstSampleFile = projCorrected.SAMPLE_DIRECTORY.getValue()	+ samples[0]
-															+ Sample.SAMPLE_FILE_EXTENSION;
+		String firstSampleFile = projCorrected.SAMPLE_DIRECTORY.getValue() + samples[0]
+														 + Sample.SAMPLE_FILE_EXTENSION;
 		if (!Files.exists(firstSampleFile)) {
 			int numSamples = samples.length;
 			int index = 0;
@@ -72,7 +72,7 @@ public class GcCorrection {
 			if (!Files.exists(outliersSer)) {
 				SerializedFiles.writeSerial(outliers, outliersSer);
 			} else {
-				projOriginal.getLog().reportTimeWarning("Did not write outliers, "	+ outliersSer
+				projOriginal.getLog().reportTimeWarning("Did not write outliers, " + outliersSer
 																								+ " already exists");
 			}
 			if (!Files.exists(projCorrected.MARKER_DATA_DIRECTORY.getValue() + "markers.0.mdRAF")) {
@@ -86,8 +86,8 @@ public class GcCorrection {
 	}
 
 	private void summarizeMetrics(int numThreads) {
-		projOriginal.SAMPLE_QC_FILENAME.setValue(ext.addToRoot(	projCorrected.SAMPLE_QC_FILENAME.getValue(),
-																														".priorToCorrection"));
+		projOriginal.SAMPLE_QC_FILENAME.setValue(ext.addToRoot(projCorrected.SAMPLE_QC_FILENAME.getValue(),
+																													 ".priorToCorrection"));
 		if (!Files.exists(projCorrected.SAMPLE_QC_FILENAME.getValue())) {
 			LrrSd.init(projCorrected, null, null, null, null, numThreads);
 		}
@@ -99,19 +99,19 @@ public class GcCorrection {
 		String[] orginalFiles = new String[] {projOriginal.SAMPLE_QC_FILENAME.getValue(),
 																					projCorrected.SAMPLE_QC_FILENAME.getValue()};
 		String[] titles = new String[] {"UN_CORRECTED", "GC_CORRECTED"};
-		String[] fullHeader =
-												Array.concatAll(new String[] {LrrSd.SAMPLE_COLUMN}, LrrSd.NUMERIC_COLUMNS);
-		int[] indices = ext.indexFactors(	fullHeader,
-																			Files.getHeaderOfFile(orginalFiles[0], projOriginal.getLog()),
-																			true, false);
-		String[][] newColums = Files.paste(	orginalFiles, comboQC, indices, 0, titles,
-																				new String[] {LrrSd.SAMPLE_COLUMN}, projOriginal.getLog());
+		String[] fullHeader = ArrayUtils.concatAll(new String[] {LrrSd.SAMPLE_COLUMN},
+																							 LrrSd.NUMERIC_COLUMNS);
+		int[] indices = ext.indexFactors(fullHeader,
+																		 Files.getHeaderOfFile(orginalFiles[0], projOriginal.getLog()),
+																		 true, false);
+		String[][] newColums = Files.paste(orginalFiles, comboQC, indices, 0, titles,
+																			 new String[] {LrrSd.SAMPLE_COLUMN}, projOriginal.getLog());
 
 		String status = "STATUS";
 		String comboBox = comboQC + ".box";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(comboBox));
-			writer.println(status + "\t" + Array.toStr(fullHeader));
+			writer.println(status + "\t" + ArrayUtils.toStr(fullHeader));
 			for (int i = 0; i < orginalFiles.length; i++) {
 
 				BufferedReader reader = Files.getAppropriateReader(orginalFiles[i]);
@@ -119,7 +119,7 @@ public class GcCorrection {
 				while (reader.ready()) {
 					String[] line = reader.readLine().trim().split("[\\s]+");
 					if (!line[indices[0]].equals(LrrSd.SAMPLE_COLUMN)) {
-						writer.println(titles[i] + "\t" + Array.toStr(Array.subArray(line, indices)));
+						writer.println(titles[i] + "\t" + ArrayUtils.toStr(ArrayUtils.subArray(line, indices)));
 					}
 				}
 				reader.close();
@@ -128,12 +128,12 @@ public class GcCorrection {
 			writer.close();
 
 		} catch (FileNotFoundException fnfe) {
-			projOriginal.getLog().reportError("Error: file(s) \""	+ Array.toStr(orginalFiles)
+			projOriginal.getLog().reportError("Error: file(s) \"" + ArrayUtils.toStr(orginalFiles)
 																				+ "\" not found in current directory");
 			return;
 		} catch (IOException ioe) {
 			projOriginal.getLog()
-									.reportError("Error reading file(s) \"" + Array.toStr(orginalFiles) + "\"");
+									.reportError("Error reading file(s) \"" + ArrayUtils.toStr(orginalFiles) + "\"");
 			return;
 		} catch (Exception e) {
 			projOriginal.getLog().reportError("Error writing to " + comboBox);
@@ -147,10 +147,10 @@ public class GcCorrection {
 		for (int i = 1; i < newColums[0].length; i++) {
 
 			String curFile = gcLookDir + "gc_" + LrrSd.NUMERIC_COLUMNS[i - 1];
-			RScatter rScatter = new RScatter(	comboQC, curFile + ".rscript",
-																				ext.removeDirectoryInfo(curFile), curFile + ".pdf",
-																				newColums[1][i], new String[] {newColums[0][i]},
-																				SCATTER_TYPE.POINT, projCorrected.getLog());
+			RScatter rScatter = new RScatter(comboQC, curFile + ".rscript",
+																			 ext.removeDirectoryInfo(curFile), curFile + ".pdf",
+																			 newColums[1][i], new String[] {newColums[0][i]},
+																			 SCATTER_TYPE.POINT, projCorrected.getLog());
 			rScatter.setTitle("Original V Corrected " + LrrSd.NUMERIC_COLUMNS[i - 1]);
 			rScatter.setxLabel("Corrected " + LrrSd.NUMERIC_COLUMNS[i - 1]);
 			rScatter.setyLabel("Original " + LrrSd.NUMERIC_COLUMNS[i - 1]);
@@ -166,10 +166,10 @@ public class GcCorrection {
 			rScatters.add(rScatterBox);
 		}
 		String finalRoot = gcLookDir + "Gc_summary";
-		RScatters rScatters2 = new RScatters(	rScatters.toArray(new RScatter[rScatters.size()]),
-																					finalRoot + ".rscript", finalRoot + ".pdf",
-																					COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF,
-																					projCorrected.getLog());
+		RScatters rScatters2 = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]),
+																				 finalRoot + ".rscript", finalRoot + ".pdf",
+																				 COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF,
+																				 projCorrected.getLog());
 		rScatters2.execute();
 	}
 
@@ -181,8 +181,8 @@ public class GcCorrection {
 		private int index;
 		private final boolean loadOutliers;
 
-		private GCProducer(	Project projOriginal, Project projCorrected, GcModel gcmodel,
-												boolean loadOutliers) {
+		private GCProducer(Project projOriginal, Project projCorrected, GcModel gcmodel,
+											 boolean loadOutliers) {
 			super();
 			this.projOriginal = projOriginal;
 			this.projCorrected = projCorrected;
@@ -199,8 +199,8 @@ public class GcCorrection {
 
 		@Override
 		public Callable<GcCorrectedSample> next() {
-			GcWorker worker = new GcWorker(	projOriginal, projCorrected, samples[index], gcmodel,
-																			loadOutliers);
+			GcWorker worker = new GcWorker(projOriginal, projCorrected, samples[index], gcmodel,
+																		 loadOutliers);
 
 			index++;
 			return worker;
@@ -229,8 +229,8 @@ public class GcCorrection {
 		@Override
 		public GcCorrectedSample call() throws Exception {
 
-			String newSampleFile = projCorrected.SAMPLE_DIRECTORY.getValue(true, false)	+ sample
-															+ Sample.SAMPLE_FILE_EXTENSION;
+			String newSampleFile = projCorrected.SAMPLE_DIRECTORY.getValue(true, false) + sample
+														 + Sample.SAMPLE_FILE_EXTENSION;
 
 			Sample correctedSamp = null;
 
@@ -238,17 +238,17 @@ public class GcCorrection {
 			if (!Files.exists(newSampleFile)) {
 				Sample curSample = projOriginal.getFullSampleFromRandomAccessFile(sample);
 
-				GcAdjustor gcAdjustor =
-															GcAdjustor.getComputedAdjustor(	projOriginal, curSample, null, gcmodel,
-																															GC_CORRECTION_METHOD.GENVISIS_GC,
-																															true, true, false);
+				GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(projOriginal, curSample, null,
+																															 gcmodel,
+																															 GC_CORRECTION_METHOD.GENVISIS_GC,
+																															 true, true, false);
 				outliers = new Hashtable<String, Float>();
-				correctedSamp = new Sample(	curSample.getSampleName(), curSample.getFingerprint(),
-																		curSample.getGCs(), curSample.getXs(), curSample.getYs(),
-																		curSample.getBAFs(),
-																		Array.toFloatArray(gcAdjustor.getCorrectedIntensities()),
-																		curSample.getForwardGenotypes(), curSample.getAB_Genotypes(),
-																		curSample.getCanXYBeNegative());
+				correctedSamp = new Sample(curSample.getSampleName(), curSample.getFingerprint(),
+																	 curSample.getGCs(), curSample.getXs(), curSample.getYs(),
+																	 curSample.getBAFs(),
+																	 ArrayUtils.toFloatArray(gcAdjustor.getCorrectedIntensities()),
+																	 curSample.getForwardGenotypes(), curSample.getAB_Genotypes(),
+																	 curSample.getCanXYBeNegative());
 				correctedSamp.saveToRandomAccessFile(newSampleFile, outliers, curSample.getSampleName());
 			} else {
 				correctedSamp = projCorrected.getFullSampleFromRandomAccessFile(sample);
@@ -335,9 +335,8 @@ public class GcCorrection {
 			Project proj = new Project(filename, false);
 			proj.PROJECT_PROPERTIES_FILENAME.setValue(filename);
 			if (!Files.exists(proj.GC_MODEL_FILENAME.getValue())) {
-				String gcBase =
-											Files.exists("N:/statgen/NCBI/hg19.gc5Base.txt.gz")	? "N:/statgen/NCBI/hg19.gc5Base.txt.gz"
-																																					: "/home/pankrat2/public/bin/NCBI/hg19.gc5Base.txt.gz";
+				String gcBase = Files.exists("N:/statgen/NCBI/hg19.gc5Base.txt.gz") ? "N:/statgen/NCBI/hg19.gc5Base.txt.gz"
+																																						: "/home/pankrat2/public/bin/NCBI/hg19.gc5Base.txt.gz";
 				PennCNV.gcModel(proj, gcBase, proj.GC_MODEL_FILENAME.getValue(), 100);
 			}
 			gcCorrect(proj, numThreads);

@@ -1,7 +1,7 @@
 package org.genvisis.stats;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
@@ -38,7 +38,7 @@ public class Stats {
 	}
 
 	public static double ttestOneSample(double[] array, double expected) {
-		return ttestOneSample(Array.mean(array), Array.stdev(array), array.length, expected);
+		return ttestOneSample(ArrayUtils.mean(array), ArrayUtils.stdev(array), array.length, expected);
 	}
 
 	public static double ttestOneSample(double mean, double stdev, int n, double expected) {
@@ -52,8 +52,8 @@ public class Stats {
 		double cExp = pr22 * (c + d);
 		double dExp = c + d - cExp;
 
-		return Math.pow(a - aExp, 2.0) / aExp	+ Math.pow(b - bExp, 2.0) / bExp
-						+ Math.pow(c - cExp, 2.0) / cExp + Math.pow(d - dExp, 2.0) / dExp;
+		return Math.pow(a - aExp, 2.0) / aExp + Math.pow(b - bExp, 2.0) / bExp
+					 + Math.pow(c - cExp, 2.0) / cExp + Math.pow(d - dExp, 2.0) / dExp;
 	}
 
 	public static double FishersExact(double a, double b, double c, double d, boolean oneTailed) {
@@ -130,7 +130,7 @@ public class Stats {
 	public static double FisherSub(double[] LogFactorial, int a, int b, int c, int d) {
 		double p = 0;
 
-		p = LogFactorial[a + b]	+ LogFactorial[c + d] + LogFactorial[a + c] + LogFactorial[b + d]
+		p = LogFactorial[a + b] + LogFactorial[c + d] + LogFactorial[a + c] + LogFactorial[b + d]
 				- LogFactorial[a + b + c + d] - LogFactorial[a] - LogFactorial[b] - LogFactorial[c]
 				- LogFactorial[d];
 

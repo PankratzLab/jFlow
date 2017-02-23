@@ -13,8 +13,8 @@ public class CallableBufferSet<E, T> {
 	private final CallableBuffer<E, T>[] buffers;
 	private boolean full;
 
-	public CallableBufferSet(	int numThreads, int timeOutDay, CallableBuffer<E, T>[] buffers,
-														Logger log) {
+	public CallableBufferSet(int numThreads, int timeOutDay, CallableBuffer<E, T>[] buffers,
+													 Logger log) {
 		super();
 		this.numThreads = numThreads;
 		this.timeOutDay = timeOutDay;

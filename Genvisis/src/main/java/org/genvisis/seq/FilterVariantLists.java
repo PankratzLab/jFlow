@@ -8,7 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -56,8 +56,8 @@ public class FilterVariantLists {
 					passes = true;
 					for (int j = 0; j < ops.length; j++) {
 						if (j == 0) {
-							loc =
-									Positions.chromosomeNumber(line[j].substring(line[j].startsWith("chr") ? 3 : 0));
+							loc = Positions.chromosomeNumber(line[j].substring(line[j].startsWith("chr") ? 3
+																																													 : 0));
 						} else {
 							loc = Integer.parseInt(line[j]);
 						}
@@ -88,7 +88,7 @@ public class FilterVariantLists {
 						passes = false;
 					}
 					if (passes) {
-						writer.println(Array.toStr(line));
+						writer.println(ArrayUtils.toStr(line));
 					}
 				}
 				reader.close();
@@ -110,11 +110,11 @@ public class FilterVariantLists {
 		String positions = ">200000000";
 		boolean indelsOnly = true;
 
-		String usage = "\n"	+ "seq.FilterVariantLists requires 0-1 arguments\n"
-										+ "   (1) filename (i.e. file=" + dir + " (default))\n"
-										+ "   (2) chrs (i.e. chrs=" + chrs + " (default))\n"
-										+ "   (3) positions (i.e. positions=" + positions + " (default))\n"
-										+ "   (4) keep indels only (i.e. --indeplsOnly (not the default))\n" + "";
+		String usage = "\n" + "seq.FilterVariantLists requires 0-1 arguments\n"
+									 + "   (1) filename (i.e. file=" + dir + " (default))\n"
+									 + "   (2) chrs (i.e. chrs=" + chrs + " (default))\n"
+									 + "   (3) positions (i.e. positions=" + positions + " (default))\n"
+									 + "   (4) keep indels only (i.e. --indeplsOnly (not the default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

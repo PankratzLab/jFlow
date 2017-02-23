@@ -129,92 +129,92 @@ public class batchByFam {
 
 				writer.println("cd fam" + i + "/chrom" + chromosome + "/");
 				writer.println("echo -e \""
-												// +"load pedigree solar_ped."+chrom+"\\nload
-												// freq solar_freq."+chrom+"\\nload marker
-												// solar_marker."+chrom+"\\nibddir .\\nverbosity
-												// min\\nibd\\nload map map."+chrom+"\\nibddir
-												// .\\nmibddir .\\nmibd 0 "+dist[i]+"
-												// 1\\nmibddir .\\n"
+											 // +"load pedigree solar_ped."+chrom+"\\nload
+											 // freq solar_freq."+chrom+"\\nload marker
+											 // solar_marker."+chrom+"\\nibddir .\\nverbosity
+											 // min\\nibd\\nload map map."+chrom+"\\nibddir
+											 // .\\nmibddir .\\nmibd 0 "+dist[i]+"
+											 // 1\\nmibddir .\\n"
 
-												// +"automodel solar_phen-rate.dat
-												// rate\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
-												// +"automodel solar_phen-pre_trt.dat
-												// pre_trt\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
-												// +"automodel solar_phen-post_trt.dat
-												// post_trt\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
-												// +"automodel solar_phen-1stage.dat
-												// 1stage\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
-												// +"automodel solar_phen-2ndage.dat
-												// 2ndage\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
-													+ "automodel solar_phen-avgbp.dat avgbp\\npolygenic -screen\\nmibddir .\\nchromosome "
-												+ chromosome + "\\ninterval 1\\nmultipoint -overwrite\\n"
+											 // +"automodel solar_phen-rate.dat
+											 // rate\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
+											 // +"automodel solar_phen-pre_trt.dat
+											 // pre_trt\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
+											 // +"automodel solar_phen-post_trt.dat
+											 // post_trt\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
+											 // +"automodel solar_phen-1stage.dat
+											 // 1stage\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
+											 // +"automodel solar_phen-2ndage.dat
+											 // 2ndage\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
+											 + "automodel solar_phen-avgbp.dat avgbp\\npolygenic -screen\\nmibddir .\\nchromosome "
+											 + chromosome + "\\ninterval 1\\nmultipoint -overwrite\\n"
 
-												// +"automodel solar_phen-age4549comp_mhgt.dat
-												// comp_mhgt\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
-												// +"automodel solar_phen-age4549comp_mbmi.dat
-												// comp_mbmi\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
-												// +"automodel solar_phen-age4549comp_mchol.dat
-												// comp_mchol\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
-												// +"automodel
-												// solar_phen-age4549comp_msbp+comp_mbmi.dat
-												// comp_msbp\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
-												// +"automodel
-												// solar_phen-age4549comp_mwgt+comp_mhgt.dat
-												// comp_mwgt\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
-												// +"automodel
-												// solar_phen-age5054comp_mgluc+comp_mbmi.dat
-												// comp_mgluc\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
+											 // +"automodel solar_phen-age4549comp_mhgt.dat
+											 // comp_mhgt\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
+											 // +"automodel solar_phen-age4549comp_mbmi.dat
+											 // comp_mbmi\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
+											 // +"automodel solar_phen-age4549comp_mchol.dat
+											 // comp_mchol\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
+											 // +"automodel
+											 // solar_phen-age4549comp_msbp+comp_mbmi.dat
+											 // comp_msbp\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
+											 // +"automodel
+											 // solar_phen-age4549comp_mwgt+comp_mhgt.dat
+											 // comp_mwgt\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
+											 // +"automodel
+											 // solar_phen-age5054comp_mgluc+comp_mbmi.dat
+											 // comp_mgluc\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
 
-												// +"automodel solar_phen-mdrink.dat
-												// mdrink\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
-												// +"automodel solar_phen-mcpd.dat
-												// mcpd\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
+											 // +"automodel solar_phen-mdrink.dat
+											 // mdrink\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
+											 // +"automodel solar_phen-mcpd.dat
+											 // mcpd\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
 
-												// +"automodel solar_phen-procam_auc.dat
-												// procam_auc\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
-												// +"automodel solar_phen-noage_procam_auc.dat
-												// noage_procam_auc\\npolygenic
-												// -screen\\nmibddir .\\nchromosome
-												// "+i+"\\ninterval 1\\nmultipoint
-												// -overwrite\\n"
-												// +"automodel solar_phen-pca1_auc.dat
-												// pca1_auc\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
-												// +"automodel solar_phen-pca2_auc.dat
-												// pca2_auc\\npolygenic -screen\\nmibddir
-												// .\\nchromosome "+i+"\\ninterval
-												// 1\\nmultipoint -overwrite\\n"
+											 // +"automodel solar_phen-procam_auc.dat
+											 // procam_auc\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
+											 // +"automodel solar_phen-noage_procam_auc.dat
+											 // noage_procam_auc\\npolygenic
+											 // -screen\\nmibddir .\\nchromosome
+											 // "+i+"\\ninterval 1\\nmultipoint
+											 // -overwrite\\n"
+											 // +"automodel solar_phen-pca1_auc.dat
+											 // pca1_auc\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
+											 // +"automodel solar_phen-pca2_auc.dat
+											 // pca2_auc\\npolygenic -screen\\nmibddir
+											 // .\\nchromosome "+i+"\\ninterval
+											 // 1\\nmultipoint -overwrite\\n"
 
-												+ "quit\\n\" | solar > fam" + i + ".log");
+											 + "quit\\n\" | solar > fam" + i + ".log");
 				writer.println("cd ../..");
 				// writer.println("lp -dib139 chrm"+ chrom +"-p4.ps");
 

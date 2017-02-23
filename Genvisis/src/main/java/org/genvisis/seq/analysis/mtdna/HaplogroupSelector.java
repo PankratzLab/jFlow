@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.genvisis.CLI;
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -51,14 +51,14 @@ public class HaplogroupSelector {
 	 * @param minMatch minimum string matching for returned haplogroup
 	 * @return
 	 */
-	public static String run(	String haplogrepFile, String selectFor, String[] selectFrom,
-														String vpopFile, String excludeFile, String outDir, int xfactor,
-														int minMatch) {
+	public static String run(String haplogrepFile, String selectFor, String[] selectFrom,
+													 String vpopFile, String excludeFile, String outDir, int xfactor,
+													 int minMatch) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "hapSelector.log");
-		log.reportTimeInfo("Selecting haplogroup matches for "+ selectFor + " from "
-												+ Array.toStr(selectFrom, ", and ") + " using ..."
-												+ ext.removeDirectoryInfo(haplogrepFile));
+		log.reportTimeInfo("Selecting haplogroup matches for " + selectFor + " from "
+											 + ArrayUtils.toStr(selectFrom, ", and ") + " using ..."
+											 + ext.removeDirectoryInfo(haplogrepFile));
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.ANY, log);
 		HashSet<String> samplesToChooseFrom = new HashSet<String>();
 		HashSet<String> samplesToChooseFor = new HashSet<String>();
@@ -72,18 +72,19 @@ public class HaplogroupSelector {
 			samplesToChooseFrom.removeAll(excludes);
 			samplesToChooseFor.removeAll(excludes);
 		}
-		log.reportTimeInfo("Selecting from "+ samplesToChooseFrom.size() + " controls for "
-												+ samplesToChooseFor.size() + " cases");
+		log.reportTimeInfo("Selecting from " + samplesToChooseFrom.size() + " controls for "
+											 + samplesToChooseFor.size() + " cases");
 		HaplogroupStruct haplogroupStruct = loadHaplogroups(haplogrepFile, samplesToChooseFor,
 																												samplesToChooseFrom, log);
 		HaploTrie haploTrie = populateTrie(haplogroupStruct);
-		ArrayList<HaploMatch> haploMatchs = searchForMatches(	haplogroupStruct, haploTrie, xfactor,
-																													minMatch);
+		ArrayList<HaploMatch> haploMatchs = searchForMatches(haplogroupStruct, haploTrie, xfactor,
+																												 minMatch);
 		String[] header = HaploMatch.BASE_HEADER;
 		for (int i = 0; i < xfactor; i++) {
-			header = Array.concatAll(header, Array.tagOn(HaploMatch.BASE_HEADER, "Control_r1_", null));
+			header = ArrayUtils.concatAll(header,
+																		ArrayUtils.tagOn(HaploMatch.BASE_HEADER, "Control_r1_", null));
 		}
-		StringBuilder builder = new StringBuilder(Array.toStr(header));
+		StringBuilder builder = new StringBuilder(ArrayUtils.toStr(header));
 		StringBuilder caseControlBuilder = new StringBuilder();
 		caseControlBuilder.append("##phe1,Integer,-9,\"1/2 = ARIC/CUSHING\"\n");
 		caseControlBuilder.append("#ID\tphe1");
@@ -100,7 +101,7 @@ public class HaplogroupSelector {
 					caseControlBuilder.append("\n" + controlSelected.sample + "\t1");
 				}
 			} else {
-				unMatched.add(haploMatch.sample+ "\t" + haploMatch.haplogroup + "\t"
+				unMatched.add(haploMatch.sample + "\t" + haploMatch.haplogroup + "\t"
 											+ haploMatch.getResults());
 			}
 			builder.append("\n" + haploMatch.getResults());
@@ -109,7 +110,7 @@ public class HaplogroupSelector {
 		String outFile = outDir + HAPLO_SELECT_RESULTS_X + xfactor + "_min" + minMatch + ".txt";
 		String outFilePhe = outDir + HAPLO_SELECT_RESULTS_X + xfactor + "_min" + minMatch + PHE_EXT;
 		String outFileKeeps = outDir + HAPLO_SELECT_RESULTS_X + xfactor + "_min" + minMatch + KEEP_EXT;
-		String outFileUnmatched = outDir+ HAPLO_SELECT_RESULTS_X + xfactor + "_min" + minMatch
+		String outFileUnmatched = outDir + HAPLO_SELECT_RESULTS_X + xfactor + "_min" + minMatch
 															+ ".unmatched";
 
 		Files.write(builder.toString(), outFile);
@@ -177,15 +178,14 @@ public class HaplogroupSelector {
 		for (HaploMatch haploMatch : haploMatches) {
 			for (int i = 0; i < xFactor; i++) {
 
-				HaplogroupMatchResult haplogroupMatchResult =
-																										haploTrie.getBestMatchHaplotypeSamples(haploMatch.haplogroup);
+				HaplogroupMatchResult haplogroupMatchResult = haploTrie.getBestMatchHaplotypeSamples(haploMatch.haplogroup);
 				String sample = haplogroupMatchResult.getSample();
 				if (taken.contains(sample)) {
 					throw new IllegalStateException("Non-unique sample selected");
 				}
-				if (haploMatch.haplogroup.startsWith(haplogroupStruct.fullSampleMap	.get(sample)
-																																						.substring(	0,
-																																												minMatch))) {
+				if (haploMatch.haplogroup.startsWith(haplogroupStruct.fullSampleMap.get(sample)
+																																					 .substring(0,
+																																											minMatch))) {
 					haploMatch.controlsMatched.add(new HaploMatch(sample,
 																												haplogroupStruct.fullSampleMap.get(sample)));
 					taken.add(sample);
@@ -221,9 +221,9 @@ public class HaplogroupSelector {
 		private HashMap<String, HashSet<String>> haploCase;
 		private HashMap<String, String> fullSampleMap;
 
-		private HaplogroupStruct(	HashMap<String, HashSet<String>> haploControl,
-															HashMap<String, HashSet<String>> haploCase,
-															HashMap<String, String> fullSampleMap) {
+		private HaplogroupStruct(HashMap<String, HashSet<String>> haploControl,
+														 HashMap<String, HashSet<String>> haploCase,
+														 HashMap<String, String> fullSampleMap) {
 			super();
 			this.haploControl = haploControl;
 			this.haploCase = haploCase;
