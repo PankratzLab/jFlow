@@ -19,7 +19,9 @@ public class BWA {
 	public static final String BWA_COMMAND = "bwa";
 
 	private String bwaLocation;
+
 	private final boolean fail, verbose, overwriteExisting;
+
 	private final Logger log;
 
 	public BWA(String bwaLocation, boolean overwriteExisting, boolean verbose, Logger log) {
@@ -31,6 +33,7 @@ public class BWA {
 		fail = !validBWA();
 	}
 
+
 	public boolean bwaMEM(String fullPathToReferenceIndexedFasta, String fullPathToForwardReadFQ,
 												String fullPathToRevereseReadFQ, String fullPathToOutputFile,
 												String readGroup, int numThreads, Logger altLog) {
@@ -38,16 +41,16 @@ public class BWA {
 																				fullPathToRevereseReadFQ};
 		String[] outputFiles = new String[] {fullPathToOutputFile};
 		String[] commandArray = new String[] {bwaLocation, BWA_MEM_COMMAND, "-M", "-R", readGroup,
-																					(numThreads > 1 ? " -t " + numThreads + " " : " "),
+																					numThreads > 1 ? " -t " + numThreads : "",
 																					fullPathToReferenceIndexedFasta, fullPathToForwardReadFQ,
-																					fullPathToRevereseReadFQ, " > ", fullPathToOutputFile};
+																					fullPathToRevereseReadFQ, ">", fullPathToOutputFile};
 		if (!fail) {
 			String command = fullPathToOutputFile + ".bat";
 			Files.write(ArrayUtils.toStr(commandArray, " "), command);
 			Files.chmod(command);
 			return CmdLine.runCommandWithFileChecks(new String[] {command}, "", inputFiles, outputFiles,
 																							verbose, overwriteExisting, true,
-																							(altLog == null ? log : altLog));
+																							altLog == null ? log : altLog);
 		} else {
 			return false;
 		}

@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class BWA_Analysis {
@@ -75,8 +76,8 @@ public class BWA_Analysis {
 			this.referenceGenomeFasta = referenceGenomeFasta;
 			fail = false;
 			this.log = log;
-			output = outputDir + ID + OUTPUT_SEP + barcode + OUTPUT_SEP + Lane + OUTPUT_SEP + library
-							 + SAM_EXT;
+			output = outputDir	+ ID + OUTPUT_SEP + barcode + OUTPUT_SEP + Lane + OUTPUT_SEP + library
+								+ SAM_EXT;
 			success = false;
 		}
 
@@ -85,10 +86,10 @@ public class BWA_Analysis {
 				fail = !hasBothFiles();
 				if (!fail) {
 					new File(outputDir).mkdirs();
-					success = bwa.bwaMEM(referenceGenomeFasta, readFQ1, readFQ2, output, getReadGroup(),
-															 numMemThreads, (altLog == null ? log : altLog));
+					success = bwa.bwaMEM(	referenceGenomeFasta, readFQ1, readFQ2, output, getReadGroup(),
+																numMemThreads, (altLog == null ? log : altLog));
 				} else {
-					log.reportError("Error - could not find both files for ID" + ID);
+					log.reportError("could not find both files for ID" + ID);
 				}
 			}
 			return success;
@@ -100,7 +101,7 @@ public class BWA_Analysis {
 			} else if (readFQ2 == null) {
 				readFQ2 = readFQ;
 			} else {
-				log.reportError("Error - internal error, adding too many samples to the bwa analysis");
+				log.reportError("internal error, adding too many samples to the bwa analysis");
 				fail = true;
 			}
 		}
@@ -142,7 +143,7 @@ public class BWA_Analysis {
 		public String getReadGroup() {
 			String RG = "\"@RG";
 			RG += "\\tID:" + ID + "_" + barcode + "_" + Lane + "_" + library;// unique for this run of the
-																																			 // sample
+																																				// sample
 			RG += "\\tSM:" + ID;// unique for sample
 			RG += "\\tPL:ILLUMINA";// not used, currently TODO
 			RG += "\\tLB:" + library;// library prep, I think this is correct TODO
@@ -216,7 +217,7 @@ public class BWA_Analysis {
 
 		public void parse() {
 			if (split.length < 4) {
-				log.reportError("Error - could not parse filename " + fileName
+				log.reportError("could not parse filename "	+ fileName
 												+ " to ID, lane, barcode, and batch");
 				valid = false;
 			} else {
@@ -225,9 +226,9 @@ public class BWA_Analysis {
 				barcode = split[split.length - 4];
 				ID = ArrayUtils.toStr(ArrayUtils.subArray(split, 0, split.length - 4), SPLIT);// we do not
 																																											// include
-				// barcode in the id,
-				// instead adding it to
-				// the RG
+																																						// barcode in the id,
+																																						// instead adding it to
+																																						// the RG
 			}
 		}
 
@@ -252,18 +253,18 @@ public class BWA_Analysis {
 			boolean success = false;
 			if (!bwAnalysisIndividual.isFail()) {
 				if (verbose) {
-					log.report(ext.getTime() + "Info - running bwa mem on thread"
-										 + Thread.currentThread().getName() + " for "
-										 + bwAnalysisIndividual.getAvailableFiles("\n"));
+					log.report(ext.getTime()	+ "Info - running bwa mem on thread"
+											+ Thread.currentThread().getName() + " for "
+											+ bwAnalysisIndividual.getAvailableFiles("\n"));
 				}
 				success = bwAnalysisIndividual.analyze(numMemThreads, log);
 				if (verbose) {
-					log.report(ext.getTime() + "Info - finished running bwa mem on thread"
-										 + Thread.currentThread().getName() + " for "
-										 + bwAnalysisIndividual.getAvailableFiles("\n"));
+					log.report(ext.getTime()	+ "Info - finished running bwa mem on thread"
+											+ Thread.currentThread().getName() + " for "
+											+ bwAnalysisIndividual.getAvailableFiles("\n"));
 				}
 			} else {
-				log.reportError("Error - initializing has failed for analysis "
+				log.reportError("initializing has failed for analysis "
 												+ bwAnalysisIndividual.getAvailableFiles("\n"));
 			}
 			return success;
@@ -280,6 +281,7 @@ public class BWA_Analysis {
 	public static final String ROOT_OUTPUT_COMMAND = "rootOutputDir=";
 	public static final String FILE_OF_SAMPLE_PAIRS_COMMAND = "fileOfSamplePairs=";
 	public static final String REFERENCE_GENOME_COMMAND = "referenceGenomeFasta=";
+	public static final String REGIONS_FILE_COMMAND = "regionsFile=";
 	public static final String BWA_LOCATION_COMMAND = "bwaLocation=";
 	public static final String QUIET_COMMAND = "-quiet";
 	public static final String NUM_BETWEEN_THREADS_COMMAND = "numBetweenThreads=";
@@ -335,27 +337,26 @@ public class BWA_Analysis {
 				ExecutorService executor = Executors.newFixedThreadPool(numBetweenSampleThreads);
 				Hashtable<String, Future<Boolean>> tmpResults = new Hashtable<String, Future<Boolean>>();
 				for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
-					Logger tmpLog = new Logger(ext.rootOf(log.getFilename(), false) + "_BWA_ID_"
-																		 + bwAnalysisIndividuals[i].getID() + "_batch"
-																		 + bwAnalysisIndividuals[i].getLibrary() + ".log");
-					tmpResults.put(i + "",
-												 executor.submit(new WorkerBWA_Analysis(bwAnalysisIndividuals[i],
-																																numWithinSampleThreads, verbose,
-																																tmpLog)));
+					Logger tmpLog = new Logger(ext.rootOf(log.getFilename(), false)	+ "_BWA_ID_"
+																			+ bwAnalysisIndividuals[i].getID() + "_batch"
+																			+ bwAnalysisIndividuals[i].getLibrary() + ".log");
+					tmpResults.put(i	+ "",
+													executor.submit(new WorkerBWA_Analysis(	bwAnalysisIndividuals[i],
+																																	numWithinSampleThreads, verbose,
+																																	tmpLog)));
 				}
 				for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
 					try {
 						if (!tmpResults.get(i + "").get()) {
-							log.reportError("Error - failed bwa for "
-															+ bwAnalysisIndividuals[i].getAvailableFiles("\n"));
+							log.reportError("failed bwa for " + bwAnalysisIndividuals[i].getAvailableFiles("\n"));
 							fail = true;
 						}
 					} catch (InterruptedException e) {
-						log.reportError("Error - could not complete running bwa mem on internal index " + i);
+						log.reportError("Could not complete running bwa mem on internal index " + i);
 						log.reportException(e);
 						fail = true;
 					} catch (ExecutionException e) {
-						log.reportError("Error - could not complete running bwa mem on internal index " + i);
+						log.reportError("Could not complete running bwa mem on internal index " + i);
 						log.reportException(e);
 						fail = true;
 					}
@@ -388,17 +389,17 @@ public class BWA_Analysis {
 		// String fileOfSamplePairs, boolean overwriteExisting, boolean verbose, int numMemThreads, int
 		// numSampleThreads, boolean batch, Logger log) {
 
-		String command = "load module java\njava -Xmx" + memoryInMB + "m -jar "
-										 + org.genvisis.common.PSF.Java.GENVISIS + " seq.BWA_Analysis "
-										 + ROOT_INPUT_COMMAND + rootInputDir + SPACE + ROOT_OUTPUT_COMMAND
-										 + rootOutputDir + SPACE;
-		command += REFERENCE_GENOME_COMMAND + referenceGenomeFasta + SPACE + BWA_LOCATION_COMMAND
-							 + bwa.getBwaLocation() + SPACE;
-		command += NUM_BETWEEN_THREADS_COMMAND + numWithinSampleThreads + SPACE
-							 + FILE_OF_SAMPLE_PAIRS_COMMAND + rootOutputDir + "[%0].txt" + SPACE
-							 + NUM_WITHIN_THREADS_COMMAND + numBetweenSampleThreads;
-		Files.qsub("BWA_MEM" + baseName, command, batches, memoryInMB, wallTimeInHours,
-							 numWithinSampleThreads * numBetweenSampleThreads);
+		String command = "load module java\njava -Xmx"	+ memoryInMB + "m -jar "
+											+ org.genvisis.common.PSF.Java.GENVISIS + " seq.BWA_Analysis "
+											+ ROOT_INPUT_COMMAND + rootInputDir + SPACE + ROOT_OUTPUT_COMMAND
+											+ rootOutputDir + SPACE;
+		command += REFERENCE_GENOME_COMMAND	+ referenceGenomeFasta + SPACE + BWA_LOCATION_COMMAND
+								+ bwa.getBwaLocation() + SPACE;
+		command += NUM_BETWEEN_THREADS_COMMAND	+ numWithinSampleThreads + SPACE
+								+ FILE_OF_SAMPLE_PAIRS_COMMAND + rootOutputDir + "[%0].txt" + SPACE
+								+ NUM_WITHIN_THREADS_COMMAND + numBetweenSampleThreads;
+		Files.qsub("BWA_MEM"	+ baseName, command, batches, memoryInMB, wallTimeInHours,
+								numWithinSampleThreads * numBetweenSampleThreads);
 	}
 
 	public BWA getBwa() {
@@ -467,7 +468,7 @@ public class BWA_Analysis {
 		try {
 			int numSamples = Files.countLines(fileOfSamplePairs, 0);
 			bwAnalysisIndividuals = new BWA_AnalysisIndividual[numSamples];// this a per lane way of doing
-																																		 // it
+																																			// it
 
 			BufferedReader reader = Files.getAppropriateReader(fileOfSamplePairs);
 			int index = 0;
@@ -475,7 +476,7 @@ public class BWA_Analysis {
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("[\\s]+");
 				if (line.length != 2) {
-					log.reportError("Error - " + fileOfSamplePairs
+					log.reportError(fileOfSamplePairs
 													+ " must be two columns only, with lane matched samples in each");
 					fail = true;
 				} else {
@@ -490,8 +491,8 @@ public class BWA_Analysis {
 															+ " did not match up, please make sure this is what you want to do");
 						}
 						if (!fileNameParser1.getID().equals(fileNameParser2.getID())) {
-							log.reportError("Error - the determined root ID for the two samples "
-															+ ArrayUtils.toStr(line) + " did not match up");
+							log.reportError("the determined root ID for the two samples "	+ ArrayUtils.toStr(line)
+															+ " did not match up");
 							fail = true;
 						} else {
 							bwAnalysisIndividuals[index] = getAnalysisIndFromFileParser(fileNameParser1);
@@ -499,8 +500,8 @@ public class BWA_Analysis {
 							bwAnalysisIndividuals[index].assignFile(line[1]);
 							if (track.containsKey(bwAnalysisIndividuals[index].getOutput())) {
 								int num = track.get(bwAnalysisIndividuals[index].getOutput());
-								bwAnalysisIndividuals[index].setOutput(ext.addToRoot(bwAnalysisIndividuals[index].getOutput(),
-																																		 "rep" + num));
+								bwAnalysisIndividuals[index].setOutput(ext.addToRoot(	bwAnalysisIndividuals[index].getOutput(),
+																																			"rep" + num));
 								bwAnalysisIndividuals[index].setLibrary(bwAnalysisIndividuals[index].getLibrary()
 																												+ "rep" + num);
 								track.put(bwAnalysisIndividuals[index].getOutput(), (num + 1));
@@ -519,11 +520,11 @@ public class BWA_Analysis {
 			}
 
 		} catch (FileNotFoundException e) {
-			log.reportError("Error - could not find file " + fileOfSamplePairs);
+			log.reportError("could not find file " + fileOfSamplePairs);
 			log.reportException(e);
 			e.printStackTrace();
 		} catch (IOException e) {
-			log.reportError("Error - could not read file " + fileOfSamplePairs);
+			log.reportError("could not read file " + fileOfSamplePairs);
 			log.reportException(e);
 		}
 	}
@@ -570,12 +571,12 @@ public class BWA_Analysis {
 							bwAnalysisIndividuals[track.get(fileNameParser.getIDLane())].assignFile(inputFile);
 						}
 					} else {
-						log.reportError("Error - file name " + inputFile
+						log.reportError("file name "	+ inputFile
 														+ " could not be parsed according to our assumptions");
 					}
 				}
 				if (currIndex != bwAnalysisIndividuals.length) {
-					log.reportError("Error - could not match all files for input set\n"
+					log.reportError("could not match all files for input set\n"
 													+ ArrayUtils.toStr(inputFiles, "\n"));
 					fail = true;
 				}
@@ -586,7 +587,7 @@ public class BWA_Analysis {
 	private void verifyAnalsyisInds() {
 		for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
 			if (!bwAnalysisIndividuals[i].hasBothFiles()) {
-				log.reportError("Error - internal index " + i + " only had the following files:"
+				log.reportError("internal index "	+ i + " only had the following files:"
 												+ bwAnalysisIndividuals[i].getAvailableFiles("\n"));
 				fail = true;
 			}
@@ -597,7 +598,7 @@ public class BWA_Analysis {
 		if (inputFiles != null && inputFiles.length % 2 == 0) {
 			return true;
 		} else {
-			log.reportError("Error - found an odd number of input files, currently they must be paired reads");
+			log.reportError("found an odd number of input files, currently they must be paired reads");
 			return false;
 		}
 	}
@@ -605,17 +606,17 @@ public class BWA_Analysis {
 	private boolean verifyReferenceGenome() {
 		boolean verified = true;
 		if (!Files.exists(referenceGenomeFasta)) {
-			log.reportError("Error - could not find reference genome file" + referenceGenomeFasta);
+			log.reportError("could not find reference genome file" + referenceGenomeFasta);
 			verified = false;
 		}
 		return verified;
 	}
 
-	public static void run(String rootInputDir, String rootOutputDir, String referenceGenomeFasta,
-												 String bwaLocation, String fileOfSamplePairs, boolean overwriteExisting,
-												 boolean verbose, int numMemThreads, int numSampleThreads, boolean batch,
-												 int numBatches, int memoryInMB, int wallTimeInHours, String baseName,
-												 Logger log) {
+	public static void run(	String rootInputDir, String rootOutputDir, String referenceGenomeFasta,
+													String bwaLocation, String fileOfSamplePairs, boolean overwriteExisting,
+													boolean verbose, int numMemThreads, int numSampleThreads, boolean batch,
+													int numBatches, int memoryInMB, int wallTimeInHours, String baseName,
+													Logger log) {
 		BWA bwa = new BWA(bwaLocation, overwriteExisting, verbose, log);
 		BWA_Analysis bwa_Analysis = new BWA_Analysis(rootInputDir, rootOutputDir, referenceGenomeFasta,
 																								 verbose, numMemThreads, numSampleThreads, bwa,
@@ -666,26 +667,27 @@ public class BWA_Analysis {
 		String logFile = "bwaMem.log";
 
 		String usage = "\n" + "seq.BWA_Analysis requires 2 argument\n";
-		usage += "   (1) root input directory (i.e. " + ROOT_INPUT_COMMAND + rootInputDir
-						 + " (no default))\n" + "";
-		usage += "   (2) root output directory (i.e. " + ROOT_OUTPUT_COMMAND + rootOutputDir
-						 + " (no default))\n" + "";
+		usage += "   (1) root input directory (i.e. "	+ ROOT_INPUT_COMMAND + rootInputDir
+							+ " (no default))\n" + "";
+		usage += "   (2) root output directory (i.e. "	+ ROOT_OUTPUT_COMMAND + rootOutputDir
+							+ " (no default))\n" + "";
 		usage += "   (3) tab-delimited file with no header of paired .fastq (i.e. "
-						 + FILE_OF_SAMPLE_PAIRS_COMMAND + fileOfSamplePairs + " (optional, no default))\n" + "";
+								+ FILE_OF_SAMPLE_PAIRS_COMMAND + fileOfSamplePairs + " (optional, no default))\n"
+							+ "";
 		usage += "   (4) the full path to a  reference genome in fasta format (i.e."
-						 + REFERENCE_GENOME_COMMAND + referenceGenomeFasta + " (no default))\n" + "";
-		usage += "   (5) the full path to the bwa executable (i.e. " + BWA_LOCATION_COMMAND
-						 + bwaLocation + " (no default, defualts to systems path))\n" + "";
+							+ REFERENCE_GENOME_COMMAND + referenceGenomeFasta + " (no default))\n" + "";
+		usage += "   (5) the full path to the bwa executable (i.e. "	+ BWA_LOCATION_COMMAND
+							+ bwaLocation + " (no default, defualts to systems path))\n" + "";
 		usage += "   (6) run in quiet mode (i.e. " + QUIET_COMMAND + " (not tbe default))\n" + "";
-		usage += "   (7) number of threads for bwa mem (i.e." + NUM_BETWEEN_THREADS_COMMAND
-						 + numMemThreads + " (default))\n" + "";
+		usage += "   (7) number of threads for bwa mem (i.e."	+ NUM_BETWEEN_THREADS_COMMAND
+							+ numMemThreads + " (default))\n" + "";
 		usage += "   (8) filename for a log (i.e. " + LOG_FILE_COMMAND + logFile + " (default))\n" + "";
 		usage += "   (9) set up a batch analysis for the root input directory for a log (i.e. "
-						 + BATCH_COMMAND + " (not the default))\n" + "";
-		usage += "   (10) number of batches for a batched analysis (i.e. " + NUMBATCHES_COMMAND
-						 + numBatches + " (the default))\n" + "";
-		usage += "   (11) over-write exsiting files (i.e. " + OVERWRITE_EXISTING_COMMAND
-						 + " (not the default))\n" + "";
+							+ BATCH_COMMAND + " (not the default))\n" + "";
+		usage += "   (10) number of batches for a batched analysis (i.e. "	+ NUMBATCHES_COMMAND
+							+ numBatches + " (the default))\n" + "";
+		usage += "   (11) over-write exsiting files (i.e. "	+ OVERWRITE_EXISTING_COMMAND
+							+ " (not the default))\n" + "";
 		usage += "   (11) base-name for batch analysis (i.e. " + BASE_NAME_COMMAND + " (default))\n"
 						 + "";
 
@@ -723,7 +725,7 @@ public class BWA_Analysis {
 			} else if (arg.startsWith(NUMBATCHES_COMMAND)) {
 				numBatches = ext.parseIntArg(arg);
 				numArgs--;
-			} else if (arg.startsWith("memoryInMB=")) {
+			} else if (arg.startsWith(PSF.Ext.MEMORY_MB)) {
 				memoryInMB = ext.parseIntArg(arg);
 				numArgs--;
 			} else if (arg.startsWith("wallTimeInHours=")) {
@@ -760,7 +762,7 @@ public class BWA_Analysis {
 // private boolean verifyReferenceGenome() {
 // boolean verfied = true;
 // if (referenceGenomeFasta == null && referenceGenomeIndexed == null) {
-// log.reportError("Error - a reference (indexed or un-indexed) genome must be supplied");
+// log.reportError("a reference (indexed or un-indexed) genome must be supplied");
 // verfied = false;
 // } else {
 // if (referenceGenomeIndexed != null) {
@@ -776,7 +778,7 @@ public class BWA_Analysis {
 // }
 // } else {
 // verfied = false;
-// log.reportError("Error - indexed reference genome was specified, but did not exist at" +
+// log.reportError("indexed reference genome was specified, but did not exist at" +
 // referenceGenomeIndexed);
 // }
 // } else if (referenceGenomeFasta != null) {
@@ -788,13 +790,13 @@ public class BWA_Analysis {
 // }
 // } else {
 // if (!Files.exists(referenceGenomeFasta)) {
-// log.reportError("Error - reference genome was specified, but did not exist at" +
+// log.reportError("reference genome was specified, but did not exist at" +
 // referenceGenomeFasta);
 // verfied = false;
 // } else {
 // new BWA(bwaLocation, false, verbose, log).indexReferenceGenome(referenceGenomeFasta);
 // if (!Files.exists(referenceGenomeIndexed)) {
-// log.reportError("Error - could not create indexed reference genome" + referenceGenomeIndexed);
+// log.reportError("could not create indexed reference genome" + referenceGenomeIndexed);
 // verfied = false;
 // }
 // }

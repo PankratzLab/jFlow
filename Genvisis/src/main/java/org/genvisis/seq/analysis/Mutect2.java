@@ -14,12 +14,14 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.analysis.GATK.Mutect2Normal;
 import org.genvisis.seq.analysis.GATK.MutectTumorNormal;
+import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
 import org.genvisis.seq.analysis.GATK_Genotyper.ANNOVCF;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps;
@@ -423,7 +425,8 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		}
 		log.reportTimeWarning("Attempting to annotate using default locations...");
 		String finalAnno = GATK_Genotyper.annotateOnlyWithDefualtLocations(outMergeRenameVCF, annoVCF,
-																																			 true, false, log);
+																																			 gatk.getMemoryInMB(), true,
+																																			 false, log);
 
 		if (finalMergeWithVCF != null) {
 			String finalMerge = VCFOps.getAppropriateRoot(finalAnno, false) + ".finalMerge.vcf.gz";
@@ -547,9 +550,11 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		String gatkLocation = "GATK_3_5/";
 		String cosmic = "b37_cosmic_v54_120711.hg19_chr.vcf";
 		String regions = "AgilentCaptureRegions.bed";
+		SEQ_TARGET seqTarget = null;
 		String ponVCF = null;
 		int numthreads = 1;
 		int numSampleThreads = 4;
+		int memoryInMB = PSF.Ext.DEFAULT_MEMORY_MB;
 		int numbatches = 0;
 		String outputDir = "mutect/";
 		String tumorNormalBams = null;
@@ -557,28 +562,47 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		String finalMergeVCF = null;
 		ANNOVCF annoVCF = null;
 		String tparams = null;
+		int argNum = 1;
 		String usage = "\n" + "seq.analysis.Mutect2 requires 0-1 arguments\n";
-		usage += "   (1) full path to a file of normal sample bams (i.e. normalBams=" + fileOfNormalBams
+		usage += "   (" + argNum++ + ") full path to a file of normal sample bams (i.e. normalBams="
+						 + fileOfNormalBams
 						 + " (default))\n" + "";
-		usage += "   (2) full path to a reference genome (i.e. ref=" + referenceGenomeFasta
+		usage += "   (" + argNum++ + ") full path to a reference genome (i.e. ref="
+						 + referenceGenomeFasta
 						 + " (default))\n" + "";
-		usage += "   (3) known dbsnp snps (i.e. knownSnps=" + knownSnps + " (default))\n" + "";
-		usage += "   (4) cosmic snps (i.e. cosmic=" + cosmic + " (default))\n" + "";
-		usage += "   (5) regions for calling (i.e. regions=" + regions + " (default))\n" + "";
-		usage += "   (6) output root directory (i.e. outputDir=" + outputDir + " (default))\n" + "";
-		usage += "   (7) number of batches- triggers qsub generation (i.e. numNormalBatches="
+		usage += "   (" + argNum++ + ") known dbsnp snps (i.e. knownSnps=" + knownSnps + " (default))\n"
+						 + "";
+		usage += "   (" + argNum++ + ") cosmic snps (i.e. cosmic=" + cosmic + " (default))\n" + "";
+		usage += "   (" + argNum++ + ") regions for calling (i.e. regions=" + regions + " (default))\n"
+						 + "";
+		usage += "   (" + argNum++ + ") Region targeted by sequencing ("
+						 + ArrayUtils.toStr(SEQ_TARGET.values(), ",")
+						 + ") ( (i.e. " + GATK.TARGETED_REGION_COMMAND + " ( no default))\n" + "";
+		usage += "   (" + argNum++ + ") output root directory (i.e. outputDir=" + outputDir
+						 + " (default))\n" + "";
+		usage += "   (" + argNum++
+						 + ") number of batches- triggers qsub generation (i.e. numNormalBatches="
 						 + numbatches + " (default))\n" + "";
-		usage += "   (8) number of threads (i.e. numthreads=" + numthreads + " (default))\n" + "";
-		usage += "   (9) gatk directory (i.e. gatk=" + gatkLocation + " (default))\n" + "";
-		usage += "   (10) type of analysis (i.e. run=" + run + " (default))\n" + "";
-		usage += "   (11) pon vcf (i.e. ponVcf= (no default))\n" + "";
-		usage += "   (12) number of threads per sample (i.e. numSampleThreads=" + numSampleThreads
+		usage += "   (" + argNum++ + ") number of threads (i.e. numthreads=" + numthreads
 						 + " (default))\n" + "";
-		usage += "   (13) full path to a file of tumor-normal matched (tab-delimited) bam files, normal in first column, tumor in second (i.e. tumorNormalBams= (no default))\n"
+		usage += "   (" + argNum++ + ") gatk directory (i.e. gatk=" + gatkLocation + " (default))\n"
 						 + "";
-		usage += "   (14) full path to a final merge vcf to merge somatic calls with (i.e. finalVCF= (no default))\n"
+		usage += "   (" + argNum++ + ") type of analysis (i.e. run=" + run + " (default))\n" + "";
+		usage += "   (" + argNum++ + ") pon vcf (i.e. ponVcf= (no default))\n" + "";
+		usage += "   (" + argNum++ + ") number of threads per sample (i.e. numSampleThreads="
+						 + numSampleThreads
+						 + " (default))\n" + "";
+		usage += "   (" + argNum++ + ") max memory to allocate to Java heap (i.e. " + PSF.Ext.MEMORY_MB
+						 + memoryInMB
+						 + " (default))\n" + "";
+		usage += "   (" + argNum++
+						 + ") full path to a file of tumor-normal matched (tab-delimited) bam files, normal in first column, tumor in second (i.e. tumorNormalBams= (no default))\n"
 						 + "";
-		usage += "   (15) full path to a vcf tallyparamFile (i.e. tparams= (no default))\n" + "";
+		usage += "   (" + argNum++
+						 + ") full path to a final merge vcf to merge somatic calls with (i.e. finalVCF= (no default))\n"
+						 + "";
+		usage += "   (" + argNum++
+						 + ") full path to a vcf tallyparamFile (i.e. tparams= (no default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -617,6 +641,14 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 			} else if (arg.startsWith("regions=")) {
 				regions = arg.split("=")[1];
 				numArgs--;
+			} else if (arg.startsWith(GATK.TARGETED_REGION_COMMAND)) {
+				try {
+					seqTarget = SEQ_TARGET.valueOf(ext.parseStringArg(arg));
+					numArgs--;
+				} catch (IllegalArgumentException iae) {
+					System.err.println(GATK.TARGETED_REGION_COMMAND + " must be one of: "
+														 + ArrayUtils.toStr(SEQ_TARGET.values()));
+				}
 			} else if (arg.startsWith("outputDir=")) {
 				outputDir = arg.split("=")[1];
 				numArgs--;
@@ -628,6 +660,9 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 				numArgs--;
 			} else if (arg.startsWith("numSampleThreads=")) {
 				numSampleThreads = ext.parseIntArg(arg);
+				numArgs--;
+			} else if (arg.startsWith(PSF.Ext.MEMORY_MB)) {
+				memoryInMB = ext.parseIntArg(arg);
 				numArgs--;
 			} else if (arg.startsWith(GATK_Genotyper.EXTRA_VCF_ANNOTATIONS)) {
 				annoVCF = ANNOVCF.fromArg(arg);
@@ -642,8 +677,8 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		}
 		new File(outputDir).mkdirs();
 		Logger log = new Logger(outputDir + "TN.log");
-		GATK gatk = new GATK.Mutect(gatkLocation, referenceGenomeFasta, knownSnps, regions, cosmic,
-																true, false, log);
+		GATK gatk = new GATK.Mutect(gatkLocation, referenceGenomeFasta, memoryInMB, knownSnps, regions,
+																seqTarget, cosmic, true, false, log);
 		switch (run) {
 			case COMBINE_NORMALS:
 			case CALL_SOMATIC:

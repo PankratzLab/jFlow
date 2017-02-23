@@ -1,15 +1,14 @@
 package org.genvisis.one.JL.mtDNA;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.GATK;
+import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
 import org.genvisis.seq.analysis.SimpleTallyGene;
-import org.genvisis.seq.analysis.TumorNormalSummary;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.manage.mtdna.GenBankMtDNA;
@@ -46,16 +45,17 @@ public class NGSmtDNA {
 			VCFOpsMT.convertHg19ToRCRS(cVcf, rcrsC, new Logger());
 
 			GATK gatk = new GATK("/Users/Kitty/bin/GenomeAnalysisTK-3.6/",
-													 "/Volumes/Beta/ref/GRCh37_canon.fa", true, true, log);
+													 "/Volumes/Beta/ref/GRCh37_canon.fa", "MT", SEQ_TARGET.TARGETED,
+													 PSF.Ext.DEFAULT_MEMORY_MB, true, true, log);
 
 			String outAnno = ext.addToRoot(rcrsC, ".poly");
 			gatk.annotateWithAnotherVCF(rcrsC, polyVCF, outAnno, new String[] {"AF", "AC"}, "mtPoly",
-																	"MT", 1);
+																	1);
 
 			String outAnnoD = ext.addToRoot(outAnno, ".disease");
 			gatk.annotateWithAnotherVCF(outAnno, diseaseTrimVCF, outAnnoD,
 																	new String[] {"AF", "AC", "DiseaseStatus", "Disease"}, "mtPoly",
-																	"MT", 1);
+																	1);
 
 			String finalOut = ext.addToRoot(outAnnoD, ".conv");
 			VCFOpsMT.convertContigs(outAnnoD, finalOut, MT_GENOME.HG19, log);
@@ -74,9 +74,9 @@ public class NGSmtDNA {
 			String vpopFileEpp = "/Volumes/Beta/data/mtDNA-dev/vcf/EPP_FREQ_V2.vpop";
 
 			if (Files.exists(annoVcf)) {
-				// SimpleTallyGene.run(annoVcf, vpopFileEpp, new double[] { 1.2, .01, 0.0 });
-				//
-				// SimpleTallyGene.run(annoVcf, vpopFileGermlineCushing, new double[] { 1.2, .01, 0.0 });
+				SimpleTallyGene.run(annoVcf, vpopFileEpp, new double[] {1.2, .01, 0.0});
+
+				SimpleTallyGene.run(annoVcf, vpopFileGermlineCushing, new double[] {1.2, .01, 0.0});
 			}
 			// TumorNormalSummary.main(new String[] { annoVcf });
 

@@ -87,6 +87,29 @@ public class SimpleTallyGene {
 
 	}
 
+	@Deprecated
+	public static void run(String vcf, String vpop, double[] mafs) {
+
+		String[] names = new String[] {"Mito"};
+		Segment[] segs = new Segment[] {new Segment("chrM:1-20000")};
+		mafs = mafs == null ? new double[] {1.2} : mafs;
+		String tnVpop = "/Volumes/Beta/data/Cushings/mito/CUSHINGS_TUMOR.vpop";
+
+		WorkerHive<Params> hive = new WorkerHive<SimpleTallyGene.Params>(1, 1, new Logger());
+		String omimDir = "/Volumes/Beta/ref/OMIM/";
+		for (int i = 0; i < names.length; i++) {
+			for (double maf : mafs) {
+				hive.addCallable(new Params(vcf, segs[i], names[i], vpop, omimDir, null, maf));
+				if (maf == 0) {
+					hive.addCallable(new Params(vcf, segs[i], names[i], tnVpop, omimDir, null, maf));
+				}
+			}
+		}
+		hive.execute(true);
+
+
+	}
+
 	/**
 	 * @param args
 	 */

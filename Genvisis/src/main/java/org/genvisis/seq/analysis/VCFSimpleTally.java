@@ -83,7 +83,8 @@ public class VCFSimpleTally {
 																													"HIGH||MODERATE||LOW"};
 	private static final String[] ANNO_BASE_SAMPLE = ArrayUtils.concatAll(ANNO_BASE,
 																																				new String[] {"SAMPLE",
-																																											"GENOTYPE", "HQ"});
+																																											"GENOTYPE",
+																																											"HQ"});
 
 	private static final String[] ANNO_ADD = new String[] {"_AVG_GQ", "_AVG_DP", "_NUM_WITH_CALLS",
 																												 "_NUM_WITH_ALT", "_AAC",
