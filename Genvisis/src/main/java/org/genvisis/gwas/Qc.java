@@ -23,15 +23,19 @@ public abstract class Qc {
 	protected final String dir;
 	protected final String plink;
 	protected final Logger log;
+	protected final Map<QC_METRIC, String> markerQCThresholds;
 
 
 
 	/**
 	 * @param dir Directory with plink files to run from
 	 * @param plinkPrefix prefix of plink binaries
+	 * @param markerQCThresholds thresholds to apply for each desired marker QC metric, {@code null}
+	 *        for defaults
 	 * @param log
 	 */
-	protected Qc(String dir, String plinkPrefix, Logger log) {
+	protected Qc(String dir, String plinkPrefix, Map<QC_METRIC, String> markerQCThresholds,
+							 Logger log) {
 		super();
 		dir = ext.verifyDirFormat(dir) + QC_DIR;
 		if (!dir.startsWith("/") && !dir.contains(":")) {
@@ -39,6 +43,8 @@ public abstract class Qc {
 		}
 		this.dir = dir;
 		this.plink = plinkPrefix == null ? DEFAULT_PLINKROOT : plinkPrefix;
+		this.markerQCThresholds = markerQCThresholds == null ? MarkerQC.DEFAULT_METRIC_THRESHOLDS
+																												 : markerQCThresholds;
 		this.log = log;
 	}
 
@@ -72,12 +78,12 @@ public abstract class Qc {
 																						true, log);
 	}
 
-	protected boolean markerQc(String subDir, final Map<QC_METRIC, String> markerQcThresholds) {
-		return markerQc(subDir, markerQcThresholds, null, null);
+	protected boolean markerQc(String subDir) {
+		return markerQc(subDir, null, null);
 	}
 
-	protected boolean markerQc(String subDir, final Map<QC_METRIC, String> markerQcThresholds,
-														 String sampleSubsetFile, String hweSampleSubsetFile) {
+	protected boolean markerQc(String subDir, String sampleSubsetFile,
+														 String hweSampleSubsetFile) {
 		subDir = ext.verifyDirFormat(subDir);
 		if (!makeMarkerQCBED(subDir, sampleSubsetFile)) {
 			log.reportError("CRITICAL ERROR, creating initial PLINK files failed.");
@@ -148,7 +154,7 @@ public abstract class Qc {
 		}
 		PSF.checkInterrupted();
 		if (!Files.exists(dir + subDir + "miss_drops.dat")) {
-			MarkerQC.generateCRF(dir + subDir, dir + subDir + "miss.crf", markerQcThresholds);
+			MarkerQC.generateCRF(dir + subDir, dir + subDir + "miss.crf", markerQCThresholds);
 			int runCode = MarkerQC.parseParameters(dir + subDir + "miss.crf", log, false);
 			if (runCode != 0) {
 				log.reportError("Failed to perform marker QC with " + dir + subDir + "miss.crf");

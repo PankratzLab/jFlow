@@ -11,9 +11,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.gwas.MarkerQC.QC_METRIC;
-import org.genvisis.stats.Maths;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
@@ -44,27 +42,25 @@ public class FurtherAnalysisQc extends Qc {
 		DEFAULT_MARKER_QC_THRESHOLDS = Collections.unmodifiableMap(defaultMetricThresholds);
 	}
 
-	private final Map<QC_METRIC, String> markerQCThresholds;
 	private final String unrelatedsFile;
 	private final String europeansFile;
 
 	/**
 	 * 
-	 * @param dir @see Qc.#Qc(String, String, Logger)
-	 * @param plinkPrefix @see Qc.#Qc(String, String, Logger)
+	 * @param dir @see Qc#Qc(String, String, Map, Logger)
+	 * @param plinkPrefix @see Qc#Qc(String, String, Map, Logger)
+	 * @param markerQCThresholds @see Qc#Qc(String, String, Map, Logger)
 	 * @param unrelatedsFile filename of list of unrelated FID/IID pairs to use for marker QC,
 	 *        {@code null} to use all samples
 	 * @param europeansFile filename of list of European samples to use for Hardy-Weinberg equilibrium
 	 *        tests, {@code null} to use all unrelateds
-	 * @param markerQCThresholds thresholds to apply for each desired marker QC metric, {@code null}
-	 *        for defaults
-	 * @param log @see Qc.#Qc(String, String, Logger)
+	 * @param log @see Qc#Qc(String, String, Map, Logger)
 	 */
-	public FurtherAnalysisQc(String dir, String plinkPrefix, String unrelatedsFile,
-													 String europeansFile, Map<QC_METRIC, String> markerQCThresholds,
+	public FurtherAnalysisQc(String dir, String plinkPrefix,
+													 Map<QC_METRIC, String> markerQCThresholds,
+													 String unrelatedsFile, String europeansFile,
 													 Logger log) {
-		super(dir, plinkPrefix, log);
-		this.markerQCThresholds = markerQCThresholds;
+		super(dir, plinkPrefix, markerQCThresholds, log);
 		this.unrelatedsFile = unrelatedsFile;
 		this.europeansFile = europeansFile;
 	}
@@ -72,7 +68,7 @@ public class FurtherAnalysisQc extends Qc {
 	private void runFurtherAnalysisQC() {
 		final String subDir = FurtherAnalysisQc.FURTHER_ANALYSIS_DIR;
 		final String plinkQCd = plink + FurtherAnalysisQc.FURTHER_ANALYSIS_QC_PLINK_SUFFIX;
-		if (!markerQc(subDir, markerQCThresholds, unrelatedsFile, europeansFile))
+		if (!markerQc(subDir, unrelatedsFile, europeansFile))
 			return;
 		List<String> applyQCCommand = ImmutableList.of("plink2", "--noweb", "--bfile", plink,
 																									 "--exclude", "miss_drops.dat", "--mind", "0.05",
@@ -95,13 +91,8 @@ public class FurtherAnalysisQc extends Qc {
 						 "file of european samples to use for Hardy-Weinberg Equilibirum filtering, one FID/IID pair per line",
 						 "europeans.txt");
 		for (QC_METRIC metric : QC_METRIC.values()) {
-			StringBuilder descriptionBuilder = new StringBuilder();
-			descriptionBuilder.append("threshold to reject ").append(metric.getKey()).append(", using: ");
-			descriptionBuilder.append(Joiner.on(", ").join(Maths.OPERATORS));
-			descriptionBuilder.append(" (<0 to not filter)");
-			String description = descriptionBuilder.toString();
 			String defaultThreshold = DEFAULT_MARKER_QC_THRESHOLDS.get(metric);
-			c.addArgWithDefault(metric.getKey(), description, defaultThreshold);
+			c.addArgWithDefault(metric.getKey(), metric.getCLIDescription(), defaultThreshold);
 		}
 
 		c.addArgWithDefault(CLI.ARG_LOG, CLI.DESC_LOG, "furtherAnalysisQC.log");
@@ -126,7 +117,7 @@ public class FurtherAnalysisQc extends Qc {
 
 
 		try {
-			new FurtherAnalysisQc(dir, inputPlinkroot, unrelatedsFile, europeansFile, markerQCThresholds,
+			new FurtherAnalysisQc(dir, inputPlinkroot, markerQCThresholds, unrelatedsFile, europeansFile,
 														log).runFurtherAnalysisQC();
 		} catch (Exception e) {
 			e.printStackTrace();

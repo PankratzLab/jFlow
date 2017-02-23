@@ -24,6 +24,7 @@ import org.genvisis.filesys.SerialHash;
 import org.genvisis.parse.GenParser;
 import org.genvisis.stats.Maths;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -79,28 +80,43 @@ public class MarkerQC {
 	}
 
 	public static enum QC_METRIC {
-		CHR,
-		MAF,
-		CALLRATE,
-		HWE,
-		MISHAP_HETERO,
-		MISHAP_MIN,
-		P_MISS,
-		P_GENDER,
-		P_GENDER_MISS;
+		CHR("Chromosome Number"),
+		MAF("Minor Allele Frequency"),
+		CALLRATE("Marker Callrate"),
+		HWE("p-value for Hardy-Weinberg Equilibrium"),
+		MISHAP_HETERO("p-value for heterozygous flanking mishaps"),
+		MISHAP_MIN("p-value for all mishaps"),
+		P_MISS("p-value for case-control association with missingess"),
+		P_GENDER("p-value for sex association"),
+		P_GENDER_MISS("p-value for sex association with missigness");
 
 		final private String key;
+		final private String description;
 
-		private QC_METRIC() {
-			this(null);
+		private QC_METRIC(String description) {
+			this(description, null);
 		}
 
-		private QC_METRIC(String key) {
+		private QC_METRIC(String description, String key) {
+			this.description = description;
 			this.key = key != null ? key : this.name().toLowerCase();
 		}
 
-		protected final String getKey() {
+		protected String getKey() {
 			return key;
+		}
+
+		protected String getDescription() {
+			return description;
+		}
+
+		protected String getCLIDescription() {
+			StringBuilder descriptionBuilder = new StringBuilder();
+			descriptionBuilder.append("threshold to reject ").append(getDescription())
+												.append(", using: ");
+			descriptionBuilder.append(Joiner.on(", ").join(Maths.OPERATORS));
+			descriptionBuilder.append(" (<0 to not filter)");
+			return descriptionBuilder.toString();
 		}
 
 	}

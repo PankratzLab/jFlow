@@ -1,7 +1,11 @@
 package org.genvisis.gwas;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import org.genvisis.CLI;
@@ -11,6 +15,9 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
+import org.genvisis.gwas.MarkerQC.QC_METRIC;
+
+import com.google.common.collect.Maps;
 
 public class RelationAncestryQc extends Qc {
 
@@ -25,7 +32,7 @@ public class RelationAncestryQc extends Qc {
 																						Qc.QC_DIR + GENOME_DIR, Qc.QC_DIR + ANCESTRY_DIR};
 	/** A rough listing of the files created, by folder, by fullGamut */
 	// TODO: This does not accommodate cases where the plinkroot is something other than
-	// DEFAULT_PLINKROOT
+	// Qc.DEFAULT_PLINKROOT
 	// Also ought to be automated...
 	public static String[][] FILES_CREATED = {{Qc.DEFAULT_PLINKROOT + ".bed", "freq.frq",
 																						 "missing.imiss",
@@ -43,14 +50,20 @@ public class RelationAncestryQc extends Qc {
 																						{Qc.DEFAULT_PLINKROOT + ".bed", "unrelateds.txt"}};
 	public static final String ARGS_KEEPGENOME = "keepGenomeInfoForRelatedsOnly";
 
-	public RelationAncestryQc(String dir, String plinkPrefix, Logger log) {
-		super(dir, plinkPrefix, log);
+	private static final Set<QC_METRIC> CUSTOMIZABLE_QC_METRICS = Collections.unmodifiableSet(EnumSet.of(QC_METRIC.CALLRATE));
+
+	/**
+	 * @see Qc#Qc(String, String, Map, Logger)
+	 */
+	public RelationAncestryQc(String dir, String plinkPrefix,
+														Map<QC_METRIC, String> markerQCThresholds, Logger log) {
+		super(dir, plinkPrefix, markerQCThresholds, log);
 	}
 
 	public void run(boolean keepGenomeInfoForRelatedsOnly) {
 		long time = new Date().getTime();
 
-		if (!markerQc(RelationAncestryQc.MARKER_QC_DIR, MarkerQC.DEFAULT_METRIC_THRESHOLDS)) {
+		if (!markerQc(RelationAncestryQc.MARKER_QC_DIR)) {
 			return;
 		}
 
@@ -162,7 +175,22 @@ public class RelationAncestryQc extends Qc {
 	 */
 	public static void fullGamut(String dir, String plinkPrefix,
 															 boolean keepGenomeInfoForRelatedsOnly, Logger log) {
-		new RelationAncestryQc(dir, plinkPrefix, log).run(keepGenomeInfoForRelatedsOnly);
+		fullGamut(dir, plinkPrefix, keepGenomeInfoForRelatedsOnly, log,
+							MarkerQC.DEFAULT_METRIC_THRESHOLDS);
+	}
+
+	/**
+	 * 
+	 * @param keepGenomeInfoForRelatedsOnly true to save disk usage if unrelated genome info is not
+	 *        required
+	 * @param markerQCThresholds TODO
+	 * @return full path to plinkroot of QC'd plink dataset
+	 */
+	public static void fullGamut(String dir, String plinkPrefix,
+															 boolean keepGenomeInfoForRelatedsOnly, Logger log,
+															 Map<QC_METRIC, String> markerQCThresholds) {
+		new RelationAncestryQc(dir, plinkPrefix, markerQCThresholds,
+													 log).run(keepGenomeInfoForRelatedsOnly);
 	}
 
 	public static void fromParameters(String filename, Logger log) {
@@ -186,6 +214,10 @@ public class RelationAncestryQc extends Qc {
 		c.addArgWithDefault(CLI.ARG_PLINKROOT, CLI.DESC_PLINKROOT, Qc.DEFAULT_PLINKROOT);
 		c.addArgWithDefault(RelationAncestryQc.ARGS_KEEPGENOME, "if no MDS will be run, smaller file",
 												String.valueOf(true));
+		for (QC_METRIC metric : CUSTOMIZABLE_QC_METRICS) {
+			String defaultThreshold = MarkerQC.DEFAULT_METRIC_THRESHOLDS.get(metric);
+			c.addArgWithDefault(metric.getKey(), metric.getCLIDescription(), defaultThreshold);
+		}
 		c.addArgWithDefault(CLI.ARG_LOG, CLI.DESC_LOG, "fullGamutOfMarkerAndSampleQC.log");
 
 		c.parseWithExit(args);
@@ -193,10 +225,16 @@ public class RelationAncestryQc extends Qc {
 		String dir = c.get(CLI.ARG_INDIR);
 		String inputPlinkroot = c.get(CLI.ARG_PLINKROOT);
 		boolean keepGenomeInfoForRelatedsOnly = Boolean.parseBoolean(c.get(RelationAncestryQc.ARGS_KEEPGENOME));
+		Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(QC_METRIC.class);
+		for (QC_METRIC metric : CUSTOMIZABLE_QC_METRICS) {
+			String defaultThreshold = MarkerQC.DEFAULT_METRIC_THRESHOLDS.get(metric);
+			c.addArgWithDefault(metric.getKey(), metric.getCLIDescription(), defaultThreshold);
+		}
 		Logger log = new Logger(dir + c.get(CLI.ARG_LOG));
 
 		try {
-			RelationAncestryQc.fullGamut(dir, inputPlinkroot, keepGenomeInfoForRelatedsOnly, log);
+			RelationAncestryQc.fullGamut(dir, inputPlinkroot, keepGenomeInfoForRelatedsOnly, log,
+																	 markerQCThresholds);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
