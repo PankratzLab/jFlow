@@ -28,7 +28,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
-import org.genvisis.common.Numbers;
+import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.one.ben.fcs.FCSPlot;
 import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.Gate.RectangleGate;
@@ -262,12 +262,12 @@ public class RectangleGateEditor extends JDialog {
 
 		lblXAxis.setText(xAxis.getParam());
 
-		boolean xMinUnbnd = !Numbers.isFinite(xAxis.getMin());
+		boolean xMinUnbnd = !Java6Helper.isFinite(xAxis.getMin());
 		chkXMinUnbnd.setSelected(xMinUnbnd);
 		txtXMin.setEnabled(!xMinUnbnd);
 		txtXMin.setText(xMinUnbnd ? "" : xAxis.getMin() + "");
 
-		boolean xMaxUnbnd = !Numbers.isFinite(xAxis.getMax());
+		boolean xMaxUnbnd = !Java6Helper.isFinite(xAxis.getMax());
 		chkXMaxUnbnd.setSelected(xMaxUnbnd);
 		txtXMax.setEnabled(!xMaxUnbnd);
 		txtXMax.setText(xMaxUnbnd ? "" : xAxis.getMax() + "");
@@ -276,13 +276,13 @@ public class RectangleGateEditor extends JDialog {
 			RectangleGateDimension yAxis = (RectangleGateDimension) gate.getYDimension();
 			lblYAxis.setText(yAxis.getParam());
 
-			boolean yMinUnbnd = !Numbers.isFinite(yAxis.getMin());
+			boolean yMinUnbnd = !Java6Helper.isFinite(yAxis.getMin());
 			chkYMinUnbnd.setSelected(yMinUnbnd);
 			chkYMinUnbnd.setEnabled(true);
 			txtYMin.setEnabled(!yMinUnbnd);
 			txtYMin.setText(yMinUnbnd ? "" : yAxis.getMin() + "");
 
-			boolean yMaxUnbnd = !Numbers.isFinite(yAxis.getMax());
+			boolean yMaxUnbnd = !Java6Helper.isFinite(yAxis.getMax());
 			chkYMaxUnbnd.setEnabled(true);
 			chkYMaxUnbnd.setSelected(yMaxUnbnd);
 			txtYMax.setEnabled(!yMaxUnbnd);

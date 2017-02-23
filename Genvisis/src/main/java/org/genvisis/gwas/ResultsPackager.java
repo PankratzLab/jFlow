@@ -14,11 +14,11 @@ import java.util.Map;
 import java.util.Vector;
 
 import org.genvisis.bioinformatics.Alleles;
+import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Numbers;
 import org.genvisis.common.ext;
 import org.genvisis.stats.ProbDist;
 
@@ -923,8 +923,8 @@ public class ResultsPackager {
 					beta = Double.NaN;
 					se = Double.NaN;
 				}
-				tmp += "\t" + (!Numbers.isFinite(beta) ? "." : beta);
-				tmp += "\t" + (!Numbers.isFinite(se) ? "." : se);
+				tmp += "\t" + (!Java6Helper.isFinite(beta) ? "." : beta);
+				tmp += "\t" + (!Java6Helper.isFinite(se) ? "." : se);
 			}
 			result = snpList.get(index) + tmp + "\t" + freq + "\t"
 

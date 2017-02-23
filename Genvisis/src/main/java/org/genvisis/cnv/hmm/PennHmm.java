@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Numbers;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.CNVariant.CNVBuilder;
@@ -329,7 +329,7 @@ public class PennHmm {
 				p += (1 - uf) * pfb * pfb * pfb * pfb * opdfGaussianMinus.probability(o);
 			}
 		}
-		if (!Numbers.isFinite(p)) {
+		if (!Java6Helper.isFinite(p)) {
 			String error = "Non-finite p, " + p;
 			throw new IllegalStateException(error);
 
@@ -689,7 +689,7 @@ public class PennHmm {
 			this.b_uf = b_uf;
 			gaussians = new OpdfGaussian[b_mean.length];
 			for (int i = 0; i < b_mean.length; i++) {
-				if (!Numbers.isFinite(b_sd[i]) || !Numbers.isFinite(b_mean[i]) || b_sd[i] <= 0) {
+				if (!Java6Helper.isFinite(b_sd[i]) || !Java6Helper.isFinite(b_mean[i]) || b_sd[i] <= 0) {
 					throw new IllegalArgumentException("Invalid b status mean:" + b_mean[i] + " sd: "
 																						 + b_sd[i]);
 				}
@@ -727,7 +727,7 @@ public class PennHmm {
 		private void setB_sd(double[] b_sdToSet) {
 			b_sd = b_sdToSet;
 			for (int i = 0; i < b_mean.length; i++) {
-				if (!Numbers.isFinite(b_sd[i]) || !Numbers.isFinite(b_mean[i]) || b_sd[i] <= 0) {
+				if (!Java6Helper.isFinite(b_sd[i]) || !Java6Helper.isFinite(b_mean[i]) || b_sd[i] <= 0) {
 					throw new IllegalArgumentException("Invalid b status mean:" + b_mean[i] + " sd: "
 																						 + b_sd[i]);
 				}
@@ -857,7 +857,7 @@ public class PennHmm {
 
 		for (int test : tests) {
 			double tmp = GetStateProb_CHMM(pennHmm, o1, o2, pfb, copyNumberOnlyDef, test);
-			if (Numbers.isFinite(tmp)) {
+			if (Java6Helper.isFinite(tmp)) {
 				if (test == actualStateIndex) {
 					confState = tmp;
 				} else if (tmp > maxOther) {

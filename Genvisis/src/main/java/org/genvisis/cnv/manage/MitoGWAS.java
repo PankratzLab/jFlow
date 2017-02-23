@@ -15,12 +15,12 @@ import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.qc.MarkerMetrics;
+import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Numbers;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
@@ -298,7 +298,7 @@ public class MitoGWAS {
 
 				for (int j = 0; j < emp1s.length; j++) {
 					if (valid) {
-						valid = Numbers.isFinite(emp1s[j][i]) && markerSet.getChrs()[i] > 0;
+						valid = Java6Helper.isFinite(emp1s[j][i]) && markerSet.getChrs()[i] > 0;
 						if (!valid) {
 							numInvalid++;
 							valids[i] = false;

@@ -31,12 +31,12 @@ import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources.Resource;
+import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.AlleleFreq;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Numbers;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SciStringComparator;
@@ -905,7 +905,7 @@ public class BetaOptimizer {
 							double betaSE = Double.parseDouble(line[indices[4]]);
 							double p = Double.parseDouble(line[indices[5]]);
 
-							if (Numbers.isFinite(beta) && Numbers.isFinite(p) && p < minPval) {
+							if (Java6Helper.isFinite(beta) && Java6Helper.isFinite(p) && p < minPval) {
 								MarkerRsFormat current = markerRsFormats.get(index.get(rsId));
 								String[] betaAlleles = new String[] {line[indices[1]].toUpperCase(),
 																										 line[indices[2]].toUpperCase()};
@@ -943,7 +943,7 @@ public class BetaOptimizer {
 									}
 									added.add(current.getMarkerName());
 								}
-							} else if (!Numbers.isFinite(beta) || !Numbers.isFinite(p)) {
+							} else if (!Java6Helper.isFinite(beta) || !Java6Helper.isFinite(p)) {
 								log.reportTimeWarning("Invalid number on line " + ArrayUtils.toStr(line));
 								log.reportTimeWarning(line[indices[3]] + "\t" + line[indices[4]]);
 							}

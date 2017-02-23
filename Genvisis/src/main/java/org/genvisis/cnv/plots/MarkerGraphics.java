@@ -14,9 +14,9 @@ import java.util.Map;
 import org.genvisis.cnv.analysis.MarkerStats;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.ColorSequence;
+import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Numbers;
 import org.genvisis.common.Positions;
 import org.genvisis.stats.BinnedMovingStatistic;
 import org.genvisis.stats.BinnedMovingStatistic.MovingStat;
@@ -329,7 +329,7 @@ public class MarkerGraphics {
 
 		@Override
 		public int compareTo(MarkerCols o) {
-			int c = Numbers.compare(pos, o.pos);
+			int c = Java6Helper.compare(pos, o.pos);
 			if (c == 0) {
 				c = name.compareTo(o.name);
 			}
