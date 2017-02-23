@@ -255,10 +255,20 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 				return null;
 			}
 		}
-
+		
+		private static String getEffectRaw(VariantContext vc) {
+			String impAttr = vc.getAttributeAsString("EFF", ".").toString();
+			if (!".".equals(impAttr)) {
+				impAttr = impAttr.substring(impAttr.indexOf('(') + 1, impAttr.indexOf("|"));
+			}
+			return impAttr;
+		}
+		
 		public static DrawType getDrawType(VariantContext vc) {
 			String impAttr = vc.getAttributeAsString("SNPEFF_IMPACT", ".").toString();
-
+			if (impAttr.equals(".")) {
+				impAttr = getEffectRaw(vc);
+			}
 			if ("LOW".equals(impAttr)) {
 				return DrawType.EMPTY_CIRCLE;
 			} else if ("MODERATE".equals(impAttr)) {
@@ -3081,12 +3091,12 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		Project proj = null;
 //		 new Project("D:/projects/gedi_gwas.properties", false);
 //		String geneList = "N:/statgen/VariantMapper/test2/genes.txt";
-		// Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
+//		 Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
 
-		// String[] vcfFiles = new String[] {
-		// "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz" };
-		// String popFile = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF.vpop";
-		// new VariantViewer(proj, vcfFiles, popFile);
+//		 String[] vcfFiles = new String[] {
+//		 "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz" };
+//		 String popFile = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF.vpop";
+//		 new VariantViewer(proj, vcfFiles, popFile);
 
 		// String[] vcfFiles2 = new String[] {
 		// "N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz"
@@ -3115,16 +3125,16 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		// String popFile2 = "N:/statgen/VariantMapper/test3/TN.vpop";
 		// new VariantViewer(proj, vcfFiles2, popFile2);
 
-		// String dir = "C:/temp/VCF/";
+//		 String dir = "C:/temp/VCF/";
 //		String dir = "N:/statgen/VariantMapper/Fibrinogen/";
 //		geneList = dir + "genes.txt";
 //		String[] vcfFiles = new String[] {dir
 //																			+ "charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.blanks.segs_noquotes.vcf"};
 //		VCFOps.verifyIndex(vcfFiles[0], new Logger());
-		// new VariantViewer(proj, geneList, vcfFiles, popFile);
+//		 new VariantViewer(proj, geneList, vcfFiles, popFile);
 		
 		String geneList = "F:/temp/variantviewer/genes.txt";
-		String[] vcfFiles = {"F:/temp/variantviewer/data.vcf"};
+		String[] vcfFiles = {"F:/temp/variantviewer/output.vcf"};
 		String popFile = "F:/temp/variantviewer/pop.vpop";
 		
 		new VariantViewer(proj, geneList, vcfFiles, popFile);
