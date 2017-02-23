@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.Map;
 
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
@@ -503,29 +504,38 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		boolean swapAxes = false;
 
 		if (sp.getPedigree() != null) {
-			MendelErrorCheck[] mendelErrorChecks = Pedigree.PedigreeUtils.checkMendelErrors(sp.getPedigree(),
-																																											sp.getCurrentMarkerData(),
-																																											sp.hideExcludedSamples(panelIndex) ? sp.getProject()
-																																																														 .getSamplesToInclude(null,
-																																																																									false)
-																																																												 : null,
-																																											sex,
-																																											sp.getClusterFilterCollection(),
-																																											sp.getGCthreshold(),
-																																											sp.getProject()
-																																												.getLog());
+			Map<String, MendelErrorCheck> mendelErrorChecks = Pedigree.PedigreeUtils.checkMendelErrors(sp.getPedigree(),
+																																																 sp.getCurrentMarkerData(),
+																																																 sp.hideExcludedSamples(panelIndex) ? sp.getProject()
+																																																																				.getSamplesToInclude(null,
+																																																																														 false)
+																																																																		: null,
+																																																 sex,
+																																																 sp.getClusterFilterCollection(),
+																																																 sp.getGCthreshold(),
+																																																 sp.getProject()
+																																																	 .getLog());
 			if (mendelErrorChecks != null) {
 				for (int i = 0; i < samples.length; i++) {
 					PlotPoint indiPoint = points[centroidOffset + i];
-					if (mendelErrorChecks[i].hasMoMendelError()) {
-						PlotPoint momPoint = points[centroidOffset + sp.getPedigree().getMoDNAIndex(i)];
-						sp.getPedigree().getiDNA(i);
+					MendelErrorCheck mendelErrorCheck = mendelErrorChecks.get(samples[i]);
+					if (mendelErrorCheck == null) {
+						continue;
+					}
+					String[] lookup = sampleData.lookup(samples[i]);
+					String fid = lookup[1].split("\t")[0];
+					String iid = lookup[1].split("\t")[1];
+					int indIndex = sp.getPedigree().getIndIndex(fid, iid);
+					if (mendelErrorCheck.hasMoMendelError()) {
+						int moIndex = sp.getPedigree().getMoDNAIndex(indIndex);
+						PlotPoint momPoint = points[centroidOffset + moIndex];
 						GenericLine gl = new GenericLine(momPoint, indiPoint, size, momColor, layer, swapAxes,
 																						 1, true);
 						linesList.add(gl);
 					}
-					if (mendelErrorChecks[i].hasFaMendelError()) {
-						PlotPoint dadPoint = points[centroidOffset + sp.getPedigree().getFaDNAIndex(i)];
+					if (mendelErrorCheck.hasFaMendelError()) {
+						int faIndex = sp.getPedigree().getFaDNAIndex(indIndex);
+						PlotPoint dadPoint = points[centroidOffset + faIndex];
 						GenericLine gl = new GenericLine(dadPoint, indiPoint, size, dadColor, layer, swapAxes,
 																						 1, true);
 						linesList.add(gl);

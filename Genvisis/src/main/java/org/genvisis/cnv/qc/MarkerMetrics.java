@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
@@ -162,7 +163,7 @@ public class MarkerMetrics {
 		ArrayList<Float> aLRR;
 		Logger log;
 		boolean[] toInclude;
-		MendelErrorCheck[] mecArr;
+		Map<String, MendelErrorCheck> mecArr;
 
 		log = proj.getLog();
 
@@ -264,16 +265,18 @@ public class MarkerMetrics {
 																														clusterFilterCollection, gcThreshold,
 																														log);
 					count = 0;
-					for (int i = 0; i < mecArr.length; i++) {
+					for (int i = 0; i < pedigree.getDnas().length; i++) {
 						if (!toInclude[i]) {
 							continue;
 						}
-						if (mecArr[i].getErrorCode() != -1) {
+						MendelErrorCheck mendelErrorCheck = mecArr.get(pedigree.getiDNA(i));
+						if (mendelErrorCheck.getErrorCode() != -1) {
 							count++;
 
 							mendelLine = pedigree.getFID(i) + "\t" + pedigree.getIID(i) + "\t"
 													 + markerData.getChr() + "\t" + markerName + "\t"
-													 + mecArr[i].getErrorCode() + "\t" + mecArr[i].getError() + eol;
+													 + mendelErrorCheck.getErrorCode() + "\t" + mendelErrorCheck.getError()
+													 + eol;
 
 							mendelWriter.print(mendelLine);
 						}

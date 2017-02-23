@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
 
 import org.genvisis.cnv.qc.MendelErrors;
 import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
@@ -206,57 +207,60 @@ public class Pedigree extends FamilyStructure {
 			return trios;
 		}
 
-		public static MendelErrorCheck[] checkMendelErrors(Pedigree pedigree, MarkerData markerData,
-																											 boolean[] samplesToCheck, String[] sex,
-																											 ClusterFilterCollection clusterFilters,
-																											 float gcThreshold, Logger log) {
-			if (pedigree.getProject() == null) {
+		/**
+		 * @return Mapping of sample ID to {@link MendelErrorCheck} instance for that individual. Note
+		 *         that the keys are always for children, with parents being reachable through the error
+		 *         check.
+		 */
+		public static Map<String, MendelErrorCheck> checkMendelErrors(Pedigree pedigree,
+																																	MarkerData markerData,
+																																	boolean[] samplesToCheck,
+																																	String[] sex,
+																																	ClusterFilterCollection clusterFilters,
+																																	float gcThreshold, Logger log) {
+			Project proj = pedigree.getProject();
+			if (proj == null) {
 				log.reportError(ext.getTime()
 												+ "]\t Error - cannot run checkMendelErrors without a Project");
 				return null;
 			}
-			MendelErrorCheck[] mendelErrorChecks = new MendelErrorCheck[pedigree.getIDs().length];
+			Map<String, MendelErrorCheck> mendelErrorChecks = new HashMap<String, MendelErrorCheck>();
 			byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilters,
 																															 markerData.getMarkerName(),
 																															 gcThreshold, log);
-			if (!pedigree.isProjectOrder()) {
-				log.reportError("Pedigree file must be in project order, internal error");
-				return null;
-			} else {
-				for (int i = 0; i < pedigree.getIDs().length; i++) {
-					if (/* this check isn't valid *//* pedigreeEntries[i] != null && */(samplesToCheck == null
-																																							|| samplesToCheck[i])
-							&& pedigree.getIDNAIndex(i) >= 0) {
-						int sampleIndex = pedigree.getIDNAIndex(i);
-						int faDNAIndex = pedigree.getFaDNAIndex(i);
-						int moDNAIndex = pedigree.getMoDNAIndex(i);
+			for (int i = 0; i < pedigree.getIDs().length; i++) {
+				int sampleIndex = pedigree.getIDNAIndex(i);
+				MendelErrors mendelErrors = null;
+				if ((samplesToCheck == null || samplesToCheck[sampleIndex])
+						&& sampleIndex >= 0) {
+					int faDNAIndex = pedigree.getFaDNAIndex(i);
+					int moDNAIndex = pedigree.getMoDNAIndex(i);
 
-						byte faGenotype = -1;
-						if (faDNAIndex >= 0 && (samplesToCheck == null || samplesToCheck[faDNAIndex])) {
-							faGenotype = genotypes[faDNAIndex];
-						}
-						byte moGenotype = -1;
-						if (moDNAIndex >= 0 && (samplesToCheck == null || samplesToCheck[moDNAIndex])) {
-							moGenotype = genotypes[moDNAIndex];
-						}
-						int sampleSex = -1;
-						try {
-							if (sex != null) {
-								sampleSex = Integer.parseInt(sex[pedigree.getIDNAIndex(i)]);
-							}
-						} catch (NumberFormatException nfe) {
-
-						}
-						// System.out.println(faGenotype+"\t"+moGenotype);
-						MendelErrors mendelErrors = new MendelErrors(markerData.getChr(), sampleSex,
-																												 genotypes[sampleIndex], faGenotype,
-																												 moGenotype);
-						mendelErrorChecks[i] = mendelErrors.checkMendelError();
-					} else {
-						mendelErrorChecks[i] = new MendelErrors(markerData.getChr(), -1, (byte) -1, (byte) -1,
-																										(byte) -1).checkMendelError();
+					byte faGenotype = -1;
+					if (faDNAIndex >= 0 && (samplesToCheck == null || samplesToCheck[faDNAIndex])) {
+						faGenotype = genotypes[faDNAIndex];
 					}
+					byte moGenotype = -1;
+					if (moDNAIndex >= 0 && (samplesToCheck == null || samplesToCheck[moDNAIndex])) {
+						moGenotype = genotypes[moDNAIndex];
+					}
+					int sampleSex = -1;
+					try {
+						if (sex != null) {
+							sampleSex = Integer.parseInt(sex[sampleIndex]);
+						}
+					} catch (NumberFormatException nfe) {
+
+					}
+					// System.out.println(faGenotype+"\t"+moGenotype);
+					mendelErrors = new MendelErrors(markerData.getChr(), sampleSex,
+																					genotypes[sampleIndex], faGenotype,
+																					moGenotype);
+				} else {
+					mendelErrors = new MendelErrors(markerData.getChr(), -1, (byte) -1, (byte) -1,
+																					(byte) -1);
 				}
+				mendelErrorChecks.put(pedigree.getiDNA(i), mendelErrors.checkMendelError());
 			}
 			return mendelErrorChecks;
 		}
@@ -317,7 +321,6 @@ public class Pedigree extends FamilyStructure {
 
 			dnaIndicesInProject[i] = new int[] {iDNAIndex, faDNAIndex, moDNAIndex};
 		}
-
 	}
 
 	private static int getSampleIndex(String sample, SampleData sampleData, String[] projectSamples) {
