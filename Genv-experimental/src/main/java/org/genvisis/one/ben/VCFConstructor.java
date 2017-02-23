@@ -2,7 +2,9 @@ package org.genvisis.one.ben;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.variant.variantcontext.Allele;
@@ -29,6 +31,8 @@ import org.genvisis.common.Matrix;
 import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.seq.manage.ReferenceGenome;
 
+import ca.mcgill.mcb.pcingola.genotypes.Genotypes;
+
 public class VCFConstructor {
 	
 	Logger log;
@@ -38,7 +42,8 @@ public class VCFConstructor {
 	
 	String[] markers;
 	int[][] locations;
-	List<List<String>> alleles;
+	Map<String, List<Allele>> alleles;
+	Map<String, Collection<Genotype>> genotypes;
 	String[] ids;
 	
 	private void readInputFile() {
@@ -56,20 +61,49 @@ public class VCFConstructor {
 		ids = ArrayUtils.subArray(Matrix.extractColumn(matr, 1), 1);
 		String[] snps = ArrayUtils.subArray(matr[0], 2);
 		
+		genotypes = new HashMap<String, Collection<Genotype>>();
+		for (int i = 0; i < snps.length; i++) {
+			String mkr = snps[i];
+			List<Allele> all = alleles.get(mkr);
+			int m = i + 2;
+			Collection<Genotype> genos = new ArrayList<Genotype>();
+			for (int id = 0; id < ids.length; id++) {
+				int ind = id + 1;
+				String indDose = matr[ind][m];
+				Genotype g;
+				switch(indDose.charAt(0)) {
+					case '0':
+						g = GenotypeBuilder.create(ids[id], ArrayUtils.toList(new Allele[]{all.get(0), all.get(0)}));
+						break;
+					case '1':
+						g = GenotypeBuilder.create(ids[id], ArrayUtils.toList(new Allele[]{all.get(0), all.get(1)}));
+						break;
+					case '2':
+						g = GenotypeBuilder.create(ids[id], ArrayUtils.toList(new Allele[]{all.get(1), all.get(1)}));
+						break;
+					default:
+						g = GenotypeBuilder.create(ids[id], new ArrayList<Allele>());
+						break;
+				}
+				genos.add(g);
+			}
+			genotypes.put(mkr, genos);
+		}
+		
 	}
 	
 	private void parseAlleles(String[] markerNames) {
-		alleles = new ArrayList<List<String>>();
+		alleles = new HashMap<String, List<Allele>>();
 		for (int i = 0; i < markerNames.length; i++) {
 			if (markerNames[i].startsWith("rs")) {
 				log.reportError("Cannot parse alleles from RS marker");
-				alleles.add(new ArrayList<String>());
+				alleles.put(markerNames[i], new ArrayList<Allele>());
 			} else {
 				String[] pts = markerNames[i].split(":");
-				ArrayList<String> a = new ArrayList<String>();
-				a.add(pts[2]);
-				a.add(pts[3]);
-				alleles.add(a);
+				ArrayList<Allele> a = new ArrayList<Allele>();
+				a.add(Allele.create(pts[2], true));
+				a.add(Allele.create(pts[3], false));
+				alleles.put(markerNames[i], a);
 			}
 		}
 	}
@@ -79,7 +113,7 @@ public class VCFConstructor {
 		builder.clearOptions();
 		builder.setOption(Options.INDEX_ON_THE_FLY);
 		VCFHeader vcfHeader = new VCFHeader();
-		vcfHeader.addMetaDataLine(new VCFFormatHeaderLine("FORMAT=<ID=GT,Number=1,Type=String,Description=\"A blank genotype\">", VCFHeaderVersion.VCF4_2));
+
 		
 		SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(Resources.genome(GENOME_BUILD.HG19, log).getFASTA().getAbsolute(), log)
 				.getIndexedFastaSequenceFile().getSequenceDictionary();
@@ -92,20 +126,12 @@ public class VCFConstructor {
 		for (int i = 0; i < markers.length; i++) {/// your data
 			VariantContextBuilder builderVc = new VariantContextBuilder();
 			builderVc.chr("chr" + locations[i][0]);
-			int len = alleles.get(i).get(0).replaceAll("\\*","").length() - 1;
-			List<Allele> l = new ArrayList<Allele>();
-			for (int a = 0; a < alleles.get(i).size(); a++) {
-				l.add(Allele.create(alleles.get(i).get(a), a == 0));
-			}
-			builderVc.alleles(l);
+			int len = alleles.get(markers[i]).get(0).length() - 1;
+			builderVc.alleles(alleles.get(markers[i]));
 			builderVc.start(locations[i][1]);
 			builderVc.stop(locations[i][1] + len);
 			builderVc.id(markers[i]);
-			Collection<Genotype> col = new ArrayList<Genotype>();
-			for (String id : ids) {
-				col.add(GenotypeBuilder.create(id, l));
-			}
-			builderVc.genotypes(col);
+			builderVc.genotypes(genotypes.get(markers[i]));
 
 			writer.add(builderVc.make());
 		}
