@@ -12,6 +12,7 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.MarkerQC.QC_METRIC;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 public abstract class Qc {
@@ -46,27 +47,27 @@ public abstract class Qc {
 	private boolean makeMarkerQCBED(String subDir, String sampleSubsetFile) {
 		new File(dir + subDir).mkdirs();
 		List<String> commands = Lists.newArrayList("plink2", "--noweb", "--bfile", "../../" + plink,
-																							 "--make-bed", "--out", "./", plink);
+																							 "--make-bed", "--out", plink);
 		if (sampleSubsetFile != null) {
 			commands.add("--keep");
 			commands.add(sampleSubsetFile);
 		}
-		Set<String> inputs = PSF.Plink.getPlinkBedBimFamSet(dir + subDir + "../../" + plink);
-		Set<String> outputs = PSF.Plink.getPlinkBedBimFamSet(dir + subDir + plink);
+		Set<String> inputs = PSF.Plink.getPlinkBedBimFamSet("../../" + plink);
+		Set<String> outputs = PSF.Plink.getPlinkBedBimFamSet(plink);
 		return CmdLine.runCommandWithFileChecks(commands, dir + subDir, inputs, outputs, true, false,
 																						true, log);
 	}
 
 	private boolean runHWE(String subDir, String mind10, String hweSampleSubsetFile) {
-		List<String> commands = Lists.newArrayList("plink2", "--bfile", mind10 + "--geno", "1",
+		List<String> commands = Lists.newArrayList("plink2", "--bfile", mind10, "--geno", "1",
 																							 "--mind", "1", "--hardy", "--out", "hardy",
 																							 "--noweb");
 		if (hweSampleSubsetFile != null) {
 			commands.add("--keep");
 			commands.add(hweSampleSubsetFile);
 		}
-		Set<String> inputs = PSF.Plink.getPlinkBedBimFamSet(dir + subDir + mind10);
-		Set<String> outputs = PSF.Plink.getPlinkBedBimFamSet(dir + subDir + "hardy.hwe");
+		Set<String> inputs = PSF.Plink.getPlinkBedBimFamSet(mind10);
+		Set<String> outputs = ImmutableSet.of("hardy.hwe");
 		return CmdLine.runCommandWithFileChecks(commands, dir + subDir, inputs, outputs, true, false,
 																						true, log);
 	}

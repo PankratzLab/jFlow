@@ -2,7 +2,7 @@ package org.genvisis.common;
 
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Just some common public static final vars to be used anywhere...used to build external commands,
@@ -243,7 +243,11 @@ public class PSF {
 		}
 
 		public static Set<String> getPlinkBedBimFamSet(String root) {
-			return ImmutableSet.of(getBED(root), getBIM(root), getFAM(root));
+			Set<String> bedBimFam = Sets.newHashSetWithExpectedSize(3);
+			bedBimFam.add(getBED(root));
+			bedBimFam.add(getBIM(root));
+			bedBimFam.add(getFAM(root));
+			return bedBimFam;
 		}
 
 		public static String getPED(String root) {

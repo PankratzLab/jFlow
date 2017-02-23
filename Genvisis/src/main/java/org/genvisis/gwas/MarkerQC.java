@@ -26,7 +26,7 @@ import org.genvisis.stats.Maths;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.googlecode.charts4j.collect.Maps;
+import com.google.common.collect.Maps;
 
 public class MarkerQC {
 	public static final String DEFAULT_FILENAME = "thresholds.properties";
@@ -65,7 +65,7 @@ public class MarkerQC {
 		DEFAULT_METRIC_THRESHOLDS = Collections.unmodifiableMap(defaultMetricThresholds);
 
 
-		Map<QC_METRIC, String> defaultMetricFilenames = Maps.newHashMap();
+		Map<QC_METRIC, String> defaultMetricFilenames = Maps.newEnumMap(QC_METRIC.class);
 		defaultMetricFilenames.put(QC_METRIC.CHR, "freq.frq");
 		defaultMetricFilenames.put(QC_METRIC.MAF, "freq.frq");
 		defaultMetricFilenames.put(QC_METRIC.CALLRATE, "missing.lmiss");
@@ -75,7 +75,7 @@ public class MarkerQC {
 		defaultMetricFilenames.put(QC_METRIC.P_MISS, "test.missing.missing");
 		defaultMetricFilenames.put(QC_METRIC.P_GENDER, "gender.assoc");
 		defaultMetricFilenames.put(QC_METRIC.P_GENDER_MISS, "gender.missing");
-		DEFAULT_METRIC_FILENAMES = Collections.unmodifiableMap(defaultMetricThresholds);
+		DEFAULT_METRIC_FILENAMES = Collections.unmodifiableMap(defaultMetricFilenames);
 	}
 
 	public static enum QC_METRIC {

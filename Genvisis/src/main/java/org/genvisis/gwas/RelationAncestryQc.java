@@ -22,8 +22,7 @@ public class RelationAncestryQc extends Qc {
 	/** A rough listing of the Folders created by fullGamut */
 	public static String[] FOLDERS_CREATED = {Qc.QC_DIR + MARKER_QC_DIR, Qc.QC_DIR + SAMPLE_QC_DIR,
 																						Qc.QC_DIR + LD_PRUNING_DIR,
-																						Qc.QC_DIR + GENOME_DIR, Qc.QC_DIR + ANCESTRY_DIR,
-																						Qc.QC_DIR + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR};
+																						Qc.QC_DIR + GENOME_DIR, Qc.QC_DIR + ANCESTRY_DIR};
 	/** A rough listing of the files created, by folder, by fullGamut */
 	// TODO: This does not accommodate cases where the plinkroot is something other than
 	// DEFAULT_PLINKROOT
@@ -41,9 +40,7 @@ public class RelationAncestryQc extends Qc {
 																						{Qc.DEFAULT_PLINKROOT + ".bed",
 																						 Qc.DEFAULT_PLINKROOT + ".genome",
 																						 Qc.DEFAULT_PLINKROOT + ".genome_keep.dat"},
-																						{Qc.DEFAULT_PLINKROOT + ".bed", "unrelateds.txt"},
-																						PSF.Plink.getPlinkBedBimFam(Qc.DEFAULT_PLINKROOT
-																																				+ FurtherAnalysisQc.FURTHER_ANALYSIS_QC_PLINK_SUFFIX)};
+																						{Qc.DEFAULT_PLINKROOT + ".bed", "unrelateds.txt"}};
 	public static final String ARGS_KEEPGENOME = "keepGenomeInfoForRelatedsOnly";
 
 	public RelationAncestryQc(String dir, String plinkPrefix, Logger log) {
