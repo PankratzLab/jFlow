@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -379,7 +378,7 @@ public class CmdLine {
 	 * @param treatEmptyAsMissing if true, 0 sized files will be set to missing. If 0 sized files are
 	 *        used as placeholders, set to false
 	 * @param log
-	 * @return
+	 * @return true on success, false on failure
 	 */
 	public static boolean runCommandWithFileChecks(List<String> commandList, String dir,
 																								 Collection<String> necessaryInputFiles,

@@ -1,5 +1,9 @@
 package org.genvisis.common;
 
+import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
+
 /**
  * Just some common public static final vars to be used anywhere...used to build external commands,
  * etc.. Might not be worth it but oh well;
@@ -236,6 +240,10 @@ public class PSF {
 		 */
 		public static String[] getPlinkBedBimFam(String root) {
 			return new String[] {getBED(root), getBIM(root), getFAM(root)};
+		}
+
+		public static Set<String> getPlinkBedBimFamSet(String root) {
+			return ImmutableSet.of(getBED(root), getBIM(root), getFAM(root));
 		}
 
 		public static String getPED(String root) {
