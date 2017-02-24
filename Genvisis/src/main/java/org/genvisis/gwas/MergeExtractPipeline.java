@@ -202,8 +202,29 @@ public class MergeExtractPipeline {
 	}
 
 	public MergeExtractPipeline setOutputFiles(String dataFile, String mapFile) {
-		outFileD = dataFile;
-		outFileM = mapFile;
+		if (dataFile == null && mapFile == null) {
+			if (markersFile != null && !"".equals(markersFile) && Files.exists(markersFile)) {
+				outFileD = ext.rootOf(markersFile, false) + ".db.xln.gz";
+				outFileM = ext.rootOf(markersFile, false) + ".snp";
+			} else if (regionsFile != null && !"".equals(regionsFile) && Files.exists(regionsFile)) {
+				outFileD = ext.rootOf(regionsFile, false) + ".db.xln.gz";
+				outFileM = ext.rootOf(regionsFile, false) + ".snp";
+			} else {
+				outFileD = (this.runDir == null ? "./" : this.runDir) + Files.getNextAvailableFilename("mergeExtract.db.xln.gz");
+				outFileM = ext.rootOf(outFileD, false) + ".snp";
+			}
+		} else {
+			if (dataFile == null && mapFile != null && !"".equals(mapFile)) {
+				outFileD = ext.rootOf(mapFile, false) + ".db.xln.gz";
+				outFileM = mapFile;
+			} else if (mapFile == null && dataFile != null && !"".equals(dataFile)) {
+				outFileD = dataFile;
+				outFileM = ext.rootOf(dataFile, false) + ".snps";
+			} else { 
+    		outFileD = dataFile;
+    		outFileM = mapFile;
+			}
+		}
 		return this;
 	}
 
@@ -598,19 +619,19 @@ public class MergeExtractPipeline {
 		boolean rename = true;
 
 		String usage = "\n" + "filesys.MergeExtractPipeline requires 4+ arguments\n"
-									 + "   (1) Output Data filename (i.e. outData=" + outfileD + " (default))\n"
-									 + "   (2) Output Map filename (i.e. outMap=" + outfileM + " (default))\n"
-									 + "   (3) Run directory (output files and temporary files will be created here) (i.e. runDir="
-									 + rundir + " (default))\n" + "   (4) File listing data sources (i.e. data="
+									 + "   (1) Run directory (output files and temporary files will be created here) (i.e. runDir="
+									 + rundir + " (default))\n" + "   (2) File listing data sources (i.e. data="
 									 + data + " (default))\n" + "          Example:\n"
 									 + "          dataLabel1\tfullPathDataFile1\tFullPathMapFile1\tFullPathIdFile1\n"
 									 + "          dataLabel2\tfullPathDataFile2\tFullPathMapFile2\tFullPathIdFile2\n"
 									 + "          dataLabel3\tdir1\tdataFileExt1\tmapFileExt1\tidFile3\n"
 									 + "          dataLabel4\tdir2\tdataFileExt2\tmapFileExt2\tidFile4\n"
-									 + "   (5a) Regions-to-extract filename (i.e. regions=" + regions
-									 + " (default))\n" + "   (5b) Markers-to-extract filename (i.e. markers="
+									 + "   (3a) Regions-to-extract filename (i.e. regions=" + regions
+									 + " (default))\n" + "   (3b) Markers-to-extract filename (i.e. markers="
 									 + markers + " (default))\n"
 									 + "          (Note: only one is allowed, either regions or markers, not both)\n"
+									 + "   (4) Optional: output Data filename (i.e. outData=" + outfileD + " (defaults to root of marker or region file + \".db.xln.gz\"))\n"
+									 + "   (5) Optional: output Map filename (i.e. outMap=" + outfileM + " (defaults to root of marker or region file + \".snp\"))\n"
 									 + "   (6) Optional: Log file name (i.e. log=" + logFile + " (default))\n"
 									 + "   (7) Optional: Split output files (if region file is specified) (i.e. split="
 									 + split + " (default))\n"
