@@ -1,42 +1,44 @@
 package org.genvisis.one.ben;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
-import htsjdk.variant.variantcontext.GenotypesContext;
+import htsjdk.variant.variantcontext.GenotypeType;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.Options;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
-import htsjdk.variant.vcf.VCFConstants;
 import htsjdk.variant.vcf.VCFFormatHeaderLine;
 import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeader.HEADER_FIELDS;
 import htsjdk.variant.vcf.VCFHeaderLine;
-import htsjdk.variant.vcf.VCFHeaderVersion;
+import htsjdk.variant.vcf.VCFHeaderLineType;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import org.genvisis.CLI;
+import org.genvisis.CLI.Arg;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.seq.manage.ReferenceGenome;
-
-import ca.mcgill.mcb.pcingola.genotypes.Genotypes;
 
 public class VCFConstructor {
 	
 	Logger log;
-	String inputFile;
+	String markersFile;
 	String dosageFile;
 	String outputFile;
 	
@@ -45,18 +47,36 @@ public class VCFConstructor {
 	Map<String, List<Allele>> alleles;
 	Map<String, Collection<Genotype>> genotypes;
 	String[] ids;
+	double windowForHet = HET_WINDOW_STRICT;
 	
-	private void readInputFile() {
-		// TODO check inputFile is set and exists and is readable
-		markers = HashVec.loadFileToStringArray(inputFile, false, false, new int[] {0}, true, false, "\t");
+	private static final double HET_WINDOW_STRICT = 0.1;
+	
+	protected void readInputFile() {
+		if (markersFile == null || "".equals(markersFile) || !Files.exists(markersFile)) {
+			String error = markersFile == null ? "Marker list file hasn't been set yet. Please specify marker list file and try again." :
+											"".equals(markersFile) ? "Marker list file is blank - was it set properly? Please fix marker list file name and try again." :
+												!Files.exists(markersFile) ? "Marker list file {" + markersFile + "} doesn't exist. Please fix marker list file name and try again." :
+													"Problem loading marker list file {" + markersFile + "}";
+				throw new UnsupportedOperationException(error);
+		}
+		markers = HashVec.loadFileToStringArray(markersFile, false, false, new int[] {0}, true, false, "\t");
 		SnpMarkerSet markerSet = new SnpMarkerSet(markers);
 		markerSet.parseSNPlocations(log);
 		locations = markerSet.getChrAndPositionsAsInts();
 		parseAlleles(markerSet.getMarkerNames());
 	}
 	
-	private void readDosageFile() {
-		// TODO check dosageFile is set and exists and is readable
+	protected void readDosageFile() {
+		if (dosageFile == null || "".equals(dosageFile) || !Files.exists(dosageFile)) {
+			String error = dosageFile == null ? "Dosage file hasn't been set yet. Please specify dosage file and try again." :
+											"".equals(dosageFile) ? "Dosage file is blank - was it set properly? Please fix dosage file name and try again." :
+												!Files.exists(dosageFile) ? "Dosage file {" + dosageFile + "} doesn't exist. Please fix dosage file name and try again." :
+													"Problem loading dosage file {" + dosageFile + "}";
+				throw new UnsupportedOperationException(error);
+		}
+		// TODO refactor to use DosageData - adds complexity and requirements (map file, id file, etc)
+//		for FRZ5 data, all info is included in dosage file, so using DosageData is more than what's needed
+//		DosageData dd = new DosageData(dosageFile, null, null, false, log);
 		String[][] matr = HashVec.loadFileToStringMatrix(dosageFile, false, null, false);
 		ids = ArrayUtils.subArray(Matrix.extractColumn(matr, 1), 1);
 		String[] snps = ArrayUtils.subArray(matr[0], 2);
@@ -71,27 +91,45 @@ public class VCFConstructor {
 				int ind = id + 1;
 				String indDose = matr[ind][m];
 				Genotype g;
-				switch(indDose.charAt(0)) {
-					case '0':
-						g = GenotypeBuilder.create(ids[id], ArrayUtils.toList(new Allele[]{all.get(0), all.get(0)}));
-						break;
-					case '1':
-						g = GenotypeBuilder.create(ids[id], ArrayUtils.toList(new Allele[]{all.get(0), all.get(1)}));
-						break;
-					case '2':
-						g = GenotypeBuilder.create(ids[id], ArrayUtils.toList(new Allele[]{all.get(1), all.get(1)}));
-						break;
-					default:
-						g = GenotypeBuilder.create(ids[id], new ArrayList<Allele>());
-						break;
+				if (ext.isMissingValue(indDose)) {
+					g = createGeno(GenotypeType.NO_CALL, id, all);
+				} else {
+					try {
+						double dose = Double.parseDouble(indDose);
+						if (dose >= 0 + windowForHet) {
+							if (dose <= 2 - windowForHet) {
+								g = createGeno(GenotypeType.HOM_VAR, id, all);
+							} else {
+								g = createGeno(GenotypeType.HET, id, all);
+							}
+						} else {
+							g = createGeno(GenotypeType.HOM_REF, id, all);
+						}
+					} catch (NumberFormatException e) {
+						log.reportError("Couldn't parse dosage {" + indDose + "} for id {" + ids[id] + "}. Setting to missing/no-call.");
+						g = createGeno(GenotypeType.NO_CALL, id, all);
+					}
 				}
 				genos.add(g);
 			}
 			genotypes.put(mkr, genos);
 		}
-		
 	}
 	
+	private Genotype createGeno(GenotypeType call, int id, List<Allele> all) {
+		switch(call) {
+			case HOM_REF:
+				return GenotypeBuilder.create(ids[id], ArrayUtils.toList(new Allele[]{all.get(0), all.get(0)}));
+			case HET:
+				return GenotypeBuilder.create(ids[id], ArrayUtils.toList(new Allele[]{all.get(0), all.get(1)}));
+			case HOM_VAR:
+				return GenotypeBuilder.create(ids[id], ArrayUtils.toList(new Allele[]{all.get(1), all.get(1)}));
+			case NO_CALL:
+			default:
+				return GenotypeBuilder.create(ids[id], ArrayUtils.toList(new Allele[]{Allele.NO_CALL, Allele.NO_CALL}));
+		}
+	}
+
 	private void parseAlleles(String[] markerNames) {
 		alleles = new HashMap<String, List<Allele>>();
 		for (int i = 0; i < markerNames.length; i++) {
@@ -108,12 +146,35 @@ public class VCFConstructor {
 		}
 	}
 	
+	public boolean prep() {
+		try {
+			readInputFile();
+		} catch (UnsupportedOperationException e) {
+			log.reportError(e.getMessage());
+			return false;
+		}
+		try {
+			readDosageFile();
+		} catch (UnsupportedOperationException e) {
+			log.reportError(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+	
 	public void build() {
 		VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(outputFile);
 		builder.clearOptions();
 		builder.setOption(Options.INDEX_ON_THE_FLY);
-		VCFHeader vcfHeader = new VCFHeader();
-		vcfHeader.addMetaDataLine(new VCFFormatHeaderLine("FORMAT=<ID=GT,Number=1,Type=String,Description=\"A blank genotype\">", VCFHeaderVersion.VCF4_2));
+		HashSet<VCFHeaderLine> lines = new HashSet<VCFHeaderLine>();
+		VCFFormatHeaderLine format = new VCFFormatHeaderLine("GT", 1, VCFHeaderLineType.String, "GT");
+		lines.add(format);
+		
+		List<String> idNames = new ArrayList<String>();
+		for (String s : ids) {
+			idNames.add(s);
+		}
+		VCFHeader vcfHeader = new VCFHeader(lines, idNames);
 		
 		SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(Resources.genome(GENOME_BUILD.HG19, log).getFASTA().getAbsolute(), log)
 				.getIndexedFastaSequenceFile().getSequenceDictionary();
@@ -121,9 +182,12 @@ public class VCFConstructor {
 		builder.setReferenceDictionary(samSequenceDictionary);
 		vcfHeader.setSequenceDictionary(samSequenceDictionary);
 		VariantContextWriter writer = builder.build();
+		vcfHeader.hasGenotypingData();
 		writer.writeHeader(vcfHeader);
-
-		for (int i = 0; i < markers.length; i++) {/// your data
+		
+		int[] sortedIndices = Sort.getSortedIndices(Matrix.extractColumn(locations, 1));
+		for (int m = 0; m < markers.length; m++) {
+			int i = sortedIndices[m];
 			VariantContextBuilder builderVc = new VariantContextBuilder();
 			builderVc.chr("chr" + locations[i][0]);
 			int len = alleles.get(markers[i]).get(0).length() - 1;
@@ -131,23 +195,47 @@ public class VCFConstructor {
 			builderVc.start(locations[i][1]);
 			builderVc.stop(locations[i][1] + len);
 			builderVc.id(markers[i]);
-			Collection<Genotype> g = genotypes.get(markers[i]);
 			builderVc.genotypes(genotypes.get(markers[i]));
 
 			writer.add(builderVc.make());
 		}
 		writer.close();
 	}
-	
+
 	public static void main(String[] args) {
+		String markersFile = "markers.txt";
+		String dosageFile = "data.db.xln.gz";
+		String outputFile = "data.vcf";
+		double window = HET_WINDOW_STRICT;
+		
+		Object[][] argSet = {
+		                     {"markers", "Marker list file", markersFile, Arg.STRING},
+		                     {"data", "Dosage data file", dosageFile, Arg.STRING},
+		                 		{CLI.ARG_OUTFILE, CLI.DESC_OUTFILE, outputFile, Arg.STRING},
+		                 		{"window", "Window inset for heterozygous calls (0 + window, 2 - window)", window, Arg.NUMBER},
+		};
+		
+		CLI cli = new CLI(VCFConstructor.class);
+		for (Object[] arg : argSet) {
+			cli.addArgWithDefault((String) arg[0], (String) arg[1], arg[2] + "", (Arg) arg[3]);
+		}
+		
+		cli.parseWithExit(args);
+		
 		VCFConstructor c = new VCFConstructor();
-		c.inputFile = "F:/temp/variantviewer/inputData.txt";
-		c.outputFile = "F:/temp/variantviewer/data.vcf";
-		c.dosageFile = "F:/temp/variantviewer/FRZ.db.xln";
+		c.markersFile = cli.get((String) argSet[0][0]);
+		c.dosageFile = cli.get((String) argSet[1][0]);
+		c.outputFile = cli.get((String) argSet[2][0]);
+		c.windowForHet = cli.getD((String) argSet[3][0]);
 		c.log = new Logger();
 		c.readInputFile();
 		c.readDosageFile();
 		c.build();
+		
+		
+// 	to create an index file from an existing vcf, use:
+//		VCFOps.verifyIndex("F:/temp/variantviewer/output.vcf", new Logger());
+		
 	}
 	
 }
