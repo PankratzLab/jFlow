@@ -640,23 +640,28 @@ public class EmimPipeline {
 		String forestMarkers = "./gwasHits.txt";
 
 		String usage = "\n" + "gwas.EmimPipeline requires 2-8 arguments\n"
-									 + "   (1) run directory (i.e. dir=" + runDir + " (default))\n" + " AND\n"
+									 + "   (1) run directory (i.e. dir=" + runDir + " (default))\n"
+									 + " AND\n"
 									 + "   (2a) cnv files (i.e. cnvs=cnvFile1.cnv,cnvFile2.cnv (not the default))\n"
 									 + " AND/OR \n"
 									 + "   (2b) PLINK fileroots (i.e. plink=plink1,plink2 (not the default))\n"
-									 + " AND\n" + "   (3) population file (i.e. pop=" + popFile + " (default))\n"
-									 + " AND\n" + "   (4) subpopulation file (i.e. subPop=" + subPopFile
-									 + " (default))\n" + " AND\n" + " AND\n"
+									 + " AND\n"
+									 + "   (3) population file (i.e. pop=" + popFile + " (default))\n"
+									 + " AND\n" +
+									 "   (4) subpopulation file (i.e. subPop=" + subPopFile + " (default))\n"
+									 + " AND\n"
 									 + "   (5) desired risk allele file (i.e. riskAlleles=forceRiskAllele.txt (not the default))\n"
-									 + " AND\n" + "   (6) p-value threshold to filter on (i.e. pThreshold="
-									 + pThreshold + " (default))\n"
+									 + " AND\n"
+									 + "   (6) p-value threshold to filter on (i.e. pThreshold=" + pThreshold
+									 + " (default))\n"
 									 + " AND, if desired (though the script to run this will be created automatically)\n"
 									 + "   (7) -process flag to consolidate results after PBS files have completed (i.e. -process (not the default))\n"
 									 + " AND/OR \n"
 									 + "   (8) -forest flag to generate forest plot parameters for a set of markers (i.e. -forest (not the default))\n"
 									 + " AND\n"
 									 + "   (9) markers to use for forest plot parameter generation (i.e. forestMarkers=./gwasHits.txt (default))\n"
-									 + " AND\n" + "   (10) Phase with shapeit in PREMIM run (i.e. phase="
+									 + " AND\n" +
+									 "   (10) Phase with shapeit in PREMIM run (i.e. phase="
 									 + phaseWithShapeit + " (default))\n";
 		int argNum = 11;
 		for (Emim.EMIM_MODEL model : Emim.EMIM_MODEL.optionalSet()) {
