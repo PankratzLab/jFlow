@@ -185,7 +185,7 @@ public class VCFConstructor {
 		vcfHeader.hasGenotypingData();
 		writer.writeHeader(vcfHeader);
 		
-		int[] sortedIndices = Sort.getSortedIndices(Matrix.extractColumn(locations, 1));
+		int[] sortedIndices = Sort.getSort2DIndices(Matrix.extractColumn(locations, 0), Matrix.extractColumn(locations, 1));
 		for (int m = 0; m < markers.length; m++) {
 			int i = sortedIndices[m];
 			VariantContextBuilder builderVc = new VariantContextBuilder();
@@ -216,6 +216,7 @@ public class VCFConstructor {
 		};
 		
 		CLI cli = new CLI(VCFConstructor.class);
+		
 		for (Object[] arg : argSet) {
 			cli.addArgWithDefault((String) arg[0], (String) arg[1], arg[2] + "", (Arg) arg[3]);
 		}
@@ -233,7 +234,7 @@ public class VCFConstructor {
 		c.build();
 		
 		
-// 	to create an index file from an existing vcf, use:
+//// 	to create an index file from an existing vcf, use:
 //		VCFOps.verifyIndex("F:/temp/variantviewer/output.vcf", new Logger());
 		
 	}

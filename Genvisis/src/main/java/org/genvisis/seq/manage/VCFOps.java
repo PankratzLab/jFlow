@@ -156,7 +156,12 @@ public class VCFOps {
 		/**
 		 * Will add from the snp138 annotation if available, else will create from {@link LocusID}
 		 */
-		ADD_IDS;
+		ADD_IDS,
+		
+		/**
+		 * Validate or create an index (.idx) file from an existing .vcf file
+		 */
+		VERIFY_INDEX;
 	}
 
 	/**
@@ -2583,6 +2588,9 @@ public class VCFOps {
 					break;
 				case ADD_IDS:
 					addIds(vcf, VCOps.DEFAULT_DBSNP);
+					break;
+				case VERIFY_INDEX:
+					verifyIndex(vcf, log);
 					break;
 				default:
 					System.err.println("Invalid utility type: Available are ->");

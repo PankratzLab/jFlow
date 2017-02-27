@@ -70,6 +70,8 @@ import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 
+import org.genvisis.CLI;
+import org.genvisis.CLI.Arg;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.NewRegionListDialog;
 import org.genvisis.cnv.manage.Resources;
@@ -3133,12 +3135,35 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 //		VCFOps.verifyIndex(vcfFiles[0], new Logger());
 //		 new VariantViewer(proj, geneList, vcfFiles, popFile);
 		
-		String geneList = "F:/temp/variantviewer/genes.txt";
-		String[] vcfFiles = {"F:/temp/variantviewer/output.vcf"};
-		String popFile = "F:/temp/variantviewer/pop.vpop";
+//		String geneList = "F:/temp/variantviewer/genes.txt";
+//		String[] vcfFiles = {"F:/temp/variantviewer/output.vcf"};
+//		String popFile = "F:/temp/variantviewer/vtpedx.vpop";
+		
+//		new VariantViewer(proj, geneList, vcfFiles, popFile);
+
+  	String geneList = "genes.txt";
+  	String[] vcfFiles = {"output.vcf"};
+  	String popFile = "pop.vpop";
+		
+		Object[][] argSet = {
+		                     {"genes", "Gene list file, one per line", geneList, Arg.STRING},
+		                     {"vcf", "VCF file(s) - if more than one, separated by commas", vcfFiles[0], Arg.STRING},
+		                     {"pop", "vpop file - a file with each IID and a Class=Population column", popFile, Arg.STRING},
+		};
+		
+		CLI cli = new CLI(VariantViewer.class);
+		
+		for (Object[] arg : argSet) {
+			cli.addArgWithDefault((String) arg[0], (String) arg[1], arg[2] + "", (Arg) arg[3]);
+		}
+		
+		cli.parseWithExit(args);
+		
+		geneList = cli.get((String) argSet[0][0]);
+		vcfFiles = cli.get((String) argSet[1][0]).split(",");
+		popFile = cli.get((String) argSet[2][0]);
 		
 		new VariantViewer(proj, geneList, vcfFiles, popFile);
-		
 	}
 }
 

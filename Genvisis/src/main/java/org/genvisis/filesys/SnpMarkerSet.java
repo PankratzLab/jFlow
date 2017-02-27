@@ -22,6 +22,8 @@ import java.util.regex.Pattern;
 
 import org.genvisis.bioinformatics.MapSNPsAndGenes;
 import org.genvisis.bioinformatics.ParseSNPlocations;
+import org.genvisis.cnv.manage.Resources.CHROMOSOME;
+import org.genvisis.cnv.manage.Resources.Chr;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -830,16 +832,20 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 				log.reportError("Error - can't look up a SNP without an rs number - attempting to parse location from marker name.");
 				String[] pts = markerNames[i].split(":");
 				int c = -1, p = -1;
+				
 				try {
 					c = Integer.parseInt(pts[0]);
 				} catch (NumberFormatException e) {
-					log.reportError("Couldn't parse chr from marker name {" + markerNames[i] + "}; Skipping marker.");
-					chrs[i] = (byte) 0;
-					positions[i] = 0;
-					if (annotateMerges) {
-						annotation[i][0] = ".";
+					c = ext.indexOfStr(pts[0], Positions.CHR_CODES);
+					if (c == -1) {
+  					log.reportError("Couldn't parse chr from marker name {" + markerNames[i] + "}; Skipping marker.");
+  					chrs[i] = (byte) 0;
+  					positions[i] = 0;
+  					if (annotateMerges) {
+  						annotation[i][0] = ".";
+  					}
+  					continue;
 					}
-					continue;
 				}
 				try {
 					p = Integer.parseInt(pts[1]);
