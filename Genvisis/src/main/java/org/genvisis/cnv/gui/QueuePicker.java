@@ -20,7 +20,7 @@ import javax.swing.SwingConstants;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.SpinnerNumberModel;
 
-import org.genvisis.cnv.manage.GenvisisWorkflow.FLAG;
+import org.genvisis.cnv.manage.GenvisisWorkflowStep.FLAG;
 import org.genvisis.common.QueueControl;
 import org.genvisis.common.QueueControl.JobQueue;
 
