@@ -69,7 +69,6 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
 		return currentWindow;
 	}
 
-
 	@Override
 	public void remove() {
 		// Eclipse complains about this being missing. Maven doesn't seem to care. Java is dumb.

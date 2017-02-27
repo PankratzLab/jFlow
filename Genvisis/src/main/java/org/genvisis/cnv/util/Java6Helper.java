@@ -33,4 +33,12 @@ public final class Java6Helper {
 	public static int compare(int x, int y) {
 		return (x < y) ? -1 : ((x == y) ? 0 : 1);
 	}
+
+	/**
+	 * Requires J7
+	 * http://grepcode.com/file/repository.grepcode.com/java/root/jdk/openjdk/7-b147/java/lang/Long.java#Long.compare%28long%2Clong%29
+	 */
+	public static int compare(long x, long y) {
+		return (x < y) ? -1 : ((x == y) ? 0 : 1);
+	}
 }
