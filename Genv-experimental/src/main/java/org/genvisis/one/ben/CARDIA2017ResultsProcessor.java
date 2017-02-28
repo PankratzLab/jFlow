@@ -85,11 +85,10 @@ public class CARDIA2017ResultsProcessor {
 		}
 	}
 
-	private void process(String prefix) throws IOException {
+	private void process(String dir, String prefix) throws IOException {
 		BufferedReader reader;
 		PrintWriter writer;
 		PrintWriter missWriter;
-		String dir = "/scratch.global/cole0482/CARDIA_2017/";
 		String modelPref = "model_";
 		int numModels = 4;
 
@@ -402,6 +401,7 @@ public class CARDIA2017ResultsProcessor {
 		int numArgs = args.length;
 
 		String usage = "FAILED";
+		String dir = "./";
 		String pop = null;
 
 		for (int i = 0; i < args.length; i++) {
@@ -412,6 +412,9 @@ public class CARDIA2017ResultsProcessor {
 			} else if (args[i].startsWith("pop=")) {
 				pop = args[i].endsWith("EA") ? EA : AA;
 				numArgs--;
+			} else if (args[i].startsWith("dir=")) {
+				dir = args[i].split("=")[1];
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -421,7 +424,7 @@ public class CARDIA2017ResultsProcessor {
 			System.exit(1);
 		}
 		try {
-			new CARDIA2017ResultsProcessor().process(pop);
+			new CARDIA2017ResultsProcessor().process(dir, pop);
 
 		} catch (Exception e) {
 			e.printStackTrace();
