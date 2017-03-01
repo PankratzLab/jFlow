@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -92,8 +93,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 	 * 
 	 * @param steps TODO
 	 */
-	public GenvisisWorkflowGUI(Project proj2, final Launch launch,
-														 final SortedSet<Step> steps) {
+	public GenvisisWorkflowGUI(Project proj2, final Launch launch, final SortedSet<Step> steps) {
 		if (proj2 == null) {
 			proj = createNewProject(LaunchProperties.getListOfProjectNames());
 		} else {
@@ -687,8 +687,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 	 *
 	 * @param stepsToRefresh
 	 */
-	public static void refreshLabels(final GenvisisWorkflowGUI gui,
-																	 Collection<Step> steps) {
+	public static void refreshLabels(final GenvisisWorkflowGUI gui, Collection<Step> steps) {
 		final Collection<Step> stepsToRefresh = gui.getAllRelatedSteps(steps);
 		new Thread(new Runnable() {
 			@Override
@@ -719,8 +718,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 					}
 					final Map<Step, Map<GenvisisWorkflow.Requirement, String>> variables = gui.getVariables();
 					final int update = ++i;
-					if (!step.checkIfOutputExists(variables)
-							|| gui.checkBoxes.get(step).isSelected()) {
+					if (!step.checkIfOutputExists(variables) || gui.checkBoxes.get(step).isSelected()) {
 						boolean check = step.hasRequirements(gui.proj, selectedSteps, variables);
 						gui.descLabels.get(step).setForeground(check ? greenDark : Color.RED);
 						gui.checkBoxes.get(step).setForeground(check ? greenDark : Color.RED);
@@ -848,7 +846,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 				Map<Step, Map<GenvisisWorkflow.Requirement, String>> variables = getVariables();
 				if (checkRequirementsAndNotify(variables)) {
 					StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
-					HashSet<GenvisisWorkflow.FLAG> flags = new HashSet<GenvisisWorkflow.FLAG>();
+					Set<GenvisisWorkflow.Flag> flags = EnumSet.noneOf(GenvisisWorkflow.Flag.class);
 					for (Step step : selectedSteps) {
 						flags.addAll(step.getFlags());
 						String cmd = step.getCommandLine(proj, variables);
@@ -918,8 +916,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 							System.gc();
 						}
 						if (code != FINAL_CODE.CANCELLED
-								&& (e != null || step.getFailed()
-										|| !step.checkIfOutputExists(variables))) {
+								&& (e != null || step.getFailed() || !step.checkIfOutputExists(variables))) {
 							code = FINAL_CODE.FAILED;
 						}
 						endStep(step, code);
@@ -1023,7 +1020,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 			Map<GenvisisWorkflow.Requirement, String> values = Maps.newHashMap();
 			returnVars.put(entry.getKey(), values);
 			for (Entry<GenvisisWorkflow.Requirement, ? extends JComponent> reqComp : entry.getValue()
-																																												.entrySet()) {
+																																										.entrySet()) {
 				String val = "";
 				GenvisisWorkflow.Requirement req = reqComp.getKey();
 				JComponent j = reqComp.getValue();
