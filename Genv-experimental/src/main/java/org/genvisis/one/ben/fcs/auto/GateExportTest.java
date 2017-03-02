@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.genvisis.common.ArrayUtils;
@@ -32,6 +33,14 @@ public class GateExportTest {
 	private static final String WSP = FCS;// "/panfs/roc/groups/15/thyagara/shared/HRS/UPLOAD WSP/";
 	private static final String OUT = "/scratch.global/cole0482/FCS/testConcordance/";
 
+	private static final String[][] MATCH = {
+                                    {"lymph", "Lymphocytes (SSC-A v FSC-A)"},
+                                    {"Singlets", "Single Cells (FSC-H v FSC-W)"},
+                                    {"PE.A","Live cells (PE-)"},
+                                    {"CD3.","Tcells (CD3+ CD19-)"},                                   
+		};
+		
+	
 	private void run() throws IOException {
 
 		ProcessorFactory<? extends SampleProcessor> pf;
@@ -41,11 +50,15 @@ public class GateExportTest {
 		// pf = new LeafDataSamplerFactory("/scratch.global/cole0482/FCS/", new Logger());
 		pf = new ProcessorFactory<ConcordanceProcessor>() {
 
-			ConcurrentHashMap<String, String> resultMap = new ConcurrentHashMap<>();
+			ConcurrentHashMap<String, ConcurrentHashMap<String, String>> resultMap = new ConcurrentHashMap<>();
 			public void cleanup(Object owner) {
 				PrintWriter writer = Files.getAppropriateWriter(OUT + "concordance.xln");
-				for (Entry<String, String> ent : resultMap.entrySet()) {
-					writer.println(ent.getKey() + "\t" + ent.getValue()); 
+				
+				Set<String> files = resultMap.keySet();
+				for (String s : files) {
+					for (int i = 0; i < MATCH.length; i++) {
+						writer.println(s + "\t" + MATCH[i][1] + "\t" + resultMap.get(s).get(MATCH[i][1])); 
+					}
 				}
 				writer.flush();
 				writer.close();
@@ -81,12 +94,12 @@ public class GateExportTest {
 		});
 		
 		String[][] autoData;
-		private ConcurrentHashMap<String, String> results;
+		private ConcurrentHashMap<String, ConcurrentHashMap<String, String>> results;
 		
-		public ConcordanceProcessor(ConcurrentHashMap<String, String> resultMap) {
+		public ConcordanceProcessor(ConcurrentHashMap<String, ConcurrentHashMap<String, String>> resultMap) {
 			this.results = resultMap;
 		}
-
+		
 		@Override
 		public void processSample(SampleNode sn, Logger log) throws IOException {
 			loadPopsAndGates(sn);
@@ -99,13 +112,11 @@ public class GateExportTest {
 			}
 			
 			boolean[][] hand = new boolean[autoData[0].length][d.getCount()];
-			// TODO refactor for gate header matching
 			String[] gateNames = new String[hand.length];
-			Gate gate = sn.gating.getRootGates().get(0);
 			for (int i = 0; i < hand.length; i++) {
+				Gate gate = sn.gating.gateMap.get(MATCH[i][1]);
 				hand[i] = gate.gate(d);
 				gateNames[i] = gate.getName();
-				gate = gate.getChildGates().get(0);
 			}
 			
 			boolean[][] auto = new boolean[autoData[0].length][];
@@ -117,12 +128,14 @@ public class GateExportTest {
 				}
 			}
 			
+			ConcurrentHashMap<String, String> fileResults = new ConcurrentHashMap<String, String>();
 			for (int i = 0; i < auto.length; i++) {
 				boolean[] handV = hand[i];
 				boolean[] autoV = auto[i];
 				int[] conc = concordance(handV, autoV);
-				results.put(sn.fcsFile + "\t" + gateNames[i], ArrayUtils.toStr(conc, "\t"));
+				fileResults.put(gateNames[i], ArrayUtils.toStr(conc, "\t"));
 			}
+			results.put(sn.fcsFile, fileResults);
 			
 			System.out.println("Done with " + sn.fcsFile);
 			
