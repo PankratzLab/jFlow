@@ -401,18 +401,21 @@ public class MultiHitWindows {
 	 */
 	private static int findIndex(List<MultiHit> markers, int lastGoodIndex, int currentIndex,
 															 int searchStep, String pValLabel, WindowThreshold hitParams) {
-		MultiHit currentMarker = markers.get(currentIndex);
-		if (currentMarker.pVal(pValLabel) < hitParams.getSugPval()) {
-			// current marker is good
-			return findIndex(markers, currentIndex, currentIndex + searchStep, searchStep, pValLabel,
-											 hitParams);
-		} else if (Math.abs(currentMarker.getPos()
-												- markers.get(lastGoodIndex).getPos()) <= hitParams.getWindow()) {
-			return findIndex(markers, lastGoodIndex, currentIndex + searchStep, searchStep, pValLabel,
-											 hitParams);
-		} else {
-			return lastGoodIndex;
+		// boundary check
+		if (currentIndex > 0 && currentIndex < markers.size()) {
+			MultiHit currentMarker = markers.get(currentIndex);
+			if (currentMarker.pVal(pValLabel) < hitParams.getSugPval()) {
+				// current marker is good
+				return findIndex(markers, currentIndex, currentIndex + searchStep, searchStep, pValLabel,
+				                 hitParams);
+			} else if (Math.abs(currentMarker.getPos() 
+			                    - markers.get(lastGoodIndex).getPos()) <= hitParams.getWindow()) {
+				// keep looking but don't update the last good index
+				return findIndex(markers, lastGoodIndex, currentIndex + searchStep, searchStep, pValLabel,
+				                 hitParams);
+			}
 		}
+		return lastGoodIndex;
 	}
 
 	/**
