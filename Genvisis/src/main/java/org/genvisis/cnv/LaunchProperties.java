@@ -38,7 +38,7 @@ public class LaunchProperties {
 	 * enum of all available launch properties.
 	 */
 	public enum DefaultLaunchKeys implements LaunchKey {
-		PROJECTS_DIR("projects/", true),
+		PROJECTS_DIR(Launch.getJarDirectory() + "projects/", true),
 		DEBUG_PROJECT_FILENAME("DEBUG_PROJECT", false),
 		LAST_PROJECT_OPENED(Project.EXAMPLE_PROJ + ".properties", false),
 		RESOURCES_DIR(Launch.getJarDirectory() + "resources/", true);
