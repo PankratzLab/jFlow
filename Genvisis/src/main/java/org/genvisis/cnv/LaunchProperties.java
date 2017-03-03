@@ -26,7 +26,7 @@ import org.genvisis.common.ext;
 public class LaunchProperties {
 	public static final long serialVersionUID = 1L;
 
-	private static String propertiesFile = "launch.properties";
+	private static String propertiesFile = Launch.getJarDirectory() + "launch.properties";
 
 	public static interface LaunchKey {
 		String defaultValue();
@@ -41,7 +41,7 @@ public class LaunchProperties {
 		PROJECTS_DIR("projects/", true),
 		DEBUG_PROJECT_FILENAME("DEBUG_PROJECT", false),
 		LAST_PROJECT_OPENED(Project.EXAMPLE_PROJ + ".properties", false),
-		RESOURCES_DIR("resources/", true);
+		RESOURCES_DIR(Launch.getJarDirectory() + "resources/", true);
 
 		private final String def;
 		private final boolean isDir;

@@ -18,7 +18,6 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -35,6 +34,7 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import org.genvisis.cnv.Launch;
 import org.genvisis.filesys.SerialHash;
 import org.genvisis.parse.GenParser;
 
@@ -67,14 +67,6 @@ public class Files {
 	public static final int PBS_MEM = 16384;
 	public static final int PBS_PROC = 1;
 
-	public static String getJarLocation() {
-		try {
-			return new File(Files.class.getProtectionDomain().getCodeSource().getLocation().toURI()
-																 .getPath()).getAbsolutePath();
-		} catch (URISyntaxException e) {
-			return "~/" + org.genvisis.common.PSF.Java.GENVISIS;
-		}
-	}
 
 	public static String getRunString() {
 		return getRunString(-1);
@@ -87,7 +79,7 @@ public class Files {
 	public static String getRunString(int memInMeg, boolean interpretAsGig) {
 		int mem = memInMeg == -1 ? -1 : interpretAsGig ? memInMeg / 1024 : memInMeg;
 		return "java " + (memInMeg == -1 ? "" : "-Xmx" + mem + (interpretAsGig ? "G" : "M")) + " -jar "
-					 + getJarLocation();
+					 + Launch.getJarLocation();
 	}
 
 	public static void batchIt(String root_batch_name, String init, int numBatches, String commands,
@@ -1907,7 +1899,8 @@ public class Files {
 																																											* 100, sf)
 																																				 + "%"
 																																			 : ext.formDeci(means[files.length]
-																																											/ ArrayUtils.sum(counts), sf))
+																																											/ ArrayUtils.sum(counts),
+																																											sf))
 																														: (blank ? "" : ".")));
 					} else {
 						// TODO calculate the overall stdev of crossing files.

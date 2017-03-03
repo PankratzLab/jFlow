@@ -18,6 +18,8 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -91,6 +93,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HttpUpdate;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.StartupValidation;
 import org.genvisis.common.ext;
 import org.genvisis.cyto.CytoGUI;
@@ -928,6 +931,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				});
 			} else if (command.equals(COMP)) {
 				SwingUtilities.invokeLater(new Runnable() {
+
 					@Override
 					public void run() {
 						new CompPlot(proj);
@@ -940,7 +944,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 						new ForestPlotFrame(proj);
 					}
 				});
-			} else if (command.equals(POPULATIONBAF)) {
+			} else if (command.equals(POPULATIONBAF))
+
+			{
 				org.genvisis.cnv.analysis.PennCNV.populationBAF(proj);
 			} else if (command.equals(CUSTOM_CENTROIDS)) {
 				SwingUtilities.invokeLater(new Runnable() {
@@ -1168,6 +1174,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			log.report("Refreshed list of projects");
 		} else if (command.equals(PIPELINE)) {
 			SwingUtilities.invokeLater(new Runnable() {
+
 				@Override
 				public void run() {
 					final GenvisisWorkflow kAndK = new GenvisisWorkflow(proj, Launch.this);
@@ -1180,7 +1187,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
 		} else if (command.endsWith(" ")) {
 			// FIXME this should be unified with the drop down combobox selector
-			for (int i = 0; i < projects.size(); i++) {
+			for (
+
+					 int i = 0; i < projects.size(); i++) {
 				if (command.equals(ext.rootOf(projects.get(i)) + " ")) {
 					projectsBox.setSelectedIndex(i);
 					log.report("Selecting: " + projects.get(i));
@@ -1388,6 +1397,37 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 																		 "SOURCE_DIRECTORY=sourceFiles/"},
 											 exampleProperties);
 		}
+	}
+
+
+	/**
+	 * @return Path to the jar containing the launch class, or empty string if this is not running in
+	 *         a jar.
+	 */
+	public static String getJarLocation() {
+		URL url = Launch.class.getProtectionDomain().getCodeSource().getLocation();
+		if (url.getPath().endsWith(".jar")) {
+			try {
+				String path = url.toURI().getPath();
+				if (path.endsWith(".jar")) {
+					return new File(path).getAbsolutePath();
+				}
+			} catch (URISyntaxException e) {
+				return "~/" + PSF.Java.GENVISIS;
+			}
+		}
+		return "";
+	}
+
+	/**
+	 * @return The directory containing the genvisis .jar, or empty string if not running from a jar
+	 */
+	public static String getJarDirectory() {
+		String loc = getJarLocation();
+		if (loc.isEmpty()) {
+			return loc;
+		}
+		return new File(loc).getParent() + File.separator;
 	}
 
 	/**
