@@ -1,6 +1,7 @@
 *.swp
 *~
 target/
+*/resources
 .project
 .settings
 .classpath
