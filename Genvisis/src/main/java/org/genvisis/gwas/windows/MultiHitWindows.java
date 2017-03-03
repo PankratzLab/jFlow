@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -22,7 +23,6 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.SciStringComparator;
 import org.genvisis.common.ext;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 
@@ -62,11 +62,12 @@ public class MultiHitWindows {
 	/**
 	 * Statistics about a range of successful hits.
 	 */
-	private static class MultiHitWindow {
+	private static class MultiHitWindow implements Comparable<MultiHitWindow> {
 		/*
 		 * Header for printing (matches #stats() output)
 		 */
-		private static final String[] HEADER = new String[] {"CHR", "START", "END", "NUM_INDEX",
+		private static final String[] HEADER = new String[] {"MARKER", "CHR", "START", "END",
+																												 "NUM_INDEX",
 																												 "NUM_SUGGESTIVE", "NUM_TOTAL", "P-VAL"};
 
 		private final int chr;
@@ -115,27 +116,38 @@ public class MultiHitWindows {
 		}
 
 		/**
-		 * @return The list of all {@link MultiHit}s with the lowest p-value in this window.
+		 * @return A list of tab-delimited columns. Each list entry is one line to be printed (in the
+		 *         case of multiple index SNPs)
 		 */
-		public List<MultiHit> indexHits() {
-			return indexHits;
+		public List<String> stats() {
+			List<String> stats = new ArrayList<String>();
+			for (MultiHit index : indexHits) {
+				StringBuilder sb = new StringBuilder();
+				sb.append(index.getName()).append("\t");
+				sb.append(chr).append("\t");
+				sb.append(start).append("\t");
+				sb.append(end).append("\t");
+				sb.append(numIndex).append("\t");
+				sb.append(numSuggestive).append("\t");
+				sb.append(numTotal).append("\t");
+				sb.append(lowestPval);
+				stats.add(sb.toString());
+			}
+			return stats;
 		}
 
-		/**
-		 * @return An array of statistics for this HitWindow, matching the {@link #HEADER} order.
-		 */
-		public String[] stats() {
-			// FIXME this is a dumb way to do this
-			StringBuilder sb = new StringBuilder();
-			sb.append(chr).append(",");
-			sb.append(start).append(",");
-			sb.append(end).append(",");
-			sb.append(numIndex).append(",");
-			sb.append(numSuggestive).append(",");
-			sb.append(numTotal).append(",");
-			sb.append(lowestPval);
-			return sb.toString().split(",");
+		@Override
+		public int compareTo(MultiHitWindow o) {
+			int c = Java6Helper.compare(chr, o.chr);
+			if (c == 0) {
+				c = Java6Helper.compare(start, o.start);
+			}
+			if (c == 0) {
+				c = Java6Helper.compare(end, o.end);
+			}
+			return c;
 		}
+
 	}
 
 	// -- Utility methods --
@@ -289,7 +301,7 @@ public class MultiHitWindows {
 		Multimap<String, MultiHit> continuousMarkers = splitMarkers(markers, centromereBoundaries);
 
 		// 3. Generate hit windows for each p-value column
-		Multimap<String, MultiHitWindow> windows = ArrayListMultimap.<String, MultiHitWindow>create();
+		Multimap<String, MultiHitWindow> windows = TreeMultimap.<String, MultiHitWindow>create();
 
 		for (int i = 0; i < pFile.getPvals().length; i++) {
 			String pValLabel = pFile.getPvals()[i];
@@ -407,12 +419,12 @@ public class MultiHitWindows {
 			if (currentMarker.pVal(pValLabel) < hitParams.getSugPval()) {
 				// current marker is good
 				return findIndex(markers, currentIndex, currentIndex + searchStep, searchStep, pValLabel,
-				                 hitParams);
-			} else if (Math.abs(currentMarker.getPos() 
-			                    - markers.get(lastGoodIndex).getPos()) <= hitParams.getWindow()) {
+												 hitParams);
+			} else if (Math.abs(currentMarker.getPos()
+													- markers.get(lastGoodIndex).getPos()) <= hitParams.getWindow()) {
 				// keep looking but don't update the last good index
 				return findIndex(markers, lastGoodIndex, currentIndex + searchStep, searchStep, pValLabel,
-				                 hitParams);
+												 hitParams);
 			}
 		}
 		return lastGoodIndex;
@@ -428,7 +440,9 @@ public class MultiHitWindows {
 		writer.println(ArrayUtils.toStr(MultiHitWindow.HEADER, delim));
 
 		for (MultiHitWindow hw : hitWindows) {
-			writer.println(ArrayUtils.toStr(hw.stats(), delim));
+			for (String line : hw.stats()) {
+				writer.println(line);
+			}
 		}
 
 		writer.flush();
