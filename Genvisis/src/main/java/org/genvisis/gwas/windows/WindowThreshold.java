@@ -7,7 +7,7 @@ package org.genvisis.gwas.windows;
 public class WindowThreshold {
 	public static final double DEFAULT_INDEX_PVAL = 0.0000001;
 	public static final double DEFAULT_SUGGESTIVE_PVAL = 0.00001;
-	public static final int DEFAULT_WINDOW = 500000;
+	public static final int DEFAULT_WINDOW = 250000;
 
 	private double iPval;
 	private double sPval;
