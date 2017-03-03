@@ -54,7 +54,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 import org.genvisis.cnv.LaunchProperties;
-import org.genvisis.cnv.LaunchProperties.LaunchKey;
+import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
 import org.genvisis.cnv.filesys.Project.GROUP;
 import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.prop.DoubleProperty;
@@ -818,7 +818,7 @@ public class ProjectPropertiesEditor extends JFrame {
 
 	private HashMap<String, String> extract() {
 		table.editingStopped(new ChangeEvent(table));
-		String projectsDir = LaunchProperties.get(LaunchKey.PROJECTS_DIR);
+		String projectsDir = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR);
 		String currProjDir = proj.PROJECT_DIRECTORY.getValue();
 		int rowCount = table.getRowCount();
 
@@ -839,7 +839,8 @@ public class ProjectPropertiesEditor extends JFrame {
 					if (!set[0].exists()) {
 						value = ((StringListProperty) proj.getProperty(key)).isDirectory() ? ext.verifyDirFormat(value)
 																																							 : ext.replaceAllWith(value,
-																																																		"\\", "/");
+																																																		"\\",
+																																																		"/");
 					} else {
 						value = set[0].isDirectory() ? ext.verifyDirFormat(value)
 																				 : ext.replaceAllWith(value, "\\", "/");
@@ -856,7 +857,8 @@ public class ProjectPropertiesEditor extends JFrame {
 						if (!set[k].exists()) {
 							fNm = ((StringListProperty) proj.getProperty(key)).isDirectory() ? ext.verifyDirFormat(fNm)
 																																							 : ext.replaceAllWith(fNm,
-																																																		"\\", "/");
+																																																		"\\",
+																																																		"/");
 						} else {
 							fNm = set[k].isDirectory() ? ext.verifyDirFormat(fNm)
 																				 : ext.replaceAllWith(fNm, "\\", "/");
@@ -875,7 +877,8 @@ public class ProjectPropertiesEditor extends JFrame {
 				if (!set.exists()) {
 					value = ((FileProperty) proj.getProperty(key)).isDirectory() ? ext.verifyDirFormat(value)
 																																			 : ext.replaceAllWith(value,
-																																														"\\", "/");
+																																														"\\",
+																																														"/");
 				} else {
 					value = set.isDirectory() ? ext.verifyDirFormat(value)
 																		: ext.replaceAllWith(value, "\\", "/");

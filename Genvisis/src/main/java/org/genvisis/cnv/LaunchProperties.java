@@ -28,10 +28,16 @@ public class LaunchProperties {
 
 	private static String propertiesFile = "launch.properties";
 
+	public static interface LaunchKey {
+		String defaultValue();
+
+		boolean isDir();
+	}
+
 	/**
 	 * enum of all available launch properties.
 	 */
-	public enum LaunchKey {
+	public enum DefaultLaunchKeys implements LaunchKey {
 		PROJECTS_DIR("projects/", true),
 		DEBUG_PROJECT_FILENAME("DEBUG_PROJECT", false),
 		LAST_PROJECT_OPENED(Project.EXAMPLE_PROJ + ".properties", false),
@@ -40,7 +46,7 @@ public class LaunchProperties {
 		private final String def;
 		private final boolean isDir;
 
-		private LaunchKey(String defaultValue, boolean isDir) {
+		private DefaultLaunchKeys(String defaultValue, boolean isDir) {
 			def = defaultValue;
 			this.isDir = isDir;
 		}
@@ -48,6 +54,7 @@ public class LaunchProperties {
 		/**
 		 * @return Default value to use for this property if it is not present in the properties file
 		 */
+		@Override
 		public String defaultValue() {
 			return def;
 		}
@@ -56,6 +63,7 @@ public class LaunchProperties {
 		 * @return true iff this property is a directory path that should be created on disk if it
 		 *         doesn't already exist
 		 */
+		@Override
 		public boolean isDir() {
 			return isDir;
 		}
@@ -80,7 +88,7 @@ public class LaunchProperties {
 				props.load(is);
 				is.close();
 
-				for (LaunchKey k : LaunchKey.values()) {
+				for (LaunchKey k : DefaultLaunchKeys.values()) {
 					if (!props.containsKey(k.toString())) {
 						props.put(k.toString(), k.defaultValue());
 					}
@@ -179,7 +187,7 @@ public class LaunchProperties {
 	 * @return An array of all known {@code *.properties} files.
 	 */
 	public static String[] getListOfProjectProperties() {
-		return Files.list(get(LaunchKey.PROJECTS_DIR), ".properties", false);
+		return Files.list(get(DefaultLaunchKeys.PROJECTS_DIR), ".properties", false);
 	}
 
 	/**
@@ -190,18 +198,18 @@ public class LaunchProperties {
 		// handy quick implementation from http://stackoverflow.com/a/790224/1027800
 		// I would prefer to use ProjectPropertiesEditor styling but it would take some effort to
 		// decouple
-		JButton projects = new EditFileButton(LaunchKey.PROJECTS_DIR);
-		JButton resources = new EditFileButton(LaunchKey.RESOURCES_DIR);
-		final JComponent[] inputs = new JComponent[] {new JLabel(LaunchKey.PROJECTS_DIR.toString()),
+		JButton projects = new EditFileButton(DefaultLaunchKeys.PROJECTS_DIR);
+		JButton resources = new EditFileButton(DefaultLaunchKeys.RESOURCES_DIR);
+		final JComponent[] inputs = new JComponent[] {new JLabel(DefaultLaunchKeys.PROJECTS_DIR.toString()),
 																									projects,
-																									new JLabel(LaunchKey.RESOURCES_DIR.toString()),
+																									new JLabel(DefaultLaunchKeys.RESOURCES_DIR.toString()),
 																									resources};
 		int res = JOptionPane.showConfirmDialog(null, inputs, "Genvisis preferences",
 																						JOptionPane.OK_CANCEL_OPTION,
 																						JOptionPane.PLAIN_MESSAGE);
 		if (JOptionPane.OK_OPTION == res) {
-			put(LaunchKey.PROJECTS_DIR, projects.getText());
-			put(LaunchKey.RESOURCES_DIR, resources.getText());
+			put(DefaultLaunchKeys.PROJECTS_DIR, projects.getText());
+			put(DefaultLaunchKeys.RESOURCES_DIR, resources.getText());
 		}
 	}
 

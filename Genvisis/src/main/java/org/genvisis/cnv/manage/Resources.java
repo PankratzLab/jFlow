@@ -24,7 +24,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.genvisis.CLI;
 import org.genvisis.cnv.LaunchProperties;
-import org.genvisis.cnv.LaunchProperties.LaunchKey;
+import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
 import org.genvisis.common.AbstractStartupCheck;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
@@ -61,6 +61,7 @@ public final class Resources {
 
 		@Override
 		protected void doCheck() {
+			System.out.print("Validating local resources... ");
 			for (Resource rsrc : listAll()) {
 				String localMD5 = rsrc.getMD5Local();
 				if (localMD5 == null) {
@@ -72,6 +73,7 @@ public final class Resources {
 					addMessage(rsrc.getLocalPath());
 				}
 			}
+			System.out.println("done.");
 		}
 	}
 
@@ -99,7 +101,7 @@ public final class Resources {
 		@Override
 		protected String warningHeader() {
 			return "WARNING: the following local file(s) in "
-						 + LaunchProperties.get(LaunchKey.RESOURCES_DIR) + " are not tracked:";
+						 + LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR) + " are not tracked:";
 		}
 	}
 
@@ -113,7 +115,7 @@ public final class Resources {
 		public AbstractResourceCheck() {
 			// Build the list of files in the local resource dir
 			localResources = new HashSet<String>();
-			String resourceDir = LaunchProperties.get(LaunchKey.RESOURCES_DIR);
+			String resourceDir = LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR);
 			if (Files.exists(resourceDir)) {
 				for (String resource : Files.listAllFilesInTree(resourceDir, false)) {
 					localResources.add(new File(resourceDir + resource).getAbsolutePath());
@@ -277,7 +279,7 @@ public final class Resources {
 	 */
 	public static class Shapeit extends AbstractResourceFactory {
 		public Shapeit(Logger log) {
-			super(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + BIN_DIR + "/shapeit/", "", log,
+			super(LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR) + BIN_DIR + "/shapeit/", "", log,
 						Shapeit.class);
 		}
 
@@ -685,7 +687,7 @@ public final class Resources {
 		 *        directory) and remote (where resources are hosted) locations.
 		 */
 		public AbstractResourceFactory(String subPath, Logger log, Class<?>... classes) {
-			this(LaunchProperties.get(LaunchKey.RESOURCES_DIR) + subPath + File.separator,
+			this(LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR) + subPath + File.separator,
 					 DEFAULT_URL + subPath + "/", log, classes);
 		}
 

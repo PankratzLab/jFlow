@@ -18,7 +18,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.genvisis.cnv.LaunchProperties;
-import org.genvisis.cnv.LaunchProperties.LaunchKey;
+import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.FileChooser;
 import org.genvisis.cnv.manage.DemoProject.DEMO_TYPE;
@@ -98,7 +98,7 @@ public class DemoPackage {
 		LaunchProperties.updatePropertiesFile(demoDirectory + LaunchProperties.propertiesFile());
 		org.genvisis.cnv.Launch.createLaunchProperties(true, true);
 
-		System.out.println(LaunchProperties.get(LaunchKey.PROJECTS_DIR));
+		System.out.println(LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR));
 	}
 
 	public boolean isFail() {
@@ -168,7 +168,7 @@ public class DemoPackage {
 	}
 
 	private void saveDemoProperties(Project proj, DemoProject demoProject, boolean setToDefault) {
-		String projectsDir = LaunchProperties.get(LaunchKey.PROJECTS_DIR);
+		String projectsDir = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR);
 		if (Files.isRelativePath(projectsDir)) {
 			projectsDir = ext.parseDirectoryOfFile(LaunchProperties.propertiesFile()) + projectsDir;
 		}
@@ -196,7 +196,7 @@ public class DemoPackage {
 		}
 
 		if (setToDefault) {
-			LaunchProperties.put(LaunchKey.LAST_PROJECT_OPENED,
+			LaunchProperties.put(DefaultLaunchKeys.LAST_PROJECT_OPENED,
 													 demoProject.PROJECT_NAME.getValue() + ".properties");
 		}
 	}

@@ -51,7 +51,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
-import org.genvisis.cnv.LaunchProperties.LaunchKey;
+import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.DeNovoCNV;
 import org.genvisis.cnv.analysis.Mosaicism;
@@ -271,7 +271,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 */
 	public void loadProjects() {
 		initProjects();
-		setIndexOfCurrentProject(LaunchProperties.get(LaunchKey.LAST_PROJECT_OPENED));
+		setIndexOfCurrentProject(LaunchProperties.get(DefaultLaunchKeys.LAST_PROJECT_OPENED));
 	}
 
 	/**
@@ -280,7 +280,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @return Currently selected {@link Project} instance.
 	 */
 	public Project loadProject() {
-		proj = new Project(LaunchProperties.get(LaunchKey.PROJECTS_DIR)
+		proj = new Project(LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
 											 + projects.get(indexOfCurrentProj), jar);
 		proj.setGuiState(true);
 		timestampOfPropertiesFile = new Date().getTime();
@@ -488,7 +488,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		launchUI.addWindowListener(launchUI);
 
 		// restore the last project open (e.g. in the previous session)
-		launchUI.setIndexOfCurrentProject(LaunchProperties.get(LaunchKey.LAST_PROJECT_OPENED));
+		launchUI.setIndexOfCurrentProject(LaunchProperties.get(DefaultLaunchKeys.LAST_PROJECT_OPENED));
 		if (!launchUI.projects.isEmpty()) {
 			launchUI.loadProject();
 		}
@@ -744,7 +744,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 					loadProject();
 					log.report("\nCurrent project: " + ext.rootOf(projects.get(indexOfCurrentProj)) + "\n");
 
-					LaunchProperties.put(LaunchKey.LAST_PROJECT_OPENED,
+					LaunchProperties.put(DefaultLaunchKeys.LAST_PROJECT_OPENED,
 															 projects.get(projectsBox.getSelectedIndex()));
 				}
 			}
@@ -909,7 +909,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			} else if (command.equals(SEX_PLOT)) {
 				SexPlot.loadSexCheckResults(proj);
 			} else if (command.equals(TRAILER)) {
-				Trailer t = new Trailer(proj, null, proj.CNV_FILENAMES.getValue(), Trailer.DEFAULT_LOCATION);
+				Trailer t = new Trailer(proj, null, proj.CNV_FILENAMES.getValue(),
+																Trailer.DEFAULT_LOCATION);
 				t.setVisible(true);
 			} else if (command.equals(TWOD)) {
 				SwingUtilities.invokeLater(new Runnable() {
@@ -1145,7 +1146,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			}
 
 			int newIndex = Math.max(0, --indexOfCurrentProj);
-			if (new File(LaunchProperties.get(LaunchKey.PROJECTS_DIR) + toDelete).delete()) {
+			if (new File(LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR) + toDelete).delete()) {
 				projects = null;
 
 				// Update toDelete to just the project name
@@ -1371,7 +1372,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	private static void createExampleProject(String path) {
 		Logger log = new Logger();
 		String examplePath = path + Project.EXAMPLE_PROJ + File.separatorChar;
-		String exampleProperties = LaunchProperties.get(LaunchKey.PROJECTS_DIR) + Project.EXAMPLE_PROJ
+		String exampleProperties = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
+															 + Project.EXAMPLE_PROJ
 															 + ".properties";
 
 		File f = new File(examplePath);
@@ -1396,12 +1398,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		String dir, filename;
 
 		if (Files.exists(LaunchProperties.propertiesFile())) {
-			dir = LaunchProperties.get(LaunchKey.PROJECTS_DIR);
-			filename = LaunchProperties.get(LaunchKey.DEBUG_PROJECT_FILENAME);
+			dir = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR);
+			filename = LaunchProperties.get(DefaultLaunchKeys.DEBUG_PROJECT_FILENAME);
 			if (dir == null || filename == null) {
 				if (verbose) {
 					System.err.println("Warning - you are trying to access the default debug project properties file, but there is no '"
-														 + LaunchKey.DEBUG_PROJECT_FILENAME + "=' property listed in '"
+														 + DefaultLaunchKeys.DEBUG_PROJECT_FILENAME + "=' property listed in '"
 														 + LaunchProperties.propertiesFile()
 														 + "'. The default filename is being set to \"default.properties\" in the current directory. However, if that does not exist either, then the program will likely end in an error.");
 				}
