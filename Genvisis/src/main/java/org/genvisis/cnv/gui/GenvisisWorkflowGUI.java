@@ -425,7 +425,6 @@ public class GenvisisWorkflowGUI extends JDialog {
 
 		GenvisisWorkflow.Requirement[][] reqs = step.getRequirements();
 
-		String reqSteps = "abcdefghijklmnop"; // probably won't need that many
 		if (reqs.length > 0) {
 			JLabel reqLbl = new JLabel("Requires:");
 			panel.contentPanel.add(reqLbl, "cell 0 1");
@@ -434,10 +433,10 @@ public class GenvisisWorkflowGUI extends JDialog {
 			int rowIndex = 2;
 			for (int i = 0; i < reqs.length; i++) {
 				// AND
-
+				char subLetter = 'a';
 				for (int j = 0; j < reqs[i].length; j++) {
 					// OR
-					JLabel indLbl = new JLabel("" + (i + 1) + (reqs[i].length > 1 ? reqSteps.charAt(j) : "")
+					JLabel indLbl = new JLabel(String.valueOf(i + 1) + (reqs[i].length > 1 ? subLetter++ : "")
 																		 + ". ");
 					indLbl.setFont(indLbl.getFont().deriveFont(Font.PLAIN, 9));
 					panel.contentPanel.add(indLbl, "gapleft 25, aligny top, split 1, cell 0 " + rowIndex);
@@ -514,9 +513,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 
 								@Override
 								public void actionPerformed(ActionEvent e) {
-									String[] parts = e.getActionCommand().split(":");
-									int fieldIndex = Integer.parseInt(parts[1]);
-									JTextField fileField = (JTextField) varFields.get(step).get(fieldIndex);
+									JTextField fileField = (JTextField) varFields.get(step).get(req);
 
 									String current = fileField.getText();
 
@@ -524,21 +521,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 																									: ext.parseDirectoryOfFile(current);
 									JFileChooser chooser = new JFileChooser(dir);
 									chooser.setMultiSelectionEnabled(false);
-									GenvisisWorkflow.Requirement[][] reqs = step.getRequirements();
-									int accum = 0;
-									GenvisisWorkflow.RequirementInputType type = null;
-									outer: for (GenvisisWorkflow.Requirement[] group : reqs) {
-										for (GenvisisWorkflow.Requirement req : group) {
-											if (req.getType() == GenvisisWorkflow.RequirementInputType.NONE) {
-												continue;
-											}
-											if (accum == fieldIndex) {
-												type = req.getType();
-												break outer;
-											}
-											accum++;
-										}
-									}
+									GenvisisWorkflow.RequirementInputType type = req.getType();
 
 									if (type == GenvisisWorkflow.RequirementInputType.FILE) {
 										chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -565,7 +548,6 @@ public class GenvisisWorkflowGUI extends JDialog {
 								}
 							});
 							fileBtn.setText("...");
-							fileBtn.setActionCommand(String.valueOf(reqInputFields.size() - 1));
 							fileBtn.setMargin(new Insets(1, 4, 0, 3));
 							panel.contentPanel.add(fileBtn, "cell 1 " + rowIndex);
 							ArrayList<JButton> list = fileBtns.get(step);
@@ -730,11 +712,20 @@ public class GenvisisWorkflowGUI extends JDialog {
 									int lblIndex = 0;
 									for (GenvisisWorkflow.Requirement[] group : step.getRequirements()) {
 										boolean hasAny = false;
-										for (GenvisisWorkflow.Requirement req : group) {
-											boolean reqMet = req.checkRequirement(variables.get(step).get(req),
-																														selectedSteps, variables);
+										boolean[] reqsMet = new boolean[group.length];
+										for (int i = 0; i < group.length; i++) {
+											GenvisisWorkflow.Requirement req = group[i];
+											boolean met = req.checkRequirement(variables.get(step).get(req),
+																												 selectedSteps, variables);
+											if (met) {
+												hasAny = true;
+											}
+											reqsMet[i] = met;
+										}
+										for (int i = 0; i < reqsMet.length; i++) {
 											reqLbls.get(lblIndex)
-														 .setForeground(reqMet ? greenDark : hasAny ? Color.GRAY : Color.RED);
+														 .setForeground(reqsMet[i] ? greenDark
+																											 : hasAny ? Color.GRAY : Color.RED);
 											lblIndex++;
 										}
 									}
