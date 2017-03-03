@@ -25,6 +25,7 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.genvisis.CLI;
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
+import org.genvisis.cnv.LaunchProperties.LaunchKey;
 import org.genvisis.common.AbstractStartupCheck;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
@@ -40,10 +41,25 @@ import org.genvisis.seq.manage.VCFOps;
  */
 public final class Resources {
 
+	private static final double MS_IN_DAY = 8.64e+7;
 	public static final String DEFAULT_URL = "http://genvisis.org/rsrc/";
 	public static final String BIN_DIR = "bin";
 	public static final String GENOME_DIR = "Genome";
 	private static Set<Resource> allResources = null;
+
+	public enum ResourceLaunchKeys implements LaunchKey {
+		LAST_RESOURCE_CHECK;
+
+		@Override
+		public String defaultValue() {
+			return "0";
+		}
+
+		@Override
+		public boolean isDir() {
+			return false;
+		}
+	}
 
 	private Resources() {
 		// prevent instantiation of utility class
@@ -61,19 +77,25 @@ public final class Resources {
 
 		@Override
 		protected void doCheck() {
-			System.out.print("Validating local resources... ");
-			for (Resource rsrc : listAll()) {
-				String localMD5 = rsrc.getMD5Local();
-				if (localMD5 == null) {
-					continue;
-				}
-				String remoteMD5 = rsrc.getMD5Remote();
+			String lastCheck = LaunchProperties.get(ResourceLaunchKeys.LAST_RESOURCE_CHECK);
+			// Only check once a day
+			if (lastCheck == null || System.currentTimeMillis() - Long.parseLong(lastCheck) > MS_IN_DAY) {
+				System.out.print("Validating local resources... ");
+				for (Resource rsrc : listAll()) {
+					String localMD5 = rsrc.getMD5Local();
+					if (localMD5 == null) {
+						continue;
+					}
+					String remoteMD5 = rsrc.getMD5Remote();
 
-				if (remoteMD5 != null && !remoteMD5.equals(localMD5)) {
-					addMessage(rsrc.getLocalPath());
+					if (remoteMD5 != null && !remoteMD5.equals(localMD5)) {
+						addMessage(rsrc.getLocalPath());
+					}
 				}
+				System.out.println("done.");
+				LaunchProperties.put(ResourceLaunchKeys.LAST_RESOURCE_CHECK,
+														 String.valueOf(System.currentTimeMillis()));
 			}
-			System.out.println("done.");
 		}
 	}
 
