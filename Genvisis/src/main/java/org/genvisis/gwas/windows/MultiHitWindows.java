@@ -330,15 +330,29 @@ public class MultiHitWindows {
 																			true, log, false)[0];
 			int posIndex = ext.indexFactors(new String[][] {pFile.getPos()}, line, false, false, true,
 																			true, log, false)[0];
-			int[] pvalIndices = ext.indexFactors(pFile.getPvals(), line, false, log, false, true);
+			int[] pvalIndices = ext.indexFactors(pFile.getPvals(), line, false, log, false, false);
 
-			if (markerIndex == -1 || chrIndex == -1 || posIndex == -1
-					|| ArrayUtils.min(pvalIndices) == -1) {
-
-				log.reportError("Aborting after failing to find the appropriate column headers in file "
+			if (markerIndex == -1 || chrIndex == -1 || posIndex == -1) {
+				log.reportError("Aborting - did not find identifying column headers (marker, chr, position) in file: "
 												+ pFile.getFile());
 				return null;
+			} else if (ArrayUtils.max(pvalIndices) == -1) {
+				log.reportError("Aborting - no p-value columns found in file: " + pFile.getFile());
+				return null;
 			}
+
+			// Report and prune any missing p-val columns
+			boolean[] use = new boolean[pvalIndices.length];
+			for (int i = 0; i < pvalIndices.length; i++) {
+				if (pvalIndices[i] == -1) {
+					log.reportTimeWarning("Column: " + pFile.getPvals()[i] + " not found in file: "
+																+ pFile.getFile());
+				} else {
+					use[i] = true;
+				}
+			}
+			pvalIndices = ArrayUtils.subArray(pvalIndices, use);
+			pFile.pvals(ArrayUtils.subArray(pFile.getPvals(), use));
 
 			String name;
 			byte chr;
