@@ -977,7 +977,11 @@ public final class Resources {
 		public AbstractResource(String path, String url, Logger log) {
 			localPath = path;
 			remotePath = url;
-			this.log = log;
+			if (log == null) {
+				this.log = new Logger();
+			} else {
+				this.log = log;
+			}
 			rsrc = new File(path).getName();
 		}
 
