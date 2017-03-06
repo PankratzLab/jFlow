@@ -18,31 +18,34 @@ import com.google.common.collect.Lists;
 public abstract class Qc {
 
 	protected static final String DEFAULT_PLINKROOT = "plink";
-	public static final String QC_DIR = "quality_control/";
+	public static final String QC_SUBDIR = "quality_control/";
+	public static final String MARKER_QC_DROPS = "miss_drops.dat";
 
-	protected final String dir;
-	protected final String plink;
+	protected final String sourceDir;
+	protected final String qcDir;
+	protected final String plinkroot;
 	protected final Logger log;
 	protected final Map<QC_METRIC, String> markerQCThresholds;
 
 
 
 	/**
-	 * @param dir Directory with plink files to run from
+	 * @param sourceDir Directory with plink files to run from
 	 * @param plinkPrefix prefix of plink binaries
 	 * @param markerQCThresholds thresholds to apply for each desired marker QC metric, {@code null}
 	 *        for defaults
 	 * @param log
 	 */
-	protected Qc(String dir, String plinkPrefix, Map<QC_METRIC, String> markerQCThresholds,
+	protected Qc(String sourceDir, String plinkPrefix, Map<QC_METRIC, String> markerQCThresholds,
 							 Logger log) {
 		super();
-		dir = ext.verifyDirFormat(dir) + QC_DIR;
-		if (!dir.startsWith("/") && !dir.contains(":")) {
-			dir = ext.verifyDirFormat((new File("./" + dir)).getAbsolutePath());
+		sourceDir = ext.verifyDirFormat(sourceDir);
+		if (!sourceDir.startsWith("/") && !sourceDir.contains(":")) {
+			sourceDir = ext.verifyDirFormat((new File("./" + sourceDir)).getAbsolutePath());
 		}
-		this.dir = dir;
-		this.plink = plinkPrefix == null ? DEFAULT_PLINKROOT : plinkPrefix;
+		this.sourceDir = sourceDir;
+		this.qcDir = sourceDir + QC_SUBDIR;
+		this.plinkroot = plinkPrefix == null ? DEFAULT_PLINKROOT : plinkPrefix;
 		this.markerQCThresholds = markerQCThresholds == null ? MarkerQC.DEFAULT_METRIC_THRESHOLDS
 																												 : markerQCThresholds;
 		this.log = log;
@@ -51,16 +54,18 @@ public abstract class Qc {
 
 
 	private boolean makeMarkerQCBED(String subDir, String sampleSubsetFile) {
-		new File(dir + subDir).mkdirs();
-		List<String> commands = Lists.newArrayList("plink2", "--noweb", "--bfile", "../../" + plink,
-																							 "--make-bed", "--out", plink);
+		new File(qcDir + subDir).mkdirs();
+		String inRoot = sourceDir + plinkroot;
+		String outRoot = qcDir + subDir + plinkroot;
+		List<String> commands = Lists.newArrayList("plink2", "--noweb", "--bfile", inRoot, "--make-bed",
+																							 "--out", outRoot);
 		if (sampleSubsetFile != null) {
 			commands.add("--keep");
 			commands.add(sampleSubsetFile);
 		}
-		Set<String> inputs = PSF.Plink.getPlinkBedBimFamSet("../../" + plink);
-		Set<String> outputs = PSF.Plink.getPlinkBedBimFamSet(plink);
-		return CmdLine.runCommandWithFileChecks(commands, dir + subDir, inputs, outputs, true, false,
+		Set<String> inputs = PSF.Plink.getPlinkBedBimFamSet(inRoot);
+		Set<String> outputs = PSF.Plink.getPlinkBedBimFamSet(outRoot);
+		return CmdLine.runCommandWithFileChecks(commands, "", inputs, outputs, true, false,
 																						true, log);
 	}
 
@@ -74,7 +79,7 @@ public abstract class Qc {
 		}
 		Set<String> inputs = PSF.Plink.getPlinkBedBimFamSet(mind10);
 		Set<String> outputs = ImmutableSet.of("hardy.hwe");
-		return CmdLine.runCommandWithFileChecks(commands, dir + subDir, inputs, outputs, true, false,
+		return CmdLine.runCommandWithFileChecks(commands, qcDir + subDir, inputs, outputs, true, false,
 																						true, log);
 	}
 
@@ -90,74 +95,75 @@ public abstract class Qc {
 			return false;
 		}
 
-		String geno20 = plink + "_geno20";
-		if (!Files.exists(dir + subDir + geno20 + ".bed")) {
+		String geno20 = plinkroot + "_geno20";
+		if (!Files.exists(qcDir + subDir + geno20 + ".bed")) {
 			log.report(ext.getTime() + "]\tRunning --geno 0.2");
-			CmdLine.runDefaults("plink2 --bfile " + plink + " --geno 0.2 --make-bed --noweb --out ./"
-													+ geno20, dir + subDir, log);
+			CmdLine.runDefaults("plink2 --bfile " + plinkroot + " --geno 0.2 --make-bed --noweb --out ./"
+													+ geno20, qcDir + subDir, log);
 		}
 		PSF.checkInterrupted();
 		String geno20mind10 = geno20 + "_mind10";
-		if (!Files.exists(dir + subDir + geno20mind10 + ".bed")) {
+		if (!Files.exists(qcDir + subDir + geno20mind10 + ".bed")) {
 			log.report(ext.getTime() + "]\tRunning --mind 0.1");
 			CmdLine.runDefaults("plink2 --bfile " + geno20 + " --mind 0.1 --make-bed --noweb --out ./"
-													+ geno20mind10, dir + subDir, log);
+													+ geno20mind10, qcDir + subDir, log);
 		}
 		PSF.checkInterrupted();
-		String mind10 = plink + "_mind10";
-		if (!Files.exists(dir + subDir + mind10 + ".bed")) {
+		String mind10 = plinkroot + "_mind10";
+		if (!Files.exists(qcDir + subDir + mind10 + ".bed")) {
 			log.report(ext.getTime() + "]\tRemoving trimmed samples from --mind 0.1");
-			CmdLine.runDefaults("plink2 --bfile " + plink + " --keep " + geno20mind10
-													+ ".fam --make-bed --noweb --out ./" + mind10, dir + subDir, log);
+			CmdLine.runDefaults("plink2 --bfile " + plinkroot + " --keep " + geno20mind10
+													+ ".fam --make-bed --noweb --out ./" + mind10, qcDir + subDir, log);
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + subDir + "freq.frq")) {
+		if (!Files.exists(qcDir + subDir + "freq.frq")) {
 			log.report(ext.getTime() + "]\tRunning --freq");
 			CmdLine.runDefaults("plink2 --bfile " + mind10
-													+ " --geno 1 --mind 1 --freq --out freq --noweb", dir + subDir, log);
+													+ " --geno 1 --mind 1 --freq --out freq --noweb", qcDir + subDir, log);
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + subDir + "missing.imiss")) {
+		if (!Files.exists(qcDir + subDir + "missing.imiss")) {
 			log.report(ext.getTime() + "]\tRunning --missing");
 			CmdLine.runDefaults("plink2 --bfile " + mind10
-													+ " --geno 1 --mind 1 --missing --out missing --noweb", dir + subDir,
+													+ " --geno 1 --mind 1 --missing --out missing --noweb", qcDir + subDir,
 													log);
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + subDir + "test.missing.missing")) {
+		if (!Files.exists(qcDir + subDir + "test.missing.missing")) {
 			log.report(ext.getTime() + "]\tRunning --test-missing");
 			CmdLine.runDefaults("plink2 --bfile " + mind10
 													+ " --geno 1 --mind 1 --test-missing --out test.missing --noweb",
-													dir + subDir, log);
+													qcDir + subDir, log);
 		}
 		PSF.checkInterrupted();
 		runHWE(subDir, mind10, hweSampleSubsetFile);
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + subDir + "mishap.missing.hap")) {
+		if (!Files.exists(qcDir + subDir + "mishap.missing.hap")) {
 			log.report(ext.getTime() + "]\tRunning --test-mishap");
 			CmdLine.runDefaults("plink2 --bfile " + geno20mind10
-													+ " --geno 1 --mind 1 --test-mishap --out mishap --noweb", dir + subDir,
+													+ " --geno 1 --mind 1 --test-mishap --out mishap --noweb",
+													qcDir + subDir,
 													log);
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + subDir + "gender.assoc")) {
+		if (!Files.exists(qcDir + subDir + "gender.assoc")) {
 			log.report(ext.getTime() + "]\tRunning --assoc gender");
 			CmdLine.runDefaults("plink2 --bfile " + mind10 + " --geno 1 --mind 1 --pheno " + mind10
-													+ ".fam --mpheno 3 --assoc --out gender --noweb", dir + subDir, log);
+													+ ".fam --mpheno 3 --assoc --out gender --noweb", qcDir + subDir, log);
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + subDir + "gender.missing")) {
+		if (!Files.exists(qcDir + subDir + "gender.missing")) {
 			log.report(ext.getTime() + "]\tRunning --test-missing gender");
 			CmdLine.runDefaults("plink2 --bfile " + mind10 + " --geno 1 --mind 1 --pheno " + mind10
-													+ ".fam --mpheno 3 --test-missing --out gender --noweb", dir + subDir,
+													+ ".fam --mpheno 3 --test-missing --out gender --noweb", qcDir + subDir,
 													log);
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + subDir + "miss_drops.dat")) {
-			MarkerQC.generateCRF(dir + subDir, dir + subDir + "miss.crf", markerQCThresholds);
-			int runCode = MarkerQC.parseParameters(dir + subDir + "miss.crf", log, false);
+		if (!Files.exists(qcDir + subDir + MARKER_QC_DROPS)) {
+			MarkerQC.generateCRF(qcDir + subDir, qcDir + subDir + "miss.crf", markerQCThresholds);
+			int runCode = MarkerQC.parseParameters(qcDir + subDir + "miss.crf", log, false);
 			if (runCode != 0) {
-				log.reportError("Failed to perform marker QC with " + dir + subDir + "miss.crf");
+				log.reportError("Failed to perform marker QC with " + qcDir + subDir + "miss.crf");
 				return false;
 			}
 		}

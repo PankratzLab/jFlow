@@ -381,7 +381,7 @@ public class ImputationPrep {
 
 		RelationAncestryQc.fullGamut(proj.PROJECT_DIRECTORY.getValue() + targetDir,
 								 filteredPlinkroot, true, log);
-		String qcPlinkroot = proj.PROJECT_DIRECTORY.getValue() + targetDir + Qc.QC_DIR
+		String qcPlinkroot = proj.PROJECT_DIRECTORY.getValue() + targetDir + Qc.QC_SUBDIR
 												 + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR + filteredPlinkroot
 												 + FurtherAnalysisQc.FURTHER_ANALYSIS_QC_PLINK_SUFFIX;
 		if (!PSF.Plink.allFilesExist(qcPlinkroot, true)) {

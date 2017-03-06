@@ -30,9 +30,10 @@ public class RelationAncestryQc extends Qc {
 	public static final String UNRELATEDS_FILENAME = "unrelateds.txt";
 
 	/** A rough listing of the Folders created by fullGamut */
-	public static String[] FOLDERS_CREATED = {Qc.QC_DIR + MARKER_QC_DIR, Qc.QC_DIR + SAMPLE_QC_DIR,
-																						Qc.QC_DIR + LD_PRUNING_DIR,
-																						Qc.QC_DIR + GENOME_DIR, Qc.QC_DIR + ANCESTRY_DIR};
+	public static String[] FOLDERS_CREATED = {Qc.QC_SUBDIR + MARKER_QC_DIR,
+																						Qc.QC_SUBDIR + SAMPLE_QC_DIR,
+																						Qc.QC_SUBDIR + LD_PRUNING_DIR,
+																						Qc.QC_SUBDIR + GENOME_DIR, Qc.QC_SUBDIR + ANCESTRY_DIR};
 	/** A rough listing of the files created, by folder, by fullGamut */
 	// TODO: This does not accommodate cases where the plinkroot is something other than
 	// Qc.DEFAULT_PLINKROOT
@@ -43,7 +44,7 @@ public class RelationAncestryQc extends Qc {
 																																					 * not actually necessary
 																																					 */ "hardy.hwe",
 																						 "mishap.missing.hap", "gender.assoc", "gender.missing",
-																						 "miss_drops.dat"},
+																						 MARKER_QC_DROPS},
 																						{Qc.DEFAULT_PLINKROOT + ".bed", "missing.imiss"},
 																						{Qc.DEFAULT_PLINKROOT + ".bed",
 																						 Qc.DEFAULT_PLINKROOT + ".prune.in"},
@@ -58,9 +59,9 @@ public class RelationAncestryQc extends Qc {
 	/**
 	 * @see Qc#Qc(String, String, Map, Logger)
 	 */
-	public RelationAncestryQc(String dir, String plinkPrefix,
+	public RelationAncestryQc(String soureDir, String plinkPrefix,
 														Map<QC_METRIC, String> markerQCThresholds, Logger log) {
-		super(dir, plinkPrefix, markerQCThresholds, log);
+		super(soureDir, plinkPrefix, markerQCThresholds, log);
 	}
 
 	public void run(boolean keepGenomeInfoForRelatedsOnly) {
@@ -70,97 +71,99 @@ public class RelationAncestryQc extends Qc {
 			return;
 		}
 
-		new File(dir + RelationAncestryQc.SAMPLE_QC_DIR).mkdirs();
-		if (!Files.exists(dir + RelationAncestryQc.SAMPLE_QC_DIR + plink + ".bed")) {
-			log.report(ext.getTime() + "]\tRunning --exclude miss_drops.dat");
-			CmdLine.runDefaults("plink2 --bfile ../" + RelationAncestryQc.MARKER_QC_DIR + plink
-													+ " --exclude ../" + RelationAncestryQc.MARKER_QC_DIR
-													+ "miss_drops.dat --make-bed --noweb --out "
-													+ plink, dir + RelationAncestryQc.SAMPLE_QC_DIR, log);
+		new File(qcDir + RelationAncestryQc.SAMPLE_QC_DIR).mkdirs();
+		if (!Files.exists(qcDir + RelationAncestryQc.SAMPLE_QC_DIR + plinkroot + ".bed")) {
+			log.report(ext.getTime() + "]\tRunning --exclude " + MARKER_QC_DROPS);
+			CmdLine.runDefaults("plink2 --bfile ../" + RelationAncestryQc.MARKER_QC_DIR + plinkroot
+													+ " --exclude ../" + RelationAncestryQc.MARKER_QC_DIR + MARKER_QC_DROPS
+													+ " --make-bed --noweb --out " + plinkroot,
+													qcDir + RelationAncestryQc.SAMPLE_QC_DIR, log);
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + RelationAncestryQc.SAMPLE_QC_DIR + "missing.imiss")) {
+		if (!Files.exists(qcDir + RelationAncestryQc.SAMPLE_QC_DIR + "missing.imiss")) {
 			log.report(ext.getTime() + "]\tRunning --missing");
-			CmdLine.runDefaults("plink2 --bfile " + plink
+			CmdLine.runDefaults("plink2 --bfile " + plinkroot
 													+ " --geno 1 --mind 1 --missing --out missing --noweb",
-													dir + RelationAncestryQc.SAMPLE_QC_DIR, log);
+													qcDir + RelationAncestryQc.SAMPLE_QC_DIR, log);
 		}
 		PSF.checkInterrupted();
 
-		new File(dir + RelationAncestryQc.LD_PRUNING_DIR).mkdirs();
-		if (!Files.exists(dir + RelationAncestryQc.LD_PRUNING_DIR + plink + ".bed")) {
+		new File(qcDir + RelationAncestryQc.LD_PRUNING_DIR).mkdirs();
+		if (!Files.exists(qcDir + RelationAncestryQc.LD_PRUNING_DIR + plinkroot + ".bed")) {
 			log.report(ext.getTime()
 								 + "]\tRunning --mind 0.05 (removes samples with callrate <95% for the markers that did pass QC)");
-			CmdLine.runDefaults("plink2 --bfile ../" + RelationAncestryQc.SAMPLE_QC_DIR + plink
-													+ " --mind 0.05 --make-bed --noweb --out " + plink,
-													dir + RelationAncestryQc.LD_PRUNING_DIR,
+			CmdLine.runDefaults("plink2 --bfile ../" + RelationAncestryQc.SAMPLE_QC_DIR + plinkroot
+													+ " --mind 0.05 --make-bed --noweb --out " + plinkroot,
+													qcDir + RelationAncestryQc.LD_PRUNING_DIR,
 													log);
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + RelationAncestryQc.LD_PRUNING_DIR + plink + ".prune.in")) {
+		if (!Files.exists(qcDir + RelationAncestryQc.LD_PRUNING_DIR + plinkroot + ".prune.in")) {
 			log.report(ext.getTime() + "]\tRunning --indep-pairwise 50 5 0.3");
-			CmdLine.runDefaults("plink2 --noweb --bfile " + plink + " --indep-pairwise 50 5 0.3 --out "
-													+ plink, dir + RelationAncestryQc.LD_PRUNING_DIR, log);
+			CmdLine.runDefaults("plink2 --noweb --bfile " + plinkroot
+													+ " --indep-pairwise 50 5 0.3 --out "
+													+ plinkroot, qcDir + RelationAncestryQc.LD_PRUNING_DIR, log);
 		}
 		PSF.checkInterrupted();
 
-		new File(dir + RelationAncestryQc.GENOME_DIR).mkdirs();
-		if (!Files.exists(dir + RelationAncestryQc.GENOME_DIR + plink + ".bed")) {
-			log.report(ext.getTime() + "]\tRunning --extract " + plink + ".prune.in");
-			CmdLine.runDefaults("plink2 --bfile ../" + RelationAncestryQc.LD_PRUNING_DIR + plink
+		new File(qcDir + RelationAncestryQc.GENOME_DIR).mkdirs();
+		if (!Files.exists(qcDir + RelationAncestryQc.GENOME_DIR + plinkroot + ".bed")) {
+			log.report(ext.getTime() + "]\tRunning --extract " + plinkroot + ".prune.in");
+			CmdLine.runDefaults("plink2 --bfile ../" + RelationAncestryQc.LD_PRUNING_DIR + plinkroot
 													+ " --extract ../"
 													+ RelationAncestryQc.LD_PRUNING_DIR
-													+ plink + ".prune.in --make-bed --noweb --out " + plink,
-													dir + RelationAncestryQc.GENOME_DIR,
+													+ plinkroot + ".prune.in --make-bed --noweb --out " + plinkroot,
+													qcDir + RelationAncestryQc.GENOME_DIR,
 													log);
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + RelationAncestryQc.GENOME_DIR + plink + ".genome")) {
+		if (!Files.exists(qcDir + RelationAncestryQc.GENOME_DIR + plinkroot + ".genome")) {
 			log.report(ext.getTime() + "]\tRunning --genome"
 								 + (keepGenomeInfoForRelatedsOnly ? " --min 0.1" : ""));
-			CmdLine.runDefaults("plink2 --noweb --bfile " + plink + " --genome"
-													+ (keepGenomeInfoForRelatedsOnly ? " --min 0.1" : "") + " --out " + plink,
-													dir + RelationAncestryQc.GENOME_DIR, log);
+			CmdLine.runDefaults("plink2 --noweb --bfile " + plinkroot + " --genome"
+													+ (keepGenomeInfoForRelatedsOnly ? " --min 0.1" : "") + " --out "
+													+ plinkroot,
+													qcDir + RelationAncestryQc.GENOME_DIR, log);
 		}
 		PSF.checkInterrupted();
 		if (!keepGenomeInfoForRelatedsOnly
-				&& !Files.exists(dir + RelationAncestryQc.GENOME_DIR + "mds20.mds")) {
+				&& !Files.exists(qcDir + RelationAncestryQc.GENOME_DIR + "mds20.mds")) {
 			log.report(ext.getTime() + "]\tRunning --mds-plot 20");
-			CmdLine.runDefaults("plink2 --bfile " + plink + " --read-genome " + plink
+			CmdLine.runDefaults("plink2 --bfile " + plinkroot + " --read-genome " + plinkroot
 													+ ".genome --cluster --mds-plot 20 --out mds20 --noweb",
-													dir + RelationAncestryQc.GENOME_DIR,
+													qcDir + RelationAncestryQc.GENOME_DIR,
 													log);
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + RelationAncestryQc.GENOME_DIR + plink + ".genome_keep.dat")) {
+		if (!Files.exists(qcDir + RelationAncestryQc.GENOME_DIR + plinkroot + ".genome_keep.dat")) {
 			log.report(ext.getTime() + "]\tRunning flagRelateds");
-			String lrrFile = dir + RelationAncestryQc.GENOME_DIR + "lrr_sd.xln";
+			String lrrFile = qcDir + RelationAncestryQc.GENOME_DIR + "lrr_sd.xln";
 			if (!Files.exists(lrrFile)) {
-				lrrFile = dir + "../../lrr_sd.xln";
+				lrrFile = qcDir + "../../lrr_sd.xln";
 			}
-			Plink.flagRelateds(dir + RelationAncestryQc.GENOME_DIR + plink + ".genome",
-												 dir + RelationAncestryQc.GENOME_DIR + plink + ".fam",
-												 dir + RelationAncestryQc.MARKER_QC_DIR + "missing.imiss", lrrFile,
+			Plink.flagRelateds(qcDir + RelationAncestryQc.GENOME_DIR + plinkroot + ".genome",
+												 qcDir + RelationAncestryQc.GENOME_DIR + plinkroot + ".fam",
+												 qcDir + RelationAncestryQc.MARKER_QC_DIR + "missing.imiss", lrrFile,
 												 Plink.FLAGS,
 												 Plink.THRESHOLDS, 4,
 												 false);
 		}
 		PSF.checkInterrupted();
 
-		new File(dir + RelationAncestryQc.ANCESTRY_DIR).mkdirs();
-		if (!Files.exists(dir + RelationAncestryQc.ANCESTRY_DIR + UNRELATEDS_FILENAME)) {
-			log.report(ext.getTime() + "]\tCopying " + RelationAncestryQc.GENOME_DIR + plink
+		new File(qcDir + RelationAncestryQc.ANCESTRY_DIR).mkdirs();
+		if (!Files.exists(qcDir + RelationAncestryQc.ANCESTRY_DIR + UNRELATEDS_FILENAME)) {
+			log.report(ext.getTime() + "]\tCopying " + RelationAncestryQc.GENOME_DIR + plinkroot
 								 + ".genome_keep.dat to " + RelationAncestryQc.ANCESTRY_DIR + UNRELATEDS_FILENAME);
-			Files.copyFile(dir + RelationAncestryQc.GENOME_DIR + plink + ".genome_keep.dat",
-										 dir + RelationAncestryQc.ANCESTRY_DIR + UNRELATEDS_FILENAME);
+			Files.copyFile(qcDir + RelationAncestryQc.GENOME_DIR + plinkroot + ".genome_keep.dat",
+										 qcDir + RelationAncestryQc.ANCESTRY_DIR + UNRELATEDS_FILENAME);
 		}
 		PSF.checkInterrupted();
-		if (!Files.exists(dir + RelationAncestryQc.ANCESTRY_DIR + plink + ".bed")) {
-			log.report(ext.getTime() + "]\tRunning --extract " + plink
+		if (!Files.exists(qcDir + RelationAncestryQc.ANCESTRY_DIR + plinkroot + ".bed")) {
+			log.report(ext.getTime() + "]\tRunning --extract " + plinkroot
 								 + ".prune.in (again, this time to " + RelationAncestryQc.ANCESTRY_DIR + ")");
-			CmdLine.runDefaults("plink2 --bfile ../" + RelationAncestryQc.GENOME_DIR + plink
+			CmdLine.runDefaults("plink2 --bfile ../" + RelationAncestryQc.GENOME_DIR + plinkroot
 													+ " --make-bed --noweb --out "
-													+ plink, dir + RelationAncestryQc.ANCESTRY_DIR, log);
+													+ plinkroot, qcDir + RelationAncestryQc.ANCESTRY_DIR, log);
 		}
 		PSF.checkInterrupted();
 

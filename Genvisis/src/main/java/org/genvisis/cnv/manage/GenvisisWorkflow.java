@@ -1400,9 +1400,9 @@ public class GenvisisWorkflow {
 			public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
 				String dir = getPlinkDir();
 				RelationAncestryQc.fullGamut(dir, null, false, proj.getLog());
-				if (new File(dir + Qc.QC_DIR + RelationAncestryQc.GENOME_DIR + PLINKROOT
+				if (new File(dir + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR + PLINKROOT
 										 + ".genome").exists()) {
-					proj.GENOME_CLUSTER_FILENAME.setValue(dir + Qc.QC_DIR + RelationAncestryQc.GENOME_DIR
+					proj.GENOME_CLUSTER_FILENAME.setValue(dir + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR
 																								+ PLINKROOT + ".genome");
 					proj.saveProperties();
 				}
@@ -1416,7 +1416,7 @@ public class GenvisisWorkflow {
 												 + " keepGenomeInfoForRelatedsOnly=false";
 				command += "\n";
 				command += Files.getRunString() + " " + PROJ_PROP_UPDATE_STR + proj.getPropertyFilename();
-				command += " " + proj.GENOME_CLUSTER_FILENAME.getName() + "=" + dir + Qc.QC_DIR
+				command += " " + proj.GENOME_CLUSTER_FILENAME.getName() + "=" + dir + Qc.QC_SUBDIR
 									 + RelationAncestryQc.GENOME_DIR + PLINKROOT + ".genome";
 				command += "\n";
 				command += Files.getRunString() + " org.genvisis.gwas.PlinkMendelianChecker proj="
@@ -1600,7 +1600,7 @@ public class GenvisisWorkflow {
 
 			@Override
 			public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
-				String dir = getPlinkDir() + Qc.QC_DIR + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR;
+				String dir = getPlinkDir() + Qc.QC_SUBDIR + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR;
 				String qcdPlinkroot = PLINKROOT + FurtherAnalysisQc.FURTHER_ANALYSIS_QC_PLINK_SUFFIX;
 				return PSF.Plink.bedBimFamExist(dir + qcdPlinkroot);
 			}
@@ -1737,7 +1737,7 @@ public class GenvisisWorkflow {
 																																 .get(skipIDingDuplicatesReq));
 				String duplicatesSetFile = null;
 				if (checkDuplicates) {
-					duplicatesSetFile = getPlinkDir() + Qc.QC_DIR + RelationAncestryQc.GENOME_DIR + PLINKROOT
+					duplicatesSetFile = getPlinkDir() + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR + PLINKROOT
 															+ ".genome_duplicatesSet.dat";
 				}
 				boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this)
@@ -1763,7 +1763,7 @@ public class GenvisisWorkflow {
 																																 .get(skipIDingDuplicatesReq));
 				String duplicatesSetFile = null;
 				if (checkDuplicates) {
-					duplicatesSetFile = getPlinkDir() + Qc.QC_DIR + RelationAncestryQc.GENOME_DIR + PLINKROOT
+					duplicatesSetFile = getPlinkDir() + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR + PLINKROOT
 															+ ".genome_duplicatesSet.dat";
 				}
 				boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this)
@@ -2366,7 +2366,7 @@ public class GenvisisWorkflow {
 	}
 
 	private String getAncestryDir() {
-		return getPlinkDir() + Qc.QC_DIR + RelationAncestryQc.ANCESTRY_DIR;
+		return getPlinkDir() + Qc.QC_SUBDIR + RelationAncestryQc.ANCESTRY_DIR;
 	}
 
 	private int resolveThreads(String arg) {

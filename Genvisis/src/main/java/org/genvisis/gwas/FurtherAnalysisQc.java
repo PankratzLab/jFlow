@@ -47,7 +47,7 @@ public class FurtherAnalysisQc extends Qc {
 
 	/**
 	 * 
-	 * @param dir @see Qc#Qc(String, String, Map, Logger)
+	 * @param sourceDir @see Qc#Qc(String, String, Map, Logger)
 	 * @param plinkPrefix @see Qc#Qc(String, String, Map, Logger)
 	 * @param markerQCThresholds @see Qc#Qc(String, String, Map, Logger)
 	 * @param unrelatedsFile filename of list of unrelated FID/IID pairs to use for marker QC,
@@ -56,27 +56,31 @@ public class FurtherAnalysisQc extends Qc {
 	 *        tests, {@code null} to use all unrelateds
 	 * @param log @see Qc#Qc(String, String, Map, Logger)
 	 */
-	public FurtherAnalysisQc(String dir, String plinkPrefix,
+	public FurtherAnalysisQc(String sourceDir, String plinkPrefix,
 													 Map<QC_METRIC, String> markerQCThresholds,
 													 String unrelatedsFile, String europeansFile,
 													 Logger log) {
-		super(dir, plinkPrefix, markerQCThresholds, log);
+		super(sourceDir, plinkPrefix, markerQCThresholds, log);
 		this.unrelatedsFile = unrelatedsFile;
 		this.europeansFile = europeansFile;
 	}
 
 	public void runFurtherAnalysisQC() {
 		final String subDir = FurtherAnalysisQc.FURTHER_ANALYSIS_DIR;
-		final String plinkQCd = plink + FurtherAnalysisQc.FURTHER_ANALYSIS_QC_PLINK_SUFFIX;
 		if (!markerQc(subDir, unrelatedsFile, europeansFile))
 			return;
-		List<String> applyQCCommand = ImmutableList.of("plink2", "--noweb", "--bfile", plink,
-																									 "--exclude", "miss_drops.dat", "--mind", "0.05",
+		final String sourcePlink = sourceDir + plinkroot;
+		final String drops = qcDir + subDir + MARKER_QC_DROPS;
+		final String plinkQCd = qcDir + subDir + plinkroot
+														+ FurtherAnalysisQc.FURTHER_ANALYSIS_QC_PLINK_SUFFIX;
+		List<String> applyQCCommand = ImmutableList.of("plink2", "--noweb", "--bfile", sourcePlink,
+																									 "--exclude", drops, "--mind", "0.05",
 																									 "--make-bed", "--out", plinkQCd);
-		Set<String> requiredInputs = PSF.Plink.getPlinkBedBimFamSet(plink);
-		requiredInputs.add("miss_drops.dat");
+		Set<String> requiredInputs = PSF.Plink.getPlinkBedBimFamSet(sourcePlink);
+		requiredInputs.add(drops);
 		Set<String> requiredOutputs = PSF.Plink.getPlinkBedBimFamSet(plinkQCd);
-		CmdLine.runCommandWithFileChecks(applyQCCommand, dir + subDir, requiredInputs, requiredOutputs,
+		CmdLine.runCommandWithFileChecks(applyQCCommand, "", requiredInputs,
+																		 requiredOutputs,
 																		 true, false, true, log);
 	}
 

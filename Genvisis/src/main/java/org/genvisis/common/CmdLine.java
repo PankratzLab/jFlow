@@ -97,8 +97,8 @@ public class CmdLine {
 						if (expectedOutputFiles != null
 								&& !Files.exists(dir, expectedOutputFiles, treatEmptyAsMissing)) {
 							log.reportError("Error - the command " + IterableUtils.toStr(commandList, " ")
-															+ " appeared to run, but could not find all necessary output files:"
-															+ IterableUtils.toStr(expectedOutputFiles, "\n"));
+															+ " appeared to run, but could not find all necessary output files in "
+															+ dir + ":" + IterableUtils.toStr(expectedOutputFiles, "\n"));
 						} else {
 							if (verbose) {
 								log.report(ext.getTime() + " Info - finished running command "
@@ -111,7 +111,7 @@ public class CmdLine {
 														+ " has failed");
 					}
 				} else {
-					log.reportError("Error - could not find all necessary input files:\n"
+					log.reportError("Error - could not find all necessary input files in " + dir + ":\n"
 													+ IterableUtils.toStr(necessaryInputFiles, "\n"));
 				}
 			} else {

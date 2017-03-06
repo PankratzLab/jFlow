@@ -43,7 +43,7 @@ import com.google.common.collect.Table;
  * </ul>
  */
 public class CheckPed {
-	private static final String GENOME_PATH = "./plink/" + Qc.QC_DIR + RelationAncestryQc.GENOME_DIR + "plink.genome";
+	private static final String GENOME_PATH = "./plink/" + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR + "plink.genome";
 	private static final String SEXCHECK_PATH = "./results/sexCheck.xln";
 	private static final Double RELATED_THRESHOLD = 0.1;
 
