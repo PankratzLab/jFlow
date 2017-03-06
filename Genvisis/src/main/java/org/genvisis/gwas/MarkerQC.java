@@ -90,29 +90,34 @@ public class MarkerQC {
 		P_GENDER("p-value for sex association"),
 		P_GENDER_MISS("p-value for sex association with missigness");
 
-		final private String key;
-		final private String description;
+		private final String key;
+		private final String description;
 
-		private QC_METRIC(String description) {
+		QC_METRIC(String description) {
 			this(description, null);
 		}
 
-		private QC_METRIC(String description, String key) {
+		QC_METRIC(String description, String key) {
 			this.description = description;
 			this.key = key != null ? key : this.name().toLowerCase();
 		}
 
-		protected String getKey() {
+		public String getKey() {
 			return key;
 		}
 
-		protected String getDescription() {
+		public String getDescription() {
 			return description;
 		}
 
-		protected String getCLIDescription() {
+		public String getCLIDescription() {
+			String userDescription = getUserDescription();
+			return userDescription.substring(0, 1).toLowerCase() + userDescription.substring(1);
+		}
+
+		public String getUserDescription() {
 			StringBuilder descriptionBuilder = new StringBuilder();
-			descriptionBuilder.append("threshold to reject ").append(getDescription())
+			descriptionBuilder.append("Threshold to reject ").append(getDescription())
 												.append(", using: ");
 			descriptionBuilder.append(Joiner.on(", ").join(Maths.OPERATORS));
 			descriptionBuilder.append(" (<0 to not filter)");
@@ -341,19 +346,13 @@ public class MarkerQC {
 			thresholds = new double[params.length - 3];
 			for (int i = 0; i < params.length - 3; i++) {
 				if (!params[i + 3][0].equals("dir")) {
-					for (String element : Maths.OPERATORS) {
-						// try {
-						if (params[i + 3][2].startsWith(element)) {
-							ops[i] = element;
-						}
-						// } catch (Exception e) {
-						// System.err.println("Error: "+Array.toStr(params[i+3]));
-						// }
-					}
-					if (ops[i] == null) {
+					Maths.OPERATOR op = findOperator(params[i + 3][2]);
+					if (op == null) {
 						log.reportError("Error - invalid operator for " + params[i + 3][0] + " ('"
 														+ params[i + 3][2] + "')");
 						System.exit(1);
+					} else {
+						ops[i] = op.getSymbol();
 					}
 					try {
 						thresholds[i] = Double.parseDouble(params[i + 3][2].substring(ops[i].length()));
@@ -488,6 +487,14 @@ public class MarkerQC {
 			}
 		}
 		return 0;
+	}
+
+	public static Maths.OPERATOR findOperator(String thresholdString) {
+		for (Maths.OPERATOR op : Maths.OPERATOR.values()) {
+			if (thresholdString.startsWith(op.getSymbol()))
+				return op;
+		}
+		return null;
 	}
 
 	public static int parseParameters(String filename, Logger log, boolean kill) {

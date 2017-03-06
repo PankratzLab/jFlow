@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
@@ -17,6 +18,8 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
+import com.google.common.collect.ImmutableSet;
+
 public class PlinkMendelianChecker {
 	public static final String FAMID = "FID";
 	public static final String INDID = "IID";
@@ -25,6 +28,10 @@ public class PlinkMendelianChecker {
 	public static final String IND_DNA = "DNA";
 	public static final String FATHER_DNA = "FA_DNA";
 	public static final String MOTHER_DNA = "MO_DNA";
+
+	public static final String TRIOS_FILENAME = "trios.xln";
+	public static final String REL_CHECKS_FILENAME = "relationshipChecks.xln";
+	public static final Set<String> OUTPUTS = ImmutableSet.of(TRIOS_FILENAME, REL_CHECKS_FILENAME);
 
 	static class Pair {
 
@@ -280,7 +287,7 @@ public class PlinkMendelianChecker {
 								 + MarkerMetrics.DEFAULT_MENDEL_FILE_SUFFIX;
 		genomeFile = project.GENOME_CLUSTER_FILENAME.getValue();
 		genomeDNA = false;
-		outDir = project.PROJECT_DIRECTORY.getValue(false, false);
+		outDir = parseOutputDirectory(project);
 	}
 
 	public PlinkMendelianChecker(String pedFile, String mendelFile, String genomeFile,
@@ -488,12 +495,12 @@ public class PlinkMendelianChecker {
 
 		sb.append("COMPLETE_TRIO").append("\t");
 
-		System.out.println(ext.getTime() + "]\tWriting result data to " + outDir + "trios.xln");
+		System.out.println(ext.getTime() + "]\tWriting result data to " + outDir + TRIOS_FILENAME);
 
 		int missingCount = 0;
 
 		String outputHeader = sb.toString();
-		writer = Files.getAppropriateWriter(outDir + "trios.xln");
+		writer = Files.getAppropriateWriter(outDir + TRIOS_FILENAME);
 		writer.println(outputHeader);
 		for (int i = 0; i < ped.getIDs().length; i++) {
 			// PedigreeEntry pe = ped.getPedigreeEntries()[i];
@@ -721,19 +728,18 @@ public class PlinkMendelianChecker {
 		System.out.println(ext.getTime() + "]\tMissing genome pair data for " + missingCount
 											 + " individuals");
 
-		writeFamily(gl, pedToFAMO, childrenMap, dnaLookup, idLookup, outDir);
+		writeFamily(gl, pedToFAMO, childrenMap, dnaLookup, idLookup);
 	}
 
 	private void writeFamily(GenomeLoader gl, HashMap<String, String[]> pedToFAMO,
 													 HashMap<String, ArrayList<String>> childrenMap,
-													 HashMap<String, String> dnaLookup, HashMap<String, String> idLookup,
-													 String outDir2) {
+													 HashMap<String, String> dnaLookup, HashMap<String, String> idLookup) {
 		PrintWriter writer;
 		StringBuilder sb;
 
 		HashSet<String> writtenPairs = new HashSet<String>();
 
-		writer = Files.getAppropriateWriter(outDir + "relationshipChecks.xln");
+		writer = Files.getAppropriateWriter(outDir + REL_CHECKS_FILENAME);
 
 		String header = "FID1\tIID1\tDNA1\tFID2\tIID2\tDNA2\tPUTATIVE_REL\t";
 		if (gl != null) {
@@ -1001,6 +1007,10 @@ public class PlinkMendelianChecker {
 
 	public static boolean isValidDNA(String s) {
 		return !s.isEmpty() && !s.equals("0") && !s.equals(".");
+	}
+
+	public static String parseOutputDirectory(Project proj) {
+		return proj.PROJECT_DIRECTORY.getValue();
 	}
 
 	public static void main(String[] args) {

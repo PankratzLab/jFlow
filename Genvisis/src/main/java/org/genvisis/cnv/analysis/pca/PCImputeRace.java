@@ -424,13 +424,16 @@ public class PCImputeRace {
 
 	private static Map<RACE, String> raceListFilenames(String resultFile) {
 		Map<RACE, String> raceFilenames = Maps.newEnumMap(RACE.class);
-		String root = ext.rootOf(resultFile, false);
 		for (RACE race : RACE.values()) {
-			String filename = root + "_" + ext.replaceWithLinuxSafeCharacters(race.description, true)
-												+ "s.dat";
+			String filename = formRaceListFilename(race, resultFile);
 			raceFilenames.put(race, filename);
 		}
 		return raceFilenames;
+	}
+
+	public static String formRaceListFilename(RACE race, String resultFile) {
+		String raceString = ext.replaceWithLinuxSafeCharacters(race.description);
+		return ext.rootOf(resultFile, false) + "_" + raceString + "s.dat";
 	}
 
 	private static int countFounders(String plinkroot, String keepFile) {

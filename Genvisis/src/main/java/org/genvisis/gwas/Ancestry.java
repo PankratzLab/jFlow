@@ -73,8 +73,9 @@ public class Ancestry {
 
 	public static void mergeHapMap(String dir, String projectPlinkRoot, String hapMapPlinkRoot,
 																 String dropMarkersFile, Logger log) {
-		if (!Files.exists(dir + "unrelateds.txt")) {
-			log.reportError("Error - need a file called unrelateds.txt with FID and IID pairs before we can proceed");
+		if (!Files.exists(dir + RelationAncestryQc.UNRELATEDS_FILENAME)) {
+			log.reportError("Error - need a file called " + RelationAncestryQc.UNRELATEDS_FILENAME
+											+ " with FID and IID pairs before we can proceed");
 			return;
 		}
 		if (!Files.exists(dir + "plink.bim_unambiguous.txt")) {
@@ -155,18 +156,22 @@ public class Ancestry {
 
 		String unrelatedsDir = dir + "unrelateds/";
 
-		if (!Files.exists(unrelatedsDir + "unrelateds.txt")) {
-			log.report(ext.getTime() + "]\tGenerating combined unrelateds.txt");
+		if (!Files.exists(unrelatedsDir + RelationAncestryQc.UNRELATEDS_FILENAME)) {
+			log.report(ext.getTime() + "]\tGenerating combined "
+								 + RelationAncestryQc.UNRELATEDS_FILENAME);
 			new File(unrelatedsDir).mkdir();
 			Vector<String> unrelateds = HashVec.loadFileToVec(dir + "unambiguousHapMap.fam", false,
 																												new int[] {0, 1}, false, false);
-			unrelateds.addAll(HashVec.loadFileToVec(dir + "unrelateds.txt", false, false, false));
-			Files.writeIterable(unrelateds, unrelatedsDir + "unrelateds.txt");
+			unrelateds.addAll(HashVec.loadFileToVec(dir + RelationAncestryQc.UNRELATEDS_FILENAME, false,
+																							false, false));
+			Files.writeIterable(unrelateds, unrelatedsDir + RelationAncestryQc.UNRELATEDS_FILENAME);
 		}
 
 		if (!Files.exists(unrelatedsDir + "plink.bed")) {
-			log.report(ext.getTime() + "]\tGenerating PLINK files based on combined unrelateds.txt");
-			CmdLine.runDefaults("plink2 --bfile ../combo --keep unrelateds.txt --make-bed --noweb",
+			log.report(ext.getTime() + "]\tGenerating PLINK files based on combined "
+								 + RelationAncestryQc.UNRELATEDS_FILENAME);
+			CmdLine.runDefaults("plink2 --bfile ../combo --keep " + RelationAncestryQc.UNRELATEDS_FILENAME
+													+ " --make-bed --noweb",
 													unrelatedsDir, log);
 		}
 
@@ -306,7 +311,8 @@ public class Ancestry {
 		Logger log;
 
 		String usage = "\n" + "gwas.Ancestry requires 3+ arguments\n"
-									 + "   (1) Run directory with plink.* files and unrelateds.txt (i.e. dir=" + dir
+									 + "   (1) Run directory with plink.* files and "
+									 + RelationAncestryQc.UNRELATEDS_FILENAME + " (i.e. dir=" + dir
 									 + " (default))\n"
 									 + "   (2) PLINK root of Unambiguous HapMap Founders (i.e. hapMapPlinkRoot="
 									 + hapMapPlinkRoot + " (default))\n" + "   (3) Logfile (i.e. log="

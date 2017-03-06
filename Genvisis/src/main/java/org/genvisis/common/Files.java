@@ -2469,6 +2469,17 @@ public class Files {
 	}
 
 	/**
+	 * {@link #checkAllFiles(String, boolean, Logger, String...)} with {@code verbose=false}
+	 * 
+	 * @param dir directory, set to "" if full paths
+	 * @param filenames array of filenames to check
+	 * @return true if all files exist
+	 */
+	public static boolean checkAllFiles(String dir, String... filenames) {
+		return checkAllFiles(dir, false, false, new Logger(), filenames);
+	}
+
+	/**
 	 * @param dir directory, set to "" if full paths
 	 * @param verbose report an error to the log for each filename missing
 	 * @param log
@@ -2493,13 +2504,26 @@ public class Files {
 		boolean result = true;
 		for (String filename : filenames) {
 			if (!Files.exists(dir + filename, false, treatEmptyAsMissing)) {
-				if (verbose & log != null) {
-					log.reportError("Error - could not find file " + dir + filename);
+				if (!verbose || log == null) {
+					// If not logging, return on first failure
+					return false;
 				}
+				log.reportError("Error - could not find file " + dir + filename);
 				result = false;
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * {@link #checkAllFiles(String, Iterable, boolean, Logger)} with {@code verbose=false}
+	 * 
+	 * @param dir directory, set to "" if full paths
+	 * @param filenames iterable of filenames to check...all will be checked
+	 * @return true if all files exist
+	 */
+	public static boolean checkAllFiles(String dir, Iterable<String> filenames) {
+		return checkAllFiles(dir, filenames, false, false, new Logger());
 	}
 
 	/**
@@ -2527,9 +2551,11 @@ public class Files {
 		boolean result = true;
 		for (String filename : filenames) {
 			if (!Files.exists(dir + filename, false, treatEmptyAsMissing)) {
-				if (verbose & log != null) {
-					log.reportError("Error - could not find file " + dir + filename);
+				if (!verbose || log == null) {
+					// If not logging, return on first failure
+					return false;
 				}
+				log.reportError("Error - could not find file " + dir + filename);
 				result = false;
 			}
 		}

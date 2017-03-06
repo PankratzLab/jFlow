@@ -284,23 +284,23 @@ public class ext {
 
 		return -1;
 	}
-	
+
 	public static boolean startsWithOneOf(String source, String... prefixes) {
 		for (String prefix : prefixes) {
 			if (source.startsWith(prefix)) {
 				return true;
 			}
 		}
-	return false;
+		return false;
 	}
-	
+
 	public static boolean startsWithOneOf(String source, Iterable<String> prefixes) {
 		for (String prefix : prefixes) {
 			if (source.startsWith(prefix)) {
 				return true;
 			}
 		}
-	return false;
+		return false;
 	}
 
 	public static int indexOfStartsWith(String target, String[] array, boolean reverseNotForward) {
@@ -712,6 +712,10 @@ public class ext {
 			return 0;
 		}
 		return (double) num1 / (double) num2;
+	}
+
+	public static String replaceWithLinuxSafeCharacters(String str) {
+		return replaceWithLinuxSafeCharacters(str, true);
 	}
 
 	public static String replaceWithLinuxSafeCharacters(String str, boolean extraSafe) {
@@ -1461,7 +1465,7 @@ public class ext {
 			return false;
 		}
 	}
-	
+
 	public static String parseStringArg(String arg) {
 		return parseStringArg(arg, "");
 	}

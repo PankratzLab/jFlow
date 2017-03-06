@@ -193,20 +193,18 @@ public class PSF {
 		public static final String PED = ".ped";
 		public static final String MAP = ".map";
 
+		public static boolean bedBimFamExist(String plinkDirAndRoot) {
+			return allFilesExist(plinkDirAndRoot, true);
+		}
+
 		public static boolean allFilesExist(String plinkDirAndRoot, boolean bed) {
 			String[] files;
 			if (bed) {
-				files = new String[] {getBED(plinkDirAndRoot), getBIM(plinkDirAndRoot),
-															getFAM(plinkDirAndRoot)};
+				files = getPlinkBedBimFam(plinkDirAndRoot);
 			} else {
 				files = new String[] {getPED(plinkDirAndRoot), getMAP(plinkDirAndRoot)};
 			}
-			for (String file : files) {
-				if (!Files.exists(file)) {
-					return false;
-				}
-			}
-			return true;
+			return Files.checkAllFiles("", files);
 		}
 
 		/**

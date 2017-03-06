@@ -26,6 +26,9 @@ public class RelationAncestryQc extends Qc {
 	public static final String LD_PRUNING_DIR = "ld_pruning/";
 	public static final String GENOME_DIR = "genome/";
 	public static final String ANCESTRY_DIR = "ancestry/";
+
+	public static final String UNRELATEDS_FILENAME = "unrelateds.txt";
+
 	/** A rough listing of the Folders created by fullGamut */
 	public static String[] FOLDERS_CREATED = {Qc.QC_DIR + MARKER_QC_DIR, Qc.QC_DIR + SAMPLE_QC_DIR,
 																						Qc.QC_DIR + LD_PRUNING_DIR,
@@ -47,7 +50,7 @@ public class RelationAncestryQc extends Qc {
 																						{Qc.DEFAULT_PLINKROOT + ".bed",
 																						 Qc.DEFAULT_PLINKROOT + ".genome",
 																						 Qc.DEFAULT_PLINKROOT + ".genome_keep.dat"},
-																						{Qc.DEFAULT_PLINKROOT + ".bed", "unrelateds.txt"}};
+																						{Qc.DEFAULT_PLINKROOT + ".bed", UNRELATEDS_FILENAME}};
 	public static final String ARGS_KEEPGENOME = "keepGenomeInfoForRelatedsOnly";
 
 	private static final Set<QC_METRIC> CUSTOMIZABLE_QC_METRICS = Collections.unmodifiableSet(EnumSet.of(QC_METRIC.CALLRATE));
@@ -145,11 +148,11 @@ public class RelationAncestryQc extends Qc {
 		PSF.checkInterrupted();
 
 		new File(dir + RelationAncestryQc.ANCESTRY_DIR).mkdirs();
-		if (!Files.exists(dir + RelationAncestryQc.ANCESTRY_DIR + "unrelateds.txt")) {
+		if (!Files.exists(dir + RelationAncestryQc.ANCESTRY_DIR + UNRELATEDS_FILENAME)) {
 			log.report(ext.getTime() + "]\tCopying " + RelationAncestryQc.GENOME_DIR + plink
-								 + ".genome_keep.dat to " + RelationAncestryQc.ANCESTRY_DIR + "unrelateds.txt");
+								 + ".genome_keep.dat to " + RelationAncestryQc.ANCESTRY_DIR + UNRELATEDS_FILENAME);
 			Files.copyFile(dir + RelationAncestryQc.GENOME_DIR + plink + ".genome_keep.dat",
-										 dir + RelationAncestryQc.ANCESTRY_DIR + "unrelateds.txt");
+										 dir + RelationAncestryQc.ANCESTRY_DIR + UNRELATEDS_FILENAME);
 		}
 		PSF.checkInterrupted();
 		if (!Files.exists(dir + RelationAncestryQc.ANCESTRY_DIR + plink + ".bed")) {
@@ -214,8 +217,9 @@ public class RelationAncestryQc extends Qc {
 		c.addArgWithDefault(CLI.ARG_PLINKROOT, CLI.DESC_PLINKROOT, Qc.DEFAULT_PLINKROOT);
 		c.addArgWithDefault(RelationAncestryQc.ARGS_KEEPGENOME, "if no MDS will be run, smaller file",
 												String.valueOf(true));
+		Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(MarkerQC.DEFAULT_METRIC_THRESHOLDS);
 		for (QC_METRIC metric : CUSTOMIZABLE_QC_METRICS) {
-			String defaultThreshold = MarkerQC.DEFAULT_METRIC_THRESHOLDS.get(metric);
+			String defaultThreshold = markerQCThresholds.get(metric);
 			c.addArgWithDefault(metric.getKey(), metric.getCLIDescription(), defaultThreshold);
 		}
 		c.addArgWithDefault(CLI.ARG_LOG, CLI.DESC_LOG, "fullGamutOfMarkerAndSampleQC.log");
@@ -225,10 +229,8 @@ public class RelationAncestryQc extends Qc {
 		String dir = c.get(CLI.ARG_INDIR);
 		String inputPlinkroot = c.get(CLI.ARG_PLINKROOT);
 		boolean keepGenomeInfoForRelatedsOnly = Boolean.parseBoolean(c.get(RelationAncestryQc.ARGS_KEEPGENOME));
-		Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(QC_METRIC.class);
 		for (QC_METRIC metric : CUSTOMIZABLE_QC_METRICS) {
-			String defaultThreshold = MarkerQC.DEFAULT_METRIC_THRESHOLDS.get(metric);
-			c.addArgWithDefault(metric.getKey(), metric.getCLIDescription(), defaultThreshold);
+			markerQCThresholds.put(metric, c.get(metric.getKey()));
 		}
 		Logger log = new Logger(dir + c.get(CLI.ARG_LOG));
 
