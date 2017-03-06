@@ -109,7 +109,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 		}
 		proj.getLog().report("Launching Genvisis Project Pipeline");
 		this.steps = steps;
-		selected = Sets.newHashSet(steps);
+		selected = Sets.newTreeSet(steps);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		JPanel optionPanel = new JPanel();

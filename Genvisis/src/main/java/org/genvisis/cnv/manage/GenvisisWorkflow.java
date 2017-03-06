@@ -18,6 +18,8 @@ import org.genvisis.cnv.analysis.AnalysisFormats;
 import org.genvisis.cnv.analysis.Mosaicism;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
+import org.genvisis.cnv.analysis.pca.PCImputeRace;
+import org.genvisis.cnv.analysis.pca.PCImputeRace.RACE;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.filesys.ABLookup;
@@ -38,6 +40,7 @@ import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
 import org.genvisis.cnv.qc.MarkerBlastQC;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
+import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
@@ -46,13 +49,18 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Ancestry;
+import org.genvisis.gwas.FurtherAnalysisQc;
+import org.genvisis.gwas.MarkerQC;
+import org.genvisis.gwas.MarkerQC.QC_METRIC;
 import org.genvisis.gwas.PlinkMendelianChecker;
 import org.genvisis.gwas.Qc;
 import org.genvisis.gwas.RelationAncestryQc;
+import org.genvisis.stats.Maths;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 public class GenvisisWorkflow {
@@ -190,7 +198,7 @@ public class GenvisisWorkflow {
 			int priorityCmp = Double.compare(getPriority(), o.getPriority());
 			if (priorityCmp != 0)
 				return priorityCmp;
-			return Integer.compare(hashCode(), o.hashCode());
+			return Java6Helper.compare(hashCode(), o.hashCode());
 		}
 
 		@Override
@@ -367,7 +375,7 @@ public class GenvisisWorkflow {
 
 		private static String stepReqMessage(Step requiredStep) {
 			return "[" + requiredStep.getName()
-						 + "] step must have been run already or must be selected and valid";
+						 + "] step must have been run already or must be selected";
 		}
 
 
@@ -487,6 +495,14 @@ public class GenvisisWorkflow {
 
 	}
 
+	public static class PosIntRequirement extends IntRequirement {
+
+		public PosIntRequirement(String description, int defaultValue) {
+			super(description, defaultValue, 1, Integer.MAX_VALUE);
+		}
+
+	}
+
 	public static class EnumRequirement extends Requirement {
 
 		public EnumRequirement(String description, Enum<?> defaultValue) {
@@ -510,6 +526,8 @@ public class GenvisisWorkflow {
 	}
 
 	private static final String PROJ_PROP_UPDATE_STR = " org.genvisis.cnv.filesys.Project proj=";
+	private static final String PLINK_SUBDIR = "plink/";
+	private static final String PLINKROOT = "plink";
 	final Project proj;
 	private final SortedSet<Step> steps;
 	private final Requirement numThreadsReq;
@@ -525,16 +543,7 @@ public class GenvisisWorkflow {
 		proj = project;
 		log = project.getLog();
 		this.launch = launch;
-		numThreadsReq = new Requirement("Number of Threads to Use", RequirementInputType.NUMBER,
-																		proj.NUM_THREADS.getValue()) {
-
-			@Override
-			public boolean checkRequirement(String arg, Set<Step> stepSelections,
-																			Map<Step, Map<Requirement, String>> variables) {
-				int numThreads = checkIntArgOrNeg1(arg);
-				return numThreads > 0;
-			}
-		};
+		numThreadsReq = new PosIntRequirement("Number of Threads to Use", proj.NUM_THREADS.getValue());
 
 		steps = Collections.unmodifiableSortedSet(generateSteps());
 	}
@@ -558,33 +567,36 @@ public class GenvisisWorkflow {
 
 	private SortedSet<Step> generateSteps() {
 		SortedSet<Step> buildSteps = Sets.newTreeSet();
-		double priority = 1.0;
+		double priority = 0.0;
 		Step parseSamplesStep;
 		if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
-			parseSamplesStep = generateAffyParseSamplesStep(priority++);
+			parseSamplesStep = generateAffyParseSamplesStep(++priority);
 		} else {
-			Step markerPositions = generateMarkerPositionsStep(priority++);
+			Step markerPositions = generateMarkerPositionsStep(++priority);
 			buildSteps.add(markerPositions);
-			parseSamplesStep = generateIlluminaParseSamplesStep(priority++, markerPositions);
+			parseSamplesStep = generateIlluminaParseSamplesStep(++priority, markerPositions);
 		}
-		Step createSampleDataStep = generateCreateSampleDataStep(priority++, parseSamplesStep);
-		Step transposeStep = generateTransposeStep(priority++, parseSamplesStep);
-		Step gcModelStep = generateGCModelStep(priority++);
-		Step sampleQCStep = generateSampleQCStep(priority++, parseSamplesStep);
-		Step markerQCStep = generateMarkerQCStep(priority++, parseSamplesStep);
-		Step sexChecksStep = generateSexChecksStep(priority++, parseSamplesStep, createSampleDataStep,
+		Step createSampleDataStep = generateCreateSampleDataStep(++priority, parseSamplesStep);
+		Step transposeStep = generateTransposeStep(++priority, parseSamplesStep);
+		Step gcModelStep = generateGCModelStep(++priority);
+		Step sampleQCStep = generateSampleQCStep(++priority, parseSamplesStep);
+		Step markerQCStep = generateMarkerQCStep(++priority, parseSamplesStep);
+		Step sexChecksStep = generateSexChecksStep(++priority, parseSamplesStep, createSampleDataStep,
 																							 transposeStep, sampleQCStep);
-		Step abLookupStep = generateABLookupStep(priority++, parseSamplesStep);
-		Step plinkExportStep = generatePlinkExportStep(priority++, parseSamplesStep);
-		Step gwasQCStep = generateGwasQCStep(priority++, plinkExportStep);
-		Step mosaicArmsStep = generateMosaicArmsStep(priority++, parseSamplesStep);
-		Step annotateSampleDataStep = generateAnnotateSampleDataStep(priority++, sampleQCStep,
+		Step abLookupStep = generateABLookupStep(++priority, parseSamplesStep);
+		Step plinkExportStep = generatePlinkExportStep(++priority, parseSamplesStep);
+		Step gwasQCStep = generateGwasQCStep(++priority, plinkExportStep);
+		Step ancestryStep = generateAncestryStep(++priority, gwasQCStep);
+		Step furtherAnalysisQCStep = generateFurtherAnalysisQCStep(++priority, plinkExportStep,
+																															 gwasQCStep, ancestryStep);
+		Step mosaicArmsStep = generateMosaicArmsStep(++priority, parseSamplesStep);
+		Step annotateSampleDataStep = generateAnnotateSampleDataStep(++priority, sampleQCStep,
 																																 createSampleDataStep, gwasQCStep);
-		Step createPCsStep = generateCreatePCsStep(priority++, transposeStep);
-		Step pfbStep = generatePFBStep(priority++, parseSamplesStep);
-		Step sexCentroidsStep = generateSexCentroidsStep(priority++, gcModelStep);
-		Step cnvStep = generateCNVStep(priority++, pfbStep, gcModelStep);
-		Step shadowStep = generateShadowStep(priority++, parseSamplesStep);
+		Step createPCsStep = generateCreatePCsStep(++priority, transposeStep);
+		Step pfbStep = generatePFBStep(++priority, parseSamplesStep);
+		Step sexCentroidsStep = generateSexCentroidsStep(++priority, gcModelStep);
+		Step cnvStep = generateCNVStep(++priority, pfbStep, gcModelStep);
+		Step shadowStep = generateShadowStep(++priority, parseSamplesStep);
 
 		buildSteps.add(parseSamplesStep);
 		buildSteps.add(createSampleDataStep);
@@ -595,6 +607,8 @@ public class GenvisisWorkflow {
 		buildSteps.add(abLookupStep);
 		buildSteps.add(plinkExportStep);
 		buildSteps.add(gwasQCStep);
+		buildSteps.add(ancestryStep);
+		buildSteps.add(furtherAnalysisQCStep);
 		buildSteps.add(mosaicArmsStep);
 		buildSteps.add(annotateSampleDataStep);
 		buildSteps.add(createPCsStep);
@@ -1317,12 +1331,13 @@ public class GenvisisWorkflow {
 
 				proj.getLog().report("Running PLINK");
 
-				boolean create = PlinkData.saveGenvisisToPlinkBedSet(proj, "plink/plink", null, null, -1,
-																														 true);
+				boolean create = PlinkData.saveGenvisisToPlinkBedSet(proj, PLINK_SUBDIR + PLINKROOT,
+																														 null, null, -1, true);
 				if (!create) {
 					setFailed("Creation of initial PLINK files failed.");
 				}
-				proj.PLINK_DIR_FILEROOTS.addValue(proj.PROJECT_DIRECTORY.getValue() + "plink/plink");
+				proj.PLINK_DIR_FILEROOTS.addValue(proj.PROJECT_DIRECTORY.getValue() + PLINK_SUBDIR
+																					+ PLINKROOT);
 			}
 
 			@Override
@@ -1348,15 +1363,16 @@ public class GenvisisWorkflow {
 						 .append(projPropFile).append("\n");
 				}
 				cmd.append(Files.getRunString())
-					 .append(" cnv.manage.PlinkData -genvisisToBed plinkdata=plink/plink gcthreshold=-1 proj=")
+					 .append(" cnv.manage.PlinkData -genvisisToBed plinkdata=" + PLINK_SUBDIR + PLINKROOT
+									 + " gcthreshold=-1 proj=")
 					 .append(proj.getPropertyFilename());
 				return cmd.toString();
 			}
 
 			@Override
 			public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
-				boolean plinkFilesExist = Files.checkAllFiles(proj.PROJECT_DIRECTORY.getValue() + "plink/",
-																											PSF.Plink.getPlinkBedBimFamSet("plink"),
+				boolean plinkFilesExist = Files.checkAllFiles(getPlinkDir(),
+																											PSF.Plink.getPlinkBedBimFamSet(PLINKROOT),
 																											false, log);
 				boolean pedGenerated = Boolean.parseBoolean(variables.get(this)
 																														 .get(createPedigreeRequirement));
@@ -1368,11 +1384,65 @@ public class GenvisisWorkflow {
 	}
 
 	private Step generateGwasQCStep(double priority, Step plinkExportStep) {
-		// TODO: Move Ancestry to its own step
 		final Requirement plinkExportStepReq = new StepRequirement(plinkExportStep);
-		final Requirement genomeForRelatedsReq = new OptionalBoolRequirement("Keep genome info for unrelateds only",
-																																				 false);
-		final Requirement skipAncestryReq = new BoolRequirement("Skip ancestry checks", false);
+
+		return new Step("Run GWAS QC", "",
+										new Requirement[][] {{plinkExportStepReq}},
+										EnumSet.noneOf(Flag.class), priority) {
+
+			@Override
+			public void setNecessaryPreRunProperties(Project proj,
+																							 Map<Step, Map<Requirement, String>> variables) {
+				// not needed for step
+			}
+
+			@Override
+			public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+				String dir = getPlinkDir();
+				RelationAncestryQc.fullGamut(dir, null, false, proj.getLog());
+				if (new File(dir + Qc.QC_DIR + RelationAncestryQc.GENOME_DIR + PLINKROOT
+										 + ".genome").exists()) {
+					proj.GENOME_CLUSTER_FILENAME.setValue(dir + Qc.QC_DIR + RelationAncestryQc.GENOME_DIR
+																								+ PLINKROOT + ".genome");
+					proj.saveProperties();
+				}
+				new PlinkMendelianChecker(proj).run();
+			}
+
+			@Override
+			public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+				String dir = getPlinkDir();
+				String command = Files.getRunString() + " gwas.Qc dir=" + dir
+												 + " keepGenomeInfoForRelatedsOnly=false";
+				command += "\n";
+				command += Files.getRunString() + " " + PROJ_PROP_UPDATE_STR + proj.getPropertyFilename();
+				command += " " + proj.GENOME_CLUSTER_FILENAME.getName() + "=" + dir + Qc.QC_DIR
+									 + RelationAncestryQc.GENOME_DIR + PLINKROOT + ".genome";
+				command += "\n";
+				command += Files.getRunString() + " org.genvisis.gwas.PlinkMendelianChecker proj="
+									 + proj.getPropertyFilename();
+				return command;
+			}
+
+			@Override
+			public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
+				String dir = getPlinkDir();
+				for (int i = 0; i < org.genvisis.gwas.RelationAncestryQc.FOLDERS_CREATED.length; i++) {
+					for (int j = 0; j < org.genvisis.gwas.RelationAncestryQc.FILES_CREATED[i].length; j++) {
+						if (!Files.exists(dir + org.genvisis.gwas.RelationAncestryQc.FOLDERS_CREATED[i]
+															+ org.genvisis.gwas.RelationAncestryQc.FILES_CREATED[i][j])) {
+							return false;
+						}
+					}
+				}
+				return Files.checkAllFiles(PlinkMendelianChecker.parseOutputDirectory(proj),
+																	 PlinkMendelianChecker.OUTPUTS, false, log);
+			}
+		};
+	}
+
+	private Step generateAncestryStep(double priority, final Step gwasQCStep) {
+		final Requirement gwasQCStepReq = new StepRequirement(gwasQCStep);
 		final Requirement putativeWhitesReq = new FileRequirement("File with FID/IID pairs of putative white samples",
 																															"");
 		final Requirement hapMapFoundersReq = new FileRequirement("PLINK root of HapMap founders",
@@ -1390,9 +1460,8 @@ public class GenvisisWorkflow {
 			}
 		};
 
-		return new Step("Run GWAS QC", "",
-										new Requirement[][] {{plinkExportStepReq}, {genomeForRelatedsReq},
-																				 {skipAncestryReq, putativeWhitesReq, hapMapFoundersReq}},
+		return new Step("Run Ancestry Checks", "",
+										new Requirement[][] {{gwasQCStepReq}, {putativeWhitesReq}, {hapMapFoundersReq}},
 										EnumSet.noneOf(Flag.class), priority) {
 
 			@Override
@@ -1403,10 +1472,6 @@ public class GenvisisWorkflow {
 
 			@Override
 			public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-				String dir = getPlinkDir();
-				boolean keepUnrelatedsOnly = Boolean.parseBoolean(variables.get(this)
-																																	 .get(genomeForRelatedsReq));
-				boolean skipAncestry = Boolean.parseBoolean(variables.get(this).get(skipAncestryReq));
 				String putativeWhites = variables.get(this).get(putativeWhitesReq);
 				String hapMapPlinkRoot = variables.get(this).get(hapMapFoundersReq);
 				int hapMapDotIndex = hapMapPlinkRoot.lastIndexOf('.');
@@ -1414,28 +1479,13 @@ public class GenvisisWorkflow {
 																					 .contains(hapMapPlinkRoot.substring(hapMapDotIndex))) {
 					hapMapPlinkRoot = hapMapPlinkRoot.substring(0, hapMapDotIndex);
 				}
-				RelationAncestryQc.fullGamut(dir, null, keepUnrelatedsOnly, proj.getLog());
-				if (new File(dir + Qc.QC_DIR + RelationAncestryQc.GENOME_DIR + "plink.genome").exists()) {
-					proj.GENOME_CLUSTER_FILENAME.setValue(dir + Qc.QC_DIR + RelationAncestryQc.GENOME_DIR
-																								+ "plink.genome");
-					proj.saveProperties();
-				}
-				if (!keepUnrelatedsOnly) {
-					new PlinkMendelianChecker(proj).run();
-				}
-				if (!skipAncestry) {
-					String ancestryDir = dir + Qc.QC_DIR + RelationAncestryQc.ANCESTRY_DIR;
-					Ancestry.runPipeline(ancestryDir, putativeWhites, hapMapPlinkRoot, proj,
-															 new Logger(ancestryDir + "ancestry.log"));
-				}
+				String ancestryDir = getAncestryDir();
+				Ancestry.runPipeline(ancestryDir, putativeWhites, hapMapPlinkRoot, proj,
+														 new Logger(ancestryDir + "ancestry.log"));
 			}
 
 			@Override
 			public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
-				String dir = getPlinkDir();
-				boolean keepUnrelatedsOnly = Boolean.parseBoolean(variables.get(this)
-																																	 .get(genomeForRelatedsReq));
-				boolean skipAncestry = Boolean.parseBoolean(variables.get(this).get(skipAncestryReq));
 				String putativeWhites = variables.get(this).get(putativeWhitesReq);
 				String hapMapPlinkRoot = variables.get(this).get(hapMapFoundersReq);
 				int hapMapDotIndex = hapMapPlinkRoot.lastIndexOf('.');
@@ -1444,50 +1494,132 @@ public class GenvisisWorkflow {
 					hapMapPlinkRoot = hapMapPlinkRoot.substring(0, hapMapDotIndex);
 				}
 
-				String command = Files.getRunString() + " gwas.Qc dir=" + dir
-												 + " keepGenomeInfoForRelatedsOnly=" + keepUnrelatedsOnly;
-				command += "\n";
-				command += Files.getRunString() + " " + PROJ_PROP_UPDATE_STR + proj.getPropertyFilename();
-				command += " " + proj.GENOME_CLUSTER_FILENAME.getName() + "=" + dir + Qc.QC_DIR
-									 + RelationAncestryQc.GENOME_DIR + "plink.genome";
-				if (!keepUnrelatedsOnly) {
-					command += "\n";
-					command += Files.getRunString() + " org.genvisis.gwas.PlinkMendelianChecker proj="
-										 + proj.getPropertyFilename();
-				}
-				if (!skipAncestry) {
-					String ancestryDir = dir + Qc.QC_DIR + RelationAncestryQc.ANCESTRY_DIR;
-					command += "\n";
-					command += Files.getRunString() + " gwas.Ancestry -runPipeline dir=" + ancestryDir;
-					command += " putativeWhites=" + putativeWhites;
-					command += " proj=" + proj.getPropertyFilename();
-					command += " hapMapPlinkRoot=" + hapMapPlinkRoot;
-					command += " log=" + ancestryDir + "ancestry.log";
-				}
+				String ancestryDir = getAncestryDir();
+				String command = Files.getRunString() + " gwas.Ancestry -runPipeline dir=" + ancestryDir;
+				command += " putativeWhites=" + putativeWhites;
+				command += " proj=" + proj.getPropertyFilename();
+				command += " hapMapPlinkRoot=" + hapMapPlinkRoot;
+				command += " log=" + ancestryDir + "ancestry.log";
 				return command;
 			}
 
 			@Override
 			public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
-				String dir = getPlinkDir();
-				boolean allExist = true;
-				boolean skipAncestry = Boolean.parseBoolean(variables.get(this).get(skipAncestryReq));
-				folders: for (int i = 0; i < org.genvisis.gwas.RelationAncestryQc.FOLDERS_CREATED.length; i++) {
-					for (int j = 0; j < org.genvisis.gwas.RelationAncestryQc.FILES_CREATED[i].length; j++) {
-						if (!Files.exists(dir + org.genvisis.gwas.RelationAncestryQc.FOLDERS_CREATED[i]
-															+ org.genvisis.gwas.RelationAncestryQc.FILES_CREATED[i][j])) {
-							allExist = false;
-							break folders;
-						}
+				String ancestryDir = getAncestryDir();
+				return Files.exists(ancestryDir + Ancestry.RACE_FREQS_FILENAME)
+							 && Files.exists(ancestryDir + Ancestry.RACE_IMPUTATIONAS_FILENAME);
+			}
+		};
+	}
+
+	private Step generateFurtherAnalysisQCStep(double priority, Step plinkExportStep, Step gwasQCStep,
+																						 Step ancestryStep) {
+		final Requirement plinkExportStepReq = new StepRequirement(plinkExportStep);
+		final Requirement gwasQCStepReq = new StepRequirement(gwasQCStep);
+		final Requirement ancestryStepReq = new StepRequirement(ancestryStep);
+		final Requirement unrelatedsFileReq = new FileRequirement("File with list of unrelated FID/IID pairs to use for marker QC",
+																															"");
+		final Requirement europeansFilesReq = new FileRequirement("File with list of European samples to use for Hardy-Weinberg equilibrium tests",
+																															"");
+
+		List<Requirement[]> requirementsList = Lists.newArrayList();
+		requirementsList.add(new Requirement[] {plinkExportStepReq});
+		requirementsList.add(new Requirement[] {gwasQCStepReq, unrelatedsFileReq});
+		requirementsList.add(new Requirement[] {ancestryStepReq, europeansFilesReq});
+		final Map<QC_METRIC, Requirement> metricRequirements = Maps.newEnumMap(QC_METRIC.class);
+		for (QC_METRIC metric : QC_METRIC.values()) {
+			String defaultVal = FurtherAnalysisQc.DEFAULT_MARKER_QC_THRESHOLDS.get(metric);
+			final Requirement metricReq = new Requirement(metric.getUserDescription(),
+																										RequirementInputType.STRING, defaultVal) {
+				@Override
+				public boolean checkRequirement(String arg, Set<Step> stepSelections,
+																				Map<Step, Map<Requirement, String>> variables) {
+					Maths.OPERATOR op = MarkerQC.findOperator(arg);
+					if (op == null)
+						return false;
+					try {
+						Double.parseDouble(arg.substring(op.getSymbol().length()));
+					} catch (NumberFormatException nfe) {
+						return false;
 					}
+					return true;
 				}
-				if (!skipAncestry
-						&& (!Files.exists(dir + Qc.QC_DIR + RelationAncestryQc.ANCESTRY_DIR + "freqsByRace.xln")
-								|| !Files.exists(dir + Qc.QC_DIR + RelationAncestryQc.ANCESTRY_DIR
-																 + "raceImputations.mds"))) {
-					allExist = false;
+			};
+			requirementsList.add(new Requirement[] {metricReq});
+			metricRequirements.put(metric, metricReq);
+		}
+
+		return new Step("Run Further Analysis QC", "",
+										requirementsList.toArray(new Requirement[requirementsList.size()][]),
+										EnumSet.noneOf(Flag.class), priority) {
+
+			@Override
+			public void setNecessaryPreRunProperties(Project proj,
+																							 Map<Step, Map<Requirement, String>> variables) {
+				// not needed for step
+			}
+
+			@Override
+			public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+				Map<Requirement, String> stepVars = variables.get(this);
+
+				String unrelatedsFile = resolveUnrelatedsFile(stepVars);
+
+				String europeansFile = resolveEuropeansFile(stepVars);
+
+				Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(QC_METRIC.class);
+				for (QC_METRIC metric : QC_METRIC.values()) {
+					Requirement req = metricRequirements.get(metric);
+					markerQCThresholds.put(metric, stepVars.get(req));
 				}
-				return allExist;
+				new FurtherAnalysisQc(getPlinkDir(), PLINKROOT, markerQCThresholds, unrelatedsFile,
+															europeansFile, log).runFurtherAnalysisQC();
+			}
+
+			@Override
+			public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+				Map<Requirement, String> stepVars = variables.get(this);
+
+				String unrelatedsFile = resolveUnrelatedsFile(stepVars);
+
+				String europeansFile = resolveEuropeansFile(stepVars);
+
+				List<String> commandChunks = Lists.newArrayList();
+				commandChunks.add(Files.getRunString());
+				commandChunks.add(FurtherAnalysisQc.class.getName());
+				commandChunks.add(CLI.formCmdLineArg(FurtherAnalysisQc.ARG_UNRELATEDS, unrelatedsFile));
+				commandChunks.add(CLI.formCmdLineArg(FurtherAnalysisQc.ARG_EUROPEANS, europeansFile));
+				commandChunks.add(CLI.formCmdLineArg(CLI.ARG_INDIR, getPlinkDir()));
+				commandChunks.add(CLI.formCmdLineArg(CLI.ARG_PLINKROOT, PLINKROOT));
+				for (QC_METRIC metric : QC_METRIC.values()) {
+					Requirement req = metricRequirements.get(metric);
+					commandChunks.add(CLI.formCmdLineArg(metric.getKey(), stepVars.get(req)));
+				}
+				return Joiner.on(' ').join(commandChunks);
+			}
+
+			@Override
+			public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
+				String dir = getPlinkDir() + Qc.QC_DIR + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR;
+				String qcdPlinkroot = PLINKROOT + FurtherAnalysisQc.FURTHER_ANALYSIS_QC_PLINK_SUFFIX;
+				return PSF.Plink.bedBimFamExist(dir + qcdPlinkroot);
+			}
+
+			private String resolveUnrelatedsFile(Map<Requirement, String> stepVars) {
+				String unrelatedsFile = stepVars.get(unrelatedsFileReq);
+				if (!Files.exists(unrelatedsFile)) {
+					unrelatedsFile = getAncestryDir() + RelationAncestryQc.UNRELATEDS_FILENAME;
+				}
+				return unrelatedsFile;
+			}
+
+			private String resolveEuropeansFile(Map<Requirement, String> stepVars) {
+				String europeansFile = stepVars.get(europeansFilesReq);
+				if (europeansFile == null || "".equals(europeansFile)) {
+					String raceImputationFilename = getAncestryDir() + Ancestry.RACE_IMPUTATIONAS_FILENAME;
+					europeansFile = PCImputeRace.formRaceListFilename(RACE.WHITE, raceImputationFilename);
+				}
+				return europeansFile;
 			}
 
 		};
@@ -1571,8 +1703,7 @@ public class GenvisisWorkflow {
 																																	 proj.SAMPLE_CALLRATE_THRESHOLD.getValue(),
 																																	 proj.SAMPLE_CALLRATE_THRESHOLD.getMinValue(),
 																																	 proj.SAMPLE_CALLRATE_THRESHOLD.getMaxValue());
-		final Requirement numQReq = new IntRequirement("Number of Quantiles to Generate", 10, 1,
-																									 Integer.MAX_VALUE);
+		final Requirement numQReq = new PosIntRequirement("Number of Quantiles to Generate", 10);
 		final Requirement replaceFIDIIDReq = new OptionalBoolRequirement("Replace FID and IID with data from Pedigree",
 																																		 false);
 		return new Step("Annotate Sample Data File", "",
@@ -1606,9 +1737,8 @@ public class GenvisisWorkflow {
 																																 .get(skipIDingDuplicatesReq));
 				String duplicatesSetFile = null;
 				if (checkDuplicates) {
-					String dir = "plink/";
-					duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir + Qc.QC_DIR
-															+ RelationAncestryQc.GENOME_DIR + "plink.genome_duplicatesSet.dat";
+					duplicatesSetFile = getPlinkDir() + Qc.QC_DIR + RelationAncestryQc.GENOME_DIR + PLINKROOT
+															+ ".genome_duplicatesSet.dat";
 				}
 				boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this)
 																																	.get(notGcCorrectedLrrSdReq));
@@ -1633,9 +1763,8 @@ public class GenvisisWorkflow {
 																																 .get(skipIDingDuplicatesReq));
 				String duplicatesSetFile = null;
 				if (checkDuplicates) {
-					String dir = "plink/";
-					duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir + Qc.QC_DIR
-															+ RelationAncestryQc.GENOME_DIR + "plink.genome_duplicatesSet.dat";
+					duplicatesSetFile = getPlinkDir() + Qc.QC_DIR + RelationAncestryQc.GENOME_DIR + PLINKROOT
+															+ ".genome_duplicatesSet.dat";
 				}
 				boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this)
 																																	.get(notGcCorrectedLrrSdReq));
@@ -1711,9 +1840,8 @@ public class GenvisisWorkflow {
 		final Requirement recomputeLrrMedianMarkersReq = new OptionalBoolRequirement("Should recompute Log-R ratio for median markers?",
 																																								 true);
 		final Requirement homozygousOnlyReq = new OptionalBoolRequirement("Homozygous only?", true);
-		final Requirement gcRegressionDistanceReq = new IntRequirement("Regression distance for the GC adjustment",
-																																	 GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0],
-																																	 1, Integer.MAX_VALUE);
+		final Requirement gcRegressionDistanceReq = new PosIntRequirement("Regression distance for the GC adjustment",
+																																			GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0]);
 		final Requirement pcSelectionSamplesReq = new OptionalFileRequirement("A file listing a subset of samples (DNA ID) to use for determining optimal PC selection, typically a list of unrelated and single race samples. If a list is not provided, only samples passing sample qc thresholds will be used.",
 																																					"");
 		final Requirement externalBetaFileReq = new OptionalFileRequirement("An external beta file to optimize PC selection.",
@@ -2130,9 +2258,8 @@ public class GenvisisWorkflow {
 
 	private Step generateShadowStep(double priority, final Step parseSamplesStep) {
 		final Requirement parseSamplesStepReq = new StepRequirement(parseSamplesStep);
-		final Requirement numPCsReq = new IntRequirement("Number of principal components for correction.",
-																										 MitoPipeline.DEFAULT_NUM_COMPONENTS, 1,
-																										 Integer.MAX_VALUE);
+		final Requirement numPCsReq = new PosIntRequirement("Number of principal components for correction.",
+																												MitoPipeline.DEFAULT_NUM_COMPONENTS);
 		final Requirement outputBaseReq = new OutputFileRequirement("Output file path (relative to project directory) and baseName for principal components correction files",
 																																MitoPipeline.FILE_BASE) {
 			@Override
@@ -2235,10 +2362,11 @@ public class GenvisisWorkflow {
 	}
 
 	private String getPlinkDir() {
-		String dir = "plink/";
-		dir = ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue() + dir);
-		return dir;
+		return ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue() + PLINK_SUBDIR);
+	}
 
+	private String getAncestryDir() {
+		return getPlinkDir() + Qc.QC_DIR + RelationAncestryQc.ANCESTRY_DIR;
 	}
 
 	private int resolveThreads(String arg) {

@@ -65,7 +65,7 @@ public class FurtherAnalysisQc extends Qc {
 		this.europeansFile = europeansFile;
 	}
 
-	private void runFurtherAnalysisQC() {
+	public void runFurtherAnalysisQC() {
 		final String subDir = FurtherAnalysisQc.FURTHER_ANALYSIS_DIR;
 		final String plinkQCd = plink + FurtherAnalysisQc.FURTHER_ANALYSIS_QC_PLINK_SUFFIX;
 		if (!markerQc(subDir, unrelatedsFile, europeansFile))
