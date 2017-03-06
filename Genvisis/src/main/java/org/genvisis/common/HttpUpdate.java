@@ -17,6 +17,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
+import org.genvisis.cnv.util.Java6Helper;
+
 /**
  * @author lane0212, fairly specific class that hopefully can check and update genvisis
  *
@@ -105,7 +107,7 @@ public class HttpUpdate {
 		OK, HTTP_ERROR, FILE_NOT_FOUND, LINE_NOT_FOUND, OTHER_ERROR;
 	}
 
-	public static class Version {
+	public static class Version implements Comparable<Version> {
 		private final String version;
 		private final int major;
 		private final int minor;
@@ -137,31 +139,29 @@ public class HttpUpdate {
 		}
 
 		public boolean isLessThan(Version other) {
-			if (major < other.getMajor()) {
-				return true;
-			} else if (minor < other.getMinor()) {
-				return true;
-			} else if (patch < other.getPatch()) {
-				return true;
-			}
-			return false;
+			return compareTo(other) < 0;
 		}
 
 		public boolean isGreaterThan(Version other) {
-			if (major > other.getMajor()) {
-				return true;
-			} else if (minor > other.getMinor()) {
-				return true;
-			} else if (patch > other.getPatch()) {
-				return true;
-			}
-			return false;
+			return compareTo(other) > 0;
 		}
 
 		private int[] parse() {
 			int[] v = ArrayUtils.toIntArray(version.replaceAll("v", "").split("\\."));
 			return v;
 
+		}
+
+		@Override
+		public int compareTo(Version o) {
+			if (major != o.getMajor()) {
+				return Java6Helper.compare(major, o.getMajor());
+			} else if (minor != o.getMinor()) {
+				return Java6Helper.compare(minor, o.getMinor());
+			} else if (patch != o.getPatch()) {
+				return Java6Helper.compare(patch, o.getPatch());
+			}
+			return 0;
 		}
 
 	}
