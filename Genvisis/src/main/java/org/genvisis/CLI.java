@@ -18,6 +18,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PatternOptionBuilder;
 import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 /**
  * Helper class for parsing command line arguments. Typical usage is:
@@ -79,6 +80,7 @@ public class CLI {
 	private final Map<String, String> defaults = new HashMap<String, String>();
 
 	private Map<String, String> parsed;
+
 	/**
 	 * @see #CLI(String)
 	 * @param program Program class for command invocation
@@ -592,8 +594,12 @@ public class CLI {
 	 * @param value Passed value for this argument
 	 * @return Formatted command line argument
 	 */
-	public static String formCmdLineArg(String name, String value) {
-		return ARG_PREFIX + name + ARG_SEPARATOR + value;
+	public static String formCmdLineArg(final String name, final String value) {
+		String cleanValue = value;
+		if (ext.containsAnyChar(cleanValue, ext.UNSAFE_CHARS_STRICT)) {
+			cleanValue = ext.enquote(cleanValue);
+		}
+		return ARG_PREFIX + name + ARG_SEPARATOR + cleanValue;
 	}
 
 	/**

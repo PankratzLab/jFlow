@@ -28,13 +28,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Ints;
 
 public class ext {
-	public static final String[][] VALID_CHARS = {{" ", "_"}, {"?", "_"}, {"'", "_"}, {"/", "_"},
-																								{"\\", "_"}, {"<", "_"}, {">", "_"}, {"|", "_"},
-																								{":", "_"}, {"*", "_"}, {"\"", "_"}};
-	public static final String[][] TO_BE_EXTRA_SAFE_CHARS = {{"(", "_"}, {")", "_"}, {"&", "_"}};
+	public static final Set<Character> UNSAFE_CHARS = ImmutableSet.of(' ', '?', '\'', '/', '\\', '<',
+																																		'>',
+																																		'|', ':', '*', '\'');
+	public static final Set<Character> UNSAFE_CHARS_STRICT;
+	static {
+		ImmutableSet.Builder<Character> unsafeCharsStrictBuilder = ImmutableSet.builder();
+		unsafeCharsStrictBuilder.addAll(UNSAFE_CHARS);
+		unsafeCharsStrictBuilder.add('(', ')', '&');
+		UNSAFE_CHARS_STRICT = unsafeCharsStrictBuilder.build();
+	}
+
+	public static final Character UNSAFE_CHAR_REPLACEMENT = '_';
 	public static final String[] MISSING_VALUES = {"", ".", "NA", "NaN", "x", "#N/A", "--", "-"};
 	public static final String[][] META_REPLACEMENTS = {{"{Tab}", "\t"}, {"{Space}", " "},
 																											{"{!}", "!"}, {"{#}", "#"}, {"{+}", "+"}};
@@ -719,17 +728,12 @@ public class ext {
 	}
 
 	public static String replaceWithLinuxSafeCharacters(String str, boolean extraSafe) {
-		for (String[] element : VALID_CHARS) {
-			str = replaceAllWith(str, element[0], element[1]);
+		String cleanString = str;
+		Set<Character> unsafeChars = extraSafe ? UNSAFE_CHARS_STRICT : UNSAFE_CHARS;
+		for (char unsafeChar : unsafeChars) {
+			cleanString = cleanString.replace(unsafeChar, UNSAFE_CHAR_REPLACEMENT);
 		}
-
-		if (extraSafe) {
-			for (String[] element : TO_BE_EXTRA_SAFE_CHARS) {
-				str = replaceAllWith(str, element[0], element[1]);
-			}
-		}
-
-		return str;
+		return cleanString;
 	}
 
 	public static String replaceDirectoryCharsWithUnderscore(String filename, int depth) {
@@ -1303,9 +1307,36 @@ public class ext {
 		return str;
 	}
 
-	public static boolean containsAny(String str, String[] array) {
-		for (String element : array) {
+	public static boolean containsAny(String str, String[] targets) {
+		for (String element : targets) {
 			if (str.contains(element)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean containsAny(String str, Iterable<String> targets) {
+		for (String element : targets) {
+			if (str.contains(element)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean containsAnyChar(String str, char[] targets) {
+		for (char element : targets) {
+			if (str.indexOf(element) != -1) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean containsAnyChar(String str, Iterable<Character> targets) {
+		for (char element : targets) {
+			if (str.indexOf(element) != -1) {
 				return true;
 			}
 		}
@@ -1710,6 +1741,10 @@ public class ext {
 			str = str.substring(1, str.length() - 1);
 		}
 		return ext.replaceAllWith(str, "\"\"", "\"");
+	}
+
+	public static String enquote(String str) {
+		return "\"" + str + "\"";
 	}
 
 	public static String[] splitCommasIntelligently(String str, boolean removeAndSimplifyQuotes,
