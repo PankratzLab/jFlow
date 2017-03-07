@@ -22,8 +22,6 @@ import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
-import org.genvisis.common.Files;
-import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
