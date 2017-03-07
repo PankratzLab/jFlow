@@ -6,12 +6,12 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
+import org.genvisis.CLI;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
@@ -38,6 +38,10 @@ import htsjdk.samtools.ValidationStringency;
  */
 public class MitoSeqCN {
 
+	private MitoSeqCN() {
+
+	}
+
 	/**
 	 * @param fileOfBams bam files to estimate mtDNA CN for
 	 * @param outDir output directory for results
@@ -54,7 +58,7 @@ public class MitoSeqCN {
 													 ASSEMBLY_NAME aName, ASSAY_TYPE aType, int numthreads, Logger log) {
 		new File(outDir).mkdirs();
 
-		String output = outDir + ext.rootOf(fileOfBams) + "_mtDNACN.summary.txt";
+		String output = outDir + ext.rootOf(fileOfBams) + aType + "_" + aName + "_mtDNACN.summary.txt";
 
 		if (!Files.exists(output)) {
 			String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] {0}, true);
@@ -65,7 +69,11 @@ public class MitoSeqCN {
 			BedOps.verifyBedIndex(captureBed, log);
 			LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).autosomal(true,
 																																															 log);
-			if (captureBed != null) {// Should only be used for
+			if (aType == ASSAY_TYPE.WXS) {
+				if (captureBed == null || !Files.exists(captureBed)) {// required for WXS
+					throw new IllegalArgumentException("A valid capture bed file must be provided for "
+																						 + ASSAY_TYPE.WXS);
+				}
 				BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
 
 				genomeBinsMinusBinsCaputure = genomeBinsMinusBinsCaputure.removeThese(readerCapture.loadAll(log)
@@ -73,14 +81,10 @@ public class MitoSeqCN {
 																																							21000)
 																																 .autosomal(true, log);
 				readerCapture.close();
-				if (aType == ASSAY_TYPE.WGS) {
-					throw new IllegalArgumentException("Capture bed must not be provided for " + aType);
-				}
+
 			} else {
-				log.reportTimeWarning("No capture targets defined, assuming this is WGS");
-				if (aType == ASSAY_TYPE.WXS) {
-					throw new IllegalArgumentException("Capture bed must be provided for " + aType);
-				}
+				log.reportTimeWarning("Not using capture targer subset for WGS ");
+
 			}
 			log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered()
 												 + " bp covered by reference bin regions");
@@ -126,6 +130,8 @@ public class MitoSeqCN {
 		return output;
 	}
 
+
+
 	/**
 	 * Stores mtDNA CN estimation results for NGS data
 	 *
@@ -135,18 +141,18 @@ public class MitoSeqCN {
 																												 "TotalAlignedReads", "TotalUnAlignedReads",
 																												 "XReads", "YReads",
 																												 "AutosomalOnTargetAlignedReads",
-																												 "OffTargetReads", "MitoLen", "OffTLen",
+																												 "NormalizationReads", "MitoLen", "normLen",
 																												 "MTBamFile", "MTBamFileTrim",
-																												 "EstimatedReadLength"};
+																												 "EstimatedReadLength", "mtDNACNEstimate"};
 		private final String sample;
 		private final int numMitoReads;
 		private final int numXReads;
 		private final int numYReads;
 		private int autosomalOnTargetReads;
-		private final int offTargetReads;
+		private final int normalizationReads;
 		private final int mitoLen;
 		private final int estimatedReadLength;
-		private final long offTLen;
+		private final long normLen;
 		private final BamIndexStats bamIndexStats;
 		private final String outBam;
 
@@ -159,8 +165,8 @@ public class MitoSeqCN {
 			this.numXReads = numXReads;
 			this.numYReads = numYReads;
 			this.mitoLen = mitoLen;
-			this.offTLen = offTLen;
-			this.offTargetReads = offTargetReads;
+			this.normLen = offTLen;
+			this.normalizationReads = offTargetReads;
 			this.bamIndexStats = bamIndexStats;
 			this.outBam = outBam;
 			this.estimatedReadLength = estimatedReadLength;
@@ -168,6 +174,24 @@ public class MitoSeqCN {
 			autosomalOnTargetReads -= numMitoReads;
 			autosomalOnTargetReads -= numXReads;
 			autosomalOnTargetReads -= numYReads;
+
+		}
+
+		/**
+		 * @param numMitoReads number of mitochondrial reads counted
+		 * @param normalizationReads number of normalization reads to use
+		 * @param estimatedReadLength read length
+		 * @param normLen length of normalization region scanned
+		 * @param mitoLen length of mitochondrial genome
+		 * @return
+		 */
+		private static double computemtDNACNEstimate(long numMitoReads, long normalizationReads,
+																								 long estimatedReadLength,
+																								 long normLen, long mitoLen) {
+			double mtCov = (double) (numMitoReads * estimatedReadLength) / mitoLen;
+			double autoCov = (double) (normalizationReads * estimatedReadLength) / normLen;
+
+			return (2 * mtCov) / autoCov;
 
 		}
 
@@ -181,12 +205,15 @@ public class MitoSeqCN {
 			result.add(Integer.toString(numXReads));
 			result.add(Integer.toString(numYReads));
 			result.add(Integer.toString(autosomalOnTargetReads));
-			result.add(Integer.toString(offTargetReads));
+			result.add(Integer.toString(normalizationReads));
 			result.add(Integer.toString(mitoLen));
-			result.add(Long.toString(offTLen));
+			result.add(Long.toString(normLen));
 			result.add(outBam);
 			result.add(ext.rootOf(ext.rootOf(outBam)));
 			result.add(Integer.toString(estimatedReadLength));
+			result.add(Double.toString(computemtDNACNEstimate(numMitoReads, normalizationReads,
+																												estimatedReadLength, normLen, mitoLen)));
+
 			return ArrayUtils.toStringArray(result);
 		}
 	}
@@ -272,7 +299,7 @@ public class MitoSeqCN {
 				sIterator = reader.query(offTargetIntervalse, false);
 				while (sIterator.hasNext()) {
 					SAMRecord samRecord = sIterator.next();
-					if (!samRecord.getReadUnmappedFlag()) {
+					if (!samRecord.getReadUnmappedFlag() && !samRecord.getDuplicateReadFlag()) {
 						numOffTarget++;
 
 						if (numOffTarget % 1000000 == 0) {
@@ -339,51 +366,34 @@ public class MitoSeqCN {
 	}
 
 	public static void main(String[] args) {
-		// TODO, CLI version
-		int numArgs = args.length;
-		String fileOfBams = "fileOfBams.txt";
-		String outDir = "mitoWES/";
-		int numthreads = 24;
-		String captureBed = "AgilentCaptureRegions.txt";
-		String referenceGenome = "hg19.fa";
-		String usage = "\n" + "seq.analysis.mitoSeqCN requires 0-1 arguments\n"
-									 + "   (1) file of Bams (i.e. bams=" + fileOfBams + " (default))\n"
-									 + "   (2) output directory (i.e. outDir=" + outDir + " (default))\n"
-									 + "   (3) number of threads (i.e. " + PSF.Ext.getNumThreadsCommand(3, numthreads)
-									 + "\n" + "   (4) reference genome (i.e. ref=" + referenceGenome + " (default))\n"
-									 + "   (5)  capture Regions (i.e. captureBed=" + captureBed + " (default))\n" +
 
-									 "";
+		CLI c = new CLI(MitoSeqCN.class);
+		c.addArg("bams", "file of .bams with one (full path) .bam file per line ",
+						 true);
+		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, "mitoWES/");
+		c.addArgWithDefault(CLI.ARG_REFERENCE_GENOME,
+												CLI.DESC_REFERENCE_GENOME + " . The .dict file (such as hg19.dict) must also exist and the contigs must match the .bams analyzed",
+												"hg19.fa");
+		c.addArgWithDefault("assayType", "The assay type being analyzed (Options are "
+																		 + ArrayUtils.toStr(ASSAY_TYPE.values(), ","),
+												ASSAY_TYPE.WXS.toString());
+		c.addArgWithDefault("assemblyName", "The assembly name being analyzed (Options are "
+																				+ ArrayUtils.toStr(ASSEMBLY_NAME.values(), ",") + ")",
+												ASSEMBLY_NAME.HG19.toString());
 
-		for (String arg : args) {
-			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (arg.startsWith("bams=")) {
-				fileOfBams = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("outDir=")) {
-				outDir = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
-				numthreads = ext.parseIntArg(arg);
-				numArgs--;
-			} else if (arg.startsWith("ref=")) {
-				referenceGenome = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("captureBed=")) {
-				captureBed = arg.split("=")[1];
-				numArgs--;
-			} else {
-				System.err.println("Error - invalid argument: " + arg);
-			}
-		}
-		if (numArgs != 0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-		run(fileOfBams, outDir, captureBed, null, referenceGenome, ASSEMBLY_NAME.HG19, ASSAY_TYPE.WXS,
-				numthreads, new Logger());
+		c.addArg("captureBed", "If using " + ASSAY_TYPE.WXS + ", a capture bed is required",
+						 "AgilentCaptureRegions.txt");
+		c.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS, "8");
+
+		c.parseWithExit(args);
+
+		ASSAY_TYPE aType = ASSAY_TYPE.valueOf(c.get("assayType"));
+
+
+		run(c.get("bams"), c.get(CLI.ARG_OUTDIR), c.get("captureBed"), null,
+				c.get(CLI.ARG_REFERENCE_GENOME),
+				ASSEMBLY_NAME.valueOf(c.get("assemblyName")), aType,
+				c.getI(CLI.ARG_THREADS), new Logger());
 
 	}
 }

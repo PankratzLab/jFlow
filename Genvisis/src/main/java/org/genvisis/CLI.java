@@ -62,6 +62,8 @@ public class CLI {
 	public static final String DESC_THREADS = "number of threads";
 	public static final String ARG_VCF = "vcf";
 	public static final String DESC_VCF = "input vcf file";
+	public static final String ARG_REFERENCE_GENOME = "refGenome";
+	public static final String DESC_REFERENCE_GENOME = "reference genome fasta file";
 
 
 	private static final String HELP_CHAR = "h"; // short string to print usage
