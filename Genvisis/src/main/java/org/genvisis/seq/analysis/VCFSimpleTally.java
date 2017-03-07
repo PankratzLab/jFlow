@@ -274,7 +274,7 @@ public class VCFSimpleTally {
 
 				while (reader.ready()) {
 					String[] line = reader.readLine().trim().split("\t");
-					String gene = line[0];
+					String gene = line[0].trim();
 					if (genes.contains(line[0])) {
 						log.reportTimeWarning(gene + " was sen twice, using first annotation");
 
