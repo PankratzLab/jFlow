@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -51,7 +52,7 @@ public final class MarkerStats {
 	private static void generateMarkerStats(String projectPath, String outName) {
 		Project proj = new Project(projectPath, false);
 		String outFile = proj.PROJECT_DIRECTORY.getValue() + outName;
-		Hashtable<String, Integer> markerIndices = proj.getMarkerIndices();
+		Map<String, Integer> markerIndices = proj.getMarkerIndices();
 		Logger log = proj.getLog();
 		String gcModel = proj.GC_MODEL_FILENAME.getValue(false, false);
 		String gcModelName = new File(gcModel).getName();
