@@ -10,6 +10,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
@@ -915,11 +916,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	Thread initThread = null;
 
 	private JPanel dataPanel;
-
 	private JPanel tracksPanel;
 	
-	@Override
-	public void setVisible(boolean b) {
+	public void waitForInit() {
 		if (initThread != null && initThread.isAlive()) {
 			try {
 				initThread.join(0);
@@ -928,6 +927,11 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				// swallow
 			}
 		}
+	}
+	
+	@Override
+	public void setVisible(boolean b) {
+		waitForInit();
 		if (b) {
 			if (!SwingUtilities.isEventDispatchThread()) {
   			try {
@@ -1789,7 +1793,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		// previousChr.setActionMap(actionMap);
 	}
 
-	private void doScreenCapture(String filename) {
+	public void doScreenCapture(String filename) {
 		BufferedImage cap = generateScreenshot();
 
 		if (filename == null) {
@@ -1810,45 +1814,61 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 
 	private BufferedImage generateScreenshot() {
-		int lW = lrrPanel.getWidth();
-		int bW = bafPanel.getWidth();
-		int gW = genePanel.getWidth();
-		int cW = cnvPanel.getWidth();
-		int lH = lrrPanel.getHeight();
-		int bH = bafPanel.getHeight();
-		int gH = genePanel.getHeight();
-		int cH = cnvPanel.getHeight();
+		waitForInit();
+		
+		int w1 = 1080;
+		int h1 = 160;
+//		int lW = lrrPanel.getWidth();
+//		int bW = bafPanel.getWidth();
+//		int gW = genePanel.getWidth();
+//		int cW = cnvPanel.getWidth();
+//		int lH = lrrPanel.getHeight();
+//		int bH = bafPanel.getHeight();
+//		int gH = genePanel.getHeight();
+//		int cH = cnvPanel.getHeight();
+		int lW = w1;
+		int bW = w1;
+		int gW = w1;
+		int cW = w1;
+		int lH = h1;
+		int bH = h1;
+		int gH = h1;
+		int cH = h1;
 		BufferedImage imageLrr = new BufferedImage(lW, lH, BufferedImage.TYPE_INT_RGB);
 		BufferedImage imageBaf = new BufferedImage(bW, bH, BufferedImage.TYPE_INT_RGB);
 		BufferedImage imageGene = new BufferedImage(gW, gH, BufferedImage.TYPE_INT_RGB);
 		BufferedImage imageCnv = new BufferedImage(cW, cH, BufferedImage.TYPE_INT_RGB);
-
+		
+		lrrPanel.setSize(w1, h1);
 		Graphics g = imageLrr.getGraphics();
 		g.setColor(lrrPanel.getBackground());
 		g.fillRect(0, 0, imageLrr.getWidth(), imageLrr.getHeight());
-		lrrPanel.paintAll(g);
-
+		lrrPanel.paint(g);
+		
+		genePanel.setSize(w1, h1);
 		g = imageGene.getGraphics();
 		g.setColor(genePanel.getBackground());
 		g.fillRect(0, 0, imageGene.getWidth(), imageGene.getHeight());
-		genePanel.paintAll(g);
+		genePanel.paint(g);
 
+		cnvPanel.setSize(w1, h1);
 		g = imageCnv.getGraphics();
 		g.setColor(cnvPanel.getBackground());
 		g.fillRect(0, 0, imageCnv.getWidth(), imageCnv.getHeight());
-		cnvPanel.paintAll(g);
+		cnvPanel.paint(g);
 		if (selectedCNV != null) {
 			// CNVariant cnv = cnvs[selectedCNV[0]][selectedCNV[1]];
 			// TODO include CNV details in ScreenCapture?
 		}
-
+		
+		bafPanel.setSize(w1, h1);
 		g = imageBaf.getGraphics();
 		g.setColor(bafPanel.getBackground());
 		g.fillRect(0, 0, imageBaf.getWidth(), imageBaf.getHeight());
-		bafPanel.paintAll(g);
+		bafPanel.paint(g);
 
 		int w = Math.max(lW, Math.max(bW, cW));
-		int h = lH + bH + cH + HEIGHT_BUFFER;
+		int h = lH + bH + cH + gH + HEIGHT_BUFFER;
 		BufferedImage finalImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 
 		g = finalImage.getGraphics();
@@ -1859,7 +1879,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		g.drawImage(imageCnv, 0, lH + gH + 5, null);
 		g.drawImage(imageBaf, 0, lH + gH + cH + 10, null);
 		g.dispose();
-
+		
 		return finalImage;
 	}
 

@@ -3138,7 +3138,6 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 //		String geneList = "F:/temp/variantviewer/genes.txt";
 //		String[] vcfFiles = {"F:/temp/variantviewer/output.vcf"};
 //		String popFile = "F:/temp/variantviewer/vtpedx.vpop";
-		
 //		new VariantViewer(proj, geneList, vcfFiles, popFile);
 
   	String geneList = "genes.txt";
