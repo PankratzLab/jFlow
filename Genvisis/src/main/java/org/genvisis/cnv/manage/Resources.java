@@ -1078,15 +1078,13 @@ public final class Resources {
 				try {
 					HttpDownloadUtility.downloadFile(url, downloadPath, true, log);
 
-					// Try to download the md5
-					String md5Url = url + ".md5";
-					String md5LocalPath = downloadPath + ".md5";
-					if (isRemotelyAvailable(md5Url)) {
-						HttpDownloadUtility.downloadFile(md5Url, md5LocalPath, true, log);
-					} else {
-						log.reportTimeWarning("No remote md5 found for resource: " + url);
+					// verify the download
+					if (getMD5Local().equals(getMD5Remote())) {
+						return true;
 					}
 
+					// md5 did not match
+					log.reportError("Local md5 checksum does not match remote for resource: " + url);
 				} catch (IOException e) {
 					log.reportError("Could not retrieve resource from " + url + " and save it to"
 													+ downloadPath);
