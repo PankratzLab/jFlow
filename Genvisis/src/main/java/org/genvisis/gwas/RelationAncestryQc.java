@@ -30,31 +30,36 @@ public class RelationAncestryQc extends Qc {
 	public static final String UNRELATEDS_FILENAME = "unrelateds.txt";
 
 	/** A rough listing of the Folders created by fullGamut */
-	public static String[] FOLDERS_CREATED = {Qc.QC_SUBDIR + MARKER_QC_DIR,
-																						Qc.QC_SUBDIR + SAMPLE_QC_DIR,
-																						Qc.QC_SUBDIR + LD_PRUNING_DIR,
-																						Qc.QC_SUBDIR + GENOME_DIR, Qc.QC_SUBDIR + ANCESTRY_DIR};
+	public static final String[] FOLDERS_CREATED = {Qc.QC_SUBDIR + MARKER_QC_DIR,
+																									Qc.QC_SUBDIR + SAMPLE_QC_DIR,
+																									Qc.QC_SUBDIR + LD_PRUNING_DIR,
+																									Qc.QC_SUBDIR + GENOME_DIR,
+																									Qc.QC_SUBDIR + ANCESTRY_DIR};
 	/** A rough listing of the files created, by folder, by fullGamut */
 	// TODO: This does not accommodate cases where the plinkroot is something other than
 	// Qc.DEFAULT_PLINKROOT
 	// Also ought to be automated...
-	public static String[][] FILES_CREATED = {{Qc.DEFAULT_PLINKROOT + ".bed", "freq.frq",
-																						 "missing.imiss",
-																						 /* "test.missing.missing", *//*
-																																					 * not actually necessary
-																																					 */ "hardy.hwe",
-																						 "mishap.missing.hap", "gender.assoc", "gender.missing",
-																						 MARKER_QC_DROPS},
-																						{Qc.DEFAULT_PLINKROOT + ".bed", "missing.imiss"},
-																						{Qc.DEFAULT_PLINKROOT + ".bed",
-																						 Qc.DEFAULT_PLINKROOT + ".prune.in"},
-																						{Qc.DEFAULT_PLINKROOT + ".bed",
-																						 Qc.DEFAULT_PLINKROOT + ".genome",
-																						 Qc.DEFAULT_PLINKROOT + ".genome_keep.dat"},
-																						{Qc.DEFAULT_PLINKROOT + ".bed", UNRELATEDS_FILENAME}};
+	public static final String[][] FILES_CREATED = {{Qc.DEFAULT_PLINKROOT + ".bed", "freq.frq",
+																									 "missing.imiss",
+																									 /* "test.missing.missing", *//*
+																																								 * not actually
+																																								 * necessary
+																																								 */ "hardy.hwe",
+																									 "mishap.missing.hap", "gender.assoc",
+																									 "gender.missing",
+																									 MARKER_QC_DROPS},
+																									{Qc.DEFAULT_PLINKROOT + ".bed", "missing.imiss"},
+																									{Qc.DEFAULT_PLINKROOT + ".bed",
+																									 Qc.DEFAULT_PLINKROOT + ".prune.in"},
+																									{Qc.DEFAULT_PLINKROOT + ".bed",
+																									 Qc.DEFAULT_PLINKROOT + ".genome",
+																									 Qc.DEFAULT_PLINKROOT + ".genome_keep.dat"},
+																									{Qc.DEFAULT_PLINKROOT + ".bed",
+																									 UNRELATEDS_FILENAME}};
 	public static final String ARGS_KEEPGENOME = "keepGenomeInfoForRelatedsOnly";
 
-	private static final Set<QC_METRIC> CUSTOMIZABLE_QC_METRICS = Collections.unmodifiableSet(EnumSet.of(QC_METRIC.CALLRATE));
+	public static final Map<QC_METRIC, String> DEFAULT_QC_METRIC_THRESHOLDS = MarkerQC.DEFAULT_METRIC_THRESHOLDS;
+	public static final Set<QC_METRIC> CUSTOMIZABLE_QC_METRICS = Collections.unmodifiableSet(EnumSet.of(QC_METRIC.CALLRATE));
 
 	/**
 	 * @see Qc#Qc(String, String, Map, Logger)
@@ -182,7 +187,7 @@ public class RelationAncestryQc extends Qc {
 	public static void fullGamut(String dir, String plinkPrefix,
 															 boolean keepGenomeInfoForRelatedsOnly, Logger log) {
 		fullGamut(dir, plinkPrefix, keepGenomeInfoForRelatedsOnly, log,
-							MarkerQC.DEFAULT_METRIC_THRESHOLDS);
+							DEFAULT_QC_METRIC_THRESHOLDS);
 	}
 
 	/**
@@ -220,7 +225,7 @@ public class RelationAncestryQc extends Qc {
 		c.addArgWithDefault(CLI.ARG_PLINKROOT, CLI.DESC_PLINKROOT, Qc.DEFAULT_PLINKROOT);
 		c.addArgWithDefault(RelationAncestryQc.ARGS_KEEPGENOME, "if no MDS will be run, smaller file",
 												String.valueOf(true));
-		Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(MarkerQC.DEFAULT_METRIC_THRESHOLDS);
+		Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(DEFAULT_QC_METRIC_THRESHOLDS);
 		for (QC_METRIC metric : CUSTOMIZABLE_QC_METRICS) {
 			String defaultThreshold = markerQCThresholds.get(metric);
 			c.addArgWithDefault(metric.getKey(), metric.getCLIDescription(), defaultThreshold);

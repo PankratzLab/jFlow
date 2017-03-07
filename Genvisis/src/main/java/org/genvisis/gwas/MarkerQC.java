@@ -49,6 +49,9 @@ public class MarkerQC {
 	public static final Map<QC_METRIC, String> DEFAULT_METRIC_THRESHOLDS;
 	public static final Map<QC_METRIC, String> DEFAULT_METRIC_FILENAMES;
 
+	public static final String DEFAULT_ILLUMINA_CALLRATE_THRESHOLD = "<0.98";
+	public static final String DEFAULT_AFFY_CALLRATE_THRESHOLD = "<0.95";
+
 	private static final List<String> DEFAULT_CRF_START_LINES = ImmutableList.of("file=markerQC.xln",
 																																							 "markers=freq.frq,1,header");
 
@@ -56,7 +59,7 @@ public class MarkerQC {
 		Map<QC_METRIC, String> defaultMetricThresholds = Maps.newHashMap();
 		defaultMetricThresholds.put(QC_METRIC.CHR, "<1");
 		defaultMetricThresholds.put(QC_METRIC.MAF, "<0.01");
-		defaultMetricThresholds.put(QC_METRIC.CALLRATE, "<0.98");
+		defaultMetricThresholds.put(QC_METRIC.CALLRATE, DEFAULT_ILLUMINA_CALLRATE_THRESHOLD);
 		defaultMetricThresholds.put(QC_METRIC.HWE, "<0.00001");
 		defaultMetricThresholds.put(QC_METRIC.MISHAP_HETERO, "<0.0001");
 		defaultMetricThresholds.put(QC_METRIC.MISHAP_MIN, "<0.0001");

@@ -517,6 +517,28 @@ public class GenvisisWorkflow {
 
 	}
 
+	public static class ThresholdRequirement extends Requirement {
+
+		public ThresholdRequirement(String description, String defaultValue) {
+			super(description, RequirementInputType.STRING, defaultValue);
+		}
+
+		@Override
+		public boolean checkRequirement(String arg, Set<Step> stepSelections,
+																		Map<Step, Map<Requirement, String>> variables) {
+			Maths.OPERATOR op = MarkerQC.findOperator(arg);
+			if (op == null)
+				return false;
+			try {
+				Double.parseDouble(arg.substring(op.getSymbol().length()));
+			} catch (NumberFormatException nfe) {
+				return false;
+			}
+			return true;
+		}
+
+	}
+
 	public enum RequirementInputType {
 		NONE, FILE, DIR, STRING, NUMBER, BOOL, ENUM
 	}
@@ -1385,9 +1407,24 @@ public class GenvisisWorkflow {
 
 	private Step generateGwasQCStep(double priority, Step plinkExportStep) {
 		final Requirement plinkExportStepReq = new StepRequirement(plinkExportStep);
+		String defaultCallrate;
+		switch (proj.getArrayType()) {
+			case AFFY_GW6:
+			case AFFY_GW6_CN:
+				defaultCallrate = MarkerQC.DEFAULT_AFFY_CALLRATE_THRESHOLD;
+				break;
+			case ILLUMINA:
+				defaultCallrate = MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD;
+				break;
+			default:
+				throw new IllegalArgumentException("Invalid " + proj.getArrayType().getClass().getName()
+																					 + ": " + proj.getArrayType().toString());
+		}
+		final Requirement callrateReq = new ThresholdRequirement(QC_METRIC.CALLRATE.getUserDescription(),
+																														 defaultCallrate);
 
 		return new Step("Run GWAS QC", "",
-										new Requirement[][] {{plinkExportStepReq}},
+										new Requirement[][] {{plinkExportStepReq}, {callrateReq}},
 										EnumSet.noneOf(Flag.class), priority) {
 
 			@Override
@@ -1399,7 +1436,10 @@ public class GenvisisWorkflow {
 			@Override
 			public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
 				String dir = getPlinkDir();
-				RelationAncestryQc.fullGamut(dir, null, false, proj.getLog());
+				Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(RelationAncestryQc.DEFAULT_QC_METRIC_THRESHOLDS);
+				markerQCThresholds.put(QC_METRIC.CALLRATE, variables.get(this).get(callrateReq));
+				new RelationAncestryQc(dir, PLINKROOT, markerQCThresholds, log).run(false);
+				RelationAncestryQc.fullGamut(dir, PLINKROOT, false, proj.getLog());
 				if (new File(dir + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR + PLINKROOT
 										 + ".genome").exists()) {
 					proj.GENOME_CLUSTER_FILENAME.setValue(dir + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR
@@ -1411,17 +1451,29 @@ public class GenvisisWorkflow {
 
 			@Override
 			public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+				Map<Requirement, String> stepVars = variables.get(this);
+
 				String dir = getPlinkDir();
-				String command = Files.getRunString() + " gwas.Qc dir=" + dir
-												 + " keepGenomeInfoForRelatedsOnly=false";
-				command += "\n";
-				command += Files.getRunString() + " " + PROJ_PROP_UPDATE_STR + proj.getPropertyFilename();
-				command += " " + proj.GENOME_CLUSTER_FILENAME.getName() + "=" + dir + Qc.QC_SUBDIR
-									 + RelationAncestryQc.GENOME_DIR + PLINKROOT + ".genome";
-				command += "\n";
-				command += Files.getRunString() + " org.genvisis.gwas.PlinkMendelianChecker proj="
-									 + proj.getPropertyFilename();
-				return command;
+				Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(RelationAncestryQc.DEFAULT_QC_METRIC_THRESHOLDS);
+				markerQCThresholds.put(QC_METRIC.CALLRATE, variables.get(this).get(callrateReq));
+
+
+				List<String> commandChunks = Lists.newArrayList();
+				commandChunks.add(Files.getRunString());
+				commandChunks.add(RelationAncestryQc.class.getName());
+				commandChunks.add(CLI.formCmdLineArg(CLI.ARG_INDIR, getPlinkDir()));
+				commandChunks.add(CLI.formCmdLineArg(CLI.ARG_PLINKROOT, PLINKROOT));
+				commandChunks.add(CLI.formCmdLineArg(RelationAncestryQc.ARGS_KEEPGENOME, "false"));
+				commandChunks.add(CLI.formCmdLineArg(QC_METRIC.CALLRATE.getKey(),
+																						 stepVars.get(callrateReq)));
+				commandChunks.add("\n" + Files.getRunString());
+				commandChunks.add(PROJ_PROP_UPDATE_STR + proj.getPropertyFilename());
+				commandChunks.add(proj.GENOME_CLUSTER_FILENAME.getName() + "=" + dir + Qc.QC_SUBDIR
+													+ RelationAncestryQc.GENOME_DIR + PLINKROOT + ".genome");
+				commandChunks.add("\n" + Files.getRunString());
+				commandChunks.add(PlinkMendelianChecker.class.getName());
+				commandChunks.add("proj=" + proj.getPropertyFilename());
+				return Joiner.on(' ').join(commandChunks);
 			}
 
 			@Override
@@ -1528,23 +1580,10 @@ public class GenvisisWorkflow {
 		requirementsList.add(new Requirement[] {ancestryStepReq, europeansFilesReq});
 		final Map<QC_METRIC, Requirement> metricRequirements = Maps.newEnumMap(QC_METRIC.class);
 		for (QC_METRIC metric : QC_METRIC.values()) {
-			String defaultVal = FurtherAnalysisQc.DEFAULT_MARKER_QC_THRESHOLDS.get(metric);
-			final Requirement metricReq = new Requirement(metric.getUserDescription(),
-																										RequirementInputType.STRING, defaultVal) {
-				@Override
-				public boolean checkRequirement(String arg, Set<Step> stepSelections,
-																				Map<Step, Map<Requirement, String>> variables) {
-					Maths.OPERATOR op = MarkerQC.findOperator(arg);
-					if (op == null)
-						return false;
-					try {
-						Double.parseDouble(arg.substring(op.getSymbol().length()));
-					} catch (NumberFormatException nfe) {
-						return false;
-					}
-					return true;
-				}
-			};
+			Map<QC_METRIC, String> defaultThresholds = FurtherAnalysisQc.getDefaultMarkerQCThresholds(proj.getArrayType());
+			String defaultVal = defaultThresholds.get(metric);
+			final Requirement metricReq = new ThresholdRequirement(metric.getUserDescription(),
+																														 defaultVal);
 			requirementsList.add(new Requirement[] {metricReq});
 			metricRequirements.put(metric, metricReq);
 		}
@@ -1737,7 +1776,8 @@ public class GenvisisWorkflow {
 																																 .get(skipIDingDuplicatesReq));
 				String duplicatesSetFile = null;
 				if (checkDuplicates) {
-					duplicatesSetFile = getPlinkDir() + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR + PLINKROOT
+					duplicatesSetFile = getPlinkDir() + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR
+															+ PLINKROOT
 															+ ".genome_duplicatesSet.dat";
 				}
 				boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this)
@@ -1763,7 +1803,8 @@ public class GenvisisWorkflow {
 																																 .get(skipIDingDuplicatesReq));
 				String duplicatesSetFile = null;
 				if (checkDuplicates) {
-					duplicatesSetFile = getPlinkDir() + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR + PLINKROOT
+					duplicatesSetFile = getPlinkDir() + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR
+															+ PLINKROOT
 															+ ".genome_duplicatesSet.dat";
 				}
 				boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this)
