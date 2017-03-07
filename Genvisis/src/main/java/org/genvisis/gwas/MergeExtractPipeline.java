@@ -504,6 +504,12 @@ public class MergeExtractPipeline {
 		if (outFormat == -1) {
 			outFormat = DosageData.determineType(getOutputDataFile());
 		}
+		
+		String[] allMarkers = markers;
+		if (renameMarkers && markers != null) {
+			allMarkers = dd1.getMarkerSet().getMarkerNames();
+		}
+		
 		if (splitOutput) {
 			String outD, outM;
 			for (int i = 0; i < regions.length; i++) {
@@ -511,11 +517,11 @@ public class MergeExtractPipeline {
 				outM = getOutputMapFile(regionLabels[i]);
 				(new File(ext.parseDirectoryOfFile(outD))).mkdirs();
 				(new File(ext.parseDirectoryOfFile(outM))).mkdirs();
-				dd1.writeToFile(outD, outM, markers, new int[][] {regions[i]}, true, true,
+				dd1.writeToFile(outD, outM, allMarkers, new int[][] {regions[i]}, true, true,
 												DosageData.PARAMETERS[outFormat], log);
 			}
 		} else {
-			dd1.writeToFile(getOutputDataFile(), getOutputMapFile(), markers, regions, true, true,
+			dd1.writeToFile(getOutputDataFile(), getOutputMapFile(), allMarkers, regions, true, true,
 											DosageData.PARAMETERS[outFormat], log);
 		}
 
