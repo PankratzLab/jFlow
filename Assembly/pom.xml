@@ -98,6 +98,7 @@
 							<jfxMainAppJarName>${outname}-jfx.jar</jfxMainAppJarName>
 							<mainClass>org.genvisis.cnv.Launch</mainClass>
 							<needShortcut>true</needShortcut>
+							<needMenu>true</needMenu>
 							<appName>${outname}</appName>
 							<nativeReleaseVersion>${project.version}</nativeReleaseVersion>
 						</configuration>
