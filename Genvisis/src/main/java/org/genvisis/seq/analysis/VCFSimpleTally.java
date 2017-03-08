@@ -1695,10 +1695,10 @@ public class VCFSimpleTally {
 			String outDir = ext.parseDirectoryOfFile(vpopsCase[i]);
 			new File(outDir).mkdirs();
 			Logger log = new Logger(ext.rootOf(vpopsCase[i], false) + ".log");
-			if (i > 0) {
-				log.reportTimeWarning("JOHN remember break");
-				break;
-			}
+			// if (i > 0) {
+			// log.reportTimeWarning("JOHN remember break");
+			// break;
+			// }
 			log.reportTimeWarning("Now loading all .geneset");
 			GeneSet[] currentSets = GeneSet.load(Files.listFullPaths(genesetDir == null ? ext.parseDirectoryOfFile(vpopsCase[i])
 																																									: genesetDir,
