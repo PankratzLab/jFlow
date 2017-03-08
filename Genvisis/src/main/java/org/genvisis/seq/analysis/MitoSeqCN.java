@@ -140,7 +140,7 @@ public class MitoSeqCN {
 		private static final String[] header = new String[] {"Sample", "NumMitoReads",
 																												 "TotalAlignedReads", "TotalUnAlignedReads",
 																												 "XReads", "YReads",
-																												 "AutosomalOnTargetAlignedReads",
+																												 "AutosomalAlignedReads",
 																												 "NormalizationReads", "MitoLen", "normLen",
 																												 "MTBamFile", "MTBamFileTrim",
 																												 "EstimatedReadLength", "mtDNACNEstimate"};
