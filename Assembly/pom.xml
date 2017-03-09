@@ -83,11 +83,6 @@
 	<profiles>
 		<profile>
 			<id>jfx</id>
-			<activation>
-				<property>
-					<name>genv.upload.path</name>
-				</property>
-			</activation>
 			<build>
 				<plugins>
 					<plugin>
