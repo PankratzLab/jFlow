@@ -19,7 +19,7 @@
 	<properties>
 		<outname>genvisis</outname>
 		<mainClass>org.genvisis.GenvisisMain</mainClass>
-		<resourcesDir>${project.basedir}/resources</resourcesDir>
+		<resourcesDir>${project.basedir}/buildRsrc</resourcesDir>
 	</properties>
 
 	<dependencies>
