@@ -19,6 +19,7 @@
 	<properties>
 		<outname>genvisis</outname>
 		<mainClass>org.genvisis.GenvisisMain</mainClass>
+		<resourcesDir>${project.basedir}/resources</resourcesDir>
 	</properties>
 
 	<dependencies>
@@ -96,6 +97,7 @@
 							<needMenu>true</needMenu>
 							<appName>${outname}</appName>
 							<nativeReleaseVersion>${project.version}</nativeReleaseVersion>
+							<additionalAppResources>${resourcesDir}</additionalAppResources>
 						</configuration>
 						<executions>
 							<execution>
