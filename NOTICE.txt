@@ -9,6 +9,7 @@ The following components use the GPL 2.0 license:
 The following components use the MIT license:
 * bzip2
 * htsjdk
+* java-semver
 
 The following components use the BSD 3-clause license:
 * ControlsFX
