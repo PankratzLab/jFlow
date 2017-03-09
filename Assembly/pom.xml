@@ -12,7 +12,7 @@
 	</parent>
 
 	<artifactId>Assembly</artifactId>
-	<version>0.1.9</version>
+	<version>0.1.9-SNAPSHOT</version>
 
 	<description>Build the complete Genvisis executable jar, with dependencies.</description>
 

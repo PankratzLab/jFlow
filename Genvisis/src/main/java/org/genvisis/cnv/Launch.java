@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
-import java.util.jar.Attributes;
 
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -89,10 +88,10 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
-import org.genvisis.common.CurrentManifest;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HttpUpdate;
+import org.genvisis.common.LauncherManifest;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.StartupValidation;
@@ -232,8 +231,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @param currentManifest Manifest for this execution
 	 * @param jar Whether or not this was launched from a .jar
 	 */
-	public Launch(CurrentManifest currentManifest, boolean jar) {
-		super("Genvisis " + currentManifest.getVersion().getVersion());
+	public Launch(LauncherManifest currentManifest, boolean jar) {
+		// Print the release version info
+		super("Genvisis " + currentManifest.getVersion().getNormalVersion());
 		this.jar = jar;
 		timestampOfPropertiesFile = -1;
 		timestampOfSampleDataFile = -1;
@@ -466,10 +466,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		}).start();
 
 		// Create and set up the content pane.
-		CurrentManifest manifest = new CurrentManifest(new Attributes());
+		LauncherManifest manifest = new LauncherManifest();
 		try {
 			// try not to break the launch so we will catch anything
-			manifest = CurrentManifest.loadGenvisisManifest();
+			manifest = LauncherManifest.loadGenvisisManifest();
 		} catch (Exception e) {
 			// It's OK if there is no manifest
 		}

@@ -96,7 +96,7 @@ public class Logger implements Serializable {
 	private static String getVersion() {
 		String v = "[Genvisis - version unknown] ";
 		try {
-			v = "[Genvisis " + CurrentManifest.loadGenvisisManifest().getVersion().getVersion() + "] ";
+			v = "[Genvisis " + LauncherManifest.loadGenvisisManifest().getVersion() + "] ";
 		} catch (Exception e) {
 
 		}

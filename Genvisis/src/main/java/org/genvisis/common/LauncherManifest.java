@@ -6,15 +6,46 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
-import org.genvisis.common.HttpUpdate.Version;
+import org.genvisis.cnv.Launch;
+
+import com.github.zafarkhaja.semver.Version;
 
 /**
- * Try to parse the attributes of currently running jar;
- *
+ * Describes the manifest of the jar containing the class that was used to launch this application.
  */
-public class CurrentManifest {
-	public static final String IMPLEMENTATION_VERSION = "Implementation-Version";
+public class LauncherManifest {
+
+	public static final String UNDETERMINED_VERSION = "0.0.0-unknown";
+	public static final String BUILD_VERSION = "Implementation-Version";
+	public static final String BUILD_TIMESTAMP = "Implementation-Date";
+	public static final String GIT_COMMIT_SHA = "Implementation-Build";
+	private static final Class<?> DEFAULT_LAUNCH_CLASS = Launch.class;
+
+	private static Class<?> launchClass = null;
+
+	public static Class<?> getLaunchClass() {
+		if (launchClass == null) {
+			setLaunchClass(DEFAULT_LAUNCH_CLASS);
+		}
+		return launchClass;
+	}
+
+	public static boolean setLaunchClass(Class<?> c) {
+		if (launchClass == null) {
+			return lockedSetLaunchClass(c);
+		}
+		return launchClass == c;
+	}
+
+	private static synchronized boolean lockedSetLaunchClass(Class<?> c) {
+		if (launchClass == null) {
+			launchClass = c;
+		}
+		return launchClass == c;
+	}
+
 	private Attributes attributes;
 	private Version version;
 	private String compileTime;
@@ -22,28 +53,29 @@ public class CurrentManifest {
 	private String builtBy;
 	private String copyright;
 
-	public CurrentManifest() {
-
+	public LauncherManifest() {
+		this(new Attributes());
 	}
 
-	public CurrentManifest(Attributes attributes) {
+	public LauncherManifest(Attributes attributes) {
 		super();
 		this.attributes = attributes;
 	}
 
 	private void populate() {
 
-		version = new Version("v-1.-1.-1");
+		version = Version.valueOf(UNDETERMINED_VERSION);
 		compileTime = "";
 		buildType = "";
 		builtBy = "";
 		if (attributes != null) {
+			// FIXME use attributes.getValue(String)
 			Iterator<Object> it = attributes.keySet().iterator();
 			while (it.hasNext()) {
 				java.util.jar.Attributes.Name key = (java.util.jar.Attributes.Name) it.next();
 				String keyword = key.toString();
-				if (keyword.equals(IMPLEMENTATION_VERSION)) {
-					version = new Version((String) attributes.get(key));
+				if (keyword.equals(BUILD_VERSION)) {
+					version = Version.valueOf((String) attributes.get(key));
 				}
 				if (keyword.equals("Compile-Time")) {
 					compileTime = (String) attributes.get(key);
@@ -85,15 +117,16 @@ public class CurrentManifest {
 		return compileTime;
 	}
 
-	public static CurrentManifest loadGenvisisManifest() {
+	public static LauncherManifest loadGenvisisManifest() {
 		File file = getCurrentFile();
 		return loadManifest(file);
 	}
 
 	public static String getGenvisisInfo() {
 		try {
-			CurrentManifest manifest = CurrentManifest.loadGenvisisManifest();// until it always works
-			return "Genvisis, " + manifest.getVersion().getVersion() + "\n" + manifest.getCopyright()
+			LauncherManifest manifest = LauncherManifest.loadGenvisisManifest();// until it always works
+			return "Genvisis, " + manifest.getVersion().getNormalVersion() + "\n"
+						 + manifest.getCopyright()
 						 + "\n\n" + (new Date());
 		} catch (Exception e) {
 			return "Genvisis, v0.0.0\n(c)2009-2015 Nathan Pankratz, GNU General Public License, v2\n\n"
@@ -102,21 +135,21 @@ public class CurrentManifest {
 	}
 
 	// https://ant.apache.org/manual/Tasks/manifest.html
-	public static CurrentManifest loadManifest(File file) {
+	public static LauncherManifest loadManifest(File file) {
 		JarFile jar = null;
 
-		CurrentManifest currentManifest = new CurrentManifest(new Attributes());
+		LauncherManifest currentManifest = new LauncherManifest();
 		try {
 
 			if (file != null && file.exists()) {
-				jar = new java.util.jar.JarFile(file);
+				jar = new JarFile(file);
 
-				java.util.jar.Manifest manifest = jar.getManifest();
+				Manifest manifest = jar.getManifest();
 
 				Attributes attributes = manifest.getMainAttributes();
 
 				jar.close();
-				currentManifest = new CurrentManifest(attributes);
+				currentManifest = new LauncherManifest(attributes);
 			}
 		} catch (IOException ioe) {
 
@@ -126,8 +159,8 @@ public class CurrentManifest {
 	}
 
 	private static File getCurrentFile() {
-		File file = new File(new CurrentManifest().getClass().getProtectionDomain().getCodeSource()
-																							.getLocation().getFile());// get
+		File file = new File(getLaunchClass().getProtectionDomain().getCodeSource()
+																				 .getLocation().getFile());// get
 
 		if (!file.exists() || !file.getAbsolutePath().endsWith(".jar")) {
 			file = new File("../" + PSF.Java.GENVISIS);

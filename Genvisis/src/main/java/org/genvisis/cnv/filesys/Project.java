@@ -42,7 +42,7 @@ import org.genvisis.cnv.prop.StringProperty;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CurrentManifest;
+import org.genvisis.common.LauncherManifest;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -620,7 +620,7 @@ public class Project implements PropertyChangeListener {
 		}
 
 
-		log.report(CurrentManifest.getGenvisisInfo());
+		log.report(LauncherManifest.getGenvisisInfo());
 		log.report("\nJava version: " + System.getProperty("java.version"));
 
 		try {
