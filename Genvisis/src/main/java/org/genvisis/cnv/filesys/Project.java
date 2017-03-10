@@ -266,6 +266,10 @@ public class Project implements PropertyChangeListener {
 																														PropertyKeys.KEY_MARKERSET_FILENAME, "",
 																														GROUP.SPECIAL_HIDDEN, true,
 																														"data/markers.ser", false);
+	public FileProperty MARKER_DETAILS_FILENAME = new FileProperty(this,
+																																 PropertyKeys.KEY_MARKER_DETAILS_FILENAME,
+																																 "", GROUP.SPECIAL_HIDDEN, true,
+																																 "data/markerdetails.ser", false);
 	public FileProperty MARKERLOOKUP_FILENAME = new FileProperty(this,
 																															 PropertyKeys.KEY_MARKERLOOKUP_FILENAME,
 																															 "", GROUP.SPECIAL_HIDDEN, true,
@@ -810,11 +814,17 @@ public class Project implements PropertyChangeListener {
 	}
 
 	private MarkerDetailSet loadMarkerSet() {
+		if (Files.exists(MARKER_DETAILS_FILENAME.getValue(), JAR_STATUS.getValue())) {
+			MarkerDetailSet loadedMarkerSet = MarkerDetailSet.load(MARKER_DETAILS_FILENAME.getValue(),
+																														 JAR_STATUS.getValue());
+			// TODO: check if fingerprint or hashcode matches BLAST VCF, regenerate MarkerDetailSet if not
+			return loadedMarkerSet;
+		}
 		if (Files.exists(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue())) {
 			MarkerSetInfo naiveMarkerSet = MarkerSet.load(MARKERSET_FILENAME.getValue(),
 																										JAR_STATUS.getValue());
 			MarkerDetailSet returnMarkerSet = null;
-			if (Files.exists(BLAST_ANNOTATION_FILENAME.getValue())) {
+			if (Files.exists(BLAST_ANNOTATION_FILENAME.getValue(), JAR_STATUS.getValue())) {
 				returnMarkerSet = MarkerDetailSet.parseFromBLASTAnnotation(naiveMarkerSet,
 																																	 BLAST_ANNOTATION_FILENAME.getValue(),
 																																	 log);
@@ -822,6 +832,7 @@ public class Project implements PropertyChangeListener {
 			if (returnMarkerSet == null) {
 				returnMarkerSet = new MarkerDetailSet(naiveMarkerSet);
 			}
+			returnMarkerSet.serialize(MARKER_DETAILS_FILENAME.getValue());
 			return returnMarkerSet;
 		} else {
 			getLog().reportFileNotFound(MARKERSET_FILENAME.getValue());
