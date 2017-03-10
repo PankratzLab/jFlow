@@ -66,6 +66,7 @@ import org.genvisis.cnv.filesys.ProjectPropertiesEditor;
 import org.genvisis.cnv.gui.FileAndOutputSelectorGUI;
 import org.genvisis.cnv.gui.ImportProjectGUI;
 import org.genvisis.cnv.gui.PlinkExportOptions;
+import org.genvisis.cnv.gui.ProjectCreationGUI;
 import org.genvisis.cnv.manage.DemoPackage;
 import org.genvisis.cnv.manage.ExportCNVsToPedFormat;
 import org.genvisis.cnv.manage.GenvisisWorkflow;
@@ -1304,10 +1305,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				final GenvisisWorkflow kAndK = new GenvisisWorkflow(null, Launch.this);
-				kAndK.showDialogAndRun();
+				Project proj = ProjectCreationGUI.runCreationGUI();
+				if (proj != null) {
+					new GenvisisWorkflow(proj, Launch.this).showDialogAndRun();
+				}
 			}
 		});
+
 	}
 
 	// FIXME refactor to subclass to reduce clutter, or delete completely if unnecessary

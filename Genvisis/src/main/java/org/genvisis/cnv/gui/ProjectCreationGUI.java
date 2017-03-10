@@ -30,6 +30,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
+import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
@@ -131,6 +132,18 @@ public class ProjectCreationGUI extends JDialog {
 	private final JSpinner spinnerXY;
 	private final JProgressBar progressBar;
 	private final String[] existingNames;
+
+	public static Project runCreationGUI() {
+		ProjectCreationGUI createGUI = new ProjectCreationGUI(LaunchProperties.getListOfProjectNames());
+		createGUI.setModal(true);
+		createGUI.setVisible(true);
+
+		if (createGUI.wasCancelled()) {
+			return null;
+		} else {
+			return createGUI.getCreatedProject();
+		}
+	}
 
 	/**
 	 * Create the frame.
@@ -556,5 +569,4 @@ public class ProjectCreationGUI extends JDialog {
 	public boolean wasCancelled() {
 		return cancelled;
 	}
-
 }

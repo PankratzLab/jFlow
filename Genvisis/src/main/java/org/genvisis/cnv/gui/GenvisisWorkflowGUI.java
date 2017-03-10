@@ -49,7 +49,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.genvisis.cnv.Launch;
-import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.GenvisisWorkflow;
 import org.genvisis.cnv.manage.GenvisisWorkflow.Step;
@@ -94,11 +93,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 	 * @param steps TODO
 	 */
 	public GenvisisWorkflowGUI(Project proj2, final Launch launch, final SortedSet<Step> steps) {
-		if (proj2 == null) {
-			proj = createNewProject(LaunchProperties.getListOfProjectNames());
-		} else {
-			proj = proj2;
-		}
+		proj = proj2;
 		if (proj == null) {
 			doClose();
 			return;
@@ -1029,18 +1024,4 @@ public class GenvisisWorkflowGUI extends JDialog {
 		}
 		return returnVars;
 	}
-
-	private Project createNewProject(String[] existing) {
-		ProjectCreationGUI createGUI = new ProjectCreationGUI(existing);
-		createGUI.setModal(true);
-		createGUI.setVisible(true);
-
-		if (createGUI.wasCancelled()) {
-			return null;
-		} else {
-			return createGUI.getCreatedProject();
-		}
-	}
-
-
 }
