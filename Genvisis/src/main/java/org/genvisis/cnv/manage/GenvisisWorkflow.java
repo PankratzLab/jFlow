@@ -648,7 +648,7 @@ public class GenvisisWorkflow {
 		final Requirement manifestReq = new FileRequirement("An Illumina Manifest file.",
 																												proj.getLocationOfSNP_Map(false));
 		return new Step("Create Marker Positions (if not already exists)", "",
-										new Requirement[][] {{snpMapReq}, {manifestReq}}, EnumSet.noneOf(Flag.class),
+										new Requirement[][] {{snpMapReq, manifestReq}}, EnumSet.noneOf(Flag.class),
 										priority) {
 
 			@Override
