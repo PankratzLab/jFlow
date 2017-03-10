@@ -828,30 +828,36 @@ public class GenvisisWorkflowGUI extends JDialog {
 			public void run() {
 				lockup(true);
 
-				Set<Step> selectedSteps = getSelectedOptions();
-				Map<Step, Map<GenvisisWorkflow.Requirement, String>> variables = getVariables();
-				if (checkRequirementsAndNotify(variables)) {
-					StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
-					Set<GenvisisWorkflow.Flag> flags = EnumSet.noneOf(GenvisisWorkflow.Flag.class);
-					for (Step step : selectedSteps) {
-						flags.addAll(step.getFlags());
-						String cmd = step.getCommandLine(proj, variables);
-						output.append("## ").append(step.getName()).append("\n");
-						output.append("echo \" start ").append(step.getName()).append(" at: \" `date`")
-									.append("\n");
-						output.append(cmd).append("\n");
-						output.append("echo \" end ").append(step.getName()).append(" at: \" `date`")
-									.append("\n");
-						output.append("\n\n");
+				try {
+					Set<Step> selectedSteps = getSelectedOptions();
+					Map<Step, Map<GenvisisWorkflow.Requirement, String>> variables = getVariables();
+					if (checkRequirementsAndNotify(variables)) {
+						StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
+						Set<GenvisisWorkflow.Flag> flags = EnumSet.noneOf(GenvisisWorkflow.Flag.class);
+						for (Step step : selectedSteps) {
+							flags.addAll(step.getFlags());
+							String cmd = step.getCommandLine(proj, variables);
+							output.append("## ").append(step.getName()).append("\n");
+							output.append("echo \" start ").append(step.getName()).append(" at: \" `date`")
+										.append("\n");
+							output.append(cmd).append("\n");
+							output.append("echo \" end ").append(step.getName()).append(" at: \" `date`")
+										.append("\n");
+							output.append("\n\n");
+						}
+						Files.write(output.toString(),
+												proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.run");
+						Files.qsub(proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline."
+											 + ext.getTimestampForFilename() + ".pbs", output.toString(), Files.PBS_MEM,
+											 48,
+											 Files.PBS_PROC);
+						proj.message("GenvisisPipeline commands written to " + proj.PROJECT_DIRECTORY.getValue()
+												 + "GenvisisPipeline.run", "Command File Written",
+												 JOptionPane.INFORMATION_MESSAGE);
 					}
-					Files.write(output.toString(),
-											proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.run");
-					Files.qsub(proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline."
-										 + ext.getTimestampForFilename() + ".pbs", output.toString(), Files.PBS_MEM, 48,
-										 Files.PBS_PROC);
-					proj.message("GenvisisPipeline commands written to " + proj.PROJECT_DIRECTORY.getValue()
-											 + "GenvisisPipeline.run", "Command File Written",
-											 JOptionPane.INFORMATION_MESSAGE);
+				} catch (Exception e) {
+					proj.getLog().reportException(e);;
+					proj.message("WARNING: Failed to create Genvisis workflow script. See log.");
 				}
 
 				lockup(false);
