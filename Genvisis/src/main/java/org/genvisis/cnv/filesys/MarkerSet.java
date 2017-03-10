@@ -23,7 +23,7 @@ import com.google.common.primitives.Ints;
 /**
  * 
  * @deprecated Use {@link MarkerDetailSet} for BLASTed chromosome, position, and alleles This class
- *             is still used for the fingerprint to match other project files
+ *             is maintained for backwards compatibility
  *
  */
 @Deprecated

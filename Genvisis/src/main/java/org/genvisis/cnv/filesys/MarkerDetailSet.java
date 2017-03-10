@@ -219,6 +219,29 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		this.markerIndexMapRef = markerIndexMapRef;
 	}
 
+	private static BlastAnnotation closestChrMatch(byte naiveChr, int naivePosition,
+																								 Iterable<BlastAnnotation> matches) {
+		// If more than one match, try choosing one with chr that matches naiveChr (chr
+		// won't be affected by build) and closest position to naivePosition
+		BlastAnnotation bestMatch = null;
+		for (BlastAnnotation annotation : matches) {
+			if (annotation.getRefLoc().getChr() == naiveChr) {
+				if (bestMatch == null) {
+					bestMatch = annotation;
+				} else {
+					if (Math.abs(naivePosition
+											 - annotation.getRefLoc().getStart()) < Math.abs(
+																																			 naivePosition
+																																			 - bestMatch.getRefLoc()
+																																									.getStart())) {
+						bestMatch = annotation;
+					}
+				}
+			}
+		}
+		return bestMatch;
+	}
+
 	private int generateHashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -252,171 +275,6 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		return indexMapBuilder.build();
 	}
 
-	@Override
-	@Deprecated
-	public String[] getMarkerNames() {
-		String[] markerNames = new String[markers.size()];
-		for (int i = 0; i < markers.size(); i++) {
-			markerNames[i] = markers.get(i).getName();
-		}
-		return markerNames;
-	}
-
-	@Override
-	@Deprecated
-	public byte[] getChrs() {
-		byte[] chrs = new byte[markers.size()];
-		for (int i = 0; i < markers.size(); i++) {
-			chrs[i] = markers.get(i).getChr();
-		}
-		return chrs;
-	}
-
-	@Override
-	@Deprecated
-	public int[] getPositions() {
-		int[] positions = new int[markers.size()];
-		for (int i = 0; i < markers.size(); i++) {
-			positions[i] = markers.get(i).getPosition();
-		}
-		return positions;
-	}
-
-	@Deprecated
-	public char[][] getABAlleles() {
-		char[][] abAlleles = new char[markers.size()][2];
-		for (int i = 0; i < markers.size(); i++) {
-			abAlleles[i] = markers.get(i).getAB();
-		}
-		return abAlleles;
-	}
-
-	@Deprecated
-	public Map<String, Integer> getMarkerIndices() {
-		Map<Marker, Integer> markerIndices = getMarkerIndexMap();
-		Map<String, Integer> indices = Maps.newHashMapWithExpectedSize(markerIndices.size());
-		for (Map.Entry<Marker, Integer> entry : markerIndices.entrySet()) {
-			indices.put(entry.getKey().toString(), entry.getValue());
-		}
-		return indices;
-	}
-
-	@Override
-	@Deprecated
-	public int[][] getPositionsByChr() {
-		ListMultimap<Byte, Marker> chrMap = getChrMap();
-		int[][] positionsByChr = new int[MarkerSet.CHR_INDICES][];
-
-		for (byte chr : chrMap.keySet()) {
-			if (chr >= 0 && chr < MarkerSet.CHR_INDICES) {
-				List<Marker> markers = chrMap.get(chr);
-				positionsByChr[chr] = new int[markers.size()];
-				for (int i = 0; i < markers.size(); i++) {
-					positionsByChr[chr][i] = markers.get(i).getPosition();
-				}
-			}
-		}
-		return positionsByChr;
-	}
-
-	@Override
-	@Deprecated
-	public int[][] getIndicesByChr() {
-		ListMultimap<Byte, Marker> chrMap = getChrMap();
-		Map<Marker, Integer> markerIndexMap = getMarkerIndexMap();
-		int[][] indicesByChr = new int[MarkerSet.CHR_INDICES][0];
-
-		for (byte chr : chrMap.keySet()) {
-			if (chr >= 0 && chr < MarkerSet.CHR_INDICES) {
-				List<Marker> markers = chrMap.get(chr);
-				indicesByChr[chr] = new int[markers.size()];
-				for (int i = 0; i < markers.size(); i++) {
-					indicesByChr[chr][i] = markerIndexMap.get(markers.get(i));
-				}
-			}
-		}
-		return indicesByChr;
-	}
-
-	public Map<String, Marker> getMarkerNameMap() {
-		Map<String, Marker> markerNameMap = markerNameMapRef == null ? null : markerNameMapRef.get();
-		if (markerNameMap == null) {
-			markerNameMap = generateMarkerNameMap();
-			markerNameMapRef = new SoftReference<Map<String, Marker>>(markerNameMap);
-		}
-		return markerNameMap;
-	}
-
-	/**
-	 * 
-	 * @return a {@link ListMultimap} from chromosome (sorted) to {@link Marker}s (sorted by position)
-	 */
-	public ListMultimap<Byte, Marker> getChrMap() {
-		ListMultimap<Byte, Marker> chrMap = chrMapRef == null ? null : chrMapRef.get();
-		if (chrMap == null) {
-			chrMap = generateChrMap();
-			chrMapRef = new SoftReference<ListMultimap<Byte, Marker>>(chrMap);
-		}
-		return chrMap;
-	}
-
-	public Map<Marker, Integer> getMarkerIndexMap() {
-		Map<Marker, Integer> markerIndexMap = markerIndexMapRef == null ? null
-																																		: markerIndexMapRef.get();
-		if (markerIndexMap == null) {
-			markerIndexMap = generateMarkerIndexMap();
-			markerIndexMapRef = new SoftReference<Map<Marker, Integer>>(markerIndexMap);
-		}
-		return markerIndexMap;
-	}
-
-	@Override
-	public void exportToText(Project proj, String filename) {
-		PrintWriter writer;
-
-		try {
-			writer = Files.getAppropriateWriter(filename);
-			for (Marker marker : markers) {
-				writer.println(Joiner.on('\t').join(marker.getName(), marker.getChr(), marker.getPosition(),
-																						marker.getA(), marker.getB()));
-			}
-			writer.close();
-		} catch (Exception e) {
-			System.err.println("Error writing " + filename);
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public int hashCode() {
-		return hashCode;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		MarkerDetailSet other = (MarkerDetailSet) obj;
-		if (markers == null) {
-			if (other.markers != null)
-				return false;
-		} else if (!markers.equals(other.markers))
-			return false;
-		return true;
-	}
-
-	public void serialize(String filename) {
-		SerializedFiles.writeSerial(this, filename);
-	}
-
-	public static MarkerDetailSet load(String filename, boolean jar) {
-		return (MarkerDetailSet) SerializedFiles.readSerial(filename, jar, true);
-	}
-
 	public static MarkerDetailSet parseFromBLASTAnnotation(MarkerSetInfo naiveMarkerSet,
 																												 String blastAnnotation,
 																												 Logger log) {
@@ -437,12 +295,12 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
 		parsers.add(masterMarkerList);
 		annotationLoader.fillAnnotations(null, parsers, QUERY_TYPE.ONE_TO_ONE);
-
+	
 		int missingABcount = 0;
 		int missingPositionCount = 0;
 		int ambiguousPositionCount = 0;
 		for (int i = 0; i < markerNames.length; i++) {
-
+	
 			MarkerBlastAnnotation markerBlastAnnotation = masterMarkerList.get(markerNames[i]);
 			try {
 				abLookup[i] = ABLookup.parseABFromMarkerSeqAnnotation(markerBlastAnnotation.getMarkerSeqAnnotation());
@@ -530,31 +388,74 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 											+ " missing a BLAST result and association position");
 		}
 		return new MarkerDetailSet(markerNames, chrs, positions, abLookup);
-
-
+	
+	
 	}
 
-	public static BlastAnnotation closestChrMatch(byte naiveChr, int naivePosition,
-																								Iterable<BlastAnnotation> matches) {
-		// If more than one match, try choosing one with chr that matches naiveChr (chr
-		// won't be affected by build) and closest position to naivePosition
-		BlastAnnotation bestMatch = null;
-		for (BlastAnnotation annotation : matches) {
-			if (annotation.getRefLoc().getChr() == naiveChr) {
-				if (bestMatch == null) {
-					bestMatch = annotation;
-				} else {
-					if (Math.abs(naivePosition
-											 - annotation.getRefLoc().getStart()) < Math.abs(
-																																			 naivePosition
-																																			 - bestMatch.getRefLoc()
-																																									.getStart())) {
-						bestMatch = annotation;
-					}
-				}
-			}
+	public static MarkerDetailSet load(String filename, boolean jar) {
+		return (MarkerDetailSet) SerializedFiles.readSerial(filename, jar, true);
+	}
+
+	public void serialize(String filename) {
+		SerializedFiles.writeSerial(this, filename);
+	}
+
+	/**
+	 * 
+	 * @return a List of {@link Marker}s in defined order
+	 */
+	public List<Marker> getMarkers() {
+		return markers;
+	}
+	
+
+	public Map<String, Marker> getMarkerNameMap() {
+		Map<String, Marker> markerNameMap = markerNameMapRef == null ? null : markerNameMapRef.get();
+		if (markerNameMap == null) {
+			markerNameMap = generateMarkerNameMap();
+			markerNameMapRef = new SoftReference<Map<String, Marker>>(markerNameMap);
 		}
-		return bestMatch;
+		return markerNameMap;
+	}
+
+	/**
+	 * 
+	 * @return a {@link ListMultimap} from chromosome (sorted) to {@link Marker}s (sorted by position)
+	 */
+	public ListMultimap<Byte, Marker> getChrMap() {
+		ListMultimap<Byte, Marker> chrMap = chrMapRef == null ? null : chrMapRef.get();
+		if (chrMap == null) {
+			chrMap = generateChrMap();
+			chrMapRef = new SoftReference<ListMultimap<Byte, Marker>>(chrMap);
+		}
+		return chrMap;
+	}
+
+	public Map<Marker, Integer> getMarkerIndexMap() {
+		Map<Marker, Integer> markerIndexMap = markerIndexMapRef == null ? null
+																																		: markerIndexMapRef.get();
+		if (markerIndexMap == null) {
+			markerIndexMap = generateMarkerIndexMap();
+			markerIndexMapRef = new SoftReference<Map<Marker, Integer>>(markerIndexMap);
+		}
+		return markerIndexMap;
+	}
+
+	@Override
+	public void exportToText(Project proj, String filename) {
+		PrintWriter writer;
+
+		try {
+			writer = Files.getAppropriateWriter(filename);
+			for (Marker marker : markers) {
+				writer.println(Joiner.on('\t').join(marker.getName(), marker.getChr(), marker.getPosition(),
+																						marker.getA(), marker.getB()));
+			}
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing " + filename);
+			e.printStackTrace();
+		}
 	}
 
 	public LinkedHashSet<Marker> getMarkersInSeg(Segment seg) {
@@ -580,6 +481,39 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	}
 
 	@Override
+	public int hashCode() {
+		return hashCode;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		MarkerDetailSet other = (MarkerDetailSet) obj;
+		if (markers == null) {
+			if (other.markers != null)
+				return false;
+		} else if (!markers.equals(other.markers))
+			return false;
+		return true;
+	}
+
+	@Override
+	public long getFingerprint() {
+		return markerSetFingerprint;
+	}
+
+	@Override
+	public boolean checkFingerprint(Sample samp) {
+		return MarkerSet.checkFingerprints(this, samp);
+	}
+
+	@Override
+	@Deprecated
 	public int[] getIndicesOfMarkersIn(Segment seg, int[][] indicesByChr, Logger log) {
 		Collection<Marker> segMarkers = getMarkersInSeg(seg);
 		Iterator<Marker> segMarkersIter = segMarkers.iterator();
@@ -593,6 +527,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 
 	@Override
+	@Deprecated
 	public String[] getMarkersIn(Segment seg, int[][] indicesByChr) {
 		Collection<Marker> segMarkers = getMarkersInSeg(seg);
 		Iterator<Marker> segMarkersIter = segMarkers.iterator();
@@ -604,12 +539,88 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	}
 
 	@Override
-	public boolean checkFingerprint(Sample samp) {
-		return MarkerSet.checkFingerprints(this, samp);
+	@Deprecated
+	public String[] getMarkerNames() {
+		String[] markerNames = new String[markers.size()];
+		for (int i = 0; i < markers.size(); i++) {
+			markerNames[i] = markers.get(i).getName();
+		}
+		return markerNames;
 	}
 
 	@Override
-	public long getFingerprint() {
-		return markerSetFingerprint;
+	@Deprecated
+	public byte[] getChrs() {
+		byte[] chrs = new byte[markers.size()];
+		for (int i = 0; i < markers.size(); i++) {
+			chrs[i] = markers.get(i).getChr();
+		}
+		return chrs;
+	}
+
+	@Override
+	@Deprecated
+	public int[] getPositions() {
+		int[] positions = new int[markers.size()];
+		for (int i = 0; i < markers.size(); i++) {
+			positions[i] = markers.get(i).getPosition();
+		}
+		return positions;
+	}
+
+	@Override
+	@Deprecated
+	public int[][] getPositionsByChr() {
+		ListMultimap<Byte, Marker> chrMap = getChrMap();
+		int[][] positionsByChr = new int[MarkerSet.CHR_INDICES][];
+
+		for (byte chr : chrMap.keySet()) {
+			if (chr >= 0 && chr < MarkerSet.CHR_INDICES) {
+				List<Marker> markers = chrMap.get(chr);
+				positionsByChr[chr] = new int[markers.size()];
+				for (int i = 0; i < markers.size(); i++) {
+					positionsByChr[chr][i] = markers.get(i).getPosition();
+				}
+			}
+		}
+		return positionsByChr;
+	}
+
+	@Override
+	@Deprecated
+	public int[][] getIndicesByChr() {
+		ListMultimap<Byte, Marker> chrMap = getChrMap();
+		Map<Marker, Integer> markerIndexMap = getMarkerIndexMap();
+		int[][] indicesByChr = new int[MarkerSet.CHR_INDICES][0];
+
+		for (byte chr : chrMap.keySet()) {
+			if (chr >= 0 && chr < MarkerSet.CHR_INDICES) {
+				List<Marker> markers = chrMap.get(chr);
+				indicesByChr[chr] = new int[markers.size()];
+				for (int i = 0; i < markers.size(); i++) {
+					indicesByChr[chr][i] = markerIndexMap.get(markers.get(i));
+				}
+			}
+		}
+		return indicesByChr;
+	}
+
+	@Deprecated
+	public char[][] getABAlleles() {
+		char[][] abAlleles = new char[markers.size()][2];
+		for (int i = 0; i < markers.size(); i++) {
+			abAlleles[i] = markers.get(i).getAB();
+		}
+		return abAlleles;
+	}
+
+	@Deprecated
+	public Map<String, Integer> getMarkerIndices() {
+		Map<Marker, Integer> markerIndices = getMarkerIndexMap();
+		Map<String, Integer> indices = Maps.newHashMapWithExpectedSize(markerIndices.size());
+		for (Map.Entry<Marker, Integer> entry : markerIndices.entrySet()) {
+			indices.put(entry.getKey().toString(), entry.getValue());
+		}
+		return indices;
 	}
 }
