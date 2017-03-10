@@ -165,6 +165,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		this(markerNames, chrs, positions, null, markerSetFingerprint);
 	}
 
+	@SuppressWarnings("deprecation")
 	public MarkerDetailSet(String[] markerNames, byte[] chrs, int[] positions, char[][] abAlleles) {
 		this(markerNames, chrs, positions, abAlleles, MarkerSet.fingerprint(markerNames));
 	}
@@ -197,6 +198,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		hashCode = generateHashCode();
 	}
 
+	@SuppressWarnings("deprecation")
 	public MarkerDetailSet(Iterable<Marker> markers) {
 		this.markers = ImmutableList.copyOf(markers);
 		this.markerSetFingerprint = MarkerSet.fingerprint(getMarkerNames());
@@ -295,12 +297,12 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
 		parsers.add(masterMarkerList);
 		annotationLoader.fillAnnotations(null, parsers, QUERY_TYPE.ONE_TO_ONE);
-	
+
 		int missingABcount = 0;
 		int missingPositionCount = 0;
 		int ambiguousPositionCount = 0;
 		for (int i = 0; i < markerNames.length; i++) {
-	
+
 			MarkerBlastAnnotation markerBlastAnnotation = masterMarkerList.get(markerNames[i]);
 			try {
 				abLookup[i] = ABLookup.parseABFromMarkerSeqAnnotation(markerBlastAnnotation.getMarkerSeqAnnotation());
@@ -388,8 +390,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 											+ " missing a BLAST result and association position");
 		}
 		return new MarkerDetailSet(markerNames, chrs, positions, abLookup);
-	
-	
+
+
 	}
 
 	public static MarkerDetailSet load(String filename, boolean jar) {
@@ -407,7 +409,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	public List<Marker> getMarkers() {
 		return markers;
 	}
-	
+
 
 	public Map<String, Marker> getMarkerNameMap() {
 		Map<String, Marker> markerNameMap = markerNameMapRef == null ? null : markerNameMapRef.get();
@@ -507,6 +509,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		return markerSetFingerprint;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean checkFingerprint(Sample samp) {
 		return MarkerSet.checkFingerprints(this, samp);
