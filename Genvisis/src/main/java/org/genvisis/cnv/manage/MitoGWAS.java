@@ -10,7 +10,7 @@ import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
@@ -74,7 +74,7 @@ public class MitoGWAS {
 		String plinkPed = root + ".ped";
 		String plinkMap = root + ".map";
 		if (!Files.exists(plinkMap) || !Files.exists(plinkPed)) {
-			MarkerSet markerSet = proj.getMarkerSet();
+			MarkerSetInfo markerSet = proj.getMarkerSet();
 			String[] markerNames = markerSet.getMarkerNames();
 			byte[] chr = markerSet.getChrs();
 			ArrayList<String> markersToAnalyze = new ArrayList<String>();
@@ -197,7 +197,7 @@ public class MitoGWAS {
 		for (int i = 0; i < pvalFiles.length; i++) {
 			pvalFiles[i] = ext.parseDirectoryOfFile(pvalDB) + empTitles[i] + ".pvalsQQ.txt";
 		}
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 
 		String[] empLogP = ArrayUtils.tagOn(empTitles, "p_", null);
 		// if (!Files.exists(pvalDB) || !Files.exists(pvalQQ)) {

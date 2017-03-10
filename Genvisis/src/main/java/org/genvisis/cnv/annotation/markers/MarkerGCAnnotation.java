@@ -3,7 +3,7 @@ package org.genvisis.cnv.annotation.markers;
 import java.util.Hashtable;
 import java.util.Map;
 
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.Segment;
@@ -50,7 +50,7 @@ public class MarkerGCAnnotation extends LocusAnnotation implements AnnotationPar
 	}
 
 	public static Map<String, MarkerGCAnnotation> initForMarkers(Project proj, String[] markers,
-																										MarkerSet markerSet,
+																										MarkerSetInfo markerSet,
 																										Map<String, Integer> indices) {
 		if (markerSet == null) {
 			markerSet = proj.getMarkerSet();

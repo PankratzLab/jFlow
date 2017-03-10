@@ -2,6 +2,7 @@ package org.genvisis.one.JL;
 
 import java.util.ArrayList;
 
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.manage.Markers;
 import org.genvisis.common.ArrayUtils;
@@ -28,7 +29,7 @@ public class Scratch {
 		String pos = dir + "markerPositionsHG18.txt";
 		String mset = ext.rootOf(pos, false) + ".ser";
 		Markers.orderMarkers(null, pos, mset, log);
-		MarkerSet markerSet = MarkerSet.load(mset, false);
+		MarkerSetInfo markerSet = MarkerSet.load(mset, false);
 
 		int[] pcmarks = ext.indexLargeFactors(pcMarks, markerSet.getMarkerNames(), true, log, true,
 																					true);

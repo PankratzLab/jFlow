@@ -20,7 +20,7 @@ import javax.swing.JOptionPane;
 
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
@@ -1934,7 +1934,7 @@ public class SourceFileParser implements Runnable {
 		PrintWriter writer;
 		String[] markerNames, list;
 		long fingerprint;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		Hashtable<String, Integer> markerIndexMap;
 		char[][] abLookup;
 		Hashtable<String, Float> allOutliers;

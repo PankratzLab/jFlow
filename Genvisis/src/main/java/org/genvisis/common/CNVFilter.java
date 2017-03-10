@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.filesys.CNVariant;
@@ -451,7 +452,7 @@ public class CNVFilter {
 																																									 markerSet.getPositions(),
 																																									 build, log));
 		} else if (fullPathToSnpMarkerSetFilename.endsWith(".ser")) {
-			MarkerSet markerSet = MarkerSet.load(fullPathToSnpMarkerSetFilename, false);
+			MarkerSetInfo markerSet = MarkerSet.load(fullPathToSnpMarkerSetFilename, false);
 			setPositions(markerSet.getPositionsByChr());
 			setCentromereBoundaries(Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(),
 																																									 markerSet.getPositions(),

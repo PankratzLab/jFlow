@@ -19,11 +19,11 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
 
-import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.Centroids.CENTROID_STRATEGY;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.qc.SexChecks;
@@ -899,7 +899,7 @@ public class PennCNV {
 			return null;
 		}
 
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
 		byte[] chrs = markerSet.getChrs();
 		int[] positions = markerSet.getPositions();
@@ -1012,7 +1012,7 @@ public class PennCNV {
 	 */
 	public static void gcModel(Project proj, String inputGcBaseFullPath, String outputGcModelFullPath,
 														 int numwindow) {
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		String[] markerNames;
 		byte[] chrs;
 		int[] positions;
@@ -1217,7 +1217,7 @@ public class PennCNV {
 			batch(proj, numChunks, execList, pfbFile, gcmodelFile, hmmFile, "penn_scripts/", "", "");
 		}
 		if (chrx) {
-			MarkerSet ms = proj.getMarkerSet();
+			MarkerSetInfo ms = proj.getMarkerSet();
 			if (ms == null) {
 				log.reportError("Error - no marker set available.");
 			} else {

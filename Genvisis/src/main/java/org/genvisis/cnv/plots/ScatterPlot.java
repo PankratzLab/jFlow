@@ -91,7 +91,7 @@ import org.genvisis.cnv.filesys.ClusterFilter;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerLookup;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
@@ -1588,7 +1588,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		String[] markerNames, files;
 		Centroids trav;
 		float[][][] travCents, targetCents;
-		MarkerSet set;
+		MarkerSetInfo set;
 		Vector<float[][][]> v;
 		Vector<String> fileList;
 		Hashtable<String, String> hash;

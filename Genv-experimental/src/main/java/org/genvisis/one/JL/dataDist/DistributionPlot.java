@@ -6,7 +6,7 @@ import java.util.Hashtable;
 
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.ABLookup;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.var.SampleData;
@@ -69,7 +69,7 @@ public class DistributionPlot {
 		@Override
 		public void start(Stage primaryStage) throws Exception {
 			primaryStage.setTitle(proj.PROJECT_NAME.getValue());
-			MarkerSet markerSet = proj.getMarkerSet();
+			MarkerSetInfo markerSet = proj.getMarkerSet();
 			LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(proj.CNV_FILENAMES.getValue()[0],
 																											proj.getLog());
 			final Hashtable<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs,

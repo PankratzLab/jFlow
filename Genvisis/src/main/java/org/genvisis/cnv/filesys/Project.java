@@ -27,7 +27,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
-import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.TransposeData;
@@ -529,7 +528,7 @@ public class Project implements PropertyChangeListener {
 	private HashSet<String> cnvFilesLoadedInSampleData;
 	private HashMap<String, SourceFileHeaderData> sourceFileHeaders;
 	private MarkerLookup markerLookup;
-	private MarkerSet markerSet;
+	private MarkerDetailSet markerSet;
 	private Logger log;
 	private boolean gui;
 	private ProgressMonitor progressMonitor;
@@ -803,29 +802,32 @@ public class Project implements PropertyChangeListener {
 		this.projectPropertiesFilename = projectPropertiesFilename;
 	}
 
-	public MarkerSet getMarkerSet() {
+	public MarkerDetailSet getMarkerSet() {
 		if (markerSet == null) {
 			markerSet = loadMarkerSet();
 		}
 		return markerSet;
 	}
 
-	private MarkerSet loadMarkerSet() {
+	private MarkerDetailSet loadMarkerSet() {
 		if (Files.exists(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue())) {
-			MarkerSet naiveMarkerSet = MarkerSet.load(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue());
-			MarkerSet returnMarkerSet = null;
+			MarkerSetInfo naiveMarkerSet = MarkerSet.load(MARKERSET_FILENAME.getValue(),
+																										JAR_STATUS.getValue());
+			MarkerDetailSet returnMarkerSet = null;
 			if (Files.exists(BLAST_ANNOTATION_FILENAME.getValue())) {
-				returnMarkerSet = MarkerSet.parseFromBLASTAnnotation(naiveMarkerSet, BLAST_ANNOTATION_FILENAME.getValue(), log);
+				returnMarkerSet = MarkerDetailSet.parseFromBLASTAnnotation(naiveMarkerSet,
+																																	 BLAST_ANNOTATION_FILENAME.getValue(),
+																																	 log);
 			}
 			if (returnMarkerSet == null) {
-				returnMarkerSet = naiveMarkerSet;
+				returnMarkerSet = new MarkerDetailSet(naiveMarkerSet);
 			}
-			return PreparedMarkerSet.getPreparedMarkerSet(returnMarkerSet);
+			return returnMarkerSet;
 		} else {
 			getLog().reportFileNotFound(MARKERSET_FILENAME.getValue());
 			return null;
 		}
-		
+
 	}
 
 	public String[] getMarkerNames() {
@@ -1754,11 +1756,11 @@ public class Project implements PropertyChangeListener {
 	}
 
 	public String[] getMarkersForChrs(int[] chrs) {
-		MarkerSet markerSet = getMarkerSet();
+		MarkerSetInfo markerSet = getMarkerSet();
 		byte[] markerChrs = markerSet.getChrs();
 		ArrayList<String> tmp = new ArrayList<String>();
 		for (int i = 0; i < markerChrs.length; i++) {
-			if (ext.indexOfInt((int) markerChrs[i], chrs) >= 0) {
+			if (ext.indexOfInt(markerChrs[i], chrs) >= 0) {
 				tmp.add(markerSet.getMarkerNames()[i]);
 			}
 		}
@@ -1766,7 +1768,7 @@ public class Project implements PropertyChangeListener {
 	}
 
 	public String[] getAutosomalMarkers() {
-		MarkerSet markerSet = getMarkerSet();
+		MarkerSetInfo markerSet = getMarkerSet();
 		byte[] chrs = markerSet.getChrs();
 		ArrayList<String> tmp = new ArrayList<String>();
 		for (int i = 0; i < chrs.length; i++) {

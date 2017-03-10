@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.genvisis.CLI;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.hmm.PennHmm.ViterbiResult;
@@ -42,7 +42,7 @@ public class MosaicismDetect {
 
 	private final Project proj;
 	private final String sample;
-	private final MarkerSet markerSet;
+	private final MarkerSetInfo markerSet;
 	private final int movingFactor;
 	private final double[] bafs;
 	private GaussianMixtureDistribution gd;
@@ -64,7 +64,7 @@ public class MosaicismDetect {
 		return indicesByChr;
 	}
 
-	public MarkerSet getMarkerSet() {
+	public MarkerSetInfo getMarkerSet() {
 		return markerSet;
 	}
 
@@ -448,7 +448,7 @@ public class MosaicismDetect {
 		 * @param bafs
 		 * @return a Mosaic detector
 		 */
-		public MosaicismDetect build(Project proj, String sample, MarkerSet markerSet, double[] bafs) {
+		public MosaicismDetect build(Project proj, String sample, MarkerSetInfo markerSet, double[] bafs) {
 			return new MosaicismDetect(this, proj, sample, markerSet, bafs);
 		}
 	}
@@ -456,7 +456,7 @@ public class MosaicismDetect {
 	private static class MosaicWorker implements Callable<LocusSet<MosaicRegion>> {
 		private final Project proj;
 		private final MosaicBuilder builder;
-		private final MarkerSet markerSet;
+		private final MarkerSetInfo markerSet;
 		private final LocusSet<Segment> segs;
 		private final String sample;
 		private double[] bafs;
@@ -464,7 +464,7 @@ public class MosaicismDetect {
 		private final int[][] indicesByChr;
 
 		public MosaicWorker(Project proj, MosaicBuilder builder, LocusSet<Segment> segs,
-												MarkerSet markerSet, String sample) {
+												MarkerSetInfo markerSet, String sample) {
 			super();
 			this.proj = proj;
 			this.builder = builder;
@@ -519,7 +519,7 @@ public class MosaicismDetect {
 		private final String[] samples;
 		private final MosaicBuilder builder;
 		private final LocusSet<Segment> segs;
-		private final MarkerSet markerSet;
+		private final MarkerSetInfo markerSet;
 		private int index;
 
 		/**
@@ -530,7 +530,7 @@ public class MosaicismDetect {
 		 * @param segs segments to call (like a chromosome)
 		 */
 		public MosaicProducer(Project proj, MosaicBuilder builder, String[] samples,
-													MarkerSet markerSet, LocusSet<Segment> segs) {
+													MarkerSetInfo markerSet, LocusSet<Segment> segs) {
 			super();
 			this.proj = proj;
 			this.samples = samples;
@@ -561,7 +561,7 @@ public class MosaicismDetect {
 	 * @param markerSet
 	 * @param bafs
 	 */
-	private MosaicismDetect(MosaicBuilder builder, Project proj, String sample, MarkerSet markerSet,
+	private MosaicismDetect(MosaicBuilder builder, Project proj, String sample, MarkerSetInfo markerSet,
 													double[] bafs) {
 		this.proj = proj;
 		this.sample = sample;
@@ -594,7 +594,7 @@ public class MosaicismDetect {
 	 */
 	public static void callMosaicRegions(Project proj, String output, int numThreads) {
 
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		int[][] indicesByChr = markerSet.getIndicesByChr();
 		MosaicBuilder builder = new MosaicBuilder();// most customizing can be done in the builder if
 																								// needed

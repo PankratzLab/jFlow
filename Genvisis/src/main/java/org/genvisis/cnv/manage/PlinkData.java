@@ -26,6 +26,7 @@ import java.util.Vector;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
@@ -639,7 +640,7 @@ public class PlinkData {
 		byte[] chrs;
 		int[] positions;
 		boolean prob;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		Sample fsamp;
 		byte[] genotypes;
 		byte genIndex;
@@ -1113,7 +1114,7 @@ public class PlinkData {
 																							 HashMap<String, Integer> outputPosOfTargetMarkers,
 																							 Logger log) {
 		String[] allMarkersInProj;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		byte[] chrs;
 		int[] positions;
 		markerSet = proj.getMarkerSet();
@@ -1145,7 +1146,7 @@ public class PlinkData {
 																							 int[] outputPosOfTargetMarkers) {
 		String[] allMarkersInProj;
 		// Hashtable<String,String> hash;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		byte[] chrs;
 		int[] positions;
 		boolean[] found;
@@ -1561,7 +1562,7 @@ public class PlinkData {
 		}
 
 		String[] targetMarkers = new String[targetMarkersSet.size()];
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		int index = 0;
 		for (String markerName : markerSet.getMarkerNames()) {
 			if (targetMarkersSet.contains(markerName)) {

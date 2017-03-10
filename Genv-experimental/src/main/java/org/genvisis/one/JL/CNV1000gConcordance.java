@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -33,7 +34,7 @@ public class CNV1000gConcordance {
 
 			samps.addAll(HashVec.loadFileToHashSet(dupFIle, new int[] {1}, "", false));
 			log.reportTimeInfo(samps.size() + "");
-			MarkerSet markerSet = MarkerSet.load("/Volumes/Beta/data/1000G/markers.ser", false);
+			MarkerSetInfo markerSet = MarkerSet.load("/Volumes/Beta/data/1000G/markers.ser", false);
 			LocusSet<CNVariant> set = CNVariant.loadLocSet("/Volumes/Beta/data/1000G/GRCh37_hg19_variants_2015-07-23.txt.cnv",
 																										 new Logger());
 			int[][] indicesByChr = markerSet.getIndicesByChr();

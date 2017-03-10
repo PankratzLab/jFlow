@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JOptionPane;
 
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.common.ArrayUtils;
@@ -132,7 +132,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	 * dumps all tests to separate files
 	 */
 	public void dumpResults(String fullPathToOutputBase) {
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		int[] markerIndicesInProject = ext.indexLargeFactors(markersToTest, markerSet.getMarkerNames(),
 																												 true, getProj().getLog(), true, false);
 		byte[] chrs = markerSet.getChrs();

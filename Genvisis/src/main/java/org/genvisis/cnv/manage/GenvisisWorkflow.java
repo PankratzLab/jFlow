@@ -633,57 +633,55 @@ public class GenvisisWorkflow {
 			final Requirement snpMapReq = new FileRequirement("An Illumina SNP_map file.",
 																												proj.getLocationOfSNP_Map(false));
 			return register(new Step("Create Marker Positions (if not already exists)", "",
-															 new Requirement[][] {{snpMapReq, manifestReq}, {getNumThreadsReq()}},
+															 new Requirement[][] {{manifestReq, snpMapReq}, {getNumThreadsReq()}},
 															 EnumSet.noneOf(Flag.class), priority()) {
 
-				@Override
-				public void setNecessaryPreRunProperties(Project proj,
-																								 Map<Step, Map<Requirement, String>> variables) {
-					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
-					maybeSetProjNumThreads(numThreads);
-				}
+			@Override
+			public void setNecessaryPreRunProperties(Project proj,
+																							 Map<Step, Map<Requirement, String>> variables) {
+				int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
+				maybeSetProjNumThreads(numThreads);
+			}
 
-				@Override
-				public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-					proj.getLog().report("Generating marker positions file");
-					String manifestFile = variables.get(this).get(manifestReq);
-					String snpMapFile = variables.get(this).get(snpMapReq);
-					if (Files.exists(manifestFile)) {
-						proj.getLog().report("BLASTing probes from " + manifestFile);
-						MarkerBlast.blastEm(proj, manifestFile, MarkerBlast.FILE_SEQUENCE_TYPE.MANIFEST_FILE,
-																proj.NUM_THREADS.getValue());
-					} else {
-						proj.getLog().report("Generating marker positions file from " + snpMapFile);
-						Markers.generateMarkerPositions(proj, snpMapFile);
-					}
+			@Override
+			public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+				proj.getLog().report("Generating marker positions file");
+				String manifestFile = variables.get(this).get(manifestReq);
+				String snpMapFile = variables.get(this).get(snpMapReq);
+				if (Files.exists(manifestFile)) {
+					proj.getLog().report("BLASTing probes from " + manifestFile);
+					MarkerBlast.blastEm(proj, manifestFile, MarkerBlast.FILE_SEQUENCE_TYPE.MANIFEST_FILE,
+															proj.NUM_THREADS.getValue());
+				} else {
+					proj.getLog().report("Generating marker positions file from " + snpMapFile);
+					Markers.generateMarkerPositions(proj, snpMapFile);
 				}
+			}
 
-				@Override
-				public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
-					return Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false));
-				}
+			@Override
+			public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
+				return Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false));
+			}
 
-				@Override
-				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
-					String manifestFile = variables.get(this).get(manifestReq);
-					String snpMapFile = variables.get(this).get(snpMapReq);
-					int numThreads = resolveThreads(variables.get(this).get(numThreadsReq));
-					String projFile = proj.getPropertyFilename();
-					if (Files.exists(manifestFile)) {
-						List<String> command = ImmutableList.of(Files.getRunString(),
-																										MarkerBlast.class.getName(),
-																										"fileSeq=" + manifestFile,
-																										"proj=" + proj.getPropertyFilename(),
-																										PSF.Ext.NUM_THREADS_COMMAND + numThreads);
-						return Joiner.on(" ").join(command);
-					} else {
-						return Files.getRunString() + " cnv.manage.Markers proj=" + projFile + " snps="
-									 + snpMapFile;
-					}
+			@Override
+			public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+				String manifestFile = variables.get(this).get(manifestReq);
+				String snpMapFile = variables.get(this).get(snpMapReq);
+				int numThreads = resolveThreads(variables.get(this).get(numThreadsReq));
+				String projFile = proj.getPropertyFilename();
+				if (Files.exists(manifestFile)) {
+					List<String> command = ImmutableList.of(Files.getRunString(), MarkerBlast.class.getName(),
+																									"fileSeq=" + manifestFile,
+																									"proj=" + proj.getPropertyFilename(),
+																									PSF.Ext.NUM_THREADS_COMMAND + numThreads);
+					return Joiner.on(" ").join(command);
+				} else {
+					return Files.getRunString() + " cnv.manage.Markers proj=" + projFile + " snps="
+								 + snpMapFile;
 				}
-			});
+			}
+		});
 		}
-
 		private Step generateIlluminaParseSamplesStep(final Step markerPositionsStep) {
 			final Requirement markerPositionsStepReq = new StepRequirement(markerPositionsStep);
 

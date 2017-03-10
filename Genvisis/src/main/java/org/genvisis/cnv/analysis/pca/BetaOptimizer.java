@@ -21,7 +21,9 @@ import org.genvisis.cnv.analysis.pca.CorrectionIterator.ITERATION_TYPE;
 import org.genvisis.cnv.analysis.pca.CorrectionIterator.MODEL_BUILDER_TYPE;
 import org.genvisis.cnv.analysis.pca.CorrectionIterator.ORDER_TYPE;
 import org.genvisis.cnv.filesys.ABLookup;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
@@ -289,7 +291,7 @@ public class BetaOptimizer {
 	}
 
 	private static void analyzeAll(Project proj, String pcFile, String samplesToBuildModels,
-																 MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF,
+																 MarkerDetailSet markerSet, ABLookup abLookup, String dbsnpVCF,
 																 String[] namesToQuery, String outpuDir, String[] betas,
 																 double[] pvals, double markerCallRate, int maxPCs, int numthreads,
 																 String usedInPCFile, int pvalRefineCutoff, double minPval,
@@ -464,7 +466,7 @@ public class BetaOptimizer {
 
 
 	private static void analyze(Project proj, String pcFile, String singleRaceSamples,
-															MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF,
+															MarkerDetailSet markerSet, ABLookup abLookup, String dbsnpVCF,
 															String[] namesToQuery, String outpuDir, List<String> betaFiles,
 															double[] pvals, double markerCallRate, int maxPCs, int numthreads,
 															String usedInPCFile, int pvalRefineCutoff, double minPval,
@@ -800,7 +802,7 @@ public class BetaOptimizer {
 		return filt;
 	}
 
-	private static byte[][] loadGenos(Project proj, MarkerSet markerSet,
+	private static byte[][] loadGenos(Project proj, MarkerDetailSet markerSet,
 																		ArrayList<MetaBeta> metaBetas) {
 		byte[][] genos = new byte[metaBetas.size()][];
 		String[] markerNames = new String[metaBetas.size()];
@@ -830,7 +832,7 @@ public class BetaOptimizer {
 		Files.write(builder.toString(), output);
 	}
 
-	private static ArrayList<MetaBeta> prep(Project proj, MarkerSet markerSet, ABLookup abLookup,
+	private static ArrayList<MetaBeta> prep(Project proj, MarkerSetInfo markerSet, ABLookup abLookup,
 																					String dbsnpVCF, String[] namesToQuery, String outpuDir,
 																					String betaFile, double minPval, Logger log) {
 		new File(outpuDir).mkdirs();
@@ -877,7 +879,8 @@ public class BetaOptimizer {
 	}
 
 	private static ArrayList<MetaBeta> loadBetas(ArrayList<MarkerRsFormat> markerRsFormats,
-																							 String betaFile, double minPval, MarkerSet markerSet,
+																							 String betaFile, double minPval,
+																							 MarkerSetInfo markerSet,
 																							 Logger log) {
 		String[] header = Files.getHeaderOfFile(betaFile, log);
 		int[] indices = ext.indexFactors(BETA_HEADER, header, false, false);
@@ -981,7 +984,7 @@ public class BetaOptimizer {
 	public static ArrayList<MarkerRsFormat> mapToRsIds(Project proj, ABLookup abLookup,
 																										 String dbsnpVCF, String[] namesToQuery,
 																										 String outSer, Logger log) {
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
 		int[] indices = ext.indexLargeFactors(namesToQuery, markerNames, true, log, true, false);
 		int[] posIndices = indices;
@@ -1268,7 +1271,7 @@ public class BetaOptimizer {
 				}
 			}
 		}
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerDetailSet markerSet = proj.getMarkerSet();
 		abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true,
 														true, proj.getLog());
 		Resource dbsnp = Resources.genome(GENOME_BUILD.HG19, proj.getLog()).getDBSNP();// TODO, need hg
@@ -1387,7 +1390,7 @@ public class BetaOptimizer {
 			abLookup.writeToFile(proj.AB_LOOKUP_FILENAME.getValue(), proj.getLog());
 		}
 
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerDetailSet markerSet = proj.getMarkerSet();
 		abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true,
 														true, proj.getLog());
 		Resource dbsnp = Resources.genome(GENOME_BUILD.HG19, proj.getLog()).getDBSNP();

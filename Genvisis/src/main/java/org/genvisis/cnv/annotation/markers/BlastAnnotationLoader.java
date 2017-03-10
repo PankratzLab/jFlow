@@ -8,6 +8,7 @@ import java.util.Map;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.common.ArraySpecialList.ArrayBlastAnnotationList;
 import org.genvisis.common.ArrayUtils;
@@ -33,7 +34,7 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 	 * @param indexRequired , should always be set to true
 	 * @param log
 	 */
-	public BlastAnnotationLoader(String annotationFilename, MarkerSet markerSet,
+	public BlastAnnotationLoader(String annotationFilename, MarkerDetailSet markerSet,
 															 boolean indexRequired, Logger log) {
 		super(null, BlastAnnotationTypes.getBaseAnnotations(), annotationFilename, indexRequired, log);
 		chrs = markerSet.getChrs();

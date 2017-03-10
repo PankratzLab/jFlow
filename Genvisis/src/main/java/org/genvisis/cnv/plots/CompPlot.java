@@ -36,7 +36,7 @@ import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.ChromosomeViewer;
 import org.genvisis.cnv.gui.CompConfig;
@@ -103,7 +103,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
 	// From RegionNavigator
 	int[] location = new int[3];
-	MarkerSet markerSet;
+	MarkerSetInfo markerSet;
 	int[] positions;
 	String[] markerNames, allSamples, subSamples;
 	boolean[] dropped;

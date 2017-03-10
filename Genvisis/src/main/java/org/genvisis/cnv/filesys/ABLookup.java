@@ -188,7 +188,7 @@ public class ABLookup {
 		char[] alleles;
 		double travD;
 		int order;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		Logger log;
 
 		log = proj.getLog();
@@ -370,7 +370,7 @@ public class ABLookup {
 			proj.getLog().reportTimeWarning("This method will convert AB genotypes to positive strand");
 
 			try {
-				MarkerSet markerSet = proj.getMarkerSet();
+				MarkerDetailSet markerSet = proj.getMarkerSet();
 				markerNames = markerSet.getMarkerNames();
 
 				Map<String, MarkerBlastAnnotation> masterMarkerList = MarkerBlastAnnotation.initForMarkers(markerNames);
@@ -411,7 +411,7 @@ public class ABLookup {
 		int[][] countsForGenotypes;
 		Sample fsamp;
 		byte[] abGenotypes, fullGenotypes;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		Logger log;
 
 		log = proj.getLog();
@@ -615,7 +615,7 @@ public class ABLookup {
 			return lookup;
 		}
 
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerDetailSet markerSet = proj.getMarkerSet();
 		Map<String, MarkerBlastAnnotation> masterMarkerList = MarkerBlastAnnotation.initForMarkers(markerNames);
 		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(null,
 																																				 proj.BLAST_ANNOTATION_FILENAME.getValue(),

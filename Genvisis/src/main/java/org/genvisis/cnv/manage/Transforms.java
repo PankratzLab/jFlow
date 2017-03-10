@@ -1,6 +1,6 @@
 package org.genvisis.cnv.manage;
 
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.mining.Transformations;
 
@@ -20,7 +20,7 @@ public class Transforms {
 	public static final String[] SCOPES = {"Chromosome", "Genome"};
 
 	public static float[] transform(float[] input, int transformation_type,
-																	boolean transformSeparatelyByChromosome, MarkerSet markerSet) {
+																	boolean transformSeparatelyByChromosome, MarkerSetInfo markerSet) {
 		int[][] indices;
 
 		if (transformSeparatelyByChromosome) {

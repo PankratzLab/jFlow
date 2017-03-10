@@ -3,7 +3,8 @@ package org.genvisis.cnv.annotation.markers;
 import java.util.List;
 import java.util.Map;
 
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.Segment;
 
@@ -11,7 +12,7 @@ import org.genvisis.filesys.Segment;
  * @author lane0212 Class that concentrates on loading annotations for specific markers
  */
 public class MarkerAnnotationLoader extends AnnotationFileLoader {
-	private final MarkerSet markerSet;
+	private final MarkerDetailSet markerSet;
 	private final byte[] chrs;
 	private final int[] pos;
 	private final Map<String, Integer> markerIndices;
@@ -22,8 +23,8 @@ public class MarkerAnnotationLoader extends AnnotationFileLoader {
 	 * @param indexRequired should always be true for now
 	 * @param log
 	 */
-	public MarkerAnnotationLoader(AnalysisParams[] params, String annotationFilename, MarkerSet markerSet,
-																boolean indexRequired, Logger log) {
+	public MarkerAnnotationLoader(AnalysisParams[] params, String annotationFilename,
+																MarkerDetailSet markerSet, boolean indexRequired, Logger log) {
 		super(params, null, annotationFilename, indexRequired, log);
 		this.markerSet = markerSet;
 		chrs = markerSet.getChrs();
@@ -31,7 +32,7 @@ public class MarkerAnnotationLoader extends AnnotationFileLoader {
 		markerIndices = markerSet.getMarkerIndices();
 	}
 
-	public MarkerSet getMarkerSet() {
+	public MarkerSetInfo getMarkerSet() {
 		return markerSet;
 	}
 

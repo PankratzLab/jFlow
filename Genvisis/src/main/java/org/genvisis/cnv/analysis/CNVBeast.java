@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.qc.GcAdjustor;
@@ -88,7 +88,7 @@ public class CNVBeast {
 			proj.getLog()
 					.reportError("Error - mismatched array sizes for project's samples and sample mask");
 		} else {
-			MarkerSet markerSet = proj.getMarkerSet();
+			MarkerSetInfo markerSet = proj.getMarkerSet();
 			int numSamples = (samplesToAnalyze != null ? ArrayUtils.booleanArraySum(samplesToAnalyze)
 																								 : samples.length);
 			BeastConfig[][] sampleConfigs = new BeastConfig[numSamples][];
@@ -220,7 +220,7 @@ public class CNVBeast {
 	}
 
 	private static BeastConfig[] parseAllSamples(Project proj, BeastConfig[][] configs,
-																							 MarkerSet markerSet, GcModel gcModel,
+																							 MarkerSetInfo markerSet, GcModel gcModel,
 																							 int numThreads) {
 		ArrayList<BeastConfig> allConfigs = new ArrayList<BeastConfig>();
 		ExecutorService executor = Executors.newFixedThreadPool(numThreads);
@@ -289,7 +289,7 @@ public class CNVBeast {
 		return analyzedConfigs;
 	}
 
-	private static BeastConfig[] generateConfigs(Project proj, String sample, MarkerSet markerSet,
+	private static BeastConfig[] generateConfigs(Project proj, String sample, MarkerSetInfo markerSet,
 																							 String analysisDirectoryFullPath,
 																							 String fullPathToBeastExe,
 																							 boolean overWriteExistingFiles) {

@@ -2,7 +2,7 @@ package org.genvisis.one.JL;
 
 import java.util.ArrayList;
 
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
@@ -48,7 +48,7 @@ public class ExomeDepthEvaluation {
 
 	public void compare() {
 		MatchResults matchResults = null;
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		int[][] indicesByChr = markerSet.getIndicesByChr();
 		SampleData sampleData = proj.getSampleData(0, false);
 		for (int i = 0; i < CNVariant.CONSENSUS_TYPE.values().length; i++) {
@@ -217,7 +217,7 @@ public class ExomeDepthEvaluation {
 			cnvsToStore = new ArrayList<CNVariant>();
 		}
 
-		public void addCNV(CNVariant cnVariant, MarkerSet markerSet, int[][] indicesByChr,
+		public void addCNV(CNVariant cnVariant, MarkerSetInfo markerSet, int[][] indicesByChr,
 											 int probesRequired) {
 			int numprobes = markerSet.getMarkersIn(cnVariant.getBufferedSegment(50), indicesByChr).length;
 			if (numprobes > probesRequired) {

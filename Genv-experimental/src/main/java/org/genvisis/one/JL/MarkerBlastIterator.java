@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
 
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
@@ -293,7 +293,7 @@ public class MarkerBlastIterator {
 			ArrayList<Double> notOneHittersMaxCrossHybe = new ArrayList<Double>();
 			ArrayList<String> noAppropriateMatch = new ArrayList<String>();
 			ArrayList<Double> noAppropriateMatchMaxCrossHybe = new ArrayList<Double>();
-			MarkerSet markerSet = proj.getMarkerSet();
+			MarkerSetInfo markerSet = proj.getMarkerSet();
 			for (int k = 0; k < summaries.size(); k++) {
 				// numMarkers++;
 				int markerIndex = indices.get(summaries.get(k).getMarkerName());

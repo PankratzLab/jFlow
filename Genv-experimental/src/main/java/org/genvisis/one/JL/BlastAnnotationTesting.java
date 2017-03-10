@@ -15,7 +15,7 @@ import org.genvisis.cnv.annotation.markers.LocusAnnotation;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation.Builder;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -159,7 +159,7 @@ public class BlastAnnotationTesting {
 		// proj.getLog().reportTimeWarning(proj.AB_LOOKUP_FILENAME.getValue() + " did not exist so ref
 		// and alt alleles will be in-accurate");
 		// }
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		byte[] chrs = markerSet.getChrs();
 		int[] pos = markerSet.getPositions();
 		String[] markerNames = proj.getMarkerNames();
@@ -185,7 +185,7 @@ public class BlastAnnotationTesting {
 
 	private static ArrayList<String> getTestMarks(Project proj) {
 		ArrayList<String> t = new ArrayList<String>();
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 
 		for (int i = 0; i < markerSet.getIndicesByChr().length; i++) {
 			if (markerSet.getIndicesByChr()[i].length - 1 >= 0) {

@@ -13,7 +13,7 @@ import org.genvisis.cnv.annotation.markers.AnnotationParser;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerGCAnnotation;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
@@ -81,7 +81,7 @@ public class GcLook {
 			MarkerMetrics.fullQC(proj, null, null, false, 12);
 		}
 
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		String[] markerNames = proj.getMarkerNames();
 		byte[] chrs = markerSet.getChrs();
 		int[] pos = markerSet.getPositions();

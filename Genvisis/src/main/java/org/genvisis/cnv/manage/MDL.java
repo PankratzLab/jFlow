@@ -12,7 +12,7 @@ import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerLookup;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.ArrayUtils;
@@ -26,7 +26,7 @@ import com.google.common.primitives.Ints;
 public class MDL implements Iterator<MarkerData> {
 	private final Project proj;
 	private final String[] markerNames;
-	private final MarkerSet markerSet;
+	private final MarkerSetInfo markerSet;
 	private final int numDecompressThreads;
 	private WorkerTrain<MarkerData> decompTrain;
 	private final MarkerLookup markerLookup;
@@ -45,7 +45,7 @@ public class MDL implements Iterator<MarkerData> {
 	 * @param markerSet if null, will be loaded
 	 * @param markerNames them to load
 	 */
-	public MDL(Project proj, MarkerSet markerSet, String[] markerNames) {
+	public MDL(Project proj, MarkerSetInfo markerSet, String[] markerNames) {
 		this(proj, markerSet, markerNames, 2, 100);
 	}
 
@@ -56,7 +56,8 @@ public class MDL implements Iterator<MarkerData> {
 	 * @param numDecompressThreads number of threads used to decompress the marker
 	 * @param markerBuffer number of markers to hold in the queue for processing
 	 */
-	public MDL(Project proj, MarkerSet markerSet, String[] markerNames, int numDecompressThreads,
+	public MDL(Project proj, MarkerSetInfo markerSet, String[] markerNames,
+						 int numDecompressThreads,
 						 int markerBuffer) {
 		this.proj = proj;
 		missing = new Hashtable<String, String>();
@@ -267,9 +268,9 @@ public class MDL implements Iterator<MarkerData> {
 				isNegativeXYAllowed;
 		private final boolean debugMode;
 		private Hashtable<String, Float> outlierHash;
-		private final MarkerSet markerSet;
+		private final MarkerSetInfo markerSet;
 
-		private BufferReader(Project proj, MarkerSet markerSet, String currentMarkFilename,
+		private BufferReader(Project proj, MarkerSetInfo markerSet, String currentMarkFilename,
 												 int[] markersIndicesInFile, int[] markerIndicesInProject,
 												 boolean debugMode) {
 			super();

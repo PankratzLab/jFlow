@@ -8,7 +8,7 @@ import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.var.SampleData;
@@ -156,7 +156,7 @@ public class AffyCentroids implements Serializable {
 	}
 
 	public static void recompute(Project proj, String centroidsFile) {
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		Centroids affyCentroids;
 		Logger log;
 
@@ -222,7 +222,7 @@ public class AffyCentroids implements Serializable {
 																		double missingnessThreshold, double confThreshold) {
 		String[] samples;
 		SampleList sampleList;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		Logger log;
 
 		log = proj.getLog();

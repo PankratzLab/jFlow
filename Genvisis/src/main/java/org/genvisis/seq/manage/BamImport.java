@@ -18,7 +18,7 @@ import org.genvisis.cnv.analysis.PennCNVPrep;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.filesys.Centroids;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
@@ -611,7 +611,7 @@ public class BamImport {
 																				int buffer) {
 		String gcFile = ext.addToRoot(proj.GC_MODEL_FILENAME.getValue(), ".buffer_" + buffer);
 		if (!Files.exists(gcFile)) {
-			MarkerSet markerSet = proj.getMarkerSet();
+			MarkerSetInfo markerSet = proj.getMarkerSet();
 			String[] markerNames = markerSet.getMarkerNames();
 
 			try {
@@ -755,12 +755,12 @@ public class BamImport {
 		private final Project proj;
 		private final String[] samples;
 		private final String newSampleDirectory;
-		private final MarkerSet markerSet;
+		private final MarkerSetInfo markerSet;
 		private final List<ProjectCorrected> correctedProjects;
 		private int index;
 
 		public RecompileProducer(Project proj, String[] samples, String newSampleDirectory,
-														 MarkerSet markerSet, List<ProjectCorrected> correctedProjects) {
+														 MarkerSetInfo markerSet, List<ProjectCorrected> correctedProjects) {
 			super();
 			this.proj = proj;
 			this.samples = samples;
@@ -789,11 +789,11 @@ public class BamImport {
 		private final Project proj;
 		private final String sampleName;
 		private final String newSampleDirectory;
-		private final MarkerSet markerSet;
+		private final MarkerSetInfo markerSet;
 		private final List<ProjectCorrected> correctedProjects;
 
 		public RecompileWorker(Project proj, String sampleName, String newSampleDirectory,
-													 MarkerSet markerSet, List<ProjectCorrected> correctedProjects) {
+													 MarkerSetInfo markerSet, List<ProjectCorrected> correctedProjects) {
 			super();
 			this.proj = proj;
 			this.sampleName = sampleName;
@@ -811,7 +811,7 @@ public class BamImport {
 
 	private static Hashtable<String, Float> recompileSample(Project proj, String sampleName,
 																													String newSampleDirectory,
-																													MarkerSet markerSet,
+																													MarkerSetInfo markerSet,
 																													List<ProjectCorrected> correctedProjects) {
 		String sampleFile = newSampleDirectory + sampleName + Sample.SAMPLE_FILE_EXTENSION;
 		proj.getLog().reportTimeInfo("Sample file = " + sampleFile);
@@ -855,7 +855,7 @@ public class BamImport {
 
 	private static String[] dumpLikelyOffTargetProblems(Project proj, ASSAY_TYPE aType) {
 
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		String problemFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(),
 																			 ".likelyOffTargetProblems");
 		String noproblemFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(),

@@ -18,6 +18,7 @@ import java.util.concurrent.Executors;
 
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
@@ -215,7 +216,7 @@ public class AnalysisFormats implements Runnable {
 		final String[] allSamples;
 		String[] header;
 		final SampleData sampleData;
-		MarkerSet ms;
+		MarkerSetInfo ms;
 		byte[] markerChrs;
 		final boolean jar;
 		final boolean gzip;
@@ -487,7 +488,7 @@ public class AnalysisFormats implements Runnable {
 		float[] bafCnt, bafSum, genCnt, bafM, bafF, thetas, rs;
 		String[] allMarkers, sexMarkers, samples, header, centFilePathM, centFilePathF;
 		Logger log;
-		MarkerSet ms;
+		MarkerSetInfo ms;
 		MarkerDataLoader markerDataLoader;
 		SampleData sampleData;
 		PrintWriter writer;
@@ -863,7 +864,7 @@ public class AnalysisFormats implements Runnable {
 
 	public static void quantisnp(Project proj, String[] samples, HashSet<String> hash) {
 		PrintWriter writer;
-		MarkerSet set;
+		MarkerSetInfo set;
 		String[] markerNames = proj.getMarkerNames();
 		Sample samp;
 		float[] lrrs, bafs;
@@ -1009,7 +1010,7 @@ public class AnalysisFormats implements Runnable {
 
 	public static void filter(Project proj, String regions, String list, String outfile) {
 		PrintWriter writer;
-		MarkerSet markers;
+		MarkerSetInfo markers;
 		Segment[] segs;
 		String[] markerNames;
 		byte[] chrs;

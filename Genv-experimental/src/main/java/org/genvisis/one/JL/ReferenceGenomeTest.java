@@ -2,7 +2,7 @@ package org.genvisis.one.JL;
 
 import java.util.ArrayList;
 
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -67,7 +67,7 @@ public class ReferenceGenomeTest {
 		proj.getLog().reportTimeElapsed(time);
 
 		Segment[] markerSegs = new Segment[proj.getMarkerNames().length];
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		for (int i = 0; i < markerSegs.length; i++) {
 			markerSegs[i] = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i] - 50,
 																	markerSet.getPositions()[i] + 50);
@@ -91,7 +91,7 @@ public class ReferenceGenomeTest {
 		ReferenceGenome referenceGenome = new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																													proj.getLog());
 		Segment[] markerSegs = new Segment[proj.getMarkerNames().length];
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		for (int i = 0; i < markerSegs.length; i++) {
 			markerSegs[i] = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i] - 50,
 																	markerSet.getPositions()[i] + 50);

@@ -12,7 +12,7 @@ import java.util.Hashtable;
 
 import org.genvisis.cnv.filesys.CNVQC;
 import org.genvisis.cnv.filesys.MarkerFreqs;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -133,7 +133,7 @@ public class QCIterator implements Runnable {
 	public static void convertToQCFormat(Project proj, String plinkCnvs, String markerMAFser,
 																			 String output, String QCsubset, int threads) {
 		String[] inds;
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		int[][] indices = markerSet.getIndicesByChr();
 		int[] positions = markerSet.getPositions();
 		String[] markerNames = markerSet.getMarkerNames();

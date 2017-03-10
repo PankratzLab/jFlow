@@ -16,8 +16,9 @@ import java.util.concurrent.Callable;
 import javax.swing.JOptionPane;
 
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
@@ -63,7 +64,7 @@ public class Mosaicism {
 		int[] positions;
 		boolean[] snpDropped;
 		int[][] chrBoundaries;
-		MarkerSet markerSet;
+		MarkerDetailSet markerSet;
 
 		hash = proj.getFilteredHash();
 
@@ -166,7 +167,8 @@ public class Mosaicism {
 		private int index;
 
 		public MosaicResultProducer(Project proj, String[] samples, boolean[] snpDropped,
-																int[][] chrBoundaries, MarkerSet markerSet, int[][] indicesByChr) {
+																int[][] chrBoundaries, MarkerSetInfo markerSet,
+																int[][] indicesByChr) {
 			super();
 			this.proj = proj;
 			this.samples = samples;
@@ -204,7 +206,7 @@ public class Mosaicism {
 	}
 
 	private static String[] getMosaicResults(Project proj, String sample, boolean[] snpDropped,
-																					 int[][] chrBoundaries, MarkerSet markerSet,
+																					 int[][] chrBoundaries, MarkerSetInfo markerSet,
 																					 int[][] indicesByChr) {
 		Sample samp;
 		float baf;

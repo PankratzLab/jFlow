@@ -14,7 +14,7 @@ import org.apache.poi.util.IOUtils;
 import org.genvisis.CLI;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.ABLookup;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.common.ArrayUtils;
@@ -194,7 +194,7 @@ public class ImputationPrep {
 	}
 
 	private String generateFilteredPlinkset() {
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerDetailSet markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
 		Set<String> keepMarkers = Sets.newHashSet();
 		char[][] lookup = markerSet.getABAlleles().clone();
@@ -378,7 +378,7 @@ public class ImputationPrep {
 		}
 
 		RelationAncestryQc.fullGamut(proj.PROJECT_DIRECTORY.getValue() + targetDir,
-								 filteredPlinkroot, true, log);
+																 filteredPlinkroot, true, log);
 		String qcPlinkroot = proj.PROJECT_DIRECTORY.getValue() + targetDir + Qc.QC_SUBDIR
 												 + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR + filteredPlinkroot
 												 + FurtherAnalysisQc.FURTHER_ANALYSIS_QC_PLINK_SUFFIX;

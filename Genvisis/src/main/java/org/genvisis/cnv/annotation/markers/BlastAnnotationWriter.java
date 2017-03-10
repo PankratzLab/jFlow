@@ -10,7 +10,7 @@ import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation.Builder;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.qc.MarkerBlast.MarkerFastaEntry;
@@ -297,7 +297,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 	 * @return initialized blast summaries for all markers
 	 */
 	private static LocusAnnotation[] initializeSummaries(Project proj, int minAlignmentLength) {
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		// TODO ablookup for annovar etc...
 		byte[] chrs = markerSet.getChrs();
 		int[] pos = markerSet.getPositions();

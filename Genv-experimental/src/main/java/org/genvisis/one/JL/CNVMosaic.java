@@ -11,7 +11,7 @@ import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.MosaicismDetect;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicProducer;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.var.MosaicRegion;
@@ -44,7 +44,7 @@ public class CNVMosaic {
 				samples.add(samps[i]);
 			}
 		}
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		int[][] indicesByChr = markerSet.getIndicesByChr();
 		MosaicBuilder builder = new MosaicBuilder();
 		builder.indicesByChr(indicesByChr);
@@ -393,7 +393,7 @@ public class CNVMosaic {
 
 				@Override
 				public MosaicRegion[] call() throws Exception {
-					MarkerSet markerSet = proj.getMarkerSet();
+					MarkerSetInfo markerSet = proj.getMarkerSet();
 					int[][] indicesByChr = markerSet.getIndicesByChr();
 					Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
 					ArrayList<MosaicRegion> all = new ArrayList<MosaicRegion>();

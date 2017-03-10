@@ -13,7 +13,7 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
@@ -919,7 +919,7 @@ public class GcAdjustor {
 			} else {
 				ReferenceGenome referenceGenome = new ReferenceGenome(refGenome, proj.getLog());
 				Map<String, Integer> indices = proj.getMarkerIndices();
-				MarkerSet markerSet = proj.getMarkerSet();
+				MarkerSetInfo markerSet = proj.getMarkerSet();
 				double[] gcs = new double[markerSet.getMarkerNames().length];
 				for (int i = 0; i < markerSet.getMarkerNames().length; i++) {
 					if (i % 10000 == 0) {

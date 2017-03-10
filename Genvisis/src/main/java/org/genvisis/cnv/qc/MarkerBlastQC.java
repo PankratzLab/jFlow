@@ -13,7 +13,7 @@ import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerGCAnnotation;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -42,7 +42,7 @@ public class MarkerBlastQC {
 		if (outFile == null) {
 			outFile = defaultOneHitWondersFilename(blastVCF);
 		}
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
 		MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(null,
 																																							 proj.BLAST_ANNOTATION_FILENAME.getValue(),

@@ -7,7 +7,7 @@ import java.util.Set;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerFreqs;
 import org.genvisis.cnv.filesys.MarkerLookup;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.var.SampleData;
@@ -57,7 +57,7 @@ public class CNVMarkerQC implements Runnable {
 	public static void computeMAFs(Project proj, int threads, boolean excludeSamples,
 																 String outputSer) {
 		MarkerLookup markerLookup = proj.getMarkerLookup();
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		SampleData sampleData = proj.getSampleData(2, false);
 		String[] markerNames = markerSet.getMarkerNames();
 		Hashtable<String, ArrayList<String>> markerFiles = assignFiles(markerLookup, markerNames);

@@ -22,7 +22,7 @@ import org.genvisis.cnv.annotation.markers.BlastParams;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation.Builder;
 import org.genvisis.cnv.annotation.markers.MarkerGCAnnotation;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
@@ -220,7 +220,7 @@ public class MarkerBlast {
 	private static void annotateGCContent(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type) {
 		MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type, null, false);
 		String[] markerNames = proj.getMarkerNames();
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		Map<String, Integer> indices = proj.getMarkerIndices();
 		// ReferenceGenome referenceGenome = new ReferenceGenome(fastaDb, proj.getLog());
 		LocusAnnotation[] gcAnnotations = new LocusAnnotation[proj.getMarkerNames().length];
@@ -349,7 +349,7 @@ public class MarkerBlast {
 			parser.determineIndicesFromTitles();
 			parser.loadData();
 			ArrayList<MarkerFastaEntry> entries = new ArrayList<MarkerFastaEntry>(ArrayUtils.booleanArraySum(parser.getDataPresent()));
-			MarkerSet markerSet = proj.getMarkerSet();
+			MarkerSetInfo markerSet = proj.getMarkerSet();
 			// SequenceLookup sequenceLookup = new SequenceLookup(proj.getLog());
 			ReferenceGenome referenceGenome = Files.exists(proj.getReferenceGenomeFASTAFilename()) ? new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																																																									 proj.getLog())

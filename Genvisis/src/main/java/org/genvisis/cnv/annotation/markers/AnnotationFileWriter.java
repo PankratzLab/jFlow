@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.WritingFilePrep;
 import org.genvisis.common.ArrayUtils;
@@ -234,7 +234,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 	 */
 	private static SAMSequenceDictionary getUpdatedSamSequenceDictionary(Project proj,
 																																			 SAMSequenceDictionary samSequenceDictionary) {
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		List<SAMSequenceRecord> samSequenceRecords = samSequenceDictionary.getSequences();
 		ArrayList<SAMSequenceRecord> updatedRecords = new ArrayList<SAMSequenceRecord>();
 		SAMSequenceRecord mitoRecord = null;
