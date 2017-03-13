@@ -1262,7 +1262,7 @@ public class GenvisisWorkflow {
 					proj.getLog().report("Running PLINK");
 
 					boolean create = PlinkData.saveGenvisisToPlinkBedSet(proj, PLINK_SUBDIR + PLINKROOT,
-																															 null, null, -1, true);
+																															 null, null, -1);
 					if (!create) {
 						setFailed("Creation of initial PLINK files failed.");
 					}

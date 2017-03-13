@@ -302,7 +302,7 @@ public class ImputationPrep {
 		String filteredPlinkroot = "plinkFiltered";
 		if (!PlinkData.saveGenvisisToPlinkBedSet(proj, targetDir + filteredPlinkroot,
 																						 proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue(),
-																						 imputationTargetMarkers, -1, true)) {
+																						 imputationTargetMarkers, -1)) {
 			return null;
 		}
 
