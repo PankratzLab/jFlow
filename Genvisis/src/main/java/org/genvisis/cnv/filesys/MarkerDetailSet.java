@@ -156,6 +156,11 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				 markerSet.getFingerprint());
 	}
 
+	public MarkerDetailSet(MarkerSetInfo markerSet, char[][] abAlleles) {
+		this(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet.getPositions(), abAlleles,
+				 markerSet.getFingerprint());
+	}
+
 	public MarkerDetailSet(String[] markerNames, byte[] chrs, int[] positions) {
 		this(markerNames, chrs, positions, null);
 	}

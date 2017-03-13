@@ -830,15 +830,22 @@ public class Project implements PropertyChangeListener {
 																																	 log);
 			}
 			if (returnMarkerSet == null) {
-				returnMarkerSet = new MarkerDetailSet(naiveMarkerSet);
+				if (Files.exists(AB_LOOKUP_FILENAME.getValue())) {
+					char[][] abLookup = new ABLookup(naiveMarkerSet.getMarkerNames(),
+																					 AB_LOOKUP_FILENAME.getValue(), true, true,
+																					 getLog()).getLookup();
+					returnMarkerSet = new MarkerDetailSet(naiveMarkerSet, abLookup);
+					returnMarkerSet.serialize(MARKER_DETAILS_FILENAME.getValue());
+				} else {
+					returnMarkerSet = new MarkerDetailSet(naiveMarkerSet);
+					// Don't serialize a MarkerDetailSet without proper AB alleles
+				}
 			}
-			returnMarkerSet.serialize(MARKER_DETAILS_FILENAME.getValue());
 			return returnMarkerSet;
 		} else {
 			getLog().reportFileNotFound(MARKERSET_FILENAME.getValue());
 			return null;
 		}
-
 	}
 
 	public String[] getMarkerNames() {

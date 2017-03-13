@@ -73,14 +73,6 @@ public class ABLookup {
 		this.lookup = lookup;
 	}
 
-	public ABLookup(Project proj) {
-		this(proj, proj.getMarkerSet().getMarkerNames(), true, false);
-	}
-
-	public ABLookup(Project proj, boolean verbose, boolean allOrNothing) {
-		this(proj, proj.getMarkerSet().getMarkerNames(), verbose, allOrNothing);
-	}
-
 	public ABLookup(Project proj, String[] markerNames) {
 		this(proj, markerNames, true, false);
 	}
@@ -96,7 +88,7 @@ public class ABLookup {
 			lookup = parseLookupFromFile(markerNames, proj.AB_LOOKUP_FILENAME.getValue(), verbose,
 																	 allOrNothing, log);
 		} else {
-			log.reportError("Neither a Marker Blast Annotation or AB Lookup file for the project could be found, cannot generate AB Lookup");
+			log.reportError("Neither a Marker Blast Annotation nor an AB Lookup file for the project could be found, cannot generate AB Lookup");
 			lookup = null;
 		}
 
