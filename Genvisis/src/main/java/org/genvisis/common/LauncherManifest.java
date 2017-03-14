@@ -2,6 +2,8 @@ package org.genvisis.common;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Date;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -181,8 +183,15 @@ public class LauncherManifest {
 	 * @return Get the jar file that was used to launch this application
 	 */
 	private static File getCurrentFile() {
-		File file = new File(getLaunchClass().getProtectionDomain().getCodeSource()
-																				 .getLocation().getFile());// get
+		String jarPath = getLaunchClass().getProtectionDomain().getCodeSource()
+																		 .getLocation().getFile();
+		try {
+			jarPath = URLDecoder.decode(jarPath, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+
+		File file = new File(jarPath);
 
 		if (!file.exists() || !file.getAbsolutePath().endsWith(".jar")) {
 			file = new File("../" + PSF.Java.GENVISIS);
