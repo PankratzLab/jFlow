@@ -37,6 +37,11 @@
 			<name>Mark Hiner</name>
 			<url></url>
 		</developer>
+		<developer>
+			<id>rcoleb</id>
+			<name>Ben Cole</name>
+			<url></url>
+		</developer>
 	</developers>
 
 	<modules>
