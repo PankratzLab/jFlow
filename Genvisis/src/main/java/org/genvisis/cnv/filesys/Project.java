@@ -42,9 +42,9 @@ import org.genvisis.cnv.prop.StringProperty;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.LauncherManifest;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.LauncherManifest;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.SerializedFiles;
@@ -821,27 +821,37 @@ public class Project implements PropertyChangeListener {
 			return loadedMarkerSet;
 		}
 		if (Files.exists(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue())) {
+			@SuppressWarnings("deprecation")
 			MarkerSetInfo naiveMarkerSet = MarkerSet.load(MARKERSET_FILENAME.getValue(),
 																										JAR_STATUS.getValue());
-			MarkerDetailSet returnMarkerSet = null;
+			MarkerDetailSet generatedMarkerSet = null;
 			if (Files.exists(BLAST_ANNOTATION_FILENAME.getValue(), JAR_STATUS.getValue())) {
-				returnMarkerSet = MarkerDetailSet.parseFromBLASTAnnotation(naiveMarkerSet,
-																																	 BLAST_ANNOTATION_FILENAME.getValue(),
-																																	 log);
+				log.report("Attempting to generate MarkerDetails from "
+									 + BLAST_ANNOTATION_FILENAME.getValue());
+				generatedMarkerSet = MarkerDetailSet.parseFromBLASTAnnotation(naiveMarkerSet,
+																																			BLAST_ANNOTATION_FILENAME.getValue(),
+																																			log);
 			}
-			if (returnMarkerSet == null) {
+			if (generatedMarkerSet == null) {
 				if (Files.exists(AB_LOOKUP_FILENAME.getValue())) {
+					log.report("Attempting to generate MarkerDetails from "
+										 + MARKER_DETAILS_FILENAME.getValue() + " and "
+										 + AB_LOOKUP_FILENAME.getValue());
 					char[][] abLookup = new ABLookup(naiveMarkerSet.getMarkerNames(),
 																					 AB_LOOKUP_FILENAME.getValue(), true, true,
 																					 getLog()).getLookup();
-					returnMarkerSet = new MarkerDetailSet(naiveMarkerSet, abLookup);
-					returnMarkerSet.serialize(MARKER_DETAILS_FILENAME.getValue());
+					generatedMarkerSet = new MarkerDetailSet(naiveMarkerSet, abLookup);
 				} else {
-					returnMarkerSet = new MarkerDetailSet(naiveMarkerSet);
+					log.report("Could not locate AB Alleles, using naive MarkerSet from "
+										 + MARKERSET_FILENAME.getValue());
+					return new MarkerDetailSet(naiveMarkerSet);
 					// Don't serialize a MarkerDetailSet without proper AB alleles
 				}
 			}
-			return returnMarkerSet;
+			log.report("MarkerDetails generated to " + MARKER_DETAILS_FILENAME.getValue()
+								 + " for Project");
+			generatedMarkerSet.serialize(MARKER_DETAILS_FILENAME.getValue());
+			return generatedMarkerSet;
 		} else {
 			getLog().reportFileNotFound(MARKERSET_FILENAME.getValue());
 			return null;
