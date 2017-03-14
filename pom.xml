@@ -44,6 +44,9 @@
 		</developer>
 	</developers>
 
+	<!-- Genvisis is structured as a multi-module maven project. By defining the
+			 bulk of configuration in this parent pom.xml, each individual component
+			 is simplified and consistent. -->
 	<modules>
 		<module>Logicle</module>
 		<module>Genvisis</module>
@@ -74,8 +77,11 @@
 	</ciManagement>
 
 	<properties>
-		<!-- Genvisis -->
-		<mainClass>org.genvisis.cnv.Launch</mainClass>
+		<!-- By defining version properties here, each component receives the same
+				 version of any given dependency -->
+
+		<!-- Genvisis versions -
+				 NB: change these to non-SNAPSHOT when releasing -->
 		<genvisis.version>0.0.1-SNAPSHOT</genvisis.version>
 		<genv-exp.version>0.0.1-SNAPSHOT</genv-exp.version>
 		<genv-dep.version>0.0.1-SNAPSHOT</genv-dep.version>
@@ -158,13 +164,20 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
+		<!-- Each product can define its own main class -->
+		<mainClass>org.genvisis.cnv.Launch</mainClass>
+
 		<!-- NB: Specify formatting of the maven.build.timestamp property. -->
 		<maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
 
+		<!-- Controls the Java and Maven compliance versions -->
 		<genvisis.jvm.version>1.6</genvisis.jvm.version>
 		<genvisis.mvn.version>3.0.4</genvisis.mvn.version>
 	</properties>
 
+	<!-- Dependencies should only be declared with versions in this parent pom.
+			 In sub-modules, the versions can be omitted (they are automatically
+			 inherited) -->
 	<dependencyManagement>
 		<dependencies>
 			<!-- Genvisis -->
@@ -233,14 +246,6 @@
 				<groupId>com.github.samtools</groupId>
 				<artifactId>htsjdk</artifactId>
 				<version>${htsjdk.version}</version>
-			</dependency>
-
-			<!-- JUnit - http://junit.org/ -->
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>${junit.version}</version>
-				<scope>test</scope>
 			</dependency>
 
 			<!-- BZip2 -->
@@ -353,12 +358,26 @@
 				<artifactId>java-semver</artifactId>
 				<version>${java-semver.version}</version>
 			</dependency>
+
+			<!-- Test scope dependencies - not included in .jars built with Maven -->
+
+			<!-- JUnit - http://junit.org/ -->
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>${junit.version}</version>
+				<scope>test</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
 	<build>
-		<!-- It is nice for "mvn" with no arguments to do something reasonable. -->
+		<!-- Make "mvn" with no arguments do something reasonable (compile, test,
+				 package to jar, install to local repository). -->
 		<defaultGoal>install</defaultGoal>
+
+		<!-- The pluginManagement block controls plugin configuration in all
+				 modules -->
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -398,10 +417,13 @@
 				</plugin>
 
 
-				<!--NICE the assembly and jar plugin should have consistent manifest
-						 configuration, to ensure data is consistent between .jars. If
-						 there is a way to declare this information once without copying
-						 and pasting that would be preferred! -->
+				<!--NOTICE - the jar, assembly, and JavaFX plugins all require
+						 consistent manifest configuration, to ensure data is consistent
+						 between .jars. Each controls a different paradigm respectively:
+						 building the individual component jar, the combined uber-jar and
+						 the native bundle. If there is a way to declare this information
+						 once without copying and pasting that would be preferred! -->
+
 				<plugin>
 					<artifactId>maven-assembly-plugin</artifactId>
 					<version>2.4</version>
@@ -441,7 +463,6 @@
 						<additionalAppResources>${resourcesDir}</additionalAppResources>
 						<manifestAttributes>
 							<Implementation-Build>${buildNumber}</Implementation-Build>
-							<!-- Add a formatted timestamp for the build. -->
 							<Implementation-Date>${maven.build.timestamp}</Implementation-Date>
 							<Implementation-Version>${project.version}</Implementation-Version>
 							<Compile-Time>${timestamp}</Compile-Time>
@@ -480,9 +501,7 @@
 								<mainClass>${mainClass}</mainClass>
 							</manifest>
 							<manifestEntries>
-								<!-- Add SCM revision from buildnumber plugin, if available. -->
 								<Implementation-Build>${buildNumber}</Implementation-Build>
-								<!-- Add a formatted timestamp for the build. -->
 								<Implementation-Date>${maven.build.timestamp}</Implementation-Date>
 								<Implementation-Version>${project.version}</Implementation-Version>
 								<Compile-Time>${timestamp}</Compile-Time>
@@ -500,6 +519,8 @@
 						</execution>
 					</executions>
 				</plugin>
+
+				<!-- End of build configuration plugins -->
 
 				<plugin>
 					<artifactId>maven-plugin-plugin</artifactId>
@@ -608,6 +629,7 @@
 
 			</plugins>
 		</pluginManagement>
+
 		<plugins>
 			<!-- Default license information -->
 			<plugin>
