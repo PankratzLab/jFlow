@@ -1,6 +1,7 @@
 package org.genvisis;
 
 import org.genvisis.cnv.Launch;
+import org.genvisis.common.LauncherManifest;
 
 /**
  * This is a dummy entry point that currently simply delegates to {@link Launch}. It was primarily
@@ -11,6 +12,7 @@ import org.genvisis.cnv.Launch;
 public class GenvisisMain {
 
 	public static void main(String... args) {
+		LauncherManifest.setLaunchClass(GenvisisMain.class);
 		Launch.main(args);
 	}
 }

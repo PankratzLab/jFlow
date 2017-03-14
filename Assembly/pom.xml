@@ -36,17 +36,6 @@
 				<configuration>
 					<finalName>${outname}</finalName>
 					<appendAssemblyId>false</appendAssemblyId>
-					<archive>
-						<manifest>
-							<mainClass>${mainClass}</mainClass>
-						</manifest>
-						<manifestEntries>
-							<Implementation-Version>${project.version}</Implementation-Version>
-							<Compile-Time>${timestamp}</Compile-Time>
-							<Build-Type>Development</Build-Type>
-							<Copyright>(c)2009-2016 Nathan Pankratz, GNU General Public License, v2</Copyright>
-						</manifestEntries>
-					</archive>
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
@@ -89,36 +78,11 @@
 					<plugin>
 						<groupId>com.zenjava</groupId>
 						<artifactId>javafx-maven-plugin</artifactId>
-						<version>8.6.0</version>
-						<configuration>
-							<jfxMainAppJarName>${outname}-jfx.jar</jfxMainAppJarName>
-							<mainClass>org.genvisis.cnv.Launch</mainClass>
-							<needShortcut>true</needShortcut>
-							<needMenu>true</needMenu>
-							<appName>${outname}</appName>
-							<nativeReleaseVersion>${project.version}</nativeReleaseVersion>
-							<additionalAppResources>${resourcesDir}</additionalAppResources>
-						</configuration>
-						<executions>
-							<execution>
-								<id>create-jfxjar</id>
-								<phase>package</phase>
-								<goals>
-									<goal>build-jar</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>create-native</id>
-								<phase>package</phase>
-								<goals>
-									<goal>build-native</goal>
-								</goals>
-							</execution>
-						</executions>
 					</plugin>
 				</plugins>
 			</build>
 		</profile>
+
 		<profile>
 			<id>upload-genvisis</id>
 			<activation>
@@ -151,6 +115,7 @@
 				</plugins>
 			</build>
 		</profile>
+
 		<profile>
 			<id>copy-genvisis</id>
 			<activation>
