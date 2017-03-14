@@ -1407,9 +1407,27 @@ public class GenvisisWorkflow {
 			final Requirement gwasQCStepReq = new StepRequirement(gwasQCStep);
 			final Requirement putativeWhitesReq = new FileRequirement("File with FID/IID pairs of putative white samples",
 																																"");
+			final Requirement hapMapFoundersReq = new FileRequirement("PLINK root of HapMap founders",
+																																Resources.hapMap(log)
+																																				 .getUnambiguousHapMapFounders()
+																																				 .get()) {
+				@Override
+				public boolean checkRequirement(String arg, Set<Step> stepSelections,
+																				Map<Step, Map<Requirement, String>> variables) {
+					String hapMapPlinkRoot = arg;
+					int dotIndex = hapMapPlinkRoot.lastIndexOf('.');
+					if (dotIndex > 0
+							&& PSF.Plink.getPlinkBedBimFamSet("").contains(hapMapPlinkRoot.substring(dotIndex))) {
+						hapMapPlinkRoot = hapMapPlinkRoot.substring(0, dotIndex);
+					}
+					return Files.checkAllFiles("", PSF.Plink.getPlinkBedBimFamSet(hapMapPlinkRoot), false,
+																		 log);
+				}
+			};
 
 			return register(new Step("Run Ancestry Checks", "",
-															 new Requirement[][] {{gwasQCStepReq}, {putativeWhitesReq}},
+															 new Requirement[][] {{gwasQCStepReq}, {putativeWhitesReq},
+																										{hapMapFoundersReq}},
 															 EnumSet.noneOf(Flag.class), priority()) {
 
 				@Override
@@ -1421,7 +1439,7 @@ public class GenvisisWorkflow {
 				@Override
 				public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
 					String putativeWhites = variables.get(this).get(putativeWhitesReq);
-					String hapMapPlinkRoot = Resources.hapMap(log).getUnambiguousHapMapFounders().get();
+					String hapMapPlinkRoot = variables.get(this).get(hapMapFoundersReq);
 					int hapMapDotIndex = hapMapPlinkRoot.lastIndexOf('.');
 					if (hapMapDotIndex > 0 && PSF.Plink.getPlinkBedBimFamSet("")
 																						 .contains(hapMapPlinkRoot.substring(hapMapDotIndex))) {
@@ -1435,7 +1453,7 @@ public class GenvisisWorkflow {
 				@Override
 				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
 					String putativeWhites = variables.get(this).get(putativeWhitesReq);
-					String hapMapPlinkRoot = Resources.hapMap(log).getUnambiguousHapMapFounders().get();
+					String hapMapPlinkRoot = variables.get(this).get(hapMapFoundersReq);
 					int hapMapDotIndex = hapMapPlinkRoot.lastIndexOf('.');
 					if (hapMapDotIndex > 0 && PSF.Plink.getPlinkBedBimFamSet("")
 																						 .contains(hapMapPlinkRoot.substring(hapMapDotIndex))) {
