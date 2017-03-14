@@ -71,6 +71,9 @@
 	</build>
 
 	<profiles>
+		<!-- This profile is enabled by manually turning it on (e.g. "mvn -P jfx").
+				 It create a native installer and application bundle using available
+				 platform tools, via JavaFX -->
 		<profile>
 			<id>jfx</id>
 			<build>
@@ -83,6 +86,11 @@
 			</build>
 		</profile>
 
+		<!-- This profile is enabled by either manually setting a
+				 "genv.upload.path" variable, or defining it in a local
+				 "~/.m2/settings.xml" file. This enables maven to automatically upload
+				 a .jar to the path specified by "genv.upload.path" each time this
+				 project is built. -->
 		<profile>
 			<id>upload-genvisis</id>
 			<activation>
@@ -116,6 +124,11 @@
 			</build>
 		</profile>
 
+		<!-- This profile is enabled by either manually setting a
+				 "genv.copy.path" variable, or defining it in a local
+				 "~/.m2/settings.xml" file. This enables maven to automatically copy
+				 a .jar to the path specified by "genv.copy.path" each time this
+				 project is built. -->
 		<profile>
 			<id>copy-genvisis</id>
 			<activation>
