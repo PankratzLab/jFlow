@@ -79,6 +79,13 @@ public class TestResources {
 	}
 
 	/**
+	 * Helper method to test {@link Resources#hapMap(Logger)} resources.
+	 */
+	private static void testHapMap(Logger log) {
+		test(Resources.hapMap(log).getResources());
+	}
+
+	/**
 	 * Helper method to test {@link Resources#mitoCN(Logger)} resources.
 	 */
 	private static void testMitoCN(Logger log) {
@@ -113,6 +120,7 @@ public class TestResources {
 		testGenome(log);
 		testChr(log);
 		testAffy(log);
+		testHapMap(log);
 		testMitoCN(log);
 		testPathways(log);
 		testCnv(log);

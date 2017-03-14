@@ -167,6 +167,7 @@ public final class Resources {
 		if (allResources == null) {
 			Set<Resource> resources = new HashSet<Resource>();
 			resources.addAll(path(null).getResources());
+			resources.addAll(hapMap(null).getResources());
 			resources.addAll(mitoCN(null).getResources());
 			resources.addAll(cnv(null).getResources());
 			resources.addAll(affy(null).getResources());
@@ -466,6 +467,28 @@ public final class Resources {
 		public Chr chr(CHROMOSOME c) {
 			return new Chr(build, c, log());
 		}
+	}
+
+	/**
+	 * Helper method for chaining resource calls
+	 */
+	public static HapMap hapMap(Logger log) {
+		return new HapMap(log);
+	}
+
+	public static class HapMap extends AbstractResourceFactory {
+
+		public HapMap(Logger log) {
+			super("HapMap", log, HapMap.class);
+		}
+
+		/**
+		 * @return PLINK dataset of Unambiguous HapMap founders
+		 */
+		public Resource getUnambiguousHapMapFounders() {
+			return getTarGzResource("unambiguousHapMapFounders");
+		}
+
 	}
 
 	/**
@@ -960,6 +983,7 @@ public final class Resources {
 			dictionary = new DefaultResource(FASTA.getDictionary(path), FASTA.getDictionary(url), log);
 		}
 
+		@Override
 		public String get() {
 			String path = super.get();
 			if (path != null && index.get() == null) {
