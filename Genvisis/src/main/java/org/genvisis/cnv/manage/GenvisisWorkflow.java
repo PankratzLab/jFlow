@@ -636,52 +636,54 @@ public class GenvisisWorkflow {
 															 new Requirement[][] {{manifestReq, snpMapReq}, {getNumThreadsReq()}},
 															 EnumSet.noneOf(Flag.class), priority()) {
 
-			@Override
-			public void setNecessaryPreRunProperties(Project proj,
-																							 Map<Step, Map<Requirement, String>> variables) {
-				int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
-				maybeSetProjNumThreads(numThreads);
-			}
-
-			@Override
-			public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-				proj.getLog().report("Generating marker positions file");
-				String manifestFile = variables.get(this).get(manifestReq);
-				String snpMapFile = variables.get(this).get(snpMapReq);
-				if (Files.exists(manifestFile)) {
-					proj.getLog().report("BLASTing probes from " + manifestFile);
-					MarkerBlast.blastEm(proj, manifestFile, MarkerBlast.FILE_SEQUENCE_TYPE.MANIFEST_FILE,
-															proj.NUM_THREADS.getValue());
-				} else {
-					proj.getLog().report("Generating marker positions file from " + snpMapFile);
-					Markers.generateMarkerPositions(proj, snpMapFile);
+				@Override
+				public void setNecessaryPreRunProperties(Project proj,
+																								 Map<Step, Map<Requirement, String>> variables) {
+					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
+					maybeSetProjNumThreads(numThreads);
 				}
-			}
 
-			@Override
-			public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
-				return Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false));
-			}
-
-			@Override
-			public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
-				String manifestFile = variables.get(this).get(manifestReq);
-				String snpMapFile = variables.get(this).get(snpMapReq);
-				int numThreads = resolveThreads(variables.get(this).get(numThreadsReq));
-				String projFile = proj.getPropertyFilename();
-				if (Files.exists(manifestFile)) {
-					List<String> command = ImmutableList.of(Files.getRunString(), MarkerBlast.class.getName(),
-																									"fileSeq=" + manifestFile,
-																									"proj=" + proj.getPropertyFilename(),
-																									PSF.Ext.NUM_THREADS_COMMAND + numThreads);
-					return Joiner.on(" ").join(command);
-				} else {
-					return Files.getRunString() + " cnv.manage.Markers proj=" + projFile + " snps="
-								 + snpMapFile;
+				@Override
+				public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+					proj.getLog().report("Generating marker positions file");
+					String manifestFile = variables.get(this).get(manifestReq);
+					String snpMapFile = variables.get(this).get(snpMapReq);
+					if (Files.exists(manifestFile)) {
+						proj.getLog().report("BLASTing probes from " + manifestFile);
+						MarkerBlast.blastEm(proj, manifestFile, MarkerBlast.FILE_SEQUENCE_TYPE.MANIFEST_FILE,
+																proj.NUM_THREADS.getValue());
+					} else {
+						proj.getLog().report("Generating marker positions file from " + snpMapFile);
+						Markers.generateMarkerPositions(proj, snpMapFile);
+					}
 				}
-			}
-		});
+
+				@Override
+				public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
+					return Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false));
+				}
+
+				@Override
+				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+					String manifestFile = variables.get(this).get(manifestReq);
+					String snpMapFile = variables.get(this).get(snpMapReq);
+					int numThreads = resolveThreads(variables.get(this).get(numThreadsReq));
+					String projFile = proj.getPropertyFilename();
+					if (Files.exists(manifestFile)) {
+						List<String> command = ImmutableList.of(Files.getRunString(),
+																										MarkerBlast.class.getName(),
+																										"fileSeq=" + manifestFile,
+																										"proj=" + proj.getPropertyFilename(),
+																										PSF.Ext.NUM_THREADS_COMMAND + numThreads);
+						return Joiner.on(" ").join(command);
+					} else {
+						return Files.getRunString() + " cnv.manage.Markers proj=" + projFile + " snps="
+									 + snpMapFile;
+					}
+				}
+			});
 		}
+
 		private Step generateIlluminaParseSamplesStep(final Step markerPositionsStep) {
 			final Requirement markerPositionsStepReq = new StepRequirement(markerPositionsStep);
 
@@ -1405,25 +1407,9 @@ public class GenvisisWorkflow {
 			final Requirement gwasQCStepReq = new StepRequirement(gwasQCStep);
 			final Requirement putativeWhitesReq = new FileRequirement("File with FID/IID pairs of putative white samples",
 																																"");
-			final Requirement hapMapFoundersReq = new FileRequirement("PLINK root of HapMap founders",
-																																Ancestry.DEFAULT_HAPMAP_PLINKROOT) {
-				@Override
-				public boolean checkRequirement(String arg, Set<Step> stepSelections,
-																				Map<Step, Map<Requirement, String>> variables) {
-					String hapMapPlinkRoot = arg;
-					int dotIndex = hapMapPlinkRoot.lastIndexOf('.');
-					if (dotIndex > 0
-							&& PSF.Plink.getPlinkBedBimFamSet("").contains(hapMapPlinkRoot.substring(dotIndex))) {
-						hapMapPlinkRoot = hapMapPlinkRoot.substring(0, dotIndex);
-					}
-					return Files.checkAllFiles("", PSF.Plink.getPlinkBedBimFamSet(hapMapPlinkRoot), false,
-																		 log);
-				}
-			};
 
 			return register(new Step("Run Ancestry Checks", "",
-															 new Requirement[][] {{gwasQCStepReq}, {putativeWhitesReq},
-																										{hapMapFoundersReq}},
+															 new Requirement[][] {{gwasQCStepReq}, {putativeWhitesReq}},
 															 EnumSet.noneOf(Flag.class), priority()) {
 
 				@Override
@@ -1435,7 +1421,7 @@ public class GenvisisWorkflow {
 				@Override
 				public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
 					String putativeWhites = variables.get(this).get(putativeWhitesReq);
-					String hapMapPlinkRoot = variables.get(this).get(hapMapFoundersReq);
+					String hapMapPlinkRoot = Resources.hapMap(log).getUnambiguousHapMapFounders().get();
 					int hapMapDotIndex = hapMapPlinkRoot.lastIndexOf('.');
 					if (hapMapDotIndex > 0 && PSF.Plink.getPlinkBedBimFamSet("")
 																						 .contains(hapMapPlinkRoot.substring(hapMapDotIndex))) {
@@ -1449,7 +1435,7 @@ public class GenvisisWorkflow {
 				@Override
 				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
 					String putativeWhites = variables.get(this).get(putativeWhitesReq);
-					String hapMapPlinkRoot = variables.get(this).get(hapMapFoundersReq);
+					String hapMapPlinkRoot = Resources.hapMap(log).getUnambiguousHapMapFounders().get();
 					int hapMapDotIndex = hapMapPlinkRoot.lastIndexOf('.');
 					if (hapMapDotIndex > 0 && PSF.Plink.getPlinkBedBimFamSet("")
 																						 .contains(hapMapPlinkRoot.substring(hapMapDotIndex))) {
