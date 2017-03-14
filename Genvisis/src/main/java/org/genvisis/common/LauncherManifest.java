@@ -3,7 +3,6 @@ package org.genvisis.common;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -14,17 +13,27 @@ import com.github.zafarkhaja.semver.Version;
 
 /**
  * Describes the manifest of the jar containing the class that was used to launch this application.
+ * Also provides the {@link #setLaunchClass(Class)} method to register the component that should be
+ * used for version reporting.
  */
 public class LauncherManifest {
 
 	public static final String UNDETERMINED_VERSION = "0.0.0-unknown";
 	public static final String BUILD_VERSION = "Implementation-Version";
 	public static final String BUILD_TIMESTAMP = "Implementation-Date";
-	public static final String GIT_COMMIT_SHA = "Implementation-Build";
+	public static final String COMPILE_TIME = "Compile-Time";
+	public static final String BUILD_TYPE = "Build-Type";
+	public static final String BUILD_AUTHOR = "Built-By";
+	public static final String BUILD_COPYRIGHT = "Copyright";
+	public static final String BUILD_COMMIT_SHA = "Implementation-Build";
+
 	private static final Class<?> DEFAULT_LAUNCH_CLASS = Launch.class;
 
 	private static Class<?> launchClass = null;
 
+	/**
+	 * @return The class that should be used to determine version information for this application.
+	 */
 	public static Class<?> getLaunchClass() {
 		if (launchClass == null) {
 			setLaunchClass(DEFAULT_LAUNCH_CLASS);
@@ -32,6 +41,12 @@ public class LauncherManifest {
 		return launchClass;
 	}
 
+	/**
+	 * Set the "dominant" launch class, used to determine version information.
+	 *
+	 * @return If the requested class was successfully set. If not, it means the current entry point
+	 *         loaded a different class that called this method first.
+	 */
 	public static boolean setLaunchClass(Class<?> c) {
 		if (launchClass == null) {
 			return lockedSetLaunchClass(c);
@@ -39,6 +54,10 @@ public class LauncherManifest {
 		return launchClass == c;
 	}
 
+	/**
+	 * Synchronized helper method to ensure only the first request to set the launch class is
+	 * respected.
+	 */
 	private static synchronized boolean lockedSetLaunchClass(Class<?> c) {
 		if (launchClass == null) {
 			launchClass = c;
@@ -47,11 +66,6 @@ public class LauncherManifest {
 	}
 
 	private Attributes attributes;
-	private Version version;
-	private String compileTime;
-	private String buildType;
-	private String builtBy;
-	private String copyright;
 
 	public LauncherManifest() {
 		this(new Attributes());
@@ -62,66 +76,62 @@ public class LauncherManifest {
 		this.attributes = attributes;
 	}
 
-	private void populate() {
-
-		version = Version.valueOf(UNDETERMINED_VERSION);
-		compileTime = "";
-		buildType = "";
-		builtBy = "";
-		if (attributes != null) {
-			// FIXME use attributes.getValue(String)
-			Iterator<Object> it = attributes.keySet().iterator();
-			while (it.hasNext()) {
-				java.util.jar.Attributes.Name key = (java.util.jar.Attributes.Name) it.next();
-				String keyword = key.toString();
-				if (keyword.equals(BUILD_VERSION)) {
-					version = Version.valueOf((String) attributes.get(key));
-				}
-				if (keyword.equals("Compile-Time")) {
-					compileTime = (String) attributes.get(key);
-				}
-				if (keyword.equals("Build-Type")) {
-					buildType = (String) attributes.get(key);
-				}
-				if (keyword.equals("Built-By")) {
-					builtBy = (String) attributes.get(key);
-				}
-				if (keyword.equals("Copyright")) {
-					copyright = (String) attributes.get(key);
-				}
-			}
-		}
-	}
-
-	public String getBuiltBy() {
-		return builtBy;
-	}
-
-	public String getCopyright() {
-		return copyright;
-	}
-
 	public Attributes getAttributes() {
 		return attributes;
 	}
 
-	public String getBuildType() {
-		return buildType;
+	public Version getVersion() {
+		String v = null;
+		if (attributes != null) {
+			v = attributes.getValue(BUILD_VERSION);
+		}
+
+		v = v == null ? UNDETERMINED_VERSION : v;
+
+		return Version.valueOf(v);
 	}
 
-	public Version getVersion() {
-		return version;
+	public String getBuiltBy() {
+		return getAttribute(BUILD_AUTHOR);
+	}
+
+	public String getCopyright() {
+		return getAttribute(BUILD_COPYRIGHT);
+	}
+
+	public String getBuildType() {
+		return getAttribute(BUILD_TYPE);
 	}
 
 	public String getCompileTime() {
-		return compileTime;
+		return getAttribute(COMPILE_TIME);
 	}
 
-	public static LauncherManifest loadGenvisisManifest() {
-		File file = getCurrentFile();
-		return loadManifest(file);
+	public String getTimestamp() {
+		return getAttribute(BUILD_TIMESTAMP);
 	}
 
+	public String getCommit() {
+		return getAttribute(BUILD_COMMIT_SHA);
+	}
+
+	/**
+	 * Helper method to look up the {@link Attributes#getValue(String)} of a given key. Converts
+	 * {@code null} attributes and values to empty strings.
+	 */
+	private String getAttribute(String key) {
+		if (attributes == null) {
+			return "";
+		}
+
+		String v = attributes.getValue(key);
+
+		return v == null ? "" : v;
+	}
+
+	/**
+	 * @return An informative string about the current genvisis version
+	 */
 	public static String getGenvisisInfo() {
 		try {
 			LauncherManifest manifest = LauncherManifest.loadGenvisisManifest();// until it always works
@@ -134,15 +144,25 @@ public class LauncherManifest {
 		}
 	}
 
-	// https://ant.apache.org/manual/Tasks/manifest.html
-	public static LauncherManifest loadManifest(File file) {
+	/**
+	 * @return The manifest for the jar file used to launch this application
+	 */
+	public static LauncherManifest loadGenvisisManifest() {
+		File file = getCurrentFile();
+		return loadManifest(file);
+	}
+
+	/**
+	 * @return A representation of the manifest of the given jar file
+	 */
+	public static LauncherManifest loadManifest(File jarFile) {
 		JarFile jar = null;
 
 		LauncherManifest currentManifest = new LauncherManifest();
 		try {
 
-			if (file != null && file.exists()) {
-				jar = new JarFile(file);
+			if (jarFile != null && jarFile.exists()) {
+				jar = new JarFile(jarFile);
 
 				Manifest manifest = jar.getManifest();
 
@@ -154,10 +174,12 @@ public class LauncherManifest {
 		} catch (IOException ioe) {
 
 		}
-		currentManifest.populate();
 		return currentManifest;
 	}
 
+	/**
+	 * @return Get the jar file that was used to launch this application
+	 */
 	private static File getCurrentFile() {
 		File file = new File(getLaunchClass().getProtectionDomain().getCodeSource()
 																				 .getLocation().getFile());// get
@@ -169,8 +191,6 @@ public class LauncherManifest {
 	}
 
 	public static void main(String[] args) {
-
 		loadGenvisisManifest();
-
 	}
 }
