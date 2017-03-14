@@ -814,7 +814,8 @@ public class VCFSimpleTally {
 	private static SimpleTallyResult runSimpleTally(String vcf, String vpop, double maf,
 																									int numThreads, String outDir, GeneSet[] geneSets,
 																									VariantContextFilter qualCase,
-																									HashSet<String> lqs, boolean splitPopVcf,
+																									HashSet<String> lqs, HashSet<String> genelimit,
+																									boolean splitPopVcf,
 																									Logger log) {
 		VcfPopulation vpopAc = VcfPopulation.load(vpop, POPULATION_TYPE.ANY, log);
 		vpopAc.report();
@@ -1006,109 +1007,115 @@ public class VCFSimpleTally {
 				log.reportTimeInfo("Summarizing " + filtVcfs.get(i));
 				VCFFileReader result = new VCFFileReader(new File(filtVcfs.get(i)), true);
 				for (VariantContext vc : result) {
-					writer.add(vc);
-					Segment seg = VCOps.getSegment(vc);
-
 					String geneName = VCOps.getSNP_EFFGeneName(vc);
-					String func = VCOps.getSNP_EFFImpact(vc);
-					annoGeneBedWriter.println(seg.getChr() + "\t" + seg.getStart() + "\t" + seg.getStop()
-																		+ "\t" + geneName + ":" + func);
-					if (!geneSummaries.containsKey(geneName)) {
-						addEntries(caseDef, hqCaseDef, controlsOrdered, geneSummaries, geneName);
-					}
-					for (int j = 0; j < geneSets.length; j++) {
-						if ((geneSets[j].getGenes().containsKey(geneName)
-								 || geneSets[j].getGenes().containsKey(ANY_GENE_SET))
-								&& !geneSummaries.containsKey(geneSets[j].getTag())) {
-							addEntries(caseDef, hqCaseDef, controlsOrdered, geneSummaries, geneSets[j].getTag());
+					if (genelimit == null || genelimit.isEmpty() || genelimit.contains(geneName)) {
+						writer.add(vc);
+						Segment seg = VCOps.getSegment(vc);
+
+						String func = VCOps.getSNP_EFFImpact(vc);
+						annoGeneBedWriter.println(seg.getChr() + "\t" + seg.getStart() + "\t" + seg.getStop()
+																			+ "\t" + geneName + ":" + func);
+						if (!geneSummaries.containsKey(geneName)) {
+							addEntries(caseDef, hqCaseDef, controlsOrdered, geneSummaries, geneName);
 						}
-					}
-					VcGroupSummary vcCaseGroup = new VcGroupSummary(caseDef, cases, vc, qualCase, log);
-					VcGroupSummary vcHqCaseGroup = vcCaseGroup;
-					if (hqCases.size() < cases.size()) {
-						vcHqCaseGroup = new VcGroupSummary(hqCaseDef, hqCases, vc, qualCase, log);
-					}
-
-					// TODO, check
-					for (int j = 0; j < geneSummaries.get(geneName).get(0).length; j++) {
-						geneSummaries.get(geneName).get(0)[j].add(vcHqCaseGroup, null);
-						geneSummaries.get(geneName).get(1)[j].add(vcCaseGroup, null);
-
-						for (GeneSet geneSet : geneSets) {
-							if (geneSet.getGenes().containsKey(geneName)
-									|| geneSet.getGenes().containsKey(ANY_GENE_SET)) {
-								geneSummaries.get(geneSet.getTag()).get(0)[j].add(vcHqCaseGroup, geneSet.getTag());
-								geneSummaries.get(geneSet.getTag()).get(1)[j].add(vcCaseGroup, geneSet.getTag());
+						for (int j = 0; j < geneSets.length; j++) {
+							if ((geneSets[j].getGenes().containsKey(geneName)
+									 || geneSets[j].getGenes().containsKey(ANY_GENE_SET))
+									&& !geneSummaries.containsKey(geneSets[j].getTag())) {
+								addEntries(caseDef, hqCaseDef, controlsOrdered, geneSummaries,
+													 geneSets[j].getTag());
 							}
 						}
-					}
-					boolean highModLow = ext.indexOfStr(func, EFF) >= 0;
-					annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t"
-													 + vc.getReference().getBaseString() + "\t"
-													 + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic() + "\t"
-													 + vc.getFilters().toString() + "\t" + highModLow);
-					annoWriter.print("\t" + ArrayUtils.toStr(vcHqCaseGroup.getSummary()) + "\t"
-													 + ArrayUtils.toStr(vcCaseGroup.getSummary()));
-
-					GenotypesContext gc = vcCaseGroup.getVcAlt().getGenotypes();
-
-					ArrayList<VcGroupSummary> controlGroupSummaries = new ArrayList<VCFSimpleTally.VcGroupSummary>();
-					for (int j = 0; j < controlsOrdered.size(); j++) {
-						VcGroupSummary vcControlGroup = new VcGroupSummary(controlsOrdered.get(j),
-																															 controls.get(controlsOrdered.get(j)),
-																															 vc, qualControl, log);
-						controlGroupSummaries.add(vcControlGroup);
-					}
-
-					for (Genotype g : gc) {
-						HashSet<String> tmpVCSub = new HashSet<String>();
-						tmpVCSub.add(g.getSampleName());
-						VariantContextFilterPass pass = qualCase.filter(VCOps.getSubset(vc, tmpVCSub));
-						annoWriterSample.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t"
-																	 + vc.getReference().getBaseString() + "\t"
-																	 + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic()
-																	 + "\t" + vc.getFilters().toString() + "\t" + highModLow + "\t"
-																	 + g.getSampleName() + "\t" + g.toString() + "\t"
-																	 + pass.getTestPerformed() + "\t"
-																	 + ArrayUtils.toStr(GenotypeOps.getGenoAnnotationsFor(genotypeAnnotations[0],
-																																												g, ".")));
-						annoWriterSample.print("\t" + ArrayUtils.toStr(vcCaseGroup.getSummary()));
-						for (int j = 0; j < controlsOrdered.size(); j++) {
-							annoWriterSample.print("\t"
-																		 + ArrayUtils.toStr(controlGroupSummaries.get(j).getSummary()));
+						VcGroupSummary vcCaseGroup = new VcGroupSummary(caseDef, cases, vc, qualCase, log);
+						VcGroupSummary vcHqCaseGroup = vcCaseGroup;
+						if (hqCases.size() < cases.size()) {
+							vcHqCaseGroup = new VcGroupSummary(hqCaseDef, hqCases, vc, qualCase, log);
 						}
-						annoWriterSample.print("\t"
-																	 + ArrayUtils.toStr(VCOps.getAnnotationsFor(variantAnnotations[0],
-																																							vc, ".")));
-						for (GeneSet geneSet : geneSets) {
-							annoWriterSample.print("\t" + (geneSet.getGenes().containsKey(geneName)
-																						 || geneSet.getGenes().containsKey(ANY_GENE_SET)));
-						}
-						annoWriterSample.print("\t" + !lqs.contains(g.getSampleName()));
-						annoWriterSample.println();
-					}
 
-					for (int j = 0; j < controlsOrdered.size(); j++) {
-						VcGroupSummary vcControlGroup = controlGroupSummaries.get(j);
-						for (int k = 0; k < geneSummaries.get(geneName).get(0).length; k++) {
-							geneSummaries.get(geneName).get(j + 2)[k].add(vcControlGroup, null);// all, hq
+						// TODO, check
+						for (int j = 0; j < geneSummaries.get(geneName).get(0).length; j++) {
+							geneSummaries.get(geneName).get(0)[j].add(vcHqCaseGroup, null);
+							geneSummaries.get(geneName).get(1)[j].add(vcCaseGroup, null);
+
 							for (GeneSet geneSet : geneSets) {
 								if (geneSet.getGenes().containsKey(geneName)
 										|| geneSet.getGenes().containsKey(ANY_GENE_SET)) {
-									geneSummaries.get(geneSet.getTag()).get(j + 2)[k].add(vcControlGroup,
-																																				geneSet.getTag());
+									geneSummaries.get(geneSet.getTag()).get(0)[j].add(vcHqCaseGroup,
+																																		geneSet.getTag());
+									geneSummaries.get(geneSet.getTag()).get(1)[j].add(vcCaseGroup, geneSet.getTag());
 								}
 							}
 						}
-						annoWriter.print("\t" + ArrayUtils.toStr(vcControlGroup.getSummary()));
+						boolean highModLow = ext.indexOfStr(func, EFF) >= 0;
+						annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t"
+														 + vc.getReference().getBaseString() + "\t"
+														 + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic() + "\t"
+														 + vc.getFilters().toString() + "\t" + highModLow);
+						annoWriter.print("\t" + ArrayUtils.toStr(vcHqCaseGroup.getSummary()) + "\t"
+														 + ArrayUtils.toStr(vcCaseGroup.getSummary()));
+
+						GenotypesContext gc = vcCaseGroup.getVcAlt().getGenotypes();
+
+						ArrayList<VcGroupSummary> controlGroupSummaries = new ArrayList<VCFSimpleTally.VcGroupSummary>();
+						for (int j = 0; j < controlsOrdered.size(); j++) {
+							VcGroupSummary vcControlGroup = new VcGroupSummary(controlsOrdered.get(j),
+																																 controls.get(controlsOrdered.get(j)),
+																																 vc, qualControl, log);
+							controlGroupSummaries.add(vcControlGroup);
+						}
+
+						for (Genotype g : gc) {
+							HashSet<String> tmpVCSub = new HashSet<String>();
+							tmpVCSub.add(g.getSampleName());
+							VariantContextFilterPass pass = qualCase.filter(VCOps.getSubset(vc, tmpVCSub));
+							annoWriterSample.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID()
+																		 + "\t"
+																		 + vc.getReference().getBaseString() + "\t"
+																		 + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic()
+																		 + "\t" + vc.getFilters().toString() + "\t" + highModLow + "\t"
+																		 + g.getSampleName() + "\t" + g.toString() + "\t"
+																		 + pass.getTestPerformed() + "\t"
+																		 + ArrayUtils.toStr(GenotypeOps.getGenoAnnotationsFor(genotypeAnnotations[0],
+																																													g, ".")));
+							annoWriterSample.print("\t" + ArrayUtils.toStr(vcCaseGroup.getSummary()));
+							for (int j = 0; j < controlsOrdered.size(); j++) {
+								annoWriterSample.print("\t"
+																			 + ArrayUtils.toStr(controlGroupSummaries.get(j)
+																																							 .getSummary()));
+							}
+							annoWriterSample.print("\t"
+																		 + ArrayUtils.toStr(VCOps.getAnnotationsFor(variantAnnotations[0],
+																																								vc, ".")));
+							for (GeneSet geneSet : geneSets) {
+								annoWriterSample.print("\t" + (geneSet.getGenes().containsKey(geneName)
+																							 || geneSet.getGenes().containsKey(ANY_GENE_SET)));
+							}
+							annoWriterSample.print("\t" + !lqs.contains(g.getSampleName()));
+							annoWriterSample.println();
+						}
+
+						for (int j = 0; j < controlsOrdered.size(); j++) {
+							VcGroupSummary vcControlGroup = controlGroupSummaries.get(j);
+							for (int k = 0; k < geneSummaries.get(geneName).get(0).length; k++) {
+								geneSummaries.get(geneName).get(j + 2)[k].add(vcControlGroup, null);// all, hq
+								for (GeneSet geneSet : geneSets) {
+									if (geneSet.getGenes().containsKey(geneName)
+											|| geneSet.getGenes().containsKey(ANY_GENE_SET)) {
+										geneSummaries.get(geneSet.getTag()).get(j + 2)[k].add(vcControlGroup,
+																																					geneSet.getTag());
+									}
+								}
+							}
+							annoWriter.print("\t" + ArrayUtils.toStr(vcControlGroup.getSummary()));
+						}
+						annoWriter.print("\t" + ArrayUtils.toStr(VCOps.getAnnotationsFor(variantAnnotations[0],
+																																						 vc, ".")));
+						for (GeneSet geneSet : geneSets) {
+							annoWriter.print("\t" + (geneSet.getGenes().containsKey(geneName)
+																			 || geneSet.getGenes().containsKey(ANY_GENE_SET)));
+						}
+						annoWriter.println();
 					}
-					annoWriter.print("\t" + ArrayUtils.toStr(VCOps.getAnnotationsFor(variantAnnotations[0],
-																																					 vc, ".")));
-					for (GeneSet geneSet : geneSets) {
-						annoWriter.print("\t" + (geneSet.getGenes().containsKey(geneName)
-																		 || geneSet.getGenes().containsKey(ANY_GENE_SET)));
-					}
-					annoWriter.println();
 				}
 				result.close();
 			}
@@ -1145,7 +1152,9 @@ public class VCFSimpleTally {
 			if (splitPopVcf) {
 				VCFOps.VcfPopulation.splitVcfByPopulation(finalOutVCF, vpop, true, true, false, log);
 			}
-		} else {
+		} else
+
+		{
 			log.reportTimeWarning(finalAnnotGene + " exists so skipping summarize");
 		}
 		Files.copyFile(finalAnnot, bundleDir + ext.removeDirectoryInfo(finalAnnot));
@@ -1726,9 +1735,20 @@ public class VCFSimpleTally {
 			} else {
 				log.reportError("JOHN you could probably remove this");
 			}
-			log.reportTimeInfo("Loaded " + lqs.size() + " lower quality samples");
+
+			String geneLimiters = ext.rootOf(vpopsCase[i], false) + ".geneLimiter.txt";
+			HashSet<String> genelimit = new HashSet<String>();
+			if (Files.exists(geneLimiters)) {
+				log.reportTimeInfo("Loading gene limiters " + geneLimiters);
+				genelimit = HashVec.loadFileToHashSet(geneLimiters, false);
+
+			} else {
+				log.reportError("JOHN you could probably remove this");
+			}
+			log.reportTimeInfo("Loaded " + genelimit.size() + " gene limiters");
 			SimpleTallyResult caseResult = runSimpleTally(vcf, vpopsCase[i], maf, numThreads, outDir,
-																										currentSets, caseQualFilter, lqs, false, log);
+																										currentSets, caseQualFilter, lqs, genelimit,
+																										false, log);
 
 			summarizeVariantsBySample(caseResult, lqs, log);
 			VcfPopulation controls = caseResult.getControls();
@@ -1738,6 +1758,7 @@ public class VCFSimpleTally {
 			controls.dump(controlFile);
 			SimpleTallyResult controlResult = runSimpleTally(vcf, controlFile, maf, numThreads, outDir,
 																											 currentSets, null, new HashSet<String>(),
+																											 genelimit,
 																											 false, log);
 			VCFOps.VcfPopulation.splitVcfByPopulation(controlResult.getFinalOutVCF(), vpopsCase[i], true,
 																								true, false, log);
@@ -1779,7 +1800,8 @@ public class VCFSimpleTally {
 					tmpPop.dump(out);
 					SimpleTallyResult controlSpecificResult = runSimpleTally(vcf, out, maf, numThreads,
 																																	 outDir, currentSets, null,
-																																	 new HashSet<String>(), false,
+																																	 new HashSet<String>(), genelimit,
+																																	 false,
 																																	 log);
 					controlFuncHashes.add(loadToGeneFuncHash(controlSpecificResult.getFinalAnnotGene(), log));
 					if (controlSpecifiEnrich) {
