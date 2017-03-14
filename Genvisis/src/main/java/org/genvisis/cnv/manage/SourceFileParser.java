@@ -682,14 +682,11 @@ public class SourceFileParser implements Runnable {
 		Logger log;
 
 		log = proj.getLog();
-		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true),
-											 proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+
+		files = getSourceFiles(proj, log);
 		if (files.length == 0) {
-			log.reportError("Error - no files to parse");
 			return;
 		}
-		log.report("\t\tFound " + files.length + " file" + (files.length == 1 ? "" : "s")
-							 + " to parse");
 
 		idHeader = proj.getProperty(proj.ID_HEADER);
 		delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
@@ -869,12 +866,7 @@ public class SourceFileParser implements Runnable {
 		delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
 		longFormat = proj.LONG_FORMAT.getValue();
 		idHeader = proj.getProperty(proj.ID_HEADER);
-		log.report(ext.getTime() + "\tSearching for " + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)
-							 + " files in: " + proj.SOURCE_DIRECTORY.getValue(false, true));
-		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true),
-											 proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
-		log.report("\t\tFound " + files.length + " file" + (files.length == 1 ? "" : "s")
-							 + " to parse");
+		files = getSourceFiles(proj, log);
 
 		try {
 			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + filename));
@@ -933,6 +925,52 @@ public class SourceFileParser implements Runnable {
 		}
 	}
 
+	/**
+	 * Helper method to look up all files matching the source file extension in the source directory.
+	 */
+	private static String[] getSourceFiles(Project proj, Logger log) {
+		log.report(ext.getTime() + "\tSearching for " + proj.SOURCE_FILENAME_EXTENSION.getValue()
+							 + " files in: " + proj.SOURCE_DIRECTORY.getValue(false, true));
+
+		String[] files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true),
+																proj.SOURCE_FILENAME_EXTENSION.getValue(), false);
+
+		int unmatchedFileCount = new File(proj.SOURCE_DIRECTORY.getValue(false,
+																																		 true)).listFiles().length;
+		unmatchedFileCount -= files.length;
+
+		PSF.checkInterrupted();
+
+		// remove known co-occurring samples
+		if (proj.SOURCE_FILENAME_EXTENSION.getValue().equals(".csv")) {
+			boolean[] use = new boolean[files.length];
+			for (int i = 0; i < files.length; i++) {
+				if (files[i].startsWith("Sample_Map.csv") || files[i].startsWith("SNP_Map.csv")) {
+					use[i] = false;
+				} else {
+					use[i] = true;
+				}
+			}
+			files = ArrayUtils.subArray(files, use);
+		}
+
+		if (files.length == 0) {
+			log.reportError("Error - no files to parse; are you sure you have the right extension specified for your FinalReport files? It is currently set to \""
+											+ proj.getProperty(proj.SOURCE_FILENAME_EXTENSION) + "\"");
+		} else {
+			if (unmatchedFileCount > 0) {
+				log.reportError("Found " + unmatchedFileCount
+												+ " file(s) in the source directory without extension: "
+												+ proj.SOURCE_FILENAME_EXTENSION.getValue()
+												+ " - please verify these were not supposed to be parsed.");
+			}
+			log.report("\t\tFound " + files.length + " file" + (files.length == 1 ? "" : "s")
+								 + " to parse");
+		}
+
+		return files;
+	}
+
 	@SuppressWarnings("unchecked")
 	public static int createFiles(Project proj, int numThreads) {
 		BufferedReader reader;
@@ -976,33 +1014,15 @@ public class SourceFileParser implements Runnable {
 			return checkForSNP_Map(proj, log);
 		}
 
-		delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
-		idHeader = proj.getProperty(proj.ID_HEADER);
-		log.report(ext.getTime() + "\tSearching for " + proj.SOURCE_FILENAME_EXTENSION.getValue()
-							 + " files in: " + proj.SOURCE_DIRECTORY.getValue(false, true));
-		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true),
-											 proj.SOURCE_FILENAME_EXTENSION.getValue(), false);
-
-		PSF.checkInterrupted();
-
-		// log.report("\t\tFound "+files.length+" file"+(files.length==1?"":"s")+" with a
-		// "+proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)+" extension");
-		for (int i = 0; i < files.length; i++) {
-			if (files[i].startsWith("Sample_Map.csv") || files[i].startsWith("SNP_Map.csv")) {
-				files = ArrayUtils.removeFromArray(files, i);
-				i--;
-			}
-		}
-
+		files = getSourceFiles(proj, log);
 		if (files.length == 0) {
-			log.reportError("Error - no files to parse; are you sure you have the right extension specified for your FinalReport files? It is currently set to \""
-											+ proj.getProperty(proj.SOURCE_FILENAME_EXTENSION) + "\"");
 			return 0;
 		}
 
+		delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
+		idHeader = proj.getProperty(proj.ID_HEADER);
 		abLookupRequired = false;
-		log.report("\t\tFound " + files.length + " file" + (files.length == 1 ? "" : "s")
-							 + " to parse");
+
 		fixes = new Hashtable<String, String>();
 		if (new File(proj.PROJECT_DIRECTORY.getValue() + "fixes.dat").exists()) {
 			log.report("Also found a 'fixes.dat' file in the project directory, which will be used to rename samples");
@@ -2657,9 +2677,9 @@ public class SourceFileParser implements Runnable {
 		try {
 			proj = new Project(filename, false);
 			if (map) {
-				SourceFileParser.mapFilenamesToSamples(proj, mapOutput);
+				mapFilenamesToSamples(proj, mapOutput);
 			} else if (parseAlleleLookupFromFinalReports) {
-				SourceFileParser.parseAlleleLookupFromFinalReports(proj);
+				parseAlleleLookupFromFinalReports(proj);
 			} else {
 				createFiles(proj, numThreads);
 			}
