@@ -995,7 +995,7 @@ public class GenvisisWorkflow {
 			final Requirement gcBaseReq = new FileRequirement("A GC Base file must exist.",
 																												Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
 																																				 proj.getLog())
-																																 .getModelBase().get());
+																																 .getModelBase().getAbsolute());
 			final Requirement gcModelOutputReq = new OutputFileRequirement("GCModel output file must be specified.",
 																																		 proj.GC_MODEL_FILENAME.getValue());
 
@@ -1410,7 +1410,7 @@ public class GenvisisWorkflow {
 			final Requirement hapMapFoundersReq = new FileRequirement("PLINK root of HapMap founders",
 																																Resources.hapMap(log)
 																																				 .getUnambiguousHapMapFounders()
-																																				 .get()) {
+																																				 .getAbsolute()) {
 				@Override
 				public boolean checkRequirement(String arg, Set<Step> stepSelections,
 																				Map<Step, Map<Requirement, String>> variables) {
