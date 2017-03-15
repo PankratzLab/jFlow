@@ -387,7 +387,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * Entry point for graphical use
 	 */
 	private static void createAndShowGUI() {
-		String launchPropertiesFile;
 		final Launch launchUI;
 
 		try {
@@ -523,7 +522,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * Read the launch properties file
 	 */
 	private void initLaunchProperties() {
-		createLaunchProperties(false, true);
+		createLaunchProperties(false, false);
 	}
 
 	/**
