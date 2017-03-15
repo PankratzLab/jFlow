@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -46,7 +47,6 @@ import org.genvisis.common.IntVector;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Distance;
-import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 import org.genvisis.stats.Maths;
 
 import com.google.common.primitives.Bytes;
@@ -124,9 +124,11 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 	public static final PLOT_TYPE DEFAULT_TYPE = PLOT_TYPE.DOT_PLOT;
 
-	public static final int IMAGE_NULL = 0;
-	public static final int IMAGE_STARTED = 1;
-	public static final int IMAGE_COMPLETE = 2;
+	enum STATUS {
+		IMAGE_NULL,
+		IMAGE_STARTED,
+		IMAGE_COMPLETE;
+	}
 
 	protected Color[] colorScheme;
 	protected int canvasSectionMinimumX;
@@ -191,7 +193,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	private boolean flow; // A control variable. If resizing is not yet done, don't start
 												// generatePoints() or drawAll();
 	private final Object IMAGE_LOCK = new Object();
-	private volatile int imageStatus = IMAGE_NULL; // A control variable. If drawAll() is not yet
+	private volatile STATUS imageStatus = STATUS.IMAGE_NULL; // A control variable. If drawAll() is not yet
 																								 // done, don't start paintComponent();
 	private byte[] layersInBase;
 	private byte[] extraLayersVisible;
@@ -204,6 +206,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	private final boolean antiAlias = true;
 	private volatile boolean beEfficient;
 	private HashSet<Integer> pointsPlotted;
+	private HashMap<AXIS_SCALE, AxisTransform> transformMap = new HashMap<>();
 
 	public AbstractPanel2() {
 		canvasSectionMinimumX = 0;
@@ -246,7 +249,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		addMouseWheelListener(this);
 		addComponentListener(this);
 
-
+		transformMap.put(AXIS_SCALE.LIN, new LinearTransform(this));
+		transformMap.put(AXIS_SCALE.LOG, new LinearTransform(this));
+		transformMap.put(AXIS_SCALE.BIEX, new BiexTransform(this));
 		AXIS_SCALE.LIN.setTransform(new LinearTransform(this));
 		AXIS_SCALE.LOG.setTransform(new LinearTransform(this));
 		// AXIS_SCALE.BIEX.setTransform(new LinearTransform(this));
@@ -264,13 +269,13 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		createLookup = value;
 	}
 
-	public int getImageStatus() {
+	public STATUS getImageStatus() {
 		synchronized (IMAGE_LOCK) {
 			return imageStatus;
 		}
 	}
 
-	public void setImageStatus(int status) {
+	public void setImageStatus(STATUS status) {
 		synchronized (IMAGE_LOCK) {
 			if (DEBUGGING) {
 				System.out.println("Set image status to " + status);
@@ -280,7 +285,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	}
 
 	protected boolean imageIsFinal() {
-		return getImageStatus() == IMAGE_COMPLETE;
+		return getImageStatus() == STATUS.IMAGE_COMPLETE;
 	}
 
 	public void resetCurrentIndexInPlotPointSet() {
@@ -315,7 +320,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 	public void paintAgain() {
 		image = null;
-		setImageStatus(IMAGE_NULL);
+		setImageStatus(STATUS.IMAGE_NULL);
 		if (getWidth() > 0 && getHeight() > 0) {
 			// new Thread(new Runnable() {
 			// @Override
@@ -381,8 +386,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		if (waitingTimer != null) {
 			return;
 		}
-		if (getImageStatus() == IMAGE_COMPLETE && image != null) {
-			g.drawImage(image, 0, 0, AbstractPanel2.this);
+		if (getImageStatus() == STATUS.IMAGE_COMPLETE && getImage() != null) {
+			g.drawImage(getImage(), 0, 0, AbstractPanel2.this);
 			if (extraLayersVisible != null && extraLayersVisible.length > 0) {
 				drawAll(g, false);
 			}
@@ -396,10 +401,11 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 	public void screenCapture(String filename) {
 		try {
+			File imgDir = new File(ext.parseDirectoryOfFile(filename));
 			File imgFile = new File(filename);
-			boolean mkdirs = imgFile.mkdirs();
+			boolean mkdirs = imgDir.exists() || imgDir.mkdirs();
 			if (mkdirs) {
-				ImageIO.write(image, "png", imgFile);
+				ImageIO.write(getImage(), "png", imgFile);
 			} else {
 				JOptionPane.showMessageDialog(null, "Error while trying to save the plot");
 			}
@@ -595,7 +601,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		// ProgressBarDialog prog;
 		int xPixel, yPixel, widthPixel, heightPixel;
 
-		setImageStatus(IMAGE_STARTED);
+		setImageStatus(STATUS.IMAGE_STARTED);
 
 		long fullTime = System.currentTimeMillis();
 
@@ -624,7 +630,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 										 getWidth() / 2 - g.getFontMetrics(g.getFont()).stringWidth(nullMessage) / 2,
 										 getHeight() / 2);
 			}
-			setImageStatus(IMAGE_COMPLETE);
+			setImageStatus(STATUS.IMAGE_COMPLETE);
 			return;
 		}
 
@@ -755,6 +761,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 			// g.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
+			Font prevFont = g.getFont();
 			g.setFont(new Font("Arial", 0, axisFontSize));
 			// System.out.println("getWidth: "+getWidth()+"\t getHeight: "+getHeight());
 
@@ -825,7 +832,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 										 (getHeight() - HEAD_BUFFER
 											- axisXHeight/* HEIGHT_X_AXIS */) / 2 - 20 + HEAD_BUFFER);
 			}
-
+			
+			g.setFont(prevFont);
 		}
 
 		if (DEBUGGING) {
@@ -1042,12 +1050,12 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 				}
 			}
 		}
-
+		
 		for (int i = 0; polygons != null && i < polygons.length && flow; i++) {
 			Graphics2D g2d = (Graphics2D) g;
-			if ((base
-					 && (layersInBase == null || Bytes.indexOf(layersInBase, polygons[i].getLayer()) >= 0))
-					|| (!base && Bytes.indexOf(extraLayersVisible, polygons[i].getLayer()) >= 0)) {
+			boolean check1 = base && (layersInBase == null || Bytes.indexOf(layersInBase, polygons[i].getLayer()) >= 0);
+			boolean check2 = !base && Bytes.indexOf(extraLayersVisible, polygons[i].getLayer()) >= 0;
+			if (check1 || check2) {
 				g.setColor(colorScheme[polygons[i].getColor()]);
 				Path2D drawPoly = pt.transform(polygons[i].getPath());
 				if (polygons[i].getFill()) {
@@ -1188,7 +1196,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			g.setColor(currColor);
 		}
 
-		setImageStatus(IMAGE_COMPLETE);
+		setImageStatus(STATUS.IMAGE_COMPLETE);
 
 		refreshOtherComponents();
 
@@ -1475,7 +1483,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 															 getHeight() - (canvasSectionMaximumY - TICK_LENGTH), TICK_THICKNESS,
 															 Color.BLACK);
 					str = ext.formDeci(Math.abs(x) < DOUBLE_INACCURACY_HEDGE ? 0 : x, sigFigs, true);
-					g.drawString(str, getXPixel(x) - str.length() * 4,
+					int xP = getXPixel(x) - str.length() * 4;
+					g.drawString(str, xP,
 											 getHeight() - (canvasSectionMaximumY - TICK_LENGTH - fontHgt));
 				}
 			}
@@ -2520,11 +2529,11 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	}
 
 	protected int getXPixel(double x) {
-		return (int) getXAxis().getTransform().scaleX(x);
+		return (int) transformMap.get(getXAxis()).scaleX(x);
 	}
 
 	protected int getYPixel(double y) {
-		return (int) getYAxis().getTransform().scaleY(y);
+		return (int) transformMap.get(getYAxis()).scaleY(y);
 	}
 
 	/**
@@ -2535,7 +2544,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	 * @return the rawY value of the corresponding data point.
 	 */
 	public double getYValueFromYPixel(int mouseY) {
-		return getYAxis().getTransform().inverseY(mouseY);
+		return transformMap.get(getYAxis()).inverseY(mouseY);
 	}
 
 	/**
@@ -2546,7 +2555,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	 * @return the rawX value of the corresponding data point.
 	 */
 	public double getXValueFromXPixel(int mouseX) {
-		return getXAxis().getTransform().inverseX(mouseX);
+		return transformMap.get(getXAxis()).inverseX(mouseX);
 	}
 
 	public static abstract class AxisTransform {
@@ -2833,10 +2842,14 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	}
 
 	public void createImage() {
-		setImageStatus(IMAGE_STARTED);
+		setImageStatus(STATUS.IMAGE_STARTED);
 		image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 		flow = true;
-		drawAll(image.createGraphics(), true);
+		Graphics g = image.createGraphics(); 
+		drawAll(g, true);
+		if (extraLayersVisible != null && extraLayersVisible.length > 0) {
+			drawAll(g, false);
+		}
 	}
 
 	public void setLookupResolution(int lookupResolution) {

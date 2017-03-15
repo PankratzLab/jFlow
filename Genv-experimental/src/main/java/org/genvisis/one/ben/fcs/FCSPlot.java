@@ -14,6 +14,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -42,10 +44,13 @@ import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.genvisis.cnv.gui.FileChooser;
 import org.genvisis.cnv.gui.GuiManager;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.AbstractPanel2.PLOT_TYPE;
@@ -59,6 +64,7 @@ import org.genvisis.one.ben.fcs.gating.GateFileWriter;
 import org.genvisis.one.ben.fcs.gating.GateTreePanel;
 import org.genvisis.one.ben.fcs.gating.Gating;
 import org.genvisis.one.ben.fcs.gating.Workbench;
+import org.genvisis.one.ben.fcs.gating.Workbench.SampleNode;
 import org.genvisis.one.ben.fcs.sub.DataExportGUI;
 import org.genvisis.one.ben.fcs.sub.EMModel;
 import org.xml.sax.SAXException;
@@ -161,7 +167,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		}
 	}
 
-	private FCSPlot() {
+	public FCSPlot() {
 		this(null);
 	}
 
@@ -324,8 +330,12 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		int fileOpenActionSelected = fileChooser.showSaveDialog(FCSPlot.this);
 		if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 			File fileToOpen = fileChooser.getSelectedFile();
-			fcsPanel.screenCapture(fileToOpen.toString() + ".png");
+			screencap(fileToOpen.toString() + ".png");
 		}
+	}
+	
+	public void screencap(String file) {
+		fcsPanel.screenCapture(file);
 	}
 
 	private void doClose() {
@@ -337,7 +347,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 	private JMenuBar menuBar() {
 		JMenuBar menuBar;
 		JMenu menu;
-		JMenuItem menuItemExit, menuItemOpen, menuItemExport, menuItemDump, menuItemEM, menuItemSave;
+		JMenuItem menuItemExit, menuItemOpen, menuItemExport, menuItemDump, menuItemEM, menuItemSave, menuItemClass, menuItemClassSel;
 
 		menuBar = new JMenuBar();
 		menu = new JMenu("File");
@@ -362,6 +372,25 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		menuItemEM.addActionListener(e -> setupEM());
 		menu.add(menuItemEM);
 
+		menuItemClass = new JMenuItem("Load Classifications", KeyEvent.VK_F);
+		menuItemClass.addActionListener(e -> {
+			loadAutoGUI();
+			if (!classifierResultsPerGate.isEmpty()) {
+				selectGateClassification();
+				fcsPanel.setForceGatesChanged();
+				updateGUI();
+			}		
+		});
+		menu.add(menuItemClass);
+		
+		menuItemClassSel = new JMenuItem("Select Classified Gate", KeyEvent.VK_L);
+		menuItemClassSel.addActionListener(e -> {
+			selectGateClassification();
+			fcsPanel.setForceGatesChanged();
+			updateGUI();
+		});
+		menu.add(menuItemClassSel);
+		
 		menuItemExit = new JMenuItem("Close", KeyEvent.VK_C);
 		menuItemExit.addActionListener(e -> SwingUtilities.invokeLater(this::doClose));
 		menu.add(menuItemExit);
@@ -688,9 +717,15 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		System.gc();
 		updateGUI();
 	}
-
-
-
+	
+	public FCSDataLoader getDataLoader(String filename) {
+		if (filename == null || "".equals(filename) || !isFileLoaded(filename)) {
+			return null;
+		} else {
+			return loadedData.get(filename);
+		}
+	}
+	
 	public void loadFile(final String filename, final boolean display) {
 		if (filename == null || !Files.exists(filename)
 				|| (dataLoader != null && dataLoader.getLoadedFile().equals(filename))) {
@@ -708,9 +743,9 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 				setData(loadedData.get(filename));
 			}
 		} else {
+			final FCSDataLoader newDataLoader = new FCSDataLoader();
+			loadedData.put(filename, newDataLoader);
 			Thread dataLoaderThread = new Thread(() -> {
-				FCSDataLoader newDataLoader = new FCSDataLoader();
-				loadedData.put(filename, newDataLoader);
 				fcsControls.startFileLoading(newDataLoader);
 				try {
 					newDataLoader.loadData(filename);
@@ -835,7 +870,9 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		if (workbench != null) {
 			GateFileReader.updateWorkbench(workbench, newDataLoader);
 		}
-		parentFrame.setTitle(ext.rootOf(newDataLoader.getLoadedFile()) + "  --  " + TITLE_STR);
+		if (parentFrame != null) {
+			parentFrame.setTitle(ext.rootOf(newDataLoader.getLoadedFile()) + "  --  " + TITLE_STR);
+		}
 		refreshGating();
 		updateGUI();
 	}
@@ -859,7 +896,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 		// Create and set up the content pane.
-		FCSPlot twoDPlot = new FCSPlot(/* proj, promptOnClose, fileExts, filenamesProperty */);
+		FCSPlot twoDPlot = new FCSPlot();
 		frame.setJMenuBar(twoDPlot.menuBar());
 		twoDPlot.setOpaque(true); // content panes must be opaque
 		twoDPlot.setParent(frame);
@@ -956,7 +993,145 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 
 	int[] fullClusterAssigns = null;
 	int[] clusterAssigns = null;
+	
+	enum Classification {
+		TP(Color.GREEN),
+		TN(Color.BLACK),
+		FP(Color.BLUE),
+		FN(Color.RED);
+		
+		private Classification(Color c) {
+			this.color = c;
+		}
+		
+		Color color;
+	}
+	
+	String selectedVis = null;
+	private HashMap<String, Classification[]> classifierResultsPerGate = new HashMap<>();	
+	HashMap<String, String> gateNameMappings = new HashMap<>();
+	{
+		gateNameMappings.put("lymph", "Lymphocytes (SSC-A v FSC-A)");
+		gateNameMappings.put("Singlets", "Single Cells (FSC-H v FSC-W)");
+		gateNameMappings.put("PE.A","Live cells (PE-)");
+		gateNameMappings.put("CD3.","Tcells (CD3+ CD19-)");
+	}
+	private static final String AUTO_FILE_SUFF = "def.txt.gz";
+	
+	private void selectGateClassification() {
+		Set<String> avail = classifierResultsPerGate.keySet();
+		String[] v = avail.toArray(new String[avail.size()]);
+		String sel = (String) JOptionPane.showInputDialog(this, "Select Gate Classifications to Visualize", "Select Classifications...", JOptionPane.QUESTION_MESSAGE, null, v, v[0]);
+		setClassifierGate(sel);
+	}
+	
+	public void setClassifierGate(String gName) {
+		selectedVis = gName;
+	}
 
+	public Classification[] getClassifications() {
+		Classification[] res = classifierResultsPerGate.get(selectedVis);
+		boolean[] gating = ArrayUtils.booleanArray(dataLoader.getCount(), true);
+		if (parentGate != null) {
+			gating = parentGate.gate(dataLoader);
+  		res = ArrayUtils.subArray(res, gating);
+		}
+		return res;
+	}
+	
+	private void loadAutoGUI() {
+		FileChooser fc = new FileChooser(this, "", false, true, "Select Auto-gated result directory", new Logger());
+		File autoDir = fc.getSelectedFile();
+		String file = discoverFNumFile(autoDir.getAbsolutePath());
+		if (file != null) {
+			loadAutoValues(file);
+		}
+	}
+	
+	public String discoverFNumFile(String dir) {
+		String[] pts = ext.removeDirectoryInfo(dataLoader.getLoadedFile()).split("_");
+		String fNum = null;
+		for (String p : pts) {
+			if (p.startsWith("F")) {
+				fNum = p;
+				break;
+			}
+		}
+		if (fNum == null) {
+			System.err.println("Error - couldn't parse F-number for fcs file: " + dataLoader.getLoadedFile());
+			return null;
+		}
+		String[] filesInAutoDir = (new File(dir)).list(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.endsWith(AUTO_FILE_SUFF);
+			}
+		});
+		String file = null;
+		for (String s : filesInAutoDir) {
+			pts = s.split("_");
+			for (String p : pts) {
+				if (fNum.equals(p)) {
+					file = s;
+					break;
+				}
+			}
+		}
+		if (file == null) {
+			System.err.println("Error - Couldn't match F-number of fcs file with auto-gated files: " + dataLoader.getLoadedFile() + " | " + fNum);
+			return null;
+		}
+		return ext.verifyDirFormat(dir) + file;
+	}
+	
+	public void loadAutoValues(String file) {
+		if (this.getGatingStrategy().gateMap.isEmpty()) {
+			System.err.println("Error - gating is empty! Please load proper gating file and try again.");
+			return;
+		}
+		
+		String[][] autoData = HashVec.loadFileToStringMatrix(file, false, null, false);
+
+		boolean[][] hand = new boolean[autoData[0].length][dataLoader.getCount()];
+		String[] gateNames = new String[hand.length];
+		for (int i = 0; i < hand.length; i++) {
+			Gate gate = this.getGatingStrategy().gateMap.get(gateNameMappings.get(autoData[0][i]));
+			hand[i] = gate.gate(dataLoader);
+			gateNames[i] = gate.getName();
+		}
+		
+		boolean[][] auto = new boolean[autoData[0].length][];
+		for (int i = 0; i < auto.length; i++) {
+			String[] data = Matrix.extractColumn(autoData, i);
+			auto[i] = new boolean[data.length - 1];
+			for (int k = 1; k < data.length; k++) {
+				auto[i][k - 1] = Boolean.valueOf(data[k]); 
+			}
+		}
+		
+		for (int i = 0; i < auto.length; i++) {
+			String name = gateNames[i];
+			Classification[] results = new Classification[auto[i].length];
+			
+			boolean[] h = hand[i];
+			boolean[] a = auto[i];
+			
+			for (int c = 0; c < a.length; c++) {
+				if (h[c] && a[c]) {
+					results[c] = Classification.TP;
+				} else if (h[c] && !a[c]) {
+					results[c] = Classification.FN;
+				} else if (!h[c] && a[c]) {
+					results[c] = Classification.FP;
+				} else if (!h[c] && !a[c]) {
+					results[c] = Classification.TN;
+				} 
+			}
+			classifierResultsPerGate.put(name, results);
+		}
+	}
+	
+	
 	public int[] getClusterAssignments() {
 		return clusterAssigns;
 	}

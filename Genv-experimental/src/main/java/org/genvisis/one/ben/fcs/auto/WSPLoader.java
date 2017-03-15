@@ -135,6 +135,7 @@ public class WSPLoader {
 			}
 			sn.gating = gs;
 			sn.savedTransforms = transformMap;
+			sn.wspFile = file;
 
 			if (panel1IDs.contains(id)) {
 				panel1Nodes.put(ext.removeDirectoryInfo(sn.fcsFile), sn);

@@ -12,19 +12,20 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.FilterCalls;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.PlinkData;
+import org.genvisis.cnv.util.CNVHelper;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
+import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
-import org.genvisis.common.QueueControl;
-import org.genvisis.common.QueueControl.JobQueue;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.DosageData;
@@ -33,6 +34,7 @@ import org.genvisis.gwas.MergeExtractPipeline;
 import org.genvisis.one.ben.fcs.FCSFileDuplicator;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
+import org.genvisis.qsub.QueuesParser;
 
 import com.google.common.io.Closeables;
 
@@ -236,8 +238,10 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
-
-
+			
+			String[] arr = QueuesParser.loadIDInfo();
+			System.out.println();
+			
 			// System.out.println("Username: " + QueueControl.getUserName());
 			// System.out.println("Group: " + QueueControl.getCurrentGroup());
 			// System.out.println("All Groups: " + QueueControl.getUserGroups().toString());

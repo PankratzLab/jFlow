@@ -604,8 +604,14 @@ public abstract class Gate {
 					// }
 					int xInd;
 					int yInd;
+					if (x < 0) x = 0;
+					if (y < 0) y = 0;
 					xInd = (int) (xT ? ((x) * (gateResolution * 2)) : ((x / binStep) + gateResolution));
 					yInd = (int) (yT ? ((y) * (gateResolution * 2)) : ((y / binStep) + gateResolution));
+//					xInd = Math.min(rectsArray.length, xInd);
+//					xInd = Math.max(0, xInd);
+//					yInd = Math.min(rectsArray[xInd].length, yInd);
+//					yInd = Math.max(0, yInd);
 					Rectangle rect = rectsArray[xInd][yInd];
 					if (myRects.contains(rect)) {
 						include = true;

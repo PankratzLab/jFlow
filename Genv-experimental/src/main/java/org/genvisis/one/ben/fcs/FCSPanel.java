@@ -16,6 +16,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
@@ -33,6 +34,7 @@ import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.ParulaColorMap;
+import org.genvisis.one.ben.fcs.FCSPlot.Classification;
 import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.Gate.PolygonGate;
 import org.genvisis.one.ben.fcs.gating.Gate.RectangleGate;
@@ -439,12 +441,10 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		if (!isHeatmap()) {
 			updateGateColor();
 		}
-		System.out.println("pts: " + ext.getTimeElapsed(t1));
 		// }
 	}
 
 	private void refreshNonBaseLayers(boolean fullRedraw) {
-		System.out.println("refresh non-base: " + fullRedraw);
 		updateGating();
 		if (!isHistogram() && !isHeatmap()) {
 			updateGateColor();
@@ -517,13 +517,27 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 			points[i].setColor((byte) clustered[i]);
 		}
 	}
-
+	
+	
+	private void assignClassifierColors() {
+		Classification[] results = fcp.getClassifications();
+		for (int i = 0; i < points.length; i++) {
+			points[i].setVisible(true);
+			points[i].setTempColor(results[i].color);
+		}
+	}
+	
 	private void updateGateColor() {
 		byte color = 0;
 
 		boolean[] parentGating = fcp.getParentGating();
 		java.util.HashMap<Gate, boolean[]> leafGating = null;
 
+		if (fcp.selectedVis != null) {
+			assignClassifierColors();
+			return;
+		}
+		
 		if (fcp.getClusterAssignments() != null) {
 			assignClusterColors();
 			return;
@@ -1094,7 +1108,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		boolean redraw = true;
 		boolean fullRedraw = false;
 		if (SwingUtilities.isLeftMouseButton(e)) {
-			System.out.println("clicked");
 			if (e.getClickCount() == 2) {
 				ArrayList<Gate> gates = new ArrayList<Gate>();
 				gates.addAll(getPolysContainingClick(e));

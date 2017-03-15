@@ -20,6 +20,7 @@ public class Workbench {
 		public HashMap<String, AxisTransform> savedTransforms;
 		public org.w3c.dom.Element sampleNode;
 		public org.w3c.dom.Document doc;
+		public String wspFile;
 
 		public Gating getGating() {
 			return gating;
