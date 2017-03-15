@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -31,10 +32,14 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HttpDownloadUtility;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.StartupCheck;
 import org.genvisis.filesys.FASTA;
 import org.genvisis.seq.manage.BedOps;
 import org.genvisis.seq.manage.VCFOps;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 /**
  * Static utility class for accessing {@link Resource} instances.
@@ -486,7 +491,10 @@ public final class Resources {
 		 * @return PLINK dataset of Unambiguous HapMap founders
 		 */
 		public Resource getUnambiguousHapMapFounders() {
-			return getTarGzResource("unambiguousHapMapFounders");
+			String plinkroot = "unambiguousHapMapFounders";
+			Collection<String> indicators = PSF.Plink.getPlinkBedBimFamSet(plinkroot);
+			indicators.add("CEUFounders.txt");
+			return getTarGzResource(indicators, plinkroot);
 		}
 
 	}
@@ -793,7 +801,8 @@ public final class Resources {
 		/**
 		 * Use this method when the remote and local path are not consistent, but Make does not need to
 		 * be called.
-		 *
+		 * 
+		 * @see #getTarGzResource(String)
 		 * @param remotePath Absolute path to remote download location
 		 */
 		protected Resource getTarGzResource(String rsrc, String remotePath) {
@@ -803,12 +812,59 @@ public final class Resources {
 		/**
 		 * Use this when Make needs to be called in the extracted directory
 		 *
+		 * @see #getTarGzResource(String, String)
 		 * @param makeFile Relative (from local) path to make file, or null if this resource does not
 		 *        need to be built.
 		 */
 		protected Resource getTarGzResource(String rsrc, String remotePath, String makePath) {
 			String makeDir = makePath == null ? null : localPath() + makePath;
 			return new TarGzResource(localPath() + rsrc, localPath(), remotePath, log, makeDir);
+		}
+
+		/**
+		 * Use this method when the resource a) has an indicator that does not match the return resource
+		 * and b) the return resource has consistent structure with the remote resource and c) does not
+		 * require Make to be called
+		 *
+		 *
+		 * @param rsrc Relative (from local dir) path to the resource path to return
+		 * @param indicatorFiles Relative (from local dir) path to extracted files that indicate success
+		 */
+		protected Resource getTarGzResource(Collection<String> indicatorFiles, String rsrc) {
+			return getTarGzResource(indicatorFiles, rsrc, remotePath() + rsrc + ".tar.gz", null);
+		}
+
+		/**
+		 * Use this method when the resource [has an indicator that does not match the return resource
+		 * and the remote and local path are not consistent, but Make does not need to be called.
+		 *
+		 * @see #getTarGzResource(Collection, String)
+		 * @param remotePath Absolute path to remote download location
+		 */
+		protected Resource getTarGzResource(Collection<String> indicatorFiles, String rsrc,
+																				String remotePath) {
+			return getTarGzResource(indicatorFiles, rsrc, remotePath, null);
+		}
+
+		/**
+		 * Use this when Make needs to be called in the extracted directory and indicator files do not
+		 * match the returned resource
+		 *
+		 * @see #getTarGzResource(Collection, String, String)
+		 * @param makeFile Relative (from local) path to make file, or null if this resource does not
+		 *        need to be built.
+		 * 
+		 */
+		protected Resource getTarGzResource(Collection<String> indicatorFiles, String rsrc,
+																				String remotePath, String makePath) {
+
+			String makeDir = makePath == null ? null : localPath() + makePath;
+			Collection<String> unzippedPaths = Lists.newArrayListWithExpectedSize(indicatorFiles.size());
+			for (String indicatorFile : indicatorFiles) {
+				unzippedPaths.add(localPath() + indicatorFile);
+			}
+			return new TarGzResource(unzippedPaths, localPath() + rsrc, localPath(), remotePath, log,
+															 makeDir);
 		}
 
 		protected Resource getVCFResource(String rsrc) {
@@ -852,25 +908,57 @@ public final class Resources {
 	// into some sort of merge-able stack,
 	// e.g. by constructing multiple Resources wrapping each other.
 	public static class TarGzResource extends AbstractResource {
-		private final String unzippedPath;
+		private final Collection<String> unzippedPaths;
+		private final String returnPath;
 		private final String makeDir;
 
 		/**
-		 * @param path Local path to unzipped indicator file
+		 * 
+		 * @param unzippedPath single local path to indicate success and return as Resource
+		 * @param extractionDir directory to extract to
 		 * @param url Remote tar.gz path
+		 * @param log
+		 * @param makeDir directory to call make, null to not make
 		 */
 		public TarGzResource(String unzippedPath, String extractionDir, String url, Logger log,
 												 String makeDir) {
+			this(Collections.singleton(unzippedPath), unzippedPath, extractionDir, url, log, makeDir);
+		}
+
+		/**
+		 * @param path
+		 * @param url Remote tar.gz path
+		 */
+		/**
+		 * 
+		 * @param unzippedPaths local paths to unzipped indicator files
+		 * @param returnPath local path to return as Resource
+		 * @param extractionDir directory to extract to
+		 * @param url Remote tar.gz path
+		 * @param log
+		 * @param makeDir directory to call make, null to not make
+		 */
+		public TarGzResource(Iterable<String> unzippedPaths, String returnPath, String extractionDir,
+												 String url, Logger log, String makeDir) {
 			super(extractionDir + new File(url).getName(), url, log);
-			this.unzippedPath = unzippedPath;
+			this.unzippedPaths = ImmutableList.copyOf(unzippedPaths);
+			this.returnPath = returnPath;
 			this.makeDir = makeDir;
 		}
 
+
+
 		@Override
 		public String get() {
-			if (isLocallyAvailable(unzippedPath)) {
-				return unzippedPath;
+			boolean available = true;
+			for (String unzippedPath : unzippedPaths) {
+				if (!isLocallyAvailable(unzippedPath)) {
+					available = false;
+					break;
+				}
 			}
+			if (available)
+				return returnPath;
 
 			String path = super.get();
 			if (path != null) {
@@ -880,8 +968,10 @@ public final class Resources {
 					if (makeDir != null && !CmdLine.runDefaults("make -s", makeDir)) {
 						return null;
 					}
-					// Ensure extracted file can be used
-					Files.chmod(extracted);
+					if (Files.exists(extracted)) {
+						// If return path is a file, ensure extracted file can be used
+						Files.chmod(extracted);
+					}
 				}
 				return extracted;
 			}
@@ -937,13 +1027,20 @@ public final class Resources {
 					}
 				}
 				tarStream.close();
-
-				return unzippedPath;
+				for (String unzippedPath : unzippedPaths) {
+					if (!Files.exists(unzippedPath)) {
+						log().reportError("Resource extracted but did not find " + unzippedPath);
+						return null;
+					}
+				}
+				return returnPath;
 			} catch (Exception e) {
 				log().reportError("Failed to extract: " + targzPath);
 				log().reportException(e);
-				// Remove the base dir as this is the marker of success
-				new File(unzippedPath).deleteOnExit();
+				// Remove the unzippedPaths as these are the markers of success
+				for (String unzippedPath : unzippedPaths) {
+					new File(unzippedPath).deleteOnExit();
+				}
 				return null;
 			}
 		}
@@ -1055,7 +1152,7 @@ public final class Resources {
 						reader.close();
 					} else {
 						// Compute the md5 for this resource
-						log.report("Generating md5 checksum for resource: " + localPath);
+						log.report("Generating md5 checksum for resource: " + absolutePath());
 						FileInputStream fis = new FileInputStream(new File(localPath));
 						md5 = DigestUtils.md5Hex(fis);
 						fis.close();
@@ -1120,18 +1217,22 @@ public final class Resources {
 			return false;
 		}
 
+		private String absolutePath() {
+			return new File(localPath).getAbsolutePath();
+		}
+
 		@Override
 		public String get() {
 			if (isLocallyAvailable(localPath)) {
 				return localPath;
 			}
-			log.report("Resource is not available at " + localPath + ", will attempt to download from "
-								 + remotePath);
+			log.report("Resource is not available at " + absolutePath()
+								 + ", will attempt to download from " + remotePath);
 
 			if (!downloadResource(remotePath, localPath)) {
 				log.reportError("Download failed for: " + remotePath);
 			} else if (!isLocallyAvailable(localPath)) {
-				log.reportError("Downloaded resource cannot be found at " + localPath);
+				log.reportError("Downloaded resource cannot be found at " + absolutePath());
 			} else {
 				return localPath;
 			}
@@ -1153,9 +1254,9 @@ public final class Resources {
 			boolean isAvailable = isLocallyAvailable(localPath) || isRemotelyAvailable(remotePath);
 
 			if (!isAvailable) {
-				log.reportError("Could not find local file " + localPath
+				log.reportError("Could not find local file " + absolutePath()
 												+ " and could not download it from " + remotePath
-												+ " please manually download and save to " + localPath);
+												+ " please manually download and save to " + absolutePath());
 			}
 
 			return isAvailable;
