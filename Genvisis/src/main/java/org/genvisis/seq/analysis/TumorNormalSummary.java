@@ -49,6 +49,8 @@ public class TumorNormalSummary {
 
 	private static void run(String vcf, String vpopFile, String outputDir, Segment seg, String name,
 													int buffer, Logger log) {
+
+		new File(outputDir).mkdirs();
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.TUMOR_NORMAL, log);
 
 		vpop.report();
@@ -117,8 +119,17 @@ public class TumorNormalSummary {
 						builder.append("\t" + gTumor.toString());
 						builder.append("\t" + gNormal.getGenotypeString());
 						builder.append("\t" + gTumor.getGenotypeString());
-						builder.append("\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(gNormal.getAD()), ","));
-						builder.append("\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(gTumor.getAD()), ","));
+
+						builder.append("\t" + ArrayUtils.toStr(
+																									 ArrayUtils.toStringArray(gNormal.getAD() == null ? new int[] {-1,
+																																																								 -1}
+																																																		: gNormal.getAD()),
+																									 ","));
+						builder.append("\t"
+													 + ArrayUtils.toStr(ArrayUtils.toStringArray(gTumor.getAD() == null ? new int[] {-1,
+																																																					 -1}
+																																															: gTumor.getAD()),
+																							","));
 						builder.append("\t" + gNormal.getGQ());
 						builder.append("\t" + gTumor.getGQ());
 						builder.append("\t" + (gNormal.isCalled() && !gNormal.isHomRef()));
