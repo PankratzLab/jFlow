@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -44,8 +45,8 @@ import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 public class PlinkData {
 	public static final String FAM_DELIMITER = " ";
@@ -1269,9 +1270,13 @@ public class PlinkData {
 		}
 
 		MarkerDetailSet markerSet = proj.getMarkerSet();
-		Set<String> cleanTargetMarkers = Sets.intersection(targetMarkersSet,
-																											 markerSet.getMarkerNameMap().keySet());
-		String[] targetMarkers = cleanTargetMarkers.toArray(new String[cleanTargetMarkers.size()]);
+		List<String> targetMarkersList = Lists.newArrayListWithExpectedSize(targetMarkersSet.size());
+		for (Marker marker : markerSet.getMarkersSortedByChrPos()) {
+			if (targetMarkersSet.contains(marker.getName()))
+				targetMarkersList.add(marker.getName());
+		}
+		String[] targetMarkers = targetMarkersList.toArray(new String[targetMarkersList.size()]);
+
 		Map<String, Marker> markerLookup = markerSet.getMarkerNameMap();
 
 		PSF.checkInterrupted();
