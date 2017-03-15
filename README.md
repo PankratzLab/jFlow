@@ -114,8 +114,13 @@ You can use Maven to automatically upload `genvisis.jar` to a remote location af
 	</activeProfiles>
 </settings>
 ```
+This script needs to be modified for your particular setup (e.g., the upload application is typically `pscp` on Windows and `scp` on Linux)
 
 Once the `genv.upload.path` is set, every time the `Assembly` component builds the `Install` step, it will use this information to scp `genvisis.jar` to the specified remote path.
+
+### Note on passwords
+
+You should not store your password in plaintext in this settings file. The best option is to [set up a public/private key pair](https://help.ubuntu.com/community/SSH/OpenSSH/Keys) with the server you are uploading to. Another option is encryption with Maven directly via [settings-security.xml](https://maven.apache.org/guides/mini/guide-encryption.html)
 
 ## Creating a native application
 
