@@ -17,6 +17,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.ProbDist;
 
 public class Emmax {
@@ -99,11 +100,11 @@ public class Emmax {
 			new File(batchDir).mkdirs();
 		}
 		// TODO consolidate with new method
-		Files.qsub(batchDir + "runEmmax", batchDir, -1, "[%0]",
+		Qsub.qsub(batchDir + "runEmmax", batchDir, -1, "[%0]",
 							 Matrix.toMatrix(ArrayUtils.toStringArray(scripts)), qsubMemInMBs,
 							 qsubWalltimeInHours);
 		// System.out.println("scripts.size(): " + scripts.size() + "\nbatchDir: " + batchDir);
-		Files.qsubMultiple(batchDir + "chunkSB_emmax",
+		Qsub.qsubMultiple(batchDir + "chunkSB_emmax",
 											 ArrayUtils.stringArraySequence(scripts.size(), batchDir + "runEmmax_",
 																											".qsub"),
 											 16, -1, qsubMemInMBs, qsubWalltimeInHours);

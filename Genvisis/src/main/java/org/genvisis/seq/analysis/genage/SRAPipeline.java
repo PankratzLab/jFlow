@@ -14,6 +14,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.SeqVariables.PLATFORM;
@@ -456,7 +457,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 			ArrayList<String> currentCommand = new ArrayList<String>();
 			currentCommand.addAll(baseCommand);
 			currentCommand.add(SRA_INPUT + "=" + batch);
-			Files.qsub(qsub, ArrayUtils.toStr(ArrayUtils.toStringArray(currentCommand), " "), 55000, 55,
+			Qsub.qsub(qsub, ArrayUtils.toStr(ArrayUtils.toStringArray(currentCommand), " "), 55000, 55,
 								 c.getI(NUM_THREADS) * c.getI(NUM_THREADS_PIPELINE));
 		}
 		return splits;

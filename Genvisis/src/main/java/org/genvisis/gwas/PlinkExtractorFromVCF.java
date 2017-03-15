@@ -10,6 +10,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 
 public class PlinkExtractorFromVCF {
 
@@ -135,7 +136,7 @@ public class PlinkExtractorFromVCF {
 
 		Files.writeIterable(commands, current + "run.sh");
 		Files.chmod(current + "run.sh");
-		Files.makeQsub(current + "run.sh", false, 1, 1, false, null, false);
+		Qsub.makeQsub(current + "run.sh", false, 1, 1, false, null, false);
 	}
 
 	public static void main(String[] args) {

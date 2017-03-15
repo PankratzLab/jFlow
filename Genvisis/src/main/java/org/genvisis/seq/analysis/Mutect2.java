@@ -19,6 +19,7 @@ import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.seq.analysis.GATK.Mutect2Normal;
 import org.genvisis.seq.analysis.GATK.MutectTumorNormal;
 import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
@@ -500,7 +501,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		command.addAll(getBaseArgs(gatk, outputDir, numthreads, numSampleThreads));
 		command.add("normalBams=" + baseOut);
 
-		Files.qsub(outputDir + "Contam.txt", ArrayUtils.toStr(ArrayUtils.toStringArray(command), " "),
+		Qsub.qsub(outputDir + "Contam.txt", ArrayUtils.toStr(ArrayUtils.toStringArray(command), " "),
 							 batches, 62000, 40, numthreads * numSampleThreads, "small");
 	}
 

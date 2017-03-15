@@ -18,6 +18,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.parse.GenParser;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.Nonparametric;
 import org.genvisis.stats.Ttest;
@@ -122,7 +123,7 @@ public class temp {
 		// Files.qsub("runJoint", commands, trios);
 
 		commands = "/home/npankrat/bin/detect_cnv.pl -trio -hmm /home/npankrat/bin/lib/hh550.hmm -pfb ../custom.pfb -gcmodel ../custom.gcmodel -cnv penncnv.rawcnv [%1] [%2] [%0] -out ../trio_results/[%0].triocnv 2> ../trio_results/[%0].log";
-		Files.qsub("runTrio", commands, trios);
+		Qsub.qsub("runTrio", commands, trios);
 	}
 
 	public static void moveSamplesToDifferentFolder() {

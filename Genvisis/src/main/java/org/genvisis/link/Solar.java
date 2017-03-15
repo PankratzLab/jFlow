@@ -18,6 +18,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 
 public class Solar {
 	public static int[] MAX_CM = {285, 275, 231, 212, 212, 198, 191, 172, 167, 175, 164, 167, 124,
@@ -156,7 +157,7 @@ public class Solar {
 			iterations[chr - 1] = new String[] {chr + "", ext.chrome(chr), MAX_CM[chr - 1] + ""};
 		}
 
-		Files.qsub("solar", null, 22, commands, iterations, 10000, 24);
+		Qsub.qsub("solar", null, 22, commands, iterations, 10000, 24);
 	}
 
 	public static void main(String[] args) throws IOException {

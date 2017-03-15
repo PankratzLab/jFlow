@@ -19,6 +19,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.ContingencyTable;
 
 public class Minimac {
@@ -445,7 +446,7 @@ public class Minimac {
 								+ // final run
 								"\n"; // post process?
 
-		Files.qsub("mini", 1, 22, commands, memRequiredInGb * 1000, walltimeRequestedInHours);
+		Qsub.qsub("mini", 1, 22, commands, memRequiredInGb * 1000, walltimeRequestedInHours);
 	}
 
 	public static void compareHaps(String filenames, String map, int numToCompare) {
@@ -824,7 +825,7 @@ public class Minimac {
 								+ " -i chr#.info -g chr#.dose > " + ext.rootOf(pheno) + "_chr#.out\n";
 		commands += "cd ..\n";
 		commands += "echo \"end at: \" `date`\n";
-		Files.qsub("chr#_" + ext.rootOf(pheno), 1, 22, commands, 5000, 12);
+		Qsub.qsub("chr#_" + ext.rootOf(pheno), 1, 22, commands, 5000, 12);
 	}
 
 	public static void main(String[] args) {

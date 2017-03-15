@@ -1,4 +1,4 @@
-package org.genvisis.cnv;
+package org.genvisis.qsub;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,8 +10,6 @@ import java.util.List;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
-import org.genvisis.common.QueueControl;
-import org.genvisis.common.QueueControl.JobQueue;
 
 public final class QueueProperties {
 	
@@ -148,7 +146,7 @@ public final class QueueProperties {
 		}
 		String line;
 		JobQueue q = null;
-		qList = new ArrayList<QueueControl.JobQueue>();
+		qList = new ArrayList<JobQueue>();
 		try {
 			while ((line = reader.readLine()) != null) {
 				if (line.startsWith(QueueKeys.Q_NAME.toString())) {
@@ -186,7 +184,7 @@ public final class QueueProperties {
 	
 	private static synchronized void init() {
 		if (qList == null) {
-			List<JobQueue> allQs = QueueControl.parseAllowedQueues(log);
+			List<JobQueue> allQs = QueuesParser.parseAllowedQueues(log);
 			qList = new ArrayList<JobQueue>();
 			for (JobQueue q : allQs) {
 				if (q.isAllowed()) {

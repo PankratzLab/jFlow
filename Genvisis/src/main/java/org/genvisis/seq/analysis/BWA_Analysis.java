@@ -18,6 +18,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 
 public class BWA_Analysis {
 	public static class BWA_AnalysisIndividual {
@@ -398,7 +399,7 @@ public class BWA_Analysis {
 		command += NUM_BETWEEN_THREADS_COMMAND	+ numWithinSampleThreads + SPACE
 								+ FILE_OF_SAMPLE_PAIRS_COMMAND + rootOutputDir + "[%0].txt" + SPACE
 								+ NUM_WITHIN_THREADS_COMMAND + numBetweenSampleThreads;
-		Files.qsub("BWA_MEM"	+ baseName, command, batches, memoryInMB, wallTimeInHours,
+		Qsub.qsub("BWA_MEM"	+ baseName, command, batches, memoryInMB, wallTimeInHours,
 								numWithinSampleThreads * numBetweenSampleThreads);
 	}
 

@@ -22,6 +22,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.parse.LookupTable;
+import org.genvisis.qsub.Qsub;
 
 public class SkatMeta2 {
 	public static final String[] GENE_RESULT_COLUMNS = new String[] {"gene", "p"};
@@ -654,7 +655,7 @@ public class SkatMeta2 {
 			rScript += (getRScriptForMetaAnalysis(snpInfoFile, ethnics, tmp2, condFile,
 																						resultsDir + pheno + "_cond" + startCondition, null));
 			Files.write(rScript, rScriptDir + pheno + "_cond" + startCondition + "_all.R");
-			Files.qsub(rScriptDir + "[%0]_cond[%1]_all",
+			Qsub.qsub(rScriptDir + "[%0]_cond[%1]_all",
 								 rcommand + " " + rScriptDir + "[%0]_cond[%1]_all.R",
 								 new String[][] {{pheno, startCondition}}, -1, 6, -1);
 			new File(rScriptDir + "master.qsub").renameTo(new File(rScriptDir + pheno + "_cond"
@@ -1744,7 +1745,7 @@ public class SkatMeta2 {
 		rScript += (getRScriptForMetaAnalysis(snpInfoFile, ethnics, tmp2, condFileDirAndNameTemplate,
 																					resultsDir + pheno + "_cond" + currentCondition, null));
 		Files.write(rScript, rScriptDir + pheno + "_cond" + currentCondition + "_all.R");
-		Files.qsub(rScriptDir + "[%0]_cond[%1]_all",
+		Qsub.qsub(rScriptDir + "[%0]_cond[%1]_all",
 							 rcommand + " " + rScriptDir + "[%0]_cond[%1]_all.R",
 							 new String[][] {{pheno, currentCondition + ""}}, -1, 6, -1);
 		new File(rScriptDir + "master.qsub").renameTo(new File(rScriptDir + pheno + "_cond"

@@ -18,6 +18,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
@@ -430,7 +431,7 @@ public class Emim {
 										+ " -shapeit-thread 24 -rfile risksnplist.txt emimPrep.bed\n";
 				commands += "\nqsub " + emimPBS;
 				commands = "cd " + currDir + "\n" + commands;
-				Files.qsub(premimPBS, commands, 62000, 24, 24);
+				Qsub.qsub(premimPBS, commands, 62000, 24, 24);
 				commands = "";
 				runPremimPBS = true;
 			} else {
@@ -489,7 +490,7 @@ public class Emim {
 		commands = "cd " + currDir + "\n" + commands;
 
 
-		Files.qsub(emimPBS, commands, 32000, 6, 1);
+		Qsub.qsub(emimPBS, commands, 32000, 6, 1);
 
 		return runPremimPBS ? premimPBS : emimPBS;
 	}

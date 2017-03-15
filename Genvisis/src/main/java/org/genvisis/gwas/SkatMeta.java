@@ -12,6 +12,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.MetaAnalysisParams;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.Rscript;
 
 import com.google.common.primitives.Ints;
@@ -79,7 +80,7 @@ public class SkatMeta {
 		if (v.size() > 0) {
 			commands = getRscriptExecutable(maps, log) + " --no-save [%0]";
 			iterations = Matrix.toMatrix(ArrayUtils.toStringArray(v));
-			Files.qsub("batchChecks/checkObject", dir, -1, commands, iterations, 4000, 1);
+			Qsub.qsub("batchChecks/checkObject", dir, -1, commands, iterations, 4000, 1);
 			Files.batchIt("master.checkObjectAll", null, 1, commands, iterations);
 		}
 	}
@@ -248,7 +249,7 @@ public class SkatMeta {
 		Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 		new File(dir + "snpInfos/").mkdirs();
-		Files.qsub(dir + "batchSplits/" + ext.rootOf(filename) + ".qsub",
+		Qsub.qsub(dir + "batchSplits/" + ext.rootOf(filename) + ".qsub",
 							 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save " + filename,
 							 5000, 0.25, 1);
 
@@ -337,7 +338,7 @@ public class SkatMeta {
 													 + phenotypes[i][0] + "_f" + f + ".R";
 								Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
-								Files.qsub(dir + "batchSplits/" + ext.rootOf(filename) + ".qsub",
+								Qsub.qsub(dir + "batchSplits/" + ext.rootOf(filename) + ".qsub",
 													 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
 																																									+ filename,
 													 10000, 0.5, 1);
@@ -365,7 +366,7 @@ public class SkatMeta {
 		log.report("");
 		log.report("Make sure to run \"qsub splitChrs.qsub\" first!!!");
 
-		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkSplit", 8, true, null, -1, 22000, 2);
+		Qsub.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkSplit", 8, true, null, -1, 22000, 2);
 	}
 
 	public static void consolidate(String dir, MetaAnalysisParams maps) {
@@ -652,7 +653,7 @@ public class SkatMeta {
 								} while (Files.exists(filename));
 								Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
-								Files.qsub(dir + "batchRuns/" + ext.rootOf(filename) + ".qsub",
+								Qsub.qsub(dir + "batchRuns/" + ext.rootOf(filename) + ".qsub",
 													 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
 																																								+ filename,
 													 5000, 1, 1);
@@ -670,7 +671,7 @@ public class SkatMeta {
 										 dir + "master.toBeRunIndividually");
 		Files.chmod(dir + "master.toBeRunIndividually");
 		System.err.println("qsubing multiple individual runs");
-		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkRun", 16, true, "sb", -1, 62000, 2);
+		Qsub.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkRun", 16, true, "sb", -1, 62000, 2);
 		System.err.println("multiple individual runs done");
 
 
@@ -767,7 +768,7 @@ public class SkatMeta {
 						} while (Files.exists(filename));
 						Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
-						Files.qsub(dir + "batchRuns/" + ext.rootOf(filename) + ".qsub",
+						Qsub.qsub(dir + "batchRuns/" + ext.rootOf(filename) + ".qsub",
 											 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
 																																						+ filename,
 											 25000, 2, 1);
@@ -867,7 +868,7 @@ public class SkatMeta {
 					} while (Files.exists(filename));
 					Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
-					Files.qsub(dir + "batchRuns/" + ext.rootOf(filename) + ".qsub",
+					Qsub.qsub(dir + "batchRuns/" + ext.rootOf(filename) + ".qsub",
 										 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
 																																					+ filename,
 										 30000, 2, 1);
@@ -880,7 +881,7 @@ public class SkatMeta {
 		Files.writeArray(ArrayUtils.toStringArray(toBeRunMetad), dir + "master.toBeMetaAnalyzed");
 		Files.chmod(dir + "master.toBeMetaAnalyzed");
 		System.err.println("qsubing multiple meta runs");
-		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkMeta", 16, true, "sb", -1, 62000, 2);
+		Qsub.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkMeta", 16, true, "sb", -1, 62000, 2);
 		System.err.println("multiple meta runs done");
 	}
 

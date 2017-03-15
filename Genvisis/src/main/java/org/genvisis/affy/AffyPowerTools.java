@@ -16,6 +16,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 
 public class AffyPowerTools {
 	public static final String[] AFFY_QC_LIB_FILES = {"GenomeWideSNP_6.chrXprobes",
@@ -532,7 +533,7 @@ public class AffyPowerTools {
 
 	private static void writeCommands(String[] commands, String batchName, int numJobs,
 																		int totalMemory, double walltimeRequestedInHours, Logger log) {
-		Files.qsubMultiple(batchName, commands, numJobs, -1, totalMemory, walltimeRequestedInHours);
+		Qsub.qsubMultiple(batchName, commands, numJobs, -1, totalMemory, walltimeRequestedInHours);
 		log.report("\n\n***Begin Analysis commands for " + batchName + "***\n\n");
 		for (String command : commands) {
 			log.report(command);

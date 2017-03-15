@@ -14,6 +14,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
 
 /**
@@ -301,7 +302,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 							 + ArrayUtils.toStr(getGatk().getKnownSitesSnpFile(), GATK.SPLIT) + SPACE;
 		command += GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND
 							 + ArrayUtils.toStr(getGatk().getKnownSitesIndelFile(), GATK.SPLIT);
-		Files.qsub("GATK_Lane_Prep" + baseName, command, batches, memoryInMB, wallTimeInHours,
+		Qsub.qsub("GATK_Lane_Prep" + baseName, command, batches, memoryInMB, wallTimeInHours,
 							 getNumWithinSampleThreads() * getNumBetweenSampleThreads());
 	}
 

@@ -16,6 +16,7 @@ import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.GeneTrack;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.seq.analysis.PlinkSeq.ANALYSIS_TYPES;
 import org.genvisis.seq.analysis.PlinkSeq.PlinkSeqProducer;
 import org.genvisis.seq.analysis.PlinkSeq.PlinkSeqWorker;
@@ -239,7 +240,7 @@ public class PlinkSeqMegs {
 			String[] batchCommand = new String[] {"vcfs=" + vcfFile, (i == 0 ? "-loadLoc" : "")};
 
 			batches.add("qsub -q " + batch);
-			Files.qsub(batch, ArrayUtils.toStr(ArrayUtils.concatAll(baseCommand, batchCommand), " "),
+			Qsub.qsub(batch, ArrayUtils.toStr(ArrayUtils.concatAll(baseCommand, batchCommand), " "),
 								 totalMemoryRequestedInMb, walltimeRequestedInHours, numthreads);
 		}
 		Files.writeArray(batches.toArray(new String[batches.size()]),

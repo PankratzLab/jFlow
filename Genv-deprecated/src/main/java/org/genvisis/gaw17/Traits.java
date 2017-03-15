@@ -18,6 +18,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Transformations;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.LogisticRegression;
 
@@ -483,7 +484,7 @@ public class Traits {
 		// Files.qsub("C10", 1, 200, "/home/npankrat/bin/plink --bfile all697 --pheno phenos/pheno_C10.#
 		// --pheno-name Q1 --covar phenos/pheno_C10.# --covar-name
 		// SEX,AGE,SMOKE,C1,C2,C3,C4,C5,C6,C7,C8,C9,C10 --linear --ci 0.95 --out C10.#");
-		Files.qsub("C" + numComps, 1, 200,
+		Qsub.qsub("C" + numComps, 1, 200,
 							 "/home/npankrat/bin/plink --bfile all697 --pheno phenos/" + rootPheno
 																			 + ".# --pheno-name " + trait + " --covar phenos/" + rootPheno
 																			 + ".# --covar-name SEX,AGE,SMOKE" + comps

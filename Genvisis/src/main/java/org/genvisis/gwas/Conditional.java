@@ -30,6 +30,7 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.DosageData;
 import org.genvisis.filesys.SerialHash;
 import org.genvisis.filesys.SnpMarkerSet;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.ProbDist;
 
 public class Conditional {
@@ -1098,7 +1099,7 @@ public class Conditional {
 												 + " dose=data.dose info=data.info pheno=../" + pheno
 												 + " out=conPheno.dat");
 					writer.println("awk '{print $1\"\\t\"$2\"\\t\"$3\"\\t\"$4\"\\t\"$5\"\\t\"$6\"\\t\"$7}' data.info > data.pinfo");
-					Files.qsub(markerNames[i] + "/" + markerNames[i] + ".qsub",
+					Qsub.qsub(markerNames[i] + "/" + markerNames[i] + ".qsub",
 										 Probabel.EXECS[0] + " -p conPheno.dat -d data.dose -i data.pinfo -c 1 -o "
 																																			+ markers,
 										 -1, -1, -1);

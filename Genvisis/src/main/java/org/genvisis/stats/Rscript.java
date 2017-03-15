@@ -16,6 +16,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 
 public class Rscript {
 	public static final HashSet<String> R_INVALID_CHARS = new HashSet<String>(Arrays.asList("-", "=",
@@ -88,7 +89,7 @@ public class Rscript {
 		v = new Vector<String>();
 		for (String file : files) {
 			root = ext.rootOf(dir + file, false);
-			Files.qsub(root + ".qsub", getRscriptExecutable(log) + " --no-save " + root + ".R", 4000, 2,
+			Qsub.qsub(root + ".qsub", getRscriptExecutable(log) + " --no-save " + root + ".R", 4000, 2,
 								 1);
 			v.add("qsub " + root + ".qsub");
 		}

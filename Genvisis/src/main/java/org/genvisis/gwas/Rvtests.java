@@ -5,6 +5,7 @@ import java.util.Vector;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.qsub.Qsub;
 
 public class Rvtests {
 	public static void generateRvtestsScript(String dirOfRvtestsCommands, String dirOfPedFiles,
@@ -38,7 +39,7 @@ public class Rvtests {
 							+ " --xLabel X --meta score,cov,dominant,recessive";
 
 		// Files.qsub("rvtests", command, Matrix.toMatrix(files), -1, 6, -1);
-		Files.qsub(scriptsDir + "[%1]", command, iterations, -1, 6, -1);
+		Qsub.qsub(scriptsDir + "[%1]", command, iterations, -1, 6, -1);
 	}
 
 	public static void renameToNamingScheme(String resultsDir, String[] filenameConversionDictionary,

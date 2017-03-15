@@ -9,9 +9,9 @@ import java.util.Date;
 import java.util.Scanner;
 import java.util.Vector;
 
-import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 
 public class DeNovoGear {
 
@@ -69,7 +69,7 @@ public class DeNovoGear {
 					command += "\n~/bin/denovogear/build/src/denovogear dnm auto --ped " + bcfFilesDir
 										 + line[1] + ".ped --bcf " + bcfFilesDir + line[1] + ".bcf > "
 										 + denovogearResultDir + line[1] + ".txt";
-					Files.qsub(scriptFileDir + line[1] + ".qsub", command, 2000, 24, 1);
+					Qsub.qsub(scriptFileDir + line[1] + ".qsub", command, 2000, 24, 1);
 					qsubFilesVec.add(scriptFileDir + line[1] + ".qsub");
 				}
 			}
@@ -99,7 +99,7 @@ public class DeNovoGear {
 		// }
 		// Files.qsubMultiple(jobNamesWithAbsolutePaths, null, scriptFileDir, "qsubmultiple_",
 		// qsubFiles.length<16?qsubFiles.length:16, true, null, -1, 22000, 24);
-		Files.qsubMultiple(qsubFilesVec, null, scriptFileDir, "qsubmultiple_",
+		Qsub.qsubMultiple(qsubFilesVec, null, scriptFileDir, "qsubmultiple_",
 											 qsubFilesVec.size() < 4 ? qsubFilesVec.size() : 4, true, null, -1, 22000,
 											 24);
 	}

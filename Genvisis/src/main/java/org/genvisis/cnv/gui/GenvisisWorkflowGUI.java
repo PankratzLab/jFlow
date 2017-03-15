@@ -55,6 +55,7 @@ import org.genvisis.cnv.manage.GenvisisWorkflow.Step;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -847,7 +848,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						}
 						Files.write(output.toString(),
 												proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.run");
-						Files.qsub(proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline."
+						Qsub.qsub(proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline."
 											 + ext.getTimestampForFilename() + ".pbs", output.toString(), Files.PBS_MEM,
 											 48,
 											 Files.PBS_PROC);

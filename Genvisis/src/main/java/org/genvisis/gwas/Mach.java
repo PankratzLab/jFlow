@@ -26,6 +26,7 @@ import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.FamilyStructure;
 import org.genvisis.filesys.SnpMarkerSet;
+import org.genvisis.qsub.Qsub;
 
 import com.google.common.primitives.Ints;
 
@@ -132,7 +133,7 @@ public class Mach {
 
 		v = new Vector<String>();
 		if (nodesToUse == null) {
-			v = ArrayUtils.toStringVector(Files.qsub("", "chr#", 1, 22, commands, null, 10000, 48, null));
+			v = ArrayUtils.toStringVector(Qsub.qsub("", "chr#", 1, 22, commands, null, 10000, 48, null));
 		} else {
 			v = new Vector<String>();
 			// step = (int)Math.ceil((double)(22)/(double)nodesToUse.length);
@@ -140,7 +141,7 @@ public class Mach {
 			// list = Files.qsub("", null, i*step+0, i==nodesToUse.length-1?22:((i+1)*step-1), commands,
 			// "chr", null, -1, nodesToUse[i]);
 			for (int chr = 1; chr <= 22; chr++) {
-				list = Files.qsub("", "chr#", chr, chr, commands, null, 10000, 48,
+				list = Qsub.qsub("", "chr#", chr, chr, commands, null, 10000, 48,
 													nodesToUse[chr % nodesToUse.length]);
 				for (String element : list) {
 					v.add(element);

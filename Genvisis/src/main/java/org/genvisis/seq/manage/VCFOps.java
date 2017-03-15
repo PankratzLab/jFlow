@@ -34,6 +34,7 @@ import org.genvisis.gwas.MatchSamples;
 import org.genvisis.gwas.MatchesVisualized;
 import org.genvisis.gwas.MergeDatasets;
 import org.genvisis.gwas.RelationAncestryQc;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.seq.analysis.GATK;
 import org.genvisis.seq.analysis.PlinkSeq;
 import org.genvisis.seq.analysis.PlinkSeq.ANALYSIS_TYPES;
@@ -528,7 +529,7 @@ public class VCFOps {
 		if (!Files.exists(dir + ".qc.pbs")) {
 			String gwasQC = ArrayUtils.toStr(PSF.Load.getAllModules(), "\n") + "\n" + Files.getRunString()
 											+ " gwas.Qc dir=" + dir;
-			Files.qsub(dir + "qc.pbs", gwasQC, 62000, 24, 16);
+			Qsub.qsub(dir + "qc.pbs", gwasQC, 62000, 24, 16);
 		}
 		return outFiles;
 	}

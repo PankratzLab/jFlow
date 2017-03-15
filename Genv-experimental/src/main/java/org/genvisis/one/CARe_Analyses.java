@@ -27,6 +27,7 @@ import org.genvisis.gwas.Mach;
 import org.genvisis.gwas.Metal;
 import org.genvisis.mining.Transformations;
 import org.genvisis.parse.GenParser;
+import org.genvisis.qsub.Qsub;
 
 public class CARe_Analyses {
 	public static String DRIVE_ROOT = "not_set";
@@ -1194,7 +1195,7 @@ public class CARe_Analyses {
 											 // "+
 											 "--out " + ext.rootOf(phenofile) + (conditionals ? "_withCondi" : "")
 											 + "_chr#";
-						Files.writeArray(Files.qsub(dir, "chr#_" + element, 1, 22, commands, null, 10000, 12,
+						Files.writeArray(Qsub.qsub(dir, "chr#_" + element, 1, 22, commands, null, 10000, 12,
 																				null),
 														 dir + "master." + pheno);
 						Files.chmod(dir + "master." + pheno);

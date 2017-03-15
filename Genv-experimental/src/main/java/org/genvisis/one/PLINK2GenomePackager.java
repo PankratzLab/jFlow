@@ -15,6 +15,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 
 public class PLINK2GenomePackager {
 
@@ -150,7 +151,7 @@ public class PLINK2GenomePackager {
 		}
 
 		for (java.util.Map.Entry<String, String> plinkRun : plinkRuns.entrySet()) {
-			Files.qsub(plinkRun.getKey() + "runPlink2.qsub", plinkRun.getValue(), QSUB_RAM, QSUB_HRS,
+			Qsub.qsub(plinkRun.getKey() + "runPlink2.qsub", plinkRun.getValue(), QSUB_RAM, QSUB_HRS,
 								 QSUB_PRC);
 		}
 
@@ -231,7 +232,7 @@ public class PLINK2GenomePackager {
 						 .append(pmAllFile)
 						 .append(" N=`grep -o -E '[0-9]+ people pass filters and QC' *.o | sed 's/.*://g' | sed 's/[^0-9]*//g'`")
 						 .append("\n");
-			Files.qsub(plinkDir + "process.qsub", procCmd.toString(), 5000, 3, 1);
+			Qsub.qsub(plinkDir + "process.qsub", procCmd.toString(), 5000, 3, 1);
 			masterProc.append("cd ").append(plinkDir).append("\n");
 			masterProc.append("qsub");
 			if (qsubQueue != null) {

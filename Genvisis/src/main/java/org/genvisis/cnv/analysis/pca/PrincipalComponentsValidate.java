@@ -13,6 +13,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.CrossValidation;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
@@ -155,7 +156,7 @@ public class PrincipalComponentsValidate {
 		command += " startAtComponent=" + startAtComponent + " stopAtComponent=" + stopAtComponent
 							 + " numPcIterations=" + numPcSamplings + " pcType=" + pcType;
 		command += " kfolds=" + kfolds + " mtMarkers=" + mtMarkers + " output=regress[%0]";
-		Files.qsub("Regression", command, batches, MEMORY_MB, WALLTIME, numThreads);
+		Qsub.qsub("Regression", command, batches, MEMORY_MB, WALLTIME, numThreads);
 		return principalComponentsResiduals;
 	}
 
@@ -697,7 +698,7 @@ public class PrincipalComponentsValidate {
 										 + " numComponents=[%1]  medianMarkers=" + proj.PROJECT_DIRECTORY.getValue()
 										 + mtMarkers + " useFile=" + curDir + BATCH + "_[%0] output=" + dir + BATCH
 										 + "_[%0]";
-		Files.qsub("PCA", command, getIters(batches, log));
+		Qsub.qsub("PCA", command, getIters(batches, log));
 	}
 
 	/**

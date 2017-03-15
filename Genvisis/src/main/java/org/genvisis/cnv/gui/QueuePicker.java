@@ -21,8 +21,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.SpinnerNumberModel;
 
 import org.genvisis.cnv.manage.GenvisisWorkflow.Flag;
-import org.genvisis.common.QueueControl;
-import org.genvisis.common.QueueControl.JobQueue;
+import org.genvisis.qsub.JobQueue;
 
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
@@ -223,7 +222,7 @@ public class QueuePicker extends JDialog {
 		lblWalltimeMinMax.setText(sb.toString());
 	}
 	
-	HashMap<String, JobQueue> premadeQueues = new HashMap<String, QueueControl.JobQueue>();
+	HashMap<String, JobQueue> premadeQueues = new HashMap<String, JobQueue>();
 	private JLabel lblProcMinMax;
 	private JLabel lblMemMinMax;
 	private JLabel lblWalltimeMinMax;

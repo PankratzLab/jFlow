@@ -16,6 +16,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 
 import com.google.common.primitives.Booleans;
 
@@ -297,7 +298,7 @@ public class EmimPipeline {
 		if (log1 != null) {
 			processCommand += " log=" + log1.getFilename();
 		}
-		Files.qsub(runDir + "/processResults.pbs", processCommand, 45000, 6, 1);
+		Qsub.qsub(runDir + "/processResults.pbs", processCommand, 45000, 6, 1);
 
 		log.report("PBS script for post-pipeline processing generated, submit " + runDir
 							 + "processResults.pbs after the pipeline has completed to process results");

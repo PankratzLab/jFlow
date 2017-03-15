@@ -21,6 +21,7 @@ import org.genvisis.common.Matrix;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SerialHash;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.ContingencyTable;
 import org.genvisis.stats.ProbDist;
 import org.genvisis.stats.Rscript;
@@ -232,7 +233,7 @@ public class MergeDatasets {
 		}
 		System.out.println("Splitting up file");
 		Files.splitFile(outputDir + "homo.R", 12, 0, 4, outputDir + "homo", ".R", false);
-		Files.qsub(outputDir + "runHomo", null, -1,
+		Qsub.qsub(outputDir + "runHomo", null, -1,
 							 Rscript.getRExecutable(new Logger()) + " CMD BATCH " + outputDir + "homo[%0].R "
 																								+ outputDir + "homo[%0].Rout",
 							 Matrix.toMatrix(ArrayUtils.stringArraySequence(12, "")), 1000, 12);

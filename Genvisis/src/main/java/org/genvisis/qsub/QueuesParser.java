@@ -1,4 +1,4 @@
-package org.genvisis.common;
+package org.genvisis.qsub;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,218 +6,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class QueueControl {
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
 
-	public static class JobQueue {
-		private String name;
-		private boolean allowed;
-		private int minWalltime = -1; // may not exist
-		private int maxWalltime = -1; // hours
-		private int defaultWalltime = -1; // hours
-		private long defaultMem = -1; // bytes
-		private long minMem = -1; // bytes
-		private long maxMem = -1; // bytes
-		private int jobsInQueue = -1; // VERY VOLATILE
-		private int defaultProc = -1;
-		private int minProc = -1; // may not exist
-		private int maxProc = -1;
-		private int defaultNodeCnt = -1;
-		private int minNodeCnt = -1;
-		private int maxNodeCnt = -1;
-		private QueueType type;
-		private ArrayList<String> routeDests = new ArrayList<String>();
-		private ArrayList<String> allowedGroups = new ArrayList<String>();
-		private boolean userAccessControlEnabled;
-		private boolean groupAccessControlEnabled;
-		private boolean groupControlSloppy = false;
-		private ArrayList<String> allowedUsers = new ArrayList<String>();
-		private boolean isDefaultQueue = false;
-
-		public boolean isDefaultQueue() {
-			return isDefaultQueue;
-		}
-
-		public void setDefaultQueue(boolean isDefaultQueue) {
-			this.isDefaultQueue = isDefaultQueue;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public boolean isAllowed() {
-			return allowed;
-		}
-
-		public void setAllowed(boolean allowed) {
-			this.allowed = allowed;
-		}
-
-		public int getMaxWalltime() {
-			return maxWalltime;
-		}
-
-		public void setMaxWalltime(int maxWalltime) {
-			this.maxWalltime = maxWalltime;
-		}
-
-		public long getDefaultMem() {
-			return defaultMem;
-		}
-
-		public void setDefaultMem(long defaultMem) {
-			this.defaultMem = defaultMem;
-		}
-
-		public long getMinMem() {
-			return minMem;
-		}
-
-		public void setMinMem(long minMem) {
-			this.minMem = minMem;
-		}
-
-		public long getMaxMem() {
-			return maxMem;
-		}
-
-		public void setMaxMem(long maxMem) {
-			this.maxMem = maxMem;
-		}
-
-		public int getJobsInQueue() {
-			return jobsInQueue;
-		}
-
-		public void setJobsInQueue(int jobsInQueue) {
-			this.jobsInQueue = jobsInQueue;
-		}
-
-		public int getMinProc() {
-			return minProc;
-		}
-
-		public void setMinProc(int minProc) {
-			this.minProc = minProc;
-		}
-
-		public QueueType getType() {
-			return type;
-		}
-
-		public void setType(QueueType type) {
-			this.type = type;
-		}
-
-		public ArrayList<String> getRouteDests() {
-			return routeDests;
-		}
-
-		public void setRouteDests(ArrayList<String> routeDests) {
-			this.routeDests = routeDests;
-		}
-
-		public int getMaxProc() {
-			return maxProc;
-		}
-
-		public void setMaxProc(int maxProc) {
-			this.maxProc = maxProc;
-		}
-
-		public int getMinWalltime() {
-			return minWalltime;
-		}
-
-		public void setMinWalltime(int minWalltime) {
-			this.minWalltime = minWalltime;
-		}
-
-		public int getMinNodeCnt() {
-			return minNodeCnt;
-		}
-
-		public void setMinNodeCnt(int minNodeCnt) {
-			this.minNodeCnt = minNodeCnt;
-		}
-
-		public int getMaxNodeCnt() {
-			return maxNodeCnt;
-		}
-
-		public void setMaxNodeCnt(int maxNodeCnt) {
-			this.maxNodeCnt = maxNodeCnt;
-		}
-
-		public ArrayList<String> getAllowedGroups() {
-			return allowedGroups;
-		}
-
-		public ArrayList<String> getAllowedUsers() {
-			return allowedUsers;
-		}
-
-		public void setAllowedUsers(ArrayList<String> allowedUsers) {
-			this.allowedUsers = allowedUsers;
-		}
-
-		public boolean isGroupControlSloppy() {
-			return groupControlSloppy;
-		}
-
-		public void setGroupControlSloppy(boolean groupControlSloppy) {
-			this.groupControlSloppy = groupControlSloppy;
-		}
-
-		public void setUserAccessControlEnabled(boolean control) {
-			this.userAccessControlEnabled = control;
-		}
-
-		public void setGroupAccessControlEnabled(boolean control) {
-			this.groupAccessControlEnabled = control;
-		}
-
-		public boolean isGroupAccessControlEnabled() {
-			return this.groupAccessControlEnabled;
-		}
-
-		public boolean isUserAccessControlEnabled() {
-			return this.userAccessControlEnabled;
-		}
-
-		public int getDefaultWalltime() {
-			return this.defaultWalltime;
-		}
-
-		public int getDefaultProc() {
-			return this.defaultProc;
-		}
-
-		public int getDefaultNodeCnt() {
-			return this.defaultNodeCnt;
-		}
-
-		public void setDefaultNodeCnt(int nodeCnt) {
-			this.defaultNodeCnt = nodeCnt;
-		}
-
-		public void setDefaultProcCnt(int procCnt) {
-			this.defaultProc = procCnt;
-		}
-
-		public void setDefaultWalltime(int defWall) {
-			this.defaultWalltime = defWall;
-		}
-
-	}
-
-	public enum QueueType {
-		EXEC, ROUTE;
-	}
+public class QueuesParser {
 
 	private static final String TAG_WALLTIME_MIN = "resources_min.walltime = ";
 	private static final String TAG_WALLTIME_MAX = "resources_max.walltime = ";
@@ -238,15 +30,16 @@ public class QueueControl {
 	private static final String TAG_PROC_DEFAULT= "resources_default.proc = ";
 	private static final String TAG_NODE_DEFAULT= "resources_default.nodes = ";
 
-	private static String[] loadIDInfo() throws IOException {
+	public static String[] loadIDInfo() throws IOException {
+		boolean win = Files.isWindows();
 		Runtime rt = Runtime.getRuntime();
-		String[] commands = {"id"};
+		String[] commands = win ? new String[]{"cmd","/c","echo","%USERNAME%"} : new String[]{"id"};
 		Process proc = rt.exec(commands);
 
 		BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 		String s = stdInput.readLine();
 		stdInput.close();
-		return s.split("\\s");
+		return win ? new String[]{s.trim()} : s.split("\\s");
 	}
 
 	/**
@@ -274,8 +67,13 @@ public class QueueControl {
 	public static String getCurrentGroup() {
 		String gid = "";
 		try {
-			gid = loadIDInfo()[1];
-			gid = gid.substring(gid.indexOf('(') + 1, gid.length() - 1);
+			String[] info = loadIDInfo();
+			if (info.length >= 2) {
+				gid = info[1];
+			}
+			if (gid.indexOf('(') != -1) {
+				gid = gid.substring(gid.indexOf('(') + 1, gid.length() - 1);
+			}
 		} catch (IOException e) {
 			// error from running 'id' or from reading input; either way, unable to determine group
 		}
@@ -291,13 +89,16 @@ public class QueueControl {
 	public static ArrayList<String> getUserGroups() {
 		String[] grps = new String[0];
 		try {
-			loadIDInfo()[2].split(",");
+			String[] info = loadIDInfo();
+			if (info.length >= 3) {
+				grps = info[2].split(",");
+			}
 		} catch (IOException e) {
 			// error from running 'id' or from reading input; either way, unable to determine groups
 		}
 		ArrayList<String> groups = new ArrayList<String>();
 		for (String g : grps) {
-			groups.add(g.substring(g.indexOf('(') + 1, g.length() - 1));
+			groups.add(g.indexOf('(') != -1 ? g.substring(g.indexOf('(') + 1, g.length() - 1) : g);
 		}
 		return groups;
 	}
@@ -319,6 +120,10 @@ public class QueueControl {
 	 */
 	public static List<JobQueue> parseQueues(String username, String currGroup, String[] allGroups,
 																					 Logger log) {
+		if (Files.isWindows()) {
+			log.reportError("Job queueing is not supported on Windows systems.  Please retry on a system that supports job queues and the qsub command.");
+			return new ArrayList<JobQueue>();
+		}
 		Runtime rt = Runtime.getRuntime();
 		String[] commands = {"qstat", "-Qf"};
 		BufferedReader stdInput = null;
@@ -351,9 +156,9 @@ public class QueueControl {
 				}
 				if (s.startsWith(TAG_TYPE)) {
 					if (s.endsWith("Route")) {
-						curr.setType(QueueType.ROUTE);
+						curr.setType(JobQueue.QueueType.ROUTE);
 					} else {
-						curr.setType(QueueType.EXEC);
+						curr.setType(JobQueue.QueueType.EXEC);
 					}
 				}
 				if (s.startsWith(TAG_TOTAL_JOBS)) {
@@ -482,7 +287,7 @@ public class QueueControl {
 		try {
 			stdInput.close();
 		} catch (IOException e) {
-			// ignore - probably a bad idea
+			// ignore - probably a bad idea though!
 		}
 
 		return queues;
@@ -559,7 +364,7 @@ public class QueueControl {
 				mostUsed = q;
 			}
 
-			if (q.getType() == QueueType.ROUTE) {
+			if (q.getType() == JobQueue.QueueType.ROUTE) {
 				int found = 0;
 				for (String r : q.getRouteDests()) {
 					for (JobQueue q2 : allowed) {

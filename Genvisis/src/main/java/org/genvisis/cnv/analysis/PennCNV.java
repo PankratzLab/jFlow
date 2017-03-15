@@ -38,6 +38,7 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.SciStringComparator;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
+import org.genvisis.qsub.Qsub;
 
 public class PennCNV {
 	public static final String[] QC_HEADS = {"LRR_mean", "LRR_median", "LRR_SD", "BAF_mean",
@@ -146,7 +147,7 @@ public class PennCNV {
 		new File(pennDir + scriptSubDir).mkdirs();
 
 		if (execList == null) {
-			Files.qsub(pennDir + scriptSubDir + "runPenn", dataDir, numChunks, commands,
+			Qsub.qsub(pennDir + scriptSubDir + "runPenn", dataDir, numChunks, commands,
 								 Matrix.toMatrix(ArrayUtils.stringArraySequence(numChunks, "")), 2200, 16);
 		} else {
 			Files.execListAdd(execList, commands, ArrayUtils.stringArraySequence(numChunks, ""), log);
@@ -281,7 +282,7 @@ public class PennCNV {
 		new File(pennDir + scriptSubDir).mkdirs();
 
 		if (execList == null) {
-			Files.qsub(pennDir + scriptSubDir + "runPennX", dataDir, numChunks, commands,
+			Qsub.qsub(pennDir + scriptSubDir + "runPennX", dataDir, numChunks, commands,
 								 Matrix.toMatrix(ArrayUtils.stringArraySequence(numChunks, "")), 2200, 16);
 		} else {
 			Files.execListAdd(execList, commands, ArrayUtils.stringArraySequence(numChunks, ""), log);
@@ -1285,7 +1286,7 @@ public class PennCNV {
 		}
 
 		if (execList != null) {
-			Files.qsubExecutor(proj.PROJECT_DIRECTORY.getValue(), execList, null,
+			Qsub.qsubExecutor(proj.PROJECT_DIRECTORY.getValue(), execList, null,
 												 proj.PENNCNV_RESULTS_DIRECTORY.getValue() + "runAllPenncnv", 24, 5000, 8);
 			log.report("All PennCNV files and scripts have been prepped. The next thing would be to qsub "
 								 + proj.PENNCNV_RESULTS_DIRECTORY.getValue() + "runAllPenncnv.pbs");

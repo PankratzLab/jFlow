@@ -13,6 +13,7 @@ import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.Rscript;
 
 public class SeqMetaPrimary {
@@ -184,7 +185,7 @@ public class SeqMetaPrimary {
 				// commands = "/soft/R/3.0.1/bin/Rscript --no-save [%0]";
 				commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save [%0]";
 				// Files.qsub("checkObject", dir, -1, commands, iterations, qsubMem, qsubWalltime);
-				Files.qsub(batchDir + "run_" + cohort, batchDir, -1, commands, iterations, qsubMem,
+				Qsub.qsub(batchDir + "run_" + cohort, batchDir, -1, commands, iterations, qsubMem,
 									 qsubWalltime, queue);
 				if (iterations.length == 0) {
 					new File(batchDir + "master.run_" + cohort).renameTo(new File(batchDir + "master.run_"
@@ -201,7 +202,7 @@ public class SeqMetaPrimary {
 						commands += "./run_" + cohort + "_" + (j + 1) + ".qsub\n";
 					}
 				}
-				Files.qsub(batchDir + "finishWithHigherMem_" + cohort, commands, 60000,
+				Qsub.qsub(batchDir + "finishWithHigherMem_" + cohort, commands, 60000,
 									 (int) Math.ceil(iterations.length / 2.0), 1);
 			} else {
 				new File(batchDir + "finishWithHigherMem_" + cohort).delete();
@@ -227,7 +228,7 @@ public class SeqMetaPrimary {
 			Files.writeArray(ArrayUtils.toStringArray(v), batchDir + "mergeRdataFiles.R");
 			commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save " + batchDir
 								 + "mergeRdataFiles.R";
-			Files.qsub(batchDir + "run_mergeRdataFiles_" + cohort, commands, qsubMem * 4, qsubWalltime,
+			Qsub.qsub(batchDir + "run_mergeRdataFiles_" + cohort, commands, qsubMem * 4, qsubWalltime,
 								 1);
 			// Files.qsubMultiple( jobNamesWithAbsolutePaths, jobSizes, batchDir,
 			// batchDir + "chunk_" + cohort, 8, true, null, -1, qsubMem, qsubWalltime);
@@ -456,7 +457,7 @@ public class SeqMetaPrimary {
 				Files.batchIt(batchDir + "run", "", 5, commands, iterations);
 			} else {
 				commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save [%0]";
-				Files.qsub(batchDir + "run_additionals", batchDir, -1, commands, iterations, qsubMem,
+				Qsub.qsub(batchDir + "run_additionals", batchDir, -1, commands, iterations, qsubMem,
 									 qsubWalltime);
 				if (iterations.length == 0) {
 					new File(batchDir

@@ -16,6 +16,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.seq.analysis.Blast.BlastResultsSummary;
 
 /**
@@ -194,7 +195,7 @@ public class BlastContamination {
 
 		// command += PSF.Ext.MEMORY_MB + memoryInMB + PSF.Ext.SPACE;
 		// command += PSF.Ext.WALLTIME_HRS + wallTimeInHours + PSF.Ext.SPACE;
-		Files.qsub("Contam" + outputRoot, command, batches, memoryInMB, wallTimeInHours,
+		Qsub.qsub("Contam" + outputRoot, command, batches, memoryInMB, wallTimeInHours,
 							 numSampThreads);
 	}
 

@@ -10,6 +10,7 @@ import java.util.Vector;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 
 public class Samtools {
 	public static final String[] COUNT_READS_PER_CHR = {"echo `date`",
@@ -193,7 +194,7 @@ public class Samtools {
 
 		if (v.size() > 0) {
 			log.report("There are " + v.size() + " .bam files remaining to be counted");
-			Files.qsubMultiple(v, null, pwd + "batches/", "countPerChr", filesPerBatch, true, null, -1,
+			Qsub.qsubMultiple(v, null, pwd + "batches/", "countPerChr", filesPerBatch, true, null, -1,
 												 500, 0.5);
 		}
 	}

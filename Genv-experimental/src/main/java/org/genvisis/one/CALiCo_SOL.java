@@ -10,10 +10,10 @@ import java.util.Date;
 import java.util.Vector;
 
 import org.genvisis.common.Elision;
-import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 
 public class CALiCo_SOL {
 
@@ -90,7 +90,7 @@ public class CALiCo_SOL {
 
 	public static void generateQsubs(String commands, String root, String[][] iterations,
 																	 Logger log) {
-		Files.qsub(root, commands, iterations);
+		Qsub.qsub(root, commands, iterations);
 	}
 
 	// public static void generateQsubMultiple(Vector<String> jobNamesWithAbsolutePaths, String
@@ -139,13 +139,13 @@ public class CALiCo_SOL {
 			}
 		}
 
-		Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
+		Qsub.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
 											 batchDir + "chunk_" + modelName, 8, true, null, -1, qsubMemInMBs,
 											 qsubWalltimeInHours);
-		Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
+		Qsub.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
 											 batchDir + "chunkSB256_" + modelName, 16, true, "sb256", -1, qsubMemInMBs,
 											 qsubWalltimeInHours);
-		Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
+		Qsub.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
 											 batchDir + "chunkSB_" + modelName, 16, true, "sb", -1, qsubMemInMBs,
 											 qsubWalltimeInHours);
 	}

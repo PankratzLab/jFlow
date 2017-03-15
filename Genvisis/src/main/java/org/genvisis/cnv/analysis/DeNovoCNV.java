@@ -23,6 +23,7 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.StringVector;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
+import org.genvisis.qsub.Qsub;
 
 public class DeNovoCNV {
 
@@ -360,7 +361,7 @@ public class DeNovoCNV {
 			// iterations, 2000, 24);
 			// Files.qsubMultiple("chunkCNV", Array.stringArraySequence(numQsubFiles, proj.getProjectDir()
 			// + "penn_scripts/runPennCNV_", ".qsub"), 8, -1, 22000, 24);
-			Files.qsub(pennOutDir + "scripts/runPennCNV", pennOutDir + "scripts/", numQsubFiles, commands,
+			Qsub.qsub(pennOutDir + "scripts/runPennCNV", pennOutDir + "scripts/", numQsubFiles, commands,
 								 iterations, 2000, 24);
 			// Files.qsubMultiple("chunkCNV", Array.stringArraySequence(numQsubFiles, pennOutDir +
 			// "scripts/runPennCNV_", ".qsub"), 2000, 24);
@@ -370,7 +371,7 @@ public class DeNovoCNV {
 			for (String file : files) {
 				jobNamesWithAbsolutePaths.add(pennOutDir + "scripts/" + file);
 			}
-			Files.qsubMultiple(jobNamesWithAbsolutePaths, null, pennOutDir + "scripts/", "chunkCNV", 8,
+			Qsub.qsubMultiple(jobNamesWithAbsolutePaths, null, pennOutDir + "scripts/", "chunkCNV", 8,
 												 true, null, -1, 22000, 24);
 
 			log.report(ext.getTime()
@@ -683,7 +684,7 @@ public class DeNovoCNV {
 
 		iterations = HashVec.loadFileToStringMatrix(pedigreeOfTrio, true, new int[] {4, 5, 6}, false);
 
-		org.genvisis.common.Files.qsub("denovo", "/share/bulk/gedi/pankr018/denovo/penn_data", 65,
+		org.genvisis.qsub.Qsub.qsub("denovo", "/share/bulk/gedi/pankr018/denovo/penn_data", 65,
 																	 command, iterations, 2500, 2);
 	}
 

@@ -18,6 +18,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 
 public class GWAF {
 	public static final String[] HEADER_IMPUTED = {"phen", "snp", "N", "AF", "h2q", "beta", "se",
@@ -119,7 +120,7 @@ public class GWAF {
 												 + ext.replaceAllWith(dir + geneticDataTemplate, "#", count + ""));
 			if (numBatches < 1) {
 				if (nodesToUse == null) {
-					v = ArrayUtils.toStringVector(Files.qsub(dir, rootTemplate, startAt,
+					v = ArrayUtils.toStringVector(Qsub.qsub(dir, rootTemplate, startAt,
 																									 count,
 																									 "R --no-save < " + rootTemplate + ".R > "
 																													+ rootTemplate + ".log",
@@ -133,7 +134,7 @@ public class GWAF {
 					// batches/"+pheno+"_gwaf#.R > batches/"+pheno+"_file#.log", "batches/"+pheno+"_file",
 					// null, -1, nodesToUse[i]);
 					for (int i = startAt; i <= count; i++) {
-						list = Files.qsub(dir, rootTemplate, i, i,
+						list = Qsub.qsub(dir, rootTemplate, i, i,
 															"R --no-save < " + rootTemplate + ".R > " + rootTemplate + ".log",
 															null, 5000, 12, nodesToUse[i % nodesToUse.length]);
 						for (String element : list) {

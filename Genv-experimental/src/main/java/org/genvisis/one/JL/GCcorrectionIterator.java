@@ -25,6 +25,7 @@ import org.genvisis.common.PSF.Ext;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.Rscript;
 import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
 import org.genvisis.stats.Rscript.PLOT_DEVICE;
@@ -47,7 +48,7 @@ public class GCcorrectionIterator {
 			command.add("proj=" + proj.PROJECT_PROPERTIES_FILENAME.getValue());
 			command.add("numthreads=" + numThreads);
 			command.add("bpGcModel=" + bpModel);
-			Files.qsub(currentSub, ArrayUtils.toStr(ArrayUtils.toStringArray(command), " "), 55000, 48.00,
+			Qsub.qsub(currentSub, ArrayUtils.toStr(ArrayUtils.toStringArray(command), " "), 55000, 48.00,
 								 numThreads);
 		}
 		String batchMaster = batchRoot + "master.pbs";

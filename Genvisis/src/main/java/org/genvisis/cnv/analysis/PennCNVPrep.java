@@ -31,6 +31,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 /**
@@ -770,16 +771,16 @@ public class PennCNVPrep {
 		cmd.append("java").append(" -Xmx").append(memoryInMB).append("M -jar ").append(classPath)
 			 .append(" cnv.analysis.PennCNVPrep proj=").append(proj.getPropertyFilename()).append(" dir=")
 			 .append(dir);
-		Files.qsub("PennCNVPrepFormatExport", cmd.toString() + " -create", new String[][] {{""}},
+		Qsub.qsub("PennCNVPrepFormatExport", cmd.toString() + " -create", new String[][] {{""}},
 							 memoryInMB, 3 * wallTimeInHours, 1);
 		cmd.append(" tmpDir=").append(thisDir);
-		Files.qsub("ShadowCNVPrepFormatExport",
+		Qsub.qsub("ShadowCNVPrepFormatExport",
 							 cmd.toString() + " -shadow sampleChunks=NeedToFillThisIn numThreads=1 -forceLoadFromFiles",
 							 new String[][] {{""}}, memoryInMB, 3 * wallTimeInHours, 1);
 		cmd.append(" numMarkerThreads=").append(numMarkerThreads).append(" numThreads=")
 			 .append(numThreads).append(" numComponents=").append(numComponents).append(" markers=")
 			 .append(thisDir).append(dir).append("[%0].txt");
-		Files.qsub("PennCNVPrepFormatTmpFiles", cmd.toString(), batches, memoryInMB, wallTimeInHours,
+		Qsub.qsub("PennCNVPrepFormatTmpFiles", cmd.toString(), batches, memoryInMB, wallTimeInHours,
 							 numThreads * numMarkerThreads);
 		if (!Files.exists(proj.INTENSITY_PC_FILENAME.getValue())) {
 			proj.getLog()

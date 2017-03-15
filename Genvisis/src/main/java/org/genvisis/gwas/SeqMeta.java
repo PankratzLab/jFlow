@@ -37,6 +37,7 @@ import org.genvisis.filesys.SerialHash;
 import org.genvisis.mining.Transformations;
 import org.genvisis.parse.GenParser;
 import org.genvisis.parse.LookupTable;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.Correlation;
 import org.genvisis.stats.ProbDist;
 import org.genvisis.stats.Rscript;
@@ -113,7 +114,7 @@ public class SeqMeta {
 		if (v.size() > 0) {
 			commands = getRscriptExecutable(maps, log) + " --no-save [%0]";
 			iterations = Matrix.toMatrix(ArrayUtils.toStringArray(v));
-			Files.qsub("batchChecks/checkObject", dir, -1, commands, iterations, 4000, 1);
+			Qsub.qsub("batchChecks/checkObject", dir, -1, commands, iterations, 4000, 1);
 			Files.batchIt("master.checkObjectAll", null, 1, commands, iterations);
 		}
 	}
@@ -288,7 +289,7 @@ public class SeqMeta {
 		Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 		new File(dir + "snpInfos/").mkdirs();
-		Files.qsub(dir + "batchSplits/" + ext.rootOf(filename) + ".qsub",
+		Qsub.qsub(dir + "batchSplits/" + ext.rootOf(filename) + ".qsub",
 							 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save " + filename,
 							 5000, 0.25, 1);
 
@@ -394,7 +395,7 @@ public class SeqMeta {
 
 		new File("chunks/").mkdir();
 		if (jobNames.size() > 0) {
-			Files.qsubExecutor(dir, jobNames, jobSizes, "chunks/chunkSplit", 24, 62000, 2);
+			Qsub.qsubExecutor(dir, jobNames, jobSizes, "chunks/chunkSplit", 24, 62000, 2);
 		} else {
 			log.report("\nLooks like everything has been split");
 		}
@@ -718,7 +719,7 @@ public class SeqMeta {
 								 + " individual cohort analyses yet to be run using:   qsub chunkRun.pbs");
 		}
 		new File("chunks/").mkdir();
-		Files.qsubExecutor(dir, jobNames, jobSizes, "chunks/chunkRun", 24, 62000, 24);
+		Qsub.qsubExecutor(dir, jobNames, jobSizes, "chunks/chunkRun", 24, 62000, 24);
 
 		jobNames = new Vector<String>();
 		jobSizes = new IntVector();
@@ -926,7 +927,7 @@ public class SeqMeta {
 			log.report("There are " + jobNames.size()
 								 + " meta-analyses yet to be run using:   qsub chunkMeta.pbs");
 		}
-		Files.qsubExecutor(dir, jobNames, jobSizes, "chunks/chunkMeta", 24, 62000, 24);
+		Qsub.qsubExecutor(dir, jobNames, jobSizes, "chunks/chunkMeta", 24, 62000, 24);
 	}
 
 	public static String[] getHeaderForMethod(String[] method) {
@@ -1340,7 +1341,7 @@ public class SeqMeta {
 		}
 
 		Files.writeArray(ArrayUtils.toStringArray(commands), dir + "checkNs.R");
-		Files.qsub(dir + "checkNs.qsub",
+		Qsub.qsub(dir + "checkNs.qsub",
 							 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save checkNs.R", 5000,
 							 1, 1);
 	}
@@ -1415,7 +1416,7 @@ public class SeqMeta {
 																																						+ filename
 																																						+ "\", sep=\",\", row.names = F)",},
 											 dir + "dump_" + ext.rootOf(snpInfoFile) + ".R");
-			Files.qsub("dump_" + ext.rootOf(snpInfoFile) + ".qsub",
+			Qsub.qsub("dump_" + ext.rootOf(snpInfoFile) + ".qsub",
 								 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save dump_"
 																															+ ext.rootOf(snpInfoFile) + ".R",
 								 5000, 0.5, 1);
@@ -3334,7 +3335,7 @@ public class SeqMeta {
 		if (files.length > 0) {
 			for (String file : files) {
 				localDir = ext.parseDirectoryOfFile(file);
-				Files.qsub(dir + "batchRuns/" + ext.rootOf(file)
+				Qsub.qsub(dir + "batchRuns/" + ext.rootOf(file)
 									 + ".qsub",
 									 "cd " + localDir + "\njava -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS
 															+ " gwas.SeqMeta dir=" + localDir + " metalSensitivity="

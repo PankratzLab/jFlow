@@ -13,6 +13,7 @@ import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.Rscript;
 
 public class SkatMetaPrimary {
@@ -156,7 +157,7 @@ public class SkatMetaPrimary {
 				// commands = "/soft/R/3.0.1/bin/Rscript --no-save [%0]";
 				commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save [%0]";
 				// Files.qsub("checkObject", dir, -1, commands, iterations, qsubMem, qsubWalltime);
-				Files.qsub(batchDir + "run_" + cohort, batchDir, -1, commands, iterations, qsubMem,
+				Qsub.qsub(batchDir + "run_" + cohort, batchDir, -1, commands, iterations, qsubMem,
 									 qsubWalltime);
 				if (iterations.length == 0) {
 					new File(batchDir + "master.run_" + cohort).renameTo(new File(batchDir + "master.run_"
@@ -173,7 +174,7 @@ public class SkatMetaPrimary {
 						commands += "./run_" + cohort + "_" + (j + 1) + ".qsub\n";
 					}
 				}
-				Files.qsub(batchDir + "finishUpOnSB_" + cohort, commands, 60000,
+				Qsub.qsub(batchDir + "finishUpOnSB_" + cohort, commands, 60000,
 									 (int) Math.ceil(iterations.length / 2.0), 16);
 			} else {
 				new File(batchDir + "finishUpOnSB_" + cohort).delete();
@@ -199,14 +200,14 @@ public class SkatMetaPrimary {
 			Files.writeArray(ArrayUtils.toStringArray(v), batchDir + "mergeRdataFiles.R");
 			commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save " + batchDir
 								 + "mergeRdataFiles.R";
-			Files.qsub(batchDir + "run_mergeRdataFiles_" + cohort, commands, qsubMem * 4, qsubWalltime,
+			Qsub.qsub(batchDir + "run_mergeRdataFiles_" + cohort, commands, qsubMem * 4, qsubWalltime,
 								 1);
-			Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
+			Qsub.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
 												 batchDir + "chunk_" + cohort, 8, true, null, -1, qsubMem, qsubWalltime);
-			Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
+			Qsub.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
 												 batchDir + "chunkSB256_" + cohort, 16, true, "sb256", -1, qsubMem,
 												 qsubWalltime);
-			Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
+			Qsub.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
 												 batchDir + "chunkSB_" + cohort, 16, true, "sb", -1, qsubMem, qsubWalltime);
 
 		} catch (IOException e) {
@@ -426,7 +427,7 @@ public class SkatMetaPrimary {
 				Files.batchIt(batchDir + "run", "", 5, commands, iterations);
 			} else {
 				commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save [%0]";
-				Files.qsub(batchDir + "run_additionals", batchDir, -1, commands, iterations, qsubMem,
+				Qsub.qsub(batchDir + "run_additionals", batchDir, -1, commands, iterations, qsubMem,
 									 qsubWalltime);
 				if (iterations.length == 0) {
 					new File(batchDir

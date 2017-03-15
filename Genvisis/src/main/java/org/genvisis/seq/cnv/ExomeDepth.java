@@ -24,6 +24,7 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.seq.cnv.CNVExtraInfo.EXTRA_INFO_TYPE;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
@@ -604,7 +605,7 @@ public class ExomeDepth {
 				if (Rloc != null) {
 					command += " rDir=" + Rloc;
 				}
-				Files.qsub(qsub, command, memoryInMb, wallTimeInHours, numthreads);
+				Qsub.qsub(qsub, command, memoryInMb, wallTimeInHours, numthreads);
 			}
 		} else {
 			ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, allReferenceBamFiles, outputDir,

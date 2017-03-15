@@ -23,6 +23,7 @@ import org.genvisis.common.Matrix;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Hits;
+import org.genvisis.qsub.Qsub;
 
 public class Plink {
 	// public static final String[] CLUSTER_HEADER = {"FID1", "IID1", "FID2", "IID2", "Z0", "Z1",
@@ -136,7 +137,7 @@ public class Plink {
 							 + " --noweb --bfile " + root + " --read-freq plink.frq --genome"
 							 + (minPiHatToKeep > 0 ? " --min " + minPiHatToKeep : "")
 							 + " --genome-lists tmp.list[%0] tmp.list[%1] --out data.sub.[%2]";
-		Files.qsub("genom", commands, Matrix.toStringArrays(v));
+		Qsub.qsub("genom", commands, Matrix.toStringArrays(v));
 		try {
 			writer = new PrintWriter(new FileWriter("master.compile"));
 			writer.println("head -n1 data.sub.0.0.genome > header");
@@ -941,7 +942,7 @@ public class Plink {
 	}
 
 	public static void batchLD(String root, double minR2ToKeep) {
-		Files.qsub("runLD", 1, 22,
+		Qsub.qsub("runLD", 1, 22,
 							 "cd " + ext.pwd() + "\n~/bin/plink --noweb --bfile " + root
 															 + " --r2 --chr # --ld-window 99999 --ld-window-r2 " + minR2ToKeep
 															 + " --out chr#",

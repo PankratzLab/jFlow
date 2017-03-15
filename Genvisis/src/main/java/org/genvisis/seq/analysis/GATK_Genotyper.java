@@ -14,6 +14,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.seq.analysis.ANNOVAR.AnnovarResults;
 import org.genvisis.seq.analysis.GATK.RESOURCE;
 import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
@@ -201,7 +202,7 @@ public class GATK_Genotyper {
 		if (gatk.getRegionsFile() != null) {
 			command += GATK_LanePrep.REGIONS_FILE_COMMAND + gatk.getRegionsFile();
 		}
-		Files.qsub("GATK_Genotype_" + baseName, command, memoryInMB, wallTimeInHours,
+		Qsub.qsub("GATK_Genotype_" + baseName, command, memoryInMB, wallTimeInHours,
 							 numWithinSampleThreads);
 	}
 

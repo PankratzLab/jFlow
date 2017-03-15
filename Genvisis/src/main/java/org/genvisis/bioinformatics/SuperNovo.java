@@ -34,6 +34,7 @@ import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.SegmentLists;
+import org.genvisis.qsub.Qsub;
 
 import com.google.common.base.Strings;
 
@@ -143,7 +144,7 @@ public class SuperNovo {
 			for (int i = 0; i < iterations.length; i++) {
 				iterations[i] = iterationsVec.elementAt(i);
 			}
-			Files.qsub(scriptDir + "getReads_", bamFileDir, 16, commands, iterations, -1, -1);
+			Qsub.qsub(scriptDir + "getReads_", bamFileDir, 16, commands, iterations, -1, -1);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -372,7 +373,7 @@ public class SuperNovo {
 			if (trioId == null || trioId.equals("")) {
 				trioId = getRootOf(bamFilenamesByTrio, true);
 			}
-			Files.qsub(scriptDir + trioId + ".qsub",
+			Qsub.qsub(scriptDir + trioId + ".qsub",
 								 command + " trioid=" + trioId + " bamset=" + bamFilenamesByTrio[1] + ","
 																							 + bamFilenamesByTrio[2] + "," + bamFilenamesByTrio[3]
 																							 + (pathAndRootToOutputReadCounts == null ? ""

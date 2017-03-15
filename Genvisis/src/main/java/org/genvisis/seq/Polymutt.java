@@ -22,6 +22,7 @@ import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.SegmentLists;
+import org.genvisis.qsub.Qsub;
 
 public class Polymutt {
 	public static final String[] POLYMUTT_VCF_HEADER = {"#CHROM", "POS", "ID", "REF", "ALT", "QUAL",
@@ -58,7 +59,7 @@ public class Polymutt {
 			v.add(dir + "batches/" + filename);
 		}
 		// Files.qsubMultiple(v, null, dir+"batches/", "glfAll", 16, true, "sb", -1, 62000, 2);
-		Files.qsubMultiple(v, null, dir + "batches/", "glfAll", 8, true, null, -1, 62000, 2);
+		Qsub.qsubMultiple(v, null, dir + "batches/", "glfAll", 8, true, null, -1, 62000, 2);
 	}
 
 	private static void batchPolymutt(String triosFile) {
@@ -88,7 +89,7 @@ public class Polymutt {
 								 + ".denovo.out.vcf | grep -v 'DQ=-0' | grep -v 'DQ=0.00' > " + iteration[0]
 								 + ".vcf\n" + "gzip " + iteration[0] + ".denovo.out.vcf";
 
-			Files.qsub("batches/run_" + iteration[0], commands, 22000, 48, 8);
+			Qsub.qsub("batches/run_" + iteration[0], commands, 22000, 48, 8);
 			Files.chmod("batches/run_" + iteration[0]);
 			v.add("qsub batches/run_" + iteration[0]);
 		}
@@ -357,7 +358,7 @@ public class Polymutt {
 
 		filenames = Files.list(dir, ".vcf.gz", false);
 
-		Files.qsub("findAll", ext.pwd(), -1,
+		Qsub.qsub("findAll", ext.pwd(), -1,
 							 "java -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS
 																				 + " seq.Polymutt findDenovo=[%0]",
 							 Matrix.toMatrix(filenames), 1000, 12);
@@ -948,7 +949,7 @@ public class Polymutt {
 			if (!Files.exists(dir + ext.rootOf(files[i], false) + "_onTargetCoverage.vcf.gz")) {
 				System.out.println(files[i]);
 				count++;
-				Files.qsub(dir + "chunks/runAssess" + count + ".qsub",
+				Qsub.qsub(dir + "chunks/runAssess" + count + ".qsub",
 									 "cd " + dir + "\nmodule load java\njava -jar ~/"
 																															 + org.genvisis.common.PSF.Java.GENVISIS
 																															 + " seq.Polymutt assess=" + files[i],
@@ -956,7 +957,7 @@ public class Polymutt {
 				v.add(dir + "chunks/runAssess" + count + ".qsub");
 			}
 		}
-		Files.qsubMultiple(v, null, dir + "chunks/", "chunkAssess", 6, false, null, -1, 12000, 6);
+		Qsub.qsubMultiple(v, null, dir + "chunks/", "chunkAssess", 6, false, null, -1, 12000, 6);
 	}
 
 	public static void main(String[] args) {

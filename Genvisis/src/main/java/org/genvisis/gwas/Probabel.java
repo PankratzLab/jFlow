@@ -23,6 +23,7 @@ import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.parse.GenParser;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.ProbDist;
 
 import com.google.common.primitives.Ints;
@@ -103,7 +104,7 @@ public class Probabel {
 											+ "_chr#_quan" + (i + 1) + "\n";
 					commands += "cd ..\n";
 
-					v.add(Files.qsub("", "q" + (i + 1) + "_chr#_" + ext.rootOf(pheno), chr, chr, commands,
+					v.add(Qsub.qsub("", "q" + (i + 1) + "_chr#_" + ext.rootOf(pheno), chr, chr, commands,
 													 null, 10000, 12, "compute-0-" + node + ".local")[0]);
 					// node++;
 					if (node > 4) {
@@ -120,7 +121,7 @@ public class Probabel {
 										+ (minimac ? "chr#.pinfo" : "MACH_step2_chr#.mlinfo") + " -c # -o "
 										+ ext.rootOf(pheno) + "_chr#\n";
 				commands += "cd ..\n";
-				v.add(Files.qsub("", "chr#_" + ext.rootOf(pheno), chr, chr, commands, null, 10000, 12,
+				v.add(Qsub.qsub("", "chr#_" + ext.rootOf(pheno), chr, chr, commands, null, 10000, 12,
 												 "compute-0-" + antinode + ".local")[0]);
 				antinode++;
 				if (antinode > 12) {
