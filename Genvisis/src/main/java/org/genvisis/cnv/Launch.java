@@ -136,7 +136,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	public static final String SCATTER = "Scatter Plot";
 	public static final String QQ = "QQ Plot";
 	public static final String STRAT = "Stratify Plot";
-	public static final String MOSAIC_PLOT = "Mosaic Pot";
+	public static final String MOSAIC_PLOT = "Mosaic Plot";
 	public static final String SEX_PLOT = "Sex Plot";
 	public static final String TRAILER = "Trailer Plot";
 	public static final String TWOD = "2D Plot";
