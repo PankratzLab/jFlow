@@ -41,7 +41,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.ChromosomeViewer;
 import org.genvisis.cnv.gui.CompConfig;
 import org.genvisis.cnv.gui.FileNavigator;
-import org.genvisis.cnv.gui.LRRComp;
+import org.genvisis.cnv.gui.MedianLRRWidget;
 import org.genvisis.cnv.gui.NewRegionListDialog;
 import org.genvisis.cnv.gui.RegionNavigator;
 import org.genvisis.cnv.gui.RegionNavigator.ChrNavigator;
@@ -506,7 +506,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			new Thread(new LRRComp(proj, regionNavigator.getChrText())).start();
+			new Thread(new MedianLRRWidget(proj, regionNavigator.getChrText())).start();
 		}
 	};
 

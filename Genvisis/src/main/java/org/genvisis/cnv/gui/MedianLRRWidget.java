@@ -39,7 +39,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
-public class LRRComp extends JFrame implements Runnable {
+public class MedianLRRWidget extends JFrame implements Runnable {
 	private static final long serialVersionUID = 1L;
 	// once a job has been started, used to track completion
 	private volatile int computeComplete = 42;
@@ -71,7 +71,7 @@ public class LRRComp extends JFrame implements Runnable {
 	private final boolean[] correctionParams;
 	private JCheckBox homozygousCheckBox;// this is fairly specific for mitochondrial markers
 
-	public LRRComp(Project proj, String initRegion) {
+	public MedianLRRWidget(Project proj, String initRegion) {
 		this.proj = proj;
 		this.initRegion = initRegion;
 		transformationType = 0;
