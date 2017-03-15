@@ -438,6 +438,10 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		return chrMap;
 	}
 
+	public Collection<Marker> getMarkersSortedByChrPos() {
+		return getChrMap().values();
+	}
+
 	public Map<Marker, Integer> getMarkerIndexMap() {
 		Map<Marker, Integer> markerIndexMap = markerIndexMapRef == null ? null
 																																		: markerIndexMapRef.get();
