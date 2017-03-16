@@ -1009,6 +1009,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 	
 	String selectedVis = null;
 	private HashMap<String, Classification[]> classifierResultsPerGate = new HashMap<>();	
+	private HashMap<String, Classification[]> classifierResultsPrevPerGate = new HashMap<>();	
 	HashMap<String, String> gateNameMappings = new HashMap<>();
 	{
 		gateNameMappings.put("lymph", "Lymphocytes (SSC-A v FSC-A)");
@@ -1029,8 +1030,8 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		selectedVis = gName;
 	}
 
-	public Classification[] getClassifications() {
-		Classification[] res = classifierResultsPerGate.get(selectedVis);
+	public Classification[] getClassifications(boolean prev) {
+		Classification[] res = (prev ? classifierResultsPrevPerGate : classifierResultsPerGate).get(selectedVis);
 		boolean[] gating = ArrayUtils.booleanArray(dataLoader.getCount(), true);
 		if (parentGate != null) {
 			gating = parentGate.gate(dataLoader);
@@ -1112,7 +1113,10 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		for (int i = 0; i < auto.length; i++) {
 			String name = gateNames[i];
 			Classification[] results = new Classification[auto[i].length];
+			Classification[] resultsPrev = new Classification[auto[i].length];
 			
+			boolean[] hP = i == 0 ? ArrayUtils.booleanArray(hand[i].length, true) : hand[i - 1];
+			boolean[] aP = i == 0 ? ArrayUtils.booleanArray(hand[i].length, true) : auto[i - 1];
 			boolean[] h = hand[i];
 			boolean[] a = auto[i];
 			
@@ -1125,9 +1129,21 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 					results[c] = Classification.FP;
 				} else if (!h[c] && !a[c]) {
 					results[c] = Classification.TN;
-				} 
+				}
+				if (hP[c] && aP[c]) {
+  				if (h[c] && a[c]) {
+  					results[c] = Classification.TP;
+  				} else if (h[c] && !a[c]) {
+  					results[c] = Classification.FN;
+  				} else if (!h[c] && a[c]) {
+  					results[c] = Classification.FP;
+  				} else if (!h[c] && !a[c]) {
+  					results[c] = Classification.TN;
+  				}
+				}
 			}
 			classifierResultsPerGate.put(name, results);
+			classifierResultsPrevPerGate.put(name, resultsPrev);
 		}
 	}
 	

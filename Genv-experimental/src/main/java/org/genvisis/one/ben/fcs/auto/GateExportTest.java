@@ -151,12 +151,19 @@ public class GateExportTest {
 				
 				fcp.setClassifierGate(g.getName());
 				
-				fcp.getPanel().setForceGatesChanged();
-				fcp.getPanel().createImage();
-
 				String name = g.getName();
 				String fNumD = getFNum(sn.fcsFile);
+
+				fcp.getPanel().classifierPrev = false;
+				fcp.getPanel().setForceGatesChanged();
+				fcp.getPanel().createImage();
 				fcp.screencap(outDir + fNumD + "/" + ext.replaceWithLinuxSafeCharacters(fNumD + "_" + name + ".png"));
+				
+				fcp.getPanel().classifierPrev = true;
+				fcp.getPanel().setForceGatesChanged();
+				fcp.getPanel().createImage();
+				fcp.screencap(outDir + fNumD + "/" + ext.replaceWithLinuxSafeCharacters(fNumD + "_" + name + "_prev.png"));
+				
 				fcp.gateSelected(g, true);
 			}
 			

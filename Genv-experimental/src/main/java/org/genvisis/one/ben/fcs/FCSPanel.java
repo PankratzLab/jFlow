@@ -518,9 +518,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		}
 	}
 	
-	
+	public boolean classifierPrev = false;
 	private void assignClassifierColors() {
-		Classification[] results = fcp.getClassifications();
+		Classification[] results = fcp.getClassifications(classifierPrev);
 		for (int i = 0; i < points.length; i++) {
 			points[i].setVisible(true);
 			points[i].setTempColor(results[i].color);
