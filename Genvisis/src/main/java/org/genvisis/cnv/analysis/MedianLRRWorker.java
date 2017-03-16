@@ -49,7 +49,6 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	// for storing region information
 	private class MarkerRegion {
 		private final String regionName;
-		// private int regionID;
 		private final int regionType; // 0 = UCSC ,1 =markerOnly
 		private final ArrayList<Integer> markerIndex;
 		private final ArrayList<String> markersInRegion;
@@ -58,9 +57,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
 		private MarkerRegion(String regionName, int regionID, int regionType) {
 			this.regionName = regionName;
-			// this.regionID = regionID;
 			this.regionType = regionType;
-			// stores marker indices
 			markerIndex = new ArrayList<Integer>();
 			// stores markers in the region
 			markersInRegion = new ArrayList<String>();
@@ -295,8 +292,6 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 																											"Assigning cnv copyNumber for "};
 	private static final String[] CLASSES_TO_DUMP = {"IID"};
 
-	// private static final String CNV_CLASSES = "COPYNUMBER" + MARKER_REGION_REGEX;
-
 	private static final String[] MARKER_REGION_RESULTS_SUFFIX = {"MEDIAN", "MAD", "BDeviation_All",
 																																"BDeviation_Het", "BMAF_Metric",
 																																"BMAF_Metric_Penalty",
@@ -371,9 +366,6 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		this.correctLRR = correctLRR;
 		this.correctXY = correctXY;
 		this.homozygousOnly = homozygousOnly;// only valid for marker-based approaches
-
-		// this.cnvFile =proj.getProperty(key)
-
 	}
 
 	// only if transforming by chromosome
@@ -465,8 +457,6 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 																 Transforms.TRANFORMATIONS[transformationType] + " "
 																																				+ Transforms.SCOPES[scope]);
 				computelog.report(job);
-				// String[] smallSamples = { samples[0] };
-				// samples = smallSamples;
 				newJob(job);
 				regionResults = getNormalizedMedianForRegions(markerRegions);
 				fileNameToVisualize = printResults(regionResults, markerRegions);
@@ -537,7 +527,6 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			}
 			// default to norm by chromosome
 			else {
-				// markerSet.getIndicesByChr()
 				lrrs = Transforms.transform(lrrs, transformationType, indices, transChrs);
 			}
 			for (int j = 0; j < markerRegions.length; j++) {
@@ -599,28 +588,16 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		projLog = proj.getLog();
 		if (correctLRR || correctXY || recomputeLRR) {// not truly necessary for recomputing LRR, but
 																									// currently forcing it anyway
-			// if (!Files.exists(proj.getFilename(proj.INTENSITY_PC_FILENAME))) {
 			if (!Files.exists(proj.INTENSITY_PC_FILENAME.getValue())) {
-				// String Error = "Error - could not find the file " +
-				// proj.getFilename(proj.INTENSITY_PC_FILENAME) + ", cannot perform intensity correction";
 				String Error = "Error - could not find the file " + proj.INTENSITY_PC_FILENAME.getValue()
 											 + ", cannot perform intensity correction";
 				computelog.reportError(Error);
 				warnAndCancel(Error);
 			} else {
-				// pcrs = new PrincipalComponentsResiduals(proj,
-				// proj.getFilename(proj.INTENSITY_PC_FILENAME), null,
-				// Integer.parseInt(proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false,
-				// false, null);
 				pcrs = new PrincipalComponentsResiduals(proj, proj.INTENSITY_PC_FILENAME.getValue(), null,
 																								proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS),
 																								false, 0, false, false, null);
 				samplesToUse = proj.getSamplesToInclude(null);
-				// projLog.report("Info - using " + Array.booleanArraySum(samplesToUse) + " individuals that
-				// were not defined as excluded in " + proj.getFilename(proj.SAMPLE_DATA_FILENAME) + " for
-				// correction clustering");
-				// projLog.reportTimeInfo("Correcting with " +
-				// proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS) + " components");
 				projLog.report("Info - using " + ArrayUtils.booleanArraySum(samplesToUse)
 											 + " individuals that were not defined as excluded in "
 											 + proj.SAMPLE_DATA_FILENAME.getValue() + " for correction clustering");
@@ -662,7 +639,6 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 																															 regionMarkers[i], 0, projLog);
 
 			if (recomputeLRR || correctLRR || correctXY) {
-				// int numThreads = Integer.parseInt(proj.getProperty(proj.NUM_THREADS));
 				int numThreads = proj.getProperty(proj.NUM_THREADS);
 				PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcrs,
 																																										markerData,
@@ -680,13 +656,9 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 																																										strategy);
 				if (recomputeLRR && !correctLRR) {
 					lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
-					// bafs = pcIntensity.getCentroidCompute().getRecomputedBAF();
 				} else if (correctLRR) {
 					pcIntensity.correctLRRAt(proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS));
 					lrrs = pcIntensity.getCorrectedLRR();
-					// double[] tmplrrs = pcIntensity.getCorrectedDataAt(Array.toDoubleArray(lrrs), null,
-					// Integer.parseInt(proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS)), false,
-					// regionMarkers[i], true).getResiduals();
 
 					if (lrrs == null) {
 						String Error = "Error - could not correct Log R Ratios for "
@@ -695,7 +667,6 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 						warnAndCancel(Error);
 					}
 				} else if (correctXY) {
-					// pcIntensity.correctXYAt(Integer.parseInt(proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS)));
 					pcIntensity.correctXYAt(proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS));
 					float[][] correctedLrrBafs = pcIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN,
 																																				 true);
@@ -744,7 +715,6 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			newJob("loading " + proj.CNV_FILENAMES.getValue().length + " cnv "
 						 + (proj.CNV_FILENAMES.getValue().length > 1 ? " files" : " file"));
 			// TODO potential bug in old code - sets array length to length of String, not of value array
-			// cnvFileCNs = new int[markerRegions.length][samples.length][proj.CNV_FILENAMES.length()];
 			cnvFileCNs = new int[markerRegions.length][samples.length][proj.CNV_FILENAMES.getValue().length];
 			computelog.report("Info - assigning cnvs for " + proj.CNV_FILENAMES.getValue().length
 												+ " cnv files");
@@ -894,9 +864,6 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private String printMedianLRRs(RegionResults regionResults, MarkerRegion[] markerRegions) {
 		boolean reportCNVCN = false;
 		String output = proj.PROJECT_DIRECTORY.getValue() + FILE_PREFIXES[0] + outputBase + FILE_EXT[0];
-		// Hashtable<String, String> hashSamps =
-		// HashVec.loadFileToHashString(proj.getFilename(proj.SAMPLE_DATA_FILENAME), "DNA",
-		// CLASSES_TO_DUMP, "\t");
 		Hashtable<String, String> hashSamps = HashVec.loadFileToHashString(proj.SAMPLE_DATA_FILENAME.getValue(),
 																																			 "DNA", CLASSES_TO_DUMP,
 																																			 "\t");
@@ -926,8 +893,6 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 																							 "[%" + 0 + "]",
 																							 ext.rootOf(regionResults.getCnvFileNames()[j]) + "_"
 																															 + markerRegion.getRegionName())));
-						// writer.print("\t" + ext.rootOf(regionResults.getCnvFileNames()[j]) + "_" +
-						// markerRegions[i].getRegionName());
 					}
 				}
 			}
@@ -1082,20 +1047,6 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		Project proj;
 		CHROMOSOME_X_STRATEGY strategy = CHROMOSOME_X_STRATEGY.BIOLOGICAL;
 
-		// String usage = "cnv.analysis.MedianLRRWorker requires 2 arguments\n" + "" + " (1) project
-		// properties filename (i.e. proj=" + cnv.Launch.getDefaultDebugProjectFile(false) + "
-		// (default))\n" + " (2) filename of the regions (one per line) in UCSC format
-		// (chr8:25129632-25130278) \n" + " OR:\n" + " formatted as \"" + MARKER_REGION_PREFIX +
-		// MARKER_REGION_DELIMITER + "(Your Region Name)" + MARKER_REGION_DELIMITER + "marker name 1" +
-		// MARKER_REGION_DELIMITER + "marker name 2...\"" + MARKER_REGION_DELIMITER + "\n" + " (i.e.
-		// regions=" + regionFileName + "(default))\n" + " OPTIONAL:\n" + " (3) transformation type
-		// (i.e. transform=0 (default, " + Transforms.TRANFORMATIONS[transformationType] + ")) \n" + "
-		// transformations are: " +
-		// Array.toStr(Transforms.TRANFORMATIONS) + "\n" + " (4) scope of transformation (i.e. scope=0
-		// (default))\n" + " scopes are: " + Array.toStr(Transforms.SCOPES) + "\n" + " (5) base name of
-		// the output files (i.e out=" + outputBase + " (default))\n" + " (6) name of the log file (i.e.
-		// log=" + logfile + "\n" + " (7) run program in headless mode to quiet gui errors when X11
-		// forwarding\n is un-available (i.e. headless=true (default));" + "";
 		String usage = "cnv.analysis.MedianLRRWorker requires 2 arguments\n";
 		usage += "   (1) project properties filename (i.e. proj="
 						 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n";
