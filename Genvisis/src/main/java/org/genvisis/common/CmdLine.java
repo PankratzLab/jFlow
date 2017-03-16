@@ -162,7 +162,7 @@ public class CmdLine {
 		Files.chmod(batFile);
 		return new String[] {batFile};
 	}
-
+	
 	public static boolean run(String command, String dir) {
 		return run(command, dir, null);
 	}
@@ -228,6 +228,10 @@ public class CmdLine {
 					break;
 				}
 			}
+		}
+		
+		if (Files.isWindows() && !(commandArray[0].equals("cmd") && commandArray[1].equals("/c"))) {
+			log.reportTimeWarning("FYI - the command may not work as it is not prefixed with \"cmd /c\" - this prefix is required to run command-line programs on Windows systems from within Java.");
 		}
 
 		try {

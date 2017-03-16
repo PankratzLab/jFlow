@@ -67,6 +67,7 @@ public class Files {
 	public static final String SERIALIZED_FILE_EXTENSION = ".ser";
 	public static final int PBS_MEM = 16384;
 	public static final int PBS_PROC = 1;
+	public static final int PBS_WALL = 12;
 
 
 	public static String getRunString() {

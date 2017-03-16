@@ -1,5 +1,6 @@
 package org.genvisis.one.ben;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -11,6 +12,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Vector;
+
+import javax.swing.ToolTipManager;
+import javax.swing.UIManager;
 
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.FilterCalls;
@@ -34,6 +38,7 @@ import org.genvisis.gwas.MergeExtractPipeline;
 import org.genvisis.one.ben.fcs.FCSFileDuplicator;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.qsub.QueuesParser;
 
 import com.google.common.io.Closeables;
@@ -238,9 +243,17 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
-			
-			String[] arr = QueuesParser.loadIDInfo();
-			System.out.println();
+
+			// set system-wide anti-aliasing
+			System.setProperty("awt.useSystemAAFontSettings", "on");
+			System.setProperty("swing.aatext", "true");
+
+			ToolTipManager.sharedInstance().setInitialDelay(0);
+			ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE - 1);
+			ToolTipManager.sharedInstance().setReshowDelay(0);
+
+			UIManager.put("ToolTip.background", Color.decode("#F5F5DC"));
+			Qsub.qsubGUI("test.qsub", "echo test");
 			
 			// System.out.println("Username: " + QueueControl.getUserName());
 			// System.out.println("Group: " + QueueControl.getCurrentGroup());

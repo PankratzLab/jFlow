@@ -2,7 +2,7 @@ package org.genvisis.qsub;
 
 import java.util.ArrayList;
 
-public class JobQueue {
+public final class JobQueue {
 	
 	public enum QueueType {
 		EXEC, ROUTE;

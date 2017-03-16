@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import org.genvisis.cnv.gui.QueuePicker;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -20,6 +22,109 @@ import com.google.common.primitives.Ints;
 
 public class Qsub {
 
+	/**
+	 * Display a GUI with fields for memory, wall-time, and # of processors.  <br /><br />
+	 * GUI is populated with info from the default properties file ({@link QueueProperties.PROPERTIES_FILE}).
+	 * 
+	 * @param filename Suggested filename of qsub file to be created
+	 * @param command Single string of command(s) to be written to a qsub file
+	 * @return Actual filename of created file
+	 */
+	public static String qsubGUI(String filename, String command) {
+		return qsubGUI(QueueProperties.PROPERTIES_FILE, filename, command);
+	}
+	
+	/**
+	 * Display a GUI with fields for memory, wall-time, and # of processors.  <br /><br />
+	 * GUI is populated with info from the given properties file.  
+	 * 
+	 * @param queuePropFile Queue properties file - it is intended that this point to a 
+	 * single queue.properties file, ideally located wherever the Genvisis executable is located.
+	 * @param filename Filename of qsub file to be created
+	 * @param command Single string of command(s) to be written to a qsub file
+	 */
+	public static String qsubGUI(String queuePropFile, String filename, String command) {
+		QueuePicker qp = new QueuePicker(filename);
+		UITools.centerComponent(qp);
+		List<JobQueue> queues = QueueProperties.getJobQueues(queuePropFile);
+		qp.populate(queues);
+		qp.setModal(true);
+		qp.setVisible(true);
+		
+		if (qp.wasCancelled()) {
+			qp.dispose();
+			return null;
+		}
+		
+		String file = qp.getFilename();
+		int mem = qp.getMemoryInMb();
+		int wall = qp.getWalltimeHours();
+		int proc = qp.getProcessors();
+		
+		qp.dispose();
+		
+		qsub(file, command, mem, wall, proc);
+		return file;
+	}
+	
+	/**
+	 * Create a qsub file. <br /><br />
+	 * Uses values for mem/proc/walltime based on the default JobQueue as defined
+	 *  in the default queue properties file ({@link QueueProperties.PROPERTIES_FILE}).  
+	 * If this file is missing and default values cannot be parsed from available 
+	 * queue information, Genvisis defaults will be used.
+	 * 
+	 * @param filename Filename of qsub file to be created
+	 * @param command Single string of command(s) to be written to a qsub file
+	 */
+	public static void qsubDefaults(String filename, String command) {
+		qsubDefaults(QueueProperties.PROPERTIES_FILE, filename, command);
+	}
+	
+	/**
+	 * Create a qsub file. <br /><br />
+	 * Uses values for mem/proc/walltime based on the default JobQueue as defined
+	 *  in the specified queue properties file.  
+	 * If this file is missing and default values cannot be parsed from available 
+	 * queue information, Genvisis defaults will be used.
+	 * 
+	 * @param queuePropFile Queue properties file - it is intended that this point to a 
+	 * single queue.properties file, ideally located wherever the Genvisis executable is located.
+	 * @param filename Filename of qsub file to be created
+	 * @param command Single string of command(s) to be written to a qsub file
+	 */
+	public static void qsubDefaults(String queuePropFile, String filename, String command) {
+		List<JobQueue> queues = QueueProperties.getJobQueues(queuePropFile);
+		JobQueue def = QueuesParser.findSensibleDefault(queues);
+		qsubDefaults(def, filename, command);
+	}
+	
+	/**
+	 * Create a qsub file using the default mem/wall/proc values in the given JobQueue.  
+	 * If these values are missing or not set, use Genvisis defaults.
+	 * 
+	 * @param queue A JobQueue
+	 * @param filename Filename of qsub file to be created
+	 * @param command Single string of command(s) to be written to a qsub file
+	 */
+	public static void qsubDefaults(JobQueue queue, String filename, String command) {
+		int mem = Files.PBS_MEM;
+		int proc = Files.PBS_PROC;
+		int wall = Files.PBS_WALL;
+		if (queue != null) {
+			if (queue.getDefaultMem() != -1) {
+				mem = (int) queue.getDefaultMem();
+			}
+			if (queue.getDefaultProc() != -1) {
+				proc = queue.getDefaultProc();
+			}
+			if (queue.getDefaultWalltime() != -1) {
+				wall = queue.getDefaultWalltime();
+			}
+		}
+		qsub(filename, command, mem, wall, proc);
+	}
+	
 	public static void makeQsub(String filename, boolean multiple, int start, int stop,
 															boolean separate, String[] patterns,
 															boolean changeToCurrentWorkingDirectoryFirst) {
@@ -78,8 +183,16 @@ public class Qsub {
 		}
 		
 		Qsub.writeQsubHeader(writer, filename, totalMemoryRequestedInMb, walltimeRequestedInHours,	numProcs, null);
-
+		
+		boolean rewriteJavaCmd = (totalMemoryRequestedInMb / 1024) > 1; // default Java heap size is min(1/4 mem avail, 1GB)
+		
 		for (String line : lines) {
+			if (line.startsWith("java ")) {
+				if (!line.contains("-Xmx") && rewriteJavaCmd) {
+					int memG = (totalMemoryRequestedInMb / 1024);
+					line = line.replace("java ", "java -Xmx" + memG + "G ");
+				}
+			}
 			writer.println(line);
 		}
 		writer.println("echo \"end " + ext.rootOf(filename) + " at: \" `date`");

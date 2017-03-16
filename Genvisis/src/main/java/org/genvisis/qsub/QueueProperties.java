@@ -8,12 +8,13 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.genvisis.cnv.Launch;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 
 public final class QueueProperties {
 	
-	private static final String PROPERTIES_FILE = "queues.properties";
+	public static final String PROPERTIES_FILE = Launch.getJarDirectory() + "queues.properties";
 	
 	private static Logger log = new Logger();
 	private static List<JobQueue> qList;
@@ -119,28 +120,35 @@ public final class QueueProperties {
 	
 	private QueueProperties() {}
 	
-	public static List<JobQueue> getJobQueues() {
+	public static List<JobQueue> getJobQueues(String propFile) {
 		if (qList == null) {
-			load();
+			load(propFile);
 		}
 		return qList == null ? new ArrayList<JobQueue>() : qList;
 	}
 	
-	public static synchronized void load() {
-		if (Files.exists(PROPERTIES_FILE)) {
-			loadFile();
+	public static List<JobQueue> getJobQueues() {
+		if (qList == null) {
+			load(PROPERTIES_FILE);
+		}
+		return qList == null ? new ArrayList<JobQueue>() : qList;
+	}
+	
+	public static synchronized void load(String propFile) {
+		if (Files.exists(propFile)) {
+			loadFile(propFile);
 		} else {
 			log.report("No queue properties file found; Initializing programmatically.  Please edit the generated queue.properties file by hand with relevant information.");
-			init();
+			init(propFile);
 		}
 	}
 	
-	private static void loadFile() {
+	private static void loadFile(String propFile) {
 		BufferedReader reader;
 		try {
-			reader = Files.getAppropriateReader(PROPERTIES_FILE);
+			reader = Files.getAppropriateReader(propFile);
 		} catch (FileNotFoundException e) {
-			log.reportError("Couldn't read properties file: " + PROPERTIES_FILE);
+			log.reportError("Couldn't read properties file: " + propFile);
 			log.reportException(e);
 			return;
 		}
@@ -149,6 +157,7 @@ public final class QueueProperties {
 		qList = new ArrayList<JobQueue>();
 		try {
 			while ((line = reader.readLine()) != null) {
+				if ("".equals(line)) continue;
 				if (line.startsWith(QueueKeys.Q_NAME.toString())) {
 					if (q != null) {
 						qList.add(q);
@@ -182,7 +191,7 @@ public final class QueueProperties {
 		}
 	}
 	
-	private static synchronized void init() {
+	private static synchronized void init(String propFile) {
 		if (qList == null) {
 			List<JobQueue> allQs = QueuesParser.parseAllowedQueues(log);
 			qList = new ArrayList<JobQueue>();
@@ -191,7 +200,7 @@ public final class QueueProperties {
 					qList.add(q);
 				}
 			}
-			save();
+			save(propFile);
 		}
 	}
 	
@@ -199,12 +208,12 @@ public final class QueueProperties {
 	/**
 	 * Write the current properties to disk
 	 */
-	private static synchronized void save() {
+	public static synchronized void save(String propFile) {
 		PrintWriter out;
 		
 		if (qList != null) {
 			try {
-				out = Files.getAppropriateWriter(PROPERTIES_FILE);
+				out = Files.getAppropriateWriter(propFile);
 				QueueKeys[] keys = QueueKeys.values();
 				
 				for (JobQueue q : qList) {
@@ -217,9 +226,17 @@ public final class QueueProperties {
 			  out.flush();
 				out.close();
 			} catch (Exception e) {
-				System.err.println("Failed to save PBS queue properties: " + PROPERTIES_FILE);
+				System.err.println("Failed to save PBS queue properties: " + propFile);
 			}
 		}
+	}
+
+	public static JobQueue createNewQueue(String qName, boolean setAsDefault) {
+		JobQueue jq = new JobQueue();
+		jq.setName(qName);
+		jq.setDefaultQueue(setAsDefault);
+		qList.add(jq);
+		return jq;
 	}
 
 	

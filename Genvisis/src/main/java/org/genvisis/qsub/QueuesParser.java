@@ -352,7 +352,7 @@ public class QueuesParser {
 	 * @param queues List of PBS Queues
 	 * @return
 	 */
-	public static JobQueue findSensibleDefault(ArrayList<JobQueue> queues) {
+	public static JobQueue findSensibleDefault(List<JobQueue> queues) {
 		List<JobQueue> allowed = filterAllowed(queues); // maybe already filtered, but just in case
 
 		JobQueue routeQueueMost = null;

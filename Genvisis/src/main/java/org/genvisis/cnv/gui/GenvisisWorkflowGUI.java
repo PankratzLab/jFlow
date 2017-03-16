@@ -135,7 +135,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 		{
 			JPanel buttonPane = new JPanel();
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
-			buttonPane.setLayout(new MigLayout("hidemode 2", "[][][][][][][][grow][][][]", "[]"));
+			buttonPane.setLayout(new MigLayout("hidemode 2", "[][][][][][][][grow][][][][]", "[]"));
 
 			JLabel lblSelect = new JLabel("Select:");
 			buttonPane.add(lblSelect, "flowx,cell 0 0");
@@ -251,7 +251,9 @@ public class GenvisisWorkflowGUI extends JDialog {
 						cancelled = true;
 						doClose();
 					} else if (e.getActionCommand().equals("Export")) {
-						exportToText();
+						exportToText(false);
+					} else if (e.getActionCommand().equals("ExportDefaults")) {
+						exportToText(true);
 					} else {
 						run();
 					}
@@ -262,17 +264,22 @@ public class GenvisisWorkflowGUI extends JDialog {
 			btnExportToText.addActionListener(listener);
 			btnExportToText.setMargin(btnInsets);
 			buttonPane.add(btnExportToText, "cell 8 0, alignx right");
+			btnExportToTextDefaults = new JButton("Export Defaults");
+			btnExportToTextDefaults.setActionCommand("ExportDefaults");
+			btnExportToTextDefaults.addActionListener(listener);
+			btnExportToTextDefaults.setMargin(btnInsets);
+			buttonPane.add(btnExportToTextDefaults, "cell 9 0, alignx right");
 			btnOk = new JButton("Run");
 			btnOk.setMargin(btnInsets);
 			btnOk.setActionCommand("Run");
 			btnOk.setMnemonic(KeyEvent.VK_O);
-			buttonPane.add(btnOk, "cell 9 0,alignx right");
+			buttonPane.add(btnOk, "cell 10 0,alignx right");
 			getRootPane().setDefaultButton(btnOk);
 			btnCancel = new JButton("Close");
 			btnCancel.setMargin(btnInsets);
 			btnCancel.setActionCommand("Close");
 			btnCancel.setMnemonic(KeyEvent.VK_C);
-			buttonPane.add(btnCancel, "cell 10 0,alignx left");
+			buttonPane.add(btnCancel, "cell 11 0,alignx left");
 
 			btnOk.addActionListener(listener);
 			btnCancel.addActionListener(listener);
@@ -786,6 +793,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 	private Thread runThread;
 
 	private JButton btnExportToText;
+	private JButton btnExportToTextDefaults;
 	private JButton btnOk;
 	private JButton btnCancel;
 
@@ -813,6 +821,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 					btnCancel.setEnabled(!lock);
 					btnOk.setEnabled(!lock);
 					btnExportToText.setEnabled(!lock);
+					btnExportToTextDefaults.setEnabled(!lock);
 				}
 			});
 		} catch (InvocationTargetException e) {
@@ -822,7 +831,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 		}
 	}
 
-	private void exportToText() {
+	private void exportToText(final boolean useDefaults) {
 		running = true;
 		new Thread(new Runnable() {
 			@Override
@@ -846,15 +855,25 @@ public class GenvisisWorkflowGUI extends JDialog {
 										.append("\n");
 							output.append("\n\n");
 						}
-						Files.write(output.toString(),
-												proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.run");
-						Qsub.qsub(proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline."
-											 + ext.getTimestampForFilename() + ".pbs", output.toString(), Files.PBS_MEM,
-											 48,
-											 Files.PBS_PROC);
-						proj.message("GenvisisPipeline commands written to " + proj.PROJECT_DIRECTORY.getValue()
-												 + "GenvisisPipeline.run", "Command File Written",
-												 JOptionPane.INFORMATION_MESSAGE);
+						String file = proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline";
+						String suggFile = file + ext.getTimestampForFilename() + ".pbs";
+						String runFile = file + ext.getTimestampForFilename() + ".run";
+						String command = output.toString();
+						if (useDefaults) {
+							Qsub.qsubDefaults(suggFile, command);
+						} else {
+							file = Qsub.qsubGUI(suggFile, command);
+							if (file != null) {
+  							if (!file.endsWith(".qsub") && !file.endsWith(".pbs")) {
+  								file = file + ".pbs";
+  							}
+  							runFile = ext.rootOf(file, false) + ".run";
+							}
+						}
+						if (file != null) {
+							Files.write(output.toString(), runFile);
+							proj.message("GenvisisPipeline commands written to " + runFile, "Command File Written", JOptionPane.INFORMATION_MESSAGE);
+						}
 					}
 				} catch (Exception e) {
 					proj.getLog().reportException(e);;
