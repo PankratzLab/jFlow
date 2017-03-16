@@ -859,7 +859,7 @@ public final class Resources {
 																				String remotePath, String makePath) {
 
 			String makeDir = makePath == null ? null : localPath() + makePath;
-			Collection<String> unzippedPaths = Lists.newArrayListWithExpectedSize(indicatorFiles.size());
+			Collection<String> unzippedPaths = Lists.newArrayListWithCapacity(indicatorFiles.size());
 			for (String indicatorFile : indicatorFiles) {
 				unzippedPaths.add(localPath() + indicatorFile);
 			}

@@ -1270,7 +1270,7 @@ public class PlinkData {
 		}
 
 		MarkerDetailSet markerSet = proj.getMarkerSet();
-		List<String> targetMarkersList = Lists.newArrayListWithExpectedSize(targetMarkersSet.size());
+		List<String> targetMarkersList = Lists.newArrayListWithCapacity(targetMarkersSet.size());
 		for (Marker marker : markerSet.getMarkersSortedByChrPos()) {
 			if (targetMarkersSet.contains(marker.getName()))
 				targetMarkersList.add(marker.getName());
