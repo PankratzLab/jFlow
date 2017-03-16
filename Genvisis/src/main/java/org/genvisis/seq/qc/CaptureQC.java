@@ -12,10 +12,10 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
-import org.genvisis.filesys.GeneData;
-import org.genvisis.filesys.GeneTrack;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.BEDFileReader;
+import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
 import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.stats.Rscript.GeomText;
 import org.genvisis.stats.Rscript.RScatter;
@@ -34,94 +34,183 @@ public class CaptureQC {
 																																		"Percent_Covered_at_depth_40"};
 	private static final String[] PLOT_BY_POS_ACTUAL = new String[] {"averageCoverage"};
 
-	public static void captureQC(String referenceGenomeFasta, String bamQCSummary,
-															 String extraPostionFile, String geneTrackFile, String[] geneNames,
-															 String outputDir, String root, boolean allInOne, Logger log) {
+	public static void captureQCBed(String referenceGenomeFasta, String bamQCSummary,
+																	String extraPostionFile, String targetBedFile, String[] geneNames,
+																	String outputDir, String root, boolean allInOne, Logger log) {
 		if (extraPostionFile != null) {
 			GeomText.fromFile(extraPostionFile, log);
 		}
 
-		GeneTrack geneTrack = GeneTrack.load(geneTrackFile, false);
 		ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
 		String output = outputDir + root + "fullSummary.capture.txt";
 
-		if (!allInOne || !Files.exists(output)) {
+		LocusSet<BEDFeatureSeg> bedSet = new BEDFileReader(targetBedFile, false).loadAll(log);
 
-			ArrayList<GeneData> gds = new ArrayList<GeneData>();
-			for (String geneName : geneNames) {
-				GeneData[] tmp = geneTrack.lookupAllGeneData(geneName);
-				for (GeneData element : tmp) {
-					gds.add(element);
+		ArrayList<BEDFeatureSeg> targets = new ArrayList<BEDFileReader.BEDFeatureSeg>();
+		for (BEDFeatureSeg seg : bedSet.getLoci()) {
+			String[] info = seg.getBedFeature().getName().split("\\|");
+			// System.out.println(ArrayUtils.toStr(info));
+			// System.exit(1);
+			found: for (String gene : geneNames) {
+				for (String vals : info) {
+					if (vals.contains(gene + ",")) {
+						// System.out.println(vals + "\t" + seg.getUCSClocation());
+						targets.add(seg);
+						break found;
+					}
 				}
 			}
-			LocusSet<GeneData> geneSet = new LocusSet<GeneData>(gds.toArray(new GeneData[gds.size()]),
-																													true, log) {
+		}
+		LocusSet<BEDFeatureSeg> targetSet = new LocusSet<BEDFileReader.BEDFeatureSeg>(targets, true,
+																																									log);
+		// for (int i = 0; i < geneNames.length; i++) {
 
-				/**
-				* 
-				*/
-				private static final long serialVersionUID = 1L;
+		try {
+			// ArrayList<RScatter> rsScatters = new ArrayList<RScatter>();
+			PrintWriter writer = new PrintWriter(new FileWriter(output, false));
+			String[] header = Files.getHeaderOfFile(bamQCSummary, log);
+			writer.println("GENE_NAME\tName\tPosition\tGC_REF\tHIDE" + ArrayUtils.toStr(header)
+										 + "\tBedVal");
 
-			};
+			int UCSCIndex = ext.indexOfStr(UCSC, header);
+			BufferedReader reader = Files.getAppropriateReader(bamQCSummary);
+			reader.readLine();
+			while (reader.ready()) {
 
-			// for (int i = 0; i < geneNames.length; i++) {
+				String[] line = reader.readLine().trim().split("\t");
+				Segment seg = new Segment(line[UCSCIndex]);
+				int[] exacts = targetSet.getOverlappingIndices(seg);
 
-			try {
-				// ArrayList<RScatter> rsScatters = new ArrayList<RScatter>();
-				PrintWriter writer = new PrintWriter(new FileWriter(output, false));
-				String[] header = Files.getHeaderOfFile(bamQCSummary, log);
-				writer.println("GENE_NAME\tExon\tPosition\tGC_REF\tHIDE" + ArrayUtils.toStr(header)
-											 + "\tInternalKey");
+				if (exacts != null && exacts.length > 0) {
+					if (exacts.length > 1) {
+						throw new IllegalStateException();
+					}
+					System.out.println("HID");
+					BEDFeatureSeg[] exactSegs = ArrayUtils.subArray(targetSet.getLoci(), exacts);
 
-				int UCSCIndex = ext.indexOfStr(UCSC, header);
-				BufferedReader reader = Files.getAppropriateReader(bamQCSummary);
-				reader.readLine();
-				while (reader.ready()) {
+					// double gcRegion = referenceGenome.getGCContentFor(seg);
 
-					String[] line = reader.readLine().trim().split("\t");
-					Segment seg = new Segment(line[UCSCIndex]);
-					GeneData[] overlapping = geneSet.getOverLappingLoci(seg);
-					if (overlapping != null) {
-						double gcRegion = referenceGenome.getGCContentFor(seg);
-						for (GeneData currentData : overlapping) {
-							for (int j = 0; j < currentData.getExonBoundaries().length; j++) {
-								Segment exon = new Segment(currentData.getChr(),
-																					 currentData.getExonBoundaries()[j][0],
-																					 currentData.getExonBoundaries()[j][1]);
-								if (seg.overlaps(exon)) {
-									if (allInOne) {
-										writer.println(currentData.getGeneName() + "\t" + (j + 1) + "\t"
-																	 + seg.getStart() + "\t" + gcRegion + "\t"
-																	 + ArrayUtils.toStr(line) + "\t0");
-									} else {// print bp resolution
-										for (int k = seg.getStart(); k <= seg.getStop(); k++) {
-											if (exon.getStart() <= k && exon.getStop() >= k) {
-												writer.println(currentData.getGeneName() + "\t" + (j + 1) + "\t" + k + "\t"
-																			 + gcRegion + "\t" + ArrayUtils.toStr(line) + "\t" + j + "_"
-																			 + k);
-											}
-										}
-									}
+					for (BEDFeatureSeg currentData : exactSegs) {
+						String[] info = currentData.getBedFeature().getName().split("\\|");
+
+						found: for (String gene : geneNames) {
+							for (String vals : info) {
+								if (vals.contains(gene + ",")) {
+									// System.out.println(vals + "\t" + seg.getUCSClocation());
+									writer.println(gene + "\t" + currentData.getBedFeature().getName() + "\t"
+																 + seg.getUCSClocation() + "\t" + "NaN" + "\t"
+																 + ArrayUtils.toStr(line) + "\t" + vals);
+									break found;
 								}
 							}
 						}
 					}
 				}
-				reader.close();
-				writer.close();
-			} catch (FileNotFoundException fnfe) {
-				log.reportError("Error: file \"" + bamQCSummary + "\" not found in current directory");
-				return;
-			} catch (IOException ioe) {
-				log.reportError("Error reading file \"" + bamQCSummary + "\"");
-				return;
 			}
-
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + bamQCSummary + "\" not found in current directory");
+			return;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + bamQCSummary + "\"");
+			return;
 		}
+
+
 
 		plot(new String[] {"Full Summary"}, log, null, 0, output, true);
 
 	}
+	//
+	// public static void captureQCGenetrack(String referenceGenomeFasta, String bamQCSummary,
+	// String extraPostionFile, String geneTrackFile, String[] geneNames,
+	// String outputDir, String root, boolean allInOne, Logger log) {
+	// if (extraPostionFile != null) {
+	// GeomText.fromFile(extraPostionFile, log);
+	// }
+	//
+	// GeneTrack geneTrack = GeneTrack.load(geneTrackFile, false);
+	// ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
+	// String output = outputDir + root + "fullSummary.capture.txt";
+	//
+	// if (!allInOne || !Files.exists(output)) {
+	//
+	// ArrayList<GeneData> gds = new ArrayList<GeneData>();
+	// for (String geneName : geneNames) {
+	// GeneData[] tmp = geneTrack.lookupAllGeneData(geneName);
+	// for (GeneData element : tmp) {
+	// gds.add(element);
+	// }
+	// }
+	// LocusSet<GeneData> geneSet = new LocusSet<GeneData>(gds.toArray(new GeneData[gds.size()]),
+	// true, log) {
+	//
+	// /**
+	// *
+	// */
+	// private static final long serialVersionUID = 1L;
+	//
+	// };
+	//
+	// // for (int i = 0; i < geneNames.length; i++) {
+	//
+	// try {
+	// // ArrayList<RScatter> rsScatters = new ArrayList<RScatter>();
+	// PrintWriter writer = new PrintWriter(new FileWriter(output, false));
+	// String[] header = Files.getHeaderOfFile(bamQCSummary, log);
+	// writer.println("GENE_NAME\tExon\tPosition\tGC_REF\tHIDE" + ArrayUtils.toStr(header)
+	// + "\tInternalKey");
+	//
+	// int UCSCIndex = ext.indexOfStr(UCSC, header);
+	// BufferedReader reader = Files.getAppropriateReader(bamQCSummary);
+	// reader.readLine();
+	// while (reader.ready()) {
+	//
+	// String[] line = reader.readLine().trim().split("\t");
+	// Segment seg = new Segment(line[UCSCIndex]);
+	// GeneData[] overlapping = geneSet.getOverLappingLoci(seg);
+	// if (overlapping != null) {
+	// double gcRegion = referenceGenome.getGCContentFor(seg);
+	// for (GeneData currentData : overlapping) {
+	// for (int j = 0; j < currentData.getExonBoundaries().length; j++) {
+	// Segment exon = new Segment(currentData.getChr(),
+	// currentData.getExonBoundaries()[j][0],
+	// currentData.getExonBoundaries()[j][1]);
+	// if (seg.overlaps(exon)) {
+	// if (allInOne) {
+	// writer.println(currentData.getGeneName() + "\t" + (j + 1) + "\t"
+	// + seg.getStart() + "\t" + gcRegion + "\t"
+	// + ArrayUtils.toStr(line) + "\t0");
+	// } else {// print bp resolution
+	// for (int k = seg.getStart(); k <= seg.getStop(); k++) {
+	// if (exon.getStart() <= k && exon.getStop() >= k) {
+	// writer.println(currentData.getGeneName() + "\t" + (j + 1) + "\t" + k + "\t"
+	// + gcRegion + "\t" + ArrayUtils.toStr(line) + "\t" + j + "_"
+	// + k);
+	// }
+	// }
+	// }
+	// }
+	// }
+	// }
+	// }
+	// }
+	// reader.close();
+	// writer.close();
+	// } catch (FileNotFoundException fnfe) {
+	// log.reportError("Error: file \"" + bamQCSummary + "\" not found in current directory");
+	// return;
+	// } catch (IOException ioe) {
+	// log.reportError("Error reading file \"" + bamQCSummary + "\"");
+	// return;
+	// }
+	//
+	// }
+	//
+	// plot(new String[] {"Full Summary"}, log, null, 0, output, true);
+	//
+	// }
 
 	private static void plot(String[] geneNames, Logger log, GeomText[] geomTexts, int i,
 													 String output, boolean allinone) {
@@ -207,7 +296,7 @@ public class CaptureQC {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String bamQCSummary = "rrd_bamQC.targets.libraryResults.summary.txt";
-		String geneTrackFile = "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/RefSeq_hg19.gtrack";
+		String targetBed = "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/RefSeq_hg19.gtrack";
 		String referenceGenomeFasta = "/panfs/roc/groups/5/pankrat2/public/bin/ref/hg19_canonical.fa";
 		String[] geneNames = new String[] {"TP53"};
 		String outputDir = null;
@@ -217,7 +306,8 @@ public class CaptureQC {
 		boolean allInOne = true;
 		String usage = "\n" + "seq.qc.CaptureQC requires 0-1 arguments\n";
 		usage += "   (1) bamQC file (i.e. bamQCSummary=" + bamQCSummary + " (default))\n" + "";
-		usage += "   (2) gene track file(i.e. geneTrackFile=" + geneTrackFile + " (default))\n" + "";
+		usage += "   (2) full target bed file (including names)(i.e. targetBed=" + targetBed
+						 + " (default))\n" + "";
 		usage += "   (3) comma delimited gene names(i.e. geneNames=" + ArrayUtils.toStr(geneNames, ",")
 						 + " (default))\n" + "";
 		usage += "   (4) output directory (i.e. outputDir= ( no default))\n" + "";
@@ -232,14 +322,17 @@ public class CaptureQC {
 			} else if (arg.startsWith("bamQCSummary=")) {
 				bamQCSummary = arg.split("=")[1];
 				numArgs--;
-			} else if (arg.startsWith("geneTrackFile=")) {
-				geneTrackFile = arg.split("=")[1];
+			} else if (arg.startsWith("targetBed=")) {
+				targetBed = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("geneNames=")) {
 				geneNames = arg.split("=")[1].split(",");
 				numArgs--;
 			} else if (arg.startsWith("outputDir=")) {
 				outputDir = arg.split("=")[1];
+				numArgs--;
+			} else if (arg.startsWith("referenceGenomeFasta=")) {
+				referenceGenomeFasta = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("extrap=")) {
 				extraPostionFile = arg.split("=")[1];
@@ -267,8 +360,8 @@ public class CaptureQC {
 				geneNames = ArrayUtils.unique(geneNames);
 				log.reportTimeInfo("Loaded " + geneNames.length + " genes");
 			}
-			captureQC(referenceGenomeFasta, bamQCSummary, extraPostionFile, geneTrackFile, geneNames,
-								outputDir, root, allInOne, log);
+			captureQCBed(referenceGenomeFasta, bamQCSummary, extraPostionFile, targetBed, geneNames,
+									 outputDir, root, allInOne, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
