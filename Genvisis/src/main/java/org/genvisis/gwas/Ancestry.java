@@ -1,7 +1,6 @@
 package org.genvisis.gwas;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
@@ -13,12 +12,9 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 
@@ -115,7 +111,8 @@ public class Ancestry {
 
 		if (!Files.exists(dir + "combo.missnp")) {
 			log.report(ext.getTime() + "]\tMerging study data and HapMap data for overlapping SNPs");
-			runQuietBmerge(dir, "unambiguous", "unambiguousHapMap", "combo", false, log);
+			CmdLine.runDefaults("plink --bfile unambiguous --bmerge unambiguousHapMap.bed unambiguousHapMap.bim unambiguousHapMap.fam --out combo --noweb",
+													dir, log);
 		}
 
 		if (Files.exists(dir + "combo.missnp")) {
@@ -126,7 +123,8 @@ public class Ancestry {
 			new File(dir + "combo.missnp").renameTo(new File(dir + "combo.1.missnp"));
 			CmdLine.runDefaults("plink2 --bfile unambiguous --flip combo.1.missnp --make-bed --out unambiguousFlipped --noweb",
 													dir, log);
-			runQuietBmerge(dir, "unambiguousFlipped", "unambiguousHapMap", "combo", true, log);
+			CmdLine.runDefaults("plink --bfile unambiguousFlipped --bmerge unambiguousHapMap.bed unambiguousHapMap.bim unambiguousHapMap.fam --make-bed --out combo --noweb",
+													dir, log);
 			if (Files.exists(dir + "combo.missnp")) {
 				if (Files.exists(dir + "combo.2.missnp")) {
 					new File(dir + "combo.2.missnp").delete();
@@ -137,8 +135,8 @@ public class Ancestry {
 														dir, log);
 				CmdLine.runDefaults("plink2 --bfile unambiguousHapMap --exclude combo.2.missnp --make-bed --out unambiguousDroppedHapMap --noweb",
 														dir, log);
-				runQuietBmerge(dir, "unambiguousFlippedDropped", "unambiguousDroppedHapMap", "combo", true,
-											 log);
+				CmdLine.runDefaults("plink --bfile unambiguousFlippedDropped --bmerge unambiguousDroppedHapMap.bed unambiguousDroppedHapMap.bim unambiguousDroppedHapMap.fam --make-bed --out combo --noweb",
+														dir, log);
 			}
 		}
 
@@ -148,24 +146,6 @@ public class Ancestry {
 																								false),
 													dir + "finalSNPs.txt");
 		}
-	}
-
-	private static void runQuietBmerge(String dir, String basePlinkroot, String mergePlinkroot,
-																		 String outPlinkroot, boolean makeBed, Logger log) {
-		ImmutableList.Builder<String> commands = new ImmutableList.Builder<String>();
-		commands.add("plink");
-		commands.add("--bfile").add(basePlinkroot);
-		commands.add("--bmerge").addAll(PSF.Plink.getPlinkBedBimFamSet(mergePlinkroot));
-		if (makeBed)
-			commands.add("--make-bed");
-		commands.add("--out").add(outPlinkroot);
-		commands.add("--noweb");
-		Collection<String> inputs = PSF.Plink.getPlinkBedBimFamSet(basePlinkroot);
-		inputs.addAll(PSF.Plink.getPlinkBedBimFamSet(mergePlinkroot));
-		Collection<String> outputs = ImmutableSet.of();
-
-		CmdLine.runCommandWithFileChecks(commands.build(), dir, inputs, outputs, true, true, true,
-																		 true, log);
 	}
 
 	public static void runEigenstrat(String dir) {
