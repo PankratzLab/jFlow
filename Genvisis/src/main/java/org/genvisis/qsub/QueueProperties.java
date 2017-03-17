@@ -11,13 +11,16 @@ import java.util.List;
 import org.genvisis.cnv.Launch;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public final class QueueProperties {
 	
 	public static final String PROPERTIES_FILE = Launch.getJarDirectory() + "queues.properties";
 	
+	private static final String DEFAULT_QUEUE_KEY = "Q_DEFAULT=";
 	private static Logger log = new Logger();
 	private static List<JobQueue> qList;
+	private static String defaultQueueName = "";
 	
 	private enum QueueKeys {
 		Q_NAME() {
@@ -158,6 +161,10 @@ public final class QueueProperties {
 		try {
 			while ((line = reader.readLine()) != null) {
 				if ("".equals(line)) continue;
+				if (line.startsWith(DEFAULT_QUEUE_KEY)) {
+					defaultQueueName = ext.parseStringArg(line);
+					continue;
+				}
 				if (line.startsWith(QueueKeys.Q_NAME.toString())) {
 					if (q != null) {
 						qList.add(q);
@@ -223,6 +230,9 @@ public final class QueueProperties {
 					}
 					out.println();
 				}
+				out.println();
+				out.println(DEFAULT_QUEUE_KEY + defaultQueueName);
+				out.println();
 			  out.flush();
 				out.close();
 			} catch (Exception e) {
@@ -237,6 +247,14 @@ public final class QueueProperties {
 		jq.setDefaultQueue(setAsDefault);
 		qList.add(jq);
 		return jq;
+	}
+
+	public static void setDefaultQueueName(String name) {
+		defaultQueueName = name;
+	}
+
+	public static String getDefaultQueueName() {
+		return defaultQueueName;
 	}
 
 	

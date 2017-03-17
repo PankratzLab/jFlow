@@ -119,6 +119,11 @@ public class QueuePicker extends JDialog {
 		}
 		{
 			comboMemUnit = new JComboBox();
+			comboMemUnit.addItemListener(new ItemListener() {
+				public void itemStateChanged(ItemEvent e) {
+					updateMemDefault();
+				}
+			});
 			comboMemUnit.setModel(new DefaultComboBoxModel(MEM_UNITS));
 			comboMemUnit.setSelectedIndex(1);
 			contentPanel.add(comboMemUnit, "cell 1 4");
@@ -143,7 +148,7 @@ public class QueuePicker extends JDialog {
 		}
 		{
 			spinWallHours = new JSpinner();
-			spinWallHours.setModel(new SpinnerNumberModel(0, 0, 99, 1));
+			spinWallHours.setModel(new SpinnerNumberModel(0, 0, 24, 1));
 			spinWallHours.setEditor(new JSpinner.NumberEditor(spinWallHours, "00"));
 			contentPanel.add(spinWallHours, "cell 1 5");
 		}
@@ -234,14 +239,52 @@ public class QueuePicker extends JDialog {
 			jq.setDefaultWalltime(getWalltimeHours());
 			jq.setDefaultProcCnt(getProcessors());
 			
+			QueueProperties.setDefaultQueueName(jq.getName());
 			QueueProperties.save(QueueProperties.PROPERTIES_FILE);
 		}
 	}
 	
 	protected void customQueue() {
-		System.out.println("Creating custom queue");
+		//
 	}
 
+	private void updateMemDefault() {
+		if (settingLimits) return;
+		JobQueue jq = premadeQueues.get(comboQueue.getSelectedItem());
+		if (jq == null) return;
+		
+		long m;
+		m = jq.getDefaultMem();
+		
+		long mMin = jq.getMinMem();
+		if (mMin < 0) {
+			mMin = 0;
+		}
+		long mMax = jq.getMaxMem();
+		if (mMin < 0) {
+			mMax = 99;
+		}
+		
+		int trans = 1;
+		String memUnit = (String) comboMemUnit.getSelectedItem();
+		if (memUnit.equals(TB)) {
+			trans = 1024 * 1024 * 1024;
+		} else if (memUnit.equals(GB)) {
+			trans = 1024 * 1024;
+		} else if (memUnit.equals(MB)) {
+			trans = 1024;
+		} else if (memUnit.equals(B)) {
+			// do nothing
+		}
+		spinMem.setModel(new SpinnerNumberModel((int) m / trans, (int) mMin / trans, (int) mMax / trans, 1));
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append(jq.getMinMem() >= 0 ? memTransform(jq.getMinMem()) : "??")
+			.append(" / ")
+			.append(jq.getMaxMem() >= 0 ? memTransform(jq.getMaxMem()) : "??");
+		lblMemMinMax.setText(sb.toString());
+	}
+	
 	protected void queueSelected(String queueName) {
 		JobQueue jq = premadeQueues.get(queueName);
 		if (jq == null) {
@@ -251,7 +294,24 @@ public class QueuePicker extends JDialog {
 		setLimits(jq);
 	}
 	
+	private long memTransform(long m) {
+		String memUnit = (String) comboMemUnit.getSelectedItem();
+		long mem = m;
+		if (memUnit.equals(TB)) {
+			mem = mem / 1024 / 1024 / 1024;
+		} else if (memUnit.equals(GB)) {
+			mem = mem / 1024 / 1024;
+		} else if (memUnit.equals(MB)) {
+			mem = mem / 1024;
+		} else if (memUnit.equals(B)) {
+			// do nothing
+		}
+		return mem;
+	}
+	
+	volatile boolean settingLimits = false;
 	private void setLimits(JobQueue jq) {
+		settingLimits = true;
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(jq.getMinProc() >= 0 ? jq.getMinProc() : "??")
@@ -260,16 +320,63 @@ public class QueuePicker extends JDialog {
 		lblProcMinMax.setText(sb.toString());
 		sb = new StringBuilder();
 		
-		sb.append(jq.getMinMem() >= 0 ? jq.getMinMem() : "??")
+		sb.append(jq.getMinMem() >= 0 ? memTransform(jq.getMinMem()) : "??")
 			.append(" / ")
-			.append(jq.getMaxProc() >= 0 ? jq.getMaxMem() : "??");
+			.append(jq.getMaxMem() >= 0 ? memTransform(jq.getMaxMem()) : "??");
 		lblMemMinMax.setText(sb.toString());
 		sb = new StringBuilder();
 		
 		sb.append(jq.getMinWalltime() >= 0 ? jq.getMinWalltime() + "hr(s)" : "??")
 			.append(" / ")
-			.append(jq.getMinWalltime() >= 0 ? jq.getMinWalltime() + "hrs(s)" : "??");
+			.append(jq.getMaxWalltime() >= 0 ? jq.getMaxWalltime() + "hrs(s)" : "??");
 		lblWalltimeMinMax.setText(sb.toString());
+		
+		long m;
+		int p, wH = 0, wD = 0;
+		m = jq.getDefaultMem();
+		p = jq.getDefaultProc();
+		wH = jq.getDefaultWalltime();
+		if (wH > 24) {
+			wD = wH / 24;
+			wH = wH % 24;
+		}
+		
+		int pMin = jq.getMinProc();
+		if (pMin < 0) pMin = 0;
+		int pMax = jq.getMaxProc();
+		if (pMax < 0) {
+			pMax = 99;
+		}
+		
+		spinProc.setModel(new SpinnerNumberModel(p, pMin, pMax, 1));
+		
+		if (m < 0) {
+			m = 0;
+		} else {
+			m = m / 1024;
+		}
+		long mMin = jq.getMinMem();
+		if (mMin < 0) {
+			mMin = 0;
+		} else {
+			mMin = mMin / 1024;
+		}
+		long mMax = jq.getMaxMem();
+		if (mMin < 0) {
+			mMax = 99;
+		} else {
+			mMax = mMax / 1024;
+		}
+		
+		spinMem.setModel(new SpinnerNumberModel((int) m, (int) mMin, (int) mMax, 1));
+		
+		comboMemUnit.setSelectedItem(MB);
+		
+		spinProc.setValue(p);
+		
+		spinWallDay.setValue(wD);
+		spinWallHours.setValue(wH);
+		settingLimits = false;
 	}
 	
 	private static final String TOOLTIP = "<html>"
@@ -353,6 +460,7 @@ public class QueuePicker extends JDialog {
 		}
 		names[queues.size()] = "";
 		comboQueue.setModel(new DefaultComboBoxModel(names));
+		comboQueue.setSelectedItem(QueueProperties.getDefaultQueueName());
 	}
 	
 	
