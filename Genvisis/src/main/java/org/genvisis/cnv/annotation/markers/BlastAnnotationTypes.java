@@ -313,7 +313,7 @@ public class BlastAnnotationTypes {
 		}
 
 		private int positiveStrandPositionCalc(int probeOffset) {
-			CigarElement finalElement = getCigar().getCigarElement(getCigar().numCigarElements());
+			CigarElement finalElement = getCigar().getCigarElement(getCigar().numCigarElements() - 1);
 			int missingBases = calcMissingFinalBases(finalElement);
 			return getRefLoc().getStop() + probeOffset + missingBases;
 		}
