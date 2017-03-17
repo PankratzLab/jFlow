@@ -2,7 +2,6 @@ package org.genvisis.gwas;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -15,6 +14,7 @@ import org.genvisis.CLI;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.common.ArrayUtils;
@@ -134,8 +134,9 @@ public class ImputationPrep {
 		long time = System.currentTimeMillis();
 		referencePositions = Maps.newHashMap();
 		String taskName = "parseRefFile";
-		proj.getProgressMonitor().beginIndeterminateTask(taskName, "Parsing reference panel file",
-																										 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+		proj.getProgressMonitor().beginDeterminateTask(taskName, "Parsing reference panel file",
+																									 Files.countLines(referenceFile, 0),
+																									 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		BufferedReader reader = null;
 		try {
 			reader = Files.getAppropriateReader(referenceFile);
@@ -195,10 +196,8 @@ public class ImputationPrep {
 
 	private String generateFilteredPlinkset() {
 		MarkerDetailSet markerSet = proj.getMarkerSet();
-		String[] markerNames = markerSet.getMarkerNames();
-		Set<String> keepMarkers = Sets.newHashSet();
-		char[][] lookup = markerSet.getABAlleles().clone();
-		char[] refAlleles = new char[lookup.length];
+		List<Marker> markers = markerSet.getMarkers();
+		Set<Marker> keepMarkers = Sets.newHashSet();
 		int mismatchPos = 0;
 		int invalidAlleles = 0;
 		int palindromes = 0;
@@ -211,26 +210,27 @@ public class ImputationPrep {
 		log.report("Generating AB Lookup for Imputation");
 		String taskName = "generateABLookup";
 		proj.getProgressMonitor().beginDeterminateTask(taskName, "Generating AB Lookup for Imputation",
-																									 markerNames.length,
+																									 markers.size(),
 																									 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
-		for (int i = 0; i < markerNames.length; i++) {
+		List<Marker> noMatches = Lists.newArrayList();
+		for (Marker marker : markers) {
 			proj.getProgressMonitor().updateTask(taskName);
-			Map<Integer, Set<ReferencePosition>> chrMap = referencePositions.get(markerSet.getChrs()[i]);
+			Map<Integer, Set<ReferencePosition>> chrMap = referencePositions.get(marker.getChr());
 			if (chrMap == null) {
-				log.reportError("Warning - Chr " + markerSet.getChrs()[i] + " missing from reference file");
-				referencePositions.put(markerSet.getChrs()[i],
+				log.reportError("Warning - Chr " + marker.getChr() + " missing from reference file");
+				referencePositions.put(marker.getChr(),
 															 new HashMap<Integer, Set<ReferencePosition>>());
-				chrMap = referencePositions.get(markerSet.getChrs()[i]);
+				chrMap = referencePositions.get(marker.getChr());
 			}
-			Set<ReferencePosition> refMatches = chrMap.get(markerSet.getPositions()[i]);
+			Set<ReferencePosition> refMatches = chrMap.get(marker.getPosition());
 			if (refMatches == null) {
 				mismatchPos++;
+				noMatches.add(marker);
 				// TODO Maybe add checking by name, shouldn't be necessary with BLAST VCF though
 			} else {
 				refMatches = Sets.newHashSet(refMatches);
-				char a = lookup[i][0];
-				char b = lookup[i][1];
-				refAlleles[i] = a;
+				char a = marker.getA();
+				char b = marker.getB();
 				// Find the best matched ReferencePosition from all of the matches
 				if (!validateAlleles(a, b, refMatches)) {
 					invalidAlleles++;
@@ -238,24 +238,24 @@ public class ImputationPrep {
 					palindromes++;
 				} else if (matches(a, b, refMatches)) {
 					matches++;
-					keepMarkers.add(markerNames[i]);
+					keepMarkers.add(marker);
 				} else if (matches(b, a, refMatches)) {
 					alleleFlips++;
-					keepMarkers.add(markerNames[i]);
-					refAlleles[i] = b;
+					// keepMarkers.add(markerNames[i]);
+					// refAlleles[i] = b;
 				} else {
 					char aFlip = PALINDROMIC_PAIRS.get(a);
 					char bFlip = PALINDROMIC_PAIRS.get(b);
 					if (matches(aFlip, bFlip, refMatches)) {
 						strandFlips++;
-						keepMarkers.add(markerNames[i]);
-						lookup[i] = new char[] {aFlip, bFlip};
-						refAlleles[i] = aFlip;
+						// keepMarkers.add(markerNames[i]);
+						// lookup[i] = new char[] {aFlip, bFlip};
+						// refAlleles[i] = aFlip;
 					} else if (matches(bFlip, aFlip, refMatches)) {
 						strandAlelleFlips++;
-						keepMarkers.add(markerNames[i]);
-						lookup[i] = new char[] {aFlip, bFlip};
-						refAlleles[i] = bFlip;
+						// keepMarkers.add(markerNames[i]);
+						// lookup[i] = new char[] {aFlip, bFlip};
+						// refAlleles[i] = bFlip;
 					} else {
 						mismatchAlleles++;
 					}
@@ -280,23 +280,38 @@ public class ImputationPrep {
 		log.report("A total of " + (matches + alleleFlips + strandFlips + strandAlelleFlips)
 							 + " positions will be exported for imputation");
 
-		String imputationABLookup = ext.addToRoot(proj.AB_LOOKUP_FILENAME.getDefaultValue(),
-																							"_imputation");
-		new ABLookup(markerNames, lookup).writeToFile(proj.PROJECT_DIRECTORY.getValue() + targetDir
-																									+ imputationABLookup, log);
-
-		imputationRefAlleles = "refAlleles.txt";
-		PrintWriter writer = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + targetDir
-																										+ imputationRefAlleles);
-		for (int i = 0; i < refAlleles.length; i++) {
-			writer.println(markerNames[i] + "\t" + refAlleles[i]);
-		}
-		writer.flush();
-		writer.close();
+		// String imputationABLookup = ext.addToRoot(proj.AB_LOOKUP_FILENAME.getDefaultValue(),
+		// "_imputation");
+		// new ABLookup(markerNames, lookup).writeToFile(proj.PROJECT_DIRECTORY.getValue() + targetDir
+		// + imputationABLookup, log);
+		//
+		// imputationRefAlleles = "refAlleles.txt";
+		// PrintWriter writer = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + targetDir
+		// + imputationRefAlleles);
+		// for (int i = 0; i < refAlleles.length; i++) {
+		// writer.println(markerNames[i] + "\t" + refAlleles[i]);
+		// }
+		// writer.flush();
+		// writer.close();
 
 		String imputationTargetMarkers = proj.PROJECT_DIRECTORY.getValue() + targetDir
 																		 + "targetMarkers.txt";
-		Files.writeIterable(keepMarkers, imputationTargetMarkers);
+		List<String> targetMarkers = Lists.newArrayListWithCapacity(keepMarkers.size());
+		for (Marker marker : keepMarkers) {
+			targetMarkers.add(marker.getName());
+		}
+		Files.writeIterable(targetMarkers, imputationTargetMarkers);
+
+
+		////
+		List<String> noMatchMarkers = Lists.newArrayListWithCapacity(noMatches.size());
+		for (Marker marker : noMatches) {
+			noMatchMarkers.add(marker.getName() + "\t" + marker.getChr() + "\t" + marker.getPosition());
+		}
+		Files.writeIterable(noMatchMarkers,
+												proj.PROJECT_DIRECTORY.getValue() + targetDir + "noMatchMarkers.txt");
+
+		////
 
 		log.report("Generating PLINK dataset for Imputation");
 		String filteredPlinkroot = "plinkFiltered";

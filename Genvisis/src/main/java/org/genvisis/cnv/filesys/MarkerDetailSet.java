@@ -309,6 +309,10 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		for (int i = 0; i < markerNames.length; i++) {
 
 			MarkerBlastAnnotation markerBlastAnnotation = masterMarkerList.get(markerNames[i]);
+			int interrogationPosition = markerBlastAnnotation.getMarkerSeqAnnotation()
+																											 .getInterrogationPosition();
+			int probeLength = markerBlastAnnotation.getMarkerSeqAnnotation().getSequence().length();
+			int positionOffset = probeLength - interrogationPosition + 1;
 			try {
 				abLookup[i] = ABLookup.parseABFromMarkerSeqAnnotation(markerBlastAnnotation.getMarkerSeqAnnotation());
 			} catch (NullPointerException npe) {
@@ -373,7 +377,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			} else {
 				Segment seg = bestMatch.getRefLoc();
 				chrs[i] = seg.getChr();
-				positions[i] = seg.getStart();
+				positions[i] = bestMatch.getEffectiveInterrogationPosition(positionOffset, log);
 			}
 			if (ambiguousPosition) {
 				ambiguousPositionCount++;
