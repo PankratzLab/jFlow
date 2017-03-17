@@ -312,7 +312,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			int interrogationPosition = markerBlastAnnotation.getMarkerSeqAnnotation()
 																											 .getInterrogationPosition();
 			int probeLength = markerBlastAnnotation.getMarkerSeqAnnotation().getSequence().length();
-			int positionOffset = probeLength - interrogationPosition + 1;
+			int positionOffset = interrogationPosition - probeLength + 1;
 			try {
 				abLookup[i] = ABLookup.parseABFromMarkerSeqAnnotation(markerBlastAnnotation.getMarkerSeqAnnotation());
 			} catch (NullPointerException npe) {
