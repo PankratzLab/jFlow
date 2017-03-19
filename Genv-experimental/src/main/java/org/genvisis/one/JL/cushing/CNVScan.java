@@ -3,9 +3,9 @@ package org.genvisis.one.JL.cushing;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 import org.genvisis.cnv.annotation.segments.GDIAnnotator;
@@ -13,7 +13,6 @@ import org.genvisis.cnv.annotation.segments.GeneAnnotator;
 import org.genvisis.cnv.annotation.segments.SegmentAnnotationKeys;
 import org.genvisis.cnv.annotation.segments.SegmentAnotation;
 import org.genvisis.cnv.annotation.segments.WESMappabilityAnnotator;
-import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -22,8 +21,6 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariantAnnotated;
-import org.genvisis.filesys.GeneData;
-import org.genvisis.filesys.GeneTrack;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.CNVariantAnnotated.TallyResult;
 import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
@@ -78,7 +75,7 @@ public class CNVScan {
 		caseSet.writeRegions(outCNVsAll, TO_STRING_TYPE.REGULAR, true, log);
 		double minQual = 10;
 		double maxOverlap = 0.5;
-		double minMap = 0.75;
+		double minMap = -1;
 		// ArrayList<CNVariant> filteredCase = filterOutControls(cushings,
 		// controlSet, minQual,
 		// maxOverlap);
@@ -99,23 +96,28 @@ public class CNVScan {
 			double mapScore = Double.parseDouble(
 					segmentAnotation.getAttributes().get(SegmentAnnotationKeys.MAPPABILITY.toString()).get(0));
 			// System.out.println(segmentAnotation.getAttributes().get(SegmentAnnotationKeys.MAPPABILITY.toString()));
-			if (!Double.isNaN(mapScore) && mapScore > minMap) {
+			if (minMap < 0 || (!Double.isNaN(mapScore) && mapScore > minMap)) {
 				geneAnnotator.annotate(cnv, segmentAnotation);
 				gdiAnnotator.annotate(cnv, segmentAnotation);
 				Segment[] probSegs = probs.getOverLappingLoci(cnv);
-				boolean use = true;
+				// boolean use = true;
+				List<String> pros = new ArrayList<String>();
+
 				if (probSegs != null && probSegs.length > 0) {
 					for (Segment problem : probSegs) {
 						double bpOlap = (double) cnv.amountOfOverlapInBasepairs(problem) / cnv.getSize();
 						if (bpOlap > maxOverlap) {
-							use = false;
+							pros.add("TRUE");
+							segmentAnotation.getAttributes().put(SegmentAnnotationKeys.PROBLEM_REGION.toString(),
+									pros);
+							break;
 						}
 					}
 				}
-				if (use) {
-					CNVariantAnnotated cnVariantAnnotated = new CNVariantAnnotated(cnv, segmentAnotation);
-					annotateds.add(cnVariantAnnotated);
-				}
+				// if (use) {
+				CNVariantAnnotated cnVariantAnnotated = new CNVariantAnnotated(cnv, segmentAnotation);
+				annotateds.add(cnVariantAnnotated);
+				// }
 			}
 
 		}

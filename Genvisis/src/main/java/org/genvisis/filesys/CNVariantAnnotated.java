@@ -46,7 +46,8 @@ public class CNVariantAnnotated extends CNVariant {
 		for (SegmentAnnotationKeys key : SegmentAnnotationKeys.values()) {
 
 			if (segmentAnotation.getAttributes().containsKey(key.toString())) {
-				builder.append("\t" + segmentAnotation.getAttributes().get(key.toString()));
+				List<String> vals = segmentAnotation.getAttributes().get(key.toString());
+				builder.append("\t" + (vals.size() == 1 ? vals.get(0) : vals.toString()));
 			} else {
 				builder.append("\t" + key.getMissingValue());
 			}

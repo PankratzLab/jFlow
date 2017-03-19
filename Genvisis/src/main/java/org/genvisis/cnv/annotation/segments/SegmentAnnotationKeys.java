@@ -21,10 +21,15 @@ public enum SegmentAnnotationKeys {
 	 * Beast score of this region
 	 */
 	BEAST("NaN", true),
+
+	/**
+	 * Flagged for problematic region
+	 */
+	PROBLEM_REGION("FALSE", false),
 	/**
 	 * Average mappability of this region
 	 */
-	MAPPABILITY("NaN", true);
+	MAPPABILITY("0", true);
 
 	private String missingValue;
 	private boolean isNumeric;
