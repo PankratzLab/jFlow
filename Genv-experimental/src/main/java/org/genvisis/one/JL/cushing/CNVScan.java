@@ -1,5 +1,6 @@
 package org.genvisis.one.JL.cushing;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,24 +44,19 @@ public class CNVScan {
 		String g1000Cnvs = "/Volumes/Beta/data/Cushings/cnvs/GRCh37_hg19_variants_2015-07-23.txt.cnv";
 		String problemRegions = "/Volumes/Beta/data/Cushings/cnvs/problematicRegions_hg19.dat";
 
-		String outDir = "/Volumes/Beta/data/Cushings/cnvs/filtered/";
-
+		String outDir = "/Volumes/Beta/data/Cushings/cnvs/clinicalAssoc/";
+		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "log.log");
-		LocusSet<Segment> probs = new LocusSet<>(Segment.loadUCSCregions(problemRegions, 0, false, log),
-																						 true, log);
+		LocusSet<Segment> probs = new LocusSet<>(Segment.loadUCSCregions(problemRegions, 0, false, log), true, log);
 
 		VcfPopulation vpop = VcfPopulation.load("/Volumes/Beta/data/Cushings/cnvs/CUSHING_FREQ_V2.vpop",
-																						POPULATION_TYPE.ANY, log);
+				POPULATION_TYPE.ANY, log);
 		vpop.report();
-		HashSet<String> lqs = HashVec.loadFileToHashSet("/Volumes/Beta/data/Cushings/cnvs/CUSHING_FREQ_V2.lowerQualitySamples.txt",
-																										false);
-		Hashtable<String, LocusSet<CNVariant>> set = CNVariant.breakIntoInds(LocusSet.combine(CNVariant.loadLocSet(cnvFile,
-																																																							 log),
-																																													CNVariant.loadLocSet(g1000Cnvs,
-																																																							 log),
-																																													true,
-																																													log),
-																																				 log);
+		HashSet<String> lqs = HashVec
+				.loadFileToHashSet("/Volumes/Beta/data/Cushings/cnvs/CUSHING_FREQ_V2.lowerQualitySamples.txt", false);
+		Hashtable<String, LocusSet<CNVariant>> set = CNVariant.breakIntoInds(
+				LocusSet.combine(CNVariant.loadLocSet(cnvFile, log), CNVariant.loadLocSet(g1000Cnvs, log), true, log),
+				log);
 		// Hashtable<String, LocusSet<CNVariant>> set =
 		// CNVariant.breakIntoInds(CNVariant.loadLocSet(cnvFile, log),log);
 		HashSet<String> notControls = new HashSet<>();
@@ -83,14 +79,16 @@ public class CNVScan {
 		double minQual = 10;
 		double maxOverlap = 0.5;
 		double minMap = 0.75;
-		ArrayList<CNVariant> filteredCase = filterOutControls(cushings, controlSet, minQual,
-																													maxOverlap);
+		// ArrayList<CNVariant> filteredCase = filterOutControls(cushings,
+		// controlSet, minQual,
+		// maxOverlap);
+
+		ArrayList<CNVariant> filteredCase = cushings;
 
 		GeneAnnotator geneAnnotator = GeneAnnotator.getDefaultAnnotator(GENOME_BUILD.HG19, log);
 		GDIAnnotator gdiAnnotator = GDIAnnotator.getDefaultGDIAnnotator(log);
 		WESMappabilityAnnotator wesMappabilityAnnotator = WESMappabilityAnnotator.getDefaultAnnotator(geneAnnotator,
-																																																	GENOME_BUILD.HG19,
-																																																	log);
+				GENOME_BUILD.HG19, log);
 
 		ArrayList<CNVariantAnnotated> annotateds = new ArrayList<>();
 
@@ -98,9 +96,8 @@ public class CNVScan {
 			SegmentAnotation segmentAnotation = new SegmentAnotation();
 
 			wesMappabilityAnnotator.annotate(cnv, segmentAnotation);
-			double mapScore = Double.parseDouble(segmentAnotation.getAttributes()
-																													 .get(SegmentAnnotationKeys.MAPPABILITY.toString())
-																													 .get(0));
+			double mapScore = Double.parseDouble(
+					segmentAnotation.getAttributes().get(SegmentAnnotationKeys.MAPPABILITY.toString()).get(0));
 			// System.out.println(segmentAnotation.getAttributes().get(SegmentAnnotationKeys.MAPPABILITY.toString()));
 			if (!Double.isNaN(mapScore) && mapScore > minMap) {
 				geneAnnotator.annotate(cnv, segmentAnotation);
@@ -123,37 +120,30 @@ public class CNVScan {
 
 		}
 		wesMappabilityAnnotator.close();
-		new LocusSet<>(annotateds, true, log).writeRegions(outDir + ext.rootOf(cnvFile)
-																											 + ".annotated.cnvs", TO_STRING_TYPE.REGULAR,
-																											 true, log);
+		new LocusSet<>(annotateds, true, log).writeRegions(outDir + ext.rootOf(cnvFile) + ".annotated.cnvs",
+				TO_STRING_TYPE.REGULAR, true, log);
 
-		String outTally = outDir + ext.rootOf(cnvFile) + ".annotated.tally."
-											+ SegmentAnnotationKeys.GENE.toString();
-		Map<String, TallyResult> geneTally = CNVariantAnnotated.tallyAnnotation(annotateds,
-																																						SegmentAnnotationKeys.GENE);
+		String outTally = outDir + ext.rootOf(cnvFile) + ".annotated.tally." + SegmentAnnotationKeys.GENE.toString();
+		Map<String, TallyResult> geneTally = CNVariantAnnotated.tallyAnnotation(annotateds, SegmentAnnotationKeys.GENE);
 		StringBuilder builderTally = new StringBuilder(SegmentAnnotationKeys.GENE.toString()
-																									 + "\tCOUNT_ALL\tCOUNT_DEL\tCOUNT_DUP\tSAME_CN\tGDI_PERCENTILE\tGDI_RAW\tGDI_PHRED\tSAMPLE\tLOC\tSCORE\tDISTANCE_TO_END_OF_CHR");
+				+ "\tCOUNT_ALL\tCOUNT_DEL\tCOUNT_DUP\tSAME_CN\tGDI_PERCENTILE\tGDI_RAW\tGDI_PHRED\tSAMPLE\tLOC\tSCORE\tDISTANCE_TO_END_OF_CHR");
 		ReferenceGenome genome = new ReferenceGenome(GENOME_BUILD.HG19, log);
 		for (String key : geneTally.keySet()) {
-			String gdi = gdiAnnotator.getGdiLookup()
-															 .containsKey(key) ? gdiAnnotator.getGdiLookup().get(key)
-																								 : (SegmentAnnotationKeys.GENE.getMissingValue()
-																										+ "\t"
-																										+ SegmentAnnotationKeys.GENE.getMissingValue()
-																										+ "\t"
-																										+ SegmentAnnotationKeys.GENE.getMissingValue());
+			String gdi = gdiAnnotator.getGdiLookup().containsKey(key) ? gdiAnnotator.getGdiLookup().get(key)
+					: (SegmentAnnotationKeys.GENE.getMissingValue() + "\t"
+							+ SegmentAnnotationKeys.GENE.getMissingValue() + "\t"
+							+ SegmentAnnotationKeys.GENE.getMissingValue());
 			TallyResult tallyResult = geneTally.get(key);
-			builderTally.append("\n" + key + "\t" + tallyResult.getAllCN().size() + "\t"
-													+ tallyResult.getDelCN().size() + "\t" + tallyResult.getDupCN().size()
-													+ "\t"
-													+ (tallyResult.getAllCN().size() == tallyResult.getDupCN().size()
-														 || tallyResult.getAllCN().size() == tallyResult.getDelCN().size())
-													+ "\t" + ArrayUtils.toStr(gdi.replaceAll("%", "").split(";")) + "\t");
+			builderTally.append("\n" + key + "\t" + tallyResult.getAllCN().size() + "\t" + tallyResult.getDelCN().size()
+					+ "\t" + tallyResult.getDupCN().size() + "\t"
+					+ (tallyResult.getAllCN().size() == tallyResult.getDupCN().size()
+							|| tallyResult.getAllCN().size() == tallyResult.getDelCN().size())
+					+ "\t" + ArrayUtils.toStr(gdi.replaceAll("%", "").split(";")) + "\t");
 			int len = -1;
 			if (tallyResult.getAllLocs().size() == 1) {
 				for (CNVariant seg : tallyResult.getAllLocs()) {
-					builderTally.append(":" + seg.getIndividualID() + "\t" + seg.getUCSClocation() + "\t"
-															+ seg.getScore());
+					builderTally
+							.append(":" + seg.getIndividualID() + "\t" + seg.getUCSClocation() + "\t" + seg.getScore());
 					len = Math.min(seg.getStart(), genome.getContigLength(seg) - seg.getStop());
 				}
 			}
@@ -163,11 +153,9 @@ public class CNVScan {
 
 	}
 
-	private static void splitIntoCaseControl(Logger log, VcfPopulation vpop,
-																					 Hashtable<String, LocusSet<CNVariant>> set,
-																					 ArrayList<CNVariant> cushings,
-																					 ArrayList<CNVariant> controls, String caseDef,
-																					 HashSet<String> notControls, HashSet<String> lq) {
+	private static void splitIntoCaseControl(Logger log, VcfPopulation vpop, Hashtable<String, LocusSet<CNVariant>> set,
+			ArrayList<CNVariant> cushings, ArrayList<CNVariant> controls, String caseDef, HashSet<String> notControls,
+			HashSet<String> lq) {
 		for (String ind : set.keySet()) {
 			if (!lq.contains(ind.split("\t")[0])) {
 				if (vpop.getPopulationForInd(ind.split("\t")[0], RETRIEVE_TYPE.SUPER) != null
@@ -189,9 +177,8 @@ public class CNVScan {
 
 	}
 
-	private static ArrayList<CNVariant> filterOutControls(ArrayList<CNVariant> caseSet,
-																												LocusSet<CNVariant> controlSet,
-																												double minScore, double maxOverlap) {
+	private static ArrayList<CNVariant> filterOutControls(ArrayList<CNVariant> caseSet, LocusSet<CNVariant> controlSet,
+			double minScore, double maxOverlap) {
 		ArrayList<CNVariant> filtered = new ArrayList<>();
 		for (CNVariant caseCNV : caseSet) {
 			if (caseCNV.getScore() > minScore) {

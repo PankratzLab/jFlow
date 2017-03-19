@@ -2035,9 +2035,12 @@ public class VCFSimpleTally {
 		}
 		try {
 			vpopsCase = ArrayUtils.tagOn(vpopsCase, popDir, null);
-			for (double maf : mafs) {
-				test(vcf, vpopsCase, omimDir, otherGenesOfInterest, null, maf, controlSpecifiComp,
-						 controlSpecifiEnrich, null, doclustering);
+			for (String vpops : vpopsCase) {
+				for (double maf : mafs) {
+					test(vcf, new String[] {vpops}, omimDir, otherGenesOfInterest, null, maf,
+							 controlSpecifiComp,
+							 controlSpecifiEnrich, null, doclustering);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

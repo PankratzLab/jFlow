@@ -53,7 +53,7 @@ public class CaptureQC {
 			// System.exit(1);
 			found: for (String gene : geneNames) {
 				for (String vals : info) {
-					if (vals.contains(gene + ",")) {
+					if (vals.contains(gene + "")) {
 						// System.out.println(vals + "\t" + seg.getUCSClocation());
 						targets.add(seg);
 						break found;
@@ -91,16 +91,20 @@ public class CaptureQC {
 					// double gcRegion = referenceGenome.getGCContentFor(seg);
 
 					for (BEDFeatureSeg currentData : exactSegs) {
-						String[] info = currentData.getBedFeature().getName().split("\\|");
+						if (Math.abs(seg.amountOfOverlapInBasepairs(currentData) - seg.getSize()) == 1) {
+							System.out.println(seg.getUCSClocation() + "\t" + currentData.getUCSClocation());
+							String[] info = currentData.getBedFeature().getName().split("\\|");
 
-						found: for (String gene : geneNames) {
-							for (String vals : info) {
-								if (vals.contains(gene + ",")) {
-									// System.out.println(vals + "\t" + seg.getUCSClocation());
-									writer.println(gene + "\t" + currentData.getBedFeature().getName() + "\t"
-																 + seg.getUCSClocation() + "\t" + "NaN" + "\t"
-																 + ArrayUtils.toStr(line) + "\t" + vals);
-									break found;
+							found: for (String gene : geneNames) {
+								for (String vals : info) {
+									if (vals.contains(gene + "")) {
+										// System.out.println(vals + "\t" + seg.getUCSClocation());
+										writer.println(gene + "\t" + currentData.getBedFeature().getName() + "\t"
+																	 + seg.getUCSClocation() + "\t" + "NaN" + "\t"
+																	 + ArrayUtils.toStr(line) + "\t"
+																	 + currentData.getBedFeature().getName());
+										break found;
+									}
 								}
 							}
 						}
