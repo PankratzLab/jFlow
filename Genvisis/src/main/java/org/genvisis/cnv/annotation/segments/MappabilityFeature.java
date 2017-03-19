@@ -19,7 +19,6 @@ public class MappabilityFeature extends BEDFeatureSeg {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private BEDFeatureSeg bFeatureSeg;
 
 	/**
 	 * @param bedFeature constructs a {@link BEDFeatureSeg}
@@ -36,7 +35,7 @@ public class MappabilityFeature extends BEDFeatureSeg {
 	 */
 	public double getMappability(Logger log) {
 		double mapScore = Double.NaN;
-		String tmpScore = bFeatureSeg.getBedFeature().getName();
+		String tmpScore = getBedFeature().getName();
 
 		try {
 			mapScore = Double.parseDouble(tmpScore);

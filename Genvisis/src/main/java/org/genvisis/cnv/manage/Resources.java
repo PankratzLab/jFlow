@@ -639,7 +639,7 @@ public final class Resources {
 		}
 
 		public Resource getGDI() {
-			return getResource("GDI.txt");
+			return getResource("GDI_percentile.txt");
 		}
 
 
