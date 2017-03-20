@@ -45,11 +45,70 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			A, B
 		}
 
+		public static class GenomicPosition implements Serializable, Comparable<GenomicPosition> {
+			private final byte chr;
+			private final int position;
+
+			/**
+			 * @param chr
+			 * @param position
+			 */
+			private GenomicPosition(byte chr, int position) {
+				super();
+				this.chr = chr;
+				this.position = position;
+			}
+
+			public byte getChr() {
+				return chr;
+			}
+
+			public int getPosition() {
+				return position;
+			}
+
+			@Override
+			public int hashCode() {
+				final int prime = 31;
+				int result = 1;
+				result = prime * result + chr;
+				result = prime * result + position;
+				return result;
+			}
+
+			@Override
+			public boolean equals(Object obj) {
+				if (this == obj)
+					return true;
+				if (obj == null)
+					return false;
+				if (getClass() != obj.getClass())
+					return false;
+				GenomicPosition other = (GenomicPosition) obj;
+				if (chr != other.chr)
+					return false;
+				if (position != other.position)
+					return false;
+				return true;
+			}
+
+			@Override
+			public int compareTo(GenomicPosition o) {
+				int cmp = Java6Helper.compare(chr, o.chr);
+				if (cmp != 0)
+					return cmp;
+				cmp = Java6Helper.compare(position, o.position);
+				return cmp;
+			}
+
+
+
+		}
+
 		private static final long serialVersionUID = 1L;
 
 		private final String name;
-		private final byte chr;
-		private final int position;
+		private final GenomicPosition genomicPosition;
 		private final char a;
 		private final char b;
 		private final RefAllele refAllele;
@@ -66,8 +125,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		private Marker(String name, byte chr, int position, char a, char b, RefAllele refAllele) {
 			super();
 			this.name = name;
-			this.chr = chr;
-			this.position = position;
+			this.genomicPosition = new GenomicPosition(chr, position);
 			this.a = a;
 			this.b = b;
 			this.refAllele = refAllele;
@@ -78,11 +136,11 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		}
 
 		public byte getChr() {
-			return chr;
+			return genomicPosition.getChr();
 		}
 
 		public int getPosition() {
-			return position;
+			return genomicPosition.getPosition();
 		}
 
 		public char getA() {
@@ -131,15 +189,17 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			}
 		}
 
+
+
 		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + a;
 			result = prime * result + b;
-			result = prime * result + chr;
+			result = prime * result + ((genomicPosition == null) ? 0 : genomicPosition.hashCode());
 			result = prime * result + ((name == null) ? 0 : name.hashCode());
-			result = prime * result + position;
+			result = prime * result + ((refAllele == null) ? 0 : refAllele.hashCode());
 			return result;
 		}
 
@@ -156,24 +216,24 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				return false;
 			if (b != other.b)
 				return false;
-			if (chr != other.chr)
+			if (genomicPosition == null) {
+				if (other.genomicPosition != null)
+					return false;
+			} else if (!genomicPosition.equals(other.genomicPosition))
 				return false;
 			if (name == null) {
 				if (other.name != null)
 					return false;
 			} else if (!name.equals(other.name))
 				return false;
-			if (position != other.position)
+			if (refAllele != other.refAllele)
 				return false;
 			return true;
 		}
 
 		@Override
 		public int compareTo(Marker o) {
-			int cmp = Java6Helper.compare(chr, o.chr);
-			if (cmp != 0)
-				return cmp;
-			cmp = Java6Helper.compare(position, o.position);
+			int cmp = genomicPosition.compareTo(o.genomicPosition);
 			if (cmp != 0)
 				return cmp;
 			cmp = name.compareTo(o.name);
@@ -499,6 +559,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		}
 		return chrMap;
 	}
+
 
 	public Collection<Marker> getMarkersSortedByChrPos() {
 		return getChrMap().values();
