@@ -50,12 +50,13 @@ public class ImputationPrep {
 	private static final String DEFAULT_REFERENCE_FILE = "HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz";
 
 
-	private Project proj;
-	private String referenceFile;
-	private String targetDir;
-	private Logger log;
+	private final Project proj;
+	private final String referenceFile;
+	private final String targetDir;
+	private final Logger log;
 
 	private Map<Byte, Map<Integer, Set<ReferencePosition>>> referencePositions;
+	// private final Multimap<String, ReferencePosition> referenceNames;
 	private String imputationRefAlleles;
 
 	private static class ReferencePosition {
@@ -126,13 +127,23 @@ public class ImputationPrep {
 		this.referenceFile = referenceFile;
 		this.targetDir = targetDir;
 		this.log = log;
-		readRefFile();
+		referencePositions = readRefFile();
+		// ImmutableMultimap.Builder<String, ReferencePosition> referenceNamesBuilder =
+		// ImmutableSetMultimap.builder();
+		// for (Map<Integer, Set<ReferencePosition>> chrMap : referencePositions.values()) {
+		// for (Set<ReferencePosition> referencePositionSet : chrMap.values()) {
+		// for (ReferencePosition referencePosition : referencePositionSet) {
+		// referenceNamesBuilder.put(referencePosition.getId(), referencePosition);
+		// }
+		// }
+		// }
+		// referenceNames = referenceNamesBuilder.build();
 	}
 
-	private boolean readRefFile() {
+	private Map<Byte, Map<Integer, Set<ReferencePosition>>> readRefFile() {
 		log.report("Parsing reference panel file");
 		long time = System.currentTimeMillis();
-		referencePositions = Maps.newHashMap();
+		Map<Byte, Map<Integer, Set<ReferencePosition>>> referencePositionsBuild = Maps.newHashMap();
 		String taskName = "parseRefFile";
 		proj.getProgressMonitor().beginDeterminateTask(taskName, "Parsing reference panel file",
 																									 Files.countLines(referenceFile, 0),
@@ -143,7 +154,7 @@ public class ImputationPrep {
 			String header = reader.readLine();
 			if (header == null) {
 				log.reportError("Reference file is empty");
-				return false;
+				throw new IllegalArgumentException("Reference file is empty");
 			}
 			String delim = ext.determineDelimiter(header);
 			int[] cols = ext.indexFactors(HRC_COLS, header.split(delim), false, log, true, false);
@@ -155,9 +166,8 @@ public class ImputationPrep {
 				try {
 					position = Integer.parseInt(refLine[1]);
 				} catch (NumberFormatException e) {
-					log.reportError("Imputation reference file (" + referenceFile
-													+ ") contains a non-integer position: " + refLine[1]);
-					return false;
+					throw new IllegalStateException("Imputation reference file (" + referenceFile
+																					+ ") contains a non-integer position: " + refLine[1]);
 				}
 				String id = refLine[2];
 				char ref = refLine[3].length() == 1 ? refLine[3].toUpperCase().charAt(0)
@@ -168,14 +178,14 @@ public class ImputationPrep {
 				try {
 					altFreq = Double.parseDouble(refLine[5]);
 				} catch (NumberFormatException e) {
-					log.reportError("Imputation reference file (" + referenceFile
-													+ ") contains a non-numeric alternate allele frequency: " + refLine[5]);
-					return false;
+					throw new IllegalStateException("Imputation reference file (" + referenceFile
+																					+ ") contains a non-numeric alternate allele frequency: "
+																					+ refLine[5]);
 				}
-				Map<Integer, Set<ReferencePosition>> posMap = referencePositions.get(chr);
+				Map<Integer, Set<ReferencePosition>> posMap = referencePositionsBuild.get(chr);
 				if (posMap == null) {
 					posMap = Maps.newHashMap();
-					referencePositions.put(chr, posMap);
+					referencePositionsBuild.put(chr, posMap);
 				}
 				Set<ReferencePosition> refPosSet = posMap.get(position);
 				if (refPosSet == null) {
@@ -191,7 +201,7 @@ public class ImputationPrep {
 		}
 		proj.getProgressMonitor().endTask(taskName);
 		log.report("Finished parsing Reference File in " + ext.getTimeElapsed(time));
-		return true;
+		return referencePositionsBuild;
 	}
 
 	private String generateFilteredPlinkset() {
@@ -226,11 +236,14 @@ public class ImputationPrep {
 			if (refMatches == null) {
 				mismatchPos++;
 				noMatches.add(marker);
+				// if (referenceNames.containsKey(marker.getName())) {
+				// noMatches.add(marker);
+				// }
 				// TODO Maybe add checking by name, shouldn't be necessary with BLAST VCF though
 			} else {
 				refMatches = Sets.newHashSet(refMatches);
-				char a = marker.getA();
-				char b = marker.getB();
+				char a = marker.getRef();
+				char b = marker.getAlt();
 				// Find the best matched ReferencePosition from all of the matches
 				if (!validateAlleles(a, b, refMatches)) {
 					invalidAlleles++;
@@ -304,6 +317,7 @@ public class ImputationPrep {
 
 
 		////
+		// TODO: Remove this and commented out code
 		List<String> noMatchMarkers = Lists.newArrayListWithCapacity(noMatches.size());
 		for (Marker marker : noMatches) {
 			noMatchMarkers.add(marker.getName() + "\t" + marker.getChr() + "\t" + marker.getPosition());
@@ -505,7 +519,9 @@ public class ImputationPrep {
 			proj.getLog().reportError("Reference file could not be found");
 			return;
 		}
-
-		new ImputationPrep(proj, referenceFile, targetDir, proj.getLog()).run();
+		ImputationPrep prep = new ImputationPrep(proj, referenceFile, targetDir, proj.getLog());
+		// while (true) {
+		prep.run();
+		// }
 	}
 }
