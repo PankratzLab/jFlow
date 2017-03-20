@@ -18,6 +18,7 @@ import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerSeqAnnotation;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker.GenomicPosition;
 import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.Files;
@@ -29,10 +30,12 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 
 import htsjdk.variant.variantcontext.Allele;
@@ -53,7 +56,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			 * @param chr
 			 * @param position
 			 */
-			private GenomicPosition(byte chr, int position) {
+			public GenomicPosition(byte chr, int position) {
 				super();
 				this.chr = chr;
 				this.position = position;
@@ -141,6 +144,10 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 		public int getPosition() {
 			return genomicPosition.getPosition();
+		}
+
+		public GenomicPosition getGenomicPosition() {
+			return genomicPosition;
 		}
 
 		public char getA() {
@@ -255,6 +262,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 	private transient Reference<Map<String, Marker>> markerNameMapRef = null;
 	private transient Reference<ListMultimap<Byte, Marker>> chrMapRef = null;
+	private transient Reference<SetMultimap<GenomicPosition, Marker>> genomicPositionMapRef = null;
 	private transient Reference<Map<Marker, Integer>> markerIndexMapRef = null;
 
 	public MarkerDetailSet(MarkerSetInfo markerSet) {
@@ -378,6 +386,15 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		chrMapBuilder.orderKeysBy(Ordering.natural());
 		chrMapBuilder.orderValuesBy(Ordering.natural());
 		return chrMapBuilder.build();
+	}
+
+	private SetMultimap<GenomicPosition, Marker> generateGenomicPositionMap() {
+		ImmutableSetMultimap.Builder<GenomicPosition, Marker> genomicPositionMapBuilder = ImmutableSetMultimap.builder();
+		for (Marker marker : markers) {
+			genomicPositionMapBuilder.put(marker.getGenomicPosition(), marker);
+		}
+		genomicPositionMapBuilder.orderKeysBy(Ordering.natural());
+		return genomicPositionMapBuilder.build();
 	}
 
 	private Map<Marker, Integer> generateMarkerIndexMap() {
@@ -560,9 +577,24 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		return chrMap;
 	}
 
+	/**
+	 * 
+	 * @return a {@link SetMultimap} from {@link GenomicPosition} to {@link Marker}s (sorted by
+	 *         GenomicPosition)
+	 */
+	public SetMultimap<GenomicPosition, Marker> getGenomicPositionMap() {
+		SetMultimap<GenomicPosition, Marker> genomicPositionMap = genomicPositionMapRef == null ? null
+																																														: genomicPositionMapRef.get();
+		if (genomicPositionMap == null) {
+			genomicPositionMap = generateGenomicPositionMap();
+			genomicPositionMapRef = new SoftReference<SetMultimap<GenomicPosition, Marker>>(genomicPositionMap);
+		}
+		return genomicPositionMap;
+	}
+
 
 	public Collection<Marker> getMarkersSortedByChrPos() {
-		return getChrMap().values();
+		return getGenomicPositionMap().values();
 	}
 
 	public Map<Marker, Integer> getMarkerIndexMap() {
