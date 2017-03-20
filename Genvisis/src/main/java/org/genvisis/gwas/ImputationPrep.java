@@ -4,30 +4,23 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.poi.util.IOUtils;
-import org.genvisis.CLI;
-import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker.GenomicPosition;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -37,27 +30,16 @@ import com.google.common.collect.Sets;
 public class ImputationPrep {
 
 	private static final String[] HRC_COLS = new String[] {"#CHROM", "POS", "ID", "REF", "ALT", "AF"};
-	private static final Set<Character> VALID_ALLELES = ImmutableSet.of('A', 'T', 'G', 'C');
-	private static final Map<Character, Character> PALINDROMIC_PAIRS = ImmutableMap.of('A', 'T', 'T',
-																																										 'A', 'G', 'C',
+	private static final Map<Character, Character> PALINDROMIC_PAIRS = ImmutableMap.of('A', 'T',
+																																										 'T', 'A',
+																																										 'G', 'C',
 																																										 'C', 'G');
-	private static final double PALINDROME_MAF_LIMIT = 0.4;
-
-	public static final String ARGS_TARGET_DIR = "dir";
-	public static final String ARGS_REFERENCE_FILE = "refFile";
-
-	private static final String DEFAULT_TARGET_DIR = "imputationPrep/";
-	private static final String DEFAULT_REFERENCE_FILE = "HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz";
-
 
 	private final Project proj;
 	private final String referenceFile;
-	private final String targetDir;
 	private final Logger log;
 
-	private Map<Byte, Map<Integer, Set<ReferencePosition>>> referencePositions;
-	// private final Multimap<String, ReferencePosition> referenceNames;
-	private String imputationRefAlleles;
+	private final Set<Marker> matchingMarkers;
 
 	private static class ReferencePosition {
 		private byte chr;
@@ -65,7 +47,6 @@ public class ImputationPrep {
 		private String id;
 		private char ref;
 		private char alt;
-		private double altFreq;
 
 		/**
 		 * @param chr
@@ -73,17 +54,14 @@ public class ImputationPrep {
 		 * @param id
 		 * @param ref
 		 * @param alt
-		 * @param altFreq
 		 */
-		public ReferencePosition(byte chr, int position, String id, char ref, char alt,
-														 double altFreq) {
+		public ReferencePosition(byte chr, int position, String id, char ref, char alt) {
 			super();
 			this.chr = chr;
 			this.position = position;
 			this.id = id;
 			this.ref = ref;
 			this.alt = alt;
-			this.altFreq = altFreq;
 		}
 
 		public byte getChr() {
@@ -106,41 +84,30 @@ public class ImputationPrep {
 			return alt;
 		}
 
-		public double getAltFreq() {
-			return altFreq;
-		}
-
-
 
 	}
 
 
 	/**
-	 * @param proj
-	 * @param referenceFile
-	 * @param targetDir
-	 * @param log
+	 * @param proj Project to run for. Must have a {@link Project#BLAST_ANNOTATION_FILENAME} or an
+	 *        {@link MarkerDetailSet} that otherwise includes Ref/Alt alleles
+	 * @param referenceFile The reference set file. Must include chromosome, position, ref allele, and
+	 *        alt allele
 	 */
-	public ImputationPrep(Project proj, String referenceFile, String targetDir, Logger log) {
+	public ImputationPrep(Project proj, String referenceFile) {
 		super();
 		this.proj = proj;
 		this.referenceFile = referenceFile;
-		this.targetDir = targetDir;
-		this.log = log;
-		referencePositions = readRefFile();
-		// ImmutableMultimap.Builder<String, ReferencePosition> referenceNamesBuilder =
-		// ImmutableSetMultimap.builder();
-		// for (Map<Integer, Set<ReferencePosition>> chrMap : referencePositions.values()) {
-		// for (Set<ReferencePosition> referencePositionSet : chrMap.values()) {
-		// for (ReferencePosition referencePosition : referencePositionSet) {
-		// referenceNamesBuilder.put(referencePosition.getId(), referencePosition);
-		// }
-		// }
-		// }
-		// referenceNames = referenceNamesBuilder.build();
+		this.log = proj.getLog();
+		matchingMarkers = filterMarkers();
+	}
+
+	public Set<Marker> getMatchingMarkers() {
+		return matchingMarkers;
 	}
 
 	private Map<Byte, Map<Integer, Set<ReferencePosition>>> readRefFile() {
+		Set<GenomicPosition> markerSetPositions = proj.getMarkerSet().getGenomicPositionMap().keySet();
 		log.report("Parsing reference panel file");
 		long time = System.currentTimeMillis();
 		Map<Byte, Map<Integer, Set<ReferencePosition>>> referencePositionsBuild = Maps.newHashMap();
@@ -169,30 +136,24 @@ public class ImputationPrep {
 					throw new IllegalStateException("Imputation reference file (" + referenceFile
 																					+ ") contains a non-integer position: " + refLine[1]);
 				}
-				String id = refLine[2];
-				char ref = refLine[3].length() == 1 ? refLine[3].toUpperCase().charAt(0)
-																						: ABLookup.MISSING_ALLELE;
-				char alt = refLine[4].length() == 1 ? refLine[4].toUpperCase().charAt(0)
-																						: ABLookup.MISSING_ALLELE;
-				double altFreq;
-				try {
-					altFreq = Double.parseDouble(refLine[5]);
-				} catch (NumberFormatException e) {
-					throw new IllegalStateException("Imputation reference file (" + referenceFile
-																					+ ") contains a non-numeric alternate allele frequency: "
-																					+ refLine[5]);
+				if (markerSetPositions.contains(new GenomicPosition(chr, position))) {
+					String id = refLine[2];
+					char ref = refLine[3].length() == 1 ? refLine[3].toUpperCase().charAt(0)
+																							: ABLookup.MISSING_ALLELE;
+					char alt = refLine[4].length() == 1 ? refLine[4].toUpperCase().charAt(0)
+																							: ABLookup.MISSING_ALLELE;
+					Map<Integer, Set<ReferencePosition>> posMap = referencePositionsBuild.get(chr);
+					if (posMap == null) {
+						posMap = Maps.newHashMap();
+						referencePositionsBuild.put(chr, posMap);
+					}
+					Set<ReferencePosition> refPosSet = posMap.get(position);
+					if (refPosSet == null) {
+						refPosSet = Sets.newHashSet();
+						posMap.put(position, refPosSet);
+					}
+					refPosSet.add(new ReferencePosition(chr, position, id, ref, alt));
 				}
-				Map<Integer, Set<ReferencePosition>> posMap = referencePositionsBuild.get(chr);
-				if (posMap == null) {
-					posMap = Maps.newHashMap();
-					referencePositionsBuild.put(chr, posMap);
-				}
-				Set<ReferencePosition> refPosSet = posMap.get(position);
-				if (refPosSet == null) {
-					refPosSet = Sets.newHashSet();
-					posMap.put(position, refPosSet);
-				}
-				refPosSet.add(new ReferencePosition(chr, position, id, ref, alt, altFreq));
 			}
 		} catch (IOException ioe) {
 			log.reportIOException(referenceFile);
@@ -204,22 +165,19 @@ public class ImputationPrep {
 		return referencePositionsBuild;
 	}
 
-	private String generateFilteredPlinkset() {
+	private Set<Marker> filterMarkers() {
 		MarkerDetailSet markerSet = proj.getMarkerSet();
 		List<Marker> markers = markerSet.getMarkers();
-		Set<Marker> keepMarkers = Sets.newHashSet();
+		Map<Byte, Map<Integer, Set<ReferencePosition>>> referencePositions = readRefFile();
+		ImmutableSet.Builder<Marker> matchingMarkersBuilder = ImmutableSet.builder();
 		int mismatchPos = 0;
-		int invalidAlleles = 0;
-		int palindromes = 0;
 		int alleleFlips = 0;
 		int strandFlips = 0;
 		int strandAlelleFlips = 0;
-		int matches = 0;
 		int mismatchAlleles = 0;
 
-		log.report("Generating AB Lookup for Imputation");
-		String taskName = "generateABLookup";
-		proj.getProgressMonitor().beginDeterminateTask(taskName, "Generating AB Lookup for Imputation",
+		String taskName = "Matching Project Markers to Reference Panel";
+		proj.getProgressMonitor().beginDeterminateTask(taskName, taskName,
 																									 markers.size(),
 																									 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		List<Marker> noMatches = Lists.newArrayList();
@@ -236,292 +194,70 @@ public class ImputationPrep {
 			if (refMatches == null) {
 				mismatchPos++;
 				noMatches.add(marker);
-				// if (referenceNames.containsKey(marker.getName())) {
-				// noMatches.add(marker);
-				// }
-				// TODO Maybe add checking by name, shouldn't be necessary with BLAST VCF though
 			} else {
+				// Copy the matches in order to pick off bad matches without removing from actual structure
 				refMatches = Sets.newHashSet(refMatches);
-				char a = marker.getRef();
-				char b = marker.getAlt();
+				char ref = marker.getRef();
+				char alt = marker.getAlt();
 				// Find the best matched ReferencePosition from all of the matches
-				if (!validateAlleles(a, b, refMatches)) {
-					invalidAlleles++;
-				} else if (!validatePalindromes(refMatches)) {
-					palindromes++;
-				} else if (matches(a, b, refMatches)) {
-					matches++;
-					keepMarkers.add(marker);
-				} else if (matches(b, a, refMatches)) {
+				if (matches(ref, alt, refMatches)) {
+					matchingMarkersBuilder.add(marker);
+					// Don't accept anything less than a proper match but count for reporting purposes
+				} else if (matches(alt, ref, refMatches)) {
 					alleleFlips++;
-					// keepMarkers.add(markerNames[i]);
-					// refAlleles[i] = b;
 				} else {
-					char aFlip = PALINDROMIC_PAIRS.get(a);
-					char bFlip = PALINDROMIC_PAIRS.get(b);
+					Character aFlip = PALINDROMIC_PAIRS.get(ref);
+					Character bFlip = PALINDROMIC_PAIRS.get(alt);
 					if (matches(aFlip, bFlip, refMatches)) {
 						strandFlips++;
-						// keepMarkers.add(markerNames[i]);
-						// lookup[i] = new char[] {aFlip, bFlip};
-						// refAlleles[i] = aFlip;
 					} else if (matches(bFlip, aFlip, refMatches)) {
 						strandAlelleFlips++;
-						// keepMarkers.add(markerNames[i]);
-						// lookup[i] = new char[] {aFlip, bFlip};
-						// refAlleles[i] = bFlip;
 					} else {
 						mismatchAlleles++;
 					}
 				}
 			}
 		}
+
 		proj.getProgressMonitor().endTask(taskName);
 
+		Set<Marker> matchingMarkersSet = matchingMarkersBuilder.build();
+
 		log.report(mismatchPos + " positions did not match to a position in the reference set");
-		log.report(invalidAlleles
-							 + " positions had invalid allele codes in the project or reference set");
 		log.report(mismatchAlleles + " positions had mismatched alleles and were excluded");
-		log.report(palindromes
-							 + " positions had A/T or G/C SNPs in the reference set and were excluded");
-		log.report("A total of " + (mismatchPos + invalidAlleles + mismatchAlleles + palindromes)
+		log.report(alleleFlips + " positions would have matched after flipping the alleles");
+		log.report(strandFlips + " positions would have matched after flipping the strand");
+		log.report(strandAlelleFlips
+							 + " positions would have matched after flipping the alleles and strand");
+		log.report("A total of " + (markers.size() - matchingMarkersSet.size())
 							 + " positions were excluded");
 		log.report("");
-		log.report(matches + " positions matched the reference set");
-		log.report(alleleFlips + " positions matched after flipping the alleles");
-		log.report(strandFlips + " positions matched after flipping the strand");
-		log.report(strandAlelleFlips + " positions matched after flipping the alleles and strand");
-		log.report("A total of " + (matches + alleleFlips + strandFlips + strandAlelleFlips)
-							 + " positions will be exported for imputation");
-
-		// String imputationABLookup = ext.addToRoot(proj.AB_LOOKUP_FILENAME.getDefaultValue(),
-		// "_imputation");
-		// new ABLookup(markerNames, lookup).writeToFile(proj.PROJECT_DIRECTORY.getValue() + targetDir
-		// + imputationABLookup, log);
-		//
-		// imputationRefAlleles = "refAlleles.txt";
-		// PrintWriter writer = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + targetDir
-		// + imputationRefAlleles);
-		// for (int i = 0; i < refAlleles.length; i++) {
-		// writer.println(markerNames[i] + "\t" + refAlleles[i]);
-		// }
-		// writer.flush();
-		// writer.close();
-
-		String imputationTargetMarkers = proj.PROJECT_DIRECTORY.getValue() + targetDir
-																		 + "targetMarkers.txt";
-		List<String> targetMarkers = Lists.newArrayListWithCapacity(keepMarkers.size());
-		for (Marker marker : keepMarkers) {
-			targetMarkers.add(marker.getName());
-		}
-		Files.writeIterable(targetMarkers, imputationTargetMarkers);
-
-
-		////
-		// TODO: Remove this and commented out code
-		List<String> noMatchMarkers = Lists.newArrayListWithCapacity(noMatches.size());
-		for (Marker marker : noMatches) {
-			noMatchMarkers.add(marker.getName() + "\t" + marker.getChr() + "\t" + marker.getPosition());
-		}
-		Files.writeIterable(noMatchMarkers,
-												proj.PROJECT_DIRECTORY.getValue() + targetDir + "noMatchMarkers.txt");
-
-		////
-
-		log.report("Generating PLINK dataset for Imputation");
-		String filteredPlinkroot = "plinkFiltered";
-		if (!PlinkData.saveGenvisisToPlinkBedSet(proj, targetDir + filteredPlinkroot,
-																						 proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue(),
-																						 imputationTargetMarkers, -1)) {
-			return null;
-		}
-
-		return filteredPlinkroot;
+		log.report(matchingMarkersSet.size()
+							 + " positions matched the reference set and will be used for imputation");
+		return matchingMarkersSet;
 	}
 
-	private String dedupePlinkSNPs(String inputPlinkroot) {
-		List<String> commandList;
-		Set<String> inputs;
-		Set<String> outputs;
-
-		List<CmdLine.Command> commands = Lists.newLinkedList();
-
-
-
-		String dupesFile = inputPlinkroot + ".dupvar";
-
-		commandList = ImmutableList.of("plink2", "--bfile", inputPlinkroot, "--list-duplicate-vars",
-																	 "ids-only", "suppress-first", "--out", inputPlinkroot);
-		inputs = ImmutableSet.copyOf(PSF.Plink.getPlinkBedBimFam(inputPlinkroot));
-		outputs = ImmutableSet.of(dupesFile);
-		commands.add(new CmdLine.Command(commandList, inputs, outputs,
-																		 proj.PROJECT_DIRECTORY.getValue() + targetDir));
-
-		String scrubbedPlinkroot = "scrubbed";
-		commandList = ImmutableList.of("plink2", "--bfile", inputPlinkroot, "--extract", dupesFile,
-																	 "--make-bed", "--out", scrubbedPlinkroot);
-		inputs = outputs;
-		outputs = ImmutableSet.copyOf(PSF.Plink.getPlinkBedBimFam(scrubbedPlinkroot));
-		commands.add(new CmdLine.Command(commandList, inputs, outputs,
-																		 proj.PROJECT_DIRECTORY.getValue() + targetDir));
-
-		// TODO Drop lower callrate duplicate
-
-		for (CmdLine.Command command : commands) {
-			if (!command.runCommand(true, true, false, false, log)) {
-				return null;
-			}
-		}
-		return scrubbedPlinkroot;
-	}
-
-	private List<String> exportPlinkToChrVCFs(String inputPlinkroot) {
-		List<String> vcfs = Lists.newArrayList();
-		Set<String> inputs = ImmutableSet.copyOf(PSF.Plink.getPlinkBedBimFam(inputPlinkroot));
-		for (int i = 1; i <= 23; i++) {
-			String outputRoot = proj.PROJECT_NAME.getValue() + "_imputation_chr" + i;
-			String outputFile = outputRoot + ".vcf.gz";
-			Set<String> outputs = ImmutableSet.of(outputFile);
-			List<String> commandList = ImmutableList.of("plink2", "--bfile", inputPlinkroot,
-																									"--a2-allele", imputationRefAlleles,
-																									"--real-ref-alleles", "--chr",
-																									Integer.toString(i), "--output-chr", "M",
-																									"--recode", "vcf", "bgz", "--out", outputRoot);
-			CmdLine.Command command = new CmdLine.Command(commandList, inputs, outputs,
-																										proj.PROJECT_DIRECTORY.getValue() + targetDir);
-			if (command.runCommand(true, true, false, true, log)) {
-				vcfs.add(outputFile);
-			} else {
-				log.reportError("Could not generate VCF for chromosome " + i);
-			}
-		}
-		return vcfs;
-	}
-
-	public boolean run() {
-		String filteredPlinkroot = generateFilteredPlinkset();
-		if (filteredPlinkroot == null
-				|| !PSF.Plink.allFilesExist(proj.PROJECT_DIRECTORY.getValue() + targetDir
-																		+ filteredPlinkroot, true)) {
-			log.reportError("Could not generate a filtered plink dataset for imputation");
-			return false;
-		}
-
-		RelationAncestryQc.fullGamut(proj.PROJECT_DIRECTORY.getValue() + targetDir,
-																 filteredPlinkroot, true, log);
-		String qcPlinkroot = proj.PROJECT_DIRECTORY.getValue() + targetDir + Qc.QC_SUBDIR
-												 + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR + filteredPlinkroot
-												 + FurtherAnalysisQc.FURTHER_ANALYSIS_QC_PLINK_SUFFIX;
-		if (!PSF.Plink.allFilesExist(qcPlinkroot, true)) {
-			log.reportError("GWAS QC failed");
-			return false;
-		}
-		qcPlinkroot = qcPlinkroot.substring((proj.PROJECT_DIRECTORY.getValue() + targetDir).length());
-
-		String dedupedPlinkroot = dedupePlinkSNPs(qcPlinkroot);
-		if (dedupedPlinkroot == null
-				|| !PSF.Plink.allFilesExist(proj.PROJECT_DIRECTORY.getValue() + targetDir
-																		+ dedupedPlinkroot, true)) {
-			log.reportError("Failed to remove duplicates from exported plink dataset");
-			return false;
-		}
-
-		List<String> vcfs = exportPlinkToChrVCFs(dedupedPlinkroot);
-		if (vcfs.isEmpty()) {
-			log.reportError("No VCFs were exported");
-			return false;
-		}
-		log.report("Succesfully exported " + vcfs.size() + " VCFs for imputation to "
-							 + proj.PROJECT_DIRECTORY.getValue() + targetDir + ":\n\t"
-							 + Joiner.on("\n\t").join(vcfs));
-		return true;
-	}
-
-	private static boolean validateAlleles(char a, char b, Collection<ReferencePosition> refMatches) {
-		if (!validAlleles(a, b)) {
-			return false;
-		}
-		for (Iterator<ReferencePosition> i = refMatches.iterator(); i.hasNext();) {
-			ReferencePosition refPos = i.next();
-			char ref = refPos.getRef();
-			char alt = refPos.getAlt();
-			if (!validAlleles(ref, alt)) {
-				i.remove();
-			}
-		}
-		return !refMatches.isEmpty();
-	}
-
-	private static boolean validAlleles(char... alleles) {
-		for (char allele : alleles) {
-			if (!VALID_ALLELES.contains(allele)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private static boolean validatePalindromes(Collection<ReferencePosition> refMatches) {
-		for (Iterator<ReferencePosition> i = refMatches.iterator(); i.hasNext();) {
-			ReferencePosition refPos = i.next();
-			char ref = refPos.getRef();
-			char alt = refPos.getAlt();
-			double maf = refPos.getAltFreq();
-			if (maf > 0.5) {
-				maf -= 0.5;
-			}
-			if (maf > PALINDROME_MAF_LIMIT && palindromic(ref, alt)) {
-				i.remove();
-			}
-		}
-		return !refMatches.isEmpty();
-	}
-
-	private static boolean palindromic(char a1, char a2) {
-		Character a1Pair = PALINDROMIC_PAIRS.get(a1);
-		return a1Pair != null && a1Pair.charValue() == a2;
-	}
-
-	private static boolean matches(char a, char b, Collection<ReferencePosition> refMatches) {
-		for (ReferencePosition refPos : refMatches) {
-			if (a == refPos.getRef() && b == refPos.getAlt()) {
-				return true;
+	private static boolean matches(Character a, Character b,
+																 Collection<ReferencePosition> refMatches) {
+		if (a != null && b != null) {
+			for (ReferencePosition refPos : refMatches) {
+				if (a == refPos.getRef() && b == refPos.getAlt()) {
+					return true;
+				}
 			}
 		}
 		return false;
 	}
 
 	public static void main(String... args) {
-		Project proj;
-		String projFile = Launch.getDefaultDebugProjectFile(false);
-		String targetDir = DEFAULT_TARGET_DIR;
-		String referenceFile = DEFAULT_REFERENCE_FILE;
 
-		CLI c = new CLI(ImputationPrep.class);
-		c.addArgWithDefault(CLI.ARG_PROJ, CLI.DESC_PROJ, projFile);
-		c.addArgWithDefault(ARGS_TARGET_DIR,
-												"generate intermediates and outputs to this directory (relative to project directory)",
-												targetDir);
-		c.addArgWithDefault(ARGS_REFERENCE_FILE, "prepare for imputation based on this reference file",
-												referenceFile);
-
-		c.parseWithExit(args);
-
-		proj = new Project(c.get(CLI.ARG_PROJ), false);
-		targetDir = c.get(ARGS_TARGET_DIR);
-		referenceFile = c.get(ARGS_REFERENCE_FILE);
-		if (Files.isRelativePath(referenceFile)) {
-			referenceFile = Files.firstPathToFileThatExists(referenceFile,
-																											proj.PROJECT_DIRECTORY.getValue(),
-																											proj.PROJECT_DIRECTORY.getValue() + targetDir,
-																											"");
-		}
+		Project proj = new Project("C:\\Users\\kelle881\\projects\\Poynter.properties", false);
+		String referenceFile = "F:\\Poynter\\HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz";
 		if (referenceFile == null || !Files.exists(referenceFile)) {
 			proj.getLog().reportError("Reference file could not be found");
 			return;
 		}
-		ImputationPrep prep = new ImputationPrep(proj, referenceFile, targetDir, proj.getLog());
-		// while (true) {
-		prep.run();
-		// }
+		ImputationPrep prep = new ImputationPrep(proj, referenceFile);
+
 	}
 }
