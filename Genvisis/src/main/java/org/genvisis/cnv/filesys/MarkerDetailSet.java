@@ -17,6 +17,7 @@ import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
+import org.genvisis.cnv.annotation.markers.MarkerSeqAnnotation;
 import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.Files;
@@ -34,9 +35,16 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 
+import htsjdk.variant.variantcontext.Allele;
+
 public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport {
 
 	public static class Marker implements Serializable, Comparable<Marker> {
+
+		public enum RefAllele {
+			A, B
+		}
+
 		private static final long serialVersionUID = 1L;
 
 		private final String name;
@@ -44,6 +52,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		private final int position;
 		private final char a;
 		private final char b;
+		private final RefAllele refAllele;
+
 
 		/**
 		 * @param name
@@ -51,14 +61,16 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		 * @param position
 		 * @param a
 		 * @param b
+		 * @param refAllele
 		 */
-		private Marker(String name, byte chr, int position, char a, char b) {
+		private Marker(String name, byte chr, int position, char a, char b, RefAllele refAllele) {
 			super();
 			this.name = name;
 			this.chr = chr;
 			this.position = position;
 			this.a = a;
 			this.b = b;
+			this.refAllele = refAllele;
 		}
 
 		public String getName() {
@@ -81,8 +93,42 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			return b;
 		}
 
+		public RefAllele getRefAllele() {
+			return refAllele;
+		}
+
 		public char[] getAB() {
 			return new char[] {a, b};
+		}
+
+		public char getRef() {
+			if (refAllele == null) {
+				return ABLookup.MISSING_ALLELE;
+			}
+			switch (refAllele) {
+				case A:
+					return a;
+				case B:
+					return b;
+				default:
+					throw new IllegalStateException("Undefined refAllele instance:" + refAllele.toString());
+
+			}
+		}
+
+		public char getAlt() {
+			if (refAllele == null) {
+				return ABLookup.MISSING_ALLELE;
+			}
+			switch (refAllele) {
+				case A:
+					return b;
+				case B:
+					return a;
+				default:
+					throw new IllegalStateException("Undefined refAllele instance:" + refAllele.toString());
+
+			}
 		}
 
 		@Override
@@ -196,7 +242,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				a = 'A';
 				b = 'B';
 			}
-			markersBuilder.add(new Marker(markerNames[i], chrs[i], positions[i], a, b));
+			markersBuilder.add(new Marker(markerNames[i], chrs[i], positions[i], a, b, null));
 		}
 		markers = markersBuilder.build();
 		this.markerSetFingerprint = markerSetFingerprint;
@@ -286,9 +332,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 																												 String blastAnnotation,
 																												 Logger log) {
 		String[] markerNames = naiveMarkerSet.getMarkerNames();
-		byte[] chrs = new byte[markerNames.length];
-		int[] positions = new int[markerNames.length];
-		char[][] abLookup = new char[markerNames.length][];
+		List<Marker> markers = Lists.newArrayListWithCapacity(markerNames.length);
 		if (!Files.exists(blastAnnotation)) {
 			log.reportTimeWarning("Could not find " + blastAnnotation
 														+ ", cannot generate BLAST Annotation based Marker Set");
@@ -313,8 +357,19 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 																											 .getInterrogationPosition();
 			int probeLength = markerBlastAnnotation.getMarkerSeqAnnotation().getSequence().length();
 			int positionOffset = interrogationPosition - probeLength + 1;
+			char a = ABLookup.MISSING_ALLELE;
+			char b = ABLookup.MISSING_ALLELE;
+			Marker.RefAllele refAllele = null;
 			try {
-				abLookup[i] = ABLookup.parseABFromMarkerSeqAnnotation(markerBlastAnnotation.getMarkerSeqAnnotation());
+				MarkerSeqAnnotation markerSeqAnnotation = markerBlastAnnotation.getMarkerSeqAnnotation();
+				char[] ab = ABLookup.parseABFromMarkerSeqAnnotation(markerSeqAnnotation);
+				a = ab[0];
+				b = ab[1];
+				Allele ref = markerSeqAnnotation.getRef();
+				if (ref.basesMatch(String.valueOf(a)))
+					refAllele = Marker.RefAllele.A;
+				else if (ref.basesMatch(String.valueOf(b)))
+					refAllele = Marker.RefAllele.B;
 			} catch (NullPointerException npe) {
 				missingABcount++;
 			}
@@ -370,18 +425,21 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 					}
 				}
 			}
+			byte chr;
+			int position;
 			if (bestMatch == null) {
 				missingPositionCount++;
-				chrs[i] = 0;
-				positions[i] = 0;
+				chr = 0;
+				position = 0;
 			} else {
 				Segment seg = bestMatch.getRefLoc();
-				chrs[i] = seg.getChr();
-				positions[i] = bestMatch.getEffectiveInterrogationPosition(positionOffset, log);
+				chr = seg.getChr();
+				position = bestMatch.getEffectiveInterrogationPosition(positionOffset, log);
 			}
 			if (ambiguousPosition) {
 				ambiguousPositionCount++;
 			}
+			markers.add(new Marker(markerNames[i], chr, position, a, b, refAllele));
 		}
 		if (missingABcount > 0) {
 			log.reportError("Warning - there " + (missingABcount > 1 ? "were " : "was ")
@@ -398,7 +456,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 											+ missingPositionCount + " marker" + (missingPositionCount > 1 ? "s" : "")
 											+ " missing a BLAST result and association position");
 		}
-		return new MarkerDetailSet(markerNames, chrs, positions, abLookup);
+		return new MarkerDetailSet(markers);
 
 
 	}
