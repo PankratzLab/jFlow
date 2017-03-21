@@ -18,7 +18,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.FileChooser;
 import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.cnv.manage.TransposeData;
@@ -303,8 +305,8 @@ public class CytoPanel extends JPanel implements ActionListener {
 		if (checkFiles(importFiles, SAMPLES, true)) {
 			Files.write("", proj.SAMPLE_DIRECTORY.getValue(true, true)
 											+ SourceFileParser.OVERWRITE_OPTION_FILE);
-			SourceFileParser.deleteAllFilesInSampleDirectory(proj);
-			SourceFileParser.deleteAllFilesInMarkerDataDirectory(proj);
+			SourceFileParser.deleteAllFilesInDirectory(proj, proj.SAMPLE_DIRECTORY.getValue(), Sample.SAMPLE_FILE_EXTENSION);
+			SourceFileParser.deleteAllFilesInDirectory(proj, proj.MARKER_DATA_DIRECTORY.getValue(false, true), MarkerData.MARKER_DATA_FILE_EXTENSION);
 
 			log.report(ext.getTime() + " Info - found " + importFiles.length + " files");
 			CytoAgilentParse.parseCytoToGenvisis(proj, importFiles, log);

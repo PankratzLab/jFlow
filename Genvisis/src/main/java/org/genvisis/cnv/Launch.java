@@ -788,7 +788,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			 * SwingUtilities.invokeLater();
 			 */
 			if (command.equals(MAP_FILES)) {
-				org.genvisis.cnv.manage.SourceFileParser.mapFilenamesToSamples(proj,
+				org.genvisis.cnv.manage.SourceParserUtils.mapFilenamesToSamples(proj,
 																																			 "filenamesMappedToSamples.txt");
 			} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
 				org.genvisis.cnv.manage.Markers.generateMarkerPositions(proj,
