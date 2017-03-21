@@ -12,8 +12,8 @@ import java.util.Vector;
 
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerLookup;
-import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.ArrayUtils;
@@ -306,7 +306,7 @@ public class MarkerDataLoader implements Runnable {
 		int[][] markerIndicesInSelection;
 		long fingerprint;
 		int count;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		String[] allMarkersInProj;
 		byte[] allChrsInProj;
 		int[] allPosInProj;

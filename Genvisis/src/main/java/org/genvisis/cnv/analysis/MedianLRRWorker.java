@@ -26,7 +26,7 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_S
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.MarkerDataLoader;
@@ -314,7 +314,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
 	private final Hashtable<String, String> hash;
 
-	private final MarkerSet markerSet;
+	private final MarkerSetInfo markerSet;
 
 	private final SampleList sampleList;
 

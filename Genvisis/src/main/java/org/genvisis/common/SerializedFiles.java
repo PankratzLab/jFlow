@@ -68,8 +68,8 @@ public class SerializedFiles {
 				o = readSerialFixClassname(filename, jar, log, kill, gzipped);
 			} catch (Exception e2) {
 				log.reportError("Error - failed to load " + filename);
-				log.reportException(e2);
 				if (kill) {
+					log.reportException(e2);
 					System.exit(1);
 				}
 			}

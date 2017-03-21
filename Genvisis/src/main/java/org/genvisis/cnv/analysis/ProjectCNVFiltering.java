@@ -2,6 +2,7 @@ package org.genvisis.cnv.analysis;
 
 import java.util.Hashtable;
 
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
@@ -47,7 +48,7 @@ public class ProjectCNVFiltering {
 
 	private static void loadMarkerSet(Project proj, CNVFilter filter) {
 		String markerSetFile = proj.MARKERSET_FILENAME.getValue();
-		MarkerSet markerSet = MarkerSet.load(markerSetFile, false);
+		MarkerSetInfo markerSet = MarkerSet.load(markerSetFile, false);
 		filter.setPositions(markerSet.getPositionsByChr());
 		filter.setCentromereBoundaries(Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(),
 																																												markerSet.getPositions(),

@@ -2,23 +2,27 @@ package org.genvisis.one.JL;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.genvisis.cnv.annotation.markers.AnnotationData;
+import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationFileWriter;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationWriter;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation;
+import org.genvisis.cnv.annotation.markers.LocusAnnotation.Builder;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
-import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_ORDER;
-import org.genvisis.cnv.annotation.markers.LocusAnnotation.Builder;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
+
+import com.googlecode.charts4j.collect.Lists;
 
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
@@ -49,10 +53,12 @@ public class BlastAnnotationTesting {
 		// long time = System.currentTimeMillis();
 
 		proj.getLog().reportTimeInfo("Loading " + t.size() + " markers");
-		BlastAnnotationLoader blastAnnotationLoader = new BlastAnnotationLoader(proj, annoFile, true);
+		BlastAnnotationLoader blastAnnotationLoader = new BlastAnnotationLoader(annoFile,
+																																						proj.getMarkerSet(),
+																																						true, proj.getLog());
 
 		// MarkerBlastResult[] markerBlastResults =
-		// blastAnnotationLoader.loadBlastAnnotationsFor(Array.toStringArray(t), null);
+		// blastAnnotationLoader.loadBlastAnnotationsFor(ArrayUtils.toStringArray(t), null);
 		// proj.getLog().reportTimeElapsed(time);
 		// for (int i = 0; i < markerBlastResults.length; i++) {
 		// for (int j = 0; j < markerBlastResults[i].getAnnotationLists().length; j++) {
@@ -79,7 +85,7 @@ public class BlastAnnotationTesting {
 
 		// Writing:
 		BlastAnnotationWriter blastAnnotation = new BlastAnnotationWriter(proj, null, annoFile,
-																																			blastResultFiles,
+																																			blastResultFiles, null,
 																																			minAlignmentLength, maxGaps,
 																																			maxMismatches, 15);
 		blastAnnotation.summarizeResultFiles(true);
@@ -88,7 +94,7 @@ public class BlastAnnotationTesting {
 		// Annotation annotation = new Annotation(VCFHeaderLineType.String, null, 1, "test analysis ",
 		// "a test analysis addition", "DSDF") {
 		// };
-		blastAnnotation = new BlastAnnotationWriter(proj, null, annoFile, blastResultFiles,
+		blastAnnotation = new BlastAnnotationWriter(proj, null, annoFile, blastResultFiles, null,
 																								minAlignmentLength, maxGaps, maxMismatches, 15);
 		blastAnnotation.summarizeResultFiles(true);
 		blastAnnotation.close();
@@ -124,15 +130,17 @@ public class BlastAnnotationTesting {
 		// t.add(markers[2]);
 		// t.add(markers[200003]);
 
-		MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(ArrayUtils.toStringArray(t));
-		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(proj, null,
+		Map<String, MarkerBlastAnnotation> blastResults = MarkerBlastAnnotation.initForMarkers(ArrayUtils.toStringArray(t));
+		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(null,
 																																				 proj.BLAST_ANNOTATION_FILENAME.getValue(),
-																																				 proj.getMarkerSet(), true);
-		ArrayList<AnnotationParser[]> toparse = new ArrayList<AnnotationParser[]>();
+																																				 proj.getMarkerSet(), true,
+																																				 proj.getLog());
+		List<Map<String, ? extends AnnotationParser>> toparse = Lists.newArrayList();
 		toparse.add(blastResults);
-		annotationLoader.fillAnnotations(ArrayUtils.toStringArray(t), toparse, QUERY_ORDER.NO_ORDER);
-		for (MarkerBlastAnnotation blastResult : blastResults) {
-			// System.out.println(Array.toStr(blastResults[i].getAlignmentHistogram(proj)));
+		annotationLoader.fillAnnotations(ArrayUtils.toStringArray(t), toparse,
+																		 QUERY_TYPE.DISCRETE_LIST);
+		for (MarkerBlastAnnotation blastResult : blastResults.values()) {
+			// System.out.println(ArrayUtils.toStr(blastResults[i].getAlignmentHistogram(proj)));
 		}
 	}
 
@@ -151,7 +159,7 @@ public class BlastAnnotationTesting {
 		// proj.getLog().reportTimeWarning(proj.AB_LOOKUP_FILENAME.getValue() + " did not exist so ref
 		// and alt alleles will be in-accurate");
 		// }
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		byte[] chrs = markerSet.getChrs();
 		int[] pos = markerSet.getPositions();
 		String[] markerNames = proj.getMarkerNames();
@@ -177,7 +185,7 @@ public class BlastAnnotationTesting {
 
 	private static ArrayList<String> getTestMarks(Project proj) {
 		ArrayList<String> t = new ArrayList<String>();
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 
 		for (int i = 0; i < markerSet.getIndicesByChr().length; i++) {
 			if (markerSet.getIndicesByChr()[i].length - 1 >= 0) {

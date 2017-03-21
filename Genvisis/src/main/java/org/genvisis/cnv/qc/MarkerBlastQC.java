@@ -1,21 +1,26 @@
 package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
-import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
-import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
-import org.genvisis.cnv.annotation.markers.MarkerGCAnnotation;
-import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_ORDER;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
+import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
+import org.genvisis.cnv.annotation.markers.MarkerGCAnnotation;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+
+import com.google.common.collect.Lists;
 
 public class MarkerBlastQC {
 
@@ -37,36 +42,39 @@ public class MarkerBlastQC {
 		if (outFile == null) {
 			outFile = defaultOneHitWondersFilename(blastVCF);
 		}
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
-		MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(proj, null,
+		MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(null,
 																																							 proj.BLAST_ANNOTATION_FILENAME.getValue(),
 																																							 proj.getMarkerSet(),
-																																							 true);
+																																							 true,
+																																							 log);
 		markerAnnotationLoader.setReportEvery(500000);
-		MarkerGCAnnotation[] gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, markerNames,
-																																					 markerAnnotationLoader.getMarkerSet(),
-																																					 markerAnnotationLoader.getIndices());
-		MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(markerNames);
-		ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
+		Map<String, MarkerGCAnnotation> gcAnnotations = MarkerGCAnnotation.initForMarkers(proj,
+																																											markerNames,
+																																											markerAnnotationLoader.getMarkerSet(),
+																																											markerAnnotationLoader.getMarkerIndices());
+		Map<String, MarkerBlastAnnotation> blastResults = MarkerBlastAnnotation.initForMarkers(markerNames);
+		List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
 		parsers.add(gcAnnotations);
 		parsers.add(blastResults);
 		ArrayList<String> oneHitters = new ArrayList<String>();
 
 		// TODO: Update to more efficient Annotation Loading for entire file
-		markerAnnotationLoader.fillAnnotations(null, parsers, QUERY_ORDER.ONE_PER_IN_ORDER);
+		markerAnnotationLoader.fillAnnotations(null, parsers, QUERY_TYPE.ONE_TO_ONE);
 
-		for (int i = 0; i < blastResults.length; i++) {
-			MarkerBlastAnnotation current = blastResults[i];
-			ArrayList<BlastAnnotation> perfectMatches = current.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
-																																						log);
+		for (Entry<String, MarkerBlastAnnotation> blastResult : blastResults.entrySet()) {
+			MarkerBlastAnnotation current = blastResult.getValue();
+			String markerName = blastResult.getKey();
+			List<BlastAnnotation> perfectMatches = current.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
+																																			 log);
 			if (perfectMatches.size() == 1) {
 				int[] alignmentHistogram = current.getAlignmentHistogram(proj);
 				int sub = (int) Math.round(crossHybePercent * alignmentHistogram.length);
 				int numHits = ArrayUtils.sum(ArrayUtils.subArray(alignmentHistogram, sub));
 				if (numHits == 1) {
 					// Perfect match is the only hit within crossHybePercent
-					oneHitters.add(markerNames[i]);
+					oneHitters.add(markerName);
 				} else if (numHits == 2) {
 					PROBE_TAG perfectTag = perfectMatches.get(0).getTag();
 					if (perfectTag != PROBE_TAG.BOTH) {
@@ -76,7 +84,7 @@ public class MarkerBlastQC {
 									&& annotation.getRefLoc().getSize() == proj.getArrayType().getProbeLength() - 1) {
 								// Second match is an on target read to the second probe, missing only the target
 								// base
-								oneHitters.add(markerNames[i]);
+								oneHitters.add(markerName);
 								break;
 							}
 						}

@@ -90,6 +90,7 @@ public class PropertyKeys {
 	public static final String KEY_MARKER_COLOR_KEY_FILENAMES = "MARKER_COLOR_KEY_FILENAMES";
 	public static final String KEY_PROJECT_PROPERTIES_FILENAME = "PROJECT_PROPERTIES_FILENAME";
 	public static final String KEY_MARKERSET_FILENAME = "MARKERSET_FILENAME";
+	public static final String KEY_MARKER_DETAILS_FILENAME = "MARKER_DETAILS_FILENAME";
 	public static final String KEY_MARKERLOOKUP_FILENAME = "MARKERLOOKUP_FILENAME";
 	public static final String KEY_SAMPLELIST_FILENAME = "SAMPLELIST_FILENAME";
 	public static final String KEY_JAR_STATUS = "JAR_STATUS";

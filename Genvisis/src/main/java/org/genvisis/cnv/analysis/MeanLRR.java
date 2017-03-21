@@ -8,7 +8,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MeanLRRset;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
@@ -33,7 +33,7 @@ import com.google.common.primitives.Floats;
 public class MeanLRR {
 	public static void createFilesFromFullSample(Project proj, String regionsFile) {
 		PrintWriter writer;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		SampleList sampleList;
 		Sample samp;
 		String[] samples, markerNames;
@@ -142,7 +142,7 @@ public class MeanLRR {
 
 	public static void createFilesFromMarkerData(Project proj, String regionsFile) {
 		PrintWriter writer;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		SampleList sampleList;
 		String[] samples, markerNames;
 		byte[] chrs;

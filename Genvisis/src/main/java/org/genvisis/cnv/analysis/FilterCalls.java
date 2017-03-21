@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.UCSCtrack;
@@ -409,7 +410,7 @@ public class FilterCalls {
 			cnvList.add(cnv);
 		}
 
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		int[][] positions = null;
 		if (cnvsAsPositions) {
 			LocusSet<CNVariant> tmp = new LocusSet<CNVariant>(inCNVs, true, proj.getLog()) {
@@ -702,7 +703,7 @@ public class FilterCalls {
 
 			srcCNVs = null;
 
-			MarkerSet markerSet = proj.getMarkerSet();
+			MarkerSetInfo markerSet = proj.getMarkerSet();
 			int[][] positions = markerSet.getPositionsByChr();
 			Hashtable<String, String> droppedMarkerNames = proj.getFilteredHash();
 			String[] markerNames = markerSet.getMarkerNames();
@@ -1022,7 +1023,7 @@ public class FilterCalls {
 
 		int[][] positions = null;
 		if (bimFile != null) {
-			MarkerSet markerSet = MarkerSet.load(bimFile, false);
+			MarkerSetInfo markerSet = MarkerSet.load(bimFile, false);
 			positions = markerSet.getPositionsByChr();
 		}
 
@@ -1847,7 +1848,7 @@ public class FilterCalls {
 																																		 int dupLimitedTo,
 																																		 double proportionOfProbesThatNeedToPassForFinalInclusion,
 																																		 boolean cnvsAsPositions) {
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		int[][] positions;
 		int[][][] counts;
 		int firstSNP, lastSNP, indel;;
@@ -1955,7 +1956,7 @@ public class FilterCalls {
 																											int delLimitedTo, int dupLimitedTo,
 																											double proportionOfProbesThatNeedToPassForFinalInclusion) {
 		PrintWriter writer;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		int[][] positions;
 		int[][][] counts;
 		int firstSNP, lastSNP, indel;

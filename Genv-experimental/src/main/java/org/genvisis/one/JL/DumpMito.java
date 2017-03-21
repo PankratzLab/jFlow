@@ -1,5 +1,6 @@
 package org.genvisis.one.JL;
 
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -9,7 +10,7 @@ import org.genvisis.common.ext;
 public class DumpMito {
 
 	public static void main(String[] args) {
-		MarkerSet markerSet = MarkerSet.load("/Users/Kitty/git/affySnp6/markers.ser", false);
+		MarkerSetInfo markerSet = MarkerSet.load("/Users/Kitty/git/affySnp6/markers.ser", false);
 		// int[][] indices = markerSet.getIndicesByChr();
 		String[] mitoCurrent = HashVec.loadFileToStringArray("/Users/Kitty/git/affySnp6/MT.119.txt",
 																												 false, new int[] {0}, true);

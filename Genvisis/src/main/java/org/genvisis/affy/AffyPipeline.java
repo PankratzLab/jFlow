@@ -12,6 +12,7 @@ import java.util.HashMap;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
 import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
@@ -237,7 +238,7 @@ public class AffyPipeline {
 		probesetIdsSNP.add(AFFY_PROBELIST_HEADER);
 		String tmpMarkerSet = outDir + analysisName + "tmpMarkerSet.ser";
 		Markers.orderMarkers(null, markerPositionFile, tmpMarkerSet, log);
-		MarkerSet markerSet = MarkerSet.load(tmpMarkerSet, false);
+		MarkerSetInfo markerSet = MarkerSet.load(tmpMarkerSet, false);
 		String[] names = markerSet.getMarkerNames();
 
 		HashMap<String, String> track = new HashMap<String, String>();

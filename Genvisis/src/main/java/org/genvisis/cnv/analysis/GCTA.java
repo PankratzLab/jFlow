@@ -445,7 +445,7 @@ public class GCTA {
 			String nonCNFile = outDir + "markersToQC.txt";
 			Files.writeArray(proj.getNonCNMarkers(), nonCNFile);
 			Pedigree.build(proj, null, samples, false);
-			PlinkData.saveGenvisisToPlinkBedSet(proj, "gcta/gcta", null, nonCNFile, -1, true);
+			PlinkData.saveGenvisisToPlinkBedSet(proj, "gcta/gcta", null, nonCNFile, -1);
 		}
 
 		// , Not doing ld pruning...

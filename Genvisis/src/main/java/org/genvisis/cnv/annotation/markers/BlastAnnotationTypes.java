@@ -9,6 +9,8 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.seq.analysis.Blast.BlastResults;
 
 import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.vcf.VCFHeaderLineCount;
 import htsjdk.variant.vcf.VCFHeaderLineType;
@@ -279,6 +281,48 @@ public class BlastAnnotationTypes {
 
 		public double geteValue() {
 			return eValue;
+		}
+
+		/**
+		 * 
+		 * @param probeOffset number of bases from end of probe to interrogated position, typically 1 or
+		 *        0 where 1 indicates the interrogated base is 1 base past the end of the probe and 0
+		 *        indicates the interrogated base is the last base in the probe
+		 * @param log
+		 * @return
+		 */
+		public int getEffectiveInterrogationPosition(int probeOffset, Logger log) {
+			switch (getStrand()) {
+				case NEGATIVE:
+					return negativeStrandPositionCalc(probeOffset);
+				case POSITIVE:
+					return positiveStrandPositionCalc(probeOffset);
+				case NONE:
+				default:
+					log.reportError("Could not identify Strand for BLAST annotation at "
+													+ getRefLoc().getUCSClocation()
+													+ ", arbitrarily calculating position as if positive stranded");
+					return positiveStrandPositionCalc(probeOffset);
+			}
+		}
+
+		private int negativeStrandPositionCalc(int probeOffset) {
+			CigarElement finalElement = getCigar().getCigarElement(0);
+			int missingBases = calcMissingFinalBases(finalElement);
+			return getRefLoc().getStart() - probeOffset - missingBases;
+		}
+
+		private int positiveStrandPositionCalc(int probeOffset) {
+			CigarElement finalElement = getCigar().getCigarElement(getCigar().numCigarElements() - 1);
+			int missingBases = calcMissingFinalBases(finalElement);
+			return getRefLoc().getStop() + probeOffset + missingBases;
+		}
+
+		private int calcMissingFinalBases(CigarElement finalElement) {
+			if (finalElement.getOperator().equals(CigarOperator.X)) {
+				return finalElement.getLength();
+			}
+			return 0;
 		}
 
 		public static String[] toAnnotationString(BlastAnnotation[] blastAnnotations) {

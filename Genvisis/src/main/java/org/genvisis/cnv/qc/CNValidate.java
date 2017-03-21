@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.Transforms;
@@ -19,12 +19,12 @@ public class CNValidate implements Runnable {
 	private final String[] inds;
 	private final Hashtable<String, CNVariantQC[]> allIndcnVariantQCs;
 	private final SampleData sampleData;
-	private final MarkerSet markerSet;
+	private final MarkerSetInfo markerSet;
 	private final CNVariantQC[][] indcnVariantQCs;
 	private final Logger log;
 
 	public CNValidate(Project proj, String[] inds,
-										Hashtable<String, CNVariantQC[]> allIndcnVariantQCs, MarkerSet markerSet) {
+										Hashtable<String, CNVariantQC[]> allIndcnVariantQCs, MarkerSetInfo markerSet) {
 		this.proj = proj;
 		this.inds = inds;
 		this.allIndcnVariantQCs = allIndcnVariantQCs;
@@ -66,7 +66,7 @@ public class CNValidate implements Runnable {
 
 	public static CNVariantQC[][] computeMultiThreadedValidations(Project proj, String[] inds,
 																																Hashtable<String, CNVariantQC[]> allIndcnVariantQCs,
-																																MarkerSet markerSet,
+																																MarkerSetInfo markerSet,
 																																int processors) {
 		if (processors == 0) {
 			processors = Runtime.getRuntime().availableProcessors();
@@ -91,7 +91,7 @@ public class CNValidate implements Runnable {
 		return inds;
 	}
 
-	private static CNVariantQC[] computeValidations(Sample samp, MarkerSet markerSet,
+	private static CNVariantQC[] computeValidations(Sample samp, MarkerSetInfo markerSet,
 																									CNVariantQC[] cnVariantQCs, Logger log) {
 		int[][] indices = markerSet.getIndicesByChr();
 		float[] LRRsInvTransformedByChr = Transforms.transform(samp.getLRRs(), 2, true, markerSet);
@@ -104,7 +104,7 @@ public class CNValidate implements Runnable {
 	}
 
 	// the main event
-	private static CNVariantQC[] evaluateCNVariantQCs(Sample samp, MarkerSet markerSet,
+	private static CNVariantQC[] evaluateCNVariantQCs(Sample samp, MarkerSetInfo markerSet,
 																										CNVariantQC[] cnVariantQCs,
 																										double[] LRRsInvTransformedByChrMADScaled,
 																										int[][] indices, Logger log) {
@@ -218,7 +218,7 @@ public class CNValidate implements Runnable {
 	private static CNValidate[] processValidations(Project proj, int processors, Thread[] threads,
 																								 Vector<Vector<String>> cabinet,
 																								 Hashtable<String, CNVariantQC[]> allIndcnVariantQCs,
-																								 MarkerSet markerSet) {
+																								 MarkerSetInfo markerSet) {
 		CNValidate[] cnvals = new CNValidate[processors];
 		for (int i = 0; i < processors; i++) {
 			cnvals[i] = new CNValidate(proj,

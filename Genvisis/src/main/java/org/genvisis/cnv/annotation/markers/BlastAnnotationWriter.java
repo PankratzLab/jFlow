@@ -4,17 +4,18 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.Map;
 
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation.Builder;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.qc.MarkerBlast.MarkerFastaEntry;
-import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ArraySpecialList.ArrayBlastAnnotationList;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.analysis.Blast;
@@ -37,9 +38,12 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 	private final int maxMismatches;
 	private final int maxAlignmentsReported;
 
+
+
 	public BlastAnnotationWriter(Project proj, AnalysisParams[] analysisParams, String outputFile,
-															 String[] blastResultFiles, int minAlignmentLength, int maxGaps,
-															 int maxMismatches, int maxAlignmentsReported) {
+															 String[] blastResultFiles, MarkerFastaEntry[] markerFastaEntries,
+															 int minAlignmentLength, int maxGaps, int maxMismatches,
+															 int maxAlignmentsReported) {
 		super(proj, analysisParams,
 					ArrayUtils.concatAll(BlastAnnotationTypes.getBaseAnnotations(),
 															 new Annotation[] {MarkerBlastHistogramAnnotation.getDefaultBlastAnnotation()},
@@ -48,6 +52,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 					outputFile, false);
 		this.proj = proj;
 		this.blastResultFiles = blastResultFiles;
+		this.markerFastaEntries = markerFastaEntries;
 		this.minAlignmentLength = minAlignmentLength;
 		this.maxGaps = maxGaps;
 		this.maxMismatches = maxMismatches;
@@ -96,7 +101,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 			}
 		}
 
-		Hashtable<String, Integer> markerIndices = proj.getMarkerIndices();
+		Map<String, Integer> markerIndices = proj.getMarkerIndices();
 
 		for (String element : blastResultFile) {
 			proj.getLog().reportTimeInfo("Loading results from " + element);
@@ -131,8 +136,9 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 								} else {
 									proj.getLog()
-											.reportError("Query id did not end with " + PROBE_TAG.A.getTag() + "or "
-																	 + PROBE_TAG.B.getTag() + " which is required for an AFFY array");
+											.reportError("Query id (" + marker + ") did not end with " 
+																	 + PROBE_TAG.A.getTag() + "or " + PROBE_TAG.B.getTag() 
+																	 + " which is required for an AFFY array");
 								}
 							} else if (proj.getArrayType() == ARRAY.ILLUMINA) {
 								try {
@@ -172,7 +178,8 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 								if (BlastAnnotationTypes.shouldBeAnnotatedAs(proj, blastResults,
 																														 BLAST_ANNOTATION_TYPES.values()[i],
 																														 markerSeg, proj.getLog())) {
-									BlastAnnotation blastAnnotation = new BlastAnnotation(CigarOps.convertBtopToCigar(blastResults,
+									BlastAnnotation blastAnnotation = new BlastAnnotation(
+																																				CigarOps.convertBtopToCigar(blastResults,
 																																																		seqLength,
 																																																		proj.getLog()),
 																																				blastResults.getSegment(),
@@ -227,10 +234,10 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 			for (int i = 0; i < markerFastaEntries.length; i++) {
 				PROBE_TAG tag = PROBE_TAG.parseMarkerTag(markerFastaEntries[i].getName(), proj.getLog());
 				if (tag != PROBE_TAG.B) {
-					String marker = markerFastaEntries[i].getName().substring(0,
-																																		markerFastaEntries[i].getName()
-																																												 .length()
-																																			 - tag.getTag().length());
+					String marker = markerFastaEntries[i].getName()
+																							 .substring(0,
+																													markerFastaEntries[i].getName().length()
+																														 - tag.getTag().length());
 					markerSeqIndices.put(marker, i);
 				}
 			}
@@ -290,7 +297,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 	 * @return initialized blast summaries for all markers
 	 */
 	private static LocusAnnotation[] initializeSummaries(Project proj, int minAlignmentLength) {
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		// TODO ablookup for annovar etc...
 		byte[] chrs = markerSet.getChrs();
 		int[] pos = markerSet.getPositions();

@@ -52,7 +52,7 @@ public class MarkerFreqs implements Serializable {
 	public static void exportToText(String filename, String mafFilename, String exportFilename) {
 		Project proj = new Project(filename, false);
 		MarkerFreqs markerMAF = load(proj.PROJECT_DIRECTORY.getValue() + mafFilename, false);
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
 		double[] mafs = markerMAF.getMafs();
 		Logger log;
@@ -99,7 +99,7 @@ public class MarkerFreqs implements Serializable {
 		int[] indices;
 		String[] markerNames;
 		int index;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		Logger log;
 
 		log = proj.getLog();

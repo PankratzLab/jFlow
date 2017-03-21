@@ -77,7 +77,7 @@ public class Dump {
 		PrintWriter writer;
 
 		try {
-			MarkerSet set = MarkerSet.load(filename, false);
+			MarkerSetInfo set = MarkerSet.load(filename, false);
 			String[] markerNames = set.getMarkerNames();
 			byte[] chrs = set.getChrs();
 			int[] positions = set.getPositions();

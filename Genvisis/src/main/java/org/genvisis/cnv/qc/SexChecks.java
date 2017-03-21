@@ -21,7 +21,8 @@ import org.genvisis.cnv.analysis.MosaicismDetect;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.MarkerDataLoader;
@@ -87,7 +88,7 @@ public class SexChecks {
 
 	private final Project proj;
 	private final Logger log;
-	private final MarkerSet markerSet;
+	private final MarkerDetailSet markerSet;
 	private final String[] sampleNames;
 	private boolean[] qcPassedSamples;
 
@@ -960,7 +961,7 @@ public class SexChecks {
 		MarkerDataLoader markerDataLoader;
 		String[] markerList;
 		String line, eol;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		String[] markerNames;
 		boolean[] sexChrs;
 		byte[] chrs;

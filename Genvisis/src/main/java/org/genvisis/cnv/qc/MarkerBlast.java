@@ -1,11 +1,16 @@
 package org.genvisis.cnv.qc;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.Map;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.genvisis.cnv.annotation.markers.AnalysisParams;
 import org.genvisis.cnv.annotation.markers.AnnotationData;
@@ -17,7 +22,7 @@ import org.genvisis.cnv.annotation.markers.BlastParams;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation.Builder;
 import org.genvisis.cnv.annotation.markers.MarkerGCAnnotation;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
@@ -86,6 +91,7 @@ public class MarkerBlast {
 			proj.getLog().reportError("Unable to find or obtain reference genome");
 			return null;
 		} else {
+			extractMarkerSetAndPositionsIfNecessary(proj, fileSeq, type);
 			double evalueCutoff = 10000;
 			BlastParams blastParams = new BlastParams(fileSeq, fastaDb, maxAlignmentsReported,
 																								reportWordSize, blastWordSize,
@@ -163,7 +169,7 @@ public class MarkerBlast {
 																																							proj.BLAST_ANNOTATION_FILENAME.getValue(),
 																																							doBlast ? tmps
 																																											: new String[] {},
-																																							reportWordSize,
+																																							entries, reportWordSize,
 																																							proj.getArrayType()
 																																									.getProbeLength(),
 																																							proj.getArrayType()
@@ -175,7 +181,6 @@ public class MarkerBlast {
 						.reportTimeWarning("Did not detect array type " + ARRAY.ILLUMINA
 															 + " , probe sequence annotation may not reflect the true design since multiple designs may be reported");
 			}
-			blastAnnotationWriter.setMarkerFastaEntries(entries);
 			blastAnnotationWriter.summarizeResultFiles(false);
 			blastAnnotationWriter.close();
 			if (annotateGCContent) {
@@ -215,8 +220,8 @@ public class MarkerBlast {
 	private static void annotateGCContent(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type) {
 		MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type, null, false);
 		String[] markerNames = proj.getMarkerNames();
-		MarkerSet markerSet = proj.getMarkerSet();
-		Hashtable<String, Integer> indices = proj.getMarkerIndices();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
+		Map<String, Integer> indices = proj.getMarkerIndices();
 		// ReferenceGenome referenceGenome = new ReferenceGenome(fastaDb, proj.getLog());
 		LocusAnnotation[] gcAnnotations = new LocusAnnotation[proj.getMarkerNames().length];
 		for (MarkerFastaEntry fastaEntrie : fastaEntries) {
@@ -344,7 +349,7 @@ public class MarkerBlast {
 			parser.determineIndicesFromTitles();
 			parser.loadData();
 			ArrayList<MarkerFastaEntry> entries = new ArrayList<MarkerFastaEntry>(ArrayUtils.booleanArraySum(parser.getDataPresent()));
-			MarkerSet markerSet = proj.getMarkerSet();
+			MarkerSetInfo markerSet = proj.getMarkerSet();
 			// SequenceLookup sequenceLookup = new SequenceLookup(proj.getLog());
 			ReferenceGenome referenceGenome = Files.exists(proj.getReferenceGenomeFASTAFilename()) ? new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																																																									 proj.getLog())
@@ -494,8 +499,8 @@ public class MarkerBlast {
 							// + "",
 							// abLookup.getLookup()[indices.get(markerName)][1]
 							// + ""})) {
-							// System.err.println(markerName+ "\t" + Array.toStr(tmpSeq) + "\t"
-							// + Array.toStr(new String[] {abLookup.getLookup()[indices.get(markerName)][0]
+							// System.err.println(markerName+ "\t" + ArrayUtils.toStr(tmpSeq) + "\t"
+							// + ArrayUtils.toStr(new String[] {abLookup.getLookup()[indices.get(markerName)][0]
 							// + "",
 							// abLookup.getLookup()[indices.get(markerName)][1]
 							// + "",
@@ -507,16 +512,17 @@ public class MarkerBlast {
 							if (alleleLookup) {
 								alleleParser.parse(proj.getArrayType(), strand, null);
 							}
-							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.A.getTag(), tmpSeq[0],
-																							 tmpSeq[1], strand, interrogationPosition,
-																							 markerSegment, TOP_BOT.NA, TOP_BOT.NA,
-																							 alleleParser.getA(), alleleParser.getB(),
-																							 alleleParser.getRef(), alleleParser.getAlts()));
-							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B.getTag(), tmpSeq[1],
-																							 tmpSeq[1], strand, interrogationPosition,
-																							 markerSegment, TOP_BOT.NA, TOP_BOT.NA,
-																							 alleleParser.getA(), alleleParser.getB(),
-																							 alleleParser.getRef(), alleleParser.getAlts()));
+							entries.add(new MarkerFastaEntry(markerName	+ PROBE_TAG.A.getTag(), tmpSeq[0], tmpSeq[1],
+																								strand, interrogationPosition, markerSegment,
+																								TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(),
+																								alleleParser.getB(), alleleParser.getRef(),
+																								alleleParser.getAlts()));
+
+							entries.add(new MarkerFastaEntry(markerName	+ PROBE_TAG.B.getTag(), tmpSeq[1], tmpSeq[1],
+																								strand, interrogationPosition, markerSegment,
+																								TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(),
+																								alleleParser.getB(), alleleParser.getRef(),
+																								alleleParser.getAlts()));
 							throw new IllegalArgumentException("Sorry, Affymetrix AB designation is not currently working, feel free to remove this exception if you just want blast results, but make sure to not rely on ABs - also shout at @jlanej");
 						}
 					}
@@ -740,11 +746,10 @@ public class MarkerBlast {
 			if (loc.getChr() > 0) {
 				if (!isIndel()) {
 					String[] tmp;
-					if (loc.getStart() > referenceGenome.getContigLength(loc) || referenceGenome == null) {
+					if (referenceGenome == null || loc.getStart() > referenceGenome.getContigLength(loc)) {
 						tmp = new String[] {"N"};
 					} else {
 						tmp = referenceGenome.getSequenceFor(loc);
-
 					}
 					if (tmp.length != 1) {// don't think we need multiple
 						throw new IllegalArgumentException("base query must be length one ("
@@ -977,12 +982,9 @@ public class MarkerBlast {
 				case MANIFEST_FILE:
 					proj.ARRAY_TYPE.setValue(ARRAY.ILLUMINA);
 					log.reportTimeWarning("Extracting marker positions from " + csv);
-					String[] markerNames = Markers.extractMarkerPositionsFromManifest(csv,
-																																						proj.getArrayType(),
-																																						proj.GENOME_BUILD_VERSION.getValue(),
-																																						type,
-																																						proj.MARKER_POSITION_FILENAME.getValue(),
-																																						log);
+					String[] markerNames = extractMarkerPositionsFromManifest(csv, proj.getArrayType(), type,
+																																		proj.MARKER_POSITION_FILENAME.getValue(),
+																																		",", log);
 					Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
 															 proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 
@@ -997,7 +999,108 @@ public class MarkerBlast {
 		}
 	}
 
+	public static void extractMarkerSetAndPositionsIfNecessary(Project proj, String fileSeq,
+																														 FILE_SEQUENCE_TYPE type) {
+		if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
+			proj.MARKERSET_FILENAME.setValue(proj.MARKERSET_FILENAME.getDefaultValue());
+			String[] markerNames = null;
+			if (!Files.exists(proj.MARKER_POSITION_FILENAME.getValue())) {
+				proj.MARKER_POSITION_FILENAME.setValue(proj.MARKER_POSITION_FILENAME.getDefaultValue());
+				markerNames = extractMarkerPositionsFromManifest(fileSeq, proj.getArrayType(), type,
+																												 proj.MARKER_POSITION_FILENAME.getValue(),
+																												 ",", proj.getLog());
+			}
+			Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(true, false),
+													 proj.MARKERSET_FILENAME.getValue(true, false), proj.getLog());
 
+		}
+	}
+
+	/**
+	 * @param csv a .csv manifest file <br>
+	 *        Example Head; <br>
+	 *
+	 *
+	 *        Illumina, Inc. <br>
+	 *        [Heading] <br>
+	 *        Descriptor File Name,HumanOmni1-Quad_v1-0-Multi_H.bpm <br>
+	 *        Assay Format,Infinium HD Super <br>
+	 *        Date Manufactured,5/2/2011 <br>
+	 *        Loci Count ,1134514 <br>
+	 *        [Assay] <br>
+	 *        IlmnID,Name,IlmnStrand,SNP,AddressA_ID,AlleleA_ProbeSeq,AddressB_ID,AlleleB_ProbeSeq,
+	 *        GenomeBuild,Chr,MapInfo,Ploidy,Species,Source,SourceVersion,SourceStrand,SourceSeq,
+	 *        TopGenomicSeq,BeadSetID,Exp_Clusters,Intensity_Only,RefStrand <br>
+	 *
+	 * @param array must be {@link ARRAY#ILLUMINA}
+	 * @param type must be {@link FILE_SEQUENCE_TYPE#MANIFEST_FILE}
+	 * @param output the output file, typically a projects marker positions
+	 * @param delimiter , typically ","
+	 * @param log
+	 * @return a String[] of marker names found in the manifest file
+	 */
+	public static String[] extractMarkerPositionsFromManifest(String csv, ARRAY array,
+																														FILE_SEQUENCE_TYPE type, String output,
+																														String delimiter, Logger log) {
+
+		if (type != FILE_SEQUENCE_TYPE.MANIFEST_FILE || array != ARRAY.ILLUMINA) {
+			throw new IllegalArgumentException("This method should only be used in preparing marker positions for an "
+																				 + ARRAY.ILLUMINA + " array using a "
+																				 + FILE_SEQUENCE_TYPE.MANIFEST_FILE);
+		}
+		String[] required = new String[] {"Name", "Chr", "MapInfo"};
+		ArrayList<String> markerNames = new ArrayList<String>();
+		try {
+			BufferedReader reader = Files.getAppropriateReader(csv);
+			boolean start = false;
+			int[] extract = new int[required.length];
+			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			while (reader.ready()) {
+				String[] line = reader.readLine().trim().split(delimiter);
+
+				if (!start
+						&& ArrayUtils.countIf(ext.indexFactors(required, line, true, log, false, false),
+																	-1) == 0) {
+					start = true;
+					extract = ext.indexFactors(required, line, true, log, false, false);
+					writer.println("Name\tChr\tPosition");
+				} else if (start) {
+					String[] lineMP = null;
+					try {
+						lineMP = new String[required.length];
+						lineMP[0] = line[extract[0]];
+						lineMP[1] = line[extract[1]];
+						lineMP[2] = line[extract[2]];
+						if (lineMP[2].equals("0")) {
+							lineMP[1] = "0";
+						}
+					} catch (ArrayIndexOutOfBoundsException aOfBoundsException) {
+						log.reportTimeWarning("Skipping line " + ArrayUtils.toStr(line));
+						lineMP = null;
+					}
+					if (lineMP != null && lineMP[0] != null) {
+						markerNames.add(lineMP[0]);
+						writer.println(ArrayUtils.toStr(lineMP));
+					}
+				}
+			}
+
+			reader.close();
+			writer.close();
+			if (!start) {
+				throw new IllegalStateException("Could not find required header subset "
+																				+ ArrayUtils.toStr(required, ",") + " in " + csv);
+			}
+
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + csv + "\" not found in current directory");
+			return null;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + csv + "\"");
+			return null;
+		}
+		return ArrayUtils.toStringArray(markerNames);
+	}
 
 	// public static void test() {
 	// String file = "/home/pankrat2/shared/aric_exome_chip/Blast/HumanExome-12-v1-0-B.csv";
@@ -1137,7 +1240,7 @@ public class MarkerBlast {
 // if (tmpSeq[0].charAt(j) != tmpSeq[1].charAt(j)) {
 // if (alts != null) {
 // proj.getLog().reportTimeError("found multiple probe differences for " + parser.getDataToLoad()[i]
-// + "\t" + Array.toStr(tmpSeq));
+// + "\t" + ArrayUtils.toStr(tmpSeq));
 // } else {
 // alts = sequenceLookup.getNucForCombo("" + tmpSeq[0].charAt(j) + tmpSeq[1].charAt(j));
 // seq = tmpSeq[0].substring(0, j) + alts + tmpSeq[0].substring(j + 1, tmpSeq[0].length());
@@ -1168,7 +1271,7 @@ public class MarkerBlast {
 // for (int i = 0; i < bSummaries.size(); i++) {
 // for (int j = 0; j < bSummaries.get(i).length; j++) {
 // if (bSummaries.get(i)[j].getNumPerfectMatches() == 1) {
-// if (Array.countIf(bSummaries.get(i)[j].getPercentIdentityHistogram().getCounts(), 0) ==
+// if (ArrayUtils.countIf(bSummaries.get(i)[j].getPercentIdentityHistogram().getCounts(), 0) ==
 // bSummaries.get(i)[j].getPercentIdentityHistogram().getCounts().length - 1) {
 // int currentMarkerIndex = indices.get(bSummaries.get(i)[j].getName());
 // Segment markerSegment = new Segment(chrs[currentMarkerIndex], pos[currentMarkerIndex] - 1,
@@ -1221,7 +1324,7 @@ public class MarkerBlast {
 // String chr = Positions.getChromosomeUCSC(chrs[indices.get(bSummaries.get(i)[j].getName())],
 // true);
 // writer.print(bSummaries.get(i)[j].getName() + "\t" + chr + "\t" + contigHits + "\t" +
-// Array.toStr(counts));
+// ArrayUtils.toStr(counts));
 // for (String contig : uniqContigs) {
 // if (bSummaries.get(i)[j].getHitCounts().containsKey(contig)) {
 // writer.print("\t" + bSummaries.get(i)[j].getHitCounts().get(contig));

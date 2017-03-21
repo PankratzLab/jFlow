@@ -2,7 +2,7 @@ package org.genvisis.cnv.hmm;
 
 import java.io.FileNotFoundException;
 
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
@@ -23,7 +23,7 @@ public class PFB {
 		super();
 		this.proj = proj;
 		pfbs = pfbst;
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		if (pfbs.length != markerSet.getMarkerNames().length) {
 			String error = "Found " + pfbs.length + " pfb entries, but the project has" + pfbs.length
 										 + " markers";

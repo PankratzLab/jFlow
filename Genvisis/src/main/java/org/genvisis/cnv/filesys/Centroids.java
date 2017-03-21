@@ -71,7 +71,7 @@ public class Centroids implements Serializable, TextExport {
 	public void exportToText(Project proj, String outputFile) {
 		PrintWriter writer;
 		float[][][] centroids;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		String[] markerNames;
 		Logger log = proj.getLog();
 
@@ -192,7 +192,7 @@ public class Centroids implements Serializable, TextExport {
 		String[] markerNames;
 		int index;
 		boolean missing;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
@@ -281,7 +281,7 @@ public class Centroids implements Serializable, TextExport {
 		MarkerDataLoader markerDataLoader;
 		MarkerData markerData;
 		long time;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 
 		time = new Date().getTime();
 		System.out.println("Computing centroids from genotype means");
@@ -370,7 +370,7 @@ public class Centroids implements Serializable, TextExport {
 		Centroids clustered, unclustered;
 		Hashtable<String, String> hash;
 		String[] markerNames;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		boolean problem, jar;
 		String flag;
 		long time;
@@ -522,7 +522,7 @@ public class Centroids implements Serializable, TextExport {
 	 */
 	public static void recompute(Project proj, String centroidsFile, boolean preserveBafs,
 															 int numThreads) {
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		Centroids centroids;
 		// Sample original, sample;
 		String[] samples;
@@ -649,7 +649,7 @@ public class Centroids implements Serializable, TextExport {
 																												String[] centFiles, int threads) {
 		PrintWriter writerM;
 		PrintWriter writerF;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		String sampleDataFile;
 		String[] allMarkers;
 		String[] samples;

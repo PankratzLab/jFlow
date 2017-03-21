@@ -32,6 +32,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
@@ -75,21 +77,21 @@ import javax.swing.event.ChangeListener;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.annotation.markers.AnalysisParams;
+import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.BlastParams;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerGCAnnotation;
-import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_ORDER;
-import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
-import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.filesys.AnnotationCollection;
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.ClusterFilter;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerLookup;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
@@ -119,6 +121,8 @@ import org.genvisis.stats.CTable;
 import org.genvisis.stats.ContingencyTable;
 import org.genvisis.stats.Histogram;
 import org.genvisis.stats.ProbDist;
+
+import com.google.common.collect.Lists;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -255,12 +259,12 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 	private JPanel viewPanel;
 	private boolean hasAnnotationFile = false;
 	private MarkerAnnotationLoader annotationLoader = null;
-	private MarkerBlastAnnotation[] blastResults = null;
-	private MarkerGCAnnotation[] gcAnnotations = null;
+	private Map<String, MarkerBlastAnnotation> blastResults = null;
+	private Map<String, MarkerGCAnnotation> gcAnnotations = null;
 	private ReferenceGenome referenceGenome = null;
 
 	private BlastParams blastParams = null;
-	private Hashtable<String, Integer> markerProjectIndices;
+	private Map<String, Integer> markerProjectIndices;
 	private final HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<String, PlinkMarkerLoader>();
 
 	private BlastFrame blastFrame;
@@ -384,8 +388,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		if (Files.exists(annoFile)) {
 			hasAnnotationFile = true;
 			blastParams = new BlastParams(log);
-			annotationLoader = new MarkerAnnotationLoader(proj, new AnalysisParams[] {blastParams},
-																										annoFile, proj.getMarkerSet(), true);
+			annotationLoader = new MarkerAnnotationLoader(new AnalysisParams[] {blastParams}, annoFile,
+																										proj.getMarkerSet(), true, log);
 		}
 		String fastaFile = proj.getReferenceGenomeFASTAFilename();
 		if (Files.exists(fastaFile)) {
@@ -1148,7 +1152,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		updateBLASTPanel();
 		updateGUI();
 		if (blastFrame != null && blastFrame.isVisible()) {
-			blastFrame.setAnnotations(blastResults[markerIndex], referenceGenome);
+			blastFrame.setAnnotations(blastResults.get(markerList[markerIndex]), referenceGenome);
 			if (histFrame != null/* && histFrame.isVisible() */) {
 				double filter = proj.BLAST_PROPORTION_MATCH_FILTER.getValue();
 				int probe = proj.ARRAY_TYPE.getValue().getProbeLength();
@@ -1476,7 +1480,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		return markerList[markerIndex];
 	}
 
-	public Hashtable<String, Integer> getMarkerProjectIndices() {
+	public Map<String, Integer> getMarkerProjectIndices() {
 		return markerProjectIndices;
 	}
 
@@ -1584,7 +1588,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		String[] markerNames, files;
 		Centroids trav;
 		float[][][] travCents, targetCents;
-		MarkerSet set;
+		MarkerSetInfo set;
 		Vector<float[][][]> v;
 		Vector<String> fileList;
 		Hashtable<String, String> hash;
@@ -2403,7 +2407,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		qcPanelLabel.setFont(new Font("Arial", 0, 14));
 		qcPanel.add(qcPanelLabel, "cell 0 8");
 		if (gcAnnotations != null) {
-			String gc = gcAnnotations[markerIndex].getAnnotations()[0].getData();
+			String gc = gcAnnotations.get(markerList[markerIndex]).getAnnotations()[0].getData();
 			gc = gc.substring(0, Math.min(gc.length(), 4));
 			qcPanelLabel = new JLabel(gc, JLabel.LEFT);
 		} else {
@@ -3411,7 +3415,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			};
 			blastFrame = new BlastFrame(proj, alignLengthListener);
 		}
-		blastFrame.setAnnotations(blastResults[markerIndex], referenceGenome);
+		blastFrame.setAnnotations(blastResults.get(markerList[markerIndex]), referenceGenome);
 
 
 		if (histFrame == null) {
@@ -4209,12 +4213,12 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			try {
 				gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, masterMarkerList,
 																													annotationLoader.getMarkerSet(),
-																													annotationLoader.getIndices());
+																													annotationLoader.getMarkerIndices());
 				blastResults = MarkerBlastAnnotation.initForMarkers(masterMarkerList);
-				ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
+				List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
 				parsers.add(blastResults);
 				parsers.add(gcAnnotations);
-				annotationLoader.fillAnnotations(masterMarkerList, parsers, QUERY_ORDER.NO_ORDER);
+				annotationLoader.fillAnnotations(masterMarkerList, parsers, QUERY_TYPE.DISCRETE_LIST);
 				// for (int i = 0; i < blastResults.length; i++) {
 				// // blastResults[i].getMarkerSeqAnnotation().getTopBotProbe();
 				// // blastResults[i].getMarkerSeqAnnotation().getTopBotRef();
@@ -4262,7 +4266,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 	}
 
 	private void setHistogram(int length) {
-		int[] histotemp = blastResults[markerIndex].getAlignmentHistogram(getProject());
+		int[] histotemp = blastResults.get(markerList[markerIndex]).getAlignmentHistogram(getProject());
 		final int[] histogram = new int[histotemp.length];
 		for (int i = 0; i < histogram.length; i++) {
 			if (i < length) {
@@ -4386,8 +4390,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		blastPanel.repaint();
 
 		Font lblFont = new Font("Arial", 0, 14);
-		if (!hasAnnotationFile || blastResults == null || blastResults.length == 0
-				|| markerIndex >= blastResults.length || !blastResults[markerIndex].isFound()) {
+		if (!hasAnnotationFile || blastResults == null || blastResults.size() == 0
+				|| markerIndex >= blastResults.size()
+				|| !blastResults.get(markerList[markerIndex]).isFound()) {
 			JLabel blastLabel = new JLabel("BLAST Metrics Unavailable", SwingConstants.CENTER);
 			blastLabel.setFont(lblFont);
 			blastPanel.add(blastLabel, "dock center, grow");
@@ -4396,7 +4401,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			return;
 		}
 
-		MarkerBlastAnnotation blastResult = blastResults[markerIndex];
+		MarkerBlastAnnotation blastResult = blastResults.get(markerList[markerIndex]);
 
 		JLabel typeLabel = new JLabel("Has Perfect Match? ", JLabel.LEFT);
 		typeLabel.setFont(lblFont);
@@ -4448,7 +4453,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		typeLabel = new JLabel("# On-Target (mismatched) Alignments: ", JLabel.LEFT);
 		typeLabel.setFont(lblFont);
 		blastPanel.add(typeLabel, "cell 0 2");
-		ArrayList<BlastAnnotation> onTaligns = blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
+		List<BlastAnnotation> onTaligns = blastResult.getAnnotationsFor(	BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
 																																				 log);
 		String lbl = onTaligns == null ? " 0" : " " + onTaligns.size();
 		typeLabel = new JLabel(lbl);

@@ -42,9 +42,9 @@ import org.genvisis.cnv.prop.StringProperty;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.LauncherManifest;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.LauncherManifest;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.SerializedFiles;
@@ -266,6 +266,10 @@ public class Project implements PropertyChangeListener {
 																														PropertyKeys.KEY_MARKERSET_FILENAME, "",
 																														GROUP.SPECIAL_HIDDEN, true,
 																														"data/markers.ser", false);
+	public FileProperty MARKER_DETAILS_FILENAME = new FileProperty(this,
+																																 PropertyKeys.KEY_MARKER_DETAILS_FILENAME,
+																																 "", GROUP.SPECIAL_HIDDEN, true,
+																																 "data/markerdetails.ser", false);
 	public FileProperty MARKERLOOKUP_FILENAME = new FileProperty(this,
 																															 PropertyKeys.KEY_MARKERLOOKUP_FILENAME,
 																															 "", GROUP.SPECIAL_HIDDEN, true,
@@ -528,7 +532,7 @@ public class Project implements PropertyChangeListener {
 	private HashSet<String> cnvFilesLoadedInSampleData;
 	private HashMap<String, SourceFileHeaderData> sourceFileHeaders;
 	private MarkerLookup markerLookup;
-	private MarkerSet markerSet;
+	private MarkerDetailSet markerSet;
 	private Logger log;
 	private boolean gui;
 	private ProgressMonitor progressMonitor;
@@ -802,16 +806,57 @@ public class Project implements PropertyChangeListener {
 		this.projectPropertiesFilename = projectPropertiesFilename;
 	}
 
-	public MarkerSet getMarkerSet() {
+	public MarkerDetailSet getMarkerSet() {
 		if (markerSet == null) {
 			markerSet = loadMarkerSet();
 		}
 		return markerSet;
 	}
 
-	private MarkerSet loadMarkerSet() {
+	private MarkerDetailSet loadMarkerSet() {
+		if (Files.exists(MARKER_DETAILS_FILENAME.getValue(), JAR_STATUS.getValue())) {
+			MarkerDetailSet loadedMarkerSet = MarkerDetailSet.load(MARKER_DETAILS_FILENAME.getValue(),
+																														 JAR_STATUS.getValue());
+			// TODO: check if fingerprint or hashcode matches BLAST VCF, regenerate MarkerDetailSet if not
+			if (loadedMarkerSet != null) {
+				return loadedMarkerSet;
+			} else {
+				log.report("Failed to load " + MARKER_DETAILS_FILENAME.getValue()
+									 + ", regenerating MarkerDetails");
+			}
+		}
 		if (Files.exists(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue())) {
-			return MarkerSet.load(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue());
+			@SuppressWarnings("deprecation")
+			MarkerSetInfo naiveMarkerSet = MarkerSet.load(MARKERSET_FILENAME.getValue(),
+																										JAR_STATUS.getValue());
+			MarkerDetailSet generatedMarkerSet = null;
+			if (Files.exists(BLAST_ANNOTATION_FILENAME.getValue(), JAR_STATUS.getValue())) {
+				log.report("Attempting to generate MarkerDetails from "
+									 + BLAST_ANNOTATION_FILENAME.getValue());
+				generatedMarkerSet = MarkerDetailSet.parseFromBLASTAnnotation(naiveMarkerSet,
+																																			BLAST_ANNOTATION_FILENAME.getValue(),
+																																			log);
+			}
+			if (generatedMarkerSet == null) {
+				if (Files.exists(AB_LOOKUP_FILENAME.getValue())) {
+					log.report("Attempting to generate MarkerDetails from "
+										 + MARKER_DETAILS_FILENAME.getValue() + " and "
+										 + AB_LOOKUP_FILENAME.getValue());
+					char[][] abLookup = new ABLookup(naiveMarkerSet.getMarkerNames(),
+																					 AB_LOOKUP_FILENAME.getValue(), true, true,
+																					 getLog()).getLookup();
+					generatedMarkerSet = new MarkerDetailSet(naiveMarkerSet, abLookup);
+				} else {
+					log.report("Could not locate AB Alleles, using naive MarkerSet from "
+										 + MARKERSET_FILENAME.getValue());
+					return new MarkerDetailSet(naiveMarkerSet);
+					// Don't serialize a MarkerDetailSet without proper AB alleles
+				}
+			}
+			log.report("MarkerDetails generated to " + MARKER_DETAILS_FILENAME.getValue()
+								 + " for Project");
+			generatedMarkerSet.serialize(MARKER_DETAILS_FILENAME.getValue());
+			return generatedMarkerSet;
 		} else {
 			getLog().reportFileNotFound(MARKERSET_FILENAME.getValue());
 			return null;
@@ -1685,15 +1730,10 @@ public class Project implements PropertyChangeListener {
 	}
 
 	/**
-	 * @return Hashtable with the indices of each marker in the project
+	 * @return Map with the indices of each marker in the project
 	 */
-	public Hashtable<String, Integer> getMarkerIndices() {
-		String[] markerNames = getMarkerNames();
-		Hashtable<String, Integer> indices = new Hashtable<String, Integer>();
-		for (int i = 0; i < markerNames.length; i++) {
-			indices.put(markerNames[i], i);
-		}
-		return indices;
+	public Map<String, Integer> getMarkerIndices() {
+		return getMarkerSet().getMarkerIndices();
 	}
 
 	/**
@@ -1749,11 +1789,11 @@ public class Project implements PropertyChangeListener {
 	}
 
 	public String[] getMarkersForChrs(int[] chrs) {
-		MarkerSet markerSet = getMarkerSet();
+		MarkerSetInfo markerSet = getMarkerSet();
 		byte[] markerChrs = markerSet.getChrs();
 		ArrayList<String> tmp = new ArrayList<String>();
 		for (int i = 0; i < markerChrs.length; i++) {
-			if (ext.indexOfInt((int) markerChrs[i], chrs) >= 0) {
+			if (ext.indexOfInt(markerChrs[i], chrs) >= 0) {
 				tmp.add(markerSet.getMarkerNames()[i]);
 			}
 		}
@@ -1761,7 +1801,7 @@ public class Project implements PropertyChangeListener {
 	}
 
 	public String[] getAutosomalMarkers() {
-		MarkerSet markerSet = getMarkerSet();
+		MarkerSetInfo markerSet = getMarkerSet();
 		byte[] chrs = markerSet.getChrs();
 		ArrayList<String> tmp = new ArrayList<String>();
 		for (int i = 0; i < chrs.length; i++) {

@@ -22,7 +22,7 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.var.SampleData;
@@ -742,7 +742,7 @@ public class IntensityCorrectionQC {
 	}
 
 	public static void test(Project proj) {
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		int[][] chrInd = markerSet.getIndicesByChr();
 		// String[][] chunkMarkers = Array.splitUpStringArray(Array.subArray(proj.getMarkerNames(),
 		// chrInd[3]), 300, proj.getLog());

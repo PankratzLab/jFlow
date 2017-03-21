@@ -14,7 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.qc.CNVTrioFilter;
@@ -450,7 +450,7 @@ public class cnvTrio extends CNVariant {
 	 */
 	private static void processTrios(Project proj, TrioQC[] trios,
 																	 Hashtable<String, Integer> rawRegionFrequency, int numThreads) {
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		int[][] indi = markerSet.getIndicesByChr();
 		ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 		for (int i = 0; i < trios.length; i++) {

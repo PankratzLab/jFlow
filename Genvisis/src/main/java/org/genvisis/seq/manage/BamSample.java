@@ -3,7 +3,7 @@ package org.genvisis.seq.manage;
 import java.util.Hashtable;
 
 import org.genvisis.cnv.analysis.BeastScore;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.util.Java6Helper;
@@ -93,7 +93,7 @@ public class BamSample {
 
 
 	private void process() {
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
 		if (markerNames.length != bamPiles.length) {
 			throw new IllegalArgumentException("Mismatched marker sizes, this is bad");

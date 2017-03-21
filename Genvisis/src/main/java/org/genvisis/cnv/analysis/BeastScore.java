@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.genvisis.cnv.filesys.Centroids;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.Transforms;
@@ -354,7 +354,7 @@ public class BeastScore {
 	public static void scoreCNVFile(Project proj, String cnvFile, boolean recomputeLRRsFromSexCentroids) {
 		SampleData sd = proj.getSampleData(0, false);
 
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		byte[] chr = markerSet.getChrs();
 		int[] positions = markerSet.getPositions();
 		int[][] indicesByChr = markerSet.getIndicesByChr();
@@ -431,7 +431,7 @@ public class BeastScore {
 	 */
 	public static BeastScore[] beastInds(Project proj, CNVariant[][] cNVariantInds) {
 		BeastScore[] beastScores = new BeastScore[cNVariantInds.length];
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		byte[] chr = markerSet.getChrs();
 		int[] positions = markerSet.getPositions();
 		int[][] indicesByChr = markerSet.getIndicesByChr();

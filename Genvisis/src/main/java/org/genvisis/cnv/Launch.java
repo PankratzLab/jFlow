@@ -873,7 +873,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				boolean success = false;
 				if (peo.exportAsBinary()) {
 					success = PlinkData.saveGenvisisToPlinkBedSet(proj, plinkFileroot, clusterFiltersFilename,
-																												targetMarkersFilename, -1, true);
+																												targetMarkersFilename, -1);
 				} else {
 					success = PlinkData.saveGenvisisToPlinkPedSet(proj, plinkFileroot, clusterFiltersFilename,
 																												targetMarkersFilename);

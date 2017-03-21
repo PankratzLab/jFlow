@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.analysis.MosaicismQuant.ComputeParams.MosaicParamsBuilder;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.hmm.CNVCaller;
@@ -54,14 +54,14 @@ public class MosaicismQuant implements Calcfc {
 	private final Project proj;
 	private final SampleMosiac sampleMosiac;
 	private final Segment evalSegment;
-	private final MarkerSet markerSet;
+	private final MarkerSetInfo markerSet;
 	private final int[][] indicesByChr;
 	private final MOSAIC_TYPE type;
 
 	// private ComputeParams computeParams;
 
 	public MosaicismQuant(Project proj, SampleMosiac sampleMosiac, MOSAIC_TYPE type,
-												ComputeParams computeParams, Segment evalSegment, MarkerSet markerSet,
+												ComputeParams computeParams, Segment evalSegment, MarkerSetInfo markerSet,
 												int[][] indicesByChr) {
 		super();
 		this.proj = proj;
@@ -309,7 +309,7 @@ public class MosaicismQuant implements Calcfc {
 
 		}
 
-		public void developCDFs(MarkerSet markerSet, int[][] indicesByChr, Segment seg, double minBaf,
+		public void developCDFs(MarkerSetInfo markerSet, int[][] indicesByChr, Segment seg, double minBaf,
 														double maxBaf) {
 
 			developCDF(markerSet, indicesByChr, seg, minBaf, maxBaf, -1);
@@ -442,7 +442,7 @@ public class MosaicismQuant implements Calcfc {
 			samp = proj.getFullSampleFromRandomAccessFile(sampleName);
 		}
 
-		protected void developCDF(MarkerSet markerSet, int[][] indicesByChr, Segment seg, double minBaf,
+		protected void developCDF(MarkerSetInfo markerSet, int[][] indicesByChr, Segment seg, double minBaf,
 															double maxBaf, int numControlForce) {
 			BafSelection bafSelection = selectBafs(markerSet, indicesByChr, seg, minBaf, maxBaf,
 																						 numControlForce);
@@ -451,7 +451,7 @@ public class MosaicismQuant implements Calcfc {
 			cdf = new CDF(new BafSelection(bafs, bafSelection.getProjectIndices()));
 		}
 
-		private BafSelection selectBafs(MarkerSet markerSet, int[][] indicesByChr, Segment seg,
+		private BafSelection selectBafs(MarkerSetInfo markerSet, int[][] indicesByChr, Segment seg,
 																		double minBaf, double maxBaf, int numControlForce) {
 			String[] markersInSeg = markerSet.getMarkersIn(seg, indicesByChr);
 			if (markersInSeg.length < 1) {
@@ -679,7 +679,7 @@ public class MosaicismQuant implements Calcfc {
 			int numErrors = 0;
 			MosaicParamsBuilder builder = new MosaicParamsBuilder();
 			ComputeParams params = builder.build();
-			MarkerSet markerSet = proj.getMarkerSet();
+			MarkerSetInfo markerSet = proj.getMarkerSet();
 			int[][] indices = markerSet.getIndicesByChr();
 			MosaicQuantResults[] results = new MosaicQuantResults[types.length];
 			for (int i = 0; i < bins.getLoci().length; i++) {
@@ -877,7 +877,7 @@ public class MosaicismQuant implements Calcfc {
 		SampleMosiac sampleMosiac = prep(proj, "7330686030_R02C01", "BAF1585_SD", 5);
 		// SampleMosiac sampleMosiac = prep(proj, "7355066051_R03C01", "BAF1585_SD", 5);
 
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		int[][] indices = markerSet.getIndicesByChr();
 		// ReferenceGenome referenceGenome = new
 		// ReferenceGenome(proj.getReferenceGenomeFASTAFilename(), proj.getLog());

@@ -36,7 +36,7 @@ import org.genvisis.cnv.hmm.CNVCaller.PFB_MANAGEMENT_TYPE;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.LrrSd;
-import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
+import org.genvisis.cnv.qc.MarkerBlast;
 import org.genvisis.cnv.qc.MarkerBlastQC;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
@@ -628,36 +628,33 @@ public class GenvisisWorkflow {
 		}
 
 		private Step generateMarkerPositionsStep() {
+			final Requirement manifestReq = new FileRequirement("(Preferred) An Illumina Manifest file.",
+																													"");
 			final Requirement snpMapReq = new FileRequirement("An Illumina SNP_map file.",
 																												proj.getLocationOfSNP_Map(false));
-			final Requirement manifestReq = new FileRequirement("An Illumina Manifest file.",
-																													proj.getLocationOfSNP_Map(false));
 			return register(new Step("Create Marker Positions (if not already exists)", "",
-															 new Requirement[][] {{snpMapReq, manifestReq}},
-															 EnumSet.noneOf(Flag.class),
-															 priority()) {
+															 new Requirement[][] {{manifestReq, snpMapReq}, {getNumThreadsReq()}},
+															 EnumSet.noneOf(Flag.class), priority()) {
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,
 																								 Map<Step, Map<Requirement, String>> variables) {
-					// not needed for step
+					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
+					maybeSetProjNumThreads(numThreads);
 				}
 
 				@Override
 				public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
 					proj.getLog().report("Generating marker positions file");
-					String snpMap = variables.get(this).get(snpMapReq);
-					String manifest = variables.get(this).get(manifestReq);
-					if (Files.exists(snpMap)) {
-						org.genvisis.cnv.manage.Markers.generateMarkerPositions(proj, snpMap);
-					} else if (Files.exists(manifest)) {
-						org.genvisis.cnv.manage.Markers.extractMarkerPositionsFromManifest(manifest,
-																																							 ARRAY.ILLUMINA,
-																																							 proj.GENOME_BUILD_VERSION.getValue(),
-																																							 FILE_SEQUENCE_TYPE.MANIFEST_FILE,
-																																							 proj.MARKER_POSITION_FILENAME.getValue(false,
-																																																											false),
-																																							 proj.getLog());
+					String manifestFile = variables.get(this).get(manifestReq);
+					String snpMapFile = variables.get(this).get(snpMapReq);
+					if (Files.exists(manifestFile)) {
+						proj.getLog().report("BLASTing probes from " + manifestFile);
+						MarkerBlast.blastEm(proj, manifestFile, MarkerBlast.FILE_SEQUENCE_TYPE.MANIFEST_FILE,
+																proj.NUM_THREADS.getValue());
+					} else {
+						proj.getLog().report("Generating marker positions file from " + snpMapFile);
+						Markers.generateMarkerPositions(proj, snpMapFile);
 					}
 				}
 
@@ -668,17 +665,22 @@ public class GenvisisWorkflow {
 
 				@Override
 				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+					String manifestFile = variables.get(this).get(manifestReq);
+					String snpMapFile = variables.get(this).get(snpMapReq);
+					int numThreads = resolveThreads(variables.get(this).get(numThreadsReq));
 					String projFile = proj.getPropertyFilename();
-					String snpMap = variables.get(this).get(snpMapReq);
-					String manifest = variables.get(this).get(manifestReq);
-					String baseCommand = Files.getRunString() + " cnv.manage.Markers proj=" + projFile;
-					if (Files.exists(snpMap)) {
-						return baseCommand + " snps=" + snpMap;
+					if (Files.exists(manifestFile)) {
+						List<String> command = ImmutableList.of(Files.getRunString(),
+																										MarkerBlast.class.getName(),
+																										"fileSeq=" + manifestFile,
+																										"proj=" + proj.getPropertyFilename(),
+																										PSF.Ext.NUM_THREADS_COMMAND + numThreads);
+						return Joiner.on(" ").join(command);
 					} else {
-						return baseCommand + " snps=" + manifest + " -manifest";
+						return Files.getRunString() + " cnv.manage.Markers proj=" + projFile + " snps="
+									 + snpMapFile;
 					}
 				}
-
 			});
 		}
 
@@ -993,7 +995,7 @@ public class GenvisisWorkflow {
 			final Requirement gcBaseReq = new FileRequirement("A GC Base file must exist.",
 																												Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
 																																				 proj.getLog())
-																																 .getModelBase().get());
+																																 .getModelBase().getAbsolute());
 			final Requirement gcModelOutputReq = new OutputFileRequirement("GCModel output file must be specified.",
 																																		 proj.GC_MODEL_FILENAME.getValue());
 
@@ -1262,7 +1264,7 @@ public class GenvisisWorkflow {
 					proj.getLog().report("Running PLINK");
 
 					boolean create = PlinkData.saveGenvisisToPlinkBedSet(proj, PLINK_SUBDIR + PLINKROOT,
-																															 null, null, -1, true);
+																															 null, null, -1);
 					if (!create) {
 						setFailed("Creation of initial PLINK files failed.");
 					}
@@ -1406,7 +1408,9 @@ public class GenvisisWorkflow {
 			final Requirement putativeWhitesReq = new FileRequirement("File with FID/IID pairs of putative white samples",
 																																"");
 			final Requirement hapMapFoundersReq = new FileRequirement("PLINK root of HapMap founders",
-																																Ancestry.DEFAULT_HAPMAP_PLINKROOT) {
+																																Resources.hapMap(log)
+																																				 .getUnambiguousHapMapFounders()
+																																				 .getAbsolute()) {
 				@Override
 				public boolean checkRequirement(String arg, Set<Step> stepSelections,
 																				Map<Step, Map<Requirement, String>> variables) {

@@ -1,8 +1,10 @@
 package org.genvisis.cnv.annotation.markers;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
@@ -14,33 +16,37 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.filesys.Segment;
 
+import com.google.common.collect.Maps;
+
 import htsjdk.samtools.TextCigarCodec;
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.VariantContext;
 
 public class MarkerBlastAnnotation implements AnnotationParser {
 
-	private final BLAST_ANNOTATION_TYPES[] bTypes;
-	private final ArrayBlastAnnotationList[] annotationLists;
+	private final Map<BLAST_ANNOTATION_TYPES, ArrayBlastAnnotationList> annotationLists;
 	private MarkerBlastHistogramAnnotation blastAlignmentHistogram;
 	private MarkerEvalueHistogramAnnotation markerEvalueHistogramAnnotation;
 	private MarkerSeqAnnotation markerSeqAnnotation;
 	private final String markerName;
 	private boolean found;
 
+	public MarkerBlastAnnotation(String markerName) {
+		this(markerName, BLAST_ANNOTATION_TYPES.values(), 100);
+	}
+
 	public MarkerBlastAnnotation(String markerName, BLAST_ANNOTATION_TYPES[] bTypes,
 															 int initialCapacity) {
 		super();
 		this.markerName = markerName;
-		this.bTypes = bTypes;
-		annotationLists = new ArrayBlastAnnotationList[bTypes.length];
-		for (int i = 0; i < annotationLists.length; i++) {
-			annotationLists[i] = new ArrayBlastAnnotationList(initialCapacity);
+		annotationLists = Maps.newEnumMap(BLAST_ANNOTATION_TYPES.class);
+		for (BLAST_ANNOTATION_TYPES bType : bTypes) {
+			annotationLists.put(bType, new ArrayBlastAnnotationList(initialCapacity));
 		}
 	}
 
 	public boolean hasPerfectMatch(Logger log) {
-		return getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH, log).size() > 0;
+		return !getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH, log).isEmpty();
 	}
 
 	public int getNumOffTarget(Logger log) {
@@ -51,33 +57,22 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 		return getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT, log).size();
 	}
 
-	public ArrayList<BlastAnnotation> getAnnotationsFor(BLAST_ANNOTATION_TYPES btype, Logger log) {
-		int testIndex = getAnnotationIndexFor(btype, log);
-		return annotationLists[testIndex];
-	}
-
-	public BLAST_ANNOTATION_TYPES[] getbTypes() {
-		return bTypes;
-	}
-
-	public ArrayBlastAnnotationList[] getAnnotationLists() {
-		return annotationLists;
-	}
-
-	private int getAnnotationIndexFor(BLAST_ANNOTATION_TYPES bType, Logger log) {
-		int index = -1;
-		for (int i = 0; i < bTypes.length; i++) {
-			if (bTypes[i] == bType) {
-				index = i;
-				break;
-			}
-		}
-		if (index < 0) {
+	public List<BlastAnnotation> getAnnotationsFor(BLAST_ANNOTATION_TYPES bType, Logger log) {
+		List<BlastAnnotation> annotations = annotationLists.get(bType);
+		if (annotations == null) {
 			String error = "Internal error: Annotation does not contain " + bType;
 			log.reportError(error);
 			throw new IllegalStateException(error);
 		}
-		return index;
+		return annotations;
+	}
+
+	public Set<BLAST_ANNOTATION_TYPES> getbTypes() {
+		return annotationLists.keySet();
+	}
+
+	public Map<BLAST_ANNOTATION_TYPES, ArrayBlastAnnotationList> getAnnotationLists() {
+		return annotationLists;
 	}
 
 	public int[] getAlignmentHistogram(Project proj) {
@@ -94,12 +89,18 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 
 	@Override
 	public void parseAnnotation(VariantContext vc, Logger log) {
-		for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {// each annotation type has a
-																																			// separate key in the file
+		for (Entry<BLAST_ANNOTATION_TYPES, ArrayBlastAnnotationList> bTypeEntry : annotationLists.entrySet()) {// each
+																																																					 // annotation
+																																																					 // type
+																																																					 // has
+																																																					 // a
+			// separate key in the file
+			BLAST_ANNOTATION_TYPES bType = bTypeEntry.getKey();
+			ArrayBlastAnnotationList annotationList = bTypeEntry.getValue();
 			String info = vc.getCommonInfo()
-											.getAttributeAsString(BLAST_ANNOTATION_TYPES.values()[i].toString(),
-																						BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue());
-			if (!info.equals(BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue())) {
+											.getAttributeAsString(bType.toString(),
+																						bType.getDefaultValue());
+			if (!info.equals(bType.getDefaultValue())) {
 				List<String> groups = Arrays.asList(info.replaceAll("\\[", "").replaceAll("\\]", "")
 																								.split("\\s*,\\s*"));
 				for (String group : groups) {
@@ -107,10 +108,10 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 					int[] location = Positions.parseUCSClocation(segCigarStrand[1]);
 					if (location != null) {
 						Segment segment = new Segment((byte) location[0], location[1], location[2]);
-						annotationLists[i].add(new BlastAnnotation(TextCigarCodec.decode(segCigarStrand[0]),
-																											 segment, Strand.toStrand(segCigarStrand[2]),
-																											 PROBE_TAG.valueOf(segCigarStrand[3]),
-																											 Double.parseDouble(segCigarStrand[4])));
+						annotationList.add(new BlastAnnotation(TextCigarCodec.decode(segCigarStrand[0]),
+																									 segment, Strand.toStrand(segCigarStrand[2]),
+																									 PROBE_TAG.valueOf(segCigarStrand[3]),
+																									 Double.parseDouble(segCigarStrand[4])));
 					}
 				}
 			}
@@ -141,11 +142,10 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 		return found;
 	}
 
-	public static MarkerBlastAnnotation[] initForMarkers(final String[] markers) {
-		MarkerBlastAnnotation[] blastAnnotations = new MarkerBlastAnnotation[markers.length];
-		for (int i = 0; i < blastAnnotations.length; i++) {
-			blastAnnotations[i] = new MarkerBlastAnnotation(markers[i], BLAST_ANNOTATION_TYPES.values(),
-																											100);
+	public static Map<String, MarkerBlastAnnotation> initForMarkers(final String[] markers) {
+		Map<String, MarkerBlastAnnotation> blastAnnotations = Maps.newHashMapWithExpectedSize(markers.length);
+		for (String marker : markers) {
+			blastAnnotations.put(marker, new MarkerBlastAnnotation(marker));
 		}
 		return blastAnnotations;
 	}

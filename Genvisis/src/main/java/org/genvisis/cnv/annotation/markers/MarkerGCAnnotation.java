@@ -1,11 +1,14 @@
 package org.genvisis.cnv.annotation.markers;
 
 import java.util.Hashtable;
+import java.util.Map;
 
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.Segment;
+
+import com.google.common.collect.Maps;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeaderLineType;
@@ -13,7 +16,7 @@ import htsjdk.variant.vcf.VCFHeaderLineType;
 public class MarkerGCAnnotation extends LocusAnnotation implements AnnotationParser {
 
 	public enum GC_TYPE {
-		MARKER_GC_CONTENT;
+												MARKER_GC_CONTENT;
 	}
 
 	private boolean found;
@@ -46,9 +49,9 @@ public class MarkerGCAnnotation extends LocusAnnotation implements AnnotationPar
 		return getLocusName().equals(vc.getID());
 	}
 
-	public static MarkerGCAnnotation[] initForMarkers(Project proj, String[] markers,
-																										MarkerSet markerSet,
-																										Hashtable<String, Integer> indices) {
+	public static Map<String, MarkerGCAnnotation> initForMarkers(Project proj, String[] markers,
+																										MarkerSetInfo markerSet,
+																										Map<String, Integer> indices) {
 		if (markerSet == null) {
 			markerSet = proj.getMarkerSet();
 		}
@@ -56,15 +59,15 @@ public class MarkerGCAnnotation extends LocusAnnotation implements AnnotationPar
 			indices = proj.getMarkerIndices();
 		}
 
-		MarkerGCAnnotation[] markerGCAnnotations = new MarkerGCAnnotation[markers.length];
-		for (int i = 0; i < markerGCAnnotations.length; i++) {
+		Map<String, MarkerGCAnnotation> markerGCAnnotations = Maps.newHashMapWithExpectedSize(markers.length);
+		for (String marker : markers) {
 			Builder builder = new Builder();
 			builder.annotations(new AnnotationData[] {getGCAnnotationDatas()});
-			int index = indices.get(markers[i]);
-			markerGCAnnotations[i] = new MarkerGCAnnotation(builder, markers[i],
+			int index = indices.get(marker);
+			markerGCAnnotations.put(marker, new MarkerGCAnnotation(builder, marker,
 																											new Segment(markerSet.getChrs()[index],
 																																	markerSet.getPositions()[index],
-																																	markerSet.getPositions()[index]));
+																																	markerSet.getPositions()[index])));
 		}
 		return markerGCAnnotations;
 	}

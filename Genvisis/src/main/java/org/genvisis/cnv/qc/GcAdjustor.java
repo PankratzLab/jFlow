@@ -10,9 +10,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.Map;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
@@ -784,7 +785,7 @@ public class GcAdjustor {
 		private final byte[] chrs;
 		private final int[] positions;
 		private final double[] gcs;
-		private Hashtable<String, Integer> index = new Hashtable<String, Integer>();
+		private Map<String, Integer> index = new Hashtable<String, Integer>();
 		private ColorManager<String> colorManager;
 
 		// private Logger log;
@@ -799,7 +800,7 @@ public class GcAdjustor {
 		}
 
 		public GcModel(String[] markers, byte[] chrs, int[] positions, double[] gcs,
-									 Hashtable<String, Integer> index, Logger log) {
+										Map<String, Integer> index, Logger log) {
 			super();
 			this.markers = markers;
 			this.chrs = chrs;
@@ -917,8 +918,8 @@ public class GcAdjustor {
 				return null;
 			} else {
 				ReferenceGenome referenceGenome = new ReferenceGenome(refGenome, proj.getLog());
-				Hashtable<String, Integer> indices = proj.getMarkerIndices();
-				MarkerSet markerSet = proj.getMarkerSet();
+				Map<String, Integer> indices = proj.getMarkerIndices();
+				MarkerSetInfo markerSet = proj.getMarkerSet();
 				double[] gcs = new double[markerSet.getMarkerNames().length];
 				for (int i = 0; i < markerSet.getMarkerNames().length; i++) {
 					if (i % 10000 == 0) {

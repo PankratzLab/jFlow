@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -26,7 +27,10 @@ import java.util.Vector;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.SDL.LOAD_TYPE;
@@ -41,6 +45,7 @@ import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public class PlinkData {
@@ -639,7 +644,7 @@ public class PlinkData {
 		byte[] chrs;
 		int[] positions;
 		boolean prob;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		Sample fsamp;
 		byte[] genotypes;
 		byte genIndex;
@@ -948,21 +953,19 @@ public class PlinkData {
 	 * Convert Genvisis data into a PLINK .bed data set.
 	 *
 	 * @param proj
-	 * @param markerList
 	 * @param clusterFilterFileName
 	 * @param gcThreshold
+	 * @param markerList
 	 */
 	public static boolean saveGenvisisToPlinkBedSet(Project proj, String plinkPrefix,
 																									String clusterFilterFileName,
-																									String targetMarkersFileName, float gcThreshold,
-																									boolean isSnpMajor) {
+																									String targetMarkersFileName, float gcThreshold) {
 		String[] targetMarkers;
 		int[] indicesOfTargetSamplesInProj;
 		int[] indicesOfTargetMarkersInProj;
 		HashMap<String, Byte> chrsOfTargetMarkers;
 		HashMap<String, Integer> posOfTargetMarkers;
 		String[] allSamplesInProj;
-		char[][] abLookup;
 		String[] targetSamples;
 		String outFileDirAndFilenameRoot;
 		Logger log;
@@ -1038,25 +1041,16 @@ public class PlinkData {
 
 		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Creating .bed file",
 																										 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
-		if (isSnpMajor) {
-			proj.getLog().report("Creating .bed file from SNP major data");
-			abLookup = createBedFileSnpMajor10KperCycle(proj, ImmutableSet.copyOf(targetMarkers),
-																									chrsOfTargetMarkers, posOfTargetMarkers,
-																									indicesOfTargetSamplesInProj,
-																									clusterFilterFileName, gcThreshold,
-																									outFileDirAndFilenameRoot, log);
-		} else {
-			proj.getLog().report("Creating .bed file from Sample major data");
-			abLookup = createBedFileIndividualMajor(proj, targetSamples, targetMarkers,
-																							indicesOfTargetMarkersInProj, clusterFilterFileName,
-																							gcThreshold, outFileDirAndFilenameRoot);
-			createBimFile(targetMarkers, chrsOfTargetMarkers, posOfTargetMarkers, abLookup,
-										outFileDirAndFilenameRoot, log);
-		}
+		proj.getLog().report("Creating .bed file from SNP major data");
+		boolean success = createBedFileSnpMajor10KperCycle(proj, ImmutableSet.copyOf(targetMarkers),
+																											 chrsOfTargetMarkers, posOfTargetMarkers,
+																											 indicesOfTargetSamplesInProj,
+																											 clusterFilterFileName, gcThreshold,
+																											 outFileDirAndFilenameRoot, log);
 		proj.getProgressMonitor().endTask(PROG_KEY);
 
-		if (abLookup == null) {
-			log.reportError("Error - failed to create PLINK files due to lack of an AB lookup file");
+		if (!success) {
+			log.reportError("Error - failed to create PLINK files");
 			new File(outFileDirAndFilenameRoot + ".fam").delete();
 			return false;
 		}
@@ -1113,7 +1107,7 @@ public class PlinkData {
 																							 HashMap<String, Integer> outputPosOfTargetMarkers,
 																							 Logger log) {
 		String[] allMarkersInProj;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		byte[] chrs;
 		int[] positions;
 		markerSet = proj.getMarkerSet();
@@ -1145,7 +1139,7 @@ public class PlinkData {
 																							 int[] outputPosOfTargetMarkers) {
 		String[] allMarkersInProj;
 		// Hashtable<String,String> hash;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		byte[] chrs;
 		int[] positions;
 		boolean[] found;
@@ -1235,288 +1229,6 @@ public class PlinkData {
 	}
 
 	/**
-	 * Convert Genvisis data into binary PLINK .bed format (Individual Major, or in our term -
-	 * organized by samples). This is normally used as part of
-	 * PlinkData.createBinaryFileSetFromGenvisisData()
-	 *
-	 * @param proj
-	 * @param targetSamples samples selected to convert
-	 * @param targetMarkers markers selected to convert
-	 * @param indicesOfTargetMarkers
-	 * @param clusterFilterFileName
-	 * @param gcThreshold
-	 * @param bedDirAndFilenameRoot
-	 * @param log
-	 * @return
-	 */
-	public static char[][] createBedFileIndividualMajor(Project proj, String[] targetSamples,
-																											String[] targetMarkers,
-																											int[] indicesOfTargetMarkers,
-																											String clusterFilterFileName,
-																											float gcThreshold,
-																											String bedDirAndFilenameRoot) {
-		// String[] markList;
-		final RandomAccessFile out;
-		byte[] outStream;
-		byte[] genotypes;
-		// byte[] genotypesOfTargetMarkers;
-		ClusterFilterCollection clusterFilterCollection;
-		Sample fsamp;
-		char[][] abLookup = null;
-		// MarkerSet markerSet = proj.getMarkerSet();
-		// String[] markerNames;
-		Logger log;
-
-		log = proj.getLog();
-		// allMarkersInProj = proj.getMarkerNames();
-		// markList = new String[indicesOfSelectedMarkers.length];
-		// for (int i = 0; i < indicesOfSelectedMarkers.length; i++) {
-		// markList[i] = allMarkersInProj[indicesOfSelectedMarkers[i]];
-		// }
-
-		clusterFilterCollection = proj.getClusterFilterCollection();
-
-		String PROG_KEY = "EXPORTBINARYBEDBATCH";
-		proj.getProgressMonitor().beginDeterminateTask(PROG_KEY, "Exporting data to .bed file",
-																									 targetSamples.length,
-																									 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
-
-		try {
-			if (clusterFilterCollection == null) {
-				abLookup = null;
-			} else {
-				abLookup = new ABLookup(targetMarkers, proj.AB_LOOKUP_FILENAME.getValue(), true, true,
-																proj.getLog()).getLookup();
-			}
-
-			out = new RandomAccessFile(bedDirAndFilenameRoot + ".bed", "rw");
-			outStream = new byte[3];
-			outStream[0] = (byte) 108; // 0b01101100
-			outStream[1] = (byte) 27; // 0b00011011
-			outStream[2] = (byte) 0; // 0b00000000 <-- Be careful here
-			out.write(outStream);
-
-			for (String targetSample : targetSamples) {
-				PSF.checkInterrupted(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							out.close();
-						} catch (IOException e) {
-						}
-					}
-				});
-				fsamp = proj.getFullSampleFromRandomAccessFile(targetSample);
-
-				if (fsamp == null) {
-					log.reportError("Error - the DNA# " + targetSample
-													+ " was listed in the pedigree file but " + targetSample
-													+ Sample.SAMPLE_FILE_EXTENSION + " was not found in directory: "
-													+ proj.SAMPLE_DIRECTORY.getValue(false, true));
-					genotypes = new byte[1];
-
-				} else {
-					if (clusterFilterCollection == null) {
-						genotypes = fsamp.getAB_Genotypes(indicesOfTargetMarkers);
-					} else {
-						genotypes = fsamp.getAB_GenotypesAfterFilters(targetMarkers, indicesOfTargetMarkers,
-																													clusterFilterCollection, gcThreshold);
-						// genotypes = proj.getMarkerSet().translateABtoForwardGenotypes(genotypes, abLookup);
-					}
-					out.write(encodePlinkBedBytesForASingleMarkerOrSample(genotypes));
-
-					// genotypesOfTargetMarkers = new byte[indicesOfTargetMarkers.length];
-					// for (int j = 0; j < indicesOfTargetMarkers.length; j++) {
-					// genotypesOfTargetMarkers[j] = genotypes[indicesOfTargetMarkers[i]];
-					// }
-					// out1.write(encodePlinkBedBytesForASingleMarkOrSamp(genotypesOfTargetMarkers));
-
-					// if (clusterFilterCollection == null) {
-					// genotypes = fsamp.getForwardGenotypes(gcThreshold);
-					// } else {
-					// genotypes =
-					// markerSet.translateABtoForwardGenotypes(fsamp.getAB_GenotypesAfterFilters(targetMarkers,
-					// clusterFilterCollection, gcThreshold), abLookup);
-					// }
-
-					// alleles = new String[genotypesSelected.length][2];
-					// for (int j = 0; j<indicesOfTargetMarkers.length; j++) {
-					// genotypesSelected[j] = genotypes[indicesOfTargetMarkers[i]];
-					//
-					// //TODO Something does not make sense here. alleles[j] seems to be wrong here.
-					// if (genotypesSelected[j] == 0) {
-					// alleles[j] = new String[] {"0", "0"};
-					// } else {
-					// tmp = Sample.ALLELE_PAIRS[genotypesSelected[j]];
-					// alleles[j][0] = tmp.charAt(0) + "";
-					// alleles[j][1] = tmp.charAt(1) + "";
-					// }
-					// }
-				}
-
-				proj.getProgressMonitor().updateTask(PROG_KEY);
-			}
-
-			out.close();
-		} catch (FileNotFoundException fnfe) {
-			log.reportException(fnfe);
-		} catch (IOException ioe) {
-			log.reportException(ioe);
-		}
-
-		proj.getProgressMonitor().endTask(PROG_KEY);
-
-		return abLookup;
-	}
-
-	/**
-	 * Convert Genvisis data to PLINK .bed format (SNP Major, or in our term - organized by markers)
-	 * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
-	 *
-	 * @param proj
-	 * @param targetMarkers markers selected to convert
-	 * @param indicesOfTargetMarkersInProj
-	 * @param targetSamples samples selected to convert
-	 * @param indicesOfTargetSamplesInProj
-	 * @param clusterFilterFileName
-	 * @param gcThreshold
-	 * @param bedDirAndFilenameRoot
-	 * @param log
-	 * @return
-	 */
-	public static char[][] createBedFileSnpMajorAllInMemory(Project proj, String[] targetMarkers,
-																													int[] indicesOfTargetMarkersInProj,
-																													String[] targetSamples,
-																													int[] indicesOfTargetSamplesInProj,
-																													String clusterFilterFileName,
-																													float gcThreshold,
-																													String bedDirAndFilenameRoot) {
-		RandomAccessFile out1;
-		byte[] outStream;
-		byte[] genotypes;
-		byte[] genotypesOfTargetSamples;
-		ClusterFilterCollection clusterFilterCollection;
-		MarkerDataLoader markerDataLoader;
-		char[][] abLookup = null;
-		Hashtable<String, Vector<String>> batches;
-		MarkerData[] markerData;
-		String[] filenames;
-		Vector<String> v;
-		int[] indicesOfMarkersInFileForCurrentFile;
-		String[] markersOfThisFile;
-		String[] temp;
-		Hashtable<String, Float> outliersHash;
-		long sampleFingerPrint;
-		String[] allSamplesInProj;
-		int[] indicesOfMarkersInProjForCurrentFile;
-		String markerDataDir;
-		long startTime;
-		Logger log;
-
-		log = proj.getLog();
-		startTime = new Date().getTime();
-
-		try {
-			clusterFilterCollection = proj.getClusterFilterCollection();
-			if (clusterFilterCollection == null) {
-				abLookup = null;
-			} else {
-				abLookup = new ABLookup(targetMarkers, proj.AB_LOOKUP_FILENAME.getValue(), true, true,
-																proj.getLog()).getLookup();
-			}
-
-			sampleFingerPrint = proj.getSampleList().getFingerprint();
-			allSamplesInProj = proj.getSamples();
-			markerDataDir = proj.MARKER_DATA_DIRECTORY.getValue(false, true);
-			markerDataLoader = new MarkerDataLoader(proj, targetMarkers, 0);
-			outliersHash = MarkerDataLoader.loadOutliers(proj);
-			batches = markerDataLoader.getBatches();
-			filenames = HashVec.getKeys(batches);
-			genotypesOfTargetSamples = new byte[indicesOfTargetSamplesInProj.length];
-
-			out1 = new RandomAccessFile(bedDirAndFilenameRoot + ".bed", "rw");
-			outStream = new byte[3];
-			outStream[0] = (byte) 108; // 0b01101100
-			outStream[1] = (byte) 27; // 0b00011011
-			outStream[2] = (byte) 1; // 0b00000001 <-- be careful here
-			out1.write(outStream);
-
-			// for (int i = 0; i < targetMarkers.length; i++) {
-			for (String filename : filenames) {
-				v = batches.get(filename);
-				markersOfThisFile = new String[v.size()];
-				indicesOfMarkersInFileForCurrentFile = new int[markersOfThisFile.length];
-				indicesOfMarkersInProjForCurrentFile = new int[markersOfThisFile.length];
-				for (int j = 0; j < v.size(); j++) {
-					temp = v.elementAt(j).split("\t");
-					markersOfThisFile[j] = temp[0];
-					indicesOfMarkersInFileForCurrentFile[j] = Integer.parseInt(temp[1]);
-					if (indicesOfTargetMarkersInProj != null) {
-						for (int k = 0; k < indicesOfTargetMarkersInProj.length; k++) {
-							if (markersOfThisFile[j].equals(targetMarkers[k])) {
-								indicesOfMarkersInProjForCurrentFile[j] = indicesOfTargetMarkersInProj[k];
-								break;
-							}
-						}
-					} else {
-						for (int k = 0; k < targetMarkers.length; k++) {
-							if (markersOfThisFile[j].equals(targetMarkers[k])) {
-								indicesOfMarkersInProjForCurrentFile[j] = k;
-								break;
-							}
-						}
-					}
-				}
-				markerData = MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj,
-																									markerDataDir + filename,
-																									indicesOfMarkersInProjForCurrentFile,
-																									indicesOfMarkersInFileForCurrentFile, false, true,
-																									true, true, true, sampleFingerPrint, outliersHash,
-																									proj.getLog());
-
-				for (int j = 0; j < markerData.length; j++) {
-					genotypes = markerData[j].getAbGenotypesAfterFilters(clusterFilterCollection,
-																															 markersOfThisFile[j], 0, log);
-					for (int k = 0; k < indicesOfTargetSamplesInProj.length; k++) {
-						genotypesOfTargetSamples[k] = genotypes[indicesOfTargetSamplesInProj[k]];
-					}
-					out1.write(encodePlinkBedBytesForASingleMarkerOrSample(genotypesOfTargetSamples));
-				}
-
-				// TODO Something does not make sense here. alleles[j] seems to be wrong here.
-				// genotypesSelected = new byte[indicesOfSelectedSamples.length];
-				// for (int j = 0; j < indicesOfSelectedSamples.length; j++) {
-				// genotypesSelected[j] = genotypes[indicesOfSelectedSamples[i]];
-
-				// //TODO Something does not make sense here. alleles[j] seems to be wrong here.
-				// if (genotypesSelected[j] == 0) {
-				// abLookup[j] = new char[] {0, 0};
-				//
-				// } else {
-				// tmp = Sample.ALLELE_PAIRS[genotypesSelected[j]];
-				// abLookup[j][0] = tmp.charAt(0);
-				// abLookup[j][0] = tmp.charAt(1);
-				// }
-
-				// }
-
-				// out1.write(encodePlinkBedBytesForASingleMarkOrSamp(genotypes));
-			}
-			out1.close();
-
-		} catch (FileNotFoundException fnfe) {
-			log.reportException(fnfe);
-		} catch (IOException ioe) {
-			log.reportException(ioe);
-		}
-
-		proj.getLog()
-				.report("Finished creating binary PLINK files in " + ext.getTimeElapsed(startTime));
-
-		return abLookup;
-	}
-
-	/**
 	 * Convert Genvisis data to PLINK .bed format (SNP Major, or in our term - organized by markers)
 	 * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
 	 *
@@ -1529,26 +1241,23 @@ public class PlinkData {
 	 * @param gcThreshold
 	 * @param plinkDirAndFilenameRoot
 	 * @param log
-	 * @return
+	 * @return true on success, false on failure
 	 */
-	public static char[][] createBedFileSnpMajor10KperCycle(Project proj,
-																													Set<String> targetMarkersSet,
-																													HashMap<String, Byte> chrsOfTargetMarkers,
-																													HashMap<String, Integer> posOfTargetMarkers,
-																													int[] indicesOfTargetSamplesInProj,
-																													String clusterFilterFileName,
-																													float gcThreshold,
-																													String plinkDirAndFilenameRoot,
-																													Logger log) {
+	public static boolean createBedFileSnpMajor10KperCycle(Project proj,
+																												 Set<String> targetMarkersSet,
+																												 HashMap<String, Byte> chrsOfTargetMarkers,
+																												 HashMap<String, Integer> posOfTargetMarkers,
+																												 int[] indicesOfTargetSamplesInProj,
+																												 String clusterFilterFileName,
+																												 float gcThreshold,
+																												 String plinkDirAndFilenameRoot,
+																												 Logger log) {
 		final RandomAccessFile out;
 		byte[] outStream;
 		byte[] genotypes;
 		byte[] genotypesOfTargetSamples;
 		ClusterFilterCollection clusterFilterCollection;
-		char[][] abLookup;
 		long startTime, subTime;
-		Hashtable<String, Integer> hash;
-		HashMap<String, Integer> markerIndexHash;
 		final PrintWriter bimWriter;
 
 		startTime = new Date().getTime();
@@ -1560,34 +1269,15 @@ public class PlinkData {
 																														 proj.JAR_STATUS.getValue());
 		}
 
-		String[] targetMarkers = new String[targetMarkersSet.size()];
-		MarkerSet markerSet = proj.getMarkerSet();
-		int index = 0;
-		for (String markerName : markerSet.getMarkerNames()) {
-			if (targetMarkersSet.contains(markerName)) {
-				targetMarkers[index++] = markerName;
-			}
+		MarkerDetailSet markerSet = proj.getMarkerSet();
+		List<String> targetMarkersList = Lists.newArrayListWithCapacity(targetMarkersSet.size());
+		for (Marker marker : markerSet.getMarkersSortedByChrPos()) {
+			if (targetMarkersSet.contains(marker.getName()))
+				targetMarkersList.add(marker.getName());
 		}
+		String[] targetMarkers = targetMarkersList.toArray(new String[targetMarkersList.size()]);
 
-
-		if (Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
-			abLookup = new ABLookup(targetMarkers, proj.AB_LOOKUP_FILENAME.getValue(), true, true,
-															proj.getLog()).getLookup();
-		} else if (clusterFilterCollection == null) {
-			abLookup = new char[targetMarkers.length][];
-		} else {
-			proj.message("Error - could not find AB lookup file '" + proj.AB_LOOKUP_FILENAME.getValue()
-									 + "'; this file needs to be created, as it is not otherwise possible to export to PLINK when there are cluster filters.");
-			return null;
-		}
-
-		hash = new Hashtable<String, Integer>();
-		for (int i = 0; i < targetMarkers.length; i++) {
-			if (hash.containsKey(targetMarkers[i])) {
-				log.reportError("Warning - duplicate marker name: " + targetMarkers[i]);
-			}
-			hash.put(targetMarkers[i], i);
-		}
+		Map<String, Marker> markerLookup = markerSet.getMarkerNameMap();
 
 		PSF.checkInterrupted();
 
@@ -1600,7 +1290,6 @@ public class PlinkData {
 		proj.getProgressMonitor().beginDeterminateTask(progKey, "Exporting data to .bed file",
 																									 targetMarkers.length,
 																									 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
-
 
 		try {
 			bimWriter = Files.getAppropriateWriter(plinkDirAndFilenameRoot + ".bim");
@@ -1637,83 +1326,29 @@ public class PlinkData {
 				}
 				out.write(encodePlinkBedBytesForASingleMarkerOrSample(genotypesOfTargetSamples));
 				proj.getProgressMonitor().updateTask(progKey);
-				int targetIndex = hash.get(markerData.getMarkerName());
 				String markerName = markerData.getMarkerName();
-				Byte chr = chrsOfTargetMarkers.get(markerName);
-				Integer pos = posOfTargetMarkers.get(markerName);
-				char c1, c2;
-				if (abLookup[targetIndex] == null) {
-					c1 = 'A';
-					c2 = 'B';
-				} else {
-					c1 = abLookup[targetIndex][0];
-					c2 = abLookup[targetIndex][1];
-				}
-				bimWriter.println(chr + "\t" + markerName + "\t0\t" + pos + "\t" + c1 + "\t" + c2); // TODO
-																																														// alleles[][]
-																																														// matching
-																																														// chrs[]
+				Marker marker = markerLookup.get(markerName);
+				Byte chr = marker.getChr();
+				Integer pos = marker.getPosition();
+				char c1 = marker.getA();
+				char c2 = marker.getB();
+				bimWriter.println(chr + "\t" + markerName + "\t0\t" + pos + "\t" + c1 + "\t" + c2);
 			}
 
 			out.close();
 			bimWriter.flush();
 			bimWriter.close();
-
 		} catch (FileNotFoundException fnfe) {
 			log.reportException(fnfe);
+			return false;
 		} catch (IOException ioe) {
 			log.reportException(ioe);
+			return false;
 		}
 
 		proj.getProgressMonitor().endTask(progKey);
 		proj.getLog()
 				.report("Finished creating binary PLINK files in " + ext.getTimeElapsed(startTime));
-
-
-
-		return abLookup;
-	}
-
-	/**
-	 * Convert Genvisis data to PLINK .bim format (SNP Major, or in our term - organized by markers)
-	 * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
-	 *
-	 * @param targetMarkers
-	 * @param chrsOfTargetMarkers.get(
-	 * @param posOfTargetMarkers
-	 * @param abLookup
-	 * @param bimDirAndFilenameRoot
-	 * @param log
-	 * @return
-	 */
-	public static boolean createBimFile(String[] targetMarkers,
-																			HashMap<String, Byte> chrsOfTargetMarkers,
-																			HashMap<String, Integer> posOfTargetMarkers,
-																			char[][] abLookup, String bimDirAndFilenameRoot, Logger log) {
-		PrintWriter writer;
-
-		if (abLookup == null) {
-			log.reportError("Error - abLookup cannot be null; failed to create .bim file");
-			return false;
-		}
-
-		try {
-			writer = new PrintWriter(new FileWriter(bimDirAndFilenameRoot + ".bim"));
-			for (int i = 0; i < targetMarkers.length; i++) {
-				writer.println(chrsOfTargetMarkers.get(targetMarkers[i]) + "\t" + targetMarkers[i] + "\t0\t"
-											 + posOfTargetMarkers.get(targetMarkers[i]) + "\t" + abLookup[i][0] + "\t"
-											 + abLookup[i][1]); // TODO alleles[][] matching chrs[]
-			}
-			writer.close();
-
-		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: failed to write to gwas.map (in use?)");
-			return false;
-		} catch (IOException ioe) {
-			log.reportError("Error writing to gwas.map");
-			return false;
-		}
-
 		return true;
 	}
 
@@ -2751,7 +2386,7 @@ public class PlinkData {
 				clusterFile = null;
 			}
 			saveGenvisisToPlinkBedSet(proj, plinkDataDirAndFilenameRoot, clusterFile,
-																proj.TARGET_MARKERS_FILENAMES.getValue()[0], gcThreshold, true);
+																proj.TARGET_MARKERS_FILENAMES.getValue()[0], gcThreshold);
 
 		} else if (conversionToRun.equals("-pedToBed")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_"

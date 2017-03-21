@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.WritingFilePrep;
 import org.genvisis.common.ArrayUtils;
@@ -32,6 +32,7 @@ import htsjdk.variant.vcf.VCFInfoHeaderLine;
  */
 public abstract class AnnotationFileWriter extends AnnotationFile implements WritingFilePrep {
 
+	private Project proj;
 	private VariantContextWriter writer;
 	private final boolean overWriteExisting;
 	private boolean additionMode;
@@ -41,10 +42,10 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 	public AnnotationFileWriter(Project proj, AnalysisParams[] analysisParams,
 															Annotation[] annotations, String annotationFilename,
 															boolean overWriteExisting) {
-		super(proj, annotationFilename);
+		super(annotationFilename, proj.getLog());
 		setAnnotations(annotations);
 		setParams(analysisParams);
-
+		this.proj = proj;
 		this.overWriteExisting = overWriteExisting;
 		additionMode = false;
 		tmpFile = null;
@@ -70,14 +71,14 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 			if (vcAnno.getStart() <= 0 || vcAnno.getEnd() <= 0) {
 				String error = "Entry " + vcAnno.toStringWithoutGenotypes()
 											 + " had postion less than or equal to zero. Most readers will skip";
-				proj.getLog().reportError(error);
+				log.reportError(error);
 				throw new IllegalArgumentException(error);
 			}
 			if (additionReader != null) {
 				if (!additionReader.hasNext()) {
 					String error = "Mismatched number of entries in " + annotationFilename
 												 + " , cancelling addition...";
-					proj.getLog().reportError(error);
+					log.reportError(error);
 					throw new IllegalStateException(error);
 				} else {
 					VariantContext vcAdd = additionReader.next();
@@ -106,7 +107,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 						error += "\nName  anno = " + vcAnno.getID();
 						error += "\nName equals = " + vcAdd.getID().equals(vcAnno.getID());
 
-						proj.getLog().reportError(error);
+						log.reportError(error);
 						throw new IllegalStateException(error);
 					}
 				}
@@ -114,7 +115,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 			writer.add(vcAnno);
 		} else {
 			String error = "annotation writer has not been intialized";
-			proj.getLog().reportError(error);
+			log.reportError(error);
 			throw new IllegalStateException(error);
 		}
 	}
@@ -125,14 +126,12 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 			additionMode = false;
 		} else {
 			additionMode = true;
-			proj.getLog().reportTimeInfo("Attempting to initialize addition mode");
+			log.reportTimeInfo("Attempting to initialize addition mode");
 			String ts = ext.getTimestampForFilename();
 			Files.copyFileUsingFileChannels(new File(annotationFilename),
-																			new File(annotationFilename + "." + ts + ".bak"),
-																			proj.getLog());
+																			new File(annotationFilename + "." + ts + ".bak"), log);
 			Files.copyFileUsingFileChannels(new File(annotationFilename + ".tbi"),
-																			new File(annotationFilename + ".tbi." + ts + ".bak"),
-																			proj.getLog());
+																			new File(annotationFilename + ".tbi." + ts + ".bak"), log);
 		}
 
 		boolean valid = true;
@@ -141,9 +140,9 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 				additionReader = new VCFFileReader(new File(annotationFilename), false).iterator();
 				tmpFile = getTmpFile(annotationFilename);
 			} catch (Exception e) {
-				proj.getLog().reportError("Trying to initialize addition mode, but " + annotationFilename
-																	+ " did not pass vcf file checks");
-				proj.getLog().reportException(e);
+				log.reportError("Trying to initialize addition mode, but "
+												+ annotationFilename + " did not pass vcf file checks");
+				log.reportException(e);
 				valid = false;
 			}
 		}
@@ -153,11 +152,11 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 			if (valid) {
 				valid = annotations != null;
 				if (!valid) {
-					proj.getLog().reportError("Must provided annotation array");
+					log.reportError("Must provided annotation array");
 				}
 			} else {
-				proj.getLog()
-						.reportError("Could not find required file " + proj.getReferenceGenomeFASTAFilename());
+				log.reportError("Could not find required file "
+												+ proj.getReferenceGenomeFASTAFilename());
 			}
 		}
 
@@ -167,7 +166,8 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 	@Override
 	public void init() {
 		if (validate()) {
-			VCFHeader vcfHeader = additionMode ? new VCFFileReader(new File(annotationFilename), true)
+			VCFHeader vcfHeader = additionMode
+																				 ? new VCFFileReader(new File(annotationFilename), true)
 																																																.getFileHeader()
 																				 : new VCFHeader();// take previous header if needed
 			for (int i = 0; i < annotations.length; i++) {
@@ -186,9 +186,8 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 
 					vcfHeader.addMetaDataLine(vHeaderLine);
 				} else {
-					proj.getLog()
-							.reportTimeWarning("Detected that info line " + annotations[i].getName()
-																 + " is already present, any new data added will overwrite previous");
+					log.reportTimeWarning("Detected that info line " + annotations[i].getName()
+																+ " is already present, any new data added will overwrite previous");
 				}
 			}
 			if (params != null) {
@@ -208,11 +207,11 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 			builder.setOption(Options.DO_NOT_WRITE_GENOTYPES);
 
 			String refGenome = proj.getReferenceGenomeFASTAFilename();
-			proj.getLog().reportTimeInfo("Using reference genome" + refGenome);
+			log.reportTimeInfo("Using reference genome " + refGenome);
 
 			SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(refGenome,
-																																				proj.getLog()).getIndexedFastaSequenceFile()
-																																											.getSequenceDictionary();
+																																				log).getIndexedFastaSequenceFile()
+																																						.getSequenceDictionary();
 			SAMSequenceDictionary upDatedSamSequenceDictionary = getUpdatedSamSequenceDictionary(proj,
 																																													 samSequenceDictionary);
 
@@ -222,7 +221,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 			writer.writeHeader(vcfHeader);
 
 		} else {
-			proj.getLog().reportError("Could not intialize annotation file " + annotationFilename);
+			log.reportError("Could not intialize annotation file " + annotationFilename);
 		}
 	}
 
@@ -235,7 +234,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 	 */
 	private static SAMSequenceDictionary getUpdatedSamSequenceDictionary(Project proj,
 																																			 SAMSequenceDictionary samSequenceDictionary) {
-		MarkerSet markerSet = proj.getMarkerSet();
+		MarkerSetInfo markerSet = proj.getMarkerSet();
 		List<SAMSequenceRecord> samSequenceRecords = samSequenceDictionary.getSequences();
 		ArrayList<SAMSequenceRecord> updatedRecords = new ArrayList<SAMSequenceRecord>();
 		SAMSequenceRecord mitoRecord = null;
@@ -274,8 +273,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 														 + samSequenceRecord.getSequenceLength()
 														 + " but the project had a max length of " + contigProjLength
 														 + " ,please choose check your reference build, but will update for now");
-						return null;
-						// samSequenceRecord.setSequenceLength(contigProjLength);
+						samSequenceRecord.setSequenceLength(contigProjLength);
 					}
 					currentIndex++;
 					updatedRecords.add(samSequenceRecord);
@@ -326,12 +324,11 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 		}
 		if (additionReader != null) {
 			additionReader.close();
-			proj.getLog().reportTimeInfo("Copying temporary file " + tmpFile + " to " + annotationFilename
-																	 + ", " + tmpFile + " can be deleted on successful completion");
-			Files.copyFileUsingFileChannels(new File(tmpFile), new File(annotationFilename),
-																			proj.getLog());
+			log.reportTimeInfo("Copying temporary file " + tmpFile + " to " + annotationFilename + ", "
+												 + tmpFile + " can be deleted on successful completion");
+			Files.copyFileUsingFileChannels(new File(tmpFile), new File(annotationFilename), log);
 			Files.copyFileUsingFileChannels(new File(tmpFile + ".tbi"),
-																			new File(annotationFilename + ".tbi"), proj.getLog());
+																			new File(annotationFilename + ".tbi"), log);
 			new File(tmpFile).delete();
 			new File(tmpFile + ".tbi").delete();
 		}

@@ -14,7 +14,7 @@ import java.util.Vector;
 import javax.swing.JOptionPane;
 
 import org.genvisis.cnv.filesys.ABLookup;
-import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.SampleList;
@@ -938,7 +938,7 @@ public class ParseKcol implements Runnable {
 		PrintWriter writer;
 		String[] line, markerNames, list;
 		long fingerprint;
-		MarkerSet markerSet;
+		MarkerSetInfo markerSet;
 		Hashtable<String, Integer> markerIndices;
 		int count;
 		char[][] abLookup;

@@ -20,10 +20,18 @@ import org.genvisis.filesys.Segment;
 
 import com.google.common.primitives.Ints;
 
-public class MarkerSet implements Serializable, TextExport {
+/**
+ * 
+ * @deprecated Use {@link MarkerDetailSet} for BLASTed chromosome, position, and alleles This class
+ *             is maintained for backwards compatibility
+ *
+ */
+@Deprecated
+public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
 	public static final long serialVersionUID = 1L;
 	public static final char[] ALLELES = {'A', 'C', 'G', 'T', 'I', 'D'};
 	// TODO these alleles were recently added, should they not be from some place else??
+	public static final int CHR_INDICES = 27;
 
 	private final long fingerprint;
 	private final String[] markerNames;
@@ -63,25 +71,49 @@ public class MarkerSet implements Serializable, TextExport {
 		fingerprint = fingerprint(markerNames);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.genvisis.cnv.filesys.MarkerInfoSet#getMarkerNames()
+	 */
+	@Override
 	public String[] getMarkerNames() {
 		return markerNames;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.genvisis.cnv.filesys.MarkerInfoSet#getChrs()
+	 */
+	@Override
 	public byte[] getChrs() {
 		return chrs;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.genvisis.cnv.filesys.MarkerInfoSet#getPositions()
+	 */
+	@Override
 	public int[] getPositions() {
 		return positions;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.genvisis.cnv.filesys.MarkerInfoSet#getPositionsByChr()
+	 */
+	@Override
 	public int[][] getPositionsByChr() {
 		IntVector iv;
 		byte chr;
 		int[][] positionsByChr;
 		boolean done;
 
-		positionsByChr = new int[27][0];
+		positionsByChr = new int[CHR_INDICES][0];
 
 		chr = 0;
 		iv = new IntVector(20000);
@@ -102,13 +134,19 @@ public class MarkerSet implements Serializable, TextExport {
 		return positionsByChr;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.genvisis.cnv.filesys.MarkerInfoSet#getIndicesByChr()
+	 */
+	@Override
 	public int[][] getIndicesByChr() {
 		IntVector iv;
 		byte chr;
 		int[][] indicesByChr;
 		boolean done;
 
-		indicesByChr = new int[27][0];
+		indicesByChr = new int[CHR_INDICES][0];
 
 		chr = 0;
 		iv = new IntVector(20000);
@@ -129,6 +167,7 @@ public class MarkerSet implements Serializable, TextExport {
 		return indicesByChr;
 	}
 
+	@Override
 	public long getFingerprint() {
 		return fingerprint;
 	}
@@ -153,8 +192,8 @@ public class MarkerSet implements Serializable, TextExport {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static MarkerSet load(String filename, boolean jar) {
-		return (MarkerSet) SerializedFiles.readSerial(filename, jar, true);
+	public static MarkerSetInfo load(String filename, boolean jar) {
+		return (MarkerSetInfo) SerializedFiles.readSerial(filename, jar, true);
 	}
 
 	public static long fingerprint(String[] names) {
@@ -172,12 +211,25 @@ public class MarkerSet implements Serializable, TextExport {
 		return sum;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.genvisis.cnv.filesys.MarkerInfoSet#getIndicesOfMarkersIn(org.genvisis.filesys.Segment,
+	 * int[][], org.genvisis.common.Logger)
+	 */
+	@Override
 	public int[] getIndicesOfMarkersIn(Segment seg, int[][] indicesByChr, Logger log) {
 		return ext.indexLargeFactors(getMarkersIn(seg, indicesByChr), markerNames, true, log, true,
 																 false);
 	}
 
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.genvisis.cnv.filesys.MarkerInfoSet#getMarkersIn(org.genvisis.filesys.Segment, int[][])
+	 */
+	@Override
 	public String[] getMarkersIn(Segment seg, int[][] indicesByChr) {
 		int index = seg.getChr();
 		ArrayList<String> markersIn = new ArrayList<String>();
@@ -195,11 +247,18 @@ public class MarkerSet implements Serializable, TextExport {
 		return ArrayUtils.toStringArray(markersIn);
 	}
 
-	public void checkFingerprint(Sample samp) {
-		if (samp.getFingerprint() != fingerprint) {
+	@Override
+	public boolean checkFingerprint(Sample samp) {
+		return checkFingerprints(this, samp);
+	}
+
+	public static boolean checkFingerprints(MarkerSetInfo markerSet, Sample samp) {
+		if (samp.getFingerprint() != markerSet.getFingerprint()) {
 			System.err.println("Error - Sample has a different fingerprint (" + samp.getFingerprint()
-												 + ") than the MarkerSet (" + fingerprint + ")");
+												 + ") than the Marker Set (" + markerSet.getFingerprint() + ")");
+			return false;
 		}
+		return true;
 	}
 
 	public static void convert(String filename) {
@@ -296,7 +355,8 @@ public class MarkerSet implements Serializable, TextExport {
 		private final int[][] indicesByChr;
 		private final int[][] positionsByChr;
 
-		public static PreparedMarkerSet getPreparedMarkerSet(MarkerSet markerSet) {
+		@Deprecated
+		public static PreparedMarkerSet getPreparedMarkerSet(MarkerSetInfo markerSet) {
 			if (markerSet == null) {
 				return null;
 			} else {
@@ -304,8 +364,8 @@ public class MarkerSet implements Serializable, TextExport {
 			}
 		}
 
-		private PreparedMarkerSet(MarkerSet markerSet) {
-			super(markerSet.markerNames, markerSet.chrs, markerSet.positions);
+		private PreparedMarkerSet(MarkerSetInfo markerSet) {
+			super(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet.getPositions());
 			indicesByChr = super.getIndicesByChr();
 			positionsByChr = super.getPositionsByChr();
 

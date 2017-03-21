@@ -1,7 +1,7 @@
 package org.genvisis.cnv.annotation.markers;
 
 import org.genvisis.cnv.filesys.AnnotationCollection;
-import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Logger;
 
 /**
  * @author lane0212
@@ -13,21 +13,19 @@ import org.genvisis.cnv.filesys.Project;
  *
  */
 public abstract class AnnotationFile {
-	protected Project proj;
 	protected String annotationFilename;
 	protected Annotation[] annotations;
 	protected AnalysisParams[] params;
+	protected Logger log;
 
 	/**
-	 * @param proj
-	 * @param types used for extracting data types
-	 * @param keys used for building/verifying the vcf header hash
 	 * @param annotationFilename
+	 * @param log 
 	 */
-	public AnnotationFile(Project proj, String annotationFilename) {
+	public AnnotationFile(String annotationFilename, Logger log) {
 		super();
-		this.proj = proj;
 		this.annotationFilename = annotationFilename;
+		this.log = log;
 	}
 
 	public Annotation[] getAnnotations() {

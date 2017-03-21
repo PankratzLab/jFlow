@@ -6,7 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.Map;
 
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
@@ -130,7 +130,7 @@ public class PrincipalComponentsApply {
 					proj.getLog().reportTimeInfo("Will be adjusting data for current centroids");
 				}
 			}
-			Hashtable<String, Integer> projectIndices = proj.getMarkerIndices();
+			Map<String, Integer> projectIndices = proj.getMarkerIndices();
 
 			MDL mdl = new MDL(proj, proj.getMarkerSet(), markers, 2, 100);
 			// MarkerDataLoader markerDataLoader =

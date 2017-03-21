@@ -3,7 +3,7 @@ package org.genvisis.cnv.manage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Hashtable;
+import java.util.Map;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
@@ -48,7 +48,7 @@ public class ExtProjectDataParser {
 	private final boolean firstEntryOnly;
 
 	public void loadData() {
-		Hashtable<String, Integer> markerIndices = proj.getMarkerIndices();
+		Map<String, Integer> markerIndices = proj.getMarkerIndices();
 		proj.getLog()
 				.reportTimeInfo("Attempting to load " + (sampleBased ? "sample based" : "marker based")
 												+ " data from " + fullPathToDataFile);
