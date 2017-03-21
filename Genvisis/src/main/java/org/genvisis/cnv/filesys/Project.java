@@ -829,34 +829,36 @@ public class Project implements PropertyChangeListener {
 			@SuppressWarnings("deprecation")
 			MarkerSetInfo naiveMarkerSet = MarkerSet.load(MARKERSET_FILENAME.getValue(),
 																										JAR_STATUS.getValue());
-			MarkerDetailSet generatedMarkerSet = null;
 			if (Files.exists(BLAST_ANNOTATION_FILENAME.getValue(), JAR_STATUS.getValue())) {
 				log.report("Attempting to generate MarkerDetails from "
 									 + BLAST_ANNOTATION_FILENAME.getValue());
-				generatedMarkerSet = MarkerDetailSet.parseFromBLASTAnnotation(naiveMarkerSet,
-																																			BLAST_ANNOTATION_FILENAME.getValue(),
-																																			log);
-			}
-			if (generatedMarkerSet == null) {
-				if (Files.exists(AB_LOOKUP_FILENAME.getValue())) {
-					log.report("Attempting to generate MarkerDetails from "
-										 + MARKER_DETAILS_FILENAME.getValue() + " and "
-										 + AB_LOOKUP_FILENAME.getValue());
-					char[][] abLookup = new ABLookup(naiveMarkerSet.getMarkerNames(),
-																					 AB_LOOKUP_FILENAME.getValue(), true, true,
-																					 getLog()).getLookup();
-					generatedMarkerSet = new MarkerDetailSet(naiveMarkerSet, abLookup);
-				} else {
-					log.report("Could not locate AB Alleles, using naive MarkerSet from "
-										 + MARKERSET_FILENAME.getValue());
-					return new MarkerDetailSet(naiveMarkerSet);
-					// Don't serialize a MarkerDetailSet without proper AB alleles
+				MarkerDetailSet generatedMarkerSet = MarkerDetailSet.parseFromBLASTAnnotation(naiveMarkerSet,
+																																											BLAST_ANNOTATION_FILENAME.getValue(),
+																																											log);
+				if (generatedMarkerSet != null) {
+					// For now, only serialize a properly generated MarkerDetailSet from a blast.vcf
+					// Once hashcode checking is fully implemented, we can serialize lesser MarkerDetailSets
+					// and use the existence and hashcode to know whether to rebuild when a blast.vcf exists
+					generatedMarkerSet.serialize(MARKER_DETAILS_FILENAME.getValue());
+					log.report("MarkerDetails generated and written to " + MARKER_DETAILS_FILENAME.getValue()
+										 + " for Project");
+					return generatedMarkerSet;
 				}
 			}
-			log.report("MarkerDetails generated to " + MARKER_DETAILS_FILENAME.getValue()
-								 + " for Project");
-			generatedMarkerSet.serialize(MARKER_DETAILS_FILENAME.getValue());
-			return generatedMarkerSet;
+			log.report("Could not generate MarkerDetails from BLAST Annotation at "
+								 + BLAST_ANNOTATION_FILENAME.getValue());
+			if (Files.exists(AB_LOOKUP_FILENAME.getValue())) {
+				log.report("Attempting to generate MarkerDetails from "
+									 + MARKER_DETAILS_FILENAME.getValue() + " and "
+									 + AB_LOOKUP_FILENAME.getValue());
+				char[][] abLookup = new ABLookup(naiveMarkerSet.getMarkerNames(),
+																				 AB_LOOKUP_FILENAME.getValue(), true, true,
+																				 getLog()).getLookup();
+				return new MarkerDetailSet(naiveMarkerSet, abLookup);
+			}
+			log.report("Could not locate AB Alleles, using naive MarkerSet from "
+								 + MARKERSET_FILENAME.getValue());
+			return new MarkerDetailSet(naiveMarkerSet);
 		} else {
 			getLog().reportFileNotFound(MARKERSET_FILENAME.getValue());
 			return null;
