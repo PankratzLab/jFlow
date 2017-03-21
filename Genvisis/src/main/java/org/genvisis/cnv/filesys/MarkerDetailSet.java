@@ -49,6 +49,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		}
 
 		public static class GenomicPosition implements Serializable, Comparable<GenomicPosition> {
+
+			private static final long serialVersionUID = 1L;
+
 			private final byte chr;
 			private final int position;
 
@@ -108,7 +111,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 		}
 
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 2L;
 
 		private final String name;
 		private final GenomicPosition genomicPosition;
@@ -324,22 +327,6 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		this.hashCode = generateHashCode();
 	}
 
-
-	private MarkerDetailSet(ImmutableList<Marker> markers, int hashCode,
-													long markerSetFingerprint,
-													Reference<Map<String, Marker>> markerNameMapRef,
-													Reference<ListMultimap<Byte, Marker>> chrMapRef,
-													Reference<Map<Marker, Integer>> markerIndexMapRef) {
-		super();
-		this.markers = markers;
-		this.hashCode = hashCode;
-		this.markerSetFingerprint = markerSetFingerprint;
-
-		this.markerNameMapRef = markerNameMapRef;
-		this.chrMapRef = chrMapRef;
-		this.markerIndexMapRef = markerIndexMapRef;
-	}
-
 	private static BlastAnnotation closestChrMatch(byte naiveChr, int naivePosition,
 																								 Iterable<BlastAnnotation> matches) {
 		// If more than one match, try choosing one with chr that matches naiveChr (chr
@@ -539,7 +526,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	}
 
 	public static MarkerDetailSet load(String filename, boolean jar) {
-		return (MarkerDetailSet) SerializedFiles.readSerial(filename, jar, true);
+		return (MarkerDetailSet) SerializedFiles.readSerial(filename, jar, false);
 	}
 
 	public void serialize(String filename) {

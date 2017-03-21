@@ -818,7 +818,12 @@ public class Project implements PropertyChangeListener {
 			MarkerDetailSet loadedMarkerSet = MarkerDetailSet.load(MARKER_DETAILS_FILENAME.getValue(),
 																														 JAR_STATUS.getValue());
 			// TODO: check if fingerprint or hashcode matches BLAST VCF, regenerate MarkerDetailSet if not
-			return loadedMarkerSet;
+			if (loadedMarkerSet != null) {
+				return loadedMarkerSet;
+			} else {
+				log.report("Failed to load " + MARKER_DETAILS_FILENAME.getValue()
+									 + ", regenerating MarkerDetails");
+			}
 		}
 		if (Files.exists(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue())) {
 			@SuppressWarnings("deprecation")
