@@ -1,9 +1,13 @@
 package org.genvisis.common;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.genvisis.cnv.manage.Resources.*;
+import org.genvisis.cnv.manage.Resources.ResourceVersionCheck;
+import org.genvisis.common.HttpUpdate.RemoteVersionCheck;
 
 /**
  * Utility class for executing {@link StartupCheck} plugins and reporting the results.
@@ -13,7 +17,8 @@ public final class StartupValidation {
 
 	private static boolean validated = false;
 	private static String warningString = "";
-	private static StartupCheck[] toCheck = new StartupCheck[] {new ResourceVersionCheck()};
+	private static StartupCheck[] toCheck = new StartupCheck[] {new ResourceVersionCheck(),
+																															new RemoteVersionCheck()};
 
 	private StartupValidation() {
 		// prevent instantiation of utility class
@@ -29,10 +34,25 @@ public final class StartupValidation {
 		if (!validated) {
 			validated = true;
 			List<String> warnings = new ArrayList<String>();
+			boolean haveInternet = true;
+
+
+			try {
+				URL url = new URL("http://genvisis.org/index.html");
+				HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+				httpConn.setConnectTimeout(10 * 1000);
+				httpConn.connect();
+				httpConn.disconnect();
+			} catch (IOException e) {
+				haveInternet = false;
+			}
+
 			for (StartupCheck check : toCheck) {
-				List<String> output = check.check();
-				if (!output.isEmpty()) {
-					warnings.addAll(output);
+				if (haveInternet || !check.requiresRemote()) {
+					List<String> output = check.check();
+					if (!output.isEmpty()) {
+						warnings.addAll(output);
+					}
 				}
 			}
 			buildWarningString(warnings);

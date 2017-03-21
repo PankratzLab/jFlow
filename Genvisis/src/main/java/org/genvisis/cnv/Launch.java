@@ -510,13 +510,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				}
 			}
 		});
-
-		// Check version
-		try {
-			launchUI.log.report(HttpUpdate.checkGenvisisVersion(launchUI.log));
-		} catch (Exception e) {
-			// User may be offline, etc.. version check is not critical
-		}
 	}
 
 	/**
@@ -789,7 +782,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			 */
 			if (command.equals(MAP_FILES)) {
 				org.genvisis.cnv.manage.SourceParserUtils.mapFilenamesToSamples(proj,
-																																			 "filenamesMappedToSamples.txt");
+																																				"filenamesMappedToSamples.txt");
 			} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
 				org.genvisis.cnv.manage.Markers.generateMarkerPositions(proj,
 																																proj.getLocationOfSNP_Map(true));

@@ -29,6 +29,32 @@ public class HttpUpdate {
 	private static final String FAILED_CHECK = HttpUpdate.class.getSimpleName()
 																						 + ": Failed to confirm Genvisis version";
 
+	public static class RemoteVersionCheck extends AbstractStartupCheck {
+
+		@Override
+		public boolean requiresRemote() {
+			return true;
+		}
+
+		@Override
+		protected String warningHeader() {
+			return "Warning: Genvisis version did not match latest release";
+		}
+
+		@Override
+		protected void doCheck() {
+			Logger log = new Logger();
+			VersionStatus versionCheck = checkGenvisisVersion(log);
+
+			if (versionCheck.passed()) {
+				// TODO would be nice to be able to report info and error messages and allow the UI to
+				// handle both differently
+			} else {
+				addMessage(versionCheck.getMessage());
+			}
+		}
+	}
+
 	public static RemoteJarStatus getRemoteJarVersion(String remoteJar, Logger log) {
 		CHECK_STATUS status = CHECK_STATUS.OTHER_ERROR;
 		String version = LauncherManifest.UNDETERMINED_VERSION;
@@ -85,7 +111,7 @@ public class HttpUpdate {
 		return new RemoteJarStatus(Version.valueOf(version), remoteJar, status);
 	}
 
-	public static String checkGenvisisVersion(Logger log) {
+	public static VersionStatus checkGenvisisVersion(Logger log) {
 		try {
 			log.report("Verifying Genvisis version... ");
 			RemoteJarStatus remoteJarStatus = getRemoteJarVersion(REMOTE_JAR, log);
@@ -94,24 +120,44 @@ public class HttpUpdate {
 			Version releaseVersion = VersionHelper.lastRelease(currentManifest.getVersion());
 
 			if (releaseVersion.lessThan(remoteJarStatus.getVersion())) {
-				return "Your version of Genvisis (" + releaseVersion
-							 + ") is not up to date. Latest version is " + remoteJarStatus.getVersion();
+				return new VersionStatus("Your version of Genvisis (" + releaseVersion
+																 + ") is not up to date. Latest version is "
+																 + remoteJarStatus.getVersion(), false);
 			} else if (releaseVersion.greaterThan(remoteJarStatus.getVersion())) {
 				if (!remoteJarStatus.getVersion().equals(LauncherManifest.UNDETERMINED_VERSION)) {
 					String fun = "Looks like you are using a bleeding edge version of genvisis ("
 											 + releaseVersion + ")\n";
 					fun += "The latest released version at " + REMOTE_JAR + " is "
 								 + remoteJarStatus.getVersion() + ", good luck to ya";
-					return fun;
+					return new VersionStatus(fun, false);
 				} else {
-					return FAILED_CHECK;
+					return new VersionStatus(FAILED_CHECK, false);
 
 				}
 			} else {
-				return "Genvisis (" + releaseVersion + ") is up to date";
+				return new VersionStatus("Genvisis (" + releaseVersion + ") is up to date", true);
 			}
 		} catch (Exception e) {
-			return FAILED_CHECK;
+			return new VersionStatus(FAILED_CHECK, false);
+		}
+	}
+
+	public static class VersionStatus {
+
+		private final String msg;
+		private final boolean passed;
+
+		public VersionStatus(String msg, boolean passed) {
+			this.msg = msg;
+			this.passed = passed;
+		}
+
+		public String getMessage() {
+			return msg;
+		}
+
+		public boolean passed() {
+			return passed;
 		}
 	}
 

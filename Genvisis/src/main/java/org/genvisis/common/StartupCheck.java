@@ -20,4 +20,8 @@ public interface StartupCheck {
 	 */
 	List<String> check();
 
+	/**
+	 * @return True if this startup check requires an internet connection
+	 */
+	boolean requiresRemote();
 }

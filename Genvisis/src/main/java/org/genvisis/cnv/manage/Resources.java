@@ -70,6 +70,7 @@ public final class Resources {
 
 		@Override
 		protected void doCheck() {
+			// FIXME fix timeout of remote check
 			String lastCheck = LaunchProperties.get(LAST_RESOURCE_CHECK);
 			// Only check once a day
 			if (lastCheck == null || System.currentTimeMillis() - Long.parseLong(lastCheck) > MS_IN_DAY) {
@@ -88,6 +89,11 @@ public final class Resources {
 				System.out.println("done.");
 				LaunchProperties.put(LAST_RESOURCE_CHECK, String.valueOf(System.currentTimeMillis()));
 			}
+		}
+
+		@Override
+		public boolean requiresRemote() {
+			return true;
 		}
 	}
 
@@ -116,6 +122,11 @@ public final class Resources {
 		protected String warningHeader() {
 			return "WARNING: the following local file(s) in "
 						 + LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR) + " are not tracked:";
+		}
+
+		@Override
+		public boolean requiresRemote() {
+			return false;
 		}
 	}
 
