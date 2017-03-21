@@ -264,16 +264,4 @@ public class ImputationPrep {
 		}
 		return false;
 	}
-
-	public static void main(String... args) {
-
-		Project proj = new Project("C:\\Users\\kelle881\\projects\\Poynter.properties", false);
-		String referenceFile = "F:\\Poynter\\HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz";
-		if (referenceFile == null || !Files.exists(referenceFile)) {
-			proj.getLog().reportError("Reference file could not be found");
-			return;
-		}
-		ImputationPrep prep = new ImputationPrep(proj, referenceFile);
-
-	}
 }
