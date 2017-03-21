@@ -95,6 +95,7 @@ import org.genvisis.common.LauncherManifest;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.StartupValidation;
+import org.genvisis.common.VersionHelper;
 import org.genvisis.common.ext;
 import org.genvisis.cyto.CytoGUI;
 
@@ -233,7 +234,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 */
 	public Launch(LauncherManifest currentManifest, boolean jar) {
 		// Print the release version info
-		super("Genvisis " + currentManifest.getVersion().getNormalVersion());
+		super("Genvisis " + VersionHelper.lastRelease(currentManifest.getVersion()).getNormalVersion());
 		this.jar = jar;
 		timestampOfPropertiesFile = -1;
 		timestampOfSampleDataFile = -1;
