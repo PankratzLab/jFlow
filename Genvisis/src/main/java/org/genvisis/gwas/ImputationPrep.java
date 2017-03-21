@@ -2,6 +2,7 @@ package org.genvisis.gwas;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker.GenomicPosition;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -29,7 +31,16 @@ import com.google.common.collect.Sets;
 
 public class ImputationPrep {
 
-	private static final String[] HRC_COLS = new String[] {"#CHROM", "POS", "ID", "REF", "ALT", "AF"};
+	private static final String[][] REF_COLS;
+
+	static {
+		String[] markerNameAliases = Arrays.copyOf(Aliases.MARKER_NAMES,
+																							 Aliases.MARKER_NAMES.length + 1);
+		markerNameAliases[markerNameAliases.length - 1] = "ID";
+
+		REF_COLS = new String[][] {Aliases.CHRS, Aliases.POSITIONS, markerNameAliases,
+															 Aliases.REF_ALLELES, Aliases.ALT_ALLELES};
+	}
 	private static final Map<Character, Character> PALINDROMIC_PAIRS = ImmutableMap.of('A', 'T',
 																																										 'T', 'A',
 																																										 'G', 'C',
@@ -91,8 +102,8 @@ public class ImputationPrep {
 	/**
 	 * @param proj Project to run for. Must have a {@link Project#BLAST_ANNOTATION_FILENAME} or an
 	 *        {@link MarkerDetailSet} that otherwise includes Ref/Alt alleles
-	 * @param referenceFile The reference set file. Must include chromosome, position, ref allele, and
-	 *        alt allele
+	 * @param referenceFile The reference set file (preferably gzipped). Must include chromosome,
+	 *        position, ref allele, and alt allele
 	 */
 	public ImputationPrep(Project proj, String referenceFile) {
 		super();
@@ -124,7 +135,12 @@ public class ImputationPrep {
 				throw new IllegalArgumentException("Reference file is empty");
 			}
 			String delim = ext.determineDelimiter(header);
-			int[] cols = ext.indexFactors(HRC_COLS, header.split(delim), false, log, true, false);
+			int[] cols = ext.indexFactors(REF_COLS, header.split(delim), false, true, false, false);
+			for (int index : cols) {
+				if (index < 0) {
+					throw new IllegalArgumentException("Invalid Reference File header");
+				}
+			}
 			while (reader.ready()) {
 				String[] refLine = ArrayUtils.subArray(reader.readLine().split(delim), cols);
 				proj.getProgressMonitor().updateTask(taskName);
