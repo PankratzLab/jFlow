@@ -1,7 +1,5 @@
 package org.genvisis.filesys;
 
-import org.genvisis.common.ext;
-
 public final class FASTA {
 
 	private static final String INDEX_EXT = ".fai";
@@ -16,6 +14,6 @@ public final class FASTA {
 	}
 
 	public static final String getDictionary(String fasta) {
-		return ext.addToRoot(fasta, DICTIONARY_EXT);
+		return fasta + DICTIONARY_EXT;
 	}
 }
