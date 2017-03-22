@@ -226,25 +226,8 @@ public abstract class MarkerBlast {
 		LocusAnnotation[] gcAnnotations = new LocusAnnotation[proj.getMarkerNames().length];
 		for (MarkerFastaEntry fastaEntrie : fastaEntries) {
 			String marker = fastaEntrie.getName();
-			PROBE_TAG tag;
-			switch (proj.getArrayType()) {
-				// we have to remove the "_A" or "_B" from affy markers
-				case AFFY_GW6:
-					tag = PROBE_TAG.parseMarkerTag(marker, proj.getLog());
-					marker = marker.substring(0, marker.length() - tag.getTag().length());
-					break;
-				case AFFY_GW6_CN:
-					tag = PROBE_TAG.parseMarkerTag(marker, proj.getLog());
-					marker = marker.substring(0, marker.length() - tag.getTag().length());
-					break;
-				case ILLUMINA:
-					tag = PROBE_TAG.parseMarkerTag(marker, proj.getLog());
-					marker = marker.substring(0, marker.length() - tag.getTag().length());
-					break;
-				default:
-					proj.getLog().reportError("Invalid Array type " + proj.getArrayType());
-					break;
-			}
+			PROBE_TAG tag = PROBE_TAG.parseMarkerTag(marker, proj.getLog());
+			marker = marker.substring(0, marker.length() - tag.getTag().length());
 			int index = indices.get(marker);
 			double gcContent = fastaEntrie.getGCMinusInterrogationPosition();
 			Builder builder = new Builder();
