@@ -505,8 +505,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				launchUI.setVisible(true);
 				System.out.println(ext.getTime() + "]\tGenvisis Loaded.");
 				if (!StartupValidation.warnings().isEmpty()) {
-					JOptionPane.showMessageDialog(null, StartupValidation.warnings(), "Startup warnings",
-																				JOptionPane.WARNING_MESSAGE);
+					launchUI.log.report(StartupValidation.warnings());
 				}
 			}
 		});
