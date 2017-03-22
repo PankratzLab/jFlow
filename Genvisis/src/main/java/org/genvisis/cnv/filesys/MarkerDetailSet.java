@@ -773,7 +773,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		Map<Marker, Integer> markerIndices = getMarkerIndexMap();
 		Map<String, Integer> indices = Maps.newHashMapWithExpectedSize(markerIndices.size());
 		for (Map.Entry<Marker, Integer> entry : markerIndices.entrySet()) {
-			indices.put(entry.getKey().toString(), entry.getValue());
+			indices.put(entry.getKey().getName(), entry.getValue());
 		}
 		return indices;
 	}
