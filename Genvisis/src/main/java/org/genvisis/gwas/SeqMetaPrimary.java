@@ -93,32 +93,34 @@ public class SeqMetaPrimary {
 				if (foundGenos && foundSnpInfo) {
 					rCode = "library(\"seqMeta\")\n" + "library(\"methods\")\n" + "setwd(\"" + resultDir
 									+ "\")\n" + "\n"
-									+ (currentSnpInfo.toLowerCase()
-																	 .endsWith(".rdata") ? "obj_name <- load(\"" + currentSnpInfo
-																												 + "\")\n" + "SNPInfo <- get(obj_name)\n"
-																												 + "rm(list=obj_name)\n" + "rm(obj_name)\n"
-																											 : "SNPInfo <- read.csv(\"" + currentSnpInfo
-																												 + "\", header=T, as.is=T)\n")
-									+ "\n"
+									+ (currentSnpInfo.toLowerCase().endsWith(".rdata") ? "obj_name <- load(\"" + currentSnpInfo
+																								 + "\")\n" + "SNPInfo <- get(obj_name)\n"
+																								 + "rm(list=obj_name)\n" + "rm(obj_name)\n"
+																			           : "SNPInfo <- read.csv(\"" + currentSnpInfo
+																							     + "\", header=T, as.is=T)\n")
+																								 + "\n"
 									+ (genos.toLowerCase().endsWith(".rdata") || genos.toLowerCase().endsWith(".rda")
-																														? "genoName <- load(\"" + currentGeno
-																															+ "\")\n" + "Z <- get(genoName)\n"
-																															+ "percent_miss <- mean(colnames(Z) %in% SNPInfo[,\"SNP\"])\n"
-																															+ "if (percent_miss == 0) {\n"
-																															+ "    names <- colnames(Z)\n"
-																															+ "    for (i in 1:ncol(Z)) {\n"
-																															+ "        names[i] <- paste(\"chr\", names[i], sep=\"\")\n"
-																															+ "    }\n"
-																															+ "    colnames(Z) <- names\n" + "}\n"
-																														: "Z <- t(read.csv(\"" + currentGeno
-																															+ "\", header=T, as.is=T, row.names=1))\n"
-																															+ "names <- colnames(Z)\n"
-																															+ "for (i in 1:ncol(Z)) {\n"
-																															+ "    tmp <- names[i]\n"
-																															+ "    if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
-																															+ "        names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n"
-																															+ "    }\n" + "}\n"
-																															+ "colnames(Z) <- names\n")
+											? "genoName <- load(\"" + currentGeno
+												+ "\")\n" + "Z <- get(genoName)\n"
+												+ "if (any(grepl(\":\", rownames(Z)))){\n"
+												+ "    Z <- t(Z)\n"
+												+ "    }\n"
+												+ "percent_miss <- mean(colnames(Z) %in% SNPInfo[,\"SNP\"])\n"
+												+ "if (percent_miss == 0) {\n"
+												+ "    names <- colnames(Z)\n"
+												+ "    for (i in 1:ncol(Z)) {\n"
+												+ "        names[i] <- paste(\"chr\", names[i], sep=\"\")\n"
+												+ "    }\n"
+												+ "    colnames(Z) <- names\n" + "}\n"
+											: "Z <- t(read.csv(\"" + currentGeno
+												+ "\", header=T, as.is=T, row.names=1))\n"
+												+ "names <- colnames(Z)\n"
+												+ "for (i in 1:ncol(Z)) {\n"
+												+ "    tmp <- names[i]\n"
+												+ "    if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
+												+ "        names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n"
+												+ "    }\n" + "}\n"
+												+ "colnames(Z) <- names\n")
 									+ "\n" + "pheno <- read.csv(\"" + phenoFilename
 									+ "\", header=T, as.is=T, row.names=1)\n" + "xphen <- na.omit(pheno)\n"
 									+ "merged <- merge(xphen, Z, by=\"row.names\")\n"
