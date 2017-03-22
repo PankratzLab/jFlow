@@ -100,7 +100,7 @@ public class SeqMetaPrimary {
 																											 : "SNPInfo <- read.csv(\"" + currentSnpInfo
 																												 + "\", header=T, as.is=T)\n")
 									+ "\n"
-									+ (genos.toLowerCase().endsWith(".rdata")
+									+ (genos.toLowerCase().endsWith(".rdata") || genos.toLowerCase().endsWith(".rda")
 																														? "genoName <- load(\"" + currentGeno
 																															+ "\")\n" + "Z <- get(genoName)\n"
 																															+ "percent_miss <- mean(colnames(Z) %in% SNPInfo[,\"SNP\"])\n"
