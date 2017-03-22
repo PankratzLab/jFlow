@@ -273,7 +273,7 @@ public class Launch {
 			System.exit(1);
 		}
 
-		if (!Files.exists(filename)) {
+		if (!Files.exists(filename, false, false)) {
 			if (create) {
 				new File(filename).createNewFile();
 			} else {
