@@ -1278,8 +1278,9 @@ public class Files {
 						log.reportError("...");
 					}
 					count++;
+				} else {
+					hash.put(key, i);
 				}
-				hash.put(key, i);
 			}
 		}
 		if (count > 5) {
@@ -4005,8 +4006,9 @@ public class Files {
 			} else if (replacements != null) {
 				replaceAll(filename, outfile, replacements, log);
 			} else if (filename != null) {
-				Qsub.makeQsub(new File(filename).getAbsolutePath(), multiple, start, stop, separate, patterns,
-								 cwd);
+				Qsub.makeQsub(new File(filename).getAbsolutePath(), multiple, start, stop, separate,
+											patterns,
+											cwd);
 			} else if (dir != null) {
 				summarizeAllFilesInDirectory(dir);
 			} else {
