@@ -42,6 +42,8 @@ public class CARDIA2017ResultsProcessor {
 	String LOOKUP = "vcfLookup/";
 	String[] MODEL_VARS = {"FEV1", "FVC", "FEV1", "FVC"};
 	String[] NUTR_VARS = {"DHA", "DHA", "DPA", "DPA"};
+	
+	int IMPUTATION_QUALITY_IN_INDEX = 5;
 
 	static final class SNP {
 		String name;
@@ -163,7 +165,7 @@ public class CARDIA2017ResultsProcessor {
 						sb.append(snp.eff.charAt(0)).append("\t").append(snp.base.charAt(0)).append("\t");
 					}
 					sb.append(parts[7]).append("\t").append(eaf).append("\t").append(TYPE).append("\t")
-						.append(parts[6]).append("\t")
+						.append(parts[IMPUTATION_QUALITY_IN_INDEX]).append("\t")
 						.append(ext.isMissingValue(parts[9]) ? "NA"
 																								 : ext.formDeci(Double.parseDouble(parts[9]), 5))
 						.append("\t")
