@@ -52,19 +52,7 @@ public final class Resources {
 	public static final String GENOME_DIR = "Genome";
 	private static Set<Resource> allResources = null;
 
-	public enum ResourceLaunchKeys implements LaunchKey {
-		LAST_RESOURCE_CHECK;
-
-		@Override
-		public String defaultValue() {
-			return "0";
-		}
-
-		@Override
-		public boolean isDir() {
-			return false;
-		}
-	}
+	public static LaunchKey LAST_RESOURCE_CHECK = new LaunchKey("0", false, "LAST_RESOURCE_CHECK");
 
 	private Resources() {
 		// prevent instantiation of utility class
@@ -82,7 +70,7 @@ public final class Resources {
 
 		@Override
 		protected void doCheck() {
-			String lastCheck = LaunchProperties.get(ResourceLaunchKeys.LAST_RESOURCE_CHECK);
+			String lastCheck = LaunchProperties.get(LAST_RESOURCE_CHECK);
 			// Only check once a day
 			if (lastCheck == null || System.currentTimeMillis() - Long.parseLong(lastCheck) > MS_IN_DAY) {
 				System.out.print("Validating local resources... ");
@@ -98,8 +86,7 @@ public final class Resources {
 					}
 				}
 				System.out.println("done.");
-				LaunchProperties.put(ResourceLaunchKeys.LAST_RESOURCE_CHECK,
-														 String.valueOf(System.currentTimeMillis()));
+				LaunchProperties.put(LAST_RESOURCE_CHECK, String.valueOf(System.currentTimeMillis()));
 			}
 		}
 	}
