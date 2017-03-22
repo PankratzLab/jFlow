@@ -7,7 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +47,7 @@ import htsjdk.variant.variantcontext.Allele;
  * class
  *
  */
-public class MarkerBlast {
+public abstract class MarkerBlast {
 
 	public static final int DEFAULT_MAX_ALIGNMENTS_REPORTED = 20;
 	public static final boolean DEFAULT_REPORT_TO_TEMPORARY_FILE = true;
@@ -169,7 +168,8 @@ public class MarkerBlast {
 																																							proj.BLAST_ANNOTATION_FILENAME.getValue(),
 																																							doBlast ? tmps
 																																											: new String[] {},
-																																							entries, reportWordSize,
+																																							entries,
+																																							reportWordSize,
 																																							proj.getArrayType()
 																																									.getProbeLength(),
 																																							proj.getArrayType()
@@ -512,17 +512,19 @@ public class MarkerBlast {
 							if (alleleLookup) {
 								alleleParser.parse(proj.getArrayType(), strand, null);
 							}
-							entries.add(new MarkerFastaEntry(markerName	+ PROBE_TAG.A.getTag(), tmpSeq[0], tmpSeq[1],
-																								strand, interrogationPosition, markerSegment,
-																								TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(),
-																								alleleParser.getB(), alleleParser.getRef(),
-																								alleleParser.getAlts()));
+							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.A.getTag(), tmpSeq[0],
+																							 tmpSeq[1],
+																							 strand, interrogationPosition, markerSegment,
+																							 TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(),
+																							 alleleParser.getB(), alleleParser.getRef(),
+																							 alleleParser.getAlts()));
 
-							entries.add(new MarkerFastaEntry(markerName	+ PROBE_TAG.B.getTag(), tmpSeq[1], tmpSeq[1],
-																								strand, interrogationPosition, markerSegment,
-																								TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(),
-																								alleleParser.getB(), alleleParser.getRef(),
-																								alleleParser.getAlts()));
+							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B.getTag(), tmpSeq[1],
+																							 tmpSeq[1],
+																							 strand, interrogationPosition, markerSegment,
+																							 TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(),
+																							 alleleParser.getB(), alleleParser.getRef(),
+																							 alleleParser.getAlts()));
 							throw new IllegalArgumentException("Sorry, Affymetrix AB designation is not currently working, feel free to remove this exception if you just want blast results, but make sure to not rely on ABs - also shout at @jlanej");
 						}
 					}
@@ -1234,124 +1236,3 @@ public class MarkerBlast {
 	}
 
 }
-
-// String alts = null;
-// for (int j = 0; j < tmpSeq[0].length(); j++) {
-// if (tmpSeq[0].charAt(j) != tmpSeq[1].charAt(j)) {
-// if (alts != null) {
-// proj.getLog().reportTimeError("found multiple probe differences for " + parser.getDataToLoad()[i]
-// + "\t" + ArrayUtils.toStr(tmpSeq));
-// } else {
-// alts = sequenceLookup.getNucForCombo("" + tmpSeq[0].charAt(j) + tmpSeq[1].charAt(j));
-// seq = tmpSeq[0].substring(0, j) + alts + tmpSeq[0].substring(j + 1, tmpSeq[0].length());
-// System.out.println(alts + "\t" + parser.getDataToLoad()[i] + "\t" + tmpSeq[0]);
-// System.out.println(alts + "\t" + parser.getDataToLoad()[i] + "\t" + tmpSeq[1]);
-// System.out.println(alts + "\t" + parser.getDataToLoad()[i] + "\t" + seq + "\t" +
-// tmpSeq[0].length() + "\t" + seq.length());
-// // }
-// // }
-// // }
-// private static boolean isPerfectlyGoodMatch(Blast.BlastResultsSummary bSummary, byte chr) {
-// if (bSummary.getNumPerfectMatches() != 1) {
-// return false;
-// }
-//
-// return true;
-//
-// }
-
-//
-// private static void summarizeOneHitWonders(Project proj, ArrayList<Blast.BlastResultsSummary[]>
-// bSummaries, String outputFile, Logger log) {
-// try {
-// PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
-// Hashtable<String, Integer> indices = proj.getMarkerIndices();
-// byte[] chrs = proj.getMarkerSet().getChrs();
-// int[] pos = proj.getMarkerSet().getPositions();
-// for (int i = 0; i < bSummaries.size(); i++) {
-// for (int j = 0; j < bSummaries.get(i).length; j++) {
-// if (bSummaries.get(i)[j].getNumPerfectMatches() == 1) {
-// if (ArrayUtils.countIf(bSummaries.get(i)[j].getPercentIdentityHistogram().getCounts(), 0) ==
-// bSummaries.get(i)[j].getPercentIdentityHistogram().getCounts().length - 1) {
-// int currentMarkerIndex = indices.get(bSummaries.get(i)[j].getName());
-// Segment markerSegment = new Segment(chrs[currentMarkerIndex], pos[currentMarkerIndex] - 1,
-// pos[currentMarkerIndex] + 1);
-// Segment blastPerfectSegment = bSummaries.get(i)[j].getPerfectMatchSegment();
-// if (blastPerfectSegment != null && blastPerfectSegment.overlaps(markerSegment)) {
-// writer.println(bSummaries.get(i)[j].getName() + "\t" + chrs[currentMarkerIndex] + "\t" +
-// pos[currentMarkerIndex] + "\t" + blastPerfectSegment.getChr() + "\t" +
-// blastPerfectSegment.getStart() + "\t" + blastPerfectSegment.getStop());
-// }
-// }
-// }
-// }
-// }
-//
-// writer.close();
-// } catch (Exception e) {
-// log.reportError("Error writing to " + outputFile);
-// log.reportException(e);
-// }
-// }
-//
-// private static void summarize(Project proj, ArrayList<Blast.BlastResultsSummary[]> bSummaries,
-// String outputFile, Logger log) {
-// try {
-// PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
-// Hashtable<String, Integer> indices = proj.getMarkerIndices();
-// byte[] chrs = proj.getMarkerSet().getChrs();
-// writer.print("Marker\tDesignContig\tNumTotalContigs");
-// double[] bins = bSummaries.get(0)[0].getPercentIdentityHistogram().getBins();
-// HashSet<String> allContigs = new HashSet<String>();
-// ArrayList<String> uniqContigs = new ArrayList<String>();
-// for (int i = 0; i < bSummaries.size(); i++) {
-// for (int j = 0; j < bSummaries.get(i).length; j++) {
-// allContigs.addAll(bSummaries.get(i)[j].getHitCounts().keySet());
-// }
-// }
-// uniqContigs.addAll(allContigs);
-// for (int i = 0; i < bins.length; i++) {
-// writer.print("\t" + ext.formDeci(bins[i], 0) + "_PercentIdentity");
-// }
-// for (String contig : uniqContigs) {
-// writer.print("\t" + contig);
-// }
-// writer.println();
-// for (int i = 0; i < bSummaries.size(); i++) {
-// for (int j = 0; j < bSummaries.get(i).length; j++) {
-// int[] counts = bSummaries.get(i)[j].getPercentIdentityHistogram().getCounts();
-// int contigHits = bSummaries.get(i)[j].getHitCounts().size();
-// String chr = Positions.getChromosomeUCSC(chrs[indices.get(bSummaries.get(i)[j].getName())],
-// true);
-// writer.print(bSummaries.get(i)[j].getName() + "\t" + chr + "\t" + contigHits + "\t" +
-// ArrayUtils.toStr(counts));
-// for (String contig : uniqContigs) {
-// if (bSummaries.get(i)[j].getHitCounts().containsKey(contig)) {
-// writer.print("\t" + bSummaries.get(i)[j].getHitCounts().get(contig));
-// } else {
-// writer.print("\t" + "0");
-// }
-// }
-// writer.println();
-// }
-//
-// }
-//
-// writer.close();
-// } catch (Exception e) {
-// log.reportError("Error writing to " + outputFile);
-// log.reportException(e);
-// }
-// }
-
-// case STRAND_REPORT:
-// if (proj.getArrayType() != ARRAY.ILLUMINA) {
-// proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is
-// for " + ARRAY.ILLUMINA);
-// return null;
-//
-// }
-// builder.dataKeyColumnName("SNP_Name");
-// builder.commentString("##");
-// builder.stringDataTitles(new String[] { "Design_Seq" });
-// break;
