@@ -197,7 +197,7 @@ public class MedianLRRWidget extends JFrame implements Runnable {
 			// Build the common panel area
 			// FIXME can't get these last labels to left-justify..
 			JPanel bottomPane = new JPanel();
-			bottomPane.setLayout(new BoxLayout(correctionPane, BoxLayout.Y_AXIS));
+			bottomPane.setLayout(new BoxLayout(bottomPane, BoxLayout.Y_AXIS));
 			addLabel(bottomPane, "Output File Prefix");
 			fileInputArea = new JTextArea(initRegion);
 			fileInputArea.setBorder(BorderFactory.createLineBorder(Color.BLACK));
