@@ -834,75 +834,7 @@ public abstract class MarkerBlast {
 		}
 	}
 
-	protected static ExtProjectDataParser.ProjectDataParserBuilder formatParser(Project proj,
-																																							FILE_SEQUENCE_TYPE type,
-																																							String strandReportFile) {
-		ExtProjectDataParser.ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
-		switch (type) {
-			case MANIFEST_FILE:
-				if (proj.getArrayType() != ARRAY.ILLUMINA) {
-					proj.getLog().reportError("Array type was set to " + proj.getArrayType()
-																		+ " and this file is for " + ARRAY.ILLUMINA);
-					builder = null;
-					break;
-				}
-				builder.separator(",");
-				builder.dataKeyColumnName("Name");
-				String[] headerFlags = new String[] {"Name", "AlleleA_ProbeSeq"};
-				builder.headerFlags(headerFlags);
-				String ref = null;
-				String[] header = Files.getLineContaining(strandReportFile, ",", headerFlags,
-																									proj.getLog());
-				if (header != null) {
-					if (ext.indexOfStr("RefStrand", header) >= 0) {
-						ref = "RefStrand";
-					} else if (ext.indexOfStr("GenomicStrand", header) >= 0) {
-						ref = "GenomicStrand";
-					}
-
-				} else {
-					proj.getLog().reportError("Header of " + strandReportFile + " not found");
-					return null;
-				}
-				String[] dataTitles = new String[] {"AlleleA_ProbeSeq", "AlleleB_ProbeSeq", "SNP",
-																						"IlmnStrand", "SourceStrand", "SourceSeq", "IlmnID"};
-				if (ref != null) {
-					dataTitles = ArrayUtils.concatAll(dataTitles, new String[] {ref});
-				} else {
-					proj.getLog()
-							.reportTimeWarning(strandReportFile
-																 + " did not have a column for RefStrand, will determine strand from IlmnID but these will be inacurate, forward assigned to +");
-					// proj.getLog().reportTimeError("Actully we are stopping, get the strands from
-					// http://www.well.ox.ac.uk/~wrayner/strand/");
-					// return null;
-				}
-				builder.stringDataTitles(dataTitles);
-
-				break;
-
-			case AFFY_ANNOT:
-				if (proj.getArrayType() != ARRAY.AFFY_GW6 && proj.getArrayType() != ARRAY.AFFY_GW6_CN) {
-					proj.getLog()
-							.reportError("Array type was set to " + proj.getArrayType() + " and this file is for "
-													 + ARRAY.AFFY_GW6 + " or " + ARRAY.AFFY_GW6_CN);
-					builder = null;
-					break;
-				}
-				builder.separator("\t");
-				builder.dataKeyColumnName("PROBESET_ID");
-				builder.stringDataTitles(new String[] {"PROBE_SEQUENCE", "TARGET_STRANDEDNESS"});
-				builder.concatMultipleStringEntries(true);
-
-			default:
-				break;
-
-		}
-		builder.sampleBased(false);
-		builder.treatAllNumeric(false);
-		builder.requireAll(false);
-		builder.verbose(false);
-		return builder;
-	}
+	protected abstract ExtProjectDataParser.ProjectDataParserBuilder formatParser();
 
 	public static class MarkerFastaEntry extends FastaEntry {
 

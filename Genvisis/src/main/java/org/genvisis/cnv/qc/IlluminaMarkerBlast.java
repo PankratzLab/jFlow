@@ -8,7 +8,9 @@ import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.TOP_BOT;
 import org.genvisis.cnv.annotation.markers.BlastParams;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
+import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.manage.Markers;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -81,9 +83,7 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 	@Override
 	protected MarkerFastaEntry[] getMarkerFastaEntries(BlastParams params,
 																										 boolean alleleLookup) {
-		ExtProjectDataParser.ProjectDataParserBuilder builder = formatParser(proj,
-																																				 FILE_SEQUENCE_TYPE.MANIFEST_FILE,
-																																				 manifestFile);
+		ExtProjectDataParser.ProjectDataParserBuilder builder = formatParser();
 		MarkerFastaEntry[] fastaEntries = null;
 		try {
 			int seqLength = proj.ARRAY_TYPE.getValue().getProbeLength();
@@ -194,6 +194,53 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 		}
 		proj.getLog().reportTimeInfo("Found " + fastaEntries.length + " marker sequences");
 		return fastaEntries;
+	}
+
+	@Override
+	protected ProjectDataParserBuilder formatParser() {
+		ExtProjectDataParser.ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
+		if (proj.getArrayType() != ARRAY.ILLUMINA) {
+			proj.getLog().reportError("Array type was set to " + proj.getArrayType()
+																+ " and this file is for " + ARRAY.ILLUMINA);
+			return null;
+		}
+		builder.separator(",");
+		builder.dataKeyColumnName("Name");
+		String[] headerFlags = new String[] {"Name", "AlleleA_ProbeSeq"};
+		builder.headerFlags(headerFlags);
+		String ref = null;
+		String[] header = Files.getLineContaining(manifestFile, ",", headerFlags,
+																							proj.getLog());
+		if (header != null) {
+			if (ext.indexOfStr("RefStrand", header) >= 0) {
+				ref = "RefStrand";
+			} else if (ext.indexOfStr("GenomicStrand", header) >= 0) {
+				ref = "GenomicStrand";
+			}
+
+		} else {
+			proj.getLog().reportError("Header of " + manifestFile + " not found");
+			return null;
+		}
+		String[] dataTitles = new String[] {"AlleleA_ProbeSeq", "AlleleB_ProbeSeq", "SNP",
+																				"IlmnStrand", "SourceStrand", "SourceSeq", "IlmnID"};
+		if (ref != null) {
+			dataTitles = ArrayUtils.concatAll(dataTitles, new String[] {ref});
+		} else {
+			proj.getLog()
+					.reportTimeWarning(manifestFile
+														 + " did not have a column for RefStrand, will determine strand from IlmnID but these will be inacurate, forward assigned to +");
+			// proj.getLog().reportTimeError("Actully we are stopping, get the strands from
+			// http://www.well.ox.ac.uk/~wrayner/strand/");
+			// return null;
+		}
+		builder.stringDataTitles(dataTitles);
+
+		builder.sampleBased(false);
+		builder.treatAllNumeric(false);
+		builder.requireAll(false);
+		builder.verbose(false);
+		return builder;
 	}
 
 }
