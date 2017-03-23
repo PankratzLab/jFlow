@@ -834,8 +834,6 @@ public abstract class MarkerBlast {
 		}
 	}
 
-	protected abstract ExtProjectDataParser.ProjectDataParserBuilder formatParser();
-
 	public static class MarkerFastaEntry extends FastaEntry {
 
 		private final int interrogationPosition;// Illumina = sequence length, affy = somewhere in the

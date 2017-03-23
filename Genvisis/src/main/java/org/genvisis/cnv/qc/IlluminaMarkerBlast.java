@@ -196,8 +196,7 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 		return fastaEntries;
 	}
 
-	@Override
-	protected ProjectDataParserBuilder formatParser() {
+	private ProjectDataParserBuilder formatParser() {
 		ExtProjectDataParser.ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 		if (proj.getArrayType() != ARRAY.ILLUMINA) {
 			proj.getLog().reportError("Array type was set to " + proj.getArrayType()
