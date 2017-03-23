@@ -1556,7 +1556,9 @@ public class GenvisisWorkflow {
 				public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
 					String dir = getPlinkDir() + Qc.QC_SUBDIR + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR;
 					String qcdPlinkroot = PLINKROOT + FurtherAnalysisQc.FURTHER_ANALYSIS_QC_PLINK_SUFFIX;
-					return PSF.Plink.bedBimFamExist(dir + qcdPlinkroot);
+					return PSF.Plink.bedBimFamExist(dir + qcdPlinkroot)
+								 && Files.exists(dir + FurtherAnalysisQc.SAMPLE_QC_DROPS, false, false)
+								 && Files.exists(dir + FurtherAnalysisQc.MARKER_QC_DROPS, false, false);
 				}
 
 				private String resolveUnrelatedsFile(Map<Requirement, String> stepVars) {

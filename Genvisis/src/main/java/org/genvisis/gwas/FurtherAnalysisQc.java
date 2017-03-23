@@ -1,6 +1,7 @@
 package org.genvisis.gwas;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,8 @@ public class FurtherAnalysisQc extends Qc {
 
 	public static final String FURTHER_ANALYSIS_DIR = "further_analysis_QC/";
 	public static final String FURTHER_ANALYSIS_QC_PLINK_SUFFIX = "_QCd";
+
+	public static final String SAMPLE_QC_DROPS = "mind_drops.dat";
 
 	public static final String ARG_UNRELATEDS = "unrelateds";
 	public static final String ARG_EUROPEANS = "europeans";
@@ -79,18 +82,34 @@ public class FurtherAnalysisQc extends Qc {
 		if (!markerQc(subDir, unrelatedsFile, europeansFile))
 			return;
 		final String sourcePlink = sourceDir + plinkroot;
-		final String drops = qcDir + subDir + MARKER_QC_DROPS;
+		final String markerDrops = qcDir + subDir + MARKER_QC_DROPS;
 		final String plinkQCd = qcDir + subDir + plinkroot
 														+ FurtherAnalysisQc.FURTHER_ANALYSIS_QC_PLINK_SUFFIX;
 		List<String> applyQCCommand = ImmutableList.of("plink2", "--noweb", "--bfile", sourcePlink,
-																									 "--exclude", drops, "--mind", "0.05",
+																									 "--exclude", markerDrops, "--mind", "0.05",
 																									 "--make-bed", "--out", plinkQCd);
 		Set<String> requiredInputs = PSF.Plink.getPlinkBedBimFamSet(sourcePlink);
-		requiredInputs.add(drops);
+		requiredInputs.add(markerDrops);
 		Set<String> requiredOutputs = PSF.Plink.getPlinkBedBimFamSet(plinkQCd);
-		CmdLine.runCommandWithFileChecks(applyQCCommand, "", requiredInputs,
-																		 requiredOutputs,
-																		 true, false, true, log);
+		if (CmdLine.runCommandWithFileChecks(applyQCCommand, "", requiredInputs,
+																				 requiredOutputs,
+																				 true, false, true, log)) {
+			File iremFile = new File(plinkQCd + ".irem");
+			File sampleDrops = new File(qcDir + subDir + SAMPLE_QC_DROPS);
+			if (!iremFile.exists()) {
+				// PLINK only generates .irem if there were samples to drop
+				try {
+					iremFile.createNewFile();
+				} catch (IOException e) {
+					log.reportError("Could not generate " + iremFile.getAbsolutePath());
+					return;
+				}
+			}
+			if (!iremFile.renameTo(sampleDrops)) {
+				log.reportError("Could not move " + iremFile.getAbsolutePath() + " to "
+												+ sampleDrops.getAbsolutePath());
+			}
+		}
 	}
 
 	public static Map<QC_METRIC, String> getDefaultMarkerQCThresholds(Project.ARRAY arrayType) {
