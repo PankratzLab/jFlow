@@ -208,7 +208,7 @@ public class MedianLRRWidget extends JFrame implements Runnable {
 			regionTextField = new JTextField(initRegion);
 			regionTextField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 			regionTextField.setMaximumSize(regionTextField.getPreferredSize());
-			regionTextField.setToolTipText("Enter UCSC or probeset-based regions of interest, one per line");
+			regionTextField.setToolTipText("Enter UCSC region or probeset_id;(Your Region Name);marker names(;)");
 			JScrollPane scroll = new JScrollPane(regionTextField);
 			bottomPane.add(scroll);
 
@@ -281,7 +281,6 @@ public class MedianLRRWidget extends JFrame implements Runnable {
 
 			int transformType = 0;
 			int transformScope = 0;
-			// FIXME CHRX strategy is null
 			CHROMOSOME_X_STRATEGY xStrategy = CHROMOSOME_X_STRATEGY.ARTIFICIAL;
 			boolean doRecompute = false;
 			boolean doLRR = false;
@@ -312,7 +311,7 @@ public class MedianLRRWidget extends JFrame implements Runnable {
 				if (doRecompute || doLRR || doXY) {
 					xStrategy = CHROMOSOME_X_STRATEGY.valueOf(chrXStrategy.getSelection()
 																																.getActionCommand());
-					customName += chrXStrategy.getSelection().getActionCommand();
+					customName += "_" + chrXStrategy.getSelection().getActionCommand();
 				}
 			} else if (tabbedPane.getSelectedIndex() == TRANSFORMATION_INDEX) {
 				String transformTypeName = transformations.getSelection().getActionCommand();
