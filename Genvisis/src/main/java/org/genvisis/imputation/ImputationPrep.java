@@ -1,4 +1,4 @@
-package org.genvisis.gwas;
+package org.genvisis.imputation;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -117,6 +117,7 @@ public class ImputationPrep {
 		return matchingMarkers;
 	}
 
+	@SuppressWarnings("resource") // eclipse doesn't recognize reader.close() calls in catch blocks, apparently
 	private Map<Byte, Map<Integer, Set<ReferencePosition>>> readRefFile() {
 		Set<GenomicPosition> markerSetPositions = proj.getMarkerSet().getGenomicPositionMap().keySet();
 		log.report("Parsing reference panel file");
@@ -141,8 +142,9 @@ public class ImputationPrep {
 					throw new IllegalArgumentException("Invalid Reference File header");
 				}
 			}
-			while (reader.ready()) {
-				String[] refLine = ArrayUtils.subArray(reader.readLine().split(delim), cols);
+			String temp;
+			while ((temp = reader.readLine()) != null) {
+				String[] refLine = ArrayUtils.subArray(temp.split(delim), cols);
 				proj.getProgressMonitor().updateTask(taskName);
 				byte chr = Positions.chromosomeNumber(refLine[0], log);
 				int position;

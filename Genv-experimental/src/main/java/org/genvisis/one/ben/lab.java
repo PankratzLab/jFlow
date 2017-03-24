@@ -35,6 +35,7 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.DosageData;
 import org.genvisis.filesys.Segment;
 import org.genvisis.gwas.MergeExtractPipeline;
+import org.genvisis.imputation.ImputationPipeline;
 import org.genvisis.one.ben.fcs.FCSFileDuplicator;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
@@ -243,17 +244,12 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
-
-			// set system-wide anti-aliasing
-			System.setProperty("awt.useSystemAAFontSettings", "on");
-			System.setProperty("swing.aatext", "true");
-
-			ToolTipManager.sharedInstance().setInitialDelay(0);
-			ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE - 1);
-			ToolTipManager.sharedInstance().setReshowDelay(0);
-
-			UIManager.put("ToolTip.background", Color.decode("#F5F5DC"));
-			Qsub.qsubGUI("test.qsub", "echo test");
+			
+			proj = new Project("projects/poynter.properties", false);
+			String referenceFile = "/home/pankrat2/shared/bin/ref/1000GP_Phase3_combined.legend.gz";
+			ImputationPipeline ip = new ImputationPipeline(proj, referenceFile);
+			ip.loadDefaultDropFiles(proj.PROJECT_DIRECTORY.getValue() + "plink/");
+			ip.exportToPlink("/scratch.global/cole0482/testImp/plink");
 			
 			// System.out.println("Username: " + QueueControl.getUserName());
 			// System.out.println("Group: " + QueueControl.getCurrentGroup());

@@ -948,7 +948,7 @@ public class PlinkData {
 
 		return ArrayUtils.toStringArray(samps);
 	}
-
+	
 	/**
 	 * Convert Genvisis data into a PLINK .bed data set.
 	 *
@@ -965,37 +965,19 @@ public class PlinkData {
 		int[] indicesOfTargetMarkersInProj;
 		HashMap<String, Byte> chrsOfTargetMarkers;
 		HashMap<String, Integer> posOfTargetMarkers;
-		String[] allSamplesInProj;
 		String[] targetSamples;
 		String outFileDirAndFilenameRoot;
 		Logger log;
 
 		log = proj.getLog();
-		outFileDirAndFilenameRoot = proj.PROJECT_DIRECTORY.getValue()/* + "plink/" */ + plinkPrefix;
+		outFileDirAndFilenameRoot = proj.PROJECT_DIRECTORY.getValue() + plinkPrefix;
 		(new File(ext.parseDirectoryOfFile(outFileDirAndFilenameRoot + ".bim"))).mkdirs();
-		// if (new File(outFileDirAndFilenameRoot + ".bed").exists() || new
-		// File(outFileDirAndFilenameRoot + ".bim").exists() || new File(outFileDirAndFilenameRoot +
-		// ".fam").exists()) {
-		// log.reportError("System abort. PLINK binary file set \"" + outFileDirAndFilenameRoot + "\"
-		// .bed/.bim/.fam already exist. Please remove the file(s).");
-		// return false;
-		// }
-		// if (new File(outFileDirAndFilenameRoot + ".bed").exists() || new
-		// File(outFileDirAndFilenameRoot + ".bim").exists() || new File(outFileDirAndFilenameRoot +
-		// ".fam").exists()) {
-		// log.report("Found existing PLINK .ped file set in out file directory. Deleting these
-		// files.");
-		// new File(outFileDirAndFilenameRoot + ".bed").delete();
-		// new File(outFileDirAndFilenameRoot + ".bim").delete();
-		// new File(outFileDirAndFilenameRoot + ".fam").delete();
-		// }
 
 		String PROG_KEY = "PLINKBINARYEXPORT";
 		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Creating .fam file",
 																										 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
-		targetSamples = createFamFile(proj, outFileDirAndFilenameRoot); // samples and FAM file are in
-																																		// pedigree order, not project
-																																		// order
+		// samples and FAM file are in pedigree order, not project order
+		targetSamples = createFamFile(proj, outFileDirAndFilenameRoot, null); 
 		proj.getProgressMonitor().endTask(PROG_KEY);
 
 		PSF.checkInterrupted();
@@ -1008,13 +990,7 @@ public class PlinkData {
 		}
 		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Loading sample data",
 																										 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
-		allSamplesInProj = proj.getSamples();
-		indicesOfTargetSamplesInProj = getIndicesOfTargetSamplesInProj(allSamplesInProj, targetSamples,
-																																	 log);
-		// targetSamples = new String[indicesOfTargetSamplesInProj.length];
-		// for (int i = 0; i < indicesOfTargetSamplesInProj.length; i++) {
-		// targetSamples[i] = allSamplesInProj[indicesOfTargetSamplesInProj[i]];
-		// }
+		indicesOfTargetSamplesInProj = getIndicesOfTargetSamplesInProj(proj, targetSamples, log);
 		proj.getProgressMonitor().endTask(PROG_KEY);
 
 		PSF.checkInterrupted();
@@ -1065,11 +1041,12 @@ public class PlinkData {
 		return indices;
 	}
 
-	public static int[] getIndicesOfTargetSamplesInProj(String[] allSampInProj,
+	public static int[] getIndicesOfTargetSamplesInProj(Project proj, 
 																											String[] targetSamples, Logger log) {
 		int[] indicesOfTargetSampInProj;
 		Hashtable<String, Integer> hash;
 		boolean found;
+		String[] allSampInProj = proj.getSamples();
 
 		hash = new Hashtable<String, Integer>();
 		for (String targetSample : targetSamples) {
@@ -1117,7 +1094,6 @@ public class PlinkData {
 		int[] posInProj = ext.indexLargeFactors(inputTargetMarkers, allMarkersInProj, false, log, true,
 																						false);
 		for (int i = 0; i < inputTargetMarkers.length; i++) {
-			proj.getProgressMonitor().updateTask("PLINKBINARYEXPORT");
 			if (posInProj[i] == -1) {
 				log.reportError("Warning - the following marker from target marker list is not found in whole project's marker list: "
 												+ inputTargetMarkers[i]);
@@ -1361,7 +1337,7 @@ public class PlinkData {
 	 * @param log
 	 * @return
 	 */
-	public static String[] createFamFile(Project proj, String famDirAndFilenameRoot) {
+	public static String[] createFamFile(Project proj, String famDirAndFilenameRoot, Set<String> dropSamples) {
 		BufferedReader reader;
 		PrintWriter writer;
 		int count;
@@ -1379,8 +1355,7 @@ public class PlinkData {
 		try {
 			filename = proj.PEDIGREE_FILENAME.getValue();
 			if (!new File(filename).exists()) {
-				log.reportError("Error - pedigree file ('" + filename
-												+ "') is not found.  Cannot create .fam file.");
+				log.reportError("Error - pedigree file ('" + filename + "') is not found.  Cannot create .fam file.");
 				return null;
 			}
 			reader = Files.getAppropriateReader(proj.PEDIGREE_FILENAME.getValue());
@@ -1403,6 +1378,7 @@ public class PlinkData {
 													+ proj.SAMPLE_DIRECTORY.getValue(false, true)
 													+ " directory for examples)");
 					reader.close();
+					// TODO should delete half-created file?
 					writer.flush();
 					writer.close();
 					return null;
@@ -1418,9 +1394,11 @@ public class PlinkData {
 					}
 					// dna.add(null);
 				} else {
-					dna.add(line[6]);
-					writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
-												 + "\t" + line[5]);
+					if (dropSamples == null || !dropSamples.contains(line[0] + "\t" + line[1])) {
+  					dna.add(line[6]);
+  					writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
+  												 + "\t" + line[5]);
+					}
 				}
 			}
 			reader.close();
