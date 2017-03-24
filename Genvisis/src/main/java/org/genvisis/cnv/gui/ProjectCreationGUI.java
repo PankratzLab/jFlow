@@ -42,6 +42,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
+import org.genvisis.cnv.util.Java6Helper;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -438,7 +439,7 @@ public class ProjectCreationGUI extends JDialog {
 				if (!extensions.containsKey(ext))
 					extensions.put(ext, 1);
 				else
-					extensions.replace(ext, extensions.get(ext) + 1);
+					Java6Helper.replace(extensions, ext, extensions.get(ext) + 1);
 			}
 			
 			if (extensions.isEmpty())
