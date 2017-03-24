@@ -26,6 +26,7 @@ import javax.swing.JSeparator;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
@@ -132,6 +133,9 @@ public class ProjectCreationGUI extends JDialog {
 	private final JSpinner spinnerXY;
 	private final JProgressBar progressBar;
 	private final String[] existingNames;
+	
+	private boolean multipleExts = false;
+	private String currentDir = "";
 
 	public static Project runCreationGUI() {
 		ProjectCreationGUI createGUI = new ProjectCreationGUI(LaunchProperties.getListOfProjectNames());
@@ -193,6 +197,8 @@ public class ProjectCreationGUI extends JDialog {
 				updateSourceFileNotice();
 			}
 		};
+
+
 
 		txtFldSrcDir = new JTextField(proj.SOURCE_DIRECTORY.getDefaultValueString());
 		txtFldSrcDir.addCaretListener(checkSource);
@@ -275,16 +281,14 @@ public class ProjectCreationGUI extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (checkValues()) {
-					int resp = JOptionPane.showConfirmDialog(ProjectCreationGUI.this,
-																									 "<html>You are waiving the opporunity to review your project structure.<br />Are you sure that all source files are valid, correct, and uniform in structure?<br /><br />[If not, select 'Validate and Create' to interactively review project structure]</html>",
-																									 "Confirm File Validity",
-																									 JOptionPane.YES_NO_OPTION);
+					int resp = JOptionPane.showConfirmDialog(ProjectCreationGUI.this, 
+															 "<html>You are waiving the opporunity to review your project structure.<br />Are you sure that all source files are valid, correct, and uniform in structure?<br /><br />[If not, select 'Validate and Create' to interactively review project structure]</html>",
+															 "Confirm File Validity", JOptionPane.YES_NO_OPTION);
 					if (resp == JOptionPane.YES_OPTION) {
 						// Don't care if createProject doesn't work nicely
 						if (!createProject(false)) {
-							JOptionPane.showMessageDialog(ProjectCreationGUI.this,
-																						"Could not create project - please check your inputs and try again.",
-																						"Project Creation Failed", JOptionPane.ERROR_MESSAGE);
+							JOptionPane.showMessageDialog(ProjectCreationGUI.this, "Could not create project - please check your inputs and try again.",
+														  "Project Creation Failed", JOptionPane.ERROR_MESSAGE);
 						} else {
 							doClose(false);
 						}
@@ -359,8 +363,7 @@ public class ProjectCreationGUI extends JDialog {
 		} catch (IOException e) {
 		}
 
-		boolean nameCheck = !name.equals("")
-												&& !name.equals((new Project()).PROJECT_NAME.getDefaultValueString());
+		boolean nameCheck = !name.equals("") && !name.equals((new Project()).PROJECT_NAME.getDefaultValueString());
 		if (nameCheck) {
 			for (String s : existingNames) {
 				if (s.equals(name)) {
@@ -394,16 +397,21 @@ public class ProjectCreationGUI extends JDialog {
 		if (cnt <= 0) {
 			lblSrcFileStatus.setText("No source files found");
 			lblSrcFileStatus.setForeground(Color.RED);
-		} else {
+		} else if (!multipleExts){
 			lblSrcFileStatus.setText(cnt + " source file(s) found");
 			lblSrcFileStatus.setForeground(Color.GREEN.darker());
+		}
+		else
+		{
+			lblSrcFileStatus.setText("WARNING: Multiple file types detected. \n" + cnt + " source file(s) found");
+			lblSrcFileStatus.setForeground(Color.ORANGE.darker());
 		}
 		lblSrcFileStatus.setVisible(true);
 	}
 
 	private int getValidSourceFileCount() {
 		String srcDir = txtFldSrcDir.getText().trim();
-		final String srcExt = txtFldSrcExt.getText().trim();
+		String srcExt = txtFldSrcExt.getText().trim();
 
 		boolean validSrcDir = false;
 		try {
@@ -412,14 +420,62 @@ public class ProjectCreationGUI extends JDialog {
 			validSrcDir = f.exists();
 		} catch (IOException e) {
 		}
-		if (!validSrcDir || "".equals(srcExt)) {
+		
+		if(!validSrcDir)
+			return -1;
+		
+		if (!currentDir.equals(srcDir)) {
+			HashMap<String, Integer> extensions = new HashMap<String, Integer>();
+			//look for the most likely extension 
+			for (String s : (new File(srcDir).list())) {
+				String[] split = s.split("\\.",2); //only split on the first . to capture things like .tar.gz
+				
+				if (split.length <= 1)
+					continue;
+
+				String ext = "." + split[1];
+
+				if (!extensions.containsKey(ext))
+					extensions.put(ext, 1);
+				else
+					extensions.replace(ext, extensions.get(ext) + 1);
+			}
+			
+			if (extensions.isEmpty())
+				return -1;
+			
+			multipleExts = extensions.size() > 1;
+			int mostCommonExt = -1;
+			
+			for (String key : extensions.keySet()) {
+				int freq = extensions.get(key);
+				if (freq > mostCommonExt) {
+					srcExt = key;
+					mostCommonExt = freq;
+				}				
+			} 
+			
+			currentDir = srcDir;
+		}
+		
+		if ("".equals(srcExt)) {
 			return -1;
 		}
-
+		
+		final String srcExtFinal = srcExt;
+		
+		if (!srcExt.equals(txtFldSrcExt.getText().trim())) {
+			
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					txtFldSrcExt.setText(srcExtFinal);
+				}
+			});
+		}
 		String[] files = (new File(srcDir)).list(new FilenameFilter() {
 			@Override
 			public boolean accept(File arg0, String arg1) {
-				return arg1.endsWith(srcExt);
+				return arg1.endsWith(srcExtFinal);
 			}
 		});
 
@@ -458,10 +514,7 @@ public class ProjectCreationGUI extends JDialog {
 		double xy = ((Double) spinnerXY.getValue()).doubleValue();
 		String tgtMkrs = txtFldTgtMkrs.getText().trim();
 
-		HashMap<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(srcDir, srcExt,
-																																									actuallyValidate,
-																																									new org.genvisis.common.Logger(),
-																																									progressBar);
+		HashMap<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(srcDir, srcExt, actuallyValidate, new org.genvisis.common.Logger(), progressBar);
 		if (headers == null) {
 			// errors found in headers - check output and retry?
 			return false;
@@ -548,8 +601,7 @@ public class ProjectCreationGUI extends JDialog {
 		// if (abLookup != null && Files.exists(projectDirectory + abLookup)) {
 		// proj.setProperty(proj.AB_LOOKUP_FILENAME, ext.removeDirectoryInfo(abLookup));
 		// }
-		actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND ? SourceFileParser.FILENAME_AS_ID_OPTION
-																																							: cols[sampCol]);
+		actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND ? SourceFileParser.FILENAME_AS_ID_OPTION : cols[sampCol]);
 		actualProj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(sourceDelim));
 		actualProj.saveProperties();
 		actualProj.setSourceFileHeaders(headers);
