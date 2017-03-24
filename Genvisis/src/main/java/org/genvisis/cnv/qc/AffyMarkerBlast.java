@@ -34,7 +34,7 @@ public class AffyMarkerBlast extends MarkerBlast {
 	private final String probeFile;
 	private final String annotFile;
 
-	private AffyMarkerBlast(Project proj, int numThreads, String probeFile, String annotFile) {
+	public AffyMarkerBlast(Project proj, int numThreads, String probeFile, String annotFile) {
 		this(proj, getDefaultWordSize(proj), getDefaultWordSize(proj),
 				 DEFAULT_MAX_ALIGNMENTS_REPORTED,
 				 DEFAULT_REPORT_TO_TEMPORARY_FILE, DEFAULT_ANNOTATE_GC_CONTENT,
@@ -53,9 +53,9 @@ public class AffyMarkerBlast extends MarkerBlast {
 	 * @param probeFile
 	 * @param annotFile
 	 */
-	private AffyMarkerBlast(Project proj, int blastWordSize, int reportWordSize,
-													int maxAlignmentsReported, boolean reportToTmp, boolean annotateGCContent,
-													boolean doBlast, int numThreads, String probeFile, String annotFile) {
+	public AffyMarkerBlast(Project proj, int blastWordSize, int reportWordSize,
+												 int maxAlignmentsReported, boolean reportToTmp, boolean annotateGCContent,
+												 boolean doBlast, int numThreads, String probeFile, String annotFile) {
 		super(proj, blastWordSize, reportWordSize, maxAlignmentsReported, reportToTmp,
 					annotateGCContent, doBlast, numThreads);
 		if (proj.getArrayType() != ARRAY.AFFY_GW6 && proj.getArrayType() != ARRAY.AFFY_GW6_CN) {
