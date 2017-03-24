@@ -35,6 +35,7 @@ import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.hmm.CNVCaller.PFB_MANAGEMENT_TYPE;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.GcAdjustor;
+import org.genvisis.cnv.qc.IlluminaMarkerBlast;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.qc.MarkerBlast;
 import org.genvisis.cnv.qc.MarkerBlastQC;
@@ -650,8 +651,7 @@ public class GenvisisWorkflow {
 					String snpMapFile = variables.get(this).get(snpMapReq);
 					if (Files.exists(manifestFile)) {
 						proj.getLog().report("BLASTing probes from " + manifestFile);
-						MarkerBlast.blastEm(proj, manifestFile, MarkerBlast.FILE_SEQUENCE_TYPE.MANIFEST_FILE,
-																proj.NUM_THREADS.getValue());
+						new IlluminaMarkerBlast(proj, proj.NUM_THREADS.getValue(), manifestFile).blastEm();
 					} else {
 						proj.getLog().report("Generating marker positions file from " + snpMapFile);
 						Markers.generateMarkerPositions(proj, snpMapFile);

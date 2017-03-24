@@ -15,7 +15,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
-import org.genvisis.cnv.qc.MarkerBlast;
+import org.genvisis.cnv.qc.IlluminaMarkerBlast;
 import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
 import org.genvisis.cnv.qc.MarkerBlast.MarkerBlastResult;
 import org.genvisis.cnv.qc.MarkerMetrics;
@@ -99,8 +99,9 @@ public class MarkerBlastIterator {
 
 	}
 
-	public static void blastIter(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type,
-															 int blastWordSize, int numThreads, boolean reportToTmp,
+	// Currently only works for Illumina
+	public static void blastIter(Project proj, String fileSeq, int blastWordSize, int numThreads,
+															 boolean reportToTmp,
 															 String[] otherMarkersToExtract) throws FileNotFoundException {
 		Logger log = proj.getLog();
 		final Map<String, Integer> indices = proj.getMarkerIndices();
@@ -127,8 +128,9 @@ public class MarkerBlastIterator {
 		int index = 0;
 		for (int blastWordSize2 : blastWordSizes) {
 			for (int reportWordSize : reportWordSizes) {
-				results[index] = MarkerBlast.blastEm(proj, fileSeq, type, blastWordSize2, reportWordSize,
-																						 100, numThreads, reportToTmp, true, true);
+				results[index] = new IlluminaMarkerBlast(proj, blastWordSize2, reportWordSize, 100,
+																								 reportToTmp, true, true, numThreads,
+																								 fileSeq).blastEm();
 				index++;
 			}
 		}
@@ -519,8 +521,8 @@ public class MarkerBlastIterator {
 		}
 	}
 
-	public static void blastIter(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type,
-															 int blastWordSize, int numThreads, boolean reportToTmp) {
+	public static void blastIter(Project proj, String fileSeq, int blastWordSize,
+															 int numThreads, boolean reportToTmp) {
 
 		// int[] blastWordSizes = new int[] { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
 		// 24, 25 };
@@ -546,9 +548,9 @@ public class MarkerBlastIterator {
 		int index = 0;
 		for (int blastWordSize2 : blastWordSizes) {
 			for (int reportWordSize : reportWordSizes) {
-				results[index] = MarkerBlast.blastEm(proj, fileSeq, type, blastWordSize2, reportWordSize,
-																						 Integer.MAX_VALUE, numThreads, reportToTmp, true,
-																						 true);
+				results[index] = new IlluminaMarkerBlast(proj, blastWordSize2, reportWordSize,
+																								 Integer.MAX_VALUE, reportToTmp, true, true,
+																								 numThreads, fileSeq).blastEm();
 				index++;
 			}
 		}
@@ -851,7 +853,7 @@ public class MarkerBlastIterator {
 		int blastWordSize = 30;
 		int reportWordSize = 40;
 		String[] otherMarkersToExtract = null;
-		FILE_SEQUENCE_TYPE fSequence_TYPE = FILE_SEQUENCE_TYPE.AFFY_ANNOT;
+		FILE_SEQUENCE_TYPE fSequence_TYPE = FILE_SEQUENCE_TYPE.MANIFEST_FILE;
 		String usage = "\n" + "cnv.qc.MarkerBlast requires 3 arguments\n";
 		usage += "   (1) Project file name (i.e. proj=" + filename + " (default))\n" + "";
 		usage += "   (2) full path to an Illumina manifest file  (i.e. fileSeq=" + fileSeq
@@ -902,9 +904,14 @@ public class MarkerBlastIterator {
 		}
 		Project proj = new Project(filename, false);
 
+		if (fSequence_TYPE != FILE_SEQUENCE_TYPE.MANIFEST_FILE) {
+			System.err.println("Only " + FILE_SEQUENCE_TYPE.MANIFEST_FILE
+												 + " seqType is currently supported");
+			return;
+		}
+
 		try {
-			blastIter(proj, fileSeq, fSequence_TYPE, blastWordSize, numThreads, true,
-								otherMarkersToExtract);
+			blastIter(proj, fileSeq, blastWordSize, numThreads, true, otherMarkersToExtract);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
