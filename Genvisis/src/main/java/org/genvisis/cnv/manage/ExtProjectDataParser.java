@@ -182,8 +182,9 @@ public class ExtProjectDataParser {
 				}
 			} while (line != null
 							 && ArrayUtils.countIf(ext.indexFactors(headerFlags,
-																											line.trim()
-																													.split(typedFileParser.getSeparator()),
+																											ext.splitLine(line.trim(),
+																																		typedFileParser.getSeparator(),
+																																		proj.getLog()),
 																											true, proj.getLog(), false, false),
 																		 -1) > 0);
 		} else {

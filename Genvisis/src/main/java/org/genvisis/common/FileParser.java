@@ -14,7 +14,7 @@ public class FileParser extends BufferedReader {
 	protected Logger log;
 
 	public String[] readLineArray() throws IOException {
-		return readLine().trim().split(separator);
+		return ext.splitLine(readLine().trim(), separator, log);
 	}
 
 	public static class Builder<T extends Builder<T>> {
