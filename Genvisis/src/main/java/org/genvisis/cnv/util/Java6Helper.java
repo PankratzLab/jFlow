@@ -1,5 +1,7 @@
 package org.genvisis.cnv.util;
 
+import java.util.Map;
+
 /**
  * For system utility methods that are not available in J6
  */
@@ -58,4 +60,14 @@ public final class Java6Helper {
 		return x - y;
 	}
 
+	/**
+	 * Requires J8
+	 */
+	public static <K, V> V replace(Map<K, V> map, K key, V value) {
+		if (map.containsKey(key)) {
+			return map.put(key, value);
+		}
+
+		return null;
+	}
 }
