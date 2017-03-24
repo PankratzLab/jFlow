@@ -437,7 +437,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		}
 		final JLabel splashText = new JLabel(loadMsg, SwingConstants.CENTER);
 		splash.add(splashText);
-		splash.setSize(200, 75);
+		splash.setPreferredSize(new Dimension(200, 75));
 		splash.setLocationRelativeTo(null);
 		splash.setVisible(true);
 		new Thread(new Runnable() {
@@ -487,8 +487,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		// Create the UI here
 		launchUI.makeContentPane();
 		launchUI.makeTopMenuBar();
-		launchUI.setSize(650, 550);
-		launchUI.setLocation(300, 200);
+		launchUI.setLayout(new BorderLayout());
+		launchUI.setPreferredSize(new Dimension(650, 550));
+
 		launchUI.addWindowListener(launchUI);
 
 		// restore the last project open (e.g. in the previous session)
@@ -509,6 +510,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				}
 			}
 		});
+		
+		launchUI.pack();
 	}
 
 	/**
@@ -540,7 +543,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		progBar = new JProgressBar();
 		contentPane.add(progBar, BorderLayout.SOUTH);
 		progBar.setVisible(false);
-
+		
+		contentPane.setPreferredSize(new Dimension(650,500));
 		setContentPane(contentPane);
 	}
 
@@ -605,6 +609,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
 		for (int i = 0; i < getJMenuBar().getMenuCount(); i++) {
 			JMenu menu = getJMenuBar().getMenu(i);
+
 			if ("File".equals(menu.getText())) {
 				for (int j = 0; j < menu.getItemCount(); j++) {
 					JMenuItem item = menu.getItem(j);
@@ -671,7 +676,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	private JPanel makeTopIconBar() {
 		JPanel iconBar = new JPanel();
 		iconBar.setLayout(new FlowLayout(FlowLayout.LEFT));
-
 		// Add leftmost system icons
 		addButtons(iconBar, new String[] {ProjectPropertiesEditor.ICON, "images/refresh.svg.png",
 																			"images/gen_pipe_1.png"},
