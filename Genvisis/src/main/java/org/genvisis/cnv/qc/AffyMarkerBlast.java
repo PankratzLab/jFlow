@@ -2,7 +2,6 @@ package org.genvisis.cnv.qc;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.TOP_BOT;
@@ -138,23 +137,22 @@ public class AffyMarkerBlast extends MarkerBlast {
 		if (refStrandTitle == null && params != null) {
 			params.setNotes("Warning, the positive and negative strands of the probe design are actually forward and reverse designations, due to parsing IlmnIDs ");
 		}
+		byte[] chrs = markerSet.getChrs();
+		int[] positions = markerSet.getPositions();
 		for (int i = 0; i < probeFileParser.getDataPresent().length; i++) {
 			if (probeFileParser.getDataPresent()[i]) {
-				if (alleleLookup) {
-					if ((i + 1) % 10000 == 0 && referenceGenome != null) {
+				if ((i + 1) % 10000 == 0) {
+					if (alleleLookup && referenceGenome != null) {
 						proj.getLog().reportTimeInfo("Loaded " + (i + 1) + " reference alleles from "
 																				 + referenceGenome.getReferenceFasta());
+					} else {
+						proj.getLog().reportTimeInfo("Loaded " + (i + 1) + " probes from " + probeFile);
 					}
 				}
 				String markerName = probeFileParser.getDataToLoad()[i];
-				Segment markerSegment = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i],
-																						markerSet.getPositions()[i]);
-				String[] allSeqs = ArrayUtils.unique(probeFileParser.getStringDataForTitle(PROBE_SEQUENCE)[i].split("\t"));
-				LinkedHashSet<String> collapsed = new LinkedHashSet<String>();
-				for (String seq : allSeqs) {
-					collapsed.add(seq);
-				}
-				String[] tmpSeq = ArrayUtils.toStringArray(collapsed);
+				Segment markerSegment = new Segment(chrs[i], positions[i],
+																						positions[i]);
+				String[] tmpSeq = ArrayUtils.unique(probeFileParser.getStringDataForTitle(PROBE_SEQUENCE)[i].split("\t"));
 
 				if (tmpSeq.length != 2) {
 					proj.getLog()
