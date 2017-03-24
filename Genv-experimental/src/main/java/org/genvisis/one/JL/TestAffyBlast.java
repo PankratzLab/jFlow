@@ -7,17 +7,13 @@ import org.genvisis.cnv.qc.AffyMarkerBlast;
 public class TestAffyBlast {
 
 	public static void main(String[] args) {
-		Project proj = new Project("/home/pankrat2/lanej/projects/Aric_gw6.properties", false);
+		Project proj = new Project("/home/pankrat2/lane0212/projects/Aric_gw6.properties", false);
 		String probeFile = "/home/pankrat2/public/bin/Arrays/affy_gw6/GenomeWideSNP_6.probe_tab";
 		String annotFile = "/home/pankrat2/public/bin/Arrays/affy_gw6/GenomeWideSNP_6.na35.annot.csv";
-		proj.BLAST_ANNOTATION_FILENAME.setValue(proj.DATA_DIRECTORY.getValue() + "JLblastTest.vcf.gz");
+		proj.BLAST_ANNOTATION_FILENAME.setValue(proj.DATA_DIRECTORY.getValue() + "STKblastTest.vcf.gz");
 
-		new AffyMarkerBlast(proj, -1, -1, 1, false, false, false, 1, probeFile,
-												annotFile).blastEm();
+		new AffyMarkerBlast(proj, proj.NUM_THREADS.getValue(), probeFile, annotFile).blastEm();
 		new ABLookup().parseFromAnnotationVCF(proj);
-
-
-
 	}
 
 }
