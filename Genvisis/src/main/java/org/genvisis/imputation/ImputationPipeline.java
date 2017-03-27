@@ -2,6 +2,8 @@ package org.genvisis.imputation;
 
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.Options;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
@@ -14,6 +16,7 @@ import htsjdk.variant.vcf.VCFHeaderLineType;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,7 +24,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
+import org.genvisis.cnv.filesys.ClusterFilterCollection;
+import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
@@ -132,7 +138,7 @@ public class ImputationPipeline {
 		// UNUSED - could potentially apply
 		String clusterFilterFileName = null;
 		
-		float gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
+		float gcThreshold = 0; /* this is unused in plink export code */ // proj.GC_THRESHOLD.getValue().floatValue();
 		
 		for (int chr = 1; chr < 23; chr++) {
 			ArrayList<String> mkrs = getMarkersSortedNoDupes(chr);
@@ -168,20 +174,30 @@ public class ImputationPipeline {
 		SampleData sd = proj.getSampleData(0, false);
 		String[] allSamples = proj.getSamples();
 		List<String> idsToInclude = new ArrayList<String>();
-		for (String s : allSamples) {
+		Map<String, Integer> idIndexMap = new HashMap<String, Integer>();
+		for (int i = 0; i < allSamples.length; i++) {
+			String s = allSamples[i];
 			if (!dropSamples.contains(sd.lookup(s)[1])) {
 				idsToInclude.add(s);
 			}
+			idIndexMap.put(s, i);
 		}
+
+		// UNUSED - could potentially apply
+		ClusterFilterCollection clusterFilters = null;
+		
+		float gcThreshold = 0; /* this is unused in plink export code, so we won't use it here, either */ //proj.GC_THRESHOLD.getValue().floatValue();
+		
 		
 		for (int chr = 1; chr < 23; chr++) {
 			ArrayList<String> mkrs = getMarkersSortedNoDupes(chr);
 			
-			String fileOut = vcfDirAndRoot + "_chr" + chr + ".vcf";
+			String fileOut = vcfDirAndRoot + "_chr" + chr + ".vcf.gz";
 			
 			VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(fileOut);
 			builder.clearOptions();
 			builder.setOption(Options.INDEX_ON_THE_FLY);
+			
 			HashSet<VCFHeaderLine> lines = new HashSet<VCFHeaderLine>();
 			VCFFormatHeaderLine format = new VCFFormatHeaderLine("GT", 1, VCFHeaderLineType.String, "GT");
 			lines.add(format);
@@ -193,15 +209,20 @@ public class ImputationPipeline {
 
 			builder.setReferenceDictionary(samSequenceDictionary);
 			vcfHeader.setSequenceDictionary(samSequenceDictionary);
+			
 			VariantContextWriter writer = builder.build();
 			vcfHeader.hasGenotypingData();
 			writer.writeHeader(vcfHeader);
-			
 
-			for (int m = 0; m < mkrs.size(); m++) {
+			
+			MDL mdl = new MDL(proj, proj.getMarkerSet(), mkrs.toArray(new String[mkrs.size()]));
+
+			while (mdl.hasNext()) {
+				MarkerData markerData = mdl.next();
+				
 				VariantContextBuilder builderVc = new VariantContextBuilder();
 				builderVc.chr("chr" + chr);
-				Marker mkr = prepMarkers.get(mkrs.get(m));
+				Marker mkr = prepMarkers.get(markerData.getMarkerName());
 				ArrayList<Allele> a = new ArrayList<Allele>();
 				Allele aR = Allele.create(Character.toString(mkr.getRef()), true);
 				Allele aA = Allele.create(Character.toString(mkr.getAlt()), false);
@@ -211,18 +232,47 @@ public class ImputationPipeline {
 				builderVc.start(mkr.getPosition());
 				builderVc.stop(mkr.getPosition());
 				builderVc.id(mkr.getName());
-				
-				// TODO genotypes
-				
-				/*
-				
-			builderVc.genotypes(genotypes.get(markers[i]));
 
-				*/
+				Collection<Genotype> genos = new ArrayList<Genotype>();
+				byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilters, markerData.getMarkerName(), gcThreshold, proj.getLog());
+				for (int k = 0; k < idsToInclude.size(); k++) {
+					int idInd = idIndexMap.get(idsToInclude.get(k));
+					String id = idsToInclude.get(k);
+					Genotype g;
+					List<Allele> all;
+					byte indGeno = genotypes[idInd];
+//					0 for A/A, 1 for A/B, 2 for B/B, and -1 for null
+					boolean aIsRef = mkr.getRef() == mkr.getA();
+					switch(indGeno) {
+						case 0:
+							all = aIsRef ? Arrays.asList(aR, aR) : Arrays.asList(aA, aA);
+							break;
+						case 1:
+							all = aIsRef ? Arrays.asList(aR, aA) : Arrays.asList(aR, aA);
+							break;
+						case 2:
+							all = aIsRef ? Arrays.asList(aA, aA) : Arrays.asList(aR, aR);
+							break;
+						case -1:
+						default:
+							all = Arrays.asList(Allele.NO_CALL, Allele.NO_CALL);
+							break;
+					}
+					g = GenotypeBuilder.create(id, all);
+					
+					genos.add(g);
+				}
+				
+				builderVc.genotypes(genos);
 				writer.add(builderVc.make());
+				
 			}
+			mdl.shutdown();
+			mdl = null;
 			
 			writer.close();
+			writer = null;
+			System.gc();
 		}
 		
 		

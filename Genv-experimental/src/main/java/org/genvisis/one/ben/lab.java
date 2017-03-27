@@ -245,12 +245,14 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
+			System.out.println("Exporting to VCF...");
 			
 			proj = new Project("projects/poynter.properties", false);
 			String referenceFile = "/home/pankrat2/shared/bin/ref/1000GP_Phase3_combined.legend.gz";
 			ImputationPipeline ip = new ImputationPipeline(proj, referenceFile);
 			ip.loadDefaultDropFiles(proj.PROJECT_DIRECTORY.getValue() + "plink/");
-			ip.exportToPlink("/scratch.global/cole0482/testImp/plink");
+//			ip.exportToPlink("/scratch.global/cole0482/testImp/plink");
+			ip.exportToVCF("/scratch.global/cole0482/testImp/output");
 			
 			// System.out.println("Username: " + QueueControl.getUserName());
 			// System.out.println("Group: " + QueueControl.getCurrentGroup());
