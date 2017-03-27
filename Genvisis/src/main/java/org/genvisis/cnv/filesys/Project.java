@@ -10,6 +10,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -534,12 +536,12 @@ public class Project implements PropertyChangeListener {
 																												GROUP.TRAILER, true, "", false);
 
 	private String projectPropertiesFilename;
-	private SampleList sampleList;
-	private SampleData sampleData;
+	private Reference<SampleList> sampleListRef = new SoftReference<SampleList>(null);
+	private Reference<SampleData> sampleDataRef = new SoftReference<SampleData>(null);
 	private HashSet<String> cnvFilesLoadedInSampleData;
 	private HashMap<String, SourceFileHeaderData> sourceFileHeaders;
-	private MarkerLookup markerLookup;
-	private MarkerDetailSet markerSet;
+	private Reference<MarkerLookup> markerLookupRef = new SoftReference<MarkerLookup>(null);
+	private Reference<MarkerDetailSet> markerSetRef = new SoftReference<MarkerDetailSet>(null);
 	private Logger log;
 	private boolean gui;
 	private ProgressMonitor progressMonitor;
@@ -554,10 +556,7 @@ public class Project implements PropertyChangeListener {
 	public static final String IMPORT_FILE = "import.ser";
 
 	public Project() {
-		sampleList = null;
-		sampleData = null;
 		cnvFilesLoadedInSampleData = new HashSet<String>();
-		markerLookup = null;
 		log = new Logger();
 		gui = false;
 		projectPropertiesFilename = "example.properties";
@@ -813,9 +812,11 @@ public class Project implements PropertyChangeListener {
 		this.projectPropertiesFilename = projectPropertiesFilename;
 	}
 
-	public MarkerDetailSet getMarkerSet() {
+	public synchronized MarkerDetailSet getMarkerSet() {
+		MarkerDetailSet markerSet = markerSetRef.get();
 		if (markerSet == null) {
 			markerSet = loadMarkerSet();
+			markerSetRef = new SoftReference<MarkerDetailSet>(markerSet);
 		} else {
 			// Previously this method would have loaded the Marker Set fresh from the serialized file.
 			// Prevent proliferation of possibly modified array references here
@@ -881,6 +882,7 @@ public class Project implements PropertyChangeListener {
 	}
 
 	public synchronized MarkerLookup getMarkerLookup() {
+		MarkerLookup markerLookup = markerLookupRef.get();
 		if (markerLookup == null) {
 			if (Files.exists(MARKERLOOKUP_FILENAME.getValue(), JAR_STATUS.getValue())) {
 				markerLookup = MarkerLookup.load(MARKERLOOKUP_FILENAME.getValue(), JAR_STATUS.getValue());
@@ -893,11 +895,13 @@ public class Project implements PropertyChangeListener {
 					log.reportError("Also failed to create MarkerLookup; failing");
 				}
 			}
+			markerLookupRef = new SoftReference<MarkerLookup>(markerLookup);
 		}
 		return markerLookup;
 	}
 
 	public synchronized SampleList getSampleList() {
+		SampleList sampleList = sampleListRef.get();
 		if (sampleList == null) {
 			if (Files.exists(SAMPLELIST_FILENAME.getValue(false, false), JAR_STATUS.getValue())) {
 				sampleList = SampleList.load(SAMPLELIST_FILENAME.getValue(), JAR_STATUS.getValue());
@@ -910,6 +914,7 @@ public class Project implements PropertyChangeListener {
 				log.report("SampleList is of length zero; generating a new one...");
 				sampleList = SampleList.generateSampleList(this);
 			}
+			sampleListRef = new SoftReference<SampleList>(sampleList);
 		}
 
 		return sampleList;
@@ -1054,14 +1059,15 @@ public class Project implements PropertyChangeListener {
 	}
 
 	public void resetSampleData() {
-		sampleData = null;
+		sampleDataRef.clear();
 	}
 
 	public SampleData getSampleData(int numberOfBasicClassesToLoad, boolean loadCNVs) {
 		return getSampleData(numberOfBasicClassesToLoad, loadCNVs ? CNV_FILENAMES.getValue() : null);
 	}
 
-	public SampleData getSampleData(int numberOfBasicClassesToLoad, String[] cnvFilenames) {
+	public synchronized SampleData getSampleData(int numberOfBasicClassesToLoad,
+																							 String[] cnvFilenames) {
 		if (cnvFilenames != null) {
 			for (int i = 0; i < cnvFilenames.length; i++) {
 				if (!cnvFilesLoadedInSampleData.contains(cnvFilenames[i])) {
@@ -1070,13 +1076,14 @@ public class Project implements PropertyChangeListener {
 				}
 			}
 		}
-
+		SampleData sampleData = sampleDataRef.get();
 		if (sampleData == null) {
 			sampleData = new SampleData(this, numberOfBasicClassesToLoad, cnvFilenames);
 			// System.err.println("SampleData loaded with "+(cnvFilenames == null?"no cnv
 			// files":Array.toStr(cnvFilenames, "/")));
 			cnvFilesLoadedInSampleData = HashVec.loadToHashSet(cnvFilenames);
 		}
+		sampleDataRef = new SoftReference<SampleData>(sampleData);
 		return sampleData;
 	}
 
