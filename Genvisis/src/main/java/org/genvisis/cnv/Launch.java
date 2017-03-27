@@ -439,6 +439,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		splash.add(splashText);
 		splash.setPreferredSize(new Dimension(200, 75));
 		splash.setLocationRelativeTo(null);
+		splash.pack();
 		splash.setVisible(true);
 		new Thread(new Runnable() {
 
@@ -487,8 +488,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		// Create the UI here
 		launchUI.makeContentPane();
 		launchUI.makeTopMenuBar();
-		launchUI.setLayout(new BorderLayout());
-		launchUI.setPreferredSize(new Dimension(650, 550));
 
 		launchUI.addWindowListener(launchUI);
 
@@ -558,6 +557,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		Set<Character> hash;
 
 		menuBar = new JMenuBar();
+		
 		// attach mnemonics and actionlisteners to menu elements
 		for (String title : MENUS.keySet()) {
 			menu = new JMenu(title);
