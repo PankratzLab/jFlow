@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +32,7 @@ import com.google.common.collect.Sets;
 
 public class ImputationPrep {
 
+	private static final Set<Character> VALID_ALLELES = ImmutableSet.of('A', 'T', 'G', 'C', 'I', 'D');
 	private static final String[][] REF_COLS;
 
 	static {
@@ -189,6 +191,7 @@ public class ImputationPrep {
 		Map<Byte, Map<Integer, Set<ReferencePosition>>> referencePositions = readRefFile();
 		ImmutableSet.Builder<Marker> matchingMarkersBuilder = ImmutableSet.builder();
 		int mismatchPos = 0;
+		int invalidAlleles = 0;
 		int alleleFlips = 0;
 		int strandFlips = 0;
 		int strandAlelleFlips = 0;
@@ -218,7 +221,9 @@ public class ImputationPrep {
 				char ref = marker.getRef();
 				char alt = marker.getAlt();
 				// Find the best matched ReferencePosition from all of the matches
-				if (matches(ref, alt, refMatches)) {
+				if (!validateAlleles(ref, alt, refMatches)) {
+					invalidAlleles++;
+				} else if (matches(ref, alt, refMatches)) {
 					matchingMarkersBuilder.add(marker);
 					// Don't accept anything less than a proper match but count for reporting purposes
 				} else if (matches(alt, ref, refMatches)) {
@@ -241,6 +246,8 @@ public class ImputationPrep {
 
 		Set<Marker> matchingMarkersSet = matchingMarkersBuilder.build();
 
+		log.report(invalidAlleles
+							 + " positions had invalid allele codes in the project or reference set");
 		log.report(mismatchPos + " positions did not match to a position in the reference set");
 		log.report(mismatchAlleles + " positions had mismatched alleles and were excluded");
 		log.report(alleleFlips + " positions would have matched after flipping the alleles");
@@ -253,6 +260,30 @@ public class ImputationPrep {
 		log.report(matchingMarkersSet.size()
 							 + " positions matched the reference set and will be used for imputation");
 		return matchingMarkersSet;
+	}
+
+	private static boolean validateAlleles(char a, char b, Collection<ReferencePosition> refMatches) {
+		if (!validAlleles(a, b)) {
+			return false;
+		}
+		for (Iterator<ReferencePosition> i = refMatches.iterator(); i.hasNext();) {
+			ReferencePosition refPos = i.next();
+			char ref = refPos.getRef();
+			char alt = refPos.getAlt();
+			if (!validAlleles(ref, alt)) {
+				i.remove();
+			}
+		}
+		return !refMatches.isEmpty();
+	}
+
+	private static boolean validAlleles(char... alleles) {
+		for (char allele : alleles) {
+			if (!VALID_ALLELES.contains(allele)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private static boolean matches(Character a, Character b,
