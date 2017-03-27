@@ -1053,7 +1053,7 @@ public class FilterCalls {
 		System.out.println(cnt + " iterations; from " + startCnt + " to " + newCNVs.size() + " CNVs");
 	}
 
-	private static ArrayList<CNVariant> getMergedCNVs(ArrayList<CNVariant> inputCNVs,
+	private static ArrayList<CNVariant> getMergedCNVs(List<CNVariant> inputCNVs,
 																										float distFactor, int[][] positions) {
 
 		HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap = new HashMap<String, HashMap<Byte, ArrayList<CNVariant>>>();

@@ -150,7 +150,7 @@ public class VCFOpsMT {
 			builder.genotypes(newGenos);
 		}
 
-		private void swapGenotypes(Allele rcrsRef, ArrayList<Allele> newGAlleles, Allele a) {
+		private void swapGenotypes(Allele rcrsRef, List<Allele> newGAlleles, Allele a) {
 			if (a.basesMatch(rcrsRef)) {// If the allele matches the rcrsReference, it's the reference
 				newGAlleles.add(rcrsRef);
 			} else {

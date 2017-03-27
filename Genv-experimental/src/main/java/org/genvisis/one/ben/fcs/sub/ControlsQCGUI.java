@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeSet;
@@ -1142,7 +1143,7 @@ public class ControlsQCGUI extends JFrame {
 		float[][][] data;
 		HashMap<String, DataFile> files;
 
-		public void fetchRecentData(ArrayList<String> params, String currCtrl, String currPanel,
+		public void fetchRecentData(List<String> params, String currCtrl, String currPanel,
 																int numOfMostRecentToAdd, Logger log) {
 			HashMap<CtrlFileMetaData, DataFile> metaMap = new HashMap<ControlsQCGUI.CtrlFileMetaData, ControlsQCGUI.DataFile>();
 			HashMap<CtrlFileMetaData, float[]> allData = new HashMap<ControlsQCGUI.CtrlFileMetaData, float[]>();

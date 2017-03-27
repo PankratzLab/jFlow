@@ -8,6 +8,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
@@ -473,7 +474,7 @@ public class AffyPowerTools {
 		return commands;
 	}
 
-	private static void writeProbeBatches(String affyResultsDir, ArrayList<String> probesets,
+	private static void writeProbeBatches(String affyResultsDir, List<String> probesets,
 																				int numJobs, int numBatches, boolean header, String head,
 																				Logger log, String probeType) {
 		int step = (int) Math.ceil((double) probesets.size() / (double) numBatches);

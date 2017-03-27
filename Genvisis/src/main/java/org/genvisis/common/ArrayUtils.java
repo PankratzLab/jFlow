@@ -2561,7 +2561,7 @@ public class ArrayUtils {
 	 * @param v vector of Strings
 	 * @return an array of Strings from the ArrayList
 	 */
-	public static String[] toStringArray(ArrayList<String> al) {
+	public static String[] toStringArray(List<String> al) {
 		return al.toArray(new String[al.size()]);
 	}
 
@@ -3572,12 +3572,12 @@ public class ArrayUtils {
 		return ret;
 	}
 
-	public static <T extends Comparable<T>> int binarySearch(ArrayList<T[]> list, T[] value,
+	public static <T extends Comparable<T>> int binarySearch(List<T[]> list, T[] value,
 																													 int keyIndex, boolean exact) {
 		return binarySearch(list, value, keyIndex, 0, list.size() - 1, exact);
 	}
 
-	public static <T extends Comparable<T>> int binarySearch(ArrayList<T[]> list, T[] value,
+	public static <T extends Comparable<T>> int binarySearch(List<T[]> list, T[] value,
 																													 int keyIndex, int low, int high,
 																													 boolean exact) {
 		int mid;

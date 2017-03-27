@@ -257,7 +257,7 @@ public class DnaseEnrichment {
 	 * @param overlapStats : an {@link ArrayList} of {@link OutputFileFormat} which is the overlap
 	 *        statistics
 	 */
-	private static void writeOutputFile(ArrayList<OutputFileFormat> overlapStats) {
+	private static void writeOutputFile(List<OutputFileFormat> overlapStats) {
 		FileWriter fstream;
 		BufferedWriter out;
 
@@ -652,7 +652,7 @@ public class DnaseEnrichment {
 	 *         segment file
 	 */
 	private static TreeMap<Integer, Map<String, Long>> countOverlaps(Segment[][] segs,
-																																	 ArrayList<PValueFileFormat> pValueRecords,
+																																	 List<PValueFileFormat> pValueRecords,
 																																	 String bedFilename,
 																																	 Hashtable<String, Integer> bedFileChrMapPartCount) {
 		boolean insideRegion;

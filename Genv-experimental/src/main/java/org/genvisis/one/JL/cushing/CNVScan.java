@@ -156,7 +156,7 @@ public class CNVScan {
 	}
 
 	private static void splitIntoCaseControl(Logger log, VcfPopulation vpop, Hashtable<String, LocusSet<CNVariant>> set,
-			ArrayList<CNVariant> cushings, ArrayList<CNVariant> controls, String caseDef, HashSet<String> notControls,
+			List<CNVariant> cushings, List<CNVariant> controls, String caseDef, HashSet<String> notControls,
 			HashSet<String> lq) {
 		for (String ind : set.keySet()) {
 			if (!lq.contains(ind.split("\t")[0])) {
@@ -179,7 +179,7 @@ public class CNVScan {
 
 	}
 
-	private static ArrayList<CNVariant> filterOutControls(ArrayList<CNVariant> caseSet, LocusSet<CNVariant> controlSet,
+	private static ArrayList<CNVariant> filterOutControls(List<CNVariant> caseSet, LocusSet<CNVariant> controlSet,
 			double minScore, double maxOverlap) {
 		ArrayList<CNVariant> filtered = new ArrayList<>();
 		for (CNVariant caseCNV : caseSet) {

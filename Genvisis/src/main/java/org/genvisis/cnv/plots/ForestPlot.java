@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.TreeMap;
 
 import javax.swing.SwingUtilities;
@@ -28,7 +29,7 @@ class MetaStudy {
 	private final float metaBeta;
 	private final float metaStderr;
 	private final float[] metaConf = new float[2];
-	private ArrayList<String> sortOrder = null;
+	private List<String> sortOrder = null;
 	private boolean shouldSort;
 	private boolean currentSortIsNaturalSort = false;
 
@@ -76,13 +77,13 @@ class MetaStudy {
 		return max;
 	}
 
-	private ArrayList<StudyData> getSorted(ArrayList<String> order) {
+	private ArrayList<StudyData> getSorted(List<String> sortOrder2) {
 		if (sorted == null || sorted.isEmpty() || currentSortIsNaturalSort) {
 			sorted = new ArrayList<StudyData>();
 
 			sorted.add(new StudyBreak());
-			for (int i = order.size() - 1; i >= 0; i--) {
-				String name = ext.replaceAllWith(order.get(i),
+			for (int i = sortOrder2.size() - 1; i >= 0; i--) {
+				String name = ext.replaceAllWith(sortOrder2.get(i),
 																				 ForestPlot.REPLACEMENTS_FOOLISHLY_HARD_CODED);
 				String repl = null;
 				if (name.equals("")) {
@@ -162,9 +163,9 @@ class MetaStudy {
 		return (float) (odds ? Math.exp(metaStderr) : metaStderr);
 	}
 
-	public void setSort(boolean sortedDisplay, ArrayList<String> sortOrder) {
+	public void setSort(boolean sortedDisplay, List<String> list) {
 		shouldSort = sortedDisplay;
-		this.sortOrder = sortOrder;
+		this.sortOrder = list;
 		sorted = null;
 	}
 
@@ -358,7 +359,7 @@ public class ForestPlot {
 	private String plotLabel;
 
 	private boolean sortedDisplay;
-	private ArrayList<String> sortOrder;
+	private List<String> sortOrder;
 
 	private ArrayList<ForestInput> dataIndices = new ArrayList<ForestInput>();
 
@@ -873,11 +874,11 @@ public class ForestPlot {
 		return sortedDisplay;
 	}
 
-	public ArrayList<String> getSortOrder() {
+	public List<String> getSortOrder() {
 		return sortOrder;
 	}
 
-	public void setSortOrder(ArrayList<String> sortOrder) {
+	public void setSortOrder(List<String> sortOrder) {
 		this.sortOrder = sortOrder;
 	}
 

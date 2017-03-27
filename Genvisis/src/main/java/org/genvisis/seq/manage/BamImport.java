@@ -452,10 +452,10 @@ public class BamImport {
 	private static class AnalysisSets {
 		private final LocusSet<Segment> analysisSet;
 		private final String[] offTargetsToUse;
-		private final ArrayList<MarkerFileType> markerTypes;
+		private final List<MarkerFileType> markerTypes;
 
 		private AnalysisSets(LocusSet<Segment> analysisSet, String[] offTargetsToUse,
-												 ArrayList<MarkerFileType> markerTypes) {
+												 List<MarkerFileType> markerTypes) {
 			super();
 			this.analysisSet = analysisSet;
 			this.offTargetsToUse = offTargetsToUse;
@@ -469,7 +469,7 @@ public class BamImport {
 
 	private static void compileProject(Project proj, int correctionPCs, int numthreads, Logger log,
 																		 String[] bamsToImport, ReferenceGenome referenceGenome,
-																		 ArrayList<MarkerFileType> markerTypes,
+																		 List<MarkerFileType> markerTypes,
 																		 LocusSet<Segment> analysisSet, String[] offTargetsToUse,
 																		 BamPileResult[] results, ASSEMBLY_NAME aName) {
 		String[] mappedReadCounts = new String[bamsToImport.length + 1];
@@ -659,7 +659,7 @@ public class BamImport {
 	}
 
 	private static ArrayList<ProjectCorrected> correctifyProject(Project proj,
-																															 ArrayList<MarkerFileType> types,
+																															 List<MarkerFileType> types,
 																															 String[] offTargetsToUse,
 																															 int correctionPCs, int numthreads) {
 		proj.SAMPLE_CALLRATE_THRESHOLD.setValue(0.0);

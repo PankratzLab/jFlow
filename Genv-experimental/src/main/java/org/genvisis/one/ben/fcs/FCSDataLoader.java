@@ -720,7 +720,7 @@ public class FCSDataLoader {
 		return spillMatrix;
 	}
 
-	private static double[][] compensateSmall(ArrayList<String> dataColNames, double[][] data,
+	private static double[][] compensateSmall(List<String> dataColNames, double[][] data,
 																						String[] spillColNames, DenseMatrix64F spillMatrix) {
 		int[] spillLookup = new int[dataColNames.size()];
 		for (int i = 0; i < spillLookup.length; i++) {

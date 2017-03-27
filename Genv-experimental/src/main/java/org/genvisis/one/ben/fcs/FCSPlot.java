@@ -1220,8 +1220,8 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		doDataExport(output, gates, writeCounts, files);
 	}
 
-	private void doDataExport(String outputFile, ArrayList<Gate> gatesToExport, boolean exportCounts,
-														ArrayList<String> files) {
+	private void doDataExport(String outputFile, List<Gate> gatesToExport, boolean exportCounts,
+														List<String> files) {
 		StringBuilder sb = new StringBuilder();
 
 		for (Gate g : gatesToExport) {

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.filesys.Project;
@@ -495,7 +496,7 @@ public class CorrectionIterator implements Serializable {
 
 		public BooleanClassifier[] estimateBoxPlots(Project proj, String[] sampleDataStratCats,
 																								String[] numericStratCats,
-																								ArrayList<RScatter> scatters, Logger log) {
+																								List<RScatter> scatters, Logger log) {
 			String boxDir = ext.parseDirectoryOfFile(boxPlot) + "boxPlots/";
 			String quantDir = ext.parseDirectoryOfFile(boxPlot) + "quants/";
 			new File(boxDir).mkdirs();
@@ -659,7 +660,7 @@ public class CorrectionIterator implements Serializable {
 		}
 
 		private void plotFirst(String[] sampleDataStratCats, Logger log, String dir,
-													 ArrayList<RScatter> rScatters, int i,
+													 List<RScatter> rScatters, int i,
 													 EvaluationResult[] evaluationResults, String outputBox,
 													 ArrayList<String> pcYs) {
 			RScatter rScatterSubset = new RScatter(outputBox, ext.addToRoot(outputBox, "sub.rscript"),
@@ -681,7 +682,7 @@ public class CorrectionIterator implements Serializable {
 		}
 
 		private void plotSkips(String[] sampleDataStratCats, Logger log, String dir,
-													 ArrayList<RScatter> rScatters, int i,
+													 List<RScatter> rScatters, int i,
 													 EvaluationResult[] evaluationResults, String outputBox,
 													 ArrayList<String> pcYs) {
 			ArrayList<String> skips = new ArrayList<String>();
@@ -707,7 +708,7 @@ public class CorrectionIterator implements Serializable {
 		}
 
 		private RScatter plotFirstLast(String[] sampleDataStratCats, Logger log, String dir, int i,
-																	 String outputBox, ArrayList<String> pcYs) {
+																	 String outputBox, List<String> pcYs) {
 			RScatter rScatterFirstLast = new RScatter(outputBox,
 																								ext.addToRoot(outputBox, "subFirstlast.rscript"),
 																								ext.removeDirectoryInfo(outputBox) + "subFirstlast",
@@ -1227,7 +1228,7 @@ public class CorrectionIterator implements Serializable {
 	private static void printStatSummary(PrintWriter writer, CorrectionIterator correctionIterator,
 																			 String type, EvaluationResult[] evaluationResults,
 																			 MODEL_BUILDER_TYPE mBuilder_TYPE, ORDER_TYPE oType,
-																			 ITERATION_TYPE iType, ArrayList<double[]> statsAL,
+																			 ITERATION_TYPE iType, List<double[]> statsAL,
 																			 ArrayList<ICC> statsICC, ArrayList<String> name) {
 
 		for (int i = 0; i < (statsAL == null ? statsICC.size() : statsAL.size()); i++) {
@@ -1612,7 +1613,7 @@ public class CorrectionIterator implements Serializable {
 
 				private void classifyHerit(final CorrectionIterator tmp, final Logger log,
 																	 IterationResult iterationResult, BooleanClassifier[] classifiers,
-																	 ArrayList<RScatter> scatters, String subsetDataHeritability,
+																	 List<RScatter> scatters, String subsetDataHeritability,
 																	 boolean[] subsetMask, double[] otherData) {
 					if (classifiers != null) {
 						String originalSer = iterationResult.getOutputSer();

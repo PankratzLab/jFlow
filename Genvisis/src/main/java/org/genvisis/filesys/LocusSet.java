@@ -79,7 +79,7 @@ public class LocusSet<T extends Segment> implements Serializable {
 		return loci;
 	}
 
-	public void addAll(ArrayList<T> toAdd) {
+	public void addAll(List<T> toAdd) {
 		for (T element : loci) {
 			toAdd.add(element);
 		}

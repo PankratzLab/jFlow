@@ -162,18 +162,18 @@ public class BetaOptimizer {
 	private static class BetaWorker implements Callable<BetaCorrelationResult[]> {
 		private final byte[][] genotypes;
 		private final double[] data;
-		private final ArrayList<MetaBeta> metaBetas;
+		private final List<MetaBeta> metaBetas;
 		private final int comparisonIndex;
 		private final boolean[] sampleDef;
 		private final double maf;
 		private final Logger log;
 
 		public BetaWorker(byte[][] genotypes, boolean[] sampleDef, double[] data, int comparisonIndex,
-											ArrayList<MetaBeta> metaBetas, double maf, Logger log) {
+											List<MetaBeta> metaBetas2, double maf, Logger log) {
 			super();
 			this.genotypes = genotypes;
 			this.data = data;
-			this.metaBetas = metaBetas;
+			this.metaBetas = metaBetas2;
 			this.comparisonIndex = comparisonIndex;
 			this.sampleDef = sampleDef;
 			this.maf = maf;
@@ -254,7 +254,7 @@ public class BetaOptimizer {
 
 	private static class BetaProducer extends AbstractProducer<BetaCorrelationResult[]> {
 		private final byte[][] genotypes;
-		private final ArrayList<MetaBeta> metaBetas;
+		private final List<MetaBeta> metaBetas;
 		private final ExtProjectDataParser parser;
 		private final boolean[] sampleDef;
 		private int index;
@@ -262,7 +262,7 @@ public class BetaOptimizer {
 		private final double maf;
 		private final Logger log;
 
-		public BetaProducer(byte[][] genotypes, boolean[] sampleDef, ArrayList<MetaBeta> metaBetas,
+		public BetaProducer(byte[][] genotypes, boolean[] sampleDef, List<MetaBeta> metaBetas,
 												ExtProjectDataParser parser, int max, double maf, Logger log) {
 			super();
 			this.genotypes = genotypes;
@@ -434,7 +434,7 @@ public class BetaOptimizer {
 	}
 
 	private static ArrayList<MetaBeta> getWindowPruned(FilterGenoResult filterGenoResultPrimary,
-																										 ArrayList<MetaBeta> metaPrimary, double pval,
+																										 List<MetaBeta> metaPrimary, double pval,
 																										 Logger log) {
 		ArrayList<MetaBeta> filtered = new ArrayList<BetaOptimizer.MetaBeta>();
 		if (filterGenoResultPrimary.genoDef.length != metaPrimary.size()) {
@@ -792,7 +792,7 @@ public class BetaOptimizer {
 
 	}
 
-	private static ArrayList<MetaBeta> filter(ArrayList<MetaBeta> metaBetas, double pval) {
+	private static ArrayList<MetaBeta> filter(List<MetaBeta> metaBetas, double pval) {
 		ArrayList<MetaBeta> filt = new ArrayList<MetaBeta>();
 		for (MetaBeta m : metaBetas) {
 			if (m.getPval() < pval) {
@@ -803,7 +803,7 @@ public class BetaOptimizer {
 	}
 
 	private static byte[][] loadGenos(Project proj, MarkerDetailSet markerSet,
-																		ArrayList<MetaBeta> metaBetas) {
+																		List<MetaBeta> metaBetas) {
 		byte[][] genos = new byte[metaBetas.size()][];
 		String[] markerNames = new String[metaBetas.size()];
 
@@ -820,7 +820,7 @@ public class BetaOptimizer {
 		return genos;
 	}
 
-	private static void dumpToFile(ArrayList<MetaBeta> metaBetas, String output, Logger log) {
+	private static void dumpToFile(List<MetaBeta> metaBetas, String output, Logger log) {
 		StringBuilder builder = new StringBuilder();
 		builder.append("rsID\tbeta\tp\tchr\tpos\tmarkerName\n");
 		for (MetaBeta metaBeta : metaBetas) {
@@ -837,7 +837,7 @@ public class BetaOptimizer {
 																					String betaFile, double minPval, Logger log) {
 		new File(outpuDir).mkdirs();
 		String outSer = outpuDir + "rsIdLookup.ser";
-		ArrayList<MarkerRsFormat> markerRsFormats = null;
+		List<MarkerRsFormat> markerRsFormats = null;
 		if (Files.exists(outSer)) {
 			try {
 				log.reportTimeInfo("Trying to load " + outSer);
@@ -878,7 +878,7 @@ public class BetaOptimizer {
 		}
 	}
 
-	private static ArrayList<MetaBeta> loadBetas(ArrayList<MarkerRsFormat> markerRsFormats,
+	private static ArrayList<MetaBeta> loadBetas(List<MarkerRsFormat> markerRsFormats,
 																							 String betaFile, double minPval,
 																							 MarkerSetInfo markerSet,
 																							 Logger log) {
@@ -1201,12 +1201,12 @@ public class BetaOptimizer {
 						 || config == CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
 		}
 
-		public static void writeSerial(ArrayList<MarkerRsFormat> markerRsFormats, String fileName) {
+		public static void writeSerial(List<MarkerRsFormat> markerRsFormats, String fileName) {
 			SerializedFiles.writeSerial(markerRsFormats, fileName, true);
 		}
 
 		@SuppressWarnings("unchecked")
-		public static ArrayList<MarkerRsFormat> readSerial(String fileName, Logger log) {
+		public static List<MarkerRsFormat> readSerial(String fileName, Logger log) {
 			return (ArrayList<MarkerRsFormat>) SerializedFiles.readSerial(fileName, false, log, false,
 																																		true);
 		}

@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
@@ -167,13 +168,13 @@ public class GCcorrectionIterator {
 	}
 
 	private static class IPloadProducer extends AbstractProducer<IterationParameters> {
-		private final ArrayList<IterationParameters> finals;
+		private final List<IterationParameters> finals;
 		private final Logger log;
 		private int index;
 
-		public IPloadProducer(ArrayList<IterationParameters> finals, Logger log) {
+		public IPloadProducer(List<IterationParameters> finals2, Logger log) {
 			super();
-			this.finals = finals;
+			this.finals = finals2;
 			this.log = log;
 		}
 
@@ -211,7 +212,7 @@ public class GCcorrectionIterator {
 	}
 
 	private static void summarizeSampleQC(Project proj, String outputGZ, int numthreads,
-																				ArrayList<IterationParameters> finals) throws IllegalStateException {
+																				List<IterationParameters> finals) throws IllegalStateException {
 		String[] commonHeader = new String[] {"SampleName", "gcmodel_bp", "regress_bp", "snpMAD"};
 
 		String[] specificHeader = new String[] {"BETA_0", "BETA_1", "WF_PRIOR", "WF_POST", "GCWF_PRIOR",
@@ -386,7 +387,7 @@ public class GCcorrectionIterator {
 	}
 
 	private static IterationParameters[] getParameters(String[][][] generated, int bpModel,
-																										 ArrayList<GCAdjustorBuilder> builders) {
+																										 List<GCAdjustorBuilder> builders) {
 		IterationParameters[] params = new IterationParameters[builders.size()];
 		for (int i = 0; i < generated.length; i++) {
 			ArrayList<String> sers = new ArrayList<String>();

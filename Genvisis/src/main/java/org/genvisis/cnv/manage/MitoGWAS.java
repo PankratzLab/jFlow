@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
@@ -166,7 +167,7 @@ public class MitoGWAS {
 		summarize(proj, root, plinkCommands);
 	}
 
-	private static void summarize(Project proj, String root, ArrayList<PlinkAssoc> plinkCommands) {
+	private static void summarize(Project proj, String root, List<PlinkAssoc> plinkCommands) {
 		// MarkerMetrics.fullQC(proj, null, null, false, 24);
 		String[] qcpass = HashVec.loadFileToStringArray(ext.parseDirectoryOfFile(root)
 																										+ "ldPruning/plink.prune.out", false,
@@ -658,10 +659,10 @@ public class MitoGWAS {
 	}
 
 	private static class PlinkAssocProducer extends AbstractProducer<Boolean> {
-		private final ArrayList<PlinkAssoc> assocs;
+		private final List<PlinkAssoc> assocs;
 		private int index;
 
-		public PlinkAssocProducer(ArrayList<PlinkAssoc> assocs, Logger log) {
+		public PlinkAssocProducer(List<PlinkAssoc> assocs, Logger log) {
 			super();
 			this.assocs = assocs;
 			index = 0;
@@ -682,12 +683,12 @@ public class MitoGWAS {
 	}
 
 	private static class PlinkAssoc implements Callable<Boolean> {
-		private final ArrayList<String> command;
+		private final List<String> command;
 		private final String[] inputs;
 		private final String[] outputs;
 		private final Logger log;
 
-		public PlinkAssoc(ArrayList<String> command, String[] inputs, String[] outputs, Logger log) {
+		public PlinkAssoc(List<String> command, String[] inputs, String[] outputs, Logger log) {
 			super();
 			this.command = command;
 			this.inputs = inputs;

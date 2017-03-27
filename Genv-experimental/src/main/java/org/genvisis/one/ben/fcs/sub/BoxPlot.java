@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 
 import javax.swing.AbstractAction;
@@ -348,7 +349,7 @@ public class BoxPlot extends JFrame {
 		}
 	}
 
-	public void setDisplay(final ArrayList<String[]> paths) {
+	public void setDisplay(final List<String[]> paths) {
 		int wid = scrollContent.getWidth();
 		int cols = wid == 0 ? 3 : wid / PANEL_WIDTH;
 		int row = 0;

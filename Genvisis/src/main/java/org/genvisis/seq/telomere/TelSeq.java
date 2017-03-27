@@ -208,7 +208,7 @@ public class TelSeq {
 
 	private static void processWXS(String[] bams, String outDir, String captureBed, int threads,
 																 ASSEMBLY_NAME aName, int captureBufferSize, Logger log,
-																 ArrayList<TelSeqResult> results, ArrayList<String> argPopulator) {
+																 List<TelSeqResult> results, List<String> argPopulator) {
 		if (Files.exists(captureBed)) {
 
 			BEDFileReader reader = new BEDFileReader(captureBed, false);
@@ -235,7 +235,7 @@ public class TelSeq {
 	}
 
 	private static void runType(int threads, Logger log, String[] bams,
-															ArrayList<TelSeqResult> results, ArrayList<String> argPopulator,
+															List<TelSeqResult> results, List<String> argPopulator,
 															String baseDir, TYPE type) {
 		TelSeqProducer producer = new TelSeqProducer(bams, argPopulator, baseDir, type, log);
 		WorkerTrain<TelSeqResult> train = new WorkerTrain<TelSeq.TelSeqResult>(producer, threads, 100,

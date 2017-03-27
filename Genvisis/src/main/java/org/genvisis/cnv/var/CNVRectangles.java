@@ -36,7 +36,7 @@ public class CNVRectangles {
 	int[] location;
 
 	public CNVRectangles(ArrayList<CNVariantHash> hashes, ArrayList<String> allFiles,
-											 ArrayList<String> filterFiles, int[] location, int probes, int minSize,
+											 List<String> filterFiles, int[] location, int probes, int minSize,
 											 int qualityScore, SampleData referenceSamples, String[] samplesToUse) {
 		// Set the color scheme
 		colorScheme = CompPlot.colorScheme;
@@ -234,7 +234,7 @@ public class CNVRectangles {
 	 * @param cnvRects
 	 * @return ArrayList of packed rectangles
 	 */
-	private ArrayList<CNVRectangle> packRectangles(ArrayList<CNVRectangle> cnvRects) {
+	private ArrayList<CNVRectangle> packRectangles(List<CNVRectangle> cnvRects) {
 		ArrayList<CNVRectangle> packedRectangles = new ArrayList<CNVRectangle>();
 		int i = 0;
 		while (hasUnused(cnvRects)) {
@@ -298,7 +298,7 @@ public class CNVRectangles {
 	 * @param cnvRects
 	 * @return integer value of the lowest X value
 	 */
-	private int getLowestRect(ArrayList<CNVRectangle> cnvRects) {
+	private int getLowestRect(List<CNVRectangle> cnvRects) {
 		int lowest = 0;
 
 		for (CNVRectangle cnvRect : cnvRects) {
@@ -317,7 +317,7 @@ public class CNVRectangles {
 	 * @param cnvRects
 	 * @return true if any have not been used
 	 */
-	private boolean hasUnused(ArrayList<CNVRectangle> cnvRects) {
+	private boolean hasUnused(List<CNVRectangle> cnvRects) {
 		boolean unused = false;
 
 		for (CNVRectangle cnvRect : cnvRects) {
@@ -335,7 +335,7 @@ public class CNVRectangles {
 	 *
 	 * @param cnvRects
 	 */
-	private void clearUsed(ArrayList<CNVRectangle> cnvRects) {
+	private void clearUsed(List<CNVRectangle> cnvRects) {
 		for (CNVRectangle cnvRect : cnvRects) {
 			cnvRect.setUsed(false);
 		}
@@ -348,7 +348,7 @@ public class CNVRectangles {
 	 * @param cnvRects
 	 * @return The leftmost rectangle
 	 */
-	private CNVRectangle getLeftMost(int startX, ArrayList<CNVRectangle> cnvRects) {
+	private CNVRectangle getLeftMost(int startX, List<CNVRectangle> cnvRects) {
 		int lastPosition = startX + 2; // Want a 2-pixel buffer between CNVs
 		if (startX == lowestStart) {
 			// The first time through we'll be starting at lowestStart so we don't want the offset

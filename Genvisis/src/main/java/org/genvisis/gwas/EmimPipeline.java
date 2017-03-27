@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Set;
 
 import org.genvisis.cnv.manage.ExportCNVsToPedFormat;
@@ -601,7 +602,7 @@ public class EmimPipeline {
 		reader.close();
 	}
 
-	private static void writeQsubs(ArrayList<String> qsubFiles, String runDir, String qsubQueue) {
+	private static void writeQsubs(List<String> qsubFiles, String runDir, String qsubQueue) {
 		ArrayList<String> qsubCommands = new ArrayList<String>();
 		for (String qsub : qsubFiles) {
 

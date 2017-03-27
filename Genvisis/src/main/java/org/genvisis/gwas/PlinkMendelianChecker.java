@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.genvisis.cnv.filesys.Pedigree;
@@ -68,7 +69,7 @@ public class PlinkMendelianChecker {
 		}
 
 		// TODO only goes one direction?
-		static GenomeLoader run(String genomeFile, ArrayList<Pair> pairs) {
+		static GenomeLoader run(String genomeFile, List<Pair> pairs) {
 			BufferedReader reader;
 			String line;
 

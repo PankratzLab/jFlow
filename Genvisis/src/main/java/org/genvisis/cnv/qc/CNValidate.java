@@ -208,7 +208,7 @@ public class CNValidate implements Runnable {
 		return chrLRRMediansMADScaled;
 	}
 
-	private static float[] getFloatArray(ArrayList<Float> al) {
+	private static float[] getFloatArray(List<Float> al) {
 		float[] array = new float[al.size()];
 		for (int i = 0; i < al.size(); i++) {
 			array[i] = al.get(i);

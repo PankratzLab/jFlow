@@ -78,7 +78,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 	Project proj;
 	private String[] files;
 	ArrayList<String> allFiles;
-	ArrayList<String> filterFiles;
+	List<String> filterFiles;
 	GeneTrack track;
 
 	// UI Components
@@ -517,7 +517,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		public void actionPerformed(ActionEvent e) {
 			// Figure out which files are selected
 			// Only allow upload if one file is selected (JDialog warning if multiples)
-			ArrayList<String> files = getFilterFiles();
+			List<String> files = getFilterFiles();
 			if (files.size() != 1) {
 				JOptionPane.showMessageDialog(null,
 																			"One and only one file must be selected before a .BED File can be generated",
@@ -901,12 +901,12 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		return proj;
 	}
 
-	public void setFilter(ArrayList<String> files) {
+	public void setFilter(List<String> files) {
 		filterFiles = files;
 		loadCNVs(location);
 	}
 
-	public ArrayList<String> getFilterFiles() {
+	public List<String> getFilterFiles() {
 		return filterFiles;
 	}
 

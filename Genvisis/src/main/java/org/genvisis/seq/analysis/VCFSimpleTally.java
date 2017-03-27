@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -384,17 +385,17 @@ public class VCFSimpleTally {
 		return parse;
 	}
 
-	private static ArrayList<Integer> removeNeg(ArrayList<Integer> al) {
+	private static ArrayList<Integer> removeNeg(List<Integer> others) {
 		ArrayList<Integer> pos = new ArrayList<Integer>();
-		for (int i = 0; i < al.size(); i++) {
-			if (al.get(i) >= 0) {
-				pos.add(al.get(i));
+		for (int i = 0; i < others.size(); i++) {
+			if (others.get(i) >= 0) {
+				pos.add(others.get(i));
 			}
 		}
 		return pos;
 	}
 
-	private static double centroid(ArrayList<Integer> al) {
+	private static double centroid(List<Integer> al) {
 		return ArrayUtils.mean(Ints.toArray(al));
 	}
 
@@ -425,7 +426,7 @@ public class VCFSimpleTally {
 
 	}
 
-	private static DistanceResult distance(ArrayList<Integer> from, ArrayList<Integer> to,
+	private static DistanceResult distance(List<Integer> from, List<Integer> to,
 																				 boolean identical) {
 		double sum = 0;
 		int num = 0;
@@ -466,7 +467,7 @@ public class VCFSimpleTally {
 
 		private final ArrayList<Integer> al;
 
-		public PosCluster(ArrayList<Integer> al) {
+		public PosCluster(List<Integer> al) {
 			super();
 			this.al = removeNeg(al);
 			distanceOut = new DistanceResult(Double.NaN, 0);
@@ -485,7 +486,7 @@ public class VCFSimpleTally {
 			}
 		}
 
-		private void computeBelongs(ArrayList<Integer> others) throws IllegalStateException {
+		private void computeBelongs(List<Integer> others) throws IllegalStateException {
 			others = removeNeg(others);
 			centriodOut = centroid(others);
 			distanceOut = distance(others, others, true);
@@ -496,8 +497,8 @@ public class VCFSimpleTally {
 			nnControl = tmp.containsKey(NONMEMBER) ? tmp.get(NONMEMBER) : 0;
 		}
 
-		private static Hashtable<String, Integer> computeNN(ArrayList<Integer> al,
-																												ArrayList<Integer> others) throws IllegalStateException {
+		private static Hashtable<String, Integer> computeNN(List<Integer> al,
+																												List<Integer> others) throws IllegalStateException {
 			ArrayList<Integer> combined = new ArrayList<Integer>();
 			ArrayList<String> member = new ArrayList<String>();
 			Hashtable<String, Integer> totals = new Hashtable<String, Integer>();
@@ -1279,7 +1280,7 @@ public class VCFSimpleTally {
 	}
 
 	private static void addEntries(String caseDef, String hqCaseDef,
-																 ArrayList<String> controlsOrdered,
+																 List<String> controlsOrdered,
 																 Hashtable<String, ArrayList<GeneSummary[]>> geneSummaries,
 																 String geneName) {
 		geneSummaries.put(geneName, new ArrayList<GeneSummary[]>());

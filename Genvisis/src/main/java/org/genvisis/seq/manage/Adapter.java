@@ -87,7 +87,7 @@ public class Adapter {
 		return description;
 	}
 
-	private static String[] getAllNames(ArrayList<Adapter> adapters) {
+	private static String[] getAllNames(List<Adapter> adapters) {
 		String[] names = new String[adapters.size()];
 		for (int i = 0; i < names.length; i++) {
 			names[i] = adapters.get(i).getName();
@@ -99,7 +99,7 @@ public class Adapter {
 	/**
 	 * blast a sequence (typically soft clipped) against a blast database of adapter content
 	 */
-	public static String[] blast(int blastWordSize, ArrayList<Adapter> adapters, String[] sequences,
+	public static String[] blast(int blastWordSize, List<Adapter> adapters, String[] sequences,
 															 String outputDir, String root, int numThreads, Logger log) {
 		new File(outputDir).mkdirs();
 		String db = outputDir + "adapter.db.fa";

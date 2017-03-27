@@ -5,6 +5,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -94,9 +95,9 @@ public class JAccordionPanel extends JPanel {
 		});
 	}
 
-	ArrayList<JAccordionPanel> grp = new ArrayList<JAccordionPanel>();
+	List<JAccordionPanel> grp = new ArrayList<JAccordionPanel>();
 
-	public void addToGroup(ArrayList<JAccordionPanel> bg) {
+	public void addToGroup(List<JAccordionPanel> bg) {
 		grp = bg;
 		grp.add(this);
 	}

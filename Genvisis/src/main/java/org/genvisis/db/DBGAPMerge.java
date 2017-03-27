@@ -37,7 +37,7 @@ public class DBGAPMerge {
 		String dataDict;
 		String varReport;
 
-		private ArrayList<DataColumn> dataDefs;
+		private List<DataColumn> dataDefs;
 		private HashMap<String, Integer> defMap;
 		ArrayList<String> ids = new ArrayList<String>();
 		HashMap<String, String[]> idDataMap = new HashMap<String, String[]>();
@@ -46,7 +46,7 @@ public class DBGAPMerge {
 			return defMap.get(key);
 		}
 
-		public void setDataDefs(ArrayList<DataColumn> readDataDict) {
+		public void setDataDefs(List<DataColumn> readDataDict) {
 			dataDefs = readDataDict;
 			defMap = new HashMap<String, Integer>();
 			for (int i = 0; i < dataDefs.size(); i++) {

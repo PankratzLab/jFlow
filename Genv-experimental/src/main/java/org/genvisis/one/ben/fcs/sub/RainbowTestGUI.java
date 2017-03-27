@@ -1595,7 +1595,7 @@ public class RainbowTestGUI extends JFrame {
 
 	private ArrayList<String> compFileList = new ArrayList<String>();
 
-	private void addFilesToModel(ArrayList<String> files, String[] paramNames, String removePrep) {
+	private void addFilesToModel(List<String> files, String[] paramNames, String removePrep) {
 		// int colCnt = dtmMean.getColumnCount();
 		// int rows = dtmMean.getRowCount();
 

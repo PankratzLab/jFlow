@@ -15,6 +15,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.JPanel;
 
@@ -34,14 +35,14 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 	CompPlot plot;
 	float scalingFactor;
 	int startBase, endBase;
-	ArrayList<CNVariant> selectedCNVs;
+	List<CNVariant> selectedCNVs;
 	int rectangleHeight = 10;
 	int oldMaxY = 0;
 	String displayMode;
 	ChromosomeViewer chrViewer;
 
 	private CNVRectangles cnvRectangles;
-	ArrayList<org.genvisis.cnv.var.CNVRectangle> rectangles;
+	List<CNVRectangle> rectangles;
 
 	public CompPanel(CompPlot cp) {
 		plot = cp;
@@ -137,7 +138,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 	 *
 	 * @param rects
 	 */
-	void setRectangles(ArrayList<CNVRectangle> rects) {
+	void setRectangles(List<CNVRectangle> rects) {
 		rectangles = rects;
 		repaint();
 	}
@@ -206,7 +207,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 		for (CNVRectangle cnvRect : rectangles) {
 			Rectangle rect = cnvRect.getRect();
 			if (rect.contains(e.getPoint())) {
-				ArrayList<CNVariant> currentCNVs = cnvRect.getCNVs();
+				List<CNVariant> currentCNVs = cnvRect.getCNVs();
 				firePropertyChange("selectedCNV", selectedCNVs, currentCNVs);
 				selectedCNVs = currentCNVs;
 				cnvRect.setSelected(true);
@@ -228,7 +229,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 		for (CNVRectangle cnvRect : rectangles) {
 			Rectangle rect = cnvRect.getRect();
 			if (rect.contains(e.getPoint())) {
-				ArrayList<CNVariant> currentCNVs = cnvRect.getCNVs();
+				List<CNVariant> currentCNVs = cnvRect.getCNVs();
 				CNVariant cnv = cnvRect.getCNV();
 				String toolTipText = "<html>IID: " + cnv.getIndividualID() + "<br/>FID: "
 														 + cnv.getFamilyID() + "<br/>Length: " + cnv.getSize() + "<br/>Copies: "

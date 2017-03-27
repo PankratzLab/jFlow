@@ -3,6 +3,7 @@ package org.genvisis.one.ben.fcs.gating;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 public class Gating {
 	HashSet<String> allNames = new HashSet<String>();
@@ -123,7 +124,7 @@ public class Gating {
 		deleteGate(g, gateRoots);
 	}
 
-	private boolean deleteGate(Gate g, ArrayList<Gate> gates) {
+	private boolean deleteGate(Gate g, List<Gate> gates) {
 		if (gates.contains(g)) {
 			gates.remove(g);
 			allNames.remove(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
@@ -165,7 +166,7 @@ public class Gating {
 		return getLeafGates(g);
 	}
 
-	private HashSet<Gate> getLeafGates(ArrayList<Gate> parentGates) {
+	private HashSet<Gate> getLeafGates(List<Gate> parentGates) {
 		HashSet<Gate> leafs = new HashSet<Gate>();
 		for (Gate g : parentGates) {
 			if (g.getChildGates().isEmpty()) {

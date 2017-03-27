@@ -2,6 +2,7 @@ package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 
 import org.genvisis.cnv.filesys.MarkerData;
@@ -124,7 +125,7 @@ public class CNVMarkerQC implements Runnable {
 	}
 
 	private static CNVMarkerQC[] computeFileMAFS(Project proj, int threads,
-																							 ArrayList<ArrayList<String>> cabinet,
+																							 List<ArrayList<String>> cabinet,
 																							 boolean[] samplesToBeUsed) {
 		CNVMarkerQC[] markerFrequencies = new CNVMarkerQC[threads];
 		Thread[] runningthreads = new Thread[threads];
@@ -185,7 +186,7 @@ public class CNVMarkerQC implements Runnable {
 		return markerFiles;
 	}
 
-	private static String[] toStringArray(ArrayList<String> stringList) {
+	private static String[] toStringArray(List<String> stringList) {
 		return stringList.toArray(new String[stringList.size()]);
 	}
 

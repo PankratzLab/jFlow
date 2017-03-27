@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 import org.genvisis.CLI;
@@ -176,7 +177,7 @@ public class MicaPlink {
 	}
 
 	private static void runPlink(String fam, String covars, String outDir, Logger log,
-															 String[] covarsH, ArrayList<Result> results, int gq, String root,
+															 String[] covarsH, List<Result> results, int gq, String root,
 															 String filtVcf, double mind) {
 
 		root = root + "MIND_" + mind;

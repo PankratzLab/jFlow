@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 
 import org.genvisis.common.Files;
@@ -352,7 +353,7 @@ public class VCFTally implements Serializable {
 		private final String tallyName;
 		private Hashtable<Integer, int[]> geneSegTrack;
 		private final VariantContextFilter[] vContextFilters;
-		private final ArrayList<GenePass> passingLocs;
+		private final List<GenePass> passingLocs;
 		private final Hashtable<String, HashSet<String>> uniqs;
 		private final Hashtable<String, ArrayList<String>> all;
 		private final Logger log;
@@ -378,7 +379,7 @@ public class VCFTally implements Serializable {
 		public TallyTracker(Hashtable<String, Float> tally, Hashtable<String, Float> tallyMAC,
 												GenomeRegions gRegions, String tallyName, Segment[] geneSegs,
 												Hashtable<Integer, int[]> geneSegTrack,
-												VariantContextFilter[] vContextFilters, ArrayList<GenePass> passingLocs,
+												VariantContextFilter[] vContextFilters, List<GenePass> passingLocs,
 												Hashtable<String, HashSet<String>> uniqs,
 												Hashtable<String, ArrayList<String>> all, Logger log, boolean charge) {
 			super();

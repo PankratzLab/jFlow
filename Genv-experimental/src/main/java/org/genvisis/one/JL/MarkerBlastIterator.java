@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 import org.genvisis.cnv.filesys.MarkerSetInfo;
@@ -503,8 +504,8 @@ public class MarkerBlastIterator {
 	}
 
 	private static void dumpMiss(Logger log, int oneHitWonderDef, String output,
-															 ArrayList<String> notOneHitters,
-															 ArrayList<Double> notOneHittersMaxCrossHybe) {
+															 List<String> notOneHitters,
+															 List<Double> notOneHittersMaxCrossHybe) {
 		int[] sorted = Sort.getSortedIndices(notOneHittersMaxCrossHybe);
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));

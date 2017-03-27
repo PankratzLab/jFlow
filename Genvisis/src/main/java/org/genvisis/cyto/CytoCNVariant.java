@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -465,7 +466,7 @@ public class CytoCNVariant extends CNVariant {
 	 */
 	private static void parseInputLine(String[] sampleNames, String[] line, int[] indicesCommon,
 																		 int[][] indicesSamples, CytoCNVariant[] tmps,
-																		 ArrayList<CytoCNVariant> cytoCNVariant, Logger log) {
+																		 List<CytoCNVariant> cytoCNVariant, Logger log) {
 
 		try {
 			// parse the common info for all samples on this line
@@ -540,7 +541,7 @@ public class CytoCNVariant extends CNVariant {
 	 * @param cytoCNVariant
 	 * @param tmps
 	 */
-	private static void finalAction(ArrayList<CytoCNVariant> cytoCNVariant, CytoCNVariant[] tmps) {
+	private static void finalAction(List<CytoCNVariant> cytoCNVariant, CytoCNVariant[] tmps) {
 		for (int i = 0; i < tmps.length; i++) {
 			if (tmps[i] != null) {
 				tmps[i].finalizeVariant();

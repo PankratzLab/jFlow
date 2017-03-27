@@ -3,6 +3,7 @@ package org.genvisis.cnv.var;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.genvisis.cnv.plots.GenericRectangle;
 import org.genvisis.filesys.CNVariant;
@@ -15,7 +16,7 @@ import org.genvisis.filesys.CNVariant;
  *         Contains the CNVariant and a color based on the file from which it came
  */
 public class CNVRectangle extends GenericRectangle implements Comparable<CNVRectangle> {
-	private ArrayList<CNVariant> cnvs;
+	private List<CNVariant> cnvs;
 	private Color CNVColor;
 	private Rectangle rect;
 	private boolean selected;
@@ -42,7 +43,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
 	 *
 	 * @return All CNVs associated with this rectangle
 	 */
-	public ArrayList<CNVariant> getCNVs() {
+	public List<CNVariant> getCNVs() {
 		return cnvs;
 	}
 
@@ -58,7 +59,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
 	 *
 	 * @param variants A list of CNVs to be associated with this rectangle
 	 */
-	public void setCNVs(ArrayList<CNVariant> variants) {
+	public void setCNVs(List<CNVariant> variants) {
 		cnvs = variants;
 	}
 

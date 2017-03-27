@@ -411,7 +411,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 	private static String mergeAndAnnotate(String outputDir, GATK gatk, ANNOVCF annoVCF,
 																				 String finalMergeWithVCF, int numThreads, Logger log,
 																				 String[][] tumorNormalMatchedBams,
-																				 ArrayList<String> finalTNVCfs, boolean extract,
+																				 List<String> finalTNVCfs, boolean extract,
 																				 String root) {
 		String outMergeVCF = root + ".vcf.gz";
 		String outMergeRenameVCF = root + ".renamed.vcf.gz";
@@ -505,7 +505,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 							 batches, 62000, 40, numthreads * numSampleThreads, "small");
 	}
 
-	private static void getJava(ArrayList<String> command) {
+	private static void getJava(List<String> command) {
 		command.add("java");
 		command.add("-Xmx62000m");
 		command.add("-jar");

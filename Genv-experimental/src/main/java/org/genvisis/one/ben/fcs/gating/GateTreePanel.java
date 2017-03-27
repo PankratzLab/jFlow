@@ -13,6 +13,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -251,7 +252,7 @@ public class GateTreePanel extends JPanel {
 	private final Border breadcrumbBorder = BorderFactory.createEmptyBorder(0, 1, 0, 1);
 
 	private JLabel getBreadcrumbLabel(String txt, String me,
-																		final ArrayList<DefaultMutableTreeNode> sibs, JLabel prevLbl) {
+																		final List<DefaultMutableTreeNode> sibs, JLabel prevLbl) {
 		final JLabel lbl = new JLabel(txt);
 		lbl.setBorder(breadcrumbBorder);
 		lbl.setFont(breadcrumbFont);

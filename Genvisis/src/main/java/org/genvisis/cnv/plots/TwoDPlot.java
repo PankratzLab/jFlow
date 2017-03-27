@@ -1920,7 +1920,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return caps;
 	}
 
-	public void createScreenshots(String baseDir, ArrayList<ScreenToCapture> screens) {
+	public void createScreenshots(String baseDir, List<ScreenToCapture> screens) {
 		generatingScreenshots = true;
 		HashSet<String> dataFiles = new HashSet<String>();
 

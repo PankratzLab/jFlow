@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -281,7 +282,7 @@ public class Rscript {
 		private final PLOT_DEVICE device;
 		private final Logger log;
 
-		public RScatters(ArrayList<RScatter> rsScatters, String rScriptFile, String mergeOutput,
+		public RScatters(List<RScatter> rsScatters, String rScriptFile, String mergeOutput,
 										 COLUMNS_MULTIPLOT cMultiplot, PLOT_DEVICE device, Logger log) {
 			this(rsScatters.toArray(new RScatter[rsScatters.size()]), rScriptFile, mergeOutput,
 					 cMultiplot, device, log);

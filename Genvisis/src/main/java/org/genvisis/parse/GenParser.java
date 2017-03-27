@@ -72,7 +72,7 @@ public class GenParser {
 
 	private int numTruncatedLines;
 
-	public GenParser(String[] line, ArrayList<String> data, Logger logger) {
+	public GenParser(String[] line, List<String> data, Logger logger) {
 		String[] tokens, columnHeaders;
 		Vector<String> filters, columns, comps;
 		Vector<String[]> replacesV;
@@ -486,7 +486,7 @@ public class GenParser {
 		}
 	}
 
-	public static ArrayList<String> parse(String[] line, ArrayList<String> data, Logger log) {
+	public static ArrayList<String> parse(String[] line, List<String> data, Logger log) {
 		long time;
 		GenParser parser;
 		String[] header, trav;

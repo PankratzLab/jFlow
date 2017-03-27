@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -658,7 +659,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	}
 
 	private ArrayList<VariantContextWithFile> filter(Segment exon,
-																									 ArrayList<VariantContextWithFile> all) {
+																									 List<VariantContextWithFile> all) {
 		ArrayList<VariantContextWithFile> retArr = new ArrayList<VariantContextWithFile>();
 		for (VariantContextWithFile vc : all) {
 			if (exon.overlaps(new Segment(vc.vc.getContig(), vc.vc.getStart(), vc.vc.getEnd()))) {
@@ -848,7 +849,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	}
 
 	private void drawVCFRecords(Graphics g, GeneData gene, int[][] exons, Rectangle display,
-															ArrayList<VCFLocation> freqLocs, int maxExonRise) {
+															List<VCFLocation> freqLocs, int maxExonRise) {
 		ArrayList<VariantContextWithFile> vcfInSeg;
 		int height = display.height - yStart - GENE_HEIGHT;
 		int tempX = gene.getStart();
@@ -1451,7 +1452,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		legendPanel.setBounds(10, 10, maxWidth, maxHeight);
 	}
 
-	private void drawFreqs(Graphics g, ArrayList<VCFLocation> vcfLocs, int lblX) {
+	private void drawFreqs(Graphics g, List<VCFLocation> vcfLocs, int lblX) {
 		if (!drawMAF && !drawMAC) {
 			return;
 		}
@@ -3070,7 +3071,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		}
 	}
 
-	private HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> sortData(ArrayList<VariantContextWithFile> vcfEntries) {
+	private HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> sortData(List<VariantContextWithFile> vcfEntries) {
 		HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> isoformMapToVCFList = new HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>>();
 		HashMap<String, Segment[]> isoToExonSegMap = geneToExonSegmentMap.get(geneList.get(geneIndex));
 

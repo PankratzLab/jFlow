@@ -1,6 +1,7 @@
 package org.genvisis.qsub;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public final class JobQueue {
 	
@@ -24,12 +25,12 @@ public final class JobQueue {
 	private int minNodeCnt = -1;
 	private int maxNodeCnt = -1;
 	private JobQueue.QueueType type;
-	private ArrayList<String> routeDests = new ArrayList<String>();
+	private List<String> routeDests = new ArrayList<String>();
 	private ArrayList<String> allowedGroups = new ArrayList<String>();
 	private boolean userAccessControlEnabled;
 	private boolean groupAccessControlEnabled;
 	private boolean groupControlSloppy = false;
-	private ArrayList<String> allowedUsers = new ArrayList<String>();
+	private List<String> allowedUsers = new ArrayList<String>();
 	private boolean isDefaultQueue = false;
 
 	public boolean isDefaultQueue() {
@@ -112,11 +113,11 @@ public final class JobQueue {
 		this.type = type;
 	}
 
-	public ArrayList<String> getRouteDests() {
+	public List<String> getRouteDests() {
 		return routeDests;
 	}
 
-	public void setRouteDests(ArrayList<String> routeDests) {
+	public void setRouteDests(List<String> routeDests) {
 		this.routeDests = routeDests;
 	}
 
@@ -156,11 +157,11 @@ public final class JobQueue {
 		return allowedGroups;
 	}
 
-	public ArrayList<String> getAllowedUsers() {
+	public List<String> getAllowedUsers() {
 		return allowedUsers;
 	}
 
-	public void setAllowedUsers(ArrayList<String> allowedUsers) {
+	public void setAllowedUsers(List<String> allowedUsers) {
 		this.allowedUsers = allowedUsers;
 	}
 

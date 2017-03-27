@@ -1,6 +1,7 @@
 package org.genvisis.one.JL;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
@@ -172,7 +173,7 @@ public class ExomeDepthEvaluation {
 	}
 
 	private String plot(DynamicHistogram[] exomeDHits, DynamicHistogram[] exomeDMisses,
-											ArrayList<RScatter> rScatters, int i, boolean prop,
+											List<RScatter> rScatters, int i, boolean prop,
 											CNVariant.CONSENSUS_TYPE cType, CNVariant.OVERLAP_TYPE oType) {
 		String output = ext.parseDirectoryOfFile(exomeDepthCNVFile) + HistogramComparison.XLABELS[i]
 										+ (prop ? ".prop" : ".count") + cType + "_" + oType + ".txt";

@@ -2,6 +2,7 @@ package org.genvisis.seq.qc;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.genvisis.common.Logger;
@@ -136,7 +137,7 @@ public class VariantFilterSample {
 
 	public static class VariantFilterSamplePass {
 		private VariantContext passingContext;
-		private ArrayList<VariantContextFilterPass> vcfps;
+		private List<VariantContextFilterPass> vcfps;
 
 		public VariantFilterSamplePass() {
 			super();
@@ -151,11 +152,11 @@ public class VariantFilterSample {
 			this.passingContext = passingContext;
 		}
 
-		public ArrayList<VariantContextFilterPass> getVcfps() {
+		public List<VariantContextFilterPass> getVcfps() {
 			return vcfps;
 		}
 
-		public void setVcfps(ArrayList<VariantContextFilterPass> vcfps) {
+		public void setVcfps(List<VariantContextFilterPass> vcfps) {
 			this.vcfps = vcfps;
 		}
 

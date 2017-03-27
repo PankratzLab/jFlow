@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import org.genvisis.CLI;
@@ -194,7 +195,7 @@ public class Computel {
 
 	}
 
-	private static void deleteFiles(Logger log, ArrayList<String> filesToDelete) {
+	private static void deleteFiles(Logger log, List<String> filesToDelete) {
 		for (String file : filesToDelete) {
 			log.reportTimeInfo("Deleting file " + file);
 			if (!new File(file).delete()) {

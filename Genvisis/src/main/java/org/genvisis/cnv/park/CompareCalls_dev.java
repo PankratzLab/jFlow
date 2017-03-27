@@ -718,11 +718,11 @@ public class CompareCalls_dev {
 		return Math.max(inds1.length, inds2.length);
 	}
 
-	public static CNVariant[] toCNVArray(ArrayList<CNVariant> cnvVariants) {
+	public static CNVariant[] toCNVArray(List<CNVariant> cnvVariants) {
 		return cnvVariants.toArray(new CNVariant[cnvVariants.size()]);
 	}
 
-	public static String[] toStringArray(ArrayList<String> stringList) {
+	public static String[] toStringArray(List<String> stringList) {
 		return stringList.toArray(new String[stringList.size()]);
 	}
 

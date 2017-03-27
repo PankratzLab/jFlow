@@ -146,7 +146,7 @@ public class VCFImporter {
 	 * @param proj
 	 * @param markers
 	 */
-	private void generateMarkerPositions(Project proj, ArrayList<LocusID> markers) {
+	private void generateMarkerPositions(Project proj, List<LocusID> markers) {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue(true,
 																																																 false)));

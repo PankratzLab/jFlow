@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
 
 import org.genvisis.cnv.manage.ExportCNVsToPedFormat;
 import org.genvisis.common.ArrayUtils;
@@ -754,7 +755,7 @@ public class GenCNV implements Runnable {
 		}
 	}
 
-	private static double[] toDoubleArray(ArrayList<Double> al) {
+	private static double[] toDoubleArray(List<Double> al) {
 		double[] d = new double[al.size()];
 		for (int i = 0; i < al.size(); i++) {
 			d[i] = al.get(i);
@@ -762,7 +763,7 @@ public class GenCNV implements Runnable {
 		return d;
 	}
 
-	private static String[] toStringArray(ArrayList<String> al) {
+	private static String[] toStringArray(List<String> al) {
 		String[] s = new String[al.size()];
 		for (int i = 0; i < al.size(); i++) {
 			s[i] = al.get(i);
@@ -770,7 +771,7 @@ public class GenCNV implements Runnable {
 		return s;
 	}
 
-	private static GenCNV[] runAnalysis(ArrayList<ArrayList<Analysis>> cabinet, int numThreads,
+	private static GenCNV[] runAnalysis(List<ArrayList<Analysis>> cabinet, int numThreads,
 																			Thread[] threads, Logger log) {
 		GenCNV[] genCNVs = new GenCNV[numThreads];
 		for (int i = 0; i < numThreads; i++) {
@@ -782,7 +783,7 @@ public class GenCNV implements Runnable {
 		return genCNVs;
 	}
 
-	private static ArrayList<ArrayList<Analysis>> getcabinet(ArrayList<Analysis> analyses,
+	private static ArrayList<ArrayList<Analysis>> getcabinet(List<Analysis> analyses,
 																													 int numThreads) {
 		ArrayList<ArrayList<Analysis>> cabinet = new ArrayList<ArrayList<Analysis>>();
 		for (int i = 0; i < numThreads; i++) {

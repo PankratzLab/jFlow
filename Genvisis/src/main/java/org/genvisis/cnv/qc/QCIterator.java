@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
 
 import org.genvisis.cnv.filesys.CNVQC;
 import org.genvisis.cnv.filesys.MarkerFreqs;
@@ -280,7 +281,7 @@ public class QCIterator implements Runnable {
 		return targetPercentages;
 	}
 
-	private static void writeMisses(Project proj, ArrayList<CNVariantQC> misses, Logger log) {
+	private static void writeMisses(Project proj, List<CNVariantQC> misses, Logger log) {
 		log.report("writing unmatched calls to " + proj.PROJECT_DIRECTORY.getValue() + "misses.cnv");
 		try {
 			PrintWriter missWriter = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
@@ -486,7 +487,7 @@ public class QCIterator implements Runnable {
 	}
 
 	private static QCIterator[] iteratePercents(int processors, Thread[] threads,
-																							ArrayList<ArrayList<Double>> cabinet,
+																							List<ArrayList<Double>> cabinet,
 																							CNVariantQC[][][] cnvQCsAssigned,
 																							Hashtable<String, CNVSampleQC> cnvSampleQCHash,
 																							int optimizationType, Logger log) {
@@ -522,7 +523,7 @@ public class QCIterator implements Runnable {
 
 
 
-	private static double[] getDoubleThreadPercents(ArrayList<Double> doubles) {
+	private static double[] getDoubleThreadPercents(List<Double> doubles) {
 		double[] threadPercents = new double[doubles.size()];
 		for (int i = 0; i < doubles.size(); i++) {
 			threadPercents[i] = doubles.get(i);

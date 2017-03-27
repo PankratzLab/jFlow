@@ -14,6 +14,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
@@ -1024,7 +1025,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	}
 
 	// use this to eliminate NANs
-	private static float[] toFloatArray(ArrayList<Float> al) {
+	private static float[] toFloatArray(List<Float> al) {
 		float[] d = new float[al.size()];
 		for (int i = 0; i < al.size(); i++) {
 			d[i] = al.get(i);

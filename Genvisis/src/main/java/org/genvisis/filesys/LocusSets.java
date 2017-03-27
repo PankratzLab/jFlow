@@ -1,16 +1,17 @@
 package org.genvisis.filesys;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
 
 public class LocusSets<T extends Segment> {
 
-	private final ArrayList<LocusSet<T>> locusSets;
+	private final List<LocusSet<T>> locusSets;
 	private final Logger log;
 
-	public LocusSets(ArrayList<LocusSet<T>> locusSets, Logger log) {
+	public LocusSets(List<LocusSet<T>> locusSets, Logger log) {
 		super();
 		this.locusSets = locusSets;
 		this.log = log;

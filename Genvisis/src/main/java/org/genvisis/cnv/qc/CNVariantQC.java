@@ -3,6 +3,7 @@ package org.genvisis.cnv.qc;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import org.genvisis.cnv.filesys.CNVQC;
 import org.genvisis.cnv.filesys.Project;
@@ -321,7 +322,7 @@ public class CNVariantQC implements Serializable {
 		return position >= cnv.getStart() && position <= cnv.getStop();
 	}
 
-	private static String[] toStringArray(ArrayList<String> stringList) {
+	private static String[] toStringArray(List<String> stringList) {
 		return stringList.toArray(new String[stringList.size()]);
 	}
 
@@ -334,7 +335,7 @@ public class CNVariantQC implements Serializable {
 		return allIndCNVQCsArray;
 	}
 
-	public static CNVariantQC[] toCNVQCArray(ArrayList<CNVariantQC> cnvQCs) {
+	public static CNVariantQC[] toCNVQCArray(List<CNVariantQC> cnvQCs) {
 		return cnvQCs.toArray(new CNVariantQC[cnvQCs.size()]);
 	}
 
@@ -388,8 +389,8 @@ public class CNVariantQC implements Serializable {
 		}
 	}
 
-	private static CNVariantQC[][][] assignedToArray(ArrayList<CNVariantQC[]> toCompare1,
-																									 ArrayList<CNVariantQC[]> toCompare2) {
+	private static CNVariantQC[][][] assignedToArray(List<CNVariantQC[]> toCompare1,
+																									 List<CNVariantQC[]> toCompare2) {
 		CNVariantQC[][][] cnvQCsAssigned = new CNVariantQC[2][toCompare2.size()][];
 		if (toCompare1.size() == toCompare2.size()) {
 			for (int i = 0; i < toCompare2.size(); i++) {

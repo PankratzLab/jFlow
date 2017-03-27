@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -182,12 +183,12 @@ public class SomaticCNVEvaluation {
 		private final Project proj;
 
 		private final Hashtable<String, LocusSet<CNVariant>> inds;
-		private final ArrayList<TNTrack> tncnvs;
+		private final List<TNTrack> tncnvs;
 		private int index;
 		private final BeastFilt beastFilt;
 
 		public TNCNVProducer(Project proj, Hashtable<String, LocusSet<CNVariant>> inds,
-												 ArrayList<TNTrack> tncnvs, BeastFilt beastFilt) {
+												 List<TNTrack> tncnvs, BeastFilt beastFilt) {
 			super();
 			this.proj = proj;
 			this.inds = inds;
