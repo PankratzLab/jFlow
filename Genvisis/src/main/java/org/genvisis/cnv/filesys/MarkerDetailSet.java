@@ -267,6 +267,10 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	private transient Reference<ListMultimap<Byte, Marker>> chrMapRef = null;
 	private transient Reference<SetMultimap<GenomicPosition, Marker>> genomicPositionMapRef = null;
 	private transient Reference<Map<Marker, Integer>> markerIndexMapRef = null;
+	private transient Reference<String[]> markerNameArrayRef = null;
+
+	private transient Reference<byte[]> chrArrayRef = null;
+	private transient Reference<int[]> positionArrayRef = null;
 
 	public MarkerDetailSet(MarkerSetInfo markerSet) {
 		this(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet.getPositions(),
@@ -390,6 +394,30 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			indexMapBuilder.put(markers.get(i), i);
 		}
 		return indexMapBuilder.build();
+	}
+
+	private String[] generateMarkerNameArray() {
+		String[] markerNames = new String[markers.size()];
+		for (int i = 0; i < markers.size(); i++) {
+			markerNames[i] = markers.get(i).getName();
+		}
+		return markerNames;
+	}
+
+	private byte[] generateChrArray() {
+		byte[] chrs = new byte[markers.size()];
+		for (int i = 0; i < markers.size(); i++) {
+			chrs[i] = markers.get(i).getChr();
+		}
+		return chrs;
+	}
+
+	private int[] generatePositionsArray() {
+		int[] chrs = new int[markers.size()];
+		for (int i = 0; i < markers.size(); i++) {
+			chrs[i] = markers.get(i).getPosition();
+		}
+		return chrs;
 	}
 
 	public static MarkerDetailSet parseFromBLASTAnnotation(MarkerSetInfo naiveMarkerSet,
@@ -692,12 +720,24 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		return segMarkerNames;
 	}
 
+
 	@Override
 	@Deprecated
+	/**
+	 * @deprecated use the {@link MarkerDetailSet.Marker}-based methods instead
+	 * @return a String[] of marker names in project order
+	 * 
+	 *         WARNING: This method will potentially return the same array multiple times, which could
+	 *         have been modified by a previous caller, use {@link #clearArrayRefs()} to prevent this
+	 */
 	public String[] getMarkerNames() {
-		String[] markerNames = new String[markers.size()];
-		for (int i = 0; i < markers.size(); i++) {
-			markerNames[i] = markers.get(i).getName();
+		// FIXME Maintaining a reference to a mutable returned array is dangerous. Fix anywhere that is
+		// relying on this method not building a fresh array every time it is called and
+		// remove/reimplement
+		String[] markerNames = markerNameArrayRef == null ? null : markerNameArrayRef.get();
+		if (markerNames == null) {
+			markerNames = generateMarkerNameArray();
+			markerNameArrayRef = new SoftReference<String[]>(markerNames);
 		}
 		return markerNames;
 	}
@@ -705,9 +745,13 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	@Override
 	@Deprecated
 	public byte[] getChrs() {
-		byte[] chrs = new byte[markers.size()];
-		for (int i = 0; i < markers.size(); i++) {
-			chrs[i] = markers.get(i).getChr();
+		// FIXME Maintaining a reference to a mutable returned array is dangerous. Fix anywhere that is
+		// relying on this method not building a fresh array every time it is called and
+		// remove/reimplement
+		byte[] chrs = chrArrayRef == null ? null : chrArrayRef.get();
+		if (chrs == null) {
+			chrs = generateChrArray();
+			chrArrayRef = new SoftReference<byte[]>(chrs);
 		}
 		return chrs;
 	}
@@ -715,11 +759,27 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	@Override
 	@Deprecated
 	public int[] getPositions() {
-		int[] positions = new int[markers.size()];
-		for (int i = 0; i < markers.size(); i++) {
-			positions[i] = markers.get(i).getPosition();
+		// FIXME Maintaining a reference to a mutable returned array is dangerous. Fix anywhere that is
+		// relying on this method not building a fresh array every time it is called and
+		// remove/reimplement
+		int[] positions = positionArrayRef == null ? null : positionArrayRef.get();
+		if (positions == null) {
+			positions = generatePositionsArray();
+			positionArrayRef = new SoftReference<int[]>(positions);
 		}
 		return positions;
+	}
+
+	/**
+	 * Clears the references to the arrays returned by {@link #getMarkerNames()}, {@link #getChrs()},
+	 * and {@link #getPositions()} These are inherently dangerous as the returned arrays could be
+	 * modified by their caller and then returned again later. This method can be used to cut-off that
+	 * risk
+	 */
+	public void clearArrayRefs() {
+		markerNameArrayRef = null;
+		chrArrayRef = null;
+		positionArrayRef = null;
 	}
 
 	@Override

@@ -133,77 +133,231 @@ public class Project implements PropertyChangeListener {
 		}
 	}
 
-	public IntegerProperty LOG_LEVEL = new IntegerProperty(this, PropertyKeys.KEY_LOG_LEVEL, "", GROUP.GLOBAL, true, -1, 12, 1);
-	public StringProperty PROJECT_NAME = new StringProperty(this, PropertyKeys.KEY_PROJECT_NAME, "Project Name", GROUP.PROJECT_NAME_LOCS, true, "New Project");
-	public StringProperty SOURCE_FILENAME_EXTENSION = new StringProperty(this, PropertyKeys.KEY_SOURCE_FILENAME_EXTENSION, "", GROUP.IMPORT, false, ".csv");
-	public StringProperty ID_HEADER = new StringProperty(this, PropertyKeys.KEY_ID_HEADER, "", GROUP.IMPORT, false, "Sample Name");
-	public BooleanProperty PARSE_AT_AT_SYMBOL = new BooleanProperty(this, PropertyKeys.KEY_PARSE_AT_AT_SYMBOL, "", GROUP.IMPORT, false, Boolean.FALSE);
-	public BooleanProperty JAR_STATUS = new BooleanProperty(this, PropertyKeys.KEY_JAR_STATUS, "", GROUP.SPECIAL_HIDDEN, true, Boolean.FALSE);
-	public BooleanProperty DISPLAY_QUANTILES = new BooleanProperty(this, PropertyKeys.KEY_DISPLAY_QUANTILES, "", GROUP.CENTROIDS, true, Boolean.FALSE);
-	public BooleanProperty DISPLAY_STANDARD_QQ = new BooleanProperty(this, PropertyKeys.KEY_DISPLAY_STANDARD_QQ, "", GROUP.QQ_PLOT, true, Boolean.TRUE);
-	public BooleanProperty DISPLAY_ROTATED_QQ = new BooleanProperty(this, PropertyKeys.KEY_DISPLAY_ROTATED_QQ, "", GROUP.QQ_PLOT, true, Boolean.FALSE);
-	public BooleanProperty PENNCNV_GZIP_YESNO = new BooleanProperty(this, PropertyKeys.KEY_PENNCNV_GZIP_YESNO, "", GROUP.PENN_CNV, true, Boolean.TRUE);
-	public BooleanProperty LONG_FORMAT = new BooleanProperty(this, PropertyKeys.KEY_LONG_FORMAT, "", GROUP.IMPORT, false, Boolean.FALSE);
-	public BooleanProperty SHIFT_SEX_CHR_COLORS_YESNO = new BooleanProperty(this, PropertyKeys.KEY_SHIFT_SEX_CHR_COLORS_YESNO, 
-																			"", GROUP.SCATTER_PLOT, true, Boolean.TRUE);
-	public DoubleProperty BLAST_PROPORTION_MATCH_FILTER = new DoubleProperty(this, PropertyKeys.KEY_BLAST_PROPORTION_MATCH_FILTER, "", 
-																			GROUP.SCATTER_PLOT, true, 0.0, 1.0, 0.80);
-	public DoubleProperty GC_THRESHOLD = new DoubleProperty(this, PropertyKeys.KEY_GC_THRESHOLD, "", GROUP.DATA_EXPORT, true, 0.0, 1.0, 0.15);
-	public DoubleProperty XY_SCALE_FACTOR = new DoubleProperty(this, PropertyKeys.KEY_XY_SCALE_FACTOR, "", GROUP.IMPORT, false, 0.001, Double.MAX_VALUE, 1);
-	public DoubleProperty LRRSD_CUTOFF = new DoubleProperty(this, PropertyKeys.KEY_LRRSD_CUTOFF, "", GROUP.DATA_CLEANING, true, 0.0, 3.0, 0.32);
-	public DoubleProperty SAMPLE_CALLRATE_THRESHOLD = new DoubleProperty(this, PropertyKeys.KEY_SAMPLE_CALLRATE_THRESHOLD, "", GROUP.DATA_CLEANING, true, 0.0, 1.0, 0.95);
-	public IntegerProperty NUM_THREADS = new IntegerProperty(this, PropertyKeys.KEY_NUM_THREADS, "", GROUP.GLOBAL, true, 1, 99, 1);
-	public IntegerProperty QQ_MAX_NEG_LOG10_PVALUE = new IntegerProperty(this, PropertyKeys.KEY_QQ_MAX_NEG_LOG10_PVALUE, "", GROUP.QQ_PLOT, true, 1, 10000, 100);
-	public IntegerProperty WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER = new IntegerProperty(this,PropertyKeys.KEY_WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER, "",
-																					  GROUP.TRAILER,true, 1, 1000000, 10000);
-	public IntegerProperty MAX_MARKERS_LOADED_PER_CYCLE = new IntegerProperty(this, PropertyKeys.KEY_MAX_MARKERS_LOADED_PER_CYCLE, "", 
-			                                                                  GROUP.OPTIMIZATION_PARAMETERS, true, 1, 10000, 100);
-	public IntegerProperty MAX_MEMORY_USED_TO_LOAD_MARKER_DATA = new IntegerProperty(this, PropertyKeys.KEY_MAX_MEMORY_USED_TO_LOAD_MARKER_DATA, "",
-																					 GROUP.OPTIMIZATION_PARAMETERS, true, 8, 65536, 250);
-	public IntegerProperty INTENSITY_PC_NUM_COMPONENTS = new IntegerProperty(this, PropertyKeys.KEY_INTENSITY_PC_NUM_COMPONENTS, "",
-																			 GROUP.PC_INTENSITY_CORRECTION, true, 0, 10000, 100);
-	public FileProperty PROJECT_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_PROJECT_DIRECTORY, "", GROUP.PROJECT_NAME_LOCS, true, "./", true);
-	public FileProperty SOURCE_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_SOURCE_DIRECTORY, "", GROUP.IMPORT, false, "./", true);
-	public FileProperty SAMPLE_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_SAMPLE_DIRECTORY, "", GROUP.PROJECT_NAME_LOCS, true, "samples/", true);
-	public FileProperty DATA_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_DATA_DIRECTORY, "", GROUP.PROJECT_NAME_LOCS, true, "data/", true);
-	public FileProperty MARKER_DATA_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_MARKER_DATA_DIRECTORY, "", GROUP.PROJECT_NAME_LOCS, true, "transposed/", true);
-	public FileProperty RESULTS_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_RESULTS_DIRECTORY, "", GROUP.PROJECT_NAME_LOCS, true, "results/", true);
-	public FileProperty DEMO_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_DEMO_DIRECTORY, "", GROUP.PROJECT_NAME_LOCS, true, "demo/", true);
-	public FileProperty PENNCNV_EXECUTABLE_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_PENNCNV_EXECUTABLE_DIRECTORY, "", 
-																		GROUP.PENN_CNV, true, "/home/pankrat2/shared/bin/", true);
-	public FileProperty PENNCNV_DATA_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_PENNCNV_DATA_DIRECTORY, "", GROUP.PENN_CNV, true, "penn_data/", true);
-	public FileProperty PENNCNV_RESULTS_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_PENNCNV_RESULTS_DIRECTORY, "", GROUP.PENN_CNV, true, "penncnv/", true);
-	public FileProperty BACKUP_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_BACKUP_DIRECTORY, "", GROUP.PROJECT_NAME_LOCS, true, "backup/", true);
-	public FileProperty PROJECT_PROPERTIES_FILENAME = new FileProperty(this, PropertyKeys.KEY_PROJECT_PROPERTIES_FILENAME, "", 
-																	   GROUP.SPECIAL_HIDDEN, true, "example.properties", false);
-	public FileProperty MARKER_POSITION_FILENAME = new FileProperty(this, PropertyKeys.KEY_MARKER_POSITION_FILENAME, "", GROUP.IMPORT, true, "markerPositions.txt", false);
-	public FileProperty MARKERSET_FILENAME = new FileProperty(this, PropertyKeys.KEY_MARKERSET_FILENAME, "", GROUP.SPECIAL_HIDDEN, true, "data/markers.ser", false);
-	public FileProperty MARKER_DETAILS_FILENAME = new FileProperty(this, PropertyKeys.KEY_MARKER_DETAILS_FILENAME, "", 
-																   GROUP.SPECIAL_HIDDEN, true, "data/markerdetails.ser", false);
-	public FileProperty MARKERLOOKUP_FILENAME = new FileProperty(this, PropertyKeys.KEY_MARKERLOOKUP_FILENAME, "", GROUP.SPECIAL_HIDDEN, true, "data/markerLookup.ser", false);
-	public FileProperty SAMPLELIST_FILENAME = new FileProperty(this, PropertyKeys.KEY_SAMPLELIST_FILENAME, "", GROUP.SPECIAL_HIDDEN, true, "data/samples.ser", false);
-	public FileProperty SAMPLE_SUBSET_FILENAME = new FileProperty(this, PropertyKeys.KEY_SAMPLE_SUBSET_FILENAME, "", GROUP.DATA_EXPORT, true, "sampleSubset.txt", false);
-	public FileProperty SAMPLE_DATA_FILENAME = new FileProperty(this, PropertyKeys.KEY_SAMPLE_DATA_FILENAME, "", GROUP.PROJECT_NAME_LOCS, true, "data/SampleData.txt", false);
-	public FileProperty ORIGINAL_CENTROIDS_FILENAME = new FileProperty(this, PropertyKeys.KEY_ORIGINAL_CENTROIDS_FILENAME, "", GROUP.CENTROIDS, true, "data/original.cent", false);
-	public FileProperty GENOTYPE_CENTROIDS_FILENAME = new FileProperty(this, PropertyKeys.KEY_GENOTYPE_CENTROIDS_FILENAME, "", GROUP.CENTROIDS, true, "data/genotype.cent", false);
-	public FileProperty CHIMERA_CENTROIDS_FILENAME = new FileProperty(this, PropertyKeys.KEY_CHIMERA_CENTROIDS_FILENAME, "", GROUP.CENTROIDS, true, "data/chimera.cent", false);
-	public FileProperty CUSTOM_CENTROIDS_FILENAME = new FileProperty(this, PropertyKeys.KEY_CUSTOM_CENTROIDS_FILENAME, "", GROUP.CENTROIDS, true, "data/custom.cent", false);
-	public FileProperty FILTERED_MARKERS_FILENAME = new FileProperty(this, PropertyKeys.KEY_FILTERED_MARKERS_FILENAME, "", GROUP.DATA_EXPORT, true, "data/drops.dat", false);
-	public FileProperty PEDIGREE_FILENAME = new FileProperty(this, PropertyKeys.KEY_PEDIGREE_FILENAME, "", GROUP.DATA_EXPORT, true, "pedigree.dat", false);
-	public FileProperty MOSAIC_COLOR_CODES_FILENAME = new FileProperty(this, PropertyKeys.KEY_MOSAIC_COLOR_CODES_FILENAME, "", 
-																	   GROUP.MOSAIC_PLOT, true, "data/mosaic_colors.txt", false);
-	public FileProperty MOSAIC_RESULTS_FILENAME = new FileProperty(this, PropertyKeys.KEY_MOSAIC_RESULTS_FILENAME, "", GROUP.MOSAIC_PLOT, true, "results/Mosaicism.xln", false);
-	public FileProperty CLUSTER_FILTER_COLLECTION_FILENAME = new FileProperty(this, PropertyKeys.KEY_CLUSTER_FILTER_COLLECTION_FILENAME, "", 
-																			  GROUP.GLOBAL, true, "data/clusterFilters.ser", false);
-	public FileProperty SEXCHECK_RESULTS_FILENAME = new FileProperty(this, PropertyKeys.KEY_SEXCHECK_RESULTS_FILENAME, "", GROUP.DATA_CLEANING, true, "results/sexCheck.xln", false);
-	public FileProperty GENETRACK_FILENAME = new FileProperty(this, PropertyKeys.KEY_GENETRACK_FILENAME, "", GROUP.GLOBAL, true, "RefSeq.gtrack", false);
-	public FileProperty AB_LOOKUP_FILENAME = new FileProperty(this, PropertyKeys.KEY_AB_LOOKUP_FILENAME, "", GROUP.GLOBAL, true, "AB_lookup.dat", false);
-	public FileProperty MARKER_METRICS_FILENAME = new FileProperty(this, PropertyKeys.KEY_MARKER_METRICS_FILENAME, "", 
-																   GROUP.DATA_CLEANING, true, "results/markerQualityChecks.xln", false);
-	public FileProperty MARKER_STATS_FILENAME = new FileProperty(this, PropertyKeys.KEY_MARKER_STATS_FILENAME, "Per-marker statistics for displaying in Trailer track",
-																 GROUP.TRAILER, true, "marker_lrr_sd.xln", false);
-	public FileProperty MARKER_REVIEW_CRITERIA_FILENAME = new FileProperty(this, PropertyKeys.KEY_MARKER_REVIEW_CRITERIA_FILENAME, "", 
-																		   GROUP.DATA_CLEANING, true, "results/review.criteria", false);
+	public IntegerProperty LOG_LEVEL = new IntegerProperty(this, PropertyKeys.KEY_LOG_LEVEL, "",
+																												 GROUP.GLOBAL, true, -1, 12, 1);
+	public StringProperty PROJECT_NAME = new StringProperty(this, PropertyKeys.KEY_PROJECT_NAME,
+																													"Project Name", GROUP.PROJECT_NAME_LOCS,
+																													true, "New Project");
+	public StringProperty SOURCE_FILENAME_EXTENSION = new StringProperty(this,
+																																			 PropertyKeys.KEY_SOURCE_FILENAME_EXTENSION,
+																																			 "", GROUP.IMPORT, false,
+																																			 ".csv");
+	public StringProperty ID_HEADER = new StringProperty(this, PropertyKeys.KEY_ID_HEADER, "",
+																											 GROUP.IMPORT, false, "Sample Name");
+	public BooleanProperty PARSE_AT_AT_SYMBOL = new BooleanProperty(this,
+																																	PropertyKeys.KEY_PARSE_AT_AT_SYMBOL,
+																																	"", GROUP.IMPORT, false,
+																																	Boolean.FALSE);
+	public BooleanProperty JAR_STATUS = new BooleanProperty(this, PropertyKeys.KEY_JAR_STATUS, "",
+																													GROUP.SPECIAL_HIDDEN, true,
+																													Boolean.FALSE);
+	public BooleanProperty DISPLAY_QUANTILES = new BooleanProperty(this,
+																																 PropertyKeys.KEY_DISPLAY_QUANTILES,
+																																 "", GROUP.CENTROIDS, true,
+																																 Boolean.FALSE);
+	public BooleanProperty DISPLAY_STANDARD_QQ = new BooleanProperty(this,
+																																	 PropertyKeys.KEY_DISPLAY_STANDARD_QQ,
+																																	 "", GROUP.QQ_PLOT, true,
+																																	 Boolean.TRUE);
+	public BooleanProperty DISPLAY_ROTATED_QQ = new BooleanProperty(this,
+																																	PropertyKeys.KEY_DISPLAY_ROTATED_QQ,
+																																	"", GROUP.QQ_PLOT, true,
+																																	Boolean.FALSE);
+	public BooleanProperty PENNCNV_GZIP_YESNO = new BooleanProperty(this,
+																																	PropertyKeys.KEY_PENNCNV_GZIP_YESNO,
+																																	"", GROUP.PENN_CNV, true,
+																																	Boolean.TRUE);
+	public BooleanProperty LONG_FORMAT = new BooleanProperty(this, PropertyKeys.KEY_LONG_FORMAT, "",
+																													 GROUP.IMPORT, false, Boolean.FALSE);
+	public BooleanProperty SHIFT_SEX_CHR_COLORS_YESNO = new BooleanProperty(this,
+																																					PropertyKeys.KEY_SHIFT_SEX_CHR_COLORS_YESNO,
+																																					"", GROUP.SCATTER_PLOT,
+																																					true, Boolean.TRUE);
+	public DoubleProperty BLAST_PROPORTION_MATCH_FILTER = new DoubleProperty(this,
+																																					 PropertyKeys.KEY_BLAST_PROPORTION_MATCH_FILTER,
+																																					 "",
+																																					 GROUP.SCATTER_PLOT, true,
+																																					 0.0, 1.0, 0.80);
+	public DoubleProperty GC_THRESHOLD = new DoubleProperty(this, PropertyKeys.KEY_GC_THRESHOLD, "",
+																													GROUP.DATA_EXPORT, true, 0.0, 1.0, 0.15);
+	public DoubleProperty XY_SCALE_FACTOR = new DoubleProperty(this, PropertyKeys.KEY_XY_SCALE_FACTOR,
+																														 "", GROUP.IMPORT, false, 0.001,
+																														 Double.MAX_VALUE, 1);
+	public DoubleProperty LRRSD_CUTOFF = new DoubleProperty(this, PropertyKeys.KEY_LRRSD_CUTOFF, "",
+																													GROUP.DATA_CLEANING, true, 0.0, 3.0,
+																													0.32);
+	public DoubleProperty SAMPLE_CALLRATE_THRESHOLD = new DoubleProperty(this,
+																																			 PropertyKeys.KEY_SAMPLE_CALLRATE_THRESHOLD,
+																																			 "", GROUP.DATA_CLEANING,
+																																			 true, 0.0, 1.0, 0.95);
+	public IntegerProperty NUM_THREADS = new IntegerProperty(this, PropertyKeys.KEY_NUM_THREADS, "",
+																													 GROUP.GLOBAL, true, 1, 99, 1);
+	public IntegerProperty QQ_MAX_NEG_LOG10_PVALUE = new IntegerProperty(this,
+																																			 PropertyKeys.KEY_QQ_MAX_NEG_LOG10_PVALUE,
+																																			 "", GROUP.QQ_PLOT, true, 1,
+																																			 10000, 100);
+	public IntegerProperty WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER = new IntegerProperty(this,
+																																										PropertyKeys.KEY_WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER,
+																																										"",
+																																										GROUP.TRAILER,
+																																										true, 1,
+																																										1000000, 10000);
+	public IntegerProperty MAX_MARKERS_LOADED_PER_CYCLE = new IntegerProperty(this,
+																																						PropertyKeys.KEY_MAX_MARKERS_LOADED_PER_CYCLE,
+																																						"",
+																																						GROUP.OPTIMIZATION_PARAMETERS,
+																																						true, 1, 10000, 100);
+	public IntegerProperty MAX_MEMORY_USED_TO_LOAD_MARKER_DATA = new IntegerProperty(this,
+																																									 PropertyKeys.KEY_MAX_MEMORY_USED_TO_LOAD_MARKER_DATA,
+																																									 "",
+																																									 GROUP.OPTIMIZATION_PARAMETERS,
+																																									 true, 8, 65536,
+																																									 250);
+	public IntegerProperty INTENSITY_PC_NUM_COMPONENTS = new IntegerProperty(this,
+																																					 PropertyKeys.KEY_INTENSITY_PC_NUM_COMPONENTS,
+																																					 "",
+																																					 GROUP.PC_INTENSITY_CORRECTION,
+																																					 true, 0, 10000, 100);
+	public FileProperty PROJECT_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_PROJECT_DIRECTORY,
+																													 "", GROUP.PROJECT_NAME_LOCS, true, "./",
+																													 true);
+	public FileProperty SOURCE_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_SOURCE_DIRECTORY,
+																													"", GROUP.IMPORT, false, "./", true);
+	public FileProperty SAMPLE_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_SAMPLE_DIRECTORY,
+																													"", GROUP.PROJECT_NAME_LOCS, true,
+																													"samples/", true);
+	public FileProperty DATA_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_DATA_DIRECTORY, "",
+																												GROUP.PROJECT_NAME_LOCS, true, "data/",
+																												true);
+	public FileProperty MARKER_DATA_DIRECTORY = new FileProperty(this,
+																															 PropertyKeys.KEY_MARKER_DATA_DIRECTORY,
+																															 "", GROUP.PROJECT_NAME_LOCS, true,
+																															 "transposed/", true);
+	public FileProperty RESULTS_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_RESULTS_DIRECTORY,
+																													 "", GROUP.PROJECT_NAME_LOCS, true,
+																													 "results/", true);
+	public FileProperty DEMO_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_DEMO_DIRECTORY, "",
+																												GROUP.PROJECT_NAME_LOCS, true, "demo/",
+																												true);
+	public FileProperty PENNCNV_EXECUTABLE_DIRECTORY = new FileProperty(this,
+																																			PropertyKeys.KEY_PENNCNV_EXECUTABLE_DIRECTORY,
+																																			"",
+																																			GROUP.PENN_CNV, true,
+																																			"/home/pankrat2/shared/bin/",
+																																			true);
+	public FileProperty PENNCNV_DATA_DIRECTORY = new FileProperty(this,
+																																PropertyKeys.KEY_PENNCNV_DATA_DIRECTORY,
+																																"", GROUP.PENN_CNV, true,
+																																"penn_data/", true);
+	public FileProperty PENNCNV_RESULTS_DIRECTORY = new FileProperty(this,
+																																	 PropertyKeys.KEY_PENNCNV_RESULTS_DIRECTORY,
+																																	 "", GROUP.PENN_CNV, true,
+																																	 "penncnv/", true);
+	public FileProperty BACKUP_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_BACKUP_DIRECTORY,
+																													"", GROUP.PROJECT_NAME_LOCS, true,
+																													"backup/", true);
+	public FileProperty PROJECT_PROPERTIES_FILENAME = new FileProperty(this,
+																																		 PropertyKeys.KEY_PROJECT_PROPERTIES_FILENAME,
+																																		 "",
+																																		 GROUP.SPECIAL_HIDDEN, true,
+																																		 "example.properties", false);
+	public FileProperty MARKER_POSITION_FILENAME = new FileProperty(this,
+																																	PropertyKeys.KEY_MARKER_POSITION_FILENAME,
+																																	"", GROUP.IMPORT, true,
+																																	"markerPositions.txt", false);
+	public FileProperty MARKERSET_FILENAME = new FileProperty(this,
+																														PropertyKeys.KEY_MARKERSET_FILENAME, "",
+																														GROUP.SPECIAL_HIDDEN, true,
+																														"data/markers.ser", false);
+	public FileProperty MARKER_DETAILS_FILENAME = new FileProperty(this,
+																																 PropertyKeys.KEY_MARKER_DETAILS_FILENAME,
+																																 "",
+																																 GROUP.SPECIAL_HIDDEN, true,
+																																 "data/markerdetails.ser", false);
+	public FileProperty MARKERLOOKUP_FILENAME = new FileProperty(this,
+																															 PropertyKeys.KEY_MARKERLOOKUP_FILENAME,
+																															 "", GROUP.SPECIAL_HIDDEN, true,
+																															 "data/markerLookup.ser", false);
+	public FileProperty SAMPLELIST_FILENAME = new FileProperty(this,
+																														 PropertyKeys.KEY_SAMPLELIST_FILENAME,
+																														 "", GROUP.SPECIAL_HIDDEN, true,
+																														 "data/samples.ser", false);
+	public FileProperty SAMPLE_SUBSET_FILENAME = new FileProperty(this,
+																																PropertyKeys.KEY_SAMPLE_SUBSET_FILENAME,
+																																"", GROUP.DATA_EXPORT, true,
+																																"sampleSubset.txt", false);
+	public FileProperty SAMPLE_DATA_FILENAME = new FileProperty(this,
+																															PropertyKeys.KEY_SAMPLE_DATA_FILENAME,
+																															"", GROUP.PROJECT_NAME_LOCS, true,
+																															"data/SampleData.txt", false);
+	public FileProperty ORIGINAL_CENTROIDS_FILENAME = new FileProperty(this,
+																																		 PropertyKeys.KEY_ORIGINAL_CENTROIDS_FILENAME,
+																																		 "", GROUP.CENTROIDS, true,
+																																		 "data/original.cent", false);
+	public FileProperty GENOTYPE_CENTROIDS_FILENAME = new FileProperty(this,
+																																		 PropertyKeys.KEY_GENOTYPE_CENTROIDS_FILENAME,
+																																		 "", GROUP.CENTROIDS, true,
+																																		 "data/genotype.cent", false);
+	public FileProperty CHIMERA_CENTROIDS_FILENAME = new FileProperty(this,
+																																		PropertyKeys.KEY_CHIMERA_CENTROIDS_FILENAME,
+																																		"", GROUP.CENTROIDS, true,
+																																		"data/chimera.cent", false);
+	public FileProperty CUSTOM_CENTROIDS_FILENAME = new FileProperty(this,
+																																	 PropertyKeys.KEY_CUSTOM_CENTROIDS_FILENAME,
+																																	 "", GROUP.CENTROIDS, true,
+																																	 "data/custom.cent", false);
+	public FileProperty FILTERED_MARKERS_FILENAME = new FileProperty(this,
+																																	 PropertyKeys.KEY_FILTERED_MARKERS_FILENAME,
+																																	 "", GROUP.DATA_EXPORT, true,
+																																	 "data/drops.dat", false);
+	public FileProperty PEDIGREE_FILENAME = new FileProperty(this, PropertyKeys.KEY_PEDIGREE_FILENAME,
+																													 "", GROUP.DATA_EXPORT, true,
+																													 "pedigree.dat", false);
+	public FileProperty MOSAIC_COLOR_CODES_FILENAME = new FileProperty(this,
+																																		 PropertyKeys.KEY_MOSAIC_COLOR_CODES_FILENAME,
+																																		 "",
+																																		 GROUP.MOSAIC_PLOT, true,
+																																		 "data/mosaic_colors.txt",
+																																		 false);
+	public FileProperty MOSAIC_RESULTS_FILENAME = new FileProperty(this,
+																																 PropertyKeys.KEY_MOSAIC_RESULTS_FILENAME,
+																																 "", GROUP.MOSAIC_PLOT, true,
+																																 "results/Mosaicism.xln", false);
+	public FileProperty CLUSTER_FILTER_COLLECTION_FILENAME = new FileProperty(this,
+																																						PropertyKeys.KEY_CLUSTER_FILTER_COLLECTION_FILENAME,
+																																						"",
+																																						GROUP.GLOBAL, true,
+																																						"data/clusterFilters.ser",
+																																						false);
+	public FileProperty SEXCHECK_RESULTS_FILENAME = new FileProperty(this,
+																																	 PropertyKeys.KEY_SEXCHECK_RESULTS_FILENAME,
+																																	 "", GROUP.DATA_CLEANING, true,
+																																	 "results/sexCheck.xln", false);
+	public FileProperty GENETRACK_FILENAME = new FileProperty(this,
+																														PropertyKeys.KEY_GENETRACK_FILENAME, "",
+																														GROUP.GLOBAL, true, "RefSeq.gtrack",
+																														false);
+	public FileProperty AB_LOOKUP_FILENAME = new FileProperty(this,
+																														PropertyKeys.KEY_AB_LOOKUP_FILENAME, "",
+																														GROUP.GLOBAL, true, "AB_lookup.dat",
+																														false);
+	public FileProperty MARKER_METRICS_FILENAME = new FileProperty(this,
+																																 PropertyKeys.KEY_MARKER_METRICS_FILENAME,
+																																 "",
+																																 GROUP.DATA_CLEANING, true,
+																																 "results/markerQualityChecks.xln",
+																																 false);
+	public FileProperty MARKER_STATS_FILENAME = new FileProperty(this,
+																															 PropertyKeys.KEY_MARKER_STATS_FILENAME,
+																															 "Per-marker statistics for displaying in Trailer track",
+																															 GROUP.TRAILER, true,
+																															 "marker_lrr_sd.xln", false);
+	public FileProperty MARKER_REVIEW_CRITERIA_FILENAME = new FileProperty(this,
+																																				 PropertyKeys.KEY_MARKER_REVIEW_CRITERIA_FILENAME,
+																																				 "",
+																																				 GROUP.DATA_CLEANING, true,
+																																				 "results/review.criteria",
+																																				 false);
 	public FileProperty MARKER_EXCLUSION_CRITERIA_FILENAME = new FileProperty(this,
 																																						PropertyKeys.KEY_MARKER_EXCLUSION_CRITERIA_FILENAME,
 																																						"", GROUP.DATA_CLEANING,
@@ -662,6 +816,10 @@ public class Project implements PropertyChangeListener {
 	public MarkerDetailSet getMarkerSet() {
 		if (markerSet == null) {
 			markerSet = loadMarkerSet();
+		} else {
+			// Previously this method would have loaded the Marker Set fresh from the serialized file.
+			// Prevent proliferation of possibly modified array references here
+			markerSet.clearArrayRefs();
 		}
 		return markerSet;
 	}
