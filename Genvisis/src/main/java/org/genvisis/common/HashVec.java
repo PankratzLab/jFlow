@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Vector;
 
 public class HashVec {
-	public static boolean addIfAbsent(String str, Vector<String> v) {
+	public static boolean addIfAbsent(String str, List<String> v) {
 		return addIfAbsent(str, v, false);
 	}
 
@@ -24,7 +24,7 @@ public class HashVec {
 	 *        the appropriate sorted index.
 	 * @return true if added
 	 */
-	public static boolean addIfAbsent(String str, Vector<String> v, boolean inAlphabeticalOrder) {
+	public static boolean addIfAbsent(String str, List<String> v, boolean inAlphabeticalOrder) {
 
 		if (inAlphabeticalOrder) {
 			int idx = Collections.binarySearch(v, str);
@@ -32,7 +32,7 @@ public class HashVec {
 			// adjust index and insert
 			if (idx < 0) {
 				idx = -(idx + 1);
-				v.insertElementAt(str, idx);
+				v.add(idx, str);
 				return true;
 			}
 		} else if (!v.contains(str)) {
@@ -43,9 +43,9 @@ public class HashVec {
 		return false;
 	}
 
-	public static void addAllInArrayToVector(String[] array, Vector<String> vector) {
+	public static void addAllInArrayToVector(String[] array, List<String> allFiles) {
 		for (String element : array) {
-			vector.add(element);
+			allFiles.add(element);
 		}
 	}
 
@@ -665,8 +665,8 @@ public class HashVec {
 	 *
 	 * @return the new copy
 	 */
-	public static Vector<String> cloneVectorString(Vector<String> v) {
-		Vector<String> vec = new Vector<String>();
+	public static List<String> cloneVectorString(List<String> v) {
+		List<String> vec = new ArrayList<String>();
 
 		for (String s : v) {
 			vec.add(s);

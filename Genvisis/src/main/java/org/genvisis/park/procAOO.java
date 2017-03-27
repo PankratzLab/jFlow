@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ext;
@@ -113,7 +114,7 @@ public class procAOO {
 		diff.close();
 	}
 
-	public String pertinent(Vector<String> phenos) {
+	public String pertinent(List<String> phenos) {
 		// ext.formDeci 1, true for aoo --> 4, true for the others
 		String str = "";
 		int size = phenos.size();
@@ -124,7 +125,7 @@ public class procAOO {
 		if (size > 0) {
 			realPhenos = new double[size];
 			for (int i = 0; i < size; i++) {
-				realPhenos[i] = Double.valueOf(phenos.elementAt(i)).doubleValue();
+				realPhenos[i] = Double.valueOf(phenos.get(i)).doubleValue();
 				total += realPhenos[i];
 			}
 			str += ext.formDeci(total / size, DECIMAL_POINTS, true) + "\t";

@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Files;
@@ -29,7 +30,7 @@ public class UCSCtrack {
 		int start, stop, prevStart;
 		double value;
 		boolean ignoreWhenAbsentInResultsFile, separateMap, neg_log;
-		Vector<String> paramV;
+		List<String> paramV;
 		boolean displayMarkerName;
 		int unplaced, par, mitochondrial;
 

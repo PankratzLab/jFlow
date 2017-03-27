@@ -3,7 +3,9 @@ package org.genvisis.stats;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -23,7 +25,7 @@ public class Anova {
 
 	private double[] groupSumSquares;
 
-	private Vector<String> groupNames;
+	private List<String> groupNames;
 
 	private double SSb;
 
@@ -86,7 +88,7 @@ public class Anova {
 
 		data = new double[groupNames.size()][];
 		for (int i = 0; i < data.length; i++) {
-			v = hash.get(groupNames.elementAt(i));
+			v = hash.get(groupNames.get(i));
 			data[i] = new double[v.size()];
 			for (int j = 0; j < v.size(); j++) {
 				data[i][j] = Integer.valueOf(v.elementAt(j)).intValue();
@@ -97,13 +99,13 @@ public class Anova {
 	public Anova(double[][] inputData) throws IOException {
 		analysis_complete = false;
 		data = inputData;
-		groupNames = new Vector<String>();
+		groupNames = new ArrayList<String>();
 		for (int i = 1; i <= data.length; i++) {
 			groupNames.add("Group " + i);
 		}
 	}
 
-	public void assignGroupNames(Vector<String> inputNames) throws IOException {
+	public void assignGroupNames(List<String> inputNames) throws IOException {
 		groupNames = inputNames;
 	}
 
@@ -156,7 +158,7 @@ public class Anova {
 			return "Analysis not complete, run Anova.oneway()";
 		} else {
 			for (int i = 0; i < data.length; i++) {
-				list += groupNames.elementAt(i) + "\t" + ext.formDeci(groupMeans[i], 2, true) + "\n";
+				list += groupNames.get(i) + "\t" + ext.formDeci(groupMeans[i], 2, true) + "\n";
 			}
 			list += "SSb = " + ext.formDeci(SSb, 2, true) + "\n";
 			list += "SSw = " + ext.formDeci(SSw, 2, true) + "\n";
@@ -171,7 +173,7 @@ public class Anova {
 							+ "\n";
 			for (int i = 0; i < data.length; i++) {
 				for (int j = i + 1; j < data.length; j++) {
-					list += "Mean diff b/w " + groupNames.elementAt(i) + " & " + groupNames.elementAt(j)
+					list += "Mean diff b/w " + groupNames.get(i) + " & " + groupNames.get(j)
 									+ " = " + ext.formDeci(groupMeans[i] - groupMeans[j], 2, true)
 									+ ((Math.abs(groupMeans[i] - groupMeans[j]) > LSD05) ? "*" : "")
 									+ ((Math.abs(groupMeans[i] - groupMeans[j]) > LSD01) ? "*" : "") + "\n";

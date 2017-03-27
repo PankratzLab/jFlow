@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -48,7 +49,7 @@ public class ParseNinfos {
 
 	public static void parseNinfos(String dir, String ninfo1, String ninfo2, String ninfo5,
 																 String ninfo6) throws IOException {
-		Vector<String> inds;
+		List<String> inds;
 
 		System.out.println("Processing ninfo1...");
 		inds = procNinfoType1(dir + ninfo1, RAW_NINFO1_HEADER);
@@ -70,7 +71,7 @@ public class ParseNinfos {
 		Files.backup("ninfo6.dat", dir, dir + "backup/", false);
 	}
 
-	public static Vector<String> procNinfoType1(String filename, String[] header) {
+	public static List<String> procNinfoType1(String filename, String[] header) {
 		BufferedReader reader = null;
 		PrintWriter writer_CSV, writer_DAT, writer_DOB, writer;
 		String[] line, master;
@@ -258,7 +259,7 @@ public class ParseNinfos {
 		return inds;
 	}
 
-	public static void procNinfoType2(String filename, String[] header, Vector<String> inds) {
+	public static void procNinfoType2(String filename, String[] header, List<String> inds) {
 		BufferedReader reader = null;
 		PrintWriter writer_CSV, writer_DAT;
 		String[] line;
@@ -321,7 +322,7 @@ public class ParseNinfos {
 		}
 	}
 
-	public static String procDOB(String[] line, int[] indices, Vector<String> missingDOB) {
+	public static String procDOB(String[] line, int[] indices, List<String> missingDOB) {
 		String str = "";
 
 		for (int i = 0; i < 2; i++) {

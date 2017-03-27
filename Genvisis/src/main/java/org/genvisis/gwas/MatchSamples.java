@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -797,7 +798,7 @@ public class MatchSamples {
 	}
 
 	public static void matchFromParameters(String filename, Logger log) {
-		Vector<String> paramV;
+		List<String> paramV;
 		String factorFile, anchorFile, barnacleFile, demographicsFile, coordsFile;
 		String[] line;
 		int[] coords;
@@ -816,7 +817,7 @@ public class MatchSamples {
 																									"Age 4", "Sex 1", "PCA1 14", "PCA2 14"},
 																		log);
 		if (paramV != null) {
-			line = paramV.elementAt(0).split("[\\s]+");
+			line = paramV.get(0).split("[\\s]+");
 			factorFile = line[0];
 			normalize = false;
 			for (int i = 1; i < line.length; i++) {
@@ -826,18 +827,18 @@ public class MatchSamples {
 					System.err.println("Error - do not know what to do with parameter '" + line[i] + "'");
 				}
 			}
-			anchorFile = paramV.elementAt(1);
-			barnacleFile = paramV.elementAt(2);
-			line = paramV.elementAt(3).trim().split("[\\s]+");
+			anchorFile = paramV.get(1);
+			barnacleFile = paramV.get(2);
+			line = paramV.get(3).trim().split("[\\s]+");
 			demographicsFile = line[0];
 			demoFactors = ArrayUtils.subArray(line, 1);
-			line = paramV.elementAt(4).trim().split("[\\s]+");
+			line = paramV.get(4).trim().split("[\\s]+");
 			coordsFile = line[0];
 			coords = new int[] {Integer.parseInt(line[1]), Integer.parseInt(line[2])};
 			factors = new String[paramV.size() - 5];
 			factorWeights = new double[paramV.size() - 5];
 			for (int i = 0; i < factors.length; i++) {
-				line = paramV.elementAt(5 + i).trim().split("[\\s]+");
+				line = paramV.get(5 + i).trim().split("[\\s]+");
 				factors[i] = line[0];
 				factorWeights[i] = Double.parseDouble(line[1]);
 			}

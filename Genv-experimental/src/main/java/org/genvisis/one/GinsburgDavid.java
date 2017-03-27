@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -118,7 +119,7 @@ public class GinsburgDavid {
 		PrintWriter writer;
 		String[] line, subline;
 		Hashtable<String, String> lookup = new Hashtable<String, String>();
-		Vector<String> dnaList = new Vector<String>();
+		List<String> dnaList = new Vector<String>();
 		String temp, unparseable;
 		int pedNum, mother, father, sex;
 		String sStrain, bStrain;
@@ -137,10 +138,10 @@ public class GinsburgDavid {
 					logIt("Error writing to file \"DUPLICATE DNAS!!!.txt\"", true);
 				}
 			}
-			dnaList.insertElementAt(temp, i);
+			dnaList.add(i, temp);
 		}
-		sStrain = dnaList.elementAt(0);
-		bStrain = dnaList.elementAt(1);
+		sStrain = dnaList.get(0);
+		bStrain = dnaList.get(1);
 		logIt("Assuming we're taking the F1s of a " + sStrain + " x " + bStrain
 					+ " cross and backcrossing into " + bStrain, false);
 
@@ -274,7 +275,7 @@ public class GinsburgDavid {
 		}
 	}
 
-	public static Vector<String> getDNAlist(String dir, String genotypes, boolean report) {
+	public static List<String> getDNAlist(String dir, String genotypes, boolean report) {
 		BufferedReader reader;
 		String[] line;
 		Vector<String> dnaList = new Vector<String>();
@@ -339,9 +340,9 @@ public class GinsburgDavid {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
-		Vector<String> v = new Vector<String>();
+		List<String> v = new Vector<String>();
 		Vector<String> preData = new Vector<String>();
-		Vector<String> dnaList = new Vector<String>();
+		List<String> dnaList = new Vector<String>();
 		String temp;
 
 		dnaList = getDNAlist(dir, genotypes, false);
@@ -380,7 +381,7 @@ public class GinsburgDavid {
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "trimmed.pre"));
 			for (int i = 0; i < v.size(); i++) {
-				line = v.elementAt(i).split("[\\s]+");
+				line = v.get(i).split("[\\s]+");
 				writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
 											 + "\t" + (line[1].startsWith(bcStrainPrefix) ? "1" : "2"));
 				dnaList.remove(line[1]);
@@ -396,7 +397,7 @@ public class GinsburgDavid {
 			try {
 				writer = new PrintWriter(new FileWriter(dir + "DNAS NEVER USED!!!.txt"));
 				for (int i = 0; i < dnaList.size(); i++) {
-					writer.println(dnaList.elementAt(i));
+					writer.println(dnaList.get(i));
 				}
 				writer.close();
 			} catch (IOException ioe) {

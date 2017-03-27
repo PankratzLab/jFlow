@@ -10,6 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ext;
@@ -25,7 +26,8 @@ public class phenoStruct {
 		String[] line, subline;
 		String temp, id = "", trav, prev;
 		boolean done = false;
-		Vector<String> members = new Vector<String>(), v;
+		Vector<String> members = new Vector<String>();
+		List<String> v;
 		Vector<String> VPDmems = new Vector<String>();
 		Hashtable<String, String> diagnosis, sex, aoo, ethnicity, dna; // add
 		// covariate
@@ -299,13 +301,13 @@ public class phenoStruct {
 															 : tf.getNuclearFamilyInformation());
 
 							if (checkForParentOffspringSinglets(v, vips)) {
-								v.removeAllElements();
+								v.clear();
 							}
 
 							for (int i = 0; i < v.size(); i++) {
-								subline = (v.elementAt(i)).split("[\\s]+");
+								subline = (v.get(i)).split("[\\s]+");
 								id = subline[1];
-								writer[2 * allvpd + extnuc].print(v.elementAt(i));
+								writer[2 * allvpd + extnuc].print(v.get(i));
 								if (vips.contains(id + "")) {
 									id = prev + "\t" + id;
 									if (diagnosis.get(id) != null) {
@@ -338,7 +340,7 @@ public class phenoStruct {
 							}
 							v = tf.getUnused();
 							for (int i = 0; i < v.size(); i++) {
-								unused.println(prev + "\t" + v.elementAt(i));
+								unused.println(prev + "\t" + v.get(i));
 							}
 						}
 					}
@@ -368,20 +370,20 @@ public class phenoStruct {
 		}
 	}
 
-	public boolean checkForParentOffspringSinglets(Vector<String> v, Vector<String> vips) {
+	public boolean checkForParentOffspringSinglets(List<String> v, List<String> vips) {
 		Vector<String> presentVIPs = new Vector<String>();
 
 		for (int i = 0; i < v.size(); i++) {
-			if (vips.contains(v.elementAt(i).split("[\\s]+")[1])) {
-				presentVIPs.add(v.elementAt(i));
+			if (vips.contains(v.get(i).split("[\\s]+")[1])) {
+				presentVIPs.add(v.get(i));
 			}
 		}
 
 		if (presentVIPs.size() == 2) {
-			if ((v.elementAt(0)).split("[\\s]+")[1].equals((v.elementAt(1)).split("[\\s]+")[2])
-					|| (v.elementAt(0)).split("[\\s]+")[1].equals((v.elementAt(1)).split("[\\s]+")[3])
-					|| (v.elementAt(1)).split("[\\s]+")[1].equals((v.elementAt(1)).split("[\\s]+")[2])
-					|| (v.elementAt(1)).split("[\\s]+")[1].equals((v.elementAt(1)).split("[\\s]+")[3])) {
+			if ((v.get(0)).split("[\\s]+")[1].equals((v.get(1)).split("[\\s]+")[2])
+					|| (v.get(0)).split("[\\s]+")[1].equals((v.get(1)).split("[\\s]+")[3])
+					|| (v.get(1)).split("[\\s]+")[1].equals((v.get(1)).split("[\\s]+")[2])
+					|| (v.get(1)).split("[\\s]+")[1].equals((v.get(1)).split("[\\s]+")[3])) {
 				return true;
 			}
 		}

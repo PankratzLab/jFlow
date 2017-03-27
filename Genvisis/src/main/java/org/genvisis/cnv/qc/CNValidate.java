@@ -2,6 +2,7 @@ package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.cnv.filesys.MarkerSetInfo;
@@ -72,7 +73,7 @@ public class CNValidate implements Runnable {
 			processors = Runtime.getRuntime().availableProcessors();
 		}
 		Thread[] threads = new Thread[processors];
-		Vector<Vector<String>> cabinet = getcabinet(inds, processors);
+		List<List<String>> cabinet = getcabinet(inds, processors);
 		CNValidate[] cnvals = processValidations(proj, processors, threads, cabinet, allIndcnVariantQCs,
 																						 markerSet);
 		return collectAllValidations(processors, cnvals, inds, proj.getLog());
@@ -216,14 +217,14 @@ public class CNValidate implements Runnable {
 	}
 
 	private static CNValidate[] processValidations(Project proj, int processors, Thread[] threads,
-																								 Vector<Vector<String>> cabinet,
+																								 List<List<String>> cabinet,
 																								 Hashtable<String, CNVariantQC[]> allIndcnVariantQCs,
 																								 MarkerSetInfo markerSet) {
 		CNValidate[] cnvals = new CNValidate[processors];
 		for (int i = 0; i < processors; i++) {
 			cnvals[i] = new CNValidate(proj,
-																 cabinet.elementAt(i)
-																				.toArray(new String[cabinet.elementAt(i).size()]),
+																 cabinet.get(i)
+																				.toArray(new String[cabinet.get(i).size()]),
 																 allIndcnVariantQCs, markerSet);
 			threads[i] = new Thread(cnvals[i]);
 			threads[i].start();
@@ -265,13 +266,13 @@ public class CNValidate implements Runnable {
 		return cnVariantQCs;
 	}
 
-	private static Vector<Vector<String>> getcabinet(String[] inds, int processors) {
-		Vector<Vector<String>> cabinet = new Vector<Vector<String>>();
+	private static List<List<String>> getcabinet(String[] inds, int processors) {
+		List<List<String>> cabinet = new ArrayList<List<String>>();
 		for (int i = 0; i < processors; i++) {
-			cabinet.add(new Vector<String>());
+			cabinet.add(new ArrayList<String>());
 		}
 		for (int i = 0; i < inds.length; i++) {
-			cabinet.elementAt(i % processors).add(inds[i]);
+			cabinet.get(i % processors).add(inds[i]);
 		}
 		return cabinet;
 	}

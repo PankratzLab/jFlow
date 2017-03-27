@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -41,7 +43,7 @@ public class MetaAnalysisParams {
 
 	public MetaAnalysisParams(String filename, Logger log) {
 		String[] line;
-		Vector<String> v = new Vector<String>();
+		List<String> v = new Vector<String>();
 		boolean problem;
 
 		problem = false;
@@ -70,10 +72,10 @@ public class MetaAnalysisParams {
 						studies = new String[v.size()];
 						studyGroupings = new String[v.size()];
 						for (int i = 0; i < studies.length; i++) {
-							line = v.elementAt(i).split("\t");
+							line = v.get(i).split("\t");
 							if (line.length > 2) {
 								log.reportError("Error - more than one tab for study " + line[0] + ", please fix");
-								log.reportError("Found: " + v.elementAt(i));
+								log.reportError("Found: " + v.get(i));
 								problem = true;
 							}
 							studies[i] = line[0];
@@ -92,7 +94,7 @@ public class MetaAnalysisParams {
 						for (int i = 0; i < methods.length; i++) {
 							if (methods[i].length < 3) {
 								log.reportError("Error - a method must have at least 3 parameters: name, grouping, algorithm, (optional) MAF threshold, (optional) additional arguments such as weighting");
-								log.reportError("Found: " + v.elementAt(i));
+								log.reportError("Found: " + v.get(i));
 								problem = true;
 							} else if (methods[i].length == 3) {
 								log.reportError("Warning - no 4th token for method " + methods[i][0]
@@ -163,10 +165,10 @@ public class MetaAnalysisParams {
 		}
 	}
 
-	public Vector<String> populateParam() {
-		Vector<String> v;
+	public List<String> populateParam() {
+		List<String> v;
 
-		v = new Vector<String>();
+		v = new ArrayList<String>();
 		while (nextIsParam()) {
 			v.add(trav);
 		}
@@ -175,13 +177,13 @@ public class MetaAnalysisParams {
 	}
 
 	public String[][] populateParams() {
-		Vector<String> v;
+		List<String> v;
 		String[][] params;
 
 		v = populateParam();
 		params = new String[v.size()][];
 		for (int i = 0; i < params.length; i++) {
-			params[i] = v.elementAt(i).split("\t");
+			params[i] = v.get(i).split("\t");
 		}
 
 		return params;

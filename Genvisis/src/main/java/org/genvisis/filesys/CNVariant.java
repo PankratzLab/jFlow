@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.cnv.hmm.PennHmm;
@@ -217,7 +218,7 @@ public class CNVariant extends Segment {
 					 + numMarkers;
 	}
 
-	public static CNVariant[] toCNVariantArray(Vector<CNVariant> v) {
+	public static CNVariant[] toCNVariantArray(List<CNVariant> v) {
 		return v.toArray(new CNVariant[v.size()]);
 	}
 
@@ -237,14 +238,14 @@ public class CNVariant extends Segment {
 																																							includeLOH, jar)));
 	}
 
-	public static Vector<CNVariant> loadPlinkFile(String filename,
+	public static List<CNVariant> loadPlinkFile(String filename,
 																								Hashtable<String, String> sampleHash,
 																								boolean includeLOH, boolean jar) {
 		BufferedReader reader;
-		Vector<CNVariant> v = null;
+		List<CNVariant> v = null;
 		String[] line;
 
-		v = new Vector<CNVariant>();
+		v = new ArrayList<CNVariant>();
 		try {
 			reader = Files.getReader(filename, jar, true, true);
 

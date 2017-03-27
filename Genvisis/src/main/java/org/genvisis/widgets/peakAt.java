@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Vector;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
@@ -135,7 +136,7 @@ public class peakAt {
 	}
 
 	public static void fromParameters(String filename, Logger log) throws Elision {
-		Vector<String> params;
+		List<String> params;
 		String trav;
 		String inputFilename = "very_large_file.txt";
 		String outputFilename = "fraction_of_large_file.txt";
@@ -154,7 +155,7 @@ public class peakAt {
 
 		if (params != null) {
 			for (int i = 0; i < params.size(); i++) {
-				trav = params.elementAt(i);
+				trav = params.get(i);
 				if (trav.startsWith("input=")) {
 					inputFilename = ext.parseStringArg(trav, null);
 				} else if (trav.startsWith("output=")) {

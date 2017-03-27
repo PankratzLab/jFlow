@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -205,7 +206,7 @@ public class RelationAncestryQc extends Qc {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 
 		params = Files.parseControlFile(filename, "gwas.Qc",
 																		new String[] {"dir=./",

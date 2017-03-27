@@ -22,8 +22,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -490,7 +492,7 @@ public class IndependentSNPs {
 		}
 	}
 
-	public static String[] trimList(Vector<String> tags, int numSNPs) {
+	public static String[] trimList(List<String> tags, int numSNPs) {
 		String[] finalList;
 		double[] values;
 		int[] order;
@@ -501,13 +503,13 @@ public class IndependentSNPs {
 
 		values = new double[tags.size()];
 		for (int i = 0; i < values.length; i++) {
-			values[i] = Double.parseDouble(tags.elementAt(i).split("[\\s]+")[2]);
+			values[i] = Double.parseDouble(tags.get(i).split("[\\s]+")[2]);
 		}
 		order = Sort.getSortedIndices(values);
 
 		finalList = new String[numSNPs];
 		for (int i = 0; i < numSNPs; i++) {
-			finalList[i] = tags.elementAt(order[i]);
+			finalList[i] = tags.get(order[i]);
 		}
 
 		return finalList;
@@ -532,7 +534,7 @@ public class IndependentSNPs {
 	}
 
 	public static float getScore(String element, Hashtable<String, Float> scores,
-															 Hashtable<String, String> merges, Vector<String> missingValues,
+															 Hashtable<String, String> merges, List<String> missingValues,
 															 Logger log) {
 		if (scores.containsKey(element)) {
 			return scores.get(element).floatValue();
@@ -579,11 +581,11 @@ public class IndependentSNPs {
 		return ArrayUtils.toStringArray(v);
 	}
 
-	public static Vector<String> checkCoverage(String hitTags, String arrayTags, Logger log) {
+	public static List<String> checkCoverage(String hitTags, String arrayTags, Logger log) {
 		BufferedReader reader;
 		String[] line;
 		Hashtable<String, String> hash;
-		Vector<String> v = new Vector<String>();
+		List<String> v = new ArrayList<String>();
 		int numAlleles;
 
 		hash = HashVec.loadFileToHashString(hitTags, 0, new int[] {0}, "\t", false);
@@ -706,7 +708,7 @@ public class IndependentSNPs {
 		int numSNPs = Integer.MAX_VALUE;
 		int position_reportType = DEFAULT_POSITION_REPORT_TYPE;
 		int r2_compType = DEFAULT_LD_COMPARISON_TYPE;
-		Vector<String> params;
+		List<String> params;
 
 		params = Files.parseControlFile(filename, "indep",
 																		new String[] {"resultsFile=hits.txt", "outputRoot=tags",
@@ -726,7 +728,7 @@ public class IndependentSNPs {
 																		log);
 		if (params != null) {
 			for (int i = 0; i < params.size(); i++) {
-				trav = params.elementAt(i).trim();
+				trav = params.get(i).trim();
 				if (trav.startsWith("resultsFile=")) {
 					resultsFile = ext.parseStringArg(trav, null);
 				} else if (trav.startsWith("outputRoot=")) {

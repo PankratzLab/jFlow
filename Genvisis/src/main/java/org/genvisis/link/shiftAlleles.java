@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Files;
@@ -152,8 +153,8 @@ public class shiftAlleles {
 		reader.close();
 	}
 
-	public void shift(String markerName, int chr, Vector<String> oldAlleles,
-										Vector<String> newAlleles,
+	public void shift(String markerName, int chr, List<String> oldAlleles,
+										List<String> newAlleles,
 										Hashtable<String, String> impacted) throws IOException {
 		BufferedReader reader = null;
 		PrintWriter writer;
@@ -207,7 +208,7 @@ public class shiftAlleles {
 							System.err.println("      - and therefore was not shifted");
 							writer.print("\t" + line[3 + i * 2 + j]);
 						} else {
-							writer.print("\t" + newAlleles.elementAt(oldAlleles.indexOf(line[3 + i * 2 + j])));
+							writer.print("\t" + newAlleles.get(oldAlleles.indexOf(line[3 + i * 2 + j])));
 						}
 					}
 				} else {

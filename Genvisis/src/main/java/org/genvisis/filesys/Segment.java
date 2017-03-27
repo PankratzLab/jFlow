@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
@@ -394,9 +395,9 @@ public class Segment implements Serializable, Comparable<Segment> {
 		return c;
 	}
 
-	public static boolean addIfAbsent(Segment seg, Vector<Segment> exons) {
+	public static boolean addIfAbsent(Segment seg, List<Segment> exons) {
 		for (int i = 0; i < exons.size(); i++) {
-			if (seg.equals(exons.elementAt(i))) {
+			if (seg.equals(exons.get(i))) {
 				return false;
 			}
 		}
@@ -427,7 +428,7 @@ public class Segment implements Serializable, Comparable<Segment> {
 	}
 
 	// this method must be run separately for each chromosome
-	public static void mergeOverlapsAndSort(Vector<Segment> segments) {
+	public static void mergeOverlapsAndSort(List<Segment> segments) {
 		byte chr;
 		int[][] segBoundaries;
 		int count, start, stop;
@@ -436,7 +437,7 @@ public class Segment implements Serializable, Comparable<Segment> {
 			return;
 		}
 
-		chr = segments.elementAt(0).getChr();
+		chr = segments.get(0).getChr();
 		for (int i = 0; i < segments.size(); i++) {
 			if (segments.get(i).getChr() != chr) {
 				System.err.println("Mismatched chromosmes for merging...");
@@ -463,7 +464,7 @@ public class Segment implements Serializable, Comparable<Segment> {
 		}
 	}
 
-	public static void mergeOverlapsOld(Vector<Segment> segments) {
+	public static void mergeOverlapsOld(List<Segment> segments) {
 		boolean newlyAdded = true;
 		Segment seg1, seg2;
 
@@ -471,10 +472,10 @@ public class Segment implements Serializable, Comparable<Segment> {
 			newlyAdded = false;
 			for (int j = 0; j < segments.size(); j++) {
 				for (int k = j + 1; k < segments.size(); k++) {
-					if (segments.elementAt(j).overlaps(segments.elementAt(k))) {
+					if (segments.get(j).overlaps(segments.get(k))) {
 						seg2 = segments.remove(k);
 						seg1 = segments.remove(j);
-						segments.insertElementAt(seg1.merge(seg2), j);
+						segments.add(j, seg1.merge(seg2));
 						j = segments.size();
 						k = segments.size();
 						newlyAdded = true;
@@ -484,7 +485,7 @@ public class Segment implements Serializable, Comparable<Segment> {
 		}
 	}
 
-	public static int[][] convertListToSortedBoundaries(Vector<Segment> segs) {
+	public static int[][] convertListToSortedBoundaries(List<Segment> segs) {
 		int[][] segBoundaries = new int[segs.size()][2];
 
 		Segment[] arr = segs.toArray(new Segment[segs.size()]);
@@ -498,11 +499,11 @@ public class Segment implements Serializable, Comparable<Segment> {
 		return segBoundaries;
 	}
 
-	public static Segment[] toArray(Vector<Segment> setVec) {
+	public static Segment[] toArray(List<Segment> setVec) {
 		Segment[] list = new Segment[setVec.size()];
 
 		for (int i = 0; i < setVec.size(); i++) {
-			list[i] = setVec.elementAt(i);
+			list[i] = setVec.get(i);
 		}
 
 		return list;

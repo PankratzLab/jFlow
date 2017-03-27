@@ -628,7 +628,7 @@ public class SampleData {
 	/**
 	 * Popped this warning into a new Thread for gui reporting
 	 */
-	private static void warnMissingFiles(final Project proj, final Vector<String> missingFiles) {
+	private static void warnMissingFiles(final Project proj, final List<String> missingFiles) {
 		final String message = "The following CNV "
 													 + (missingFiles.size() > 1 ? "files do not" : "file does not")
 													 + " exist and therefore " + (missingFiles.size() > 1 ? "were" : "was")

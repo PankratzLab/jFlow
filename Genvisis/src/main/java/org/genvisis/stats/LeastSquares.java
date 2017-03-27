@@ -3,6 +3,7 @@ package org.genvisis.stats;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Vector;
 
 import org.apache.commons.math3.distribution.TDistribution;
@@ -40,27 +41,26 @@ public class LeastSquares extends RegressionModel {
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	public LeastSquares(Vector vDeps, Vector vIndeps) { // deps = Vector of int/double as String,
+	public LeastSquares(List vDeps, List vIndeps) { // deps = Vector of int/double as String,
 																											// indeps = Vector of double[]
 		this(vDeps, vIndeps, false, true);
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	public LeastSquares(Vector vDeps, Vector vIndeps, LS_TYPE lType) { // deps = Vector of int/double
+	public LeastSquares(List vDeps, List vIndeps, LS_TYPE lType) { // deps = Vector of int/double
 																																		 // as String, indeps = Vector
 																																		 // of double[]
 		this(vDeps, vIndeps, false, false, lType);
 	}
 
 	@SuppressWarnings({"rawtypes"})
-	public LeastSquares(Vector<String> vDeps, Vector vIndeps, boolean bypassDataCheck,
+	public LeastSquares(List vDeps, List vIndeps, boolean bypassDataCheck,
 											boolean verbose) {
 		this(processDeps(vDeps), processIndeps(vIndeps), bypassDataCheck, verbose);
 	}
 
 	@SuppressWarnings({"rawtypes"})
-	public LeastSquares(Vector<String> vDeps, Vector vIndeps, boolean bypassDataCheck,
-											boolean verbose, LS_TYPE lType) {
+	public LeastSquares(List<String> vDeps, List vIndeps, boolean bypassDataCheck, boolean verbose, LS_TYPE lType) {
 		this(processDeps(vDeps), processIndeps(vIndeps), bypassDataCheck, verbose, lType);
 	}
 

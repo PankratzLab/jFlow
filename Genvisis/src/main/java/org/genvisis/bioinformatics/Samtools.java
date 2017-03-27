@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
@@ -141,7 +142,7 @@ public class Samtools {
 	 */
 	public static void saveScriptsGeneratingMiniSamsOfOneGene(String scriptFileName,
 																														String miniSamDir,
-																														Vector<String> trioIdChrPos,
+																														List<String> trioIdChrPos,
 																														String[][] samFilenamesByTrios,
 																														int windowInBp, Logger log) {
 		PrintWriter writer;
@@ -247,7 +248,7 @@ public class Samtools {
 	}
 
 	public static void saveScriptsLaunchingIgv(String igvScriptDir, String miniSamDir,
-																						 Vector<String> trioIdChrPos,
+																						 List<String> trioIdChrPos,
 																						 String[][] samFilenamesByTrios, int windowInBp,
 																						 Logger log) {
 		int index;

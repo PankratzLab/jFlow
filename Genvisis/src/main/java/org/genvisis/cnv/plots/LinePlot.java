@@ -928,15 +928,16 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		// JFrame frame = new JFrame("Line Plot");
 		JFrame frame = new JFrame("Genvisis - EnrichmentPlot");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
+		frame.setLayout(new BorderLayout());
+		
 		// Create and set up the content pane.
 		LinePlot twoDPlot = new LinePlot(proj);
 		frame.setJMenuBar(twoDPlot.menuBar());
 		twoDPlot.setOpaque(true); // content panes must be opaque
 		frame.setContentPane(twoDPlot);
 		frame.addWindowListener(twoDPlot);
-		frame.setBounds(20, 20, 1000, 600);
-
+		
+		frame.setPreferredSize(new Dimension(1000, 600));
 		// Display the window.
 		frame.pack();
 		frame.setVisible(true);

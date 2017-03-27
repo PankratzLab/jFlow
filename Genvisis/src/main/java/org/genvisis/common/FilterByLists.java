@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 public class FilterByLists {
@@ -16,7 +17,7 @@ public class FilterByLists {
 		String[] line;
 		String filename, outputFilename;
 		int col;
-		Vector<String> paramV;
+		List<String> paramV;
 		boolean header;
 		String keeps, deletes;
 		boolean commaDelimited;

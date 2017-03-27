@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -194,7 +195,7 @@ public class FilterCalls {
 
 		sampleData = proj == null ? null : proj.getSampleData(0, false);
 
-		Vector<CNVariant> cnvList = CNVariant.loadPlinkFile(cnvFile, null, true,
+		List<CNVariant> cnvList = CNVariant.loadPlinkFile(cnvFile, null, true,
 																												proj == null ? false
 																																		 : proj.JAR_STATUS.getValue());
 		HashMap<String, ArrayList<CNVariant>[]> cnvMap = new HashMap<String, ArrayList<CNVariant>[]>();
@@ -1019,7 +1020,7 @@ public class FilterCalls {
 	}
 
 	public static void mergeCNVs(String in, String out, float distanceQuotient, String bimFile) {
-		Vector<CNVariant> inputCNVs = CNVariant.loadPlinkFile(in, null, true, false);
+		List<CNVariant> inputCNVs = CNVariant.loadPlinkFile(in, null, true, false);
 
 		int[][] positions = null;
 		if (bimFile != null) {
@@ -1390,7 +1391,7 @@ public class FilterCalls {
 	public static void filterExclusions(String dir, String in, String out, String indivFile,
 																			boolean exclude) {
 		PrintWriter writer;
-		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, true, false);
+		List<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, true, false);
 		boolean[] remove = ArrayUtils.booleanArray(cnvs.size(), !exclude);
 		HashSet<String> indivList = HashVec.convertHashNullToHashSet(HashVec.loadFileToHashString(indivFile,
 																																															new int[] {0,
@@ -2175,7 +2176,7 @@ public class FilterCalls {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 		String problematicRegionsLocation = "";
 
 		problematicRegionsLocation = Aliases.getPathToFileInReferenceDirectory("problematicRegions_hg19.dat",

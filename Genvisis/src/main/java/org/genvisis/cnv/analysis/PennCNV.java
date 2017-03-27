@@ -49,7 +49,7 @@ public class PennCNV {
 	public static final String QC_SUMMARY_EXTENSION = "_QC.xln";
 	public static final int MISSING_SCORE = -1;
 
-	public static void batch(Project proj, int numChunks, Vector<String> execList, String pfbFile,
+	public static void batch(Project proj, int numChunks, List<String> execList, String pfbFile,
 													 String gcmodelFile, String hmmFile, String scriptSubDir,
 													 String dataSubDir, String resultsSubDir) {
 		String commands;
@@ -163,7 +163,7 @@ public class PennCNV {
 	}
 
 	// FIXME need to unify this method with batch
-	public static void batchX(Project proj, int numChunks, Vector<String> execList, String pfbFile,
+	public static void batchX(Project proj, int numChunks, List<String> execList, String pfbFile,
 														String gcmodelFile, String hmmFile, String scriptSubDir,
 														String dataSubDir, String resultsSubDir) {
 		String commands;

@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.cnv.filesys.MarkerSetInfo;
@@ -888,7 +889,7 @@ public class CNVFilter {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 		params = Files.parseControlFile(filename, COMMAND_CNV_FILTER_CRF, getParserParams(), log);
 		params.add(COMMAND_CNV_FILTER);
 		if (params != null) {

@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -635,7 +636,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		jfc.setMultiSelectionEnabled(true);
 		if (jfc.showOpenDialog(TwoDPlot.this) == JFileChooser.APPROVE_OPTION) {
 			File selFile = jfc.getSelectedFile();
-			Vector<String> params = parseControlFile(selFile.getAbsolutePath(), log);
+			List<String> params = parseControlFile(selFile.getAbsolutePath(), log);
 			// final String projFile = params.get(0).split("=")[1];
 			final String baseDir = params.get(1).split("=")[1];
 			final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()),
@@ -1794,8 +1795,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		}
 	}
 
-	private static Vector<String> parseControlFile(String filename, Logger log) {
-		Vector<String> params;
+	private static List<String> parseControlFile(String filename, Logger log) {
+		List<String> params;
 
 		params = Files.parseControlFile(filename, "twoDScreenshots",
 																		new String[] {"proj=", "dir=", "# Per-line:",
@@ -2358,7 +2359,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params = parseControlFile(filename, log);
+		List<String> params = parseControlFile(filename, log);
 
 		if (params != null) {
 			final String projFile = params.get(0).split("=")[1];

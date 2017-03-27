@@ -2,6 +2,7 @@ package org.genvisis.filesys;
 
 import java.io.Serializable;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Files;
@@ -69,16 +70,16 @@ public class StringLDdb implements Serializable {
 		}
 	}
 
-	public void addMonomorphs(Vector<String> newMonomorphs) {
+	public void addMonomorphs(List<String> newMonomorphs) {
 		for (int i = 0; i < newMonomorphs.size(); i++) {
-			monomorphs.put(newMonomorphs.elementAt(i), "");
+			monomorphs.put(newMonomorphs.get(i), "");
 			changed = true;
 		}
 	}
 
-	public void addMissing(Vector<String> newMissings) {
+	public void addMissing(List<String> newMissings) {
 		for (int i = 0; i < newMissings.size(); i++) {
-			missing.put(newMissings.elementAt(i), "");
+			missing.put(newMissings.get(i), "");
 			changed = true;
 		}
 	}

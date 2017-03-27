@@ -6,7 +6,9 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Elision;
@@ -17,7 +19,7 @@ import org.genvisis.qsub.Qsub;
 
 public class CALiCo_SOL {
 
-	public static Vector<String> generateScripts(String commandFullPath, String[] methods,
+	public static List<String> generateScripts(String commandFullPath, String[] methods,
 																							 String phenoDir, String phenoNameExtOrFullPath,
 																							 String genoDir, String genoNameExtOrFullPath,
 																							 String probMatrixDir,
@@ -31,7 +33,7 @@ public class CALiCo_SOL {
 		String[] phenoLabels;
 		String[] probMatrixLabels;
 		String resultFullPath;
-		Vector<String> script;
+		List<String> script;
 
 		if (log == null) {
 			log = new Logger();
@@ -53,7 +55,7 @@ public class CALiCo_SOL {
 			methods = new String[] {"LS"};
 		}
 
-		script = new Vector<String>();
+		script = new ArrayList<String>();
 		for (int i = 0; (phenoFiles != null) && (i < phenoFiles.length); i++) {
 			for (int j = 0; j < genoFiles.length; j++) {
 				for (String method : methods) {
@@ -78,7 +80,7 @@ public class CALiCo_SOL {
 			try {
 				writer = new PrintWriter(new FileOutputStream(batchDir + "script.txt"));
 				for (int i = 0; i < script.size(); i++) {
-					writer.println(script.elementAt(i));
+					writer.println(script.get(i));
 				}
 				writer.close();
 			} catch (FileNotFoundException e) {
@@ -103,12 +105,12 @@ public class CALiCo_SOL {
 	// 16, true, "sb", -1, qsubMemInMBs, qsubWalltimeInHours);
 	// }
 
-	public static void generateQsubMultiple(Vector<String> jobNamesWithAbsolutePaths, String batchDir,
+	public static void generateQsubMultiple(List<String> jobNamesWithAbsolutePaths, String batchDir,
 																					String modelName, int qsubMemInMBs,
 																					double qsubWalltimeInHours, Logger log) {
 		IntVector jobSizes;
-		Vector<String> GenoFileNames;
-		Vector<Integer> fileSizes;
+		List<String> GenoFileNames;
+		List<Integer> fileSizes;
 		String line;
 		File file;
 		int index;
@@ -118,13 +120,13 @@ public class CALiCo_SOL {
 		GenoFileNames = new Vector<String>();
 		fileSizes = new Vector<Integer>();
 		for (int i = 0; i < jobNamesWithAbsolutePaths.size(); i++) {
-			line = jobNamesWithAbsolutePaths.elementAt(i);
+			line = jobNamesWithAbsolutePaths.get(i);
 			line = line.substring(line.indexOf(" --GENO " + 8));
 			line = line.substring(0, line.indexOf(""));
 			index = GenoFileNames.indexOf(line);
 			if (index >= 0) {
 				;
-				jobSizes.add(fileSizes.elementAt(index));
+				jobSizes.add(fileSizes.get(index));
 			} else {
 				file = new File(line);
 				if (file.exists()) {
@@ -333,7 +335,7 @@ public class CALiCo_SOL {
 		Logger log;
 		boolean isExisted;
 		boolean isSucceeded;
-		Vector<String> jobNamesWithAbsolutePaths;
+		List<String> jobNamesWithAbsolutePaths;
 
 		commandFullPath = "/home/pankrat2/shared/bin/SOLReg";
 		methods = new String[] {"LS", "logistic"};

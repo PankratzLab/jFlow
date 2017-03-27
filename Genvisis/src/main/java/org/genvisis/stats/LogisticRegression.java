@@ -1,5 +1,6 @@
 package org.genvisis.stats;
 
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -20,12 +21,12 @@ public class LogisticRegression extends RegressionModel {
 	private double CSRsquare;
 
 	@SuppressWarnings("rawtypes")
-	public LogisticRegression(Vector iDeps, Vector iIndeps) {
+	public LogisticRegression(List iDeps, List iIndeps) {
 		this(iDeps, iIndeps, false, true);
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	public LogisticRegression(Vector vDeps, Vector vIndeps, boolean bypassDataChecks,
+	public LogisticRegression(List vDeps, List vIndeps, boolean bypassDataChecks,
 														boolean verbose) {
 		this(processDeps(vDeps), processIndeps(vIndeps), bypassDataChecks, verbose);
 	}

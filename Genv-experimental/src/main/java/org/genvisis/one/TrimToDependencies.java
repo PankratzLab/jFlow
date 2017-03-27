@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -125,11 +126,11 @@ public class TrimToDependencies implements Serializable {
 			return packageName;
 		}
 
-		public Vector<String> getImports() {
+		public List<String> getImports() {
 			return imports;
 		}
 
-		public Vector<Class> getClasses() {
+		public List<Class> getClasses() {
 			return classes;
 		}
 
@@ -527,7 +528,7 @@ public class TrimToDependencies implements Serializable {
 			return returnType;
 		}
 
-		public Vector<Method> getMethodsUsed() {
+		public List<Method> getMethodsUsed() {
 			return methodsUsed;
 		}
 

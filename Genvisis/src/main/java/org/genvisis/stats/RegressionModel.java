@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -408,11 +409,11 @@ public abstract class RegressionModel {
 		return indeps[0].length > 0 ? true : false;
 	}
 
-	public static double[] processDeps(Vector<String> vDeps) {
+	public static double[] processDeps(List<String> vDeps) {
 		double[] deps = new double[vDeps.size()];
 
 		for (int i = 0; i < deps.length; i++) {
-			deps[i] = Double.parseDouble(vDeps.elementAt(i));
+			deps[i] = Double.parseDouble(vDeps.get(i));
 		}
 
 		return deps;
@@ -450,15 +451,15 @@ public abstract class RegressionModel {
 	// return indeps;
 
 	@SuppressWarnings({"rawtypes"})
-	public static double[][] processIndeps(Vector vIndeps) {
+	public static double[][] processIndeps(List vIndeps) {
 		double[][] indeps = new double[vIndeps.size()][];
 		int[] intarray = {0};
 
 		for (int i = 0; i < indeps.length; i++) {
-			if (vIndeps.elementAt(i).getClass() == intarray.getClass()) {
-				indeps[i] = ArrayUtils.toDoubleArray((int[]) vIndeps.elementAt(i));
+			if (vIndeps.get(i).getClass() == intarray.getClass()) {
+				indeps[i] = ArrayUtils.toDoubleArray((int[]) vIndeps.get(i));
 			} else {
-				indeps[i] = (double[]) vIndeps.elementAt(i);
+				indeps[i] = (double[]) vIndeps.get(i);
 			}
 		}
 

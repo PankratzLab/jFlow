@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Vector;
 
@@ -64,7 +65,7 @@ public class ExportCNVsToPedFormat {
 		int countValidLoci;
 		int fileNumber;
 		// Logger log;
-		Vector<CNVariant> cnVector;
+		List<CNVariant> cnVector;
 		CNVariant cnv;
 		int numBaseCNVs;
 		boolean wasNull = false;
@@ -135,11 +136,11 @@ public class ExportCNVsToPedFormat {
 		if (mzTwins.size() > 0) {
 			numBaseCNVs = cnVector.size();
 			for (int i = 0; i < numBaseCNVs; i++) {
-				cnv = cnVector.elementAt(i);
+				cnv = cnVector.get(i);
 				if (mzTwins.containsKey(cnv.getFamilyID() + "\t" + cnv.getIndividualID())) {
 					mzPairs = mzTwins.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
 					for (int j = 0; j < mzPairs.size(); j++) { // TODO concerns about duplication of CNVs?
-						cnv = cnVector.elementAt(i).clone();
+						cnv = cnVector.get(i).clone();
 						line = mzPairs.elementAt(j).split("[\\s]+");
 						cnv.setFamilyID(line[0]);
 						cnv.setIndividualID(line[1]);

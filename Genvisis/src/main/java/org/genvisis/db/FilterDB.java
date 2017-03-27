@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -114,7 +115,7 @@ public class FilterDB {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 		String dbFilename, filtersFilename, output;
 		String temp;
 
@@ -131,7 +132,7 @@ public class FilterDB {
 			filtersFilename = null;
 			output = null;
 			for (int i = 0; i < params.size(); i++) {
-				temp = params.elementAt(i);
+				temp = params.get(i);
 
 				if (temp.startsWith("db=")) {
 					dbFilename = ext.parseStringArg(temp, null);

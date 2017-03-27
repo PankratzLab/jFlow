@@ -1,5 +1,6 @@
 package org.genvisis.cnv.analysis;
 
+import java.util.List;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -7,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Vector;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -476,7 +476,7 @@ public class CNVBurdenIterator {
 	}
 
 	private void loadCNVs(String cnvFile) {
-		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, null, true, false);
+		List<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, null, true, false);
 
 		for (CNVariant cnv : cnvs) {
 			CNVData indiv = idData.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());

@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -32,10 +33,10 @@ public class GeneSet implements Serializable {
 		fingerprint = (long) (Math.random() * Long.MAX_VALUE);
 	}
 
-	public GeneSet(Vector<GeneData> setVec) {
+	public GeneSet(List<GeneData> setVec) {
 		set = new GeneData[setVec.size()];
 		for (int i = 0; i < setVec.size(); i++) {
-			set[i] = setVec.elementAt(i);
+			set[i] = setVec.get(i);
 		}
 
 		fingerprint = (long) (Math.random() * Long.MAX_VALUE);

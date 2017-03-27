@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
@@ -23,17 +24,17 @@ public class Stepwise {
 	// public static double ENTRY_PROB = 0.10;
 	public static double REMOVAL_PROB = 0.10;
 	private int M, N;
-	private final Vector<double[]> Xs;
-	private final Vector<String> Ys;
+	private final List<double[]> Xs;
+	private final List<String> Ys;
 	private boolean logistic;
 	private String[] varNames;
 	private int maxNameSize;
 	private Vector<IntVector> increments;
 	private RegressionModel finalModel;
 
-	public Stepwise(Vector<String> deps, Vector<double[]> indeps, boolean bonferroni) {
-		Xs = indeps;
-		Ys = deps;
+	public Stepwise(List<String> list, List<double[]> list2, boolean bonferroni) {
+		Xs = list2;
+		Ys = list;
 		run(Integer.MAX_VALUE, bonferroni, 1);
 	}
 
@@ -136,8 +137,8 @@ public class Stepwise {
 
 		N = Ys.size();
 		for (int i = 0; i < N && v.size() < 3; i++) {
-			if (!v.contains(Ys.elementAt(i))) {
-				v.add(Ys.elementAt(i));
+			if (!v.contains(Ys.get(i))) {
+				v.add(Ys.get(i));
 			}
 		}
 
@@ -148,7 +149,7 @@ public class Stepwise {
 		logistic = (v.size() == 2);
 		System.out.println("Performing stepwise " + (logistic ? "logistic" : "linear") + " regression");
 
-		M = Xs.firstElement().length;
+		M = Xs.get(0).length;
 
 		varNames = new String[M];
 		for (int i = 0; i < M; i++) {
@@ -256,21 +257,21 @@ public class Stepwise {
 		private final IntVector in;
 		private final IntVector out;
 		private final boolean logistic;
-		private final Vector<String> Ys;
-		private final Vector<double[]> Xs;
+		private final List<String> Ys;
+		private final List<double[]> Xs;
 		private final int N;
 		private final int svdRegressionSwitch;
 
 		private int index;
 
-		public RegressionProducer(IntVector in, IntVector out, boolean logistic, Vector<String> ys,
-															Vector<double[]> xs, int n, int svdRegressionSwitch) {
+		public RegressionProducer(IntVector in, IntVector out, boolean logistic, List<String> ys2,
+															List<double[]> xs2, int n, int svdRegressionSwitch) {
 			super();
 			this.in = in;
 			this.out = out;
 			this.logistic = logistic;
-			Ys = ys;
-			Xs = xs;
+			Ys = ys2;
+			Xs = xs2;
 			N = n;
 			index = 0;
 			this.svdRegressionSwitch = svdRegressionSwitch;
@@ -293,16 +294,16 @@ public class Stepwise {
 	}
 
 	private static class RegressionWorker implements Callable<RegressionModel> {
-		private final Vector<double[]> currentXs;
-		private final Vector<String> Ys;
+		private final List<double[]> currentXs;
+		private final List<String> Ys;
 		private final boolean logistic;
 		private final int svdRegressionSwitch;
 
-		public RegressionWorker(Vector<String> ys, Vector<double[]> currentXs, boolean logistic,
+		public RegressionWorker(List<String> ys2, List<double[]> currentXs, boolean logistic,
 														int svdRegressionSwitch) {
 			super();
 			this.currentXs = currentXs;
-			Ys = ys;
+			Ys = ys2;
 			this.logistic = logistic;
 			this.svdRegressionSwitch = svdRegressionSwitch;
 		}
@@ -319,13 +320,13 @@ public class Stepwise {
 	}
 
 
-	public static Vector<double[]> travXs(int N, Vector<double[]> Xs, IntVector ins) {
+	public static Vector<double[]> travXs(int N, List<double[]> xs2, IntVector ins) {
 		Vector<double[]> v = new Vector<double[]>();
 		double[] data, newdata;
 
 		for (int i = 0; i < N; i++) {
 			newdata = new double[ins.size()];
-			data = Xs.elementAt(i);
+			data = xs2.get(i);
 			for (int j = 0; j < ins.size(); j++) {
 				newdata[j] = data[ins.elementAt(j)];
 			}
@@ -335,10 +336,10 @@ public class Stepwise {
 		return v;
 	}
 
-	public void setVarNames(Vector<String> vNames) {
+	public void setVarNames(List<String> vNames) {
 		String[] names = new String[vNames.size()];
 		for (int i = 0; i < names.length; i++) {
-			names[i] = vNames.elementAt(i);
+			names[i] = vNames.get(i);
 		}
 		setVarNames(names);
 	}
@@ -491,8 +492,8 @@ public class Stepwise {
 			}
 			writer.println();
 			for (int i = 0; i < N; i++) {
-				writer.print(Ys.elementAt(i));
-				data = Xs.elementAt(i);
+				writer.print(Ys.get(i));
+				data = Xs.get(i);
 				for (int j = 0; j < M; j++) {
 					writer.print("\t" + data[j]);
 				}
@@ -546,33 +547,33 @@ public class Stepwise {
 
 
 class RegVectors {
-	private final Vector<String> deps;
+	private final List<String> deps;
 
-	private final Vector<double[]> indeps;
+	private final List<double[]> indeps;
 
-	private final Vector<String> varNames;
+	private final List<String> varNames;
 
-	public RegVectors(Vector<String> deps, Vector<double[]> indeps) {
+	public RegVectors(List<String> deps, List<double[]> indeps) {
 		this.deps = deps;
 		this.indeps = indeps;
 		varNames = null;
 	}
 
-	public RegVectors(Vector<String> deps, Vector<double[]> indeps, Vector<String> varNames) {
+	public RegVectors(List<String> deps, List<double[]> indeps, List<String> varNames) {
 		this.deps = deps;
 		this.indeps = indeps;
 		this.varNames = varNames;
 	}
 
-	public Vector<String> getDeps() {
+	public List<String> getDeps() {
 		return deps;
 	}
 
-	public Vector<double[]> getIndeps() {
+	public List<double[]> getIndeps() {
 		return indeps;
 	}
 
-	public Vector<String> getVarNames() {
+	public List<String> getVarNames() {
 		return varNames;
 	}
 }

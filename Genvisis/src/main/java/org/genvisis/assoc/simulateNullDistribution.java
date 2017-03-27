@@ -14,6 +14,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -47,7 +48,7 @@ public class simulateNullDistribution {
 		Hashtable<String, String> affs;
 		Hashtable<String, Vector<String>> vips = new Hashtable<String, Vector<String>>(), backup;
 		Hashtable<String, Vector<String>> genos = new Hashtable<String, Vector<String>>();
-		Vector<String> v;
+		List<String> v;
 		IntVector alleles = new IntVector();
 		DoubleVector counts = new DoubleVector();
 		int numParticipants, allele;
@@ -116,7 +117,7 @@ public class simulateNullDistribution {
 						v = tf.getExtendedFamilyInformation();
 						affs = phenos.get(prev);
 						for (int i = 0; i < v.size(); i++) {
-							trav = v.elementAt(i).split("[\\s]+");
+							trav = v.get(i).split("[\\s]+");
 							writer.println(ArrayUtils.toStr(trav, "\t") + "\t" + (affs.containsKey(trav[1])
 																																															? (Integer.parseInt(affs.get(trav[1]))
 																																																 + 1)
@@ -146,9 +147,9 @@ public class simulateNullDistribution {
 														 + ArrayUtils.toStr(ArrayUtils.toStringArray(v), ",") + "");
 				}
 				for (int j = 0; j < v.size(); j++) {
-					writer.println(fam + "\t" + v.elementAt(j)
-												 + "\t0\t0\t2\t" + (affs.containsKey(v.elementAt(j))
-																																						 ? (Integer.parseInt(affs.get(v.elementAt(j)))
+					writer.println(fam + "\t" + v.get(j)
+												 + "\t0\t0\t2\t" + (affs.containsKey(v.get(j))
+																																						 ? (Integer.parseInt(affs.get(v.get(j)))
 																																								+ 1)
 																																							 + "\t1\t1"
 																																						 : "0\t9\t9")
@@ -175,7 +176,7 @@ public class simulateNullDistribution {
 			v = genos.get(fam);
 			numParticipants += v.size() / 2;
 			for (int j = 0; j < v.size(); j++) {
-				allele = Integer.parseInt(v.elementAt(j));
+				allele = Integer.parseInt(v.get(j));
 				int index = alleles.indexOf(allele);
 				if (index >= 0) {
 					counts.set(index, counts.get(index) + (2.0 / v.size()));

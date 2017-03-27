@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.bioinformatics.SeattleSeq;
@@ -171,8 +172,8 @@ public class Polymutt {
 	}
 
 	private static void parseDenovo(String filename, Hashtable<String, String[]> parsedAnnotations,
-																	Vector<String> unknownAnnotations,
-																	Vector<String> finishedAnnotations, Logger log) {
+																	List<String> unknownAnnotations,
+																	List<String> finishedAnnotations, Logger log) {
 		BufferedReader reader;
 		String[] line, subline;
 		String temp, trav;

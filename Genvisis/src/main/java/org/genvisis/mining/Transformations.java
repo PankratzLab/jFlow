@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.cnv.analysis.BeastScore;
@@ -312,7 +313,7 @@ public class Transformations {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> paramV;
+		List<String> paramV;
 		String[] defaults;
 		String types;
 
@@ -327,7 +328,7 @@ public class Transformations {
 		}
 		paramV = Files.parseControlFile(filename, "transform", defaults, log);
 		if (paramV != null) {
-			paramV.addElement("logfile=" + log.getFilename());
+			paramV.add("logfile=" + log.getFilename());
 			main(ArrayUtils.toStringArray(paramV));
 		}
 	}

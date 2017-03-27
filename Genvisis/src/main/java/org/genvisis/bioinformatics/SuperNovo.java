@@ -11,11 +11,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
@@ -649,7 +651,7 @@ public class SuperNovo {
 																																		PrintWriter fullpathToSaveReadCounts,
 																																		byte readCountsFileFormat,
 																																		Logger log) {
-		Vector<String[]> samContentVec;
+		List<String[]> samContentVec;
 		int numLines;
 		int numMarkersPlusWindow;
 		int window;
@@ -658,7 +660,7 @@ public class SuperNovo {
 		int[][][] mappingScores = null;
 		String[] refAlleles;
 		Vector<int[]> denovoMutations;
-		Vector<Vector<Integer>[][]> denovoMutationNotes;
+		List<List<Integer>[][]> denovoMutationNotes;
 		Hashtable<String, String> altAllelesForInsertions_Child;
 		int startPosAdjForWindow;
 		int stopPosAdjForWindow;
@@ -685,7 +687,7 @@ public class SuperNovo {
 																				stopPosAdjForWindow);
 			numLines = samContentVec.size();
 			for (int j = 0; j < numLines; j++) {
-				cigarDecoding(samContentVec.elementAt(j), chr, startPosAdjForWindow, stopPosAdjForWindow, 0,
+				cigarDecoding(samContentVec.get(j), chr, startPosAdjForWindow, stopPosAdjForWindow, 0,
 											readsCounts[i], phredScores[i], mappingScores[i],
 											(i == 0 ? altAllelesForInsertions_Child : null));
 			} ;
@@ -701,9 +703,9 @@ public class SuperNovo {
 		denovoMutations = new Vector<int[]>(10);
 		getFilteredResults(readsCounts, mappingScores, startPosition - startPosAdjForWindow,
 											 stopPosition - startPosAdjForWindow, denovoMutations);
-		denovoMutationNotes = new Vector<Vector<Integer>[][]>(denovoMutations.size());
+		denovoMutationNotes = new ArrayList<List<Integer>[][]>(denovoMutations.size());
 		for (int j = 0; j < denovoMutations.size(); j++) {
-			denovoMutationNotes.add(new Vector[DENOVO_MUTATION_NOTES_ARRAY_STRUCT.length][SAMPLE_SUFFIX.length]);
+			denovoMutationNotes.add(new ArrayList[DENOVO_MUTATION_NOTES_ARRAY_STRUCT.length][SAMPLE_SUFFIX.length]);
 		}
 		getNearbyInDelVars(readsCounts, denovoMutations, denovoMutationNotes);
 		getNearbyDeNovos(readsCounts, denovoMutations, denovoMutationNotes);
@@ -900,7 +902,7 @@ public class SuperNovo {
 
 	public static void getFilteredResults(int[][][] readsCounts, int[][][] mappingScores,
 																				int inputArrayStartIndex, int inputArrayStopIndex,
-																				Vector<int[]> output1DenovoMutations) {
+																				List<int[]> output1DenovoMutations) {
 		int[][] orderedIndices;
 		int[] temp;
 
@@ -1223,19 +1225,19 @@ public class SuperNovo {
 		}
 	}
 
-	public static void getNearbyInDelVars(int[][][] readsCounts, Vector<int[]> denovoMutations,
-																				Vector<Vector<Integer>[][]> outputDenovoMutationNotes) {
+	public static void getNearbyInDelVars(int[][][] readsCounts, List<int[]> denovoMutations,
+																				List<List<Integer>[][]> outputDenovoMutationNotes) {
 		byte[] indicesOfInDels;
 		int index;
 		int loop2;
 		int loop1;
-		Vector<Integer>[][] temp;
+		List<Integer>[][] temp;
 
 		indicesOfInDels = new byte[] {INDEX_OF_INS, INDEX_OF_DEL, INDEX_OF_NUM_ALLELES_LOOSE};
 		loop1 = denovoMutations.size();
 		for (int i = 0; i < loop1; i++) {
-			index = denovoMutations.elementAt(i)[0];
-			temp = outputDenovoMutationNotes.elementAt(i);
+			index = denovoMutations.get(i)[0];
+			temp = outputDenovoMutationNotes.get(i);
 			loop2 = Math.min(readsCounts[0].length, index + WINDOW_SIZE_FOR_NEARBY_INDEL);
 			for (int j = Math.max(0, index - WINDOW_SIZE_FOR_NEARBY_INDEL); j < loop2; j++) {
 				for (int k = 0; k < readsCounts.length; k++) {
@@ -1254,21 +1256,21 @@ public class SuperNovo {
 		}
 	}
 
-	public static void getNearbyDeNovos(int[][][] readsCounts, Vector<int[]> denovoMutations,
-																			Vector<Vector<Integer>[][]> outputDenovoMutationNotes) {
+	public static void getNearbyDeNovos(int[][][] readsCounts, List<int[]> denovoMutations,
+																			List<List<Integer>[][]> outputDenovoMutationNotes) {
 		int index2;
 		int loop1;
-		Vector<Integer>[][] temp;
+		List<Integer>[][] temp;
 		int[] currentDenovoMuations;
 		int[] orderedIndices;
 
 		loop1 = denovoMutations.size();
 		for (int i = 0; i < loop1; i++) {
-			currentDenovoMuations = denovoMutations.elementAt(i);
-			temp = outputDenovoMutationNotes.elementAt(i);
+			currentDenovoMuations = denovoMutations.get(i);
+			temp = outputDenovoMutationNotes.get(i);
 			for (int j = 0; j < loop1; j++) {
 				if (i != j) {
-					index2 = denovoMutations.elementAt(j)[0];
+					index2 = denovoMutations.get(j)[0];
 					if (Math.abs(currentDenovoMuations[0] - index2) <= WINDOW_SIZE_FOR_NEARBY_DENOVO
 							&& currentDenovoMuations[3] > 10 && currentDenovoMuations[4] > 10) {
 						orderedIndices = Sort.getReverseIndices(new int[] {readsCounts[0][index2][0],
@@ -1340,7 +1342,7 @@ public class SuperNovo {
 		return result;
 	}
 
-	public static String[] getRefFromFasta(String refFastaFilename, Vector<int[]> denovoMutations,
+	public static String[] getRefFromFasta(String refFastaFilename, List<int[]> denovoMutations,
 																				 String chr, int startPosAdjForWindow) {
 		int loop;
 		int[] temp;
@@ -1355,7 +1357,7 @@ public class SuperNovo {
 		refs = new String[loop];
 		try {
 			for (int i = 0; i < loop; i++) {
-				temp = denovoMutations.elementAt(i);
+				temp = denovoMutations.get(i);
 				pos = temp[0] + startPosAdjForWindow;
 				p = Runtime.getRuntime().exec("samtools faidx " + refFastaFilename + " chr" + chr + ":"
 																			+ pos + "-" + pos, null,
@@ -1398,8 +1400,8 @@ public class SuperNovo {
 																	String[] refsForDeNovoMutations,
 																	Hashtable<String, String> altAllelesForInsertionForChild,
 																	int[][][] readsCounts, int[][][] phredScores,
-																	int[][][] mappingScores, Vector<int[]> denovoMutations,
-																	Vector<Vector<Integer>[][]> denovoMutationNotes, String flag,
+																	int[][][] mappingScores, List<int[]> denovoMutations,
+																	List<List<Integer>[][]> denovoMutationNotes, String flag,
 																	byte format, Logger log) {
 		int[] deNovoMutation;
 		int loop;
@@ -1409,7 +1411,7 @@ public class SuperNovo {
 
 		loop = denovoMutations.size();
 		for (int i = 0; i < loop; i++) {
-			deNovoMutation = denovoMutations.elementAt(i);
+			deNovoMutation = denovoMutations.get(i);
 			l = deNovoMutation[0];
 			currentPos = startPosAdjForWindow + l;
 			altAlleleForInsertionForChild = altAllelesForInsertionForChild.get(currentPos + "");
@@ -1508,18 +1510,18 @@ public class SuperNovo {
 		// readsCounts[2][indexOfCurrentMarker][6]) + ")";
 	}
 
-	public static String formatNotes(Vector<Vector<Integer>[][]> denovoMarkerNotes,
+	public static String formatNotes(List<List<Integer>[][]> denovoMarkerNotes,
 																	 int indexOfCurrentElement, byte format) {
 		String result2;
 		String result1;
-		Vector<Integer>[][] temp;
+		List<Integer>[][] temp;
 		int loop;
 		boolean isFirstInTheSection;
 		boolean isFirstSection;
 
 		result1 = "";
 		result2 = "";
-		temp = denovoMarkerNotes.elementAt(indexOfCurrentElement);
+		temp = denovoMarkerNotes.get(indexOfCurrentElement);
 		isFirstSection = true;
 		if (format == 2) {
 			for (int i = 0; i < temp.length; i++) {
@@ -1534,10 +1536,10 @@ public class SuperNovo {
 						} else {
 							result2 += " ";
 						}
-						result2 += (SAMPLE_SUFFIX[j] + ":" + temp[i][j].elementAt(0));
+						result2 += (SAMPLE_SUFFIX[j] + ":" + temp[i][j].get(0));
 						loop = temp[i][j].size();
 						for (int k = 1; k < loop; k++) {
-							result2 += ("," + temp[i][j].elementAt(k));
+							result2 += ("," + temp[i][j].get(k));
 						}
 						result1 += ((i == 0 && j == 0 ? "" : "\t") + temp[i][j].size());
 					} else {
@@ -1560,10 +1562,10 @@ public class SuperNovo {
 						} else {
 							result2 += " ";
 						}
-						result2 += (SAMPLE_SUFFIX[j] + ":" + temp[i][j].elementAt(0));
+						result2 += (SAMPLE_SUFFIX[j] + ":" + temp[i][j].get(0));
 						loop = temp[i][j].size();
 						for (int k = 1; k < loop; k++) {
-							result2 += ("," + temp[i][j].elementAt(k));
+							result2 += ("," + temp[i][j].get(k));
 						}
 						result1 += ((j == 0 ? "" : ",") + temp[i][j].size());
 					} else {
@@ -1741,7 +1743,7 @@ public class SuperNovo {
 		return result;
 	}
 
-	public static Vector<String[]> loadBamByPipeline(String fullpathToSamFile, String chr, int begin,
+	public static List<String[]> loadBamByPipeline(String fullpathToSamFile, String chr, int begin,
 																									 int end) {
 		Process p;
 		// ProcessBuilder ps;
@@ -1782,7 +1784,7 @@ public class SuperNovo {
 		return samContentVec;
 	}
 
-	public static Vector<String[]> loadBamByFileReader(String fullpathToSamFile, String chr,
+	public static List<String[]> loadBamByFileReader(String fullpathToSamFile, String chr,
 																										 int begin, int end) {
 		BufferedReader reader;
 		String line;
@@ -3324,7 +3326,7 @@ public class SuperNovo {
 	public static int getHaplotypes(String[] fullpathsToSamFiles, String trioId, String chr,
 																	int beginPosition, int endPosition, String haplotypeFilename,
 																	Logger log) {
-		Vector<String[]> samContentVec;
+		List<String[]> samContentVec;
 		int numLines, window, beginPositionExt, endPositionExt;
 		char[] ref;
 		String[] tmp;
@@ -3355,7 +3357,7 @@ public class SuperNovo {
 			for (int j = 0; j < numLines; j++) {
 				insertionStringOfCurrentRead = new Hashtable<Integer, String>();
 				insertionPhredOfCurrentRead = new Hashtable<Integer, String>();
-				tmp = cigarToReFormatedString(samContentVec.elementAt(j), beginPositionExt, endPositionExt,
+				tmp = cigarToReFormatedString(samContentVec.get(j), beginPositionExt, endPositionExt,
 																			insertionStringOfCurrentRead, insertionPhredOfCurrentRead);
 				if (tmp != null && (beginPositionExt + Integer.parseInt(tmp[0])) <= endPosition
 						&& (beginPositionExt + Integer.parseInt(tmp[0]) + tmp[1].length()) >= beginPosition) { // TODO
@@ -4128,7 +4130,7 @@ public class SuperNovo {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 
 		params = Files.parseControlFile(filename, "SuperNovo",
 																		new String[] {"file=snps.txt",

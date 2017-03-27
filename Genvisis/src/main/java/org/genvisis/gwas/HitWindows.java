@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Aliases;
@@ -320,7 +321,7 @@ public class HitWindows {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 
 		params = Files.parseControlFile(filename, "hitWindows",
 																		new String[] {"# filename containing the markers/chrs/positions/p-values:",

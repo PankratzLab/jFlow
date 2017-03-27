@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Files;
@@ -65,14 +67,14 @@ public class sumOSA {
 		new sumOSA(runs);
 	}
 
-	public sumOSA(Vector<String> runDirs) throws IOException {
+	public sumOSA(List<String> runDirs) throws IOException {
 		PrintWriter writer = null, batch = null;
 		String temp;
 		String base;
 		osaChrom[][] osac;
 		String plug = "plug";
 		int chr;
-		Vector<osaChrom[][]> runs = new Vector<osaChrom[][]>();
+		List<osaChrom[][]> runs = new ArrayList<osaChrom[][]>();
 
 		batch = new PrintWriter(new FileWriter("batchPerms"));
 		batch.println("sleep 5");
@@ -83,7 +85,7 @@ public class sumOSA {
 		writer.close();
 
 		for (int run = 0; run < runDirs.size(); run++) {
-			base = runDirs.elementAt(run);
+			base = runDirs.get(run);
 
 			try {
 				if (new File(base + "AscendingKey.dat").exists()) {
@@ -102,7 +104,7 @@ public class sumOSA {
 		temp = "";
 		writer = new PrintWriter(new FileWriter("osa_summary.xls"));
 		for (int run = 0; run < runDirs.size(); run++) {
-			writer.print((run == 0 ? "\t" : "") + "\t" + runDirs.elementAt(run) + "\t\t\t\t\t\t\t\t");
+			writer.print((run == 0 ? "\t" : "") + "\t" + runDirs.get(run) + "\t\t\t\t\t\t\t\t");
 			temp += "\t" + (run == 0 ? "Direction" : "")
 							+ "\tPosition\tmaxLOD\tbaseLOD\tIncrease\tSignificance\tFamsUsed\tTotalFams\tProportion";
 		}
@@ -113,7 +115,7 @@ public class sumOSA {
 			for (int k = 0; k < 2; k++) {
 				writer.print((k == 0 ? "Chr " + chr + "\t" + "Ascending" : "\t" + "Descending"));
 				for (int run = 0; run < runs.size(); run++) {
-					osac = runs.elementAt(run);
+					osac = runs.get(run);
 					if (osac[k][i] != null) {
 						writer.print("\t" + osac[k][i].maxPos + "\t" + ext.formDeci(osac[k][i].maxLOD, 2, true)
 												 + "\t" + ext.formDeci(osac[k][i].baseLOD, 2, true) + "\t"

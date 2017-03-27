@@ -382,14 +382,14 @@ public class Qsub {
 		}
 	}
 
-	public static void qsubMultiple(Vector<String> jobNamesWithAbsolutePaths, IntVector jobSizes,
+	public static void qsubMultiple(List<String> jobNamesWithAbsolutePaths, IntVector jobSizes,
 																	String batchDir, String batchRoot, int maxJobsPerBatch,
 																	boolean forceMaxJobs, String queueName,
 																	int memoryPerProcRequestedInMb, int totalMemoryRequestedInMb,
 																	double walltimeRequestedInHours) {
 		String[] files;
 		int count;
-		Vector<String> v;
+		List<String> v;
 	
 		if (jobSizes == null) {
 			files = ArrayUtils.toStringArray(jobNamesWithAbsolutePaths);
@@ -398,7 +398,7 @@ public class Qsub {
 			files = Sort.getOrdered(jobNamesWithAbsolutePaths, jobOrder);
 		}
 		count = 0;
-		v = new Vector<String>();
+		v = new ArrayList<String>();
 		new File(batchDir).mkdirs();
 		v.add("cd " + batchDir);
 		while (count * maxJobsPerBatch < files.length) {
@@ -418,7 +418,7 @@ public class Qsub {
 	}
 
 	public static void qsubExecutor(String dirToSwitchToBeforeRunning,
-																	Vector<String> commandsWithAbsolutePaths, IntVector jobSizes,
+																	List<String> commandsWithAbsolutePaths, IntVector jobSizes,
 																	String batchRoot, int numProcs, int totalMemoryRequestedInMb,
 																	double walltimeRequestedInHours) {
 		String[] commands;

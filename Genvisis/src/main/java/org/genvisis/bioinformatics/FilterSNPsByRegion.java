@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -31,7 +32,7 @@ public class FilterSNPsByRegion {
 		int snpCol, chrCol, startCol, stopCol, posCol;
 		boolean passes;
 		int buffer;
-		Vector<String> paramV;
+		List<String> paramV;
 		boolean header, ucsc, regionNumber;
 		int regionNameIndex;
 
@@ -106,9 +107,9 @@ public class FilterSNPsByRegion {
 		posCol = Integer.parseInt(line[3]);
 
 		for (int i = 0; i < paramV.size(); i++) {
-			if (paramV.elementAt(i).startsWith("buffer=")) {
-				buffer = Integer.parseInt(paramV.elementAt(i).split("=")[1]);
-				paramV.removeElementAt(i);
+			if (paramV.get(i).startsWith("buffer=")) {
+				buffer = Integer.parseInt(paramV.get(i).split("=")[1]);
+				paramV.remove(i);
 				i--;
 			}
 		}

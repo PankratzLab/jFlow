@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -415,7 +416,8 @@ public class DumpSAS {
 		String[] line;
 		Hashtable<String, Hashtable<String, String>> hashes;
 		Hashtable<String, String> hash, forcedIDs, masterIDs;
-		Vector<String> params, files, ids;
+		List<String> params;
+		Vector<String> files, ids;
 		boolean error, foundAnID;
 		String file;
 		String[] keys, header;
@@ -455,7 +457,7 @@ public class DumpSAS {
 			hashes = new Hashtable<String, Hashtable<String, String>>();
 			files = new Vector<String>();
 			for (int i = 0; i < params.size(); i++) {
-				line = params.elementAt(i).trim().split("\t");
+				line = params.get(i).trim().split("\t");
 				if (line[0].equals("")) {
 					line[0] = ".";
 				}

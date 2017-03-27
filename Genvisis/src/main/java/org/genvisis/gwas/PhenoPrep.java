@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.cnv.filesys.Project;
@@ -767,7 +768,7 @@ public class PhenoPrep {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 
 		params = Files.parseControlFile(filename, "PhenoPrep",
 																		new String[] {"dir=", "# name of input file", "file=input.txt",
@@ -820,7 +821,7 @@ public class PhenoPrep {
 	}
 
 	public static void summarizeFromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 		String[] files, vars;
 
 		files = Files.list("./", ".csv", false);

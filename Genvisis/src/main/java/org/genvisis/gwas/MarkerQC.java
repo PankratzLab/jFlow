@@ -505,7 +505,7 @@ public class MarkerQC {
 		Vector<String[]> v;
 		String key;
 		String[] file, markers;
-		Vector<String> paramV;
+		List<String> paramV;
 		String dir;
 
 		dir = "";
@@ -518,7 +518,7 @@ public class MarkerQC {
 			markers = null;
 			v = new Vector<String[]>();
 			for (int i = 0; i < paramV.size(); i++) {
-				line = paramV.elementAt(i).trim().split("=");
+				line = paramV.get(i).trim().split("=");
 				key = line[0];
 				line = line[1].trim().split(",");
 				record = new String[line.length + 1];

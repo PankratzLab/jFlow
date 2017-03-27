@@ -1094,13 +1094,13 @@ public class Project implements PropertyChangeListener {
 	}
 
 
-	public Vector<String> getStratResults() {
+	public List<String> getStratResults() {
 		String[] files;
-		Vector<String> v;
+		List<String> v;
 
 		files = Files.list(PROJECT_DIRECTORY.getValue(), ".mds", JAR_STATUS.getValue());
 
-		v = new Vector<String>();
+		v = new ArrayList<String>();
 		if (files == null) {
 			System.err.println("Error - no .mds files found in directory");
 		} else {

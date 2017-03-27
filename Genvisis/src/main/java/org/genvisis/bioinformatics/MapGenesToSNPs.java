@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Aliases;
@@ -34,7 +35,7 @@ public class MapGenesToSNPs {
 		GeneTrack track;
 		int[][] locs;
 		int buffer;
-		Vector<String> paramV;
+		List<String> paramV;
 
 		buffer = -1;
 
@@ -102,9 +103,9 @@ public class MapGenesToSNPs {
 		posCol = Integer.parseInt(line[3]);
 
 		for (int i = 0; i < paramV.size(); i++) {
-			if (paramV.elementAt(i).startsWith("buffer=")) {
-				buffer = Integer.parseInt(paramV.elementAt(i).split("=")[1]);
-				paramV.removeElementAt(i);
+			if (paramV.get(i).startsWith("buffer=")) {
+				buffer = Integer.parseInt(paramV.get(i).split("=")[1]);
+				paramV.remove(i);
 				i--;
 			}
 		}

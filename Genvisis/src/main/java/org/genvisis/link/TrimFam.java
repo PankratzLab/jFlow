@@ -6,8 +6,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -25,9 +27,9 @@ public class TrimFam {
 	public static final String[] NAMING_SCHEME_KEY = {"99", "alpha", "num"};
 
 	private Hashtable<String, Person> hash;
-	private Vector<String> extended;
-	private Vector<String> nukular;
-	private Vector<String> unused;
+	private List<String> extended;
+	private List<String> nukular;
+	private List<String> unused;
 	private boolean rename;
 	private int namingScheme;
 	private boolean hasSubfamilies;
@@ -48,7 +50,7 @@ public class TrimFam {
 		public boolean phenotyped;
 		public Person mother;
 		public Person father;
-		public Vector<Person> children;
+		public List<Person> children;
 		public boolean written;
 		public boolean necessary;
 		public int subFamily;
@@ -95,7 +97,7 @@ public class TrimFam {
 			}
 
 			for (int i = 0; i < children.size(); i++) {
-				if (children.elementAt(i).defineNecessaryPath()) {
+				if (children.get(i).defineNecessaryPath()) {
 					necessary = true;
 				}
 			}
@@ -113,7 +115,7 @@ public class TrimFam {
 
 		public boolean trimUselessDescendents() {
 			for (int i = 0; i < children.size(); i++) {
-				if (children.elementAt(i).trimUselessDescendents()) {
+				if (children.get(i).trimUselessDescendents()) {
 					necessary = true;
 				}
 			}
@@ -142,7 +144,7 @@ public class TrimFam {
 				subFamily = subFam;
 
 				for (int i = 0; i < children.size(); i++) {
-					children.elementAt(i).spreadSubFamID(subFam);
+					children.get(i).spreadSubFamID(subFam);
 				}
 
 				if (!dad.equals("root")) {
@@ -165,7 +167,7 @@ public class TrimFam {
 				}
 
 				for (int i = 0; i < children.size(); i++) {
-					min = children.elementAt(i).spreadGeneration(gen - 1, commit);
+					min = children.get(i).spreadGeneration(gen - 1, commit);
 				}
 
 				if (!dad.equals("root")) {
@@ -189,7 +191,7 @@ public class TrimFam {
 			mother.removeParentalLines();
 
 			for (int i = 0; i < children.size(); i++) {
-				children.elementAt(i).removeAllDescendents();
+				children.get(i).removeAllDescendents();
 			}
 
 			if (necessary) {
@@ -202,7 +204,7 @@ public class TrimFam {
 
 		public void removeAllDescendents() {
 			for (int i = 0; i < children.size(); i++) {
-				children.elementAt(i).removeAllDescendents();
+				children.get(i).removeAllDescendents();
 			}
 			if (!necessary) {
 				hash.remove(id);
@@ -214,9 +216,9 @@ public class TrimFam {
 			String temp = "";
 
 			while (!children.isEmpty()) {
-				kid = children.lastElement();
+				kid = children.get(children.size() - 1);
 				kid.createExtendedOutput(listGeneration);
-				children.removeElementAt(children.size() - 1);
+				children.remove(children.size() - 1);
 			}
 			if (necessary && !isRoot() && !written) {
 				if (hasSubfamilies) {
@@ -267,7 +269,7 @@ public class TrimFam {
 			String[] keys;
 
 			for (int i = 0; i < children.size(); i++) {
-				kid = children.elementAt(i);
+				kid = children.get(i);
 
 				if (kid.genotyped) {
 					temp = kid.mom;
@@ -296,7 +298,7 @@ public class TrimFam {
 				}
 			}
 			if (maxt == 1) {
-				nukular.removeAllElements();
+				nukular.clear();
 				return;
 			}
 
@@ -314,11 +316,11 @@ public class TrimFam {
 
 	}
 
-	public TrimFam(Vector<String> preinfo) {
+	public TrimFam(List<String> preinfo) {
 		this(preinfo, true, false, true, DEFAULT_NAMING_SCHEME, 0, false, false, new Logger());
 	}
 
-	public TrimFam(Vector<String> preinfo, boolean deleteSinglets, boolean unrelatedsOnly,
+	public TrimFam(List<String> preinfo, boolean deleteSinglets, boolean unrelatedsOnly,
 								 boolean canRename, int scheme, int favorGeneration, boolean listGeneration,
 								 boolean allowMissingIndividuals, Logger logger) {
 		Hashtable<String, String> genoed;
@@ -329,9 +331,9 @@ public class TrimFam {
 		String mostKids = null;
 
 		hash = new Hashtable<String, Person>();
-		extended = new Vector<String>();
-		nukular = new Vector<String>();
-		unused = new Vector<String>();
+		extended = new ArrayList<String>();
+		nukular = new ArrayList<String>();
+		unused = new ArrayList<String>();
 		rename = canRename;
 		namingScheme = scheme;
 		hasSubfamilies = false;
@@ -348,7 +350,7 @@ public class TrimFam {
 
 		genoed = new Hashtable<String, String>();
 		for (int i = 0; i < preinfo.size(); i++) {
-			line = preinfo.elementAt(i).trim().split("[\\s]+");
+			line = preinfo.get(i).trim().split("[\\s]+");
 			if (line.length < 7) {
 				log.reportError("Error - there must be at least seven columns in order to run TrimFam (6 standards plus the VIP column)");
 				error = true;
@@ -469,23 +471,23 @@ public class TrimFam {
 		return error;
 	}
 
-	public Vector<String> getExtendedFamilyInformation() {
-		Vector<String> output = new Vector<String>();
+	public List<String> getExtendedFamilyInformation() {
+		List<String> output = new ArrayList<String>();
 		int[] keys = reorder(extended);
 
 		for (int i = 0; i < extended.size(); i++) {
-			output.add(extended.elementAt(keys[i]));
+			output.add(extended.get(keys[i]));
 		}
 
 		return output;
 	}
 
-	public Vector<String> getNuclearFamilyInformation() {
-		Vector<String> output = new Vector<String>();
+	public List<String> getNuclearFamilyInformation() {
+		List<String> output = new ArrayList<String>();
 		int[] keys = reorder(nukular);
 
 		for (int i = 0; i < nukular.size(); i++) {
-			output.add(nukular.elementAt(keys[i]));
+			output.add(nukular.get(keys[i]));
 		}
 
 		return output;
@@ -495,7 +497,7 @@ public class TrimFam {
 		return (!unused.isEmpty());
 	}
 
-	public Vector<String> getUnused() {
+	public List<String> getUnused() {
 		return unused;
 	}
 
@@ -505,7 +507,7 @@ public class TrimFam {
 
 		keys = HashVec.getKeys(hash);
 		for (String key : keys) {
-			hash.get(key).children.removeAllElements();
+			hash.get(key).children.clear();
 		}
 
 		for (int i = 0; i < keys.length; i++) {
@@ -571,18 +573,18 @@ public class TrimFam {
 
 		source = hash.get("root");
 		for (int i = 0; i < source.children.size(); i++) {
-			purse = source.children.elementAt(i);
-			if (purse.children.size() == 1 && purse.children.firstElement().father.children.size() == 1
-					&& purse.children.firstElement().mother.children.size() == 1
-					&& !purse.children.firstElement().father.genotyped
-					&& !purse.children.firstElement().mother.genotyped
-					&& purse.children.firstElement().mother.dad.equals("root")
-					&& purse.children.firstElement().father.dad.equals("root")) {
+			purse = source.children.get(i);
+			if (purse.children.size() == 1 && purse.children.get(0).father.children.size() == 1
+					&& purse.children.get(0).mother.children.size() == 1
+					&& !purse.children.get(0).father.genotyped
+					&& !purse.children.get(0).mother.genotyped
+					&& purse.children.get(0).mother.dad.equals("root")
+					&& purse.children.get(0).father.dad.equals("root")) {
 
-				purse.children.firstElement().dad = "root";
-				purse.children.firstElement().mom = "root";
+				purse.children.get(0).dad = "root";
+				purse.children.get(0).mom = "root";
 				hash.remove(purse.id);
-				source.children.add(purse.children.firstElement());
+				source.children.add(purse.children.get(0));
 			}
 		}
 	}
@@ -592,7 +594,7 @@ public class TrimFam {
 
 		source = hash.get("root");
 		for (int i = 0; i < source.children.size(); i++) {
-			purse = source.children.elementAt(i);
+			purse = source.children.get(i);
 			if (purse.children.size() == 0 && (deleteGenotypedSinglets || !purse.genotyped)) {
 				hash.remove(purse.id);
 			}
@@ -648,18 +650,18 @@ public class TrimFam {
 			}
 		}
 		for (int i = 0; i < source.children.size(); i++) {
-			purse = source.children.elementAt(i);
-			if (purse.children.size() == 1 && purse.children.firstElement().father.children.size() == 1
-					&& purse.children.firstElement().mother.children.size() == 1
-					&& !purse.children.firstElement().father.genotyped
-					&& !purse.children.firstElement().mother.genotyped
-					&& purse.children.firstElement().mother.dad.equals("root")
-					&& purse.children.firstElement().father.dad.equals("root")) {
+			purse = source.children.get(i);
+			if (purse.children.size() == 1 && purse.children.get(0).father.children.size() == 1
+					&& purse.children.get(0).mother.children.size() == 1
+					&& !purse.children.get(0).father.genotyped
+					&& !purse.children.get(0).mother.genotyped
+					&& purse.children.get(0).mother.dad.equals("root")
+					&& purse.children.get(0).father.dad.equals("root")) {
 
-				purse.children.firstElement().dad = "root";
-				purse.children.firstElement().mom = "root";
+				purse.children.get(0).dad = "root";
+				purse.children.get(0).mom = "root";
 				hash.remove(purse.id);
-				source.children.add(purse.children.firstElement());
+				source.children.add(purse.children.get(0));
 			}
 		}
 		hash.get("root").createExtendedOutput(false);
@@ -678,10 +680,10 @@ public class TrimFam {
 			purse = hash.get(key);
 			if (purse.isMale() && purse.children.size() >= mostKids) {
 				for (int j = 0; j < purse.children.size(); j++) {
-					if (purse.children.elementAt(j).genotyped) {
+					if (purse.children.get(j).genotyped) {
 						count++;
 					}
-					if (purse.children.elementAt(j).id.equals("1")) {
+					if (purse.children.get(j).id.equals("1")) {
 						count++;
 					}
 				}
@@ -709,7 +711,7 @@ public class TrimFam {
 			usedRecodedIDs.add("101");
 		}
 		for (int i = 0; i < daddy.children.size(); i++) {
-			purse = daddy.children.elementAt(i);
+			purse = daddy.children.get(i);
 			if (purse.mother.recoded_id.equals("-1")) {
 				count = 102;
 				while (usedRecodedIDs.contains(count + "")) {
@@ -747,7 +749,7 @@ public class TrimFam {
 		// go up and down tree, assigning generation numbers
 		root = hash.get("root");
 		for (int i = 0; i < root.children.size(); i++) {
-			purse = root.children.elementAt(i);
+			purse = root.children.get(i);
 			if (purse.generation == -99) {
 				min = purse.spreadGeneration(1, false);
 				min = purse.spreadGeneration(1 - min, true);
@@ -756,16 +758,16 @@ public class TrimFam {
 		}
 	}
 
-	public static int[] reorder(Vector<String> original) {
-		Vector<String> unordered = new Vector<String>();
-		Vector<String> pool;
-		Vector<String> subset = new Vector<String>();
+	public static int[] reorder(List<String> original) {
+		List<String> unordered = new ArrayList<String>();
+		List<String> pool;
+		List<String> subset = new ArrayList<String>();
 		int[] order = new int[original.size()], keys, numArray;
 		int count = 0, maxID = 0, id;
 		String[] line;
 
 		for (int i = 0; i < original.size(); i++) {
-			line = original.elementAt(i).trim().split("[\\s]+");
+			line = original.get(i).trim().split("[\\s]+");
 			try {
 				id = Integer.parseInt(line[1]);
 			} catch (NumberFormatException nfe) {
@@ -780,21 +782,21 @@ public class TrimFam {
 
 		for (int threshold = ((maxID / 100) * 100); threshold >= 0; threshold = threshold - 100) {
 			for (int i = 0; i < pool.size(); i++) {
-				if (Integer.parseInt(pool.elementAt(i)) > threshold) {
-					subset.add(pool.elementAt(i));
+				if (Integer.parseInt(pool.get(i)) > threshold) {
+					subset.add(pool.get(i));
 				}
 			}
 			if (subset.size() > 0) {
 				numArray = new int[subset.size()];
 				for (int i = 0; i < subset.size(); i++) {
-					numArray[i] = Integer.parseInt(subset.elementAt(i));
+					numArray[i] = Integer.parseInt(subset.get(i));
 				}
 				keys = Sort.getSortedIndices(numArray);
 				for (int i = 0; i < subset.size(); i++) {
-					order[count++] = unordered.indexOf(subset.elementAt(keys[i]));
-					pool.remove(subset.elementAt(i));
+					order[count++] = unordered.indexOf(subset.get(keys[i]));
+					pool.remove(subset.get(i));
 				}
-				subset.removeAllElements();
+				subset.clear();
 			}
 		}
 
@@ -803,16 +805,16 @@ public class TrimFam {
 
 	public int detectSplitFams() {
 		Person zeroman = hash.get("root");
-		Person founder = zeroman.children.elementAt(0);
+		Person founder = zeroman.children.get(0);
 		int subFam = 1;
 
 		founder.spreadSubFamID(subFam);
 
 		for (int i = 0; i < zeroman.children.size(); i++) {
-			if (zeroman.children.elementAt(i).subFamily == 0) {
+			if (zeroman.children.get(i).subFamily == 0) {
 				subFam++;
 				hasSubfamilies = true;
-				zeroman.children.elementAt(i).spreadSubFamID(subFam);
+				zeroman.children.get(i).spreadSubFamID(subFam);
 			}
 		}
 		return subFam;
@@ -820,7 +822,7 @@ public class TrimFam {
 
 	public static void demo() throws IOException {
 		Vector<String> pre = new Vector<String>();
-		Vector<String> v;
+		List<String> v;
 
 		pre.add("70504	101	201	202	1	0	0");
 		pre.add("70504	102	0	0	2	0	0");
@@ -843,7 +845,7 @@ public class TrimFam {
 			v = new TrimFam(pre, false, false, false, DEFAULT_NAMING_SCHEME, 0, false, false,
 											new Logger()).getExtendedFamilyInformation();
 			for (int i = 0; i < v.size(); i++) {
-				System.out.println(v.elementAt(i));
+				System.out.println(v.get(i));
 			}
 
 		} catch (Exception e) {
@@ -863,7 +865,8 @@ public class TrimFam {
 		String[] line;
 		Hashtable<String, String> priorityScores;
 		Hashtable<String, Vector<String>> preHash;
-		Vector<String> fams, v;
+		Vector<String> fams;
+		List<String> v;
 		int count;
 		long time;
 		TrimFam tfam;
@@ -945,7 +948,7 @@ public class TrimFam {
 				}
 				v = tfam.getExtendedFamilyInformation();
 				for (int j = 0; j < v.size(); j++) {
-					writer.println(v.elementAt(j));
+					writer.println(v.get(j));
 				}
 				writer.flush();
 				if (v.size() > 0) {
@@ -975,7 +978,7 @@ public class TrimFam {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> paramV;
+		List<String> paramV;
 
 		paramV = Files.parseControlFile(filename, "trimFam",
 																		new String[] {"fams.pre", "out=trimmed.pre",
@@ -986,7 +989,7 @@ public class TrimFam {
 																									"# add -h as an argument if you want a full description"},
 																		log);
 		if (paramV != null) {
-			paramV.addElement("logfile=" + log.getFilename());
+			paramV.add("logfile=" + log.getFilename());
 			main(ArrayUtils.toStringArray(paramV));
 		}
 	}

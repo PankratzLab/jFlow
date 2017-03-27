@@ -1,6 +1,7 @@
 package org.genvisis.cnv.var;
 
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.filesys.CNVariant;
@@ -9,7 +10,7 @@ public class IndiPheno {
 	private double[] filters;
 	private double[] covars;
 	private int[] classes;
-	private Vector<Hashtable<String, CNVariant[]>> cnvClasses = new Vector<Hashtable<String, CNVariant[]>>();
+	private List<Hashtable<String, CNVariant[]>> cnvClasses = new Vector<Hashtable<String, CNVariant[]>>();
 	private static volatile boolean cnvsLoaded = false;
 
 	public IndiPheno() {}
@@ -26,11 +27,11 @@ public class IndiPheno {
 		this.classes = classes;
 	}
 
-	public void setCNVclasses(Vector<Hashtable<String, CNVariant[]>> cnvClasses) {
+	public void setCNVclasses(List<Hashtable<String, CNVariant[]>> cnvClasses) {
 		this.cnvClasses = cnvClasses;
 	}
 
-	public Vector<Hashtable<String, CNVariant[]>> getCnvClasses() {
+	public List<Hashtable<String, CNVariant[]>> getCnvClasses() {
 		return cnvClasses;
 	}
 
@@ -77,7 +78,7 @@ public class IndiPheno {
 			System.err.println("Error - specified cnvClass was greater than total number of cnvClasses");
 			return null;
 		}
-		hash = cnvClasses.elementAt(cnvClass);
+		hash = cnvClasses.get(cnvClass);
 		if (hash.containsKey(chr + "")) {
 			return hash.get(chr + "");
 		} else {

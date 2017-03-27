@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -1236,7 +1237,7 @@ public class Conditional {
 		PrintStream ps;
 		String[] line;
 		String trav;
-		Vector<String> paramV;
+		List<String> paramV;
 		String regionListFilename;
 		String[][] dirsAndPatterns;
 		String[][] markersAndChrs;
@@ -1272,7 +1273,7 @@ public class Conditional {
 																		log);
 
 		if (paramV != null) {
-			line = paramV.elementAt(0).split("[\\s]+");
+			line = paramV.get(0).split("[\\s]+");
 			regionListFilename = line[0];
 			minNumValids = -9;
 			for (int i = 1; i < line.length; i++) {
@@ -1292,7 +1293,7 @@ public class Conditional {
 
 
 			for (int i = paramV.size() - 1; i > 0; i--) {
-				trav = paramV.elementAt(i).trim();
+				trav = paramV.get(i).trim();
 				if (trav.startsWith("MARKER ")) {
 					markerName = paramV.remove(i).split("[\\s]+")[1];
 				} else if (trav.startsWith("ALLELE ")) {
@@ -1322,15 +1323,15 @@ public class Conditional {
 				} else if (trav.startsWith("VERBOSE ")) {
 					verbose = paramV.remove(i).split("[\\s]+")[1].equalsIgnoreCase("ON");
 				} else if (trav.split("[\\s]+").length != 2) {
-					System.err.println("Error - processing '" + paramV.elementAt(i) + "'");
+					System.err.println("Error - processing '" + paramV.get(i) + "'");
 				}
 			}
 
 			dirsAndPatterns = new String[paramV.size() - 1][2];
 			for (int i = 0; i < dirsAndPatterns.length; i++) {
-				line = paramV.elementAt(1 + i).trim().split("[\\s]+");
+				line = paramV.get(1 + i).trim().split("[\\s]+");
 				if (line.length != 2) {
-					System.err.println("Error - processing '" + paramV.elementAt(1 + i) + "'");
+					System.err.println("Error - processing '" + paramV.get(1 + i) + "'");
 					return;
 				}
 				line[0] = ext.verifyDirFormat(line[0]);

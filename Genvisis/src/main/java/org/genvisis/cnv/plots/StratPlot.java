@@ -15,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.BoxLayout;
@@ -300,7 +301,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 
 	public static void loadStratificationResults(Project proj) {
 		Hashtable<String, float[][]> hash;
-		Vector<String> stratFiles;
+		List<String> stratFiles;
 		BufferedReader reader;
 		String[][] names;
 		float[][] data;
@@ -316,7 +317,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 		hash = new Hashtable<String, float[][]>();
 		for (int i = 0; i < names.length; i++) {
 			try {
-				reader = Files.getReader(stratFiles.elementAt(i), proj.JAR_STATUS.getValue(), true, false);
+				reader = Files.getReader(stratFiles.get(i), proj.JAR_STATUS.getValue(), true, false);
 				line = reader.readLine().trim().split("[\\s]+");
 				if (!line[0].equals("FID") || !line[1].equals("IID")) {
 					log.reportError("Error - different format than expected; first two columns should be FID and IID");
@@ -345,14 +346,14 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 				}
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
-				log.reportError("Error: file \"" + stratFiles.elementAt(i)
+				log.reportError("Error: file \"" + stratFiles.get(i)
 												+ "\" not found in current directory");
 				names[i] = new String[1];
 			} catch (IOException ioe) {
-				log.reportError("Error reading file \"" + stratFiles.elementAt(i) + "\"");
+				log.reportError("Error reading file \"" + stratFiles.get(i) + "\"");
 				names[i] = new String[1];
 			}
-			names[i][0] = ext.rootOf(stratFiles.elementAt(i), true);
+			names[i][0] = ext.rootOf(stratFiles.get(i), true);
 		}
 
 		new StratPlot(proj, names, hash);

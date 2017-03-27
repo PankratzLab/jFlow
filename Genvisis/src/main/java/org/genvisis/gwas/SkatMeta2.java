@@ -8,10 +8,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -2415,11 +2417,11 @@ public class SkatMeta2 {
 										namesOfColumnsToBeIncludedInTheValueOfTheOutputHash, criteria, false, log);
 	}
 
-	public static Vector<String> loadFile(String filefullpath, int numHeaderLinesToSkip) {
+	public static List<String> loadFile(String filefullpath, int numHeaderLinesToSkip) {
 		BufferedReader reader;
-		Vector<String> result;
+		List<String> result;
 
-		result = new Vector<String>();
+		result = new ArrayList<String>();
 		try {
 			reader = new BufferedReader(new FileReader(filefullpath));
 			for (int i = 0; i < numHeaderLinesToSkip; i++) {
@@ -3237,7 +3239,7 @@ public class SkatMeta2 {
 		}
 	}
 
-	public static String[] removeElementsFromAarray(Vector<String> elementsOfTheArrayToBeRemoved,
+	public static String[] removeElementsFromAarray(List<String> elementsOfTheArrayToBeRemoved,
 																									String[] array) {
 		String[] tmp;
 		boolean found;
@@ -3248,7 +3250,7 @@ public class SkatMeta2 {
 		for (String element : array) {
 			found = false;
 			for (int j = 0; j < elementsOfTheArrayToBeRemoved.size(); j++) {
-				if (element.equals(elementsOfTheArrayToBeRemoved.elementAt(j))) {
+				if (element.equals(elementsOfTheArrayToBeRemoved.get(j))) {
 					elementsOfTheArrayToBeRemoved.remove(j);
 					found = true;
 					break;

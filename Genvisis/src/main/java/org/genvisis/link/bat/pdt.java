@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -117,10 +119,10 @@ public class pdt {
 	}
 
 	public static void splitThis(String prefile, int startAt, int stopAt, int numFams,
-															 Vector<String[]> pedinfo) {
+															 List<String[]> pedinfo) {
 		BufferedReader reader = null;
 		PrintWriter writer = null;
-		Vector<String[]> data = new Vector<String[]>();
+		List<String[]> data = new ArrayList<String[]>();
 		String[] dataline;
 		String line[];
 
@@ -146,8 +148,8 @@ public class pdt {
 				writer = new PrintWriter(new FileWriter((startAt + i + 1) + ".ped"));
 				// int count = 0;
 				for (int j = 0; j < data.size(); j++) {
-					dataline = data.elementAt(j);
-					writer.println(ArrayUtils.toStr(pedinfo.elementAt(j)) + "\t" + dataline[i * 2 + 0] + "\t"
+					dataline = data.get(j);
+					writer.println(ArrayUtils.toStr(pedinfo.get(j)) + "\t" + dataline[i * 2 + 0] + "\t"
 												 + dataline[i * 2 + 1]);
 					// count++;
 				}

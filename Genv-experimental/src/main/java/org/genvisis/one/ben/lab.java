@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.ToolTipManager;
@@ -58,7 +59,7 @@ public class lab {
 		}
 		reader.close();
 
-		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, sampleKeyHash, true, false);
+		List<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, sampleKeyHash, true, false);
 
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
 		for (CNVariant cnv : cnvs) {

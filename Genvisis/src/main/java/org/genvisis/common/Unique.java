@@ -140,7 +140,7 @@ public class Unique {
 	}
 
 	public static void fromParamters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 		String[] line, files;
 		int[] skips;
 		String[] delimiters;
@@ -157,7 +157,7 @@ public class Unique {
 			skips = ArrayUtils.intArray(params.size(), 0);
 			delimiters = ArrayUtils.stringArray(params.size(), "[\\s]+");
 			for (int i = 0; i < files.length; i++) {
-				line = params.elementAt(i).trim().split("[\\s]+");
+				line = params.get(i).trim().split("[\\s]+");
 				files[i] = line[0];
 				for (int j = 1; j < line.length; j++) {
 					if (line[j].startsWith("skip=") || line[j].startsWith("skips=")) {

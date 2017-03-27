@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -232,7 +233,7 @@ public class SummarizePhenotype {
 		return result;
 	}
 
-	public static void exportData(String filename, String[] header, Vector<String[]> data) {
+	public static void exportData(String filename, String[] header, List<String[]> data) {
 		PrintWriter writer;
 		int size;
 
@@ -241,7 +242,7 @@ public class SummarizePhenotype {
 			writer = new PrintWriter(new FileWriter(filename));
 			writer.println(ArrayUtils.toStr(header));
 			for (int i = 0; i < size; i++) {
-				writer.println(ArrayUtils.toStr(data.elementAt(i)));
+				writer.println(ArrayUtils.toStr(data.get(i)));
 			}
 			writer.close();
 		} catch (IOException e) {
@@ -249,7 +250,7 @@ public class SummarizePhenotype {
 		}
 	}
 
-	public static Vector<String[]> selectColumnsAndRows(Hashtable<String, String[]> traitDataTmp,
+	public static List<String[]> selectColumnsAndRows(Hashtable<String, String[]> traitDataTmp,
 																											int[] columnsToKeep, String idListFileName,
 																											Logger log) {
 		BufferedReader reader;
@@ -512,7 +513,7 @@ public class SummarizePhenotype {
 	}
 
 	public static void summarizeFromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 		// String wkDir;
 		String line;
 		String[] defaults;
@@ -546,7 +547,7 @@ public class SummarizePhenotype {
 		index = params.size();
 		parameters = new String[index - 2][];
 		for (int i = 0; i < index; i++) {
-			line = params.elementAt(i);
+			line = params.get(i);
 			if (!line.startsWith("#")) {
 				if (line.startsWith("in=")) {
 					phenoDataFileName = line.split("=")[1];
@@ -646,7 +647,7 @@ public class SummarizePhenotype {
 	// }
 
 	public static void filesFromParameters(String modelListFileName, Logger log) {
-		Vector<String> params;
+		List<String> params;
 
 		params = Files.parseControlFile(modelListFileName, "phenotype",
 																		new String[] {"#modelName\tdataFile\tvariableList\tIdListFile",

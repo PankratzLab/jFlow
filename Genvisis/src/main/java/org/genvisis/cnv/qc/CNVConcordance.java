@@ -518,7 +518,7 @@ public class CNVConcordance {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params = Files.parseControlFile(filename, "cnvConcordance", getParserParams(),
+		List<String> params = Files.parseControlFile(filename, "cnvConcordance", getParserParams(),
 																									 log);
 		if (params != null) {
 			main(ArrayUtils.toStringArray(params));

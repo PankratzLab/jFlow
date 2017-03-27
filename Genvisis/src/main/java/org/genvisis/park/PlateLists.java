@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -508,7 +509,7 @@ public class PlateLists {
 	}
 
 	public static void printDNAsToNewPlates(String dir, String filename, PrintWriter master,
-																					Vector<DnaSample> v, String plateName, int startIndex) {
+																					List<DnaSample> v, String plateName, int startIndex) {
 		PrintWriter writer;
 		DnaSample dna;
 		int count;
@@ -517,7 +518,7 @@ public class PlateLists {
 			writer = new PrintWriter(new FileWriter(dir + filename));
 			writer.println(ArrayUtils.toStr(startIndex == 0 ? CREATE_HEADER : UPDATE_HEADER));
 			for (int i = 0; i < v.size(); i++) {
-				dna = v.elementAt(i);
+				dna = v.get(i);
 				if (dna.getPrior()) {
 					writer.println(dna.getDNA() + "\t" + dna.getID()
 												 + (startIndex == 0 ? "\tprior\tprior" : "") + "\t" + dna.getPlate() + "\t"
@@ -531,7 +532,7 @@ public class PlateLists {
 			}
 			count = 0;
 			for (int i = 0; i < v.size(); i++) {
-				dna = v.elementAt(i);
+				dna = v.get(i);
 				if (!dna.getPrior()) {
 					writer.println(dna.getDNA() + "\t" + dna.getID()
 												 + (startIndex == 0 ? "\t" + dna.getPlate() + "\t" + dna.getWell() : "")

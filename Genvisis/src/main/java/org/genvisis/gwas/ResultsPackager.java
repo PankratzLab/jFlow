@@ -1189,7 +1189,7 @@ public class ResultsPackager {
 	}
 
 	public static void createFromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 
 		params = Files.parseControlFile(filename, "results",
 																		new String[] {"dir=",

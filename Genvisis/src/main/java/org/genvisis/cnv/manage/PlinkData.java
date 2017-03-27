@@ -276,7 +276,7 @@ public class PlinkData {
 		PrintWriter printWriter;
 		RandomAccessFile rafWriter;
 		long seekLocation;
-		Vector<String> fam;
+		List<String> fam;
 		int nFams;
 		byte[] famIDsLength;
 		String newLine;
@@ -334,10 +334,10 @@ public class PlinkData {
 				famIDsLength = new byte[nFams];
 
 				rafWriter = new RandomAccessFile(plinkDirAndFilenameRoot + ".ped", "w");
-				rafWriter.write(fam.elementAt(0).getBytes());
+				rafWriter.write(fam.get(0).getBytes());
 				for (int i = 1; i < nFams; i++) {
 					rafWriter.skipBytes(bytesPerSampleInPed);
-					bedByteStream = (newLine + fam.elementAt(i)).getBytes();
+					bedByteStream = (newLine + fam.get(i)).getBytes();
 					rafWriter.write(bedByteStream);
 					famIDsLength[i] = (byte) bedByteStream.length;
 				}
@@ -392,7 +392,7 @@ public class PlinkData {
 	 * @param log
 	 * @return
 	 */
-	public static Vector<String> loadFamOrBim(String famOrBimFileFullPath,
+	public static List<String> loadFamOrBim(String famOrBimFileFullPath,
 																						int indexOfStartSampleOrMarker,
 																						int numberOfSamplesOrMarkersToLoad, Logger log) {
 		Scanner reader;
@@ -441,13 +441,13 @@ public class PlinkData {
 	 */
 	public static String[][] loadFamToArray(String famFileFullPath, int indexOfStartSample,
 																					int numberOfSamplesToLoad, Logger log) {
-		Vector<String> fam;
+		List<String> fam;
 		String[][] out;
 
 		fam = loadFamOrBim(famFileFullPath, indexOfStartSample, numberOfSamplesToLoad, log);
 		out = new String[fam.size()][];
 		for (int i = 0; i < out.length; i++) {
-			out[i] = fam.elementAt(i).split("\\s+");
+			out[i] = fam.get(i).split("\\s+");
 		}
 
 		return out;
@@ -465,13 +465,13 @@ public class PlinkData {
 	 */
 	public static String[][] loadBimToArray(String famFileFullPath, int indexOfStartSample,
 																					int numberOfSamplesToLoad, Logger log) {
-		Vector<String> bim;
+		List<String> bim;
 		String[][] out;
 
 		bim = loadFamOrBim(famFileFullPath, indexOfStartSample, numberOfSamplesToLoad, log);
 		out = new String[bim.size()][];
 		for (int i = 0; i < out.length; i++) {
-			out[i] = bim.elementAt(i).split("\\s+");
+			out[i] = bim.get(i).split("\\s+");
 		}
 
 		return out;
@@ -1831,7 +1831,7 @@ public class PlinkData {
 																											int indexOfStartSample, int nSamplesToLoad,
 																											Logger log) {
 		RandomAccessFile reader;
-		Vector<String> fam;
+		List<String> fam;
 		byte[] readBuffer;
 		byte[][] readBufferSnpMajor;
 		int totalMarkers;
@@ -1867,7 +1867,7 @@ public class PlinkData {
 				}
 				nSamplesToLoad = fam.size();
 				for (int i = 0; i < nSamplesToLoad; i++) {
-					out = fam.elementAt(indexOfStartSample);
+					out = fam.get(indexOfStartSample);
 					location = indexOfStartSample / 4;
 					index = (byte) ((indexOfStartSample % 4) * 2);
 					for (int j = 0; j < nMarkersToLoad; j++) {

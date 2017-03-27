@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
@@ -264,13 +265,13 @@ public class RosenElliot {
 		int count;
 
 		Hashtable<String, String> lookup = new Hashtable<String, String>();
-		Vector<String> dnaList = new Vector<String>();
+		List<String> dnaList = new Vector<String>();
 
 		try {
 			dnaList = GinsburgDavid.getDNAlist(dir, GENOTYPES_FILE, true);
-			System.out.println("Assuming we're taking the F1s of a " + dnaList.elementAt(0) + " x "
-												 + dnaList.elementAt(1) + " cross and backcrossing into "
-												 + dnaList.elementAt(1));
+			System.out.println("Assuming we're taking the F1s of a " + dnaList.get(0) + " x "
+												 + dnaList.get(1) + " cross and backcrossing into "
+												 + dnaList.get(1));
 
 			reader = new BufferedReader(new FileReader(dir + PED_DATA));
 			writer = new PrintWriter(new FileWriter(dir + "untrimmed.pre"));
