@@ -34,6 +34,12 @@ public class CNVariantAnnotated extends CNVariant {
 
 
 
+	public SegmentAnotation getSegmentAnotation() {
+		return segmentAnotation;
+	}
+
+
+
 	@Override
 	public String toString() {
 		return getIndividualID();
