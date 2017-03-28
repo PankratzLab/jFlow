@@ -5,7 +5,7 @@ package org.genvisis.seq.analysis;
 
 import java.util.ArrayList;
 
-import org.genvisis.common.Array;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Logger;
 
@@ -40,7 +40,8 @@ public class MindTheGap {
 		command.add("F2=");
 		command.add(r2);
 
-		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
+		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputs, outputs,
+																						true,
 																						false, false, log);
 	}
 
