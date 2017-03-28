@@ -369,6 +369,19 @@ public class MatchSamples {
 	}
 
 	public static String matchPairs(String dir, String distanceFile, boolean minMin_not_maxMin) {
+		return matchPairs(dir, distanceFile, minMin_not_maxMin, false);
+	}
+
+	/**
+	 * @param dir directory with file
+	 * @param distanceFile distance file , computed from {@link MatchSamples#matchMaker}
+	 * @param minMin_not_maxMin this is a confusing argument
+	 * @param antiOptimal instead of selecting the optimal match, do the opposite. You most likely
+	 *        want this to be false
+	 * @return
+	 */
+	public static String matchPairs(String dir, String distanceFile, boolean minMin_not_maxMin,
+																	boolean antiOptimal) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, anchors, barnacles;
@@ -402,17 +415,32 @@ public class MatchSamples {
 				// System.out.println(Array.countIf(matches, -1));
 				mins = new double[anchors.length];
 				for (int i = 0; i < anchors.length; i++) {
-					mins[i] = (matches[i] == -1 ? ArrayUtils.min(dists[i])
-																			: (minMin_not_maxMin ? Double.POSITIVE_INFINITY
-																													 : Double.NEGATIVE_INFINITY));
+					if (antiOptimal) {
+						mins[i] = (matches[i] == -1 ? ArrayUtils.max(dists[i])
+																				: (minMin_not_maxMin ? Double.NEGATIVE_INFINITY
+																														 : Double.NEGATIVE_INFINITY));
+					} else {
+						mins[i] = (matches[i] == -1 ? ArrayUtils.min(dists[i])
+																				: (minMin_not_maxMin ? Double.POSITIVE_INFINITY
+																														 : Double.NEGATIVE_INFINITY));
+					}
 				}
-
-				iAnch = minMin_not_maxMin ? ArrayUtils.minIndex(mins) : ArrayUtils.maxIndex(mins);
-				iBarn = ArrayUtils.minIndex(dists[iAnch]);
+				if (antiOptimal) {
+					iAnch = ArrayUtils.maxIndex(mins);
+					iBarn = ArrayUtils.maxIndex(dists[iAnch]);
+				} else {
+					iAnch = minMin_not_maxMin ? ArrayUtils.minIndex(mins) : ArrayUtils.maxIndex(mins);
+					iBarn = ArrayUtils.minIndex(dists[iAnch]);
+				}
 				matches[iAnch] = iBarn;
 				finalDists[iAnch] = dists[iAnch][iBarn];
 				for (int i = 0; i < anchors.length; i++) {
-					dists[i][iBarn] = Double.POSITIVE_INFINITY;
+					if (antiOptimal) {
+						dists[i][iBarn] = Double.NEGATIVE_INFINITY;
+					} else {
+						dists[i][iBarn] = Double.POSITIVE_INFINITY;
+
+					}
 				}
 			}
 			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(distanceFile) + "_"

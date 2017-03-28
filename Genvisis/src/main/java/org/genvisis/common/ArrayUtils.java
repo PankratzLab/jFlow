@@ -201,7 +201,7 @@ public class ArrayUtils {
 		if (badLength(array.length)) {
 			return -1;
 		}
-		double v = Double.POSITIVE_INFINITY;
+		double v = findMin ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
 		int index = -1;
 
 		for (int i = 0; i < array.length; i++) {
@@ -2342,15 +2342,15 @@ public class ArrayUtils {
 	 * @return String of printed numbers
 	 */
 	public static String toStr(double[] array, int minSigFigs, int maxSigFigs, String delimiter) {
-		String str = "";
+		StringBuilder str = new StringBuilder("");
 
 		for (int i = 0; i < array.length; i++) {
-			str += (i == 0 ? "" : delimiter)
+			str.append((i == 0 ? "" : delimiter)
 						 + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
-																 : ext.formDeci(array[i], minSigFigs, maxSigFigs));
+																 : ext.formDeci(array[i], minSigFigs, maxSigFigs)));
 		}
 
-		return str;
+		return str.toString();
 	}
 
 	/**
