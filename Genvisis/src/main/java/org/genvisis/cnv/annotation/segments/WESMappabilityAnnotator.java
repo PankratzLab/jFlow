@@ -97,12 +97,16 @@ public class WESMappabilityAnnotator extends BEDFileAnnotator {
 					int[][] exons = geneData.getExonBoundaries();
 					for (int[] exon : exons) {
 						Segment exSeq = new Segment(feature.getChr(), exon[0], exon[1]);
-						int overlap = exSeq.amountOfOverlapInBasepairs(segment);// has to overlap original
-																																		// segment
-						if (overlap > 0) {
-							numBases += overlap;
-							cumulativeMapScore += mapScore * overlap; // per nucleotide overlap
-							found = true;
+						if (feature.overlaps(exSeq)) {
+							Segment intersection = exSeq.getIntersection(feature, log);
+							int overlap = intersection.amountOfOverlapInBasepairs(segment);// has to overlap
+																																						 // original segment
+
+							if (overlap > 0) {
+								numBases += overlap;
+								cumulativeMapScore += mapScore * overlap; // per nucleotide overlap
+								found = true;
+							}
 						}
 					}
 				}
