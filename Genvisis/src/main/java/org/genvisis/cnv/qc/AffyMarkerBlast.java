@@ -18,17 +18,22 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
 
+import com.google.common.collect.ImmutableMap;
+
 import htsjdk.tribble.annotation.Strand;
 
 public class AffyMarkerBlast extends MarkerBlast {
 
 	private static final String PROBE_MARKER_NAME = "PROBESET_ID";
 	private static final String PROBE_SEQUENCE = "PROBE_SEQUENCE";
-	private static final String PROBE_STRAND = "TARGET_STRANDEDNESS";
 
 	private static final String ANNOT_MARKER_NAME = "Probe Set ID";
 	private static final String ANNOT_ALLELE_A = "Allele A";
 	private static final String ANNOT_ALLELE_B = "Allele B";
+	private static final String ANNOT_STRAND = "Strand";
+
+	private static ImmutableMap<String, Strand> STRAND_ANNOTS = ImmutableMap.of("+", Strand.POSITIVE,
+																																							"-", Strand.NEGATIVE);
 
 	private final String probeFile;
 	private final String annotFile;
@@ -178,20 +183,10 @@ public class AffyMarkerBlast extends MarkerBlast {
 							interrogationPosition = j;
 						}
 					}
-					String[] affyStrandtmp = probeFileParser.getStringDataForTitle(PROBE_STRAND)[i].split("\t");
-					if (ArrayUtils.unique(affyStrandtmp).length != 1) {
-						proj.getLog()
-								.reportError("Multiple strands detected " + ArrayUtils.toStr(affyStrandtmp));
-						return null;
-					}
-					String affyStrand = affyStrandtmp[0];
-					Strand strand = null;
-					if (affyStrand.equals("f")) {// PLUS seems to be for cnvi probes
-						strand = Strand.POSITIVE;
-					} else if (affyStrand.equals("r")) {// MINUS seems to be for cnvi probes
-						strand = Strand.NEGATIVE;
-					} else {
-						proj.getLog().reportError("Invalid AffyStrand " + affyStrand);
+					Strand strand = STRAND_ANNOTS.get(annotFileParser.getStringDataForTitle(ANNOT_STRAND)[i]);
+					if (strand == null) {
+						proj.getLog().reportError("Invalid Annot Strand "
+																			+ annotFileParser.getStringDataForTitle(ANNOT_STRAND)[i]);
 						return null;
 					}
 					// probeFileParser and annotFileParser should both be indexed by marker indices
@@ -223,6 +218,7 @@ public class AffyMarkerBlast extends MarkerBlast {
 																					 alleleParser.getB(), alleleParser.getRef(),
 																					 alleleParser.getAlts()));
 
+					// TODO: Figure out if this should be tmpSeq[0] for A (or B?)
 					entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B.getTag(), tmpSeq[1],
 																					 tmpSeq[1],
 																					 strand, interrogationPosition, markerSegment,
@@ -242,7 +238,7 @@ public class AffyMarkerBlast extends MarkerBlast {
 		ExtProjectDataParser.ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 		builder.separator("\t");
 		builder.dataKeyColumnName(PROBE_MARKER_NAME);
-		builder.stringDataTitles(PROBE_SEQUENCE, PROBE_STRAND);
+		builder.stringDataTitles(PROBE_SEQUENCE);
 		builder.concatMultipleStringEntries(true);
 		builder.sampleBased(false);
 		builder.treatAllNumeric(false);
@@ -256,8 +252,8 @@ public class AffyMarkerBlast extends MarkerBlast {
 		ExtProjectDataParser.ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 		builder.separator(",");
 		builder.dataKeyColumnName(ANNOT_MARKER_NAME);
-		builder.headerFlags(ANNOT_MARKER_NAME, ANNOT_ALLELE_A, ANNOT_ALLELE_B);
-		builder.stringDataTitles(ANNOT_ALLELE_A, ANNOT_ALLELE_B);
+		builder.headerFlags(ANNOT_MARKER_NAME, ANNOT_ALLELE_A, ANNOT_ALLELE_B, ANNOT_STRAND);
+		builder.stringDataTitles(ANNOT_ALLELE_A, ANNOT_ALLELE_B, ANNOT_STRAND);
 		builder.sampleBased(false);
 		builder.treatAllNumeric(false);
 		builder.requireAll(false);
