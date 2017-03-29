@@ -118,8 +118,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		private final Allele alleleA;
 		private final Allele alleleB;
 		private final RefAllele refAllele;
-
-		private transient Reference<char[]> abRef = null;
+		private final char charA;
+		private final char charB;
 
 
 		/**
@@ -136,7 +136,29 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			this.genomicPosition = new GenomicPosition(chr, position);
 			this.alleleA = a;
 			this.alleleB = b;
+			char[] ab = ABLookup.parseABFromAlleles(a, b);
+			this.charA = ab[0];
+			this.charB = ab[1];
 			this.refAllele = refAllele;
+		}
+
+		private Marker(String name, byte chr, int position, char a, char b, RefAllele refAllele) {
+			super();
+			this.name = name;
+			this.genomicPosition = new GenomicPosition(chr, position);
+			this.alleleA = parseAllele(a);
+			this.alleleB = parseAllele(b);
+			this.charA = a;
+			this.charB = b;
+			this.refAllele = refAllele;
+		}
+
+		private static Allele parseAllele(char charAllele) {
+			try {
+				return Allele.create(String.valueOf(charAllele));
+			} catch (IllegalArgumentException iae) {
+				return Allele.NO_CALL;
+			}
 		}
 
 		public String getName() {
@@ -164,12 +186,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		}
 
 		public char[] getAB() {
-			char[] ab = abRef == null ? null : abRef.get();
-			if (ab == null) {
-				ab = ABLookup.parseABFromAlleles(getAlleleA(), getAlleleB());
-				abRef = new SoftReference<char[]>(ab);
-			}
-			return ab;
+			return new char[] {charA, charB};
 		}
 
 		public Allele getAlleleA() {
@@ -386,9 +403,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				a = 'A';
 				b = 'B';
 			}
-			markersBuilder.add(new Marker(markerNames[i], chrs[i], positions[i],
-																		Allele.create(String.valueOf(a)),
-																		Allele.create(String.valueOf(b)), null));
+			markersBuilder.add(new Marker(markerNames[i], chrs[i], positions[i], a, b, null));
 		}
 		markers = markersBuilder.build();
 		this.markerSetFingerprint = markerSetFingerprint;
