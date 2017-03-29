@@ -285,7 +285,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @return Currently selected {@link Project} instance.
 	 */
 	public Project loadProject() {
-		proj = new Project(LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
+		proj = new Project(LaunchProperties.directoryOfLaunchProperties() + LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
 											 + projects.get(indexOfCurrentProj), jar);
 		proj.setGuiState(true);
 		timestampOfPropertiesFile = new Date().getTime();
@@ -1381,7 +1381,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	private static void createExampleProject(String path) {
 		Logger log = new Logger();
 		String examplePath = path + Project.EXAMPLE_PROJ + File.separatorChar;
-		String exampleProperties = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
+		String exampleProperties = path + LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
 															 + Project.EXAMPLE_PROJ
 															 + ".properties";
 
@@ -1394,7 +1394,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		if (!new File(exampleProperties).exists()) {
 			log.reportTime("Creating example project properties: " + exampleProperties);
 			Files.writeArray(new String[] {"PROJECT_NAME=Example",
-																		 "PROJECT_DIRECTORY=" + LaunchProperties.directoryOfLaunchProperties()
+																		 "PROJECT_DIRECTORY=" +  LaunchProperties.directoryOfLaunchProperties()
 																														 + "example/",
 																		 "SOURCE_DIRECTORY=sourceFiles/"},
 											 exampleProperties);

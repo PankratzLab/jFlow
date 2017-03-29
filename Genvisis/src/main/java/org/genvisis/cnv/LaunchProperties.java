@@ -70,10 +70,10 @@ public class LaunchProperties {
 	}
 	
 	public static class DefaultLaunchKeys {
-		public static LaunchKey PROJECTS_DIR = new LaunchKey(defaultDir + "projects/", true, "PROJECTS_DIR");
+		public static LaunchKey PROJECTS_DIR = new LaunchKey("projects/", true, "PROJECTS_DIR");
 		public static LaunchKey DEBUG_PROJECT_FILENAME = new LaunchKey("DEBUG_PROJECT", false, "DEBUG_PROJECT_FILENAME");
 		public static LaunchKey LAST_PROJECT_OPENED = new LaunchKey(Project.EXAMPLE_PROJ + ".properties", false, "LAST_PROJECT_OPENED");
-		public static LaunchKey RESOURCES_DIR = new LaunchKey(defaultDir + "resources/", true, "RESOURCES_DIR");
+		public static LaunchKey RESOURCES_DIR = new LaunchKey("resources/", true, "RESOURCES_DIR");
 		
 		public static LaunchKey[] values()
 		{
@@ -139,6 +139,8 @@ public class LaunchProperties {
 					if (k.isDir() && !Files.exists(val)) {
 						new Logger().reportTimeWarning("Did not detect launch property: " + k.toString()
 																					 + ". Creating default: " + val);
+						if (Files.isRelativePath(val))
+							val = LaunchProperties.directoryOfLaunchProperties() + val;
 						new File(val).mkdirs();
 					}
 				}
@@ -174,8 +176,6 @@ public class LaunchProperties {
 			out.write(customPropertiesDir);
 			out.close();
 			
-			DefaultLaunchKeys.PROJECTS_DIR = new LaunchKey(customPropertiesDir + "projects/", true, "PROJECTS_DIR");
-			DefaultLaunchKeys.RESOURCES_DIR = new LaunchKey(customPropertiesDir + "resources/", true, "RESOURCES_DIR");
 		} catch (Exception e) {
 			System.err.println("Failed to save custom launch properties: " + customPropertiesDir);
 		}
@@ -245,7 +245,7 @@ public class LaunchProperties {
 	 * @return An array of all known {@code *.properties} files.
 	 */
 	public static String[] getListOfProjectProperties() {
-		return Files.list(get(DefaultLaunchKeys.PROJECTS_DIR), ".properties", false);
+		return Files.list(customPropertiesDir + get(DefaultLaunchKeys.PROJECTS_DIR), ".properties", false);
 	}
 
 	/**
