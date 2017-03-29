@@ -1338,6 +1338,11 @@ public class PlinkData {
 	 * @return
 	 */
 	public static String[] createFamFile(Project proj, String famDirAndFilenameRoot, Set<String> dropSamples) {
+		return createFamFile(proj, famDirAndFilenameRoot, dropSamples, false);
+	}
+	
+
+	public static String[] createFamFile(Project proj, String famDirAndFilenameRoot, Set<String> dropSamples, boolean concatFIDToIID) {
 		BufferedReader reader;
 		PrintWriter writer;
 		int count;
@@ -1396,7 +1401,7 @@ public class PlinkData {
 				} else {
 					if (dropSamples == null || !dropSamples.contains(line[0] + "\t" + line[1])) {
   					dna.add(line[6]);
-  					writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
+  					writer.println(line[0] + "\t" + (concatFIDToIID ? line[0] + "_" : "") + line[1] + "\t" + (concatFIDToIID ? line[0] + "_" : "") + line[2] + "\t" + (concatFIDToIID ? line[0] + "_" : "") + line[3] + "\t" + line[4]
   												 + "\t" + line[5]);
 					}
 				}

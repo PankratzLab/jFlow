@@ -212,8 +212,7 @@ public final class Resources {
 		 * @return A resource for the MiniMac3 app
 		 */
 		public Resource getMiniMac3() {
-			return getTarGzResource("Minimac3/bin/Minimac3", remotePath() + "Minimac3.v2.0.1.tar.gz",
-															"Minimac3");
+			return getTarGzResource("Minimac3/bin/Minimac3", remotePath() + "Minimac3.v2.0.1.tar.gz", "Minimac3");
 		}
 	}
 
@@ -1198,6 +1197,11 @@ public final class Resources {
 					HttpDownloadUtility.downloadFile(url, downloadPath, true, log);
 
 					// verify the download
+					String md5Remote = getMD5Remote();
+					if (md5Remote == null) {
+						log.reportTimeWarning("Remote MD5 not available.");
+						return true;
+					}
 					if (getMD5Local().equals(getMD5Remote())) {
 						return true;
 					}

@@ -30,7 +30,6 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.manage.Resources;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -128,7 +127,7 @@ public class ImputationPipeline {
 
 	public void exportToPlink(String plinkDirAndRoot) {
 		// TODO (??) Only alphanumeric characters in FID/IID
-		String[] writtenDNAs = PlinkData.createFamFile(proj, plinkDirAndRoot, dropSamples);
+		String[] writtenDNAs = PlinkData.createFamFile(proj, plinkDirAndRoot, dropSamples, true);
 		if (writtenDNAs == null) {
 			// TODO error
 			return;
@@ -136,11 +135,13 @@ public class ImputationPipeline {
 		int[] indicesOfTargetSamplesInProj = PlinkData.getIndicesOfTargetSamplesInProj(proj, writtenDNAs, proj.getLog());
 		
 		// UNUSED - could potentially apply
-		String clusterFilterFileName = null;
+		String clusterFilterFileName = proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue();
 		
 		float gcThreshold = 0; /* this is unused in plink export code */ // proj.GC_THRESHOLD.getValue().floatValue();
 		
+		// TODO multi-thread
 		for (int chr = 1; chr < 23; chr++) {
+			proj.getLog().report("Exporting chr" + chr);
 			ArrayList<String> mkrs = getMarkersSortedNoDupes(chr);
 			
   		String[] targetMarkers = mkrs.toArray(new String[mkrs.size()]);
@@ -184,12 +185,21 @@ public class ImputationPipeline {
 		}
 
 		// UNUSED - could potentially apply
-		ClusterFilterCollection clusterFilters = null;
+		String clusterFilterFileName = proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue();
+		ClusterFilterCollection clusterFilterCollection = null;
+		if (clusterFilterFileName == null || !Files.exists(clusterFilterFileName)) {
+			clusterFilterCollection = null;
+		} else {
+			clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFileName,
+																														 proj.JAR_STATUS.getValue());
+		}
 		
 		float gcThreshold = 0; /* this is unused in plink export code, so we won't use it here, either */ //proj.GC_THRESHOLD.getValue().floatValue();
 		
-		
+
+		// TODO multi-thread
 		for (int chr = 1; chr < 23; chr++) {
+			proj.getLog().report("Exporting chr" + chr);
 			ArrayList<String> mkrs = getMarkersSortedNoDupes(chr);
 			
 			String fileOut = vcfDirAndRoot + "_chr" + chr + ".vcf.gz";
@@ -232,9 +242,8 @@ public class ImputationPipeline {
 				builderVc.start(mkr.getPosition());
 				builderVc.stop(mkr.getPosition());
 				builderVc.id(mkr.getName());
-
 				Collection<Genotype> genos = new ArrayList<Genotype>();
-				byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilters, markerData.getMarkerName(), gcThreshold, proj.getLog());
+				byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(), gcThreshold, proj.getLog());
 				for (int k = 0; k < idsToInclude.size(); k++) {
 					int idInd = idIndexMap.get(idsToInclude.get(k));
 					String id = idsToInclude.get(k);

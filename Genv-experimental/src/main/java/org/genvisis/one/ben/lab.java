@@ -22,6 +22,9 @@ import org.genvisis.cnv.analysis.FilterCalls;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.PlinkData;
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.CHROMOSOME;
+import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.util.CNVHelper;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
@@ -36,7 +39,9 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.DosageData;
 import org.genvisis.filesys.Segment;
 import org.genvisis.gwas.MergeExtractPipeline;
+import org.genvisis.imputation.ImputationImpl;
 import org.genvisis.imputation.ImputationPipeline;
+import org.genvisis.imputation.ImputationImpl.ShapeIt;
 import org.genvisis.one.ben.fcs.FCSFileDuplicator;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
@@ -245,14 +250,17 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
-			System.out.println("Exporting to VCF...");
 			
 			proj = new Project("projects/poynter.properties", false);
-			String referenceFile = "/home/pankrat2/shared/bin/ref/1000GP_Phase3_combined.legend.gz";
-			ImputationPipeline ip = new ImputationPipeline(proj, referenceFile);
-			ip.loadDefaultDropFiles(proj.PROJECT_DIRECTORY.getValue() + "plink/");
-//			ip.exportToPlink("/scratch.global/cole0482/testImp/plink");
-			ip.exportToVCF("/scratch.global/cole0482/testImp/output");
+//  			String referenceFile = "/home/pankrat2/shared/bin/ref/1000GP_Phase3_combined.legend.gz";
+//  			ImputationPipeline ip = new ImputationPipeline(proj, referenceFile);
+//  			ip.loadDefaultDropFiles(proj.PROJECT_DIRECTORY.getValue() + "plink/");
+  //			ip.exportToVCF("/scratch.global/cole0482/testImp/output");
+//  			ip.exportToPlink("/scratch.global/cole0482/testImp/plink");
+  			String hapsDir = "/scratch.global/cole0482/testImp/out/";
+  			String outDir = "/scratch.global/cole0482/testImp/out/min/";
+//  			new ImputationImpl.ShapeIt(proj, "/scratch.global/cole0482/testImp/", "plink_chr", hapsDir).createScripts();
+  			new ImputationImpl.MiniMac(proj, hapsDir, outDir).createScripts();
 			
 			// System.out.println("Username: " + QueueControl.getUserName());
 			// System.out.println("Group: " + QueueControl.getCurrentGroup());
