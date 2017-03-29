@@ -18,8 +18,6 @@ import org.genvisis.qsub.Qsub;
 
 public interface ImputationImpl {
 
-	int[] chrs = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22};
-	
 	class MiniMac {
 		
 		Logger log;
@@ -30,7 +28,7 @@ public interface ImputationImpl {
 		HashMap<Integer, String> refMap = new HashMap<Integer, String>();
 		HashMap<Integer, String> hapsMap = new HashMap<Integer, String>();
 		
-		public MiniMac(Project proj, String hapsDir, String outDir) {
+		public MiniMac(Project proj, int[] chrs, String hapsDir, String outDir) {
 			this.log = proj.getLog();
 			this.outDir = outDir;
 			this.threads = proj.NUM_THREADS.getValue();
@@ -123,7 +121,7 @@ public interface ImputationImpl {
 		HashMap<Integer, String> plinkFileMap = new HashMap<Integer, String>();
 		HashMap<Integer, Boolean> plinkFileTypeMap = new HashMap<Integer, Boolean>();
 		
-		public ShapeIt(Project proj, String plinkFileDir, String plinkChrFilePrefix, String outDir) {
+		public ShapeIt(Project proj, int[] chrs, String plinkFileDir, String plinkChrFilePrefix, String outDir) {
 			this.log = proj.getLog();
 			this.threads = proj.NUM_THREADS.getValue();
 			this.outDir = outDir;

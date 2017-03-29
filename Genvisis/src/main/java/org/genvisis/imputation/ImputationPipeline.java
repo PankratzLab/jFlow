@@ -34,6 +34,7 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
 import org.genvisis.gwas.FurtherAnalysisQc;
 import org.genvisis.gwas.Qc;
 import org.genvisis.seq.manage.ReferenceGenome;
@@ -125,7 +126,7 @@ public class ImputationPipeline {
 		return mkrs;
 	}
 
-	public void exportToPlink(String plinkDirAndRoot) {
+	public void exportToPlink(String plinkDirAndRoot, int[] chrs) {
 		// TODO (??) Only alphanumeric characters in FID/IID
 		String[] writtenDNAs = PlinkData.createFamFile(proj, plinkDirAndRoot, dropSamples, true);
 		if (writtenDNAs == null) {
@@ -140,7 +141,7 @@ public class ImputationPipeline {
 		float gcThreshold = 0; /* this is unused in plink export code */ // proj.GC_THRESHOLD.getValue().floatValue();
 		
 		// TODO multi-thread
-		for (int chr = 1; chr < 23; chr++) {
+		for (int chr : chrs) {
 			proj.getLog().report("Exporting chr" + chr);
 			ArrayList<String> mkrs = getMarkersSortedNoDupes(chr);
 			
@@ -171,7 +172,7 @@ public class ImputationPipeline {
 		
 	}
 	
-	public void exportToVCF(String vcfDirAndRoot) {
+	public void exportToVCF(String vcfDirAndRoot, int[] chrs) {
 		SampleData sd = proj.getSampleData(0, false);
 		String[] allSamples = proj.getSamples();
 		List<String> idsToInclude = new ArrayList<String>();
@@ -198,7 +199,7 @@ public class ImputationPipeline {
 		
 
 		// TODO multi-thread
-		for (int chr = 1; chr < 23; chr++) {
+		for (int chr : chrs) {
 			proj.getLog().report("Exporting chr" + chr);
 			ArrayList<String> mkrs = getMarkersSortedNoDupes(chr);
 			
@@ -284,8 +285,144 @@ public class ImputationPipeline {
 			System.gc();
 		}
 		
+	}
+
+	private static class ImputationPipeRunner {
 		
+		public static void runVCF(String projPropFile, int[] chrs, String refFile, String plinkSubdir, String vcfDirAndRoot) {
+			ImputationPipeline ip = setupPipe(projPropFile, refFile, plinkSubdir);
+			ip.exportToVCF(vcfDirAndRoot, chrs);
+		}
+		
+		public static void runPlink(String projPropFile, int[] chrs, String refFile, String plinkSubdir, String outputDirAndRoot) {
+			ImputationPipeline ip = setupPipe(projPropFile, refFile, plinkSubdir);
+			ip.exportToPlink(outputDirAndRoot, chrs);
+		}
+
+		public static void runShapeIt(String projPropFile, int[] chrs, String plinkFileDir, String plinkPrefix, String outDir) {
+			Project proj = new Project(projPropFile, false);
+			new ImputationImpl.ShapeIt(proj, chrs, plinkFileDir, plinkPrefix, outDir).createScripts();
+		}
+		
+		public static void runMinimac(String projPropFile, int[] chrs, String hapsDir, String outDir) {
+			Project proj = new Project(projPropFile, false);
+			new ImputationImpl.MiniMac(proj, chrs, hapsDir, outDir).createScripts();
+		}
+		
+		public static void runPlinkAndShapeIt(String projPropFile, int[] chrs, String refFile, String plinkSubdir, String outputDir) {
+			runPlink(projPropFile, chrs, refFile, plinkSubdir, outputDir + "/plink/plink");
+			runShapeIt(projPropFile, chrs, outputDir + "/plink/", "plink_chr", outputDir + "/haps/");
+		}
+		
+		public static void runPlinkShapeItAndMinimac(String projPropFile, int[] chrs, String refFile, String plinkSubdir, String outputDir) {
+			runPlinkAndShapeIt(projPropFile, chrs, refFile, plinkSubdir, outputDir);
+			runMinimac(projPropFile, chrs, outputDir + "/haps/", outputDir);
+		}
+		
+		private static ImputationPipeline setupPipe(String projPropFile, String refFile, String plinkSubdir) {
+			Project proj = new Project(projPropFile, false);
+			ImputationPipeline ip = new ImputationPipeline(proj, refFile);
+			ip.loadDefaultDropFiles(proj.PROJECT_DIRECTORY.getValue() + plinkSubdir);
+			return ip;
+		}
 		
 	}
+
+	private enum IMPUTATION_PIPELINE_PATH {
+		VCF_ONLY,
+		PLINK_ONLY,
+		PLINK_SHAPE,
+		PLINK_SHAPE_MINI,
+		SHAPE,
+		MINI;
+	}
+	
+	public static void main(String[] args) {
+		int numArgs = args.length;
+		String projFile = null;
+		String refFile = null;
+		String plinkSubdir = null;
+		String outDirAndRoot = null;
+		String hapsDir = null;
+		String outDir = null;
+		String plinkPrefix = null;
+		int[] chrs = null;
+		IMPUTATION_PIPELINE_PATH path = null;
+		
+		String usage = "\n" +
+									 "org.genvisis.imputation.ImputationPipeline requires 0-1 arguments\n" +
+									 "   (1) Project properties filename (i.e. proj=" + projFile + " (default))\n" +
+									 "";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h")
+					|| args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("proj=")) {
+				projFile = ext.parseStringArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("ref=")) {
+				refFile = ext.parseStringArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("plinkDir=")) {
+				plinkSubdir = ext.parseStringArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("plinkPrefix=")) {
+				plinkPrefix = ext.parseStringArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("outDirAndRoot=")) {
+				outDirAndRoot = ext.parseStringArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("outDir=")) {
+				outDir = ext.parseStringArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("hapsDir=")) {
+				hapsDir = ext.parseStringArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("chrs=")) {
+				chrs = ext.parseIntArrayArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("type=")) {
+				path = IMPUTATION_PIPELINE_PATH.valueOf(ext.parseStringArg(args[i]));
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		try {
+			switch(path) {
+				case VCF_ONLY:
+					ImputationPipeRunner.runVCF(projFile, chrs, refFile, plinkSubdir, outDirAndRoot);
+					break;
+				case PLINK_ONLY:
+					ImputationPipeRunner.runPlink(projFile, chrs, refFile, plinkSubdir, outDirAndRoot);
+					break;
+				case PLINK_SHAPE:
+					ImputationPipeRunner.runPlinkAndShapeIt(projFile, chrs, refFile, plinkSubdir, outDir);
+					break;
+				case PLINK_SHAPE_MINI:
+					ImputationPipeRunner.runPlinkShapeItAndMinimac(projFile, chrs, refFile, plinkSubdir, outDir);
+					break;
+				case MINI:
+					ImputationPipeRunner.runMinimac(projFile, chrs, hapsDir, outDir);
+					break;
+				case SHAPE:
+					ImputationPipeRunner.runShapeIt(projFile, chrs, plinkSubdir, plinkPrefix, outDir);
+					break;
+				default:
+					System.err.println("Error - unrecognized imputation path: " + path);
+					break;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
 	
 }

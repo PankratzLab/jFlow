@@ -238,9 +238,7 @@ public class lab {
 														 new Logger());
 		}
 	}
-
-
-
+	
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		Project proj;
@@ -251,16 +249,17 @@ public class lab {
 		boolean test = true;
 		if (test) {
 			
-			proj = new Project("projects/poynter.properties", false);
+//			proj = new Project("projects/poynter.properties", false);
 //  			String referenceFile = "/home/pankrat2/shared/bin/ref/1000GP_Phase3_combined.legend.gz";
 //  			ImputationPipeline ip = new ImputationPipeline(proj, referenceFile);
 //  			ip.loadDefaultDropFiles(proj.PROJECT_DIRECTORY.getValue() + "plink/");
-  //			ip.exportToVCF("/scratch.global/cole0482/testImp/output");
+//  			ip.exportToVCF("/scratch.global/cole0482/testImp/output");
 //  			ip.exportToPlink("/scratch.global/cole0482/testImp/plink");
-  			String hapsDir = "/scratch.global/cole0482/testImp/out/";
-  			String outDir = "/scratch.global/cole0482/testImp/out/min/";
+//  			String hapsDir = "/scratch.global/cole0482/testImp/out/";
+//  			String outDir = "/scratch.global/cole0482/testImp/out/min/";
+//
 //  			new ImputationImpl.ShapeIt(proj, "/scratch.global/cole0482/testImp/", "plink_chr", hapsDir).createScripts();
-  			new ImputationImpl.MiniMac(proj, hapsDir, outDir).createScripts();
+//  			new ImputationImpl.MiniMac(proj, hapsDir, outDir).createScripts();
 			
 			// System.out.println("Username: " + QueueControl.getUserName());
 			// System.out.println("Group: " + QueueControl.getCurrentGroup());
