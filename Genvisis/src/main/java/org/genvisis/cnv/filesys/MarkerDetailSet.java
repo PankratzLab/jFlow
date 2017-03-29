@@ -111,13 +111,15 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 		}
 
-		private static final long serialVersionUID = 2L;
+		private static final long serialVersionUID = 3L;
 
 		private final String name;
 		private final GenomicPosition genomicPosition;
-		private final char a;
-		private final char b;
+		private final Allele alleleA;
+		private final Allele alleleB;
 		private final RefAllele refAllele;
+
+		private transient Reference<char[]> abRef = null;
 
 
 		/**
@@ -128,12 +130,12 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		 * @param b
 		 * @param refAllele
 		 */
-		private Marker(String name, byte chr, int position, char a, char b, RefAllele refAllele) {
+		private Marker(String name, byte chr, int position, Allele a, Allele b, RefAllele refAllele) {
 			super();
 			this.name = name;
 			this.genomicPosition = new GenomicPosition(chr, position);
-			this.a = a;
-			this.b = b;
+			this.alleleA = a;
+			this.alleleB = b;
 			this.refAllele = refAllele;
 		}
 
@@ -154,45 +156,60 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		}
 
 		public char getA() {
-			return a;
+			return getAB()[0];
 		}
 
 		public char getB() {
-			return b;
+			return getAB()[1];
+		}
+
+		public char[] getAB() {
+			char[] ab = abRef == null ? null : abRef.get();
+			if (ab == null) {
+				ab = ABLookup.parseABFromAlleles(getAlleleA(), getAlleleB());
+				abRef = new SoftReference<char[]>(ab);
+			}
+			return ab;
+		}
+
+		public Allele getAlleleA() {
+			return alleleA;
+		}
+
+		public Allele getAlleleB() {
+			return alleleB;
 		}
 
 		public RefAllele getRefAllele() {
 			return refAllele;
 		}
 
-		public char[] getAB() {
-			return new char[] {a, b};
-		}
 
-		public char getRef() {
+
+		public Allele getRef() {
 			if (refAllele == null) {
-				return ABLookup.MISSING_ALLELE;
+				return null;
 			}
 			switch (refAllele) {
 				case A:
-					return a;
+					return alleleA;
 				case B:
-					return b;
+					return alleleB;
 				default:
 					throw new IllegalStateException("Undefined refAllele instance:" + refAllele.toString());
 
 			}
 		}
 
-		public char getAlt() {
+		public Allele getAlt() {
 			if (refAllele == null) {
-				return ABLookup.MISSING_ALLELE;
+				return null;
 			}
 			switch (refAllele) {
 				case A:
-					return b;
+					return alleleB;
 				case B:
-					return a;
+					return alleleA;
 				default:
 					throw new IllegalStateException("Undefined refAllele instance:" + refAllele.toString());
 
@@ -200,13 +217,53 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		}
 
 
+
+		// @Override
+		// public int hashCode() {
+		// final int prime = 31;
+		// int result = 1;
+		// result = prime * result + alleleA;
+		// result = prime * result + alleleB;
+		// result = prime * result + ((genomicPosition == null) ? 0 : genomicPosition.hashCode());
+		// result = prime * result + ((name == null) ? 0 : name.hashCode());
+		// result = prime * result + ((refAllele == null) ? 0 : refAllele.hashCode());
+		// return result;
+		// }
+		//
+		// @Override
+		// public boolean equals(Object obj) {
+		// if (this == obj)
+		// return true;
+		// if (obj == null)
+		// return false;
+		// if (getClass() != obj.getClass())
+		// return false;
+		// Marker other = (Marker) obj;
+		// if (alleleA != other.alleleA)
+		// return false;
+		// if (alleleB != other.alleleB)
+		// return false;
+		// if (genomicPosition == null) {
+		// if (other.genomicPosition != null)
+		// return false;
+		// } else if (!genomicPosition.equals(other.genomicPosition))
+		// return false;
+		// if (name == null) {
+		// if (other.name != null)
+		// return false;
+		// } else if (!name.equals(other.name))
+		// return false;
+		// if (refAllele != other.refAllele)
+		// return false;
+		// return true;
+		// }
 
 		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + a;
-			result = prime * result + b;
+			result = prime * result + ((alleleA == null) ? 0 : alleleA.hashCode());
+			result = prime * result + ((alleleB == null) ? 0 : alleleB.hashCode());
 			result = prime * result + ((genomicPosition == null) ? 0 : genomicPosition.hashCode());
 			result = prime * result + ((name == null) ? 0 : name.hashCode());
 			result = prime * result + ((refAllele == null) ? 0 : refAllele.hashCode());
@@ -222,9 +279,15 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			if (getClass() != obj.getClass())
 				return false;
 			Marker other = (Marker) obj;
-			if (a != other.a)
+			if (alleleA == null) {
+				if (other.alleleA != null)
+					return false;
+			} else if (!alleleA.equals(other.alleleA))
 				return false;
-			if (b != other.b)
+			if (alleleB == null) {
+				if (other.alleleB != null)
+					return false;
+			} else if (!alleleB.equals(other.alleleB))
 				return false;
 			if (genomicPosition == null) {
 				if (other.genomicPosition != null)
@@ -249,15 +312,21 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			cmp = name.compareTo(o.name);
 			if (cmp != 0)
 				return cmp;
-			cmp = Java6Helper.compare(a, o.a);
+			cmp = alleleA.compareTo(o.alleleA);
 			if (cmp != 0)
 				return cmp;
-			cmp = Java6Helper.compare(b, o.b);
+			cmp = alleleB.compareTo(o.alleleB);
+			if (cmp != 0)
+				return cmp;
+			cmp = refAllele.compareTo(o.refAllele);
+			if (cmp != 0)
+				return cmp;
+			cmp = name.compareTo(o.name);
 			return cmp;
 		}
 	}
 
-	public static final long serialVersionUID = 1L;
+	public static final long serialVersionUID = 3L;
 
 	private final ImmutableList<Marker> markers;
 	private final int hashCode;
@@ -317,7 +386,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				a = 'A';
 				b = 'B';
 			}
-			markersBuilder.add(new Marker(markerNames[i], chrs[i], positions[i], a, b, null));
+			markersBuilder.add(new Marker(markerNames[i], chrs[i], positions[i],
+																		Allele.create(String.valueOf(a)),
+																		Allele.create(String.valueOf(b)), null));
 		}
 		markers = markersBuilder.build();
 		this.markerSetFingerprint = markerSetFingerprint;
@@ -439,7 +510,6 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		parsers.add(masterMarkerList);
 		annotationLoader.fillAnnotations(null, parsers, QUERY_TYPE.ONE_TO_ONE);
 
-		int missingABcount = 0;
 		int missingPositionCount = 0;
 		int ambiguousPositionCount = 0;
 		for (int i = 0; i < markerNames.length; i++) {
@@ -449,22 +519,17 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 																											 .getInterrogationPosition();
 			int probeLength = markerBlastAnnotation.getMarkerSeqAnnotation().getSequence().length();
 			int positionOffset = interrogationPosition - probeLength + 1;
-			char a = ABLookup.MISSING_ALLELE;
-			char b = ABLookup.MISSING_ALLELE;
+			Allele a;
+			Allele b;
 			Marker.RefAllele refAllele = null;
-			try {
-				MarkerSeqAnnotation markerSeqAnnotation = markerBlastAnnotation.getMarkerSeqAnnotation();
-				char[] ab = ABLookup.parseABFromMarkerSeqAnnotation(markerSeqAnnotation);
-				a = ab[0];
-				b = ab[1];
-				Allele ref = markerSeqAnnotation.getRef();
-				if (ref.basesMatch(String.valueOf(a)))
-					refAllele = Marker.RefAllele.A;
-				else if (ref.basesMatch(String.valueOf(b)))
-					refAllele = Marker.RefAllele.B;
-			} catch (NullPointerException npe) {
-				missingABcount++;
-			}
+			MarkerSeqAnnotation markerSeqAnnotation = markerBlastAnnotation.getMarkerSeqAnnotation();
+			a = markerSeqAnnotation.getA();
+			b = markerSeqAnnotation.getB();
+			Allele ref = markerSeqAnnotation.getRef();
+			if (ref.basesMatch(a))
+				refAllele = Marker.RefAllele.A;
+			else if (ref.basesMatch(b))
+				refAllele = Marker.RefAllele.B;
 			boolean ambiguousPosition = false;
 			List<BlastAnnotation> perfectMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
 																																										 log);
@@ -532,11 +597,6 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				ambiguousPositionCount++;
 			}
 			markers.add(new Marker(markerNames[i], chr, position, a, b, refAllele));
-		}
-		if (missingABcount > 0) {
-			log.reportError("Warning - there " + (missingABcount > 1 ? "were " : "was ")
-											+ missingABcount + " marker" + (missingABcount > 1 ? "s" : "")
-											+ " without an AB value");
 		}
 		if (ambiguousPositionCount > 0) {
 			log.reportError("Warning - there " + (ambiguousPositionCount > 1 ? "were " : "was ")

@@ -5,13 +5,11 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.poi.util.IOUtils;
-import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker.GenomicPosition;
@@ -23,6 +21,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
+import org.genvisis.seq.manage.StrandOps;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -30,9 +29,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import htsjdk.tribble.annotation.Strand;
+import htsjdk.variant.variantcontext.Allele;
+
 public class ImputationPrep {
 
-	private static final Set<Character> VALID_ALLELES = ImmutableSet.of('A', 'T', 'G', 'C', 'I', 'D');
 	private static final String[][] REF_COLS;
 
 	static {
@@ -58,8 +59,8 @@ public class ImputationPrep {
 		private byte chr;
 		private int position;
 		private String id;
-		private char ref;
-		private char alt;
+		private Allele ref;
+		private Allele alt;
 
 		/**
 		 * @param chr
@@ -68,7 +69,7 @@ public class ImputationPrep {
 		 * @param ref
 		 * @param alt
 		 */
-		public ReferencePosition(byte chr, int position, String id, char ref, char alt) {
+		public ReferencePosition(byte chr, int position, String id, Allele ref, Allele alt) {
 			super();
 			this.chr = chr;
 			this.position = position;
@@ -89,11 +90,11 @@ public class ImputationPrep {
 			return id;
 		}
 
-		public char getRef() {
+		public Allele getRef() {
 			return ref;
 		}
 
-		public char getAlt() {
+		public Allele getAlt() {
 			return alt;
 		}
 
@@ -119,7 +120,8 @@ public class ImputationPrep {
 		return matchingMarkers;
 	}
 
-	@SuppressWarnings("resource") // eclipse doesn't recognize reader.close() calls in catch blocks, apparently
+	@SuppressWarnings("resource") // eclipse doesn't recognize reader.close() calls in catch blocks,
+																// apparently
 	private Map<Byte, Map<Integer, Set<ReferencePosition>>> readRefFile() {
 		Set<GenomicPosition> markerSetPositions = proj.getMarkerSet().getGenomicPositionMap().keySet();
 		log.report("Parsing reference panel file");
@@ -158,10 +160,8 @@ public class ImputationPrep {
 				}
 				if (markerSetPositions.contains(new GenomicPosition(chr, position))) {
 					String id = refLine[2];
-					char ref = refLine[3].length() == 1 ? refLine[3].toUpperCase().charAt(0)
-																							: ABLookup.MISSING_ALLELE;
-					char alt = refLine[4].length() == 1 ? refLine[4].toUpperCase().charAt(0)
-																							: ABLookup.MISSING_ALLELE;
+					Allele ref = Allele.create(refLine[3], true);
+					Allele alt = Allele.create(refLine[4], true);
 					Map<Integer, Set<ReferencePosition>> posMap = referencePositionsBuild.get(chr);
 					if (posMap == null) {
 						posMap = Maps.newHashMap();
@@ -191,7 +191,6 @@ public class ImputationPrep {
 		Map<Byte, Map<Integer, Set<ReferencePosition>>> referencePositions = readRefFile();
 		ImmutableSet.Builder<Marker> matchingMarkersBuilder = ImmutableSet.builder();
 		int mismatchPos = 0;
-		int invalidAlleles = 0;
 		int alleleFlips = 0;
 		int strandFlips = 0;
 		int strandAlelleFlips = 0;
@@ -218,22 +217,25 @@ public class ImputationPrep {
 			} else {
 				// Copy the matches in order to pick off bad matches without removing from actual structure
 				refMatches = Sets.newHashSet(refMatches);
-				char ref = marker.getRef();
-				char alt = marker.getAlt();
+				Allele ref = marker.getRef();
+				Allele alt = marker.getAlt();
 				// Find the best matched ReferencePosition from all of the matches
-				if (!validateAlleles(ref, alt, refMatches)) {
-					invalidAlleles++;
-				} else if (matches(ref, alt, refMatches)) {
+				if (matches(ref, alt, refMatches)) {
 					matchingMarkersBuilder.add(marker);
 					// Don't accept anything less than a proper match but count for reporting purposes
 				} else if (matches(alt, ref, refMatches)) {
 					alleleFlips++;
 				} else {
-					Character aFlip = PALINDROMIC_PAIRS.get(ref);
-					Character bFlip = PALINDROMIC_PAIRS.get(alt);
-					if (matches(aFlip, bFlip, refMatches)) {
+					// TODO Try reversing as well (for Indels on wrong Strand)
+					Allele refFlip = Allele.create(StrandOps.flipsIfNeeded(ref.getBaseString(),
+																																 Strand.NEGATIVE,
+																																 true));
+					Allele altFlip = Allele.create(StrandOps.flipsIfNeeded(alt.getBaseString(),
+																																 Strand.NEGATIVE,
+																																 true));;
+					if (matches(refFlip, altFlip, refMatches)) {
 						strandFlips++;
-					} else if (matches(bFlip, aFlip, refMatches)) {
+					} else if (matches(altFlip, refFlip, refMatches)) {
 						strandAlelleFlips++;
 					} else {
 						mismatchAlleles++;
@@ -246,8 +248,6 @@ public class ImputationPrep {
 
 		Set<Marker> matchingMarkersSet = matchingMarkersBuilder.build();
 
-		log.report(invalidAlleles
-							 + " positions had invalid allele codes in the project or reference set");
 		log.report(mismatchPos + " positions did not match to a position in the reference set");
 		log.report(mismatchAlleles + " positions had mismatched alleles and were excluded");
 		log.report(alleleFlips + " positions would have matched after flipping the alleles");
@@ -262,35 +262,11 @@ public class ImputationPrep {
 		return matchingMarkersSet;
 	}
 
-	private static boolean validateAlleles(char a, char b, Collection<ReferencePosition> refMatches) {
-		if (!validAlleles(a, b)) {
-			return false;
-		}
-		for (Iterator<ReferencePosition> i = refMatches.iterator(); i.hasNext();) {
-			ReferencePosition refPos = i.next();
-			char ref = refPos.getRef();
-			char alt = refPos.getAlt();
-			if (!validAlleles(ref, alt)) {
-				i.remove();
-			}
-		}
-		return !refMatches.isEmpty();
-	}
-
-	private static boolean validAlleles(char... alleles) {
-		for (char allele : alleles) {
-			if (!VALID_ALLELES.contains(allele)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private static boolean matches(Character a, Character b,
+	private static boolean matches(Allele a, Allele b,
 																 Collection<ReferencePosition> refMatches) {
 		if (a != null && b != null) {
 			for (ReferencePosition refPos : refMatches) {
-				if (a == refPos.getRef() && b == refPos.getAlt()) {
+				if (a.basesMatch(refPos.getRef()) && b.basesMatch(refPos.getAlt())) {
 					return true;
 				}
 			}

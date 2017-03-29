@@ -1,18 +1,5 @@
 package org.genvisis.imputation;
 
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.variant.variantcontext.Allele;
-import htsjdk.variant.variantcontext.Genotype;
-import htsjdk.variant.variantcontext.GenotypeBuilder;
-import htsjdk.variant.variantcontext.VariantContextBuilder;
-import htsjdk.variant.variantcontext.writer.Options;
-import htsjdk.variant.variantcontext.writer.VariantContextWriter;
-import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
-import htsjdk.variant.vcf.VCFFormatHeaderLine;
-import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderLine;
-import htsjdk.variant.vcf.VCFHeaderLineType;
-
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,9 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker.RefAllele;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.PlinkData;
@@ -41,17 +29,30 @@ import org.genvisis.seq.manage.ReferenceGenome;
 
 import com.google.common.collect.ImmutableSet;
 
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypeBuilder;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.variantcontext.writer.Options;
+import htsjdk.variant.variantcontext.writer.VariantContextWriter;
+import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
+import htsjdk.variant.vcf.VCFFormatHeaderLine;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFHeaderLineType;
+
 
 public class ImputationPipeline {
-	
+
 	Project proj;
 	Set<String> dropMarkers = new HashSet<String>();
 	Set<String> dropSamples = new HashSet<String>();
 	Map<String, Marker> prepMarkers = new HashMap<String, Marker>();
 	Set<String> prepMarkersNames = new HashSet<String>();
-	
+
 	Set<String> markersToExport;
-	
+
 	public ImputationPipeline(Project proj, String referenceFile) {
 		this.proj = proj;
 		ImputationPrep prep = new ImputationPrep(proj, referenceFile);
@@ -61,7 +62,7 @@ public class ImputationPipeline {
 			prepMarkers.put(m.getName(), m);
 		}
 	}
-	
+
 	public void loadDefaultDropFiles(String plinkDir) {
 		String dir = plinkDir + Qc.QC_SUBDIR + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR;
 		String mark = dir + FurtherAnalysisQc.MARKER_QC_DROPS;
@@ -69,7 +70,7 @@ public class ImputationPipeline {
 		setMarkersToDropFile(mark);
 		setSamplesToDropFile(samp);
 	}
-	
+
 	public void setSamplesToDropFile(String samplesToDropFile) {
 		if (!Files.exists(samplesToDropFile)) {
 			proj.getLog().reportTimeWarning("Sample drop file doesn't exist: " + samplesToDropFile);
@@ -85,16 +86,16 @@ public class ImputationPipeline {
 		}
 		dropMarkers = HashVec.loadFileToHashSet(markersToDropFile, false);
 	}
-	
+
 	private Set<String> getMarkersToExport() {
 		if (markersToExport == null) {
-  		markersToExport = new HashSet<String>(Arrays.asList(proj.getMarkerNames()));
-  		markersToExport.removeAll(dropMarkers);
-  		markersToExport.retainAll(prepMarkersNames);
+			markersToExport = new HashSet<String>(Arrays.asList(proj.getMarkerNames()));
+			markersToExport.removeAll(dropMarkers);
+			markersToExport.retainAll(prepMarkersNames);
 		}
 		return markersToExport;
 	}
-	
+
 	private Set<String> getChrMarkers(int chr) {
 		Set<String> markersToExport = getMarkersToExport();
 		Set<String> chrMarkers = new HashSet<String>();
@@ -105,7 +106,7 @@ public class ImputationPipeline {
 		}
 		return chrMarkers;
 	}
-	
+
 	private ArrayList<String> getMarkersSortedNoDupes(int chr) {
 		Set<String> chrMarkers = getChrMarkers(chr);
 
@@ -114,12 +115,13 @@ public class ImputationPipeline {
 		for (int i = 0; i < mkr.length; i++) {
 			pos[i] = prepMarkers.get(mkr[i]).getPosition();
 		}
-		
+
 		int[] indices = Sort.getSortedIndices(pos);
-		
+
 		ArrayList<String> mkrs = new ArrayList<String>();
 		for (int i = 0; i < indices.length; i++) {
-			if (i == 0 || pos[indices[i]] != pos[indices[i-1]]) { // skip if prev (in sorted array) was same position
+			if (i == 0 || pos[indices[i]] != pos[indices[i - 1]]) { // skip if prev (in sorted array) was
+																															// same position
 				mkrs.add(mkr[indices[i]]);
 			}
 		}
@@ -133,45 +135,50 @@ public class ImputationPipeline {
 			// TODO error
 			return;
 		}
-		int[] indicesOfTargetSamplesInProj = PlinkData.getIndicesOfTargetSamplesInProj(proj, writtenDNAs, proj.getLog());
-		
+		int[] indicesOfTargetSamplesInProj = PlinkData.getIndicesOfTargetSamplesInProj(proj,
+																																									 writtenDNAs,
+																																									 proj.getLog());
+
 		// UNUSED - could potentially apply
 		String clusterFilterFileName = proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue();
-		
+
 		float gcThreshold = 0; /* this is unused in plink export code */ // proj.GC_THRESHOLD.getValue().floatValue();
-		
+
 		// TODO multi-thread
 		for (int chr : chrs) {
 			proj.getLog().report("Exporting chr" + chr);
 			ArrayList<String> mkrs = getMarkersSortedNoDupes(chr);
-			
-  		String[] targetMarkers = mkrs.toArray(new String[mkrs.size()]);
-  		int[] indicesOfTargetMarkersInProj = new int[targetMarkers.length];
-  		HashMap<String, Byte> chrsOfTargetMarkers = new HashMap<String, Byte>();
-  		HashMap<String, Integer> posOfTargetMarkers = new HashMap<String, Integer>();
-  		PlinkData.getIndicesOfTargetMarkers(proj, targetMarkers, indicesOfTargetMarkersInProj,
-  															chrsOfTargetMarkers, posOfTargetMarkers, proj.getLog());
-  		
-  		String dirAndRoot = plinkDirAndRoot + "_chr" + chr;
-  		boolean success = PlinkData.createBedFileSnpMajor10KperCycle(proj, ImmutableSet.copyOf(targetMarkers),
-  																											 chrsOfTargetMarkers, posOfTargetMarkers,
-  																											 indicesOfTargetSamplesInProj,
-  																											 clusterFilterFileName, gcThreshold,
-  																											 dirAndRoot, proj.getLog());
-  		
-  		if (success) {
-  			PrintWriter refWriter = Files.getAppropriateWriter(dirAndRoot + "_alleles.ref");
+
+			String[] targetMarkers = mkrs.toArray(new String[mkrs.size()]);
+			int[] indicesOfTargetMarkersInProj = new int[targetMarkers.length];
+			HashMap<String, Byte> chrsOfTargetMarkers = new HashMap<String, Byte>();
+			HashMap<String, Integer> posOfTargetMarkers = new HashMap<String, Integer>();
+			PlinkData.getIndicesOfTargetMarkers(proj, targetMarkers, indicesOfTargetMarkersInProj,
+																					chrsOfTargetMarkers, posOfTargetMarkers, proj.getLog());
+
+			String dirAndRoot = plinkDirAndRoot + "_chr" + chr;
+			boolean success = PlinkData.createBedFileSnpMajor10KperCycle(proj,
+																																	 ImmutableSet.copyOf(targetMarkers),
+																																	 chrsOfTargetMarkers,
+																																	 posOfTargetMarkers,
+																																	 indicesOfTargetSamplesInProj,
+																																	 clusterFilterFileName,
+																																	 gcThreshold,
+																																	 dirAndRoot, proj.getLog());
+
+			if (success) {
+				PrintWriter refWriter = Files.getAppropriateWriter(dirAndRoot + "_alleles.ref");
 				for (String s : targetMarkers) {
-					refWriter.println(s + "\t" + prepMarkers.get(s).getRef());	
+					refWriter.println(s + "\t" + prepMarkers.get(s).getRef());
 				}
-  			refWriter.flush();
-  			refWriter.close();
-  			Files.copyFile(plinkDirAndRoot + ".fam", dirAndRoot + ".fam");
-  		}
+				refWriter.flush();
+				refWriter.close();
+				Files.copyFile(plinkDirAndRoot + ".fam", dirAndRoot + ".fam");
+			}
 		}
-		
+
 	}
-	
+
 	public void exportToVCF(String vcfDirAndRoot, int[] chrs) {
 		SampleData sd = proj.getSampleData(0, false);
 		String[] allSamples = proj.getSamples();
@@ -202,41 +209,46 @@ public class ImputationPipeline {
 		for (int chr : chrs) {
 			proj.getLog().report("Exporting chr" + chr);
 			ArrayList<String> mkrs = getMarkersSortedNoDupes(chr);
-			
+
 			String fileOut = vcfDirAndRoot + "_chr" + chr + ".vcf.gz";
-			
+
 			VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(fileOut);
 			builder.clearOptions();
 			builder.setOption(Options.INDEX_ON_THE_FLY);
-			
+
 			HashSet<VCFHeaderLine> lines = new HashSet<VCFHeaderLine>();
 			VCFFormatHeaderLine format = new VCFFormatHeaderLine("GT", 1, VCFHeaderLineType.String, "GT");
 			lines.add(format);
-			
+
 			VCFHeader vcfHeader = new VCFHeader(lines, idsToInclude);
 
-			SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog()).getFASTA().getAbsolute(), proj.getLog())
-																															.getIndexedFastaSequenceFile().getSequenceDictionary();
+			SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
+																																												 proj.getLog())
+																																								 .getFASTA()
+																																								 .getAbsolute(),
+																																				proj.getLog())
+																																											.getIndexedFastaSequenceFile()
+																																											.getSequenceDictionary();
 
 			builder.setReferenceDictionary(samSequenceDictionary);
 			vcfHeader.setSequenceDictionary(samSequenceDictionary);
-			
+
 			VariantContextWriter writer = builder.build();
 			vcfHeader.hasGenotypingData();
 			writer.writeHeader(vcfHeader);
 
-			
+
 			MDL mdl = new MDL(proj, proj.getMarkerSet(), mkrs.toArray(new String[mkrs.size()]));
 
 			while (mdl.hasNext()) {
 				MarkerData markerData = mdl.next();
-				
+
 				VariantContextBuilder builderVc = new VariantContextBuilder();
 				builderVc.chr("chr" + chr);
 				Marker mkr = prepMarkers.get(markerData.getMarkerName());
 				ArrayList<Allele> a = new ArrayList<Allele>();
-				Allele aR = Allele.create(Character.toString(mkr.getRef()), true);
-				Allele aA = Allele.create(Character.toString(mkr.getAlt()), false);
+				Allele aR = mkr.getRef();
+				Allele aA = mkr.getAlt();
 				a.add(aR);
 				a.add(aA);
 				builderVc.alleles(a);
@@ -251,9 +263,9 @@ public class ImputationPipeline {
 					Genotype g;
 					List<Allele> all;
 					byte indGeno = genotypes[idInd];
-//					0 for A/A, 1 for A/B, 2 for B/B, and -1 for null
-					boolean aIsRef = mkr.getRef() == mkr.getA();
-					switch(indGeno) {
+					// 0 for A/A, 1 for A/B, 2 for B/B, and -1 for null
+					boolean aIsRef = mkr.getRefAllele().equals(RefAllele.A);
+					switch (indGeno) {
 						case 0:
 							all = aIsRef ? Arrays.asList(aR, aR) : Arrays.asList(aA, aA);
 							break;
@@ -269,17 +281,17 @@ public class ImputationPipeline {
 							break;
 					}
 					g = GenotypeBuilder.create(id, all);
-					
+
 					genos.add(g);
 				}
-				
+
 				builderVc.genotypes(genos);
 				writer.add(builderVc.make());
-				
+
 			}
 			mdl.shutdown();
 			mdl = null;
-			
+
 			writer.close();
 			writer = null;
 			System.gc();
@@ -336,7 +348,7 @@ public class ImputationPipeline {
 		SHAPE,
 		MINI;
 	}
-	
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String projFile = null;

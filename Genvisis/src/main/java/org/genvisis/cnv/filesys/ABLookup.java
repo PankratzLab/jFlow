@@ -142,25 +142,43 @@ public class ABLookup {
 		Allele B = markerSeqAnnotation.getB();
 		char a = MISSING_ALLELE;
 		char b = MISSING_ALLELE;
-		if (markerSeqAnnotation.isIndel() || A.getBaseString().length() != B.getBaseString().length()) {
-			if (markerSeqAnnotation.isaDeletion()
-					|| A.getBaseString().length() < B.getBaseString().length()) {
+		if (markerSeqAnnotation.isIndel()) {
+			if (markerSeqAnnotation.isaDeletion()) {
 				a = 'D';
 				b = 'I';// actually this is typically just :equals reference;
-			} else if (markerSeqAnnotation.isbDeletion()
-								 || A.getBaseString().length() > B.getBaseString().length()) {
+			} else if (markerSeqAnnotation.isbDeletion()) {
 				a = 'I';
 				b = 'D';
 			} else {
 				throw new IllegalStateException("Both A and B should not be deletions");
 			}
 		} else {
-			if (!A.isSymbolic()) {
-				a = StrandOps.flipIfNeeded(A.getDisplayString(), strand, false).charAt(0);
-			}
-			if (!B.isSymbolic()) {
-				b = StrandOps.flipIfNeeded(B.getDisplayString(), strand, false).charAt(0);
+			return parseABFromAlleles(A, B, strand);
+		}
+		return new char[] {a, b};
+	}
 
+	public static char[] parseABFromAlleles(Allele alleleA, Allele alleleB) {
+		return parseABFromAlleles(alleleA, alleleB, Strand.POSITIVE);
+	}
+
+	public static char[] parseABFromAlleles(Allele alleleA, Allele alleleB, Strand strand) {
+		char a = MISSING_ALLELE;
+		char b = MISSING_ALLELE;
+		if (alleleA.getBaseString().length() != alleleB.getBaseString().length()) {
+			if (alleleA.getBaseString().length() < alleleB.getBaseString().length()) {
+				a = 'D';
+				b = 'I';// actually this is typically just :equals reference;
+			} else {
+				a = 'I';
+				b = 'D';
+			}
+		} else {
+			if (!alleleA.isSymbolic()) {
+				a = StrandOps.flipIfNeeded(alleleA.getDisplayString(), strand, false).charAt(0);
+			}
+			if (!alleleB.isSymbolic()) {
+				b = StrandOps.flipIfNeeded(alleleB.getDisplayString(), strand, false).charAt(0);
 			}
 		}
 		return new char[] {a, b};
