@@ -1007,7 +1007,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		}
 
 		addAnnotationField = new JTextField(DEFAULT_MESSAGE);
-
+		addAnnotationField.setPreferredSize(new Dimension(175,25));
 		addAnnotationField.addFocusListener(new FocusListener() {
 			@Override
 			public void focusGained(FocusEvent e) {
@@ -4488,8 +4488,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							scatterPlot.pack();
-							scatterPlot.setSize(1200, 870);
+							scatterPlot.setPreferredSize(new Dimension(1200, 870));
+							scatterPlot.pack();							
 							scatterPlot.setVisible(true);
 						}
 					});
