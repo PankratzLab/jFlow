@@ -250,40 +250,24 @@ public class SourceFileParser implements Runnable {
 									log.reportTimeInfo("Detected genotype calls for each allele are in the same column (Such as in Affymetrix .chp format) ");
 									splitAB = true;
 								}
-								if (splitAB) {
-									String tmp0 = line[headerData.colGeno1].substring(0, 1);
-									String tmp1 = line[headerData.colGeno1].substring(1, 2);
-									line[headerData.colGeno1] = tmp0;
-									line[headerData.colGeno2] = tmp1;
-									if (!ignoreAB) {
-										try {
-											String tmp2 = line[headerData.colGenoAB1].substring(0, 1);
-											String tmp3 = line[headerData.colGenoAB1].substring(1, 2);
-											line[headerData.colGenoAB1] = tmp2;
-											line[headerData.colGenoAB2] = tmp3;
-										} catch (Exception e) {
-											log.reportError("Could not parse genotypes on line " + key + " --> {"
-																			+ ArrayUtils.toStr(line) + "}");
-											log.reportException(e);
-											return;
-										}
-									}
-								} else {
-									log.reportError("Inconsistant genotype call lengths");
-								}
 							} else if (splitAB) {
 								log.reportError("Detected previously that genotype calls should be split, but the calls on line "
 																+ key + " --> {" + ArrayUtils.toStr(line)
 																+ "} did not.  Parsing will fail for this file.");
 								return;
 							}
-							genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.colGeno1]
-																												+ line[headerData.colGeno2],
-																												Sample.ALLELE_PAIRS);
+
+							if (splitAB) {
+								genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.colGeno1],
+																													Sample.ALLELE_PAIRS);
+							} else {
+								genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.colGeno1]
+																													+ line[headerData.colGeno2],
+																													Sample.ALLELE_PAIRS);
+							}
 
 							if (genotypes[0][key] == -1) {
-								if (proj.getArrayType() == ARRAY.ILLUMINA) {// Affy matrix format does not use
-																														// ALLELE_PAIRS
+								if (proj.getArrayType() == ARRAY.ILLUMINA) {
 
 									if (ext.indexOfStr(line[headerData.colGeno1] + line[headerData.colGeno2],
 																		 Sample.ALT_NULLS) == -1) {
@@ -293,17 +277,22 @@ public class SourceFileParser implements Runnable {
 																		+ "; setting to missing");
 									}
 									genotypes[0][key] = 0;
-								} else {
-									genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.colGenoAB1]
-																														+ line[headerData.colGenoAB2],
+								} else if (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
+													 || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN) {
+									genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.colGeno1],
 																														Sample.AB_PAIRS);
-									if (genotypes[0][key] == -1) {
+									if (genotypes[0][key] == -1 && ext.indexOfStr(line[headerData.colGeno1],
+																																Sample.ALT_NULLS) == -1) {
 										log.reportError("Error - failed to lookup " + line[headerData.colGeno1]
-																		+ line[headerData.colGeno2] + " for marker "
+																		+ " for marker "
 																		+ markerNames[count] + " of sample " + files[i]
 																		+ "; setting to missing");
-										genotypes[0][key] = 0;
+										
 									}
+									// Affy matrix format
+									// // does not use
+									// // ALLELE_PAIRS
+									genotypes[0][key] = 0;
 								}
 							}
 						}
@@ -311,13 +300,20 @@ public class SourceFileParser implements Runnable {
 							if (ignoreAB) {
 								// do nothing, will need to use these files to determine AB lookup table
 							} else if (abLookup == null || headerData.colGeno1 == -1
-												 || headerData.colGeno2 == -1) {
+												 || headerData.colGeno2 == -1
+												 || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
+												 || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN) {// FORCE AFFY HERE
 								if (abLookup != null) {
 									log.reportTimeWarning("ABLookup data provided to source file parser but forward genotypes aren't present in the source file.  AB genotypes will be parsed from the source file instead.");
 								}
-								genotypes[1][key] = (byte) ext.indexOfStr(line[headerData.colGenoAB1]
-																													+ line[headerData.colGenoAB2],
-																													Sample.AB_PAIRS);
+								if (splitAB) {
+									genotypes[1][key] = (byte) ext.indexOfStr(line[headerData.colGenoAB1],
+																														Sample.AB_PAIRS);
+								} else {
+									genotypes[1][key] = (byte) ext.indexOfStr(line[headerData.colGenoAB1]
+																														+ line[headerData.colGenoAB2],
+																														Sample.AB_PAIRS);
+								}
 							} else {
 								if (genotypes[0][key] == 0) {
 									genotypes[1][key] = -1;
@@ -886,7 +882,8 @@ public class SourceFileParser implements Runnable {
 			}
 
 			PSF.checkInterrupted();
-			code = checkForExistingFiles(proj, proj.MARKER_DATA_DIRECTORY.getValue(false, true), MarkerData.MARKER_DATA_FILE_EXTENSION);
+			code = checkForExistingFiles(proj, proj.MARKER_DATA_DIRECTORY.getValue(true, true),
+																	 MarkerData.MARKER_DATA_FILE_EXTENSION);
 			if (code == JOptionPane.NO_OPTION) {
 				return code;
 			}

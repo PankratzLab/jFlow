@@ -1393,7 +1393,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
 		if (!new File(exampleProperties).exists()) {
 			log.reportTime("Creating example project properties: " + exampleProperties);
-			Files.writeArray(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/",
+			Files.writeArray(new String[] {"PROJECT_NAME=Example",
+																		 "PROJECT_DIRECTORY=" + LaunchProperties.directoryOfLaunchProperties()
+																														 + "example/",
 																		 "SOURCE_DIRECTORY=sourceFiles/"},
 											 exampleProperties);
 		}

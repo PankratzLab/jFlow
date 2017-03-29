@@ -1,5 +1,7 @@
 package org.genvisis.cnv.prop;
 
+import java.util.Arrays;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.GROUP;
 import org.genvisis.common.ArrayUtils;
@@ -55,7 +57,8 @@ public class StringListProperty extends Property<String[]> {
 
 	@Override
 	public String[] getValue() {
-		String[] values = super.getValue();
+		String[] values = Arrays.copyOf(super.getValue(), super.getValue().length);
+
 		if (isFile || isDir) {
 			for (int i = 0; i < values.length; i++) {
 				if (!"".equals(values[i]) && !values[i].startsWith(".") && !values[i].startsWith("/")

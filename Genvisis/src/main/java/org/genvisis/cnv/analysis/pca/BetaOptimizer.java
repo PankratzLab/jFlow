@@ -1240,35 +1240,34 @@ public class BetaOptimizer {
 		}
 	}
 
-	public static void optimize(Project proj, String pcFile, String outDir, String betaLoc,
+	public static void optimize(Project proj, String pcFile, String outDir,
+															String betaLoc,
 															String unRelatedFile, String pcSamps, double[] pvals, int maxPCs,
 															double markerCallRate, int pvalRefineCutoff, double minPval,
 															int numthreads) throws IllegalStateException {
 		new File(outDir).mkdirs();
 
-		proj.AB_LOOKUP_FILENAME.setValue(outDir + "AB_LookupBeta.dat");
+		proj.AB_LOOKUP_FILENAME.setValue(outDir.replaceFirst(proj.PROJECT_DIRECTORY.getValue(), "")
+																		 + "AB_LookupBeta.dat");
 		ABLookup abLookup = new ABLookup();
 		if (!Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
-			if (Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
-				Files.copyFile(proj.AB_LOOKUP_FILENAME.getValue(), outDir + "AB_LookupBeta.dat");
-			} else {
-				if (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
-						|| proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN) {
-					Resource abAffy = Resources.affy(proj.getLog()).getABLookup();
-					if (abAffy.isAvailable()) {
-						String tmpAB = abAffy.get();
-						Files.copyFile(tmpAB, proj.AB_LOOKUP_FILENAME.getValue());
-					} else {
-						throw new IllegalStateException("Could not retrieve required AB lookup for affymetrix array, halting");
-					}
+
+			if (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
+					|| proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN) {
+				Resource abAffy = Resources.affy(proj.getLog()).getABLookup();
+				if (abAffy.isAvailable()) {
+					String tmpAB = abAffy.get();
+					Files.copyFile(tmpAB, proj.AB_LOOKUP_FILENAME.getValue());
+				} else {
+					throw new IllegalStateException("Could not retrieve required AB lookup for affymetrix array, halting");
 				}
-				if (!Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
-					abLookup.parseFromAnnotationVCF(proj);
-					abLookup.writeToFile(proj.AB_LOOKUP_FILENAME.getValue(), proj.getLog());
-				}
-				if (!Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
-					throw new IllegalArgumentException("Could not create required AB Lookup file, halting");
-				}
+			}
+			if (!Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
+				abLookup.parseFromAnnotationVCF(proj);
+				abLookup.writeToFile(proj.AB_LOOKUP_FILENAME.getValue(), proj.getLog());
+			}
+			if (!Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
+				throw new IllegalArgumentException("Could not create required AB Lookup file, halting");
 			}
 		}
 		MarkerDetailSet markerSet = proj.getMarkerSet();

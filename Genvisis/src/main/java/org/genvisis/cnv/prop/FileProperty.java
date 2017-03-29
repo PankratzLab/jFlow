@@ -2,7 +2,6 @@ package org.genvisis.cnv.prop;
 
 import java.io.File;
 
-import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.GROUP;
 import org.genvisis.common.Files;
@@ -54,9 +53,16 @@ public class FileProperty extends StringProperty {
 		// == -1) {
 		if (!"".equals(valu) && Files.isRelativePath(valu)) {
 			if (isDir) {
-				if (getName().equals(PropertyKeys.KEY_PROJECT_DIRECTORY)) { // happens with
-																																		// example.properties
-					tempValue = LaunchProperties.directoryOfLaunchProperties() + valu;
+				if (getName().equals(PropertyKeys.KEY_PROJECT_DIRECTORY)) {
+					tempValue = valu;
+					// jlanej removed the below since most MitoPipeline examples use relative paths, and
+					// doesn't
+					// play nice with $USER/.genvisis , can focus on
+					// example properties more specifically later
+					// LaunchProperties.directoryOfLaunchProperties() +
+					// throw new IllegalArgumentException();
+
+
 				} else {
 					tempValue = getProject().PROJECT_DIRECTORY.getValue() + valu;
 				}

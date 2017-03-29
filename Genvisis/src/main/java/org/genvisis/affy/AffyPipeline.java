@@ -12,8 +12,8 @@ import java.util.HashMap;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
 import org.genvisis.cnv.filesys.Centroids;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
@@ -518,7 +518,7 @@ public class AffyPipeline {
 					String projectFile = outDir + analysisName + ".properties";
 					Files.write("PROJECT_DIRECTORY=" + outDir, projectFile);
 					Project proj = new Project(projectFile, false);
-
+					proj.PROJECT_NAME.setValue(analysisName);
 					proj.PROJECT_DIRECTORY.setValue(outDir);
 					proj.SOURCE_DIRECTORY.setValue(analysisName + "_00src");
 					proj.PROJECT_NAME.setValue(analysisName);
@@ -531,6 +531,7 @@ public class AffyPipeline {
 					proj.ID_HEADER.setValue("[FILENAME_ROOT]");
 					proj.LONG_FORMAT.setValue(false);
 					proj.GENOME_BUILD_VERSION.setValue(build);
+					proj.MARKER_DATA_DIRECTORY.getValue(true, false);
 					MergeChp.combineChpFiles(tmpDir, numThreads, "", ".txt",
 																	 proj.SOURCE_DIRECTORY.getValue(true, true), log);
 					if (Files.exists(markerPositions)) {
