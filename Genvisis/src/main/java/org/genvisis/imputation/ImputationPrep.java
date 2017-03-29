@@ -161,7 +161,7 @@ public class ImputationPrep {
 				if (markerSetPositions.contains(new GenomicPosition(chr, position))) {
 					String id = refLine[2];
 					Allele ref = Allele.create(refLine[3], true);
-					Allele alt = Allele.create(refLine[4], true);
+					Allele alt = Allele.create(refLine[4], false);
 					Map<Integer, Set<ReferencePosition>> posMap = referencePositionsBuild.get(chr);
 					if (posMap == null) {
 						posMap = Maps.newHashMap();
@@ -225,7 +225,7 @@ public class ImputationPrep {
 					// Don't accept anything less than a proper match but count for reporting purposes
 				} else if (matches(alt, ref, refMatches)) {
 					alleleFlips++;
-				} else {
+				} else if (alt != null && ref != null) {
 					// TODO Try reversing as well (for Indels on wrong Strand)
 					Allele refFlip = Allele.create(StrandOps.flipsIfNeeded(ref.getBaseString(),
 																																 Strand.NEGATIVE,
@@ -240,6 +240,8 @@ public class ImputationPrep {
 					} else {
 						mismatchAlleles++;
 					}
+				} else {
+					mismatchAlleles++;
 				}
 			}
 		}
