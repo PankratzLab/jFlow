@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to Genvisis will be documented in this file.
 
-##[Unreleased]
+## [Unreleased]
 
 ### Added
 Sex specific chrX shadowing using artificial or biological strategies, addresses [#153](https://github.com/PankratzLab/Genvisis/issues/153)
@@ -11,27 +11,27 @@ Fixed issue where affy import was producing homozygous only calls [#164](https:/
 
 Bug fixes for mis-indexed on the fly gc Correction [#141](https://github.com/PankratzLab/Genvisis/issues/141)
 
-##[0.1.7]
+## [0.1.7]
 Genvisis is now a Maven project!
 
 Bug fixes with gc correcting of terrible samples 
 
-##[0.1.6]
+## [0.1.6]
 
 ### Fixed
 -  auto fix file permission issues (make executable) associated with affymetrix power tools in linux/mac envs
 
-##[0.1.5]
+## [0.1.5]
 
 ### Fixed
 
 - Corrected introduced error causing MitoPipeline to half gc-correct
 
 
-##[0.1.4]
+## [0.1.4]
 Reorganized mitoPipeline
 
-##[0.1.3]
+## [0.1.3]
 ### Changed
 
 - Default plotting types for mtDNA PC evaluation, now does individual plots for each variable. 
