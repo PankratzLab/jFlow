@@ -249,6 +249,17 @@ public class lab {
 		boolean test = true;
 		if (test) {
 			
+			String cmd = 
+					"java -jar genvisis.jar org.genvisis.imputation.ImputationPipeline" 
+							+ " proj=projects/poynter.properties" 
+							+ " ref=/home/pankrat2/shared/bin/ref/1000GP_Phase3_combined.legend.gz"
+							+ " chrs=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22"
+							+ " plinkDir=plink/"
+							+ " outDir=/scratch.global/cole0482/testImp/out/"
+							+ " type=PLINK_SHAPE_MINI"
+							+ " " ;
+			System.out.println(cmd);
+			
 //			proj = new Project("projects/poynter.properties", false);
 //  			String referenceFile = "/home/pankrat2/shared/bin/ref/1000GP_Phase3_combined.legend.gz";
 //  			ImputationPipeline ip = new ImputationPipeline(proj, referenceFile);

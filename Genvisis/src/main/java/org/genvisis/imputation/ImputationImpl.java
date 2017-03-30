@@ -31,6 +31,7 @@ public interface ImputationImpl {
 		public MiniMac(Project proj, int[] chrs, String hapsDir, String outDir) {
 			this.log = proj.getLog();
 			this.outDir = outDir;
+			new File(outDir).mkdirs();
 			this.threads = proj.NUM_THREADS.getValue();
 			Resource rsc = Resources.miniMac(log).getMiniMac3();
 			if (rsc == null) {
@@ -125,6 +126,7 @@ public interface ImputationImpl {
 			this.log = proj.getLog();
 			this.threads = proj.NUM_THREADS.getValue();
 			this.outDir = outDir;
+			new File(outDir).mkdirs();
 			Resource rsc = Resources.shapeit(log).getShapeit();
 			if (rsc == null) {
 				log.reportError("ShapeIt not available!  Error fetching ShapeIt resource.");

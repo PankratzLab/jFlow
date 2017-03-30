@@ -1,5 +1,6 @@
 package org.genvisis.imputation;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +43,15 @@ import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLine;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
-
+/**
+ * Export genotypes to either PLINK or VCF format and, depending on selected options, generate scripts to run ShapeIt and Minimac programs externally.
+ * <br /><br />
+ * Imputation TODO's:<br /><ul>
+ *  <li> Make content aware (i.e., if PLINK files already exist, skip chrs that exist (or overwrite, or fail))<br /></li>
+ *  <li> Multithread data file export<br /></li>
+ *  <li> Use ScriptExecutor for ShapeIt/Minimac scripts</li>
+ *  </ul>	
+ */
 public class ImputationPipeline {
 
 	Project proj;
@@ -130,6 +139,7 @@ public class ImputationPipeline {
 
 	public void exportToPlink(String plinkDirAndRoot, int[] chrs) {
 		// TODO (??) Only alphanumeric characters in FID/IID
+		(new File(ext.parseDirectoryOfFile(plinkDirAndRoot + ".bim"))).mkdirs();
 		String[] writtenDNAs = PlinkData.createFamFile(proj, plinkDirAndRoot, dropSamples, true);
 		if (writtenDNAs == null) {
 			// TODO error
