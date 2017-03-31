@@ -186,9 +186,14 @@ public class GenvisisWorkflowGUI extends JDialog {
 							checkBoxes.get(step).setSelected(check);
 							selected.add(step);
 							if (check)
+							{
 								selectedSteps.add(step);
+							}
 							else
+							{
+								selected.remove(step);
 								selectedSteps.remove(step);
+							}
 						} else {
 							selectedSteps.remove(step);
 							selected.remove(step);
