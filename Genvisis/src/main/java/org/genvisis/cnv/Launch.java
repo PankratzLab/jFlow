@@ -285,10 +285,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @return Currently selected {@link Project} instance.
 	 */
 	public Project loadProject() {
-		String projectDir = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR);
-		if (Files.isRelativePath(projectDir))
-			projectDir = LaunchProperties.directoryOfLaunchProperties() + projectDir;
-		proj = new Project(projectDir + projects.get(indexOfCurrentProj), jar);
+		proj = new Project(LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR) + projects.get(indexOfCurrentProj), jar);
 		proj.setGuiState(true);
 		timestampOfPropertiesFile = new Date().getTime();
 		timestampOfSampleDataFile = new Date().getTime();
@@ -1383,7 +1380,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	private static void createExampleProject(String path) {
 		Logger log = new Logger();
 		String examplePath = path + Project.EXAMPLE_PROJ + File.separatorChar;
-		String exampleProperties = path + LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
+		String exampleProperties = (Files.isRelativePath(LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)) ? path : "") 
+															 + LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
 															 + Project.EXAMPLE_PROJ
 															 + ".properties";
 
