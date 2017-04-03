@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -88,6 +89,7 @@ import org.genvisis.cnv.analysis.MosaicismQuant.MOSAIC_TYPE;
 import org.genvisis.cnv.analysis.MosaicismQuant.MosaicQuantResults;
 import org.genvisis.cnv.analysis.MosaicismQuant.MosaicQuantWorker;
 import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
@@ -138,6 +140,9 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.mining.Transformations;
 import org.genvisis.stats.BinnedMovingStatistic.MovingStat;
 
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Maps;
+
 import net.miginfocom.swing.MigLayout;
 
 public class Trailer extends JFrame implements ChrNavigator, ActionListener, ClickListener, MouseListener, MouseMotionListener, MouseWheelListener {
@@ -187,11 +192,13 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	private boolean jar;
 	private IndiPheno indiPheno;
 	private String[] markerNames;
-	private PreparedMarkerSet markerSet;
+	private MarkerDetailSet markerDetailSet;
+	private PreparedMarkerSet preparedMarkerSet;
 	private long fingerprint;
 	private int[] positions;
 	private boolean[] dropped;
-	private int[][] chrBoundaries;
+	private Map<Byte, MarkerDetailSet.Marker> chrMinPositions;
+	private Map<Byte, MarkerDetailSet.Marker> chrMaxPositions;
 	private float[] lrrs, lrrValues;
 	private float[] bafs, originalBAFs;
 	private byte[] genotypes;
@@ -2094,7 +2101,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 							if (jrb.getText().equals(Transforms.TRANFORMATIONS[i])) {
 								transformation_type = i;
 								lrrValues = getNewLRRs(proj, lrrs, transformation_type,
-																			 transformSeparatelyByChromosome, markerSet, gcModel,
+																			 transformSeparatelyByChromosome, preparedMarkerSet, gcModel,
 																			 gcCorrectButton.isSelected(), true, log);
 								updateGUI();
 							}
@@ -2133,7 +2140,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 					if (jrb.isSelected()) {
 						transformSeparatelyByChromosome = jrb.getText().equals(Transforms.SCOPES[1]);
 						lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome,
-																	 markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
+																	 preparedMarkerSet, gcModel, gcCorrectButton.isSelected(), true,
+																	 log);
 						updateGUI();
 					}
 				}
@@ -2172,7 +2180,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 						gcParameterDisplay.getButtonMap().get("None").setSelected(true);
 					}
 					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome,
-																 markerSet, gcModel, jrb.isSelected(), jrb.isSelected(), log);
+																 preparedMarkerSet, gcModel, jrb.isSelected(), jrb.isSelected(),
+																 log);
 					updateGUI();
 				}
 			};
@@ -2355,7 +2364,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 						CNVCallResult callResult = CNVCaller.callCNVsFor(proj, pennHmm, sample,
 																														 ArrayUtils.toDoubleArray(lrrs),
 																														 ArrayUtils.toDoubleArray(bafs),
-																														 gcModel, pfb, markerSet,
+																														 gcModel, pfb, preparedMarkerSet,
 																														 new int[] {chr}, null, false,
 																														 CNVCaller.DEFAULT_MIN_SITES,
 																														 CNVCaller.DEFAULT_MIN_CONF,
@@ -2388,7 +2397,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 					JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
 					MosaicBuilder builder = new MosaicBuilder();
 					builder.verbose(true);
-					MosaicismDetect md = builder.build(proj, sample, markerSet,
+					MosaicismDetect md = builder.build(proj, sample, preparedMarkerSet,
 																						 ArrayUtils.toDoubleArray(bafs));
 					Segment seg = new Segment(chr, 0, Integer.MAX_VALUE);
 					LocusSet<MosaicRegion> mosSet = md.callMosaic(seg, false);
@@ -2757,11 +2766,11 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		if (distance < 0) {
 			distance = Math.max(distance, 1 - start);
 		} else {
-			distance = Math.min(distance, positions[chrBoundaries[chr][1]] - stop);
+			distance = Math.min(distance, chrMaxPositions.get(chr).getPosition() - stop);
 		}
 
 		if ((start <= 1 && distance < 0)
-				|| (stop >= positions[chrBoundaries[chr][1]] && distance > 0)) {
+				|| (stop >= chrMaxPositions.get(chr).getPosition() && distance > 0)) {
 
 		} else {
 			start += distance;
@@ -2892,13 +2901,13 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		Hashtable<String, String> hash;
 		byte[] chrs;
 		long time;
-		int chr;
 
 		time = new Date().getTime();
 
 		hash = proj.getFilteredHash();
-		markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
-		if (markerSet == null) {
+		markerDetailSet = proj.getMarkerSet();
+		preparedMarkerSet = PreparedMarkerSet.getPreparedMarkerSet(markerDetailSet);
+		if (preparedMarkerSet == null) {
 			JOptionPane.showMessageDialog(null,
 																		"Error - Failed to load the MarkerSet file; make sure the raw data is parsed",
 																		"Error", JOptionPane.ERROR_MESSAGE);
@@ -2906,31 +2915,24 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 											+ "; make sure the raw data is parsed");
 			return false;
 		}
-		fingerprint = markerSet.getFingerprint();
-		markerNames = markerSet.getMarkerNames();
-		chrs = markerSet.getChrs();
-		positions = markerSet.getPositions();
+		fingerprint = preparedMarkerSet.getFingerprint();
+		markerNames = preparedMarkerSet.getMarkerNames();
+		chrs = preparedMarkerSet.getChrs();
+		positions = preparedMarkerSet.getPositions();
 
 		dropped = new boolean[markerNames.length];
-		chrBoundaries = new int[27][2];
-		for (int i = 0; i < chrBoundaries.length; i++) {
-			// chrBoundaries[i][0] = chrBoundaries[i][1] = -1;
-			chrBoundaries[i][0] = chrBoundaries[i][1] = 0;
+		ListMultimap<Byte, MarkerDetailSet.Marker> chrMap = markerDetailSet.getChrMap();
+		chrMinPositions = Maps.newHashMapWithExpectedSize(chrMap.keySet().size());
+		chrMaxPositions = Maps.newHashMapWithExpectedSize(chrMap.keySet().size());
+		for (byte chr : chrMap.keySet()) {
+			List<MarkerDetailSet.Marker> chrMarkers = chrMap.get(chr);
+			chrMinPositions.put(chr, chrMarkers.get(0));
+			chrMaxPositions.put(chr, chrMarkers.get(chrMarkers.size() - 1));
 		}
-		chr = 0;
+
 		for (int i = 0; i < markerNames.length; i++) {
 			dropped[i] = hash.containsKey(markerNames[i]);
-			if (chrs[i] > chr) {
-				if (chr != 0) {
-					chrBoundaries[chr][1] = i - 1;
-				}
-				chr = chrs[i];
-				chrBoundaries[chr][0] = i;
-			}
 		}
-		chrBoundaries[chr][1] = markerNames.length - 1;
-		chrBoundaries[0][0] = 0;
-		chrBoundaries[0][1] = markerNames.length - 1;
 
 		System.out.println("Read in data for " + markerNames.length + " markers in "
 											 + ext.getTimeElapsed(time));
@@ -2977,7 +2979,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 			if (transformation_type > 0) {
 				lrrValues = Transforms.transform(lrrs, transformation_type, transformSeparatelyByChromosome,
-																				 markerSet);
+																				 preparedMarkerSet);
 			} else if (transformation_type < 0 && centroids != null) {
 				lrrValues = samp.getLRRs(centroids);
 				originalBAFs = bafs;
@@ -3024,8 +3026,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		if (start == -1 || start < 0) {
 			start = 1;
 		}
-		if (stop == -1 || stop > positions[chrBoundaries[chr][1]]) {
-			stop = positions[chrBoundaries[chr][1]];
+		if (stop == -1 || stop > chrMaxPositions.get(chr).getPosition()) {
+			stop = chrMaxPositions.get(chr).getPosition();
 		}
 		if (start >= stop) {
 			start = stop - 1;
@@ -3113,30 +3115,33 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	}
 
 	public void updateGUI() {
+		Map<MarkerDetailSet.Marker, Integer> markerIndexMap = markerDetailSet.getMarkerIndexMap();
 		if (start <= 1) {
-			startMarker = chrBoundaries[chr][0];
+			startMarker = markerIndexMap.get(chrMinPositions.get(chr));
 			start = 1;
 		} else {
-			startMarker = ArrayUtils.binarySearch(positions, start, chrBoundaries[chr][0],
-																						chrBoundaries[chr][1], false);
+			startMarker = ArrayUtils.binarySearch(positions, start,
+																						markerIndexMap.get(chrMinPositions.get(chr)),
+																						markerIndexMap.get(chrMaxPositions.get(chr)), false);
 		}
 
-		if (stop >= positions[chrBoundaries[chr][1]]) {
-			stop = positions[chrBoundaries[chr][1]];
-			stopMarker = chrBoundaries[chr][1];
+		if (stop >= chrMaxPositions.get(chr).getPosition()) {
+			stop = chrMaxPositions.get(chr).getPosition();
+			stopMarker = markerIndexMap.get(chrMaxPositions.get(chr));
 		} else {
-			stopMarker = ArrayUtils.binarySearch(positions, stop, chrBoundaries[chr][0],
-																					 chrBoundaries[chr][1], false);
+			stopMarker = ArrayUtils.binarySearch(positions, stop,
+																					 markerIndexMap.get(chrMinPositions.get(chr)),
+																					 markerIndexMap.get(chrMaxPositions.get(chr)), false);
 		}
 
 		if (startMarker == -1) {
 			System.err.println("Error - failed to find startMarker");
-			startMarker = chrBoundaries[chr][0];
+			startMarker = markerIndexMap.get(chrMinPositions.get(chr));
 		}
 
 		if (stopMarker == -1) {
 			System.err.println("Error - failed to find stopMarker");
-			stopMarker = chrBoundaries[chr][1];
+			stopMarker = markerIndexMap.get(chrMaxPositions.get(chr));
 		}
 
 		displayIndex();
@@ -3164,7 +3169,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 					GC_CORRECTION_METHOD correctionMethod = GC_CORRECTION_METHOD.GENVISIS_GC;// !gcFastButton.isSelected();
 					if (updateGenome) {
 						boolean[] markersForEverythingElseGenome = ArrayUtils.booleanNegative(dropped);
-						qcGenome = LrrSd.LrrSdPerSample(proj, markerSet, sample, samp, centroids,
+						qcGenome = LrrSd.LrrSdPerSample(proj, preparedMarkerSet, sample, samp, centroids,
 																						markersForCallrate, markersForEverythingElseGenome,
 																						gcModelToUse, correctionMethod, log);
 					}
@@ -3188,7 +3193,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 							}
 						}
 						// GC correction not valid for a region
-						qcRegion = LrrSd.LrrSdPerSample(proj, markerSet, sample, samp, centroids,
+						qcRegion = LrrSd.LrrSdPerSample(proj, preparedMarkerSet, sample, samp, centroids,
 																						markersForCallrate, markersForEverythingElseRegion,
 																						null, correctionMethod, log);
 					}
@@ -3449,8 +3454,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		if (start < 0) {
 			start = 1;
 		}
-		if (stop > positions[chrBoundaries[chr][1]]) {
-			stop = positions[chrBoundaries[chr][1]];
+		if (stop > chrMaxPositions.get(chr).getPosition()) {
+			stop = chrMaxPositions.get(chr).getPosition();
 		}
 
 		navPanel.setChrFieldText(chr, start, stop);
@@ -3573,10 +3578,10 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		builder.cn(2);
 		builder.familyID(sample);
 		builder.individualID(sample);
-		int[] indices = markerSet.getIndicesOfMarkersIn(beastSeg, null, log);
+		int[] indices = preparedMarkerSet.getIndicesOfMarkersIn(beastSeg, null, log);
 		builder.numMarkers(indices.length);
 		BeastScore beastScore = new BeastScore(lrrValues,
-																					 new int[][] {markerSet.getIndicesByChr()[chr]},
+																					 new int[][] {preparedMarkerSet.getIndicesByChr()[chr]},
 																					 new int[][] {indices}, log);
 		beastScore.computeBeastScores();
 		builder.score(beastScore.getBeastHeights()[0]);
@@ -3627,7 +3632,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				|| selectedCNV[0] != externalCNVs + INTERNAL_CNV_TYPES.MOSAIC_CALLER.getIndex()) {
 			MosaicBuilder builderMosaic = new MosaicBuilder();
 			builderMosaic.verbose(true);
-			MosaicismDetect md = builderMosaic.build(proj, sample, markerSet,
+			MosaicismDetect md = builderMosaic.build(proj, sample, preparedMarkerSet,
 																							 ArrayUtils.toDoubleArray(bafs));
 			LocusSet<MosaicRegion> mosSet = md.callMosaic(quantSeg, true);
 
