@@ -830,7 +830,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 				}
 			} else if (markerNames[i].contains(":")) {
 				log.reportError("Error - can't look up a SNP without an rs number - attempting to parse location from marker name.");
-				String[] pts = markerNames[i].split(":");
+				
+				String[] pts = (markerNames[i].startsWith("chr") ? markerNames[i].substring(3) : markerNames[i]).split(":");
 				int c = -1, p = -1;
 				
 				try {

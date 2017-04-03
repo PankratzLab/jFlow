@@ -55,7 +55,7 @@ public class ImputationPrep {
 
 	private final Set<Marker> matchingMarkers;
 
-	private static class ReferencePosition {
+	static class ReferencePosition {
 		private byte chr;
 		private int position;
 		private String id;

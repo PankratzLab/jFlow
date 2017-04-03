@@ -15,6 +15,7 @@ import java.util.Vector;
 
 import org.genvisis.bioinformatics.Alleles;
 import org.genvisis.cnv.util.Java6Helper;
+import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -108,7 +109,100 @@ public class ResultsPackager {
 																						"lnS1", "sd_lnS1", "lnS2", "sd_lnS2", "lnIm", "sd_lnIm",
 																						"lnIp", "sd_lnIp", "lnliknull", "lnlikfull"};
 	public static final String[] TDT_REQS = {"T", "U", "OR", "P", "L95", "U95"};
-
+	
+	public static void parseEasyQC(String inputFile, String outputFile) {
+		String[][] aliasesInOrder = {
+             Aliases.MARKER_NAMES,
+             Aliases.CHRS,
+             Aliases.POSITIONS,
+             {"strand"},
+             Aliases.ALLELES[0],
+             ArrayUtils.addStrToArray("base_allele", Aliases.ALLELES[1], 0),
+             Aliases.NS,
+             Aliases.ALLELE_FREQS,
+             ArrayUtils.addStrToArray("beta_int", Aliases.EFFECTS, 0),
+             ArrayUtils.addStrToArray("se_int", Aliases.STD_ERRS, 0),
+             ArrayUtils.addStrToArray("chi_P_2df", Aliases.PVALUES, 0),
+             ArrayUtils.addStrToArray("Imputation_value", Aliases.IMPUTATION_EFFICIENCY, 0)	
+		};
+		
+		String[] outputHeader = {
+           	"SNP",
+           	"CHR",
+           	"POS",
+           	"STRAND",
+           	"EFFECT_ALLELE",
+           	"OTHER_ALLELE",
+           	"N",
+           	"EAF",
+           	"BETA",
+           	"SE",
+           	"PVAL",
+           	"IMPUTATION"
+		};
+		
+		BufferedReader reader;
+		PrintWriter writer;
+		String outFile = outputFile;
+		Logger log = new Logger();
+		
+		if (outputFile == null) {
+			outFile = ext.rootOf(inputFile, false) + "_out.txt";
+		}
+		
+		try {
+			reader = Files.getAppropriateReader(inputFile);
+		} catch (IOException e) {
+			log.reportError("Couldn't open input file for reading: " + inputFile);
+			log.reportIOException(inputFile);
+			return;
+		}
+		writer = Files.getAppropriateWriter(outFile);
+		
+		String delimiter;
+		String line;
+		String[] parts;
+		int[] indices;
+		
+		try {
+  		line = reader.readLine();
+  		if (line == null) {
+  			log.reportError("unable to read input file!");
+  			return;
+  		}
+  		delimiter = ext.determineDelimiter(line);
+  		parts = line.trim().split(delimiter);
+  		indices = ext.indexFactors(aliasesInOrder, parts, false, true, false, log, false);
+  		
+  		int miss;
+  		if ((miss = ext.indexOfInt(-1, indices)) != -1) {
+  			log.reportError("Missing header element: " + ArrayUtils.toStr(aliasesInOrder[miss], ","));
+  			return;
+  		}
+  		
+  		writer.println(ArrayUtils.toStr(outputHeader, " "));
+  		
+  		StringBuilder sb;
+  		while((line = reader.readLine()) != null) {
+  			parts = line.trim().split(delimiter);
+  			sb = new StringBuilder();
+  			for (int i = 0; i < indices.length; i++) {
+  				sb.append(parts[indices[i]]);
+  				if (i < indices.length) {
+  					sb.append(" ");
+  				}
+  			}
+  		}
+  		
+  		writer.flush();
+  		writer.close();
+  		reader.close();
+		} catch (IOException e) {
+			log.reportError("");
+		}
+	}
+	
+	
 	public static void parseIBCFormatFromGWAF(String dir, String resultsFile, String mapFile,
 																						String originalFrqFile, String customFrqFile,
 																						String markersToReport, double filter, String outfile,
@@ -360,7 +454,7 @@ public class ResultsPackager {
 			return;
 		}
 	}
-
+	
 	public static void parseSOLformat(String dir, String resultsFile, String mapFile, String freqFile,
 																		String markersToReport, double filter, double callRateThreshold,
 																		String outfile, Logger log) {

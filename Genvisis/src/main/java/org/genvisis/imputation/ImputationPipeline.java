@@ -58,7 +58,6 @@ public class ImputationPipeline {
 	Set<String> dropMarkers = new HashSet<String>();
 	Set<String> dropSamples = new HashSet<String>();
 	Map<String, Marker> prepMarkers = new HashMap<String, Marker>();
-	Set<String> prepMarkersNames = new HashSet<String>();
 
 	Set<String> markersToExport;
 
@@ -66,10 +65,13 @@ public class ImputationPipeline {
 		this.proj = proj;
 		ImputationPrep prep = new ImputationPrep(proj, referenceFile);
 		Set<Marker> markers = prep.getMatchingMarkers();
+		PrintWriter writer = Files.getAppropriateWriter("/home/pankrat2/cole0482/imputationMarkers.txt");
 		for (Marker m : markers) {
-			prepMarkersNames.add(m.getName());
 			prepMarkers.put(m.getName(), m);
+			writer.println(m.getName());
 		}
+		writer.flush();
+		writer.close();
 	}
 
 	public void loadDefaultDropFiles(String plinkDir) {
@@ -100,7 +102,7 @@ public class ImputationPipeline {
 		if (markersToExport == null) {
 			markersToExport = new HashSet<String>(Arrays.asList(proj.getMarkerNames()));
 			markersToExport.removeAll(dropMarkers);
-			markersToExport.retainAll(prepMarkersNames);
+			markersToExport.retainAll(prepMarkers.keySet());
 		}
 		return markersToExport;
 	}

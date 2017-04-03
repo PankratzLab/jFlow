@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -527,11 +528,16 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 		int missingPositionCount = 0;
 		int ambiguousPositionCount = 0;
+		ArrayList<String> missingSeqMkrs = new ArrayList<String>();
 		for (int i = 0; i < markerNames.length; i++) {
 
 			MarkerBlastAnnotation markerBlastAnnotation = masterMarkerList.get(markerNames[i]);
 			int interrogationPosition = markerBlastAnnotation.getMarkerSeqAnnotation()
 																											 .getInterrogationPosition();
+//			if (markerBlastAnnotation.getMarkerSeqAnnotation().getSequence() == null) {
+//				missingSeqMkrs.add(markerNames[i]);
+//				continue;
+//			}
 			int probeLength = markerBlastAnnotation.getMarkerSeqAnnotation().getSequence().length();
 			int positionOffset = interrogationPosition - probeLength + 1;
 			Allele a;
@@ -622,6 +628,11 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			log.reportError("Warning - there " + (missingPositionCount > 1 ? "were " : "was ")
 											+ missingPositionCount + " marker" + (missingPositionCount > 1 ? "s" : "")
 											+ " missing a BLAST result and association position");
+		}
+		if (missingSeqMkrs.size() > 0) {
+			log.reportError("Warning - there " + (missingSeqMkrs.size() > 1 ? "were " : "was ") 
+			                + missingSeqMkrs.size() + " marker" + (missingSeqMkrs.size() > 1 ? "s " : "") 
+			                + " missing a BLAST probe sequence.");
 		}
 		return new MarkerDetailSet(markers);
 
