@@ -3413,7 +3413,7 @@ public class Files {
 	}
 
 	public static List<String> parseControlFile(String filename, String command,
-																								String[] sampleCode, Logger log) {
+																							String[] sampleCode, Logger log) {
 		BufferedReader reader;
 		Vector<String> v;
 		String[] line;
@@ -3662,7 +3662,7 @@ public class Files {
 	 * @param path
 	 */
 	public static boolean isRelativePath(String path) {
-		return (!path.startsWith("/") && path.indexOf(":") < 0);
+		return !new File(path).isAbsolute();
 	}
 
 	/**
