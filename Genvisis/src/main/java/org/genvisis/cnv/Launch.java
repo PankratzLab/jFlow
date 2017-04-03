@@ -285,9 +285,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @return Currently selected {@link Project} instance.
 	 */
 	public Project loadProject() {
-		proj = new Project(LaunchProperties.directoryOfLaunchProperties()
-											 + LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
-											 + projects.get(indexOfCurrentProj), jar);
+		String projectDir = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR);
+		if (Files.isRelativePath(projectDir))
+			projectDir = LaunchProperties.directoryOfLaunchProperties() + projectDir;
+		proj = new Project(projectDir + projects.get(indexOfCurrentProj), jar);
 		proj.setGuiState(true);
 		timestampOfPropertiesFile = new Date().getTime();
 		timestampOfSampleDataFile = new Date().getTime();
