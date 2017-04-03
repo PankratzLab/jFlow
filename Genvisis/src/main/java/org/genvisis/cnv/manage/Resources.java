@@ -140,7 +140,8 @@ public final class Resources {
 		public AbstractResourceCheck() {
 			// Build the list of files in the local resource dir
 			localResources = new HashSet<String>();
-			String resourceDir = LaunchProperties.directoryOfLaunchProperties() + LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR);
+			String dir = LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR);
+			String resourceDir = 	Files.isRelativePath(dir) ? LaunchProperties.directoryOfLaunchProperties() + dir : dir;
 			if (Files.exists(resourceDir)) {
 				for (String resource : Files.listAllFilesInTree(resourceDir, false)) {
 					localResources.add(new File(resourceDir + resource).getAbsolutePath());
@@ -304,7 +305,10 @@ public final class Resources {
 	 */
 	public static class Shapeit extends AbstractResourceFactory {
 		public Shapeit(Logger log) {
-			super(LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR) + BIN_DIR + "/shapeit/", "", log,
+			super((Files.isRelativePath(LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR)) ? 
+			        LaunchProperties.directoryOfLaunchProperties() + LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR) : 
+			      	LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR)) 
+			      + BIN_DIR + "/shapeit/", "", log,
 						Shapeit.class);
 		}
 
@@ -737,7 +741,11 @@ public final class Resources {
 		 *        directory) and remote (where resources are hosted) locations.
 		 */
 		public AbstractResourceFactory(String subPath, Logger log, Class<?>... classes) {
-			this(LaunchProperties.directoryOfLaunchProperties() + LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR) + subPath + File.separator,
+			
+			this((Files.isRelativePath(LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR)) ? 
+			        LaunchProperties.directoryOfLaunchProperties() + LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR) : 
+			        LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR)) 
+			     + subPath + File.separator,
 					 DEFAULT_URL + subPath + "/", log, classes);
 		}
 
