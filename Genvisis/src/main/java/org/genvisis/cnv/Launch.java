@@ -285,7 +285,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @return Currently selected {@link Project} instance.
 	 */
 	public Project loadProject() {
-		proj = new Project(LaunchProperties.directoryOfLaunchProperties() + LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
+		proj = new Project(LaunchProperties.directoryOfLaunchProperties()
+											 + LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
 											 + projects.get(indexOfCurrentProj), jar);
 		proj.setGuiState(true);
 		timestampOfPropertiesFile = new Date().getTime();
@@ -509,7 +510,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				}
 			}
 		});
-		
+
 		launchUI.pack();
 	}
 
@@ -542,8 +543,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		progBar = new JProgressBar();
 		contentPane.add(progBar, BorderLayout.SOUTH);
 		progBar.setVisible(false);
-		
-		contentPane.setPreferredSize(new Dimension(650,500));
+
+		contentPane.setPreferredSize(new Dimension(650, 500));
 		setContentPane(contentPane);
 	}
 
@@ -557,7 +558,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		Set<Character> hash;
 
 		menuBar = new JMenuBar();
-		
+
 		// attach mnemonics and actionlisteners to menu elements
 		for (String title : MENUS.keySet()) {
 			menu = new JMenu(title);
@@ -1394,7 +1395,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		if (!new File(exampleProperties).exists()) {
 			log.reportTime("Creating example project properties: " + exampleProperties);
 			Files.writeArray(new String[] {"PROJECT_NAME=Example",
-																		 "PROJECT_DIRECTORY=" +  LaunchProperties.directoryOfLaunchProperties()
+																		 "PROJECT_DIRECTORY=" + LaunchProperties.directoryOfLaunchProperties()
 																														 + "example/",
 																		 "SOURCE_DIRECTORY=sourceFiles/"},
 											 exampleProperties);
@@ -1481,8 +1482,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @param args Command-line arguments
 	 */
 	public static void main(String[] args) {
-		// TODO check startup processes here
-
 		if (StartupValidation.validate()) {
 			System.err.println(StartupValidation.warnings());
 		}
