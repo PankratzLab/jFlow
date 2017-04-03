@@ -94,6 +94,7 @@ import org.genvisis.common.HttpUpdate;
 import org.genvisis.common.LauncherManifest;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
+import org.genvisis.common.StartupErrorHandler;
 import org.genvisis.common.StartupValidation;
 import org.genvisis.common.VersionHelper;
 import org.genvisis.common.ext;
@@ -504,12 +505,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				splash.setVisible(false);
 				launchUI.setVisible(true);
 				System.out.println(ext.getTime() + "]\tGenvisis Loaded.");
-				if (!StartupValidation.warnings().isEmpty()) {
-					launchUI.log.report(StartupValidation.warnings());
-				}
+
+				StartupValidation.validate(new StartupErrorHandler() {
+					@Override
+					public void handleWarnings(String warning) {
+						launchUI.log.report(warning);
+					}
+				});
 			}
 		});
-		
+
 		launchUI.pack();
 	}
 
@@ -542,8 +547,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		progBar = new JProgressBar();
 		contentPane.add(progBar, BorderLayout.SOUTH);
 		progBar.setVisible(false);
-		
-		contentPane.setPreferredSize(new Dimension(650,500));
+
+		contentPane.setPreferredSize(new Dimension(650, 500));
 		setContentPane(contentPane);
 	}
 
@@ -557,7 +562,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		Set<Character> hash;
 
 		menuBar = new JMenuBar();
-		
+
 		// attach mnemonics and actionlisteners to menu elements
 		for (String title : MENUS.keySet()) {
 			menu = new JMenu(title);
@@ -1481,11 +1486,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @param args Command-line arguments
 	 */
 	public static void main(String[] args) {
-		// TODO check startup processes here
-
-		if (StartupValidation.validate()) {
-			System.err.println(StartupValidation.warnings());
-		}
+		StartupValidation.validate(new StartupErrorHandler() {
+			@Override
+			public void handleWarnings(String warning) {
+				System.err.println(warning);
+			}
+		});
 
 		if (runMainClass(args)) {
 			return;

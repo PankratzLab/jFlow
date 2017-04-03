@@ -112,34 +112,39 @@ public class HttpUpdate {
 	}
 
 	public static VersionStatus checkGenvisisVersion(Logger log) {
-		try {
-			log.report("Verifying Genvisis version... ");
-			RemoteJarStatus remoteJarStatus = getRemoteJarVersion(REMOTE_JAR, log);
-			LauncherManifest currentManifest = LauncherManifest.loadGenvisisManifest();
-			// This will peel off "-SNAPSHOT", etc...
-			Version releaseVersion = VersionHelper.lastRelease(currentManifest.getVersion());
+		VersionStatus vs = null;
 
+		RemoteJarStatus remoteJarStatus = getRemoteJarVersion(REMOTE_JAR, log);
+		LauncherManifest currentManifest = LauncherManifest.loadGenvisisManifest();
+		// This will peel off "-SNAPSHOT", etc...
+		Version releaseVersion = VersionHelper.lastRelease(currentManifest.getVersion());
+
+		try {
+			log.report("Verifying Genvisis version... ", false, true);
 			if (releaseVersion.lessThan(remoteJarStatus.getVersion())) {
-				return new VersionStatus("Your version of Genvisis (" + releaseVersion
-																 + ") is not up to date. Latest version is "
-																 + remoteJarStatus.getVersion(), false);
+				vs = new VersionStatus("Your version of Genvisis (" + releaseVersion
+															 + ") is not up to date. Latest version is "
+															 + remoteJarStatus.getVersion(), false);
 			} else if (releaseVersion.greaterThan(remoteJarStatus.getVersion())) {
 				if (!remoteJarStatus.getVersion().equals(LauncherManifest.UNDETERMINED_VERSION)) {
 					String fun = "Looks like you are using a bleeding edge version of genvisis ("
 											 + releaseVersion + ")\n";
 					fun += "The latest released version at " + REMOTE_JAR + " is "
 								 + remoteJarStatus.getVersion() + ", good luck to ya";
-					return new VersionStatus(fun, false);
+					vs = new VersionStatus(fun, false);
 				} else {
-					return new VersionStatus(FAILED_CHECK, false);
+					vs = new VersionStatus(FAILED_CHECK, false);
 
 				}
 			} else {
-				return new VersionStatus("Genvisis (" + releaseVersion + ") is up to date", true);
+				vs = new VersionStatus("Genvisis (" + releaseVersion + ") is up to date", true);
 			}
 		} catch (Exception e) {
-			return new VersionStatus(FAILED_CHECK, false);
+			vs = new VersionStatus(FAILED_CHECK, false);
+		} finally {
+			log.report("done");
 		}
+		return vs;
 	}
 
 	public static class VersionStatus {

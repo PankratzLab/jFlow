@@ -34,6 +34,7 @@ import org.genvisis.common.HttpDownloadUtility;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.StartupCheck;
+import org.genvisis.common.StartupValidation;
 import org.genvisis.filesys.FASTA;
 import org.genvisis.seq.manage.BedOps;
 import org.genvisis.seq.manage.VCFOps;
@@ -70,11 +71,10 @@ public final class Resources {
 
 		@Override
 		protected void doCheck() {
-			// FIXME fix timeout of remote check
 			String lastCheck = LaunchProperties.get(LAST_RESOURCE_CHECK);
 			// Only check once a day
 			if (lastCheck == null || System.currentTimeMillis() - Long.parseLong(lastCheck) > MS_IN_DAY) {
-				System.out.print("Validating local resources... ");
+				System.out.println("Validating local resources... ");
 				for (Resource rsrc : listAll()) {
 					String localMD5 = rsrc.getMD5Local();
 					if (localMD5 == null) {
@@ -86,7 +86,7 @@ public final class Resources {
 						addMessage(rsrc.getLocalPath());
 					}
 				}
-				System.out.println("done.");
+				System.out.println("Local resource check complete.");
 				LaunchProperties.put(LAST_RESOURCE_CHECK, String.valueOf(System.currentTimeMillis()));
 			}
 		}
@@ -1225,6 +1225,9 @@ public final class Resources {
 
 		@Override
 		public String get() {
+			// Ensure resource validation is complete
+			StartupValidation.passed();
+
 			if (isLocallyAvailable(localPath)) {
 				return localPath;
 			}
