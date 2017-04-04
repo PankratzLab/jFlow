@@ -344,7 +344,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		}
 	}
 
-	public static final long serialVersionUID = 3L;
+	public static final long serialVersionUID = 4L;
 
 	private final ImmutableList<Marker> markers;
 	private final int hashCode;
@@ -534,23 +534,27 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			MarkerBlastAnnotation markerBlastAnnotation = masterMarkerList.get(markerNames[i]);
 			int interrogationPosition = markerBlastAnnotation.getMarkerSeqAnnotation()
 																											 .getInterrogationPosition();
-//			if (markerBlastAnnotation.getMarkerSeqAnnotation().getSequence() == null) {
-//				missingSeqMkrs.add(markerNames[i]);
-//				continue;
-//			}
-			int probeLength = markerBlastAnnotation.getMarkerSeqAnnotation().getSequence().length();
-			int positionOffset = interrogationPosition - probeLength + 1;
+			int positionOffset;
 			Allele a;
 			Allele b;
 			Marker.RefAllele refAllele = null;
-			MarkerSeqAnnotation markerSeqAnnotation = markerBlastAnnotation.getMarkerSeqAnnotation();
-			a = markerSeqAnnotation.getA();
-			b = markerSeqAnnotation.getB();
-			Allele ref = markerSeqAnnotation.getRef();
-			if (ref.basesMatch(a))
-				refAllele = Marker.RefAllele.A;
-			else if (ref.basesMatch(b))
-				refAllele = Marker.RefAllele.B;
+			if (markerBlastAnnotation.getMarkerSeqAnnotation().getSequence() == null) {
+				missingSeqMkrs.add(markerNames[i]);
+				positionOffset = 0;
+				a = Allele.NO_CALL;
+				b = Allele.NO_CALL;
+			} else {
+				int probeLength = markerBlastAnnotation.getMarkerSeqAnnotation().getSequence().length();
+				positionOffset = interrogationPosition - probeLength + 1;
+				MarkerSeqAnnotation markerSeqAnnotation = markerBlastAnnotation.getMarkerSeqAnnotation();
+				a = markerSeqAnnotation.getA();
+				b = markerSeqAnnotation.getB();
+				Allele ref = markerSeqAnnotation.getRef();
+				if (ref.basesMatch(a))
+					refAllele = Marker.RefAllele.A;
+				else if (ref.basesMatch(b))
+					refAllele = Marker.RefAllele.B;
+			}
 			boolean ambiguousPosition = false;
 			List<BlastAnnotation> perfectMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
 																																										 log);
@@ -630,11 +634,21 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 											+ " missing a BLAST result and association position");
 		}
 		if (missingSeqMkrs.size() > 0) {
-			log.reportError("Warning - there " + (missingSeqMkrs.size() > 1 ? "were " : "was ") 
-			                + missingSeqMkrs.size() + " marker" + (missingSeqMkrs.size() > 1 ? "s " : "") 
-			                + " missing a BLAST probe sequence.");
+			log.reportError("Warning - there " + (missingSeqMkrs.size() > 1 ? "were " : "was ")
+											+ missingSeqMkrs.size() + " marker" + (missingSeqMkrs.size() > 1 ? "s " : "")
+											+ " missing a BLAST probe sequence.");
 		}
-		return new MarkerDetailSet(markers);
+
+		MarkerDetailSet markerDetailSet = new MarkerDetailSet(markers);
+
+		if (markerDetailSet.getFingerprint() != naiveMarkerSet.getFingerprint()) {
+			throw new IllegalStateException(markerDetailSet.getClass().getName() + " fingerprint ("
+																			+ markerDetailSet.getFingerprint() + ") does not match naive "
+																			+ naiveMarkerSet.getClass().getName() + " fingerprint ("
+																			+ naiveMarkerSet.getFingerprint() + ")");
+		}
+
+		return markerDetailSet;
 
 
 	}
