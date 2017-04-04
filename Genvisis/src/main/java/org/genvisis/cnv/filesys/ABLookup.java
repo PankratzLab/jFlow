@@ -174,10 +174,10 @@ public class ABLookup {
 				b = 'D';
 			}
 		} else {
-			if (!alleleA.isSymbolic()) {
+			if (!alleleA.isSymbolic() && alleleA.getDisplayString().length() > 0) {
 				a = StrandOps.flipIfNeeded(alleleA.getDisplayString(), strand, false).charAt(0);
 			}
-			if (!alleleB.isSymbolic()) {
+			if (!alleleB.isSymbolic() && alleleB.getDisplayString().length() > 0) {
 				b = StrandOps.flipIfNeeded(alleleB.getDisplayString(), strand, false).charAt(0);
 			}
 		}
