@@ -136,12 +136,11 @@ public class LaunchProperties {
 						props.put(k.toString(), k.defaultValue());
 					}
 					String val = props.getProperty(k.toString());
-					
-					if (Files.isRelativePath(val))
-						val = directoryOfLaunchProperties() + val;
 					if (k.isDir() && !Files.exists(val)) {
 						new Logger().reportTimeWarning("Did not detect launch property: " + k.toString()
 																					 + ". Creating default: " + val);
+						if (Files.isRelativePath(val))
+							val = LaunchProperties.directoryOfLaunchProperties() + val;
 						new File(val).mkdirs();
 					}
 				}
