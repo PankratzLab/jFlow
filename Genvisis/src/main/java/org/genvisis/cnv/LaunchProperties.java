@@ -4,13 +4,13 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.FileWriter;
-import java.io.BufferedWriter;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -29,12 +29,13 @@ import org.genvisis.common.ext;
 public class LaunchProperties {
 	public static final long serialVersionUID = 1L;
 
-	private static String defaultDir =
-			System.getProperty("user.home") + System.getProperty("file.separator") + ".genvisis" + System.getProperty("file.separator");
-	
-	private static String propertiesFile = defaultDir +"launch.properties";	
-	
-	private static String customPropertiesDir = defaultDir;	
+	private static String defaultDir = System.getProperty("user.home")
+																		 + System.getProperty("file.separator") + ".genvisis"
+																		 + System.getProperty("file.separator");
+
+	private static String propertiesFile = defaultDir + "launch.properties";
+
+	private static String customPropertiesDir = defaultDir;
 
 	public static class LaunchKey {
 		private final String def;
@@ -46,10 +47,9 @@ public class LaunchProperties {
 			this.isDir = isDir;
 			this.keyName = keyName;
 		}
-		
+
 		@Override
-		public String toString()
-		{
+		public String toString() {
 			return keyName;
 		}
 
@@ -57,6 +57,8 @@ public class LaunchProperties {
 		 * @return Default value to use for this property if it is not present in the properties file
 		 */
 		public String defaultValue() {
+			if (isDir && Files.isRelativePath(def))
+				return directoryOfLaunchProperties() + def;
 			return def;
 		}
 
@@ -68,15 +70,19 @@ public class LaunchProperties {
 			return isDir;
 		}
 	}
-	
+
 	public static class DefaultLaunchKeys {
-		public static LaunchKey PROJECTS_DIR = new LaunchKey(defaultDir + "projects/", true, "PROJECTS_DIR");
-		public static LaunchKey DEBUG_PROJECT_FILENAME = new LaunchKey("DEBUG_PROJECT", false, "DEBUG_PROJECT_FILENAME");
-		public static LaunchKey LAST_PROJECT_OPENED = new LaunchKey(Project.EXAMPLE_PROJ + ".properties", false, "LAST_PROJECT_OPENED");
-		public static LaunchKey RESOURCES_DIR = new LaunchKey(defaultDir + "resources/", true, "RESOURCES_DIR");
-		
-		public static LaunchKey[] values()
-		{
+		public static LaunchKey PROJECTS_DIR = new LaunchKey("projects/", true,
+																												 "PROJECTS_DIR");
+		public static LaunchKey DEBUG_PROJECT_FILENAME = new LaunchKey("DEBUG_PROJECT", false,
+																																	 "DEBUG_PROJECT_FILENAME");
+		public static LaunchKey LAST_PROJECT_OPENED = new LaunchKey(Project.EXAMPLE_PROJ
+																																+ ".properties", false,
+																																"LAST_PROJECT_OPENED");
+		public static LaunchKey RESOURCES_DIR = new LaunchKey("resources/", true,
+																													"RESOURCES_DIR");
+
+		public static LaunchKey[] values() {
 			LaunchKey[] v = {PROJECTS_DIR, DEBUG_PROJECT_FILENAME, LAST_PROJECT_OPENED, RESOURCES_DIR};
 			return v;
 		}
@@ -93,11 +99,11 @@ public class LaunchProperties {
 			props = new Properties();
 			try {
 				File propFile = new File(propertiesFile);
-				
-				// if the file does not exist, this may be a first start up, so prompt the user for a path. 
+
+				// if the file does not exist, this may be a first start up, so prompt the user for a path.
 				if (!propFile.exists()) {
-					//check for a custom path
-					if(!hasCustomPath()) {			
+					// check for a custom path
+					if (!hasCustomPath()) {
 						Files.ensurePathExists(defaultDir);
 						JFileChooser jfc = new JFileChooser(defaultDir);
 						jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -110,20 +116,18 @@ public class LaunchProperties {
 							customPropertiesDir = newPath + System.getProperty("file.separator");
 							updatePropertiesFile(customPropertiesDir + "launch.properties");
 							propFile = new File(propertiesFile);
-														
+
 							saveCustomPath();
 						}
-					}
-					else
-					{
+					} else {
 						saveCustomPath();
 						propFile = new File(propertiesFile);
 					}
-				}				
-				
-				if(!propFile.exists() && !propFile.createNewFile()) {
+				}
+
+				if (!propFile.exists() && !propFile.createNewFile()) {
 					System.err.println("Failed to create launch properties: " + propertiesFile
-							 + ". Genvisis can not continue, please check error logs.");
+														 + ". Genvisis can not continue, please check error logs.");
 					System.exit(-1);
 				}
 
@@ -165,7 +169,7 @@ public class LaunchProperties {
 			System.err.println("Failed to save launch properties: " + propertiesFile);
 		}
 	}
-	
+
 	private static void saveCustomPath() {
 		BufferedWriter out;
 
@@ -173,9 +177,6 @@ public class LaunchProperties {
 			out = new BufferedWriter(new FileWriter(defaultDir + "custom_path"));
 			out.write(customPropertiesDir);
 			out.close();
-			
-			DefaultLaunchKeys.PROJECTS_DIR = new LaunchKey(customPropertiesDir + "projects/", true, "PROJECTS_DIR");
-			DefaultLaunchKeys.RESOURCES_DIR = new LaunchKey(customPropertiesDir + "resources/", true, "RESOURCES_DIR");
 		} catch (Exception e) {
 			System.err.println("Failed to save custom launch properties: " + customPropertiesDir);
 		}
@@ -303,10 +304,10 @@ public class LaunchProperties {
 		}
 
 	}
-	
+
 	private static boolean hasCustomPath() {
 		String path = defaultDir + "custom_path";
-		
+
 		try {
 			File customPath = new File(path);
 			if (customPath.exists()) {
@@ -323,8 +324,8 @@ public class LaunchProperties {
 			}
 		} catch (IOException e) {
 			System.err.println("Failed to load custom launch properties: " + propertiesFile
-					 + ". Genvisis can not continue, please check error logs.");
-			System.exit(-1);	
+												 + ". Genvisis can not continue, please check error logs.");
+			System.exit(-1);
 		}
 		return false;
 	}
