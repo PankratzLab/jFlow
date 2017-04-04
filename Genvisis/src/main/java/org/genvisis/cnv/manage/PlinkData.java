@@ -1292,18 +1292,7 @@ public class PlinkData {
 			subTime = new Date().getTime();
 
 			MDL mdl = new MDL(proj, proj.getMarkerSet(), targetMarkers);
-			mdl.setDebugMode(true);
-			
-			List<Marker> test = proj.getMarkerSet().getMarkers();
-			String[] all = new String[test.size()];
-			for (int i = 0; i < test.size(); i++) {
-				all[i] = test.get(i).getName();
-			}
-			System.err.println("Error ---------------------------------------------------------- ");
-			Files.writeArray(targetMarkers, "/scratch.global/cole0482/targetMarkersOutput.txt");
-			Files.writeArray(all, "/scratch.global/cole0482/allMarkersOutput.txt");
-			System.err.println("Error ---------------------------------------------------------- ");
-			
+
 			while (mdl.hasNext()) {
 				MarkerData markerData = mdl.next();
 				genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection,
