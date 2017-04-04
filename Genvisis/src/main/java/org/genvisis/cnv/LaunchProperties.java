@@ -246,10 +246,7 @@ public class LaunchProperties {
 	 * @return An array of all known {@code *.properties} files.
 	 */
 	public static String[] getListOfProjectProperties() {
-		String props = get(DefaultLaunchKeys.PROJECTS_DIR);
-		if (Files.isRelativePath(props))
-			props = customPropertiesDir + props;
-		return Files.list(props, ".properties", false);
+		return Files.list(customPropertiesDir + get(DefaultLaunchKeys.PROJECTS_DIR), ".properties", false);
 	}
 
 	/**
