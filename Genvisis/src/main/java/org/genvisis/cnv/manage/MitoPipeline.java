@@ -141,8 +141,8 @@ public class MitoPipeline {
 	 */
 	public static String initGenvisisProject() {
 		String launchPropertiesFile = LaunchProperties.propertiesFile();
-		String path = LaunchProperties.directoryOfLaunchProperties() +  LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR);
-		//String path = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR);
+		// String path = LaunchProperties.directoryOfLaunchProperties();
+		String path = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR);
 		// if (!new File(path + "projects/").exists()) {
 		// new File(path + "projects/").mkdirs();
 		// }

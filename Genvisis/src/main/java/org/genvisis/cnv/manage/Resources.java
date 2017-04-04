@@ -140,7 +140,7 @@ public final class Resources {
 		public AbstractResourceCheck() {
 			// Build the list of files in the local resource dir
 			localResources = new HashSet<String>();
-			String resourceDir = LaunchProperties.directoryOfLaunchProperties() + LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR);
+			String resourceDir = LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR);
 			if (Files.exists(resourceDir)) {
 				for (String resource : Files.listAllFilesInTree(resourceDir, false)) {
 					localResources.add(new File(resourceDir + resource).getAbsolutePath());
@@ -737,7 +737,7 @@ public final class Resources {
 		 *        directory) and remote (where resources are hosted) locations.
 		 */
 		public AbstractResourceFactory(String subPath, Logger log, Class<?>... classes) {
-			this(LaunchProperties.directoryOfLaunchProperties() + LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR) + subPath + File.separator,
+			this(LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR) + subPath + File.separator,
 					 DEFAULT_URL + subPath + "/", log, classes);
 		}
 
