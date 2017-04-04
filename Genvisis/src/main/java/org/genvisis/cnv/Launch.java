@@ -1381,7 +1381,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	private static void createExampleProject(String path) {
 		Logger log = new Logger();
 		String examplePath = path + Project.EXAMPLE_PROJ + File.separatorChar;
-		String exampleProperties = path + LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
+		String exampleProperties = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
 															 + Project.EXAMPLE_PROJ
 															 + ".properties";
 
