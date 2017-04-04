@@ -1913,7 +1913,7 @@ public class Files {
 	public static BufferedReader getReader(String filename, boolean jar, boolean verbose, Logger log,
 																				 boolean kill) {
 		try {
-			if (Files.exists(filename, jar)) {
+			if (Files.exists(filename, jar, false)) {
 				if (jar) {
 					return new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream(filename)));
 				} else {
