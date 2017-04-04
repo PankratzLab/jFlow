@@ -393,8 +393,8 @@ public class PlinkData {
 	 * @return
 	 */
 	public static List<String> loadFamOrBim(String famOrBimFileFullPath,
-																						int indexOfStartSampleOrMarker,
-																						int numberOfSamplesOrMarkersToLoad, Logger log) {
+																					int indexOfStartSampleOrMarker,
+																					int numberOfSamplesOrMarkersToLoad, Logger log) {
 		Scanner reader;
 		Vector<String> data;
 
@@ -948,7 +948,7 @@ public class PlinkData {
 
 		return ArrayUtils.toStringArray(samps);
 	}
-	
+
 	/**
 	 * Convert Genvisis data into a PLINK .bed data set.
 	 *
@@ -977,7 +977,7 @@ public class PlinkData {
 		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Creating .fam file",
 																										 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		// samples and FAM file are in pedigree order, not project order
-		targetSamples = createFamFile(proj, outFileDirAndFilenameRoot, null); 
+		targetSamples = createFamFile(proj, outFileDirAndFilenameRoot, null);
 		proj.getProgressMonitor().endTask(PROG_KEY);
 
 		PSF.checkInterrupted();
@@ -1041,7 +1041,7 @@ public class PlinkData {
 		return indices;
 	}
 
-	public static int[] getIndicesOfTargetSamplesInProj(Project proj, 
+	public static int[] getIndicesOfTargetSamplesInProj(Project proj,
 																											String[] targetSamples, Logger log) {
 		int[] indicesOfTargetSampInProj;
 		Hashtable<String, Integer> hash;
@@ -1337,12 +1337,14 @@ public class PlinkData {
 	 * @param log
 	 * @return
 	 */
-	public static String[] createFamFile(Project proj, String famDirAndFilenameRoot, Set<String> dropSamples) {
+	public static String[] createFamFile(Project proj, String famDirAndFilenameRoot,
+																			 Set<String> dropSamples) {
 		return createFamFile(proj, famDirAndFilenameRoot, dropSamples, false);
 	}
-	
 
-	public static String[] createFamFile(Project proj, String famDirAndFilenameRoot, Set<String> dropSamples, boolean concatFIDToIID) {
+
+	public static String[] createFamFile(Project proj, String famDirAndFilenameRoot,
+																			 Set<String> dropSamples, boolean concatFIDToIID) {
 		BufferedReader reader;
 		PrintWriter writer;
 		int count;
@@ -1360,7 +1362,8 @@ public class PlinkData {
 		try {
 			filename = proj.PEDIGREE_FILENAME.getValue();
 			if (!new File(filename).exists()) {
-				log.reportError("Error - pedigree file ('" + filename + "') is not found.  Cannot create .fam file.");
+				log.reportError("Error - pedigree file ('" + filename
+												+ "') is not found.  Cannot create .fam file.");
 				return null;
 			}
 			reader = Files.getAppropriateReader(proj.PEDIGREE_FILENAME.getValue());
@@ -1400,9 +1403,11 @@ public class PlinkData {
 					// dna.add(null);
 				} else {
 					if (dropSamples == null || !dropSamples.contains(line[0] + "\t" + line[1])) {
-  					dna.add(line[6]);
-  					writer.println(line[0] + "\t" + (concatFIDToIID ? line[0] + "_" : "") + line[1] + "\t" + (concatFIDToIID ? line[0] + "_" : "") + line[2] + "\t" + (concatFIDToIID ? line[0] + "_" : "") + line[3] + "\t" + line[4]
-  												 + "\t" + line[5]);
+						dna.add(line[6]);
+						writer.println(line[0] + "\t" + (concatFIDToIID ? line[0] + "_" : "") + line[1] + "\t"
+													 + (concatFIDToIID ? line[0] + "_" : "") + line[2] + "\t"
+													 + (concatFIDToIID ? line[0] + "_" : "") + line[3] + "\t" + line[4]
+													 + "\t" + line[5]);
 					}
 				}
 			}
@@ -2369,7 +2374,7 @@ public class PlinkData {
 				clusterFile = null;
 			}
 			saveGenvisisToPlinkBedSet(proj, plinkDataDirAndFilenameRoot, clusterFile,
-																proj.TARGET_MARKERS_FILENAMES.getValue()[0], gcThreshold);
+																null, gcThreshold);
 
 		} else if (conversionToRun.equals("-pedToBed")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_"
