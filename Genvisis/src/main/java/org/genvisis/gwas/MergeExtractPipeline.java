@@ -4,7 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -168,7 +171,8 @@ public class MergeExtractPipeline {
 				}
 			}
 		}
-		markers = HashVec.loadFileToStringArray(markersFile, false, false, new int[] {0}, true, false, "\t");
+		markers = HashVec.loadFileToStringArray(markersFile, false, false, new int[] {0}, true, false,
+																						"\t");
 		SnpMarkerSet markerSet = new SnpMarkerSet(markers);
 		markerSet.parseSNPlocations(log);
 		markerLocations = markerSet.getChrAndPositionsAsInts();
@@ -194,8 +198,10 @@ public class MergeExtractPipeline {
 			if (create) {
 				(new File(runDir)).mkdirs();
 			} else {
-				throw new IllegalArgumentException("Error - specified run directory \"" + runDir
-																					 + "\" doesn't exist, and create flag wasn't set.  Please fix or create directory and try again.");
+				throw new IllegalArgumentException(
+																					 "Error - specified run directory \""
+																							 + runDir
+																							 + "\" doesn't exist, and create flag wasn't set.  Please fix or create directory and try again.");
 			}
 		}
 		return this;
@@ -210,7 +216,8 @@ public class MergeExtractPipeline {
 				outFileD = ext.rootOf(regionsFile, false) + ".db.xln.gz";
 				outFileM = ext.rootOf(regionsFile, false) + ".snp";
 			} else {
-				outFileD = (this.runDir == null ? "./" : this.runDir) + Files.getNextAvailableFilename("mergeExtract.db.xln.gz");
+				outFileD = (this.runDir == null ? "./" : this.runDir)
+									 + Files.getNextAvailableFilename("mergeExtract.db.xln.gz");
 				outFileM = ext.rootOf(outFileD, false) + ".snp";
 			}
 		} else {
@@ -220,9 +227,9 @@ public class MergeExtractPipeline {
 			} else if (mapFile == null && dataFile != null && !"".equals(dataFile)) {
 				outFileD = dataFile;
 				outFileM = ext.rootOf(dataFile, false) + ".snps";
-			} else { 
-    		outFileD = dataFile;
-    		outFileM = mapFile;
+			} else {
+				outFileD = dataFile;
+				outFileM = mapFile;
 			}
 		}
 		return this;
@@ -254,7 +261,8 @@ public class MergeExtractPipeline {
 		return this;
 	}
 
-	public MergeExtractPipeline addDataSource(String lbl, String dir, String dataFile, String mapFile,
+	public MergeExtractPipeline addDataSource(String lbl, String dir, String dataFile,
+																						String mapFile,
 																						String idFile) {
 		dataSources.add(new DataSource(lbl, dir, dataFile, mapFile, idFile));
 		return this;
@@ -358,7 +366,7 @@ public class MergeExtractPipeline {
 
 	private String getOutputDataFile(String subDir) {
 		return ext.verifyDirFormat((Files.isRelativePath(outFileD) ? (runDir == null ? "./" : runDir)
-																															 : "")
+																															: "")
 															 + subDir)
 					 + outFileD;
 	}
@@ -369,7 +377,7 @@ public class MergeExtractPipeline {
 
 	private String getOutputMapFile(String subDir) {
 		return ext.verifyDirFormat((Files.isRelativePath(outFileM) ? (runDir == null ? "./" : runDir)
-																															 : "")
+																															: "")
 															 + subDir)
 					 + outFileM;
 	}
@@ -485,15 +493,27 @@ public class MergeExtractPipeline {
 
 		log.reportTime("Merging data...");
 		log.reportTime("Starting from data file: " + dataSources.get(0).dataFile);
+
 		DosageData dd1 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile,
 																		dataSources.get(0).mapFile, regionsFile, markersFile,
 																		renameMarkers ? dataSources.get(0).label : "", verbose, log);
+		HashMap<String, HashMap<String, Annotation>> annotations = getAnnotations(dd1,
+																																							getAnnotationLabels(dataSources.get(0).mapFile,
+																																																	dataSources.get(0).label));
 		for (int i = 1; i < dataSources.size(); i++) {
 			System.gc();
 			log.reportTime("... merging with data file: " + dataSources.get(i).dataFile);
 			DosageData dd2 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile,
 																			dataSources.get(i).mapFile, regionsFile, markersFile,
 																			renameMarkers ? dataSources.get(i).label : "", verbose, log);
+			if (!dd2.isEmpty()) {
+				String[] dd2Annots = getAnnotationLabels(dataSources.get(i).mapFile,
+																								 dataSources.get(i).label);
+				if (dd2Annots != null && dd2Annots.length > 0 && dd2.getMarkerSet().getAnnotation() != null) {
+					combineAnnotations(annotations, dd2Annots, dd2.getMarkerSet().getAnnotation(),
+														 dd2.getMarkerSet().getMarkerNames());
+				}
+			}
 			dd1 = DosageData.combine(dd1, dd2, DosageData.COMBINE_OP.EITHER_IF_OTHER_MISSING, log);
 			dd2 = null;
 			System.gc();
@@ -504,12 +524,12 @@ public class MergeExtractPipeline {
 		if (outFormat == -1) {
 			outFormat = DosageData.determineType(getOutputDataFile());
 		}
-		
+
 		String[] allMarkers = markers;
 		if (renameMarkers && markers != null) {
 			allMarkers = dd1.getMarkerSet().getMarkerNames();
 		}
-		
+
 		if (splitOutput) {
 			String outD, outM;
 			for (int i = 0; i < regions.length; i++) {
@@ -525,7 +545,161 @@ public class MergeExtractPipeline {
 											DosageData.PARAMETERS[outFormat], log);
 		}
 
+		writeAnnotations(allMarkers, annotations);
+
 		System.gc();
+	}
+
+	private void combineAnnotations(HashMap<String, HashMap<String, Annotation>> mkrAnnotations,
+																	String[] annotLabels, String[][] annotation, String[] markerNames) {
+		for (int i = 0; i < markerNames.length; i++) {
+			String snp = markerNames[i];
+			String[] annArr = annotation[i];
+			HashMap<String, Annotation> annMap = mkrAnnotations.get(snp);
+			if (annMap == null) {
+				annMap = new HashMap<String, MergeExtractPipeline.Annotation>();
+				mkrAnnotations.put(snp, annMap);
+			}
+			System.out.println("Combining annotations for " + snp + "; existing: " + annMap.keySet()
+												 + "; adding: " + ArrayUtils.toStr(annotLabels, ","));
+			for (int j = 0; j < annotLabels.length; j++) {
+				Annotation ann = annMap.get(annotLabels[j]);
+				if (ann == null) {
+					ann = new Annotation();
+					ann.snp = snp;
+					ann.annotationName = annotLabels[j];
+					ann.annotation = annArr[j];
+					annMap.put(annotLabels[j], ann);
+				} else {
+					if (ann.annotation == null || ext.isMissingValue(ann.annotation)) {
+						ann.annotation = annArr[j];
+					} else if (!ann.annotation.equals(annArr[j])) {
+						System.err.println("Error - DUPLICATE ANNOTATION: " + ann.annotation + " | "
+															 + annArr[j]);
+					}
+				}
+			}
+		}
+
+
+	}
+
+	private void writeAnnotations(String[] allMarkers,
+																HashMap<String, HashMap<String, Annotation>> annotations) {
+		String file = getOutputMapFile() + ".annot";
+		PrintWriter writer = Files.getAppropriateWriter(file);
+
+		HashSet<String> labelSet = new HashSet<String>();
+		for (HashMap<String, Annotation> m : annotations.values()) {
+			labelSet.addAll(m.keySet());
+		}
+		ArrayList<String> allLabels = new ArrayList<String>(labelSet);
+
+		StringBuilder sb = new StringBuilder("SNP");
+		for (String s : allLabels) {
+			sb.append("\t").append(s);
+		}
+
+		writer.println(sb.toString());
+		for (String s : allMarkers) {
+			if (s == null || "".equals(s))
+				continue;
+			String[] annots = new String[allLabels.size()];
+			HashMap<String, Annotation> ann = annotations.get(s);
+			if (ann == null) {
+				annots = ArrayUtils.stringArray(allLabels.size(), ".");
+			} else {
+				for (int i = 0; i < allLabels.size(); i++) {
+					if (ann.get(allLabels.get(i)) == null) {
+						annots[i] = ".";
+					} else {
+						annots[i] = ann.get(allLabels.get(i)).annotation;
+					}
+				}
+			}
+			writer.println(s + "\t" + ArrayUtils.toStr(annots, "\t"));
+		}
+		writer.flush();
+		writer.close();
+
+	}
+
+	private String[] getAnnotationLabels(String mapFile, String prepend) {
+		int type = SnpMarkerSet.determineType(mapFile);
+		if (type == -1) {
+			return new String[0];
+		}
+		String[] hdr = SnpMarkerSet.HEADERS[type];
+		if (hdr == null || hdr.length <= 6) {
+			return new String[0];
+		}
+		String[] newHdr = new String[hdr.length - 6];
+		for (int i = 6; i < hdr.length; i++) {
+			newHdr[i - 6] = (prepend != null && !"".equals(prepend) ? prepend + "_" : "") + hdr[i];
+		}
+		return newHdr;
+	}
+
+	static class Annotation {
+		String snp;
+		String annotationName;
+		String annotation;
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((annotationName == null) ? 0 : annotationName.hashCode());
+			result = prime * result + ((snp == null) ? 0 : snp.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Annotation other = (Annotation) obj;
+			if (annotationName == null) {
+				if (other.annotationName != null)
+					return false;
+			} else if (!annotationName.equals(other.annotationName))
+				return false;
+			if (snp == null) {
+				if (other.snp != null)
+					return false;
+			} else if (!snp.equals(other.snp))
+				return false;
+			return true;
+		}
+
+	}
+
+	private HashMap<String, HashMap<String, Annotation>> getAnnotations(DosageData dd,
+																																			String[] annotationLabels) {
+		HashMap<String, HashMap<String, Annotation>> annotations = new HashMap<String, HashMap<String, Annotation>>();
+		String[][] ann = dd.getMarkerSet().getAnnotation();
+		if (ann != null) {
+			for (int i = 0; i < ann.length; i++) {
+				String[] annots = dd.getMarkerSet().getAnnotation()[i];
+				for (int a = 0; a < annots.length; a++) {
+					Annotation ann1 = new Annotation();
+					ann1.snp = dd.getMarkerSet().getMarkerNames()[i];
+					ann1.annotationName = annotationLabels[a];
+					ann1.annotation = annots[a];
+					HashMap<String, Annotation> annMap = annotations.get(ann1.snp);
+					if (annMap == null) {
+						annMap = new HashMap<String, MergeExtractPipeline.Annotation>();
+						annotations.put(ann1.snp, annMap);
+					}
+					annMap.put(ann1.annotationName, ann1);
+				}
+			}
+		}
+		return annotations;
 	}
 
 	private boolean checkMemory() {
@@ -547,7 +721,7 @@ public class MergeExtractPipeline {
 		}
 
 		file = Files.isRelativePath(data) ? (Files.exists(runDir + data) ? runDir + data : "./" + data)
-																			: data;
+																		 : data;
 		if (!Files.exists(file)) {
 			throw new IllegalArgumentException("Error - provided data file \"" + file
 																				 + "\" doesn't exist.");
@@ -579,8 +753,8 @@ public class MergeExtractPipeline {
 						sources.add(new DataSource(lbl, dir, fileToAdd,
 																			 fileToAdd.substring(0,
 																													 fileToAdd.length()
-																															- dataFileExt.length())
-																														+ mapFileExt,
+																															 - dataFileExt.length())
+																					 + mapFileExt,
 																			 idFile));
 						log.report("Added data source: " + fileToAdd);
 					}
@@ -624,25 +798,41 @@ public class MergeExtractPipeline {
 		boolean overwrite = false;
 		boolean rename = true;
 
-		String usage = "\n" + "filesys.MergeExtractPipeline requires 4+ arguments\n"
+		String usage = "\n"
+									 + "filesys.MergeExtractPipeline requires 4+ arguments\n"
 									 + "   (1) Run directory (output files and temporary files will be created here) (i.e. runDir="
-									 + rundir + " (default))\n" + "   (2) File listing data sources (i.e. data="
-									 + data + " (default))\n" + "          Example:\n"
+									 + rundir
+									 + " (default))\n"
+									 + "   (2) File listing data sources (i.e. data="
+									 + data
+									 + " (default))\n"
+									 + "          Example:\n"
 									 + "          dataLabel1\tfullPathDataFile1\tFullPathMapFile1\tFullPathIdFile1\n"
 									 + "          dataLabel2\tfullPathDataFile2\tFullPathMapFile2\tFullPathIdFile2\n"
 									 + "          dataLabel3\tdir1\tdataFileExt1\tmapFileExt1\tidFile3\n"
 									 + "          dataLabel4\tdir2\tdataFileExt2\tmapFileExt2\tidFile4\n"
-									 + "   (3a) Regions-to-extract filename (i.e. regions=" + regions
-									 + " (default))\n" + "   (3b) Markers-to-extract filename (i.e. markers="
-									 + markers + " (default))\n"
+									 + "   (3a) Regions-to-extract filename (i.e. regions="
+									 + regions
+									 + " (default))\n"
+									 + "   (3b) Markers-to-extract filename (i.e. markers="
+									 + markers
+									 + " (default))\n"
 									 + "          (Note: only one is allowed, either regions or markers, not both)\n"
-									 + "   (4) Optional: output Data filename (i.e. outData=" + outfileD + " (defaults to root of marker or region file + \".db.xln.gz\"))\n"
-									 + "   (5) Optional: output Map filename (i.e. outMap=" + outfileM + " (defaults to root of marker or region file + \".snp\"))\n"
-									 + "   (6) Optional: Log file name (i.e. log=" + logFile + " (default))\n"
+									 + "   (4) Optional: output Data filename (i.e. outData="
+									 + outfileD
+									 + " (defaults to root of marker or region file + \".db.xln.gz\"))\n"
+									 + "   (5) Optional: output Map filename (i.e. outMap="
+									 + outfileM
+									 + " (defaults to root of marker or region file + \".snp\"))\n"
+									 + "   (6) Optional: Log file name (i.e. log="
+									 + logFile
+									 + " (default))\n"
 									 + "   (7) Optional: Split output files (if region file is specified) (i.e. split="
-									 + split + " (default))\n"
+									 + split
+									 + " (default))\n"
 									 + "   (8) Optional: Overwrite files if they already exist (i.e. overwrite="
-									 + overwrite + " (default))\n"
+									 + overwrite
+									 + " (default))\n"
 									 + "   (9) Optional: Rename markers in any data files to dataLabel+MarkerName (i.e. rename="
 									 + rename + " (default))\n" + "\n";
 
@@ -709,7 +899,8 @@ public class MergeExtractPipeline {
 		mep.setRenameMarkers(rename);
 		mep.setOutputFiles(outfileD, outfileM);
 		mep.initLog();
-		ArrayList<DataSource> dss = parseDataFile(mep.runDir, mep.markerLocations, mep.regions, data, 0,
+		ArrayList<DataSource> dss = parseDataFile(mep.runDir, mep.markerLocations, mep.regions, data,
+																							0,
 																							mep.log);
 		for (DataSource ds : dss) {
 			mep.addDataSource(ds);
