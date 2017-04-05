@@ -13,7 +13,6 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
-import org.genvisis.cnv.manage.Markers;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
@@ -92,21 +91,6 @@ public class AffyMarkerBlast extends MarkerBlast {
 	}
 
 	@Override
-	protected void generateNaiveMarkerSet() {
-		if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
-			proj.MARKERSET_FILENAME.setValue(proj.MARKERSET_FILENAME.getDefaultValue());
-			String[] markerNames = null;
-			if (!Files.exists(proj.MARKER_POSITION_FILENAME.getValue())) {
-				log.reportError("Marker Names not found at " + proj.MARKER_POSITION_FILENAME.getValue()
-												+ ", must be provided for Affy arrays");
-			}
-			Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(true, false),
-													 proj.MARKERSET_FILENAME.getValue(true, false), log);
-
-		}
-	}
-
-	@Override
 	protected String getNameBase() {
 		return ext.rootOf(probeFile) + "_" + ext.rootOf(annotFile);
 	}
@@ -137,16 +121,10 @@ public class AffyMarkerBlast extends MarkerBlast {
 		annotFileParser.determineIndicesFromTitles();
 		annotFileParser.loadData();
 		ArrayList<MarkerFastaEntry> entries = new ArrayList<MarkerFastaEntry>(ArrayUtils.booleanArraySum(probeFileParser.getDataPresent()));
-		MarkerSetInfo markerSet = proj.getMarkerSet();
-		// SequenceLookup sequenceLookup = new SequenceLookup(log);
+		MarkerSetInfo markerSet = loadNaiveMarkerSet();
 		ReferenceGenome referenceGenome = Files.exists(proj.getReferenceGenomeFASTAFilename()) ? new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																																																								 log)
 																																													 : null;
-		// ABLookup abLookup =
-		// new ABLookup( markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(),
-		// true, true, log);
-		//
-		// Hashtable<String, Integer> indices = proj.getMarkerIndices();
 		if (referenceGenome == null) {
 			log.reportTimeWarning("A reference genome was not found");
 		}

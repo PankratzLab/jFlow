@@ -20,6 +20,7 @@ import org.genvisis.cnv.annotation.markers.BlastParams;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation.Builder;
 import org.genvisis.cnv.annotation.markers.MarkerGCAnnotation;
+import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
@@ -123,11 +124,20 @@ public abstract class MarkerBlast {
 
 	protected abstract String getSourceString();
 
-	protected abstract void generateNaiveMarkerSet();
-
-
 	protected abstract String getNameBase();
 
+	@SuppressWarnings("deprecation")
+	protected MarkerSet loadNaiveMarkerSet() {
+		// This method intentionally accesses proj.MARKERSET_FILENAME to circumvent proj.getMarkerSet()
+		// and return the naive MarkerSet, with positions not based on any previous BLAST annotation
+		String markerSetFile = proj.MARKERSET_FILENAME.getValue();
+		if (!Files.exists(markerSetFile)) {
+			throw new IllegalStateException(markerSetFile + " does not exist. Cannot run "
+																			+ this.getClass().getName() + " without a "
+																			+ MarkerSet.class.getName());
+		}
+		return MarkerSet.load(markerSetFile, proj.JAR_STATUS.getValue());
+	}
 
 	/**
 	 * {@link MarkerBlast#blastEm(Project, String, FILE_SEQUENCE_TYPE, int, int, int, int, boolean, boolean, boolean)}
@@ -138,7 +148,6 @@ public abstract class MarkerBlast {
 			log.reportError("Unable to find or obtain reference genome");
 			return null;
 		} else {
-			generateNaiveMarkerSet();
 			double evalueCutoff = 10000;
 			BlastParams blastParams = new BlastParams(getSourceString(), fastaDb, maxAlignmentsReported,
 																								reportWordSize, blastWordSize,
