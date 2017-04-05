@@ -92,6 +92,7 @@ public abstract class MarkerBlast {
 	protected final boolean annotateGCContent;
 	protected final boolean doBlast;
 	protected final int numThreads;
+	protected final Logger log;
 
 
 
@@ -117,6 +118,7 @@ public abstract class MarkerBlast {
 		this.annotateGCContent = annotateGCContent;
 		this.doBlast = doBlast;
 		this.numThreads = numThreads;
+		this.log = proj.getLog();
 	}
 
 	protected abstract String getSourceString();
@@ -133,7 +135,7 @@ public abstract class MarkerBlast {
 	public MarkerBlastResult blastEm() {
 		String fastaDb = proj.getReferenceGenomeFASTAFilename();
 		if (!Files.exists(fastaDb) && doBlast) {
-			proj.getLog().reportError("Unable to find or obtain reference genome");
+			log.reportError("Unable to find or obtain reference genome");
 			return null;
 		} else {
 			generateNaiveMarkerSet();
@@ -142,8 +144,8 @@ public abstract class MarkerBlast {
 																								reportWordSize, blastWordSize,
 																								ext.getTimestampForFilename(), evalueCutoff,
 																								proj.getMarkerSet().getFingerprint(), "",
-																								proj.getLog());
-			Blast blast = new Blast(fastaDb, blastWordSize, reportWordSize, proj.getLog(), true, true);
+																								log);
+			Blast blast = new Blast(fastaDb, blastWordSize, reportWordSize, log, true, true);
 			blast.setEvalue(evalueCutoff);// we rely on the wordSize instead
 			String dir = proj.PROJECT_DIRECTORY.getValue() + "Blasts/";
 			new File(dir).mkdirs();
@@ -158,13 +160,13 @@ public abstract class MarkerBlast {
 				if (!Files.exists(tmps[i])) {
 					tmps[i] = tmps[i] + ".gz";
 				}
-				// proj.getLog().reportTimeInfo("REmember gz");
+				// log.reportTimeInfo("REmember gz");
 			}
 
 			if (doBlast && !Files.exists("", tmps)) {
 				MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(blastParams, false);
 				List<MarkerFastaEntry[]> splits = ArrayUtils.splitUpArray(fastaEntries, numThreads,
-																																	proj.getLog());
+																																	log);
 
 				ArrayList<BlastWorker> workers = new ArrayList<Blast.BlastWorker>();
 				if (fastaEntries != null && fastaEntries.length > 0) {
@@ -172,7 +174,7 @@ public abstract class MarkerBlast {
 						if (!Files.exists(tmps[i])) {
 							workers.add(new BlastWorker(blast, splits.get(i), reportToTmp ? tmps[i] : null));
 						} else {
-							proj.getLog().reportTimeWarning("Skipping index " + i + ", " + tmps[i] + " exists");
+							log.reportTimeWarning("Skipping index " + i + ", " + tmps[i] + " exists");
 						}
 					}
 				}
@@ -180,7 +182,7 @@ public abstract class MarkerBlast {
 				if (workers.size() > 0) {
 					WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<Blast.BlastResultsSummary[]>(numThreads,
 																																																		 10,
-																																																		 proj.getLog());
+																																																		 log);
 					hive.addCallables(workers.toArray(new BlastWorker[workers.size()]));
 					hive.setReportEvery(1);
 					hive.execute(true);
@@ -189,14 +191,14 @@ public abstract class MarkerBlast {
 			} else {
 				for (String tmp : tmps) {
 					if (doBlast) {
-						proj.getLog().reportFileExists(tmp);
+						log.reportFileExists(tmp);
 					}
 				}
 			}
-			proj.getLog()
-					.reportTimeWarning("Assuming that all sequences have length "
-														 + proj.getArrayType().getProbeLength() + " based on array type "
-														 + proj.getArrayType());
+			log
+				 .reportTimeWarning("Assuming that all sequences have length "
+														+ proj.getArrayType().getProbeLength() + " based on array type "
+														+ proj.getArrayType());
 			MarkerBlastResult result = new MarkerBlastResult(output, blastWordSize, reportWordSize,
 																											 proj.getArrayType().getProbeLength());
 			result.setTmpFiles(tmps);
@@ -207,8 +209,8 @@ public abstract class MarkerBlast {
 			}
 			MarkerFastaEntry[] entries = getMarkerFastaEntries(blastParams, true);
 
-			proj.getLog().reportTimeInfo("Summarizing blast results to "
-																	 + proj.BLAST_ANNOTATION_FILENAME.getValue());
+			log.reportTimeInfo("Summarizing blast results to "
+												 + proj.BLAST_ANNOTATION_FILENAME.getValue());
 			BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj,
 																																							new AnalysisParams[] {blastParams},
 																																							proj.BLAST_ANNOTATION_FILENAME.getValue(),
@@ -223,9 +225,9 @@ public abstract class MarkerBlast {
 																																							maxAlignmentsReported);
 
 			if (proj.getArrayType() != ARRAY.ILLUMINA) {
-				proj.getLog()
-						.reportTimeWarning("Did not detect array type " + ARRAY.ILLUMINA
-															 + " , probe sequence annotation may not reflect the true design since multiple designs may be reported");
+				log
+					 .reportTimeWarning("Did not detect array type " + ARRAY.ILLUMINA
+															+ " , probe sequence annotation may not reflect the true design since multiple designs may be reported");
 			}
 			blastAnnotationWriter.summarizeResultFiles(false);
 			blastAnnotationWriter.close();
@@ -234,7 +236,7 @@ public abstract class MarkerBlast {
 			}
 
 			// } else {
-			// proj.getLog().reportFileExists(proj.BLAST_ANNOTATION_FILENAME.getValue());
+			// log.reportFileExists(proj.BLAST_ANNOTATION_FILENAME.getValue());
 			// }
 			return result;
 		}
@@ -264,11 +266,11 @@ public abstract class MarkerBlast {
 		String[] markerNames = proj.getMarkerNames();
 		MarkerSetInfo markerSet = proj.getMarkerSet();
 		Map<String, Integer> indices = proj.getMarkerIndices();
-		// ReferenceGenome referenceGenome = new ReferenceGenome(fastaDb, proj.getLog());
+		// ReferenceGenome referenceGenome = new ReferenceGenome(fastaDb, log);
 		LocusAnnotation[] gcAnnotations = new LocusAnnotation[proj.getMarkerNames().length];
 		for (MarkerFastaEntry fastaEntrie : fastaEntries) {
 			String marker = fastaEntrie.getName();
-			PROBE_TAG tag = PROBE_TAG.parseMarkerTag(marker, proj.getLog());
+			PROBE_TAG tag = PROBE_TAG.parseMarkerTag(marker, log);
 			marker = marker.substring(0, marker.length() - tag.getTag().length());
 			int index = indices.get(marker);
 			double gcContent = fastaEntrie.getGCMinusInterrogationPosition();
@@ -745,7 +747,7 @@ public abstract class MarkerBlast {
 																																		proj.MARKER_POSITION_FILENAME.getValue(),
 																																		",", log);
 					Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
-															 proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+															 proj.MARKERSET_FILENAME.getValue(true, true), log);
 
 					break;
 				default:
@@ -755,23 +757,6 @@ public abstract class MarkerBlast {
 		} else {
 			System.err.println("could not find " + csv);
 			return null;
-		}
-	}
-
-	public static void extractMarkerSetAndPositionsIfNecessary(Project proj, String fileSeq,
-																														 FILE_SEQUENCE_TYPE type) {
-		if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
-			proj.MARKERSET_FILENAME.setValue(proj.MARKERSET_FILENAME.getDefaultValue());
-			String[] markerNames = null;
-			if (!Files.exists(proj.MARKER_POSITION_FILENAME.getValue())) {
-				proj.MARKER_POSITION_FILENAME.setValue(proj.MARKER_POSITION_FILENAME.getDefaultValue());
-				markerNames = extractMarkerPositionsFromManifest(fileSeq, proj.getArrayType(), type,
-																												 proj.MARKER_POSITION_FILENAME.getValue(),
-																												 ",", proj.getLog());
-			}
-			Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(true, false),
-													 proj.MARKERSET_FILENAME.getValue(true, false), proj.getLog());
-
 		}
 	}
 

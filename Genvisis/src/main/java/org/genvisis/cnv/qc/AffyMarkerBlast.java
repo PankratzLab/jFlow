@@ -77,9 +77,8 @@ public class AffyMarkerBlast extends MarkerBlast {
 		super(proj, blastWordSize, reportWordSize, maxAlignmentsReported, reportToTmp,
 					annotateGCContent, doBlast, numThreads);
 		if (proj.getArrayType() != ARRAY.AFFY_GW6 && proj.getArrayType() != ARRAY.AFFY_GW6_CN) {
-			proj.getLog()
-					.reportError("Array type was set to " + proj.getArrayType() + " and this file is for "
-											 + ARRAY.AFFY_GW6 + " or " + ARRAY.AFFY_GW6_CN);
+			log.reportError("Array type was set to " + proj.getArrayType() + " and this file is for "
+											+ ARRAY.AFFY_GW6 + " or " + ARRAY.AFFY_GW6_CN);
 			throw new IllegalArgumentException("Cannot generate " + AffyMarkerBlast.class.getName()
 																				 + " for non-Affy array");
 		}
@@ -98,12 +97,11 @@ public class AffyMarkerBlast extends MarkerBlast {
 			proj.MARKERSET_FILENAME.setValue(proj.MARKERSET_FILENAME.getDefaultValue());
 			String[] markerNames = null;
 			if (!Files.exists(proj.MARKER_POSITION_FILENAME.getValue())) {
-				proj.getLog()
-						.reportError("Marker Names not found at " + proj.MARKER_POSITION_FILENAME.getValue()
-												 + ", must be provided for Affy arrays");
+				log.reportError("Marker Names not found at " + proj.MARKER_POSITION_FILENAME.getValue()
+												+ ", must be provided for Affy arrays");
 			}
 			Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(true, false),
-													 proj.MARKERSET_FILENAME.getValue(true, false), proj.getLog());
+													 proj.MARKERSET_FILENAME.getValue(true, false), log);
 
 		}
 	}
@@ -121,7 +119,7 @@ public class AffyMarkerBlast extends MarkerBlast {
 		try {
 			probeFileParser = probeFileParser().build(proj, probeFile);
 		} catch (FileNotFoundException e) {
-			proj.getLog().reportFileNotFound(probeFile);
+			log.reportFileNotFound(probeFile);
 			e.printStackTrace();
 			return null;
 		}
@@ -129,7 +127,7 @@ public class AffyMarkerBlast extends MarkerBlast {
 		try {
 			annotFileParser = annotFileParser().build(proj, annotFile);
 		} catch (FileNotFoundException e) {
-			proj.getLog().reportFileNotFound(annotFile);
+			log.reportFileNotFound(annotFile);
 			e.printStackTrace();
 			return null;
 		}
@@ -140,17 +138,17 @@ public class AffyMarkerBlast extends MarkerBlast {
 		annotFileParser.loadData();
 		ArrayList<MarkerFastaEntry> entries = new ArrayList<MarkerFastaEntry>(ArrayUtils.booleanArraySum(probeFileParser.getDataPresent()));
 		MarkerSetInfo markerSet = proj.getMarkerSet();
-		// SequenceLookup sequenceLookup = new SequenceLookup(proj.getLog());
+		// SequenceLookup sequenceLookup = new SequenceLookup(log);
 		ReferenceGenome referenceGenome = Files.exists(proj.getReferenceGenomeFASTAFilename()) ? new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
-																																																								 proj.getLog())
+																																																								 log)
 																																													 : null;
 		// ABLookup abLookup =
 		// new ABLookup( markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(),
-		// true, true, proj.getLog());
+		// true, true, log);
 		//
 		// Hashtable<String, Integer> indices = proj.getMarkerIndices();
 		if (referenceGenome == null) {
-			proj.getLog().reportTimeWarning("A reference genome was not found");
+			log.reportTimeWarning("A reference genome was not found");
 		}
 		String refStrandTitle = getRefStrand(probeFileParser);
 		if (refStrandTitle == null && params != null) {
@@ -162,10 +160,10 @@ public class AffyMarkerBlast extends MarkerBlast {
 			if (probeFileParser.getDataPresent()[i]) {
 				if ((i + 1) % 10000 == 0) {
 					if (alleleLookup && referenceGenome != null) {
-						proj.getLog().reportTimeInfo("Loaded " + (i + 1) + " reference alleles from "
-																				 + referenceGenome.getReferenceFasta());
+						log.reportTimeInfo("Loaded " + (i + 1) + " reference alleles from "
+															 + referenceGenome.getReferenceFasta());
 					} else {
-						proj.getLog().reportTimeInfo("Loaded " + (i + 1) + " probes from " + probeFile);
+						log.reportTimeInfo("Loaded " + (i + 1) + " probes from " + probeFile);
 					}
 				}
 				String markerName = probeFileParser.getDataToLoad()[i];
@@ -174,24 +172,23 @@ public class AffyMarkerBlast extends MarkerBlast {
 				String[] tmpSeq = ArrayUtils.unique(probeFileParser.getStringDataForTitle(PROBE_SEQUENCE)[i].split("\t"));
 
 				if (tmpSeq.length != 2) {
-					proj.getLog()
-							.reportError("Marker " + markerName + " did not have 2 unique probe designs");
-					proj.getLog().reportError("found the following " + markerName + "\t"
-																		+ ArrayUtils.toStr(tmpSeq));
+					log.reportError("Marker " + markerName + " did not have 2 unique probe designs");
+					log.reportError("found the following " + markerName + "\t"
+													+ ArrayUtils.toStr(tmpSeq));
 					return null;
 				} else {
 					if (tmpSeq[0].length() != seqLength || tmpSeq[1].length() != seqLength) {
-						proj.getLog()
-								.reportError("Sequence " + tmpSeq[0] + " or " + tmpSeq[1]
-														 + "  did not have length "
-														 + proj.ARRAY_TYPE.getValue().getProbeLength());
+						log
+							 .reportError("Sequence " + tmpSeq[0] + " or " + tmpSeq[1]
+														+ "  did not have length "
+														+ proj.ARRAY_TYPE.getValue().getProbeLength());
 						return null;
 					}
 					int interrogationPosition = -1;
 					for (int j = 0; j < tmpSeq[0].length(); j++) {
 						if (tmpSeq[0].charAt(j) != tmpSeq[1].charAt(j)) {
 							if (interrogationPosition != -1) {
-								proj.getLog().reportError("Multiple interrogation position for " + markerName);
+								log.reportError("Multiple interrogation position for " + markerName);
 								return null;
 							}
 							interrogationPosition = j;
@@ -199,9 +196,9 @@ public class AffyMarkerBlast extends MarkerBlast {
 					}
 					Strand strand = STRAND_ANNOTS.get(annotFileParser.getStringDataForTitle(ANNOT_STRAND)[i]);
 					if (strand == null) {
-						proj.getLog().reportError("Invalid Annot Strand for " + markerName + ": "
-																			+ annotFileParser.getStringDataForTitle(ANNOT_STRAND)[i]
-																			+ " , marker will not be annotated");
+						log.reportError("Invalid Annot Strand for " + markerName + ": "
+														+ annotFileParser.getStringDataForTitle(ANNOT_STRAND)[i]
+														+ " , marker will not be annotated");
 						continue;
 					}
 					// probeFileParser and annotFileParser should both be indexed by marker indices
@@ -230,7 +227,7 @@ public class AffyMarkerBlast extends MarkerBlast {
 			}
 		}
 
-		proj.getLog().reportTimeInfo("Found " + entries.size() + " marker sequences");
+		log.reportTimeInfo("Found " + entries.size() + " marker sequences");
 		return entries.toArray(new MarkerFastaEntry[entries.size()]);
 	}
 

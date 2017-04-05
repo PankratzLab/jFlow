@@ -1,7 +1,5 @@
 package org.genvisis.cnv.qc;
 
-import static org.genvisis.cnv.qc.MarkerBlast.DESC_SKIP_BLAST;
-
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
@@ -79,10 +77,10 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 				markerNames = extractMarkerPositionsFromManifest(manifestFile, proj.getArrayType(),
 																												 FILE_SEQUENCE_TYPE.MANIFEST_FILE,
 																												 proj.MARKER_POSITION_FILENAME.getValue(),
-																												 ",", proj.getLog());
+																												 ",", log);
 			}
 			Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(true, false),
-													 proj.MARKERSET_FILENAME.getValue(true, false), proj.getLog());
+													 proj.MARKERSET_FILENAME.getValue(true, false), log);
 
 		}
 	}
@@ -100,17 +98,17 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 			parser.loadData();
 			ArrayList<MarkerFastaEntry> entries = new ArrayList<MarkerFastaEntry>(ArrayUtils.booleanArraySum(parser.getDataPresent()));
 			MarkerSetInfo markerSet = proj.getMarkerSet();
-			// SequenceLookup sequenceLookup = new SequenceLookup(proj.getLog());
+			// SequenceLookup sequenceLookup = new SequenceLookup(log);
 			ReferenceGenome referenceGenome = Files.exists(proj.getReferenceGenomeFASTAFilename()) ? new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
-																																																									 proj.getLog())
+																																																									 log)
 																																														 : null;
 			// ABLookup abLookup =
 			// new ABLookup( markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(),
-			// true, true, proj.getLog());
+			// true, true, log);
 			//
 			// Hashtable<String, Integer> indices = proj.getMarkerIndices();
 			if (referenceGenome == null) {
-				proj.getLog().reportTimeWarning("A reference genome was not found");
+				log.reportTimeWarning("A reference genome was not found");
 			}
 			String refStrandTitle = getRefStrand(parser);
 			if (refStrandTitle == null && params != null) {
@@ -120,8 +118,8 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 				if (parser.getDataPresent()[i]) {
 					if (alleleLookup) {
 						if ((i + 1) % 10000 == 0 && referenceGenome != null) {
-							proj.getLog().reportTimeInfo("Loaded " + (i + 1) + " reference alleles from "
-																					 + referenceGenome.getReferenceFasta());
+							log.reportTimeInfo("Loaded " + (i + 1) + " reference alleles from "
+																 + referenceGenome.getReferenceFasta());
 						}
 					}
 					String seqA = null;
@@ -150,13 +148,13 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 					} else if (refStrand.equals("-")) {
 						strand = Strand.NEGATIVE;
 					} else {
-						proj.getLog().reportError("Invalid RefStrand " + refStrand);
+						log.reportError("Invalid RefStrand " + refStrand);
 						return null;
 					}
 					if (seqA.length() != seqLength) {
-						proj.getLog()
-								.reportError("Sequence " + seqA + " did not have length "
-														 + proj.ARRAY_TYPE.getValue().getProbeLength() + " " + markerName);
+						log
+							 .reportError("Sequence " + seqA + " did not have length "
+														+ proj.ARRAY_TYPE.getValue().getProbeLength() + " " + markerName);
 						return null;
 					}
 
@@ -184,9 +182,9 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 																						 topBotRef, alleleParser.getA(), alleleParser.getB(),
 																						 alleleParser.getRef(), alleleParser.getAlts()));
 						if (seqB.length() != seqLength) {
-							proj.getLog()
-									.reportError("Sequence " + seqB + " did not have length "
-															 + proj.ARRAY_TYPE.getValue().getProbeLength() + " " + markerName);
+							log
+								 .reportError("Sequence " + seqB + " did not have length "
+															+ proj.ARRAY_TYPE.getValue().getProbeLength() + " " + markerName);
 							return null;
 						}
 					}
@@ -196,18 +194,18 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 			}
 			fastaEntries = entries.toArray(new MarkerFastaEntry[entries.size()]);
 		} catch (FileNotFoundException e) {
-			proj.getLog().reportFileNotFound(manifestFile);
+			log.reportFileNotFound(manifestFile);
 			e.printStackTrace();
 		}
-		proj.getLog().reportTimeInfo("Found " + fastaEntries.length + " marker sequences");
+		log.reportTimeInfo("Found " + fastaEntries.length + " marker sequences");
 		return fastaEntries;
 	}
 
 	private ProjectDataParserBuilder formatParser() {
 		ExtProjectDataParser.ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 		if (proj.getArrayType() != ARRAY.ILLUMINA) {
-			proj.getLog().reportError("Array type was set to " + proj.getArrayType()
-																+ " and this file is for " + ARRAY.ILLUMINA);
+			log.reportError("Array type was set to " + proj.getArrayType()
+											+ " and this file is for " + ARRAY.ILLUMINA);
 			return null;
 		}
 		builder.separator(",");
@@ -216,7 +214,7 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 		builder.headerFlags(headerFlags);
 		String ref = null;
 		String[] header = Files.getLineContaining(manifestFile, ",", headerFlags,
-																							proj.getLog());
+																							log);
 		if (header != null) {
 			if (ext.indexOfStr("RefStrand", header) >= 0) {
 				ref = "RefStrand";
@@ -225,7 +223,7 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 			}
 
 		} else {
-			proj.getLog().reportError("Header of " + manifestFile + " not found");
+			log.reportError("Header of " + manifestFile + " not found");
 			return null;
 		}
 		String[] dataTitles = new String[] {"AlleleA_ProbeSeq", "AlleleB_ProbeSeq", "SNP",
@@ -233,10 +231,10 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 		if (ref != null) {
 			dataTitles = ArrayUtils.concatAll(dataTitles, new String[] {ref});
 		} else {
-			proj.getLog()
-					.reportTimeWarning(manifestFile
-														 + " did not have a column for RefStrand, will determine strand from IlmnID but these will be inacurate, forward assigned to +");
-			// proj.getLog().reportTimeError("Actully we are stopping, get the strands from
+			log
+				 .reportTimeWarning(manifestFile
+														+ " did not have a column for RefStrand, will determine strand from IlmnID but these will be inacurate, forward assigned to +");
+			// log.reportTimeError("Actully we are stopping, get the strands from
 			// http://www.well.ox.ac.uk/~wrayner/strand/");
 			// return null;
 		}
