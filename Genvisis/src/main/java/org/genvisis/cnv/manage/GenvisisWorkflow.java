@@ -684,18 +684,29 @@ public class GenvisisWorkflow {
 			});
 		}
 
-		private Step generateIlluminaParseSamplesStep(final Step markerPositionsStep) {
-			final Requirement markerPositionsStepReq = new StepRequirement(markerPositionsStep);
+		private Step generateParseSamplesStep() {
+			return generateParseSamplesStep(null);
+		}
 
-			final Requirement markerPositionsReq = new FileRequirement("Parsed markerPositions file must already exist.",
+		private Step generateParseSamplesStep(final Step markerPositionsStep) {
+
+			final Requirement markerPositionsReq = new FileRequirement("Marker Positions file must already exist.",
 																																 proj.MARKER_POSITION_FILENAME.getValue(false,
 																																																				false));
 
-			return register(new Step("Parse Illumina Sample Files", "",
-															 new Requirement[][] {{markerPositionsStepReq, markerPositionsReq},
-																										{getNumThreadsReq()}},
-															 EnumSet.of(Flag.MEMORY, Flag.RUNTIME, Flag.MEMORY),
-															 priority()) {
+			final Requirement[][] requirements;
+			if (markerPositionsStep == null) {
+				requirements = new Requirement[][] {{markerPositionsReq}, {getNumThreadsReq()}};
+			} else {
+				final Requirement markerPositionsStepReq = new StepRequirement(markerPositionsStep);
+				requirements = new Requirement[][] {{markerPositionsStepReq, markerPositionsReq},
+																						{getNumThreadsReq()}};
+			}
+
+
+
+			return register(new Step("Parse Sample Files", "", requirements,
+															 EnumSet.of(Flag.MEMORY, Flag.RUNTIME, Flag.MEMORY), priority()) {
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,
@@ -753,99 +764,6 @@ public class GenvisisWorkflow {
 					if (!mkrFile.equals(projFile)) {
 						kvPairs.append(" MARKER_POSITION_FILENAME=").append(mkrFile);
 					}
-					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
-					if (numThreads != proj.NUM_THREADS.getValue()) {
-						kvPairs.append(" ").append(proj.NUM_THREADS.getName()).append("=").append(numThreads);
-					}
-					StringBuilder command = new StringBuilder();
-					if (kvPairs.length() != 0) {
-						command.append(kvCmd).append(kvPairs).append("\n");
-					}
-					command.append(Files.getRunString()).append(" cnv.manage.SourceFileParser proj=")
-								 .append(projPropFile).append(" ").append(PSF.Ext.NUM_THREADS_COMMAND)
-								 .append(numThreads);
-					return command.toString();
-				}
-
-			});
-		}
-
-		private Step generateAffyParseSamplesStep() {
-
-			final Requirement markerPositionsReq = new Requirement("markerPositions file must already exist.",
-																														 RequirementInputType.FILE,
-																														 proj.MARKER_POSITION_FILENAME.getValue(false,
-																																																		false)) {
-
-				@Override
-				public boolean checkRequirement(String arg, Set<Step> stepSelections,
-																				Map<Step, Map<Requirement, String>> variables) {
-					return Files.exists(arg);
-				}
-			};
-
-			return register(new Step("Parse Sample Files", "",
-															 new Requirement[][] {{markerPositionsReq}, {getNumThreadsReq()}},
-															 EnumSet.of(Flag.MEMORY, Flag.RUNTIME, Flag.MEMORY),
-															 priority()) {
-
-				@Override
-				public void setNecessaryPreRunProperties(Project proj,
-																								 Map<Step, Map<Requirement, String>> variables) {
-					String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
-					String mkrFile = variables.get(this).get(markerPositionsReq);
-					mkrFile = ext.verifyDirFormat(mkrFile);
-					mkrFile = mkrFile.substring(0, mkrFile.length() - 1);
-					if (!mkrFile.equals(projFile)) {
-						proj.MARKER_POSITION_FILENAME.setValue(mkrFile);
-					}
-					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
-					maybeSetProjNumThreads(numThreads);
-				}
-
-				@Override
-				public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
-					proj.getLog().report("Parsing sample files");
-					int retCode = org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, numThreads);
-					switch (retCode) {
-						case 0:
-							setFailed("Operation failure, please check log for more information.");
-							break;
-						case 6:
-						case 1:
-						default:
-							break;
-					}
-				}
-
-				@Override
-				public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
-					String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
-					boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
-					mkrSetFile = mkrSetFile && Files.exists(sampleDirectory);
-					mkrSetFile = mkrSetFile
-											 && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION,
-																		 false).length > 0;
-					mkrSetFile = mkrSetFile && proj.getSampleList() != null;
-					mkrSetFile = mkrSetFile && proj.getSampleList().getSamples().length > 0;
-					return mkrSetFile;
-				}
-
-				@Override
-				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
-					String projPropFile = proj.getPropertyFilename();
-					StringBuilder kvCmd = new StringBuilder(Files.getRunString()).append(PROJ_PROP_UPDATE_STR)
-																																			 .append(projPropFile);
-					StringBuilder kvPairs = new StringBuilder();
-					String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
-					String mkrFile = variables.get(this).get(markerPositionsReq);
-					mkrFile = ext.verifyDirFormat(mkrFile);
-					mkrFile = mkrFile.substring(0, mkrFile.length() - 1);
-					if (!mkrFile.equals(projFile)) {
-						kvPairs.append(" MARKER_POSITION_FILENAME=").append(mkrFile);
-					}
-
 					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
 					if (numThreads != proj.NUM_THREADS.getValue()) {
 						kvPairs.append(" ").append(proj.NUM_THREADS.getName()).append("=").append(numThreads);
@@ -2416,10 +2334,10 @@ public class GenvisisWorkflow {
 
 		Step parseSamplesStep;
 		if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
-			parseSamplesStep = sb.generateAffyParseSamplesStep();
+			parseSamplesStep = sb.generateParseSamplesStep();
 		} else {
 			Step markerPositions = sb.generateMarkerPositionsStep();
-			parseSamplesStep = sb.generateIlluminaParseSamplesStep(markerPositions);
+			parseSamplesStep = sb.generateParseSamplesStep(markerPositions);
 		}
 		Step createSampleDataStep = sb.generateCreateSampleDataStep(parseSamplesStep);
 		Step transposeStep = sb.generateTransposeStep(parseSamplesStep);
