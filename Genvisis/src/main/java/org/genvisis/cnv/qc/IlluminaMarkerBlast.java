@@ -1,8 +1,11 @@
 package org.genvisis.cnv.qc;
 
+import static org.genvisis.cnv.qc.MarkerBlast.DESC_SKIP_BLAST;
+
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
+import org.genvisis.CLI;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.TOP_BOT;
 import org.genvisis.cnv.annotation.markers.BlastParams;
@@ -22,11 +25,15 @@ import htsjdk.tribble.annotation.Strand;
 
 public class IlluminaMarkerBlast extends MarkerBlast {
 
+	private static final String ARG_MANIFEST = "fileSeq";
+	private static final String DESC_MANIFEST = "full path to an Illumina manifest file";
+	private static final String EXAMPLE_MANIFEST = "HumanExome-12-v1-0-B.csv";
+	private static final int EXAMPLE_WORD_SIZE = MarkerBlast.getDefaultWordSize(ARRAY.ILLUMINA);
 	private final String manifestFile;
 
 	public IlluminaMarkerBlast(Project proj, int numThreads, String manifestFile) {
 		this(proj, getDefaultWordSize(proj), getDefaultWordSize(proj),
-				 DEFAULT_MAX_ALIGNMENTS_REPORTED,
+				 DEFAULT_MAX_ALIGNMENTS,
 				 DEFAULT_REPORT_TO_TEMPORARY_FILE, DEFAULT_ANNOTATE_GC_CONTENT,
 				 DEFAULT_DO_BLAST, numThreads, manifestFile);
 
@@ -240,6 +247,39 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 		builder.requireAll(false);
 		builder.verbose(false);
 		return builder;
+	}
+
+	public static void main(String... args) {
+		CLI c = new CLI(IlluminaMarkerBlast.class);
+
+		c.addArg(CLI.ARG_PROJ, CLI.DESC_PROJ, CLI.EXAMPLE_PROJ, true, CLI.Arg.FILE);
+		c.addArg(ARG_MANIFEST, DESC_MANIFEST, EXAMPLE_MANIFEST, true, CLI.Arg.FILE);
+		c.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS, CLI.EXAMPLE_THREADS);
+		c.addArgWithDefault(ARG_BLAST_WORD_SIZE, DESC_BLAST_WORD_SIZE, EXAMPLE_WORD_SIZE);
+		c.addArgWithDefault(ARG_REPORT_WORD_SIZE, DESC_REPORT_WORD_SIZE, EXAMPLE_WORD_SIZE);
+		c.addArgWithDefault(ARG_MAX_ALIGNMENTS, DESC_MAX_ALIGNMENTS, DEFAULT_MAX_ALIGNMENTS);
+		c.addFlag(FLAG_SKIP_GC_ANNOTATION, DESC_SKIP_GC_ANNOTATION);
+		c.addFlag(FLAG_SKIP_BLAST, DESC_SKIP_BLAST);
+
+		c.parseWithExit(args);
+
+		Project proj = new Project(c.get(CLI.ARG_PROJ), false);
+		String fileSeq = c.get(ARG_MANIFEST);
+		int blastWordSize = c.getI(ARG_BLAST_WORD_SIZE);
+		int reportWordSize = c.getI(ARG_REPORT_WORD_SIZE);
+		int maxAlignmentsReported = c.getI(ARG_MAX_ALIGNMENTS);
+		int numThreads = c.getI(CLI.ARG_THREADS);
+		boolean annotateGCContent = !c.has(FLAG_SKIP_GC_ANNOTATION);
+		boolean doBlast = !c.has(FLAG_SKIP_BLAST);
+
+		try {
+			new IlluminaMarkerBlast(proj, blastWordSize, reportWordSize, maxAlignmentsReported,
+															MarkerBlast.DEFAULT_REPORT_TO_TEMPORARY_FILE, annotateGCContent,
+															doBlast,
+															numThreads, fileSeq).blastEm();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }

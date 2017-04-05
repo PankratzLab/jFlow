@@ -28,7 +28,6 @@ import org.genvisis.cnv.manage.Markers;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
@@ -48,10 +47,27 @@ import htsjdk.variant.variantcontext.Allele;
  */
 public abstract class MarkerBlast {
 
-	public static final int DEFAULT_MAX_ALIGNMENTS_REPORTED = 20;
-	public static final boolean DEFAULT_REPORT_TO_TEMPORARY_FILE = true;
-	public static final boolean DEFAULT_ANNOTATE_GC_CONTENT = true;
-	public static final boolean DEFAULT_DO_BLAST = true;
+
+
+	protected static final String ARG_BLAST_WORD_SIZE = "blastWordSize";
+	protected static final String DESC_BLAST_WORD_SIZE = "word size for initial match in blast db";
+
+	protected static final String ARG_REPORT_WORD_SIZE = "reportWordSize";
+	protected static final String DESC_REPORT_WORD_SIZE = "minimum number of base pairs with an exact match to report";
+
+	protected static final String ARG_MAX_ALIGNMENTS = "maxAlignmentsReported";
+	protected static final String DESC_MAX_ALIGNMENTS = "the maximum number of alignments to summarize";
+	protected static final int DEFAULT_MAX_ALIGNMENTS = 20;
+
+	protected static final String FLAG_SKIP_GC_ANNOTATION = "noGCAnno";
+	protected static final String DESC_SKIP_GC_ANNOTATION = "skip annotating the summary file with probe and regional GC content";
+	protected static final boolean DEFAULT_ANNOTATE_GC_CONTENT = true;
+
+	protected static final String FLAG_SKIP_BLAST = "noBlast";
+	protected static final String DESC_SKIP_BLAST = "skip the blast analysis and simply add the probe annotations";
+	protected static final boolean DEFAULT_DO_BLAST = true;
+
+	protected static final boolean DEFAULT_REPORT_TO_TEMPORARY_FILE = true;
 
 	public enum FILE_SEQUENCE_TYPE {
 		// /**
@@ -225,23 +241,19 @@ public abstract class MarkerBlast {
 	}
 
 	public static int getDefaultWordSize(Project proj) {
-		int reportWordSize;
-		switch (proj.getArrayType()) {
+		return getDefaultWordSize(proj.getArrayType());
+	}
+
+	public static int getDefaultWordSize(ARRAY arrayType) {
+		switch (arrayType) {
 			case AFFY_GW6:
-				reportWordSize = 15;
-				break;
 			case AFFY_GW6_CN:
-				reportWordSize = 15;
-				break;
+				return 15;
 			case ILLUMINA:
-				reportWordSize = 25;
-				break;
+				return 25;
 			default:
-				reportWordSize = -1;
-				proj.getLog().reportError("Invalid array type " + proj.getArrayType());
-				break;
+				throw new IllegalArgumentException("Invalid array type " + arrayType);
 		}
-		return reportWordSize;
 	}
 
 	/**
@@ -715,7 +727,7 @@ public abstract class MarkerBlast {
 
 	}
 
-	private static Project prepareDummyProject(String csv, FILE_SEQUENCE_TYPE type) {
+	protected static Project prepareDummyProject(String csv, FILE_SEQUENCE_TYPE type) {
 		if (Files.exists(csv)) {
 			String dir = ext.parseDirectoryOfFile(csv);
 			Project proj = new Project();
@@ -856,133 +868,15 @@ public abstract class MarkerBlast {
 	// FILE_SEQUENCE_TYPE.MANIFEST_FILE, fastaDb, 2);
 	// }
 
+	/**
+	 * @deprecated Use {@link IlluminaMarkerBlast#main(String...)} or
+	 *             {@link AffyMarkerBlast#main(String...)} instead
+	 */
 	@Deprecated
 	public static void main(String[] args) {
-		int numArgs = args.length;
-		String filename = null;
-		// String fastaDb = "hg19_canonical.fa";
-		String fileSeq = "HumanExome-12-v1-0-B.csv";
-		int numThreads = 4;
-		int blastWordSize = -1;
-		int reportWordSize = -1;
-		int maxAlignmentsReported = DEFAULT_MAX_ALIGNMENTS_REPORTED;
-		boolean annotateGCContent = DEFAULT_ANNOTATE_GC_CONTENT;
-		boolean doBlast = DEFAULT_DO_BLAST;
-		// boolean report = true;
-		FILE_SEQUENCE_TYPE fSequence_TYPE = FILE_SEQUENCE_TYPE.MANIFEST_FILE;
-		String usage = "\n" + "cnv.qc.MarkerBlast requires 3 arguments\n";
-		usage += "   (1) Project file name (i.e. proj=" + filename + " (default))\n" + "";
-		usage += "   (2) full path to an Illumina manifest file  (i.e. fileSeq=" + fileSeq
-						 + " (default))\n" + "";
-		usage += "   (3) number of threads to use  (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + numThreads
-						 + " (default))\n" + "";
-		usage += "   (4) word size for initial match in blast db  (i.e. blastWordSize=" + blastWordSize
-						 + " (defaults are array dependent))\n" + "";
-		usage += "   (5) number of base pairs with an exact match to report (i.e. reportWordSize="
-						 + reportWordSize + " (defaults are array dependent))\n" + "";
-		// usage += " (6) report results to temporary files (i.e. -report (not the default))\n" + "";
-		usage += "   (6) the maximum number of alignments to summarize (i.e. maxAlignmentsReported="
-						 + maxAlignmentsReported + " (default))\n" + "";
-		usage += "   (7) annotate the summary file with GC content, both the probe's gc content and the regions gc content  (i.e. annoGC="
-						 + annotateGCContent + " (default))\n";
-		usage += "   (8) sequence file type  (i.e. seqType=" + fSequence_TYPE + " (default))\n"
-						 + ", Options are:\n ";
-		for (int i = 0; i < FILE_SEQUENCE_TYPE.values().length; i++) {
-			usage += FILE_SEQUENCE_TYPE.values()[i] + "\n";
-		}
-		usage += "   (9) skip the blast analysis and simply add the manifest annotations (i.e. -noBlast (not the default))\n";
-
-		for (String arg : args) {
-			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (arg.startsWith("proj=")) {
-				filename = ext.parseStringArg(arg, "");
-				numArgs--;
-			} else if (arg.startsWith("fileSeq=")) {
-				fileSeq = ext.parseStringArg(arg, "");
-				numArgs--;
-			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
-				numThreads = ext.parseIntArg(arg);
-				numArgs--;
-			} else if (arg.startsWith("blastWordSize=")) {
-				blastWordSize = ext.parseIntArg(arg);
-				numArgs--;
-			} else if (arg.startsWith("reportWordSize=")) {
-				reportWordSize = ext.parseIntArg(arg);
-				numArgs--;
-			} else if (arg.startsWith("seqType=")) {
-				fSequence_TYPE = FILE_SEQUENCE_TYPE.valueOf(ext.parseStringArg(arg,
-																																			 FILE_SEQUENCE_TYPE.MANIFEST_FILE.toString()));
-				numArgs--;
-			} else if (arg.startsWith("annoGC=")) {
-				annotateGCContent = ext.parseBooleanArg(arg);
-				numArgs--;
-			} else if (arg.startsWith("maxAlignmentsReported=")) {
-				maxAlignmentsReported = ext.parseIntArg(arg);
-				numArgs--;
-
-			} else if (arg.startsWith("-noBlast")) {
-				doBlast = false;
-				numArgs--;
-
-			} else {
-				System.err.println("Error - invalid argument: " + arg);
-			}
-		}
-		if (numArgs != 0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-		try {
-			if (fSequence_TYPE != FILE_SEQUENCE_TYPE.MANIFEST_FILE) {
-				System.err.println("This method no longer supports Marker BLAST from non-Illumina Manifest sources, exiting");
-				return;
-			}
-			Project proj = null;
-
-			if (filename == null) {
-				proj = prepareDummyProject(fileSeq, fSequence_TYPE);
-			} else {
-				proj = new Project(filename, false);
-			}
-			if (proj == null) {
-				System.err.println("Invalid project");
-			}
-			if (reportWordSize == -1) {
-				switch (proj.getArrayType()) {
-					case AFFY_GW6:
-						reportWordSize = 15;
-						break;
-					case AFFY_GW6_CN:
-						reportWordSize = 15;
-						break;
-					case ILLUMINA:
-						reportWordSize = 25;
-						break;
-					default:
-						proj.getLog().reportError("Invalid array type " + proj.getArrayType());
-						break;
-				}
-				proj.getLog().reportTimeInfo("report word size updated to default " + reportWordSize
-																		 + " for array " + proj.getArrayType());
-			}
-			if (blastWordSize == -1) {
-				blastWordSize = getDefaultWordSize(proj);
-				if (blastWordSize != -1) {
-					proj.getLog().reportTimeInfo("blast word size updated to default " + blastWordSize
-																			 + " for array " + proj.getArrayType());
-				} else {
-					return;
-				}
-
-			}
-			new IlluminaMarkerBlast(proj, blastWordSize, reportWordSize, maxAlignmentsReported,
-															DEFAULT_REPORT_TO_TEMPORARY_FILE, annotateGCContent, doBlast,
-															numThreads, fileSeq).blastEm();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		System.err.println("This class has been abstracted with implemention split out by array.");
+		System.err.println("Use " + IlluminaMarkerBlast.class.getName() + " or "
+											 + AffyMarkerBlast.class.getName() + " instead.");
 	}
 
 }

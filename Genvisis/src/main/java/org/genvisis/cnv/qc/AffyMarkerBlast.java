@@ -3,6 +3,8 @@ package org.genvisis.cnv.qc;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
+import org.genvisis.CLI;
+import org.genvisis.CLI.Arg;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.TOP_BOT;
 import org.genvisis.cnv.annotation.markers.BlastParams;
@@ -32,15 +34,27 @@ public class AffyMarkerBlast extends MarkerBlast {
 	private static final String ANNOT_ALLELE_B = "Allele B";
 	private static final String ANNOT_STRAND = "Strand";
 
-	private static ImmutableMap<String, Strand> STRAND_ANNOTS = ImmutableMap.of("+", Strand.POSITIVE,
-																																							"-", Strand.NEGATIVE);
+	private static final ImmutableMap<String, Strand> STRAND_ANNOTS = ImmutableMap.of("+",
+																																										Strand.POSITIVE,
+																																										"-",
+																																										Strand.NEGATIVE);
+
+	private static final String ARG_PROBE_FILE = "probeFile";
+	private static final String DESC_PROBE_FILE = "an Affymetrix Probe Set file";
+	private static final String EXAMPLE_PROBE_FILE = "GenomeWideSNP_6.probe_tab";
+
+	private static final String ARG_ANNOT_FILE = "annotFile";
+	private static final String DESC_ANNOT_FILE = "an Affymetrix Annotation file";
+	private static final String EXAMPLE_ANNOT_FILE = "GenomeWideSNP_6.na35.annot.csv";
+
+	private static final int EXAMPLE_WORD_SIZE = MarkerBlast.getDefaultWordSize(ARRAY.AFFY_GW6);
 
 	private final String probeFile;
 	private final String annotFile;
 
 	public AffyMarkerBlast(Project proj, int numThreads, String probeFile, String annotFile) {
 		this(proj, getDefaultWordSize(proj), getDefaultWordSize(proj),
-				 DEFAULT_MAX_ALIGNMENTS_REPORTED,
+				 DEFAULT_MAX_ALIGNMENTS,
 				 DEFAULT_REPORT_TO_TEMPORARY_FILE, DEFAULT_ANNOTATE_GC_CONTENT,
 				 DEFAULT_DO_BLAST, numThreads, probeFile, annotFile);
 	}
@@ -259,6 +273,42 @@ public class AffyMarkerBlast extends MarkerBlast {
 		builder.requireAll(false);
 		builder.verbose(false);
 		return builder;
+	}
+
+	public static void main(String... args) {
+
+		CLI c = new CLI(IlluminaMarkerBlast.class);
+
+		c.addArg(CLI.ARG_PROJ, CLI.DESC_PROJ, CLI.EXAMPLE_PROJ, true, Arg.FILE);
+		c.addArg(ARG_ANNOT_FILE, DESC_ANNOT_FILE, EXAMPLE_ANNOT_FILE, true, Arg.FILE);
+		c.addArg(ARG_PROBE_FILE, DESC_PROBE_FILE, EXAMPLE_PROBE_FILE, true, Arg.FILE);
+		c.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS, CLI.EXAMPLE_THREADS);
+		c.addArgWithDefault(ARG_BLAST_WORD_SIZE, DESC_BLAST_WORD_SIZE, EXAMPLE_WORD_SIZE);
+		c.addArgWithDefault(ARG_REPORT_WORD_SIZE, DESC_REPORT_WORD_SIZE, EXAMPLE_WORD_SIZE);
+		c.addArgWithDefault(ARG_MAX_ALIGNMENTS, DESC_MAX_ALIGNMENTS, DEFAULT_MAX_ALIGNMENTS);
+		c.addFlag(FLAG_SKIP_GC_ANNOTATION, DESC_SKIP_GC_ANNOTATION);
+		c.addFlag(FLAG_SKIP_BLAST, DESC_SKIP_BLAST);
+
+		c.parseWithExit(args);
+
+		Project proj = new Project(c.get(CLI.ARG_PROJ), false);
+		String probeFile = c.get(ARG_PROBE_FILE);
+		String annotFile = c.get(ARG_ANNOT_FILE);
+		int blastWordSize = c.getI(ARG_BLAST_WORD_SIZE);
+		int reportWordSize = c.getI(ARG_REPORT_WORD_SIZE);
+		int maxAlignmentsReported = c.getI(ARG_MAX_ALIGNMENTS);
+		int numThreads = c.getI(CLI.ARG_THREADS);
+		boolean annotateGCContent = !c.has(FLAG_SKIP_GC_ANNOTATION);
+		boolean doBlast = !c.has(FLAG_SKIP_BLAST);
+
+		try {
+			new AffyMarkerBlast(proj, blastWordSize, reportWordSize, maxAlignmentsReported,
+													MarkerBlast.DEFAULT_REPORT_TO_TEMPORARY_FILE, annotateGCContent, doBlast,
+													numThreads, probeFile, annotFile).blastEm();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 }
