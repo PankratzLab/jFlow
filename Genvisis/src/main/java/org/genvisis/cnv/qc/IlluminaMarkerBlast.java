@@ -91,7 +91,7 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 		ExtProjectDataParser.ProjectDataParserBuilder builder = formatParser();
 		MarkerFastaEntry[] fastaEntries = null;
 		try {
-			int seqLength = proj.ARRAY_TYPE.getValue().getProbeLength();
+			int seqLength = ARRAY.ILLUMINA.getProbeLength();
 
 			ExtProjectDataParser parser = builder.build(proj, manifestFile);
 			parser.determineIndicesFromTitles();

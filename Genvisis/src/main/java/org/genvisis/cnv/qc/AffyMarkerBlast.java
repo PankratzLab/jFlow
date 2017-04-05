@@ -114,7 +114,7 @@ public class AffyMarkerBlast extends MarkerBlast {
 	@Override
 	protected MarkerFastaEntry[] getMarkerFastaEntries(BlastParams params,
 																										 boolean alleleLookup) {
-		int seqLength = proj.ARRAY_TYPE.getValue().getProbeLength();
+		int seqLength = ARRAY.AFFY_GW6.getProbeLength();
 		ExtProjectDataParser probeFileParser;
 		try {
 			probeFileParser = probeFileParser().build(proj, probeFile);
