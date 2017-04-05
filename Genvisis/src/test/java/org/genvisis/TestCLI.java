@@ -74,11 +74,12 @@ public class TestCLI {
 	 */
 	@Test
 	public void flagTest() {
-		c.addFlag("testFlag", "this is a test flag", true);
+		c.addFlag("testFlag", "this is a test flag");
 		c.addFlag("skippedFlag", "test negative set");
 
 		try {
 			c.parse("-testFlag");
+			Assert.assertTrue(c.has("testFlag"));
 			Assert.assertFalse(c.has("skippedFlag"));
 		} catch (ParseException e) {
 			Assert.fail(e.getMessage());

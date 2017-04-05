@@ -359,7 +359,7 @@ public class CLI {
 	}
 
 	/**
-	 * @see #addFlag(String, String, String, boolean)
+	 * @see #addFlag(String, String, String)
 	 *
 	 * @param name Text to enable this flag on command line
 	 * @param description Text to use when printing command-line usage
@@ -369,18 +369,7 @@ public class CLI {
 	}
 
 	/**
-	 * @see #addFlag(String, String, String, boolean)
-	 *
-	 * @param name Text to enable this flag on command line
-	 * @param description Text to use when printing command-line usage
-	 * @param required If {@code true}, {@link #parse} will fail if this argument is not set.
-	 */
-	public void addFlag(String name, String description, boolean required) {
-		addFlag(name, description, null, required);
-	}
-
-	/**
-	 * @see #addFlag(String, String, String, boolean)
+	 * Add a <b>flag</b> (e.g. "-flag") command-line option to this {@link CLI}'s {@link Options} set.
 	 *
 	 * @param name Text to enable this flag on command line
 	 * @param description Text to use when printing command-line usage
@@ -388,23 +377,9 @@ public class CLI {
 	 *        interchangeably
 	 */
 	public void addFlag(String name, String description, String longName) {
-		addFlag(name, description, longName, REQUIRED);
-	}
-
-	/**
-	 * Add a <b>flag</b> (e.g. "-flag") command-line option to this {@link CLI}'s {@link Options} set.
-	 *
-	 * @param name Text to enable this flag on command line
-	 * @param description Text to use when printing command-line usage
-	 * @param longName Alternate long-parse name. If present, this and {@code name} can be used
-	 *        interchangeably
-	 * @param required If {@code true}, {@link #parse} will fail if this argument is not set.
-	 *        <i>Default: {@code false}</i>
-	 */
-	public void addFlag(String name, String description, String longName, boolean required) {
 		Builder builder = Option.builder(name);
 
-		add(builder, longName, description, required, TYPE);
+		add(builder, longName, description, false, TYPE);
 	}
 
 	/**
@@ -628,7 +603,7 @@ public class CLI {
 	/**
 	 * Helper method to form a valid flag String
 	 * 
-	 * @param name Flag name as specified to {@link #addFlag(String, String, String, boolean)}
+	 * @param name Flag name as specified to {@link #addFlag(String, String, String)}
 	 * @return Formatted command line flag
 	 */
 	public static String formCmdLineFlag(String name) {
