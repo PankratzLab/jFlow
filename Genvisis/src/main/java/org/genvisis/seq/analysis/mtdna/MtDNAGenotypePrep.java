@@ -120,7 +120,7 @@ public class MtDNAGenotypePrep {
 		c.addArgWithDefault("samToFastq", "full path to SamToFastq.jar", "SamToFastq.jar");
 		c.addArgWithDefault("tag", "custom ID tag to add to files", null);
 
-		c.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS, "24");
+		c.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS, CLI.EXAMPLE_THREADS);
 		c.parseWithExit(args);
 
 		prepBams(c.get("bams"), c.get(CLI.ARG_OUTDIR), c.get("tag"), c.get("samToFastq"),

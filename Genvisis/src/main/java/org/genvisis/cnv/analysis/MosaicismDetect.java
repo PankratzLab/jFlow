@@ -3,7 +3,6 @@ package org.genvisis.cnv.analysis;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -305,10 +304,11 @@ public class MosaicismDetect {
 			double[] t_sMeanVar = getMeanVar(autosomalBafs, r2, 1);
 			means[0] = zero_tsMeanVar[0];
 			variances[0] = Java6Helper.isFinite(zero_tsMeanVar[1]) && zero_tsMeanVar[1] > 0
-																																									? zero_tsMeanVar[1]
-																																									: 1;
+																																											? zero_tsMeanVar[1]
+																																											: 1;
 			means[1] = t_tsMeanVar[0];
-			variances[1] = Java6Helper.isFinite(t_tsMeanVar[1]) && t_tsMeanVar[1] > 0 ? t_tsMeanVar[1] : 1;
+			variances[1] = Java6Helper.isFinite(t_tsMeanVar[1]) && t_tsMeanVar[1] > 0 ? t_tsMeanVar[1]
+																																								: 1;
 			means[2] = t_sMeanVar[0];
 			variances[2] = Java6Helper.isFinite(t_sMeanVar[1]) && t_sMeanVar[1] > 0 ? t_sMeanVar[1] : 1;
 
@@ -448,7 +448,8 @@ public class MosaicismDetect {
 		 * @param bafs
 		 * @return a Mosaic detector
 		 */
-		public MosaicismDetect build(Project proj, String sample, MarkerSetInfo markerSet, double[] bafs) {
+		public MosaicismDetect build(Project proj, String sample, MarkerSetInfo markerSet,
+																 double[] bafs) {
 			return new MosaicismDetect(this, proj, sample, markerSet, bafs);
 		}
 	}
@@ -561,8 +562,8 @@ public class MosaicismDetect {
 	 * @param markerSet
 	 * @param bafs
 	 */
-	private MosaicismDetect(MosaicBuilder builder, Project proj, String sample, MarkerSetInfo markerSet,
-													double[] bafs) {
+	private MosaicismDetect(MosaicBuilder builder, Project proj, String sample,
+													MarkerSetInfo markerSet, double[] bafs) {
 		this.proj = proj;
 		this.sample = sample;
 		this.markerSet = markerSet;
@@ -652,7 +653,7 @@ public class MosaicismDetect {
 
 		c.addArgWithDefault(CLI.ARG_PROJ, CLI.DESC_PROJ, "proj.properties");
 		c.addArgWithDefault(CLI.ARG_OUTFILE, CLI.DESC_OUTFILE, "out.mos");
-		c.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS, "24");
+		c.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS, CLI.EXAMPLE_THREADS);
 		c.parseWithExit(args);
 
 		Project proj = new Project(c.get(CLI.ARG_PROJ), false);

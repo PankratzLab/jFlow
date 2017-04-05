@@ -48,6 +48,8 @@ public class CLI {
 	// common argument constants
 	public static final String ARG_PROJ = "proj";
 	public static final String DESC_PROJ = "project properties filename";
+	// TODO: Update this to actually reference the example project's path
+	public static final String EXAMPLE_PROJ = "example.properties";
 	public static final String ARG_LOG = "log";
 	public static final String DESC_LOG = "filename to log to";
 	public static final String ARG_INDIR = "dir";
@@ -60,6 +62,7 @@ public class CLI {
 	public static final String DESC_PLINKROOT = "root of plink binary fileset (i.e. .bed, .bim, .fam)";
 	public static final String ARG_THREADS = "threads";
 	public static final String DESC_THREADS = "number of threads";
+	public static final int EXAMPLE_THREADS = 24;
 	public static final String ARG_VCF = "vcf";
 	public static final String DESC_VCF = "input vcf file";
 	public static final String ARG_REFERENCE_GENOME = "refGenome";
@@ -302,6 +305,24 @@ public class CLI {
 	 */
 	public void addArgWithDefault(String name, String description, String example) {
 		addArgWithDefault(name, description, example, TYPE);
+	}
+
+	/**
+	 * As @see #addArgWithDefault(String, String, String, Arg) with the {@code String} value of the
+	 * int example and a type of {@link Arg#NUMBER}
+	 * 
+	 */
+	public void addArgWithDefault(String name, String description, int example) {
+		addArgWithDefault(name, description, String.valueOf(example), Arg.NUMBER);
+	}
+
+	/**
+	 * As @see #addArgWithDefault(String, String, String, Arg) with the {@code String} value of the
+	 * double example and a type of {@link Arg#NUMBER}
+	 * 
+	 */
+	public void addArgWithDefault(String name, String description, double example) {
+		addArgWithDefault(name, description, String.valueOf(example), Arg.NUMBER);
 	}
 
 	/**
