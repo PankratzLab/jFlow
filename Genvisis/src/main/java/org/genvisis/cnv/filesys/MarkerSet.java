@@ -29,8 +29,6 @@ import com.google.common.primitives.Ints;
 @Deprecated
 public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
 	public static final long serialVersionUID = 1L;
-	public static final char[] ALLELES = {'A', 'C', 'G', 'T', 'I', 'D'};
-	// TODO these alleles were recently added, should they not be from some place else??
 	public static final int CHR_INDICES = 27;
 
 	private final long fingerprint;
