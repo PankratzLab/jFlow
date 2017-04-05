@@ -199,27 +199,14 @@ public class AffyMarkerBlast extends MarkerBlast {
 					}
 					Strand strand = STRAND_ANNOTS.get(annotFileParser.getStringDataForTitle(ANNOT_STRAND)[i]);
 					if (strand == null) {
-						proj.getLog().reportError("Invalid Annot Strand "
-																			+ annotFileParser.getStringDataForTitle(ANNOT_STRAND)[i]);
-						return null;
+						proj.getLog().reportError("Invalid Annot Strand for " + markerName + ": "
+																			+ annotFileParser.getStringDataForTitle(ANNOT_STRAND)[i]
+																			+ " , marker will not be annotated");
+						continue;
 					}
 					// probeFileParser and annotFileParser should both be indexed by marker indices
 					String aS = annotFileParser.getStringDataForTitle(ANNOT_ALLELE_A)[i];
 					String bS = annotFileParser.getStringDataForTitle(ANNOT_ALLELE_B)[i];
-					// if (!Arrays.equals( new String[] {StrandOps.flipIfNeeded(aS, strand, false),
-					// StrandOps.flipIfNeeded(bS, strand, false)},
-					// new String[] {abLookup.getLookup()[indices.get(markerName)][0]
-					// + "",
-					// abLookup.getLookup()[indices.get(markerName)][1]
-					// + ""})) {
-					// System.err.println(markerName+ "\t" + ArrayUtils.toStr(tmpSeq) + "\t"
-					// + ArrayUtils.toStr(new String[] {abLookup.getLookup()[indices.get(markerName)][0]
-					// + "",
-					// abLookup.getLookup()[indices.get(markerName)][1]
-					// + "",
-					// aS, bS, strand.toString()}));
-					//
-					// }
 					AlleleParser alleleParser = new AlleleParser(markerName, markerSegment, aS, bS,
 																											 tmpSeq[1], referenceGenome);
 					if (alleleLookup) {
