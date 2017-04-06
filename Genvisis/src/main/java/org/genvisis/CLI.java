@@ -4,8 +4,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -19,6 +22,11 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PatternOptionBuilder;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 /**
  * Helper class for parsing command line arguments. Typical usage is:
@@ -582,6 +590,42 @@ public class CLI {
 				throw new ParseException(sb.toString());
 			}
 		}
+	}
+
+	/**
+	 * Helper method to form a valid argument String with all desired args and flags
+	 * 
+	 * @param args {@code Map} from {@code name}s to {@code value}s for
+	 *        {@link #formCmdLineArg(String, String)}
+	 * @param flags {@code Collection} of {@code name}s for {@link #formCmdLineFlag(String)}
+	 * @return a String with formatted command line arguments and flags separated by spaces
+	 */
+	public static String formCmdLine(Map<String, String> args, Collection<String> flags) {
+		List<String> commands = Lists.newArrayListWithCapacity(args.size() + flags.size());
+		for (Map.Entry<String, String> arg : args.entrySet()) {
+			commands.add(formCmdLineArg(arg.getKey(), arg.getValue()));
+		}
+		for (String flag : flags) {
+			commands.add(formCmdLineFlag(flag));
+		}
+		return Joiner.on(' ').join(commands);
+	}
+
+
+	/**
+	 * @see #formCmdLine(Map, Collection) with only args
+	 */
+	public static String formCmdLine(Map<String, String> args) {
+		Set<String> emptySet = ImmutableSet.of();
+		return formCmdLine(args, emptySet);
+	}
+
+	/**
+	 * @see #formCmdLine(Map, Collection) with only flags
+	 */
+	public static String formCmdLine(Set<String> flags) {
+		Map<String, String> emptyMap = ImmutableMap.of();
+		return formCmdLine(emptyMap, flags);
 	}
 
 	/**
