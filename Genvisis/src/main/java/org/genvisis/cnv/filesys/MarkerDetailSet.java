@@ -19,10 +19,9 @@ import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerSeqAnnotation;
-import org.genvisis.cnv.filesys.MarkerDetailSet.Marker.GenomicPosition;
 import org.genvisis.cnv.manage.TextExport;
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.Files;
+import org.genvisis.common.GenomicPosition;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.filesys.Segment;
@@ -47,69 +46,6 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 		public enum RefAllele {
 			A, B
-		}
-
-		public static class GenomicPosition implements Serializable, Comparable<GenomicPosition> {
-
-			private static final long serialVersionUID = 1L;
-
-			private final byte chr;
-			private final int position;
-
-			/**
-			 * @param chr
-			 * @param position
-			 */
-			public GenomicPosition(byte chr, int position) {
-				super();
-				this.chr = chr;
-				this.position = position;
-			}
-
-			public byte getChr() {
-				return chr;
-			}
-
-			public int getPosition() {
-				return position;
-			}
-
-			@Override
-			public int hashCode() {
-				final int prime = 31;
-				int result = 1;
-				result = prime * result + chr;
-				result = prime * result + position;
-				return result;
-			}
-
-			@Override
-			public boolean equals(Object obj) {
-				if (this == obj)
-					return true;
-				if (obj == null)
-					return false;
-				if (getClass() != obj.getClass())
-					return false;
-				GenomicPosition other = (GenomicPosition) obj;
-				if (chr != other.chr)
-					return false;
-				if (position != other.position)
-					return false;
-				return true;
-			}
-
-			@Override
-			public int compareTo(GenomicPosition o) {
-				int cmp = Java6Helper.compare(chr, o.chr);
-				if (cmp != 0)
-					return cmp;
-				cmp = Java6Helper.compare(position, o.position);
-				return cmp;
-			}
-
-
-
 		}
 
 		private static final long serialVersionUID = 3L;
