@@ -22,10 +22,11 @@ import htsjdk.tribble.annotation.Strand;
 
 public class IlluminaMarkerBlast extends MarkerBlast {
 
-	private static final String ARG_MANIFEST = "fileSeq";
-	private static final String DESC_MANIFEST = "full path to an Illumina manifest file";
-	private static final String EXAMPLE_MANIFEST = "HumanExome-12-v1-0-B.csv";
-	private static final int EXAMPLE_WORD_SIZE = MarkerBlast.getDefaultWordSize(ARRAY.ILLUMINA);
+	public static final String ARG_MANIFEST = "fileSeq";
+	public static final String DESC_MANIFEST = "full path to an Illumina manifest file";
+	public static final String EXAMPLE_MANIFEST = "HumanExome-12-v1-0-B.csv";
+	public static final int EXAMPLE_WORD_SIZE = MarkerBlast.getDefaultWordSize(ARRAY.ILLUMINA);
+
 	private final String manifestFile;
 
 	public IlluminaMarkerBlast(Project proj, int numThreads, String manifestFile) {

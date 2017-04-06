@@ -593,15 +593,18 @@ public class CLI {
 	}
 
 	/**
-	 * Helper method to form a valid argument String with all desired args and flags
+	 * Helper method to form a valid command String with class name and all desired args and flags
 	 * 
+	 * @param targetClass {@code Class} with main method to call
 	 * @param args {@code Map} from {@code name}s to {@code value}s for
 	 *        {@link #formCmdLineArg(String, String)}
 	 * @param flags {@code Collection} of {@code name}s for {@link #formCmdLineFlag(String)}
 	 * @return a String with formatted command line arguments and flags separated by spaces
 	 */
-	public static String formCmdLine(Map<String, String> args, Collection<String> flags) {
-		List<String> commands = Lists.newArrayListWithCapacity(args.size() + flags.size());
+	public static String formCmdLine(Class<?> targetClass, Map<String, String> args,
+																	 Collection<String> flags) {
+		List<String> commands = Lists.newArrayListWithCapacity(1 + args.size() + flags.size());
+		commands.add(targetClass.getName());
 		for (Map.Entry<String, String> arg : args.entrySet()) {
 			commands.add(formCmdLineArg(arg.getKey(), arg.getValue()));
 		}
@@ -615,17 +618,17 @@ public class CLI {
 	/**
 	 * @see #formCmdLine(Map, Collection) with only args
 	 */
-	public static String formCmdLine(Map<String, String> args) {
+	public static String formCmdLine(Class<?> targetClass, Map<String, String> args) {
 		Set<String> emptySet = ImmutableSet.of();
-		return formCmdLine(args, emptySet);
+		return formCmdLine(targetClass, args, emptySet);
 	}
 
 	/**
 	 * @see #formCmdLine(Map, Collection) with only flags
 	 */
-	public static String formCmdLine(Set<String> flags) {
+	public static String formCmdLine(Class<?> targetClass, Set<String> flags) {
 		Map<String, String> emptyMap = ImmutableMap.of();
-		return formCmdLine(emptyMap, flags);
+		return formCmdLine(targetClass, emptyMap, flags);
 	}
 
 	/**

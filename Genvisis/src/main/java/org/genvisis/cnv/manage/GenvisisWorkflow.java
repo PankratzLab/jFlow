@@ -34,10 +34,12 @@ import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.hmm.CNVCaller.PFB_MANAGEMENT_TYPE;
 import org.genvisis.cnv.prop.Property;
+import org.genvisis.cnv.qc.AffyMarkerBlast;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.IlluminaMarkerBlast;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.qc.MarkerBlast;
+import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
 import org.genvisis.cnv.qc.MarkerBlastQC;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
@@ -60,6 +62,7 @@ import org.genvisis.stats.Maths;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -628,33 +631,36 @@ public class GenvisisWorkflow {
 			return s;
 		}
 
-		private Step generateMarkerPositionsStep() {
-			final Requirement manifestReq = new FileRequirement("(Preferred) An Illumina Manifest file.",
-																													"");
+		private Step generateIlluminaMarkerPositionsStep() {
 			final Requirement snpMapReq = new FileRequirement("An Illumina SNP_map file.",
 																												proj.getLocationOfSNP_Map(false));
+			final Requirement manifestReq = new FileRequirement("An Illumina Manifest file.",
+																													proj.getLocationOfSNP_Map(false));
 			return register(new Step("Create Marker Positions (if not already exists)", "",
-															 new Requirement[][] {{manifestReq, snpMapReq}, {getNumThreadsReq()}},
-															 EnumSet.noneOf(Flag.class), priority()) {
+															 new Requirement[][] {{snpMapReq, manifestReq}},
+															 EnumSet.noneOf(Flag.class),
+															 priority()) {
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,
 																								 Map<Step, Map<Requirement, String>> variables) {
-					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
-					maybeSetProjNumThreads(numThreads);
+					// not needed for step
 				}
 
 				@Override
 				public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
 					proj.getLog().report("Generating marker positions file");
-					String manifestFile = variables.get(this).get(manifestReq);
-					String snpMapFile = variables.get(this).get(snpMapReq);
-					if (Files.exists(manifestFile)) {
-						proj.getLog().report("BLASTing probes from " + manifestFile);
-						new IlluminaMarkerBlast(proj, proj.NUM_THREADS.getValue(), manifestFile).blastEm();
-					} else {
-						proj.getLog().report("Generating marker positions file from " + snpMapFile);
-						Markers.generateMarkerPositions(proj, snpMapFile);
+					String snpMap = variables.get(this).get(snpMapReq);
+					String manifest = variables.get(this).get(manifestReq);
+					if (Files.exists(snpMap)) {
+						org.genvisis.cnv.manage.Markers.generateMarkerPositions(proj, snpMap);
+					} else if (Files.exists(manifest)) {
+						MarkerBlast.extractMarkerPositionsFromManifest(manifest, ARRAY.ILLUMINA,
+																													 FILE_SEQUENCE_TYPE.MANIFEST_FILE,
+																													 proj.MARKER_POSITION_FILENAME.getValue(false,
+																																																	false),
+																													 Files.determineDelimiter(manifest, log),
+																													 log);
 					}
 				}
 
@@ -665,21 +671,110 @@ public class GenvisisWorkflow {
 
 				@Override
 				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
-					String manifestFile = variables.get(this).get(manifestReq);
-					String snpMapFile = variables.get(this).get(snpMapReq);
-					int numThreads = resolveThreads(variables.get(this).get(numThreadsReq));
 					String projFile = proj.getPropertyFilename();
-					if (Files.exists(manifestFile)) {
-						List<String> command = ImmutableList.of(Files.getRunString(),
-																										MarkerBlast.class.getName(),
-																										"fileSeq=" + manifestFile,
-																										"proj=" + proj.getPropertyFilename(),
-																										PSF.Ext.NUM_THREADS_COMMAND + numThreads);
-						return Joiner.on(" ").join(command);
+					String snpMap = variables.get(this).get(snpMapReq);
+					String manifest = variables.get(this).get(manifestReq);
+					String baseCommand = Files.getRunString() + " cnv.manage.Markers proj=" + projFile;
+					if (Files.exists(snpMap)) {
+						return baseCommand + " snps=" + snpMap;
 					} else {
-						return Files.getRunString() + " cnv.manage.Markers proj=" + projFile + " snps="
-									 + snpMapFile;
+						return baseCommand + " snps=" + manifest + " -manifest";
 					}
+				}
+
+			});
+		}
+
+		private Step generateIlluminaMarkerBlastAnnotationStep(final Step parseSamplesStep) {
+			final Requirement parseSamplesStepReq = new StepRequirement(parseSamplesStep);
+			final Requirement manifestFileReq = new FileRequirement(ext.capitalizeFirst(IlluminaMarkerBlast.DESC_MANIFEST),
+																															IlluminaMarkerBlast.EXAMPLE_MANIFEST);
+			final Requirement[][] requirements = new Requirement[][] {{parseSamplesStepReq},
+																																{manifestFileReq},
+																																{getNumThreadsReq()}};
+
+			return register(new Step("Run Marker BLAST Annotation", "", requirements,
+															 EnumSet.of(Flag.MEMORY, Flag.RUNTIME, Flag.MULTITHREADED),
+															 priority()) {
+
+				@Override
+				public void setNecessaryPreRunProperties(Project proj,
+																								 Map<Step, Map<Requirement, String>> variables) {
+					// Not necessary for this step
+
+				}
+
+				@Override
+				public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+					String manifestFile = variables.get(this).get(manifestFileReq);
+					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
+					new IlluminaMarkerBlast(proj, numThreads, manifestFile).blastEm();
+				}
+
+				@Override
+				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+					String manifestFile = variables.get(this).get(manifestFileReq);
+					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
+					ImmutableMap.Builder<String, String> argsBuilder = ImmutableMap.builder();
+					argsBuilder.put(IlluminaMarkerBlast.ARG_MANIFEST, manifestFile);
+					argsBuilder.put(CLI.ARG_THREADS, String.valueOf(numThreads));
+					return Files.getRunString() + " "
+								 + CLI.formCmdLine(IlluminaMarkerBlast.class, argsBuilder.build());
+				}
+
+				@Override
+				public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
+					return Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue());
+				}
+			});
+		}
+
+		private Step generateAffyMarkerBlastAnnotationStep(final Step parseSamplesStep) {
+			final Requirement parseSamplesStepReq = new StepRequirement(parseSamplesStep);
+
+			final Requirement probeFileReq = new FileRequirement(ext.capitalizeFirst(AffyMarkerBlast.DESC_PROBE_FILE),
+																													 AffyMarkerBlast.EXAMPLE_PROBE_FILE);
+			final Requirement annotFileReq = new FileRequirement(ext.capitalizeFirst(AffyMarkerBlast.DESC_ANNOT_FILE),
+																													 AffyMarkerBlast.EXAMPLE_ANNOT_FILE);
+			final Requirement[][] requirements = new Requirement[][] {{parseSamplesStepReq},
+																																{probeFileReq}, {annotFileReq},
+																																{getNumThreadsReq()}};
+
+			return register(new Step("Run Marker BLAST Annotation", "", requirements,
+															 EnumSet.of(Flag.MEMORY, Flag.RUNTIME, Flag.MULTITHREADED),
+															 priority()) {
+
+				@Override
+				public void setNecessaryPreRunProperties(Project proj,
+																								 Map<Step, Map<Requirement, String>> variables) {
+					// Not necessary for this step
+
+				}
+
+				@Override
+				public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+					String annotFile = variables.get(this).get(annotFileReq);
+					String probeFile = variables.get(this).get(probeFileReq);
+					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
+					new AffyMarkerBlast(proj, numThreads, probeFile, annotFile).blastEm();
+				}
+
+				@Override
+				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+					String annotFile = variables.get(this).get(annotFileReq);
+					String probeFile = variables.get(this).get(probeFileReq);
+					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
+					ImmutableMap.Builder<String, String> argsBuilder = ImmutableMap.builder();
+					argsBuilder.put(AffyMarkerBlast.ARG_PROBE_FILE, probeFile);
+					argsBuilder.put(AffyMarkerBlast.ARG_ANNOT_FILE, annotFile);
+					argsBuilder.put(CLI.ARG_THREADS, String.valueOf(numThreads));
+					return Files.getRunString() + " "
+								 + CLI.formCmdLine(AffyMarkerBlast.class, argsBuilder.build());
+				}
+
+				@Override
+				public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
+					return Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue());
 				}
 			});
 		}
@@ -2335,9 +2430,11 @@ public class GenvisisWorkflow {
 		Step parseSamplesStep;
 		if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
 			parseSamplesStep = sb.generateParseSamplesStep();
+			sb.generateAffyMarkerBlastAnnotationStep(parseSamplesStep);
 		} else {
-			Step markerPositions = sb.generateMarkerPositionsStep();
+			Step markerPositions = sb.generateIlluminaMarkerPositionsStep();
 			parseSamplesStep = sb.generateParseSamplesStep(markerPositions);
+			sb.generateIlluminaMarkerBlastAnnotationStep(parseSamplesStep);
 		}
 		Step createSampleDataStep = sb.generateCreateSampleDataStep(parseSamplesStep);
 		Step transposeStep = sb.generateTransposeStep(parseSamplesStep);

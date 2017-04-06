@@ -38,13 +38,13 @@ public class AffyMarkerBlast extends MarkerBlast {
 																																										"-",
 																																										Strand.NEGATIVE);
 
-	private static final String ARG_PROBE_FILE = "probeFile";
-	private static final String DESC_PROBE_FILE = "an Affymetrix Probe Set file";
-	private static final String EXAMPLE_PROBE_FILE = "GenomeWideSNP_6.probe_tab";
+	public static final String ARG_PROBE_FILE = "probeFile";
+	public static final String DESC_PROBE_FILE = "an Affymetrix Probe Set file";
+	public static final String EXAMPLE_PROBE_FILE = "GenomeWideSNP_6.probe_tab";
 
-	private static final String ARG_ANNOT_FILE = "annotFile";
-	private static final String DESC_ANNOT_FILE = "an Affymetrix Annotation file";
-	private static final String EXAMPLE_ANNOT_FILE = "GenomeWideSNP_6.na35.annot.csv";
+	public static final String ARG_ANNOT_FILE = "annotFile";
+	public static final String DESC_ANNOT_FILE = "an Affymetrix Annotation file";
+	public static final String EXAMPLE_ANNOT_FILE = "GenomeWideSNP_6.na35.annot.csv";
 
 	private static final int EXAMPLE_WORD_SIZE = MarkerBlast.getDefaultWordSize(ARRAY.AFFY_GW6);
 
