@@ -3380,7 +3380,7 @@ public class Files {
 
 			String line;
 			while ((line = reader.readLine()) != null) {
-				String[] tmp = line.trim().split(delimiter);
+				String[] tmp = ext.splitLine(line.trim(), delimiter, log);
 				if (ArrayUtils.countIf(ext.indexFactors(containing, tmp, false, log, false, false),
 															 -1) == 0) {
 					reader.close();

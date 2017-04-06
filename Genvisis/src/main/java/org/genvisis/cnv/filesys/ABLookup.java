@@ -19,8 +19,7 @@ import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerSeqAnnotation;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.prop.Property;
-import org.genvisis.cnv.qc.MarkerBlast;
-import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
+import org.genvisis.cnv.qc.IlluminaMarkerBlast;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -358,8 +357,7 @@ public class ABLookup {
 											 + "' already exists; use that instead of the Illumina Manifest file to parse AB values (or rename that file to get around this check)");
 			return;
 		}
-		MarkerBlast.blastEm(proj, manifestFile, FILE_SEQUENCE_TYPE.MANIFEST_FILE, -1, -1, -1, 1, false,
-												false, false);
+		new IlluminaMarkerBlast(proj, -1, -1, -1, false, false, false, 1, manifestFile).blastEm();
 		parseFromAnnotationVCF(proj);
 	}
 

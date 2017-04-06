@@ -182,8 +182,9 @@ public class ExtProjectDataParser {
 				}
 			} while (line != null
 							 && ArrayUtils.countIf(ext.indexFactors(headerFlags,
-																											line.trim()
-																													.split(typedFileParser.getSeparator()),
+																											ext.splitLine(line.trim(),
+																																		typedFileParser.getSeparator(),
+																																		proj.getLog()),
 																											true, proj.getLog(), false, false),
 																		 -1) > 0);
 		} else {
@@ -533,7 +534,7 @@ public class ExtProjectDataParser {
 		 *        present
 		 * @return
 		 */
-		public ProjectDataParserBuilder stringDataTitles(String[] stringDataTitles) {
+		public ProjectDataParserBuilder stringDataTitles(String... stringDataTitles) {
 			this.stringDataTitles = stringDataTitles;
 			return this;
 		}
@@ -646,7 +647,7 @@ public class ExtProjectDataParser {
 		 * @param headerFlags the header contains these lines, and others will be skipped
 		 * @return
 		 */
-		public ProjectDataParserBuilder headerFlags(String[] headerFlags) {
+		public ProjectDataParserBuilder headerFlags(String... headerFlags) {
 			this.headerFlags = headerFlags;
 			return this;
 		}
