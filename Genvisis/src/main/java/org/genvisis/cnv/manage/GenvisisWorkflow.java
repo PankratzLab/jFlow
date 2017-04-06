@@ -1154,7 +1154,7 @@ public class GenvisisWorkflow {
 			});
 		}
 
-		private Step generateSexChecksStep(final Step parseSamplesStep,
+		private Step generateSexChecksStep(final Step parseSamplesStep, final Step markerBlastStep,
 																			 final Step sampleDataStep, final Step transposeStep,
 																			 final Step sampleQCStep) {
 			final Requirement parseSamplesStepReq = new StepRequirement(parseSamplesStep);
@@ -1164,20 +1164,18 @@ public class GenvisisWorkflow {
 			final Requirement addToSampleDataReq = new OptionalBoolRequirement("Add Estimated Sex to Sample Data",
 																																				 true);
 
-			final Requirement noCrossHybeReq = new BoolRequirement("Use only X and Y chromosome R values to identify sex discriminating markers",
-																														 false);
-
 			final Requirement oneHittersReq = new FileRequirement("List of markers that do not cross hybridize",
 																														MarkerBlastQC.defaultOneHitWondersFilename(proj.BLAST_ANNOTATION_FILENAME.getValue()));
-
-			final Requirement blastVCFReq = new FileRequirement("BLAST annotation VCF to generate list of markers that do not cross hybridize from",
-																													proj.BLAST_ANNOTATION_FILENAME.getValue());
+			final Requirement markerBlastStepReq = new StepRequirement(markerBlastStep);
+			final Requirement noCrossHybeReq = new BoolRequirement("Use only X and Y chromosome R values to identify sex discriminating markers",
+																														 false);
 
 			return register(new Step("Run Sex Checks", "",
 															 new Requirement[][] {{parseSamplesStepReq}, {sampleDataStepReq},
 																										{transposeStepReq}, {sampleQCStepReq},
 																										{addToSampleDataReq},
-																										{noCrossHybeReq, oneHittersReq, blastVCFReq}},
+																										{oneHittersReq, markerBlastStepReq,
+																										 noCrossHybeReq}},
 															 EnumSet.noneOf(Flag.class), priority()) {
 
 				@Override
@@ -1197,7 +1195,7 @@ public class GenvisisWorkflow {
 					} else {
 						discriminatingMarkersFile = variables.get(this).get(oneHittersReq);
 						if (!Files.exists(discriminatingMarkersFile)) {
-							MarkerBlastQC.getOneHitWonders(proj, variables.get(this).get(blastVCFReq),
+							MarkerBlastQC.getOneHitWonders(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(),
 																						 discriminatingMarkersFile, 0.8, proj.getLog());
 						}
 					}
@@ -1218,7 +1216,7 @@ public class GenvisisWorkflow {
 						if (!Files.exists(discriminatingMarkersFile)) {
 							cmd.append(Files.getRunString())
 								 .append(" cnv.qc.MarkerBlastQC proj=" + projPropFile + " blastVCF="
-												 + variables.get(this).get(blastVCFReq))
+												 + proj.BLAST_ANNOTATION_FILENAME.getValue())
 								 .append("\n");
 						}
 					}
@@ -2428,20 +2426,21 @@ public class GenvisisWorkflow {
 		StepBuilder sb = new StepBuilder();
 
 		Step parseSamplesStep;
+		Step markerBlastStep;
 		if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
 			parseSamplesStep = sb.generateParseSamplesStep();
-			sb.generateAffyMarkerBlastAnnotationStep(parseSamplesStep);
+			markerBlastStep = sb.generateAffyMarkerBlastAnnotationStep(parseSamplesStep);
 		} else {
 			Step markerPositions = sb.generateIlluminaMarkerPositionsStep();
 			parseSamplesStep = sb.generateParseSamplesStep(markerPositions);
-			sb.generateIlluminaMarkerBlastAnnotationStep(parseSamplesStep);
+			markerBlastStep = sb.generateIlluminaMarkerBlastAnnotationStep(parseSamplesStep);
 		}
 		Step createSampleDataStep = sb.generateCreateSampleDataStep(parseSamplesStep);
 		Step transposeStep = sb.generateTransposeStep(parseSamplesStep);
 		Step gcModelStep = sb.generateGCModelStep();
 		Step sampleQCStep = sb.generateSampleQCStep(parseSamplesStep);
 		sb.generateMarkerQCStep(parseSamplesStep);
-		sb.generateSexChecksStep(parseSamplesStep, createSampleDataStep,
+		sb.generateSexChecksStep(parseSamplesStep, markerBlastStep, createSampleDataStep,
 														 transposeStep, sampleQCStep);
 		sb.generateABLookupStep(parseSamplesStep);
 		Step plinkExportStep = sb.generatePlinkExportStep(parseSamplesStep);
