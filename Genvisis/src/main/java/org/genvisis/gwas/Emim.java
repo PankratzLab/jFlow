@@ -17,6 +17,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.qsub.Qsub;
 
@@ -142,7 +143,7 @@ public class Emim {
 			reader = Files.getAppropriateReader(EMIM_MINOR_SNP_FILENAME);
 			while (reader.ready()) {
 				String line = reader.readLine();
-				String[] linePieces = line.split("\\s+");
+				String[] linePieces = line.split(PSF.Regex.GREEDY_WHITESPACE);
 				if (linePieces.length != 3) {
 					log.reportError("Invalid line in " + EMIM_MINOR_SNP_FILENAME + ": " + line
 													+ "; aborting risk allele generation");

@@ -109,7 +109,7 @@ public class PlinkData {
 			outBed.write(new byte[] {(byte) 108, (byte) 27, (byte) 1});
 
 			while (inFile.hasNext()) {
-				line = inFile.nextLine().split("\\s+");
+				line = inFile.nextLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (numMarkers == -1) {
 					numMarkers = (line.length - 6) / 2;
 					genotypeLetters = new String[numMarkers][2];
@@ -447,7 +447,7 @@ public class PlinkData {
 		fam = loadFamOrBim(famFileFullPath, indexOfStartSample, numberOfSamplesToLoad, log);
 		out = new String[fam.size()][];
 		for (int i = 0; i < out.length; i++) {
-			out[i] = fam.get(i).split("\\s+");
+			out[i] = fam.get(i).split(PSF.Regex.GREEDY_WHITESPACE);
 		}
 
 		return out;
@@ -471,7 +471,7 @@ public class PlinkData {
 		bim = loadFamOrBim(famFileFullPath, indexOfStartSample, numberOfSamplesToLoad, log);
 		out = new String[bim.size()][];
 		for (int i = 0; i < out.length; i++) {
-			out[i] = bim.get(i).split("\\s+");
+			out[i] = bim.get(i).split(PSF.Regex.GREEDY_WHITESPACE);
 		}
 
 		return out;
@@ -2053,7 +2053,7 @@ public class PlinkData {
 			reader = new BufferedReader(new FileReader(plinkFileRoot + ".fam"));
 			count = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("\\s+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				famIndID = line[0] + "\t" + line[1];
 				allIDs = sampleData.lookup(famIndID);
 				if (allIDs == null) {

@@ -71,6 +71,7 @@ import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Numbers;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.parse.GenParser;
@@ -1834,7 +1835,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		HashSet<String> lineTagEntries = new HashSet<String>();
 		for (String line : ctrlLines) {
-			String[] lineTags = line.split("\\s+");
+			String[] lineTags = line.split(PSF.Regex.GREEDY_WHITESPACE);
 			for (String lineTag : lineTags) {
 				String tagKey = lineTag.split("=")[0];
 				String tagValue = lineTag.split("=").length > 1 ? lineTag.split("=")[1] : "-1";

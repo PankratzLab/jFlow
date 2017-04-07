@@ -27,6 +27,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 
@@ -44,7 +45,7 @@ import org.genvisis.filesys.CNVariant;
  */
 public class CNVBeast {
 	public static final String OVERWRITE_OPTION = "-overwrite";
-	public static final String BEAST_DELIM = "\\s+";
+	public static final String BEAST_DELIM = PSF.Regex.GREEDY_WHITESPACE;
 
 	public static final String[] BEAST_DATA_HEADER = {"probeset_id", "chr", "position", "LRR"};
 	public static final String[] BEAST_RESULTS_HEADER = {"start", "end", "height", "length", "type",

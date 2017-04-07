@@ -109,7 +109,7 @@ public class PlinkMarkerLoader implements Runnable {
 			reader = Files.getAppropriateReader(fileRoot + ".bim");
 			String temp;
 			while ((temp = reader.readLine()) != null) {
-				line = temp.trim().split("\\s+");
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				String mkr = line[1];
 				if (lookFor.contains(mkr)) {
 					markerIndicesLookupTemp.put(mkr, cnt);

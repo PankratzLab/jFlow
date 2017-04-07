@@ -15,6 +15,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.MatchSamples;
 
@@ -247,14 +248,14 @@ public class ControlSelection {
 			have.add(in);
 		}
 		for (String sample : ins) {
-			// System.out.println(sample.split("\\s+")[0]);
-			if (cas.contains(sample.split("\\s+")[0])) {
-				String[] c = hash.get(sample.split("\\s+")[0]).split("\t");
+			// System.out.println(sample.split(PSF.Regex.GREEDY_WHITESPACE)[0]);
+			if (cas.contains(sample.split(PSF.Regex.GREEDY_WHITESPACE)[0])) {
+				String[] c = hash.get(sample.split(PSF.Regex.GREEDY_WHITESPACE)[0]).split("\t");
 				c[5] = "2";
 				newFam.add(ArrayUtils.toStr(ArrayUtils.subArray(c, 0, 6)));
 			}
-			if (cont.contains(sample.split("\\s+")[0])) {
-				String[] c = hash.get(sample.split("\\s+")[0]).split("\t");
+			if (cont.contains(sample.split(PSF.Regex.GREEDY_WHITESPACE)[0])) {
+				String[] c = hash.get(sample.split(PSF.Regex.GREEDY_WHITESPACE)[0]).split("\t");
 				c[5] = "1";
 				newFam.add(ArrayUtils.toStr(ArrayUtils.subArray(c, 0, 6)));
 			}

@@ -22,6 +22,7 @@ import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Plink;
 import org.genvisis.gwas.Qc;
@@ -162,7 +163,7 @@ public class CheckPed {
 				genomeReader.readLine();
 				// process each line of the genome
 				while (genomeReader.ready()) {
-					String[] line = genomeReader.readLine().trim().split("\\s+");
+					String[] line = genomeReader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					Relatedness r = getRel(line[z0], line[z1], line[z2], line[piHat]);
 					if (line[fid1].equals(line[fid2])) {
 						// Same family, record relatedness

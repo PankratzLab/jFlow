@@ -395,7 +395,7 @@ public class CALiCoResultsPackager {
 			reader = new BufferedReader(new FileReader(plinkFileRoot + ".bim"));
 			count = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("\\s+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				hash.put(line[1],
 								 ":\t" + count + "\t" + line[0] + "\t" + line[3] + "\t" + line[4] + "\t" + line[5]);
 				count++;

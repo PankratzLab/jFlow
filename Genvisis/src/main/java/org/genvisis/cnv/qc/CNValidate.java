@@ -453,7 +453,7 @@ public class CNValidate implements Runnable {
 // continue;
 // }
 // while (reader.ready()) {
-// String[] line = reader.readLine().trim().split("\\s+");
+// String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 // thierTransforms.add(Double.parseDouble(line[0]));
 //
 // }
@@ -528,7 +528,7 @@ public class CNValidate implements Runnable {
 // continue;
 // }
 // while (reader.ready()) {
-// String[] line = reader.readLine().trim().split("\\s+");
+// String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 // thierTransforms.add(Double.parseDouble(line[0]));
 //
 // }
@@ -561,7 +561,7 @@ public class CNValidate implements Runnable {
 // break;
 // }
 // while (reader.ready()) {
-// String[] line = reader.readLine().trim().split("\\s+");
+// String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 // if (Integer.parseInt(line[0]) < 68000000 || Integer.parseInt(line[1]) > 77000000) {
 // continue;
 // }
@@ -739,7 +739,7 @@ public class CNValidate implements Runnable {
 // return;
 // }
 // while (reader.ready()) {
-// String[] line = reader.readLine().trim().split("\\s+");
+// String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 // int type = 2;
 // // convert beast calls to 1=deletion and 3 =duplication, removing any strange calls
 // // with mixed types (Beast type!= 1)
