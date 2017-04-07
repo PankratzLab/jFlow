@@ -1021,11 +1021,14 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 	private void selectGateClassification() {
 		Set<String> avail = classifierResultsPerGate.keySet();
 		String[] v = avail.toArray(new String[avail.size()]);
-		String sel = (String) JOptionPane.showInputDialog(this,
-																											"Select Gate Classifications to Visualize",
-																											"Select Classifications...",
-																											JOptionPane.QUESTION_MESSAGE, null, v, v[0]);
-		setClassifierGate(sel);
+		if (v.length > 0) {
+			String sel = (String) JOptionPane.showInputDialog(this,
+																												"Select Gate Classifications to Visualize",
+																												"Select Classifications...",
+																												JOptionPane.QUESTION_MESSAGE, null, v, v[0]);
+			setClassifierGate(sel);
+			showClassifierCountDialog(false);
+		}
 	}
 
 	public void setClassifierGate(String gName) {
@@ -1042,9 +1045,45 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		return res;
 	}
 
+	public void showClassifierCountDialog(boolean prevSubset) {
+		if (selectedVis == null) {
+			JOptionPane.showMessageDialog(this, "Error - classifier results not loaded!", "Error",
+																		JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		ClassifierResultsDialog crd = new ClassifierResultsDialog();
+		crd.setModal(false);
+		Classification[] classers = getClassifications(prevSubset);
+		int tp = 0;
+		int fp = 0;
+		int tn = 0;
+		int fn = 0;
+		for (Classification c : classers) {
+			switch (c) {
+				case FN:
+					fn++;
+					break;
+				case FP:
+					fp++;
+					break;
+				case TN:
+					tn++;
+					break;
+				case TP:
+					tp++;
+					break;
+				default:
+					break;
+			}
+		}
+		crd.setTNCnt(tn).setFNCnt(fn).setTPCnt(tp).setFPCnt(fp).setVisible(true);
+	}
+
 	private void loadAutoGUI() {
 		FileChooser fc = new FileChooser(this, "", false, true, "Select Auto-gated result directory",
 																		 new Logger());
+		if (!fc.isSelected())
+			return;
 		File autoDir = fc.getSelectedFile();
 		String file = discoverFNumFile(autoDir.getAbsolutePath());
 		if (file != null) {
