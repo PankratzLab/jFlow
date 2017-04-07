@@ -17,6 +17,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
 import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
@@ -189,9 +190,9 @@ public class lab {
 		int[] number = new int[] {5, 3};
 		int score = 10;
 
-		String[][] files = new String[][] {{"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/",
-																				"23Mgen_merged.cnv", "23_M_filtered.cnv",
-																				markerSetFilenameToBreakUpCentromeres_1},
+		String[][] files = new String[][] { {"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/",
+																				 "23Mgen_merged.cnv", "23_M_filtered.cnv",
+																				 markerSetFilenameToBreakUpCentromeres_1},
 																			 {"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/",
 																				"23Fgen_merged.cnv", "23_F_filtered.cnv",
 																				markerSetFilenameToBreakUpCentromeres_1},
@@ -212,7 +213,73 @@ public class lab {
 														 new Logger());
 		}
 	}
-	
+
+
+	private static class Alleles {
+		String a1;
+		String a2;
+
+		public Alleles(String a1, String a2) {
+			this.a1 = a1;
+			this.a2 = a2;
+		}
+	}
+
+	public static void affy6BimLookup() {
+		String bimFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/plinkApril2017.bim";
+		String newBimFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/plinkApril2017_correctedRS.bim";
+		String missSnpFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/plinkApril2017_missingRS.txt";
+		String mismatchFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/plinkApril2017_mismatchAlleles.txt";
+		String affySnpFile = "/home/pankrat2/cole0482/Affy6_SnpList.xln";
+		String[][] bim = HashVec.loadFileToStringMatrix(bimFile, false, null, "\t", false, 100000,
+																										false);
+		String[][] aff = HashVec.loadFileToStringMatrix(affySnpFile, true, null, "[\\s]+", false,
+																										100000, false);
+
+		System.out.println("Loaded data...");
+		System.out.println(bim.length + " lines in .bim file;");
+		System.out.println(aff.length + " lines in snp lookup file;");
+
+		HashMap<String, String> affRS = new HashMap<>();
+		HashMap<String, Alleles> affMkrs = new HashMap<>();
+		for (String[] line : aff) {
+			affRS.put(line[0], line[1]);
+			affMkrs.put(line[0], new Alleles(line[3], line[4]));
+		}
+
+		PrintWriter writer = Files.getAppropriateWriter(newBimFile);
+		PrintWriter miss = Files.getAppropriateWriter(missSnpFile);
+		PrintWriter mismatch = Files.getAppropriateWriter(mismatchFile);
+		mismatch.println("AFFY\tRSID\tA_A1\tA_A2\tRS_A1\tRS_A2");
+		for (String[] line : bim) {
+			String snp = line[1];
+			String rs = affRS.get(snp);
+			if (rs == null) {
+				miss.println(snp);
+				writer.println(ArrayUtils.toStr(line, "\t"));
+			} else {
+				Alleles all = affMkrs.get(snp);
+				if (all.a1.equals(line[4]) && all.a2.equals(line[5])) {
+					if (!rs.equals("---")) {
+						line[1] = rs;
+					}
+				} else {
+					mismatch.println(snp + "\t" + rs + "\t" + all.a1 + "\t" + all.a2 + "\t" + line[4] + "\t"
+													 + line[5]);
+				}
+				writer.println(ArrayUtils.toStr(line, "\t"));
+			}
+		}
+		writer.flush();
+		writer.close();
+		miss.flush();
+		miss.close();
+		mismatch.flush();
+		mismatch.close();
+
+		System.out.println("Done!");
+	}
+
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		Project proj;
@@ -222,30 +289,34 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
-			
-			String cmd = 
-					"java -jar genvisis.jar org.genvisis.imputation.ImputationPipeline" 
-							+ " proj=projects/poynter.properties" 
-							+ " ref=/home/pankrat2/shared/bin/ref/1000GP_Phase3_combined.legend.gz"
-							+ " chrs=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22"
-							+ " plinkDir=plink/"
-							+ " outDir=/scratch.global/cole0482/testImp/out/"
-							+ " type=PLINK_SHAPE_MINI"
-							+ " " ;
-			System.out.println(cmd);
-			
-//			proj = new Project("projects/poynter.properties", false);
-//  			String referenceFile = "/home/pankrat2/shared/bin/ref/1000GP_Phase3_combined.legend.gz";
-//  			ImputationPipeline ip = new ImputationPipeline(proj, referenceFile);
-//  			ip.loadDefaultDropFiles(proj.PROJECT_DIRECTORY.getValue() + "plink/");
-//  			ip.exportToVCF("/scratch.global/cole0482/testImp/output");
-//  			ip.exportToPlink("/scratch.global/cole0482/testImp/plink");
-//  			String hapsDir = "/scratch.global/cole0482/testImp/out/";
-//  			String outDir = "/scratch.global/cole0482/testImp/out/min/";
-//
-//  			new ImputationImpl.ShapeIt(proj, "/scratch.global/cole0482/testImp/", "plink_chr", hapsDir).createScripts();
-//  			new ImputationImpl.MiniMac(proj, hapsDir, outDir).createScripts();
-			
+
+			affy6BimLookup();
+
+			// String cmd =
+			// "java -jar genvisis.jar org.genvisis.imputation.ImputationPipeline"
+			// + " proj=projects/poynter.properties"
+			// + " ref=/home/pankrat2/shared/bin/ref/1000GP_Phase3_combined.legend.gz"
+			// + " chrs=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22"
+			// + " plinkDir=plink/"
+			// + " outDir=/scratch.global/cole0482/testImp/out/"
+			// + " type=PLINK_SHAPE_MINI"
+			// + " " ;
+			// System.out.println(cmd);
+
+
+			// proj = new Project("projects/poynter.properties", false);
+			// String referenceFile = "/home/pankrat2/shared/bin/ref/1000GP_Phase3_combined.legend.gz";
+			// ImputationPipeline ip = new ImputationPipeline(proj, referenceFile);
+			// ip.loadDefaultDropFiles(proj.PROJECT_DIRECTORY.getValue() + "plink/");
+			// ip.exportToVCF("/scratch.global/cole0482/testImp/output");
+			// ip.exportToPlink("/scratch.global/cole0482/testImp/plink");
+			// String hapsDir = "/scratch.global/cole0482/testImp/out/";
+			// String outDir = "/scratch.global/cole0482/testImp/out/min/";
+			//
+			// new ImputationImpl.ShapeIt(proj, "/scratch.global/cole0482/testImp/", "plink_chr",
+			// hapsDir).createScripts();
+			// new ImputationImpl.MiniMac(proj, hapsDir, outDir).createScripts();
+
 			// System.out.println("Username: " + QueueControl.getUserName());
 			// System.out.println("Group: " + QueueControl.getCurrentGroup());
 			// System.out.println("All Groups: " + QueueControl.getUserGroups().toString());
@@ -398,5 +469,3 @@ public class lab {
 	}
 
 }
-
-
