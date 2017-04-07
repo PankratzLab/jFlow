@@ -61,16 +61,16 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 		/**
 		 * @param name
-		 * @param chr
-		 * @param position
+		 * @param genomicPosition
 		 * @param a
 		 * @param b
 		 * @param refAllele
 		 */
-		private Marker(String name, byte chr, int position, Allele a, Allele b, RefAllele refAllele) {
+		public Marker(String name, GenomicPosition genomicPosition, Allele a, Allele b,
+									RefAllele refAllele) {
 			super();
 			this.name = name;
-			this.genomicPosition = new GenomicPosition(chr, position);
+			this.genomicPosition = genomicPosition;
 			this.alleleA = a;
 			this.alleleB = b;
 			char[] ab = ABLookup.parseABFromAlleles(a, b);
@@ -79,10 +79,19 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			this.refAllele = refAllele;
 		}
 
-		private Marker(String name, byte chr, int position, char a, char b, RefAllele refAllele) {
+		public Marker(String name, GenomicPosition genomicPosition) {
+			this(name, genomicPosition, 'A', 'B');
+		}
+
+		public Marker(String name, GenomicPosition genomicPosition, char a, char b) {
+			this(name, genomicPosition, a, b, null);
+		}
+
+		public Marker(String name, GenomicPosition genomicPosition, char a, char b,
+									RefAllele refAllele) {
 			super();
 			this.name = name;
-			this.genomicPosition = new GenomicPosition(chr, position);
+			this.genomicPosition = genomicPosition;
 			this.alleleA = parseAllele(a);
 			this.alleleB = parseAllele(b);
 			this.charA = a;
@@ -331,16 +340,15 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		ImmutableList.Builder<Marker> markersBuilder = ImmutableList.builder();
 
 		for (int i = 0; i < markerNames.length; i++) {
-			char a;
-			char b;
+			String name = markerNames[i];
+			GenomicPosition genomicPosition = new GenomicPosition(chrs[i], positions[i]);
+			Marker marker;
 			if (abAlleles != null) {
-				a = abAlleles[i][0];
-				b = abAlleles[i][1];
+				marker = new Marker(name, genomicPosition, abAlleles[i][0], abAlleles[i][1]);
 			} else {
-				a = 'A';
-				b = 'B';
+				marker = new Marker(name, genomicPosition);
 			}
-			markersBuilder.add(new Marker(markerNames[i], chrs[i], positions[i], a, b, null));
+			markersBuilder.add(marker);
 		}
 		markers = markersBuilder.build();
 		this.markerSetFingerprint = markerSetFingerprint;
@@ -557,7 +565,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			if (ambiguousPosition) {
 				ambiguousPositionCount++;
 			}
-			markers.add(new Marker(markerNames[i], chr, position, a, b, refAllele));
+			markers.add(new Marker(markerNames[i], new GenomicPosition(chr, position), a, b, refAllele));
 		}
 		if (ambiguousPositionCount > 0) {
 			log.reportError("Warning - there " + (ambiguousPositionCount > 1 ? "were " : "was ")

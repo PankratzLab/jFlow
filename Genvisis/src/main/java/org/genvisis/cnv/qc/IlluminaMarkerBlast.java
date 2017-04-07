@@ -79,7 +79,7 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 			parser.determineIndicesFromTitles();
 			parser.loadData();
 			ArrayList<MarkerFastaEntry> entries = new ArrayList<MarkerFastaEntry>(ArrayUtils.booleanArraySum(parser.getDataPresent()));
-			MarkerSetInfo markerSet = loadNaiveMarkerSet();
+			MarkerSetInfo markerSet = proj.getMarkerSet();
 			ReferenceGenome referenceGenome = Files.exists(proj.getReferenceGenomeFASTAFilename()) ? new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																																																									 log)
 																																														 : null;
@@ -229,6 +229,8 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 		c.addArgWithDefault(ARG_BLAST_WORD_SIZE, DESC_BLAST_WORD_SIZE, EXAMPLE_WORD_SIZE);
 		c.addArgWithDefault(ARG_REPORT_WORD_SIZE, DESC_REPORT_WORD_SIZE, EXAMPLE_WORD_SIZE);
 		c.addArgWithDefault(ARG_MAX_ALIGNMENTS, DESC_MAX_ALIGNMENTS, DEFAULT_MAX_ALIGNMENTS);
+		c.addArg(ARG_MARKER_POSITIONS_OVERRIDE, DESC_MARKER_POSITIONS_OVERRIDE,
+						 EXAMPLE_MARKER_POSITIONS_OVERRID, CLI.Arg.FILE);
 		c.addFlag(FLAG_SKIP_GC_ANNOTATION, DESC_SKIP_GC_ANNOTATION);
 		c.addFlag(FLAG_SKIP_BLAST, DESC_SKIP_BLAST);
 
@@ -240,14 +242,21 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 		int reportWordSize = c.getI(ARG_REPORT_WORD_SIZE);
 		int maxAlignmentsReported = c.getI(ARG_MAX_ALIGNMENTS);
 		int numThreads = c.getI(CLI.ARG_THREADS);
+		String markerPositionsOverride = c.get(ARG_MARKER_POSITIONS_OVERRIDE);
 		boolean annotateGCContent = !c.has(FLAG_SKIP_GC_ANNOTATION);
 		boolean doBlast = !c.has(FLAG_SKIP_BLAST);
 
 		try {
-			new IlluminaMarkerBlast(proj, blastWordSize, reportWordSize, maxAlignmentsReported,
-															MarkerBlast.DEFAULT_REPORT_TO_TEMPORARY_FILE, annotateGCContent,
-															doBlast,
-															numThreads, fileSeq).blastEm();
+			MarkerBlast markerBlast = new IlluminaMarkerBlast(proj, blastWordSize, reportWordSize,
+																												maxAlignmentsReported,
+																												MarkerBlast.DEFAULT_REPORT_TO_TEMPORARY_FILE,
+																												annotateGCContent,
+																												doBlast,
+																												numThreads, fileSeq);
+			if (markerPositionsOverride != null) {
+				markerBlast.overrideMarkerPositions(markerPositionsOverride);
+			}
+			markerBlast.blastEm();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

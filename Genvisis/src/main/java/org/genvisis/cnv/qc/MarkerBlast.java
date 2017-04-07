@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -20,15 +21,17 @@ import org.genvisis.cnv.annotation.markers.BlastParams;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation.Builder;
 import org.genvisis.cnv.annotation.markers.MarkerGCAnnotation;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerSet;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.Markers;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.GenomicPosition;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
@@ -37,6 +40,9 @@ import org.genvisis.seq.analysis.Blast.BlastWorker;
 import org.genvisis.seq.analysis.Blast.FastaEntry;
 import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.seq.manage.StrandOps;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
@@ -59,6 +65,10 @@ public abstract class MarkerBlast {
 	protected static final String ARG_MAX_ALIGNMENTS = "maxAlignmentsReported";
 	protected static final String DESC_MAX_ALIGNMENTS = "the maximum number of alignments to summarize";
 	protected static final int DEFAULT_MAX_ALIGNMENTS = 20;
+
+	protected static final String ARG_MARKER_POSITIONS_OVERRIDE = "overrideMarkerPositions";
+	protected static final String DESC_MARKER_POSITIONS_OVERRIDE = "marker positions file to override MarkerSet positions with (e.g. for a different genome build)";
+	protected static final String EXAMPLE_MARKER_POSITIONS_OVERRID = "markerPositions.txt";
 
 	protected static final String FLAG_SKIP_GC_ANNOTATION = "noGCAnno";
 	protected static final String DESC_SKIP_GC_ANNOTATION = "skip annotating the summary file with probe and regional GC content";
@@ -94,6 +104,8 @@ public abstract class MarkerBlast {
 	protected final boolean doBlast;
 	protected final int numThreads;
 	protected final Logger log;
+	private final Map<String, GenomicPosition> overrideMarkerPositions;
+	private MarkerDetailSet naiveMarkerSet = null;
 
 
 
@@ -111,7 +123,15 @@ public abstract class MarkerBlast {
 												int maxAlignmentsReported, boolean reportToTmp, boolean annotateGCContent,
 												boolean doBlast, int numThreads) {
 		super();
-		this.proj = proj;
+		this.proj = new Project(proj.getPropertyFilename(), proj.JAR_STATUS.getValue()) {
+			@Override
+			public synchronized MarkerDetailSet getMarkerSet() {
+				if (naiveMarkerSet == null) {
+					naiveMarkerSet = loadNaiveMarkerSet();
+				}
+				return naiveMarkerSet;
+			};
+		};
 		this.blastWordSize = blastWordSize;
 		this.reportWordSize = reportWordSize;
 		this.maxAlignmentsReported = maxAlignmentsReported;
@@ -120,6 +140,7 @@ public abstract class MarkerBlast {
 		this.doBlast = doBlast;
 		this.numThreads = numThreads;
 		this.log = proj.getLog();
+		this.overrideMarkerPositions = Maps.newHashMap();
 	}
 
 	protected abstract String getSourceString();
@@ -127,7 +148,7 @@ public abstract class MarkerBlast {
 	protected abstract String getNameBase();
 
 	@SuppressWarnings("deprecation")
-	protected MarkerSet loadNaiveMarkerSet() {
+	private MarkerDetailSet loadNaiveMarkerSet() {
 		// This method intentionally accesses proj.MARKERSET_FILENAME to circumvent proj.getMarkerSet()
 		// and return the naive MarkerSet, with positions not based on any previous BLAST annotation
 		String markerSetFile = proj.MARKERSET_FILENAME.getValue();
@@ -136,7 +157,50 @@ public abstract class MarkerBlast {
 																			+ this.getClass().getName() + " without a "
 																			+ MarkerSet.class.getName());
 		}
-		return MarkerSet.load(markerSetFile, proj.JAR_STATUS.getValue());
+		MarkerDetailSet naiveMarkerSet = new MarkerDetailSet(MarkerSet.load(markerSetFile,
+																																				proj.JAR_STATUS.getValue()));
+		if (overrideMarkerPositions.isEmpty()) {
+			return naiveMarkerSet;
+		}
+		List<MarkerDetailSet.Marker> markers = Lists.newArrayListWithCapacity(naiveMarkerSet.getMarkers()
+																																												.size());
+
+		for (MarkerDetailSet.Marker naiveMarker : naiveMarkerSet.getMarkers()) {
+			String name = naiveMarker.getName();
+			MarkerDetailSet.Marker marker;
+			if (overrideMarkerPositions.containsKey(name)) {
+				marker = new MarkerDetailSet.Marker(name, overrideMarkerPositions.get(name));
+			} else {
+				marker = naiveMarker;
+			}
+			markers.add(marker);
+		}
+		// This sort makes the fingerprint not match that of the underlying MarkerSet but is necessary
+		// in order to generate a sorted VCF. This could be fixed downstream or the fingerprint should
+		// be replaced by a better metric of matching to a project
+		Collections.sort(markers);
+		return new MarkerDetailSet(markers);
+
+	}
+
+	public void clearMarkerPositionOverrides() {
+		naiveMarkerSet = null;
+		overrideMarkerPositions.clear();
+	}
+
+	public void overrideMarkerPositions(String markerPositionsFile) {
+		naiveMarkerSet = null;
+		Map<String, String> markerStringMap = Markers.loadFileToHashString(markerPositionsFile, log);
+		for (Map.Entry<String, String> markerEntry : markerStringMap.entrySet()) {
+			String name = markerEntry.getKey();
+			String[] chrPos = markerEntry.getValue().split("[\\s]+");
+			byte chr = Positions.chromosomeNumber(chrPos[0], log);
+			int position = Integer.parseInt(chrPos[1]);
+			if (overrideMarkerPositions.put(name, new GenomicPosition(chr, position)) != null) {
+				log.reportTimeWarning("Marker " + name + " has been overriden more than once");
+			}
+		}
+
 	}
 
 	/**
@@ -159,8 +223,8 @@ public abstract class MarkerBlast {
 			String dir = proj.PROJECT_DIRECTORY.getValue() + "Blasts/";
 			new File(dir).mkdirs();
 
-			String root = dir + getNameBase() + ".blasted.ws." + blastWordSize + ".rep."
-										+ reportWordSize;
+			String root = dir + getNameBase() + "." + ext.rootOf(proj.getReferenceGenomeFASTAFilename())
+										+ ".blasted.ws." + blastWordSize + ".rep." + reportWordSize;
 			String output = root + ".blasted";
 
 			String[] tmps = new String[numThreads];
@@ -212,17 +276,18 @@ public abstract class MarkerBlast {
 																											 proj.getArrayType().getProbeLength());
 			result.setTmpFiles(tmps);
 
-			// TODO, revert this to addition mode again
-			if (Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
-				new File(proj.BLAST_ANNOTATION_FILENAME.getValue()).delete();
+			final String blastAnnotationFile = proj.BLAST_ANNOTATION_FILENAME.getValue();
+			if (Files.exists(blastAnnotationFile)) {
+				String blastAnnotationDir = ext.parseDirectoryOfFile(blastAnnotationFile);
+				Files.backup(ext.removeDirectoryInfo(blastAnnotationFile), blastAnnotationDir,
+										 blastAnnotationDir, true);
 			}
 			MarkerFastaEntry[] entries = getMarkerFastaEntries(blastParams, true);
 
-			log.reportTimeInfo("Summarizing blast results to "
-												 + proj.BLAST_ANNOTATION_FILENAME.getValue());
+			log.reportTimeInfo("Summarizing blast results to " + blastAnnotationFile);
 			BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj,
 																																							new AnalysisParams[] {blastParams},
-																																							proj.BLAST_ANNOTATION_FILENAME.getValue(),
+																																							blastAnnotationFile,
 																																							doBlast ? tmps
 																																											: new String[] {},
 																																							entries,
@@ -272,11 +337,11 @@ public abstract class MarkerBlast {
 	 */
 	protected void annotateGCContent() {
 		MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(null, false);
-		String[] markerNames = proj.getMarkerNames();
-		MarkerSetInfo markerSet = proj.getMarkerSet();
-		Map<String, Integer> indices = proj.getMarkerIndices();
+		MarkerDetailSet markerSet = proj.getMarkerSet();
+		String[] markerNames = markerSet.getMarkerNames();
+		Map<String, Integer> indices = markerSet.getMarkerIndices();
 		// ReferenceGenome referenceGenome = new ReferenceGenome(fastaDb, log);
-		LocusAnnotation[] gcAnnotations = new LocusAnnotation[proj.getMarkerNames().length];
+		LocusAnnotation[] gcAnnotations = new LocusAnnotation[markerNames.length];
 		for (MarkerFastaEntry fastaEntrie : fastaEntries) {
 			String marker = fastaEntrie.getName();
 			PROBE_TAG tag = PROBE_TAG.parseMarkerTag(marker, log);
