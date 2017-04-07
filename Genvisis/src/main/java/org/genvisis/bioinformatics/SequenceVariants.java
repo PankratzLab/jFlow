@@ -12,6 +12,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
@@ -52,9 +53,9 @@ public class SequenceVariants {
 			writer = new PrintWriter(new FileWriter(filename + "_parsed.xln"));
 			writer2 = new PrintWriter(new FileWriter(filename + "_SeattleSeq.input"));
 			writer.println("Chr\tPosition\tRef\tAlt\tRefIsMostCommonAllele\tRefCasesFreq\tRefControlsFreq\tAltCasesFreq\tAltControlsFreq\tCallrateCases\tCallrateControls\tAdjCaseMAF\tAdjControlMAF\tOR\tEstFreq");
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), ALLELE_SPECIFIC_FREQS, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), ALLELE_SPECIFIC_FREQS, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				freqs = new double[3][4];
 				freqs[0][0] = Double.parseDouble(line[4]); // case_A_freq
 				freqs[1][0] = Double.parseDouble(line[3]); // control_A_freq

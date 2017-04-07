@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class gist {
@@ -40,7 +41,7 @@ public class gist {
 		reader = new BufferedReader(new FileReader(mutation));
 		reader.readLine();
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			gtypes.put(line[1] + "\t" + line[2], line[3] + "\t" + line[4]);
 		}
 		reader.close();
@@ -53,7 +54,7 @@ public class gist {
 		reader = new BufferedReader(new FileReader("chromf" + chrome + ".lin.out"));
 		reader.readLine();
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (Math.abs(pos - Double.valueOf(line[1]).doubleValue()) < 0.5) {
 				npls.put(line[0], line[3]);
 			}
@@ -75,7 +76,7 @@ public class gist {
 		c1 = c2 = c3 = n = 0;
 		while (!done) {
 			if (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = line[0];
 			} else {
 				done = true;
@@ -123,7 +124,7 @@ public class gist {
 
 			if (line[5].equals("2") && gtypes.containsKey(line[0] + "\t" + line[1])) {
 				n++;
-				alleles = (gtypes.get(line[0] + "\t" + line[1])).split("[\\s]+");
+				alleles = (gtypes.get(line[0] + "\t" + line[1])).split(PSF.Regex.GREEDY_WHITESPACE);
 				if (alleles[0].equals(target) || alleles[1].equals(target)) {
 					c1++;
 				}

@@ -168,6 +168,10 @@ public class PSF {
 
 	}
 
+	public static class Regex {
+		public static final String GREEDY_WHITESPACE = "[\\s]+";
+	}
+
 	/**
 	 * For building plink commands
 	 *

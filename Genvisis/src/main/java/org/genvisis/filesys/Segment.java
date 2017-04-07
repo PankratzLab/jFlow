@@ -17,6 +17,7 @@ import java.util.Vector;
 import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 
@@ -685,7 +686,7 @@ public class Segment implements Serializable, Comparable<Segment> {
 				reader.readLine();
 			}
 			while (reader.ready()) {
-				v.add(new Segment(reader.readLine().trim().split("[\\s]+")[column]));
+				v.add(new Segment(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[column]));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
@@ -744,7 +745,7 @@ public class Segment implements Serializable, Comparable<Segment> {
 				reader.readLine();
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				v.add(new Segment(Positions.chromosomeNumber(line[chrCol]),
 													(inclusiveStart ? Integer.parseInt(line[startCol])
 																					: Integer.parseInt(line[startCol]) + 1) - bpBuffer,
@@ -815,7 +816,7 @@ public class Segment implements Serializable, Comparable<Segment> {
 																							+ ext.removeDirectoryInfo(secondFile) + ".out"));
 			while (reader.ready()) {
 				temp = reader.readLine();
-				line = temp.trim().split("[\\s]+");
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				seg = new Segment(line[0], line[1], line[2]);
 				if (secondList[seg.getChr()] != null && overlapsAny(seg, secondList[seg.getChr()])) {
 					writer.println(temp);

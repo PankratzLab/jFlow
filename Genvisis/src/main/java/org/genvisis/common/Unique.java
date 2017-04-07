@@ -31,7 +31,7 @@ public class Unique {
 			skips = ArrayUtils.intArray(filenames.length, 0);
 		}
 		if (delimiters == null) {
-			delimiters = ArrayUtils.stringArray(filenames.length, "[\\s]+");
+			delimiters = ArrayUtils.stringArray(filenames.length, PSF.Regex.GREEDY_WHITESPACE);
 		}
 		if (uniquesFile != null && uniquesFile.equalsIgnoreCase("null")) {
 			uniquesFile = null;
@@ -155,9 +155,9 @@ public class Unique {
 			outCounts = params.remove(0);
 			files = new String[params.size()];
 			skips = ArrayUtils.intArray(params.size(), 0);
-			delimiters = ArrayUtils.stringArray(params.size(), "[\\s]+");
+			delimiters = ArrayUtils.stringArray(params.size(), PSF.Regex.GREEDY_WHITESPACE);
 			for (int i = 0; i < files.length; i++) {
-				line = params.get(i).trim().split("[\\s]+");
+				line = params.get(i).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				files[i] = line[0];
 				for (int j = 1; j < line.length; j++) {
 					if (line[j].startsWith("skip=") || line[j].startsWith("skips=")) {

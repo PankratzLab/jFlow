@@ -2,7 +2,6 @@ package org.genvisis.one.JL;
 
 import org.genvisis.common.Logger;
 import org.genvisis.seq.manage.ReferenceGenome;
-import org.genvisis.seq.manage.VCFOps;
 
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.variant.variantcontext.VariantContextBuilder;

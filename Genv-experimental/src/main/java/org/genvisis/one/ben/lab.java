@@ -1,54 +1,28 @@
 package org.genvisis.one.ben;
 
-import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Vector;
 
-import javax.swing.ToolTipManager;
-import javax.swing.UIManager;
-
-import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.FilterCalls;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.manage.PlinkData;
-import org.genvisis.cnv.manage.Resources;
-import org.genvisis.cnv.manage.Resources.CHROMOSOME;
-import org.genvisis.cnv.manage.Resources.Resource;
-import org.genvisis.cnv.util.CNVHelper;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
-import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.DosageData;
 import org.genvisis.filesys.Segment;
-import org.genvisis.gwas.MergeExtractPipeline;
-import org.genvisis.imputation.ImputationImpl;
-import org.genvisis.imputation.ImputationPipeline;
-import org.genvisis.imputation.ImputationImpl.ShapeIt;
-import org.genvisis.one.ben.fcs.FCSFileDuplicator;
-import org.genvisis.one.ben.fcs.FCSDataLoader;
-import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
-import org.genvisis.qsub.Qsub;
-import org.genvisis.qsub.QueuesParser;
-
-import com.google.common.io.Closeables;
 
 public class lab {
 
@@ -112,7 +86,7 @@ public class lab {
 			writer = new PrintWriter(new FileWriter(dir + out));
 			writer.println(reader.readLine());
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				cnv = new CNVariant(line);
 				if (cnv.overlaps(centromereMidpoints[cnv.getChr()])) {
 					writer.println(ArrayUtils.toStr(line));

@@ -14,6 +14,7 @@ import org.genvisis.common.ByteVector;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 import com.google.common.primitives.Bytes;
@@ -67,7 +68,7 @@ public class Relpair {
 		}
 		try {
 			while (readers[0].ready()) {
-				line = readers[0].readLine().trim().split("[\\s]+");
+				line = readers[0].readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length > 1) {
 					maxfamIDsize = Math.max(maxfamIDsize, line[0].length());
 					maxindIDsize = Math.max(maxindIDsize, line[1].length());
@@ -136,7 +137,7 @@ public class Relpair {
 				for (int ind = 0; ind < indsPerFam[fam]; ind++) {
 					for (int i = 0; i < chrs.length; i++) {
 						try {
-							line = readers[i].readLine().trim().split("[\\s]+");
+							line = readers[i].readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							if (line.length > 1) {
 								if (i == 0) {
 									writer.print(ext.formStr(line[1], maxindIDsize + 1, true));
@@ -231,7 +232,7 @@ public class Relpair {
 				withinWriter = Files.getWriter(dir + "within.xln");
 			}
 			do {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length > 1 && (!filter || filterPairs(line[3], line[4]))) {
 					if (line[5].equals(">")) {
 						line[5] = "10^6";
@@ -258,7 +259,7 @@ public class Relpair {
 				reader.readLine();
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[0].equals("NONE.") && (!filter || filterPairs(line[4], line[5]))) {
 					if (line[6].equals(">")) {
 						line[6] = "10^6";
@@ -292,7 +293,7 @@ public class Relpair {
 			try {
 				reader = new BufferedReader(new FileReader(dir + genome));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 
 					if (within.containsKey(line[0] + "\t" + line[1] + "\t" + line[3])) {
 						withinWriter.println(line[0] + "\t" + line[1] + "\t" + line[3] + "\t" + line[5] + "\t"

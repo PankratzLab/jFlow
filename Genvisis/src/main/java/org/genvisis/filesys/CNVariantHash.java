@@ -13,6 +13,7 @@ import javax.swing.JProgressBar;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.SerializedFiles;
@@ -51,7 +52,7 @@ public class CNVariantHash implements Serializable {
 			reader.mark(1000);
 			temp = reader.readLine();
 			temp.length();
-			line = temp.trim().split("[\\s]+");
+			line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!line[2].toLowerCase().equals("chr") && Positions.chromosomeNumber(line[2]) != -1) {
 				reader.reset();
 			}
@@ -59,7 +60,7 @@ public class CNVariantHash implements Serializable {
 				temp = reader.readLine();
 				temp.length();
 				progMonitor.updateTask(taskName);
-				cnv = new CNVariant(temp.trim().split("[\\s]+"));
+				cnv = new CNVariant(temp.trim().split(PSF.Regex.GREEDY_WHITESPACE));
 				trav = cnv.getFamilyID() + "\t" + cnv.getIndividualID();
 				if (structureType == CONSTRUCT_ALL) {
 					// cnv.setFamilyID(null); // CompPanel will still need to link to the proper IDs

@@ -10,6 +10,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 
 public class whichJournals {
 	public static final String IMPACT_DB = "impact_factors.dat";
@@ -116,7 +117,7 @@ public class whichJournals {
 		for (String element : js) {
 			line = (impacts.containsKey(element) ? impacts.get(element) : new String[] {"?"});
 			writer.println(element + "\t" + line[line.length - 1] + "\t"
-										 + (hash.get(element)).split("[\\s]+").length + "\t" + hash.get(element));
+										 + (hash.get(element)).split(PSF.Regex.GREEDY_WHITESPACE).length + "\t" + hash.get(element));
 		}
 		writer.close();
 

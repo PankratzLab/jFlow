@@ -4,7 +4,6 @@ import java.io.File;
 
 import org.genvisis.CLI;
 import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.VCOps;

@@ -10,6 +10,7 @@ import java.util.Vector;
 
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class DescribeFams {
@@ -34,7 +35,7 @@ public class DescribeFams {
 		// reader = tools.getNinfoReader(1);
 		// reader.readLine();
 		// while (reader.ready()) {
-		// line = reader.readLine().trim().split("[\\s]+");
+		// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 		// famid = line[0];
 		// uniqueid = tools.getUniqueID(line[0], line[1]);
 		// HashVec.addToHashVec(famInds, famid, uniqueid, true);
@@ -51,7 +52,7 @@ public class DescribeFams {
 			reader = tools.getNinfoReader(2);
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				// famid = line[0];
 				// v = famInds.get(famid);
 				// uniqueid = tools.getUniqueID(line[0], line[1]);

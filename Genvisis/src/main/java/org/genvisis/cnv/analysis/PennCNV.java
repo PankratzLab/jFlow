@@ -19,11 +19,11 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
 
+import org.genvisis.cnv.filesys.Centroids.CENTROID_STRATEGY;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.filesys.Centroids.CENTROID_STRATEGY;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.qc.SexChecks;
@@ -318,7 +318,7 @@ public class PennCNV {
 			}
 			while (reader.ready()) {
 				temp = reader.readLine();
-				line = temp.trim().split("[\\s]+");
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (String chr : chrs) {
 					if (line[1].equals(chr)) {
 						writer.println(temp);
@@ -411,7 +411,7 @@ public class PennCNV {
 			while (reader.ready()) {
 				temp = reader.readLine();
 				temp = translateDerivedSamples(temp, log);
-				line = temp.trim().split("[\\s]+");
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				try {
 					if (temp.contains("quality summary")) {
 						sampleID = line[4].substring(line[4].lastIndexOf("/") + 1, line[4].indexOf(":"));
@@ -650,7 +650,7 @@ public class PennCNV {
 				temp = reader.readLine();
 				if (!temp.startsWith("NOTICE:")) {
 					temp = translateDerivedSamples(temp, log);
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					position = Positions.parseUCSClocation(line[0]);
 					trav = line[4];
 					trav = trav.substring(trav.lastIndexOf("/") + 1);
@@ -1066,7 +1066,7 @@ public class PennCNV {
 			}
 			reader = Files.getAppropriateReader(inputGcBaseFullPath);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				curchr = Positions.chromosomeNumber(line[1]);
 				curstart = Integer.parseInt(line[2]);
 				curend = Integer.parseInt(line[3]);

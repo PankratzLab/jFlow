@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class gatherQuant {
@@ -81,7 +82,7 @@ public class gatherQuant {
 							reader.readLine();
 							reader.readLine();
 							while (reader.ready()) {
-								line = reader.readLine().split("[\\s]+");
+								line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 								pos = Integer.valueOf(line[3]).intValue();
 								if (ext.isMissingValue(line[4])) {
 									lod = -998;
@@ -126,9 +127,9 @@ public class gatherQuant {
 								max_lod = -999;
 								max_pos = -1;
 								while (reader.ready()) {
-									line = reader.readLine().split("[\\s]+");
+									line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 									if (line.length < 2) {
-										line = reader.readLine().split("[\\s]+");
+										line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 									}
 									if (line[0].startsWith("==") || line[0].startsWith("Parameter")) {
 										break;

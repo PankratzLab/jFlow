@@ -10,6 +10,7 @@ import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 
@@ -45,7 +46,7 @@ public class ReferenceMaps {
 			ext.checkHeader(temp.trim().split("\t", -1), MCCAROLL_HEADER, true);
 			count = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				hash.put(line[0], count + "\t" + line[1] + ":" + ext.replaceAllWith(line[4], "\"", "") + "-"
 													+ ext.replaceAllWith(line[5], "\"", ""));
 				count++;
@@ -88,7 +89,7 @@ public class ReferenceMaps {
 			try {
 				reader = new BufferedReader(new FileReader(MCCAROLL_DIR + "ng.238-S3_"
 																									 + MCCAROLL_POPULATIONS[i] + ".txt"));
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[0].equals("CNP_id")) {
 					System.err.println("Error - not the header I was expecting");
 					System.exit(1);
@@ -98,8 +99,8 @@ public class ReferenceMaps {
 					founders[j] = inds.containsKey(line[j + 1]);
 				}
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
-					index = Integer.parseInt(hash.get(line[0]).split("[\\s]+")[0]);
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
+					index = Integer.parseInt(hash.get(line[0]).split(PSF.Regex.GREEDY_WHITESPACE)[0]);
 					for (int j = 0; j < founders.length; j++) {
 						if (founders[j] && !line[j + 1].equals("NA")) {
 							counts[index][i][Integer.parseInt(line[j + 1])]++;

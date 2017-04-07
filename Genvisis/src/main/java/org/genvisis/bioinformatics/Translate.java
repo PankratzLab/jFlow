@@ -4,6 +4,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class Translate {
@@ -131,7 +132,7 @@ public class Translate {
 		str = ext.getClipboard();
 		output = str + "\n\n\n\n";
 		if (str.startsWith("find:")) {
-			search = str.substring(0, str.indexOf("\n")).trim().split("[\\s]+")[1];
+			search = str.substring(0, str.indexOf("\n")).trim().split(PSF.Regex.GREEDY_WHITESPACE)[1];
 			str = str.substring(str.indexOf("\n") + 1);
 		} else {
 			search = null;

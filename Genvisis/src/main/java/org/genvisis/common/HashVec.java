@@ -436,7 +436,7 @@ public class HashVec {
 					// line = temp.split(",", -1);
 					line = ext.splitCommasIntelligently(temp, true, new Logger());
 				} else if (temp.indexOf("\t") == -1) {
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				} else {
 					line = temp.split("\t", -1);
 				}
@@ -524,7 +524,7 @@ public class HashVec {
 			while (reader.ready()) {
 				temp = reader.readLine();
 				if (temp.indexOf("\t") == -1) {
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				} else {
 					line = temp.split("\t", -1);
 				}
@@ -572,7 +572,7 @@ public class HashVec {
 			while (reader.ready()) {
 				temp = reader.readLine();
 				if (temp.indexOf("\t") == -1) {
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				} else {
 					line = temp.split("\t", -1);
 				}
@@ -612,7 +612,7 @@ public class HashVec {
 			while (reader.ready()) {
 				temp = reader.readLine();
 				if (temp.indexOf("\t") == -1) {
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				} else {
 					line = temp.split("\t", -1);
 				}

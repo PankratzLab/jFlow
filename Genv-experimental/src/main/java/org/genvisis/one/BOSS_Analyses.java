@@ -16,6 +16,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Hits;
 import org.genvisis.gwas.CreateDatabaseFromPlink;
@@ -173,7 +174,7 @@ public class BOSS_Analyses {
 			reader = new BufferedReader(new FileReader(plinkFrqFile));
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[1] + "\t"
 											 + (line[4].equalsIgnoreCase("NA") ? "."
 																												 : (int) (Double.parseDouble(line[4])

@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class CARDIAConcatenator {
@@ -97,8 +98,8 @@ public class CARDIAConcatenator {
 	}
 
 	private String combineLine(String line1, String line2) throws RuntimeException {
-		String[] line1Parts = line1.split("[\\s]+");
-		String[] line2Parts = line2.split("[\\s]+");
+		String[] line1Parts = line1.split(PSF.Regex.GREEDY_WHITESPACE);
+		String[] line2Parts = line2.split(PSF.Regex.GREEDY_WHITESPACE);
 
 		if (!line1Parts[0].trim().equals(line2Parts[0].trim())) {
 			throw new RuntimeException("Error - mismatched marker names: <" + line1Parts[0] + "> and <"
@@ -130,8 +131,8 @@ public class CARDIAConcatenator {
 	}
 
 	private String combineHeader(String line1, String line2, PrintWriter writerIDs) {
-		String[] line1Parts = line1.split("[\\s]+");
-		String[] line2Parts = line2.split("[\\s]+");
+		String[] line1Parts = line1.split(PSF.Regex.GREEDY_WHITESPACE);
+		String[] line2Parts = line2.split(PSF.Regex.GREEDY_WHITESPACE);
 
 		String[] newLine = new String[line1Parts.length + line2Parts.length - 3];
 		newLine[0] = line1Parts[0];

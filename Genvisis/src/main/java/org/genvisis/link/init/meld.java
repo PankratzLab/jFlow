@@ -12,6 +12,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class meld {
@@ -80,14 +81,14 @@ public class meld {
 				for (int j = 0; j < 2; j++) {
 					while (readers[j].ready()) {
 						temp = readers[j].readLine();
-						line1 = temp.split("[\\s]+");
+						line1 = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 						id = ext.formNum(line1[1], line1[2], 5, 3);
 						if (hash.containsKey(id)) {
 							if (chr == 1) {
 								dupes.println(id);
 							}
-							line1 = temp.split("[\\s]+");
-							line2 = (hash.get(id)).split("[\\s]+");
+							line1 = temp.split(PSF.Regex.GREEDY_WHITESPACE);
+							line2 = (hash.get(id)).split(PSF.Regex.GREEDY_WHITESPACE);
 							temp = line1[0] + "\t" + line1[1] + "\t" + line1[2];
 
 							for (int k = 3; k < line1.length; k++) {

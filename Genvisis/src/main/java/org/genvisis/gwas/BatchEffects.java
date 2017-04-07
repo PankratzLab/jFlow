@@ -12,6 +12,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class BatchEffects {
@@ -37,7 +38,7 @@ public class BatchEffects {
 			while (reader.ready()) {
 				temp = reader.readLine();
 				if (temp.indexOf("\t") == -1) {
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				} else {
 					line = temp.split("\t", -1);
 				}
@@ -59,7 +60,7 @@ public class BatchEffects {
 			writer = new PrintWriter(new FileWriter("batchListing.txt"));
 			writer.println("FID\tIID\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(v)));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				set = ArrayUtils.intArray(numBatches, 1);
 				set[v.indexOf(hash.get(line[6]))] = 2;
 				writer.println(line[0] + "\t" + line[1] + "\t" + ArrayUtils.toStr(set));
@@ -110,7 +111,7 @@ public class BatchEffects {
 		System.out.println(ext.getTime());
 		try {
 			reader = new BufferedReader(new FileReader("batchListing.txt"));
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			bins = ArrayUtils.subArray(line, 2);
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
@@ -129,7 +130,7 @@ public class BatchEffects {
 				reader = Files.getReader("assoc." + i + ".assoc", dir);
 				reader.readLine();
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (!line[8].equals("NA") && Integer.parseInt(line[0]) < 23) {
 						d = Double.parseDouble(line[8]);
 						for (int j = 0; j < THRESHOLDS.length; j++) {
@@ -152,7 +153,7 @@ public class BatchEffects {
 				reader = Files.getReader("missing." + i + ".missing", dir);
 				reader.readLine();
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (!line[4].equals("NA") && Integer.parseInt(line[0]) < 23) {
 						d = Double.parseDouble(line[4]);
 						for (int j = 0; j < THRESHOLDS.length; j++) {

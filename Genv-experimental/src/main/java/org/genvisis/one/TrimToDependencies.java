@@ -13,6 +13,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 
@@ -62,7 +63,7 @@ public class TrimToDependencies implements Serializable {
 					reader.mark(10000);
 					temp = removeAnyTrailingComment(reader.readLine());
 					if (temp.trim().startsWith("package ")) {
-						line = temp.trim().split("[\\s]+");
+						line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (!line[1].substring(line[1].length() - 1).equals(";")) {
 							log.reportError("Error with package declaration");
 						}
@@ -70,7 +71,7 @@ public class TrimToDependencies implements Serializable {
 					} else if (temp.contains("import ")) {
 						imports.add(temp);
 					} else if (temp.contains("class ") || temp.contains("interface ")) {
-						line = temp.trim().split("[\\s]+");
+						line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						reader.reset();
 						trav = (packageName == null ? "" : packageName + ".")
 									 + line[Math.max(ext.indexOfStr("class", line), ext.indexOfStr("interface", line))
@@ -233,9 +234,9 @@ public class TrimToDependencies implements Serializable {
 				while (numBrackets == -9 || numBrackets > 0) {
 					reader.mark(10000);
 					temp = removeAnyTrailingComment(getRidOfAnythingInQuotes(reader.readLine()));
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (temp.contains("class ") || temp.contains("interface ")) {
-						line = temp.trim().split("[\\s]+");
+						line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						reader.reset();
 						trav = name + "."
 									 + line[Math.max(ext.indexOfStr("class", line), ext.indexOfStr("interface", line))
@@ -264,7 +265,7 @@ public class TrimToDependencies implements Serializable {
 																																	{"final ", ""}, {"public ", ""},
 																																	{"private ", ""},
 																																	{"protected ",
-																																	 ""}})).trim().split("[\\s]+");
+																																	 ""}})).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (line.length > 2) {
 							log.reportError("Error - thought I was parsing a method here:");
 							log.reportError(temp);
@@ -307,7 +308,7 @@ public class TrimToDependencies implements Serializable {
 					} else {
 						reader.reset();
 						temp = getNextCompleteLine(reader, log);
-						line = temp.trim().split("[\\s]+");
+						line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (!line[0].equals("public") && !line[0].equals("private")
 								&& !line[0].equals("protected")) {
 							log.reportError("Error - assuming the following is an unsafe variable declaration; shame on you!");
@@ -318,7 +319,7 @@ public class TrimToDependencies implements Serializable {
 																			new String[][] {{" static ", " "}, {"final ", ""},
 																											{"public ", ""}, {"private ", ""},
 																											{"protected ", ""}})
-											.trim().split("[\\s]+");
+											.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (line.length < 2) {
 							log.reportError("Error - assumed the following was a variable, but I guess not:");
 							log.reportError(temp);
@@ -434,7 +435,7 @@ public class TrimToDependencies implements Serializable {
 					line = flipGenPars(temp.trim()).split(",");
 					for (String element : line) {
 						sub = ext.replaceAllWith(element, new String[][] {{" static ", " "}, {"final ", ""}})
-										 .trim().split("[\\s]+");
+										 .trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (sub.length != 2) {
 							log.reportError("Error - in argument: " + element);
 						}
@@ -447,12 +448,12 @@ public class TrimToDependencies implements Serializable {
 				while (numBrackets == -9 || numBrackets > 0) {
 					// temp = getNextCompleteLine(reader);
 					temp = removeAnyTrailingComment(getRidOfAnythingInQuotes(reader.readLine()));
-					// line = temp.trim().split("[\\s]+");
+					// line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					// if ((line[0].equals("public") || line[0].equals("private") ||
 					// line[0].equals("protected")) && temp.contains("(")) {
 					// reader.reset();
 					// line = ext.replaceAllWith(temp, new String[][] {{" static ", ""}, {"(", "
-					// ("}}).trim().split("[\\s]+");
+					// ("}}).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					// trav = line[1];
 					// if (allMethods.containsKey(trav)) {
 					// method = allMethods.get(trav);
@@ -487,7 +488,7 @@ public class TrimToDependencies implements Serializable {
 			String[] line;
 
 			for (String allLine : allLines) {
-				line = allLine.trim().split("[\\s]+");
+				line = allLine.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int j = 0; j < line.length; j++) {
 					if (line[j].contains("(")) {
 						if (j > 0 && line[j - 1].equals("new")) {

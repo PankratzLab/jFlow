@@ -16,6 +16,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
@@ -350,7 +351,7 @@ public class TrimFam {
 
 		genoed = new Hashtable<String, String>();
 		for (int i = 0; i < preinfo.size(); i++) {
-			line = preinfo.get(i).trim().split("[\\s]+");
+			line = preinfo.get(i).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (line.length < 7) {
 				log.reportError("Error - there must be at least seven columns in order to run TrimFam (6 standards plus the VIP column)");
 				error = true;
@@ -767,7 +768,7 @@ public class TrimFam {
 		String[] line;
 
 		for (int i = 0; i < original.size(); i++) {
-			line = original.get(i).trim().split("[\\s]+");
+			line = original.get(i).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			try {
 				id = Integer.parseInt(line[1]);
 			} catch (NumberFormatException nfe) {
@@ -889,7 +890,7 @@ public class TrimFam {
 			reader = new BufferedReader(new FileReader(pedigreeFile));
 
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				count = 0;
 				for (int i = 6; i < line.length; i++) {
 					if (line[i].equals("0")) {

@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
+import org.genvisis.common.PSF;
+
 public class ParsePrimers {
 	private static void forIlluminaInfiniumDesignScores(String dir, String variants, String sequence,
 																											String output) {
@@ -21,7 +23,7 @@ public class ParsePrimers {
 		try {
 			reader = new BufferedReader(new FileReader(dir + sequence));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				hash.put(line[1], line[2] + "\t" + line[0] + "\t" + line[3]);
 			}
 			reader.close();
@@ -39,7 +41,7 @@ public class ParsePrimers {
 			writer = new PrintWriter(new FileWriter(dir + variants + "_IlluminaDesign.csv"));
 			writer.println("Locus_Name,Target_Type,Sequence,Chromosome,Coordinate,Genome_Build_Version,Source,Source_Version,Sequence_Orientation,Plus_Minus,Force_Infinium_I");
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[0].startsWith("chr")) {
 					line[0] = "chr" + line[0];
 				}

@@ -13,6 +13,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 
@@ -104,7 +105,7 @@ public class PlinkToLinkage {
 			try {
 				reader = new BufferedReader(new FileReader(dir + "chrom" + ext.chrome(chr) + ".pre"));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (count == 0) {
 						count = line.length - 6;
 					} else if (line.length - 6 != count) {
@@ -128,7 +129,7 @@ public class PlinkToLinkage {
 				backup = Files.backup("chrom" + ext.chrome(chr) + ".pre", dir, dir, true);
 				writer = new PrintWriter(new FileWriter(dir + "chrom" + ext.chrome(chr) + ".pre"));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.print(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, 6)));
 					if (hash.containsKey(line[0] + "\t" + line[1])) {
 						line = hash.get(line[0] + "\t" + line[1]);

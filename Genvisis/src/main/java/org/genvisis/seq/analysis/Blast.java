@@ -137,7 +137,7 @@ public class Blast {
 				while (cmdLineProcess.hasNext()) {
 					String line = cmdLineProcess.next();
 
-					String[] result = line.trim().split("[\\s]+");
+					String[] result = line.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					for (int i = 0; i < fastaEntries.length; i++) {
 						if (result[0].equals(fastaEntries[i].getName())) {
 							BlastResults bResults = new BlastResults(result, log);

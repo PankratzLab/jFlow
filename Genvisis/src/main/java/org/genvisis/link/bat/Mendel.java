@@ -11,6 +11,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.link.LinkageFormat;
@@ -33,9 +34,9 @@ public class Mendel {
 			for (int i = 0; i < 4; i++) {
 				reader.readLine();
 			}
-			freq = reader.readLine().trim().split("[\\s]+");
+			freq = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			reader.readLine();
-			pens = reader.readLine().trim().split("[\\s]+");
+			pens = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			reader.close();
 
 			writer = new PrintWriter(new FileWriter(dir + "mendel.def"));
@@ -119,7 +120,7 @@ public class Mendel {
 					System.err.println("Error: no results found in mendel.sum; check doublecheck.out to make sure there aren't more errors");
 					System.exit(1);
 				}
-				if (temp.trim().split("[\\s]+").length > 1) {
+				if (temp.trim().split(PSF.Regex.GREEDY_WHITESPACE).length > 1) {
 					max = Double.NEGATIVE_INFINITY;
 					theta = -1;
 					for (int i = 0; i < 7; i++) {
@@ -129,7 +130,7 @@ public class Mendel {
 							theta = i;
 						}
 					}
-					v.add(new String[] {temp.trim().split("[\\s]+")[0], max + "", THETAS[theta]});
+					v.add(new String[] {temp.trim().split(PSF.Regex.GREEDY_WHITESPACE)[0], max + "", THETAS[theta]});
 				} else {
 					done = true;
 				}
@@ -176,7 +177,7 @@ public class Mendel {
 														 + "' was not present in the SnpMarkerSet, assuming it is autosomal");
 					autosomalMarkers.add(markerName);
 				} else {
-					chr = Integer.parseInt(trav.split("[\\s]+")[0]);
+					chr = Integer.parseInt(trav.split(PSF.Regex.GREEDY_WHITESPACE)[0]);
 					if (chr < 23) {
 						autosomalMarkers.add(markerName);
 					} else if (chr == 23) {

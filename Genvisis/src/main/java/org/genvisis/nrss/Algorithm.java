@@ -19,6 +19,7 @@ import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.common.Vectors;
@@ -92,10 +93,10 @@ public class Algorithm {
 		try {
 			System.out.println(ext.getTime());
 			reader = new BufferedReader(new FileReader(dir + filename));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, new String[] {"Chr", "Position"}, new int[] {1, 2}, false, new Logger(),
 											true);
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			chr = "";
 			count = 0;
 			countMissing = 0;
@@ -107,7 +108,7 @@ public class Algorithm {
 					count = 0;
 				} else {
 					if (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					} else {
 						done = true;
 						line[1] = "done";
@@ -268,7 +269,7 @@ public class Algorithm {
 
 			markerPositions = new int[v.size()][2];
 			for (int i = 0; i < v.size(); i++) {
-				line = v.elementAt(i).trim().split("[\\s]+");
+				line = v.elementAt(i).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				markerPositions[i][0] = Integer.parseInt(line[1]);
 				markerPositions[i][1] = Integer.parseInt(line[2]);
 			}
@@ -278,7 +279,7 @@ public class Algorithm {
 			writer.println("Marker\tChr\tPostition\tGenes(s)\tWeightedStatistic\tNumMarkers\tUnweightedStatistic\tUCSC coordinates\tMin p-value"
 										 + (variate_column == -1 ? "" : "\tvars"));
 			for (int i = 0; i < v.size(); i++) {
-				line = v.elementAt(i).trim().split("[\\s]+");
+				line = v.elementAt(i).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, 3)) + "\t" + genes[i] + "\t"
 											 + ArrayUtils.toStr(ArrayUtils.subArray(line, 3)));
 			}
@@ -308,7 +309,7 @@ public class Algorithm {
 			reader = new BufferedReader(new FileReader(filename));
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				hash.put(line[0] + ":" + line[1], line[4]);
 			}
 			reader.close();
@@ -336,7 +337,7 @@ public class Algorithm {
 			reader = new BufferedReader(new FileReader(results));
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				markerVector.add(line[0]);
 				pvalueVector.add(Double.parseDouble(line[p_column]));
 			}
@@ -450,7 +451,7 @@ public class Algorithm {
 			reader = new BufferedReader(new FileReader(in));
 			writer = new PrintWriter(new FileWriter(out));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[1] + "\t" + line[3]);
 			}
 			reader.close();
@@ -476,7 +477,7 @@ public class Algorithm {
 		try {
 			reader = new BufferedReader(new FileReader(pedfile));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				v.add(line[0] + "\t" + line[1] + "\t" + line[5]);
 			}
 			reader.close();
@@ -490,7 +491,7 @@ public class Algorithm {
 
 		data = new String[v.size()][];
 		for (int i = 0; i < v.size(); i++) {
-			data[i] = v.elementAt(i).split("[\\s]+");
+			data[i] = v.elementAt(i).split(PSF.Regex.GREEDY_WHITESPACE);
 		}
 
 		for (int i = 1; i <= replicates; i++) {
@@ -557,7 +558,7 @@ public class Algorithm {
 				reader = new BufferedReader(new FileReader(filename));
 				writer = new PrintWriter(new FileWriter(outfile));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.println(line[markerName_column] + "\t" + line[chr_column] + "\t" + line[pos_column]
 												 + "\t" + (line[p_column].equals("NA") ? "." : line[p_column]));
 				}
@@ -649,7 +650,7 @@ public class Algorithm {
 					reader.readLine();
 					count = 0;
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (line[chr_column].equals(chr_target + "")) {
 							if (!line[p_column].equals(".") && !line[p_column].equals("NA")) {
 								d = Double.parseDouble(line[p_column]);
@@ -818,7 +819,7 @@ public class Algorithm {
 					reader = new BufferedReader(new FileReader(file));
 					reader.readLine();
 					while (reader.ready()) {
-						line = reader.readLine().split("[\\s]+");
+						line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 						trav.add(Double.parseDouble(line[column]));
 					}
 					reader.close();
@@ -904,7 +905,7 @@ public class Algorithm {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_input.xln"));
 			writer.println("SNP\tChr\tPositon\tpvalue");
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (Integer.parseInt(line[2]) > 0) {
 					writer.println(ArrayUtils.toStr(line));
 				}

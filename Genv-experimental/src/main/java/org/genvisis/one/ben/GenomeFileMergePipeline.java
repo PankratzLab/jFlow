@@ -16,6 +16,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Qc;
 import org.genvisis.gwas.RelationAncestryQc;
@@ -167,7 +168,7 @@ public class GenomeFileMergePipeline {
 			reader = Files.getAppropriateReader(genFile);
 			line = reader.readLine();
 			reader.close();
-			factors = ext.indexFactors(GENOME_COLUMNS, line.trim().split("[\\s]+"), false, false);
+			factors = ext.indexFactors(GENOME_COLUMNS, line.trim().split(PSF.Regex.GREEDY_WHITESPACE), false, false);
 			for (int i = 0; i < factors.length; i++) {
 				if (factors[i] == -1) {
 					log.reportError("Error - column " + GENOME_COLUMNS[i]
@@ -366,14 +367,14 @@ public class GenomeFileMergePipeline {
 			try {
 				reader = Files.getAppropriateReader(files.get(p).genomeFile);
 				line = reader.readLine();
-				factors = ext.indexFactors(GENOME_COLUMNS, line.trim().split("[\\s]+"), false, false);
+				factors = ext.indexFactors(GENOME_COLUMNS, line.trim().split(PSF.Regex.GREEDY_WHITESPACE), false, false);
 
 				while ((line = reader.readLine()) != null) {
 					line = line.trim();
 					if ("".equals(line)) {
 						continue;
 					}
-					parts = ext.splitLine(line, "[\\s]+", log);
+					parts = ext.splitLine(line, PSF.Regex.GREEDY_WHITESPACE, log);
 
 					fid1 = parts[factors[0]];
 					iid1 = parts[factors[1]];

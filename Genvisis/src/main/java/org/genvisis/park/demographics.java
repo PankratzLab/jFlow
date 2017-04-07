@@ -13,6 +13,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class demographics {
@@ -48,7 +49,7 @@ public class demographics {
 		reader = new BufferedReader(new FileReader(filename));
 		while (reader.ready()) {
 			temp = reader.readLine();
-			line = temp.split("[\\s]+");
+			line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 			if (line.length < 8) {
 				System.err.println("Error - requires at least 8 columns for every row: FamID IndID Father Mother Gender Affection DNA(not_used) AgeOfOnset");
 				System.err.println("  got - " + temp);

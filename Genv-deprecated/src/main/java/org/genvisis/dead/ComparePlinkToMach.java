@@ -14,6 +14,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class ComparePlinkToMach {
@@ -38,7 +39,7 @@ public class ComparePlinkToMach {
 		try {
 			reader1 = new BufferedReader(new FileReader(dir + "chr" + chr + ".fam"));
 			while (reader1.ready()) {
-				line = reader1.readLine().trim().split("[\\s]+");
+				line = reader1.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (Integer.parseInt(line[5]) > 0) {
 					plinkPeopleIndicies.add(line[1]);
 				}
@@ -56,11 +57,11 @@ public class ComparePlinkToMach {
 		try {
 			reader1 = new BufferedReader(new FileReader(dir + "chr" + chr + ".proxy.impute.dosage"));
 			reader2 = new BufferedReader(new FileReader(dir + "chr" + chr + ".trans.mldose"));
-			line = reader2.readLine().trim().split("[\\s]+");
+			line = reader2.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			// machPeopleIndicies = Array.newVector(Array.subArray(line, 1));
 			for (String marker : markers) {
 				while (reader1.ready()) {
-					line = reader1.readLine().trim().split("[\\s]+");
+					line = reader1.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (ext.containsAny(line[0], markers)) {
 						plinkData.put(line[0], line);
 					}
@@ -107,7 +108,7 @@ public class ComparePlinkToMach {
 			reader = new BufferedReader(new FileReader(dir + "mach_step2_chr" + chr
 																								 + ".mldose-transposeHuge.xln"));
 			writer = new PrintWriter(new FileWriter(dir + "mach_step2_chr" + chr + ".trans.mldose"));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			writer.print("Marker");
 			for (String element : line) {
 				writer.print("\t" + element.substring(element.indexOf(">") + 1));

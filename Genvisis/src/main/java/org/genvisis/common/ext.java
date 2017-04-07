@@ -1718,7 +1718,8 @@ public class ext {
 
 	/**
 	 * @param str
-	 * @param spaceAsLastResort if true, we return [\\s]+ only if \t and , are not found in the header
+	 * @param spaceAsLastResort if true, we return {@link PSF.Regex#GREEDY_WHITESPACE} only if \t and
+	 *        , are not found in the header
 	 * @return
 	 */
 	public static String determineDelimiter(String str, boolean spaceAsLastResort) {
@@ -1728,7 +1729,7 @@ public class ext {
 							 || (spaceAsLastResort && countInstancesOf(str, ",") > 0)) {
 			return ",";
 		} else {
-			return "[\\s]+";
+			return PSF.Regex.GREEDY_WHITESPACE;
 		}
 	}
 

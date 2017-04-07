@@ -16,6 +16,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 
@@ -261,9 +262,9 @@ public class QuantiSNP {
 
 		try {
 			reader = new BufferedReader(new FileReader(rootDirectory + LOOKUP_PLUS_GENDER_FILE));
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), LOOKUP_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), LOOKUP_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				lookupDNAtoSubject.put(line[0], line[1] + "\t" + line[2]);
 				lookupSubjectToDNA.put(line[1] + "\t" + line[2], line[0]);
 			}
@@ -312,7 +313,7 @@ public class QuantiSNP {
 																										 + "_output.out"));
 					reader.readLine();
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (line[9].equals("Inf") || Double.parseDouble(line[9]) > bayesCutoff) {
 							writer.println(lookupDNAtoSubject.get(ind) + "\t" + line[1] + "\t" + line[2] + "\t"
 														 + line[3] + "\t" + line[8] + "\t"

@@ -14,8 +14,8 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
-import org.genvisis.stats.ProbDist;
 
 public class CARDIA2017ResultsProcessor {
 
@@ -134,7 +134,7 @@ public class CARDIA2017ResultsProcessor {
 				String line;
 				String[] parts;
 				while ((line = reader.readLine()) != null) {
-					parts = line.split("[\\s]+");
+					parts = line.split(PSF.Regex.GREEDY_WHITESPACE);
 					StringBuilder sb = new StringBuilder();
 					SNP snp = info.get(parts[0]);
 					if (snp == null) {
@@ -324,8 +324,8 @@ public class CARDIA2017ResultsProcessor {
 		readerFI.readLine();
 		writerI.println(readerMI.readLine());
 		while ((lineM = readerMI.readLine()) != null && (lineF = readerFI.readLine()) != null) {
-			String[] partsM = lineM.split("[\\s]+");
-			String[] partsF = lineF.split("[\\s]+");
+			String[] partsM = lineM.split(PSF.Regex.GREEDY_WHITESPACE);
+			String[] partsF = lineF.split(PSF.Regex.GREEDY_WHITESPACE);
 			StringBuilder newLine = new StringBuilder();
 			if (!partsM[0].equals(partsF[0])) {
 				System.err.println("Error - mismatched markers: " + partsM[0] + " / " + partsF[0]);

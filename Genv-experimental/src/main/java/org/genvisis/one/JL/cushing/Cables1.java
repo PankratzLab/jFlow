@@ -1,7 +1,5 @@
 package org.genvisis.one.JL.cushing;
 
-import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -9,6 +7,7 @@ import java.util.ArrayList;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.MDL;

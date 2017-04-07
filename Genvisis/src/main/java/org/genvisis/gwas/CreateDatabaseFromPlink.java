@@ -17,6 +17,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.mining.Transformations;
@@ -215,7 +216,7 @@ public class CreateDatabaseFromPlink {
 			}
 			writer.println();
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.print((maskFIDs ? "" : line[0] + delimiter) + line[1]
 										 + (maskSex ? ""
 																: delimiter
@@ -322,7 +323,7 @@ public class CreateDatabaseFromPlink {
 			numInds = Files.countLines(dbfile, 1);
 			try {
 				reader = new BufferedReader(new FileReader(dbfile));
-				header = reader.readLine().trim().split("[\\s]+");
+				header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < v.size(); i++) {
 					line = v.elementAt(i);
 
@@ -340,7 +341,7 @@ public class CreateDatabaseFromPlink {
 				if (normalize) {
 					data = new double[varIndices.length][numInds];
 					for (int i = 0; i < numInds; i++) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						ids[i] = line[0] + "\t" + line[1];
 						for (int j = 0; j < varIndices.length; j++) {
 							data[j][i] = Double.parseDouble(line[varIndices[j]]);
@@ -357,7 +358,7 @@ public class CreateDatabaseFromPlink {
 					}
 				} else {
 					for (int i = 0; i < numInds; i++) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						ids[i] = line[0] + "\t" + line[1];
 						scores[i] = constant;
 						for (int j = 0; j < weights.length; j++) {
@@ -426,7 +427,7 @@ public class CreateDatabaseFromPlink {
 			writer = new PrintWriter(new FileWriter(outfile));
 			for (int i = 0; i < markerNames.length; i++) {
 				hash = new Hashtable<String, String>();
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[1].equals(markerNames[i])) {
 					log.reportError("Error - the freq file does not match the map file at line " + (i + 1)
 													+ "; expecting " + markerNames[i] + ", found " + line[1]);
@@ -588,7 +589,7 @@ public class CreateDatabaseFromPlink {
 			writer.println();
 
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (rlinker != null) {
 					if (hash.containsKey(line[1])) {
 						line[1] = hash.get(line[1]);
@@ -648,7 +649,7 @@ public class CreateDatabaseFromPlink {
 			}
 			outfile = params.remove(0);
 			// for (int i = 0; i < files.length; i++) {
-			// line = params.elementAt(i).trim().split("[\\s]+");
+			// line = params.elementAt(i).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			// files[i] = line[0];
 			// for (int j = 1; j < line.length; j++) {
 			// if (line[j].startsWith("skip=") || line[j].startsWith("skips=")) {
@@ -677,7 +678,7 @@ public class CreateDatabaseFromPlink {
 		try {
 			reader = Files.getAppropriateReader(root + ".map");
 			while (reader.ready()) {
-				v.add(reader.readLine().trim().split("[\\s]+")[1]);
+				v.add(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[1]);
 			}
 			reader.close();
 
@@ -696,7 +697,7 @@ public class CreateDatabaseFromPlink {
 			count = 0;
 			while (reader.ready()) {
 				count++;
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length != markerNames.length * 2 + 6) {
 					System.err.println("Error - line " + count + " has " + line.length
 														 + " columns instead of the expected " + markerNames.length * 2 + 6

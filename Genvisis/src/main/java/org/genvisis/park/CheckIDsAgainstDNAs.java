@@ -14,6 +14,7 @@ import java.util.Vector;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class CheckIDsAgainstDNAs {
@@ -43,7 +44,7 @@ public class CheckIDsAgainstDNAs {
 		try {
 			reader = tools.getNinfoReader(3, false);
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[0].equals("SWAPPED")) {
 					trav = line[1] + "-" + line[2];
 					if (!hashMatches.containsKey(trav)) {
@@ -72,11 +73,11 @@ public class CheckIDsAgainstDNAs {
 
 		try {
 			reader = new BufferedReader(new FileReader(DNA_YEAR_BUG_SOURCE));
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"),
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 											new String[] {"UniqueID", "FamID", "IndID", "WrongYear", "CorrectYear"},
 											true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				yearBugs.put(line[1] + ":" + line[2] + ":" + line[3], line[4]);
 			}
 			reader.close();
@@ -99,7 +100,7 @@ public class CheckIDsAgainstDNAs {
 		try {
 			reader = tools.getNinfoReader(ninfo, false);
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = line[0] + "-" + line[1];
 				idMatches = HashVec.newVecVecString(4);
 				line = line[4].split(":");
@@ -300,7 +301,7 @@ public class CheckIDsAgainstDNAs {
 		reader.readLine();
 		reader.readLine();
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			suggestion = idCheck.checkPair(line[1], line[2], line[0], verbose);
 			if (suggestion.length() > 0) {
 				writer.println(suggestion);
@@ -321,7 +322,7 @@ public class CheckIDsAgainstDNAs {
 			idCheck = new CheckIDsAgainstDNAs();
 			reader = new BufferedReader(new FileReader("check this.txt"));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length == 2 || line[1].indexOf("-") > 0) {
 					labFormat = true;
 					split = tools.getFamID(line[1]);
@@ -385,7 +386,7 @@ public class CheckIDsAgainstDNAs {
 				writer.println(reader.readLine());
 				writer.println(reader.readLine());
 				while (reader.ready()) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					temp = line[0] + ":" + line[1] + ":" + line[2];
 					if (hash.containsKey(temp)) {
 						trav = hash.get(temp);

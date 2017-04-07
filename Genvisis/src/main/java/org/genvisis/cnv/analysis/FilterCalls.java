@@ -18,10 +18,9 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
-import java.util.Vector;
 
-import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.UCSCtrack;
 import org.genvisis.cnv.var.SampleData;
@@ -32,6 +31,7 @@ import org.genvisis.common.CNVFilter.CNVFilterPass;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
@@ -1574,7 +1574,7 @@ public class FilterCalls {
 			// header
 			writer.println(reader.readLine());
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length < 8) {
 					log.reportError("Error - line " + lineNumber
 													+ " is invalid (does not contain 8+ tokens, i.e. PLINK format): " + line);
@@ -1721,7 +1721,7 @@ public class FilterCalls {
 			countCentromeric = 0;
 			countGiantCentromeric = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				cnv = new CNVariant(line);
 				if (((cnv.getCN() == 1 && cnv.getSize() >= delSize[0] * 1000) || // heterozygous deletion
 						 (cnv.getCN() == 0 && cnv.getSize() >= delSize[1] * 1000) || // homozygous deletion
@@ -1817,7 +1817,7 @@ public class FilterCalls {
 			writer = new PrintWriter(new FileWriter(dir + fileout));
 			writer.println(reader.readLine());
 			while (reader.ready()) {
-				cnv = new CNVariant(reader.readLine().trim().split("[\\s]+"));
+				cnv = new CNVariant(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE));
 				if (genesByChr[cnv.getChr()] != null
 						&& Segment.overlapsAny(new Segment(cnv.getChr(), cnv.getStart(), cnv.getStop()),
 																	 genesByChr[cnv.getChr()])) {

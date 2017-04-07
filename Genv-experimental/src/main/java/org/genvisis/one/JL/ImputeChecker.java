@@ -12,6 +12,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
 import org.genvisis.stats.Rscript.PLOT_DEVICE;
@@ -30,7 +31,7 @@ public class ImputeChecker {
 		for (int i = 0; i < immunoRs.length; i++) {
 			index.put(immunoRs[i][idIndex], i);
 		}
-		String[] headerAric = Files.getHeaderOfFile(aricImpute, "[\\s]+", log);
+		String[] headerAric = Files.getHeaderOfFile(aricImpute, PSF.Regex.GREEDY_WHITESPACE, log);
 
 		log.reportTimeInfo("Found " + immunoRs.length + " ids from " + immunoChip);
 		log.reportTimeInfo("Found " + headerAric.length + " headers from " + aricImpute);
@@ -47,7 +48,7 @@ public class ImputeChecker {
 				BufferedReader reader = Files.getAppropriateReader(aricImpute);
 				int totalFound = 0;
 				while (reader.ready()) {
-					String[] line = reader.readLine().trim().split("[\\s]+");
+					String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					String snp = line[snpIndex];
 					if (index.containsKey(snp)) {
 						writer.println(ArrayUtils.toStr(immunoRs[index.get(snp)]) + "\t"

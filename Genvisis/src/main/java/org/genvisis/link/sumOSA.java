@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class sumOSA {
@@ -155,7 +156,7 @@ public class sumOSA {
 			if (new File(temp).exists()) {
 				reader = new BufferedReader(new FileReader(temp));
 				while (reader.ready()) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					cutLookup.add(line[1]);
 					cutoffLookup.add(line[2]);
 				}
@@ -177,7 +178,7 @@ public class sumOSA {
 				reader = new BufferedReader(new FileReader(temp));
 				reader.readLine();
 				for (int cut = 0; cut < cutLookup.size() - 2; cut++) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					for (int k = 1; k < line.length; k++) {
 						lod = Double.valueOf(line[k]).doubleValue();
 						if (lod > osac[i][j].maxLOD) {
@@ -187,7 +188,7 @@ public class sumOSA {
 						}
 					}
 				}
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				osac[i][j].baseLOD = Double.valueOf(line[osac[i][j].maxPos + 1]).doubleValue();
 				reader.close();
 
@@ -196,7 +197,7 @@ public class sumOSA {
 					reader = new BufferedReader(new FileReader(base + "chrom" + chrome + "/sims/perm" + chrome
 																										 + ".out"));
 					while (reader.ready()) {
-						line = reader.readLine().split("[\\s]+");
+						line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (Double.valueOf(line[2]).doubleValue() >= osac[i][j].maxLOD) {
 							count++;
 						}
@@ -266,7 +267,7 @@ public class sumOSA {
 			reader.readLine();
 
 			for (int i = 0; i < 2; i++) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				osac[i][j] = new osaChrom(Integer.valueOf(line[10]).intValue());
 				osac[i][j].maxPos = (int) Double.valueOf(line[3]).doubleValue();
 				osac[i][j].baseLOD = Double.valueOf(line[5]).doubleValue();

@@ -11,6 +11,7 @@ import java.util.Hashtable;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 
@@ -45,7 +46,7 @@ public class UCSCtrack {
 				throw new IOException("Column header 'IID' is required in sample database file in order to lookup affection status");
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				hash.put(line[idIndex], ArrayUtils.subArray(line, indices, "."));
 			}
 			reader.close();
@@ -60,7 +61,7 @@ public class UCSCtrack {
 		System.out.println("Generating " + outfile);
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			if (!ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CNVariant.PLINK_CNV_HEADER,
+			if (!ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CNVariant.PLINK_CNV_HEADER,
 													 false)) {
 				reader.close();
 				return;
@@ -70,7 +71,7 @@ public class UCSCtrack {
 			track.println("track name=\"" + ext.rootOf(filename)
 										+ "\" description=\"CNV data\" visibility=2 itemRgb=\"On\"");
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				demo = hash.containsKey(line[1]) ? hash.get(line[1])
 																				 : ArrayUtils.stringArray(NEEDS.length, ".");
 				track.print("chr" + line[2] + "\t" + line[3] + "\t" + line[4] + "\t" + line[1]

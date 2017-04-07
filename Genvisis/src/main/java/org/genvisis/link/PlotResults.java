@@ -42,6 +42,7 @@ import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ProgressBarDialog;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -678,13 +679,13 @@ public class PlotResults extends JFrame implements ActionListener {
 							throw new FileNotFoundException(filename);
 						}
 						result = new Vector<double[]>();
-						ext.checkHeader(reader.readLine().trim().split("[\\s]+"),
+						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 														RESULT_TYPE_HEADERS[resultType][0], true);
 						for (int j = 0; j < RESULT_TYPE_SKIP_EXTRA_LINES[resultType]; j++) {
 							reader.readLine();
 						}
 						while (reader.ready()) {
-							line = reader.readLine().trim().split(filename.endsWith(".tbl") ? "\t" : "[\\s]+");
+							line = reader.readLine().trim().split(filename.endsWith(".tbl") ? "\t" : PSF.Regex.GREEDY_WHITESPACE);
 							result.add(new double[] {Double.parseDouble(line[RESULT_TYPE_LOD_INDICES[resultType][0]]),
 																			 Double.parseDouble(line[RESULT_TYPE_LOD_INDICES[resultType][1]])});
 							if (!line[RESULT_TYPE_LOD_INDICES[resultType][2]].equals("-")
@@ -712,10 +713,10 @@ public class PlotResults extends JFrame implements ActionListener {
 					try {
 						reader = Files.getReader(dir + dirs[i] + "/" + filename, jar, false, false);
 						result = new Vector<double[]>();
-						ext.checkHeader(reader.readLine().trim().split("[\\s]+"),
+						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 														RESULT_TYPE_HEADERS[resultType][1], true);
 						while (reader.ready()) {
-							line = reader.readLine().trim().split(filename.endsWith(".tbl") ? "\t" : "[\\s]+");
+							line = reader.readLine().trim().split(filename.endsWith(".tbl") ? "\t" : PSF.Regex.GREEDY_WHITESPACE);
 							infoPair = new double[] {Double.parseDouble(line[RESULT_TYPE_INFO_INDICES[resultType][0]]),
 																			 Double.parseDouble(line[RESULT_TYPE_INFO_INDICES[resultType][1]])};
 							if (infoPair[1] > 1) {
@@ -747,9 +748,9 @@ public class PlotResults extends JFrame implements ActionListener {
 					hash = new Hashtable<String, Vector<String>>();
 					try {
 						reader = Files.getReader(dir + dirs[i] + "/markerPositions.dat", jar, true, false);
-						ext.checkHeader(reader.readLine().trim().split("[\\s]+"), MARKER_POS_HEADER, true);
+						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), MARKER_POS_HEADER, true);
 						while (reader.ready()) {
-							line = reader.readLine().trim().split("[\\s]+");
+							line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							HashVec.addToHashVec(hash, line[0], line[1] + "\t" + line[2] + "\t" + line[3], true);
 						}
 						reader.close();
@@ -781,7 +782,7 @@ public class PlotResults extends JFrame implements ActionListener {
 					if (v != null) {
 						markerData[i][chr - 1] = new String[v.size()][];
 						for (int j = 0; j < v.size(); j++) {
-							markerData[i][chr - 1][j] = v.elementAt(j).split("[\\s]+");
+							markerData[i][chr - 1][j] = v.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
 						}
 					}
 				}

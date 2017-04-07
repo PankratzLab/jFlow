@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.stats.Maths;
@@ -400,7 +401,7 @@ public class CompareCalls_dev {
 
 			lrrs = getLRRs(rootDir, LRR_lookup);
 			reader = new BufferedReader(new FileReader(rootDir + cnvFile));
-			if (!ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CNVariant.PLINK_CNV_HEADER,
+			if (!ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CNVariant.PLINK_CNV_HEADER,
 													 false)) {
 				reader.close();
 				System.err.println("quitting comparison");
@@ -786,7 +787,7 @@ public class CompareCalls_dev {
 		try {
 			reader = new BufferedReader(new FileReader(rootDir + LRR_lookup));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (lrrs.containsKey(line[0])) {
 					System.err.println("Warning - duplicate samples found in " + rootDir + LRR_lookup
 														 + " only using one of them");
@@ -1098,13 +1099,13 @@ public class CompareCalls_dev {
 // for (int i = 0; i < files.length; i++) {
 // try {
 // reader = new BufferedReader(new FileReader(files[i]));
-// if (!ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CNVariant.PLINK_CNV_HEADER,
+// if (!ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CNVariant.PLINK_CNV_HEADER,
 // false)) {
 // reader.close();
 // System.err.println("quitting comparison");
 // }
 // while (reader.ready()) {
-// line = reader.readLine().trim().split("[\\s]+");
+// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 // if (hash.containsKey(i)) {
 // source = hash.get(i);
 // } else {
@@ -1245,13 +1246,13 @@ public class CompareCalls_dev {
 // Hashtable<String, ArrayList<CNVariant>> source = new Hashtable<String, ArrayList<CNVariant>>();
 // try {
 // reader = new BufferedReader(new FileReader(file));
-// if (!ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CNVariant.PLINK_CNV_HEADER,
+// if (!ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CNVariant.PLINK_CNV_HEADER,
 // false)) {
 // reader.close();
 // System.err.println("quitting comparison");
 // }
 // while (reader.ready()) {
-// line = reader.readLine().trim().split("[\\s]+");
+// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 // if (hash.containsKey(line[0] + "\t" + line[1])) {
 // source = hash.get(line[0] + "\t" + line[1]);
 // } else {

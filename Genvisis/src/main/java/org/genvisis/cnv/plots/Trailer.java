@@ -127,6 +127,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.TransferableImage;
 import org.genvisis.common.WorkerHive;
@@ -1620,7 +1621,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			public void actionPerformed(ActionEvent e) {
 				try {
 					int trav = Integer.valueOf(((JTextField) e.getSource()).getText().trim()
-																																 .split("[\\s]+")[0])
+																																 .split(PSF.Regex.GREEDY_WHITESPACE)[0])
 														.intValue()
 										 - 1;
 					if (trav >= 0 && trav < regions.length) {
@@ -2114,7 +2115,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				transformBtns[i] = new JRadioButtonMenuItem(Transforms.TRANFORMATIONS[i]);
 				transformBtns[i].addItemListener(typeListener);
 				transformBtns[i].setFont(font);
-				String[] wds = Transforms.TRANFORMATIONS[i].split("[\\s]+");
+				String[] wds = Transforms.TRANFORMATIONS[i].split(PSF.Regex.GREEDY_WHITESPACE);
 				int ind = 0;
 				String mnem = wds[ind].substring(0, 1);
 				while (mnems.contains(mnem)) {
@@ -2152,7 +2153,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				scopeBtns[i].addItemListener(scopeListener);
 				scopeBtns[i].setFont(font);
 
-				String[] wds = Transforms.SCOPES[i].split("[\\s]+");
+				String[] wds = Transforms.SCOPES[i].split(PSF.Regex.GREEDY_WHITESPACE);
 				int ind = 0;
 				String mnem = wds[ind].substring(0, 1);
 				while (mnems.contains(mnem)) {
@@ -3755,12 +3756,12 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	// reader = Files.getReader(filenames[i], jar, true, false);
 	// if (reader!=null) {
 	// reader.mark(1000);
-	// line = reader.readLine().trim().split("[\\s]+");
+	// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// if (!line[2].toLowerCase().equals("chr")&&ext.chromosomeNumber(line[2])!=-1) {
 	// reader.reset();
 	// }
 	// while (reader.ready()) {
-	// line = reader.readLine().trim().split("[\\s]+");
+	// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// if (line[1].equals(id)) {
 	// v.add(new CNVariant(line, i));
 	// }

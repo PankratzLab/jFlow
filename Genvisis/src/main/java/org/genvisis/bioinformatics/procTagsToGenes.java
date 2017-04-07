@@ -11,6 +11,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 
 public class procTagsToGenes {
 	public static final String[] DEFAULT_FILES = {"knownToGNfAtlas2.prn", "knownToGnf1h.prn",
@@ -29,7 +30,7 @@ public class procTagsToGenes {
 				reader = new BufferedReader(new FileReader(filename));
 				reader.readLine();
 				while (reader.ready()) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					HashVec.addToHashVec(hash, line[0], line[1], true);
 				}
 				reader.close();

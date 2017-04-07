@@ -19,6 +19,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.StringVector;
 import org.genvisis.common.ext;
@@ -417,7 +418,7 @@ public class DeNovoCNV {
 					temp = reader.readLine();
 					if (!temp.startsWith("NOTICE:")) {
 						temp = PennCNV.translateDerivedSamples(temp, log);
-						line = temp.trim().split("[\\s]+");
+						line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (line[7].equalsIgnoreCase("offspring")) {
 							if (line[8].split("=")[1].startsWith("33")) {
 								position = Positions.parseUCSClocation(line[0]);
@@ -525,7 +526,7 @@ public class DeNovoCNV {
 					temp = reader.readLine();
 					if (!temp.startsWith("NOTICE:")) {
 						temp = PennCNV.translateDerivedSamples(temp, log);
-						line = temp.trim().split("[\\s]+");
+						line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (line[7].equalsIgnoreCase("offspring")) {
 							if (line[8].split("=")[1].startsWith("33")) {
 								position = Positions.parseUCSClocation(line[0]);
@@ -721,7 +722,7 @@ public class DeNovoCNV {
 				try {
 					reader = new BufferedReader(new FileReader(listOfFile.getPath()));
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (!line[0].contains("NOTICE")) {
 							cnv.add(line);
 						} else {

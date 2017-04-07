@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 
@@ -27,7 +28,7 @@ public class FilterVariantLists {
 		locs = new int[2][];
 		ops = new char[2][];
 		for (int i = 0; i < 2; i++) {
-			line = (i == 0 ? chrs : positions).split("[\\s]+");
+			line = (i == 0 ? chrs : positions).split(PSF.Regex.GREEDY_WHITESPACE);
 			locs[i] = new int[line.length];
 			ops[i] = new char[line.length];
 			for (int j = 0; j < line.length; j++) {
@@ -52,7 +53,7 @@ public class FilterVariantLists {
 				reader = new BufferedReader(new FileReader(dir + file));
 				writer = new PrintWriter(new FileWriter(dir + "filtered/" + file));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					passes = true;
 					for (int j = 0; j < ops.length; j++) {
 						if (j == 0) {

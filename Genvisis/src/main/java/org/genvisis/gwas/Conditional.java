@@ -25,6 +25,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.Zip;
 import org.genvisis.common.ext;
@@ -116,7 +117,7 @@ public class Conditional {
 			writer.println("plink.frq");
 			writer.println("counts.xln maskModel=true maskSex=true maskAffectionStatus=true");
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[1] + "\tADD");
 			}
 			reader.close();
@@ -140,7 +141,7 @@ public class Conditional {
 		if (originalCovariatesFile == null) {
 			Files.copyFile(dir + "counts.xln", dir + newCovariatesFile);
 		} else {
-			line = Files.getHeaderOfFile(baseDir + originalCovariatesFile, "[\\s]+", log);
+			line = Files.getHeaderOfFile(baseDir + originalCovariatesFile, PSF.Regex.GREEDY_WHITESPACE, log);
 			numFixedCovariates = line.length - 2;
 			indices = new int[numFixedCovariates];
 			for (int i = 2; i < line.length; i++) {
@@ -154,7 +155,7 @@ public class Conditional {
 				writer = new PrintWriter(new FileWriter(dir + newCovariatesFile));
 				countMissingCovariate = 0;
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (hash.containsKey(line[0] + "\t" + line[1])) {
 						writer.println(ArrayUtils.toStr(line) + "\t" + hash.get(line[0] + "\t" + line[1]));
 					} else {
@@ -246,7 +247,7 @@ public class Conditional {
 	// writer.println("plink.frq");
 	// writer.println("counts.xln maskModel=true");
 	// while (reader.ready()) {
-	// line = reader.readLine().trim().split("[\\s]+");
+	// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// writer.println(line[1]+"\tADD");
 	// }
 	// reader.close();
@@ -269,7 +270,7 @@ public class Conditional {
 	// if (originalCovariatesFile == null) {
 	// Files.copyFile(dir+"counts.xln", dir+newCovariatesFile);
 	// } else {
-	// line = Files.getHeaderOfFile(baseDir+originalCovariatesFile, "[\\s]+", log);
+	// line = Files.getHeaderOfFile(baseDir+originalCovariatesFile, PSF.Regex.GREEDY_WHITESPACE, log);
 	// numFixedCovariates = line.length-2;
 	// indices = new int[numFixedCovariates];
 	// for (int i = 2; i < line.length; i++) {
@@ -282,7 +283,7 @@ public class Conditional {
 	// reader = new BufferedReader(new FileReader(dir+"counts.xln"));
 	// writer = new PrintWriter(new FileWriter(dir+newCovariatesFile));
 	// while (reader.ready()) {
-	// line = reader.readLine().trim().split("[\\s]+");
+	// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// if (hash.containsKey(line[0]+"\t"+line[1])) {
 	// writer.println(Array.toStr(line)+"\t"+hash.get(line[0]+"\t"+line[1]));
 	// } else {
@@ -347,7 +348,7 @@ public class Conditional {
 					reader = new BufferedReader(new FileReader(dir + "condis"
 																										 + (machFormat ? ".mldose" : ".dose")));
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						for (int i = 0; i < markerNames.length; i++) {
 							fid = line[0].substring(0, line[0].indexOf("->"));
 							iid = line[0].substring(line[0].indexOf("->") + 2);
@@ -403,7 +404,7 @@ public class Conditional {
 		try {
 			reader = new BufferedReader(new FileReader(dir + originalPhenotypeFile));
 			writer = new PrintWriter(new FileWriter(dir + newPhenotypeFile));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			writer.print(ArrayUtils.toStr(line));
 			for (String snp : snps) {
 				hash = hashes.get(snp);
@@ -414,7 +415,7 @@ public class Conditional {
 			writer.println();
 			count = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.print(ArrayUtils.toStr(line));
 				for (String snp : snps) {
 					hash = hashes.get(snp);
@@ -485,7 +486,7 @@ public class Conditional {
 		annotation = new Hashtable<String, String>();
 		annotationHeader = new String[0];
 		if (new File(annotationFile).exists()) {
-			annotationHeader = Files.getHeaderOfFile(annotationFile, "[\\s]+", log);
+			annotationHeader = Files.getHeaderOfFile(annotationFile, PSF.Regex.GREEDY_WHITESPACE, log);
 			annotation = HashVec.loadFileToHashString(annotationFile, new int[] {0},
 																								ArrayUtils.subArray(ArrayUtils.arrayOfIndices(annotationHeader.length),
 																																		1),
@@ -548,7 +549,7 @@ public class Conditional {
 						addCountsAsCovariate(dirs[k], covariates, filename, files[i], log);
 						if (covariates != null) {
 							baseCovars[k] = ArrayUtils.subArray(Files.getHeaderOfFile(dirs[k] + covariates,
-																																				"[\\s]+", log),
+																																				PSF.Regex.GREEDY_WHITESPACE, log),
 																									2);
 						}
 					}
@@ -582,7 +583,7 @@ public class Conditional {
 							// false)+count+outfile.substring(outfile.lastIndexOf(".")+1);
 						}
 						if (new File(dirs[k] + pheno).exists()) {
-							line = Files.getHeaderOfFile(dirs[k] + pheno, "[\\s]+", log);
+							line = Files.getHeaderOfFile(dirs[k] + pheno, PSF.Regex.GREEDY_WHITESPACE, log);
 							if (line[0].equals("FID")) {
 								justIID = false;
 							} else if (line[0].equals("ID") || line[0].equals("IID")) {
@@ -845,7 +846,7 @@ public class Conditional {
 					}
 					for (int j = 0; j < keys.length; j++) {
 						if (chrIndex >= 0 && posIndex >= 0 && annotation.containsKey(keys[j])) {
-							line = annotation.get(keys[j]).split("[\\s]+");
+							line = annotation.get(keys[j]).split(PSF.Regex.GREEDY_WHITESPACE);
 							chrs[j] = Byte.parseByte(line[chrIndex]);
 							positions[j] = Integer.parseInt(line[posIndex]);
 							allMarkers.put(keys[j], line[chrIndex] + "\t" + line[posIndex]);
@@ -854,7 +855,7 @@ public class Conditional {
 								log.reportError("Error - annotation file does not contain information for "
 																+ keys[j]);
 							}
-							line = allMarkers.get(keys[j]).split("[\\s]+");
+							line = allMarkers.get(keys[j]).split(PSF.Regex.GREEDY_WHITESPACE);
 							if (line[0].equals("")) {
 								allMarkers.put(keys[j], ".\t.");
 								log.reportError("Error - no position information for '" + keys[j] + "'");
@@ -881,7 +882,7 @@ public class Conditional {
 						if (annotationHeader.length > 0) {
 							writer.print("\t" + ArrayUtils.toStr(
 																									 annotation.containsKey(keys[order[j]]) ? annotation.get(keys[order[j]])
-																																																			.split("[\\s]+")
+																																																			.split(PSF.Regex.GREEDY_WHITESPACE)
 																																													: ArrayUtils.stringArray(annotationHeader.length,
 																																																									 "."),
 																									 annotationHeaderMask, "\t", "."));
@@ -1135,7 +1136,7 @@ public class Conditional {
 		try {
 			reader = new BufferedReader(new FileReader(markerList));
 			while (reader.ready()) {
-				ch.add(ext.replaceAllWith(reader.readLine().trim().split("[\\s]+")[markerNameIndex], ":",
+				ch.add(ext.replaceAllWith(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[markerNameIndex], ":",
 																	"_"));
 			}
 			reader.close();
@@ -1204,11 +1205,11 @@ public class Conditional {
 				reader = new BufferedReader(new FileReader(regionNames[i] + "/" + markers[i]
 																									 + "_add.out.txt"));
 				writer = new PrintWriter(new FileWriter("results/" + name + "_" + regionNames[i] + ".txt"));
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				ext.checkHeader(line, Probabel.LOGIST_OUTPUT_HEADER, true);
 				writer.println("MarkerName\tEffect_allele\tReference_allele\tBETA\tSE\tP");
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[10] + "\t"
 												 + line[11] + "\t"
 												 + (line[12].equals("nan")
@@ -1273,7 +1274,7 @@ public class Conditional {
 																		log);
 
 		if (paramV != null) {
-			line = paramV.get(0).split("[\\s]+");
+			line = paramV.get(0).split(PSF.Regex.GREEDY_WHITESPACE);
 			regionListFilename = line[0];
 			minNumValids = -9;
 			for (int i = 1; i < line.length; i++) {
@@ -1295,41 +1296,41 @@ public class Conditional {
 			for (int i = paramV.size() - 1; i > 0; i--) {
 				trav = paramV.get(i).trim();
 				if (trav.startsWith("MARKER ")) {
-					markerName = paramV.remove(i).split("[\\s]+")[1];
+					markerName = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1];
 				} else if (trav.startsWith("ALLELE ")) {
-					line = paramV.remove(i).trim().split("[\\s]+");
+					line = paramV.remove(i).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					effectAllele = line[1];
 					refAllele = line[2];
 				} else if (trav.startsWith("EFFECT ")) {
-					beta = paramV.remove(i).split("[\\s]+")[1];
+					beta = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1];
 				} else if (trav.startsWith("STDERR ")) {
-					se = paramV.remove(i).split("[\\s]+")[1];
+					se = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1];
 				} else if (trav.startsWith("PVAL ")) {
-					pval = paramV.remove(i).split("[\\s]+")[1];
+					pval = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1];
 				} else if (trav.startsWith("WEIGHT ")) {
-					weight = paramV.remove(i).split("[\\s]+")[1];
+					weight = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1];
 				} else if (trav.startsWith("SCHEME ")) {
-					schemeIsStdErr = paramV.remove(i).split("[\\s]+")[1].equalsIgnoreCase("STDERR");
+					schemeIsStdErr = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1].equalsIgnoreCase("STDERR");
 				} else if (trav.startsWith("GENOMICCONTROL ")) {
-					gc = paramV.remove(i).split("[\\s]+")[1];
+					gc = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1];
 				} else if (trav.startsWith("FREQ ")) {
-					freq = paramV.remove(i).split("[\\s]+")[1];
+					freq = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1];
 				} else if (trav.startsWith("ADDFILTER ")) {
 					snps = trav;
 				} else if (trav.startsWith("MINMAXFREQ ")) {
-					minmaxfreq = paramV.remove(i).split("[\\s]+")[1].equalsIgnoreCase("ON");
+					minmaxfreq = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1].equalsIgnoreCase("ON");
 				} else if (trav.startsWith("AVERAGEFREQ ")) {
-					averagefreq = paramV.remove(i).split("[\\s]+")[1].equalsIgnoreCase("ON");
+					averagefreq = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1].equalsIgnoreCase("ON");
 				} else if (trav.startsWith("VERBOSE ")) {
-					verbose = paramV.remove(i).split("[\\s]+")[1].equalsIgnoreCase("ON");
-				} else if (trav.split("[\\s]+").length != 2) {
+					verbose = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1].equalsIgnoreCase("ON");
+				} else if (trav.split(PSF.Regex.GREEDY_WHITESPACE).length != 2) {
 					System.err.println("Error - processing '" + paramV.get(i) + "'");
 				}
 			}
 
 			dirsAndPatterns = new String[paramV.size() - 1][2];
 			for (int i = 0; i < dirsAndPatterns.length; i++) {
-				line = paramV.get(1 + i).trim().split("[\\s]+");
+				line = paramV.get(1 + i).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length != 2) {
 					System.err.println("Error - processing '" + paramV.get(1 + i) + "'");
 					return;

@@ -18,6 +18,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -193,13 +194,13 @@ public class Polymutt {
 				temp = reader.readLine();
 			} while (!temp.startsWith("#CHROM"));
 
-			if (!ext.checkHeader(temp.split("[\\s]+"), POLYMUTT_VCF_HEADER, false)) {
+			if (!ext.checkHeader(temp.split(PSF.Regex.GREEDY_WHITESPACE), POLYMUTT_VCF_HEADER, false)) {
 				log.reportError("Problem with header for file: " + filename);
 				reader.close();
 				return;
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				chr = line[0];
 				position = line[1];
 				markerName = chr + ":" + position;
@@ -404,7 +405,7 @@ public class Polymutt {
 				writers[0].println(temp);
 			} while (reader.ready() && !temp.startsWith("#CHROM"));
 
-			if (!ext.checkHeader(temp.split("[\\s]+"), POLYMUTT_VCF_HEADER, false)) {
+			if (!ext.checkHeader(temp.split(PSF.Regex.GREEDY_WHITESPACE), POLYMUTT_VCF_HEADER, false)) {
 				log.reportError("Problem with header for file: " + filename);
 				reader.close();
 				Files.closeAll(writers);
@@ -413,7 +414,7 @@ public class Polymutt {
 			prevChr = "";
 			while (reader.ready()) {
 				temp = reader.readLine();
-				line = temp.trim().split("[\\s]+");
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				chr = line[0];
 				if (!chr.equals(prevChr)) {
 					log.report(ext.getTime() + "\t" + chr);
@@ -513,7 +514,7 @@ public class Polymutt {
 			reader = Files.getAppropriateReader(controlFile);
 			dir = ext.verifyDirFormat(reader.readLine());
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				pattern = line[0];
 				iterations = ArrayUtils.subArray(line, 1);
 
@@ -611,7 +612,7 @@ public class Polymutt {
 					temp = reader.readLine();
 				} while (!temp.startsWith("#CHROM"));
 
-				if (!ext.checkHeader(temp.split("[\\s]+"), POLYMUTT_VCF_HEADER, false)) {
+				if (!ext.checkHeader(temp.split(PSF.Regex.GREEDY_WHITESPACE), POLYMUTT_VCF_HEADER, false)) {
 					log.reportError("Problem with header for file: " + filename);
 					reader.close();
 					writer.close();
@@ -630,7 +631,7 @@ public class Polymutt {
 					reader.close();
 					continue;
 				}
-				line = temp.trim().split("[\\s]+");
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length < 5) {
 					log.report("Truncated at line: " + count);
 					continue;
@@ -741,7 +742,7 @@ public class Polymutt {
 			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(controlFile) + "_coverage.xln"));
 			writer.println("Trio\tCombination\t# lanes\tReadDepth threshold\tFather\tMother\tChild\tEntire Trio");
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				pattern = line[0];
 				reps = ArrayUtils.subArray(line, 1);
 
@@ -831,7 +832,7 @@ public class Polymutt {
 			for (int i = 0; i < filenames.length; i++) {
 				readers[i] = Files.getAppropriateReader(filenames[i]);
 				temp = readers[i].readLine();
-				currents[i] = temp.split("[\\s]+");
+				currents[i] = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 				chrs[i] = Positions.chromosomeNumber(currents[i][0]);
 				positions[i] = Integer.parseInt(currents[i][1]);
 			}
@@ -861,7 +862,7 @@ public class Polymutt {
 																			 Integer.parseInt(currents[i][4])};
 						try {
 							temp = readers[i].readLine();
-							currents[i] = temp.split("[\\s]+");
+							currents[i] = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 							if (currents[i].length < 5) {
 								log.report("Not enough columns for line: " + ArrayUtils.toStr(currents[i]));
 								done = true;

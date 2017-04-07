@@ -19,6 +19,7 @@ import org.genvisis.common.FilterByLists;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.Unique;
 import org.genvisis.common.Zip;
@@ -114,9 +115,9 @@ public class Mega_Analyses {
 							do {
 								temp = reader.readLine();
 							} while (!temp.startsWith("TRAIT"));
-							ext.checkHeader(temp.trim().split("[\\s]+"), Mach.MACH2DAT_HEADER, true);
+							ext.checkHeader(temp.trim().split(PSF.Regex.GREEDY_WHITESPACE), Mach.MACH2DAT_HEADER, true);
 							while (reader.ready()) {
-								line = reader.readLine().trim().split("[\\s]+");
+								line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 								if (line[0].equals("Newton:")) {
 									continue;
 								}
@@ -160,9 +161,9 @@ public class Mega_Analyses {
 							do {
 								temp = reader.readLine();
 							} while (!temp.startsWith("TRAIT"));
-							ext.checkHeader(temp.trim().split("[\\s]+"), Mach.MACH2DAT_HEADER, true);
+							ext.checkHeader(temp.trim().split(PSF.Regex.GREEDY_WHITESPACE), Mach.MACH2DAT_HEADER, true);
 							while (reader.ready()) {
-								line = reader.readLine().trim().split("[\\s]+");
+								line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 								if (line[0].equals("Newton:")) {
 									continue;
 								}
@@ -230,7 +231,7 @@ public class Mega_Analyses {
 			writer.println("MikeBeta\tMikeSE\tNathanBeta\tNathanSE");
 			for (String key : keys) {
 				trav1 = hash1.get(key);
-				line = trav1.trim().split("[\\s]+");
+				line = trav1.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int j = 0; j < line.length; j++) {
 					while ((line[j].contains(".") && line[j].endsWith("0")) || line[j].endsWith(".")) {
 						line[j] = line[j].substring(0, line[j].length() - 1);
@@ -599,11 +600,11 @@ public class Mega_Analyses {
 				reader = new BufferedReader(new FileReader(DIR + "duplicatedMarkers/" + element[0]
 																									 + "_duplicatedPositions.txt"));
 				System.err.println("Parsing duplicates in " + element[0]);
-				ext.checkHeader(reader.readLine().trim().split("[\\s]+"),
+				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 												new String[] {"MarkerName", "Chr", "Position", "Genotyped_or_imputed"},
 												new int[] {0, 2, 3, 7}, false, log, false);
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (hash.containsKey(line[0])) {
 						hash.get(line[0]).add(element[0] + "/" + line[2] + "/" + line[3] + "/" + line[7]);
 					}
@@ -666,7 +667,7 @@ public class Mega_Analyses {
 																																			 ? refChrHash.get(keys[element])
 																																				 + "\t"
 																																				 + (refChrHash.get(keys[element])
-																																											.split("[\\s]+")[1].equals(positions.elementAt(element)
+																																											.split(PSF.Regex.GREEDY_WHITESPACE)[1].equals(positions.elementAt(element)
 																																																								 + "") ? "1"
 																																																											 : "0")
 																																			 : ".\t.\t0")
@@ -770,11 +771,11 @@ public class Mega_Analyses {
 		duplicates = new Hashtable<String, String>();
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			log.report("Filtering " + filename + " using '" + line[indexOfDuplicatedFactor] + "' and '"
 								 + line[indexOfFilter] + "'");
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!hash.containsKey(line[indexOfDuplicatedFactor])) {
 					hash.put(line[indexOfDuplicatedFactor], line[indexOfFilter]);
 				} else {
@@ -828,7 +829,7 @@ public class Mega_Analyses {
 				writer.println(reader.readLine());
 				while (reader.ready()) {
 					temp = reader.readLine();
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (duplicates.containsKey(line[indexOfDuplicatedFactor])) {
 						if (line[indexOfFilter].equals(duplicates.get(line[indexOfDuplicatedFactor]))) {
 							writer.println(temp);

@@ -2,12 +2,12 @@
 package org.genvisis.parse;
 
 import java.util.List;
-import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class LookupTable {
@@ -43,7 +43,7 @@ public class LookupTable {
 																									"# annotation.csv 0 1=CommentWithQuotes doNotSimplifyQuotes"},
 																		log);
 		if (params != null) {
-			line = params.remove(0).trim().split("[\\s]+");
+			line = params.remove(0).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			hitsFile = line[0];
 			col = 0;
 			ignoreCase = false;
@@ -90,7 +90,7 @@ public class LookupTable {
 			log.report("Loading keys from '" + hitsFile + "'");
 			hits = HashVec.loadFileToStringArray(hitsFile, false, ignoreFirstLine, new int[] {col}, true,
 																					 false,
-																					 commaDelimited ? "," : (tabDelimited ? "\t" : "[\\s]+"));
+																					 commaDelimited ? "," : (tabDelimited ? "\t" : PSF.Regex.GREEDY_WHITESPACE));
 			if (lessMemoryButSlower) {
 				Files.combineWithLessMemory(hits, ArrayUtils.toStringArray(params),
 																		new String[params.size()][], head, missingValue, outfile, log,

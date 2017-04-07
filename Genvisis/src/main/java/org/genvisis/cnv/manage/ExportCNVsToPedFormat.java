@@ -22,6 +22,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.Segment;
@@ -92,7 +93,7 @@ public class ExportCNVsToPedFormat {
 																															 pedFilename.endsWith(".csv"), "\t",
 																															 false, false, false);
 				dnaMapping = HashVec.loadFileToStringMatrix(pedFilename, true, new int[] {0, 1, 6},
-																										"[\\s]+", false, 10000, false);
+																										PSF.Regex.GREEDY_WHITESPACE, false, 10000, false);
 				HashSet<String> dnaSet = new HashSet<String>();
 				for (String[] element : dnaMapping) {
 					if (dnaSet.contains(element[2])) {
@@ -141,7 +142,7 @@ public class ExportCNVsToPedFormat {
 					mzPairs = mzTwins.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
 					for (int j = 0; j < mzPairs.size(); j++) { // TODO concerns about duplication of CNVs?
 						cnv = cnVector.get(i).clone();
-						line = mzPairs.elementAt(j).split("[\\s]+");
+						line = mzPairs.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
 						cnv.setFamilyID(line[0]);
 						cnv.setIndividualID(line[1]);
 						cnVector.add(cnv);
@@ -494,7 +495,7 @@ public class ExportCNVsToPedFormat {
 
 		try {
 			reader = new BufferedReader(new FileReader(root + "_" + fileNumber));
-			ids = reader.readLine().trim().split("[\\s]+");
+			ids = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			try {
 				new File(dir + "rfgls/").mkdirs();
 				writer = new PrintWriter(new FileWriter(dir + "rfgls/ids"));
@@ -523,7 +524,7 @@ public class ExportCNVsToPedFormat {
 																																					 + fileNumber)));
 
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				mapWriter.print(line[0] + endOfLine);
 				for (int i = 1; i < line.length; i++) {
 					writer.print((i == 1 ? "" : "\t") + line[i]);

@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.ProbDist;
@@ -71,7 +72,7 @@ public class haploCount {
 		count = 1;
 		done = false;
 		while (!done) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			offset = (line.length > 1 && line[0].equals("")) ? 1 : 0;
 			if (line[0 + offset].equals(count + "")) {
 				temp = line[1 + offset];
@@ -130,7 +131,7 @@ public class haploCount {
 		}
 		done = false;
 		while (!done) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			offset = (line.length > 1 && line[0].equals("")) ? 1 : 0;
 			if (line.length < 2) {
 				done = true;
@@ -156,7 +157,7 @@ public class haploCount {
 		reader = new BufferedReader(new FileReader(phenofile));
 		count = 0;
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			hash.put(line[0], line[1]);
 		}
 		reader.close();
@@ -173,7 +174,7 @@ public class haploCount {
 		done = false;
 		while (!done) {
 			do {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				offset = (line.length > 1 && line[0].equals("")) ? 1 : 0;
 				if (line.length > 1 && line[1].equals("Number")) {
 					done = true;

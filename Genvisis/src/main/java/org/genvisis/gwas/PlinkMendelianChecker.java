@@ -17,6 +17,7 @@ import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 import com.google.common.collect.ImmutableSet;
@@ -112,7 +113,7 @@ public class PlinkMendelianChecker {
 				String fid1, iid1, fid2, iid2;
 				while ((line = reader.readLine()) != null) {
 					line = line.trim();
-					// String[] temp = line.split("[\\s]+"); // slow for 32mil lines
+					// String[] temp = line.split(PSF.Regex.GREEDY_WHITESPACE); // slow for 32mil lines
 					int breakInd = line.indexOf(" ");
 					fid1 = line.substring(0, breakInd);
 					if (!famSet.contains(fid1)) {
@@ -221,11 +222,11 @@ public class PlinkMendelianChecker {
 			try {
 				reader = Files.getAppropriateReader(mendelFile);
 				line = reader.readLine().trim();
-				if (ext.checkHeader(line.split("[\\s]+"),
+				if (ext.checkHeader(line.split(PSF.Regex.GREEDY_WHITESPACE),
 														new String[] {"FID", "KID", "CHR", "SNP", "CODE", "ERROR"}, false)) {
 					while ((line = reader.readLine()) != null) {
 						line = line.trim();
-						temp = line.split("[\\s]+");
+						temp = line.split(PSF.Regex.GREEDY_WHITESPACE);
 
 						// FID
 						// KID
@@ -563,7 +564,7 @@ public class PlinkMendelianChecker {
 					sb.append(".").append("\t").append(".").append("\t").append(".").append("\t").append(".")
 						.append("\t");
 				} else {
-					String[] tmpGL = genoLines.get(key).split("[\\s]+");
+					String[] tmpGL = genoLines.get(key).split(PSF.Regex.GREEDY_WHITESPACE);
 					sb.append(tmpGL[6]).append("\t").append(tmpGL[7]).append("\t").append(tmpGL[8])
 						.append("\t").append(tmpGL[9]).append("\t");
 				}
@@ -581,7 +582,7 @@ public class PlinkMendelianChecker {
 					sb.append(".").append("\t").append(".").append("\t").append(".").append("\t").append(".")
 						.append("\t");
 				} else {
-					String[] tmpGL = genoLines.get(key).split("[\\s]+");
+					String[] tmpGL = genoLines.get(key).split(PSF.Regex.GREEDY_WHITESPACE);
 					sb.append(tmpGL[6]).append("\t").append(tmpGL[7]).append("\t").append(tmpGL[8])
 						.append("\t").append(tmpGL[9]).append("\t");
 				}
@@ -798,7 +799,7 @@ public class PlinkMendelianChecker {
 							if (genoData != null) {
 								String genoDataLine = genoData.get(key);
 								if (genoDataLine != null) {
-									String[] tmpGL = genoDataLine.split("[\\s]+");
+									String[] tmpGL = genoDataLine.split(PSF.Regex.GREEDY_WHITESPACE);
 									sb.append(tmpGL[6]).append("\t").append(tmpGL[7]).append("\t").append(tmpGL[8])
 										.append("\t").append(tmpGL[9]).append("\t");
 									String rel = deriveRelationship(tmpGL[6], tmpGL[7], tmpGL[8], tmpGL[9]);
@@ -870,7 +871,7 @@ public class PlinkMendelianChecker {
 							if (genoData != null) {
 								String genoDataLine = genoData.get(key);
 								if (genoDataLine != null) {
-									String[] tmpGL = genoDataLine.split("[\\s]+");
+									String[] tmpGL = genoDataLine.split(PSF.Regex.GREEDY_WHITESPACE);
 									sb.append(tmpGL[6]).append("\t").append(tmpGL[7]).append("\t").append(tmpGL[8])
 										.append("\t").append(tmpGL[9]).append("\t");
 									String rel = deriveRelationship(tmpGL[6], tmpGL[7], tmpGL[8], tmpGL[9]);
@@ -928,7 +929,7 @@ public class PlinkMendelianChecker {
 							if (genoData != null) {
 								String genoDataLine = genoData.get(key);
 								if (genoDataLine != null) {
-									String[] tmpGL = genoDataLine.split("[\\s]+");
+									String[] tmpGL = genoDataLine.split(PSF.Regex.GREEDY_WHITESPACE);
 									sb.append(tmpGL[6]).append("\t").append(tmpGL[7]).append("\t").append(tmpGL[8])
 										.append("\t").append(tmpGL[9]).append("\t");
 									String rel = deriveRelationship(tmpGL[6], tmpGL[7], tmpGL[8], tmpGL[9]);
@@ -956,7 +957,7 @@ public class PlinkMendelianChecker {
 		if (gl != null) {
 			for (String unrelLine : gl.unrelLines) {
 				sb = new StringBuilder();
-				String[] parts = unrelLine.split("[\\s]+");
+				String[] parts = unrelLine.split(PSF.Regex.GREEDY_WHITESPACE);
 
 				String fidiid1 = idLookup.get(parts[0]);
 				String fidiid2 = idLookup.get(parts[2]);

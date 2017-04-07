@@ -12,6 +12,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
@@ -264,7 +265,7 @@ public class dbExport {
 			firstBlood = DEFAULT_TRAIT;
 		}
 		traits.add("\n");
-		line = Files.getReader(db_file, ALT_DIRS).readLine().split("[\\s]+");
+		line = Files.getReader(db_file, ALT_DIRS).readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 		for (String element : line) {
 			if (traits.contains(element.toUpperCase())) {
 				traits.add(traits.remove(traits.indexOf(element.toUpperCase())));

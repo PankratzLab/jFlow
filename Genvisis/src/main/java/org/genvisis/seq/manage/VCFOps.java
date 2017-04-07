@@ -567,7 +567,7 @@ public class VCFOps {
 																										false);
 		String[][] newfam = new String[fam.length][fam[0].length];
 		boolean newSex = false;
-		// String[][] fam = HashVec.loadFileToStringMatrix(, false, new int[]{1,2,3,4,5,6}, "[\\s]+",
+		// String[][] fam = HashVec.loadFileToStringMatrix(, false, new int[]{1,2,3,4,5,6}, PSF.Regex.GREEDY_WHITESPACE,
 		// false, 1000, false);
 		int noSexcount = 0;
 
@@ -1100,7 +1100,7 @@ public class VCFOps {
 				}
 				reader.readLine();
 				while (reader.ready()) {
-					String[] line = reader.readLine().trim().split("[\\s]+");
+					String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					vcfPopulation.add(line[indices[0]], line[indices[1]], line[indices[2]]);
 				}
 				reader.close();

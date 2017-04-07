@@ -22,6 +22,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
@@ -212,7 +213,7 @@ public class MitoGWAS {
 				builderPermResults.hasHeader(true);
 				builderPermResults.dataKeyColumnName("SNP");
 				builderPermResults.requireAll(false);
-				builderPermResults.separator("[\\s]+");
+				builderPermResults.separator(PSF.Regex.GREEDY_WHITESPACE);
 				builderPermResults.setInvalidNumericToNaN(true);
 				builderPermResults.firstEntryOnly(true);
 				builderPermResults.numericDataTitles(new String[] {"P"});

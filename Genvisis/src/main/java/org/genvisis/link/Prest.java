@@ -13,6 +13,7 @@ import java.text.DecimalFormat;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class Prest {
@@ -43,7 +44,7 @@ public class Prest {
 			writer = new PrintWriter(new FileWriter("pedigrees"));
 			while (reader.ready()) {
 				writer.println(ArrayUtils.toStr(ArrayUtils.subArray(reader.readLine().trim()
-																																	.split("[\\s]+"),
+																																	.split(PSF.Regex.GREEDY_WHITESPACE),
 																														0, 6)));
 			}
 			reader.close();
@@ -62,7 +63,7 @@ public class Prest {
 					reader = new BufferedReader(new FileReader("map" + chrome + ".dat"));
 					writer = new PrintWriter(new FileWriter("map" + chrome + ".idx"));
 
-					writer.println((Integer.parseInt(reader.readLine().trim().split("[\\s]+")[0]) - 1) + "");
+					writer.println((Integer.parseInt(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]) - 1) + "");
 					do {
 						temp = reader.readLine();
 					} while (!temp.startsWith("3 "));
@@ -73,7 +74,7 @@ public class Prest {
 						count++;
 						temp = reader.readLine();
 					} while (temp.startsWith("3 "));
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 
 					max = 0;
 					for (int i = 0; i < count; i++) {
@@ -115,7 +116,7 @@ public class Prest {
 			reader = new BufferedReader(new FileReader(dir + genome));
 			writer = new PrintWriter(new FileWriter(dir + genome + ".slim"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[0] + "-" + line[1] + ":" + line[2] + "-" + line[3] + "\t" + line[5]
 											 + "\t" + line[6] + "\t" + line[7] + "\t" + line[8] + "\t" + line[9]);
 			}
@@ -142,7 +143,7 @@ public class Prest {
 			writer = new PrintWriter(new FileWriter(dir + prest + ".slim"));
 			writer.println("FID1-IID1:FID2-IID2\tPutative#\tPutativeRel\t#markers\tIBD\tp0\tp1\tp2\tEIBD-pval\tAIBS-pval\tIBS-pval\tmin-pval");
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				min = 999;
 				for (int i = 9; i <= 11; i++) {
 					if (!line[i].equals("NA")) {

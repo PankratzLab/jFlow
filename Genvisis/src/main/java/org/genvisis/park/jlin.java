@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.PSF;
+
 public class jlin {
 	public String[][] ALLELE_LOOKUP = {{"", "A", "G"}, {"", "A", "G"}, {"", "A", "G"}};
 
@@ -30,7 +32,7 @@ public class jlin {
 		reader = new BufferedReader(new FileReader(filename));
 		reader.readLine();
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			data = new int[line.length - 6];
 			if (data.length % 2 != 0) {
 				System.err.println("Error - Expecting 6 columns (including affection status) followed by an even number of alleles");
@@ -65,7 +67,7 @@ public class jlin {
 		temp = "";
 		score = 0;
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			writer.print((score == 0 ? "" : ",") + line[0]);
 			temp += (score == 0 ? "" : ",") + line[1];
 			score++;

@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
@@ -160,7 +159,7 @@ public class MapSNPsAndGenes {
 			reader.readLine();
 			chr_start_stop = new int[3];
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[3].equals(".")) {
 					chr_start_stop[0] = line[2].equals("X") ? 23
 																									: (line[2].equals("Y") ? 24
@@ -291,7 +290,7 @@ public class MapSNPsAndGenes {
 		ArrayList<String> mkrList = new ArrayList<String>();
 		ArrayList<int[]> posList = new ArrayList<int[]>();
 		for (int i = 0; i < data.length - 1; i++) {
-			line = data[i + 1].trim().split("[\\s]+");
+			line = data[i + 1].trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!ext.isMissingValue(line[1]) && !ext.isMissingValue(line[2])) {
 				mkrList.add(line[0]);
 				posList.add(new int[] {Positions.chromosomeNumber(line[1]), Integer.parseInt(line[2])});

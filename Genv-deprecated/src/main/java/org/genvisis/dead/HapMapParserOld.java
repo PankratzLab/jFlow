@@ -13,6 +13,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class HapMapParserOld {
@@ -32,12 +33,12 @@ public class HapMapParserOld {
 		try {
 			reader = Files.getReader(filename, dir);
 			temp = reader.readLine();
-			indIDs = (temp.substring(temp.indexOf("[") + 1, temp.indexOf("]"))).split("[\\s]+");
+			indIDs = (temp.substring(temp.indexOf("[") + 1, temp.indexOf("]"))).split(PSF.Regex.GREEDY_WHITESPACE);
 
 			writer = new PrintWriter(new FileWriter((new File(dir).exists() ? dir : "") + root
 																							+ ".info"));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				trans = new String[line.length - 3];
 				ones = twos = 0;
 				for (int i = 3; i < line.length; i++) {
@@ -83,7 +84,7 @@ public class HapMapParserOld {
 																						 "C:\\Documents and Settings\\npankrat\\My Documents\\jProjects\\park\\runtime\\"});
 			writer = new PrintWriter(new FileWriter((new File(dir).exists() ? dir : "") + root + ".pre"));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < 5; i++) {
 					writer.print(line[i] + "\t");
 				}
@@ -132,7 +133,7 @@ public class HapMapParserOld {
 			reader = new BufferedReader(new FileReader(from));
 			writer = new PrintWriter(new FileWriter(to));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[1] + "\t" + line[3]);
 			}
 			reader.close();

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
+import org.genvisis.common.PSF;
 import org.genvisis.park.tools;
 
 public class pickProband {
@@ -27,7 +28,7 @@ public class pickProband {
 			trav = "";
 			pro = vpdpro = 1;
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[0].equals(trav)) {
 					pro = vpdpro = 1;
 					trav = line[0];

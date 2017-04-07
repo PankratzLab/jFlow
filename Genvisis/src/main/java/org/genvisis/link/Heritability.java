@@ -24,6 +24,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.FamilyStructure;
@@ -78,7 +79,7 @@ public class Heritability {
 		try {
 			reader = new BufferedReader(new FileReader(pedfile));
 			reader.mark(10000);
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (FamilyStructure.likelyPedHeader(line)) {
 				if (log.getLevel() > 8) {
 					log.report("Header row detected in the pedigree file");
@@ -91,7 +92,7 @@ public class Heritability {
 			}
 			writer = new PrintWriter(new FileWriter(dir + "re_chrom01.pre"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
 											 + "\t"
 											 + (phenoHash.containsKey(line[0] + "\t"
@@ -228,7 +229,7 @@ public class Heritability {
 				if (temp.contains("H2r is ")) {
 					String estString = temp.substring(temp.indexOf("H2r is ") + 7);
 					log.report("Solar  estimate: " + estString);
-					String[] toParse = estString.trim().split("[\\s]+");
+					String[] toParse = estString.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					try {
 						double h2 = Double.parseDouble(toParse[0]);
 						solarEstimate[0] = h2 + "";
@@ -244,7 +245,7 @@ public class Heritability {
 					while (!temp.contains("Loglikelihoods")) {
 						log.report(temp);
 						if (temp.contains("H2r Std. Error:")) {
-							String[] tmpString = temp.trim().split("[\\s]+");
+							String[] tmpString = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							try {
 								double stError = Double.parseDouble(tmpString[3]);
 								solarEstimate[2] = stError + "";
@@ -365,7 +366,7 @@ public class Heritability {
 				} else if (temp.startsWith("solar_exec=")) {
 					solarExec = ext.parseStringArg(temp, DEFAULT_SOLAR_EXEC);
 				} else {
-					models.add(temp.trim().split("[\\s]+"));
+					models.add(temp.trim().split(PSF.Regex.GREEDY_WHITESPACE));
 				}
 			}
 

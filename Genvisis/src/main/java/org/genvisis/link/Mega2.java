@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.Vector;
 
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class Mega2 {
@@ -30,7 +31,7 @@ public class Mega2 {
 				writer = new PrintWriter(new FileWriter("map." + chrome));
 				writer.println("CHROMOSOME\tKOSAMBI\tNAME");
 
-				numMarkers = Integer.parseInt(reader.readLine().trim().split("[\\s]+")[0]) - 1;
+				numMarkers = Integer.parseInt(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]) - 1;
 				reader.readLine();
 				reader.readLine();
 				if (!reader.readLine().contains("#")) {
@@ -43,7 +44,7 @@ public class Mega2 {
 				for (int i = 0; i < numMarkers; i++) {
 					temp = reader.readLine();
 					try {
-						v.add(temp.trim().split("[\\s]+")[3]);
+						v.add(temp.trim().split(PSF.Regex.GREEDY_WHITESPACE)[3]);
 					} catch (Exception e) {
 						System.err.println("Error parsing line: " + temp);
 						e.printStackTrace();
@@ -51,7 +52,7 @@ public class Mega2 {
 					reader.readLine();
 				}
 				reader.readLine();
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				sumPos = -1 * Double.parseDouble(line[0]);
 				for (int i = 0; i < numMarkers; i++) {
 					sumPos += Double.parseDouble(line[i]);

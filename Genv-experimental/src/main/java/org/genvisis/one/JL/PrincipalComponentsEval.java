@@ -7,23 +7,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Hashtable;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
-import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Correlation;
 import org.genvisis.stats.ICC;
@@ -315,7 +307,7 @@ public class PrincipalComponentsEval {
 			reader.readLine();
 			ArrayList<String> samples = new ArrayList<String>();
 			while (reader.ready()) {
-				String[] line = reader.readLine().trim().split("[\\s]+");
+				String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				samples.add(line[0]);
 			}
 			reader.close();
@@ -327,7 +319,7 @@ public class PrincipalComponentsEval {
 			while (reader.ready()) {
 				if (indices[index] >= 0) {
 					try {
-						data[indices[index]] = Double.parseDouble(reader.readLine().trim().split("[\\s]+")[1]);
+						data[indices[index]] = Double.parseDouble(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[1]);
 					} catch (NumberFormatException numberFormatException) {
 						data[indices[index]] = Double.NaN;
 					}

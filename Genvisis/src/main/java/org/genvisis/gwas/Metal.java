@@ -24,6 +24,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Hits;
@@ -103,7 +104,7 @@ public class Metal {
 																																+ ".metal"
 																															: outfile));
 			// header = reader.readLine().trim().split("\t");
-			header = reader.readLine().trim().split("[\\s]+");
+			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			indices = ext.indexFactors(CONVERSION_REQS, header, false, true, true, true);
 			if (useSE) {
 				seIndex = ext.indexFactors(new String[][] {{"SE"}}, header, false, false, true, true)[0];
@@ -119,7 +120,7 @@ public class Metal {
 			}
 			while (reader.ready()) {
 				// line = reader.readLine().trim().split("\t");
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if ((testIndex == -1 || test == null || line[testIndex].equals(test))
 						&& !line[indices[3]].equals("NA")) {
 					if (hash.containsKey(line[indices[0]])) {
@@ -617,7 +618,7 @@ public class Metal {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_consensus.xln"));
-			header = reader.readLine().trim().split("[\\s]+");
+			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			v = new Vector<String>();
 			for (int i = 1; i < header.length; i++) {
 				HashVec.addIfAbsent(header[i].substring(0, header[i].indexOf("_")), v);
@@ -644,7 +645,7 @@ public class Metal {
 					System.out.println(count + "\t" + (new Date().getTime() - time) / (double) count);
 				}
 				hash.clear();
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 
 				for (int i = 0; i < roots.length; i++) {
 					trav = line[indices[i][0]];
@@ -702,7 +703,7 @@ public class Metal {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_diffs.xln"));
 			writer2 = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_ambiguous.xln"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length > 2) {
 					writer.println(ArrayUtils.toStr(line));
 				} else if (line[1].equals("AT") || line[1].equals("CG")) {
@@ -743,7 +744,7 @@ public class Metal {
 				writer.println("lookup");
 				writer.println("TBD");
 				for (int j = 2; j < params.size(); j++) {
-					line = params.get(j).trim().split("[\\s]+");
+					line = params.get(j).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (line.length > 2) {
 						log.reportError("Error - requires exactly one or two paramters in lines 2 on: [filename and] prefix");
 					} else if (line.length == 1) {
@@ -1134,7 +1135,7 @@ public class Metal {
 			log.report(ArrayUtils.toStr(ArrayUtils.toStringArray(params)));
 			for (int i = 0; i < files.length; i++) {
 				if (params.size() >= i + 1) {
-					files[i] = params.get(i).trim().split("[\\s]+")[0];
+					files[i] = params.get(i).trim().split(PSF.Regex.GREEDY_WHITESPACE)[0];
 				}
 			}
 			Files.writeArray(new String[] {"java -jar /home/npankrat/"
@@ -1187,7 +1188,7 @@ public class Metal {
 		if (params != null) {
 			rsqThresh = -1;
 			mafThresh = -1;
-			line = params.get(0).trim().split("[\\s]+");
+			line = params.get(0).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			freqsFile = line[0];
 			for (int j = 1; j < line.length; j++) {
 				if (line[j].startsWith("Rsq>")) {
@@ -1229,7 +1230,7 @@ public class Metal {
 																						+ "_notExceedingThreshold.dat"));
 			}
 			writer.println("SNP\tA1\tA2\tfreqA1\teffN\tMAF");
-			header = reader.readLine().trim().split("[\\s]+");
+			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			v = new Vector<String>();
 			for (int i = 1; i < header.length; i++) {
 				HashVec.addIfAbsent(header[i].substring(0, header[i].lastIndexOf("_")), v);
@@ -1259,8 +1260,8 @@ public class Metal {
 														 + ext.formDeci((new Date().getTime() - time) / (double) count, 4,
 																						true));
 				}
-				// line = reader.readLine().trim().split("[\\s]+");
-				line = ext.replaceAllWith(reader.readLine(), ".-000", ".000").trim().split("[\\s]+");
+				// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
+				line = ext.replaceAllWith(reader.readLine(), ".-000", ".000").trim().split(PSF.Regex.GREEDY_WHITESPACE);
 
 				sumAlleles = sumEffN = 0;
 				refAlleles = new String[2];
@@ -1376,7 +1377,7 @@ public class Metal {
 																									+ "_compFlipped.xln"));
 			writers[2] = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
 																									+ "_compAmbiguous.xln"));
-			header = reader.readLine().trim().split("[\\s]+");
+			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			v = new Vector<String>();
 			for (int i = 1; i < header.length; i++) {
 				HashVec.addIfAbsent(header[i].substring(0, header[i].indexOf("_")), v);
@@ -1423,7 +1424,7 @@ public class Metal {
 														 + ext.formDeci((new Date().getTime() - time) / (double) count, 4,
 																						true));
 				}
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 
 				refAlleles = new String[2];
 				freqs = new double[] {Double.NaN, Double.NaN};
@@ -1798,13 +1799,13 @@ public class Metal {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_counts.out"));
 			w2 = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_lowCount.out"));
 			writer.println("MarkerName\tnumPresent\tnumAbsent");
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line,
 											new String[] {"MarkerName", "Allele1", "Allele2", "Effect", "StdErr",
 																		"P-value", "Direction"},
 											new int[] {0, 1, 2, 3, 4, 5, 6}, false, log, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = line[6];
 				present = absent = 0;
 				for (int i = 0; i < trav.length(); i++) {

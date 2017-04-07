@@ -18,9 +18,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
-import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
-import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
@@ -29,6 +28,7 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.stats.CrossValidation;
@@ -703,7 +703,7 @@ public class IntensityCorrectionQC {
 			reader.readLine();
 			ArrayList<String> samples = new ArrayList<String>();
 			while (reader.ready()) {
-				String[] line = reader.readLine().trim().split("[\\s]+");
+				String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				samples.add(line[0]);
 			}
 			reader.close();
@@ -716,7 +716,7 @@ public class IntensityCorrectionQC {
 			while (reader.ready()) {
 				if (indices[index] >= 0) {
 					try {
-						data[indices[index]] = Double.parseDouble(reader.readLine().trim().split("[\\s]+")[1]);
+						data[indices[index]] = Double.parseDouble(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[1]);
 					} catch (NumberFormatException numberFormatException) {
 						data[indices[index]] = (0.0D / 0.0D);
 					}

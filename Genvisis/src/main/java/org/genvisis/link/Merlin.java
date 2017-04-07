@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.qsub.Qsub;
 
@@ -203,7 +204,7 @@ public class Merlin {
 		try {
 			reader = new BufferedReader(new FileReader("re_chrom" + ext.chrome(chr) + ".pre"));
 			while (binary && conf < 100 && reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[5].equals("0")) {
 
 				} else if (line[5].equals("1") || line[5].equals("2")) {

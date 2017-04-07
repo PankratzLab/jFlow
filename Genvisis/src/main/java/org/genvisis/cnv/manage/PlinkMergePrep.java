@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 
@@ -91,7 +92,7 @@ public class PlinkMergePrep {
 				reader = Files.getAppropriateReader(plinkDirRoot + "_orig" + ext);
 				writer = Files.getAppropriateWriter(plinkDirRoot + ext);
 				while ((line = reader.readLine()) != null) {
-					parts = line.split("[\\s]+", -1);
+					parts = line.split(PSF.Regex.GREEDY_WHITESPACE, -1);
 					parts[1] = prepend + "_" + parts[1];
 					writer.println(ArrayUtils.toStr(parts, "\t"));
 				}

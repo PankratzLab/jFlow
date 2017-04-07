@@ -14,6 +14,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class RosenElliot {
@@ -57,7 +58,7 @@ public class RosenElliot {
 				System.err.println("Error parsing pedigree file: expecting first line to contain the word List");
 				System.exit(1);
 			}
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (line.length != 1) {
 				System.err.println("Error parsing pedigree file: expecting 2nd line to have the latest date in it");
 				System.exit(1);
@@ -185,7 +186,7 @@ public class RosenElliot {
 			writer.println();
 
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				reversi = line[index].equals("AA");
 
 				writer.print(line[0] + "\t" + line[1] + "\t" + line[2] + "\t"
@@ -234,7 +235,7 @@ public class RosenElliot {
 	}
 
 	public static String cleanUpDNA(String str) {
-		str = str.trim().split("[\\s]+")[0];
+		str = str.trim().split(PSF.Regex.GREEDY_WHITESPACE)[0];
 		if (str.startsWith("*")) {
 			str = str.substring(1);
 		}
@@ -275,14 +276,14 @@ public class RosenElliot {
 
 			reader = new BufferedReader(new FileReader(dir + PED_DATA));
 			writer = new PrintWriter(new FileWriter(dir + "untrimmed.pre"));
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), PED_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), PED_HEADER, true);
 
 			writer.println("1\t" + TRAIT_STRAIN_PREFIX + "99\t0\t0\t1\t2");
 			writer.println("1\t" + BC_STRAIN_PREFIX + "01\t0\t0\t2\t1");
 			count = 1;
 
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				dna = cleanUpID(line[0]);
 				if (line[1].equals("Inbred")) {
 					writer.println("1\t" + dna + "\t" + TRAIT_STRAIN_PREFIX + "99\t" + BC_STRAIN_PREFIX
@@ -320,7 +321,7 @@ public class RosenElliot {
 		try {
 			reader = new BufferedReader(new FileReader(dir + traitfile));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = cleanUpID(line[0]);
 				if (hash.containsKey(trav)) {
 					System.err.println("Error - multiple entries for '" + trav + "'");
@@ -345,7 +346,7 @@ public class RosenElliot {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(dir + "mended_pedfile.pre"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[1].startsWith(TRAIT_STRAIN_PREFIX) || line[1].startsWith(BC_STRAIN_PREFIX)) {
 				} else if (hash.containsKey(line[1])) {
 					line[5] = hash.get(line[1]);

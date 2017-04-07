@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -20,6 +19,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.ProbDist;
 
@@ -271,9 +271,9 @@ public class ResultsPackager {
 					writer.print("\t" + trav + "\tNA\t+\t" + line[4]);
 
 					if (originalFreqHash.containsKey(trav)) {
-						alleles = originalFreqHash.get(trav).split("[\\s]+");
+						alleles = originalFreqHash.get(trav).split(PSF.Regex.GREEDY_WHITESPACE);
 					} else if (originalFreqHash.containsKey(ext.replaceAllWith(trav, ".", "-"))) {
-						alleles = originalFreqHash.get(ext.replaceAllWith(trav, ".", "-")).split("[\\s]+");
+						alleles = originalFreqHash.get(ext.replaceAllWith(trav, ".", "-")).split(PSF.Regex.GREEDY_WHITESPACE);
 					} else {
 						alleles = new String[] {".", "."};
 						log.reportError("Error - no alleles from original .frq file for " + trav);

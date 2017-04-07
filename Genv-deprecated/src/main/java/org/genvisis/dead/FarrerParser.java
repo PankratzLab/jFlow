@@ -13,6 +13,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.ProbDist;
 
@@ -42,9 +43,9 @@ public class FarrerParser {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + "plink.frq"));
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), PLINK_FRQ_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), PLINK_FRQ_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (ext.indexOfStr(line[1], markers) >= 0) {
 					freq = Double.parseDouble(line[4]);
 					summary = line[2] + "(" + ext.formDeci(freq, 4, true) + ")\t" + line[3] + "("
@@ -71,7 +72,7 @@ public class FarrerParser {
 				if (model.startsWith(probabelPrefix)) {
 					model = model.substring(probabelPrefix.length());
 				}
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int j = 0; j < PROBABEL_HEADER.length; j++) {
 					if (!line[j].equalsIgnoreCase(PROBABEL_HEADER[j])) {
 						System.err.println("Error - Expecting " + PROBABEL_HEADER[j] + " in column " + (j + 1)
@@ -98,7 +99,7 @@ public class FarrerParser {
 				HashVec.addToHashHash(hashes, model, "terms", ArrayUtils.toStr(terms));
 
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (ext.indexOfStr(line[0], markers) >= 0) {
 						freq = Double.parseDouble(line[3]);
 						for (int j = 0; j < numTerms; j++) {
@@ -144,10 +145,10 @@ public class FarrerParser {
 			try {
 				reader = new BufferedReader(new FileReader(dir + file));
 				model = file.substring(0, file.indexOf(".assoc.logistic"));
-				ext.checkHeader(reader.readLine().trim().split("[\\s]+"), LOGISTIC_HEADER_WITH_CI, true);
+				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), LOGISTIC_HEADER_WITH_CI, true);
 				v = new Vector<String>();
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (ext.indexOfStr(line[1], markers) >= 0) {
 						summary = ".\t.\t"
 											+ (line[6].equals("NA") ? "NA"
@@ -191,7 +192,7 @@ public class FarrerParser {
 			writer.print("Marker\tMinor allele\tMajor allele\tImputed minor allele\tImputed major allele");
 			count = 0;
 			for (String model2 : models) {
-				terms = hashes.get(model2).get("terms").trim().split("[\\s]+");
+				terms = hashes.get(model2).get("terms").trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				count += terms.length;
 				if (terms.length == 1) {
 					writer.print("\t" + model2 + " OR\t95% CI\tp-value");
@@ -218,7 +219,7 @@ public class FarrerParser {
 					count = 0;
 					for (String model2 : models) {
 						hash = hashes.get(model2);
-						terms = hash.get("terms").trim().split("[\\s]+");
+						terms = hash.get("terms").trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						for (String term : terms) {
 							if (hash != null && hash.containsKey(marker + "_" + term)) {
 								line = hash.get(marker + "_" + term).split("\\t");

@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class CARDIAResultsProcessor {
@@ -28,13 +29,13 @@ public class CARDIAResultsProcessor {
 
 				String lineR = readerR.readLine();
 				String lineP = readerP.readLine();
-				String[] hdr = lineR.split("[\\s]+");
+				String[] hdr = lineR.split(PSF.Regex.GREEDY_WHITESPACE);
 				hdr = ArrayUtils.insertStringAt("Chr", hdr, 1);
 				hdr = ArrayUtils.insertStringAt("Pos", hdr, 2);
 				writer.println(ArrayUtils.toStr(hdr));
 				while ((lineR = readerR.readLine()) != null && (lineP = readerP.readLine()) != null) {
-					String[] partsR = lineR.split("[\\s]+");
-					String[] partsP = lineP.split("[\\s]+");
+					String[] partsR = lineR.split(PSF.Regex.GREEDY_WHITESPACE);
+					String[] partsP = lineP.split(PSF.Regex.GREEDY_WHITESPACE);
 
 					if (!partsR[0].equals(partsP[0])) {
 						// TODO error on mismatched RS

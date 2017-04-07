@@ -1,6 +1,5 @@
 package org.genvisis.one.ben.fcs.gating;
 
-import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.gating.Gate.RectangleGate;
 
 public class GateDimension {

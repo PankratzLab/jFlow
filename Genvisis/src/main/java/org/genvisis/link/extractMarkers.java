@@ -14,6 +14,7 @@ import java.util.Vector;
 import org.genvisis.common.AlleleFreq;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class extractMarkers {
@@ -36,7 +37,7 @@ public class extractMarkers {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length != 2) {
 					System.err.println("Error - expecting 2 columns: chr#\tmarkerName");
 					System.exit(1);
@@ -93,7 +94,7 @@ public class extractMarkers {
 
 				temp = reader.readLine().trim();
 				writer.println((markersPicked.length + 1)
-											 + temp.substring(temp.split("[\\s]+")[0].length()));
+											 + temp.substring(temp.split(PSF.Regex.GREEDY_WHITESPACE)[0].length()));
 				writer.println(reader.readLine());
 				reader.readLine();
 				writer.println(ArrayUtils.toStr(ArrayUtils.stringArraySequence(markersPicked.length + 1,
@@ -114,7 +115,7 @@ public class extractMarkers {
 				}
 				writer.println(reader.readLine());
 
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				Arrays.sort(indices);
 				sum = Double.parseDouble(line[0]) * -1;
 				sigfigs = 0;
@@ -153,7 +154,7 @@ public class extractMarkers {
 				writer = new PrintWriter(new FileWriter(dir + "re_chrom" + chrome + ".pre"));
 				genotypeCounts = new int[indices.length][3];
 				while (reader.ready()) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.print(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
 											 + "\t" + line[5]);
 					for (int j = 0; j < markerNames.length; j++) {

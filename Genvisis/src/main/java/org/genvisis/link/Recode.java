@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.genvisis.common.CountVector;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class Recode implements Runnable {
@@ -38,7 +39,7 @@ public class Recode implements Runnable {
 		try {
 			reader = new BufferedReader(new FileReader(dir + "chrom" + chrome + ".pre"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[0].equals("")) {
 					continue;
 				}
@@ -68,7 +69,7 @@ public class Recode implements Runnable {
 			reader = new BufferedReader(new FileReader(dir + "chrom" + chrome + ".pre"));
 			writer = new PrintWriter(new FileWriter(dir + "re_chrom" + chrome + ".pre"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[0].equals("")) {
 					continue;
 				}

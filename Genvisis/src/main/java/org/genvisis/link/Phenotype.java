@@ -14,6 +14,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 import com.google.common.primitives.Ints;
@@ -56,12 +57,12 @@ public class Phenotype {
 						writers[i] = new PrintWriter(new FileWriter(dir + phenoNames[i] + "/" + filename));
 					}
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						trav = hash.get(line[0] + "\t" + line[1]);
 						if (trav == null) {
 							phenos = ArrayUtils.stringArray(phenoNames.length, missingValue);
 						} else {
-							phenos = trav.split("[\\s]+");
+							phenos = trav.split(PSF.Regex.GREEDY_WHITESPACE);
 						}
 						for (int i = 0; i < writers.length; i++) {
 							line[index] = phenos[i];

@@ -16,6 +16,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
@@ -72,7 +73,7 @@ public class ChromatinAccessibility {
 				try {
 					reader = new BufferedReader(new FileReader(dir + file));
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						trav = line[3].substring(0, line[3].indexOf("_"));
 						if (hash.containsKey(trav)) {
 							v = hash.get(trav);
@@ -163,7 +164,7 @@ public class ChromatinAccessibility {
 						reader = new BufferedReader(new FileReader(dir + files[i]));
 						System.out.println("Loading '" + files[i] + "'");
 						while (reader.ready()) {
-							line = reader.readLine().trim().split("[\\s]+");
+							line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							chr = Positions.chromosomeNumber(line[0]);
 							allSeg.elementAt(0).elementAt(chr)
 										.add(new Segment(chr, Integer.parseInt(line[1]), Integer.parseInt(line[2])));
@@ -315,7 +316,7 @@ public class ChromatinAccessibility {
 			}
 			try {
 				reader = new BufferedReader(new FileReader(file_dir + filename));
-				indices = ext.indexFactors(PVAL_HEADER, reader.readLine().trim().split("[\\s]+"), false,
+				indices = ext.indexFactors(PVAL_HEADER, reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), false,
 																	 false, true, true);
 				count = 0;
 				while (reader.ready()) {
@@ -325,7 +326,7 @@ public class ChromatinAccessibility {
 						// System.out.println(count);
 					}
 					temp = reader.readLine();
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					chr = Positions.chromosomeNumber(line[indices[1]]);
 					seg = new Segment(chr, Integer.parseInt(line[indices[2]]),
 														Integer.parseInt(line[indices[2]]));

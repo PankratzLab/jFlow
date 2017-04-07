@@ -14,6 +14,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Zip;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Transformations;
@@ -49,10 +50,10 @@ public class GEO_expression {
 			for (int i = 0; i < files.length; i++) {
 				try {
 					reader = new BufferedReader(new FileReader(files[i]));
-					trav = reader.readLine().trim().split("[\\s]+")[0];
+					trav = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0];
 					data = ArrayUtils.stringArray(targets.length + 1, ".");
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (i == 0) {
 							index = ext.indexOfStr(line[0], targets);
 							hash.put(line[0], index + "");
@@ -154,11 +155,11 @@ public class GEO_expression {
 		hashV = new Hashtable<String, Vector<String[]>>();
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			header1 = reader.readLine().trim().split("[\\s]+");
-			header2 = reader.readLine().trim().split("[\\s]+");
+			header1 = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
+			header2 = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			while (reader.ready()) {
 				temp = reader.readLine();
-				line = temp.trim().split("[\\s]+");
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (hashV.containsKey(line[0])) {
 					v = hashV.get(line[0]);
 				} else {
@@ -214,7 +215,7 @@ public class GEO_expression {
 				for (String content : contents) {
 					try {
 						reader = new BufferedReader(new FileReader(dir + content));
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						for (String element : line) {
 							if (element.startsWith("NA")) {
 								writer.print("\t" + element);

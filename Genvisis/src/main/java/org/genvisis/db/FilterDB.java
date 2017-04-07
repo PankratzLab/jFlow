@@ -16,6 +16,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class FilterDB {
@@ -74,7 +75,7 @@ public class FilterDB {
 
 		try {
 			reader = new BufferedReader(new FileReader(dbFilename));
-			header = reader.readLine().trim().split("[\\s]+");
+			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			for (int i = 0; i < filters.size(); i++) {
 				try {
 					filters.elementAt(i).determineIndices(header);
@@ -88,7 +89,7 @@ public class FilterDB {
 
 			writer.println("Unit\tReasonFlagged\tnumFlags");
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				result = line[0] + "\t";
 				count = 0;
 				for (int i = 0; i < filters.size(); i++) {

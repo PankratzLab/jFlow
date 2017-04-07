@@ -22,6 +22,7 @@ import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.link.LinkageMap;
@@ -103,7 +104,7 @@ public class simulateNullDistribution {
 			backup = cloneHash(vips);
 			while (!done) {
 				if (reader.ready()) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				} else {
 					prev = "";
 					done = true;
@@ -117,7 +118,7 @@ public class simulateNullDistribution {
 						v = tf.getExtendedFamilyInformation();
 						affs = phenos.get(prev);
 						for (int i = 0; i < v.size(); i++) {
-							trav = v.get(i).split("[\\s]+");
+							trav = v.get(i).split(PSF.Regex.GREEDY_WHITESPACE);
 							writer.println(ArrayUtils.toStr(trav, "\t") + "\t" + (affs.containsKey(trav[1])
 																																															? (Integer.parseInt(affs.get(trav[1]))
 																																																 + 1)
@@ -254,7 +255,7 @@ public class simulateNullDistribution {
 			try {
 				reader = new BufferedReader(new FileReader("tr_" + outputfile + ".1"));
 				while (reader.ready()) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					v = vips.get(line[0]);
 					affs = phenos.get(line[0]);
 					if (v.contains(line[1])) {

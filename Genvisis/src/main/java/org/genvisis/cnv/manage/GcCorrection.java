@@ -117,7 +117,7 @@ public class GcCorrection {
 				BufferedReader reader = Files.getAppropriateReader(orginalFiles[i]);
 				reader.readLine();
 				while (reader.ready()) {
-					String[] line = reader.readLine().trim().split("[\\s]+");
+					String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (!line[indices[0]].equals(LrrSd.SAMPLE_COLUMN)) {
 						writer.println(titles[i] + "\t" + ArrayUtils.toStr(ArrayUtils.subArray(line, indices)));
 					}

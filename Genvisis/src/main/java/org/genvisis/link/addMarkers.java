@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 
 public class addMarkers {
 
@@ -52,14 +53,14 @@ public class addMarkers {
 		}
 		reader = new BufferedReader(new FileReader(filename));
 		reader.readLine();
-		numberOfNewMarkers = reader.readLine().split("[\\s]+").length - 3;
+		numberOfNewMarkers = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE).length - 3;
 		for (int i = 0; i < numberOfNewMarkers; i++) {
 			reader = new BufferedReader(new FileReader(filename));
 			reader.readLine();
-			newMarker = reader.readLine().split("[\\s]+")[i + 3];
+			newMarker = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[i + 3];
 			hash = new Hashtable<String, String>();
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				hash.put(line[0],
 								 line[1] + "\t" + line[2] + "\t" + line[i * 2 + 3] + "\t" + line[i * 2 + 4]);
 			}
@@ -87,7 +88,7 @@ public class addMarkers {
 			System.err.println("      - make sure you have your placeholder line holding its place");
 			System.exit(3);
 		}
-		line = (markers.get(newMarker.toUpperCase())).split("[\\s]+");
+		line = (markers.get(newMarker.toUpperCase())).split(PSF.Regex.GREEDY_WHITESPACE);
 		chr = Integer.valueOf(line[0]).intValue();
 		mark = Double.valueOf(line[1]).doubleValue();
 		bakFilename = Files.getBakFilename("chromosome" + chr + ".dat", super.getClass().getName());
@@ -109,7 +110,7 @@ public class addMarkers {
 		trav = prev = 0.0;
 		for (int i = 3; i < line.length; i++) {
 			if (offset == -1) {
-				data = (markers.get(line[i].toUpperCase())).split("[\\s]+");
+				data = (markers.get(line[i].toUpperCase())).split(PSF.Regex.GREEDY_WHITESPACE);
 				if (Integer.valueOf(data[0]).intValue() != chr) {
 					System.err.println("Error - Marker " + line[i] + " in chromosome" + chr
 														 + ".dat is not on chromosome " + chr);
@@ -135,12 +136,12 @@ public class addMarkers {
 		}
 		writer.println();
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			writer.print(line[0] + "\t" + line[1] + "\t" + line[2]);
 			for (int i = 3; i < line.length; i++) {
 				if (i == 3 + offset * 2) {
 					if (hash.containsKey(line[0])) {
-						data = (hash.get(line[0])).split("[\\s]+");
+						data = (hash.get(line[0])).split(PSF.Regex.GREEDY_WHITESPACE);
 						if (!(line[1] + "\t" + line[2]).equals(data[0] + "\t" + data[1])) {
 							System.err.println("Error - DNA mismatch with regards to " + line[0] + " (" + line[1]
 																 + "\t" + line[2] + " in chromosome" + chr + ".dat and " + data[0]

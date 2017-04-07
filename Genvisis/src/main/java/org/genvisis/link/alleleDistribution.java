@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 
@@ -54,7 +55,7 @@ public class alleleDistribution {
 		hash = new Hashtable<String, String>();
 		species = new Vector<String>();
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!species.contains(line[2])) {
 				species.add(line[2]);
 			}
@@ -85,7 +86,7 @@ public class alleleDistribution {
 													 + " in current directory");
 				System.exit(1);
 			}
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			offset = (line[0].equals("") ? 1 : 0);
 			numMarkers = Integer.valueOf(line[0 + offset]).intValue() - 1;
 			for (int j = 0; j < 6; j++) {
@@ -97,7 +98,7 @@ public class alleleDistribution {
 			names = new String[numMarkers][];
 			counts = new double[numMarkers][][];
 			for (int j = 0; j < numMarkers; j++) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				offset = (line[0].equals("") ? 1 : 0);
 				names[j] = new String[Integer.valueOf(line[1 + offset]).intValue() + 1];
 				names[j][0] = line[3 + offset];
@@ -109,7 +110,7 @@ public class alleleDistribution {
 					}
 				}
 				counts[j] = new double[names[j].length][species.size() + 1];
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				offset = (line[0].equals("") ? 1 : 0);
 				for (int k = 1; k < names[j].length; k++) {
 					if (sum) {
@@ -128,7 +129,7 @@ public class alleleDistribution {
 			}
 			reader = new BufferedReader(new FileReader("re_chrom" + chrome + ".pre"));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				plate = species.indexOf(hash.get(line[0] + "\t" + line[1])) + 1;
 				if (plate == 0 && Integer.valueOf(line[1]).intValue() < 100) {
 					System.err.println("Error - don't know which plate " + line[0] + "\t" + line[1]

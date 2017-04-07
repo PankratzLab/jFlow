@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ChrPositionMap;
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
@@ -65,7 +66,7 @@ public class DnaseEnrichment {
 	private final static String BED_FILE_CHR_MAP_PART_COUNT_FILENAME = "BedFileChrMapCount.xln";
 	private final static String BED_FILE_CHR_MAP_FOLDER = "BedChrPositionMap";
 	private final static String OUTPUT_FOLDER = "DnaseEnrichmentOutput";
-	private final static Pattern WHILTE_SPACE_PATTERN = Pattern.compile("[\\s]+");
+	private final static Pattern WHILTE_SPACE_PATTERN = Pattern.compile(PSF.Regex.GREEDY_WHITESPACE);
 	private static int maxBinSize = 0;
 	private static String CHR_MAP_FILE_ID = "_chr_map";
 	private static String REFERENCE_MAP_FILENAME = "plink.bim";

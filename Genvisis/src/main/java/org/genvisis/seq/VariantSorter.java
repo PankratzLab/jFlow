@@ -14,6 +14,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Collapsed;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 
@@ -197,7 +198,7 @@ public class VariantSorter {
 				v = hash.get(gene2);
 				counts = new int[CATS.length][FUNCS.length];
 				for (int j = 0; j < v.size(); j++) {
-					line = v.elementAt(j).split("[\\s]+");
+					line = v.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
 					funcIndex = Collapsed.indexOfStr(line[1], FUNCS);
 					if (funcIndex == 0 && Collapsed.indexOfStr(gene2, favGenes) >= 0) {
 						Collapsed.addToHashVec(favHits, gene2, Collapsed.toStr(line), false);

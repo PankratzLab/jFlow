@@ -20,6 +20,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Hits;
@@ -90,7 +91,7 @@ public class Plink {
 		filter = new Vector<String>();
 		count = 0;
 		for (String ind : inds) {
-			line = ind.split("[\\s]+");
+			line = ind.split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!imiss.containsKey(line[0] + "\t" + line[1])) {
 				System.err.println("Error - 'plink.imiss' does not contain individual" + line[0] + ","
 													 + line[1]);
@@ -166,9 +167,9 @@ public class Plink {
 		imiss = new Hashtable<String, String>();
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), IMISS_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), IMISS_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length < 6) {
 					System.err.println("Error: file \"" + filename
 														 + "\" appears to be truncated (or is not finished being generated)");
@@ -209,9 +210,9 @@ public class Plink {
 		imiss = new Hashtable<String, String>();
 		try {
 			reader = new BufferedReader(new FileReader("plink.imiss"));
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), IMISS_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), IMISS_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				imiss.put(line[0] + "\t" + line[1], line[5]);
 			}
 			reader.close();
@@ -232,7 +233,7 @@ public class Plink {
 				reader = new BufferedReader(new FileReader("tmp.list" + ext.formNum(listCount, 3)));
 				count = 0;
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					hash.put(line[0] + "\t" + line[1], "");
 					count++;
 				}
@@ -257,7 +258,7 @@ public class Plink {
 		filter = new Vector<String>();
 		count = 0;
 		for (String ind : inds) {
-			line = ind.split("[\\s]+");
+			line = ind.split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!imiss.containsKey(line[0] + "\t" + line[1])) {
 				System.err.println("Error - 'plink.imiss' does not contain individual" + line[0] + ","
 													 + line[1]);
@@ -332,9 +333,9 @@ public class Plink {
 		try {
 			reader = new BufferedReader(new FileReader(genomeFile));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(ids) + "_" + genomeFile));
-			writer.println(ArrayUtils.toStr(reader.readLine().trim().split("[\\s]+")));
+			writer.println(ArrayUtils.toStr(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if ((filterPairs
 						 && (hash.containsKey(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3])
 								 || hash.containsKey(line[2] + "\t" + line[3] + "\t" + line[0] + "\t" + line[1])))
@@ -372,9 +373,9 @@ public class Plink {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(genomeFile));
 			PrintWriter writer = new PrintWriter(new FileWriter(genomeFile + "_" + ext.rootOf(ids)));
-			writer.println(ArrayUtils.toStr(reader.readLine().trim().split("[\\s]+")));
+			writer.println(ArrayUtils.toStr(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!hash.containsKey(line[0] + "\t" + line[1])
 						&& !hash.containsKey(line[2] + "\t" + line[3])) {
 					writer.println(ArrayUtils.toStr(line));
@@ -422,7 +423,7 @@ public class Plink {
 			log.reportError("Error - specified .imiss file missing , indiviudals will not be preferentially selected based on call rate");
 			callrates = new Hashtable<String, String>();
 		} else {
-			ext.checkHeader(Files.getHeaderOfFile(iMissFile, "[\\s]+", log), IMISS_HEADER, true);
+			ext.checkHeader(Files.getHeaderOfFile(iMissFile, PSF.Regex.GREEDY_WHITESPACE, log), IMISS_HEADER, true);
 			callrates = HashVec.loadFileToHashString(iMissFile, new int[] {0, 1}, new int[] {5}, false,
 																							 "\t", false, false, false);
 			log.report("Successfully loaded '" + iMissFile + "'");
@@ -436,7 +437,7 @@ public class Plink {
 											+ ") is missing, individuals will not be preferentially selected based on LRR_SD");
 			lrr_sds = new Hashtable<String, String>();
 		} else {
-			boolean properHeader = ext.checkHeader(Files.getHeaderOfFile(lrrFile, "[\\s]+", log),
+			boolean properHeader = ext.checkHeader(Files.getHeaderOfFile(lrrFile, PSF.Regex.GREEDY_WHITESPACE, log),
 																						 new String[] {"SAMPLE", "LRR_SD"}, new int[] {0, 2},
 																						 false, log, true);
 			if (properHeader) {
@@ -481,7 +482,7 @@ public class Plink {
 		duplicates = new HashMap<String, Set<String>>();
 		try {
 			reader = Files.getAppropriateReader(genomeFile);
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CLUSTER_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CLUSTER_HEADER, true);
 			log.report(ext.getTime() + "\tProcessing " + ext.removeDirectoryInfo(genomeFile) + "...");
 
 
@@ -489,7 +490,7 @@ public class Plink {
 			writer.println("FID1\tIID1\tCALLRATE1\tLRR_SD1\tFID2\tIID2\tCALLRATE2\tLRR_SD2\tP(IBD=0)\tP(IBD=1)\tP(IBD=2)\tPI_HAT\tType\tFID_KEEP\tIID_KEEP\tFID_DROP\tIID_DROP");
 
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < 2; i++) {
 					if (!in.containsKey(line[i * 2 + 0] + "\t" + line[i * 2 + 1])
 							&& !out.containsKey(line[i * 2 + 0] + "\t" + line[i * 2 + 1])) {
@@ -614,7 +615,7 @@ public class Plink {
 			reader = new BufferedReader(new FileReader(temp));
 			writer = new PrintWriter(new FileWriter(genomeFileRoot + "_relateds.xln"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (out.containsKey(line[13] + "\t" + line[14])) {
 					line[13] = line[14] = ".";
 				}
@@ -755,11 +756,11 @@ public class Plink {
 				// pair with a .log file if it exists to check numRepsEach and replace if need be
 				try {
 					reader = new BufferedReader(new FileReader(filename));
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					ext.checkHeader(line, MPERM_HEADER, true);
 					count = 0;
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (rep == 1) {
 							markerNames[count] = line[1];
 						} else if (!line[1].equals(markerNames[count])) {
@@ -837,10 +838,10 @@ public class Plink {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(filename + ".xln"));
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"),
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 											new String[] {"SNP", "FID", "IID", "NEW", "OLD"}, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				count++;
 				if (count % 1000000 == 0) {
 					System.out.println(count);
@@ -925,7 +926,7 @@ public class Plink {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(ext.addToRoot(filename, "_shifterPAR")));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[0].equals("23")) {
 					System.out.println(pars); // TODO unfinished business
 				}

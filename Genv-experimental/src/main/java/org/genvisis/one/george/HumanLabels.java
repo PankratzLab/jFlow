@@ -2,12 +2,10 @@ package org.genvisis.one.george;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Scanner;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Scanner;
 
 public class HumanLabels {
 	// filename is .csv containing human labels for each data point

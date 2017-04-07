@@ -14,6 +14,7 @@ import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class PlinkMarkerLoader implements Runnable {
@@ -143,7 +144,7 @@ public class PlinkMarkerLoader implements Runnable {
 			String temp = null;
 			int cnt = 0;
 			while ((temp = reader.readLine()) != null) {
-				line = temp.trim().split("[\\s]+");
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				famIDList[cnt] = line[0] + "\t" + line[1];
 				cnt++;
 			}

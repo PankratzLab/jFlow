@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Maths;
 
@@ -65,7 +66,7 @@ public class GelBands {
 					ladder = ArrayUtils.intArray((line.length - 1) / 2, -1);
 					for (int i = 0; i < ladder.length; i++) {
 						for (int j = 0; j < 2; j++) {
-							cell = line[i * 2 + 1 + j].split("[\\s]+");
+							cell = line[i * 2 + 1 + j].split(PSF.Regex.GREEDY_WHITESPACE);
 							try {
 								if (ladder[i] == -1) {
 									ladder[i] = Integer.parseInt(cell[0]);

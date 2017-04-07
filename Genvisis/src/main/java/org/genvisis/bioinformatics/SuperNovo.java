@@ -31,6 +31,7 @@ import org.genvisis.common.CountHash;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -2106,7 +2107,7 @@ public class SuperNovo {
 
 			try {
 				reader = new BufferedReader(new FileReader(resultDir + resultFilename));
-				// header = reader.readLine().trim().split("[\\s]+");
+				// header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				header = reader.readLine().trim().split("\t");
 				indices = ext.indexFactors(COLUMNS_NEEDED_FROM_PHASE1_OUTPUT, header, false, true);
 				while (reader.ready()) {
@@ -2429,7 +2430,7 @@ public class SuperNovo {
 
 			try {
 				reader = new BufferedReader(new FileReader(resultDir + resultFilename));
-				// header = reader.readLine().trim().split("[\\s]+");
+				// header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				header = reader.readLine().trim().split("\t");
 				indices = ext.indexFactors(COLUMNS_NEEDED_FROM_PHASE1_OUTPUT, header, false, true);
 				while (reader.ready()) {
@@ -3902,7 +3903,7 @@ public class SuperNovo {
 				temp = reader.readLine();
 			} while (!temp.startsWith(READ_COUNTS_HEADER_FORMAT2));
 
-			if (!ext.checkHeader(temp.split("[\\s]+"), READ_COUNTS_HEADER_FORMAT2.split("\t"), false)) {
+			if (!ext.checkHeader(temp.split(PSF.Regex.GREEDY_WHITESPACE), READ_COUNTS_HEADER_FORMAT2.split("\t"), false)) {
 				log.reportError("Problem with header for file: " + fullpathToReadCountsFile);
 				reader.close();
 				return null;

@@ -1,9 +1,8 @@
 package org.genvisis.filesys;
 
-import java.util.List;
 import java.io.Serializable;
 import java.util.Hashtable;
-import java.util.Vector;
+import java.util.List;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.SerializedFiles;

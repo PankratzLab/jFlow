@@ -15,6 +15,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 import com.google.common.primitives.Doubles;
@@ -161,7 +162,7 @@ public class PermuteOnePer {
 		int[][] variables = new int[data.length][numTraits];
 
 		for (int i = 0; i < data.length; i++) {
-			line = data[i].split("[\\s]+");
+			line = data[i].split(PSF.Regex.GREEDY_WHITESPACE);
 			if (line.length != numTraits + 2) {
 				System.err.println("Error - line does not have the proper number of columns");
 			}

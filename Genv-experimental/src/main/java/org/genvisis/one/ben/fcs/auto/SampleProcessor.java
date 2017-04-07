@@ -20,7 +20,6 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.PlainTextExport;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
-import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
 import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.GateFileUtils;
 import org.genvisis.one.ben.fcs.gating.Workbench.SampleNode;

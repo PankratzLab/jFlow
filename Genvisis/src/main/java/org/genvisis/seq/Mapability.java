@@ -11,6 +11,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 
@@ -146,7 +147,7 @@ public class Mapability {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(filename + "_positions.xln"));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, new String[] {"Chr", "Position"}, new int[] {0, 1}, false, new Logger(),
 											true);
 			for (int i = 0; i < passes.length; i++) {
@@ -154,7 +155,7 @@ public class Mapability {
 			}
 			writer.println(ArrayUtils.toStr(line));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				seg = new Segment("chr" + line[0] + ":" + line[1] + "-" + (Integer.parseInt(line[1]) + 1));
 				for (int i = 0; i < passes.length; i++) {
 					overlaps = false;

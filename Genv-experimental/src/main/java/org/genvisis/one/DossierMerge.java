@@ -12,6 +12,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Internat;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.RealTextFormatWriter;
 import org.genvisis.common.ext;
 
@@ -118,7 +119,7 @@ public class DossierMerge {
 				}
 
 				if (timesCited != null) {
-					line = timesCited.split("[\\s]+");
+					line = timesCited.split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.println((rtfOutput ? "\\bullet \\tab " : "\t") + "Times Cited: " + line[0]
 												 + " (Scopus) / " + line[1] + " (Google Scholar)");
 				} else {
@@ -182,7 +183,7 @@ public class DossierMerge {
 													&& j < results.length; j++) {
 						if (doi == null && results[j].contains("doi: ")) {
 							doi = results[j].substring(results[j].indexOf("doi: ") + 5);
-							doi = doi.split("[\\s]+")[0];
+							doi = doi.split(PSF.Regex.GREEDY_WHITESPACE)[0];
 							if (doi.contains("</div>")) {
 								doi = doi.substring(0, doi.indexOf("</div>"));
 							}

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class RemoveMarkersFromResults {
@@ -32,9 +33,9 @@ public class RemoveMarkersFromResults {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				hash.put(line[0], "");
 			}
 			reader.close();
@@ -65,14 +66,14 @@ public class RemoveMarkersFromResults {
 
 				temp = reader.readLine();
 				writer.println(temp);
-				line = temp.trim().split("[\\s]+");
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				snpIndex = ext.indexOfStr("SNP", line);
 				if (snpIndex == -1) {
 					System.err.println("Error - could not find a column named \"SNP\" in file " + current);
 				}
 				while (reader.ready()) {
 					temp = reader.readLine();
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (!hash.containsKey(line[snpIndex])) {
 						writer.println(temp);
 					}

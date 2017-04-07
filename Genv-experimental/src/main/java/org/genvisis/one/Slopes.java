@@ -15,6 +15,7 @@ import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Vectors;
 import org.genvisis.common.ext;
 import org.genvisis.parse.GenParser;
@@ -39,12 +40,12 @@ public class Slopes {
 			reader = new BufferedReader(new FileReader(dir + filename));
 			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_slopes.xln"));
 			writer.println("MRN\tSlopeAll\tN\tSlopePre\tN\tSlopePost\tN");
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!line[0].equals("MRN")) {
 				System.err.println("Error - expecting header with MRN");
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				refDate = parseDate(line[1]);
 				timepoints = (line.length - 2) / 2;
 				allValues = new Vector<String>();
@@ -135,12 +136,12 @@ public class Slopes {
 			reader = new BufferedReader(new FileReader(dir + filename));
 			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_slopes.xln"));
 			writer.println("MRN\tSlope\tN");
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!line[0].equals("MRN") && !line[0].equals("id")) {
 				System.err.println("Error - expecting header with MRN or id");
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				HashVec.addToHashVec(hash, line[0], line[1] + "\t" + line[2], true);
 			}
 			ids = HashVec.getKeys(hash);
@@ -152,7 +153,7 @@ public class Slopes {
 					dates = new double[pairs.size()];
 					values = new double[pairs.size()];
 					for (int j = 0; j < pairs.size(); j++) {
-						line = pairs.elementAt(j).split("[\\s]+");
+						line = pairs.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
 						dates[j] = parseDate(line[0]);
 						values[j] = Double.parseDouble(line[1]);
 					}
@@ -262,7 +263,7 @@ public class Slopes {
 				dates = Vectors.initializedArray(DoubleVector.class, 3);
 				dateCheck = new Hashtable<String, String>();
 				for (int j = 0; j < v.size(); j++) {
-					line = v.elementAt(j).split("[\\s]+");
+					line = v.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
 					for (int k = 0; k < line.length / 2; k++) {
 						date = GenParser.procDouble(line[k * 2 + 0]);
 						value = GenParser.procDouble(line[k * 2 + 1]);
@@ -388,7 +389,7 @@ public class Slopes {
 				firstAfter = Double.POSITIVE_INFINITY;
 
 				for (int j = 0; j < v.size(); j++) {
-					line = v.elementAt(j).split("[\\s]+");
+					line = v.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
 					for (int k = 0; k < line.length / 2; k++) {
 						date = GenParser.procDouble(line[k * 2 + 0]);
 						value = GenParser.procDouble(line[k * 2 + 1]);

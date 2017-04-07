@@ -11,6 +11,7 @@ import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class SasOutput {
@@ -40,11 +41,11 @@ public class SasOutput {
 				temp = reader.readLine().trim();
 				if (temp.startsWith("For all")) {
 					line = temp.trim().split("-");
-					line = line[1].split("[\\s]+");
+					line = line[1].split(PSF.Regex.GREEDY_WHITESPACE);
 					type = ArrayUtils.toStr(ArrayUtils.subArray(line, 0, line.length - 1), "_");
 				}
 				if (temp.startsWith("-----")) {
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					// System.err.println(temp);
 					stratum = ArrayUtils.toStr(ArrayUtils.subArray(line, 1, line.length - 1), "_");
 
@@ -58,11 +59,11 @@ public class SasOutput {
 				if (temp.startsWith("******")) {
 					inMeans = !inMeans;
 				} else if (inMeans) {
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (hash.containsKey(line[0])) {
 						temp = hash.get(line[0]) + "\t" + ArrayUtils.toStr(line);
 					}
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					hash.put(line[0], ArrayUtils.toStr(line) + "\t" + type + "\t" + stratum);
 				}
 

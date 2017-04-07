@@ -26,6 +26,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.parse.GenParser;
 import org.genvisis.qsub.Qsub;
@@ -908,7 +909,7 @@ public class FAST {
 		System.out.println(ext.getTime() + "]\tParsing results file according to given FORMAT...");
 		String finalFormat = concattedResultsFile + " tab out=" + outFileName
 												 + FORMAT.replace(COUNT_SYMB, count + "");
-		String[] args = ext.removeQuotes(finalFormat).trim().split("[\\s]+");
+		String[] args = ext.removeQuotes(finalFormat).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 		GenParser.parse(args, new Logger());
 		System.out.println(ext.getTime() + "]\tParsing complete!");
 	}
@@ -970,7 +971,7 @@ public class FAST {
 				String line = reader.readLine();
 				if (first) {
 					if (writePValThresh) {
-						indices = ext.indexFactors(new String[][] {Aliases.PVALUES}, line.split("[\\s]+"),
+						indices = ext.indexFactors(new String[][] {Aliases.PVALUES}, line.split(PSF.Regex.GREEDY_WHITESPACE),
 																			 false, true, true, false);
 					}
 					writer.println(line);
@@ -978,7 +979,7 @@ public class FAST {
 				}
 				while ((line = reader.readLine()) != null) {
 					if (writePValThresh && indices[0] != -1) {
-						double pval = Double.parseDouble(line.split("[\\s]+")[indices[0]]);
+						double pval = Double.parseDouble(line.split(PSF.Regex.GREEDY_WHITESPACE)[indices[0]]);
 						if (pval <= pvalThreshold) {
 							pvalWriter.println(line);
 						}
@@ -1093,7 +1094,7 @@ public class FAST {
 						String line = null;
 						reader.readLine(); // header
 						while ((line = reader.readLine()) != null) {
-							String mkr = line.split("[\\s]+")[1];
+							String mkr = line.split(PSF.Regex.GREEDY_WHITESPACE)[1];
 							if (tempSnps.contains(mkr)) {
 								dataFilesPerSNP.put(mkr, ext.verifyDirFormat(dataDefs.dataDir) + dFile);
 								dataLinePerSNP.put(mkr, cnt);
@@ -1136,7 +1137,7 @@ public class FAST {
 							snpDataMap = new HashMap<String, String[]>();
 							studyPopDataPerSNP.put(study + "\t" + pop, snpDataMap);
 						}
-						snpDataMap.put(snp, line.split("[\\s]+"));
+						snpDataMap.put(snp, line.split(PSF.Regex.GREEDY_WHITESPACE));
 					}
 				} catch (IOException e) {
 					e.printStackTrace();

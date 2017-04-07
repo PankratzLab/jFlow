@@ -9,13 +9,14 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import com.google.common.collect.Lists;
-
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
+
+import com.google.common.collect.Lists;
 
 public class Picard {
 	public static final String PICARD_JAR = "picard.jar";
@@ -411,7 +412,7 @@ public class Picard {
 				BufferedReader reader = Files.getAppropriateReader(picardMetricsFile);
 				String[] line;
 				do {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				} while (reader.ready() && (ext.indexFactors(new String[][] {PICARD_METRICS}, line, false,
 																										 true, false, false)[0] == -1));
 				if (!reader.ready()) {
@@ -419,7 +420,7 @@ public class Picard {
 													+ ArrayUtils.toStr(PICARD_METRICS) + " in file " + picardMetricsFile);
 				} else {
 					int[] indices = ext.indexFactors(PICARD_METRICS, line, true, false);
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					for (int i = 0; i < indices.length; i++) {
 						try {
 							curMetrics[i] = Double.parseDouble(line[indices[i]]);

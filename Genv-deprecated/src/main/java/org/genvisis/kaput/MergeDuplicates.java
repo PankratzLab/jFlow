@@ -12,6 +12,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 
 public class MergeDuplicates {
 	public static final String WINDOWS_DIRECTORY = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\duplicates\\";
@@ -38,7 +39,7 @@ public class MergeDuplicates {
 			while (reader.ready()) {
 				temp = reader.readLine();
 				v.add(temp);
-				line = temp.split("[\\s]+");
+				line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length > count) {
 					count = line.length;
 				}
@@ -61,7 +62,7 @@ public class MergeDuplicates {
 								+ ArrayUtils.toStr(ArrayUtils.stringArraySequence(count, "\tSample #")));
 		for (int i = 0; i < v.size(); i++) {
 			System.out.println("Processing: " + v.elementAt(i));
-			line = v.elementAt(i).split("[\\s]+");
+			line = v.elementAt(i).split(PSF.Regex.GREEDY_WHITESPACE);
 			numSamples = line.length;
 			samples = new String[numSamples + 1][];
 			for (int j = 0; j < numSamples; j++) {
@@ -72,7 +73,7 @@ public class MergeDuplicates {
 				}
 				try {
 					reader = new BufferedReader(new FileReader(dir + PEDS + line[j] + ".ped"));
-					samples[j] = ArrayUtils.subArray(reader.readLine().split("[\\s]+"), 1);
+					samples[j] = ArrayUtils.subArray(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), 1);
 					if (j == 0) {
 						count = samples.length;
 					} else if (samples.length != count) {

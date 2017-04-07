@@ -14,6 +14,7 @@ import org.genvisis.common.Aliases;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -67,7 +68,7 @@ public class RandSortTest {
 		positions = new int[markerNames.length];
 		for (int i = 0; i < markerNames.length; i++) {
 			if (snpPositions.containsKey(markerNames[i])) {
-				line = snpPositions.get(markerNames[i]).split("[\\s]+");
+				line = snpPositions.get(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE);
 				chrs[i] = Positions.chromosomeNumber(line[0], log);
 				chrCounts[chrs[i]]++;
 				positions[i] = Integer.parseInt(line[1]);
@@ -155,7 +156,7 @@ public class RandSortTest {
 				if (delimiter.equals(",")) {
 					line = ext.splitCommasIntelligently(temp, true, new Logger());
 				} else if (temp.indexOf("\t") == -1) {
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				} else {
 					line = temp.split("\t", -1);
 				}

@@ -10,6 +10,7 @@ import java.util.Vector;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class tools {
@@ -83,9 +84,9 @@ public class tools {
 		try {
 			reader = tools.getNinfoReader(2, false);
 
-			ext.checkHeader(reader.readLine().split("[\\s]+"), NINFO2_HEADER, true);
+			ext.checkHeader(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), NINFO2_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length > 6) {
 					if (ext.indexOfStr(line[6], PD_NAMES) >= 0) {
 						if (ext.indexOfStr(line[7], new String[] {"VPD", "CONF"}) >= 0) {
@@ -137,9 +138,9 @@ public class tools {
 		try {
 			reader = tools.getNinfoReader(whichNinfo, false);
 
-			ext.checkHeader(reader.readLine().split("[\\s]+"), NINFO2_HEADER, true);
+			ext.checkHeader(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), NINFO2_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length > 6) {
 					if (ext.indexOfStr(line[6], PD_NAMES) >= 0) {
 						if (ext.indexOfStr(line[7], new String[] {"CONF"}) >= 0) {
@@ -182,7 +183,7 @@ public class tools {
 		try {
 			reader = tools.getNinfoReader(3);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[0].toUpperCase().startsWith("PHENO")) {
 					hash.put(line[1] + "\t" + line[2], line[3]);
 					hash.put(line[1] + ext.formNum(line[2], 3), line[3]);
@@ -273,9 +274,9 @@ public class tools {
 		try {
 			reader = tools.getNinfoReader(2, false);
 
-			ext.checkHeader(reader.readLine().split("[\\s]+"), NINFO2_HEADER, true);
+			ext.checkHeader(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), NINFO2_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[2].equals("F")) {
 					trav = "2";
 				} else if (line[2].equals("M")) {
@@ -315,12 +316,12 @@ public class tools {
 			reader = Files.getReader("ninfo" + whichNinfo + ".dat", alt_locs);
 			if (whichNinfo == 1) {
 				reader.mark(10000);
-				ext.checkHeader(reader.readLine().trim().split("[\\s]+"), NINFO1_HEADER, true);
+				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), NINFO1_HEADER, true);
 				reader.reset();
 			}
 			if (whichNinfo == 2) {
 				reader.mark(10000);
-				ext.checkHeader(reader.readLine().trim().split("[\\s]+"), NINFO2_HEADER, true);
+				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), NINFO2_HEADER, true);
 				reader.reset();
 			}
 		} catch (Exception e) {
@@ -360,10 +361,10 @@ public class tools {
 
 		try {
 			reader = new BufferedReader(new FileReader(dbFile));
-			index = ext.indexFactors(new String[] {trait}, reader.readLine().split("[\\s]+"), true,
+			index = ext.indexFactors(new String[] {trait}, reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), true,
 															 true)[0];
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				hash.put(line[1] + "\t" + line[2], line[index]);
 			}
 			reader.close();
@@ -402,9 +403,9 @@ public class tools {
 		famHash = new Hashtable<String, Hashtable<String, Vector<String>>>();
 		try {
 			reader = getNinfoReader(2, true);
-			ext.checkHeader(reader.readLine().split("[\\s]+"), NINFO2_HEADER, true);
+			ext.checkHeader(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), NINFO2_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (famHash.containsKey(line[0])) {
 					hash = famHash.get(line[0]);
 				} else {
@@ -441,8 +442,8 @@ public class tools {
 						count++;
 					}
 				}
-				if (count > max && !rents[j].split("[\\s]+")[0].equals("0")
-						&& !rents[j].split("[\\s]+")[1].equals("0")) {
+				if (count > max && !rents[j].split(PSF.Regex.GREEDY_WHITESPACE)[0].equals("0")
+						&& !rents[j].split(PSF.Regex.GREEDY_WHITESPACE)[1].equals("0")) {
 					max = count;
 					pick = j;
 				}
@@ -453,8 +454,8 @@ public class tools {
 				v = hash.get(rents[pick]);
 				results[i] = new String[3 + v.size()];
 				results[i][0] = fams[i];
-				results[i][1] = rents[pick].split("[\\s]+")[0];
-				results[i][2] = rents[pick].split("[\\s]+")[1];
+				results[i][1] = rents[pick].split(PSF.Regex.GREEDY_WHITESPACE)[0];
+				results[i][2] = rents[pick].split(PSF.Regex.GREEDY_WHITESPACE)[1];
 				for (int j = 0; j < v.size(); j++) {
 					results[i][3 + j] = v.elementAt(j);
 				}

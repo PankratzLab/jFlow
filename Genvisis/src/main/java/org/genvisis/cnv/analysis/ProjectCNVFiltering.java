@@ -2,8 +2,8 @@ package org.genvisis.cnv.analysis;
 
 import java.util.Hashtable;
 
-import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;

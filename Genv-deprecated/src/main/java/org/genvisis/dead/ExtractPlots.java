@@ -15,6 +15,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class ExtractPlots {
@@ -388,7 +389,7 @@ public class ExtractPlots {
 			try {
 				reader = new BufferedReader(new FileReader(files[i]));
 				while (reader.ready()) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					hash.put(line[0], i + "");
 				}
 				reader.close();
@@ -406,7 +407,7 @@ public class ExtractPlots {
 			writer = new PrintWriter(new FileWriter(LOOKUP_DIR + "markersDone.out"));
 			rep = count = 0;
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				alreadyDone = false;
 				for (int i = 0; i < files.length && !alreadyDone; i++) {
 					if (hash.containsKey(line[0])) {

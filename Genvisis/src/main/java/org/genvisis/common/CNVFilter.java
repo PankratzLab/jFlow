@@ -6,10 +6,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Vector;
 
-import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;

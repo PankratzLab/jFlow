@@ -20,6 +20,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.parse.GenParser;
@@ -235,13 +236,13 @@ public class Probabel {
 						}
 					}
 					System.out.print("Parsing '" + filename + "'");
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (var.size() == 0) {
 						writer.println(ArrayUtils.toStr(line) + "\tZscore_pval\tchi2_pval");
 					}
 					count = countErr = 0;
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (markerNames != null && count >= markerNames.length) {
 							System.err.println("Error - There are more markers in '" + filename
 																 + "' than there are in "
@@ -322,12 +323,12 @@ public class Probabel {
 				try {
 					reader = new BufferedReader(new FileReader("chr" + chr + "/" + ext.rootOf(pheno) + "_chr"
 																										 + chr + "_add.out.txt"));
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (var.size() == 0) {
 						writer.println(ArrayUtils.toStr(line) + "\tZscore_pval\tchi2_pval");
 					}
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						writer.println(ArrayUtils.toStr(line) + "\t"
 													 + (line[10].equals("nan") ? "nan"
 																										 : ProbDist.NormDist(Double.parseDouble(line[10])
@@ -372,7 +373,7 @@ public class Probabel {
 		try {
 			reader = new BufferedReader(new FileReader(classFile));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				hash.put(line[0] + "\t" + line[1], line[2]);
 				hash.put(line[1], line[2]);
 			}
@@ -401,7 +402,7 @@ public class Probabel {
 			writer.println(reader.readLine());
 			count = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (lookup == null) {
 					if (hash.containsKey(line[0])) {
 						if (!hash.get(line[0]).equalsIgnoreCase(selectedClass)) {
@@ -412,10 +413,10 @@ public class Probabel {
 						line[1] = "NA";
 					}
 				} else {
-					if (!line[0].equals(lookup[count].split("[\\s]+")[1])) {
+					if (!line[0].equals(lookup[count].split(PSF.Regex.GREEDY_WHITESPACE)[1])) {
 						System.err.println("Error - lookup does not match phenotype file (at line "
 															 + (count + 1) + " found " + line[0] + ", expecting '"
-															 + lookup[count].split("[\\s]+")[1] + "')");
+															 + lookup[count].split(PSF.Regex.GREEDY_WHITESPACE)[1] + "')");
 						System.exit(1);
 					}
 					if (hash.containsKey(lookup[count])) {
@@ -460,7 +461,7 @@ public class Probabel {
 		try {
 			reader = new BufferedReader(new FileReader(classFile));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				hash.put(line[0] + "\t" + line[1], line[2]);
 				hash.put(line[1], line[2]);
 			}
@@ -486,11 +487,11 @@ public class Probabel {
 			reader = new BufferedReader(new FileReader(pheno));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(pheno, false) + "_" + affectedClass
 																							+ "_vs_" + unaffectedClass + ".dat"));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			writer.println(line[0] + "\t" + line[1]);
 			count = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (lookup == null) {
 					if (hash.containsKey(line[0])) {
 						if (hash.get(line[0]).equalsIgnoreCase(affectedClass)) {
@@ -505,10 +506,10 @@ public class Probabel {
 						line[1] = "NA";
 					}
 				} else {
-					if (!line[0].equals(lookup[count].split("[\\s]+")[1])) {
+					if (!line[0].equals(lookup[count].split(PSF.Regex.GREEDY_WHITESPACE)[1])) {
 						System.err.println("Error - lookup does not match phenotype file (at line "
 															 + (count + 1) + " found " + line[0] + ", expecting '"
-															 + lookup[count].split("[\\s]+")[1] + "')");
+															 + lookup[count].split(PSF.Regex.GREEDY_WHITESPACE)[1] + "')");
 						System.exit(1);
 					}
 					if (hash.containsKey(lookup[count])) {
@@ -741,7 +742,7 @@ public class Probabel {
 				ArrayList<PrintWriter> dosageWriters = new ArrayList<PrintWriter>();
 				String line = null;
 				while ((line = reader.readLine()) != null) {
-					String[] parts = line.split("[\\s]+");
+					String[] parts = line.split(PSF.Regex.GREEDY_WHITESPACE);
 
 					int chunks = (parts.length - 2) / 500000 + 1;
 					if (dosageWriters.size() == 0) {
@@ -844,7 +845,7 @@ public class Probabel {
 				String line = null;
 				while ((line = reader.readLine()) != null) {
 
-					String[] parts = line.trim().split("[\\s]+");
+					String[] parts = line.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.println(ArrayUtils.toStr(parts) + "\t"
 												 + (parts[9].equals("nan") ? "nan"
 																									 : ProbDist.NormDist(Double.parseDouble(parts[9])

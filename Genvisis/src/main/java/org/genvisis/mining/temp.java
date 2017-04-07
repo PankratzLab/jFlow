@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 import com.google.common.primitives.Doubles;
@@ -74,7 +75,7 @@ public class temp {
 			reader = new BufferedReader(new FileReader("kNNdata5.txt"));
 			reader.readLine();
 			for (int i = 0; i < data.length; i++) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				data[i] = new double[] {Double.parseDouble(line[1]), Double.parseDouble(line[2])};
 			}
 			reader.close();

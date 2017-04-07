@@ -12,6 +12,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class ParkinAudit {
@@ -216,7 +217,7 @@ public class ParkinAudit {
 			reader = Files.getReader(plateInfo, ALTS);
 			ext.checkHeader(reader.readLine().split("\t"), PLATE_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				uniqueID = unique(line[0], line[1]);
 				if (indData.containsKey(uniqueID)) {
 					indData.get(uniqueID).firstPlate = Integer.parseInt(line[3]);
@@ -237,7 +238,7 @@ public class ParkinAudit {
 			reader = Files.getReader(inLab, ALTS);
 			ext.checkHeader(reader.readLine().split("\t"), INLAB_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				uniqueID = unique(line[0], line[1]);
 				if (indData.containsKey(uniqueID)) {
 					indData.get(uniqueID).inLab = true;
@@ -259,7 +260,7 @@ public class ParkinAudit {
 			reader = Files.getReader(seanList, ALTS);
 			ext.checkHeader(reader.readLine().split("\t"), new String[] {"FamID", "IndID"}, true);
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				uniqueID = unique(line[0], line[1]);
 				if (indData.containsKey(uniqueID)) {
 					indData.get(uniqueID).seanSeqd = true;

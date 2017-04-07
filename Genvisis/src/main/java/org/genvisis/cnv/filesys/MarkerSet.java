@@ -13,6 +13,7 @@ import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
@@ -282,7 +283,7 @@ public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
 
 			reader = new BufferedReader(new FileReader(filename));
 			for (int i = 0; i < count; i++) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				markerNames[i] = line[0];
 				chrs[i] = Positions.chromosomeNumber(line[1]);
 				positions[i] = Integer.parseInt(line[2]);

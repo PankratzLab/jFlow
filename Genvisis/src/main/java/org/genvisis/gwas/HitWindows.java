@@ -14,6 +14,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -266,14 +267,14 @@ public class HitWindows {
 		hash = new Hashtable<String, Vector<String>>();
 		try {
 			reader = new BufferedReader(new FileReader(inputHits));
-			header = reader.readLine().trim().split("[\\s]+");
+			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			indices = ext.indexFactors(new String[][] {{"Trait"}, Aliases.CHRS, Aliases.POSITIONS},
 																 header, false, true, true, true);
 			if (!ArrayUtils.equals(indices, new int[] {0, 1, 2})) {
 				log.reportError("Error - currently expecting format: Trait\tChr\tPosition");
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				HashVec.addIfAbsent(line[0], v);
 				HashVec.addToHashVec(hash, line[0], line[1] + "\t" + line[1], false);
 			}
@@ -292,7 +293,7 @@ public class HitWindows {
 			v = hash.get(traits[i]);
 			segs[i] = new Segment[v.size()];
 			for (int j = 0; j < segs[i].length; j++) {
-				line = v.elementAt(j).split("[\\s]+");
+				line = v.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
 				segs[i][j] = new Segment(Positions.chromosomeNumber(line[0]),
 																 Integer.parseInt(line[1]) - window,
 																 Integer.parseInt(line[1]) + window);
@@ -304,7 +305,7 @@ public class HitWindows {
 		markerNames = markerSet.getMarkerNames();
 		chrPositions = markerSet.getChrAndPositions();
 		for (int m = 0; m < 10; m++) {
-			line = chrPositions[m].split("[\\s]+");
+			line = chrPositions[m].split(PSF.Regex.GREEDY_WHITESPACE);
 			variant = new Segment(Byte.parseByte(line[0]), Integer.parseInt(line[1]),
 														Integer.parseInt(line[1]) + 1);
 			v = new Vector<String>();

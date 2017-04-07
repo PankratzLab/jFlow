@@ -19,6 +19,7 @@ import org.genvisis.common.CountHash;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.parse.LookupTable;
 
@@ -386,7 +387,7 @@ public class DumpSAS {
 			for (String[] element : mani) {
 				try {
 					reader = new BufferedReader(new FileReader(dir + element[1] + "all_contents.xln"));
-					ext.checkHeader(reader.readLine().trim().split("[\\s]+"), ALL_CONTENTS_HEADER, true);
+					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), ALL_CONTENTS_HEADER, true);
 					if (!reader.ready()) {
 						System.err.println("'" + element[1] + "all_contents.xln" + "' contianed no elements");
 					}
@@ -433,7 +434,7 @@ public class DumpSAS {
 																									"Y20_CORE\tG3F05\tG05YTB1A\tRED STRIPE LABEL, 10ML LAVENDER TB, 1.6ML PLASMA-ISOPROSTANE"},
 																		log);
 		if (params != null) {
-			line = params.remove(0).trim().split("[\\s]+");
+			line = params.remove(0).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			crffile = ext.rootOf(filename) + "_parse.crf";
 			outfile = ext.rootOf(filename) + "_out.xln";
 			idfile = ext.rootOf(filename) + "_ids.dat";

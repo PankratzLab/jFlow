@@ -8,6 +8,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 import com.google.common.primitives.Doubles;
@@ -298,7 +299,7 @@ public class Ttest {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				v.add(new double[] {Double.parseDouble(line[0]), Double.parseDouble(line[1])});
 			}
 			reader.close();
@@ -328,7 +329,7 @@ public class Ttest {
 			reader = new BufferedReader(new FileReader(filename));
 			for (int i = 0; i < 2; i++) {
 				while (reader.ready() && !line[0].equals("")) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (!line[0].equals("")) {
 						dv.add(Double.parseDouble(line[0]));
 					}

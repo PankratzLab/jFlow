@@ -11,6 +11,7 @@ import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class GeneRegion {
@@ -32,10 +33,10 @@ public class GeneRegion {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				genes = line[4].split("\\|");
 				if (genes[0].equals(".")) {
 					genes[0] = "intergenic";

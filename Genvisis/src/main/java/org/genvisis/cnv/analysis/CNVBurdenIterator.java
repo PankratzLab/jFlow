@@ -1,6 +1,5 @@
 package org.genvisis.cnv.analysis;
 
-import java.util.List;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -8,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;

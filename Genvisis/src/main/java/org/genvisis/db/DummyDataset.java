@@ -14,6 +14,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 
 public class DummyDataset {
 	public static void createFromParameters(String filename, Logger log) {
@@ -115,7 +116,7 @@ public class DummyDataset {
 				reader = new BufferedReader(new FileReader(infile));
 				while (reader.ready()) {
 					line = reader.readLine().trim()
-											 .split(commaDelimited ? "," : (tabDelimited ? "\t" : "[\\s]+"));
+											 .split(commaDelimited ? "," : (tabDelimited ? "\t" : PSF.Regex.GREEDY_WHITESPACE));
 					if (hashes.containsKey(line[0])) {
 						hash = hashes.get(line[0]);
 					} else {

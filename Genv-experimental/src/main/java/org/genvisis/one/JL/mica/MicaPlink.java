@@ -12,10 +12,10 @@ import org.genvisis.CLI;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.ExcelConverter;
+import org.genvisis.common.ExcelConverter.ExcelConversionParams;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
-import org.genvisis.common.ExcelConverter.ExcelConversionParams;
 import org.genvisis.seq.manage.GenotypeOps;
 import org.genvisis.seq.manage.VCFOps;
 

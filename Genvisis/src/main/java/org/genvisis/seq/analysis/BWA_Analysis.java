@@ -475,7 +475,7 @@ public class BWA_Analysis {
 			int index = 0;
 			Hashtable<String, Integer> track = new Hashtable<String, Integer>();
 			while (reader.ready()) {
-				String[] line = reader.readLine().trim().split("[\\s]+");
+				String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length != 2) {
 					log.reportError(fileOfSamplePairs
 													+ " must be two columns only, with lane matched samples in each");

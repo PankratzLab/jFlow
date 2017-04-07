@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class procUnigene {
@@ -63,7 +64,7 @@ public class procUnigene {
 					temp = temp.indexOf(";") > 0 ? temp.substring(temp.indexOf("ACC=NM_") + 4,
 																												temp.indexOf(";"))
 																			 : temp.substring(temp.indexOf("ACC=NM_") + 4)
-																						 .split("[\\s]+")[0];
+																						 .split(PSF.Regex.GREEDY_WHITESPACE)[0];
 					if (data[0].equals(".")) {
 						data[0] = temp;
 					} else {

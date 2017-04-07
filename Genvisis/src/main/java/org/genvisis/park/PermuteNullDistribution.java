@@ -12,6 +12,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.LogisticRegression;
@@ -60,7 +61,7 @@ public class PermuteNullDistribution {
 			}
 			while (reader.ready()) {
 				temp = reader.readLine();
-				line = temp.split("[\\s]+");
+				line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length != numCols) {
 					System.err.println("Error - different number of columns starting at line:\n" + temp);
 					System.exit(1);
@@ -188,7 +189,7 @@ public class PermuteNullDistribution {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			increment = (int) Math.floor((double) (line.length - 2) / (double) numFiles);
 			writers = new PrintWriter[numFiles];
 			for (int i = 0; i < numFiles; i++) {
@@ -214,7 +215,7 @@ public class PermuteNullDistribution {
 				writers[i].println(line[0] + "\t" + line[1] + "\t" + line[2 + i]);
 			}
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < writers.length; i++) {
 					writers[i].println(line[0] + "\t" + line[1] + "\t" + line[2 + i]);
 				}
@@ -242,7 +243,7 @@ public class PermuteNullDistribution {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			traits = ArrayUtils.subArray(reader.readLine().split("[\\s]+"), 2);
+			traits = ArrayUtils.subArray(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), 2);
 			reader.close();
 
 			writer = Files.getWriter(filename + "-permutedSummary.out");
@@ -258,12 +259,12 @@ public class PermuteNullDistribution {
 						count = countAbove = 0;
 						if (reader.ready()) {
 							reader.readLine();
-							observed = Math.abs(Double.parseDouble(reader.readLine().split("[\\s]+")[0]));
+							observed = Math.abs(Double.parseDouble(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[0]));
 						} else {
 							observed = -1;
 						}
 						while (reader.ready()) {
-							if (Math.abs(Double.parseDouble(reader.readLine().split("[\\s]+")[0])) >= observed) {
+							if (Math.abs(Double.parseDouble(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[0])) >= observed) {
 								countAbove++;
 								grandCountAbove++;
 							}

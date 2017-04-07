@@ -11,10 +11,10 @@ import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.mtdna.HaplogroupSelector;
 import org.genvisis.seq.manage.GenotypeOps;
 import org.genvisis.seq.manage.VCFOps;
-import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+import org.genvisis.seq.manage.VCOps;
 
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;

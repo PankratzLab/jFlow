@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.park.tools;
 
@@ -38,9 +39,9 @@ public class AgeAtDeath {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(filename + ".out"));
 			writer.println("FID\tIID\tMother_Affected\tMother_AAD\tFather_Affected\tFather_AAD\tUse");
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, new String[] {"Mother", "Father"}, false);
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, HEADER, false);
 			while (reader.ready()) {
 				line = reader.readLine().split("\\t", -1);

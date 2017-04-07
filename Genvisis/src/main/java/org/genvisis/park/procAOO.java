@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class procAOO {
@@ -50,7 +51,7 @@ public class procAOO {
 		prev = "";
 		// reader.readLine(); // for gaw
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			trav = line[0];
 
 			val = line[filename.startsWith("struct") ? 7 : 2];
@@ -60,7 +61,7 @@ public class procAOO {
 					values.add(val);
 				}
 
-				line = pertinent(values).split("[\\s]+");
+				line = pertinent(values).split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(prev + "\t" + pertinent(values));
 				if (!line[0].equals(".")) {
 					means.println(prev + "\t" + line[0]);

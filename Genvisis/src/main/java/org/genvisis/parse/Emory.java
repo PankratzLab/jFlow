@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 
@@ -27,7 +28,7 @@ public class Emory {
 			System.out.println("Writing pedigree file...");
 			reader = new BufferedReader(new FileReader(dir + filename));
 			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + ".ped"));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(ArrayUtils.subArray(line, 0, 4), HEADER_STARTER, false, true);
 			markerNames = ArrayUtils.subArray(line, 4);
 			while (reader.ready()) {

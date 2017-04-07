@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class AuthorCorral {
@@ -346,7 +347,7 @@ public class AuthorCorral {
 	private static String getInitials(String first, String midTemp, String last) {
 		StringBuilder init = new StringBuilder();
 		try {
-			for (String s : first.split("[\\s]+")) {
+			for (String s : first.split(PSF.Regex.GREEDY_WHITESPACE)) {
 				init.append(s.charAt(0));
 			}
 			boolean allUpper = true;
@@ -360,11 +361,11 @@ public class AuthorCorral {
 			if (allUpper) {
 				init.append(mid);
 			} else {
-				for (String s : mid.split("[\\s]+")) {
+				for (String s : mid.split(PSF.Regex.GREEDY_WHITESPACE)) {
 					init.append(s.charAt(0));
 				}
 			}
-			for (String s : last.split("[\\s]+")) {
+			for (String s : last.split(PSF.Regex.GREEDY_WHITESPACE)) {
 				init.append(s.charAt(0));
 			}
 		} catch (Exception e) {

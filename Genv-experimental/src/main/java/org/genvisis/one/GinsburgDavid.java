@@ -18,6 +18,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
@@ -351,7 +352,7 @@ public class GinsburgDavid {
 			reader = new BufferedReader(new FileReader(dir + "untrimmed.pre"));
 			while (reader.ready()) {
 				temp = reader.readLine();
-				line = temp.trim().split("[\\s]+");
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[1].startsWith(traitStrainPrefix)) {
 					dnaList.add(line[1]);
 				}
@@ -381,7 +382,7 @@ public class GinsburgDavid {
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "trimmed.pre"));
 			for (int i = 0; i < v.size(); i++) {
-				line = v.get(i).split("[\\s]+");
+				line = v.get(i).split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
 											 + "\t" + (line[1].startsWith(bcStrainPrefix) ? "1" : "2"));
 				dnaList.remove(line[1]);
@@ -419,7 +420,7 @@ public class GinsburgDavid {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + genotypes));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			for (int i = 0; i < GENOTYPIC_HEADER.length; i++) {
 				if (!line[i].toLowerCase().startsWith(GENOTYPIC_HEADER[i])) {
 					logIt("Error - expecting the first three columns in the genotypes file to be "
@@ -432,7 +433,7 @@ public class GinsburgDavid {
 			done = false;
 			while (!done) {
 				if (reader.ready()) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (line.length > 1) {
 						markers.add(line[1] + "\t" + line[0] + "\t0\t" + line[2]);
 					}
@@ -453,7 +454,7 @@ public class GinsburgDavid {
 			while (!done) {
 				if (reader.ready()) {
 					temp = reader.readLine();
-					if (temp.trim().split("[\\s]+").length == 1) {
+					if (temp.trim().split(PSF.Regex.GREEDY_WHITESPACE).length == 1) {
 						done = true;
 					} else {
 						line = temp.trim().split("\t", -1);
@@ -497,7 +498,7 @@ public class GinsburgDavid {
 			writer.println("1");
 			writer.println(DEFAULT_MODEL1[0] + " " + DEFAULT_MODEL1[1] + " " + DEFAULT_MODEL1[2]);
 			for (int i = 0; i < markers.size(); i++) {
-				writer.println("3 2 # " + markers.elementAt(i).split("[\\s]+")[1]);
+				writer.println("3 2 # " + markers.elementAt(i).split(PSF.Regex.GREEDY_WHITESPACE)[1]);
 				writer.println((1 - maf) + " " + maf);
 			}
 			writer.println("0 0");
@@ -526,7 +527,7 @@ public class GinsburgDavid {
 			reader = new BufferedReader(new FileReader(dir + "trimmed.pre"));
 			writer = new PrintWriter(new FileWriter(dir + "pedfile.pre"));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				index = ext.indexOfStr(line[1], inds);
 				if (line[1].startsWith(traitStrainPrefix)) {
 					index = 0;
@@ -596,7 +597,7 @@ public class GinsburgDavid {
 			markerNames = new LinkageMap(dir + "map.dat").getMarkerNames();
 
 			for (String fixe : fixes) {
-				line = fixe.trim().split("[\\s]+");
+				line = fixe.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				index = ext.indexOfStr(line[2], markerNames, false, true);
 
 				if (!hash.containsKey(line[0] + ":" + line[1])) {
@@ -609,11 +610,11 @@ public class GinsburgDavid {
 				reader = new BufferedReader(new FileReader(dir + "pedfile.pre"));
 				writer = new PrintWriter(new FileWriter(dir + "mended_pedfile.pre"));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (hash.containsKey(line[0] + ":" + line[1])) {
 						v = hash.get(line[0] + ":" + line[1]);
 						for (int i = 0; i < v.size(); i++) {
-							fix = v.elementAt(i).split("[\\s]+");
+							fix = v.elementAt(i).split(PSF.Regex.GREEDY_WHITESPACE);
 							index = Integer.parseInt(fix[0]);
 							line[6 + index * 2 + 0] = fix[1];
 							line[6 + index * 2 + 1] = fix[2];
@@ -698,7 +699,7 @@ public class GinsburgDavid {
 					}
 					done = true;
 				} else {
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					fam = line[4];
 					locus = Integer.parseInt(line[6]);
 					markerName = line[8];
@@ -708,7 +709,7 @@ public class GinsburgDavid {
 							;
 						}
 
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (!line[1].endsWith(":") || !line[4].endsWith(":")) {
 							logIt("Error - could not parse either father (" + line[1] + ") or mother (" + line[4]
 										+ ")", true);
@@ -721,9 +722,9 @@ public class GinsburgDavid {
 							;
 						}
 
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						father = line[2].substring(0, line[2].indexOf(":"));
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						mother = line[2].substring(0, line[2].indexOf(":"));
 					}
 					errors.add(new String[] {fam, locus + "", markerName, father, mother});
@@ -772,12 +773,12 @@ public class GinsburgDavid {
 
 			try {
 				reader = new BufferedReader(new FileReader(dir + "map.dat"));
-				numLoci = Integer.parseInt(reader.readLine().trim().split("[\\s]+")[0]);
+				numLoci = Integer.parseInt(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]);
 				for (int i = 0; i < 6; i++) {
 					reader.readLine();
 				}
 				for (int i = 1; i <= numLoci; i++) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (markerMap.containsKey(i + "") && !markerMap.get(i + "").equals(line[3])) {
 						logIt("Error - mismatched marker declarations - genotype files (pedfile.pre and map.dat) probably don't match up with the pedcheck output (errors.out)",
 									true);
@@ -801,7 +802,7 @@ public class GinsburgDavid {
 				reader = new BufferedReader(new FileReader(dir + "pedfile.pre"));
 				writer = new PrintWriter(new FileWriter(dir + "mended_pedfile.pre"));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					iv = hash.get(line[0] + ":" + line[1]);
 					if (iv != null) {
 						for (int i = 0; i < iv.size(); i++) {
@@ -1082,7 +1083,7 @@ public class GinsburgDavid {
 
 		try {
 			reader = new BufferedReader(new FileReader(phenoFile));
-			indices = ext.indexFactors(headerTargets, reader.readLine().trim().split("[\\s]+"), false,
+			indices = ext.indexFactors(headerTargets, reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), false,
 																 true);
 			writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(phenoFile) + "trimmed.pre"));
 			writer.println("1\t99901\t0\t0\t1\t2");
@@ -1090,7 +1091,7 @@ public class GinsburgDavid {
 			writer.println("1\t88801\t99901\t77701\t1\t2");
 			writer.println("1\t77702\t0\t0\t2\t1");
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				cagePrefix = (66000 + Integer.parseInt(line[indices[1]])) + "";
 				if (!hash.containsKey(cagePrefix)) {
 					writer.println("1\t" + cagePrefix + "1\t88801\t77702\t1\t0");

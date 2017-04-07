@@ -28,6 +28,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
@@ -731,7 +732,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		markerNames = getMarkerNames();
 		for (int i = 0; i < markerNames.length; i++) {
 			if (chrs[i] == 0 && positions[i] == 0 && hash.containsKey(markerNames[i])) {
-				line = hash.get(markerNames[i]).split("[\\s]+");
+				line = hash.get(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE);
 				chrs[i] = Byte.parseByte(line[0]);
 				positions[i] = Integer.parseInt(line[1]);
 			}
@@ -1147,7 +1148,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 			return NAMES_ONLY;
 		} else if (filename.endsWith(".info")) {
 			if (Files.exists(filename, false)
-					&& Files.getHeaderOfFile(filename, "[\\s]+", new Logger())[0].equals("SNP")) {
+					&& Files.getHeaderOfFile(filename, PSF.Regex.GREEDY_WHITESPACE, new Logger())[0].equals("SNP")) {
 				return MACH_MLINFO_FORMAT;
 			} else {
 				return HAPLOVIEW_INFO_FORMAT;
@@ -1200,9 +1201,9 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 			for (int chr = 1; chr <= 22; chr++) {
 				try {
 					reader = new BufferedReader(new FileReader(dir + "genetic_map_chr" + chr + "_b36.txt"));
-					ext.checkHeader(reader.readLine().trim().split("[\\s]+"), HAPMAP_CM_SRC_HEADER, true);
+					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), HAPMAP_CM_SRC_HEADER, true);
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						writer.println(chr + "\trs" + count + "\t" + line[2] + "\t" + line[0]);
 						count++;
 					}

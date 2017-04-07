@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 
 public class haploPerm {
 	public haploPerm(int numReps) throws IOException {
@@ -26,7 +27,7 @@ public class haploPerm {
 		}
 		reader = new BufferedReader(new FileReader("aft.dat"));
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			inds.add(line[0]);
 			affstat.add(line[1]);
 		}

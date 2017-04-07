@@ -14,6 +14,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Transformations;
 
@@ -44,10 +45,10 @@ public class MatchesVisualized {
 
 		data = new double[anchors.length + barnacles.length][factorIndices.length];
 		for (int i = 0; i < anchors.length; i++) {
-			data[i] = ArrayUtils.toDoubleArray(hash.get(anchors[i]).split("[\\s]+"));
+			data[i] = ArrayUtils.toDoubleArray(hash.get(anchors[i]).split(PSF.Regex.GREEDY_WHITESPACE));
 		}
 		for (int i = 0; i < barnacles.length; i++) {
-			data[anchors.length + i] = ArrayUtils.toDoubleArray(hash.get(barnacles[i]).split("[\\s]+"));
+			data[anchors.length + i] = ArrayUtils.toDoubleArray(hash.get(barnacles[i]).split(PSF.Regex.GREEDY_WHITESPACE));
 		}
 		trans = Matrix.transpose(data);
 		for (int i = 0; i < factorIndices.length; i++) {
@@ -65,7 +66,7 @@ public class MatchesVisualized {
 		pairs = new int[anchors.length][2];
 		dists = new double[anchors.length];
 		for (int i = 0; i < pairs.length; i++) {
-			line = v.elementAt(i).split("[\\s]+");
+			line = v.elementAt(i).split(PSF.Regex.GREEDY_WHITESPACE);
 			pairs[i][0] = ext.indexOfStr(line[0], anchors);
 			pairs[i][1] = ext.indexOfStr(line[1], barnacles);
 			dists[i] = Double.parseDouble(line[2]);

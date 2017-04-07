@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Transformations;
 
@@ -28,7 +29,7 @@ public class Permap {
 		try {
 			reader = new BufferedReader(new FileReader(DIR + "pdXY.fam"));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				v.add(line[1]);
 			}
 			reader.close();
@@ -57,7 +58,7 @@ public class Permap {
 			count = 0;
 			values = new double[peeps.length * (peeps.length - 1) / 2];
 			for (int i = 0; i < peeps.length; i++) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int j = 0; j < i; j++) {
 					values[count++] = Double.parseDouble(line[j]);
 				}

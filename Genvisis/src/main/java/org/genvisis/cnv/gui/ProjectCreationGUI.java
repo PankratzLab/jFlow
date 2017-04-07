@@ -38,11 +38,11 @@ import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.manage.SourceFileParser;
+import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
-import org.genvisis.cnv.util.Java6Helper;
 
 import net.miginfocom.swing.MigLayout;
 

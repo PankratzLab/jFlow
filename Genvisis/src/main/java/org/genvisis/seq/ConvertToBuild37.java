@@ -12,6 +12,7 @@ import java.util.Hashtable;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.filesys.SerialHash;
@@ -78,7 +79,7 @@ public class ConvertToBuild37 {
 			try {
 				reader = new BufferedReader(new FileReader(dir + file));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (!line[0].startsWith("#")) {
 						loc = Positions.getUCSCformat(new String[] {line[1], line[2], line[2]});
 						if (err.containsKey(loc)) {
@@ -106,7 +107,7 @@ public class ConvertToBuild37 {
 			chrs = new byte[locs.length];
 			positions = new int[locs.length];
 			for (int i = 0; i < positions.length; i++) {
-				line = locs[i].split("[\\s]+");
+				line = locs[i].split(PSF.Regex.GREEDY_WHITESPACE);
 				chrs[i] = Positions.chromosomeNumber(line[0]);
 				positions[i] = Integer.parseInt(line[1]);
 				locs[i] = Positions.getUCSCformat(line);
@@ -140,7 +141,7 @@ public class ConvertToBuild37 {
 																								+ "_input.txt"));
 				while (reader.ready()) {
 					temp = reader.readLine();
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (!line[0].startsWith("#")) {
 						if (line.length < 5) {
 							System.err.println("Error - invalid line in '" + file + "': " + temp);

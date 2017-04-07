@@ -13,6 +13,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 
 // class to compute marker QCs from all markers, currently only supports a simple minor allele
 // frequency computation
@@ -177,11 +178,11 @@ public class CNVMarkerQC implements Runnable {
 																																	String[] markerNames) {
 		Hashtable<String, ArrayList<String>> markerFiles = new Hashtable<String, ArrayList<String>>();
 		for (int i = 0; i < markerNames.length; i++) {
-			if (!markerFiles.containsKey(markerLookup.get(markerNames[i]).split("[\\s]+")[0])) {
+			if (!markerFiles.containsKey(markerLookup.get(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE)[0])) {
 				ArrayList<String> al = new ArrayList<String>();
-				markerFiles.put(markerLookup.get(markerNames[i]).split("[\\s]+")[0], al);
+				markerFiles.put(markerLookup.get(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE)[0], al);
 			}
-			markerFiles.get(markerLookup.get(markerNames[i]).split("[\\s]+")[0]).add(markerNames[i]);
+			markerFiles.get(markerLookup.get(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE)[0]).add(markerNames[i]);
 		}
 		return markerFiles;
 	}

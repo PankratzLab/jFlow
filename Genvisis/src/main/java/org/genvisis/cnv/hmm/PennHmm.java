@@ -11,9 +11,10 @@ import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.CNVariant.CNVBuilder;
+import org.genvisis.filesys.LocusSet;
 import org.genvisis.stats.Stats;
 
 import com.google.common.primitives.Ints;
@@ -656,7 +657,7 @@ public class PennHmm {
 			log.reportError(error);
 			throw new IllegalStateException(error);
 		} else {
-			String[] line = reader.readLine().trim().split("[\\s]+");
+			String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			return ArrayUtils.toDoubleArray(line);
 		}
 	}
@@ -665,7 +666,7 @@ public class PennHmm {
 		double[][] a;
 		a = new double[n][m];
 		for (int i = 0; i < n; i++) {
-			String[] line = reader.readLine().trim().split("[\\s]+");
+			String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			double[] tmp = ArrayUtils.toDoubleArray(line);
 			a[i] = tmp;
 		}

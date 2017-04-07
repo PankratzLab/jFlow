@@ -18,6 +18,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.DosageData;
@@ -216,7 +217,7 @@ public class GeneScorePipeline {
 			String temp = reader.readLine();
 			String[] line;
 			while ((temp = reader.readLine()) != null) {
-				line = temp.split("[\\s]+");
+				line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 				String[] parts = line[1].split(":");
 				String rsOrChr = parts[0];
 				String posStr = parts[1];
@@ -316,7 +317,7 @@ public class GeneScorePipeline {
 			// reader = Files.getAppropriateReader(currFile);
 			// temp = reader.readLine();
 			// while((temp = reader.readLine()) != null) {
-			// line = temp.split("[\\s]+");
+			// line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 			// String rsOrPos = line[1];
 			// String a1 = line[2];
 			// String a2 = line[3];
@@ -413,7 +414,7 @@ public class GeneScorePipeline {
 																																	+ "_positions.xln", true, false,
 																																	false));
 						for (String element : data) {
-							line = element.trim().split("[\\s]+");
+							line = element.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							markerMap.put(line[0],
 														new int[] {Positions.chromosomeNumber(line[1]),
 																			 ext.isMissingValue(line[2]) ? -1
@@ -448,7 +449,7 @@ public class GeneScorePipeline {
 					} else {
 						freqs = null;// new HashMap<String, Double>();
 						// while ((temp = reader.readLine()) != null) {
-						// line = temp.trim().split("[\\s]+");
+						// line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						// freqs.put(line[indices[0]], Double.valueOf(line[indices[4]]));
 						// }
 					}
@@ -465,7 +466,7 @@ public class GeneScorePipeline {
 																															+ ".meta");
 					metaWriter.println(newHeaderSB.toString());
 					while ((temp = reader.readLine()) != null) {
-						line = temp.trim().split("[\\s]+");
+						line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						String snp = line[indices[0]];
 						String chr = indices[1] == -1 ? "" + markerMap.get(snp)[0] : line[indices[1]];
 						String pos = indices[2] == -1 ? "" + markerMap.get(snp)[1] : line[indices[2]];
@@ -625,7 +626,7 @@ public class GeneScorePipeline {
 				try {
 					BufferedReader reader = Files.getAppropriateReader(metaDir + dFile);
 					String line = reader.readLine();
-					String[] dataHdrs = line.split("[\\s]+");
+					String[] dataHdrs = line.split(PSF.Regex.GREEDY_WHITESPACE);
 					int[] indices = ext.indexFactors(Aliases.PVALUES, dataHdrs, false, false);
 					int ind = -1;
 					for (int i : indices) {
@@ -719,23 +720,23 @@ public class GeneScorePipeline {
 					try {
 						BufferedReader reader = Files.getAppropriateReader(metaDir + dFile);
 						String line = reader.readLine();
-						String[] temp = line.split("[\\s]+");
+						String[] temp = line.split(PSF.Regex.GREEDY_WHITESPACE);
 						int[] indices = ext.indexFactors(factors, temp, false, false, true, true, new Logger(),
 																						 false);
 						while ((line = reader.readLine()) != null) {
-							String mkr = line.split("[\\s]+")[indices[0]];
+							String mkr = line.split(PSF.Regex.GREEDY_WHITESPACE)[indices[0]];
 							if (hitMkrSet.contains(mkr)) {
-								if ((indices[1] != -1 && ext.isMissingValue(line.split("[\\s]+")[indices[1]]))
-										|| ext.isMissingValue(line.split("[\\s]+")[indices[2]])
-										|| ext.isMissingValue(line.split("[\\s]+")[indices[3]])) {
+								if ((indices[1] != -1 && ext.isMissingValue(line.split(PSF.Regex.GREEDY_WHITESPACE)[indices[1]]))
+										|| ext.isMissingValue(line.split(PSF.Regex.GREEDY_WHITESPACE)[indices[2]])
+										|| ext.isMissingValue(line.split(PSF.Regex.GREEDY_WHITESPACE)[indices[3]])) {
 									hitMkrSet.remove(mkr);
 									continue;
 								}
 								dataMarkers.put(mkr,
 																new double[] {indices[1] == -1 ? Double.NaN
-																															 : Double.parseDouble(line.split("[\\s]+")[indices[1]]),
-																							Double.parseDouble(line.split("[\\s]+")[indices[2]]),
-																							Double.parseDouble(line.split("[\\s]+")[indices[3]])});
+																															 : Double.parseDouble(line.split(PSF.Regex.GREEDY_WHITESPACE)[indices[1]]),
+																							Double.parseDouble(line.split(PSF.Regex.GREEDY_WHITESPACE)[indices[2]]),
+																							Double.parseDouble(line.split(PSF.Regex.GREEDY_WHITESPACE)[indices[3]])});
 							}
 						}
 						reader.close();
@@ -816,7 +817,7 @@ public class GeneScorePipeline {
 																																							// if only one data
 																																							// source is present
 				while ((temp = reader.readLine()) != null) {
-					String[] line = temp.split("[\\s]+");
+					String[] line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 					String affLine = line[0] + "\t" + line[1] + "\t"
 													 + (ext.isMissingValue(line[5]) ? "."
 																													: -1 * (Integer.parseInt(line[5]) - 2))
@@ -1016,7 +1017,7 @@ public class GeneScorePipeline {
 
 				int cnt = 0;
 				String dataHdr = dataReader.readLine();
-				String[] dataHdrs = dataHdr.split("[\\s]+");
+				String[] dataHdrs = dataHdr.split(PSF.Regex.GREEDY_WHITESPACE);
 				int[] indices = ext.indexFactors(Aliases.PVALUES, dataHdrs, false, false);
 				int ind = -1;
 				for (int i : indices) {
@@ -1029,7 +1030,7 @@ public class GeneScorePipeline {
 				dataWriter.println("MarkerName\tChr\tPosition\t"
 													 + ArrayUtils.toStr(ArrayUtils.subArray(dataHdrs, 1))); // Allele1\tAllele2\tFreq.Allele1.HapMapCEU\tb\tSE\tp\tN
 				while ((line = dataReader.readLine()) != null) {
-					String[] parts = line.split("[\\s]+");
+					String[] parts = line.split(PSF.Regex.GREEDY_WHITESPACE);
 					if (mkrsBim.containsKey(parts[0])
 							&& (ind == -1
 									|| (ext.isValidDouble(parts[ind])
@@ -1302,7 +1303,7 @@ public class GeneScorePipeline {
 					BufferedReader scoreReader = Files.getAppropriateReader(scoreFile);
 					String line = scoreReader.readLine();
 					while ((line = scoreReader.readLine()) != null) {
-						String[] parts = line.split("[\\s]+");
+						String[] parts = line.split(PSF.Regex.GREEDY_WHITESPACE);
 						String score = parts[2];
 						scoreData.put(parts[0] + "\t" + parts[1], Double.parseDouble(score));
 					}

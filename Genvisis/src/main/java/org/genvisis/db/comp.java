@@ -22,6 +22,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Transformations;
@@ -35,7 +36,6 @@ import org.genvisis.stats.Stepwise;
 import org.genvisis.stats.Ttest;
 
 import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
 
 public class comp {
 	public static String DEFAULT_TRAIT = "AOO";
@@ -158,7 +158,7 @@ public class comp {
 		}
 
 		temp = reader.readLine();
-		line = temp.split("[\\s]+");
+		line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 		db_file = line[0];
 		delimiter = db_file.endsWith(".csv") ? "," : "\t";
 
@@ -166,7 +166,7 @@ public class comp {
 			db_file = temp.substring(1, temp.substring(1).indexOf("\"") + 1); // why is this +1 at the
 																																				// end? seems like it should
 																																				// be +0
-			line = temp.substring(temp.substring(1).indexOf("\"") + 1).split("[\\s]+");
+			line = temp.substring(temp.substring(1).indexOf("\"") + 1).split(PSF.Regex.GREEDY_WHITESPACE);
 		}
 		order = null;
 		for (int i = 1; i < line.length; i++) {
@@ -567,7 +567,7 @@ public class comp {
 							while (reader.ready()) {
 								temp = reader.readLine();
 								if (temp.indexOf("Trend Test for") > 0) {
-									line = temp.split("[\\s]+");
+									line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 									writer.print(trendyKey.containsKey(line[5]) ? trendyKey.get(line[5]) : line[5]);
 									count++;
 									if (line[1].equals("GLM")) {
@@ -578,13 +578,13 @@ public class comp {
 											System.err.println("Error - GLM parsing needs to be updated:");
 											System.err.println("'" + temp + "'");
 										}
-										n = Integer.parseInt(temp.split("[\\s]+")[5]);
+										n = Integer.parseInt(temp.split(PSF.Regex.GREEDY_WHITESPACE)[5]);
 										while (temp.indexOf("LSMEAN") == -1) {
 											temp = reader.readLine();
 										}
 										reader.readLine();
 										for (int i = 0; i < k; i++) {
-											line = reader.readLine().split("[\\s]+");
+											line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 											writer.print("\t" + ext.formDeci(Double.parseDouble(line[2]), 1, true));
 										}
 										writer.print("\t" + n);
@@ -595,12 +595,12 @@ public class comp {
 											System.err.println("Error - GLM parsing needs to be updated:");
 											System.err.println("'" + temp + "'");
 										}
-										line = temp.split("[\\s]+");
+										line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 										writer.print("\t" + line[6] + "\t" + "=TDIST("
 																 + Math.abs(Double.parseDouble(line[3])
 																						/ Double.parseDouble(line[4]))
 																 + ", " + (n - 1) + ", 2)");
-										line = reader.readLine().split("[\\s]+");
+										line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 										writer.print("\t" + line[6] + "\t" + "=TDIST("
 																 + Math.abs(Double.parseDouble(line[3])
 																						/ Double.parseDouble(line[4]))
@@ -612,7 +612,7 @@ public class comp {
 											temp = reader.readLine();
 										}
 										for (int i = 0; i < k; i++) {
-											line = reader.readLine().split("[\\s]+");
+											line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 											writer.print("\t" + ext.formDeci((Double.parseDouble(line[5])
 																												/ Double.parseDouble(line[7]))
 																											 * 100, 0)
@@ -621,13 +621,13 @@ public class comp {
 												temp = reader.readLine();
 											}
 										}
-										n = Integer.parseInt(reader.readLine().split("[\\s]+")[4]);
+										n = Integer.parseInt(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[4]);
 										writer.print("\t" + n);
 										while (temp.indexOf("Exact Test") == -1) {
 											temp = reader.readLine();
 										}
 										reader.readLine();
-										line = reader.readLine().split("[\\s]+");
+										line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 										writer.println("\t\t" + line[5]);
 									} else {
 										System.err.println("Error - unknown trend test: " + line[1]);
@@ -790,7 +790,7 @@ public class comp {
 			if (traits.length > 1) {
 				if (trt == 0) {
 					writer = new PrintWriter(new FileWriter(filename));
-					writer.print(db_file.split("[\\s]+").length > 1 ? "\"" + db_file + "\"" : db_file);
+					writer.print(db_file.split(PSF.Regex.GREEDY_WHITESPACE).length > 1 ? "\"" + db_file + "\"" : db_file);
 					for (int i = 0; i < limitKeys.size(); i++) {
 						writer.print("\t" + limitKeys.elementAt(i) + "=" + limitTargets.elementAt(i));
 					}
@@ -825,7 +825,7 @@ public class comp {
 			} else {
 				writer = new PrintWriter(new FileWriter(filename));
 			}
-			writer.print(db_file.split("[\\s]+").length > 1 ? "\"" + db_file + "\"" : db_file);
+			writer.print(db_file.split(PSF.Regex.GREEDY_WHITESPACE).length > 1 ? "\"" + db_file + "\"" : db_file);
 			for (int i = 0; i < limitKeys.size(); i++) {
 				writer.print("\t" + limitKeys.elementAt(i) + "=" + limitTargets.elementAt(i));
 			}

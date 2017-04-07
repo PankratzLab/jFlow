@@ -182,7 +182,7 @@ public class procGenePositions {
 			// genes.xls"));
 			// reader.readLine();
 			// while (reader.ready()) {
-			// line = reader.readLine().split("[\\s]+");
+			// line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			// gps = new GenePosition[2];
 			// for (int i = 0; i<SOURCES.length; i++) {
 			// gps[i] = new GenePosition();
@@ -204,7 +204,7 @@ public class procGenePositions {
 			// genes = new String[33329];
 			// data = new GenePosition[genes.length][];
 			// for (int j = 0; j<genes.length; j++) {
-			// line = reader.readLine().split("[\\s]+");
+			// line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			// genes[j] = line[0];
 			// data[j] = new GenePosition[2];
 			// for (int i = 0; i<SOURCES.length; i++) {

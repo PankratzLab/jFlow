@@ -64,7 +64,6 @@ import org.genvisis.one.ben.fcs.gating.GateFileWriter;
 import org.genvisis.one.ben.fcs.gating.GateTreePanel;
 import org.genvisis.one.ben.fcs.gating.Gating;
 import org.genvisis.one.ben.fcs.gating.Workbench;
-import org.genvisis.one.ben.fcs.gating.Workbench.SampleNode;
 import org.genvisis.one.ben.fcs.sub.DataExportGUI;
 import org.genvisis.one.ben.fcs.sub.EMModel;
 import org.xml.sax.SAXException;

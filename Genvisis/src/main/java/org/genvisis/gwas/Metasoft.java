@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class Metasoft {
@@ -30,7 +31,7 @@ public class Metasoft {
 		try {
 			reader = new BufferedReader(new FileReader(rawFilename));
 			reader.mark(10000);
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			numStudies = (line.length - 1) / 4;
 			if (line.length != numStudies * 4 + 1) {
 				System.err.println("Error determining number of studies, are you now parsing more than 4 parameters?");
@@ -42,7 +43,7 @@ public class Metasoft {
 			numFlipped = new int[numStudies];
 			writer = new PrintWriter(new FileWriter(outputFilename));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				stdAlleles = null;
 				writer.print(line[0]);
 				// for (int i = 5; i < line.length; i += 4) {
@@ -119,7 +120,7 @@ public class Metasoft {
 				}
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length != lambdas.length * 2 + 1) {
 					System.err.println("Error - mismatched number of lambdas and/or columns in '" + inputFile
 														 + "' (with " + lambdas.length + " lambdas, expecting "

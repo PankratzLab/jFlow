@@ -10,9 +10,9 @@ import java.util.TreeSet;
 
 import javax.swing.JLabel;
 
-import org.genvisis.cnv.annotation.markers.MarkerSeqAnnotation;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
+import org.genvisis.cnv.annotation.markers.MarkerSeqAnnotation;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Fonts;

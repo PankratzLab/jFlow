@@ -16,6 +16,7 @@ import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Transformations;
 import org.genvisis.qsub.Qsub;
@@ -385,7 +386,7 @@ public class Traits {
 						reader.readLine();
 						count = 0;
 						while (reader.ready()) {
-							line = reader.readLine().trim().split("[\\s]+");
+							line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							if (!line[1].equals(snps[count])) {
 								System.err.println("Error - out of sync in " + element + ".aff." + rep + ".assoc."
 																	 + (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
@@ -406,7 +407,7 @@ public class Traits {
 															 + "\t" + line[5]);
 							}
 							for (int j = 0; j < COVARS[pheno].length; j++) {
-								line = reader.readLine().trim().split("[\\s]+");
+								line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 								if (!line[4].equals(COVARS[pheno][j])) {
 									System.err.println("Error - out of sync in " + element + ".aff." + rep + ".assoc."
 																		 + (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
@@ -516,7 +517,7 @@ public class Traits {
 						reader.readLine();
 						count = 0;
 						while (reader.ready()) {
-							line = reader.readLine().trim().split("[\\s]+");
+							line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							if (!line[1].equals(snps[count])) {
 								System.err.println("Error - out of sync in " + element + ".aff." + rep + ".assoc."
 																	 + (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
@@ -529,7 +530,7 @@ public class Traits {
 								counts[count][pheno * 2 + 1]++;
 							}
 							for (int j = 0; j < COVARS[pheno].length; j++) {
-								line = reader.readLine().trim().split("[\\s]+");
+								line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 								if (!line[4].equals(COVARS[pheno][j])) {
 									System.err.println("Error - out of sync in " + element + ".aff." + rep + ".assoc."
 																		 + (!PHENOS[pheno].startsWith("q") ? "logistic" : "linear")
@@ -577,7 +578,7 @@ public class Traits {
 				reader.readLine();
 				count = 0;
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (line[4].equals("ADD")) {
 						if (!line[1].equals(snps[count])) {
 							System.err.println("Error - out of sync in " + prefix + "." + rep + ".assoc." + method
@@ -590,7 +591,7 @@ public class Traits {
 							counts[count][1]++;
 						}
 						// for (int j = 0; j < COVARS[prefix.length()-2].length; j++) {
-						// line = reader.readLine().trim().split("[\\s]+");
+						// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						// if (!line[4].equals(COVARS[prefix.length()-2][j])) {
 						// System.err.println("Error - out of sync in "+prefix+"."+rep+".assoc."+method+"
 						// expecting "+snps[count]+" found "+line[1]);
@@ -648,7 +649,7 @@ public class Traits {
 				reader.readLine();
 				// count = 0;
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (!line[5].equals("NA")) {
 						if (Double.parseDouble(line[5]) < cutoff) {
 							cv.add(line[0]);
@@ -704,7 +705,7 @@ public class Traits {
 		double[][] matrix;
 
 		ids = HashVec.loadFileToStringArray(pheno_dir + pheno_root + ".1", false, true, new int[] {0},
-																				true, false, commaDelimited ? "," : "[\\s]+");
+																				true, false, commaDelimited ? "," : PSF.Regex.GREEDY_WHITESPACE);
 
 		counts = new int[ids.length][stddevThresholds.length];
 		matrix = new double[ids.length][200];
@@ -717,7 +718,7 @@ public class Traits {
 																																											 true, false,
 																																											 false,
 																																											 commaDelimited ? ","
-																																																			: "[\\s]+")));
+																																																			: PSF.Regex.GREEDY_WHITESPACE)));
 			mean = ArrayUtils.mean(values);
 			stdev = ArrayUtils.stdev(values);
 			for (int i = 0; i < ids.length; i++) {

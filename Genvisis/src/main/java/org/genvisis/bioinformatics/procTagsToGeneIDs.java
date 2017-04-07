@@ -11,6 +11,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 
 public class procTagsToGeneIDs {
 	public static final String[] FILES_WITH_GENE = {"d1_gene_info.prn", "nbt1239-S4.prn"};
@@ -67,7 +68,7 @@ public class procTagsToGeneIDs {
 				writer = new PrintWriter(new FileWriter("noDirectMatch.xls"));
 				reader.readLine();
 				while (reader.ready()) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (!line[1].equals("---")) {
 						if (aliases.containsKey(line[1])) {
 							v = aliases.get(line[1]);
@@ -101,7 +102,7 @@ public class procTagsToGeneIDs {
 				reader = new BufferedReader(new FileReader(FILES_WITH_GENE_ID[i]));
 				reader.readLine();
 				while (reader.ready()) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (!line[1].equals("---")) {
 						HashVec.addToHashHash(hash, line[0], FILES_WITH_GENE_ID[i], line[1]);
 					}

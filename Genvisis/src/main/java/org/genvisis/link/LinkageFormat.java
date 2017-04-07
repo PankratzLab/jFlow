@@ -13,6 +13,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 
@@ -60,7 +61,7 @@ public class LinkageFormat {
 				System.exit(4);
 			}
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				hash.put(line[0] + "\t" + line[1], line);
 			}
 			line = new String[line.length];
@@ -78,7 +79,7 @@ public class LinkageFormat {
 
 			reader = new BufferedReader(new FileReader("struct.dat"));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < 6; i++) {
 					writer.print((i == 0 ? "" : "\t") + line[i]);
 				}
@@ -229,7 +230,7 @@ public class LinkageFormat {
 			reader = new BufferedReader(new FileReader(filein));
 			writer = new PrintWriter(new FileWriter(fileout));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length != keeps.length * 2 + 6) {
 					System.err.println("I do not think you are keeping the markers you think you are keeping...");
 					System.exit(1);

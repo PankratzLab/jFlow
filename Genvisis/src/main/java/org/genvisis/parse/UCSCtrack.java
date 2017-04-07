@@ -11,6 +11,7 @@ import java.util.Vector;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Maths;
@@ -53,7 +54,7 @@ public class UCSCtrack {
 		}
 
 		while (paramV.size() > 0) {
-			line = paramV.remove(0).trim().split("[\\s]+");
+			line = paramV.remove(0).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			resultsFile = line[0];
 			markerIndex = mapMarkerIndex = valueIndex = chrIndex = startIndex = stopIndex = -1;
 			neg_log = false;
@@ -162,7 +163,7 @@ public class UCSCtrack {
 					prevStart = -1;
 					while (reader.ready()) {
 						line = reader.readLine().trim()
-												 .split(commaDelimited ? "," : (tabDelimited ? "\t" : "[\\s]+"));
+												 .split(commaDelimited ? "," : (tabDelimited ? "\t" : PSF.Regex.GREEDY_WHITESPACE));
 						passedFilter = true;
 						for (int i = 0; i < filterOps.length && passedFilter; i++) {
 							if (filterOps[i].equals("=")) {
@@ -248,7 +249,7 @@ public class UCSCtrack {
 						prevStart = -1;
 						while (reader.ready()) {
 							line = reader.readLine().trim()
-													 .split(mapCommaDelimited ? "," : (mapTabDelimited ? "\t" : "[\\s]+"));
+													 .split(mapCommaDelimited ? "," : (mapTabDelimited ? "\t" : PSF.Regex.GREEDY_WHITESPACE));
 							start = Integer.parseInt(line[startIndex]);
 							stop = Integer.parseInt(line[stopIndex]);
 							if (start == stop) {

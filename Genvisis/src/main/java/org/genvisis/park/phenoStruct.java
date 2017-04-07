@@ -13,6 +13,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.link.TrimFam;
 
@@ -86,7 +87,7 @@ public class phenoStruct {
 		}
 
 		while (extra != null && extra.ready()) {
-			line = extra.readLine().split("[\\s]+");
+			line = extra.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (line.length == 1 && line[0].equals("")) {
 				System.err.println("Warning - extra whitespace present in ninfo3 file");
 				continue;
@@ -140,10 +141,10 @@ public class phenoStruct {
 		ethnicity = new Hashtable<String, String>();
 		dna = new Hashtable<String, String>();
 		try {
-			ext.checkHeader(info.readLine().split("[\\s]+"), tools.NINFO1_HEADER, true);
+			ext.checkHeader(info.readLine().split(PSF.Regex.GREEDY_WHITESPACE), tools.NINFO1_HEADER, true);
 
 			while (info.ready()) {
-				line = info.readLine().split("[\\s]+");
+				line = info.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				id = line[0] + "\t" + line[1];
 				if (!aoo.containsKey(id)) {
 					aoo.put(id, line[2]);
@@ -201,7 +202,7 @@ public class phenoStruct {
 		genos.readLine(); // marker names
 		while (!done) {
 			if (genos.ready()) {
-				line = genos.readLine().split("[\\s]+");
+				line = genos.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = line[1];
 				id = line[2];
 				dna.put(trav + "\t" + line[2], line[0]);
@@ -248,7 +249,7 @@ public class phenoStruct {
 		writer[3] = new PrintWriter(new FileWriter("struct100-.dat"));
 		// writer = new PrintWriter(new FileWriter("phenostruct.dat"));
 
-		line = fams.readLine().split("[\\s]+");
+		line = fams.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 		ext.checkHeader(line, tools.NINFO2_HEADER, true);
 
 		done = false;
@@ -256,7 +257,7 @@ public class phenoStruct {
 		members = new Vector<String>();
 		while (!done) {
 			if (fams.ready()) {
-				line = fams.readLine().split("[\\s]+");
+				line = fams.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = line[0];
 				if (prev.equals("")) {
 					prev = trav;
@@ -276,13 +277,13 @@ public class phenoStruct {
 						}
 						for (int i = 0; i < deleteThese.size(); i++) {
 							if ((deleteThese.elementAt(i)).startsWith(prev)) {
-								vips.remove((deleteThese.elementAt(i)).split("[\\s]+")[1]);
+								vips.remove((deleteThese.elementAt(i)).split(PSF.Regex.GREEDY_WHITESPACE)[1]);
 							}
 						}
 						for (int i = 0; i < halfling.size(); i++) {
 							for (int j = 0; j < members.size(); j++) {
 								if ((members.elementAt(j)).startsWith(halfling.elementAt(i) + "\t")) {
-									subline = (members.elementAt(j)).split("[\\s]+");
+									subline = (members.elementAt(j)).split(PSF.Regex.GREEDY_WHITESPACE);
 									members.removeElementAt(j);
 									members.add(j, prev + "\t" + (9990 + i) + "\t0\t0\t1");
 									temp = subline[0] + "\t" + subline[1] + "\t" + (9990 + i);
@@ -305,7 +306,7 @@ public class phenoStruct {
 							}
 
 							for (int i = 0; i < v.size(); i++) {
-								subline = (v.get(i)).split("[\\s]+");
+								subline = (v.get(i)).split(PSF.Regex.GREEDY_WHITESPACE);
 								id = subline[1];
 								writer[2 * allvpd + extnuc].print(v.get(i));
 								if (vips.contains(id + "")) {
@@ -374,16 +375,16 @@ public class phenoStruct {
 		Vector<String> presentVIPs = new Vector<String>();
 
 		for (int i = 0; i < v.size(); i++) {
-			if (vips.contains(v.get(i).split("[\\s]+")[1])) {
+			if (vips.contains(v.get(i).split(PSF.Regex.GREEDY_WHITESPACE)[1])) {
 				presentVIPs.add(v.get(i));
 			}
 		}
 
 		if (presentVIPs.size() == 2) {
-			if ((v.get(0)).split("[\\s]+")[1].equals((v.get(1)).split("[\\s]+")[2])
-					|| (v.get(0)).split("[\\s]+")[1].equals((v.get(1)).split("[\\s]+")[3])
-					|| (v.get(1)).split("[\\s]+")[1].equals((v.get(1)).split("[\\s]+")[2])
-					|| (v.get(1)).split("[\\s]+")[1].equals((v.get(1)).split("[\\s]+")[3])) {
+			if ((v.get(0)).split(PSF.Regex.GREEDY_WHITESPACE)[1].equals((v.get(1)).split(PSF.Regex.GREEDY_WHITESPACE)[2])
+					|| (v.get(0)).split(PSF.Regex.GREEDY_WHITESPACE)[1].equals((v.get(1)).split(PSF.Regex.GREEDY_WHITESPACE)[3])
+					|| (v.get(1)).split(PSF.Regex.GREEDY_WHITESPACE)[1].equals((v.get(1)).split(PSF.Regex.GREEDY_WHITESPACE)[2])
+					|| (v.get(1)).split(PSF.Regex.GREEDY_WHITESPACE)[1].equals((v.get(1)).split(PSF.Regex.GREEDY_WHITESPACE)[3])) {
 				return true;
 			}
 		}

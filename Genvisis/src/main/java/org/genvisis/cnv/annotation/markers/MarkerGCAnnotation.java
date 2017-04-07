@@ -1,6 +1,5 @@
 package org.genvisis.cnv.annotation.markers;
 
-import java.util.Hashtable;
 import java.util.Map;
 
 import org.genvisis.cnv.filesys.MarkerSetInfo;

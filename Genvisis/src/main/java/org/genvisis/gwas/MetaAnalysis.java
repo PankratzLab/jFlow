@@ -5,6 +5,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class MetaAnalysis {
@@ -23,9 +24,9 @@ public class MetaAnalysis {
 		countInvalids = 0;
 		lines = ext.getClipboard().trim().split("\\n");
 		v = new Vector<double[]>();
-		numColumns = lines[0].trim().split("[\\s]+").length;
+		numColumns = lines[0].trim().split(PSF.Regex.GREEDY_WHITESPACE).length;
 		for (int i = 0; i < lines.length; i++) {
-			line = lines[i].trim().split("[\\s]+");
+			line = lines[i].trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (line.length == 1 && line[0].equals("")) {
 				// do nothing
 			} else {

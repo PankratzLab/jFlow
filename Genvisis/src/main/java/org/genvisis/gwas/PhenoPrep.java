@@ -18,6 +18,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Transformations;
 import org.genvisis.stats.Histogram;
@@ -579,7 +580,7 @@ public class PhenoPrep {
 		vData = new Vector<double[]>();
 		for (int i = 0; i < finalIDs.length; i++) {
 			if (hash.containsKey(finalIDs[i])) {
-				line = hash.get(finalIDs[i]).split("[\\s]+");
+				line = hash.get(finalIDs[i]).split(PSF.Regex.GREEDY_WHITESPACE);
 				use = true;
 				for (String element : line) {
 					if (ext.isMissingValue(element)) {

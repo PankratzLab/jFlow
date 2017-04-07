@@ -24,6 +24,7 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Distance;
@@ -96,7 +97,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 			reader = Files.getReader(mosaicColorFile, proj.JAR_STATUS.getValue(), true, false);
 			if (reader != null) {
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (ext.isValidChromosome(line[2])) {
 						colorHash.put(line[0] + "\t" + line[1], Positions.chromosomeNumber(line[2]));
 					} else if (count > 0) {

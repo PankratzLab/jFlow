@@ -2,7 +2,6 @@ package org.genvisis.cnv.qc;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Vector;
 
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
 import org.genvisis.cnv.analysis.cnvTrio;

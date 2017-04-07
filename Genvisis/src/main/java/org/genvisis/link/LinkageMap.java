@@ -15,6 +15,7 @@ import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
@@ -111,25 +112,25 @@ public class LinkageMap {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 
-			markerNames = new String[Integer.valueOf(reader.readLine().trim().split("[\\s]+")[0])
+			markerNames = new String[Integer.valueOf(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0])
 																			.intValue()
 															 - 1];
 			for (int i = 0; i < 3; i++) {
 				reader.readLine();
 			}
 			try {
-				dxAlleleFreq = Double.parseDouble(reader.readLine().trim().split("[\\s]+")[1]);
+				dxAlleleFreq = Double.parseDouble(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[1]);
 			} catch (NumberFormatException e) {
 				System.err.println("Error - failed to parse disease allele frequency in file: " + filename);
 				System.exit(1);
 			}
 
-			numPen = Integer.valueOf(reader.readLine().trim().split("[\\s]+")[0]).intValue();
+			numPen = Integer.valueOf(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]).intValue();
 			penetranceFunctions = new double[numPen][];
 			for (int i = 0; i < numPen; i++) {
 				try {
 					penetranceFunctions[i] = ArrayUtils.toDoubleArray(reader.readLine().trim()
-																																	.split("[\\s]+"));
+																																	.split(PSF.Regex.GREEDY_WHITESPACE));
 				} catch (NumberFormatException e) {
 					System.err.println("Error - failed to parse the penetrance model for file: " + filename);
 					System.exit(1);
@@ -144,7 +145,7 @@ public class LinkageMap {
 			addInfo = new String[markerNames.length];
 			for (int i = 0; i < markerNames.length; i++) {
 				trav = reader.readLine();
-				line = trav.trim().split("[\\s]+");
+				line = trav.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length < 4) {
 					if (!noNamesFlag) {
 						System.err.println("Warning - no marker names for at least a subset of the markers in "
@@ -157,7 +158,7 @@ public class LinkageMap {
 					addInfo[i] = trav.substring(trav.indexOf(line[3]) + line[3].length());
 				}
 				expNumAllele = Integer.parseInt(line[1]);
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				try {
 					if (line.length == expNumAllele) {
 						alleleFreqs[i] = ArrayUtils.toDoubleArray(line);
@@ -189,7 +190,7 @@ public class LinkageMap {
 			}
 
 			reader.readLine();
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			distances = new double[markerNames.length];
 			for (int i = 0; i < markerNames.length; i++) {
 				distances[i] = Double.parseDouble(line[i]);
@@ -365,7 +366,7 @@ public class LinkageMap {
 														 + SNP_DB);
 					positions = new String[] {"-1", "-1"};
 				} else {
-					positions = hash.get(markerNames[i]).split("[\\s]+");
+					positions = hash.get(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE);
 					if (Integer.parseInt(positions[0]) != chr) {
 						System.err.println("Error - " + SNP_DB + " places " + markerNames[i]
 															 + " on a different chromosome (" + positions[0] + " instead of "
@@ -474,7 +475,7 @@ public class LinkageMap {
 		try {
 			reader = new BufferedReader(new FileReader(markerPositionDatabase));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (hash.containsKey(line[markerIndex])) {
 					if (Integer.parseInt(line[chrIndex]) != chr) {
 						System.err.println("Error - " + markerPositionDatabase + " says that "
@@ -598,7 +599,7 @@ public class LinkageMap {
 		v = HashVec.loadFileToVec(filename, false, false, false);
 		models = new double[v.size()][];
 		for (int i = 0; i < v.size(); i++) {
-			line = v.elementAt(i).trim().split("[\\s]+");
+			line = v.elementAt(i).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (line.length != 4) {
 				System.err.println("Error - requires 4 parameters: freq(q)\tP(pp)\tP(pq)\tP(qq)");
 				System.err.println("        found: " + v.elementAt(i));

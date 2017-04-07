@@ -11,6 +11,7 @@ import java.util.Arrays;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
@@ -74,7 +75,7 @@ public class ConvertChargeToVCF {
 					if (count % 100000 == 0) {
 						log.reportTimeInfo(count + "");
 					}
-					String[] line = reader.readLine().trim().split("[\\s]+");
+					String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					String ID = line[indices[0]];
 					String[] tmp = ID.split(":");
 					String chr = Positions.getChromosomeUCSC(Positions.chromosomeNumber(tmp[0]), true);

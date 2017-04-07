@@ -17,6 +17,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Unique;
 import org.genvisis.common.Zip;
 import org.genvisis.common.ext;
@@ -564,14 +565,14 @@ public class CARe_Analyses {
 					reader = new BufferedReader(new FileReader(dir + root + chr + ".gen"));
 					mapReader = new BufferedReader(new FileReader(dir + root + chr + ".pmap"));
 					infoReader = new BufferedReader(new FileReader(dir + root + chr + ".mlinfo"));
-					header = infoReader.readLine().trim().split("[\\s]+");
+					header = infoReader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					ext.checkHeader(header,
 													new String[] {"SNP", "Al1", "Al2", "Freq1", "MAF", "Quality", "Rsq"},
 													true);
 					count = 0;
 					while (reader.ready()) {
 						count++;
-						line = mapReader.readLine().trim().split("[\\s]+");
+						line = mapReader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						marker = line[1];
 						if (line.length != 4) {
 							log.reportError("Error at record marker '" + marker + "' on line " + count
@@ -579,7 +580,7 @@ public class CARe_Analyses {
 															+ " columns, but found " + line.length);
 						}
 
-						line = infoReader.readLine().trim().split("[\\s]+");
+						line = infoReader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (!line[0].equals(marker)) {
 							log.reportError("Error - mismatched marker on line " + count + " in file " + root
 															+ chr + ".mlinfo; expecting '" + marker + "' but got '" + line[0]
@@ -591,7 +592,7 @@ public class CARe_Analyses {
 															+ " columns, but found " + line.length);
 						}
 
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (!line[1].equals(marker)) {
 							log.reportError("Error - mismatched marker on line " + count + " in file " + root
 															+ chr + ".geb; expecting '" + marker + "' but got '" + line[1] + "'");
@@ -819,7 +820,7 @@ public class CARe_Analyses {
 				try {
 					reader = new BufferedReader(new FileReader(dir + "plink_pheno_iteration1.InvVar1.out"));
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (hash.contains(line[0])) {
 							try {
 								writer = new PrintWriter(new FileWriter(line[0] + ".txt", true));
@@ -854,7 +855,7 @@ public class CARe_Analyses {
 				try {
 					reader = new BufferedReader(new FileReader(dir + "plink_pheno_iteration1.se.metal"));
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (hash.contains(line[0])) {
 							try {
 								writer = new PrintWriter(new FileWriter(line[0] + ".txt", true));
@@ -1040,7 +1041,7 @@ public class CARe_Analyses {
 				try {
 					reader = new BufferedReader(new FileReader(dir + "_SE1.out"));
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (hash.contains(line[0])) {
 							try {
 								writer = new PrintWriter(new FileWriter(DRIVE_ROOT + "Analyses/ICAM/" + line[0]
@@ -1073,7 +1074,7 @@ public class CARe_Analyses {
 				try {
 					reader = new BufferedReader(new FileReader(dir + ".se.metal"));
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (hash.contains(line[0])) {
 							try {
 								writer = new PrintWriter(new FileWriter(DRIVE_ROOT + "Analyses/ICAM/" + line[0]

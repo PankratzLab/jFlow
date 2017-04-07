@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class BinMissingnessByPosition {
@@ -27,7 +28,7 @@ public class BinMissingnessByPosition {
 		try {
 			reader = new BufferedReader(new FileReader(MAP));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				hash.put(line[1], line[3]);
 			}
 			reader.close();
@@ -42,7 +43,7 @@ public class BinMissingnessByPosition {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(filename + ".out"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(ArrayUtils.toStr(line) + "\t" + hash.get(line[1]));
 
 			}
@@ -73,7 +74,7 @@ public class BinMissingnessByPosition {
 			reader = new BufferedReader(new FileReader(filename));
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				chr = Integer.parseInt(line[0]);
 				pos = Integer.parseInt(line[5]);
 				if (maxes[chr - 1] < pos) {
@@ -98,7 +99,7 @@ public class BinMissingnessByPosition {
 			reader = new BufferedReader(new FileReader(filename));
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				chr = Integer.parseInt(line[0]);
 				pos = Integer.parseInt(line[5]);
 				index = (int) Math.floor(pos / binSizes[chr - 1]);

@@ -30,7 +30,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -778,7 +777,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	// if (header.contains("\t")) {
 	// headersArray = header.trim().split("\t",-1);
 	// } else {
-	// headersArray = header.trim().split("[\\s]+");
+	// headersArray = header.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// }
 	// indices = ext.indexFactors(LINKERS, headersArray, false, true, false, log, false);
 	//
@@ -867,7 +866,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	// if (inLine.contains("\t")) {
 	// inLineArry = inLine.trim().split("\t",-1);
 	// } else {
-	// inLineArry = inLine.trim().split("[\\s]+");
+	// inLineArry = inLine.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// }
 	// if (colorKeyValue.containsKey(inLineArry[samDataIndex])) {
 	// inLine = inLine + "\t" + colorKeyValue.get(inLineArry[samDataIndex]);
@@ -954,7 +953,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	// if (inLine.contains("\t")) {
 	// inLineArray = fileReader.readLine().trim().split("\t", -1);
 	// } else {
-	// inLineArray = fileReader.readLine().trim().split("[\\s]+");
+	// inLineArray = fileReader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// }
 	// if (linkKeyIndex.containsKey(filename)) {
 	// switch (linkKeyIndex.get(filename)) {

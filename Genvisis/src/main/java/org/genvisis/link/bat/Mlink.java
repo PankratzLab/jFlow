@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.link.LinkageMap;
 
@@ -174,7 +175,7 @@ public class Mlink {
 			reader = new BufferedReader(new FileReader("map" + chrome + "mlink.dat"));
 
 			temp = reader.readLine();
-			line = temp.trim().split("[\\s]+");
+			line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			numMarkers = Integer.valueOf(line[0]).intValue() - 1;
 			numFiles = (int) (Math.ceil(numMarkers / (double) MAX_MARKERS));
 			writers = new PrintWriter[numFiles];
@@ -205,7 +206,7 @@ public class Mlink {
 				writers[(int) Math.floor(i / MAX_MARKERS)].println(reader.readLine());
 			}
 			ext.writeToAll(reader.readLine(), writers);
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			for (int i = 0; i < line.length - 3; i++) {
 				if (i % MAX_MARKERS == 0) {
 					writers[(int) Math.floor(i / MAX_MARKERS)].print(line[0]);
@@ -243,14 +244,14 @@ public class Mlink {
 				pedStruct2 = procPedStruct("re_chrom" + chrome + ".pre", false);
 			}
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				temp = pedStruct2.get(line[0] + "\t" + line[1]);
 				if (temp == null) {
 					System.err.println("Error - .ped file is out of sync with " + "re_chrom" + chrome
 														 + ".pre (could not find individual " + line[0] + "-" + line[1] + ")");
 					System.exit(1);
 				}
-				pedinfo = temp.trim().split("[\\s]+");
+				pedinfo = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = pedinfo[0] + "\t" + pedinfo[pedformat ? 7 : 4];
 				if (!trav.equals(line[0] + "\t" + line[4])) {
 					System.err.println("Error - .ped file does not match " + "re_chrom" + chrome + ".pre"
@@ -322,7 +323,7 @@ public class Mlink {
 			reader = new BufferedReader(new FileReader(filename));
 			while (reader.ready()) {
 				temp = reader.readLine();
-				line = temp.trim().split("[\\s]+");
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				on = false;
 				count = spaces = 0;
 				while (spaces < (ped ? 10 : 6)) {

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 
 public class shiftAlleles {
 
@@ -33,7 +34,7 @@ public class shiftAlleles {
 		}
 		reader = new BufferedReader(new FileReader(plateList));
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (line.length < 3 && !line[0].equals("")) {
 				System.err.println("Error - file with plate listing requires three columns (FamID IndID plate)");
 				System.err.println("      - could not process line beginning with '" + line[0] + "'");
@@ -95,14 +96,14 @@ public class shiftAlleles {
 
 		reader = new BufferedReader(new FileReader(keyfile));
 		for (int i = 0; i < numMarkers; i++) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			markerName = line[0].toUpperCase();
 			line[0] = "0";
 			oldAlleles = new Vector<String>();
 			for (String element : line) {
 				oldAlleles.add(element);
 			}
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			plateAffected = line[0];
 			if (integrityCheck.containsKey(markerName + ":" + plateAffected)) {
 				// if you wanted to be really fancy you could find out which
@@ -169,7 +170,7 @@ public class shiftAlleles {
 		writer.println(reader.readLine());
 		temp = reader.readLine();
 		writer.println(temp);
-		line = temp.split("[\\s]+");
+		line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 		numMarkers = line.length - 3;
 		for (int i = 3; i < line.length; i++) {
 			if (line[i].equals(markerName)) {
@@ -186,7 +187,7 @@ public class shiftAlleles {
 		}
 
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (line[0].equals("")) {
 				continue;
 			}

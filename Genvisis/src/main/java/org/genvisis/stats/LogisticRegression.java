@@ -1,7 +1,6 @@
 package org.genvisis.stats;
 
 import java.util.List;
-import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;

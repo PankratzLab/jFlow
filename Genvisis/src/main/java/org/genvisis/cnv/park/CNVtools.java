@@ -12,6 +12,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class CNVtools {
@@ -52,7 +53,7 @@ public class CNVtools {
 			writer = new PrintWriter(new FileWriter("penn.cnv.xln"));
 
 			while (mapReader.ready()) {
-				line = mapReader.readLine().trim().split("[\\s]+");
+				line = mapReader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if ((map.endsWith(".map") && line.length != 4)
 						|| (map.endsWith(".bim") && line.length != 6)) {
 					System.err.println("Error - it looks like your map file might not be in plink format, which could pose a problem");
@@ -69,7 +70,7 @@ public class CNVtools {
 							reader = new BufferedReader(new FileReader(file));
 							reader.readLine();
 							while (reader.ready()) {
-								v.add(reader.readLine().trim().split("[\\s]+")[0]);
+								v.add(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]);
 							}
 							reader.close();
 						} catch (FileNotFoundException fnfe) {
@@ -97,7 +98,7 @@ public class CNVtools {
 						reader.readLine();
 						writer.print(line[1] + "\t" + line[0] + "\t" + line[3]);
 						for (int i = 0; i < ids.length; i++) {
-							line = reader.readLine().trim().split("[\\s]+");
+							line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							if (!line[0].equals(ids[i])) {
 								System.err.println("Error - out of sync with first file (expecting '" + ids[i]
 																	 + "'; found '" + line[0] + "')");

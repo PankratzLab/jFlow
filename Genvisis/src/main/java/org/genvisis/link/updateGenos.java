@@ -11,6 +11,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 
 public class updateGenos {
 	public updateGenos(String filename) throws IOException {
@@ -59,7 +60,7 @@ public class updateGenos {
 		reader = new BufferedReader(new FileReader(filename));
 		while (reader.ready()) {
 			temp = reader.readLine();
-			line = temp.split("[\\s]+");
+			line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 			line[2] = line[2].toUpperCase();
 			count++;
 			if (line.length < 7) {
@@ -106,7 +107,7 @@ public class updateGenos {
 				writer = new PrintWriter(new FileWriter("chromosome" + chr + ".dat"));
 				writer.println(reader.readLine());
 				temp = reader.readLine();
-				line = temp.split("[\\s]+");
+				line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 				markerNames = new Vector<String>();
 				for (int j = 3; j < line.length; j++) {
 					markerNames.add(line[j].toUpperCase());
@@ -115,12 +116,12 @@ public class updateGenos {
 				people = chrs.get(chr + "");
 				while (reader.ready()) {
 					temp = reader.readLine();
-					line = temp.split("[\\s]+");
+					line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 					if (people.containsKey(line[1] + "\t" + line[2])) {
 						// System.out.println("Doing "+line[1]+"\t"+line[2]);
 						changes = people.get(line[1] + "\t" + line[2]);
 						for (int j = 0; j < changes.size(); j++) {
-							alteration = (changes.elementAt(j)).split("[\\s]+");
+							alteration = (changes.elementAt(j)).split(PSF.Regex.GREEDY_WHITESPACE);
 							if (!markerNames.contains(alteration[0])) {
 								System.err.println("Error - marker " + alteration[0]
 																	 + " was not found in chromosome" + chr + ".dat");

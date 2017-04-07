@@ -13,6 +13,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.link.LinkageMap;
 
@@ -39,7 +40,7 @@ public class Hearing {
 				reader = new BufferedReader(new FileReader(dir + source + "chr" + chr + "_SNP.noLD.ped"));
 				writer = new PrintWriter(new FileWriter(dir + "mrkr" + ext.chrome(chr) + ".dat"));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (chr == 1) {
 						names.add(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, 6)) + "\t" + line[1]
 											+ "\t.\t.");
@@ -71,7 +72,7 @@ public class Hearing {
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "example_struct.dat"));
 			for (int i = 0; i < names.size(); i++) {
-				line = names.elementAt(i).split("[\\s]+");
+				line = names.elementAt(i).split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = hash.get(line[1]);
 				if (trav == null) {
 					System.err.println("No phenotype for individual '" + line[1] + "'");
@@ -94,7 +95,7 @@ public class Hearing {
 			try {
 				reader = new BufferedReader(new FileReader(dir + source + "chr" + chr + "_SNP.noLD.map"));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (line.length != 3) {
 						System.err.println("Error - what am I supposed to do with '" + ArrayUtils.toStr(line)
 															 + "'??");
@@ -137,7 +138,7 @@ public class Hearing {
 			reader = new BufferedReader(new FileReader(dir + filename));
 			writer = new PrintWriter(new FileWriter(dir + runtime + "re_chrom01.pre"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
 											 + "\t" + line[5] + "\t" + (int) (Math.random() * 2 + 1) + "\t"
 											 + (int) (Math.random() * 2 + 1));

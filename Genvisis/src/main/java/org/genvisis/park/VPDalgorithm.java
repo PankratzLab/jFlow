@@ -11,6 +11,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.db.crfDB;
 
@@ -334,7 +335,7 @@ public class VPDalgorithm {
 			writer.println("UniqueID\tFamID\tIndID\tDx\tVPD\tCONF_PD\tAffected\tOnset_GT20\tBradykinesia\tBrady_B\tBrady_F\tRestT_B\tRestT_F\tActionT_B\tRigidity_B\tRigidity_F\tProbability_GTE50\tAtLeast1\tAtLeast2\tHasNoExclusionCriteria\tVerified\tNum VPD criteria\tInclusion\tSupporting\tReason NVPD\tUKBBC\tNum UKBBC criteria\tUKBBC Inclusion\tUKBBC Supporting\tReason not UKBBC");
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = line[0] + ext.formNum(Integer.parseInt(line[1]), 3);
 				writer.print(trav + "\t" + line[0] + "\t" + line[1] + "\t" + line[3] + "\t"
 										 + tools.isVPD(line[3]) + "\t" + tools.isConfPD(line[3]) + "\t"

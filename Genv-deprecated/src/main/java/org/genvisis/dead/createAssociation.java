@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
+import org.genvisis.common.PSF;
+
 public class createAssociation {
 	public createAssociation(String filename) throws IOException {
 		BufferedReader reader = null;
@@ -23,7 +25,7 @@ public class createAssociation {
 		}
 
 		reader.readLine();
-		line = reader.readLine().split("[\\s]+");
+		line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 		markers = new String[line.length - 3];
 		blank = "";
 		for (int i = 0; i < markers.length; i++) {
@@ -31,7 +33,7 @@ public class createAssociation {
 			blank += "\t0\t0";
 		}
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			hash.put(line[1] + "\t" + line[2], line);
 		}
 		reader.close();
@@ -41,7 +43,7 @@ public class createAssociation {
 			writer = new PrintWriter(new FileWriter(filename.substring(0, filename.indexOf("."))
 																							+ ".pre"));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < 6; i++) {
 					writer.print((i == 0 ? "" : "\t") + line[i]);
 				}

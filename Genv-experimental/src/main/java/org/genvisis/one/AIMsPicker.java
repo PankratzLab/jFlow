@@ -10,6 +10,7 @@ import java.util.Vector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class AIMsPicker {
@@ -32,12 +33,12 @@ public class AIMsPicker {
 		allInfo = new Hashtable<String, String[]>();
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, new String[] {"Cluster", "Variant", "region", "gene", "pval", "Chr",
 																					"Position", "Score"},
 											true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!allInfo.containsKey(line[1]) && Double.parseDouble(line[7]) > minScore) {
 					HashVec.addIfAbsent(line[0], order);
 					HashVec.addToHashVec(clusters, line[0], line[1], true);

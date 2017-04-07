@@ -10,6 +10,7 @@ import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 
 public class MergeDuplicateCalls {
 	public static void merge(String dir, String filename) {
@@ -25,7 +26,7 @@ public class MergeDuplicateCalls {
 			reader = new BufferedReader(new FileReader(dir + filename));
 			numFields = -1;
 			while (reader.ready()) {
-				trav = reader.readLine().trim().split("[\\s]+");
+				trav = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (trav.length == 1) {
 					if (!trav[0].equals("")) {
 						System.err.println("Error - what am I supposed to do with: " + trav[0]);

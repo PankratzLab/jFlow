@@ -12,6 +12,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class procGenesByTissue {
@@ -173,7 +174,7 @@ public class procGenesByTissue {
 			reader = new BufferedReader(new FileReader(express));
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = line[0];
 				levels = new double[tissueIndices.length];
 				line = line[2].split(",");
@@ -220,7 +221,7 @@ public class procGenesByTissue {
 		System.out.println("Merging data with gene positions...");
 		try {
 			reader = new BufferedReader(new FileReader(genes));
-			ext.checkHeader(line = reader.readLine().split("[\\s]+"), GENES_HEADER, true);
+			ext.checkHeader(line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), GENES_HEADER, true);
 			writer = new PrintWriter(new FileWriter("expression.xls"));
 			writer.print(line[0] + DELIMITER + line[1] + DELIMITER + line[2] + DELIMITER + line[3]
 									 + DELIMITER + line[4] + DELIMITER + "CytoBand" + DELIMITER + "Title");
@@ -234,7 +235,7 @@ public class procGenesByTissue {
 			writer.print(DELIMITER + "OMIM entries");
 			writer.println();
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[2].equals(CHROMOSOME)
 						&& (Integer.parseInt(line[3]) > Integer.parseInt(START)
 								|| Integer.parseInt(line[4]) > Integer.parseInt(START))

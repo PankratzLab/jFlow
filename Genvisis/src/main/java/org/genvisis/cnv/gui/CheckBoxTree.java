@@ -26,6 +26,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 import org.genvisis.common.IntVector;
+import org.genvisis.common.PSF;
 
 public class CheckBoxTree extends JTree implements ItemListener {
 	public static final long serialVersionUID = 1L;
@@ -279,7 +280,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
 	// if (branch.toString().equals(nameOfBranch)) {
 	// Branch br = (Branch)branch.getUserObject();
 	// Object ob = br.firstElement();
-	// if (((JCheckBox)ob).getName().split("[\\s]+")[0].startsWith(branchHandle)) {
+	// if (((JCheckBox)ob).getName().split(PSF.Regex.GREEDY_WHITESPACE)[0].startsWith(branchHandle)) {
 	// System.out.println("Branch '"+branch+"' index="+i);
 	// index = i;
 	// break;
@@ -496,7 +497,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
 			if (selections[i] == null) {
 				indices[i][0] = indices[i][1] = -1;
 			} else {
-				line = selections[i].getName().split("[\\s]+");
+				line = selections[i].getName().split(PSF.Regex.GREEDY_WHITESPACE);
 				indices[i][0] = Integer.parseInt(line[0]);
 				indices[i][1] = Integer.parseInt(line[1]);
 			}
@@ -514,7 +515,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
 			if (selections[i] == null) {
 				selectedValues[i][0] = selectedValues[i][1] = null;
 			} else {
-				line = selections[i].getName().split("[\\s]+");
+				line = selections[i].getName().split(PSF.Regex.GREEDY_WHITESPACE);
 				selectedValues[i][0] = line[0];
 				selectedValues[i][1] = line[1];
 			}
@@ -560,7 +561,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
 	public String getSelectedPathComponentName() {
 		int index = getSelectedPathComponent();
 		if (index >= 0) {
-			return selections[index].getName().split("[\\s]+")[0];
+			return selections[index].getName().split(PSF.Regex.GREEDY_WHITESPACE)[0];
 		} else {
 			return null;
 		}

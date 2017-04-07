@@ -14,6 +14,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 
 public class checkForDupes {
 	public checkForDupes(boolean fix) throws IOException {
@@ -42,7 +43,7 @@ public class checkForDupes {
 		reader.readLine();
 		reader.readLine();
 		do {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			trav = line[1] + "-" + line[2];
 			if (hash.containsKey(trav)) {
 				DNAs = hash.get(trav);
@@ -76,7 +77,7 @@ public class checkForDupes {
 
 				hashGenos.clear();
 				while (reader.ready()) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (dupeDNAs.contains(line[0])) {
 						hashGenos.put(line[0], line);
 					}
@@ -151,7 +152,7 @@ public class checkForDupes {
 					writer.println(reader.readLine());
 					while (reader.ready()) {
 						temp = reader.readLine();
-						line = temp.split("[\\s]+");
+						line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 						if (dupeDNAs.contains(line[0])) {
 							trav = line[1] + "-" + line[2];
 							DNAs = hash.get(trav);

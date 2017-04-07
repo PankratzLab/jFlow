@@ -16,7 +16,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -38,6 +37,7 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class StratPlot extends JFrame implements ActionListener, TreeSelectionListener {
@@ -318,7 +318,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 		for (int i = 0; i < names.length; i++) {
 			try {
 				reader = Files.getReader(stratFiles.get(i), proj.JAR_STATUS.getValue(), true, false);
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[0].equals("FID") || !line[1].equals("IID")) {
 					log.reportError("Error - different format than expected; first two columns should be FID and IID");
 					throw new IOException();
@@ -330,7 +330,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 					names[i][j + 1] = line[(sol ? 3 : 2) + j];
 				}
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					trav = line[0] + "\t" + line[1];
 					if (hash.containsKey(trav)) {
 						data = hash.get(trav);

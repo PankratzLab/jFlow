@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.qsub.Qsub;
 
@@ -124,7 +125,7 @@ public class Samtools {
 						reader = Files.getAppropriateReader(pwd + file + ".chrCounts");
 						while (reader.ready()) {
 							temp = reader.readLine();
-							line = temp.split("[\\s]+");
+							line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 							for (int chr = 1; chr <= 22; chr++) {
 								if (line[0].equals("chr" + chr)) {
 									if (ext.isMissingValue(line[1])) {

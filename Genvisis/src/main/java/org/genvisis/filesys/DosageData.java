@@ -29,6 +29,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
@@ -300,7 +301,7 @@ public class DosageData implements Serializable {
 			reader = Files.getAppropriateReader(dosageFile);// new BufferedReader(new
 																											// FileReader(dosageFile));
 			if (indexHeaderRow == 1) {
-				line = reader.readLine().trim().split(delimiter == 1 ? "," : "[\\s]+");
+				line = reader.readLine().trim().split(delimiter == 1 ? "," : PSF.Regex.GREEDY_WHITESPACE);
 				if (dominanceFormat == INDIVIDUAL_DOMINANT_FORMAT) {
 					for (int i = 0; i < markerNames.length; i++) {
 						if (!markerNames[i].equals(line[beginDataCol + numDataCols * i])) {
@@ -360,7 +361,7 @@ public class DosageData implements Serializable {
 					if (!markersToKeep[i]) {
 						continue;
 					}
-					line = temp.trim().split(delimiter == 1 ? "," : "[\\s]+");
+					line = temp.trim().split(delimiter == 1 ? "," : PSF.Regex.GREEDY_WHITESPACE);
 					if (!markerNames[i].equals(line[indexMkrIID])) {
 						if (verbose) {
 							String msg = "Error - mismatched name at marker " + (i + 1) + " of " + dosageFile
@@ -489,7 +490,7 @@ public class DosageData implements Serializable {
 				}
 			} else if (dominanceFormat == INDIVIDUAL_DOMINANT_FORMAT) {
 				for (int i = 0; i < ids.length; i++) {
-					line = reader.readLine().trim().split(delimiter == 1 ? "," : "[\\s]+");
+					line = reader.readLine().trim().split(delimiter == 1 ? "," : PSF.Regex.GREEDY_WHITESPACE);
 					if (line.length - beginDataCol != markerNames.length * numDataCols) {
 						String msg = "Error - mismatched number of elements in line "
 												 + (i + 1 + indexHeaderRow)
@@ -639,7 +640,7 @@ public class DosageData implements Serializable {
 		use = ArrayUtils.booleanArray(ids.length, true);
 		for (int i = 0; i < ids.length; i++) {
 			if (hash.containsKey(ids[i][0] + "\t" + ids[i][1])) {
-				line = hash.get(ids[i][0] + "\t" + ids[i][1]).split("[\\s]+");
+				line = hash.get(ids[i][0] + "\t" + ids[i][1]).split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int j = 0; j < line.length; j++) {
 					if (!ext.isValidDouble(line[j]) && !line[j].equals(phenoMissingValue)) {
 						use[i] = false;
@@ -655,7 +656,7 @@ public class DosageData implements Serializable {
 		count = 0;
 		for (int i = 0; i < ids.length; i++) {
 			if (use[i]) {
-				line = hash.get(ids[i][0] + "\t" + ids[i][1]).split("[\\s]+");
+				line = hash.get(ids[i][0] + "\t" + ids[i][1]).split(PSF.Regex.GREEDY_WHITESPACE);
 				deps[count] = Double.parseDouble(line[0]);
 				for (int j = 1; j < traits.length; j++) {
 					indeps[count][j] = Double.parseDouble(line[j]);
@@ -663,7 +664,7 @@ public class DosageData implements Serializable {
 				count++;
 			}
 		}
-		logistic = RegressionModel.isBinaryTrait(ArrayUtils.toStr(deps).split("[\\s]+"), log);
+		logistic = RegressionModel.isBinaryTrait(ArrayUtils.toStr(deps).split(PSF.Regex.GREEDY_WHITESPACE), log);
 		log.report("Running a " + (logistic ? "logistic" : "linear") + " model for trait '" + traits[0]
 							 + "'", true, verbose);
 		try {
@@ -1814,7 +1815,7 @@ public class DosageData implements Serializable {
 				writer = new PrintWriter(new FileWriter(outfile));
 
 				if (fromParameters[4] == 1) {
-					line = reader.readLine().trim().split(fromParameters[10] == 1 ? "," : "[\\s]+");
+					line = reader.readLine().trim().split(fromParameters[10] == 1 ? "," : PSF.Regex.GREEDY_WHITESPACE);
 					if (fromParameters[2] == INDIVIDUAL_DOMINANT_FORMAT) {
 						for (int i = 0; i < markerNames.length; i++) {
 							if (!markerNames[i].equals(line[fromParameters[1] + fromParameters[3] * i])) {
@@ -1881,7 +1882,7 @@ public class DosageData implements Serializable {
 
 				if (fromParameters[2] == MARKER_DOMINANT_FORMAT) {
 					for (int i = 0; i < markerNames.length; i++) {
-						line = reader.readLine().trim().split(fromParameters[10] == 1 ? "," : "[\\s]+");
+						line = reader.readLine().trim().split(fromParameters[10] == 1 ? "," : PSF.Regex.GREEDY_WHITESPACE);
 						if (!markerNames[i].equals(line[fromParameters[5]])) {
 							log.reportError("Error - mismatched name at marker " + (i + 1) + " of " + dosageFile
 															+ "; expecting " + markerNames[i] + " given map file " + mapFile
@@ -2053,7 +2054,7 @@ public class DosageData implements Serializable {
 					}
 				} else if (fromParameters[2] == INDIVIDUAL_DOMINANT_FORMAT) {
 					for (int i = 0; i < ids.length; i++) {
-						line = reader.readLine().trim().split(fromParameters[10] == 1 ? "," : "[\\s]+");
+						line = reader.readLine().trim().split(fromParameters[10] == 1 ? "," : PSF.Regex.GREEDY_WHITESPACE);
 						if (line.length - fromParameters[1] != markerNames.length * fromParameters[3]) {
 							log.reportError("Error - mismatched number of elements in line "
 															+ (i + 1 + fromParameters[4]) + " of " + dosageFile + "; expecting "

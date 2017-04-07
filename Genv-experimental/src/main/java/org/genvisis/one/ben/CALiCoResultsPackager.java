@@ -13,6 +13,7 @@ import java.util.LinkedHashSet;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class CALiCoResultsPackager {
@@ -76,7 +77,7 @@ public class CALiCoResultsPackager {
 
 		private ModelData(String file) throws IOException {
 			BufferedReader reader = Files.getAppropriateReader(file);
-			String[] hdrParts = reader.readLine().split("[\\s]+");
+			String[] hdrParts = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			int overage = hdrParts.length - 8;
 
 			LOCUS_INDEX = 0;
@@ -107,7 +108,7 @@ public class CALiCoResultsPackager {
 			String line = null;
 			while ((line = reader.readLine()) != null) {
 				line = line.trim();
-				String[] parts = line.split("[\\s]+");
+				String[] parts = line.split(PSF.Regex.GREEDY_WHITESPACE);
 				StringBuilder sb = new StringBuilder();
 				for (int i = 0; i < md.RS_INDICES.length; i++) {
 					sb.append(parts[md.RS_INDICES[i]]);
@@ -198,7 +199,7 @@ public class CALiCoResultsPackager {
 		String line = null;
 		while ((line = reader.readLine()) != null) {
 			line = line.trim();
-			String[] parts = line.split("[\\s]+");
+			String[] parts = line.split(PSF.Regex.GREEDY_WHITESPACE);
 			// String chr = parts[FREQ_INDICES[0];
 			String snp = parts[FREQ_INDICES[1]];
 			// String a1 = parts[FREQ_INDICES[2]];
@@ -218,7 +219,7 @@ public class CALiCoResultsPackager {
 		String line = null;
 		while ((line = reader.readLine()) != null) {
 			line = line.trim();
-			String[] lineParts = line.split("[\\s]+");
+			String[] lineParts = line.split(PSF.Regex.GREEDY_WHITESPACE);
 			// String chr = lineParts[ASSOC_INDICES[0]];
 			String snp = lineParts[ASSOC_INDICES[1]];
 			// String bp = lineParts[ASSOC_INDICES[2]];
@@ -249,7 +250,7 @@ public class CALiCoResultsPackager {
 	private static String getStringForSNP(ModelSNP model, String snp, String delim,
 																				PrintWriter logWriter) {
 		String assocLine = model.addLines.get(snp);
-		String[] lineParts = assocLine.split("[\\s]+");
+		String[] lineParts = assocLine.split(PSF.Regex.GREEDY_WHITESPACE);
 		// String chr = lineParts[ASSOC_INDICES[0]];
 		// String snp = lineParts[ASSOC_INDICES[1]];
 		// String bp = lineParts[ASSOC_INDICES[2]];
@@ -264,7 +265,7 @@ public class CALiCoResultsPackager {
 		String p = lineParts[ASSOC_INDICES[11]];
 
 		String freqLine = model.freqLines.get(snp);
-		String[] freqParts = freqLine.split("[\\s]+");
+		String[] freqParts = freqLine.split(PSF.Regex.GREEDY_WHITESPACE);
 		String a1 = freqParts[FREQ_INDICES[2]];
 		String a2 = freqParts[FREQ_INDICES[3]];
 		String mafStr = freqParts[FREQ_INDICES[4]];
@@ -304,13 +305,13 @@ public class CALiCoResultsPackager {
 		for (String rsID : model.rsIDs) {
 
 			freqLine = model.freqLines.get(rsID);
-			freqParts = freqLine.split("[\\s]+");
+			freqParts = freqLine.split(PSF.Regex.GREEDY_WHITESPACE);
 			a1 = freqParts[FREQ_INDICES[2]];
 			a2 = freqParts[FREQ_INDICES[3]];
 			mafStr = freqParts[FREQ_INDICES[4]];
 
 			String selfLine = model.selfLines.get(snp);
-			lineParts = selfLine.split("[\\s]+");
+			lineParts = selfLine.split(PSF.Regex.GREEDY_WHITESPACE);
 			// String chr = lineParts[ASSOC_INDICES[0]];
 			// String snp = lineParts[ASSOC_INDICES[1]];
 			// String bp = lineParts[ASSOC_INDICES[2]];
@@ -339,7 +340,7 @@ public class CALiCoResultsPackager {
 			}
 			mac = (nmiss == -1 || maf == -1 ? -1d : maf * nmiss * 2d);
 
-			a1assoc = model.selfLines.get(rsID).split("[\\s]+")[ASSOC_INDICES[3]];
+			a1assoc = model.selfLines.get(rsID).split(PSF.Regex.GREEDY_WHITESPACE)[ASSOC_INDICES[3]];
 			a1final = a1assoc;
 			a2final = (a1assoc.equals(a1) ? a2 : a1);
 			if (!a1assoc.equals(a1)) {
@@ -417,7 +418,7 @@ public class CALiCoResultsPackager {
 		ArrayList<String> outputLines = new ArrayList<String>();
 		String delim = "\t";
 		for (String snp : model.keyList) {
-			String[] snpBIMData = markerHash.get(snp).split("[\\s]+");
+			String[] snpBIMData = markerHash.get(snp).split(PSF.Regex.GREEDY_WHITESPACE);
 			StringBuilder sb = new StringBuilder();
 			sb.append(snp).append(delim).append(delim).append(snpBIMData[2]).append(delim)// CHR.build36
 				.append(delim)// CHR.build37

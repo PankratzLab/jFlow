@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class genoOnIBD {
@@ -29,7 +30,7 @@ public class genoOnIBD {
 		reader = new BufferedReader(new FileReader(mutation));
 		reader.readLine();
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			hash.put(line[1] + "\t" + line[2],
 							 (Integer.valueOf(line[3]).intValue() + Integer.valueOf(line[4]).intValue() - 2)
 																				 + "");
@@ -48,7 +49,7 @@ public class genoOnIBD {
 		done = false;
 		while (!done) {
 			if (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = line[0];
 			} else {
 				done = true;
@@ -89,7 +90,7 @@ public class genoOnIBD {
 		writer = new PrintWriter(new FileWriter("regressed_" + dumpfile));
 
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (Math.abs(Double.valueOf(line[0]).doubleValue()
 									 - Double.valueOf(pos).doubleValue()) < 0.5) {
 				ids = preIDs.get(line[1]);

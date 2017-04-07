@@ -18,6 +18,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.LDdatabase;
 
@@ -50,7 +51,7 @@ public class CheckForLD {
 				// FileReader(root+"mrkr"+ext.chrome(i)+".dat"));
 				reader = new BufferedReader(new FileReader(dir + "re_chrom" + ext.chrome(i) + ".pre"));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					// data = Array.subArray(line, 2);
 					data = ArrayUtils.subArray(line, 6);
 					if (ArrayUtils.sum(ArrayUtils.toIntArray(data)) > 0
@@ -91,7 +92,7 @@ public class CheckForLD {
 		try {
 			reader = new BufferedReader(new FileReader(dir + DBSNP_LOCAL));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (markerPositions.containsKey(line[0])) {
 					markerPositions.put(line[0], line[1] + "\t" + line[2]);
 				}
@@ -111,7 +112,7 @@ public class CheckForLD {
 				writer = new PrintWriter(new FileWriter(dir + checkDir + "check" + ext.chrome(i)
 																								+ ".info"));
 				for (String element : data) {
-					line = markerPositions.get(element).split("[\\s]+");
+					line = markerPositions.get(element).split(PSF.Regex.GREEDY_WHITESPACE);
 					if (line[0].equals("-1")) {
 						log.reportError("Error - '" + element + "' is supposed to be on chromosome " + i
 														+ ", but was not found in the dbSNP database");
@@ -159,7 +160,7 @@ public class CheckForLD {
 		try {
 			reader = new BufferedReader(new FileReader(root + DBSNP_LOCAL));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (markerPositions.containsKey(line[0])) {
 					markerPositions.put(line[0], line[1] + "\t" + line[2]);
 				}
@@ -179,7 +180,7 @@ public class CheckForLD {
 			try {
 				writer = new PrintWriter(new FileWriter(root + checkDir + "hapmap" + chrome + ".info"));
 				for (String element : data) {
-					line = markerPositions.get(element).split("[\\s]+");
+					line = markerPositions.get(element).split(PSF.Regex.GREEDY_WHITESPACE);
 					if (line[0].equals("-1")) {
 						log.reportError("Error - '" + element + "' is supposed to be on chromosome " + i
 														+ ", but was not found in the dbSNP database");
@@ -228,7 +229,7 @@ public class CheckForLD {
 			reader = Files.getAppropriateReader(DBSNP_SOURCE);
 			writer = new PrintWriter(new FileWriter(fileout));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (markerPositions.containsKey("rs" + line[0])) {
 					try {
 						writer.println("rs" + line[0] + "\t" + line[1] + "\t"
@@ -290,9 +291,9 @@ public class CheckForLD {
 				try {
 					reader = new BufferedReader(new FileReader(root + hapmapDir + hapmapPrefix
 																										 + ext.chrome(chr) + ".pre.CHECK"));
-					ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CHECK_HEADER, true);
+					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CHECK_HEADER, true);
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						hapCheck.put(line[1], line[9] + "\t" + line[5]);
 					}
 					reader.close();
@@ -310,9 +311,9 @@ public class CheckForLD {
 				try {
 					reader = new BufferedReader(new FileReader(root + checkDir + prefix + ext.chrome(chr)
 																										 + ".pre.CHECK"));
-					ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CHECK_HEADER, true);
+					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CHECK_HEADER, true);
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						writer.println(line[1] + "\t" + chr + "\t" + line[2] + "\t" + line[9] + "\t" + line[3]
 													 + "\t" + line[4] + "\t" + line[5] + "\t"
 													 + (maxObsLD.containsKey(line[1]) ? maxObsLD.get(line[1]) : ".\t.\t.")
@@ -321,7 +322,7 @@ public class CheckForLD {
 																																			: ".\t.\t.")
 													 + "\t");
 						if (maxObsLD.containsKey(line[1])) {
-							subline = maxObsLD.get(line[1]).split("[\\s]+");
+							subline = maxObsLD.get(line[1]).split(PSF.Regex.GREEDY_WHITESPACE);
 							if (Double.parseDouble(subline[1]) >= maxDprime
 									|| Double.parseDouble(subline[2]) >= maxr2) {
 								v.add(line[1] + "\t" + ArrayUtils.toStr(subline));
@@ -367,12 +368,12 @@ public class CheckForLD {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), LD_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), LD_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!hash.containsKey(line[0])
 						|| Double.parseDouble(line[4]) > Double.parseDouble(hash.get(line[0])
-																																		.split("[\\s]+")[2])) {
+																																		.split(PSF.Regex.GREEDY_WHITESPACE)[2])) {
 					hash.put(line[0], line[1] + "\t" + line[2] + "\t" + line[4]);
 				}
 			}

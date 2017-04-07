@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.genvisis.common.Files;
-import org.genvisis.gwas.windows.GeneralHitWindowDetector;
 import org.genvisis.gwas.windows.BasicHit;
+import org.genvisis.gwas.windows.GeneralHitWindowDetector;
 import org.genvisis.gwas.windows.HitWindow;
 
 public class HitWindowTest {

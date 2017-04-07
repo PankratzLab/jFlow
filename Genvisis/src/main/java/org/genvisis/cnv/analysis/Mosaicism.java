@@ -484,14 +484,14 @@ public class Mosaicism {
 			list = new Vector<String[]>();
 			try {
 				reader = new BufferedReader(new FileReader(listOfMosaicArms));
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!ext.checkHeader(line, new String[] {"Sample", "Arm"}, false)) {
 					reader.close();
 					return;
 				}
 
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					list.add(new String[] {line[0], line[1]});
 				}
 				reader.close();

@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class SummaryFor_dbGaP {
@@ -36,7 +37,7 @@ public class SummaryFor_dbGaP {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + results));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			snpCol = ext.indexFactors(new String[] {"SNP"}, line, false, true)[0];
 			orCol = ext.indexFactors(new String[] {"OR"}, line, true, false)[0];
 			statCol = ext.indexFactors(new String[] {"STAT"}, line, true, true)[0];
@@ -44,7 +45,7 @@ public class SummaryFor_dbGaP {
 			testCol = ext.indexFactors(new String[] {"TEST"}, line, true, true)[0];
 			System.out.println(ext.getTime() + "\tReading in p-values for " + test + " in " + results);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[testCol].equalsIgnoreCase(test)) {
 					hash.put(line[snpCol], new String[] {line[orCol], line[statCol], line[pCol]});
 				}
@@ -62,7 +63,7 @@ public class SummaryFor_dbGaP {
 			reader = new BufferedReader(new FileReader(dir + HWE_FILE));
 			writer = new PrintWriter(new FileWriter(dir + "summary.xln"));
 			writer.println(ArrayUtils.toStr(FINAL_HEADER));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			snpCol = ext.indexFactors(new String[] {"SNP"}, line, false, true)[0];
 			a1Col = ext.indexFactors(new String[] {"A1"}, line, true, false)[0];
 			a2Col = ext.indexFactors(new String[] {"A2"}, line, true, true)[0];
@@ -73,7 +74,7 @@ public class SummaryFor_dbGaP {
 			while (reader.ready()) {
 				reader.readLine();
 
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[testCol].equalsIgnoreCase("aff")) {
 					System.err.println("Error - out of sync at " + line[snpCol]);
 					System.exit(1);
@@ -82,7 +83,7 @@ public class SummaryFor_dbGaP {
 				writer.print(CHIP_BATCH_NAME + "\t" + line[snpCol] + "\t" + line[a1Col] + "\t" + line[a2Col]
 										 + "\t" + ArrayUtils.toStr(line[genoCol].split("/")));
 
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[testCol].equalsIgnoreCase("unaff")) {
 					System.err.println("Error - out of sync at " + line[snpCol]);
 					System.exit(1);

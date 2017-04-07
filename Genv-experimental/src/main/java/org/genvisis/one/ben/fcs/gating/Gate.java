@@ -6,23 +6,15 @@ import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Random;
 
 import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
-import org.genvisis.one.ben.fcs.AbstractPanel2;
-import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
-import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
+import org.genvisis.one.ben.fcs.FCSDataLoader;
 // import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
-import org.genvisis.one.ben.fcs.sub.EMModel;
-
-import edu.stanford.facs.logicle.Logicle;
 
 public abstract class Gate {
 

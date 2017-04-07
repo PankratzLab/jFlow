@@ -18,6 +18,7 @@ import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.SerialFloatArray;
@@ -54,7 +55,7 @@ class KEGGpathway {
 					v = new Vector<String>();
 					while (temp.startsWith(" ")) {
 						temp = temp.trim();
-						pathway = temp.split("[\\s]+")[0];
+						pathway = temp.split(PSF.Regex.GREEDY_WHITESPACE)[0];
 						pathwayName = temp.substring(pathway.length()).trim();
 						if (!pathwayLookup.containsKey(pathway)) {
 							pathwayLookup.put(pathway, pathwayName);
@@ -68,7 +69,7 @@ class KEGGpathway {
 				}
 				if (temp.startsWith("ENTRY")) {
 					v = new Vector<String>();
-					entry = temp.trim().split("[\\s]+")[1];
+					entry = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE)[1];
 					// System.err.println(entry);
 				}
 				if (temp.startsWith("GENES")) {
@@ -76,7 +77,7 @@ class KEGGpathway {
 					while (temp.startsWith(" ")) {
 						temp = temp.trim();
 						if (temp.startsWith("HSA:")) {
-							line = temp.split("[\\s]+");
+							line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 							for (int i = 1; i < line.length; i++) {
 								if (line[i].indexOf("(") == -1 || line[i].indexOf(")") == -1) {
 									gene = line[i];
@@ -122,7 +123,7 @@ class KEGGpathway {
 		try {
 			reader = new BufferedReader(new FileReader(ko2_file));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 1; i < line.length; i++) {
 					HashVec.addToHashVec(genes, line[0], "ko" + line[i], true); // count both ways and compare
 					HashVec.addToHashVec(pathways, "ko" + line[i], line[0], true); // count both ways and
@@ -177,7 +178,7 @@ class KEGGpathway {
 				geneIDs[i] = new String[v.size()];
 				segs[i] = new Segment[v.size()];
 				for (int j = 0; j < segs[i].length; j++) {
-					line = v.elementAt(j).split("[\\s]+");
+					line = v.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
 					geneIDs[i][j] = line[0];
 					segs[i][j] = new Segment(line[1]);
 				}
@@ -254,7 +255,7 @@ public class PathwayAnalysis {
 		filenames[1] = ext.rootOf(pheno, false) + "_cov." + rep
 									 + pheno.substring(pheno.lastIndexOf("."));
 		trait = HashVec.loadFileToStringArray(pheno, true, new int[] {2}, false);
-		line = Files.getHeaderOfFile(pheno, "[\\s]+", new Logger());
+		line = Files.getHeaderOfFile(pheno, PSF.Regex.GREEDY_WHITESPACE, new Logger());
 		if (!line[0].equals("FID") || !line[1].equals("IID")) {
 			System.err.println("Error - need to use FID/IID in both pheno and covar files");
 			Files.writeArray(new String[] {"Error - need to use FID/IID in both pheno and covar files"},
@@ -268,7 +269,7 @@ public class PathwayAnalysis {
 			writer = new PrintWriter(new FileWriter(filenames[0]));
 			writer.println(reader.readLine());
 			for (int i = 0; i < trait.length; i++) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[0] + "\t" + line[1] + "\t" + trait[keys[i]]);
 			}
 			writer.close();
@@ -295,7 +296,7 @@ public class PathwayAnalysis {
 				Files.writeArray(new String[] {}, "pheno_covar_checks_out");
 			}
 
-			line = Files.getHeaderOfFile(covars, "[\\s]+", new Logger());
+			line = Files.getHeaderOfFile(covars, PSF.Regex.GREEDY_WHITESPACE, new Logger());
 			indices = new int[line.length - 2];
 			for (int i = 0; i < indices.length; i++) {
 				indices[i] = 2 + i;
@@ -307,7 +308,7 @@ public class PathwayAnalysis {
 				writer = new PrintWriter(new FileWriter(filenames[1]));
 				writer.println(reader.readLine());
 				for (int i = 0; i < trait.length; i++) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.println(line[0] + "\t" + line[1] + "\t" + trait[keys[i]]);
 				}
 				writer.close();
@@ -402,7 +403,7 @@ public class PathwayAnalysis {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			indices = ext.indexFactors(new String[] {"SNP", "TEST", "P"},
-																 reader.readLine().trim().split("[\\s]+"), false, new Logger(),
+																 reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), false, new Logger(),
 																 false, false);
 			results = new float[markerNames.length];
 			root = ext.rootOf(filename);
@@ -411,7 +412,7 @@ public class PathwayAnalysis {
 			}
 			count = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (indices[1] == -1 || line[indices[1]].equals("ADD")) {
 					if (!line[indices[0]].equals(markerNames[count])) {
 						System.err.println("Error - marker mismatch at marker " + (count + 1) + " (expecting "

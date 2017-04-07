@@ -11,6 +11,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
@@ -80,7 +81,7 @@ public class ParseRawSNPsOld48 {
 		try {
 			reader = new BufferedReader(new FileReader(SNP_POSITIONS));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				hash.put(line[0], line[1]);
 			}
 			reader.close();

@@ -19,6 +19,7 @@ import org.genvisis.common.CNVFilter.FreqFilter;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
@@ -97,11 +98,11 @@ public class CushingCnvs {
 			ArrayList<PlinkEmpSeg> tmp = new ArrayList<PlinkEmpSeg>();
 			try {
 				BufferedReader reader = Files.getAppropriateReader(filname);
-				String[] header = reader.readLine().trim().split("[\\s]+");
+				String[] header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				int[] indices = ext.indexFactors(header, EMP_HEADER, true, false);
 
 				while (reader.ready()) {
-					String[] line = reader.readLine().trim().split("[\\s]+");
+					String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					byte chr = Byte.parseByte(line[indices[0]]);
 					String tmpLoc = line[indices[1]];
 					tmpLoc = tmpLoc.replaceAll(".*-", "");

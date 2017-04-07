@@ -11,6 +11,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.stats.Maths;
@@ -39,13 +40,13 @@ public class CompareCalls {
 		for (int i = 0; i < files.length; i++) {
 			try {
 				reader = new BufferedReader(new FileReader(rootDir + files[i]));
-				if (!ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CNVariant.PLINK_CNV_HEADER,
+				if (!ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CNVariant.PLINK_CNV_HEADER,
 														 false)) {
 					reader.close();
 					return;
 				}
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (hash.containsKey(line[0] + "\t" + line[1])) {
 						source = hash.get(line[0] + "\t" + line[1]);
 					} else {

@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.ProbDist;
 
@@ -33,7 +34,7 @@ public class haploGatherPerms {
 				for (int j = 0; j < 6; j++) {
 					reader.readLine();
 				}
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length < 6) {
 					System.err.println("Error - could not parse " + "bintests/" + i + "_bintest.out");
 					globals[i - 1] = -1;

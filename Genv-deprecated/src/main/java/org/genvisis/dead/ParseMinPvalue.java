@@ -14,6 +14,7 @@ import java.util.Vector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
@@ -66,7 +67,7 @@ public class ParseMinPvalue {
 			try {
 				System.out.println("Loading " + element + " results...");
 				reader = new BufferedReader(new FileReader(dir + element + ".xls"));
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				iv = new IntVector();
 				for (int j = 0; j < line.length; j++) {
 					if (line[j].equals(TAG) && ext.indexOfStr(line[j - 2], MODELS) != -1) {
@@ -75,7 +76,7 @@ public class ParseMinPvalue {
 				}
 				indices = Ints.toArray(iv);
 				while (reader.ready()) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (USE_ASSOC) {
 						min = Double.parseDouble(hash.get(line[0]));
 					} else {
@@ -120,7 +121,7 @@ public class ParseMinPvalue {
 			reader = new BufferedReader(new FileReader(dir + filename));
 			reader.readLine();
 			for (int i = 0; i < count; i++) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				marks[i] = line[0];
 				ps[i] = Double.parseDouble(line[1]);
 			}

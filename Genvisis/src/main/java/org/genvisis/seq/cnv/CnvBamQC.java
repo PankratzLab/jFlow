@@ -7,11 +7,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ArraySpecialList.ArrayIntList;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
@@ -185,7 +186,7 @@ public class CnvBamQC {
 																																						false));
 			int index = 0;
 			while (reader.ready()) {
-				String[] line = reader.readLine().trim().split("[\\s]+");
+				String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (cnvs[index].getCN() > 2) {
 					writers[0].println(ArrayUtils.toStr(line));
 				} else if (cnvs[index].getCN() < 2) {

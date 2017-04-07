@@ -11,6 +11,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class FindNearestGenes {
@@ -42,7 +43,7 @@ public class FindNearestGenes {
 		try {
 			reader = new BufferedReader(new FileReader(DIR + MAP));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (ext.indexOfStr(line[1], markers) >= 0) {
 					poslar.put(line[1], line[0] + "\t" + line[3]);
 				}
@@ -61,7 +62,7 @@ public class FindNearestGenes {
 		genes = ArrayUtils.stringArray(markers.length, "");
 		for (int j = 0; j < markers.length; j++) {
 			if (poslar.containsKey(markers[j])) {
-				line = (poslar.get(markers[j])).split("[\\s]+");
+				line = (poslar.get(markers[j])).split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int k = 0; k < 2; k++) {
 					genePositions[j][k] = Integer.parseInt(line[k]);
 				}
@@ -78,7 +79,7 @@ public class FindNearestGenes {
 			queuePoslar = new Vector<int[]>();
 			queueNames = new Vector<String>();
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				chr_start_stop = parseChrInfo(line);
 
 				if (queuePoslar.size() > 0
@@ -122,7 +123,7 @@ public class FindNearestGenes {
 						}
 						reader.mark(1000);
 						for (int i = 0; i < WINDOW; i++) {
-							travLine = i == 0 ? line : reader.readLine().trim().split("[\\s]+");
+							travLine = i == 0 ? line : reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							trav = parseChrInfo(travLine);
 							if (genePositions[j][0] == trav[0]) {
 								genes[j] += "|" + travLine[1] + "[" + (trav[2] - trav[1]) + "] (+"

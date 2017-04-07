@@ -323,7 +323,7 @@ public class ParseRawSNPs {
 		// try {
 		// reader = new BufferedReader(new FileReader(SNP_POSITIONS));
 		// while (reader.ready()) {
-		// line = reader.readLine().split("[\\s]+");
+		// line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 		// hash.put(line[0], line[1]);
 		// }
 		// reader.close();

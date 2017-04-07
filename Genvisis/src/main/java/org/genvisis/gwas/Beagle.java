@@ -24,6 +24,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.Vectors;
 import org.genvisis.common.ext;
@@ -450,7 +451,7 @@ public class Beagle {
 			reader = new BufferedReader(new FileReader(filename));
 			count = 0;
 			for (int i = 0; i < 2; i++) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int j = 0; j < ids.length; j++) {
 					for (int k = 0; k < 4; k++) {
 						if (!line[j * 4 + k + 1].equals(ids[j][i])) {
@@ -480,7 +481,7 @@ public class Beagle {
 				// writers[j][1].println(Array.toStr(SEGMENT_HEADER)+"\tSCORE");
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length == ids.length * 4 + 1) {
 					for (int i = 0; i < ids.length; i++) {
 						alleleCounts[count][ext.indexOfStr(line[i * 4 + 2 + 1], ALLELES)]++;
@@ -709,7 +710,7 @@ public class Beagle {
 																												 + ".ibds.pre_phase.bgl.ibd_sum.xln"));
 							count = 0;
 							while (reader.ready()) {
-								line = reader.readLine().trim().split("[\\s]+");
+								line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 								if (!line[0].equals(markerNames[chr - 1][count])) {
 									log.reportError("Error - mismatch in '" + "chr" + chr + "/" + rep
 																	+ ".ibds.pre_phase.bgl.ibd_sum.xln" + "' at line " + (count + 1)
@@ -837,7 +838,7 @@ public class Beagle {
 							try {
 								reader = new BufferedReader(new FileReader(trav + "Plus"));
 								while (reader.ready()) {
-									line = reader.readLine().trim().split("[\\s]+");
+									line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 									for (int j = 0; j < SEGMENT_HEADER.length; j++) {
 										writer.print((j == 0 ? "" : "\t") + line[j]);
 									}
@@ -908,7 +909,7 @@ public class Beagle {
 				try {
 					reader = new BufferedReader(new FileReader("chr" + chr + "/chr" + chr + ".match"));
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						writer.print(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3]);
 						affs = new byte[] {(byte) -999, (byte) -999};
 						for (int j = 0; j < 2; j++) {
@@ -946,7 +947,7 @@ public class Beagle {
 			try {
 				reader = new BufferedReader(new FileReader("germline.segmentPlus"));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					for (int j = 0; j < SEGMENT_HEADER.length; j++) {
 						writer.print((j == 0 ? "" : "\t") + line[j]);
 					}
@@ -1006,7 +1007,7 @@ public class Beagle {
 				v = includes.get(key);
 				segs = new Segment[v.size()];
 				for (int j = 0; j < segs.length; j++) {
-					line = v.elementAt(j).split("[\\s]+");
+					line = v.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
 					segs[j] = new Segment(Byte.parseByte(line[0]), Integer.parseInt(line[1]),
 																Integer.parseInt(line[2]));
 				}
@@ -1058,15 +1059,15 @@ public class Beagle {
 		try {
 			reader = new BufferedReader(new FileReader(segInfoFile));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				seg = new Segment(line[5]);
 				if (Segment.overlapsAny(seg, intervals)
 						&& (includes == null
 								|| (includeSegs.containsKey(line[0] + "\t" + line[1])
 										&& Segment.contains(seg, includeSegs.get(line[0] + "\t" + line[1]))))) {
 					reader.readLine(); // normal confidence
-					probs = reader.readLine().trim().split("[\\s]+"); // nuanced confidence
-					alleles = reader.readLine().trim().split("[\\s]+"); // alleles
+					probs = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE); // nuanced confidence
+					alleles = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE); // alleles
 					reader.readLine(); // genotypes
 
 					for (int i = 0; i < intervals.length; i++) {
@@ -1191,10 +1192,10 @@ public class Beagle {
 																																													 * 100)
 																																								: "")
 																									+ ".segment"));
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, line.length - 3)));
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (Double.parseDouble(line[14]) >= element
 								&& (strict == 0 || Double.parseDouble(line[13]) >= FILTER_MAX_THRESHOLD)) {
 							writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, line.length - 3)));
@@ -1251,9 +1252,9 @@ public class Beagle {
 			}
 			try {
 				reader = new BufferedReader(new FileReader(plinkFile));
-				ext.checkHeader(reader.readLine().trim().split("[\\s]+"), Plink.CLUSTER_HEADER, true);
+				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), Plink.CLUSTER_HEADER, true);
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (groupsHash.containsKey(line[0] + "\t" + line[1])
 							&& groupsHash.containsKey(line[2] + "\t" + line[3])) {
 						if (checks.containsKey(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3])

@@ -13,6 +13,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class pdt {
@@ -34,7 +35,7 @@ public class pdt {
 		try {
 			reader = new BufferedReader(new FileReader(templateFile));
 			while (reader.ready()) {
-				pedinfo.add(ArrayUtils.subArray(reader.readLine().split("[\\s]+"), 0, 10));
+				pedinfo.add(ArrayUtils.subArray(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), 0, 10));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
@@ -49,7 +50,7 @@ public class pdt {
 
 		try {
 			reader = new BufferedReader(new FileReader("map" + chrome + ".dat"));
-			numMarkers = Integer.parseInt(reader.readLine().trim().split("[\\s]+")[0]) - 1;
+			numMarkers = Integer.parseInt(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]) - 1;
 			for (int i = 0; i < 6; i++) {
 				reader.readLine();
 			}
@@ -62,7 +63,7 @@ public class pdt {
 				writer.println("0.99500 0.00500");
 				writer.println("1");
 				writer.println("0.03 0.80 0.80");
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[0] + " " + line[1] + " " + line[2] + line[3]);
 				writer.println(reader.readLine());
 				writer.println("0 0");
@@ -92,7 +93,7 @@ public class pdt {
 		try {
 			reader = new BufferedReader(new FileReader("re_chrom" + chrome + ".pre"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				HashVec.addIfAbsent(line[0], v);
 			}
 			reader.close();
@@ -130,7 +131,7 @@ public class pdt {
 			reader = new BufferedReader(new FileReader(prefile));
 
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				dataline = new String[(stopAt - startAt) * 2];
 				for (int i = 0; i < stopAt - startAt; i++) {
 					dataline[i * 2 + 0] = line[(startAt + i) * 2 + 6 + 0];
@@ -179,16 +180,16 @@ public class pdt {
 				chrome = ext.chrome(i);
 				try {
 					reader = new BufferedReader(new FileReader("map" + chrome + ".dat"));
-					numMarkers = Integer.parseInt(reader.readLine().trim().split("[\\s]+")[0]) - 1;
+					numMarkers = Integer.parseInt(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]) - 1;
 					for (int j = 0; j < 6; j++) {
 						reader.readLine();
 					}
 					for (int j = 1; j <= numMarkers; j++) {
-						markerNames.add(reader.readLine().split("[\\s]+")[3]);
+						markerNames.add(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[3]);
 						reader.readLine();
 					}
 					reader.readLine();
-					dists = reader.readLine().split("[\\s]+");
+					dists = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
 					System.err.println("Error: file \"" + "map" + chrome + ".dat"
@@ -207,9 +208,9 @@ public class pdt {
 						while (reader.ready()) {
 							temp = reader.readLine();
 							if (temp.indexOf("GLOBAL_SUM_PDT") > 0) {
-								sum = temp.split("[\\s]+")[3];
+								sum = temp.split(PSF.Regex.GREEDY_WHITESPACE)[3];
 							} else if (temp.indexOf("GLOBAL_AVE_PDT") > 0) {
-								avg = temp.split("[\\s]+")[3];
+								avg = temp.split(PSF.Regex.GREEDY_WHITESPACE)[3];
 							}
 						}
 						if (avg.equals(".") || sum.equals(".")) {

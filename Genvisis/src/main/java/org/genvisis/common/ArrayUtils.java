@@ -4403,7 +4403,7 @@ public class ArrayUtils {
 			if (tab) {
 				stringArrays[i] = array[i].split("\t", -1);
 			} else {
-				stringArrays[i] = array[i].split("[\\s]+");
+				stringArrays[i] = array[i].split(PSF.Regex.GREEDY_WHITESPACE);
 			}
 		}
 

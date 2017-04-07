@@ -7,6 +7,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.genvisis.common.PSF;
+
 public class Cyrillic {
 	public static void format(String prefile, String mapfile, String outprefile, String outmapfile,
 														int chr) {
@@ -35,14 +37,14 @@ public class Cyrillic {
 			reader = new BufferedReader(new FileReader(mapfile));
 			writer = new PrintWriter(new FileWriter(outmapfile));
 
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			numMrkrs = Integer.valueOf(line[0]).intValue();
 			writer.print(numMrkrs);
 			for (int j = 1; j <= 3; j++) {
 				writer.print("  " + line[j]);
 			}
 			writer.println("<< chromosome: \"" + chr + "\"");
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			for (int j = 0; j < 4; j++) {
 				writer.print(line[j] + "  ");
 			}
@@ -51,17 +53,17 @@ public class Cyrillic {
 			writer.println(reader.readLine());
 			reader.readLine();
 			writer.println("1  2  << Name: \"Disease Name\"");
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			for (int j = 0; j < 2; j++) {
 				writer.print("  " + line[j]);
 			}
 			writer.println();
 
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			numClasses = Integer.parseInt(line[0]);
 			writer.println(numClasses);
 			for (int j = 0; j < numClasses; j++) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (String element : line) {
 					writer.print("  " + element);
 				}
@@ -69,22 +71,22 @@ public class Cyrillic {
 			}
 
 			for (int j = 0; j < numMrkrs - 1; j++) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.print(" " + line[0] + "  " + line[1]);
 				writer.println(" << Name: \"" + (line.length > 2 ? line[3] : "Marker_" + (j + 1)) + "\"");
 				writer.println(reader.readLine());
 			}
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			for (int j = 0; j < 2; j++) {
 				writer.print(line[j] + " ");
 			}
 			writer.println();
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			for (int j = 0; j < numMrkrs - 1; j++) {
 				writer.print(line[j] + " ");
 			}
 			writer.println();
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			for (int j = 0; j < 3; j++) {
 				writer.print("  " + line[j]);
 			}

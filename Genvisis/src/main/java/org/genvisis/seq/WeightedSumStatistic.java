@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Pedfile;
@@ -437,7 +438,7 @@ public class WeightedSumStatistic {
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
 			for (String model : models) {
-				line = model.split("[\\s]+");
+				line = model.split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println("plink --bfile allThree --recode --keep " + line[0] + " --extract "
 											 + line[1]);
 				writer.println("java -jar /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS

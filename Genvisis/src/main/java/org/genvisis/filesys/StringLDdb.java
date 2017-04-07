@@ -3,7 +3,6 @@ package org.genvisis.filesys;
 import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Vector;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.SerializedFiles;

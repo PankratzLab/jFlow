@@ -14,6 +14,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.qsub.Qsub;
 
@@ -278,7 +279,7 @@ public class PLINK2GenomePackager {
 			reader.readLine();
 			while ((line = reader.readLine()) != null) {
 				line = line.trim();
-				String[] parts = line.split("[\\s]+");
+				String[] parts = line.split(PSF.Regex.GREEDY_WHITESPACE);
 				String mkrChrPos = pmAll.get(parts[0]);
 
 				StringBuilder sb = new StringBuilder();

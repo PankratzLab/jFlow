@@ -2,8 +2,8 @@ package org.genvisis.one.JL;
 
 import java.util.ArrayList;
 
-import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.manage.Markers;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;

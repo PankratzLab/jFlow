@@ -21,6 +21,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.Unique;
 import org.genvisis.common.ext;
@@ -48,7 +49,7 @@ public class CALiCo {
 		try {
 			reader = new BufferedReader(new FileReader(genoFileDirPlusRoot + ".bim"));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < markers.length; i++) {
 					if (markers[i].equals(line[1])) {
 						if (chrs[i] == (byte) -1) {
@@ -108,7 +109,7 @@ public class CALiCo {
 			try {
 				reader = new BufferedReader(new FileReader(phenoCovarDir + CONDITIONALS_TXT_FILE));
 				while (reader.ready()) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					root = ext.rootOf(line[0]);
 					conditionals.put(root + "_" + ext.replaceWithLinuxSafeCharacters(line[1], false),
 													 new String[] {root, line[1]});
@@ -554,7 +555,7 @@ public class CALiCo {
 	//// analysisDir = ext.parseDirectoryOfFile(filename);
 	//// log = new Logger(resultDir + root + ".log");
 	// temp = Files.getFirstNLinesOfFile(phenoCovarFilename, 1, log)[0];
-	// header = temp.trim().split("[\\s]+");
+	// header = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	//
 	// args = new String[] {phenoCovarFilename, "out="+scratchDir+root+"_pheno.dat",
 	// "'"+idVarName+"'=FID", "'"+idVarName+"'=IID", "'"+header[1]+"'", "tab", "replace=."};
@@ -626,7 +627,7 @@ public class CALiCo {
 	//// analysisDir = ext.parseDirectoryOfFile(filename);
 	//// log = new Logger(resultDir + root + ".log");
 	// temp = Files.getFirstNLinesOfFile(phenoCovarFilename, 1, log)[0];
-	// header = temp.trim().split("[\\s]+");
+	// header = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	//
 	// args = new String[] {phenoCovarFilename, "out="+scratchDir+root+"_pheno.dat",
 	// "'"+idVarName+"'=FID", "'"+idVarName+"'=IID", "'"+header[1]+"'", "tab", "replace=."};
@@ -661,7 +662,7 @@ public class CALiCo {
 	// if (ext.isMissingValue(hashPheno.get(keys[i]))) {
 	// keysToRemove.add(i);
 	// } else if (hashCovariates.containsKey(keys[i])) {
-	// covars = hashCovariates.get(keys[i]).trim().split("[\\s]+");
+	// covars = hashCovariates.get(keys[i]).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// for (int j = 0; j < covars.length; j++) {
 	// if (ext.isMissingValue(covars[j])) {
 	// keysToRemove.add(i);
@@ -710,7 +711,7 @@ public class CALiCo {
 		// analysisDir = ext.parseDirectoryOfFile(filename);
 		// log = new Logger(resultDir + root + ".log");
 		temp = Files.getFirstNLinesOfFile(phenoCovarFilename, 1, log)[0];
-		header = temp.trim().split("[\\s]+");
+		header = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 
 		args = new String[] {phenoCovarFilename, "out=" + outputDir + root + "_pheno.dat",
 												 "'" + idVarName + "'=FID", "'" + idVarName + "'=IID",
@@ -814,7 +815,7 @@ public class CALiCo {
 			if (ext.isMissingValue(hashPheno.get(keys[i]))) {
 				keysToRemove.add(i);
 			} else if (hashCovariates.containsKey(keys[i])) {
-				covars = hashCovariates.get(keys[i]).trim().split("[\\s]+");
+				covars = hashCovariates.get(keys[i]).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (String covar : covars) {
 					if (ext.isMissingValue(covar)) {
 						keysToRemove.add(i);

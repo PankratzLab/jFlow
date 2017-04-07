@@ -23,6 +23,7 @@ import org.genvisis.cnv.qc.IlluminaMarkerBlast;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.seq.manage.StrandOps;
 
@@ -547,7 +548,7 @@ public class ABLookup {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				map.put(line[0], new char[] {line[1].charAt(0), line[2].charAt(0)});
 			}
 			return map;
@@ -811,7 +812,7 @@ public class ABLookup {
 				second = 5;
 			} else {
 
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				int[] colIndices = ext.indexFactors(AB_LOOKUP_COLS, line, false, log, true, false);
 
 				markerIndex = colIndices[0];
@@ -828,7 +829,7 @@ public class ABLookup {
 				writer.println(ArrayUtils.toStr(line));
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[first].equals("N") && line[second].equals("N")) {
 					markersWithNoLink.add(line[0]);
 					line[first] = "A";

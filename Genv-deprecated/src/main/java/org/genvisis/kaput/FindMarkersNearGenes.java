@@ -17,6 +17,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 
@@ -76,7 +77,7 @@ public class FindMarkersNearGenes {
 		try {
 			reader = Files.getReader(GENES, GENES_ALT);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				index = ext.indexOfStr(line[1], geneNames);
 				if (index >= 0) {
 					genePositions[index] = new int[3];
@@ -110,7 +111,7 @@ public class FindMarkersNearGenes {
 		try {
 			reader = new BufferedReader(new FileReader(dir + root + ".bim"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				chr = Integer.parseInt(line[0]);
 				pos = Integer.parseInt(line[3]);
 				for (int i = 0; i < genePositions.length; i++) {
@@ -198,7 +199,7 @@ public class FindMarkersNearGenes {
 				reader = new BufferedReader(new FileReader(dir + ext.rootOf(filename) + ".ped.bak"));
 				writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + ".ped"));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					line[5] = "0";
 					writer.println(ArrayUtils.toStr(line, " "));
 				}
@@ -213,7 +214,7 @@ public class FindMarkersNearGenes {
 				reader = new BufferedReader(new FileReader(dir + ext.rootOf(filename) + ".map"));
 				writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + ".info"));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.println(line[1] + "\t" + line[3]);
 				}
 				reader.close();
@@ -289,7 +290,7 @@ public class FindMarkersNearGenes {
 		try {
 			reader = Files.getReader(GENES, GENES_ALT);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				index = ext.indexOfStr(line[1], genes);
 				if (index >= 0) {
 					genePositions[index] = new int[3];
@@ -323,7 +324,7 @@ public class FindMarkersNearGenes {
 		try {
 			reader = new BufferedReader(new FileReader(dir + ext.rootOf(filename) + "_markers.xln"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				// System.err.println(line[0]);
 				chr = Integer.parseInt(line[1]);
 				pos = Integer.parseInt(line[2]);
@@ -401,7 +402,7 @@ public class FindMarkersNearGenes {
 
 			while (!done) {
 				if (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					line[2] = Positions.chromosomeNumber(line[2]) + "";
 				} else {
 					done = true;

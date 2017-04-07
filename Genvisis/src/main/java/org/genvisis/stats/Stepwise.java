@@ -13,6 +13,7 @@ import java.util.concurrent.Callable;
 import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
@@ -80,7 +81,7 @@ public class Stepwise {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			reader.mark(5000);
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			for (int i = 1; i < line.length; i++) {
 				try {
 					indNames.add(line[i]);
@@ -93,7 +94,7 @@ public class Stepwise {
 				reader.reset();
 			}
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				deps.add(line[0]);
 				data = new double[line.length - 1];
 				for (int i = 1; i < line.length; i++) {

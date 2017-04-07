@@ -18,6 +18,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SerialHash;
@@ -76,9 +77,9 @@ public class MergeDatasets {
 			try {
 				reader = new BufferedReader(new FileReader(dir + dirs[i] + filename));
 				System.out.println(ext.getTime() + "\tLoading " + filename + " in " + dirs[i]);
-				ext.checkHeader(reader.readLine().trim().split("[\\s]+"), MarkerQC.HWE_HEADER, true);
+				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), MarkerQC.HWE_HEADER, true);
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (line[2].equals(hweCountFlag) || line[2].equals("ALL(NP)")
 							|| line[2].equals("ALL(QT)")) {
 						HashVec.addToHashHash(hashes, line[1].toLowerCase(), i + "",
@@ -117,7 +118,7 @@ public class MergeDatasets {
 				refAlleles = new String[2];
 				for (int j = 0; j < keys.length; j++) {
 					index = Integer.parseInt(keys[j]);
-					line = hash.get(keys[j]).split("[\\s]+");
+					line = hash.get(keys[j]).split(PSF.Regex.GREEDY_WHITESPACE);
 					genotypeCounts[j] = ArrayUtils.toIntArray(line[2].split("/"));
 
 					switch (Metal.determineStrandConfig(new String[] {line[0], line[1]}, refAlleles)) {
@@ -401,7 +402,7 @@ public class MergeDatasets {
 				datasetNames[i] = files[i].substring(0, files[i].length() - 4);
 				reader = new BufferedReader(new FileReader(dir + files[i]));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					HashVec.addToHashVec(hash, line[1], i + "\t" + line[0] + "\t" + line[3], false);
 				}
 				reader.close();
@@ -430,7 +431,7 @@ public class MergeDatasets {
 				values = new Vector<String>();
 				datasets = new Vector<Vector<String>>();
 				for (int j = 0; j < v.size(); j++) {
-					line = v.elementAt(j).split("[\\s]+");
+					line = v.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
 					index = values.indexOf(line[1] + "\t" + line[2]);
 					if (index == -1) {
 						values.add(line[1] + "\t" + line[2]);
@@ -564,7 +565,7 @@ public class MergeDatasets {
 			try {
 				reader = new BufferedReader(new FileReader(mergedMap));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					hash.put(line[0], new String[] {line[1], line[2]});
 				}
 				reader.close();
@@ -584,7 +585,7 @@ public class MergeDatasets {
 			reader = new BufferedReader(new FileReader(fileToUpdate + "_"));
 			writer = new PrintWriter(new FileWriter(fileToUpdate));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				loc = hash.get(line[1]);
 				if (loc == null) {
 					System.err.println("Error - merged map '" + mergedMap

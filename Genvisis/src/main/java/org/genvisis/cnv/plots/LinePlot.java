@@ -54,6 +54,7 @@ import org.genvisis.cnv.gui.ColorIcon;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class LinePlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener {
@@ -442,7 +443,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 			if (readBuffer.contains("\t")) {
 				header = readBuffer.trim().split("\t", -1);
 			} else {
-				header = readBuffer.trim().split("[\\s]+");
+				header = readBuffer.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			}
 
 			// Adding headers of the file
@@ -471,7 +472,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 				if (readBuffer.contains("\t")) {
 					line = reader.readLine().trim().split("\t", -1);
 				} else {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				}
 				if (line.length != header.length) {
 					JOptionPane.showMessageDialog(null,
@@ -531,7 +532,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 			reader.readLine();
 			while (reader.ready()) {
 				curLine = reader.readLine();
-				curLineParams = curLine.trim().split("[\\s]+");
+				curLineParams = curLine.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (colorKeyHash.containsKey(curLineParams[2])) { // if this group is already there
 					colorKeyHashValue = colorKeyHash.get(curLineParams[2]);
 				} else {

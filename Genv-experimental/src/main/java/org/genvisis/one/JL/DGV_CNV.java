@@ -10,6 +10,7 @@ import java.util.Hashtable;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
@@ -231,7 +232,7 @@ public class DGV_CNV {
 					reader.readLine();
 					int lineNum = 0;
 					while (reader.ready()) {
-						String[] line = reader.readLine().trim().split("[\\s]+");
+						String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						lineNum++;
 						int chr = Positions.chromosomeNumber(line[indices[1]]);
 						int start = Integer.parseInt(line[indices[2]]);

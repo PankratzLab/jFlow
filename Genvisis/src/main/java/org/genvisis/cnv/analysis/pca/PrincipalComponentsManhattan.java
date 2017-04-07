@@ -293,7 +293,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 				BufferedReader reader = Files.getAppropriateReader(fullPathToFile);
 				reader.readLine();
 				while (reader.ready()) {
-					String[] line = reader.readLine().trim().split("[\\s]+");
+					String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					int curSamp = ext.indexOfStr(line[sampIndex], proj.getSamples());
 					if (curSamp < 0) {
 						proj.getLog()

@@ -928,7 +928,7 @@ public class SexChecks {
 			reader = new BufferedReader(new FileReader(allMarkers));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(allMarkers) + "_dropped.out"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!hashSet.contains(line[0])) {
 					writer.println(ArrayUtils.toStr(line));
 				}

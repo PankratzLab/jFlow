@@ -14,6 +14,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class DeleteGenotypes {
@@ -38,11 +39,11 @@ public class DeleteGenotypes {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[0].equals("for")) {
 					markerList = new Hashtable<String, String>();
 					while (reader.ready()) {
-						markerList.put(reader.readLine().split("[\\s]+")[0], "");
+						markerList.put(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[0], "");
 					}
 					for (int i = 1; i < line.length; i++) {
 						hash.put(line[i], markerList);

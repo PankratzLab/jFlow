@@ -10,6 +10,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class expressionToGenes {
@@ -113,7 +114,7 @@ public class expressionToGenes {
 			reader = new BufferedReader(new FileReader(tag_prop));
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				HashVec.addToHashVec(tagPropLookup, line[1], line[0], false);
 			}
 			reader.close();
@@ -130,7 +131,7 @@ public class expressionToGenes {
 			reader = new BufferedReader(new FileReader(prop_ref));
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				propRefLookup.put(line[0], line[1]);
 			}
 			reader.close();
@@ -168,9 +169,9 @@ public class expressionToGenes {
 		System.out.println("Populating genes.xls data...");
 		try {
 			reader = new BufferedReader(new FileReader(genes));
-			ext.checkHeader(line = reader.readLine().split("[\\s]+"), GENES_HEADER, true);
+			ext.checkHeader(line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), GENES_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				geneData.put(line[0], line[1] + "\t" + line[2]);
 			}
 			reader.close();
@@ -189,7 +190,7 @@ public class expressionToGenes {
 			writer = new PrintWriter(new FileWriter("reverse.xls"));
 			geneids = new PrintWriter(new FileWriter("lookup.xls"));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = line[0];
 				writer.print(trav);
 				nms = new Vector<String>();

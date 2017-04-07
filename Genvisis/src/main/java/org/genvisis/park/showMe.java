@@ -10,6 +10,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class showMe {
@@ -29,14 +30,14 @@ public class showMe {
 		}
 		reader = new BufferedReader(new FileReader(filename));
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			v.add(line[0]);
 		}
 		reader.close();
 
 		reader = tools.getNinfoReader(1, false);
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (v.contains(line[0])) {
 				veeps.add(line[0] + "\t" + line[1]);
 				line[2] = line[2].equals(".") ? "?" : line[2];
@@ -50,7 +51,7 @@ public class showMe {
 		reader = tools.getNinfoReader(2, false);
 		while (reader.ready()) {
 			temp = reader.readLine();
-			line = temp.split("[\\s]+");
+			line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 			if (v.contains(line[0])) {
 				last = peeps.isEmpty() ? new String[] {"", "", "", "", "", ""} : peeps.lastElement();
 				if ((last[0] + "\t" + last[1]).equals(line[0] + "\t" + line[1])) {

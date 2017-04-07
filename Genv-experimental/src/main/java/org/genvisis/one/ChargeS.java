@@ -15,6 +15,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.BurdenMatrix;
 import org.genvisis.filesys.GenotypeMatrix;
@@ -376,12 +377,12 @@ public class ChargeS {
 			hash = new Hashtable<String, String[]>(2000000);
 			try {
 				reader = new BufferedReader(new FileReader(plinkHWE));
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				ext.checkHeader(line, new String[] {"CHR", "SNP", "TEST", "A1", "A2", "GENO", "O(HET)",
 																						"E(HET)", "P"},
 												true);
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					subline = line[5].trim().split("/");
 					try {
 						freq = (Double.parseDouble(subline[0]) * 2 + Double.parseDouble(subline[1]) * 1)
@@ -416,7 +417,7 @@ public class ChargeS {
 			reader = new BufferedReader(new FileReader(plinkResults));
 			writer = new PrintWriter(new FileWriter(outfile));
 			delimiter = Files.suggestDelimiter(outfile, log);
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line,
 											new String[] {"CHR", "SNP", "BP", "A1", "TEST", "NMISS", "BETA", "STAT", "P"},
 											true);
@@ -427,7 +428,7 @@ public class ChargeS {
 																			delimiter));
 
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[4].equals("ADD")) {
 					line[1] = ext.replaceAllWith(line[1], "_", ":");
 					// if (hash.containsKey(line[1])) {
@@ -507,7 +508,7 @@ public class ChargeS {
 				try {
 					log.report("Processing " + filename);
 					reader = Files.getAppropriateReader(filename);
-					header = reader.readLine().trim().split("[\\s]+");
+					header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (ext.indexOfStr(header[0], Aliases.CHRS, false, true) == -1) {
 						log.reportError("Error - expecting CHROM at index 0, but found " + header[0]);
 						reader.close();
@@ -537,11 +538,11 @@ public class ChargeS {
 						return;
 					}
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						trav = "chr" + line[0] + ":" + line[1];
 
 						if (annotationHash.containsKey(trav)) {
-							info = annotationHash.get(trav).split("[\\s]+");
+							info = annotationHash.get(trav).split(PSF.Regex.GREEDY_WHITESPACE);
 						} else {
 							System.err.println("Error - could not get annotation for " + trav);
 							reader.close();

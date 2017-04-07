@@ -16,6 +16,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.GeneData;
@@ -351,7 +352,7 @@ public class PlinkSeqUtils {
 						BufferedReader reader = Files.getAppropriateReader(resultsFile);
 						reader.readLine();
 						while (reader.ready()) {
-							String[] line = reader.readLine().trim().split("[\\s]+");
+							String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							if (line.length == HEADER.length) {
 								try {
 									String pos = line[indices[1]];
@@ -634,7 +635,7 @@ public class PlinkSeqUtils {
 					try {
 						BufferedReader reader = Files.getAppropriateReader(resultsFile);
 						while (reader.ready()) {
-							String[] line = reader.readLine().trim().split("[\\s]+");
+							String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							if (line.length == HEADER.length) {
 								try {
 									double pval = Double.parseDouble(line[pvalIndex]);

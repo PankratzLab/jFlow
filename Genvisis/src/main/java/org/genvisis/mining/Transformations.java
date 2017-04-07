@@ -7,7 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
-import java.util.Vector;
 
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.common.ArrayUtils;
@@ -16,6 +15,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
@@ -264,7 +264,7 @@ public class Transformations {
 		int count;
 
 		line = HashVec.loadFileToStringArray(filename, false, ignoreFirstLine, new int[] {column}, true,
-																				 false, commaDelimited ? "," : "[\\s]+");
+																				 false, commaDelimited ? "," : PSF.Regex.GREEDY_WHITESPACE);
 		dv = new DoubleVector();
 		duds = new IntVector();
 		for (int i = 0; i < line.length; i++) {
@@ -283,7 +283,7 @@ public class Transformations {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(outfile));
 			if (ignoreFirstLine) {
-				line = reader.readLine().trim().split(commaDelimited ? "," : "[\\s]+");
+				line = reader.readLine().trim().split(commaDelimited ? "," : PSF.Regex.GREEDY_WHITESPACE);
 				if (!replace) {
 					line = ArrayUtils.insertStringAt(line[column] + "_" + Transformations.LABELS[type], line,
 																					 column + 1);
@@ -292,7 +292,7 @@ public class Transformations {
 			}
 			count = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split(commaDelimited ? "," : "[\\s]+");
+				line = reader.readLine().trim().split(commaDelimited ? "," : PSF.Regex.GREEDY_WHITESPACE);
 				if (replace) {
 					line[column] = transformed[count];
 				} else {

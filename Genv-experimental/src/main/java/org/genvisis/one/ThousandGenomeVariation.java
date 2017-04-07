@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
@@ -34,13 +35,13 @@ public class ThousandGenomeVariation {
 		segs = Segment.getSegments(regions);
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), HEADER, false);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), HEADER, false);
 			writer = new PrintWriter(new FileWriter(dir + variation));
 			writer.println("track name=\"DeepTrioVariation\" description=\"1000genomes variation\" visibility=2 itemRgb=\"On\"");
 			writer2 = new PrintWriter(new FileWriter(dir + "region.xln"));
 			while (reader.ready()) {
 				temp = reader.readLine();
-				line = temp.trim().split("[\\s]+");
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				try {
 					chr = Positions.chromosomeNumber(line[0]);
 					pos = Integer.parseInt(line[1]);
@@ -95,7 +96,7 @@ public class ThousandGenomeVariation {
 				reader.readLine();
 				counts = new int[3];
 				while (reader.ready()) {
-					trav = reader.readLine().trim().split("[\\s]+")[3];
+					trav = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[3];
 					for (int j = 0; j < 3; j++) {
 						if (Integer.parseInt(trav.charAt(j) + "") == 1) {
 							counts[j]++;

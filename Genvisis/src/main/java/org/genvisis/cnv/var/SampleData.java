@@ -35,6 +35,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariantHash;
@@ -1131,7 +1132,7 @@ public class SampleData {
 				if (inLine.contains("\t")) {
 					inLineArry = inLine.trim().split("\t", -1);
 				} else {
-					inLineArry = inLine.trim().split("[\\s]+");
+					inLineArry = inLine.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				}
 				if (colorKeyValue.containsKey(inLineArry[samDataIndex])) {
 					inLine = inLine + "\t" + colorKeyValue.get(inLineArry[samDataIndex]);
@@ -1177,7 +1178,7 @@ public class SampleData {
 		if (header.contains("\t")) {
 			headersArray = header.trim().split("\t", -1);
 		} else {
-			headersArray = header.trim().split("[\\s]+");
+			headersArray = header.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 		}
 		indices = ext.indexFactors(LINKERS, headersArray, false, true, false, null, false);
 

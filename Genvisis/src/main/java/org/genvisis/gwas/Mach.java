@@ -22,6 +22,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.FamilyStructure;
@@ -94,7 +95,7 @@ public class Mach {
 			writer = new PrintWriter(new FileWriter(prefix + ".dat"));
 			writer.println("A\tPD_Affection");
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println("M\t" + line[1]);
 			}
 			reader.close();
@@ -165,7 +166,7 @@ public class Mach {
 		try {
 			reader = new BufferedReader(new FileReader(prefixAll + ".chr" + chr + ".map"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				pos = Integer.parseInt(line[3]);
 				start = Math.min(start, pos);
 				stop = Math.max(stop, pos);
@@ -191,7 +192,7 @@ public class Mach {
 			writer.println(reader.readLine());
 			while (reader.ready()) {
 				trav = reader.readLine();
-				line = trav.trim().split("[\\s]+");
+				line = trav.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				pos = Integer.parseInt(line[1]);
 				if (pos >= start && pos <= stop) {
 					writer.println(trav);
@@ -284,7 +285,7 @@ public class Mach {
 		positions = new String[snpData.length];
 		alleles = new String[snpData.length][2];
 		for (int i = 0; i < snpData.length; i++) {
-			line = snpData[i].trim().split("[\\s]+");
+			line = snpData[i].trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			markerNames[i] = line[0];
 			positions[i] = line[1];
 			alleles[i][0] = line[2];
@@ -297,7 +298,7 @@ public class Mach {
 			writer.println(ArrayUtils.toStr(markerNames));
 			writer.println(ArrayUtils.toStr(positions));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < markerNames.length; i++) {
 					writer.print((i == 0 ? "" : "\t") + alleles[i][Integer.parseInt(line[i])]);
 				}
@@ -366,7 +367,7 @@ public class Mach {
 			System.out.println(ext.getTime() + " Reading dosage file");
 			writer = new PrintWriter(new FileWriter(outfile));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[0].substring(0, line[0].indexOf("->")) + "\t"
 											 + line[0].substring(line[0].indexOf("->") + 2));
 				writer.flush();
@@ -410,7 +411,7 @@ public class Mach {
 		try {
 			reader = new BufferedReader(new FileReader(dir + pedfile));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (Integer.parseInt(line[5]) > 0) {
 					if (hash.containsKey(line[0] + "->" + line[1])) {
 						System.err.println("Warning - multiple entries for individual " + line[0] + "-"
@@ -450,7 +451,7 @@ public class Mach {
 
 			// try {
 			// reader = new BufferedReader(new FileReader(dir+machDosage));
-			// System.out.println("There are "+reader.readLine().trim().split("[\\s]+").length+" columns
+			// System.out.println("There are "+reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE).length+" columns
 			// in the first row");
 			//
 			// reader.close();
@@ -566,7 +567,7 @@ public class Mach {
 
 				for (int i = 0; i < (inc + step > markerNames.length ? markerNames.length - inc
 																														 : step); i++) {
-					if (allMarkers || ext.indexOfStr(markerNames[inc + i].split("[\\s]+")[0], subset) >= 0) {
+					if (allMarkers || ext.indexOfStr(markerNames[inc + i].split(PSF.Regex.GREEDY_WHITESPACE)[0], subset) >= 0) {
 						writer.print(markerNames[inc + i]);
 						for (String[] element : data) {
 							writer.print("\t" + element[i]);
@@ -664,7 +665,7 @@ public class Mach {
 			reader = Files.getAppropriateReader(markerList);
 			count = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length < 2) {
 					log.reportError("Error - the second column of the marker list must contain the chromosome number");
 					return false;
@@ -704,7 +705,7 @@ public class Mach {
 			listIndividualsInMldose(ext.insertNumbers(dosageFormat, chrom), dir + "list.txt");
 		}
 		indIDs = HashVec.loadFileToStringArray(pedfile, false, false, new int[] {0, 1}, true, false,
-																					 "[\\s]+");
+																					 PSF.Regex.GREEDY_WHITESPACE);
 		log.report("Will be pulling information from " + chrHash.size() + " chromosomes");
 
 
@@ -739,7 +740,7 @@ public class Mach {
 			indices = new int[Files.countLines(markerInfoFile, 1)];
 			try {
 				reader = Files.getAppropriateReader(markerInfoFile);
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (machFormat) {
 					ext.checkHeader(line, MLINFO_HEADER, true);
 				} else {
@@ -747,7 +748,7 @@ public class Mach {
 				}
 				count = 0;
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					index = indexHash.get(line[0]);
 					if (index == null) {
 						indices[count] = -1;
@@ -803,7 +804,7 @@ public class Mach {
 					while (ext.indexOfChar((char) (c = in.read()), DELIMITERS) == -1) {
 						trav += (char) c;
 					}
-					line = indIDs[ind].split("[\\s]+");
+					line = indIDs[ind].split(PSF.Regex.GREEDY_WHITESPACE);
 					if (!trav.equals(line[0] + "->" + line[1])) {
 						log.reportError("Error - dosagee file (" + dosageFile + ") does not match pedfile ("
 														+ pedfile + "); expecting '" + line[0] + "->" + line[1] + "', found '"
@@ -870,7 +871,7 @@ public class Mach {
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
 			for (int i = 0; i < indIDs.length; i++) {
-				line = indIDs[i].split("[\\s]+");
+				line = indIDs[i].split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.print(line[0] + "->" + line[1] + delimiter + descriptor);
 				for (int j = 0; j < markerNames.length; j++) {
 					writer.print(delimiter + data[i][j]);
@@ -956,7 +957,7 @@ public class Mach {
 	// reader = Files.getAppropriateReader(markerList);
 	// count = 0;
 	// while (reader.ready()) {
-	// line = reader.readLine().trim().split("[\\s]+");
+	// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// if (line.length < 2) {
 	// log.reportError("Error - the second column of the marker list must contain the chromosome
 	// number");
@@ -996,7 +997,7 @@ public class Mach {
 	// listIndividualsInMldose(ext.insertNumbers(dosageFormat, chrom), dir+"list.txt");
 	// }
 	// indIDs = HashVec.loadFileToStringArray(pedfile, false, false, new int[] {0,1}, true, false,
-	// "[\\s]+");
+	// PSF.Regex.GREEDY_WHITESPACE);
 	// log.report("Will be pulling information from "+chrHash.size()+" chromosomes");
 	//
 	//
@@ -1030,7 +1031,7 @@ public class Mach {
 	// indices = new int[Files.countLines(markerInfoFile, true)];
 	// try {
 	// reader = Files.getAppropriateReader(markerInfoFile);
-	// line = reader.readLine().trim().split("[\\s]+");
+	// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// if (machFormat) {
 	// ext.checkHeader(line, MLINFO_HEADER, true);
 	// } else {
@@ -1038,7 +1039,7 @@ public class Mach {
 	// }
 	// count = 0;
 	// while (reader.ready()) {
-	// line = reader.readLine().trim().split("[\\s]+");
+	// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// index = indexHash.get(line[0]);
 	// if (index == null) {
 	// indices[count] = -1;
@@ -1094,8 +1095,8 @@ public class Mach {
 	// in.close();
 	// return false;
 	// }
-	// line = reader.readLine().trim().split("[\\s]+");
-	// ids = indIDs[ind].split("[\\s]+");
+	// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
+	// ids = indIDs[ind].split(PSF.Regex.GREEDY_WHITESPACE);
 	// if (!line[0].equals(ids[0]+"->"+ids[1])) {
 	// log.reportError("Error - dosagee file ("+dosageFile+") does not match pedfile ("+pedfile+");
 	// expecting '"+line[0]+"->"+line[1]+"', found '"+trav+"'");
@@ -1142,7 +1143,7 @@ public class Mach {
 	// try {
 	// writer = new PrintWriter(new FileWriter(filename));
 	// for (int i = 0; i<indIDs.length; i++) {
-	// line = indIDs[i].split("[\\s]+");
+	// line = indIDs[i].split(PSF.Regex.GREEDY_WHITESPACE);
 	// writer.print(line[0]+"->"+line[1]+delimiter+descriptor);
 	// for (int j = 0; j<markerNames.length; j++) {
 	// writer.print(delimiter+data[i][j]);
@@ -1211,7 +1212,7 @@ public class Mach {
 			reader = new BufferedReader(new FileReader(markerList));
 			System.out.println("Reading data from " + markerList);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length < 3) {
 					System.err.println("Error - the second column of the marker list must contain the chromosome number");
 					System.exit(1);
@@ -1294,7 +1295,7 @@ public class Mach {
 					reader = Files.getAppropriateReader(markersFile);
 					w2 = new PrintWriter(new FileWriter(dir
 																							+ (regions ? "data.info" : "chr" + chr + ".info")));
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					w2.println(ArrayUtils.toStr(line));
 					if (markersFile.endsWith(".gz") || markersFile.endsWith(".zip")) {
 						markersFile = markersFile.substring(0, markersFile.lastIndexOf("."));
@@ -1316,7 +1317,7 @@ public class Mach {
 					count = 2;
 					while (reader.ready()) {
 						count++;
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (regionHash.containsKey(line[0])) {
 							regionHash.remove(line[0]);
 							v.add(count + "");
@@ -1432,7 +1433,7 @@ public class Mach {
 		try {
 			reader = new BufferedReader(new FileReader(dir + pedfile));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (Integer.parseInt(line[5]) > 0) {
 					if (hash.containsKey(line[0] + "->" + line[1])) {
 						System.err.println("Warning - multiple entries for individual " + line[0] + "-"
@@ -1587,11 +1588,11 @@ public class Mach {
 		hash = new Hashtable<String, String>();
 		try {
 			reader = new BufferedReader(new FileReader("plink.imiss"));
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"),
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 											new String[] {"FID", "IID", "MISS_PHENO", "N_MISS", "N_GENO", "F_MISS"}, true,
 											true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				hash.put(line[0] + "\t" + line[1], line[3]);
 			}
 			reader.close();
@@ -1620,12 +1621,12 @@ public class Mach {
 				v = hashV.get(key);
 				values = new double[v.size()];
 				for (int j = 0; j < v.size(); j++) {
-					line = v.elementAt(j).split("[\\s]+");
+					line = v.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
 					values[j] = Double.parseDouble(line[2]);
 				}
 				order = Sort.getSortedIndices(values);
 				for (int j = 0; j < Math.min(order.length, size); j++) {
-					line = v.elementAt(order[j]).split("[\\s]+");
+					line = v.elementAt(order[j]).split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.println(line[0] + "\t" + line[1]);
 				}
 			}
@@ -1651,7 +1652,7 @@ public class Mach {
 			writer = new PrintWriter(new FileWriter(machRoot + ".xln"));
 			writer.println("FID\tIID\t" + ArrayUtils.toStr(markerNames));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				line[1] = line[0].substring(line[0].indexOf("->") + 2);
 				line[0] = line[0].substring(0, line[0].indexOf("->"));
 				writer.println(ArrayUtils.toStr(line));

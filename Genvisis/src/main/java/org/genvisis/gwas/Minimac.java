@@ -17,6 +17,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.qsub.Qsub;
@@ -56,7 +57,7 @@ public class Minimac {
 																																						: filename)
 																									+ ".haps"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < 2; i++) {
 					writer.print(line[0] + "->" + line[1] + " HAPLO" + (i + 1) + " ");
 					for (int j = 6 + i; j < line.length; j = j + 2) {
@@ -95,7 +96,7 @@ public class Minimac {
 			done = false;
 			while (!done) {
 				temp = reader.readLine();
-				line = temp.trim().split("[\\s]+");
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 
 				try {
 
@@ -180,7 +181,7 @@ public class Minimac {
 			count = 0;
 			while (reader.ready()) {
 				count++;
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[2].length() != markerNames.length) {
 					if (line[2].length() == 1) {
 						System.err.println("Error - remove all whitespace between alleles in file '" + hapFile
@@ -241,7 +242,7 @@ public class Minimac {
 		try {
 			reader = new BufferedReader(new FileReader(markerFile));
 			reader.mark(5000);
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			indices = ext.indexFactors(new String[][] { {"MarkerName", "SNP", "RSID"}, {"Chr"}}, line,
 																 false, true, true, false);
 			if (ArrayUtils.min(indices) == -1) {
@@ -250,7 +251,7 @@ public class Minimac {
 				reader.reset();
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				chr = Integer.parseInt(line[indices[1]]);
 				markers[chr] = markers[chr] == null ? line[0] : markers[chr] + "," + line[0];
 			}
@@ -276,7 +277,7 @@ public class Minimac {
 			}
 		}
 		if (merges.size() > 1) {
-			command = "plink --file " + ext.rootOf(merges.remove(0).split("[\\s]+")[0])
+			command = "plink --file " + ext.rootOf(merges.remove(0).split(PSF.Regex.GREEDY_WHITESPACE)[0])
 								+ " --merge-list merges.txt --make-bed --out " + ext.rootOf(markerFile);
 			Files.writeArray(ArrayUtils.toStringArray(merges), "merges.txt");
 			CmdLine.run(command, "./");
@@ -314,7 +315,7 @@ public class Minimac {
 			count = 0;
 			while (reader.ready()) {
 				for (int i = 0; i < 2; i++) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (line.length == 1) {
 						ids[count] = (count + 1) + "";
 						trav = line[0];
@@ -375,7 +376,7 @@ public class Minimac {
 				if (map[i] == null) {
 					writer.println("0\t" + markers[i] + "\t0\t" + i);
 				} else {
-					line = ArrayUtils.insertStringAt("0", map[i].trim().split("[\\s]+"), 2);
+					line = ArrayUtils.insertStringAt("0", map[i].trim().split(PSF.Regex.GREEDY_WHITESPACE), 2);
 					writer.println(ArrayUtils.toStr(line));
 				}
 			}
@@ -386,7 +387,7 @@ public class Minimac {
 				if (map[i] == null) {
 					writer.println(markers[i] + "\t" + i);
 				} else {
-					line = ArrayUtils.removeFromArray(map[i].trim().split("[\\s]+"), 0);
+					line = ArrayUtils.removeFromArray(map[i].trim().split(PSF.Regex.GREEDY_WHITESPACE), 0);
 					writer.println(ArrayUtils.toStr(line));
 				}
 			}
@@ -494,7 +495,7 @@ public class Minimac {
 			try {
 				reader = new BufferedReader(new FileReader(files[i]));
 				for (int j = 0; j < numToCompare && reader.ready(); j++) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (i == 0) {
 						ids[j] = new String[] {line[0], line[1]};
 					} else if (!ids[j][0].equals(line[0]) || !ids[j][1].equals(line[1])) {
@@ -579,7 +580,7 @@ public class Minimac {
 			reader = new BufferedReader(new FileReader(hapFile));
 			count = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				count++;
 				if (line.length == 1) {
 					trav = line[0];
@@ -688,12 +689,12 @@ public class Minimac {
 																				"\t", true, false, false);
 		try {
 			reader = new BufferedReader(new FileReader(compRef));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, FREQ_HEADER, false);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (hash.containsKey(line[0])) {
-					target = hash.get(line[0]).split("[\\s]+");
+					target = hash.get(line[0]).split(PSF.Regex.GREEDY_WHITESPACE);
 					ref = ArrayUtils.subArray(line, 2, 6);
 					matchup = new boolean[2][4];
 					for (int i = 0; i < 2; i++) {
@@ -823,7 +824,7 @@ public class Minimac {
 
 		try {
 			writer = new PrintWriter(new FileWriter(ext.addToRoot(pheno, "_desc")));
-			line = Files.getHeaderOfFile(pheno, "[\\s]+", new Logger());
+			line = Files.getHeaderOfFile(pheno, PSF.Regex.GREEDY_WHITESPACE, new Logger());
 			writer.println("A affected");
 			for (int i = 6; i < line.length; i++) {
 				writer.println("C covariate" + (i - 5));

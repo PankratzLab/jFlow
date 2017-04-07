@@ -14,6 +14,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 
@@ -94,7 +95,7 @@ public class ParseRegression {
 						reader.readLine();
 						count = 0;
 						while (reader.ready()) {
-							line = reader.readLine().trim().split("[\\s]+");
+							line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							if (line.length == 1 && line[0].equals("25")) {
 								System.err.println("Error - That weird thing with the last line of " + dir
 																	 + MODELS[j].toLowerCase() + ".assoc." + element);

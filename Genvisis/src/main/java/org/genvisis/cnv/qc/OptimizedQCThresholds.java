@@ -7,6 +7,7 @@ import java.io.IOException;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 // class to store optimized thresholds
@@ -141,7 +142,7 @@ public class OptimizedQCThresholds {
 		int index;
 		try {
 			reader = new BufferedReader(new FileReader(QCThresholdFileName));
-			header = reader.readLine().trim().split("[\\s]+");
+			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			indices = ArrayUtils.intArray(QC_Thresholds.length, -1);
 			for (int i = 0; i < header.length; i++) {
 				index = ext.indexOfEndsWith(header[i], QC_Thresholds, true);
@@ -155,7 +156,7 @@ public class OptimizedQCThresholds {
 				System.exit(1);
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				thresholds = parseLine(line, indices, log);
 			}
 			reader.close();

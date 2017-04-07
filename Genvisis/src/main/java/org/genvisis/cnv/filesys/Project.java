@@ -48,6 +48,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.LauncherManifest;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
@@ -1912,7 +1913,7 @@ public class Project implements PropertyChangeListener {
 	}
 
 	public enum SOURCE_FILE_DELIMITERS {
-		COMMA("[\\s]*,[\\s]*", ","), TAB("[ ]*\t[ ]*", "\t"), SPACE("[\\s]+", " ");
+		COMMA("[\\s]*,[\\s]*", ","), TAB("[ ]*\t[ ]*", "\t"), SPACE(PSF.Regex.GREEDY_WHITESPACE, " ");
 
 		String delim;
 		HashSet<String> alts = new HashSet<String>();

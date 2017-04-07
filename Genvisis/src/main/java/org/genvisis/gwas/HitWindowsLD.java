@@ -13,6 +13,7 @@ import java.util.Hashtable;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
@@ -510,7 +511,7 @@ public class HitWindowsLD {
 		try {
 			reader = Files.getAppropriateReader(ldfile);
 			while (reader.ready()) {
-				String[] line = reader.readLine().split("[\\s]+");
+				String[] line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (HitWindowsLD element : hitWindowsLD) {
 					if (fileType == 0) {
 						try {

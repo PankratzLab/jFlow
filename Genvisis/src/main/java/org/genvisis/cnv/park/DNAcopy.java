@@ -16,6 +16,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
@@ -118,9 +119,9 @@ public class DNAcopy {
 
 		try {
 			reader = new BufferedReader(new FileReader(rootDirectory + LOOKUP_PLUS_GENDER_FILE));
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), LOOKUP_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), LOOKUP_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				lookupDNAtoSubject.put(line[0], line[1] + "\t" + line[2]);
 				lookupSubjectToDNA.put(line[1] + "\t" + line[2], line[0]);
 			}
@@ -171,10 +172,10 @@ public class DNAcopy {
 					reader.readLine();
 					reader.readLine();
 					reader.readLine();
-					ext.checkHeader(reader.readLine().trim().split("[\\s]+"), RESULTS_HEADER, true);
+					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), RESULTS_HEADER, true);
 
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (!line[1].equals(rName(inds[i]))) {
 							System.err.println("Error - sample mismatch for " + inds[i]);
 							break;
@@ -264,7 +265,7 @@ public class DNAcopy {
 																									 + ".smooth"));
 				reader.readLine();
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					// if (!line[1].contains("X") && !line[1].contains("Y")) {
 					if (!line[1].contains("X") && !line[1].contains("Y") && !line[1].equals("\"6\"")) {
 						d = Double.parseDouble(line[3]);

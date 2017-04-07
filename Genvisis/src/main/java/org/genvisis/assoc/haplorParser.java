@@ -15,6 +15,7 @@ import java.util.Vector;
 import java.util.regex.Pattern;
 
 import org.genvisis.common.IntVector;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
@@ -100,7 +101,7 @@ public class haplorParser {
 			count = 1;
 			done = false;
 			while (!done) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				offset = (line.length > 1 && line[0].equals("")) ? 1 : 0;
 				if (line[0 + offset].equals(count + "")) {
 					temp = line[1 + offset];
@@ -121,7 +122,7 @@ public class haplorParser {
 			}
 			reader = new BufferedReader(new FileReader("f3_aff.dat"));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				comparisons.add(line[0]);
 			}
 			reader.close();
@@ -135,7 +136,7 @@ public class haplorParser {
 			post = maxPost = -1;
 			while (!done) {
 				do {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					offset = (line.length > 1 && line[0].equals("")) ? 1 : 0;
 					if (line.length > 1 && line[1].equals("Number")) {
 						done = true;
@@ -174,23 +175,23 @@ public class haplorParser {
 			temp = reader.readLine();
 		} while (reader.ready() && !temp.startsWith("The haplotypes obtained "));
 
-		line = reader.readLine().split("[\\s]+");
+		line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 		fams.add(line[0]);
-		line = reader.readLine().split("[\\s]+");
+		line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 		numMarkers = line.length - 1;
 		reader.readLine();
 		reader.readLine();
 		temp = reader.readLine();
 
 		do {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!fams.contains(line[0]) && line.length > 1) {
 				fams.add(line[0]);
 			}
 			reader.readLine();
 			reader.readLine();
 			reader.readLine();
-			marks = reader.readLine().split("[\\s]+");
+			marks = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			count = 0;
 			for (int i = 1; i < marks.length; i++) {
 				if (!marks[i].equals("0")) {
@@ -214,11 +215,11 @@ public class haplorParser {
 		} while (reader.ready() && !temp.startsWith("The total of "));
 
 		writer = new PrintWriter(new FileWriter("haplor-key.out"));
-		line = temp.split("[\\s]+");
+		line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 		haplotypes = new String[Integer.valueOf(line[3]).intValue()];
 		hapFreqs = new double[haplotypes.length];
 		for (int i = 0; i < haplotypes.length; i++) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			temp = "";
 			for (int j = 0; j < numMarkers; j++) {
 				temp += line[3 + j];
@@ -242,19 +243,19 @@ public class haplorParser {
 		writer = new PrintWriter(new FileWriter("haplotypes.dat"));
 		for (int i = 0; i < fams.size(); i++) {
 			// for (int i = 0; i<2; i++) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!fams.elementAt(i).equals(line[3])) {
 				System.err.println("Error - failed family line up. Expecting " + fams.elementAt(i)
 													 + " found " + line[3] + ".");
 			}
 			hFam = new HapFam(line[3]);
 			// hash.put(line[3], hFam);
-			numConfigs = Integer.valueOf(reader.readLine().split("[\\s]+")[9]).intValue();
-			numInds = Integer.valueOf(reader.readLine().split("[\\s]+")[8]).intValue();
+			numConfigs = Integer.valueOf(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[9]).intValue();
+			numInds = Integer.valueOf(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[8]).intValue();
 			reader.readLine();
 			reader.readLine();
 
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			indIDs = new String[numInds];
 			typed = new IntVector();
 			for (int j = 0; j < numInds; j++) {
@@ -335,7 +336,7 @@ public class haplorParser {
 						if (missingdata.contains(hFam.id + "-" + hInd.id)) {
 							writers[k].println("\t0\t0");
 						} else {
-							marks = translateHap(line[typed.indexOf(j)], haplotypes).split("[\\s]+");
+							marks = translateHap(line[typed.indexOf(j)], haplotypes).split(PSF.Regex.GREEDY_WHITESPACE);
 							writers[k].println("\t" + compHap(marks[0], TARGET_HAPLOTYPES[k]) + "\t"
 																 + compHap(marks[1], TARGET_HAPLOTYPES[k]));
 						}

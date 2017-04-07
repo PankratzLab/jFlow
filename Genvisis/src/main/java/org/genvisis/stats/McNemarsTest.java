@@ -12,6 +12,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 // non-paramteric test for paired binary data
@@ -131,7 +132,7 @@ public class McNemarsTest {
 		try {
 			reader = new BufferedReader(new FileReader(dir + pairs));
 			while (reader.ready()) {
-				v.add(reader.readLine().trim().split("[\\s]+"));
+				v.add(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
@@ -153,7 +154,7 @@ public class McNemarsTest {
 					System.err.println("Error - UniqueID '" + pairings[i][j] + "' was not found in the file '"
 														 + database + "'");
 				} else {
-					data[i][j] = trav.split("[\\s]+");
+					data[i][j] = trav.split(PSF.Regex.GREEDY_WHITESPACE);
 				}
 			}
 		}

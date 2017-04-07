@@ -11,6 +11,7 @@ import java.util.Hashtable;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -25,10 +26,10 @@ public class VTE_Analyses {
 																						 "\t"},
 																						{"CHS", "GH-VTE-results.csv", ","},
 																						{"GH", "GH-VTE-results.csv", ","},
-																						{"RS1", "RS1VTE_CHARGE.chargefmt.RS.txt", "[\\s]+"},
-																						{"RS2", "RS2VTE_CHARGE.chargefmt.RS.txt", "[\\s]+"},
+																						{"RS1", "RS1VTE_CHARGE.chargefmt.RS.txt", PSF.Regex.GREEDY_WHITESPACE},
+																						{"RS2", "RS2VTE_CHARGE.chargefmt.RS.txt", PSF.Regex.GREEDY_WHITESPACE},
 																						{"WGHS", "WGHS_incident_VTE_oct_20_2009.txt",
-																						 "[\\s]+"},};
+																						 PSF.Regex.GREEDY_WHITESPACE},};
 
 	public static void generateSuperMap() {
 		BufferedReader reader;

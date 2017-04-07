@@ -1,7 +1,5 @@
 package org.genvisis.one.JL.assoc;
 
-import java.io.File;
-
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;

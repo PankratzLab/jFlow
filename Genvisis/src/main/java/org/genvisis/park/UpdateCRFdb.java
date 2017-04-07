@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.db.crfDB;
 
 public class UpdateCRFdb {
@@ -74,7 +75,7 @@ public class UpdateCRFdb {
 			writer.println("FamID,IndID,proband,VPDproband");
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(ArrayUtils.toStr(tools.getFamID(line[1]), ",") + ",1,"
 											 + (line[6].equals("VPD") || line[6].equals("CONF_PD") ? "1" : "0"));
 			}

@@ -11,12 +11,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SerialHash;
@@ -72,14 +72,14 @@ public class Vcf {
 				} while (reader.ready() && temp.startsWith("#") && !temp.startsWith("#CHROM"));
 
 				indices = ext.indexFactors(new String[] {"#CHROM", "POS", "REF", "ALT", "ID", "INFO"},
-																	 temp.trim().split("[\\s]+"), false, log, true, true);
+																	 temp.trim().split(PSF.Regex.GREEDY_WHITESPACE), false, log, true, true);
 				currentChrom = "";
 				// while (reader.ready()) { // returning false at the same places in the file every time for
 				// no reason
 				do {
 					temp = reader.readLine();
 					if (temp != null) {
-						line = temp.trim().split("[\\s]+");
+						line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (line[0].startsWith("#")) {
 							log.reportError("Error - ran into some unexpected trailing comments: "
 															+ ArrayUtils.toStr(line));

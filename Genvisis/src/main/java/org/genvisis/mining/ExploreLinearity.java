@@ -10,6 +10,7 @@ import java.util.Vector;
 
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Correlation;
 import org.genvisis.stats.LeastSquares;
@@ -118,14 +119,14 @@ public class ExploreLinearity {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			depLabel = line[lastNotFirst ? line.length - 1 : 0];
 			indepLabels = new String[line.length - 1];
 			for (int i = 0; i < indepLabels.length; i++) {
 				indepLabels[i] = line[lastNotFirst ? i : i + 1];
 			}
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				dv.add(Double.parseDouble(line[lastNotFirst ? line.length - 1 : 0]));
 				dataline = new double[line.length - 1];
 				for (int i = 0; i < dataline.length; i++) {

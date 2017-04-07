@@ -8,12 +8,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class FindVNTRs {
@@ -33,10 +33,10 @@ public class FindVNTRs {
 		hash = new Hashtable<String, Vector<String>>();
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, EXPECTED_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[0].toLowerCase().startsWith("cnv")) {
 					trav = line[0].toLowerCase().substring(3);
 					if (trav.indexOf("p") == -1) {
@@ -151,7 +151,7 @@ public class FindVNTRs {
 	// writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false)+"_corr.xln"));
 	// writer.println("N_markers\tMeanCorr\tAffMean\tUnaffMean\tpval\tMarkers&Corrs");
 	// while (reader.ready()) {
-	// line = reader.readLine().trim().split("[\\s]+");
+	// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// data = new float[line.length][];
 	// for (int i = 0; i<line.length; i++) {
 	// trav = markerLookup.get(line[i]);
@@ -159,7 +159,7 @@ public class FindVNTRs {
 	// System.err.println("Error - '"+line[i]+"' not present in the dataset (at least in the
 	// MarkerLookup)");
 	// } else {
-	// lrrs = markerData[Integer.parseInt(trav.split("[\\s]+")[1])].getLRRs();
+	// lrrs = markerData[Integer.parseInt(trav.split(PSF.Regex.GREEDY_WHITESPACE)[1])].getLRRs();
 	// data[i] = new float[numSamples];
 	// count = 0;
 	// for (int j = 0; j<lrrs.length; j++) {

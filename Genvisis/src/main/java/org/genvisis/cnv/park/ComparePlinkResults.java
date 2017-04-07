@@ -13,8 +13,8 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -82,11 +82,11 @@ public class ComparePlinkResults {
 				try {
 					reader = new BufferedReader(new FileReader(file));
 					System.out.println(file.getName());
-					indices = ext.indexFactors(MPERM_REQUIRED, reader.readLine().trim().split("[\\s]+"),
+					indices = ext.indexFactors(MPERM_REQUIRED, reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 																		 false, true);
 					begin = end = "";
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (Double.parseDouble(line[indices[1]]) < SIGNIFICANCE_THRESHOLD) {
 							if (begin.equals("")) {
 								begin = line[indices[0]];
@@ -134,11 +134,11 @@ public class ComparePlinkResults {
 			for (int j = 0; j < files.length; j++) {
 				try {
 					reader = new BufferedReader(new FileReader(files[j]));
-					indices = ext.indexFactors(MPERM_REQUIRED, reader.readLine().trim().split("[\\s]+"),
+					indices = ext.indexFactors(MPERM_REQUIRED, reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 																		 false, true);
 					begin = end = "";
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						chr = Integer.parseInt(line[indices[0]].substring(1, line[indices[0]].indexOf("-")));
 						pos = Integer.parseInt(line[indices[0]].substring(line[indices[0]].indexOf("-") + 1));
 						for (int k = 0; k < composite.size(); k++) {
@@ -199,9 +199,9 @@ public class ComparePlinkResults {
 				System.out.println(files[i].getName());
 				try {
 					reader = new BufferedReader(new FileReader(files[i]));
-					ext.checkHeader(reader.readLine().trim().split("[\\s]+"), INDIV_HEADER, true);
+					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), INDIV_HEADER, true);
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						aff = Integer.parseInt(line[2]) - 1;
 						sums[i][aff][0] += 1;
 						sums[i][aff][1] += Integer.parseInt(line[3]);
@@ -221,9 +221,9 @@ public class ComparePlinkResults {
 				match = ext.replaceAllWith(files[i].getAbsolutePath(), ".cnv.indiv", ".cnv.summary.mperm");
 				try {
 					reader = new BufferedReader(new FileReader(match));
-					ext.checkHeader(reader.readLine().trim().split("[\\s]+"), SUMMARY_MPERM_HEADER, true);
+					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), SUMMARY_MPERM_HEADER, true);
 					for (int j = 0; j < 4; j++) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						pvals[i][j] = Double.parseDouble(line[2]);
 					}
 					reader.close();

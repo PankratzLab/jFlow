@@ -11,6 +11,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class CountHets {
@@ -37,7 +38,7 @@ public class CountHets {
 			reader = new BufferedReader(new FileReader(dir + filename));
 			ext.checkHeader(reader.readLine().trim().split("\t"), EXPECTED_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length != EXPECTED_HEADER.length) {
 					System.err.println("Error - mismatched number of columns in " + dir + filename);
 					System.exit(1);
@@ -94,7 +95,7 @@ public class CountHets {
 						System.exit(1);
 					}
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						for (int j = 0; j < v.size(); j++) {
 							v.elementAt(j).checkPosition(line[1], Integer.parseInt(line[2]), line[3], line[5]);
 						}

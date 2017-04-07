@@ -15,6 +15,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Internat;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.parse.GenParser;
@@ -161,13 +162,13 @@ public class temp {
 		try {
 			reader = new BufferedReader(new FileReader(infile));
 			writer = new PrintWriter(new FileWriter(infile + ".out"));
-			// line = reader.readLine().trim().split("[\\s]+");
+			// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			// for (int i = 1; i < line.length; i++) {
 			// writer.print((i==1?"":"\t")+line[i]);
 			// }
 			// writer.print("\n");
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length > 1) {
 					for (int i = 1; i < line.length; i++) {
 						writer.print((i == 1 ? "" : "\t") + line[i]);
@@ -221,7 +222,7 @@ public class temp {
 
 		log = new Logger(ext.rootOf(filename, false) + ".log");
 		temp = Files.getFirstNLinesOfFile(filename, 1, log)[0];
-		header = temp.trim().split("[\\s]+");
+		header = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 
 		args = new String[] {filename, "out=pheno1.dat", "'ID'=FID", "'ID'=IID", "'" + header[1] + "'",
 												 "tab", "replace=."};
@@ -392,7 +393,7 @@ public class temp {
 			writer.println("Lookup\t" + reader.readLine());
 			while (reader.ready()) {
 				temp = reader.readLine();
-				line = temp.trim().split("[\\s]+");
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = line[0] + ":" + line[1];
 				if (hash.contains(trav)) {
 					writer.println(trav + "\t" + temp);

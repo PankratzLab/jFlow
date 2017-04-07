@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.PSF;
+
 public class haplostats {
 	public class haploguy {
 		public String id;
@@ -44,7 +46,7 @@ public class haplostats {
 		reader = new BufferedReader(new FileReader(filename));
 		reader.readLine();
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			data = new int[line.length - 6];
 			if (data.length % 2 != 0) {
 				System.err.println("Error - Expecting " + (line.length - 6)
@@ -98,7 +100,7 @@ public class haplostats {
 		count = 0;
 		while (reader.ready()) {
 			count++;
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			temp = (99000 + count) + "";
 			writer.print(temp + "\t" + temp + "\t0\t0\t1");
 			pheno.println(temp + "\t0");

@@ -21,6 +21,7 @@ import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.FAST;
@@ -180,9 +181,9 @@ public class ConditionalAnalysisPipeline {
 						String[] infoParts = infoLine.split(delim);
 						if (!baseline && infoParts[1].trim().equals(region.indexSNP)) {
 							region.genoData.put(dataDefs.study + "\t" + dataDefs.popcode,
-																	genoLine.split("[\\s]+"));
+																	genoLine.split(PSF.Regex.GREEDY_WHITESPACE));
 							region.infoData.put(dataDefs.study + "\t" + dataDefs.popcode,
-																	infoLine.split("[\\s]+"));
+																	infoLine.split(PSF.Regex.GREEDY_WHITESPACE));
 							// if (found) {
 							// break; // don't break anymore - we have to load data for each index SNP we've
 							// tracked
@@ -190,9 +191,9 @@ public class ConditionalAnalysisPipeline {
 						} else if (region.prevSNPs.contains(dataDefs.study + "\t" + dataDefs.popcode + "\t"
 																								+ infoParts[1])) {
 							region.prevSNPdata.put(dataDefs.study + "\t" + dataDefs.popcode + "\t" + infoParts[1],
-																		 genoLine.split("[\\s]+"));
+																		 genoLine.split(PSF.Regex.GREEDY_WHITESPACE));
 							region.prevSNPinfo.put(dataDefs.study + "\t" + dataDefs.popcode + "\t" + infoParts[1],
-																		 infoLine.split("[\\s]+"));
+																		 infoLine.split(PSF.Regex.GREEDY_WHITESPACE));
 						}
 						int mkrPos = Integer.parseInt(infoParts[2]);
 						if (mkrPos < region.start || mkrPos > region.stop) {
@@ -277,7 +278,7 @@ public class ConditionalAnalysisPipeline {
 				ArrayList<double[]> indepDataLines = new ArrayList<double[]>();
 
 				String line = reader.readLine(); // header
-				String[] parts = line.split("[\\s]+");
+				String[] parts = line.split(PSF.Regex.GREEDY_WHITESPACE);
 				ArrayList<String> colNames = new ArrayList<String>();
 
 				for (int i = 6; i < parts.length; i++) {
@@ -296,7 +297,7 @@ public class ConditionalAnalysisPipeline {
 				ArrayList<Double> phenoDataList = new ArrayList<Double>();
 
 				while ((line = reader.readLine()) != null) {
-					parts = line.split("[\\s]+");
+					parts = line.split(PSF.Regex.GREEDY_WHITESPACE);
 
 					ArrayList<Double> lineData = new ArrayList<Double>();
 
@@ -379,7 +380,7 @@ public class ConditionalAnalysisPipeline {
 				reader.readLine(); // header
 				cnt = 0;
 				while ((line = reader.readLine()) != null) {
-					parts = line.split("[\\s]+");
+					parts = line.split(PSF.Regex.GREEDY_WHITESPACE);
 					String iid = parts[1];
 					Integer iidIndex = iids.get(iid);
 

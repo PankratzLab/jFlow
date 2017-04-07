@@ -18,6 +18,7 @@ import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
@@ -122,7 +123,7 @@ public class QuantNormProject {
 				BufferedReader reader = Files.getAppropriateReader(orginalFiles[i]);
 				reader.readLine();
 				while (reader.ready()) {
-					String[] line = reader.readLine().trim().split("[\\s]+");
+					String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					String[] data = ArrayUtils.subArray(line, indices);
 					if (!line[indices[0]].equals(LrrSd.SAMPLE_COLUMN)) {
 						writer.println(titles[i] + "\t" + ArrayUtils.toStr(data));

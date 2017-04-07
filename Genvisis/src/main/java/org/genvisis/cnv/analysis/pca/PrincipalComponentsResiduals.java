@@ -29,6 +29,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.CrossValidation;
 import org.genvisis.stats.LeastSquares;
@@ -550,7 +551,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			BufferedReader reader = Files.getReader(pcFilefull,
 																							proj == null ? false : proj.JAR_STATUS.getValue(),
 																							true, false);
-			String[] line = reader.readLine().trim().split("[\\s]+");
+			String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!line[0].equals("FID") || !line[1].equals("IID")) {
 				log.reportError("Error - different format than expected; first column should be FID and second column should be IID, followed by PCs");
 				return;
@@ -563,7 +564,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			pcTitles = ArrayUtils.subArray(line, 2, numComponents + 2);
 			totalNumComponents = line.length - 2;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (useIID || sampleData.lookup(line[0] + "\t" + line[1]) != null) {
 					samplesInPc.put(useIID ? line[1] : sampleData.lookup(line[0] + "\t" + line[1])[0],
 													numSamples);
@@ -580,7 +581,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 															 false);
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 2; i < numComponents + 2; i++) {
 					pcBasis[i - 2][sampIndex] = Double.parseDouble(line[i]);
 				}

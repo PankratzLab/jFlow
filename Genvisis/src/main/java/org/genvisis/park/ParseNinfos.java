@@ -13,6 +13,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class ParseNinfos {
@@ -96,7 +97,7 @@ public class ParseNinfos {
 			writer_DAT = new PrintWriter(new FileWriter(trav + ".dat"));
 			writer_DOB = new PrintWriter(new FileWriter(trav + "_BirthDates.csv"));
 
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, header, true);
 			lastCol = ext.indexOfStr(LAST_PERM_COL, header);
 
@@ -278,7 +279,7 @@ public class ParseNinfos {
 			writer_CSV = new PrintWriter(new FileWriter(trav + ".csv"));
 			writer_DAT = new PrintWriter(new FileWriter(trav + ".dat"));
 
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, header, true);
 			for (int i = 0; i < line.length; i++) {
 				writer_CSV.print((i == 0 ? "" : ",") + line[i]);

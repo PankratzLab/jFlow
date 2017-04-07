@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
+import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 
 public class MarkerLookup implements Serializable {
@@ -53,7 +54,7 @@ public class MarkerLookup implements Serializable {
 
 		listOfMarkersInMarkerLookup = getMarkerList();
 		for (String element : listOfMarkersInMarkerLookup) {
-			line = get(element).split("[\\s]+");
+			line = get(element).split(PSF.Regex.GREEDY_WHITESPACE);
 			filenames.add(line[0]);
 		}
 

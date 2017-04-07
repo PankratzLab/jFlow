@@ -10,6 +10,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.McNemarsTest;
 
@@ -48,13 +49,13 @@ public class MitoDNA {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + referenceHaps));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!line[0].toLowerCase().contains("haplo")) {
 				System.err.println("Error - I do not think that word means what you think it means");
 			}
 			refSNPs = ArrayUtils.subArray(line, 1);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length != refSNPs.length + 1) {
 					System.err.println("Error - mismatched number of SNPs in reference haplotypes");
 					reader.close();
@@ -80,7 +81,7 @@ public class MitoDNA {
 		try {
 			reader = new BufferedReader(new FileReader(dir + snps));
 			temp = reader.readLine();
-			line = temp.trim().split("[\\s]+");
+			line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			indices = ArrayUtils.intArray(refSNPs.length, -1);
 			prob = false;
 			for (int i = 0; i < line.length; i++) {

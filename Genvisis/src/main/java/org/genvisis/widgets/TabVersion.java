@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 
 public class TabVersion {
 	public static void make(String filename) {
@@ -18,7 +19,7 @@ public class TabVersion {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(filename + ".xln"));
 			while (reader.ready()) {
-				writer.println(ArrayUtils.toStr(reader.readLine().trim().split("[\\s]+")));
+				writer.println(ArrayUtils.toStr(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)));
 			}
 			reader.close();
 			writer.close();

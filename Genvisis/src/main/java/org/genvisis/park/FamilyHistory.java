@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class FamilyHistory {
@@ -36,7 +37,7 @@ public class FamilyHistory {
 			reader = tools.getNinfoReader(2, false);
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				hashStringArray.put(line[0] + "\t" + line[1], new String[] {line[4], line[5]});
 			}
 			reader.close();

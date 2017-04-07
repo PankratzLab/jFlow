@@ -187,7 +187,7 @@ public class CopyAlgorithm {
 	// allMissingMarkers.put(superset[j], "");
 	// chrIVs[0].add(iv.elementAt(j));
 	// } else {
-	// chrIVs[Byte.parseByte(trav.split("[\\s]+")[0])].add(iv.elementAt(j));
+	// chrIVs[Byte.parseByte(trav.split(PSF.Regex.GREEDY_WHITESPACE)[0])].add(iv.elementAt(j));
 	// }
 	// }
 	// }
@@ -204,7 +204,7 @@ public class CopyAlgorithm {
 	// if (trav == null) {
 	// positions[j] = j;
 	// } else {
-	// positions[j] = Integer.parseInt(trav.split("[\\s]+")[1]);
+	// positions[j] = Integer.parseInt(trav.split(PSF.Regex.GREEDY_WHITESPACE)[1]);
 	// }
 	// if (forceBefore.containsKey(subset[j])) {
 	// forceBefore.put(subset[j], pvals[j]+"");
@@ -322,7 +322,7 @@ public class CopyAlgorithm {
 	// chrHash = SnpMarkerSet.loadSnpMarkerSetToChrHash(filteringDataset);
 	// System.out.println("done");
 	// for (int j = 0; j<tags.size(); j++) {
-	// trav = tags.elementAt(j).split("[\\s]+")[0];
+	// trav = tags.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE)[0];
 	// if (!chrHash.containsKey(trav)) {
 	// untaggedTags.add(trav+"\t1");
 	// } else {
@@ -372,7 +372,7 @@ public class CopyAlgorithm {
 	//
 	// values = new double[tags.size()];
 	// for (int i = 0; i<values.length; i++) {
-	// values[i] = Double.parseDouble(tags.elementAt(i).split("[\\s]+")[2]);
+	// values[i] = Double.parseDouble(tags.elementAt(i).split(PSF.Regex.GREEDY_WHITESPACE)[2]);
 	// }
 	// order = Sort.quicksort(values);
 	//
@@ -451,7 +451,7 @@ public class CopyAlgorithm {
 	// hash = HashVec.loadFileToHashString(hitTags, 0, new int[] {0}, "\t", false);
 	// try {
 	// reader = new BufferedReader(new FileReader(arrayTags));
-	// line = reader.readLine().trim().split("[\\s]+");
+	// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// if (!line[0].equals("#captured") || !line[4].equals("alleles")) {
 	// System.err.println("Error - Haploview .TAGS file has changed format and needs to be
 	// addressed");
@@ -464,7 +464,7 @@ public class CopyAlgorithm {
 	// System.exit(1);
 	// }
 	// for (int i = 0; i<numAlleles; i++) {
-	// line = reader.readLine().trim().split("[\\s]+");
+	// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// if (hash.containsKey(line[0]) && line.length == 1) {
 	// v.add(line[0]);
 	// }
@@ -567,7 +567,7 @@ public class CopyAlgorithm {
 	//
 	// try {
 	// reader = new BufferedReader(new FileReader(filename));
-	// line = reader.readLine().trim().split("[\\s]+");
+	// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// if (!line[0].equals("indep")) {
 	// log.reportError("Error - file must start with the line 'indep'");
 	// return;

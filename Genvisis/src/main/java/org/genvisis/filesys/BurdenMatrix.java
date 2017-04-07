@@ -16,6 +16,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.stats.LeastSquares;
@@ -477,7 +478,7 @@ public class BurdenMatrix implements Serializable {
 		use = ArrayUtils.booleanArray(ids.length, true);
 		for (int i = 0; i < ids.length; i++) {
 			if (hash.containsKey(ids[i])) {
-				line = hash.get(ids[i]).split("[\\s]+");
+				line = hash.get(ids[i]).split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int j = 0; j < line.length; j++) {
 					if (!ext.isValidDouble(line[j]) || line[j].equals(phenoMissingValue)) {
 						use[i] = false;
@@ -494,7 +495,7 @@ public class BurdenMatrix implements Serializable {
 		countSamplesUsed = 0;
 		for (int i = 0; i < ids.length; i++) {
 			if (use[i]) {
-				line = hash.get(ids[i]).split("[\\s]+");
+				line = hash.get(ids[i]).split(PSF.Regex.GREEDY_WHITESPACE);
 				deps[countSamplesUsed] = Double.parseDouble(line[0]);
 				for (int j = 1; j < traits.length; j++) {
 					indeps[countSamplesUsed][j] = Double.parseDouble(line[j]);
@@ -502,7 +503,7 @@ public class BurdenMatrix implements Serializable {
 				countSamplesUsed++;
 			}
 		}
-		logistic = RegressionModel.isBinaryTrait(ArrayUtils.toStr(deps).split("[\\s]+"), log);
+		logistic = RegressionModel.isBinaryTrait(ArrayUtils.toStr(deps).split(PSF.Regex.GREEDY_WHITESPACE), log);
 		log.report("Running a " + (logistic ? "logistic" : "linear") + " model for trait '" + traits[0]
 							 + "'", true, verbose);
 		try {

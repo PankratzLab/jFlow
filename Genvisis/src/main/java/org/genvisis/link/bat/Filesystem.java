@@ -16,6 +16,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.link.LinkageMap;
@@ -244,7 +245,7 @@ public class Filesystem {
 			gen = new BufferedReader(new FileReader("mrkr" + chrome + ".dat"));
 			writer = new PrintWriter(new FileWriter("genosToCheck.dat", true));
 			while (gen.ready()) {
-				line = gen.readLine().split("[\\s]+");
+				line = gen.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < problemAlleles.length; i++) {
 					for (int j = 0; j < problemAlleles[i].length; j++) {
 						if (line[i * 2 + 2].equals(problemAlleles[i][j] + "")

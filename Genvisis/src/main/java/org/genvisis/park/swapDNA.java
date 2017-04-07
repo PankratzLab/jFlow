@@ -12,6 +12,7 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 
 public class swapDNA {
 
@@ -42,7 +43,7 @@ public class swapDNA {
 
 		while (reader.ready()) {
 			temp = reader.readLine();
-			line = temp.split("[\\s]+");
+			line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 			if (line.length < 2) {
 				System.err.println("Error - Could not process the following line (requires two DNA numbers):");
 				System.err.println(temp);
@@ -67,7 +68,7 @@ public class swapDNA {
 				reader = new BufferedReader(new FileReader("chromosome" + i + ".dat"));
 				hash = new Hashtable<String, String>();
 				while (reader.ready()) {
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (line.length > 2) {
 						if (hash.containsKey(line[1] + "\t" + line[2])) {
 							System.err.println("  " + line[1] + "\t" + line[2] + " has multiple entries");

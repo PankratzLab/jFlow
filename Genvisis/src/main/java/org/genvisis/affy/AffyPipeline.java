@@ -436,7 +436,7 @@ public class AffyPipeline {
 			} else {
 				uniq.put(ext.removeDirectoryInfo(celFile), ext.removeDirectoryInfo(celFile));
 			}
-			if (celFile.length() != celFile.replaceAll("[\\s]+", "").length()) {
+			if (celFile.length() != celFile.replaceAll(PSF.Regex.GREEDY_WHITESPACE, "").length()) {
 				log.reportError(celFile + " contained whitespace");
 			}
 		}

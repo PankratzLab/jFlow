@@ -21,6 +21,7 @@ import org.genvisis.common.ByteVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.StringVector;
@@ -250,12 +251,12 @@ public class CNVariant extends Segment {
 			reader = Files.getReader(filename, jar, true, true);
 
 			reader.mark(1000);
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!line[2].toLowerCase().equals("chr") && Positions.chromosomeNumber(line[2]) != -1) {
 				reader.reset();
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (sampleHash == null || sampleHash.containsKey(line[0] + "\t" + line[1])) {
 					CNVariant var = new CNVariant(line);
 					if (!includeLOH && var.getCN() == PennHmm.LOH_FLAG) {
@@ -300,7 +301,7 @@ public class CNVariant extends Segment {
 
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				markerNames.add(line[0]);
 				chrs.add(Positions.chromosomeNumber(line[1]));
 				positions.add(Integer.parseInt(line[2]));

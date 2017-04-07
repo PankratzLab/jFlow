@@ -10,6 +10,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 
 public class ConvertToMDRformat {
 	// public static final String DEFAULT_DIR = "C:\\Documents and
@@ -38,7 +39,7 @@ public class ConvertToMDRformat {
 			writer = new PrintWriter(new FileWriter(dir + prefix + ".mdr"));
 			writer.println(ArrayUtils.toStr(markers) + "\tClass");
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[5].equals("0")) {
 					for (int i = 0; i < markers.size(); i++) {
 						if (line[6 + i * 2 + 0].equals("0") || line[6 + i * 2 + 0].equals(".")

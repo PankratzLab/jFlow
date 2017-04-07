@@ -12,6 +12,7 @@ import java.util.Set;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 
@@ -23,7 +24,7 @@ public class GenVCFTrio {
 		try {
 			BufferedReader reader = Files.getAppropriateReader(list);
 			while (reader.ready()) {
-				String[] line = reader.readLine().trim().split("[\\s]+");
+				String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				String fam = line[0].substring(0, line[0].length() - 1);
 				if (!trios.containsKey(fam)) {
 					trios.put(fam, new HashSet<String>());

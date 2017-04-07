@@ -12,6 +12,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class Coverage {
@@ -57,7 +58,7 @@ public class Coverage {
 
 		hashes = new Hashtable<String, Hashtable<String, String>>();
 		for (int i = 0; i < variants.length; i++) {
-			line = variants[i].split("[\\s]+");
+			line = variants[i].split(PSF.Regex.GREEDY_WHITESPACE);
 			HashVec.addToHashHash(hashes, line[0], "chr" + line[1] + "_" + line[2], i + "");
 		}
 
@@ -89,7 +90,7 @@ public class Coverage {
 					try {
 						reader = new BufferedReader(new FileReader(dir + files[fileIndex]));
 						while (reader.ready()) {
-							line = reader.readLine().trim().split("[\\s]+");
+							line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							if (hash.containsKey(line[0] + "_" + line[1])) {
 								writer.println(inds[i] + "\t" + hash.get(line[0] + "_" + line[1]) + "\t"
 															 + ArrayUtils.toStr(line));
@@ -135,7 +136,7 @@ public class Coverage {
 			writer = new PrintWriter(new FileWriter(pileupFile + "_filtered.out"));
 			while (reader.ready()) {
 				trav = reader.readLine();
-				line = trav.trim().split("[\\s]+");
+				line = trav.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (hash.containsKey(line[0] + "\t" + line[1])) {
 					writer.println(trav);
 				}

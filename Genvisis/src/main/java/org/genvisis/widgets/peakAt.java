@@ -10,13 +10,13 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class peakAt {
@@ -99,7 +99,7 @@ public class peakAt {
 				if (columnsNotLines) {
 					System.out.println("Taking the first " + numLines + " columns of all rows.");
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						for (int i = 0; i < Math.min(numLines, line.length); i++) {
 							writer.print((i == 0 ? "" : "\t") + line[i]);
 						}

@@ -1,11 +1,9 @@
 package org.genvisis.one.ben.fcs.gating;
 
 import java.io.File;
-import java.io.IOError;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.HashMap;
 
 import org.genvisis.common.ext;

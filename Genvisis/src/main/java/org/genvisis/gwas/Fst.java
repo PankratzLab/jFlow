@@ -11,6 +11,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.StringVector;
 import org.genvisis.common.Vectors;
 import org.genvisis.common.ext;
@@ -342,7 +343,7 @@ public class Fst {
 		int count;
 		StringVector[] fileContents;
 
-		ext.checkHeader(Files.getHeaderOfFile(filename, "[\\s]+", new Logger()),
+		ext.checkHeader(Files.getHeaderOfFile(filename, PSF.Regex.GREEDY_WHITESPACE, new Logger()),
 										new String[] {"FID", "IID"}, new int[] {0, 1}, false, new Logger(), true);
 		hash = HashVec.loadFileToHashVec(filename, 2, new int[] {0, 1}, "\t", true, false);
 		keys = HashVec.getKeys(hash);

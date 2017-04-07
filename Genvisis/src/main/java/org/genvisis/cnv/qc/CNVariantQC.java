@@ -419,12 +419,12 @@ public class CNVariantQC implements Serializable {
 // BufferedReader reader = new BufferedReader(new FileReader(plinkCnvQCs));
 //
 // reader.mark(1000);
-// line = reader.readLine().trim().split("[\\s]+");
+// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 // if (!line[2].toLowerCase().equals("chr") && Positions.chromosomeNumber(line[2]) != -1) {
 // reader.reset();
 // }
 // while (reader.ready()) {
-// line = reader.readLine().trim().split("[\\s]+");
+// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 // if (defineCompHash == null || defineCompHash.containsKey(line[0])) {
 // v.add(new CNVariantQC(line));
 // }

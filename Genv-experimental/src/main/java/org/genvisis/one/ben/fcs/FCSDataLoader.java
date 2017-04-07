@@ -31,8 +31,6 @@ import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 
-import edu.stanford.facs.logicle.Logicle;
-
 public class FCSDataLoader {
 
 	private static final String COMPENSATED_PREPEND = "Comp-";

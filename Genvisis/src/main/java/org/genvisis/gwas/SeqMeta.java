@@ -24,6 +24,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.common.Vectors;
@@ -1725,7 +1726,7 @@ public class SeqMeta {
 		if (groupAnnotationParams.length > 0) {
 			log.report("Testing for presence of Group annotation files");
 			for (String[] groupAnnotationParam : groupAnnotationParams) {
-				temp = groupAnnotationParam[1].split("[\\s]+")[0];
+				temp = groupAnnotationParam[1].split(PSF.Regex.GREEDY_WHITESPACE)[0];
 				if (Files.exists(temp)) {
 					log.report("Found ", false, true);
 				} else {
@@ -2483,7 +2484,7 @@ public class SeqMeta {
 			reader = Files.getAppropriateReader(dir + hitsDirectory + "SingleVariant_regions.xln");
 			writer = new PrintWriter(new FileWriter(dir + hitsDirectory
 																							+ "SingleVariant_regions_processed.xln"));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			keeps = ArrayUtils.booleanArray(line.length, true);
 
 			// Trait Region Gene Chr Position p-value Region+Window RegionStart RegionStop NumSigMarkers
@@ -2543,7 +2544,7 @@ public class SeqMeta {
 			writer.println(ArrayUtils.toStr(line));
 
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				line = ArrayUtils.subArray(line, keeps);
 				for (int i = 0; i < line.length; i++) {
 					for (int j = 0; j < typesToSplit.length; j++) {
@@ -2579,7 +2580,7 @@ public class SeqMeta {
 			reader = Files.getAppropriateReader(dir + hitsDirectory + "BurdenTests_regions.xln");
 			writer = new PrintWriter(new FileWriter(dir + hitsDirectory
 																							+ "BurdenTests_regions_processed.xln"));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			keeps = ArrayUtils.booleanArray(line.length, true);
 
 			// Trait Region Gene Chr Position p-value Region+Window RegionStart RegionStop NumSigMarkers
@@ -2630,7 +2631,7 @@ public class SeqMeta {
 			writer.println(ArrayUtils.toStr(line));
 
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				line = ArrayUtils.subArray(line, keeps);
 				for (int i = 0; i < pvals.length; i++) {
 					if (pvals[i]) {
@@ -2940,7 +2941,7 @@ public class SeqMeta {
 				try {
 					reader = Files.getAppropriateReader(dir + "summary_stats/" + studies[i]
 																							+ "_summary_stats.txt");
-					header = reader.readLine().trim().split("[\\s]+");
+					header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (!ext.checkHeader(header, SUMMARY_INFO_HEADER, false)) {
 						log.reportError("Warning - invalid header for the " + studies[i]
 														+ " summary stats file");
@@ -3204,7 +3205,7 @@ public class SeqMeta {
 																										 + "1.out", 1)];
 						count = 0;
 						while (reader.ready()) {
-							line = reader.readLine().trim().split("[\\s]+");
+							line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							for (int j = 0; j < 3; j++) {
 								data[0][j][count] = Double.parseDouble(line[3 + j]);
 							}
@@ -3748,7 +3749,7 @@ public class SeqMeta {
 		if (plinkFormat) {
 			try {
 				reader = Files.getAppropriateReader(ext.rootOf(markerList) + "_extracted.xln");
-				header = reader.readLine().trim().split("[\\s]+");
+				header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer = new PrintWriter(new FileWriter(ext.rootOf(markerList) + ".map"));
 				for (int i = 6; i < header.length; i++) {
 					line = header[i].split(":");
@@ -3763,7 +3764,7 @@ public class SeqMeta {
 
 				writer = new PrintWriter(new FileWriter(ext.rootOf(markerList) + ".ped"));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					for (int i = 6; i < line.length; i++) {
 						line[i] = ext.replaceAllWith(line[i], replacements);
 						line[i] = ext.replaceAllWith(line[i], "NA", "0\t0");

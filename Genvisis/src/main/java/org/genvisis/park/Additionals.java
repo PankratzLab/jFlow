@@ -12,6 +12,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Vectors;
 import org.genvisis.common.ext;
 
@@ -26,11 +27,11 @@ public class Additionals {
 
 		try {
 			reader = tools.getNinfoReader(2, false);
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, tools.NINFO2_HEADER, true);
 
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length < 8) {
 					System.err.println("Error: make sure every entry has 8 columns (zero out founders' parents, '.' out missing values)");
 					System.exit(1);
@@ -53,7 +54,7 @@ public class Additionals {
 			prev = "";
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				fam = line[0];
 				id = line[1];
 				trav = fam + "\t" + id;
@@ -103,10 +104,10 @@ public class Additionals {
 
 			reader = new BufferedReader(new FileReader(tools.CRF_DIR + "ninfo2_affRent.xln"));
 			writer = new PrintWriter(new FileWriter(tools.CRF_DIR + "affRent.csv"));
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			writer.println(line[0] + "," + line[1] + "," + line[3] + "," + line[4] + "," + line[5]);
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (hash.containsKey(line[0] + ":" + line[1])) {
 					writer.println(line[0] + "," + line[1] + "," + line[3] + "," + line[4] + "," + line[5]);
 				}
@@ -133,7 +134,7 @@ public class Additionals {
 
 		try {
 			reader = tools.getNinfoReader(1, false);
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			for (int i = 0; i < line.length; i++) {
 				if (!line[i].equals(tools.NINFO1_HEADER[i])) {
 					System.err.println("Error - header has been changed; expecting: " + tools.NINFO1_HEADER[i]
@@ -143,7 +144,7 @@ public class Additionals {
 			}
 
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!typed.contains(line[0] + "\t" + line[1])) {
 					typed.add(line[0] + "\t" + line[1]);
 				}
@@ -165,7 +166,7 @@ public class Additionals {
 			reader.readLine();
 
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = line[0] + "\t" + line[1];
 				if (hash.containsKey(line[0])) {
 					data = hash.get(line[0]);
@@ -273,7 +274,7 @@ public class Additionals {
 			reader = tools.getNinfoReader(2, true);
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = line[0] + "\t" + line[1];
 				affStat = affectionStatus.get(trav);
 				if (!processed.containsKey(trav)) {
@@ -339,7 +340,7 @@ public class Additionals {
 			writer.println("FamID\tIndID\tUniqueID\tNumAddFirstDegreeAff\tNumAddFirstDegreeVPD\tNumParentAff\tNumParentVPD\tNumSiblingAff\tNumSiblingVPD\tNumChildAff\tNumChildVPD");
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = line[0] + "\t" + line[1];
 				if (hash.containsKey(trav)) {
 					counts = hash.get(trav);

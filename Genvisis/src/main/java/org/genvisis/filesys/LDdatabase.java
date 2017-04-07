@@ -24,6 +24,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.Vectors;
 import org.genvisis.common.ext;
@@ -163,7 +164,7 @@ public class LDdatabase implements Serializable {
 			if (trav == null) {
 				HashVec.addToHashVec(missing, "0", targets[i], true);
 			} else {
-				ivs[Integer.parseInt(trav.split("[\\s]+")[0])].add(i);
+				ivs[Integer.parseInt(trav.split(PSF.Regex.GREEDY_WHITESPACE)[0])].add(i);
 				subHash.put(targets[i], trav);
 			}
 		}
@@ -197,7 +198,7 @@ public class LDdatabase implements Serializable {
 				positions = new int[ivs[chr].size()];
 				for (int j = 0; j < ivs[chr].size(); j++) {
 					subset[j] = targets[ivs[chr].elementAt(j)];
-					positions[j] = Integer.parseInt(chrHash.get(subset[j]).split("[\\s]+")[1]);
+					positions[j] = Integer.parseInt(chrHash.get(subset[j]).split(PSF.Regex.GREEDY_WHITESPACE)[1]);
 				}
 
 				log.report("Checking how many chr" + chr + " pairs are present already...", false, true);
@@ -242,10 +243,10 @@ public class LDdatabase implements Serializable {
 											+ "freqCheck", "./");
 					try {
 						reader = new BufferedReader(new FileReader(dir + "freqCheck.frq"));
-						ext.checkHeader(reader.readLine().trim().split("[\\s]+"), FREQ_HEADER, true);
+						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), FREQ_HEADER, true);
 						monomorphs = new Vector<String>();
 						while (reader.ready()) {
-							line = reader.readLine().trim().split("[\\s]+");
+							line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							if (line[4].equals("0")) {
 								monomorphs.add(line[1]);
 							}
@@ -278,9 +279,9 @@ public class LDdatabase implements Serializable {
 
 					try {
 						reader = new BufferedReader(new FileReader(dir + LDDB_TARGETS + ".ped.LD"));
-						ext.checkHeader(reader.readLine().trim().split("[\\s]+"), HAPLOVIEW_LD_HEADER, false);
+						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), HAPLOVIEW_LD_HEADER, false);
 						while (reader.ready()) {
-							line = reader.readLine().trim().split("[\\s]+");
+							line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							chrLDdb.add(line[0], line[1], Float.parseFloat(line[4]));
 						}
 						reader.close();

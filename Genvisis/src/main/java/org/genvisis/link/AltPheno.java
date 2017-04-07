@@ -13,6 +13,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class AltPheno {
@@ -45,7 +46,7 @@ public class AltPheno {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!line[0].equals("FID") || !line[1].equals("IID")) {
 				System.err.println("Warning - assuming first two columns of " + filename
 													 + " are FID and IID (found " + line[0] + " and " + line[1] + ")");
@@ -55,7 +56,7 @@ public class AltPheno {
 				phenoNames[i] = line[i + 2];
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				HashVec.addToHashHash(hash, line[0], line[1],
 															ArrayUtils.toStr(ArrayUtils.subArray(line, 2)));
 			}
@@ -91,10 +92,10 @@ public class AltPheno {
 													 trav + phenoNames[j] + "/map" + chr2 + ".dat");
 					}
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (i == fams.length || line[0].equals(fams[i])) {
 							phenos = hash.get(line[0])
-													 .containsKey(line[1]) ? hash.get(line[0]).get(line[1]).split("[\\s]+")
+													 .containsKey(line[1]) ? hash.get(line[0]).get(line[1]).split(PSF.Regex.GREEDY_WHITESPACE)
 																								 : ArrayUtils.stringArray(phenoNames.length, "0");
 							for (int j = 0; j < phenoNames.length; j++) {
 								line[5] = phenos[j].equals("1") ? "2" : "0";
@@ -166,7 +167,7 @@ public class AltPheno {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!line[0].equals("FID") || !line[1].equals("IID")) {
 				System.err.println("Warning - assuming first two columns of " + filename
 													 + " are FID and IID (found " + line[0] + " and " + line[1] + ")");
@@ -180,7 +181,7 @@ public class AltPheno {
 				hash.put(phenoName, new Vector<String>());
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (hashes.containsKey(line[0])) {
 					hash = hashes.get(line[0]);
 				} else {
@@ -223,7 +224,7 @@ public class AltPheno {
 						try {
 							reader = new BufferedReader(new FileReader(dir + fam + "/" + phenoName + "/merlin-chr"
 																												 + ext.chrome(chr) + "-nonparametric.tbl"));
-							ext.checkHeader(reader.readLine().trim().split("[\\s]+"), MERLIN_BINARY_HEADER, true);
+							ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), MERLIN_BINARY_HEADER, true);
 							if (reader.ready()) {
 								reader.readLine();
 								maxPossible = Double.parseDouble(reader.readLine().trim().split("\\t", -1)[6]);
@@ -279,7 +280,7 @@ public class AltPheno {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!line[0].equals("FID") || !line[1].equals("IID")) {
 				System.err.println("Warning - assuming first two columns of " + filename
 													 + " are FID and IID (found " + line[0] + " and " + line[1] + ")");
@@ -293,7 +294,7 @@ public class AltPheno {
 				hash.put(phenoName, new Vector<String>());
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (hashes.containsKey(line[0])) {
 					hash = hashes.get(line[0]);
 				} else {

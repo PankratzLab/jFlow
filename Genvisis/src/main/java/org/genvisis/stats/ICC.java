@@ -14,6 +14,7 @@ import java.util.Hashtable;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 // Some Resources used...
@@ -433,7 +434,7 @@ public class ICC implements Serializable {
 			int count = 1;
 			while (in.ready()) {
 
-				String[] line = in.readLine().trim().split("[\\s]+");
+				String[] line = in.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				data[index] = Double.parseDouble(line[0]);
 				response[index] = count + "";
 				index++;

@@ -31,6 +31,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.GenomicPosition;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
@@ -193,7 +194,7 @@ public abstract class MarkerBlast {
 		Map<String, String> markerStringMap = Markers.loadFileToHashString(markerPositionsFile, log);
 		for (Map.Entry<String, String> markerEntry : markerStringMap.entrySet()) {
 			String name = markerEntry.getKey();
-			String[] chrPos = markerEntry.getValue().split("[\\s]+");
+			String[] chrPos = markerEntry.getValue().split(PSF.Regex.GREEDY_WHITESPACE);
 			byte chr = Positions.chromosomeNumber(chrPos[0], log);
 			int position = Integer.parseInt(chrPos[1]);
 			if (overrideMarkerPositions.put(name, new GenomicPosition(chr, position)) != null) {

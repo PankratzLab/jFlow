@@ -13,6 +13,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.stats.ContingencyTable;
 import org.genvisis.stats.ProbDist;
 import org.genvisis.stats.Stats;
@@ -28,7 +29,7 @@ public class temp {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(filename + "_chi.xln"));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.print(ArrayUtils.toStr(line) + "\t"
 										 + Stats.FishersExact(Double.parseDouble(line[0]), Double.parseDouble(line[1]),
 																					Double.parseDouble(line[2]), Double.parseDouble(line[3]),
@@ -139,7 +140,7 @@ public class temp {
 		// false).writeToFile(markerNames, "96M5656f.xln");
 		// proj.getMarkerSet().writeToFile("MarkerSet.xln");
 		// String[] line =
-		// proj.getMarkerLookup().get("rs2627690").split("[\\s]+");
+		// proj.getMarkerLookup().get("rs2627690").split(PSF.Regex.GREEDY_WHITESPACE);
 		// MarkerData[] markerData =
 		// MarkerDataCollection.load(proj.getDir(Project.PLOT_DIRECTORY)+line[0],
 		// false).getCollection();

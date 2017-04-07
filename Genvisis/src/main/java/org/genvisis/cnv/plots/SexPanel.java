@@ -22,6 +22,7 @@ import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
+import org.genvisis.common.PSF;
 import org.genvisis.mining.Distance;
 
 public class SexPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
@@ -117,7 +118,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 															 proj.JAR_STATUS.getValue(), true, false);
 			if (reader != null) {
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					colorHash.put(line[0] + "\t" + line[1], line[2]);
 				}
 				reader.close();

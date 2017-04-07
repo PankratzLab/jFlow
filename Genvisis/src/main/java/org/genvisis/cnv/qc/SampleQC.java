@@ -18,6 +18,7 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Quantiles;
 
@@ -371,7 +372,7 @@ public class SampleQC {
 			String[] line;
 			int duplicatesFound = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length != 3) {
 					proj.getLog()
 							.reportError("file \"" + duplicatesSetFile
@@ -587,7 +588,7 @@ public class SampleQC {
 			proj.getLog().reportTimeInfo("Loading qc data from " + lrrSdToLoad);
 			try {
 				BufferedReader reader = Files.getAppropriateReader(lrrSdToLoad);
-				String[] header = reader.readLine().trim().split("[\\s]+");
+				String[] header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				int[] indicesToLoad = ext.indexFactors(qcTitlesToLoad, header, true, proj.getLog(), true,
 																							 false);
 				int sampleColumn = ext.indexOfStr(sampleColumnName, header);
@@ -603,7 +604,7 @@ public class SampleQC {
 					sampleQC = new SampleQC(proj, qcTitlesToLoad, gcCorrectedLrrSd);
 
 					while (reader.ready()) {
-						String[] line = reader.readLine().trim().split("[\\s]+");
+						String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						String sample = line[sampleColumn];
 						if (ext.indexOfStr(sampleColumnName, line) < 0) {
 							for (int i = 0; i < indicesToLoad.length; i++) {

@@ -17,6 +17,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.LogisticRegression;
@@ -93,12 +94,12 @@ public class crfDB {
 							temp = reader.readLine();
 						}
 
-						line = temp.split("[\\s]+");
+						line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 						if (line.length == 1 && line[0].equals("")) {
 							done = true;
 						} else {
 							if (!new File(line[0]).exists() && !new File(POSS_DIR + line[0]).exists()) {
-								log.reportError("Error - File '" + temp.split("[\\s]+")[0] + "' not found.");
+								log.reportError("Error - File '" + temp.split(PSF.Regex.GREEDY_WHITESPACE)[0] + "' not found.");
 								problem = true;
 							}
 							for (int i = 2; i < line.length; i++) {
@@ -117,7 +118,7 @@ public class crfDB {
 							}
 						}
 					}
-					line = reader.readLine().split("[\\s]+");
+					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 					output_filename = line[0];
 					for (int i = 1; i < line.length; i++) {
 						if (line[i].startsWith("missingThreshold=")) {
@@ -153,7 +154,7 @@ public class crfDB {
 			hashes = HashVec.newVecHashStringString(hashDescriptions.size());
 			hashNames = new String[hashDescriptions.size()];
 			for (int i = 0; i < hashDescriptions.size(); i++) {
-				line = (hashDescriptions.elementAt(i)).split("[\\s]+");
+				line = (hashDescriptions.elementAt(i)).split(PSF.Regex.GREEDY_WHITESPACE);
 				hashNames[i] = line[0];
 				temp = (new File(line[0]).exists() ? "" : POSS_DIR) + line[0];
 				indices = new int[][] {{Integer.parseInt(line[2]), Integer.parseInt(line[3])}};
@@ -216,7 +217,7 @@ public class crfDB {
 			}
 
 			for (int fn = 0; fn < numFiles; fn++) {
-				line = (fileDescriptions.elementAt(fn)).split("[\\s]+");
+				line = (fileDescriptions.elementAt(fn)).split(PSF.Regex.GREEDY_WHITESPACE);
 				expecteds[fn] = new String[line.length - 2];
 				bounds[fn] = new double[line.length - 2][2];
 				subline = line[1].split("=");

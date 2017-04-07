@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.Hashtable;
 
 import org.genvisis.common.Internat;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class temp {
@@ -41,7 +42,7 @@ public class temp {
 			reader = new BufferedReader(new FileReader(dir + filename));
 			writer = new PrintWriter(new FileWriter(trav));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				temp = line[0];
 				count = temp.length();
 			}

@@ -9,6 +9,7 @@ import java.text.DecimalFormat;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
@@ -38,7 +39,7 @@ public class Markers {
 		try {
 			reader = Files.getReader(databaseFile, ALT_LOCS);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[0].equals("")) {
 				} else if (line[0].startsWith("chromosome")) {
 					chr = Integer.parseInt(line[0].substring(10));

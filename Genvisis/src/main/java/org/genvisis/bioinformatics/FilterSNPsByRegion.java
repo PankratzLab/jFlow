@@ -13,6 +13,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
@@ -47,7 +48,7 @@ public class FilterSNPsByRegion {
 			return;
 		}
 
-		line = paramV.remove(0).trim().split("[\\s]+");
+		line = paramV.remove(0).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 		regionsFile = line[0];
 		chrCol = startCol = stopCol = -1;
 		header = false;
@@ -100,7 +101,7 @@ public class FilterSNPsByRegion {
 		}
 
 		log.report("Looking up SNPs within these regions...");
-		line = paramV.remove(0).trim().split("[\\s]+");
+		line = paramV.remove(0).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 		lookupFile = line[0];
 		snpCol = Integer.parseInt(line[1]);
 		chrCol = Positions.chromosomeNumber(line[2]);
@@ -127,7 +128,7 @@ public class FilterSNPsByRegion {
 			reader = new BufferedReader(new FileReader(lookupFile));
 			writer = new PrintWriter(new FileWriter(outputFilename));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				passes = false;
 				mark = new Segment(Positions.chromosomeNumber(line[chrCol]), Integer.parseInt(line[posCol]),
 													 Integer.parseInt(line[posCol]));

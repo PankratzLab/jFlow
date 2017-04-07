@@ -48,6 +48,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class ForestPlotFrame extends JFrame implements WindowListener {
@@ -321,7 +322,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					int trav = Integer.valueOf(((JTextField) e.getSource()).getText().split("[\\s]+")[0])
+					int trav = Integer.valueOf(((JTextField) e.getSource()).getText().split(PSF.Regex.GREEDY_WHITESPACE)[0])
 														.intValue()
 										 - 1;
 					if (trav >= 0 && trav < forestPlot.getDataIndices().size()) {

@@ -19,6 +19,7 @@ import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
@@ -90,7 +91,7 @@ public class ParseSNPlocations {
 			reader = Files.getAppropriateReader(snpListFile);
 
 			while ((line = reader.readLine()) != null) {
-				parts = line.trim().split("[\\s]+");
+				parts = line.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (parts[0].equalsIgnoreCase("snp") || parts[0].toLowerCase().startsWith("marker")) {
 					continue;
 				}
@@ -266,7 +267,7 @@ public class ParseSNPlocations {
 			writer.println("SNP\tChr\tPosition\tRef\tAlt\tFunc\tPM/MUT\tGENENAME\tCAF");
 
 			while ((line = reader.readLine()) != null) {
-				parts = line.trim().split("[\\s]+");
+				parts = line.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (parts[0].equalsIgnoreCase("snp") || parts[0].toLowerCase().startsWith("marker")) {
 					continue;
 				}
@@ -497,12 +498,12 @@ public class ParseSNPlocations {
 			writer.println("SNP\tChr\tPosition");
 			first = true;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				chr = -2;
 				position = -2;
 				if (first) {
 					if (line[0].equalsIgnoreCase("snp") || line[0].toLowerCase().startsWith("marker")) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					}
 					first = false;
 				}
@@ -664,12 +665,12 @@ public class ParseSNPlocations {
 			writer.println("SNP\tChr\tPosition");
 			first = true;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				chr = -2;
 				position = -2;
 				if (first) {
 					if (line[0].equalsIgnoreCase("snp") || line[0].toLowerCase().startsWith("marker")) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					}
 					first = false;
 				}
@@ -776,7 +777,7 @@ public class ParseSNPlocations {
 			reader = Files.getAppropriateReader(source);
 			count = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				// if (line.length>2) {
 				if (line.length > 1) {
 					count++;
@@ -795,7 +796,7 @@ public class ParseSNPlocations {
 			while (reader.ready()) {
 				temp = reader.readLine();
 				try {
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					// if (line.length>2) {
 					if (line.length > 1) {
 						rsNumbers[count] = "rs" + line[0];

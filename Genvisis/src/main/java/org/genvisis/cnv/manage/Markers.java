@@ -22,6 +22,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -116,7 +117,7 @@ public class Markers {
 		positions = new int[markerNames.length];
 		for (int i = 0; i < markerNames.length; i++) {
 			if (snpPositions.containsKey(markerNames[i])) {
-				line = snpPositions.get(markerNames[i]).split("[\\s]+");
+				line = snpPositions.get(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE);
 				chrs[i] = Positions.chromosomeNumber(line[0], log);
 				chrCounts[chrs[i]]++;
 				positions[i] = Integer.parseInt(line[1]);
@@ -173,7 +174,7 @@ public class Markers {
 				if (delimiter.equals(",")) {
 					line = ext.splitCommasIntelligently(temp, true, new Logger());
 				} else if (temp.indexOf("\t") == -1) {
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				} else {
 					line = temp.split("\t", -1);
 				}
@@ -418,14 +419,14 @@ public class Markers {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_"
 																							+ header[1 + setTo * 2 + 0] + "_"
 																							+ header[1 + setTo * 2 + 1] + ".xln"));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			line = ArrayUtils.insertStringAt(header[1 + setTo * 2 + 0], line, alleleCol + 2);
 			line = ArrayUtils.insertStringAt(header[1 + setTo * 2 + 1], line, alleleCol + 3);
 			writer.println(ArrayUtils.toStr(line));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (hash.containsKey(line[0])) {
-					alleles = ArrayUtils.subArray(hash.get(line[0]).split("[\\s]+"), 1);
+					alleles = ArrayUtils.subArray(hash.get(line[0]).split(PSF.Regex.GREEDY_WHITESPACE), 1);
 					if (line[alleleCol].equals(alleles[setFrom * 2 + 0])
 							&& line[alleleCol + 1].equals(alleles[setFrom * 2 + 1])) {
 						line = ArrayUtils.insertStringAt(alleles[setTo * 2 + 0], line, alleleCol + 2);

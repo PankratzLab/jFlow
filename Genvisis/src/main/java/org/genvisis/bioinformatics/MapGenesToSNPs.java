@@ -15,6 +15,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.GeneSet;
@@ -50,7 +51,7 @@ public class MapGenesToSNPs {
 																																		 log),
 													 false);
 
-		line = paramV.remove(0).trim().split("[\\s]+");
+		line = paramV.remove(0).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 		genesFile = line[0];
 		col = -1;
 		locCol = -1;
@@ -80,7 +81,7 @@ public class MapGenesToSNPs {
 		}
 		log.report("Loading genes from '" + genesFile + "'");
 		genes = HashVec.loadFileToStringArray(genesFile, false, ignoreFirstLine, new int[] {col}, true,
-																					false, commaDelimited ? "," : "[\\s]+");
+																					false, commaDelimited ? "," : PSF.Regex.GREEDY_WHITESPACE);
 		locOverwrite = HashVec.loadFileToHashString(genesFile, new int[] {col}, new int[] {locCol},
 																								false, "\t", false, false, true);
 
@@ -96,7 +97,7 @@ public class MapGenesToSNPs {
 		}
 		log.report("Looking up SNPs within these genes...");
 
-		line = paramV.remove(0).trim().split("[\\s]+");
+		line = paramV.remove(0).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 		lookupFile = line[0];
 		snpCol = Integer.parseInt(line[1]);
 		chrCol = Positions.chromosomeNumber(line[2]);
@@ -121,7 +122,7 @@ public class MapGenesToSNPs {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(genesFile) + "_SNPs.xln"));
 			writer.println(reader.readLine());
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				passes = false;
 				for (int i = 0; i < locs.length && !passes; i++) {
 					if (Positions.chromosomeNumber(line[chrCol]) == locs[i][0]

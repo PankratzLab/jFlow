@@ -12,6 +12,7 @@ import java.util.Hashtable;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Vectors;
 import org.genvisis.common.ext;
 
@@ -40,7 +41,7 @@ public class Pedfile {
 			count = 0;
 			numMarkers = -1;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (numMarkers == -1) {
 					numMarkers = (line.length - 6) / 2;
 				} else if ((line.length - 6) / 2 != numMarkers) {
@@ -60,7 +61,7 @@ public class Pedfile {
 			freqs = new double[numMarkers];
 			genotypeCounts = new int[numMarkers];
 			for (int i = 0; i < count; i++) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				ids[i] = new String[] {line[0], line[1], line[2], line[3]};
 				genders[i] = Byte.parseByte(line[4]);
 				affections[i] = Byte.parseByte(line[5]);
@@ -161,7 +162,7 @@ public class Pedfile {
 				// ext.rootOf(phenotypeFile)+"-"+phenoCol, true)));
 				// writer = new PrintWriter(new FileWriter("re_chrom"+ext.chrome(chr)+".pre"));
 				// while (reader.ready()) {
-				// line = reader.readLine().trim().split("[\\s]+");
+				// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				// if (hash.containsKey(line[0]+"\t"+line[1])) {
 				// line[5] = hash.get(line[0]+"\t"+line[1]);
 				// } else {

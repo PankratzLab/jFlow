@@ -15,6 +15,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.SnpMarkerSet;
@@ -139,7 +140,7 @@ public class eQTLs {
 			writer = new PrintWriter(new FileWriter(outfile));
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!ext.isMissingValue(line[indices[3]])) {
 					pval = Double.parseDouble(line[indices[3]]);
 					if (pval < transThreshold || (pval < cisThreshold && segs != null

@@ -14,6 +14,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Maths;
 
@@ -97,7 +98,7 @@ public class GenParser {
 		simplifyQuotes = ext.indexOfStr("doNotSimplifyQuotes", line) == -1;
 
 		String delim = commaDelimited ? "," + (simplifyQuotes ? "!" : "")
-																	: (tabDelimited ? "\t" : "[\\s]+");
+																	: (tabDelimited ? "\t" : PSF.Regex.GREEDY_WHITESPACE);
 		columnHeaders = data == null ? Files.getHeaderOfFile(filename, delim, log)
 																 : ext.splitLine(data.get(0), delim, log);
 		if (ArrayUtils.toStr(line).contains("'")) {
@@ -241,7 +242,7 @@ public class GenParser {
 																																									: reader.readLine()
 																																													.trim(),
 																									 replaces)
-																	 .split(tabDelimited ? "\t" : "[\\s]+", -1);
+																	 .split(tabDelimited ? "\t" : PSF.Regex.GREEDY_WHITESPACE, -1);
 				}
 				for (int j = 0; j < cols.length; j++) {
 					if (colNames[j] == null) {
@@ -328,7 +329,7 @@ public class GenParser {
 				line = ext.splitCommasIntelligently(ext.replaceAllWith(temp, replaces), simplifyQuotes,
 																						log);
 			} else {
-				line = ext.replaceAllWith(temp, replaces).split(tabDelimited ? "\t" : "[\\s]+", -1);
+				line = ext.replaceAllWith(temp, replaces).split(tabDelimited ? "\t" : PSF.Regex.GREEDY_WHITESPACE, -1);
 			}
 		} catch (IOException ioe) {
 			log.reportException(ioe);
@@ -649,7 +650,7 @@ public class GenParser {
 		// 'sc_nonsynSplice'"};
 
 		if (args.length == 1) {
-			args = ext.removeQuotes(args[0]).trim().split("[\\s]+");
+			args = ext.removeQuotes(args[0]).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 		}
 		if (args.length < 2) {
 			System.err.println(usage);

@@ -19,6 +19,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SerialHash;
 import org.genvisis.parse.GenParser;
@@ -231,14 +232,14 @@ public class MarkerQC {
 				} else if (params[i][0].equals("mishap_min")) {
 					try {
 						reader = new BufferedReader(new FileReader(dir + params[i][1]));
-						ext.checkHeader(reader.readLine().trim().split("[\\s]+"), MISSHAP_HEADER, true);
+						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), MISSHAP_HEADER, true);
 						prev = "";
 						mishaps = new Vector<String>();
 						hash = new Hashtable<String, String[]>();
 						done = false;
 						while (!done) {
 							if (reader.ready()) {
-								line = reader.readLine().trim().split("[\\s]+");
+								line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							} else {
 								done = true;
 								line = ArrayUtils.stringArray(8, "");

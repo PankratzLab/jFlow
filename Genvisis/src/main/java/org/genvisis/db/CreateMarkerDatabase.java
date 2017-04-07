@@ -9,11 +9,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class CreateMarkerDatabase {
@@ -61,7 +61,7 @@ public class CreateMarkerDatabase {
 
 		info = new String[infoV.size()][];
 		for (int i = 0; i < info.length; i++) {
-			info[i] = infoV.get(i).trim().split("[\\s]+");
+			info[i] = infoV.get(i).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			markerName = info[i][0];
 			try {
 				reader = Files.getReader(markerName, ALT_LOCS);

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.filesys.SnpMarkerSet;
 
 public class ConvertPlinkToMatrix {
@@ -27,7 +28,7 @@ public class ConvertPlinkToMatrix {
 			}
 			writer.println();
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.print(line[1]);
 				for (int i = 0; i < markerNames.length; i++) {
 					writer.print("\t" + line[6 + 2 * i + 0] + line[6 + 2 * i + 1]);

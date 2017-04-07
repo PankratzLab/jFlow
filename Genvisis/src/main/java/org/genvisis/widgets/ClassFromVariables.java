@@ -3,6 +3,7 @@ package org.genvisis.widgets;
 import java.util.Vector;
 
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class ClassFromVariables {
@@ -21,7 +22,7 @@ public class ClassFromVariables {
 		trans = "";
 
 		for (String element : clip) {
-			line = ext.replaceAllWith(element, "{", "").trim().split("[\\s]+");
+			line = ext.replaceAllWith(element, "{", "").trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (line[0].equals("noset") || line[0].equals("no set")) {
 				noset = true;
 			} else if (line[0].equals("set")) {

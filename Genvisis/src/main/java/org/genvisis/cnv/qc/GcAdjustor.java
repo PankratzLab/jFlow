@@ -13,8 +13,8 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.plots.ColorExt;
@@ -23,6 +23,7 @@ import org.genvisis.cnv.plots.ColorExt.ColorManager;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
@@ -1084,10 +1085,10 @@ public class GcAdjustor {
 				BufferedReader reader;
 				try {
 					reader = Files.getAppropriateReader(fullPathToGcModel);
-					String[] line = reader.readLine().trim().split("[\\s]+");// header
+					String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);// header
 					int lineNum = 0;
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						try {
 							String marker = line[indices[0]];
 							byte chr = Positions.chromosomeNumber(line[indices[1]], log);

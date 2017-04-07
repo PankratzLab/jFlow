@@ -30,7 +30,7 @@ public class FilterByLists {
 			return;
 		}
 
-		line = paramV.remove(0).trim().split("[\\s]+");
+		line = paramV.remove(0).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 		filename = line[0];
 		header = false;
 		commaDelimited = false;
@@ -149,7 +149,7 @@ public class FilterByLists {
 			writer = new PrintWriter(new FileWriter(outfile));
 			while (reader.ready()) {
 				temp = reader.readLine();
-				line = temp.trim().split(commaDelimited ? "," : "[\\s]+");
+				line = temp.trim().split(commaDelimited ? "," : PSF.Regex.GREEDY_WHITESPACE);
 				key = ArrayUtils.toStr(ArrayUtils.subArray(line, cols));
 				if (isFirstLine && keepFirstLine) {
 					writer.println(temp);

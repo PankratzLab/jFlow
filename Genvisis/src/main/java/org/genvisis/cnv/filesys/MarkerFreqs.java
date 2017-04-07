@@ -12,6 +12,7 @@ import java.util.Hashtable;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 
@@ -113,7 +114,7 @@ public class MarkerFreqs implements Serializable {
 		try {
 			int numMafs = 0;
 			reader = new BufferedReader(new FileReader(proj.PROJECT_DIRECTORY.getValue() + Freqfilename));
-			header = reader.readLine().trim().split("[\\s]+");
+			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			indices = ArrayUtils.intArray(MARKER_FREQ_FIELDS.length, -1);
 			for (int i = 0; i < header.length; i++) {
 				index = ext.indexOfEndsWith(header[i], MARKER_FREQ_FIELDS, true);
@@ -127,7 +128,7 @@ public class MarkerFreqs implements Serializable {
 				System.exit(1);
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!hash.containsKey(line[indices[0]])) {
 					log.reportError("Error - marker '" + line[indices[0]] + "' was not found in MarkerSet");
 					System.exit(1);

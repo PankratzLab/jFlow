@@ -12,6 +12,7 @@ import java.util.Vector;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
@@ -37,7 +38,7 @@ public class CountProxies {
 		double[] rsqs, pvalues, replications;
 
 		hash = new Hashtable<String, Vector<String>>();
-		line = Files.getHeaderOfFile(filename, "[\\s]+", new Logger());
+		line = Files.getHeaderOfFile(filename, PSF.Regex.GREEDY_WHITESPACE, new Logger());
 		indices = ext.indexFactors(HEADER_EXPECTATIONS, line, false, true, true, true);
 
 		try {
@@ -45,7 +46,7 @@ public class CountProxies {
 			reader.readLine();
 			while (reader.ready()) {
 				temp = reader.readLine();
-				line = temp.trim().split("[\\s]+");
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				region = line[indices[0]];
 				if (!region.equals("NA")) {
 					HashVec.addToHashVec(hash, region, temp, false);
@@ -81,7 +82,7 @@ public class CountProxies {
 				replications = new double[v.size()];
 
 				for (int i = 0; i < v.size(); i++) {
-					line = v.elementAt(i).trim().split("[\\s]+");
+					line = v.elementAt(i).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					markerNames[i] = line[indices[1]];
 					rsqs[i] = line[indices[4]].equals("NA") ? -1 : Double.parseDouble(line[indices[4]]);
 					pvalues[i] = line[indices[5]].equals("NA") ? 999 : Double.parseDouble(line[indices[5]]);

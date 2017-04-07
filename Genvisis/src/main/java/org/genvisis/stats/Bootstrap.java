@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class Bootstrap {
@@ -23,7 +24,7 @@ public class Bootstrap {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			try {
 				if (line.length != 2) {
 					reader.close();
@@ -48,7 +49,7 @@ public class Bootstrap {
 			array = new double[count];
 			count = 0;
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				array[count] = Double.parseDouble(line[column - 1]);
 				count++;
 			}

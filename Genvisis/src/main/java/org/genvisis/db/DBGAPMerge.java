@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeSet;
-import java.util.Vector;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -20,6 +19,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -544,7 +544,7 @@ public class DBGAPMerge {
 																										"# search terms below, one per line:"},
 																			log);
 			if (params != null) {
-				line = params.remove(0).trim().split("[\\s]+");
+				line = params.remove(0).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 
 				mapFile = line[0];
 				if (!Files.exists(mapFile)

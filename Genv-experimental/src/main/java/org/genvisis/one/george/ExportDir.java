@@ -1,12 +1,11 @@
 package org.genvisis.one.george;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.io.IOException;
 
 import org.genvisis.one.ben.fcs.FCSDataLoader;
-import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
 
 // deprecated, see FileManipulator
 public class ExportDir {

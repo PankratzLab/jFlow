@@ -637,11 +637,11 @@ public class Files {
 		if (paramV != null) {
 			file1 = paramV.get(0);
 			lookup1 = Integer.parseInt(paramV.get(1));
-			indices1 = ArrayUtils.toIntArray(paramV.get(2).split("[\\s]+"));
+			indices1 = ArrayUtils.toIntArray(paramV.get(2).split(PSF.Regex.GREEDY_WHITESPACE));
 			keepRowsUniqueToFile1 = paramV.get(3).trim().toLowerCase().equals("true");
 			file2 = paramV.get(4);
 			lookup2 = Integer.parseInt(paramV.get(5));
-			indices2 = ArrayUtils.toIntArray(paramV.get(6).split("[\\s]+"));
+			indices2 = ArrayUtils.toIntArray(paramV.get(6).split(PSF.Regex.GREEDY_WHITESPACE));
 			keepRowsUniqueToFile2 = paramV.get(7).trim().toLowerCase().equals("true");
 			mergedFile = paramV.get(8);
 
@@ -673,7 +673,7 @@ public class Files {
 		try {
 			reader = new BufferedReader(new FileReader(file2));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				point = new String[indices2.length];
 				for (int i = 0; i < point.length; i++) {
 					point[i] = line[indices2[i]];
@@ -692,7 +692,7 @@ public class Files {
 		try {
 			reader = new BufferedReader(new FileReader(file1));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = "";
 				for (int i = 0; i < indices1.length; i++) {
 					trav += (i == 0 ? "" : "\t") + line[indices1[i]];
@@ -744,7 +744,7 @@ public class Files {
 		if (paramV != null) {
 			file1 = paramV.get(0);
 			lookup1 = Integer.parseInt(paramV.get(1));
-			indices1 = ArrayUtils.toIntArray(paramV.get(2).split("[\\s]+"));
+			indices1 = ArrayUtils.toIntArray(paramV.get(2).split(PSF.Regex.GREEDY_WHITESPACE));
 			keepRowsUniqueToFile1 = paramV.get(3).trim().toLowerCase().equals("true");
 			file2 = paramV.get(4);
 			lookup2 = Integer.parseInt(paramV.get(5));
@@ -793,7 +793,7 @@ public class Files {
 			rsNums = new int[count];
 			count = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[lookup2].startsWith("rs")) {
 					try {
 						rsNums[count] = Integer.parseInt(line[lookup2].substring(2));
@@ -822,7 +822,7 @@ public class Files {
 		try {
 			reader = new BufferedReader(new FileReader(file1));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = "";
 				for (int i = 0; i < indices1.length; i++) {
 					trav += (i == 0 ? "" : "\t") + line[indices1[i]];
@@ -916,7 +916,7 @@ public class Files {
 
 		try {
 			for (int i = 0; i < fileParameters.length; i++) {
-				line = fileParameters[i].trim().split("[\\s]+");
+				line = fileParameters[i].trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				serializedFilename = GenParser.parseSerialFilename(line);
 				fileNames.add(line[0]);
 				if (Files.exists(serializedFilename, false)) {
@@ -1165,7 +1165,7 @@ public class Files {
 				}
 			} catch (OutOfMemoryError oome) {
 				log.reportError("Uh oh! Ran out of memory parsing file '"
-												+ fileParameters[i].trim().split("[\\s]+")[0] + "' at line:");
+												+ fileParameters[i].trim().split(PSF.Regex.GREEDY_WHITESPACE)[0] + "' at line:");
 				log.reportError(ArrayUtils.toStr(line, "/"));
 			} catch (Exception e) {
 				log.reportException(e);
@@ -1754,7 +1754,7 @@ public class Files {
 																									"# (step is only used for huge"},
 																		log);
 		if (paramV != null) {
-			line = paramV.remove(0).trim().split("[\\s]+");
+			line = paramV.remove(0).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 
 			huge = false;
 			infile = line[0];
@@ -2487,7 +2487,7 @@ public class Files {
 			files = new String[params.size()];
 			skips = ArrayUtils.intArray(params.size(), 0);
 			for (int i = 0; i < files.length; i++) {
-				line = params.get(i).trim().split("[\\s]+");
+				line = params.get(i).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				files[i] = line[0];
 				for (int j = 1; j < line.length; j++) {
 					if (line[j].startsWith("skip=")) {
@@ -3426,7 +3426,7 @@ public class Files {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!line[0].equalsIgnoreCase(command)) {
 				log.reportError("Error - file must start with the line '" + command + "'");
 				reader.close();
@@ -3440,7 +3440,7 @@ public class Files {
 				v = new Vector<String>();
 				while (reader.ready()) {
 					temp = reader.readLine();
-					if (!temp.startsWith("#") && !temp.trim().split("[\\s]+")[0].equals("")) {
+					if (!temp.startsWith("#") && !temp.trim().split(PSF.Regex.GREEDY_WHITESPACE)[0].equals("")) {
 						v.add(temp);
 					}
 				}
@@ -3537,7 +3537,7 @@ public class Files {
 			reader = new BufferedReader(new FileReader(in));
 			writer = new PrintWriter(new FileWriter(out));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				key = "";
 				for (int i = 0; i < keyIndices.length; i++) {
 					key += (i == 0 ? "" : "^") + line[keyIndices[i]];
@@ -3687,7 +3687,7 @@ public class Files {
 			String inputLine;
 
 			while ((inputLine = in.readLine()) != null) {
-				String[] line = inputLine.trim().split("[\\s]+");
+				String[] line = inputLine.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				int possibleVcfIndex = ext.indexOfEndsWith(type, line, false);
 				if (possibleVcfIndex > 0) {
 					remoteVcfs.add(ftpdirAddress + line[possibleVcfIndex]);
@@ -4002,8 +4002,8 @@ public class Files {
 				System.out.println(findNextRepSafely(patterns, numDigits, lastKnownRep,
 																						 patienceInMilliseconds));
 			} else if (transpose != null) {
-				transpose(transpose, commaDelimitedIn ? "," : "[\\s]+", outfile,
-									commaDelimitedOut ? "," : "[\\s]+", log);
+				transpose(transpose, commaDelimitedIn ? "," : PSF.Regex.GREEDY_WHITESPACE, outfile,
+									commaDelimitedOut ? "," : PSF.Regex.GREEDY_WHITESPACE, log);
 			} else if (replacements != null) {
 				replaceAll(filename, outfile, replacements, log);
 			} else if (filename != null) {

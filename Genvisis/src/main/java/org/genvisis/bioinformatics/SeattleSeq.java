@@ -15,6 +15,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class SeattleSeq {
@@ -65,10 +66,10 @@ public class SeattleSeq {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".input"));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			indices = ext.indexFactors(NEEDS, line, false, true, true, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[indices[0]].startsWith("chr")) {
 					line[indices[0]] = "chr" + line[indices[0]];
 				}
@@ -131,7 +132,7 @@ public class SeattleSeq {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_proc.dat"));
 			writer.println(reader.readLine());
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 1; i < line.length; i++) {
 					a1 = ext.parseDoubleArg(line[i].split("/")[0]);
 					a2 = ext.parseDoubleArg(line[i].split("/")[1]);
@@ -187,7 +188,7 @@ public class SeattleSeq {
 			temp = reader.readLine().trim();
 			// if (temp.startsWith("#"));
 			temp = temp.substring(1).trim();
-			line = temp.split("[\\s]+");
+			line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 			indices = ext.indexFactors(RELEVANTS, line, false, true, true, log, true);
 
 			prev = "";
@@ -196,7 +197,7 @@ public class SeattleSeq {
 			linesSkipped = 0;
 			while (!done) {
 				if (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (line.length < ArrayUtils.max(indices)) {
 						linesSkipped++;
 						continue;
@@ -356,7 +357,7 @@ public class SeattleSeq {
 
 					temp = reader.readLine().trim();
 					temp = temp.substring(1).trim();
-					line = temp.split("[\\s]+");
+					line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 					indices = ext.indexFactors(RELEVANTS, line, false, true, true, log, true);
 
 					prev = "";
@@ -367,7 +368,7 @@ public class SeattleSeq {
 					v = new Vector<String[]>();
 					while (!done) {
 						if (reader.ready()) {
-							line = reader.readLine().trim().split("[\\s]+");
+							line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							if (line[0].startsWith("#") || line.length < ArrayUtils.max(indices)) {
 								linesSkipped++;
 								continue;

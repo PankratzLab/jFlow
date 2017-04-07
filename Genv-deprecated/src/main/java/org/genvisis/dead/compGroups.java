@@ -10,6 +10,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Anova;
 import org.genvisis.stats.LeastSquares;
@@ -129,7 +130,7 @@ public class compGroups {
 		reader = new BufferedReader(new FileReader(DB_FILE));
 
 		v = new Vector<String>();
-		phenoNames = reader.readLine().split("[\\s]+");
+		phenoNames = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 		for (int i = 0; i < phenoNames.length; i++) {
 			if (containsStr(phenoNames[i], USE)) {
 				v.add(i + "");
@@ -150,7 +151,7 @@ public class compGroups {
 		}
 
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (phenoNames.length != line.length) {
 				System.err.println("Error - different number of values (" + line.length + " versus "
 													 + phenoNames.length + " phenotypes) for " + line[0]);

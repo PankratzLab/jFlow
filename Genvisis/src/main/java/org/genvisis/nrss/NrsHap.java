@@ -17,6 +17,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.Vectors;
 import org.genvisis.common.ext;
@@ -68,7 +69,7 @@ public class NrsHap {
 			writer.println("Marker\tChr\tPostition\tNRS Statistic\tNumMarkers\tUCSC coordinates\tMin p-value");
 			reader = new BufferedReader(new FileReader(filename));
 			reader.readLine();
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			chr = "";
 			count = 0;
 			done = false;
@@ -79,7 +80,7 @@ public class NrsHap {
 					count = 0;
 				} else {
 					if (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					} else {
 						done = true;
 						line[1] = "done";
@@ -218,7 +219,7 @@ public class NrsHap {
 			reader = new BufferedReader(new FileReader(results));
 			reader.readLine();
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				markerVector.add(line[0]);
 				if (chr == null) {
 					chr = line[1];
@@ -276,11 +277,11 @@ public class NrsHap {
 
 		try {
 			reader = new BufferedReader(new FileReader("plink.assoc.hap"));
-			if (!reader.readLine().trim().split("[\\s]+")[1].equals("HAPLOTYPE")) {
+			if (!reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[1].equals("HAPLOTYPE")) {
 				System.err.println("Error - could not find the result of the haplotype test for "
 													 + ArrayUtils.toStr(ArrayUtils.toStringArray(snps), ","));
 			}
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			reader.close();
 			new File("plink.assoc.hap").delete();
 			return Double.parseDouble(line[4]);
@@ -307,7 +308,7 @@ public class NrsHap {
 		try {
 			reader = new BufferedReader(new FileReader(pedfile));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				v.add(line[0] + "\t" + line[1] + "\t" + line[5]);
 			}
 			reader.close();
@@ -321,7 +322,7 @@ public class NrsHap {
 
 		data = new String[v.size()][];
 		for (int i = 0; i < v.size(); i++) {
-			data[i] = v.elementAt(i).split("[\\s]+");
+			data[i] = v.elementAt(i).split(PSF.Regex.GREEDY_WHITESPACE);
 		}
 
 		for (int i = 1; i <= replicates; i++) {
@@ -387,7 +388,7 @@ public class NrsHap {
 				reader = new BufferedReader(new FileReader(filename));
 				writer = new PrintWriter(new FileWriter(outfile));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.println(line[markerName_column] + "\t" + line[chr_column] + "\t" + line[pos_column]
 												 + "\t" + (line[p_column].equals("NA") ? "." : line[p_column]));
 				}
@@ -470,7 +471,7 @@ public class NrsHap {
 					reader.readLine();
 					count = 0;
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (line[chr_column].equals(chr_target + "")) {
 							if (!line[p_column].equals(".") && !line[p_column].equals("NA")) {
 								d = Double.parseDouble(line[p_column]);
@@ -637,7 +638,7 @@ public class NrsHap {
 					reader = new BufferedReader(new FileReader(file));
 					reader.readLine();
 					while (reader.ready()) {
-						line = reader.readLine().split("[\\s]+");
+						line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 						trav.add(Double.parseDouble(line[column]));
 					}
 					reader.close();

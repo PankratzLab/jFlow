@@ -17,6 +17,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.qsub.Qsub;
 
@@ -115,7 +116,7 @@ public class Solar {
 		writer.println("FAMID,ID,trait");
 
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			temp = hash.containsKey(line[0] + "\t" + line[1]) ? hash.get(line[0] + "\t" + line[1]) : "";
 			writer.println(line[0] + "," + line[1] + "," + (temp.equals(".") ? "" : temp));
 		}

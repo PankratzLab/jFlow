@@ -11,6 +11,7 @@ import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 
 public class dbsnpParser {
 	public dbsnpParser(String filename) throws IOException {
@@ -44,7 +45,7 @@ public class dbsnpParser {
 				temp = reader.readLine();
 				if (reader.ready()) {
 					if (temp.equals("")) {
-						hash.put(trav = reader.readLine().split("[\\s]+")[0],
+						hash.put(trav = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[0],
 										 info = ArrayUtils.stringArray(9, "-1"));
 					}
 					line = temp.split("\\|");

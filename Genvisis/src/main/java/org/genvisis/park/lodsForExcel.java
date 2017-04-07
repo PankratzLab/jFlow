@@ -11,6 +11,7 @@ import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 import com.google.common.primitives.Ints;
@@ -103,7 +104,7 @@ public class lodsForExcel {
 						System.exit(1);
 					}
 				} else if (!temp.startsWith("no ")) {
-					line = temp.split("[\\s]+");
+					line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 					offset = 0;
 					if (DATA_POINTS[trav][0].startsWith("Aspex")) {
 						offset = 1;
@@ -140,17 +141,17 @@ public class lodsForExcel {
 				} catch (Exception e) {
 					reader = new BufferedReader(new FileReader("../map" + chrome + ".dat"));
 				}
-				numMarkers = Integer.parseInt(reader.readLine().split("[\\s]+")[0]) - 1;
+				numMarkers = Integer.parseInt(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[0]) - 1;
 				markers.removeAllElements();
 				for (int j = 0; j < (chr > 22 ? 7 : 6); j++) {
 					reader.readLine();
 				}
 				for (int j = 0; j < numMarkers; j++) {
-					markers.add(reader.readLine().split("[\\s]+")[3]);
+					markers.add(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[3]);
 					reader.readLine();
 				}
 				reader.readLine();
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				posi = 0;
 				for (int j = 0; j < numMarkers; j++) {
 					handle = hash.get(Math.round(posi) + "");

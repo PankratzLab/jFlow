@@ -17,6 +17,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Distance;
 import org.genvisis.mining.Transformations;
@@ -63,10 +64,10 @@ public class MatchSamples {
 			barnData = new double[barnacles.length][];
 
 			factorIndices = ext.indexFactors(factorTargets, Files.getHeaderOfFile(dir + factorfile,
-																																						"[\\s]+", new Logger()),
+																																						PSF.Regex.GREEDY_WHITESPACE, new Logger()),
 																			 false, true);
 			ids = HashVec.loadFileToStringArray(dir + factorfile, true, new int[] {0}, false);
-			matrix = HashVec.loadFileToStringMatrix(dir + factorfile, true, factorIndices, "[\\s]+",
+			matrix = HashVec.loadFileToStringMatrix(dir + factorfile, true, factorIndices, PSF.Regex.GREEDY_WHITESPACE,
 																							false, 1000, false);
 			allData = new double[factorIndices.length][];
 			for (int i = 0; i < factorTargets.length; i++) {
@@ -136,16 +137,16 @@ public class MatchSamples {
 
 			try {
 				reader = new BufferedReader(new FileReader(dir + filename));
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				anchors = new String[Integer.parseInt(line[0])];
 				barnacles = new String[Integer.parseInt(line[1])];
 				newDists = Matrix.doubleMatrix(anchors.length, barnacles.length, -999);
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < barnacles.length; i++) {
 					barnacles[i] = line[i + 1];
 				}
 				for (int i = 0; i < anchors.length; i++) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					anchors[i] = line[0];
 					newDists[i] = ArrayUtils.toDoubleArray(ArrayUtils.subArray(line, 1));
 				}
@@ -182,9 +183,9 @@ public class MatchSamples {
 		ratios = Matrix.doubleMatrix(anchors.length, barnacles.length, -999);
 		try {
 			reader = new BufferedReader(new FileReader(dir + clusterfile));
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), Plink.CLUSTER_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), Plink.CLUSTER_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				iAnch = Math.max(ext.indexOfStr(line[1], anchors), ext.indexOfStr(line[3], anchors));
 				iBarn = Math.max(ext.indexOfStr(line[1], barnacles), ext.indexOfStr(line[3], barnacles));
 				if (iAnch != -1 && iBarn != -1) {
@@ -252,17 +253,17 @@ public class MatchSamples {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + file1));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			anchors = new String[Integer.parseInt(line[0])];
 			barnacles = new String[Integer.parseInt(line[1])];
 			values[0] = ArrayUtils.doubleArray(anchors.length * barnacles.length, -999);
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			for (int i = 0; i < barnacles.length; i++) {
 				barnacles[i] = line[i + 1];
 			}
 			for (int i = 0; i < anchors.length; i++) {
 				anchors[i] = line[0];
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int j = 0; j < barnacles.length; j++) {
 					values[0][i * barnacles.length + j] = Double.parseDouble(line[j + 1]);
 				}
@@ -270,14 +271,14 @@ public class MatchSamples {
 			reader.close();
 
 			reader = new BufferedReader(new FileReader(dir + file2));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (Integer.parseInt(line[0]) != anchors.length
 					|| Integer.parseInt(line[1]) != barnacles.length) {
 				System.err.println("Error - the two files have different numbers of anchors and barnacles");
 				System.exit(1);
 			}
 			values[1] = ArrayUtils.doubleArray(anchors.length * barnacles.length, -999);
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			for (int i = 0; i < barnacles.length; i++) {
 				if (!barnacles[i].equals(line[i + 1])) {
 					System.err.println("Error - the two files have different barnacles");
@@ -289,7 +290,7 @@ public class MatchSamples {
 					System.err.println("Error - the two files have different anchors");
 					System.exit(1);
 				}
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int j = 0; j < barnacles.length; j++) {
 					values[1][i * barnacles.length + j] = Double.parseDouble(line[j + 1]);
 				}
@@ -318,16 +319,16 @@ public class MatchSamples {
 		if (!new File(dir + ext.rootOf(distanceFile) + "_norm.xln").exists()) {
 			try {
 				reader = new BufferedReader(new FileReader(dir + distanceFile));
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				anchors = new String[Integer.parseInt(line[0])];
 				barnacles = new String[Integer.parseInt(line[1])];
 				dists = new double[anchors.length * barnacles.length];
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < barnacles.length; i++) {
 					barnacles[i] = line[i + 1];
 				}
 				for (int i = 0; i < anchors.length; i++) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					anchors[i] = line[0];
 					for (int j = 0; j < barnacles.length; j++) {
 						dists[i * barnacles.length + j] = Double.parseDouble(line[j + 1]);
@@ -394,16 +395,16 @@ public class MatchSamples {
 		time = new Date().getTime();
 		try {
 			reader = new BufferedReader(new FileReader(dir + distanceFile));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			anchors = new String[Integer.parseInt(line[0])];
 			barnacles = new String[Integer.parseInt(line[1])];
 			dists = Matrix.doubleMatrix(anchors.length, barnacles.length, -999);
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			for (int i = 0; i < barnacles.length; i++) {
 				barnacles[i] = line[i + 1];
 			}
 			for (int i = 0; i < anchors.length; i++) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				anchors[i] = line[0];
 				dists[i] = ArrayUtils.toDoubleArray(ArrayUtils.subArray(line, 1));
 			}
@@ -487,10 +488,10 @@ public class MatchSamples {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + pairings));
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"),
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 											new String[] {"Anchor", "BarnaclePair"}, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				anchs.add(line[0]);
 				barns.add(line[1]);
 				distV.add(Double.parseDouble(line[2]));
@@ -510,19 +511,19 @@ public class MatchSamples {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + refDistances));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			numRefAnch = Integer.parseInt(line[0]);
 			if (anchors.length != Integer.parseInt(line[0])) {
 				System.err.println("Warning - number of reference anchors (" + numRefAnch
 													 + ") is not the same as the number of anchors (" + anchors.length + ")");
 			}
 			refBarns = new String[Integer.parseInt(line[1])];
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			for (int i = 0; i < refBarns.length; i++) {
 				refBarns[i] = line[i + 1];
 			}
 			for (int i = 0; i < numRefAnch; i++) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				iAnch = ext.indexOfStr(line[0], anchors);
 				mdsDists[iAnch] = Double.parseDouble(line[1 + ext.indexOfStr(barnacles[iAnch], refBarns)]);
 			}
@@ -540,12 +541,12 @@ public class MatchSamples {
 		data = new int[anchors.length][2][];
 		try {
 			reader = new BufferedReader(new FileReader(dir + demofile));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ageIndex = ext.indexOfStr(ageHead, line);
 			genIndex = ext.indexOfStr(genHead, line);
 
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (ext.indexOfStr(line[0], anchors) >= 0) {
 					data[ext.indexOfStr(line[0], anchors)][0] = new int[] {Integer.parseInt(line[ageIndex]),
 																																 Integer.parseInt(line[genIndex])};
@@ -687,10 +688,10 @@ public class MatchSamples {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + pairings));
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"),
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 											new String[] {"Anchor", "BarnaclePair"}, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				anchs.add(line[0]);
 				barns.add(line[1]);
 				distV.add(Double.parseDouble(line[2]));
@@ -711,7 +712,7 @@ public class MatchSamples {
 		data = new double[anchors.length][factors.length][];
 		try {
 			reader = new BufferedReader(new FileReader(dir + demofile));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			indices = new int[factors.length];
 			for (int i = 0; i < factors.length; i++) {
 				indices[i] = ext.indexOfStr(factors[i], line);
@@ -726,7 +727,7 @@ public class MatchSamples {
 			}
 
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (ext.indexOfStr(line[0], anchors) >= 0) {
 					dataList = new double[factors.length];
 					for (int i = 0; i < indices.length; i++) {
@@ -845,7 +846,7 @@ public class MatchSamples {
 																									"Age 4", "Sex 1", "PCA1 14", "PCA2 14"},
 																		log);
 		if (paramV != null) {
-			line = paramV.get(0).split("[\\s]+");
+			line = paramV.get(0).split(PSF.Regex.GREEDY_WHITESPACE);
 			factorFile = line[0];
 			normalize = false;
 			for (int i = 1; i < line.length; i++) {
@@ -857,16 +858,16 @@ public class MatchSamples {
 			}
 			anchorFile = paramV.get(1);
 			barnacleFile = paramV.get(2);
-			line = paramV.get(3).trim().split("[\\s]+");
+			line = paramV.get(3).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			demographicsFile = line[0];
 			demoFactors = ArrayUtils.subArray(line, 1);
-			line = paramV.get(4).trim().split("[\\s]+");
+			line = paramV.get(4).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			coordsFile = line[0];
 			coords = new int[] {Integer.parseInt(line[1]), Integer.parseInt(line[2])};
 			factors = new String[paramV.size() - 5];
 			factorWeights = new double[paramV.size() - 5];
 			for (int i = 0; i < factors.length; i++) {
-				line = paramV.get(5 + i).trim().split("[\\s]+");
+				line = paramV.get(5 + i).trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				factors[i] = line[0];
 				factorWeights[i] = Double.parseDouble(line[1]);
 			}

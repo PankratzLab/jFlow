@@ -124,7 +124,7 @@ public class Collapsed {
 			while (reader.ready()) {
 				temp = reader.readLine();
 				if (temp.indexOf("\t") == -1) {
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				} else {
 					line = temp.split("\t", -1);
 				}

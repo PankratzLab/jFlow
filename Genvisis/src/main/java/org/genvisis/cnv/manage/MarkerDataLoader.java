@@ -12,8 +12,8 @@ import java.util.Vector;
 
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.MarkerLookup;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.ArrayUtils;
@@ -21,6 +21,7 @@ import org.genvisis.common.CountHash;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 
@@ -124,7 +125,7 @@ public class MarkerDataLoader implements Runnable {
 		hash = new Hashtable<String, Vector<String>>();
 		for (String markerName : markerNames) {
 			if (markerLookup.contains(markerName)) {
-				line = markerLookup.get(markerName).split("[\\s]+");
+				line = markerLookup.get(markerName).split(PSF.Regex.GREEDY_WHITESPACE);
 				if (hash.containsKey(line[0])) {
 					v = hash.get(line[0]);
 				} else {
@@ -378,7 +379,7 @@ public class MarkerDataLoader implements Runnable {
 			markerIndicesInSelection = new int[v.size()][];
 			// plinkMarkerAlleles = new String[v.size()][];
 			for (int j = 0; j < v.size() && !killed; j++) {
-				line = v.elementAt(j).split("[\\s]+");
+				line = v.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
 				markerIndicesInProj[j] = ext.indexOfStr(line[0], allMarkersInProj, true, true); // modified
 																																												// here to
 																																												// fix the

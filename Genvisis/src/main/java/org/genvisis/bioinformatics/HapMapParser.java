@@ -16,6 +16,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.FamilyStructure;
 import org.genvisis.filesys.SnpMarkerSet;
@@ -89,7 +90,7 @@ public class HapMapParser {
 				chr = line[indices[4]].substring(3);
 				markerName = line[indices[3]];
 
-				line = line[indices[0]].split("[\\s]+");
+				line = line[indices[0]].split(PSF.Regex.GREEDY_WHITESPACE);
 				trans = new String[line.length];
 				ones = twos = 0;
 				for (int i = 0; i < line.length; i++) {
@@ -134,7 +135,7 @@ public class HapMapParser {
 			reader = Files.getAppropriateReader(famstruct);
 			writer = new PrintWriter(new FileWriter((new File(dir).exists() ? dir : "") + root + ".pre"));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < 5; i++) {
 					writer.print(line[i] + "\t");
 				}

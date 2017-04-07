@@ -10,6 +10,7 @@ import java.io.Serializable;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 
 public class ResultSet implements Serializable {
@@ -73,7 +74,7 @@ public class ResultSet implements Serializable {
 				annotation = new String[numMarkers];
 			}
 			for (int i = 0; i < numMarkers; i++) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (ArrayUtils.max(result_indices) >= line.length) {
 					System.err.println("Error - required column does not exist for the marker in row "
 														 + (i + 1));

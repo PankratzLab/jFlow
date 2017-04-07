@@ -13,6 +13,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class heritabilityEstimate {
@@ -36,13 +37,13 @@ public class heritabilityEstimate {
 		try {
 			reader = new BufferedReader(new FileReader(database));
 
-			phenoNames = reader.readLine().split("[\\s]+");
+			phenoNames = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			v = ArrayUtils.toStringVector(covariates);
 			v.insertElementAt(trait, 0);
 			indices = ext.indexFactors(ArrayUtils.toStringArray(v), phenoNames, true, true);
 
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[indices[0]].equals(".")) {
 					data = new String[indices.length];
 					for (int i = 0; i < data.length; i++) {
@@ -68,7 +69,7 @@ public class heritabilityEstimate {
 		reader.readLine();
 		prev = "";
 		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
+			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			trav = line[0] + "\t" + line[1];
 			if (!trav.equals(prev)) {
 				members.add(new String[] {line[0], line[1], (line[4].equals(".") ? "0" : line[4]),
@@ -157,7 +158,7 @@ public class heritabilityEstimate {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(filename + ".batch"));
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[0].startsWith("#")) {
 					if (ext.indexOfStartsWith("root=", line, false) >= 0) {
 						trav = line[ext.indexOfStartsWith("root=", line, false)].split("=", -1)[1];

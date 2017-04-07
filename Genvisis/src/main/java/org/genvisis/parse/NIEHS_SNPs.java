@@ -15,6 +15,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
@@ -52,7 +53,7 @@ public class NIEHS_SNPs {
 			try {
 				reader = new BufferedReader(new FileReader(DIR + VARIANT_FILE));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					HashVec.addToHashIfAbsent(hash, line[0], "");
 				}
 				reader.close();
@@ -69,7 +70,7 @@ public class NIEHS_SNPs {
 			try {
 				reader = new BufferedReader(new FileReader(DIR + RS_LOOKUP_FILE));
 				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (!line[0].startsWith("#")) {
 						if (!line[2].startsWith("chr")) {
 							log.reportError("Error - snp '" + line[5] + "' doesn't have a valid chromosome: "
@@ -159,7 +160,7 @@ public class NIEHS_SNPs {
 		try {
 			reader = new BufferedReader(new FileReader(DIR + VARIANT_FILE));
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 
 				if (hash.containsKey(line[1])) {
 					indIndex = Integer.parseInt(hash.get(line[1]));

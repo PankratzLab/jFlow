@@ -27,6 +27,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.FamilyStructure;
 import org.genvisis.filesys.SnpMarkerSet;
@@ -138,7 +139,7 @@ public class Eigenstrat {
 		strandHash = HashVec.loadFileToHashString(sourceRoot + ".snp", 0, new int[] {4, 5}, " ", false);
 
 		System.out.print("Parsing weights...");
-		numEigens = Files.getHeaderOfFile(sourceRoot + ".weights.out", "[\\s]+", new Logger()).length
+		numEigens = Files.getHeaderOfFile(sourceRoot + ".weights.out", PSF.Regex.GREEDY_WHITESPACE, new Logger()).length
 								- 3;
 		weightsHash = HashVec.loadFileToHashString(sourceRoot + ".weights.out", 0,
 																							 Arrays.copyOfRange(ArrayUtils.arrayOfIndices(numEigens
@@ -166,7 +167,7 @@ public class Eigenstrat {
 		count = 0;
 		for (int i = 0; i < markerNames.length; i++) {
 			if (weightsHash.containsKey(markerNames[i])) {
-				weights[i] = ArrayUtils.toDoubleArray(weightsHash.remove(markerNames[i]).split("[\\s]+"));
+				weights[i] = ArrayUtils.toDoubleArray(weightsHash.remove(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE));
 
 				str = strandHash.get(markerNames[i]);
 				if (str == null) {
@@ -174,13 +175,13 @@ public class Eigenstrat {
 														 + "' has a weight but is not present in the source .snp file");
 					System.exit(1);
 				}
-				line = str.split("[\\s]+");
+				line = str.split(PSF.Regex.GREEDY_WHITESPACE);
 				alleles[i][0] = line[0].charAt(0);
 				alleles[i][1] = line[1].charAt(0);
 
 				if (fancy_weighting) {
 					maf = mafHash.get(markerNames[i]);
-					line = maf.split("[\\s]+");
+					line = maf.split(PSF.Regex.GREEDY_WHITESPACE);
 					mafs[i] = Double.parseDouble(line[2]);
 					if (!maf.startsWith(str)) {
 						if (str.equals(line[1] + " " + line[0])) {
@@ -281,7 +282,7 @@ public class Eigenstrat {
 				reader = new BufferedReader(new FileReader(targetRoot + ".ped"));
 				while (reader.ready()) {
 					str = reader.readLine();
-					line = str.trim().split("[\\s]+");
+					line = str.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					ids.add(line[0] + "\t" + line[1]);
 
 					scores = new double[numEigens];
@@ -398,7 +399,7 @@ public class Eigenstrat {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".mds"));
-			line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!line[0].equals("#eigvals:")) {
 				System.err.println("Error - I do not think this file contains what you think it contains");
 				System.exit(1);
@@ -410,7 +411,7 @@ public class Eigenstrat {
 			writer.println();
 			count = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[0].equals(ids[count][1])) {
 					System.err.println("Error - mismatched indiviudals on line " + (count + 1) + " (found "
 														 + line[0] + "; expecting " + ids[count][1]

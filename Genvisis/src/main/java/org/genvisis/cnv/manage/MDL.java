@@ -16,6 +16,7 @@ import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
@@ -226,7 +227,7 @@ public class MDL implements Iterator<MarkerData> {
 		int currentIndex = -1;
 		for (int i = 0; i < markerNames.length; i++) {
 			if (markerLookup.contains(markerNames[i])) {
-				String[] line = markerLookup.get(markerNames[i]).split("[\\s]+");
+				String[] line = markerLookup.get(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[0].equals(currentFile)) {
 					currentFile = line[0];
 					files.add(new FileMatch(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + currentFile));

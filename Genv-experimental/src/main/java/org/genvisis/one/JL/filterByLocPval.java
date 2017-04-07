@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
@@ -24,7 +25,7 @@ public class filterByLocPval {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 
 			while (reader.ready()) {
-				String[] line = reader.readLine().trim().split("[\\s]+");
+				String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				Segment curSeg = new Segment(line[0].replaceAll("\\.\\.", "-"));
 
 				if (set.getOverlappingIndices(curSeg) != null || mafOnly) {

@@ -11,6 +11,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class Parser {
@@ -42,7 +43,7 @@ public class Parser {
 						if (!trav.startsWith(chr + "\t")) {
 							System.err.println("Error - marker is on the wrong chromosome: " + line[i]);
 						}
-						writer.println(chr + "\t" + line[i] + "\t0\t" + trav.split("[\\s]+")[1]);
+						writer.println(chr + "\t" + line[i] + "\t0\t" + trav.split(PSF.Regex.GREEDY_WHITESPACE)[1]);
 					}
 					writer.close();
 				} catch (Exception e) {
