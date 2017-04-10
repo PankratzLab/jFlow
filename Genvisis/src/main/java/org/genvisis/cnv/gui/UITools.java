@@ -2,6 +2,7 @@ package org.genvisis.cnv.gui;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.Toolkit;
 
 /**
@@ -16,8 +17,12 @@ public final class UITools {
 	 */
 	public static void centerComponent(Component comp) {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(comp.getGraphicsConfiguration());
+		int taskBarSize = scnMax.bottom;
+		int totalHeight = dim.height - (taskBarSize > 0 ? taskBarSize : (int) (dim.height * 0.075));
+
 		comp.setLocation(dim.width / 2 - comp.getSize().width / 2,
-										 dim.height / 2 - comp.getSize().height / 2);
+										 totalHeight / 2 - comp.getSize().height / 2);
 	}
 
 	/**
@@ -36,8 +41,23 @@ public final class UITools {
 	 */
 	public static void setSize(Component c, int width, int height) {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		c.setPreferredSize(new Dimension(capValue(width, dim.getWidth()),
-																		 capValue(height, dim.getHeight())));
+		setSize(c, new Dimension(capValue(width, dim.getWidth()),
+														 capValue(height, dim.getHeight())));
+	}
+
+	/**
+	 * Sets the {@link Component#preferredSize()} to the given dimension, reducing height to prevent
+	 * the window from spawning behind the taskbar.
+	 */
+	public static void setSize(Component c, Dimension d) {
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(c.getGraphicsConfiguration());
+		int taskBarSize = scnMax.bottom;
+		int totalHeight = dim.height - (taskBarSize > 0 ? taskBarSize : (int) (dim.height * 0.075));
+
+		int height = d.height >= totalHeight ? totalHeight : d.height;
+
+		c.setPreferredSize(new Dimension(d.width, height));
 	}
 
 	/**

@@ -728,7 +728,7 @@ public class ProjectPropertiesEditor extends JFrame {
 
 		// Estimate the desired height at 26 pixels per row plus a buffer for other UI elements
 		int height = (26 * count) + 100;
-		setPreferredSize(new Dimension(700, height));
+		UITools.setSize(this, new Dimension(700, height));
 
 		InputMap inMap = table.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		ActionMap actMap = table.getActionMap();
