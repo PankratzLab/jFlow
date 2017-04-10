@@ -94,7 +94,8 @@ public class MedianLRRWidget extends JFrame implements Runnable {
 		addWindowListener(exitListener);
 		MainPanel mainPanel = new MainPanel();
 		add(mainPanel);
-		
+
+		pack();
 		// fix the width and height expand the height to allow the progress bar
 		setPreferredSize(new Dimension(PREFERRED_WIDTH, getHeight() + 40));
 		pack();
