@@ -59,8 +59,9 @@ public class PowerCalculator {
 		}
 
 		try {
-			results = Internat.doSubmit("http://pngu.mgh.harvard.edu/~purcell/cgi-bin/cc2k.cgi", data,
-																	1000);
+//			results = Internat.doSubmit("http://pngu.mgh.harvard.edu/~purcell/cgi-bin/cc2k.cgi", data, 1000);
+			results = Internat.doSubmit("http://zzz.bwh.harvard.edu/cgi-bin/cc2k.cgi", data, 1000);
+			
 		} catch (Exception e) {
 			System.err.println("Error - failed to connect to website");
 			e.printStackTrace();
@@ -243,7 +244,10 @@ public class PowerCalculator {
 			// rangeOfMaf(0.001, 0.01, 465, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
 			// rangeOfMaf(0.001, 0.01, 434, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
 			// rangeOfMaf(0.001, 0.01, 465 + 434, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
-			rangeOfMaf(0.001, 0.01, 875 + 700, 875 + 700, 1000000, false); // Poynter's MDS-AML grant, MDS
+			// rangeOfMaf(0.001, 0.01, 875 + 700, 875 + 700, 1000000, false); // Poynter's MDS-AML grant, MDS
+			rangeOfMaf(0.001, 0.01, 127, 507, 300000, false); // Poynter's renwal on ototoxicity
+//			rangeOfMaf(0.001, 0.01, 38, 152, 500000, false); // Poynter's renwal on ototoxicity
+			
 
 
 

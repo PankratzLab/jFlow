@@ -257,6 +257,9 @@ public class SeqMeta {
 		snpInfoFile = maps.getSnpInfoFilename();
 		chromName = maps.getChromName();
 		geneName = maps.getGeneName();
+		maxChr = getMaxChr();
+
+		log.report("Max chromosome was determined to be "+maxChr);
 
 		if (ext.indexOfStr(snpInfoFile, files) == -1) {
 			log.reportError("Error - could not find SNP Info file '" + snpInfoFile + "'; aborting");
@@ -328,7 +331,6 @@ public class SeqMeta {
 							commands.add("objectType");
 
 							chrsToDo = new IntVector();
-							maxChr = getMaxChr();
 							for (int chr = 1; chr <= maxChr; chr++) {
 								chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
 								subsetObject = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr"
