@@ -54,6 +54,10 @@ public class ArraySpecialList {
 		 */
 		private static final long serialVersionUID = 1L;
 
+		public ArrayBlastAnnotationList() {
+			this(10);
+		}
+
 		public ArrayBlastAnnotationList(int capacity) {
 			super(capacity);
 			maxEval = -1;

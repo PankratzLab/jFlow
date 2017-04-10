@@ -32,16 +32,15 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 	private boolean found;
 
 	public MarkerBlastAnnotation(String markerName) {
-		this(markerName, BLAST_ANNOTATION_TYPES.values(), 100);
+		this(markerName, BLAST_ANNOTATION_TYPES.values());
 	}
 
-	public MarkerBlastAnnotation(String markerName, BLAST_ANNOTATION_TYPES[] bTypes,
-															 int initialCapacity) {
+	public MarkerBlastAnnotation(String markerName, BLAST_ANNOTATION_TYPES[] bTypes) {
 		super();
 		this.markerName = markerName;
 		annotationLists = Maps.newEnumMap(BLAST_ANNOTATION_TYPES.class);
 		for (BLAST_ANNOTATION_TYPES bType : bTypes) {
-			annotationLists.put(bType, new ArrayBlastAnnotationList(initialCapacity));
+			annotationLists.put(bType, new ArrayBlastAnnotationList());
 		}
 	}
 
