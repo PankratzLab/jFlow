@@ -1,6 +1,8 @@
 package org.genvisis.cnv.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -142,6 +144,8 @@ public class ProjectCreationGUI extends JDialog {
 		ProjectCreationGUI createGUI = new ProjectCreationGUI(LaunchProperties.getListOfProjectNames());
 		createGUI.setModal(true);
 		createGUI.setVisible(true);
+		createGUI.setPreferredSize(new Dimension(550, 500));
+		createGUI.pack();
 
 		if (createGUI.wasCancelled()) {
 			return null;
@@ -154,12 +158,13 @@ public class ProjectCreationGUI extends JDialog {
 	 * Create the frame.
 	 */
 	public ProjectCreationGUI(String[] existingProjectNames) {
+		setLayout(new BorderLayout());
 		setTitle("Genvisis: Create New Project");
 		existingNames = existingProjectNames;
 		Project proj = new Project();
 
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setBounds(100, 100, 550, 500);
+		
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);

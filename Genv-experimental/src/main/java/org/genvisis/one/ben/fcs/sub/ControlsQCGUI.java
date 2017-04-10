@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dialog;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -171,7 +172,8 @@ public class ControlsQCGUI extends JFrame {
 	public ControlsQCGUI() {
 		super("Controls QC");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(50, 50, 850, 400);
+		setMinimumSize(new Dimension(50, 50));
+		setPreferredSize(new Dimension(850, 400));
 		log = new Logger();
 		contentPane = new JPanel();
 		contentPane.setBorder(null);
@@ -591,6 +593,7 @@ public class ControlsQCGUI extends JFrame {
 		});
 
 		loadProps();
+		pack();
 	}
 
 	private JMenuBar createMenuBar() {

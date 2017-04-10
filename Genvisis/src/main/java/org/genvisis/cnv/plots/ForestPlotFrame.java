@@ -95,7 +95,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 		forestPlot = new ForestPlot(proj);
 		this.proj = proj;
 		setup();
-		setBounds(20, 20, 1000, 600);
+		setPreferredSize(new Dimension(1000, 600));
 		pack();
 		setVisible(true);
 		addWindowListener(this);
@@ -106,7 +106,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		forestPlot = new ForestPlot(markerFile, log);
 		setup();
-		setBounds(20, 20, 1000, 600);
+		setPreferredSize(new Dimension(1000, 600));
 		pack();
 		setVisible(true);
 		addWindowListener(this);

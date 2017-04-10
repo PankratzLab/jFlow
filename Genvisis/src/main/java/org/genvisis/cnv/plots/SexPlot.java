@@ -3,6 +3,7 @@ package org.genvisis.cnv.plots;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -72,7 +73,9 @@ public class SexPlot extends JFrame {
 		// TODO extra paint appears to be unnecessary
 		// repaint();
 
-		setBounds(20, 20, 1000, 720);
+		setMinimumSize(new Dimension(20, 20));
+		setPreferredSize(new Dimension(1000, 720));
+		pack();
 		setVisible(true);
 		// unnecessary leads to a double rendering
 		// sexPanel.createImage();

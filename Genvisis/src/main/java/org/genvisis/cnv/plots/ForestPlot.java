@@ -746,9 +746,11 @@ public class ForestPlot {
 	}
 
 	public void screenCap(String subdir, boolean versionIfExists, Dimension size) {
-		getForestPanel().setSize(size);
-		getForestPanel().createImage();
-		getForestPanel().validate();
+		//FIXME this aliases the forestpanel and will overwrite its size
+		ForestPanel p = getForestPanel();
+		p.setSize(size);
+		p.createImage();
+		p.validate();
 		String marker, filename, dataFile;
 		int count = 1;
 		String root = (proj == null ? ext.parseDirectoryOfFile(getMarkerFileName())
@@ -776,7 +778,7 @@ public class ForestPlot {
 		} else {
 			System.out.println("Writing screenshot to file " + root + filename + ".png");
 		}
-		getForestPanel().screenCapture(root + filename + ".png");
+		p.screenCapture(root + filename + ".png");
 	}
 
 	public void updateGUI() {

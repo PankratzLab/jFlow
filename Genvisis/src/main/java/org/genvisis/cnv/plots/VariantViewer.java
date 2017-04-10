@@ -507,7 +507,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
 		time = new Date().getTime();
 
-		setBounds(startX, DEFAULT_STARTX, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+		setMinimumSize(new Dimension(startX, DEFAULT_STARTX));
+		setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
+		pack();
 		setVisible(true);
 
 		updateGUI();
@@ -1418,10 +1420,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 				// jlbl.setBackground(colEntry.getValue());
 				// jlbl.setForeground(colEntry.getValue());
 				Dimension d = new Dimension(dataPntSize + 2, dataPntSize + 2);
-				jlbl.setMaximumSize(d);
+				jlbl.setMinimumSize(d);
 				jlbl.setPreferredSize(d);
-				jlbl.setMaximumSize(d);
-				jlbl.setSize(d);
 				legendPanel.add(jlbl, "gapx 5, cell 0 " + row);
 				final JLabel jlbl1 = new JLabel(lbl);
 				jlbl1.setFont(jlbl1.getFont()
@@ -1449,7 +1449,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		int maxWidth, maxHeight;
 		maxWidth = lblMaxWidth + 40 + dataPntSize;
 		maxHeight = 100 + 40 * popColorMap.size();
-		legendPanel.setBounds(10, 10, maxWidth, maxHeight);
+		legendPanel.setMinimumSize(new Dimension(10, 10));
+		legendPanel.setPreferredSize(new Dimension(maxWidth, maxHeight));
 	}
 
 	private void drawFreqs(Graphics g, List<VCFLocation> vcfLocs, int lblX) {

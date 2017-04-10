@@ -1,5 +1,6 @@
 package org.genvisis.cnv.gui;
 
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -77,7 +78,8 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
 		this.dir = dir;
 		setTitle("Create New UCSC Regions List");
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		setBounds(100, 100, 550, 300);
+		setMinimumSize(new Dimension(100, 100));
+		setPreferredSize(new Dimension(550, 300));
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -142,6 +144,8 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
 				idSet.add(id);
 			}
 		}
+		
+		pack();
 	}
 
 	public String getFileName() {

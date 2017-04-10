@@ -94,10 +94,9 @@ public class MedianLRRWidget extends JFrame implements Runnable {
 		addWindowListener(exitListener);
 		MainPanel mainPanel = new MainPanel();
 		add(mainPanel);
-		// get the size of visible components
-		pack();
+		
 		// fix the width and height expand the height to allow the progress bar
-		UITools.setSize(this, PREFERRED_WIDTH, getHeight() + 40);
+		setPreferredSize(new Dimension(PREFERRED_WIDTH, getHeight() + 40));
 		pack();
 		UITools.centerComponent(this);
 		setVisible(true);
@@ -242,6 +241,7 @@ public class MedianLRRWidget extends JFrame implements Runnable {
 			bottomPane.add(buttons);
 
 			add(bottomPane);
+			pack();
 		}
 
 		/**
@@ -383,7 +383,6 @@ public class MedianLRRWidget extends JFrame implements Runnable {
 			Font f = new Font("Arial", 0, FONT_SIZE);
 			JLabel label = new JLabel(text);
 			Dimension d = new Dimension(PREFERRED_WIDTH - 10, FONT_SIZE + 2);
-			label.setSize(d);
 			label.setPreferredSize(d);
 			label.setFont(f);
 			pane.add(label);

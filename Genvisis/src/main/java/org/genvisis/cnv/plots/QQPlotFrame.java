@@ -2,6 +2,7 @@
 package org.genvisis.cnv.plots;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -31,7 +32,7 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 
 		getContentPane().add(qqPlot.getQqPanel(), BorderLayout.CENTER);
 
-		setBounds(20, 20, 1000, 720);
+		setPreferredSize(new Dimension(1000, 720));
 		setVisible(true);
 	}
 

@@ -1,6 +1,7 @@
 package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -139,7 +140,8 @@ public class ImportProjectGUI extends JDialog {
 		setTitle("Genvisis - Create Project from existing data");
 
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		setBounds(100, 100, 350, 600);
+		setMinimumSize(new Dimension(100, 100));
+		setPreferredSize(new Dimension(350, 600));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -332,6 +334,8 @@ public class ImportProjectGUI extends JDialog {
 				}
 			});
 		}
+		
+		pack();
 	}
 
 	private void close(boolean cancelled) {

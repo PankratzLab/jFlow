@@ -1,6 +1,7 @@
 package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -46,7 +47,8 @@ public class TrailerQCDisplay extends JDialog {
 	 * Create the dialog.
 	 */
 	public TrailerQCDisplay() {
-		setBounds(100, 100, 600, 400);
+		setMinimumSize(new Dimension(100, 100));
+		setPreferredSize(new Dimension(600, 400));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -121,6 +123,7 @@ public class TrailerQCDisplay extends JDialog {
 				getRootPane().setDefaultButton(closeButton);
 			}
 		}
+		pack();
 	}
 
 	public void setData(String sample, int chr, int start, int stop, String[] genNoGc,

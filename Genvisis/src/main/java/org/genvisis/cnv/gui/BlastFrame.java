@@ -2,6 +2,7 @@ package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -213,7 +214,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 		super("Genvisis - BlastViewer - " + proj.PROJECT_NAME.getValue());
 		this.proj = proj;
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		setBounds(100, 100, 1150, 800);
+		setMinimumSize(new Dimension(100,100));
+		setPreferredSize(new Dimension(1150,800));
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -348,6 +350,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 		splitPane.setRightComponent(lowerPanel);
 
 		addWindowFocusListener(this);
+		pack();
 	}
 
 	public void addBlastLabel(BlastLabel lbl) {

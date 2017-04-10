@@ -2,6 +2,7 @@ package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -317,7 +318,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 			}
 		});
 		refreshLabels(this, steps);
-		setBounds(100, 100, 750, 850);
+		setMinimumSize(new Dimension(100, 100));
+		setPreferredSize(new Dimension(750, 850));
 		setTitle(TOP_LABEL);
 		addWindowFocusListener(new WindowFocusListener() {
 			@Override
@@ -345,6 +347,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 		inMap.put(escKey, "Action.escape");
 		actMap.put("Action.escape", escapeAction);
 
+		pack();
 		// panels start out visible to help with spacing (otherwise the containing jscrollpane is too
 		// small)
 		// for (JPanel panel : panels.values()) {

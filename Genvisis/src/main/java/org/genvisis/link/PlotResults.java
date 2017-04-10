@@ -561,9 +561,10 @@ public class PlotResults extends JFrame implements ActionListener {
 		chr = 16;
 		updateGUI();
 
-		setBounds(20, 20, 1000, 715);
+		setMinimumSize(new Dimension(20,20));
+		setPreferredSize(new Dimension(1000, 720));
+		pack();
 		setVisible(true);
-		setSize(1000, 720);
 	}
 
 	public void updateGUI() {

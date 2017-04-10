@@ -1,5 +1,6 @@
 package org.genvisis.cnv.gui;
 
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -63,7 +64,8 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
 	public NewMarkerListDialog(String[] markers, final String dir) {
 		setTitle("Create New Marker List");
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
+		setMinimumSize(new Dimension(100, 100));
+		setPreferredSize(new Dimension(450, 300));
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -124,6 +126,8 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
 		for (String marker : markers) {
 			markerSet.add(marker);
 		}
+		
+		pack();
 	}
 
 	public String getFileName() {

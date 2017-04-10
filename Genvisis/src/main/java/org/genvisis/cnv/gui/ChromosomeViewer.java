@@ -44,7 +44,7 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 		oldGenes = new GeneData[0];
 		addMouseMotionListener(this);
 
-		setMaximumSize(new Dimension(getWidth(), 45));
+		setPreferredSize(new Dimension(getWidth(), 45));
 		setMinimumSize(new Dimension(getWidth(), 45));
 	}
 

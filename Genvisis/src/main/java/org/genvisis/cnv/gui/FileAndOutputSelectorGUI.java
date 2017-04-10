@@ -1,6 +1,7 @@
 package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.Insets;
@@ -98,7 +99,8 @@ public class FileAndOutputSelectorGUI extends JDialog {
 																	 final String outputSuggestion, final int outMode) {
 		super(parent, true);
 		setTitle("Select Input and Output Files");
-		setBounds(100, 100, 460, 192);
+		setMinimumSize(new Dimension(100,100));
+		setPreferredSize(new Dimension(460,192));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -192,6 +194,7 @@ public class FileAndOutputSelectorGUI extends JDialog {
 				buttonPane.add(btnCancel);
 			}
 		}
+		pack();
 	}
 
 	/**
@@ -210,7 +213,8 @@ public class FileAndOutputSelectorGUI extends JDialog {
 																	 boolean inSuggAsCombo) {
 		super(parent, true);
 		setTitle("Select Input and Output Files");
-		setBounds(100, 100, 460, 192);
+		setMinimumSize(new Dimension(100,100));
+		setPreferredSize(new Dimension(460, 192));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -320,6 +324,7 @@ public class FileAndOutputSelectorGUI extends JDialog {
 				buttonPane.add(btnCancel);
 			}
 		}
+		pack();
 	}
 
 }

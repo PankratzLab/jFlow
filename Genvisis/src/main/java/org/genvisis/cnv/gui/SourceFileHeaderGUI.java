@@ -1,6 +1,7 @@
 package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -85,7 +86,8 @@ public class SourceFileHeaderGUI extends JDialog {
 	public SourceFileHeaderGUI(SourceFileHeaderData reportHdr) {
 		setTitle("Assign Final Report Data Columns");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		setBounds(100, 100, 450, 620);
+		setMinimumSize(new Dimension(100,100));
+		setPreferredSize(new Dimension(450, 620));
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -249,6 +251,8 @@ public class SourceFileHeaderGUI extends JDialog {
 		});
 		btnCancel.setMnemonic(KeyEvent.VK_C);
 		panel_1.add(btnCancel);
+		
+		pack();
 	}
 
 	public int getSelectedSNPIndex() {

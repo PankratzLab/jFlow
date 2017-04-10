@@ -26,7 +26,7 @@ public class CytoGUI extends JFrame {
 	}
 
 	private void createAndShowGUI() {
-		setSize(400, 100);
+		setPreferredSize(new Dimension(400, 100));
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		// launch to middle of screen
 		this.setLocation(dim.width / 2 - this.getSize().width / 2,
@@ -36,6 +36,7 @@ public class CytoGUI extends JFrame {
 		cytoPanel.setVisible(true);
 		add(cytoPanel);
 		setTitle("Genvisis");
+		pack();
 		setVisible(true);
 
 

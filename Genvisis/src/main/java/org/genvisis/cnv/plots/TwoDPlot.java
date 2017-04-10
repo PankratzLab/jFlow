@@ -2302,7 +2302,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		twoDPlot.setOpaque(true); // content panes must be opaque
 		frame.setContentPane(twoDPlot);
 		frame.addWindowListener(twoDPlot);
-		frame.setBounds(20, 20, 1000, 600);
+		frame.setMinimumSize(new Dimension(20,20));
+		frame.setPreferredSize(new Dimension(1000, 600));
 		// frame.setExtendedState(frame.getExtendedState()|JFrame.MAXIMIZED_BOTH);
 
 		// Display the window.

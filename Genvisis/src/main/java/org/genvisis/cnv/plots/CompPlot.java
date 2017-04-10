@@ -253,7 +253,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
 	private void setupGUI() {
 		// Set the default window size
-		setBounds(DEFAULT_STARTX, DEFAULT_STARTY, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+		setMinimumSize(new Dimension(DEFAULT_STARTX, DEFAULT_STARTY));
+		setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
 
 		// Close this window but not the entire application on close
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -301,6 +302,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
 		add(compView);
 
+		pack(); 
 		// Set the panel visible
 		setVisible(true);
 	}

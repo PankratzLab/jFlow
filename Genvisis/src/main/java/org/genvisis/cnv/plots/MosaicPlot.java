@@ -4,6 +4,7 @@ package org.genvisis.cnv.plots;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -66,8 +67,10 @@ public class MosaicPlot extends JFrame implements ActionListener {
 
 		setJMenuBar(createMenuBar());
 
-		setBounds(20, 20, 1000, 720);
-		setVisible(true);
+		setMinimumSize(new Dimension(20,20));
+		setPreferredSize(new Dimension(1000, 720));
+		pack();
+		setVisible(true); 
 
 		// unnecessary leads to a double rendering
 		// panel.createImage();

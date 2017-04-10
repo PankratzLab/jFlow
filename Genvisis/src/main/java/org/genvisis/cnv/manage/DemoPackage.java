@@ -368,7 +368,7 @@ public class DemoPackage {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		jFrame.setLocation(dim.width / 2 - jFrame.getSize().width / 2,
 											 dim.height / 2 - jFrame.getSize().height / 2);
-		jFrame.setSize(width, 200);
+		jFrame.setPreferredSize(new Dimension(500, 200));
 		jFrame.setVisible(true);
 		jFrame.setTitle("Generate Demo Project");
 
@@ -380,7 +380,7 @@ public class DemoPackage {
 		// JTextField(proj.getFilename(proj.SAMPLE_SUBSET_FILENAME).replaceAll("\"", ""));
 		JTextField sampFileText = new JTextField(proj.SAMPLE_SUBSET_FILENAME.getValue().replaceAll("\"",
 																																															 ""));
-		sampFileText.setSize(width, 30);
+		sampFileText.setPreferredSize(new Dimension(100, 30));
 		// JTextField markFileText = new
 		// JTextField(proj.getFilename(proj.TARGET_MARKERS_FILENAME).replaceAll("\"", ""));
 		JTextField markFileText = new JTextField(proj.TARGET_MARKERS_FILENAMES.getValue()[0]);

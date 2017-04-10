@@ -1,6 +1,7 @@
 package org.genvisis.gwas;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 // import java.io.*;
 import java.util.Date;
@@ -73,7 +74,8 @@ public class MatchesVisualized {
 		}
 
 		JFrame frame = new JFrame(ext.rootOf(pairings));
-		frame.setBounds(20, 20, 1000, 720);
+		frame.setMinimumSize(new Dimension(20, 20));
+		frame.setPreferredSize(new Dimension(1000,720));
 		frame.setVisible(true);
 
 		JPanel panel = new JPanel() {
@@ -121,6 +123,7 @@ public class MatchesVisualized {
 		};
 		frame.getContentPane().add(panel);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.pack();
 
 		System.out.println("Finished writing distances_" + ArrayUtils.toStr(factorIndices, ",") + " in "
 											 + ext.getTimeElapsed(time));

@@ -109,7 +109,7 @@ public class QQPlot {
 	public void screenCap(String outFile) {
 
 		int descrHeight = qqPanel.getPvals().length * 35;
-		qqPanel.setSize(new Dimension(2000, 1440 + descrHeight));
+		qqPanel.setPreferredSize(new Dimension(2000, 1440 + descrHeight));
 		qqPanel.validate();
 		qqPanel.createImage();
 		qqPanel.screenCapture(outFile);

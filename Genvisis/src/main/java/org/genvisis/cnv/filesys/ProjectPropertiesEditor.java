@@ -5,6 +5,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -727,7 +728,7 @@ public class ProjectPropertiesEditor extends JFrame {
 
 		// Estimate the desired height at 26 pixels per row plus a buffer for other UI elements
 		int height = (26 * count) + 100;
-		UITools.setSize(this, 700, height);
+		setPreferredSize(new Dimension(700, height));
 
 		InputMap inMap = table.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		ActionMap actMap = table.getActionMap();

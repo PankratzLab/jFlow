@@ -1,6 +1,7 @@
 package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Window;
@@ -36,7 +37,8 @@ public class IncludeExcludeGUI extends JDialog {
 	public IncludeExcludeGUI(Window owner, String[] opts, boolean[] preSel) {
 		super(owner);
 		setModal(true);
-		setBounds(100, 100, 450, 300);
+		setMinimumSize(new Dimension(100, 100));
+		setPreferredSize(new Dimension(450, 300));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -101,6 +103,7 @@ public class IncludeExcludeGUI extends JDialog {
 				buttonPane.add(cancelButton);
 			}
 		}
+		pack();
 	}
 
 	public int getCloseCode() {

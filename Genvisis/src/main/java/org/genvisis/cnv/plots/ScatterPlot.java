@@ -982,7 +982,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			removeButton = new JButton(Grafik.getImageIcon("images/delete2sm.png"));
 			removeButton.setActionCommand("removeButton" + i);
 			removeButton.setBorder(null);
-			removeButton.setSize(6, 6);
+			removeButton.setPreferredSize(new Dimension(6, 6));
 			removeButton.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -2629,7 +2629,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		button.setToolTipText("Import Annotations");
 		button.setBackground(Color.WHITE);
 		button.setBorder(null);
-		button.setSize(10, 11);
+		button.setPreferredSize(new Dimension(10, 11));
 		button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -2687,7 +2687,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		button.setToolTipText("Export Annotations");
 		button.setBackground(Color.WHITE);
 		button.setBorder(null);
-		button.setSize(10, 11);
+		button.setPreferredSize(new Dimension(10, 11));
 		button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -2707,7 +2707,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		centroidPanel = new JPanel();
 		// tabPanel.setLayout(new BoxLayout(tabPanel, BoxLayout.Y_AXIS));
 		centroidPanel.setLayout(new GridBagLayout());
-		centroidPanel.setSize(50, 100);
+		centroidPanel.setPreferredSize(new Dimension(50, 100));
 		centroidPanel.setBackground(BACKGROUND_COLOR);
 
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -2760,7 +2760,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		JPanel clusterFilterPanel = new JPanel();
 		clusterFilterPanel.setBackground(BACKGROUND_COLOR);
 		// clusterFilterPanel.setLayout(new BoxLayout(clusterFilterPanel, BoxLayout.PAGE_AXIS));
-		clusterFilterPanel.setSize(50, 10);
+		clusterFilterPanel.setPreferredSize(new Dimension(50, 10));
 
 		// JButton first1 = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
 		// first1.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
@@ -2950,7 +2950,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		// controlPanel.setLayout(new GridBagLayout());
 		// controlPanel.setLayout(new GridLayout(0, 1, 5, 3));
 		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
-		controlPanel.setSize(50, 100);
+		controlPanel.setPreferredSize(new Dimension(50, 100));
 		controlPanel.setBackground(BACKGROUND_COLOR);
 
 		// GridBagConstraints gbc = new GridBagConstraints();
@@ -3578,7 +3578,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		gcAdjustorPanel = new JPanel();
 		// tabPanel.setLayout(new BoxLayout(tabPanel, BoxLayout.Y_AXIS));
 		gcAdjustorPanel.setLayout(new GridBagLayout());
-		gcAdjustorPanel.setSize(50, 100);
+		gcAdjustorPanel.setPreferredSize(new Dimension(50, 100));
 		gcAdjustorPanel.setBackground(BACKGROUND_COLOR);
 
 		GridBagConstraints gbc = new GridBagConstraints();

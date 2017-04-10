@@ -1,6 +1,7 @@
 package org.genvisis.cyto;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -638,7 +639,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 		add(cancelButton, BorderLayout.EAST);
 		add(parseButton, BorderLayout.WEST);
 
-		cytoGUI.setSize(800, 600);
+		cytoGUI.setPreferredSize(new Dimension(800, 600));
 		cytoGUI.pack();
 	}
 
