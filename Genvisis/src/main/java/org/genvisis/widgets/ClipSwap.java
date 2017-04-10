@@ -170,9 +170,43 @@ public class ClipSwap {
 	public static void inverseVarianceMeta() {
 		// System.out.println(Array.toStr(MetaAnalysis.inverseVarianceWeighting(ext.getClipboard().trim().split("\\n"),
 		// new Logger()), "/"));
-		ext.setClipboard(ArrayUtils.toStr(MetaAnalysis.inverseVarianceWeighting(ext.getClipboard()
-																																							 .trim().split("\\n"),
-																																						new Logger())));
+		ext.setClipboard(ArrayUtils.toStr(MetaAnalysis.inverseVarianceWeighting(ext.getClipboard().trim().split("\\n"), new Logger())));
+	}
+
+	public static void convertBetaSE2OR_CI(int sigfigs) {
+		String[] lines = ext.getClipboard().trim().split("\\n");
+		String str = "";
+		
+		for (int i = 0; i < lines.length; i++) {
+			String[] line = lines[i].trim().split("\t", -1);
+			Logger log = new Logger();
+			double beta = 999;
+			double se = 999;
+			
+			if (line.length != 2) {
+				ext.waitForResponse("ClipSwap/Convert beta/SE to OR (95% CI) was called, but did not find two tokens to parse");
+				return;			
+			}
+			try {
+				beta = Double.parseDouble(line[0]);
+			} catch (Exception e) {
+				e.printStackTrace();
+				ext.waitForResponse("ClipSwap/Convert beta/SE to OR (95% CI) was called, but could not parse beta value from line "+(i+1)+": "+line[0]);
+				return;
+			}
+
+			try {
+				se = Double.parseDouble(line[1]);
+			} catch (Exception e) {
+				e.printStackTrace();
+				ext.waitForResponse("ClipSwap/Convert beta/SE to OR (95% CI) was called, but could not parse beta value from line "+(i+1)+": "+line[0]);
+				return;
+			}
+			
+			str += ext.formDeci(Math.exp(beta), sigfigs) +" ("+ ext.formDeci(Math.exp(beta-1.96*se), sigfigs)+", "+ ext.formDeci(Math.exp(beta+1.96*se), sigfigs) +")\n"; 
+		}
+
+		ext.setClipboard(str);
 	}
 
 	public static void nominalVariable() {
@@ -310,9 +344,11 @@ public class ClipSwap {
 		boolean prettyP = false;
 		boolean histogram = false;
 		boolean inverseVariance = false;
+		boolean convertBetaSE2OR_CI = false;
 		boolean nominalVariable = false;
 		boolean saveKeysToFile = false;
 		boolean lookupValuesForSavedKeys = false;
+		int sigfigs = 3;
 
 		String usage = "\n" + "widgets.ClipSwap requires 0-1 arguments\n"
 									 + "   (1) Fix slashes (i.e. -slash (not the default))\n"
@@ -323,9 +359,11 @@ public class ClipSwap {
 									 + "   (6) Make p-values pretty (i.e. -prettyP (not the default))\n"
 									 + "   (7) Create bins and counts for a histogram (i.e. -histogram (not the default))\n"
 									 + "   (8) Perform an inverse-variance weighted meta-analysis on a series of betas/stderrs (i.e. -inverseVariance (not the default))\n"
-									 + "   (9) Split a nominal variable into binary columns (i.e. -nominalVariable (not the default))\n"
-									 + "   (10) Extracts keys from clipboard and saves them to a serialized file, with tabs maintained in lookup values (i.e. -saveKeys (not the default))\n"
-									 + "   (11) Lookup the values for the stored keys using the contents of the clipboard (i.e. -lookupValuesForSavedKeys (not the default))\n"
+									 + "   (9) Convert a beta/SE pair to an OR (95% CI) pair (i.e. -convertBetaSE2OR_CI (not the default))\n"
+									 + "            using X number of significant digits (i.e. sigfigs="+sigfigs+" (default))\n"
+									 + "   (10) Split a nominal variable into binary columns (i.e. -nominalVariable (not the default))\n"
+									 + "   (11) Extracts keys from clipboard and saves them to a serialized file, with tabs maintained in lookup values (i.e. -saveKeys (not the default))\n"
+									 + "   (12) Lookup the values for the stored keys using the contents of the clipboard (i.e. -lookupValuesForSavedKeys (not the default))\n"
 									 + "";
 
 		for (String arg : args) {
@@ -355,6 +393,12 @@ public class ClipSwap {
 				numArgs--;
 			} else if (arg.startsWith("-inverseVariance")) {
 				inverseVariance = true;
+				numArgs--;
+			} else if (arg.startsWith("-convertBetaSE2OR_CI")) {
+				convertBetaSE2OR_CI = true;
+				numArgs--;
+			} else if (arg.startsWith("sigfigs=")) {
+				sigfigs = ext.parseIntArg(arg);
 				numArgs--;
 			} else if (arg.startsWith("-nominalVariable")) {
 				nominalVariable = true;
@@ -398,6 +442,9 @@ public class ClipSwap {
 			}
 			if (inverseVariance) {
 				inverseVarianceMeta();
+			}
+			if (convertBetaSE2OR_CI) {
+				convertBetaSE2OR_CI(sigfigs);
 			}
 			if (nominalVariable) {
 				nominalVariable();
