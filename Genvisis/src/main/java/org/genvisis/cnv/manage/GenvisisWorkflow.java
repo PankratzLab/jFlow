@@ -33,6 +33,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.hmm.CNVCaller.PFB_MANAGEMENT_TYPE;
+import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.AffyMarkerBlast;
 import org.genvisis.cnv.qc.GcAdjustor;
@@ -297,7 +298,7 @@ public class GenvisisWorkflow {
 			return valInt;
 		}
 
-		public double checkDoubleArgOrNeg1(String val) {
+		public static double checkDoubleArgOrNeg1(String val) {
 			double valDou = -1.0;
 			try {
 				valDou = Double.parseDouble(val);
@@ -394,6 +395,10 @@ public class GenvisisWorkflow {
 		@Override
 		public boolean checkRequirement(String arg, Set<Step> stepSelections,
 																		Map<Step, Map<Requirement, String>> variables) {
+			return exists(arg);
+		}
+
+		protected boolean exists(String arg) {
 			return Files.exists(arg);
 		}
 	}
@@ -407,7 +412,7 @@ public class GenvisisWorkflow {
 		@Override
 		public boolean checkRequirement(String arg, Set<Step> stepSelections,
 																		Map<Step, Map<Requirement, String>> variables) {
-			return !Files.exists(arg);
+			return !exists(arg);
 		}
 	}
 
@@ -419,8 +424,47 @@ public class GenvisisWorkflow {
 		@Override
 		public boolean checkRequirement(String arg, Set<Step> stepSelections,
 																		Map<Step, Map<Requirement, String>> variables) {
-			return "".equals(arg) || Files.exists(arg);
+			return "".equals(arg) || super.checkRequirement(arg, stepSelections, variables);
 		}
+	}
+
+	public static class ResourceRequirement extends Requirement {
+
+		private final Resource resource;
+
+		/**
+		 * 
+		 * @param resourceDescription a description of the {@link Resource} required. This will be used
+		 *        as part of the full description describing the download/use of the resource
+		 * @param resource the {@link Resource} required
+		 */
+		public ResourceRequirement(String resourceDescription, Resource resource) {
+			super(generateRequirementDescription(resourceDescription, resource),
+						RequirementInputType.NONE);
+			this.resource = resource;
+		}
+
+		private static String generateRequirementDescription(String resourceDescription,
+																												 Resource resource) {
+			String requirementDescription;
+			if (resource.isLocallyAvailable()) {
+				requirementDescription = "Use locally available " + resourceDescription;
+			} else {
+				requirementDescription = "Download remotely available " + resourceDescription;
+			}
+			return requirementDescription;
+		}
+
+		@Override
+		public boolean checkRequirement(String arg, Set<Step> stepSelections,
+																		Map<Step, Map<Requirement, String>> variables) {
+			return true;
+		}
+
+		public Resource getResource() {
+			return resource;
+		}
+
 	}
 
 	public static class BoolRequirement extends Requirement {
@@ -1005,15 +1049,16 @@ public class GenvisisWorkflow {
 		}
 
 		private Step generateGCModelStep() {
-			final Requirement gcBaseReq = new FileRequirement("A GC Base file must exist.",
-																												Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
-																																				 proj.getLog())
-																																 .getModelBase().getAbsolute());
+			final ResourceRequirement gcBaseResourceReq = new ResourceRequirement("GC Base file",
+																																						Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
+																																														 proj.getLog())
+																																										 .getModelBase());
 			final Requirement gcModelOutputReq = new OutputFileRequirement("GCModel output file must be specified.",
 																																		 proj.GC_MODEL_FILENAME.getValue());
 
 			return register(new Step("Compute GCMODEL File", "",
-															 new Requirement[][] {{gcBaseReq}, {gcModelOutputReq}},
+															 new Requirement[][] {{gcBaseResourceReq},
+																										{gcModelOutputReq}},
 															 EnumSet.noneOf(Flag.class), priority()) {
 
 				@Override
@@ -1028,7 +1073,7 @@ public class GenvisisWorkflow {
 
 				@Override
 				public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-					String gcBaseFile = variables.get(this).get(gcBaseReq);
+					String gcBaseFile = gcBaseResourceReq.getResource().getAbsolute();
 					String gcOutputFile = variables.get(this).get(gcModelOutputReq);
 					org.genvisis.cnv.analysis.PennCNV.gcModel(proj, gcBaseFile, gcOutputFile, 100);
 				}
@@ -1050,7 +1095,7 @@ public class GenvisisWorkflow {
 							 .append(kvCmd)
 							 .append("\n");
 					}
-					String gcBaseFile = variables.get(this).get(gcBaseReq);
+					String gcBaseFile = gcBaseResourceReq.getResource().getAbsolute();
 					return cmd.append(Files.getRunString())
 										.append(" cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " log="
 														+ proj.getLog().getFilename() + " gc5base=" + gcBaseFile)
@@ -1418,23 +1463,9 @@ public class GenvisisWorkflow {
 			final Requirement gwasQCStepReq = new StepRequirement(gwasQCStep);
 			final Requirement putativeWhitesReq = new FileRequirement("File with FID/IID pairs of putative white samples",
 																																"");
-			final Requirement hapMapFoundersReq = new FileRequirement("PLINK root of HapMap founders",
-																																Resources.hapMap(log)
-																																				 .getUnambiguousHapMapFounders()
-																																				 .getAbsolute()) {
-				@Override
-				public boolean checkRequirement(String arg, Set<Step> stepSelections,
-																				Map<Step, Map<Requirement, String>> variables) {
-					String hapMapPlinkRoot = arg;
-					int dotIndex = hapMapPlinkRoot.lastIndexOf('.');
-					if (dotIndex > 0
-							&& PSF.Plink.getPlinkBedBimFamSet("").contains(hapMapPlinkRoot.substring(dotIndex))) {
-						hapMapPlinkRoot = hapMapPlinkRoot.substring(0, dotIndex);
-					}
-					return Files.checkAllFiles("", PSF.Plink.getPlinkBedBimFamSet(hapMapPlinkRoot), false,
-																		 log);
-				}
-			};
+			final ResourceRequirement hapMapFoundersReq = new ResourceRequirement("PLINK root of HapMap founders",
+																																						Resources.hapMap(log)
+																																										 .getUnambiguousHapMapFounders());
 
 			return register(new Step("Run Ancestry Checks", "",
 															 new Requirement[][] {{gwasQCStepReq}, {putativeWhitesReq},
@@ -1450,12 +1481,7 @@ public class GenvisisWorkflow {
 				@Override
 				public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
 					String putativeWhites = variables.get(this).get(putativeWhitesReq);
-					String hapMapPlinkRoot = variables.get(this).get(hapMapFoundersReq);
-					int hapMapDotIndex = hapMapPlinkRoot.lastIndexOf('.');
-					if (hapMapDotIndex > 0 && PSF.Plink.getPlinkBedBimFamSet("")
-																						 .contains(hapMapPlinkRoot.substring(hapMapDotIndex))) {
-						hapMapPlinkRoot = hapMapPlinkRoot.substring(0, hapMapDotIndex);
-					}
+					String hapMapPlinkRoot = hapMapFoundersReq.getResource().getAbsolute();
 					String ancestryDir = getAncestryDir();
 					Ancestry.runPipeline(ancestryDir, putativeWhites, hapMapPlinkRoot, proj,
 															 new Logger(ancestryDir + "ancestry.log"));
@@ -1464,12 +1490,7 @@ public class GenvisisWorkflow {
 				@Override
 				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
 					String putativeWhites = variables.get(this).get(putativeWhitesReq);
-					String hapMapPlinkRoot = variables.get(this).get(hapMapFoundersReq);
-					int hapMapDotIndex = hapMapPlinkRoot.lastIndexOf('.');
-					if (hapMapDotIndex > 0 && PSF.Plink.getPlinkBedBimFamSet("")
-																						 .contains(hapMapPlinkRoot.substring(hapMapDotIndex))) {
-						hapMapPlinkRoot = hapMapPlinkRoot.substring(0, hapMapDotIndex);
-					}
+					String hapMapPlinkRoot = hapMapFoundersReq.getResource().getAbsolute();
 
 					String ancestryDir = getAncestryDir();
 					String command = Files.getRunString() + " gwas.Ancestry -runPipeline dir=" + ancestryDir;

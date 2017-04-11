@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -52,12 +53,16 @@ import javax.swing.event.DocumentListener;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.GenvisisWorkflow;
+import org.genvisis.cnv.manage.GenvisisWorkflow.Requirement;
+import org.genvisis.cnv.manage.GenvisisWorkflow.ResourceRequirement;
 import org.genvisis.cnv.manage.GenvisisWorkflow.Step;
+import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
 import org.genvisis.qsub.Qsub;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -186,12 +191,9 @@ public class GenvisisWorkflowGUI extends JDialog {
 							boolean check = step.hasRequirements(proj, selectedSteps, variables);
 							checkBoxes.get(step).setSelected(check);
 							selected.add(step);
-							if (check)
-							{
+							if (check) {
 								selectedSteps.add(step);
-							}
-							else
-							{
+							} else {
 								selected.remove(step);
 								selectedSteps.remove(step);
 							}
@@ -872,15 +874,16 @@ public class GenvisisWorkflowGUI extends JDialog {
 						} else {
 							file = Qsub.qsubGUI(suggFile, command);
 							if (file != null) {
-  							if (!file.endsWith(".qsub") && !file.endsWith(".pbs")) {
-  								file = file + ".pbs";
-  							}
-  							runFile = ext.rootOf(file, false) + ".run";
+								if (!file.endsWith(".qsub") && !file.endsWith(".pbs")) {
+									file = file + ".pbs";
+								}
+								runFile = ext.rootOf(file, false) + ".run";
 							}
 						}
 						if (file != null) {
 							Files.write(output.toString(), runFile);
-							proj.message("GenvisisPipeline commands written to " + runFile, "Command File Written", JOptionPane.INFORMATION_MESSAGE);
+							proj.message("GenvisisPipeline commands written to " + runFile,
+													 "Command File Written", JOptionPane.INFORMATION_MESSAGE);
 						}
 					}
 				} catch (Exception e) {
@@ -1012,25 +1015,48 @@ public class GenvisisWorkflowGUI extends JDialog {
 
 	}
 
-	private boolean checkRequirementsAndNotify(Map<Step, Map<GenvisisWorkflow.Requirement, String>> variables) {
+	private boolean checkRequirementsAndNotify(Map<Step, Map<Requirement, String>> variables) {
 		Set<Step> options = getSelectedOptions();
 
-		ArrayList<String> reqMsgs = new ArrayList<String>();
+		boolean passesChecks = true;
+		List<String> reqMsgs = Lists.newArrayList();
 		for (Step step : options) {
-			if (!step.hasRequirements(proj, options, variables)) {
+			if (!getResources(step.getRequirements())
+					|| !step.hasRequirements(proj, options, variables)) {
 				reqMsgs.add(checkBoxes.get(step).getText());
+				passesChecks = false;
 			}
 		}
-		boolean retVal = true;
 		if (!reqMsgs.isEmpty()) {
 			StringBuilder msg = new StringBuilder("Prerequisite requirements are unmet for the following steps:");
 			for (String str : reqMsgs) {
 				msg.append("\n").append(str);
 			}
 			proj.message(msg.toString());
-			retVal = false;
 		}
-		return retVal;
+		return passesChecks;
+	}
+
+	/**
+	 * 
+	 * @param requirementEntries entry for {@link Step} from variables.
+	 */
+	private boolean getResources(Requirement[][] requirements) {
+		boolean allAvailable = true;
+		for (Requirement[] reqGroup : requirements) {
+			for (Requirement requirement : reqGroup) {
+				if (requirement instanceof ResourceRequirement) {
+					ResourceRequirement resReq = (ResourceRequirement) requirement;
+					Resource resource = resReq.getResource();
+					String reqPath = resource.get();
+					if (reqPath == null) {
+						allAvailable = false;
+					}
+				}
+			}
+		}
+
+		return allAvailable;
 	}
 
 	private Map<Step, Map<GenvisisWorkflow.Requirement, String>> getVariables() {
