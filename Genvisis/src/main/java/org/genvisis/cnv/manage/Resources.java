@@ -944,17 +944,22 @@ public final class Resources {
 		}
 
 
-
 		@Override
-		public String get() {
+		public boolean isLocallyAvailable() {
+
 			boolean available = true;
 			for (String unzippedPath : unzippedPaths) {
-				if (!isLocallyAvailable(unzippedPath)) {
+				if (!Files.exists(unzippedPath)) {
 					available = false;
 					break;
 				}
 			}
-			if (available)
+			return available;
+		}
+
+		@Override
+		public String get() {
+			if (isLocallyAvailable())
 				return returnPath;
 
 			String path = super.get();
@@ -1139,10 +1144,10 @@ public final class Resources {
 		@Override
 		public String getMD5Local() {
 			String md5 = null;
-			if (isLocallyAvailable(localPath)) {
+			if (isLocallyAvailable()) {
 				try {
 					String md5Path = localPath + ".md5";
-					if (isLocallyAvailable(md5Path)) {
+					if (Files.exists(md5Path)) {
 						// If we already have a local .md5, we just need to read it and return.
 						BufferedReader reader = Files.getAppropriateReader(md5Path);
 						md5 = reader.readLine().trim();
@@ -1183,18 +1188,20 @@ public final class Resources {
 			return log;
 		}
 
-		protected boolean isLocallyAvailable(String file) {
-			return Files.exists(file);
+		@Override
+		public boolean isLocallyAvailable() {
+			return Files.exists(localPath);
 		}
 
-		protected boolean isRemotelyAvailable(String file) {
-			return HttpDownloadUtility.canDownload(file, log);
+		@Override
+		public boolean isRemotelyAvailable() {
+			return HttpDownloadUtility.canDownload(remotePath, log);
 		}
 
-		private boolean downloadResource(String url, String downloadPath) {
-			if (isRemotelyAvailable(url)) {
+		private boolean downloadResource() {
+			if (isRemotelyAvailable()) {
 				try {
-					HttpDownloadUtility.downloadFile(url, downloadPath, true, log);
+					HttpDownloadUtility.downloadFile(remotePath, localPath, true, log);
 
 					// verify the download
 					String md5Remote = getMD5Remote();
@@ -1207,14 +1214,14 @@ public final class Resources {
 					}
 
 					// md5 did not match
-					log.reportError("Local md5 checksum does not match remote for resource: " + url);
+					log.reportError("Local md5 checksum does not match remote for resource: " + remotePath);
 				} catch (IOException e) {
-					log.reportError("Could not retrieve resource from " + url + " and save it to"
-													+ downloadPath);
+					log.reportError("Could not retrieve resource from " + remotePath + " and save it to"
+													+ localPath);
 					log.reportException(e);
 				}
 			} else {
-				log.reportError("Resource is not available for download: " + url);
+				log.reportError("Resource is not available for download: " + remotePath);
 			}
 			return false;
 		}
@@ -1228,15 +1235,15 @@ public final class Resources {
 			// Ensure resource validation is complete
 			StartupValidation.passed();
 
-			if (isLocallyAvailable(localPath)) {
+			if (isLocallyAvailable()) {
 				return localPath;
 			}
 			log.report("Resource is not available at " + absolutePath()
 								 + ", will attempt to download from " + remotePath);
 
-			if (!downloadResource(remotePath, localPath)) {
+			if (!downloadResource()) {
 				log.reportError("Download failed for: " + remotePath);
-			} else if (!isLocallyAvailable(localPath)) {
+			} else if (!isLocallyAvailable()) {
 				log.reportError("Downloaded resource cannot be found at " + absolutePath());
 			} else {
 				return localPath;
@@ -1256,7 +1263,7 @@ public final class Resources {
 
 		@Override
 		public boolean isAvailable(boolean showHint) {
-			boolean isAvailable = isLocallyAvailable(localPath) || isRemotelyAvailable(remotePath);
+			boolean isAvailable = isLocallyAvailable() || isRemotelyAvailable();
 
 			if (!isAvailable) {
 				log.reportError("Could not find local file " + absolutePath()
@@ -1287,6 +1294,10 @@ public final class Resources {
 		 * @return {@code true} if this resource can be found locally or remotely.
 		 */
 		boolean isAvailable(boolean showHint);
+
+		boolean isRemotelyAvailable();
+
+		boolean isLocallyAvailable();
 
 		/**
 		 * Ensure this resource is available locally, downloading it if necessary.
