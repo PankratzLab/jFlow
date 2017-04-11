@@ -53,7 +53,7 @@ public class SerializedFiles {
 			if (jar) {
 				in = new BufferedInputStream(ClassLoader.getSystemResourceAsStream(filename));
 			} else if (gzipped) {
-				in = new GZIPInputStream(new FileInputStream(filename));
+				in = new BufferedInputStream(new GZIPInputStream(new FileInputStream(filename)));
 			} else {
 				in = new BufferedInputStream(new FileInputStream(filename));
 			}
