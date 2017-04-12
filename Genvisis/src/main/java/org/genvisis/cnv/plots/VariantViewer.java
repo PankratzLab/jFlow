@@ -75,6 +75,7 @@ import org.genvisis.CLI;
 import org.genvisis.CLI.Arg;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.NewRegionListDialog;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources.Resource;
@@ -258,7 +259,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 				return null;
 			}
 		}
-		
+
 		private static String getEffectRaw(VariantContext vc) {
 			String impAttr = vc.getAttributeAsString("EFF", ".").toString();
 			if (!".".equals(impAttr)) {
@@ -266,7 +267,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 			}
 			return impAttr;
 		}
-		
+
 		public static DrawType getDrawType(VariantContext vc) {
 			String impAttr = vc.getAttributeAsString("SNPEFF_IMPACT", ".").toString();
 			if (impAttr.equals(".")) {
@@ -508,7 +509,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		time = new Date().getTime();
 
 		setMinimumSize(new Dimension(startX, DEFAULT_STARTX));
-		setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
+		UITools.setSize(this, new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
 		pack();
 		setVisible(true);
 
@@ -753,11 +754,11 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 			int maxExonRise = 0;
 			for (int j = 0; j < exons.length; j++) {
 				GeneData geneData = getCurrentGeneData();
-//				if (ind == -1) {
-//					geneData = geneToIsoformMap.get(geneList.get(geneIndex)).get(isoformsPresent[0]);
-//				} else {
-//					geneData = geneToIsoformMap.get(geneList.get(geneIndex)).get(COLLAPSE_ISOFORMS_KEY);
-//				}
+				// if (ind == -1) {
+				// geneData = geneToIsoformMap.get(geneList.get(geneIndex)).get(isoformsPresent[0]);
+				// } else {
+				// geneData = geneToIsoformMap.get(geneList.get(geneIndex)).get(COLLAPSE_ISOFORMS_KEY);
+				// }
 				int exonNumber = determineExonNumber(geneData, exons[j]);
 				tempPx = getX(tempX);
 				len = equalizeExonLength ? EQUALIZED_EXON_BP_LENGTH : exons[j][1] - exons[j][0];
@@ -861,7 +862,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 			len = equalizeExonLength ? EQUALIZED_EXON_BP_LENGTH : exons[j][1] - exons[j][0];
 			lenPx = getX(tempX + len) - tempPx;
 
-//			exonNumber = determineExonNumber(geneToIsoformMap.get(geneList.get(geneIndex)).get(COLLAPSE_ISOFORMS_KEY), exons[j]);
+			// exonNumber =
+			// determineExonNumber(geneToIsoformMap.get(geneList.get(geneIndex)).get(COLLAPSE_ISOFORMS_KEY),
+			// exons[j]);
 
 			GeneData geneData = getCurrentGeneData();
 			exonNumber = determineExonNumber(geneData, exons[j]);
@@ -2900,8 +2903,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		}
 		geneListCmb.setSelectedIndex(geneIndex);
 		createIsoformList();
-		isoformList.setSelectedItem(isoformsPresent[0]);//COLLAPSE_ISOFORMS_KEY);
-		parseLocation(geneToRegionMap.get(geneList.get(geneIndex)).get(isoformsPresent[0]));//COLLAPSE_ISOFORMS_KEY));
+		isoformList.setSelectedItem(isoformsPresent[0]);// COLLAPSE_ISOFORMS_KEY);
+		parseLocation(geneToRegionMap.get(geneList.get(geneIndex)).get(isoformsPresent[0]));// COLLAPSE_ISOFORMS_KEY));
 		if (geneToCommentMap.containsKey(geneList.get(geneIndex))
 				&& geneToCommentMap.get(geneList.get(geneIndex)) != null) {
 			commentLabel.setText("gene #" + (geneIndex + 1) + ":  "
@@ -3093,14 +3096,14 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
 	public static void main(String[] args) {
 		Project proj = null;
-//		 new Project("D:/projects/gedi_gwas.properties", false);
-//		String geneList = "N:/statgen/VariantMapper/test2/genes.txt";
-//		 Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
+		// new Project("D:/projects/gedi_gwas.properties", false);
+		// String geneList = "N:/statgen/VariantMapper/test2/genes.txt";
+		// Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
 
-//		 String[] vcfFiles = new String[] {
-//		 "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz" };
-//		 String popFile = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF.vpop";
-//		 new VariantViewer(proj, vcfFiles, popFile);
+		// String[] vcfFiles = new String[] {
+		// "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz" };
+		// String popFile = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF.vpop";
+		// new VariantViewer(proj, vcfFiles, popFile);
 
 		// String[] vcfFiles2 = new String[] {
 		// "N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz"
@@ -3114,9 +3117,11 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		// String popFile3 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS.vpop";
 		// new VariantViewer(proj, vcfFiles3, popFile3);
 		//
-//		String[] vcfFiles4 = new String[] {"N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz"};
-//		String popFile4 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS_OTEHRS.vpop";
-//		new VariantViewer(proj, geneList, vcfFiles4, popFile4);
+		// String[] vcfFiles4 = new String[]
+		// {"N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz"};
+		// String popFile4 =
+		// "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS_OTEHRS.vpop";
+		// new VariantViewer(proj, geneList, vcfFiles4, popFile4);
 		//
 		// OSTEO_OFF_INHERIT.maf_0.01.chr17.vcf.gz.tbi
 
@@ -3129,41 +3134,44 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		// String popFile2 = "N:/statgen/VariantMapper/test3/TN.vpop";
 		// new VariantViewer(proj, vcfFiles2, popFile2);
 
-//		 String dir = "C:/temp/VCF/";
-//		String dir = "N:/statgen/VariantMapper/Fibrinogen/";
-//		geneList = dir + "genes.txt";
-//		String[] vcfFiles = new String[] {dir
-//																			+ "charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.blanks.segs_noquotes.vcf"};
-//		VCFOps.verifyIndex(vcfFiles[0], new Logger());
-//		 new VariantViewer(proj, geneList, vcfFiles, popFile);
-		
-//		String geneList = "F:/temp/variantviewer/genes.txt";
-//		String[] vcfFiles = {"F:/temp/variantviewer/output.vcf"};
-//		String popFile = "F:/temp/variantviewer/vtpedx.vpop";
-//		new VariantViewer(proj, geneList, vcfFiles, popFile);
+		// String dir = "C:/temp/VCF/";
+		// String dir = "N:/statgen/VariantMapper/Fibrinogen/";
+		// geneList = dir + "genes.txt";
+		// String[] vcfFiles = new String[] {dir
+		// +
+		// "charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.blanks.segs_noquotes.vcf"};
+		// VCFOps.verifyIndex(vcfFiles[0], new Logger());
+		// new VariantViewer(proj, geneList, vcfFiles, popFile);
 
-  	String geneList = "genes.txt";
-  	String[] vcfFiles = {"output.vcf"};
-  	String popFile = "pop.vpop";
-		
+		// String geneList = "F:/temp/variantviewer/genes.txt";
+		// String[] vcfFiles = {"F:/temp/variantviewer/output.vcf"};
+		// String popFile = "F:/temp/variantviewer/vtpedx.vpop";
+		// new VariantViewer(proj, geneList, vcfFiles, popFile);
+
+		String geneList = "genes.txt";
+		String[] vcfFiles = {"output.vcf"};
+		String popFile = "pop.vpop";
+
 		Object[][] argSet = {
-		                     {"genes", "Gene list file, one per line", geneList, Arg.STRING},
-		                     {"vcf", "VCF file(s) - if more than one, separated by commas", vcfFiles[0], Arg.STRING},
-		                     {"pop", "vpop file - a file with each IID and a Class=Population column", popFile, Arg.STRING},
+												 {"genes", "Gene list file, one per line", geneList, Arg.STRING},
+												 {"vcf", "VCF file(s) - if more than one, separated by commas", vcfFiles[0],
+													Arg.STRING},
+												 {"pop", "vpop file - a file with each IID and a Class=Population column",
+													popFile, Arg.STRING},
 		};
-		
+
 		CLI cli = new CLI(VariantViewer.class);
-		
+
 		for (Object[] arg : argSet) {
 			cli.addArgWithDefault((String) arg[0], (String) arg[1], arg[2] + "", (Arg) arg[3]);
 		}
-		
+
 		cli.parseWithExit(args);
-		
+
 		geneList = cli.get((String) argSet[0][0]);
 		vcfFiles = cli.get((String) argSet[1][0]).split(",");
 		popFile = cli.get((String) argSet[2][0]);
-		
+
 		new VariantViewer(proj, geneList, vcfFiles, popFile);
 	}
 }

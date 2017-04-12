@@ -214,8 +214,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 		super("Genvisis - BlastViewer - " + proj.PROJECT_NAME.getValue());
 		this.proj = proj;
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		setMinimumSize(new Dimension(100,100));
-		setPreferredSize(new Dimension(1150,800));
+		setMinimumSize(new Dimension(100, 100));
+		UITools.setSize(this, new Dimension(1150, 800));
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -484,8 +484,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 				return res1;
 			}
 		});
-		List<BlastAnnotation> onT = blastResult.getAnnotationsFor(	BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
-																																	 proj.getLog());
+		List<BlastAnnotation> onT = blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
+																															proj.getLog());
 		probeLbl.setAnnotation(onT.size() > 0 ? onT.get(0) : null);
 
 		SwingUtilities.invokeLater(new Runnable() {
@@ -501,8 +501,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 				strandLbl.setText(CNVHelper.decode(referenceAnnotation.getStrand()));
 				int len = proj.ARRAY_TYPE.getValue().getProbeLength();
 				probeLengthLbl.setText(len + "");
-				List<BlastAnnotation> onT = blastResult.getAnnotationsFor(	BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
-																																			 proj.getLog());
+				List<BlastAnnotation> onT = blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
+																																	proj.getLog());
 				String lbl = "";
 				// if (onT.size() > 0) {
 				// if (onT.size() > 1) {

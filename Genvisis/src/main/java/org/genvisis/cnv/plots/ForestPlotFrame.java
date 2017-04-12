@@ -44,6 +44,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
@@ -95,7 +96,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 		forestPlot = new ForestPlot(proj);
 		this.proj = proj;
 		setup();
-		setPreferredSize(new Dimension(1000, 600));
+		UITools.setSize(this, new Dimension(1000, 600));
 		pack();
 		setVisible(true);
 		addWindowListener(this);
@@ -106,7 +107,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		forestPlot = new ForestPlot(markerFile, log);
 		setup();
-		setPreferredSize(new Dimension(1000, 600));
+		UITools.setSize(this, new Dimension(1000, 600));
 		pack();
 		setVisible(true);
 		addWindowListener(this);
@@ -119,7 +120,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 		layeredPane.setLayout(new BorderLayout());
 
 		layeredPane.add(forestPlot.getForestPanel());
-		layeredPane.setPreferredSize(new Dimension(1000, 600));
+		UITools.setSize(layeredPane, new Dimension(1000, 600));
 
 		forestPlot.getForestPanel().add(createControlPanel(), BorderLayout.NORTH);
 
@@ -322,7 +323,8 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					int trav = Integer.valueOf(((JTextField) e.getSource()).getText().split(PSF.Regex.GREEDY_WHITESPACE)[0])
+					int trav = Integer.valueOf(((JTextField) e.getSource()).getText()
+																																 .split(PSF.Regex.GREEDY_WHITESPACE)[0])
 														.intValue()
 										 - 1;
 					if (trav >= 0 && trav < forestPlot.getDataIndices().size()) {

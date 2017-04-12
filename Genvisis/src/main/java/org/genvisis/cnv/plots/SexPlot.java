@@ -25,6 +25,7 @@ import javax.swing.JPanel;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.ColorIcon;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.gui.WrapLayout;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.common.ArrayUtils;
@@ -74,7 +75,7 @@ public class SexPlot extends JFrame {
 		// repaint();
 
 		setMinimumSize(new Dimension(20, 20));
-		setPreferredSize(new Dimension(1000, 720));
+		UITools.setSize(this, new Dimension(1000, 720));
 		pack();
 		setVisible(true);
 		// unnecessary leads to a double rendering

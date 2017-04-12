@@ -48,7 +48,7 @@ public class TrailerQCDisplay extends JDialog {
 	 */
 	public TrailerQCDisplay() {
 		setMinimumSize(new Dimension(100, 100));
-		setPreferredSize(new Dimension(600, 400));
+		UITools.setSize(this, new Dimension(600, 400));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);

@@ -65,7 +65,7 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
 		setTitle("Create New Marker List");
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		setMinimumSize(new Dimension(100, 100));
-		setPreferredSize(new Dimension(450, 300));
+		UITools.setSize(this, new Dimension(450, 300));
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -126,7 +126,7 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
 		for (String marker : markers) {
 			markerSet.add(marker);
 		}
-		
+
 		pack();
 	}
 

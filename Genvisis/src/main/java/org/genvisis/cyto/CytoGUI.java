@@ -7,6 +7,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.common.Logger;
 
 public class CytoGUI extends JFrame {
@@ -26,7 +27,7 @@ public class CytoGUI extends JFrame {
 	}
 
 	private void createAndShowGUI() {
-		setPreferredSize(new Dimension(400, 100));
+		UITools.setSize(this, new Dimension(400, 100));
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		// launch to middle of screen
 		this.setLocation(dim.width / 2 - this.getSize().width / 2,

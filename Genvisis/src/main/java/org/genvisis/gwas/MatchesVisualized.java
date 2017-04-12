@@ -11,6 +11,7 @@ import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
@@ -49,7 +50,8 @@ public class MatchesVisualized {
 			data[i] = ArrayUtils.toDoubleArray(hash.get(anchors[i]).split(PSF.Regex.GREEDY_WHITESPACE));
 		}
 		for (int i = 0; i < barnacles.length; i++) {
-			data[anchors.length + i] = ArrayUtils.toDoubleArray(hash.get(barnacles[i]).split(PSF.Regex.GREEDY_WHITESPACE));
+			data[anchors.length + i] = ArrayUtils.toDoubleArray(hash.get(barnacles[i])
+																															.split(PSF.Regex.GREEDY_WHITESPACE));
 		}
 		trans = Matrix.transpose(data);
 		for (int i = 0; i < factorIndices.length; i++) {
@@ -75,7 +77,7 @@ public class MatchesVisualized {
 
 		JFrame frame = new JFrame(ext.rootOf(pairings));
 		frame.setMinimumSize(new Dimension(20, 20));
-		frame.setPreferredSize(new Dimension(1000,720));
+		UITools.setSize(frame, new Dimension(1000, 720));
 		frame.setVisible(true);
 
 		JPanel panel = new JPanel() {

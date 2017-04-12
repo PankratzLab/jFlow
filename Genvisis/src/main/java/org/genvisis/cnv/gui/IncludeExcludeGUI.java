@@ -38,7 +38,7 @@ public class IncludeExcludeGUI extends JDialog {
 		super(owner);
 		setModal(true);
 		setMinimumSize(new Dimension(100, 100));
-		setPreferredSize(new Dimension(450, 300));
+		UITools.setSize(this, new Dimension(450, 300));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);

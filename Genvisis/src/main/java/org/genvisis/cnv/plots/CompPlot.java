@@ -45,6 +45,7 @@ import org.genvisis.cnv.gui.MedianLRRWidget;
 import org.genvisis.cnv.gui.NewRegionListDialog;
 import org.genvisis.cnv.gui.RegionNavigator;
 import org.genvisis.cnv.gui.RegionNavigator.ChrNavigator;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.manage.UCSCtrack;
@@ -254,8 +255,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 	private void setupGUI() {
 		// Set the default window size
 		setMinimumSize(new Dimension(DEFAULT_STARTX, DEFAULT_STARTY));
-		setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
-
+		UITools.setSize(this, new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
 		// Close this window but not the entire application on close
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -302,7 +302,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
 		add(compView);
 
-		pack(); 
+		pack();
 		// Set the panel visible
 		setVisible(true);
 	}

@@ -141,7 +141,7 @@ public class ImportProjectGUI extends JDialog {
 
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		setMinimumSize(new Dimension(100, 100));
-		setPreferredSize(new Dimension(350, 600));
+		UITools.setSize(this, new Dimension(350, 600));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -334,7 +334,7 @@ public class ImportProjectGUI extends JDialog {
 				}
 			});
 		}
-		
+
 		pack();
 	}
 

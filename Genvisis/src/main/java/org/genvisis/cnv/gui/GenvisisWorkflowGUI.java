@@ -321,7 +321,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 		});
 		refreshLabels(this, steps);
 		setMinimumSize(new Dimension(100, 100));
-		setPreferredSize(new Dimension(750, 850));
+		UITools.setSize(this, new Dimension(750, 850));
 		setTitle(TOP_LABEL);
 		addWindowFocusListener(new WindowFocusListener() {
 			@Override

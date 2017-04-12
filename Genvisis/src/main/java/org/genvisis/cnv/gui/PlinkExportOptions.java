@@ -83,8 +83,8 @@ public class PlinkExportOptions extends JDialog {
 	public PlinkExportOptions(final Project proj) {
 		this.proj = proj;
 		setTitle("PLINK Export Options");
-		setMinimumSize(new Dimension(100,100));
-		setPreferredSize(new Dimension(400, 450));
+		setMinimumSize(new Dimension(100, 100));
+		UITools.setSize(this, new Dimension(400, 450));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);

@@ -101,6 +101,7 @@ import org.genvisis.cnv.gui.BlastFrame;
 import org.genvisis.cnv.gui.ColorKeyPanel;
 import org.genvisis.cnv.gui.CycleRadio;
 import org.genvisis.cnv.gui.NewMarkerListDialog;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.PlinkMarkerLoader;
 import org.genvisis.cnv.prop.Property;
@@ -1008,7 +1009,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		}
 
 		addAnnotationField = new JTextField(DEFAULT_MESSAGE);
-		addAnnotationField.setPreferredSize(new Dimension(175,25));
+		addAnnotationField.setPreferredSize(new Dimension(175, 25));
 		addAnnotationField.addFocusListener(new FocusListener() {
 			@Override
 			public void focusGained(FocusEvent e) {
@@ -2784,7 +2785,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			@Override
 			public void focusLost(FocusEvent fe) {
 				try {
-					int trav = Integer.valueOf(((JTextField) fe.getSource()).getText().split(PSF.Regex.GREEDY_WHITESPACE)[0])
+					int trav = Integer.valueOf(((JTextField) fe.getSource()).getText()
+																																	.split(PSF.Regex.GREEDY_WHITESPACE)[0])
 														.intValue()
 										 - 1;
 					if (trav >= 0 && trav < clusterFilterCollection.getSize(getMarkerName())) {
@@ -4020,7 +4022,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					int trav = Integer.valueOf(((JTextField) e.getSource()).getText().split(PSF.Regex.GREEDY_WHITESPACE)[0])
+					int trav = Integer.valueOf(((JTextField) e.getSource()).getText()
+																																 .split(PSF.Regex.GREEDY_WHITESPACE)[0])
 														.intValue()
 										 - 1;
 					if (trav >= 0 && trav < markerList.length) {
@@ -4454,8 +4457,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		typeLabel = new JLabel("# On-Target (mismatched) Alignments: ", JLabel.LEFT);
 		typeLabel.setFont(lblFont);
 		blastPanel.add(typeLabel, "cell 0 2");
-		List<BlastAnnotation> onTaligns = blastResult.getAnnotationsFor(	BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
-																																				 log);
+		List<BlastAnnotation> onTaligns = blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
+																																		log);
 		String lbl = onTaligns == null ? " 0" : " " + onTaligns.size();
 		typeLabel = new JLabel(lbl);
 		typeLabel.setFont(lblFont);
@@ -4489,8 +4492,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							scatterPlot.setPreferredSize(new Dimension(1200, 870));
-							scatterPlot.pack();							
+							UITools.setSize(scatterPlot, new Dimension(1200, 870));
+							scatterPlot.pack();
 							scatterPlot.setVisible(true);
 						}
 					});

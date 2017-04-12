@@ -51,6 +51,7 @@ import javax.swing.event.TreeSelectionListener;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.CheckBoxTree;
 import org.genvisis.cnv.gui.ColorIcon;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -154,7 +155,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		layeredPane.add(invYButton);
 
 		layeredPane.add(linePanel);
-		layeredPane.setPreferredSize(new Dimension(1000, 600)); // ???zx
+		UITools.setSize(layeredPane, new Dimension(1000, 600));
 
 		// ******* New code starts here ************
 		JPanel treePanel = new JPanel();
@@ -930,15 +931,15 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		JFrame frame = new JFrame("Genvisis - EnrichmentPlot");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setLayout(new BorderLayout());
-		
+
 		// Create and set up the content pane.
 		LinePlot twoDPlot = new LinePlot(proj);
 		frame.setJMenuBar(twoDPlot.menuBar());
 		twoDPlot.setOpaque(true); // content panes must be opaque
 		frame.setContentPane(twoDPlot);
 		frame.addWindowListener(twoDPlot);
-		
-		frame.setPreferredSize(new Dimension(1000, 600));
+
+		UITools.setSize(frame, new Dimension(1000, 600));
 		// Display the window.
 		frame.pack();
 		frame.setVisible(true);

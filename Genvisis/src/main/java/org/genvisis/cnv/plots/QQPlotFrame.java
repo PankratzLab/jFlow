@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JFrame;
 
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -32,7 +33,7 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 
 		getContentPane().add(qqPlot.getQqPanel(), BorderLayout.CENTER);
 
-		setPreferredSize(new Dimension(1000, 720));
+		UITools.setSize(this, new Dimension(1000, 720));
 		setVisible(true);
 	}
 

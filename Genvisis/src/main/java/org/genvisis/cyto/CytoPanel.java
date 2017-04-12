@@ -23,6 +23,7 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.FileChooser;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
@@ -306,8 +307,11 @@ public class CytoPanel extends JPanel implements ActionListener {
 		if (checkFiles(importFiles, SAMPLES, true)) {
 			Files.write("", proj.SAMPLE_DIRECTORY.getValue(true, true)
 											+ SourceFileParser.OVERWRITE_OPTION_FILE);
-			SourceFileParser.deleteAllFilesInDirectory(proj, proj.SAMPLE_DIRECTORY.getValue(), Sample.SAMPLE_FILE_EXTENSION);
-			SourceFileParser.deleteAllFilesInDirectory(proj, proj.MARKER_DATA_DIRECTORY.getValue(false, true), MarkerData.MARKER_DATA_FILE_EXTENSION);
+			SourceFileParser.deleteAllFilesInDirectory(proj, proj.SAMPLE_DIRECTORY.getValue(),
+																								 Sample.SAMPLE_FILE_EXTENSION);
+			SourceFileParser.deleteAllFilesInDirectory(proj,
+																								 proj.MARKER_DATA_DIRECTORY.getValue(false, true),
+																								 MarkerData.MARKER_DATA_FILE_EXTENSION);
 
 			log.report(ext.getTime() + " Info - found " + importFiles.length + " files");
 			CytoAgilentParse.parseCytoToGenvisis(proj, importFiles, log);
@@ -639,7 +643,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 		add(cancelButton, BorderLayout.EAST);
 		add(parseButton, BorderLayout.WEST);
 
-		cytoGUI.setPreferredSize(new Dimension(800, 600));
+		UITools.setSize(cytoGUI, new Dimension(800, 600));
 		cytoGUI.pack();
 	}
 

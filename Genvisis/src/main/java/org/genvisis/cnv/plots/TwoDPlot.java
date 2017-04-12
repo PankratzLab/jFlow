@@ -62,6 +62,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.CheckBoxTree;
 import org.genvisis.cnv.gui.ColorKeyPanel;
 import org.genvisis.cnv.gui.GuiManager;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.var.IndiPheno;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
@@ -235,7 +236,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		layeredPane.add(twoDPanel);
 		layeredPane.setComponentZOrder(twoDPanel, 3);
-		layeredPane.setPreferredSize(new Dimension(1000, 600));
+		UITools.setSize(layeredPane, new Dimension(1000, 600));
 
 		treePanel = new JPanel();
 		treePanel.setBackground(BACKGROUND_COLOR);
@@ -2302,8 +2303,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		twoDPlot.setOpaque(true); // content panes must be opaque
 		frame.setContentPane(twoDPlot);
 		frame.addWindowListener(twoDPlot);
-		frame.setMinimumSize(new Dimension(20,20));
-		frame.setPreferredSize(new Dimension(1000, 600));
+		frame.setMinimumSize(new Dimension(20, 20));
+		UITools.setSize(frame, new Dimension(1000, 600));
 		// frame.setExtendedState(frame.getExtendedState()|JFrame.MAXIMIZED_BOTH);
 
 		// Display the window.

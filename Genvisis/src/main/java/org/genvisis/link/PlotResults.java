@@ -36,6 +36,7 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
 import org.genvisis.cnv.gui.JPanelFlowLayoutComponentListener;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
@@ -561,8 +562,9 @@ public class PlotResults extends JFrame implements ActionListener {
 		chr = 16;
 		updateGUI();
 
-		setMinimumSize(new Dimension(20,20));
-		setPreferredSize(new Dimension(1000, 720));
+		setMinimumSize(new Dimension(20, 20));
+
+		UITools.setSize(this, new Dimension(1000, 720));
 		pack();
 		setVisible(true);
 	}
@@ -686,7 +688,8 @@ public class PlotResults extends JFrame implements ActionListener {
 							reader.readLine();
 						}
 						while (reader.ready()) {
-							line = reader.readLine().trim().split(filename.endsWith(".tbl") ? "\t" : PSF.Regex.GREEDY_WHITESPACE);
+							line = reader.readLine().trim()
+													 .split(filename.endsWith(".tbl") ? "\t" : PSF.Regex.GREEDY_WHITESPACE);
 							result.add(new double[] {Double.parseDouble(line[RESULT_TYPE_LOD_INDICES[resultType][0]]),
 																			 Double.parseDouble(line[RESULT_TYPE_LOD_INDICES[resultType][1]])});
 							if (!line[RESULT_TYPE_LOD_INDICES[resultType][2]].equals("-")
@@ -717,7 +720,8 @@ public class PlotResults extends JFrame implements ActionListener {
 						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 														RESULT_TYPE_HEADERS[resultType][1], true);
 						while (reader.ready()) {
-							line = reader.readLine().trim().split(filename.endsWith(".tbl") ? "\t" : PSF.Regex.GREEDY_WHITESPACE);
+							line = reader.readLine().trim()
+													 .split(filename.endsWith(".tbl") ? "\t" : PSF.Regex.GREEDY_WHITESPACE);
 							infoPair = new double[] {Double.parseDouble(line[RESULT_TYPE_INFO_INDICES[resultType][0]]),
 																			 Double.parseDouble(line[RESULT_TYPE_INFO_INDICES[resultType][1]])};
 							if (infoPair[1] > 1) {
@@ -749,7 +753,8 @@ public class PlotResults extends JFrame implements ActionListener {
 					hash = new Hashtable<String, Vector<String>>();
 					try {
 						reader = Files.getReader(dir + dirs[i] + "/markerPositions.dat", jar, true, false);
-						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), MARKER_POS_HEADER, true);
+						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+														MARKER_POS_HEADER, true);
 						while (reader.ready()) {
 							line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							HashVec.addToHashVec(hash, line[0], line[1] + "\t" + line[2] + "\t" + line[3], true);

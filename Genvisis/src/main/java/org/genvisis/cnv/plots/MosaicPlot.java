@@ -24,6 +24,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
@@ -67,10 +68,10 @@ public class MosaicPlot extends JFrame implements ActionListener {
 
 		setJMenuBar(createMenuBar());
 
-		setMinimumSize(new Dimension(20,20));
-		setPreferredSize(new Dimension(1000, 720));
+		setMinimumSize(new Dimension(20, 20));
+		UITools.setSize(this, new Dimension(1000, 720));
 		pack();
-		setVisible(true); 
+		setVisible(true);
 
 		// unnecessary leads to a double rendering
 		// panel.createImage();

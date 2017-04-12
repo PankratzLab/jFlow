@@ -79,7 +79,7 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
 		setTitle("Create New UCSC Regions List");
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		setMinimumSize(new Dimension(100, 100));
-		setPreferredSize(new Dimension(550, 300));
+		UITools.setSize(this, new Dimension(550, 300));
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -144,7 +144,7 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
 				idSet.add(id);
 			}
 		}
-		
+
 		pack();
 	}
 
