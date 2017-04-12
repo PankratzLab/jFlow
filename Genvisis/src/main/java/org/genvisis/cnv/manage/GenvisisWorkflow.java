@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,6 +63,7 @@ import org.genvisis.stats.Maths;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -95,20 +95,21 @@ public class GenvisisWorkflow {
 			this.name = name;
 			this.desc = desc;
 			this.requirements = requirements;
-			final Set<Step> buildRelatedSteps = new HashSet<Step>();
 			this.stepFlags = EnumSet.copyOf(flags);
+			ImmutableSet.Builder<Step> relatedStepsBuilder = ImmutableSet.builder();
+			relatedStepsBuilder.add(this);
 			for (Requirement[] group : requirements) {
 				for (Requirement req : group) {
 					if (req instanceof StepRequirement) {
 						Step requiredStep = ((StepRequirement) req).getRequiredStep();
-						buildRelatedSteps.add(requiredStep);
-						buildRelatedSteps.addAll(requiredStep.getRelatedSteps());
+						relatedStepsBuilder.add(requiredStep);
+						relatedStepsBuilder.addAll(requiredStep.getRelatedSteps());
 					} else if (req == getNumThreadsReq()) {
 						stepFlags.add(Flag.MULTITHREADED);
 					}
 				}
 			}
-			this.relatedSteps = Collections.unmodifiableSet(buildRelatedSteps);
+			this.relatedSteps = relatedStepsBuilder.build();
 			this.stepFlags = Sets.immutableEnumSet(flags);
 			this.priority = priority;
 		}
