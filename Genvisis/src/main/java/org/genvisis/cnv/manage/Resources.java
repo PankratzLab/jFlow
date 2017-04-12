@@ -86,7 +86,7 @@ public final class Resources {
 						addMessage(rsrc.getLocalPath());
 					}
 				}
-				System.out.println("Local resource check complete.");
+				System.out.println("... local resource validation complete.");
 				LaunchProperties.put(LAST_RESOURCE_CHECK, String.valueOf(System.currentTimeMillis()));
 			}
 		}
