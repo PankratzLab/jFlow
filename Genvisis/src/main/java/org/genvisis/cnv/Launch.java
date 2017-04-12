@@ -1486,16 +1486,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	 * @param args Command-line arguments
 	 */
 	public static void main(String[] args) {
+		if (runMainClass(args)) {
+			return;
+		}
+
 		StartupValidation.validate(new StartupErrorHandler() {
 			@Override
 			public void handleWarnings(String warning) {
 				System.err.println(warning);
 			}
 		});
-
-		if (runMainClass(args)) {
-			return;
-		}
 
 		try {
 			System.out.println(ext.getTime() + "]\tStarting Genvisis...");
