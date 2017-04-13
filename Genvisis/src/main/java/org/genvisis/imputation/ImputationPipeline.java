@@ -1,5 +1,18 @@
 package org.genvisis.imputation;
 
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypeBuilder;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.variantcontext.writer.Options;
+import htsjdk.variant.variantcontext.writer.VariantContextWriter;
+import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
+import htsjdk.variant.vcf.VCFFormatHeaderLine;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFHeaderLineType;
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -30,33 +43,27 @@ import org.genvisis.seq.manage.ReferenceGenome;
 
 import com.google.common.collect.ImmutableSet;
 
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.variant.variantcontext.Allele;
-import htsjdk.variant.variantcontext.Genotype;
-import htsjdk.variant.variantcontext.GenotypeBuilder;
-import htsjdk.variant.variantcontext.VariantContextBuilder;
-import htsjdk.variant.variantcontext.writer.Options;
-import htsjdk.variant.variantcontext.writer.VariantContextWriter;
-import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
-import htsjdk.variant.vcf.VCFFormatHeaderLine;
-import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderLine;
-import htsjdk.variant.vcf.VCFHeaderLineType;
-
 /**
- * Export genotypes to either PLINK or VCF format and, depending on selected options, generate scripts to run ShapeIt and Minimac programs externally.
- * <br /><br />
- * Imputation TODO's:<br /><ul>
- *  <li> Make content aware (i.e., if PLINK files already exist, skip chrs that exist (or overwrite, or fail))<br /></li>
- *  <li> Multithread data file export<br /></li>
- *  <li> Use ScriptExecutor for ShapeIt/Minimac scripts</li>
- *  </ul>	
+ * Export genotypes to either PLINK or VCF format and, depending on selected options, generate
+ * scripts to run ShapeIt and Minimac programs externally. <br />
+ * <br />
+ * Imputation TODO's:<br />
+ * <ul>
+ * <li>Make content aware (i.e., if PLINK files already exist, skip chrs that exist (or overwrite,
+ * or fail))<br />
+ * </li>
+ * <li>Multithread data file export<br />
+ * </li>
+ * <li>Use ScriptExecutor for ShapeIt/Minimac scripts</li>
+ * </ul>
  */
 public class ImputationPipeline {
 
 	Project proj;
 	Set<String> dropMarkers = new HashSet<String>();
 	Set<String> dropSamples = new HashSet<String>();
+	Set<String> keepMarkers = new HashSet<String>();
+	Set<String> keepSamples = new HashSet<String>();
 	Map<String, Marker> prepMarkers = new HashMap<String, Marker>();
 
 	Set<String> markersToExport;
@@ -65,13 +72,14 @@ public class ImputationPipeline {
 		this.proj = proj;
 		ImputationPrep prep = new ImputationPrep(proj, referenceFile);
 		Set<Marker> markers = prep.getMatchingMarkers();
-		PrintWriter writer = Files.getAppropriateWriter("/home/pankrat2/cole0482/imputationMarkers.txt");
+		// PrintWriter writer =
+		// Files.getAppropriateWriter("/home/pankrat2/cole0482/imputationMarkers.txt");
 		for (Marker m : markers) {
 			prepMarkers.put(m.getName(), m);
-			writer.println(m.getName());
+			// writer.println(m.getName());
 		}
-		writer.flush();
-		writer.close();
+		// writer.flush();
+		// writer.close();
 	}
 
 	public void loadDefaultDropFiles(String plinkDir) {
@@ -90,6 +98,14 @@ public class ImputationPipeline {
 		dropSamples = HashVec.loadFileToHashSet(samplesToDropFile, false);
 	}
 
+	public void setSamplesToKeepFile(String samplesToKeepFile) {
+		if (!Files.exists(samplesToKeepFile)) {
+			proj.getLog().reportTimeWarning("Sample keep file doesn't exist: " + samplesToKeepFile);
+			return;
+		}
+		keepSamples = HashVec.loadFileToHashSet(samplesToKeepFile, false);
+	}
+
 	public void setMarkersToDropFile(String markersToDropFile) {
 		if (!Files.exists(markersToDropFile)) {
 			proj.getLog().reportTimeWarning("Marker drop file doesn't exist: " + markersToDropFile);
@@ -98,9 +114,20 @@ public class ImputationPipeline {
 		dropMarkers = HashVec.loadFileToHashSet(markersToDropFile, false);
 	}
 
+	public void setMarkersToKeepFile(String markersToKeepFile) {
+		if (!Files.exists(markersToKeepFile)) {
+			proj.getLog().reportTimeWarning("Marker keep file doesn't exist: " + markersToKeepFile);
+			return;
+		}
+		dropMarkers = HashVec.loadFileToHashSet(markersToKeepFile, false);
+	}
+
 	private Set<String> getMarkersToExport() {
 		if (markersToExport == null) {
 			markersToExport = new HashSet<String>(Arrays.asList(proj.getMarkerNames()));
+			if (keepMarkers != null && keepMarkers.size() > 0) {
+				markersToExport.retainAll(keepMarkers);
+			}
 			markersToExport.removeAll(dropMarkers);
 			markersToExport.retainAll(prepMarkers.keySet());
 		}
@@ -142,7 +169,19 @@ public class ImputationPipeline {
 	public void exportToPlink(String plinkDirAndRoot, int[] chrs) {
 		// TODO (??) Only alphanumeric characters in FID/IID
 		(new File(ext.parseDirectoryOfFile(plinkDirAndRoot + ".bim"))).mkdirs();
-		String[] writtenDNAs = PlinkData.createFamFile(proj, plinkDirAndRoot, dropSamples, true);
+		// TODO generate set of all drops:
+		HashSet<String> toDrop = new HashSet<String>();
+		if (keepSamples != null && keepSamples.size() > 0) {
+			for (String s : proj.getSamples()) {
+				if (keepSamples.contains(s) && !dropSamples.contains(s)) {
+					continue;
+				}
+				toDrop.add(s);
+			}
+		} else {
+			toDrop.addAll(dropSamples);
+		}
+		String[] writtenDNAs = PlinkData.createFamFile(proj, plinkDirAndRoot, toDrop, true);
 		if (writtenDNAs == null) {
 			// TODO error
 			return;
@@ -154,7 +193,7 @@ public class ImputationPipeline {
 		// UNUSED - could potentially apply
 		String clusterFilterFileName = proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue();
 
-		float gcThreshold = 0; /* this is unused in plink export code */ // proj.GC_THRESHOLD.getValue().floatValue();
+		float gcThreshold = 0; /* this is unused in plink export code */// proj.GC_THRESHOLD.getValue().floatValue();
 
 		// TODO multi-thread
 		for (int chr : chrs) {
@@ -198,10 +237,14 @@ public class ImputationPipeline {
 		Map<String, Integer> idIndexMap = new HashMap<String, Integer>();
 		for (int i = 0; i < allSamples.length; i++) {
 			String s = allSamples[i];
-			if (!dropSamples.contains(sd.lookup(s)[1])) {
-				idsToInclude.add(s);
+			if (sd.lookup(s) == null) {
+				System.out.println("No SampleData lookup for " + s);
+			} else {
+				if (!dropSamples.contains(sd.lookup(s)[1])) {
+					idsToInclude.add(s);
+				}
+				idIndexMap.put(s, i);
 			}
-			idIndexMap.put(s, i);
 		}
 
 		// UNUSED - could potentially apply
@@ -213,9 +256,9 @@ public class ImputationPipeline {
 			clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFileName,
 																														 proj.JAR_STATUS.getValue());
 		}
-		
-		float gcThreshold = 0; /* this is unused in plink export code, so we won't use it here, either */ //proj.GC_THRESHOLD.getValue().floatValue();
-		
+
+		float gcThreshold = 0; /* this is unused in plink export code, so we won't use it here, either */// proj.GC_THRESHOLD.getValue().floatValue();
+
 
 		// TODO multi-thread
 		for (int chr : chrs) {
@@ -234,7 +277,8 @@ public class ImputationPipeline {
 
 			VCFHeader vcfHeader = new VCFHeader(lines, idsToInclude);
 
-			SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
+			SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(
+																																				Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
 																																												 proj.getLog())
 																																								 .getFASTA()
 																																								 .getAbsolute(),
@@ -268,7 +312,9 @@ public class ImputationPipeline {
 				builderVc.stop(mkr.getPosition());
 				builderVc.id(mkr.getName());
 				Collection<Genotype> genos = new ArrayList<Genotype>();
-				byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(), gcThreshold, proj.getLog());
+				byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection,
+																																 markerData.getMarkerName(),
+																																 gcThreshold, proj.getLog());
 				for (int k = 0; k < idsToInclude.size(); k++) {
 					int idInd = idIndexMap.get(idsToInclude.get(k));
 					String id = idsToInclude.get(k);
@@ -308,48 +354,54 @@ public class ImputationPipeline {
 			writer = null;
 			System.gc();
 		}
-		
+
 	}
 
 	private static class ImputationPipeRunner {
-		
-		public static void runVCF(String projPropFile, int[] chrs, String refFile, String plinkSubdir, String vcfDirAndRoot) {
+
+		public static void runVCF(String projPropFile, int[] chrs, String refFile, String plinkSubdir,
+															String vcfDirAndRoot) {
 			ImputationPipeline ip = setupPipe(projPropFile, refFile, plinkSubdir);
 			ip.exportToVCF(vcfDirAndRoot, chrs);
 		}
-		
-		public static void runPlink(String projPropFile, int[] chrs, String refFile, String plinkSubdir, String outputDirAndRoot) {
+
+		public static void runPlink(String projPropFile, int[] chrs, String refFile,
+																String plinkSubdir, String outputDirAndRoot) {
 			ImputationPipeline ip = setupPipe(projPropFile, refFile, plinkSubdir);
 			ip.exportToPlink(outputDirAndRoot, chrs);
 		}
 
-		public static void runShapeIt(String projPropFile, int[] chrs, String plinkFileDir, String plinkPrefix, String outDir) {
+		public static void runShapeIt(String projPropFile, int[] chrs, String plinkFileDir,
+																	String plinkPrefix, String outDir) {
 			Project proj = new Project(projPropFile, false);
 			new ImputationImpl.ShapeIt(proj, chrs, plinkFileDir, plinkPrefix, outDir).createScripts();
 		}
-		
+
 		public static void runMinimac(String projPropFile, int[] chrs, String hapsDir, String outDir) {
 			Project proj = new Project(projPropFile, false);
 			new ImputationImpl.MiniMac(proj, chrs, hapsDir, outDir).createScripts();
 		}
-		
-		public static void runPlinkAndShapeIt(String projPropFile, int[] chrs, String refFile, String plinkSubdir, String outputDir) {
+
+		public static void runPlinkAndShapeIt(String projPropFile, int[] chrs, String refFile,
+																					String plinkSubdir, String outputDir) {
 			runPlink(projPropFile, chrs, refFile, plinkSubdir, outputDir + "/plink/plink");
 			runShapeIt(projPropFile, chrs, outputDir + "/plink/", "plink_chr", outputDir + "/haps/");
 		}
-		
-		public static void runPlinkShapeItAndMinimac(String projPropFile, int[] chrs, String refFile, String plinkSubdir, String outputDir) {
+
+		public static void runPlinkShapeItAndMinimac(String projPropFile, int[] chrs, String refFile,
+																								 String plinkSubdir, String outputDir) {
 			runPlinkAndShapeIt(projPropFile, chrs, refFile, plinkSubdir, outputDir);
 			runMinimac(projPropFile, chrs, outputDir + "/haps/", outputDir);
 		}
-		
-		private static ImputationPipeline setupPipe(String projPropFile, String refFile, String plinkSubdir) {
+
+		private static ImputationPipeline setupPipe(String projPropFile, String refFile,
+																								String plinkSubdir) {
 			Project proj = new Project(projPropFile, false);
 			ImputationPipeline ip = new ImputationPipeline(proj, refFile);
 			ip.loadDefaultDropFiles(proj.PROJECT_DIRECTORY.getValue() + plinkSubdir);
 			return ip;
 		}
-		
+
 	}
 
 	private enum IMPUTATION_PIPELINE_PATH {
@@ -372,7 +424,7 @@ public class ImputationPipeline {
 		String plinkPrefix = null;
 		int[] chrs = null;
 		IMPUTATION_PIPELINE_PATH path = null;
-		
+
 		String usage = "\n" +
 									 "org.genvisis.imputation.ImputationPipeline requires 0-1 arguments\n" +
 									 "   (1) Project properties filename (i.e. proj=" + projFile + " (default))\n" +
@@ -414,12 +466,13 @@ public class ImputationPipeline {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
 		}
+
 		if (numArgs != 0) {
 			System.err.println(usage);
 			System.exit(1);
 		}
 		try {
-			switch(path) {
+			switch (path) {
 				case VCF_ONLY:
 					ImputationPipeRunner.runVCF(projFile, chrs, refFile, plinkSubdir, outDirAndRoot);
 					break;
@@ -430,7 +483,8 @@ public class ImputationPipeline {
 					ImputationPipeRunner.runPlinkAndShapeIt(projFile, chrs, refFile, plinkSubdir, outDir);
 					break;
 				case PLINK_SHAPE_MINI:
-					ImputationPipeRunner.runPlinkShapeItAndMinimac(projFile, chrs, refFile, plinkSubdir, outDir);
+					ImputationPipeRunner.runPlinkShapeItAndMinimac(projFile, chrs, refFile, plinkSubdir,
+																												 outDir);
 					break;
 				case MINI:
 					ImputationPipeRunner.runMinimac(projFile, chrs, hapsDir, outDir);
@@ -446,7 +500,5 @@ public class ImputationPipeline {
 			e.printStackTrace();
 		}
 	}
-	
-	
-	
+
 }
