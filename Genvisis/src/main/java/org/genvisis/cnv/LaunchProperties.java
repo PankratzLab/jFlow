@@ -104,25 +104,32 @@ public class LaunchProperties {
 				if (!propFile.exists()) {
 					// check for a custom path
 					if (!hasCustomPath()) {
-						Files.ensurePathExists(defaultDir);
-						JFileChooser jfc = new JFileChooser(defaultDir);
-						jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-						jfc.setDialogTitle("Choose launch properties directory:");
-						jfc.setMultiSelectionEnabled(false);
-						int resp = jfc.showDialog(null, "Select");
-						if (resp == JFileChooser.APPROVE_OPTION) {
-							String newPath = jfc.getSelectedFile().getAbsolutePath();
+						// check for a file local to the .jar
+						File localProps = new File("launch.properties");
+						if (localProps.exists()) {
+							propFile = localProps;
+							customPropertiesDir = ".";
+							updatePropertiesFile("launch.properties");
+						} else {
+							Files.ensurePathExists(defaultDir);
+							JFileChooser jfc = new JFileChooser(defaultDir);
+							jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+							jfc.setDialogTitle("Choose launch properties directory:");
+							jfc.setMultiSelectionEnabled(false);
+							int resp = jfc.showDialog(null, "Select");
+							if (resp == JFileChooser.APPROVE_OPTION) {
+								String newPath = jfc.getSelectedFile().getAbsolutePath();
 
-							customPropertiesDir = newPath + System.getProperty("file.separator");
-							updatePropertiesFile(customPropertiesDir + "launch.properties");
-							propFile = new File(propertiesFile);
-
-							saveCustomPath();
+								customPropertiesDir = newPath + System.getProperty("file.separator");
+								updatePropertiesFile(customPropertiesDir + "launch.properties");
+								propFile = new File(propertiesFile);
+							}
 						}
 					} else {
-						saveCustomPath();
+						propertiesFile = customPropertiesDir + "launch.properties";
 						propFile = new File(propertiesFile);
 					}
+					saveCustomPath();
 				}
 
 				if (!propFile.exists() && !propFile.createNewFile()) {
@@ -317,10 +324,7 @@ public class LaunchProperties {
 				customPropertiesDir = p;
 				p += "launch.properties";
 				File c = new File(p);
-				if (c.exists()) {
-					updatePropertiesFile(p);
-					return true;
-				}
+				return c.exists();
 			}
 		} catch (IOException e) {
 			System.err.println("Failed to load custom launch properties: " + propertiesFile
