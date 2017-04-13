@@ -66,7 +66,6 @@ public class MitoSeqCN {
 			ReferenceGenome referenceGenome = genomeBuild == null ? new ReferenceGenome(referenceGenomeFasta,
 																																									log)
 																														: new ReferenceGenome(genomeBuild, log);
-			BedOps.verifyBedIndex(captureBed, log);
 			LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).autosomal(true,
 																																															 log);
 			if (aType == ASSAY_TYPE.WXS) {
@@ -74,6 +73,7 @@ public class MitoSeqCN {
 					throw new IllegalArgumentException("A valid capture bed file must be provided for "
 																						 + ASSAY_TYPE.WXS);
 				}
+				BedOps.verifyBedIndex(captureBed, log);
 				BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
 
 				genomeBinsMinusBinsCaputure = genomeBinsMinusBinsCaputure.removeThese(readerCapture.loadAll(log)
@@ -83,7 +83,7 @@ public class MitoSeqCN {
 				readerCapture.close();
 
 			} else {
-				log.reportTimeWarning("Not using capture targer subset for WGS ");
+				log.reportTimeWarning("Not using capture target subset for WGS ");
 
 			}
 			log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered()
@@ -243,6 +243,10 @@ public class MitoSeqCN {
 
 		}
 
+		private static boolean passesFilter(SAMRecord samRecord) {
+			return !samRecord.getReadUnmappedFlag() && !samRecord.getDuplicateReadFlag();
+		}
+
 		@Override
 		public MitoCNResult call() throws Exception {
 
@@ -251,7 +255,7 @@ public class MitoSeqCN {
 				log.reportTimeInfo("Processing sample " + sample);
 				String outputMTBam = outDir + ext.addToRoot(ext.removeDirectoryInfo(bam), ".chrM");
 
-				SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT);
+				SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.LENIENT);
 
 				SAMFileWriter sAMFileWriter = new SAMFileWriterFactory().setCreateIndex(true)
 																																.makeSAMOrBAMWriter(reader.getFileHeader(),
@@ -276,7 +280,7 @@ public class MitoSeqCN {
 				while (sIterator.hasNext()) {
 					SAMRecord samRecord = sIterator.next();
 
-					if (!samRecord.getReadUnmappedFlag() && !samRecord.getDuplicateReadFlag()) {
+					if (passesFilter(samRecord)) {
 						if (samRecord.getContig().equals(params.getMitoContig())) {
 							sAMFileWriter.addAlignment(samRecord);
 							numMitoReads++;
@@ -299,7 +303,7 @@ public class MitoSeqCN {
 				sIterator = reader.query(offTargetIntervalse, false);
 				while (sIterator.hasNext()) {
 					SAMRecord samRecord = sIterator.next();
-					if (!samRecord.getReadUnmappedFlag() && !samRecord.getDuplicateReadFlag()) {
+					if (passesFilter(samRecord)) {
 						numOffTarget++;
 
 						if (numOffTarget % 1000000 == 0) {
