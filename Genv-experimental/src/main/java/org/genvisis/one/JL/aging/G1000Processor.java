@@ -14,7 +14,10 @@ import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.analysis.genage.SRAPipeline;
 
-class G1000Processor {
+/**
+ *
+ */
+public class G1000Processor {
 	private static final String ASCP_COMMAND_BASE = "/home/pankrat2/lane0212/.aspera/connect/bin/ascp -i /home/pankrat2/lane0212/.aspera/connect/etc/asperaweb_id_dsa.openssh -Tr -Q -l 600M -L- fasp-g1k@fasp.1000genomes.ebi.ac.uk:vol1/ftp/phase3/data/";
 	private static final String EXOME_FLAG = "exome_alignment";
 

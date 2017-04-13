@@ -24,6 +24,7 @@ import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.BamOps.BamIndexStats;
 import org.genvisis.seq.manage.BedOps;
 import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.seq.manage.SamRecordOps;
 
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMFileWriter;
@@ -308,7 +309,8 @@ public class MitoSeqCN {
 
 						if (numOffTarget % 1000000 == 0) {
 							log.reportTimeInfo("Processing normalization-reads for sample " + sample + " , found "
-																 + numOffTarget);
+																 + numOffTarget + ", currently on "
+																 + SamRecordOps.getDisplayLoc(samRecord));
 						}
 					}
 
