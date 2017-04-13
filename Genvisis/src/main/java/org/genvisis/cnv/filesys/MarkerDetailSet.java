@@ -25,6 +25,7 @@ import org.genvisis.common.GenomicPosition;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.StrandOps;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -38,6 +39,7 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 
+import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
 
 public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport {
@@ -289,7 +291,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		}
 	}
 
-	public static final long serialVersionUID = 4L;
+	public static final long serialVersionUID = 5L;
 
 	private final ImmutableList<Marker> markers;
 	private final int hashCode;
@@ -491,8 +493,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				int probeLength = markerBlastAnnotation.getMarkerSeqAnnotation().getSequence().length();
 				positionOffset = interrogationPosition - probeLength + 1;
 				MarkerSeqAnnotation markerSeqAnnotation = markerBlastAnnotation.getMarkerSeqAnnotation();
-				a = markerSeqAnnotation.getA();
-				b = markerSeqAnnotation.getB();
+				Strand strand = markerSeqAnnotation.getStrand();
+				a = StrandOps.flipIfNeeded(markerSeqAnnotation.getA(), strand);
+				b = StrandOps.flipIfNeeded(markerSeqAnnotation.getB(), strand);
 				Allele ref = markerSeqAnnotation.getRef();
 				if (ref.basesMatch(a))
 					refAllele = Marker.RefAllele.A;
