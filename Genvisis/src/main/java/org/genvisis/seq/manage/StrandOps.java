@@ -1,16 +1,40 @@
 package org.genvisis.seq.manage;
 
 import java.util.List;
+import java.util.Map;
 
 import org.genvisis.bioinformatics.Sequence;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
+import com.google.common.collect.ImmutableMap;
+
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 
+
 public class StrandOps {
+
+
+	private static final Map<String, String> STRAND_FLIPS;
+
+	static {
+		ImmutableMap.Builder<String, String> strandFlipsBuilder = ImmutableMap.builder();
+		strandFlipsBuilder.put("A", "T");
+		strandFlipsBuilder.put("T", "A");
+		strandFlipsBuilder.put("C", "G");
+		strandFlipsBuilder.put("G", "C");
+		STRAND_FLIPS = strandFlipsBuilder.build();
+	}
+
+	public static Allele flipIfNeeded(Allele allele, Strand strand) {
+		if (strand == Strand.NEGATIVE) {
+			return Allele.create(flipEach(allele.getDisplayString(), true).toString(),
+													 allele.isReference());
+		}
+		return allele;
+	}
 
 	public static String[] flipIfNeeded(String[] b, Strand strand, boolean ignoreInvalidAlleles) {
 		String[] flipped = new String[b.length];
@@ -26,32 +50,40 @@ public class StrandOps {
 
 	public static String flipsIfNeeded(String b, Strand strand, boolean ignoreInvalidAlleles,
 																		 boolean reverse) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < b.length(); i++) {
-			sb.append(flipIfNeeded(b.charAt(i) + "", strand, ignoreInvalidAlleles));
+		StringBuilder sb;
+
+		if (strand == Strand.NEGATIVE) {
+			sb = flipEach(b, ignoreInvalidAlleles);
+		} else {
+			sb = new StringBuilder(b);
 		}
 		return reverse ? sb.reverse().toString() : sb.toString();
 	}
 
+	private static StringBuilder flipEach(String b, boolean ignoreInvalidAlleles) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < b.length(); i++) {
+			sb.append(flip(String.valueOf(b.charAt(i)), ignoreInvalidAlleles));
+		}
+		return sb;
+	}
+
 	public static String flipIfNeeded(String b, Strand strand, boolean ignoreInvalidAlleles) {
 		if (strand == Strand.NEGATIVE) {
-			if (b.equals("A")) {
-				return "T";
-			} else if (b.equals("G")) {
-				return "C";
-			} else if (b.equals("C")) {
-				return "G";
-			} else if (b.equals("T")) {
-				return "A";
-			} else {
-				if (!ignoreInvalidAlleles) {
-					throw new IllegalArgumentException("Invalid base for strand flip " + b);
-				}
-				return b;
-			}
+			return flip(b, ignoreInvalidAlleles);
 		} else {
 			return b;
 		}
+	}
+
+	private static String flip(String b, boolean ignoreInvalidAlleles) {
+		if (b.length() == 1) {
+			return STRAND_FLIPS.get(b);
+		}
+		if (!ignoreInvalidAlleles) {
+			throw new IllegalArgumentException("Invalid base for strand flip: " + b);
+		}
+		return b;
 	}
 
 	public static boolean isAmbiguous(VariantContext vc) {
