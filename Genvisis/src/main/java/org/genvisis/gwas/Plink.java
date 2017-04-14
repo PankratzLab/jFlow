@@ -167,7 +167,8 @@ public class Plink {
 		imiss = new Hashtable<String, String>();
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), IMISS_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), IMISS_HEADER,
+											true);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length < 6) {
@@ -210,7 +211,8 @@ public class Plink {
 		imiss = new Hashtable<String, String>();
 		try {
 			reader = new BufferedReader(new FileReader("plink.imiss"));
-			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), IMISS_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), IMISS_HEADER,
+											true);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				imiss.put(line[0] + "\t" + line[1], line[5]);
@@ -423,7 +425,8 @@ public class Plink {
 			log.reportError("Error - specified .imiss file missing , indiviudals will not be preferentially selected based on call rate");
 			callrates = new Hashtable<String, String>();
 		} else {
-			ext.checkHeader(Files.getHeaderOfFile(iMissFile, PSF.Regex.GREEDY_WHITESPACE, log), IMISS_HEADER, true);
+			ext.checkHeader(Files.getHeaderOfFile(iMissFile, PSF.Regex.GREEDY_WHITESPACE, log),
+											IMISS_HEADER, true);
 			callrates = HashVec.loadFileToHashString(iMissFile, new int[] {0, 1}, new int[] {5}, false,
 																							 "\t", false, false, false);
 			log.report("Successfully loaded '" + iMissFile + "'");
@@ -437,7 +440,9 @@ public class Plink {
 											+ ") is missing, individuals will not be preferentially selected based on LRR_SD");
 			lrr_sds = new Hashtable<String, String>();
 		} else {
-			boolean properHeader = ext.checkHeader(Files.getHeaderOfFile(lrrFile, PSF.Regex.GREEDY_WHITESPACE, log),
+			boolean properHeader = ext.checkHeader(Files.getHeaderOfFile(lrrFile,
+																																	 PSF.Regex.GREEDY_WHITESPACE,
+																																	 log),
 																						 new String[] {"SAMPLE", "LRR_SD"}, new int[] {0, 2},
 																						 false, log, true);
 			if (properHeader) {
@@ -482,7 +487,8 @@ public class Plink {
 		duplicates = new HashMap<String, Set<String>>();
 		try {
 			reader = Files.getAppropriateReader(genomeFile);
-			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CLUSTER_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CLUSTER_HEADER,
+											true);
 			log.report(ext.getTime() + "\tProcessing " + ext.removeDirectoryInfo(genomeFile) + "...");
 
 
@@ -532,6 +538,12 @@ public class Plink {
 
 						// Update list of known duplicates
 						if ("duplicate".equals(flags[i])) {
+							// NB: This code probably looks dumb to you because of the extra removals and such.
+							// You may be tempted to rewrite it more intelligently... tread with caution. It is
+							// written this way to catch scenarios such as having 4 duplicates where individual 1
+							// and 2 are encountered, then 3 and 4 are encountered. This creates a scenario where
+							// the duplicate sets should be merged, to avoid potential divergence.
+
 							// Create the set for this duplicate pair
 							Set<String> dupeSet = new HashSet<String>();
 							dupeSet.add(fidIid1);
@@ -944,10 +956,10 @@ public class Plink {
 
 	public static void batchLD(String root, double minR2ToKeep) {
 		Qsub.qsub("runLD", 1, 22,
-							 "cd " + ext.pwd() + "\n~/bin/plink --noweb --bfile " + root
-															 + " --r2 --chr # --ld-window 99999 --ld-window-r2 " + minR2ToKeep
-															 + " --out chr#",
-							 2000, 2);
+							"cd " + ext.pwd() + "\n~/bin/plink --noweb --bfile " + root
+															+ " --r2 --chr # --ld-window 99999 --ld-window-r2 " + minR2ToKeep
+															+ " --out chr#",
+							2000, 2);
 	}
 
 	public static void parseHitsForAllFilesInDirectory(String dir, double pvalThreshold, Logger log) {
