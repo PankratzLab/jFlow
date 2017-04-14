@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -25,6 +26,8 @@ import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Hits;
 import org.genvisis.qsub.Qsub;
+
+import com.google.common.collect.ImmutableSet;
 
 public class Plink {
 	// public static final String[] CLUSTER_HEADER = {"FID1", "IID1", "FID2", "IID2", "Z0", "Z1",
@@ -681,14 +684,15 @@ public class Plink {
 		}
 
 		if (!duplicates.isEmpty()) {
-			log.report("Writing duplicates file - found " + duplicates.size()
+			Collection<Set<String>> uniqueDuplicateSets = ImmutableSet.copyOf(duplicates.values());
+			log.report("Writing duplicates file - found " + uniqueDuplicateSets.size()
 								 + " sets of duplicate identifiers");
 			try {
 				PrintWriter writerSet = new PrintWriter(new FileWriter(genomeFileRoot
 																															 + "_duplicatesSet.dat"));
 				writer = new PrintWriter(new FileWriter(genomeFileRoot + "_duplicates.dat"));
 				int set = 1;
-				for (Set<String> dupeSet : duplicates.values()) {
+				for (Set<String> dupeSet : uniqueDuplicateSets) {
 					for (String fidIid : dupeSet) {
 						writerSet.println(fidIid + "\t" + set);
 						writer.print(fidIid);
