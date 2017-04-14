@@ -109,7 +109,8 @@ public class ScriptExecutor {
 		int numThreads = 1;
 
 		String usage = "one.ScriptExecutor requires 3 arguments\n"
-									 + "   (1) filename with one command per line (i.e. file=" + inputFile
+									 + "   (1) filename with one command per line (i.e. file="
+									 + inputFile
 									 + " (default))\n"
 									 + "   (2) token indicating successful completion in last line of log files (i.e. token="
 									 + outlogToken + " (default))\n" + "   (3) number of threads (i.e. threads="
@@ -123,7 +124,7 @@ public class ScriptExecutor {
 				inputFile = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("token=")) {
-				outlogToken = arg.split("=")[1];
+				outlogToken = ext.parseStringArg(arg, "");
 				numArgs--;
 			} else if (arg.startsWith("threads=")) {
 				numThreads = Integer.valueOf(arg.split("=")[1]);

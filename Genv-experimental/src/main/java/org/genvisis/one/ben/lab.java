@@ -6,13 +6,18 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.genvisis.cnv.analysis.FilterCalls;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
@@ -225,11 +230,240 @@ public class lab {
 		}
 	}
 
+	public static void famLookup() {
+		String famFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/plink.fam";
+		String famFileOut = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/plink_corrected.fam";
+		String pedFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/pedigree_fixed.dat";
+		String[][] ped = HashVec.loadFileToStringMatrix(pedFile, false, null, "\t", false, 100000,
+																										false);
+		String[][] fam = HashVec.loadFileToStringMatrix(famFile, false, null, "[\\s]+", false, 100000,
+																										false);
+		String dropSampFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/dropSamples.txt";
+
+		HashMap<String, String> dnaToFIDIID = new HashMap<>();
+		for (String[] s : ped) {
+			dnaToFIDIID.put(s[6], s[0] + "\t" + s[1]);
+		}
+
+		String ids;
+		StringBuilder sb;
+		PrintWriter writer = Files.getAppropriateWriter(famFileOut);
+		PrintWriter drops = Files.getAppropriateWriter(dropSampFile);
+		for (String[] line : fam) {
+			sb = new StringBuilder();
+			ids = dnaToFIDIID.get(line[0]);
+			if (ids == null) {
+				sb.append(line[0]).append("\t").append(line[1]);
+				drops.println(line[0]);
+			} else {
+				sb.append(ids);
+			}
+			sb.append("\t").append(line[2])
+				.append("\t").append(line[3])
+				.append("\t").append(line[4])
+				.append("\t").append(line[5]);
+			writer.println(sb.toString());
+		}
+		writer.flush();
+		writer.close();
+		drops.flush();
+		drops.close();
+	}
+
+
+	public static void crossRefAndFilter(String f1, String f2, String fOut, boolean not) {
+		HashSet<String> f1Data = HashVec.loadFileToHashSet(f1, false);
+		HashSet<String> f2Data = HashVec.loadFileToHashSet(f2, false);
+
+		HashSet<String> left = new HashSet<>(f1Data);
+
+		if (not) {
+			left.removeAll(f2Data);
+		} else {
+			left.retainAll(f2Data);
+		}
+
+		Files.writeIterable(left, fOut);
+	}
+
+	public static void affy6SnpLookup(String file) {
+		String affySnpFile = "/home/pankrat2/cole0482/Affy6_SnpList.xln";
+		String[][] aff = HashVec.loadFileToStringMatrix(affySnpFile, true, null, "[\\s]+", false,
+																										100000, false);
+		HashMap<String, String> affRS = new HashMap<>();
+		for (String[] line : aff) {
+			affRS.put(line[0], line[1]);
+		}
+
+		String out = ext.rootOf(file, false) + "_corrected.txt";
+		PrintWriter writer = Files.getAppropriateWriter(out);
+		String[] mkrs = HashVec.loadFileToStringArray(file, false, new int[] {0}, false);
+		int missCnt = 0;
+		for (String snp : mkrs) {
+			String rs = affRS.get(snp);
+			if (rs == null || "---".equals(rs))
+				missCnt++;
+			writer.println(rs == null || "---".equals(rs) ? snp : rs);
+		}
+		writer.flush();
+		writer.close();
+
+		System.out.println(missCnt + " snps missing an RS number in file: " + file);
+
+	}
+
+	private static HashMap<String, String> loadCallrates(String callrateFile) {
+		String[] hdr = Files.getHeaderOfFile(callrateFile, new Logger());
+		int[] mkrInds = ext.indexFactors(Aliases.MARKER_NAMES, hdr, false, false);
+		int mkrInd = -1;
+		for (int m : mkrInds) {
+			if (m >= 0) {
+				mkrInd = m;
+				break;
+			}
+		}
+		int callInd = ext.indexOfStr("CallRate", hdr, false, true);
+
+		if (mkrInd == -1 || callInd == -1) {
+			System.err.println("Error - Couldn't find header.");
+			return null;
+		}
+
+		HashMap<String, String> callrateMap = new HashMap<>();
+
+		String[][] info = HashVec.loadFileToStringMatrix(callrateFile, true,
+																										 new int[] {mkrInd, callInd}, false);
+		for (String[] line : info) {
+			callrateMap.put(line[0], line[1]);
+		}
+
+		info = null;
+		return callrateMap;
+	}
+
+	static class MarkerLookup {
+		private final HashMap<String, ArrayList<String>> markerLookup;
+		private final HashMap<String, String> reverseLookup;
+
+		public MarkerLookup() {
+			markerLookup = new HashMap<>();
+			reverseLookup = new HashMap<>();
+		}
+
+		public void addMarker(String[] line) {
+			ArrayList<String> mkrs = markerLookup.get(line[0]);
+			if (mkrs == null) {
+				mkrs = new ArrayList<>();
+				markerLookup.put(line[0], mkrs);
+			}
+			for (int i = 1; i < line.length; i++) {
+				mkrs.add(line[i]);
+				reverseLookup.put(line[i], line[0]);
+			}
+		}
+
+		public Set<String> getNewMarkers() {
+			return markerLookup.keySet();
+		}
+
+		public ArrayList<String> getOldMarkers(String s) {
+			return markerLookup.get(s);
+		}
+
+	}
+
+	public static MarkerLookup loadMarkerInfoFile(String mkrInfoFile) throws IOException {
+		BufferedReader reader = Files.getAppropriateReader(mkrInfoFile);
+		String line;
+		MarkerLookup ml = new MarkerLookup();
+		while ((line = reader.readLine()) != null) {
+			String[] pts = line.split("[\\s]+");
+			ml.addMarker(pts);
+		}
+		reader.close();
+		return ml;
+	}
+
+	/**
+	 * 
+	 * @param mkrInfoFile Duplicates file. Expects the following format:<br/>
+	 *        <code>NewMarkerName &lt;...markers to combine into this marker&gt;</code>
+	 * @throws IOException
+	 */
+	public static void markerDuplicateFilter(String mkrInfoFile, String missDropsFile,
+																					 String callrateFile, String outFile) throws IOException {
+
+		HashMap<String, String> callrates = loadCallrates(callrateFile);
+		if (callrates == null)
+			return;
+		String[] missDropsArr = HashVec.loadFileToStringArray(missDropsFile, false, null, false);
+		HashSet<String> missDrops = new HashSet<>();
+		for (String m : missDropsArr) {
+			missDrops.add(m);
+		}
+
+		MarkerLookup ml = loadMarkerInfoFile(mkrInfoFile);
+
+		HashSet<String> allDrops = new HashSet<>();
+
+		for (String s : ml.getNewMarkers()) {
+			ArrayList<String> oldMkrs = ml.getOldMarkers(s);
+			if (oldMkrs.size() == 0) {
+				continue;
+			} else if (oldMkrs.size() == 1) {
+				if (missDrops.contains(oldMkrs.get(0))) {
+					allDrops.add(oldMkrs.get(0));
+				}
+			} else {
+				boolean droppedAll = true;
+				for (String o : oldMkrs) {
+					if (!missDrops.contains(o)) {
+						droppedAll = false;
+						break;
+					}
+				}
+				if (!droppedAll) {
+					// if droppedAll == true, all markers will be added through miss_drops, so no worry
+					ArrayList<Double> mkrCalls = new ArrayList<>();
+					for (String o : oldMkrs) {
+						if (missDrops.contains(o)) {
+							mkrCalls.add(-1d);
+						} else {
+							String callStr = callrates.get(o);
+							if (callStr == null) {
+								System.err.println("Error - no callrate info for marker: " + o);
+								mkrCalls.add(-1d);
+							} else {
+								mkrCalls.add(Double.parseDouble(callStr));
+							}
+						}
+					}
+					double maxCall = 0;
+					int maxInd = -1;
+					for (int i = 0; i < mkrCalls.size(); i++) {
+						if (mkrCalls.get(i) > maxCall) {
+							maxInd = i;
+							maxCall = mkrCalls.get(i);
+						}
+					}
+					for (int i = 0; i < mkrCalls.size(); i++) {
+						if (maxInd == i)
+							continue;
+						allDrops.add(oldMkrs.get(i));
+					}
+				}
+			}
+		}
+
+		Files.writeIterable(allDrops, outFile);
+	}
+
+
 	public static void affy6BimLookup() {
-		String bimFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/plinkApril2017.bim";
-		String newBimFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/plinkApril2017_correctedRS.bim";
-		String missSnpFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/plinkApril2017_missingRS.txt";
-		String mismatchFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/plinkApril2017_mismatchAlleles.txt";
+		String bimFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink.bim";
+		String newBimFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink_correctedRS.bim";
+		String missSnpFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink_missingRS.txt";
+		String mismatchFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink_mismatchAlleles.txt";
 		String affySnpFile = "/home/pankrat2/cole0482/Affy6_SnpList.xln";
 		String[][] bim = HashVec.loadFileToStringMatrix(bimFile, false, null, "\t", false, 100000,
 																										false);
@@ -259,13 +493,15 @@ public class lab {
 				writer.println(ArrayUtils.toStr(line, "\t"));
 			} else {
 				Alleles all = affMkrs.get(snp);
-				if (all.a1.equals(line[4]) && all.a2.equals(line[5])) {
+				if ((all.a1.equals(line[4]) && all.a2.equals(line[5]))
+						|| (all.a2.equals(line[4]) && all.a1.equals(line[5]))) {
 					if (!rs.equals("---")) {
 						line[1] = rs;
 					}
-				} else {
-					mismatch.println(snp + "\t" + rs + "\t" + all.a1 + "\t" + all.a2 + "\t" + line[4] + "\t"
-													 + line[5]);
+					// } else {
+					// mismatch.println(snp + "\t" + rs + "\t" + all.a1 + "\t" + all.a2 + "\t" + line[4] +
+					// "\t"
+					// + line[5]);
 				}
 				writer.println(ArrayUtils.toStr(line, "\t"));
 			}
@@ -280,6 +516,42 @@ public class lab {
 		System.out.println("Done!");
 	}
 
+
+	public static void genDupe() {
+		String file = "Affy6_SnpList.xln";
+		String[][] data = HashVec.loadFileToStringMatrix(file, false, null, "[\\s]+", false, 100000,
+																										 false);
+		String out = "Affy6_duplicates.txt";
+		HashMap<String, ArrayList<String>> map = new HashMap<>();
+		for (String[] line : data) {
+			if (line[1].equals("---"))
+				continue;
+			ArrayList<String> list = map.get(line[1]);
+			if (list == null) {
+				list = new ArrayList<>();
+				map.put(line[1], list);
+			}
+			list.add(line[0]);
+		}
+
+		StringBuilder sb;
+		PrintWriter writer = Files.getAppropriateWriter(out);
+		for (Entry<String, ArrayList<String>> entry : map.entrySet()) {
+			if (entry.getValue().size() == 1) {
+				continue;
+			}
+			sb = new StringBuilder();
+			sb.append(entry.getKey());
+			for (String s : entry.getValue()) {
+				sb.append("\t").append(s);
+			}
+			writer.println(sb.toString());
+		}
+		writer.flush();
+		writer.close();
+	}
+
+
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		Project proj;
@@ -290,6 +562,28 @@ public class lab {
 		boolean test = true;
 		if (test) {
 
+			// String dir = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/";
+			// String mkrInfoFile = "~/Affy6_duplicates.txt";
+			// String missDropsFile = dir + "quality_control/further_analysis_QC/miss_drops.dat";
+			// String callrateFile =
+			// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/ohw_ws_20_ALL1000PCs_gc_corrected_OnTheFly_LRR_035CR_096_SAMP_LRR_TRUE_markerQC.txt";
+			// String outFile = dir + "markerDuplicates.out";
+			// markerDuplicateFilter(mkrInfoFile, missDropsFile, callrateFile, outFile);
+
+
+			// genDupe();
+
+			// crossRefAndFilter("/scratch.global/cole0482/testImp/snps/allMarkers.txt",
+			// "/scratch.global/cole0482/testImp/snps/miss_drops.dat",
+			// "/scratch.global/cole0482/testImp/snps/cleanMarkers.txt", true);
+			//
+			// affy6SnpLookup("/scratch.global/cole0482/testImp/snps/cleanMarkers.txt");
+
+			// crossRefAndFilter("/scratch.global/cole0482/testImp/snps/allMarkers_corrected.txt",
+			// "/scratch.global/cole0482/testImp/snps/miss_drops_corrected.txt",
+			// "/scratch.global/cole0482/testImp/snps/cleanMarkers_corrected.txt", true);
+
+			// famLookup();
 			affy6BimLookup();
 
 			// String cmd =
