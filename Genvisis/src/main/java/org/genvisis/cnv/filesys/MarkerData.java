@@ -505,6 +505,16 @@ public class MarkerData implements Serializable {
 	}
 
 	public byte[] getAbGenotypesAfterFilters(ClusterFilterCollection clusterFilterCollection,
+																					 Logger log) {
+		return getAbGenotypesAfterFilters(clusterFilterCollection, getMarkerName(), 0, log);
+	}
+
+	public byte[] getAbGenotypesAfterFilters(ClusterFilterCollection clusterFilterCollection,
+																					 float gcThreshold, Logger log) {
+		return getAbGenotypesAfterFilters(clusterFilterCollection, getMarkerName(), gcThreshold, log);
+	}
+
+	public byte[] getAbGenotypesAfterFilters(ClusterFilterCollection clusterFilterCollection,
 																					 String markerName, float gcThreshold, Logger log) {
 		byte[] result, original;
 		float[] realX;
