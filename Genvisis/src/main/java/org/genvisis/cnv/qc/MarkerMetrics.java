@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -43,6 +44,8 @@ import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.RegressionModel;
 import org.genvisis.stats.Ttest;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
@@ -54,7 +57,8 @@ public class MarkerMetrics {
 																								 "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB",
 																								 "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB",
 																								 "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_z",
-																								 "LRR_SD", "LRR_num_NaNs", "MendelianErrors"};
+																								 "LRR_SD", "LRR_num_NaNs", "MendelianErrors",
+																								 "DuplicateErrors"};
 	public static final String[] LRR_VARIANCE_HEADER = {"MarkerName", "Chr", "Position", "SD_LRR",
 																											"MeanAbsLRR", "SD_BAF1585", "MeanAbsBAF1585"};
 	private static final String[] MENDEL_HEADER = {"FID", "KID", "CHR", "SNP", "CODE", "ERROR"};
@@ -148,7 +152,6 @@ public class MarkerMetrics {
 		PrintWriter writer, mendelWriter = null;
 		String[] samples;
 		float[] thetas, rs, lrrs;
-		MarkerData markerData;
 		byte[] abGenotypes;
 		String markerName;
 		ClusterFilterCollection clusterFilterCollection;
@@ -196,7 +199,7 @@ public class MarkerMetrics {
 			// for (int i = 0; i < markerNames.length; i++) {
 			int index = 0;
 			while (mdl.hasNext()) {
-				markerData = mdl.next();
+				MarkerData markerData = mdl.next();
 				index++;
 
 				markerName = markerData.getMarkerName();
@@ -284,6 +287,29 @@ public class MarkerMetrics {
 					mecCnt = "" + count;
 				}
 
+				Integer duplicateErrors = null;
+				SampleData sampleData = proj.getSampleData(0, false);
+				if (sampleData.getDuplicateSets() != null) {
+					Collection<Set<String>> duplicateSets = sampleData.getDuplicateSets();
+					List<Set<Integer>> duplicateIndexSets = Lists.newArrayListWithCapacity(duplicateSets.size());
+					Map<String, Integer> sampleIndices = proj.getSampleIndices();
+					for (Set<String> duplicateSet : duplicateSets) {
+						Set<Integer> duplicateIndices = Sets.newHashSetWithExpectedSize(duplicateSet.size());
+						for (String duplicate : duplicateSet) {
+							duplicateIndices.add(sampleIndices.get(duplicate));
+						}
+						duplicateIndexSets.add(duplicateIndices);
+					}
+
+					DuplicateConcordance duplicateConcordance = new DuplicateConcordance(markerData,
+																																							 duplicateIndexSets,
+																																							 clusterFilterCollection,
+																																							 log);
+					duplicateErrors = duplicateConcordance.calculateDiscordanceCount();
+				}
+				String duplicateErrorCount = duplicateErrors == null ? "."
+																														 : String.valueOf(duplicateErrors);
+
 
 				String line = markerName + "\t" + markerData.getChr() + "\t"
 											+ (1 - ((float) counts[0] / (counts[0] + counts[1] + counts[2] + counts[3])))
@@ -300,7 +326,8 @@ public class MarkerMetrics {
 																											 : (counts[2] + counts[3]))
 												/ (counts[0] + counts[1] + 2 * counts[2] + counts[3])
 											+ "\t" + AlleleFreq.HetExcess(counts[1], counts[2], counts[3])[0] + "\t"
-											+ numNaNs + "\t" + lrrSexZ + "\t" + lrrsd + "\t" + numLRRNaNs + "\t" + mecCnt;
+											+ numNaNs + "\t" + lrrSexZ + "\t" + lrrsd + "\t" + numLRRNaNs + "\t" + mecCnt
+											+ "\t" + duplicateErrorCount;
 				writer.println(line);
 
 				// if (line.length() > 25000) {
