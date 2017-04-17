@@ -55,6 +55,8 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.GeneSet;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 
+import com.google.common.collect.ImmutableMap;
+
 public class Project implements PropertyChangeListener {
 
 	public static final String EXAMPLE_PROJ = "example";
@@ -930,6 +932,19 @@ public class Project implements PropertyChangeListener {
 		} else {
 			return sampleList.getSamples();
 		}
+	}
+
+	public ImmutableMap<String, Integer> getSampleIndices() {
+
+		SampleList sampleList;
+
+		sampleList = getSampleList();
+		if (sampleList == null) {
+			return null;
+		} else {
+			return sampleList.getSampleIndices();
+		}
+
 	}
 
 	public boolean[] getSamplesToExclude() {

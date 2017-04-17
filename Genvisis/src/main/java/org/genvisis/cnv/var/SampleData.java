@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import javax.swing.SwingUtilities;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MitoPipeline;
+import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
@@ -41,6 +43,8 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariantHash;
 import org.genvisis.filesys.Segment;
 
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Multimaps;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 
@@ -212,27 +216,27 @@ public class SampleData {
 	// public static final String[] BASIC_FILTERS = {"GC"};
 
 	public static final String PLINK_CLASS_PREFIX = "PLINK: ";
-	private Project proj;
-	private String[] basicClasses;
-	private String[] filters;
-	private String[] covars;
+	private final Project proj;
+	private final String[] basicClasses;
+	private final String[] filters;
+	private final String[] covars;
 	private String[] classes;
-	private String[] metaHeaders;
-	private Map<String, Integer> metaIndices;
-	private String[][][] classColorKeys;
+	private final String[] metaHeaders;
+	private final Map<String, Integer> metaIndices;
+	private final String[][][] classColorKeys;
 	private String[] cnvClasses;
 	private String[] plinkClasses;
 	// private Hashtable<String,String> sampleLookup;
 	// private Hashtable<String,String> famIndLookup;
 	// private Hashtable<String,String> indLookup;
-	private Hashtable<String, String[]> lookup;
-	private Hashtable<String, IndiPheno> sampleHash;
-	private boolean failedToLoad;
-	private int sexClassIndex;
-	private int excludeClassIndex;
-	private boolean containsDNA;
-	private boolean containsFID;
-	private boolean containsIID;
+	private final Hashtable<String, String[]> lookup;
+	private final Hashtable<String, IndiPheno> sampleHash;
+	private final Collection<Set<String>> duplicateSets;
+	private final int sexClassIndex;
+	private final int excludeClassIndex;
+	private final boolean containsDNA;
+	private final boolean containsFID;
+	private final boolean containsIID;
 	private volatile boolean loadedCNVs = false;
 
 	public boolean getCNVsLoaded() {
@@ -257,7 +261,6 @@ public class SampleData {
 		IntVector iv;
 		DoubleVector dv;
 		IndiPheno indi;
-		int dnaIndex, famIndex, indIndex;
 		// Hashtable<String,IndiPheno> sampleHash;
 		String filename;
 		CountVector sexCountHash;
@@ -267,7 +270,6 @@ public class SampleData {
 		this.proj = proj;
 		log = proj.getLog();
 
-		failedToLoad = true;
 		final String[] cnvFilenames;
 		if (cnvFilenamesVar == null) {
 			cnvFilenames = new String[0];
@@ -275,7 +277,6 @@ public class SampleData {
 			cnvFilenames = cnvFilenamesVar;
 		}
 
-		containsDNA = containsFID = containsIID = true;
 		// linkKeyIndex = new Hashtable<String, Integer>();
 		// colorKeyIndex = new Hashtable<String, ArrayList<Integer>>();
 
@@ -297,20 +298,24 @@ public class SampleData {
 				SampleData.createMinimalSampleData(proj);
 				if (!Files.exists(filename, proj.JAR_STATUS.getValue())) {
 					proj.message("Could not create a minimal sample data file at: " + filename);
-					return;
+					throw new IllegalStateException("Could not create a minimal sample data file at: "
+																					+ filename);
 				} else {
 					proj.message("Generated a temporary sample data file at " + filename);
 				}
 			}
 			reader = Files.getReader(filename, proj.JAR_STATUS.getValue(), true, true);
 			header = reader.readLine().split("\t");
-			dnaIndex = ext.indexOfStr("DNA", header);
-			famIndex = ext.indexOfStr("FID", header);
-			indIndex = ext.indexOfStr("IID", header);
+			int dnaIndex = ext.indexOfStr("DNA", header);
+			int famIndex = ext.indexOfStr("FID", header);
+			int indIndex = ext.indexOfStr("IID", header);
+			final int dupeIDIndex = ext.indexOfStr(SampleQC.DUPLICATE_ID_HEADER, header);
 			if (dnaIndex == -1) {
 				log.reportError("Error - 'DNA' was not a header in the SampleData file; assuming lookup with first column");
 				dnaIndex = 0;
 				containsDNA = false;
+			} else {
+				containsDNA = true;
 			}
 			if (cnvFilenames.length > 0 && famIndex == -1) {
 				log.reportError("Error - 'FID' was not a header in the SampleData file; lookup for cnv data may be inaccurate");
@@ -324,12 +329,18 @@ public class SampleData {
 				log.reportError("Error - 'FID' was not a header in the SampleData file; assuming family ID is in the second column");
 				famIndex = 1;
 				containsFID = false;
+			} else {
+				containsFID = true;
 			}
 			if (indIndex == -1) {
 				log.reportError("Error - 'IID' was not a header in the SampleData file; assuming individual ID is in the third column");
 				indIndex = 2;
 				containsIID = false;
+			} else {
+				containsIID = true;
 			}
+			ImmutableSetMultimap.Builder<String, String> duplicateSetBuilder = ImmutableSetMultimap.builder();
+
 			List<String> meta = new ArrayList<String>();
 			metaIndices = new HashMap<String, Integer>();
 			for (int i = 1; i < header.length; i++) {
@@ -394,6 +405,12 @@ public class SampleData {
 				lookup.put(line[famIndex].toLowerCase() + "\t" + line[indIndex].toLowerCase(), ids);
 				lookup.put(line[indIndex].toLowerCase(), ids);
 
+				if (dupeIDIndex != -1) {
+					String dupeID = line[dupeIDIndex];
+					if (!ext.isMissingValue(dupeID))
+						duplicateSetBuilder.put(dupeID, line[dnaIndex]);
+				}
+
 				dv = new DoubleVector();
 				for (int i = 0; i < filterIs.size(); i++) {
 					dv.add(Double.parseDouble(line[filterIs.elementAt(i)]));
@@ -422,6 +439,12 @@ public class SampleData {
 			}
 			reader.close();
 
+			if (dupeIDIndex == -1) {
+				duplicateSets = null;
+			} else {
+				duplicateSets = Multimaps.asMap(duplicateSetBuilder.build()).values();
+			}
+
 			if (log.getLevel() >= 1) {
 				if (sexClassIndex != -1) {
 					int[] sexValues = ArrayUtils.toIntArray(sexCountHash.getValues());
@@ -436,16 +459,12 @@ public class SampleData {
 				}
 			}
 		} catch (FileNotFoundException fnfe) {
-			// System.err.println("Error: file \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\" not
-			// found in current directory");
-			System.err.println("Error: file \"" + proj.SAMPLE_DATA_FILENAME.getValue()
-												 + "\" not found in current directory");
-			// System.exit(1);
+			log.reportError("file \"" + proj.SAMPLE_DATA_FILENAME.getValue()
+											+ "\" not found in current directory");
+			throw new IllegalArgumentException(fnfe);
 		} catch (IOException ioe) {
-			// System.err.println("Error reading file
-			// \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\"");
-			System.err.println("Error reading file \"" + proj.SAMPLE_DATA_FILENAME.getValue() + "\"");
-			// System.exit(2);
+			log.reportError("Error reading file \"" + proj.SAMPLE_DATA_FILENAME.getValue() + "\"");
+			throw new IllegalStateException(ioe);
 		}
 
 		cnvClasses = new String[0];
@@ -476,11 +495,6 @@ public class SampleData {
 			plinkClasses = new String[0];
 		}
 
-		failedToLoad = false;
-	}
-
-	public boolean failedToLoad() {
-		return failedToLoad;
 	}
 
 	public boolean containsDNA() {
@@ -755,6 +769,10 @@ public class SampleData {
 
 	public Hashtable<String, IndiPheno> getSampleHash() {
 		return sampleHash;
+	}
+
+	public Collection<Set<String>> getDuplicateSets() {
+		return duplicateSets;
 	}
 
 	public String[] getListOfSamples() {

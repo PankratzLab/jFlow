@@ -148,7 +148,7 @@ public class PennCNV {
 
 		if (execList == null) {
 			Qsub.qsub(pennDir + scriptSubDir + "runPenn", dataDir, numChunks, commands,
-								 Matrix.toMatrix(ArrayUtils.stringArraySequence(numChunks, "")), 2200, 16);
+								Matrix.toMatrix(ArrayUtils.stringArraySequence(numChunks, "")), 2200, 16);
 		} else {
 			Files.execListAdd(execList, commands, ArrayUtils.stringArraySequence(numChunks, ""), log);
 		}
@@ -190,10 +190,10 @@ public class PennCNV {
 											+ " does not exist;");
 			return;
 		}
-
-		SampleData sampleData = proj.getSampleData(2, false);
-
-		if (sampleData.failedToLoad()) {
+		SampleData sampleData;
+		try {
+			sampleData = proj.getSampleData(2, false);
+		} catch (Exception e) {
 			log.reportError("Error - without a sample data file, PennCNV will fail to analyze sex chromosomes");
 			return;
 		}
@@ -283,14 +283,15 @@ public class PennCNV {
 
 		if (execList == null) {
 			Qsub.qsub(pennDir + scriptSubDir + "runPennX", dataDir, numChunks, commands,
-								 Matrix.toMatrix(ArrayUtils.stringArraySequence(numChunks, "")), 2200, 16);
+								Matrix.toMatrix(ArrayUtils.stringArraySequence(numChunks, "")), 2200, 16);
 		} else {
 			Files.execListAdd(execList, commands, ArrayUtils.stringArraySequence(numChunks, ""), log);
 		}
 		Files.writeArray(new String[] {"cd " + projDir,
 																	 "cat " + resultsDir + "*.log > " + resultsDir
 																										+ "penncnvX.rawlog",
-																	 "cat " + resultsDir + "*.rawcnv > " + resultsDir + "penncnvX.rawcnv",
+																	 "cat " + resultsDir + "*.rawcnv > " + resultsDir
+																																				 + "penncnvX.rawcnv",
 																	 // don't parse warnings; the parseWarnings method isn't written
 																	 // to
 																	 // parse X-chromosome warnings
@@ -1287,7 +1288,7 @@ public class PennCNV {
 
 		if (execList != null) {
 			Qsub.qsubExecutor(proj.PROJECT_DIRECTORY.getValue(), execList, null,
-												 proj.PENNCNV_RESULTS_DIRECTORY.getValue() + "runAllPenncnv", 24, 5000, 8);
+												proj.PENNCNV_RESULTS_DIRECTORY.getValue() + "runAllPenncnv", 24, 5000, 8);
 			log.report("All PennCNV files and scripts have been prepped. The next thing would be to qsub "
 								 + proj.PENNCNV_RESULTS_DIRECTORY.getValue() + "runAllPenncnv.pbs");
 		}

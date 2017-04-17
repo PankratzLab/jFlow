@@ -4,6 +4,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.util.Arrays;
 import java.util.Hashtable;
 
@@ -13,11 +15,14 @@ import org.genvisis.common.SciStringComparator;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 
+import com.google.common.collect.ImmutableMap;
+
 public class SampleList implements Serializable {
 	public static final long serialVersionUID = 1L;
 
 	private final long fingerprint;
 	private final String[] samples;
+	private transient Reference<ImmutableMap<String, Integer>> sampleIndicesRef = null;
 
 	public SampleList(String[] samples) {
 		this.samples = samples;
@@ -30,6 +35,20 @@ public class SampleList implements Serializable {
 
 	public String[] getSamples() {
 		return samples;
+	}
+
+	public ImmutableMap<String, Integer> getSampleIndices() {
+		ImmutableMap<String, Integer> sampleIndices = sampleIndicesRef == null ? null
+																																					 : sampleIndicesRef.get();
+		if (sampleIndices == null) {
+			ImmutableMap.Builder<String, Integer> sampleIndicesBuilder = ImmutableMap.builder();
+			for (int i = 0; i < samples.length; i++) {
+				sampleIndicesBuilder.put(samples[i], i);
+			}
+			sampleIndices = sampleIndicesBuilder.build();
+			sampleIndicesRef = new SoftReference<ImmutableMap<String, Integer>>(sampleIndices);
+		}
+		return sampleIndices;
 	}
 
 	public void writeToTextFile(String filename) {

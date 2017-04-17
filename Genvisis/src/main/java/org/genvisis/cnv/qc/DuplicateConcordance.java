@@ -1,259 +1,103 @@
 package org.genvisis.cnv.qc;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
-import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
+import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Multimap;
 
 public class DuplicateConcordance {
-
-	private final double projectConcordance;
-	private final double projectNonMissingConcordance;
-	private final int markersChecked;
-	private final int duplicatePairsChecked;
-
+	private final ImmutableSetMultimap<Integer, Integer> discordantCalls;
+	private final Logger log;
 
 	/**
-	 * @param discordantCalls number of marker calls that did not match
-	 * @param nonMissingDiscordantCalls number of marker calls that did not match, excluding cases
-	 *        where one call was missing
-	 * @param markersChecked number of markers checked
-	 * @param duplicatePairsChecked number of duplicate pairs checked
+	 * 
+	 * @param marker marker to check for concordance
+	 * @param duplicateIndices Sets of 2+ duplicate indices
+	 * @param log
 	 */
-	private DuplicateConcordance(int discordantCalls, int nonMissingDiscordantCalls,
-															 int markersChecked, int duplicatePairsChecked) {
+	public DuplicateConcordance(MarkerData marker, Collection<Set<Integer>> duplicateIndices,
+															Logger log) {
 		super();
-		int totalChecks = markersChecked * duplicatePairsChecked;
-		projectConcordance = (double) (totalChecks - discordantCalls) / totalChecks;
-		projectNonMissingConcordance = (double) (totalChecks - nonMissingDiscordantCalls) / totalChecks;
-		this.markersChecked = markersChecked;
-		this.duplicatePairsChecked = duplicatePairsChecked;
-	}
-
-	public double getProjectNonMissingConcordance() {
-		return projectNonMissingConcordance;
-	}
-
-	public double getProjectConcordance() {
-		return projectConcordance;
-	}
-
-	public int getMarkersChecked() {
-		return markersChecked;
-	}
-
-	public int getDuplicatePairsChecked() {
-		return duplicatePairsChecked;
-	}
-
-	public String getConcordanceString() {
-		return "Duplicate Concordance was calculated to be " + projectConcordance
-					 + " (including missing calls) and " + projectNonMissingConcordance
-					 + " (excluding missing calls) using " + duplicatePairsChecked
-					 + " pairs of duplicates at " + markersChecked + " markers.";
+		this.log = log;
+		byte[] genos = marker.getAbGenotypes();
+		if (genos == null) {
+			genos = marker.getForwardGenotypes();
+			if (genos == null) {
+				throw new IllegalArgumentException("No AB or forward genotypes found for marker: "
+																					 + marker.getMarkerName());
+			}
+		}
+		discordantCalls = calculateDiscordantCalls(marker.getAbGenotypes(), duplicateIndices);
 	}
 
 	/**
-	 *
-	 * @param proj Project to calculate duplicate concordance for
-	 * @param targetMarkers Markers to use in concordance checks or null to check all markers
-	 * @return
+	 * 
+	 * @param marker marker to check for concordance
+	 * @param duplicateIndices Sets of 2+ duplicate indices
+	 * @param clusterFilters clusterFilter to apply
+	 * @param log
 	 */
-	public static DuplicateConcordance calculateDuplicateConcordances(Project proj,
-																																		String[] targetMarkers) {
-		Logger log = proj.getLog();
-		ClusterFilterCollection clusterFilterCollection = proj.getClusterFilterCollection();
-		String[] markerNames;
-		int[] markerIndices;
-		if (targetMarkers == null) {
-			markerNames = proj.getMarkerNames();
-			markerIndices = null;
-		} else {
-			markerNames = targetMarkers;
-			markerIndices = ext.indexLargeFactors(markerNames, proj.getMarkerNames(), true, log, false,
-																						false);
-			for (int i = 0; i < markerIndices.length; i++) {
-				if (markerIndices[i] == -1) {
-					log.reportError("Marker " + markerNames[i] + " could not be found in project");
-					return null;
-				}
-			}
+	public DuplicateConcordance(MarkerData marker, Collection<Set<Integer>> duplicateIndices,
+															ClusterFilterCollection clusterFilters, Logger log) {
+		super();
+		this.log = log;
+		byte[] genos = marker.getAbGenotypesAfterFilters(clusterFilters, log);
+		if (genos == null) {
+			throw new IllegalArgumentException("No AB genotypes found for marker: "
+																				 + marker.getMarkerName());
 		}
-		String sampleData = proj.SAMPLE_DATA_FILENAME.getValue();
-		if (sampleData == null) {
-			log.reportError("Project Sample Data file is not defined, cannot determine duplicates");
-			return null;
-		}
-		if (!Files.exists(sampleData)) {
-			log.reportError("Project Sample Data file, " + sampleData
-											+ " could not be found, cannot determine duplicates");
-			return null;
-		}
-		String[] sampleDataHeader = Files.getHeaderOfFile(sampleData, log);
-		String[] sampleDataCols = new String[] {"DNA", "CLASS=Exclude", "DuplicateId"};
-		int[] sampleDataIndices = ext.indexFactors(sampleDataCols, sampleDataHeader, false, log, false,
-																							 false);
-		for (int i = 0; i < sampleDataIndices.length; i++) {
-			if (sampleDataIndices[i] == -1) {
-				log.reportError("Could not find " + sampleDataCols[i]
-												+ " in Sample Data file, cannot determine duplicates");
-				return null;
-			}
-		}
-		String[][] sampleInfo = HashVec.loadFileToStringMatrix(sampleData, true, sampleDataIndices,
-																													 proj.JAR_STATUS.getValue());
-		HashVec.loadFileToStringArray(sampleData, true, sampleDataIndices, false);
-		HashMap<String, HashSet<String>> duplicateSets = new HashMap<String, HashSet<String>>();
-		for (String[] sampleLine : sampleInfo) {
-			String dna = sampleLine[0];
-			boolean exclude = sampleLine[1].equals("1");
-			String duplicateID = sampleLine[2];
-
-			if (!duplicateID.equals(".") && !exclude) {
-				HashSet<String> duplicateSet = duplicateSets.get(duplicateID);
-				if (duplicateSet == null) {
-					duplicateSet = new HashSet<String>();
-					duplicateSets.put(duplicateID, duplicateSet);
-				}
-				duplicateSet.add(dna);
-			}
-		}
-		int discordantCalls = 0;
-		int nonMissingDiscordantCalls = 0;
-		int pairsChecked = 0;
-
-		for (HashSet<String> duplicateSet : duplicateSets.values()) {
-			HashSet<String> loopDuplicateSet = new HashSet<String>(duplicateSet);
-			for (String dna1 : loopDuplicateSet) {
-				duplicateSet.remove(dna1);
-				if (!duplicateSet.isEmpty()) {
-					Sample sample1 = proj.getFullSampleFromRandomAccessFile(dna1);
-					if (sample1 == null) {
-						log.reportError("Could not find data for Sample " + dna1
-														+ ", will not be used to calculate concordance");
-						continue;
-					}
-					for (String dna2 : duplicateSet) {
-						Sample sample2 = proj.getFullSampleFromRandomAccessFile(dna2);
-						if (sample2 == null) {
-							log.reportError("Could not find data for Sample " + dna2
-															+ ", will not be used to calculate concordance");
-							continue;
-						}
-						pairsChecked++;
-						byte[] s1Genotypes, s2Genotypes;
-						if (clusterFilterCollection == null) {
-							s1Genotypes = sample1.getAB_Genotypes(markerIndices);
-							s2Genotypes = sample2.getAB_Genotypes(markerIndices);
-						} else {
-							s1Genotypes = sample1.getAB_GenotypesAfterFilters(markerNames, markerIndices,
-																																clusterFilterCollection, 0.0f);
-							s2Genotypes = sample2.getAB_GenotypesAfterFilters(markerNames, markerIndices,
-																																clusterFilterCollection, 0.0f);
-						}
-						for (int i = 0; i < s1Genotypes.length; i++) {
-							if (s1Genotypes[i] != s2Genotypes[i]) {
-								discordantCalls++;
-								if (s1Genotypes[i] != -1 && s2Genotypes[i] != -1) {
-									nonMissingDiscordantCalls++;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if (pairsChecked == 0) {
-			log.reportError("No duplicates could be compared, duplicate concordance cannot be calculated");
-			return null;
-		}
-
-		return new DuplicateConcordance(discordantCalls, nonMissingDiscordantCalls, markerNames.length,
-																		pairsChecked);
-
+		discordantCalls = calculateDiscordantCalls(genos, duplicateIndices);
 	}
 
-	public static void main(String[] args) {
-		int numArgs = args.length;
-		Project proj = null;
-		String markerKeeps = null;
-		String markerDrops = null;
-
-		String usage = "\n" + "cnv.qc.DuplicateConcordance requires 1-2 arguments\n"
-									 + "   (1) Project properties filename (i.e. proj="
-									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)
-									 + " (not the default))\n" + "AND\n"
-									 + "   (2) File of markers to use (i.e. markerKeeps=keeps.txt (not the default))\n"
-									 + "OR\n"
-									 + "   (2) File of markers to not use (i.e. markerDrops=drops.txt (not the default))\n"
-									 + "";
-
-		for (String arg : args) {
-			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (arg.startsWith("proj=")) {
-				proj = new Project(arg.split("=")[1], false);
-				numArgs--;
-			} else if (arg.startsWith("markerKeeps=")) {
-				markerKeeps = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("markerDrops=")) {
-				markerDrops = arg.split("=")[1];
-				numArgs--;
-			} else {
-				System.err.println("Error - invalid argument: " + arg);
+	/**
+	 * 
+	 * @return a {@link Multimap} from each discordant sample's index to the indices of the concordant
+	 *         duplicate(s). The genotype call with the most number of duplicates is considered
+	 *         concordant. When there is a simple pair of duplicates or equal genotype counts, the
+	 *         concordant genotype is arbitrary. Missing genotypes are not included.
+	 * 
+	 *         TODO: Intelligently pick the concordant genotype when equal (e.g. by highest frequency)
+	 */
+	private static ImmutableSetMultimap<Integer, Integer> calculateDiscordantCalls(byte[] genotypes,
+																																								 Collection<Set<Integer>> duplicateIndices) {
+		ImmutableSetMultimap.Builder<Integer, Integer> discordantCalls = ImmutableSetMultimap.builder();
+		for (Set<Integer> dupeSet : duplicateIndices) {
+			HashMultimap<Byte, Integer> genoCallIndices = HashMultimap.create();
+			for (int dupeIndex : dupeSet) {
+				byte geno = genotypes[dupeIndex];
+				if (geno != -1) {
+					genoCallIndices.put(geno, dupeIndex);
+				}
 			}
-		}
-		if (numArgs != 0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-		try {
-			if (proj == null) {
-				System.err.println("Project must be defined");
-				System.err.println(usage);
-				System.exit(1);
-			}
-			if (markerKeeps != null && markerDrops != null) {
-				System.err.println("Include a marker keeps or drops file but not both");
-				System.err.println(usage);
-				System.exit(1);
-			}
-			String[] targetMarkers;
-			if (markerKeeps != null) {
-				targetMarkers = proj.getTargetMarkers(markerKeeps);
-			} else if (markerDrops != null) {
-				Set<String> excludes = HashVec.loadFileToHashSet(markerDrops, false);
-				ArrayList<String> markers = new ArrayList<String>();
-				for (String marker : proj.getMarkerNames()) {
-					if (!excludes.contains(marker)) {
-						markers.add(marker);
+			if (genoCallIndices.keySet().size() > 1) {
+				int maxCount = -1;
+				byte maxGeno = -1;
+				for (Entry<Byte, Collection<Integer>> genoEntry : genoCallIndices.asMap().entrySet()) {
+					int count = genoEntry.getValue().size();
+					if (count > maxCount) {
+						maxCount = count;
+						maxGeno = genoEntry.getKey();
 					}
 				}
-				targetMarkers = ArrayUtils.toStringArray(markers);
-			} else {
-				targetMarkers = null;
+				Set<Integer> concordantIndices = genoCallIndices.removeAll(maxGeno);
+				for (int discordantCallIndex : genoCallIndices.values()) {
+					discordantCalls.putAll(discordantCallIndex, concordantIndices);
+				}
 			}
-
-			DuplicateConcordance duplicateConcordance = calculateDuplicateConcordances(proj,
-																																								 targetMarkers);
-			if (duplicateConcordance != null) {
-				proj.getLog().report(duplicateConcordance.getConcordanceString());
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
+		return discordantCalls.build();
 	}
+
+	public int calculateDiscordanceCount() {
+		return discordantCalls.keySet().size();
+	}
+
 
 }

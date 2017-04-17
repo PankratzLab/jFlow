@@ -34,6 +34,12 @@ import com.google.common.primitives.Ints;
  *
  */
 public class SampleQC {
+	private static final double CONTAM_LRR_SD_THRESHOLD = 0.35;
+	private static final double CONTAM_CALLRATE_THRESHOLD = 0.9;
+	private static final double EXCLUDE_LRR_SD_THRESHOLD = 0.5;
+
+	public static final String DUPLICATE_ID_HEADER = "DuplicateId";
+
 	private final Project proj;
 	private final String[] samples;
 
@@ -57,10 +63,6 @@ public class SampleQC {
 	private String[] useNotes;
 	private boolean[] use_cnvs;
 	private String[] use_cnvNotes;
-
-	private static double CONTAM_LRR_SD_THRESHOLD = 0.35;
-	private static double CONTAM_CALLRATE_THRESHOLD = 0.9;
-	private static double EXCLUDE_LRR_SD_THRESHOLD = 0.5;
 
 	private SampleQC(Project proj, String[] qctitles, boolean gcCorrectedLrrSd) {
 		super();
@@ -242,7 +244,7 @@ public class SampleQC {
 		header.add("CLASS=Exclude");
 		header.add("ExcludeNote");
 		if (checkDuplicates) {
-			header.add("DuplicateId");
+			header.add(DUPLICATE_ID_HEADER);
 			header.add("Use");
 			header.add("UseNote");
 			header.add("Use_cnv");

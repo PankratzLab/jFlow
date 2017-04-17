@@ -10,7 +10,6 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
@@ -81,8 +80,6 @@ import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.NumberFormatter;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.MosaicismDetect;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
@@ -141,6 +138,8 @@ import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.mining.Transformations;
 import org.genvisis.stats.BinnedMovingStatistic.MovingStat;
+
+import net.miginfocom.swing.MigLayout;
 
 public class Trailer extends JFrame implements ChrNavigator, ActionListener, ClickListener, MouseListener, MouseMotionListener, MouseWheelListener {
 
@@ -817,8 +816,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		setJMenuBar(createMenuBar());
 
 		sample = selectedSample == null ? samplesPresent[0] : selectedSample;
-		sampleData = proj.getSampleData(2, cnvFiles);
-		if (sampleData.failedToLoad()) {
+		try {
+			sampleData = proj.getSampleData(2, cnvFiles);
+		} catch (Exception e) {
 			proj.getLog().reportError("Without a SampleData file, Trailer will not start");
 			return;
 		}
@@ -915,12 +915,12 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		});
 		initThread.start();
 	}
-	
+
 	Thread initThread = null;
 
 	private JPanel dataPanel;
 	private JPanel tracksPanel;
-	
+
 	public void waitForInit() {
 		if (initThread != null && initThread.isAlive()) {
 			try {
@@ -931,24 +931,24 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			}
 		}
 	}
-	
+
 	@Override
 	public void setVisible(boolean b) {
 		waitForInit();
 		if (b) {
 			if (!SwingUtilities.isEventDispatchThread()) {
-  			try {
-  				SwingUtilities.invokeAndWait(new Runnable() {
-  					@Override
-  					public void run() {
-  						pack();
-  						updateGUI();
-  						showRegion(0);
-  					}
-  				});
-  			} catch (InvocationTargetException e) {
-  			} catch (InterruptedException e) {
-  			}
+				try {
+					SwingUtilities.invokeAndWait(new Runnable() {
+						@Override
+						public void run() {
+							pack();
+							updateGUI();
+							showRegion(0);
+						}
+					});
+				} catch (InvocationTargetException e) {
+				} catch (InterruptedException e) {
+				}
 			} else {
 				updateGUI();
 				showRegion(0);
@@ -956,7 +956,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		}
 		super.setVisible(b);
 	}
-	
+
 	/**
 	 * Respond to mouse events in the marker panel
 	 */
@@ -1314,7 +1314,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 	public void generateComponents() {
 		dataPanel = new JPanel();
-		dataPanel.setLayout(new MigLayout("ins 0, gap 0, hidemode 3, fillx, filly, flowy", "[grow]", ""));
+		dataPanel.setLayout(new MigLayout("ins 0, gap 0, hidemode 3, fillx, filly, flowy", "[grow]",
+																			""));
 
 		lrrPanel = new JPanel() {
 			public static final long serialVersionUID = 2L;
@@ -1677,7 +1678,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 					regions[regionIndex] = regionDetails;
 					commentLabel.setText(regions[regionIndex][2].isEmpty() ? BLANK_COMMENT
 																																 : "region #" + (regionIndex + 1)
-																																	 + ":  " + regions[regionIndex][2]);
+																																	 + ":  "
+																																	 + regions[regionIndex][2]);
 					promptCommentSave = promptAndSaveRegions(promptCommentSave);
 				}
 				commentLabel.setVisible(true);
@@ -1819,17 +1821,17 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 	private BufferedImage generateScreenshot() {
 		waitForInit();
-		
+
 		int w1 = 1080;
 		int h1 = 160;
-//		int lW = lrrPanel.getWidth();
-//		int bW = bafPanel.getWidth();
-//		int gW = genePanel.getWidth();
-//		int cW = cnvPanel.getWidth();
-//		int lH = lrrPanel.getHeight();
-//		int bH = bafPanel.getHeight();
-//		int gH = genePanel.getHeight();
-//		int cH = cnvPanel.getHeight();
+		// int lW = lrrPanel.getWidth();
+		// int bW = bafPanel.getWidth();
+		// int gW = genePanel.getWidth();
+		// int cW = cnvPanel.getWidth();
+		// int lH = lrrPanel.getHeight();
+		// int bH = bafPanel.getHeight();
+		// int gH = genePanel.getHeight();
+		// int cH = cnvPanel.getHeight();
 		int lW = w1;
 		int bW = w1;
 		int gW = w1;
@@ -1842,13 +1844,13 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		BufferedImage imageBaf = new BufferedImage(bW, bH, BufferedImage.TYPE_INT_RGB);
 		BufferedImage imageGene = new BufferedImage(gW, gH, BufferedImage.TYPE_INT_RGB);
 		BufferedImage imageCnv = new BufferedImage(cW, cH, BufferedImage.TYPE_INT_RGB);
-		
+
 		lrrPanel.setPreferredSize(new Dimension(w1, h1));
 		Graphics g = imageLrr.getGraphics();
 		g.setColor(lrrPanel.getBackground());
 		g.fillRect(0, 0, imageLrr.getWidth(), imageLrr.getHeight());
 		lrrPanel.paint(g);
-		
+
 		genePanel.setPreferredSize(new Dimension(w1, h1));
 		g = imageGene.getGraphics();
 		g.setColor(genePanel.getBackground());
@@ -1864,7 +1866,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			// CNVariant cnv = cnvs[selectedCNV[0]][selectedCNV[1]];
 			// TODO include CNV details in ScreenCapture?
 		}
-		
+
 		bafPanel.setPreferredSize(new Dimension(w1, h1));
 		g = imageBaf.getGraphics();
 		g.setColor(bafPanel.getBackground());
@@ -1883,7 +1885,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		g.drawImage(imageCnv, 0, lH + gH + 5, null);
 		g.drawImage(imageBaf, 0, lH + gH + cH + 10, null);
 		g.dispose();
-		
+
 		return finalImage;
 	}
 
