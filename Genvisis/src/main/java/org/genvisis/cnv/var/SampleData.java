@@ -408,7 +408,7 @@ public class SampleData {
 				if (dupeIDIndex != -1) {
 					String dupeID = line[dupeIDIndex];
 					if (!ext.isMissingValue(dupeID))
-						duplicateSetBuilder.put(line[dnaIndex], dupeID);
+						duplicateSetBuilder.put(dupeID, line[dnaIndex]);
 				}
 
 				dv = new DoubleVector();
