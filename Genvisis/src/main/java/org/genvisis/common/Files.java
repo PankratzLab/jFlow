@@ -1165,7 +1165,8 @@ public class Files {
 				}
 			} catch (OutOfMemoryError oome) {
 				log.reportError("Uh oh! Ran out of memory parsing file '"
-												+ fileParameters[i].trim().split(PSF.Regex.GREEDY_WHITESPACE)[0] + "' at line:");
+												+ fileParameters[i].trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]
+												+ "' at line:");
 				log.reportError(ArrayUtils.toStr(line, "/"));
 			} catch (Exception e) {
 				log.reportException(e);
@@ -1982,7 +1983,7 @@ public class Files {
 	}
 
 	public static boolean exists(String dir, String[] filenames) {
-		return exists(dir, filenames, true);
+		return exists(dir, filenames, false);
 	}
 
 	public static boolean exists(String dir, String[] filenames, boolean treatEmptyAsMissing) {
@@ -2000,7 +2001,7 @@ public class Files {
 	}
 
 	public static boolean exists(String dir, Iterable<String> filenames) {
-		return exists(dir, filenames, true);
+		return exists(dir, filenames, false);
 	}
 
 	public static boolean exists(String dir, Iterable<String> filenames,
@@ -2023,7 +2024,7 @@ public class Files {
 	}
 
 	public static boolean exists(String filename, boolean jar) {
-		return exists(filename, jar, (!new File(filename).isDirectory()));
+		return exists(filename, jar, false);
 	}
 
 	public static boolean exists(String filename, boolean jar, boolean treatEmptyAsMissing) {
@@ -3440,7 +3441,8 @@ public class Files {
 				v = new Vector<String>();
 				while (reader.ready()) {
 					temp = reader.readLine();
-					if (!temp.startsWith("#") && !temp.trim().split(PSF.Regex.GREEDY_WHITESPACE)[0].equals("")) {
+					if (!temp.startsWith("#")
+							&& !temp.trim().split(PSF.Regex.GREEDY_WHITESPACE)[0].equals("")) {
 						v.add(temp);
 					}
 				}
