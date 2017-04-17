@@ -1798,7 +1798,8 @@ public class GenvisisWorkflow {
 					boolean checkDuplicates = !Boolean.parseBoolean(variables.get(this)
 																																	 .get(skipIDingDuplicatesReq));
 					String[] header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
-					if (checkDuplicates && ext.indexOfStr("DuplicateId", header, false, true) == -1) {
+					if (checkDuplicates
+							&& ext.indexOfStr(SampleQC.DUPLICATE_ID_HEADER, header, false, true) == -1) {
 						return false;
 					}
 					String[] reqHdr = {"Class=Exclude", "ExcludeNote", "Use", "UseNote", "Use_cnv",
