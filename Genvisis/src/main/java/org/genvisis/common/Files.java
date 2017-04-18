@@ -2,6 +2,7 @@
 package org.genvisis.common;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -104,7 +105,7 @@ public class Files {
 
 		try {
 			for (int i = 0; i < numBatches; i++) {
-				writers[i] = new PrintWriter(new FileWriter(getBatchName(root_batch_name, i, numBatches)));
+				writers[i] = openAppropriateWriter(getBatchName(root_batch_name, i, numBatches));
 				if (!Files.isWindows()) {
 					writers[i].println("#/bin/sh\n");
 				}
@@ -117,7 +118,7 @@ public class Files {
 				writer.println(ext.insertNumbers(commands, i));
 			}
 			if (numBatches > 1) {
-				writer = new PrintWriter(new FileWriter("master"));
+				writer = openAppropriateWriter("master");
 			} else {
 				writer = null;
 			}
@@ -159,9 +160,9 @@ public class Files {
 
 		try {
 			for (int i = 0; i < numBatches; i++) {
-				writers[i] = new PrintWriter(new FileWriter(i == 0 && numBatches == 1 ? root_batch_name
-																																							: root_batch_name
-																																								+ "." + (i + 1)));
+				writers[i] = openAppropriateWriter(i == 0 && numBatches == 1 ? root_batch_name
+																																		 : root_batch_name
+																																			 + "." + (i + 1));
 				if (init != null) {
 					writers[i].println(init);
 					writers[i].println();
@@ -179,7 +180,7 @@ public class Files {
 				}
 			}
 			if (numBatches > 1) {
-				writer = new PrintWriter(new FileWriter("master"));
+				writer = openAppropriateWriter("master");
 			} else {
 				writer = null;
 			}
@@ -601,17 +602,25 @@ public class Files {
 		}
 	}
 
+	/**
+	 * 
+	 * {@link #getAppropriateWriter(String, boolean)} with append set to false
+	 */
 	public static PrintWriter getAppropriateWriter(String filename) {
-		PrintWriter writer = null;
+		return getAppropriateWriter(filename, false);
+	}
+
+	/**
+	 * 
+	 * @param filename to open for writing
+	 * @param append true to append to rather than replace the file if it exists
+	 * @return an appropriate {@link PrintWriter} or null if an exception is hit. Use
+	 *         {@link Files#openAppropriateWriter(String, boolean)} to let caller handle the exception
+	 */
+	public static PrintWriter getAppropriateWriter(String filename, boolean append) {
 
 		try {
-			if (filename.endsWith(".gz")) {
-				writer = new PrintWriter(new GZIPOutputStream(new FileOutputStream(filename)));
-			} else if (filename.endsWith(".zip")) {
-				writer = new PrintWriter(new ZipOutputStream(new FileOutputStream(filename)));
-			} else {
-				writer = new PrintWriter(new FileWriter(filename));
-			}
+			return openAppropriateWriter(filename, append);
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \"" + filename
 												 + "\" could not be written to (it's probably open)");
@@ -619,6 +628,35 @@ public class Files {
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + filename + "\"");
 			return null;
+		}
+	}
+
+	/**
+	 * 
+	 * {@link #openAppropriateWriter(String, boolean)} with append set to false
+	 */
+	public static PrintWriter openAppropriateWriter(String filename) throws FileNotFoundException,
+																																	 IOException {
+		return openAppropriateWriter(filename, false);
+	}
+
+	/**
+	 * 
+	 * @param filename to open for writing
+	 * @param append true to append to rather than replace the file if it exists
+	 * @return an appropriate {@link PrintWriter}
+	 */
+	public static PrintWriter openAppropriateWriter(String filename,
+																									boolean append) throws FileNotFoundException,
+																																	IOException {
+		PrintWriter writer;
+
+		if (filename.endsWith(".gz")) {
+			writer = new PrintWriter(new GZIPOutputStream(new FileOutputStream(filename, append)));
+		} else if (filename.endsWith(".zip")) {
+			writer = new PrintWriter(new ZipOutputStream(new FileOutputStream(filename, append)));
+		} else {
+			writer = new PrintWriter(new BufferedWriter(new FileWriter(filename, append)));
 		}
 
 		return writer;
@@ -1001,7 +1039,7 @@ public class Files {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(outputFilename));
+			writer = openAppropriateWriter(outputFilename);
 			if (finalHeader) {
 				if (!hideIndex) {
 					writer.print(unit);
@@ -1174,7 +1212,7 @@ public class Files {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(outputFilename));
+			writer = openAppropriateWriter(outputFilename);
 			readers = new BufferedReader[fileParameters.length];
 			for (int i = 0; i < readers.length; i++) {
 				readers[i] = new BufferedReader(new FileReader("file." + (i + 1) + ".temp"));
@@ -1375,7 +1413,7 @@ public class Files {
 		String[] lines = new String[keys.length];
 
 		reader = Files.getAppropriateReader(fileIn);
-		writer = preserveKeyOrder ? null : Files.getAppropriateWriter(fileOut);
+		writer = preserveKeyOrder ? null : getAppropriateWriter(fileOut);
 		line = delim = null;
 		while ((line = reader.readLine()) != null) {
 			if (delim == null) {
@@ -1422,7 +1460,7 @@ public class Files {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(outputFile));
+			writer = openAppropriateWriter(outputFile);
 			writer.println("\t" + ArrayUtils.toStr(fileDescriptions) + "\tAll");
 			for (String[] parameter : parameters) {
 				writer.print(parameter[0]);
@@ -1650,7 +1688,7 @@ public class Files {
 			}
 
 			log.report("Writing out to " + fileout);
-			writer = new PrintWriter(new FileWriter(fileout));
+			writer = openAppropriateWriter(fileout);
 			for (int j = 0; j < size; j++) {
 				if (size > 20 && j % (size / 20) == 0) {
 					log.report(ext.getTime() + "\t" + Math.round(100 * (float) j / size) + "% loaded; ",
@@ -1696,7 +1734,7 @@ public class Files {
 		lineCount = Files.countLines(filename, 0);
 		matrix = new String[lineCount][];
 		try {
-			writer = new PrintWriter(new FileWriter(fileout));
+			writer = openAppropriateWriter(fileout);
 			while (inc < size) {
 				log.report(ext.getTime() + "\t" + Math.round(100 * (float) inc / size) + "% processed; ",
 									 false, true);
@@ -1808,7 +1846,7 @@ public class Files {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + "-extracted.xln"));
+			writer = openAppropriateWriter(filename + "-extracted.xln");
 			delimiter = determineDelimiter(filename, new Logger());
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiter);
@@ -2371,7 +2409,7 @@ public class Files {
 
 		data = listAllFilesInTree(dir, false);
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "summaryOfFiles.xln"));
+			writer = openAppropriateWriter(dir + "summaryOfFiles.xln");
 			writer.println("Full filename\tdirectory\tfilename\troot\textension");
 			for (String element : data) {
 				writer.println(element + "\t" + ext.parseDirectoryOfFile(element) + "\t"
@@ -2558,7 +2596,7 @@ public class Files {
 			return null;
 		}
 		try {
-			PrintWriter writer = Files.getAppropriateWriter(finalFile);
+			PrintWriter writer = getAppropriateWriter(finalFile);
 			BufferedReader[] readers = new BufferedReader[orginalFiles.length];
 			String[][] newColumns = new String[orginalFiles.length][columns.length];
 			for (int i = 0; i < orginalFiles.length; i++) {
@@ -2777,7 +2815,7 @@ public class Files {
 		}
 
 		try {
-			writer = Files.getAppropriateWriter(finalFile);
+			writer = getAppropriateWriter(finalFile);
 			for (int i = 0; i < originalFiles.length; i++) {
 				try {
 
@@ -2877,7 +2915,7 @@ public class Files {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = openAppropriateWriter(filename);
 			writer.println(str);
 			writer.flush();
 			writer.close();
@@ -2891,7 +2929,7 @@ public class Files {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = openAppropriateWriter(filename);
 			for (String element : entries) {
 				writer.println(element);
 			}
@@ -2907,7 +2945,7 @@ public class Files {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = openAppropriateWriter(filename);
 			for (String element : entries) {
 				writer.println(element);
 			}
@@ -2923,7 +2961,7 @@ public class Files {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = openAppropriateWriter(filename);
 			for (String[] element : matrix) {
 				writer.println(ArrayUtils.toStr(element, delimiterToUse));
 			}
@@ -3026,8 +3064,8 @@ public class Files {
 				if (writer != null) {
 					writer.close();
 				}
-				writer = new PrintWriter(new FileWriter(rootForNewFiles + (count % numSplits + 1)
-																								+ extForNewFiles, true));
+				writer = openAppropriateWriter(rootForNewFiles + (count % numSplits + 1) + extForNewFiles,
+																			 true);
 				if (new File(rootForNewFiles + (count % numSplits + 1) + extForNewFiles).length() == 0) {
 					writer.print(header);
 				}
@@ -3040,7 +3078,7 @@ public class Files {
 																 + i);
 							writer.close();
 							try {
-								writer = new PrintWriter(new FileWriter(filename + "_BLOCK_ERROR.log"));
+								writer = openAppropriateWriter(filename + "_BLOCK_ERROR.log");
 								writer.println("Error - invalid block size or trailing whitespace; last block size was only "
 															 + i);
 								writer.close();
@@ -3081,7 +3119,7 @@ public class Files {
 			}
 
 			for (int i = 0; i < stop; i++) {
-				writer = new PrintWriter(new FileWriter(dir + (i + 1) + ".xln"));
+				writer = openAppropriateWriter(dir + (i + 1) + ".xln");
 				for (int j = 0; j < files.length; j++) {
 					writer.println(readers[j].readLine());
 				}
@@ -3537,7 +3575,7 @@ public class Files {
 
 		try {
 			reader = new BufferedReader(new FileReader(in));
-			writer = new PrintWriter(new FileWriter(out));
+			writer = openAppropriateWriter(out);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				key = "";
@@ -3729,7 +3767,7 @@ public class Files {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename, true));
+			writer = openAppropriateWriter(filename, true);
 			writer.println(str);
 			writer.close();
 		} catch (Exception e) {
@@ -3790,7 +3828,7 @@ public class Files {
 
 		try {
 			reader = Files.getAppropriateReader(filename);
-			writer = Files.getAppropriateWriter(outfile);
+			writer = getAppropriateWriter(outfile);
 			while (reader.ready()) {
 				writer.println(ext.replaceAllWith(reader.readLine(), replacements));
 			}
