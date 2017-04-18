@@ -19,7 +19,7 @@ import org.genvisis.stats.Rscript;
 public class SeqMetaPrimary {
 
 	public static void batch(String cohort, String genos, String phenoFilename, String snpInfo,
-													 int qsubMem, double qsubWalltime, String queue) {
+													 int qsubMem, double qsubWalltime, String queue, boolean usePrep2) {
 		String phenoDir;
 		String phenoRoot;
 		String resultDir;
@@ -93,34 +93,43 @@ public class SeqMetaPrimary {
 				if (foundGenos && foundSnpInfo) {
 					rCode = "library(\"seqMeta\")\n" + "library(\"methods\")\n" + "setwd(\"" + resultDir
 									+ "\")\n" + "\n"
-									+ (currentSnpInfo.toLowerCase().endsWith(".rdata") ? "obj_name <- load(\"" + currentSnpInfo
-																								 + "\")\n" + "SNPInfo <- get(obj_name)\n"
-																								 + "rm(list=obj_name)\n" + "rm(obj_name)\n"
-																			           : "SNPInfo <- read.csv(\"" + currentSnpInfo
-																							     + "\", header=T, as.is=T)\n")
-																								 + "\n"
+									+ (currentSnpInfo.toLowerCase().endsWith(".rdata") ? "obj_name <- load(\""
+																																			 + currentSnpInfo
+																																			 + "\")\n"
+																																			 + "SNPInfo <- get(obj_name)\n"
+																																			 + "rm(list=obj_name)\n"
+																																			 + "rm(obj_name)\n"
+																																		 : "SNPInfo <- read.csv(\""
+																																			 + currentSnpInfo
+																																			 + "\", header=T, as.is=T)\n")
+									+ "\n"
 									+ (genos.toLowerCase().endsWith(".rdata") || genos.toLowerCase().endsWith(".rda")
-											? "genoName <- load(\"" + currentGeno
-												+ "\")\n" + "Z <- get(genoName)\n"
-												+ "if (any(grepl(\":\", rownames(Z)))){\n"
-												+ "    Z <- t(Z)\n"
-												+ "    }\n"
-												+ "percent_miss <- mean(colnames(Z) %in% SNPInfo[,\"SNP\"])\n"
-												+ "if (percent_miss == 0) {\n"
-												+ "    names <- colnames(Z)\n"
-												+ "    for (i in 1:ncol(Z)) {\n"
-												+ "        names[i] <- paste(\"chr\", names[i], sep=\"\")\n"
-												+ "    }\n"
-												+ "    colnames(Z) <- names\n" + "}\n"
-											: "Z <- t(read.csv(\"" + currentGeno
-												+ "\", header=T, as.is=T, row.names=1))\n"
-												+ "names <- colnames(Z)\n"
-												+ "for (i in 1:ncol(Z)) {\n"
-												+ "    tmp <- names[i]\n"
-												+ "    if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
-												+ "        names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n"
-												+ "    }\n" + "}\n"
-												+ "colnames(Z) <- names\n")
+																																																		? "genoName <- load(\""
+																																																			+ currentGeno
+																																																			+ "\")\n"
+																																																			+ "Z <- get(genoName)\n"
+																																																			+ "if (any(grepl(\":\", rownames(Z)))){\n"
+																																																			+ "    Z <- t(Z)\n"
+																																																			+ "    }\n"
+																																																			+ "percent_miss <- mean(colnames(Z) %in% SNPInfo[,\"SNP\"])\n"
+																																																			+ "if (percent_miss == 0) {\n"
+																																																			+ "    names <- colnames(Z)\n"
+																																																			+ "    for (i in 1:ncol(Z)) {\n"
+																																																			+ "        names[i] <- paste(\"chr\", names[i], sep=\"\")\n"
+																																																			+ "    }\n"
+																																																			+ "    colnames(Z) <- names\n"
+																																																			+ "}\n"
+																																																		: "Z <- t(read.csv(\""
+																																																			+ currentGeno
+																																																			+ "\", header=T, as.is=T, row.names=1))\n"
+																																																			+ "names <- colnames(Z)\n"
+																																																			+ "for (i in 1:ncol(Z)) {\n"
+																																																			+ "    tmp <- names[i]\n"
+																																																			+ "    if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
+																																																			+ "        names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n"
+																																																			+ "    }\n"
+																																																			+ "}\n"
+																																																			+ "colnames(Z) <- names\n")
 									+ "\n" + "pheno <- read.csv(\"" + phenoFilename
 									+ "\", header=T, as.is=T, row.names=1)\n" + "xphen <- na.omit(pheno)\n"
 									+ "merged <- merge(xphen, Z, by=\"row.names\")\n"
@@ -147,9 +156,12 @@ public class SeqMetaPrimary {
 									+ "    message(\"time to event data detected; using a cox model\")\n" + "    "
 									+ cohort + "_chr" + i
 									+ " <- prepCox(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)\n"
-									+ "} else {\n" + "    message(\"using traditional prepScores method\")\n" + "    "
+									+ "} else {\n" + "    message(\"using "
+									+ (usePrep2 ? "prepScores2" : "traditional prepScores method") + "\")\n    "
 									+ cohort + "_chr" + i
-									+ " <- prepScores(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)\n"
+									+ " <- prepScores" + (usePrep2 ? "2" : "")
+									+ "(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno"
+									+ ")\n"
 									+ "}\n"
 									// + "results <- singlesnpMeta(" + cohort + "_chr" + i + ", SNPInfo=SNPInfo,
 									// snpNames = \"Name\", cohortBetas = TRUE)\n"
@@ -188,7 +200,7 @@ public class SeqMetaPrimary {
 				commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save [%0]";
 				// Files.qsub("checkObject", dir, -1, commands, iterations, qsubMem, qsubWalltime);
 				Qsub.qsub(batchDir + "run_" + cohort, batchDir, -1, commands, iterations, qsubMem,
-									 qsubWalltime, queue);
+									qsubWalltime, queue);
 				if (iterations.length == 0) {
 					new File(batchDir + "master.run_" + cohort).renameTo(new File(batchDir + "master.run_"
 																																				+ cohort + ".bak"));
@@ -205,7 +217,7 @@ public class SeqMetaPrimary {
 					}
 				}
 				Qsub.qsub(batchDir + "finishWithHigherMem_" + cohort, commands, 60000,
-									 (int) Math.ceil(iterations.length / 2.0), 1);
+									(int) Math.ceil(iterations.length / 2.0), 1);
 			} else {
 				new File(batchDir + "finishWithHigherMem_" + cohort).delete();
 			}
@@ -231,7 +243,7 @@ public class SeqMetaPrimary {
 			commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save " + batchDir
 								 + "mergeRdataFiles.R";
 			Qsub.qsub(batchDir + "run_mergeRdataFiles_" + cohort, commands, qsubMem * 4, qsubWalltime,
-								 1);
+								1);
 			// Files.qsubMultiple( jobNamesWithAbsolutePaths, jobSizes, batchDir,
 			// batchDir + "chunk_" + cohort, 8, true, null, -1, qsubMem, qsubWalltime);
 			// Files.qsubMultiple( jobNamesWithAbsolutePaths, jobSizes, batchDir,
@@ -248,7 +260,7 @@ public class SeqMetaPrimary {
 
 	public static void batchMany(String cohort, String genos, String phenosCommaDelimited,
 															 String racesCommaDelimited, String snpInfo, int qsubMem,
-															 double qsubWalltime, String queue) {
+															 double qsubWalltime, String queue, boolean usePrep2) {
 		String[] phenos, races;
 		Vector<String> v;
 
@@ -261,7 +273,7 @@ public class SeqMetaPrimary {
 				try {
 					batch(cohort + "_" + race + "_" + pheno, ext.replaceAllWith(genos, "[%race]", race),
 								ext.pwd() + cohort + "_" + race + "_" + pheno + ".csv", snpInfo, qsubMem,
-								qsubWalltime, queue);
+								qsubWalltime, queue, usePrep2);
 				} catch (Exception e) {
 					System.err.println("Error - failed to script up " + pheno + "/" + race);
 				}
@@ -460,7 +472,7 @@ public class SeqMetaPrimary {
 			} else {
 				commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save [%0]";
 				Qsub.qsub(batchDir + "run_additionals", batchDir, -1, commands, iterations, qsubMem,
-									 qsubWalltime);
+									qsubWalltime);
 				if (iterations.length == 0) {
 					new File(batchDir
 									 + "master.run_additionals").renameTo(new File(batchDir
@@ -524,6 +536,7 @@ public class SeqMetaPrimary {
 		boolean additionals = false;
 		String rename = null;
 		String queue = null;
+		boolean usePrep2 = false;
 
 		cohort = "ARIC";
 		genos = "D:/SkatMeta/genotypes_blacks_AA/AA_ARIC_noJHS_chr#t.csv";
@@ -575,6 +588,8 @@ public class SeqMetaPrimary {
 				rename = arg.split("=")[1];
 			} else if (arg.startsWith("queue=")) {
 				queue = ext.parseStringArg(arg, null);
+			} else if (arg.startsWith("-prep2")) {
+				usePrep2 = true;
 			} else {
 				System.err.println("Error - invalid argument: " + arg);
 			}
@@ -586,10 +601,10 @@ public class SeqMetaPrimary {
 			} else if (additionals) {
 				additionalModels(cohort, phenos, snpInfo, qsubMem, qsubWalltime);
 			} else {
-				batchMany(cohort, genos, phenos, races, snpInfo, qsubMem, qsubWalltime, queue);
+				batchMany(cohort, genos, phenos, races, snpInfo, qsubMem, qsubWalltime, queue, usePrep2);
 			}
 		} else {
-			batch(cohort, genos, pheno, snpInfo, qsubMem, qsubWalltime, queue);
+			batch(cohort, genos, pheno, snpInfo, qsubMem, qsubWalltime, queue, usePrep2);
 		}
 	}
 
