@@ -125,8 +125,8 @@ public class VCFImporter {
 			}
 			if (samplesMissing.size() > 0) {
 				try {
-					PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																															+ "missing_samples.txt"));
+					PrintWriter writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																															+ "missing_samples.txt");
 					for (String missingSample : samplesMissing) {
 						writer.print(missingSample);
 					}
@@ -148,8 +148,8 @@ public class VCFImporter {
 	 */
 	private void generateMarkerPositions(Project proj, List<LocusID> markers) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue(true,
-																																																 false)));
+			PrintWriter writer = Files.openAppropriateWriter(proj.MARKER_POSITION_FILENAME.getValue(true,
+																																																 false));
 			writer.println("Marker\tChr\tPosition");
 			for (LocusID id : markers) {
 				writer.println(id.getId() + "\t" + id.getChr() + "\t" + id.getStart());

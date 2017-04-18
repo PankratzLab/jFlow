@@ -1,10 +1,9 @@
 package org.genvisis.bot;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
 import java.util.Date;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class AppKiller implements Runnable {
@@ -14,7 +13,7 @@ public class AppKiller implements Runnable {
 		this.plugFile = plugFile;
 
 		try {
-			new PrintWriter(new FileWriter(plugFile)).close();
+			Files.openAppropriateWriter(plugFile).close();
 		} catch (Exception e) {
 		}
 	}

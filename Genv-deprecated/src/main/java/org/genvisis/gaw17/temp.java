@@ -18,7 +18,7 @@ public class temp {
 		hash = HashVec.loadFileToHashVec(filename, 0, new int[] {1}, "", false, false);
 		keys = HashVec.getKeys(hash);
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + "_genes.dat"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename) + "_genes.dat");
 			for (String key : keys) {
 				writer.println(key + "\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(hash.get(key))));
 			}

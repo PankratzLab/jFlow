@@ -160,7 +160,7 @@ public class Pedfile {
 				// reader = new BufferedReader(new
 				// FileReader(Files.getBakFilename("re_chrom"+ext.chrome(chr)+".pre",
 				// ext.rootOf(phenotypeFile)+"-"+phenoCol, true)));
-				// writer = new PrintWriter(new FileWriter("re_chrom"+ext.chrome(chr)+".pre"));
+				// writer = Files.openAppropriateWriter("re_chrom"+ext.chrome(chr)+".pre");
 				// while (reader.ready()) {
 				// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				// if (hash.containsKey(line[0]+"\t"+line[1])) {
@@ -180,7 +180,7 @@ public class Pedfile {
 
 				in = new FileReader(Files.getBakFilename("re_chrom" + ext.chrome(chr) + ".pre",
 																								 ext.rootOf(phenotypeFile) + "-" + phenoCol, true));
-				writer = new PrintWriter(new FileWriter("re_chrom" + ext.chrome(chr) + ".pre"));
+				writer = Files.openAppropriateWriter("re_chrom" + ext.chrome(chr) + ".pre");
 
 				c = 0;
 				while (c >= 0) {

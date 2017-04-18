@@ -73,9 +73,9 @@ public class GeneRegion {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_genes.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_genes.xln");
 			writer.println("Region\tGene\tNumSNPsWithin");
-			writer2 = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_regions.xln"));
+			writer2 = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_regions.xln");
 			writer2.println("Region\tChr\tStartPosition\tStopPosition\tNumber of Genes");
 			for (int i = 0; i < boundaries.length; i++) {
 				cv = countVectors.get(i + "");

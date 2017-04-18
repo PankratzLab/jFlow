@@ -3,10 +3,10 @@ package org.genvisis.bioinformatics;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 
@@ -63,7 +63,7 @@ public class Protein {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + "_aa.xln"));
+			writer = Files.openAppropriateWriter(filename + "_aa.xln");
 			count = 0;
 			while (reader.ready()) {
 				temp = reader.readLine();

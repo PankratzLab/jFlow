@@ -65,7 +65,7 @@ public class SeattleSeq {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".input"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + ".input");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			indices = ext.indexFactors(NEEDS, line, false, true, true, true);
 			while (reader.ready()) {
@@ -129,7 +129,7 @@ public class SeattleSeq {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_proc.dat"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_proc.dat");
 			writer.println(reader.readLine());
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -181,7 +181,7 @@ public class SeattleSeq {
 
 		try {
 			reader = Files.getAppropriateReader(filename);
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_summary.out"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_summary.out");
 			writer.println(ArrayUtils.toStr(Matrix.extractColumn(RELEVANTS, 0))
 										 + "\tAlleleFrequency\tMAF<1%\tMAF<5%");
 			log = new Logger(ext.rootOf(filename, false) + ".log");

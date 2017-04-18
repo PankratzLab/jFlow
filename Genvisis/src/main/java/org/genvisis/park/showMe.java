@@ -103,7 +103,7 @@ public class showMe {
 
 		if (separate) {
 			while (!peeps.isEmpty()) {
-				writer = new PrintWriter(new FileWriter(peeps.elementAt(0)[0] + ".pre"));
+				writer = Files.openAppropriateWriter(peeps.elementAt(0)[0] + ".pre");
 				do {
 					line = peeps.remove(0);
 					writer.println(ArrayUtils.toStr(line));
@@ -112,7 +112,7 @@ public class showMe {
 				writer.close();
 			}
 		} else {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + ".pre"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename) + ".pre");
 			for (int i = 0; i < peeps.size(); i++) {
 				writer.println(ArrayUtils.toStr(peeps.elementAt(i)));
 			}

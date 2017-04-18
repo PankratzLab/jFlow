@@ -65,8 +65,8 @@ public class PeakZero {
 
 		try {
 			new File(proj.RESULTS_DIRECTORY.getValue(false, true)).mkdirs();
-			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(false, true)
-																							+ PEAK_ZERO_FILE));
+			writer = Files.openAppropriateWriter(proj.RESULTS_DIRECTORY.getValue(false, true)
+																							+ PEAK_ZERO_FILE);
 			writer.println("Marker\tPeakOffset\t#LRR_Maxima\t#BAF_Maxima\t#X_Maxima\t#Y_Maxima\tDropped");
 
 			lrrArray = new float[count];

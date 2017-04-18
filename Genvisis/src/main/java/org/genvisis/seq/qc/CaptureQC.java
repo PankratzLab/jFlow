@@ -67,7 +67,7 @@ public class CaptureQC {
 
 		try {
 			// ArrayList<RScatter> rsScatters = new ArrayList<RScatter>();
-			PrintWriter writer = new PrintWriter(new FileWriter(output, false));
+			PrintWriter writer = Files.openAppropriateWriter(output, false);
 			String[] header = Files.getHeaderOfFile(bamQCSummary, log);
 			writer.println("GENE_NAME\tName\tPosition\tGC_REF\tHIDE" + ArrayUtils.toStr(header)
 										 + "\tBedVal");
@@ -161,7 +161,7 @@ public class CaptureQC {
 	//
 	// try {
 	// // ArrayList<RScatter> rsScatters = new ArrayList<RScatter>();
-	// PrintWriter writer = new PrintWriter(new FileWriter(output, false));
+	// PrintWriter writer = Files.openAppropriateWriter(output, false);
 	// String[] header = Files.getHeaderOfFile(bamQCSummary, log);
 	// writer.println("GENE_NAME\tExon\tPosition\tGC_REF\tHIDE" + ArrayUtils.toStr(header)
 	// + "\tInternalKey");

@@ -131,7 +131,7 @@ public class HapMapParserOld {
 
 		try {
 			reader = new BufferedReader(new FileReader(from));
-			writer = new PrintWriter(new FileWriter(to));
+			writer = Files.openAppropriateWriter(to);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[1] + "\t" + line[3]);

@@ -237,7 +237,7 @@ public class CmdLine {
 		try {
 			proc = Runtime.getRuntime().exec(commandArray, null, new File(dir));
 			// if (logfile != null) {
-			// writer = new PrintWriter(new FileWriter(dir+logfile));
+			// writer = Files.openAppropriateWriter(dir+logfile);
 			// } else {
 			// writer = null;
 			// }

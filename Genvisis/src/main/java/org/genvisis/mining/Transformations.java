@@ -281,7 +281,7 @@ public class Transformations {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(outfile));
+			writer = Files.openAppropriateWriter(outfile);
 			if (ignoreFirstLine) {
 				line = reader.readLine().trim().split(commaDelimited ? "," : PSF.Regex.GREEDY_WHITESPACE);
 				if (!replace) {

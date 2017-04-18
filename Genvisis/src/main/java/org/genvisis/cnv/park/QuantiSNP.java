@@ -91,7 +91,7 @@ public class QuantiSNP {
 				vNames.add(reader.readLine().trim().split(",")[index]);
 			}
 			snpNames = ArrayUtils.toStringArray(vNames);
-			writer = new PrintWriter(new FileWriter(MARKER_FILE));
+			writer = Files.openAppropriateWriter(MARKER_FILE);
 			for (String snpName : snpNames) {
 				writer.println(snpName);
 			}
@@ -143,9 +143,9 @@ public class QuantiSNP {
 															+ ".qs").exists()) {
 								version++;
 							}
-							cnvWriter = new PrintWriter(new FileWriter(CNV_DIRECTORY + id
+							cnvWriter = Files.openAppropriateWriter(CNV_DIRECTORY + id
 																												 + (version == 0 ? "" : "." + version)
-																												 + ".qs"));
+																												 + ".qs");
 							cnvWriter.println("Name\tChr\tPosition\t" + id + ".Log R Ratio\t" + id
 																+ ".B Allele Freq");
 						} else if (!trav.equals(id)) {
@@ -305,7 +305,7 @@ public class QuantiSNP {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(rootDirectory + "plink.cnv"));
+			writer = Files.openAppropriateWriter(rootDirectory + "plink.cnv");
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (String ind : inds) {
 				try {

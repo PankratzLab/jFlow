@@ -620,7 +620,7 @@ public class CNVFilter {
 		ArrayList<CNVariant> cnvsToReturn = new ArrayList<CNVariant>();
 		try {
 			log.reportTimeInfo("Writing cnvs to " + out);
-			PrintWriter writer = new PrintWriter(new FileWriter(out));
+			PrintWriter writer = Files.openAppropriateWriter(out);
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (CNVariant cnv2 : cnvs) {
 				if (cnvFilter != null) {

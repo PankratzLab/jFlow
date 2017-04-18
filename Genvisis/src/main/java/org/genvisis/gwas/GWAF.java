@@ -67,7 +67,7 @@ public class GWAF {
 		count = startAt;
 		try {
 			if (!Files.exists(dir + "kmat.Rfile", false)) {
-				writer = new PrintWriter(new FileWriter(dir + "createKmat.R"));
+				writer = Files.openAppropriateWriter(dir + "createKmat.R");
 				if (versionOfGWAF == 2) {
 					writer.println("library(kinship2)");
 				} else {
@@ -83,8 +83,8 @@ public class GWAF {
 
 			while (new File(ext.replaceAllWith(dir + geneticDataTemplate, "#", count + "")).exists()
 						 && (geneticDataTemplate.contains("#") || count == startAt)) {
-				writer = new PrintWriter(new FileWriter(dir + ext.insertNumbers(rootTemplate, count)
-																								+ ".R"));
+				writer = Files.openAppropriateWriter(dir + ext.insertNumbers(rootTemplate, count)
+																								+ ".R");
 				if (versionOfGWAF == 2) {
 					writer.println("library(kinship2)");
 				} else {
@@ -189,7 +189,7 @@ public class GWAF {
 		log = new Logger();
 		iv = new IntVector();
 		try {
-			writer = new PrintWriter(new FileWriter(outfile));
+			writer = Files.openAppropriateWriter(outfile);
 			trav = last = startAt;
 			while (trav < last + 20) {
 				if (new File(ext.replaceAllWith(outfileTemplate, "#", trav + "")).exists()) {

@@ -107,7 +107,7 @@ public class MitoSeqCN {
 																																									numthreads, log);
 				ArrayList<MitoCNResult> results = new ArrayList<MitoSeqCN.MitoCNResult>();
 				try {
-					PrintWriter writer = new PrintWriter(new FileWriter(output));
+					PrintWriter writer = Files.openAppropriateWriter(output);
 					writer.println(ArrayUtils.toStr(MitoCNResult.header));
 					while (train.hasNext()) {
 						MitoCNResult result = train.next();

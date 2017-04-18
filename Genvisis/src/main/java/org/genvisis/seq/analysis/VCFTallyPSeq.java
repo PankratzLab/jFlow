@@ -165,7 +165,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 															+ "_" + type + ".hit.summary5_snpEffGeneProper";
 		try {
 			if (!Files.exists(fullPathToOutput)) {
-				PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutput));
+				PrintWriter writer = Files.openAppropriateWriter(fullPathToOutput);
 				writer.print("GENE\tCHR\tSTART\tSTOP\tUCSC\tTotal_length\tMrna_length\tmultiLoc");
 				for (int i = 0; i < trackersCase.length; i++) {
 					writer.print("\t" + trackersCase[i].getTallyName() + "_NUM_VAR" + "\t"
@@ -315,7 +315,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 
 		String bed = fullPathToOutput + ".CASE.bed";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(bed));
+			PrintWriter writer = Files.openAppropriateWriter(bed);
 			for (TallyTracker element : trackersCase) {
 				String[] tbed = element.getBed();
 				for (String element2 : tbed) {

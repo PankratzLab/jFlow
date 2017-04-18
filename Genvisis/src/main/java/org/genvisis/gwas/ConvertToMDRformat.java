@@ -3,12 +3,12 @@ package org.genvisis.gwas;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.PSF;
 
@@ -36,7 +36,7 @@ public class ConvertToMDRformat {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + prefix + ".ped"));
-			writer = new PrintWriter(new FileWriter(dir + prefix + ".mdr"));
+			writer = Files.openAppropriateWriter(dir + prefix + ".mdr");
 			writer.println(ArrayUtils.toStr(markers) + "\tClass");
 			while (reader.ready()) {
 				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);

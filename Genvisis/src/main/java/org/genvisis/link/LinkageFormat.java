@@ -71,9 +71,9 @@ public class LinkageFormat {
 			}
 			hash.put(line[0], line);
 
-			writer = new PrintWriter(new FileWriter(fileout));
+			writer = Files.openAppropriateWriter(fileout);
 			if (makePheno) {
-				phenophile = new PrintWriter(new FileWriter("pheno.sibs"));
+				phenophile = Files.openAppropriateWriter("pheno.sibs");
 			}
 			reader.close();
 
@@ -228,7 +228,7 @@ public class LinkageFormat {
 
 		try {
 			reader = new BufferedReader(new FileReader(filein));
-			writer = new PrintWriter(new FileWriter(fileout));
+			writer = Files.openAppropriateWriter(fileout);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length != keeps.length * 2 + 6) {

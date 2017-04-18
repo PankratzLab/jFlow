@@ -3,7 +3,6 @@ package org.genvisis.bioinformatics;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -15,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
@@ -34,7 +34,7 @@ public class procUnigene {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + ".xls"));
+			writer = Files.openAppropriateWriter(filename + ".xls");
 			writer.println("NM_ID\t" + ArrayUtils.toStr(VARS));
 			while (reader.ready()) {
 				temp = reader.readLine();
@@ -76,7 +76,7 @@ public class procUnigene {
 			writer.close();
 			reader.close();
 
-			writer = new PrintWriter(new FileWriter("possibleTissues.out"));
+			writer = Files.openAppropriateWriter("possibleTissues.out");
 			List<String> sortedVals = new ArrayList<String>(v);
 			Collections.sort(sortedVals);
 			for (int i = 0; i < sortedVals.size(); i++) {

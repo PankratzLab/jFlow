@@ -58,7 +58,7 @@ public class Mach {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(root + ".batch"));
+			writer = Files.openAppropriateWriter(root + ".batch");
 			if (keeps == null) {
 				System.err.println("Warning - subset and all will be the same");
 			}
@@ -92,7 +92,7 @@ public class Mach {
 
 		try {
 			reader = new BufferedReader(new FileReader(prefix + ".map"));
-			writer = new PrintWriter(new FileWriter(prefix + ".dat"));
+			writer = Files.openAppropriateWriter(prefix + ".dat");
 			writer.println("A\tPD_Affection");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -187,8 +187,8 @@ public class Mach {
 		try {
 			reader = new BufferedReader(new FileReader("genotypes_chr" + chr
 																								 + "_CEU_r22_nr.b36_fwd_legend.txt"));
-			writer = new PrintWriter(new FileWriter("truncated_chr" + chr
-																							+ "_CEU_r22_nr.b36_fwd_legend.txt"));
+			writer = Files.openAppropriateWriter("truncated_chr" + chr
+																							+ "_CEU_r22_nr.b36_fwd_legend.txt");
 			writer.println(reader.readLine());
 			while (reader.ready()) {
 				trav = reader.readLine();
@@ -294,7 +294,7 @@ public class Mach {
 		try {
 			reader = new BufferedReader(new FileReader(dir + "truncated_chr" + chr
 																								 + "_CEU_r22_nr.b36_fwd.phase"));
-			writer = new PrintWriter(new FileWriter(dir + "chr" + chr + "_phased.xln"));
+			writer = Files.openAppropriateWriter(dir + "chr" + chr + "_phased.xln");
 			writer.println(ArrayUtils.toStr(markerNames));
 			writer.println(ArrayUtils.toStr(positions));
 			while (reader.ready()) {
@@ -327,7 +327,7 @@ public class Mach {
 		try {
 			time = new Date().getTime();
 			in = new FileReader(filename);
-			writer = new PrintWriter(new FileWriter(outfile));
+			writer = Files.openAppropriateWriter(outfile);
 			System.out.println(ext.getTime() + " Reading dosage file");
 			c = 0;
 			while (c >= 0) {
@@ -365,7 +365,7 @@ public class Mach {
 			// reader = new BufferedReader(new FileReader(filename));
 			reader = Files.getAppropriateReader(filename);
 			System.out.println(ext.getTime() + " Reading dosage file");
-			writer = new PrintWriter(new FileWriter(outfile));
+			writer = Files.openAppropriateWriter(outfile);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[0].substring(0, line[0].indexOf("->")) + "\t"
@@ -520,7 +520,7 @@ public class Mach {
 				step = markerNames.length + 2;
 			}
 
-			writer = new PrintWriter(new FileWriter(dir + machDosage + ".dose"));
+			writer = Files.openAppropriateWriter(dir + machDosage + ".dose");
 			writer.print("SNP\tA1\tA2");
 			indIDs = ArrayUtils.toStringArray(v);
 			for (int i = 0; i < rowCount; i++) {
@@ -528,7 +528,7 @@ public class Mach {
 										 + indIDs[i].substring(indIDs[i].indexOf("->") + 2));
 			}
 			writer.println();
-			mapWriter = new PrintWriter(new FileWriter(dir + machDosage + ".map"));
+			mapWriter = Files.openAppropriateWriter(dir + machDosage + ".map");
 			data = new String[rowCount][step];
 			while (inc < markerNames.length) {
 				System.out.println(ext.getTime() + " " + inc);
@@ -584,7 +584,7 @@ public class Mach {
 			writer.close();
 
 			try {
-				writer = new PrintWriter(new FileWriter(dir + machDosage + ".fam"));
+				writer = Files.openAppropriateWriter(dir + machDosage + ".fam");
 				for (String indID : indIDs) {
 					writer.print(indID.substring(0, indID.indexOf("->")) + "\t"
 											 + indID.substring(indID.indexOf("->") + 2));
@@ -869,7 +869,7 @@ public class Mach {
 			delimiter = "\t";
 		}
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			for (int i = 0; i < indIDs.length; i++) {
 				line = indIDs[i].split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.print(line[0] + "->" + line[1] + delimiter + descriptor);
@@ -886,7 +886,7 @@ public class Mach {
 
 		filename = ext.rootOf(markerList, false) + (machFormat ? ".mlinfo" : ".info");
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			if (machFormat) {
 				writer.println(ArrayUtils.toStr(MLINFO_HEADER));
 			} else {
@@ -1141,7 +1141,7 @@ public class Mach {
 	// delimiter = "\t";
 	// }
 	// try {
-	// writer = new PrintWriter(new FileWriter(filename));
+	// writer = Files.openAppropriateWriter(filename);
 	// for (int i = 0; i<indIDs.length; i++) {
 	// line = indIDs[i].split(PSF.Regex.GREEDY_WHITESPACE);
 	// writer.print(line[0]+"->"+line[1]+delimiter+descriptor);
@@ -1158,7 +1158,7 @@ public class Mach {
 	//
 	// filename = ext.rootOf(markerList, false)+(machFormat?".mlinfo":".info");
 	// try {
-	// writer = new PrintWriter(new FileWriter(filename));
+	// writer = Files.openAppropriateWriter(filename);
 	// if (machFormat) {
 	// writer.println(Array.toStr(MLINFO_HEADER));
 	// } else {
@@ -1260,7 +1260,7 @@ public class Mach {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(batchFilename));
+			writer = Files.openAppropriateWriter(batchFilename);
 			for (int i = 0; i < regionKeys.length; i++) {
 				regionHash = regionMarkerHashes.get(regionKeys[i]);
 				chr = chrHash.get(regionHash.keys().nextElement()).intValue();
@@ -1293,8 +1293,8 @@ public class Mach {
 
 				try {
 					reader = Files.getAppropriateReader(markersFile);
-					w2 = new PrintWriter(new FileWriter(dir
-																							+ (regions ? "data.info" : "chr" + chr + ".info")));
+					w2 = Files.openAppropriateWriter(dir
+																							+ (regions ? "data.info" : "chr" + chr + ".info"));
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					w2.println(ArrayUtils.toStr(line));
 					if (markersFile.endsWith(".gz") || markersFile.endsWith(".zip")) {
@@ -1414,7 +1414,7 @@ public class Mach {
 		use = new boolean[markerNames.length];
 		rsqs = Matrix.extractColumn(map.getAnnotation(), 3);
 		try {
-			writer = new PrintWriter(new FileWriter(dir + machProb + ".map"));
+			writer = Files.openAppropriateWriter(dir + machProb + ".map");
 			for (int i = 0; i < use.length; i++) {
 				use[i] = (allMarkers || subset.containsKey(markerNames[i]))
 								 && Double.parseDouble(rsqs[i]) > rsqThreshold;
@@ -1461,7 +1461,7 @@ public class Mach {
 			double[] probs;
 
 			in = new FileReader(dir + machProb);
-			writer = new PrintWriter(new FileWriter(dir + machProb + ".ped"));
+			writer = Files.openAppropriateWriter(dir + machProb + ".ped");
 			rowCount = 0;
 			count = -2;
 			c = 0;
@@ -1551,7 +1551,7 @@ public class Mach {
 									+ " ped=../../plink.fam", "chr" + chr + "/");
 		}
 		try {
-			writer = new PrintWriter(new FileWriter("merge.dat"));
+			writer = Files.openAppropriateWriter("merge.dat");
 			for (int chr = 2; chr <= 22; chr++) {
 				writer.println("chr" + chr + "/" + machRoot + "_chr" + chr + ".mlprob.ped chr" + chr + "/"
 											 + machRoot + "_chr" + chr + ".mlprob.map");
@@ -1615,7 +1615,7 @@ public class Mach {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter("subset.txt"));
+			writer = Files.openAppropriateWriter("subset.txt");
 			keys = HashVec.getKeys(hashV);
 			for (String key : keys) {
 				v = hashV.get(key);
@@ -1649,7 +1649,7 @@ public class Mach {
 		markerNames = HashVec.loadFileToStringArray(machRoot + ".mlinfo", true, new int[] {0}, false);
 		try {
 			reader = new BufferedReader(new FileReader(machRoot + ".mldose"));
-			writer = new PrintWriter(new FileWriter(machRoot + ".xln"));
+			writer = Files.openAppropriateWriter(machRoot + ".xln");
 			writer.println("FID\tIID\t" + ArrayUtils.toStr(markerNames));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

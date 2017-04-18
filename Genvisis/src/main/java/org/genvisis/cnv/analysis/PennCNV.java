@@ -122,7 +122,7 @@ public class PennCNV {
 
 		for (int i = 0; i < numChunks; i++) {
 			try {
-				writer = new PrintWriter(new FileWriter(resultsDir + "list" + (i + 1) + ".txt"));
+				writer = Files.openAppropriateWriter(resultsDir + "list" + (i + 1) + ".txt");
 				for (int j = i * step; j < Math.min(files.length, (i + 1) * step); j++) {
 					if (files[j].endsWith(".gz")) {
 						writer.println("`gunzip -c " + dataDir + files[j] + "`");
@@ -256,7 +256,7 @@ public class PennCNV {
 
 		for (int i = 0; i < numChunks; i++) {
 			try {
-				writer = new PrintWriter(new FileWriter(resultsDir + "list" + (i + 1) + ".txt"));
+				writer = Files.openAppropriateWriter(resultsDir + "list" + (i + 1) + ".txt");
 				for (int j = i * step; j < Math.min(files.length, (i + 1) * step); j++) {
 					if (files[j].endsWith(".gz")) {
 						writer.println("`gunzip -c " + dataDir + files[j] + "`");
@@ -308,7 +308,7 @@ public class PennCNV {
 
 		try {
 			reader = new BufferedReader(new FileReader(fileToFilter));
-			writer = new PrintWriter(new FileWriter(outputFile));
+			writer = Files.openAppropriateWriter(outputFile);
 
 			String header;
 			String temp;
@@ -368,7 +368,7 @@ public class PennCNV {
 																																					new int[] {sexInd}, "\t",
 																																					true, false);
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(resultsDir + "sex_file.txt"));
+			PrintWriter writer = Files.openAppropriateWriter(resultsDir + "sex_file.txt");
 			for (Map.Entry<String, Vector<String>> lineData : sexData.entrySet()) {
 				String estSexStr = lineData.getValue().get(0);
 				if (!ext.isMissingValue(estSexStr)) {
@@ -455,8 +455,8 @@ public class PennCNV {
 			}
 			reader.close();
 
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																							+ ext.rootOf(filename) + QC_SUMMARY_EXTENSION));
+			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																							+ ext.rootOf(filename) + QC_SUMMARY_EXTENSION);
 			writer.print("Sample\tFID\tIID\tUse_" + ext.formDeci(lrrSD_cutoff, 2));
 			for (String element : ERRORS) {
 				writer.print("\t" + element);
@@ -574,7 +574,7 @@ public class PennCNV {
 
 		if (readAll) {
 			try {
-				writer = new PrintWriter(new FileWriter(outputFile));
+				writer = Files.openAppropriateWriter(outputFile);
 				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 				String FIDIID;
 				String cnvChr;
@@ -644,7 +644,7 @@ public class PennCNV {
 		PrintWriter[] denoValWriter = new PrintWriter[1];
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".cnv"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + ".cnv");
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			hash = new Hashtable<String, String>();
 			while (reader.ready()) {
@@ -702,8 +702,8 @@ public class PennCNV {
 					}
 					if (isDenovo) {
 						if (denovoWriter == null) {
-							denovoWriter = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
-																														+ "_denovo.cnv"));
+							denovoWriter = Files.openAppropriateWriter(ext.rootOf(filename, false)
+																														+ "_denovo.cnv");
 							denovoWriter.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 						}
 						denovoWriter.println(lineOut.toString());
@@ -722,7 +722,7 @@ public class PennCNV {
 
 			// FilterCalls.stdFilters(dir, ext.rootOf(filename)+".cnv", MAKE_UCSC_TRACKS);
 
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".fam"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + ".fam");
 			fams = HashVec.getNumericKeys(pedinfo);
 			for (String fam : fams) {
 				inds = pedinfo.get(fam);
@@ -775,7 +775,7 @@ public class PennCNV {
 
 		if (denoValWriter[0] == null) {
 			try {
-				denoValWriter[0] = new PrintWriter(new FileWriter(outDir + "denovoValidation.txt"));
+				denoValWriter[0] = Files.openAppropriateWriter(outDir + "denovoValidation.txt");
 				denoValWriter[0].println("export HMMFILE=");
 				denoValWriter[0].println("export PFBFILE=");
 				denoValWriter[0].println();
@@ -946,7 +946,7 @@ public class PennCNV {
 		PSF.checkInterrupted();
 		try {
 
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.println("Name\tChr\tPosition\tPFB");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(markerNames[i] + "\t"
@@ -1137,7 +1137,7 @@ public class PennCNV {
 
 		// output the result
 		try {
-			writer = new PrintWriter(new FileWriter(outputGcModelFullPath));
+			writer = Files.openAppropriateWriter(outputGcModelFullPath);
 			writer.println("Name\tChr\tPosition\tGC");
 			for (int i = 0; i < markerNames.length; i++) {
 				// writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]+"\t"+(snp_count[i]==0?(snp_sum[i]==0?0:"err"):(snp_sum[i]/snp_count[i])));

@@ -135,7 +135,7 @@ public class BlastContamination {
 
 		String[] allTaxaA = allTaxa.toArray(new String[allTaxa.size()]);
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
+			PrintWriter writer = Files.openAppropriateWriter(outputFile);
 			writer.println("Taxa\t" + ArrayUtils.toStr(fastaqs));
 			for (String element : allTaxaA) {
 				writer.print(element);
@@ -344,7 +344,7 @@ public class BlastContamination {
 // String output = outputDir + "taxonCounts.txt";
 // String[] allTaxaA = allTaxa.toArray(new String[allTaxa.size()]);
 // try {
-// PrintWriter writer = new PrintWriter(new FileWriter(output));
+// PrintWriter writer = Files.openAppropriateWriter(output);
 // writer.println("Taxa\t" + Array.toStr(fastaqs));
 // for (int i = 0; i < allTaxaA.length; i++) {
 // writer.print(allTaxaA[i]);

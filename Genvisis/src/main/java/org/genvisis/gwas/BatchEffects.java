@@ -57,7 +57,7 @@ public class BatchEffects {
 
 		try {
 			reader = new BufferedReader(new FileReader(pedfile));
-			writer = new PrintWriter(new FileWriter("batchListing.txt"));
+			writer = Files.openAppropriateWriter("batchListing.txt");
 			writer.println("FID\tIID\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(v)));
 			while (reader.ready()) {
 				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -76,7 +76,7 @@ public class BatchEffects {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter("batchEffects"));
+			writer = Files.openAppropriateWriter("batchEffects");
 			for (int i = 1; i <= numBatches; i++) {
 				// writer.println("plink --bfile pd_gwas --pheno
 				// batchListing.txt --mpheno "+i+" --freq --maf 0.01 --geno 0.20
@@ -170,7 +170,7 @@ public class BatchEffects {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter("batchEffectsCounts.xln"));
+			writer = Files.openAppropriateWriter("batchEffectsCounts.xln");
 			for (int i = 0; i < bins.length; i++) {
 				writer.println(bins[i] + "\tASSOC\t" + ArrayUtils.toStr(sigCounts[i]));
 				writer.println(bins[i] + "\tMISS\t" + ArrayUtils.toStr(missCounts[i]));

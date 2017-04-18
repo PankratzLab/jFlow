@@ -94,8 +94,8 @@ public class PlinkCNV {
 				try {
 					int numTotal = 0;
 					int numSamps = 0;
-					PrintWriter writer = new PrintWriter(new FileWriter(sampCNVs)); // subset to samp cnvs
-					PrintWriter writerGene = new PrintWriter(new FileWriter(geneSampCnvs));// subset to samp
+					PrintWriter writer = Files.openAppropriateWriter(sampCNVs); // subset to samp cnvs
+					PrintWriter writerGene = Files.openAppropriateWriter(geneSampCnvs);// subset to samp
 																																								 // and genes
 
 					writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));

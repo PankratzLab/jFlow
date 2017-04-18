@@ -126,7 +126,7 @@ public class FilterSNPsByRegion {
 															+ (regionNameIndex >= 0 ? "\tRegionName" : ""));
 		try {
 			reader = new BufferedReader(new FileReader(lookupFile));
-			writer = new PrintWriter(new FileWriter(outputFilename));
+			writer = Files.openAppropriateWriter(outputFilename);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				passes = false;

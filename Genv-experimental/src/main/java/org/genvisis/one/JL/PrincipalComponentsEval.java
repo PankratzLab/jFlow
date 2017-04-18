@@ -54,7 +54,7 @@ public class PrincipalComponentsEval {
 											"\t");
 		try {
 			output = ext.parseDirectoryOfFile(evalFile) + ext.rootOf(output) + ".evaluated";
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			for (int i = 0; i <= pcResiduals.getNumComponents(); i += jumpPC) {
 				double[] data;
 				if (i == 0) {
@@ -201,7 +201,7 @@ public class PrincipalComponentsEval {
 	// }
 	// output = ext.parseDirectoryOfFile(evalFile) + ext.rootOf(output) + ".evaluatedByMarker";
 	// try {
-	// PrintWriter writer = new PrintWriter(new FileWriter(output));
+	// PrintWriter writer = Files.openAppropriateWriter(output);
 	// writer.println("PC\t" + ext.rootOf(evalFile) + ".PearsonCorrel" + "\t" + ext.rootOf(evalFile)
 	// + ".PearsonP\t" + ext.rootOf(evalFile) + ".SpearmanCorrel" + "\t"
 	// + ext.rootOf(evalFile) + ".SpearmanP" + "\t" + ext.rootOf(evalFile)

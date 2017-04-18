@@ -319,7 +319,7 @@ public class Fst {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + ArrayUtils.toStr(incl, "-") + "_Fst.xln"));
+			writer = Files.openAppropriateWriter(dir + ArrayUtils.toStr(incl, "-") + "_Fst.xln");
 			writer.println("Marker\tFst_equal\tFst_weighted\t" + ArrayUtils.toStr(incl));
 			counts = new int[incl.length][];
 			for (int i = 0; i < markerInfo.length; i++) {

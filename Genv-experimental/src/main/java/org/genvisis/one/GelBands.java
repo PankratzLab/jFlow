@@ -34,7 +34,7 @@ public class GelBands {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + "_calls.xln"));
+			writer = Files.openAppropriateWriter(filename + "_calls.xln");
 			betweenLadders = false;
 			// count = 0;
 			ladder = null;
@@ -202,7 +202,7 @@ public class GelBands {
 		}
 		//
 		// try {
-		// writer = new PrintWriter(new FileWriter("ladders.xln", true));
+		// writer = Files.openAppropriateWriter("ladders.xln", true);
 		// for (int i = 0; i<ladder.length; i++) {
 		// writer.println(customLadderCoordinates[i]+"\t"+ladder[i]);
 		// }

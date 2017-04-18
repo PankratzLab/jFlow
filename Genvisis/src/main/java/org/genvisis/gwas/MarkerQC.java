@@ -378,10 +378,10 @@ public class MarkerQC {
 			try {
 				reader = new BufferedReader(new FileReader(dir + params[0][1]));
 				writers = new PrintWriter[4];
-				writers[0] = new PrintWriter(new FileWriter(dir + params[2][1] + "_drops.dat"));
-				writers[1] = new PrintWriter(new FileWriter(dir + params[2][1] + "_singles.out"));
-				writers[2] = new PrintWriter(new FileWriter(dir + params[2][1] + "_annotated.xln"));
-				writers[3] = new PrintWriter(new FileWriter(dir + params[2][1] + "_allAnnotations.out"));
+				writers[0] = Files.openAppropriateWriter(dir + params[2][1] + "_drops.dat");
+				writers[1] = Files.openAppropriateWriter(dir + params[2][1] + "_singles.out");
+				writers[2] = Files.openAppropriateWriter(dir + params[2][1] + "_annotated.xln");
+				writers[3] = Files.openAppropriateWriter(dir + params[2][1] + "_allAnnotations.out");
 				line = reader.readLine().trim().split("\\t");
 				indices = ext.indexFactors(ArrayUtils.subArray(Matrix.extractColumn(params, 0), 3), line,
 																	 false, log, true, false);
@@ -446,7 +446,7 @@ public class MarkerQC {
 				maxSize = Math.max(maxSize, (params[i + 3][0] + params[i + 3][2] + ":").length());
 			}
 
-			writer = new PrintWriter(new FileWriter(dir + params[2][1] + ".out"));
+			writer = Files.openAppropriateWriter(dir + params[2][1] + ".out");
 			writer.println("Number of markers failed: " + ArrayUtils.sum(counts[1]) + " of " + count
 										 + " ("
 										 + ext.formDeci((double) ArrayUtils.sum(counts[1]) / (double) count * 100, 2)

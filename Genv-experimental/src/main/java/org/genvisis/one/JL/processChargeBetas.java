@@ -33,7 +33,7 @@ public class processChargeBetas {
 			try {
 
 				BufferedReader reader = Files.getAppropriateReader(betaFile);
-				PrintWriter writer = new PrintWriter(new FileWriter(file));
+				PrintWriter writer = Files.openAppropriateWriter(file);
 				int[] indices = null;
 				while (reader.ready()) {
 					String[] line = reader.readLine().trim().split("\t");

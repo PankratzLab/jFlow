@@ -236,7 +236,7 @@ public class OriginalNrss {
 			}
 			genes = MapSNPsAndGenes.mapSNPsToGenesLoosely(markerPositions, window, 36, new Logger());
 
-			writer = new PrintWriter(new FileWriter(dir + outfile));
+			writer = Files.openAppropriateWriter(dir + outfile);
 			writer.println("Marker\tChr\tPostition\tGenes(s)\tWeightedStatistic\tNumMarkers\tUnweightedStatistic\tUCSC coordinates\tMin p-value"
 										 + (variate_column == -1 ? "" : "\tvars"));
 			for (int i = 0; i < v.size(); i++) {
@@ -411,7 +411,7 @@ public class OriginalNrss {
 
 		try {
 			reader = new BufferedReader(new FileReader(in));
-			writer = new PrintWriter(new FileWriter(out));
+			writer = Files.openAppropriateWriter(out);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[1] + "\t" + line[3]);
@@ -458,7 +458,7 @@ public class OriginalNrss {
 
 		for (int i = 1; i <= replicates; i++) {
 			try {
-				writer = new PrintWriter(new FileWriter("sim." + i + ".dat"));
+				writer = Files.openAppropriateWriter("sim." + i + ".dat");
 				writer.println("FID\tIID\tAff");
 				order = ArrayUtils.random(data.length);
 				for (int j = 0; j < data.length; j++) {
@@ -480,7 +480,7 @@ public class OriginalNrss {
 						Files.chmod("batchSims." + count);
 					}
 					count++;
-					writer = new PrintWriter(new FileWriter("batchSims." + count));
+					writer = Files.openAppropriateWriter("batchSims." + count);
 				}
 
 				// writer.println("plink --bfile pd_gwas --pheno
@@ -518,7 +518,7 @@ public class OriginalNrss {
 
 			try {
 				reader = new BufferedReader(new FileReader(filename));
-				writer = new PrintWriter(new FileWriter(outfile));
+				writer = Files.openAppropriateWriter(outfile);
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.println(line[markerName_column] + "\t" + line[chr_column] + "\t" + line[pos_column]
@@ -631,7 +631,7 @@ public class OriginalNrss {
 					pvalueVector = null;
 
 					for (int t = 0; t < MODELS.length; t++) {
-						writer = new PrintWriter(new FileWriter(models[t] + outfile, chr_target > 1));
+						writer = Files.openAppropriateWriter(models[t] + outfile, chr_target > 1);
 						if (chr_target == 1) {
 							writer.println("Marker\tChr\tPostition\tWeightedStatistic\tNumMarkers\tUnweightedStatistic\tUCSC coordinates");
 						}
@@ -794,7 +794,7 @@ public class OriginalNrss {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter("NRSS_distributions.xln"));
+			writer = Files.openAppropriateWriter("NRSS_distributions.xln");
 			for (int i = 0; i < dirs.length; i++) {
 				writer.print((i == 0 ? "" : "\t") + dirs[i].getName()
 										 + ArrayUtils.toStr(ArrayUtils.stringArray(levelsDeep), "\t"));

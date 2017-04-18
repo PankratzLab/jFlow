@@ -12,7 +12,7 @@ public class ProblemGenes {
 	public static void dumpProblems(Project proj, String output, String[] startWithPatters) {
 		GeneTrack geneTrack = GeneTrack.load(proj.getGeneTrackFilename(false), false);
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			for (int i = 0; i < geneTrack.getGenes().length; i++) {
 				for (int j = 0; j < geneTrack.getGenes()[i].length; j++) {
 					String geneName = geneTrack.getGenes()[i][j].getGeneName();

@@ -138,7 +138,7 @@ public class ParseMinPvalue {
 		try {
 			keys = Sort.getSortedIndices(ps);
 			count = 0;
-			writer = new PrintWriter(new FileWriter(dir + "Top" + TOP_N + ".txt"));
+			writer = Files.openAppropriateWriter(dir + "Top" + TOP_N + ".txt");
 			for (int i = 0; count < TOP_N; i++) {
 				if (Integer.parseInt(hash.get(marks[keys[i]])) < 23) {
 					writer.println(marks[keys[i]]);

@@ -310,9 +310,9 @@ public class GenotypeMatrix implements Serializable {
 		log.report("Running a " + (logistic ? "logistic" : "linear") + " model for trait '" + traits[0]
 							 + "'", true, verbose);
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(phenoFile, false) + ".results."
-																							+ (logistic ? "logistic" : "linear")));
-			w2 = new PrintWriter(new FileWriter(ext.rootOf(phenoFile, false) + ".se.metal"));
+			writer = Files.openAppropriateWriter(ext.rootOf(phenoFile, false) + ".results."
+																							+ (logistic ? "logistic" : "linear"));
+			w2 = Files.openAppropriateWriter(ext.rootOf(phenoFile, false) + ".se.metal");
 			String[] arr = logistic ? Plink.LOGISTIC_SE_HEADER : Plink.LINEAR_SE_HEADER;
 			line = Arrays.copyOf(arr, arr.length);
 			line[1] = line[1] + "      ";
@@ -437,7 +437,7 @@ public class GenotypeMatrix implements Serializable {
 		annotation = markerSet.getAnnotation();
 
 		try {
-			writer = new PrintWriter(new FileWriter(root + ".ped"));
+			writer = Files.openAppropriateWriter(root + ".ped");
 			for (int i = 0; i < ids.length; i++) {
 				writer.print(ids[i] + "\t" + ids[i] + "\t0\t0\t1\t1");
 				for (int j = 0; j < values.length; j++) {
@@ -465,7 +465,7 @@ public class GenotypeMatrix implements Serializable {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(root + ".map"));
+			writer = Files.openAppropriateWriter(root + ".map");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(chrs[i] + "\t" + markerNames[i] + "\t0\t" + positions[i]);
 			}
@@ -479,7 +479,7 @@ public class GenotypeMatrix implements Serializable {
 								ext.parseDirectoryOfFile(root));
 
 		try {
-			writer = new PrintWriter(new FileWriter(root + ".SetID"));
+			writer = Files.openAppropriateWriter(root + ".SetID");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(annotation[i][0] + " " + markerNames[i]);
 			}

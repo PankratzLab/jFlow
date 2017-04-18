@@ -26,7 +26,7 @@ public class LOAD_OnePerFamily {
 		pedHash = HashVec.loadFileToHashVec(dir + pedigreeFile, 0, new int[] {1}, "\t", false, false);
 		try {
 			fams = HashVec.getKeys(pedHash);
-			writer = new PrintWriter(new FileWriter(dir + "picks.xln"));
+			writer = Files.openAppropriateWriter(dir + "picks.xln");
 			for (String fam : fams) {
 				v = pedHash.get(fam);
 				pick = -1;

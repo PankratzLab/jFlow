@@ -3,10 +3,10 @@ package org.genvisis.widgets;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class Sci2TenBase {
@@ -17,7 +17,7 @@ public class Sci2TenBase {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + "-better.txt"));
+			writer = Files.openAppropriateWriter(filename + "-better.txt");
 			while (reader.ready()) {
 				line = reader.readLine().split("\t");
 				for (int i = 0; i < line.length; i++) {

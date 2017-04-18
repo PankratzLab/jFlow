@@ -65,7 +65,7 @@ public class CnvBamQC {
 		HistogramQC histogramQC = new HistogramQC();
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
 										 + ArrayUtils.toStr(QC_HEADER));
 			LocusSet<CNVariant> cnLocusSet = callSplit.getCnLocusSet();

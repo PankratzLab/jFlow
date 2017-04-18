@@ -2,15 +2,16 @@ package org.genvisis.link;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
 
+import org.genvisis.common.Files;
+
 public class simParseAllegro {
 	public simParseAllegro(int start, int finish) throws IOException {
 		BufferedReader input;
-		PrintWriter writer = new PrintWriter(new FileWriter("summary.out"));
+		PrintWriter writer = Files.openAppropriateWriter("summary.out");
 		String pos, maxPos;
 		StringTokenizer st;
 		float lod, maxLod;

@@ -1,11 +1,11 @@
 package org.genvisis.stats;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Arrays;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -349,7 +349,7 @@ public class Histogram implements Serializable {
 
 		try {
 			bins = getBins();
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			writer.println("Bin\tCounts");
 			for (int i = 0; i < bins.length; i++) {
 				writer.println(ext.formDeci(bins[i], sigfigs + (extrastep == 2 ? 1 : 0)) + "\t" + counts[i]
@@ -460,7 +460,7 @@ public class Histogram implements Serializable {
 				for (int i = 0; i < totals.length; i++) {
 					totals[i] = proportion ? ArrayUtils.sum(histograms[i].getCounts()) : 1;
 				}
-				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				PrintWriter writer = Files.openAppropriateWriter(output);
 				String[] cumulative = ArrayUtils.tagOn(titles, "Cumulative_", null);
 				String[] allTitles = new String[titles.length * 2];
 				int index = 0;
@@ -558,7 +558,7 @@ public class Histogram implements Serializable {
 			try {
 				double[] bins = getBins();
 
-				PrintWriter writer = new PrintWriter(new FileWriter(filename));
+				PrintWriter writer = Files.openAppropriateWriter(filename);
 				if (titles != null) {
 					writer.println(ArrayUtils.toStr(titles));
 				} else {
@@ -590,7 +590,7 @@ public class Histogram implements Serializable {
 				String[] finalTitles = ArrayUtils.concatAll(ArrayUtils.tagOn(titles, null, DUMP_COUNT),
 																										ArrayUtils.tagOn(titles, null, DUMP_PROP),
 																										ArrayUtils.tagOn(titles, null, DUMP_AVG));
-				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				PrintWriter writer = Files.openAppropriateWriter(output);
 				writer.println("Bin\t" + ArrayUtils.toStr(finalTitles));
 				double[] totals = new double[histograms.length];
 				for (int i = 0; i < totals.length; i++) {

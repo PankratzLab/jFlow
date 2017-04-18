@@ -580,7 +580,7 @@ public class Emim {
 
 		try {
 			reader = Files.getAppropriateReader(filenameOriginal);
-			writer = new PrintWriter(new FileWriter(filenameWithReplacements));
+			writer = Files.openAppropriateWriter(filenameWithReplacements);
 			while (reader.ready()) {
 				writer.println(ext.replaceAllWith(reader.readLine(), relacements));
 			}

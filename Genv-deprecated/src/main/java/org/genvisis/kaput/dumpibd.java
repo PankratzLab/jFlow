@@ -8,7 +8,7 @@ public class dumpibd {
 	public dumpibd() throws IOException {
 		PrintWriter writer = null;
 		String chrom;
-		writer = new PrintWriter(new FileWriter("batch.dumpibd"));
+		writer = Files.openAppropriateWriter("batch.dumpibd");
 
 		writer.println("#/bin/sh\n\n");
 

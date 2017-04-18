@@ -2,12 +2,12 @@ package org.genvisis.link.bat;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class createAspex {
@@ -99,19 +99,19 @@ public class createAspex {
 		for (int j = 2; j < 5; j++) {
 			switch (j) {
 				default:
-					writer = new PrintWriter(new FileWriter("chrom" + chrome + "h-mpt.param"));
+					writer = Files.openAppropriateWriter("chrom" + chrome + "h-mpt.param");
 					break;
 				case 1:
-					writer = new PrintWriter(new FileWriter("chrom" + chrome + "hd-mpt.param"));
+					writer = Files.openAppropriateWriter("chrom" + chrome + "hd-mpt.param");
 					break;
 				case 2:
-					writer = new PrintWriter(new FileWriter("chrom" + chrome + "k-mpt.param"));
+					writer = Files.openAppropriateWriter("chrom" + chrome + "k-mpt.param");
 					break;
 				case 3:
-					writer = new PrintWriter(new FileWriter("chrom" + chrome + "kd-mpt.param"));
+					writer = Files.openAppropriateWriter("chrom" + chrome + "kd-mpt.param");
 					break;
 				case 4:
-					writer = new PrintWriter(new FileWriter("chrom" + chrome + "k-2pt.param"));
+					writer = Files.openAppropriateWriter("chrom" + chrome + "k-2pt.param");
 					break;
 			}
 			writer.println("set nloc " + numMarkers);
@@ -153,7 +153,7 @@ public class createAspex {
 			writer.close();
 		}
 
-		writer = new PrintWriter(new FileWriter("chrom" + chrome + ".pre"));
+		writer = Files.openAppropriateWriter("chrom" + chrome + ".pre");
 
 		for (int i = 0; i < numMarkers; i++) {
 			writer.print(markers.elementAt(i) + " ");

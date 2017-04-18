@@ -339,7 +339,7 @@ public class CNVBurdenIterator {
 	// }
 	// }
 	//
-	// writer = new PrintWriter(new FileWriter(outputFile));
+	// writer = Files.openAppropriateWriter(outputFile);
 	//
 	// String[] labels = {"Both", "Males", "Females"};
 	//
@@ -654,7 +654,7 @@ public class CNVBurdenIterator {
 				}
 			}
 
-			writer = new PrintWriter(new FileWriter(outFile));
+			writer = Files.openAppropriateWriter(outFile);
 
 			String[] labels = genderCol >= 0 ? new String[] {"BothSexes", "Males", "Females"}
 																			 : new String[] {"BothSexes"};

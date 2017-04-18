@@ -66,7 +66,7 @@ public class CleanupSNPresults {
 			}
 			reader.close();
 
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_clean.xln"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + "_clean.xln");
 			writer.println("FamInd\tDNA\tResult\tCall\tPlate\tWell\t2nd_DNA\t2nd_Result\t2nd_Call\t2nd_Plate\t2nd_Well\t...");
 			hashKeys = HashVec.getKeys(hash);
 			keys = Sort.getSortedIndices(ArrayUtils.toIntArray(hashKeys));

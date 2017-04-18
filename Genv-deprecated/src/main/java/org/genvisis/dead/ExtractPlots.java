@@ -103,7 +103,7 @@ public class ExtractPlots {
 					if (!markers.elementAt(i).equals("")) {
 						System.err.println("Error - marker '" + markers.elementAt(i)
 															 + "' was not found in the index file: " + files[0]);
-						writer = new PrintWriter(new FileWriter("../MAJOR_PROBLEMS_WITH_INDICES!!.out", true));
+						writer = Files.openAppropriateWriter("../MAJOR_PROBLEMS_WITH_INDICES!!.out", true);
 						writer.println("Error - marker '" + markers.elementAt(i)
 													 + "' was not found in the index file: " + files[0]);
 						writer.close();
@@ -249,7 +249,7 @@ public class ExtractPlots {
 					snpNameIndex = ext.indexOfStr("SNP Name", line);
 					sampleNameIndex = ext.indexOfStr("Sample Name", line);
 
-					writer = new PrintWriter(new FileWriter(SLIM + files[i].getName()));
+					writer = Files.openAppropriateWriter(SLIM + files[i].getName());
 					writer.println(line[sampleNameIndex] + "," + line[snpNameIndex] + ","
 												 + ArrayUtils.toStr(PLOT_NEEDS, ","));
 					while (reader.ready()) {
@@ -320,7 +320,7 @@ public class ExtractPlots {
 					if (!new File("fixed/" + files[i].getName()).exists()) {
 						System.out.println(files[i].getName());
 						reader = new BufferedReader(new FileReader(files[i]));
-						writer = new PrintWriter(new FileWriter("fixed/" + files[i].getName()));
+						writer = Files.openAppropriateWriter("fixed/" + files[i].getName());
 
 						do {
 							temp = reader.readLine();
@@ -404,7 +404,7 @@ public class ExtractPlots {
 
 		try {
 			reader = new BufferedReader(new FileReader("../" + MARKERS_IN_INDEX_ORDER));
-			writer = new PrintWriter(new FileWriter(LOOKUP_DIR + "markersDone.out"));
+			writer = Files.openAppropriateWriter(LOOKUP_DIR + "markersDone.out");
 			rep = count = 0;
 			while (reader.ready()) {
 				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -430,7 +430,7 @@ public class ExtractPlots {
 
 			for (int i = 0; i < reps; i++) {
 				if (onesPicked.elementAt(i).size() > 0) {
-					writer = new PrintWriter(new FileWriter(LOOKUP_DIR + prefix + (char) (i + 97) + ".txt"));
+					writer = Files.openAppropriateWriter(LOOKUP_DIR + prefix + (char) (i + 97) + ".txt");
 					for (int j = 0; j < onesPicked.elementAt(i).size(); j++) {
 						writer.println(onesPicked.elementAt(i).elementAt(j));
 					}
@@ -438,7 +438,7 @@ public class ExtractPlots {
 				}
 			}
 
-			writer = new PrintWriter(new FileWriter("batch" + prefix));
+			writer = Files.openAppropriateWriter("batch" + prefix);
 			writer.println("mkdir " + prefix);
 			writer.println("cp " + LOOKUP_DIR + prefix + "*.txt " + prefix + "/");
 			writer.println("cd " + prefix);
@@ -478,7 +478,7 @@ public class ExtractPlots {
 		} while (new File(LOOKUP_DIR + count + "t.txt").exists());
 
 		try {
-			writer = new PrintWriter(new FileWriter("batchAll"));
+			writer = Files.openAppropriateWriter("batchAll");
 			for (int i = 1; i <= count; i++) {
 				try {
 					reader = new BufferedReader(new FileReader("batch" + i));

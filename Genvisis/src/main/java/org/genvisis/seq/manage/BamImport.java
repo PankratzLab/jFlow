@@ -242,7 +242,7 @@ public class BamImport {
 			VCFOps.createSiteOnlyVcf(vcf, outVCF, removeSingletons, false, proj.getLog());
 			if (!Files.exists(out)) {
 				try {
-					PrintWriter writer = new PrintWriter(new FileWriter(out));
+					PrintWriter writer = Files.openAppropriateWriter(out);
 					VCFFileReader reader = new VCFFileReader(new File(outVCF), true);
 
 					int num = 0;
@@ -615,7 +615,7 @@ public class BamImport {
 			String[] markerNames = markerSet.getMarkerNames();
 
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(gcFile));
+				PrintWriter writer = Files.openAppropriateWriter(gcFile);
 				String[] header = new String[] {"Name", "Chr", "Position", "GC"};
 				writer.println(ArrayUtils.toStr(header));
 				for (int i = 0; i < markerNames.length; i++) {
@@ -931,7 +931,7 @@ public class BamImport {
 		allMarkerColors.add(header);
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(positions));
+			PrintWriter writer = Files.openAppropriateWriter(positions);
 			int markerIndex = 0;
 			writer.println(header);
 

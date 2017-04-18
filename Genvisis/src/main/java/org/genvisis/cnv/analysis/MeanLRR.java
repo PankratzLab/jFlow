@@ -86,8 +86,8 @@ public class MeanLRR {
 
 		transChrs = ArrayUtils.booleanArray(27, false);
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "MarkersIn_"
-																							+ ext.rootOf(regionsFile) + ".xln"));
+			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + "MarkersIn_"
+																							+ ext.rootOf(regionsFile) + ".xln");
 			for (int i = 0; i < regions.length; i++) {
 				writer.print(regions[i].getUCSClocation() + "\t" + numberOfMarkers[i] + "\t"
 										 + regions[i].getChr() + "\t" + regions[i].getStart() + "\t"
@@ -193,8 +193,8 @@ public class MeanLRR {
 		data = new float[regions.length][samples.length][1]; // only mean will be computed; no
 																												 // normalization
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "MarkersIn_"
-																							+ ext.rootOf(regionsFile) + ".xln"));
+			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + "MarkersIn_"
+																							+ ext.rootOf(regionsFile) + ".xln");
 			for (int i = 0; i < regions.length; i++) {
 				markerNames = ArrayUtils.toStringArray(components.get(i + ""));
 				numberOfMarkers[i] = markerNames.length;
@@ -285,8 +285,8 @@ public class MeanLRR {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																							+ ext.rootOf(mlrrSetFile) + ".xln"));
+			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																							+ ext.rootOf(mlrrSetFile) + ".xln");
 			writer.println("Region\tNumberOfMarkersInRegion\tChr\tStart\tStop\tBeta\tOR\tStat\tp-value");
 			for (int i = 0; i < regions.length; i++) {
 				writer.print(regions[i].getUCSClocation() + "\t" + numberOfMarkers[i] + "\t"
@@ -363,13 +363,13 @@ public class MeanLRR {
 		try {
 			index = -1;
 			if (regionToDumpOrNullForAll == null) {
-				writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																								+ ext.rootOf(mlrrSetFile) + "_dump.xln"));
+				writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																								+ ext.rootOf(mlrrSetFile) + "_dump.xln");
 			} else {
-				writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+				writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
 																								+ ext.replaceAllWith(regionToDumpOrNullForAll, ":",
 																																		 "_")
-																								+ ".xln"));
+																								+ ".xln");
 
 				for (int i = 0; i < regions.length; i++) {
 					if (regionToDumpOrNullForAll.equals(regions[i].getUCSClocation())) {

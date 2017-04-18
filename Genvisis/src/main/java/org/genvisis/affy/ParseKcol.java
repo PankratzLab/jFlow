@@ -121,7 +121,7 @@ public class ParseKcol implements Runnable {
 		// byte[] genos;
 
 		// try {
-		// PrintWriter writer = new PrintWriter(new FileWriter(files[0]+"_list.xln"));
+		// PrintWriter writer = Files.openAppropriateWriter(files[0]+"_list.xln");
 		// for (int j = 0; j<files.length; j++) {
 		// writer.println(files[j]);
 		// }
@@ -1164,8 +1164,8 @@ public class ParseKcol implements Runnable {
 							.writeToTextFile(proj.PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt");
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																							+ "ListOfMarkers.txt"));
+			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																					 + "ListOfMarkers.txt");
 			writer.println("Marker\tExpected\tTimesSeen\tTimesDuplicated");
 			for (String markerName : markerNames) {
 				writer.println(markerName + "\t1\t" + countHash.getCount(markerName) + "\t"
@@ -1206,7 +1206,7 @@ public class ParseKcol implements Runnable {
 											 + " to parse");
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + filename));
+			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + filename);
 			for (String file : files) {
 				try {
 					// reader = new BufferedReader(new
@@ -1492,9 +1492,9 @@ public class ParseKcol implements Runnable {
 
 		System.out.print("Writing to file...");
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "alleleLookup"
-																							+ (fileNumber > 0 ? "_atFile" + fileNumber : "")
-																							+ ".xln"));
+			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + "alleleLookup"
+																					 + (fileNumber > 0 ? "_atFile" + fileNumber : "")
+																					 + ".xln");
 			keys = HashVec.getKeys(hash, false);
 			writer.println("SNP\t" + ArrayUtils.toStr(Sample.ALL_STANDARD_GENOTYPE_FIELDS));
 			for (String key : keys) {

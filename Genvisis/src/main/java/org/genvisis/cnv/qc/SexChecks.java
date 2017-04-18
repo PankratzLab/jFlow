@@ -676,8 +676,8 @@ public class SexChecks {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true,
-																																											false)));
+			writer = Files.openAppropriateWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true,
+																																											false));
 			writer.println(ArrayUtils.toStr(SEX_HEADER));
 
 			for (int i = 0; i < sampleNames.length; i++) {
@@ -755,7 +755,7 @@ public class SexChecks {
 	 * Write all samples of all regions to the specified path
 	 */
 	private void writeSexRegions(List<String>[] regions, String path) throws IOException {
-		PrintWriter out = new PrintWriter(new FileWriter(path));
+		PrintWriter out = Files.openAppropriateWriter(path);
 		log.report("SexChecks -- Creating sex-specific region file: " + path);
 		for (List<String> samples : regions) {
 			if (samples == null) {
@@ -836,8 +836,8 @@ public class SexChecks {
 
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(false, true)
-																							+ "markerGenderChecks.xln"));
+			writer = Files.openAppropriateWriter(proj.RESULTS_DIRECTORY.getValue(false, true)
+																							+ "markerGenderChecks.xln");
 			writer.println("SNP\tX abs(T)\tY abs(T)\tBAF abs(T)\tLRR abs(T)\tX p\tY p\tXY r2\tBAF p\tLRR p\tBAF/LRR r2");
 
 			time = new Date().getTime();
@@ -926,7 +926,7 @@ public class SexChecks {
 
 		try {
 			reader = new BufferedReader(new FileReader(allMarkers));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(allMarkers) + "_dropped.out"));
+			writer = Files.openAppropriateWriter(ext.rootOf(allMarkers) + "_dropped.out");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!hashSet.contains(line[0])) {
@@ -998,8 +998,8 @@ public class SexChecks {
 		gcThreshold = proj.getProperty(proj.GC_THRESHOLD).floatValue();
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(true, false)
-																							+ "pseudoautosomalSearch.xln"));
+			writer = Files.openAppropriateWriter(proj.RESULTS_DIRECTORY.getValue(true, false)
+																							+ "pseudoautosomalSearch.xln");
 			writer.println("SNP\tChr\tPosition\tmLRR_M\tmLRR_F\thet_M\thet_F\tmiss_M\tmiss_F");
 
 			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList);

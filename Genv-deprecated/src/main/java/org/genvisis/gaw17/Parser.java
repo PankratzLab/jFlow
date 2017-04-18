@@ -34,7 +34,7 @@ public class Parser {
 				reader = new BufferedReader(new FileReader(geno_dir + "c" + chr + "_snps" + suffix));
 				line = reader.readLine().trim().split(",");
 				try {
-					writer = new PrintWriter(new FileWriter(geno_dir + "chr" + chr + ".map"));
+					writer = Files.openAppropriateWriter(geno_dir + "chr" + chr + ".map");
 					for (int i = 1; i < line.length; i++) {
 						trav = snpInfo.get(line[i]);
 						if (trav == null) {
@@ -50,7 +50,7 @@ public class Parser {
 					System.err.println("Error writing to " + geno_dir + "chr" + chr + ".map");
 					e.printStackTrace();
 				}
-				writer = new PrintWriter(new FileWriter(geno_dir + "chr" + chr + ".ped"));
+				writer = Files.openAppropriateWriter(geno_dir + "chr" + chr + ".ped");
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(",");
 					trav = sexInfo.get(line[0]);
@@ -80,7 +80,7 @@ public class Parser {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(geno_dir + "merge.txt"));
+			writer = Files.openAppropriateWriter(geno_dir + "merge.txt");
 			for (int chr = 2; chr <= 22; chr++) {
 				writer.println("chr" + chr + ".ped chr" + chr + ".map");
 			}
@@ -91,7 +91,7 @@ public class Parser {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(geno_dir + "merge.bat"));
+			writer = Files.openAppropriateWriter(geno_dir + "merge.bat");
 			writer.println("plink --file chr1 --merge-list merge.txt --make-bed");
 			writer.close();
 		} catch (Exception e) {
@@ -134,8 +134,8 @@ public class Parser {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename)
-																							+ "markerSets.dat"));
+			writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(filename)
+																							+ "markerSets.dat");
 			for (int i = 0; i < genes.size(); i++) {
 				writer.println(genes.elementAt(i) + "\t"
 											 + ArrayUtils.toStr(ArrayUtils.toStringArray(hash.get(genes.elementAt(i)))));
@@ -147,8 +147,8 @@ public class Parser {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename)
-																							+ "nonynonMarkerSets.dat"));
+			writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(filename)
+																							+ "nonynonMarkerSets.dat");
 			for (int i = 0; i < genes.size(); i++) {
 				if (nonsynon.containsKey(genes.elementAt(i))) {
 					writer.println(genes.elementAt(i) + "\t"

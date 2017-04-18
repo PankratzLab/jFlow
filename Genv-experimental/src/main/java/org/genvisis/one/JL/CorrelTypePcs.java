@@ -44,7 +44,7 @@ public class CorrelTypePcs {
 
 		if (!Files.exists(out)) {
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(out));
+				PrintWriter writer = Files.openAppropriateWriter(out);
 				ArrayList<String> outHeader = new ArrayList<String>();
 				outHeader.add("PC_FILE_1");
 				outHeader.add("PC_FILE_2");

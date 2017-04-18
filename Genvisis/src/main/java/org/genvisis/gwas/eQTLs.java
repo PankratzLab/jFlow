@@ -137,7 +137,7 @@ public class eQTLs {
 			indices = ext.indexFactors(reqs, header, false, true, true, log, false);
 
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(outfile));
+			writer = Files.openAppropriateWriter(outfile);
 			reader.readLine();
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

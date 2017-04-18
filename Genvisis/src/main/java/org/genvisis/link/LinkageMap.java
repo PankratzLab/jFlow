@@ -293,7 +293,7 @@ public class LinkageMap {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			writer.println((markerNames.length + 1) + " 0 " + (chr == 23 ? 1 : 0)
 										 + " 5  << NO. OF LOCI, RISK LOCUS, SEXLINKED (IF 1) PROGRAM");
 			writer.println("0 0.0 0.0 0  << MUT LOCUS, MUT RATE, HAPLOTYPE FREQUENCIES (IF 1)");
@@ -357,7 +357,7 @@ public class LinkageMap {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			for (int i = 0; i < markerNames.length; i++) {
 				if (hash == null) {
 					positions = new String[] {chr + "", (i + 1) + ""};
@@ -566,7 +566,7 @@ public class LinkageMap {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + "_map.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename) + "_map.xln");
 			writer.println("MarkerName\tPosition");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(markerNames[i] + "\t" + positions[i]);

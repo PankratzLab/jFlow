@@ -51,7 +51,7 @@ public class DumpSAS {
 
 		System.out.println("Found " + files.length + " with the extension .sas7bdat to convert");
 		try {
-			writer = new PrintWriter(new FileWriter("dumpAll.sas"));
+			writer = Files.openAppropriateWriter("dumpAll.sas");
 
 			writer.println("options nofmterr;");
 			// writer.println("options PS=1000000;"); // if printing to .lst file and you don't want page
@@ -142,7 +142,7 @@ public class DumpSAS {
 		validWhiteMales = new Hashtable<String, String>();
 		ch = new CountHash();
 		try {
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + ".out"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + ".out");
 			for (String db : dbs) {
 				writer.println(db);
 				header = Files.getHeaderOfFile(dir + db.toLowerCase() + ".xln", "\t", log);
@@ -158,7 +158,7 @@ public class DumpSAS {
 				}
 				writer.println();
 				try {
-					iWriter = new PrintWriter(new FileWriter(dir + db + "_subset.xln"));
+					iWriter = Files.openAppropriateWriter(dir + db + "_subset.xln");
 					try {
 						reader = new BufferedReader(new FileReader(dir + db.toLowerCase() + ".xln"));
 						if (Files.exists(dir + db.substring(0, db.indexOf("_")) + "_Whites" + ".fam", false)) {
@@ -266,7 +266,7 @@ public class DumpSAS {
 
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_tables.xln"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + "_tables.xln");
 			tableOrder = HashVec.loadFileToHashVec(dir + tableFormat, new int[] {0}, new int[] {1, 2},
 																						 "\t", false, false);
 			descriptions = HashVec.loadFileToHashString(dir + tableFormat, new int[] {1, 2},
@@ -342,7 +342,7 @@ public class DumpSAS {
 		});
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "all_contents.xln"));
+			writer = Files.openAppropriateWriter(dir + "all_contents.xln");
 			writer.println(ArrayUtils.toStr(ALL_CONTENTS_HEADER));
 			for (String file : files) {
 				System.out.println("Parsing " + file);
@@ -382,7 +382,7 @@ public class DumpSAS {
 
 		mani = HashVec.loadFileToStringMatrix(dir + manifest, false, new int[] {0, 1}, false);
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "master_contents.xln"));
+			writer = Files.openAppropriateWriter(dir + "master_contents.xln");
 			writer.println("Group\t" + ArrayUtils.toStr(ALL_CONTENTS_HEADER));
 			for (String[] element : mani) {
 				try {
@@ -484,7 +484,7 @@ public class DumpSAS {
 				}
 			}
 			try {
-				writer = new PrintWriter(new FileWriter(crffile));
+				writer = Files.openAppropriateWriter(crffile);
 				writer.println("lookup");
 				writer.println(idfile + " head=IID out=" + outfile);
 				masterIDs = new Hashtable<String, String>();

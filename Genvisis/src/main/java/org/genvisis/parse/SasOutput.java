@@ -35,7 +35,7 @@ public class SasOutput {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + ".xln");
 			writer.println(ArrayUtils.toStr(HEADERS) + "\tType\tStratum");
 			while (reader.ready()) {
 				temp = reader.readLine().trim();

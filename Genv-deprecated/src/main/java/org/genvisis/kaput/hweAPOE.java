@@ -99,7 +99,7 @@ public class hweAPOE {
 		}
 		reader.close();
 
-		writer = new PrintWriter(new FileWriter("hweAPOE_MCMC.out"));
+		writer = Files.openAppropriateWriter("hweAPOE_MCMC.out");
 		writer.println("e4e4\t\t\t\te4e3\t\t\t\te4e2\t\t\t\te3e3\t\t\t\te3e2\t\t\t\te2e2\t\t\t");
 		writer.println("aff\t\tunaff\t\taff\t\tunaff\t\taff\t\tunaff\t\taff\t\tunaff\t\taff\t\tunaff\t\taff\t\tunaff\t\t");
 
@@ -134,7 +134,7 @@ public class hweAPOE {
 		}
 		writer.close();
 
-		writer = new PrintWriter(new FileWriter("hweAPOE_MCMC-summary.out"));
+		writer = Files.openAppropriateWriter("hweAPOE_MCMC-summary.out");
 
 		writer.println("Filename: " + filename);
 		writer.println("Number of replicates: " + numReps);

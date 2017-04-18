@@ -3,13 +3,13 @@ package org.genvisis.link.init;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.link.Markers;
 
 public class sordid {
@@ -97,7 +97,7 @@ public class sordid {
 		for (int i = 0; i < chrsPresent.size(); i++) {
 			chrome = Integer.valueOf(chrsPresent.elementAt(i)).intValue();
 			orderedMarkers.removeAllElements();
-			writers[i] = new PrintWriter(new FileWriter("chromosome" + chrome + ".dat"));
+			writers[i] = Files.openAppropriateWriter("chromosome" + chrome + ".dat");
 			keys[i] = new int[chromosomalKey[chrome]];
 
 			writers[i].println("placeholder line");

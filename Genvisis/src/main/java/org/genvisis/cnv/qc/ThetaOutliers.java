@@ -63,7 +63,7 @@ public class ThetaOutliers {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(output));
+			writer = Files.openAppropriateWriter(output);
 			writer.println("Name\tChr\tPosition\tindividualID");
 
 			time = new Date().getTime();

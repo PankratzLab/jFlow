@@ -65,9 +65,9 @@ public class DeNovoCNV {
 			}
 			reader.close();
 
-			// writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(input_pedigreeFullPath) +
-			// "PedigreeOfTrios.txt"));
-			writer = new PrintWriter(new FileWriter(output_listOfTrioSetsFullPath));
+			// writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(input_pedigreeFullPath) +
+			// "PedigreeOfTrios.txt");
+			writer = Files.openAppropriateWriter(output_listOfTrioSetsFullPath);
 			writer.println("fId\tiId\tfaId\tmoId\tiDna\tfaDna\tmoDna");
 			for (int i = 0; i < iId.size(); i++) {
 				if (iId.contains(fId.elementAt(i) + "\t" + faId.elementAt(i))
@@ -124,7 +124,7 @@ public class DeNovoCNV {
 			reader = new BufferedReader(new FileReader(originalListOfTrioSetsFullPath));
 			reader.readLine();
 			filename = originalDirAndRoot + "_Tmp" + originalExt;
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			writer.println("fId\tiId\tfaId\tmoId\tiDna\tfaDna\tmoDna");
 			while (reader.ready()) {
 				line1 = reader.readLine();
@@ -156,7 +156,7 @@ public class DeNovoCNV {
 																																	 + originalExt));
 				new File(filename).renameTo(new File(originalListOfTrioSetsFullPath));
 				filename = originalDirAndRoot + "_NoDataOnly" + originalExt;
-				writer = new PrintWriter(new FileWriter(filename));
+				writer = Files.openAppropriateWriter(filename);
 				writer.println("fId\tiId\tfaId\tmoId\tiDna\tfaDna\tmoDna");
 				writer.print(noSampData);
 				writer.flush();
@@ -405,9 +405,9 @@ public class DeNovoCNV {
 		}
 		try {
 			filenames = Files.list(pennCnvResultDir, pennCnvResultFileNameExt, false);
-			writer = new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
+			writer = Files.openAppropriateWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
 																							+ pennCnvResultFileNameExt.replace("cnv", "")
-																							+ ".cnv"));
+																							+ ".cnv");
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			offspringCnv = new Hashtable<String, String>();
 			for (String filename : filenames) {
@@ -511,13 +511,13 @@ public class DeNovoCNV {
 			}
 
 			filenames = Files.list(pennCnvResultDir, pennCnvResultFileNameExt, false);
-			writer1 = new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
+			writer1 = Files.openAppropriateWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
 																							 + pennCnvResultFileNameExt.replace("cnv", "")
-																							 + ".cnv"));
+																							 + ".cnv");
 			writer1.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
-			writer2 = new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
+			writer2 = Files.openAppropriateWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
 																							 + pennCnvResultFileNameExt.replace("cnv", "")
-																							 + "_list.txt"));
+																							 + "_list.txt");
 			writer2.println("DNA\tPosition\tComments");
 			for (String filename : filenames) {
 				currentOffspring = null;
@@ -605,8 +605,8 @@ public class DeNovoCNV {
 			if (pedigreeHasHeader) {
 				reader.readLine();
 			}
-			writer = new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true)
-																							+ "trios.fam"));
+			writer = Files.openAppropriateWriter(proj.DATA_DIRECTORY.getValue(false, true)
+																							+ "trios.fam");
 			while (reader.ready()) {
 				line = reader.readLine().split("\t");
 				writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t"
@@ -650,8 +650,8 @@ public class DeNovoCNV {
 	// if (cnvFileHasHeader) {
 	// reader.readLine();
 	// }
-	// writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(cnvFileFullPath) +
-	// ext.rootOf(cnvFileFullPath) + "_list.txt"));
+	// writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(cnvFileFullPath) +
+	// ext.rootOf(cnvFileFullPath) + "_list.txt");
 	// writer.write("DNA\tPosition\tComments");
 	// while (reader.ready()) {
 	// line = reader.readLine().split("\t");

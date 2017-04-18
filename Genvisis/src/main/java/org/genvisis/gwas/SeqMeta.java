@@ -1051,7 +1051,7 @@ public class SeqMeta {
 
 		hash = new Hashtable<String, String>();
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "summary_metrics_list.xln"));
+			writer = Files.openAppropriateWriter(dir + "summary_metrics_list.xln");
 			// writer.println("Study\tRace\tPhenotype\tN_samples\tn_genotyped\tn_MAF1%\tLambda_MAF1%\tbetaMean_MAF1%\tbetaSD_MAF1%\tn_20count\tLambda_20count\tbetaMean_20count\tbetaSD_20count\tn_MAF5%\tLambda_MAF5%\tbetaMean_MAF5%\tbetaSD_MAF5%");
 			writer.println("Study\tRace\tPhenotype\tN_samples\tn_genotyped\tn_MAF1%\tLambda_MAF1%\tbetaMedian_MAF1%\tbetaSD_MAF1%\tn_20count\tLambda_20count\tbetaMedian_20count\tbetaSD_20count\tn_MAF5%\tLambda_MAF5%\tbetaMedian_MAF5%\tbetaSD_MAF5%");
 			for (int j = 0; j < studies.length; j++) {
@@ -1102,7 +1102,7 @@ public class SeqMeta {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "summary_metrics_table.xln"));
+			writer = Files.openAppropriateWriter(dir + "summary_metrics_table.xln");
 			for (int k = 0; k <= races.length; k++) {
 				writer.print(k == races.length ? "PanEthnic" : races[k][0]);
 				for (String[] phenotype : phenotypes) {
@@ -1142,7 +1142,7 @@ public class SeqMeta {
 		start = 1;
 		ranges = new Vector<int[]>();
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "sampleSizes.xln"));
+			writer = Files.openAppropriateWriter(dir + "sampleSizes.xln");
 			for (int k = 0; k < races.length; k++) {
 				writer.println(races[k][0] + "\t" + ArrayUtils.toStr(Matrix.extractColumn(phenotypes, 0)));
 				start++;
@@ -1604,9 +1604,9 @@ public class SeqMeta {
 				log.report("", true, false);
 
 				try {
-					writer = new PrintWriter(new FileWriter(dir + phenotypes[i][0] + "/" + races[k][0] + "/"
+					writer = Files.openAppropriateWriter(dir + phenotypes[i][0] + "/" + races[k][0] + "/"
 																									+ "minorAlleleCounts.maf" + mafThreshold
-																									+ ".xln"));
+																									+ ".xln");
 					keys = HashVec.getKeys(raceSpecificMacs);
 					writer.println("Gene\t" + ArrayUtils.toStr(studies) + "\tTotal");
 					for (String key : keys) {
@@ -1622,8 +1622,8 @@ public class SeqMeta {
 			}
 
 			try {
-				writer = new PrintWriter(new FileWriter(dir + phenotypes[i][0] + "/"
-																								+ "minorAlleleCounts.maf" + mafThreshold + ".xln"));
+				writer = Files.openAppropriateWriter(dir + phenotypes[i][0] + "/"
+																								+ "minorAlleleCounts.maf" + mafThreshold + ".xln");
 				keys = HashVec.getKeys(macs);
 				writer.println("Gene\t" + ArrayUtils.toStr(studies) + "\tTotal");
 				for (String key : keys) {
@@ -1969,9 +1969,9 @@ public class SeqMeta {
 					}
 				}
 				try {
-					PrintWriter writer = new PrintWriter(new FileWriter(phenotypes[i][0] + "/"
+					PrintWriter writer = Files.openAppropriateWriter(phenotypes[i][0] + "/"
 																															+ phenotypes[i][0] + "_" + group
-																															+ "_parser.crf"));
+																															+ "_parser.crf");
 					writer.println("lookup");
 					writer.println(phenotypes[i][0] + "_hitters.dat 0 out=" + dir + phenotypes[i][0] + "/"
 												 + phenotypes[i][0] + "_" + group + ".csv");
@@ -2053,7 +2053,7 @@ public class SeqMeta {
 			try {
 				reader = new BufferedReader(new FileReader(filename));
 				reader.readLine();
-				writer = new PrintWriter(new FileWriter(pvalFile));
+				writer = Files.openAppropriateWriter(pvalFile);
 				count = 0;
 				if (method[1].equals("SingleVariant")) {
 					mafIndex = ext.indexOfStr("maf", header, false, true);
@@ -2250,7 +2250,7 @@ public class SeqMeta {
 		System.out.println("Finished sorting at " + ext.getTimeElapsed(time));
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "gene_positions.xln"));
+			writer = Files.openAppropriateWriter(dir + "gene_positions.xln");
 			writer.println("Gene\tChr\tPositionOfFirstMarkerInGene\tPositionOfLastMarkerInGene\tNumMarkersInGene");
 			for (int i = 0; i < geneNames.length; i++) {
 				seg = hash.get(geneNames[indices[i]]);
@@ -2484,8 +2484,8 @@ public class SeqMeta {
 
 		try {
 			reader = Files.getAppropriateReader(dir + hitsDirectory + "SingleVariant_regions.xln");
-			writer = new PrintWriter(new FileWriter(dir + hitsDirectory
-																							+ "SingleVariant_regions_processed.xln"));
+			writer = Files.openAppropriateWriter(dir + hitsDirectory
+																							+ "SingleVariant_regions_processed.xln");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			keeps = ArrayUtils.booleanArray(line.length, true);
 
@@ -2580,8 +2580,8 @@ public class SeqMeta {
 
 		try {
 			reader = Files.getAppropriateReader(dir + hitsDirectory + "BurdenTests_regions.xln");
-			writer = new PrintWriter(new FileWriter(dir + hitsDirectory
-																							+ "BurdenTests_regions_processed.xln"));
+			writer = Files.openAppropriateWriter(dir + hitsDirectory
+																							+ "BurdenTests_regions_processed.xln");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			keeps = ArrayUtils.booleanArray(line.length, true);
 
@@ -2656,9 +2656,9 @@ public class SeqMeta {
 
 		outputFile = "SupplementalTable2.xln";
 		try {
-			writer = new PrintWriter(new FileWriter(dir + hitsDirectory + outputFile));
-			forestWriter = new PrintWriter(new FileWriter(dir + hitsDirectory
-																										+ "subthresholdForest.input"));
+			writer = Files.openAppropriateWriter(dir + hitsDirectory + outputFile);
+			forestWriter = Files.openAppropriateWriter(dir + hitsDirectory
+																										+ "subthresholdForest.input");
 
 			for (int i = 0; i < phenotypes.length; i++) {
 				filename = phenotypes[i] + "_SingleVariant.csv";
@@ -2759,7 +2759,7 @@ public class SeqMeta {
 
 		try {
 			reader = new BufferedReader(new FileReader(filein));
-			writer = new PrintWriter(new FileWriter(fileout));
+			writer = Files.openAppropriateWriter(fileout);
 			writer.println(reader.readLine());
 			while (reader.ready()) {
 				temp = reader.readLine();
@@ -2847,7 +2847,7 @@ public class SeqMeta {
 		markersOfInterest = HashVec.loadFileToHashSet(betasFor, false);
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(betasFor) + "_summary.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(betasFor) + "_summary.xln");
 			writer.println("Pheno\tRace\tStudy\t"
 										 + ArrayUtils.toStr(HEADER_TYPES[ext.indexOfStr(methods[0][2], ALGORITHMS)]));
 			for (int i = 0; i < phenotypes.length; i++) {
@@ -3128,7 +3128,7 @@ public class SeqMeta {
 											new String[] {"gene", "Name", "p", "maf", "nmiss", "ntotal", "beta", "se"},
 											new int[] {0, 1, 2, 3, 4, 5, 6, 7}, false, log, true);
 			if (!Files.exists(dir + root + "/" + root + ".xln")) {
-				writer = new PrintWriter(new FileWriter(dir + root + "/" + root + ".xln"));
+				writer = Files.openAppropriateWriter(dir + root + "/" + root + ".xln");
 				header[4] = "A1";
 				header[5] = "A2";
 				writer.println(ArrayUtils.toStr(header));
@@ -3155,8 +3155,8 @@ public class SeqMeta {
 				study = header[i].substring(5);
 				if (!Files.exists(dir + root + "/" + root + "_wo_" + study + "1.out")) {
 					time = new Date().getTime();
-					writer = new PrintWriter(new FileWriter(dir + root + "/" + root + ".metal_wo_" + study
-																									+ "_script.in"));
+					writer = Files.openAppropriateWriter(dir + root + "/" + root + ".metal_wo_" + study
+																									+ "_script.in");
 					writer.println("GENOMICCONTROL " + (gcControlOn ? "ON" : "OFF"));
 					writer.println("SCHEME STDERR");
 					writer.println("MARKER Name");
@@ -3193,7 +3193,7 @@ public class SeqMeta {
 		try {
 			if (!Files.exists(dir + root + "_metal_comparison.xln")
 					|| new File(dir + root + "_metal_comparison.xln").length() == 0) {
-				writer = new PrintWriter(new FileWriter(dir + root + "_metal_comparison.xln"));
+				writer = Files.openAppropriateWriter(dir + root + "_metal_comparison.xln");
 				writer.println("Study\tAnalysis\tCorrelationPvals\tBeta_ratio\tSE_ratio\tNet_lambda\tMedianBetaWith\tMedianBetaWithout\tMedianStderrWith\tMedianStderrWithout\tLambdaWith\tLambdaWithout");
 				hash = HashVec.loadFileToHashString(dir + root + "/" + root + ".xln", 1,
 																						new int[] {6, 7, 2}, "\t", false);
@@ -3426,8 +3426,8 @@ public class SeqMeta {
 			}
 
 			try {
-				writer = new PrintWriter(new FileWriter(dir + phenotypes[i][0] + "/" + phenotypes[i][0]
-																								+ "_mafReport.xln"));
+				writer = Files.openAppropriateWriter(dir + phenotypes[i][0] + "/" + phenotypes[i][0]
+																								+ "_mafReport.xln");
 
 				// writer.println();
 				// writer.println();
@@ -3475,7 +3475,7 @@ public class SeqMeta {
 				}
 			}
 			count = 0;
-			writer = new PrintWriter(new FileWriter(outputFilename));
+			writer = Files.openAppropriateWriter(outputFilename);
 			while (readers[0].ready()) {
 				for (int i = 0; i < filenames.length; i++) {
 					try {
@@ -3612,7 +3612,7 @@ public class SeqMeta {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(outputFile));
+			writer = Files.openAppropriateWriter(outputFile);
 			writer.print("Name");
 			for (String filename : filenames) {
 				writer.print("\t" + ext.rootOf(filename));
@@ -3715,7 +3715,7 @@ public class SeqMeta {
 		log = new Logger();
 		hash = HashVec.loadFileToHashVec(dir + markerList, 1, new int[] {0}, null, false, true);
 		try {
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(markerList) + "_extract.crf"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(markerList) + "_extract.crf");
 			writer.println("lookup");
 			for (int chr = 1; chr <= 24; chr++) {
 				if (hash.containsKey(chr + "")) {
@@ -3752,7 +3752,7 @@ public class SeqMeta {
 			try {
 				reader = Files.getAppropriateReader(ext.rootOf(markerList) + "_extracted.xln");
 				header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-				writer = new PrintWriter(new FileWriter(ext.rootOf(markerList) + ".map"));
+				writer = Files.openAppropriateWriter(ext.rootOf(markerList) + ".map");
 				for (int i = 6; i < header.length; i++) {
 					line = header[i].split(":");
 					if (line[0].startsWith("chr")) {
@@ -3764,7 +3764,7 @@ public class SeqMeta {
 
 				replacements = new String[][] {{"2", "C\tC"}, {"1", "A\tC"}, {"0", "A\tA"},};
 
-				writer = new PrintWriter(new FileWriter(ext.rootOf(markerList) + ".ped"));
+				writer = Files.openAppropriateWriter(ext.rootOf(markerList) + ".ped");
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					for (int i = 6; i < line.length; i++) {
@@ -3812,8 +3812,8 @@ public class SeqMeta {
 
 		for (String group : groups) {
 			try {
-				writer = new PrintWriter(new FileWriter(dir + hitsDirectory + "AllPhenotypes_" + group
-																								+ ".csv"));
+				writer = Files.openAppropriateWriter(dir + hitsDirectory + "AllPhenotypes_" + group
+																								+ ".csv");
 				for (int i = 0; i < phenotypes.length; i++) {
 					filename = phenotypes[i][0] + "_" + group + ".csv";
 
@@ -3878,8 +3878,8 @@ public class SeqMeta {
 
 		for (String group : groups) {
 			try {
-				writer = new PrintWriter(new FileWriter(ext.rootOf(forestMarkerList) + "_" + group
-																								+ "_forest.input"));
+				writer = Files.openAppropriateWriter(ext.rootOf(forestMarkerList) + "_" + group
+																								+ "_forest.input");
 				for (String[] phenotype : phenotypes) {
 					filename = phenotype[0] + "_" + group + ".csv";
 

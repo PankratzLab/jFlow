@@ -3,13 +3,13 @@ package org.genvisis.bioinformatics;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.PSF;
 
@@ -43,7 +43,7 @@ public class procKnownToAll {
 		}
 		try {
 			genes = HashVec.getKeys(hash);
-			writer = new PrintWriter(new FileWriter("knownToAll.prn"));
+			writer = Files.openAppropriateWriter("knownToAll.prn");
 			writer.println("#name\tvalue");
 			for (String gene : genes) {
 				v = hash.get(gene);

@@ -133,7 +133,7 @@ public class GoogleMash implements Serializable {
 			String output = ext.addToRoot(baseFile, "." + QUERY_TYPE.values()[i] + ".gQuery");
 
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				PrintWriter writer = Files.openAppropriateWriter(output);
 				writer.print("BASE_QUERY");
 				for (String extra : extras) {
 					writer.print("\t" + extra);

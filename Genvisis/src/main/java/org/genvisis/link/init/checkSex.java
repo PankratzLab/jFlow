@@ -40,7 +40,7 @@ public class checkSex {
 			System.exit(1);
 		}
 
-		writer = new PrintWriter(new FileWriter("checkSex.out", true));
+		writer = Files.openAppropriateWriter("checkSex.out", true);
 		System.out.println("Verifying sex of males and females using X chromosome marker data.");
 		reader.readLine();
 		reader.readLine();

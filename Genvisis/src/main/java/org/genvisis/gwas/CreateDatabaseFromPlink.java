@@ -168,7 +168,7 @@ public class CreateDatabaseFromPlink {
 		}
 		try {
 			reader = new BufferedReader(new FileReader(dir + pedfile));
-			writer = new PrintWriter(new FileWriter(dir + outfile));
+			writer = Files.openAppropriateWriter(dir + outfile);
 			if (listPositions) {
 				writer.print((maskFIDs ? "" : delimiter) + (maskSex ? "" : delimiter)
 										 + (maskAffStat ? "" : delimiter) + "Chr:");
@@ -370,7 +370,7 @@ public class CreateDatabaseFromPlink {
 
 				normalized = Transformations.transform(scores, Transformations.NORMALIZE);
 				try {
-					writer = new PrintWriter(new FileWriter(outfile));
+					writer = Files.openAppropriateWriter(outfile);
 					writer.println(header[0] + "\t" + header[1] + "\tscore\tnormalized\tlogit");
 					for (int i = 0; i < ids.length; i++) {
 						writer.println(ids[i] + "\t" + scores[i] + "\t" + normalized[i] + "\t"
@@ -424,7 +424,7 @@ public class CreateDatabaseFromPlink {
 		monomorphs = new IntVector();
 		try {
 			reader = new BufferedReader(new FileReader(tpedfile));
-			writer = new PrintWriter(new FileWriter(outfile));
+			writer = Files.openAppropriateWriter(outfile);
 			for (int i = 0; i < markerNames.length; i++) {
 				hash = new Hashtable<String, String>();
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -494,7 +494,7 @@ public class CreateDatabaseFromPlink {
 			new File(outfile).renameTo(new File(temp));
 			try {
 				reader = new BufferedReader(new FileReader(temp));
-				writer = new PrintWriter(new FileWriter(outfile));
+				writer = Files.openAppropriateWriter(outfile);
 				count = 0;
 				index = 0;
 				while (reader.ready()) {
@@ -520,7 +520,7 @@ public class CreateDatabaseFromPlink {
 
 		try {
 			reader = new BufferedReader(new FileReader("/home/npankrat/bin/simpleM_Exec.R"));
-			writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename) + "simpleM.R"));
+			writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(filename) + "simpleM.R");
 			while (reader.ready()) {
 				temp = reader.readLine();
 				if (temp.startsWith("fn_In <- ")) {
@@ -580,7 +580,7 @@ public class CreateDatabaseFromPlink {
 
 		try {
 			reader = new BufferedReader(new FileReader(pedfile));
-			writer = new PrintWriter(new FileWriter(outfile));
+			writer = Files.openAppropriateWriter(outfile);
 
 			writer.print("id");
 			for (String markerName : markerNames) {
@@ -703,8 +703,8 @@ public class CreateDatabaseFromPlink {
 														 + " columns instead of the expected " + markerNames.length * 2 + 6
 														 + " (#markers*2+6)");
 					try {
-						writer = new PrintWriter(new FileWriter("ERROR_NUMBER_OF_COLUMNS_DON'T_MATCHUP_FOR_THESE_LINES.TXT",
-																										true));
+						writer = Files.openAppropriateWriter("ERROR_NUMBER_OF_COLUMNS_DON'T_MATCHUP_FOR_THESE_LINES.TXT",
+																										true);
 						writer.println(count);
 						writer.close();
 					} catch (Exception e) {
@@ -719,8 +719,8 @@ public class CreateDatabaseFromPlink {
 							batch_dna = line[i].split("_");
 							if (batch_dna.length != 2) {
 								try {
-									writer = new PrintWriter(new FileWriter("ERROR_THESE_FIDS_AREN'T_CONCATENATED_BY_AN_UNDERSCORE.TXT",
-																													true));
+									writer = Files.openAppropriateWriter("ERROR_THESE_FIDS_AREN'T_CONCATENATED_BY_AN_UNDERSCORE.TXT",
+																													true);
 									writer.println("line" + count + "\t" + line[i]);
 									writer.close();
 								} catch (Exception e) {

@@ -998,7 +998,7 @@ public class GcAdjustor {
 		// int[] positions = markerSet.getPositions();
 		// byte[] chrs = markerSet.getChrs();
 		// try {
-		// PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutputModel));
+		// PrintWriter writer = Files.openAppropriateWriter(fullPathToOutputModel);
 		// writer.println("Name\tChr\tPosition\tGC");
 		// for (int i = 0; i < markerNames.length; i++) {
 		// Segment bufferedMarkerSeg = new Segment(chrs[i], positions[i],
@@ -1203,7 +1203,7 @@ public class GcAdjustor {
 																								 proj.getSamplesToInclude(fullPathToFileOfTestSamples));
 		String fileTest = proj.PROJECT_DIRECTORY.getValue() + "testGCWF.txt";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(fileTest));
+			PrintWriter writer = Files.openAppropriateWriter(fileTest);
 			for (String element : samplesToTest) {
 				long time = System.currentTimeMillis();
 				Sample samp = proj.getFullSampleFromRandomAccessFile(element);

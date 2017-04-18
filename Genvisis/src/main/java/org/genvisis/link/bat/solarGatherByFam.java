@@ -36,8 +36,8 @@ public class solarGatherByFam {
 		while (st.countTokens() > 3) {
 			st.nextElement();
 		}
-		writer = new PrintWriter(new FileWriter(st.nextToken() + "-" + st.nextToken()
-																						+ " linkage summary.xls"));
+		writer = Files.openAppropriateWriter(st.nextToken() + "-" + st.nextToken()
+																						+ " linkage summary.xls");
 
 		chromosome = new int[args.length];
 		position = new int[args.length];

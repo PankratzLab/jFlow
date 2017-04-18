@@ -258,9 +258,9 @@ public class MitoGWAS {
 		CloseableIterator<VariantContext> vcIter = annoReader == null ? null : annoReader.iterator();
 		try {
 
-			PrintWriter writer = new PrintWriter(new FileWriter(pvalDB));
-			PrintWriter writerSig = new PrintWriter(new FileWriter(pvalDB + ".sig"));
-			PrintWriter writerSigQc = new PrintWriter(new FileWriter(pvalDB + ".sig.qc"));
+			PrintWriter writer = Files.openAppropriateWriter(pvalDB);
+			PrintWriter writerSig = Files.openAppropriateWriter(pvalDB + ".sig");
+			PrintWriter writerSigQc = Files.openAppropriateWriter(pvalDB + ".sig.qc");
 
 			String header = "SNP\tCHR\tBP\tREF\tALT\tPlinkPruneOut\t" + ArrayUtils.toStr(empTitles)
 											+ "\tMinPval\tMaxPval\tMaxDiffPval\tStdPval\t"
@@ -372,7 +372,7 @@ public class MitoGWAS {
 				emp1s[i] = ArrayUtils.subArray(emp1s[i], valids);
 				Arrays.sort(emp1s[i]);
 			}
-			PrintWriter writer = new PrintWriter(new FileWriter(pvalQQ));
+			PrintWriter writer = Files.openAppropriateWriter(pvalQQ);
 			writer.println("RANK\t" + ArrayUtils.toStr(empLogP));
 			for (int i = 0; i < emp1s[0].length; i++) {
 				StringBuilder builder = new StringBuilder();
@@ -611,7 +611,7 @@ public class MitoGWAS {
 					}
 				}
 				try {
-					PrintWriter writer = new PrintWriter(new FileWriter(outCurrent));
+					PrintWriter writer = Files.openAppropriateWriter(outCurrent);
 					writer.print("FID\tIID\t" + title);
 					for (int j = 0; j < covarParser.getNumericDataTitles().length; j++) {
 						if (hasVarianceWithinPed[j]) {

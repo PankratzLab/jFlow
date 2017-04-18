@@ -131,7 +131,7 @@ public class FastQC {
 						String currentModule = fastaQCModuleResults[0][i].getModuleTitleFormatted();
 						String currentOutput = rootOutputDir + currentModule + FAST_SUMMARY_FILE;
 						try {
-							PrintWriter writer = new PrintWriter(new FileWriter(currentOutput));
+							PrintWriter writer = Files.openAppropriateWriter(currentOutput);
 							String[] header = fastaQCModuleResults[0][i].getModuleHeader();
 							writer.println("Sample\tInternalKey\t" + ArrayUtils.toStr(header));
 							for (FastaQCModuleResults[] fastaQCModuleResult : fastaQCModuleResults) {

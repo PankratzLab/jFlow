@@ -67,7 +67,7 @@ public class checkForDupes {
 			}
 		}
 
-		copy = new PrintWriter(new FileWriter("dupes-merged.out"));
+		copy = Files.openAppropriateWriter("dupes-merged.out");
 		for (int chromosome = 1; chromosome <= 23; chromosome++) {
 			try {
 				reader = new BufferedReader(new FileReader("chromosome" + chromosome + ".dat"));
@@ -146,7 +146,7 @@ public class checkForDupes {
 																						 super.getClass().getName());
 					(new File("chromosome" + chromosome + ".dat")).renameTo(new File(bakFilename));
 					reader = new BufferedReader(new FileReader(bakFilename));
-					writer = new PrintWriter(new FileWriter("chromosome" + chromosome + ".dat"));
+					writer = Files.openAppropriateWriter("chromosome" + chromosome + ".dat");
 
 					writer.println(reader.readLine());
 					writer.println(reader.readLine());

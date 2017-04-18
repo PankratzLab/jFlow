@@ -30,7 +30,7 @@ public class gwaPedigreeMaker {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + "-out.xls"));
+			writer = Files.openAppropriateWriter(filename + "-out.xls");
 			line = reader.readLine().split("\t", -1);
 			writer.println(ArrayUtils.toStr(line));
 			ext.checkHeader(line, HEADER, true);

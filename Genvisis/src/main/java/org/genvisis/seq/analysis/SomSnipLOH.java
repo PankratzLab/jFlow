@@ -1,10 +1,10 @@
 package org.genvisis.seq.analysis;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.seq.manage.GenotypeOps;
 import org.genvisis.seq.manage.VCFOps;
@@ -28,7 +28,7 @@ public class SomSnipLOH {
 			String[][] varAnno = VCFOps.getAnnotationKeys(vcf, log);
 			String[][] geneAnno = GenotypeOps.getGenoFormatKeys(vcf, log);
 
-			PrintWriter writer = new PrintWriter(new FileWriter(out));
+			PrintWriter writer = Files.openAppropriateWriter(out);
 			writer.println("CHROM\tPOS\tID\tREF\tALT\tFILTER\tSAMPLE\t" + ArrayUtils.toStr(geneAnno[1])
 										 + "\t" + ArrayUtils.toStr(varAnno[1]));
 			writer.println("CHROM\tPOS\tID\tREF\tALT\tFILTER\tSAMPLE\t" + ArrayUtils.toStr(geneAnno[0])

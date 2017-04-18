@@ -3,12 +3,12 @@ package org.genvisis.mining;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
@@ -87,7 +87,7 @@ public class temp {
 			System.exit(2);
 		}
 
-		writer = new PrintWriter(new FileWriter("data5-std.xls"));
+		writer = Files.openAppropriateWriter("data5-std.xls");
 		data = Transformations.transform(data, Transformations.STANDARDIZE_RANGE);
 		for (double[] element : data) {
 			writer.println(element[0] + "\t" + element[1]);

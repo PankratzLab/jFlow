@@ -3,12 +3,12 @@ package org.genvisis.park;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.PSF;
 
@@ -111,13 +111,14 @@ public class whichJournals {
 			System.exit(2);
 		}
 
-		writer = new PrintWriter(new FileWriter(filename + "-out.xls"));
+		writer = Files.openAppropriateWriter(filename + "-out.xls");
 		writer.println("Journal\timpact factor\ttimes used");
 		js = HashVec.getKeys(hash);
 		for (String element : js) {
 			line = (impacts.containsKey(element) ? impacts.get(element) : new String[] {"?"});
 			writer.println(element + "\t" + line[line.length - 1] + "\t"
-										 + (hash.get(element)).split(PSF.Regex.GREEDY_WHITESPACE).length + "\t" + hash.get(element));
+										 + (hash.get(element)).split(PSF.Regex.GREEDY_WHITESPACE).length + "\t"
+										 + hash.get(element));
 		}
 		writer.close();
 

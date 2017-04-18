@@ -168,7 +168,7 @@ public abstract class RegressionModel {
 
 	public void dumpData(String filename) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(filename));
+			PrintWriter writer = Files.openAppropriateWriter(filename);
 			writer.print("Dep");
 			for (int i = 1; i < varNames.length; i++) {
 				writer.print("\t" + varNames[i]);

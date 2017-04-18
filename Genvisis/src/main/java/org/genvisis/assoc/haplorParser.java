@@ -5,7 +5,6 @@ package org.genvisis.assoc;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
@@ -14,6 +13,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
@@ -88,8 +88,8 @@ public class haplorParser {
 
 		writers = new PrintWriter[TARGET_HAPLOTYPES.length];
 		for (int i = 0; i < TARGET_HAPLOTYPES.length; i++) {
-			writers[i] = new PrintWriter(new FileWriter("BRI3-haplotype-" + TARGET_HAPLOTYPES[i]
-																									+ "-cases.dat"));
+			writers[i] = Files.openAppropriateWriter("BRI3-haplotype-" + TARGET_HAPLOTYPES[i]
+																							 + "-cases.dat");
 			writers[i].println("UniqueID\tFamID\tIndID\thaplotype-" + TARGET_HAPLOTYPES[i]);
 		}
 
@@ -214,7 +214,7 @@ public class haplorParser {
 			temp = reader.readLine();
 		} while (reader.ready() && !temp.startsWith("The total of "));
 
-		writer = new PrintWriter(new FileWriter("haplor-key.out"));
+		writer = Files.openAppropriateWriter("haplor-key.out");
 		line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
 		haplotypes = new String[Integer.valueOf(line[3]).intValue()];
 		hapFreqs = new double[haplotypes.length];
@@ -240,7 +240,7 @@ public class haplorParser {
 		} while (reader.ready() && !temp.startsWith("All possible haplotype configurations are:"));
 		reader.readLine();
 
-		writer = new PrintWriter(new FileWriter("haplotypes.dat"));
+		writer = Files.openAppropriateWriter("haplotypes.dat");
 		for (int i = 0; i < fams.size(); i++) {
 			// for (int i = 0; i<2; i++) {
 			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -250,7 +250,8 @@ public class haplorParser {
 			}
 			hFam = new HapFam(line[3]);
 			// hash.put(line[3], hFam);
-			numConfigs = Integer.valueOf(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[9]).intValue();
+			numConfigs = Integer.valueOf(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[9])
+													.intValue();
 			numInds = Integer.valueOf(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[8]).intValue();
 			reader.readLine();
 			reader.readLine();
@@ -336,7 +337,8 @@ public class haplorParser {
 						if (missingdata.contains(hFam.id + "-" + hInd.id)) {
 							writers[k].println("\t0\t0");
 						} else {
-							marks = translateHap(line[typed.indexOf(j)], haplotypes).split(PSF.Regex.GREEDY_WHITESPACE);
+							marks = translateHap(line[typed.indexOf(j)],
+																	 haplotypes).split(PSF.Regex.GREEDY_WHITESPACE);
 							writers[k].println("\t" + compHap(marks[0], TARGET_HAPLOTYPES[k]) + "\t"
 																 + compHap(marks[1], TARGET_HAPLOTYPES[k]));
 						}

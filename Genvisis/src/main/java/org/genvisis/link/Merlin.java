@@ -34,7 +34,7 @@ public class Merlin {
 		// String chrome;
 		//
 		// try {
-		// writer = new PrintWriter(new FileWriter("MerlinAll.bat"));
+		// writer = Files.openAppropriateWriter("MerlinAll.bat");
 		// for (int i = CHR_START; i<=CHR_STOP; i++) {
 		// chrome = ext.chrome(i);
 		//// writer.println("java -jar \"C:\\Documents and Settings\\npankrat\\My
@@ -144,7 +144,7 @@ public class Merlin {
 		alleleFreqs = map.getAlleleFreqs();
 
 		try {
-			writer = new PrintWriter(new FileWriter(root + ".dat"));
+			writer = Files.openAppropriateWriter(root + ".dat");
 			switch (trait) {
 				case UNKNOWN_TRAIT:
 					writer.println(checkTrait(chr) ? "A affection_status" : "T trait");
@@ -169,7 +169,7 @@ public class Merlin {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(root + ".map"));
+			writer = Files.openAppropriateWriter(root + ".map");
 			writer.println("CHROMOSOME\tMARKER\tPOSITION");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(chr + "\t" + markerNames[i] + "\t" + ext.formDeci(positions[i], 10, false));
@@ -181,7 +181,7 @@ public class Merlin {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(root + ".freq"));
+			writer = Files.openAppropriateWriter(root + ".freq");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println("M " + markerNames[i]);
 				writer.println("F " + ArrayUtils.toStr(alleleFreqs[i], 6, 6, " "));

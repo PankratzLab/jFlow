@@ -2,10 +2,11 @@ package org.genvisis.link.bat;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
+
+import org.genvisis.common.Files;
 
 public class solarZeroByFam {
 	public solarZeroByFam(int fam) throws IOException {
@@ -18,7 +19,7 @@ public class solarZeroByFam {
 			chrome = (Integer.valueOf(chromosome + "").intValue() < 10) ? "0" + chromosome
 																																	: "" + chromosome;
 			reader = new BufferedReader(new FileReader("solar_marker." + chrome));
-			writer = new PrintWriter(new FileWriter("solar_marker." + fam + "." + chrome));
+			writer = Files.openAppropriateWriter("solar_marker." + fam + "." + chrome);
 			writer.println(reader.readLine());
 			temp = reader.readLine();
 			st = new StringTokenizer(temp, "/");

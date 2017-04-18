@@ -873,7 +873,7 @@ public abstract class MarkerBlast {
 			BufferedReader reader = Files.getAppropriateReader(csv);
 			boolean start = false;
 			int[] extract = new int[required.length];
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split(delimiter);
 

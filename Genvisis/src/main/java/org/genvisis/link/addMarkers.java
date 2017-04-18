@@ -101,7 +101,7 @@ public class addMarkers {
 		}
 
 		reader = new BufferedReader(new FileReader(bakFilename));
-		writer = new PrintWriter(new FileWriter("chromosome" + chr + ".dat"));
+		writer = Files.openAppropriateWriter("chromosome" + chr + ".dat");
 
 		writer.println(reader.readLine());
 		line = reader.readLine().split("[\t]+");

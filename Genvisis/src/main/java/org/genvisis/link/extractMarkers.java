@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
@@ -13,6 +12,7 @@ import java.util.Vector;
 
 import org.genvisis.common.AlleleFreq;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
@@ -90,7 +90,7 @@ public class extractMarkers {
 
 			try {
 				reader = new BufferedReader(new FileReader("map" + chrome + ".dat"));
-				writer = new PrintWriter(new FileWriter(dir + "map" + chrome + ".dat"));
+				writer = Files.openAppropriateWriter(dir + "map" + chrome + ".dat");
 
 				temp = reader.readLine().trim();
 				writer.println((markersPicked.length + 1)
@@ -151,7 +151,7 @@ public class extractMarkers {
 
 			try {
 				reader = new BufferedReader(new FileReader("re_chrom" + chrome + ".pre"));
-				writer = new PrintWriter(new FileWriter(dir + "re_chrom" + chrome + ".pre"));
+				writer = Files.openAppropriateWriter(dir + "re_chrom" + chrome + ".pre");
 				genotypeCounts = new int[indices.length][3];
 				while (reader.ready()) {
 					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -172,7 +172,7 @@ public class extractMarkers {
 				writer.close();
 				reader.close();
 
-				writer = new PrintWriter(new FileWriter(dir + "heterozygosity" + chrome + ".xls"));
+				writer = Files.openAppropriateWriter(dir + "heterozygosity" + chrome + ".xls");
 				for (int j = 0; j < indices.length; j++) {
 					writer.println(markerNames[indices[j]] + "\t"
 												 + ext.formDeci(AlleleFreq.computeHeterozygosity(genotypeCounts[j]), 3));

@@ -57,7 +57,7 @@ public class lab {
 	private static void idSwap(Project proj, String fileIn) throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(fileIn));
 		String outFile = ext.rootOf(fileIn, false) + ".ids";
-		PrintWriter writer = new PrintWriter(new FileWriter(outFile));
+		PrintWriter writer = Files.openAppropriateWriter(outFile);
 
 		SampleData sampleData = proj.getSampleData(0, false);
 
@@ -89,7 +89,7 @@ public class lab {
 		try {
 			fr = new FileReader(dir + in);
 			reader = new BufferedReader(fr);
-			writer = new PrintWriter(new FileWriter(dir + out));
+			writer = Files.openAppropriateWriter(dir + out);
 			writer.println(reader.readLine());
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -133,7 +133,7 @@ public class lab {
 
 		CNVariant[] centromeric = CNVariant.loadPlinkFile("D:/SIDS and IQ/IQ/merged.cnv", false);
 
-		PrintWriter writer = new PrintWriter(new FileWriter("D:/SIDS and IQ/IQ/merged_split.cnv"));
+		PrintWriter writer = Files.openAppropriateWriter("D:/SIDS and IQ/IQ/merged_split.cnv");
 		writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 
 		for (CNVariant cnv : centromeric) {

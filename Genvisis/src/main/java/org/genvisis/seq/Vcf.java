@@ -138,7 +138,7 @@ public class Vcf {
 		try {
 			missingSplitAlleleCounts = 0;
 			log.report(ext.getTime() + "\tAnnotating variants in " + variantList);
-			writer = new PrintWriter(new FileWriter(outfile));
+			writer = Files.openAppropriateWriter(outfile);
 			writer.println("CHROM\tPOS\tREF\tALT\tAltCount\tNumTotalAlleles\tFreq\tNumAlts\tin_dbSNP\trsID");
 			currentChrom = "";
 			hash = null;

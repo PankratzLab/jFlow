@@ -176,7 +176,7 @@ public class VariantSorter {
 		genes = HashVec.getKeys(hash);
 		favHits = new Hashtable<String, Vector<String>>();
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "bins.xln"));
+			writer = Files.openAppropriateWriter(dir + "bins.xln");
 			for (String element : CATS) {
 				for (int j = 0; j < FUNCS.length; j++) {
 					if (FUNC_DISPS[j]) {
@@ -430,7 +430,7 @@ public class VariantSorter {
 		genes = HashVec.getKeys(hash);
 		favHits = new Hashtable<String, Vector<String>>();
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "bins.xln"));
+			writer = Files.openAppropriateWriter(dir + "bins.xln");
 			writer.println("Gene\tnumber of indels within an exon");
 			for (String gene : genes) {
 				v = hash.get(gene);

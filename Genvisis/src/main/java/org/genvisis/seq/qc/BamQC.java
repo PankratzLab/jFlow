@@ -603,7 +603,7 @@ public class BamQC {
 
 	private static void summarizeQC(BamQC[] bamQCs, FilterNGS filterNGS, String output, Logger log) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.print(ArrayUtils.toStr(QC_HEADER));
 			for (int i = 0; i < filterNGS.getReadDepthFilter().length; i++) {
 				writer.print("\tPercent Coverage At " + filterNGS.getReadDepthFilter()[i]);
@@ -626,7 +626,7 @@ public class BamQC {
 
 	private static void summarizeGCContent(BamQC[] bamQCs, String output, int which, Logger log) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(ext.rootOf(output, false) + ".gcs"));
+			PrintWriter writer = Files.openAppropriateWriter(ext.rootOf(output, false) + ".gcs");
 			double[] bins = null;
 			writer.print(ArrayUtils.toStr(HIST_HEADER));
 			for (BamQC bamQC : bamQCs) {
@@ -656,7 +656,7 @@ public class BamQC {
 
 	private static void summarizeInsertSize(BamQC[] bamQCs, String output, int which, Logger log) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(ext.rootOf(output, false) + ".insert"));
+			PrintWriter writer = Files.openAppropriateWriter(ext.rootOf(output, false) + ".insert");
 			double[] bins = null;
 			writer.print(ArrayUtils.toStr(HIST_HEADER));
 			for (BamQC bamQC : bamQCs) {

@@ -52,7 +52,7 @@ public class SexCheck {
 
 	public void checkSex(String fullPathTooutput) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(fullPathTooutput));
+			PrintWriter writer = Files.openAppropriateWriter(fullPathTooutput);
 			writer.println(ArrayUtils.toStr(SEX_CHECK_HEADER));
 			while (train.hasNext()) {
 				SexCheckResults sexCheckResults = train.next();

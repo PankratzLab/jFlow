@@ -48,7 +48,7 @@ public class Additionals {
 
 		try {
 			reader = tools.getNinfoReader(2, false);
-			writer = new PrintWriter(new FileWriter(tools.CRF_DIR + "ninfo2_affRent.xln"));
+			writer = Files.openAppropriateWriter(tools.CRF_DIR + "ninfo2_affRent.xln");
 			writer.println("FamID\tIndID\tUniqueID\tAffFather\tAffMother\tAffParent");
 
 			prev = "";
@@ -103,7 +103,7 @@ public class Additionals {
 			reader.close();
 
 			reader = new BufferedReader(new FileReader(tools.CRF_DIR + "ninfo2_affRent.xln"));
-			writer = new PrintWriter(new FileWriter(tools.CRF_DIR + "affRent.csv"));
+			writer = Files.openAppropriateWriter(tools.CRF_DIR + "affRent.csv");
 			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			writer.println(line[0] + "," + line[1] + "," + line[3] + "," + line[4] + "," + line[5]);
 			while (reader.ready()) {
@@ -209,7 +209,7 @@ public class Additionals {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(tools.CRF_DIR + "anyExtras.xln"));
+			writer = Files.openAppropriateWriter(tools.CRF_DIR + "anyExtras.xln");
 			writer.println("FamID\ttotalAffs\thaveAffs\tVPDs\thaveUnaffs\tabsAffs\tdeadAffs\ttotalGenotyped\taffDads\taffMoms\tgetThese\tVPD_IDs");
 			for (int i = 0; i < fams.size(); i++) {
 				fam = fams.elementAt(i);
@@ -335,8 +335,8 @@ public class Additionals {
 
 		try {
 			reader = tools.getNinfoReader(1, true);
-			writer = new PrintWriter(new FileWriter(tools.CRF_DIR + "countFirstDegreeRelatives.xln"));
-			log = new PrintWriter(new FileWriter(tools.CRF_DIR + "countFirstDegreeRelatives.log"));
+			writer = Files.openAppropriateWriter(tools.CRF_DIR + "countFirstDegreeRelatives.xln");
+			log = Files.openAppropriateWriter(tools.CRF_DIR + "countFirstDegreeRelatives.log");
 			writer.println("FamID\tIndID\tUniqueID\tNumAddFirstDegreeAff\tNumAddFirstDegreeVPD\tNumParentAff\tNumParentVPD\tNumSiblingAff\tNumSiblingVPD\tNumChildAff\tNumChildVPD");
 			reader.readLine();
 			while (reader.ready()) {

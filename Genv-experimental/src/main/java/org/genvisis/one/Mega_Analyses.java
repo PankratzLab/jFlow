@@ -227,7 +227,7 @@ public class Mega_Analyses {
 		missingFrom2 = new Vector<String>();
 		keys = HashVec.getKeys(hash1, false);
 		try {
-			writer = new PrintWriter(new FileWriter("discordant.out"));
+			writer = Files.openAppropriateWriter("discordant.out");
 			writer.println("MikeBeta\tMikeSE\tNathanBeta\tNathanSE");
 			for (String key : keys) {
 				trav1 = hash1.get(key);
@@ -296,7 +296,7 @@ public class Mega_Analyses {
 
 		filename = DIR + "parseAlleles.crf";
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			writer.println("lookup");
 			writer.println("allAutosomalVariants.txt out=alleleFreqInput.xln lessMemoryButSlower keepIntermediateFiles");
 			for (String[] element : STUDIES) {
@@ -321,7 +321,7 @@ public class Mega_Analyses {
 		log = new Logger(DIR + "filtered/parse.log");
 		new File(DIR + "filtered/").mkdirs();
 		try {
-			writer = new PrintWriter(new FileWriter(DIR + "filtered/input.txt"));
+			writer = Files.openAppropriateWriter(DIR + "filtered/input.txt");
 			writer.println("MARKER MarkerName");
 			writer.println("ALLELE Allele1 Allele2");
 			writer.println("EFFECT Effect");
@@ -417,7 +417,7 @@ public class Mega_Analyses {
 
 		new File(DIR + "filtered/" + subDir).mkdirs();
 		try {
-			writer = new PrintWriter(new FileWriter(DIR + "filtered/" + subDir + "input.txt"));
+			writer = Files.openAppropriateWriter(DIR + "filtered/" + subDir + "input.txt");
 			writer.println("MARKER MarkerName");
 			writer.println("ALLELE Allele1 Allele2");
 			writer.println("EFFECT Effect");
@@ -657,7 +657,7 @@ public class Mega_Analyses {
 
 		order = Sort.getSort2DIndices(Bytes.toArray(chrs), Ints.toArray(positions));
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_positions.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_positions.xln");
 			writer.println("MarkerName\tChr\tPosition\tAltLoc\trefChr\trefPos\trefAgree\tStudy/chr/pos");
 			for (int element : order) {
 				v = hash.get(keys[element]);
@@ -698,7 +698,7 @@ public class Mega_Analyses {
 		// filename = DIR+"parseHits.crf";
 		filename = DIR + "parsePs.crf";
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			writer.println("lookup");
 			// writer.println("hits.txt out=hitsLookSee.xln");
 			writer.println("allAutosomalVariants.txt out=allPvals.xln");
@@ -824,8 +824,8 @@ public class Mega_Analyses {
 			try {
 				reader = new BufferedReader(new FileReader(filename));
 				new File(ext.parseDirectoryOfFile(filename) + "purified/").mkdir();
-				writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename) + "purified/"
-																								+ ext.removeDirectoryInfo(filename)));
+				writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(filename) + "purified/"
+																								+ ext.removeDirectoryInfo(filename));
 				writer.println(reader.readLine());
 				while (reader.ready()) {
 					temp = reader.readLine();

@@ -313,7 +313,7 @@ public class ChargeS {
 			}
 			log.report("Writing map to file");
 			try {
-				writer = new PrintWriter(new FileWriter(genoFile + ".burdenInfo"));
+				writer = Files.openAppropriateWriter(genoFile + ".burdenInfo");
 				writer.println("Marker\tChr\tPosition\tREF\tALT\tgene\tAAF\tFunction");
 				for (String markerName : markerNames) {
 					trav = ext.removeQuotes(markerName);
@@ -415,7 +415,7 @@ public class ChargeS {
 
 		try {
 			reader = new BufferedReader(new FileReader(plinkResults));
-			writer = new PrintWriter(new FileWriter(outfile));
+			writer = Files.openAppropriateWriter(outfile);
 			delimiter = Files.suggestDelimiter(outfile, log);
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line,
@@ -502,7 +502,7 @@ public class ChargeS {
 		ids = null;
 		chr = 1;
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "plink.tped"));
+			writer = Files.openAppropriateWriter(dir + "plink.tped");
 			do {
 				filename = dir + ext.insertNumbers(genoFile, chr);
 				try {
@@ -522,7 +522,7 @@ public class ChargeS {
 					if (chr == 1) {
 						ids = ArrayUtils.subArray(header, 2);
 						try {
-							famWriter = new PrintWriter(new FileWriter(dir + "plink.tfam"));
+							famWriter = Files.openAppropriateWriter(dir + "plink.tfam");
 							for (String id : ids) {
 								famWriter.println(id + "\t" + id + "\t0\t0\t2\t1");
 							}
@@ -640,7 +640,7 @@ public class ChargeS {
 
 			log.report("Writing map to file");
 			try {
-				writer = new PrintWriter(new FileWriter(genoFile + ".burdenInfo"));
+				writer = Files.openAppropriateWriter(genoFile + ".burdenInfo");
 				writer.println("Marker\tChr\tPosition\tREF\tALT\tgene\tAAF\tFunction");
 				for (String markerName : markerNames) {
 					trav = ext.removeQuotes(markerName);

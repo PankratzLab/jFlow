@@ -4,7 +4,6 @@ package org.genvisis.link.init;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collections;
@@ -12,6 +11,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
@@ -29,12 +29,12 @@ public class meld {
 		int diffs = 0, sames = 0;
 		int off, offCount, totalOffCount, maxOffCount, maxOff;
 
-		dupes = new PrintWriter(new FileWriter("melded_dupes.out"));
-		mismatchedMarkers = new PrintWriter(new FileWriter("mismatched_markers.out"));
-		mismatchGenotypes = new PrintWriter(new FileWriter("mismatched_genotypes.out"));
+		dupes = Files.openAppropriateWriter("melded_dupes.out");
+		mismatchedMarkers = Files.openAppropriateWriter("mismatched_markers.out");
+		mismatchGenotypes = Files.openAppropriateWriter("mismatched_genotypes.out");
 
 		for (int chr = 1; chr <= 23; chr++) {
-			writer = new PrintWriter(new FileWriter("chromosome" + chr + ".dat"));
+			writer = Files.openAppropriateWriter("chromosome" + chr + ".dat");
 			try {
 				individuals.removeAllElements();
 				hash.clear();

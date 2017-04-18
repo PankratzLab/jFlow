@@ -3,12 +3,12 @@ package org.genvisis.mining;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
 import org.genvisis.common.DoubleVector;
+import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
@@ -67,7 +67,7 @@ public class ExploreLinearity {
 		PrintWriter writer = null;
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			for (int i = 0; i < correlations.length; i++) {
 				writer.println((depLabel == null ? "Dep" : depLabel) + " versus "
 											 + (indepLabels == null ? "Indep " + (i + 1) : indepLabels[i]));

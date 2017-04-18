@@ -58,7 +58,7 @@ public class ConsolidateTaxons {
 		}
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.print("Taxa");
 			for (int i = 0; i < taxa.size(); i++) {
 				String[] files = taxa.get(i).get("Taxa");

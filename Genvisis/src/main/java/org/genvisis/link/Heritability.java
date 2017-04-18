@@ -90,7 +90,7 @@ public class Heritability {
 				}
 				reader.reset();
 			}
-			writer = new PrintWriter(new FileWriter(dir + "re_chrom01.pre"));
+			writer = Files.openAppropriateWriter(dir + "re_chrom01.pre");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
@@ -388,7 +388,7 @@ public class Heritability {
 			log.setLevel(8);
 
 			try {
-				summary = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_summary.xln"));
+				summary = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_summary.xln");
 				summary.println("Model\tMerlin_est.\tSolar_est.\tSolar_p\tSolar_StdError\tSolar_Kurt\tSolar_KurtWarning\tn_Samples\tn_Families\tn_Families_size>1\tAverage_size_families_siez>1\tn_Families_size=1\tPearson_Correl_Z_Siblings\tPearson_Correl_Z_ParentOffspringPairs\tPearson_Correl_Z_Trios\tPearson_Correl_Pval_Siblings\tPearson_Correl_Pval_ParentOffspringPairs\tPearson_Correl_Pval_Trios\tICC_Siblings\tICC_ParentOffspringPairs\tICC_Trios\tN_Siblings\tN_ParentOffspringPairs\tN_Trios");
 				for (int i = 0; i < models.size(); i++) {
 					line = models.elementAt(i);
@@ -427,7 +427,7 @@ public class Heritability {
 						HashMap<String, Integer> subIndexMap = new HashMap<String, Integer>();
 						try {
 							System.out.println(dir + root + "/pheno.dat");
-							writer = new PrintWriter(new FileWriter(dir + root + "/pheno.dat"));
+							writer = Files.openAppropriateWriter(dir + root + "/pheno.dat");
 							writer.println("FID\tIID\t" + line[1]);
 							for (int j = 0; j < use.length; j++) {
 								if (use[j]) {
@@ -461,7 +461,7 @@ public class Heritability {
 
 						if (line.length > 2) {
 							try {
-								writer = new PrintWriter(new FileWriter(root + "/covars.dat"));
+								writer = Files.openAppropriateWriter(root + "/covars.dat");
 								writer.println("FID\tIID\t" + ArrayUtils.toStr(ArrayUtils.subArray(line, 2)));
 								for (int j = 0; j < use.length; j++) {
 									if (use[j]) {
@@ -697,7 +697,7 @@ public class Heritability {
 	public static void developCrf(String pedfile, String db, String crf, String modelRoot,
 																String[] models, Logger log) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(crf));
+			PrintWriter writer = Files.openAppropriateWriter(crf);
 			writer.println("heritability");
 			writer.println("ped=" + pedfile);
 			writer.println("db=" + db);

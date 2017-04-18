@@ -100,7 +100,7 @@ public class MitoDNA {
 			if (prob) {
 				System.exit(1);
 			}
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(snps) + "_haps.xln"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(snps) + "_haps.xln");
 			writer.print("Haplotype\t#missing\tmissingAny");
 			for (String refSNP : refSNPs) {
 				writer.print("\t" + refSNP + "_dom");

@@ -243,7 +243,7 @@ public class SeqQCValidation {
 			}
 		}
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.println(ArrayUtils.toStr(SeqError.OUTPUT_HEADER) + "\t"
 										 + "SET\tAltDepth\tAltDepthRatio\tGQ\tVQSLOD\tDepth");
 			SeqQCValidationProducer producer = new SeqQCValidationProducer(setSeqQCValidations,

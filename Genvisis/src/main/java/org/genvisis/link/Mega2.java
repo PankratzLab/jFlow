@@ -28,7 +28,7 @@ public class Mega2 {
 			chrome = ext.chrome(chr);
 			try {
 				reader = new BufferedReader(new FileReader("map" + chrome + ".dat"));
-				writer = new PrintWriter(new FileWriter("map." + chrome));
+				writer = Files.openAppropriateWriter("map." + chrome);
 				writer.println("CHROMOSOME\tKOSAMBI\tNAME");
 
 				numMarkers = Integer.parseInt(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]) - 1;

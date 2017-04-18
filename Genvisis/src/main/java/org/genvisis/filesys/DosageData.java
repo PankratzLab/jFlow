@@ -673,9 +673,9 @@ public class DosageData implements Serializable {
 			// false))+".results."+(logistic?"logistic":"linear")));
 			// w2 = new PrintWriter(new FileWriter(ext.rootOf(phenoFile,
 			// false)+(snpList==null?"":"_"+ext.rootOf(snpList, false))+".se.metal"));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(phenoFile, false) + ".results."
-																							+ (logistic ? "logistic" : "linear")));
-			w2 = new PrintWriter(new FileWriter(ext.rootOf(phenoFile, false) + ".se.metal"));
+			writer = Files.openAppropriateWriter(ext.rootOf(phenoFile, false) + ".results."
+																							+ (logistic ? "logistic" : "linear"));
+			w2 = Files.openAppropriateWriter(ext.rootOf(phenoFile, false) + ".se.metal");
 			String[] arr = logistic ? Plink.LOGISTIC_SE_HEADER : Plink.LINEAR_SE_HEADER;
 			line = Arrays.copyOf(arr, arr.length);
 			line[1] = line[1] + "      ";
@@ -858,7 +858,7 @@ public class DosageData implements Serializable {
 				}
 				newMarkerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut), log);
 				try {
-					writer = new PrintWriter(new FileWriter(root + ".ids.fam"));
+					writer = Files.openAppropriateWriter(root + ".ids.fam");
 					for (String[] id : ids) {
 						writer.println(id[0] + "\t" + id[1]);
 					}
@@ -876,7 +876,7 @@ public class DosageData implements Serializable {
 				keeps = HashVec.loadToHashSet(newMarkerSet.getMarkerNames());
 				newMarkerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut), log);
 				try {
-					writer = new PrintWriter(new FileWriter(root + ".ids.fam"));
+					writer = Files.openAppropriateWriter(root + ".ids.fam");
 					for (String[] id : ids) {
 						writer.println(id[0] + "\t" + id[1]);
 					}
@@ -1127,7 +1127,7 @@ public class DosageData implements Serializable {
 
 		// FAM
 		try {
-			writer = new PrintWriter(new FileWriter(dir + plinkRoot + ".fam"));
+			writer = Files.openAppropriateWriter(dir + plinkRoot + ".fam");
 			for (String[] id : ids) {
 				writer.print(id[0] + "\t" + id[1] + "\t");
 				String[] parts = {id.length > 2 ? id[2] : "0", id.length > 3 ? id[3] : "0",
@@ -1144,7 +1144,7 @@ public class DosageData implements Serializable {
 		// BIM
 		try {
 			String[] markerNames = markerSet.getMarkerNames();
-			writer = new PrintWriter(new FileWriter(dir + plinkRoot + ".bim"));
+			writer = Files.openAppropriateWriter(dir + plinkRoot + ".bim");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(chrs[i] + "\t" + markerNames[i] + "\t0\t" + positions[i] + "\t"
 											 + alleles[i][0] + "\t" + alleles[i][1]);
@@ -1719,7 +1719,7 @@ public class DosageData implements Serializable {
 			}
 			markerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut), log);
 			try {
-				writer = new PrintWriter(new FileWriter(root + ".ids.fam"));
+				writer = Files.openAppropriateWriter(root + ".ids.fam");
 				for (String[] id : ids) {
 					writer.println(id[0] + "\t" + id[1]);
 				}
@@ -1771,7 +1771,7 @@ public class DosageData implements Serializable {
 
 			dos = Files.isWindows();
 			try {
-				writer = new PrintWriter(new FileWriter("awk_command.bat"));
+				writer = Files.openAppropriateWriter("awk_command.bat");
 				writer.print("awk " + (dos ? "\"" : "'") + "BEGIN { OFS = " + (dos ? "\\" : "") + "\"\\t"
 										 + (dos ? "\\" : "") + "\" } { printf $1 ;");
 				line = ranges.split(",");
@@ -1812,7 +1812,7 @@ public class DosageData implements Serializable {
 			try {
 				reader = Files.getAppropriateReader(dosageFile); // new BufferedReader(new
 																												 // FileReader(dosageFile));
-				writer = new PrintWriter(new FileWriter(outfile));
+				writer = Files.openAppropriateWriter(outfile);
 
 				if (fromParameters[4] == 1) {
 					line = reader.readLine().trim().split(fromParameters[10] == 1 ? "," : PSF.Regex.GREEDY_WHITESPACE);

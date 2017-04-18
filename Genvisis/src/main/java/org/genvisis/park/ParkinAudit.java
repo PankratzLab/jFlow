@@ -636,7 +636,7 @@ public class ParkinAudit {
 		// of "+numControlsSequenced+" sequenced NINDS samples (i.e. \"ND\"
 		// samples) with variants");
 
-		writer = new PrintWriter(new FileWriter("park_audit.xln"));
+		writer = Files.openAppropriateWriter("park_audit.xln");
 		for (int i = -1; i < inds.size(); i++) {
 			mc = indData.get(inds.elementAt(i == -1 ? 0 : i));
 			writer.println((i == -1 ? "UniqueID" : mc.UniqueID) + "\t"
@@ -671,7 +671,7 @@ public class ParkinAudit {
 		}
 		writer.close();
 
-		writer = new PrintWriter(new FileWriter("parkin mutations.xln"));
+		writer = Files.openAppropriateWriter("parkin mutations.xln");
 		writer.println("DNA used\tUniqueID\tFamID\tIndID\tmut_count\ttype\tDx\tAOO\tMutations");
 		for (int i = 0; i < inds.size(); i++) {
 			mc = indData.get(inds.elementAt(i == -1 ? 0 : i));
@@ -699,7 +699,7 @@ public class ParkinAudit {
 		}
 		writer.close();
 
-		writer = new PrintWriter(new FileWriter("parkinCategories.csv"));
+		writer = Files.openAppropriateWriter("parkinCategories.csv");
 		writer.print("DNA used,UniqueID,FamID,IndID,FullyChecked,NumMutations");
 		for (String[] element : CATEGORY_CRITERIA) {
 			writer.print(",#" + element[0]);
@@ -730,7 +730,7 @@ public class ParkinAudit {
 		}
 		writer.close();
 
-		writer = new PrintWriter(new FileWriter("parkin polymorphisms.xln"));
+		writer = Files.openAppropriateWriter("parkin polymorphisms.xln");
 		writer.println("DNA used\tUniqueID\tFamID\tIndID\tmut_count\ttype\tDx\tAOO\tnum_poly\tPolymorphisms");
 		for (int i = 0; i < inds.size(); i++) {
 			mc = indData.get(inds.elementAt(i == -1 ? 0 : i));
@@ -752,7 +752,7 @@ public class ParkinAudit {
 		}
 		writer.close();
 
-		writer = new PrintWriter(new FileWriter("parkin.csv"));
+		writer = Files.openAppropriateWriter("parkin.csv");
 		writer.println("DNA#,FamID,IndID,UniqueID,num_muts,carrier,2muts,1mut,num_knownPoly,numSeq,numDosage,carrierSeq,carrierDosage,justSeqHet,justDosageHet,justTwoMuts,FullyChecked");
 		for (int i = 0; i < inds.size(); i++) {
 			mc = indData.get(inds.elementAt(i == -1 ? 0 : i));
@@ -774,7 +774,7 @@ public class ParkinAudit {
 		}
 		writer.close();
 
-		writer = new PrintWriter(new FileWriter("ninfo3_parkin_data.txt"));
+		writer = Files.openAppropriateWriter("ninfo3_parkin_data.txt");
 		for (int i = 0; i < inds.size(); i++) {
 			mc = indData.get(inds.elementAt(i == -1 ? 0 : i));
 			if (mc.numMutations >= 2) {

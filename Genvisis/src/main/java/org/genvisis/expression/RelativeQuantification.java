@@ -13,6 +13,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
@@ -97,7 +98,7 @@ public class RelativeQuantification {
 			probeNames = ArrayUtils.toStringArray(vProbes);
 			regionNames = ArrayUtils.toStringArray(vRegions);
 
-			writer = new PrintWriter(new FileWriter(dir + "RQ.xln"));
+			writer = Files.openAppropriateWriter(dir + "RQ.xln");
 			writer.print("Sample");
 			for (String probeName2 : probeNames) {
 				for (String regionName : regionNames) {
@@ -135,7 +136,7 @@ public class RelativeQuantification {
 			}
 			writer.close();
 
-			writer = new PrintWriter(new FileWriter(dir + "RQ_db.xln"));
+			writer = Files.openAppropriateWriter(dir + "RQ_db.xln");
 			writer.print("Sample");
 			for (String probeName2 : probeNames) {
 				for (String regionName : regionNames) {
@@ -166,8 +167,8 @@ public class RelativeQuantification {
 			writer.close();
 
 			for (String probeName2 : probeNames) {
-				writer = new PrintWriter(new FileWriter(dir + probeGeneLookup.get(probeName2) + "_"
-																								+ probeName2 + ".xln"));
+				writer = Files.openAppropriateWriter(dir + probeGeneLookup.get(probeName2) + "_"
+																								+ probeName2 + ".xln");
 				writer.print("Sample");
 				for (String regionName : regionNames) {
 					writer.print("\t" + regionName + "_" + "_AvgCt\t" + regionName + "_" + "_CtStderr\t"
@@ -265,10 +266,10 @@ public class RelativeQuantification {
 	//
 	//
 	// try {
-	// writer = new PrintWriter(new FileWriter(dir+"RQ.xln"));
+	// writer = Files.openAppropriateWriter(dir+"RQ.xln");
 	// writer.println("Gene\tSNP\tRegion\tIndividual\tN\tMean\tStdev\tStderr\tRegionMean\tRegionStdev\tZ-score\tpval
 	// from Zdist\tT\tpval from Tdist");
-	// summary = new PrintWriter(new FileWriter(dir+"allelotype_summary.xln"));
+	// summary = Files.openAppropriateWriter(dir+"allelotype_summary.xln");
 	// summary.println("gene\tsnp\tN\tproportion\tstd dev\tt-value df\tregion
 	// A\tregion B\tregion C");
 	// probeKeys = HashVec.getKeys(probes);

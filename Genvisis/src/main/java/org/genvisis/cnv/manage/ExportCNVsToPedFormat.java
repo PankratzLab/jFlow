@@ -316,7 +316,7 @@ public class ExportCNVsToPedFormat {
 							}
 							outputFilename = outputRoot + "_" + fileNumber;
 							if (!fileFormat.equals(PLINK_BINARY_FORMAT)) {
-								writer = new PrintWriter(new FileWriter(outputFilename + exten));
+								writer = Files.openAppropriateWriter(outputFilename + exten);
 							} else {
 								bedWriter = new RandomAccessFile(outputFilename + ".bed", "rw");
 								byte[] outStream = new byte[3];
@@ -498,7 +498,7 @@ public class ExportCNVsToPedFormat {
 			ids = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			try {
 				new File(dir + "rfgls/").mkdirs();
-				writer = new PrintWriter(new FileWriter(dir + "rfgls/ids"));
+				writer = Files.openAppropriateWriter(dir + "rfgls/ids");
 				for (int i = 1; i < ids.length; i++) {
 					line = ids[i].split("-");
 					if (line.length != 2) {
@@ -516,12 +516,12 @@ public class ExportCNVsToPedFormat {
 				e.printStackTrace();
 			}
 
-			writer = new PrintWriter(new FileWriter(dir + "rfgls/"
+			writer = Files.openAppropriateWriter(dir + "rfgls/"
 																							+ ext.removeDirectoryInfo(root + "_byMarker_"
-																																				+ fileNumber)));
-			mapWriter = new PrintWriter(new FileWriter(dir + "rfgls/"
+																																				+ fileNumber));
+			mapWriter = Files.openAppropriateWriter(dir + "rfgls/"
 																								 + ext.removeDirectoryInfo(root + "_map_"
-																																					 + fileNumber)));
+																																					 + fileNumber));
 
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

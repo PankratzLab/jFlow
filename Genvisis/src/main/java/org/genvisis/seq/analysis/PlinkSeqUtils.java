@@ -242,7 +242,7 @@ public class PlinkSeqUtils {
 			// new File(ext.parseDirectoryOfFile(locFileName))
 			new File(ext.parseDirectoryOfFile(locFileName)).mkdirs();
 			GeneData[][] gDatas = gRegions.getGeneTrack().getGenes();
-			PrintWriter writer = new PrintWriter(new FileWriter(locFileName));
+			PrintWriter writer = Files.openAppropriateWriter(locFileName);
 			writer.println("#CHR\tPOS1\tPOS2\tID");
 			for (GeneData[] gData : gDatas) {
 				for (GeneData element : gData) {

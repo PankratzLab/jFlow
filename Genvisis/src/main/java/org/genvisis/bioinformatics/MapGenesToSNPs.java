@@ -119,7 +119,7 @@ public class MapGenesToSNPs {
 		snps = new Vector<String>(1000);
 		try {
 			reader = new BufferedReader(new FileReader(lookupFile));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(genesFile) + "_SNPs.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(genesFile) + "_SNPs.xln");
 			writer.println(reader.readLine());
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

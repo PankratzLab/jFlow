@@ -56,7 +56,7 @@ public class Eigenstrat {
 		struct.writeToFile(sourceRoot + ".fam", false);
 
 		try {
-			writer = new PrintWriter(new FileWriter("convertf.par"));
+			writer = Files.openAppropriateWriter("convertf.par");
 			writer.println("genotypename:    " + sourceRoot + ".bed");
 			writer.println("snpname:         " + sourceRoot + ".bim");
 			writer.println("indivname:       " + sourceRoot + ".fam");
@@ -72,7 +72,7 @@ public class Eigenstrat {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter("smartpca.par"));
+			writer = Files.openAppropriateWriter("smartpca.par");
 			writer.println("genotypename:     " + sourceRoot + ".eigenstratgeno");
 			writer.println("snpname:          " + sourceRoot + ".snp");
 			writer.println("indivname:        " + sourceRoot + ".ind");
@@ -88,7 +88,7 @@ public class Eigenstrat {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter("master"));
+			writer = Files.openAppropriateWriter("master");
 			writer.println("convertf -p convertf.par");
 			writer.println("smartpca -p smartpca.par");
 			writer.close();
@@ -320,8 +320,8 @@ public class Eigenstrat {
 
 		System.out.println("Writing raw scores to file...");
 		try {
-			writer = new PrintWriter(new FileWriter(targetRoot + (fancy_weighting ? "_fancy" : "")
-																							+ "_eigens.xln"));
+			writer = Files.openAppropriateWriter(targetRoot + (fancy_weighting ? "_fancy" : "")
+																							+ "_eigens.xln");
 			writer.println("FID\tIID\t"
 										 + ArrayUtils.toStr(ArrayUtils.stringArraySequence(numEigens, "C")));
 			for (int i = 0; i < ids.size(); i++) {
@@ -346,8 +346,8 @@ public class Eigenstrat {
 			stdevs[i] = ArrayUtils.stdev(array);
 		}
 		try {
-			writer = new PrintWriter(new FileWriter(targetRoot + (fancy_weighting ? "_fancy" : "")
-																							+ "_postnormed_eigens.xln"));
+			writer = Files.openAppropriateWriter(targetRoot + (fancy_weighting ? "_fancy" : "")
+																							+ "_postnormed_eigens.xln");
 			writer.println("FID\tIID\t"
 										 + ArrayUtils.toStr(ArrayUtils.stringArraySequence(numEigens, "C")));
 			sampleSizeCorrection = Math.sqrt(ids.size());
@@ -398,7 +398,7 @@ public class Eigenstrat {
 		ids = struct.getIDs();
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".mds"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + ".mds");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!line[0].equals("#eigvals:")) {
 				System.err.println("Error - I do not think this file contains what you think it contains");

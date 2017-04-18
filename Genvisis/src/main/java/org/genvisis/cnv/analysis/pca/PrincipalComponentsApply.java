@@ -192,8 +192,8 @@ public class PrincipalComponentsApply {
 				Files.backup(output, proj.PROJECT_DIRECTORY.getValue(),
 										 proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
-			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																													+ output));
+			PrintWriter writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																													+ output);
 			String[] samples = proj.getSampleList().getSamples();
 			writer.print("FID\tIID");
 			for (int i = 0; i < numComponents; i++) {

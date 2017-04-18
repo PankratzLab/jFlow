@@ -114,7 +114,7 @@ public class Samtools {
 
 		v = new Vector<String>();
 		try {
-			writer = new PrintWriter(new FileWriter(pwd + "sexPlot.xln"));
+			writer = Files.openAppropriateWriter(pwd + "sexPlot.xln");
 			writer.println("File\tnumXreads\tnumYreads\tnumAutosomalReads\txProp\tyProp\txExpRatio\tyExpRatio");
 			for (String file : files) {
 				if (Files.exists(pwd + file + ".chrCounts")) {

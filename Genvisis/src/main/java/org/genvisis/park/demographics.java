@@ -5,7 +5,6 @@ package org.genvisis.park;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collections;
@@ -13,6 +12,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
@@ -131,7 +131,7 @@ public class demographics {
 			}
 		}
 
-		writer = new PrintWriter(new FileWriter(filename + "-demographics.out"));
+		writer = Files.openAppropriateWriter(filename + "-demographics.out");
 		writer.println((males + females) + " affected individuals");
 		writer.println(unaffected + " unaffected individuals");
 		writer.println((males + females + unaffected) + " genotipyped individuals");

@@ -50,7 +50,7 @@ public class Traits {
 
 		time = new Date().getTime();
 		try {
-			writer = new PrintWriter(new FileWriter(analysis_dir + "allReps.xls"));
+			writer = Files.openAppropriateWriter(analysis_dir + "allReps.xls");
 			writer.println("Rep\tAff_age\tAff_gender\tAff_smoking\tQ1_age\tQ1_gender\tQ1_smoking\tQ2_age\tQ2_gender\tQ2_smoking\tQ4_age\tQ4_gender\tQ4_smoking");
 			for (int rep = 1; rep <= 200; rep++) {
 				writer.print(rep);
@@ -120,7 +120,7 @@ public class Traits {
 
 		time = new Date().getTime();
 		try {
-			writer = new PrintWriter(new FileWriter(analysis_dir + "allReps2.xls"));
+			writer = Files.openAppropriateWriter(analysis_dir + "allReps2.xls");
 			writer.println("Rep\tAff_age\tAff_gender\tAff_smoking\tAff_Q1\tAff_Q2\tAff_Q4\tQ1_age\tQ1_gender\tQ1_smoking\tQ1_Q2\tQ1_Q4\tQ2_age\tQ2_gender\tQ2_smoking\tQ2_Q1\tQ2_Q4\tQ4_age\tQ4_gender\tQ4_smoking\tQ4_Q1\tQ4_Q2");
 			for (int rep = 1; rep <= 200; rep++) {
 				writer.print(rep);
@@ -203,7 +203,7 @@ public class Traits {
 		for (int rep = 1; rep <= 200; rep++) {
 			try {
 				reader = new BufferedReader(new FileReader(pheno_dir + "unr_phen." + rep));
-				writer = new PrintWriter(new FileWriter(pheno_dir + "unr_phen." + rep + ".tab"));
+				writer = Files.openAppropriateWriter(pheno_dir + "unr_phen." + rep + ".tab");
 				writer.println("FID\tI" + ArrayUtils.toStr(reader.readLine().trim().split(",")));
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(",");
@@ -230,7 +230,7 @@ public class Traits {
 		Logger log;
 
 		try {
-			writer = new PrintWriter(new FileWriter(analysis_dir + "analysisUnivariate.bat"));
+			writer = Files.openAppropriateWriter(analysis_dir + "analysisUnivariate.bat");
 			for (int rep = 1; rep <= 200; rep++) {
 				for (String element : POPS) {
 					// writer.println("plink --bfile ../"+POPS[i]+" --pheno "+pheno_dir+"unr_phen."+rep+".tab
@@ -257,8 +257,8 @@ public class Traits {
 		for (String element : POPS) {
 			for (int pheno = 0; pheno < PHENOS.length; pheno++) {
 				try {
-					writer = new PrintWriter(new FileWriter(analysis_dir + "metal_" + element + "_"
-																									+ PHENOS[pheno] + ".txt"));
+					writer = Files.openAppropriateWriter(analysis_dir + "metal_" + element + "_"
+																									+ PHENOS[pheno] + ".txt");
 					writer.println("MARKER SNP");
 					writer.println("ALLELE A1 TEST");
 					writer.println("EFFECT " + (!PHENOS[pheno].startsWith("q") ? "OR" : "BETA"));
@@ -288,8 +288,8 @@ public class Traits {
 		for (int pheno = 0; pheno < PHENOS.length; pheno++) {
 			for (int rep = 1; rep <= 200; rep++) {
 				try {
-					writer = new PrintWriter(new FileWriter(analysis_dir + "metal_" + PHENOS[pheno] + "."
-																									+ rep + ".txt"));
+					writer = Files.openAppropriateWriter(analysis_dir + "metal_" + PHENOS[pheno] + "."
+																									+ rep + ".txt");
 					writer.println("MARKER SNP");
 					writer.println("ALLELE A1 TEST");
 					writer.println("EFFECT " + (!PHENOS[pheno].startsWith("q") ? "OR" : "BETA"));
@@ -326,7 +326,7 @@ public class Traits {
 
 		for (int rep = 1; rep <= 200; rep++) {
 			try {
-				writer = new PrintWriter(new FileWriter(analysis_dir + rep + ".metal"));
+				writer = Files.openAppropriateWriter(analysis_dir + rep + ".metal");
 				writer.println("MARKER SNP");
 				writer.println("ALLELE A1 A2");
 				// writer.println("EFFECT beta");
@@ -352,7 +352,7 @@ public class Traits {
 			}
 		}
 		try {
-			writer = new PrintWriter(new FileWriter(analysis_dir + "runMetals.bat"));
+			writer = Files.openAppropriateWriter(analysis_dir + "runMetals.bat");
 			for (int rep = 1; rep <= 200; rep++) {
 				writer.println("metal < " + rep + ".metal > " + rep + ".log");
 			}
@@ -379,8 +379,8 @@ public class Traits {
 																											 + "." + rep + ".assoc."
 																											 + (!PHENOS[pheno].startsWith("q") ? "logistic"
 																																												 : "linear")));
-						writer = new PrintWriter(new FileWriter(analysis_dir + element + "." + PHENOS[pheno]
-																										+ "." + rep + ".in"));
+						writer = Files.openAppropriateWriter(analysis_dir + element + "." + PHENOS[pheno]
+																										+ "." + rep + ".in");
 						// writer.println("SNP\tA1\tA2\tbeta\tse");
 						writer.println("SNP\tA1\tA2\tbeta\tpval\tweight");
 						reader.readLine();
@@ -615,7 +615,7 @@ public class Traits {
 			}
 		}
 		try {
-			writer = new PrintWriter(new FileWriter(prefix + "_sigCounts_" + cutoff + ".xln"));
+			writer = Files.openAppropriateWriter(prefix + "_sigCounts_" + cutoff + ".xln");
 			writer.println("SNP\tsigs\tcount\t%");
 			for (int j = 0; j < snps.length; j++) {
 				writer.println(snps[j] + "\t" + counts[j][0] + "\t" + counts[j][1] + "\t"
@@ -667,7 +667,7 @@ public class Traits {
 			}
 		}
 		try {
-			writer = new PrintWriter(new FileWriter(analysis_dir + "meta_sigCounts_" + cutoff + ".xln"));
+			writer = Files.openAppropriateWriter(analysis_dir + "meta_sigCounts_" + cutoff + ".xln");
 			String[] values = cv.getValues();
 			int[] counts = cv.getCounts();
 			int index;
@@ -732,7 +732,7 @@ public class Traits {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(output_file));
+			writer = Files.openAppropriateWriter(output_file);
 			writer.print("UID\tmeanValue\tstdev");
 			for (double stddevThreshold : stddevThresholds) {
 				writer.print("\t" + stddevThreshold + " SD");
@@ -749,7 +749,7 @@ public class Traits {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(output_file) + "_matrix.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(output_file) + "_matrix.xln");
 			writer.print("UID");
 			for (int i = 1; i <= 200; i++) {
 				writer.print("\tRep" + i);

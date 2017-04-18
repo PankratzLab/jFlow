@@ -71,7 +71,7 @@ public class UpdateCRFdb {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
-			writer = new PrintWriter(new FileWriter(dir + "probands.csv"));
+			writer = Files.openAppropriateWriter(dir + "probands.csv");
 			writer.println("FamID,IndID,proband,VPDproband");
 			reader.readLine();
 			while (reader.ready()) {

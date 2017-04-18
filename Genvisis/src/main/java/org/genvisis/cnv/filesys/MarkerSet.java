@@ -3,7 +3,6 @@ package org.genvisis.cnv.filesys;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -11,6 +10,7 @@ import java.util.ArrayList;
 
 import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -176,7 +176,7 @@ public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(markerNames[i] + "\t" + chrs[i] + "\t" + positions[i]);
 			}

@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
@@ -289,7 +290,7 @@ public class WeightedSumStatistic {
 		genotypeCounts = wss.getGenotypeCounts();
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + root + "_weights.xln"));
+			writer = Files.openAppropriateWriter(dir + root + "_weights.xln");
 			writer.println("SNP\tA1\tA2\tMAF\tNCHROBS\tweight");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(markerNames[i] + "\t" + alleles[i][0] + "\t" + alleles[i][1] + "\t"
@@ -304,7 +305,7 @@ public class WeightedSumStatistic {
 
 		actualX = wss.getStat();
 		try {
-			writer = new PrintWriter(new FileWriter(dir + root + "_scores.xln"));
+			writer = Files.openAppropriateWriter(dir + root + "_scores.xln");
 			writer.println("Score\t" + ArrayUtils.toStr(markerNames));
 			writer.println("Weights:\t" + ArrayUtils.toStr(weights));
 			for (int i = 0; i < scores.length; i++) {
@@ -342,7 +343,7 @@ public class WeightedSumStatistic {
 											 + ext.prettyP((double) count / (double) NUM_REPS));
 
 		try {
-			writer = new PrintWriter(new FileWriter("logfile2.out", true));
+			writer = Files.openAppropriateWriter("logfile2.out", true);
 			writer.println(markerNames.length + "\t" + ext.formDeci(z, 3) + "\t"
 										 + ext.prettyP(ProbDist.NormDist(Math.abs(z) * -1)) + "\t"
 										 + ext.prettyP((double) count / (double) NUM_REPS));
@@ -436,7 +437,7 @@ public class WeightedSumStatistic {
 
 		models = HashVec.loadFileToStringArray(modelsFile, false, new int[] {0, 1}, false);
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			for (String model : models) {
 				line = model.split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println("plink --bfile allThree --recode --keep " + line[0] + " --extract "
@@ -476,7 +477,7 @@ public class WeightedSumStatistic {
 				numArgs--;
 			} else if (arg.startsWith("set=")) {
 				try {
-					PrintWriter writer = new PrintWriter(new FileWriter("logfile2.out", true));
+					PrintWriter writer = Files.openAppropriateWriter("logfile2.out", true);
 					writer.println(arg.split("=")[1]);
 					writer.close();
 					numArgs--;

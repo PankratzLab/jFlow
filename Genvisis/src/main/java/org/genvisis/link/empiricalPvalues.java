@@ -3,12 +3,12 @@ package org.genvisis.link;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class empiricalPvalues {
@@ -32,7 +32,7 @@ public class empiricalPvalues {
 		chrome = (chromosome < 10) ? "0" + chromosome : "" + chromosome;
 
 		reader = new BufferedReader(new FileReader("re_chrom" + chrome + ".pre"));
-		writer = new PrintWriter(new FileWriter("chrom" + chrome + "-template"));
+		writer = Files.openAppropriateWriter("chrom" + chrome + "-template");
 
 		st = new StringTokenizer(reader.readLine());
 		numMarkers = (st.countTokens() - 6) / 2;
@@ -58,7 +58,7 @@ public class empiricalPvalues {
 		}
 		writer.close();
 
-		optfile = new PrintWriter(new FileWriter("chrom" + chrome + ".opt"));
+		optfile = Files.openAppropriateWriter("chrom" + chrome + ".opt");
 		optfile.println("% Read input in LINKAGE style format:\n" + "PREFILE chrom" + chrome
 										+ "-template\n" + "DATFILE map" + chrome + ".dat\n\n"
 										+ "% Simulate stroke reconstruction pedigrees\n" + "SIMULATE dloc:10.0 npre:"
@@ -78,7 +78,7 @@ public class empiricalPvalues {
 
 		(new File("chrome" + chrome + ".opt")).delete();
 
-		PrintWriter batch = new PrintWriter(new FileWriter("batch.1"));
+		PrintWriter batch = Files.openAppropriateWriter("batch.1");
 		batch.println("cp batch.1 trash1");
 		batch.println("cp batch.1 trash2");
 		batch.println();
@@ -87,7 +87,7 @@ public class empiricalPvalues {
 
 		for (int repNum = 1; repNum <= numReps; repNum++) {
 			// for (int repNum=NUM_REPS; repNum>=1; repNum--) {
-			writer = new PrintWriter(new FileWriter("chrom" + chrome + "-" + repNum + ".pre"));
+			writer = Files.openAppropriateWriter("chrom" + chrome + "-" + repNum + ".pre");
 
 			file = "chrom" + chrome + "-template."
 						 + ext.formNum(repNum + "", String.valueOf(numReps).length());
@@ -162,7 +162,7 @@ public class empiricalPvalues {
 			e.printStackTrace();
 		}
 
-		writer = new PrintWriter(new FileWriter("chrom" + chrome + "-maximumLods.xls"));
+		writer = Files.openAppropriateWriter("chrom" + chrome + "-maximumLods.xls");
 		writer.println("rep\tsibsPos\tsibsLOD\tsibsDvPos\tsibsDvLOD");
 		for (int i = 1; i <= numReps; i++) {
 			try {

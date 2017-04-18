@@ -3,12 +3,12 @@ package org.genvisis.bioinformatics;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
@@ -169,7 +169,8 @@ public class expressionToGenes {
 		System.out.println("Populating genes.xls data...");
 		try {
 			reader = new BufferedReader(new FileReader(genes));
-			ext.checkHeader(line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), GENES_HEADER, true);
+			ext.checkHeader(line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), GENES_HEADER,
+											true);
 			while (reader.ready()) {
 				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				geneData.put(line[0], line[1] + "\t" + line[2]);
@@ -187,8 +188,8 @@ public class expressionToGenes {
 		try {
 			reader = new BufferedReader(new FileReader(express));
 			reader.readLine();
-			writer = new PrintWriter(new FileWriter("reverse.xls"));
-			geneids = new PrintWriter(new FileWriter("lookup.xls"));
+			writer = Files.openAppropriateWriter("reverse.xls");
+			geneids = Files.openAppropriateWriter("lookup.xls");
 			while (reader.ready()) {
 				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = line[0];

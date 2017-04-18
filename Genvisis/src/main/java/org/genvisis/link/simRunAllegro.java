@@ -4,16 +4,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.genvisis.common.Files;
+
 public class simRunAllegro {
 	public simRunAllegro(int reps, boolean all) throws IOException {
 		PrintWriter optfile = null;
-		PrintWriter writer = new PrintWriter(new FileWriter("batch.1"));
+		PrintWriter writer = Files.openAppropriateWriter("batch.1");
 		String chrome;
 
 		for (int i = 1; i <= reps; i++) {
 			for (int chr = 1; chr <= 23; chr++) {
 				chrome = (chr < 10) ? "0" + chr : "" + chr;
-				optfile = new PrintWriter(new FileWriter("temp-" + (all ? chrome + "-" : "") + i + ".opt"));
+				optfile = Files.openAppropriateWriter("temp-" + (all ? chrome + "-" : "") + i + ".opt");
 				optfile.println("% Read input in LINKAGE style format:\n" + "PREFILE linkage-"
 												+ (all ? chrome + "-" : "") + i + ".pre\n" + "DATFILE "
 												+ (all ? "map" + chrome + ".dat" : "linkage.dat") + "\n\n"

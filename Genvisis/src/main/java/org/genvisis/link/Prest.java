@@ -41,7 +41,7 @@ public class Prest {
 		chrome = ext.chrome(chr);
 		try {
 			reader = new BufferedReader(new FileReader("re_chrom" + chrome + ".pre"));
-			writer = new PrintWriter(new FileWriter("pedigrees"));
+			writer = Files.openAppropriateWriter("pedigrees");
 			while (reader.ready()) {
 				writer.println(ArrayUtils.toStr(ArrayUtils.subArray(reader.readLine().trim()
 																																	.split(PSF.Regex.GREEDY_WHITESPACE),
@@ -55,13 +55,13 @@ public class Prest {
 		}
 
 		try {
-			chromfiles = new PrintWriter(new FileWriter("chromfiles"));
+			chromfiles = Files.openAppropriateWriter("chromfiles");
 			for (int chromosome = 1; chromosome <= 22; chromosome++) {
 				chrome = ext.chrome(chromosome);
 
 				try {
 					reader = new BufferedReader(new FileReader("map" + chrome + ".dat"));
-					writer = new PrintWriter(new FileWriter("map" + chrome + ".idx"));
+					writer = Files.openAppropriateWriter("map" + chrome + ".idx");
 
 					writer.println((Integer.parseInt(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]) - 1) + "");
 					do {
@@ -114,7 +114,7 @@ public class Prest {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + genome));
-			writer = new PrintWriter(new FileWriter(dir + genome + ".slim"));
+			writer = Files.openAppropriateWriter(dir + genome + ".slim");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[0] + "-" + line[1] + ":" + line[2] + "-" + line[3] + "\t" + line[5]
@@ -140,7 +140,7 @@ public class Prest {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + prest));
-			writer = new PrintWriter(new FileWriter(dir + prest + ".slim"));
+			writer = Files.openAppropriateWriter(dir + prest + ".slim");
 			writer.println("FID1-IID1:FID2-IID2\tPutative#\tPutativeRel\t#markers\tIBD\tp0\tp1\tp2\tEIBD-pval\tAIBS-pval\tIBS-pval\tmin-pval");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

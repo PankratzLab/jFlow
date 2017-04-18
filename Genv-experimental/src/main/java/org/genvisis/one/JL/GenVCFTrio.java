@@ -41,7 +41,7 @@ public class GenVCFTrio {
 		}
 		String ouput = ext.addToRoot(list, ".vcfPop");
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(ouput));
+			PrintWriter writer = Files.openAppropriateWriter(ouput);
 			writer.println(ArrayUtils.toStr(VcfPopulation.HEADER));
 			Set<String> fams = trios.keySet();
 			for (String fam : fams) {

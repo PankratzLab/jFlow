@@ -1,12 +1,12 @@
 package org.genvisis.link;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class LinkageToPlink {
@@ -33,7 +33,7 @@ public class LinkageToPlink {
 
 		if (v.size() > 1) {
 			try {
-				writer = new PrintWriter(new FileWriter(dir + "plink-merge.txt"));
+				writer = Files.openAppropriateWriter(dir + "plink-merge.txt");
 				for (int i = 1; i < v.size(); i++) {
 					writer.println(ArrayUtils.toStr(v.elementAt(i)));
 				}

@@ -182,7 +182,7 @@ public class DemoPackage {
 
 		if (!demoProject.isFail()) {
 			try {
-				// PrintWriter writer = new PrintWriter(new FileWriter(newProjectFile));
+				// PrintWriter writer = Files.openAppropriateWriter(newProjectFile);
 				// writer.println("##");
 				// writer.close();
 

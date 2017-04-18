@@ -165,7 +165,7 @@ public class shiftAlleles {
 
 		new File("chromosome" + chr + ".dat").renameTo(new File("temp"));
 		reader = new BufferedReader(new FileReader("temp"));
-		writer = new PrintWriter(new FileWriter("chromosome" + chr + ".dat"));
+		writer = Files.openAppropriateWriter("chromosome" + chr + ".dat");
 
 		writer.println(reader.readLine());
 		temp = reader.readLine();

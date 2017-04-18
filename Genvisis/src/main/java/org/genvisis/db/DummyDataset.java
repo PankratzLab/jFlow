@@ -59,7 +59,7 @@ public class DummyDataset {
 
 			try {
 				count = 0;
-				writer = new PrintWriter(new FileWriter(outfile));
+				writer = Files.openAppropriateWriter(outfile);
 				if (header != null) {
 					writer.println(ArrayUtils.toStr(header));
 					for (int i = 0; i < v.size(); i++) {
@@ -139,7 +139,7 @@ public class DummyDataset {
 			}
 
 			try {
-				writer = new PrintWriter(new FileWriter(outfile));
+				writer = Files.openAppropriateWriter(outfile);
 				line = ArrayUtils.toStringArray(v);
 				writer.println("Unit\t" + ArrayUtils.toStr(line));
 				keys = HashVec.getKeys(hashes);

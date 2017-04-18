@@ -63,11 +63,11 @@ public class concordance {
 		}
 		reader.close();
 
-		// writer = new PrintWriter(new FileWriter("meanAPOE_MMSE_MCMC.out"));
+		// writer = Files.openAppropriateWriter("meanAPOE_MMSE_MCMC.out");
 		// writer.println("#aff4*\t#unaff4*\t#aff33\t#unaff33\t#aff2*\t#unaff2*");
 		for (int rep = 0; rep < numReps; rep++) {
 			counts = new int[6];
-			writer = new PrintWriter(new FileWriter("count." + (rep + 1) + ".out"));
+			writer = Files.openAppropriateWriter("count." + (rep + 1) + ".out");
 			for (int j = 0; j < families.size(); j++) {
 				v = hash.get(families.elementAt(j));
 				st = new StringTokenizer(v.elementAt(0));

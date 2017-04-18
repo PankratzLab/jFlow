@@ -121,7 +121,7 @@ public class CNVBeast {
 	private static void reportAllCNVs(Project proj, CNVariant[][] allCNVs, String fullPathToOutput) {
 		proj.getLog().report(ext.getTime() + " Info - reporting all cnvs to " + fullPathToOutput);
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutput));
+			PrintWriter writer = Files.openAppropriateWriter(fullPathToOutput);
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (CNVariant[] allCNV : allCNVs) {
 				if (allCNV != null) {
@@ -368,7 +368,7 @@ public class CNVBeast {
 							}
 						}
 						try {
-							PrintWriter writer = new PrintWriter(new FileWriter(configs[i].getDataFile()));
+							PrintWriter writer = Files.openAppropriateWriter(configs[i].getDataFile());
 							writer.println(ArrayUtils.toStr(BEAST_DATA_HEADER));
 							int analysisChr = configs[i].getAnalysisChr();
 							for (int j = 0; j < indicesByChr[analysisChr].length; j++) {
@@ -639,7 +639,7 @@ public class CNVBeast {
 		private void writeConfigFile() {
 			initOutputs();
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(getConfigFile()));
+				PrintWriter writer = Files.openAppropriateWriter(getConfigFile());
 				writer.print(getConfigs());
 				writer.close();
 			} catch (Exception e) {

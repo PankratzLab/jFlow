@@ -212,7 +212,7 @@ public class LDdatabase implements Serializable {
 								HashVec.addIfAbsent(subset[i], v);
 								HashVec.addIfAbsent(subset[j], v);
 								if (writer == null) {
-									writer = new PrintWriter(new FileWriter(dir + "pairs.xln"));
+									writer = Files.openAppropriateWriter(dir + "pairs.xln");
 								}
 								writer.println(subset[i] + "\t" + subset[j] + "\t"
 															 + Math.abs(positions[i] - positions[j]));

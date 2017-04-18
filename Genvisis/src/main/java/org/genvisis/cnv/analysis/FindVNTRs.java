@@ -4,7 +4,6 @@ package org.genvisis.cnv.analysis;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
@@ -12,6 +11,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
@@ -64,7 +64,7 @@ public class FindVNTRs {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename + "_vntrs.xln"));
+			writer = Files.openAppropriateWriter(filename + "_vntrs.xln");
 			keys = HashVec.getKeys(hash);
 			cv = new CountVector();
 			for (String key : keys) {
@@ -148,7 +148,7 @@ public class FindVNTRs {
 	//
 	// try {
 	// reader = new BufferedReader(new FileReader(filename));
-	// writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false)+"_corr.xln"));
+	// writer = Files.openAppropriateWriter(ext.rootOf(filename, false)+"_corr.xln");
 	// writer.println("N_markers\tMeanCorr\tAffMean\tUnaffMean\tpval\tMarkers&Corrs");
 	// while (reader.ready()) {
 	// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

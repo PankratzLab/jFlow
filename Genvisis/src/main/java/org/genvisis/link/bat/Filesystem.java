@@ -14,6 +14,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.PSF;
@@ -59,8 +60,8 @@ public class Filesystem {
 												 + ".dat");
 			System.exit(1);
 		}
-		writer = new PrintWriter(new FileWriter("mrkr" + chrome + ".dat"));
-		error = new PrintWriter(new FileWriter("logfile of errors.out", true));
+		writer = Files.openAppropriateWriter("mrkr" + chrome + ".dat");
+		error = Files.openAppropriateWriter("logfile of errors.out", true);
 
 		gen.readLine();
 		st = new StringTokenizer(gen.readLine());
@@ -219,7 +220,7 @@ public class Filesystem {
 
 			alleleFreqs[i] = new double[alleles.length - numMissing];
 			for (int j = numMissing; j < alleles.length; j++) {
-				alleleFreqs[i][j - numMissing] = Double.valueOf(handle.get(alleles[j])) / (double) total;
+				alleleFreqs[i][j - numMissing] = Double.valueOf(handle.get(alleles[j])) / total;
 				for (int k = 0; k < Integer.valueOf(handle.get(alleles[j])); k++) {
 					allAlleles[alleleCount++] = Integer.valueOf(alleles[j]);
 				}
@@ -243,7 +244,7 @@ public class Filesystem {
 
 		if (reportOutliers) {
 			gen = new BufferedReader(new FileReader("mrkr" + chrome + ".dat"));
-			writer = new PrintWriter(new FileWriter("genosToCheck.dat", true));
+			writer = Files.openAppropriateWriter("genosToCheck.dat", true);
 			while (gen.ready()) {
 				line = gen.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < problemAlleles.length; i++) {

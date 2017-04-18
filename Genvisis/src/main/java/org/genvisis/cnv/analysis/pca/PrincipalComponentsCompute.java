@@ -689,7 +689,7 @@ public class PrincipalComponentsCompute {
 				Files.backup(ext.rootOf(output) + OUTPUT_EXT[1], proj.PROJECT_DIRECTORY.getValue(),
 										 proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
-			PrintWriter writer = new PrintWriter(new FileWriter(markersUsedForPCA));
+			PrintWriter writer = Files.openAppropriateWriter(markersUsedForPCA);
 			if (!printFullData) {
 				writer.println(ArrayUtils.toStr(MARKER_REPORT_SMALL));
 				for (int i = 0; i < markers.length; i++) {
@@ -753,8 +753,8 @@ public class PrincipalComponentsCompute {
 				Files.backup(output, proj.PROJECT_DIRECTORY.getValue(),
 										 proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
-			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																													+ output));
+			PrintWriter writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																													+ output);
 			double[] singularValues = pcs.getSingularValues();
 			writer.println(PC_STRING + "\t" + SV_STRING);
 			for (int i = 0; i < singularValues.length; i++) {
@@ -791,8 +791,8 @@ public class PrincipalComponentsCompute {
 				Files.backup(output, proj.PROJECT_DIRECTORY.getValue(),
 										 proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
-			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																													+ output));
+			PrintWriter writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																													+ output);
 			writer.print(MARKER);
 			for (int i = 0; i < pcsBasis.length; i++) {
 				writer.print("\t" + PC_STRING + (i + 1));
@@ -880,8 +880,8 @@ public class PrincipalComponentsCompute {
 															 / (double) Runtime.getRuntime().totalMemory() * 100.0))
 								 + "%");
 			log.report(ext.getTime() + " Reporting top " + numComponents + " PCs");
-			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																													+ output));
+			PrintWriter writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																													+ output);
 			String[] samples = proj.getSampleList().getSamples();
 			writer.print(SAMPLE[1] + "\t" + SAMPLE[2]);
 			for (int i = 0; i < numComponents; i++) {

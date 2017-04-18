@@ -159,7 +159,7 @@ public class McNemarsTest {
 			}
 		}
 		try {
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(pairs) + "_results.xln"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(pairs) + "_results.xln");
 			writer.println("Variable\tn\ta\tb\tc\td\trisk\tchisq\tp-value\tchisq with continuity\tp-value with continuity\tsign-test\tproper_pvalue");
 			for (int i = 0; i < analysisVariables.length; i++) {
 				System.err.println("Analyzing " + analysisVariables[i]);

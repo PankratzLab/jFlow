@@ -221,8 +221,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 				Files.backup(residOutput, proj.PROJECT_DIRECTORY.getValue(),
 										 proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
-			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																													+ residOutput));
+			PrintWriter writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																													+ residOutput);
 			writer.print(ArrayUtils.toStr(MT_REPORT));
 			for (int i = 0; i < numComponents; i++) {
 				writer.print("\t" + PrincipalComponentsCompute.PC_STRING + (i + 1));
@@ -508,8 +508,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 										 proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
 			try {
-				writers[i] = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																										+ fileOuts[i]));
+				writers[i] = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																										+ fileOuts[i]);
 			} catch (FileNotFoundException fnfe) {
 				log.reportError("Error: file \"" + proj.PROJECT_DIRECTORY.getValue() + fileOuts[i]
 												+ "\" could not be written to (it's probably open)");
@@ -860,7 +860,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 					Files.write(ArrayUtils.toStr(MT_RESIDUAL_CROSS_VALIDATED_REPORT), tmpOutput);
 				}
 				try {
-					PrintWriter writer = new PrintWriter(new FileWriter(tmpOutput, true));
+					PrintWriter writer = Files.openAppropriateWriter(tmpOutput, true);
 					writer.println(ext.getTime() + "\t" + time + "\t" + indeps[0].length + "\t"
 												 + CrossValidation.getEstimateError(crossValidation) + "\t"
 												 + CrossValidation.getAverageR2(crossValidation) + "\t"

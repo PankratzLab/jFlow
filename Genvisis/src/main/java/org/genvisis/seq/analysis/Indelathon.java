@@ -122,7 +122,7 @@ public class Indelathon {
 		Hashtable<String, HitSummary> hits = summarizeBlasts(blasts, allClips, log);
 		try {
 
-			PrintWriter writer = new PrintWriter(new FileWriter(out));
+			PrintWriter writer = Files.openAppropriateWriter(out);
 			writer.print("Clip\t" + HitSummary.getHeader());
 			for (SoftClipResult result : results) {
 				if (result.getBamFile() != null) {

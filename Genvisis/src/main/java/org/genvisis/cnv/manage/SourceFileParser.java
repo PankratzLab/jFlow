@@ -361,7 +361,7 @@ public class SourceFileParser implements Runnable {
 						if (writer == null) {
 							String idsChangedFile = proj.PROJECT_DIRECTORY.getValue() + IDS_CHANGED_FILEROOT + threadId + ".txt";
 							try {
-								writer = new PrintWriter(new FileWriter(idsChangedFile, true));
+								writer = Files.openAppropriateWriter(idsChangedFile, true);
 								if (new File(idsChangedFile).length() == 0) {
 									writer.println("The following IDs were changed so that spaces are removed and so that they could be used as valid filenames:");
 								}
@@ -1297,8 +1297,8 @@ public class SourceFileParser implements Runnable {
 
 		PSF.checkInterrupted();
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																							+ "ListOfMarkers.txt"));
+			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																							+ "ListOfMarkers.txt");
 			writer.println("Marker\tExpected\tTimesSeen\tTimesDuplicated");
 			for (String markerName : markerNames) {
 				writer.println(markerName + "\t1\t" + countHash.getCount(markerName) + "\t"

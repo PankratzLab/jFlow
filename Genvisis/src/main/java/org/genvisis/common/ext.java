@@ -1455,7 +1455,7 @@ public class ext {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename, true));
+			writer = Files.openAppropriateWriter(filename, true);
 			writer.println(text);
 			writer.close();
 		} catch (Exception e) {

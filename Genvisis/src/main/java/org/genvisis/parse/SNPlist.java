@@ -67,7 +67,7 @@ public class SNPlist {
 		inds = famStruct.getDnas();
 		missingInds = missingGenotypes = 0;
 		try {
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + ".ped"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + ".ped");
 			for (int i = 0; i < inds.length; i++) {
 				hash = hashes.get(inds[i]);
 				writer.print(famStruct.getIndividualHeader(i, false));

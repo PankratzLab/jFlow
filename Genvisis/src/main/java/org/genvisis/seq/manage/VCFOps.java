@@ -411,10 +411,10 @@ public class VCFOps {
 		DynamicAveragingHistogram dynamicAveragingHistogram = new DynamicAveragingHistogram(0, 1.1, 2);
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
-			PrintWriter writerAll = new PrintWriter(new FileWriter(ext.addToRoot(outputFile, ".all")));
+			PrintWriter writer = Files.openAppropriateWriter(outputFile);
+			PrintWriter writerAll = Files.openAppropriateWriter(ext.addToRoot(outputFile, ".all"));
 			String segFile = ext.addToRoot(outputFile, ".segment");
-			PrintWriter writerFilteredSeg = new PrintWriter(new FileWriter(segFile));
+			PrintWriter writerFilteredSeg = Files.openAppropriateWriter(segFile);
 
 			VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 			int count = 0;
@@ -457,7 +457,7 @@ public class VCFOps {
 			writerAll.close();
 			writerFilteredSeg.close();
 			String hist = ext.addToRoot(outputFile, ".callrateHist");
-			PrintWriter writerHist = new PrintWriter(new FileWriter(hist));
+			PrintWriter writerHist = Files.openAppropriateWriter(hist);
 			writerHist.println("g1000Bin\tCount\tAvgCallRate");
 			dynamicAveragingHistogram.average();
 			for (int i = 0; i < dynamicAveragingHistogram.getBins().length; i++) {
@@ -618,7 +618,7 @@ public class VCFOps {
 			Files.writeMatrix(newfam, famFile, "\t");
 			if (changedIds.size() > 0) {
 				try {
-					PrintWriter writer = new PrintWriter(new FileWriter(famFile + ".changedIds"));
+					PrintWriter writer = Files.openAppropriateWriter(famFile + ".changedIds");
 					for (String newID : changedIds.keySet()) {
 						writer.print(newID + "\t" + changedIds.get(newID));
 					}
@@ -809,7 +809,7 @@ public class VCFOps {
 
 		public void dump(String file) {
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(file));
+				PrintWriter writer = Files.openAppropriateWriter(file);
 				writer.println(ArrayUtils.toStr(HEADER));
 				HashSet<String> inds = getAllInds();
 				for (String ind : inds) {
@@ -833,7 +833,7 @@ public class VCFOps {
 			} else {
 
 				try {
-					PrintWriter writer = new PrintWriter(new FileWriter(output));
+					PrintWriter writer = Files.openAppropriateWriter(output);
 					writer.println("##" + CASE + ",Integer,0,Primary disease phenotype");
 					writer.println("#ID\t" + CASE);
 					Set<String> cases = subPop.get(CASE);
@@ -1320,7 +1320,7 @@ public class VCFOps {
 			}
 			String finalVpop = matchDir + "barnacle.vpop";
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(finalVpop));
+				PrintWriter writer = Files.openAppropriateWriter(finalVpop);
 				writer.println(ArrayUtils.toStr(VcfPopulation.HEADER));
 				for (int j = 0; j < currentBarns.size(); j++) {
 					writer.println(currentBarns.get(j) + "\t" + VcfPopulation.CONTROL + "\t"
@@ -1848,7 +1848,7 @@ public class VCFOps {
 	public static void dumpSnpEffGenes(String vcfFile, String geneFile, Logger log) {
 		Hashtable<String, String> track = new Hashtable<String, String>();
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(geneFile));
+			PrintWriter writer = Files.openAppropriateWriter(geneFile);
 			VCFFileReader reader = new VCFFileReader(new File(vcfFile), true);
 			for (VariantContext vc : reader) {
 				String name = VCOps.getSNP_EFFGeneName(vc);
@@ -2150,7 +2150,7 @@ public class VCFOps {
 			String outputHist = ext.addToRoot(output, ".hist.VQSLOD");
 
 			try {
-				PrintWriter writerHist = new PrintWriter(new FileWriter(outputHist));
+				PrintWriter writerHist = Files.openAppropriateWriter(outputHist);
 				double[] bins = dyHistogramVQSLOD.getBins();
 				int[] counts = dyHistogramVQSLOD.getCounts();
 				writerHist.println("VQSLOD_BIN\tVQSLOD_COUNT");
@@ -2193,7 +2193,7 @@ public class VCFOps {
 			log.reportTimeInfo("Detected " + samples.length + " samples in vcf " + vcf);
 			log.reportTimeInfo("exporting to " + output);
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				PrintWriter writer = Files.openAppropriateWriter(output);
 				writer.println(ArrayUtils.toStr(VcfPopulation.HEADER));
 				for (String sample : samples) {
 					writer.println(sample + "\t" + VcfPopulation.CONTROL + "\t" + VcfPopulation.CONTROL);

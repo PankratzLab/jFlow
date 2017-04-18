@@ -14,7 +14,7 @@ public class DrunkardsWalk {
 		boolean zero;
 		int prev, prevPrev;
 
-		PrintWriter writer = new PrintWriter(new FileWriter("temp.xln"));
+		PrintWriter writer = Files.openAppropriateWriter("temp.xln");
 		finalScore = new int[replicates];
 		timesFlipped = new int[replicates];
 		finalLead = new int[replicates];

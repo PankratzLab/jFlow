@@ -1,12 +1,12 @@
 package org.genvisis.stats;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -191,7 +191,7 @@ public class StatsCrossTabs {
 	private static void dump(String fullPathToFile, String[] dataTitles, double[][] dataTable,
 													 STAT_TYPE cType, VALUE_TYPE vType, Logger log) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(fullPathToFile));
+			PrintWriter writer = Files.openAppropriateWriter(fullPathToFile);
 			writer.println(cType + "_" + vType + "\t" + ArrayUtils.toStr(dataTitles));
 			for (int i = 0; i < dataTable.length; i++) {
 				writer.println(dataTitles[i] + "\t" + ArrayUtils.toStr(dataTable[i]));
@@ -314,7 +314,7 @@ public class StatsCrossTabs {
 
 		public void dump(String fullPathToFile, boolean ranked, Logger log) {
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(fullPathToFile));
+				PrintWriter writer = Files.openAppropriateWriter(fullPathToFile);
 				writer.println(ArrayUtils.toStr(HEADER));
 				for (int i = 0; i < order.length; i++) {
 					writer.println(titlesRanked[ranked ? order[i] : i] + "\t" + (i + 1) + "\t"

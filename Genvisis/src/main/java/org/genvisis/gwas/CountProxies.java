@@ -62,7 +62,7 @@ public class CountProxies {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + "_proxies.xls"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename) + "_proxies.xls");
 			writer.print("Region\tIndexName\tIndexPval\tIndexSignificant\tIndexAvailableOnReplicationArray\tIndexRsq\tIndexReplicationPval\tIndexNominallySigReplication\tIndexSigReplication");
 			for (double element : RSQ_THRESHOLDS) {
 				writer.print("\tRsq>" + element + "_Available\tRsq>" + element + "_IsIndex\tRsq>" + element

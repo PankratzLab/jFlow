@@ -3,13 +3,13 @@ package org.genvisis.bioinformatics;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.PSF;
 
@@ -65,7 +65,7 @@ public class procTagsToGeneIDs {
 			try {
 				System.out.println("Loading " + FILES_WITH_GENE[i] + "...");
 				reader = new BufferedReader(new FileReader(FILES_WITH_GENE[i]));
-				writer = new PrintWriter(new FileWriter("noDirectMatch.xls"));
+				writer = Files.openAppropriateWriter("noDirectMatch.xls");
 				reader.readLine();
 				while (reader.ready()) {
 					line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -121,8 +121,8 @@ public class procTagsToGeneIDs {
 		System.out.println("Merging with " + TAGS + "...");
 		try {
 			reader = new BufferedReader(new FileReader(TAGS));
-			writer = new PrintWriter(new FileWriter("tagsToGeneIDs.xls"));
-			geneids = new PrintWriter(new FileWriter("tagsToGeneIDs.prn"));
+			writer = Files.openAppropriateWriter("tagsToGeneIDs.xls");
+			geneids = Files.openAppropriateWriter("tagsToGeneIDs.prn");
 			writer.println("Tag\t" + ArrayUtils.toStr(files));
 			while (reader.ready()) {
 				trav = reader.readLine();

@@ -4,13 +4,13 @@ package org.genvisis.bioinformatics;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
@@ -221,8 +221,9 @@ public class procGenesByTissue {
 		System.out.println("Merging data with gene positions...");
 		try {
 			reader = new BufferedReader(new FileReader(genes));
-			ext.checkHeader(line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), GENES_HEADER, true);
-			writer = new PrintWriter(new FileWriter("expression.xls"));
+			ext.checkHeader(line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), GENES_HEADER,
+											true);
+			writer = Files.openAppropriateWriter("expression.xls");
 			writer.print(line[0] + DELIMITER + line[1] + DELIMITER + line[2] + DELIMITER + line[3]
 									 + DELIMITER + line[4] + DELIMITER + "CytoBand" + DELIMITER + "Title");
 			for (String element : TISSUE_TERMS_CHOSEN) {

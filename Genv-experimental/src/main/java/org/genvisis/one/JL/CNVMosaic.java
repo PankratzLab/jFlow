@@ -71,7 +71,7 @@ public class CNVMosaic {
 			ArrayList<MosaicRegion> all = new ArrayList<MosaicRegion>();
 
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				PrintWriter writer = Files.openAppropriateWriter(output);
 				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
 											 + ArrayUtils.toStr(MosaicRegion.ADD_HEADER) + "\tEXCLUDED\tDNA\tUCSC");
 
@@ -161,7 +161,7 @@ public class CNVMosaic {
 																																						2, proj.getLog());
 
 				try {
-					PrintWriter writer = new PrintWriter(new FileWriter(output));
+					PrintWriter writer = Files.openAppropriateWriter(output);
 					writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
 												 + ArrayUtils.toStr(MosaicRegion.ADD_HEADER) + "\tEXCLUDED\tDNA\tUCSC");
 					int index = 0;

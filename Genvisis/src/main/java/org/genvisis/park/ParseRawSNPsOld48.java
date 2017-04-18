@@ -11,6 +11,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -135,7 +136,7 @@ public class ParseRawSNPsOld48 {
 			}
 		}
 
-		writer = new PrintWriter(new FileWriter(outfile));
+		writer = Files.openAppropriateWriter(outfile);
 		writer.println("placeholder line");
 		writer.print("DNA\tFamNo\tIndNo");
 		for (int i = 0; i < snps.length; i++) {
@@ -156,7 +157,7 @@ public class ParseRawSNPsOld48 {
 		}
 		writer.close();
 
-		writer = new PrintWriter(new FileWriter(outfile + "-summary.xls"));
+		writer = Files.openAppropriateWriter(outfile + "-summary.xls");
 		for (SNP snp : snps) {
 			writer.println(snp);
 		}

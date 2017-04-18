@@ -37,7 +37,7 @@ public class PrepSuperNovo {
 		String trioListFile = outputDir + "trios.trio";
 		new File(outputDir).mkdirs();
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(trioListFile));
+			PrintWriter writer = Files.openAppropriateWriter(trioListFile);
 
 			for (String trio : trios.keySet()) {
 				String trioentry = trio;

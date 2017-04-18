@@ -3,13 +3,13 @@ package org.genvisis.bioinformatics;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
@@ -160,7 +160,7 @@ public class SnpNexusParser {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + output));
+			writer = Files.openAppropriateWriter(dir + output);
 			writer.print("SNP" + "\t" + "rsNumber");
 			for (int j = 1; j < MARKS.length; j++) {
 				hash = hashes.get(MARKS[j]);

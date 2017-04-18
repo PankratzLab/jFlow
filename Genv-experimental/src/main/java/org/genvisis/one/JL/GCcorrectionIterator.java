@@ -54,7 +54,7 @@ public class GCcorrectionIterator {
 		}
 		String batchMaster = batchRoot + "master.pbs";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(batchMaster));
+			PrintWriter writer = Files.openAppropriateWriter(batchMaster);
 			for (int i = 0; i < pbs.size(); i++) {
 				writer.println("qsub -q small " + pbs.get(i));
 			}

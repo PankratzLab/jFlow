@@ -181,7 +181,7 @@ public class compGroups {
 		}
 		// printData(data, groups);
 
-		writer = new PrintWriter(new FileWriter(filename + "-comparison.xls"));
+		writer = Files.openAppropriateWriter(filename + "-comparison.xls");
 		writer.print("Trait");
 		for (String group2 : groups) {
 			writer.print("\t" + group2);

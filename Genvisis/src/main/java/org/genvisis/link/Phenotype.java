@@ -54,7 +54,7 @@ public class Phenotype {
 				try {
 					reader = new BufferedReader(new FileReader(dir + filename));
 					for (int i = 0; i < writers.length; i++) {
-						writers[i] = new PrintWriter(new FileWriter(dir + phenoNames[i] + "/" + filename));
+						writers[i] = Files.openAppropriateWriter(dir + phenoNames[i] + "/" + filename);
 					}
 					while (reader.ready()) {
 						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

@@ -3,12 +3,12 @@ package org.genvisis.assoc;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.PSF;
 
@@ -65,7 +65,7 @@ public class MergeDuplicateCalls {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + filename + "_marged.xln"));
+			writer = Files.openAppropriateWriter(dir + filename + "_marged.xln");
 			keys = HashVec.getKeys(hash);
 			for (String key : keys) {
 				writer.println(ArrayUtils.toStr(hash.get(key)));

@@ -3,11 +3,11 @@ package org.genvisis.link;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
@@ -55,8 +55,8 @@ public class gatherQuant {
 		}
 
 		new File(trait + "_summary").mkdir();
-		peaks = new PrintWriter(new FileWriter(trait + "_summary/linkage peaks.xls"));
-		lot = new PrintWriter(new FileWriter(trait + "_summary/all chromosomes.xls"));
+		peaks = Files.openAppropriateWriter(trait + "_summary/linkage peaks.xls");
+		lot = Files.openAppropriateWriter(trait + "_summary/all chromosomes.xls");
 		for (int i = 0; i < numDirs; i++) {
 			peaks.print("\t" + dirs[i] + "\tcM");
 			lot.print("\t" + dirs[i]);
@@ -66,7 +66,7 @@ public class gatherQuant {
 		for (int chr = 1; chr <= 23; chr++) {
 			chrome = chr < 10 ? "0" + chr : "" + chr;
 			peaks.print(chr);
-			writer = new PrintWriter(new FileWriter(trait + "_summary/summary" + chrome + ".xls"));
+			writer = Files.openAppropriateWriter(trait + "_summary/summary" + chrome + ".xls");
 			vLines.removeAllElements();
 			for (int i = 0; i < numDirs; i++) {
 				if (solar[i]) {

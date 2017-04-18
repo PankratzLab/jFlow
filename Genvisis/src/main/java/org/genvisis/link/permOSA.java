@@ -10,6 +10,7 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -112,9 +113,9 @@ public class permOSA {
 				}
 				if (trav != prev && prev != -99999.777) {
 					increment++;
-					writer = new PrintWriter(new FileWriter("chrom" + chrome + "/re_chrom" + chrome + "-"
+					writer = Files.openAppropriateWriter("chrom" + chrome + "/re_chrom" + chrome + "-"
 																									+ direction + ext.formNum(increment, 4)
-																									+ ".pre"));
+																									+ ".pre");
 					for (int j = 0; j < i; j++) {
 						if (hash.containsKey(IDs.elementAt(randomKeys[j]))) {
 							writer.print(hash.get(IDs.elementAt(randomKeys[j])));
@@ -128,7 +129,7 @@ public class permOSA {
 			}
 			numOfIncrements = increment;
 
-			writer = new PrintWriter(new FileWriter("batch"));
+			writer = Files.openAppropriateWriter("batch");
 
 			writer.println("#/bin/sh");
 			writer.println();

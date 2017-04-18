@@ -2,11 +2,12 @@ package org.genvisis.link.bat;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
 import java.util.Vector;
+
+import org.genvisis.common.Files;
 
 public class gatherSimwalk2 {
 	public static double LOD_THRESHOLD = 2.0;
@@ -25,7 +26,7 @@ public class gatherSimwalk2 {
 		// double max_pos;
 		double lod, max_lod;
 
-		peaks = new PrintWriter(new FileWriter("linkage peaks.xls"));
+		peaks = Files.openAppropriateWriter("linkage peaks.xls");
 		for (int i = start; i <= stop; i++) {
 			// peaks.print("\tModel"+(i+1)+"\tcM");
 			peaks.print("\tModel" + i);
@@ -35,7 +36,7 @@ public class gatherSimwalk2 {
 			chrome = (Integer.valueOf(chromosome + "").intValue() < 10) ? "0" + chromosome
 																																	: "" + chromosome;
 			peaks.print(chromosome);
-			writer = new PrintWriter(new FileWriter("summary" + chrome + ".xls"));
+			writer = Files.openAppropriateWriter("summary" + chrome + ".xls");
 			mrkrNames.removeAllElements();
 			vLines.removeAllElements();
 			vLines.add("");

@@ -87,7 +87,7 @@ public class Relpair {
 		indsPerFam = cv.getCounts();
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "relpair.loc"));
+			writer = Files.openAppropriateWriter(dir + "relpair.loc");
 			for (int chrI = 0; chrI < chrs.length; chrI++) {
 				try {
 					map = new LinkageMap(dir, chrs[chrI]);
@@ -124,7 +124,7 @@ public class Relpair {
 		System.out.println("Using " + ArrayUtils.sum(numMarkers) + " markers.");
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "relpair.ped"));
+			writer = Files.openAppropriateWriter(dir + "relpair.ped");
 			System.out.print("Processing families");
 
 			writer.println("(I2,1X,A" + maxfamIDsize + ")");
@@ -188,7 +188,7 @@ public class Relpair {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "relpair.ctl"));
+			writer = Files.openAppropriateWriter(dir + "relpair.ctl");
 			writer.println("relpair.loc");
 			writer.println("relpair.ped");
 			writer.println("relpair.out");

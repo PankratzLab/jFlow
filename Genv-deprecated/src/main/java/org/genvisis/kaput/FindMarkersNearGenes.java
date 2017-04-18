@@ -143,7 +143,7 @@ public class FindMarkersNearGenes {
 		System.out.println(ext.getTime() + "  Filtering " + markers.size() + " SNPs; discarding MAF <"
 											 + mafCutoff);
 		try {
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_markers.xln"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + "_markers.xln");
 			for (String markerName : markerNames) {
 				trav = mafLookup.get(markerName);
 				if (trav == null) {
@@ -164,16 +164,16 @@ public class FindMarkersNearGenes {
 		System.out.println(ext.getTime() + "  " + markers.size() + " SNPs survived filter");
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_qualified.txt"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + "_qualified.txt");
 			for (int j = 0; j < markers.size(); j++) {
 				writer.println(markers.elementAt(j));
 			}
 			writer.close();
 
 			if (markers.size() == 0) {
-				writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_tags.txt"));
+				writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + "_tags.txt");
 				writer.close();
-				writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_tags-0.9.txt"));
+				writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + "_tags-0.9.txt");
 				writer.close();
 			}
 		} catch (IOException ioe) {
@@ -197,7 +197,7 @@ public class FindMarkersNearGenes {
 				new File(dir + ext.rootOf(filename) + ".ped").renameTo(new File(dir + ext.rootOf(filename)
 																																				+ ".ped.bak"));
 				reader = new BufferedReader(new FileReader(dir + ext.rootOf(filename) + ".ped.bak"));
-				writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + ".ped"));
+				writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + ".ped");
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					line[5] = "0";
@@ -212,7 +212,7 @@ public class FindMarkersNearGenes {
 			new File(dir + ext.rootOf(filename) + ".ped.bak").delete();
 			try {
 				reader = new BufferedReader(new FileReader(dir + ext.rootOf(filename) + ".map"));
-				writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + ".info"));
+				writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + ".info");
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.println(line[1] + "\t" + line[3]);
@@ -358,7 +358,7 @@ public class FindMarkersNearGenes {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_summary.xln"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + "_summary.xln");
 			writer.print("Marker\tchr\tstart\tstop\tSize\tNumMarkers\tNumOverlap\tNumMAF<" + mafCutoff);
 			for (String element : TAG_SUFFIXES) {
 				writer.print("\tNumTags" + element);
@@ -395,7 +395,7 @@ public class FindMarkersNearGenes {
 
 		try {
 			reader = Files.getReader(GENES, GENES_ALT);
-			lookup = new PrintWriter(new FileWriter("lookup.xln"));
+			lookup = Files.openAppropriateWriter("lookup.xln");
 
 			chr = count = suffix = 0;
 			reader.readLine();
@@ -425,8 +425,8 @@ public class FindMarkersNearGenes {
 						done = true;
 					}
 					if (!done) {
-						writer = new PrintWriter(new FileWriter("chr" + chr + ext.getExcelColumn(suffix)
-																										+ ".txt"));
+						writer = Files.openAppropriateWriter("chr" + chr + ext.getExcelColumn(suffix)
+																										+ ".txt");
 						count = 0;
 					}
 				}
@@ -476,7 +476,7 @@ public class FindMarkersNearGenes {
 		});
 
 		try {
-			writer = new PrintWriter(new FileWriter("fillIn"));
+			writer = Files.openAppropriateWriter("fillIn");
 
 			for (File file : files) {
 				trav = ext.rootOf(file.getName());

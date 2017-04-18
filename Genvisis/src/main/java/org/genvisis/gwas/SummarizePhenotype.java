@@ -239,7 +239,7 @@ public class SummarizePhenotype {
 
 		size = data.size();
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			writer.println(ArrayUtils.toStr(header));
 			for (int i = 0; i < size; i++) {
 				writer.println(ArrayUtils.toStr(data.get(i)));
@@ -455,7 +455,7 @@ public class SummarizePhenotype {
 																									adjustParameters(parameters, line, log), log);
 			}
 
-			writer = new PrintWriter(new FileWriter(wkDir + outFileName));
+			writer = Files.openAppropriateWriter(wkDir + outFileName);
 			for (int i = 0; i < result.length; i++) {
 				writer.print("\t" + modelList.elementAt(i));
 			}

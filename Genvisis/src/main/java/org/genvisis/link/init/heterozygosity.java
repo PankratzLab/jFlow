@@ -2,11 +2,11 @@ package org.genvisis.link.init;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.link.Markers;
 
@@ -21,7 +21,7 @@ public class heterozygosity {
 		double homos, homes;
 		int numMarkers, numAlleles;
 
-		writer = new PrintWriter(new FileWriter("heterozygosity summary.out"));
+		writer = Files.openAppropriateWriter("heterozygosity summary.out");
 		writer.println("marker\tExp\tEmp");
 		for (int i = 1; i <= 23; i++) {
 			chrome = (i < 10) ? "0" + i : "" + i;

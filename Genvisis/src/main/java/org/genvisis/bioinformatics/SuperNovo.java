@@ -2007,7 +2007,7 @@ public class SuperNovo {
 		try {
 			keys = result.keySet().toArray();
 			Arrays.sort(keys);
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			if (outFormat == 1) {
 				writer.println("id\tchr\tposition\tlookup\tnumHits\tref\talt\tcall\tnote\tfwdGenotype\treadDepth_C\treadDepth_D\treadDepth_M\tPhredScores\tMappingQuality_C\tMappingQuality_D\tMappingQuality_M\taltAllele%_C\taltAllele%_D\taltAllele%_M");
 				for (Object key2 : keys) {
@@ -2792,7 +2792,7 @@ public class SuperNovo {
 			Arrays.sort(keys);
 			// int[] order = Sort.orderTwoLayers(chrs, positions);
 			// keys = Sort.putInOrder(keys, order);
-			writer = new PrintWriter(new FileWriter(resultsFilename));
+			writer = Files.openAppropriateWriter(resultsFilename);
 			if (format == 1) {
 				// writer.println("id\tchr\tposition\tlookup\tnumHits\tref\talt\tcall\tnote\tfwdGenotype\treadDepth_C\treadDepth_D\treadDepth_M\tPhredScores\tMappingQuality_C\tMappingQuality_D\tMappingQuality_M\taltAllele%_C\taltAllele%_D\taltAllele%_M");
 				writer.println(header);
@@ -3286,9 +3286,9 @@ public class SuperNovo {
 									 + ext.rootOf(fullPathToParsedResult);
 		}
 		try {
-			writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(fullPathToParsedResult)
+			writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(fullPathToParsedResult)
 																							+ ext.rootOf(fullPathToParsedResult)
-																							+ "_haplotypeCount.txt"));
+																							+ "_haplotypeCount.txt");
 			reader = Files.getAppropriateReader(fullPathToParsedResult);
 			reader.readLine();
 			while (reader.ready()) {
@@ -3793,7 +3793,7 @@ public class SuperNovo {
 		tmp = positions.toArray();
 		Arrays.sort(tmp);
 		try {
-			writer = new PrintWriter(new FileWriter(outputFileFullPath));
+			writer = Files.openAppropriateWriter(outputFileFullPath);
 			writer.print("alleleId");
 			for (Object element : tmp) {
 				writer.print("\t" + (begin + (Integer) element));

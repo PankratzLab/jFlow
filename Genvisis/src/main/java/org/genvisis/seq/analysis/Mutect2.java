@@ -465,7 +465,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		Files.writeArray(bams, bamFile);
 		if (!Files.exists(segFile)) {
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(segFile));
+				PrintWriter writer = Files.openAppropriateWriter(segFile);
 				VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 				for (VariantContext vc : reader) {
 					Segment seg = VCOps.getSegment(vc);
@@ -725,7 +725,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 // String buffered = ext.addToRoot(regions, ".bpBuffer" + buffer);
 // // segs.writeRegions(buffered, TO_STRING_TYPE.REGULAR, false, new Logger());
 // try {
-// PrintWriter writer = new PrintWriter(new FileWriter(buffered));
+// PrintWriter writer = Files.openAppropriateWriter(buffered);
 // for (int i = 0; i < segs.getLoci().length; i++) {
 // Segment buff = segs.getLoci()[i].getBufferedSegment(buffer);
 // writer.println(buff.getChromosomeUCSC() + "\t" + buff.getStart() + "\t" + buff.getStop());

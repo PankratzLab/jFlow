@@ -100,9 +100,9 @@ public class Metal {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + results));
-			writer = new PrintWriter(new FileWriter(outfile == null ? dir + results + (useSE ? ".se" : "")
+			writer = Files.openAppropriateWriter(outfile == null ? dir + results + (useSE ? ".se" : "")
 																																+ ".metal"
-																															: outfile));
+																															: outfile);
 			// header = reader.readLine().trim().split("\t");
 			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			indices = ext.indexFactors(CONVERSION_REQS, header, false, true, true, true);
@@ -198,7 +198,7 @@ public class Metal {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(output));
+			writer = Files.openAppropriateWriter(output);
 
 			hash = new Hashtable<String, String>();
 			header = reader.readLine().trim().split(delimiterIn);
@@ -331,8 +331,8 @@ public class Metal {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + ext.rootRootOf(file1) + "_"
-																							+ ext.rootRootOf(file2) + "_metal.batch"));
+			writer = Files.openAppropriateWriter(dir + ext.rootRootOf(file1) + "_"
+																							+ ext.rootRootOf(file2) + "_metal.batch");
 			writer.println("metal << EOT");
 			writer.println("");
 			writer.println("MARKER MARKER");
@@ -388,7 +388,7 @@ public class Metal {
 		filename = ext.rootOf(outputFile, false) + "_input.txt";
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + filename));
+			writer = Files.openAppropriateWriter(dir + filename);
 			prevMarker = "";
 			prevAlleles = new String[] {"", ""};
 			prevReqs = ArrayUtils.stringArray(REQS[analysisType].length, "");
@@ -617,7 +617,7 @@ public class Metal {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_consensus.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_consensus.xln");
 			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			v = new Vector<String>();
 			for (int i = 1; i < header.length; i++) {
@@ -700,8 +700,8 @@ public class Metal {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_diffs.xln"));
-			writer2 = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_ambiguous.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_diffs.xln");
+			writer2 = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_ambiguous.xln");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line.length > 2) {
@@ -740,7 +740,7 @@ public class Metal {
 			newControlFile = params.get(0).trim();
 			indices = params.get(1).trim();
 			try {
-				writer = new PrintWriter(new FileWriter(newControlFile));
+				writer = Files.openAppropriateWriter(newControlFile);
 				writer.println("lookup");
 				writer.println("TBD");
 				for (int j = 2; j < params.size(); j++) {
@@ -992,7 +992,7 @@ public class Metal {
 
 			hitList = HashVec.loadFileToStringArray("hits.txt", false, new int[] {0}, false);
 			try {
-				writer = new PrintWriter(new FileWriter("genes.txt"));
+				writer = Files.openAppropriateWriter("genes.txt");
 				writer.println("MarkerName\tChr\tPosition\tGene(s)");
 
 				if (markerPositionHash.size() > 0) {
@@ -1219,15 +1219,15 @@ public class Metal {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_freq.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_freq.xln");
 			if (thresholdForMAFfile < 0) {
 				w2 = null;
 				w3 = null;
 			} else {
-				w2 = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
-																						+ "_exceedingThreshold.dat"));
-				w3 = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
-																						+ "_notExceedingThreshold.dat"));
+				w2 = Files.openAppropriateWriter(ext.rootOf(filename, false)
+																						+ "_exceedingThreshold.dat");
+				w3 = Files.openAppropriateWriter(ext.rootOf(filename, false)
+																						+ "_notExceedingThreshold.dat");
 			}
 			writer.println("SNP\tA1\tA2\tfreqA1\teffN\tMAF");
 			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -1372,11 +1372,11 @@ public class Metal {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writers = new PrintWriter[3];
-			writers[0] = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_comp.xln"));
-			writers[1] = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
-																									+ "_compFlipped.xln"));
-			writers[2] = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
-																									+ "_compAmbiguous.xln"));
+			writers[0] = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_comp.xln");
+			writers[1] = Files.openAppropriateWriter(ext.rootOf(filename, false)
+																									+ "_compFlipped.xln");
+			writers[2] = Files.openAppropriateWriter(ext.rootOf(filename, false)
+																									+ "_compAmbiguous.xln");
 			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			v = new Vector<String>();
 			for (int i = 1; i < header.length; i++) {
@@ -1796,8 +1796,8 @@ public class Metal {
 
 		try {
 			reader = Files.getAppropriateReader(filename);
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_counts.out"));
-			w2 = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_lowCount.out"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_counts.out");
+			w2 = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_lowCount.out");
 			writer.println("MarkerName\tnumPresent\tnumAbsent");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line,

@@ -110,7 +110,7 @@ public class GcCorrection {
 		String status = "STATUS";
 		String comboBox = comboQC + ".box";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(comboBox));
+			PrintWriter writer = Files.openAppropriateWriter(comboBox);
 			writer.println(status + "\t" + ArrayUtils.toStr(fullHeader));
 			for (int i = 0; i < orginalFiles.length; i++) {
 

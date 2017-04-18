@@ -1,9 +1,9 @@
 package org.genvisis.filesys;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.SerializedFiles;
 
 public class SerialFloatArray implements Serializable {
@@ -30,7 +30,7 @@ public class SerialFloatArray implements Serializable {
 		float[] all = load(filename, false).getArray();
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(filename + ".xln"));
+			PrintWriter writer = Files.openAppropriateWriter(filename + ".xln");
 			for (float element : all) {
 				writer.println(element);
 			}

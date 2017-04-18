@@ -119,7 +119,7 @@ public class Plink {
 
 		for (int i = 0; i < threads; i++) {
 			try {
-				writer = new PrintWriter(new FileWriter("tmp.list" + ext.formNum(i, 3)));
+				writer = Files.openAppropriateWriter("tmp.list" + ext.formNum(i, 3));
 				for (int j = i * step; j < Math.min((i + 1) * step, inds.length); j++) {
 					writer.println(inds[j]);
 				}
@@ -143,7 +143,7 @@ public class Plink {
 							 + " --genome-lists tmp.list[%0] tmp.list[%1] --out data.sub.[%2]";
 		Qsub.qsub("genom", commands, Matrix.toStringArrays(v));
 		try {
-			writer = new PrintWriter(new FileWriter("master.compile"));
+			writer = Files.openAppropriateWriter("master.compile");
 			writer.println("head -n1 data.sub.0.0.genome > header");
 			writer.println("cat data.sub*genome | fgrep -v FID1 | cat header - > cluster.genome");
 			writer.println("rm tmp.list*");
@@ -287,7 +287,7 @@ public class Plink {
 		newCount = (int) Math.ceil((double) inds.length / (double) step);
 		for (int i = 0; i < newCount; i++) {
 			try {
-				writer = new PrintWriter(new FileWriter("tmp.list" + ext.formNum(listCount + i, 3)));
+				writer = Files.openAppropriateWriter("tmp.list" + ext.formNum(listCount + i, 3));
 				for (int j = i * step; j < Math.min((i + 1) * step, inds.length); j++) {
 					writer.println(inds[j]);
 				}
@@ -309,7 +309,7 @@ public class Plink {
 							 + " --read-freq plink.frq --genome --genome-lists tmp.list[%0] tmp.list[%1] --out data.sub.[%2]";
 		Files.batchIt("addGenome", "", threads, commands, Matrix.toStringArrays(v));
 		try {
-			writer = new PrintWriter(new FileWriter("master", true));
+			writer = Files.openAppropriateWriter("master", true);
 			writer.println();
 			writer.println("head -n1 data.sub.0.0.genome > header");
 			writer.println("cat data.sub*genome | fgrep -v FID1 | cat header - > cluster.genome");
@@ -337,7 +337,7 @@ public class Plink {
 
 		try {
 			reader = new BufferedReader(new FileReader(genomeFile));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(ids) + "_" + genomeFile));
+			writer = Files.openAppropriateWriter(ext.rootOf(ids) + "_" + genomeFile);
 			writer.println(ArrayUtils.toStr(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -377,7 +377,7 @@ public class Plink {
 																																	false, "\t", false, false, false);
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(genomeFile));
-			PrintWriter writer = new PrintWriter(new FileWriter(genomeFile + "_" + ext.rootOf(ids)));
+			PrintWriter writer = Files.openAppropriateWriter(genomeFile + "_" + ext.rootOf(ids));
 			writer.println(ArrayUtils.toStr(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -495,7 +495,7 @@ public class Plink {
 			log.report(ext.getTime() + "\tProcessing " + ext.removeDirectoryInfo(genomeFile) + "...");
 
 
-			writer = new PrintWriter(new FileWriter(genomeFileRoot + "_relateds.xln"));
+			writer = Files.openAppropriateWriter(genomeFileRoot + "_relateds.xln");
 			writer.println("FID1\tIID1\tCALLRATE1\tLRR_SD1\tFID2\tIID2\tCALLRATE2\tLRR_SD2\tP(IBD=0)\tP(IBD=1)\tP(IBD=2)\tPI_HAT\tType\tFID_KEEP\tIID_KEEP\tFID_DROP\tIID_DROP");
 
 			while (reader.ready()) {
@@ -628,7 +628,7 @@ public class Plink {
 		temp = Files.getBakFilename(genomeFileRoot + "_relateds.xln", "", true);
 		try {
 			reader = new BufferedReader(new FileReader(temp));
-			writer = new PrintWriter(new FileWriter(genomeFileRoot + "_relateds.xln"));
+			writer = Files.openAppropriateWriter(genomeFileRoot + "_relateds.xln");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (out.containsKey(line[13] + "\t" + line[14])) {
@@ -663,8 +663,8 @@ public class Plink {
 		log.report("");
 		for (int i = 0; i < 2; i++) {
 			try {
-				writer = new PrintWriter(new FileWriter(genomeFileRoot + "_" + (i == 0 ? "keep" : "drop")
-																								+ ".dat"));
+				writer = Files.openAppropriateWriter(genomeFileRoot + "_" + (i == 0 ? "keep" : "drop")
+																								+ ".dat");
 				trav = i == 0 ? in : out;
 				ids = HashVec.getKeys(trav, false);
 				ranks = new int[ids.length];
@@ -688,9 +688,9 @@ public class Plink {
 			log.report("Writing duplicates file - found " + uniqueDuplicateSets.size()
 								 + " sets of duplicate identifiers");
 			try {
-				PrintWriter writerSet = new PrintWriter(new FileWriter(genomeFileRoot
-																															 + "_duplicatesSet.dat"));
-				writer = new PrintWriter(new FileWriter(genomeFileRoot + "_duplicates.dat"));
+				PrintWriter writerSet = Files.openAppropriateWriter(genomeFileRoot
+																															 + "_duplicatesSet.dat");
+				writer = Files.openAppropriateWriter(genomeFileRoot + "_duplicates.dat");
 				int set = 1;
 				for (Set<String> dupeSet : uniqueDuplicateSets) {
 					for (String fidIid : dupeSet) {
@@ -817,7 +817,7 @@ public class Plink {
 		if (rep > 0) {
 			try {
 				filename = ext.replaceAllWith(pattern, "#", "_ALL");
-				writer = new PrintWriter(new FileWriter(filename));
+				writer = Files.openAppropriateWriter(filename);
 				writer.println("SNP\tEMP1\tEMP2");
 				for (int i = 0; i < markerNames.length; i++) {
 					writer.println(markerNames[i] + "\t"
@@ -853,7 +853,7 @@ public class Plink {
 		markerHash = new Hashtable<String, int[]>();
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + ".xln"));
+			writer = Files.openAppropriateWriter(filename + ".xln");
 			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 											new String[] {"SNP", "FID", "IID", "NEW", "OLD"}, true);
 			while (reader.ready()) {
@@ -895,7 +895,7 @@ public class Plink {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename + "_ind.xln"));
+			writer = Files.openAppropriateWriter(filename + "_ind.xln");
 			keys = HashVec.getKeys(indHash);
 			for (String key : keys) {
 				writer.println(key + "\t" + ArrayUtils.toStr(indHash.get(key)));
@@ -907,7 +907,7 @@ public class Plink {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename + "_markers.xln"));
+			writer = Files.openAppropriateWriter(filename + "_markers.xln");
 			keys = HashVec.getKeys(markerHash);
 			for (String key : keys) {
 				writer.println(key + "\t" + ArrayUtils.toStr(markerHash.get(key)));
@@ -940,7 +940,7 @@ public class Plink {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(ext.addToRoot(filename, "_shifterPAR")));
+			writer = Files.openAppropriateWriter(ext.addToRoot(filename, "_shifterPAR"));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[0].equals("23")) {

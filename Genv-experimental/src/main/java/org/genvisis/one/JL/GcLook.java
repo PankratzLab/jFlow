@@ -137,8 +137,8 @@ public class GcLook {
 
 				try {
 
-					PrintWriter writer = new PrintWriter(new FileWriter(out));
-					PrintWriter writerSeparate = new PrintWriter(new FileWriter(out));
+					PrintWriter writer = Files.openAppropriateWriter(out);
+					PrintWriter writerSeparate = Files.openAppropriateWriter(out);
 
 					writer.print(GC_CONTENT);
 					for (int qcMetric = 0; qcMetric < parser.getNumericData().length; qcMetric++) {

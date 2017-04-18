@@ -22,8 +22,8 @@ public class Haploview {
 																						 "\t", true, false, false));
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(order, false) + "_LD_col" + column
-																							+ ".xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(order, false) + "_LD_col" + column
+																							+ ".xln");
 			writer.println("D'");
 			for (String markerName : markerNames) {
 				writer.print("\t" + markerName);

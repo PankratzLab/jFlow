@@ -96,7 +96,7 @@ public class IntensityCorrectionQC {
 			proj.getLog().reportException(e);
 		}
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.print("PC");
 			for (ClassDefinition classDefinition : classDefinitions) {
 				writer.print("\tICC." + classDefinition.getClassTitle());
@@ -398,7 +398,7 @@ public class IntensityCorrectionQC {
 			String currentOutput = proj.PROJECT_DIRECTORY.getValue() + dir + classDefs[i]
 														 + "_summary.txt";
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(currentOutput));
+				PrintWriter writer = Files.openAppropriateWriter(currentOutput);
 				writer.println("NumMarkers\tPC\tAvgICC\tMedianICC\tStdevICC");
 				for (int j = 0; j < pcsTested.length; j++) {
 					writer.println(icClassResults[i].getSizeAt(j) + "\t" + pcsTested[j] + "\t"

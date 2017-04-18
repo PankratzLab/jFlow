@@ -339,7 +339,7 @@ public class AnnotationCollection implements Serializable, TextExport {
 
 		keys = getKeys();
 		try {
-			writer = new PrintWriter(new FileWriter(outputFile));
+			writer = Files.openAppropriateWriter(outputFile);
 			for (char key : keys) {
 				writer.println(key + "\t" + getDescriptionForComment(key, false, false));
 			}

@@ -1,9 +1,9 @@
 package org.genvisis.stats;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Sort;
@@ -196,7 +196,7 @@ public class Quantiles {
 		}
 		String output = ext.addToRoot(fileName, ".quant");
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			for (int i = 0; i < memberships[0].length; i++) {// for sample,
 				writer.print(ArrayUtils.toStr(toQ[i]));
 				for (int[] membership : memberships) {

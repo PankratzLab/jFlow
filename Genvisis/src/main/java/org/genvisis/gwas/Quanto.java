@@ -23,7 +23,7 @@ public class Quanto {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".out"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + ".out");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, EXPECTED_TRIADS, true);
 			freq = null;

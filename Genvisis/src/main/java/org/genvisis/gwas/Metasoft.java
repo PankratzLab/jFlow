@@ -41,7 +41,7 @@ public class Metasoft {
 			reader.reset();
 			numOpposite = new int[numStudies];
 			numFlipped = new int[numStudies];
-			writer = new PrintWriter(new FileWriter(outputFilename));
+			writer = Files.openAppropriateWriter(outputFilename);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				stdAlleles = null;
@@ -113,7 +113,7 @@ public class Metasoft {
 
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(inputFile));
-			PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
+			PrintWriter writer = Files.openAppropriateWriter(outputFile);
 			for (int i = 0; i < lambdas.length; i++) {
 				if (lambdas[i] < 1) {
 					lambdas[i] = 1;

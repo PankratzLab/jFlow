@@ -3,7 +3,6 @@ package org.genvisis.link.bat;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
@@ -11,6 +10,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
@@ -39,7 +39,7 @@ public class Mendel {
 			pens = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			reader.close();
 
-			writer = new PrintWriter(new FileWriter(dir + "mendel.def"));
+			writer = Files.openAppropriateWriter(dir + "mendel.def");
 			// if (mapfile.indexOf("23")!=-1) {
 			if (xLinked) {
 				writer.println("trait,X-Linked,2,2");
@@ -60,7 +60,7 @@ public class Mendel {
 			}
 			writer.close();
 
-			writer = new PrintWriter(new FileWriter(dir + "mendel.map"));
+			writer = Files.openAppropriateWriter(dir + "mendel.map");
 			writer.println("trait");
 			writer.println();
 			for (int i = 0; i < markerNames.length; i++) {
@@ -71,7 +71,7 @@ public class Mendel {
 			}
 			writer.close();
 
-			writer = new PrintWriter(new FileWriter(dir + "Control.in"));
+			writer = Files.openAppropriateWriter(dir + "Control.in");
 			writer.println("!input files");
 			writer.println("DEFINITION_FILE = mendel.def");
 			writer.println("MAP_FILE = mendel.map");
@@ -130,7 +130,8 @@ public class Mendel {
 							theta = i;
 						}
 					}
-					v.add(new String[] {temp.trim().split(PSF.Regex.GREEDY_WHITESPACE)[0], max + "", THETAS[theta]});
+					v.add(new String[] {temp.trim().split(PSF.Regex.GREEDY_WHITESPACE)[0], max + "",
+															THETAS[theta]});
 				} else {
 					done = true;
 				}

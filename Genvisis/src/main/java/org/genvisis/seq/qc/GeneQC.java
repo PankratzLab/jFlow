@@ -75,7 +75,7 @@ public class GeneQC {
 
 		try {
 			BufferedReader reader = Files.getAppropriateReader(bamQCFile);
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.println("GENE\tNumExons\tNumOtherGenes\tMRNA_Overlap\tNonUTRMrnaOverlap\t"
 										 + ArrayUtils.toStr(Files.getHeaderOfFile(bamQCFile, log)));
 
@@ -306,7 +306,7 @@ public class GeneQC {
 		geneQC.qcByGene();
 		// String output = bamQCFile + ".gqc.summary";
 		// try {
-		// PrintWriter writer = new PrintWriter(new FileWriter(output));
+		// PrintWriter writer = Files.openAppropriateWriter(output);
 		// writer.println(Array.toStr(GeneSummary.SUMMARY));
 		// for (int i = 0; i < geneQC.getGeneSummaries().length; i++) {
 		// writer.println(geneQC.getGeneSummaries()[i].getSummary());

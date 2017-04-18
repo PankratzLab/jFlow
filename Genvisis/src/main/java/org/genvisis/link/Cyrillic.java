@@ -3,10 +3,10 @@ package org.genvisis.link;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 
 public class Cyrillic {
@@ -19,7 +19,7 @@ public class Cyrillic {
 
 		try {
 			reader = new BufferedReader(new FileReader(prefile));
-			writer = new PrintWriter(new FileWriter(outprefile));
+			writer = Files.openAppropriateWriter(outprefile);
 			while (reader.ready()) {
 				writer.println(reader.readLine() + "  << ");
 			}
@@ -35,7 +35,7 @@ public class Cyrillic {
 
 		try {
 			reader = new BufferedReader(new FileReader(mapfile));
-			writer = new PrintWriter(new FileWriter(outmapfile));
+			writer = Files.openAppropriateWriter(outmapfile);
 
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			numMrkrs = Integer.valueOf(line[0]).intValue();

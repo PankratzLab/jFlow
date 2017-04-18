@@ -1,12 +1,12 @@
 package org.genvisis.seq.qc;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -159,7 +159,7 @@ public class Mappability<SEGMENT extends Segment> {
 		String[] header2 = new String[] {"CNVS_PER_GENE", "AVG_MAP_SCORE"};
 		String out2 = outputRoot + ".hist.cnvCenter.txt";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(out2));
+			PrintWriter writer = Files.openAppropriateWriter(out2);
 			writer.println(ArrayUtils.toStr(header2));
 			for (int i = 0; i < dynamicAveragingHistogramCNVCentered.getAverages().length; i++) {
 				if (dynamicAveragingHistogramCNVCentered.getCounts()[i] > 0) {
@@ -190,7 +190,7 @@ public class Mappability<SEGMENT extends Segment> {
 		String out3 = outputRoot + ".hist.scoreCenter.txt";
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(out3));
+			PrintWriter writer = Files.openAppropriateWriter(out3);
 			writer.println(ArrayUtils.toStr(header3));
 			for (int i = 0; i < dynamicAveragingHistogramMapCentered.getAverages().length; i++) {
 				if (dynamicAveragingHistogramMapCentered.getCounts()[i] > 0) {
@@ -220,7 +220,7 @@ public class Mappability<SEGMENT extends Segment> {
 																						new String[] {"GENE_NAME", "MAP_SCORE"});
 		String out4 = outputRoot + ".cnvSummary.txt";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(out4));
+			PrintWriter writer = Files.openAppropriateWriter(out4);
 			writer.println(ArrayUtils.toStr(header4));
 			for (int i = 0; i < cnMappability.getMappabilityResults().size(); i++) {
 				MappabilityResult<CNVariant> cnMapp = cnMappability.getMappabilityResults().get(i);
@@ -255,7 +255,7 @@ public class Mappability<SEGMENT extends Segment> {
 																 Hashtable<String, Integer> geneCounts, String[] header1,
 																 String out1) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(out1));
+			PrintWriter writer = Files.openAppropriateWriter(out1);
 			writer.println(ArrayUtils.toStr(header1));
 
 			for (int i = 0; i < cnMappability.getMappabilityResults().size(); i++) {

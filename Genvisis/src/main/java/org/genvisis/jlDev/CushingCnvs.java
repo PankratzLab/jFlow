@@ -216,7 +216,7 @@ public class CushingCnvs {
 		}
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outCNV));
+			PrintWriter writer = Files.openAppropriateWriter(outCNV);
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			int caseRemoved = 0;
 			int controlRemoved = 0;
@@ -248,7 +248,7 @@ public class CushingCnvs {
 		SampleData sampleData = proj.getSampleData(0, false);
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outped));
+			PrintWriter writer = Files.openAppropriateWriter(outped);
 
 			for (String caseInd : fidIid1) {
 				String caseDNA = sampleData.lookup(caseInd)[0];
@@ -445,7 +445,7 @@ public class CushingCnvs {
 
 		String output = ext.rootOf(cnvFile, false) + ".qc.summary.txt";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.print("UCSC_LOC\tUCSC_LINK\t"
 									 + ArrayUtils.toStr(ArrayUtils.concatAll(CNVariant.PLINK_CNV_HEADER,
 																													 summaryCNVs[0].getHeader(),
@@ -534,7 +534,7 @@ public class CushingCnvs {
 																																																	 0);
 		String geneCountsFile = ext.rootOf(cnvFile, false) + "geneCounts.txt";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(geneCountsFile));
+			PrintWriter writer = Files.openAppropriateWriter(geneCountsFile);
 			writer.println("GENE\tCNV_COUNT");
 			for (String aGene : geneCounts.keySet()) {
 				writer.println(aGene + "\t" + geneCounts.get(aGene));
@@ -553,7 +553,7 @@ public class CushingCnvs {
 		ArrayList<GeomText> problemGenesSmall = new ArrayList<GeomText>();
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outputRawPlot));
+			PrintWriter writer = Files.openAppropriateWriter(outputRawPlot);
 			writer.println(ArrayUtils.toStr(rawCounts));
 
 			for (int i = 0; i < cnMappability.getMappabilityResults().size(); i++) {

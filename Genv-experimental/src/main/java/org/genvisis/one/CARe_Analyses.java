@@ -653,9 +653,9 @@ public class CARe_Analyses {
 									new String[] {dir + ext.rootOf(root) + ".Rlinker 0 1 2 skip=0"}, null, "nohead",
 									".", dir + "std/ids.pfam", new Logger(), false, false, true);
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "std/file" + fileNum + ".gen"));
-			mapWriter = new PrintWriter(new FileWriter(dir + "std/file" + fileNum + ".pmap"));
-			infoWriter = new PrintWriter(new FileWriter(dir + "std/file" + fileNum + ".mlinfo"));
+			writer = Files.openAppropriateWriter(dir + "std/file" + fileNum + ".gen");
+			mapWriter = Files.openAppropriateWriter(dir + "std/file" + fileNum + ".pmap");
+			infoWriter = Files.openAppropriateWriter(dir + "std/file" + fileNum + ".mlinfo");
 			for (int chr = 1; chr <= 22; chr++) {
 				try {
 					reader = new BufferedReader(new FileReader(dir + root + chr + ".gen"));
@@ -691,9 +691,9 @@ public class CARe_Analyses {
 							// delete unzipped .fhsR file
 
 							fileNum++;
-							writer = new PrintWriter(new FileWriter(dir + "std/file" + fileNum + ".gen"));
-							mapWriter = new PrintWriter(new FileWriter(dir + "std/file" + fileNum + ".pmap"));
-							infoWriter = new PrintWriter(new FileWriter(dir + "std/file" + fileNum + ".mlinfo"));
+							writer = Files.openAppropriateWriter(dir + "std/file" + fileNum + ".gen");
+							mapWriter = Files.openAppropriateWriter(dir + "std/file" + fileNum + ".pmap");
+							infoWriter = Files.openAppropriateWriter(dir + "std/file" + fileNum + ".mlinfo");
 							count = 0;
 						}
 					}
@@ -774,10 +774,10 @@ public class CARe_Analyses {
 		try {
 			writers = new PrintWriter[numBatches];
 			for (int i = 1; i <= numBatches; i++) {
-				writers[i - 1] = new PrintWriter(new FileWriter(dir + "gwaf/run" + i + ".bat"));
+				writers[i - 1] = Files.openAppropriateWriter(dir + "gwaf/run" + i + ".bat");
 				writers[i - 1].println("R --no-save < gwaf" + i + ".R");
 				writers[i - 1].close();
-				writers[i - 1] = new PrintWriter(new FileWriter(dir + "gwaf/gwaf" + i + ".R"));
+				writers[i - 1] = Files.openAppropriateWriter(dir + "gwaf/gwaf" + i + ".R");
 				writers[i - 1].println("library(kinship)");
 				writers[i - 1].println("library(GWAF)");
 			}
@@ -823,7 +823,7 @@ public class CARe_Analyses {
 						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (hash.contains(line[0])) {
 							try {
-								writer = new PrintWriter(new FileWriter(line[0] + ".txt", true));
+								writer = Files.openAppropriateWriter(line[0] + ".txt", true);
 								if (new File(line[0] + ".txt").length() == 0) {
 									writer.println("Cohort\tSNP\tA1\tA2\tBeta\tSE");
 								}
@@ -858,7 +858,7 @@ public class CARe_Analyses {
 						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (hash.contains(line[0])) {
 							try {
-								writer = new PrintWriter(new FileWriter(line[0] + ".txt", true));
+								writer = Files.openAppropriateWriter(line[0] + ".txt", true);
 								if (new File(line[0] + ".txt").length() == 0) {
 									writer.println("Cohort\tSNP\tA1\tA2\tBeta\tSE");
 								}
@@ -1044,8 +1044,8 @@ public class CARe_Analyses {
 						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (hash.contains(line[0])) {
 							try {
-								writer = new PrintWriter(new FileWriter(DRIVE_ROOT + "Analyses/ICAM/" + line[0]
-																												+ ".txt", true));
+								writer = Files.openAppropriateWriter(DRIVE_ROOT + "Analyses/ICAM/" + line[0]
+																												+ ".txt", true);
 								if (new File(DRIVE_ROOT + "Analyses/ICAM/" + line[0] + ".txt").length() == 0) {
 									writer.println("Cohort\tSNP\tA1\tA2\tBeta\tSE");
 								}
@@ -1077,15 +1077,15 @@ public class CARe_Analyses {
 						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (hash.contains(line[0])) {
 							try {
-								writer = new PrintWriter(new FileWriter(DRIVE_ROOT + "Analyses/ICAM/" + line[0]
-																												+ ".txt", true));
+								writer = Files.openAppropriateWriter(DRIVE_ROOT + "Analyses/ICAM/" + line[0]
+																												+ ".txt", true);
 								if (new File(DRIVE_ROOT + "Analyses/ICAM/" + line[0] + ".txt").length() == 0) {
 									writer.println("Cohort\tSNP\tA1\tA2\tBeta\tSE");
 
 									try {
-										PrintWriter writer2 = new PrintWriter(new FileWriter(DRIVE_ROOT
+										PrintWriter writer2 = Files.openAppropriateWriter(DRIVE_ROOT
 																																				 + "Analyses/ICAM/"
-																																				 + line[0] + ".R"));
+																																				 + line[0] + ".R");
 										writer2.println("##Data directory");
 										writer2.println("data.dir <- \"" + DRIVE_ROOT + "Analyses/ICAM/\"");
 										writer2.println("### Input data");
@@ -1141,8 +1141,8 @@ public class CARe_Analyses {
 		count = 0;
 		v = new Vector<String>();
 		try {
-			writer = new PrintWriter(new FileWriter("catchUp." + ext.rootOf(phenofile)
-																							+ (conditionals ? "_withCondi" : "")));
+			writer = Files.openAppropriateWriter("catchUp." + ext.rootOf(phenofile)
+																							+ (conditionals ? "_withCondi" : ""));
 			while (new File(dir + "gwaf/file" + count + ".fhsR.gz").exists()) {
 				if (!new File(ext.rootOf(phenofile) + (conditionals ? "_withCondi" : "") + "_results"
 											+ count + ".csv").exists()) {
@@ -1171,7 +1171,7 @@ public class CARe_Analyses {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter("batchAllPlink." + pheno));
+			writer = Files.openAppropriateWriter("batchAllPlink." + pheno);
 			for (String element : STUDIES) {
 				for (String[] element2 : RACES) {
 					dir = DRIVE_ROOT + "Analyses/ICAM/IBC/" + element2[0] + "/" + element + "/";
@@ -1219,8 +1219,8 @@ public class CARe_Analyses {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter("batchAllGWAF." + ext.rootOf(phenofile)
-																							+ (conditionals ? "_withCondi" : "")));
+			writer = Files.openAppropriateWriter("batchAllGWAF." + ext.rootOf(phenofile)
+																							+ (conditionals ? "_withCondi" : ""));
 			for (String element : STUDIES) {
 				for (String[] element2 : RACES) {
 					dir = element + "_" + element2[0] + "/";
@@ -1693,7 +1693,7 @@ public class CARe_Analyses {
 
 
 		try {
-			writer = new PrintWriter(new FileWriter("cleanup." + note));
+			writer = Files.openAppropriateWriter("cleanup." + note);
 			for (int i = 0; i < STUDIES.length; i++) {
 				for (String[] element : RACES) {
 					dir = STUDIES[i] + "_" + element[0] + "/";
@@ -1779,7 +1779,7 @@ public class CARe_Analyses {
 							hash.put("id", "id");
 							try {
 								reader = new BufferedReader(new FileReader(dir + root + ".fhsR"));
-								writer = new PrintWriter(new FileWriter(dir + "rids_" + root + ".fhsR"));
+								writer = Files.openAppropriateWriter(dir + "rids_" + root + ".fhsR");
 								while (reader.ready()) {
 									line = reader.readLine().trim().split(",");
 									line[0] = hash.get(line[0]);

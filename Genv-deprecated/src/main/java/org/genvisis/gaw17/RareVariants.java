@@ -102,9 +102,9 @@ public class RareVariants {
 				wss.setAffectionStatus(controlDesignations);
 				for (int k = 0; k < markerSets.length; k++) {
 					try {
-						writer = new PrintWriter(new FileWriter(analysis_dir + "mid_" + pop + "." + rep + "."
+						writer = Files.openAppropriateWriter(analysis_dir + "mid_" + pop + "." + rep + "."
 																										+ element + ".maf" + maf + "."
-																										+ markerSets[k]));
+																										+ markerSets[k]);
 						writer.println("Gene\tn_SNPs\tpval\tEMP1");
 						for (int m = 0; m < subsets[k].length; m++) {
 							if (m % 30 == 0) {
@@ -136,7 +136,7 @@ public class RareVariants {
 		markerSets = files.split(";");
 
 		try {
-			writer = new PrintWriter(new FileWriter(analysis_dir + "mergeAll.crf"));
+			writer = Files.openAppropriateWriter(analysis_dir + "mergeAll.crf");
 			writer.println("lookup");
 			writer.println("answerSets.dat 0 out=allRep1Results.xln");
 			for (double element : MAFS) {

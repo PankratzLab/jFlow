@@ -41,7 +41,7 @@ public class QuickExtract {
 
 		VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(out));
+			PrintWriter writer = Files.openAppropriateWriter(out);
 			writer.println("CHROM\tPOS\tREF\tALT\tNumAlt\tNumAltMinus3\t1000G\tSNPEFF_IMPACT\tSNPEFF_GENE_NAME");
 			int num = 0;
 			int found = 0;

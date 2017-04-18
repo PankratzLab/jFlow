@@ -251,7 +251,7 @@ public class PhenoPrep {
 
 		exists = Files.exists("summary_stats.txt");
 		try {
-			writer = new PrintWriter(new FileWriter("summary_stats.txt", true));
+			writer = Files.openAppropriateWriter("summary_stats.txt", true);
 			if (!exists) {
 				writer.println(ArrayUtils.toStr(SUMMARY_INFO_HEADER));
 			}
@@ -629,7 +629,7 @@ public class PhenoPrep {
 			}
 			if (variablesAllInOneFile || fastFormat) {
 				try {
-					writer = new PrintWriter(new FileWriter(filename));
+					writer = Files.openAppropriateWriter(filename);
 					if (printFinalHeader) {
 						if (fastFormat) {
 							writer.println("#Fam_ID" + delimiter + "Ind_ID" + delimiter + "Dad_ID" + delimiter
@@ -662,7 +662,7 @@ public class PhenoPrep {
 				}
 			} else {
 				try {
-					writer = new PrintWriter(new FileWriter(ext.addToRoot(filename, "_pheno")));
+					writer = Files.openAppropriateWriter(ext.addToRoot(filename, "_pheno"));
 					if (printFinalHeader) {
 						writer.println("FID" + delimiter + "IID" + delimiter
 													 + (pedFormat ? "FA" + delimiter + "MO" + delimiter + "SEX" + delimiter
@@ -688,7 +688,7 @@ public class PhenoPrep {
 				}
 				if (finalHeader.length > 1) {
 					try {
-						writer = new PrintWriter(new FileWriter(ext.addToRoot(filename, "_covars")));
+						writer = Files.openAppropriateWriter(ext.addToRoot(filename, "_covars"));
 						if (printFinalHeader) {
 							writer.println("FID" + delimiter + "IID" + delimiter
 														 + ArrayUtils.toStr(ArrayUtils.subArray(finalHeader, 1), delimiter));
@@ -717,7 +717,7 @@ public class PhenoPrep {
 			}
 		} else {
 			try {
-				writer = new PrintWriter(new FileWriter(filename));
+				writer = Files.openAppropriateWriter(filename);
 				if (printFinalHeader) {
 					writer.println("id" + delimiter + ArrayUtils.toStr(finalHeader, delimiter));
 				}
@@ -873,7 +873,7 @@ public class PhenoPrep {
 		log = new Logger(dir + "summarizeAll.log");
 		log.report("id col name is " + idColName);
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "phenoSummary.xln"));
+			writer = Files.openAppropriateWriter(dir + "phenoSummary.xln");
 			writer.println("Trait\tshorthand\ttransform\twinsorize\tremoveOutliers\tmakeResiduals\tafterMakingResidualsDealWithOutliers\tnormalization\tN\tmean\tstdev\tskewness\tkurtosis\t'=SUM(ABS(SKEW)+ABS(KURT))");
 
 			phenos = phenosCommaDelimited.split(",");

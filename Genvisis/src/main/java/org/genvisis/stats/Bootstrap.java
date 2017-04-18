@@ -3,11 +3,11 @@ package org.genvisis.stats;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
@@ -65,7 +65,7 @@ public class Bootstrap {
 												 + ext.formDeci(ProbDist.ChiDist(bs[2], 1), 4, true) + ")");
 			reader.close();
 
-			writer = new PrintWriter(new FileWriter(filename + "-bootsrapped.out"));
+			writer = Files.openAppropriateWriter(filename + "-bootsrapped.out");
 			writer.println("Using all " + count + " records.");
 			writer.println("Bootstrapping column " + column + " a total of " + reps + " times.");
 			writer.println();

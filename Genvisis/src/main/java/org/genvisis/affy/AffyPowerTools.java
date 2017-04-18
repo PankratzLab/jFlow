@@ -339,7 +339,7 @@ public class AffyPowerTools {
 		String smallCelList = affyResultsDir + AFFY_AUXILIARY_LISTS[1];
 		String fileToUse = getMatchedFiles(dataDir, log, AFFY_EXTENSION)[0];
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(smallCelList));
+			PrintWriter writer = Files.openAppropriateWriter(smallCelList);
 			writer.println(AFFY_CEL_LIST_HEADER[0]);
 			writer.println(fileToUse);
 			writer.close();
@@ -435,7 +435,7 @@ public class AffyPowerTools {
 
 	private static void writeCelList(String[] celFiles, String celListFileName, Logger log) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(celListFileName));
+			PrintWriter writer = Files.openAppropriateWriter(celListFileName);
 			writer.println(AFFY_CEL_LIST_HEADER[0]);
 			for (String celFile : celFiles) {
 				writer.println(celFile);
@@ -515,7 +515,7 @@ public class AffyPowerTools {
 		new File(affyResultsDir).mkdir();
 		for (int i = 0; i < numJobs; i++) {
 			try {
-				writer = new PrintWriter(new FileWriter(affyResultsDir + listName + (i + 1) + ".txt"));
+				writer = Files.openAppropriateWriter(affyResultsDir + listName + (i + 1) + ".txt");
 				if (header) {
 					writer.println(head);
 				}

@@ -63,7 +63,7 @@ public class Unique {
 
 		try {
 			if (uniquesFile != null) {
-				writer = new PrintWriter(new FileWriter(uniquesFile));
+				writer = Files.openAppropriateWriter(uniquesFile);
 			}
 			count = 0;
 
@@ -119,7 +119,7 @@ public class Unique {
 
 		if (countsFile != null) {
 			try {
-				writer = new PrintWriter(new FileWriter(countsFile));
+				writer = Files.openAppropriateWriter(countsFile);
 				writer.println(hash.size());
 				writer.println();
 				for (Entry<String, String> e : hash.entrySet()) {

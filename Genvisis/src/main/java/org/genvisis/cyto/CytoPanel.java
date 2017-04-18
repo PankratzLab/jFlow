@@ -501,7 +501,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 			org.genvisis.filesys.Segment[] segs = CytoCompare.loadsegs(cnpFile, log);
 			if (segs != null) {
 				try {
-					PrintWriter writer = new PrintWriter(new FileWriter(output));
+					PrintWriter writer = Files.openAppropriateWriter(output);
 					writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 					for (Segment seg : segs) {
 						writer.println(new CNVariant(ext.rootOf(output), seg.getUCSClocation(), seg.getChr(),
@@ -749,7 +749,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 															 : keepGoing);
 				if (keepGoing) {
 					try {
-						PrintWriter writer = new PrintWriter(new FileWriter(sampleDataFile, true));
+						PrintWriter writer = Files.openAppropriateWriter(sampleDataFile, true);
 						for (FileBox fileBoxe : fileBoxes) {
 							if (fileBoxe.isAddToSampleData()) {
 								String print = "";

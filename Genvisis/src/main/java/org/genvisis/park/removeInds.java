@@ -30,7 +30,7 @@ public class removeInds {
 		String bakFilename = Files.getBakFilename(struct, super.getClass().getName());
 		(new File(struct)).renameTo(new File(bakFilename));
 		reader = new BufferedReader(new FileReader(bakFilename));
-		writer = new PrintWriter(new FileWriter(struct));
+		writer = Files.openAppropriateWriter(struct);
 		while (reader.ready()) {
 			temp = reader.readLine();
 			st = new StringTokenizer(temp);

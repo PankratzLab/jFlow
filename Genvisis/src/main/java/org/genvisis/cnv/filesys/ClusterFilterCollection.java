@@ -196,7 +196,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 		ClusterFilter filter;
 
 		try {
-			writer = new PrintWriter(new FileWriter(outputFile));
+			writer = Files.openAppropriateWriter(outputFile);
 			writer.println("MarkerIndex\tMarkerName\tFilterIndex\tPlotType\tGenotype\tminX\tminY\tmaxX\tmaxY");
 			markerNames = getMarkerNames();
 			for (int i = 0; i < markerNames.length; i++) {
@@ -291,7 +291,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 
 		count = 0;
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + "_described.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename) + "_described.xln");
 			writer.println("MarkerName\t#filters");
 			markerNames = trav.getMarkerNames();
 			for (String markerName : markerNames) {

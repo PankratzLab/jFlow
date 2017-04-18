@@ -132,7 +132,7 @@ public class GinsburgDavid {
 			if (dnaList.contains(temp)) {
 				logIt("Warning - '" + temp + "' is duplicated, please collapse", true);
 				try {
-					writer = new PrintWriter(new FileWriter(dir + "DUPLICATE DNAS!!!.txt", true));
+					writer = Files.openAppropriateWriter(dir + "DUPLICATE DNAS!!!.txt", true);
 					writer.println(temp);
 					writer.close();
 				} catch (IOException ioe) {
@@ -233,7 +233,7 @@ public class GinsburgDavid {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + pedigree));
-			writer = new PrintWriter(new FileWriter(dir + "untrimmed.pre"));
+			writer = Files.openAppropriateWriter(dir + "untrimmed.pre");
 			line = reader.readLine().trim().split("\t");
 			pedNum = ext.indexOfStr("Ped Num", line);
 			if (pedNum == -1) {
@@ -380,7 +380,7 @@ public class GinsburgDavid {
 		dnaList.remove(1);
 		dnaList.remove(0);
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "trimmed.pre"));
+			writer = Files.openAppropriateWriter(dir + "trimmed.pre");
 			for (int i = 0; i < v.size(); i++) {
 				line = v.get(i).split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
@@ -396,7 +396,7 @@ public class GinsburgDavid {
 						+ ArrayUtils.toStr(ArrayUtils.toStringArray(dnaList), ", "), true);
 
 			try {
-				writer = new PrintWriter(new FileWriter(dir + "DNAS NEVER USED!!!.txt"));
+				writer = Files.openAppropriateWriter(dir + "DNAS NEVER USED!!!.txt");
 				for (int i = 0; i < dnaList.size(); i++) {
 					writer.println(dnaList.get(i));
 				}
@@ -489,7 +489,7 @@ public class GinsburgDavid {
 			for (int i = 0; i < markers.size(); i++) {
 				genos[inds.length][i] = -1;
 			}
-			writer = new PrintWriter(new FileWriter(dir + "map.dat"));
+			writer = Files.openAppropriateWriter(dir + "map.dat");
 			writer.println((markers.size() + 1) + " 0 0 5");
 			writer.println("0 0.0 0.0 0");
 			writer.println(ArrayUtils.toStr(ArrayUtils.stringArraySequence(markers.size() + 1, ""), " "));
@@ -508,7 +508,7 @@ public class GinsburgDavid {
 
 			writer.close();
 
-			writer = new PrintWriter(new FileWriter(dir + "markers.dat"));
+			writer = Files.openAppropriateWriter(dir + "markers.dat");
 			for (int i = 0; i < markers.size(); i++) {
 				writer.println(markers.elementAt(i));
 			}
@@ -525,7 +525,7 @@ public class GinsburgDavid {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + "trimmed.pre"));
-			writer = new PrintWriter(new FileWriter(dir + "pedfile.pre"));
+			writer = Files.openAppropriateWriter(dir + "pedfile.pre");
 			while (reader.ready()) {
 				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				index = ext.indexOfStr(line[1], inds);
@@ -608,7 +608,7 @@ public class GinsburgDavid {
 
 			try {
 				reader = new BufferedReader(new FileReader(dir + "pedfile.pre"));
-				writer = new PrintWriter(new FileWriter(dir + "mended_pedfile.pre"));
+				writer = Files.openAppropriateWriter(dir + "mended_pedfile.pre");
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (hash.containsKey(line[0] + ":" + line[1])) {
@@ -733,7 +733,7 @@ public class GinsburgDavid {
 			}
 			reader.close();
 
-			writer = new PrintWriter(new FileWriter(dir + "logfile of errors.out"));
+			writer = Files.openAppropriateWriter(dir + "logfile of errors.out");
 			writer.println("FamID\tLocus#\tMarker\tFather\tMother");
 			markerMap = new Hashtable<String, String>();
 			hash = new Hashtable<String, IntVector>();
@@ -800,7 +800,7 @@ public class GinsburgDavid {
 
 			try {
 				reader = new BufferedReader(new FileReader(dir + "pedfile.pre"));
-				writer = new PrintWriter(new FileWriter(dir + "mended_pedfile.pre"));
+				writer = Files.openAppropriateWriter(dir + "mended_pedfile.pre");
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					iv = hash.get(line[0] + ":" + line[1]);
@@ -879,7 +879,7 @@ public class GinsburgDavid {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "results.xln"));
+			writer = Files.openAppropriateWriter(dir + "results.xln");
 			writer.print("Marker\tChromosome\tPosition");
 			for (double[] model : models) {
 				writer.print("\tModel: dxFreq=" + model[0] + " penetrance=" + model[1] + "," + model[2]
@@ -963,7 +963,7 @@ public class GinsburgDavid {
 
 		for (int k = 0; k < markerNames.length; k++) {
 			try {
-				writer = new PrintWriter(new FileWriter(dir + markerNames[k] + ".xln"));
+				writer = Files.openAppropriateWriter(dir + markerNames[k] + ".xln");
 				for (int model = 0; model < 2; model++) {
 					writer.println((model == 0 ? "Dominant" : "Recessive") + " model");
 					writer.print("Penetrance");
@@ -989,7 +989,7 @@ public class GinsburgDavid {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "bestModels.xln"));
+			writer = Files.openAppropriateWriter(dir + "bestModels.xln");
 			for (int model = 0; model < 2; model++) {
 				writer.println((model == 0 ? "Dominant" : "Recessive") + " model");
 				writer.println("Marker\tChr\tPosition\t1st LOD\t1st model\t2nd LOD\t2nd model\t3rd LOD\t3rd model");
@@ -1061,7 +1061,7 @@ public class GinsburgDavid {
 			System.out.println(str);
 		}
 		try {
-			writer = new PrintWriter(new FileWriter(LOG_FILE, true));
+			writer = Files.openAppropriateWriter(LOG_FILE, true);
 			writer.println(str);
 			writer.close();
 		} catch (Exception e) {
@@ -1085,7 +1085,7 @@ public class GinsburgDavid {
 			reader = new BufferedReader(new FileReader(phenoFile));
 			indices = ext.indexFactors(headerTargets, reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), false,
 																 true);
-			writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(phenoFile) + "trimmed.pre"));
+			writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(phenoFile) + "trimmed.pre");
 			writer.println("1\t99901\t0\t0\t1\t2");
 			writer.println("1\t77701\t0\t0\t2\t1");
 			writer.println("1\t88801\t99901\t77701\t1\t2");

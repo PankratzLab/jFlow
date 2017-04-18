@@ -373,7 +373,7 @@ public class BurdenMatrix implements Serializable {
 
 		count = 0;
 		try {
-			writer = new PrintWriter(new FileWriter(newMatrixFile));
+			writer = Files.openAppropriateWriter(newMatrixFile);
 
 			for (int i = 0; i < ids.length; i++) {
 				if (hash == null || hash.containsKey(ids[i])) {
@@ -402,7 +402,7 @@ public class BurdenMatrix implements Serializable {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(newMapFile));
+			writer = Files.openAppropriateWriter(newMapFile);
 			writer.println("AnalysisUnit,CHROM,POS,POS_STOP,REF,ALT");
 			for (int i = 0; i < geneNames.length; i++) {
 				writer.println(geneNames[i] + "," + ArrayUtils.toStr(startAndStopPositions[i], ",")
@@ -507,7 +507,7 @@ public class BurdenMatrix implements Serializable {
 		log.report("Running a " + (logistic ? "logistic" : "linear") + " model for trait '" + traits[0]
 							 + "'", true, verbose);
 		try {
-			writer = new PrintWriter(new FileWriter(outputFile));
+			writer = Files.openAppropriateWriter(outputFile);
 			delimiter = outputFile.endsWith(".csv") ? "," : "\t";
 			writer.println("gene" + delimiter + "region" + delimiter + "chr" + delimiter + "start"
 										 + delimiter + "stop" + delimiter + "NSNPS" + delimiter + "NALLELES" + delimiter

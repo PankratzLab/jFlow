@@ -949,7 +949,7 @@ public class CNVCaller {
 
 	private static void writeOutput(CNVCallerIterator callerIterator, String output, Logger log) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			int sum = 0;
 			int cnt = 0;

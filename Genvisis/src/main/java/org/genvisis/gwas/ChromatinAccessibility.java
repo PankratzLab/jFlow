@@ -68,7 +68,7 @@ public class ChromatinAccessibility {
 
 		files = Files.list(dir, ".bed", false);
 		try {
-			writer = new PrintWriter(new FileWriter("odd.xln"));
+			writer = Files.openAppropriateWriter("odd.xln");
 			for (String file : files) {
 				try {
 					reader = new BufferedReader(new FileReader(dir + file));
@@ -285,14 +285,14 @@ public class ChromatinAccessibility {
 					for (int j = 0; j < CLASSES.length; j++) {
 						new File(file_dir + ext.rootOf(filename) + "/").mkdirs();
 						if (i == files.length) {
-							writers[i][j][0] = new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename)
+							writers[i][j][0] = Files.openAppropriateWriter(file_dir + ext.rootOf(filename)
 																																+ "/"
 																																+ ext.addToRoot(filename,
-																																								"_allMerged_" + CLASSES[j] + "_in")));
-							writers[i][j][1] = new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename)
+																																								"_allMerged_" + CLASSES[j] + "_in"));
+							writers[i][j][1] = Files.openAppropriateWriter(file_dir + ext.rootOf(filename)
 																																+ "/"
 																																+ ext.addToRoot(filename,
-																																								"_allMerged_" + CLASSES[j] + "_out")));
+																																								"_allMerged_" + CLASSES[j] + "_out"));
 						} else {
 							writers[i][j][0] = new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename)
 																																+ "/"

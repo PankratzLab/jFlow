@@ -71,7 +71,7 @@ public class DGV_CNV {
 			String out = element + ".cnv";
 
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(out));
+				PrintWriter writer = Files.openAppropriateWriter(out);
 				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 				boolean dgv = true;
 				BufferedReader reader = Files.getAppropriateReader(element);
@@ -223,7 +223,7 @@ public class DGV_CNV {
 		for (String element : filesToParse) {
 			String out = element + ".cnv";
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(out));
+				PrintWriter writer = Files.openAppropriateWriter(out);
 				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 				int[] indices = ext.indexFactors(HEADER_DGV, Files.getHeaderOfFile(element, log), true,
 																				 false);

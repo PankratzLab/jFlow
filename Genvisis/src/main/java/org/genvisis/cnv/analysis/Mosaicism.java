@@ -107,7 +107,7 @@ public class Mosaicism {
 		PSF.checkInterrupted();
 		samples = proj.getSamples();
 		try {
-			writer = new PrintWriter(new FileWriter(proj.MOSAIC_RESULTS_FILENAME.getValue(true, true)));
+			writer = Files.openAppropriateWriter(proj.MOSAIC_RESULTS_FILENAME.getValue(true, true));
 			writer.println(ArrayUtils.toStr(MosaicPlot.MOSAICISM_HEADER));
 			// samples = new String[] { "7355066051_R03C01", "7330686030_R02C01", "7159911135_R01C02" };
 			// samples = new String[] { "7355066051_R03C01" };
@@ -509,7 +509,7 @@ public class Mosaicism {
 
 		v = new Vector<String>();
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(listOfMosaicArms, false) + "_counts.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(listOfMosaicArms, false) + "_counts.xln");
 			writer.println(ArrayUtils.toStr(HEADER));
 			for (String[] listOfArm : listOfArms) {
 				indiPheno = sampleData.getIndiPheno(listOfArm[0]);
@@ -559,8 +559,8 @@ public class Mosaicism {
 			writer.close();
 
 			if (v.size() > 0) {
-				writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																								+ "SAMPLES_IN_CNVFILE_NOT_IN_SAMPLE_DATA.txt"));
+				writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																								+ "SAMPLES_IN_CNVFILE_NOT_IN_SAMPLE_DATA.txt");
 				for (int i = 0; i < v.size(); i++) {
 					writer.println(v.elementAt(i));
 				}

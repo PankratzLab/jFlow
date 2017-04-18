@@ -183,12 +183,12 @@ public class MarkerMetrics {
 		Pedigree pedigree = proj.loadPedigree();
 
 		try {
-			writer = new PrintWriter(new FileWriter(fullPathToOutput));
+			writer = Files.openAppropriateWriter(fullPathToOutput);
 			writer.println(ArrayUtils.toStr(FULL_QC_HEADER));
 
 			if (pedigree != null && checkMendel) {
-				mendelWriter = new PrintWriter(new FileWriter(ext.rootOf(fullPathToOutput, false)
-																											+ DEFAULT_MENDEL_FILE_SUFFIX));
+				mendelWriter = Files.openAppropriateWriter(ext.rootOf(fullPathToOutput, false)
+																											+ DEFAULT_MENDEL_FILE_SUFFIX);
 				mendelWriter.println(ArrayUtils.toStr(MENDEL_HEADER));
 			}
 
@@ -417,8 +417,8 @@ public class MarkerMetrics {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																							+ "lrrVariance.xln"));
+			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																							+ "lrrVariance.xln");
 			writer.println(ArrayUtils.toStr(LRR_VARIANCE_HEADER));
 
 			if (markersToInclude != null) {
@@ -523,8 +523,8 @@ public class MarkerMetrics {
 		gcThreshold = proj.getProperty(proj.GC_THRESHOLD).floatValue();
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(false, true)
-																							+ "markerGenderChecks.xln"));
+			writer = Files.openAppropriateWriter(proj.RESULTS_DIRECTORY.getValue(false, true)
+																							+ "markerGenderChecks.xln");
 			writer.println("SNP\tX_zAA\tY_zBB\tX_tAA\tY_tBB\tMean_Zs\tMean_Ts\tMin_Z\tMin_T\tMAF");
 
 			if (subset != null) {
@@ -871,7 +871,7 @@ public class MarkerMetrics {
 
 			warningKeys = HashVec.getKeys(warningHash);
 			try {
-				writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename, false) + "_counts.out"));
+				writer = Files.openAppropriateWriter(dir + ext.rootOf(filename, false) + "_counts.out");
 				writer.println("WarningCriterion\tnumMarkers\tnumAnnotated\tnumReclustered\tnumDropped");
 				for (String warningKey : warningKeys) {
 					v = warningHash.get(warningKey);
@@ -906,7 +906,7 @@ public class MarkerMetrics {
 											 + numReclustered + "\t" + numDropped);
 
 				missedOutputFile = dir + filename + "_missed.out";
-				writerMissed = new PrintWriter(new FileWriter(missedOutputFile));
+				writerMissed = Files.openAppropriateWriter(missedOutputFile);
 				allOtherMarkers = HashVec.loadToHashSet(proj.getMarkerNames());
 				for (int j = 0; j < markerNames.length; j++) {
 					if (!annotatedMarkers.containsKey(markerNames[j])) {
@@ -993,7 +993,7 @@ public class MarkerMetrics {
 				warningCounts[k] = warningHashHash.get(key).size();
 			}
 			try {
-				writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename, false) + "_matrix.out"));
+				writer = Files.openAppropriateWriter(dir + ext.rootOf(filename, false) + "_matrix.out");
 				writer.println("\tN=\t" + ArrayUtils.toStr(warningCounts));
 				writer.println("Annotation\tCounts\t" + ArrayUtils.toStr(warningKeys));
 
@@ -1047,7 +1047,7 @@ public class MarkerMetrics {
 
 		filename = proj.RESULTS_DIRECTORY.getValue(false, true) + "reclusteredMarkers.xln";
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			writer.println("Marker\tChr\tPosition\tnumClusterFilters\tnumGenotypesAffected\tproportionGenotypesAffected\tCallrateBefore\tCallrateAfter\tCallrateChange\tmafBefore\tmafAfter");
 
 			markerNames = clusterFilterCollection.getMarkerNames();
@@ -1165,7 +1165,7 @@ public class MarkerMetrics {
 
 		annotationKeys = annotationCollection.getKeys();
 		try {
-			writer = new PrintWriter(new FileWriter(outputFile));
+			writer = Files.openAppropriateWriter(outputFile);
 			writer.println("Annotation\tnumMarkers\tnumReclustered\tnumDropped");
 			for (char annotationKey : annotationKeys) {
 				annotation = annotationCollection.getDescriptionForComment(annotationKey, false, false);
@@ -1215,7 +1215,7 @@ public class MarkerMetrics {
 				markerDataLoader = null;
 			}
 			missedOutputFile = ext.addToRoot(outputFile, "_missed");
-			writerMissed = new PrintWriter(new FileWriter(missedOutputFile));
+			writerMissed = Files.openAppropriateWriter(missedOutputFile);
 			for (int j = 0; j < markerNames.length; j++) {
 				if (checkForDeletedMarkers) {
 					markerData = markerDataLoader.requestMarkerData(j);
@@ -1286,9 +1286,9 @@ public class MarkerMetrics {
 
 		markerNames = proj.getMarkerNames();
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
 																							+ ext.replaceWithLinuxSafeCharacters(phenotype, true)
-																							+ "_regress.xln"));
+																							+ "_regress.xln");
 			writer.println("MarkerName\tBAF_p");
 			// markerDataLoader = new MarkerDataLoader(proj, markerNames, -1, log);
 			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);

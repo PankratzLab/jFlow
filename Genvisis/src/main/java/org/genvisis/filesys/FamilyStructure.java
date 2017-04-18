@@ -1,11 +1,11 @@
 package org.genvisis.filesys;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
@@ -207,7 +207,7 @@ public class FamilyStructure {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			for (int i = 0; i < ids.length; i++) {
 				writer.println(getIndividualHeader(i, displayDNA));
 			}

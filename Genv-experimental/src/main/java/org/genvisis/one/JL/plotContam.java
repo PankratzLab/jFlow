@@ -31,7 +31,7 @@ public class plotContam {
 
 			String withMedian = ext.rootOf(file, false) + "withMedian.txt";
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(withMedian));
+				PrintWriter writer = Files.openAppropriateWriter(withMedian);
 				writer.println(all[0][0] + "\t" + ArrayUtils.toStr(ArrayUtils.subArray(all[0], indices))
 											 + "\tPopulationMedian");
 				for (int j = 1; j < all.length; j++) {

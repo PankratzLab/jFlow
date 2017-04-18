@@ -25,7 +25,7 @@ public class extractSamps {
 			try {
 				int numTotal = 0;
 				int numSamps = 0;
-				PrintWriter writer = new PrintWriter(new FileWriter(sampCNVs));
+				PrintWriter writer = Files.openAppropriateWriter(sampCNVs);
 				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 				for (int i = 0; i < cnvs.getLoci().length; i++) {
 					numTotal++;

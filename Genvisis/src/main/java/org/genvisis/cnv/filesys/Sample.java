@@ -625,7 +625,7 @@ public class Sample implements Serializable {
 			System.exit(1);
 		}
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			writer.println("SNP\tGC Score\tX\tY\tTheta\tR\tLRR\tBAF\tGenotypes\tAB_Genotypes");
 			StringBuilder sb;
 			for (int i = 0; i < markerNames.length; i++) {
@@ -685,7 +685,7 @@ public class Sample implements Serializable {
 			System.exit(1);
 		}
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			writer.println("SNP\tX\tY\tTheta\tR\tcompTheta\tcompR\tLRR\tBAF\tcompLRR\tcompBAF");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(markerNames[i] + "\t" + xs[i] + "\t" + ys[i] + "\t" + thetas[i] + "\t"

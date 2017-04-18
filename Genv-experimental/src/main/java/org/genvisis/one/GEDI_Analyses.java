@@ -20,7 +20,7 @@ public class GEDI_Analyses {
 
 		String filename = "D:/GEDI/SDRG/markerList.txt";
 		try {
-			writer = new PrintWriter(new FileWriter("D:/GEDI/SDRG/markerPositions.txt"));
+			writer = Files.openAppropriateWriter("D:/GEDI/SDRG/markerPositions.txt");
 			writer.println("Name\tChr\tMapInfo");
 			try {
 				count = 0;
@@ -56,7 +56,7 @@ public class GEDI_Analyses {
 																						"Institute Plate Label", "Well"};
 
 		try {
-			writer = new PrintWriter(new FileWriter(pattern));
+			writer = Files.openAppropriateWriter(pattern);
 			writer.println("DNA\tPlate#\tRow\tPlateLabel\tWell");
 			for (int i = 0; i < 120; i++) {
 				filename = ext.insertNumbers(pattern, i);

@@ -2,11 +2,12 @@ package org.genvisis.link.bat;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
+
+import org.genvisis.common.Files;
 
 public class addPheno2gh {
 
@@ -51,7 +52,7 @@ public class addPheno2gh {
 			System.err.println("Please rectify");
 			System.exit(1);
 		}
-		writer = new PrintWriter(new FileWriter("gh_chrom" + chrome + ".pre"));
+		writer = Files.openAppropriateWriter("gh_chrom" + chrome + ".pre");
 
 		while (reader.ready()) {
 			temp = reader.readLine();
@@ -73,7 +74,7 @@ public class addPheno2gh {
 			System.err.println("Please rectify");
 			System.exit(1);
 		}
-		writer = new PrintWriter(new FileWriter("gh_map" + chrome + ".dat"));
+		writer = Files.openAppropriateWriter("gh_map" + chrome + ".dat");
 
 		temp = reader.readLine();
 		st = new StringTokenizer(temp);

@@ -154,7 +154,7 @@ public class Collapsed {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			for (String element : list) {
 				writer.println(element);
 			}

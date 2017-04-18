@@ -87,7 +87,7 @@ public class comp {
 	private final boolean[] flags = new boolean[OPTIONS.length];
 
 	public comp() throws IOException {
-		PrintWriter writer = new PrintWriter(new FileWriter(DEFAULT_INPUT));
+		PrintWriter writer = Files.openAppropriateWriter(DEFAULT_INPUT);
 		writer.println(DEFAULT_DB);
 		writer.println(DEFAULT_TRAIT);
 		writer.println(ArrayUtils.toStr(DEFAULT_USE));
@@ -218,7 +218,7 @@ public class comp {
 				}
 			}
 		} else {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			writer.println(db_file);
 			writer.println("Affected");
 			try {
@@ -426,7 +426,7 @@ public class comp {
 			}
 
 			if (optionFlagged("dumpAll")) {
-				writer = new PrintWriter(new FileWriter(traits[trt] + suffix + "-dumpAll.xln"));
+				writer = Files.openAppropriateWriter(traits[trt] + suffix + "-dumpAll.xln");
 				writer.print("UniqueID\tFamID\tIndID");
 				for (int j = 0; j < M + 1; j++) {
 					writer.print("\t" + factorNames[indices[j]]);
@@ -447,7 +447,7 @@ public class comp {
 					System.err.println("Error - too many dependent states; skipping trend analysis");
 				} else {
 					try {
-						writer = new PrintWriter(new FileWriter(traits[trt] + suffix + "-trend.xln"));
+						writer = Files.openAppropriateWriter(traits[trt] + suffix + "-trend.xln");
 						for (int i = 0; i < k; i++) {
 							writer.print("\t" + depCount.elementAt(i));
 						}
@@ -474,7 +474,7 @@ public class comp {
 						}
 						writer.close();
 
-						writer = new PrintWriter(new FileWriter(traits[trt] + suffix + "-trend.sas"));
+						writer = Files.openAppropriateWriter(traits[trt] + suffix + "-trend.sas");
 						trends = new DoubleVector[M + 1];
 						validNames = new String[M + 1];
 						for (int factor = 0; factor <= M; factor++) {
@@ -547,7 +547,7 @@ public class comp {
 							}
 
 							reader = new BufferedReader(new FileReader(traits[trt] + "-trend.lst"));
-							writer = new PrintWriter(new FileWriter(traits[trt] + "-trend-results.xln"));
+							writer = Files.openAppropriateWriter(traits[trt] + "-trend-results.xln");
 							writer.print(traits[trt]);
 							for (int i = 0; i < k; i++) {
 								writer.print("\t" + depCount.elementAt(i));
@@ -653,7 +653,7 @@ public class comp {
 						DoubleVector dv1s, dv0s;
 						boolean failed;
 
-						writer = new PrintWriter(new FileWriter(traits[trt] + suffix + "-table.xln"));
+						writer = Files.openAppropriateWriter(traits[trt] + suffix + "-table.xln");
 						writer.println("Trait\t1s\tNum1s\t0s\tNum0s\tp-value");
 						for (int factor = 1; factor <= M; factor++) {
 							dv1s = new DoubleVector();
@@ -695,7 +695,7 @@ public class comp {
 					try {
 						DoubleVector dv1, dv2;
 
-						writer = new PrintWriter(new FileWriter(traits[trt] + suffix + "-table.xln"));
+						writer = Files.openAppropriateWriter(traits[trt] + suffix + "-table.xln");
 						for (int i = 0; i < k; i++) {
 							writer.print("\t" + depCount.elementAt(i) + "\tcounts");
 						}
@@ -767,8 +767,8 @@ public class comp {
 
 			if (optionFlagged("exactRegressionValues")) {
 				try {
-					writer = new PrintWriter(new FileWriter(traits[trt] + suffix
-																									+ "-exactRegressionValues.xln"));
+					writer = Files.openAppropriateWriter(traits[trt] + suffix
+																									+ "-exactRegressionValues.xln");
 					writer.println("Factor\tT\tp-value\tcalcP");
 					for (int i = 1; i <= M; i++) {
 						writer.println(factorNames[indices[i]] + "\t" + sigs[i][2] + "\t" + sigs[i][0]
@@ -789,7 +789,7 @@ public class comp {
 
 			if (traits.length > 1) {
 				if (trt == 0) {
-					writer = new PrintWriter(new FileWriter(filename));
+					writer = Files.openAppropriateWriter(filename);
 					writer.print(db_file.split(PSF.Regex.GREEDY_WHITESPACE).length > 1 ? "\"" + db_file + "\"" : db_file);
 					for (int i = 0; i < limitKeys.size(); i++) {
 						writer.print("\t" + limitKeys.elementAt(i) + "=" + limitTargets.elementAt(i));
@@ -821,9 +821,9 @@ public class comp {
 					writer.println();
 					writer.close();
 				}
-				writer = new PrintWriter(new FileWriter(traits[trt] + suffix + ".ctl"));
+				writer = Files.openAppropriateWriter(traits[trt] + suffix + ".ctl");
 			} else {
-				writer = new PrintWriter(new FileWriter(filename));
+				writer = Files.openAppropriateWriter(filename);
 			}
 			writer.print(db_file.split(PSF.Regex.GREEDY_WHITESPACE).length > 1 ? "\"" + db_file + "\"" : db_file);
 			for (int i = 0; i < limitKeys.size(); i++) {
@@ -1098,7 +1098,7 @@ public class comp {
 			writer.close();
 
 			if ((optionFlagged("sw") || optionFlagged("force")) && optionFlagged("predicteds")) {
-				writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + "_predicteds.xln"));
+				writer = Files.openAppropriateWriter(ext.rootOf(filename) + "_predicteds.xln");
 				for (int i = 0; i < predicteds.length; i++) {
 					writer.println(data[i][0] + "\t" + predicteds[i]);
 				}
@@ -1114,7 +1114,7 @@ public class comp {
 				if (optionFlagged("inverseNormalized")) {
 					residuals[2] = Transformations.transform(residuals[0], Transformations.INVERSE_NORMALIZE);
 				}
-				writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + "_residuals.xln"));
+				writer = Files.openAppropriateWriter(ext.rootOf(filename) + "_residuals.xln");
 				temp = "";
 				for (int i = 0; i < DEFAULT_ID_NAMES.length; i++) {
 					if (idIndices[i] != -1) {
@@ -1219,7 +1219,7 @@ public class comp {
 
 		if (audit) {
 			try {
-				writer = new PrintWriter(new FileWriter("audit.out"));
+				writer = Files.openAppropriateWriter("audit.out");
 				for (String fam : fams) {
 					writer.print(fam);
 					vDoubleArray = hashVecData.get(fam);
@@ -1255,7 +1255,7 @@ public class comp {
 		subtotals = new double[] {ArrayUtils.sum(avgCounts[0]), ArrayUtils.sum(avgCounts[1])};
 
 		try {
-			writer = new PrintWriter(new FileWriter("chis.out"));
+			writer = Files.openAppropriateWriter("chis.out");
 			for (int i = 0; i < dv.size(); i++) {
 				writer.print("      \t" + dv.elementAt(i).intValue() + "      ");
 			}
@@ -1401,7 +1401,7 @@ public class comp {
 
 		if (audit) {
 			try {
-				writer = new PrintWriter(new FileWriter("audit.out"));
+				writer = Files.openAppropriateWriter("audit.out");
 				for (String fam : fams) {
 					writer.print(fam);
 					genotypes = hashVecData.get(fam);
@@ -1435,8 +1435,8 @@ public class comp {
 		subtotals = new double[] {ArrayUtils.sum(avgCounts[0]), ArrayUtils.sum(avgCounts[1])};
 
 		try {
-			writer = new PrintWriter(new FileWriter(factorNames[indices[1]] + "_"
-																							+ factorNames[indices[2]] + "_hwe.out"));
+			writer = Files.openAppropriateWriter(factorNames[indices[1]] + "_"
+																							+ factorNames[indices[2]] + "_hwe.out");
 			Collections.sort(iv);
 			if (iv.size() == 3) {
 				alleleLabels = new String[] {iv.get(0) + "/" + iv.get(0), iv.get(0) + "/" + iv.get(1),

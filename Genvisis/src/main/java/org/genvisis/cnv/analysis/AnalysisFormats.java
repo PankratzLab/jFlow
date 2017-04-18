@@ -683,7 +683,7 @@ public class AnalysisFormats implements Runnable {
 			log.report("Writing sex-specific PFB files");
 
 			try {
-				writer = new PrintWriter(new FileWriter(malePFBFile));
+				writer = Files.openAppropriateWriter(malePFBFile);
 				writer.println("Name\tChr\tPosition\tPFB");
 				for (String[] male : malePFBs) {
 					writer.println(male[0] + "\t" + male[1] + "\t" + male[2] + "\t" + male[3]);
@@ -695,7 +695,7 @@ public class AnalysisFormats implements Runnable {
 			}
 
 			try {
-				writer = new PrintWriter(new FileWriter(femalePFBFile));
+				writer = Files.openAppropriateWriter(femalePFBFile);
 				writer.println("Name\tChr\tPosition\tPFB");
 				for (String[] female : femalePFBs) {
 					writer.println(female[0] + "\t" + female[1] + "\t" + female[2] + "\t" + female[3]);
@@ -811,7 +811,7 @@ public class AnalysisFormats implements Runnable {
 		try {
 			(new File(ext.parseDirectoryOfFile(newGCFile))).mkdirs();
 			reader = new BufferedReader(new FileReader(gcModelFile));
-			writer = new PrintWriter(new FileWriter(newGCFile));
+			writer = Files.openAppropriateWriter(newGCFile);
 
 			String temp;
 			String[] line;
@@ -885,8 +885,8 @@ public class AnalysisFormats implements Runnable {
 			bafs = samp.getBAFs();
 
 			try {
-				writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "quanti_data/"
-																								+ samples[i]));
+				writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + "quanti_data/"
+																								+ samples[i]);
 				writer.println("Name\tChr\tPosition\t" + samples[i] + ".Log R Ratio\t" + samples[i]
 											 + ".B Allele Freq");
 				for (int j = 0; j < markerNames.length; j++) {
@@ -1042,7 +1042,7 @@ public class AnalysisFormats implements Runnable {
 		positions = markers.getPositions();
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + outfile));
+			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + outfile);
 			countFromList = countInRegions = countOverlap = 0;
 			for (int i = 0; i < markerNames.length; i++) {
 				if (segs.length > 0

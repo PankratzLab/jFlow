@@ -891,8 +891,8 @@ public class GenCNV implements Runnable {
 		Burden[] burdens = allSigs.getBurdens();
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(dir + ext.rootOf(outputSummary)
-																													+ "_lociResults.txt"));
+			PrintWriter writer = Files.openAppropriateWriter(dir + ext.rootOf(outputSummary)
+																													+ "_lociResults.txt");
 			writer.println(ArrayUtils.toStr(ANALYSIS_LOCI_HEADER));
 
 			for (Significance significance : significances) {
@@ -906,7 +906,7 @@ public class GenCNV implements Runnable {
 				}
 			}
 			writer.close();
-			writer = new PrintWriter(new FileWriter(dir + outputSummary));
+			writer = Files.openAppropriateWriter(dir + outputSummary);
 			writer.println(ArrayUtils.toStr(ANALYSIS_SUMMARY_HEADER));
 			for (Significance significance : significances) {
 				writer.println(significance.getFullAnalysis());
@@ -986,7 +986,7 @@ public class GenCNV implements Runnable {
 																		 String[] uniqInds, Logger log) {
 		String output = dir + newGPhenoFile;
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.print("FID\tIID");
 			for (PrepResults prepResult : prepResults) {
 				writer.print("\t" + prepResult.getPhenotype());

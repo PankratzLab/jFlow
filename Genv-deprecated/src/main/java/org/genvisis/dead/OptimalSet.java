@@ -114,7 +114,7 @@ public class OptimalSet {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + "_optimal.out"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename) + "_optimal.out");
 			for (int i = 0; i < limits.length; i++) {
 				System.out.println("At " + (int) (THRESHOLDS[i] * 100) + "% (" + limits[i] + ")");
 				for (int k = 0; k < 3; k++) {

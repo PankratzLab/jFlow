@@ -52,7 +52,7 @@ public class RosenElliot {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
-			writer = new PrintWriter(new FileWriter(dir + PED_DATA));
+			writer = Files.openAppropriateWriter(dir + PED_DATA);
 			writer.println("Animal\tSire\tDOB\tDOD\tDaysAtDeath\tDaysLivedSoFar\tAffection");
 			if (!reader.readLine().contains("List")) {
 				System.err.println("Error parsing pedigree file: expecting first line to contain the word List");
@@ -161,7 +161,7 @@ public class RosenElliot {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
-			writer = new PrintWriter(new FileWriter(dir + GENOTYPES_FILE));
+			writer = Files.openAppropriateWriter(dir + GENOTYPES_FILE);
 
 			line = reader.readLine().trim().split("\\t");
 			index = ext.indexOfStr(refGenotypes, line);
@@ -275,7 +275,7 @@ public class RosenElliot {
 												 + dnaList.get(1));
 
 			reader = new BufferedReader(new FileReader(dir + PED_DATA));
-			writer = new PrintWriter(new FileWriter(dir + "untrimmed.pre"));
+			writer = Files.openAppropriateWriter(dir + "untrimmed.pre");
 			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), PED_HEADER, true);
 
 			writer.println("1\t" + TRAIT_STRAIN_PREFIX + "99\t0\t0\t1\t2");
@@ -344,7 +344,7 @@ public class RosenElliot {
 		filename = Files.backup("mended_pedfile.pre", dir, dir);
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(dir + "mended_pedfile.pre"));
+			writer = Files.openAppropriateWriter(dir + "mended_pedfile.pre");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (line[1].startsWith(TRAIT_STRAIN_PREFIX) || line[1].startsWith(BC_STRAIN_PREFIX)) {

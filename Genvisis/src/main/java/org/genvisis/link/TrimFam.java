@@ -936,7 +936,7 @@ public class TrimFam {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(outfile));
+			writer = Files.openAppropriateWriter(outfile);
 			count = 0;
 			for (int i = 0; i < fams.size(); i++) {
 				tfam = new TrimFam(preHash.get(fams.elementAt(i)), deleteSinglets, unrelatedsOnly,

@@ -111,7 +111,7 @@ public class swapDNA {
 				} else {
 					(new File("chromosome" + i + ".dat")).renameTo(new File("temp"));
 					reader = new BufferedReader(new FileReader("temp"));
-					writer = new PrintWriter(new FileWriter("chromosome" + i + ".dat"));
+					writer = Files.openAppropriateWriter("chromosome" + i + ".dat");
 
 					while (reader.ready()) {
 						temp = reader.readLine();

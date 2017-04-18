@@ -334,7 +334,7 @@ public class FilterCalls {
 
 		PrintWriter writer;
 		try {
-			writer = new PrintWriter(new FileWriter(outputFile));
+			writer = Files.openAppropriateWriter(outputFile);
 			writer.println(header);
 			for (CNVFilterNode node : outputNodes) {
 				writer.println(node.toString());
@@ -342,7 +342,7 @@ public class FilterCalls {
 			writer.flush();
 			writer.close();
 
-			writer = new PrintWriter(new FileWriter(ext.rootOf(outputFile, false) + ".major"));
+			writer = Files.openAppropriateWriter(ext.rootOf(outputFile, false) + ".major");
 			writer.println("FID\tIID\tCHR\tBP1\tBP2\tCN");
 			for (String str : majorMatches) {
 				writer.println(str);
@@ -350,7 +350,7 @@ public class FilterCalls {
 			writer.flush();
 			writer.close();
 
-			writer = new PrintWriter(new FileWriter(ext.rootOf(outputFile, false) + ".minor"));
+			writer = Files.openAppropriateWriter(ext.rootOf(outputFile, false) + ".minor");
 			writer.println("FID\tIID\tCHR\tBP1\tBP2\tCN");
 			for (String str : minorMatches) {
 				writer.println(str);
@@ -681,7 +681,7 @@ public class FilterCalls {
 		int initialCount = srcCNVs.length;
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(out));
+			PrintWriter writer = Files.openAppropriateWriter(out);
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 
 			HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap = new HashMap<String, HashMap<Byte, ArrayList<CNVariant>>>();
@@ -1040,7 +1040,7 @@ public class FilterCalls {
 		} while (startCnt > newCNVs.size());
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(out));
+			PrintWriter writer = Files.openAppropriateWriter(out);
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 			for (CNVariant cnv : newCNVs) {
 				writer.println(cnv.toPlinkFormat());
@@ -1192,7 +1192,7 @@ public class FilterCalls {
 	// }
 	//
 	// try {
-	// writer = new PrintWriter(new FileWriter(dir + out));
+	// writer = Files.openAppropriateWriter(dir + out);
 	// writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 	// for (int i = 0; i < remove.length; i++) {
 	// if (!remove[i]) writer.println(cnvs.get(i).toPlinkFormat());
@@ -1239,7 +1239,7 @@ public class FilterCalls {
 	// }
 	//
 	// try {
-	// writer = new PrintWriter(new FileWriter(dir + out));
+	// writer = Files.openAppropriateWriter(dir + out);
 	// writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 	// for (int i = 0; i < remove.length; i++) {
 	// if (!remove[i]) writer.println(cnvs.get(i).toPlinkFormat());
@@ -1279,7 +1279,7 @@ public class FilterCalls {
 	// }
 	//
 	// try {
-	// writer = new PrintWriter(new FileWriter(dir + out));
+	// writer = Files.openAppropriateWriter(dir + out);
 	// writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 	// for (int i = 0; i < remove.length; i++) {
 	// if (!remove[i]) writer.println(cnvs.get(i).toPlinkFormat());
@@ -1336,7 +1336,7 @@ public class FilterCalls {
 	// }
 	//
 	// try {
-	// writer = new PrintWriter(new FileWriter(dir + out));
+	// writer = Files.openAppropriateWriter(dir + out);
 	// writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 	// for (int i = 0; i < remove.length; i++) {
 	// if (!remove[i]) writer.println(cnvs.get(i).toPlinkFormat());
@@ -1366,7 +1366,7 @@ public class FilterCalls {
 
 		try {
 			reader = new BufferedReader(new FileReader(cnvFile));
-			writer = new PrintWriter(new FileWriter(newFile));
+			writer = Files.openAppropriateWriter(newFile);
 
 			while (reader.ready()) {
 				String line = reader.readLine();
@@ -1416,7 +1416,7 @@ public class FilterCalls {
 		System.out.println((exclude ? "Removed " : "Matched ") + cnt + " of " + cnvs.size() + " CNVs");
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + out));
+			writer = Files.openAppropriateWriter(dir + out);
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 			for (int i = 0; i < remove.length; i++) {
 				if (!remove[i]) {
@@ -1460,7 +1460,7 @@ public class FilterCalls {
 		CNVariant[] centromeric = CNVariant.loadPlinkFile(dir + in, false);
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(dir + out));
+			PrintWriter writer = Files.openAppropriateWriter(dir + out);
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 
 			for (CNVariant cnv : centromeric) {
@@ -1570,7 +1570,7 @@ public class FilterCalls {
 		int lineNumber = 1;
 		try {
 			reader = new BufferedReader(new FileReader(dir + in));
-			writer = new PrintWriter(new FileWriter(dir + out));
+			writer = Files.openAppropriateWriter(dir + out);
 			// header
 			writer.println(reader.readLine());
 			while (reader.ready()) {
@@ -1714,7 +1714,7 @@ public class FilterCalls {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + in));
-			writer = new PrintWriter(new FileWriter(dir + out));
+			writer = Files.openAppropriateWriter(dir + out);
 			System.out.println("Writing to '" + dir + out + "'");
 			writer.println(reader.readLine());
 			countGiant = 0;
@@ -1814,7 +1814,7 @@ public class FilterCalls {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + filein));
-			writer = new PrintWriter(new FileWriter(dir + fileout));
+			writer = Files.openAppropriateWriter(dir + fileout);
 			writer.println(reader.readLine());
 			while (reader.ready()) {
 				cnv = new CNVariant(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE));
@@ -2010,7 +2010,7 @@ public class FilterCalls {
 
 		System.out.println(ext.getTime() + "\tFiltering CNVs...");
 		try {
-			writer = new PrintWriter(new FileWriter(fileout));
+			writer = Files.openAppropriateWriter(fileout);
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (CNVariant cnv : cnvs) {
 				firstSNP = ArrayUtils.binarySearch(positions[cnv.getChr()], cnv.getStart(), true);
@@ -2094,7 +2094,7 @@ public class FilterCalls {
 		list2 = CNVariant.loadPlinkFile(secondCNVfile, false);
 
 		try {
-			writer = new PrintWriter(new FileWriter(outputfile));
+			writer = Files.openAppropriateWriter(outputfile);
 			for (CNVariant element : list1) {
 				writer.println(element.toPlinkFormat());
 			}

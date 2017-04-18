@@ -3,11 +3,11 @@ package org.genvisis.widgets;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 
 public class TabVersion {
@@ -17,9 +17,10 @@ public class TabVersion {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + ".xln"));
+			writer = Files.openAppropriateWriter(filename + ".xln");
 			while (reader.ready()) {
-				writer.println(ArrayUtils.toStr(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)));
+				writer.println(ArrayUtils.toStr(reader.readLine().trim()
+																							.split(PSF.Regex.GREEDY_WHITESPACE)));
 			}
 			reader.close();
 			writer.close();

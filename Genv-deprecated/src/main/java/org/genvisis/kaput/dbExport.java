@@ -85,7 +85,7 @@ public class dbExport {
 		}
 		reader.close();
 
-		writer = new PrintWriter(new FileWriter(varName + (SOLAR ? ".dat" : ".xls")));
+		writer = Files.openAppropriateWriter(varName + (SOLAR ? ".dat" : ".xls"));
 		if (SOLAR) {
 			writer.print("FAMID,ID," + varName);
 			for (int i = 1; i < traits.size(); i++) {
@@ -128,7 +128,7 @@ public class dbExport {
 		writer.close();
 
 		dist = Doubles.toArray(dv);
-		writer = new PrintWriter(new FileWriter("punkd.txt")); // why is this
+		writer = Files.openAppropriateWriter("punkd.txt"); // why is this
 		// more than in
 		// the file?????
 		writer.println(ArrayUtils.toStr(dist, 5, 5, "\n"));
@@ -151,7 +151,7 @@ public class dbExport {
 			// 3.7");
 			// mFactor = 3.7;
 			// }
-			writer = new PrintWriter(new FileWriter(varName + "_BOXCOX" + (SOLAR ? ".dat" : ".xls")));
+			writer = Files.openAppropriateWriter(varName + "_BOXCOX" + (SOLAR ? ".dat" : ".xls"));
 			if (SOLAR) {
 				writer.print("FAMID,ID," + varName + "_BOXCOX");
 				for (int i = 1; i < traits.size(); i++) {

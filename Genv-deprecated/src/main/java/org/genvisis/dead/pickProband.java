@@ -22,7 +22,7 @@ public class pickProband {
 
 		try {
 			reader = tools.getNinfoReader(1, false);
-			writer = new PrintWriter(new FileWriter("probands.csv"));
+			writer = Files.openAppropriateWriter("probands.csv");
 			writer.println("FamID,IndID,proband,VPDproband");
 			reader.readLine();
 			trav = "";

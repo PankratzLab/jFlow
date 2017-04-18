@@ -107,7 +107,7 @@ public class VCFTally implements Serializable {
 				log.reportError("Since the case/control ratio is gte 0.5, a filtering procedure to remove minor alleles that are not alternate alleles may exclude informative variants, please add more controls");
 			}
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(outputList, false));
+				PrintWriter writer = Files.openAppropriateWriter(outputList, false);
 				for (VariantContext vc : reader) {
 					index++;
 					VariantContext vcPop = VCOps.getSubset(vc, all, VC_SUBSET_TYPE.SUBSET_STRICT, false);
@@ -254,7 +254,7 @@ public class VCFTally implements Serializable {
 
 	public void summarize(String fullPathToOutput) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutput));
+			PrintWriter writer = Files.openAppropriateWriter(fullPathToOutput);
 			writer.print("SET\tCHR\tSTART\tSTOP\tUCSC\tTotal_length\tMrna_length");
 			for (int i = 0; i < trackersCase.length; i++) {
 				writer.print("\t" + trackersCase[i].getTallyName() + "_NUM_VAR" + "\t"
@@ -298,7 +298,7 @@ public class VCFTally implements Serializable {
 		}
 		String bed = fullPathToOutput + ".CASE.bed";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(bed));
+			PrintWriter writer = Files.openAppropriateWriter(bed);
 			for (TallyTracker element : trackersCase) {
 				String[] tbed = element.getBed();
 				for (String element2 : tbed) {

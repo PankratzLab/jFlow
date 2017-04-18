@@ -1637,7 +1637,7 @@ public class SampleData {
 		Logger log = proj.getLog();
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(sampleDataFile));
+			PrintWriter writer = Files.openAppropriateWriter(sampleDataFile);
 			String[] classed = MitoPipeline.PED_INPUT;
 			classed[5] = "Class=Sex";
 			writer.println(ArrayUtils.toStr(classed)
@@ -1824,7 +1824,7 @@ public class SampleData {
 												+ ", samples have not been parsed");
 			} else {
 				try {
-					PrintWriter writer = new PrintWriter(new FileWriter(sampleDatafilename));
+					PrintWriter writer = Files.openAppropriateWriter(sampleDatafilename);
 					writer.println(ArrayUtils.toStr(MINIMAL_SAMPLE_DATA_HEADER));
 					for (String sample : samples) {
 						for (int j = 0; j < MINIMAL_SAMPLE_DATA_HEADER.length; j++) {

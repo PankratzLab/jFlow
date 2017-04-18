@@ -91,7 +91,7 @@ public class VTE_Analyses {
 		order = Sort.getSort2DIndices(chrs, positions);
 		log.report(ext.getTime() + "\tWriting to file...");
 		try {
-			writer = new PrintWriter(new FileWriter(DIR + "allSNPs.map"));
+			writer = Files.openAppropriateWriter(DIR + "allSNPs.map");
 			writer.println("MarkerName\tChr\tPosition");
 			for (int i = 0; i < keys.length; i++) {
 				writer.println(keys[order[i]] + "\t" + chrs[order[i]] + "\t" + positions[order[i]]);

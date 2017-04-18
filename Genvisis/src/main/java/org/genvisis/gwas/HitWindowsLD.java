@@ -573,9 +573,9 @@ public class HitWindowsLD {
 		String source = ext.rootOf(ldFile);
 		try {
 			if (Files.exists(output + "." + source)) {
-				writer = new PrintWriter(new FileWriter(output + "." + source, true));
+				writer = Files.openAppropriateWriter(output + "." + source, true);
 			} else {
-				writer = new PrintWriter(new FileWriter(output + "." + source, false));
+				writer = Files.openAppropriateWriter(output + "." + source, false);
 			}
 			writer.println("\n" + ArrayUtils.toStr(MARK_REPORT_HEADER));
 			for (HitWindowsLD element : hitWindowsLD) {

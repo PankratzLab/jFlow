@@ -4,13 +4,13 @@ package org.genvisis.stats;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Date;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class FisherTemp {
@@ -83,7 +83,7 @@ public class FisherTemp {
 
 		try {
 			time = new Date().getTime();
-			writer = new PrintWriter(new FileWriter("master.out"));
+			writer = Files.openAppropriateWriter("master.out");
 			for (int[] element : matrix) {
 				writer.println(ArrayUtils.toStr(element));
 			}
@@ -131,7 +131,7 @@ public class FisherTemp {
 
 		try {
 			time = new Date().getTime();
-			writer = new PrintWriter(new FileWriter("checks.out"));
+			writer = Files.openAppropriateWriter("checks.out");
 			for (int[] element : matrix) {
 				writer.println(ArrayUtils.toStr(element));
 			}

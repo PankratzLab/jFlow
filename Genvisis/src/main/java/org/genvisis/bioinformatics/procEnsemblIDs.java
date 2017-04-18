@@ -3,10 +3,11 @@ package org.genvisis.bioinformatics;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+
+import org.genvisis.common.Files;
 
 public class procEnsemblIDs {
 	public static final String DEFAULT_GENES = "genes.xls";
@@ -44,7 +45,7 @@ public class procEnsemblIDs {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			reader.readLine();
-			writer = new PrintWriter(new FileWriter(filename + ".out"));
+			writer = Files.openAppropriateWriter(filename + ".out");
 			while (reader.ready()) {
 				line = reader.readLine().split("\t");
 				if (!line[0].equals("")) {
@@ -79,7 +80,7 @@ public class procEnsemblIDs {
 			System.out.println("Disagrees " + c2);
 			writer.close();
 
-			writer = new PrintWriter(new FileWriter("Ensembl_lookup.xls"));
+			writer = Files.openAppropriateWriter("Ensembl_lookup.xls");
 			reader = new BufferedReader(new FileReader(filename));
 			reader.readLine();
 			genes.clear();

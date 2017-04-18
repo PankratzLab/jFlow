@@ -303,7 +303,7 @@ public class MapSNPsAndGenes {
 
 		try {
 			System.out.println(dir + ext.rootOf(snps) + "_genes.xln");
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(snps) + "_genes.xln"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(snps) + "_genes.xln");
 			writer.println("SNP\tChr\tPosition\tGene(s)\t" + UCSC_WINDOW + "\tClosest"
 										 + "\t<- dynamically linked basepair buffer in UCSC hyperlink");
 			for (int i = 0; i < markers.length; i++) {

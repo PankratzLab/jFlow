@@ -3,12 +3,12 @@ package org.genvisis.link.init;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class info {
@@ -17,8 +17,8 @@ public class info {
 		BufferedReader reader = null;
 		PrintWriter writer = null;
 		PrintWriter markerWriter = null;
-		PrintWriter masterWriter = new PrintWriter(new FileWriter("master info.out"));
-		PrintWriter masterMarkerWriter = new PrintWriter(new FileWriter("master marker info.out"));
+		PrintWriter masterWriter = Files.openAppropriateWriter("master info.out");
+		PrintWriter masterMarkerWriter = Files.openAppropriateWriter("master marker info.out");
 		StringTokenizer st;
 		String chrome, trav, prev;
 		Vector<String> positron = new Vector<String>();
@@ -60,8 +60,8 @@ public class info {
 				}
 
 				reader.readLine();
-				writer = new PrintWriter(new FileWriter("info" + chrome + ".out"));
-				markerWriter = new PrintWriter(new FileWriter("infoJustMarkers" + chrome + ".out"));
+				writer = Files.openAppropriateWriter("info" + chrome + ".out");
+				markerWriter = Files.openAppropriateWriter("infoJustMarkers" + chrome + ".out");
 
 				boolean first = true;
 				int numFams = 1;

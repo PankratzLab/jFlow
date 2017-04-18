@@ -460,7 +460,7 @@ public class PlinkSeq implements Serializable {
 						// PlinkSeqBurdenResults pSeqBurdenResults = new PlinkSeqBurdenResults(outputFiles[0],
 						// log);
 						// String burdenSummary = ext.parseDirectoryOfFile(inputFiles[0]) + "burden.summary";
-						// PrintWriter writer = new PrintWriter(new FileWriter(burdenSummary, true));
+						// PrintWriter writer = Files.openAppropriateWriter(burdenSummary, true);
 						// HashSet<String> genesPassing = pSeqBurdenResults.getGenesPassing();
 						// writer.print(Array.toStr(command, " ") + "\t" + pSeqBurdenResults.getNumTests() +
 						// "\t" + pSeqBurdenResults.getBonferoniP() + "\t" + genesPassing.size());

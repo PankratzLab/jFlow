@@ -337,7 +337,7 @@ public class MosaicismQuant implements Calcfc {
 
 		// private void plotCDFs(String output) {
 		// try {
-		// PrintWriter writer = new PrintWriter(new FileWriter(output));
+		// PrintWriter writer = Files.openAppropriateWriter(output);
 		// writer.println("CDF\tSample\tSmoothedControl");
 		// for (int i = 0; i < smoothedControl.getVals().length; i++) {
 		// double cdf = (double) i / smoothedControl.getVals().length;
@@ -828,7 +828,7 @@ public class MosaicismQuant implements Calcfc {
 																																																		 proj.getLog());
 
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(out));
+				PrintWriter writer = Files.openAppropriateWriter(out);
 				writer.print("Sample");
 				for (int i = 0; i < set.getLoci().length; i++) {
 					writer.print("\t" + set.getLoci()[i].getUCSClocation());
@@ -933,7 +933,7 @@ public class MosaicismQuant implements Calcfc {
 		GaussianMixtureDistribution gd = new GaussianMixtureDistribution(means, vars, props);
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(out));
+			PrintWriter writer = Files.openAppropriateWriter(out);
 
 			int[] mas = new int[] {10, 20, 50, 100, 250, 500, 1000};
 			String[] MAtitles = ArrayUtils.tagOn(ArrayUtils.toStringArray(mas), "MA", null);

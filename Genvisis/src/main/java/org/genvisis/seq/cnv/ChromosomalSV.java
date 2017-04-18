@@ -1,7 +1,6 @@
 package org.genvisis.seq.cnv;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -11,6 +10,7 @@ import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerTrain;
@@ -65,7 +65,7 @@ public class ChromosomalSV {
 		new File(outDir).mkdirs();
 		String outFile = outDir + "chr.svs.txt";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outFile));
+			PrintWriter writer = Files.openAppropriateWriter(outFile);
 			writer.println(ArrayUtils.toStr(new String[] {"Sample", "Chr", "Median", "TYPE"}));
 
 			for (int i = 0; i < allResults.length; i++) {

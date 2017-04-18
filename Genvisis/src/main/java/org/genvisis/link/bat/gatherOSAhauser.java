@@ -2,9 +2,10 @@ package org.genvisis.link.bat;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import org.genvisis.common.Files;
 
 public class gatherOSAhauser {
 
@@ -13,7 +14,7 @@ public class gatherOSAhauser {
 		PrintWriter writer = null;
 		String chrome, skipped = "";
 
-		writer = new PrintWriter(new FileWriter("osaHauserSummary.out"));
+		writer = Files.openAppropriateWriter("osaHauserSummary.out");
 		for (int chromosome = 1; chromosome <= 23; chromosome++) {
 			chrome = (chromosome < 10) ? "0" + chromosome : "" + chromosome;
 			try {

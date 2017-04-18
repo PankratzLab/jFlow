@@ -4,13 +4,13 @@ package org.genvisis.mining;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Sort;
@@ -219,7 +219,7 @@ public class kNN {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(output));
+			writer = Files.openAppropriateWriter(output);
 			writer.println("k-nearest neighbors report:");
 			writer.println("k\tT Error\tV Error" + (partitions[2].length == 0 ? "" : "\tTest Error"));
 			for (int i = startK; i <= stopK; i++) {

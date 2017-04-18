@@ -139,7 +139,7 @@ public class CreateMarkerDatabase {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(outfile));
+			writer = Files.openAppropriateWriter(outfile);
 			writer.print("UniqueID");
 			for (String[] element : info) {
 				markerName = element[0].substring(0, element[0].lastIndexOf("."));

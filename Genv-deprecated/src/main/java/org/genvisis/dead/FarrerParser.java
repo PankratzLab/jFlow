@@ -188,7 +188,7 @@ public class FarrerParser {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_parsed.xln"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + "_parsed.xln");
 			writer.print("Marker\tMinor allele\tMajor allele\tImputed minor allele\tImputed major allele");
 			count = 0;
 			for (String model2 : models) {

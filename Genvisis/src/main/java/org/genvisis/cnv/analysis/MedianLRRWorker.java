@@ -878,7 +878,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		}
 		newJob(MEDIAN_WORKER_JOBS[3]);
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.print("Sample");
 			for (String element : CLASSES_TO_DUMP) {
 				writer.print("\t" + element.substring(element.lastIndexOf("=") + 1));
@@ -930,7 +930,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private void printRegionMarkers(MarkerRegion[] markerRegions) {
 		String output = proj.PROJECT_DIRECTORY.getValue() + FILE_PREFIXES[1] + outputBase + FILE_EXT[0];
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			for (MarkerRegion markerRegion : markerRegions) {
 				String[] regionMarkers = markerRegion.returnMarkers();
 				if (markerRegion.getRegionType() == 0) {

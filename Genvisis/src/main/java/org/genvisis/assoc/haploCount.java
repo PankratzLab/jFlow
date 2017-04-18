@@ -3,12 +3,12 @@ package org.genvisis.assoc;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.LogisticRegression;
@@ -196,7 +196,7 @@ public class haploCount {
 		}
 		reader.close();
 
-		writer = new PrintWriter(new FileWriter(dir + prefix + "_summary.out"));
+		writer = Files.openAppropriateWriter(dir + prefix + "_summary.out");
 		for (int i = 0; i < numHaps; i++) {
 			counts[0][numHaps] += counts[0][i];
 			counts[1][numHaps] += counts[1][i];

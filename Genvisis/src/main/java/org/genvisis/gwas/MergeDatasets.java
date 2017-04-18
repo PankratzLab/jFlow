@@ -98,14 +98,14 @@ public class MergeDatasets {
 
 		markerNames = HashVec.getKeys(hashes, false);
 		try {
-			writer = new PrintWriter(new FileWriter(outputDir + CHI_SQUARE_DROPS_FILENAME));
-			writer2 = new PrintWriter(new FileWriter(outputDir + "homogeneityTests.xln"));
+			writer = Files.openAppropriateWriter(outputDir + CHI_SQUARE_DROPS_FILENAME);
+			writer2 = Files.openAppropriateWriter(outputDir + "homogeneityTests.xln");
 
 			writer2.println("SNP\t" + ArrayUtils.toStr(dirs) + "\t" + ArrayUtils.toStr(dirs)
 											+ "\t2allele_p-value\t3genotype_p-value");
-			writer3 = new PrintWriter(new FileWriter(outputDir + "homo.R"));
+			writer3 = Files.openAppropriateWriter(outputDir + "homo.R");
 
-			writerProblematic = new PrintWriter(new FileWriter(outputDir + "problematic.dat"));
+			writerProblematic = Files.openAppropriateWriter(outputDir + "problematic.dat");
 			System.out.println(ext.getTime() + "\tComputing tests of homogeneity...");
 			Hashtable<String, String> problematicTrack = new Hashtable<String, String>();
 			for (int i = 0; i < markerNames.length; i++) {
@@ -220,10 +220,10 @@ public class MergeDatasets {
 			writer.close();
 			writer2.close();
 			writer3.close();
-			writer3 = new PrintWriter(new FileWriter(outputDir + "split.crf"));
+			writer3 = Files.openAppropriateWriter(outputDir + "split.crf");
 			writer3.println("split\nhomo.R numFiles=12 sizeOfHeader=0 blockSize=4 root=homo ext=.R");
 			writer3.close();
-			// writer3 = new PrintWriter(new FileWriter(dir+"master"));
+			// writer3 = Files.openAppropriateWriter(dir+"master");
 			// for (int i = 1; i<=12; i++) {
 			// writer3.println("R CMD BATCH homo"+i+".R &");
 			// }
@@ -263,8 +263,8 @@ public class MergeDatasets {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "batchMerge"
-																							+ (Files.isWindows() ? ".bat" : "")));
+			writer = Files.openAppropriateWriter(dir + "batchMerge"
+																							+ (Files.isWindows() ? ".bat" : ""));
 			for (String subdir : subdirs) {
 				writer.println("java -jar /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS
 											 + " filesys.SnpMarkerSet file=" + subdir + commonPlinkRoot + ".bim");
@@ -288,8 +288,8 @@ public class MergeDatasets {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "batchMerge.unambiguous"
-																							+ (Files.isWindows() ? ".bat" : "")));
+			writer = Files.openAppropriateWriter(dir + "batchMerge.unambiguous"
+																							+ (Files.isWindows() ? ".bat" : ""));
 
 			writer.println("plink --bfile " + subdirs[0] + "plink --extract " + subdirs[0]
 										 + commonPlinkRoot + ".bim_unambiguous.txt --make-bed --out " + subdirs[0]
@@ -334,8 +334,8 @@ public class MergeDatasets {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "batchMerge.ambiguous"
-																							+ (Files.isWindows() ? ".bat" : "")));
+			writer = Files.openAppropriateWriter(dir + "batchMerge.ambiguous"
+																							+ (Files.isWindows() ? ".bat" : ""));
 
 			writer.println("plink --bfile " + subdirs[0] + commonPlinkRoot + " --exclude " + subdirs[0]
 										 + commonPlinkRoot + ".bim_unambiguous.txt --make-bed --out " + subdirs[0]
@@ -418,8 +418,8 @@ public class MergeDatasets {
 		keys = HashVec.getKeys(hash, false);
 		Files.writeArray(keys, dir + "list.0.snps");
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "unanimousPositions.xln"));
-			writer2 = new PrintWriter(new FileWriter(dir + "discrepancies.xln"));
+			writer = Files.openAppropriateWriter(dir + "unanimousPositions.xln");
+			writer2 = Files.openAppropriateWriter(dir + "discrepancies.xln");
 			writer.println("SNP\tConsensus?\tMajor Count\tTotal Count\tPercentage\tChr\tPosition\tMajor datasets\tAlt_chr\tAlt_pos\tAlt datasets...");
 			writer2.println("SNP\tConsensus?\tMajor Count\tTotal Count\tPercentage\tChr\tPosition\tMajor datasets\tAlt_chr\tAlt_pos\tAlt datasets...");
 			// ext.timestamp();
@@ -485,8 +485,8 @@ public class MergeDatasets {
 		System.out.println("Found " + files.length + " files with the extension .Rout");
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "FisherResults.xln"));
-			writer2 = new PrintWriter(new FileWriter(dir + FISHER_OR_CHI_SQUARE_DROPS_FILENAME));
+			writer = Files.openAppropriateWriter(dir + "FisherResults.xln");
+			writer2 = Files.openAppropriateWriter(dir + FISHER_OR_CHI_SQUARE_DROPS_FILENAME);
 			writer.println("Marker\tPearson\tFisher10K\tminPvalue");
 			time = new Date().getTime();
 			count = 0;
@@ -583,7 +583,7 @@ public class MergeDatasets {
 		new File(fileToUpdate).renameTo(new File(fileToUpdate + "_"));
 		try {
 			reader = new BufferedReader(new FileReader(fileToUpdate + "_"));
-			writer = new PrintWriter(new FileWriter(fileToUpdate));
+			writer = Files.openAppropriateWriter(fileToUpdate);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				loc = hash.get(line[1]);

@@ -5,13 +5,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
@@ -125,7 +125,7 @@ public class NIEHS_SNPs {
 			for (String gene : genes) {
 				v = geneSNPs.get(gene);
 				try {
-					writer = new PrintWriter(new FileWriter(DIR + "genes/" + gene + ".txt"));
+					writer = Files.openAppropriateWriter(DIR + "genes/" + gene + ".txt");
 					for (int j = 0; j < v.size(); j++) {
 						writer.println(v.elementAt(j));
 					}
@@ -206,7 +206,7 @@ public class NIEHS_SNPs {
 
 		map.writeToFile(DIR + "plink.map", SnpMarkerSet.PLINK_MAP_FORMAT, log);
 		try {
-			writer = new PrintWriter(new FileWriter(DIR + "plink.ped"));
+			writer = Files.openAppropriateWriter(DIR + "plink.ped");
 			for (int i = 0; i < samples.length; i++) {
 				writer.print(samples[i] + "\t" + sampleLookup.get(samples[i]).substring(0, 7)
 										 + "\t0\t0\t1\t1");

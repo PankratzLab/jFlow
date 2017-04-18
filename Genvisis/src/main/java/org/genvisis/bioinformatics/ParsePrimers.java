@@ -3,11 +3,11 @@ package org.genvisis.bioinformatics;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 
 public class ParsePrimers {
@@ -38,7 +38,7 @@ public class ParsePrimers {
 		used = new Hashtable<String, String>();
 		try {
 			reader = new BufferedReader(new FileReader(dir + variants));
-			writer = new PrintWriter(new FileWriter(dir + variants + "_IlluminaDesign.csv"));
+			writer = Files.openAppropriateWriter(dir + variants + "_IlluminaDesign.csv");
 			writer.println("Locus_Name,Target_Type,Sequence,Chromosome,Coordinate,Genome_Build_Version,Source,Source_Version,Sequence_Orientation,Plus_Minus,Force_Infinium_I");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

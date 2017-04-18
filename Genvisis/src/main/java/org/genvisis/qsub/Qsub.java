@@ -304,7 +304,7 @@ public class Qsub {
 			filename = ext.insertNumbers(filenameFormat, i)
 								 + (filenameFormat.endsWith(".qsub") ? "" : ".qsub");
 			try {
-				writer = new PrintWriter(new FileWriter(dir + filename));
+				writer = Files.openAppropriateWriter(dir + filename);
 				writeQsubHeader(writer, filename, totalMemoryRequestedInMb, walltimeRequestedInHours, 1,
 												nodeToUse);
 				if (patterns == null) {
@@ -353,7 +353,7 @@ public class Qsub {
 		}
 	
 		try {
-			writer = new PrintWriter(new FileWriter(chunkFilename));
+			writer = Files.openAppropriateWriter(chunkFilename);
 	
 			if (numJobsToForce <= 0) {
 				numProcs = jobs.length;
@@ -470,14 +470,14 @@ public class Qsub {
 		writers = new PrintWriter[numBatches];
 		try {
 			if (numBatches > 1) {
-				writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(root_batch_name)
+				writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(root_batch_name)
 																								+ "master."
-																								+ ext.removeDirectoryInfo(root_batch_name)));
+																								+ ext.removeDirectoryInfo(root_batch_name));
 				if (!dir.equals("./") && !dir.equals("")) {
 					writer.println("cd " + dir);
 				}
 				for (int i = 0; i < numBatches; i++) {
-					writers[i] = new PrintWriter(new FileWriter(root_batch_name + "_" + (i + 1) + ".qsub"));
+					writers[i] = Files.openAppropriateWriter(root_batch_name + "_" + (i + 1) + ".qsub");
 					writeQsubHeader(writers[i], root_batch_name + "_" + (i + 1) + ".qsub",
 													totalMemoryRequestedInMb, walltimeRequestedInHours, 1, null);
 					if (dirToSwitchToBeforeRunning != null) {
@@ -491,7 +491,7 @@ public class Qsub {
 							+ ext.removeDirectoryInfo(root_batch_name));
 			} else {
 				// writer = null;
-				writers[0] = new PrintWriter(new FileWriter(root_batch_name + ".qsub"));
+				writers[0] = Files.openAppropriateWriter(root_batch_name + ".qsub");
 				writeQsubHeader(writers[0], root_batch_name + ".qsub", totalMemoryRequestedInMb,
 												walltimeRequestedInHours, 1, null);
 			}
@@ -562,7 +562,7 @@ public class Qsub {
 				}
 	
 			}
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			for (int i = 0; i < iterations.length; i++) {
 				if (root == null) {
 					filename = i + ".qsub";

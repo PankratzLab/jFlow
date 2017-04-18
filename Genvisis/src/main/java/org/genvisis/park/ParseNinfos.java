@@ -93,9 +93,9 @@ public class ParseNinfos {
 				System.exit(1);
 			}
 			trav = filename.substring(filename.lastIndexOf("/") + 1, filename.lastIndexOf("."));
-			writer_CSV = new PrintWriter(new FileWriter(trav + ".csv"));
-			writer_DAT = new PrintWriter(new FileWriter(trav + ".dat"));
-			writer_DOB = new PrintWriter(new FileWriter(trav + "_BirthDates.csv"));
+			writer_CSV = Files.openAppropriateWriter(trav + ".csv");
+			writer_DAT = Files.openAppropriateWriter(trav + ".dat");
+			writer_DOB = Files.openAppropriateWriter(trav + "_BirthDates.csv");
 
 			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, header, true);
@@ -233,7 +233,7 @@ public class ParseNinfos {
 				System.err.println("There was no phenotypic information for " + missingPheno.size()
 													 + " individual" + (missingPheno.size() > 1 ? "s" : "")
 													 + "; see missingPhenos.xls for details.");
-				writer = new PrintWriter(new FileWriter(trav + "_missingPhenos.xln"));
+				writer = Files.openAppropriateWriter(trav + "_missingPhenos.xln");
 				writer.println("FamID\tIndID\tDNAs");
 				for (int i = 0; i < missingPheno.size(); i++) {
 					writer.println(missingPheno.elementAt(i));
@@ -245,7 +245,7 @@ public class ParseNinfos {
 				System.err.println("There was no DOB information for " + missingDOB.size() + " individual"
 													 + (missingDOB.size() > 1 ? "s" : "")
 													 + "; see missingDOBs.xls for details.");
-				writer = new PrintWriter(new FileWriter(trav + "_missingDOBs.xln"));
+				writer = Files.openAppropriateWriter(trav + "_missingDOBs.xln");
 				writer.println("FamID\tIndID\tDNA");
 				for (int i = 0; i < missingDOB.size(); i++) {
 					writer.println(missingDOB.elementAt(i));
@@ -276,8 +276,8 @@ public class ParseNinfos {
 				System.exit(1);
 			}
 			trav = filename.substring(filename.lastIndexOf("/") + 1, filename.lastIndexOf("."));
-			writer_CSV = new PrintWriter(new FileWriter(trav + ".csv"));
-			writer_DAT = new PrintWriter(new FileWriter(trav + ".dat"));
+			writer_CSV = Files.openAppropriateWriter(trav + ".csv");
+			writer_DAT = Files.openAppropriateWriter(trav + ".dat");
 
 			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, header, true);

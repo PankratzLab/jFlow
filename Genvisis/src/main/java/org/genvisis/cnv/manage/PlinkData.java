@@ -711,7 +711,7 @@ public class PlinkData {
 		positions = markerSet.getPositions();
 		try {
 			log.report(ext.getTime() + "]\tWriting " + filenameRoot + ".map");
-			writer = new PrintWriter(new FileWriter(dir + filenameRoot + ".map"));
+			writer = Files.openAppropriateWriter(dir + filenameRoot + ".map");
 			for (int indice : indices) {
 				writer.println(chrs[indice] + " " + markerNames[indice] + " 0 " + positions[indice]);
 				proj.getProgressMonitor().updateTask(PROG_KEY + "_MAPEXPORT");
@@ -775,7 +775,7 @@ public class PlinkData {
 
 		try {
 			reader = new BufferedReader(new FileReader(proj.PEDIGREE_FILENAME.getValue()));
-			writer = new PrintWriter(new FileWriter(dir + filenameRoot + ".ped"));
+			writer = Files.openAppropriateWriter(dir + filenameRoot + ".ped");
 			log.report(ext.getTime() + "]\tWriting " + filenameRoot + ".ped");
 			count = 1;
 			invalidAbLookups = Maps.newHashMap();
@@ -891,7 +891,7 @@ public class PlinkData {
 										 + proj.getProperty(proj.DATA_DIRECTORY)
 										 + "invalid_AB_codes.out for a list of variants that this affects.");
 				try {
-					writer = new PrintWriter(new FileWriter(dir + "invalid_AB_codes.out"));
+					writer = Files.openAppropriateWriter(dir + "invalid_AB_codes.out");
 					writer.println("MarkerNames\tA\tB");
 					for (int indice : ArrayUtils.mapToValueSortedArray(invalidAbLookups)) {
 						writer.println(markerNames[indice] + "\t" + abLookup[indice][0] + "\t"

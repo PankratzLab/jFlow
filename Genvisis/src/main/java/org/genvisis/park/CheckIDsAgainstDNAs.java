@@ -296,7 +296,7 @@ public class CheckIDsAgainstDNAs {
 			System.exit(1);
 		}
 
-		writer = new PrintWriter(new FileWriter("fixit_suggestions.dat"));
+		writer = Files.openAppropriateWriter("fixit_suggestions.dat");
 		reader = new BufferedReader(new FileReader("chromosome" + count + ".dat"));
 		reader.readLine();
 		reader.readLine();
@@ -382,7 +382,7 @@ public class CheckIDsAgainstDNAs {
 				bakfile = Files.getBakFilename("chromosome" + i, "checkIDsAgaintsDNAs");
 				new File("chromosome" + i + ".dat").renameTo(new File(bakfile));
 				reader = new BufferedReader(new FileReader(bakfile));
-				writer = new PrintWriter(new FileWriter("chromosome" + i + ".dat"));
+				writer = Files.openAppropriateWriter("chromosome" + i + ".dat");
 				writer.println(reader.readLine());
 				writer.println(reader.readLine());
 				while (reader.ready()) {

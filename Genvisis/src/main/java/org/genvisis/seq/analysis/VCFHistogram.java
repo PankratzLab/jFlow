@@ -300,7 +300,7 @@ public class VCFHistogram implements Serializable {
 					Set<String> newControls = vcfPopulation.getSuperPop().get(superPopComp);
 					String newFile = dir + superPop + "_V_" + superPopComp + ".vpop";
 					try {
-						PrintWriter writer = new PrintWriter(new FileWriter(newFile));
+						PrintWriter writer = Files.openAppropriateWriter(newFile);
 						writer.println(ArrayUtils.toStr(VcfPopulation.HEADER));
 						for (String newCase : newCases) {
 							writer.println(newCase + "\t" + VcfPopulation.CASE + "\t" + superPop);
@@ -488,7 +488,7 @@ public class VCFHistogram implements Serializable {
 		// try {
 		// String finalOutput = outputDir+outputRoot+"_final";
 		// String finalText= finalOutput+".txt";
-		// PrintWriter writer = new PrintWriter(new FileWriter(finalText));
+		// PrintWriter writer = Files.openAppropriateWriter(finalText);
 		// // for (int i = 0; i < histInits.length; i++) {
 		// // writer.p
 		// // }

@@ -1,11 +1,11 @@
 package org.genvisis.seq.analysis;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Set;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -51,7 +51,7 @@ public class TargetRegions<T extends Segment> {
 		String[] subpop = vpop.getSubPop().keySet()
 													.toArray(new String[vpop.getSubPop().keySet().size()]);
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutput));
+			PrintWriter writer = Files.openAppropriateWriter(fullPathToOutput);
 			writer.print("CHR\tStart\tStop\tRef\tAlt\tFILTER");
 			for (String element : subpop) {
 				writer.print("\t" + element + "_AAC");

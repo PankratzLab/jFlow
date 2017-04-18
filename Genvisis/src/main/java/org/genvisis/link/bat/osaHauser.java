@@ -1,11 +1,12 @@
 package org.genvisis.link.bat;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+
+import org.genvisis.common.Files;
 
 public class osaHauser {
 	public int[] maxes = {281, 253, 216, 202, 193, 180, 174, 153, 151, 168, 144, 164, 104, 127, 106,
@@ -26,13 +27,13 @@ public class osaHauser {
 				(new File("chrom" + chrome)).mkdir();
 			}
 
-			writer = new PrintWriter(new FileWriter("chrom" + chrome + "/seeds"));
+			writer = Files.openAppropriateWriter("chrom" + chrome + "/seeds");
 			writer.println((int) (Math.random() * 10000) + "\t" + (int) (Math.random() * 10000) + "\t"
 										 + (int) (Math.random() * 10000));
 			writer.close();
 
 			Calendar calendar = new GregorianCalendar();
-			writer = new PrintWriter(new FileWriter("chrom" + chrome + "/summary"));
+			writer = Files.openAppropriateWriter("chrom" + chrome + "/summary");
 			writer.println((new File(".")).getAbsolutePath());
 			writer.println(calendar.get(Calendar.MONTH) + "/" + calendar.get(Calendar.DAY_OF_MONTH) + "/"
 										 + calendar.get(Calendar.YEAR) + " at " + calendar.get(Calendar.HOUR_OF_DAY)
@@ -42,7 +43,7 @@ public class osaHauser {
 			writer.println(chromosome + "   " + filename);
 			writer.close();
 
-			writer = new PrintWriter(new FileWriter("chrom" + chrome + "/osa" + chrome + ".dat"));
+			writer = Files.openAppropriateWriter("chrom" + chrome + "/osa" + chrome + ".dat");
 			writer.println(filename);
 			writer.println("kac.unwt.lod");
 			writer.println("1   2   0.00001");

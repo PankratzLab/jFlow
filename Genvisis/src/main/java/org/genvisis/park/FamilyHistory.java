@@ -3,12 +3,12 @@ package org.genvisis.park;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
@@ -76,7 +76,7 @@ public class FamilyHistory {
 
 		try {
 			reader = new BufferedReader(new FileReader(CRF_DIR + db_file));
-			writer = new PrintWriter(new FileWriter(CRF_DIR + trait + "_sibHistory.csv"));
+			writer = Files.openAppropriateWriter(CRF_DIR + trait + "_sibHistory.csv");
 			if (quant) {
 				writer.println("FamID,IndID,AvgRelative,MaxRelative,AvgFirstDegree,MaxFirstDegree,AvgWithinSibship,NumberOfSiblingsWithNonMissingData");
 			} else {

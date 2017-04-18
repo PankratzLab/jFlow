@@ -397,9 +397,9 @@ public class Polymutt {
 			new File(ext.parseDirectoryOfFile(filename) + "denovos/").mkdirs();
 			outRoot = ext.parseDirectoryOfFile(filename) + "denovos/" + ext.rootOf(filename, true);
 			writers = new PrintWriter[3];
-			writers[0] = new PrintWriter(new FileWriter(outRoot + "_denovo.vcf"));
-			writers[1] = new PrintWriter(new FileWriter(outRoot + "_ambiguousGenotypesInChild.vcf"));
-			// writers[2] = new PrintWriter(new FileWriter(outRoot+"_lowCoverage.vcf"));
+			writers[0] = Files.openAppropriateWriter(outRoot + "_denovo.vcf");
+			writers[1] = Files.openAppropriateWriter(outRoot + "_ambiguousGenotypesInChild.vcf");
+			// writers[2] = Files.openAppropriateWriter(outRoot+"_lowCoverage.vcf");
 			do {
 				temp = reader.readLine();
 				writers[0].println(temp);
@@ -739,7 +739,7 @@ public class Polymutt {
 				return;
 			}
 
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(controlFile) + "_coverage.xln"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(controlFile) + "_coverage.xln");
 			writer.println("Trio\tCombination\t# lanes\tReadDepth threshold\tFather\tMother\tChild\tEntire Trio");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

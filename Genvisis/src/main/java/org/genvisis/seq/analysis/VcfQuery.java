@@ -289,7 +289,7 @@ public class VcfQuery {
 	private static void dumpToTmpFile(QueryResults queryResults, String[] infoToExtract, String file,
 																		boolean append, Logger log) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(file, append));
+			PrintWriter writer = Files.openAppropriateWriter(file, append);
 			if (!append) {
 				writer.print(ArrayUtils.toStr(DEFAULT_HEADER) + "\t" + ArrayUtils.toStr(infoToExtract));
 				writer.println();

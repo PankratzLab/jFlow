@@ -1,13 +1,13 @@
 package org.genvisis.seq.qc;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
@@ -106,7 +106,7 @@ public class SeqError {
 
 	public void summarize(String fullPathToOutput) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutput));
+			PrintWriter writer = Files.openAppropriateWriter(fullPathToOutput);
 			writer.println(ArrayUtils.toStr(OUTPUT_HEADER));
 			for (DuplicateETwo dETwo : dETwos) {
 				writer.println(dETwo.getSummary());

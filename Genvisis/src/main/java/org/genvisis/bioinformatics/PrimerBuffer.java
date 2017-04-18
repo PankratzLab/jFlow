@@ -61,7 +61,7 @@ public class PrimerBuffer {
 			return;
 		}
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.println("##Reference = " + ext.removeDirectoryInfo(referenceGenomeFast));
 			writer.println("##bp buffer on either side = " + bpBuffer);
 			writer.println(ArrayUtils.toStr(HEADER) + "\t" + ArrayUtils.toStr(HEADER_OUT_ADD));

@@ -3,12 +3,12 @@ package org.genvisis.filesys;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
@@ -151,7 +151,7 @@ public class ResultSet implements Serializable {
 
 		line = new String[Math.max(ArrayUtils.max(snp_indices), ArrayUtils.max(result_indices)) + 1];
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			for (int i = 0; i < markerNames.length; i++) {
 				for (int j = 0; j < line.length; j++) {
 					line[j] = "0";

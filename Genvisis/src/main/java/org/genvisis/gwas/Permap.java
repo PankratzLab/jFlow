@@ -3,12 +3,12 @@ package org.genvisis.gwas;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Transformations;
@@ -49,7 +49,7 @@ public class Permap {
 			// FileWriter(DIR+"plink_similarity.txt"));
 			// writer.println("TITLE= "+"plink.mdist.missing");
 			reader = new BufferedReader(new FileReader(DIR + "plink.mibs"));
-			writer = new PrintWriter(new FileWriter(DIR + "plink.mibs.txt"));
+			writer = Files.openAppropriateWriter(DIR + "plink.mibs.txt");
 			writer.println("TITLE= " + "plink.mibs");
 			writer.println("NOBJECTS= " + peeps.length);
 			writer.println();

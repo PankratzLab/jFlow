@@ -110,7 +110,7 @@ public class Conditional {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + "plink.bim"));
-			writer = new PrintWriter(new FileWriter(dir + "plink.crf"));
+			writer = Files.openAppropriateWriter(dir + "plink.crf");
 			writer.println("plink");
 			writer.println("plink.ped");
 			writer.println("plink.map");
@@ -152,7 +152,7 @@ public class Conditional {
 																					indices, false, "\t", false, false, false);
 			try {
 				reader = new BufferedReader(new FileReader(dir + "counts.xln"));
-				writer = new PrintWriter(new FileWriter(dir + newCovariatesFile));
+				writer = Files.openAppropriateWriter(dir + newCovariatesFile);
 				countMissingCovariate = 0;
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -240,7 +240,7 @@ public class Conditional {
 	//
 	// try {
 	// reader = new BufferedReader(new FileReader(dir+"plink.bim"));
-	// writer = new PrintWriter(new FileWriter(dir+"plink.crf"));
+	// writer = Files.openAppropriateWriter(dir+"plink.crf");
 	// writer.println("plink");
 	// writer.println("plink.ped");
 	// writer.println("plink.map");
@@ -281,7 +281,7 @@ public class Conditional {
 	// false, "\t", false, false, false);
 	// try {
 	// reader = new BufferedReader(new FileReader(dir+"counts.xln"));
-	// writer = new PrintWriter(new FileWriter(dir+newCovariatesFile));
+	// writer = Files.openAppropriateWriter(dir+newCovariatesFile);
 	// while (reader.ready()) {
 	// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 	// if (hash.containsKey(line[0]+"\t"+line[1])) {
@@ -403,7 +403,7 @@ public class Conditional {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + originalPhenotypeFile));
-			writer = new PrintWriter(new FileWriter(dir + newPhenotypeFile));
+			writer = Files.openAppropriateWriter(dir + newPhenotypeFile);
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			writer.print(ArrayUtils.toStr(line));
 			for (String snp : snps) {
@@ -684,8 +684,8 @@ public class Conditional {
 				}
 				if ((run || iterate) && dirs.length > 1) {
 					try {
-						writer = new PrintWriter(new FileWriter(ext.rootOf(outfile, false)
-																										+ ".Nweighted.batch"));
+						writer = Files.openAppropriateWriter(ext.rootOf(outfile, false)
+																										+ ".Nweighted.batch");
 						// writer.println("MARKER MARKER");
 						// writer.println("ALLELE REF OTHER");
 						// writer.println("WEIGHT N");
@@ -708,7 +708,7 @@ public class Conditional {
 						writer.close();
 						CmdLine.run("metal < " + ext.rootOf(outfile, false) + ".Nweighted.batch", "./");
 
-						writer = new PrintWriter(new FileWriter(ext.rootOf(outfile, false) + ".InvVar.batch"));
+						writer = Files.openAppropriateWriter(ext.rootOf(outfile, false) + ".InvVar.batch");
 						// writer.println("MARKER MARKER");
 						// writer.println("ALLELE REF OTHER");
 						// writer.println("EFFECT beta");
@@ -822,7 +822,7 @@ public class Conditional {
 				filename = ext.rootOf(outfile, false)
 											.substring(0, ext.rootOf(outfile, false).lastIndexOf("_iteration"));
 				try {
-					writer = new PrintWriter(new FileWriter(filename + "_table.xln"));
+					writer = Files.openAppropriateWriter(filename + "_table.xln");
 					writer.println("Marker\tChr\tPosition\tAlleles (Ref/Other)\tMAF\tOR (95% CI)\tpval\t# SNPs tagged");
 					for (int j = 0; j < results.size(); j++) {
 						writer.println(results.elementAt(j));
@@ -833,7 +833,7 @@ public class Conditional {
 					e.printStackTrace();
 				}
 				try {
-					writer = new PrintWriter(new FileWriter(filename + "_fullTable.xln"));
+					writer = Files.openAppropriateWriter(filename + "_fullTable.xln");
 					keys = HashVec.getKeys(allMarkers, false);
 					chrs = new byte[keys.length];
 					positions = new int[keys.length];
@@ -907,8 +907,8 @@ public class Conditional {
 				}
 				try {
 					header = !new File(ext.parseDirectoryOfFile(outfile) + "All_tables.xln").exists();
-					writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(outfile)
-																									+ "All_tables.xln", true));
+					writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(outfile)
+																									+ "All_tables.xln", true);
 					if (header) {
 						writer.println("Region\tNumMarkers\tMarker\tChr\tPosition\tAlleles (Ref/Other)\tMAF\tOR (95% CI)\tpval\t# SNPs tagged");
 					}
@@ -952,7 +952,7 @@ public class Conditional {
 		log = new Logger(ext.rootOf(fileWithModels, false) + ".log");
 		models = HashVec.loadFileToStringMatrix(fileWithModels, true, new int[] {0, 1, 2, 3}, false);
 		try {
-			w2 = new PrintWriter(new FileWriter(ext.rootOf(fileWithModels, false) + "_runs.xln"));
+			w2 = Files.openAppropriateWriter(ext.rootOf(fileWithModels, false) + "_runs.xln");
 			w2.println("Region\tNumMarkers\tMarker\tbeta\tpval\tMarker\tmeta-beta\tmeta-pval");
 			for (String[] model : models) {
 				metaFile = model[0];
@@ -1003,8 +1003,8 @@ public class Conditional {
 				try {
 					// need to either pass or detect what kinds of header it is (or you could freaking
 					// standardize it!!)
-					writer = new PrintWriter(new FileWriter(ext.rootOf(filename, true) + "_"
-																									+ ext.rootOf(metaFile, true) + ".InvVar.batch"));
+					writer = Files.openAppropriateWriter(ext.rootOf(filename, true) + "_"
+																									+ ext.rootOf(metaFile, true) + ".InvVar.batch");
 					writer.println("MARKER MarkerName");
 					writer.println("ALLELE Allele1 Allele2");
 					writer.println("EFFECT Effect");
@@ -1088,7 +1088,7 @@ public class Conditional {
 			addlMarkers = null;
 		}
 		try {
-			writer = new PrintWriter(new FileWriter("runAllRegions"));
+			writer = Files.openAppropriateWriter("runAllRegions");
 			for (int i = 0; i < markerNames.length; i++) {
 				if (Files.exists(markerNames[i], false)) {
 					writer.println("echo \"" + (i + 1) + " of " + markerNames.length + ": " + markerNames[i]
@@ -1157,7 +1157,7 @@ public class Conditional {
 																							false);
 		}
 		try {
-			writer = new PrintWriter(new FileWriter("checkAllRegions.out"));
+			writer = Files.openAppropriateWriter("checkAllRegions.out");
 			writer.println("MarkerName\texpected\tobserved");
 			for (int i = 0; i < markerNames.length; i++) {
 				exp = ch.getCount(markerNames[i]);
@@ -1204,7 +1204,7 @@ public class Conditional {
 			try {
 				reader = new BufferedReader(new FileReader(regionNames[i] + "/" + markers[i]
 																									 + "_add.out.txt"));
-				writer = new PrintWriter(new FileWriter("results/" + name + "_" + regionNames[i] + ".txt"));
+				writer = Files.openAppropriateWriter("results/" + name + "_" + regionNames[i] + ".txt");
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				ext.checkHeader(line, Probabel.LOGIST_OUTPUT_HEADER, true);
 				writer.println("MarkerName\tEffect_allele\tReference_allele\tBETA\tSE\tP");
@@ -1352,21 +1352,21 @@ public class Conditional {
 			new File("metas/").mkdir();
 			try {
 				ps = new PrintStream(new File(ext.rootOf(controlFile) + ".log"));
-				w2 = new PrintWriter(new FileWriter("minPvals.out"));
+				w2 = Files.openAppropriateWriter("minPvals.out");
 				w2.print("IndexSnp\tMinConditionalSNP\tMinConditionalPval\tAllele1\tAllele2\tConditionalBeta\tConditionalStdErr");
 				for (String[] dirsAndPattern : dirsAndPatterns) {
 					study = dirsAndPattern[0].substring(0, dirsAndPattern[0].length() - 1);
 					w2.print("\t" + study + "_beta\t" + study + "_SE\t" + study + "_pval");
 				}
 				w2.println();
-				w3 = new PrintWriter(new FileWriter("allPvals.out"));
+				w3 = Files.openAppropriateWriter("allPvals.out");
 				w3.println("IndexSnp(s)\tMinConditionalSNP\tAllele1\tAllele2\tConditionalBeta\tConditionalStdErr\tMinConditionalPval\tDirection");
 				for (int i = 0; i < markersAndChrs.length; i++) {
 					System.out.println("Processing " + (i + 1) + " of " + markersAndChrs.length + " "
 														 + markersAndChrs[i][0]);
 					if (!Files.exists("metas/" + markersAndChrs[i][0] + "_SE1.tbl", false)) {
 						try {
-							writer = new PrintWriter(new FileWriter("metas/" + markersAndChrs[i][0] + ".metal"));
+							writer = Files.openAppropriateWriter("metas/" + markersAndChrs[i][0] + ".metal");
 							writer.println("MARKER " + markerName);
 							writer.println("ALLELE " + effectAllele + " " + refAllele);
 							if (schemeIsStdErr) {

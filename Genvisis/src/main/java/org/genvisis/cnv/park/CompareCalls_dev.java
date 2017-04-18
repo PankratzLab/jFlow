@@ -409,7 +409,7 @@ public class CompareCalls_dev {
 				for (int i = 0; i < maxRepNumber; i++) {
 					files[i] = rootDir + "intermediateFiles/Filtered_LRR_" + lrrFilter + "_conf_" + confFilter
 										 + "_numMarkers_" + numMarkers + "_rep" + i + ".cnv";
-					writers[i] = new PrintWriter(new FileWriter(files[i]));
+					writers[i] = Files.openAppropriateWriter(files[i]);
 					writers[i].println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 					filteredCounts[i] = 0;
 				}
@@ -543,8 +543,8 @@ public class CompareCalls_dev {
 		PrintWriter misswriter, makewriter;
 		int[][] counts = new int[6][5];
 		try {
-			misswriter = new PrintWriter(new FileWriter("C:/data/pennComp/misses.cnv", true));
-			makewriter = new PrintWriter(new FileWriter("C:/data/pennComp/makes.cnv", true));
+			misswriter = Files.openAppropriateWriter("C:/data/pennComp/misses.cnv", true);
+			makewriter = Files.openAppropriateWriter("C:/data/pennComp/makes.cnv", true);
 			int match;
 			int CN = 5;
 			for (int a = 0; a < cnvs[0].length; a++) {
@@ -641,7 +641,7 @@ public class CompareCalls_dev {
 			String file = getFileName(rootDir, compareType, start, stop, comparisons);
 			try {
 				if (comparedCalls[i].getnumPassingAndPresent() != 0) {
-					writers[i] = new PrintWriter(new FileWriter(file, append));
+					writers[i] = Files.openAppropriateWriter(file, append);
 				}
 			} catch (IOException e) {
 				System.err.println("Error creating " + file);
@@ -660,7 +660,7 @@ public class CompareCalls_dev {
 			String file = getFileName(rootDir, compareType, start, stop, comparisons);
 			try {
 				if (comparedCalls[i].getnumPassingAndPresent() != 0) {
-					writers[i] = new PrintWriter(new FileWriter(file, append));
+					writers[i] = Files.openAppropriateWriter(file, append);
 				}
 			} catch (IOException e) {
 				System.err.println("Error creating " + file);
@@ -1190,10 +1190,10 @@ public class CompareCalls_dev {
 // // }
 // // }
 
-// confWriter = new PrintWriter(new FileWriter(rootDir + "confConcordance_" + confstart + "_" +
-// confstop + "LRR" + DEFAULT_LRR_FILTER + "numMarkers" + DEFAULT_NUM_MARKERS_FILTER + ".concord"));
-// lrrWriter = new PrintWriter(new FileWriter(rootDir + "lrrConcordance_" + lrrstart + "_" + lrrstop
-// + "numMarkers" + DEFAULT_NUM_MARKERS_FILTER + "Conf" + DEFAULT_CONF_FILTER + ".concord"));
+// confWriter = Files.openAppropriateWriter(rootDir + "confConcordance_" + confstart + "_" +
+// confstop + "LRR" + DEFAULT_LRR_FILTER + "numMarkers" + DEFAULT_NUM_MARKERS_FILTER + ".concord");
+// lrrWriter = Files.openAppropriateWriter(rootDir + "lrrConcordance_" + lrrstart + "_" + lrrstop
+// + "numMarkers" + DEFAULT_NUM_MARKERS_FILTER + "Conf" + DEFAULT_CONF_FILTER + ".concord");
 
 // if (isDefined(inds, allPossibleCombinations, defineCompHash, hash, allPossibleCombinations[i][0],
 // allPossibleCombinations[i][1], j, k)) {

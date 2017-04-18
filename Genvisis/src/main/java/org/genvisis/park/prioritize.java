@@ -3,12 +3,12 @@ package org.genvisis.park;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class prioritize {
@@ -121,7 +121,7 @@ public class prioritize {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + "-meshed.xls"));
+			writer = Files.openAppropriateWriter(filename + "-meshed.xls");
 			line = reader.readLine().split("\t", -1);
 			lookupIndices[DBs.length] = ext.indexOfStr(lookup, line);
 			if (lookupIndices[DBs.length] == -1) {

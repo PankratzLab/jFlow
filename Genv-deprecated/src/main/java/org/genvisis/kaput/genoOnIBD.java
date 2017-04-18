@@ -87,7 +87,7 @@ public class genoOnIBD {
 			System.exit(2);
 		}
 		reader = new BufferedReader(new FileReader(dumpfile));
-		writer = new PrintWriter(new FileWriter("regressed_" + dumpfile));
+		writer = Files.openAppropriateWriter("regressed_" + dumpfile);
 
 		while (reader.ready()) {
 			line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);

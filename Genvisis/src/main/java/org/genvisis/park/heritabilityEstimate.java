@@ -88,7 +88,7 @@ public class heritabilityEstimate {
 		// vips));
 
 		new File(root).mkdirs();
-		writer = new PrintWriter(new FileWriter(root + "/" + root + ".fam"));
+		writer = Files.openAppropriateWriter(root + "/" + root + ".fam");
 		writer.println("FAMID,ID,FA,MO,SEX");
 		for (int i = 0; i < members.size(); i++) {
 			line = members.elementAt(i);
@@ -96,7 +96,7 @@ public class heritabilityEstimate {
 		}
 		writer.close();
 
-		writer = new PrintWriter(new FileWriter(root + "/" + root + ".ptypes"));
+		writer = Files.openAppropriateWriter(root + "/" + root + ".ptypes");
 		writer.print("FAMID,ID");
 		for (int indice : indices) {
 			writer.print("," + phenoNames[indice]);
@@ -115,7 +115,7 @@ public class heritabilityEstimate {
 		}
 		writer.close();
 
-		writer = new PrintWriter(new FileWriter(root + "/" + root + ".ptypes"));
+		writer = Files.openAppropriateWriter(root + "/" + root + ".ptypes");
 		writer.print("FAMID,ID");
 		for (int indice : indices) {
 			writer.print("," + phenoNames[indice]);
@@ -134,7 +134,7 @@ public class heritabilityEstimate {
 		}
 		writer.close();
 
-		writer = new PrintWriter(new FileWriter(root + "/batch"));
+		writer = Files.openAppropriateWriter(root + "/batch");
 		writer.println("echo -e \"load ped " + root + ".fam\\nautomodel " + root
 									 + ".ptypes Depression\\npolygenic -screen\\nquit\\n\" | solar > " + root
 									 + ".log");
@@ -156,7 +156,7 @@ public class heritabilityEstimate {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + ".batch"));
+			writer = Files.openAppropriateWriter(filename + ".batch");
 			while (reader.ready()) {
 				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[0].startsWith("#")) {

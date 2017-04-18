@@ -61,7 +61,7 @@ public class SummaryFor_dbGaP {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + HWE_FILE));
-			writer = new PrintWriter(new FileWriter(dir + "summary.xln"));
+			writer = Files.openAppropriateWriter(dir + "summary.xln");
 			writer.println(ArrayUtils.toStr(FINAL_HEADER));
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			snpCol = ext.indexFactors(new String[] {"SNP"}, line, false, true)[0];

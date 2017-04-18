@@ -55,7 +55,7 @@ public class SampleList implements Serializable {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			for (String sample : samples) {
 				writer.println(sample);
 			}

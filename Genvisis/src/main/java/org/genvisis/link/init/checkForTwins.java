@@ -2,12 +2,13 @@ package org.genvisis.link.init;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
+
+import org.genvisis.common.Files;
 
 public class checkForTwins {
 	public checkForTwins() throws IOException {
@@ -117,7 +118,7 @@ public class checkForTwins {
 
 		}
 
-		writer = new PrintWriter(new FileWriter("twinCheck.xls"));
+		writer = Files.openAppropriateWriter("twinCheck.xls");
 		writer.println("FamID\tInd1\tInd2\t#Same\t#Diff\tRatio");
 		for (int i = 0; i < matchups.size(); i++) {
 			matchup = matchups.elementAt(i);

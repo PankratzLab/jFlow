@@ -26,7 +26,7 @@ public class XYIntensityBias {
 		new File(outDir).mkdirs();
 		String out = outDir + "xyComp.txt";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(out));
+			PrintWriter writer = Files.openAppropriateWriter(out);
 			String[] xh = ArrayUtils.tagOn(HEADER_BASE, "X_", null);
 			String[] yh = ArrayUtils.tagOn(HEADER_BASE, "Y_", null);
 

@@ -1,7 +1,6 @@
 package org.genvisis.cnv.analysis.pca;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -11,6 +10,7 @@ import java.util.Iterator;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.qc.SampleQC;
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Rscript.PLOT_DEVICE;
 import org.genvisis.stats.Rscript.RScatter;
@@ -246,7 +246,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 		ArrayList<String> titleSummary = new ArrayList<String>();
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.print("PCTitle\tPC");
 			for (StatsCrossTabRank rank : ranks) {
 				titleSummary.add(rank.getRankedTo());
@@ -345,7 +345,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 // try {
 // ArrayList<StatsCrossTabRank> ranks = new ArrayList<StatsCrossTabRank>();
 // Hashtable<String, Integer> has = new Hashtable<String, Integer>();
-// PrintWriter writer = new PrintWriter(new FileWriter(output));
+// PrintWriter writer = Files.openAppropriateWriter(output);
 //
 // writer.println("TYPE\tQC_METRIC\t" + Array.toStr(selector.getpResiduals().getPcTitles()));
 // while (selector.hasNext()) {
@@ -387,7 +387,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 // absStatMin);
 // String[] minMax = new String[] { "Min_" + sType, "Max_" + sType };
 // String outputT = ext.addToRoot(output, ".transposedStat");
-// writer = new PrintWriter(new FileWriter(outputT));
+// writer = Files.openAppropriateWriter(outputT);
 // writer.print("PCTitle\tPC\t" + Array.toStr(minMax));
 // for (int i = 0; i < ranks.size(); i++) {
 // writer.print("\t" + ranks.get(i).getRankedTo());

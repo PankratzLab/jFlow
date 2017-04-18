@@ -1,11 +1,11 @@
 package org.genvisis.seq.manage.vcfPile;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
@@ -90,7 +90,7 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
 										+ ".vcfPile.summary.txt";
 		try {
 
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.println("REGION\tAVG_NUM_VAR\tAVG_GC\tAVG_DP\tAVG_GQ");
 			int index = 0;
 			while (vcfPile.hasNext()) {

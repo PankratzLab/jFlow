@@ -490,7 +490,7 @@ public class PennCNVPrep {
 
 		public void dump(Project proj) {
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(ouputFile, append));
+				PrintWriter writer = Files.openAppropriateWriter(ouputFile, append);
 				if (!append) {
 					writer.println(header);
 				}

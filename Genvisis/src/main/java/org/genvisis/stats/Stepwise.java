@@ -3,7 +3,6 @@ package org.genvisis.stats;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -11,6 +10,7 @@ import java.util.Vector;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.util.Java6Helper;
+import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -385,9 +385,9 @@ public class Stepwise {
 			model.setVarNames(travNames, maxNameSize);
 			Rsum += ext.formStr(i + 1 + "", 4) + "\t"
 							+ (!Java6Helper.isFinite(model.getOverall()) ? "    ."
-																											 : ext.formStr(ext.formDeci(model.getOverall(),
-																																									1, true),
-																																		 7))
+																													 : ext.formStr(ext.formDeci(model.getOverall(),
+																																											1, true),
+																																				 7))
 							+ "\t  " + ext.formDeci(model.getOverallSig(), 3, true) + "\t  "
 							+ ext.formDeci(model.getRsquare(), 3, true) + line_ending;
 			ModelSum += "------ Model " + (i + 1) + (i < 10 ? " -" : " ") + "---------------------------"
@@ -486,7 +486,7 @@ public class Stepwise {
 		double[] data;
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(filename));
+			PrintWriter writer = Files.openAppropriateWriter(filename);
 			writer.print("Dep");
 			for (String varName : varNames) {
 				writer.print("\t" + varName);

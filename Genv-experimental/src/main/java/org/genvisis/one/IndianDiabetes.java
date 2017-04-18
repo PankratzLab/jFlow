@@ -27,7 +27,7 @@ public class IndianDiabetes {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".ped"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + ".ped");
 			line = reader.readLine().trim().split(",", -1);
 			ext.checkHeader(line, new String[] {"NUMBER ", "Sex", "Affected"}, new int[] {0, 1, 2}, false,
 											log, true);
@@ -61,7 +61,7 @@ public class IndianDiabetes {
 			reader.close();
 			writer.close();
 
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".map"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + ".map");
 			for (int i = 0; i < markerNames.length; i++) {
 				if (markerNames[i].toLowerCase().startsWith("chr")) {
 					markerNames[i] = ext.replaceAllWithSafer(markerNames[i], ":", "_");

@@ -393,7 +393,7 @@ public class MarkerBlastIterator {
 				for (int j = 0; j < dHistograms.length; j++) {// for each blast metric
 					String base = BLAST_METRICS.values()[j].toString();
 					allPlotFiles[j] = resultsPlot + "." + base + ".txt";
-					PrintWriter writer = new PrintWriter(new FileWriter(allPlotFiles[j]));
+					PrintWriter writer = Files.openAppropriateWriter(allPlotFiles[j]);
 					String[] titles = new String[3 * parser.getNumericDataTitles().length];
 					int titleIndex = 0;
 					for (int j2 = 0; j2 < dHistograms[j].length; j2++) {// for each marker metric
@@ -510,7 +510,7 @@ public class MarkerBlastIterator {
 															 List<Double> notOneHittersMaxCrossHybe) {
 		int[] sorted = Sort.getSortedIndices(notOneHittersMaxCrossHybe);
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			for (int element : sorted) {
 				writer.println(notOneHitters.get(element) + "\t" + notOneHittersMaxCrossHybe.get(element));
 			}
@@ -747,8 +747,8 @@ public class MarkerBlastIterator {
 		String[] toExtracts = HashVec.loadFileToStringArray(toExtractFile, false, new int[] {0}, false);
 		int[] indices = ext.indexLargeFactors(toExtracts, oneHitters, true, log, false, false);
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
-			PrintWriter writerNot = new PrintWriter(new FileWriter(ext.addToRoot(outputFile, "Not")));
+			PrintWriter writer = Files.openAppropriateWriter(outputFile);
+			PrintWriter writerNot = Files.openAppropriateWriter(ext.addToRoot(outputFile, "Not"));
 
 			for (int i = 0; i < indices.length; i++) {
 				if (indices[i] >= 0) {

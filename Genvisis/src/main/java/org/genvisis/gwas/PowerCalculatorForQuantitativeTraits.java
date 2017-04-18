@@ -194,7 +194,7 @@ public class PowerCalculatorForQuantitativeTraits {
 		//
 		// String str;
 		// try {
-		// writer = new PrintWriter(new FileWriter("dump.txt"));
+		// writer = Files.openAppropriateWriter("dump.txt");
 		// writer.println("Value\tgenotype");
 		// str = "Value\tgenotype\n";
 		// for (int i = 0; i < n; i++) {

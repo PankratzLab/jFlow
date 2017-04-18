@@ -25,7 +25,7 @@ public class batchBRI {
 		String opReps = " reps=1000";
 
 		// do counts on Windows
-		writer = new PrintWriter(new FileWriter("spreadem.bat"));
+		writer = Files.openAppropriateWriter("spreadem.bat");
 		writer.println("cd BRI3");
 
 		for (int i = 0; i < SNPS.length; i++) {
@@ -109,7 +109,7 @@ public class batchBRI {
 		genoPath = "/work/npankrat/BRI3/";
 
 		// do gist on unix
-		writer = new PrintWriter(new FileWriter("gistem"));
+		writer = Files.openAppropriateWriter("gistem");
 		writer.println("cd BRI3");
 
 		for (int i = 0; i < SNPS.length; i++) {
@@ -150,7 +150,7 @@ public class batchBRI {
 		writer.close();
 
 		// run gist for all datasets on Windows
-		writer = new PrintWriter(new FileWriter("gistAll.bat"));
+		writer = Files.openAppropriateWriter("gistAll.bat");
 		writer.println("cd BRI3");
 
 		for (int i = 0; i < SNPS.length; i++) {

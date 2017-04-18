@@ -38,7 +38,7 @@ public class Slopes {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_slopes.xln"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + "_slopes.xln");
 			writer.println("MRN\tSlopeAll\tN\tSlopePre\tN\tSlopePost\tN");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!line[0].equals("MRN")) {
@@ -134,7 +134,7 @@ public class Slopes {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_slopes.xln"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + "_slopes.xln");
 			writer.println("MRN\tSlope\tN");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!line[0].equals("MRN") && !line[0].equals("id")) {

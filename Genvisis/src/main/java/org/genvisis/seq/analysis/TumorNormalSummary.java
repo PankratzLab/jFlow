@@ -1,7 +1,6 @@
 package org.genvisis.seq.analysis;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Set;
@@ -10,6 +9,7 @@ import javax.jms.IllegalStateException;
 
 import org.genvisis.CLI;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -73,7 +73,7 @@ public class TumorNormalSummary {
 																													segBuffer.getStart(),
 																													segBuffer.getStop());
 		try {
-			PrintWriter writerSummary = new PrintWriter(new FileWriter(outSummary));
+			PrintWriter writerSummary = Files.openAppropriateWriter(outSummary);
 			String[][] annos = VCFOps.getAnnotationKeys(vcf, log);
 			writerSummary.println(ArrayUtils.toStr(BASE_OUT) + "\t" + ArrayUtils.toStr(annos[0]));
 

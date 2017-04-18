@@ -3,10 +3,11 @@ package org.genvisis.link;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
+
+import org.genvisis.common.Files;
 
 public class sepByFam {
 
@@ -24,9 +25,9 @@ public class sepByFam {
 			position = Integer.valueOf(args[i].substring(args[i].indexOf("@") + 1)).intValue();
 			chrome = (chromosome < 10) ? "0" + chromosome : "" + chromosome;
 
-			writer = new PrintWriter(new FileWriter("lods" + chrome + "_" + position + ".dat.xls"));
-			// writer = new PrintWriter(new FileWriter("Chromosome "+chrome+" at
-			// "+position+"cM.out.xls"));
+			writer = Files.openAppropriateWriter("lods" + chrome + "_" + position + ".dat.xls");
+			// writer = Files.openAppropriateWriter("Chromosome "+chrome+" at
+			// "+position+"cM.out.xls");
 
 			if ((new File("chromf" + chrome + ".lin.out")).exists()) {
 				reader = new BufferedReader(new FileReader("chromf" + chrome + ".lin.out"));
@@ -90,7 +91,7 @@ public class sepByFam {
 			position = Integer.valueOf(arg.substring(arg.indexOf("@") + 1)).intValue();
 			chrome = (chromosome < 10) ? "0" + chromosome : "" + chromosome;
 
-			writer = new PrintWriter(new FileWriter("lods" + chrome + "_" + position + ".dat.xls"));
+			writer = Files.openAppropriateWriter("lods" + chrome + "_" + position + ".dat.xls");
 
 			if (!(new File("allegro/chromf" + chrome + ".lin.out")).exists()
 					|| !(new File("parametric dominant/chromf" + chrome + ".d.out")).exists()

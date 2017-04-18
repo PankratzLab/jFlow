@@ -42,7 +42,7 @@ public class ImputeChecker {
 			boolean[] foundMask = ArrayUtils.booleanArray(immunoRs.length, false);
 			int snpIndex = ext.indexOfStr("rs_id", headerAric);
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(out));
+				PrintWriter writer = Files.openAppropriateWriter(out);
 				writer.println(ArrayUtils.toStr(immunoRs[0]) + "\t" + ArrayUtils.toStr(headerAric)
 											 + "\tFound\tDirectMatch");
 				BufferedReader reader = Files.getAppropriateReader(aricImpute);

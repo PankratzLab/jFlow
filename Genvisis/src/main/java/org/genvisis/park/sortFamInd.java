@@ -38,7 +38,7 @@ public class sortFamInd {
 		String bakFilename = Files.getBakFilename(filename, super.getClass().getName());
 		(new File(filename)).renameTo(new File(bakFilename));
 		reader = new BufferedReader(new FileReader(bakFilename));
-		writer = new PrintWriter(new FileWriter(filename));
+		writer = Files.openAppropriateWriter(filename);
 
 		for (int i = 0; i < numLines_to_skip; i++) {
 			writer.println(reader.readLine());

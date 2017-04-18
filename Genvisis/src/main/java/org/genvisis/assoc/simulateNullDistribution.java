@@ -19,6 +19,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
@@ -97,7 +98,7 @@ public class simulateNullDistribution {
 		}
 		try {
 			reader = tools.getNinfoReader(2);
-			writer = new PrintWriter(new FileWriter(outputfile));
+			writer = Files.openAppropriateWriter(outputfile);
 			prev = "";
 			done = false;
 			// backup = vips.clone();
@@ -150,10 +151,10 @@ public class simulateNullDistribution {
 				for (int j = 0; j < v.size(); j++) {
 					writer.println(fam + "\t" + v.get(j)
 												 + "\t0\t0\t2\t" + (affs.containsKey(v.get(j))
-																																						 ? (Integer.parseInt(affs.get(v.get(j)))
-																																								+ 1)
-																																							 + "\t1\t1"
-																																						 : "0\t9\t9")
+																																			 ? (Integer.parseInt(affs.get(v.get(j)))
+																																					+ 1)
+																																				 + "\t1\t1"
+																																			 : "0\t9\t9")
 												 + "");
 				}
 
@@ -209,7 +210,7 @@ public class simulateNullDistribution {
 									 ArrayUtils.doubleArray(REP_STEP, 50), false, false).createFile("map.dat");
 
 		try {
-			writer = new PrintWriter(new FileWriter("simulate.opt"));
+			writer = Files.openAppropriateWriter("simulate.opt");
 			writer.println("% Read input in LINKAGE style format:\n" + "PREFILE " + outputfile + "\n"
 										 + "DATFILE map.dat\n\n" + "% Simulate stroke reconstruction pedigrees\n"
 										 + "SIMULATE het:1\n\n" + "% Other options:\n" + "MAXMEMORY 100");
@@ -227,7 +228,7 @@ public class simulateNullDistribution {
 
 			try {
 				reader = new BufferedReader(new FileReader(outputfile + "." + ext.formNum(i + 1, 3)));
-				writer = new PrintWriter(new FileWriter("tr_" + outputfile + ".1"));
+				writer = Files.openAppropriateWriter("tr_" + outputfile + ".1");
 				while (reader.ready()) {
 					temp = reader.readLine();
 					for (int j = 0; j < temp.length(); j++) {
@@ -284,7 +285,7 @@ public class simulateNullDistribution {
 			}
 
 			try {
-				writer = new PrintWriter(new FileWriter((i + 1) + ".out"));
+				writer = Files.openAppropriateWriter((i + 1) + ".out");
 				for (int j = 0; j < REP_STEP; j++) {
 					model = new LogisticRegression(deps, indeps[j], false, false);
 					model.onePerFamily(fams, FAM_REPS_DEFAULT, BOOT_REPS_DEFAULT);

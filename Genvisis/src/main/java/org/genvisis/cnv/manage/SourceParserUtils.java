@@ -41,7 +41,7 @@ public class SourceParserUtils {
 		files = SourceFileParser.getSourceFiles(proj, log);
 	
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + filename));
+			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + filename);
 			for (String file : files) {
 				try {
 					reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + file);
@@ -222,7 +222,7 @@ public class SourceParserUtils {
 							 + (fileNumber > 0 ? "_atFile" + fileNumber : "") + ".xln";
 		log.report("Writing to file {" + filename + "}...", false, true);
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			writer.println("SNP\t" + ArrayUtils.toStr(Sample.ALL_STANDARD_GENOTYPE_FIELDS));
 			for (Entry<String, String[]> entry : hash.entrySet()) {
 				writer.println(entry.getKey() + "\t" + ArrayUtils.toStr(entry.getValue()));

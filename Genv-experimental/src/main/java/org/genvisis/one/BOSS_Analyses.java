@@ -55,9 +55,9 @@ public class BOSS_Analyses {
 		fileNum = 0;
 		new File(dir + "std/").mkdirs();
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "std/file" + fileNum + ".gen"));
-			mapWriter = new PrintWriter(new FileWriter(dir + "std/file" + fileNum + ".pmap"));
-			infoWriter = new PrintWriter(new FileWriter(dir + "std/file" + fileNum + ".mlinfo"));
+			writer = Files.openAppropriateWriter(dir + "std/file" + fileNum + ".gen");
+			mapWriter = Files.openAppropriateWriter(dir + "std/file" + fileNum + ".pmap");
+			infoWriter = Files.openAppropriateWriter(dir + "std/file" + fileNum + ".mlinfo");
 			for (int chr = 1; chr <= 22; chr++) {
 				try {
 					reader = new BufferedReader(new FileReader(dir + root + chr + ".gen"));
@@ -77,9 +77,9 @@ public class BOSS_Analyses {
 							mapWriter.close();
 							infoWriter.close();
 							fileNum++;
-							writer = new PrintWriter(new FileWriter(dir + "std/file" + fileNum + ".gen"));
-							mapWriter = new PrintWriter(new FileWriter(dir + "std/file" + fileNum + ".pmap"));
-							infoWriter = new PrintWriter(new FileWriter(dir + "std/file" + fileNum + ".mlinfo"));
+							writer = Files.openAppropriateWriter(dir + "std/file" + fileNum + ".gen");
+							mapWriter = Files.openAppropriateWriter(dir + "std/file" + fileNum + ".pmap");
+							infoWriter = Files.openAppropriateWriter(dir + "std/file" + fileNum + ".mlinfo");
 							count = 0;
 						}
 					}

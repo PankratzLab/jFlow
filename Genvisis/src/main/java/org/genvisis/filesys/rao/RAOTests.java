@@ -1,9 +1,9 @@
 package org.genvisis.filesys.rao;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.filesys.CNVariant;
@@ -61,7 +61,7 @@ public class RAOTests {
 		log.reportTimeElapsed(time);
 
 		try {
-			PrintWriter awriter = new PrintWriter(new FileWriter(testFile + ".txt"));
+			PrintWriter awriter = Files.openAppropriateWriter(testFile + ".txt");
 			log.reportTimeInfo("Beginning normal write");
 
 			time = System.currentTimeMillis();

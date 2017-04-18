@@ -88,7 +88,7 @@ public class AffySNP6Tables {
 		PrintWriter writer = null;
 		try {
 
-			writer = new PrintWriter(new FileWriter(filename, append));
+			writer = Files.openAppropriateWriter(filename, append);
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: file \"" + filename
 											+ "\" could not be written to (it's probably open)");

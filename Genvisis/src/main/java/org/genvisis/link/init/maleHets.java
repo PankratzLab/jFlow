@@ -31,7 +31,7 @@ public class maleHets {
 			System.err.println("Error: could not find the X pre file \"chrom23.pre\"");
 			System.exit(1);
 		}
-		writer = new PrintWriter(new FileWriter("logfile of errors.out", true));
+		writer = Files.openAppropriateWriter("logfile of errors.out", true);
 
 		System.out.print("Checking for heterozygotes");
 		while (reader.ready()) {
@@ -71,7 +71,7 @@ public class maleHets {
 			(new File("chromosome23.dat")).renameTo((new File(bakFilename)));
 
 			reader = new BufferedReader(new FileReader(bakFilename));
-			writer = new PrintWriter(new FileWriter("chromosome23.dat"));
+			writer = Files.openAppropriateWriter("chromosome23.dat");
 
 			temp = reader.readLine();
 			String crap, lastFam = "";
@@ -92,7 +92,7 @@ public class maleHets {
 					writer.close();
 					(new File("chromosome23.dat")).renameTo((new File("temp")));
 					reader = new BufferedReader(new FileReader("temp"));
-					writer = new PrintWriter(new FileWriter("chromosome23.dat"));
+					writer = Files.openAppropriateWriter("chromosome23.dat");
 					temp = reader.readLine();
 				}
 

@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
@@ -15,6 +14,7 @@ import java.util.regex.Pattern;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -99,7 +99,8 @@ public class crfDB {
 							done = true;
 						} else {
 							if (!new File(line[0]).exists() && !new File(POSS_DIR + line[0]).exists()) {
-								log.reportError("Error - File '" + temp.split(PSF.Regex.GREEDY_WHITESPACE)[0] + "' not found.");
+								log.reportError("Error - File '" + temp.split(PSF.Regex.GREEDY_WHITESPACE)[0]
+																+ "' not found.");
 								problem = true;
 							}
 							for (int i = 2; i < line.length; i++) {
@@ -782,7 +783,8 @@ public class crfDB {
 						}
 						checkBounds(filenameKey[numFiles][0] + ":" + expecteds[numFiles][i],
 												idCollection.elementAt(j).length() == 8
-																																? formatUniqueID(idCollection.elementAt(j)) : idCollection.elementAt(j),
+																																? formatUniqueID(idCollection.elementAt(j))
+																																: idCollection.elementAt(j),
 												allData[numFiles][i], bounds[numFiles][i][0], bounds[numFiles][i][1]);
 					}
 				}
@@ -793,7 +795,7 @@ public class crfDB {
 				log.reportError("Divided by zero " + countDivZero + " times");
 			}
 
-			writer = new PrintWriter(new FileWriter(dir + output_filename));
+			writer = Files.openAppropriateWriter(dir + output_filename);
 			writer.print("UniqueID" + (filenameKey[0][1].split(":").length == 2 ? "\tFamID\tIndID" : ""));
 			temp = "";
 			for (int i = 0; i < specials.size(); i++) {
@@ -827,7 +829,7 @@ public class crfDB {
 			}
 			writer.close();
 
-			writer = new PrintWriter(new FileWriter(dir + "example.ctl"));
+			writer = Files.openAppropriateWriter(dir + "example.ctl");
 			writer.println("\"" + new File(output_filename).getAbsolutePath() + "\" Affected=1 VPD=1");
 			writer.println("AOO");
 			writer.println(temp);
@@ -889,7 +891,7 @@ public class crfDB {
 	}
 
 	public static void dumpData(String dir, String id, String[][] data) throws IOException {
-		PrintWriter writer = new PrintWriter(new FileWriter(dir + id + ".xln"));
+		PrintWriter writer = Files.openAppropriateWriter(dir + id + ".xln");
 		for (String[] element : data) {
 			if (element != null) {
 				for (String element2 : element) {

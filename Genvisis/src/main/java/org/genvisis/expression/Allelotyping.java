@@ -3,13 +3,13 @@ package org.genvisis.expression;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.PSF;
@@ -90,9 +90,9 @@ public class Allelotyping {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "allelotypes.xln"));
+			writer = Files.openAppropriateWriter(dir + "allelotypes.xln");
 			writer.println("Gene\tSNP\tAllele\tRegion\tIndividual\tN\tMean\tStdev\tpval\tlog2ratio\tlog2ratio_stdev\tpval\tratio\tRegionMean\tRegionStdev\tZ-score\tpval from Zdist\tT\tratio\tpval from Tdist");
-			summary = new PrintWriter(new FileWriter(dir + "allelotype_summary.xln"));
+			summary = Files.openAppropriateWriter(dir + "allelotype_summary.xln");
 			// summary.println("gene\tsnp\tN\tproportion\tstd dev\tt-value df\tregion A\tregion B\tregion
 			// C");
 			// summary.println("Gene\tSNP\tAllele\tN\tProportion\tStdev\tt-value\tdf\tregion A
@@ -130,11 +130,12 @@ public class Allelotyping {
 						regionLog2ratios.add(ArrayUtils.mean(log2ratios));
 						writer.println((j == 0 && k == 0
 																						 ? lookup.get(snpKey) + "\t" + snpKey + "\t"
-																							 + (swaps.get(snpKey).split(PSF.Regex.GREEDY_WHITESPACE)[0].equals("yes")
-																																																		 ? swaps.get(snpKey)
-																																																						.split(PSF.Regex.GREEDY_WHITESPACE)[2]
-																																																		 : swaps.get(snpKey)
-																																																						.split(PSF.Regex.GREEDY_WHITESPACE)[1])
+																							 + (swaps.get(snpKey)
+																											 .split(PSF.Regex.GREEDY_WHITESPACE)[0].equals("yes")
+																																																						? swaps.get(snpKey)
+																																																									 .split(PSF.Regex.GREEDY_WHITESPACE)[2]
+																																																						: swaps.get(snpKey)
+																																																									 .split(PSF.Regex.GREEDY_WHITESPACE)[1])
 																						 : "\t\t")
 													 + "\t" + (k == 0 ? regionKeys[j] : "") + "\t" + indKeys[k] + "\t"
 													 + values.size() + "\t" + ArrayUtils.mean(Doubles.toArray(values)) + "\t"
@@ -168,10 +169,10 @@ public class Allelotyping {
 					if (j == 0) {
 						summary.print(lookup.get(snpKey) + "\t" + snpKey + "\t"
 													+ (swaps.get(snpKey).split(PSF.Regex.GREEDY_WHITESPACE)[0].equals("yes")
-																																								? swaps.get(snpKey)
-																																											 .split(PSF.Regex.GREEDY_WHITESPACE)[2]
-																																								: swaps.get(snpKey)
-																																											 .split(PSF.Regex.GREEDY_WHITESPACE)[1])
+																																																	 ? swaps.get(snpKey)
+																																																					.split(PSF.Regex.GREEDY_WHITESPACE)[2]
+																																																	 : swaps.get(snpKey)
+																																																					.split(PSF.Regex.GREEDY_WHITESPACE)[1])
 													+ "\t" + indKeys.length + "\t" + mean + "\t" + stdev + "\t" + t + "\t"
 													+ (indKeys.length - 1));
 					}

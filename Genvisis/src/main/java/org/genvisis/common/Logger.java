@@ -166,7 +166,7 @@ public class Logger implements Serializable {
 
 		if (level >= levelRequiredToReport && logging) {
 			try {
-				writer = new PrintWriter(new FileWriter(filename, true));
+				writer = Files.openAppropriateWriter(filename, true);
 				if (line) {
 					writer.println(str);
 				} else {
@@ -209,7 +209,7 @@ public class Logger implements Serializable {
 
 		if (level >= levelRequiredToReport && logging) {
 			try {
-				writer = new PrintWriter(new FileWriter(filename, true));
+				writer = Files.openAppropriateWriter(filename, true);
 				if (line) {
 					writer.println(err);
 				} else {
@@ -236,7 +236,7 @@ public class Logger implements Serializable {
 		if (level >= levelRequiredToReport && logging) {
 			e.printStackTrace();
 			try {
-				writer = new PrintWriter(new FileWriter(filename, true));
+				writer = Files.openAppropriateWriter(filename, true);
 				writer.println(msg);
 				e.printStackTrace(writer);
 				writer.close();

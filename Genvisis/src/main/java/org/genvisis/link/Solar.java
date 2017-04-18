@@ -37,7 +37,7 @@ public class Solar {
 		Hashtable<String, String> hash;
 
 		reader = new BufferedReader(new FileReader("map" + ext.chrome(chr) + ".dat"));
-		writer = new PrintWriter(new FileWriter("solar.freqs." + chr));
+		writer = Files.openAppropriateWriter("solar.freqs." + chr);
 
 		st = new StringTokenizer(reader.readLine());
 		numMarkers = Integer.valueOf(st.nextToken()).intValue() - 1;
@@ -67,7 +67,7 @@ public class Solar {
 		st = new StringTokenizer(reader.readLine());
 		st.nextToken();
 
-		writer = new PrintWriter(new FileWriter("solar.map." + chr));
+		writer = Files.openAppropriateWriter("solar.map." + chr);
 		writer.println(chr);
 		total = 0;
 		writer.println(ext.formStr(markerV.elementAt(0), 9, true) + "   0.00");
@@ -80,8 +80,8 @@ public class Solar {
 		writer.close();
 
 		reader = new BufferedReader(new FileReader("re_chrom" + ext.chrome(chr) + ".pre"));
-		writer = new PrintWriter(new FileWriter("solar.gtypes." + chr));
-		famtastic = new PrintWriter(new FileWriter("solar.fam"));
+		writer = Files.openAppropriateWriter("solar.gtypes." + chr);
+		famtastic = Files.openAppropriateWriter("solar.fam");
 		writer.print("FAMID,ID");
 		famtastic.println("FAMID,ID,FA,MO,SEX");
 		for (int i = 0; i < markerV.size(); i++) {
@@ -111,7 +111,7 @@ public class Solar {
 																				null, false, false, false);
 
 		reader = new BufferedReader(new FileReader("re_chrom" + ext.chrome(chr) + ".pre"));
-		writer = new PrintWriter(new FileWriter("solar.ptypes"));
+		writer = Files.openAppropriateWriter("solar.ptypes");
 		// writer.println("FAMID,ID,"+trait);
 		writer.println("FAMID,ID,trait");
 
@@ -220,7 +220,7 @@ public class Solar {
 
 		try {
 			reader = new BufferedReader(new FileReader(Files.backup(filename, "", "")));
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			writer.println(reader.readLine());
 			while (reader.ready()) {
 				line = reader.readLine().split(",", -1);

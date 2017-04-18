@@ -9,8 +9,8 @@ import org.genvisis.common.ext;
 public class Allegro {
 	public static void makeOptFile(int chr, String model, boolean unique) throws IOException {
 		String chrome = ext.chrome(chr);
-		PrintWriter writer = new PrintWriter(new FileWriter("useful" + (unique ? chrome : "")
-																												+ ".opt"));
+		PrintWriter writer = Files.openAppropriateWriter("useful" + (unique ? chrome : "")
+																												+ ".opt");
 
 		writer.println("% Read input in LINKAGE style format:");
 		writer.println("PREFILE re_chrom" + chrome + ".pre");

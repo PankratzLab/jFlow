@@ -425,7 +425,7 @@ public class LibraryNGS implements Serializable {
 
 		public void dump(String filename, Logger log) {
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(filename));
+				PrintWriter writer = Files.openAppropriateWriter(filename);
 				writer.println(getHeader());
 				for (int i = 0; i < targetReadDepthResults.length; i++) {
 					writer.println(getSummaryFor(i));

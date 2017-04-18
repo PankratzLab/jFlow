@@ -42,7 +42,7 @@ public class SummarizeOSTrioCoverage {
 		String outputFinal = outDir + "trioCoverageSummary.txt";
 		// if (!Files.exists(outputFinal)) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outputFinal));
+			PrintWriter writer = Files.openAppropriateWriter(outputFinal);
 
 			ArrayList<String> famsNotFound = new ArrayList<String>();
 			SumFamProducer producer = new SumFamProducer(vpop, outDir, log, map);

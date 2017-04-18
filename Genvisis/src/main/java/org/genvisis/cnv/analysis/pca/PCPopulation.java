@@ -470,7 +470,7 @@ public class PCPopulation {
 			TestSampleDistances[] testSampleDistances = pcPopulation.computeDistance();
 			String output = ext.rootOf(genoPCfile, false) + ".ancestry.txt";
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				PrintWriter writer = Files.openAppropriateWriter(output);
 				writer.println("DNA\tSTUDY\t" + ArrayUtils.toStr(testSampleDistances[0].getPopulations())
 											 + "\t" + ArrayUtils.toStr(testSampleDistances[0].getPopulations()));
 				for (TestSampleDistances testSampleDistance : testSampleDistances) {

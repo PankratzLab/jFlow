@@ -55,7 +55,7 @@ public class computeLODs {
 			}
 
 			try {
-				writer = new PrintWriter(new FileWriter("chrom" + chrome + ".out"));
+				writer = Files.openAppropriateWriter("chrom" + chrome + ".out");
 
 				reader.readLine();
 				numLoci = 0;

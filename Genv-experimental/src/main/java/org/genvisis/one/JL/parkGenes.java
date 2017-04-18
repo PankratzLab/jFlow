@@ -55,7 +55,7 @@ public class parkGenes {
 
 		String out = "D:/data/NGRC/cnvs/pdGenes.cnv";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(out));
+			PrintWriter writer = Files.openAppropriateWriter(out);
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\tGENE");
 			for (CNVariant cnv : found) {
 				for (GeneData gene : genLocs) {

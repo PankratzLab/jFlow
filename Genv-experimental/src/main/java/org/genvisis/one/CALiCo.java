@@ -285,7 +285,7 @@ public class CALiCo {
 
 		double[] minPvalues = new double[uniqueMarkers.length];
 		try {
-			writer = new PrintWriter(new FileWriter(resultDir + "minimumPvalues.txt"));
+			writer = Files.openAppropriateWriter(resultDir + "minimumPvalues.txt");
 			writer.println("MarkerName\tminPval\tGenes");
 			for (int i = 0; i < minPvalues.length; i++) {
 				minPvalues[i] = minimumPvalueHash.get(uniqueMarkers[i]);
@@ -426,7 +426,7 @@ public class CALiCo {
 	//
 	// double[] minPvalues = new double[uniqueMarkers.length];
 	// try {
-	// writer = new PrintWriter(new FileWriter(phenoCovarDir+"minimumPvalues.txt"));
+	// writer = Files.openAppropriateWriter(phenoCovarDir+"minimumPvalues.txt");
 	// writer.println("MarkerName\tminPval\tGenes");
 	// for (int i = 0; i < minPvalues.length; i++) {
 	// minPvalues[i] = minimumPvalueHash.get(uniqueMarkers[i]);
@@ -571,7 +571,7 @@ public class CALiCo {
 	//
 	// try {
 	// reader = new BufferedReader(new FileReader(scratchDir+root+"_pheno.dat.temp"));
-	// writer = new PrintWriter(new FileWriter(scratchDir+root+"_pheno.dat"));
+	// writer = Files.openAppropriateWriter(scratchDir+root+"_pheno.dat");
 	// //header
 	// writer.println(reader.readLine());
 	// while (reader.ready()) {
@@ -730,7 +730,7 @@ public class CALiCo {
 
 				try {
 					reader = new BufferedReader(new FileReader(outputDir + root + "_pheno.dat.temp"));
-					writer = new PrintWriter(new FileWriter(outputDir + root + "_pheno.dat"));
+					writer = Files.openAppropriateWriter(outputDir + root + "_pheno.dat");
 					// header
 					writer.println(reader.readLine());
 					while (reader.ready()) {

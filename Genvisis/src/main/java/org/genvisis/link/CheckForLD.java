@@ -62,7 +62,7 @@ public class CheckForLD {
 				reader.close();
 
 				keys = HashVec.getNumericKeys(hash);
-				writer = new PrintWriter(new FileWriter(dir + checkDir + "check" + ext.chrome(i) + ".pre"));
+				writer = Files.openAppropriateWriter(dir + checkDir + "check" + ext.chrome(i) + ".pre");
 				for (String key : keys) {
 					writer.println(hash.get(key));
 				}
@@ -109,8 +109,8 @@ public class CheckForLD {
 		for (int i = start; i <= stop; i++) {
 			data = markersByChrome.get(i + "");
 			try {
-				writer = new PrintWriter(new FileWriter(dir + checkDir + "check" + ext.chrome(i)
-																								+ ".info"));
+				writer = Files.openAppropriateWriter(dir + checkDir + "check" + ext.chrome(i)
+																								+ ".info");
 				for (String element : data) {
 					line = markerPositions.get(element).split(PSF.Regex.GREEDY_WHITESPACE);
 					if (line[0].equals("-1")) {
@@ -178,7 +178,7 @@ public class CheckForLD {
 			data = markersByChrome.get(i + "");
 			chrome = ext.chrome(i);
 			try {
-				writer = new PrintWriter(new FileWriter(root + checkDir + "hapmap" + chrome + ".info"));
+				writer = Files.openAppropriateWriter(root + checkDir + "hapmap" + chrome + ".info");
 				for (String element : data) {
 					line = markerPositions.get(element).split(PSF.Regex.GREEDY_WHITESPACE);
 					if (line[0].equals("-1")) {
@@ -227,7 +227,7 @@ public class CheckForLD {
 			log.report("Creating a faster local copy of the SNP positions found in " + DBSNP_SOURCE);
 			time = new Date().getTime();
 			reader = Files.getAppropriateReader(DBSNP_SOURCE);
-			writer = new PrintWriter(new FileWriter(fileout));
+			writer = Files.openAppropriateWriter(fileout);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (markerPositions.containsKey("rs" + line[0])) {
@@ -257,7 +257,7 @@ public class CheckForLD {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(root + checkDir + prefix + "_haplo.bat"));
+			writer = Files.openAppropriateWriter(root + checkDir + prefix + "_haplo.bat");
 			for (int chr = 1; chr <= 22; chr++) {
 				writer.println("java -jar Haploview.jar -nogui -pedfile " + prefix + ext.chrome(chr)
 											 + ".pre -info " + prefix + ext.chrome(chr) + ".info -check -dprime");
@@ -280,7 +280,7 @@ public class CheckForLD {
 		Vector<String> v = new Vector<String>();
 
 		try {
-			writer = new PrintWriter(new FileWriter(root + checkDir + prefix + "_summary.xln"));
+			writer = Files.openAppropriateWriter(root + checkDir + prefix + "_summary.xln");
 			writer.println("SNP\tChr\tPosition\tMAF\tObsHET\tPredHET\tHWpval\tMax LD marker\tD'\tr2\tHapMap MAF\tHapMap HW\tHapMap Max LD marker\tHapMap D'\tHapMap r2");
 
 			for (int chr = 1; chr <= 22; chr++) {
@@ -349,7 +349,7 @@ public class CheckForLD {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(root + "dropList.dat"));
+			writer = Files.openAppropriateWriter(root + "dropList.dat");
 			for (int i = 0; i < v.size(); i++) {
 				writer.println(v.elementAt(i));
 			}

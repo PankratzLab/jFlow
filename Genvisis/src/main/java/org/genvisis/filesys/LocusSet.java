@@ -1,6 +1,5 @@
 package org.genvisis.filesys;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -11,6 +10,7 @@ import java.util.Vector;
 
 import org.genvisis.cnv.var.MosaicRegion;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
@@ -321,7 +321,7 @@ public class LocusSet<T extends Segment> implements Serializable {
 		log.reportTimeInfo("Writing " + loci.length + " loci to " + filename);
 		boolean written = true;
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(filename));
+			PrintWriter writer = Files.openAppropriateWriter(filename);
 			for (T seg : loci) {
 				writer.println(Positions.getChromosomeUCSC(seg.getChr(), !numericChrs) + "\t"
 											 + seg.getStart() + "\t" + seg.getStop());
@@ -346,7 +346,7 @@ public class LocusSet<T extends Segment> implements Serializable {
 		log.reportTimeInfo("Writing " + loci.length + " loci to " + filename);
 		boolean written = true;
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(filename));
+			PrintWriter writer = Files.openAppropriateWriter(filename);
 			for (int i = 0; i < loci.length; i++) {
 				if (i == 0 && header) {
 					writer.println(ArrayUtils.toStr(loci[i].getHeader()));

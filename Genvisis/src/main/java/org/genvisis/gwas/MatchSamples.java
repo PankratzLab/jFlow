@@ -117,7 +117,7 @@ public class MatchSamples {
 			time = new Date().getTime();
 
 			try {
-				writer = new PrintWriter(new FileWriter(dir + filename));
+				writer = Files.openAppropriateWriter(dir + filename);
 				// writer = new PrintWriter(new
 				// FileWriter(dir+"distances_1-100.xln"));
 				writer.println(anchors.length + "\t" + barnacles.length);
@@ -207,7 +207,7 @@ public class MatchSamples {
 		time = new Date().getTime();
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "pihats.xln"));
+			writer = Files.openAppropriateWriter(dir + "pihats.xln");
 			writer.println(anchors.length + "\t" + barnacles.length);
 			writer.println("Anchor\t" + ArrayUtils.toStr(barnacles));
 			for (int i = 0; i < anchors.length; i++) {
@@ -219,7 +219,7 @@ public class MatchSamples {
 			e.printStackTrace();
 		}
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "dsts.xln"));
+			writer = Files.openAppropriateWriter(dir + "dsts.xln");
 			writer.println(anchors.length + "\t" + barnacles.length);
 			writer.println("Anchor\t" + ArrayUtils.toStr(barnacles));
 			for (int i = 0; i < anchors.length; i++) {
@@ -231,7 +231,7 @@ public class MatchSamples {
 			e.printStackTrace();
 		}
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "ratios.xln"));
+			writer = Files.openAppropriateWriter(dir + "ratios.xln");
 			writer.println(anchors.length + "\t" + barnacles.length);
 			writer.println("Anchor\t" + ArrayUtils.toStr(barnacles));
 			for (int i = 0; i < anchors.length; i++) {
@@ -341,7 +341,7 @@ public class MatchSamples {
 				System.out.println("done");
 
 				try {
-					writer = new PrintWriter(new FileWriter(dir + ext.rootOf(distanceFile) + "_norm.xln"));
+					writer = Files.openAppropriateWriter(dir + ext.rootOf(distanceFile) + "_norm.xln");
 					writer.println(anchors.length + "\t" + barnacles.length);
 					writer.println("Anchor\t" + ArrayUtils.toStr(barnacles));
 					for (int i = 0; i < anchors.length; i++) {
@@ -444,8 +444,8 @@ public class MatchSamples {
 					}
 				}
 			}
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(distanceFile) + "_"
-																							+ (minMin_not_maxMin ? "min" : "max") + "Min.xln"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(distanceFile) + "_"
+																							+ (minMin_not_maxMin ? "min" : "max") + "Min.xln");
 			writer.println("Anchor\tBarnaclePair");
 			for (int i = 0; i < anchors.length; i++) {
 				writer.println(anchors[i] + "\t" + barnacles[matches[i]] + "\t" + finalDists[i]);
@@ -648,7 +648,7 @@ public class MatchSamples {
 		System.out.println(results);
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(pairings) + "_summary1.out"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(pairings) + "_summary1.out");
 			writer.println(results);
 			writer.close();
 		} catch (Exception e) {

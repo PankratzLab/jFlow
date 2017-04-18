@@ -62,7 +62,7 @@ public class RemoveMarkersFromResults {
 			file.renameTo(new File(future));
 			try {
 				reader = new BufferedReader(new FileReader(future));
-				writer = new PrintWriter(new FileWriter(current));
+				writer = Files.openAppropriateWriter(current);
 
 				temp = reader.readLine();
 				writer.println(temp);

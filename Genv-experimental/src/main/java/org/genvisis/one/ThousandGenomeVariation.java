@@ -36,9 +36,9 @@ public class ThousandGenomeVariation {
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
 			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), HEADER, false);
-			writer = new PrintWriter(new FileWriter(dir + variation));
+			writer = Files.openAppropriateWriter(dir + variation);
 			writer.println("track name=\"DeepTrioVariation\" description=\"1000genomes variation\" visibility=2 itemRgb=\"On\"");
-			writer2 = new PrintWriter(new FileWriter(dir + "region.xln"));
+			writer2 = Files.openAppropriateWriter(dir + "region.xln");
 			while (reader.ready()) {
 				temp = reader.readLine();
 				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);

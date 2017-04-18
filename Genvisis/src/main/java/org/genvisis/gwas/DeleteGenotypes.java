@@ -106,7 +106,7 @@ public class DeleteGenotypes {
 					try {
 						reader = new BufferedReader(new FileReader(Files.backup(sources.elementAt(j), dir,
 																																		dir + BACKUP_DIRECTORY)));
-						writer = new PrintWriter(new FileWriter(dir + sources.elementAt(j)));
+						writer = Files.openAppropriateWriter(dir + sources.elementAt(j));
 						for (int k = 0; k < 11; k++) {
 							writer.println(reader.readLine());
 						}
@@ -183,7 +183,7 @@ public class DeleteGenotypes {
 		});
 
 		try {
-			writer = new PrintWriter(new FileWriter(LOOKUP));
+			writer = Files.openAppropriateWriter(LOOKUP);
 			for (File file : files) {
 				try {
 					System.out.println(file.getName());

@@ -55,7 +55,7 @@ public class PlinkToLinkage {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "slimmedList.txt"));
+			writer = Files.openAppropriateWriter(dir + "slimmedList.txt");
 			for (int i = 0; i < autos.size(); i++) {
 				writer.println(markerNames[autos.elementAt(i)]);
 			}
@@ -127,7 +127,7 @@ public class PlinkToLinkage {
 			try {
 				reader = new BufferedReader(new FileReader(dir + pedigree));
 				backup = Files.backup("chrom" + ext.chrome(chr) + ".pre", dir, dir, true);
-				writer = new PrintWriter(new FileWriter(dir + "chrom" + ext.chrome(chr) + ".pre"));
+				writer = Files.openAppropriateWriter(dir + "chrom" + ext.chrome(chr) + ".pre");
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.print(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, 6)));

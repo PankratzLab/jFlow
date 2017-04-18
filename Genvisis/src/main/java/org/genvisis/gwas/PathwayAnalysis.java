@@ -266,7 +266,7 @@ public class PathwayAnalysis {
 		keys = ArrayUtils.random(trait.length);
 		try {
 			reader = new BufferedReader(new FileReader(pheno));
-			writer = new PrintWriter(new FileWriter(filenames[0]));
+			writer = Files.openAppropriateWriter(filenames[0]);
 			writer.println(reader.readLine());
 			for (int i = 0; i < trait.length; i++) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -305,7 +305,7 @@ public class PathwayAnalysis {
 
 			try {
 				reader = new BufferedReader(new FileReader(covars));
-				writer = new PrintWriter(new FileWriter(filenames[1]));
+				writer = Files.openAppropriateWriter(filenames[1]);
 				writer.println(reader.readLine());
 				for (int i = 0; i < trait.length; i++) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -584,7 +584,7 @@ public class PathwayAnalysis {
 
 		try {
 			reader = new BufferedReader(new FileReader(groupings_file));
-			writer = new PrintWriter(new FileWriter("AllPathways.xln"));
+			writer = Files.openAppropriateWriter("AllPathways.xln");
 			writer.println("Main Heading\tHeader\tPathway\tPathwayName\tSubHeader\t# genes\t# genes Covered\t# snps in pathway\tEMP1");
 			temp = reader.readLine();
 			while (reader.ready()) {
@@ -669,7 +669,7 @@ public class PathwayAnalysis {
 			Files.writeArray(ArrayUtils.toStringArray(kegg.pathways.get(key)),
 											 dir + "pathways/" + key + ".list");
 			try {
-				writer = new PrintWriter(new FileWriter(dir + "pathways/" + key + ".crf"));
+				writer = Files.openAppropriateWriter(dir + "pathways/" + key + ".crf");
 				writer.println("genes");
 				writer.println(dir + "pathways/" + key + ".list 0 out=" + dir + "pathways/" + key
 											 + ".snps");
@@ -684,7 +684,7 @@ public class PathwayAnalysis {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "genes.xln"));
+			writer = Files.openAppropriateWriter(dir + "genes.xln");
 			keys = HashVec.getKeys(kegg.genes);
 			for (String key : keys) {
 				writer.println(key + "\t" + kegg.genes.get(key).size() + "\t"
@@ -698,7 +698,7 @@ public class PathwayAnalysis {
 
 		try {
 			reader = new BufferedReader(new FileReader(groupings_file));
-			writer = new PrintWriter(new FileWriter(dir + "groupings.xln"));
+			writer = Files.openAppropriateWriter(dir + "groupings.xln");
 			writer.println("Main Heading\tHeader\tPathway\tPathwayName\tSubHeader\t# genes");
 			temp = reader.readLine();
 			while (reader.ready()) {
@@ -742,7 +742,7 @@ public class PathwayAnalysis {
 	//
 	// sets = HashVec.loadFileToStringArray(list, false, new int[] {0}, false);
 	// try {
-	// writer = new PrintWriter(new FileWriter(ext.rootOf(list)+"_results.xln"));
+	// writer = Files.openAppropriateWriter(ext.rootOf(list)+"_results.xln");
 	// writer.println("Pathway\ticam_whites\tpsel_whites");
 	// for (int i = 0; i<sets.length; i++) {
 	// writer.println(sets[i]+"\t"+
@@ -782,7 +782,7 @@ public class PathwayAnalysis {
 
 		try {
 			reader = new BufferedReader(new FileReader(groupings_file));
-			writer = new PrintWriter(new FileWriter(dir + "groupings2.xln"));
+			writer = Files.openAppropriateWriter(dir + "groupings2.xln");
 			writer.println("Main Heading\tHeader\tPathway\tPathwayName\tSubHeader\t# genes\t# genes Covered\t# times genes covered");
 			temp = reader.readLine();
 			while (reader.ready()) {
@@ -859,7 +859,7 @@ public class PathwayAnalysis {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(output));
+			writer = Files.openAppropriateWriter(output);
 			reader.readLine();
 			writer.println("GeneID\tlocation");
 			while (reader.ready()) {

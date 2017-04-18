@@ -132,7 +132,7 @@ public class CompExomeDepthConcordance {
 																														 true, true, 0, log);
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outFile));
+			PrintWriter writer = Files.openAppropriateWriter(outFile);
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER)
 										 + "\tmappability\tInProblematicRegion");
 			for (int i = 0; i < out.getLoci().length; i++) {

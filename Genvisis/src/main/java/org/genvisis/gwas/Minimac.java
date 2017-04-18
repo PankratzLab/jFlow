@@ -177,7 +177,7 @@ public class Minimac {
 
 		try {
 			reader = new BufferedReader(new FileReader(hapFile));
-			writer = new PrintWriter(new FileWriter(newHapFilename));
+			writer = Files.openAppropriateWriter(newHapFilename);
 			count = 0;
 			while (reader.ready()) {
 				count++;
@@ -337,7 +337,7 @@ public class Minimac {
 			}
 			reader.close();
 
-			writer = new PrintWriter(new FileWriter(rootForOutput + ".ped"));
+			writer = Files.openAppropriateWriter(rootForOutput + ".ped");
 			for (int i = 0; i < ids.length; i++) {
 				writer.print(ids[i] + "\t" + ids[i] + "\t0\t0\t1\t1");
 				for (int j = 0; j < markers.length; j++) {
@@ -371,7 +371,7 @@ public class Minimac {
 			}
 			reader.close();
 
-			writer = new PrintWriter(new FileWriter(rootForOutput + ".map"));
+			writer = Files.openAppropriateWriter(rootForOutput + ".map");
 			for (int i = 0; i < markers.length; i++) {
 				if (map[i] == null) {
 					writer.println("0\t" + markers[i] + "\t0\t" + i);
@@ -382,7 +382,7 @@ public class Minimac {
 			}
 			writer.close();
 
-			writer = new PrintWriter(new FileWriter(rootForOutput + ".info"));
+			writer = Files.openAppropriateWriter(rootForOutput + ".info");
 			for (int i = 0; i < markers.length; i++) {
 				if (map[i] == null) {
 					writer.println(markers[i] + "\t" + i);
@@ -518,8 +518,8 @@ public class Minimac {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(files[0])
-																							+ "haplotype_comparison.xln"));
+			writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(files[0])
+																							+ "haplotype_comparison.xln");
 			writer.print("Marker");
 			for (String[] id : ids) {
 				for (int j = 0; j < files.length + 1; j++) {
@@ -625,7 +625,7 @@ public class Minimac {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(hapFile, true) + "_freq.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(hapFile, true) + "_freq.xln");
 			writer.println(ArrayUtils.toStr(FREQ_HEADER));
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.print(markerNames[i] + "\t" + alleleCounts[i][0]);
@@ -650,7 +650,7 @@ public class Minimac {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter("batchFreq"));
+			writer = Files.openAppropriateWriter("batchFreq");
 			writer.println("mkdir /share/archive/1000G_phased/freq/");
 			writer.println("cd /share/archive/1000G_phased/freq/");
 			writer.println("mkdir /share/archive/1000G_phased/hap/EUR/unzipped/");
@@ -823,7 +823,7 @@ public class Minimac {
 		String commands;
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.addToRoot(pheno, "_desc")));
+			writer = Files.openAppropriateWriter(ext.addToRoot(pheno, "_desc"));
 			line = Files.getHeaderOfFile(pheno, PSF.Regex.GREEDY_WHITESPACE, new Logger());
 			writer.println("A affected");
 			for (int i = 6; i < line.length; i++) {

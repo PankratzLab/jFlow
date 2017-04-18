@@ -3,12 +3,12 @@ package org.genvisis.assoc;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 
 public class haploPerm {
@@ -35,13 +35,13 @@ public class haploPerm {
 		n = inds.size();
 
 		for (int i = 1; i <= numReps; i++) {
-			writer = new PrintWriter(new FileWriter("aff." + i));
+			writer = Files.openAppropriateWriter("aff." + i);
 			randKey = ArrayUtils.random(n);
 			for (int j = 0; j < n; j++) {
 				writer.println(inds.elementAt(j) + "\t" + affstat.elementAt(randKey[j]));
 			}
 			writer.close();
-			writer = new PrintWriter(new FileWriter("perm." + i));
+			writer = Files.openAppropriateWriter("perm." + i);
 			writer.println("library(haplo.stats)");
 			writer.println("geno<-matrix(scan(\"first3.pre\"), ncol = 11, byrow=T)[,6:11]");
 			// writer.println("geno<-matrix(scan(\"pd4.pre\"), ncol = 13,
@@ -69,7 +69,7 @@ public class haploPerm {
 			writer.close();
 		}
 
-		writer = new PrintWriter(new FileWriter("batchHaploPerm"));
+		writer = Files.openAppropriateWriter("batchHaploPerm");
 		for (int i = 1; i <= numReps; i++) {
 			writer.println("Splus7.0 BATCH perm." + i + " check." + i + ".out");
 			writer.println("sleep 6");

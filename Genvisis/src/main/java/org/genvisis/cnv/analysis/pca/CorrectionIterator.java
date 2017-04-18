@@ -338,7 +338,7 @@ public class CorrectionIterator implements Serializable {
 			ArrayList<EvaluationResult> store = new ArrayList<EvaluationResult>();
 
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(iterationResult.getOutputSummary()));
+				PrintWriter writer = Files.openAppropriateWriter(iterationResult.getOutputSummary());
 				WorkerTrain<EvaluationResult> train = new WorkerTrain<EvaluationResult>(cEvaluator,
 																																								numthreads,
 																																								numthreads,
@@ -538,7 +538,7 @@ public class CorrectionIterator implements Serializable {
 					EvaluationResult[] evaluationResults = EvaluationResult.readSerial(outputSer, log);
 					try {
 						String outputBox = ext.addToRoot(boxPlot, sampleDataStratCats[i]);
-						PrintWriter writer = new PrintWriter(new FileWriter(outputBox));
+						PrintWriter writer = Files.openAppropriateWriter(outputBox);
 						writer.print(sampleDataStratCats[i]);
 						ArrayList<String> pcYs = new ArrayList<String>();
 						for (int j = 0; j < evaluationResults.length; j++) {
@@ -585,7 +585,7 @@ public class CorrectionIterator implements Serializable {
 																										sampleDataStratCats[i] + "_" + numericStratCat);
 								double[] data = parser.getNumericDataForTitle(numericStratCat);
 								if (data != null) {
-									PrintWriter writerSub = new PrintWriter(new FileWriter(outputBoxSub));
+									PrintWriter writerSub = Files.openAppropriateWriter(outputBoxSub);
 									writerSub.print(sampleDataStratCats[i] + "\t" + numericStratCat);
 									ArrayList<String> pcYsub = new ArrayList<String>();
 
@@ -834,7 +834,7 @@ public class CorrectionIterator implements Serializable {
 							log.reportError("Could not find " + ArrayUtils.toStr(toExtract) + " in " + tmpHerit);
 							return null;
 						}
-						PrintWriter writer = new PrintWriter(new FileWriter(heritSummary));
+						PrintWriter writer = Files.openAppropriateWriter(heritSummary);
 						writer.println(ArrayUtils.toStr(HERIT_ADDITIONS) + "\t" + reader.readLine().trim());
 						int index = 0;
 						while (reader.ready()) {
@@ -1155,7 +1155,7 @@ public class CorrectionIterator implements Serializable {
 		Logger log = proj.getLog();
 		String finalCompFile = outputDir + "/typed/" + "evals.finalComp.txt";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(finalCompFile));
+			PrintWriter writer = Files.openAppropriateWriter(finalCompFile);
 			ArrayList<String> header = new ArrayList<String>();
 			header.add("MODEL_BUILDER_TYPE");
 			header.add("ORDER_TYPE");
@@ -2045,7 +2045,7 @@ public class CorrectionIterator implements Serializable {
 // private void plotQuants(EvaluationResult[] evaluationResults, String outputQuant, double[] data,
 // int numq, String sampleDataStratCats, Logger log) throws IOException {
 // String realOut = ext.addToRoot(outputQuant, ".numQ_" + numq);
-// PrintWriter writerQuant = new PrintWriter(new FileWriter(realOut));
+// PrintWriter writerQuant = Files.openAppropriateWriter(realOut);
 // ArrayList<String> pcYsubQ = new ArrayList<String>();
 // String dataTitle = sampleDataStratCats + ".quant_" + numq;
 // pcYsubQ.add(dataTitle);

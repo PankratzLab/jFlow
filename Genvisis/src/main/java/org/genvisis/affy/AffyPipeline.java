@@ -200,7 +200,7 @@ public class AffyPipeline {
 		String smallCelList = outDir + "tmp" + ext.getTimestampForFilename();
 		String currentAnalysis = analysisName + "_probelistGenerator";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(smallCelList));
+			PrintWriter writer = Files.openAppropriateWriter(smallCelList);
 			writer.println(AFFY_CEL_LIST_HEADER);
 			writer.println(celFile);
 			writer.close();

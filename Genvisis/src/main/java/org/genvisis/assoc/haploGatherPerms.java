@@ -3,10 +3,10 @@ package org.genvisis.assoc;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.stats.ProbDist;
@@ -25,8 +25,8 @@ public class haploGatherPerms {
 
 		count = 0;
 		df_probs = 0;
-		addons = new PrintWriter(new FileWriter("gatherAdditionalPerms"));
-		writer = new PrintWriter(new FileWriter("globals.xls"));
+		addons = Files.openAppropriateWriter("gatherAdditionalPerms");
+		writer = Files.openAppropriateWriter("globals.xls");
 
 		for (int i = 1; i <= numReps; i++) {
 			if (new File("bintests/" + i + "_bintest.out").exists()) {
@@ -109,7 +109,7 @@ public class haploGatherPerms {
 		temp += "Alpha for p=0.001 is " + ext.formDeci(lt001 / (double) total, 5, true) + "\n";
 		temp += "Alpha for p=0.0001 is " + ext.formDeci(lt0001 / (double) total, 5, true) + "\n";
 		temp += "Alpha for p=0.00001 is " + ext.formDeci(lt00001 / (double) total, 5, true) + "\n";
-		writer = new PrintWriter(new FileWriter("haploPerm_summary.out"));
+		writer = Files.openAppropriateWriter("haploPerm_summary.out");
 		System.out.println(temp);
 		writer.println(temp);
 		writer.close();
@@ -120,7 +120,7 @@ public class haploGatherPerms {
 		PrintWriter writer = null;
 
 		try {
-			writer = new PrintWriter(new FileWriter("sp_perm." + i));
+			writer = Files.openAppropriateWriter("sp_perm." + i);
 		} catch (IOException ioe) {
 		}
 

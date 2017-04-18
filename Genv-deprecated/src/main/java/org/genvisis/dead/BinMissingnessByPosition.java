@@ -41,7 +41,7 @@ public class BinMissingnessByPosition {
 		}
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + ".out"));
+			writer = Files.openAppropriateWriter(filename + ".out");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(ArrayUtils.toStr(line) + "\t" + hash.get(line[1]));
@@ -117,7 +117,7 @@ public class BinMissingnessByPosition {
 			}
 			reader.close();
 
-			writer = new PrintWriter(new FileWriter(filename + "_binned.xln"));
+			writer = Files.openAppropriateWriter(filename + "_binned.xln");
 			writer.println("Chr\tbin start pos\tbin stop pos\t" + ArrayUtils.toStr(THRESHOLDS));
 			for (int i = 0; i < counts.length; i++) {
 				for (int j = 0; j < counts[i].length; j++) {

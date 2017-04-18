@@ -431,7 +431,7 @@ public class cnvTrio extends CNVariant {
 											+ count + "/" + cnVariants.length + " cnvs are being analyzed");
 		}
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(parentOutput + BEAST_OUTPUT[4]));
+			PrintWriter writer = Files.openAppropriateWriter(parentOutput + BEAST_OUTPUT[4]);
 			writer.println(ArrayUtils.toStr(PLINK_CNV_HEADER));
 			for (int i = 0; i < parentalCNVs.size(); i++) {
 				writer.println(parentalCNVs.get(i).toPlinkFormat());
@@ -877,18 +877,18 @@ public class cnvTrio extends CNVariant {
 		}
 		Collections.sort(filteredCnvTrios);
 		try {
-			PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																																 + ouput + COMBINED_TRIOS[2]));
-			PrintWriter writerCNV = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+			PrintWriter writerSummary = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																																 + ouput + COMBINED_TRIOS[2]);
+			PrintWriter writerCNV = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
 																														 + ouput + COMBINED_TRIOS[2]
-																														 + COMBINED_TRIOS[3]));
+																														 + COMBINED_TRIOS[3]);
 			// TODO potential bug? gets first CNV filename and writes to file
 			// PrintWriter writerList = new PrintWriter(new
 			// FileWriter(proj.getFilename(proj.INDIVIDUAL_CNV_LIST_FILENAMES)));
-			PrintWriter writerList = new PrintWriter(new FileWriter(proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue()[0]));
+			PrintWriter writerList = Files.openAppropriateWriter(proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue()[0]);
 			// PrintWriter writerRegion = new PrintWriter(new
 			// FileWriter(proj.getFilename(proj.REGION_LIST_FILENAMES)));
-			PrintWriter writerRegion = new PrintWriter(new FileWriter(proj.REGION_LIST_FILENAMES.getValue()[0]));
+			PrintWriter writerRegion = Files.openAppropriateWriter(proj.REGION_LIST_FILENAMES.getValue()[0]);
 			writerSummary.println(ArrayUtils.toStr(PLINK_CNV_HEADER) + "\t"
 														+ ArrayUtils.toStr(FILTERED_OUTPUT_HEADER));
 			writerCNV.println(ArrayUtils.toStr(PLINK_CNV_HEADER));

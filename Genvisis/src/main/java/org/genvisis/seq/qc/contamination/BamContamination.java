@@ -97,7 +97,7 @@ public class BamContamination {
 		}
 		String outputHist = bams + "contamSummary.txt";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outputHist));
+			PrintWriter writer = Files.openAppropriateWriter(outputHist);
 			writer.print("PROP_REF_BIN");
 			for (int i = 0; i < hists.length; i++) {
 				writer.print("\t" + ext.rootOf(bamFiles[i]) + "_COUNTS");

@@ -15,6 +15,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountHashHash;
+import org.genvisis.common.Files;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
@@ -84,7 +85,7 @@ public class ParseRawSNPs {
 				indices = ArrayUtils.intArray(4, -1);
 				count = 0;
 				if (verbosity >= 5) {
-					writer = new PrintWriter(new FileWriter(dir + file.getName() + "-discarded.out"));
+					writer = Files.openAppropriateWriter(dir + file.getName() + "-discarded.out");
 				}
 				while (reader.ready()) {
 					temp = reader.readLine();
@@ -282,7 +283,7 @@ public class ParseRawSNPs {
 				alleleTranslation.put(".", new String[] {".", ".", ".", ".", ".", "."});
 
 				try {
-					writer = new PrintWriter(new FileWriter(dir + snpName + ".csv"));
+					writer = Files.openAppropriateWriter(dir + snpName + ".csv");
 					writer.println("DNA#,FamID,IndID,UniqueID,Genotype,Allele1,Allele2,CountAllele1,CountAllele2,CarrierAllele1,CarrierAllele2");
 					for (int j = 0; j < v.size(); j++) {
 						line = v.elementAt(keys[j]);
@@ -383,7 +384,7 @@ public class ParseRawSNPs {
 		//
 		//
 		// try {
-		// writer = new PrintWriter(new FileWriter(outfile));
+		// writer = Files.openAppropriateWriter(outfile);
 		// writer.println("placeholder line");
 		// writer.print("DNA\tFamNo\tIndNo");
 		// for (int i = 0; i<snps.length; i++) {
@@ -409,7 +410,7 @@ public class ParseRawSNPs {
 		//
 		//
 		// try {
-		// writer = new PrintWriter(new FileWriter(outfile+"-summary.xls"));
+		// writer = Files.openAppropriateWriter(outfile+"-summary.xls");
 		// for (int i = 0; i<snps.length; i++) {
 		// writer.println(snps[i]);
 		// }

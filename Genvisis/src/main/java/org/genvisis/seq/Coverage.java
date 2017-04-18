@@ -63,7 +63,7 @@ public class Coverage {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + "_list.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename) + "_list.xln");
 			writer.println("Sample\tIndex\t" + ArrayUtils.toStr(COVERAGE_HEADER));
 			inds = HashVec.getKeys(hashes, false);
 			for (int i = 0; i < inds.length; i++) {
@@ -133,7 +133,7 @@ public class Coverage {
 																				false);
 		try {
 			reader = new BufferedReader(new FileReader(pileupFile));
-			writer = new PrintWriter(new FileWriter(pileupFile + "_filtered.out"));
+			writer = Files.openAppropriateWriter(pileupFile + "_filtered.out");
 			while (reader.ready()) {
 				trav = reader.readLine();
 				line = trav.trim().split(PSF.Regex.GREEDY_WHITESPACE);

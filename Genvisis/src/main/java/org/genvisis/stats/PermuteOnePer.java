@@ -4,7 +4,6 @@ package org.genvisis.stats;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
@@ -14,6 +13,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
@@ -230,7 +230,7 @@ public class PermuteOnePer {
 
 		try {
 			pop = procStrings(ArrayUtils.toStringArray(v), varNames);
-			writer = new PrintWriter(new FileWriter(filename + "-summary.out"));
+			writer = Files.openAppropriateWriter(filename + "-summary.out");
 			writer.println(pop.getSummary());
 			writer.println();
 			writer.println();

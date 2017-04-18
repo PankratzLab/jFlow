@@ -314,7 +314,7 @@ public class MergeBam {
 				}
 				reader.close();
 				try {
-					PrintWriter writer = new PrintWriter(new FileWriter(outputHeader, true));
+					PrintWriter writer = Files.openAppropriateWriter(outputHeader, true);
 					writer.println(readGroup);
 					writer.close();
 				} catch (Exception e) {

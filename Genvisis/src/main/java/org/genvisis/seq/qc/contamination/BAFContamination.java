@@ -332,7 +332,7 @@ public class BAFContamination {
 																																																						 proj.getLog());
 
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				PrintWriter writer = Files.openAppropriateWriter(output);
 				writer.println("Sample\tLRR_SD\tBAF1585_SD\tAB_callrate\tAA_STDEV\tBB_STDEV\tContamBeta");
 				int index = 0;
 				while (train.hasNext()) {

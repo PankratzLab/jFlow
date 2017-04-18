@@ -39,9 +39,9 @@ public class parametric {
 		}
 
 		if (dominant) {
-			writer = new PrintWriter(new FileWriter("map" + chrome + ".D.dat"));
+			writer = Files.openAppropriateWriter("map" + chrome + ".D.dat");
 		} else {
-			writer = new PrintWriter(new FileWriter("map" + chrome + ".R.dat"));
+			writer = Files.openAppropriateWriter("map" + chrome + ".R.dat");
 		}
 
 		for (int i = 0; i < 3; i++) {

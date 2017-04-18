@@ -70,7 +70,7 @@ public class DNAcopy {
 			trav = input;
 			if (ext.indexOfStr(trav + "_output.out", outputs) == -1) {
 				try {
-					writer = new PrintWriter(new FileWriter(batchDirectory + trav + ".batch"));
+					writer = Files.openAppropriateWriter(batchDirectory + trav + ".batch");
 					writer.println("library(DNAcopy)");
 					// writer.println("quant<-read.table(\""+inputDirectory+trav+".qs\",
 					// header=TRUE, sep=\"\\t\")");
@@ -162,7 +162,7 @@ public class DNAcopy {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(rootDirectory + "dnacopy.cnv"));
+			writer = Files.openAppropriateWriter(rootDirectory + "dnacopy.cnv");
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			counts = new int[inds.length][2];
 			for (int i = 0; i < inds.length; i++) {
@@ -304,7 +304,7 @@ public class DNAcopy {
 			}
 		}
 		try {
-			writer = new PrintWriter(new FileWriter(output));
+			writer = Files.openAppropriateWriter(output);
 			for (int i = 0; i < counts.length; i++) {
 				writer.println(ext.formDeci(min + Math.pow(0.1, sigfigs) * i, sigfigs) + "\t"
 											 + ext.formDeci(min + Math.pow(0.1, sigfigs) * (i + 1), sigfigs) + "\t"

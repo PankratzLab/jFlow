@@ -4,11 +4,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Internat;
 
@@ -23,8 +23,8 @@ public class gatherOmim {
 		ids = ArrayUtils.toStringArray(HashVec.loadFileToVec(filename, false, false, true));
 
 		try {
-			writer = new PrintWriter(new FileWriter("omim_names.out"));
-			errors = new PrintWriter(new FileWriter("omim_errors.out"));
+			writer = Files.openAppropriateWriter("omim_names.out");
+			errors = Files.openAppropriateWriter("omim_errors.out");
 			for (String id : ids) {
 				Internat.downloadFile("http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=OMIM&dopt=Detailed&tmpl=dispomimTemplate&list_uids="
 															+ id, "omim.dat", true);

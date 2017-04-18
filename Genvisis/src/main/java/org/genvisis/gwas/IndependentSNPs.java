@@ -459,9 +459,9 @@ public class IndependentSNPs {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir
+			writer = Files.openAppropriateWriter(dir
 																							+ (outputRoot == null ? pval_threshold : outputRoot)
-																							+ "_summary.xln"));
+																							+ "_summary.xln");
 			writer.println("\tp<" + pval_threshold);
 			writer.println("Total SNPs meeting threshold" + "\t" + iv.size());
 			writer.println("Independent index SNPs meeting threshold" + "\t" + tags.size());
@@ -659,7 +659,7 @@ public class IndependentSNPs {
 		int[] keys;
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "comparison.xln"));
+			writer = Files.openAppropriateWriter(dir + "comparison.xln");
 			writer.println("scoreThreshold\tscoreDiffThreshold\tscoreClassBump\t\tPredictedFailRate\tSumLogPvals\tEffectiveSum\t%Tagged\t#failDesign\t#0<score<0.2\t#0.2<=score<0.4\t#0.4<=score<0.6\t#0.6<=score<0.8\t#0.8<=score<1.0\t#score=1.1");
 			for (float[] param : params) {
 				findOptimalSet(dir, filename, param[0] + "_" + param[1] + "_" + param[2], numSNPs,

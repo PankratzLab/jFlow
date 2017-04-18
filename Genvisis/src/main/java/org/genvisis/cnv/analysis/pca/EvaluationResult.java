@@ -230,7 +230,7 @@ class EvaluationResult implements Serializable {
 																																			 "\t", false);
 			String[] samples = proj.getSamples();
 			String[] titles = new String[results.length];
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.print("IID\tFID");
 			if (otherData == null) {
 				for (int i = 0; i < results.length; i++) {

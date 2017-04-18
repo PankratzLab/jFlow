@@ -3,12 +3,12 @@ package org.genvisis.assoc;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 
 public class haplostats {
@@ -77,8 +77,8 @@ public class haplostats {
 		}
 		reader.close();
 
-		writer = new PrintWriter(new FileWriter("haplostats.pre.prn"));
-		pheno = new PrintWriter(new FileWriter("haplostats.dat"));
+		writer = Files.openAppropriateWriter("haplostats.pre.prn");
+		pheno = Files.openAppropriateWriter("haplostats.dat");
 
 		for (int i = 0; i < fams.size(); i++) {
 			v = hash.get(fams.elementAt(i));

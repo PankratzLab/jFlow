@@ -174,7 +174,7 @@ public class ParseRegression {
 				positions = map.getPositions();
 
 				try {
-					writer = new PrintWriter(new FileWriter(dir + element + ".xls"));
+					writer = Files.openAppropriateWriter(dir + element + ".xls");
 					writer.println("SNP\tChr\tPosition\tAllele\t"
 												 + ArrayUtils.toStr(MODELS, "\tstatistic\tp-value\t")
 												 + "\tstatistic\tp-value");
@@ -193,8 +193,8 @@ public class ParseRegression {
 							writer.println();
 						} else {
 							if (extras == null) {
-								extras = new PrintWriter(new FileWriter(dir
-																												+ "markers in map file but without results.out"));
+								extras = Files.openAppropriateWriter(dir
+																												+ "markers in map file but without results.out");
 							}
 							extras.println(markerNames[j] + "\t" + chrs[j] + "\t" + positions[j]);
 						}
@@ -203,8 +203,8 @@ public class ParseRegression {
 						extras.close();
 					}
 					if (allSNPs.size() > 0) {
-						extras = new PrintWriter(new FileWriter(dir
-																										+ "marke with results file but not in map file.out"));
+						extras = Files.openAppropriateWriter(dir
+																										+ "marke with results file but not in map file.out");
 						line = HashVec.getKeys(allSNPs);
 						for (String element2 : line) {
 							extras.println(element2);
@@ -219,7 +219,7 @@ public class ParseRegression {
 
 				System.out.println("Writing top hits...");
 				try {
-					writer = new PrintWriter(new FileWriter(dir + element + "_topHits.xls"));
+					writer = Files.openAppropriateWriter(dir + element + "_topHits.xls");
 					writer.println("SNP\t" + ArrayUtils.toStr(MODELS, "\tp-value\t") + "\tp-value");
 					for (int j = 0; j < topSNPs.size(); j++) {
 						writer.print(topSNPs.elementAt(j));

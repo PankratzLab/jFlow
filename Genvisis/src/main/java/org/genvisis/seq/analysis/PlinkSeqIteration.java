@@ -19,7 +19,7 @@ public class PlinkSeqIteration {
 		String[] vcfs = Files.listFullPaths(dir, ".vcf.gz", false);
 		String finalSummary = dir + "finalBurden.summary";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(finalSummary));
+			PrintWriter writer = Files.openAppropriateWriter(finalSummary);
 			writer.println("NUMVAR\tMAC_GENE_CUT\tANALYSIS\tPASSING_UNITS\tBonferroni\tNumSig");
 			for (String vcf : vcfs) {
 				int numVar = VCFOps.getNumberOfVariants(vcf);

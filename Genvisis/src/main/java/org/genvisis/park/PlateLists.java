@@ -4,7 +4,6 @@ package org.genvisis.park;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
@@ -12,6 +11,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -214,7 +214,7 @@ public class PlateLists {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "MasterFile.xln"));
+			writer = Files.openAppropriateWriter(dir + "MasterFile.xln");
 			writer.println(ArrayUtils.toStr(CREATE_HEADER));
 			for (int i = 0; i < LABELS.length; i++) {
 				printDNAsToNewPlates(dir, LABELS[i][0], writer, categories.elementAt(i),
@@ -495,7 +495,7 @@ public class PlateLists {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "MasterFile.xln"));
+			writer = Files.openAppropriateWriter(dir + "MasterFile.xln");
 			writer.println(ArrayUtils.toStr(UPDATE_HEADER));
 			for (int i = 0; i < LABELS.length; i++) {
 				printDNAsToNewPlates(dir, LABELS[i][0], writer, categories.elementAt(i),
@@ -515,7 +515,7 @@ public class PlateLists {
 		int count;
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + filename));
+			writer = Files.openAppropriateWriter(dir + filename);
 			writer.println(ArrayUtils.toStr(startIndex == 0 ? CREATE_HEADER : UPDATE_HEADER));
 			for (int i = 0; i < v.size(); i++) {
 				dna = v.get(i);

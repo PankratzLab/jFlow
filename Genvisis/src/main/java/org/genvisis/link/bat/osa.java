@@ -10,6 +10,7 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
@@ -94,7 +95,7 @@ public class osa {
 			reader.close();
 
 			countPerInc = 0;
-			traitData = new PrintWriter(new FileWriter("AscendingKey.dat"));
+			traitData = Files.openAppropriateWriter("AscendingKey.dat");
 			traitData.println("Rank\tNum Fams\tvalue");
 			increment = 0;
 			prev = -99999.777;
@@ -106,8 +107,8 @@ public class osa {
 				}
 				if (trav != prev && prev != -99999.777) {
 					increment++;
-					writer = new PrintWriter(new FileWriter("chrom" + chrome + "/re_chrom" + chrome + "-a"
-																									+ ext.formNum(increment, 4) + ".pre"));
+					writer = Files.openAppropriateWriter("chrom" + chrome + "/re_chrom" + chrome + "-a"
+																									+ ext.formNum(increment, 4) + ".pre");
 					for (int j = 0; j < i; j++) {
 						if (hash.containsKey(IDs.elementAt(keys[j]))) {
 							writer.print(hash.get(IDs.elementAt(keys[j])));
@@ -125,7 +126,7 @@ public class osa {
 			traitData.close();
 
 			countPerInc = 0;
-			traitData = new PrintWriter(new FileWriter("DescendingKey.dat"));
+			traitData = Files.openAppropriateWriter("DescendingKey.dat");
 			traitData.println("Rank\tNum Fams\tvalue");
 			increment = 0;
 			prev = -99999.777;
@@ -137,8 +138,8 @@ public class osa {
 				}
 				if (trav != prev && prev != -99999.777) {
 					increment++;
-					writer = new PrintWriter(new FileWriter("chrom" + chrome + "/re_chrom" + chrome + "-d"
-																									+ ext.formNum(increment, 4) + ".pre"));
+					writer = Files.openAppropriateWriter("chrom" + chrome + "/re_chrom" + chrome + "-d"
+																									+ ext.formNum(increment, 4) + ".pre");
 					for (int j = IDs.size() - 1; j > i; j--) {
 						if (hash.containsKey(IDs.elementAt(keys[j]))) {
 							writer.print(hash.get(IDs.elementAt(keys[j])));
@@ -155,7 +156,7 @@ public class osa {
 			}
 			traitData.close();
 
-			writer = new PrintWriter(new FileWriter("chrom" + chrome + "/batch"));
+			writer = Files.openAppropriateWriter("chrom" + chrome + "/batch");
 			writer.println("#/bin/sh");
 			writer.println();
 			writer.println("cp ../map" + chrome + ".dat .");

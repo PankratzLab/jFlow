@@ -20,12 +20,12 @@ public class batchByFam {
 		int chromosome = 0;
 
 		if (multiples) {
-			writer1 = new PrintWriter(new FileWriter("batch.phenos.1"));
-			writer2 = new PrintWriter(new FileWriter("batch.phenos.2"));
-			writer3 = new PrintWriter(new FileWriter("batch.phenos.3"));
-			writer4 = new PrintWriter(new FileWriter("batch.phenos.4"));
-			writer5 = new PrintWriter(new FileWriter("batch.phenos.5"));
-			writer6 = new PrintWriter(new FileWriter("batch.phenos.6"));
+			writer1 = Files.openAppropriateWriter("batch.phenos.1");
+			writer2 = Files.openAppropriateWriter("batch.phenos.2");
+			writer3 = Files.openAppropriateWriter("batch.phenos.3");
+			writer4 = Files.openAppropriateWriter("batch.phenos.4");
+			writer5 = Files.openAppropriateWriter("batch.phenos.5");
+			writer6 = Files.openAppropriateWriter("batch.phenos.6");
 			writer1.println("#/bin/sh");
 			writer1.println();
 			writer1.println("sleep 30");
@@ -51,7 +51,7 @@ public class batchByFam {
 			writer6.println("sleep 30");
 			writer6.println();
 		} else {
-			writer = new PrintWriter(new FileWriter("batch.phenos"));
+			writer = Files.openAppropriateWriter("batch.phenos");
 			writer.println("#/bin/sh");
 			writer.println();
 			writer.println();
@@ -247,7 +247,7 @@ public class batchByFam {
 // Hashtable hash = new Hashtable();
 //
 // reader = new BufferedReader(new FileReader("dir.dir"));
-// writer = new PrintWriter(new FileWriter("batch"));
+// writer = Files.openAppropriateWriter("batch");
 //
 // while (reader.ready()) {
 // temp = reader.readLine();

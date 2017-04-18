@@ -22,7 +22,7 @@ public class filterByLocPval {
 		try {
 			BufferedReader reader = Files.getAppropriateReader(locPvalFile);
 
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

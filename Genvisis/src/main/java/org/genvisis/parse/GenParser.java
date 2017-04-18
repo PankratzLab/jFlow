@@ -538,7 +538,7 @@ public class GenParser {
 
 		filename = parser.getOutfile();
 		delimiter = Files.suggestDelimiter(filename, log);
-		writer = Files.getAppropriateWriter(filename);// new PrintWriter(new FileWriter(filename));
+		writer = Files.getAppropriateWriter(filename);// Files.openAppropriateWriter(filename);
 		if (log.getLevel() > 8) {
 			log.report("Parsing '" + line[0] + "'", true, true, 1);
 		}

@@ -86,8 +86,8 @@ public class AltPheno {
 					reader = new BufferedReader(new FileReader(dir + "re_chrom" + chr2 + ".pre"));
 					writers = new PrintWriter[phenoNames.length];
 					for (int j = 0; j < phenoNames.length; j++) {
-						writers[j] = new PrintWriter(new FileWriter(trav + phenoNames[j] + "/re_chrom" + chr2
-																												+ ".pre"));
+						writers[j] = Files.openAppropriateWriter(trav + phenoNames[j] + "/re_chrom" + chr2
+																												+ ".pre");
 						Files.copyFile(dir + "map" + chr2 + ".dat",
 													 trav + phenoNames[j] + "/map" + chr2 + ".dat");
 					}
@@ -125,7 +125,7 @@ public class AltPheno {
 		try {
 			writers = new PrintWriter[phenoNames.length];
 			for (int j = 0; j < phenoNames.length; j++) {
-				writers[j] = new PrintWriter(new FileWriter(dir + phenoNames[j] + ".batch"));
+				writers[j] = Files.openAppropriateWriter(dir + phenoNames[j] + ".batch");
 			}
 			for (int i = 0; i < fams.length + 1; i++) {
 				ext.writeToAll("cd " + (i == fams.length ? "allFams/" : fams[i] + "/"), writers);
@@ -207,7 +207,7 @@ public class AltPheno {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_summary.xln"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + "_summary.xln");
 			writer.println("FID\tPhenotype\tN affected\tAffecteds\t"
 										 + ArrayUtils.toStr(ArrayUtils.stringArraySequence(23, "")));
 			fams = HashVec.getKeys(hashes);
@@ -319,7 +319,7 @@ public class AltPheno {
 			System.exit(2);
 		}
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "batchZip"));
+			writer = Files.openAppropriateWriter(dir + "batchZip");
 			fams = HashVec.getKeys(hashes);
 			for (String fam : fams) {
 				writer.println("tar cvf - " + fam + "/*/merlin-* | gzip > " + fam + ".tar.gz");

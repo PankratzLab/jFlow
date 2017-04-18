@@ -15,7 +15,7 @@ public class SegmentContigSubset {
 		Segment[] q = Segment.loadRegions(segFile, 0, 1, 2, 0, true, true, true, 100);
 		String output = ext.addToRoot(segFile, "_" + ArrayUtils.toStr(contigs, "_"));
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			for (Segment element : q) {
 				String contig = Positions.getChromosomeUCSC(element.getChr(), true);
 				if (ext.indexOfStr(contig, contigs) >= 0) {

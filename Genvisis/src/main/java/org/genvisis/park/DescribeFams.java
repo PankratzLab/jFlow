@@ -2,12 +2,12 @@
 package org.genvisis.park;
 
 import java.io.BufferedReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.PSF;
@@ -73,7 +73,7 @@ public class DescribeFams {
 		majorVPDsibships = tools.getCombonentsOfTheMajorSibships(true, true);
 		vpdSibships = Matrix.extractColumn(majorVPDsibships, 0);
 		try {
-			writer = new PrintWriter(new FileWriter(tools.CRF_DIR + "FamilyStats.xln"));
+			writer = Files.openAppropriateWriter(tools.CRF_DIR + "FamilyStats.xln");
 			fams = HashVec.getKeys(famInds);
 			writer.println("FamID\t# Affected\t# Unaffected\tVPD\tNVPD\tRPD\tNOEV\tNRPD\tSizeOfLargestSibship\tSizeOfLargestVPDSibship\tDominantTransmission\tSFH");
 			for (String fam : fams) {
@@ -152,7 +152,7 @@ public class DescribeFams {
 		majorSibships = tools.getCombonentsOfTheMajorSibships(false, false);
 
 		try {
-			writer = new PrintWriter(new FileWriter(tools.CRF_DIR + "GenderBalance.csv"));
+			writer = Files.openAppropriateWriter(tools.CRF_DIR + "GenderBalance.csv");
 			writer.println("Family,AffectedFather,AffectedMother,ParentalScore,VPDmales,VPDfemales,VPDscore,VPDweightedScore,AffectedMales,AffectedFemales,AffectedScore,AffectedWeightedScore");
 			for (String[] majorSibship : majorSibships) {
 				if (majorSibship.length > 1) {

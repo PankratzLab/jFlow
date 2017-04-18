@@ -4,12 +4,12 @@ package org.genvisis.link;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
@@ -67,7 +67,7 @@ public class gist {
 			System.exit(2);
 		}
 		reader = new BufferedReader(new FileReader("re_chrom" + chrome + ".pre"));
-		writer = new PrintWriter(new FileWriter("gist-" + chr + "@" + pos + "-" + target + ".dat"));
+		writer = Files.openAppropriateWriter("gist-" + chr + "@" + pos + "-" + target + ".dat");
 		writer.println(TARGET_FREQ);
 
 		founders = new Vector<String>();

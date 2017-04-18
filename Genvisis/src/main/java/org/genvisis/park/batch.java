@@ -78,10 +78,10 @@ public class batch {
 		}
 
 		for (int i = 0; i < numBatches; i++) {
-			writers[i] = new PrintWriter(new FileWriter(i == 0 && numBatches == 1
+			writers[i] = Files.openAppropriateWriter(i == 0 && numBatches == 1
 																																						? (Files.isWindows() ? "batch.bat"
 																																																 : "batch")
-																																						: "batch." + (i + 1)));
+																																						: "batch." + (i + 1));
 			writers[i].println("#/bin/sh\n");
 			if (new File(".").getAbsolutePath().contains("bc2/pankratz")) {
 				writers[i].println("module load java\n");

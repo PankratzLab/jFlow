@@ -13,6 +13,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.link.TrimFam;
@@ -141,7 +142,8 @@ public class phenoStruct {
 		ethnicity = new Hashtable<String, String>();
 		dna = new Hashtable<String, String>();
 		try {
-			ext.checkHeader(info.readLine().split(PSF.Regex.GREEDY_WHITESPACE), tools.NINFO1_HEADER, true);
+			ext.checkHeader(info.readLine().split(PSF.Regex.GREEDY_WHITESPACE), tools.NINFO1_HEADER,
+											true);
 
 			while (info.ready()) {
 				line = info.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -196,7 +198,7 @@ public class phenoStruct {
 		// collect all genotyped individuals from the marker file
 		prev = "";
 
-		finalDx = new PrintWriter(new FileWriter("finalDiagnoses.dat"));
+		finalDx = Files.openAppropriateWriter("finalDiagnoses.dat");
 		id = "null";
 		genos.readLine(); // placeholder
 		genos.readLine(); // marker names
@@ -243,11 +245,11 @@ public class phenoStruct {
 
 		// collect family relationship information from the ninfo2 file, and
 		// create phenostruct
-		writer[0] = new PrintWriter(new FileWriter("struct111+.dat"));
-		writer[1] = new PrintWriter(new FileWriter("struct111-.dat"));
-		writer[2] = new PrintWriter(new FileWriter("struct100+.dat"));
-		writer[3] = new PrintWriter(new FileWriter("struct100-.dat"));
-		// writer = new PrintWriter(new FileWriter("phenostruct.dat"));
+		writer[0] = Files.openAppropriateWriter("struct111+.dat");
+		writer[1] = Files.openAppropriateWriter("struct111-.dat");
+		writer[2] = Files.openAppropriateWriter("struct100+.dat");
+		writer[3] = Files.openAppropriateWriter("struct100-.dat");
+		// writer = Files.openAppropriateWriter("phenostruct.dat");
 
 		line = fams.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 		ext.checkHeader(line, tools.NINFO2_HEADER, true);
@@ -336,8 +338,8 @@ public class phenoStruct {
 						}
 						if (tf.hasUnused()) {
 							if (unused == null) {
-								unused = new PrintWriter(new FileWriter("unused_individuals-"
-																												+ (allvpd == 0 ? "111" : "100") + ".dat"));
+								unused = Files.openAppropriateWriter("unused_individuals-"
+																												+ (allvpd == 0 ? "111" : "100") + ".dat");
 							}
 							v = tf.getUnused();
 							for (int i = 0; i < v.size(); i++) {

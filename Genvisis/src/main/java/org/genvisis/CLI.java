@@ -1,7 +1,6 @@
 package org.genvisis;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
@@ -20,6 +19,7 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PatternOptionBuilder;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
@@ -561,7 +561,7 @@ public class CLI {
 		String logfile = log.getFilename();
 		if (logfile != null && !logfile.isEmpty()) {
 			try {
-				pw = new PrintWriter(new FileWriter(logfile));
+				pw = Files.openAppropriateWriter(logfile);
 				formatter.printHelp(pw, OUT_WIDTH, program, "", options, HelpFormatter.DEFAULT_LEFT_PAD,
 														HelpFormatter.DEFAULT_DESC_PAD, sb.toString());
 				pw.flush();

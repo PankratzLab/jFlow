@@ -69,7 +69,7 @@ public class Beagle {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(root + ".list"));
+			writer = Files.openAppropriateWriter(root + ".list");
 			if (files.length == 1) {
 				for (int i = 0; i < ids[0].length; i++) {
 					for (int j = i + 1; j < ids[0].length; j++) {
@@ -103,7 +103,7 @@ public class Beagle {
 
 		root = ext.rootOf(filename);
 		try {
-			writer = new PrintWriter(new FileWriter("script." + root));
+			writer = Files.openAppropriateWriter("script." + root);
 			writer.println("#!/bin/bash");
 			writer.println("#$ -cwd");
 			writer.println("#$ -S /bin/bash");
@@ -188,7 +188,7 @@ public class Beagle {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter("batch." + root));
+			writer = Files.openAppropriateWriter("batch." + root);
 			writer.println("#!/bin/bash");
 			writer.println();
 			writer.println("mkdir " + root);
@@ -469,15 +469,15 @@ public class Beagle {
 			}
 			writers = new PrintWriter[PI_HAT_THRESHOLDS.length][2][2];
 			for (int j = 0; j < PI_HAT_THRESHOLDS.length; j++) {
-				writers[j][0][0] = new PrintWriter(new FileWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
-																													+ "_normal.segment"));
-				writers[j][0][1] = new PrintWriter(new FileWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
-																													+ "_normal.seginfo"));
+				writers[j][0][0] = Files.openAppropriateWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
+																													+ "_normal.segment");
+				writers[j][0][1] = Files.openAppropriateWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
+																													+ "_normal.seginfo");
 				// writers[j][0].println(Array.toStr(SEGMENT_HEADER)+"\tSCORE");
-				writers[j][1][0] = new PrintWriter(new FileWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
-																													+ "_nuanced.segment"));
-				writers[j][1][1] = new PrintWriter(new FileWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
-																													+ "_nuanced.seginfo"));
+				writers[j][1][0] = Files.openAppropriateWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
+																													+ "_nuanced.segment");
+				writers[j][1][1] = Files.openAppropriateWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
+																													+ "_nuanced.seginfo");
 				// writers[j][1].println(Array.toStr(SEGMENT_HEADER)+"\tSCORE");
 			}
 			while (reader.ready()) {
@@ -600,7 +600,7 @@ public class Beagle {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename + "_sum.xln"));
+			writer = Files.openAppropriateWriter(filename + "_sum.xln");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(markerNames[i] + "\t" + avgs[i][0] + "\t" + avgs[i][1] + "\t"
 											 + ArrayUtils.toStr(alleleCounts[i]));
@@ -694,7 +694,7 @@ public class Beagle {
 
 		log.report(ext.getTime() + "\tAveraging IBDs");
 		try {
-			writer = new PrintWriter(new FileWriter("avgIBD.xln"));
+			writer = Files.openAppropriateWriter("avgIBD.xln");
 			writer.println("MarkerName\tChr\tPosition\t"
 										 + ext.replaceDirectoryCharsWithUnderscore(new File(".").getCanonicalPath(), 1)
 										 + "\t" + ArrayUtils.toStr(ALLELES) + "\tConsensus\tFreq\tActualFreq\tpval");
@@ -801,7 +801,7 @@ public class Beagle {
 					trav = "PI_" + element + "_" + (strict == 0 ? "normal" : "nuanced")
 								 + (suffix == 0 ? ".segment" : ".seginfo");
 					try {
-						writer = new PrintWriter(new FileWriter(trav + (suffix == 0 ? "Plus" : "")));
+						writer = Files.openAppropriateWriter(trav + (suffix == 0 ? "Plus" : ""));
 						if (suffix == 0) {
 							writer.println(ArrayUtils.toStr(SEGMENT_HEADER) + "\tMeanIBD\tMaxIBD\tGeneticLength");
 						}
@@ -834,7 +834,7 @@ public class Beagle {
 
 					if (suffix == 0) {
 						try {
-							writer = new PrintWriter(new FileWriter(trav));
+							writer = Files.openAppropriateWriter(trav);
 							try {
 								reader = new BufferedReader(new FileReader(trav + "Plus"));
 								while (reader.ready()) {
@@ -903,7 +903,7 @@ public class Beagle {
 
 		log.report(ext.getTime() + "\tConcatenating .match files");
 		try {
-			writer = new PrintWriter(new FileWriter("germline.segmentPlus"));
+			writer = Files.openAppropriateWriter("germline.segmentPlus");
 			writer.println(ArrayUtils.toStr(SEGMENT_HEADER) + "\tGeneticLength");
 			for (int chr = 1; chr <= 22; chr++) {
 				try {
@@ -943,7 +943,7 @@ public class Beagle {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter("germline.segment"));
+			writer = Files.openAppropriateWriter("germline.segment");
 			try {
 				reader = new BufferedReader(new FileReader("germline.segmentPlus"));
 				while (reader.ready()) {
@@ -1186,12 +1186,12 @@ public class Beagle {
 			for (int strict = 0; strict < 2; strict++) {
 				try {
 					reader = new BufferedReader(new FileReader(filename));
-					writer = new PrintWriter(new FileWriter(element + "cM" + (strict == 1
+					writer = Files.openAppropriateWriter(element + "cM" + (strict == 1
 																																								? "_max"
 																																									+ (int) (FILTER_MAX_THRESHOLD
 																																													 * 100)
 																																								: "")
-																									+ ".segment"));
+																									+ ".segment");
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, line.length - 3)));
 					while (reader.ready()) {
@@ -1311,7 +1311,7 @@ public class Beagle {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(groupsFile, false) + "_ibd.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(groupsFile, false) + "_ibd.xln");
 			writer.println("Group\tN\tnCr(2)\tmeanNumSegments\tmeanTotalSegmentsSize");
 			for (int i = 0; i < values.length + 1; i++) {
 				writer.print(i == values.length ? "across\t." : values[i] + "\t" + counts[i]);

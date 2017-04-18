@@ -104,7 +104,7 @@ public class updateGenos {
 				}
 				new File("chromosome" + chr + ".dat").renameTo(new File(bakFilename));
 				reader = new BufferedReader(new FileReader(bakFilename));
-				writer = new PrintWriter(new FileWriter("chromosome" + chr + ".dat"));
+				writer = Files.openAppropriateWriter("chromosome" + chr + ".dat");
 				writer.println(reader.readLine());
 				temp = reader.readLine();
 				line = temp.split(PSF.Regex.GREEDY_WHITESPACE);

@@ -453,7 +453,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		markerNames = getMarkerNames();
 		line = new String[ArrayUtils.max(indices) + 1];
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			if (header != null) {
 				writer.println(ArrayUtils.toStr(header));
 			}
@@ -1196,7 +1196,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		int count;
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "master.map"));
+			writer = Files.openAppropriateWriter(dir + "master.map");
 			count = 1;
 			for (int chr = 1; chr <= 22; chr++) {
 				try {

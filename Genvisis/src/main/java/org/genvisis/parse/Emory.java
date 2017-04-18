@@ -27,7 +27,7 @@ public class Emory {
 		try {
 			System.out.println("Writing pedigree file...");
 			reader = new BufferedReader(new FileReader(dir + filename));
-			writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + ".ped"));
+			writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + ".ped");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(ArrayUtils.subArray(line, 0, 4), HEADER_STARTER, false, true);
 			markerNames = ArrayUtils.subArray(line, 4);

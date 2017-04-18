@@ -3,12 +3,12 @@ package org.genvisis.cnv.park;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
@@ -122,7 +122,7 @@ public class ReferenceMaps {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(MCCAROLL_DIR + "file.xln"));
+			writer = Files.openAppropriateWriter(MCCAROLL_DIR + "file.xln");
 			writer.print("CNP_id\tloc\tindex");
 			for (String element : MCCAROLL_POPULATIONS) {
 				for (int j = 0; j <= MAX_COPIES; j++) {
@@ -153,7 +153,7 @@ public class ReferenceMaps {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + ".cnv"));
+			writer = Files.openAppropriateWriter(filename + ".cnv");
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			while (reader.ready()) {
 				cnv = new CNVariant(reader.readLine());

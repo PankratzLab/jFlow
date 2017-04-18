@@ -1,6 +1,5 @@
 package org.genvisis.cnv.filesys;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -17,6 +16,7 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.AlleleFreq;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.stats.Correlation;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
@@ -665,7 +665,7 @@ public class MarkerData implements Serializable {
 		hasExcludedIndividuals = sampleData != null && sampleData.hasExcludedIndividuals();
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			writer.println((includeMarkerName ? "Marker\t" : "")
 										 + (samples == null ? "SampleIndex" : "SampleId") + (gcs == null ? "" : "\tGC")
 										 + (xs == null ? "" : "\tX") + (ys == null ? "" : "\tY")

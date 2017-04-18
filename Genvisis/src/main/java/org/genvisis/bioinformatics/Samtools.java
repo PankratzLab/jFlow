@@ -75,25 +75,25 @@ public class Samtools {
 				for (int i = 0; i < v.size(); i++) {
 					index = getIndex(v.elementAt(i), samFilenamesByTrios, log);
 
-					writer = new PrintWriter(new FileWriter(xmlDir + ".bamScript"));
+					writer = Files.openAppropriateWriter(xmlDir + ".bamScript");
 					writer.println("samtools view " + samFilenamesByTrios[index][1] + "-b " + chr + ":"
 												 + (pos - windowInBp) + "-" + (pos + windowInBp) + " > "
 												 + samFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos + "_C");
 					writer.close();
 
-					writer = new PrintWriter(new FileWriter(filename + ".bamScript"));
+					writer = Files.openAppropriateWriter(filename + ".bamScript");
 					writer.println("samtools view " + samFilenamesByTrios[index][2] + "-b " + chr + ":"
 												 + (pos - windowInBp) + "-" + (pos + windowInBp) + " > "
 												 + samFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos + "_D");
 					writer.close();
 
-					writer = new PrintWriter(new FileWriter(filename + ".bamScript"));
+					writer = Files.openAppropriateWriter(filename + ".bamScript");
 					writer.println("samtools view " + samFilenamesByTrios[index][3] + "-b " + chr + ":"
 												 + (pos - windowInBp) + "-" + (pos + windowInBp) + " > "
 												 + samFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos + "_M");
 					writer.close();
 
-					writer = new PrintWriter(new FileWriter(filename + ".IGV_Script"));
+					writer = Files.openAppropriateWriter(filename + ".IGV_Script");
 					writer.println(getIgvXmlScript(xmlDir, chr, pos + "", samFilenamesByTrios[index]));
 					writer.close();
 				}
@@ -152,7 +152,7 @@ public class Samtools {
 		int pos;
 
 		try {
-			writer = new PrintWriter(new FileWriter(scriptFileName));
+			writer = Files.openAppropriateWriter(scriptFileName);
 			for (String key : trioIdChrPos) {
 				line = key.split("\t");
 				// chr = line[1];
@@ -209,7 +209,7 @@ public class Samtools {
 		int pos;
 
 		try {
-			writer = new PrintWriter(new FileWriter(scriptFileName));
+			writer = Files.openAppropriateWriter(scriptFileName);
 			for (String gene : miniSamNeeded.keySet()) {
 				trioIdChrPos = miniSamNeeded.get(gene);
 				for (String key : trioIdChrPos) {

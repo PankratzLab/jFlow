@@ -482,7 +482,7 @@ public class BetaOptimizer {
 			if (!Files.exists(bigSummaryOut)) {
 
 				try {
-					PrintWriter writer = new PrintWriter(new FileWriter(bigSummaryOut));
+					PrintWriter writer = Files.openAppropriateWriter(bigSummaryOut);
 					writer.println(ArrayUtils.toStr(BetaCorrelationResult.getHeader()) + "\t"
 												 + ArrayUtils.toStr(ArrayUtils.tagOn(BetaCorrelationResult.getHeader(),
 																														 "inv_", null))
@@ -1025,7 +1025,7 @@ public class BetaOptimizer {
 		ArrayList<MarkerRsFormat> markerRsFormats = new ArrayList<MarkerRsFormat>();
 		String outTxt = ext.rootOf(outSer, false) + ".txt";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outTxt));
+			PrintWriter writer = Files.openAppropriateWriter(outTxt);
 			writer.println("markerName\trsID\tref\talt\tA\tB");
 			log.reportTimeInfo("Attempting to look up " + namesToQuery.length + " markers as rsIds from "
 												 + dbsnpVCF);

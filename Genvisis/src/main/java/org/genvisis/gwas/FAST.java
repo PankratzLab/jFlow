@@ -688,7 +688,7 @@ public class FAST {
 			}
 		});
 
-		PrintWriter scriptInputWriter = new PrintWriter(new FileWriter(runDir + "input.txt"));
+		PrintWriter scriptInputWriter = Files.openAppropriateWriter(runDir + "input.txt");
 
 		for (String dataFile : dataFiles) {
 			String chr = dataFile.substring(3, 5);

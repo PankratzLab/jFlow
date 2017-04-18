@@ -12,6 +12,7 @@ import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.DoubleVector;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
@@ -38,7 +39,7 @@ public class Hearing {
 		for (int chr = 1; chr <= 22; chr++) {
 			try {
 				reader = new BufferedReader(new FileReader(dir + source + "chr" + chr + "_SNP.noLD.ped"));
-				writer = new PrintWriter(new FileWriter(dir + "mrkr" + ext.chrome(chr) + ".dat"));
+				writer = Files.openAppropriateWriter(dir + "mrkr" + ext.chrome(chr) + ".dat");
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (chr == 1) {
@@ -70,7 +71,7 @@ public class Hearing {
 
 		hash = HashVec.loadFileToHashString(dir + source + "pheno.dat", false);
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "example_struct.dat"));
+			writer = Files.openAppropriateWriter(dir + "example_struct.dat");
 			for (int i = 0; i < names.size(); i++) {
 				line = names.elementAt(i).split(PSF.Regex.GREEDY_WHITESPACE);
 				trav = hash.get(line[1]);
@@ -136,7 +137,7 @@ public class Hearing {
 		try {
 			new File(dir + runtime).mkdirs();
 			reader = new BufferedReader(new FileReader(dir + filename));
-			writer = new PrintWriter(new FileWriter(dir + runtime + "re_chrom01.pre"));
+			writer = Files.openAppropriateWriter(dir + runtime + "re_chrom01.pre");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
@@ -149,7 +150,7 @@ public class Hearing {
 			new LinkageMap(1, new String[] {"dummy"}, 2, new double[] {0}, false,
 										 false).createFile(dir + runtime + "map01.dat");
 
-			writer = new PrintWriter(new FileWriter(dir + runtime + "useful.opt"));
+			writer = Files.openAppropriateWriter(dir + runtime + "useful.opt");
 			writer.println("% Read input in LINKAGE style format:");
 			writer.println("	PREFILE re_chrom01.pre");
 			writer.println("	DATFILE map01.dat");
@@ -177,8 +178,8 @@ public class Hearing {
 	// PrintWriter writer;
 	//
 	// try {
-	// writer = new PrintWriter(new FileWriter("C:\\Documents and
-	// Settings\\npankrat\\My Documents\\ext\\Cuts\\Eight.ahk"));
+	// writer = Files.openAppropriateWriter("C:\\Documents and
+	// Settings\\npankrat\\My Documents\\ext\\Cuts\\Eight.ahk");
 	// for (int chr = 10; chr >= 1; chr--) {
 	// writer.println("Sleep, 500");
 	// writer.println("Send, {ENTER}");

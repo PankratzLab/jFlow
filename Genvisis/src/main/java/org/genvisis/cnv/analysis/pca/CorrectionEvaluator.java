@@ -407,7 +407,7 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult> impl
 // tmpResiduals.getNumComponents() + ".txt";
 // //
 // // try {
-// // PrintWriter writer = new PrintWriter(new FileWriter(name));
+// // PrintWriter writer = Files.openAppropriateWriter(name);
 // // for (int k = 0; k < dupResponse.size(); k++) {
 // // writer.println(dupResponse.get(k) + "\t" + dupData.get(k));
 // // }

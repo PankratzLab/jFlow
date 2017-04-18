@@ -121,7 +121,7 @@ public class ExomeDepthRun {
 		String[] markerNames = new String[segments.length];
 		if (!Files.exists(positions) || !Files.exists(proj.MARKERSET_FILENAME.getValue(true, true))) {
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(positions));
+				PrintWriter writer = Files.openAppropriateWriter(positions);
 				int markerIndex = 0;
 				writer.println("BinName\tChr\tPosition");
 				for (Segment bFeatureSeg : segments) {

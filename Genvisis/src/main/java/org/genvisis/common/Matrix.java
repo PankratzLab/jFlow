@@ -678,7 +678,7 @@ public class Matrix {
 		PrintWriter writer;
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			for (String[] element : matrix) {
 				for (int j = 0; j < element.length; j++) {
 					writer.print((j == 0 ? "" : "\t") + element[j]);

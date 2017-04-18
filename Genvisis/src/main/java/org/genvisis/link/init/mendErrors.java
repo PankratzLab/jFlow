@@ -28,7 +28,7 @@ public class mendErrors {
 				temp = "";
 				listOfErrors.removeAllElements();
 				chrome = (chromosome < 10) ? "0" + chromosome : "" + chromosome;
-				writer = new PrintWriter(new FileWriter("logfile of errors.out", true));
+				writer = Files.openAppropriateWriter("logfile of errors.out", true);
 
 				if ((new File("marker.database")).exists()) {
 					if (!new File("log.prn").exists()) {
@@ -202,7 +202,7 @@ public class mendErrors {
 				(new File("chromosome" + chromosome + ".dat")).renameTo((new File(bakFilename)));
 
 				reader = new BufferedReader(new FileReader(bakFilename));
-				writer = new PrintWriter(new FileWriter("chromosome" + chromosome + ".dat"));
+				writer = Files.openAppropriateWriter("chromosome" + chromosome + ".dat");
 
 				temp = reader.readLine();
 				if (temp.equals("")) {
@@ -226,7 +226,7 @@ public class mendErrors {
 						writer.close();
 						(new File("chromosome" + chromosome + ".dat")).renameTo((new File("temp")));
 						reader = new BufferedReader(new FileReader("temp"));
-						writer = new PrintWriter(new FileWriter("chromosome" + chromosome + ".dat"));
+						writer = Files.openAppropriateWriter("chromosome" + chromosome + ".dat");
 						temp = reader.readLine();
 					}
 

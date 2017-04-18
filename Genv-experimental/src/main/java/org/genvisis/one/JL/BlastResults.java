@@ -26,7 +26,7 @@ public class BlastResults {
 		String outSum = outDir + "blastSummary.txt";
 		try {
 
-			PrintWriter writer = new PrintWriter(new FileWriter(outSum));
+			PrintWriter writer = Files.openAppropriateWriter(outSum);
 
 			writer.println("MarkerName\tPerfectMatch\tNonPerfectOnTarget\tOffTarget\tTotalAlignments");
 			VCFFileReader reader = new VCFFileReader(new File(proj.BLAST_ANNOTATION_FILENAME.getValue()),

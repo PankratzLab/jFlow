@@ -3,11 +3,11 @@ package org.genvisis.link;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class simMakeAllegro {
@@ -38,7 +38,7 @@ public class simMakeAllegro {
 
 		for (int i = 0; i < FILES.length; i++) {
 			file = FILES[i];
-			optfile = new PrintWriter(new FileWriter(file + ".opt"));
+			optfile = Files.openAppropriateWriter(file + ".opt");
 			optfile.println("% Read input in LINKAGE style format:\n" + "PREFILE " + file + ".pre\n"
 											+ "DATFILE linkage.dat\n\n" + "% Simulate stroke reconstruction pedigrees\n"
 											+ "SIMULATE dloc:32.0 npre:" + NUM_REPS + " rep:" + FAMREPS[i]
@@ -66,7 +66,7 @@ public class simMakeAllegro {
 		}
 
 		for (int repNum = 1; repNum <= NUM_REPS; repNum++) {
-			writer = new PrintWriter(new FileWriter("linkage-" + repNum + ".pre"));
+			writer = Files.openAppropriateWriter("linkage-" + repNum + ".pre");
 			for (int i = 0; i < FILES.length; i++) {
 				file = FILES[i] + ".pre." + ext.formNum(repNum + "", String.valueOf(NUM_REPS).length());
 				reader = new BufferedReader(new FileReader(file));

@@ -284,8 +284,8 @@ public class QCIterator implements Runnable {
 	private static void writeMisses(Project proj, List<CNVariantQC> misses, Logger log) {
 		log.report("writing unmatched calls to " + proj.PROJECT_DIRECTORY.getValue() + "misses.cnv");
 		try {
-			PrintWriter missWriter = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																															+ "misses.cnv"));
+			PrintWriter missWriter = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																															+ "misses.cnv");
 			missWriter.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (int i = 0; i < misses.size(); i++) {
 				missWriter.println(misses.get(i).getCnVariant().toPlinkFormat());
@@ -318,12 +318,12 @@ public class QCIterator implements Runnable {
 			defineCompHash = defineCompLists(proj.PROJECT_DIRECTORY.getValue(), QCsubset, log);
 		}
 		try {
-			sampleWriter = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output
-																										+ ".txt"));
-			famWriter = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output
-																								 + ".fam"));
-			cnvWriter = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output
-																								 + ".cnv"));
+			sampleWriter = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + output
+																										+ ".txt");
+			famWriter = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + output
+																								 + ".fam");
+			cnvWriter = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + output
+																								 + ".cnv");
 			sampleWriter.println("Sample\tPassQC?0:1");
 			cnvWriter.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (int i = 0; i < inds.length; i++) {

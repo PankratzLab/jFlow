@@ -42,7 +42,7 @@ public class GeneDensityInRegion {
 		}
 		genes = new GeneSet(inRegion).getSet();
 		try {
-			writer = new PrintWriter(new FileWriter(ext.replaceAllWith(region, ":", "_") + ".xln"));
+			writer = Files.openAppropriateWriter(ext.replaceAllWith(region, ":", "_") + ".xln");
 			writer.println("Gene\tAssession #'s\tChr\tStart\tStop\tNumExons");
 			for (GeneData gene : genes) {
 				writer.println(gene.getGeneName() + "\t"
@@ -57,7 +57,7 @@ public class GeneDensityInRegion {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.replaceAllWith(region, ":", "_") + ".out"));
+			writer = Files.openAppropriateWriter(ext.replaceAllWith(region, ":", "_") + ".out");
 			writer.println("Total region: " + ext.prettyUpDistance(regionAsGene.getSize(), 1));
 			writer.println("Number of non-redundant RefSeq genes: " + genes.length);
 

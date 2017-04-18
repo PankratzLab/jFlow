@@ -812,8 +812,8 @@ public class Segment implements Serializable, Comparable<Segment> {
 
 		try {
 			reader = Files.getAppropriateReader(firstFile);
-			writer = new PrintWriter(new FileWriter(firstFile + "_filteredOn_"
-																							+ ext.removeDirectoryInfo(secondFile) + ".out"));
+			writer = Files.openAppropriateWriter(firstFile + "_filteredOn_"
+																							+ ext.removeDirectoryInfo(secondFile) + ".out");
 			while (reader.ready()) {
 				temp = reader.readLine();
 				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);

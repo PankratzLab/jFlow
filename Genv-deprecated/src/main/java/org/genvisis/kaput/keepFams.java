@@ -43,7 +43,7 @@ public class keepFams {
 
 		(new File(struct)).renameTo(new File(struct + ".bak"));
 		reader = new BufferedReader(new FileReader(struct + ".bak"));
-		writer = new PrintWriter(new FileWriter(struct));
+		writer = Files.openAppropriateWriter(struct);
 		while (reader.ready()) {
 			temp = reader.readLine();
 			st = new StringTokenizer(temp, " \t\n\r\f,");

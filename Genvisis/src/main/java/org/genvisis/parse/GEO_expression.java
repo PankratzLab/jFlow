@@ -42,7 +42,7 @@ public class GEO_expression {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_transcripts.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_transcripts.xln");
 			writer.println("Sample\tfile\tbackground\t" + ArrayUtils.toStr(targets));
 			writer.println("Sample\tfile\tbackground\t" + ArrayUtils.toStr(names));
 			hash = new Hashtable<String, String>();
@@ -124,7 +124,7 @@ public class GEO_expression {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_residuals.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_residuals.xln");
 			writer.println(ArrayUtils.toStr(data[0]));
 			writer.println(ArrayUtils.toStr(data[1]));
 			for (int i = 2; i < data.length; i++) {
@@ -169,7 +169,7 @@ public class GEO_expression {
 			}
 			reader.close();
 
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_avg.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_avg.xln");
 			header1[1] = "N";
 			writer.println(ArrayUtils.toStr(header1));
 			header2[1] = "N";
@@ -207,7 +207,7 @@ public class GEO_expression {
 		dest = dir + "unzipped/";
 		new File(dest).mkdirs();
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "list.xln"));
+			writer = Files.openAppropriateWriter(dir + "list.xln");
 			for (String file : files) {
 				Zip.unzipFile(dir + file, dir);
 				contents = Files.list(dir, ".txt", false);

@@ -18,7 +18,7 @@ public class FixRotterdam {
 		String outfile = "RS2VTE_CHARGE.chargefmt.RS.v4.txt";
 		try {
 			reader = new BufferedReader(new FileReader(dir + file1));
-			writer = new PrintWriter(new FileWriter(dir + outfile));
+			writer = Files.openAppropriateWriter(dir + outfile);
 			for (int i = 0; i < 414388; i++) {
 				writer.println(reader.readLine());
 			}

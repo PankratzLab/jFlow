@@ -44,7 +44,7 @@ public class Mapability {
 		mean = sum / data.length;
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_coverage.bed"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_coverage.bed");
 			writer.println("track name=totalUniqueReads description=\"Coverage relative to mean (mean=500)\" useScore=1");
 			for (String[] element : data) {
 				pos = Integer.parseInt(element[indices[1]]);
@@ -59,8 +59,8 @@ public class Mapability {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
-																							+ "_brokenMatePairs.bed"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false)
+																							+ "_brokenMatePairs.bed");
 			writer.println("track name=percentBrokenMatePairs description=\"Percent of unique reads with broken mate pairs (scaled from 0-1000) \" useScore=1");
 			for (String[] element : data) {
 				pos = Integer.parseInt(element[indices[1]]);
@@ -75,7 +75,7 @@ public class Mapability {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_mapQualityZero.bed"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_mapQualityZero.bed");
 			writer.println("track name=percentMapQualityZero description=\"Percent of unique reads with map quality of zero (scaled from 0-1000) \" useScore=1");
 			for (String[] element : data) {
 				pos = Integer.parseInt(element[indices[1]]);
@@ -92,8 +92,8 @@ public class Mapability {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
-																							+ "_notProperlyPaired.bed"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false)
+																							+ "_notProperlyPaired.bed");
 			writer.println("track name=percentNotProperlyPaired description=\"Percent of unique reads that are not properly paired (scaled from 0-1000) \" useScore=1");
 			for (String[] element : data) {
 				pos = Integer.parseInt(element[indices[1]]);
@@ -108,8 +108,8 @@ public class Mapability {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
-																							+ "_compositePoorQualty.bed"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false)
+																							+ "_compositePoorQualty.bed");
 			writer.println("track name=CompositePoorQuality description=\"Composite Poor Quality = MapQualityZero + NotProperlyPaired\" useScore=1");
 			for (String[] element : data) {
 				pos = Integer.parseInt(element[indices[1]]);
@@ -146,7 +146,7 @@ public class Mapability {
 		}
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + "_positions.xln"));
+			writer = Files.openAppropriateWriter(filename + "_positions.xln");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, new String[] {"Chr", "Position"}, new int[] {0, 1}, false, new Logger(),
 											true);

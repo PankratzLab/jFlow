@@ -73,11 +73,11 @@ public class CompareCalls {
 		inds = HashVec.getKeys(hash);
 		for (int[] allPossibleCombination : allPossibleCombinations) {
 			try {
-				writer = new PrintWriter(new FileWriter(rootDir + "Compare "
+				writer = Files.openAppropriateWriter(rootDir + "Compare "
 																								+ ext.rootOf(files[allPossibleCombination[0]])
 																								+ " and "
 																								+ ext.rootOf(files[allPossibleCombination[1]])
-																								+ ".xln"));
+																								+ ".xln");
 				writer.println("FID\tIID\tTotal" + ext.rootOf(files[allPossibleCombination[0]]) + "\tTotal"
 											 + ext.rootOf(files[allPossibleCombination[1]]) + "\tUnique"
 											 + ext.rootOf(files[allPossibleCombination[0]]) + "\tUnique"

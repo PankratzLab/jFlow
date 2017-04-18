@@ -32,10 +32,10 @@ public class Simwalk2 {
 			modelParams.add(handle);
 		}
 
-		writer1 = new PrintWriter(new FileWriter("batch.1"));
-		writer2 = new PrintWriter(new FileWriter("batch.2"));
-		writer3 = new PrintWriter(new FileWriter("batch.3"));
-		writer4 = new PrintWriter(new FileWriter("batch.4"));
+		writer1 = Files.openAppropriateWriter("batch.1");
+		writer2 = Files.openAppropriateWriter("batch.2");
+		writer3 = Files.openAppropriateWriter("batch.3");
+		writer4 = Files.openAppropriateWriter("batch.4");
 		writer1.println("#/bin/sh");
 		writer1.println();
 		writer1.println("sleep 30");

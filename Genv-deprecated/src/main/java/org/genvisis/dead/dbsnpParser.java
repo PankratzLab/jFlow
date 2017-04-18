@@ -17,7 +17,7 @@ public class dbsnpParser {
 	public dbsnpParser(String filename) throws IOException {
 		Hashtable<String, String[]> hash = getHash(filename);
 		String[] info, keys = HashVec.getKeys(hash);
-		PrintWriter writer = new PrintWriter(new FileWriter(filename + "-select.xls"));
+		PrintWriter writer = Files.openAppropriateWriter(filename + "-select.xls");
 
 		for (String key : keys) {
 			info = hash.get(key);

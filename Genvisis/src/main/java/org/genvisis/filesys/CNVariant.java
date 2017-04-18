@@ -310,7 +310,7 @@ public class CNVariant extends Segment {
 			/*
 			 * new MarkerSet(markerNames, chrs, positions).serialize(filename+".ser");
 			 *
-			 * writer = new PrintWriter(new FileWriter("????")); for (int i = 0; i<temp.length; i++) {
+			 * writer = Files.openAppropriateWriter("????"); for (int i = 0; i<temp.length; i++) {
 			 * writer.println(temp[i].toPlinkFormat()); } writer.close();
 			 */
 
@@ -341,8 +341,8 @@ public class CNVariant extends Segment {
 		consensus = sortCNVsInPlace(CNVariant.toCNVariantArray(v));
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(file1) + "_" + ext.rootOf(file2)
-																							+ "_consensus.cnv"));
+			writer = Files.openAppropriateWriter(ext.rootOf(file1) + "_" + ext.rootOf(file2)
+																							+ "_consensus.cnv");
 			for (CNVariant consensu : consensus) {
 				writer.println(consensu.toPlinkFormat());
 			}
@@ -454,7 +454,7 @@ public class CNVariant extends Segment {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(output));
+			writer = Files.openAppropriateWriter(output);
 			for (int i = 0; i < outputLines.size(); i++) {
 				writer.println(outputLines.get(i));
 			}
@@ -579,8 +579,8 @@ public class CNVariant extends Segment {
 
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(file1) + "_" + ext.rootOf(file2)
-																							+ "_signif_consensus.cnv"));
+			writer = Files.openAppropriateWriter(ext.rootOf(file1) + "_" + ext.rootOf(file2)
+																							+ "_signif_consensus.cnv");
 			for (int i = 0; i < outputLines.size(); i++) {
 				writer.println(outputLines.get(i));
 			}

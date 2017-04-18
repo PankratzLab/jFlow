@@ -126,7 +126,7 @@ public class BamSoftClip {
 		}
 		String outFinal = outputDir + "summaryCounts.txt";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outFinal));
+			PrintWriter writer = Files.openAppropriateWriter(outFinal);
 			writer.println("Clipped\t" + ArrayUtils.toStr(ArrayUtils.tagOn(bams, "Count_", null)));
 			for (String clip : allSofts) {
 				writer.print(clip);

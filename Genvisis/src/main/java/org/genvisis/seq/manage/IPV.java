@@ -53,7 +53,7 @@ package org.genvisis.seq.manage;
 // new File(outDir).mkdirs();
 //
 // try {
-// PrintWriter writer = new PrintWriter(new FileWriter(outputTSV));
+// PrintWriter writer = Files.openAppropriateWriter(outputTSV);
 // writer.println(Array.toStr(HEADER));
 // for (int i = 0; i < vcfs.length; i++) {
 //

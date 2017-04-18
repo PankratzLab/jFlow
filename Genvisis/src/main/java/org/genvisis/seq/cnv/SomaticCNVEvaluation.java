@@ -115,7 +115,7 @@ public class SomaticCNVEvaluation {
 		if (!Files.exists(outFile)) {
 			System.exit(1);
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(outFile));
+				PrintWriter writer = Files.openAppropriateWriter(outFile);
 				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
 											 + ArrayUtils.toStr(SomaticEvaluation.HEADER));
 				while (train.hasNext()) {
@@ -137,7 +137,7 @@ public class SomaticCNVEvaluation {
 		String geneOutFile = ext.addToRoot(outFile, ".genes");
 		try {
 			GeneTrack geneTrack = GeneTrack.load(proj.getGeneTrackFilename(true), false);
-			PrintWriter writer = new PrintWriter(new FileWriter(geneOutFile));
+			PrintWriter writer = Files.openAppropriateWriter(geneOutFile);
 			writer.println(ArrayUtils.toStr(results[0]) + "\tGENE");
 			for (int i = 1; i < results.length; i++) {
 				Segment current = new Segment(Byte.parseByte(results[i][2]),

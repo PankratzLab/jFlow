@@ -52,7 +52,7 @@ public class HapMapParser {
 																																 SnpMarkerSet.HAPLOVIEW_INFO_FORMAT,
 																																 log);
 		try {
-			writer = new PrintWriter(new FileWriter((new File(dir).exists() ? dir : "") + root + ".bat"));
+			writer = Files.openAppropriateWriter((new File(dir).exists() ? dir : "") + root + ".bat");
 			writer.println("java -jar /home/npankrat/Haploview.jar -pedfile " + root + "."
 										 + (preNotPed ? "pre" : "ped") + " -info " + root + ".info");
 			writer.close();
@@ -81,7 +81,7 @@ public class HapMapParser {
 			indices = ext.indexFactors(TARGETS_WITH_ALTS, temp.trim().split("\\t", -1), false, false,
 																 true, log, true);
 
-			writer = new PrintWriter(new FileWriter((new File(dir).exists() ? dir : "") + root + ".map"));
+			writer = Files.openAppropriateWriter((new File(dir).exists() ? dir : "") + root + ".map");
 			trans = null;
 			while (reader.ready()) {
 				line = reader.readLine().split("\\t", -1);
@@ -133,7 +133,7 @@ public class HapMapParser {
 
 		try {
 			reader = Files.getAppropriateReader(famstruct);
-			writer = new PrintWriter(new FileWriter((new File(dir).exists() ? dir : "") + root + ".pre"));
+			writer = Files.openAppropriateWriter((new File(dir).exists() ? dir : "") + root + ".pre");
 			while (reader.ready()) {
 				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < 5; i++) {

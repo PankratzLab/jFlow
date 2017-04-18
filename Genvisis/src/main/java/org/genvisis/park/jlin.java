@@ -3,12 +3,12 @@ package org.genvisis.park;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 
 public class jlin {
@@ -58,7 +58,7 @@ public class jlin {
 		}
 		reader.close();
 
-		writer = new PrintWriter(new FileWriter(filename + "-jlin.csv"));
+		writer = Files.openAppropriateWriter(filename + "-jlin.csv");
 		if (!new File(mapfile).exists()) {
 			System.err.println("Error - could not find " + mapfile + " in current directory");
 			System.exit(2);

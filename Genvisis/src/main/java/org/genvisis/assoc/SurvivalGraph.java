@@ -5,13 +5,13 @@ package org.genvisis.assoc;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -79,7 +79,7 @@ public class SurvivalGraph {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename + "-survival.xls"));
+			writer = Files.openAppropriateWriter(filename + "-survival.xls");
 			freqs = ArrayUtils.doubleArray(classes.length, 1);
 			writer.println("\t" + ArrayUtils.toStr(classes));
 			writer.println("0\t" + ArrayUtils.toStr(ArrayUtils.stringArray(classes.length, "1")));

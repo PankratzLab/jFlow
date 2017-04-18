@@ -494,7 +494,7 @@ public class ParseSNPlocations {
 		mergeHash = null;
 		try {
 			reader = new BufferedReader(new FileReader(snpListFile));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(snpListFile, false) + "_positions.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(snpListFile, false) + "_positions.xln");
 			writer.println("SNP\tChr\tPosition");
 			first = true;
 			while (reader.ready()) {
@@ -661,7 +661,7 @@ public class ParseSNPlocations {
 		mergeHash = null;
 		try {
 			reader = new BufferedReader(new FileReader(snpListFile));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(snpListFile, false) + "_positions.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(snpListFile, false) + "_positions.xln");
 			writer.println("SNP\tChr\tPosition");
 			first = true;
 			while (reader.ready()) {

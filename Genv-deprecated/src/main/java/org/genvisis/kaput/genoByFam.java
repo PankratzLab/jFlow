@@ -14,8 +14,8 @@ public class genoByFam {
 		BufferedReader reader = null;
 		Vector<String> fams = new Vector<String>();
 		Hashtable<String, String> hash = new Hashtable<String, String>();
-		PrintWriter writer = new PrintWriter(new FileWriter("genoByFam"));
-		// PrintWriter writer = new PrintWriter(new FileWriter("correctByFam"));
+		PrintWriter writer = Files.openAppropriateWriter("genoByFam");
+		// PrintWriter writer = Files.openAppropriateWriter("correctByFam");
 		String temp, chrome, i;
 		StringTokenizer st;
 

@@ -3,12 +3,12 @@ package org.genvisis.bioinformatics;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
 import org.genvisis.common.Aliases;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Sort;
@@ -95,7 +95,7 @@ public class procGenePositions {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
-			writer = new PrintWriter(new FileWriter("non-gene genes.out"));
+			writer = Files.openAppropriateWriter("non-gene genes.out");
 			writer.println(reader.readLine());
 			while (reader.ready()) {
 				temp = reader.readLine();
@@ -360,7 +360,7 @@ public class procGenePositions {
 			System.err.println("7");
 
 			try {
-				writer = new PrintWriter(new FileWriter(dir + "genes.xln"));
+				writer = Files.openAppropriateWriter(dir + "genes.xln");
 				writer.print("GeneID");
 				for (int i = 0; i < SOURCES.length; i++) {
 					if (IMPORTANT[i]) {

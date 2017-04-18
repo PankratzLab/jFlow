@@ -107,7 +107,7 @@ public class ComparePlinkToMach {
 		try {
 			reader = new BufferedReader(new FileReader(dir + "mach_step2_chr" + chr
 																								 + ".mldose-transposeHuge.xln"));
-			writer = new PrintWriter(new FileWriter(dir + "mach_step2_chr" + chr + ".trans.mldose"));
+			writer = Files.openAppropriateWriter(dir + "mach_step2_chr" + chr + ".trans.mldose");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			writer.print("Marker");
 			for (String element : line) {

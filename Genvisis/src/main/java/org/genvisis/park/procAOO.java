@@ -3,13 +3,13 @@ package org.genvisis.park;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
@@ -34,18 +34,18 @@ public class procAOO {
 		}
 
 		reader = new BufferedReader(new FileReader(filename));
-		writer = new PrintWriter(new FileWriter("procd" + trait + ".dat"));
-		means = new PrintWriter(new FileWriter("mean" + trait + ".dat"));
-		ghMeans = new PrintWriter(new FileWriter("gh_mean" + trait + ".dat"));
-		first = new PrintWriter(new FileWriter("1st" + trait + ".dat"));
-		second = new PrintWriter(new FileWriter("2nd" + trait + ".dat"));
-		last = new PrintWriter(new FileWriter("last" + trait + ".dat"));
-		penultumate = new PrintWriter(new FileWriter("pu" + trait + ".dat"));
-		ghLast = new PrintWriter(new FileWriter("gh_last" + trait + ".dat"));
-		ghPenultumate = new PrintWriter(new FileWriter("gh_pu" + trait + ".dat"));
-		ghFirst = new PrintWriter(new FileWriter("gh_1st" + trait + ".dat"));
-		ghSecond = new PrintWriter(new FileWriter("gh_2nd" + trait + ".dat"));
-		diff = new PrintWriter(new FileWriter("diff" + trait + ".dat"));
+		writer = Files.openAppropriateWriter("procd" + trait + ".dat");
+		means = Files.openAppropriateWriter("mean" + trait + ".dat");
+		ghMeans = Files.openAppropriateWriter("gh_mean" + trait + ".dat");
+		first = Files.openAppropriateWriter("1st" + trait + ".dat");
+		second = Files.openAppropriateWriter("2nd" + trait + ".dat");
+		last = Files.openAppropriateWriter("last" + trait + ".dat");
+		penultumate = Files.openAppropriateWriter("pu" + trait + ".dat");
+		ghLast = Files.openAppropriateWriter("gh_last" + trait + ".dat");
+		ghPenultumate = Files.openAppropriateWriter("gh_pu" + trait + ".dat");
+		ghFirst = Files.openAppropriateWriter("gh_1st" + trait + ".dat");
+		ghSecond = Files.openAppropriateWriter("gh_2nd" + trait + ".dat");
+		diff = Files.openAppropriateWriter("diff" + trait + ".dat");
 		writer.println("Fam\tMean\t1st\t2nd");
 
 		prev = "";

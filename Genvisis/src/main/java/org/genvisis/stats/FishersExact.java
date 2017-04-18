@@ -1,11 +1,11 @@
 package org.genvisis.stats;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Date;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 
@@ -361,7 +361,7 @@ public class FishersExact {
 
 		PrintWriter writer;
 		try {
-			writer = new PrintWriter(new FileWriter("data4.xln"));
+			writer = Files.openAppropriateWriter("data4.xln");
 			matrix = tests[0];
 			for (int i = 0; i < matrix.length; i++) {
 				for (int j = 0; j < matrix[i].length; j++) {

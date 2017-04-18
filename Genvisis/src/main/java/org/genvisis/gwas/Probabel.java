@@ -196,7 +196,7 @@ public class Probabel {
 
 		try {
 			System.out.println("Collecting results from phenotype file '" + pheno + "'");
-			writer = new PrintWriter(new FileWriter(ext.rootOf(pheno) + "_add.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(pheno) + "_add.xln");
 			var = new IntVector();
 			yok = new IntVector();
 			for (int chr = 1; chr <= 22; chr++) {
@@ -316,7 +316,7 @@ public class Probabel {
 
 		try {
 			System.out.println("Collecting results from phenotype file '" + pheno + "'");
-			writer = new PrintWriter(new FileWriter(ext.rootOf(pheno) + "_add.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(pheno) + "_add.xln");
 			var = new Vector<String>();
 			yok = new Vector<String>();
 			for (int chr = 1; chr <= 23; chr++) {
@@ -397,8 +397,8 @@ public class Probabel {
 
 		try {
 			reader = new BufferedReader(new FileReader(pheno));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(pheno, false) + "_" + selectedClass
-																							+ ".dat"));
+			writer = Files.openAppropriateWriter(ext.rootOf(pheno, false) + "_" + selectedClass
+																							+ ".dat");
 			writer.println(reader.readLine());
 			count = 0;
 			while (reader.ready()) {
@@ -485,8 +485,8 @@ public class Probabel {
 
 		try {
 			reader = new BufferedReader(new FileReader(pheno));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(pheno, false) + "_" + affectedClass
-																							+ "_vs_" + unaffectedClass + ".dat"));
+			writer = Files.openAppropriateWriter(ext.rootOf(pheno, false) + "_" + affectedClass
+																							+ "_vs_" + unaffectedClass + ".dat");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			writer.println(line[0] + "\t" + line[1]);
 			count = 0;
@@ -599,7 +599,7 @@ public class Probabel {
 						trav = dataset + "_" + classes[j] + "_vs_" + classes[classes.length - 1];
 					}
 					try {
-						writer = new PrintWriter(new FileWriter(dir + trav + ".script"));
+						writer = Files.openAppropriateWriter(dir + trav + ".script");
 						writer.println("MARKER name" + "\n" + "ALLELE A1 A2" + "\n" + "EFFECT beta_SNP_add"
 													 + "\n" + "STDERR sebeta_SNP_add" + "\n" + "SCHEME STDERR" + "\n"
 													 + "GENOMICCONTROL ON" + "\n");
@@ -616,7 +616,7 @@ public class Probabel {
 				}
 			}
 			try {
-				writer = new PrintWriter(new FileWriter(dir + "parse_" + dataset + ".crf"));
+				writer = Files.openAppropriateWriter(dir + "parse_" + dataset + ".crf");
 				writer.println("hits\n" + dataset + ".txt 0");
 
 				for (int j = 0; j < classes.length - 1; j++) {

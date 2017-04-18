@@ -3,10 +3,10 @@ package org.genvisis.link;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class sim6K {
@@ -22,7 +22,7 @@ public class sim6K {
 		for (int i = 1; i <= 23; i++) {
 			chrome = (i < 10) ? "0" + i : "" + i;
 
-			optfile = new PrintWriter(new FileWriter(file + ".opt"));
+			optfile = Files.openAppropriateWriter(file + ".opt");
 			optfile.println("% Read input in LINKAGE style format:\n" + "PREFILE " + struct + "\n"
 											+ "DATFILE map" + chrome + ".dat\n\n"
 											+ "% Simulate stroke reconstruction pedigrees\n" + "SIMULATE dloc:32.0 npre:"
@@ -43,7 +43,7 @@ public class sim6K {
 			(new File(file + ".opt")).delete();
 
 			for (int repNum = 1; repNum <= reps; repNum++) {
-				writer = new PrintWriter(new FileWriter("linkage-" + chrome + "" + repNum + ".pre"));
+				writer = Files.openAppropriateWriter("linkage-" + chrome + "" + repNum + ".pre");
 				file = struct + "." + ext.formNum(repNum + "", String.valueOf(reps).length());
 				reader = new BufferedReader(new FileReader(file));
 				while (reader.ready()) {

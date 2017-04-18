@@ -4,13 +4,13 @@ package org.genvisis.stats;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
 
 public class FisherComp {
@@ -24,7 +24,7 @@ public class FisherComp {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + "_comp.xln"));
+			writer = Files.openAppropriateWriter(filename + "_comp.xln");
 			writer.println(reader.readLine() + "\tChiSq\tFishersExact\ttime\tcollapsed");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\t", -1);

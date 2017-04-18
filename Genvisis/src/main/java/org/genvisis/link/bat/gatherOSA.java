@@ -2,11 +2,11 @@ package org.genvisis.link.bat;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class gatherOSA {
@@ -21,7 +21,7 @@ public class gatherOSA {
 
 		chrome = (chromosome < 10) ? "0" + chromosome : "" + chromosome;
 
-		writer = new PrintWriter(new FileWriter("chrom" + chrome + "a-surface.xls"));
+		writer = Files.openAppropriateWriter("chrom" + chrome + "a-surface.xls");
 		for (int i = 0; i <= 254; i++) {
 			writer.print("\t" + i);
 		}
@@ -74,7 +74,7 @@ public class gatherOSA {
 		}
 		writer.close();
 
-		writer = new PrintWriter(new FileWriter("chrom" + chrome + "d-surface.xls"));
+		writer = Files.openAppropriateWriter("chrom" + chrome + "d-surface.xls");
 		for (int i = 0; i <= 254; i++) {
 			writer.print("\t" + i);
 		}

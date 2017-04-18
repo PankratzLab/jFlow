@@ -27,7 +27,7 @@ public class temp {
 		String filename = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\results\\paperComp\\finalLargeRare\\nums.txt";
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + "_chi.xln"));
+			writer = Files.openAppropriateWriter(filename + "_chi.xln");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				writer.print(ArrayUtils.toStr(line) + "\t"
@@ -70,7 +70,7 @@ public class temp {
 																									new int[] {2, 3, 4, 5, 6, 7}, true);
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "real_introns.cnv"));
+			writer = Files.openAppropriateWriter(dir + "real_introns.cnv");
 			writer.println("FID\tIID\t" + cnvs[0]);
 			for (String peep : peeps) {
 				for (int j = 1; j < cnvs.length; j++) {
@@ -109,7 +109,7 @@ public class temp {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "LRRmeans.xln"));
+			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + "LRRmeans.xln");
 			for (int i = 0; i < samples.length; i++) {
 				writer.println(samples[i] + "\t" + (sums[i] / counts[i]));
 			}

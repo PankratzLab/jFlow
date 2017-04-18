@@ -54,7 +54,7 @@ public class RankRecessive {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_ranked.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_ranked.xln");
 			genes = HashVec.getKeys(hash);
 			writer.println("Gene\tProduct\tPosition1\trs1\tVariant1\tRef1\tMAF1\tPosition2\trs2\tVariant2\tRef2\tMAF2\tNumberOfOtherAllelesInGene");
 			for (String gene : genes) {

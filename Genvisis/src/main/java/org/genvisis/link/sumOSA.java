@@ -77,12 +77,12 @@ public class sumOSA {
 		int chr;
 		List<osaChrom[][]> runs = new ArrayList<osaChrom[][]>();
 
-		batch = new PrintWriter(new FileWriter("batchPerms"));
+		batch = Files.openAppropriateWriter("batchPerms");
 		batch.println("sleep 5");
 		batch.println();
 
 		plug = (new File(plug)).getAbsolutePath();
-		writer = new PrintWriter(new FileWriter(plug));
+		writer = Files.openAppropriateWriter(plug);
 		writer.close();
 
 		for (int run = 0; run < runDirs.size(); run++) {
@@ -103,7 +103,7 @@ public class sumOSA {
 		}
 
 		temp = "";
-		writer = new PrintWriter(new FileWriter("osa_summary.xls"));
+		writer = Files.openAppropriateWriter("osa_summary.xls");
 		for (int run = 0; run < runDirs.size(); run++) {
 			writer.print((run == 0 ? "\t" : "") + "\t" + runDirs.get(run) + "\t\t\t\t\t\t\t\t");
 			temp += "\t" + (run == 0 ? "Direction" : "")

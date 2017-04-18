@@ -35,7 +35,7 @@ public class solarZeroByInd {
 																								super.getClass().getName());
 			(new File("solar.gtypes." + chromosome)).renameTo(new File(bakFilename));
 			reader = new BufferedReader(new FileReader(bakFilename));
-			writer = new PrintWriter(new FileWriter("solar.gtypes." + chromosome));
+			writer = Files.openAppropriateWriter("solar.gtypes." + chromosome);
 			writer.println(reader.readLine());
 			temp = reader.readLine();
 			st = new StringTokenizer(temp, "/");

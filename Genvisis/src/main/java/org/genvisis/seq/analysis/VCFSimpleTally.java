@@ -702,7 +702,7 @@ public class VCFSimpleTally {
 			String out = sr.getSampleVarCounts();
 
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(out));
+				PrintWriter writer = Files.openAppropriateWriter(out);
 				writer.println("Sample\tSNPEFF_IMPACT\tQUALITY\tGENE\tCOUNTS\tHQ_Sample");
 				for (String key : counts.keySet()) {
 					writer.println(key + "\tANY\t" + counts.get(key) + "\t"
@@ -1220,7 +1220,7 @@ public class VCFSimpleTally {
 
 	private static void summarizeGeneSets(GeneSet[] geneSets, String sumFile, Logger log) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(sumFile));
+			PrintWriter writer = Files.openAppropriateWriter(sumFile);
 			writer.println("GENE_SET\tN_GENES\tGENES->");
 			for (GeneSet geneSet : geneSets) {
 				writer.print(geneSet.getTag() + "\t" + geneSet.getGenes().size());
@@ -1241,7 +1241,7 @@ public class VCFSimpleTally {
 																							Hashtable<String, Set<String>> controls, double maf,
 																							Logger log) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(sumFile));
+			PrintWriter writer = Files.openAppropriateWriter(sumFile);
 			writer.print("#CASE\t" + caseDef + "\tn=" + cases.size());
 			for (String acase : cases) {
 				writer.print("\t" + acase);
@@ -1822,7 +1822,7 @@ public class VCFSimpleTally {
 				log.reportTimeWarning("Not doing individual control comparisions");
 			}
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(caseWithControls));
+				PrintWriter writer = Files.openAppropriateWriter(caseWithControls);
 
 				BufferedReader reader = Files.getAppropriateReader(geneFileCase);
 				String[] blanksEnrichment = new String[PosCluster.getHeader("BLANK", "BLANK").length * 2];

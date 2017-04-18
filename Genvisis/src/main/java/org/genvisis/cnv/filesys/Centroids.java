@@ -89,7 +89,7 @@ public class Centroids implements Serializable, TextExport {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(outputFile));
+			writer = Files.openAppropriateWriter(outputFile);
 			writer.println("marker_fingerprint=" + getFingerprint());
 			writer.println("MarkerName\tAA_Theta_Mean\tAA_R_Mean\tAB_Theta_Mean\tAB_R_Mean\tBB_Theta_Mean\tBB_R_Mean");
 			for (int i = 0; i < markerNames.length; i++) {
@@ -903,8 +903,8 @@ public class Centroids implements Serializable, TextExport {
 			try {
 				new File(ext.parseDirectoryOfFile(pfbFiles[0])).mkdirs();
 				new File(ext.parseDirectoryOfFile(pfbFiles[1])).mkdirs();
-				writerM = new PrintWriter(new FileWriter(pfbFiles[0]));
-				writerF = new PrintWriter(new FileWriter(pfbFiles[1]));
+				writerM = Files.openAppropriateWriter(pfbFiles[0]);
+				writerF = Files.openAppropriateWriter(pfbFiles[1]);
 
 				writerM.println("Name\tChr\tPosition\tPFB");
 				writerF.println("Name\tChr\tPosition\tPFB");
@@ -984,7 +984,7 @@ public class Centroids implements Serializable, TextExport {
 		String outFile = exportFilename.startsWith(dir) || exportFilename.contains(":")
 										 || exportFilename.startsWith("/") ? exportFilename : dir + exportFilename;
 		try {
-			writer = new PrintWriter(new FileWriter(outFile));
+			writer = Files.openAppropriateWriter(outFile);
 			writer.println("marker_fingerprint=" + centObject.getFingerprint());
 			writer.println("MarkerName\tAA_Theta_Mean\tAA_R_Mean\tAB_Theta_Mean\tAB_R_Mean\tBB_Theta_Mean\tBB_R_Mean");
 			for (int i = 0; i < markerNames.length; i++) {

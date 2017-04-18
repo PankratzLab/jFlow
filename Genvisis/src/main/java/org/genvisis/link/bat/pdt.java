@@ -55,7 +55,7 @@ public class pdt {
 				reader.readLine();
 			}
 			for (int i = 1; i <= numMarkers; i++) {
-				writer = new PrintWriter(new FileWriter(i + ".dat"));
+				writer = Files.openAppropriateWriter(i + ".dat");
 				writer.println("2 0 0 5");
 				writer.println("0 0.0 0.0 0");
 				writer.println("1 2");
@@ -81,7 +81,7 @@ public class pdt {
 			System.exit(2);
 		}
 
-		writer = new PrintWriter(new FileWriter("run_pdt" + chrome));
+		writer = Files.openAppropriateWriter("run_pdt" + chrome);
 		writer.println("#/bin/sh");
 		writer.println();
 		for (int i = 1; i <= numMarkers; i++) {
@@ -146,7 +146,7 @@ public class pdt {
 			}
 
 			for (int i = 0; i < stopAt - startAt; i++) {
-				writer = new PrintWriter(new FileWriter((startAt + i + 1) + ".ped"));
+				writer = Files.openAppropriateWriter((startAt + i + 1) + ".ped");
 				// int count = 0;
 				for (int j = 0; j < data.size(); j++) {
 					dataline = data.get(j);
@@ -173,7 +173,7 @@ public class pdt {
 		String sum, avg;
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "pdt_summary.xls"));
+			writer = Files.openAppropriateWriter(dir + "pdt_summary.xls");
 			writer.println("marker\tchr\tposition\tsumPDT\tavePDT");
 
 			for (int i = start; i <= stop; i++) {

@@ -80,7 +80,7 @@ public class Hits {
 		List<Entry<String, Double>> entries = Sort.entriesSortedByValues(hash);
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = Files.openAppropriateWriter(filename);
 			for (Entry<String, Double> e : entries) {
 				writer.println(e.getKey() + "\t" + e.getValue());
 			}

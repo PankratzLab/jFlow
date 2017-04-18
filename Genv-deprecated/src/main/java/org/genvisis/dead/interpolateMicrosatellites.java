@@ -73,7 +73,7 @@ public class interpolateMicrosatellites {
 			interName = oriname + "-interpolated.dat";
 		}
 
-		writer = new PrintWriter(new FileWriter(interName));
+		writer = Files.openAppropriateWriter(interName);
 
 		writer.println(reader.readLine());
 		writer.print(reader.readLine());

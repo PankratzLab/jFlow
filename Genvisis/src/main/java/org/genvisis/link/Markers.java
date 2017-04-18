@@ -65,7 +65,7 @@ public class Markers {
 				keys = Sort.getSortedIndices(distances);
 				chr = chrs[keys[0]];
 				output = markers[keys[0]];
-				writer = new PrintWriter(new FileWriter("markerMap.dat"));
+				writer = Files.openAppropriateWriter("markerMap.dat");
 				for (int i = 0; i < keys.length; i++) {
 					if (distances[keys[i]] == -1) {
 						System.err.println("Error - marker '" + markers[i]

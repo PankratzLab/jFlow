@@ -3,10 +3,10 @@ package org.genvisis.gwas;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.filesys.SnpMarkerSet;
@@ -21,7 +21,7 @@ public class ConvertPlinkToMatrix {
 		markerNames = new SnpMarkerSet(dir + root + ".map", false, new Logger()).getMarkerNames();
 		try {
 			reader = new BufferedReader(new FileReader(dir + root + ".ped"));
-			writer = new PrintWriter(new FileWriter(dir + root + ".matrix"));
+			writer = Files.openAppropriateWriter(dir + root + ".matrix");
 			writer.print("IID");
 			for (String markerName : markerNames) {
 				writer.print("\t" + markerName);

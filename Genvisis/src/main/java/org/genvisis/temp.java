@@ -34,7 +34,7 @@ public class temp {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + "_parsed.out"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename) + "_parsed.out");
 			root = "";
 			annotation = "nada";
 			while (reader.ready()) {
@@ -161,7 +161,7 @@ public class temp {
 
 		try {
 			reader = new BufferedReader(new FileReader(infile));
-			writer = new PrintWriter(new FileWriter(infile + ".out"));
+			writer = Files.openAppropriateWriter(infile + ".out");
 			// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			// for (int i = 1; i < line.length; i++) {
 			// writer.print((i==1?"":"\t")+line[i]);

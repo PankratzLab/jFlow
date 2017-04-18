@@ -25,7 +25,7 @@ public class Haplotypes {
 		}
 		try {
 			keys = HashVec.getKeys(hash);
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_counts.xln"));
+			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_counts.xln");
 			writer.println("FID\tIID\t" + ArrayUtils.toStr(keys));
 			int[] counts;
 			for (int i = 0; i < data.length; i++) {

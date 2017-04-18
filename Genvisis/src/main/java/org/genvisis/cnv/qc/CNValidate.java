@@ -590,7 +590,7 @@ public class CNValidate implements Runnable {
 // String cnvFile = "D:/data/inSilicoValidate/Roots_AND_Dups_BEAST_ALL.cnv";
 //
 // try {
-// PrintWriter writer = new PrintWriter(new FileWriter(cnvFile, true));
+// PrintWriter writer = Files.openAppropriateWriter(cnvFile, true);
 // for (int i = 0; i < cnvs.length; i++) {
 //
 // double score = 0;
@@ -664,8 +664,8 @@ public class CNValidate implements Runnable {
 // samp.getSampleName().replaceAll(".*affy", "") + "_chr" + i + ".config";
 // try {
 //
-// PrintWriter writercnv = new PrintWriter(new FileWriter(cnvFile, false));
-// PrintWriter writerconfig = new PrintWriter(new FileWriter(configFile, false));
+// PrintWriter writercnv = Files.openAppropriateWriter(cnvFile, false);
+// PrintWriter writerconfig = Files.openAppropriateWriter(configFile, false);
 // writercnv.println("probeset_id\tchr\tposition\tLRR");
 // writerconfig.println("6\n30\n0.25\n5000000\n2\n3\n" + cnvFile + "\n1\n0.4\n9\n1\n1\n" + cnvFile +
 // ".summary.res\n" + cnvFile + ".pred.res\n");
@@ -725,9 +725,9 @@ public class CNValidate implements Runnable {
 // // System.out.println(alpha);
 // String file = "D:/data/inSilicoValidate/BEAST_alpha_" + alpha + ".cnv";
 // if (Files.exists(file)) {
-// writer[k] = new PrintWriter(new FileWriter(file, true));
+// writer[k] = Files.openAppropriateWriter(file, true);
 // } else {
-// writer[k] = new PrintWriter(new FileWriter(file, false));
+// writer[k] = Files.openAppropriateWriter(file, false);
 // writer[k].println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 // }
 // }

@@ -362,7 +362,7 @@ public class QQPlot {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(dir + "CIs.xln"));
+			writer = Files.openAppropriateWriter(dir + "CIs.xln");
 			writer.println("2.5%ile\t5%ile\t95%ile\t97.5%ile");
 			for (float[] dist : dists) {
 				writer.println(ArrayUtils.toStr(ArrayUtils.quants(dist, new double[] {0.025, 0.05, 0.95,

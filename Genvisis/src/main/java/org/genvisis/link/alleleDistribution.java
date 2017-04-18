@@ -4,13 +4,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
@@ -68,15 +68,15 @@ public class alleleDistribution {
 		}
 		reader.close();
 
-		shiftoes = new PrintWriter(new FileWriter("shiftAllelesForOddEvens.txt"));
-		oddevens = new PrintWriter(new FileWriter("odd-evens.xls"));
+		shiftoes = Files.openAppropriateWriter("shiftAllelesForOddEvens.txt");
+		oddevens = Files.openAppropriateWriter("odd-evens.xls");
 		oddevens.print("Marker");
 		for (int i = 0; i < species.size(); i++) {
 			oddevens.print("\t%off " + species.elementAt(i));
 		}
 		oddevens.println("\t%off ALL\tmax %offr");
 
-		suggest = new PrintWriter(new FileWriter("suggestions.out"));
+		suggest = Files.openAppropriateWriter("suggestions.out");
 		for (int i = start; i <= stop; i++) {
 			chrome = (i < 10) ? "0" + i : "" + i;
 			try {
@@ -156,7 +156,7 @@ public class alleleDistribution {
 			}
 			reader.close();
 
-			writer = new PrintWriter(new FileWriter("alleles" + chrome + ".xls"));
+			writer = Files.openAppropriateWriter("alleles" + chrome + ".xls");
 			for (int j = 0; j < numMarkers; j++) {
 				total = new double[species.size() + 1];
 				writer.println(names[j][0]);

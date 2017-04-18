@@ -37,7 +37,7 @@ public class AgeAtDeath {
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(filename + ".out"));
+			writer = Files.openAppropriateWriter(filename + ".out");
 			writer.println("FID\tIID\tMother_Affected\tMother_AAD\tFather_Affected\tFather_AAD\tUse");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			ext.checkHeader(line, new String[] {"Mother", "Father"}, false);

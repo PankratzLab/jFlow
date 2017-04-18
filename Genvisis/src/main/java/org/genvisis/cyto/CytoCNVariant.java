@@ -433,7 +433,7 @@ public class CytoCNVariant extends CNVariant {
 	 */
 	public static void writeToPlink(CytoCNVariant[] CytoCNVariant, String fileName, Logger log) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(fileName));
+			PrintWriter writer = Files.openAppropriateWriter(fileName);
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (org.genvisis.cyto.CytoCNVariant element : CytoCNVariant) {
 				writer.println(element.toPlinkFormat());

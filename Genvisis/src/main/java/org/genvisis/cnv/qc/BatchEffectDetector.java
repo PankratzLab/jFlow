@@ -42,7 +42,7 @@ public class BatchEffectDetector {
 
 			String summary = outDir + "markerSDSummary";
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(summary));
+				PrintWriter writer = Files.openAppropriateWriter(summary);
 				writer.println("MarkerName\tSD_RANK\tSD");
 				for (int i = 0; i < pairs.length; i++) {
 					if (markersToUse.size() < numMarks) {

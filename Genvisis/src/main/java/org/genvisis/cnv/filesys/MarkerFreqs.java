@@ -78,7 +78,7 @@ public class MarkerFreqs implements Serializable {
 													 long fingerprint, Logger log) {
 		PrintWriter writer;
 		try {
-			writer = new PrintWriter(new FileWriter(exportFilename));
+			writer = Files.openAppropriateWriter(exportFilename);
 			writer.println("marker_fingerprint=" + fingerprint);
 			writer.println(ArrayUtils.toStr(MARKER_FREQ_FIELDS));
 			for (int i = 0; i < markerNames.length; i++) {

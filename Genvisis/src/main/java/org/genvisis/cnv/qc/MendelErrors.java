@@ -1,6 +1,5 @@
 package org.genvisis.cnv.qc;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Map;
 
@@ -8,6 +7,7 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MDL;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 
 /**
@@ -235,7 +235,7 @@ public class MendelErrors {
 		} else {
 			String output = proj.PROJECT_DIRECTORY.getValue() + "mendelErrorMarkers.txt";
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				PrintWriter writer = Files.openAppropriateWriter(output);
 				writer.println("MarkerName\tNumMendelErrors");
 				boolean[] samplesToCheck = proj.getSamplesToInclude(null);
 				MDL mdl = new MDL(proj, proj.getMarkerSet(), proj.getMarkerNames(), 2, 100);

@@ -2,13 +2,13 @@ package org.genvisis.park;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.PSF;
@@ -84,7 +84,7 @@ public class lodsForExcel {
 		Vector<String> markers = new Vector<String>();
 		double posi, off;
 
-		all = new PrintWriter(new FileWriter("excel-all.xls"));
+		all = Files.openAppropriateWriter("excel-all.xls");
 		all.println("Marker\tPosition\tAdj.Position\t" + ArrayUtils.toStr(DATA_POINTS, "\t"));
 
 		for (int chr : chrs) {
@@ -206,7 +206,7 @@ public class lodsForExcel {
 
 			poslar = HashVec.getNumericKeys(hash);
 			try {
-				writer = new PrintWriter(new FileWriter("excel" + chrome + ".xls"));
+				writer = Files.openAppropriateWriter("excel" + chrome + ".xls");
 				writer.println("Marker\tPosition\tAdj.Position\t" + ArrayUtils.toStr(DATA_POINTS, "\t"));
 
 				handle = hash.get(poslar[0]);

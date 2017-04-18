@@ -78,7 +78,7 @@ public class TextVenn {
 		}
 		String output = ext.addToRoot(inputFile, ".overlapSummary.txt");
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.println(ArrayUtils.toStr(comp.toArray(new String[comp.size()])));
 			writer.println(ArrayUtils.toStr(compSummary.toArray(new String[compSummary.size()])));
 			for (int i = 0; i < maxOverlap; i++) {

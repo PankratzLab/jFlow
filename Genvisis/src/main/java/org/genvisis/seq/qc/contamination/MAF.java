@@ -1,11 +1,11 @@
 package org.genvisis.seq.qc.contamination;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MDL;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 
 public class MAF {
@@ -27,7 +27,7 @@ public class MAF {
 		// }
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.println("NAME\tMAF\tCALLRATE\tA_AF\tB_AF");
 			mdl.setDebugMode(true);
 			mdl.setReportEvery(10000);

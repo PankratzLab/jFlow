@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.link.LinkageMap;
@@ -68,7 +69,7 @@ public class Mlink {
 
 		if (pedformat) {
 			try {
-				writer = new PrintWriter(new FileWriter("batch"));
+				writer = Files.openAppropriateWriter("batch");
 				writer.println("cd chrom" + chrome);
 				for (int i = 0; i < numFiles; i++) {
 					writer.println("be pedin" + chrome + "-" + (i + 1));
@@ -137,7 +138,7 @@ public class Mlink {
 				reader.close();
 			}
 
-			writer = new PrintWriter(new FileWriter("chrom" + chrome + ".xls"));
+			writer = Files.openAppropriateWriter("chrom" + chrome + ".xls");
 			writer.println("Chr.\tpos\tMarker\t" + ArrayUtils.toStr(THETAS) + "\tThetaMax");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.print(chr + "\t" + cumulative_cM_positions[i] + "\t" + markerNames[i]);
@@ -180,8 +181,8 @@ public class Mlink {
 			numFiles = (int) (Math.ceil(numMarkers / (double) MAX_MARKERS));
 			writers = new PrintWriter[numFiles];
 			for (int i = 0; i < numFiles; i++) {
-				writers[i] = new PrintWriter(new FileWriter(destination + "map" + chrome + "-" + (i + 1)
-																										+ ".dat"));
+				writers[i] = Files.openAppropriateWriter(destination + "map" + chrome + "-" + (i + 1)
+																										+ ".dat");
 				line[0] = i == numFiles - 1 ? "" + (numMarkers - (numFiles - 1) * MAX_MARKERS + 1)
 																		: "" + (MAX_MARKERS + 1);
 				writers[i].println(ArrayUtils.toStr(line, " "));
@@ -230,8 +231,8 @@ public class Mlink {
 			}
 			reader = new BufferedReader(new FileReader("re_chrom" + chrome + ".pre"));
 			for (int i = 0; i < numFiles; i++) {
-				writers[i] = new PrintWriter(new FileWriter(destination + "chrom" + chrome + "-" + (i + 1)
-																										+ (pedformat ? ".ped" : ".pre")));
+				writers[i] = Files.openAppropriateWriter(destination + "chrom" + chrome + "-" + (i + 1)
+																										+ (pedformat ? ".ped" : ".pre"));
 			}
 			if (pedformat) {
 				pedStruct2 = procPedStruct(new File("re_chrom" + chrome + ".ped").exists()
@@ -355,7 +356,7 @@ public class Mlink {
 		PrintWriter writer = null;
 
 		try {
-			writer = new PrintWriter(new FileWriter(batchfile));
+			writer = Files.openAppropriateWriter(batchfile);
 			writer.println(":");
 			writer.println("#");
 			writer.println("#\t**");

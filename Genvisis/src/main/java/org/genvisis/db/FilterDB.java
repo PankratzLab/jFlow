@@ -67,7 +67,7 @@ public class FilterDB {
 
 		try {
 			new File(ext.parseDirectoryOfFile(outputFile)).mkdirs();
-			writer = new PrintWriter(new FileWriter(outputFile));
+			writer = Files.openAppropriateWriter(outputFile);
 		} catch (Exception e) {
 			System.err.println("Error - could not write to file " + outputFile + "; is it locked?");
 			return;

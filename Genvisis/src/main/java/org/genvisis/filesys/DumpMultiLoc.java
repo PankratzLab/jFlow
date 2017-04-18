@@ -1,8 +1,8 @@
 package org.genvisis.filesys;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 
 public class DumpMultiLoc {
@@ -12,7 +12,7 @@ public class DumpMultiLoc {
 		GeneData[][] genes = geneTrack.getGenes();
 
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
+			PrintWriter writer = Files.openAppropriateWriter(outputFile);
 			for (GeneData[] gene : genes) {
 				for (GeneData element : gene) {
 					if (element.getMultiLoc() > 0) {

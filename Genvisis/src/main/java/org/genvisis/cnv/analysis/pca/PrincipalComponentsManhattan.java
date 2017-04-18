@@ -143,7 +143,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 											+ EXT;
 
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				PrintWriter writer = Files.openAppropriateWriter(output);
 				writer.println(ArrayUtils.toStr(HEADER));
 				for (int j = 0; j < markersToTest.length; j++) {
 					writer.println((j + 1) + "\t" + markersToTest[j] + "\t" + chrs[markerIndicesInProject[j]]

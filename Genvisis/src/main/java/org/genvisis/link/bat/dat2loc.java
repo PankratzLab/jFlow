@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
 
+import org.genvisis.common.Files;
+
 public class dat2loc {
 
 	public dat2loc() {}
@@ -39,10 +41,10 @@ public class dat2loc {
 			writer = new PrintWriter(new FileWriter(filename.substring(0, filename.length() - 4)
 																							+ ".loc"));
 		} else if (filename.startsWith("nuke")) {
-			writer = new PrintWriter(new FileWriter("map" + filename.substring(filename.length() - 2)
-																							+ ".loc"));
+			writer = Files.openAppropriateWriter("map" + filename.substring(filename.length() - 2)
+																							+ ".loc");
 		} else {
-			writer = new PrintWriter(new FileWriter(filename + ".loc"));
+			writer = Files.openAppropriateWriter(filename + ".loc");
 		}
 
 		st = new StringTokenizer(reader.readLine());

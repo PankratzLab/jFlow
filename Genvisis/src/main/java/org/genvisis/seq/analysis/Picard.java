@@ -382,7 +382,7 @@ public class Picard {
 		public void parse(String outputSummaryFile) {
 			parseMetricsFiles();
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(outputSummaryFile));
+				PrintWriter writer = Files.openAppropriateWriter(outputSummaryFile);
 				writer.println("SAMPLE\t" + ArrayUtils.toStr(PICARD_METRICS));
 				for (int i = 0; i < consolidatedMetrics.length; i++) {
 					writer.println(ext.rootOf(picardMetricsFiles[i]) + "\t"

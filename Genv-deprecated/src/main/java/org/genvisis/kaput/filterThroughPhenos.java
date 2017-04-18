@@ -32,11 +32,11 @@ public class filterThroughPhenos {
 		reader.close();
 
 		reader = new BufferedReader(new FileReader(structfile));
-		conAff = new PrintWriter(new FileWriter("concordant affected.out"));
-		conUnaff = new PrintWriter(new FileWriter("concordant unaffected.out"));
-		discord = new PrintWriter(new FileWriter("discordant.out"));
-		unused = new PrintWriter(new FileWriter("unused individuals.out"));
-		diskey = new PrintWriter(new FileWriter("diskey.dat"));
+		conAff = Files.openAppropriateWriter("concordant affected.out");
+		conUnaff = Files.openAppropriateWriter("concordant unaffected.out");
+		discord = Files.openAppropriateWriter("discordant.out");
+		unused = Files.openAppropriateWriter("unused individuals.out");
+		diskey = Files.openAppropriateWriter("diskey.dat");
 
 		while (reader.ready()) {
 			st = new StringTokenizer(reader.readLine());

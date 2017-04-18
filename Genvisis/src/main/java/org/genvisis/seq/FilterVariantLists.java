@@ -51,7 +51,7 @@ public class FilterVariantLists {
 		for (String file : files) {
 			try {
 				reader = new BufferedReader(new FileReader(dir + file));
-				writer = new PrintWriter(new FileWriter(dir + "filtered/" + file));
+				writer = Files.openAppropriateWriter(dir + "filtered/" + file);
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					passes = true;

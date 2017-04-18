@@ -142,7 +142,7 @@ public class PermuteNullDistribution {
 		logistic = pheno.size() == 2;
 
 		System.out.println(ext.getTime());
-		writer = new PrintWriter(new FileWriter(filename + ".out"));
+		writer = Files.openAppropriateWriter(filename + ".out");
 		writer.println("Replicate\tWald\tp-value");
 		for (int rep = -1; rep < numReps; rep++) {
 			System.out.println("Rep: " + (rep + 1));
@@ -193,7 +193,7 @@ public class PermuteNullDistribution {
 			increment = (int) Math.floor((double) (line.length - 2) / (double) numFiles);
 			writers = new PrintWriter[numFiles];
 			for (int i = 0; i < numFiles; i++) {
-				writers[i] = new PrintWriter(new FileWriter("batch." + (i + 1)));
+				writers[i] = Files.openAppropriateWriter("batch." + (i + 1));
 				writers[i].println("mkdir " + (i + 1));
 				for (int j = 0; j < line.length - 2; j++) {
 					writers[i].println("cp " + line[2 + ((j + i * increment) % (line.length - 2))] + ".dat "
@@ -211,7 +211,7 @@ public class PermuteNullDistribution {
 
 			writers = new PrintWriter[line.length - 2];
 			for (int i = 0; i < writers.length; i++) {
-				writers[i] = new PrintWriter(new FileWriter(line[2 + i] + ".dat"));
+				writers[i] = Files.openAppropriateWriter(line[2 + i] + ".dat");
 				writers[i].println(line[0] + "\t" + line[1] + "\t" + line[2 + i]);
 			}
 			while (reader.ready()) {

@@ -2,11 +2,12 @@ package org.genvisis.link.bat;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
 import java.util.Vector;
+
+import org.genvisis.common.Files;
 
 public class batchMLINK {
 	@SuppressWarnings("resource")
@@ -31,10 +32,10 @@ public class batchMLINK {
 		}
 		reader.close();
 
-		writer1 = new PrintWriter(new FileWriter("batch.5"));
-		writer2 = new PrintWriter(new FileWriter("batch.6"));
-		writer3 = new PrintWriter(new FileWriter("batch.7"));
-		writer4 = new PrintWriter(new FileWriter("batch.8"));
+		writer1 = Files.openAppropriateWriter("batch.5");
+		writer2 = Files.openAppropriateWriter("batch.6");
+		writer3 = Files.openAppropriateWriter("batch.7");
+		writer4 = Files.openAppropriateWriter("batch.8");
 		writer1.println("#/bin/sh");
 		writer1.println();
 		writer1.println("sleep 30");
