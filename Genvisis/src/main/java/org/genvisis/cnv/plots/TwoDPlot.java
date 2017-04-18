@@ -236,7 +236,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		layeredPane.add(twoDPanel);
 		layeredPane.setComponentZOrder(twoDPanel, 3);
-		UITools.setSize(layeredPane, new Dimension(1000, 600));
+		layeredPane.setPreferredSize(new Dimension(1000, 600));
 
 		treePanel = new JPanel();
 		treePanel.setBackground(BACKGROUND_COLOR);
