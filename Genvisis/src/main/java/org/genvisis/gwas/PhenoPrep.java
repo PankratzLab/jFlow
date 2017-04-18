@@ -1076,13 +1076,7 @@ public class PhenoPrep {
 		//
 		// summarizeAll(dir, idColName, phenos, covarsCommaDelimited, 0, null);
 		// System.exit(1);
-
-		parse(dir, filename, idColName, phenos, transform, sdThreshold, winsorize, remove, makeResids,
-					afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat,
-					pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, extras, outFile,
-					finalHeader, addintercept, sort, zscore, signZ, timeVariable, histogram, new Logger());
-		System.exit(1);
-
+		
 		String usage = "\n" + "gwas.PhenoPrep requires 0-1 arguments\n"
 									 + "	 (0) name of directory (i.e. dir=" + dir + " (default))\n"
 									 + "	 (1) name of input file (i.e. file=" + filename + " (default))\n"
