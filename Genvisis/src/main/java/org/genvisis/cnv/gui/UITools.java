@@ -52,7 +52,7 @@ public final class UITools {
 	public static void setSize(Component c, Dimension d) {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(c.getGraphicsConfiguration());
-		int taskBarSize = scnMax.bottom;
+		int taskBarSize = scnMax == null ? 0 : scnMax.bottom;
 		int totalHeight = dim.height - (taskBarSize > 0 ? taskBarSize : (int) (dim.height * 0.075));
 
 		int height = d.height >= totalHeight ? totalHeight : d.height;
