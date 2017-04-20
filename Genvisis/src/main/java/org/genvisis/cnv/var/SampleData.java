@@ -13,7 +13,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.SwingUtilities;
 
@@ -43,7 +43,11 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariantHash;
 import org.genvisis.filesys.Segment;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
@@ -217,11 +221,11 @@ public class SampleData {
 
 	public static final String PLINK_CLASS_PREFIX = "PLINK: ";
 	private final Project proj;
+	private final int dnaIndex;
 	private final String[] basicClasses;
 	private final String[] filters;
 	private final String[] covars;
 	private String[] classes;
-	private final String[] metaHeaders;
 	private final Map<String, Integer> metaIndices;
 	private final String[][][] classColorKeys;
 	private String[] cnvClasses;
@@ -232,6 +236,7 @@ public class SampleData {
 	private final Hashtable<String, String[]> lookup;
 	private final Hashtable<String, IndiPheno> sampleHash;
 	private final Collection<Set<String>> duplicateSets;
+	private final LoadingCache<String, Map<String, String>> metaDataCache;
 	private final int sexClassIndex;
 	private final int excludeClassIndex;
 	private final boolean containsDNA;
@@ -265,10 +270,9 @@ public class SampleData {
 		String filename;
 		CountVector sexCountHash;
 		String[] ids;
-		Logger log;
 
 		this.proj = proj;
-		log = proj.getLog();
+		final Logger log = proj.getLog();
 
 		final String[] cnvFilenames;
 		if (cnvFilenamesVar == null) {
@@ -306,15 +310,16 @@ public class SampleData {
 			}
 			reader = Files.getReader(filename, proj.JAR_STATUS.getValue(), true, true);
 			header = reader.readLine().split("\t");
-			int dnaIndex = ext.indexOfStr("DNA", header);
+			int findDnaIndex = ext.indexOfStr("DNA", header);
 			int famIndex = ext.indexOfStr("FID", header);
 			int indIndex = ext.indexOfStr("IID", header);
 			final int dupeIDIndex = ext.indexOfStr(SampleQC.DUPLICATE_ID_HEADER, header);
-			if (dnaIndex == -1) {
+			if (findDnaIndex == -1) {
 				log.reportError("Error - 'DNA' was not a header in the SampleData file; assuming lookup with first column");
 				dnaIndex = 0;
 				containsDNA = false;
 			} else {
+				dnaIndex = findDnaIndex;
 				containsDNA = true;
 			}
 			if (cnvFilenames.length > 0 && famIndex == -1) {
@@ -341,7 +346,6 @@ public class SampleData {
 			}
 			ImmutableSetMultimap.Builder<String, String> duplicateSetBuilder = ImmutableSetMultimap.builder();
 
-			List<String> meta = new ArrayList<String>();
 			metaIndices = new HashMap<String, Integer>();
 			for (int i = 1; i < header.length; i++) {
 				String label = header[i].toUpperCase();
@@ -355,12 +359,27 @@ public class SampleData {
 									 || label.startsWith("XCLASS=")) {
 					// These columns are marked to be ignored
 				} else {
-					meta.add(label);
 					metaIndices.put(label, i);
 				}
 			}
-			Collections.sort(meta);
-			metaHeaders = meta.toArray(new String[meta.size()]);
+
+			CacheLoader<String, Map<String, String>> metaDataCacheLoader = new CacheLoader<String, Map<String, String>>() {
+
+				@Override
+				public Map<String, String> load(String key) throws IllegalArgumentException {
+
+					if (metaIndices.containsKey(key)) {
+						int index = metaIndices.get(key);
+						return HashVec.loadFileColumnToMap(proj.SAMPLE_DATA_FILENAME.getValue(), dnaIndex,
+																							 index, true, log);
+					} else {
+						throw new IllegalArgumentException(key + " is not a valid metadata header");
+					}
+				}
+
+			};
+
+			metaDataCache = CacheBuilder.newBuilder().softValues().build(metaDataCacheLoader);
 
 			filters = new String[filterIs.size()];
 			for (int i = 0; i < filters.length; i++) {
@@ -704,11 +723,11 @@ public class SampleData {
 	}
 
 	/**
-	 * @return A list of the column headers that were not individual identifiers or coloration
+	 * @return A Collection of the column headers that were not individual identifiers or coloration
 	 *         classes.
 	 */
-	public String[] getMetaHeaders() {
-		return metaHeaders;
+	public Set<String> getMetaHeaders() {
+		return metaIndices.keySet();
 	}
 
 	/**
@@ -717,6 +736,15 @@ public class SampleData {
 	 */
 	public int getMetaIndex(String header) {
 		return metaIndices.get(header);
+	}
+
+	public Map<String, String> getMetaData(String header) {
+		try {
+			return metaDataCache.get(header);
+		} catch (ExecutionException e) {
+			proj.getLog().reportException(e);
+			return Maps.newHashMap();
+		}
 	}
 
 	public String[] getClasses(boolean includeBasicClasses) {
