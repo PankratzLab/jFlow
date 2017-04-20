@@ -16,6 +16,13 @@ public class DuplicateConcordance {
 	private final ImmutableSetMultimap<Integer, Integer> discordantCalls;
 	private final Logger log;
 
+	public DuplicateConcordance(byte[] genotypes, Collection<Set<Integer>> duplicateIndices,
+															Logger log) {
+		super();
+		this.log = log;
+		discordantCalls = calculateDiscordantCalls(genotypes, duplicateIndices);
+	}
+
 	/**
 	 * 
 	 * @param marker marker to check for concordance
@@ -34,7 +41,7 @@ public class DuplicateConcordance {
 																					 + marker.getMarkerName());
 			}
 		}
-		discordantCalls = calculateDiscordantCalls(marker.getAbGenotypes(), duplicateIndices);
+		discordantCalls = calculateDiscordantCalls(genos, duplicateIndices);
 	}
 
 	/**
@@ -55,6 +62,7 @@ public class DuplicateConcordance {
 		}
 		discordantCalls = calculateDiscordantCalls(genos, duplicateIndices);
 	}
+
 
 	/**
 	 * 

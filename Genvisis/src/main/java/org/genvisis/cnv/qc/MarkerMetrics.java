@@ -3,7 +3,6 @@ package org.genvisis.cnv.qc;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -188,7 +187,7 @@ public class MarkerMetrics {
 
 			if (pedigree != null && checkMendel) {
 				mendelWriter = Files.openAppropriateWriter(ext.rootOf(fullPathToOutput, false)
-																											+ DEFAULT_MENDEL_FILE_SUFFIX);
+																									 + DEFAULT_MENDEL_FILE_SUFFIX);
 				mendelWriter.println(ArrayUtils.toStr(MENDEL_HEADER));
 			}
 
@@ -301,9 +300,8 @@ public class MarkerMetrics {
 						duplicateIndexSets.add(duplicateIndices);
 					}
 
-					DuplicateConcordance duplicateConcordance = new DuplicateConcordance(markerData,
+					DuplicateConcordance duplicateConcordance = new DuplicateConcordance(abGenotypes,
 																																							 duplicateIndexSets,
-																																							 clusterFilterCollection,
 																																							 log);
 					duplicateErrors = duplicateConcordance.calculateDiscordanceCount();
 				}
@@ -418,7 +416,7 @@ public class MarkerMetrics {
 
 		try {
 			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																							+ "lrrVariance.xln");
+																					 + "lrrVariance.xln");
 			writer.println(ArrayUtils.toStr(LRR_VARIANCE_HEADER));
 
 			if (markersToInclude != null) {
@@ -524,7 +522,7 @@ public class MarkerMetrics {
 
 		try {
 			writer = Files.openAppropriateWriter(proj.RESULTS_DIRECTORY.getValue(false, true)
-																							+ "markerGenderChecks.xln");
+																					 + "markerGenderChecks.xln");
 			writer.println("SNP\tX_zAA\tY_zBB\tX_tAA\tY_tBB\tMean_Zs\tMean_Ts\tMin_Z\tMin_T\tMAF");
 
 			if (subset != null) {
@@ -1287,8 +1285,8 @@ public class MarkerMetrics {
 		markerNames = proj.getMarkerNames();
 		try {
 			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																							+ ext.replaceWithLinuxSafeCharacters(phenotype, true)
-																							+ "_regress.xln");
+																					 + ext.replaceWithLinuxSafeCharacters(phenotype, true)
+																					 + "_regress.xln");
 			writer.println("MarkerName\tBAF_p");
 			// markerDataLoader = new MarkerDataLoader(proj, markerNames, -1, log);
 			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
