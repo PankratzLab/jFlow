@@ -401,7 +401,8 @@ public class CompareCalls_dev {
 
 			lrrs = getLRRs(rootDir, LRR_lookup);
 			reader = new BufferedReader(new FileReader(rootDir + cnvFile));
-			if (!ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CNVariant.PLINK_CNV_HEADER,
+			if (!ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+													 CNVariant.PLINK_CNV_HEADER,
 													 false)) {
 				reader.close();
 				System.err.println("quitting comparison");
@@ -1099,7 +1100,8 @@ public class CompareCalls_dev {
 // for (int i = 0; i < files.length; i++) {
 // try {
 // reader = new BufferedReader(new FileReader(files[i]));
-// if (!ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CNVariant.PLINK_CNV_HEADER,
+// if (!ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+// CNVariant.PLINK_CNV_HEADER,
 // false)) {
 // reader.close();
 // System.err.println("quitting comparison");
@@ -1246,7 +1248,8 @@ public class CompareCalls_dev {
 // Hashtable<String, ArrayList<CNVariant>> source = new Hashtable<String, ArrayList<CNVariant>>();
 // try {
 // reader = new BufferedReader(new FileReader(file));
-// if (!ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CNVariant.PLINK_CNV_HEADER,
+// if (!ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+// CNVariant.PLINK_CNV_HEADER,
 // false)) {
 // reader.close();
 // System.err.println("quitting comparison");

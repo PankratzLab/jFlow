@@ -43,7 +43,8 @@ public class Parser {
 						if (!trav.startsWith(chr + "\t")) {
 							System.err.println("Error - marker is on the wrong chromosome: " + line[i]);
 						}
-						writer.println(chr + "\t" + line[i] + "\t0\t" + trav.split(PSF.Regex.GREEDY_WHITESPACE)[1]);
+						writer.println(chr + "\t" + line[i] + "\t0\t"
+													 + trav.split(PSF.Regex.GREEDY_WHITESPACE)[1]);
 					}
 					writer.close();
 				} catch (Exception e) {
@@ -135,7 +136,7 @@ public class Parser {
 
 		try {
 			writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(filename)
-																							+ "markerSets.dat");
+																					 + "markerSets.dat");
 			for (int i = 0; i < genes.size(); i++) {
 				writer.println(genes.elementAt(i) + "\t"
 											 + ArrayUtils.toStr(ArrayUtils.toStringArray(hash.get(genes.elementAt(i)))));
@@ -148,7 +149,7 @@ public class Parser {
 
 		try {
 			writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(filename)
-																							+ "nonynonMarkerSets.dat");
+																					 + "nonynonMarkerSets.dat");
 			for (int i = 0; i < genes.size(); i++) {
 				if (nonsynon.containsKey(genes.elementAt(i))) {
 					writer.println(genes.elementAt(i) + "\t"

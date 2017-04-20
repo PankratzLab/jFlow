@@ -339,7 +339,7 @@ public class phenoStruct {
 						if (tf.hasUnused()) {
 							if (unused == null) {
 								unused = Files.openAppropriateWriter("unused_individuals-"
-																												+ (allvpd == 0 ? "111" : "100") + ".dat");
+																										 + (allvpd == 0 ? "111" : "100") + ".dat");
 							}
 							v = tf.getUnused();
 							for (int i = 0; i < v.size(); i++) {

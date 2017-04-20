@@ -63,7 +63,10 @@ public class Prest {
 					reader = new BufferedReader(new FileReader("map" + chrome + ".dat"));
 					writer = Files.openAppropriateWriter("map" + chrome + ".idx");
 
-					writer.println((Integer.parseInt(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]) - 1) + "");
+					writer.println((Integer.parseInt(reader.readLine().trim()
+																								 .split(PSF.Regex.GREEDY_WHITESPACE)[0])
+													- 1)
+												 + "");
 					do {
 						temp = reader.readLine();
 					} while (!temp.startsWith("3 "));

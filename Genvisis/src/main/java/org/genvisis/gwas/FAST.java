@@ -649,7 +649,7 @@ public class FAST {
 												+ " gwas.FAST rundir=" + runDir + study + " data=" + dataFile + " gcMetal="
 												+ gcMetal + " -process";
 			Qsub.qsub(runDir + "step3_" + study + "_processAndMetaAnalyze.qsub", metalCmd, QSUB_RAM_MB,
-								 QSUB_TIME_HRS, QSUB_THREADS);
+								QSUB_TIME_HRS, QSUB_THREADS);
 			// Files.write("qsub" + (qsubQueue == null ? "" : " -q " + qsubQueue) + " step4_" + study +
 			// "_metaAnalyzeFAST.qsub", runDir + "step4_" + study + "_metaAnalyzeFAST.sh");
 			// Files.chmod(runDir + "step4_" + study + "_metaAnalyzeFAST.sh");
@@ -730,7 +730,8 @@ public class FAST {
 																														.append(" --out-file ").append(runDir)
 																														.append("output/")
 																														.append(dataFile.substring(0,
-																																											 dataFile.length() - 3))
+																																											 dataFile.length()
+																																													- 3))
 																														.append(".out");
 
 			scriptInputWriter.println(fastString.toString());
@@ -751,7 +752,7 @@ public class FAST {
 														+ traitFile + "\"";
 		Qsub.qsub(runDir + RUN_SCRIPT_NAME, command, QSUB_RAM_MB, QSUB_TIME_HRS, QSUB_THREADS);
 		Qsub.qsub(runDir + PROCESS_SCRIPT_NAME, processCommand, QSUB_RAM_MB, QSUB_TIME_HRS,
-							 QSUB_THREADS);
+							QSUB_THREADS);
 		(new File(runDir + "output/")).mkdirs();
 	}
 
@@ -971,7 +972,8 @@ public class FAST {
 				String line = reader.readLine();
 				if (first) {
 					if (writePValThresh) {
-						indices = ext.indexFactors(new String[][] {Aliases.PVALUES}, line.split(PSF.Regex.GREEDY_WHITESPACE),
+						indices = ext.indexFactors(new String[][] {Aliases.PVALUES},
+																			 line.split(PSF.Regex.GREEDY_WHITESPACE),
 																			 false, true, true, false);
 					}
 					writer.println(line);

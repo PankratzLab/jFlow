@@ -664,7 +664,7 @@ public class Plink {
 		for (int i = 0; i < 2; i++) {
 			try {
 				writer = Files.openAppropriateWriter(genomeFileRoot + "_" + (i == 0 ? "keep" : "drop")
-																								+ ".dat");
+																						 + ".dat");
 				trav = i == 0 ? in : out;
 				ids = HashVec.getKeys(trav, false);
 				ranks = new int[ids.length];
@@ -689,7 +689,7 @@ public class Plink {
 								 + " sets of duplicate identifiers");
 			try {
 				PrintWriter writerSet = Files.openAppropriateWriter(genomeFileRoot
-																															 + "_duplicatesSet.dat");
+																														+ "_duplicatesSet.dat");
 				writer = Files.openAppropriateWriter(genomeFileRoot + "_duplicates.dat");
 				int set = 1;
 				for (Set<String> dupeSet : uniqueDuplicateSets) {

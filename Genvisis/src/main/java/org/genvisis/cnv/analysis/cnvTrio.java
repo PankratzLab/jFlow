@@ -878,10 +878,10 @@ public class cnvTrio extends CNVariant {
 		Collections.sort(filteredCnvTrios);
 		try {
 			PrintWriter writerSummary = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																																 + ouput + COMBINED_TRIOS[2]);
+																															+ ouput + COMBINED_TRIOS[2]);
 			PrintWriter writerCNV = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																														 + ouput + COMBINED_TRIOS[2]
-																														 + COMBINED_TRIOS[3]);
+																													+ ouput + COMBINED_TRIOS[2]
+																													+ COMBINED_TRIOS[3]);
 			// TODO potential bug? gets first CNV filename and writes to file
 			// PrintWriter writerList = new PrintWriter(new
 			// FileWriter(proj.getFilename(proj.INDIVIDUAL_CNV_LIST_FILENAMES)));

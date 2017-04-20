@@ -460,8 +460,8 @@ public class IndependentSNPs {
 
 		try {
 			writer = Files.openAppropriateWriter(dir
-																							+ (outputRoot == null ? pval_threshold : outputRoot)
-																							+ "_summary.xln");
+																					 + (outputRoot == null ? pval_threshold : outputRoot)
+																					 + "_summary.xln");
 			writer.println("\tp<" + pval_threshold);
 			writer.println("Total SNPs meeting threshold" + "\t" + iv.size());
 			writer.println("Independent index SNPs meeting threshold" + "\t" + tags.size());

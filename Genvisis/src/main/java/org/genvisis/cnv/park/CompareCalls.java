@@ -40,7 +40,8 @@ public class CompareCalls {
 		for (int i = 0; i < files.length; i++) {
 			try {
 				reader = new BufferedReader(new FileReader(rootDir + files[i]));
-				if (!ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CNVariant.PLINK_CNV_HEADER,
+				if (!ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+														 CNVariant.PLINK_CNV_HEADER,
 														 false)) {
 					reader.close();
 					return;
@@ -74,10 +75,10 @@ public class CompareCalls {
 		for (int[] allPossibleCombination : allPossibleCombinations) {
 			try {
 				writer = Files.openAppropriateWriter(rootDir + "Compare "
-																								+ ext.rootOf(files[allPossibleCombination[0]])
-																								+ " and "
-																								+ ext.rootOf(files[allPossibleCombination[1]])
-																								+ ".xln");
+																						 + ext.rootOf(files[allPossibleCombination[0]])
+																						 + " and "
+																						 + ext.rootOf(files[allPossibleCombination[1]])
+																						 + ".xln");
 				writer.println("FID\tIID\tTotal" + ext.rootOf(files[allPossibleCombination[0]]) + "\tTotal"
 											 + ext.rootOf(files[allPossibleCombination[1]]) + "\tUnique"
 											 + ext.rootOf(files[allPossibleCombination[0]]) + "\tUnique"

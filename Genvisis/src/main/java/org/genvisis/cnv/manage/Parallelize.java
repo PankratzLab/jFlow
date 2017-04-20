@@ -105,7 +105,7 @@ public class Parallelize implements Runnable {
 
 				try {
 					writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																									+ "LRR_diff_list.xln");
+																							 + "LRR_diff_list.xln");
 					writer.println("SNP\tAvg diff\tAvg abs(diff)\tcount");
 					for (int i = 0; i < markerNames.length; i++) {
 						writer.println(markerNames[i] + "\t" + (totalRaw[i] / counts[i]) + "\t"

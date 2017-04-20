@@ -417,8 +417,8 @@ public class Markers {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_"
-																							+ header[1 + setTo * 2 + 0] + "_"
-																							+ header[1 + setTo * 2 + 1] + ".xln");
+																					 + header[1 + setTo * 2 + 0] + "_"
+																					 + header[1 + setTo * 2 + 1] + ".xln");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			line = ArrayUtils.insertStringAt(header[1 + setTo * 2 + 0], line, alleleCol + 2);
 			line = ArrayUtils.insertStringAt(header[1 + setTo * 2 + 1], line, alleleCol + 3);

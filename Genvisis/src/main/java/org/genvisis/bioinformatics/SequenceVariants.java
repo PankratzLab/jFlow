@@ -53,7 +53,8 @@ public class SequenceVariants {
 			writer = Files.openAppropriateWriter(filename + "_parsed.xln");
 			writer2 = Files.openAppropriateWriter(filename + "_SeattleSeq.input");
 			writer.println("Chr\tPosition\tRef\tAlt\tRefIsMostCommonAllele\tRefCasesFreq\tRefControlsFreq\tAltCasesFreq\tAltControlsFreq\tCallrateCases\tCallrateControls\tAdjCaseMAF\tAdjControlMAF\tOR\tEstFreq");
-			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), ALLELE_SPECIFIC_FREQS, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+											ALLELE_SPECIFIC_FREQS, true);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				freqs = new double[3][4];

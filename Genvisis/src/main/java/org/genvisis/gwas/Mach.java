@@ -143,7 +143,7 @@ public class Mach {
 			// "chr", null, -1, nodesToUse[i]);
 			for (int chr = 1; chr <= 22; chr++) {
 				list = Qsub.qsub("", "chr#", chr, chr, commands, null, 10000, 48,
-													nodesToUse[chr % nodesToUse.length]);
+												 nodesToUse[chr % nodesToUse.length]);
 				for (String element : list) {
 					v.add(element);
 				}
@@ -188,7 +188,7 @@ public class Mach {
 			reader = new BufferedReader(new FileReader("genotypes_chr" + chr
 																								 + "_CEU_r22_nr.b36_fwd_legend.txt"));
 			writer = Files.openAppropriateWriter("truncated_chr" + chr
-																							+ "_CEU_r22_nr.b36_fwd_legend.txt");
+																					 + "_CEU_r22_nr.b36_fwd_legend.txt");
 			writer.println(reader.readLine());
 			while (reader.ready()) {
 				trav = reader.readLine();
@@ -451,7 +451,8 @@ public class Mach {
 
 			// try {
 			// reader = new BufferedReader(new FileReader(dir+machDosage));
-			// System.out.println("There are "+reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE).length+" columns
+			// System.out.println("There are
+			// "+reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE).length+" columns
 			// in the first row");
 			//
 			// reader.close();
@@ -567,7 +568,9 @@ public class Mach {
 
 				for (int i = 0; i < (inc + step > markerNames.length ? markerNames.length - inc
 																														 : step); i++) {
-					if (allMarkers || ext.indexOfStr(markerNames[inc + i].split(PSF.Regex.GREEDY_WHITESPACE)[0], subset) >= 0) {
+					if (allMarkers
+							|| ext.indexOfStr(markerNames[inc + i].split(PSF.Regex.GREEDY_WHITESPACE)[0],
+																subset) >= 0) {
 						writer.print(markerNames[inc + i]);
 						for (String[] element : data) {
 							writer.print("\t" + element[i]);
@@ -1294,7 +1297,7 @@ public class Mach {
 				try {
 					reader = Files.getAppropriateReader(markersFile);
 					w2 = Files.openAppropriateWriter(dir
-																							+ (regions ? "data.info" : "chr" + chr + ".info"));
+																					 + (regions ? "data.info" : "chr" + chr + ".info"));
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					w2.println(ArrayUtils.toStr(line));
 					if (markersFile.endsWith(".gz") || markersFile.endsWith(".zip")) {

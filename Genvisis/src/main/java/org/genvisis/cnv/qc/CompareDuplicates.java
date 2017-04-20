@@ -115,7 +115,7 @@ public class CompareDuplicates {
 
 		try {
 			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																							+ "DuplicateQC.xln");
+																					 + "DuplicateQC.xln");
 			writer.println("DNA1\tDNA2\tgenotypeConcordance\tx_correlation\tcorr_pval\t#diffGeno");
 			for (int i = 0; i < pairs.length; i++) {
 				System.out.println((i + 1) + " of " + pairs.length);
@@ -131,7 +131,7 @@ public class CompareDuplicates {
 
 		try {
 			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																							+ "DuplicateErrors.xln");
+																					 + "DuplicateErrors.xln");
 			writer.println("MarkerName\t#discordant");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(markerNames[i] + "\t" + discordantCounts[i]);

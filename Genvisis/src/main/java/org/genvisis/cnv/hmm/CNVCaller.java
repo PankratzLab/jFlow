@@ -989,7 +989,7 @@ public class CNVCaller {
 		usage += "   (4) minimum confidence report a cnv  (i.e. minConf=" + minConf + " (default))\n"
 						 + "";
 		usage += "   (5) optional: Call genome CNVs (chromosomes 23 and 24) (will also call autosomal cnvs for known male/female samples) (i.e. -genome (not the default))\n"
-					 + "   (6) optional: if calling genome CNVs, don't use sex-specific centroids to recompute LRRs (i.e. -noCentroids (not the default))\n"
+						 + "   (6) optional: if calling genome CNVs, don't use sex-specific centroids to recompute LRRs (i.e. -noCentroids (not the default))\n"
 						 + "";
 
 		usage += PSF.Ext.getNumThreadsCommand(24, numThreads);
@@ -1049,19 +1049,19 @@ public class CNVCaller {
 					}
 				}
 
-				Centroids[] sexCents = new Centroids[]{null, null, null};
+				Centroids[] sexCents = new Centroids[] {null, null, null};
 				if (useCentroids) {
-  				if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())
-  						&& Files.exists(proj.SEX_CENTROIDS_MALE_FILENAME.getValue())) {
-  					sexCents = new Centroids[] {Files.exists(proj.CUSTOM_CENTROIDS_FILENAME.getValue()) ? Centroids.load(proj.CUSTOM_CENTROIDS_FILENAME.getValue(),
-  																																																							 proj.JAR_STATUS.getValue())
-  																																															: null,
-  																			Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue(),
-  																										 proj.JAR_STATUS.getValue()),
-  																			Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue(),
-  																										 proj.JAR_STATUS.getValue())};
-  				}
-				} 
+					if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())
+							&& Files.exists(proj.SEX_CENTROIDS_MALE_FILENAME.getValue())) {
+						sexCents = new Centroids[] {Files.exists(proj.CUSTOM_CENTROIDS_FILENAME.getValue()) ? Centroids.load(proj.CUSTOM_CENTROIDS_FILENAME.getValue(),
+																																																								 proj.JAR_STATUS.getValue())
+																																																: null,
+																				Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue(),
+																											 proj.JAR_STATUS.getValue()),
+																				Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue(),
+																											 proj.JAR_STATUS.getValue())};
+					}
+				}
 
 				callGenomeCnvs(proj, output, males.toArray(new String[males.size()]),
 											 females.toArray(new String[females.size()]), sexCents, minNumMarkers,

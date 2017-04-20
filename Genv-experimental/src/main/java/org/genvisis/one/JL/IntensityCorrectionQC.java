@@ -716,7 +716,8 @@ public class IntensityCorrectionQC {
 			while (reader.ready()) {
 				if (indices[index] >= 0) {
 					try {
-						data[indices[index]] = Double.parseDouble(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[1]);
+						data[indices[index]] = Double.parseDouble(reader.readLine().trim()
+																														.split(PSF.Regex.GREEDY_WHITESPACE)[1]);
 					} catch (NumberFormatException numberFormatException) {
 						data[indices[index]] = (0.0D / 0.0D);
 					}

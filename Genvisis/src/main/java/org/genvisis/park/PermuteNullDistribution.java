@@ -259,12 +259,14 @@ public class PermuteNullDistribution {
 						count = countAbove = 0;
 						if (reader.ready()) {
 							reader.readLine();
-							observed = Math.abs(Double.parseDouble(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[0]));
+							observed = Math.abs(Double.parseDouble(reader.readLine()
+																													 .split(PSF.Regex.GREEDY_WHITESPACE)[0]));
 						} else {
 							observed = -1;
 						}
 						while (reader.ready()) {
-							if (Math.abs(Double.parseDouble(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[0])) >= observed) {
+							if (Math.abs(Double.parseDouble(reader.readLine()
+																										.split(PSF.Regex.GREEDY_WHITESPACE)[0])) >= observed) {
 								countAbove++;
 								grandCountAbove++;
 							}

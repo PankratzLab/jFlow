@@ -892,7 +892,7 @@ public class GenCNV implements Runnable {
 
 		try {
 			PrintWriter writer = Files.openAppropriateWriter(dir + ext.rootOf(outputSummary)
-																													+ "_lociResults.txt");
+																											 + "_lociResults.txt");
 			writer.println(ArrayUtils.toStr(ANALYSIS_LOCI_HEADER));
 
 			for (Significance significance : significances) {

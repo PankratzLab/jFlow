@@ -426,7 +426,7 @@ public class FindMarkersNearGenes {
 					}
 					if (!done) {
 						writer = Files.openAppropriateWriter("chr" + chr + ext.getExcelColumn(suffix)
-																										+ ".txt");
+																								 + ".txt");
 						count = 0;
 					}
 				}

@@ -26,8 +26,10 @@ public class VTE_Analyses {
 																						 "\t"},
 																						{"CHS", "GH-VTE-results.csv", ","},
 																						{"GH", "GH-VTE-results.csv", ","},
-																						{"RS1", "RS1VTE_CHARGE.chargefmt.RS.txt", PSF.Regex.GREEDY_WHITESPACE},
-																						{"RS2", "RS2VTE_CHARGE.chargefmt.RS.txt", PSF.Regex.GREEDY_WHITESPACE},
+																						{"RS1", "RS1VTE_CHARGE.chargefmt.RS.txt",
+																						 PSF.Regex.GREEDY_WHITESPACE},
+																						{"RS2", "RS2VTE_CHARGE.chargefmt.RS.txt",
+																						 PSF.Regex.GREEDY_WHITESPACE},
 																						{"WGHS", "WGHS_incident_VTE_oct_20_2009.txt",
 																						 PSF.Regex.GREEDY_WHITESPACE},};
 

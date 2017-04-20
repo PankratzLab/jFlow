@@ -361,9 +361,9 @@ public class Polymutt {
 		filenames = Files.list(dir, ".vcf.gz", false);
 
 		Qsub.qsub("findAll", ext.pwd(), -1,
-							 "java -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS
-																				 + " seq.Polymutt findDenovo=[%0]",
-							 Matrix.toMatrix(filenames), 1000, 12);
+							"java -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS
+																				+ " seq.Polymutt findDenovo=[%0]",
+							Matrix.toMatrix(filenames), 1000, 12);
 	}
 
 	private static void findAllLocalDenovo(String dir) {
@@ -952,10 +952,10 @@ public class Polymutt {
 				System.out.println(files[i]);
 				count++;
 				Qsub.qsub(dir + "chunks/runAssess" + count + ".qsub",
-									 "cd " + dir + "\nmodule load java\njava -jar ~/"
-																															 + org.genvisis.common.PSF.Java.GENVISIS
-																															 + " seq.Polymutt assess=" + files[i],
-									 3000, 6, 1);
+									"cd " + dir + "\nmodule load java\njava -jar ~/"
+																															+ org.genvisis.common.PSF.Java.GENVISIS
+																															+ " seq.Polymutt assess=" + files[i],
+									3000, 6, 1);
 				v.add(dir + "chunks/runAssess" + count + ".qsub");
 			}
 		}

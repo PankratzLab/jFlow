@@ -704,7 +704,7 @@ public class CreateDatabaseFromPlink {
 														 + " (#markers*2+6)");
 					try {
 						writer = Files.openAppropriateWriter("ERROR_NUMBER_OF_COLUMNS_DON'T_MATCHUP_FOR_THESE_LINES.TXT",
-																										true);
+																								 true);
 						writer.println(count);
 						writer.close();
 					} catch (Exception e) {
@@ -720,7 +720,7 @@ public class CreateDatabaseFromPlink {
 							if (batch_dna.length != 2) {
 								try {
 									writer = Files.openAppropriateWriter("ERROR_THESE_FIDS_AREN'T_CONCATENATED_BY_AN_UNDERSCORE.TXT",
-																													true);
+																											 true);
 									writer.println("line" + count + "\t" + line[i]);
 									writer.close();
 								} catch (Exception e) {

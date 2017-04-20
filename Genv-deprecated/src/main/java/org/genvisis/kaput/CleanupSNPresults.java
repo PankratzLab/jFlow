@@ -48,7 +48,8 @@ public class CleanupSNPresults {
 																 true);
 			while (reader.ready()) {
 				line = reader.readLine().toUpperCase().split("\t", -1);
-				checkLine = check.checkPair(line[indices[3]], line[indices[2]], false).split(PSF.Regex.GREEDY_WHITESPACE);
+				checkLine = check.checkPair(line[indices[3]], line[indices[2]], false)
+												 .split(PSF.Regex.GREEDY_WHITESPACE);
 				if (checkLine[0].equals("yearbug")) {
 					// line[indices[2]] = checkLine[1];
 					System.err.println("  " + ArrayUtils.toStr(checkLine));
@@ -85,7 +86,8 @@ public class CleanupSNPresults {
 							System.err.println("Error - discrepant calls for " + hashKeys[keys[i]] + " (" + call
 																 + " and " + line[1] + "/" + line[2] + ")");
 						}
-						checkLine = check.checkPair(hashKeys[keys[i]], line[0], false).split(PSF.Regex.GREEDY_WHITESPACE);
+						checkLine = check.checkPair(hashKeys[keys[i]], line[0], false)
+														 .split(PSF.Regex.GREEDY_WHITESPACE);
 						if (!checkLine[0].equals("yearbug")) {
 							best = j;
 						}

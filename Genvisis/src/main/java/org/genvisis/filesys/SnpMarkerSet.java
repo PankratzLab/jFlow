@@ -109,7 +109,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 																				 {1, CHR_INFO_IN_FILENAME, 2, -1, -1, -1, 3, 4, 5, 6, 7, 8,
 																					9}, // 13
 																				 {0, 1, 2, -1, 3, 4}, // 14
-	// make sure to add an entry into HEADERS as well
+			// make sure to add an entry into HEADERS as well
 	};
 
 	private long fingerprint;
@@ -561,8 +561,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 				// log.reportError(srcPositions[index-1]+"\t"+srcPositions[index]);
 				centiMorgans[i] = srcCentiMorgans[index - 1]
 													+ (srcCentiMorgans[index] - srcCentiMorgans[index - 1])
-													* (positions[i] - srcPositions[index - 1])
-													/ (srcPositions[index] - srcPositions[index - 1]);
+														* (positions[i] - srcPositions[index - 1])
+														/ (srcPositions[index] - srcPositions[index - 1]);
 			} else {
 				log.reportError("Error - finding nearby markers");
 			}
@@ -611,9 +611,9 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		}
 
 		Set<String> excludeMarkers = excludeMarkersFile == null
-																													 ? new HashSet<String>()
-																													 : HashVec.loadFileToHashSet(excludeMarkersFile,
-																																											 false);
+																														? new HashSet<String>()
+																														: HashVec.loadFileToHashSet(excludeMarkersFile,
+																																												false);
 
 		try {
 			writer = Files.getAppropriateWriter(filename);
@@ -688,8 +688,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		while (anchorIndex < anchorOrder.length && localIndex < localOrder.length) {
 			if (chrs[localOrder[localIndex]] < anchorChrs[anchorOrder[anchorIndex]]
 					|| (chrs[localOrder[localIndex]] == anchorChrs[anchorOrder[anchorIndex]]
-					&& positions[localOrder[localIndex]] < anchorPositions[anchorOrder[anchorIndex]]
-																								 - withinXbp)) {
+							&& positions[localOrder[localIndex]] < anchorPositions[anchorOrder[anchorIndex]]
+																										 - withinXbp)) {
 				localIndex++;
 			} else if (chrs[localOrder[localIndex]] == anchorChrs[anchorOrder[anchorIndex]]
 								 && positions[localOrder[localIndex]] >= anchorPositions[anchorOrder[anchorIndex]]
@@ -846,7 +846,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 				log.reportError("Error - can't look up a SNP without an rs number - attempting to parse location from marker name.");
 
 				String[] pts = (markerNames[i].startsWith("chr") ? markerNames[i].substring(3)
-																												: markerNames[i]).split(":");
+																												 : markerNames[i]).split(":");
 				int c = -1, p = -1;
 
 				try {
@@ -882,7 +882,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 					annotation[i][0] = markerNames[i];
 				}
 			} else {
-				log.reportError("Error - can't look up a SNP without an rs number (" + markerNames[i] + ")");
+				log.reportError("Error - can't look up a SNP without an rs number (" + markerNames[i]
+												+ ")");
 				chrs[i] = (byte) 0;
 				positions[i] = 0;
 				if (annotateMerges) {
@@ -1148,7 +1149,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 			return NAMES_ONLY;
 		} else if (filename.endsWith(".info")) {
 			if (Files.exists(filename, false)
-					&& Files.getHeaderOfFile(filename, PSF.Regex.GREEDY_WHITESPACE, new Logger())[0].equals("SNP")) {
+					&& Files.getHeaderOfFile(filename, PSF.Regex.GREEDY_WHITESPACE,
+																	 new Logger())[0].equals("SNP")) {
 				return MACH_MLINFO_FORMAT;
 			} else {
 				return HAPLOVIEW_INFO_FORMAT;
@@ -1201,7 +1203,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 			for (int chr = 1; chr <= 22; chr++) {
 				try {
 					reader = new BufferedReader(new FileReader(dir + "genetic_map_chr" + chr + "_b36.txt"));
-					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), HAPMAP_CM_SRC_HEADER, true);
+					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+													HAPMAP_CM_SRC_HEADER, true);
 					while (reader.ready()) {
 						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						writer.println(chr + "\trs" + count + "\t" + line[2] + "\t" + line[0]);
@@ -1247,7 +1250,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		markerNames = Matrix.extractColumn(annotation, 0);
 		annotation = ArrayUtils.toMatrix(Matrix.extractColumns(annotation,
 																													 ArrayUtils.subArray(ArrayUtils.arrayOfIndices(sets.length
-																																												 + 2),
+																																																				 + 2),
 																																							 1),
 																													 "\t"));
 
@@ -1294,9 +1297,9 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 						if (alleles[index] == null) {
 							alleles[index] = travAlleles[j];
 						} else if ((travAlleles[j][0] != alleles[index][0]
-											 && travAlleles[j][0] != alleles[index][1])
+												&& travAlleles[j][0] != alleles[index][1])
 											 || (travAlleles[j][1] != alleles[index][0]
-											 && travAlleles[j][1] != alleles[index][1])) {
+													 && travAlleles[j][1] != alleles[index][1])) {
 							System.err.println("Error - mismatched alleles for marker "
 																 + arraysOfMarkerNames[i][j] + " (" + travAlleles[j][0] + "/"
 																 + travAlleles[j][1] + " but previously " + alleles[index][0] + "/"

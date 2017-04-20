@@ -35,7 +35,8 @@ public class pdt {
 		try {
 			reader = new BufferedReader(new FileReader(templateFile));
 			while (reader.ready()) {
-				pedinfo.add(ArrayUtils.subArray(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), 0, 10));
+				pedinfo.add(ArrayUtils.subArray(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), 0,
+																				10));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
@@ -50,7 +51,8 @@ public class pdt {
 
 		try {
 			reader = new BufferedReader(new FileReader("map" + chrome + ".dat"));
-			numMarkers = Integer.parseInt(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]) - 1;
+			numMarkers = Integer.parseInt(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0])
+									 - 1;
 			for (int i = 0; i < 6; i++) {
 				reader.readLine();
 			}
@@ -180,7 +182,9 @@ public class pdt {
 				chrome = ext.chrome(i);
 				try {
 					reader = new BufferedReader(new FileReader("map" + chrome + ".dat"));
-					numMarkers = Integer.parseInt(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]) - 1;
+					numMarkers = Integer.parseInt(reader.readLine().trim()
+																							.split(PSF.Regex.GREEDY_WHITESPACE)[0])
+											 - 1;
 					for (int j = 0; j < 6; j++) {
 						reader.readLine();
 					}

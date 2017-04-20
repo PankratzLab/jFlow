@@ -144,8 +144,8 @@ public class QuantiSNP {
 								version++;
 							}
 							cnvWriter = Files.openAppropriateWriter(CNV_DIRECTORY + id
-																												 + (version == 0 ? "" : "." + version)
-																												 + ".qs");
+																											+ (version == 0 ? "" : "." + version)
+																											+ ".qs");
 							cnvWriter.println("Name\tChr\tPosition\t" + id + ".Log R Ratio\t" + id
 																+ ".B Allele Freq");
 						} else if (!trav.equals(id)) {
@@ -262,7 +262,8 @@ public class QuantiSNP {
 
 		try {
 			reader = new BufferedReader(new FileReader(rootDirectory + LOOKUP_PLUS_GENDER_FILE));
-			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), LOOKUP_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), LOOKUP_HEADER,
+											true);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				lookupDNAtoSubject.put(line[0], line[1] + "\t" + line[2]);

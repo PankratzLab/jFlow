@@ -329,7 +329,8 @@ public class GenParser {
 				line = ext.splitCommasIntelligently(ext.replaceAllWith(temp, replaces), simplifyQuotes,
 																						log);
 			} else {
-				line = ext.replaceAllWith(temp, replaces).split(tabDelimited ? "\t" : PSF.Regex.GREEDY_WHITESPACE, -1);
+				line = ext.replaceAllWith(temp, replaces)
+									.split(tabDelimited ? "\t" : PSF.Regex.GREEDY_WHITESPACE, -1);
 			}
 		} catch (IOException ioe) {
 			log.reportException(ioe);

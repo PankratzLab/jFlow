@@ -85,7 +85,8 @@ public class PlinkToLinkage {
 								 + ".ped").renameTo(new File(dir + "chrom" + ext.chrome(chr) + ".pre"));
 				new SnpMarkerSet(dir + "chrom" + ext.chrome(chr) + ".map").createLinkageMap()
 																																	.createFile(dir + "map"
-																																							+ ext.chrome(chr) + ".dat");
+																																							+ ext.chrome(chr)
+																																							+ ".dat");
 				new File(dir + "chrom" + ext.chrome(chr) + ".ped").delete();
 				new File(dir + "chrom" + ext.chrome(chr) + ".map").delete();
 			}

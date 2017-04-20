@@ -64,10 +64,12 @@ public class MatchSamples {
 			barnData = new double[barnacles.length][];
 
 			factorIndices = ext.indexFactors(factorTargets, Files.getHeaderOfFile(dir + factorfile,
-																																						PSF.Regex.GREEDY_WHITESPACE, new Logger()),
+																																						PSF.Regex.GREEDY_WHITESPACE,
+																																						new Logger()),
 																			 false, true);
 			ids = HashVec.loadFileToStringArray(dir + factorfile, true, new int[] {0}, false);
-			matrix = HashVec.loadFileToStringMatrix(dir + factorfile, true, factorIndices, PSF.Regex.GREEDY_WHITESPACE,
+			matrix = HashVec.loadFileToStringMatrix(dir + factorfile, true, factorIndices,
+																							PSF.Regex.GREEDY_WHITESPACE,
 																							false, 1000, false);
 			allData = new double[factorIndices.length][];
 			for (int i = 0; i < factorTargets.length; i++) {
@@ -183,7 +185,8 @@ public class MatchSamples {
 		ratios = Matrix.doubleMatrix(anchors.length, barnacles.length, -999);
 		try {
 			reader = new BufferedReader(new FileReader(dir + clusterfile));
-			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), Plink.CLUSTER_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+											Plink.CLUSTER_HEADER, true);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				iAnch = Math.max(ext.indexOfStr(line[1], anchors), ext.indexOfStr(line[3], anchors));
@@ -445,7 +448,7 @@ public class MatchSamples {
 				}
 			}
 			writer = Files.openAppropriateWriter(dir + ext.rootOf(distanceFile) + "_"
-																							+ (minMin_not_maxMin ? "min" : "max") + "Min.xln");
+																					 + (minMin_not_maxMin ? "min" : "max") + "Min.xln");
 			writer.println("Anchor\tBarnaclePair");
 			for (int i = 0; i < anchors.length; i++) {
 				writer.println(anchors[i] + "\t" + barnacles[matches[i]] + "\t" + finalDists[i]);

@@ -377,14 +377,14 @@ public class SuperNovo {
 				trioId = getRootOf(bamFilenamesByTrio, true);
 			}
 			Qsub.qsub(scriptDir + trioId + ".qsub",
-								 command + " trioid=" + trioId + " bamset=" + bamFilenamesByTrio[1] + ","
-																							 + bamFilenamesByTrio[2] + "," + bamFilenamesByTrio[3]
-																							 + (pathAndRootToOutputReadCounts == null ? ""
-																																												: (" outputreadcounts="
-																																													 + pathAndRootToOutputReadCounts
-																																													 + trioId
-																																													 + DEFAULT_READ_COUNTS_FILENAME_SUFFIX)),
-								 2000, 11, 1);
+								command + " trioid=" + trioId + " bamset=" + bamFilenamesByTrio[1] + ","
+																							+ bamFilenamesByTrio[2] + "," + bamFilenamesByTrio[3]
+																							+ (pathAndRootToOutputReadCounts == null ? ""
+																																											 : (" outputreadcounts="
+																																													+ pathAndRootToOutputReadCounts
+																																													+ trioId
+																																													+ DEFAULT_READ_COUNTS_FILENAME_SUFFIX)),
+								2000, 11, 1);
 			qsubFilesVec.add(scriptDir + trioId + ".qsub");
 		}
 
@@ -1745,7 +1745,7 @@ public class SuperNovo {
 	}
 
 	public static List<String[]> loadBamByPipeline(String fullpathToSamFile, String chr, int begin,
-																									 int end) {
+																								 int end) {
 		Process p;
 		// ProcessBuilder ps;
 		BufferedReader reader;
@@ -1786,7 +1786,7 @@ public class SuperNovo {
 	}
 
 	public static List<String[]> loadBamByFileReader(String fullpathToSamFile, String chr,
-																										 int begin, int end) {
+																									 int begin, int end) {
 		BufferedReader reader;
 		String line;
 		Vector<String[]> samContentVec;
@@ -2175,7 +2175,8 @@ public class SuperNovo {
 														&& readsCounts[1][0][index] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
 														&& readsCounts[2][0][index] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
 														&& (readsCounts[0][0][index] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO
-																														+ readsCounts[1][0][index] + readsCounts[2][0][index])))) {
+																														+ readsCounts[1][0][index]
+																														+ readsCounts[2][0][index])))) {
 												index = ext.indexOfChar(line[4].toUpperCase().charAt(0), BASES);
 											}
 										}
@@ -2499,7 +2500,8 @@ public class SuperNovo {
 														&& readsCounts[1][0][index] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
 														&& readsCounts[2][0][index] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
 														&& (readsCounts[0][0][index] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO
-																														+ readsCounts[1][0][index] + readsCounts[2][0][index])))) {
+																														+ readsCounts[1][0][index]
+																														+ readsCounts[2][0][index])))) {
 												index = ext.indexOfChar(line[4].toUpperCase().charAt(0), BASES);
 											}
 										}
@@ -3287,8 +3289,8 @@ public class SuperNovo {
 		}
 		try {
 			writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(fullPathToParsedResult)
-																							+ ext.rootOf(fullPathToParsedResult)
-																							+ "_haplotypeCount.txt");
+																					 + ext.rootOf(fullPathToParsedResult)
+																					 + "_haplotypeCount.txt");
 			reader = Files.getAppropriateReader(fullPathToParsedResult);
 			reader.readLine();
 			while (reader.ready()) {
@@ -3903,7 +3905,8 @@ public class SuperNovo {
 				temp = reader.readLine();
 			} while (!temp.startsWith(READ_COUNTS_HEADER_FORMAT2));
 
-			if (!ext.checkHeader(temp.split(PSF.Regex.GREEDY_WHITESPACE), READ_COUNTS_HEADER_FORMAT2.split("\t"), false)) {
+			if (!ext.checkHeader(temp.split(PSF.Regex.GREEDY_WHITESPACE),
+													 READ_COUNTS_HEADER_FORMAT2.split("\t"), false)) {
 				log.reportError("Problem with header for file: " + fullpathToReadCountsFile);
 				reader.close();
 				return null;

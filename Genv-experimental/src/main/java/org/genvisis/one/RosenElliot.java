@@ -276,7 +276,8 @@ public class RosenElliot {
 
 			reader = new BufferedReader(new FileReader(dir + PED_DATA));
 			writer = Files.openAppropriateWriter(dir + "untrimmed.pre");
-			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), PED_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), PED_HEADER,
+											true);
 
 			writer.println("1\t" + TRAIT_STRAIN_PREFIX + "99\t0\t0\t1\t2");
 			writer.println("1\t" + BC_STRAIN_PREFIX + "01\t0\t0\t2\t1");

@@ -240,8 +240,8 @@ public class CNVariant extends Segment {
 	}
 
 	public static List<CNVariant> loadPlinkFile(String filename,
-																								Hashtable<String, String> sampleHash,
-																								boolean includeLOH, boolean jar) {
+																							Hashtable<String, String> sampleHash,
+																							boolean includeLOH, boolean jar) {
 		BufferedReader reader;
 		List<CNVariant> v = null;
 		String[] line;
@@ -342,7 +342,7 @@ public class CNVariant extends Segment {
 
 		try {
 			writer = Files.openAppropriateWriter(ext.rootOf(file1) + "_" + ext.rootOf(file2)
-																							+ "_consensus.cnv");
+																					 + "_consensus.cnv");
 			for (CNVariant consensu : consensus) {
 				writer.println(consensu.toPlinkFormat());
 			}
@@ -580,7 +580,7 @@ public class CNVariant extends Segment {
 
 		try {
 			writer = Files.openAppropriateWriter(ext.rootOf(file1) + "_" + ext.rootOf(file2)
-																							+ "_signif_consensus.cnv");
+																					 + "_signif_consensus.cnv");
 			for (int i = 0; i < outputLines.size(); i++) {
 				writer.println(outputLines.get(i));
 			}

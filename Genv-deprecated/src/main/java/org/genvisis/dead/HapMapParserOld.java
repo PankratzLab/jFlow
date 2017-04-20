@@ -33,7 +33,8 @@ public class HapMapParserOld {
 		try {
 			reader = Files.getReader(filename, dir);
 			temp = reader.readLine();
-			indIDs = (temp.substring(temp.indexOf("[") + 1, temp.indexOf("]"))).split(PSF.Regex.GREEDY_WHITESPACE);
+			indIDs = (temp.substring(temp.indexOf("[") + 1,
+															 temp.indexOf("]"))).split(PSF.Regex.GREEDY_WHITESPACE);
 
 			writer = new PrintWriter(new FileWriter((new File(dir).exists() ? dir : "") + root
 																							+ ".info"));

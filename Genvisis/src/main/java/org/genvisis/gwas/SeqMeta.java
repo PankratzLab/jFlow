@@ -259,7 +259,7 @@ public class SeqMeta {
 		geneName = maps.getGeneName();
 		maxChr = getMaxChr();
 
-		log.report("Max chromosome was determined to be "+maxChr);
+		log.report("Max chromosome was determined to be " + maxChr);
 
 		if (ext.indexOfStr(snpInfoFile, files) == -1) {
 			log.reportError("Error - could not find SNP Info file '" + snpInfoFile + "'; aborting");
@@ -294,8 +294,8 @@ public class SeqMeta {
 
 		new File(dir + "snpInfos/").mkdirs();
 		Qsub.qsub(dir + "batchSplits/" + ext.rootOf(filename) + ".qsub",
-							 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save " + filename,
-							 5000, 0.25, 1);
+							"cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save " + filename,
+							5000, 0.25, 1);
 
 		jobNames = new Vector<String>();
 		jobSizes = new IntVector();
@@ -1345,8 +1345,8 @@ public class SeqMeta {
 
 		Files.writeArray(ArrayUtils.toStringArray(commands), dir + "checkNs.R");
 		Qsub.qsub(dir + "checkNs.qsub",
-							 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save checkNs.R", 5000,
-							 1, 1);
+							"cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save checkNs.R", 5000,
+							1, 1);
 	}
 
 	public static void computeAllRelevantMACs(String dir, MetaAnalysisParams maps, Logger log) {
@@ -1420,9 +1420,9 @@ public class SeqMeta {
 																																						+ "\", sep=\",\", row.names = F)",},
 											 dir + "dump_" + ext.rootOf(snpInfoFile) + ".R");
 			Qsub.qsub("dump_" + ext.rootOf(snpInfoFile) + ".qsub",
-								 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save dump_"
-																															+ ext.rootOf(snpInfoFile) + ".R",
-								 5000, 0.5, 1);
+								"cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save dump_"
+																														 + ext.rootOf(snpInfoFile) + ".R",
+								5000, 0.5, 1);
 			log.reportError("Error - need to dump snpInfoFile by running 'qsub dump_"
 											+ ext.rootOf(snpInfoFile) + ".qsub' first");
 			return;
@@ -1605,8 +1605,8 @@ public class SeqMeta {
 
 				try {
 					writer = Files.openAppropriateWriter(dir + phenotypes[i][0] + "/" + races[k][0] + "/"
-																									+ "minorAlleleCounts.maf" + mafThreshold
-																									+ ".xln");
+																							 + "minorAlleleCounts.maf" + mafThreshold
+																							 + ".xln");
 					keys = HashVec.getKeys(raceSpecificMacs);
 					writer.println("Gene\t" + ArrayUtils.toStr(studies) + "\tTotal");
 					for (String key : keys) {
@@ -1623,7 +1623,7 @@ public class SeqMeta {
 
 			try {
 				writer = Files.openAppropriateWriter(dir + phenotypes[i][0] + "/"
-																								+ "minorAlleleCounts.maf" + mafThreshold + ".xln");
+																						 + "minorAlleleCounts.maf" + mafThreshold + ".xln");
 				keys = HashVec.getKeys(macs);
 				writer.println("Gene\t" + ArrayUtils.toStr(studies) + "\tTotal");
 				for (String key : keys) {
@@ -1970,8 +1970,8 @@ public class SeqMeta {
 				}
 				try {
 					PrintWriter writer = Files.openAppropriateWriter(phenotypes[i][0] + "/"
-																															+ phenotypes[i][0] + "_" + group
-																															+ "_parser.crf");
+																													 + phenotypes[i][0] + "_" + group
+																													 + "_parser.crf");
 					writer.println("lookup");
 					writer.println(phenotypes[i][0] + "_hitters.dat 0 out=" + dir + phenotypes[i][0] + "/"
 												 + phenotypes[i][0] + "_" + group + ".csv");
@@ -2485,7 +2485,7 @@ public class SeqMeta {
 		try {
 			reader = Files.getAppropriateReader(dir + hitsDirectory + "SingleVariant_regions.xln");
 			writer = Files.openAppropriateWriter(dir + hitsDirectory
-																							+ "SingleVariant_regions_processed.xln");
+																					 + "SingleVariant_regions_processed.xln");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			keeps = ArrayUtils.booleanArray(line.length, true);
 
@@ -2581,7 +2581,7 @@ public class SeqMeta {
 		try {
 			reader = Files.getAppropriateReader(dir + hitsDirectory + "BurdenTests_regions.xln");
 			writer = Files.openAppropriateWriter(dir + hitsDirectory
-																							+ "BurdenTests_regions_processed.xln");
+																					 + "BurdenTests_regions_processed.xln");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			keeps = ArrayUtils.booleanArray(line.length, true);
 
@@ -2658,7 +2658,7 @@ public class SeqMeta {
 		try {
 			writer = Files.openAppropriateWriter(dir + hitsDirectory + outputFile);
 			forestWriter = Files.openAppropriateWriter(dir + hitsDirectory
-																										+ "subthresholdForest.input");
+																								 + "subthresholdForest.input");
 
 			for (int i = 0; i < phenotypes.length; i++) {
 				filename = phenotypes[i] + "_SingleVariant.csv";
@@ -3156,7 +3156,7 @@ public class SeqMeta {
 				if (!Files.exists(dir + root + "/" + root + "_wo_" + study + "1.out")) {
 					time = new Date().getTime();
 					writer = Files.openAppropriateWriter(dir + root + "/" + root + ".metal_wo_" + study
-																									+ "_script.in");
+																							 + "_script.in");
 					writer.println("GENOMICCONTROL " + (gcControlOn ? "ON" : "OFF"));
 					writer.println("SCHEME STDERR");
 					writer.println("MARKER Name");
@@ -3339,11 +3339,11 @@ public class SeqMeta {
 			for (String file : files) {
 				localDir = ext.parseDirectoryOfFile(file);
 				Qsub.qsub(dir + "batchRuns/" + ext.rootOf(file)
-									 + ".qsub",
-									 "cd " + localDir + "\njava -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS
-															+ " gwas.SeqMeta dir=" + localDir + " metalSensitivity="
-															+ ext.removeDirectoryInfo(file),
-									 25000, 3, 1);
+									+ ".qsub",
+									"cd " + localDir + "\njava -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS
+														 + " gwas.SeqMeta dir=" + localDir + " metalSensitivity="
+														 + ext.removeDirectoryInfo(file),
+									25000, 3, 1);
 				needToBeProcessed.add("qsub batchRuns/" + ext.rootOf(file) + ".qsub");
 			}
 			Files.writeArray(ArrayUtils.toStringArray(needToBeProcessed), dir + "master.toBeProcessed");
@@ -3427,7 +3427,7 @@ public class SeqMeta {
 
 			try {
 				writer = Files.openAppropriateWriter(dir + phenotypes[i][0] + "/" + phenotypes[i][0]
-																								+ "_mafReport.xln");
+																						 + "_mafReport.xln");
 
 				// writer.println();
 				// writer.println();
@@ -3813,7 +3813,7 @@ public class SeqMeta {
 		for (String group : groups) {
 			try {
 				writer = Files.openAppropriateWriter(dir + hitsDirectory + "AllPhenotypes_" + group
-																								+ ".csv");
+																						 + ".csv");
 				for (int i = 0; i < phenotypes.length; i++) {
 					filename = phenotypes[i][0] + "_" + group + ".csv";
 
@@ -3879,7 +3879,7 @@ public class SeqMeta {
 		for (String group : groups) {
 			try {
 				writer = Files.openAppropriateWriter(ext.rootOf(forestMarkerList) + "_" + group
-																								+ "_forest.input");
+																						 + "_forest.input");
 				for (String[] phenotype : phenotypes) {
 					filename = phenotype[0] + "_" + group + ".csv";
 

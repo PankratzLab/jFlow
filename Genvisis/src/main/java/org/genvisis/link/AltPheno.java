@@ -87,7 +87,7 @@ public class AltPheno {
 					writers = new PrintWriter[phenoNames.length];
 					for (int j = 0; j < phenoNames.length; j++) {
 						writers[j] = Files.openAppropriateWriter(trav + phenoNames[j] + "/re_chrom" + chr2
-																												+ ".pre");
+																										 + ".pre");
 						Files.copyFile(dir + "map" + chr2 + ".dat",
 													 trav + phenoNames[j] + "/map" + chr2 + ".dat");
 					}
@@ -95,7 +95,8 @@ public class AltPheno {
 						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						if (i == fams.length || line[0].equals(fams[i])) {
 							phenos = hash.get(line[0])
-													 .containsKey(line[1]) ? hash.get(line[0]).get(line[1]).split(PSF.Regex.GREEDY_WHITESPACE)
+													 .containsKey(line[1]) ? hash.get(line[0]).get(line[1])
+																											 .split(PSF.Regex.GREEDY_WHITESPACE)
 																								 : ArrayUtils.stringArray(phenoNames.length, "0");
 							for (int j = 0; j < phenoNames.length; j++) {
 								line[5] = phenos[j].equals("1") ? "2" : "0";
@@ -224,7 +225,8 @@ public class AltPheno {
 						try {
 							reader = new BufferedReader(new FileReader(dir + fam + "/" + phenoName + "/merlin-chr"
 																												 + ext.chrome(chr) + "-nonparametric.tbl"));
-							ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), MERLIN_BINARY_HEADER, true);
+							ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+															MERLIN_BINARY_HEADER, true);
 							if (reader.ready()) {
 								reader.readLine();
 								maxPossible = Double.parseDouble(reader.readLine().trim().split("\\t", -1)[6]);

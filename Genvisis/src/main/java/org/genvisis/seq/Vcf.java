@@ -72,7 +72,8 @@ public class Vcf {
 				} while (reader.ready() && temp.startsWith("#") && !temp.startsWith("#CHROM"));
 
 				indices = ext.indexFactors(new String[] {"#CHROM", "POS", "REF", "ALT", "ID", "INFO"},
-																	 temp.trim().split(PSF.Regex.GREEDY_WHITESPACE), false, log, true, true);
+																	 temp.trim().split(PSF.Regex.GREEDY_WHITESPACE), false, log, true,
+																	 true);
 				currentChrom = "";
 				// while (reader.ready()) { // returning false at the same places in the file every time for
 				// no reason

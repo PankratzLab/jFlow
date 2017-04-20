@@ -77,7 +77,8 @@ public class MergeDatasets {
 			try {
 				reader = new BufferedReader(new FileReader(dir + dirs[i] + filename));
 				System.out.println(ext.getTime() + "\tLoading " + filename + " in " + dirs[i]);
-				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), MarkerQC.HWE_HEADER, true);
+				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+												MarkerQC.HWE_HEADER, true);
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (line[2].equals(hweCountFlag) || line[2].equals("ALL(NP)")
@@ -235,9 +236,9 @@ public class MergeDatasets {
 		System.out.println("Splitting up file");
 		Files.splitFile(outputDir + "homo.R", 12, 0, 4, outputDir + "homo", ".R", false);
 		Qsub.qsub(outputDir + "runHomo", null, -1,
-							 Rscript.getRExecutable(new Logger()) + " CMD BATCH " + outputDir + "homo[%0].R "
-																								+ outputDir + "homo[%0].Rout",
-							 Matrix.toMatrix(ArrayUtils.stringArraySequence(12, "")), 1000, 12);
+							Rscript.getRExecutable(new Logger()) + " CMD BATCH " + outputDir + "homo[%0].R "
+																							 + outputDir + "homo[%0].Rout",
+							Matrix.toMatrix(ArrayUtils.stringArraySequence(12, "")), 1000, 12);
 		System.out.println("To run Fisher's exact with permutations in R use either ./master or ./master.runHomo");
 		System.out.println(ext.getTime() + "\tDone!");
 	}
@@ -264,7 +265,7 @@ public class MergeDatasets {
 
 		try {
 			writer = Files.openAppropriateWriter(dir + "batchMerge"
-																							+ (Files.isWindows() ? ".bat" : ""));
+																					 + (Files.isWindows() ? ".bat" : ""));
 			for (String subdir : subdirs) {
 				writer.println("java -jar /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS
 											 + " filesys.SnpMarkerSet file=" + subdir + commonPlinkRoot + ".bim");
@@ -289,7 +290,7 @@ public class MergeDatasets {
 
 		try {
 			writer = Files.openAppropriateWriter(dir + "batchMerge.unambiguous"
-																							+ (Files.isWindows() ? ".bat" : ""));
+																					 + (Files.isWindows() ? ".bat" : ""));
 
 			writer.println("plink --bfile " + subdirs[0] + "plink --extract " + subdirs[0]
 										 + commonPlinkRoot + ".bim_unambiguous.txt --make-bed --out " + subdirs[0]
@@ -335,7 +336,7 @@ public class MergeDatasets {
 
 		try {
 			writer = Files.openAppropriateWriter(dir + "batchMerge.ambiguous"
-																							+ (Files.isWindows() ? ".bat" : ""));
+																					 + (Files.isWindows() ? ".bat" : ""));
 
 			writer.println("plink --bfile " + subdirs[0] + commonPlinkRoot + " --exclude " + subdirs[0]
 										 + commonPlinkRoot + ".bim_unambiguous.txt --make-bed --out " + subdirs[0]

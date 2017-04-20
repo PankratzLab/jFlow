@@ -110,7 +110,7 @@ public class CheckForLD {
 			data = markersByChrome.get(i + "");
 			try {
 				writer = Files.openAppropriateWriter(dir + checkDir + "check" + ext.chrome(i)
-																								+ ".info");
+																						 + ".info");
 				for (String element : data) {
 					line = markerPositions.get(element).split(PSF.Regex.GREEDY_WHITESPACE);
 					if (line[0].equals("-1")) {
@@ -291,7 +291,8 @@ public class CheckForLD {
 				try {
 					reader = new BufferedReader(new FileReader(root + hapmapDir + hapmapPrefix
 																										 + ext.chrome(chr) + ".pre.CHECK"));
-					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CHECK_HEADER, true);
+					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CHECK_HEADER,
+													true);
 					while (reader.ready()) {
 						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						hapCheck.put(line[1], line[9] + "\t" + line[5]);
@@ -311,7 +312,8 @@ public class CheckForLD {
 				try {
 					reader = new BufferedReader(new FileReader(root + checkDir + prefix + ext.chrome(chr)
 																										 + ".pre.CHECK"));
-					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CHECK_HEADER, true);
+					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CHECK_HEADER,
+													true);
 					while (reader.ready()) {
 						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						writer.println(line[1] + "\t" + chr + "\t" + line[2] + "\t" + line[9] + "\t" + line[3]

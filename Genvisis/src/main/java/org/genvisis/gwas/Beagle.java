@@ -470,14 +470,14 @@ public class Beagle {
 			writers = new PrintWriter[PI_HAT_THRESHOLDS.length][2][2];
 			for (int j = 0; j < PI_HAT_THRESHOLDS.length; j++) {
 				writers[j][0][0] = Files.openAppropriateWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
-																													+ "_normal.segment");
+																											 + "_normal.segment");
 				writers[j][0][1] = Files.openAppropriateWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
-																													+ "_normal.seginfo");
+																											 + "_normal.seginfo");
 				// writers[j][0].println(Array.toStr(SEGMENT_HEADER)+"\tSCORE");
 				writers[j][1][0] = Files.openAppropriateWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
-																													+ "_nuanced.segment");
+																											 + "_nuanced.segment");
 				writers[j][1][1] = Files.openAppropriateWriter(filename + "_PI_" + PI_HAT_THRESHOLDS[j]
-																													+ "_nuanced.seginfo");
+																											 + "_nuanced.seginfo");
 				// writers[j][1].println(Array.toStr(SEGMENT_HEADER)+"\tSCORE");
 			}
 			while (reader.ready()) {
@@ -1187,11 +1187,11 @@ public class Beagle {
 				try {
 					reader = new BufferedReader(new FileReader(filename));
 					writer = Files.openAppropriateWriter(element + "cM" + (strict == 1
-																																								? "_max"
-																																									+ (int) (FILTER_MAX_THRESHOLD
-																																													 * 100)
-																																								: "")
-																									+ ".segment");
+																																						 ? "_max"
+																																							 + (int) (FILTER_MAX_THRESHOLD
+																																												* 100)
+																																						 : "")
+																							 + ".segment");
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					writer.println(ArrayUtils.toStr(ArrayUtils.subArray(line, 0, line.length - 3)));
 					while (reader.ready()) {
@@ -1252,7 +1252,8 @@ public class Beagle {
 			}
 			try {
 				reader = new BufferedReader(new FileReader(plinkFile));
-				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), Plink.CLUSTER_HEADER, true);
+				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+												Plink.CLUSTER_HEADER, true);
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					if (groupsHash.containsKey(line[0] + "\t" + line[1])

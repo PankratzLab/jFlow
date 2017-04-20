@@ -46,8 +46,8 @@ public class Dump {
 			byte[] abGenotypes = samp.getAB_Genotypes();
 
 			writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(filename)
-																							+ ext.rootOf(filename) + "_dump_"
-																							+ samp.getFingerprint() + ".xln");
+																					 + ext.rootOf(filename) + "_dump_"
+																					 + samp.getFingerprint() + ".xln");
 			writer.println((xs == null ? "" : "X") + (ys == null ? "" : "\tY")
 										 + (thetas == null ? "" : "\tTheta") + (rs == null ? "" : "\tR")
 										 + (bafs == null ? "" : "\tBAF") + (lrrs == null ? "" : "\tLRR")

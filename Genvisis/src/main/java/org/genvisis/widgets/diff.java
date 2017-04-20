@@ -121,7 +121,7 @@ public class diff {
 						|| trav1 != null && trav2 == null || buffer1.size() + buffer2.size() > 0) {
 					if (nothingChanged) {
 						writer = Files.openAppropriateWriter("diff bw '" + file1 + "' & '" + file2
-																										+ "'.out");
+																								 + "'.out");
 						nothingChanged = false;
 					}
 					if (trav1 != null) {

@@ -403,7 +403,8 @@ public class PathwayAnalysis {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			indices = ext.indexFactors(new String[] {"SNP", "TEST", "P"},
-																 reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), false, new Logger(),
+																 reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), false,
+																 new Logger(),
 																 false, false);
 			results = new float[markerNames.length];
 			root = ext.rootOf(filename);

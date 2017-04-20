@@ -677,7 +677,7 @@ public class SexChecks {
 
 		try {
 			writer = Files.openAppropriateWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true,
-																																											false));
+																																									 false));
 			writer.println(ArrayUtils.toStr(SEX_HEADER));
 
 			for (int i = 0; i < sampleNames.length; i++) {
@@ -837,7 +837,7 @@ public class SexChecks {
 
 		try {
 			writer = Files.openAppropriateWriter(proj.RESULTS_DIRECTORY.getValue(false, true)
-																							+ "markerGenderChecks.xln");
+																					 + "markerGenderChecks.xln");
 			writer.println("SNP\tX abs(T)\tY abs(T)\tBAF abs(T)\tLRR abs(T)\tX p\tY p\tXY r2\tBAF p\tLRR p\tBAF/LRR r2");
 
 			time = new Date().getTime();
@@ -999,7 +999,7 @@ public class SexChecks {
 
 		try {
 			writer = Files.openAppropriateWriter(proj.RESULTS_DIRECTORY.getValue(true, false)
-																							+ "pseudoautosomalSearch.xln");
+																					 + "pseudoautosomalSearch.xln");
 			writer.println("SNP\tChr\tPosition\tmLRR_M\tmLRR_F\thet_M\thet_F\tmiss_M\tmiss_F");
 
 			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList);

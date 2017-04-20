@@ -772,16 +772,16 @@ public class PennCNVPrep {
 			 .append(" cnv.analysis.PennCNVPrep proj=").append(proj.getPropertyFilename()).append(" dir=")
 			 .append(dir);
 		Qsub.qsub("PennCNVPrepFormatExport", cmd.toString() + " -create", new String[][] {{""}},
-							 memoryInMB, 3 * wallTimeInHours, 1);
+							memoryInMB, 3 * wallTimeInHours, 1);
 		cmd.append(" tmpDir=").append(thisDir);
 		Qsub.qsub("ShadowCNVPrepFormatExport",
-							 cmd.toString() + " -shadow sampleChunks=NeedToFillThisIn numThreads=1 -forceLoadFromFiles",
-							 new String[][] {{""}}, memoryInMB, 3 * wallTimeInHours, 1);
+							cmd.toString() + " -shadow sampleChunks=NeedToFillThisIn numThreads=1 -forceLoadFromFiles",
+							new String[][] {{""}}, memoryInMB, 3 * wallTimeInHours, 1);
 		cmd.append(" numMarkerThreads=").append(numMarkerThreads).append(" numThreads=")
 			 .append(numThreads).append(" numComponents=").append(numComponents).append(" markers=")
 			 .append(thisDir).append(dir).append("[%0].txt");
 		Qsub.qsub("PennCNVPrepFormatTmpFiles", cmd.toString(), batches, memoryInMB, wallTimeInHours,
-							 numThreads * numMarkerThreads);
+							numThreads * numMarkerThreads);
 		if (!Files.exists(proj.INTENSITY_PC_FILENAME.getValue())) {
 			proj.getLog()
 					.report("Warning - all jobs will fail if the property "

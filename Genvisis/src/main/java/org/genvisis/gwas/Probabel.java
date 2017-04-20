@@ -106,7 +106,7 @@ public class Probabel {
 					commands += "cd ..\n";
 
 					v.add(Qsub.qsub("", "q" + (i + 1) + "_chr#_" + ext.rootOf(pheno), chr, chr, commands,
-													 null, 10000, 12, "compute-0-" + node + ".local")[0]);
+													null, 10000, 12, "compute-0-" + node + ".local")[0]);
 					// node++;
 					if (node > 4) {
 						node = 0;
@@ -123,7 +123,7 @@ public class Probabel {
 										+ ext.rootOf(pheno) + "_chr#\n";
 				commands += "cd ..\n";
 				v.add(Qsub.qsub("", "chr#_" + ext.rootOf(pheno), chr, chr, commands, null, 10000, 12,
-												 "compute-0-" + antinode + ".local")[0]);
+												"compute-0-" + antinode + ".local")[0]);
 				antinode++;
 				if (antinode > 12) {
 					antinode = 6;
@@ -398,7 +398,7 @@ public class Probabel {
 		try {
 			reader = new BufferedReader(new FileReader(pheno));
 			writer = Files.openAppropriateWriter(ext.rootOf(pheno, false) + "_" + selectedClass
-																							+ ".dat");
+																					 + ".dat");
 			writer.println(reader.readLine());
 			count = 0;
 			while (reader.ready()) {
@@ -486,7 +486,7 @@ public class Probabel {
 		try {
 			reader = new BufferedReader(new FileReader(pheno));
 			writer = Files.openAppropriateWriter(ext.rootOf(pheno, false) + "_" + affectedClass
-																							+ "_vs_" + unaffectedClass + ".dat");
+																					 + "_vs_" + unaffectedClass + ".dat");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			writer.println(line[0] + "\t" + line[1]);
 			count = 0;

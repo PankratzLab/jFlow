@@ -182,7 +182,7 @@ public class Mlink {
 			writers = new PrintWriter[numFiles];
 			for (int i = 0; i < numFiles; i++) {
 				writers[i] = Files.openAppropriateWriter(destination + "map" + chrome + "-" + (i + 1)
-																										+ ".dat");
+																								 + ".dat");
 				line[0] = i == numFiles - 1 ? "" + (numMarkers - (numFiles - 1) * MAX_MARKERS + 1)
 																		: "" + (MAX_MARKERS + 1);
 				writers[i].println(ArrayUtils.toStr(line, " "));
@@ -232,7 +232,7 @@ public class Mlink {
 			reader = new BufferedReader(new FileReader("re_chrom" + chrome + ".pre"));
 			for (int i = 0; i < numFiles; i++) {
 				writers[i] = Files.openAppropriateWriter(destination + "chrom" + chrome + "-" + (i + 1)
-																										+ (pedformat ? ".ped" : ".pre"));
+																								 + (pedformat ? ".ped" : ".pre"));
 			}
 			if (pedformat) {
 				pedStruct2 = procPedStruct(new File("re_chrom" + chrome + ".ped").exists()

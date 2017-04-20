@@ -141,7 +141,8 @@ public class Conditional {
 		if (originalCovariatesFile == null) {
 			Files.copyFile(dir + "counts.xln", dir + newCovariatesFile);
 		} else {
-			line = Files.getHeaderOfFile(baseDir + originalCovariatesFile, PSF.Regex.GREEDY_WHITESPACE, log);
+			line = Files.getHeaderOfFile(baseDir + originalCovariatesFile, PSF.Regex.GREEDY_WHITESPACE,
+																	 log);
 			numFixedCovariates = line.length - 2;
 			indices = new int[numFixedCovariates];
 			for (int i = 2; i < line.length; i++) {
@@ -549,7 +550,8 @@ public class Conditional {
 						addCountsAsCovariate(dirs[k], covariates, filename, files[i], log);
 						if (covariates != null) {
 							baseCovars[k] = ArrayUtils.subArray(Files.getHeaderOfFile(dirs[k] + covariates,
-																																				PSF.Regex.GREEDY_WHITESPACE, log),
+																																				PSF.Regex.GREEDY_WHITESPACE,
+																																				log),
 																									2);
 						}
 					}
@@ -685,7 +687,7 @@ public class Conditional {
 				if ((run || iterate) && dirs.length > 1) {
 					try {
 						writer = Files.openAppropriateWriter(ext.rootOf(outfile, false)
-																										+ ".Nweighted.batch");
+																								 + ".Nweighted.batch");
 						// writer.println("MARKER MARKER");
 						// writer.println("ALLELE REF OTHER");
 						// writer.println("WEIGHT N");
@@ -908,7 +910,7 @@ public class Conditional {
 				try {
 					header = !new File(ext.parseDirectoryOfFile(outfile) + "All_tables.xln").exists();
 					writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(outfile)
-																									+ "All_tables.xln", true);
+																							 + "All_tables.xln", true);
 					if (header) {
 						writer.println("Region\tNumMarkers\tMarker\tChr\tPosition\tAlleles (Ref/Other)\tMAF\tOR (95% CI)\tpval\t# SNPs tagged");
 					}
@@ -1004,7 +1006,7 @@ public class Conditional {
 					// need to either pass or detect what kinds of header it is (or you could freaking
 					// standardize it!!)
 					writer = Files.openAppropriateWriter(ext.rootOf(filename, true) + "_"
-																									+ ext.rootOf(metaFile, true) + ".InvVar.batch");
+																							 + ext.rootOf(metaFile, true) + ".InvVar.batch");
 					writer.println("MARKER MarkerName");
 					writer.println("ALLELE Allele1 Allele2");
 					writer.println("EFFECT Effect");
@@ -1102,9 +1104,9 @@ public class Conditional {
 												 + " out=conPheno.dat");
 					writer.println("awk '{print $1\"\\t\"$2\"\\t\"$3\"\\t\"$4\"\\t\"$5\"\\t\"$6\"\\t\"$7}' data.info > data.pinfo");
 					Qsub.qsub(markerNames[i] + "/" + markerNames[i] + ".qsub",
-										 Probabel.EXECS[0] + " -p conPheno.dat -d data.dose -i data.pinfo -c 1 -o "
-																																			+ markers,
-										 -1, -1, -1);
+										Probabel.EXECS[0] + " -p conPheno.dat -d data.dose -i data.pinfo -c 1 -o "
+																																		 + markers,
+										-1, -1, -1);
 					writer.println("qsub " + markerNames[i] + ".qsub");
 					writer.println("cd ..");
 					writer.println();
@@ -1136,7 +1138,9 @@ public class Conditional {
 		try {
 			reader = new BufferedReader(new FileReader(markerList));
 			while (reader.ready()) {
-				ch.add(ext.replaceAllWith(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[markerNameIndex], ":",
+				ch.add(ext.replaceAllWith(reader.readLine().trim()
+																				.split(PSF.Regex.GREEDY_WHITESPACE)[markerNameIndex],
+																	":",
 																	"_"));
 			}
 			reader.close();
@@ -1310,7 +1314,8 @@ public class Conditional {
 				} else if (trav.startsWith("WEIGHT ")) {
 					weight = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1];
 				} else if (trav.startsWith("SCHEME ")) {
-					schemeIsStdErr = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1].equalsIgnoreCase("STDERR");
+					schemeIsStdErr = paramV.remove(i)
+																 .split(PSF.Regex.GREEDY_WHITESPACE)[1].equalsIgnoreCase("STDERR");
 				} else if (trav.startsWith("GENOMICCONTROL ")) {
 					gc = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1];
 				} else if (trav.startsWith("FREQ ")) {
@@ -1318,9 +1323,11 @@ public class Conditional {
 				} else if (trav.startsWith("ADDFILTER ")) {
 					snps = trav;
 				} else if (trav.startsWith("MINMAXFREQ ")) {
-					minmaxfreq = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1].equalsIgnoreCase("ON");
+					minmaxfreq = paramV.remove(i)
+														 .split(PSF.Regex.GREEDY_WHITESPACE)[1].equalsIgnoreCase("ON");
 				} else if (trav.startsWith("AVERAGEFREQ ")) {
-					averagefreq = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1].equalsIgnoreCase("ON");
+					averagefreq = paramV.remove(i)
+															.split(PSF.Regex.GREEDY_WHITESPACE)[1].equalsIgnoreCase("ON");
 				} else if (trav.startsWith("VERBOSE ")) {
 					verbose = paramV.remove(i).split(PSF.Regex.GREEDY_WHITESPACE)[1].equalsIgnoreCase("ON");
 				} else if (trav.split(PSF.Regex.GREEDY_WHITESPACE).length != 2) {

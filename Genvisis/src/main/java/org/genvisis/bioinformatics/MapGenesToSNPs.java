@@ -81,7 +81,8 @@ public class MapGenesToSNPs {
 		}
 		log.report("Loading genes from '" + genesFile + "'");
 		genes = HashVec.loadFileToStringArray(genesFile, false, ignoreFirstLine, new int[] {col}, true,
-																					false, commaDelimited ? "," : PSF.Regex.GREEDY_WHITESPACE);
+																					false,
+																					commaDelimited ? "," : PSF.Regex.GREEDY_WHITESPACE);
 		locOverwrite = HashVec.loadFileToHashString(genesFile, new int[] {col}, new int[] {locCol},
 																								false, "\t", false, false, true);
 

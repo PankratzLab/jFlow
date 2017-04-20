@@ -319,7 +319,8 @@ public class PrincipalComponentsEval {
 			while (reader.ready()) {
 				if (indices[index] >= 0) {
 					try {
-						data[indices[index]] = Double.parseDouble(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[1]);
+						data[indices[index]] = Double.parseDouble(reader.readLine().trim()
+																														.split(PSF.Regex.GREEDY_WHITESPACE)[1]);
 					} catch (NumberFormatException numberFormatException) {
 						data[indices[index]] = Double.NaN;
 					}

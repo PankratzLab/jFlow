@@ -196,7 +196,7 @@ public class Samtools {
 		if (v.size() > 0) {
 			log.report("There are " + v.size() + " .bam files remaining to be counted");
 			Qsub.qsubMultiple(v, null, pwd + "batches/", "countPerChr", filesPerBatch, true, null, -1,
-												 500, 0.5);
+												500, 0.5);
 		}
 	}
 

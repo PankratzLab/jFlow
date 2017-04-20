@@ -96,7 +96,7 @@ public class PlinkCNV {
 					int numSamps = 0;
 					PrintWriter writer = Files.openAppropriateWriter(sampCNVs); // subset to samp cnvs
 					PrintWriter writerGene = Files.openAppropriateWriter(geneSampCnvs);// subset to samp
-																																								 // and genes
+																																						 // and genes
 
 					writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 					writerGene.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
@@ -307,7 +307,8 @@ public class PlinkCNV {
 							ArrayList<String> summary = new ArrayList<String>();
 
 							int[] cols = new int[] {2, 3, 4, 5};
-							String[][] dataS = HashVec.loadFileToStringMatrix(out, true, cols, PSF.Regex.GREEDY_WHITESPACE, false,
+							String[][] dataS = HashVec.loadFileToStringMatrix(out, true, cols,
+																																PSF.Regex.GREEDY_WHITESPACE, false,
 																																1000, true);
 							double[][] data = ArrayUtils.toDoubleArrays(dataS, true);
 							double[] phe = Matrix.extractColumn(data, 0);
@@ -354,7 +355,8 @@ public class PlinkCNV {
 							String[] header = Files.getHeaderOfFile(load, PSF.Regex.GREEDY_WHITESPACE, log);
 
 							int[] cols = new int[] {2, 3, 4, 5, 6};
-							String[][] dataS = HashVec.loadFileToStringMatrix(load, true, cols, PSF.Regex.GREEDY_WHITESPACE, false,
+							String[][] dataS = HashVec.loadFileToStringMatrix(load, true, cols,
+																																PSF.Regex.GREEDY_WHITESPACE, false,
 																																1000, true);
 							double[][] data = ArrayUtils.toDoubleArrays(dataS, true);
 							double[] phe = Matrix.extractColumn(data, 0);
@@ -400,7 +402,8 @@ public class PlinkCNV {
 							ArrayList<String> summary = new ArrayList<String>();
 
 							int[] cols = new int[] {2, 3, 4, 5};
-							String[][] dataS = HashVec.loadFileToStringMatrix(out, true, cols, PSF.Regex.GREEDY_WHITESPACE, false,
+							String[][] dataS = HashVec.loadFileToStringMatrix(out, true, cols,
+																																PSF.Regex.GREEDY_WHITESPACE, false,
 																																1000, true);
 							double[][] data = ArrayUtils.toDoubleArrays(dataS, true);
 							double[] phe = Matrix.extractColumn(data, 0);
@@ -539,11 +542,13 @@ public class PlinkCNV {
 		for (PlinkResult result : results) {
 			if (result.complete) {
 				String out = finalDir + result.key.substring(0, 26) + "_" + index + ".txt";
-				String[][] data = HashVec.loadFileToStringMatrix(result.file, false, null, PSF.Regex.GREEDY_WHITESPACE, false,
+				String[][] data = HashVec.loadFileToStringMatrix(result.file, false, null,
+																												 PSF.Regex.GREEDY_WHITESPACE, false,
 																												 1000, true);
 				log.reportTimeInfo("Loading paired " + ext.rootOf(result.file, false));
 				String[][] dataCount = HashVec.loadFileToStringMatrix(ext.rootOf(result.file, false), false,
-																															null, PSF.Regex.GREEDY_WHITESPACE, false, 1000, true);
+																															null, PSF.Regex.GREEDY_WHITESPACE,
+																															false, 1000, true);
 				String allSigGenesSpecific = finalDir + result.key + "_Genes" + index + ".txt";
 				HashSet<String> allSigGenesListSpecific = new HashSet<String>();
 

@@ -115,7 +115,8 @@ public class Mega_Analyses {
 							do {
 								temp = reader.readLine();
 							} while (!temp.startsWith("TRAIT"));
-							ext.checkHeader(temp.trim().split(PSF.Regex.GREEDY_WHITESPACE), Mach.MACH2DAT_HEADER, true);
+							ext.checkHeader(temp.trim().split(PSF.Regex.GREEDY_WHITESPACE), Mach.MACH2DAT_HEADER,
+															true);
 							while (reader.ready()) {
 								line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 								if (line[0].equals("Newton:")) {
@@ -161,7 +162,8 @@ public class Mega_Analyses {
 							do {
 								temp = reader.readLine();
 							} while (!temp.startsWith("TRAIT"));
-							ext.checkHeader(temp.trim().split(PSF.Regex.GREEDY_WHITESPACE), Mach.MACH2DAT_HEADER, true);
+							ext.checkHeader(temp.trim().split(PSF.Regex.GREEDY_WHITESPACE), Mach.MACH2DAT_HEADER,
+															true);
 							while (reader.ready()) {
 								line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 								if (line[0].equals("Newton:")) {
@@ -668,8 +670,8 @@ public class Mega_Analyses {
 																																				 + "\t"
 																																				 + (refChrHash.get(keys[element])
 																																											.split(PSF.Regex.GREEDY_WHITESPACE)[1].equals(positions.elementAt(element)
-																																																								 + "") ? "1"
-																																																											 : "0")
+																																																																		+ "") ? "1"
+																																																																					: "0")
 																																			 : ".\t.\t0")
 											 + "\t" + ArrayUtils.toStr(ArrayUtils.toStringArray(v)));
 			}
@@ -825,7 +827,7 @@ public class Mega_Analyses {
 				reader = new BufferedReader(new FileReader(filename));
 				new File(ext.parseDirectoryOfFile(filename) + "purified/").mkdir();
 				writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(filename) + "purified/"
-																								+ ext.removeDirectoryInfo(filename));
+																						 + ext.removeDirectoryInfo(filename));
 				writer.println(reader.readLine());
 				while (reader.ready()) {
 					temp = reader.readLine();

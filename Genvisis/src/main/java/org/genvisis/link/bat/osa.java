@@ -108,7 +108,7 @@ public class osa {
 				if (trav != prev && prev != -99999.777) {
 					increment++;
 					writer = Files.openAppropriateWriter("chrom" + chrome + "/re_chrom" + chrome + "-a"
-																									+ ext.formNum(increment, 4) + ".pre");
+																							 + ext.formNum(increment, 4) + ".pre");
 					for (int j = 0; j < i; j++) {
 						if (hash.containsKey(IDs.elementAt(keys[j]))) {
 							writer.print(hash.get(IDs.elementAt(keys[j])));
@@ -139,7 +139,7 @@ public class osa {
 				if (trav != prev && prev != -99999.777) {
 					increment++;
 					writer = Files.openAppropriateWriter("chrom" + chrome + "/re_chrom" + chrome + "-d"
-																									+ ext.formNum(increment, 4) + ".pre");
+																							 + ext.formNum(increment, 4) + ".pre");
 					for (int j = IDs.size() - 1; j > i; j--) {
 						if (hash.containsKey(IDs.elementAt(keys[j]))) {
 							writer.print(hash.get(IDs.elementAt(keys[j])));

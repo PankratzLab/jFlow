@@ -456,7 +456,7 @@ public class PennCNV {
 			reader.close();
 
 			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																							+ ext.rootOf(filename) + QC_SUMMARY_EXTENSION);
+																					 + ext.rootOf(filename) + QC_SUMMARY_EXTENSION);
 			writer.print("Sample\tFID\tIID\tUse_" + ext.formDeci(lrrSD_cutoff, 2));
 			for (String element : ERRORS) {
 				writer.print("\t" + element);
@@ -703,7 +703,7 @@ public class PennCNV {
 					if (isDenovo) {
 						if (denovoWriter == null) {
 							denovoWriter = Files.openAppropriateWriter(ext.rootOf(filename, false)
-																														+ "_denovo.cnv");
+																												 + "_denovo.cnv");
 							denovoWriter.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 						}
 						denovoWriter.println(lineOut.toString());

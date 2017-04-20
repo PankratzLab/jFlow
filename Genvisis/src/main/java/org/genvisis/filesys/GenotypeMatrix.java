@@ -306,12 +306,14 @@ public class GenotypeMatrix implements Serializable {
 				count++;
 			}
 		}
-		logistic = RegressionModel.isBinaryTrait(ArrayUtils.toStr(deps).split(PSF.Regex.GREEDY_WHITESPACE), log);
+		logistic = RegressionModel.isBinaryTrait(ArrayUtils.toStr(deps)
+																											 .split(PSF.Regex.GREEDY_WHITESPACE),
+																						 log);
 		log.report("Running a " + (logistic ? "logistic" : "linear") + " model for trait '" + traits[0]
 							 + "'", true, verbose);
 		try {
 			writer = Files.openAppropriateWriter(ext.rootOf(phenoFile, false) + ".results."
-																							+ (logistic ? "logistic" : "linear"));
+																					 + (logistic ? "logistic" : "linear"));
 			w2 = Files.openAppropriateWriter(ext.rootOf(phenoFile, false) + ".se.metal");
 			String[] arr = logistic ? Plink.LOGISTIC_SE_HEADER : Plink.LINEAR_SE_HEADER;
 			line = Arrays.copyOf(arr, arr.length);

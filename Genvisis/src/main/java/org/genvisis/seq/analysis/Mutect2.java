@@ -502,7 +502,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		command.add("normalBams=" + baseOut);
 
 		Qsub.qsub(outputDir + "Contam.txt", ArrayUtils.toStr(ArrayUtils.toStringArray(command), " "),
-							 batches, 62000, 40, numthreads * numSampleThreads, "small");
+							batches, 62000, 40, numthreads * numSampleThreads, "small");
 	}
 
 	private static void getJava(List<String> command) {

@@ -309,7 +309,8 @@ public class MosaicismQuant implements Calcfc {
 
 		}
 
-		public void developCDFs(MarkerSetInfo markerSet, int[][] indicesByChr, Segment seg, double minBaf,
+		public void developCDFs(MarkerSetInfo markerSet, int[][] indicesByChr, Segment seg,
+														double minBaf,
 														double maxBaf) {
 
 			developCDF(markerSet, indicesByChr, seg, minBaf, maxBaf, -1);
@@ -442,7 +443,8 @@ public class MosaicismQuant implements Calcfc {
 			samp = proj.getFullSampleFromRandomAccessFile(sampleName);
 		}
 
-		protected void developCDF(MarkerSetInfo markerSet, int[][] indicesByChr, Segment seg, double minBaf,
+		protected void developCDF(MarkerSetInfo markerSet, int[][] indicesByChr, Segment seg,
+															double minBaf,
 															double maxBaf, int numControlForce) {
 			BafSelection bafSelection = selectBafs(markerSet, indicesByChr, seg, minBaf, maxBaf,
 																						 numControlForce);
@@ -996,7 +998,8 @@ public class MosaicismQuant implements Calcfc {
 				double baf = mosiacismQuant.getSampleMosiac().getSamp().getBAFs()[currentIndices[i]];
 
 				writer.print(markerSet.getPositions()[currentIndices[i]] + "\t"
-										 + (!Java6Helper.isFinite(baf) ? 0 : baf) + "\t" + rand[i] + "\t" + pvals[i] + "\t"
+										 + (!Java6Helper.isFinite(baf) ? 0 : baf) + "\t" + rand[i] + "\t" + pvals[i]
+										 + "\t"
 										 + baseLine + "\t" + distMember[i]);
 				for (double[] madata : madatas) {
 					writer.print("\t" + madata[i]);

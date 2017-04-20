@@ -118,10 +118,11 @@ public class GcLook {
 				}
 			}
 			if (!Files.exists(out)) {
-				MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(	null, proj.BLAST_ANNOTATION_FILENAME.getValue(),
+				MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(null,
+																																									 proj.BLAST_ANNOTATION_FILENAME.getValue(),
 																																									 proj.getMarkerSet(),
-																																										true,
-																																										proj.getLog());
+																																									 true,
+																																									 proj.getLog());
 				markerAnnotationLoader.setReportEvery(500000);
 				Map<String, MarkerGCAnnotation> gcAnnotations = MarkerGCAnnotation.initForMarkers(proj,
 																																													markerNames,

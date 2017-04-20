@@ -1045,7 +1045,7 @@ public class CARe_Analyses {
 						if (hash.contains(line[0])) {
 							try {
 								writer = Files.openAppropriateWriter(DRIVE_ROOT + "Analyses/ICAM/" + line[0]
-																												+ ".txt", true);
+																										 + ".txt", true);
 								if (new File(DRIVE_ROOT + "Analyses/ICAM/" + line[0] + ".txt").length() == 0) {
 									writer.println("Cohort\tSNP\tA1\tA2\tBeta\tSE");
 								}
@@ -1078,14 +1078,14 @@ public class CARe_Analyses {
 						if (hash.contains(line[0])) {
 							try {
 								writer = Files.openAppropriateWriter(DRIVE_ROOT + "Analyses/ICAM/" + line[0]
-																												+ ".txt", true);
+																										 + ".txt", true);
 								if (new File(DRIVE_ROOT + "Analyses/ICAM/" + line[0] + ".txt").length() == 0) {
 									writer.println("Cohort\tSNP\tA1\tA2\tBeta\tSE");
 
 									try {
 										PrintWriter writer2 = Files.openAppropriateWriter(DRIVE_ROOT
-																																				 + "Analyses/ICAM/"
-																																				 + line[0] + ".R");
+																																			+ "Analyses/ICAM/"
+																																			+ line[0] + ".R");
 										writer2.println("##Data directory");
 										writer2.println("data.dir <- \"" + DRIVE_ROOT + "Analyses/ICAM/\"");
 										writer2.println("### Input data");
@@ -1142,7 +1142,7 @@ public class CARe_Analyses {
 		v = new Vector<String>();
 		try {
 			writer = Files.openAppropriateWriter("catchUp." + ext.rootOf(phenofile)
-																							+ (conditionals ? "_withCondi" : ""));
+																					 + (conditionals ? "_withCondi" : ""));
 			while (new File(dir + "gwaf/file" + count + ".fhsR.gz").exists()) {
 				if (!new File(ext.rootOf(phenofile) + (conditionals ? "_withCondi" : "") + "_results"
 											+ count + ".csv").exists()) {
@@ -1197,7 +1197,7 @@ public class CARe_Analyses {
 											 "--out " + ext.rootOf(phenofile) + (conditionals ? "_withCondi" : "")
 											 + "_chr#";
 						Files.writeArray(Qsub.qsub(dir, "chr#_" + element, 1, 22, commands, null, 10000, 12,
-																				null),
+																			 null),
 														 dir + "master." + pheno);
 						Files.chmod(dir + "master." + pheno);
 						writer.println("cd " + dir);
@@ -1220,7 +1220,7 @@ public class CARe_Analyses {
 
 		try {
 			writer = Files.openAppropriateWriter("batchAllGWAF." + ext.rootOf(phenofile)
-																							+ (conditionals ? "_withCondi" : ""));
+																					 + (conditionals ? "_withCondi" : ""));
 			for (String element : STUDIES) {
 				for (String[] element2 : RACES) {
 					dir = element + "_" + element2[0] + "/";

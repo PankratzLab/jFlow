@@ -194,7 +194,7 @@ public class ParseRegression {
 						} else {
 							if (extras == null) {
 								extras = Files.openAppropriateWriter(dir
-																												+ "markers in map file but without results.out");
+																										 + "markers in map file but without results.out");
 							}
 							extras.println(markerNames[j] + "\t" + chrs[j] + "\t" + positions[j]);
 						}
@@ -204,7 +204,7 @@ public class ParseRegression {
 					}
 					if (allSNPs.size() > 0) {
 						extras = Files.openAppropriateWriter(dir
-																										+ "marke with results file but not in map file.out");
+																								 + "marke with results file but not in map file.out");
 						line = HashVec.getKeys(allSNPs);
 						for (String element2 : line) {
 							extras.println(element2);

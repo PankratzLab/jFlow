@@ -93,7 +93,8 @@ public class ExportCNVsToPedFormat {
 																															 pedFilename.endsWith(".csv"), "\t",
 																															 false, false, false);
 				dnaMapping = HashVec.loadFileToStringMatrix(pedFilename, true, new int[] {0, 1, 6},
-																										PSF.Regex.GREEDY_WHITESPACE, false, 10000, false);
+																										PSF.Regex.GREEDY_WHITESPACE, false, 10000,
+																										false);
 				HashSet<String> dnaSet = new HashSet<String>();
 				for (String[] element : dnaMapping) {
 					if (dnaSet.contains(element[2])) {
@@ -517,11 +518,11 @@ public class ExportCNVsToPedFormat {
 			}
 
 			writer = Files.openAppropriateWriter(dir + "rfgls/"
-																							+ ext.removeDirectoryInfo(root + "_byMarker_"
-																																				+ fileNumber));
+																					 + ext.removeDirectoryInfo(root + "_byMarker_"
+																																		 + fileNumber));
 			mapWriter = Files.openAppropriateWriter(dir + "rfgls/"
-																								 + ext.removeDirectoryInfo(root + "_map_"
-																																					 + fileNumber));
+																							+ ext.removeDirectoryInfo(root + "_map_"
+																																				+ fileNumber));
 
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

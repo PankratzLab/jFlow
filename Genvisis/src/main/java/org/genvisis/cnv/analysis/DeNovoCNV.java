@@ -363,7 +363,7 @@ public class DeNovoCNV {
 			// Files.qsubMultiple("chunkCNV", Array.stringArraySequence(numQsubFiles, proj.getProjectDir()
 			// + "penn_scripts/runPennCNV_", ".qsub"), 8, -1, 22000, 24);
 			Qsub.qsub(pennOutDir + "scripts/runPennCNV", pennOutDir + "scripts/", numQsubFiles, commands,
-								 iterations, 2000, 24);
+								iterations, 2000, 24);
 			// Files.qsubMultiple("chunkCNV", Array.stringArraySequence(numQsubFiles, pennOutDir +
 			// "scripts/runPennCNV_", ".qsub"), 2000, 24);
 
@@ -373,7 +373,7 @@ public class DeNovoCNV {
 				jobNamesWithAbsolutePaths.add(pennOutDir + "scripts/" + file);
 			}
 			Qsub.qsubMultiple(jobNamesWithAbsolutePaths, null, pennOutDir + "scripts/", "chunkCNV", 8,
-												 true, null, -1, 22000, 24);
+												true, null, -1, 22000, 24);
 
 			log.report(ext.getTime()
 								 + "\tfinished generating the batch scripts to run PennCNV for trio CNV and joint CNV detection.\n                 output location: "
@@ -406,8 +406,8 @@ public class DeNovoCNV {
 		try {
 			filenames = Files.list(pennCnvResultDir, pennCnvResultFileNameExt, false);
 			writer = Files.openAppropriateWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
-																							+ pennCnvResultFileNameExt.replace("cnv", "")
-																							+ ".cnv");
+																					 + pennCnvResultFileNameExt.replace("cnv", "")
+																					 + ".cnv");
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			offspringCnv = new Hashtable<String, String>();
 			for (String filename : filenames) {
@@ -512,12 +512,12 @@ public class DeNovoCNV {
 
 			filenames = Files.list(pennCnvResultDir, pennCnvResultFileNameExt, false);
 			writer1 = Files.openAppropriateWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
-																							 + pennCnvResultFileNameExt.replace("cnv", "")
-																							 + ".cnv");
+																						+ pennCnvResultFileNameExt.replace("cnv", "")
+																						+ ".cnv");
 			writer1.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			writer2 = Files.openAppropriateWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
-																							 + pennCnvResultFileNameExt.replace("cnv", "")
-																							 + "_list.txt");
+																						+ pennCnvResultFileNameExt.replace("cnv", "")
+																						+ "_list.txt");
 			writer2.println("DNA\tPosition\tComments");
 			for (String filename : filenames) {
 				currentOffspring = null;
@@ -606,7 +606,7 @@ public class DeNovoCNV {
 				reader.readLine();
 			}
 			writer = Files.openAppropriateWriter(proj.DATA_DIRECTORY.getValue(false, true)
-																							+ "trios.fam");
+																					 + "trios.fam");
 			while (reader.ready()) {
 				line = reader.readLine().split("\t");
 				writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t"
@@ -686,7 +686,7 @@ public class DeNovoCNV {
 		iterations = HashVec.loadFileToStringMatrix(pedigreeOfTrio, true, new int[] {4, 5, 6}, false);
 
 		org.genvisis.qsub.Qsub.qsub("denovo", "/share/bulk/gedi/pankr018/denovo/penn_data", 65,
-																	 command, iterations, 2500, 2);
+																command, iterations, 2500, 2);
 	}
 
 	/*

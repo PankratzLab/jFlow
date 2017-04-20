@@ -31,7 +31,9 @@ public class Mega2 {
 				writer = Files.openAppropriateWriter("map." + chrome);
 				writer.println("CHROMOSOME\tKOSAMBI\tNAME");
 
-				numMarkers = Integer.parseInt(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]) - 1;
+				numMarkers = Integer.parseInt(reader.readLine().trim()
+																						.split(PSF.Regex.GREEDY_WHITESPACE)[0])
+										 - 1;
 				reader.readLine();
 				reader.readLine();
 				if (!reader.readLine().contains("#")) {

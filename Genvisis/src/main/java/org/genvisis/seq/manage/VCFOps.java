@@ -158,7 +158,7 @@ public class VCFOps {
 		 * Will add from the snp138 annotation if available, else will create from {@link LocusID}
 		 */
 		ADD_IDS,
-		
+
 		/**
 		 * Validate or create an index (.idx) file from an existing .vcf file
 		 */
@@ -207,7 +207,7 @@ public class VCFOps {
 	 * @return appropriate index
 	 */
 	public static String getIndex(String vcf) {
-    return GATK.getVcfIndex(vcf);
+		return GATK.getVcfIndex(vcf);
 
 	}
 
@@ -507,7 +507,8 @@ public class VCFOps {
 			if (mode == PLINK_SET_MODE.GWAS_QC) {
 
 				org.genvisis.gwas.RelationAncestryQc.fullGamut(dir, rootOut, false,
-																			 new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
+																											 new Logger(dir
+																																	+ "fullGamutOfMarkerAndSampleQC.log"));
 				String mdsFile = dir + RelationAncestryQc.GENOME_DIR + "mds20.mds";
 				if (Files.exists(mdsFile)) {
 					// fixMdsFile(log, dir, newIDS, mdsFile);
@@ -567,7 +568,8 @@ public class VCFOps {
 																										false);
 		String[][] newfam = new String[fam.length][fam[0].length];
 		boolean newSex = false;
-		// String[][] fam = HashVec.loadFileToStringMatrix(, false, new int[]{1,2,3,4,5,6}, PSF.Regex.GREEDY_WHITESPACE,
+		// String[][] fam = HashVec.loadFileToStringMatrix(, false, new int[]{1,2,3,4,5,6},
+		// PSF.Regex.GREEDY_WHITESPACE,
 		// false, 1000, false);
 		int noSexcount = 0;
 
@@ -633,8 +635,8 @@ public class VCFOps {
 	}
 
 	/**
-	 * @param vcf runs {@link org.genvisis.gwas.RelationAncestryQc#fullGamut(String, boolean)} after converting to
-	 *        plink* files if neccesary
+	 * @param vcf runs {@link org.genvisis.gwas.RelationAncestryQc#fullGamut(String, boolean)} after
+	 *        converting to plink* files if neccesary
 	 * @param log
 	 */
 	public static void vcfGwasQC(String vcf, Logger log) {
@@ -1627,10 +1629,10 @@ public class VCFOps {
 			Segment[] segsToSearch = null;
 			if (segmentFile.endsWith(".in") || segmentFile.endsWith(".bim")) {
 				segsToSearch = Segment.loadRegions(segmentFile, 0, 3, 3, false);
-			} else if (segmentFile.endsWith(".bed")){
+			} else if (segmentFile.endsWith(".bed")) {
 				BEDFileReader bfr = new BEDFileReader(segmentFile, false);
 				segsToSearch = bfr.loadAll(log).getBufferedSegmentSet(bpBuffer).getStrictSegments();
-			} else {			
+			} else {
 				segsToSearch = Segment.loadRegions(segmentFile, 0, 1, 2, 0, true, true, true, bpBuffer);
 				log.reportTimeInfo("Loaded " + segsToSearch.length + " segments to search");
 			}

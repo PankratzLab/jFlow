@@ -330,8 +330,8 @@ public class VPDalgorithm {
 		try {
 			reader = tools.getNinfoReader(CARES_NOT_PROGENI ? 5 : 1);
 			writer = Files.openAppropriateWriter(tools.CRF_DIR
-																							+ (CARES_NOT_PROGENI ? "CARES_" : "PROGENI_")
-																							+ "verifiedData.xln");
+																					 + (CARES_NOT_PROGENI ? "CARES_" : "PROGENI_")
+																					 + "verifiedData.xln");
 			writer.println("UniqueID\tFamID\tIndID\tDx\tVPD\tCONF_PD\tAffected\tOnset_GT20\tBradykinesia\tBrady_B\tBrady_F\tRestT_B\tRestT_F\tActionT_B\tRigidity_B\tRigidity_F\tProbability_GTE50\tAtLeast1\tAtLeast2\tHasNoExclusionCriteria\tVerified\tNum VPD criteria\tInclusion\tSupporting\tReason NVPD\tUKBBC\tNum UKBBC criteria\tUKBBC Inclusion\tUKBBC Supporting\tReason not UKBBC");
 			reader.readLine();
 			while (reader.ready()) {

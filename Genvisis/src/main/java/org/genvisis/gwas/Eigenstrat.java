@@ -139,7 +139,8 @@ public class Eigenstrat {
 		strandHash = HashVec.loadFileToHashString(sourceRoot + ".snp", 0, new int[] {4, 5}, " ", false);
 
 		System.out.print("Parsing weights...");
-		numEigens = Files.getHeaderOfFile(sourceRoot + ".weights.out", PSF.Regex.GREEDY_WHITESPACE, new Logger()).length
+		numEigens = Files.getHeaderOfFile(sourceRoot + ".weights.out", PSF.Regex.GREEDY_WHITESPACE,
+																			new Logger()).length
 								- 3;
 		weightsHash = HashVec.loadFileToHashString(sourceRoot + ".weights.out", 0,
 																							 Arrays.copyOfRange(ArrayUtils.arrayOfIndices(numEigens
@@ -167,7 +168,8 @@ public class Eigenstrat {
 		count = 0;
 		for (int i = 0; i < markerNames.length; i++) {
 			if (weightsHash.containsKey(markerNames[i])) {
-				weights[i] = ArrayUtils.toDoubleArray(weightsHash.remove(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE));
+				weights[i] = ArrayUtils.toDoubleArray(weightsHash.remove(markerNames[i])
+																												 .split(PSF.Regex.GREEDY_WHITESPACE));
 
 				str = strandHash.get(markerNames[i]);
 				if (str == null) {
@@ -321,7 +323,7 @@ public class Eigenstrat {
 		System.out.println("Writing raw scores to file...");
 		try {
 			writer = Files.openAppropriateWriter(targetRoot + (fancy_weighting ? "_fancy" : "")
-																							+ "_eigens.xln");
+																					 + "_eigens.xln");
 			writer.println("FID\tIID\t"
 										 + ArrayUtils.toStr(ArrayUtils.stringArraySequence(numEigens, "C")));
 			for (int i = 0; i < ids.size(); i++) {
@@ -347,7 +349,7 @@ public class Eigenstrat {
 		}
 		try {
 			writer = Files.openAppropriateWriter(targetRoot + (fancy_weighting ? "_fancy" : "")
-																							+ "_postnormed_eigens.xln");
+																					 + "_postnormed_eigens.xln");
 			writer.println("FID\tIID\t"
 										 + ArrayUtils.toStr(ArrayUtils.stringArraySequence(numEigens, "C")));
 			sampleSizeCorrection = Math.sqrt(ids.size());

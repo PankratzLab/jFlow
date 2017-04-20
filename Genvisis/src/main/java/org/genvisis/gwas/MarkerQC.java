@@ -232,7 +232,8 @@ public class MarkerQC {
 				} else if (params[i][0].equals("mishap_min")) {
 					try {
 						reader = new BufferedReader(new FileReader(dir + params[i][1]));
-						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), MISSHAP_HEADER, true);
+						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+														MISSHAP_HEADER, true);
 						prev = "";
 						mishaps = new Vector<String>();
 						hash = new Hashtable<String, String[]>();

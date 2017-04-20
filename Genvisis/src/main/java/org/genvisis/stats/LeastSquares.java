@@ -41,14 +41,14 @@ public class LeastSquares extends RegressionModel {
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public LeastSquares(List vDeps, List vIndeps) { // deps = Vector of int/double as String,
-																											// indeps = Vector of double[]
+																									// indeps = Vector of double[]
 		this(vDeps, vIndeps, false, true);
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public LeastSquares(List vDeps, List vIndeps, LS_TYPE lType) { // deps = Vector of int/double
-																																		 // as String, indeps = Vector
-																																		 // of double[]
+																																 // as String, indeps = Vector
+																																 // of double[]
 		this(vDeps, vIndeps, false, false, lType);
 	}
 
@@ -59,7 +59,8 @@ public class LeastSquares extends RegressionModel {
 	}
 
 	@SuppressWarnings({"rawtypes"})
-	public LeastSquares(List<String> vDeps, List vIndeps, boolean bypassDataCheck, boolean verbose, LS_TYPE lType) {
+	public LeastSquares(List<String> vDeps, List vIndeps, boolean bypassDataCheck, boolean verbose,
+											LS_TYPE lType) {
 		this(processDeps(vDeps), processIndeps(vIndeps), bypassDataCheck, verbose, lType);
 	}
 

@@ -37,7 +37,7 @@ public class solarGatherByFam {
 			st.nextElement();
 		}
 		writer = Files.openAppropriateWriter(st.nextToken() + "-" + st.nextToken()
-																						+ " linkage summary.xls");
+																				 + " linkage summary.xls");
 
 		chromosome = new int[args.length];
 		position = new int[args.length];

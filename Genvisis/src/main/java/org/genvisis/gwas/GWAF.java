@@ -84,7 +84,7 @@ public class GWAF {
 			while (new File(ext.replaceAllWith(dir + geneticDataTemplate, "#", count + "")).exists()
 						 && (geneticDataTemplate.contains("#") || count == startAt)) {
 				writer = Files.openAppropriateWriter(dir + ext.insertNumbers(rootTemplate, count)
-																								+ ".R");
+																						 + ".R");
 				if (versionOfGWAF == 2) {
 					writer.println("library(kinship2)");
 				} else {
@@ -121,10 +121,10 @@ public class GWAF {
 			if (numBatches < 1) {
 				if (nodesToUse == null) {
 					v = ArrayUtils.toStringVector(Qsub.qsub(dir, rootTemplate, startAt,
-																									 count,
-																									 "R --no-save < " + rootTemplate + ".R > "
-																													+ rootTemplate + ".log",
-																									 null, 5000, 12, null));
+																									count,
+																									"R --no-save < " + rootTemplate + ".R > "
+																												 + rootTemplate + ".log",
+																									null, 5000, 12, null));
 				} else {
 					v = new Vector<String>();
 					// step = (int)Math.ceil((double)((count-startAt)+1)/(double)nodesToUse.length);
@@ -135,8 +135,8 @@ public class GWAF {
 					// null, -1, nodesToUse[i]);
 					for (int i = startAt; i <= count; i++) {
 						list = Qsub.qsub(dir, rootTemplate, i, i,
-															"R --no-save < " + rootTemplate + ".R > " + rootTemplate + ".log",
-															null, 5000, 12, nodesToUse[i % nodesToUse.length]);
+														 "R --no-save < " + rootTemplate + ".R > " + rootTemplate + ".log",
+														 null, 5000, 12, nodesToUse[i % nodesToUse.length]);
 						for (String element : list) {
 							v.add(element);
 						}

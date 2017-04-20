@@ -198,7 +198,8 @@ public class LDdatabase implements Serializable {
 				positions = new int[ivs[chr].size()];
 				for (int j = 0; j < ivs[chr].size(); j++) {
 					subset[j] = targets[ivs[chr].elementAt(j)];
-					positions[j] = Integer.parseInt(chrHash.get(subset[j]).split(PSF.Regex.GREEDY_WHITESPACE)[1]);
+					positions[j] = Integer.parseInt(chrHash.get(subset[j])
+																								 .split(PSF.Regex.GREEDY_WHITESPACE)[1]);
 				}
 
 				log.report("Checking how many chr" + chr + " pairs are present already...", false, true);
@@ -243,7 +244,8 @@ public class LDdatabase implements Serializable {
 											+ "freqCheck", "./");
 					try {
 						reader = new BufferedReader(new FileReader(dir + "freqCheck.frq"));
-						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), FREQ_HEADER, true);
+						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+														FREQ_HEADER, true);
 						monomorphs = new Vector<String>();
 						while (reader.ready()) {
 							line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -279,7 +281,8 @@ public class LDdatabase implements Serializable {
 
 					try {
 						reader = new BufferedReader(new FileReader(dir + LDDB_TARGETS + ".ped.LD"));
-						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), HAPLOVIEW_LD_HEADER, false);
+						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+														HAPLOVIEW_LD_HEADER, false);
 						while (reader.ready()) {
 							line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 							chrLDdb.add(line[0], line[1], Float.parseFloat(line[4]));

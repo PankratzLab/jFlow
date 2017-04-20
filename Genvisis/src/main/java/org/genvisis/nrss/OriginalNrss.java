@@ -188,7 +188,8 @@ public class OriginalNrss {
 										+ (variate_column == -1 ? ""
 																						: "\t"
 																							+ ArrayUtils.toStr(ArrayUtils.subArray(stats[maxSNP],
-																																										 1, stats[maxSNP].length))));
+																																										 1,
+																																										 stats[maxSNP].length))));
 							cluster.clear();
 							cluster.add(i);
 						}
@@ -211,7 +212,8 @@ public class OriginalNrss {
 										+ (variate_column == -1 ? ""
 																						: "\t"
 																							+ ArrayUtils.toStr(ArrayUtils.subArray(stats[maxSNP],
-																																										 1, stats[maxSNP].length))));
+																																										 1,
+																																										 stats[maxSNP].length))));
 						}
 					}
 

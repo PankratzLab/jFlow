@@ -286,13 +286,17 @@ public class ChromatinAccessibility {
 						new File(file_dir + ext.rootOf(filename) + "/").mkdirs();
 						if (i == files.length) {
 							writers[i][j][0] = Files.openAppropriateWriter(file_dir + ext.rootOf(filename)
-																																+ "/"
-																																+ ext.addToRoot(filename,
-																																								"_allMerged_" + CLASSES[j] + "_in"));
+																														 + "/"
+																														 + ext.addToRoot(filename,
+																																						 "_allMerged_"
+																																											 + CLASSES[j]
+																																											 + "_in"));
 							writers[i][j][1] = Files.openAppropriateWriter(file_dir + ext.rootOf(filename)
-																																+ "/"
-																																+ ext.addToRoot(filename,
-																																								"_allMerged_" + CLASSES[j] + "_out"));
+																														 + "/"
+																														 + ext.addToRoot(filename,
+																																						 "_allMerged_"
+																																											 + CLASSES[j]
+																																											 + "_out"));
 						} else {
 							writers[i][j][0] = new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename)
 																																+ "/"
@@ -316,7 +320,9 @@ public class ChromatinAccessibility {
 			}
 			try {
 				reader = new BufferedReader(new FileReader(file_dir + filename));
-				indices = ext.indexFactors(PVAL_HEADER, reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), false,
+				indices = ext.indexFactors(PVAL_HEADER,
+																	 reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+																	 false,
 																	 false, true, true);
 				count = 0;
 				while (reader.ready()) {

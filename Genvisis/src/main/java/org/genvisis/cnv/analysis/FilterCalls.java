@@ -196,8 +196,8 @@ public class FilterCalls {
 		sampleData = proj == null ? null : proj.getSampleData(0, false);
 
 		List<CNVariant> cnvList = CNVariant.loadPlinkFile(cnvFile, null, true,
-																												proj == null ? false
-																																		 : proj.JAR_STATUS.getValue());
+																											proj == null ? false
+																																	 : proj.JAR_STATUS.getValue());
 		HashMap<String, ArrayList<CNVariant>[]> cnvMap = new HashMap<String, ArrayList<CNVariant>[]>();
 		for (CNVariant cnv : cnvList) {
 			ArrayList<CNVariant>[] indivLists = cnvMap.get(cnv.getFamilyID() + "\t"
@@ -620,7 +620,8 @@ public class FilterCalls {
 																																			 actualCNV1.cnv.getCN(),
 																																			 Math.max(actualCNV1.cnv.getScore(),
 																																								actualCNV2.cnv.getScore()),
-																																			 actualCNV2.markerStop - actualCNV1.markerStart + 1,
+																																			 actualCNV2.markerStop - actualCNV1.markerStart
+																																																						+ 1,
 																																			 actualCNV1.cnv.getSource()));
 
 						setLRRMedStdDev(newCNV, actualCNV1, actualCNV2, droppedMarkerNames, markerNames, lrrs);

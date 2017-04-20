@@ -387,7 +387,8 @@ public class DumpSAS {
 			for (String[] element : mani) {
 				try {
 					reader = new BufferedReader(new FileReader(dir + element[1] + "all_contents.xln"));
-					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), ALL_CONTENTS_HEADER, true);
+					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+													ALL_CONTENTS_HEADER, true);
 					if (!reader.ready()) {
 						System.err.println("'" + element[1] + "all_contents.xln" + "' contianed no elements");
 					}

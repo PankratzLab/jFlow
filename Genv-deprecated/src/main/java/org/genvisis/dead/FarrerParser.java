@@ -43,7 +43,8 @@ public class FarrerParser {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + "plink.frq"));
-			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), PLINK_FRQ_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), PLINK_FRQ_HEADER,
+											true);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (ext.indexOfStr(line[1], markers) >= 0) {
@@ -145,7 +146,8 @@ public class FarrerParser {
 			try {
 				reader = new BufferedReader(new FileReader(dir + file));
 				model = file.substring(0, file.indexOf(".assoc.logistic"));
-				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), LOGISTIC_HEADER_WITH_CI, true);
+				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+												LOGISTIC_HEADER_WITH_CI, true);
 				v = new Vector<String>();
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

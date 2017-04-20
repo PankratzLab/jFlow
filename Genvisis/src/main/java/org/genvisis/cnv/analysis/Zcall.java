@@ -77,7 +77,7 @@ public class Zcall {
 
 		try {
 			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																							+ "GenomeStudioData.txt");
+																					 + "GenomeStudioData.txt");
 			writer.print(ArrayUtils.toStr(BASIC_HEADER));
 			for (int i = 0; i < samples.length; i++) {
 				if (samplesToInclude[i]) {

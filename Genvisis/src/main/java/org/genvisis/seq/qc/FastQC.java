@@ -221,7 +221,8 @@ public class FastQC {
 																								ext.removeDirectoryInfo(gcOut), gcOut + ".jpeg",
 																								"Position",
 																								new String[] {"Illumina Universal Adapter",
-																															"Illumina Small RNA Adapter", "Nextera Transposase Sequence"},
+																															"Illumina Small RNA Adapter",
+																															"Nextera Transposase Sequence"},
 																								null, SCATTER_TYPE.POINT, log);
 							gcContent.setyLabel("Adapter Content");
 							gcContent.setxLabel("Position");

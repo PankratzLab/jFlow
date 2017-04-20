@@ -251,8 +251,8 @@ public class SummarizePhenotype {
 	}
 
 	public static List<String[]> selectColumnsAndRows(Hashtable<String, String[]> traitDataTmp,
-																											int[] columnsToKeep, String idListFileName,
-																											Logger log) {
+																										int[] columnsToKeep, String idListFileName,
+																										Logger log) {
 		BufferedReader reader;
 		Vector<String[]> currentData;
 		String[] temp2, temp3;

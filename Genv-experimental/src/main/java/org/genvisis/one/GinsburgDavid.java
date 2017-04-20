@@ -1083,7 +1083,8 @@ public class GinsburgDavid {
 
 		try {
 			reader = new BufferedReader(new FileReader(phenoFile));
-			indices = ext.indexFactors(headerTargets, reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), false,
+			indices = ext.indexFactors(headerTargets,
+																 reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), false,
 																 true);
 			writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(phenoFile) + "trimmed.pre");
 			writer.println("1\t99901\t0\t0\t1\t2");

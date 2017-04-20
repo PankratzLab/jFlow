@@ -10,7 +10,7 @@ public class Allegro {
 	public static void makeOptFile(int chr, String model, boolean unique) throws IOException {
 		String chrome = ext.chrome(chr);
 		PrintWriter writer = Files.openAppropriateWriter("useful" + (unique ? chrome : "")
-																												+ ".opt");
+																										 + ".opt");
 
 		writer.println("% Read input in LINKAGE style format:");
 		writer.println("PREFILE re_chrom" + chrome + ".pre");

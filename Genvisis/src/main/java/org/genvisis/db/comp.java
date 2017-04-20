@@ -768,7 +768,7 @@ public class comp {
 			if (optionFlagged("exactRegressionValues")) {
 				try {
 					writer = Files.openAppropriateWriter(traits[trt] + suffix
-																									+ "-exactRegressionValues.xln");
+																							 + "-exactRegressionValues.xln");
 					writer.println("Factor\tT\tp-value\tcalcP");
 					for (int i = 1; i <= M; i++) {
 						writer.println(factorNames[indices[i]] + "\t" + sigs[i][2] + "\t" + sigs[i][0]
@@ -790,7 +790,8 @@ public class comp {
 			if (traits.length > 1) {
 				if (trt == 0) {
 					writer = Files.openAppropriateWriter(filename);
-					writer.print(db_file.split(PSF.Regex.GREEDY_WHITESPACE).length > 1 ? "\"" + db_file + "\"" : db_file);
+					writer.print(db_file.split(PSF.Regex.GREEDY_WHITESPACE).length > 1 ? "\"" + db_file + "\""
+																																						 : db_file);
 					for (int i = 0; i < limitKeys.size(); i++) {
 						writer.print("\t" + limitKeys.elementAt(i) + "=" + limitTargets.elementAt(i));
 					}
@@ -825,7 +826,8 @@ public class comp {
 			} else {
 				writer = Files.openAppropriateWriter(filename);
 			}
-			writer.print(db_file.split(PSF.Regex.GREEDY_WHITESPACE).length > 1 ? "\"" + db_file + "\"" : db_file);
+			writer.print(db_file.split(PSF.Regex.GREEDY_WHITESPACE).length > 1 ? "\"" + db_file + "\""
+																																				 : db_file);
 			for (int i = 0; i < limitKeys.size(); i++) {
 				writer.print("\t" + limitKeys.elementAt(i) + "=" + limitTargets.elementAt(i));
 			}
@@ -1436,7 +1438,7 @@ public class comp {
 
 		try {
 			writer = Files.openAppropriateWriter(factorNames[indices[1]] + "_"
-																							+ factorNames[indices[2]] + "_hwe.out");
+																					 + factorNames[indices[2]] + "_hwe.out");
 			Collections.sort(iv);
 			if (iv.size() == 3) {
 				alleleLabels = new String[] {iv.get(0) + "/" + iv.get(0), iv.get(0) + "/" + iv.get(1),

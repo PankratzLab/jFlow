@@ -52,10 +52,10 @@ public class Minimac {
 			writer = new PrintWriter(
 															 new FileWriter(
 																							(filename.lastIndexOf(".") > 0
-																																						? filename.substring(0,
-																																																 filename.lastIndexOf("."))
-																																						: filename)
-																									+ ".haps"));
+																																						 ? filename.substring(0,
+																																																	filename.lastIndexOf("."))
+																																						 : filename)
+																							+ ".haps"));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				for (int i = 0; i < 2; i++) {
@@ -243,7 +243,7 @@ public class Minimac {
 			reader = new BufferedReader(new FileReader(markerFile));
 			reader.mark(5000);
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-			indices = ext.indexFactors(new String[][] { {"MarkerName", "SNP", "RSID"}, {"Chr"}}, line,
+			indices = ext.indexFactors(new String[][] {{"MarkerName", "SNP", "RSID"}, {"Chr"}}, line,
 																 false, true, true, false);
 			if (ArrayUtils.min(indices) == -1) {
 				System.err.println("Error - assuming there is no header; found '" + ArrayUtils.toStr(line)
@@ -376,7 +376,8 @@ public class Minimac {
 				if (map[i] == null) {
 					writer.println("0\t" + markers[i] + "\t0\t" + i);
 				} else {
-					line = ArrayUtils.insertStringAt("0", map[i].trim().split(PSF.Regex.GREEDY_WHITESPACE), 2);
+					line = ArrayUtils.insertStringAt("0", map[i].trim().split(PSF.Regex.GREEDY_WHITESPACE),
+																					 2);
 					writer.println(ArrayUtils.toStr(line));
 				}
 			}
@@ -419,12 +420,12 @@ public class Minimac {
 		if (beagle) {
 			commands += "gunzip phased.pre_phase.bgl.phased.gz\n"
 									+ (update
-													 ? "cat phased.pre_phase.bgl.phased | fgrep -v id | cat ../new_header - > updated.phased\n"
-														 + BGL_TO_PED + " updated.phased ../new_plink.fam 0 > target.ped\n" + // transform
-																																																	// updated
-														 "rm updated.phased\n"
-													 : BGL_TO_PED
-														 + " phased.pre_phase.bgl.phased plink.fam 0 > target.ped\n")
+														? "cat phased.pre_phase.bgl.phased | fgrep -v id | cat ../new_header - > updated.phased\n"
+															+ BGL_TO_PED + " updated.phased ../new_plink.fam 0 > target.ped\n" + // transform
+																																																	 // updated
+															"rm updated.phased\n"
+														: BGL_TO_PED
+															+ " phased.pre_phase.bgl.phased plink.fam 0 > target.ped\n")
 									+ // transform original
 									"gzip phased.pre_phase.bgl.phased\n" + Files.getRunString()
 									+ " gwas.Minimac split=target.ped\n"
@@ -485,8 +486,8 @@ public class Minimac {
 																					new int[] {-7}, false, "\t", false, false, false);
 			for (int j = 0; j < markerNames.length; j++) {
 				markerIndices[i][j] = hash.containsKey(markerNames[j])
-																															? Integer.parseInt(hash.get(markerNames[j]))
-																															: -1;
+																															 ? Integer.parseInt(hash.get(markerNames[j]))
+																															 : -1;
 			}
 		}
 		ids = new String[numToCompare][2];
@@ -519,7 +520,7 @@ public class Minimac {
 
 		try {
 			writer = Files.openAppropriateWriter(ext.parseDirectoryOfFile(files[0])
-																							+ "haplotype_comparison.xln");
+																					 + "haplotype_comparison.xln");
 			writer.print("Marker");
 			for (String[] id : ids) {
 				for (int j = 0; j < files.length + 1; j++) {

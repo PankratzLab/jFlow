@@ -625,7 +625,8 @@ public class BamImport {
 					writer.println(markerNames[i] + "\t" + markerSet.getChrs()[i] + "\t"
 												 + markerSet.getPositions()[i] + "\t"
 												 + ReferenceGenome.getPercentGC(referenceGenome.getSequenceFor(analysisSet.getLoci()[i].getBufferedSegment(buffer),
-																																											 aName, buffer > 100000)));
+																																											 aName,
+																																											 buffer > 100000)));
 				}
 				writer.close();
 			} catch (Exception e) {

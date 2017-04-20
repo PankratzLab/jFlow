@@ -114,8 +114,8 @@ public class permOSA {
 				if (trav != prev && prev != -99999.777) {
 					increment++;
 					writer = Files.openAppropriateWriter("chrom" + chrome + "/re_chrom" + chrome + "-"
-																									+ direction + ext.formNum(increment, 4)
-																									+ ".pre");
+																							 + direction + ext.formNum(increment, 4)
+																							 + ".pre");
 					for (int j = 0; j < i; j++) {
 						if (hash.containsKey(IDs.elementAt(randomKeys[j]))) {
 							writer.print(hash.get(IDs.elementAt(randomKeys[j])));

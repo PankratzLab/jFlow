@@ -433,7 +433,7 @@ public class CNVConcordance {
 			proj.getLog().report(ArrayUtils.toStr(cnvFiles));
 			try {
 				PrintWriter writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + dir
-																														+ output);
+																												 + output);
 				int start = filter.getMinNumMarkers();
 				CNVariantHash[] cNVariantHash = new CNVariantHash[cnvFiles.length];
 				for (int i = 0; i < cnvFiles.length; i++) {
@@ -484,7 +484,7 @@ public class CNVConcordance {
 			cnvConcordance.determineConcordance();
 			try {
 				PrintWriter writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																														+ output);
+																												 + output);
 				writer.println(ArrayUtils.toStr(REPORT_HEADER));
 				writer.println(cnvConcordance.getReport());
 
@@ -518,7 +518,7 @@ public class CNVConcordance {
 
 	public static void fromParameters(String filename, Logger log) {
 		List<String> params = Files.parseControlFile(filename, "cnvConcordance", getParserParams(),
-																									 log);
+																								 log);
 		if (params != null) {
 			main(ArrayUtils.toStringArray(params));
 		}

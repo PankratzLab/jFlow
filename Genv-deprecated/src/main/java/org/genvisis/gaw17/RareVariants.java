@@ -103,8 +103,8 @@ public class RareVariants {
 				for (int k = 0; k < markerSets.length; k++) {
 					try {
 						writer = Files.openAppropriateWriter(analysis_dir + "mid_" + pop + "." + rep + "."
-																										+ element + ".maf" + maf + "."
-																										+ markerSets[k]);
+																								 + element + ".maf" + maf + "."
+																								 + markerSets[k]);
 						writer.println("Gene\tn_SNPs\tpval\tEMP1");
 						for (int m = 0; m < subsets[k].length; m++) {
 							if (m % 30 == 0) {

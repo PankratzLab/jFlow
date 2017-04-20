@@ -168,7 +168,7 @@ public class RelativeQuantification {
 
 			for (String probeName2 : probeNames) {
 				writer = Files.openAppropriateWriter(dir + probeGeneLookup.get(probeName2) + "_"
-																								+ probeName2 + ".xln");
+																						 + probeName2 + ".xln");
 				writer.print("Sample");
 				for (String regionName : regionNames) {
 					writer.print("\t" + regionName + "_" + "_AvgCt\t" + regionName + "_" + "_CtStderr\t"

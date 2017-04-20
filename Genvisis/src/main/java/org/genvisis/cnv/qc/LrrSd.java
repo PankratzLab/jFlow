@@ -529,10 +529,10 @@ public class LrrSd extends Parallelizable {
 			BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true,
 																							false);
 			PrintWriter writerUse = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																														 + outputBase + PCA.PCA_SAMPLES);
+																													+ outputBase + PCA.PCA_SAMPLES);
 			PrintWriter writerSummary = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																																 + outputBase
-																																 + MitoPipeline.PCA_SAMPLES_SUMMARY);
+																															+ outputBase
+																															+ MitoPipeline.PCA_SAMPLES_SUMMARY);
 
 			writerSummary.println(ArrayUtils.toStr(MitoPipeline.SAMPLE_QC_SUMMARY));
 			if (!reader.ready()) {

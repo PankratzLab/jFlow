@@ -116,7 +116,8 @@ public class DummyDataset {
 				reader = new BufferedReader(new FileReader(infile));
 				while (reader.ready()) {
 					line = reader.readLine().trim()
-											 .split(commaDelimited ? "," : (tabDelimited ? "\t" : PSF.Regex.GREEDY_WHITESPACE));
+											 .split(commaDelimited ? ","
+																						 : (tabDelimited ? "\t" : PSF.Regex.GREEDY_WHITESPACE));
 					if (hashes.containsKey(line[0])) {
 						hash = hashes.get(line[0]);
 					} else {

@@ -886,7 +886,7 @@ public class AnalysisFormats implements Runnable {
 
 			try {
 				writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + "quanti_data/"
-																								+ samples[i]);
+																						 + samples[i]);
 				writer.println("Name\tChr\tPosition\t" + samples[i] + ".Log R Ratio\t" + samples[i]
 											 + ".B Allele Freq");
 				for (int j = 0; j < markerNames.length; j++) {

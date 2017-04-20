@@ -801,7 +801,7 @@ public class GcAdjustor {
 		}
 
 		public GcModel(String[] markers, byte[] chrs, int[] positions, double[] gcs,
-										Map<String, Integer> index, Logger log) {
+									 Map<String, Integer> index, Logger log) {
 			super();
 			this.markers = markers;
 			this.chrs = chrs;

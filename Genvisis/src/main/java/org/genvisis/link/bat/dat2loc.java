@@ -42,7 +42,7 @@ public class dat2loc {
 																							+ ".loc"));
 		} else if (filename.startsWith("nuke")) {
 			writer = Files.openAppropriateWriter("map" + filename.substring(filename.length() - 2)
-																							+ ".loc");
+																					 + ".loc");
 		} else {
 			writer = Files.openAppropriateWriter(filename + ".loc");
 		}

@@ -112,20 +112,23 @@ public class LinkageMap {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 
-			markerNames = new String[Integer.valueOf(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0])
+			markerNames = new String[Integer.valueOf(reader.readLine().trim()
+																										 .split(PSF.Regex.GREEDY_WHITESPACE)[0])
 																			.intValue()
 															 - 1];
 			for (int i = 0; i < 3; i++) {
 				reader.readLine();
 			}
 			try {
-				dxAlleleFreq = Double.parseDouble(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[1]);
+				dxAlleleFreq = Double.parseDouble(reader.readLine().trim()
+																								.split(PSF.Regex.GREEDY_WHITESPACE)[1]);
 			} catch (NumberFormatException e) {
 				System.err.println("Error - failed to parse disease allele frequency in file: " + filename);
 				System.exit(1);
 			}
 
-			numPen = Integer.valueOf(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0]).intValue();
+			numPen = Integer.valueOf(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE)[0])
+											.intValue();
 			penetranceFunctions = new double[numPen][];
 			for (int i = 0; i < numPen; i++) {
 				try {

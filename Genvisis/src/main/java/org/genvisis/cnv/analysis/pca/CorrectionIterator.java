@@ -623,12 +623,15 @@ public class CorrectionIterator implements Serializable {
 									RScatter rScatterNumeric = new RScatter(outputBoxSub,
 																													ext.addToRoot(outputBoxSub,
 																																				"sub.rscript"),
-																													ext.removeDirectoryInfo(outputBoxSub) + "sub",
-																													boxDir + ext.removeDirectoryInfo(outputBoxSub) + "sub.pdf",
+																													ext.removeDirectoryInfo(outputBoxSub)
+																																												+ "sub",
+																													boxDir + ext.removeDirectoryInfo(outputBoxSub)
+																																																 + "sub.pdf",
 																													sampleDataStratCats[i],
 																													new String[] {numericStratCat,
-																																				pcYsub.get(0), pcYsub.get(pcYsub.size()
-																																																	- 1)},
+																																				pcYsub.get(0),
+																																				pcYsub.get(pcYsub.size()
+																																									 - 1)},
 																													SCATTER_TYPE.BOX, log);
 									rScatterNumeric.setOverWriteExisting(true);
 									rScatterNumeric.setFontsize(12);
@@ -1745,7 +1748,8 @@ public class CorrectionIterator implements Serializable {
 								new File(newDir).mkdirs();
 								String newSer = newDir
 																+ ext.removeDirectoryInfo(ext.addToRoot(originalSer,
-																																				"." + stratCatHerit + ".summary"));
+																																				"." + stratCatHerit
+																																										 + ".summary"));
 
 								Files.copyFileUsingFileChannels(new File(iterationResult.getOutputSer()),
 																								new File(newSer), log);

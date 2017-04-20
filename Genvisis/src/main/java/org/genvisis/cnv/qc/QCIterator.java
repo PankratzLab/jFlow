@@ -285,7 +285,7 @@ public class QCIterator implements Runnable {
 		log.report("writing unmatched calls to " + proj.PROJECT_DIRECTORY.getValue() + "misses.cnv");
 		try {
 			PrintWriter missWriter = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																															+ "misses.cnv");
+																													 + "misses.cnv");
 			missWriter.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (int i = 0; i < misses.size(); i++) {
 				missWriter.println(misses.get(i).getCnVariant().toPlinkFormat());
@@ -319,11 +319,11 @@ public class QCIterator implements Runnable {
 		}
 		try {
 			sampleWriter = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + output
-																										+ ".txt");
+																								 + ".txt");
 			famWriter = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + output
-																								 + ".fam");
+																							+ ".fam");
 			cnvWriter = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + output
-																								 + ".cnv");
+																							+ ".cnv");
 			sampleWriter.println("Sample\tPassQC?0:1");
 			cnvWriter.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (int i = 0; i < inds.length; i++) {

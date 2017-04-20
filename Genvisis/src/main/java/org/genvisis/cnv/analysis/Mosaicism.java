@@ -560,7 +560,7 @@ public class Mosaicism {
 
 			if (v.size() > 0) {
 				writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																								+ "SAMPLES_IN_CNVFILE_NOT_IN_SAMPLE_DATA.txt");
+																						 + "SAMPLES_IN_CNVFILE_NOT_IN_SAMPLE_DATA.txt");
 				for (int i = 0; i < v.size(); i++) {
 					writer.println(v.elementAt(i));
 				}

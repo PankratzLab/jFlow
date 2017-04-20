@@ -50,7 +50,7 @@ public class GCcorrectionIterator {
 			command.add("numthreads=" + numThreads);
 			command.add("bpGcModel=" + bpModel);
 			Qsub.qsub(currentSub, ArrayUtils.toStr(ArrayUtils.toStringArray(command), " "), 55000, 48.00,
-								 numThreads);
+								numThreads);
 		}
 		String batchMaster = batchRoot + "master.pbs";
 		try {

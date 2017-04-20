@@ -263,7 +263,7 @@ public class VCF {
 												 ext.rootOf(outputVCF, false) + ".filteredAnno");
 				try {
 					PrintWriter writer = Files.openAppropriateWriter(ext.rootOf(outputVCF, false)
-																															+ ".hist");
+																													 + ".hist");
 					for (int i = 0; i < keys.size(); i++) {
 						writer.println(keys.get(i) + "\t" + histCOUNT.get(keys.get(i)) + "\t"
 													 + histALLELE.get(keys.get(i)));
@@ -428,8 +428,8 @@ public class VCF {
 
 	public static void fromParameters(String filename, Logger log) {
 		List<String> params = Files.parseControlFile(filename, "VCFilt",
-																									 getParserParams(ext.parseDirectoryOfFile(filename)),
-																									 log);
+																								 getParserParams(ext.parseDirectoryOfFile(filename)),
+																								 log);
 		if (params != null) {
 			main(ArrayUtils.toStringArray(params));
 		}

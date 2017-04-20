@@ -101,8 +101,8 @@ public class Metal {
 		try {
 			reader = new BufferedReader(new FileReader(dir + results));
 			writer = Files.openAppropriateWriter(outfile == null ? dir + results + (useSE ? ".se" : "")
-																																+ ".metal"
-																															: outfile);
+																														 + ".metal"
+																													 : outfile);
 			// header = reader.readLine().trim().split("\t");
 			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			indices = ext.indexFactors(CONVERSION_REQS, header, false, true, true, true);
@@ -332,7 +332,7 @@ public class Metal {
 
 		try {
 			writer = Files.openAppropriateWriter(dir + ext.rootRootOf(file1) + "_"
-																							+ ext.rootRootOf(file2) + "_metal.batch");
+																					 + ext.rootRootOf(file2) + "_metal.batch");
 			writer.println("metal << EOT");
 			writer.println("");
 			writer.println("MARKER MARKER");
@@ -1225,9 +1225,9 @@ public class Metal {
 				w3 = null;
 			} else {
 				w2 = Files.openAppropriateWriter(ext.rootOf(filename, false)
-																						+ "_exceedingThreshold.dat");
+																				 + "_exceedingThreshold.dat");
 				w3 = Files.openAppropriateWriter(ext.rootOf(filename, false)
-																						+ "_notExceedingThreshold.dat");
+																				 + "_notExceedingThreshold.dat");
 			}
 			writer.println("SNP\tA1\tA2\tfreqA1\teffN\tMAF");
 			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -1261,7 +1261,8 @@ public class Metal {
 																						true));
 				}
 				// line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-				line = ext.replaceAllWith(reader.readLine(), ".-000", ".000").trim().split(PSF.Regex.GREEDY_WHITESPACE);
+				line = ext.replaceAllWith(reader.readLine(), ".-000", ".000").trim()
+									.split(PSF.Regex.GREEDY_WHITESPACE);
 
 				sumAlleles = sumEffN = 0;
 				refAlleles = new String[2];
@@ -1374,9 +1375,9 @@ public class Metal {
 			writers = new PrintWriter[3];
 			writers[0] = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_comp.xln");
 			writers[1] = Files.openAppropriateWriter(ext.rootOf(filename, false)
-																									+ "_compFlipped.xln");
+																							 + "_compFlipped.xln");
 			writers[2] = Files.openAppropriateWriter(ext.rootOf(filename, false)
-																									+ "_compAmbiguous.xln");
+																							 + "_compAmbiguous.xln");
 			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			v = new Vector<String>();
 			for (int i = 1; i < header.length; i++) {

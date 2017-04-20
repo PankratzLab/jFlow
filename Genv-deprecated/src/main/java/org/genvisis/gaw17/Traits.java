@@ -258,7 +258,7 @@ public class Traits {
 			for (int pheno = 0; pheno < PHENOS.length; pheno++) {
 				try {
 					writer = Files.openAppropriateWriter(analysis_dir + "metal_" + element + "_"
-																									+ PHENOS[pheno] + ".txt");
+																							 + PHENOS[pheno] + ".txt");
 					writer.println("MARKER SNP");
 					writer.println("ALLELE A1 TEST");
 					writer.println("EFFECT " + (!PHENOS[pheno].startsWith("q") ? "OR" : "BETA"));
@@ -289,7 +289,7 @@ public class Traits {
 			for (int rep = 1; rep <= 200; rep++) {
 				try {
 					writer = Files.openAppropriateWriter(analysis_dir + "metal_" + PHENOS[pheno] + "."
-																									+ rep + ".txt");
+																							 + rep + ".txt");
 					writer.println("MARKER SNP");
 					writer.println("ALLELE A1 TEST");
 					writer.println("EFFECT " + (!PHENOS[pheno].startsWith("q") ? "OR" : "BETA"));
@@ -380,7 +380,7 @@ public class Traits {
 																											 + (!PHENOS[pheno].startsWith("q") ? "logistic"
 																																												 : "linear")));
 						writer = Files.openAppropriateWriter(analysis_dir + element + "." + PHENOS[pheno]
-																										+ "." + rep + ".in");
+																								 + "." + rep + ".in");
 						// writer.println("SNP\tA1\tA2\tbeta\tse");
 						writer.println("SNP\tA1\tA2\tbeta\tpval\tweight");
 						reader.readLine();
@@ -486,10 +486,10 @@ public class Traits {
 		// --pheno-name Q1 --covar phenos/pheno_C10.# --covar-name
 		// SEX,AGE,SMOKE,C1,C2,C3,C4,C5,C6,C7,C8,C9,C10 --linear --ci 0.95 --out C10.#");
 		Qsub.qsub("C" + numComps, 1, 200,
-							 "/home/npankrat/bin/plink --bfile all697 --pheno phenos/" + rootPheno
-																			 + ".# --pheno-name " + trait + " --covar phenos/" + rootPheno
-																			 + ".# --covar-name SEX,AGE,SMOKE" + comps
-																			 + " --linear --ci 0.95 --out C" + numComps + ".#");
+							"/home/npankrat/bin/plink --bfile all697 --pheno phenos/" + rootPheno
+																			+ ".# --pheno-name " + trait + " --covar phenos/" + rootPheno
+																			+ ".# --covar-name SEX,AGE,SMOKE" + comps
+																			+ " --linear --ci 0.95 --out C" + numComps + ".#");
 	}
 
 	public static void sumSigs(String analysis_dir, double cutoff) {
@@ -705,7 +705,8 @@ public class Traits {
 		double[][] matrix;
 
 		ids = HashVec.loadFileToStringArray(pheno_dir + pheno_root + ".1", false, true, new int[] {0},
-																				true, false, commaDelimited ? "," : PSF.Regex.GREEDY_WHITESPACE);
+																				true, false,
+																				commaDelimited ? "," : PSF.Regex.GREEDY_WHITESPACE);
 
 		counts = new int[ids.length][stddevThresholds.length];
 		matrix = new double[ids.length][200];

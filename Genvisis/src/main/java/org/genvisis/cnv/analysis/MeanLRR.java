@@ -87,7 +87,7 @@ public class MeanLRR {
 		transChrs = ArrayUtils.booleanArray(27, false);
 		try {
 			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + "MarkersIn_"
-																							+ ext.rootOf(regionsFile) + ".xln");
+																					 + ext.rootOf(regionsFile) + ".xln");
 			for (int i = 0; i < regions.length; i++) {
 				writer.print(regions[i].getUCSClocation() + "\t" + numberOfMarkers[i] + "\t"
 										 + regions[i].getChr() + "\t" + regions[i].getStart() + "\t"
@@ -194,7 +194,7 @@ public class MeanLRR {
 																												 // normalization
 		try {
 			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + "MarkersIn_"
-																							+ ext.rootOf(regionsFile) + ".xln");
+																					 + ext.rootOf(regionsFile) + ".xln");
 			for (int i = 0; i < regions.length; i++) {
 				markerNames = ArrayUtils.toStringArray(components.get(i + ""));
 				numberOfMarkers[i] = markerNames.length;
@@ -286,7 +286,7 @@ public class MeanLRR {
 
 		try {
 			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																							+ ext.rootOf(mlrrSetFile) + ".xln");
+																					 + ext.rootOf(mlrrSetFile) + ".xln");
 			writer.println("Region\tNumberOfMarkersInRegion\tChr\tStart\tStop\tBeta\tOR\tStat\tp-value");
 			for (int i = 0; i < regions.length; i++) {
 				writer.print(regions[i].getUCSClocation() + "\t" + numberOfMarkers[i] + "\t"
@@ -364,12 +364,12 @@ public class MeanLRR {
 			index = -1;
 			if (regionToDumpOrNullForAll == null) {
 				writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																								+ ext.rootOf(mlrrSetFile) + "_dump.xln");
+																						 + ext.rootOf(mlrrSetFile) + "_dump.xln");
 			} else {
 				writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-																								+ ext.replaceAllWith(regionToDumpOrNullForAll, ":",
-																																		 "_")
-																								+ ".xln");
+																						 + ext.replaceAllWith(regionToDumpOrNullForAll, ":",
+																																	"_")
+																						 + ".xln");
 
 				for (int i = 0; i < regions.length; i++) {
 					if (regionToDumpOrNullForAll.equals(regions[i].getUCSClocation())) {

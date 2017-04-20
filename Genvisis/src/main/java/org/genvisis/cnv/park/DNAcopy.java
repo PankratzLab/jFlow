@@ -119,7 +119,8 @@ public class DNAcopy {
 
 		try {
 			reader = new BufferedReader(new FileReader(rootDirectory + LOOKUP_PLUS_GENDER_FILE));
-			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), LOOKUP_HEADER, true);
+			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), LOOKUP_HEADER,
+											true);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				lookupDNAtoSubject.put(line[0], line[1] + "\t" + line[2]);
@@ -172,7 +173,8 @@ public class DNAcopy {
 					reader.readLine();
 					reader.readLine();
 					reader.readLine();
-					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), RESULTS_HEADER, true);
+					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+													RESULTS_HEADER, true);
 
 					while (reader.ready()) {
 						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

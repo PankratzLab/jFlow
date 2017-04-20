@@ -313,7 +313,8 @@ public class Samtools {
 												+ ".xml").exists()) {
 						Files.write(getIgvXmlScript(miniSamDir, line1[1], line1[2],
 																				new String[] {line1[0], currentTrio.elementAt(0),
-																											currentTrio.elementAt(1), currentTrio.elementAt(2)}),
+																											currentTrio.elementAt(1),
+																											currentTrio.elementAt(2)}),
 												miniSamDir + line1[0] + "_" + line1[1] + "_" + line1[2] + ".xml");
 					}
 				}

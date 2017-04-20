@@ -196,7 +196,7 @@ public class BlastContamination {
 		// command += PSF.Ext.MEMORY_MB + memoryInMB + PSF.Ext.SPACE;
 		// command += PSF.Ext.WALLTIME_HRS + wallTimeInHours + PSF.Ext.SPACE;
 		Qsub.qsub("Contam" + outputRoot, command, batches, memoryInMB, wallTimeInHours,
-							 numSampThreads);
+							numSampThreads);
 	}
 
 	private static final String FASTQ_LIST_FILE = "fastqFile=";

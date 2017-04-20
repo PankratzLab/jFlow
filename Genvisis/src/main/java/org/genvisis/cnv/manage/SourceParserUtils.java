@@ -28,18 +28,18 @@ public class SourceParserUtils {
 		boolean longFormat, done;
 		String prev;
 		Logger log;
-	
+
 		log = proj.getLog();
 		if (!Files.exists(proj.SOURCE_DIRECTORY.getValue(false, false))) {
 			proj.message("Source directory does not exist; change SOURCE_DIRECTORY= to point to the proper files");
 			return;
 		}
-	
+
 		delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
 		longFormat = proj.LONG_FORMAT.getValue();
 		idHeader = proj.getProperty(proj.ID_HEADER);
 		files = SourceFileParser.getSourceFiles(proj, log);
-	
+
 		try {
 			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + filename);
 			for (String file : files) {
@@ -48,14 +48,14 @@ public class SourceParserUtils {
 					do {
 						line = reader.readLine().trim().split(delimiter);
 					} while (reader.ready() && (line.length < 3 || ext.indexOfStr(idHeader, line) == -1));
-	
+
 					if (!reader.ready()) {
 						log.reportError("Error - went through enitre file without finding a line containing the user-defined ID header: "
 														+ idHeader);
 						return;
 					}
 					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
-	
+
 					// ParseAffymetrix, ParseAffySNP6, and ParseDbgap ::>
 					// line = reader.readLine().split(delimiter);
 					// writer.println(files[i]+"\t"+line[sampIndex]+"\t"+(line[sampIndex].indexOf("@") >=
@@ -108,14 +108,14 @@ public class SourceParserUtils {
 		String[] alleles;
 		int expIndex;
 		Logger log;
-	
+
 		log = proj.getLog();
-	
+
 		files = SourceFileParser.getSourceFiles(proj, log);
 		if (files.length == 0) {
 			return;
 		}
-	
+
 		idHeader = proj.getProperty(proj.ID_HEADER);
 		delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
 		hash = new Hashtable<String, String[]>();
@@ -130,14 +130,16 @@ public class SourceParserUtils {
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
 				} while (reader.ready()
-								 && (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1
+								 && (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false,
+																			false)[0] == -1
 										 || (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)
 												 && ext.indexOfStr(idHeader, line) == -1)));
-	
-				snpIndex = ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
+
+				snpIndex = ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false,
+																		true)[0];
 				indices = ext.indexFactors(Sample.ALL_STANDARD_GENOTYPE_FIELDS, line, false, proj.getLog(),
 																	 false, false);
-	
+
 				while (reader.ready()) {
 					line = reader.readLine().split(delimiter);
 					if (hash.containsKey(line[snpIndex])) {
@@ -168,7 +170,7 @@ public class SourceParserUtils {
 																+ alleles[0] + "/" + alleles[1] + ")");
 								expIndex = -9;
 							}
-	
+
 							for (int k = 1; k < alleles.length / 2; k++) {
 								switch (expIndex) {
 									case -1:
@@ -216,7 +218,7 @@ public class SourceParserUtils {
 		PrintWriter writer;
 		String filename;
 		Logger log;
-	
+
 		log = proj.getLog();
 		filename = proj.PROJECT_DIRECTORY.getValue() + "alleleLookup"
 							 + (fileNumber > 0 ? "_atFile" + fileNumber : "") + ".xln";
@@ -233,7 +235,7 @@ public class SourceParserUtils {
 			log.reportException(e);
 		}
 		log.report("done.");
-	
+
 	}
 
 }

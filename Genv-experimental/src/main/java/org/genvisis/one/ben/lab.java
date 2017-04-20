@@ -195,9 +195,9 @@ public class lab {
 		int[] number = new int[] {5, 3};
 		int score = 10;
 
-		String[][] files = new String[][] { {"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/",
-																				 "23Mgen_merged.cnv", "23_M_filtered.cnv",
-																				 markerSetFilenameToBreakUpCentromeres_1},
+		String[][] files = new String[][] {{"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/",
+																				"23Mgen_merged.cnv", "23_M_filtered.cnv",
+																				markerSetFilenameToBreakUpCentromeres_1},
 																			 {"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/",
 																				"23Fgen_merged.cnv", "23_F_filtered.cnv",
 																				markerSetFilenameToBreakUpCentromeres_1},

@@ -503,7 +503,9 @@ public class BurdenMatrix implements Serializable {
 				countSamplesUsed++;
 			}
 		}
-		logistic = RegressionModel.isBinaryTrait(ArrayUtils.toStr(deps).split(PSF.Regex.GREEDY_WHITESPACE), log);
+		logistic = RegressionModel.isBinaryTrait(ArrayUtils.toStr(deps)
+																											 .split(PSF.Regex.GREEDY_WHITESPACE),
+																						 log);
 		log.report("Running a " + (logistic ? "logistic" : "linear") + " model for trait '" + traits[0]
 							 + "'", true, verbose);
 		try {
