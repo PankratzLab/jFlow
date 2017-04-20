@@ -43,30 +43,47 @@ import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.RegressionModel;
 import org.genvisis.stats.Ttest;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 
 public class MarkerMetrics {
-	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA",
-																								 "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA",
-																								 "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB",
-																								 "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB",
-																								 "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB",
-																								 "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_z",
-																								 "LRR_SD", "LRR_num_NaNs", "MendelianErrors",
-																								 "DuplicateErrors"};
+	public static final String[] FULL_QC_BASE_HEADER = {"MarkerName", "Chr", "CallRate",
+																											"meanTheta_AA",
+																											"meanTheta_AB", "meanTheta_BB",
+																											"diffTheta_AB-AA",
+																											"diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB",
+																											"sdTheta_BB", "meanR_AA", "meanR_AB",
+																											"meanR_BB",
+																											"num_AA", "num_AB", "num_BB", "pct_AA",
+																											"pct_AB",
+																											"pct_BB", "MAF", "HetEx", "num_NaNs",
+																											"LRR_SEX_z",
+																											"LRR_SD", "LRR_num_NaNs", "MendelianErrors",
+																											"DuplicateErrors"};
 	public static final String[] LRR_VARIANCE_HEADER = {"MarkerName", "Chr", "Position", "SD_LRR",
 																											"MeanAbsLRR", "SD_BAF1585", "MeanAbsBAF1585"};
 	private static final String[] MENDEL_HEADER = {"FID", "KID", "CHR", "SNP", "CODE", "ERROR"};
+	private static final String BATCH_EFFECT_HEADER_PREFIX = "BatchEffect";
+	private static final char BATCH_EFFECT_HEADER_JOIN = '_';
+
 
 
 	public static final String DEFAULT_REVIEW_CRITERIA = "cnv/qc/default_review.criteria";
 	public static final String DEFAULT_EXCLUSION_CRITERIA = "cnv/qc/default_exclusion.criteria";
 	public static final String DEFAULT_COMBINED_CRITERIA = "cnv/qc/default_combined.criteria";
 	public static final String DEFAULT_MENDEL_FILE_SUFFIX = ".mendel";
+
+	private static final Set<String> DEFAULT_SAMPLE_DATA_BATCH_HEADERS = ImmutableSet.of("PLATE",
+																																											 "BATCH");
 
 	/**
 	 * @param proj
@@ -181,9 +198,15 @@ public class MarkerMetrics {
 		sexes = getSexes(proj, samples);
 		Pedigree pedigree = proj.loadPedigree();
 
+		// Use LinkedHashMap to guarantee order is consistent in header and when writing lines
+		Map<String, Map<Integer, String>> batchHeaderIndexBatches = Maps.newLinkedHashMap();
+		for (String batchHeader : getBatchHeaders(proj)) {
+			batchHeaderIndexBatches.put(batchHeader, generateSampleIndexBatches(proj, batchHeader));
+		}
+
 		try {
 			writer = Files.openAppropriateWriter(fullPathToOutput);
-			writer.println(ArrayUtils.toStr(FULL_QC_HEADER));
+			writer.println(generateHeader(batchHeaderIndexBatches));
 
 			if (pedigree != null && checkMendel) {
 				mendelWriter = Files.openAppropriateWriter(ext.rootOf(fullPathToOutput, false)
@@ -286,28 +309,50 @@ public class MarkerMetrics {
 					mecCnt = "" + count;
 				}
 
-
 				String duplicateErrorCount = calculateDuplicateConcordanceErrors(proj, abGenotypes, log);
 
+				// TODO: Introducing some mapping, this should not rely on remaining parallel to the header!
+				List<String> line = Lists.newArrayList();
+				line.add(markerName);
+				line.add(String.valueOf(markerData.getChr()));
+				line.add(String.valueOf(1 - ((float) counts[0]
+																		 / (counts[0] + counts[1] + counts[2] + counts[3]))));
+				line.add(String.valueOf(meanTheta[1]));
+				line.add(String.valueOf(meanTheta[2]));
+				line.add(String.valueOf(meanTheta[3]));
+				line.add(String.valueOf(meanTheta[2] - meanTheta[1]));
+				line.add(String.valueOf(meanTheta[3] - meanTheta[2]));
+				line.add(String.valueOf(sdTheta[1]));
+				line.add(String.valueOf(sdTheta[2]));
+				line.add(String.valueOf(sdTheta[3]));
+				line.add(String.valueOf(sumR[1] / counts[1]));
+				line.add(String.valueOf(sumR[2] / counts[2]));
+				line.add(String.valueOf(sumR[3] / counts[3]));
+				line.add(String.valueOf(counts[1]));
+				line.add(String.valueOf(counts[2]));
+				line.add(String.valueOf(counts[3]));
+				line.add(String.valueOf((float) counts[1]
+																/ (counts[0] + counts[1] + counts[2] + counts[3])));
+				line.add(String.valueOf((float) counts[2]
+																/ (counts[0] + counts[1] + counts[2] + counts[3])));
+				line.add(String.valueOf((float) counts[3]
+																/ (counts[0] + counts[1] + counts[2] + counts[3])));
+				line.add(String.valueOf((float) (counts[1] < counts[3] ? (counts[1] + counts[2])
+																															 : (counts[2] + counts[3]))
+																/ (counts[0] + counts[1] + 2 * counts[2] + counts[3])));
+				line.add(String.valueOf(AlleleFreq.HetExcess(counts[1], counts[2], counts[3])[0]));
+				line.add(String.valueOf(numNaNs));
+				line.add(String.valueOf(lrrSexZ));
+				line.add(String.valueOf(lrrsd));
+				line.add(String.valueOf(numLRRNaNs));
+				line.add(mecCnt);
+				line.add(duplicateErrorCount);
 
-				String line = markerName + "\t" + markerData.getChr() + "\t"
-											+ (1 - ((float) counts[0] / (counts[0] + counts[1] + counts[2] + counts[3])))
-											+ "\t" + meanTheta[1] + "\t" + meanTheta[2] + "\t" + meanTheta[3] + "\t"
-											+ (meanTheta[2] - meanTheta[1]) + "\t" + (meanTheta[3] - meanTheta[2]) + "\t"
-											+ sdTheta[1] + "\t" + sdTheta[2] + "\t" + sdTheta[3] + "\t"
-											+ (sumR[1] / counts[1]) + "\t" + (sumR[2] / counts[2]) + "\t"
-											+ (sumR[3] / counts[3]) + "\t" + counts[1] + "\t" + counts[2] + "\t"
-											+ counts[3] + "\t"
-											+ ((float) counts[1] / (counts[0] + counts[1] + counts[2] + counts[3])) + "\t"
-											+ ((float) counts[2] / (counts[0] + counts[1] + counts[2] + counts[3])) + "\t"
-											+ ((float) counts[3] / (counts[0] + counts[1] + counts[2] + counts[3])) + "\t"
-											+ (float) (counts[1] < counts[3] ? (counts[1] + counts[2])
-																											 : (counts[2] + counts[3]))
-												/ (counts[0] + counts[1] + 2 * counts[2] + counts[3])
-											+ "\t" + AlleleFreq.HetExcess(counts[1], counts[2], counts[3])[0] + "\t"
-											+ numNaNs + "\t" + lrrSexZ + "\t" + lrrsd + "\t" + numLRRNaNs + "\t" + mecCnt
-											+ "\t" + duplicateErrorCount;
-				writer.println(line);
+				for (Map<Integer, String> indexBatches : batchHeaderIndexBatches.values()) {
+					line.add(calculateBatchHeaderPValue(abGenotypes, indexBatches, log));
+				}
+
+				writer.println(Joiner.on('\t').join(line));
 
 				// if (line.length() > 25000) {
 				// writer.print(line);
@@ -328,6 +373,16 @@ public class MarkerMetrics {
 			log.reportError("Error writing marker metrics to " + fullPathToOutput);
 			log.reportException(e);
 		}
+	}
+
+	private static String generateHeader(Map<String, Map<Integer, String>> batchHeaderIndexBatches) {
+		List<String> headerItems = Lists.newArrayList(FULL_QC_BASE_HEADER);
+		for (Map.Entry<String, Map<Integer, String>> batchHeaderEntry : batchHeaderIndexBatches.entrySet()) {
+			String batchHeader = batchHeaderEntry.getKey();
+			int numBatches = ImmutableSet.copyOf(batchHeaderEntry.getValue().values()).size();
+			headerItems.add(formBatchEffectHeader(batchHeader, numBatches));
+		}
+		return Joiner.on('\t').join(headerItems);
 	}
 
 	/**
@@ -367,6 +422,57 @@ public class MarkerMetrics {
 			duplicateErrors = duplicateConcordance.calculateDiscordanceCount();
 		}
 		return duplicateErrors == null ? "." : String.valueOf(duplicateErrors);
+	}
+
+	private static List<String> getBatchHeaders(Project proj) {
+		SampleData sampleData = proj.getSampleData(false);
+		return ImmutableList.copyOf(Sets.intersection(DEFAULT_SAMPLE_DATA_BATCH_HEADERS,
+																									sampleData.getMetaHeaders()));
+	}
+
+	private static Map<Integer, String> generateSampleIndexBatches(Project proj, String batchHeader) {
+		SampleData sampleData = proj.getSampleData(false);
+		Map<String, Integer> sampleIndices = proj.getSampleList().getSampleIndices();
+		Map<Integer, String> indexBatches = Maps.newHashMapWithExpectedSize(sampleIndices.size());
+		HashMultiset<String> batches = HashMultiset.create();
+		for (Map.Entry<String, String> metaDataEntry : sampleData.getMetaData(batchHeader)
+																														 .entrySet()) {
+			String dna = metaDataEntry.getKey();
+			String batch = metaDataEntry.getValue();
+			batches.add(batch);
+			Integer sampleIndex = sampleIndices.get(dna);
+			if (sampleIndex != null) {
+				indexBatches.put(sampleIndex, batch);
+			}
+		}
+		return indexBatches;
+	}
+
+	private static String calculateBatchHeaderPValue(byte[] genotypes,
+																									 Map<Integer, String> indexBatches, Logger log) {
+		BatchEffects batchEffects = new BatchEffects(genotypes, indexBatches, 1, log);
+		if (batchEffects.hasBatchEffects()) {
+			return Double.toString(batchEffects.getNotableEffects().first().getpValue());
+		} else {
+			return ".";
+		}
+	}
+
+	private static String formBatchEffectHeader(String name, int numBatches) {
+		return Joiner.on(BATCH_EFFECT_HEADER_JOIN).join(BATCH_EFFECT_HEADER_PREFIX, name,
+																										("n=" + numBatches));
+	}
+
+	private static int parseNumBatches(String batchEffectHeader) {
+		List<String> parts = Splitter.on(BATCH_EFFECT_HEADER_JOIN).splitToList(batchEffectHeader);
+		if (parts.get(0).equals(BATCH_EFFECT_HEADER_PREFIX)) {
+			return Integer.parseInt(parts.get(parts.size() - 1));
+		} else {
+			throw new IllegalArgumentException(batchEffectHeader
+																				 + " is not formatted as a BatchEffect header with prefix \""
+																				 + BATCH_EFFECT_HEADER_PREFIX + "\"");
+		}
+
 	}
 
 	/**
@@ -1364,8 +1470,8 @@ public class MarkerMetrics {
 		ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
 		builder.sampleBased(false);
 		builder.requireAll(false);
-		builder.dataKeyColumnName(FULL_QC_HEADER[0]);
-		builder.numericDataTitles(FULL_QC_HEADER);
+		builder.dataKeyColumnName(FULL_QC_BASE_HEADER[0]);
+		builder.numericDataTitles(FULL_QC_BASE_HEADER);
 		builder.setInvalidNumericToNaN(true);
 
 		try {

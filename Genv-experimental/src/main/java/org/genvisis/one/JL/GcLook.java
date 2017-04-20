@@ -95,7 +95,7 @@ public class GcLook {
 		builder.separator("\t");
 		builder.sampleBased(false);
 		builder.requireAll(true);
-		builder.dataKeyColumnName(MarkerMetrics.FULL_QC_HEADER[0]);
+		builder.dataKeyColumnName(MarkerMetrics.FULL_QC_BASE_HEADER[0]);
 
 		ExtProjectDataParser parser;
 		try {
