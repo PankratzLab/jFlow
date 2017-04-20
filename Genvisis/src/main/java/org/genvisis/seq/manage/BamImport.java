@@ -315,7 +315,8 @@ public class BamImport {
 																							String optionalVCF, int captureBuffer,
 																							int correctionPCs, boolean compileProject,
 																							ASSAY_TYPE atType, ASSEMBLY_NAME aName,
-																							String[] bamsToImport, int numthreads) {
+																							String[] bamsToImport, String refGenome,
+																							int numthreads) {
 
 		if (proj.getArrayType() == ARRAY.NGS) {
 			Logger log = proj.getLog();
@@ -330,7 +331,7 @@ public class BamImport {
 																											 new int[] {0}, true);
 				}
 			}
-			ReferenceGenome referenceGenome = new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
+			ReferenceGenome referenceGenome = new ReferenceGenome(refGenome,
 																														log);
 			log.reportTimeInfo("Found " + bamsToImport.length + " bam files to import");
 			AnalysisSets analysisSet = generateAnalysisSet(proj, binBed, captureBed, optionalVCF,
@@ -615,7 +616,7 @@ public class BamImport {
 			String[] markerNames = markerSet.getMarkerNames();
 
 			try {
-				PrintWriter writer = Files.openAppropriateWriter(gcFile);
+				PrintWriter writer = new PrintWriter(new FileWriter(gcFile));
 				String[] header = new String[] {"Name", "Chr", "Position", "GC"};
 				writer.println(ArrayUtils.toStr(header));
 				for (int i = 0; i < markerNames.length; i++) {
@@ -932,7 +933,7 @@ public class BamImport {
 		allMarkerColors.add(header);
 
 		try {
-			PrintWriter writer = Files.openAppropriateWriter(positions);
+			PrintWriter writer = new PrintWriter(new FileWriter(positions));
 			int markerIndex = 0;
 			writer.println(header);
 
@@ -1128,7 +1129,8 @@ public class BamImport {
 		try {
 			Project proj = new Project(filename, false);
 			importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs, true,
-															 ASSAY_TYPE.WXS, ASSEMBLY_NAME.HG19, null, numthreads);
+															 ASSAY_TYPE.WXS, ASSEMBLY_NAME.HG19, null,
+															 proj.getReferenceGenomeFASTAFilename(), numthreads);
 		} catch (Exception e) {
 			new Logger().reportException(e);
 		}

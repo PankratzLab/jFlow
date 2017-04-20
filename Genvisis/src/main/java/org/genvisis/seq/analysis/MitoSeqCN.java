@@ -1,13 +1,11 @@
 package org.genvisis.seq.analysis;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
 import org.genvisis.CLI;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -55,7 +53,7 @@ public class MitoSeqCN {
 	 * @return the name of the output file
 	 */
 	public static String run(String fileOfBams, String outDir, String captureBed,
-													 GENOME_BUILD genomeBuild, String referenceGenomeFasta,
+													 String referenceGenomeFasta,
 													 ASSEMBLY_NAME aName, ASSAY_TYPE aType, int numthreads, Logger log) {
 		new File(outDir).mkdirs();
 
@@ -64,9 +62,9 @@ public class MitoSeqCN {
 		if (!Files.exists(output)) {
 			String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] {0}, true);
 			log.reportTimeInfo("Detected " + bams.length + " bam files");
-			ReferenceGenome referenceGenome = genomeBuild == null ? new ReferenceGenome(referenceGenomeFasta,
-																																									log)
-																														: new ReferenceGenome(genomeBuild, log);
+			ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
+
+
 			LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).autosomal(true,
 																																															 log);
 			if (aType == ASSAY_TYPE.WXS) {
@@ -396,7 +394,7 @@ public class MitoSeqCN {
 		ASSAY_TYPE aType = ASSAY_TYPE.valueOf(c.get("assayType"));
 
 
-		run(c.get("bams"), c.get(CLI.ARG_OUTDIR), c.get("captureBed"), null,
+		run(c.get("bams"), c.get(CLI.ARG_OUTDIR), c.get("captureBed"),
 				c.get(CLI.ARG_REFERENCE_GENOME),
 				ASSEMBLY_NAME.valueOf(c.get("assemblyName")), aType,
 				c.getI(CLI.ARG_THREADS), new Logger());

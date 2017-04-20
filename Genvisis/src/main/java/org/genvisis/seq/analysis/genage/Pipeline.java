@@ -7,8 +7,6 @@ import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
-import org.genvisis.cnv.manage.Resources;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerHive;
@@ -85,19 +83,19 @@ public class Pipeline {
 		private final String bamFile;
 		private final String rootOutDir;
 		private final String captureBed;
-		private final GENOME_BUILD genomeBuild;
+		private final String refGenome;
 		private final NGSSample ngsSample;
 		private final int numthreads;
 		private final Logger log;
 
 		private MitoPipePart(String bamFile, String rootOutDir, String captureBed,
-												 GENOME_BUILD genomeBuild, NGSSample ngsSample, int numthreads,
+												 String refGenome, NGSSample ngsSample, int numthreads,
 												 Logger log) {
 			super();
 			this.bamFile = bamFile;
 			this.rootOutDir = rootOutDir;
 			this.captureBed = captureBed;
-			this.genomeBuild = genomeBuild;
+			this.refGenome = refGenome;
 			this.ngsSample = ngsSample;
 			this.numthreads = numthreads;
 			this.log = log;
@@ -111,7 +109,7 @@ public class Pipeline {
 			Files.write(bamFile, bamList);
 			String result = MitoSeqCN.run(bamList, mitoDir,
 																		ngsSample.getaType() == ASSAY_TYPE.WGS ? null : captureBed,
-																		genomeBuild, null, ngsSample.getaName(), ngsSample.getaType(),
+																		refGenome, ngsSample.getaName(), ngsSample.getaType(),
 																		numthreads, log);
 
 			ArrayList<String> input = new ArrayList<String>();
@@ -172,26 +170,27 @@ public class Pipeline {
 
 		private final String bamFile;
 		private final String rootOutDir;
-		private final GENOME_BUILD genomeBuild;
 		private final String captureBed;
 		private final NGSSample ngsSample;
 		private final String binBed;
 		private final int captureBufferSize;
 		private final String vcf;
+		private final String refGenome;
 
 
 
-		private GenvisisPart(String bam, String rootOutDir, GENOME_BUILD genomeBuild, String captureBed,
-												 String binBed, String vcf, NGSSample ngsSample, int captureBufferSize) {
+		private GenvisisPart(String bam, String rootOutDir, String captureBed,
+												 String binBed, String vcf, NGSSample ngsSample, String refGenome,
+												 int captureBufferSize) {
 			super();
 			bamFile = bam;
 			this.rootOutDir = rootOutDir;
-			this.genomeBuild = genomeBuild;
 			this.captureBed = captureBed;
 			this.binBed = binBed;
 			this.vcf = vcf;
 			this.ngsSample = ngsSample;
 			this.captureBufferSize = captureBufferSize;
+			this.refGenome = refGenome;
 		}
 
 
@@ -203,10 +202,10 @@ public class Pipeline {
 		 */
 		@Override
 		public PipelinePart call() throws Exception {
-			Project proj = getProjectFor(ngsSample.getaType(), rootOutDir, genomeBuild);
+			Project proj = getProjectFor(ngsSample.getaType(), rootOutDir);
 			BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBufferSize, -1,
 																				 false, ngsSample.getaType(), ngsSample.getaName(),
-																				 new String[] {bamFile}, 1);
+																				 new String[] {bamFile}, refGenome, 1);
 
 			ArrayList<String> input = new ArrayList<String>();
 			input.add(bamFile);
@@ -291,8 +290,8 @@ public class Pipeline {
 	 * @param genomeBuild the reference genome that will be set for the project
 	 * @return a project to use
 	 */
-	public static Project getProjectFor(ASSAY_TYPE aType, String rootOutDir,
-																			GENOME_BUILD genomeBuild) {
+	public static Project getProjectFor(ASSAY_TYPE aType, String rootOutDir) {
+
 		String projectName = aType.toString() + "_Genvisis_Project";
 		String projectDir = rootOutDir + "genvisis/" + aType + "/";
 		String projectFile = projectDir + projectName + ".properties";
@@ -304,7 +303,6 @@ public class Pipeline {
 		}
 		Project proj = new Project(projectFile, false);
 		proj.ARRAY_TYPE.setValue(ARRAY.NGS);
-		proj.GENOME_BUILD_VERSION.setValue(genomeBuild);
 		proj.saveProperties();
 		return proj;
 	}
@@ -351,16 +349,17 @@ public class Pipeline {
 	 * @return
 	 */
 	public static List<PipelinePart> pipeline(String inputBam, String rootOutDir,
-																						GENOME_BUILD genomeBuild, String captureBed,
+																						String captureBed,
 																						String binBed, String vcf, NGSSample sample,
+																						String refGenome,
 																						List<PIPELINE_PARTS> parts, String computelLocation,
 																						int numThreads, Logger log) {
 		if (!Files.exists(inputBam)) {
 			throw new IllegalArgumentException("Bam file " + inputBam + " must exist");
 		}
 
-		if (!Files.exists(Resources.genome(genomeBuild, log).getFASTA().get())) {
-			throw new IllegalArgumentException("Reference Genome for " + genomeBuild + " must exist");
+		if (!Files.exists(refGenome)) {
+			throw new IllegalArgumentException("Reference Genome for " + refGenome + " must exist");
 		}
 		if (sample.getaType() == ASSAY_TYPE.WXS && (!Files.exists(captureBed))) {
 			throw new IllegalArgumentException(captureBed + " must exist");
@@ -376,11 +375,11 @@ public class Pipeline {
 																						sample, 1, TELOMERE_CAPTURE_BUFFER[0], log));
 					break;
 				case GENVISIS:
-					hive.addCallable(new GenvisisPart(inputBam, rootOutDir, genomeBuild, captureBed, binBed,
-																						vcf, sample, BamImport.CAPTURE_BUFFER));
+					hive.addCallable(new GenvisisPart(inputBam, rootOutDir, captureBed, binBed,
+																						vcf, sample, refGenome, BamImport.CAPTURE_BUFFER));
 					break;
 				case MTDNACN:
-					hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, genomeBuild, sample,
+					hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, refGenome, sample,
 																						1, log));
 					break;
 				case TELSEQ:

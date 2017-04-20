@@ -7,7 +7,6 @@ import java.util.concurrent.Callable;
 
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -38,7 +37,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 	private static final String NUM_THREADS = "threads";
 	private static final String NUM_THREADS_PIPELINE = "threadsPipe";
 
-	private static final String REF_GENOME_BUILD = "build";
+	private static final String RE = "build";
 	private static final String CAPTURE_BED = "bed";
 	private static final String BIN_BED = "bin";
 	private static final String VCF = "vcf";
@@ -59,8 +58,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 	private final SRASample sraSample;
 	private final String inputSRA;
 	private final String rootOutDir;
-	private final GENOME_BUILD genomeBuild;
 	private final String captureBed;
+	private final String refGenome;
 	private final String binBed;
 	private final String vcfFile;
 	private final String computelLocation;
@@ -82,15 +81,15 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 	 * @param log
 	 */
 	public SRAPipeline(SRASample sraSample, String inputSRA, String rootOutDir,
-										 GENOME_BUILD genomeBuild, String captureBed, String binBed, String vcf,
+										 String refGenome, String captureBed, String binBed, String vcf,
 										 String computelLocation, int numThreads, boolean cleanup,
 										 List<PIPELINE_PARTS> parts, Logger log) {
 		super();
 		this.sraSample = sraSample;
 		this.inputSRA = inputSRA;
 		this.rootOutDir = rootOutDir;
-		this.genomeBuild = genomeBuild;
 		this.captureBed = captureBed;
+		this.refGenome = refGenome;
 		this.binBed = binBed;
 		vcfFile = vcf;
 		this.computelLocation = computelLocation;
@@ -125,8 +124,9 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 				cleanup = new File(inputSRA).delete();
 			}
 
-			List<PipelinePart> parts = Pipeline.pipeline(bam, rootOutDir, genomeBuild, captureBed, binBed,
-																									 vcfFile, sraSample, partsToRun, computelLocation,
+			List<PipelinePart> parts = Pipeline.pipeline(bam, rootOutDir, captureBed, binBed,
+																									 vcfFile, sraSample, refGenome, partsToRun,
+																									 computelLocation,
 																									 numThreads, log);
 
 			if (cleanup) {
@@ -195,8 +195,9 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 	}
 
 	private static void runCompile(List<SRASample> samples, String rootOutDir,
-																 GENOME_BUILD genomeBuild, String captureBed, String binBed,
-																 String vcf, int numThreads, Logger log) {
+																 String captureBed, String binBed,
+																 String vcf, String referenceGenomeFasta, int numThreads,
+																 Logger log) {
 
 
 		ASSAY_TYPE atType = samples.get(0).getaType();
@@ -211,7 +212,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 			}
 
 		}
-		Project proj = Pipeline.getProjectFor(atType, rootOutDir, genomeBuild);
+		Project proj = Pipeline.getProjectFor(atType, rootOutDir);
 		String serDir = proj.PROJECT_DIRECTORY.getValue() + "tmpBamSer/";
 		String[] serFiles = Files.listFullPaths(serDir, ".ser", false);
 		log.reportTimeInfo("Allocating fake bam files associated with " + serFiles.length
@@ -219,11 +220,11 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		String[] bams = ArrayUtils.tagOn(serFiles, null, ".bam");
 
 		BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER, 4,
-																			 true, atType, aName, bams, numThreads);
+																			 true, atType, aName, bams, referenceGenomeFasta, numThreads);
 	}
 
 	private static void compilePrep(String sraInput, String sraRunTableFile, String rootOutDir,
-																	GENOME_BUILD genomeBuild, String captureBed, String binBed,
+																	String refGenome, String captureBed, String binBed,
 																	String vcf, PLATFORM platform, int numThreads) {
 		Logger log = new Logger(rootOutDir + "compile.log");
 
@@ -245,13 +246,13 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
 		log.reportTimeInfo("Found " + wgsSamples.size() + " " + ASSAY_TYPE.WGS + " samples and "
 											 + wxsSamples.size() + " " + ASSAY_TYPE.WXS + " samples");
-		runCompile(wxsSamples, rootOutDir, genomeBuild, captureBed, binBed, vcf, numThreads, log);
-		runCompile(wgsSamples, rootOutDir, genomeBuild, captureBed, binBed, vcf, numThreads, log);
+		runCompile(wxsSamples, rootOutDir, captureBed, binBed, vcf, refGenome, numThreads, log);
+		runCompile(wgsSamples, rootOutDir, captureBed, binBed, vcf, refGenome, numThreads, log);
 
 	}
 
 	private static void runAll(String sraInput, String sraRunTableFile, String rootOutDir,
-														 GENOME_BUILD genomeBuild, String captureBed, String binBed, String vcf,
+														 String refGenome, String captureBed, String binBed, String vcf,
 														 String computelLocation, int numThreads, int numThreadsPipeline,
 														 int numBatches, CLI c, boolean cleanup) {
 		Logger log = new Logger();
@@ -288,21 +289,21 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		for (SRASample sample : samples) {
 			sraFiles.add(sample.getSraFile());
 			sampleSummary.add(sample.getSraFile() + "\t" + sample.toString());
-			SRAPipeline pipeline = new SRAPipeline(sample, sample.getSraFile(), rootOutDir, genomeBuild,
+			SRAPipeline pipeline = new SRAPipeline(sample, sample.getSraFile(), rootOutDir, refGenome,
 																						 captureBed, binBed, vcf, computelLocation,
 																						 numThreadsPipeline, cleanup, partsToRun, log);
 			switch (sample.getaType()) {// create the required markerSets for
 				// import...prior to threading
 				case WGS:
 					if (!prelimGenvisisWGS) {
-						generatePrelim(rootOutDir, genomeBuild, null, null, vcf, log, sample.getaType());
+						generatePrelim(rootOutDir, refGenome, null, null, vcf, log, sample.getaType());
 						prelimGenvisisWGS = true;
 					}
 
 					break;
 				case WXS:
 					if (!prelimGenvisisWXS) {
-						generatePrelim(rootOutDir, genomeBuild, captureBed, binBed, vcf, log,
+						generatePrelim(rootOutDir, refGenome, captureBed, binBed, vcf, log,
 													 sample.getaType());
 						prelimGenvisisWXS = true;
 					}
@@ -321,13 +322,13 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		}
 	}
 
-	private static void generatePrelim(String rootOutDir, GENOME_BUILD genomeBuild, String captureBed,
+	private static void generatePrelim(String rootOutDir, String refGenome, String captureBed,
 																		 String binBed, String vcf, Logger log, ASSAY_TYPE aType) {
-		Project proj = Pipeline.getProjectFor(aType, rootOutDir, genomeBuild);
+		Project proj = Pipeline.getProjectFor(aType, rootOutDir);
 		if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
 
 			BamImport.generateAnalysisSet(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER, aType,
-																		log, new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
+																		log, new ReferenceGenome(refGenome,
 																														 log));
 		}
 	}
@@ -386,10 +387,11 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 			Files.writeIterable(process, ext.addToRoot(processFile, "_" + processBatch));
 		}
 		if (c.has(GENVISIS_PART) || c.has(ALL_PART)) {
-			GENOME_BUILD genomeBuild = GENOME_BUILD.valueOf(c.get(REF_GENOME_BUILD));
-			generatePrelim(c.get(CLI.ARG_OUTDIR), genomeBuild, c.get(CAPTURE_BED), c.get(BIN_BED),
+			generatePrelim(c.get(CLI.ARG_OUTDIR), c.get(CLI.ARG_REFERENCE_GENOME), c.get(CAPTURE_BED),
+										 c.get(BIN_BED),
 										 c.get(VCF), log, ASSAY_TYPE.WXS);
-			generatePrelim(c.get(CLI.ARG_OUTDIR), genomeBuild, null, null, c.get(VCF), log,
+			generatePrelim(c.get(CLI.ARG_OUTDIR), c.get(CLI.ARG_REFERENCE_GENOME), null, null, c.get(VCF),
+										 log,
 										 ASSAY_TYPE.WGS);
 		}
 
@@ -412,7 +414,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		baseCommand.add(SRA_RUN_TABLE + "=" + c.get(SRA_RUN_TABLE));
 		baseCommand.add(NUM_THREADS + "=" + c.get(NUM_THREADS));
 		baseCommand.add(NUM_THREADS_PIPELINE + "=" + c.get(NUM_THREADS_PIPELINE));
-		baseCommand.add(REF_GENOME_BUILD + "=" + c.get(REF_GENOME_BUILD));
+		baseCommand.add(RE + "=" + c.get(RE));
 		baseCommand.add(CAPTURE_BED + "=" + c.get(CAPTURE_BED));
 		baseCommand.add(BIN_BED + "=" + c.get(BIN_BED));
 		baseCommand.add(VCF + "=" + c.get(VCF));
@@ -501,9 +503,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		c.addArgWithDefault(NUM_THREADS_PIPELINE, "number of threads within samples",
 												Integer.toString(numThreadsPipe));
 
-		GENOME_BUILD genomeBuild = GENOME_BUILD.HG19;
 
-		c.addArgWithDefault(REF_GENOME_BUILD, "reference genome build", genomeBuild.toString());
+		c.addArgWithDefault(CLI.ARG_REFERENCE_GENOME, CLI.DESC_REFERENCE_GENOME, "hg19.fa");
 
 		String captureBedFile = "VCRome_2_1_hg19_capture_targets.bed";
 
@@ -537,16 +538,17 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
 		c.parseWithExit(args);
 
-		genomeBuild = GENOME_BUILD.valueOf(c.get(REF_GENOME_BUILD));
 
 		if (c.has(COMPILE)) {
-			compilePrep(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(CLI.ARG_OUTDIR), genomeBuild,
+			compilePrep(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(CLI.ARG_OUTDIR),
+									c.get(CLI.ARG_REFERENCE_GENOME),
 									c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF),
 									PLATFORM.valueOf(c.get(PLATFORM_TYPE)), c.getI(NUM_THREADS));
 		} else if (c.has(FULL_PIPELINE)) {
 			fullPipeline(c);
 		} else {
-			runAll(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(CLI.ARG_OUTDIR), genomeBuild,
+			runAll(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(CLI.ARG_OUTDIR),
+						 c.get(CLI.ARG_REFERENCE_GENOME),
 						 c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.get(COMPUTEL_LOCATION),
 						 c.getI(NUM_THREADS), c.getI(NUM_THREADS_PIPELINE), c.getI(NUM_BATCHES), c,
 						 c.has(CLEANUP));
