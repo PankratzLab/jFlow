@@ -1,10 +1,10 @@
 package org.genvisis.one;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 
 public class LOAD_OnePerFamily {

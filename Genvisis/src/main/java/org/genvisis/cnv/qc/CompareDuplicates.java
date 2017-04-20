@@ -1,12 +1,12 @@
 package org.genvisis.cnv.qc;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.stats.Correlation;
 

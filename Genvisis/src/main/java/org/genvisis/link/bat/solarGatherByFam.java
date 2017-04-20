@@ -3,12 +3,13 @@ package org.genvisis.link.bat;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
+
+import org.genvisis.common.Files;
 
 public class solarGatherByFam {
 	public solarGatherByFam(String[] args) throws IOException {

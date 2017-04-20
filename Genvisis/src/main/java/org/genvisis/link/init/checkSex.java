@@ -4,12 +4,12 @@ package org.genvisis.link.init;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 
+import org.genvisis.common.Files;
 import org.genvisis.park.tools;
 
 public class checkSex {

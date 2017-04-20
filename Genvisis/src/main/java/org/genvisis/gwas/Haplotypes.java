@@ -1,10 +1,10 @@
 package org.genvisis.gwas;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 

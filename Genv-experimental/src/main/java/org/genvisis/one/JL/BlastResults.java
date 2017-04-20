@@ -1,13 +1,13 @@
 package org.genvisis.one.JL;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Map;
 
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;

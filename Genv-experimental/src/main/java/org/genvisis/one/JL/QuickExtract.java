@@ -1,10 +1,10 @@
 package org.genvisis.one.JL;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.LocusSet;

@@ -1,9 +1,9 @@
 package org.genvisis.link;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class Allegro {

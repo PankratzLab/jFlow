@@ -1,8 +1,9 @@
 package org.genvisis.dead;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import org.genvisis.common.Files;
 
 public class batchBRI {
 	// String[] SNPS = {"rs6714365", "rs2289235", "rs10933359", "rs934820"};
