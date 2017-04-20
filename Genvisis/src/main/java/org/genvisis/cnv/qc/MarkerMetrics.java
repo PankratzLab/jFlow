@@ -286,27 +286,8 @@ public class MarkerMetrics {
 					mecCnt = "" + count;
 				}
 
-				Integer duplicateErrors = null;
-				SampleData sampleData = proj.getSampleData(false);
-				if (sampleData.getDuplicateSets() != null) {
-					Collection<Set<String>> duplicateSets = sampleData.getDuplicateSets();
-					List<Set<Integer>> duplicateIndexSets = Lists.newArrayListWithCapacity(duplicateSets.size());
-					Map<String, Integer> sampleIndices = proj.getSampleIndices();
-					for (Set<String> duplicateSet : duplicateSets) {
-						Set<Integer> duplicateIndices = Sets.newHashSetWithExpectedSize(duplicateSet.size());
-						for (String duplicate : duplicateSet) {
-							duplicateIndices.add(sampleIndices.get(duplicate));
-						}
-						duplicateIndexSets.add(duplicateIndices);
-					}
 
-					DuplicateConcordance duplicateConcordance = new DuplicateConcordance(abGenotypes,
-																																							 duplicateIndexSets,
-																																							 log);
-					duplicateErrors = duplicateConcordance.calculateDiscordanceCount();
-				}
-				String duplicateErrorCount = duplicateErrors == null ? "."
-																														 : String.valueOf(duplicateErrors);
+				String duplicateErrorCount = calculateDuplicateConcordanceErrors(proj, abGenotypes, log);
 
 
 				String line = markerName + "\t" + markerData.getChr() + "\t"
@@ -362,6 +343,30 @@ public class MarkerMetrics {
 			sexes[i] = sampleData.getSexForIndividual(samples[i]);
 		}
 		return sexes;
+	}
+
+	private static String calculateDuplicateConcordanceErrors(Project proj, byte[] genotypes,
+																														Logger log) {
+		Integer duplicateErrors = null;
+		SampleData sampleData = proj.getSampleData(false);
+		if (sampleData.getDuplicateSets() != null) {
+			Collection<Set<String>> duplicateSets = sampleData.getDuplicateSets();
+			List<Set<Integer>> duplicateIndexSets = Lists.newArrayListWithCapacity(duplicateSets.size());
+			Map<String, Integer> sampleIndices = proj.getSampleIndices();
+			for (Set<String> duplicateSet : duplicateSets) {
+				Set<Integer> duplicateIndices = Sets.newHashSetWithExpectedSize(duplicateSet.size());
+				for (String duplicate : duplicateSet) {
+					duplicateIndices.add(sampleIndices.get(duplicate));
+				}
+				duplicateIndexSets.add(duplicateIndices);
+			}
+
+			DuplicateConcordance duplicateConcordance = new DuplicateConcordance(genotypes,
+																																					 duplicateIndexSets,
+																																					 log);
+			duplicateErrors = duplicateConcordance.calculateDiscordanceCount();
+		}
+		return duplicateErrors == null ? "." : String.valueOf(duplicateErrors);
 	}
 
 	/**
