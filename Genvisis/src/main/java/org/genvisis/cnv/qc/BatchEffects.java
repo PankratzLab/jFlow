@@ -97,6 +97,12 @@ public class BatchEffects {
 
 	private final ImmutableSortedSet<BatchEffect> notableEffects;
 
+	public BatchEffects(byte[] genotypes, Map<Integer, String> indexBatches, double pValueThreshold,
+											Logger log) {
+		super();
+		notableEffects = calculateNotableEffects(genotypes, indexBatches, pValueThreshold);
+	}
+
 	public BatchEffects(MarkerData marker, ClusterFilterCollection clusterFilters,
 											Map<Integer, String> indexBatches, double pValueThreshold, Logger log) {
 		super();
