@@ -789,10 +789,14 @@ public class PlinkData {
 				// temp = reader.readLine();
 				line = temp.split(ext.determineDelimiter(temp));
 				if (line.length < 7) {
-					proj.message("Error - starting at line " + (count - 1)
+					proj.message("Error - starting at line "
+											 + (count - 1)
 											 + (line.length < 3 ? "" : " (individual " + line[0] + "-" + line[1] + ")")
-											 + " there are only " + line.length + " columns in pedigree file '"
-											 + proj.PEDIGREE_FILENAME.getValue() + "'.\n"
+											 + " there are only "
+											 + line.length
+											 + " columns in pedigree file '"
+											 + proj.PEDIGREE_FILENAME.getValue()
+											 + "'.\n"
 											 + "  Pedigree files require 7 or 8 columns with no header: FID IID FA MO SEX PHENO DNA (MZTWINID)\n"
 											 + "  where DNA is the sample name associated with the genotypic data (see the "
 											 + proj.SAMPLE_DIRECTORY.getValue(false, true) + " directory for examples)");
@@ -813,13 +817,15 @@ public class PlinkData {
 						if (!sdl.hasNext()) {
 							reader.close();
 							writer.close();
-							throw new IllegalArgumentException("BUG: SDL ran out of samples to load, set threads to 1 or less");
+							throw new IllegalArgumentException(
+																								 "BUG: SDL ran out of samples to load, set threads to 1 or less");
 						}
 						fsamp = sdl.next();
 						if (fsamp != null && !fsamp.getSampleName().equals(line[6])) {
 							reader.close();
 							writer.close();
-							throw new IllegalArgumentException("BUG: SDL loaded in incorrect error, set threads to 1 or less");
+							throw new IllegalArgumentException(
+																								 "BUG: SDL loaded in incorrect error, set threads to 1 or less");
 						}
 					} else {
 						fsamp = proj.getFullSampleFromRandomAccessFile(line[6]);
@@ -851,9 +857,12 @@ public class PlinkData {
 							} else {
 								if (genIndex < 0) {
 									if (!invalidAbLookups.containsKey(indices[i])) {
-										log.reportError("Error - marker '" + markerNames[indices[i]]
+										log.reportError("Error - marker '"
+																		+ markerNames[indices[i]]
 																		+ "' was manually reclustered and requires a previously undefined AB lookup code ("
-																		+ abLookup[indices[i]][0] + "/" + abLookup[indices[i]][1]
+																		+ abLookup[indices[i]][0]
+																		+ "/"
+																		+ abLookup[indices[i]][1]
 																		+ "); alleles will be set to missing for anyone with an invalid allele");
 										invalidAbLookups.put(indices[i], invalidAbLookups.size());
 									}
@@ -885,8 +894,8 @@ public class PlinkData {
 			if (invalidAbLookups.size() > 0) {
 				proj.message("There "
 										 + (invalidAbLookups.size() == 1 ? " was one marker "
-																										 : "were " + invalidAbLookups.size()
-																											 + " markers")
+																										: "were " + invalidAbLookups.size()
+																											+ " markers")
 										 + " with an invalid set of AB lookup codes that had been manually reclustered and now needs a full complement. Run \"java -jar genvisis.jar cnv.filesys.ABLookup -h\" for options on how to fill these in, and check "
 										 + proj.getProperty(proj.DATA_DIRECTORY)
 										 + "invalid_AB_codes.out for a list of variants that this affects.");
@@ -1159,9 +1168,10 @@ public class PlinkData {
 
 		// chrs = markerSet.getChrs();
 		// positions = markerSet.getPositions();
-		//// targetMarkers = proj.getFilename(proj.TARGET_MARKERS_FILENAME, false, false);
-		//// if (new File(targetMarkers).exists()) {
-		//// targets = HashVec.loadFileToStringArray(targetMarkers, false, false, new int[] {0}, false);
+		// // targetMarkers = proj.getFilename(proj.TARGET_MARKERS_FILENAME, false, false);
+		// // if (new File(targetMarkers).exists()) {
+		// // targets = HashVec.loadFileToStringArray(targetMarkers, false, false, new int[] {0},
+		// false);
 		// if (inputTargetMarkers != null) {
 		// indicesOfMarkersSelected = new int[inputTargetMarkers.length];
 		// prob = false;
@@ -1178,12 +1188,12 @@ public class PlinkData {
 		// System.exit(1);
 		// }
 		//
-		//// chrOfMarkersSelected = new byte[indicesOfMarkersSelected.length];
-		//// posOfMarkersSelected = new int[indicesOfMarkersSelected.length];
-		//// for (int i = 0; i < indicesOfMarkersSelected.length; i++) {
-		//// chrOfMarkersSelected[i] = chrs[indicesOfMarkersSelected[i]];
-		//// posOfMarkersSelected[i] = positions[indicesOfMarkersSelected[i]];
-		//// }
+		// // chrOfMarkersSelected = new byte[indicesOfMarkersSelected.length];
+		// // posOfMarkersSelected = new int[indicesOfMarkersSelected.length];
+		// // for (int i = 0; i < indicesOfMarkersSelected.length; i++) {
+		// // chrOfMarkersSelected[i] = chrs[indicesOfMarkersSelected[i]];
+		// // posOfMarkersSelected[i] = positions[indicesOfMarkersSelected[i]];
+		// // }
 		//
 		// } else {
 		// if (! inputTargetMarkers.equals("")) {
@@ -1191,14 +1201,14 @@ public class PlinkData {
 		// found, all markers will be exported to PLINK");
 		// }
 		//
-		//// targets = HashVec.getKeys(hash);
-		//// indices = new int[targets.length];
-		//// for (int i = 0; i<targets.length; i++) {
-		//// indices[i] = Integer.parseInt(hash.get(targets[i]));
-		//// }
+		// // targets = HashVec.getKeys(hash);
+		// // indices = new int[targets.length];
+		// // for (int i = 0; i<targets.length; i++) {
+		// // indices[i] = Integer.parseInt(hash.get(targets[i]));
+		// // }
 		// indicesOfMarkersSelected = Array.intArray(allMarkersInProj.length);
-		//// chrOfMarkersSelected = chrs;
-		//// posOfMarkersSelected = positions;
+		// // chrOfMarkersSelected = chrs;
+		// // posOfMarkersSelected = positions;
 		// }
 		//
 		// return indicesOfMarkersSelected;
@@ -1377,7 +1387,8 @@ public class PlinkData {
 				if (temp.equals("")) {
 					// then do nothing
 				} else if (line.length < 7) {
-					log.reportError("Error - starting at line " + (count - 1)
+					log.reportError("Error - starting at line "
+													+ (count - 1)
 													+ (line.length < 3 ? "" : " (individual " + line[0] + "-" + line[1] + ")")
 													+ " there are only " + line.length + " columns in pedigree file '"
 													+ proj.PEDIGREE_FILENAME.getValue() + "'.");
@@ -1402,7 +1413,8 @@ public class PlinkData {
 					}
 					// dna.add(null);
 				} else {
-					if (dropSamples == null || !dropSamples.contains(line[0] + "\t" + line[1])) {
+					if (dropSamples == null
+							|| !(dropSamples.contains(line[0] + "\t" + line[1]) || dropSamples.contains(line[6]))) {
 						dna.add(line[6]);
 						writer.println(line[0] + "\t" + (concatFIDToIID ? line[0] + "_" : "") + line[1] + "\t"
 													 + (concatFIDToIID ? line[0] + "_" : "") + line[2] + "\t"
@@ -1463,7 +1475,8 @@ public class PlinkData {
 	 * @param numberOfTotalSamplesInProj totoal number of samples in the PLINK .bed file
 	 */
 	public static void transposeBedBytes(byte[] inputSampBytes, int indexOfStartSamp,
-																			 int indexOfEndSamp, int indexOfStartMark, int indexOfEndMark,
+																			 int indexOfEndSamp, int indexOfStartMark,
+																			 int indexOfEndMark,
 																			 byte[] outputMarkBytes, int numberOfTotalMarkersInProj,
 																			 int numberOfTotalSamplesInProj) {
 		// int iSamp;
@@ -1501,9 +1514,9 @@ public class PlinkData {
 				iBitSamp = (byte) (j % 4);
 
 				outputMarkBytes[iByteMark] = (byte) ((outputMarkBytes[iByteMark]
-																							& (0xff - (0x03 << (iBitMark * 2))))
-																						 | (inputSampBytes[iByteSamp]
-																								& (0x03 << (iBitSamp * 2))));
+																		 & (0xff - (0x03 << (iBitMark * 2))))
+																		 | (inputSampBytes[iByteSamp]
+																		 & (0x03 << (iBitSamp * 2))));
 			}
 		}
 
@@ -1567,8 +1580,8 @@ public class PlinkData {
 			iBitSamp = (byte) (j % 4);
 
 			outputMarkBytes[iByteMark] = (byte) ((outputMarkBytes[iByteMark]
-																						& (0xff - (0x03 << (iBitMark * 2))))
-																					 | (inputSampByte & (0x03 << (iBitSamp * 2))));
+																	 & (0xff - (0x03 << (iBitMark * 2))))
+																	 | (inputSampByte & (0x03 << (iBitSamp * 2))));
 		}
 	}
 
@@ -1662,7 +1675,7 @@ public class PlinkData {
 					iBytes++;
 				}
 				result[iBytes] = (byte) ((result[iBytes] & (~(0x03 << shift)))
-																 | (encodeLastTwoBitsOfABedByte(genotype[i]) << shift));
+												 | (encodeLastTwoBitsOfABedByte(genotype[i]) << shift));
 				// displayBits(result[iBytes]);
 			}
 		} catch (Elision e) {
@@ -1723,7 +1736,7 @@ public class PlinkData {
 				indexBedBytes = indicesOfSamplesOrMarkers[i] / 4;
 				indexBedByte = indicesOfSamplesOrMarkers[i] % 4;
 				genotypes[i] = decodeLastTwoBitsOfABedByte((byte) (bedBytes[indexBedBytes] >> (indexBedByte
-																																											 * 2)));
+											 * 2)));
 			}
 		} catch (Elision e) {
 			e.printStackTrace();
@@ -2154,7 +2167,7 @@ public class PlinkData {
 					indexBedBytes = sampIndices[j] / 4;
 					indexBedBits = sampIndices[i] % 4;
 					genotypes[j] = decodeLastTwoBitsOfABedByte((byte) (bytesOfOneMarkerInBed[indexBedBytes] >> (indexBedBits
-																																																			* 2)));
+												 * 2)));
 				}
 
 				result[i] = new MarkerData(allMarkersInProj[markersIndicesInProj[i]],
@@ -2240,7 +2253,8 @@ public class PlinkData {
 		int nSamples = -1;
 		Logger log;
 
-		String usage = "\n" + "cnv.manage.PlinkData provides methods to do the following:\n"
+		String usage = "\n"
+									 + "cnv.manage.PlinkData provides methods to do the following:\n"
 									 + "   (1) Conversion from Genvisis data to PLINK text (.ped) data set;\n"
 									 + "   (2) Conversion from Genvisis data to PLINK binary (.bed) data set with SNP major;\n"
 									 + "   (3) Conversion from Genvisis data to PLINK binary (.bed) data set with individual major;\n"
@@ -2254,27 +2268,40 @@ public class PlinkData {
 									 + "To export from Genvisis to PLINK text (.ped) data set, the following arguments are required:\n"
 									 + "   (1) the command (i.e. -genvisisToPed (not the default));\n"
 									 + "   (2) the Genvisis project's property file location (i.e. proj=~/projects/default.properties (not the default));\n"
-									 + "   (3) the GC threshold (i.e. gcthreshold=" + gcThreshold + " (default));\n"
+									 + "   (3) the GC threshold (i.e. gcthreshold="
+									 + gcThreshold
+									 + " (default));\n"
 									 + "   (4) the directory and filename root for the final PLINK data set (i.e. plinkdata="
-									 + plinkDataDirAndFilenameRoot + " (default));\n" + "\n"
+									 + plinkDataDirAndFilenameRoot
+									 + " (default));\n"
+									 + "\n"
 									 + "To export from Genvisis to PLINK binary (.bed) data set, the following arguments are required:\n"
 									 + "   (1) the command (i.e. -genvisisToBed (not the default));\n"
 									 + "   (2) the Genvisis project's property file location (i.e. proj="
-									 + projPropertyFileFullPath + " (default));\n"
-									 + "   (3) the GC threshold (i.e. gcthreshold=" + gcThreshold + " (default));\n"
-									 + "   (4) is the .bed file going to be SNP Major (i.e. issnpmajor=" + isSnpMajor
+									 + projPropertyFileFullPath
+									 + " (default));\n"
+									 + "   (3) the GC threshold (i.e. gcthreshold="
+									 + gcThreshold
+									 + " (default));\n"
+									 + "   (4) is the .bed file going to be SNP Major (i.e. issnpmajor="
+									 + isSnpMajor
 									 + " (default));\n"
 									 + "   (5) the directory and filename root for the final PLINK data set (i.e. plinkdata="
-									 + plinkDataDirAndFilenameRoot + " (default));\n"
+									 + plinkDataDirAndFilenameRoot
+									 + " (default));\n"
 									 + "Note: the following specified by the project's property file are also required:"
 									 + "   (6) the text file \"TARGET_MARKERS_FILENAME\";\n"
-									 + "   (7) the text file \"PEDIGREE_FILENAME\";\n" + "\n"
+									 + "   (7) the text file \"PEDIGREE_FILENAME\";\n"
+									 + "\n"
 									 + "To convert PLINK text (.ped) data to PLINK binary (.bed) data, the following arguments are required:\n"
 									 + "   (1) the command (i.e. -pedToBed (not the default));\n"
 									 + "   (2) the directory and filename root for the PLINK data, which will be the same for both input/output (i.e. plinkdata="
-									 + plinkDataDirAndFilenameRoot + " (default));\n"
-									 + "   (3) is the .bed file going to be SNP Major (i.e. issnpmajor=" + isSnpMajor
-									 + " (default));\n" + "\n"
+									 + plinkDataDirAndFilenameRoot
+									 + " (default));\n"
+									 + "   (3) is the .bed file going to be SNP Major (i.e. issnpmajor="
+									 + isSnpMajor
+									 + " (default));\n"
+									 + "\n"
 									 + "To convert PLINK binary (.bed) data to PLINK text (.ped) data, the following arguments are required:\n"
 									 + "   (1) the command (i.e. -bedToPed (not the default));\n"
 									 + "   (2) the directory and filename root for the PLINK data, which will be the same for both input/output (i.e. plinkdata="

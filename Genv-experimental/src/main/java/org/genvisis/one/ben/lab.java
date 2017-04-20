@@ -460,10 +460,18 @@ public class lab {
 
 
 	public static void affy6BimLookup() {
-		String bimFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink.bim";
-		String newBimFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink_correctedRS.bim";
-		String missSnpFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink_missingRS.txt";
-		String mismatchFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink_mismatchAlleles.txt";
+		// String bimFile =
+		// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink.bim";
+		// String newBimFile =
+		// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink_correctedRS.bim";
+		// String missSnpFile =
+		// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink_missingRS.txt";
+		// String mismatchFile =
+		// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink_mismatchAlleles.txt";
+		String bimFile = "/scratch.global/cole0482/affy6plink/imputeSrc_EA.bim";
+		String newBimFile = "/scratch.global/cole0482/affy6plink/imputeSrc_EA_corrected.bim";
+		String missSnpFile = "/scratch.global/cole0482/affy6plink/imputeSrc_EA_miss.txt";
+		String mismatchFile = "/scratch.global/cole0482/affy6plink/imputeSrc_EA_mism.txt";
 		String affySnpFile = "/home/pankrat2/cole0482/Affy6_SnpList.xln";
 		String[][] bim = HashVec.loadFileToStringMatrix(bimFile, false, null, "\t", false, 100000,
 																										false);
@@ -563,7 +571,7 @@ public class lab {
 		if (test) {
 
 			// String dir = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/";
-			// String mkrInfoFile = "~/Affy6_duplicates.txt";
+			// String mkrInfoFile = "/home/pankrat2/cole0482/Affy6_duplicates.txt";
 			// String missDropsFile = dir + "quality_control/further_analysis_QC/miss_drops.dat";
 			// String callrateFile =
 			// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/ohw_ws_20_ALL1000PCs_gc_corrected_OnTheFly_LRR_035CR_096_SAMP_LRR_TRUE_markerQC.txt";

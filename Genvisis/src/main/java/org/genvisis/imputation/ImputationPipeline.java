@@ -169,7 +169,6 @@ public class ImputationPipeline {
 	public void exportToPlink(String plinkDirAndRoot, int[] chrs) {
 		// TODO (??) Only alphanumeric characters in FID/IID
 		(new File(ext.parseDirectoryOfFile(plinkDirAndRoot + ".bim"))).mkdirs();
-		// TODO generate set of all drops:
 		HashSet<String> toDrop = new HashSet<String>();
 		if (keepSamples != null && keepSamples.size() > 0) {
 			for (String s : proj.getSamples()) {
