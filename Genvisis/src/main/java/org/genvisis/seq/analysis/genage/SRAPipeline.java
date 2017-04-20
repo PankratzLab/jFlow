@@ -198,7 +198,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 																 GENOME_BUILD genomeBuild, String captureBed, String binBed,
 																 String vcf, int numThreads, Logger log) {
 
-		String[] bams = getAssociatedBams(samples, rootOutDir, log);
+
 		ASSAY_TYPE atType = samples.get(0).getaType();
 		ASSEMBLY_NAME aName = samples.get(0).getaName();
 
@@ -212,6 +212,11 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
 		}
 		Project proj = Pipeline.getProjectFor(atType, rootOutDir, genomeBuild);
+		String serDir = proj.PROJECT_DIRECTORY.getValue() + "tmpBamSer/";
+		String[] serFiles = Files.listFullPaths(serDir, ".ser", false);
+		log.reportTimeInfo("Allocating fake bam files associated with " + serFiles.length
+											 + " .ser files in " + serDir);
+		String[] bams = ArrayUtils.tagOn(serFiles, null, ".bam");
 
 		BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER, 4,
 																			 true, atType, aName, bams, numThreads);
@@ -458,7 +463,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 			currentCommand.addAll(baseCommand);
 			currentCommand.add(SRA_INPUT + "=" + batch);
 			Qsub.qsub(qsub, ArrayUtils.toStr(ArrayUtils.toStringArray(currentCommand), " "), 55000, 55,
-								 c.getI(NUM_THREADS) * c.getI(NUM_THREADS_PIPELINE));
+								c.getI(NUM_THREADS) * c.getI(NUM_THREADS_PIPELINE));
 		}
 		return splits;
 	}
