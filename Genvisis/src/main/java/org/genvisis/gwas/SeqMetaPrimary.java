@@ -151,6 +151,7 @@ public class SeqMetaPrimary {
 									+ "    mPheno <- as.data.frame(mPheno)\n"
 									+ "    colnames(mPheno) <- c(names[1], \"dummy\")\n"
 									+ "    formu <- paste(names[1], \"~ 1\")\n" + "}\n" + "\n"
+									+ "formu \n"
 									+ "offset <- 1+ncol(pheno)\n" + "mGeno <- merged[,1:ncol(Z)+offset]\n" + "\n"
 									+ "if (coxy == 2) {\n"
 									+ "    message(\"time to event data detected; using a cox model\")\n" + "    "
@@ -160,7 +161,8 @@ public class SeqMetaPrimary {
 									+ (usePrep2 ? "prepScores2" : "traditional prepScores method") + "\")\n    "
 									+ cohort + "_chr" + i
 									+ " <- prepScores" + (usePrep2 ? "2" : "")
-									+ "(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno"
+									+ "(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno, family=\"binomial\""
+									+ (i == 23 ? ", male=mPhenos$SEX" : "")
 									+ ")\n"
 									+ "}\n"
 									// + "results <- singlesnpMeta(" + cohort + "_chr" + i + ", SNPInfo=SNPInfo,
@@ -536,7 +538,7 @@ public class SeqMetaPrimary {
 		boolean additionals = false;
 		String rename = null;
 		String queue = null;
-		boolean usePrep2 = false;
+		boolean usePrep2 = true;
 
 		cohort = "ARIC";
 		genos = "D:/SkatMeta/genotypes_blacks_AA/AA_ARIC_noJHS_chr#t.csv";
@@ -589,7 +591,7 @@ public class SeqMetaPrimary {
 			} else if (arg.startsWith("queue=")) {
 				queue = ext.parseStringArg(arg, null);
 			} else if (arg.startsWith("-prep2")) {
-				usePrep2 = true;
+				usePrep2 = false;
 			} else {
 				System.err.println("Error - invalid argument: " + arg);
 			}
