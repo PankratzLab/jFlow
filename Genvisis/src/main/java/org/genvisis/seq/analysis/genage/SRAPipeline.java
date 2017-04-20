@@ -37,7 +37,6 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 	private static final String NUM_THREADS = "threads";
 	private static final String NUM_THREADS_PIPELINE = "threadsPipe";
 
-	private static final String RE = "build";
 	private static final String CAPTURE_BED = "bed";
 	private static final String BIN_BED = "bin";
 	private static final String VCF = "vcf";
@@ -64,7 +63,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 	private final String vcfFile;
 	private final String computelLocation;
 	private final List<PIPELINE_PARTS> partsToRun;
-	private boolean cleanup;
+	private boolean cleanupTmpFiles;
 	private final int numThreads;
 	private final Logger log;
 
@@ -94,7 +93,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		vcfFile = vcf;
 		this.computelLocation = computelLocation;
 		this.numThreads = numThreads;
-		this.cleanup = cleanup;
+		this.cleanupTmpFiles = cleanup;
 		partsToRun = parts;
 		this.log = log;
 	}
@@ -120,8 +119,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 				// }
 				hive.execute(true);
 			}
-			if (cleanup) {
-				cleanup = new File(inputSRA).delete();
+			if (cleanupTmpFiles) {
+				cleanupTmpFiles = new File(inputSRA).delete();
 			}
 
 			List<PipelinePart> parts = Pipeline.pipeline(bam, rootOutDir, captureBed, binBed,
@@ -129,8 +128,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 																									 computelLocation,
 																									 numThreads, log);
 
-			if (cleanup) {
-				cleanup = new File(bam).delete();
+			if (cleanupTmpFiles) {
+				cleanupTmpFiles = new File(bam).delete();
 			}
 			makeComplete(rootOutDir, inputSRA);
 			return parts;
@@ -176,22 +175,6 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		}
 
 		return samples;
-	}
-
-	private static String[] getAssociatedBams(List<SRASample> samples, String rootOutDir,
-																						Logger log) {
-		ArrayList<String> bams = new ArrayList<String>();
-		for (SRASample sample : samples) {
-			String bam = getBamDirectory(rootOutDir) + ext.rootOf(sample.getSraFile()) + ".bam";
-			if (!Files.exists(bam)) {
-				log.reportTimeWarning("Associated bam " + bam + " for " + sample.getSraFile()
-															+ " did not exist, will not compile...run the import pipeline again");
-			} else {
-				bams.add(bam);
-			}
-		}
-		return ArrayUtils.toStringArray(bams);
-
 	}
 
 	private static void runCompile(List<SRASample> samples, String rootOutDir,
@@ -414,7 +397,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		baseCommand.add(SRA_RUN_TABLE + "=" + c.get(SRA_RUN_TABLE));
 		baseCommand.add(NUM_THREADS + "=" + c.get(NUM_THREADS));
 		baseCommand.add(NUM_THREADS_PIPELINE + "=" + c.get(NUM_THREADS_PIPELINE));
-		baseCommand.add(RE + "=" + c.get(RE));
+		baseCommand.add(CLI.ARG_REFERENCE_GENOME + "=" + c.get(CLI.ARG_REFERENCE_GENOME));
 		baseCommand.add(CAPTURE_BED + "=" + c.get(CAPTURE_BED));
 		baseCommand.add(BIN_BED + "=" + c.get(BIN_BED));
 		baseCommand.add(VCF + "=" + c.get(VCF));
