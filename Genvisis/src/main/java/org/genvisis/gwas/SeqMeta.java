@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -212,7 +211,7 @@ public class SeqMeta {
 		int maxChr;
 
 		maxChr = 0;
-		for (int chr = 1; chr <= 24; chr++) {
+		for (int chr = 1; chr <= 26; chr++) {
 			chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
 			if (Files.exists("snpInfos/snpInfo_chr" + chrom + ".RData")) {
 				maxChr = chr;
@@ -284,7 +283,8 @@ public class SeqMeta {
 		commands.add("write.table( chroms, \"chroms.csv\", sep=\",\")");
 
 		commands.add("for (chr in chroms) {");
-		commands.add("  snps_on_chr <- " + snpInfoName + "[" + snpInfoName + "$CHROM == chr,]");
+		commands.add("  snps_on_chr <- " + snpInfoName + "[" + snpInfoName + "$" + chromName
+								 + "== chr,]");
 		commands.add("  filename <- paste(\"snpInfos/snpInfo_chr\", chr, \".RData\", sep='')");
 		commands.add("  save(snps_on_chr, file=filename, compress=\"bzip2\")");
 		commands.add("}");
@@ -1997,6 +1997,9 @@ public class SeqMeta {
 		copyHits(dir, hitsDirectory, maps);
 		log.report("Copied to " + hitsDirectory + " and regions are being delineated");
 		delineateRegions(dir, hitsDirectory, maps, macThresholdTotal);
+
+		// combine into a pretty excel file
+
 
 		lineCounts.insertElementAt("Study\tRace\tPhenotype\tMethod\tCount", 0);
 		Files.writeArray(ArrayUtils.toStringArray(lineCounts), dir + "lineCounts.xln");
