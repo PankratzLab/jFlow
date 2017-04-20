@@ -31,7 +31,7 @@ public class MossyPlots {
 		String outDir = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(mosBaseFile) + "mosPlots/";
 		new File(outDir).mkdirs();
 		proj.getLog().reportTimeInfo(mosBaseFile);
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		String[][] mos = HashVec.loadFileToStringMatrix(mosBaseFile, false, null, false);
 		String mosFile = outDir + "mosResults_excludesTagged.txt";
 

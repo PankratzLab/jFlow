@@ -77,7 +77,7 @@ public class SomaticCNVEvaluation {
 		Hashtable<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs, log);
 		Set<String> tumors = vpop.getTumorSamples();
 		ArrayList<TNTrack> trackers = new ArrayList<TNTrack>();
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 
 		for (String tnPair : vpop.getSubPop().keySet()) {
 			Set<String> pair = vpop.getSubPop().get(tnPair);

@@ -330,7 +330,7 @@ public class QCIterator implements Runnable {
 				if (defineCompHash.containsKey(inds[i]) || QCsubset == null) {
 					if (filteredcnvsQCs[i] != null) {
 						String lookup = filteredcnvsQCs[i][0].getSourceFile();
-						int sex = proj.getSampleData(0, false).getSexForIndividual(lookup);
+						int sex = proj.getSampleData(false).getSexForIndividual(lookup);
 						famWriter.println(filteredcnvsQCs[i][0].getCnVariant().getFamilyID() + "\t"
 															+ filteredcnvsQCs[i][0].getCnVariant().getIndividualID() + "\t0\t0\t"
 															+ sex + "\t1");

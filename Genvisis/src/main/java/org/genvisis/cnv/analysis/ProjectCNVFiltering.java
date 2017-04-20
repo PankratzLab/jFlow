@@ -21,7 +21,7 @@ public class ProjectCNVFiltering {
 
 	public static void setIndividualsToKeepFromSampleData(CNVFilter filter, Project proj) {
 		String samples[] = ArrayUtils.subArray(proj.getSamples(), proj.getSamplesToInclude(null));
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		for (int i = 0; i < samples.length; i++) {
 			samples[i] = sampleData.lookup(samples[i])[1];
 		}

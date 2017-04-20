@@ -648,7 +648,7 @@ public class MitoPipeline {
 	 */
 	private static boolean verifyAllSamples(Project proj, String[] samples) {
 		boolean allParsed = true;
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		ArrayList<String> notInSampleData = new ArrayList<String>();
 		Logger log = proj.getLog();
 

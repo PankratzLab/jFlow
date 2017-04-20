@@ -59,7 +59,7 @@ public class lab {
 		String outFile = ext.rootOf(fileIn, false) + ".ids";
 		PrintWriter writer = Files.openAppropriateWriter(outFile);
 
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 
 		while (reader.ready()) {
 			String line = reader.readLine();

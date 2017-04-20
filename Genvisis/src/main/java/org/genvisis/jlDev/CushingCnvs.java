@@ -245,7 +245,7 @@ public class CushingCnvs {
 			log.reportException(e);
 		}
 
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 
 		try {
 			PrintWriter writer = Files.openAppropriateWriter(outped);

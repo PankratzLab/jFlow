@@ -676,7 +676,7 @@ public class Centroids implements Serializable, TextExport {
 		int threadCount = threads == -1 ? Runtime.getRuntime().availableProcessors() : threads;
 
 		markerSet = proj.getMarkerSet();
-		sampleData = proj.getSampleData(0, false);
+		sampleData = proj.getSampleData(false);
 
 		inclSampAll = proj.getSamplesToInclude(null);
 		if (!sampleData.hasExcludedIndividuals()) {

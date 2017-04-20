@@ -343,7 +343,7 @@ public class GCTA {
 			parser.loadData();
 			final String resultsDir = ext.parseDirectoryOfFile(mergedGRM) + ext.rootOf(mitoFile) + "/";
 			new File(resultsDir).mkdirs();
-			SampleData sampleData = proj.getSampleData(0, false);
+			SampleData sampleData = proj.getSampleData(false);
 			String[] samples = proj.getSamples();
 			ArrayList<String> fidIID = new ArrayList<String>();
 			for (String sample : samples) {

@@ -953,7 +953,7 @@ public class Project implements PropertyChangeListener {
 		SampleData sampleData;
 		int counter = 0;
 
-		sampleData = getSampleData(0, false);
+		sampleData = getSampleData(false);
 		samples = getSamples();
 		samplesToExclude = new boolean[samples.length];
 		for (int i = 0; i < samples.length; i++) {
@@ -1006,7 +1006,7 @@ public class Project implements PropertyChangeListener {
 			hash = null;
 		}
 
-		sampleData = getSampleData(0, false);
+		sampleData = getSampleData(false);
 		samples = getSamples();
 		samplesToInclude = new boolean[samples.length];
 		for (int i = 0; i < samples.length; i++) {
@@ -1074,16 +1074,15 @@ public class Project implements PropertyChangeListener {
 		}
 	}
 
-	public void resetSampleData() {
+	public synchronized void resetSampleData() {
 		sampleDataRef.clear();
 	}
 
-	public SampleData getSampleData(int numberOfBasicClassesToLoad, boolean loadCNVs) {
-		return getSampleData(numberOfBasicClassesToLoad, loadCNVs ? CNV_FILENAMES.getValue() : null);
+	public SampleData getSampleData(boolean loadCNVs) {
+		return getSampleData(loadCNVs ? CNV_FILENAMES.getValue() : null);
 	}
 
-	public synchronized SampleData getSampleData(int numberOfBasicClassesToLoad,
-																							 String[] cnvFilenames) {
+	public synchronized SampleData getSampleData(String[] cnvFilenames) {
 		if (cnvFilenames != null) {
 			for (int i = 0; i < cnvFilenames.length; i++) {
 				if (!cnvFilesLoadedInSampleData.contains(cnvFilenames[i])) {
@@ -1094,7 +1093,7 @@ public class Project implements PropertyChangeListener {
 		}
 		SampleData sampleData = sampleDataRef.get();
 		if (sampleData == null) {
-			sampleData = new SampleData(this, numberOfBasicClassesToLoad, cnvFilenames);
+			sampleData = new SampleData(this, SampleData.BASIC_CLASSES.length, cnvFilenames);
 			// System.err.println("SampleData loaded with "+(cnvFilenames == null?"no cnv
 			// files":Array.toStr(cnvFilenames, "/")));
 			cnvFilesLoadedInSampleData = HashVec.loadToHashSet(cnvFilenames);

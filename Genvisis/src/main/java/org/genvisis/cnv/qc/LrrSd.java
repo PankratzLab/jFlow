@@ -503,7 +503,7 @@ public class LrrSd extends Parallelizable {
 		Logger log = proj.getLog();
 		String delim = "\t";
 
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		// double lrrSdFilter = Double.parseDouble(proj.getProperty(proj.LRRSD_CUTOFF));
 		double lrrSdFilter = proj.LRRSD_CUTOFF.getValue();
 		double callRateFilter = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();

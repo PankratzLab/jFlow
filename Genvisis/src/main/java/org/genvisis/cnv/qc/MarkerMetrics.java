@@ -287,7 +287,7 @@ public class MarkerMetrics {
 				}
 
 				Integer duplicateErrors = null;
-				SampleData sampleData = proj.getSampleData(0, false);
+				SampleData sampleData = proj.getSampleData(false);
 				if (sampleData.getDuplicateSets() != null) {
 					Collection<Set<String>> duplicateSets = sampleData.getDuplicateSets();
 					List<Set<Integer>> duplicateIndexSets = Lists.newArrayListWithCapacity(duplicateSets.size());
@@ -357,7 +357,7 @@ public class MarkerMetrics {
 	 */
 	private static int[] getSexes(Project proj, String[] samples) {
 		int[] sexes = new int[samples.length];
-		SampleData sampleData = proj.getSampleData(2, false);
+		SampleData sampleData = proj.getSampleData(false);
 		for (int i = 0; i < samples.length; i++) {
 			sexes[i] = sampleData.getSexForIndividual(samples[i]);
 		}
@@ -509,7 +509,7 @@ public class MarkerMetrics {
 		}
 
 		log = proj.getLog();
-		sampleData = proj.getSampleData(2, false);
+		sampleData = proj.getSampleData(false);
 		samples = proj.getSamples();
 		sexes = new int[samples.length];
 		for (int i = 0; i < samples.length; i++) {

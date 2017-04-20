@@ -700,7 +700,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 	 */
 	private static boolean checkSampleData(Project proj, FileBox[] fileBoxes, Logger log) {
 		ArrayList<String> issues = new ArrayList<String>();
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		for (FileBox fileBoxe : fileBoxes) {
 			try {
 				String[] id = sampleData.lookup(fileBoxe.getDNA());

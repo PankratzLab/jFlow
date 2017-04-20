@@ -199,7 +199,7 @@ public class PCImputeRace {
 
 		log.report("Writing Results");
 
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 
 		Map<String, String> dataToAdd = Maps.newHashMap();
 		for (Sample sample : samples) {

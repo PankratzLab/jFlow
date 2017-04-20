@@ -663,7 +663,7 @@ public class SexChecks {
 		String famIndPair;
 		List<String>[] regionLists = new List[ESTIMATED_SEXES.length + 2];
 
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		String resultsDir = new File(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false)).getParent()
 												+ "/";
 		Hashtable<String, String> estSex = new Hashtable<String, String>();
@@ -827,7 +827,7 @@ public class SexChecks {
 		Logger log;
 
 		log = proj.getLog();
-		sampleData = proj.getSampleData(2, false);
+		sampleData = proj.getSampleData(false);
 		samples = proj.getSamples();
 		sexes = new int[samples.length];
 		for (int i = 0; i < samples.length; i++) {
@@ -976,7 +976,7 @@ public class SexChecks {
 		}
 
 		log = proj.getLog();
-		sampleData = proj.getSampleData(2, false);
+		sampleData = proj.getSampleData(false);
 		samplesToExclude = proj.getSamplesToExclude();
 		samples = proj.getSamples();
 		sexes = new int[samples.length];

@@ -151,7 +151,7 @@ public class SampleQC {
 		for (int i = 0; i < samples.length; i++) {
 			fidiidhash.put(samples[i], fidiids[i]);
 		}
-		SampleData sampledata = proj.getSampleData(0, false);
+		SampleData sampledata = proj.getSampleData(false);
 		String[] header = new String[] {"FID", "IID"};
 		proj.getLog()
 				.reportTimeInfo("Replacing FID/IID columns in Sample Data with FID/IID from Pedigree");
@@ -487,7 +487,7 @@ public class SampleQC {
 
 	private static void appendToSampleData(Project proj, Hashtable<String, String> hashtable,
 																				 String[] header, int numQ, boolean justQuantiles) {
-		SampleData sampledata = proj.getSampleData(0, false);
+		SampleData sampledata = proj.getSampleData(false);
 		proj.getLog()
 				.reportTimeInfo("Adding " + header.length + " columns to sample data based on sample QC");
 		sampledata.addData(hashtable, "DNA", header, ".", "\t", proj.getLog());

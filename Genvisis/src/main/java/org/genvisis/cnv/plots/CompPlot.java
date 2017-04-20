@@ -456,7 +456,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 	 * Open a {@link Trailer} plot for each {@link CNVariant} in the given list.
 	 */
 	public void openTrailers(List<CNVariant> selectedCNVs) {
-		SampleData sampleData = proj.getSampleData(2, true);
+		SampleData sampleData = proj.getSampleData(true);
 		int window = proj.getProperty(proj.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER);
 
 		String[][] sampleRegions = new String[selectedCNVs.size()][];
@@ -788,7 +788,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		// long startTime = Calendar.getInstance().getTimeInMillis();
 		cnvRects = new CNVRectangles(hashes, allFiles, filterFiles, location, probes, minSize,
 																 qualityScore,
-																 proj.getSampleData(SampleData.BASIC_CLASSES.length, false),
+																 proj.getSampleData(false),
 																 showExcludes ? allSamples : subSamples);
 		cnvRects.setRectangleHeight(rectangleHeight);
 		compPanel.setWindow(location[1], location[2]);

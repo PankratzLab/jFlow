@@ -547,7 +547,7 @@ public class PennCNVPrep {
 
 	public static int[] getSampleSex(Project proj) {
 		String[] samples = proj.getSamples();
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		int[] sex = new int[samples.length];
 		for (int i = 0; i < samples.length; i++) {
 			sex[i] = sampleData.getSexForIndividual(samples[i]);

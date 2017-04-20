@@ -193,7 +193,7 @@ public class FilterCalls {
 
 		outputFile = dir + filenameNoExt + "_CNVStats.xln";
 
-		sampleData = proj == null ? null : proj.getSampleData(0, false);
+		sampleData = proj == null ? null : proj.getSampleData(false);
 
 		List<CNVariant> cnvList = CNVariant.loadPlinkFile(cnvFile, null, true,
 																											proj == null ? false
@@ -429,7 +429,7 @@ public class FilterCalls {
 		}
 		Hashtable<String, String> droppedMarkerNames = proj.getFilteredHash();
 		String[] markerNames = markerSet.getMarkerNames();
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 
 		log.report(ext.getTime() + "] Cleaning CNVs...");
 		int size = indivChrCNVMap.size();
@@ -709,7 +709,7 @@ public class FilterCalls {
 			int[][] positions = markerSet.getPositionsByChr();
 			Hashtable<String, String> droppedMarkerNames = proj.getFilteredHash();
 			String[] markerNames = markerSet.getMarkerNames();
-			SampleData sampleData = proj.getSampleData(0, false);
+			SampleData sampleData = proj.getSampleData(false);
 
 			log.report(ext.getTime() + "] Cleaning CNVs...");
 			int size = indivChrCNVMap.size();

@@ -84,7 +84,6 @@ import org.genvisis.cnv.plots.TwoDPlot;
 import org.genvisis.cnv.qc.MarkerBlastQC;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
-import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
@@ -1048,7 +1047,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 					}
 				});
 			} else if (command.equals(PCMatrix.MENU_ENTRY)) {
-				String[] list = proj.getSampleData(SampleData.BASIC_CLASSES.length, false).getMetaHeaders();
+				String[] list = proj.getSampleData(false).getMetaHeaders();
 				JComboBox jcb = new JComboBox(list);
 				jcb.setEditable(false);
 				int selectColumn = JOptionPane.showConfirmDialog(null, jcb, "Select a column of interest",

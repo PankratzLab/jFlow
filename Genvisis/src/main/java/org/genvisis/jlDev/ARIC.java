@@ -26,7 +26,7 @@ public class ARIC {
 		LocusSet<CNVariant> cnvsSet = CNVariant.loadLocSet(cnvs, proj.getLog());
 		ArrayList<CNVariant> caseCNVs = new ArrayList<CNVariant>();
 		ArrayList<CNVariant> controlCNVs = new ArrayList<CNVariant>();
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 
 		String cases = ext.addToRoot(cnvs, ".vte");
 		String controls = ext.addToRoot(cnvs, ".controls");

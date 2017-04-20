@@ -817,7 +817,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 		sample = selectedSample == null ? samplesPresent[0] : selectedSample;
 		try {
-			sampleData = proj.getSampleData(2, cnvFiles);
+			sampleData = proj.getSampleData(cnvFiles);
 		} catch (Exception e) {
 			proj.getLog().reportError("Without a SampleData file, Trailer will not start");
 			return;
@@ -2958,7 +2958,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 			if (currentCentroid != null && currentCentroid.startsWith(SEX_CENT)
 					&& autoSwitch.isSelected()) {
-				SampleData sampleData = proj.getSampleData(0, false);
+				SampleData sampleData = proj.getSampleData(false);
 				int sex = sampleData.getSexForIndividual(samp.getSampleName());
 				if (sex == 1) {
 					if (currentCentroid.endsWith("Female") && !isSettingCentroid) {

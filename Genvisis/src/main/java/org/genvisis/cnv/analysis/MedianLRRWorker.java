@@ -705,7 +705,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	}
 
 	private int[][][] getRegionCNs(MarkerRegion[] markerRegions) {
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		int[][][] cnvFileCNs = null;
 		if (proj.CNV_FILENAMES.getValue() == null || proj.CNV_FILENAMES.getValue().length < 1) {
 			computelog.report("Warning - no cnv file was found, not matching regions to cnvs");

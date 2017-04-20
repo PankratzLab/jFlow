@@ -185,7 +185,7 @@ public class PrincipalComponentsApply {
 	 * of FID\tIID\tPC1\tPC2...
 	 */
 	public void reportExtropolatedPCs(String output) {
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		extrapolatedPCsFile = output;
 		try {
 			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + output)) {

@@ -289,7 +289,7 @@ public class Pedigree extends FamilyStructure {
 		project = proj;
 		nullProject = proj == null;
 		dnaIndicesInProject = new int[ids.length][];
-		SampleData sampleData = nullProject ? null : proj.getSampleData(0, false);
+		SampleData sampleData = nullProject ? null : proj.getSampleData(false);
 		String[] samples = nullProject ? null : proj.getSamples();
 		if (dnas != null && samples != null && samples.length == dnas.length) {
 			projectOrder = true;
@@ -391,7 +391,7 @@ public class Pedigree extends FamilyStructure {
 
 		samples = samples == null ? proj.getSamples() : samples;
 		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue())) {
-			sd = proj.getSampleData(0, false);
+			sd = proj.getSampleData(false);
 		}
 
 		writer = Files.getAppropriateWriter(file);

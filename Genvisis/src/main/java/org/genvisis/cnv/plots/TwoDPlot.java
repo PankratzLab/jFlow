@@ -189,7 +189,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
 										 proj.JAR_STATUS.getValue())) {
-			sampleData = proj.getSampleData(2, false);
+			sampleData = proj.getSampleData(false);
 		} else {
 			sampleData = null;
 		}
@@ -902,9 +902,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		proj.resetSampleData();
 		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
 										 proj.JAR_STATUS.getValue())) {
-			sampleData = proj.getSampleData(2, false);
+			sampleData = proj.getSampleData(false);
 		}
-		sampleData = proj.getSampleData(2, false);
+		sampleData = proj.getSampleData(false);
 		// sampleData.setLinkKeyIndex(linkKeyIndexCopy);
 
 		colorKeyPanel.updateSampleData(sampleData);

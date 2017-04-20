@@ -104,7 +104,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 		treePanel.setPreferredSize(new Dimension(200, 500));
 
 
-		sampleData = proj.getSampleData(3, false);
+		sampleData = proj.getSampleData(false);
 		if (!sampleData.containsDNA()) {
 			log.reportError("Without a DNA column in the SampleData file, ScatterPlot will not start");
 			JOptionPane.showMessageDialog(null,
@@ -273,7 +273,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 			updateGUI();
 		} else if (command.equals(REFRESH_SAMPLE_DATA)) {
 			proj.resetSampleData();
-			sampleData = proj.getSampleData(2, false);
+			sampleData = proj.getSampleData(false);
 			stratPanel.pushSampleData();
 			updateGUI();
 		} else {

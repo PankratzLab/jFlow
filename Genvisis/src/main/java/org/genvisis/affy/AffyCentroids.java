@@ -198,11 +198,11 @@ public class AffyCentroids implements Serializable {
 																									 double confThreshold) {
 		Logger log = proj.getLog();
 
-		if (!proj.getSampleData(1, false).hasExcludedIndividuals()) {
+		if (!proj.getSampleData(false).hasExcludedIndividuals()) {
 			log.reportError("Error - cannot exclude individuals for centroid computations , no factor named 'Exclude/CLASS=Exclude' in Sample Data");
 			System.exit(1);
 		} else {
-			SampleData sampleData = proj.getSampleData(1, false);
+			SampleData sampleData = proj.getSampleData(false);
 			SampleList sampleList = proj.getSampleList();
 			String[] samples = sampleList.getSamples();
 			boolean[] samplesToBeUsed = new boolean[samples.length];
@@ -230,7 +230,7 @@ public class AffyCentroids implements Serializable {
 		log.report("Computing centroids from intensity means");
 		sampleList = proj.getSampleList();
 		samples = sampleList.getSamples();
-		proj.getSampleData(0, false);
+		proj.getSampleData(false);
 		if (samples.length != samplesToBeUsed.length) {
 			log.reportError("Error - mismatched number of samples in project versus sample mask");
 			System.exit(1);

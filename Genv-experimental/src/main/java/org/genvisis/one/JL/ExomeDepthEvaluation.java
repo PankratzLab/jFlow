@@ -51,7 +51,7 @@ public class ExomeDepthEvaluation {
 		MatchResults matchResults = null;
 		MarkerSetInfo markerSet = proj.getMarkerSet();
 		int[][] indicesByChr = markerSet.getIndicesByChr();
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		for (int i = 0; i < CNVariant.CONSENSUS_TYPE.values().length; i++) {
 			CONSENSUS_TYPE cType = CNVariant.CONSENSUS_TYPE.values()[i];
 			for (int j = 0; j < CNVariant.OVERLAP_TYPE.values().length; j++) {

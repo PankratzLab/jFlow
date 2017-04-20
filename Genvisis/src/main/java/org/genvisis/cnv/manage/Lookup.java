@@ -13,31 +13,31 @@ public class Lookup {
 	 * @return
 	 */
 	public static String lookupDNA(String id, Project project) {
-		SampleData sd = project.getSampleData(0, false);
+		SampleData sd = project.getSampleData(false);
 		String[] lookup = sd.lookup(id);
 		return lookup[0];
 	}
 
 	public static String lookupIDs(String dna, Project project) {
-		SampleData sd = project.getSampleData(0, false);
+		SampleData sd = project.getSampleData(false);
 		String[] lookup = sd.lookup(dna);
 		return lookup[1];
 	}
 
 	public static String lookupIIDOnly(String dna, Project project) {
-		SampleData sd = project.getSampleData(0, false);
+		SampleData sd = project.getSampleData(false);
 		String[] lookup = sd.lookup(dna);
 		return lookup[2];
 	}
 
 	public static String lookup(String key, Project project, boolean lookupDNA) {
-		SampleData sd = project.getSampleData(0, false);
+		SampleData sd = project.getSampleData(false);
 		String[] lookup = sd.lookup(key);
 		return lookup[lookupDNA ? 0 : 1];
 	}
 
 	public static Hashtable<String, String> lookupDNABatch(String[] ids, Project project) {
-		SampleData sd = project.getSampleData(0, false);
+		SampleData sd = project.getSampleData(false);
 		Hashtable<String, String> lookupTable = new Hashtable<String, String>();
 		for (String key : ids) {
 			lookupTable.put(key, sd.lookup(key)[0]);
@@ -47,7 +47,7 @@ public class Lookup {
 
 	public static Hashtable<String, String> lookupDNABatch(java.util.Collection<String> ids,
 																												 Project project) {
-		SampleData sd = project.getSampleData(0, false);
+		SampleData sd = project.getSampleData(false);
 		Hashtable<String, String> lookupTable = new Hashtable<String, String>();
 		for (String key : ids) {
 			lookupTable.put(key, sd.lookup(key)[0]);
@@ -56,7 +56,7 @@ public class Lookup {
 	}
 
 	public static Hashtable<String, String> lookupIDsBatch(String[] dnas, Project project) {
-		SampleData sd = project.getSampleData(0, false);
+		SampleData sd = project.getSampleData(false);
 		Hashtable<String, String> lookupTable = new Hashtable<String, String>();
 		for (String key : dnas) {
 			lookupTable.put(key, sd.lookup(key)[1]);
@@ -66,7 +66,7 @@ public class Lookup {
 
 	public static Hashtable<String, String> lookupIDsBatch(java.util.Collection<String> dnas,
 																												 Project project) {
-		SampleData sd = project.getSampleData(0, false);
+		SampleData sd = project.getSampleData(false);
 		Hashtable<String, String> lookupTable = new Hashtable<String, String>();
 		for (String key : dnas) {
 			lookupTable.put(key, sd.lookup(key)[1]);
@@ -75,7 +75,7 @@ public class Lookup {
 	}
 
 	public static Hashtable<String, String> lookupIIDsOnlyBatch(String[] dnas, Project project) {
-		SampleData sd = project.getSampleData(0, false);
+		SampleData sd = project.getSampleData(false);
 		Hashtable<String, String> lookupTable = new Hashtable<String, String>();
 		for (String key : dnas) {
 			lookupTable.put(key, sd.lookup(key)[2]);
@@ -85,7 +85,7 @@ public class Lookup {
 
 	public static Hashtable<String, String> lookupIIDsOnlyBatch(java.util.Collection<String> dnas,
 																															Project project) {
-		SampleData sd = project.getSampleData(0, false);
+		SampleData sd = project.getSampleData(false);
 		Hashtable<String, String> lookupTable = new Hashtable<String, String>();
 		for (String key : dnas) {
 			lookupTable.put(key, sd.lookup(key)[2]);

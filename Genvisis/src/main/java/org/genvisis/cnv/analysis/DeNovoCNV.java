@@ -399,7 +399,7 @@ public class DeNovoCNV {
 		boolean offspringExisted;
 		Logger log = proj.getLog();
 
-		sampleData = proj.getSampleData(2, false);
+		sampleData = proj.getSampleData(false);
 		if (pennCnvResultFileNameExt.startsWith(".")) {
 			pennCnvResultFileNameExt = pennCnvResultFileNameExt.substring(1);
 		}
@@ -497,7 +497,7 @@ public class DeNovoCNV {
 		String[] currentParents;
 		Logger log = proj.getLog();
 
-		sampleData = proj.getSampleData(2, false);
+		sampleData = proj.getSampleData(false);
 		if (pennCnvResultFileNameExt.startsWith(".")) {
 			pennCnvResultFileNameExt = pennCnvResultFileNameExt.substring(1);
 		}
@@ -599,7 +599,7 @@ public class DeNovoCNV {
 		String[] line;
 		SampleData sampleData;
 
-		sampleData = proj.getSampleData(2, false);
+		sampleData = proj.getSampleData(false);
 		try {
 			reader = new BufferedReader(new FileReader(triosPedigreeFileFullPath));
 			if (pedigreeHasHeader) {

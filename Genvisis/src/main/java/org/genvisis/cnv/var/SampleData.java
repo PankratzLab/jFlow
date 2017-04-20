@@ -1931,7 +1931,7 @@ public class SampleData {
 
 		if (Files.exists(thisProject.SAMPLE_DATA_FILENAME.getValue(false, false),
 										 thisProject.JAR_STATUS.getValue())) {
-			thisProject.getSampleData(2, false);
+			thisProject.getSampleData(false);
 		} else {
 			try {
 				createSampleData(ped, samp, thisProject);

@@ -108,7 +108,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			}
 			if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
 											 proj.JAR_STATUS.getValue())) {
-				sampleData = proj.getSampleData(1, false);
+				sampleData = proj.getSampleData(false);
 				proj.getLog().report("Sample lookup is available for this project");
 			}
 		}

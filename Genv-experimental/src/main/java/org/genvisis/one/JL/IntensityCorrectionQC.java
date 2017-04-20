@@ -648,7 +648,7 @@ public class IntensityCorrectionQC {
 		}
 
 		public static ClassDefinition[] getClassDefinitionsFromSampleData(Project proj) {
-			SampleData sampleData = proj.getSampleData(0, false);
+			SampleData sampleData = proj.getSampleData(false);
 			String[] samples = proj.getSamples();
 			int numClasses = sampleData.getNumActualClasses();
 			boolean[] samplesToUse = proj.getSamplesToInclude(null);

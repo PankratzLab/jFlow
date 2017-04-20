@@ -192,7 +192,7 @@ public class PennCNV {
 		}
 		SampleData sampleData;
 		try {
-			sampleData = proj.getSampleData(2, false);
+			sampleData = proj.getSampleData(false);
 		} catch (Exception e) {
 			log.reportError("Error - without a sample data file, PennCNV will fail to analyze sex chromosomes");
 			return;
@@ -403,7 +403,7 @@ public class PennCNV {
 		log = proj.getLog();
 		log.report("Parsing PennCNV warning...");
 
-		sampleData = proj.getSampleData(2, false);
+		sampleData = proj.getSampleData(false);
 		// lrrSD_cutoff = proj.getDouble(proj.LRRSD_CUTOFF);
 		lrrSD_cutoff = proj.LRRSD_CUTOFF.getValue();
 
@@ -638,7 +638,7 @@ public class PennCNV {
 		}
 
 		warnings = new Vector<String>();
-		sampleData = proj.getSampleData(2, false);
+		sampleData = proj.getSampleData(false);
 		pedinfo = new Hashtable<String, Vector<String>>();
 		Pedigree ped = proj.loadPedigree();
 		PrintWriter[] denoValWriter = new PrintWriter[1];

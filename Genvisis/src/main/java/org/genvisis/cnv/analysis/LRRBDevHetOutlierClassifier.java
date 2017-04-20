@@ -335,7 +335,7 @@ public class LRRBDevHetOutlierClassifier {
 
 		if (project) {
 			Project proj = new Project(file, false);
-			SampleData sampleData = proj.getSampleData(0, false);
+			SampleData sampleData = proj.getSampleData(false);
 			for (String id : ArrayUtils.subArray(proj.getSamples(), proj.getSamplesToExclude())) {
 				for (String subID : sampleData.lookup(id)) {
 					excludeList.add(subID);

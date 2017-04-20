@@ -447,7 +447,7 @@ public class Mosaicism {
 			System.err.println("Error - need to specify the name of a CNV file in the project properties file before running Mosaicism.checkForOverlap()");
 			return;
 		}
-		sampleData = proj.getSampleData(2, new String[] {cnvFiles[0]});
+		sampleData = proj.getSampleData(new String[] {cnvFiles[0]});
 		if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + "lrr_sd.xln",
 										 proj.JAR_STATUS.getValue())) {
 			lrrsdHash = HashVec.loadFileToHashString(proj.PROJECT_DIRECTORY.getValue() + "lrr_sd.xln",

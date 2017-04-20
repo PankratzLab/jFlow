@@ -215,7 +215,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	 */
 	public void summarize(String output) {
 		residOutput = ext.rootOf(output) + MT_REPORT_EXT[0];
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		try {
 			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + residOutput)) {
 				Files.backup(residOutput, proj.PROJECT_DIRECTORY.getValue(),
@@ -541,7 +541,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 
 		SampleData sampleData = null;
 		if (!useIID) {
-			sampleData = proj.getSampleData(0, false);
+			sampleData = proj.getSampleData(false);
 		} else {
 			log.reportTimeWarning("Using the IID as supplied in the pc file to load samples");
 		}

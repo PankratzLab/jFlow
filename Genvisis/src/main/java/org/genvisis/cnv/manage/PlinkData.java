@@ -2046,7 +2046,7 @@ public class PlinkData {
 		int[] sampleIndices;
 
 		finalSampleIDs = proj.getSamples();
-		sampleData = proj.getSampleData(SampleData.BASIC_CLASSES.length, false);
+		sampleData = proj.getSampleData(false);
 
 		sampleIndices = ArrayUtils.intArray(finalSampleIDs.length, -1);
 		try {

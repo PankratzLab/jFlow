@@ -331,7 +331,7 @@ public class cnvTrio extends CNVariant {
 			cnVariants = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue() + cnvFile, false);
 			// rawRegionFrequency = determinRegionFrequencies(cnVariants, proj.getLog());
 		}
-		parseTrios(cnVariants, trios, proj.getSampleData(0, false),
+		parseTrios(cnVariants, trios, proj.getSampleData(false),
 							 (cnvFile == null ? proj.PROJECT_DIRECTORY.getValue() + output
 																	+ COMBINED_TRIOS[fileType]
 																: proj.PROJECT_DIRECTORY.getValue() + output + ext.rootOf(cnvFile)),
@@ -453,7 +453,7 @@ public class cnvTrio extends CNVariant {
 		int[][] indi = markerSet.getIndicesByChr();
 		ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 		for (int i = 0; i < trios.length; i++) {
-			Runnable worker = new WorkerThread(proj, proj.getSampleData(0, false), trios[i],
+			Runnable worker = new WorkerThread(proj, proj.getSampleData(false), trios[i],
 																				 markerSet.getChrs(), markerSet.getPositions(),
 																				 Matrix.clone(indi), rawRegionFrequency, i);
 			executor.execute(worker);
@@ -862,7 +862,7 @@ public class cnvTrio extends CNVariant {
 
 	public static void parse(Project proj, String trioResultsFile, CNVTrioFilter trioFilter,
 													 boolean excludeFromSampleData, String ouput) {
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		cnvTrio[] rawCNVTrios = loadTrios(proj.PROJECT_DIRECTORY.getValue() + trioResultsFile,
 																			proj.getLog());
 		List<cnvTrio> filteredCnvTrios = new ArrayList<cnvTrio>();

@@ -110,7 +110,7 @@ public class PCMatrix {
 																																						"\t", true, false);
 
 		// Align the PC values with sample data column values
-		String[][] filtered = filterSamples(proj.getSampleData(0, false), pcSamples, sampleVec);
+		String[][] filtered = filterSamples(proj.getSampleData(false), pcSamples, sampleVec);
 		String[] colValsBySample = filtered[0]; // All column values for samples with PC data
 		String[] valList = filtered[1]; // Unique column values
 

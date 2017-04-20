@@ -1033,7 +1033,7 @@ public class CNVCaller {
 
 				String[] samples = proj.getSamples();
 				boolean[] inclSampAll = proj.getSamplesToInclude(null);
-				int[] sexes = proj.getSampleData(0, false).getSexForAllIndividuals();
+				int[] sexes = proj.getSampleData(false).getSexForAllIndividuals();
 				ArrayList<String> males = new ArrayList<String>();
 				ArrayList<String> females = new ArrayList<String>();
 

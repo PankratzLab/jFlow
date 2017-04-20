@@ -371,7 +371,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		samples = sampleList.getSamples();
 		sampleListFingerprint = sampleList.getFingerprint();
 		try {
-			sampleData = proj.getSampleData(3, true);
+			sampleData = proj.getSampleData(true);
 		} catch (Exception e) {
 			fail = true;
 			proj.getLog().reportError("Without a SampleData file, ScatterPlot will not start");

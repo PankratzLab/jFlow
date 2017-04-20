@@ -352,7 +352,7 @@ public class BeastScore {
 	 * @param isSexCNVs This flag applies sex-specific centroids to recompute LRRs.  If not, original LRRs will be used for scoring.
 	 */
 	public static void scoreCNVFile(Project proj, String cnvFile, boolean recomputeLRRsFromSexCentroids) {
-		SampleData sd = proj.getSampleData(0, false);
+		SampleData sd = proj.getSampleData(false);
 
 		MarkerSetInfo markerSet = proj.getMarkerSet();
 		byte[] chr = markerSet.getChrs();
@@ -435,7 +435,7 @@ public class BeastScore {
 		byte[] chr = markerSet.getChrs();
 		int[] positions = markerSet.getPositions();
 		int[][] indicesByChr = markerSet.getIndicesByChr();
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 
 		for (int i = 0; i < cNVariantInds.length; i++) {
 			beastScores[i] = beastInd(proj, sampleData, cNVariantInds[i], chr, positions, indicesByChr);

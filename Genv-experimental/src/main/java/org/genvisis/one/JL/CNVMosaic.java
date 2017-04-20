@@ -36,7 +36,7 @@ public class CNVMosaic {
 	private static LocusSet<MosaicRegion> callMosaic(Project proj, String output, int numThreads) {
 
 		LocusSet<MosaicRegion> results = null;
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		ArrayList<String> samples = new ArrayList<String>();
 		String[] samps = proj.getSamples();
 		for (int i = 0; i < samps.length; i++) {
@@ -129,7 +129,7 @@ public class CNVMosaic {
 		plot(proj, mosaicOut, cns, restrictions, true);
 		// plot(proj, mosaicOut);
 		String[] cnvFiles = proj.CNV_FILENAMES.getValue();
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		for (String cnvFile : cnvFiles) {
 			String output = ext.addToRoot(cnvFile, ".mosaicMetrics");
 			if (!Files.exists(output)) {
@@ -375,7 +375,7 @@ public class CNVMosaic {
 				fidsIids[i] = fidIid;
 				i++;
 			}
-			sampleData = proj.getSampleData(0, false);
+			sampleData = proj.getSampleData(false);
 		}
 
 		@Override

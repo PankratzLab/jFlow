@@ -231,7 +231,7 @@ public class ImputationPipeline {
 	}
 
 	public void exportToVCF(String vcfDirAndRoot, int[] chrs) {
-		SampleData sd = proj.getSampleData(0, false);
+		SampleData sd = proj.getSampleData(false);
 		String[] allSamples = proj.getSamples();
 		List<String> idsToInclude = new ArrayList<String>();
 		Map<String, Integer> idIndexMap = new HashMap<String, Integer>();

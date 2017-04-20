@@ -28,7 +28,7 @@ public class CNValidate implements Runnable {
 		this.proj = proj;
 		this.inds = inds;
 		this.allIndcnVariantQCs = allIndcnVariantQCs;
-		sampleData = proj.getSampleData(2, false);
+		sampleData = proj.getSampleData(false);
 		this.markerSet = markerSet;
 		indcnVariantQCs = new CNVariantQC[inds.length][];
 		log = proj.getLog();

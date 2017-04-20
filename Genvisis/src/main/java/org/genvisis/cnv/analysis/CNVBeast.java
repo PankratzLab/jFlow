@@ -138,7 +138,7 @@ public class CNVBeast {
 	}
 
 	private static CNVariant[][] parseBeastResults(Project proj, BeastConfig[] allConfigs) {
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		CNVariant[][] allCNVs = new CNVariant[allConfigs.length][];
 		for (int i = 0; i < allConfigs.length; i++) {
 			if (allConfigs[i].hasSummaryFile()) {

@@ -76,7 +76,7 @@ public class DistributionPlot {
 
 			lrrScat = initialize("LRR bin", "Log count");
 			lrrScat.setTitle("LRR values");
-			final SampleData sampleData = proj.getSampleData(0, false);
+			final SampleData sampleData = proj.getSampleData(false);
 
 			bafScat = initialize("BAF bin", "Log count");
 			bafScat.setTitle("BAF values");

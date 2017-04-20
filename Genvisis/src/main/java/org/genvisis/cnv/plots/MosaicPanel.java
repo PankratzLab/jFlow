@@ -87,7 +87,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 		this.samples = samples;
 		this.data = data;
 
-		sampleData = proj.getSampleData(0, false);
+		sampleData = proj.getSampleData(false);
 
 		count = 0;
 		invalidBytes = new HashSet<String>();

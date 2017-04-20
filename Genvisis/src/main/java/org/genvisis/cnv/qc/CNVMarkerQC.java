@@ -60,7 +60,7 @@ public class CNVMarkerQC implements Runnable {
 																 String outputSer) {
 		MarkerLookup markerLookup = proj.getMarkerLookup();
 		MarkerSetInfo markerSet = proj.getMarkerSet();
-		SampleData sampleData = proj.getSampleData(2, false);
+		SampleData sampleData = proj.getSampleData(false);
 		String[] markerNames = markerSet.getMarkerNames();
 		Hashtable<String, ArrayList<String>> markerFiles = assignFiles(markerLookup, markerNames);
 		ArrayList<ArrayList<String>> cabinet = getcabinet(markerFiles, threads);

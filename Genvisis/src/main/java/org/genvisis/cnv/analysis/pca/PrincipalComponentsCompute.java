@@ -398,11 +398,11 @@ public class PrincipalComponentsCompute {
 		boolean[] samplesToUse = new boolean[samples.length];
 		Logger log = proj.getLog();
 
-		if (!proj.getSampleData(1, false).hasExcludedIndividuals() && excludeSamples) {
+		if (!proj.getSampleData(false).hasExcludedIndividuals() && excludeSamples) {
 			log.reportError("Error - cannot exclude individuals for PCA , no factor named 'Exclude/CLASS=Exclude' in Sample Data");
 			return null;
 		} else if (excludeSamples) {
-			SampleData sampleData = proj.getSampleData(1, false);
+			SampleData sampleData = proj.getSampleData(false);
 			int use = 0;
 			for (int i = 0; i < samples.length; i++) {
 				samplesToUse[i] = !sampleData.individualShouldBeExcluded(samples[i]);
@@ -421,7 +421,7 @@ public class PrincipalComponentsCompute {
 
 	// can return null
 	private static boolean[] getSamplesFromFile(Project proj, String useFile) {
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		Logger log = proj.getLog();
 		String[] samplesToUseFromFile = HashVec.loadFileToStringArray(useFile, false, false,
 																																	new int[] {0}, true, true, "\t");
@@ -865,7 +865,7 @@ public class PrincipalComponentsCompute {
 	private static double[][] reportPCs(Project proj, PrincipalComponentsCompute pcs,
 																			int numComponents, String output, boolean[] samplesToUse,
 																			double[][] pcsBasis) {
-		SampleData sampleData = proj.getSampleData(0, false);
+		SampleData sampleData = proj.getSampleData(false);
 		Logger log = proj.getLog();
 
 		output = ext.rootOf(output) + OUTPUT_EXT[0];

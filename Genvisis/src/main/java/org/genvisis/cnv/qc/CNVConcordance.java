@@ -275,7 +275,7 @@ public class CNVConcordance {
 		this.testHash = testHash;
 		this.controlHash = controlHash;
 		this.proj = proj;
-		sampleData = proj.getSampleData(SampleData.MINIMAL_SAMPLE_DATA_HEADER.length, false);
+		sampleData = proj.getSampleData(false);
 		this.qcMap = qcMap;
 		this.maxLrr = maxLrr;
 		this.minCallRate = minCallRate;

@@ -322,7 +322,7 @@ public class PlinkMendelianChecker {
 		if (project != null) {
 			System.out.println(ext.getTime() + "]\tLoading Project data...");
 			samples = project.getSamples();
-			sampleData = project.getSampleData(0, false);
+			sampleData = project.getSampleData(false);
 			sampQC = SampleQC.loadSampleQC(project);
 			qcIndexMap = new HashMap<String, Integer>();
 			if (sampQC != null) {
