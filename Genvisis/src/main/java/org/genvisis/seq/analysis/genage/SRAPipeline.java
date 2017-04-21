@@ -200,10 +200,15 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		String[] serFiles = Files.listFullPaths(serDir, ".ser", false);
 		log.reportTimeInfo("Allocating fake bam files associated with " + serFiles.length
 											 + " .ser files in " + serDir);
-		String[] bams = ArrayUtils.tagOn(serFiles, null, ".bam");
+
+		String[] fakeBams = new String[serFiles.length];
+		for (int i = 0; i < fakeBams.length; i++) {
+			fakeBams[i] = ext.rootOf(serFiles[i], false) + ".bam";
+		}
 
 		BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER, 4,
-																			 true, atType, aName, bams, referenceGenomeFasta, numThreads);
+																			 true, atType, aName, fakeBams, referenceGenomeFasta,
+																			 numThreads);
 	}
 
 	private static void compilePrep(String sraInput, String sraRunTableFile, String rootOutDir,

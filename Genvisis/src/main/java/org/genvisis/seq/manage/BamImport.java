@@ -141,17 +141,21 @@ public class BamImport {
 
 		@Override
 		public BamPileConversionResults call() throws Exception {
+			String sampleName = Files.exists(result.getBam()) ? BamOps.getSampleName(result.getBam(), log)
+																												: ext.rootOf(result.getBam());
 			String sampleFile = proj.SAMPLE_DIRECTORY.getValue()
-													+ BamOps.getSampleName(result.getBam(), log)
+													+ sampleName
 													+ Sample.SAMPLE_FILE_EXTENSION;
 			if (!Files.exists(sampleFile)) {
+
 				BamSample bamSample = new BamSample(proj, result.getBam(), result.loadResults(log));
 				sample = bamSample.getSampleName();
-				bamIndexStats = BamOps.getBamIndexStats(result.getBam());
+				bamIndexStats = Files.exists(result.getBam()) ? BamOps.getBamIndexStats(result.getBam())
+																											: null;
 				outliers = bamSample.writeSample(fingerPrint);
 			} else {
 				log.reportFileExists(sampleFile);
-				sample = BamOps.getSampleName(result.getBam(), log);
+				sample = sampleName;
 				bamIndexStats = BamOps.getBamIndexStats(result.getBam());
 				outliers = null;
 			}
@@ -492,8 +496,9 @@ public class BamImport {
 																			 // variant sites
 			BamPileConversionResults conversionResult = conversionTrain.next();
 			BamIndexStats bamIndexStats = conversionResult.getBamIndexStats();
-			int numAligned = bamIndexStats.getAlignedRecordCount();
-			int numNotAligned = bamIndexStats.getUnalignedRecordCount();
+
+			int numAligned = bamIndexStats == null ? -1 : bamIndexStats.getAlignedRecordCount();
+			int numNotAligned = bamIndexStats == null ? -1 : bamIndexStats.getUnalignedRecordCount();
 			mappedReadCounts[convIndex + 1] = conversionResult.getSample() + "\t" + numAligned + "\t"
 																				+ numNotAligned;
 			convIndex++;

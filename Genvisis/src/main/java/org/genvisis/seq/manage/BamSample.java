@@ -8,6 +8,8 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
+import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 
@@ -32,7 +34,8 @@ public class BamSample {
 		super();
 		this.proj = proj;
 		this.bamFile = bamFile;
-		sampleName = BamOps.getSampleName(bamFile);
+		 //bam file does not exist when processing cleaned sra runs
+		sampleName = Files.exists(bamFile, false) ? BamOps.getSampleName(bamFile) : ext.rootOf(bamFile);
 		this.bamPiles = bamPiles;
 		process();
 	}
