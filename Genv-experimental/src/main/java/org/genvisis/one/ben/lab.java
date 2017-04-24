@@ -3,7 +3,6 @@ package org.genvisis.one.ben;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -195,9 +194,9 @@ public class lab {
 		int[] number = new int[] {5, 3};
 		int score = 10;
 
-		String[][] files = new String[][] {{"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/",
-																				"23Mgen_merged.cnv", "23_M_filtered.cnv",
-																				markerSetFilenameToBreakUpCentromeres_1},
+		String[][] files = new String[][] { {"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/",
+																				 "23Mgen_merged.cnv", "23_M_filtered.cnv",
+																				 markerSetFilenameToBreakUpCentromeres_1},
 																			 {"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/",
 																				"23Fgen_merged.cnv", "23_F_filtered.cnv",
 																				markerSetFilenameToBreakUpCentromeres_1},
@@ -559,6 +558,39 @@ public class lab {
 		writer.close();
 	}
 
+	public static void exomeRecode() {
+		String dir = "/scratch.global/cole0482/affy6plink/";
+		String exomeLookup = dir + "exm_to_rsID_lookup.txt";
+		String bimFile = dir + "exome_EA.bim";
+		String newBimFile = dir + "exome_EA_corrected.bim";
+		String[][] exmMkrs = HashVec.loadFileToStringMatrix(exomeLookup, true, null, "\t", false,
+																												10000,
+																												false);
+		HashMap<String, String> lookup = new HashMap<>();
+		for (String[] mkrs : exmMkrs) {
+			if (!".".equals(mkrs[1])) {
+				if (lookup.containsKey(mkrs[0]) && !lookup.get(mkrs[0]).equals(mkrs[1])) {
+					System.out.println("Duplicate entry: " + mkrs[0] + " -> " + mkrs[1] + " | " + mkrs[0]
+														 + " -> " + lookup.get(mkrs[0]));
+				}
+				lookup.put(mkrs[0], mkrs[1]);
+			}
+		}
+
+		String[][] bimData = HashVec.loadFileToStringMatrix(bimFile, false, null, "\t", false, 100000,
+																												false);
+		PrintWriter writer = Files.getAppropriateWriter(newBimFile);
+		for (String[] line : bimData) {
+			String mkr = line[1];
+			if (lookup.containsKey(mkr)) {
+				line[1] = lookup.get(mkr);
+			}
+			writer.println(ArrayUtils.toStr(line, "\t"));
+		}
+		writer.flush();
+		writer.close();
+	}
+
 
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
@@ -592,7 +624,8 @@ public class lab {
 			// "/scratch.global/cole0482/testImp/snps/cleanMarkers_corrected.txt", true);
 
 			// famLookup();
-			affy6BimLookup();
+			// affy6BimLookup();
+			exomeRecode();
 
 			// String cmd =
 			// "java -jar genvisis.jar org.genvisis.imputation.ImputationPipeline"
