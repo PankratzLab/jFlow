@@ -156,7 +156,8 @@ public class BamImport {
 			} else {
 				log.reportFileExists(sampleFile);
 				sample = sampleName;
-				bamIndexStats = BamOps.getBamIndexStats(result.getBam());
+				bamIndexStats = Files.exists(result.getBam()) ? BamOps.getBamIndexStats(result.getBam())
+																											: null;
 				outliers = null;
 			}
 			return this;
@@ -671,7 +672,7 @@ public class BamImport {
 																															 int correctionPCs, int numthreads) {
 		proj.SAMPLE_CALLRATE_THRESHOLD.setValue(0.0);
 		proj.LRRSD_CUTOFF.setValue(.60);
-		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(Math.max(20, correctionPCs));
+		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(Math.max(200, correctionPCs));
 		String mediaMarks = ext.addToRoot(proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), ".median");
 		ArrayList<ProjectCorrected> correctedProjects = new ArrayList<ProjectCorrected>();
 		Files.writeArray(ArrayUtils.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
