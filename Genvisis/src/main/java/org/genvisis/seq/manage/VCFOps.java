@@ -245,22 +245,22 @@ public class VCFOps {
 	 *        {@link VCFOps#BLANK_SAMPLE}
 	 * @return
 	 */
-	public static VariantContextWriter copyHeader(final VCFFileReader vcfFileReader,
-																								final VariantContextWriter writer,
-																								final Set<String> samples, HEADER_COPY_TYPE type,
-																								Logger log) {
-
+	public static VCFHeader copyHeader(final VCFFileReader vcfFileReader,
+																final VariantContextWriter writer,
+																final Set<String> samples, HEADER_COPY_TYPE type,
+																Logger log) {
+		VCFHeader newVCFHeader = null;
 		switch (type) {
 			case FULL_COPY:
-				writer.writeHeader(vcfFileReader.getFileHeader());
+				newVCFHeader = vcfFileReader.getFileHeader();
 				break;
 			case SITE_ONLY:
-				writer.writeHeader(new VCFHeader(vcfFileReader.getFileHeader().getMetaDataInInputOrder(),
-																				 BLANK_SAMPLE));
+				newVCFHeader = new VCFHeader(vcfFileReader.getFileHeader().getMetaDataInInputOrder(),
+																		 BLANK_SAMPLE);
 				break;
 			case SUBSET_LOOSE:
-				writer.writeHeader(new VCFHeader(vcfFileReader.getFileHeader().getMetaDataInInputOrder(),
-																				 samples));
+				newVCFHeader = new VCFHeader(vcfFileReader.getFileHeader().getMetaDataInInputOrder(),
+																		 samples);
 				break;
 
 			case SUBSET_STRICT:
@@ -271,16 +271,17 @@ public class VCFOps {
 						newSampleSubset.add(samp);
 					}
 				}
-				writer.writeHeader(new VCFHeader(vcfFileReader.getFileHeader().getMetaDataInInputOrder(),
-																				 newSampleSubset));
+				newVCFHeader = new VCFHeader(vcfFileReader.getFileHeader().getMetaDataInInputOrder(),
+																		 newSampleSubset);
 
 				break;
 			default:
 				break;
 
 		}
+		writer.writeHeader(newVCFHeader);
 
-		return writer;
+		return newVCFHeader;
 	}
 
 	public static String[] getSamplesInFile(String vcf) {
@@ -1642,7 +1643,7 @@ public class VCFOps {
 
 			VariantContextWriter writer = initWriter(output, DEFUALT_WRITER_OPTIONS,
 																							 getSequenceDictionary(reader));
-			copyHeader(reader, writer, bamSamples,
+			VCFHeader header = copyHeader(reader, writer, bamSamples,
 								 subToBam ? HEADER_COPY_TYPE.SUBSET_STRICT : HEADER_COPY_TYPE.FULL_COPY, log);
 			int progress = 0;
 			int found = 0;
@@ -1653,9 +1654,9 @@ public class VCFOps {
 				annoWriter = Files.getAppropriateWriter(annoFile);
 				annoWriter.println("##" + ArrayUtils.toStr(ANNO_BASE) + "\t"
 													 + ArrayUtils.toStr(annotations[1]) + "\t"
-													 + ArrayUtils.toStr(VCFOps.getSamplesInFile(vcf)));
+													 + ArrayUtils.toStr(header.getGenotypeSamples()));
 				annoWriter.println(ArrayUtils.toStr(ANNO_BASE) + "\t" + ArrayUtils.toStr(annotations[0])
-													 + "\t" + ArrayUtils.toStr(VCFOps.getSamplesInFile(vcf)));
+													 + "\t" + ArrayUtils.toStr(header.getGenotypeSamples()));
 			}
 			CloseableIterator<VariantContext> iterator = reader.iterator();
 			if (segsToSearch.length == 1) {
