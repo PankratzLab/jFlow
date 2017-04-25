@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -86,7 +85,7 @@ public class VCFOps {
 	public static final Options[] DEFUALT_WRITER_OPTIONS = new Options[] {Options.INDEX_ON_THE_FLY};
 
 	private static final String[] ANNO_BASE = new String[] {"CHROM", "POS", "ID", "REF", "ALT",
-																													"NUM_HOM_VAR", "NUM_HET", "NUM_HOM_ALT"};
+																													"FILTER"};
 
 
 
@@ -1679,7 +1678,8 @@ public class VCFOps {
 				}
 				if ((!skipFiltered || !vc.isFiltered()) && VCOps.isInTheseSegments(vc, segsToSearch)) {
 					if (subToBam) {
-						writer.add(VCOps.getSubset(vc, bamSamples));
+						vc = VCOps.getSubset(vc, bamSamples);
+						writer.add(vc);
 					} else {
 						writer.add(vc);
 					}
@@ -1690,8 +1690,8 @@ public class VCFOps {
 					if (createAnnotationFile) {
 						annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t"
 														 + vc.getReference().getBaseString() + "\t"
-														 + vc.getAlternateAlleles().toString() + "\t" + vc.getHomRefCount()
-														 + "\t" + vc.getHetCount() + "\t" + vc.getHomVarCount() + "\t"
+														 + vc.getAlternateAlleles().toString() + "\t"
+														 + vc.getFilters().toString() + "\t"
 														 + ArrayUtils.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
 						GenotypesContext gc = vc.getGenotypes();
 
@@ -2439,6 +2439,7 @@ public class VCFOps {
 		int numThreads = 1;
 		Logger log;
 		boolean subToBam = false;
+		boolean createAnnotation = false;
 		String[] varSet = null;
 
 		String usage = "\n" + "seq.analysis.VCFUtils requires 0-1 arguments\n";
@@ -2525,6 +2526,9 @@ public class VCFOps {
 			} else if (arg.startsWith("-standardFilters")) {
 				standardFilters = true;
 				numArgs--;
+			} else if (arg.startsWith("-createAnnotation")) {
+				createAnnotation = true;
+				numArgs--;
 			} else if (arg.startsWith("-removeMonoMorphic")) {
 				removeMonoMorphic = true;
 				numArgs--;
@@ -2561,7 +2565,8 @@ public class VCFOps {
 																						 useRSIDs, log);
 					break;
 				case EXTRACT_SEGMENTS:
-					extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, false,
+					extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip,
+													createAnnotation,
 													subToBam, varSet, numThreads, log);
 					break;
 				case EXTRACT_SEGMENTS_ANNOTATION:
