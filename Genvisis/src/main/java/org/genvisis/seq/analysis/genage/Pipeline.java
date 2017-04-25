@@ -205,7 +205,7 @@ public class Pipeline {
 			Project proj = getProjectFor(ngsSample.getaType(), rootOutDir);
 			BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBufferSize, -1,
 																				 false, ngsSample.getaType(), ngsSample.getaName(),
-																				 new String[] {bamFile}, refGenome, 1);
+																				 new String[] {bamFile}, refGenome, false, 1);
 
 			ArrayList<String> input = new ArrayList<String>();
 			input.add(bamFile);

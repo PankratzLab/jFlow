@@ -321,6 +321,7 @@ public class BamImport {
 																							int correctionPCs, boolean compileProject,
 																							ASSAY_TYPE atType, ASSEMBLY_NAME aName,
 																							String[] bamsToImport, String refGenome,
+																							boolean doCorrection,
 																							int numthreads) {
 
 		if (proj.getArrayType() == ARRAY.NGS) {
@@ -365,7 +366,7 @@ public class BamImport {
 			if (compileProject) {
 				compileProject(proj, correctionPCs, numthreads, log, bamsToImport, referenceGenome,
 											 analysisSet.markerTypes, analysisSet.analysisSet,
-											 analysisSet.offTargetsToUse, results, aName);
+											 analysisSet.offTargetsToUse, results, aName, doCorrection);
 			}
 
 
@@ -477,7 +478,8 @@ public class BamImport {
 																		 String[] bamsToImport, ReferenceGenome referenceGenome,
 																		 List<MarkerFileType> markerTypes,
 																		 LocusSet<Segment> analysisSet, String[] offTargetsToUse,
-																		 BamPileResult[] results, ASSEMBLY_NAME aName) {
+																		 BamPileResult[] results, ASSEMBLY_NAME aName,
+																		 boolean doCorrection) {
 		String[] mappedReadCounts = new String[bamsToImport.length + 1];
 		mappedReadCounts[0] = "Sample\tAlignedReadCount\tUnalignedReadCount";
 		long fingerPrint = proj.getMarkerSet().getFingerprint();
@@ -551,6 +553,7 @@ public class BamImport {
 			log.reportFileExists(proj.SAMPLE_QC_FILENAME.getValue());
 		}
 		ArrayList<ProjectCorrected> correcteds = correctifyProject(proj, markerTypes, offTargetsToUse,
+																															 doCorrection,
 																															 correctionPCs, numthreads);// Generates
 																																													// and
 																																													// corrects
@@ -669,6 +672,7 @@ public class BamImport {
 	private static ArrayList<ProjectCorrected> correctifyProject(Project proj,
 																															 List<MarkerFileType> types,
 																															 String[] offTargetsToUse,
+																															 boolean doCorrection,
 																															 int correctionPCs, int numthreads) {
 		proj.SAMPLE_CALLRATE_THRESHOLD.setValue(0.0);
 		proj.LRRSD_CUTOFF.setValue(.60);
@@ -727,7 +731,7 @@ public class BamImport {
 				String[] correctedSamps = ArrayUtils.tagOn(proj.getSamples(),
 																									 pcCorrected.SAMPLE_DIRECTORY.getValue(),
 																									 Sample.SAMPLE_FILE_EXTENSION);
-				if (!Files.exists("", correctedSamps) && type.getType() != null) {
+				if (doCorrection && !Files.exists("", correctedSamps) && type.getType() != null) {
 					proj.getLog()
 							.reportTimeInfo("PC correcting project using " + correctionPCs + " components ");
 
@@ -1136,7 +1140,7 @@ public class BamImport {
 			Project proj = new Project(filename, false);
 			importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs, true,
 															 ASSAY_TYPE.WXS, ASSEMBLY_NAME.HG19, null,
-															 proj.getReferenceGenomeFASTAFilename(), numthreads);
+															 proj.getReferenceGenomeFASTAFilename(), true, numthreads);
 		} catch (Exception e) {
 			new Logger().reportException(e);
 		}

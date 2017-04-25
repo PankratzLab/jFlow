@@ -207,7 +207,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		}
 
 		BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER, 4,
-																			 true, atType, aName, fakeBams, referenceGenomeFasta,
+																			 true, atType, aName, fakeBams, referenceGenomeFasta, false,
 																			 numThreads);
 	}
 
