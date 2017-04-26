@@ -1,6 +1,7 @@
 package org.genvisis.cnv.qc;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.math3.stat.inference.ChiSquareTest;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
@@ -11,6 +12,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.Sets;
 
 public class BatchEffects {
 
@@ -145,16 +147,18 @@ public class BatchEffects {
 		HashMultimap<String, Integer> batchIndices = HashMultimap.create();
 		Multimaps.invertFrom(Multimaps.forMap(indexBatches), batchIndices);
 
-		HashMultiset<String> totalCounts = HashMultiset.create(batchIndices.keySet().size());
+		Set<String> batches = Sets.newHashSet();
 		HashMultiset<String> missCounts = HashMultiset.create(batchIndices.keySet().size());
+		HashMultiset<String> genoCounts = HashMultiset.create(batchIndices.keySet().size());
 		HashMultiset<String> bAlleleCounts = HashMultiset.create(batchIndices.keySet().size());
 
 		for (int i = 0; i < genos.length; i++) {
 			String batch = indexBatches.get(i);
-			totalCounts.add(batch);
+			batches.add(batch);
 			byte geno = genos[i];
 			if (0 <= geno && geno <= 2) {
 				bAlleleCounts.add(batch, geno);
+				genoCounts.add(batch);
 			} else if (geno == -1) {
 				missCounts.add(batch);
 			} else {
@@ -164,16 +168,16 @@ public class BatchEffects {
 
 		ImmutableSortedSet.Builder<BatchEffect> batchEffectsBuilder = ImmutableSortedSet.naturalOrder();
 		int totalMisses = missCounts.size();
-		int totalGenos = genos.length;
+		int totalGenos = genoCounts.size();
 
 		int totalBAlleles = bAlleleCounts.size();
 		int totalAlleles = totalGenos * 2;
 
-		for (String batch : totalCounts.elementSet()) {
+		for (String batch : batches) {
 			int batchMisses = missCounts.count(batch);
-			int batchGenos = totalCounts.count(batch);
+			int batchGenos = genoCounts.count(batch);
 
-			double missP = calcChiSquareP(batchMisses, batchGenos, totalMisses, totalGenos);
+			double missP = calcMissChiSquareP(batchMisses, batchGenos, totalMisses, totalGenos);
 			if (missP <= pValueThreshold) {
 				batchEffectsBuilder.add(new BatchEffect(missP, batch, TestType.MISSINGNESS));
 			}
@@ -181,7 +185,8 @@ public class BatchEffects {
 			int batchBAlleles = bAlleleCounts.count(batch);
 			int batchAlleles = batchGenos * 2;
 
-			double allelicP = calcChiSquareP(batchBAlleles, batchAlleles, totalBAlleles, totalAlleles);
+			double allelicP = calcAllelicChiSquareP(batchBAlleles, batchAlleles, totalBAlleles,
+																							totalAlleles);
 			if (allelicP <= pValueThreshold) {
 				batchEffectsBuilder.add(new BatchEffect(allelicP, batch, TestType.ALLELIC));
 			}
@@ -192,13 +197,20 @@ public class BatchEffects {
 
 	}
 
-	private static double calcChiSquareP(int batchACount, int batchTotalCount,
-																			 int totalACount, int totalCount) {
-		int batchBCount = batchTotalCount - batchACount;
-		int otherACount = totalACount - batchACount;
-		int otherBCount = totalCount - (batchTotalCount + otherACount);
-		long[][] counts = new long[][] {{batchACount, batchBCount},
-																		{otherACount, otherBCount}};
+	private static double calcMissChiSquareP(int batchMisses, int batchGenos, int totalMisses,
+																					 int totalGenos) {
+		int otherMisses = totalMisses - batchMisses;
+		int otherGenos = totalGenos - batchGenos;
+		long[][] counts = new long[][] {{batchMisses, batchGenos}, {otherMisses, otherGenos}};
+		return CHI_SQUARE.chiSquareTest(counts);
+	}
+
+	private static double calcAllelicChiSquareP(int batchBAlleles, int batchAlleles,
+																							int totalBAlleles, int totalAlleles) {
+		int batchAAlleles = batchAlleles - batchBAlleles;
+		int otherBAlleles = totalBAlleles - batchBAlleles;
+		int otherAAlelles = totalAlleles - (batchAlleles + otherBAlleles);
+		long[][] counts = new long[][] {{batchBAlleles, batchAAlleles}, {otherBAlleles, otherAAlelles}};
 		return CHI_SQUARE.chiSquareTest(counts);
 	}
 
