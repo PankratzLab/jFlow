@@ -460,6 +460,22 @@ public class lab {
 
 	public static void affy6BimLookup() {
 		// String bimFile =
+		// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/compare/plinkDropFilt.bim";
+		// String newBimFile =
+		// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/compare/plinkDropFilt_correctedRS.bim";
+		// String missSnpFile =
+		// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/compare/plinkDropFilt_missingRS.txt";
+		// String mismatchFile =
+		// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/compare/plinkDropFilt_mismatchAlleles.txt";
+		String bimFile =
+										 "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final?/plinkNoRSDupe.bim";
+		String newBimFile =
+												"/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final?/plinkNoRSDupe_correctedRS.bim";
+		String missSnpFile =
+												 "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final?/plinkNoRSDupe_missingRS.txt";
+		String mismatchFile =
+													"/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final?/plinkNoRSDupe_mismatchAlleles.txt";
+		// String bimFile =
 		// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink.bim";
 		// String newBimFile =
 		// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink_correctedRS.bim";
@@ -467,10 +483,10 @@ public class lab {
 		// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink_missingRS.txt";
 		// String mismatchFile =
 		// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink_mismatchAlleles.txt";
-		String bimFile = "/scratch.global/cole0482/affy6plink/imputeSrc_EA.bim";
-		String newBimFile = "/scratch.global/cole0482/affy6plink/imputeSrc_EA_corrected.bim";
-		String missSnpFile = "/scratch.global/cole0482/affy6plink/imputeSrc_EA_miss.txt";
-		String mismatchFile = "/scratch.global/cole0482/affy6plink/imputeSrc_EA_mism.txt";
+		// String bimFile = "/scratch.global/cole0482/affy6plink/imputeSrc_EA.bim";
+		// String newBimFile = "/scratch.global/cole0482/affy6plink/imputeSrc_EA_corrected.bim";
+		// String missSnpFile = "/scratch.global/cole0482/affy6plink/imputeSrc_EA_miss.txt";
+		// String mismatchFile = "/scratch.global/cole0482/affy6plink/imputeSrc_EA_mism.txt";
 		String affySnpFile = "/home/pankrat2/cole0482/Affy6_SnpList.xln";
 		String[][] bim = HashVec.loadFileToStringMatrix(bimFile, false, null, "\t", false, 100000,
 																										false);
@@ -500,16 +516,16 @@ public class lab {
 				writer.println(ArrayUtils.toStr(line, "\t"));
 			} else {
 				Alleles all = affMkrs.get(snp);
-				if ((all.a1.equals(line[4]) && all.a2.equals(line[5]))
-						|| (all.a2.equals(line[4]) && all.a1.equals(line[5]))) {
-					if (!rs.equals("---")) {
-						line[1] = rs;
-					}
-					// } else {
-					// mismatch.println(snp + "\t" + rs + "\t" + all.a1 + "\t" + all.a2 + "\t" + line[4] +
-					// "\t"
-					// + line[5]);
+				// if ((all.a1.equals(line[4]) && all.a2.equals(line[5]))
+				// || (all.a2.equals(line[4]) && all.a1.equals(line[5]))) {
+				if (!rs.equals("---")) {
+					line[1] = rs;
 				}
+				// } else {
+				// mismatch.println(snp + "\t" + rs + "\t" + all.a1 + "\t" + all.a2 + "\t" + line[4] +
+				// "\t"
+				// + line[5]);
+				// }
 				writer.println(ArrayUtils.toStr(line, "\t"));
 			}
 		}
@@ -591,6 +607,29 @@ public class lab {
 		writer.close();
 	}
 
+	public static void filt() {
+		String dir = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/compare/";
+		String f2 = dir + "cleanSnps.txt";
+		String f1 = dir + "bimSnps.txt";
+
+		String[] f11 = HashVec.loadFileToStringArray(f1, false, null, false);
+		String[] f21 = HashVec.loadFileToStringArray(f2, false, null, false);
+
+		HashSet<String> h1 = new HashSet<>();
+		for (String s : f11) {
+			h1.add(s);
+		}
+
+		String o1 = dir + "cleanNotBim.snp";
+		PrintWriter writer = Files.getAppropriateWriter(o1);
+		for (String s : f21) {
+			if (!h1.contains(s)) {
+				writer.println(s);
+			}
+		}
+		writer.flush();
+		writer.close();
+	}
 
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
@@ -624,8 +663,9 @@ public class lab {
 			// "/scratch.global/cole0482/testImp/snps/cleanMarkers_corrected.txt", true);
 
 			// famLookup();
-			// affy6BimLookup();
-			exomeRecode();
+			affy6BimLookup();
+			// exomeRecode();
+			// filt();
 
 			// String cmd =
 			// "java -jar genvisis.jar org.genvisis.imputation.ImputationPipeline"

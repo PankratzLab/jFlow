@@ -59,6 +59,8 @@ public class MergeExtractPipeline {
 	boolean splitOutput = false;
 	boolean overwrite = false;
 	boolean renameMarkers = true;
+	boolean bestGuessOutput = false;
+	float bestGuessThreshold = 0;
 
 	public MergeExtractPipeline() {
 		dataSources = new ArrayList<MergeExtractPipeline.DataSource>();
@@ -188,6 +190,16 @@ public class MergeExtractPipeline {
 
 	public MergeExtractPipeline setRenameMarkers(boolean rename) {
 		renameMarkers = rename;
+		return this;
+	}
+
+	public MergeExtractPipeline setBestGuessOutput(boolean bestGuess) {
+		bestGuessOutput = bestGuess;
+		return this;
+	}
+
+	public MergeExtractPipeline setBestGuessThreshold(float bestThresh) {
+		bestGuessThreshold = bestThresh;
 		return this;
 	}
 
@@ -514,7 +526,8 @@ public class MergeExtractPipeline {
 														 dd2.getMarkerSet().getMarkerNames());
 				}
 			}
-			dd1 = DosageData.combine(dd1, dd2, DosageData.COMBINE_OP.EITHER_IF_OTHER_MISSING, log);
+			dd1 = DosageData.combine(dd1, dd2, DosageData.COMBINE_OP.EITHER_IF_OTHER_MISSING,
+															 bestGuessOutput, bestGuessThreshold, log);
 			dd2 = null;
 			System.gc();
 		}
@@ -538,11 +551,11 @@ public class MergeExtractPipeline {
 				(new File(ext.parseDirectoryOfFile(outD))).mkdirs();
 				(new File(ext.parseDirectoryOfFile(outM))).mkdirs();
 				dd1.writeToFile(outD, outM, allMarkers, new int[][] {regions[i]}, true, true,
-												DosageData.PARAMETERS[outFormat], log);
+												DosageData.PARAMETERS[outFormat], bestGuessOutput, bestGuessThreshold, log);
 			}
 		} else {
 			dd1.writeToFile(getOutputDataFile(), getOutputMapFile(), allMarkers, regions, true, true,
-											DosageData.PARAMETERS[outFormat], log);
+											DosageData.PARAMETERS[outFormat], bestGuessOutput, bestGuessThreshold, log);
 		}
 
 		writeAnnotations(allMarkers, annotations);
@@ -633,9 +646,11 @@ public class MergeExtractPipeline {
 		if (hdr == null || hdr.length <= 6) {
 			return new String[0];
 		}
-		String[] newHdr = new String[hdr.length - 6];
-		for (int i = 6; i < hdr.length; i++) {
-			newHdr[i - 6] = (prepend != null && !"".equals(prepend) ? prepend + "_" : "") + hdr[i];
+		int[] indices = SnpMarkerSet.INDICES[type];
+		String[] newHdr = new String[indices.length - 6];
+		for (int i = 6; i < indices.length; i++) {
+			newHdr[i - 6] = (prepend != null && !"".equals(prepend) ? prepend + "_" : "")
+											+ hdr[indices[i]];
 		}
 		return newHdr;
 	}
@@ -797,6 +812,8 @@ public class MergeExtractPipeline {
 		boolean split = false;
 		boolean overwrite = false;
 		boolean rename = true;
+		float bestThresh = 0;
+		boolean bestGuess = false;
 
 		String usage = "\n"
 									 + "filesys.MergeExtractPipeline requires 4+ arguments\n"
@@ -834,7 +851,12 @@ public class MergeExtractPipeline {
 									 + overwrite
 									 + " (default))\n"
 									 + "   (9) Optional: Rename markers in any data files to dataLabel+MarkerName (i.e. rename="
-									 + rename + " (default))\n" + "\n";
+									 + rename
+									 + " (default))\n"
+									 + "\n"
+									 + "   (10) Optional: if source data contains genotype probabilities and output format is in dosage values, use \"Best Guess\" dosage rather than computed dosage value. The value specified is used such that if all genotype probability values are below the given value, the dosage value is set to missing. (i.e. best="
+									 + bestThresh + " (not the default))\n"
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -870,6 +892,10 @@ public class MergeExtractPipeline {
 			} else if (arg.startsWith("log=")) {
 				logFile = arg.split("=")[1];
 				numArgs--;
+			} else if (arg.startsWith("best=")) {
+				bestGuess = true;
+				bestThresh = ext.parseFloatArg(arg);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + arg);
 			}
@@ -898,6 +924,10 @@ public class MergeExtractPipeline {
 		mep.setSplitOutputByRegions(split);
 		mep.setRenameMarkers(rename);
 		mep.setOutputFiles(outfileD, outfileM);
+		if (bestGuess) {
+			mep.setBestGuessOutput(bestGuess);
+			mep.setBestGuessThreshold(bestThresh);
+		}
 		mep.initLog();
 		ArrayList<DataSource> dss = parseDataFile(mep.runDir, mep.markerLocations, mep.regions, data,
 																							0,
@@ -908,5 +938,4 @@ public class MergeExtractPipeline {
 
 		mep.run();
 	}
-
 }
