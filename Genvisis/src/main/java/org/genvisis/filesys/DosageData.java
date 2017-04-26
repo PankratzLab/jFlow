@@ -873,7 +873,8 @@ public class DosageData implements Serializable {
 
 		int dataOutType = determineType(filename);
 		if (dataOutType == PLINK_BFILE_FORMAT) {
-			writeToPlinkBinary(ext.parseDirectoryOfFile(filename), ext.rootOf(filename, true), log);
+			writeToPlinkBinary(ext.parseDirectoryOfFile(filename), ext.rootOf(filename, true),
+												 bestGuessOutput, bestGuessThreshold, log);
 			return;
 		}
 
@@ -1154,13 +1155,18 @@ public class DosageData implements Serializable {
 		}
 	}
 
-	public void writeToPlinkBinary(String dir, String plinkRoot, Logger log) {
+	public void writeToPlinkBinary(String dir, String plinkRoot, boolean bestGuessOutput,
+																 float bestGuessThreshold, Logger log) {
 		PrintWriter writer;
 		RandomAccessFile out;
 		byte[] outStream;
 
 		if (dosageValues == null && genotypeProbabilities != null) {
-			computeDosageValues(log);
+			if (bestGuessOutput) {
+				computeDosageValueFromBestGenotype(bestGuessThreshold, -1, log);
+			} else {
+				computeDosageValues(log);
+			}
 		}
 		if (dosageValues == null) {
 			System.err.println("Error - Cannot write to Plink files without data!");
