@@ -7,6 +7,8 @@ import org.apache.commons.math3.stat.inference.ChiSquareTest;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.common.Logger;
+import org.genvisis.stats.ContingencyTable;
+import org.genvisis.stats.ProbDist;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.HashMultiset;
@@ -201,8 +203,8 @@ public class BatchEffects {
 																					 int totalGenos) {
 		int otherMisses = totalMisses - batchMisses;
 		int otherGenos = totalGenos - batchGenos;
-		long[][] counts = new long[][] {{batchMisses, batchGenos}, {otherMisses, otherGenos}};
-		return CHI_SQUARE.chiSquareTest(counts);
+		double[][] counts = new double[][] {{batchMisses, batchGenos}, {otherMisses, otherGenos}};
+		return ProbDist.ChiDist(ContingencyTable.ChiSquare(counts, false, false), 1);
 	}
 
 	private static double calcAllelicChiSquareP(int batchBAlleles, int batchAlleles,
@@ -210,8 +212,9 @@ public class BatchEffects {
 		int batchAAlleles = batchAlleles - batchBAlleles;
 		int otherBAlleles = totalBAlleles - batchBAlleles;
 		int otherAAlelles = totalAlleles - (batchAlleles + otherBAlleles);
-		long[][] counts = new long[][] {{batchBAlleles, batchAAlleles}, {otherBAlleles, otherAAlelles}};
-		return CHI_SQUARE.chiSquareTest(counts);
+		double[][] counts = new double[][] {{batchBAlleles, batchAAlleles},
+																				{otherBAlleles, otherAAlelles}};
+		return ProbDist.ChiDist(ContingencyTable.ChiSquare(counts, false, false), 1);
 	}
 
 }
