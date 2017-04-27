@@ -17,6 +17,7 @@ import org.genvisis.cnv.analysis.pca.CorrectionIterator;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsApply;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.MarkerLookup;
@@ -310,7 +311,7 @@ public class MitoPipeline {
 																	 boolean sampLrr, boolean doAbLookup, boolean imputeMeanForNaN,
 																	 boolean gcCorrect, int bpGcModel, int regressionDistance,
 																	 GENOME_BUILD build, double[] pvalOpt, String betaFile,
-																	 boolean plot, boolean skipEval) {
+																	 boolean plot, boolean skipEval, PRE_PROCESSING_METHOD method) {
 		String sampleDirectory;
 		SampleList sampleList;
 		Logger log;
@@ -412,7 +413,7 @@ public class MitoPipeline {
 															homosygousOnly, markerCallRateFilter, betaOptFile, pedFile,
 															recomputeLRR_PCs, recomputeLRR_Median, sampLrr, imputeMeanForNaN,
 															gcCorrect, bpGcModel, regressionDistance, build, pvalOpt, betaFile,
-															plot, skipEval, log);
+															plot, skipEval, method, log);
 						}
 					}
 				}
@@ -428,7 +429,8 @@ public class MitoPipeline {
 																		 boolean recomputeLRR_Median, boolean sampLrr,
 																		 boolean imputeMeanForNaN, boolean gcCorrect, int bpGcModel,
 																		 int regressionDistance, GENOME_BUILD build, double[] pvalOpt,
-																		 String betaFile, boolean plot, boolean skipEval, Logger log) {
+																		 String betaFile, boolean plot, boolean skipEval,
+																		 PRE_PROCESSING_METHOD method, Logger log) {
 		GcAdjustorParameters params = null;
 		String samps = proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES;
 
@@ -520,7 +522,7 @@ public class MitoPipeline {
 		}
 		PrincipalComponentsApply pcApply = PCA.generateFullPCA(proj, numComponents, outputBase,
 																													 recomputeLRR_PCs, imputeMeanForNaN,
-																													 params, log);
+																													 params, method, log);
 		if (pcApply != null) {
 			PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj,
 																																	 pcApply.getExtrapolatedPCsFile(),
@@ -1210,7 +1212,8 @@ public class MitoPipeline {
 															homosygousOnly, markerQC, markerCallRateFilter, useFile, betaOptFile,
 															pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median,
 															recompSampleSpecific, doAbLookup, imputeMeanForNaN, gcCorrect,
-															bpGcModel, regressionDistance, build, pvalOpt, betaFile, plot, false);
+															bpGcModel, regressionDistance, build, pvalOpt, betaFile, plot, false,
+															PRE_PROCESSING_METHOD.NONE);
 			attempts++;
 			if (result == 41 || result == 40) {
 				proj.getLog().report("Attempting to restart pipeline once to fix SampleList problem");

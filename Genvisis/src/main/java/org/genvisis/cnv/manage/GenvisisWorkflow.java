@@ -19,6 +19,7 @@ import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
 import org.genvisis.cnv.analysis.pca.PCImputeRace;
 import org.genvisis.cnv.analysis.pca.PCImputeRace.RACE;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.filesys.ABLookup;
@@ -1923,7 +1924,7 @@ public class GenvisisWorkflow {
 																				 recomputeLRRPCs, recomputeLRRMedian, sampLrr,
 																				 imputeMeanForNaN, gcCorrect, bpGcModel, regressionDistance,
 																				 proj.GENOME_BUILD_VERSION.getValue(), pvalOpt, betaFile,
-																				 plot, false, proj.getLog());
+																				 plot, false, PRE_PROCESSING_METHOD.NONE, proj.getLog());
 					} else {
 						setFailed(PCAPrep.errorMessage(retCode));
 					}

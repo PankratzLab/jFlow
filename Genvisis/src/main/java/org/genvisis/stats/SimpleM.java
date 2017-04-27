@@ -1,6 +1,7 @@
 package org.genvisis.stats;
 
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -150,12 +151,14 @@ public class SimpleM {
 																												 STAT_TYPE.PEARSON_CORREL, verbose, log);
 			statsCrossTabs.computeTable(true);
 			principalComponentsCompute = PrincipalComponentsCompute.getPrincipalComponents(data.length
-																																										 - 1, false,
+																																										 - 1,
+																																										 PRE_PROCESSING_METHOD.NONE,
 																																										 statsCrossTabs.getStatisticTable(),
 																																										 verbose, log);
 		} else {
 			principalComponentsCompute = PrincipalComponentsCompute.getPrincipalComponents(data.length
-																																										 - 1, false,
+																																										 - 1,
+																																										 PRE_PROCESSING_METHOD.NONE,
 																																										 data, verbose,
 																																										 log);
 

@@ -246,9 +246,9 @@ public class VCFOps {
 	 * @return
 	 */
 	public static VCFHeader copyHeader(final VCFFileReader vcfFileReader,
-																final VariantContextWriter writer,
-																final Set<String> samples, HEADER_COPY_TYPE type,
-																Logger log) {
+																		 final VariantContextWriter writer,
+																		 final Set<String> samples, HEADER_COPY_TYPE type,
+																		 Logger log) {
 		VCFHeader newVCFHeader = null;
 		switch (type) {
 			case FULL_COPY:
@@ -1554,6 +1554,16 @@ public class VCFOps {
 																			 String outputDir, boolean skipFiltered, boolean gzipOutput,
 																			 boolean createAnnotationFile, boolean subToBam,
 																			 String[] varSets, int numThreads, Logger log) {
+		return extractSegments(vcf, segmentFile, bpBuffer, bams, outputDir, skipFiltered, gzipOutput,
+													 createAnnotationFile, subToBam, varSets, numThreads, false, log);
+
+	}
+
+	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bams,
+																			 String outputDir, boolean skipFiltered, boolean gzipOutput,
+																			 boolean createAnnotationFile, boolean subToBam,
+																			 String[] varSets, int numThreads, boolean removeNoCalls,
+																			 Logger log) {
 		BamExtractor.BamSample bamSample = null;
 
 		if (vcf == null || !Files.exists(vcf)) {
@@ -1644,7 +1654,9 @@ public class VCFOps {
 			VariantContextWriter writer = initWriter(output, DEFUALT_WRITER_OPTIONS,
 																							 getSequenceDictionary(reader));
 			VCFHeader header = copyHeader(reader, writer, bamSamples,
-								 subToBam ? HEADER_COPY_TYPE.SUBSET_STRICT : HEADER_COPY_TYPE.FULL_COPY, log);
+																		subToBam ? HEADER_COPY_TYPE.SUBSET_STRICT
+																						 : HEADER_COPY_TYPE.FULL_COPY,
+																		log);
 			int progress = 0;
 			int found = 0;
 
@@ -1680,28 +1692,30 @@ public class VCFOps {
 				if ((!skipFiltered || !vc.isFiltered()) && VCOps.isInTheseSegments(vc, segsToSearch)) {
 					if (subToBam) {
 						vc = VCOps.getSubset(vc, bamSamples);
-						writer.add(vc);
-					} else {
-						writer.add(vc);
 					}
-					if (bamSample != null) {
-						bamSample.addSegmentToExtract(new Segment(Positions.chromosomeNumber(vc.getContig()),
-																											vc.getStart(), vc.getEnd()));
-					}
-					if (createAnnotationFile) {
-						annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t"
-														 + vc.getReference().getBaseString() + "\t"
-														 + vc.getAlternateAlleles().toString() + "\t"
-														 + vc.getFilters().toString() + "\t"
-														 + ArrayUtils.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
-						GenotypesContext gc = vc.getGenotypes();
+					if (!removeNoCalls || vc.getCalledChrCount() > 0) {
+						writer.add(vc);
 
-						for (Genotype g : gc) {
-							annoWriter.print("\t" + g.getGenotypeString());
+						if (bamSample != null) {
+							bamSample.addSegmentToExtract(new Segment(Positions.chromosomeNumber(vc.getContig()),
+																												vc.getStart(), vc.getEnd()));
 						}
-						annoWriter.println();
+						if (createAnnotationFile) {
+							annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t"
+															 + vc.getReference().getBaseString() + "\t"
+															 + vc.getAlternateAlleles().toString() + "\t"
+															 + vc.getFilters().toString() + "\t"
+															 + ArrayUtils.toStr(VCOps.getAnnotationsFor(annotations[0], vc,
+																																					".")));
+							GenotypesContext gc = vc.getGenotypes();
+
+							for (Genotype g : gc) {
+								annoWriter.print("\t" + g.getGenotypeString());
+							}
+							annoWriter.println();
+						}
+						found++;
 					}
-					found++;
 				}
 			}
 			writer.close();
@@ -2438,6 +2452,7 @@ public class VCFOps {
 		boolean keepIds = false;
 		boolean useRSIDs = false;
 		int numThreads = 1;
+		boolean removeNoCalls = false;
 		Logger log;
 		boolean subToBam = false;
 		boolean createAnnotation = false;
@@ -2524,6 +2539,9 @@ public class VCFOps {
 			} else if (arg.startsWith("-skipFiltered")) {
 				skipFiltered = true;
 				numArgs--;
+			} else if (arg.startsWith("-removeNoCalls")) {
+				removeNoCalls = true;
+				numArgs--;
 			} else if (arg.startsWith("-standardFilters")) {
 				standardFilters = true;
 				numArgs--;
@@ -2568,7 +2586,7 @@ public class VCFOps {
 				case EXTRACT_SEGMENTS:
 					extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip,
 													createAnnotation,
-													subToBam, varSet, numThreads, log);
+													subToBam, varSet, numThreads, removeNoCalls, log);
 					break;
 				case EXTRACT_SEGMENTS_ANNOTATION:
 					extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, true,

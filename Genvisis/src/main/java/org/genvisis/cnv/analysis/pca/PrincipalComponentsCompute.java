@@ -1,7 +1,6 @@
 package org.genvisis.cnv.analysis.pca;
 
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -46,6 +45,8 @@ public class PrincipalComponentsCompute {
 	private static final String[] MARKER_REPORT_SMALL = {"Marker",
 																											 "Used for PCA (Contains at least one value that is not NaN)"};
 	private static final String SV_STRING = "Singular Value";
+
+
 	// principle component subspace is stored in the rows
 	private DenseMatrix64F V_t;
 
@@ -61,6 +62,25 @@ public class PrincipalComponentsCompute {
 	private String singularValuesFile;
 	private String pcFile;
 	private String markerLoadingFile;
+
+	/**
+	 * How to pre-process the data prior to computing PCA
+	 *
+	 */
+	public enum PRE_PROCESSING_METHOD {
+		/**
+		 * 
+		 */
+		NONE,
+		/**
+		 * Center the data (i.e. mean of 0)
+		 */
+		CENTER,
+		/**
+		 * Standardize data (i.e mean of 0, variance 1)
+		 */
+		STANDARDIZE;
+	}
 
 	public String getSingularValuesFile() {
 		return singularValuesFile;
@@ -123,7 +143,7 @@ public class PrincipalComponentsCompute {
 		sampleIndex++;
 	}
 
-	public void computeBasis(int numComponents, boolean center) {
+	public void computeBasis(int numComponents, PRE_PROCESSING_METHOD method) {
 		if (numComponents > A.getNumCols()) {
 			throw new IllegalArgumentException("More components requested than the data's length. Have "
 																				 + A.getNumCols() + " available and " + numComponents
@@ -138,23 +158,50 @@ public class PrincipalComponentsCompute {
 
 		this.numComponents = numComponents;
 		// compute the mean of all the samples if center is flagged
-		if (center) {
-			for (int i = 0; i < A.getNumRows(); i++) {
-				for (int j = 0; j < mean.length; j++) {
-					mean[j] += A.get(i, j);
-				}
-			}
-			for (int j = 0; j < mean.length; j++) {
-				mean[j] /= A.getNumRows();
-			}
 
-			// subtract the mean from the original data
-			for (int i = 0; i < A.getNumRows(); i++) {
-				for (int j = 0; j < mean.length; j++) {
-					A.set(i, j, A.get(i, j) - mean[j]);
+		switch (method) {
+			case CENTER:
+				for (int i = 0; i < A.getNumRows(); i++) {
+					for (int j = 0; j < mean.length; j++) {
+						mean[j] += A.get(i, j);
+					}
 				}
-			}
+				for (int j = 0; j < mean.length; j++) {
+					mean[j] /= A.getNumRows();
+				}
+
+				// subtract the mean from the original data
+				for (int i = 0; i < A.getNumRows(); i++) {
+					for (int j = 0; j < mean.length; j++) {
+						A.set(i, j, A.get(i, j) - mean[j]);
+					}
+				}
+				break;
+			case NONE:
+				break;
+			case STANDARDIZE:
+				double[] sds = new double[mean.length];
+				for (int j = 0; j < mean.length; j++) {// for marker
+					double[] tmp = new double[A.getNumRows()];
+					for (int i = 0; i < A.getNumRows(); i++) {// for sample
+						tmp[i] += A.get(i, j);
+					}
+					mean[j] = ArrayUtils.mean(tmp);
+					sds[j]=  ArrayUtils.stdev(tmp);
+				}
+				for (int i = 0; i < A.getNumRows(); i++) {
+					for (int j = 0; j < mean.length; j++) {
+						double standard = A.get(i, j) - mean[j];
+						standard /= sds[j];
+						A.set(i, j, standard);
+					}
+				}
+
+				break;
+			default:
+				throw new IllegalArgumentException("Invalid pre-processing type");
 		}
+
 
 		// Compute SVD and save time by not computing U,
 		// if loadings are wanted, we compute them later/on the fly to save memory
@@ -226,7 +273,7 @@ public class PrincipalComponentsCompute {
 																																	boolean excludeSamples,
 																																	int numComponents,
 																																	boolean printFullData,
-																																	boolean center,
+																																	PRE_PROCESSING_METHOD method,
 																																	boolean reportMarkerLoadings,
 																																	boolean reportSingularValues,
 																																	boolean imputeMeanForNaN,
@@ -266,7 +313,7 @@ public class PrincipalComponentsCompute {
 		// deals with NaN on the fly
 		double[][] dataToUse = getData(proj, markers, samplesToUse, printFullData, imputeMeanForNaN,
 																	 true, recomputeLRR, output, parameters);
-		pcs = getPrincipalComponents(numComponents, center, dataToUse, true, log);
+		pcs = getPrincipalComponents(numComponents, method, dataToUse, true, log);
 		double[][] pcsBasis = getPCs(pcs, numComponents, true, log);
 		reportPCs(proj, pcs, numComponents, output, samplesToUse, pcsBasis);
 		if (reportMarkerLoadings) {
@@ -287,7 +334,8 @@ public class PrincipalComponentsCompute {
 	 * @param log
 	 * @return
 	 */
-	public static PrincipalComponentsCompute getPrincipalComponents(int numComponents, boolean center,
+	public static PrincipalComponentsCompute getPrincipalComponents(int numComponents,
+																																	PRE_PROCESSING_METHOD method,
 																																	double[][] dataToUse,
 																																	boolean verbose, Logger log) {
 		// count valid input (is not null )
@@ -325,7 +373,7 @@ public class PrincipalComponentsCompute {
 				log.report(ext.getTime() + " Added all valid input data to matrix, computing SVD");
 			}
 			try {
-				pcs.computeBasis(numComponents, center);
+				pcs.computeBasis(numComponents, method);
 			} catch (IllegalArgumentException iae) {
 				log.reportError("Error - the number of components must be less than or equal to the number of markers used AND less than or equal to the number of samples used");
 				log.reportError("Error - Please select a smaller number of principal components to compute, or add more markers or samples");

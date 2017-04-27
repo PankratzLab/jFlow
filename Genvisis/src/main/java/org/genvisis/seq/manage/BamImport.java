@@ -15,6 +15,7 @@ import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
 import org.genvisis.cnv.analysis.Mosaicism;
 import org.genvisis.cnv.analysis.PennCNVPrep;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.filesys.Centroids;
@@ -652,11 +653,13 @@ public class BamImport {
 	private static class ProjectCorrected {
 		private final Project proj;
 		private final NGS_MARKER_TYPE type;
+		private final PRE_PROCESSING_METHOD method;
 
-		public ProjectCorrected(Project proj, NGS_MARKER_TYPE type) {
+		public ProjectCorrected(Project proj, NGS_MARKER_TYPE type, PRE_PROCESSING_METHOD method) {
 			super();
 			this.proj = proj;
 			this.type = type;
+			this.method = method;
 		}
 
 		private Project getProj() {
@@ -682,13 +685,14 @@ public class BamImport {
 		Files.writeArray(ArrayUtils.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
 		String[] autoMarks = proj.getAutosomalMarkers();
 		for (MarkerFileType type : types) {
-			String base = "";
+			String rootBase = "";
 			if (type.getType() == null) {
-				base = base + "BAM_PCS_ALL_MARKERS";
+				rootBase = rootBase + "BAM_PCS_ALL_MARKERS";
 			} else {
-				base = base + "BAM_PCS_" + type.getType().getFlag();
+				rootBase = rootBase + "BAM_PCS_" + type.getType().getFlag();
 			}
-			String markerfile = proj.PROJECT_DIRECTORY.getValue() + base + "autosomal_inputMarkers.txt";
+			String markerfile = proj.PROJECT_DIRECTORY.getValue() + rootBase
+													+ "autosomal_inputMarkers.txt";
 
 			String[] tmpList;
 			if (type.getType() != null && type.getType() == NGS_MARKER_TYPE.OFF_TARGET) {
@@ -707,54 +711,60 @@ public class BamImport {
 			}
 			Files.writeIterable(autosomalToUse, markerfile);
 			if (!autosomalToUse.isEmpty()) {
-				proj.INTENSITY_PC_MARKERS_FILENAME.setValue(markerfile);
-				MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks,
-																		proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), base, false, true,
-																		0, null, null, null, null, false, false, true, false, true,
-																		false, -1, -1, GENOME_BUILD.HG19,
-																		MitoPipeline.DEFAULT_PVAL_OPTS, null, false, true);
+				for (PRE_PROCESSING_METHOD method : PRE_PROCESSING_METHOD.values()) {
+					String base = rootBase + method.toString();
+					proj.INTENSITY_PC_MARKERS_FILENAME.setValue(markerfile);
+					MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks,
+																			proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), base, false,
+																			true,
+																			0, null, null, null, null, false, false, true, false, true,
+																			false, -1, -1, GENOME_BUILD.HG19,
+																			MitoPipeline.DEFAULT_PVAL_OPTS, null, false, true, method);
 
-				String pcCorrectedFile = ext.addToRoot(proj.getPropertyFilename(),
-																							 "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
-																																					 + "_pc_corrected_"
-																																					 + base);
-				String newName = proj.PROJECT_NAME.getValue() + "_"
-												 + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base;
-				Files.copyFileUsingFileChannels(proj.getPropertyFilename(), pcCorrectedFile, proj.getLog());
-				Project pcCorrected = new Project(pcCorrectedFile, false);
-				pcCorrected.PROJECT_DIRECTORY.setValue(proj.PROJECT_DIRECTORY.getValue() + newName + "/");
-				pcCorrected.PROJECT_NAME.setValue(newName);
-				proj.copyBasicFiles(pcCorrected, true);
-				pcCorrected.SAMPLE_DIRECTORY.setValue(pcCorrected.PROJECT_DIRECTORY.getValue()
-																							+ "shadowSamples/");
+					String pcCorrectedFile = ext.addToRoot(proj.getPropertyFilename(),
+																								 "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
+																																						 + "_pc_corrected_"
+																																						 + base);
+					String newName = proj.PROJECT_NAME.getValue() + "_"
+													 + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base;
+					Files.copyFileUsingFileChannels(proj.getPropertyFilename(), pcCorrectedFile,
+																					proj.getLog());
+					Project pcCorrected = new Project(pcCorrectedFile, false);
+					pcCorrected.PROJECT_DIRECTORY.setValue(proj.PROJECT_DIRECTORY.getValue() + newName + "/");
+					pcCorrected.PROJECT_NAME.setValue(newName);
+					proj.copyBasicFiles(pcCorrected, true);
+					pcCorrected.SAMPLE_DIRECTORY.setValue(pcCorrected.PROJECT_DIRECTORY.getValue()
+																								+ "shadowSamples/");
 
-				String[] correctedSamps = ArrayUtils.tagOn(proj.getSamples(),
-																									 pcCorrected.SAMPLE_DIRECTORY.getValue(),
-																									 Sample.SAMPLE_FILE_EXTENSION);
-				if (doCorrection && !Files.exists("", correctedSamps) && type.getType() != null) {
-					proj.getLog()
-							.reportTimeInfo("PC correcting project using " + correctionPCs + " components ");
+					String[] correctedSamps = ArrayUtils.tagOn(proj.getSamples(),
+																										 pcCorrected.SAMPLE_DIRECTORY.getValue(),
+																										 Sample.SAMPLE_FILE_EXTENSION);
+					if (doCorrection && !Files.exists("", correctedSamps) && type.getType() != null) {
+						proj.getLog()
+								.reportTimeInfo("PC correcting project using " + correctionPCs + " components ");
 
-					PennCNVPrep.exportSpecialPennCNV(proj,
-																					 "correction/",
-																					 pcCorrected.PROJECT_DIRECTORY.getValue()
-																													+ "tmpPCCorrection/",
-																					 correctionPCs, null, numthreads, 1, false,
-																					 LS_TYPE.REGULAR, -1, true, true, CORRECTION_TYPE.XY,
-																					 CHROMOSOME_X_STRATEGY.BIOLOGICAL);
-					// Warning currently set up for 24 threads..
-					// TODO
-					PennCNVPrep.exportSpecialPennCNV(pcCorrected,
-																					 "correction/",
-																					 pcCorrected.PROJECT_DIRECTORY.getValue()
-																													+ "tmpPCCorrection/",
-																					 correctionPCs, null, 1, 24, true, LS_TYPE.REGULAR, 5,
-																					 true, true, CORRECTION_TYPE.XY,
-																					 CHROMOSOME_X_STRATEGY.BIOLOGICAL);
-				}
-				pcCorrected.saveProperties();
-				if (type.getType() != null) {
-					correctedProjects.add(new ProjectCorrected(pcCorrected, type.getType()));
+						PennCNVPrep.exportSpecialPennCNV(proj,
+																						 "correction/",
+																						 pcCorrected.PROJECT_DIRECTORY.getValue()
+																														+ "tmpPCCorrection/",
+																						 correctionPCs, null, numthreads, 1, false,
+																						 LS_TYPE.REGULAR, -1, true, true, CORRECTION_TYPE.XY,
+																						 CHROMOSOME_X_STRATEGY.BIOLOGICAL);
+						// Warning currently set up for 24 threads..
+						// TODO
+						PennCNVPrep.exportSpecialPennCNV(pcCorrected,
+																						 "correction/",
+																						 pcCorrected.PROJECT_DIRECTORY.getValue()
+																														+ "tmpPCCorrection/",
+																						 correctionPCs, null, 1, 24, true, LS_TYPE.REGULAR, 5,
+																						 true, true, CORRECTION_TYPE.XY,
+																						 CHROMOSOME_X_STRATEGY.BIOLOGICAL);
+					}
+
+					pcCorrected.saveProperties();
+					if (type.getType() != null) {
+						correctedProjects.add(new ProjectCorrected(pcCorrected, type.getType(), method));
+					}
 				}
 			} else {
 				proj.getLog().reportTimeWarning("Did not find any markers of type " + type);

@@ -1,7 +1,6 @@
 package org.genvisis.seq.manage;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -13,6 +12,7 @@ import java.util.concurrent.Callable;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
 import org.genvisis.cnv.analysis.PennCNV;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.Markers;
@@ -456,7 +456,7 @@ public class VCFImporter {
 																projNorm.PROJECT_DIRECTORY.getValue() + "VCF_PCS", true, true, 0.98,
 																useFile, null, null, null, true, true, true, false, true, false, -1,
 																-1, GENOME_BUILD.HG19, MitoPipeline.DEFAULT_PVAL_OPTS, null, false,
-																true);
+																true, PRE_PROCESSING_METHOD.NONE);
 		SampleQC sampleQC = SampleQC.loadSampleQC(projNorm);
 		sampleQC.addQCsToSampleData(5, true);
 		sampleQC.addPCsToSampleData(5, 10, true);

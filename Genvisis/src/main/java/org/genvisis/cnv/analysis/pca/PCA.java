@@ -1,5 +1,6 @@
 package org.genvisis.cnv.analysis.pca;
 
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.common.Files;
@@ -38,7 +39,7 @@ public class PCA {
 																																			boolean excludeSamples,
 																																			int numComponents,
 																																			boolean printFullData,
-																																			boolean center,
+																																			PRE_PROCESSING_METHOD method,
 																																			boolean reportMarkerLoadings,
 																																			boolean reportSingularValues,
 																																			boolean imputeMeanForNaN,
@@ -46,7 +47,7 @@ public class PCA {
 																																			String useFile, String output,
 																																			GcAdjustorParameters parameters) {
 		return PrincipalComponentsCompute.getPrincipalComponents(proj, excludeSamples, numComponents,
-																														 printFullData, center,
+																														 printFullData, method,
 																														 reportMarkerLoadings,
 																														 reportSingularValues, imputeMeanForNaN,
 																														 recomputeLRR, useFile, output,
@@ -142,10 +143,11 @@ public class PCA {
 																												 String outputBase,
 																												 boolean recomputeLRR_PCs,
 																												 boolean imputeMeanForNaN,
-																												 GcAdjustorParameters params, Logger log) {
+																												 GcAdjustorParameters params,
+																												 PRE_PROCESSING_METHOD method, Logger log) {
 		log.report("\nReady to perform the principal components analysis (PCA)\n");
 		PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents,
-																																		false, false, true, true,
+																																		false, method, true, true,
 																																		imputeMeanForNaN,
 																																		recomputeLRR_PCs,
 																																		proj.PROJECT_DIRECTORY.getValue()
@@ -171,171 +173,4 @@ public class PCA {
 		return pcApply;
 	}
 
-	public static void main(String[] args) {
-		String filename = null;
-		String logfile = "PCA.log";
-		String useFile = null;
-		String markersToassessFile = "MT_Markers.txt";
-		String markerLoadingFile = "loadings.txt";
-		String singularValueFile = "singularValues.txt";
-		String useApplyfile = null;
-		String pcFile = "PCs.txt";
-		String evalOut = EVALUATION_FILENAME;
-		int numArgs = args.length;
-		boolean excludeSamples = false;
-		boolean printFullData = false;
-		boolean applyLoadings = false;
-		boolean computeResiduals = false;
-		boolean imputeMeanForNaN = false;
-		boolean homozygousOnly = false;
-		boolean center = false;
-		boolean recomputeLRR = false;
-		float gcThreshold = 0f;
-		int numComponents = 100;
-
-		String usage = // String usage = "\n"+
-								 "cnv.analysis.PCA requires 1 argument\n"
-									 + "   To generate principal components, use the following options \n"
-									 + "   (1) project (i.e. proj=" + filename + " (default))\n" + "  OPTIONAL \n"
-									 + "   (2) output base name (i.e. out=" + evalOut + " (default))\n"
-									 + "   (3) exclude samples as defined in Sample Data for PCA (i.e. -exclude (not the default))\n"
-									 + "   (4) supply a file with a list of samples (one per line) to use for PCA computation (i.e. useFile="
-									 + useFile + " (default , use all samples))\n"
-									 + "   (5) number of principal components to compute  (i.e. components="
-									 + numComponents + " (default))\n"
-									 + "   (6) mean center the data (each marker) prior to PC computation (i.e. -center (not the default))\n"
-									 + "   (7) print full marker data used for PCA (i.e. -printFull (not the default))\n"
-									 + "   (8) impute the mean marker value for samples with NaN Log R Ratios when computing PCs(i.e. -impute (not the default))\n"
-									 + "   (9) logfile (i.e. log=" + logfile + " (default))\n"
-									 + "   (10) recompute Log R Ratios for each marker from genotypes/intensities (i.e. -recomputeLRR (not the default))\n"
-									 +
-
-									 "  NOTE\n"
-									 + "      Markers in the target marker file will be used for the PCA \n"
-									 + "      Imputing mean marker values for NaN intensities is not the default, instead, the marker is dropped from the PCA computation if any sample has a NaN intensity\n"
-									 + "  OR \n"
-									 + "   To apply marker loadings to a new set of project samples (and extrapolate new PCs), use the following options \n"
-									 + "   (1) apply loadings (i.e. -apply (not the default))\n"
-									 + "   (2) project (i.e. proj=" + filename + " (default))\n"
-									 + "   (3) output file baseName for extrapolation (i.e. out=" + evalOut
-									 + " (default))\n"
-									 + "   (4) a marker loading file to use (i.e. markerLoadingFile="
-									 + markerLoadingFile + " (default))\n"
-									 + "   (5) a file containing singular values (i.e. singularValueFile="
-									 + singularValueFile + " (default))\n"
-									 + "   (6) supply a file with a list of samples (one per line) to use for PCA extrapolation (i.e. useSampleFile="
-									 + useFile + " (default , apply to all samples))\n"
-									 + "   (7) number of principal components (using marker loadings to apply)   (i.e. components="
-									 + numComponents + " (default))\n"
-									 + "   (8) exclude samples from pc extrapolation as defined in Sample Data for PCA extrapolation (i.e. -exclude (not the default))\n"
-									 + "   (9) impute the mean marker value for samples with NaN Log R Ratios when applying marker loadings (i.e. -impute (not the default))\n"
-									 + "   (10) logfile (i.e. log=" + logfile + " (default))\n" + "  NOTE\n"
-									 + " Imputing mean marker values for NaN intensities is not the default, instead, the marker's loadings are not applied if any sample has a NaN intensity\n"
-									 + "  OR \n"
-									 + "   To compute median LRR values for a set of markers using PCs, use the following options \n"
-									 + "   (1) compute residuals  (i.e. -residuals (not the default))\n"
-									 + "   (2) project (i.e. proj=" + filename + " (default))\n"
-									 + "   (4) output file baseName for residuals (i.e. out=" + evalOut
-									 + " (default))\n"
-									 + "   (5) supply a file with a list of markers (one per line) to use to compute median LRR values and residuals from PCs (i.e. markers="
-									 + markersToassessFile + " (default))\n"
-									 + "   (6) pc file to use for residuals  (i.e. pcFile=" + pcFile + " (default))\n"
-									 + "   (7) number of principal components to use for residuals (i.e. components="
-									 + numComponents + " (default))\n"
-									 + "   (8) gcThreshold filter for computing median LRR values (i.e. gcThreshold="
-									 + gcThreshold + " (default, no filtering))\n"
-									 + "   (9) compute median LRR values off homozygous calls only (i.e. -homozygousOnly (not the default)\n"
-									 + "   (10) logfile (i.e. log=" + logfile + " (default))\n"
-									 + "   (11) print full marker data used for median LRR computations (i.e. -printFull (not the default))\n"
-									 + "   (12) recompute Log R Ratios for each marker from genotypes/intensities (i.e. -recomputeLRR (not the default))\n"
-									 + "  NOTE\n"
-									 + "  Markers with NaN values for any sample will not be included in either the PCA computation or PCA extrapolation unless -impute is flagged\n"
-									 + "  However, markers with NaN values used to compute the median Log R Ratio will only be excluded from that sample\n"
-									 + "  NOTE\n" + "  All files must be located in the project directory\n" + "";
-
-		for (String arg : args) {
-			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (arg.startsWith("proj=")) {
-				filename = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("pcFile=")) {
-				pcFile = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("log=")) {
-				logfile = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("out=")) {
-				evalOut = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("-exclude")) {
-				excludeSamples = true;
-				numArgs--;
-			} else if (arg.startsWith("-printFull")) {
-				printFullData = true;
-				numArgs--;
-			} else if (arg.startsWith("-residuals")) {
-				computeResiduals = true;
-				numArgs--;
-			} else if (arg.startsWith("-apply")) {
-				applyLoadings = true;
-				numArgs--;
-			} else if (arg.startsWith("components=")) {
-				numComponents = Integer.parseInt(arg.split("=")[1]);
-				numArgs--;
-			} else if (arg.startsWith("gcThreshold=")) {
-				gcThreshold = Float.parseFloat(arg.split("=")[1]);
-				numArgs--;
-			} else if (arg.startsWith("useSampleFile=")) {
-				useFile = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("markers=")) {
-				markersToassessFile = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("markerLoadingFile=")) {
-				markerLoadingFile = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("singularValueFile=")) {
-				singularValueFile = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("useApplyfile=")) {
-				useApplyfile = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("-impute")) {
-				imputeMeanForNaN = true;
-				numArgs--;
-			} else if (arg.startsWith("-center")) {
-				center = true;
-				numArgs--;
-			} else if (arg.startsWith("-homozygousOnly")) {
-				homozygousOnly = true;
-				numArgs--;
-			} else if (arg.startsWith("-recomputeLRR")) {
-				recomputeLRR = true;
-				numArgs--;
-			}
-		}
-		if (numArgs != 0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-		Project proj = new Project(filename, logfile, false);
-
-		if (applyLoadings) {
-			applyLoadings(proj, numComponents, singularValueFile, markerLoadingFile, useFile,
-										excludeSamples, imputeMeanForNaN, recomputeLRR, evalOut, null);
-		} else if (computeResiduals) {
-			computeResiduals(proj, pcFile, markersToassessFile, numComponents, printFullData, gcThreshold,
-											 homozygousOnly, recomputeLRR, evalOut, null);
-		} else {
-			PrincipalComponentsCompute pc = computePrincipalComponents(proj, excludeSamples,
-																																 numComponents, printFullData,
-																																 center, true, true,
-																																 imputeMeanForNaN, recomputeLRR,
-																																 useFile, evalOut, null);
-			applyLoadings(proj, numComponents, pc.getSingularValuesFile(), pc.getMarkerLoadingFile(),
-										useApplyfile, excludeSamples, imputeMeanForNaN, recomputeLRR, evalOut, null);
-		}
-	}
 }

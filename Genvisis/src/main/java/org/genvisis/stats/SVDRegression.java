@@ -3,6 +3,7 @@ package org.genvisis.stats;
 import java.util.Arrays;
 
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 
@@ -57,7 +58,8 @@ public class SVDRegression {
 		numComponents = indepsT.length;// number of independent variables, plus the constant = full rank
 		betas = new double[numComponents];
 		principalComponentsCompute = PrincipalComponentsCompute.getPrincipalComponents(numComponents,
-																																									 false, indepsT,
+																																									 PRE_PROCESSING_METHOD.NONE,
+																																									 indepsT,
 																																									 verbose, log);
 		extractU();
 		extractW();

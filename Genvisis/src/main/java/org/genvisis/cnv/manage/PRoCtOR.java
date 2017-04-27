@@ -7,6 +7,7 @@ import org.genvisis.cnv.analysis.PennCNVPrep;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsApply;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.filesys.Project;
@@ -69,6 +70,7 @@ public class PRoCtOR {
 		}
 		PrincipalComponentsApply pcApply = PCA.generateFullPCA(proj, numComponents, outputBase,
 																													 recomputeLRR_PCs, true, null,
+																													 PRE_PROCESSING_METHOD.NONE,
 																													 proj.getLog());
 		proj.getLog().reportTime("Setting PCs file: " + pcApply.getExtrapolatedPCsFile());
 		proj.INTENSITY_PC_FILENAME.setValue(pcApply.getExtrapolatedPCsFile());
