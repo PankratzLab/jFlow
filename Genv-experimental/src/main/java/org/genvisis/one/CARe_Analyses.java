@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
@@ -36,16 +35,17 @@ public class CARe_Analyses {
 	public static final String[] STUDIES = new String[] {"ARIC", "CARDIA", "CFS", "CHS", "FHS",
 																											 "MESA"};
 	public static boolean[] FAMILY_BASED = new boolean[] {false, false, true, false, true, false};
-	public static final String[][] RACES = new String[][] {{"asians", "ASN", "Asian"},
+	public static final String[][] RACES = new String[][] { {"asians", "ASN", "Asian"},
 																												 {"blacks", "AAM", "Black"},
 																												 {"hispanics", "HIS", "Hispanic"},
 																												 {"whites", "CEU", "White"}};
 
-	public static final String[][] DEMO_NEEDS = {{"FID"}, {"IID"}, {"CAReID"}, {"icam"}, {"ln_icam"},
+	public static final String[][] DEMO_NEEDS = { {"FID"}, {"IID"}, {"CAReID"}, {"icam"},
+																							 {"ln_icam"},
 																							 {"Age"}, {"Male"}, {"BMI"}, {"Race"}, {"rs5491"},
 																							 {"rs5491carrier"}};
-	public static final String[][] DEMO_PARAMETERS = {{"# whites with ICAM levels", "count", "icam",
-																										 "icam=ValidDouble", "Race=White", "-blank"},
+	public static final String[][] DEMO_PARAMETERS = { {"# whites with ICAM levels", "count", "icam",
+																											"icam=ValidDouble", "Race=White", "-blank"},
 																										{"mean ICAM levels in whites", "mean", "icam",
 																										 "icam=ValidDouble", "Race=White", "-blank"},
 																										{"# blacks with ICAM levels", "count", "icam",
@@ -63,8 +63,8 @@ public class CARe_Analyses {
 																										 "icam", "icam=ValidDouble", "Race=Hispanic",
 																										 "-blank"},};
 
-	public static final String[][] COUNT_PARAMETERS = {{"# whites", "count", "icam", "Race=White",
-																											"-blank"},
+	public static final String[][] COUNT_PARAMETERS = { {"# whites", "count", "icam", "Race=White",
+																											 "-blank"},
 																										 {"# whites with ICAM levels", "count", "icam",
 																											"icam=ValidDouble", "Race=White", "-blank"},
 																										 {"# whites / rs5491 carrier", "count", "icam",
@@ -120,47 +120,61 @@ public class CARe_Analyses {
 																											"count", "icam", "icam=ValidDouble",
 																											"Race=Hispanic", "-blank", "rs5491=."},};
 
-	public static final String[][] LEVEL_PARAMETERS = {{"mean ICAM levels in whites / rs5491 carrier",
+	public static final String[][] LEVEL_PARAMETERS = {
+																										 {
+																											"mean ICAM levels in whites / rs5491 carrier",
 																											"mean", "icam", "icam=ValidDouble",
 																											"Race=White", "-blank", "rs5491=1"},
-																										 {"mean ICAM levels in whites / rs5491 non-carrier",
+																										 {
+																											"mean ICAM levels in whites / rs5491 non-carrier",
 																											"mean", "icam", "icam=ValidDouble",
 																											"Race=White", "-blank", "rs5491=0"},
-																										 {"mean ICAM levels in whites / carrier status unknown",
+																										 {
+																											"mean ICAM levels in whites / carrier status unknown",
 																											"mean", "icam", "icam=ValidDouble",
 																											"Race=White", "-blank", "rs5491=."},
 
-																										 {"mean ICAM levels in blacks / rs5491 carrier",
+																										 {
+																											"mean ICAM levels in blacks / rs5491 carrier",
 																											"mean", "icam", "icam=ValidDouble",
 																											"Race=Black", "-blank", "rs5491=1"},
-																										 {"mean ICAM levels in blacks / rs5491 non-carrier",
+																										 {
+																											"mean ICAM levels in blacks / rs5491 non-carrier",
 																											"mean", "icam", "icam=ValidDouble",
 																											"Race=Black", "-blank", "rs5491=0"},
-																										 {"mean ICAM levels in blacks / carrier status unknown",
+																										 {
+																											"mean ICAM levels in blacks / carrier status unknown",
 																											"mean", "icam", "icam=ValidDouble",
 																											"Race=Black", "-blank", "rs5491=."},
 
-																										 {"mean ICAM levels in Asians / rs5491 carrier",
+																										 {
+																											"mean ICAM levels in Asians / rs5491 carrier",
 																											"mean", "icam", "icam=ValidDouble",
 																											"Race=Asian", "-blank", "rs5491=1"},
-																										 {"mean ICAM levels in Asians / rs5491 non-carrier",
+																										 {
+																											"mean ICAM levels in Asians / rs5491 non-carrier",
 																											"mean", "icam", "icam=ValidDouble",
 																											"Race=Asian", "-blank", "rs5491=0"},
-																										 {"mean ICAM levels in Asians / carrier status unknown",
+																										 {
+																											"mean ICAM levels in Asians / carrier status unknown",
 																											"mean", "icam", "icam=ValidDouble",
 																											"Race=Asian", "-blank", "rs5491=."},
 
-																										 {"mean ICAM levels in Hispanics / rs5491 carrier",
+																										 {
+																											"mean ICAM levels in Hispanics / rs5491 carrier",
 																											"mean", "icam", "icam=ValidDouble",
 																											"Race=Hispanic", "-blank", "rs5491=1"},
-																										 {"mean ICAM levels in Hispanics / rs5491 non-carrier",
+																										 {
+																											"mean ICAM levels in Hispanics / rs5491 non-carrier",
 																											"mean", "icam", "icam=ValidDouble",
 																											"Race=Hispanic", "-blank", "rs5491=0"},
-																										 {"mean ICAM levels in Hispanics / carrier status unknown",
+																										 {
+																											"mean ICAM levels in Hispanics / carrier status unknown",
 																											"mean", "icam", "icam=ValidDouble",
 																											"Race=Hispanic", "-blank", "rs5491=."},};
 
-	public static final String[][] FINAL_PARAMETERS = {{"# whites with ICAM levels", "count", "icam",
+	public static final String[][] FINAL_PARAMETERS = {
+																										 {"# whites with ICAM levels", "count", "icam",
 																											"icam=ValidDouble", "Race=White", "-blank",
 																											"rs5491=0"},
 																										 {"mean ICAM levels in whites", "mean", "icam",
@@ -212,16 +226,20 @@ public class CARe_Analyses {
 																											"icam", "icam=ValidDouble", "Race=Hispanic",
 																											"-blank", "sf=2", "rs5491=0", "-stdev"},
 																										 {"mean age in Hispanics", "mean", "Age",
-																											"icam=ValidDouble", "Race=Hispanic", "-blank",
+																											"icam=ValidDouble", "Race=Hispanic",
+																											"-blank",
 																											"sf=2", "rs5491=0", "-stdev"},
 																										 {"% male in Hispanics", "mean", "Male",
-																											"icam=ValidDouble", "Race=Hispanic", "-blank",
+																											"icam=ValidDouble", "Race=Hispanic",
+																											"-blank",
 																											"sf=2", "rs5491=0", "-percent"},
 																										 {"mean BMI in Hispanics", "mean", "BMI",
-																											"icam=ValidDouble", "Race=Hispanic", "-blank",
+																											"icam=ValidDouble", "Race=Hispanic",
+																											"-blank",
 																											"sf=2", "rs5491=0", "-stdev"},};
 
-	public static final String[][] FINAL2_PARAMETERS = {{"# with genotypes and ICAM levels", "count",
+	public static final String[][] FINAL2_PARAMETERS = {
+																											{"# with genotypes and ICAM levels", "count",
 																											 "icam", "icam=ValidDouble",
 																											 "BMI=ValidDouble", "-blank"},
 																											{"mean ICAM levels", "mean", "icam",
@@ -230,7 +248,8 @@ public class CARe_Analyses {
 																											{"mean age", "mean", "Age",
 																											 "icam=ValidDouble", "BMI=ValidDouble",
 																											 "-blank", "sf=2", "-stdev"},
-																											{"% male", "mean", "Male", "icam=ValidDouble",
+																											{"% male", "mean", "Male",
+																											 "icam=ValidDouble",
 																											 "BMI=ValidDouble", "-blank", "sf=2",
 																											 "-percent"},
 																											{"mean BMI", "mean", "BMI",
@@ -305,7 +324,8 @@ public class CARe_Analyses {
 					// DRIVE_ROOT+"CARe_imputed_all_llange_24mar2010/abo_snplist.txt",
 					// FAMILY_BASED[i]?DosageData.GWAF_FORMAT:DosageData.MACH_MLDOSE_FORMAT, false, true,
 					// log);
-					DosageData.convert(root + ".gen", root + ".pfam", root + ".mlinfo", DosageData.GEN_FORMAT,
+					DosageData.convert(root + ".gen", root + ".pfam", root + ".mlinfo",
+														 DosageData.GEN_FORMAT,
 														 dir + "candis/abo.dosage", null,
 														 DRIVE_ROOT + "CARe_imputed_all_llange_24mar2010/abo_snplist.txt",
 														 DosageData.PLINK_FORMAT, false, true, log);
@@ -327,7 +347,8 @@ public class CARe_Analyses {
 					// DRIVE_ROOT+"CARe_imputed_all_llange_24mar2010/icam1_snplist.txt",
 					// FAMILY_BASED[i]?DosageData.GWAF_FORMAT:DosageData.MACH_MLDOSE_FORMAT, false, true,
 					// log);
-					DosageData.convert(root + ".gen", root + ".pfam", root + ".mlinfo", DosageData.GEN_FORMAT,
+					DosageData.convert(root + ".gen", root + ".pfam", root + ".mlinfo",
+														 DosageData.GEN_FORMAT,
 														 dir + "candis/icam.dosage", null,
 														 DRIVE_ROOT + "CARe_imputed_all_llange_24mar2010/icam1_snplist.txt",
 														 DosageData.PLINK_FORMAT, false, true, log);
@@ -412,18 +433,22 @@ public class CARe_Analyses {
 					// DosageData.PLINK_FORMAT, true, log).writeToFile(dir+"abo_icam.dosage.csv",
 					// dir+"abo_icam.dosage.pinfo", DRIVE_ROOT+"Analyses/ICAM/covarSNPs.txt", true,
 					// DosageData.PARAMETERS[DosageData.GWAF_FORMAT], log);
-					hitlist = new String[] {"lookup",
+					hitlist = new String[] {
+																	"lookup",
 																	"abo_icam.ids.fam 1 hideIndex out=plink_phenoWithConditionals.dat",
 																	"abo_icam.ids.fam 1 0=FID 1=IID skip=0",
 																	"pheno/db_clean_wPCs.txt 1 4;-9 5;. 6;. 7;. fail",
-																	"abo_icam.dosage.csv , 0 " + ArrayUtils.toStr(ArrayUtils.stringArraySequence(new SnpMarkerSet(dir
-																																																																+ "abo_icam.dosage.pinfo").getMarkerNames().length,
-																																																							 ""),
-																																								" "),
+																	"abo_icam.dosage.csv , 0 "
+																			+ ArrayUtils.toStr(ArrayUtils.stringArraySequence(new SnpMarkerSet(
+																																																				 dir
+																																																						 + "abo_icam.dosage.pinfo").getMarkerNames().length,
+																																												""),
+																												 " "),
 																	"pheno/db_clean_wPCs.txt 1 8;. 9;. 10;. 11;. 12;. 13;. 14;. 15;. 16;. 17;. fail"};
 					if (STUDIES[i].equals("MESA")
 							&& (element[0].equals("asians") || element[0].equals("hispanics"))) {
-						hitlist = ArrayUtils.addStrToArray(DRIVE_ROOT + "Analyses/ICAM/IBC/whites/" + STUDIES[i]
+						hitlist = ArrayUtils.addStrToArray(DRIVE_ROOT + "Analyses/ICAM/IBC/whites/"
+																							 + STUDIES[i]
 																							 + "/pheno/" + element[3]
 																							 + "QC/rs1799969.xln 1 4=rs1799969c", hitlist, 5);
 					}
@@ -432,13 +457,17 @@ public class CARe_Analyses {
 											+ org.genvisis.common.PSF.Java.GENVISIS
 											+ " Launch -suppress generatePhenoForPlinkWithConditionals.crf", dir);
 					if (FAMILY_BASED[i]) {
-						Files.writeArray(new String[] {"lookup",
+						Files.writeArray(new String[] {
+																					 "lookup",
 																					 "abo_icam.ids.fam 1 hideIndex out=phenoWithConditionals.csv",
-																					 "leslie_lange." + STUDIES[i] + ".IBC." + element[1] + ".Rlinker 0 2=id skip=0",
+																					 "leslie_lange." + STUDIES[i] + ".IBC." + element[1]
+																							 + ".Rlinker 0 2=id skip=0",
 																					 "pheno/db_clean_wPCs.txt 1 4; 5; 6; 7; fail",
-																					 "abo_icam.dosage.csv , 0 " + ArrayUtils.toStr(ArrayUtils.stringArraySequence(new SnpMarkerSet(dir
-																																																																				 + "abo_icam.dosage.pinfo").getMarkerNames().length,
-																																																												"")),
+																					 "abo_icam.dosage.csv , 0 "
+																							 + ArrayUtils.toStr(ArrayUtils.stringArraySequence(new SnpMarkerSet(
+																																																									dir
+																																																											+ "abo_icam.dosage.pinfo").getMarkerNames().length,
+																																																 "")),
 																					 "pheno/db_clean_wPCs.txt 1 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; fail"},
 														 dir + "generatePhenoForGWAFWithConditionals.crf");
 						CmdLine.run("java -Xmx1024M -jar C:/home/npankrat/"
@@ -447,13 +476,13 @@ public class CARe_Analyses {
 						new File("D:/upload/phenos/" + STUDIES[i] + "_" + element[0] + "/").mkdirs();
 						Files.copyFile(dir + "phenoWithConditionals.csv",
 													 "D:/upload/phenos/" + STUDIES[i] + "_" + element[0]
-																															+ "/phenoWithConditionals.csv");
+															 + "/phenoWithConditionals.csv");
 					} else {
 						new File("D:/upload/phenos/" + STUDIES[i] + "_" + element[0] + "/").mkdirs();
 						Files.copyFile(dir
 													 + "plink_phenoWithConditionals.dat",
 													 "D:/upload/phenos/" + STUDIES[i] + "_" + element[0]
-																																+ "/plink_phenoWithConditionals.dat");
+															 + "/plink_phenoWithConditionals.dat");
 					}
 				}
 			}
@@ -474,7 +503,8 @@ public class CARe_Analyses {
 					// DRIVE_ROOT+"CARe_imputed_all_llange_24mar2010/icam1_snplist.txt",
 					// FAMILY_BASED[i]?DosageData.GWAF_FORMAT:DosageData.MACH_MLDOSE_FORMAT, false, true,
 					// log);
-					DosageData.convert(root + ".gen", root + ".pfam", root + ".mlinfo", DosageData.GEN_FORMAT,
+					DosageData.convert(root + ".gen", root + ".pfam", root + ".mlinfo",
+														 DosageData.GEN_FORMAT,
 														 dir + "candis/icam.dosage", null,
 														 DRIVE_ROOT + "CARe_imputed_all_llange_24mar2010/icam1_snplist.txt",
 														 DosageData.PLINK_FORMAT, false, true, log);
@@ -599,7 +629,8 @@ public class CARe_Analyses {
 						}
 						if (line.length != numInds * 3 + 5) {
 							log.reportError("Error at record marker '" + marker + "' on line " + count
-															+ " in file " + root + chr + ".mlinfo; expecting " + (numInds * 3 + 5)
+															+ " in file " + root + chr + ".mlinfo; expecting "
+															+ (numInds * 3 + 5)
 															+ " columns, but found " + line.length);
 							log.reportError("The next unexpected token is " + line[numInds * 3 + 5]
 															+ " preceeded by " + line[numInds * 3 + 5 - 1]);
@@ -783,8 +814,10 @@ public class CARe_Analyses {
 			}
 			while (new File(dir + "gwaf/file" + count + ".fhsR").exists()) {
 				writers[count
-								% numBatches].println("lme.batch.imputed(\"pheno.csv\", \"file" + count
-																			+ ".fhsR.gz\", \"" + ext.rootOf(root)
+								% numBatches].println("lme.batch.imputed(\"pheno.csv\", \"file"
+																			+ count
+																			+ ".fhsR.gz\", \""
+																			+ ext.rootOf(root)
 																			+ ".pedfile\", \"pheno\", \"kmat.Rfile\", covars=NULL, \"results"
 																			+ count
 																			+ ".csv\", col.names=T, sep.ped=\",\", sep.phe=\",\", sep.gen=\",\")");
@@ -828,8 +861,8 @@ public class CARe_Analyses {
 									writer.println("Cohort\tSNP\tA1\tA2\tBeta\tSE");
 								}
 								writer.println((dir.equals("") ? "Joint_analysis"
-																							 : ext.replaceAllWith(dir, "/", "_")
-																										.substring(0, dir.length() - 1))
+																							: ext.replaceAllWith(dir, "/", "_")
+																									 .substring(0, dir.length() - 1))
 															 + "\t" + line[0] + "\t" + line[1].toUpperCase() + "\t"
 															 + line[2].toUpperCase() + "\t" + line[3] + "\t" + line[4]);
 								writer.close();
@@ -863,8 +896,8 @@ public class CARe_Analyses {
 									writer.println("Cohort\tSNP\tA1\tA2\tBeta\tSE");
 								}
 								writer.println((dir.equals("") ? "Joint_analysis"
-																							 : ext.replaceAllWith(dir, "/", "_")
-																										.substring(0, dir.length() - 1))
+																							: ext.replaceAllWith(dir, "/", "_")
+																									 .substring(0, dir.length() - 1))
 															 + "\t" + line[0] + "\t" + line[1].toUpperCase() + "\t"
 															 + line[2].toUpperCase() + "\t" + line[6] + "\t" + line[7]);
 								writer.close();
@@ -950,20 +983,40 @@ public class CARe_Analyses {
 				dir = DRIVE_ROOT + "Analyses/ICAM/IBC/" + element2[0] + "/" + element + "/";
 				if (new File(dir + phenoFile).exists()) {
 					log.report("Running in " + element + " " + element2[0]);
-					CmdLine.run("plink --noweb --bfile " + DRIVE_ROOT + "Analyses/ICAM/IBC/whites/" + element
-											+ "/pheno/full --chr " + chr + " --from-kb "
-											+ (int) Math.floor(start / 1000.0) + " --to-kb "
-											+ (int) Math.ceil(stop / 1000.0) + " --linear --ci 0.95 --pheno " + phenoFile
-											+ " --covar " + phenoFile
-											+ " --covar-name Age,Male,BMI,rs651007c,rs1799969c,rs5498c,EV1,EV2,EV3,EV4,EV5,EV6,EV7,EV8,EV9,EV10 --out "
-											+ DRIVE_ROOT + "Analyses/" + subDirectory + element2[0] + "_" + element, dir);
-					CmdLine.run("plink --noweb --bfile " + DRIVE_ROOT + "Analyses/ICAM/IBC/whites/" + element
-											+ "/pheno/full --chr " + chr + " --from-kb "
-											+ (int) Math.floor(start / 1000.0) + " --to-kb "
-											+ (int) Math.ceil(stop / 1000.0) + " --linear --ci 0.95 --pheno " + phenoFile
-											+ " --covar " + phenoFile
-											+ " --covar-name Age,Male,BMI,EV1,EV2,EV3,EV4,EV5,EV6,EV7,EV8,EV9,EV10 --out "
-											+ DRIVE_ROOT + "Analyses/" + subDirectory + element2[0] + "_" + element, dir);
+					CmdLine.run("plink --noweb --bfile "
+													+ DRIVE_ROOT
+													+ "Analyses/ICAM/IBC/whites/"
+													+ element
+													+ "/pheno/full --chr "
+													+ chr
+													+ " --from-kb "
+													+ (int) Math.floor(start / 1000.0)
+													+ " --to-kb "
+													+ (int) Math.ceil(stop / 1000.0)
+													+ " --linear --ci 0.95 --pheno "
+													+ phenoFile
+													+ " --covar "
+													+ phenoFile
+													+ " --covar-name Age,Male,BMI,rs651007c,rs1799969c,rs5498c,EV1,EV2,EV3,EV4,EV5,EV6,EV7,EV8,EV9,EV10 --out "
+													+ DRIVE_ROOT + "Analyses/" + subDirectory + element2[0] + "_" + element,
+											dir);
+					CmdLine.run("plink --noweb --bfile "
+													+ DRIVE_ROOT
+													+ "Analyses/ICAM/IBC/whites/"
+													+ element
+													+ "/pheno/full --chr "
+													+ chr
+													+ " --from-kb "
+													+ (int) Math.floor(start / 1000.0)
+													+ " --to-kb "
+													+ (int) Math.ceil(stop / 1000.0)
+													+ " --linear --ci 0.95 --pheno "
+													+ phenoFile
+													+ " --covar "
+													+ phenoFile
+													+ " --covar-name Age,Male,BMI,EV1,EV2,EV3,EV4,EV5,EV6,EV7,EV8,EV9,EV10 --out "
+													+ DRIVE_ROOT + "Analyses/" + subDirectory + element2[0] + "_" + element,
+											dir);
 					CmdLine.run("plink --noweb --bfile " + DRIVE_ROOT + "Analyses/ICAM/IBC/whites/" + element
 											+ "/pheno/full --snps " + variantID
 											+ " --linear --pheno plink_pheno.dat --out " + DRIVE_ROOT + "Analyses/"
@@ -982,13 +1035,15 @@ public class CARe_Analyses {
 					CmdLine.run("plink --noweb --bfile " + DRIVE_ROOT + "Analyses/ICAM/IBC/whites/" + element
 											+ "/pheno/full --chr " + chr + " --from-kb "
 											+ (int) Math.floor(start / 1000.0) + " --to-kb "
-											+ (int) Math.ceil(stop / 1000.0) + " --freq --out " + DRIVE_ROOT + "Analyses/"
+											+ (int) Math.ceil(stop / 1000.0) + " --freq --out " + DRIVE_ROOT
+											+ "Analyses/"
 											+ subDirectory + element2[0] + "_" + element, dir);
 					Metal.convertPlinkResults(DRIVE_ROOT + "Analyses/ICAM/",
 																		element2[0] + "_" + element + ".assoc.linear", "ADD",
 																		"linear", element2[0] + "_" + element + ".frq", true, true,
-																		DRIVE_ROOT + "Analyses/" + subDirectory + element2[0] + "_" + element
-																																																+ ".se.metal",
+																		DRIVE_ROOT + "Analyses/" + subDirectory + element2[0] + "_"
+																				+ element
+																				+ ".se.metal",
 																		false);
 					HashVec.addToHashVec(vHash, element2[0], element2[0] + "_" + element + ".se.metal",
 															 false);
@@ -1001,7 +1056,8 @@ public class CARe_Analyses {
 		for (int i = 0; i < allFiles.length; i++) {
 			allFiles[i] = DRIVE_ROOT + "Analyses/" + subDirectory + allFiles[i];
 		}
-		Unique.proc(allFiles, null, null, DRIVE_ROOT + "Analyses/" + subDirectory + "allSNPs.txt", null,
+		Unique.proc(allFiles, null, null, DRIVE_ROOT + "Analyses/" + subDirectory + "allSNPs.txt",
+								null,
 								true);
 
 		keys = HashVec.getKeys(vHash);
@@ -1099,7 +1155,8 @@ public class CARe_Analyses {
 										writer2.println("xlab=\"" + line[0] + " beta\", ylab=\"Cohort\")");
 										writer2.close();
 									} catch (Exception e) {
-										System.err.println("Error writing to " + DRIVE_ROOT + "Analyses/ICAM/" + line[0]
+										System.err.println("Error writing to " + DRIVE_ROOT + "Analyses/ICAM/"
+																			 + line[0]
 																			 + ".R");
 										e.printStackTrace();
 									}
@@ -1156,8 +1213,9 @@ public class CARe_Analyses {
 			Files.chmod("catchUp." + ext.rootOf(phenofile) + (conditionals ? "_withCondi" : ""));
 			count--;
 			System.out.println("Files remaining: "
-												 + (v.size() == 0 ? "none"
-																					: ext.listRanges(ArrayUtils.toIntArray(ArrayUtils.toStringArray(v)))));
+												 + (v.size() == 0
+																				 ? "none"
+																				 : ext.listRanges(ArrayUtils.toIntArray(ArrayUtils.toStringArray(v)))));
 		} catch (Exception e) {
 			System.err.println("Error writing to " + "catchUp");
 			e.printStackTrace();
@@ -1183,13 +1241,14 @@ public class CARe_Analyses {
 											 + ".IBC." + element2[1]
 											 + ".chr#.gen.gz Zin skip0=1 skip1=1 skip2=0 format=3 noheader " + "--pheno "
 											 + phenofile + " --pheno-name " + pheno + " " + "--covar " + phenofile
-											 + " --covar-name Age,Male,BMI" + (conditionals
-																																			? ",rs5498,rs651007"
-																																				+ (element.equals("MESA")
-																																					 && (element2[0].equals("asians")
-																																							 || element2[0].equals("hispanics")) ? ""
-																																																									 : ",rs1799969")
-																																			: "")
+											 + " --covar-name Age,Male,BMI"
+											 + (conditionals
+																			? ",rs5498,rs651007"
+																				+ (element.equals("MESA")
+																					 && (element2[0].equals("asians")
+																					 || element2[0].equals("hispanics")) ? ""
+																																							: ",rs1799969")
+																			: "")
 											 + ",EV1,EV2,EV3,EV4,EV5,EV6,EV7,EV8,EV9,EV10 " +
 											 // "--covar "+phenofile+" --covar-name
 											 // Age,Male,BMI"+(conditionals?",rs5498c,rs651007c,rs1799969c":"")+",EV1,EV2,EV3,EV4,EV5,EV6,EV7,EV8,EV9,EV10
@@ -1228,11 +1287,15 @@ public class CARe_Analyses {
 						commands = Files.getRunString() + " gwas.GWAF " + "phenoFile=" + phenofile + " "
 											 + "pheno=" + pheno + " " + "genoPrimer=gwaf/file#.fhsR.gz "
 											 + "outfileTemplate=" + ext.rootOf(phenofile)
-											 + (conditionals ? "_withCondi" : "") + "_results#.csv " + "qsubRoot=batches/"
-											 + ext.rootOf(phenofile) + (conditionals ? "_withCondi" : "") + "_file#.qsub "
+											 + (conditionals ? "_withCondi" : "") + "_results#.csv "
+											 + "qsubRoot=batches/"
+											 + ext.rootOf(phenofile) + (conditionals ? "_withCondi" : "")
+											 + "_file#.qsub "
 											 + "startAt=0 " + "imputed=true " + "pedfile=pedfile.csv "
-											 + "nodesToUse=compute-0-0.local,compute-0-3.local,compute-0-4.local " + //
-											 "covars=Age,Male,BMI" + (conditionals ? ",rs651007c,rs1799969c,rs5498c" : "")
+											 + "nodesToUse=compute-0-0.local,compute-0-3.local,compute-0-4.local "
+											 + //
+											 "covars=Age,Male,BMI"
+											 + (conditionals ? ",rs651007c,rs1799969c,rs5498c" : "")
 											 + ",EV1,EV2,EV3,EV4,EV5,EV6,EV7,EV8,EV9,EV10";
 						writer.println("cd " + dir);
 						writer.println(commands);
@@ -1269,7 +1332,7 @@ public class CARe_Analyses {
 					}
 					Files.cat(files,
 										ext.rootOf(phenofile) + (conditionals ? "_withCondi" : "") + "_"
-													 + dir.substring(0, dir.length() - 1) + "_dosage_results.out",
+												+ dir.substring(0, dir.length() - 1) + "_dosage_results.out",
 										skips, new Logger());
 				}
 			}
@@ -1294,7 +1357,7 @@ public class CARe_Analyses {
 					}
 					Files.cat(files,
 										ext.rootOf(phenofile) + (conditionals ? "_withCondi" : "") + "_"
-													 + dir.substring(0, dir.length() - 1) + "_dosage_results.out",
+												+ dir.substring(0, dir.length() - 1) + "_dosage_results.out",
 										skips, new Logger());
 				}
 			}
@@ -1322,7 +1385,7 @@ public class CARe_Analyses {
 				if (new File(dir + filename).exists()) {
 					GenParser.parse(new String[] {dir + filename,
 																				"out=" + dir + (label == null ? "" : label + "_") + element
-																												+ "_" + element2[0] + ".input",
+																						+ "_" + element2[0] + ".input",
 																				"1=MarkerName", "3=A1", "4=A2", "!6>0.30", "7=beta",
 																				"8=StdErr", "!7<5", "!7>-5", "!8!NA", "!8!0"},
 													log);
@@ -1452,13 +1515,15 @@ public class CARe_Analyses {
 			Unique.proc(ArrayUtils.toStringArray(files), null, null,
 									DRIVE_ROOT + "CARe_geno_data_and_misc/IBC/allSNPs.txt", null, true);
 			Files.combine(HashVec.loadFileToStringArray(DRIVE_ROOT
-																									+ "CARe_geno_data_and_misc/IBC/allSNPs.txt", true,
+																									+ "CARe_geno_data_and_misc/IBC/allSNPs.txt",
+																									true,
 																									new int[] {0}, false),
 										ArrayUtils.toStringArray(parameters), null, "MarkerName", ".",
 										DRIVE_ROOT + "CARe_geno_data_and_misc/IBC/alleleFreqs/" + element[0]
-																																									 + "_freq_input.txt",
+												+ "_freq_input.txt",
 										log, true, true, false);
-			Metal.calculateWeightedAlleleFrequency(DRIVE_ROOT + "CARe_geno_data_and_misc/IBC/alleleFreqs/"
+			Metal.calculateWeightedAlleleFrequency(DRIVE_ROOT
+																						 + "CARe_geno_data_and_misc/IBC/alleleFreqs/"
 																						 + element[0] + "_freq_input.txt", 0.30, -1, log);
 		}
 		keys = HashVec.getKeys(positions);
@@ -1484,7 +1549,8 @@ public class CARe_Analyses {
 										dir + root + ".mlinfo", skips, log);
 					n = Files.countLines(dir + root + ".chr1.pfam", 0);
 					files.add(dir + root + ".mlinfo 0 1=" + studie + "_" + element[0] + "_A1 2=" + studie
-										+ "_" + element[0] + "_A2 3=" + studie + "_" + element[0] + "_freq $#" + n + "="
+										+ "_" + element[0] + "_A2 3=" + studie + "_" + element[0] + "_freq $#" + n
+										+ "="
 										+ studie + "_" + element[0] + "_N 6=" + studie + "_" + element[0] + "_Rsq");
 
 
@@ -1507,11 +1573,11 @@ public class CARe_Analyses {
 				}
 			}
 			Files.combine(HashVec.loadFileToStringArray(DRIVE_ROOT
-																									+ "CARe_imputed_all_llange_24mar2010/allSNPs.txt",
+																											+ "CARe_imputed_all_llange_24mar2010/allSNPs.txt",
 																									true, new int[] {0}, false),
 										ArrayUtils.toStringArray(files), null, "MarkerName", ".",
 										DRIVE_ROOT + "CARe_imputed_all_llange_24mar2010/" + element[0]
-																																							+ "_freq_input.txt",
+												+ "_freq_input.txt",
 										log, true, true, false);
 			Metal.calculateWeightedAlleleFrequency(DRIVE_ROOT + "CARe_imputed_all_llange_24mar2010/"
 																						 + element[0] + "_freq_input.txt", 0.30, -1, log);
@@ -1575,7 +1641,8 @@ public class CARe_Analyses {
 					// new File(dir+"pheno/db_"+RACES[j][0]+".txt").delete();
 					// } else {
 					Transformations.transformFile(dir + "pheno/db_" + element[0] + ".txt",
-																				dir + "pheno/db_" + element[0] + "_normalized.txt", true, 3,
+																				dir + "pheno/db_" + element[0] + "_normalized.txt", true,
+																				3,
 																				false, false, Transformations.NORMALIZE, log);
 					Transformations.transformFile(dir + "pheno/db_" + element[0] + ".txt",
 																				dir + "pheno/db_" + element[0] + "_inverseNormalized.txt",
@@ -1590,14 +1657,16 @@ public class CARe_Analyses {
 													 DRIVE_ROOT + "Analyses/ICAM/covarSNPs.txt", true,
 													 log).writeToFile(dir + "abo_icam.dosage.csv",
 																						dir + "abo_icam.dosage.pinfo", null, null, true, true,
-																						DosageData.PARAMETERS[DosageData.GWAF_FORMAT], log);
+																						DosageData.PARAMETERS[DosageData.GWAF_FORMAT], false,
+																						0, log);
 
 						conditionals = new SnpMarkerSet(dir + "abo_icam.dosage.pinfo").getMarkerNames();
 						for (int k = 0; k < conditionals.length; k++) {
 							conditionals[k] = (k + 1) + "=" + conditionals[k] + "c";
 						}
 
-						hitlist = new String[] {"lookup",
+						hitlist = new String[] {
+																		"lookup",
 																		"abo_icam.ids.fam 1 hideIndex out=plink_normalizedPheno.dat",
 																		"abo_icam.ids.fam 1 0=FID 1=IID skip=0",
 																		"pheno/db_" + element[0] + "_normalized.txt 1 4;-9 fail",
@@ -1616,7 +1685,8 @@ public class CARe_Analyses {
 												+ " Launch -suppress generateNormalizedPhenoForPlinkWithConditionals.crf",
 												dir);
 
-						hitlist = new String[] {"lookup",
+						hitlist = new String[] {
+																		"lookup",
 																		"abo_icam.ids.fam 1 hideIndex out=plink_inverseNormalizedPheno.dat",
 																		"abo_icam.ids.fam 1 0=FID 1=IID skip=0",
 																		"pheno/db_" + element[0] + "_inverseNormalized.txt 1 4;-9 fail",
@@ -1632,53 +1702,61 @@ public class CARe_Analyses {
 						Files.writeArray(hitlist,
 														 dir + "generateInverseNormalizedPhenoForPlinkWithConditionals.crf");
 						CmdLine.run("java -Xmx1024M -jar C:/home/npankrat/"
-												+ org.genvisis.common.PSF.Java.GENVISIS
-												+ " Launch -suppress generateInverseNormalizedPhenoForPlinkWithConditionals.crf",
+														+ org.genvisis.common.PSF.Java.GENVISIS
+														+ " Launch -suppress generateInverseNormalizedPhenoForPlinkWithConditionals.crf",
 												dir);
 						if (FAMILY_BASED[i]) {
-							Files.writeArray(new String[] {"lookup",
+							Files.writeArray(new String[] {
+																						 "lookup",
 																						 "abo_icam.ids.fam 1 hideIndex out=normalizedPhenoWithConditionals.csv",
-																						 "leslie_lange." + STUDIES[i] + ".IBC." + element[1] + ".Rlinker 0 2=id skip=0",
+																						 "leslie_lange." + STUDIES[i] + ".IBC." + element[1]
+																								 + ".Rlinker 0 2=id skip=0",
 																						 "pheno/db_" + element[0] + "_normalized.txt 1 4; fail",
 																						 "pheno/db_clean_wPCs.txt 2 5; 6; 7; fail #VALUE!=> tab",
-																						 "abo_icam.dosage.csv , 0 " + ArrayUtils.toStr(conditionals),
+																						 "abo_icam.dosage.csv , 0 "
+																								 + ArrayUtils.toStr(conditionals),
 																						 "pheno/db_clean_wPCs.txt 2 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; fail"},
 															 dir + "generateNormalizedPhenoForGWAFWithConditionals.crf");
 							CmdLine.run("java -Xmx1024M -jar C:/home/npankrat/"
 													+ org.genvisis.common.PSF.Java.GENVISIS
 													+ " Launch -suppress generateNormalizedPhenoForGWAFWithConditionals.crf",
 													dir);
-							Files.writeArray(new String[] {"lookup",
+							Files.writeArray(new String[] {
+																						 "lookup",
 																						 "abo_icam.ids.fam 1 hideIndex out=inverseNormalizedPhenoWithConditionals.csv",
-																						 "leslie_lange." + STUDIES[i] + ".IBC." + element[1] + ".Rlinker 0 2=id skip=0",
-																						 "pheno/db_" + element[0] + "_inverseNormalized.txt 1 4; fail",
+																						 "leslie_lange." + STUDIES[i] + ".IBC." + element[1]
+																								 + ".Rlinker 0 2=id skip=0",
+																						 "pheno/db_" + element[0]
+																								 + "_inverseNormalized.txt 1 4; fail",
 																						 "pheno/db_clean_wPCs.txt 2 5; 6; 7; fail #VALUE!=> tab",
-																						 "abo_icam.dosage.csv , 0 " + ArrayUtils.toStr(conditionals),
+																						 "abo_icam.dosage.csv , 0 "
+																								 + ArrayUtils.toStr(conditionals),
 																						 "pheno/db_clean_wPCs.txt 2 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; fail"},
 															 dir + "generateInverseNormalizedPhenoForGWAFWithConditionals.crf");
 							CmdLine.run("java -Xmx1024M -jar C:/home/npankrat/"
-													+ org.genvisis.common.PSF.Java.GENVISIS
-													+ " Launch -suppress generateInverseNormalizedPhenoForGWAFWithConditionals.crf",
+															+ org.genvisis.common.PSF.Java.GENVISIS
+															+ " Launch -suppress generateInverseNormalizedPhenoForGWAFWithConditionals.crf",
 													dir);
 							new File("D:/upload/phenos/" + STUDIES[i] + "_" + element[0] + "/").mkdirs();
 							Files.copyFile(dir
 														 + "normalizedPhenoWithConditionals.csv",
 														 "D:/upload/phenos/" + STUDIES[i] + "_" + element[0]
-																																			+ "/normalizedPhenoWithConditionals.csv");
+																 + "/normalizedPhenoWithConditionals.csv");
 							Files.copyFile(dir
-														 + "inverseNormalizedPhenoWithConditionals.csv", "D:/upload/phenos/"
-																																						 + STUDIES[i] + "_"
-																																						 + element[0]
-																																						 + "/inverseNormalizedPhenoWithConditionals.csv");
+																 + "inverseNormalizedPhenoWithConditionals.csv",
+														 "D:/upload/phenos/"
+																 + STUDIES[i] + "_"
+																 + element[0]
+																 + "/inverseNormalizedPhenoWithConditionals.csv");
 						} else {
 							new File("D:/upload/phenos/" + STUDIES[i] + "_" + element[0] + "/").mkdirs();
 							Files.copyFile(dir + "plink_normalizedPheno.dat",
 														 "D:/upload/phenos/" + STUDIES[i] + "_" + element[0]
-																																+ "/plink_normalizedPheno.dat");
+																 + "/plink_normalizedPheno.dat");
 							Files.copyFile(dir
 														 + "plink_inverseNormalizedPheno.dat",
 														 "D:/upload/phenos/" + STUDIES[i] + "_" + element[0]
-																																	 + "/plink_inverseNormalizedPheno.dat");
+																 + "/plink_inverseNormalizedPheno.dat");
 						}
 					}
 
@@ -1801,7 +1879,7 @@ public class CARe_Analyses {
 											 "../rids_" + root + ".fhsR", -1, true,
 											 "../leslie_lange." + STUDIES[i] + ".IBC." + element[1] + ".pedfile",
 											 root + (numExtraCovars > 0 ? "_withCondi" + numExtraCovars : "")
-																																														+ "_out.csv",
+													 + "_out.csv",
 											 root, null, 1, 1);
 						new File(dir + "analysis_of_" + pheno + "/"
 										 + root + ".R")
@@ -1844,7 +1922,8 @@ public class CARe_Analyses {
 											 + "--dosage ../" + root + ".dosage skip0=0 skip1=0 skip2=0 format=2 "
 											 + "--pheno ../" + phenofile + " --pheno-name " + pheno + " " + "--covar ../"
 											 + phenofile + " --covar-name " + ArrayUtils.toStr(covars, ",") + " "
-											 + "--out " + root + (numExtraCovars > 0 ? "_withCondi" + numExtraCovars : "")
+											 + "--out " + root
+											 + (numExtraCovars > 0 ? "_withCondi" + numExtraCovars : "")
 											 + "_out";
 						Files.write(commands, dir + "analysis_of_" + pheno + "/run" + numExtraCovars + "."
 																	+ pheno + ".bat");
@@ -1886,7 +1965,7 @@ public class CARe_Analyses {
 						GWAF.parseToMetal(dir + root + "_iteration" + iter + ".csv",
 															dir + "../" + root + ".pinfo", null,
 															finalDir + "iteration" + iter + "/" + element[0] + "_" + STUDIES[j]
-																																	 + "_iteration" + iter + ".metal",
+																	+ "_iteration" + iter + ".metal",
 															false, false, false);
 						files.add(element[0] + "_" + STUDIES[j] + "_iteration" + iter + ".metal");
 						allFiles.add(element[0] + "_" + STUDIES[j] + "_iteration" + iter + ".metal");
@@ -1895,8 +1974,8 @@ public class CARe_Analyses {
 						GenParser.parse(new String[] {dir + root + (iter > 0 ? "_withCondi" + iter : "")
 																					+ "_out.assoc.dosage",
 																					"out=" + finalDir + "iteration" + iter + "/" + element[0]
-																																 + "_" + STUDIES[j] + "_iteration"
-																																 + iter + ".metal",
+																							+ "_" + STUDIES[j] + "_iteration"
+																							+ iter + ".metal",
 																					"'SNP'=MarkerName", "'A1'=Allele1", "'A2'=Allele2",
 																					"'BETA'=Effect", "'SE'=StdErr", "'P'=P-value"},
 														log);
@@ -1904,7 +1983,8 @@ public class CARe_Analyses {
 						allFiles.add(element[0] + "_" + STUDIES[j] + "_iteration" + iter + ".metal");
 					} else {
 						System.out.println("Did not find either " + dir + root
-															 + (iter > 0 ? "_withCondi" + iter : "") + "_out.csv OR " + dir + root
+															 + (iter > 0 ? "_withCondi" + iter : "") + "_out.csv OR " + dir
+															 + root
 															 + "_withCondi1_out.assoc.dosage");
 					}
 					try {

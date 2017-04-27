@@ -764,7 +764,7 @@ public class DosageData implements Serializable {
 				geno1 = genotypeProbabilities[i][j][0];
 				geno2 = genotypeProbabilities[i][j][1];
 				geno3 = genotypeProbabilities[i][j].length > 2 ? genotypeProbabilities[i][j][2]
-																											: Float.MIN_VALUE;
+																											: (1 - (geno1 + geno2));
 				if (geno1 <= missThresh && geno2 <= missThresh && geno3 <= missThresh) {
 					dosageValues[i][j] = missingValue;
 				} else {
@@ -774,6 +774,9 @@ public class DosageData implements Serializable {
 						dosageValues[i][j] = 1;
 					} else if (geno3 > geno1 && geno3 > geno2) {
 						dosageValues[i][j] = 2;
+					} else {
+						// tie
+						dosageValues[i][j] = missingValue;
 					}
 				}
 			}
