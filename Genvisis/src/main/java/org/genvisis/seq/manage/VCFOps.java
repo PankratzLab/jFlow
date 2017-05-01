@@ -1555,7 +1555,7 @@ public class VCFOps {
 																			 boolean createAnnotationFile, boolean subToBam,
 																			 String[] varSets, int numThreads, Logger log) {
 		return extractSegments(vcf, segmentFile, bpBuffer, bams, outputDir, skipFiltered, gzipOutput,
-													 createAnnotationFile, subToBam, varSets, numThreads, false, log);
+													 createAnnotationFile, subToBam, varSets, numThreads, false, -1, log);
 
 	}
 
@@ -1563,6 +1563,7 @@ public class VCFOps {
 																			 String outputDir, boolean skipFiltered, boolean gzipOutput,
 																			 boolean createAnnotationFile, boolean subToBam,
 																			 String[] varSets, int numThreads, boolean removeNoCalls,
+																			 int gq,
 																			 Logger log) {
 		BamExtractor.BamSample bamSample = null;
 
@@ -1635,6 +1636,8 @@ public class VCFOps {
 		}
 		String output = dir + root + "." + ext.rootOf(segmentFile) + ".vcf" + (gzipOutput ? ".gz" : "");
 		String annoFile = dir + root + "." + ext.rootOf(segmentFile) + ".anno.txt";
+		String annoGQFile = dir + root + "." + ext.rootOf(segmentFile) + "GQ_" + gq + ".anno.txt";
+
 		if (!Files.exists(output)) {
 			Segment[] segsToSearch = null;
 			if (segmentFile.endsWith(".in") || segmentFile.endsWith(".bim")) {
@@ -1661,14 +1664,13 @@ public class VCFOps {
 			int found = 0;
 
 			PrintWriter annoWriter = null;
+			PrintWriter annoGQWriter = null;
+
 			String[][] annotations = getAnnotationKeys(vcf, log);
 			if (createAnnotationFile) {
-				annoWriter = Files.getAppropriateWriter(annoFile);
-				annoWriter.println("##" + ArrayUtils.toStr(ANNO_BASE) + "\t"
-													 + ArrayUtils.toStr(annotations[1]) + "\t"
-													 + ArrayUtils.toStr(header.getGenotypeSamples()));
-				annoWriter.println(ArrayUtils.toStr(ANNO_BASE) + "\t" + ArrayUtils.toStr(annotations[0])
-													 + "\t" + ArrayUtils.toStr(header.getGenotypeSamples()));
+				annoWriter = writePrelim(annoFile, header, annotations);
+				annoGQWriter = writePrelim(annoGQFile, header, annotations);
+
 			}
 			CloseableIterator<VariantContext> iterator = reader.iterator();
 			if (segsToSearch.length == 1) {
@@ -1693,7 +1695,8 @@ public class VCFOps {
 					if (subToBam) {
 						vc = VCOps.getSubset(vc, bamSamples);
 					}
-					if (!removeNoCalls || vc.getCalledChrCount() > 0) {
+					int numCalled = vc.getHomRefCount() + vc.getHetCount() + vc.getHomVarCount();
+					if (!removeNoCalls || numCalled > 0) {
 						writer.add(vc);
 
 						if (bamSample != null) {
@@ -1701,18 +1704,23 @@ public class VCFOps {
 																												vc.getStart(), vc.getEnd()));
 						}
 						if (createAnnotationFile) {
-							annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t"
-															 + vc.getReference().getBaseString() + "\t"
-															 + vc.getAlternateAlleles().toString() + "\t"
-															 + vc.getFilters().toString() + "\t"
-															 + ArrayUtils.toStr(VCOps.getAnnotationsFor(annotations[0], vc,
-																																					".")));
+							writeBase(annoWriter, annotations, vc);
+							writeBase(annoGQWriter, annotations, vc);
+
 							GenotypesContext gc = vc.getGenotypes();
 
 							for (Genotype g : gc) {
 								annoWriter.print("\t" + g.getGenotypeString());
+								if (g.getGQ() >= gq) {
+									annoGQWriter.print("\t" + g.getGenotypeString());
+								} else {
+									GenotypeBuilder b = new GenotypeBuilder(g);
+									b.alleles(GenotypeOps.getNoCall());
+									annoGQWriter.print("\t" + b.make().getGenotypeString());
+								}
 							}
 							annoWriter.println();
+							annoGQWriter.println();
 						}
 						found++;
 					}
@@ -1728,12 +1736,35 @@ public class VCFOps {
 			}
 			if (createAnnotationFile) {
 				annoWriter.close();
+				annoGQWriter.close();
+
 			}
 		} else {
 			log.reportTimeWarning("The file " + output + " already exists, skipping extraction step");
 		}
 		reader.close();
 		return output;
+	}
+
+	private static void writeBase(PrintWriter annoWriter, String[][] annotations, VariantContext vc) {
+		annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t"
+										 + vc.getReference().getBaseString() + "\t"
+										 + vc.getAlternateAlleles().toString() + "\t"
+										 + vc.getFilters().toString() + "\t"
+										 + ArrayUtils.toStr(VCOps.getAnnotationsFor(annotations[0], vc,
+																																".")));
+	}
+
+	private static PrintWriter writePrelim(String annoFile, VCFHeader header,
+																				 String[][] annotations) {
+		PrintWriter annoWriter;
+		annoWriter = Files.getAppropriateWriter(annoFile);
+		annoWriter.println("##" + ArrayUtils.toStr(ANNO_BASE) + "\t"
+											 + ArrayUtils.toStr(annotations[1]) + "\t"
+											 + ArrayUtils.toStr(header.getGenotypeSamples()));
+		annoWriter.println(ArrayUtils.toStr(ANNO_BASE) + "\t" + ArrayUtils.toStr(annotations[0])
+											 + "\t" + ArrayUtils.toStr(header.getGenotypeSamples()));
+		return annoWriter;
 	}
 
 	public static int getNumberOfVariants(String vcf) {
@@ -2439,6 +2470,7 @@ public class VCFOps {
 		String populationFile = null;
 		String logfile = null;
 		int bpBuffer = 0;
+		int gq = 20;
 		UTILITY_TYPE type = UTILITY_TYPE.CONVERT_PLINK;
 		String segmentFile = null;
 		String idFile = null;
@@ -2586,7 +2618,7 @@ public class VCFOps {
 				case EXTRACT_SEGMENTS:
 					extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip,
 													createAnnotation,
-													subToBam, varSet, numThreads, removeNoCalls, log);
+													subToBam, varSet, numThreads, removeNoCalls, gq, log);
 					break;
 				case EXTRACT_SEGMENTS_ANNOTATION:
 					extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, true,
