@@ -348,6 +348,10 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		int num = 0;
 		int processBatch = 0;
 		// FIXME
+
+		String plug = c.get(CLI.ARG_OUTDIR) + "sraPipline.plug";
+		Files.write("Delete this file to stop disowned jobs", plug);
+
 		log.reportTimeWarning("set up for lanej aspera");
 		for (int i = 0; i < batches.length; i++) {
 			for (int j = 0; j < batches[i].length; j++) {
@@ -355,10 +359,16 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 				process.add("echo \"start " + ext.rootOf(batches[i][j]) + "\" `date` >>" + processDir
 										+ "sraDL.times");
 
-				process.add("prefetch.2.6.3 -a \"/home/pankrat2/lanej/.aspera/connect/bin/ascp|/home/pankrat2/lanej/.aspera/connect/etc/asperaweb_id_dsa.openssh\" --max-size 100000000000 "
+				process.add("prefetch.2.6.3 -a \"/home/pankrat2/lane0212/.aspera/connect/bin/ascp|/home/pankrat2/lane0212/.aspera/connect/etc/asperaweb_id_dsa.openssh\" --max-size 100000000000 "
 										+ ext.rootOf(batches[i][j]));
 				process.add("echo \"end " + ext.rootOf(batches[i][j]) + "\" `date` >>"
 										+ ext.parseDirectoryOfFile(batches[i][j]) + ".times");
+				process.add("FILE=\"" + plug + "\"");
+				process.add("if [ -f $FILE ]; then");
+				process.add("else");
+				process.add("echo \"File $FILE does not exist.\"");
+				process.add("exit 1");
+				process.add("fi");
 				num++;
 			}
 			process.add("cd " + processDir);// so the qsubs get placed there
