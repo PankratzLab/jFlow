@@ -5,12 +5,13 @@ Efficient Visualization of Genomic data
 ----------------------
 Genvisis is a robust software package that takes advantage of unique compressed data structures to efficiently process, assess quality of, analyze, and visualize the intensity data from GWAS arrays.
 
-Specialized algorithms are used to call CNVs, and each algorithm uses its own approach. Genvisis allows a CNV to be inspected by visualizing boundaries overlaid with probe intensities
+Specialized algorithms are used to call CNVs, and each algorithm uses its own approach. Genvisis allows a CNV to be inspected by visualizing boundaries overlaid with probe intensities.
 
 Get started with the [Genvisis manual](https://github.com/PankratzLab/Genvisis/wiki/About-Genvisis).
 
-View the Change log [here](https://github.com/npankrat/Genvisis/blob/master/CHANGELOG.md)
+View the Change log [here](https://github.com/npankrat/Genvisis/blob/master/CHANGELOG.md).
  
+
 Building with Maven
 =====================
 
