@@ -21,6 +21,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -245,7 +247,8 @@ class CNVPanel extends JPanel implements ActionListener {
 	CNVCheckList checkList;
 	JButton selectAll;
 	JButton selectNone;
-	JButton trailerButton;
+	JButton selectTrailer;
+	JButton visibleTrailer;
 	LaunchAction launchTrailer;
 	CompPlot compPlot;
 
@@ -261,8 +264,10 @@ class CNVPanel extends JPanel implements ActionListener {
 		score = new JLabel();
 		selectAll = new JButton("Select All");
 		selectNone = new JButton("Select None");
-		trailerButton = new JButton("To Trailer");
-		trailerButton.setToolTipText("Launch Trailer to examine selected CNVs");
+		selectTrailer = new JButton("Selected");
+		selectTrailer.setToolTipText("Open the selected CNV(s) as a Trailer region set");
+		visibleTrailer = new JButton("Visible");
+		visibleTrailer.setToolTipText("Open all visible CNV(s) as a Trailer region set");
 
 		// Panel for CNV information
 		cnvPanel = new JPanel();
@@ -314,12 +319,21 @@ class CNVPanel extends JPanel implements ActionListener {
 		selectNone.setVisible(false);
 		selectNone.addActionListener(this);
 
-		// Link off to Trailer
-		btnPanel.add(trailerButton);
-		trailerButton.setEnabled(false);
-		trailerButton.addActionListener(this);
-
 		add(btnPanel);
+
+		// Add buttons for opening samples in Trailer
+
+		JPanel trailerButtons = new JPanel();
+		trailerButtons.setLayout(new GridLayout(2, 2));
+		trailerButtons.add(new JLabel("To Trailer:"));
+		trailerButtons.add(new JLabel(""));
+		trailerButtons.add(visibleTrailer);
+		visibleTrailer.addActionListener(this);
+		trailerButtons.add(selectTrailer);
+		selectTrailer.setEnabled(false);
+		selectTrailer.addActionListener(this);
+
+		add(trailerButtons);
 	}
 
 	/**
@@ -362,7 +376,7 @@ class CNVPanel extends JPanel implements ActionListener {
 		cnvListLabel.setText(cnvPanelVisible ? "Select CNVs:" : "");
 		selectAll.setVisible(cnvPanelVisible);
 		selectNone.setVisible(cnvPanelVisible);
-		trailerButton.setEnabled(!cnvPanelVisible);
+		selectTrailer.setEnabled(!cnvPanelVisible);
 	}
 
 	// Update the text with the currently selected CNV
@@ -391,7 +405,7 @@ class CNVPanel extends JPanel implements ActionListener {
 	 * Clear CNV UI components and text
 	 */
 	private void clearCNVPanel() {
-		trailerButton.setEnabled(false);
+		selectTrailer.setEnabled(false);
 		selectAll.setVisible(false);
 		selectNone.setVisible(false);
 		cnvScroll.setVisible(false);
@@ -407,11 +421,11 @@ class CNVPanel extends JPanel implements ActionListener {
 	public void actionPerformed(ActionEvent arg0) {
 		if (arg0.getSource().equals(selectAll) && !checkList.checkList.isEmpty()) {
 			checkList.selectAll();
-			trailerButton.setEnabled(true);
+			selectTrailer.setEnabled(true);
 		} else if (arg0.getSource().equals(selectNone)) {
 			checkList.selectNone();
-			trailerButton.setEnabled(false);
-		} else if (arg0.getSource().equals(trailerButton)) {
+			selectTrailer.setEnabled(false);
+		} else if (arg0.getSource().equals(selectTrailer)) {
 			// if selectedCNV is not null, then we have a rect with one CNV and we use selectedCNV
 			// if we have a rect with multiple CNVs, we use the checkList.
 			List<CNVariant> selectedCNVs;
@@ -422,7 +436,15 @@ class CNVPanel extends JPanel implements ActionListener {
 				selectedCNVs = checkList.getSelected();
 			}
 
-			compPlot.openTrailers(selectedCNVs);
+			compPlot.openCNVsInTrailer(selectedCNVs);
+
+		} else if (arg0.getSource().equals(visibleTrailer)) {
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					compPlot.openCNVsInTrailer();
+				}
+			});
 		}
 	}
 
@@ -458,7 +480,7 @@ class CNVPanel extends JPanel implements ActionListener {
 						clearCNVText();
 					}
 
-					trailerButton.setEnabled(checkCount > 0);
+					selectTrailer.setEnabled(checkCount > 0);
 				}
 			};
 

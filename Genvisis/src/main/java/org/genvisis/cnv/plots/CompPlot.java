@@ -445,7 +445,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
 		openTrailer = new JMenuItem();
 		openTrailer.setAction(openTrailerAction);
-		openTrailer.setText("Open in Trailer");
+		openTrailer.setText("Open all in Trailer");
 		openTrailer.setToolTipText("Open the Trailer plot view of all currently visible CNVs");
 		act.add(openTrailer);
 
@@ -453,9 +453,17 @@ public class CompPlot extends JFrame implements ChrNavigator {
 	}
 
 	/**
-	 * Open a {@link Trailer} plot for each {@link CNVariant} in the given list.
+	 * Call {@link #openCNVsInTrailer(List)} with a list of all {@link CNVariant}s in this plot.
 	 */
-	public void openTrailers(List<CNVariant> selectedCNVs) {
+	public void openCNVsInTrailer() {
+		openCNVsInTrailer(cnvRects.getCNVs());
+	}
+
+	/**
+	 * Open a {@link Trailer} plot with a region list containing an entry for each {@link CNVariant}
+	 * in the given list.
+	 */
+	public void openCNVsInTrailer(List<CNVariant> selectedCNVs) {
 		SampleData sampleData = proj.getSampleData(true);
 		int window = proj.getProperty(proj.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER);
 
@@ -497,7 +505,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
 				@Override
 				public void run() {
-					openTrailers(cnvRects.getCNVs());
+					openCNVsInTrailer();
 				}
 			});
 		}
@@ -798,6 +806,10 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		// long stopTime = Calendar.getInstance().getTimeInMillis();
 		//
 		// System.out.println("loadCNVs() took " + (stopTime - startTime) + "ms");
+	}
+
+	public CNVRectangles getCnvRects() {
+		return cnvRects;
 	}
 
 	public String[] getFiles() {
