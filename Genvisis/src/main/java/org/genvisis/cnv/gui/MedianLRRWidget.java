@@ -364,9 +364,6 @@ public class MedianLRRWidget extends JFrame implements Runnable {
 			progressBar.setStringPainted(true);
 			computeComplete = 0;
 
-			// TODO would be nice to notify when complete instead of when starting the job
-			JOptionPane.showMessageDialog(null, "Writing Median LRR data to: " + outputName);
-
 			medianLRRWorker = new MedianLRRWorker(proj, regionTextField.getText().split("\n"),
 																						transformType, transformScope, outputName, progressBar,
 																						recomputeLRR, correctLRR, correctXY,
