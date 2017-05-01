@@ -359,12 +359,13 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 				process.add("echo \"start " + ext.rootOf(batches[i][j]) + "\" `date` >>" + processDir
 										+ "sraDL.times");
 
-				process.add("prefetch.2.6.3 -a \"/home/pankrat2/lane0212/.aspera/connect/bin/ascp|/home/pankrat2/lane0212/.aspera/connect/etc/asperaweb_id_dsa.openssh\" --max-size 100000000000 "
+				process.add("prefetch.2.8.2 -a \"/home/pankrat2/lane0212/.aspera/connect/bin/ascp|/home/pankrat2/lane0212/.aspera/connect/etc/asperaweb_id_dsa.openssh\" --max-size 100000000000 "
 										+ ext.rootOf(batches[i][j]));
 				process.add("echo \"end " + ext.rootOf(batches[i][j]) + "\" `date` >>"
 										+ ext.parseDirectoryOfFile(batches[i][j]) + ".times");
 				process.add("FILE=\"" + plug + "\"");
 				process.add("if [ -f $FILE ]; then");
+				process.add("echo \"File $FILE does exist.\"");
 				process.add("else");
 				process.add("echo \"File $FILE does not exist.\"");
 				process.add("exit 1");
