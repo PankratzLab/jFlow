@@ -66,6 +66,7 @@ import org.genvisis.cnv.gui.FileAndOutputSelectorGUI;
 import org.genvisis.cnv.gui.ImportProjectGUI;
 import org.genvisis.cnv.gui.PlinkExportOptions;
 import org.genvisis.cnv.gui.ProjectCreationGUI;
+import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.manage.DemoPackage;
 import org.genvisis.cnv.manage.ExportCNVsToPedFormat;
 import org.genvisis.cnv.manage.GenvisisWorkflow;
@@ -502,6 +503,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			@Override
 			public void run() {
 				splash.setVisible(false);
+
+
+				launchUI.pack();
+				UITools.centerComponent(launchUI);
 				launchUI.setVisible(true);
 				System.out.println(ext.getTime() + "]\tGenvisis Loaded.");
 
@@ -513,8 +518,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				});
 			}
 		});
-
-		launchUI.pack();
 	}
 
 	/**
