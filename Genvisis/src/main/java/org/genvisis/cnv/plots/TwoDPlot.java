@@ -290,15 +290,38 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		if (promptOnClose) {
 			previouslyLoadedFiles = proj.TWOD_LOADED_FILENAMES.getValue();
+			String errMsg = "";
+			Set<String> failed = new HashSet<String>();
 			for (String previouslyLoadedFile : previouslyLoadedFiles) {
-				loadFile(previouslyLoadedFile);
+				String result = loadFile(previouslyLoadedFile);
+				if (!result.isEmpty()) {
+					failed.add(previouslyLoadedFile);
+					errMsg += result + "\n";
+				}
 			}
+
+			if (!failed.isEmpty()) {
+				proj.message("The following file(s) failed to load and will no longer be displayed by default:\n"
+										 + errMsg);
+
+				String[] loadedSuccessfully = new String[previouslyLoadedFiles.length - failed.size()];
+				int i = 0;
+				for (String s : previouslyLoadedFiles) {
+					if (!failed.contains(s)) {
+						loadedSuccessfully[i++] = s;
+					}
+				}
+				proj.TWOD_LOADED_FILENAMES.setValue(loadedSuccessfully);
+			}
+
 			updateTreeForNewData();
 			String[] sel = proj.TWOD_LOADED_VARIABLES.getValue();
+			List<String> passed = new ArrayList<String>();
 			// Determine which variable(s) of this file were selected
 			for (String s : sel) {
 				// Selection syntax is "filename|variable_index"
 				String[] fileSel = s.split("\\|");
+
 				if (fileSel.length != 2) {
 					// No variables were selected
 					continue;
@@ -307,8 +330,18 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				if (Files.isRelativePath(fileSel[0])) {
 					fileSel[0] = proj.PROJECT_DIRECTORY.getValue() + fileSel[0];
 				}
-				tree.performCheckBoxAction(dataColumnsHash.get(fileSel[0])[Integer.parseInt(fileSel[1])],
-																	 ItemEvent.SELECTED);
+
+				// Skip selections from files that were removed
+				if (!failed.contains(fileSel[0])) {
+					passed.add(s);
+					tree.performCheckBoxAction(dataColumnsHash.get(fileSel[0])[Integer.parseInt(fileSel[1])],
+																		 ItemEvent.SELECTED);
+				}
+
+				// Update the project property if necessary
+				if (passed.size() != sel.length) {
+					proj.TWOD_LOADED_VARIABLES.setValue(passed.toArray(new String[passed.size()]));
+				}
 			}
 		}
 
@@ -2115,14 +2148,17 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		updateTreeForNewData();
 	}
 
-	public void loadFile(String filename) {
+	/**
+	 * @return Empty string if successful, otherwise an error message.
+	 */
+	public String loadFile(String filename) {
 		BufferedReader reader;
 		String[] header, line;
 		String readBuffer;
 		int lineLength;
 
 		if (dataKeys.contains(filename)) {
-			return;
+			return "";
 		}
 		if (!validExts.isEmpty()) {
 			boolean found = false;
@@ -2133,9 +2169,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				}
 			}
 			if (!found) {
-				log.reportError("Error - extension of file {" + filename
-												+ "} is invalid.  Valid extensions are: {" + validExts.toString() + "}");
-				return;
+				String e = "Error - extension of file {" + filename
+									 + "} is invalid.  Valid extensions are: {" + validExts.toString() + "}";
+				log.reportError(e);
+				return e;
 			}
 		}
 		try {
@@ -2164,10 +2201,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				}
 				line = tempLine.trim().split(delim);
 				if (line.length < lineLength) {
-					proj.message("Error on line " + cnt + " of file " + filename + ": expected "
-											 + header.length + " columns, but only found " + line.length);
+					String e = "Error on line " + cnt + " of file " + filename + ": expected "
+										 + header.length + " columns, but only found " + line.length;
+					log.reportError(e);
 					reader.close();
-					return;
+					return e;
 				}
 				valid = ArrayUtils.booleanArrayAnd(valid, validate(line));
 				data.add(line);
@@ -2183,10 +2221,16 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			log.reportTimeElapsed("Read file " + filename + " in: ", t1);
 
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + filename + "\" not found in current directory");
+			String e = "Error: file \"" + filename + "\" not found in current directory";
+			log.reportError(e);
+			return e;
 		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + filename + "\"");
+			String e = "Error reading file \"" + filename + "\"";
+			log.reportError(e);
+			return e;
 		}
+
+		return "";
 	}
 
 	enum OP {
