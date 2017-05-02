@@ -295,8 +295,15 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			}
 			updateTreeForNewData();
 			String[] sel = proj.TWOD_LOADED_VARIABLES.getValue();
+			// Determine which variable(s) of this file were selected
 			for (String s : sel) {
+				// Selection syntax is "filename|variable_index"
 				String[] fileSel = s.split("\\|");
+				if (fileSel.length != 2) {
+					// No variables were selected
+					continue;
+				}
+
 				if (Files.isRelativePath(fileSel[0])) {
 					fileSel[0] = proj.PROJECT_DIRECTORY.getValue() + fileSel[0];
 				}
