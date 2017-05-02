@@ -2,6 +2,7 @@ package org.genvisis.cnv.gui;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
 import java.awt.Toolkit;
 
@@ -51,7 +52,9 @@ public final class UITools {
 	 */
 	public static void setSize(Component c, Dimension d) {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(c.getGraphicsConfiguration());
+		GraphicsConfiguration configuration = c.getGraphicsConfiguration();
+		Insets scnMax = configuration == null ? null : Toolkit.getDefaultToolkit()
+																													.getScreenInsets(configuration);
 		int taskBarSize = scnMax == null ? 0 : scnMax.bottom;
 		int totalHeight = dim.height - (taskBarSize > 0 ? taskBarSize : (int) (dim.height * 0.075));
 
