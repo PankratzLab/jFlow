@@ -7,9 +7,11 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.EventObject;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.AbstractCellEditor;
@@ -407,18 +409,21 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		// }
 		root.removeAllChildren();
 		model.reload();
+
+		for (int i=0; i<selections.length; i++) {
+			if (selections[i] != null) {
+				selections[i].setSelected(false);
+			}
+			selections[i] = null;
+		}
 	}
 
-	// TODO if node to be deleted has selected values, then it may fail down stream in the parent
-	// appication (e.g., TwoDPlot), tried to make a work around below (currently commented out), but
-	// it does not work
 	public void deleteSelectedNode() {
 		DefaultMutableTreeNode selectedNode;
 		int index;
 		DefaultMutableTreeNode root; // , branch;
 		DefaultTreeModel model;
 		IntVector expansions;
-		// JCheckBox[] travSelections;
 
 		selectedNode = (DefaultMutableTreeNode) getLastSelectedPathComponent();
 		if (selectedNode == null) {
@@ -429,16 +434,20 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		model = (DefaultTreeModel) getModel();
 		root = (DefaultMutableTreeNode) model.getRoot();
 
-		// travSelections = new JCheckBox[selections.length];
-		// for (int i = selections.length-1; i >= 0 ; i--) {
-		// travSelections[i] = selections[i];
-		// if (selections[i] != null) {
-		// selections[i].setSelected(false);
-		//// selections[i] = null;
-		// }
-		// }
-
 		setSelectionPath(null);
+
+		// Remove any selected children of the deleted node
+		for (int i = 0; i < selections.length; i++) {
+			JCheckBox b = selections[i];
+			if (b == null) {
+				continue;
+			}
+			String[] name = b.getName().split(PSF.Regex.GREEDY_WHITESPACE);
+			if (name[0].endsWith(selectedNode.toString())) {
+				b.setSelected(false);
+				selections[i] = null;
+			}
+		}
 
 		// Reserve the Tree Expansion/Collapse status
 		expansions = new IntVector();
@@ -453,15 +462,6 @@ public class CheckBoxTree extends JTree implements ItemListener {
 
 		root.remove(index);
 		model.reload();
-
-		// for (int i = 0; i < selections.length; i++) {
-		// if (travSelections[i] != null) {
-		// selections[i] = travSelections[i];
-		// selections[i].setSelected(true);
-		// } else {
-		// System.out.println("nothing to select for index "+i);
-		// }
-		// }
 
 		// Restore the tree expansion/collapse status
 		for (int i = expansions.size() - 1; i >= 0; i--) {
