@@ -337,11 +337,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 					tree.performCheckBoxAction(dataColumnsHash.get(fileSel[0])[Integer.parseInt(fileSel[1])],
 																		 ItemEvent.SELECTED);
 				}
+			}
 
-				// Update the project property if necessary
-				if (passed.size() != sel.length) {
-					proj.TWOD_LOADED_VARIABLES.setValue(passed.toArray(new String[passed.size()]));
-				}
+			// Update the project property if necessary
+			if (passed.size() != sel.length) {
+				proj.TWOD_LOADED_VARIABLES.setValue(passed.toArray(new String[passed.size()]));
 			}
 		}
 
