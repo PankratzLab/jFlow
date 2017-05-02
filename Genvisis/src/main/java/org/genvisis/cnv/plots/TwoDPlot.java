@@ -2355,11 +2355,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		frame.setContentPane(twoDPlot);
 		frame.addWindowListener(twoDPlot);
 		frame.setMinimumSize(new Dimension(20, 20));
-		UITools.setSize(frame, new Dimension(1000, 600));
+		UITools.setSize(frame, 0.75, 0.75);
 		// frame.setExtendedState(frame.getExtendedState()|JFrame.MAXIMIZED_BOTH);
 
 		// Display the window.
 		frame.pack();
+		UITools.centerComponent(frame);
 		frame.setVisible(show);
 
 		return twoDPlot;
