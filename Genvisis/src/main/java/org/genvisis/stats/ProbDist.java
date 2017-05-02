@@ -82,6 +82,13 @@ public class ProbDist {
 	}
 
 	public static double ChiDist(double x, int n) {
+		double p = roughChiDist(x, n);
+		if (p < 0.0)
+			return 0.0;
+		return p;
+	}
+
+	private static double roughChiDist(double x, int n) {
 		if (Double.isNaN(x)) {
 			return Double.NaN;
 		}
