@@ -765,7 +765,7 @@ public class DosageData implements Serializable {
 				geno2 = genotypeProbabilities[i][j][1];
 				geno3 = genotypeProbabilities[i][j].length > 2 ? genotypeProbabilities[i][j][2]
 																											: (1 - (geno1 + geno2));
-				if (geno1 <= missThresh && geno2 <= missThresh && geno3 <= missThresh) {
+				if (geno1 < missThresh && geno2 < missThresh && geno3 < missThresh) {
 					dosageValues[i][j] = missingValue;
 				} else {
 					if (geno1 > geno2 && geno1 > geno3) {
