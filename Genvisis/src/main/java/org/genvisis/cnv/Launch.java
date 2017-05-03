@@ -503,7 +503,6 @@ public class Launch extends JFrame implements ActionListener {
 			public void run() {
 				splash.setVisible(false);
 
-
 				launchUI.pack();
 				UITools.centerComponent(launchUI);
 				launchUI.setVisible(true);
@@ -517,11 +516,6 @@ public class Launch extends JFrame implements ActionListener {
 				});
 			}
 		});
-	}
-
-	private void shutdown() {
-		log.reportTime("Genvisis is shutting down.");
-		System.exit(0);
 	}
 
 	/**
@@ -670,7 +664,7 @@ public class Launch extends JFrame implements ActionListener {
 			return KeyEvent.VK_D;
 		} else {
 			// If no specific mnemonic, take the alphabetically first letter that hasn't been used before.
-			String s2 = string.toLowerCase();
+			String s2 = string.toUpperCase();
 			for (int k = 0; k < string.length(); k++) {
 				char mnemonic = s2.charAt(k);
 				if (!hash.contains(mnemonic)) {
