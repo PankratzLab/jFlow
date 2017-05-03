@@ -9,7 +9,6 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
@@ -70,7 +69,7 @@ public class VCFSamplePrep {
 		double minNorm = ArrayUtils.min(normDepth);
 		float[] scaleNorm = new float[d.length];
 		for (int i = 0; i < scaleNorm.length; i++) {
-			if (!Java6Helper.isFinite((float) normDepth[i])) {
+			if (!Float.isFinite((float) normDepth[i])) {
 				System.out.println(normDepth[i]);
 				System.exit(1);
 			}

@@ -2,8 +2,6 @@ package org.genvisis.common;
 
 import java.io.Serializable;
 
-import org.genvisis.cnv.util.Java6Helper;
-
 public class GenomicPosition implements Serializable, Comparable<GenomicPosition> {
 
 	private static final long serialVersionUID = 1L;
@@ -56,10 +54,10 @@ public class GenomicPosition implements Serializable, Comparable<GenomicPosition
 
 	@Override
 	public int compareTo(GenomicPosition o) {
-		int cmp = Java6Helper.compare(chr, o.chr);
+		int cmp = Byte.compare(chr, o.chr);
 		if (cmp != 0)
 			return cmp;
-		cmp = Java6Helper.compare(position, o.position);
+		cmp = Integer.compare(position, o.position);
 		return cmp;
 	}
 

@@ -1,7 +1,6 @@
 package org.genvisis.cnv.manage;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 
 import org.genvisis.cnv.filesys.Project;

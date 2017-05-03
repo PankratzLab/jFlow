@@ -11,7 +11,6 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.AlleleFreq;
 import org.genvisis.common.ArrayUtils;
@@ -632,7 +631,7 @@ public class MarkerData implements Serializable {
 				} else {
 					error += Math.abs(compLRRs[count] - originalLRRs[count]);
 					count++;
-					if (!Java6Helper.isFinite(error)) {
+					if (!Double.isFinite(error)) {
 						log.reportError("Started with index " + i + ", compLRR of '" + compLRRs[count]
 														+ "', and oriLRR of '" + originalLRRs[count] + "'");
 						return new double[] {-999, -999};

@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.genvisis.CLI;
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -157,7 +156,7 @@ public class HaplogroupSelector {
 		 */
 		@Override
 		public int compareTo(HaploMatch other) {
-			return -1 * Java6Helper.compare(this.haploStringLength, other.haploStringLength);
+			return -1 * Integer.compare(this.haploStringLength, other.haploStringLength);
 		}
 
 

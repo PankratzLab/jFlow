@@ -1,6 +1,5 @@
 package org.genvisis.cnv.analysis;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.HashSet;

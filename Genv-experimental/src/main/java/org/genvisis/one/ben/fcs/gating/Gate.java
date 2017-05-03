@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
@@ -301,8 +300,8 @@ public abstract class Gate {
 			float max = Math.max(rgd.getMin(), rgd.getMax());
 			for (int i = 0; i < dataLoader.getCount(); i++) {
 				// inclusive min, exclusive max - see gating-ml spec
-				paramIncludes[0][i] = (!Java6Helper.isFinite(min) || min <= paramData[i])
-															&& (!Java6Helper.isFinite(max) || max > paramData[i]);
+				paramIncludes[0][i] = (!Float.isFinite(min) || min <= paramData[i])
+															&& (!Float.isFinite(max) || max > paramData[i]);
 			}
 
 			if ((rgd = (RectangleGateDimension) getYDimension()) != null) {
@@ -314,8 +313,8 @@ public abstract class Gate {
 				paramData = dataLoader.getData(rgd.paramName, true);
 				for (int i = 0; i < dataLoader.getCount(); i++) {
 					// inclusive min, exclusive max - see gating-ml spec
-					paramIncludes[1][i] = (!Java6Helper.isFinite(min) || min <= paramData[i])
-																&& (!Java6Helper.isFinite(max) || max > paramData[i]);
+					paramIncludes[1][i] = (!Float.isFinite(min) || min <= paramData[i])
+																&& (!Float.isFinite(max) || max > paramData[i]);
 				}
 
 			}

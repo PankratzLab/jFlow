@@ -1,6 +1,5 @@
 package org.genvisis.cnv.analysis.pca;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;

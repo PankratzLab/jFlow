@@ -13,7 +13,6 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.manage.PlinkData;
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
@@ -374,7 +373,7 @@ public class GCTA {
 				// reduce magnitude of
 				// variance
 				for (int j = 0; j < data.length; j++) {
-					pheno.add(fidIID.get(j) + "\t" + (Java6Helper.isFinite(data[j]) ? data[j] + "" : "NA"));
+					pheno.add(fidIID.get(j) + "\t" + (Double.isFinite(data[j]) ? data[j] + "" : "NA"));
 				}
 				final String phenoFile = resultsDir + current + ".txt";
 				Files.writeIterable(pheno, phenoFile);

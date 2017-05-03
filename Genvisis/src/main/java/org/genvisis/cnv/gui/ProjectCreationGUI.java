@@ -40,7 +40,6 @@ import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.manage.SourceFileParser;
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
@@ -447,7 +446,7 @@ public class ProjectCreationGUI extends JDialog {
 				if (!extensions.containsKey(ext))
 					extensions.put(ext, 1);
 				else
-					Java6Helper.replace(extensions, ext, extensions.get(ext) + 1);
+					extensions.replace(ext, extensions.get(ext) + 1);
 			}
 
 			if (extensions.isEmpty())

@@ -1,7 +1,6 @@
 package org.genvisis.seq;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;

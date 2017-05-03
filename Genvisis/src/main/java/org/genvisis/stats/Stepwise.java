@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
@@ -384,7 +383,7 @@ public class Stepwise {
 			}
 			model.setVarNames(travNames, maxNameSize);
 			Rsum += ext.formStr(i + 1 + "", 4) + "\t"
-							+ (!Java6Helper.isFinite(model.getOverall()) ? "    ."
+							+ (!Double.isFinite(model.getOverall()) ? "    ."
 																													 : ext.formStr(ext.formDeci(model.getOverall(),
 																																											1, true),
 																																				 7))

@@ -1,6 +1,5 @@
 package org.genvisis.seq.analysis;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Hashtable;

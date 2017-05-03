@@ -3,7 +3,6 @@ package org.genvisis.cnv.analysis.pca;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -33,7 +32,6 @@ import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources.Resource;
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.AlleleFreq;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -908,7 +906,7 @@ public class BetaOptimizer {
 							double betaSE = Double.parseDouble(line[indices[4]]);
 							double p = Double.parseDouble(line[indices[5]]);
 
-							if (Java6Helper.isFinite(beta) && Java6Helper.isFinite(p) && p < minPval) {
+							if (Double.isFinite(beta) && Double.isFinite(p) && p < minPval) {
 								MarkerRsFormat current = markerRsFormats.get(index.get(rsId));
 								String[] betaAlleles = new String[] {line[indices[1]].toUpperCase(),
 																										 line[indices[2]].toUpperCase()};
@@ -946,7 +944,7 @@ public class BetaOptimizer {
 									}
 									added.add(current.getMarkerName());
 								}
-							} else if (!Java6Helper.isFinite(beta) || !Java6Helper.isFinite(p)) {
+							} else if (!Double.isFinite(beta) || !Double.isFinite(p)) {
 								log.reportTimeWarning("Invalid number on line " + ArrayUtils.toStr(line));
 								log.reportTimeWarning(line[indices[3]] + "\t" + line[indices[4]]);
 							}

@@ -44,7 +44,6 @@ import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
 import org.genvisis.cnv.qc.MarkerBlastQC;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
@@ -205,7 +204,7 @@ public class GenvisisWorkflow {
 			int priorityCmp = Double.compare(getPriority(), o.getPriority());
 			if (priorityCmp != 0)
 				return priorityCmp;
-			return Java6Helper.compare(hashCode(), o.hashCode());
+			return Integer.compare(hashCode(), o.hashCode());
 		}
 
 		@Override

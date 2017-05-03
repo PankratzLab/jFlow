@@ -1,7 +1,6 @@
 package org.genvisis.cnv.analysis;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;

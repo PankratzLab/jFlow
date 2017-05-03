@@ -14,7 +14,6 @@ import java.util.Map.Entry;
 
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -138,12 +137,12 @@ public class MultiHitWindows {
 
 		@Override
 		public int compareTo(MultiHitWindow o) {
-			int c = Java6Helper.compare(chr, o.chr);
+			int c = Integer.compare(chr, o.chr);
 			if (c == 0) {
-				c = Java6Helper.compare(start, o.start);
+				c = Long.compare(start, o.start);
 			}
 			if (c == 0) {
-				c = Java6Helper.compare(end, o.end);
+				c = Long.compare(end, o.end);
 			}
 			return c;
 		}

@@ -1,6 +1,5 @@
 package org.genvisis.seq.qc.contamination;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.concurrent.Callable;
 

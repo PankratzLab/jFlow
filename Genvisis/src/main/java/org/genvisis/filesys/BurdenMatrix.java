@@ -1,7 +1,6 @@
 // expand to dynamically load/save a certain chunk of markers at a time
 package org.genvisis.filesys;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Arrays;

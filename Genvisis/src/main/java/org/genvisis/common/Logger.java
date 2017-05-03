@@ -1,7 +1,6 @@
 package org.genvisis.common;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 

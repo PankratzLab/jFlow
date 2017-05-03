@@ -7,11 +7,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.EventObject;
-import java.util.List;
 import java.util.Vector;
 
 import javax.swing.AbstractCellEditor;

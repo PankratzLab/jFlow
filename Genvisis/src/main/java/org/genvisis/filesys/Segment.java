@@ -3,7 +3,6 @@ package org.genvisis.filesys;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -391,7 +389,7 @@ public class Segment implements Serializable, Comparable<Segment> {
 	public int compareTo(Segment o) {
 		int c = getChr() - o.getChr();
 		if (c == 0) {
-			c = Java6Helper.compare(this.getStart(), o.getStart());
+			c = Integer.compare(this.getStart(), o.getStart());
 		}
 		return c;
 	}

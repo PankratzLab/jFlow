@@ -1,7 +1,6 @@
 package org.genvisis.one.JL;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 
 import org.genvisis.common.ArrayUtils;

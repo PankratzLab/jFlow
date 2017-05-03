@@ -6,7 +6,6 @@ import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
@@ -199,7 +198,7 @@ public class BamSample {
 			for (int j = 0; j < chrIndices[i].length; j++) {
 				int index = chrIndices[i][j];
 
-				if (!Java6Helper.isFinite(scaleMAD[index])) {// should only happen if the MAD is NaN
+				if (!Float.isFinite(scaleMAD[index])) {// should only happen if the MAD is NaN
 					if (!error) {
 						String warning = "Found invalid scale MAD depth for " + bamFile + ", bin "
 														 + markerSet.getMarkerNames()[chrIndices[i][j]];

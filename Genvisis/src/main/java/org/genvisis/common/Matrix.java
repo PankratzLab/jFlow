@@ -1,6 +1,5 @@
 package org.genvisis.common;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.List;

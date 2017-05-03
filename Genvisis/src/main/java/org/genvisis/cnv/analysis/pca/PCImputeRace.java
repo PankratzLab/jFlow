@@ -10,7 +10,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
@@ -385,7 +384,7 @@ public class PCImputeRace {
 		int count = 0;
 		for (Sample sample : samples) {
 			double pc1 = sample.getPc1();
-			if (Java6Helper.isFinite(pc1)) {
+			if (Double.isFinite(pc1)) {
 				count++;
 				sum += pc1;
 			}
@@ -400,7 +399,7 @@ public class PCImputeRace {
 		int count = 0;
 		for (Sample sample : samples) {
 			double pc2 = sample.getPc2();
-			if (Java6Helper.isFinite(pc2)) {
+			if (Double.isFinite(pc2)) {
 				count++;
 				sum += pc2;
 			}

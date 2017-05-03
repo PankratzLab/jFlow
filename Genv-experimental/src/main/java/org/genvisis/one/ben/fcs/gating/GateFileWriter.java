@@ -16,7 +16,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.Logger;
 import org.genvisis.one.ben.fcs.gating.Gate.PolygonGate;
 import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
@@ -98,12 +97,12 @@ public class GateFileWriter {
 
 		if (g.getXDimension() instanceof RectangleGateDimension) {
 			RectangleGateDimension rgd = (RectangleGateDimension) g.getXDimension();
-			if (Java6Helper.isFinite(rgd.getMax())) {
+			if (Float.isFinite(rgd.getMax())) {
 				dim1.setAttribute("gating:max",
 													"" + Math.max(((RectangleGateDimension) g.getXDimension()).getMin(),
 																				((RectangleGateDimension) g.getXDimension()).getMax()));
 			}
-			if (Java6Helper.isFinite(rgd.getMin())) {
+			if (Float.isFinite(rgd.getMin())) {
 				dim1.setAttribute("gating:min",
 													"" + Math.min(((RectangleGateDimension) g.getXDimension()).getMin(),
 																				((RectangleGateDimension) g.getXDimension()).getMax()));
@@ -120,12 +119,12 @@ public class GateFileWriter {
 
 			if (g.getYDimension() instanceof RectangleGateDimension) {
 				RectangleGateDimension rgd = (RectangleGateDimension) g.getYDimension();
-				if (Java6Helper.isFinite(rgd.getMax())) {
+				if (Float.isFinite(rgd.getMax())) {
 					dim1.setAttribute("gating:max",
 														"" + Math.max(((RectangleGateDimension) g.getYDimension()).getMin(),
 																					((RectangleGateDimension) g.getYDimension()).getMax()));
 				}
-				if (Java6Helper.isFinite(rgd.getMin())) {
+				if (Float.isFinite(rgd.getMin())) {
 					dim1.setAttribute("gating:min",
 														"" + Math.min(((RectangleGateDimension) g.getYDimension()).getMin(),
 																					((RectangleGateDimension) g.getYDimension()).getMax()));

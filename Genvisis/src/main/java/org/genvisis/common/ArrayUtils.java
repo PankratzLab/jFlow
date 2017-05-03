@@ -18,7 +18,6 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.stats.Maths;
 import org.genvisis.stats.ProbDist;
 
@@ -3913,7 +3912,7 @@ public class ArrayUtils {
 
 		use = new boolean[array.length];
 		for (int i = 0; i < use.length; i++) {
-			use[i] = Java6Helper.isFinite(array[i]);
+			use[i] = Double.isFinite(array[i]);
 		}
 
 		return subArray(array, use);
@@ -3930,7 +3929,7 @@ public class ArrayUtils {
 
 		use = new boolean[array.length];
 		for (int i = 0; i < use.length; i++) {
-			use[i] = !!Java6Helper.isFinite(array[i]);
+			use[i] = Float.isFinite(array[i]);
 		}
 
 		return subArray(array, use);
@@ -3996,7 +3995,7 @@ public class ArrayUtils {
 	public static float[] replaceNonFinites(float[] array) {
 		float[] ret = new float[array.length];
 		for (int i = 0; i < array.length; i++) {
-			if (Java6Helper.isFinite(array[i])) {
+			if (Float.isFinite(array[i])) {
 				ret[i] = array[i];
 			} else {
 				ret[i] = Float.NaN;

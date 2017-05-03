@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Vector;
 
 import org.genvisis.bioinformatics.Alleles;
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -1017,8 +1016,8 @@ public class ResultsPackager {
 					beta = Double.NaN;
 					se = Double.NaN;
 				}
-				tmp += "\t" + (!Java6Helper.isFinite(beta) ? "." : beta);
-				tmp += "\t" + (!Java6Helper.isFinite(se) ? "." : se);
+				tmp += "\t" + (!Double.isFinite(beta) ? "." : beta);
+				tmp += "\t" + (!Double.isFinite(se) ? "." : se);
 			}
 			result = snpList.get(index) + tmp + "\t" + freq + "\t"
 

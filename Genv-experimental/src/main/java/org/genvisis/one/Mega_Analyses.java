@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ByteVector;
 import org.genvisis.common.Files;
@@ -817,7 +816,7 @@ public class Mega_Analyses {
 		} else {
 			System.err.println("There were " + duplicates.size() + " duplicated factors");
 		}
-		if (Java6Helper.isFinite(mostExtremeTie)) {
+		if (Double.isFinite(mostExtremeTie)) {
 			System.err.println("The value of the most extreme tie was: " + mostExtremeTie);
 		}
 		System.out.println("Finished scanning in " + ext.getTimeElapsed(time));

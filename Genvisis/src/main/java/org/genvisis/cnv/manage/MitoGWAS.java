@@ -2,7 +2,6 @@ package org.genvisis.cnv.manage;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,7 +15,6 @@ import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.qc.MarkerMetrics;
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
@@ -300,7 +298,7 @@ public class MitoGWAS {
 
 				for (int j = 0; j < emp1s.length; j++) {
 					if (valid) {
-						valid = Java6Helper.isFinite(emp1s[j][i]) && markerSet.getChrs()[i] > 0;
+						valid = Double.isFinite(emp1s[j][i]) && markerSet.getChrs()[i] > 0;
 						if (!valid) {
 							numInvalid++;
 							valids[i] = false;

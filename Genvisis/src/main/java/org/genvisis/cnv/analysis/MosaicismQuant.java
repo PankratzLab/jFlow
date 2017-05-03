@@ -1,7 +1,6 @@
 package org.genvisis.cnv.analysis;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -16,7 +15,6 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.qc.SampleQC;
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -544,7 +542,7 @@ public class MosaicismQuant implements Calcfc {
 		}
 
 		private boolean useBaf(double minBaf, double maxBaf, double baf) {
-			return Java6Helper.isFinite(baf) && baf > minBaf && baf < maxBaf;
+			return Double.isFinite(baf) && baf > minBaf && baf < maxBaf;
 		}
 
 		@Override
@@ -969,7 +967,7 @@ public class MosaicismQuant implements Calcfc {
 						}
 
 					}
-					double test = !Java6Helper.isFinite(baf) ? 0 : (double) (baf);
+					double test = !Double.isFinite(baf) ? 0 : (double) (baf);
 					System.out.println(test);
 					double tmp = gd.distributions()[j].probability(test) * Math.sqrt(vars[j]);
 
@@ -998,7 +996,7 @@ public class MosaicismQuant implements Calcfc {
 				double baf = mosiacismQuant.getSampleMosiac().getSamp().getBAFs()[currentIndices[i]];
 
 				writer.print(markerSet.getPositions()[currentIndices[i]] + "\t"
-										 + (!Java6Helper.isFinite(baf) ? 0 : baf) + "\t" + rand[i] + "\t" + pvals[i]
+										 + (!Double.isFinite(baf) ? 0 : baf) + "\t" + rand[i] + "\t" + pvals[i]
 										 + "\t"
 										 + baseLine + "\t" + distMember[i]);
 				for (double[] madata : madatas) {

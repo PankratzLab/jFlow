@@ -1,7 +1,6 @@
 package org.genvisis.seq.cnv;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;

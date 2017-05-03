@@ -11,7 +11,6 @@ import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.hmm.PennHmm.ViterbiResult;
-import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.cnv.var.MosaicRegion;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -123,11 +122,11 @@ public class MosaicismDetect {
 						nearestN[i] = -1;
 					}
 				}
-				double test = !Java6Helper.isFinite(baf) ? 0 : (double) (baf);
+				double test = !Double.isFinite(baf) ? 0 : (double) (baf);
 				double tmp = gd.distributions()[j].probability(test) * Math.sqrt(variances[j]);
 				if (tmp > p_density[i] && !Double.isNaN(p_density[i])) {
 					p_density[i] = tmp;
-					if (Java6Helper.isFinite(baf)) {
+					if (Double.isFinite(baf)) {
 						if (j == 0 || j == 2) {
 							nearestN[i] = baf < gd.distributions()[1].mean() ? Math.max(baf
 																																					- gd.distributions()[j].mean(),
@@ -164,7 +163,7 @@ public class MosaicismDetect {
 				double[] tD = ArrayUtils.removeNaN(new double[] {p_densityMA[i], p_densityMAReverse[i]});
 				double d = tD.length > 0 ? ArrayUtils.mean(tD) : Double.NaN;
 				p_densityScored.add(d);
-				if (Java6Helper.isFinite(d)) {
+				if (Double.isFinite(d)) {
 					if (d <= baseLine || force) {
 						states[i] = 0;
 						mosIndicesTmp.add(i);
@@ -303,16 +302,16 @@ public class MosaicismDetect {
 			double[] t_tsMeanVar = getMeanVar(autosomalBafs, r1, r2);
 			double[] t_sMeanVar = getMeanVar(autosomalBafs, r2, 1);
 			means[0] = zero_tsMeanVar[0];
-			variances[0] = Java6Helper.isFinite(zero_tsMeanVar[1]) && zero_tsMeanVar[1] > 0
+			variances[0] = Double.isFinite(zero_tsMeanVar[1]) && zero_tsMeanVar[1] > 0
 																																											? zero_tsMeanVar[1]
 																																											: 1;
 			means[1] = t_tsMeanVar[0];
-			variances[1] = Java6Helper.isFinite(t_tsMeanVar[1]) && t_tsMeanVar[1] > 0 ? t_tsMeanVar[1]
+			variances[1] = Double.isFinite(t_tsMeanVar[1]) && t_tsMeanVar[1] > 0 ? t_tsMeanVar[1]
 																																								: 1;
 			means[2] = t_sMeanVar[0];
-			variances[2] = Java6Helper.isFinite(t_sMeanVar[1]) && t_sMeanVar[1] > 0 ? t_sMeanVar[1] : 1;
+			variances[2] = Double.isFinite(t_sMeanVar[1]) && t_sMeanVar[1] > 0 ? t_sMeanVar[1] : 1;
 
-			if (!Java6Helper.isFinite(zero_tsMeanVar[1] + t_tsMeanVar[1] + t_sMeanVar[1])
+			if (!Double.isFinite(zero_tsMeanVar[1] + t_tsMeanVar[1] + t_sMeanVar[1])
 					|| zero_tsMeanVar[1] <= 0 || t_tsMeanVar[1] <= 0 || t_sMeanVar[1] <= 0) {
 				proj.getLog().reportTimeWarning("Sample " + sample
 																				+ " had non-finite or 0 baf variance, setting to 1");

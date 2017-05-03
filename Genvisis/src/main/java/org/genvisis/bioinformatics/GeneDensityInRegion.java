@@ -1,6 +1,5 @@
 package org.genvisis.bioinformatics;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Vector;
 
