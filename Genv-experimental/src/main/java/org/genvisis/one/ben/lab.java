@@ -229,6 +229,35 @@ public class lab {
 		}
 	}
 
+	public static void famRecode() {
+		String famFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final/plink.fam";
+		String famFileOut = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final/plink_corrected.fam";
+		String lookupFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final/idLookup.txt";
+
+		String[][] ped = HashVec.loadFileToStringMatrix(lookupFile, false, null, "\t", false, 100000,
+																										false);
+		String[][] fam = HashVec.loadFileToStringMatrix(famFile, false, null, "[\\s]+", false, 100000,
+																										false);
+
+		HashMap<String, String> lookup = new HashMap<>();
+		for (String[] s : ped) {
+			lookup.put(s[0], s[1]);
+		}
+
+		String id;
+		PrintWriter writer = Files.getAppropriateWriter(famFileOut);
+		for (String[] line : fam) {
+			id = lookup.get(line[0]);
+			line[0] = id;
+			line[1] = id;
+			writer.println(ArrayUtils.toStr(line, "\t"));
+		}
+		writer.flush();
+		writer.close();
+
+	}
+
+
 	public static void famLookup() {
 		String famFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/plink.fam";
 		String famFileOut = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/plink_corrected.fam";
@@ -574,11 +603,12 @@ public class lab {
 		writer.close();
 	}
 
-	public static void exomeRecode() {
-		String dir = "/scratch.global/cole0482/affy6plink/";
+	public static void exomeRecode(String bimFile, String newBimFile) {
+		// String dir = "/scratch.global/cole0482/affy6plink/back/";
+		String dir = "D:/temp/plink/exmToRS/";
 		String exomeLookup = dir + "exm_to_rsID_lookup.txt";
-		String bimFile = dir + "exome_EA.bim";
-		String newBimFile = dir + "exome_EA_corrected.bim";
+		// String bimFile = dir + "exome_EA.bim";
+		// String newBimFile = dir + "exome_EA_corrected.bim";
 		String[][] exmMkrs = HashVec.loadFileToStringMatrix(exomeLookup, true, null, "\t", false,
 																												10000,
 																												false);
@@ -663,9 +693,19 @@ public class lab {
 			// "/scratch.global/cole0482/testImp/snps/cleanMarkers_corrected.txt", true);
 
 			// famLookup();
-			affy6BimLookup();
+			// affy6BimLookup();
 			// exomeRecode();
 			// filt();
+			// famRecode();
+			String bimFile;
+			String newBimFile;
+			String dir = "D:/temp/plink/exmToRS/";
+			bimFile = dir + "exome_EA.bim";
+			newBimFile = dir + "exome_EA_corrected.bim";
+			exomeRecode(bimFile, newBimFile);
+			bimFile = dir + "exome_AA.bim";
+			newBimFile = dir + "exome_AA_corrected.bim";
+			exomeRecode(bimFile, newBimFile);
 
 			// String cmd =
 			// "java -jar genvisis.jar org.genvisis.imputation.ImputationPipeline"
@@ -842,5 +882,4 @@ public class lab {
 			e.printStackTrace();
 		}
 	}
-
 }
