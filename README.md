@@ -135,6 +135,8 @@ Genvisis.git</br>
 
 
 Some notes:
+
 * Native bundles will only be built for the local OS
 * Each OS requires its own build tools to be installed (e.g. debian on Ubuntu, rpm on Linux, [InnoSetup](http://www.jrsoftware.org/isinfo.php) for `.exe` or [WiX](http://wixtoolset.org/) for `.msi` on Windows)
 * We recommend reading [the JavaFX tutorials](http://docs.oracle.com/javafx/2/deployment/self-contained-packaging.htm) for more information about deployment options.
+
