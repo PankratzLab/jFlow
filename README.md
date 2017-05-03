@@ -123,15 +123,15 @@ from either the `/Assembly/` directory or the project base directory (containing
 
 This will create several outputs of interest:
 
-|Genvisis.git   
-| '-- Assembly  
-|   '-- target  
-|     '-- **genvisis.tar.gz** (compressed native app w/ runtime)  
-|     '-- jfx  
-|       '-- **app** (folder with jar + dependencies)  
-|       '-- native  
-|         '-- **genvisis** (folder with app + platform-specific runtime)  
-|         '-- **genvisis-xxx.[rpm|deb|exe|msi|app]** (platform-specific installer)  
+Genvisis.git</br>
+|&nbsp;&nbsp;'-- _Assembly_</br>
+|&nbsp;&nbsp;&nbsp;&nbsp;'-- _target_</br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'-- **genvisis.tar.gz** (compressed native app w/ runtime)</br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'-- _jfx_</br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'-- **app** (folder with jar + dependencies)</br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'-- _native_</br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'-- **genvisis** (folder with app + platform-specific runtime)</br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'-- **genvisis-xxx.[rpm|deb|exe|msi|app]** (platform-specific installer)</br>
 
 
 Some notes:
