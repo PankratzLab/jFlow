@@ -82,6 +82,25 @@
 						<groupId>com.zenjava</groupId>
 						<artifactId>javafx-maven-plugin</artifactId>
 					</plugin>
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>zip-exe</id>
+								<phase>package</phase>
+								<configuration>
+									<target>
+										<tar destfile="${project.build.directory}/genvisis.tar.gz" compression="gzip">
+											<tarfileset filemode="755" dir="${project.build.directory}/jfx/native/" includes="${outname}/**"/>
+										</tar>
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
 				</plugins>
 			</build>
 		</profile>
