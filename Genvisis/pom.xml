@@ -39,8 +39,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.googlecode.efficient-java-matrix-library</groupId>
-			<artifactId>ejml</artifactId>
+			<groupId>org.ejml</groupId>
+			<artifactId>all</artifactId>
 		</dependency>
 
 		<dependency>
