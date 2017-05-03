@@ -132,7 +132,8 @@ public class CNVCaller {
 
 	private void managePfbs() {
 		if (markerSet.getMarkerNames().length != analysisPfbs.length) {
-			throw new IllegalArgumentException("Method seems to be called at the wrong time, call before subsetting");
+			throw new IllegalArgumentException(
+																				 "Method seems to be called at the wrong time, call before subsetting");
 		}
 		switch (pManagementType) {
 			case LESS_THAN_0_GO_CN:
@@ -313,7 +314,8 @@ public class CNVCaller {
 				CNVCallerWorker worker = new CNVCallerWorker(proj, dna, (byte) curChr, currentChrPositions,
 																										 currentNames, pennHmm, currentChrLrr,
 																										 currentChrBaf, currentChrPfbs,
-																										 snpDists[curChr], currentChrCnDef, callReverse,
+																										 snpDists[curChr], currentChrCnDef,
+																										 callReverse,
 																										 debugMode);
 				hive.addCallable(worker);
 			} else {
@@ -340,11 +342,13 @@ public class CNVCaller {
 				}
 			}
 			if (callReverse) {
-				throw new IllegalArgumentException("Call reverse is no longer active since it gives identical results. If you really want to use it, go back in git history");
+				throw new IllegalArgumentException(
+																					 "Call reverse is no longer active since it gives identical results. If you really want to use it, go back in git history");
 			}
 		}
 
-		LocusSet<CNVariant> allLocusSet = new LocusSet<CNVariant>(allCNVs.toArray(new CNVariant[allCNVs.size()]),
+		LocusSet<CNVariant> allLocusSet = new LocusSet<CNVariant>(
+																															allCNVs.toArray(new CNVariant[allCNVs.size()]),
 																															true, proj.getLog()) {
 
 			/**
@@ -354,7 +358,8 @@ public class CNVCaller {
 
 		};
 
-		LocusSet<CNVariant> allLocusSetReverse = new LocusSet<CNVariant>(allReverse.toArray(new CNVariant[allReverse.size()]),
+		LocusSet<CNVariant> allLocusSetReverse = new LocusSet<CNVariant>(
+																																		 allReverse.toArray(new CNVariant[allReverse.size()]),
 																																		 true, proj.getLog()) {
 
 			/**
@@ -363,7 +368,8 @@ public class CNVCaller {
 			private static final long serialVersionUID = 1L;
 
 		};
-		LocusSet<CNVariant> allLocusSetReverseConsensus = new LocusSet<CNVariant>(allReverseConsensus.toArray(new CNVariant[allReverseConsensus.size()]),
+		LocusSet<CNVariant> allLocusSetReverseConsensus = new LocusSet<CNVariant>(
+																																							allReverseConsensus.toArray(new CNVariant[allReverseConsensus.size()]),
 																																							true, proj.getLog()) {
 
 			/**
@@ -421,8 +427,10 @@ public class CNVCaller {
 			try {
 				ViterbiResult viterbiResult = PennHmm.ViterbiLogNP_CHMM(pennHmm, lrrs, bafs, pfbs,
 																																snipDists, cnDef);
-				LocusSet<CNVariant> chrCnvs = viterbiResult.analyzeStateSequence(proj, dna, dna, currentChr,
-																																				 positions, names, 2, false,
+				LocusSet<CNVariant> chrCnvs = viterbiResult.analyzeStateSequence(proj, dna, dna,
+																																				 currentChr,
+																																				 positions, names, 2,
+																																				 false,
 																																				 verbose);
 				LocusSet<CNVariant> chrCnvsReverse = null;
 				LocusSet<CNVariant> chrCNVsReverseConsensus = null;
@@ -430,7 +438,8 @@ public class CNVCaller {
 				chrCnvs = PennHmm.scoreCNVsSameChr(pennHmm, chrCnvs, positions, lrrs, bafs, pfbs, cnDef,
 																					 viterbiResult.getQ(), 2, proj.getLog());
 				if (callReverse) {
-					throw new IllegalArgumentException("Call reverse is no longer active since it gives identical results.");
+					throw new IllegalArgumentException(
+																						 "Call reverse is no longer active since it gives identical results.");
 
 				}
 				CNVCallResult callResult = new CNVCallResult(chrCnvs, chrCnvsReverse,
@@ -624,7 +633,8 @@ public class CNVCaller {
 																					 double[] sampLrrs, double[] sampBafs, GcModel gcModel,
 																					 PFB pfb, PreparedMarkerSet markerSet,
 																					 boolean[] markersToUse, boolean[] copyNumberDef,
-																					 int[] chrsToCall, boolean callReverse, int minNumMarkers,
+																					 int[] chrsToCall, boolean callReverse,
+																					 int minNumMarkers,
 																					 double minConf, int numThreads,
 																					 PFB_MANAGEMENT_TYPE pManagementType, boolean debugMode) {
 		DATA_ADJUSTMENTS[] dAdjustments;
@@ -736,7 +746,8 @@ public class CNVCaller {
 		 * @param numSampleThreads
 		 * @param debugMode
 		 */
-		private CNVProducer(Project proj, PreparedMarkerSet markerSet, PennHmm pennHmm, GcModel gcModel,
+		private CNVProducer(Project proj, PreparedMarkerSet markerSet, PennHmm pennHmm,
+												GcModel gcModel,
 												PFB pfb, String[] samples, int[] chrsToCall, boolean[] markersToUse,
 												Centroids centroids, int minNumMarkers, double minConf,
 												int numSampleThreads, boolean callReverse,
@@ -782,9 +793,9 @@ public class CNVCaller {
 																						+ markerSet.getMarkerNames().length);
 					}
 					float[] lrrs = centroids == null ? curSample.getLRRs()
-																					 : curSample.getLRRs(centroids.getCentroids());
+																					: curSample.getLRRs(centroids.getCentroids());
 					float[] bafs = centroids == null ? curSample.getBAFs()
-																					 : curSample.getBAFs(centroids.getCentroids());
+																					: curSample.getBAFs(centroids.getCentroids());
 					CNVCallResult cnvs = callCNVsFor(proj, pennHmmTmp, curSample.getSampleName(),
 																					 ArrayUtils.toDoubleArray(lrrs),
 																					 ArrayUtils.toDoubleArray(bafs), gcModelTmp, pfbTmp,
@@ -841,7 +852,8 @@ public class CNVCaller {
 																												 ArrayUtils.concatAll(maleSamples,
 																																							femaleSamples),
 																												 null, null, centroids[0], minNumMarkers,
-																												 minConf, pManagementType, numSampleThreads,
+																												 minConf, pManagementType,
+																												 numSampleThreads,
 																												 numChrThreads);
 		writeOutput(callerIterator, output, proj.getLog());
 		// will passing null to chrsToCall result in calling on 23/24 also?
@@ -921,7 +933,8 @@ public class CNVCaller {
 		CNVProducer producer = new CNVProducer(proj, markerSet, pennHmmOriginal, gcModel, pfb, samples,
 																					 chrsToCall, markersToUse, centroids, minNumMarkers,
 																					 minConf, numChrThreads, false, pManagementType, true);
-		WorkerTrain<CNVCallResult> train = new WorkerTrain<CNVCallResult>(producer, numSampleThreads, 2,
+		WorkerTrain<CNVCallResult> train = new WorkerTrain<CNVCallResult>(producer, numSampleThreads,
+																																			2,
 																																			proj.getLog());
 		return new CNVCallerIterator(train);
 	}
@@ -939,7 +952,8 @@ public class CNVCaller {
 		output = proj.PROJECT_DIRECTORY.getValue() + output;
 		proj.getLog().reportTimeInfo("CNVS will be reported to " + output);
 		new File(ext.parseDirectoryOfFile(output)).mkdirs();
-		CNVCallerIterator callerIterator = getCallerIterator(proj, markerSet, samples, chrsToCall, null,
+		CNVCallerIterator callerIterator = getCallerIterator(proj, markerSet, samples, chrsToCall,
+																												 null,
 																												 centroids, minNumMarkers, minConf,
 																												 pManagementType, numSampleThreads,
 																												 numChrThreads);
@@ -948,6 +962,7 @@ public class CNVCaller {
 
 	private static void writeOutput(CNVCallerIterator callerIterator, String output, Logger log) {
 		try {
+			new File(ext.parseDirectoryOfFile(output)).mkdir();
 			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
 			int sum = 0;
@@ -1052,9 +1067,11 @@ public class CNVCaller {
 				if (useCentroids) {
 					if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())
 							&& Files.exists(proj.SEX_CENTROIDS_MALE_FILENAME.getValue())) {
-						sexCents = new Centroids[] {Files.exists(proj.CUSTOM_CENTROIDS_FILENAME.getValue()) ? Centroids.load(proj.CUSTOM_CENTROIDS_FILENAME.getValue(),
-																																																								 proj.JAR_STATUS.getValue())
-																																																: null,
+						sexCents = new Centroids[] {
+																				Files.exists(proj.CUSTOM_CENTROIDS_FILENAME.getValue())
+																																															 ? Centroids.load(proj.CUSTOM_CENTROIDS_FILENAME.getValue(),
+																																																								proj.JAR_STATUS.getValue())
+																																															 : null,
 																				Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue(),
 																											 proj.JAR_STATUS.getValue()),
 																				Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue(),
