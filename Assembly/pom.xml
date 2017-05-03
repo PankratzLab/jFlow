@@ -90,9 +90,9 @@
 								<phase>package</phase>
 								<configuration>
 									<target>
-										<tar destfile="${project.build.directory}/genvisis.tar.gz" compression="gzip">
-											<tarfileset filemode="755" dir="${project.build.directory}/jfx/native/" includes="${outname}/**"/>
-										</tar>
+										<zip destfile="${project.build.directory}/genvisis.zip">
+											<zipfileset filemode="755" dir="${project.build.directory}/jfx/native/" includes="${outname}/**"/>
+										</zip>
 									</target>
 								</configuration>
 								<goals>
