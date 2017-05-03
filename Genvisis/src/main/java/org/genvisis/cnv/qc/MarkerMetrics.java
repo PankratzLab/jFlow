@@ -1603,6 +1603,7 @@ public class MarkerMetrics {
 				numArgs--;
 			} else if (arg.startsWith(BATCH_HEADERS_ARG + "=")) {
 				sampleDataBatchHeaders = ImmutableSet.copyOf(arg.split("=")[1].split(","));
+				numArgs--;
 			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(arg);
 				numArgs--;
