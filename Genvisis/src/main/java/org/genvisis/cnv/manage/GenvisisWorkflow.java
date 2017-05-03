@@ -61,6 +61,7 @@ import org.genvisis.gwas.RelationAncestryQc;
 import org.genvisis.stats.Maths;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -552,6 +553,49 @@ public class GenvisisWorkflow {
 
 	}
 
+	public static class ListSelectionRequirement extends Requirement {
+
+		private static final char SELECTION_LIST_DELIM = ',';
+		private static final Joiner SELECTION_LIST_JOINER = Joiner.on(SELECTION_LIST_DELIM);
+		private static final Splitter SELECTION_LIST_SPLITTER = Splitter.on(SELECTION_LIST_DELIM);
+
+		private final Collection<String> options;
+		private final boolean allowNone;
+
+		public ListSelectionRequirement(String description, Collection<String> options,
+																		Collection<String> defaultOptions, boolean allowNone) {
+			super(description, RequirementInputType.LISTSELECTION, defaultOptions);
+			if (!options.containsAll(defaultOptions))
+				throw new IllegalArgumentException("All defaultOptions are not in options");
+			this.options = options;
+			this.allowNone = allowNone;
+		}
+
+		@Override
+		public boolean checkRequirement(String arg, Set<Step> stepSelections,
+																		Map<Step, Map<Requirement, String>> variables) {
+			return allowNone || !arg.isEmpty();
+		}
+
+		public Collection<String> getOptions() {
+			return options;
+		}
+
+		@SuppressWarnings("unchecked")
+		public Collection<String> getDefaultOptions() {
+			return (Collection<String>) getDefaultValue();
+		}
+
+		public static String createArgValString(Iterable<?> selections) {
+			return SELECTION_LIST_JOINER.join(selections);
+		}
+
+		public static List<String> parseArgValString(String arg) {
+			return SELECTION_LIST_SPLITTER.splitToList(arg);
+		}
+
+	}
+
 	public static class EnumRequirement extends Requirement {
 
 		public EnumRequirement(String description, Enum<?> defaultValue) {
@@ -589,7 +633,7 @@ public class GenvisisWorkflow {
 	}
 
 	public enum RequirementInputType {
-		NONE, FILE, DIR, STRING, NUMBER, BOOL, ENUM
+		NONE, FILE, DIR, STRING, NUMBER, BOOL, ENUM, LISTSELECTION
 	}
 
 	public enum Flag {

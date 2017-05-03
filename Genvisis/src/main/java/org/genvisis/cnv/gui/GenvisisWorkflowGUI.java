@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentMap;
 
 import javax.swing.AbstractAction;
@@ -35,6 +36,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -53,6 +55,7 @@ import javax.swing.event.DocumentListener;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.GenvisisWorkflow;
+import org.genvisis.cnv.manage.GenvisisWorkflow.ListSelectionRequirement;
 import org.genvisis.cnv.manage.GenvisisWorkflow.Requirement;
 import org.genvisis.cnv.manage.GenvisisWorkflow.ResourceRequirement;
 import org.genvisis.cnv.manage.GenvisisWorkflow.Step;
@@ -505,6 +508,17 @@ public class GenvisisWorkflowGUI extends JDialog {
 						reqInputFields.put(req, combo);
 						panel.contentPanel.add(combo, "alignx right, aligny center, growx, gapleft 20, cell 1 "
 																					+ rowIndex);
+					} else if (req instanceof ListSelectionRequirement) {
+						ListSelectionRequirement listSelectionReq = (ListSelectionRequirement) req;
+						JList<String> jList = new JList<>(new Vector<>(listSelectionReq.getOptions()));
+						jList.setFont(jList.getFont().deriveFont(14));
+						for (String defaultOption : listSelectionReq.getDefaultOptions()) {
+							jList.setSelectedValue(defaultOption, false);
+						}
+						reqInputFields.put(req, jList);
+						panel.contentPanel.add(new JScrollPane(jList),
+																	 "alignx right, aligny center, growx, gapleft 20, cell 1 "
+																													 + rowIndex);
 					} else if (req.getType() != GenvisisWorkflow.RequirementInputType.NONE) {
 						JTextField textField = new JTextField();
 						textField.getDocument().addDocumentListener(new TextChangedListener() {
@@ -1078,6 +1092,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 					val = ((JSpinner) j).getValue().toString();
 				} else if (j instanceof JComboBox) {
 					val = ((JComboBox) j).getSelectedItem().toString();
+				} else if (j instanceof JList<?>) {
+					val = ListSelectionRequirement.createArgValString(((JList<?>) j).getSelectedValuesList());
 				}
 				values.put(req, val);
 			}
