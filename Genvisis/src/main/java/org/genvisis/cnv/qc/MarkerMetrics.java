@@ -46,7 +46,6 @@ import org.genvisis.stats.Ttest;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.HashMultiset;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -82,17 +81,33 @@ public class MarkerMetrics {
 	public static final String DEFAULT_COMBINED_CRITERIA = "cnv/qc/default_combined.criteria";
 	public static final String DEFAULT_MENDEL_FILE_SUFFIX = ".mendel";
 
-	private static final Set<String> DEFAULT_SAMPLE_DATA_BATCH_HEADERS = ImmutableSet.of("PLATE",
-																																											 "BATCH");
+	public static final Set<String> DEFAULT_SAMPLE_DATA_BATCH_HEADERS = ImmutableSet.of("PLATE",
+																																											"BATCH");
 
 	/**
-	 * @param proj
-	 * @param samplesToExclude these samples will not be included in the QC computation
-	 * @param markersToInclude compute qc over the markers in this file only
-	 * @param numThreads
+	 * {@link #fullQC(Project, boolean[], String, boolean, Set, int)} with
+	 * {@link #DEFAULT_SAMPLE_DATA_BATCH_HEADERS}
 	 */
 	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude,
 														boolean checkMendel, int numThreads) {
+		fullQC(proj, samplesToExclude, markersToInclude, checkMendel, DEFAULT_SAMPLE_DATA_BATCH_HEADERS,
+					 numThreads);
+	}
+
+
+	/**
+	 * 
+	 * @param proj
+	 * @param samplesToExclude these samples will not be included in the QC computation
+	 * @param markersToInclude compute qc over the markers in this file only
+	 * @param checkMendel true to do mendel error checks
+	 * @param sampleDataBatchHeaders headers of columns in Sample Data that should be used for Batch
+	 *        Effect calculation
+	 * @param numThreads
+	 */
+	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude,
+														boolean checkMendel, Set<String> sampleDataBatchHeaders,
+														int numThreads) {
 		String[] markerNames;
 		String finalQcFile = proj.MARKER_METRICS_FILENAME.getValue(true, false);
 
@@ -115,7 +130,7 @@ public class MarkerMetrics {
 		proj.verifyAndGenerateOutliers(false);
 
 		if (numThreads <= 1) {
-			fullQC(proj, samplesToExclude, markerNames, finalQcFile, checkMendel);
+			fullQC(proj, samplesToExclude, markerNames, finalQcFile, checkMendel, sampleDataBatchHeaders);
 		} else {
 			WorkerHive<Boolean> hive = new WorkerHive<Boolean>(numThreads, 10, proj.getLog());
 			List<String[]> batches = ArrayUtils.splitUpArray(markerNames, numThreads, proj.getLog());
@@ -124,7 +139,7 @@ public class MarkerMetrics {
 			for (int i = 0; i < batches.size(); i++) {
 				String tmp = ext.addToRoot(finalQcFile, "tmp" + i);
 				hive.addCallable(new MarkerMetricsWorker(proj, samplesToExclude, batches.get(i), tmp,
-																								 checkMendel));
+																								 checkMendel, sampleDataBatchHeaders));
 				tmpQc[i] = tmp;
 				if (checkMendel) {
 					tmpMendel[i] = ext.rootOf(tmp, false) + DEFAULT_MENDEL_FILE_SUFFIX;
@@ -164,7 +179,8 @@ public class MarkerMetrics {
 
 
 	private static void fullQC(Project proj, boolean[] samplesToExclude, String[] markerNames,
-														 String fullPathToOutput, boolean checkMendel) {
+														 String fullPathToOutput, boolean checkMendel,
+														 Set<String> sampleDataBatchHeaders) {
 		PrintWriter writer, mendelWriter = null;
 		String[] samples;
 		float[] thetas, rs, lrrs;
@@ -200,7 +216,7 @@ public class MarkerMetrics {
 
 		// Use LinkedHashMap to guarantee order is consistent in header and when writing lines
 		Map<String, Map<Integer, String>> batchHeaderIndexBatches = Maps.newLinkedHashMap();
-		for (String batchHeader : getBatchHeaders(proj)) {
+		for (String batchHeader : getBatchHeaders(proj, sampleDataBatchHeaders)) {
 			batchHeaderIndexBatches.put(batchHeader, generateSampleIndexBatches(proj, batchHeader));
 		}
 
@@ -424,10 +440,9 @@ public class MarkerMetrics {
 		return duplicateErrors == null ? "." : String.valueOf(duplicateErrors);
 	}
 
-	private static List<String> getBatchHeaders(Project proj) {
+	private static Set<String> getBatchHeaders(Project proj, Set<String> sampleDataBatchHeaders) {
 		SampleData sampleData = proj.getSampleData(false);
-		return ImmutableList.copyOf(Sets.intersection(DEFAULT_SAMPLE_DATA_BATCH_HEADERS,
-																									sampleData.getMetaHeaders()));
+		return Sets.intersection(sampleDataBatchHeaders, sampleData.getMetaHeaders());
 	}
 
 	private static Map<Integer, String> generateSampleIndexBatches(Project proj, String batchHeader) {
@@ -1433,21 +1448,25 @@ public class MarkerMetrics {
 		private final String[] markerNames;
 		private final String fullPathToOutput;
 		private final boolean checkMendel;
+		private final Set<String> sampleDataBatchHeaders;
 
 		public MarkerMetricsWorker(Project proj, boolean[] samplesToExclude, String[] markerNames,
-															 String fullPathToOutput, boolean checkMendel) {
+															 String fullPathToOutput, boolean checkMendel,
+															 Set<String> sampleDataBatchHeaders) {
 			super();
 			this.proj = proj;
 			this.samplesToExclude = samplesToExclude;
 			this.markerNames = markerNames;
 			this.fullPathToOutput = fullPathToOutput;
 			this.checkMendel = checkMendel;
+			this.sampleDataBatchHeaders = sampleDataBatchHeaders;
 		}
 
 		@Override
 		public Boolean call() throws Exception {
 
-			fullQC(proj, samplesToExclude, markerNames, fullPathToOutput, checkMendel);
+			fullQC(proj, samplesToExclude, markerNames, fullPathToOutput, checkMendel,
+						 sampleDataBatchHeaders);
 			if (Files.exists(fullPathToOutput)
 					&& Files.countLines(fullPathToOutput, 1) == markerNames.length) {
 				return true;
@@ -1503,6 +1522,7 @@ public class MarkerMetrics {
 		boolean countFilters = false;
 		int numThreads = 1;
 		boolean checkMendel = true;
+		Set<String> sampleDataBatchHeaders = DEFAULT_SAMPLE_DATA_BATCH_HEADERS;
 
 		String usage = "\n" + "cnv.qc.MarkerMetrics requires 0-1 arguments\n"
 									 + "   (1) project properties filename (i.e. proj="
@@ -1517,6 +1537,8 @@ public class MarkerMetrics {
 									 + "  OR\n"
 									 + "   (4) perform full list of checks on marker quality (i.e. -fullQC (not the default))\n"
 									 + "   (5) do not check for mendelian errors when performing full qc (i.e. -skipMendel (not the default))\n"
+									 + "   (6) specify Sample Data headers to search for batch effects (i.e. batchHeaders="
+									 + Joiner.on(',').join(sampleDataBatchHeaders) + " (default))\n"
 									 + "  OR\n"
 									 + "   (4) filter markers based on filter criteria (i.e. -filter (not the default))\n"
 									 + "  OR\n"
@@ -1570,6 +1592,8 @@ public class MarkerMetrics {
 			} else if (arg.startsWith("pheno=")) {
 				pheno = arg.substring(6);
 				numArgs--;
+			} else if (arg.startsWith("batchHeaders=")) {
+				sampleDataBatchHeaders = ImmutableSet.copyOf(arg.split("=")[1].split(","));
 			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(arg);
 				numArgs--;
@@ -1620,7 +1644,7 @@ public class MarkerMetrics {
 				fullQC(proj,
 							 (samples == null) ? proj.getSamplesToExclude()
 																 : ArrayUtils.booleanNegative(proj.getSamplesToInclude(samples)),
-							 markersSubset, checkMendel, numThreads);
+							 markersSubset, checkMendel, sampleDataBatchHeaders, numThreads);
 			}
 			if (lrrVariance) {
 				lrrVariance(proj, proj.getSamplesToInclude(samples), markersSubset);
