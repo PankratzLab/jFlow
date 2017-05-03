@@ -121,6 +121,19 @@ mvn clean package -P jfx
 
 from either the `/Assembly/` directory or the project base directory (containing Genvisis' top-level `pom.xml`).
 
+This will create several outputs of interest:
+
+|Genvisis.git   
+| '-- Assembly  
+|   '-- target  
+|     '-- **genvisis.tar.gz** (compressed native app w/ runtime)  
+|     '-- jfx  
+|       '-- **app** (folder with jar + dependencies)  
+|       '-- native  
+|         '-- **genvisis** (folder with app + platform-specific runtime)  
+|         '-- **genvisis-xxx.[rpm|deb|exe|msi|app]** (platform-specific installer)  
+
+
 Some notes:
 * Native bundles will only be built for the local OS
 * Each OS requires its own build tools to be installed (e.g. debian on Ubuntu, rpm on Linux, [InnoSetup](http://www.jrsoftware.org/isinfo.php) for `.exe` or [WiX](http://wixtoolset.org/) for `.msi` on Windows)
