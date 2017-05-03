@@ -19,11 +19,15 @@ The following components use the EPL 1.0 license:
 * junit
 
 The following components use the Apache 2.0 license:
+* commons-cli
 * commons-compress
 * commons-collections4
+* commons-io
 * commons-jexl
 * commons-logging
+* commons-math
 * ejml
+* guava
 * poi
 * poi-ooxml
 * poi-ooxml-schemas
