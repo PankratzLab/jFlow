@@ -393,7 +393,7 @@
 				<plugin>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.1</version>
-					<!-- Require the Java 6 platform. -->
+					<!-- Require the Java 8 platform. -->
 					<configuration>
 						<source>${genvisis.jvm.version}</source>
 						<target>${genvisis.jvm.version}</target>
