@@ -15,7 +15,6 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
@@ -104,7 +103,7 @@ import org.genvisis.cyto.CytoGUI;
  * General entry point for application operation. In particular, can start the GUI, or delegate to
  * alternate main classes.
  */
-public class Launch extends JFrame implements ActionListener, WindowListener {
+public class Launch extends JFrame implements ActionListener {
 
 	public static final long serialVersionUID = 1L;
 
@@ -294,9 +293,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		// Warn if no project directory
 		if (!Files.exists(proj.PROJECT_DIRECTORY.getValue(), proj.JAR_STATUS.getValue())) {
 			JOptionPane.showMessageDialog(null,
-																		"Error - the directory ('" + proj.PROJECT_DIRECTORY.getValue()
-																					+ "') for project '" + proj.PROJECT_NAME.getValue()
-																					+ "' did not exist; creating now. If this was in error, please edit the property file.",
+																		"Error - the directory ('"
+																				+ proj.PROJECT_DIRECTORY.getValue()
+																				+ "') for project '"
+																				+ proj.PROJECT_NAME.getValue()
+																				+ "' did not exist; creating now. If this was in error, please edit the property file.",
 																		"Error", JOptionPane.ERROR_MESSAGE);
 		}
 
@@ -490,8 +491,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		launchUI.makeContentPane();
 		launchUI.makeTopMenuBar();
 
-		launchUI.addWindowListener(launchUI);
-
 		// restore the last project open (e.g. in the previous session)
 		launchUI.setIndexOfCurrentProject(LaunchProperties.get(DefaultLaunchKeys.LAST_PROJECT_OPENED));
 		if (!launchUI.projects.isEmpty()) {
@@ -583,7 +582,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				} else if (entry.equals(PRINCIPAL_COMPONENTS)) {
 					// Create "principal components" submenu
 					menuItem = new JMenu(entry);
-					for (String pcSubMenuOption : new String[] {PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI,
+					for (String pcSubMenuOption : new String[] {
+																											PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI,
 																											PrincipalComponentsCrossTabs.PRINCIPAL_CROSSTABS_MI,
 																											PCMatrix.MENU_ENTRY}) {
 						JMenuItem pcSubItem = new JMenuItem(pcSubMenuOption);
@@ -876,10 +876,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				proj.saveProperties();
 				boolean success = false;
 				if (peo.exportAsBinary()) {
-					success = PlinkData.saveGenvisisToPlinkBedSet(proj, plinkFileroot, clusterFiltersFilename,
+					success = PlinkData.saveGenvisisToPlinkBedSet(proj, plinkFileroot,
+																												clusterFiltersFilename,
 																												targetMarkersFilename, -1);
 				} else {
-					success = PlinkData.saveGenvisisToPlinkPedSet(proj, plinkFileroot, clusterFiltersFilename,
+					success = PlinkData.saveGenvisisToPlinkPedSet(proj, plinkFileroot,
+																												clusterFiltersFilename,
 																												targetMarkersFilename);
 				}
 				if (success) {
@@ -961,7 +963,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				});
 			} else if (command.equals(EXPORT_CNVS)) {
 
-				String[] inOut = FileAndOutputSelectorGUI.showFileAndOutputSelector(Launch.this, null,
+				String[] inOut = FileAndOutputSelectorGUI.showFileAndOutputSelector(Launch.this,
+																																						null,
 																																						JFileChooser.FILES_ONLY,
 																																						null, null,
 																																						JFileChooser.FILES_ONLY);
@@ -1013,7 +1016,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 																									Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS,
 																																									"gc5Base.txt",
 																																									true, false, log),
-																									proj.PROJECT_DIRECTORY.getValue() + "data/custom.gcModel",
+																									proj.PROJECT_DIRECTORY.getValue()
+																											+ "data/custom.gcModel",
 																									100);
 			} else if (command.equals(MARKER_METRICS)) {
 				org.genvisis.cnv.qc.MarkerMetrics.fullQC(proj, proj.getSamplesToExclude(), null, true,
@@ -1148,8 +1152,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
 			int delete = JOptionPane.showConfirmDialog(null,
 																								 "<html>Would you like to delete this project properties: "
-																											 + toDelete
-																											 + " ?<br /><br />Project source directory will <b>NOT</b> be deleted.</html>",
+																										 + toDelete
+																										 + " ?<br /><br />Project source directory will <b>NOT</b> be deleted.</html>",
 																								 "Delete Project", JOptionPane.WARNING_MESSAGE);
 			if (delete != JOptionPane.YES_OPTION) {
 				return;
@@ -1193,7 +1197,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			// FIXME this should be unified with the drop down combobox selector
 			for (
 
-					 int i = 0; i < projects.size(); i++) {
+			int i = 0; i < projects.size(); i++) {
 				if (command.equals(ext.rootOf(projects.get(i)) + " ")) {
 					projectsBox.setSelectedIndex(i);
 					log.report("Selecting: " + projects.get(i));
@@ -1317,29 +1321,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
 	}
 
-	// FIXME refactor to subclass to reduce clutter, or delete completely if unnecessary
-	@Override
-	public void windowOpened(WindowEvent we) {}
-
-	@Override
-	public void windowClosing(WindowEvent we) {}
-
-	@Override
-	public void windowClosed(WindowEvent we) {}
-
-	@Override
-	public void windowIconified(WindowEvent we) {}
-
-	@Override
-	public void windowDeiconified(WindowEvent we) {}
-
-	@Override
-	public void windowActivated(WindowEvent we) {}
-
-	@Override
-	public void windowDeactivated(WindowEvent we) {}
-
-
 	/**
 	 * Ensures a minimum launch properties file is available, reading an existing file and creating a
 	 * new properties file if needed/requested. Also creates native launchers.
@@ -1400,9 +1381,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
 		if (!new File(exampleProperties).exists()) {
 			log.reportTime("Creating example project properties: " + exampleProperties);
-			Files.writeArray(new String[] {"PROJECT_NAME=Example",
-																		 "PROJECT_DIRECTORY=" + LaunchProperties.directoryOfLaunchProperties()
-																														 + "example/",
+			Files.writeArray(new String[] {
+																		 "PROJECT_NAME=Example",
+																		 "PROJECT_DIRECTORY="
+																				 + LaunchProperties.directoryOfLaunchProperties()
+																				 + "example/",
 																		 "SOURCE_DIRECTORY=sourceFiles/"},
 											 exampleProperties);
 		}
@@ -1452,7 +1435,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			if (dir == null || filename == null) {
 				if (verbose) {
 					System.err.println("Warning - you are trying to access the default debug project properties file, but there is no '"
-														 + DefaultLaunchKeys.DEBUG_PROJECT_FILENAME + "=' property listed in '"
+														 + DefaultLaunchKeys.DEBUG_PROJECT_FILENAME
+														 + "=' property listed in '"
 														 + LaunchProperties.propertiesFile()
 														 + "'. The default filename is being set to \"default.properties\" in the current directory. However, if that does not exist either, then the program will likely end in an error.");
 				}
@@ -1465,7 +1449,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				}
 			} else {
 				if (verbose) {
-					System.out.println("The default debug project properties file is currently set to '" + dir
+					System.out.println("The default debug project properties file is currently set to '"
+														 + dir
 														 + filename + "'");
 				}
 			}
