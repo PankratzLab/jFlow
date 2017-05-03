@@ -31,14 +31,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -50,7 +46,6 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
@@ -491,18 +486,6 @@ public class Launch extends JFrame implements ActionListener {
 		// Have to read which projects are available before creating the menus
 		launchUI.initLaunchProperties();
 		launchUI.loadProjects();
-
-		InputMap im = launchUI.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		ActionMap am = launchUI.getRootPane().getActionMap();
-
-		final Object EXIT = new Object();
-		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F4, KeyEvent.ALT_MASK), EXIT);
-		am.put(EXIT, new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				launchUI.shutdown();
-			}
-		});
 
 		// Create the UI here
 		launchUI.makeContentPane();
