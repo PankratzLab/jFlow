@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import org.genvisis.cnv.filesys.AnnotationCollection;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
@@ -101,13 +102,17 @@ public class MarkerMetrics {
 	 * @param samplesToExclude these samples will not be included in the QC computation
 	 * @param markersToInclude compute qc over the markers in this file only
 	 * @param checkMendel true to do mendel error checks
-	 * @param sampleDataBatchHeaders headers of columns in Sample Data that should be used for Batch
+	 * @param expectedSampleDataBatchHeaders headers of columns in Sample Data that should be used for Batch
 	 *        Effect calculation
 	 * @param numThreads
 	 */
 	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude,
-														boolean checkMendel, Set<String> sampleDataBatchHeaders,
+														boolean checkMendel, Set<String> expectedSampleDataBatchHeaders,
 														int numThreads) {
+		Set<String> sampleDataBatchHeaders = expectedSampleDataBatchHeaders.stream()
+																																			 .map(String::toUpperCase)
+																																			 .collect(Collectors.toSet());
+		sampleDataBatchHeaders.retainAll(proj.getSampleData(false).getMetaHeaders());
 		String[] markerNames;
 		String finalQcFile = proj.MARKER_METRICS_FILENAME.getValue(true, false);
 
@@ -130,7 +135,8 @@ public class MarkerMetrics {
 		proj.verifyAndGenerateOutliers(false);
 
 		if (numThreads <= 1) {
-			fullQC(proj, samplesToExclude, markerNames, finalQcFile, checkMendel, sampleDataBatchHeaders);
+			fullQC(proj, samplesToExclude, markerNames, finalQcFile, checkMendel,
+						 sampleDataBatchHeaders);
 		} else {
 			WorkerHive<Boolean> hive = new WorkerHive<Boolean>(numThreads, 10, proj.getLog());
 			List<String[]> batches = ArrayUtils.splitUpArray(markerNames, numThreads, proj.getLog());
@@ -216,7 +222,7 @@ public class MarkerMetrics {
 
 		// Use LinkedHashMap to guarantee order is consistent in header and when writing lines
 		Map<String, Map<Integer, String>> batchHeaderIndexBatches = Maps.newLinkedHashMap();
-		for (String batchHeader : getBatchHeaders(proj, sampleDataBatchHeaders)) {
+		for (String batchHeader : sampleDataBatchHeaders) {
 			batchHeaderIndexBatches.put(batchHeader, generateSampleIndexBatches(proj, batchHeader));
 		}
 
