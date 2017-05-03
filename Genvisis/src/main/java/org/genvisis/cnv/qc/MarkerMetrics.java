@@ -85,6 +85,8 @@ public class MarkerMetrics {
 	public static final Set<String> DEFAULT_SAMPLE_DATA_BATCH_HEADERS = ImmutableSet.of("PLATE",
 																																											"BATCH");
 
+	public static final String BATCH_HEADERS_ARG = "batchHeaders";
+
 	/**
 	 * {@link #fullQC(Project, boolean[], String, boolean, Set, int)} with
 	 * {@link #DEFAULT_SAMPLE_DATA_BATCH_HEADERS}
@@ -102,8 +104,8 @@ public class MarkerMetrics {
 	 * @param samplesToExclude these samples will not be included in the QC computation
 	 * @param markersToInclude compute qc over the markers in this file only
 	 * @param checkMendel true to do mendel error checks
-	 * @param expectedSampleDataBatchHeaders headers of columns in Sample Data that should be used for Batch
-	 *        Effect calculation
+	 * @param expectedSampleDataBatchHeaders headers of columns in Sample Data that should be used for
+	 *        Batch Effect calculation
 	 * @param numThreads
 	 */
 	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude,
@@ -1543,7 +1545,8 @@ public class MarkerMetrics {
 									 + "  OR\n"
 									 + "   (4) perform full list of checks on marker quality (i.e. -fullQC (not the default))\n"
 									 + "   (5) do not check for mendelian errors when performing full qc (i.e. -skipMendel (not the default))\n"
-									 + "   (6) specify Sample Data headers to search for batch effects (i.e. batchHeaders="
+									 + "   (6) specify Sample Data headers to search for batch effects (i.e. "
+									 + BATCH_HEADERS_ARG + "="
 									 + Joiner.on(',').join(sampleDataBatchHeaders) + " (default))\n"
 									 + "  OR\n"
 									 + "   (4) filter markers based on filter criteria (i.e. -filter (not the default))\n"
@@ -1598,7 +1601,7 @@ public class MarkerMetrics {
 			} else if (arg.startsWith("pheno=")) {
 				pheno = arg.substring(6);
 				numArgs--;
-			} else if (arg.startsWith("batchHeaders=")) {
+			} else if (arg.startsWith(BATCH_HEADERS_ARG + "=")) {
 				sampleDataBatchHeaders = ImmutableSet.copyOf(arg.split("=")[1].split(","));
 			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(arg);
