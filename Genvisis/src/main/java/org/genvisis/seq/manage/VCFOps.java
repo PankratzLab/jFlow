@@ -1555,7 +1555,8 @@ public class VCFOps {
 																			 boolean createAnnotationFile, boolean subToBam,
 																			 String[] varSets, int numThreads, Logger log) {
 		return extractSegments(vcf, segmentFile, bpBuffer, bams, outputDir, skipFiltered, gzipOutput,
-													 createAnnotationFile, subToBam, varSets, numThreads, false, -1, log);
+													 createAnnotationFile, subToBam, varSets, numThreads, false, -1,
+													 null, true, log);
 
 	}
 
@@ -1563,9 +1564,14 @@ public class VCFOps {
 																			 String outputDir, boolean skipFiltered, boolean gzipOutput,
 																			 boolean createAnnotationFile, boolean subToBam,
 																			 String[] varSets, int numThreads, boolean removeNoCalls,
-																			 int gq,
+																			 int gq, String excludeFile, boolean rederiveGenos,
 																			 Logger log) {
 		BamExtractor.BamSample bamSample = null;
+		HashSet<String> excludes = new HashSet<>();
+		if (excludeFile != null) {
+			excludes = HashVec.loadFileToHashSet(excludeFile, false);
+			log.reportTimeInfo(excludes.size() + " samples to exclude");
+		}
 
 		if (vcf == null || !Files.exists(vcf)) {
 			log.reportFileNotFound(vcf);
@@ -1576,7 +1582,7 @@ public class VCFOps {
 			log.reportFileNotFound(segmentFile);
 			return null;
 		}
-		HashSet<String> bamSamples = new HashSet<String>();
+		HashSet<String> bamSamples = new HashSet<>();
 
 		String dir = outputDir == null ? ext.parseDirectoryOfFile(vcf) : outputDir;
 		new File(dir).mkdirs();
@@ -1621,18 +1627,19 @@ public class VCFOps {
 			String[] vcfSamples = getSamplesInFile(reader);
 			if (subToBam) {
 				for (String abamSample : bamSample.getBamSampleMap().keySet()) {
-					if (varSets == null) {
+					if (varSets == null && !excludes.contains(abamSample)) {
 						bamSamples.add(abamSample);
 					} else {
 						for (String varSet : varSets) {
 							String tmp = abamSample + varSet;
-							if (ext.indexOfStr(tmp, vcfSamples) >= 0) {
+							if (ext.indexOfStr(tmp, vcfSamples) >= 0 && !excludes.contains(tmp)) {
 								bamSamples.add(tmp);
 							}
 						}
 					}
 				}
 			}
+			log.reportTimeInfo(bamSamples.size() + " samples will be extracted");
 		}
 		String output = dir + root + "." + ext.rootOf(segmentFile) + ".vcf" + (gzipOutput ? ".gz" : "");
 		String annoFile = dir + root + "." + ext.rootOf(segmentFile) + ".anno.txt";
@@ -1672,6 +1679,7 @@ public class VCFOps {
 				annoGQWriter = writePrelim(annoGQFile, header, annotations);
 
 			}
+			List<String> samples = header.getGenotypeSamples();
 			CloseableIterator<VariantContext> iterator = reader.iterator();
 			if (segsToSearch.length == 1) {
 				try {
@@ -1693,10 +1701,12 @@ public class VCFOps {
 				}
 				if ((!skipFiltered || !vc.isFiltered()) && VCOps.isInTheseSegments(vc, segsToSearch)) {
 					if (subToBam) {
-						vc = VCOps.getSubset(vc, bamSamples);
+						vc.getGenotypes();
+						vc = VCOps.getSubset(vc, bamSamples, VC_SUBSET_TYPE.SUBSET_STRICT, rederiveGenos);
 					}
 					int numCalled = vc.getHomRefCount() + vc.getHetCount() + vc.getHomVarCount();
 					if (!removeNoCalls || numCalled > 0) {
+
 						writer.add(vc);
 
 						if (bamSample != null) {
@@ -1707,17 +1717,33 @@ public class VCFOps {
 							writeBase(annoWriter, annotations, vc);
 							writeBase(annoGQWriter, annotations, vc);
 
-							GenotypesContext gc = vc.getGenotypes();
+							// vc.getGenotype(sample)
+							for (String sample : samples) {
+								Genotype g = vc.getGenotype(sample);
+								// if (!excludes.contains(g.getSampleName())) {
 
-							for (Genotype g : gc) {
-								annoWriter.print("\t" + g.getGenotypeString());
-								if (g.getGQ() >= gq) {
-									annoGQWriter.print("\t" + g.getGenotypeString());
+								if (g.isCalled()) {
+									String rg = "NA";
+									if (!vc.isBiallelic()) {
+										log.reportTimeWarning("Non bialleic variant "
+																					+ vc.toStringWithoutGenotypes());
+									} else {
+										rg = Integer.toString(g.countAllele(vc.getAlternateAlleles().get(0)));
+									}
+									annoWriter.print("\t" + rg);
+									if (g.getGQ() >= gq) {
+										annoGQWriter.print("\t" + rg);
+									} else {
+										// GenotypeBuilder b = new GenotypeBuilder(g);
+										// b.alleles(GenotypeOps.getNoCall());
+										annoGQWriter.print("\t.");
+									}
 								} else {
-									GenotypeBuilder b = new GenotypeBuilder(g);
-									b.alleles(GenotypeOps.getNoCall());
-									annoGQWriter.print("\t" + b.make().getGenotypeString());
+									annoWriter.print("\t.");
+									annoGQWriter.print("\t.");
 								}
+								// }
+
 							}
 							annoWriter.println();
 							annoGQWriter.println();
@@ -2485,11 +2511,12 @@ public class VCFOps {
 		boolean useRSIDs = false;
 		int numThreads = 1;
 		boolean removeNoCalls = false;
+		boolean rederiveGenos = true;
 		Logger log;
 		boolean subToBam = false;
 		boolean createAnnotation = false;
 		String[] varSet = null;
-
+		String excludeFile = null;
 		String usage = "\n" + "seq.analysis.VCFUtils requires 0-1 arguments\n";
 		usage += "   (1) full path to a vcf file (i.e. " + VCF_COMMAND + vcf + " (default))\n" + "";
 		usage += "   (2) utility type (i.e. " + UTILITY_COMMAND + type + " (default))\n" + "";
@@ -2568,6 +2595,12 @@ public class VCFOps {
 			} else if (arg.startsWith("bed=")) {
 				bedFile = arg.split("=")[1];
 				numArgs--;
+			} else if (arg.startsWith("excludeFile=")) {
+				excludeFile = arg.split("=")[1];
+				numArgs--;
+			} else if (arg.startsWith("-doNotRederiveGenos")) {
+				rederiveGenos = false;
+				numArgs--;
 			} else if (arg.startsWith("-skipFiltered")) {
 				skipFiltered = true;
 				numArgs--;
@@ -2618,7 +2651,8 @@ public class VCFOps {
 				case EXTRACT_SEGMENTS:
 					extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip,
 													createAnnotation,
-													subToBam, varSet, numThreads, removeNoCalls, gq, log);
+													subToBam, varSet, numThreads, removeNoCalls, gq, excludeFile,
+													rederiveGenos, log);
 					break;
 				case EXTRACT_SEGMENTS_ANNOTATION:
 					extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, true,
