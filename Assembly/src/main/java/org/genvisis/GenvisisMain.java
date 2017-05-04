@@ -63,7 +63,7 @@ public final class GenvisisMain {
 		if (manifest == null) {
 			return false;
 		}
-		String buildVersion = manifest.getMainAttributes().getValue("Build-Jdk");
+		String buildVersion = removeBuildNumber(manifest.getMainAttributes().getValue("Build-Jdk"));
 		String runVersion = System.getProperty("java.version");
 		double build = getVersionNumber(buildVersion);
 		double run = getVersionNumber(runVersion);
@@ -85,6 +85,14 @@ public final class GenvisisMain {
 			}
 		}
 		return passed;
+	}
+
+	/**
+	 * Helper method to remove the "_nnn" build numbers
+	 */
+	private static String removeBuildNumber(String value) {
+		// Remove build numbers
+		return value.split("_")[0];
 	}
 
 	/**
