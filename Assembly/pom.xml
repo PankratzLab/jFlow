@@ -18,6 +18,7 @@
 
 	<properties>
 		<outname>genvisis</outname>
+		<genvisis.jvm.version>1.6</genvisis.jvm.version>
 		<mainClass>org.genvisis.GenvisisMain</mainClass>
 		<resourcesDir>${project.basedir}/buildRsrc</resourcesDir>
 	</properties>
