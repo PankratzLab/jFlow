@@ -195,7 +195,7 @@ public class PlinkMarkerLoader implements Runnable {
 						cnt++;
 						continue;
 					}
-					in.seek(3 + markerPosInBim[i] * blockSize);
+					in.seek(3 + (long) markerPosInBim[i] * blockSize);
 
 					byte[] markerBytes = new byte[blockSize];
 					byte[] sampGeno = new byte[famIDList.length];
