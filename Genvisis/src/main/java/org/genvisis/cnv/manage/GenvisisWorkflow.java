@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.StringJoiner;
 
 import org.genvisis.CLI;
 import org.genvisis.cnv.Launch;
@@ -61,6 +62,7 @@ import org.genvisis.gwas.RelationAncestryQc;
 import org.genvisis.stats.Maths;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -552,6 +554,49 @@ public class GenvisisWorkflow {
 
 	}
 
+	public static class ListSelectionRequirement extends Requirement {
+
+		private static final char SELECTION_LIST_DELIM = ',';
+		private static final Joiner SELECTION_LIST_JOINER = Joiner.on(SELECTION_LIST_DELIM);
+		private static final Splitter SELECTION_LIST_SPLITTER = Splitter.on(SELECTION_LIST_DELIM);
+
+		private final Collection<String> options;
+		private final boolean allowNone;
+
+		public ListSelectionRequirement(String description, Collection<String> options,
+																		Collection<String> defaultOptions, boolean allowNone) {
+			super(description, RequirementInputType.LISTSELECTION, defaultOptions);
+			if (!options.containsAll(defaultOptions))
+				throw new IllegalArgumentException("All defaultOptions are not in options");
+			this.options = options;
+			this.allowNone = allowNone;
+		}
+
+		@Override
+		public boolean checkRequirement(String arg, Set<Step> stepSelections,
+																		Map<Step, Map<Requirement, String>> variables) {
+			return allowNone || !arg.isEmpty();
+		}
+
+		public Collection<String> getOptions() {
+			return options;
+		}
+
+		@SuppressWarnings("unchecked")
+		public Collection<String> getDefaultOptions() {
+			return (Collection<String>) getDefaultValue();
+		}
+
+		public static String createArgValString(Iterable<?> selections) {
+			return SELECTION_LIST_JOINER.join(selections);
+		}
+
+		public static List<String> parseArgValString(String arg) {
+			return SELECTION_LIST_SPLITTER.splitToList(arg);
+		}
+
+	}
+
 	public static class EnumRequirement extends Requirement {
 
 		public EnumRequirement(String description, Enum<?> defaultValue) {
@@ -589,7 +634,7 @@ public class GenvisisWorkflow {
 	}
 
 	public enum RequirementInputType {
-		NONE, FILE, DIR, STRING, NUMBER, BOOL, ENUM
+		NONE, FILE, DIR, STRING, NUMBER, BOOL, ENUM, LISTSELECTION
 	}
 
 	public enum Flag {
@@ -1160,10 +1205,18 @@ public class GenvisisWorkflow {
 
 			final Requirement targetMarkersReq = new FileRequirement("A targetMarkers files listing the markers to QC.",
 																															 proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
+			final Set<String> sampleDataHeaders = proj.getSampleData(false).getMetaHeaders();
+			final Set<String> defaultBatchHeaders = Sets.intersection(sampleDataHeaders,
+																																MarkerMetrics.DEFAULT_SAMPLE_DATA_BATCH_HEADERS);
+			final ListSelectionRequirement batchHeadersReq = new ListSelectionRequirement("SampleData column headers to use as batches for batch effects calculations",
+																																										sampleDataHeaders,
+																																										defaultBatchHeaders,
+																																										true);
 
 			return register(new Step("Run Marker QC Metrics", "",
 															 new Requirement[][] {{parseSamplesStepReq},
 																										{exportAllReq, targetMarkersReq},
+																										{batchHeadersReq},
 																										{getNumThreadsReq()}},
 															 EnumSet.noneOf(Flag.class), priority()) {
 
@@ -1178,7 +1231,9 @@ public class GenvisisWorkflow {
 					boolean allMarkers = Boolean.parseBoolean(variables.get(this).get(exportAllReq));
 					String tgtFile = allMarkers ? null : variables.get(this).get(targetMarkersReq);
 					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
-					MarkerMetrics.fullQC(proj, null, tgtFile, true, numThreads);
+					Set<String> batchHeaders = ImmutableSet.copyOf(ListSelectionRequirement.parseArgValString(variables.get(this)
+																																																						 .get(batchHeadersReq)));
+					MarkerMetrics.fullQC(proj, null, tgtFile, true, batchHeaders, numThreads);
 				}
 
 				@Override
@@ -1186,9 +1241,19 @@ public class GenvisisWorkflow {
 					boolean allMarkers = Boolean.parseBoolean(variables.get(this).get(exportAllReq));
 					String tgtFile = variables.get(this).get(targetMarkersReq);
 					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
-					return Files.getRunString() + " cnv.qc.MarkerMetrics -fullQC" + " proj="
-								 + proj.getPropertyFilename() + (allMarkers ? "" : " markers=" + tgtFile) + " "
-								 + PSF.Ext.NUM_THREADS_COMMAND + numThreads;
+					List<String> batchHeaders = ListSelectionRequirement.parseArgValString(variables.get(this)
+																																													.get(batchHeadersReq));
+					String batchHeadersArg = String.join(",", batchHeaders);
+					StringJoiner args = new StringJoiner(" ");
+					args.add(Files.getRunString());
+					args.add(MarkerMetrics.class.getCanonicalName());
+					args.add("-fullQC");
+					args.add("proj=" + proj.getPropertyFilename());
+					if (!allMarkers)
+						args.add("markers=" + tgtFile);
+					args.add(MarkerMetrics.BATCH_HEADERS_ARG + "=" + batchHeadersArg);
+					args.add(PSF.Ext.NUM_THREADS_COMMAND + numThreads);
+					return args.toString();
 				}
 
 				@Override

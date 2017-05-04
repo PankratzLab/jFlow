@@ -262,7 +262,7 @@ public class MitoGWAS {
 
 			String header = "SNP\tCHR\tBP\tREF\tALT\tPlinkPruneOut\t" + ArrayUtils.toStr(empTitles)
 											+ "\tMinPval\tMaxPval\tMaxDiffPval\tStdPval\t"
-											+ ArrayUtils.toStr(MarkerMetrics.FULL_QC_HEADER) + "\t"
+											+ ArrayUtils.toStr(MarkerMetrics.FULL_QC_BASE_HEADER) + "\t"
 											+ ArrayUtils.toStr(annotations);
 			writer.println(header);
 			writerSig.println(header);

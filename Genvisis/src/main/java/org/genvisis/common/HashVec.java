@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import com.google.common.collect.Maps;
+import com.google.common.io.Closeables;
+
 public class HashVec {
 	public static boolean addIfAbsent(String str, List<String> v) {
 		return addIfAbsent(str, v, false);
@@ -360,6 +363,47 @@ public class HashVec {
 		}
 
 		return Matrix.toStringArrays(v);
+	}
+
+	public static Map<String, String> loadFileColumnToMap(String filename, String key, String value,
+																										Logger log) {
+		int[] indices = ext.indexFactors(new String[] {key, value},
+																		 Files.getHeaderOfFile(filename, log), true, false);
+		if (indices[0] < 0)
+			throw new IllegalArgumentException("Could not find column " + key + " in " + filename);
+		if (indices[1] < 0)
+			throw new IllegalArgumentException("Could not find column " + value + " in " + filename);
+		return loadFileColumnToMap(filename, indices[0], indices[1], true, log);
+	}
+
+	public static Map<String, String> loadFileColumnToMap(String filename, int keyIndex, int valueIndex,
+																										boolean ignoreFirstLine, Logger log) {
+
+		BufferedReader reader = null;
+		Map<String, String> colMap = Maps.newHashMap();
+		String delim = Files.determineDelimiter(filename, log);
+
+		try {
+			reader = Files.getAppropriateReader(filename);
+			if (ignoreFirstLine) {
+				reader.readLine();
+			}
+			while (reader.ready()) {
+				String[] line = ext.splitLine(reader.readLine(), delim, log);
+				String key = line[keyIndex];
+				String value = line[valueIndex];
+				colMap.put(key, value);
+			}
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + filename + "\" not found in current directory");
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + filename + "\"");
+		} finally {
+			Closeables.closeQuietly(reader);
+		}
+
+		return colMap;
+
 	}
 
 	public static Hashtable<String, String> loadFileToHashString(String filename, String keyHeader,

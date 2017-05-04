@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import org.genvisis.cnv.filesys.AnnotationCollection;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
@@ -43,24 +44,37 @@ import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.RegressionModel;
 import org.genvisis.stats.Ttest;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 
 public class MarkerMetrics {
-	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA",
-																								 "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA",
-																								 "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB",
-																								 "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB",
-																								 "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB",
-																								 "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_z",
-																								 "LRR_SD", "LRR_num_NaNs", "MendelianErrors",
-																								 "DuplicateErrors"};
+	public static final String[] FULL_QC_BASE_HEADER = {"MarkerName", "Chr", "CallRate",
+																											"meanTheta_AA",
+																											"meanTheta_AB", "meanTheta_BB",
+																											"diffTheta_AB-AA",
+																											"diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB",
+																											"sdTheta_BB", "meanR_AA", "meanR_AB",
+																											"meanR_BB",
+																											"num_AA", "num_AB", "num_BB", "pct_AA",
+																											"pct_AB",
+																											"pct_BB", "MAF", "HetEx", "num_NaNs",
+																											"LRR_SEX_z",
+																											"LRR_SD", "LRR_num_NaNs", "MendelianErrors",
+																											"DuplicateErrors"};
 	public static final String[] LRR_VARIANCE_HEADER = {"MarkerName", "Chr", "Position", "SD_LRR",
 																											"MeanAbsLRR", "SD_BAF1585", "MeanAbsBAF1585"};
 	private static final String[] MENDEL_HEADER = {"FID", "KID", "CHR", "SNP", "CODE", "ERROR"};
+	private static final String BATCH_EFFECT_HEADER_PREFIX = "BatchEffect";
+	private static final char BATCH_EFFECT_HEADER_JOIN = '_';
+
 
 
 	public static final String DEFAULT_REVIEW_CRITERIA = "cnv/qc/default_review.criteria";
@@ -68,14 +82,39 @@ public class MarkerMetrics {
 	public static final String DEFAULT_COMBINED_CRITERIA = "cnv/qc/default_combined.criteria";
 	public static final String DEFAULT_MENDEL_FILE_SUFFIX = ".mendel";
 
+	public static final Set<String> DEFAULT_SAMPLE_DATA_BATCH_HEADERS = ImmutableSet.of("PLATE",
+																																											"BATCH");
+
+	public static final String BATCH_HEADERS_ARG = "batchHeaders";
+
 	/**
-	 * @param proj
-	 * @param samplesToExclude these samples will not be included in the QC computation
-	 * @param markersToInclude compute qc over the markers in this file only
-	 * @param numThreads
+	 * {@link #fullQC(Project, boolean[], String, boolean, Set, int)} with
+	 * {@link #DEFAULT_SAMPLE_DATA_BATCH_HEADERS}
 	 */
 	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude,
 														boolean checkMendel, int numThreads) {
+		fullQC(proj, samplesToExclude, markersToInclude, checkMendel, DEFAULT_SAMPLE_DATA_BATCH_HEADERS,
+					 numThreads);
+	}
+
+
+	/**
+	 * 
+	 * @param proj
+	 * @param samplesToExclude these samples will not be included in the QC computation
+	 * @param markersToInclude compute qc over the markers in this file only
+	 * @param checkMendel true to do mendel error checks
+	 * @param expectedSampleDataBatchHeaders headers of columns in Sample Data that should be used for
+	 *        Batch Effect calculation
+	 * @param numThreads
+	 */
+	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude,
+														boolean checkMendel, Set<String> expectedSampleDataBatchHeaders,
+														int numThreads) {
+		Set<String> sampleDataBatchHeaders = expectedSampleDataBatchHeaders.stream()
+																																			 .map(String::toUpperCase)
+																																			 .collect(Collectors.toSet());
+		sampleDataBatchHeaders.retainAll(proj.getSampleData(false).getMetaHeaders());
 		String[] markerNames;
 		String finalQcFile = proj.MARKER_METRICS_FILENAME.getValue(true, false);
 
@@ -98,7 +137,8 @@ public class MarkerMetrics {
 		proj.verifyAndGenerateOutliers(false);
 
 		if (numThreads <= 1) {
-			fullQC(proj, samplesToExclude, markerNames, finalQcFile, checkMendel);
+			fullQC(proj, samplesToExclude, markerNames, finalQcFile, checkMendel,
+						 sampleDataBatchHeaders);
 		} else {
 			WorkerHive<Boolean> hive = new WorkerHive<Boolean>(numThreads, 10, proj.getLog());
 			List<String[]> batches = ArrayUtils.splitUpArray(markerNames, numThreads, proj.getLog());
@@ -107,7 +147,7 @@ public class MarkerMetrics {
 			for (int i = 0; i < batches.size(); i++) {
 				String tmp = ext.addToRoot(finalQcFile, "tmp" + i);
 				hive.addCallable(new MarkerMetricsWorker(proj, samplesToExclude, batches.get(i), tmp,
-																								 checkMendel));
+																								 checkMendel, sampleDataBatchHeaders));
 				tmpQc[i] = tmp;
 				if (checkMendel) {
 					tmpMendel[i] = ext.rootOf(tmp, false) + DEFAULT_MENDEL_FILE_SUFFIX;
@@ -147,7 +187,8 @@ public class MarkerMetrics {
 
 
 	private static void fullQC(Project proj, boolean[] samplesToExclude, String[] markerNames,
-														 String fullPathToOutput, boolean checkMendel) {
+														 String fullPathToOutput, boolean checkMendel,
+														 Set<String> sampleDataBatchHeaders) {
 		PrintWriter writer, mendelWriter = null;
 		String[] samples;
 		float[] thetas, rs, lrrs;
@@ -181,9 +222,15 @@ public class MarkerMetrics {
 		sexes = getSexes(proj, samples);
 		Pedigree pedigree = proj.loadPedigree();
 
+		// Use LinkedHashMap to guarantee order is consistent in header and when writing lines
+		Map<String, Map<Integer, String>> batchHeaderIndexBatches = Maps.newLinkedHashMap();
+		for (String batchHeader : sampleDataBatchHeaders) {
+			batchHeaderIndexBatches.put(batchHeader, generateSampleIndexBatches(proj, batchHeader));
+		}
+
 		try {
 			writer = Files.openAppropriateWriter(fullPathToOutput);
-			writer.println(ArrayUtils.toStr(FULL_QC_HEADER));
+			writer.println(generateHeader(batchHeaderIndexBatches));
 
 			if (pedigree != null && checkMendel) {
 				mendelWriter = Files.openAppropriateWriter(ext.rootOf(fullPathToOutput, false)
@@ -286,28 +333,50 @@ public class MarkerMetrics {
 					mecCnt = "" + count;
 				}
 
-
 				String duplicateErrorCount = calculateDuplicateConcordanceErrors(proj, abGenotypes, log);
 
+				// TODO: Introducing some mapping, this should not rely on remaining parallel to the header!
+				List<String> line = Lists.newArrayList();
+				line.add(markerName);
+				line.add(String.valueOf(markerData.getChr()));
+				line.add(String.valueOf(1 - ((float) counts[0]
+																		 / (counts[0] + counts[1] + counts[2] + counts[3]))));
+				line.add(String.valueOf(meanTheta[1]));
+				line.add(String.valueOf(meanTheta[2]));
+				line.add(String.valueOf(meanTheta[3]));
+				line.add(String.valueOf(meanTheta[2] - meanTheta[1]));
+				line.add(String.valueOf(meanTheta[3] - meanTheta[2]));
+				line.add(String.valueOf(sdTheta[1]));
+				line.add(String.valueOf(sdTheta[2]));
+				line.add(String.valueOf(sdTheta[3]));
+				line.add(String.valueOf(sumR[1] / counts[1]));
+				line.add(String.valueOf(sumR[2] / counts[2]));
+				line.add(String.valueOf(sumR[3] / counts[3]));
+				line.add(String.valueOf(counts[1]));
+				line.add(String.valueOf(counts[2]));
+				line.add(String.valueOf(counts[3]));
+				line.add(String.valueOf((float) counts[1]
+																/ (counts[0] + counts[1] + counts[2] + counts[3])));
+				line.add(String.valueOf((float) counts[2]
+																/ (counts[0] + counts[1] + counts[2] + counts[3])));
+				line.add(String.valueOf((float) counts[3]
+																/ (counts[0] + counts[1] + counts[2] + counts[3])));
+				line.add(String.valueOf((float) (counts[1] < counts[3] ? (counts[1] + counts[2])
+																															 : (counts[2] + counts[3]))
+																/ (counts[0] + counts[1] + 2 * counts[2] + counts[3])));
+				line.add(String.valueOf(AlleleFreq.HetExcess(counts[1], counts[2], counts[3])[0]));
+				line.add(String.valueOf(numNaNs));
+				line.add(String.valueOf(lrrSexZ));
+				line.add(String.valueOf(lrrsd));
+				line.add(String.valueOf(numLRRNaNs));
+				line.add(mecCnt);
+				line.add(duplicateErrorCount);
 
-				String line = markerName + "\t" + markerData.getChr() + "\t"
-											+ (1 - ((float) counts[0] / (counts[0] + counts[1] + counts[2] + counts[3])))
-											+ "\t" + meanTheta[1] + "\t" + meanTheta[2] + "\t" + meanTheta[3] + "\t"
-											+ (meanTheta[2] - meanTheta[1]) + "\t" + (meanTheta[3] - meanTheta[2]) + "\t"
-											+ sdTheta[1] + "\t" + sdTheta[2] + "\t" + sdTheta[3] + "\t"
-											+ (sumR[1] / counts[1]) + "\t" + (sumR[2] / counts[2]) + "\t"
-											+ (sumR[3] / counts[3]) + "\t" + counts[1] + "\t" + counts[2] + "\t"
-											+ counts[3] + "\t"
-											+ ((float) counts[1] / (counts[0] + counts[1] + counts[2] + counts[3])) + "\t"
-											+ ((float) counts[2] / (counts[0] + counts[1] + counts[2] + counts[3])) + "\t"
-											+ ((float) counts[3] / (counts[0] + counts[1] + counts[2] + counts[3])) + "\t"
-											+ (float) (counts[1] < counts[3] ? (counts[1] + counts[2])
-																											 : (counts[2] + counts[3]))
-												/ (counts[0] + counts[1] + 2 * counts[2] + counts[3])
-											+ "\t" + AlleleFreq.HetExcess(counts[1], counts[2], counts[3])[0] + "\t"
-											+ numNaNs + "\t" + lrrSexZ + "\t" + lrrsd + "\t" + numLRRNaNs + "\t" + mecCnt
-											+ "\t" + duplicateErrorCount;
-				writer.println(line);
+				for (Map<Integer, String> indexBatches : batchHeaderIndexBatches.values()) {
+					line.add(calculateBatchHeaderPValue(abGenotypes, indexBatches, log));
+				}
+
+				writer.println(Joiner.on('\t').join(line));
 
 				// if (line.length() > 25000) {
 				// writer.print(line);
@@ -328,6 +397,16 @@ public class MarkerMetrics {
 			log.reportError("Error writing marker metrics to " + fullPathToOutput);
 			log.reportException(e);
 		}
+	}
+
+	private static String generateHeader(Map<String, Map<Integer, String>> batchHeaderIndexBatches) {
+		List<String> headerItems = Lists.newArrayList(FULL_QC_BASE_HEADER);
+		for (Map.Entry<String, Map<Integer, String>> batchHeaderEntry : batchHeaderIndexBatches.entrySet()) {
+			String batchHeader = batchHeaderEntry.getKey();
+			int numBatches = ImmutableSet.copyOf(batchHeaderEntry.getValue().values()).size();
+			headerItems.add(formBatchEffectHeader(batchHeader, numBatches));
+		}
+		return Joiner.on('\t').join(headerItems);
 	}
 
 	/**
@@ -367,6 +446,56 @@ public class MarkerMetrics {
 			duplicateErrors = duplicateConcordance.calculateDiscordanceCount();
 		}
 		return duplicateErrors == null ? "." : String.valueOf(duplicateErrors);
+	}
+
+	private static Set<String> getBatchHeaders(Project proj, Set<String> sampleDataBatchHeaders) {
+		SampleData sampleData = proj.getSampleData(false);
+		return Sets.intersection(sampleDataBatchHeaders, sampleData.getMetaHeaders());
+	}
+
+	private static Map<Integer, String> generateSampleIndexBatches(Project proj, String batchHeader) {
+		SampleData sampleData = proj.getSampleData(false);
+		Map<String, Integer> sampleIndices = proj.getSampleList().getSampleIndices();
+		Map<Integer, String> indexBatches = Maps.newHashMapWithExpectedSize(sampleIndices.size());
+		HashMultiset<String> batches = HashMultiset.create();
+		for (Map.Entry<String, String> metaDataEntry : sampleData.getMetaData(batchHeader)
+																														 .entrySet()) {
+			String dna = metaDataEntry.getKey();
+			String batch = metaDataEntry.getValue();
+			batches.add(batch);
+			Integer sampleIndex = sampleIndices.get(dna);
+			if (sampleIndex != null) {
+				indexBatches.put(sampleIndex, batch);
+			}
+		}
+		return indexBatches;
+	}
+
+	private static String calculateBatchHeaderPValue(byte[] genotypes,
+																									 Map<Integer, String> indexBatches, Logger log) {
+		BatchEffects batchEffects = new BatchEffects(genotypes, indexBatches, 1, log);
+		if (batchEffects.hasBatchEffects()) {
+			return Double.toString(batchEffects.getNotableEffects().first().getpValue());
+		} else {
+			return ".";
+		}
+	}
+
+	private static String formBatchEffectHeader(String name, int numBatches) {
+		return Joiner.on(BATCH_EFFECT_HEADER_JOIN).join(BATCH_EFFECT_HEADER_PREFIX, name,
+																										("n=" + numBatches));
+	}
+
+	private static int parseNumBatches(String batchEffectHeader) {
+		List<String> parts = Splitter.on(BATCH_EFFECT_HEADER_JOIN).splitToList(batchEffectHeader);
+		if (parts.get(0).equals(BATCH_EFFECT_HEADER_PREFIX)) {
+			return Integer.parseInt(parts.get(parts.size() - 1));
+		} else {
+			throw new IllegalArgumentException(batchEffectHeader
+																				 + " is not formatted as a BatchEffect header with prefix \""
+																				 + BATCH_EFFECT_HEADER_PREFIX + "\"");
+		}
+
 	}
 
 	/**
@@ -1327,21 +1456,25 @@ public class MarkerMetrics {
 		private final String[] markerNames;
 		private final String fullPathToOutput;
 		private final boolean checkMendel;
+		private final Set<String> sampleDataBatchHeaders;
 
 		public MarkerMetricsWorker(Project proj, boolean[] samplesToExclude, String[] markerNames,
-															 String fullPathToOutput, boolean checkMendel) {
+															 String fullPathToOutput, boolean checkMendel,
+															 Set<String> sampleDataBatchHeaders) {
 			super();
 			this.proj = proj;
 			this.samplesToExclude = samplesToExclude;
 			this.markerNames = markerNames;
 			this.fullPathToOutput = fullPathToOutput;
 			this.checkMendel = checkMendel;
+			this.sampleDataBatchHeaders = sampleDataBatchHeaders;
 		}
 
 		@Override
 		public Boolean call() throws Exception {
 
-			fullQC(proj, samplesToExclude, markerNames, fullPathToOutput, checkMendel);
+			fullQC(proj, samplesToExclude, markerNames, fullPathToOutput, checkMendel,
+						 sampleDataBatchHeaders);
 			if (Files.exists(fullPathToOutput)
 					&& Files.countLines(fullPathToOutput, 1) == markerNames.length) {
 				return true;
@@ -1364,8 +1497,8 @@ public class MarkerMetrics {
 		ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
 		builder.sampleBased(false);
 		builder.requireAll(false);
-		builder.dataKeyColumnName(FULL_QC_HEADER[0]);
-		builder.numericDataTitles(FULL_QC_HEADER);
+		builder.dataKeyColumnName(FULL_QC_BASE_HEADER[0]);
+		builder.numericDataTitles(FULL_QC_BASE_HEADER);
 		builder.setInvalidNumericToNaN(true);
 
 		try {
@@ -1397,6 +1530,7 @@ public class MarkerMetrics {
 		boolean countFilters = false;
 		int numThreads = 1;
 		boolean checkMendel = true;
+		Set<String> sampleDataBatchHeaders = DEFAULT_SAMPLE_DATA_BATCH_HEADERS;
 
 		String usage = "\n" + "cnv.qc.MarkerMetrics requires 0-1 arguments\n"
 									 + "   (1) project properties filename (i.e. proj="
@@ -1411,6 +1545,9 @@ public class MarkerMetrics {
 									 + "  OR\n"
 									 + "   (4) perform full list of checks on marker quality (i.e. -fullQC (not the default))\n"
 									 + "   (5) do not check for mendelian errors when performing full qc (i.e. -skipMendel (not the default))\n"
+									 + "   (6) specify Sample Data headers to search for batch effects (i.e. "
+									 + BATCH_HEADERS_ARG + "="
+									 + Joiner.on(',').join(sampleDataBatchHeaders) + " (default))\n"
 									 + "  OR\n"
 									 + "   (4) filter markers based on filter criteria (i.e. -filter (not the default))\n"
 									 + "  OR\n"
@@ -1464,6 +1601,9 @@ public class MarkerMetrics {
 			} else if (arg.startsWith("pheno=")) {
 				pheno = arg.substring(6);
 				numArgs--;
+			} else if (arg.startsWith(BATCH_HEADERS_ARG + "=")) {
+				sampleDataBatchHeaders = ImmutableSet.copyOf(arg.split("=")[1].split(","));
+				numArgs--;
 			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(arg);
 				numArgs--;
@@ -1514,7 +1654,7 @@ public class MarkerMetrics {
 				fullQC(proj,
 							 (samples == null) ? proj.getSamplesToExclude()
 																 : ArrayUtils.booleanNegative(proj.getSamplesToInclude(samples)),
-							 markersSubset, checkMendel, numThreads);
+							 markersSubset, checkMendel, sampleDataBatchHeaders, numThreads);
 			}
 			if (lrrVariance) {
 				lrrVariance(proj, proj.getSamplesToInclude(samples), markersSubset);

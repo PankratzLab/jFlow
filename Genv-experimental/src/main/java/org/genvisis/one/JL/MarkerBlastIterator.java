@@ -261,7 +261,7 @@ public class MarkerBlastIterator {
 			builder.separator("\t");
 			builder.sampleBased(false);
 			builder.requireAll(true);
-			builder.dataKeyColumnName(MarkerMetrics.FULL_QC_HEADER[0]);
+			builder.dataKeyColumnName(MarkerMetrics.FULL_QC_BASE_HEADER[0]);
 			ExtProjectDataParser parser = builder.build(proj, proj.MARKER_METRICS_FILENAME.getValue());
 			parser.loadData();
 
@@ -644,15 +644,15 @@ public class MarkerBlastIterator {
 				PrintWriter writerALL = Files.getAppropriateWriter(plotFileALL);
 
 				writerMatch.println(ArrayUtils.toStr(PLOT_FILE_HEADER) + "\t"
-														+ ArrayUtils.toStr(ArrayUtils.subArray(MarkerMetrics.FULL_QC_HEADER,
+														+ ArrayUtils.toStr(ArrayUtils.subArray(MarkerMetrics.FULL_QC_BASE_HEADER,
 																																	 1)));
 				writerALL.println(ArrayUtils.toStr(PLOT_FILE_HEADER) + "\t"
-													+ ArrayUtils.toStr(ArrayUtils.subArray(MarkerMetrics.FULL_QC_HEADER, 1)));
+													+ ArrayUtils.toStr(ArrayUtils.subArray(MarkerMetrics.FULL_QC_BASE_HEADER, 1)));
 				ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 				builder.separator("\t");
 				builder.sampleBased(false);
 				builder.requireAll(true);
-				builder.dataKeyColumnName(MarkerMetrics.FULL_QC_HEADER[0]);
+				builder.dataKeyColumnName(MarkerMetrics.FULL_QC_BASE_HEADER[0]);
 				ExtProjectDataParser parser = builder.build(proj, proj.MARKER_METRICS_FILENAME.getValue());
 				parser.loadData();
 				int numMarkers = 0;
@@ -715,7 +715,7 @@ public class MarkerBlastIterator {
 
 				for (String element : X_COLUMNS_PLOT) {
 					for (int j2 = 0; j2 < QC_GROUPINGS.length; j2++) {
-						String[] yColumns = ArrayUtils.subArray(MarkerMetrics.FULL_QC_HEADER, QC_GROUPINGS[j2]);
+						String[] yColumns = ArrayUtils.subArray(MarkerMetrics.FULL_QC_BASE_HEADER, QC_GROUPINGS[j2]);
 						// rScatters.add(plot(proj, plotFileMatch, X_COLUMNS_PLOT[j], QC_TITLES[j2], yColumns));
 						rScatters.add(plot(proj, plotFileALL, element, QC_TITLES[j2], yColumns));
 					}

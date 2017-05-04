@@ -167,13 +167,13 @@ public class PCAPrep {
 			// false);
 			reader = Files.getReader(proj.MARKER_METRICS_FILENAME.getValue(), false, true, false);
 			String[] header = reader.readLine().trim().split("\t");
-			int abIndex = ext.indexOfStr(MarkerMetrics.FULL_QC_HEADER[2], header);
+			int abIndex = ext.indexOfStr(MarkerMetrics.FULL_QC_BASE_HEADER[2], header);
 			if (abIndex == -1) {
 				// log.reportError("Error - the necessary marker metrics header " +
 				// MarkerMetrics.FULL_QC_HEADER[2] + " was not found in the marker metrics file" +
 				// proj.getFilename(proj.MARKER_METRICS_FILENAME));
 				log.reportError("Error - the necessary marker metrics header "
-												+ MarkerMetrics.FULL_QC_HEADER[2]
+												+ MarkerMetrics.FULL_QC_BASE_HEADER[2]
 												+ " was not found in the marker metrics file"
 												+ proj.MARKER_METRICS_FILENAME.getValue());
 				return false;

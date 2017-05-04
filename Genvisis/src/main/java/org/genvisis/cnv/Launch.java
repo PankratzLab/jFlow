@@ -21,6 +21,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -98,6 +99,8 @@ import org.genvisis.common.StartupValidation;
 import org.genvisis.common.VersionHelper;
 import org.genvisis.common.ext;
 import org.genvisis.cyto.CytoGUI;
+
+import com.google.common.collect.Lists;
 
 /**
  * General entry point for application operation. In particular, can start the GUI, or delegate to
@@ -1053,8 +1056,13 @@ public class Launch extends JFrame implements ActionListener {
 					}
 				});
 			} else if (command.equals(PCMatrix.MENU_ENTRY)) {
-				String[] list = proj.getSampleData(false).getMetaHeaders();
-				JComboBox jcb = new JComboBox(list);
+
+				List<String> list = Lists.newArrayList(proj.getSampleData(false).getMetaHeaders());
+				Collections.sort(list);
+				JComboBox jcb = new JComboBox();
+				for (String header : list) {
+					jcb.addItem(header);
+				}
 				jcb.setEditable(false);
 				int selectColumn = JOptionPane.showConfirmDialog(null, jcb, "Select a column of interest",
 																												 JOptionPane.OK_CANCEL_OPTION);
