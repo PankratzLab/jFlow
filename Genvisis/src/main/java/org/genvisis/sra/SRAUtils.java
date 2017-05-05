@@ -111,7 +111,7 @@ public class SRAUtils {
 
 	}
 
-	private static final String SAM_DUMP = "sam-dump.2.6.3";
+	private static final String SAM_DUMP = "sam-dump.2.8.2";
 
 	private static final String SRA_EXT = ".sra";
 
