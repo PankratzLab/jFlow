@@ -173,6 +173,7 @@
 		<!-- Controls the Java and Maven compliance versions -->
 		<genvisis.jvm.version>1.8</genvisis.jvm.version>
 		<genvisis.mvn.version>3.0.4</genvisis.mvn.version>
+		<jsr305.version>3.0.2</jsr305.version>
 	</properties>
 
 	<!-- Dependencies should only be declared with versions in this parent pom.
@@ -294,6 +295,12 @@
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
 				<version>${guava.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>com.google.code.findbugs</groupId>
+				<artifactId>jsr305</artifactId>
+				<version>${jsr305.version}</version>
 			</dependency>
 
 			<!-- Commons-compress -->
