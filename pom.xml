@@ -42,6 +42,11 @@
 			<name>Ben Cole</name>
 			<url></url>
 		</developer>
+		<developer>
+			<id>mstim</id>
+			<name>Mary Rachel Stimson</name>
+			<url></url>
+		</developer>
 	</developers>
 
 	<!-- Genvisis is structured as a multi-module maven project. By defining the
