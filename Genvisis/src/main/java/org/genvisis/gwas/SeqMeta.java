@@ -522,7 +522,8 @@ public class SeqMeta {
     String[] studies;
     String snpName;
     String[][] methods;
-    String functionFlagName, geneName;
+    String[] functionNames;
+    String geneName;
     boolean runningByChr;
     IntVector jobSizes;
     Vector<String> jobNames;
@@ -539,7 +540,7 @@ public class SeqMeta {
     races = maps.getRacesWithFilenameAliases();
     snpName = maps.getVariantName();
     methods = maps.getMethods();
-    functionFlagName = maps.getFunctionFlagName();
+    functionNames = maps.getFunctionFlagName();
     geneName = maps.getGeneName();
     runningByChr = maps.runningByChr();
     snpInfoFile = maps.getSnpInfoFilename();
@@ -651,31 +652,40 @@ public class SeqMeta {
 
               count = 0;
               for (String[] method : methods) {
-                root = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_" + method[0];
-                outputFilename = dir + phenotypes[i][0] + "/" + races[k][0] + "/" + method[0] + "/"
-                                 + root + (runningByChr ? "_chr" + chrom : "") + ".csv";
-                if (!Files.exists(outputFilename) || new File(outputFilename).length() == 0) {
-                  if (new File(objectFilename).length() > 1024) {
-                    commands.add("results <- " + method[2] + "(" + objectName + ", SNPInfo="
-                                 + (SINGLE_VARIANTS[ext.indexOfStr(method[2], ALGORITHMS)]
-                                    || functionFlagName == null ? snpInfoName
-                                                                : "subset(" + snpInfoName + ", "
-                                                                  + functionFlagName + "==TRUE)")
-                                 + ", snpNames = \"" + snpName + "\"" + ", aggregateBy=\""
-                                 + geneName + "\""
-                                 + (method.length > 3
-                                    && ext.isValidDouble(method[3]) ? ", mafRange = c(0," + method[3] + ")" + (method.length > 4 ? ", " + ArrayUtils.toStr(ArrayUtils.subArray(method, 4), ", ") : "") : (method.length > 3 ? ", " + ArrayUtils.toStr(ArrayUtils.subArray(method, 3), ", ") : ""))
-                                 + ")");
-                    commands.add("write.table( results, \"" + outputFilename
-                                 + "\", sep=\",\", row.names = F)");
-                    count++;
-                  } else {
-                    if (chr < 23) {
-                      log.report("Creating a dummy file for " + outputFilename + " because "
-                                 + objectFilename + " has a filesize of "
-                                 + new File(objectFilename).length());
-                    }
+                for (String functionFlagName : functionNames) {
+                  root = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_" + method[0];
+                  outputFilename = dir + phenotypes[i][0] + "/" + races[k][0] + "/" + method[0]
+                                   + "/" + root
+                                   + (functionFlagName.equals("None")
+                                      || method[2].equals("singlesnpMeta") ? ""
+                                                                           : "_" + functionFlagName)
+                                   + (runningByChr ? "_chr" + chrom : "") + ".csv";
+                  if (!Files.exists(outputFilename) || new File(outputFilename).length() == 0) {
                     Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","), outputFilename);
+                    if (new File(objectFilename).length() > 1024) {
+                      commands.add("results <- " + method[2] + "(" + objectName + ", SNPInfo="
+                                   + (SINGLE_VARIANTS[ext.indexOfStr(method[2], ALGORITHMS)]
+                                      || functionFlagName.equals("None") ? snpInfoName
+                                                                         : "subset(" + snpInfoName
+                                                                           + ", " + functionFlagName
+                                                                           + "==TRUE)")
+                                   + ", snpNames = \"" + snpName + "\"" + ", aggregateBy=\""
+                                   + geneName + "\""
+                                   + (method.length > 3
+                                      && ext.isValidDouble(method[3]) ? ", mafRange = c(0," + method[3] + ")" + (method.length > 4 ? ", " + ArrayUtils.toStr(ArrayUtils.subArray(method, 4), ", ") : "") : (method.length > 3 ? ", " + ArrayUtils.toStr(ArrayUtils.subArray(method, 3), ", ") : ""))
+                                   + ")");
+                      commands.add("write.table( results, \"" + outputFilename
+                                   + "\", sep=\",\", row.names = F)");
+                      count++;
+                    } else {
+                      if (chr < 23) {
+                        log.report("Creating a dummy file for " + outputFilename + " because "
+                                   + objectFilename + " has a filesize of "
+                                   + new File(objectFilename).length());
+                      }
+                      Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","),
+                                  outputFilename);
+                    }
                   }
                 }
               }
@@ -754,31 +764,37 @@ public class SeqMeta {
           commands.add("");
           count = 0;
           for (String[] method : methods) {
-            root = races[k][0] + "_" + phenotypes[i][0] + "_" + method[0];
-            outputFilename = dir + phenotypes[i][0] + "/" + races[k][0] + "/" + method[0] + "/"
-                             + root + (runningByChr ? "_chr" + chrom : "") + ".csv";
-            if (forceMeta || !Files.exists(outputFilename)
-                || new File(outputFilename).length() == 0) {
-              if (objects.size() > 0) {
-                commands.add("results <- " + method[2] + "("
-                             + ArrayUtils.toStr(ArrayUtils.toStringArray(objects), ", ")
-                             + ", SNPInfo="
-                             + (SINGLE_VARIANTS[ext.indexOfStr(method[2], ALGORITHMS)]
-                                || functionFlagName == null ? snpInfoName
-                                                            : "subset(" + snpInfoName + ", "
-                                                              + functionFlagName + "==TRUE)")
-                             + ", snpNames = \"" + snpName + "\"" + ", aggregateBy=\"" + geneName
-                             + "\"" + (method.length > 3
-                                       && ext.isValidDouble(method[3]) ? ", mafRange = c(0," + method[3] + ")" + (method.length > 4 ? ", " + ArrayUtils.toStr(ArrayUtils.subArray(method, 4), ", ") : "") : (method.length > 3 ? ", " + ArrayUtils.toStr(ArrayUtils.subArray(method, 3), ", ") : ""))
-                             + ")");
-                commands.add("write.table( results, \"" + outputFilename
-                             + "\", sep=\",\", row.names = F)");
-                commands.add("");
-                count++;
-              } else {
-                Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","), outputFilename);
-              }
+            for (String functionFlagName : functionNames) {
+              root = races[k][0] + "_" + phenotypes[i][0] + "_" + method[0];
+              outputFilename = dir + phenotypes[i][0] + "/" + races[k][0] + "/" + method[0] + "/"
+                               + root
+                               + (functionFlagName.equals("None") ? "" : "_" + functionFlagName)
+                               + (runningByChr ? "_chr" + chrom : "") + ".csv";
+              if (forceMeta || !Files.exists(outputFilename)
+                  || new File(outputFilename).length() == 0) {
+                if (objects.size() > 0) {
+                  commands.add("results <- " + method[2] + "("
+                               + ArrayUtils.toStr(ArrayUtils.toStringArray(objects), ", ")
+                               + ", SNPInfo="
+                               + (SINGLE_VARIANTS[ext.indexOfStr(method[2], ALGORITHMS)]
+                                  || functionFlagName.equals("None") ? snpInfoName
+                                                                     : "subset(" + snpInfoName
+                                                                       + ", " + functionFlagName
+                                                                       + "==TRUE)")
+                               + ", snpNames = \"" + snpName + "\"" + ", aggregateBy=\"" + geneName
+                               + "\""
+                               + (method.length > 3
+                                  && ext.isValidDouble(method[3]) ? ", mafRange = c(0," + method[3] + ")" + (method.length > 4 ? ", " + ArrayUtils.toStr(ArrayUtils.subArray(method, 4), ", ") : "") : (method.length > 3 ? ", " + ArrayUtils.toStr(ArrayUtils.subArray(method, 3), ", ") : ""))
+                               + ")");
+                  commands.add("write.table( results, \"" + outputFilename
+                               + "\", sep=\",\", row.names = F)");
+                  commands.add("");
+                  count++;
+                } else {
+                  Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","), outputFilename);
+                }
 
+              }
             }
           }
           if (count > 0) {
@@ -840,29 +856,32 @@ public class SeqMeta {
         commands.add("");
         count = 0;
         for (String[] method : methods) {
-          root = phenotypes[i][0] + "_" + method[0];
-          outputFilename = dir + phenotypes[i][0] + "/" + method[0] + "/" + root
-                           + (runningByChr ? "_chr" + chrom : "") + ".csv";
-          if (forceMeta || !Files.exists(outputFilename)
-              || new File(outputFilename).length() == 0) {
-            if (objects.size() > 0) {
-              commands.add("results <- " + method[2] + "("
-                           + ArrayUtils.toStr(ArrayUtils.toStringArray(objects), ", ")
-                           + ", SNPInfo="
-                           + (SINGLE_VARIANTS[ext.indexOfStr(method[2], ALGORITHMS)]
-                              || functionFlagName == null ? snpInfoName
-                                                          : "subset(" + snpInfoName + ", "
-                                                            + functionFlagName + "==TRUE)")
-                           + ", snpNames = \"" + snpName + "\"" + ", aggregateBy=\"" + geneName
-                           + "\"" + (method.length > 3
-                                     && ext.isValidDouble(method[3]) ? ", mafRange = c(0," + method[3] + ")" + (method.length > 4 ? ", " + ArrayUtils.toStr(ArrayUtils.subArray(method, 4), ", ") : "") : (method.length > 3 ? ", " + ArrayUtils.toStr(ArrayUtils.subArray(method, 3), ", ") : ""))
-                           + ")");
-              commands.add("write.table( results, \"" + outputFilename
-                           + "\", sep=\",\", row.names = F)");
-              commands.add("");
-              count++;
-            } else {
-              Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","), outputFilename);
+          for (String functionFlagName : functionNames) {
+            root = phenotypes[i][0] + "_" + method[0];
+            outputFilename = dir + phenotypes[i][0] + "/" + method[0] + "/" + root
+                             + (functionFlagName.equals("None") ? "" : "_" + functionFlagName)
+                             + (runningByChr ? "_chr" + chrom : "") + ".csv";
+            if (forceMeta || !Files.exists(outputFilename)
+                || new File(outputFilename).length() == 0) {
+              if (objects.size() > 0) {
+                commands.add("results <- " + method[2] + "("
+                             + ArrayUtils.toStr(ArrayUtils.toStringArray(objects), ", ")
+                             + ", SNPInfo="
+                             + (SINGLE_VARIANTS[ext.indexOfStr(method[2], ALGORITHMS)]
+                                || functionFlagName.equals("None") ? snpInfoName
+                                                                   : "subset(" + snpInfoName + ", "
+                                                                     + functionFlagName + "==TRUE)")
+                             + ", snpNames = \"" + snpName + "\"" + ", aggregateBy=\"" + geneName
+                             + "\"" + (method.length > 3
+                                       && ext.isValidDouble(method[3]) ? ", mafRange = c(0," + method[3] + ")" + (method.length > 4 ? ", " + ArrayUtils.toStr(ArrayUtils.subArray(method, 4), ", ") : "") : (method.length > 3 ? ", " + ArrayUtils.toStr(ArrayUtils.subArray(method, 3), ", ") : ""))
+                             + ")");
+                commands.add("write.table( results, \"" + outputFilename
+                             + "\", sep=\",\", row.names = F)");
+                commands.add("");
+                count++;
+              } else {
+                Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","), outputFilename);
+              }
             }
           }
         }
@@ -903,6 +922,7 @@ public class SeqMeta {
     String root;
     String[][] phenotypes, races, methods;
     String[] studies;
+    String[] functionNames;
 
     if (dir == null || dir.equals("")) {
       dir = new File("").getAbsolutePath() + "/";
@@ -912,55 +932,71 @@ public class SeqMeta {
     studies = maps.getStudies();
     races = maps.getRacesWithFilenameAliases();
     methods = maps.getMethods();
+    functionNames = maps.getFunctionFlagName();
 
     log = new Logger(dir + "parseAll.log");
     files = Files.list(dir, null, ".Rdata", false);
     finalSets = identifySet(maps, files, log);
 
     dir = ext.verifyDirFormat(dir);
-    for (int i = 0; i < phenotypes.length; i++) {
-      for (int j = 0; j < studies.length; j++) {
-        for (int k = 0; k < races.length; k++) {
-          if (!finalSets[i][j][k].equals("<missing>")) {
-            for (int m = 0; m < methods.length; m++) {
-              root = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_" + methods[m][0];
-              if (!Files.exists(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0]
-                                + "/" + root + ".csv")
-                  || new File(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/"
-                              + root + ".csv").length() == 0) {
-                log.report(ext.getTime() + "\tStiching up " + root + ".csv");
-                stitch(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/",
-                       root + "_chr#.csv", root + ".csv", log);
+    for (String functionFlagName : functionNames) {
+      for (int i = 0; i < phenotypes.length; i++) {
+        for (int j = 0; j < studies.length; j++) {
+          for (int k = 0; k < races.length; k++) {
+            if (!finalSets[i][j][k].equals("<missing>")) {
+              for (int m = 0; m < methods.length; m++) {
+                root = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_" + methods[m][0]
+                       + (functionFlagName.equals("None")
+                          || SINGLE_VARIANTS[ext.indexOfStr(methods[m][2], ALGORITHMS)] ? ""
+                                                                                        : "_"
+                                                                                          + functionFlagName);
+                if (!Files.exists(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0]
+                                  + "/" + root + ".csv")
+                    || new File(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0]
+                                + "/" + root + ".csv").length() == 0) {
+                  log.report(ext.getTime() + "\tStiching up " + root + ".csv");
+                  stitch(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/",
+                         root + "_chr#.csv", root + ".csv", log);
+                }
+
               }
             }
           }
         }
-      }
 
-      for (int k = 0; k < races.length; k++) {
-        for (int m = 0; m < methods.length; m++) {
-          root = races[k][0] + "_" + phenotypes[i][0] + "_" + methods[m][0];
-          if (forceMeta
-              || !Files.exists(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0]
-                               + "/" + root + ".csv")
-              || new File(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/"
-                          + root + ".csv").length() == 0) {
-            log.report(ext.getTime() + "\tStiching up " + root + ".csv");
-            stitch(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/",
-                   root + "_chr#.csv", root + ".csv", log);
+        for (int k = 0; k < races.length; k++) {
+          for (int m = 0; m < methods.length; m++) {
+            root = races[k][0] + "_" + phenotypes[i][0] + "_" + methods[m][0]
+                   + (functionFlagName.equals("None")
+                      || SINGLE_VARIANTS[ext.indexOfStr(methods[m][2], ALGORITHMS)] ? ""
+                                                                                    : "_"
+                                                                                      + functionFlagName);
+            if (forceMeta
+                || !Files.exists(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0]
+                                 + "/" + root + ".csv")
+                || new File(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/"
+                            + root + ".csv").length() == 0) {
+              log.report(ext.getTime() + "\tStiching up " + root + ".csv");
+              stitch(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/",
+                     root + "_chr#.csv", root + ".csv", log);
+            }
           }
         }
-      }
 
-      for (int m = 0; m < methods.length; m++) {
-        root = phenotypes[i][0] + "_" + methods[m][0];
-        if (forceMeta
-            || !Files.exists(dir + phenotypes[i][0] + "/" + methods[m][0] + "/" + root + ".csv")
-            || new File(dir + phenotypes[i][0] + "/" + methods[m][0] + "/" + root
-                        + ".csv").length() == 0) {
-          log.report(ext.getTime() + "\tStiching up " + root + ".csv");
-          stitch(dir + phenotypes[i][0] + "/" + methods[m][0] + "/", root + "_chr#.csv",
-                 root + ".csv", log);
+        for (int m = 0; m < methods.length; m++) {
+          root = phenotypes[i][0] + "_" + methods[m][0]
+                 + (functionFlagName.equals("None")
+                    || SINGLE_VARIANTS[ext.indexOfStr(methods[m][2], ALGORITHMS)] ? ""
+                                                                                  : "_"
+                                                                                    + functionFlagName);
+          if (forceMeta
+              || !Files.exists(dir + phenotypes[i][0] + "/" + methods[m][0] + "/" + root + ".csv")
+              || new File(dir + phenotypes[i][0] + "/" + methods[m][0] + "/" + root
+                          + ".csv").length() == 0) {
+            log.report(ext.getTime() + "\tStiching up " + root + ".csv");
+            stitch(dir + phenotypes[i][0] + "/" + methods[m][0] + "/", root + "_chr#.csv",
+                   root + ".csv", log);
+          }
         }
       }
     }
@@ -1353,7 +1389,8 @@ public class SeqMeta {
     double mafThresholdDouble;
     String[][] phenotypes, races, methods;
     String[] studies;
-    String snpInfoFile, functionFlagName;
+    String snpInfoFile;
+    String[] functionNames;
     String[][] needs;
 
     if (dir == null || dir.equals("")) {
@@ -1362,7 +1399,7 @@ public class SeqMeta {
 
     phenotypes = maps.getPhenotypesWithFilenameAliases(true);
     snpInfoFile = maps.getSnpInfoFilename();
-    functionFlagName = maps.getFunctionFlagName();
+    functionNames = maps.getFunctionFlagName();
     studies = maps.getStudies();
     races = maps.getRacesWithFilenameAliases();
     methods = maps.getMethods();
@@ -1399,201 +1436,231 @@ public class SeqMeta {
                  + ext.addCommas(snpGeneFunctionalHash.size()) + " functional variants) in "
                  + ext.getTimeElapsed(time));
     } else {
-      snpGeneHash = new Hashtable<>();
-      snpGeneFunctionalHash = new Hashtable<>();
-      geneLoci = new Hashtable<>();
-
-      try {
-        log.report(ext.getTime() + "\tReading in " + filename);
-        reader = new BufferedReader(new FileReader(filename));
-        header = ext.splitCommasIntelligently(reader.readLine(), true, log);
-        needs = new String[][] {Aliases.MARKER_NAMES, Aliases.GENE_UNITS,
-                                new String[] {functionFlagName}, Aliases.CHRS};
-        indices = ext.indexFactors(needs, header, false, true, true, log);
-        if (ArrayUtils.min(indices) == -1) {
-          log.reportError("Improper header for file '" + filename + "', found: "
-                          + ArrayUtils.toStr(header, "/") + "\nMissing one of these: "
-                          + ArrayUtils.toStr(needs[ext.indexOfInt(-1, indices)], "/"));
-          reader.close();
-          return;
-        }
-        while (reader.ready()) {
-          line = ext.splitCommasIntelligently(reader.readLine(), true, log);
-          snpGeneHash.put(line[indices[0]], line[indices[1]]);
-          if (line[indices[2]].equals("TRUE")) { // && !line[indices[4]].equals("NA") &&
-                                                // Double.parseDouble(line[indices[4]]) <=
-                                                // mafThresholdDouble ) {
-            snpGeneFunctionalHash.put(line[indices[0]], line[indices[1]]);
-          }
-          if (!geneLoci.containsKey(line[indices[1]])) {
-            geneLoci.put(line[indices[1]], new Vector<String>());
-          }
-          HashVec.addIfAbsent(line[indices[3]], geneLoci.get(line[indices[1]]));
-        }
-        reader.close();
-        log.report(ext.getTime() + "\tProcessed marker mappings (n="
-                   + ext.addCommas(snpGeneHash.size()) + " variants; n="
-                   + ext.addCommas(snpGeneFunctionalHash.size()) + " functional variants) in "
-                   + ext.getTimeElapsed(time));
-      } catch (FileNotFoundException fnfe) {
-        System.err.println("Error: file \"" + filename + "\" not found in current directory");
-        System.exit(1);
-      } catch (IOException ioe) {
-        System.err.println("Error reading file \"" + filename + "\"");
-        System.exit(2);
-      }
-
-      keys = HashVec.getKeys(geneLoci);
-      for (String key : keys) {
-        if (geneLoci.get(key).size() > 1) {
-          log.reportError("Gene '" + key + "' can be found on chromosomes "
-                          + ext.listWithCommas(ArrayUtils.toStringArray(geneLoci.get(key)), true));
-        }
-      }
-
-      SerialHash.createSerializedStringHash(filename + ".mappings.ser", snpGeneHash);
-      SerialHash.createSerializedStringHash(filename + ".maf" + mafThreshold
-                                            + ".functionalMappings.ser", snpGeneFunctionalHash);
-
-      log.report(ext.getTime() + "\tFinished mapping markers to genes in "
-                 + ext.getTimeElapsed(time));
-    }
-
-    if (!methods[0][0].startsWith("SingleSNP")) {
-      System.err.println("Error - this program erroneously assumed that the first model was SingleSNP and got confused (it's actually "
-                         + methods[0][0] + "); aborting");
-      return;
-    }
-
-    files = Files.list(dir, ".Rdata");
-    finalSets = identifySet(maps, files, log);
-
-    for (int i = 0; i < phenotypes.length; i++) {
-      log.report(ext.getTime() + "\tStarting calculations for " + phenotypes[i][0]);
-      macs = new Hashtable<>();
-      snpGeneFunctionalHashPan = filterSnpGeneFunctionalHash(dir + phenotypes[i][0] + "/"
-                                                             + methods[0][0] + "/"
-                                                             + phenotypes[i][0] + "_"
-                                                             + methods[0][0] + ".csv",
-                                                             snpGeneFunctionalHash,
-                                                             mafThresholdDouble, log);
-      log.report(ext.getTime() + "\tThere are " + ext.addCommas(snpGeneFunctionalHashPan.size())
-                 + " functional variants remaining after MAF checks in the cross-ethnic meta-analysis");
-
-      for (int k = 0; k < races.length; k++) {
-        log.report(ext.getTime() + "\tStarting calculations for " + phenotypes[i][0]
-                   + " specifically for " + races[k][0]);
-        raceSpecificMacs = new Hashtable<>();
-        snpGeneFunctionalHashRaceSpecific = filterSnpGeneFunctionalHash(dir + phenotypes[i][0] + "/"
-                                                                        + races[k][0] + "/"
-                                                                        + methods[0][0] + "/"
-                                                                        + races[k][0] + "_"
-                                                                        + phenotypes[i][0] + "_"
-                                                                        + methods[0][0] + ".csv",
-                                                                        snpGeneFunctionalHash,
-                                                                        mafThresholdDouble, log);
-        log.report(ext.getTime() + "\tThere are "
-                   + ext.addCommas(snpGeneFunctionalHashRaceSpecific.size())
-                   + " functional variants remaining after MAF checks in the " + races[k][0]
-                   + " meta-analysis");
-        localDir = dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[0][0] + "/";
-        for (int j = 0; j < studies.length; j++) {
-          if (!finalSets[i][j][k].equals("<missing>")) {
-            filename = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_" + methods[0][0]
-                       + ".csv";
-            log.report(ext.getTime() + "\tReading " + filename);
-
-            try {
-              reader = new BufferedReader(new FileReader(localDir + filename));
-              header = ext.splitCommasIntelligently(reader.readLine(), true, log);
-              // ext.checkHeader(header, HEADER_TYPES[Integer.parseInt(MODELS[0][4])],
-              // Array.intArray(expected.length), false, log, true);
-
-              indices = ext.indexFactors(new String[] {"Name", "maf", "ntotal"}, header, false);
-
-              while (reader.ready()) {
-                line = ext.splitCommasIntelligently(reader.readLine(), true, log);
-                if (!snpGeneHash.containsKey(line[indices[0]])) {
-                  log.reportError("Warning - variant '" + line[indices[0]]
-                                  + "' was not found in the snpInfo file");
-                }
-                if (snpGeneFunctionalHashPan.containsKey(line[indices[0]])) {
-                  gene = snpGeneFunctionalHashPan.get(line[indices[0]]);
-
-                  // pan-ethnic
-                  if (macs.containsKey(gene)) {
-                    counts = macs.get(gene);
-                  } else {
-                    macs.put(gene, counts = new int[studies.length]);
-                  }
-                  if (!line[indices[1]].equals("NA")) {
-                    counts[j] += Math.round(Double.parseDouble(line[indices[1]])
-                                            * Double.parseDouble(line[indices[2]]) * 2);
-                  }
-                }
-
-                if (snpGeneFunctionalHashRaceSpecific.containsKey(line[indices[0]])) {
-                  gene = snpGeneFunctionalHashRaceSpecific.get(line[indices[0]]);
-
-                  // race-specific
-                  if (raceSpecificMacs.containsKey(gene)) {
-                    counts = raceSpecificMacs.get(gene);
-                  } else {
-                    raceSpecificMacs.put(gene, counts = new int[studies.length]);
-                  }
-                  if (!line[indices[1]].equals("NA")) {
-                    counts[j] += Math.round(Double.parseDouble(line[indices[1]])
-                                            * Double.parseDouble(line[indices[2]]) * 2);
-                  }
-                }
-              }
-              reader.close();
-            } catch (FileNotFoundException fnfe) {
-              System.err.println("Error - could not find '" + localDir + filename + "'; aborting");
-              return;
-            } catch (IOException ioe) {
-              System.err.println("Error reading file \"" + filename + "\"");
-              return;
-            }
-          }
-        }
-        log.report("", true, false);
+      for (String functionFlagName : functionNames) {
+        boolean useFunc = functionFlagName.equals("None");
+        snpGeneHash = new Hashtable<>();
+        snpGeneFunctionalHash = new Hashtable<>();
+        geneLoci = new Hashtable<>();
 
         try {
-          writer = Files.openAppropriateWriter(dir + phenotypes[i][0] + "/" + races[k][0] + "/"
-                                               + "minorAlleleCounts.maf" + mafThreshold + ".xln");
-          keys = HashVec.getKeys(raceSpecificMacs);
-          writer.println("Gene\t" + ArrayUtils.toStr(studies) + "\tTotal");
-          for (String key : keys) {
-            counts = raceSpecificMacs.get(key);
-            writer.println(key + "\t" + ArrayUtils.toStr(counts) + "\t" + ArrayUtils.sum(counts));
-          }
-          writer.close();
-        } catch (Exception e) {
-          System.err.println("Error writing to " + dir + phenotypes[i][0] + "/" + races[k][0] + "/"
-                             + "minorAlleleCounts.maf" + mafThreshold + ".xln");
-          e.printStackTrace();
-        }
-      }
+          log.report(ext.getTime() + "\tReading in " + filename);
+          reader = new BufferedReader(new FileReader(filename));
+          header = ext.splitCommasIntelligently(reader.readLine(), true, log);
 
-      try {
-        writer = Files.openAppropriateWriter(dir + phenotypes[i][0] + "/" + "minorAlleleCounts.maf"
-                                             + mafThreshold + ".xln");
-        keys = HashVec.getKeys(macs);
-        writer.println("Gene\t" + ArrayUtils.toStr(studies) + "\tTotal");
-        for (String key : keys) {
-          counts = macs.get(key);
-          writer.println(key + "\t" + ArrayUtils.toStr(counts) + "\t" + ArrayUtils.sum(counts));
+          needs = functionFlagName.equals("None") ? new String[][] {Aliases.MARKER_NAMES,
+                                                                    Aliases.GENE_UNITS,
+                                                                    Aliases.CHRS}
+                                                  : new String[][] {Aliases.MARKER_NAMES,
+                                                                    Aliases.GENE_UNITS,
+                                                                    functionFlagName.equals("None") ? null
+                                                                                                    : (new String[] {functionFlagName}),
+                                                                    Aliases.CHRS};
+
+          indices = ext.indexFactors(needs, header, false, true, true, false, log);
+          if (ArrayUtils.min(indices) == -1) {
+            log.reportError("Improper header for file '" + filename + "', found: "
+                            + ArrayUtils.toStr(header, "/") + "\nMissing one of these: "
+                            + ArrayUtils.toStr(needs[ext.indexOfInt(-1, indices)], "/"));
+            reader.close();
+            continue;
+          }
+          while (reader.ready()) {
+            line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+            snpGeneHash.put(line[indices[0]], line[indices[1]]);
+            if (line[indices[2]].equals("TRUE") || functionFlagName.equals("None")) { // &&
+                                                                                     // !line[indices[4]].equals("NA")
+                                                                                     // &&
+                                                                                     // Double.parseDouble(line[indices[4]]) <=
+                                                                                     // mafThresholdDouble ) {
+              snpGeneFunctionalHash.put(line[indices[0]], line[indices[1]]);
+            }
+            if (!geneLoci.containsKey(line[indices[1]])) {
+              geneLoci.put(line[indices[1]], new Vector<>());
+            }
+            HashVec.addIfAbsent(line[indices[indices.length - 1]], geneLoci.get(line[indices[1]]));
+          }
+          reader.close();
+          log.report(ext.getTime() + "\tProcessed marker mappings (n="
+                     + ext.addCommas(snpGeneHash.size()) + " variants; n="
+                     + ext.addCommas(snpGeneFunctionalHash.size()) + " functional variants) in "
+                     + ext.getTimeElapsed(time));
+        } catch (FileNotFoundException fnfe) {
+          System.err.println("Error: file \"" + filename + "\" not found in current directory");
+          System.exit(1);
+        } catch (IOException ioe) {
+          System.err.println("Error reading file \"" + filename + "\"");
+          System.exit(2);
         }
-        writer.close();
-      } catch (Exception e) {
-        System.err.println("Error writing to " + dir + phenotypes[i][0] + "/"
-                           + "minorAlleleCounts.maf" + mafThreshold + ".xln");
-        e.printStackTrace();
+
+        keys = HashVec.getKeys(geneLoci);
+        for (String key : keys) {
+          if (geneLoci.get(key).size() > 1) {
+            log.reportError("Gene '" + key + "' can be found on chromosomes "
+                            + ext.listWithCommas(ArrayUtils.toStringArray(geneLoci.get(key)),
+                                                 true));
+          }
+        }
+
+        SerialHash.createSerializedStringHash(filename + ".mappings.ser", snpGeneHash);
+        SerialHash.createSerializedStringHash(filename + ".maf" + mafThreshold
+                                              + ".functionalMappings.ser", snpGeneFunctionalHash);
+
+        log.report(ext.getTime() + "\tFinished mapping markers to genes in "
+                   + ext.getTimeElapsed(time));
+
+        if (!methods[0][0].startsWith("SingleSNP")) {
+          System.err.println("Error - this program erroneously assumed that the first model was SingleSNP and got confused (it's actually "
+                             + methods[0][0] + "); aborting");
+          return;
+        }
+        files = Files.list(dir, ".Rdata");
+        finalSets = identifySet(maps, files, log);
+
+        for (int i = 0; i < phenotypes.length; i++) {
+          log.report(ext.getTime() + "\tStarting calculations for " + phenotypes[i][0] + " "
+                     + functionFlagName);
+          macs = new Hashtable<>();
+          snpGeneFunctionalHashPan = filterSnpGeneFunctionalHash(dir + phenotypes[i][0] + "/"
+                                                                 + methods[0][0] + "/"
+                                                                 + phenotypes[i][0] + "_"
+                                                                 + methods[0][0] + ".csv",
+                                                                 snpGeneFunctionalHash,
+                                                                 mafThresholdDouble, log);
+          log.report(ext.getTime() + "\tThere are " + ext.addCommas(snpGeneFunctionalHashPan.size())
+                     + " functional variants remaining after MAF checks in the cross-ethnic meta-analysis");
+
+          for (int k = 0; k < races.length; k++) {
+            log.report(ext.getTime() + "\tStarting calculations for " + phenotypes[i][0]
+                       + " specifically for " + races[k][0]);
+            raceSpecificMacs = new Hashtable<>();
+            snpGeneFunctionalHashRaceSpecific = filterSnpGeneFunctionalHash(dir + phenotypes[i][0]
+                                                                            + "/" + races[k][0]
+                                                                            + "/" + methods[0][0]
+                                                                            + "/" + races[k][0]
+                                                                            + "_" + phenotypes[i][0]
+                                                                            + "_" + methods[0][0]
+                                                                            + ".csv",
+                                                                            snpGeneFunctionalHash,
+                                                                            mafThresholdDouble,
+                                                                            log);
+            log.report(ext.getTime() + "\tThere are "
+                       + ext.addCommas(snpGeneFunctionalHashRaceSpecific.size())
+                       + " functional variants remaining after MAF checks in the " + races[k][0]
+                       + " meta-analysis");
+            localDir = dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[0][0] + "/";
+            for (int j = 0; j < studies.length; j++) {
+              if (!finalSets[i][j][k].equals("<missing>")) {
+                String f = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_"
+                           + methods[0][0] + ".csv";
+                log.report(ext.getTime() + "\tReading " + f);
+
+                try {
+                  reader = new BufferedReader(new FileReader(localDir + f));
+                  header = ext.splitCommasIntelligently(reader.readLine(), true, log);
+                  // ext.checkHeader(header, HEADER_TYPES[Integer.parseInt(MODELS[0][4])],
+                  // Array.intArray(expected.length), false, log, true);
+
+                  indices = ext.indexFactors(new String[] {"Name", "maf", "ntotal"}, header, false,
+                                             log, true);
+
+                  while (reader.ready()) {
+                    line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+                    if (!snpGeneHash.containsKey(line[indices[0]])) {
+                      log.reportError("Warning - variant '" + line[indices[0]]
+                                      + "' was not found in the snpInfo file");
+                    }
+                    if (snpGeneFunctionalHashPan.containsKey(line[indices[0]])) {
+                      gene = snpGeneFunctionalHashPan.get(line[indices[0]]);
+
+                      // pan-ethnic
+                      if (macs.containsKey(gene)) {
+                        counts = macs.get(gene);
+                      } else {
+                        macs.put(gene, counts = new int[studies.length]);
+                      }
+                      if (!line[indices[1]].equals("NA")) {
+                        counts[j] += Math.round(Double.parseDouble(line[indices[1]])
+                                                * Double.parseDouble(line[indices[2]]) * 2);
+                      }
+                    }
+
+                    if (snpGeneFunctionalHashRaceSpecific.containsKey(line[indices[0]])) {
+                      gene = snpGeneFunctionalHashRaceSpecific.get(line[indices[0]]);
+
+                      // race-specific
+                      if (raceSpecificMacs.containsKey(gene)) {
+                        counts = raceSpecificMacs.get(gene);
+                      } else {
+                        raceSpecificMacs.put(gene, counts = new int[studies.length]);
+                      }
+                      if (!line[indices[1]].equals("NA")) {
+                        counts[j] += Math.round(Double.parseDouble(line[indices[1]])
+                                                * Double.parseDouble(line[indices[2]]) * 2);
+                      }
+                    }
+                  }
+                  reader.close();
+                } catch (FileNotFoundException fnfe) {
+                  System.err.println("Error - could not find '" + localDir + f + "'; aborting");
+                  return;
+                } catch (IOException ioe) {
+                  System.err.println("Error reading file \"" + f + "\"");
+                  return;
+                }
+              }
+            }
+            log.report("", true, false);
+
+            try {
+              writer = Files.openAppropriateWriter(dir + phenotypes[i][0] + "/" + races[k][0] + "/"
+                                                   + "minorAlleleCounts.maf" + mafThreshold
+                                                   + (functionFlagName.equals("None") ? ""
+                                                                                      : "."
+                                                                                        + functionFlagName)
+                                                   + ".xln");
+              keys = HashVec.getKeys(raceSpecificMacs);
+              writer.println("Gene\t" + ArrayUtils.toStr(studies) + "\tTotal");
+              for (String key : keys) {
+                counts = raceSpecificMacs.get(key);
+                writer.println(key + "\t" + ArrayUtils.toStr(counts) + "\t"
+                               + ArrayUtils.sum(counts));
+              }
+              writer.close();
+            } catch (Exception e) {
+              System.err.println("Error writing to " + dir + phenotypes[i][0] + "/" + races[k][0]
+                                 + "/" + "minorAlleleCounts.maf" + mafThreshold
+                                 + (functionFlagName.equals("None") ? "" : "." + functionFlagName)
+                                 + ".xln");
+              e.printStackTrace();
+            }
+          }
+
+          try {
+            writer = Files.openAppropriateWriter(dir + phenotypes[i][0] + "/"
+                                                 + "minorAlleleCounts.maf" + mafThreshold
+                                                 + (functionFlagName.equals("None") ? ""
+                                                                                    : "."
+                                                                                      + functionFlagName)
+                                                 + ".xln");
+            keys = HashVec.getKeys(macs);
+            writer.println("Gene\t" + ArrayUtils.toStr(studies) + "\tTotal");
+            for (String key : keys) {
+              counts = macs.get(key);
+              writer.println(key + "\t" + ArrayUtils.toStr(counts) + "\t" + ArrayUtils.sum(counts));
+            }
+            writer.close();
+          } catch (Exception e) {
+            System.err.println("Error writing to " + dir + phenotypes[i][0] + "/"
+                               + "minorAlleleCounts.maf" + mafThreshold
+                               + (functionFlagName.equals("None") ? "" : "." + functionFlagName)
+                               + ".xln");
+            e.printStackTrace();
+          }
+        }
       }
     }
-
     log.report(ext.getTime() + "\tFinished verything in " + ext.getTimeElapsed(time));
+
   }
 
   public static Hashtable<String, String> filterSnpGeneFunctionalHash(String filename,
@@ -1657,6 +1724,7 @@ public class SeqMeta {
     String[] studies;
     String[][] methods;
     String[][] groupAnnotationParams;
+    String[] functionNames;
     int count;
     Vector<String> lineCounts;
     boolean problem;
@@ -1673,6 +1741,7 @@ public class SeqMeta {
     studies = maps.getStudies();
     races = maps.getRacesWithFilenameAliases();
     methods = maps.getMethods();
+    functionNames = maps.getFunctionFlagName();
     groupAnnotationParams = maps.getGroupAnnotationParams();
 
     log = new Logger(dir + "assembleHits.log");
@@ -1705,115 +1774,178 @@ public class SeqMeta {
     finalSets = identifySet(maps, files, log);
 
     lineCounts = new Vector<>();
+
     for (int i = 0; i < phenotypes.length; i++) {
       groupHits = new Hashtable<>();
       groupParams = new Hashtable<>();
-
-      // MODELS = { // name, grouping, subroutine, arguments, header type, mafThreshold //,
-      // parameters for parsing
-      // log.reportError("Error - a method must have at least 3 parameters: name, grouping,
-      // algorithm, (optional) MAF threshold, (optional) additional arguments such as weighting");
-
       macHashesHashByRace = new Hashtable<>();
-      for (int m = 0; m < methods.length; m++) {
-        if (!groupHits.containsKey(methods[m][1])) {
-          groupHits.put(methods[m][1], new Hits());
-          groupParams.put(methods[m][1], new Vector<String>());
+      for (String functionFileName : functionNames) {
+        for (int m = 0; m < methods.length; m++) {
+          boolean useFunc = functionFileName.equals("None")
+                            || SINGLE_VARIANTS[ext.indexOfStr(methods[m][2], ALGORITHMS)];
+
+          if (!groupHits.containsKey(methods[m][1] + (useFunc ? "" : "_" + functionFileName))) {
+            groupHits.put(methods[m][1] + (useFunc ? "" : "_" + functionFileName), new Hits());
+            groupParams.put(methods[m][1] + (useFunc ? "" : "_" + functionFileName),
+                            new Vector<>());
+          }
         }
+
+        for (String[] race : races) {
+          macHashesHashByRace.put(race[0]
+                                  + (functionFileName.equals("None") ? "" : "_" + functionFileName),
+                                  new Hashtable<>());
+        }
+        macHashesHashByRace.put("PanEthnic"
+                                + (functionFileName.equals("None") ? "" : "_" + functionFileName),
+                                new Hashtable<>());
       }
-      for (String[] race : races) {
-        macHashesHashByRace.put(race[0], new Hashtable<String, Hashtable<String, String>>());
-      }
-      macHashesHashByRace.put("PanEthnic", new Hashtable<String, Hashtable<String, String>>());
-      for (int m = 0; m < methods.length; m++) {
-        if (methods[m][1].equals("BurdenTests")) {
-          // see if particular maf threshold has been introduced prior
-          if (!macHashesHashByRace.get("PanEthnic").containsKey(methods[m][3])) {
-            line = ArrayUtils.addStrToArray("Total", studies);
-            for (String[] race : races) {
-              macHashesHashByRace.get(race[0])
+
+      for (String functionFileName : functionNames) {
+        groupParams.put("SingleVariant", new Vector<>());
+        for (int m = 0; m < methods.length; m++) {
+          boolean useFunc = functionFileName.equals("None")
+                            || SINGLE_VARIANTS[ext.indexOfStr(methods[m][2], ALGORITHMS)];
+
+          if (methods[m][1].equals("BurdenTests")) {
+            // see if particular maf threshold has been introduced prior
+            if (!macHashesHashByRace.get("PanEthnic" + (useFunc ? "" : "_" + functionFileName))
+                                    .containsKey(methods[m][3])) {
+              line = ArrayUtils.addStrToArray("Total", studies);
+              for (String[] race : races) {
+                macHashesHashByRace.get(race[0] + (useFunc ? "" : "_" + functionFileName))
+                                   .put(methods[m][3],
+                                        macHash = HashVec.loadFileToHashString(dir
+                                                                               + phenotypes[i][0]
+                                                                               + "/" + race[0] + "/"
+                                                                               + "minorAlleleCounts.maf"
+                                                                               + methods[m][3]
+                                                                               + (useFunc ? ""
+                                                                                          : "."
+                                                                                            + functionFileName)
+                                                                               + ".xln", "Gene",
+                                                                               line, "\t"));
+                macHash.put("studies", ArrayUtils.toStr(line));
+              }
+              macHashesHashByRace.get("PanEthnic" + (useFunc ? "" : "_" + functionFileName))
                                  .put(methods[m][3],
                                       macHash = HashVec.loadFileToHashString(dir + phenotypes[i][0]
-                                                                             + "/" + race[0] + "/"
+                                                                             + "/"
                                                                              + "minorAlleleCounts.maf"
                                                                              + methods[m][3]
-                                                                             + ".xln", "Gene", line,
+                                                                             + (useFunc ? ""
+                                                                                        : "."
+                                                                                          + functionFileName)
+                                                                             + ".xln", "Gene",
+                                                                             new String[] {"Total"},
                                                                              "\t"));
-              macHash.put("studies", ArrayUtils.toStr(line));
-            }
-            macHashesHashByRace.get("PanEthnic")
-                               .put(methods[m][3],
-                                    macHash = HashVec.loadFileToHashString(dir + phenotypes[i][0]
-                                                                           + "/"
-                                                                           + "minorAlleleCounts.maf"
-                                                                           + methods[m][3] + ".xln",
-                                                                           "Gene",
-                                                                           new String[] {"Total"},
-                                                                           "\t"));
-            macHash.put("studies", "Total");
-          }
-        }
-
-        filenames = "";
-        localDir = dir + phenotypes[i][0] + "/" + methods[m][0] + "/";
-        for (int k = 0; k < races.length; k++) {
-          localRaceDir = dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/";
-
-          for (int j = 0; j < studies.length; j++) {
-            if (!finalSets[i][j][k].equals("<missing>")) {
-              filename = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_"
-                         + methods[m][0] + ".csv";
-              pvalFile = studies[j] + "_" + races[k][0] + "_pvals_mac" + macThresholdTotal + ".dat";
-
-              count = parsePvals(localRaceDir + filename, localDir + pvalFile, studies[j],
-                                 methods[m], macHashesHashByRace.get(races[k][0]),
-                                 macThresholdStudy, mafThreshold, log);
-              if (count == -1) {
-                return;
-              }
-              lineCounts.add(studies[j] + "\t" + races[k][0] + "\t" + phenotypes[i][0] + "\t"
-                             + methods[m][0] + "\t" + count);
-
-              filenames += pvalFile + ",1=" + studies[j] + "_" + races[k][0] + ";";
-
-              header = Files.getHeaderOfFile(localRaceDir + filename, ",!", log);
-              header[0] = "'" + header[0] + "'";
-              for (int h = 1; h < header.length; h++) {
-                header[h] = "'" + header[h] + "'=" + studies[j] + "_" + races[k][0] + "_"
-                            + header[h] + "_" + methods[m][0];
-              }
-              if (methods[m][1].equals("BurdenTests")) {
-                groupParams.get(methods[m][1])
-                           .add(localRaceDir + filename + " " + ArrayUtils.toStr(header, " "));
-              } else {
-                groupParams.get(methods[m][1])
-                           .add(localRaceDir + filename + " "
-                                + ArrayUtils.toStr(ArrayUtils.subArray(header, 1), " "));
-              }
+              macHash.put("studies", "Total");
             }
           }
-          log.report("", true, false);
 
-          filename = races[k][0] + "_" + phenotypes[i][0] + "_" + methods[m][0] + ".csv";
-          pvalFile = "meta_" + races[k][0] + "_pvals_mac" + macThresholdTotal + ".dat";
+          filenames = "";
+          localDir = dir + phenotypes[i][0] + "/" + methods[m][0] + "/";
 
-          count = parsePvals(localRaceDir + filename, localDir + pvalFile, "Total", methods[m],
-                             macHashesHashByRace.get(races[k][0]), macThresholdTotal, mafThreshold,
-                             log);
-          log.report(count + " lines of pvalues for " + filename);
+          for (int k = 0; k < races.length; k++) {
+            localRaceDir = dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/";
+
+            for (int j = 0; j < studies.length; j++) {
+              if (!finalSets[i][j][k].equals("<missing>")) {
+                filename = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_"
+                           + methods[m][0] + (useFunc ? "" : "_" + functionFileName) + ".csv";
+                pvalFile = studies[j] + "_" + races[k][0] + "_pvals_mac" + macThresholdTotal
+                           + (useFunc ? "" : "_" + functionFileName) + ".dat";
+
+                count = parsePvals(localRaceDir + filename, localDir + pvalFile, studies[j],
+                                   methods[m],
+                                   macHashesHashByRace.get(races[k][0]
+                                                           + (useFunc ? ""
+                                                                      : "_" + functionFileName)),
+                                   macThresholdStudy, mafThreshold, log);
+                if (count == -1) {
+                  return;
+                }
+                lineCounts.add(studies[j] + "\t" + races[k][0] + "\t" + phenotypes[i][0] + "\t"
+                               + methods[m][0] + "\t" + (useFunc ? "" : functionFileName + "\t")
+                               + count);
+
+                filenames += pvalFile + ",1=" + studies[j] + "_" + races[k][0] + ";";
+
+                header = Files.getHeaderOfFile(localRaceDir + filename, ",!", log);
+                header[0] = "'" + header[0] + "'";
+                for (int h = 1; h < header.length; h++) {
+                  header[h] = "'" + header[h] + "'=" + studies[j] + "_" + races[k][0] + "_"
+                              + header[h] + "_" + methods[m][0];
+                }
+                if (methods[m][1].equals("BurdenTests")) {
+                  groupParams.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
+                             .add(localRaceDir + filename + " " + ArrayUtils.toStr(header, " "));
+                } else {
+                  groupParams.get(methods[m][1])
+                             .add(localRaceDir + filename + " "
+                                  + ArrayUtils.toStr(ArrayUtils.subArray(header, 1), " "));
+                }
+              }
+            }
+            log.report("", true, false);
+
+            filename = races[k][0] + "_" + phenotypes[i][0] + "_" + methods[m][0]
+                       + (useFunc ? "" : "_" + functionFileName) + ".csv";
+            pvalFile = "meta_" + races[k][0] + "_pvals_mac" + macThresholdTotal
+                       + (useFunc ? "" : "_" + functionFileName) + ".dat";
+
+            count = parsePvals(localRaceDir + filename, localDir + pvalFile, "Total", methods[m],
+                               macHashesHashByRace.get(races[k][0]
+                                                       + (useFunc ? "" : "_" + functionFileName)),
+                               macThresholdTotal, mafThreshold, log);
+            log.report(count + " lines of pvalues for " + filename);
+            if (count == -1) {
+              return;
+            }
+            lineCounts.add("Meta\t" + races[k][0] + "\t" + phenotypes[i][0] + "\t" + methods[m][0]
+                           + "\t" + (useFunc ? "" : "\t" + functionFileName) + count);
+
+            filenames += pvalFile + ",1=Meta_" + races[k][0] + ";";
+
+            header = Files.getHeaderOfFile(localRaceDir + filename, ",!", log);
+            header[0] = "'" + header[0] + "'";
+            for (int h = 1; h < header.length; h++) {
+              header[h] = "'" + header[h] + "'=" + races[k][0] + "_" + header[h] + "_"
+                          + methods[m][0];
+            }
+            if (methods[m][1].equals("SingleVariant")) {
+              temp = header[0];
+              header[0] = header[1];
+              header[1] = temp;
+              header = ArrayUtils.subArray(header, 0, getHeaderForMethod(methods[m]).length);
+            }
+            groupParams.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
+                       .add(k, localRaceDir + filename + " " + ArrayUtils.toStr(header, " "));
+            groupHits.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
+                     .incorporateFromFile(localDir + pvalFile, new int[] {0, 1}, 0.001, log);
+          }
+
+          filename = phenotypes[i][0] + "_" + methods[m][0]
+                     + (useFunc ? "" : "_" + functionFileName) + ".csv";
+          pvalFile = "meta_panEthnic_pvals_mac" + macThresholdTotal
+                     + (useFunc ? "" : "_" + functionFileName) + ".dat";
+
+          count = parsePvals(localDir + filename, localDir + pvalFile, "Total", methods[m],
+                             macHashesHashByRace.get("PanEthnic"
+                                                     + (useFunc ? "" : "_" + functionFileName)),
+                             macThresholdTotal, mafThreshold, log);
           if (count == -1) {
             return;
           }
-          lineCounts.add("Meta\t" + races[k][0] + "\t" + phenotypes[i][0] + "\t" + methods[m][0]
-                         + "\t" + count);
+          lineCounts.add("Meta\t" + "PanEthnic" + "\t" + phenotypes[i][0] + "\t" + methods[m][0]
+                         + (useFunc ? "" : "\t" + functionFileName) + "\t" + count);
 
-          filenames += pvalFile + ",1=Meta_" + races[k][0] + ";";
+          filenames += pvalFile + ",1=Meta_PanEthnic;";
 
-          header = Files.getHeaderOfFile(localRaceDir + filename, ",!", log);
+          header = Files.getHeaderOfFile(localDir + filename, ",!", log);
           header[0] = "'" + header[0] + "'";
           for (int h = 1; h < header.length; h++) {
-            header[h] = "'" + header[h] + "'=" + races[k][0] + "_" + header[h] + "_"
-                        + methods[m][0];
+            header[h] = "'" + header[h] + "'=PanEthnic_" + header[h] + "_" + methods[m][0];
           }
           if (methods[m][1].equals("SingleVariant")) {
             temp = header[0];
@@ -1821,68 +1953,39 @@ public class SeqMeta {
             header[1] = temp;
             header = ArrayUtils.subArray(header, 0, getHeaderForMethod(methods[m]).length);
           }
-          groupParams.get(methods[m][1])
-                     .add(k, localRaceDir + filename + " " + ArrayUtils.toStr(header, " "));
-          groupHits.get(methods[m][1]).incorporateFromFile(localDir + pvalFile, new int[] {0, 1},
-                                                           0.001, log);
-        }
 
-        filename = phenotypes[i][0] + "_" + methods[m][0] + ".csv";
-        pvalFile = "meta_panEthnic_pvals_mac" + macThresholdTotal + ".dat";
+          groupParams.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
+                     .add(0, localDir + filename + " " + ArrayUtils.toStr(header, " "));
+          groupHits.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
+                   .incorporateFromFile(localDir + pvalFile, new int[] {0, 1}, 0.001, log);
 
-        count = parsePvals(localDir + filename, localDir + pvalFile, "Total", methods[m],
-                           macHashesHashByRace.get("PanEthnic"), macThresholdTotal, mafThreshold,
-                           log);
-        if (count == -1) {
-          return;
+          // filename = PHENOTYPES[i][0]+"_"+METHODS[j][0]+".pval.metal";
+          // if (!Files.exists(localDir+filename+"1.out") || new
+          // File(localDir+filename+"1.out").length() < 500) {
+          // Metal.metaAnalyze(localDir, Array.toStringArray(locals), UNIT_OF_ANALYSIS[j], filename,
+          // Metal.PVAL_ANALYSIS, null, log);
+          // running = true;
+          // } else {
+          // groupHits.get(GROUPS[j]).incorporateFromFile(localDir+filename+"1.out", 0.001, log);
+          // groupParams.get(GROUPS[j]).add(2, localDir+filename+"1.out 'MarkerName'
+          // 'Allele1'=Meta_pA1_"+METHODS[j][0]+" 'Allele2'=Meta_pA2_"+METHODS[j][0]+"
+          // 'P-value'=Meta_Nweighted_pval_"+METHODS[j][0]);
+          // if (SINGLE_VARIANTS[j]) {
+          // groupParams.get(GROUPS[j]).add(0, localDir+filename+"1.out 'MarkerName'
+          // 'Freq1'=Meta_AF");
+          // filenames += localDir+filename+"1.out,7=pMeta;";
+          // } else {
+          // filenames += localDir+filename+"1.out,5=pMeta;";
+          // }
+          // }
+          if (filenames.length() == 0) {
+            System.err.println("Error - why are there no files for " + phenotypes[i][0] + " "
+                               + methods[m][0] + (useFunc ? "" : " " + functionFileName));
+          }
+          Files.write("java -jar /home/npankrat/vis.jar cnv.plots.QQPlot files=\""
+                      + filenames.substring(0, filenames.length() - 1) + "\" maxToPlot=10",
+                      localDir + "plotQQs_mac" + macThresholdTotal + ".bat");
         }
-        lineCounts.add("Meta\t" + "PanEthnic" + "\t" + phenotypes[i][0] + "\t" + methods[m][0]
-                       + "\t" + count);
-
-        filenames += pvalFile + ",1=Meta_PanEthnic;";
-
-        header = Files.getHeaderOfFile(localDir + filename, ",!", log);
-        header[0] = "'" + header[0] + "'";
-        for (int h = 1; h < header.length; h++) {
-          header[h] = "'" + header[h] + "'=PanEthnic_" + header[h] + "_" + methods[m][0];
-        }
-        if (methods[m][1].equals("SingleVariant")) {
-          temp = header[0];
-          header[0] = header[1];
-          header[1] = temp;
-          header = ArrayUtils.subArray(header, 0, getHeaderForMethod(methods[m]).length);
-        }
-        groupParams.get(methods[m][1])
-                   .add(0, localDir + filename + " " + ArrayUtils.toStr(header, " "));
-        groupHits.get(methods[m][1]).incorporateFromFile(localDir + pvalFile, new int[] {0, 1},
-                                                         0.001, log);
-
-        // filename = PHENOTYPES[i][0]+"_"+METHODS[j][0]+".pval.metal";
-        // if (!Files.exists(localDir+filename+"1.out") || new
-        // File(localDir+filename+"1.out").length() < 500) {
-        // Metal.metaAnalyze(localDir, Array.toStringArray(locals), UNIT_OF_ANALYSIS[j], filename,
-        // Metal.PVAL_ANALYSIS, null, log);
-        // running = true;
-        // } else {
-        // groupHits.get(GROUPS[j]).incorporateFromFile(localDir+filename+"1.out", 0.001, log);
-        // groupParams.get(GROUPS[j]).add(2, localDir+filename+"1.out 'MarkerName'
-        // 'Allele1'=Meta_pA1_"+METHODS[j][0]+" 'Allele2'=Meta_pA2_"+METHODS[j][0]+"
-        // 'P-value'=Meta_Nweighted_pval_"+METHODS[j][0]);
-        // if (SINGLE_VARIANTS[j]) {
-        // groupParams.get(GROUPS[j]).add(0, localDir+filename+"1.out 'MarkerName'
-        // 'Freq1'=Meta_AF");
-        // filenames += localDir+filename+"1.out,7=pMeta;";
-        // } else {
-        // filenames += localDir+filename+"1.out,5=pMeta;";
-        // }
-        // }
-        if (filenames.length() == 0) {
-          System.err.println("Error - why are there no files for " + phenotypes[i][0] + " "
-                             + methods[m][0]);
-        }
-        Files.write("java -jar /home/npankrat/vis.jar cnv.plots.QQPlot files=\""
-                    + filenames.substring(0, filenames.length() - 1) + "\" maxToPlot=10",
-                    localDir + "plotQQs_mac" + macThresholdTotal + ".bat");
       }
 
       groups = HashVec.getKeys(groupHits);
@@ -1891,11 +1994,14 @@ public class SeqMeta {
         groupHits.get(group).writeHits(filename);
         hits = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
         groupParams.get(group).add(0, filename + " 0 1=minPval skip=0");
-        if (group.equals("BurdenTests")) {
+        if (group.startsWith("BurdenTests")) {
           line = HashVec.getKeys(macHashesHashByRace.get("PanEthnic"));
           for (String element : line) {
-            groupParams.get(group).add(1, dir + phenotypes[i][0] + "/" + "minorAlleleCounts.maf"
-                                          + element + ".xln 0 'Total'=MAC<" + element + "%");
+            String[] func = (group.split("_", 2));
+            groupParams.get(group).add(1,
+                                       dir + phenotypes[i][0] + "/" + "minorAlleleCounts.maf"
+                                          + element + (func.length == 1 ? "" : "." + func[1])
+                                          + ".xln 0 'Total'=MAC<" + element + "%");
           }
         }
 
@@ -1914,7 +2020,7 @@ public class SeqMeta {
         // }
         count = 0;
         for (String[] groupAnnotationParam : groupAnnotationParams) {
-          if (groupAnnotationParam[0].equals(group)) {
+          if (group.startsWith(groupAnnotationParam[0])) {
             groupParams.get(group).add(count, dir + groupAnnotationParam[1]);
             count++;
           }
@@ -1923,36 +2029,36 @@ public class SeqMeta {
           PrintWriter writer = Files.openAppropriateWriter(phenotypes[i][0] + "/" + phenotypes[i][0]
                                                            + "_" + group + "_parser.crf");
           writer.println("lookup");
-          writer.println(phenotypes[i][0] + "_hitters.dat 0 out=" + dir + phenotypes[i][0] + "/"
-                         + phenotypes[i][0] + "_" + group + ".csv");
+          writer.println(phenotypes[i][0] + "_" + group + "_hitters.dat 0 out=" + dir
+                         + phenotypes[i][0] + "/" + phenotypes[i][0] + "_" + group + ".csv");
           writer.println(ArrayUtils.toStr(ArrayUtils.toStringArray(groupParams.get(group)), "\n"));
           writer.close();
         } catch (Exception e) {
-          System.err.println("Error writing to " + "parser_" + group + "_" + phenotypes[i][0]
+          System.err.println("Error writing to " + "parser_" + phenotypes[i][0] + "_" + group
                              + ".crf");
           e.printStackTrace();
         }
-        Files.writeArray(hits, phenotypes[i][0] + "_hitters.dat");
-        Files.combine(hits, ArrayUtils.toStringArray(groupParams.get(group)), null, group, ".",
+        Files.writeArray(hits, phenotypes[i][0] + group + "_hitters.dat");
+        Files.combine(hits, ArrayUtils.toStringArray(groupParams.get(group)), null,
+                      (group.startsWith("BurdenTests") ? "BurdenTests" : group), ".",
                       dir + phenotypes[i][0] + "/" + phenotypes[i][0] + "_" + group + ".csv", log,
                       true, true, false);
         log.report("\ncrf language for the creation of " + phenotypes[i][0] + "_" + group + ".csv");
         log.report(ArrayUtils.toStr(ArrayUtils.toStringArray(groupParams.get(group)), "\n"), true,
                    false);
         log.report("");
+
       }
     }
-
     hitsDirectory = ext.verifyDirFormat(hitsDirectory);
     copyHits(dir, hitsDirectory, maps);
     log.report("Copied to " + hitsDirectory + " and regions are being delineated");
     delineateRegions(dir, hitsDirectory, maps, macThresholdTotal);
 
-    // combine into a pretty excel file
-
     lineCounts.insertElementAt("Study\tRace\tPhenotype\tMethod\tCount", 0);
     Files.writeArray(ArrayUtils.toStringArray(lineCounts), dir + "lineCounts.xln");
     log.report("check lineCounts.xln for completeness");
+
   }
 
   public static int parsePvals(String filename, String pvalFile, String study, String[] method,
@@ -2002,6 +2108,7 @@ public class SeqMeta {
     }
     // generate a file with p-values for Q-Q plots and for lambdas
     if (index >= 0) {
+
       try {
         reader = new BufferedReader(new FileReader(filename));
         reader.readLine();
@@ -2076,6 +2183,7 @@ public class SeqMeta {
     String[] groups;
     String filename;
     String[][] phenotypes;
+    String[] functionNames;
 
     if (dir == null || dir.equals("")) {
       dir = new File("").getAbsolutePath() + "/";
@@ -2085,14 +2193,21 @@ public class SeqMeta {
 
     phenotypes = maps.getPhenotypesWithFilenameAliases(true);
     groups = maps.getGroups();
+    functionNames = maps.getFunctionFlagName();
 
     new File(dir + hitsDirectory).mkdirs();
-    for (String[] phenotype : phenotypes) {
-      for (String group : groups) {
-        filename = dir + phenotype[0] + "/" + phenotype[0] + "_" + group + ".csv";
-        System.out.println("cp " + phenotype[0] + "/" + phenotype[0] + "_" + group + ".csv "
-                           + hitsDirectory);
-        Files.copyFile(filename, dir + hitsDirectory + ext.removeDirectoryInfo(filename));
+
+    for (String functionFileName : functionNames) {
+      for (String[] phenotype : phenotypes) {
+        for (String group : groups) {
+          filename = dir + phenotype[0] + "/" + phenotype[0] + "_" + group
+                     + (functionFileName.equals("None") ? "" : "_" + functionFileName) + ".csv";
+          System.out.println("cp " + phenotype[0] + "/" + phenotype[0] + "_" + group
+                             + ((functionFileName.equals("None")
+                                 || group.equals("SingleVariant")) ? "" : "_" + functionFileName)
+                             + ".csv " + hitsDirectory);
+          Files.copyFile(filename, dir + hitsDirectory + ext.removeDirectoryInfo(filename));
+        }
       }
     }
   }
@@ -2232,6 +2347,7 @@ public class SeqMeta {
     String filename;
     String[][] phenotypes, methods, results, forestInputs;
     Vector<String> additionalCols;
+    String[] functionNames;
 
     if (dir == null || dir.equals("")) {
       dir = new File("").getAbsolutePath() + "/";
@@ -2250,6 +2366,7 @@ public class SeqMeta {
     phenotypes = maps.getPhenotypesWithFilenameAliases(true);
     methods = maps.getMethods();
     races = Matrix.extractColumn(maps.getRacesWithFilenameAliases(), 0);
+    functionNames = maps.getFunctionFlagName();
 
     groups = new String[] {};
     filesToCat = new Vector<>();
@@ -2259,117 +2376,126 @@ public class SeqMeta {
     for (String[] method : methods) {
       if (ext.indexOfStr(method[1], groups) == -1) {
         groups = ArrayUtils.addStrToArray(method[1], groups);
-        filesToCat.add(new Vector<String>());
+        filesToCat.add(new Vector<>());
       }
       countHash.add(method[1]);
     }
 
     pvalThresholdsLog = new Logger(dir + "pval_thresholds.xln");
     pvalThresholdsLog.report("Trait\tN\tnTests\tBonferroni_pval");
-    for (String[] phenotype : phenotypes) {
-      ns = ArrayUtils.intArray(groups.length, -1);
-      for (String[] method : methods) {
-        filename = phenotype[0] + "/" + method[0] + "/meta_panEthnic_pvals_mac" + macThresholdTotal
-                   + ".dat";
-        index = ext.indexOfStr(method[1], groups);
-        if (Files.exists(dir + filename)) {
-          ns[index] = Math.max(ns[index], Files.countLines(filename, 1));
-        }
-      }
-      for (int g = 0; g < groups.length; g++) {
-        if (groups[g].equals("SingleVariant") && ns[g] == -1) {
-          ns[g] = 1000000;
-        } else if (groups[g].equals("BurdenTests") && ns[g] == -1) {
-          ns[g] = 20000;
-        }
-
-        indexThreshold = (float) (0.05 / ns[g] / countHash.getCount(groups[g]));
-        // indexThreshold = (float)(0.05 / (double)ns[g]);
-        filename = phenotype[0] + "_" + groups[g] + ".csv";
-        pvalThresholdsLog.report(ext.rootOf(filename) + "\t" + ns[g] + "\t"
-                                 + countHash.getCount(groups[g]) + "\t" + indexThreshold);
-        additionalCols = new Vector<>();
-        if (groups[g].equals("SingleVariant")) {
-          additionalCols.add("SKATgene");
-          additionalCols.add("PanEthnic_beta_SingleSNP");
-          // additionalCols.add("CHARGE_ALL_AF");
-          // additionalCols.add("single_func_region");
-          additionalCols.add("Function");
-        }
-        if (groups[g].equals("BurdenTests")) {
-          additionalCols.add("PanEthnic_nsnpsTotal_T5Count");
-        }
+    for (String functionFileName : functionNames) {
+      for (String[] phenotype : phenotypes) {
+        ns = ArrayUtils.intArray(groups.length, -1);
         for (String[] method : methods) {
-          if (method[1].equals(groups[g])) {
-            additionalCols.add("PanEthnic_p_" + method[0]);
-            if (groups[g].equals("SingleVariant")) {
-              additionalCols.add("PanEthnic_maf_" + method[0]);
-              additionalCols.add("PanEthnic_ntotal_" + method[0]);
-              // additionalCols.add("$PanEthnic_maf_"+methods[j][0]+"*PanEthnic_ntotal_"+methods[j][0]+"=MAC_PanEthnic");
-            }
-            for (int k = 0; k < races.length; k++) {
-              additionalCols.insertElementAt(races[k] + "_p_" + method[0],
-                                             k + 1 + additionalCols.indexOf("PanEthnic_p_"
-                                                                            + method[0]));
-              if (groups[g].equals("SingleVariant")) {
-                additionalCols.insertElementAt(races[k] + "_maf_" + method[0],
-                                               k + 1 + additionalCols.indexOf("PanEthnic_maf_"
-                                                                              + method[0]));
-                additionalCols.add(races[k] + "_ntotal_" + method[0]);
-              }
-            }
+          filename = phenotype[0] + "/" + method[0] + "/meta_panEthnic_pvals_mac"
+                     + macThresholdTotal + ".dat";
+          index = ext.indexOfStr(method[1], groups);
+          if (Files.exists(dir + filename)) {
+            ns[index] = Math.max(ns[index], Files.countLines(filename, 1));
           }
         }
-        if (Files.exists(dir + hitsDirectory + filename)) {
-          results = HitWindows.determine(dir + hitsDirectory + filename, indexThreshold, 500000,
-                                         indexThreshold * 100,
-                                         ArrayUtils.toStringArray(additionalCols), log);
-          if (results == null) {
-            log.reportError("HitWindows result from " + filename + " was null");
-          } else {
-            results[0] = ArrayUtils.addStrToArray("Trait", results[0], 0);
-            for (int j = 1; j < results.length; j++) {
-              results[j] = ArrayUtils.addStrToArray(phenotype[0], results[j], 0);
-            }
-
-            // this won't be called if there is no SingleSNP method
-            if (groups[g].equals("SingleVariant") && methods[0][0].equals("SingleSNP")) {
-              forestInputs = new String[results.length - 1][3];
-              for (int j = 0; j < forestInputs.length; j++) {
-                forestInputs[j][0] = results[j + 1][2];
-                forestInputs[j][1] = results[j + 1][0] + "/" + methods[0][0] + "/"
-                                     + results[j + 1][0] + "_" + methods[0][0] + ".csv";
-                forestInputs[j][2] = "PanEthnic " + methods[0][0] + " for " + results[j + 1][0]
-                                     + " (p=" + ext.prettyP(results[j + 1][5]) + ")";
-              }
-              Files.writeMatrix(forestInputs, ext.rootOf(dir + hitsDirectory + filename, false)
-                                              + "_forestPlot.input",
-                                "\t");
-              inputsToCat.add(ext.rootOf(dir + hitsDirectory + filename, false)
-                              + "_forestPlot.input");
-              batchesToCat.addElement("# " + Files.getRunString()
-                                      + " cnv.plots.ForestPlot markerList=" + hitsDirectory
-                                      + ext.rootOf(filename, false) + "_forestPlot.input");
-            }
-            Files.writeMatrix(results,
-                              ext.rootOf(dir + hitsDirectory + filename, false) + "_regions.xln",
-                              "\t");
-            // String temp = phenotypes[i][0];
-            // Files.write(temp, dir+hitsDirectory+temp+".tmp");
-            // filesToCat.elementAt(g).add(dir+hitsDirectory+temp+".tmp");
-            filesToCat.elementAt(g)
-                      .add(ext.rootOf(dir + hitsDirectory + filename, false) + "_regions.xln");
+        for (int g = 0; g < groups.length; g++) {
+          if (groups[g].equals("SingleVariant") && ns[g] == -1) {
+            ns[g] = 1000000;
+          } else if (groups[g].equals("BurdenTests") && ns[g] == -1) {
+            ns[g] = 20000;
           }
-        } else {
-          log.reportError("Error - could not find expected file: " + dir + hitsDirectory
-                          + filename);
+
+          indexThreshold = (float) (0.05 / ns[g] / countHash.getCount(groups[g]));
+          // indexThreshold = (float)(0.05 / (double)ns[g]);
+          filename = phenotype[0] + "_" + groups[g]
+                     + (functionFileName.equals("None")
+                        || groups[g].equals("SingleVariant") ? "" : "_" + functionFileName)
+                     + ".csv";
+          pvalThresholdsLog.report(ext.rootOf(filename) + "\t" + ns[g] + "\t"
+                                   + countHash.getCount(groups[g]) + "\t" + indexThreshold);
+          additionalCols = new Vector<>();
+          if (groups[g].equals("SingleVariant")) {
+            additionalCols.add("SKATgene");
+            additionalCols.add("PanEthnic_beta_SingleSNP");
+            // additionalCols.add("CHARGE_ALL_AF");
+            // additionalCols.add("single_func_region");
+            additionalCols.add("Function");
+          }
+          if (groups[g].equals("BurdenTests")) {
+            additionalCols.add("PanEthnic_nsnpsTotal_T5Count");
+          }
+          for (String[] method : methods) {
+            if (method[1].equals(groups[g])) {
+              additionalCols.add("PanEthnic_p_" + method[0]);
+              if (groups[g].equals("SingleVariant")) {
+                additionalCols.add("PanEthnic_maf_" + method[0]);
+                additionalCols.add("PanEthnic_ntotal_" + method[0]);
+                // additionalCols.add("$PanEthnic_maf_"+methods[j][0]+"*PanEthnic_ntotal_"+methods[j][0]+"=MAC_PanEthnic");
+              }
+              for (int k = 0; k < races.length; k++) {
+                additionalCols.insertElementAt(races[k] + "_p_" + method[0],
+                                               k + 1 + additionalCols.indexOf("PanEthnic_p_"
+                                                                              + method[0]));
+                if (groups[g].equals("SingleVariant")) {
+                  additionalCols.insertElementAt(races[k] + "_maf_" + method[0],
+                                                 k + 1 + additionalCols.indexOf("PanEthnic_maf_"
+                                                                                + method[0]));
+                  additionalCols.add(races[k] + "_ntotal_" + method[0]);
+                }
+              }
+            }
+          }
+          if (Files.exists(dir + hitsDirectory + filename)) {
+            results = HitWindows.determine(dir + hitsDirectory + filename, indexThreshold, 500000,
+                                           indexThreshold * 100,
+                                           ArrayUtils.toStringArray(additionalCols), log);
+            if (results == null) {
+              log.reportError("HitWindows result from " + filename + " was null");
+            } else {
+              results[0] = ArrayUtils.addStrToArray("Trait", results[0], 0);
+              for (int j = 1; j < results.length; j++) {
+                results[j] = ArrayUtils.addStrToArray(phenotype[0], results[j], 0);
+              }
+
+              // this won't be called if there is no SingleSNP method
+              if (groups[g].equals("SingleVariant") && methods[0][0].equals("SingleSNP")) {
+                forestInputs = new String[results.length - 1][3];
+                for (int j = 0; j < forestInputs.length; j++) {
+                  forestInputs[j][0] = results[j + 1][2];
+                  forestInputs[j][1] = results[j + 1][0] + "/" + methods[0][0] + "/"
+                                       + results[j + 1][0] + "_" + methods[0][0] + ".csv";
+                  forestInputs[j][2] = "PanEthnic " + methods[0][0] + " for " + results[j + 1][0]
+                                       + " (p=" + ext.prettyP(results[j + 1][5]) + ")";
+                }
+                Files.writeMatrix(forestInputs, ext.rootOf(dir + hitsDirectory + filename, false)
+                                                + "_forestPlot.input",
+                                  "\t");
+                inputsToCat.add(ext.rootOf(dir + hitsDirectory + filename, false)
+                                + "_forestPlot.input");
+                batchesToCat.addElement("# " + Files.getRunString()
+                                        + " cnv.plots.ForestPlot markerList=" + hitsDirectory
+                                        + ext.rootOf(filename, false) + "_forestPlot.input");
+              }
+              Files.writeMatrix(results,
+                                ext.rootOf(dir + hitsDirectory + filename, false) + "_regions.xln",
+                                "\t");
+              // String temp = phenotypes[i][0];
+              // Files.write(temp, dir+hitsDirectory+temp+".tmp");
+              // filesToCat.elementAt(g).add(dir+hitsDirectory+temp+".tmp");
+              filesToCat.elementAt(g)
+                        .add(ext.rootOf(dir + hitsDirectory + filename, false) + "_regions.xln");
+            }
+          } else {
+            log.reportError("Error - could not find expected file: " + dir + hitsDirectory
+                            + filename);
+          }
         }
       }
-    }
 
-    for (int g = 0; g < groups.length; g++) {
-      Files.cat(ArrayUtils.toStringArray(filesToCat.elementAt(g)),
-                dir + hitsDirectory + groups[g] + "_regions.xln", Files.CAT_KEEP_FIRST_HEADER, log);
+      for (int g = 0; g < groups.length; g++) {
+        Files.cat(ArrayUtils.toStringArray(filesToCat.elementAt(g)),
+                  dir + hitsDirectory + groups[g] + (functionFileName.equals("None") ? ""
+                                                                                     : "_"
+                                                                                       + functionFileName)
+                                                                     + "_regions.xln",
+                  new int[0], log);
+      }
     }
     if (inputsToCat.size() > 0) {
       Files.cat(ArrayUtils.toStringArray(inputsToCat), dir + hitsDirectory + "allForestPlots.input",
@@ -2797,37 +2923,60 @@ public class SeqMeta {
     markersOfInterest = HashVec.loadFileToHashSet(betasFor, false);
 
     try {
-      writer = Files.openAppropriateWriter(ext.rootOf(betasFor) + "_summary.xln");
-      writer.println("Pheno\tRace\tStudy\t"
-                     + ArrayUtils.toStr(HEADER_TYPES[ext.indexOfStr(methods[0][2], ALGORITHMS)]));
+      String[] headers = HEADER_TYPES[ext.indexOfStr(methods[0][2], ALGORITHMS)];
+      String header = "gene \t Name \t";
       for (int i = 0; i < phenotypes.length; i++) {
+        Hashtable<String, String> lines = new Hashtable<>();
+        writer = Files.openAppropriateWriter(ext.rootOf(betasFor) + "_" + phenotypes[i][0]
+                                             + "_summary.xln");
+        header = "gene \t Name \t";
+
         for (int k = 0; k <= races.length; k++) {
           localDir = dir + phenotypes[i][0] + "/" + (k == races.length ? "" : races[k][0] + "/")
                      + methods[0][0] + "/";
+
           for (int j = metasOnly ? studies.length : 0; j <= studies.length; j++) {
+
             if (j == studies.length
                 || (k < races.length && !finalSets[i][j][k].equals("<missing>"))) {
               filename = (j == studies.length ? "" : studies[j] + "_")
                          + (k == races.length ? "" : races[k][0] + "_") + phenotypes[i][0] + "_"
                          + methods[0][0] + ".csv";
+
+              for (int h = 2; h < headers.length; h++) { // skip gene and Name
+                header += (k == races.length ? "PanEthnic" : races[k][0]) + "_" + methods[0][0]
+                          + "_" + (j == studies.length ? "" : studies[j] + "_") + headers[h] + "\t";
+              }
+
               log.report(ext.getTime() + "\tReading " + filename);
 
               try {
                 reader = new BufferedReader(new FileReader(localDir + filename));
+                temp = reader.readLine();
+                int[] cols = ext.indexFactors(headers,
+                                              ext.splitCommasIntelligently(temp, true, log), false,
+                                              log, false);
+
                 while (reader.ready()) {
                   temp = reader.readLine();
                   line = ext.splitCommasIntelligently(temp, true, log);
-                  if (markersOfInterest.contains(line[1])) {
-                    writer.println(phenotypes[i][0] + "\t"
-                                   + (k == races.length ? "PanEthnic" : races[k][0]) + "\t"
-                                   + (j == studies.length ? "Meta" : studies[j]) + "\t"
-                                   + ArrayUtils.toStr(line));
+                  String marker = line[1];
+                  if (markersOfInterest.contains(marker)) {
+                    line = ArrayUtils.subArray(line, cols); // ignore cols we don't care about
+                    if (lines.containsKey(marker)) {
+                      line = ArrayUtils.subArray(line, 2); // ignore gene and name
+                      lines.put(marker, lines.get(marker) + "\t" + ArrayUtils.toStr(line));
+                    } else {
+                      lines.put(marker, ArrayUtils.toStr(line));
+                    }
                   }
                 }
+
                 reader.close();
               } catch (FileNotFoundException fnfe) {
                 System.err.println("Error - could not find '" + localDir + filename
                                    + "'; aborting");
+
                 writer.close();
                 return;
               } catch (IOException ioe) {
@@ -2840,7 +2989,6 @@ public class SeqMeta {
           log.report("", true, false);
         }
       }
-      writer.close();
     } catch (Exception e) {
       System.err.println("Error writing to " + ext.rootOf(betasFor) + "_summary.xln");
       e.printStackTrace();
@@ -3352,7 +3500,6 @@ public class SeqMeta {
       } else {
         mafs = null;
         for (int k = 0; k < races.length; k++) {
-          new Vector<String>();
           for (int j = 0; j < studies.length; j++) {
             if (!finalSets[i][j][k].equals("<missing>")) {
               root = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_" + method;
@@ -3646,7 +3793,6 @@ public class SeqMeta {
                                       boolean plinkFormat) {
     BufferedReader reader;
     String[] line;
-    new Vector<String>();
     String[][] replacements;
 
     PrintWriter writer;
