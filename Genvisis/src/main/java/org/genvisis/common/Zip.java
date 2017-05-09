@@ -277,6 +277,19 @@ public class Zip {
                                                  Logger log) {
     String[] files;
 
+    dirin = ext.verifyDirFormat(dirin);
+    files = Files.list(dirin, null);
+
+    if (files.length == 0) {
+      log.reportError("Could not find any files in: " + dirin);
+      return;
+    }
+
+    gzipMany(files, dirin, dirout, numThreads, log);
+  }
+
+  public static void gzipMany(String[] files, String dirin, String dirout, int numThreads,
+                              Logger log) {
     if (dirin == null) {
       log.reportError("Error - dir cannot be null");
       return;
@@ -287,23 +300,21 @@ public class Zip {
       return;
     }
 
-    dirin = ext.verifyDirFormat(dirin);
     if (dirout == null) {
       dirout = dirin + "compressed/";
     }
 
-    new File(dirout).mkdirs();
-    files = Files.list(dirin, null);
+    dirin = ext.verifyDirFormat(dirin);
+
     if (numThreads > 1) {
       GzipProducer producer = new GzipProducer(Files.toFullPaths(files, dirin), dirout, log);
-      try (WorkerTrain<Boolean> train = new WorkerTrain<>(producer, numThreads, numThreads, log)) {
-        int index = 0;
-        while (train.hasNext()) {
-          if (!train.next()) {
-            log.reportError("Could not compress file " + files[index]);
-          }
-          index++;
+      WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numThreads, numThreads, log);
+      int index = 0;
+      while (train.hasNext()) {
+        if (!train.next()) {
+          log.reportError("Could not compress file " + files[index]);
         }
+        index++;
       }
     } else {
       for (int i = 0; i < files.length; i++) {
@@ -311,6 +322,7 @@ public class Zip {
         gzip(dirin + files[i], dirout + files[i] + ".gz", true);
       }
     }
+
   }
 
   public static void unzipParticularFile(String target, String zipfile, String destination) {

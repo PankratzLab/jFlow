@@ -3,7 +3,6 @@ package org.genvisis.gwas;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -1000,6 +999,39 @@ public class SeqMeta {
         }
       }
     }
+
+    log.report("Starting compression of meta-analysis files.");
+
+    String zipDir = dir;
+    String[] csvs;
+    for (int i = 0; i < phenotypes.length; i++) {
+      for (int k = 0; k < races.length; k++) {
+        for (int m = 0; m < methods.length; m++) {
+          zipDir = dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/";
+          zipDir = ext.verifyDirFormat(zipDir);
+          csvs = Files.list(zipDir, null, ".csv", false, false);
+          Zip.gzipMany(csvs, zipDir, zipDir, 10, log);
+
+          for (String f : csvs) {
+            if (!new File(zipDir + f).delete()) {
+              log.reportError("Error deleting " + zipDir + "/" + f);
+            }
+          }
+        }
+      }
+
+      for (int m = 0; m < methods.length; m++) {
+        zipDir = dir + phenotypes[i][0] + "/" + methods[m][0] + "/";
+        zipDir = ext.verifyDirFormat(zipDir);
+        csvs = Files.list(zipDir, null, ".csv", false, false);
+        Zip.gzipMany(csvs, zipDir, zipDir, 10, log);
+        for (String f : csvs) {
+          if (!new File(zipDir + f).delete()) {
+            log.reportError("Error deleting " + zipDir + f);
+          }
+        }
+      }
+    }
   }
 
   public static void parseMetrics(String dir, MetaAnalysisParams maps) {
@@ -1057,7 +1089,7 @@ public class SeqMeta {
             } else {
               root = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_" + method;
               outputFilename = dir + phenotypes[i][0] + "/" + races[k][0] + "/" + method + "/"
-                               + root + ".csv";
+                               + root + ".csv.gz";
               if (Files.exists(outputFilename)) {
                 log.report("Processing " + outputFilename);
                 line = procFile(outputFilename, log);
@@ -1077,7 +1109,7 @@ public class SeqMeta {
         for (int k = 0; k <= races.length; k++) {
           root = (k == races.length ? "" : races[k][0] + "_") + phenotype[0] + "_" + method;
           outputFilename = dir + phenotype[0] + "/" + (k == races.length ? "" : races[k][0] + "/")
-                           + method + "/" + root + ".csv";
+                           + method + "/" + root + ".csv.gz";
           if (Files.exists(outputFilename)) {
             log.report("Processing " + outputFilename);
             line = procFile(outputFilename, log);
@@ -1196,7 +1228,8 @@ public class SeqMeta {
     dvs = Vectors.initializedArray(DoubleVector.class, 6);
 
     try {
-      reader = new BufferedReader(new FileReader(outputFilename));
+      reader = Files.getAppropriateReader(outputFilename);
+
       temp = ext.replaceAllWith(reader.readLine(), "\"", "");
       delimiter = ext.determineDelimiter(temp);
       if (delimiter.equals(",")) {
@@ -1437,14 +1470,13 @@ public class SeqMeta {
                  + ext.getTimeElapsed(time));
     } else {
       for (String functionFlagName : functionNames) {
-        boolean useFunc = functionFlagName.equals("None");
         snpGeneHash = new Hashtable<>();
         snpGeneFunctionalHash = new Hashtable<>();
         geneLoci = new Hashtable<>();
 
         try {
           log.report(ext.getTime() + "\tReading in " + filename);
-          reader = new BufferedReader(new FileReader(filename));
+          reader = Files.getAppropriateReader(filename);
           header = ext.splitCommasIntelligently(reader.readLine(), true, log);
 
           needs = functionFlagName.equals("None") ? new String[][] {Aliases.MARKER_NAMES,
@@ -1523,7 +1555,7 @@ public class SeqMeta {
           snpGeneFunctionalHashPan = filterSnpGeneFunctionalHash(dir + phenotypes[i][0] + "/"
                                                                  + methods[0][0] + "/"
                                                                  + phenotypes[i][0] + "_"
-                                                                 + methods[0][0] + ".csv",
+                                                                 + methods[0][0] + ".csv.gz",
                                                                  snpGeneFunctionalHash,
                                                                  mafThresholdDouble, log);
           log.report(ext.getTime() + "\tThere are " + ext.addCommas(snpGeneFunctionalHashPan.size())
@@ -1539,7 +1571,7 @@ public class SeqMeta {
                                                                             + "/" + races[k][0]
                                                                             + "_" + phenotypes[i][0]
                                                                             + "_" + methods[0][0]
-                                                                            + ".csv",
+                                                                            + ".csv.gz",
                                                                             snpGeneFunctionalHash,
                                                                             mafThresholdDouble,
                                                                             log);
@@ -1551,11 +1583,11 @@ public class SeqMeta {
             for (int j = 0; j < studies.length; j++) {
               if (!finalSets[i][j][k].equals("<missing>")) {
                 String f = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_"
-                           + methods[0][0] + ".csv";
+                           + methods[0][0] + ".csv.gz";
                 log.report(ext.getTime() + "\tReading " + f);
 
                 try {
-                  reader = new BufferedReader(new FileReader(localDir + f));
+                  reader = Files.getAppropriateReader(localDir + f);
                   header = ext.splitCommasIntelligently(reader.readLine(), true, log);
                   // ext.checkHeader(header, HEADER_TYPES[Integer.parseInt(MODELS[0][4])],
                   // Array.intArray(expected.length), false, log, true);
@@ -1852,7 +1884,7 @@ public class SeqMeta {
             for (int j = 0; j < studies.length; j++) {
               if (!finalSets[i][j][k].equals("<missing>")) {
                 filename = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_"
-                           + methods[m][0] + (useFunc ? "" : "_" + functionFileName) + ".csv";
+                           + methods[m][0] + (useFunc ? "" : "_" + functionFileName) + ".csv.gz";
                 pvalFile = studies[j] + "_" + races[k][0] + "_pvals_mac" + macThresholdTotal
                            + (useFunc ? "" : "_" + functionFileName) + ".dat";
 
@@ -1890,7 +1922,7 @@ public class SeqMeta {
             log.report("", true, false);
 
             filename = races[k][0] + "_" + phenotypes[i][0] + "_" + methods[m][0]
-                       + (useFunc ? "" : "_" + functionFileName) + ".csv";
+                       + (useFunc ? "" : "_" + functionFileName) + ".csv.gz";
             pvalFile = "meta_" + races[k][0] + "_pvals_mac" + macThresholdTotal
                        + (useFunc ? "" : "_" + functionFileName) + ".dat";
 
@@ -1926,7 +1958,7 @@ public class SeqMeta {
           }
 
           filename = phenotypes[i][0] + "_" + methods[m][0]
-                     + (useFunc ? "" : "_" + functionFileName) + ".csv";
+                     + (useFunc ? "" : "_" + functionFileName) + ".csv.gz";
           pvalFile = "meta_panEthnic_pvals_mac" + macThresholdTotal
                      + (useFunc ? "" : "_" + functionFileName) + ".dat";
 
@@ -2108,9 +2140,8 @@ public class SeqMeta {
     }
     // generate a file with p-values for Q-Q plots and for lambdas
     if (index >= 0) {
-
       try {
-        reader = new BufferedReader(new FileReader(filename));
+        reader = Files.getAppropriateReader(filename);
         reader.readLine();
         writer = Files.openAppropriateWriter(pvalFile);
         count = 0;
@@ -2834,7 +2865,7 @@ public class SeqMeta {
     String temp;
 
     try {
-      reader = new BufferedReader(new FileReader(filein));
+      reader = Files.getAppropriateReader(filein);
       writer = Files.openAppropriateWriter(fileout);
       writer.println(reader.readLine());
       while (reader.ready()) {
@@ -2951,7 +2982,7 @@ public class SeqMeta {
               log.report(ext.getTime() + "\tReading " + filename);
 
               try {
-                reader = new BufferedReader(new FileReader(localDir + filename));
+                reader = Files.getAppropriateReader(localDir + filename);
                 temp = reader.readLine();
                 int[] cols = ext.indexFactors(headers,
                                               ext.splitCommasIntelligently(temp, true, log), false,
