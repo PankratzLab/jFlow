@@ -1310,7 +1310,7 @@ public class GeneScorePipeline {
 					String line = scoreReader.readLine();
 					while ((line = scoreReader.readLine()) != null) {
 						String[] parts = line.split(PSF.Regex.GREEDY_WHITESPACE);
-						String score = parts[2];
+						String score = parts[5];
 						scoreData.put(parts[0] + "\t" + parts[1], Double.parseDouble(score));
 					}
 					scoreReader.close();
@@ -1338,15 +1338,30 @@ public class GeneScorePipeline {
 						ArrayList<double[]> indepData = new ArrayList<double[]>();
 						for (java.util.Map.Entry<String, PhenoIndiv> indiv : pd.indivs.entrySet()) {
 							if (scoreData.containsKey(indiv.getKey())) {
-								depData.add(pd.indivs.get(indiv.getKey()).depvar);
+								PhenoIndiv pdi = pd.indivs.get(indiv.getKey());
+								depData.add(pdi.depvar);
 								double[] baseData = new double[pd.covars.size()];
 								double[] covarData = new double[pd.covars.size() + 1];
 								covarData[0] = scoreData.get(indiv.getKey());
 								for (int k = 1; k < pd.covars.size() + 1; k++) {
-									baseData[k - 1] = pd.indivs.get(indiv.getKey()).covars.get(pd.covars.get(k - 1));
-									covarData[k] = pd.indivs.get(indiv.getKey()).covars.get(pd.covars.get(k - 1));
+									Double d;
+									d = pdi.covars.get(pd.covars.get(k - 1));
+									if (d == null) {
+										log.reportError("Covar value missing for individual: " + indiv.getKey() + " | "
+																		+ pd.covars.get(k - 1));
+									} else {
+										baseData[k - 1] = d.doubleValue();
+									}
+									d = pdi.covars.get(pd.covars.get(k - 1));
+									if (d == null) {
+										log.reportError("Covar value missing for individual: " + indiv.getKey() + " | "
+																		+ pd.covars.get(k - 1));
+									} else {
+										covarData[k] = pdi.covars.get(pd.covars.get(k - 1));
+									}
 								}
 								baselineIndeps.add(baseData);
+								System.out.println(ArrayUtils.toStr(covarData, ","));
 								indepData.add(covarData);
 							}
 						}
