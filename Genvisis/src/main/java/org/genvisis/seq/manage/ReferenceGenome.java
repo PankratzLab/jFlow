@@ -16,6 +16,7 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
+import org.genvisis.seq.manage.SeqOps.GC_COMP_METHOD;
 
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
@@ -306,7 +307,7 @@ public class ReferenceGenome {
 	public double getGCContentFor(Segment seg, boolean memoryMode) {
 		String[] seq = getSequenceFor(seg, memoryMode);
 		if (seq != null) {
-			return getProportionGC(seq);
+			return SeqOps.getProportionGC(seq, GC_COMP_METHOD.GCTA_ONLY);
 
 		} else {
 			return Double.NaN;
@@ -314,33 +315,10 @@ public class ReferenceGenome {
 	}
 
 	public static double getPercentGC(String[] seq) {
-		return getProportionGC(seq) * 100;
+		return SeqOps.getProportionGC(seq, GC_COMP_METHOD.GCTA_ONLY) * 100;
 	}
 
-	public static double getProportionGC(String[] seq) {
-		int gs = 0;
-		int cs = 0;
-		int as = 0;
-		int ts = 0;
-		for (int i = 0; i < seq.length; i++) {
-			if (seq[i].equalsIgnoreCase("G")) {
-				gs++;
-			} else if (seq[i].equalsIgnoreCase("C")) {
-				cs++;
-			} else if (seq[i].equalsIgnoreCase("A")) {
-				as++;
-			} else if (seq[i].equalsIgnoreCase("T")) {
-				ts++;
-			} else if (!seq[i].equalsIgnoreCase("N") && !seq[i].trim().equalsIgnoreCase("")) {
-				throw new IllegalArgumentException("Invalid base " + seq[i]);
-			}
-		}
 
-		int gsCs = gs + cs;
-		int asTs = as + ts;
-		int total = asTs + gsCs;
-		return (double) gsCs / total;
-	}
 
 	public double getGCContentFor(VariantContext vc) {
 		// defaultBuffer=0;

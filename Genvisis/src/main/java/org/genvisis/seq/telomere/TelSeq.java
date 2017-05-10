@@ -84,25 +84,35 @@ public class TelSeq {
 			return new TelSeqResult(out, ran, sampleName, type, readSize);
 		}
 
-		private static Ran telSeqIt(String inputBam, String output, int readSize,
-																List<String> additionalArgs, Logger log) {
-			String[] outputs = new String[] {output};
-			String[] input = new String[] {inputBam};
-			ArrayList<String> command = new ArrayList<String>();
-			command.add("telseq");
-			command.add("-o");
-			command.add(output);
-			command.add("-r");
-			command.add(Integer.toString(readSize));
 
-			command.addAll(additionalArgs);
+	}
 
-			command.add(inputBam);
+	/**
+	 * @param inputBam
+	 * @param output output file name
+	 * @param readSize read size, can estimate w/ {@link BamOps#estimateReadSize}
+	 * @param additionalArgs any additional args to be passed to TelSeq
+	 * @param log
+	 * @return {@link Ran}
+	 */
+	public static Ran telSeqIt(String inputBam, String output, int readSize,
+														 List<String> additionalArgs, Logger log) {
+		String[] outputs = new String[] {output};
+		String[] input = new String[] {inputBam};
+		ArrayList<String> command = new ArrayList<String>();
+		command.add("telseq");
+		command.add("-o");
+		command.add(output);
+		command.add("-r");
+		command.add(Integer.toString(readSize));
 
-			boolean valid = CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", input,
-																											 outputs, true, false, false, log);
-			return new Ran(valid, command);
-		}
+		command.addAll(additionalArgs);
+
+		command.add(inputBam);
+
+		boolean valid = CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", input,
+																										 outputs, true, false, false, log);
+		return new Ran(valid, command);
 	}
 
 	private static class TelSeqProducer extends AbstractProducer<TelSeqResult> {

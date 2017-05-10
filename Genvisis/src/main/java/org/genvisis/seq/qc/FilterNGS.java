@@ -1386,7 +1386,7 @@ public class FilterNGS implements Serializable {
 	}
 
 	/**
-	 * @return pretty standard filteres for samrecords
+	 * @return pretty standard filters for samrecords
 	 */
 	public ArrayList<SamRecordFilter> getStandardSAMRecordFilters(SAM_FILTER_TYPE type, Logger log) {
 		ArrayList<SamRecordFilter> filters = new ArrayList<SamRecordFilter>();
