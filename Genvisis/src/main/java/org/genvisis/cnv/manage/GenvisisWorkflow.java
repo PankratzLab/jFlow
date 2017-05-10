@@ -33,6 +33,7 @@ import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
+import org.genvisis.cnv.hmm.CNVCaller.CALLING_SCOPE;
 import org.genvisis.cnv.hmm.CNVCaller.PFB_MANAGEMENT_TYPE;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.prop.Property;
@@ -2231,6 +2232,8 @@ public class GenvisisWorkflow {
 			final Requirement gcModelStepReq = new StepRequirement(gcModelStep);
 			final Requirement gcModelFileReq = new FileRequirement("GCMODEL File Must Exist",
 																														 proj.GC_MODEL_FILENAME.getValue());
+			final Requirement callingTypeReq = new EnumRequirement("CNV Calling Scope", CNVCaller.CALLING_SCOPE.AUTOSOMAL);
+			final Requirement useCentroidsReq = new OptionalBoolRequirement("If calling chromosomal CNVs, use sex-specific centroids to recalculate LRR/BAF values?", true);
 			final Requirement outputFileReq = new OutputFileRequirement("Output filename.",
 																																	"cnvs/genvisis.cnv") {
 				@Override
@@ -2244,6 +2247,8 @@ public class GenvisisWorkflow {
 			return register(new Step("Call CNVs", "",
 															 new Requirement[][] {{hmmFile}, {pfbStepReq, pfbFileReq},
 																										{gcModelStepReq, gcModelFileReq},
+																										{callingTypeReq},
+																										{useCentroidsReq},
 																										{getNumThreadsReq()},
 																										{outputFileReq}},
 															 EnumSet.of(Flag.MEMORY),
@@ -2277,11 +2282,56 @@ public class GenvisisWorkflow {
 					maybeSetProjNumThreads(numThreads);
 					String output = variables.get(this).get(outputFileReq); // gets PROJ_DIR prepended, so NOT
 																																	// ABSOLUTE
+					
+					CALLING_SCOPE scope = CALLING_SCOPE.valueOf(variables.get(this).get(callingTypeReq));
+					
 					(new File(ext.parseDirectoryOfFile(proj.PROJECT_DIRECTORY.getValue() + output))).mkdirs();
-					CNVCaller.callAutosomalCNVs(proj, output, proj.getSamples(), null, null,
-																			CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF,
-																			PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
-					proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output);
+
+					String[] samples = proj.getSamples();
+					boolean useCentroids = Boolean.valueOf(variables.get(this).get(useCentroidsReq));
+					Centroids[] cents = new Centroids[] {null, null};
+					if (useCentroids) {
+						if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())
+								&& Files.exists(proj.SEX_CENTROIDS_MALE_FILENAME.getValue())) {
+							cents[0] = Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue(),
+																												 proj.JAR_STATUS.getValue());
+							cents[1] = Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue(),
+																												 proj.JAR_STATUS.getValue());
+						}
+					}
+					
+					if (scope != CALLING_SCOPE.CHROMOSOMAL) {
+  					CNVCaller.callAutosomalCNVs(proj, output, samples, null, null,
+  					                            CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF,
+  					                            PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
+  					proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output);
+					} 
+					if (scope != CALLING_SCOPE.AUTOSOMAL) {
+
+						boolean[] inclSampAll = proj.getSamplesToInclude(null);
+						int[] sexes = proj.getSampleData(false).getSexForAllIndividuals();
+						ArrayList<String> males = new ArrayList<String>();
+						ArrayList<String> females = new ArrayList<String>();
+
+						for (int i = 0; i < inclSampAll.length; i++) {
+							if (sexes[i] == -1) {
+								// ignore
+							} else if (sexes[i] == 1) {
+								males.add(samples[i]);
+							} else if (sexes[i] == 2) {
+								females.add(samples[i]);
+							} else {
+								// Leave these for now, but when computing LRRs and BAFs, will need to be crafty....
+							}
+						}
+
+						CNVCaller.callGenomeCnvs(proj, output, males.toArray(new String[males.size()]), females.toArray(new String[females.size()]), cents, CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF, PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
+
+						proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output + "_23M.cnv");
+						proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output + "_23F.cnv");
+						proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output + "_24M.cnv");
+					}
+					
 					proj.saveProperties(new Property[] {proj.CNV_FILENAMES});
 				}
 
@@ -2316,9 +2366,27 @@ public class GenvisisWorkflow {
 							 .append(kvCmd)
 							 .append("\n");
 					}
-					return cmd.append(Files.getRunString()).append(" cnv.hmm.CNVCaller proj=" + projPropFile)
+					
+					boolean useCentroids = Boolean.valueOf(variables.get(this).get(useCentroidsReq));
+					CALLING_SCOPE scope = CALLING_SCOPE.valueOf(variables.get(this).get(callingTypeReq));
+					
+					String autoCmd = cmd.append(Files.getRunString()).append(" cnv.hmm.CNVCaller proj=" + projPropFile)
 										.append(" out=" + variables.get(this).get(outputFileReq)).append(" ")
 										.append(PSF.Ext.NUM_THREADS_COMMAND).append(numThreads).toString();
+					String genomeCmd = autoCmd + " -genome";
+					if (!useCentroids) {
+						genomeCmd += " -noCentroids";
+					}
+					
+					switch (scope) {
+						case AUTOSOMAL:
+							return autoCmd;
+						case CHROMOSOMAL:
+							return genomeCmd;
+						case BOTH:
+							return autoCmd + "\n" + genomeCmd; 
+					}
+					return autoCmd;
 				}
 
 				@Override

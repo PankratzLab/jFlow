@@ -82,6 +82,12 @@ public class CNVCaller {
 		LESS_THAN_0_GO_CN;
 	}
 
+	public enum CALLING_SCOPE {
+		AUTOSOMAL,
+		CHROMOSOMAL,
+		BOTH;
+	}
+
 	/**
 	 * @param proj
 	 * @param dna the samples dna ID
@@ -837,52 +843,60 @@ public class CNVCaller {
 	}
 
 	/**
-	 * Possible autosomal, and sex chrs cnv calling method
+	 * 
+	 * @param proj Project
+	 * @param outputFileBase Relative to project directory; subdirectory and base filename (NOT
+	 *        including extension).
+	 * @param maleSamples List of male sample ids
+	 * @param femaleSamples List of female sample ids
+	 * @param centroids
+	 * @param minNumMarkers
+	 * @param minConf
+	 * @param pManagementType
+	 * @param numSampleThreads
+	 * @param numChrThreads
+	 * 
+	 * 
 	 */
-	public static void callGenomeCnvs(Project proj, String outputFile, String[] maleSamples,
+	public static void callGenomeCnvs(Project proj, String outputFileBase, String[] maleSamples,
 																		String[] femaleSamples, Centroids[] centroids,
 																		int minNumMarkers, double minConf,
 																		PFB_MANAGEMENT_TYPE pManagementType, int numSampleThreads,
 																		int numChrThreads) {
 		PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
-		String output = proj.PROJECT_DIRECTORY.getValue() + outputFile;
-		proj.getLog().reportTimeInfo("CNVS will be reported to " + output);
-		new File(ext.parseDirectoryOfFile(output)).mkdirs();
-		CNVCallerIterator callerIterator = getCallerIterator(proj, markerSet,
-																												 ArrayUtils.concatAll(maleSamples,
-																																							femaleSamples),
-																												 null, null, centroids[0], minNumMarkers,
-																												 minConf, pManagementType,
-																												 numSampleThreads,
-																												 numChrThreads);
-		writeOutput(callerIterator, output, proj.getLog());
+		String output;
+		CNVCallerIterator callerIterator;
 		// will passing null to chrsToCall result in calling on 23/24 also?
 		boolean[] chr23 = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
 		int[][] indicesByChr = markerSet.getIndicesByChr();
 		for (int i = 0; i < indicesByChr[23].length; i++) {
 			chr23[indicesByChr[23][i]] = true;
 		}
-
 		boolean[] chr24 = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
 		for (int i = 0; i < indicesByChr[24].length; i++) {
 			chr24[indicesByChr[24][i]] = true;
 		}
+
+
+		output = proj.PROJECT_DIRECTORY.getValue() + outputFileBase + "_23M.cnv";
+		new File(ext.parseDirectoryOfFile(output)).mkdirs();
 		callerIterator = getCallerIterator(proj, markerSet, maleSamples, new int[] {23}, chr23,
-																			 centroids[1], minNumMarkers, minConf, pManagementType,
+																			 centroids[0], minNumMarkers, minConf, pManagementType,
 																			 numSampleThreads, numChrThreads);
-		output = proj.PROJECT_DIRECTORY.getValue() + "23_M_" + outputFile;
 		writeOutput(callerIterator, output, proj.getLog());
 
+
+		output = proj.PROJECT_DIRECTORY.getValue() + outputFileBase + "_23F.cnv";
 		callerIterator = getCallerIterator(proj, markerSet, femaleSamples, new int[] {23}, chr23,
-																			 centroids[2], minNumMarkers, minConf, pManagementType,
-																			 numSampleThreads, numChrThreads);
-		output = proj.PROJECT_DIRECTORY.getValue() + "23_F_" + outputFile;
-		writeOutput(callerIterator, output, proj.getLog());
-
-		callerIterator = getCallerIterator(proj, markerSet, maleSamples, new int[] {24}, chr24,
 																			 centroids[1], minNumMarkers, minConf, pManagementType,
 																			 numSampleThreads, numChrThreads);
-		output = proj.PROJECT_DIRECTORY.getValue() + "24_M_" + outputFile;
+		writeOutput(callerIterator, output, proj.getLog());
+
+
+		output = proj.PROJECT_DIRECTORY.getValue() + outputFileBase + "_24M.cnv";
+		callerIterator = getCallerIterator(proj, markerSet, maleSamples, new int[] {24}, chr24,
+																			 centroids[0], minNumMarkers, minConf, pManagementType,
+																			 numSampleThreads, numChrThreads);
 		writeOutput(callerIterator, output, proj.getLog());
 
 	}
@@ -1063,15 +1077,11 @@ public class CNVCaller {
 					}
 				}
 
-				Centroids[] sexCents = new Centroids[] {null, null, null};
+				Centroids[] sexCents = new Centroids[] {null, null};
 				if (useCentroids) {
 					if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())
 							&& Files.exists(proj.SEX_CENTROIDS_MALE_FILENAME.getValue())) {
 						sexCents = new Centroids[] {
-																				Files.exists(proj.CUSTOM_CENTROIDS_FILENAME.getValue())
-																																															 ? Centroids.load(proj.CUSTOM_CENTROIDS_FILENAME.getValue(),
-																																																								proj.JAR_STATUS.getValue())
-																																															 : null,
 																				Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue(),
 																											 proj.JAR_STATUS.getValue()),
 																				Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue(),
