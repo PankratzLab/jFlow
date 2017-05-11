@@ -807,6 +807,7 @@ public class GenvisisWorkflow {
 					String manifestFile = variables.get(this).get(manifestFileReq);
 					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
 					ImmutableMap.Builder<String, String> argsBuilder = ImmutableMap.builder();
+					argsBuilder.put(CLI.ARG_PROJ, proj.getPropertyFilename());
 					argsBuilder.put(IlluminaMarkerBlast.ARG_MANIFEST, manifestFile);
 					argsBuilder.put(CLI.ARG_THREADS, String.valueOf(numThreads));
 					return Files.getRunString() + " "
@@ -856,6 +857,7 @@ public class GenvisisWorkflow {
 					String probeFile = variables.get(this).get(probeFileReq);
 					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
 					ImmutableMap.Builder<String, String> argsBuilder = ImmutableMap.builder();
+					argsBuilder.put(CLI.ARG_PROJ, proj.getPropertyFilename());
 					argsBuilder.put(AffyMarkerBlast.ARG_PROBE_FILE, probeFile);
 					argsBuilder.put(AffyMarkerBlast.ARG_ANNOT_FILE, annotFile);
 					argsBuilder.put(CLI.ARG_THREADS, String.valueOf(numThreads));
@@ -2232,8 +2234,10 @@ public class GenvisisWorkflow {
 			final Requirement gcModelStepReq = new StepRequirement(gcModelStep);
 			final Requirement gcModelFileReq = new FileRequirement("GCMODEL File Must Exist",
 																														 proj.GC_MODEL_FILENAME.getValue());
-			final Requirement callingTypeReq = new EnumRequirement("CNV Calling Scope", CNVCaller.CALLING_SCOPE.AUTOSOMAL);
-			final Requirement useCentroidsReq = new OptionalBoolRequirement("If calling chromosomal CNVs, use sex-specific centroids to recalculate LRR/BAF values?", true);
+			final Requirement callingTypeReq = new EnumRequirement("CNV Calling Scope",
+																														 CNVCaller.CALLING_SCOPE.AUTOSOMAL);
+			final Requirement useCentroidsReq = new OptionalBoolRequirement("If calling chromosomal CNVs, use sex-specific centroids to recalculate LRR/BAF values?",
+																																			true);
 			final Requirement outputFileReq = new OutputFileRequirement("Output filename.",
 																																	"cnvs/genvisis.cnv") {
 				@Override
@@ -2282,9 +2286,9 @@ public class GenvisisWorkflow {
 					maybeSetProjNumThreads(numThreads);
 					String output = variables.get(this).get(outputFileReq); // gets PROJ_DIR prepended, so NOT
 																																	// ABSOLUTE
-					
+
 					CALLING_SCOPE scope = CALLING_SCOPE.valueOf(variables.get(this).get(callingTypeReq));
-					
+
 					(new File(ext.parseDirectoryOfFile(proj.PROJECT_DIRECTORY.getValue() + output))).mkdirs();
 
 					String[] samples = proj.getSamples();
@@ -2294,18 +2298,18 @@ public class GenvisisWorkflow {
 						if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())
 								&& Files.exists(proj.SEX_CENTROIDS_MALE_FILENAME.getValue())) {
 							cents[0] = Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue(),
-																												 proj.JAR_STATUS.getValue());
+																				proj.JAR_STATUS.getValue());
 							cents[1] = Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue(),
-																												 proj.JAR_STATUS.getValue());
+																				proj.JAR_STATUS.getValue());
 						}
 					}
-					
+
 					if (scope != CALLING_SCOPE.CHROMOSOMAL) {
-  					CNVCaller.callAutosomalCNVs(proj, output, samples, null, null,
-  					                            CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF,
-  					                            PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
-  					proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output);
-					} 
+						CNVCaller.callAutosomalCNVs(proj, output, samples, null, null,
+																				CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF,
+																				PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
+						proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output);
+					}
 					if (scope != CALLING_SCOPE.AUTOSOMAL) {
 
 						boolean[] inclSampAll = proj.getSamplesToInclude(null);
@@ -2325,13 +2329,16 @@ public class GenvisisWorkflow {
 							}
 						}
 
-						CNVCaller.callGenomeCnvs(proj, output, males.toArray(new String[males.size()]), females.toArray(new String[females.size()]), cents, CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF, PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
+						CNVCaller.callGenomeCnvs(proj, output, males.toArray(new String[males.size()]),
+																		 females.toArray(new String[females.size()]), cents,
+																		 CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF,
+																		 PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
 
 						proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output + "_23M.cnv");
 						proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output + "_23F.cnv");
 						proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output + "_24M.cnv");
 					}
-					
+
 					proj.saveProperties(new Property[] {proj.CNV_FILENAMES});
 				}
 
@@ -2366,25 +2373,26 @@ public class GenvisisWorkflow {
 							 .append(kvCmd)
 							 .append("\n");
 					}
-					
+
 					boolean useCentroids = Boolean.valueOf(variables.get(this).get(useCentroidsReq));
 					CALLING_SCOPE scope = CALLING_SCOPE.valueOf(variables.get(this).get(callingTypeReq));
-					
-					String autoCmd = cmd.append(Files.getRunString()).append(" cnv.hmm.CNVCaller proj=" + projPropFile)
-										.append(" out=" + variables.get(this).get(outputFileReq)).append(" ")
-										.append(PSF.Ext.NUM_THREADS_COMMAND).append(numThreads).toString();
+
+					String autoCmd = cmd.append(Files.getRunString())
+															.append(" cnv.hmm.CNVCaller proj=" + projPropFile)
+															.append(" out=" + variables.get(this).get(outputFileReq)).append(" ")
+															.append(PSF.Ext.NUM_THREADS_COMMAND).append(numThreads).toString();
 					String genomeCmd = autoCmd + " -genome";
 					if (!useCentroids) {
 						genomeCmd += " -noCentroids";
 					}
-					
+
 					switch (scope) {
 						case AUTOSOMAL:
 							return autoCmd;
 						case CHROMOSOMAL:
 							return genomeCmd;
 						case BOTH:
-							return autoCmd + "\n" + genomeCmd; 
+							return autoCmd + "\n" + genomeCmd;
 					}
 					return autoCmd;
 				}
