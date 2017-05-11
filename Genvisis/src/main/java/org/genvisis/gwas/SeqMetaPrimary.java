@@ -120,6 +120,8 @@ public class SeqMetaPrimary {
                                                                + "colnames(Z) <- names\n")
                   + "\n" + "pheno <- read.csv(\"" + phenoFilename
                   + "\", header=T, as.is=T, row.names=1)\n" + "xphen <- na.omit(pheno)\n"
+                  + "b <- nrow(unique(pheno[1]))" + "if (b > 2) {" + "  family <- \"gaussian\""
+                  + "} else {" + "  family <= \"binomial\"" + "}"
                   + "merged <- merge(xphen, Z, by=\"row.names\")\n"
                   + "mPheno <- merged[,1:ncol(pheno)+1]\n" + "names <- colnames(pheno)\n"
                   + "coxy <- sum(names %in% c(\"time\", \"status\"))\n" + "if (length(names)>1) {\n"
@@ -147,12 +149,12 @@ public class SeqMetaPrimary {
                   + "} else {\n" + "    message(\"using "
                   + (usePrep2 ? "prepScores2" : "traditional prepScores method") + "\")\n    "
                   + cohort + "_chr" + i + " <- prepScores" + (usePrep2 ? "2" : "")
-                  + "(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno, family=\"binomial\""
+                  + "(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno, family=family"
                   + (i == 23 ? ", male=mPhenos$SEX" : "") + ")\n" + "}\n"
                   // + "results <- singlesnpMeta(" + cohort + "_chr" + i + ", SNPInfo=SNPInfo,
                   // snpNames = \"Name\", cohortBetas = TRUE)\n"
                   + "results <- burdenMeta(" + cohort + "_chr" + i
-                  + ", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), SNPInfo=subset(SNPInfo, sc_nonsynSplice==TRUE), snpNames=\"SNP\", wts = 1)\n"
+                  + ", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), SNPInfo=SNPInfo, snpNames=\"SNP\", wts = 1)\n"
                   + "write.table(results, \"" + cohort + "_chr" + i
                   + "_beforeSave_results.csv\", sep=\",\", row.names = F)\n" + "save(" + cohort
                   + "_chr" + i + ", file=\"" + cohort + "_chr" + i
