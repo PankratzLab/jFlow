@@ -300,12 +300,12 @@ public class Zip {
       return;
     }
 
+    dirin = ext.verifyDirFormat(dirin);
     if (dirout == null) {
       dirout = dirin + "compressed/";
     }
 
-    dirin = ext.verifyDirFormat(dirin);
-
+    new File(dirout).mkdirs();
     if (numThreads > 1) {
       GzipProducer producer = new GzipProducer(Files.toFullPaths(files, dirin), dirout, log);
       WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numThreads, numThreads, log);
