@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.bioinformatics.MapSNPsAndGenes;
@@ -30,6 +31,11 @@ import org.genvisis.stats.RegressionModel;
 import com.google.common.primitives.Doubles;
 
 public class GeneScorePipeline {
+
+	private static final String ARG_BROOT = "broot=";
+	private static final String ARG_INDEX_THRESH = "indexThresh=";
+	private static final String ARG_WINDOW_SIZE = "minWinSize=";
+	private static final String ARG_WINDOW_EXT = "winThresh=";
 
 	private static float DEFAULT_INDEX_THRESHOLD = (float) 0.00000005;
 	private static int DEFAULT_WINDOW_MIN_SIZE_PER_SIDE = 500000;// 500kb each side is technically a
@@ -1540,7 +1546,78 @@ public class GeneScorePipeline {
 		writer.close();
 	}
 
+	public static final String COMMAND_GENESCORE = "geneScore";
 
+	public static void fromParameters(String filename, Logger log) {
+
+		List<String> params;
+		params = Files.parseControlFile(filename, COMMAND_GENESCORE,
+																		new String[] {
+																									ARG_BROOT + ext.parseDirectoryOfFile(filename),
+																									ARG_INDEX_THRESH + DEFAULT_INDEX_THRESHOLD,
+																									ARG_WINDOW_SIZE
+																											+ DEFAULT_WINDOW_MIN_SIZE_PER_SIDE,
+																									ARG_WINDOW_EXT
+																											+ DEFAULT_WINDOW_EXTENSION_THRESHOLD
+																		}, log);
+		if (params == null) {
+			setupCRF(filename);
+			return;
+		}
+		if (params != null) {
+			main(ArrayUtils.toStringArray(params));
+		}
+	}
+
+	private static void setupCRF(String crfFile) {
+		String dir = ext.parseDirectoryOfFile(crfFile);
+		String[] files = (new File(dir)).list();
+		HashSet<String> potentialRoots = new HashSet<>();
+		HashSet<String> preprocess = new HashSet<>();
+		HashSet<String> metas = new HashSet<>();
+		HashSet<String> phenos = new HashSet<>();
+		for (String f : files) {
+			if (f.endsWith(".bed") || f.endsWith(".bim") || f.endsWith(".fam")) {
+				potentialRoots.add(ext.rootOf(f));
+			} else if (f.endsWith(".result") || f.endsWith(".results")) {
+				preprocess.add(f);
+			} else if (f.endsWith(".meta")) {
+				metas.add(f);
+			} else if (f.endsWith(".pheno")) {
+				phenos.add(f);
+			}
+		}
+
+		HashSet<String> validData = new HashSet<>();
+		for (String s : potentialRoots) {
+			if (PSF.Plink.allFilesExist(dir + s, true)) {
+				validData.add(s);
+			}
+		}
+
+		createDataFile(dir, validData, phenos);
+
+		System.out.println("Processing " + preprocess.size() + " results files...");
+		preprocessDataFiles(preprocess.toArray(new String[preprocess.size()]));
+		System.out.println("Done!");
+	}
+
+	private static void createDataFile(String baseDir, HashSet<String> plinkRoots,
+																		 HashSet<String> phenoFiles) {
+		String dir = baseDir + "plink/";
+		new File(dir).mkdir();
+		PrintWriter writer = Files.getAppropriateWriter(dir + "data.txt");
+		for (String plinkRoot : plinkRoots) {
+			writer.println(plinkRoot + "\t" + baseDir + PSF.Plink.getBED(plinkRoot) + "\t" + baseDir
+										 + PSF.Plink.getBIM(plinkRoot) + "\t" + baseDir + PSF.Plink.getFAM(plinkRoot));
+		}
+		writer.flush();
+		writer.close();
+
+		for (String s : phenoFiles) {
+			Files.copyFile(baseDir + s, dir + s);
+		}
+	}
 
 	// private void writeToForestInput() {
 	// String resultsFile = metaDir + "regressions.out";
@@ -1640,14 +1717,14 @@ public class GeneScorePipeline {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (arg.startsWith("broot=")) {
+			} else if (arg.startsWith(ARG_BROOT)) {
 				broot = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("process=")) {
 				String[] lst = arg.split("=")[1].split(",");
 				preprocessDataFiles(lst);
 				return;
-			} else if (arg.startsWith("indexThresh=")) {
+			} else if (arg.startsWith(ARG_INDEX_THRESH)) {
 				String[] lst = arg.split("=")[1].split(",");
 				int cntValid = 0;
 				for (String poss : lst) {
@@ -1664,7 +1741,7 @@ public class GeneScorePipeline {
 					}
 				}
 				numArgs--;
-			} else if (arg.startsWith("minWinSize=")) {
+			} else if (arg.startsWith(ARG_WINDOW_SIZE)) {
 				String[] lst = arg.split("=")[1].split(",");
 				int cntValid = 0;
 				for (String poss : lst) {
@@ -1681,7 +1758,7 @@ public class GeneScorePipeline {
 					}
 				}
 				numArgs--;
-			} else if (arg.startsWith("winThresh=")) {
+			} else if (arg.startsWith(ARG_WINDOW_EXT)) {
 				String[] lst = arg.split("=")[1].split(",");
 				int cntValid = 0;
 				for (String poss : lst) {
