@@ -21,11 +21,11 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
 
+import net.miginfocom.swing.MigLayout;
+
 import org.genvisis.common.Grafik;
 import org.genvisis.qsub.JobQueue;
 import org.genvisis.qsub.QueueProperties;
-
-import net.miginfocom.swing.MigLayout;
 
 public class QueuePicker extends JDialog {
 
@@ -55,7 +55,7 @@ public class QueuePicker extends JDialog {
 		contentPanel.setLayout(new MigLayout("", "[][grow]", "[][][][][][]"));
 		{
 			JLabel lblQsubFilename = new JLabel("Qsub Filename:");
-			contentPanel.add(lblQsubFilename, "cell 0 0,alignx trailing");
+			contentPanel.add(lblQsubFilename, "cell 0 0,alignx left");
 		}
 		{
 			txtFldFilename = new JTextField(qsubFilenameSuggestion);
@@ -103,7 +103,7 @@ public class QueuePicker extends JDialog {
 			contentPanel.add(spinMem, "flowx,cell 1 4");
 		}
 		{
-			JLabel lblWallTime = new JLabel("Wall time:");
+			JLabel lblWallTime = new JLabel("Wall time (dd/hh/mm):");
 			contentPanel.add(lblWallTime, "cell 0 5");
 		}
 		{
