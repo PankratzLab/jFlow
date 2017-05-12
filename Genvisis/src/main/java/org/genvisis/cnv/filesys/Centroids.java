@@ -160,7 +160,7 @@ public class Centroids implements Serializable, TextExport {
 			} else {
 				estimatedR = centroids[0][1]
 										 + (theta - centroids[0][0]) * (centroids[1][1] - centroids[0][1])
-											 / (centroids[1][0] - centroids[0][0]);
+										 / (centroids[1][0] - centroids[0][0]);
 			}
 		} else if (centroids[2] != null && theta < centroids[2][0]) {
 			if (centroids[1] == null) {
@@ -168,7 +168,7 @@ public class Centroids implements Serializable, TextExport {
 			} else {
 				estimatedR = centroids[1][1]
 										 + (theta - centroids[1][0]) * (centroids[2][1] - centroids[1][1])
-											 / (centroids[2][0] - centroids[1][0]);
+										 / (centroids[2][0] - centroids[1][0]);
 			}
 		} else {
 			if (centroids[2] == null) {
@@ -464,7 +464,7 @@ public class Centroids implements Serializable, TextExport {
 			Sample sample = new Sample(original.getSampleName(), original.getFingerprint(),
 																 original.getGCs(), original.getXs(), original.getYs(),
 																 preserveBafs ? original.getBAFs()
-																							: original.getBAFs(centroids.getCentroids()),
+																						 : original.getBAFs(centroids.getCentroids()),
 																 original.getLRRs(centroids.getCentroids()),
 																 original.getForwardGenotypes(), original.getAB_Genotypes(),
 																 original.getCanXYBeNegative());
@@ -537,7 +537,8 @@ public class Centroids implements Serializable, TextExport {
 		samples = proj.getSamples();
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 		RecomputeProducer producer = new RecomputeProducer(proj, samples, centroids, preserveBafs);
-		WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(producer,
+		WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(
+																																														producer,
 																																														numThreads,
 																																														10,
 																																														proj.getLog());
@@ -779,17 +780,17 @@ public class Centroids implements Serializable, TextExport {
 						int markerIndex = fullToTruncMarkerIndices[myIndex].get(index);
 						MarkerData markerData = markerDataLoaders[myIndex].requestMarkerData(markerIndex);
 						if (!chromMarkers[index]) {
-							rawCentroidsMale[index] = new float[][] {{Float.NaN, Float.NaN},
+							rawCentroidsMale[index] = new float[][] { {Float.NaN, Float.NaN},
 																											 {Float.NaN, Float.NaN},
 																											 {Float.NaN, Float.NaN}};
-							rawCentroidsFemale[index] = new float[][] {{Float.NaN, Float.NaN},
+							rawCentroidsFemale[index] = new float[][] { {Float.NaN, Float.NaN},
 																												 {Float.NaN, Float.NaN},
 																												 {Float.NaN, Float.NaN}};
 							pfbInfo.put(index,
-													new String[][] {{markerData.getMarkerName(),
-																					 Integer.toString(markerData.getChr()),
-																					 Integer.toString(markerData.getPosition()),
-																					 Double.toString(autoPFB.getPfbs()[index])},
+													new String[][] { {markerData.getMarkerName(),
+																						Integer.toString(markerData.getChr()),
+																						Integer.toString(markerData.getPosition()),
+																						Double.toString(autoPFB.getPfbs()[index])},
 																					{markerData.getMarkerName(),
 																					 Integer.toString(markerData.getChr()),
 																					 Integer.toString(markerData.getPosition()),
@@ -852,16 +853,16 @@ public class Centroids implements Serializable, TextExport {
 							}
 
 							pfbInfo.put(index,
-													new String[][] {{markerData.getMarkerName(),
-																					 Integer.toString(markerData.getChr() - 22),
-																					 Integer.toString(markerData.getPosition()),
-																					 Float.toString(genCnt[0] > 0 ? (bafSum[0] / bafCnt[0])
+													new String[][] { {markerData.getMarkerName(),
+																						Integer.toString(markerData.getChr()),
+																						Integer.toString(markerData.getPosition()),
+																						Float.toString(genCnt[0] > 0 ? (bafSum[0] / bafCnt[0])
 																																				: 2)},
 																					{markerData.getMarkerName(),
-																					 Integer.toString(markerData.getChr() - 22),
+																					 Integer.toString(markerData.getChr()),
 																					 Integer.toString(markerData.getPosition()),
 																					 Float.toString(genCnt[1] > 0 ? (bafSum[1] / bafCnt[1])
-																																				: 2)}});
+																																			 : 2)}});
 
 						}
 
@@ -1029,10 +1030,15 @@ public class Centroids implements Serializable, TextExport {
 		String exportFile = null;
 		int numThreads = 1;
 
-		String usage = "\n" + "cnv.filesys.Centroids requires 0-1 arguments\n"
+		String usage = "\n"
+									 + "cnv.filesys.Centroids requires 0-1 arguments\n"
 									 + "   (1) project properties filename (i.e. proj="
-									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-									 + "   (2) filename (i.e. file=" + centFile + " (default))\n" + " OR\n"
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)
+									 + " (default))\n"
+									 + "   (2) filename (i.e. file="
+									 + centFile
+									 + " (default))\n"
+									 + " OR\n"
 									 + "   (2) generate centroids from genotypes (i.e. -fromGenotypes (not the default))\n"
 									 + "   (3) compute and dump centroids for project (i.e. -computeDump (not the default))\n"
 									 + " OR\n"
@@ -1086,7 +1092,7 @@ public class Centroids implements Serializable, TextExport {
 
 		proj = new Project(filename, false);
 		// fromGenotypes = true;
-		//// compute = "genotype.cent";
+		// // compute = "genotype.cent";
 		//
 		// centFile = "data/genotype.cent";
 		// exportFile = "data/genotype.cent.xln";
