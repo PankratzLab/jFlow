@@ -659,7 +659,8 @@ public class SeqMeta {
                                       || method[2].equals("singlesnpMeta") ? ""
                                                                            : "_" + functionFlagName)
                                    + (runningByChr ? "_chr" + chrom : "") + ".csv";
-                  if (!Files.exists(outputFilename) || new File(outputFilename).length() == 0) {
+                  if ((!Files.exists(outputFilename) && !Files.exists(outputFilename + ".gz"))
+                      || new File(outputFilename).length() < 100) {
                     Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","), outputFilename);
                     if (new File(objectFilename).length() > 1024) {
                       commands.add("results <- " + method[2] + "(" + objectName + ", SNPInfo="
@@ -769,7 +770,8 @@ public class SeqMeta {
                                + root
                                + (functionFlagName.equals("None") ? "" : "_" + functionFlagName)
                                + (runningByChr ? "_chr" + chrom : "") + ".csv";
-              if (forceMeta || !Files.exists(outputFilename)
+              if (forceMeta
+                  || (!Files.exists(outputFilename) && !Files.exists(outputFilename + ".gz"))
                   || new File(outputFilename).length() == 0) {
                 if (objects.size() > 0) {
                   commands.add("results <- " + method[2] + "("
@@ -860,7 +862,8 @@ public class SeqMeta {
             outputFilename = dir + phenotypes[i][0] + "/" + method[0] + "/" + root
                              + (functionFlagName.equals("None") ? "" : "_" + functionFlagName)
                              + (runningByChr ? "_chr" + chrom : "") + ".csv";
-            if (forceMeta || !Files.exists(outputFilename)
+            if (forceMeta
+                || (!Files.exists(outputFilename) && !Files.exists(outputFilename + ".gz"))
                 || new File(outputFilename).length() == 0) {
               if (objects.size() > 0) {
                 commands.add("results <- " + method[2] + "("
@@ -938,67 +941,6 @@ public class SeqMeta {
     finalSets = identifySet(maps, files, log);
 
     dir = ext.verifyDirFormat(dir);
-    for (String functionFlagName : functionNames) {
-      for (int i = 0; i < phenotypes.length; i++) {
-        for (int j = 0; j < studies.length; j++) {
-          for (int k = 0; k < races.length; k++) {
-            if (!finalSets[i][j][k].equals("<missing>")) {
-              for (int m = 0; m < methods.length; m++) {
-                root = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_" + methods[m][0]
-                       + (functionFlagName.equals("None")
-                          || SINGLE_VARIANTS[ext.indexOfStr(methods[m][2], ALGORITHMS)] ? ""
-                                                                                        : "_"
-                                                                                          + functionFlagName);
-                if (!Files.exists(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0]
-                                  + "/" + root + ".csv")
-                    || new File(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0]
-                                + "/" + root + ".csv").length() == 0) {
-                  log.report(ext.getTime() + "\tStiching up " + root + ".csv");
-                  stitch(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/",
-                         root + "_chr#.csv", root + ".csv", log);
-                }
-
-              }
-            }
-          }
-        }
-
-        for (int k = 0; k < races.length; k++) {
-          for (int m = 0; m < methods.length; m++) {
-            root = races[k][0] + "_" + phenotypes[i][0] + "_" + methods[m][0]
-                   + (functionFlagName.equals("None")
-                      || SINGLE_VARIANTS[ext.indexOfStr(methods[m][2], ALGORITHMS)] ? ""
-                                                                                    : "_"
-                                                                                      + functionFlagName);
-            if (forceMeta
-                || !Files.exists(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0]
-                                 + "/" + root + ".csv")
-                || new File(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/"
-                            + root + ".csv").length() == 0) {
-              log.report(ext.getTime() + "\tStiching up " + root + ".csv");
-              stitch(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/",
-                     root + "_chr#.csv", root + ".csv", log);
-            }
-          }
-        }
-
-        for (int m = 0; m < methods.length; m++) {
-          root = phenotypes[i][0] + "_" + methods[m][0]
-                 + (functionFlagName.equals("None")
-                    || SINGLE_VARIANTS[ext.indexOfStr(methods[m][2], ALGORITHMS)] ? ""
-                                                                                  : "_"
-                                                                                    + functionFlagName);
-          if (forceMeta
-              || !Files.exists(dir + phenotypes[i][0] + "/" + methods[m][0] + "/" + root + ".csv")
-              || new File(dir + phenotypes[i][0] + "/" + methods[m][0] + "/" + root
-                          + ".csv").length() == 0) {
-            log.report(ext.getTime() + "\tStiching up " + root + ".csv");
-            stitch(dir + phenotypes[i][0] + "/" + methods[m][0] + "/", root + "_chr#.csv",
-                   root + ".csv", log);
-          }
-        }
-      }
-    }
 
     log.report("Starting compression of meta-analysis files.");
 
@@ -1028,6 +970,69 @@ public class SeqMeta {
         for (String f : csvs) {
           if (!new File(zipDir + f).delete()) {
             log.reportError("Error deleting " + zipDir + f);
+          }
+        }
+      }
+    }
+
+    for (String functionFlagName : functionNames) {
+      for (int i = 0; i < phenotypes.length; i++) {
+        for (int j = 0; j < studies.length; j++) {
+          for (int k = 0; k < races.length; k++) {
+            if (!finalSets[i][j][k].equals("<missing>")) {
+              for (int m = 0; m < methods.length; m++) {
+                root = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_" + methods[m][0]
+                       + (functionFlagName.equals("None")
+                          || SINGLE_VARIANTS[ext.indexOfStr(methods[m][2], ALGORITHMS)] ? ""
+                                                                                        : "_"
+                                                                                          + functionFlagName);
+                if (!Files.exists(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0]
+                                  + "/" + root + ".csv.gz")
+                    || new File(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0]
+                                + "/" + root + ".csv.gz").length() == 0) {
+                  log.report(ext.getTime() + "\tStiching up " + root + ".csv.gz");
+                  stitch(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/",
+                         root + "_chr#.csv.gz", root + ".csv.gz", log);
+                }
+
+              }
+            }
+          }
+        }
+
+        for (int k = 0; k < races.length; k++) {
+          for (int m = 0; m < methods.length; m++) {
+            root = races[k][0] + "_" + phenotypes[i][0] + "_" + methods[m][0]
+                   + (functionFlagName.equals("None")
+                      || SINGLE_VARIANTS[ext.indexOfStr(methods[m][2], ALGORITHMS)] ? ""
+                                                                                    : "_"
+                                                                                      + functionFlagName);
+            if (forceMeta
+                || !Files.exists(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0]
+                                 + "/" + root + ".csv.gz")
+                || new File(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/"
+                            + root + ".csv.gz").length() == 0) {
+              log.report(ext.getTime() + "\tStiching up " + root + ".csv.gz");
+              stitch(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/",
+                     root + "_chr#.csv.gz", root + ".csv.gz", log);
+            }
+          }
+        }
+
+        for (int m = 0; m < methods.length; m++) {
+          root = phenotypes[i][0] + "_" + methods[m][0]
+                 + (functionFlagName.equals("None")
+                    || SINGLE_VARIANTS[ext.indexOfStr(methods[m][2], ALGORITHMS)] ? ""
+                                                                                  : "_"
+                                                                                    + functionFlagName);
+          if (forceMeta
+              || !Files.exists(dir + phenotypes[i][0] + "/" + methods[m][0] + "/" + root
+                               + ".csv.gz")
+              || new File(dir + phenotypes[i][0] + "/" + methods[m][0] + "/" + root
+                          + ".csv.gz").length() == 0) {
+            log.report(ext.getTime() + "\tStiching up " + root + ".csv.gz");
+            stitch(dir + phenotypes[i][0] + "/" + methods[m][0] + "/", root + "_chr#.csv.gz",
+                   root + ".csv.gz", log);
           }
         }
       }
