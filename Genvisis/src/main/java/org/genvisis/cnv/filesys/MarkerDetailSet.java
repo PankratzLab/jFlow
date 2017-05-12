@@ -62,14 +62,12 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 
 		/**
-		 * @param name
-		 * @param genomicPosition
-		 * @param a
-		 * @param b
-		 * @param refAllele
+		 * @param name marker name
+		 * @param genomicPosition marker's position in the genome
+		 * @param a Allele for A (reference status is used to set ref allele)
+		 * @param b Allele for B (reference status is used to set ref allele)
 		 */
-		public Marker(String name, GenomicPosition genomicPosition, Allele a, Allele b,
-									RefAllele refAllele) {
+		public Marker(String name, GenomicPosition genomicPosition, Allele a, Allele b) {
 			super();
 			this.name = name;
 			this.genomicPosition = genomicPosition;
@@ -78,7 +76,16 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			char[] ab = ABLookup.parseABFromAlleles(a, b);
 			this.charA = ab[0];
 			this.charB = ab[1];
-			this.refAllele = refAllele;
+			if (a.isReference()) {
+				this.refAllele = RefAllele.A;
+				if (b.isReference()) {
+					throw new IllegalArgumentException("Both alleles cannot be reference");
+				}
+			} else if (b.isReference()) {
+				this.refAllele = RefAllele.B;
+			} else {
+				this.refAllele = null;
+			}
 		}
 
 		public Marker(String name, GenomicPosition genomicPosition) {
@@ -94,16 +101,16 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			super();
 			this.name = name;
 			this.genomicPosition = genomicPosition;
-			this.alleleA = parseAllele(a);
-			this.alleleB = parseAllele(b);
+			this.alleleA = parseAllele(a, RefAllele.A.equals(refAllele));
+			this.alleleB = parseAllele(b, RefAllele.B.equals(refAllele));
 			this.charA = a;
 			this.charB = b;
 			this.refAllele = refAllele;
 		}
 
-		private static Allele parseAllele(char charAllele) {
+		private static Allele parseAllele(char charAllele, boolean reference) {
 			try {
-				return Allele.create(String.valueOf(charAllele));
+				return Allele.create(String.valueOf(charAllele), reference);
 			} catch (IllegalArgumentException iae) {
 				return Allele.NO_CALL;
 			}
@@ -291,7 +298,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		}
 	}
 
-	public static final long serialVersionUID = 5L;
+	public static final long serialVersionUID = 6L;
 
 	private final ImmutableList<Marker> markers;
 	private final int hashCode;
@@ -483,7 +490,6 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			int positionOffset;
 			Allele a;
 			Allele b;
-			Marker.RefAllele refAllele = null;
 			if (markerBlastAnnotation.getMarkerSeqAnnotation().getSequence() == null) {
 				missingSeqMkrs.add(markerNames[i]);
 				positionOffset = 0;
@@ -497,10 +503,17 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				a = StrandOps.flipIfNeeded(markerSeqAnnotation.getA(), strand);
 				b = StrandOps.flipIfNeeded(markerSeqAnnotation.getB(), strand);
 				Allele ref = markerSeqAnnotation.getRef();
-				if (ref.basesMatch(a))
-					refAllele = Marker.RefAllele.A;
-				else if (ref.basesMatch(b))
-					refAllele = Marker.RefAllele.B;
+				// ensure that only ref Allele is set as reference status
+				if (ref.basesMatch(a)) {
+					a = ref;
+					b = Allele.create(b, true);
+				} else if (ref.basesMatch(b)) {
+					a = Allele.create(a, true);
+					b = ref;
+				} else {
+					a = Allele.create(a, true);
+					b = Allele.create(b, true);
+				}
 			}
 			boolean ambiguousPosition = false;
 			List<BlastAnnotation> perfectMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
@@ -568,7 +581,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			if (ambiguousPosition) {
 				ambiguousPositionCount++;
 			}
-			markers.add(new Marker(markerNames[i], new GenomicPosition(chr, position), a, b, refAllele));
+			markers.add(new Marker(markerNames[i], new GenomicPosition(chr, position), a, b));
 		}
 		if (ambiguousPositionCount > 0) {
 			log.reportError("Warning - there " + (ambiguousPositionCount > 1 ? "were " : "was ")
