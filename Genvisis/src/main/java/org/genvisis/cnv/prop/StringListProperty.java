@@ -3,6 +3,7 @@ package org.genvisis.cnv.prop;
 import java.util.Arrays;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.COPY;
 import org.genvisis.cnv.filesys.Project.GROUP;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
@@ -21,15 +22,15 @@ public class StringListProperty extends Property<String[]> {
 	}
 
 	public StringListProperty(Project proj, String name, String desc, GROUP group, boolean editable,
-														String[] defVal, boolean file, boolean dir) {
-		super(proj, name, desc, group, editable, defVal);
+														COPY copyOnCorrection, String[] defVal, boolean file, boolean dir) {
+		super(proj, name, desc, group, editable, copyOnCorrection, defVal);
 		isFile = file;
 		isDir = dir;
 	}
 
 	public StringListProperty(Project proj, String name, String desc, GROUP group, boolean editable,
-														String defVal, boolean file, boolean dir) {
-		super(proj, name, desc, group, editable,
+														COPY copyOnCorrection, String defVal, boolean file, boolean dir) {
+		super(proj, name, desc, group, editable, copyOnCorrection,
 					defVal.equals("") ? new String[0] : defVal.split(delim));
 		isFile = file;
 		isDir = dir;

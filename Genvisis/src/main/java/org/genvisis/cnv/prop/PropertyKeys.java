@@ -94,6 +94,7 @@ public class PropertyKeys {
 	public static final String KEY_MARKERLOOKUP_FILENAME = "MARKERLOOKUP_FILENAME";
 	public static final String KEY_SAMPLELIST_FILENAME = "SAMPLELIST_FILENAME";
 	public static final String KEY_JAR_STATUS = "JAR_STATUS";
+	public static final String KEY_IS_PC_CORRECTED_PROJECT = "IS_PC_CORRECTED_PROJECT";
 	public static final String KEY_STRATIFICATION_RESULTS_FILENAMES = "STRATIFICATION_RESULTS_FILENAMES";
 	public static final String KEY_GENOME_BUILD_VERSION = "GENOME_BUILD_VERSION";
 	public static final String KEY_GENE_LIST_FILENAMES = "GENE_LIST_FILENAMES";

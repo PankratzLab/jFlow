@@ -3,6 +3,7 @@ package org.genvisis.cnv.prop;
 import java.io.File;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.COPY;
 import org.genvisis.cnv.filesys.Project.GROUP;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
@@ -11,13 +12,14 @@ public class FileProperty extends StringProperty {
 	final boolean isDir;
 
 	public FileProperty(Project proj, String name, String desc, GROUP group, boolean editable,
+											COPY copyOnCorrection,
 											String defVal, boolean dirOnly) {
-		super(proj, name, desc, group, editable,
+		super(proj, name, desc, group, editable, copyOnCorrection,
 					dirOnly ? ext.verifyDirFormat(defVal)
-									: ext.replaceAllWith(defVal, "\\",
-																			 "/")/*
-																					  * == null || "".equals(defVal) ? null : new File(defVal)
-																					  */);
+								 : ext.replaceAllWith(defVal, "\\",
+																			"/")/*
+																					 * == null || "".equals(defVal) ? null : new File(defVal)
+																					 */);
 		isDir = dirOnly;
 	}
 

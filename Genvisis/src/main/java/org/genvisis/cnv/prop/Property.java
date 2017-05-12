@@ -3,6 +3,7 @@ package org.genvisis.cnv.prop;
 import java.beans.PropertyChangeEvent;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.COPY;
 import org.genvisis.cnv.filesys.Project.GROUP;
 
 public abstract class Property<T> {
@@ -10,11 +11,13 @@ public abstract class Property<T> {
 	private final String name;
 	private final String desc;
 	private final GROUP group;
+	private final COPY copyOnCorrection;
 	private final boolean editable;
 	private final T defaultValue;
 	private T value;
 
 	public Property(Project proj, String name, String description, GROUP group, boolean editable,
+									COPY copyOnCorrection,
 									T defVal) {
 		this.myProj = proj;
 		this.name = name;
@@ -23,6 +26,7 @@ public abstract class Property<T> {
 		this.editable = editable;
 		this.defaultValue = defVal;
 		this.value = defaultValue;
+		this.copyOnCorrection = copyOnCorrection;
 	}
 
 	public Project getProject() {
@@ -57,6 +61,10 @@ public abstract class Property<T> {
 
 	public T getDefaultValue() {
 		return defaultValue;
+	}
+
+	public COPY getCopyScheme() {
+		return this.copyOnCorrection;
 	}
 
 	/**

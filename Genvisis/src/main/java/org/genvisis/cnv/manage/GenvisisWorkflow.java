@@ -662,7 +662,7 @@ public class GenvisisWorkflow {
 		this.launch = launch;
 		numThreadsReq = new PosIntRequirement("Number of Threads to Use", proj.NUM_THREADS.getValue());
 
-		steps = Collections.unmodifiableSortedSet(generateSteps());
+		steps = Collections.unmodifiableSortedSet(generateSteps(!project.IS_PC_CORRECTED_PROJECT.getValue()));
 	}
 
 	public void showDialogAndRun() {
@@ -2148,12 +2148,8 @@ public class GenvisisWorkflow {
 		}
 
 		private Step generateSexCentroidsStep(Step gcModelStep) {
-			final Requirement gcModelStepReq = new StepRequirement(gcModelStep);
-			final Requirement gcModelFileReq = new FileRequirement("Full GC Model File.",
-																														 proj.GC_MODEL_FILENAME.getValue());
-			return register(new Step("Create Sex-Specific Centroids; Filter PFB and GCMODEL Files", "",
-															 new Requirement[][] {{gcModelStepReq, gcModelFileReq},
-																										{getNumThreadsReq()},},
+			return register(new Step("Create Sex-Specific Centroids; Filter PFB file", "",
+															 new Requirement[][] {{getNumThreadsReq()},},
 															 EnumSet.of(Flag.RUNTIME),
 															 priority()) {
 
@@ -2171,21 +2167,17 @@ public class GenvisisWorkflow {
 					String femalePFB;
 					String centFilePathM;
 					String centFilePathF;
-					String newGCFile;
 					String outputDir = proj.DATA_DIRECTORY.getValue();
-					newGCFile = outputDir + "sexSpecific.gcModel";
 					malePFB = outputDir + "males.pfb";
 					femalePFB = outputDir + "females.pfb";
 					centFilePathM = outputDir + "sexSpecific_Male.cent";
 					centFilePathF = outputDir + "sexSpecific_Female.cent";
 
 					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
-					String gcModelFile = variables.get(this).get(gcModelFileReq);
 					Centroids.computeSexSpecificCentroids(proj, new String[] {malePFB, femalePFB},
 																								new String[] {centFilePathM, centFilePathF},
 																								numThreads);
 
-					AnalysisFormats.filterSexSpecificGCModel(proj, gcModelFile, newGCFile);
 				}
 
 				@Override
@@ -2195,10 +2187,7 @@ public class GenvisisWorkflow {
 					String mainCmd = Files.getRunString() + " cnv.filesys.Centroids proj="
 													 + proj.getPropertyFilename() + " -sexSpecific "
 													 + PSF.Ext.NUM_THREADS_COMMAND + numThreads;
-					String gcModelFile = variables.get(this).get(gcModelFileReq);
-					String gcCmd = Files.getRunString() + " cnv.analysis.AnalysisFormats proj="
-												 + proj.getPropertyFilename() + " gcmodel=" + gcModelFile;
-					return mainCmd + "\n" + gcCmd;
+					return mainCmd;
 				}
 
 				@Override
@@ -2213,12 +2202,10 @@ public class GenvisisWorkflow {
 					femalePFB = outputDir + "females.pfb";
 					centFilePathM = outputDir + "sexSpecific_Male.cent";
 					centFilePathF = outputDir + "sexSpecific_Female.cent";
-					newGCFile = outputDir + "sexSpecific.gcModel";
 					boolean exists = Files.exists(malePFB);
 					exists = exists && Files.exists(femalePFB);
 					exists = exists && Files.exists(centFilePathM);
 					exists = exists && Files.exists(centFilePathF);
-					exists = exists && Files.exists(newGCFile);
 					return exists;
 				}
 
@@ -2406,7 +2393,7 @@ public class GenvisisWorkflow {
 			});
 		}
 
-		private Step generateShadowStep(final Step parseSamplesStep) {
+		private Step generatePCCorrectedProjectStep(final Step parseSamplesStep) {
 			final Requirement parseSamplesStepReq = new StepRequirement(parseSamplesStep);
 			final Requirement numPCsReq = new PosIntRequirement("Number of principal components for correction.",
 																													MitoPipeline.DEFAULT_NUM_COMPONENTS);
@@ -2432,7 +2419,7 @@ public class GenvisisWorkflow {
 			final Requirement sexChromosomeStrategyReq = new EnumRequirement("Sex Chromosome Strategy",
 																																			 CHROMOSOME_X_STRATEGY.BIOLOGICAL);
 
-			return register(new Step("Create 'Shadow' Project", "",
+			return register(new Step("Create PC-Corrected Project", "",
 															 new Requirement[][] {{parseSamplesStepReq}, {numPCsReq},
 																										{outputBaseReq},
 																										{callrateReq}, {recomputeLrrReq}, {tempDirReq},
@@ -2586,7 +2573,7 @@ public class GenvisisWorkflow {
 
 	}
 
-	private SortedSet<Step> generateSteps() {
+	private SortedSet<Step> generateSteps(boolean allowCorrectionStep) {
 		StepBuilder sb = new StepBuilder();
 
 		Step parseSamplesStep;
@@ -2620,7 +2607,9 @@ public class GenvisisWorkflow {
 		Step pfbStep = sb.generatePFBStep(parseSamplesStep);
 		sb.generateSexCentroidsStep(gcModelStep);
 		sb.generateCNVStep(pfbStep, gcModelStep);
-		sb.generateShadowStep(parseSamplesStep);
+		if (allowCorrectionStep) {
+			sb.generatePCCorrectedProjectStep(parseSamplesStep);
+		}
 
 		return sb.getSortedSteps();
 	}

@@ -1,6 +1,7 @@
 package org.genvisis.cnv.prop;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.COPY;
 import org.genvisis.cnv.filesys.Project.GROUP;
 
 public class DoubleProperty extends Property<Double> {
@@ -9,10 +10,11 @@ public class DoubleProperty extends Property<Double> {
 	double max;
 
 	public DoubleProperty(Project proj, String name, String desc, GROUP group, boolean editable,
-												double min, double max, double defValue) {
-		super(proj, name, desc, group, editable, defValue);
+												COPY copyOnCorrection, double min, double max, double defValue) {
+		super(proj, name, desc, group, editable, copyOnCorrection, defValue);
 		if (min > max || defValue < min || defValue > max || (max == min && defValue != max)) {
-			throw new RuntimeException("Cannot initialize DoubleProperty['" + name + "'] with: min=" + min
+			throw new RuntimeException("Cannot initialize DoubleProperty['" + name + "'] with: min="
+																 + min
 																 + ", max=" + max + ", and default value=" + defValue);
 		}
 		this.min = min;
