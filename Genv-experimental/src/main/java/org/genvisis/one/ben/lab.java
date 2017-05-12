@@ -697,15 +697,15 @@ public class lab {
 			// exomeRecode();
 			// filt();
 			// famRecode();
-			String bimFile;
-			String newBimFile;
-			String dir = "D:/temp/plink/exmToRS/";
-			bimFile = dir + "exome_EA.bim";
-			newBimFile = dir + "exome_EA_corrected.bim";
-			exomeRecode(bimFile, newBimFile);
-			bimFile = dir + "exome_AA.bim";
-			newBimFile = dir + "exome_AA_corrected.bim";
-			exomeRecode(bimFile, newBimFile);
+			// String bimFile;
+			// String newBimFile;
+			// String dir = "D:/temp/plink/exmToRS/";
+			// bimFile = dir + "exome_EA.bim";
+			// newBimFile = dir + "exome_EA_corrected.bim";
+			// exomeRecode(bimFile, newBimFile);
+			// bimFile = dir + "exome_AA.bim";
+			// newBimFile = dir + "exome_AA_corrected.bim";
+			// exomeRecode(bimFile, newBimFile);
 
 			// String cmd =
 			// "java -jar genvisis.jar org.genvisis.imputation.ImputationPipeline"
@@ -718,6 +718,13 @@ public class lab {
 			// + " " ;
 			// System.out.println(cmd);
 
+			// CNVHelper.generateRegionsFileFromCNVFile("D:/data/ny_registry/new_york/cnvs/prune_belly.cnv");
+			// BeastScore.scoreCNVFile(new Project("D:/projects/NY_Registry_Combo_Shadow.properties",
+			// false),
+			// "D:/data/ny_registry/new_york/cnvs/prune_belly.cnv",
+			// true);
+			// GeneScorePipeline.preprocessDataFiles(new String[]
+			// {"D:/GeneScorePipe/Poynter/SnpInfo_Orig.xln"});
 
 			// proj = new Project("projects/poynter.properties", false);
 			// String referenceFile = "/home/pankrat2/shared/bin/ref/1000GP_Phase3_combined.legend.gz";
