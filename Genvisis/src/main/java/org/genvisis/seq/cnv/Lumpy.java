@@ -92,17 +92,39 @@ public class Lumpy {
 		List<String> bams = new ArrayList<>();
 		bams.add(bam);
 		List<PairedEndSVAnalysis> preps = LumpyPrep.runPrep(bams, outDir, threads, log);
-		log.reportTimeWarning("Lumpy analysis assumes that the following are on your systempath\ngawk\n\nWindows users are gonna have a bad time");
+		log.reportTimeWarning("Lumpy analysis assumes that the following are on your systempath\ngawk\nvcf-sort\n\nWindows users are gonna have a bad time");
 
-		String outputVCF = outDir + "lumpy.vcf";
+		String outputVCF = outDir + (preps.size() > 1 ? "lumpy.vcf"
+																									: BamOps.getSampleName(preps.get(0).getBaseBam(),
+																																				 log)
+																										+ ".lumpy.vcf");
 		runLumpy(lumpyExpressLoc, preps, outputVCF, log);
 
+
 		for (PairedEndSVAnalysis pe : preps) {
-			String svtyperVCF = outDir + VCFOps.getAppropriateRoot(outputVCF, true)
+			String svtyperVCF = outDir
 													+ BamOps.getSampleName(pe.getBaseBam(), log) + ".gt.vcf";
 			SVTyper.run(svtyperLoc, outputVCF, svtyperVCF, pe, log);
-		}
+			sortVcf(svtyperVCF, log);
 
+
+		}
+	}
+
+	private static String sortVcf(String inputVCF, Logger log) {
+		String sortVCF = VCFOps.getAppropriateRoot(inputVCF, false) + ".sort.vcf";
+
+		String bat = VCFOps.getAppropriateRoot(inputVCF, false) + ".sort.bat";
+		String script = "vcf-sort " + inputVCF + " > " + sortVCF;
+
+		CmdLine.prepareBatchForCommandLine(new String[] {script}, bat, true, log);
+		CmdLine.runCommandWithFileChecks(new String[] {bat}, "",
+																		 new String[] {bat, inputVCF},
+																		 new String[] {sortVCF}, true, false, false,
+																		 log);
+
+		VCFOps.verifyIndex(sortVCF, log);
+		return sortVCF;
 
 	}
 
