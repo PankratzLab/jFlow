@@ -186,7 +186,7 @@ public class MarkerMetrics {
 	}
 
 
-	private static void fullQC(Project proj, boolean[] samplesToExclude, String[] markerNames,
+	private static void fullQC(Project proj, boolean[] sampleIndicesToExclude, String[] markerNames,
 														 String fullPathToOutput, boolean checkMendel,
 														 Set<String> sampleDataBatchHeaders) {
 		PrintWriter writer, mendelWriter = null;
@@ -221,15 +221,15 @@ public class MarkerMetrics {
 		sexes = getSexes(proj, samples);
 		Pedigree pedigree = proj.loadPedigree();
 
-		final boolean[] toInclude = samplesToExclude == null ? ArrayUtils.booleanArray(samples.length,
-																																									 true)
-																												 : ArrayUtils.booleanNegative(samplesToExclude);
+		final boolean[] samplesToExclude = sampleIndicesToExclude == null ? ArrayUtils.booleanArray(samples.length,
+																																																false)
+																																			: sampleIndicesToExclude;
 
 		// Use LinkedHashMap to guarantee order is consistent in header and when writing lines
 		Map<String, Map<Integer, String>> batchHeaderIndexBatches = Maps.newLinkedHashMap();
 		for (String batchHeader : sampleDataBatchHeaders) {
 			batchHeaderIndexBatches.put(batchHeader,
-																	generateSampleIndexBatches(proj, batchHeader, toInclude));
+																	generateSampleIndexBatches(proj, batchHeader, samplesToExclude));
 		}
 
 		try {
@@ -266,7 +266,7 @@ public class MarkerMetrics {
 				sumTheta = new double[counts.length];
 				sumR = new double[counts.length];
 				for (int j = 0; j < samples.length; j++) {
-					if (samplesToExclude == null || !samplesToExclude[j]) {
+					if (!samplesToExclude[j]) {
 						counts[abGenotypes[j] + 1]++;
 						sumTheta[abGenotypes[j] + 1] += thetas == null ? 0 : thetas[j];
 						sumR[abGenotypes[j] + 1] += rs == null ? 0 : rs[j];
@@ -289,7 +289,7 @@ public class MarkerMetrics {
 				}
 				sdTheta = new double[counts.length];
 				for (int j = 0; j < samples.length; j++) {
-					if (samplesToExclude == null || !samplesToExclude[j]) {
+					if (!samplesToExclude[j]) {
 						temp = thetas == null ? 0 : (thetas[j] - meanTheta[abGenotypes[j] + 1]);
 						sdTheta[abGenotypes[j] + 1] += temp * temp;
 					}
@@ -312,12 +312,13 @@ public class MarkerMetrics {
 
 				String mecCnt = ".";
 				if (pedigree != null && checkMendel) {
-					mecArr = Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData, toInclude, null,
-																														clusterFilterCollection, gcThreshold,
-																														log);
+					mecArr = Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData,
+																														ArrayUtils.booleanNegative(samplesToExclude),
+																														null, clusterFilterCollection,
+																														gcThreshold, log);
 					count = 0;
 					for (int i = 0; i < pedigree.getDnas().length; i++) {
-						if (!toInclude[i]) {
+						if (samplesToExclude[i]) {
 							continue;
 						}
 						MendelErrorCheck mendelErrorCheck = mecArr.get(pedigree.getiDNA(i));
@@ -336,7 +337,7 @@ public class MarkerMetrics {
 				}
 
 				String duplicateErrorCount = calculateDuplicateConcordanceErrors(proj, abGenotypes,
-																																				 toInclude, log);
+																																				 samplesToExclude, log);
 
 				// TODO: Introducing some mapping, this should not rely on remaining parallel to the header!
 				List<String> line = Lists.newArrayList();
@@ -428,7 +429,7 @@ public class MarkerMetrics {
 	}
 
 	private static String calculateDuplicateConcordanceErrors(Project proj, byte[] genotypes,
-																														boolean[] samplesToInclude,
+																														boolean[] samplesToExclude,
 																														Logger log) {
 		Integer duplicateErrors = null;
 		SampleData sampleData = proj.getSampleData(false);
@@ -440,7 +441,7 @@ public class MarkerMetrics {
 				Set<Integer> duplicateIndices = Sets.newHashSetWithExpectedSize(duplicateSet.size());
 				for (String duplicate : duplicateSet) {
 					int sampleIndex = sampleIndices.get(duplicate);
-					if (samplesToInclude[sampleIndex])
+					if (!samplesToExclude[sampleIndex])
 						duplicateIndices.add(sampleIndex);
 				}
 				if (duplicateIndices.size() > 1) {
@@ -462,7 +463,7 @@ public class MarkerMetrics {
 	}
 
 	private static Map<Integer, String> generateSampleIndexBatches(Project proj, String batchHeader,
-																																 boolean[] samplesToInclude) {
+																																 boolean[] samplesToExclude) {
 		SampleData sampleData = proj.getSampleData(false);
 		Map<String, Integer> sampleIndices = proj.getSampleList().getSampleIndices();
 		Map<Integer, String> indexBatches = Maps.newHashMapWithExpectedSize(sampleIndices.size());
@@ -473,7 +474,7 @@ public class MarkerMetrics {
 			String batch = metaDataEntry.getValue();
 			batches.add(batch);
 			Integer sampleIndex = sampleIndices.get(dna);
-			if (sampleIndex != null && samplesToInclude[sampleIndex]) {
+			if (sampleIndex != null && !samplesToExclude[sampleIndex]) {
 				indexBatches.put(sampleIndex, batch);
 			}
 		}
@@ -511,8 +512,6 @@ public class MarkerMetrics {
 	 * Computes z-score to compare female and male intensity data means
 	 * <p>
 	 * Sex coding must be 1=male, 2=female
-	 * <p>
-	 * boolean[] samplesToExclude can be null
 	 *
 	 * @author John Lane
 	 */
@@ -522,7 +521,7 @@ public class MarkerMetrics {
 		DoubleVector[] values = new DoubleVector[3];
 		for (int s = 0; s < sexes.length; s++) {
 			if (!Double.isNaN(independantData[s]) && sexes != null && (sexes[s] == 1 || sexes[s] == 2)
-					&& (samplesToExclude == null || !samplesToExclude[s])) {
+					&& !samplesToExclude[s]) {
 				if (values[sexes[s]] == null) {
 					values[sexes[s]] = new DoubleVector();
 				}
