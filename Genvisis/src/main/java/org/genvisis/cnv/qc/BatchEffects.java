@@ -156,15 +156,17 @@ public class BatchEffects {
 
 		for (int i = 0; i < genos.length; i++) {
 			String batch = indexBatches.get(i);
-			batches.add(batch);
-			byte geno = genos[i];
-			if (0 <= geno && geno <= 2) {
-				bAlleleCounts.add(batch, geno);
-				genoCounts.add(batch);
-			} else if (geno == -1) {
-				missCounts.add(batch);
-			} else {
-				throw new IllegalArgumentException("Genotypes should be -1, 0, 1, or 2, found: " + geno);
+			if (batch != null) {
+				batches.add(batch);
+				byte geno = genos[i];
+				if (0 <= geno && geno <= 2) {
+					bAlleleCounts.add(batch, geno);
+					genoCounts.add(batch);
+				} else if (geno == -1) {
+					missCounts.add(batch);
+				} else {
+					throw new IllegalArgumentException("Genotypes should be -1, 0, 1, or 2, found: " + geno);
+				}
 			}
 		}
 

@@ -221,10 +221,15 @@ public class MarkerMetrics {
 		sexes = getSexes(proj, samples);
 		Pedigree pedigree = proj.loadPedigree();
 
+		final boolean[] toInclude = samplesToExclude == null ? ArrayUtils.booleanArray(samples.length,
+																																									 true)
+																												 : ArrayUtils.booleanNegative(samplesToExclude);
+
 		// Use LinkedHashMap to guarantee order is consistent in header and when writing lines
 		Map<String, Map<Integer, String>> batchHeaderIndexBatches = Maps.newLinkedHashMap();
 		for (String batchHeader : sampleDataBatchHeaders) {
-			batchHeaderIndexBatches.put(batchHeader, generateSampleIndexBatches(proj, batchHeader));
+			batchHeaderIndexBatches.put(batchHeader,
+																	generateSampleIndexBatches(proj, batchHeader, toInclude));
 		}
 
 		try {
@@ -306,9 +311,6 @@ public class MarkerMetrics {
 				}
 
 				String mecCnt = ".";
-				final boolean[] toInclude = samplesToExclude == null ? ArrayUtils.booleanArray(samples.length,
-																																											 true)
-																														 : ArrayUtils.booleanNegative(samplesToExclude);
 				if (pedigree != null && checkMendel) {
 					mecArr = Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData, toInclude, null,
 																														clusterFilterCollection, gcThreshold,
@@ -459,7 +461,8 @@ public class MarkerMetrics {
 		return Sets.intersection(sampleDataBatchHeaders, sampleData.getMetaHeaders());
 	}
 
-	private static Map<Integer, String> generateSampleIndexBatches(Project proj, String batchHeader) {
+	private static Map<Integer, String> generateSampleIndexBatches(Project proj, String batchHeader,
+																																 boolean[] samplesToInclude) {
 		SampleData sampleData = proj.getSampleData(false);
 		Map<String, Integer> sampleIndices = proj.getSampleList().getSampleIndices();
 		Map<Integer, String> indexBatches = Maps.newHashMapWithExpectedSize(sampleIndices.size());
@@ -470,7 +473,7 @@ public class MarkerMetrics {
 			String batch = metaDataEntry.getValue();
 			batches.add(batch);
 			Integer sampleIndex = sampleIndices.get(dna);
-			if (sampleIndex != null) {
+			if (sampleIndex != null && samplesToInclude[sampleIndex]) {
 				indexBatches.put(sampleIndex, batch);
 			}
 		}
