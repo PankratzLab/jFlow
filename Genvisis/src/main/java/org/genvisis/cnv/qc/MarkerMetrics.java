@@ -205,7 +205,6 @@ public class MarkerMetrics {
 		int numNaNs, numLRRNaNs, count;
 		ArrayList<Float> aLRR;
 		Logger log;
-		boolean[] toInclude;
 		Map<String, MendelErrorCheck> mecArr;
 
 		log = proj.getLog();
@@ -307,9 +306,10 @@ public class MarkerMetrics {
 				}
 
 				String mecCnt = ".";
+				final boolean[] toInclude = samplesToExclude == null ? ArrayUtils.booleanArray(samples.length,
+																																											 true)
+																														 : ArrayUtils.booleanNegative(samplesToExclude);
 				if (pedigree != null && checkMendel) {
-					toInclude = samplesToExclude == null ? ArrayUtils.booleanArray(samples.length, true)
-																							 : ArrayUtils.booleanNegative(samplesToExclude);
 					mecArr = Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData, toInclude, null,
 																														clusterFilterCollection, gcThreshold,
 																														log);
@@ -333,7 +333,8 @@ public class MarkerMetrics {
 					mecCnt = "" + count;
 				}
 
-				String duplicateErrorCount = calculateDuplicateConcordanceErrors(proj, abGenotypes, log);
+				String duplicateErrorCount = calculateDuplicateConcordanceErrors(proj, abGenotypes,
+																																				 toInclude, log);
 
 				// TODO: Introducing some mapping, this should not rely on remaining parallel to the header!
 				List<String> line = Lists.newArrayList();
@@ -425,6 +426,7 @@ public class MarkerMetrics {
 	}
 
 	private static String calculateDuplicateConcordanceErrors(Project proj, byte[] genotypes,
+																														boolean[] samplesToInclude,
 																														Logger log) {
 		Integer duplicateErrors = null;
 		SampleData sampleData = proj.getSampleData(false);
@@ -435,9 +437,13 @@ public class MarkerMetrics {
 			for (Set<String> duplicateSet : duplicateSets) {
 				Set<Integer> duplicateIndices = Sets.newHashSetWithExpectedSize(duplicateSet.size());
 				for (String duplicate : duplicateSet) {
-					duplicateIndices.add(sampleIndices.get(duplicate));
+					int sampleIndex = sampleIndices.get(duplicate);
+					if (samplesToInclude[sampleIndex])
+						duplicateIndices.add(sampleIndex);
 				}
-				duplicateIndexSets.add(duplicateIndices);
+				if (duplicateIndices.size() > 1) {
+					duplicateIndexSets.add(duplicateIndices);
+				}
 			}
 
 			DuplicateConcordance duplicateConcordance = new DuplicateConcordance(genotypes,
