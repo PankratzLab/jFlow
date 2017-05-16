@@ -1,9 +1,12 @@
 package org.genvisis.widgets;
 
+import java.awt.Container;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+
+import javax.swing.JFrame;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.plots.TwoDPlot;
@@ -100,10 +103,14 @@ public class ClipSwap {
 		tdp.getPanel().setHistogram(histo);
 		tdp.getPanel().createImage();
 		tdp.getPanel().screenCapture(file);
-		tdp.setVisible(true);
-		// tdp.windowClosing(null);
-		// tdp = null;
 
+		Container p = tdp.getParent();
+		while (!(p instanceof JFrame)) {
+			p = p.getParent();
+		}
+		p.setVisible(true);
+
+		System.out.println("Wrote to " + new File(file).getAbsolutePath());
 		// TODO set to histogram image location? set to histogram image?
 		ext.setClipboard(histo.getSummary());
 	}
@@ -136,10 +143,11 @@ public class ClipSwap {
 				sigfigsExtrastep = new int[] {ext.parseIntArg(line[0]), 0};
 			} else if (line[0].startsWith("step=")) {
 				sigfigsExtrastep = Histogram.reverseStep(ext.parseDoubleArg(line[0]));
-				System.out.println("Overriding step to be " + ext.formDeci(
-																																	 Histogram.determineStep(sigfigsExtrastep[0],
-																																													 sigfigsExtrastep[1]),
-																																	 sigfigsExtrastep[0] + 2));
+				System.out.println("Overriding step to be "
+													 + ext.formDeci(
+																					Histogram.determineStep(sigfigsExtrastep[0],
+																																	sigfigsExtrastep[1]),
+																					sigfigsExtrastep[0] + 2));
 			} else if (ext.isMissingValue(line[0])) {
 				if (countInvalids < 5) {
 					System.out.println("Line # " + (i + 1) + " had an invalid double: "
@@ -170,28 +178,31 @@ public class ClipSwap {
 	public static void inverseVarianceMeta() {
 		// System.out.println(Array.toStr(MetaAnalysis.inverseVarianceWeighting(ext.getClipboard().trim().split("\\n"),
 		// new Logger()), "/"));
-		ext.setClipboard(ArrayUtils.toStr(MetaAnalysis.inverseVarianceWeighting(ext.getClipboard().trim().split("\\n"), new Logger())));
+		ext.setClipboard(ArrayUtils.toStr(MetaAnalysis.inverseVarianceWeighting(ext.getClipboard()
+																																							 .trim().split("\\n"),
+																																						new Logger())));
 	}
 
 	public static void convertBetaSE2OR_CI(int sigfigs) {
 		String[] lines = ext.getClipboard().trim().split("\\n");
 		String str = "";
-		
+
 		for (int i = 0; i < lines.length; i++) {
 			String[] line = lines[i].trim().split("\t", -1);
 			Logger log = new Logger();
 			double beta = 999;
 			double se = 999;
-			
+
 			if (line.length != 2) {
 				ext.waitForResponse("ClipSwap/Convert beta/SE to OR (95% CI) was called, but did not find two tokens to parse");
-				return;			
+				return;
 			}
 			try {
 				beta = Double.parseDouble(line[0]);
 			} catch (Exception e) {
 				e.printStackTrace();
-				ext.waitForResponse("ClipSwap/Convert beta/SE to OR (95% CI) was called, but could not parse beta value from line "+(i+1)+": "+line[0]);
+				ext.waitForResponse("ClipSwap/Convert beta/SE to OR (95% CI) was called, but could not parse beta value from line "
+														+ (i + 1) + ": " + line[0]);
 				return;
 			}
 
@@ -199,11 +210,14 @@ public class ClipSwap {
 				se = Double.parseDouble(line[1]);
 			} catch (Exception e) {
 				e.printStackTrace();
-				ext.waitForResponse("ClipSwap/Convert beta/SE to OR (95% CI) was called, but could not parse beta value from line "+(i+1)+": "+line[0]);
+				ext.waitForResponse("ClipSwap/Convert beta/SE to OR (95% CI) was called, but could not parse beta value from line "
+														+ (i + 1) + ": " + line[0]);
 				return;
 			}
-			
-			str += ext.formDeci(Math.exp(beta), sigfigs) +" ("+ ext.formDeci(Math.exp(beta-1.96*se), sigfigs)+", "+ ext.formDeci(Math.exp(beta+1.96*se), sigfigs) +")\n"; 
+
+			str += ext.formDeci(Math.exp(beta), sigfigs) + " ("
+						 + ext.formDeci(Math.exp(beta - 1.96 * se), sigfigs) + ", "
+						 + ext.formDeci(Math.exp(beta + 1.96 * se), sigfigs) + ")\n";
 		}
 
 		ext.setClipboard(str);
@@ -350,7 +364,8 @@ public class ClipSwap {
 		boolean lookupValuesForSavedKeys = false;
 		int sigfigs = 3;
 
-		String usage = "\n" + "widgets.ClipSwap requires 0-1 arguments\n"
+		String usage = "\n"
+									 + "widgets.ClipSwap requires 0-1 arguments\n"
 									 + "   (1) Fix slashes (i.e. -slash (not the default))\n"
 									 + "   (2) Contracts contents of clipboard (i.e. -contract (not the default))\n"
 									 + "   (3) Expands contents of clipboard (i.e. -expand (not the default))\n"
@@ -360,7 +375,9 @@ public class ClipSwap {
 									 + "   (7) Create bins and counts for a histogram (i.e. -histogram (not the default))\n"
 									 + "   (8) Perform an inverse-variance weighted meta-analysis on a series of betas/stderrs (i.e. -inverseVariance (not the default))\n"
 									 + "   (9) Convert a beta/SE pair to an OR (95% CI) pair (i.e. -convertBetaSE2OR_CI (not the default))\n"
-									 + "            using X number of significant digits (i.e. sigfigs="+sigfigs+" (default))\n"
+									 + "            using X number of significant digits (i.e. sigfigs="
+									 + sigfigs
+									 + " (default))\n"
 									 + "   (10) Split a nominal variable into binary columns (i.e. -nominalVariable (not the default))\n"
 									 + "   (11) Extracts keys from clipboard and saves them to a serialized file, with tabs maintained in lookup values (i.e. -saveKeys (not the default))\n"
 									 + "   (12) Lookup the values for the stored keys using the contents of the clipboard (i.e. -lookupValuesForSavedKeys (not the default))\n"
