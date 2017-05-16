@@ -100,14 +100,11 @@ public class Lumpy {
 																										+ ".lumpy.vcf");
 		runLumpy(lumpyExpressLoc, preps, outputVCF, log);
 
-
 		for (PairedEndSVAnalysis pe : preps) {
 			String svtyperVCF = outDir
-													+ BamOps.getSampleName(pe.getBaseBam(), log) + ".gt.vcf";
+													+ BamOps.getSampleName(pe.getBaseBam(), log) + "lumpy.gt.vcf";
 			SVTyper.run(svtyperLoc, outputVCF, svtyperVCF, pe, log);
 			sortVcf(svtyperVCF, log);
-
-
 		}
 	}
 

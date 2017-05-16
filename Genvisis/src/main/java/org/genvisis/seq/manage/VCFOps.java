@@ -186,6 +186,20 @@ public class VCFOps {
 	 */
 	public static VariantContextWriter initWriter(final String output, final Options[] options,
 																								final SAMSequenceDictionary sequenceDictionary) {
+		return initBuilder(output, options, sequenceDictionary).build();
+	}
+
+	/**
+	 * @param output the output file to write to
+	 * @param options Options to be passed to the builder
+	 * @param sequenceDictionary an existing sequence dictionary- for example:<br>
+	 *        ({@link VCFFileReader#getFileHeader() } and then
+	 *        {@link VCFHeader#getSequenceDictionary()}
+	 * @return an initialized writer
+	 */
+	public static VariantContextWriterBuilder initBuilder(final String output,
+																												final Options[] options,
+																												final SAMSequenceDictionary sequenceDictionary) {
 		VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(output);
 		if (options != null) {
 			for (Options option : options) {
@@ -197,8 +211,7 @@ public class VCFOps {
 			builder.setReferenceDictionary(sequenceDictionary);
 		}
 
-		VariantContextWriter writer = builder.build();
-		return writer;
+		return builder;
 	}
 
 	/**
