@@ -70,6 +70,7 @@ public class Files {
 	public static final int PBS_MEM = 16384;
 	public static final int PBS_PROC = 1;
 	public static final int PBS_WALL = 12;
+	public static final int[] CAT_KEEP_FIRST_HEADER = new int[0];
 
 
 	public static String getRunString() {
@@ -2777,7 +2778,8 @@ public class Files {
 	}
 
 	// can pass skips as null if there are no skips to be made
-	// can pass skips as an empty array (new int[0]) if the first file should pass a header but the
+	// can pass skips as an empty array (CAT_KEEP_FIRST_HEADER) if the first file should pass a header
+	// but the
 	// rest should be skipped
 	public static void cat(String[] originalFiles, String finalFile, int[] skips, boolean addFilename,
 												 Logger log) {

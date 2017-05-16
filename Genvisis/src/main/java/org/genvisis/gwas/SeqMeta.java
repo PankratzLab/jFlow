@@ -2420,11 +2420,11 @@ public class SeqMeta {
 
 		for (int g = 0; g < groups.length; g++) {
 			Files.cat(ArrayUtils.toStringArray(filesToCat.elementAt(g)),
-								dir + hitsDirectory + groups[g] + "_regions.xln", new int[0], log);
+								dir + hitsDirectory + groups[g] + "_regions.xln", Files.CAT_KEEP_FIRST_HEADER, log);
 		}
 		if (inputsToCat.size() > 0) {
 			Files.cat(ArrayUtils.toStringArray(inputsToCat), dir + hitsDirectory + "allForestPlots.input",
-								new int[0], log);
+								Files.CAT_KEEP_FIRST_HEADER, log);
 			batchesToCat.addElement(Files.getRunString() + " cnv.plots.ForestPlot markerList="
 															+ hitsDirectory + "allForestPlots.input");
 			Files.writeArray(ArrayUtils.toStringArray(batchesToCat), dir + "allForestPlots.bat");

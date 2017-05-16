@@ -382,7 +382,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 		}
 		String[] cnvsToCat = Files.toFullPaths(Files.list(dir, CytoCNVariant.CNV_EXT, false), dir);
 		cnvsToCat = filterCNP(proj, cnvsToCat);
-		Files.cat(cnvsToCat, dir + FINAL_CNV, new int[0], log);
+		Files.cat(cnvsToCat, dir + FINAL_CNV, Files.CAT_KEEP_FIRST_HEADER, log);
 		if (!projectHasCNVFile(proj, CNV_DIR + FINAL_CNV, log)) {
 			addCNVFile(proj, CNV_DIR + FINAL_CNV);
 		}
