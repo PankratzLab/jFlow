@@ -14,7 +14,6 @@ import java.util.StringJoiner;
 
 import org.genvisis.CLI;
 import org.genvisis.cnv.Launch;
-import org.genvisis.cnv.analysis.AnalysisFormats;
 import org.genvisis.cnv.analysis.Mosaicism;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
@@ -1233,10 +1232,11 @@ public class GenvisisWorkflow {
 				public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
 					boolean allMarkers = Boolean.parseBoolean(variables.get(this).get(exportAllReq));
 					String tgtFile = allMarkers ? null : variables.get(this).get(targetMarkersReq);
+					boolean[] samplesToExclude = proj.getSamplesToExclude();
 					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
 					Set<String> batchHeaders = ImmutableSet.copyOf(ListSelectionRequirement.parseArgValString(variables.get(this)
 																																																						 .get(batchHeadersReq)));
-					MarkerMetrics.fullQC(proj, null, tgtFile, true, batchHeaders, numThreads);
+					MarkerMetrics.fullQC(proj, samplesToExclude, tgtFile, true, batchHeaders, numThreads);
 				}
 
 				@Override
