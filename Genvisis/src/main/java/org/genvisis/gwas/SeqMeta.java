@@ -660,7 +660,8 @@ public class SeqMeta {
                                                                            : "_" + functionFlagName)
                                    + (runningByChr ? "_chr" + chrom : "") + ".csv";
                   if ((!Files.exists(outputFilename) && !Files.exists(outputFilename + ".gz"))
-                      || new File(outputFilename).length() < 100) {
+                      || (new File(outputFilename).length() < 100
+                          && new File(outputFilename + ".gz").length() < 100)) {
                     Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","), outputFilename);
                     if (new File(objectFilename).length() > 1024) {
                       commands.add("results <- " + method[2] + "(" + objectName + ", SNPInfo="
@@ -772,7 +773,8 @@ public class SeqMeta {
                                + (runningByChr ? "_chr" + chrom : "") + ".csv";
               if (forceMeta
                   || (!Files.exists(outputFilename) && !Files.exists(outputFilename + ".gz"))
-                  || new File(outputFilename).length() == 0) {
+                  || (new File(outputFilename).length() < 100
+                      && new File(outputFilename + ".gz").length() < 100)) {
                 if (objects.size() > 0) {
                   commands.add("results <- " + method[2] + "("
                                + ArrayUtils.toStr(ArrayUtils.toStringArray(objects), ", ")
@@ -952,7 +954,7 @@ public class SeqMeta {
           zipDir = dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/";
           zipDir = ext.verifyDirFormat(zipDir);
           csvs = Files.list(zipDir, null, ".csv", false, false);
-          Zip.gzipMany(csvs, zipDir, zipDir, 10, log);
+          Zip.gzipMany(csvs, zipDir, zipDir, 10, log, true);
 
           for (String f : csvs) {
             if (!new File(zipDir + f).delete()) {
@@ -966,7 +968,7 @@ public class SeqMeta {
         zipDir = dir + phenotypes[i][0] + "/" + methods[m][0] + "/";
         zipDir = ext.verifyDirFormat(zipDir);
         csvs = Files.list(zipDir, null, ".csv", false, false);
-        Zip.gzipMany(csvs, zipDir, zipDir, 10, log);
+        Zip.gzipMany(csvs, zipDir, zipDir, 10, log, true);
         for (String f : csvs) {
           if (!new File(zipDir + f).delete()) {
             log.reportError("Error deleting " + zipDir + f);
