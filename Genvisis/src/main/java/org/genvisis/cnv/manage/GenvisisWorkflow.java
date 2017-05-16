@@ -1870,7 +1870,7 @@ public class GenvisisWorkflow {
 							&& ext.indexOfStr(SampleQC.DUPLICATE_ID_HEADER, header, false, true) == -1) {
 						return false;
 					}
-					String[] reqHdr = {"Class=Exclude", "ExcludeNote", "Use", "UseNote", "Use_cnv",
+					String[] reqHdr = {SampleQC.EXCLUDE_HEADER, "ExcludeNote", "Use", "UseNote", "Use_cnv",
 														 "Use_cnvNote"};
 					int[] facts = ext.indexFactors(reqHdr, header, false, false);
 					for (int i : facts) {

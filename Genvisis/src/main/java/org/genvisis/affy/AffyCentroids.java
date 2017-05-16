@@ -11,6 +11,7 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
@@ -199,7 +200,8 @@ public class AffyCentroids implements Serializable {
 		Logger log = proj.getLog();
 
 		if (!proj.getSampleData(false).hasExcludedIndividuals()) {
-			log.reportError("Error - cannot exclude individuals for centroid computations , no factor named 'Exclude/CLASS=Exclude' in Sample Data");
+			log.reportError("Error - cannot exclude individuals for centroid computations , no factor named '"
+											+ SampleQC.EXCLUDE_HEADER + "' in Sample Data");
 			System.exit(1);
 		} else {
 			SampleData sampleData = proj.getSampleData(false);

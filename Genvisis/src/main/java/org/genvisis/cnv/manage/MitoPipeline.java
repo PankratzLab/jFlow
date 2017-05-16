@@ -32,6 +32,7 @@ import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import org.genvisis.cnv.qc.GcAdjustorParameter;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
@@ -60,7 +61,7 @@ public class MitoPipeline {
 																										"Included in PC?"};
 	public static final String[] SEX = {"female", "male"};
 	public static final String[] SAMPLE_DATA_ADDITION_HEADERS = {"LRR_SD", "Genotype_callrate",
-																															 "CLASS=Exclude"};
+																															 SampleQC.EXCLUDE_HEADER};
 	public static final double[] DEFAULT_PVAL_OPTS = new double[] {0.05, 0.01, 0.001};
 	public static final double DEFAULT_MKR_CALLRATE_FILTER = 0.98;
 	public static final int DEFAULT_NUM_COMPONENTS = -1;

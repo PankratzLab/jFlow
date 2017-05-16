@@ -21,6 +21,7 @@ import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
@@ -187,7 +188,7 @@ public class PrincipalComponentsCompute {
 						tmp[i] += A.get(i, j);
 					}
 					mean[j] = ArrayUtils.mean(tmp);
-					sds[j]=  ArrayUtils.stdev(tmp);
+					sds[j] = ArrayUtils.stdev(tmp);
 				}
 				for (int i = 0; i < A.getNumRows(); i++) {
 					for (int j = 0; j < mean.length; j++) {
@@ -447,7 +448,8 @@ public class PrincipalComponentsCompute {
 		Logger log = proj.getLog();
 
 		if (!proj.getSampleData(false).hasExcludedIndividuals() && excludeSamples) {
-			log.reportError("Error - cannot exclude individuals for PCA , no factor named 'Exclude/CLASS=Exclude' in Sample Data");
+			log.reportError("Error - cannot exclude individuals for PCA , no factor named '"
+											+ SampleQC.EXCLUDE_HEADER + "' in Sample Data");
 			return null;
 		} else if (excludeSamples) {
 			SampleData sampleData = proj.getSampleData(false);

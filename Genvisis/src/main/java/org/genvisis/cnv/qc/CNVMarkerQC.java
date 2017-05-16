@@ -96,7 +96,8 @@ public class CNVMarkerQC implements Runnable {
 			doExclude = true;
 		} else {
 			proj.getLog()
-					.reportError("Error - cannot exclude individuals for MAF computation, no factor named 'Exclude/CLASS=Exclude' in Sample Data");
+					.reportError("Error - cannot exclude individuals for MAF computation, no factor named '"
+											 + SampleQC.EXCLUDE_HEADER + "' in Sample Data");
 			System.exit(1);
 		}
 		return doExclude;
@@ -178,11 +179,13 @@ public class CNVMarkerQC implements Runnable {
 																																	String[] markerNames) {
 		Hashtable<String, ArrayList<String>> markerFiles = new Hashtable<String, ArrayList<String>>();
 		for (int i = 0; i < markerNames.length; i++) {
-			if (!markerFiles.containsKey(markerLookup.get(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE)[0])) {
+			if (!markerFiles.containsKey(markerLookup.get(markerNames[i])
+																							 .split(PSF.Regex.GREEDY_WHITESPACE)[0])) {
 				ArrayList<String> al = new ArrayList<String>();
 				markerFiles.put(markerLookup.get(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE)[0], al);
 			}
-			markerFiles.get(markerLookup.get(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE)[0]).add(markerNames[i]);
+			markerFiles.get(markerLookup.get(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE)[0])
+								 .add(markerNames[i]);
 		}
 		return markerFiles;
 	}

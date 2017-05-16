@@ -185,7 +185,7 @@ public class SampleData {
 	public static final String[] BASIC_CLASSES = {"All", HEATMAP, GENOTYPE};
 	public static final String[] MINIMAL_SAMPLE_DATA_HEADER = {"DNA", "FID", "IID"};
 	public static final String[] EUPHEMISMS = {"CleanedSex", "Sex", "Gender",};
-	public static final String[] EXCLUDE_ALIASES = {"Exclude"};
+	public static final String[] EXCLUDE_ALIASES = {SampleQC.EXCLUDE_HEADER.split("=")[1]};
 	public static final String[][][] KEYS_FOR_BASIC_CLASSES = {{{"0", "All"}},
 																														 {{"1", "A/A"}, {"2", "A/B"},
 																															{"3", "B/B"}},
@@ -584,6 +584,10 @@ public class SampleData {
 
 	public boolean hasExcludedIndividuals() {
 		return excludeClassIndex != -1;
+	}
+
+	public boolean hasClass(String className) {
+		return Arrays.asList(getClasses(true)).contains(className.toUpperCase());
 	}
 
 	public boolean individualShouldBeExcluded(String id) {

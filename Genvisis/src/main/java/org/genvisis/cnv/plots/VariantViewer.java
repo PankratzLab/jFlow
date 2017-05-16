@@ -79,6 +79,7 @@ import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources.Resource;
+import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.Region;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
@@ -2956,7 +2957,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
 		for (int i = 0; i < header.length; i++) {
 			String hdr = header[i].toLowerCase();
-			if (hdr.startsWith("class=exclude")) {
+			if (hdr.startsWith(SampleQC.EXCLUDE_HEADER.toLowerCase())) {
 				exclCol = i;
 			} else if (hdr.startsWith("class=pop")) {
 				popCol = i;

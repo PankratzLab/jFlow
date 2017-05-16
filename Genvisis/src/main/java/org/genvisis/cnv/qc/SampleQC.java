@@ -39,6 +39,7 @@ public class SampleQC {
 	private static final double EXCLUDE_LRR_SD_THRESHOLD = 0.5;
 
 	public static final String DUPLICATE_ID_HEADER = "DuplicateId";
+	public static final String EXCLUDE_HEADER = "CLASS=Exclude";
 
 	private final Project proj;
 	private final String[] samples;
@@ -241,7 +242,7 @@ public class SampleQC {
 
 	private String[] developHeader(Quantiles[] quantiles, int numQ, boolean justQuantiles) {
 		ArrayList<String> header = new ArrayList<String>();
-		header.add("CLASS=Exclude");
+		header.add(SampleQC.EXCLUDE_HEADER);
 		header.add("ExcludeNote");
 		if (checkDuplicates) {
 			header.add(DUPLICATE_ID_HEADER);
