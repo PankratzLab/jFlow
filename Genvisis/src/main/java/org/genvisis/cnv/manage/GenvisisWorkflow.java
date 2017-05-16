@@ -2298,27 +2298,7 @@ public class GenvisisWorkflow {
 						proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output);
 					}
 					if (scope != CALLING_SCOPE.AUTOSOMAL) {
-
-						boolean[] inclSampAll = proj.getSamplesToInclude(null);
-						int[] sexes = proj.getSampleData(false).getSexForAllIndividuals();
-						ArrayList<String> males = new ArrayList<String>();
-						ArrayList<String> females = new ArrayList<String>();
-
-						for (int i = 0; i < inclSampAll.length; i++) {
-							if (sexes[i] == -1) {
-								// ignore
-							} else if (sexes[i] == 1) {
-								males.add(samples[i]);
-							} else if (sexes[i] == 2) {
-								females.add(samples[i]);
-							} else {
-								// Leave these for now, but when computing LRRs and BAFs, will need to be crafty....
-							}
-						}
-
-						CNVCaller.callGenomeCnvs(proj, output, males.toArray(new String[males.size()]),
-																		 females.toArray(new String[females.size()]), cents,
-																		 CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF,
+						CNVCaller.callGenomeCnvs(proj, output, cents, CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF,
 																		 PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
 
 						proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output + "_23M.cnv");

@@ -858,15 +858,43 @@ public class CNVCaller {
 	 * 
 	 * 
 	 */
-	public static void callGenomeCnvs(Project proj, String outputFileBase, String[] maleSamples,
-																		String[] femaleSamples, Centroids[] centroids,
+	public static void callGenomeCnvs(Project proj, String outputFileBase, Centroids[] centroids,
 																		int minNumMarkers, double minConf,
 																		PFB_MANAGEMENT_TYPE pManagementType, int numSampleThreads,
 																		int numChrThreads) {
-		PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
+
 		String output;
 		CNVCallerIterator callerIterator;
 		// will passing null to chrsToCall result in calling on 23/24 also?
+
+		boolean[][] chrs = getSexChrMarkers(proj);
+		String[][] samplesBySex = getSexSegregatedSamples(proj);
+
+		output = proj.PROJECT_DIRECTORY.getValue() + outputFileBase + "_23M.cnv";
+		new File(ext.parseDirectoryOfFile(output)).mkdirs();
+		callerIterator = getGenomeCallerIterator(proj, samplesBySex[0], 23, true, chrs[0],
+																						 centroids[0], minNumMarkers, minConf, pManagementType,
+																						 numSampleThreads, numChrThreads);
+		writeOutput(callerIterator, output, proj.getLog());
+
+
+		output = proj.PROJECT_DIRECTORY.getValue() + outputFileBase + "_23F.cnv";
+		callerIterator = getGenomeCallerIterator(proj, samplesBySex[1], 23, false, chrs[0],
+																						 centroids[1], minNumMarkers, minConf, pManagementType,
+																						 numSampleThreads, numChrThreads);
+		writeOutput(callerIterator, output, proj.getLog());
+
+
+		output = proj.PROJECT_DIRECTORY.getValue() + outputFileBase + "_24M.cnv";
+		callerIterator = getGenomeCallerIterator(proj, samplesBySex[0], 24, true, chrs[1],
+																						 centroids[0], minNumMarkers, minConf, pManagementType,
+																						 numSampleThreads, numChrThreads);
+		writeOutput(callerIterator, output, proj.getLog());
+
+	}
+
+	private static boolean[][] getSexChrMarkers(Project proj) {
+		PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
 		boolean[] chr23 = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
 		int[][] indicesByChr = markerSet.getIndicesByChr();
 		for (int i = 0; i < indicesByChr[23].length; i++) {
@@ -876,29 +904,92 @@ public class CNVCaller {
 		for (int i = 0; i < indicesByChr[24].length; i++) {
 			chr24[indicesByChr[24][i]] = true;
 		}
+		return new boolean[][] {chr23, chr24};
+	}
 
+	private static String[][] getSexSegregatedSamples(Project proj) {
+		String[] samples = proj.getSamples();
+		boolean[] inclSampAll = proj.getSamplesToInclude(null);
+		int[] sexes = proj.getSampleData(false).getSexForAllIndividuals();
+		ArrayList<String> males = new ArrayList<String>();
+		ArrayList<String> females = new ArrayList<String>();
 
-		output = proj.PROJECT_DIRECTORY.getValue() + outputFileBase + "_23M.cnv";
-		new File(ext.parseDirectoryOfFile(output)).mkdirs();
-		callerIterator = getCallerIterator(proj, markerSet, maleSamples, new int[] {23}, chr23,
-																			 centroids[0], minNumMarkers, minConf, pManagementType,
-																			 numSampleThreads, numChrThreads);
-		writeOutput(callerIterator, output, proj.getLog());
+		for (int i = 0; i < inclSampAll.length; i++) {
+			if (sexes[i] == -1) {
+				// ignore
+			} else if (sexes[i] == 1) {
+				males.add(samples[i]);
+			} else if (sexes[i] == 2) {
+				females.add(samples[i]);
+			} else {
+				// Leave these for now, but when computing LRRs and BAFs, will need to be crafty....
+			}
+		}
+		return new String[][] {males.toArray(new String[males.size()]),
+													 females.toArray(new String[females.size()])};
+	}
 
+	/**
+	 * @param proj
+	 * @param call on these samples only
+	 * @param chrToCall call cnvs on this chromosome only
+	 * @param markersToUse use only these markers when calling cnvs...
+	 * @param centroids use these centroids to call cnvs
+	 * @param numSampleThreads number of samples analyzed at once.
+	 * @param numChrThreads number of chromosomes in each sample analyzed at once
+	 *
+	 *        NOTE: total thread usage is numSampleThreads*numChrThreads
+	 */
+	public static CNVCallerIterator getGenomeCallerIterator(Project proj,
+																													String[] samples, int chrToCall,
+																													boolean isMale, boolean[] markersToUse,
+																													Centroids centroids, int minNumMarkers,
+																													double minConf,
+																													PFB_MANAGEMENT_TYPE pManagementType,
+																													int numSampleThreads, int numChrThreads) {
 
-		output = proj.PROJECT_DIRECTORY.getValue() + outputFileBase + "_23F.cnv";
-		callerIterator = getCallerIterator(proj, markerSet, femaleSamples, new int[] {23}, chr23,
-																			 centroids[1], minNumMarkers, minConf, pManagementType,
-																			 numSampleThreads, numChrThreads);
-		writeOutput(callerIterator, output, proj.getLog());
-
-
-		output = proj.PROJECT_DIRECTORY.getValue() + outputFileBase + "_24M.cnv";
-		callerIterator = getCallerIterator(proj, markerSet, maleSamples, new int[] {24}, chr24,
-																			 centroids[0], minNumMarkers, minConf, pManagementType,
-																			 numSampleThreads, numChrThreads);
-		writeOutput(callerIterator, output, proj.getLog());
-
+		PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
+		PennHmm pennHmmOriginal = PennHmm.loadPennHmm(proj.HMM_FILENAME.getValue(), new Logger());
+		String pfbFile = isMale ? proj.PFB_MALE_FILENAME.getValue()
+													 : proj.PFB_FEMALE_FILENAME.getValue();
+		if (!Files.exists(pfbFile)) {
+			proj.getLog().reportTimeInfo("Did not find sex-specific PFB file for "
+																	 + (isMale ? "males" : "females")
+																	 + ".  Attempting to use whole population PFB instead.");
+			if (!Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
+				proj.getLog().reportTimeInfo("Did not find " + proj.CUSTOM_PFB_FILENAME.getValue()
+																		 + ", attempting to generate it now");
+				PennCNV.populationBAF(proj);
+			}
+			pfbFile = proj.CUSTOM_PFB_FILENAME.getValue();
+		}
+		PFB pfb = PFB.loadPFB(proj, pfbFile);
+		if (!Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))) {
+			Resource gmodelBase = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog())
+																		 .getModelBase();
+			if (!Files.exists(proj.GC_MODEL_FILENAME.getValue()) && gmodelBase.isAvailable()) {
+				proj.getLog()
+						.reportTimeWarning("Generating gcModel for " + proj.GENOME_BUILD_VERSION.getValue()
+															 + " at " + proj.GC_MODEL_FILENAME.getValue() + " from "
+															 + gmodelBase.get());
+				proj.getLog().setLevel(3);
+				PennCNV.gcModel(proj, gmodelBase.get(), proj.GC_MODEL_FILENAME.getValue(), 100);
+			}
+		}
+		GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false,
+																																													false),
+																													false, proj.getLog());
+		if (gcModel == null) {
+			proj.getLog().reportTimeWarning("Calling cnvs without gc correction");
+		}
+		CNVProducer producer = new CNVProducer(proj, markerSet, pennHmmOriginal, gcModel, pfb, samples,
+																					 new int[] {chrToCall}, markersToUse, centroids,
+																					 minNumMarkers,
+																					 minConf, numChrThreads, false, pManagementType, true);
+		WorkerTrain<CNVCallResult> train = new WorkerTrain<CNVCallResult>(producer, numSampleThreads,
+																																			2,
+																																			proj.getLog());
+		return new CNVCallerIterator(train);
 	}
 
 	/**
@@ -1089,8 +1180,7 @@ public class CNVCaller {
 					}
 				}
 
-				callGenomeCnvs(proj, output, males.toArray(new String[males.size()]),
-											 females.toArray(new String[females.size()]), sexCents, minNumMarkers,
+				callGenomeCnvs(proj, output, sexCents, minNumMarkers,
 											 minConf, PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
 			} else {
 				callAutosomalCNVs(proj, output, proj.getSamples(), null, null, minNumMarkers, minConf,

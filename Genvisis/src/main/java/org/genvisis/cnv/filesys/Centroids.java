@@ -654,6 +654,7 @@ public class Centroids implements Serializable, TextExport {
 		String[] samples;
 		String[] header;
 		byte[] markerChrs;
+		int[] markerPos;
 		final boolean[] inclSampAll;
 		final boolean[] inclSampFemales;
 		final boolean[] inclSampMales;
@@ -728,6 +729,7 @@ public class Centroids implements Serializable, TextExport {
 
 		allMarkers = markerSet.getMarkerNames();
 		markerChrs = markerSet.getChrs();
+		markerPos = markerSet.getPositions();
 
 		int qInd = 0;
 		for (int i = 0; i < markerChrs.length; i++) {
@@ -911,6 +913,8 @@ public class Centroids implements Serializable, TextExport {
 
 				for (int i = 0; i < allMarkers.length; i++) {
 					if (!chromPlus11Markers[i]) {
+						writerM.println(allMarkers[i] + "\t" + markerChrs[i] + "\t" + markerPos[i] + "\tNaN");
+						writerF.println(allMarkers[i] + "\t" + markerChrs[i] + "\t" + markerPos[i] + "\tNaN");
 						continue;
 					}
 					String[][] pfbEntry = pfbInfo.get(Integer.valueOf(i));
@@ -925,6 +929,9 @@ public class Centroids implements Serializable, TextExport {
 
 				writerM.close();
 				writerF.close();
+
+				proj.PFB_MALE_FILENAME.setValue(pfbFiles[0]);
+				proj.PFB_FEMALE_FILENAME.setValue(pfbFiles[1]);
 			} catch (IOException e1) {
 				log.reportError("Error - problem occured when writing to new sex-specific .pfb files");
 				log.reportException(e1);

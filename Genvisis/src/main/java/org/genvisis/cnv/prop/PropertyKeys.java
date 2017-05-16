@@ -58,6 +58,8 @@ public class PropertyKeys {
 	public static final String KEY_GENOME_CLUSTER_FILENAME = "GENOME_CLUSTER_FILENAME";
 	public static final String KEY_CNV_FILENAMES = "CNV_FILENAMES";
 	public static final String KEY_HMM_FILENAME = "HMM_FILENAME";
+	public static final String KEY_MALE_PFB_FILENAME = "MALE_PFB_FILENAME";
+	public static final String KEY_FEMALE_PFB_FILENAME = "FEMALE_PFB_FILENAME";
 	public static final String KEY_CUSTOM_PFB_FILENAME = "CUSTOM_PFB_FILENAME";
 	public static final String KEY_REGION_LIST_FILENAMES = "REGION_LIST_FILENAMES";
 	public static final String KEY_INDIVIDUAL_CNV_LIST_FILENAMES = "INDIVIDUAL_CNV_LIST_FILENAMES";

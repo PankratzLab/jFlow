@@ -557,6 +557,16 @@ public class Project implements PropertyChangeListener {
 																																			 "", GROUP.CENTROIDS, true,
 																																			 COPY.NO_COPY,
 																																			 "", false);
+	public FileProperty PFB_MALE_FILENAME = new FileProperty(this,
+																													 PropertyKeys.KEY_MALE_PFB_FILENAME,
+																													 "", GROUP.CNV_FILES, true,
+																													 COPY.NO_COPY, "data/males.pfb",
+																													 false);
+	public FileProperty PFB_FEMALE_FILENAME = new FileProperty(this,
+																														 PropertyKeys.KEY_FEMALE_PFB_FILENAME,
+																														 "", GROUP.CNV_FILES, true,
+																														 COPY.NO_COPY,
+																														 "data/females.pfb", false);
 	public FileProperty GENOME_CLUSTER_FILENAME = new FileProperty(
 																																 this,
 																																 PropertyKeys.KEY_GENOME_CLUSTER_FILENAME,
