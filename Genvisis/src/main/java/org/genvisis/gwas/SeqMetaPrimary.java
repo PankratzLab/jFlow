@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
@@ -18,7 +19,8 @@ import org.genvisis.stats.Rscript;
 public class SeqMetaPrimary {
 
   public static void batch(String cohort, String genos, String phenoFilename, String snpInfo,
-                           int qsubMem, double qsubWalltime, String queue, boolean usePrep2) {
+                           int qsubMem, double qsubWalltime, String queue, boolean usePrep2,
+                           String saveName) {
     String phenoDir;
     String phenoRoot;
     String resultDir;
@@ -35,6 +37,8 @@ public class SeqMetaPrimary {
     String consolidate;
     Vector<String> jobNamesWithAbsolutePaths;
     IntVector jobSizes;
+    String name;
+    String chrName;
 
     if (!new File(phenoFilename).exists()) {
       System.err.println("Error - File not found " + phenoFilename);
@@ -67,6 +71,18 @@ public class SeqMetaPrimary {
       foundGenos = false;
       foundSnpInfo = false;
       for (int i = 1; i <= 24; i++) {
+        if (i == 23) {
+          chrName = ".X";
+        } else if (i == 24) {
+          chrName = ".Y";
+        } else if (i == 25) {
+          chrName = ".XY";
+        } else if (i == 26) {
+          chrName = ".MT";
+        } else {
+          chrName = "." + Integer.toString(i);
+        }
+        name = saveName == null ? cohort + "_chr" : saveName;
         currentGeno = ext.replaceAllWith(genos, "#", i + ""); // Files.getAppropriateWriter();
         if (snpInfo.contains("#")) {
           currentSnpInfo = ext.replaceAllWith(snpInfo, "#", i + "");
@@ -120,9 +136,9 @@ public class SeqMetaPrimary {
                                                                + "colnames(Z) <- names\n")
                   + "\n" + "pheno <- read.csv(\"" + phenoFilename
                   + "\", header=T, as.is=T, row.names=1)\n" + "xphen <- na.omit(pheno)\n"
-                  + "b <- nrow(unique(pheno[1]))" + "if (b > 2) {" + "  family <- \"gaussian\""
-                  + "} else {" + "  family <= \"binomial\"" + "}"
-                  + "merged <- merge(xphen, Z, by=\"row.names\")\n"
+                  + "b <- nrow(unique(pheno[1])) \n" + "if (b > 2) { \n"
+                  + "  family <- \"gaussian\" \n" + "} else {\n" + "  family <= \"binomial\"\n"
+                  + "}\n" + "merged <- merge(xphen, Z, by=\"row.names\")\n"
                   + "mPheno <- merged[,1:ncol(pheno)+1]\n" + "names <- colnames(pheno)\n"
                   + "coxy <- sum(names %in% c(\"time\", \"status\"))\n" + "if (length(names)>1) {\n"
                   + "    if (coxy == 2) {\n"
@@ -148,7 +164,7 @@ public class SeqMetaPrimary {
                   + " <- prepCox(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)\n"
                   + "} else {\n" + "    message(\"using "
                   + (usePrep2 ? "prepScores2" : "traditional prepScores method") + "\")\n    "
-                  + cohort + "_chr" + i + " <- prepScores" + (usePrep2 ? "2" : "")
+                  + name + chrName + " <- prepScores" + (usePrep2 ? "2" : "")
                   + "(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno, family=family"
                   + (i == 23 ? ", male=mPhenos$SEX" : "") + ")\n" + "}\n"
                   // + "results <- singlesnpMeta(" + cohort + "_chr" + i + ", SNPInfo=SNPInfo,
@@ -156,13 +172,14 @@ public class SeqMetaPrimary {
                   + "results <- burdenMeta(" + cohort + "_chr" + i
                   + ", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), SNPInfo=SNPInfo, snpNames=\"SNP\", wts = 1)\n"
                   + "write.table(results, \"" + cohort + "_chr" + i
-                  + "_beforeSave_results.csv\", sep=\",\", row.names = F)\n" + "save(" + cohort
-                  + "_chr" + i + ", file=\"" + cohort + "_chr" + i
-                  + ".RData\", compress=\"bzip2\")";
+                  + "_beforeSave_results.csv\", sep=\",\", row.names = F)\n" + "save(" + name
+                  + chrName + ", file=\"" + name + chrName + ".RData\", compress=\"bzip2\")" + "\n"
+                  + "write.table(mPheno, \"" + name + chrName
+                  + ".mPheno.xln, sep=\"\t\", row.names=F)";
 
           // consolidate won't run if it's not added
-          filename = batchDir + cohort + "_chr" + i + ".R";
-          if (!Files.exists(resultDir + cohort + "_chr" + i + ".RData")) {
+          filename = batchDir + name + chrName + ".R";
+          if (!Files.exists(resultDir + name + chrName + ".RData")) {
             out = new PrintWriter(new FileOutputStream(filename));
             out.println(rCode);
             out.close();
@@ -221,12 +238,13 @@ public class SeqMetaPrimary {
         new File(batchDir + "finishWithHigherMem_" + cohort).delete();
       }
 
+      name = saveName == null ? cohort : saveName;
       iterations = Matrix.toMatrix(ArrayUtils.toStringArray(consolidateVector));
       v = new Vector<>();
       jobNamesWithAbsolutePaths = new Vector<>();
       jobSizes = new IntVector();
       v.add("setwd(\"" + resultDir + "\")");
-      consolidate = cohort + "<- c(";
+      consolidate = name + "<- c(";
       for (int i = 0; i < iterations.length; i++) {
         v.add("load(\"" + ext.rootOf(iterations[i][0]) + ".RData\")");
         consolidate += (i == 0 ? "" : ", ") + ext.rootOf(iterations[i][0]);
@@ -236,8 +254,8 @@ public class SeqMetaPrimary {
       }
       consolidate += ")";
       v.add(consolidate);
-      v.add("class(" + cohort + ") <- \"skatCohort\"");
-      v.add("save(" + cohort + ", file=\"" + cohort + ".RData\", compress=\"bzip2\")");
+      v.add("class(" + name + ") <- \"skatCohort\"");
+      v.add("save(" + name + ", file=\"" + name + ".RData\", compress=\"bzip2\")");
       Files.writeArray(ArrayUtils.toStringArray(v), batchDir + "mergeRdataFiles.R");
       commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save " + batchDir
                  + "mergeRdataFiles.R";
@@ -258,7 +276,8 @@ public class SeqMetaPrimary {
 
   public static void batchMany(String cohort, String genos, String phenosCommaDelimited,
                                String racesCommaDelimited, String snpInfo, int qsubMem,
-                               double qsubWalltime, String queue, boolean usePrep2) {
+                               double qsubWalltime, String queue, boolean usePrep2,
+                               String saveName) {
     String[] phenos, races;
     Vector<String> v;
 
@@ -269,9 +288,16 @@ public class SeqMetaPrimary {
     for (String pheno : phenos) {
       for (String race : races) {
         try {
+          if (saveName != null) {
+            SimpleDateFormat s = new SimpleDateFormat("ddMMMyyyy");
+            Date now = new Date();
+            String d = s.format(now).toUpperCase();
+            saveName = ext.replaceAllWith(saveName, "[%race]", (race.equals("AA") ? "AFA" : "EUR"));
+            saveName = ext.replaceAllWith(saveName, "[%date]", d);
+          }
           batch(cohort + "_" + race + "_" + pheno, ext.replaceAllWith(genos, "[%race]", race),
                 ext.pwd() + cohort + "_" + race + "_" + pheno + ".csv", snpInfo, qsubMem,
-                qsubWalltime, queue, usePrep2);
+                qsubWalltime, queue, usePrep2, saveName);
         } catch (Exception e) {
           System.err.println("Error - failed to script up " + pheno + "/" + race);
         }
@@ -535,6 +561,7 @@ public class SeqMetaPrimary {
     String rename = null;
     String queue = null;
     boolean usePrep2 = true;
+    String saveName = null;
 
     cohort = "ARIC";
     genos = "D:/SkatMeta/genotypes_blacks_AA/AA_ARIC_noJHS_chr#t.csv";
@@ -588,6 +615,8 @@ public class SeqMetaPrimary {
         queue = ext.parseStringArg(arg, null);
       } else if (arg.startsWith("-prep2")) {
         usePrep2 = false;
+      } else if (arg.startsWith("savename=")) {
+        saveName = arg.split("=")[1];
       } else {
         System.err.println("Error - invalid argument: " + arg);
       }
@@ -599,10 +628,11 @@ public class SeqMetaPrimary {
       } else if (additionals) {
         additionalModels(cohort, phenos, snpInfo, qsubMem, qsubWalltime);
       } else {
-        batchMany(cohort, genos, phenos, races, snpInfo, qsubMem, qsubWalltime, queue, usePrep2);
+        batchMany(cohort, genos, phenos, races, snpInfo, qsubMem, qsubWalltime, queue, usePrep2,
+                  saveName);
       }
     } else {
-      batch(cohort, genos, pheno, snpInfo, qsubMem, qsubWalltime, queue, usePrep2);
+      batch(cohort, genos, pheno, snpInfo, qsubMem, qsubWalltime, queue, usePrep2, saveName);
     }
   }
 
