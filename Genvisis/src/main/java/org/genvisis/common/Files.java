@@ -352,35 +352,34 @@ public class Files {
     return copy;
   }
 
+  // causes trouble with Serialized data
   public static boolean copyFile(String from, String to) {
-    InputStream is = null;
-    OutputStream os = null;
+    FileReader in;
+    FileWriter out;
+    int c;
+
     try {
-      is = new FileInputStream(new File(from));
-      os = new FileOutputStream(new File(to));
-      byte[] buffer = new byte[1024];
-      int length;
-      while ((length = is.read(buffer)) > 0) {
-        os.write(buffer, 0, length);
+      in = new FileReader(from);
+    } catch (FileNotFoundException fnfe) {
+      System.err.println("Error - Cannot find " + from + " in current directory");
+      return false;
+    }
+
+    try {
+      out = new FileWriter(to);
+
+      while ((c = in.read()) != -1) {
+        out.write(c);
       }
+
+      in.close();
+      out.close();
+
       new File(to).setLastModified(new File(from).lastModified());
 
       return true;
-    } catch (FileNotFoundException e) {
-      System.err.println("Error - Cannot find " + from + " in current directory");
+    } catch (Exception e) {
       return false;
-    } catch (IOException e) {
-      return false;
-    } finally {
-      try {
-        is.close();
-        os.close();
-      } catch (IOException e) {
-        if (new File(from).length() == new File(to).length()) {
-          return true;
-        }
-        return false;
-      }
     }
   }
 
@@ -2034,17 +2033,7 @@ public class Files {
   }
 
   public static long getSize(String filename) {
-    long size = -1;
-
-    try {
-      if (Files.exists(filename)) {
-        size = new File(filename).length();
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-    return size;
+    return getSize(new File(filename));
   }
 
   public static long getSize(File file) {
@@ -2059,7 +2048,7 @@ public class Files {
     }
 
     return size;
-  }
+}
 
   public static int getSizeInJar(String filename) {
     int size = -1;
