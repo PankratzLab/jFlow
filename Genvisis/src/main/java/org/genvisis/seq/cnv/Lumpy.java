@@ -46,10 +46,11 @@ public class Lumpy {
 	 * @param outputVCF
 	 * @param log
 	 */
-	private static void runLumpy(String lumpyExpressLoc, List<PairedEndSVAnalysis> toRun,
+	private static void runLumpy(String lumpyExpressLoc, String lumpyExcludeBed,
+															 List<PairedEndSVAnalysis> toRun,
 															 String outputVCF,
 															 Logger log) {
-
+		// -x FILE
 		StringBuilder bArg = new StringBuilder("-B ");
 		StringBuilder sArg = new StringBuilder("-S ");
 		StringBuilder dArg = new StringBuilder("-D ");
@@ -78,6 +79,11 @@ public class Lumpy {
 		cmd.add(dArg.toString());
 		cmd.add("-o");
 		cmd.add(outputVCF);
+		if (lumpyExcludeBed != null) {
+			cmd.add("-x"); // see http://www.nature.com/ng/journal/v49/n5/full/ng.3834.html
+			cmd.add(lumpyExcludeBed);
+			inputFiles.add(lumpyExcludeBed);
+		}
 
 		CmdLine.runCommandWithFileChecks(cmd, "", inputFiles, outputFiles, true, false, false, true,
 																		 log);
@@ -85,7 +91,8 @@ public class Lumpy {
 
 	}
 
-	private static void run(String lumpyExpressLoc, String svtyperLoc, String bam, String outDir,
+	private static void run(String lumpyExpressLoc, String lumpyExcludeBed, String svtyperLoc,
+													String bam, String outDir,
 													int threads) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + ext.rootOf(bam) + "_lumpy.log");
@@ -98,7 +105,7 @@ public class Lumpy {
 																									: BamOps.getSampleName(preps.get(0).getBaseBam(),
 																																				 log)
 																										+ ".lumpy.vcf");
-		runLumpy(lumpyExpressLoc, preps, outputVCF, log);
+		runLumpy(lumpyExpressLoc, lumpyExcludeBed, preps, outputVCF, log);
 
 		for (PairedEndSVAnalysis pe : preps) {
 			String svtyperVCF = outDir
@@ -138,12 +145,16 @@ public class Lumpy {
 												"full path to svtyper script, see https://github.com/hall-lab/svtyper.git",
 												SVTYPER);
 
+		c.addArgWithDefault("bed",
+												"(Optional) full path to a bed file to exclude calls in, see https://github.com/hall-lab/speedseq/blob/30f8dc688ca37b74a3df2cf357fc7c64eaa74b7e/annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed",
+												"a.bed");
 		c.addArgWithDefault(BAM, "Bam file to analyze", "a.bam");
 		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, "na");
 		c.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS, "1");
 
+
 		c.parseWithExit(args);
-		run(c.get(LUMPYEXPRESS), c.get(SVTYPER), c.get(BAM), c.get(CLI.ARG_OUTDIR),
+		run(c.get(LUMPYEXPRESS), c.get("bed"), c.get(SVTYPER), c.get(BAM), c.get(CLI.ARG_OUTDIR),
 				c.getI(CLI.ARG_THREADS));
 	}
 

@@ -5,9 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
-import org.genvisis.common.Internat;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
@@ -36,9 +34,6 @@ public class LumpyFilter {
 	 */
 	public static void main(String[] args) {
 
-		String[] results = Internat.getPage("https://www.ncbi.nlm.nih.gov/pubmed/27488727");
-		Files.writeArray(results, "/Volumes/Beta/data/aric_sra/SRAPipeline/private/testBams/lumpyTest/results.txt");
-		System.out.println(ArrayUtils.toStr(results));
 		String vcf = "/Volumes/Beta/data/aric_sra/SRAPipeline/private/testBams/lumpyTest/H_UM-Schiffman-129-SS-129lumpy.gt.sort.vcf";
 		Logger log = new Logger(ext.parseDirectoryOfFile(vcf) + "filt.log");
 		SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome("/Volumes/Beta/ref/all_sequences.fa", log)
