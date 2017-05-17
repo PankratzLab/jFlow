@@ -335,9 +335,7 @@ public class VCFSimpleTally {
 					String[] line = reader.readLine().trim().split("\t");
 					String gene = line[0].toUpperCase();
 					if (anno.containsKey(gene)) {
-						throw new IllegalAccessError("One entry per gene per file, " + gene
-																				 + " was seen twice");
-
+						log.reportTimeWarning(gene + " was seen twice, skipping " + ArrayUtils.toStr(line));
 					} else {
 						if (line.length > header.length) {
 							throw new IllegalArgumentException("Error, lines cannot be greater length than the header in"

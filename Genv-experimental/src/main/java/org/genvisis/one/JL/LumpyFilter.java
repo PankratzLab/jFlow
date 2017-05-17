@@ -1,16 +1,25 @@
 package org.genvisis.one.JL;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
+import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
+import org.genvisis.common.Internat;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
 
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
+import htsjdk.variant.vcf.VCFHeader;
 
 /**
  * Test filtering of SV vcf using svtyper GQ of lumpy calls
@@ -26,6 +35,10 @@ public class LumpyFilter {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+
+		String[] results = Internat.getPage("https://www.ncbi.nlm.nih.gov/pubmed/27488727");
+		Files.writeArray(results, "/Volumes/Beta/data/aric_sra/SRAPipeline/private/testBams/lumpyTest/results.txt");
+		System.out.println(ArrayUtils.toStr(results));
 		String vcf = "/Volumes/Beta/data/aric_sra/SRAPipeline/private/testBams/lumpyTest/H_UM-Schiffman-129-SS-129lumpy.gt.sort.vcf";
 		Logger log = new Logger(ext.parseDirectoryOfFile(vcf) + "filt.log");
 		SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome("/Volumes/Beta/ref/all_sequences.fa", log)
@@ -34,13 +47,31 @@ public class LumpyFilter {
 		VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 		VariantContextWriter writer = VCFOps.initBuilder(VCFOps.getAppropriateRoot(vcf, false) + ".filt.vcf",
 				VCFOps.DEFUALT_WRITER_OPTIONS, samSequenceDictionary).build();
+		// VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY,
+		// log);
+		VCFHeader newVCFHeader = new VCFHeader(reader.getFileHeader().getMetaDataInInputOrder(),
+				reader.getFileHeader().getGenotypeSamples());
+		newVCFHeader.setSequenceDictionary(samSequenceDictionary);
+
+		HashMap<String, List<String>> typeLocs = new HashMap<>();
+		writer.writeHeader(newVCFHeader);
 		for (VariantContext vc : reader) {
-			if (vc.getGenotype(0).getGQ() > 150) {
+			if (vc.getGenotype(0).getGQ() > 50) {
 				writer.add(vc);
+				Segment seg = VCOps.getSegment(vc);
+				String type = VCOps.getAnnotationsFor(new String[] { "SVTYPE" }, vc, ".")[0];
+				if (!typeLocs.containsKey(type)) {
+					typeLocs.put(type, new ArrayList<>());
+				}
+				typeLocs.get(type).add(
+						seg.getChr() + "\t" + seg.getStart() + "\t" + seg.getStop() + "\t" + vc.getGenotype(0).getGQ());
 			}
 		}
 		reader.close();
 		writer.close();
+		for (String type : typeLocs.keySet()) {
+			Files.writeIterable(typeLocs.get(type), VCFOps.getAppropriateRoot(vcf, false) + "_" + type + ".filt.bed");
+		}
 	}
 
 }
