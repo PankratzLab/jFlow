@@ -1,5 +1,6 @@
 package org.genvisis.cnv.qc;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -12,8 +13,10 @@ import org.genvisis.stats.ProbDist;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 
 public class BatchEffects {
@@ -99,7 +102,7 @@ public class BatchEffects {
 
 	private static final ChiSquareTest CHI_SQUARE = new ChiSquareTest();
 
-	private final ImmutableSortedSet<BatchEffect> notableEffects;
+	private final ImmutableMap<String, ImmutableSortedSet<BatchEffect>> notableEffects;
 
 	public BatchEffects(byte[] genotypes, Map<Integer, String> indexBatches, double pValueThreshold,
 											Logger log) {
@@ -135,17 +138,31 @@ public class BatchEffects {
 
 	}
 
-	public ImmutableSortedSet<BatchEffect> getNotableEffects() {
+	/**
+	 * 
+	 * @return ImmutableMap from batch name to ImmutableSortedSet of {@link BatchEffect}s, with keys
+	 *         sorted by the minimum effect p-value
+	 */
+	public ImmutableMap<String, ImmutableSortedSet<BatchEffect>> getNotableEffects() {
 		return notableEffects;
+	}
+
+	public BatchEffect getMostNotableBatchEffect() {
+		if (hasBatchEffects()) {
+			return notableEffects.values().iterator().next().first();
+		} else {
+			return null;
+		}
 	}
 
 	public boolean hasBatchEffects() {
 		return !notableEffects.isEmpty();
 	}
 
-	private static ImmutableSortedSet<BatchEffect> calculateNotableEffects(byte[] genos,
-																																				 Map<Integer, String> indexBatches,
-																																				 double pValueThreshold) {
+
+	private static ImmutableMap<String, ImmutableSortedSet<BatchEffect>> calculateNotableEffects(byte[] genos,
+																																															 Map<Integer, String> indexBatches,
+																																															 double pValueThreshold) {
 		HashMultimap<String, Integer> batchIndices = HashMultimap.create();
 		Multimaps.invertFrom(Multimaps.forMap(indexBatches), batchIndices);
 
@@ -169,8 +186,8 @@ public class BatchEffects {
 				}
 			}
 		}
-
-		ImmutableSortedSet.Builder<BatchEffect> batchEffectsBuilder = ImmutableSortedSet.naturalOrder();
+		ImmutableMap.Builder<String, ImmutableSortedSet<BatchEffect>> batchEffectsBuilder = ImmutableMap.builder();
+		batchEffectsBuilder.orderEntriesByValue(Ordering.natural().onResultOf(Collections::min));
 		int totalMisses = missCounts.size();
 		int totalGenos = genoCounts.size();
 
@@ -181,9 +198,11 @@ public class BatchEffects {
 			int batchMisses = missCounts.count(batch);
 			int batchGenos = genoCounts.count(batch);
 
+			ImmutableSortedSet.Builder<BatchEffect> batchNotableEffectsBuilder = ImmutableSortedSet.naturalOrder();
+
 			double missP = calcMissChiSquareP(batchMisses, batchGenos, totalMisses, totalGenos);
 			if (missP <= pValueThreshold) {
-				batchEffectsBuilder.add(new BatchEffect(missP, batch, TestType.MISSINGNESS));
+				batchNotableEffectsBuilder.add(new BatchEffect(missP, batch, TestType.MISSINGNESS));
 			}
 
 			int batchBAlleles = bAlleleCounts.count(batch);
@@ -192,7 +211,12 @@ public class BatchEffects {
 			double allelicP = calcAllelicChiSquareP(batchBAlleles, batchAlleles, totalBAlleles,
 																							totalAlleles);
 			if (allelicP <= pValueThreshold) {
-				batchEffectsBuilder.add(new BatchEffect(allelicP, batch, TestType.ALLELIC));
+				batchNotableEffectsBuilder.add(new BatchEffect(allelicP, batch, TestType.ALLELIC));
+			}
+
+			ImmutableSortedSet<BatchEffect> batchNotableEffects = batchNotableEffectsBuilder.build();
+			if (!batchNotableEffects.isEmpty()) {
+				batchEffectsBuilder.put(batch, batchNotableEffects);
 			}
 
 		}

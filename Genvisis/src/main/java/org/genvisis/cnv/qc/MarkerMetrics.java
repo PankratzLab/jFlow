@@ -14,6 +14,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.qc.BatchEffects.TestType;
 import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.AlleleFreq;
@@ -46,11 +48,14 @@ import org.genvisis.stats.Ttest;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.collect.HashMultiset;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Table;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
@@ -81,6 +86,7 @@ public class MarkerMetrics {
 	public static final String DEFAULT_EXCLUSION_CRITERIA = "cnv/qc/default_exclusion.criteria";
 	public static final String DEFAULT_COMBINED_CRITERIA = "cnv/qc/default_combined.criteria";
 	public static final String DEFAULT_MENDEL_FILE_SUFFIX = ".mendel";
+	public static final String BATCH_EFFECTS_FILE_SUFFIX = "batchEffects.out";
 
 	public static final Set<String> DEFAULT_SAMPLE_DATA_BATCH_HEADERS = ImmutableSet.of("PLATE",
 																																											"BATCH");
@@ -136,28 +142,72 @@ public class MarkerMetrics {
 		}
 		proj.verifyAndGenerateOutliers(false);
 
+
+		// Immutable Map and Multiset guarantee fixed iteration order between headers and values
+		ImmutableMap<String, ImmutableMap<Integer, String>> batchHeaderIndexBatches;
+		ImmutableMap<String, ImmutableMultiset<String>> batchHeaderBatches;
+		{
+			ImmutableMap.Builder<String, ImmutableMap<Integer, String>> batchHeaderIndexBatchesBuilder = ImmutableMap.builder();
+			ImmutableMap.Builder<String, ImmutableMultiset<String>> batchHeaderBatchesBuilder = ImmutableMap.builder();
+			for (String batchHeader : sampleDataBatchHeaders) {
+				SampleData sampleData = proj.getSampleData(false);
+				Map<String, Integer> sampleIndices = proj.getSampleList().getSampleIndices();
+				ImmutableMap.Builder<Integer, String> indexBatchesBuilder = ImmutableMap.builder();
+				ImmutableMultiset.Builder<String> batchesBuilder = ImmutableMultiset.builder();
+				for (Map.Entry<String, String> metaDataEntry : sampleData.getMetaData(batchHeader)
+																																 .entrySet()) {
+					String dna = metaDataEntry.getKey();
+					String batch = metaDataEntry.getValue();
+					Integer sampleIndex = sampleIndices.get(dna);
+					if (sampleIndex != null && !samplesToExclude[sampleIndex]) {
+						indexBatchesBuilder.put(sampleIndex, batch);
+						batchesBuilder.add(batch);
+					}
+				}
+				batchHeaderIndexBatchesBuilder.put(batchHeader, indexBatchesBuilder.build());
+				batchHeaderBatchesBuilder.put(batchHeader, batchesBuilder.build());
+			}
+
+			batchHeaderIndexBatches = batchHeaderIndexBatchesBuilder.build();
+			batchHeaderBatches = batchHeaderBatchesBuilder.build();
+		}
+
 		if (numThreads <= 1) {
-			fullQC(proj, samplesToExclude, markerNames, finalQcFile, checkMendel,
-						 sampleDataBatchHeaders);
+			fullQC(proj, samplesToExclude, markerNames, finalQcFile, checkMendel, batchHeaderIndexBatches,
+						 batchHeaderBatches);
 		} else {
 			WorkerHive<Boolean> hive = new WorkerHive<Boolean>(numThreads, 10, proj.getLog());
 			List<String[]> batches = ArrayUtils.splitUpArray(markerNames, numThreads, proj.getLog());
 			String[] tmpQc = new String[batches.size()];
 			String[] tmpMendel = new String[batches.size()];
+			Table<String, BatchEffects.TestType, String[]> tmpBatchEffectFiles = HashBasedTable.create();
+			for (String batchHeader : batchHeaderBatches.keySet()) {
+				for (BatchEffects.TestType testType : BatchEffects.TestType.values()) {
+					tmpBatchEffectFiles.put(batchHeader, testType, new String[batches.size()]);
+				}
+			}
 			for (int i = 0; i < batches.size(); i++) {
 				String tmp = ext.addToRoot(finalQcFile, "tmp" + i);
 				hive.addCallable(new MarkerMetricsWorker(proj, samplesToExclude, batches.get(i), tmp,
-																								 checkMendel, sampleDataBatchHeaders));
+																								 checkMendel, batchHeaderIndexBatches,
+																								 batchHeaderBatches));
 				tmpQc[i] = tmp;
 				if (checkMendel) {
 					tmpMendel[i] = ext.rootOf(tmp, false) + DEFAULT_MENDEL_FILE_SUFFIX;
+				}
+				for (String batchHeader : batchHeaderBatches.keySet()) {
+					for (BatchEffects.TestType testType : BatchEffects.TestType.values()) {
+						tmpBatchEffectFiles.get(batchHeader,
+																		testType)[i] = generateBatchHeaderFilename(tmp, batchHeader,
+																																							 testType);
+					}
 				}
 			}
 
 			hive.execute(true);
 			ArrayList<Boolean> complete = hive.getResults();
 			if (ArrayUtils.booleanArraySum(Booleans.toArray(complete)) == complete.size()) {
-				Files.cat(tmpQc, finalQcFile, new int[0], proj.getLog());
+				Files.cat(tmpQc, finalQcFile, Files.CAT_KEEP_FIRST_HEADER, proj.getLog());
 				if (Files.exists(finalQcFile) && Files.countLines(finalQcFile, 1) == markerNames.length) {
 					for (String element : tmpQc) {
 						new File(element).delete();
@@ -168,7 +218,7 @@ public class MarkerMetrics {
 
 				if (checkMendel) {
 					Files.cat(tmpMendel, ext.rootOf(finalQcFile, false) + DEFAULT_MENDEL_FILE_SUFFIX,
-										new int[0], proj.getLog());
+										Files.CAT_KEEP_FIRST_HEADER, proj.getLog());
 					if (Files.exists(ext.rootOf(finalQcFile, false) + DEFAULT_MENDEL_FILE_SUFFIX)) {
 						for (String element : tmpMendel) {
 							new File(element).delete();
@@ -179,17 +229,34 @@ public class MarkerMetrics {
 														 + ext.rootOf(finalQcFile, false) + DEFAULT_MENDEL_FILE_SUFFIX);
 					}
 				}
+
+				for (Table.Cell<String, BatchEffects.TestType, String[]> batchEffectFileCell : tmpBatchEffectFiles.cellSet()) {
+					String batchHeader = batchEffectFileCell.getRowKey();
+					BatchEffects.TestType testType = batchEffectFileCell.getColumnKey();
+					String[] tmpFiles = batchEffectFileCell.getValue();
+					String finalBatchFile = generateBatchHeaderFilename(finalQcFile, batchHeader, testType);
+					Files.cat(tmpFiles, finalBatchFile, Files.CAT_KEEP_FIRST_HEADER, proj.getLog());
+					if (Files.exists(finalBatchFile)) {
+						for (String element : tmpFiles) {
+							new File(element).delete();
+						}
+					} else {
+						proj.getLog().reportError("Could not collapse temporary batch effects files to "
+																			+ finalBatchFile);
+					}
+				}
 			} else {
 				proj.getLog().reportError("Could not complete marker QC");
 			}
 		}
+
 	}
 
 
 	private static void fullQC(Project proj, boolean[] sampleIndicesToExclude, String[] markerNames,
-														 String fullPathToOutput, boolean checkMendel,
-														 Set<String> sampleDataBatchHeaders) {
-		PrintWriter writer, mendelWriter = null;
+														 String fullPathToOutput, final boolean checkMendel,
+														 ImmutableMap<String, ImmutableMap<Integer, String>> batchHeaderIndexBatches,
+														 ImmutableMap<String, ImmutableMultiset<String>> batchHeaderBatches) {
 		String[] samples;
 		float[] thetas, rs, lrrs;
 		byte[] abGenotypes;
@@ -219,22 +286,29 @@ public class MarkerMetrics {
 		clusterFilterCollection = proj.getClusterFilterCollection();
 		gcThreshold = proj.getProperty(proj.GC_THRESHOLD).floatValue();
 		sexes = getSexes(proj, samples);
-		Pedigree pedigree = proj.loadPedigree();
+		final Pedigree pedigree = proj.loadPedigree();
 
 		final boolean[] samplesToExclude = sampleIndicesToExclude == null ? ArrayUtils.booleanArray(samples.length,
 																																																false)
 																																			: sampleIndicesToExclude;
 
-		// Use LinkedHashMap to guarantee order is consistent in header and when writing lines
-		Map<String, Map<Integer, String>> batchHeaderIndexBatches = Maps.newLinkedHashMap();
-		for (String batchHeader : sampleDataBatchHeaders) {
-			batchHeaderIndexBatches.put(batchHeader,
-																	generateSampleIndexBatches(proj, batchHeader, samplesToExclude));
-		}
+		PrintWriter mendelWriter = null;
 
-		try {
-			writer = Files.openAppropriateWriter(fullPathToOutput);
-			writer.println(generateHeader(batchHeaderIndexBatches));
+		try (PrintWriter writer = Files.openAppropriateWriter(fullPathToOutput)) {
+			writer.println(generateHeader(batchHeaderBatches));
+
+			Table<String, BatchEffects.TestType, PrintWriter> batchHeaderWriters = HashBasedTable.create();
+			for (Map.Entry<String, ImmutableMultiset<String>> batchHeaderEntry : batchHeaderBatches.entrySet()) {
+				String batchHeader = batchHeaderEntry.getKey();
+				Multiset<String> batches = batchHeaderEntry.getValue();
+				for (BatchEffects.TestType testType : BatchEffects.TestType.values()) {
+					PrintWriter batchHeaderWriter = Files.openAppropriateWriter(generateBatchHeaderFilename(fullPathToOutput,
+																																																	batchHeader,
+																																																	testType));
+					batchHeaderWriters.put(batchHeader, testType, batchHeaderWriter);
+					batchHeaderWriter.println(generateBatchHeader(batches));
+				}
+			}
 
 			if (pedigree != null && checkMendel) {
 				mendelWriter = Files.openAppropriateWriter(ext.rootOf(fullPathToOutput, false)
@@ -376,8 +450,31 @@ public class MarkerMetrics {
 				line.add(mecCnt);
 				line.add(duplicateErrorCount);
 
-				for (Map<Integer, String> indexBatches : batchHeaderIndexBatches.values()) {
-					line.add(calculateBatchHeaderPValue(abGenotypes, indexBatches, log));
+				for (Map.Entry<String, ImmutableMap<Integer, String>> indexBatchesEntry : batchHeaderIndexBatches.entrySet()) {
+					String batchHeader = indexBatchesEntry.getKey();
+					Map<Integer, String> indexBatches = indexBatchesEntry.getValue();
+					Collection<String> batches = batchHeaderBatches.get(batchHeader).elementSet();
+					BatchEffects batchEffectResults = new BatchEffects(abGenotypes, indexBatches, 1, log);
+					line.add(calculateBatchHeaderPValue(batchEffectResults));
+					for (BatchEffects.TestType testType : BatchEffects.TestType.values()) {
+						StringJoiner batchLineJoiner = new StringJoiner("\t");
+						batchLineJoiner.add(markerName);
+						Map<String, ? extends Set<BatchEffects.BatchEffect>> batchEffectMap = batchEffectResults.getNotableEffects();
+						for (String batch : batches) {
+							Collection<BatchEffects.BatchEffect> batchEffects = batchEffectMap.get(batch);
+							String batchLineAddition = ".";
+							if (batchEffects != null) {
+								for (BatchEffects.BatchEffect batchEffect : batchEffects) {
+									if (batchEffect.getTestType().equals(testType)) {
+										batchLineAddition = Double.toString(batchEffect.getpValue());
+										break;
+									}
+								}
+							}
+							batchLineJoiner.add(batchLineAddition);
+						}
+						batchHeaderWriters.get(batchHeader, testType).println(batchLineJoiner.toString());
+					}
 				}
 
 				writer.println(Joiner.on('\t').join(line));
@@ -390,27 +487,47 @@ public class MarkerMetrics {
 				// markerDataLoader.releaseIndex(i);
 			}
 			mdl.shutdown();
-			if (pedigree != null && checkMendel) {
-				mendelWriter.flush();
-				mendelWriter.close();
-			}
+
 			// writer.print(line);
-			writer.close();
 			log.report("Finished analyzing " + markerNames.length + " in " + ext.getTimeElapsed(time));
 		} catch (Exception e) {
 			log.reportError("Error writing marker metrics to " + fullPathToOutput);
 			log.reportException(e);
+		} finally {
+			if (pedigree != null && checkMendel) {
+				mendelWriter.flush();
+				mendelWriter.close();
+			}
 		}
 	}
 
-	private static String generateHeader(Map<String, Map<Integer, String>> batchHeaderIndexBatches) {
+	private static String generateHeader(Map<String, ImmutableMultiset<String>> batchHeaderBatches) {
 		List<String> headerItems = Lists.newArrayList(FULL_QC_BASE_HEADER);
-		for (Map.Entry<String, Map<Integer, String>> batchHeaderEntry : batchHeaderIndexBatches.entrySet()) {
+		for (Map.Entry<String, ? extends Multiset<String>> batchHeaderEntry : batchHeaderBatches.entrySet()) {
 			String batchHeader = batchHeaderEntry.getKey();
-			int numBatches = ImmutableSet.copyOf(batchHeaderEntry.getValue().values()).size();
+			int numBatches = batchHeaderEntry.getValue().entrySet().size();
 			headerItems.add(formBatchEffectHeader(batchHeader, numBatches));
 		}
 		return Joiner.on('\t').join(headerItems);
+	}
+
+	private static String generateBatchHeader(Multiset<String> batches) {
+		StringJoiner batchHeaderJoiner = new StringJoiner("\t");
+		batchHeaderJoiner.add("MarkerName");
+		for (String batch : batches.elementSet()) {
+			int count = batches.count(batch);
+			batchHeaderJoiner.add(batch + "_n=" + count);
+		}
+		return batchHeaderJoiner.toString();
+	}
+
+	private static String generateBatchHeaderFilename(String qcFilename, String batchHeader,
+																										TestType testType) {
+		StringJoiner filenameJoiner = new StringJoiner("_");
+		filenameJoiner.add(ext.rootOf(qcFilename, false))
+									.add(ext.replaceWithLinuxSafeCharacters(batchHeader, true))
+									.add(testType.toString()).add(BATCH_EFFECTS_FILE_SUFFIX);
+		return filenameJoiner.toString();
 	}
 
 	/**
@@ -462,30 +579,10 @@ public class MarkerMetrics {
 		return Sets.intersection(sampleDataBatchHeaders, sampleData.getMetaHeaders());
 	}
 
-	private static Map<Integer, String> generateSampleIndexBatches(Project proj, String batchHeader,
-																																 boolean[] samplesToExclude) {
-		SampleData sampleData = proj.getSampleData(false);
-		Map<String, Integer> sampleIndices = proj.getSampleList().getSampleIndices();
-		Map<Integer, String> indexBatches = Maps.newHashMapWithExpectedSize(sampleIndices.size());
-		HashMultiset<String> batches = HashMultiset.create();
-		for (Map.Entry<String, String> metaDataEntry : sampleData.getMetaData(batchHeader)
-																														 .entrySet()) {
-			String dna = metaDataEntry.getKey();
-			String batch = metaDataEntry.getValue();
-			batches.add(batch);
-			Integer sampleIndex = sampleIndices.get(dna);
-			if (sampleIndex != null && !samplesToExclude[sampleIndex]) {
-				indexBatches.put(sampleIndex, batch);
-			}
-		}
-		return indexBatches;
-	}
-
-	private static String calculateBatchHeaderPValue(byte[] genotypes,
-																									 Map<Integer, String> indexBatches, Logger log) {
-		BatchEffects batchEffects = new BatchEffects(genotypes, indexBatches, 1, log);
-		if (batchEffects.hasBatchEffects()) {
-			return Double.toString(batchEffects.getNotableEffects().first().getpValue());
+	private static String calculateBatchHeaderPValue(BatchEffects batchEffects) {
+		BatchEffects.BatchEffect mostNotableEffect = batchEffects.getMostNotableBatchEffect();
+		if (mostNotableEffect != null) {
+			return Double.toString(mostNotableEffect.getpValue());
 		} else {
 			return ".";
 		}
@@ -1464,25 +1561,27 @@ public class MarkerMetrics {
 		private final String[] markerNames;
 		private final String fullPathToOutput;
 		private final boolean checkMendel;
-		private final Set<String> sampleDataBatchHeaders;
+		private final ImmutableMap<String, ImmutableMap<Integer, String>> batchHeaderIndexBatches;
+		private final ImmutableMap<String, ImmutableMultiset<String>> batchHeaderBatches;
 
 		public MarkerMetricsWorker(Project proj, boolean[] samplesToExclude, String[] markerNames,
 															 String fullPathToOutput, boolean checkMendel,
-															 Set<String> sampleDataBatchHeaders) {
+															 ImmutableMap<String, ImmutableMap<Integer, String>> batchHeaderIndexBatches,
+															 ImmutableMap<String, ImmutableMultiset<String>> batchHeaderBatches) {
 			super();
 			this.proj = proj;
 			this.samplesToExclude = samplesToExclude;
 			this.markerNames = markerNames;
 			this.fullPathToOutput = fullPathToOutput;
 			this.checkMendel = checkMendel;
-			this.sampleDataBatchHeaders = sampleDataBatchHeaders;
+			this.batchHeaderIndexBatches = batchHeaderIndexBatches;
+			this.batchHeaderBatches = batchHeaderBatches;
 		}
 
 		@Override
 		public Boolean call() throws Exception {
-
 			fullQC(proj, samplesToExclude, markerNames, fullPathToOutput, checkMendel,
-						 sampleDataBatchHeaders);
+						 batchHeaderIndexBatches, batchHeaderBatches);
 			if (Files.exists(fullPathToOutput)
 					&& Files.countLines(fullPathToOutput, 1) == markerNames.length) {
 				return true;
