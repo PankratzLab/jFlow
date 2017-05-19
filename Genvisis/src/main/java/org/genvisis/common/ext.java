@@ -44,7 +44,7 @@ public class ext {
 
 	public static final Character UNSAFE_CHAR_REPLACEMENT = '_';
 	public static final String[] MISSING_VALUES = {"", ".", "NA", "NaN", "x", "#N/A", "--", "-"};
-	public static final String[][] META_REPLACEMENTS = {{"{Tab}", "\t"}, {"{Space}", " "},
+	public static final String[][] META_REPLACEMENTS = { {"{Tab}", "\t"}, {"{Space}", " "},
 																											{"{!}", "!"}, {"{#}", "#"}, {"{+}", "+"}};
 	public static final String[] COMMON_IDS = {"id", "IID", "IndID", "gwas_id"};
 	public static final String REGEX_TO_SPLIT_SPACES_NOT_IN_QUOTES = "[ ]+(?=([^\"]*\"[^\"]*\")*[^\"]*$)";
@@ -186,7 +186,7 @@ public class ext {
 	public static int indexOfStr(String target, String[][] array, boolean caseSensitive) {
 		for (int i = 0; i < array.length; i++) {
 			if (caseSensitive ? array[i][0].equals(target)
-												: array[i][0].toLowerCase().equals(target.toLowerCase())) {
+											 : array[i][0].toLowerCase().equals(target.toLowerCase())) {
 				return i;
 			}
 		}
@@ -249,13 +249,13 @@ public class ext {
 		for (int i = 0; i < array.length; i++) {
 			if (exactMatch) {
 				if (caseSensitive ? array[i].equals(target)
-													: array[i].toLowerCase().equals(target.toLowerCase())) {
+												 : array[i].toLowerCase().equals(target.toLowerCase())) {
 					indices.add(i);
 				}
 			} else {
 				if (caseSensitive ? array[i].contains(target) || target.contains(array[i])
-													: array[i].toLowerCase().contains(target.toLowerCase())
-														|| target.toLowerCase().contains(array[i].toLowerCase())) {
+												 : array[i].toLowerCase().contains(target.toLowerCase())
+													 || target.toLowerCase().contains(array[i].toLowerCase())) {
 					indices.add(i);
 				}
 			}
@@ -473,7 +473,7 @@ public class ext {
 		}
 
 		result = new DecimalFormat(theFormat).format(num);
-		if (ext.replaceAllWith(result, new String[][] {{"0", ""}, {".", ""}}).equals("-")) {
+		if (ext.replaceAllWith(result, new String[][] { {"0", ""}, {".", ""}}).equals("-")) {
 			result = result.substring(1);
 		}
 		return result;
@@ -504,7 +504,7 @@ public class ext {
 		}
 
 		result = new DecimalFormat(theFormat).format(num);
-		if (ext.replaceAllWith(result, new String[][] {{"0", ""}, {".", ""}}).equals("-")) {
+		if (ext.replaceAllWith(result, new String[][] { {"0", ""}, {".", ""}}).equals("-")) {
 			result = result.substring(1);
 		}
 		return result;
@@ -709,7 +709,8 @@ public class ext {
 			return timeElapsed;
 		}
 
-		System.err.println("Error - '" + returnType
+		System.err.println("Error - '"
+											 + returnType
 											 + "' is an invalid return type: only S(econds), M(inutes), and H(ours) are allowed");
 
 		return -1;
@@ -869,7 +870,7 @@ public class ext {
 			indices[i] = -1;
 			for (int j = 0; j < superset.length; j++) {
 				if (casesensitive ? subset[i].equals(superset[j])
-													: subset[i].equalsIgnoreCase(superset[j])) {
+												 : subset[i].equalsIgnoreCase(superset[j])) {
 					if (indices[i] == -1) {
 						indices[i] = j;
 					} else {
@@ -918,7 +919,8 @@ public class ext {
 	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
 																	 boolean caseSensitive, boolean exactMatch, boolean verbose,
 																	 boolean kill) {
-		return indexFactors(targetsWithAlts, superset, caseSensitive, exactMatch, verbose, new Logger(),
+		return indexFactors(targetsWithAlts, superset, caseSensitive, exactMatch, verbose,
+												new Logger(),
 												kill);
 	}
 
@@ -1083,7 +1085,7 @@ public class ext {
 			}
 		}
 		for (int i = 0; i < (observed.length < expected.length ? observed.length
-																													 : expected.length); i++) {
+																													: expected.length); i++) {
 			if (!observed[i].equalsIgnoreCase(expected[i])
 					|| (caseSensitive && !observed[i].equals(expected[i]))) {
 				log.reportError("Error - Expecting " + expected[i] + " in column " + (i + 1) + "; got "
@@ -1254,7 +1256,8 @@ public class ext {
 		StringBuffer sb = new StringBuffer();
 
 		for (String element : arr) {
-			sb.append(Character.toUpperCase(element.charAt(0))).append(element.substring(1).toLowerCase())
+			sb.append(Character.toUpperCase(element.charAt(0)))
+				.append(element.substring(1).toLowerCase())
 				.append(" ");
 		}
 		return sb.toString().trim();
@@ -1282,7 +1285,7 @@ public class ext {
 
 
 	public static String removeQuotesFromExcelToken(String ori) {
-		return removeQuotesFromExcelToken(ori, new String[][] {{"\t", "[TAB]"}, {",", "[COMMA]"}});
+		return removeQuotesFromExcelToken(ori, new String[][] { {"\t", "[TAB]"}, {",", "[COMMA]"}});
 	}
 
 	public static String removeQuotesFromExcelToken(String ori, String[][] theReplacements) {
@@ -1334,9 +1337,11 @@ public class ext {
 	}
 
 	public static boolean containsAnyChar(String str, Iterable<Character> targets) {
-		for (char element : targets) {
-			if (str.indexOf(element) != -1) {
-				return true;
+		if (str != null) {
+			for (char element : targets) {
+				if (str.indexOf(element) != -1) {
+					return true;
+				}
 			}
 		}
 		return false;
@@ -1489,7 +1494,8 @@ public class ext {
 		} else if (arg.split("=")[1].trim().equalsIgnoreCase("false")) {
 			return false;
 		} else {
-			log.reportError("Error - invalid " + arg.split("=")[0] + "= argument (expecting true/false): "
+			log.reportError("Error - invalid " + arg.split("=")[0]
+											+ "= argument (expecting true/false): "
 											+ arg.split("=")[1].trim());
 			System.exit(1);
 			return false;
@@ -1760,8 +1766,9 @@ public class ext {
 		for (int i = 0; i < str.length(); i++) {
 			if (str.charAt(i) == ',') {
 				if (numCommas % 2 == 0) {
-					v.add(removeAndSimplifyQuotes ? removeAndSimplifyQuotes(str.substring(startIndex, i), log)
-																				: str.substring(startIndex, i));
+					v.add(removeAndSimplifyQuotes
+																			 ? removeAndSimplifyQuotes(str.substring(startIndex, i), log)
+																			 : str.substring(startIndex, i));
 					// System.out.println(v.elementAt(v.size()-1));
 					startIndex = i + 1;
 					if (insideQuotes && str.charAt(i - 1) != '\"') {
@@ -1779,7 +1786,7 @@ public class ext {
 			}
 		}
 		v.add(removeAndSimplifyQuotes ? removeAndSimplifyQuotes(str.substring(startIndex), log)
-																	: str.substring(startIndex));
+																 : str.substring(startIndex));
 
 		return ArrayUtils.toStringArray(v);
 	}
