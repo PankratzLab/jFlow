@@ -1107,13 +1107,12 @@ public class Centroids implements Serializable, TextExport {
 			if (exportFile != null) {
 				exportToText(proj, centFile, exportFile);
 			} else if (sexSpecific) {
-				String pennData, sexDir, malePFB, femalePFB, centFilePathM, centFilePathF;
-				pennData = proj.getProperty(proj.PENNCNV_DATA_DIRECTORY);
-				sexDir = pennData + "sexSpecific/";
-				malePFB = sexDir + "males.pfb";
-				femalePFB = sexDir + "females.pfb";
-				centFilePathM = sexDir + "sexSpecific_Male.cent";
-				centFilePathF = sexDir + "sexSpecific_Female.cent";
+				String dir, malePFB, femalePFB, centFilePathM, centFilePathF;
+				dir = proj.DATA_DIRECTORY.getValue();
+				malePFB = dir + "males.pfb";
+				femalePFB = dir + "females.pfb";
+				centFilePathM = dir + "sexSpecific_Male.cent";
+				centFilePathF = dir + "sexSpecific_Female.cent";
 				computeSexSpecificCentroids(proj, new String[] {malePFB, femalePFB},
 																		new String[] {centFilePathM, centFilePathF}, numThreads);
 			} else if (importFile != null) {
