@@ -53,6 +53,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 	private static final String TELSEQ_PART = "telseq";
 	private static final String COMPUTEL_PART = "computel";
 	private static final String ALL_PART = "all";
+	private static final String SKIP_PRELIM = "skipPrelim";
 
 	private final SRASample sraSample;
 	private final String inputSRA;
@@ -283,14 +284,14 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 			switch (sample.getaType()) {// create the required markerSets for
 				// import...prior to threading
 				case WGS:
-					if (!prelimGenvisisWGS) {
+					if (!prelimGenvisisWGS && !c.has(SKIP_PRELIM)) {
 						generatePrelim(rootOutDir, refGenome, null, null, vcf, log, sample.getaType());
 						prelimGenvisisWGS = true;
 					}
 
 					break;
 				case WXS:
-					if (!prelimGenvisisWXS) {
+					if (!prelimGenvisisWXS && !c.has(SKIP_PRELIM)) {
 						generatePrelim(rootOutDir, refGenome, captureBed, binBed, vcf, log,
 													 sample.getaType());
 						prelimGenvisisWXS = true;
@@ -454,6 +455,9 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 																					 + " not completely implemented for " + platform);
 			}
 		}
+		if (c.has(SKIP_PRELIM)) {
+			baseCommand.add("-" + SKIP_PRELIM);
+		}
 		String batchDir = getBatchDirectory(rootOutDir);
 		new File(batchDir).mkdirs();
 		for (int i = 0; i < splits.length; i++) {
@@ -532,6 +536,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		c.addFlag(TELSEQ_PART, "run the telseq portion of the pipeline");
 		c.addFlag(COMPUTEL_PART, "run the computel portion of the pipeline");
 		c.addFlag(ALL_PART, "run the entire pipeline");
+		c.addFlag(SKIP_PRELIM, "skip preliminary genvisis setup");
 
 		c.addArgWithDefault(PLATFORM_TYPE, "platform to analyze", PLATFORM.ILLUMINA.toString());
 
