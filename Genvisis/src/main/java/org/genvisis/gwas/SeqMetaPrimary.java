@@ -70,7 +70,7 @@ public class SeqMetaPrimary {
       // "c:/diffpath/pheno_F7_studyIDs/batchFiles/chr1.R"
       foundGenos = false;
       foundSnpInfo = false;
-      for (int i = 1; i <= 24; i++) {
+      for (int i = 1; i <= 26; i++) {
         if (i == 23) {
           chrName = ".X";
         } else if (i == 24) {
@@ -160,7 +160,7 @@ public class SeqMetaPrimary {
                   + "offset <- 1+ncol(pheno)\n" + "mGeno <- merged[,1:ncol(Z)+offset]\n" + "\n"
                   + "if (coxy == 2) {\n"
                   + "    message(\"time to event data detected; using a cox model\")\n" + "    "
-                  + cohort + "_chr" + i
+                  + name + chrName
                   + " <- prepCox(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)\n"
                   + "} else {\n" + "    message(\"using "
                   + (usePrep2 ? "prepScores2" : "traditional prepScores method") + "\")\n    "
@@ -169,13 +169,11 @@ public class SeqMetaPrimary {
                   + (i == 23 ? ", male=mPhenos$SEX" : "") + ")\n" + "}\n"
                   // + "results <- singlesnpMeta(" + cohort + "_chr" + i + ", SNPInfo=SNPInfo,
                   // snpNames = \"Name\", cohortBetas = TRUE)\n"
-                  + "results <- burdenMeta(" + cohort + "_chr" + i
+                  + "results <- burdenMeta(" + name + chrName
                   + ", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), SNPInfo=SNPInfo, snpNames=\"SNP\", wts = 1)\n"
-                  + "write.table(results, \"" + cohort + "_chr" + i
+                  + "write.table(results, \"" + name + chrName
                   + "_beforeSave_results.csv\", sep=\",\", row.names = F)\n" + "save(" + name
-                  + chrName + ", file=\"" + name + chrName + ".RData\", compress=\"bzip2\")" + "\n"
-                  + "write.table(mPheno, \"" + name + chrName
-                  + ".mPheno.xln, sep=\"\t\", row.names=F)";
+                  + chrName + ", file=\"" + name + chrName + ".RData\", compress=\"bzip2\")";
 
           // consolidate won't run if it's not added
           filename = batchDir + name + chrName + ".R";
@@ -221,7 +219,7 @@ public class SeqMetaPrimary {
       }
 
       Qsub.qsubExecutor(batchDir, jobNamesWithAbsolutePaths, jobSizes, batchDir + "/batchChrs", 24,
-                        120000, qsubWalltime * 2);
+                        62000, qsubWalltime * 2);
 
       if (iterations.length > 0) {
         commands = "cd " + batchDir + "\n";
@@ -248,7 +246,7 @@ public class SeqMetaPrimary {
       for (int i = 0; i < iterations.length; i++) {
         v.add("load(\"" + ext.rootOf(iterations[i][0]) + ".RData\")");
         consolidate += (i == 0 ? "" : ", ") + ext.rootOf(iterations[i][0]);
-        jobNamesWithAbsolutePaths.add(batchDir + "run_" + cohort + "_" + (i + 1) + ".qsub");
+        jobNamesWithAbsolutePaths.add(batchDir + "run_" + name + "_" + (i + 1) + ".qsub");
         jobSizes.add(Integer.MAX_VALUE
                      - (int) new File(ext.replaceAllWith(genos, "#", (i + 1) + "")).length());
       }
@@ -259,7 +257,7 @@ public class SeqMetaPrimary {
       Files.writeArray(ArrayUtils.toStringArray(v), batchDir + "mergeRdataFiles.R");
       commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save " + batchDir
                  + "mergeRdataFiles.R";
-      Qsub.qsub(batchDir + "run_mergeRdataFiles_" + cohort, commands, qsubMem * 4, qsubWalltime, 1);
+      Qsub.qsub(batchDir + "run_mergeRdataFiles_" + name, commands, qsubMem * 4, qsubWalltime, 1);
       // Files.qsubMultiple( jobNamesWithAbsolutePaths, jobSizes, batchDir,
       // batchDir + "chunk_" + cohort, 8, true, null, -1, qsubMem, qsubWalltime);
       // Files.qsubMultiple( jobNamesWithAbsolutePaths, jobSizes, batchDir,
@@ -288,16 +286,17 @@ public class SeqMetaPrimary {
     for (String pheno : phenos) {
       for (String race : races) {
         try {
+          String sn = saveName;
           if (saveName != null) {
             SimpleDateFormat s = new SimpleDateFormat("ddMMMyyyy");
             Date now = new Date();
             String d = s.format(now).toUpperCase();
-            saveName = ext.replaceAllWith(saveName, "[%race]", (race.equals("AA") ? "AFA" : "EUR"));
-            saveName = ext.replaceAllWith(saveName, "[%date]", d);
+            sn = ext.replaceAllWith(saveName, "[%race]", (race.equals("AA") ? "AFA" : "EUR"));
+            sn = ext.replaceAllWith(sn, "[%date]", d);
           }
           batch(cohort + "_" + race + "_" + pheno, ext.replaceAllWith(genos, "[%race]", race),
                 ext.pwd() + cohort + "_" + race + "_" + pheno + ".csv", snpInfo, qsubMem,
-                qsubWalltime, queue, usePrep2, saveName);
+                qsubWalltime, queue, usePrep2, sn);
         } catch (Exception e) {
           System.err.println("Error - failed to script up " + pheno + "/" + race);
         }
@@ -562,6 +561,7 @@ public class SeqMetaPrimary {
     String queue = null;
     boolean usePrep2 = true;
     String saveName = null;
+    String markers = null;
 
     cohort = "ARIC";
     genos = "D:/SkatMeta/genotypes_blacks_AA/AA_ARIC_noJHS_chr#t.csv";
@@ -617,12 +617,17 @@ public class SeqMetaPrimary {
         usePrep2 = false;
       } else if (arg.startsWith("savename=")) {
         saveName = arg.split("=")[1];
+      } else if (arg.startsWith("markers=")) {
+        markers = arg.split("=")[1];
       } else {
         System.err.println("Error - invalid argument: " + arg);
       }
     }
 
-    if (phenos != null) {
+    if (markers != null) {
+      dumpMarkers(phenos, cohort, genos, markers, races);
+
+    } else if (phenos != null) {
       if (rename != null) {
         renameMany(cohort, phenos, races, rename);
       } else if (additionals) {
@@ -634,6 +639,150 @@ public class SeqMetaPrimary {
     } else {
       batch(cohort, genos, pheno, snpInfo, qsubMem, qsubWalltime, queue, usePrep2, saveName);
     }
+  }
+
+  private static String dumpPhenosWithCovars(String phenoFilename, String cohort, String genos,
+                                             String markers, String race) {
+    String phenoRoot, outfile, loop, filename;
+    String[] g;
+    boolean byChr;
+
+    // TODO Auto-generated method stub
+    genos = ext.replaceAllWith(genos, "[%race]", race);
+
+    phenoRoot = ext.rootOf(phenoFilename);
+
+    g = genos.contains("#") ? null : genos.split("#");
+
+    byChr = g != null;
+
+    outfile = phenoRoot + "_covars.csv";
+    String genoLoadCmd = "geno <- "
+                         + (genos.endsWith(".csv") ? "t(read.csv(name, header=T, as.is=T, row.names=1))"
+                                                   : "load(name)");
+
+    if (byChr) {
+      String genoFile = "paste(" + g[0] + ", c, " + g[1] + ", sep=\"\")";
+
+      loop = "for(c in chrs) {\n" + "  m <- markers$Marker[markers$Chr == c]\n" + "  name <- "
+             + genoFile + "\n" + "  " + genoLoadCmd + "\n"
+             + "  results <- geno[,colnames(geno) %in% m]\n"
+             + "  final <- merge(xphen, results, by=\"row.names\")" + "  out <- paste(\"" + outfile
+             + "_chr\", c, \".csv\", sep=\"\")\n"
+             + "  write.table(final, out, sep=\",\", row.names=T, col.names=T)\n" + "}";
+    } else {
+      loop = "name <- " + genos + "\n " + genoLoadCmd + "\n"
+             + "results <- geno[,colnames(geno) %in% markers$Marker]\n"
+             + "final <- merge(xphen, results, by=\"row.names\")" + "write.table(final, " + outfile
+             + ".csv, sep=\",\", row.names=T, col.names=T)\n";
+    }
+
+    String rCode = "setwd(\"" + ext.pwd() + "\")\n" + "markers <- read.table(\"" + markers
+                   + "\", col.names=c(\"Markers\", \"Chr\")) \n" + "chrs <- unique(markers$Chr)\n"
+                   + "names <- markers$Markers\n" + "pheno <- read.csv(\"" + phenoFilename
+                   + "\", header=T, as.is=T, row.names=1)\n" + "xphen <- na.omit(pheno)\n" + loop;
+
+    try {
+      filename = phenoRoot + "_dumpCovars.R";
+      PrintWriter out = new PrintWriter(new FileOutputStream(filename));
+      out.println(rCode);
+      out.close();
+      return filename;
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(1);
+    }
+
+    return null;
+  }
+
+  private static void dumpMarkers(String phenosCommaDelimited, String cohort, String genos,
+                                  String markers, String racesCommaDelimited) {
+    String[] phenos, races;
+    String phenoFileName;
+    Vector<String> v;
+
+    phenos = phenosCommaDelimited == null ? null : phenosCommaDelimited.split(",");
+    races = racesCommaDelimited.split(",");
+
+    v = new Vector<String>();
+
+    for (String r : races) {
+      v.add(dumpByRace(genos, markers, r));
+      if (phenos != null) {
+        for (String p : phenos) {
+          phenoFileName = ext.pwd() + cohort + "_" + r + "_" + p + ".csv";
+          v.add(dumpPhenosWithCovars(phenoFileName, cohort, genos, markers, r));
+        }
+      }
+
+      Vector<String> jobNamesWithAbsolutePaths = new Vector<String>();
+      IntVector jobSizes = new IntVector();
+
+      for (String f : v) {
+        jobNamesWithAbsolutePaths.add(Rscript.getRscriptExecutable(new Logger()) + " --no-save "
+                                      + f);
+        jobSizes.add(8000);
+      }
+
+      Qsub.qsubExecutor(ext.pwd(), jobNamesWithAbsolutePaths, jobSizes, "run_dumpMarkers", 1, 62000,
+                        2);
+    }
+  }
+
+  private static String dumpByRace(String genos, String markers, String race) {
+    String[] g;
+    String rCode, genoFile, dir, outfile, loop, filename;
+    boolean byChr = false;
+
+    dir = ext.pwd() + "markersOfInterest/";
+
+    if (!new File(dir).exists() || !new File(dir).isDirectory()) {
+      new File(dir).mkdirs();
+    }
+
+    genos = ext.replaceAllWith(genos, "[%race]", race);
+    g = genos.contains("#") ? null : genos.split("#");
+
+    byChr = g != null;
+
+    outfile = race + "_markersOfInterest";
+    String genoLoadCmd = "geno <- "
+                         + (genos.endsWith(".csv") ? "t(read.csv(name, header=T, as.is=T, row.names=1))"
+                                                   : "load(name)");
+
+    if (byChr) {
+      genoFile = "paste(" + g[0] + ", c, " + g[1] + ", sep=\"\")";
+
+      loop = "for(c in chrs) {\n" + "  m <- markers$Marker[markers$Chr == c]\n" + "  name <- "
+             + genoFile + "\n" + "  " + genoLoadCmd + "\n"
+             + "  results <- geno[rownames(geno) %in% m,]\n" + "  out <- paste(\"" + outfile
+             + "_chr\", c, \".csv\", sep=\"\")\n"
+             + "  write.table(results, out, sep=\",\", row.names=T, col.names=T)\n" + "}";
+    } else {
+      loop = "name <-" + genos + "\n" + genoLoadCmd + "\n"
+             + "results <- geno[, colnames(geno) %in% markers$Marker]\n" + "write.table(results, "
+             + outfile + ".csv, sep=\",\", row.names=T, col.names=T)\n";
+    }
+
+    rCode = "setwd(\"" + dir + "\")" + "markers <- read.table(\"" + markers
+            + "\", col.names=c(\"Markers\", \"Chr\")) \n" + "chrs <- unique(markers$Chr)\n"
+            + "names <- markers$Markers\n" + loop;
+
+    try {
+      filename = race + "_dumpMarkers.R";
+      PrintWriter out = new PrintWriter(new FileOutputStream(filename));
+      out.println(rCode);
+      out.close();
+      return filename;
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(1);
+    }
+
+    return null;
   }
 
 }
