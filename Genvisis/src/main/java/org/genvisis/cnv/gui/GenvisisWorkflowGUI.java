@@ -52,6 +52,8 @@ import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import net.miginfocom.swing.MigLayout;
+
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.GenvisisWorkflow;
@@ -68,8 +70,6 @@ import org.genvisis.qsub.Qsub;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
-import net.miginfocom.swing.MigLayout;
 
 public class GenvisisWorkflowGUI extends JDialog {
 
@@ -452,7 +452,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 				char subLetter = 'a';
 				for (int j = 0; j < reqs[i].length; j++) {
 					// OR
-					JLabel indLbl = new JLabel(String.valueOf(i + 1) + (reqs[i].length > 1 ? subLetter++ : "")
+					JLabel indLbl = new JLabel(String.valueOf(i + 1)
+																		 + (reqs[i].length > 1 ? subLetter++ : "")
 																		 + ". ");
 					indLbl.setFont(indLbl.getFont().deriveFont(Font.PLAIN, 9));
 					panel.contentPanel.add(indLbl, "gapleft 25, aligny top, split 1, cell 0 " + rowIndex);
@@ -497,7 +498,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						reqInputFields.put(req, checkBox);
 						panel.contentPanel.add(checkBox,
 																	 "alignx right, aligny center, growx, gapleft 20, cell 1 "
-																						 + rowIndex);
+																			 + rowIndex);
 					} else if (req.getType() == GenvisisWorkflow.RequirementInputType.ENUM) {
 						Object o = req.getDefaultValue();
 						Enum<?>[] vals = ((Enum<?>) o).getClass().getEnumConstants();
@@ -518,7 +519,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						reqInputFields.put(req, jList);
 						panel.contentPanel.add(new JScrollPane(jList),
 																	 "alignx right, aligny center, growx, gapleft 20, cell 1 "
-																													 + rowIndex);
+																			 + rowIndex);
 					} else if (req.getType() != GenvisisWorkflow.RequirementInputType.NONE) {
 						JTextField textField = new JTextField();
 						textField.getDocument().addDocumentListener(new TextChangedListener() {
@@ -531,7 +532,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						reqInputFields.put(req, textField);
 						panel.contentPanel.add(textField,
 																	 "alignx right, aligny center, growx, gapleft 20, split 1, cell 1 "
-																							+ rowIndex);
+																			 + rowIndex);
 						if (req.getType() == GenvisisWorkflow.RequirementInputType.FILE
 								|| req.getType() == GenvisisWorkflow.RequirementInputType.DIR) {
 							JButton fileBtn = new JButton();
@@ -545,7 +546,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 									String current = fileField.getText();
 
 									String dir = "".equals(current) ? proj.PROJECT_DIRECTORY.getValue(false, false)
-																									: ext.parseDirectoryOfFile(current);
+																								 : ext.parseDirectoryOfFile(current);
 									JFileChooser chooser = new JFileChooser(dir);
 									chooser.setMultiSelectionEnabled(false);
 									GenvisisWorkflow.RequirementInputType type = req.getType();
@@ -752,7 +753,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 										for (int i = 0; i < reqsMet.length; i++) {
 											reqLbls.get(lblIndex)
 														 .setForeground(reqsMet[i] ? greenDark
-																											 : hasAny ? Color.GRAY : Color.RED);
+																											: hasAny ? Color.GRAY : Color.RED);
 											lblIndex++;
 										}
 									}
@@ -866,18 +867,13 @@ public class GenvisisWorkflowGUI extends JDialog {
 					Set<Step> selectedSteps = getSelectedOptions();
 					Map<Step, Map<GenvisisWorkflow.Requirement, String>> variables = getVariables();
 					if (checkRequirementsAndNotify(variables)) {
-						StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
+						StringBuilder output = new StringBuilder(
+																										 "## Genvisis Project Pipeline - Stepwise Commands\n\n");
 						Set<GenvisisWorkflow.Flag> flags = EnumSet.noneOf(GenvisisWorkflow.Flag.class);
 						for (Step step : selectedSteps) {
 							flags.addAll(step.getFlags());
 							String cmd = step.getCommandLine(proj, variables);
-							output.append("## ").append(step.getName()).append("\n");
-							output.append("echo \" start ").append(step.getName()).append(" at: \" `date`")
-										.append("\n");
-							output.append(cmd).append("\n");
-							output.append("echo \" end ").append(step.getName()).append(" at: \" `date`")
-										.append("\n");
-							output.append("\n\n");
+							GenvisisWorkflow.addStepInfo(output, step, cmd);
 						}
 						String file = proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline";
 						String suggFile = file + ext.getTimestampForFilename() + ".pbs";
@@ -1042,7 +1038,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 			}
 		}
 		if (!reqMsgs.isEmpty()) {
-			StringBuilder msg = new StringBuilder("Prerequisite requirements are unmet for the following steps:");
+			StringBuilder msg = new StringBuilder(
+																						"Prerequisite requirements are unmet for the following steps:");
 			for (String str : reqMsgs) {
 				msg.append("\n").append(str);
 			}

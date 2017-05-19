@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,6 +60,7 @@ import org.genvisis.gwas.MarkerQC.QC_METRIC;
 import org.genvisis.gwas.PlinkMendelianChecker;
 import org.genvisis.gwas.Qc;
 import org.genvisis.gwas.RelationAncestryQc;
+import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.Maths;
 
 import com.google.common.base.Joiner;
@@ -382,8 +384,9 @@ public class GenvisisWorkflow {
 		}
 
 		private static String stepReqMessage(Step requiredStep) {
-			return "[" + requiredStep.getName()
+			String msg = "[" + (requiredStep == null ? "" : requiredStep.getName())
 						 + "] step must have been run already or must be selected";
+			return msg;
 		}
 
 
@@ -1131,8 +1134,8 @@ public class GenvisisWorkflow {
 					String kvCmd = "";
 
 					String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
-					String gcOutputFile = variables.get(this).get(gcModelOutputReq);
-					if (!ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
+					String gcOutputFile = variables == null ? null : variables.get(this).get(gcModelOutputReq);
+					if (gcOutputFile != null && !ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
 						kvCmd += " GC_MODEL_FILENAME=" + gcOutputFile;
 					}
 
@@ -2113,14 +2116,14 @@ public class GenvisisWorkflow {
 					String kvCmd = "";
 
 					String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
-					String subSampFile = variables.get(this).get(sampleSubsetReq);
+					String subSampFile = variables == null ? null : variables.get(this).get(sampleSubsetReq);
 					String setPFBFile = proj.CUSTOM_PFB_FILENAME.getValue();
-					String pfbOutputFile = variables.get(this).get(outputFileReq);
+					String pfbOutputFile =  variables == null ? null : variables.get(this).get(outputFileReq);
 
-					if (!ext.verifyDirFormat(setSubSampFile).equals(subSampFile)) {
+					if (subSampFile != null && !ext.verifyDirFormat(setSubSampFile).equals(subSampFile)) {
 						kvCmd += " SAMPLE_SUBSET_FILENAME=" + subSampFile;
 					}
-					if (!ext.verifyDirFormat(setPFBFile).equals(pfbOutputFile)) {
+					if (pfbOutputFile != null && !ext.verifyDirFormat(setPFBFile).equals(pfbOutputFile)) {
 						kvCmd += " CUSTOM_PFB_FILENAME=" + pfbOutputFile;
 					}
 
@@ -2147,7 +2150,7 @@ public class GenvisisWorkflow {
 			});
 		}
 
-		private Step generateSexCentroidsStep(Step gcModelStep) {
+		private Step generateSexCentroidsStep() {
 			return register(new Step("Create Sex-Specific Centroids; Filter PFB file", "",
 															 new Requirement[][] {{getNumThreadsReq()},},
 															 EnumSet.of(Flag.RUNTIME),
@@ -2183,7 +2186,7 @@ public class GenvisisWorkflow {
 				@Override
 				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
 
-					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
+					int numThreads = resolveThreads(variables == null ? "-1" : variables.get(this).get(getNumThreadsReq()));
 					String mainCmd = Files.getRunString() + " cnv.filesys.Centroids proj="
 													 + proj.getPropertyFilename() + " -sexSpecific "
 													 + PSF.Ext.NUM_THREADS_COMMAND + numThreads;
@@ -2196,7 +2199,6 @@ public class GenvisisWorkflow {
 					String femalePFB;
 					String centFilePathM;
 					String centFilePathF;
-					String newGCFile;
 					String outputDir = proj.DATA_DIRECTORY.getValue();
 					malePFB = outputDir + "males.pfb";
 					femalePFB = outputDir + "females.pfb";
@@ -2221,7 +2223,7 @@ public class GenvisisWorkflow {
 			final Requirement gcModelStepReq = new StepRequirement(gcModelStep);
 			final Requirement gcModelFileReq = new FileRequirement("GCMODEL File Must Exist",
 																														 proj.GC_MODEL_FILENAME.getValue());
-			final Requirement callingTypeReq = new EnumRequirement("CNV Calling Scope",
+			final Requirement callingTypeReq = new EnumRequirement(CNVCaller.CNV_SCOPE_DESC,
 																														 CNVCaller.CALLING_SCOPE.AUTOSOMAL);
 			final Requirement useCentroidsReq = new OptionalBoolRequirement("If calling chromosomal CNVs, use sex-specific centroids to recalculate LRR/BAF values?",
 																																			true);
@@ -2398,14 +2400,16 @@ public class GenvisisWorkflow {
 																																		CORRECTION_TYPE.XY);
 			final Requirement sexChromosomeStrategyReq = new EnumRequirement("Sex Chromosome Strategy",
 																																			 CHROMOSOME_X_STRATEGY.BIOLOGICAL);
-
+			final Requirement setupCNVCalling = new OptionalBoolRequirement("Create script with steps to process corrected data and call CNVs?", false);
 			return register(new Step("Create PC-Corrected Project", "",
 															 new Requirement[][] {{parseSamplesStepReq}, {numPCsReq},
 																										{outputBaseReq},
 																										{callrateReq}, {recomputeLrrReq}, {tempDirReq},
 																										{correctionStrategyReq},
 																										{sexChromosomeStrategyReq},
-																										{getNumThreadsReq()},},
+																										{getNumThreadsReq()},
+																										{setupCNVCalling},
+																										},
 															 EnumSet.of(Flag.MEMORY, Flag.RUNTIME), priority()) {
 
 				@Override
@@ -2430,14 +2434,16 @@ public class GenvisisWorkflow {
 																																									.get(sexChromosomeStrategyReq));
 
 					int totalThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
+					boolean cnvCalling = Boolean.parseBoolean(variables.get(this).get(setupCNVCalling));
 					String retMsg = PRoCtOR.shadow(proj, tmpDir, outputBase, markerCallRateFilter,
 																				 recomputeLRRPCs, type, strategy, numComponents,
-																				 totalThreads);
-					if (!"".equals(retMsg)) {
+																				 totalThreads, cnvCalling);
+					if (retMsg != null && !"".equals(retMsg)) {
 						setFailed(retMsg);
-					}
+					} 
 				}
-
+				
+				
 				@Override
 				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
 					int numComponents = Integer.parseInt(variables.get(this).get(numPCsReq));
@@ -2585,7 +2591,7 @@ public class GenvisisWorkflow {
 																			gwasQCStep);
 		sb.generateCreatePCsStep(transposeStep);
 		Step pfbStep = sb.generatePFBStep(parseSamplesStep);
-		sb.generateSexCentroidsStep(gcModelStep);
+		sb.generateSexCentroidsStep();
 		sb.generateCNVStep(pfbStep, gcModelStep);
 		if (allowCorrectionStep) {
 			sb.generatePCCorrectedProjectStep(parseSamplesStep);
@@ -2638,5 +2644,61 @@ public class GenvisisWorkflow {
 			proj.NUM_THREADS.setValue(numThreads);
 		}
 	}
+
+
+	static void setupCNVCalling(String projectProperties) {
+		Project pcProj = new Project(projectProperties, false);
+		StepBuilder sb = (new GenvisisWorkflow(pcProj, null)).new StepBuilder();
+		Step transpose = sb.generateTransposeStep(null);
+		// Create new sample data, run sex checks?
+		Step gc = sb.generateGCModelStep();
+		Step pfb = sb.generatePFBStep(null);
+		Step cent = sb.generateSexCentroidsStep();
+		Step cnv = sb.generateCNVStep(pfb, gc);
+		Map<Step, Map<Requirement, String>> stepOpts = new HashMap<>();
+		HashMap<Requirement, String> cnvOpts = new HashMap<>();
+		Requirement[][] reqs = cnv.getRequirements();
+		for (Requirement[] reqArr : reqs) {
+			if (reqArr.length > 1) {
+				continue;
+			}
+			if (reqArr[0].getDescription().equals(CNVCaller.CNV_SCOPE_DESC)) {
+				cnvOpts.put(reqArr[0], CNVCaller.CALLING_SCOPE.BOTH.toString());
+			}
+		}
+		stepOpts.put(cnv, cnvOpts);
+
+		String s1 = transpose.getCommandLine(pcProj, null);
+		String s2 = gc.getCommandLine(pcProj, null);
+		String s3 = pfb.getCommandLine(pcProj, null);
+		String s4 = cent.getCommandLine(pcProj, null);
+		String s5 = cnv.getCommandLine(pcProj, stepOpts);
+
+		String file = pcProj.PROJECT_DIRECTORY.getValue() + "CNVCallingPipeline";
+		String suggFile = file + ext.getTimestampForFilename() + ".pbs";
+		String runFile = file + ext.getTimestampForFilename() + ".run";
+
+		StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
+
+		addStepInfo(output, transpose, s1);
+		addStepInfo(output, gc, s2);
+		addStepInfo(output, pfb, s3);
+		addStepInfo(output, cent, s4);
+		addStepInfo(output, cnv, s5);
+
+		Qsub.qsubDefaults(suggFile, output.toString());
+		Files.write(output.toString(), runFile);
+	}
+
+	public static void addStepInfo(StringBuilder output, Step step, String stepCmd) {
+		output.append("## ").append(step.getName()).append("\n");
+		output.append("echo \" start ").append(step.getName()).append(" at: \" `date`")
+					.append("\n");
+		output.append(stepCmd).append("\n");
+		output.append("echo \" end ").append(step.getName()).append(" at: \" `date`")
+					.append("\n");
+		output.append("\n\n");
+	}
+
 
 }

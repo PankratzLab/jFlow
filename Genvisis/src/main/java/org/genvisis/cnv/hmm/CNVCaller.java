@@ -51,6 +51,7 @@ public class CNVCaller {
 	public static final int DEFAULT_MIN_CONF = 3;
 
 	private static final int MIN_MARKERS_PER_CHROMOSOME = 10;
+	public static final String CNV_SCOPE_DESC = "CNV Calling Scope";
 
 	private final Project proj;
 	private final String dna;

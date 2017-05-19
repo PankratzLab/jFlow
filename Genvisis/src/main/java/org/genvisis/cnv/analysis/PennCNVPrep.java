@@ -626,12 +626,21 @@ public class PennCNVPrep {
 		return files.toArray(new String[files.size()]);
 	}
 
-	private static final String getCorrectedProjectDirectory(Project proj, int numComponents,
-																													 CORRECTION_TYPE correctionType,
-																													 CHROMOSOME_X_STRATEGY sexStrategy) {
+	public static final String getCorrectedProjectDirectory(Project proj, int numComponents,
+																													CORRECTION_TYPE correctionType,
+																													CHROMOSOME_X_STRATEGY sexStrategy) {
 		return proj.PROJECT_DIRECTORY.getValue() + "pcCorrected_" + numComponents
 					 + "PCs_" + correctionType.name() + "_"
 					 + sexStrategy.name() + "/";
+	}
+
+	public static final String getCorrectedProjectProperties(Project proj, int numComponents,
+																													 CORRECTION_TYPE correctionType,
+																													 CHROMOSOME_X_STRATEGY sexStrategy) {
+		String projectPropsDir = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR);
+		return projectPropsDir + ext.rootOf(proj.getPropertyFilename(), true)
+					 + "_pcCorrected_" + numComponents + "PCs" + correctionType.name() + "_"
+					 + sexStrategy.name() + ".properties";
 	}
 
 	/**
@@ -719,15 +728,15 @@ public class PennCNVPrep {
 				proj.getLog().reportException(e);
 			}
 
-			String projectPropsDir = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR);
-			String shadowProjFile = projectPropsDir + ext.rootOf(proj.getPropertyFilename(), true)
-															+ "_pcCorrected_" + numComponents + "PCs.properties";
+			String shadowProjFile = getCorrectedProjectProperties(proj, numComponents, correctionType,
+																														sexStrategy);
 			proj.getLog().report("Saving shadow project properties to: " + shadowProjFile);
 			proj.saveProperties(shadowProjFile);
 			Project shadowProj = new Project(shadowProjFile, false);
 
 			shadowProj.PROJECT_NAME.setValue(proj.PROJECT_NAME.getValue() + " - PC Corrected: "
-																			 + numComponents + "PCs");
+																			 + numComponents + "PCs, " + correctionType.name() + "; "
+																			 + sexStrategy.name());
 			shadowProj.PROJECT_DIRECTORY.setValue(projectDirectory);
 			shadowProj.SAMPLE_DIRECTORY.setValue(sampleDirectory);
 			shadowProj.MARKER_DATA_DIRECTORY.setValue(markerDirectory);

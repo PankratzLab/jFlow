@@ -54,8 +54,10 @@ public class PRoCtOR {
 
 	public static String shadow(Project proj, String tmpDir, String outputBase,
 															double markerCallRateFilter, boolean recomputeLRR_PCs,
-															CORRECTION_TYPE correctionType, CHROMOSOME_X_STRATEGY strategy,
-															int numComponents, int totalThreads) {
+															CORRECTION_TYPE correctionType,
+															CHROMOSOME_X_STRATEGY strategy,
+															int numComponents, int totalThreads,
+															boolean setupCNVCallingIfSuccessfull) {
 		int numMarkerThreads = 1;
 		int numThreads = (int) Math.ceil((double) totalThreads / (double) numMarkerThreads);
 		boolean markerQC = true;
@@ -80,9 +82,15 @@ public class PRoCtOR {
 		}
 		PennCNVPrep.prepExport(proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
 													 numMarkerThreads, LS_TYPE.REGULAR, false, correctionType, strategy);
-		PennCNVPrep.exportSpecialPennCNV(proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
+		PennCNVPrep.exportSpecialPennCNV(proj, SHADOW_PREP_DIR, tmpDir, numComponents, null,
+																		 numThreads,
 																		 numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false,
 																		 false, correctionType, strategy);
+		String newProj = PennCNVPrep.getCorrectedProjectProperties(proj, numComponents, correctionType,
+																															 strategy);
+		if (setupCNVCallingIfSuccessfull) {
+			GenvisisWorkflow.setupCNVCalling(newProj);
+		}
 		return "";
 	}
 
@@ -97,30 +105,46 @@ public class PRoCtOR {
 		CORRECTION_TYPE correctionType = CORRECTION_TYPE.XY;
 		CHROMOSOME_X_STRATEGY strategy = CHROMOSOME_X_STRATEGY.BIOLOGICAL;
 		int numThreads = Runtime.getRuntime().availableProcessors();
+		boolean callCNVs = false;
 
 		String usage = "\n" + "cnv.manage.PRoCtOR requires 0-1 arguments\n"
-									 + "   (1) project properties filename (i.e. proj=" + filename + " (default))\n"
+									 + "   (1) project properties filename (i.e. proj="
+									 + filename
+									 + " (default))\n"
 									 + "   (2) Number of principal components for correction (i.e. numComponents="
-									 + numComponents + " (default))\n"
+									 + numComponents
+									 + " (default))\n"
 									 + "   (3) Output file full path and baseName for principal components correction files (i.e. outputBase="
-									 + outputBase + " (default))\n"
+									 + outputBase
+									 + " (default))\n"
 									 + "   (4) Call-rate filter for determining high-quality markers (i.e. callrate="
-									 + callrate + " (default))\n"
+									 + callrate
+									 + " (default))\n"
 									 + "   (5) Flag specifying whether or not to re-compute Log-R Ratio values (usually false if LRRs already exist) (i.e. recomputeLRR="
-									 + recomputeLRR + " (default))\n"
+									 + recomputeLRR
+									 + " (default))\n"
 									 + "   (6) Type of correction.  Options include: "
-									 + ArrayUtils.toStr(CORRECTION_TYPE.values(), ", ") + " (i.e. type="
-									 + correctionType + " (default))\n"
+									 + ArrayUtils.toStr(CORRECTION_TYPE.values(), ", ")
+									 + " (i.e. type="
+									 + correctionType
+									 + " (default))\n"
 
 									 + "   (7) Chromosome X correction strategy.  Options include: "
-									 + ArrayUtils.toStr(CHROMOSOME_X_STRATEGY.values(), ", ") + " (i.e. sexStrategy="
-									 + strategy + " (default))\n"
+									 + ArrayUtils.toStr(CHROMOSOME_X_STRATEGY.values(), ", ")
+									 + " (i.e. sexStrategy="
+									 + strategy
+									 + " (default))\n"
 
-									 + "   (8) Total number of threads to use (i.e. numThreads=" + numThreads
+									 + "   (8) Total number of threads to use (i.e. numThreads="
+									 + numThreads
 									 + " (default))\n"
 
 									 + "   (8) OPTIONAL: temp directory for intermediate files (which tend to be very large) (i.e. tmp="
-									 + tempDir + " (default))\n" + "";
+									 + tempDir
+									 + " (default))\n"
+									 + "   (9) OPTIONAL: Create a script with the commands required to process the corrected data and call CNVs (i.e. -callCNVs (not the default))\n"
+									 + ""
+									 + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -154,6 +178,9 @@ public class PRoCtOR {
 			} else if (arg.startsWith("tmp=")) {
 				tempDir = ext.parseStringArg(arg, null);
 				numArgs--;
+			} else if (arg.startsWith("-callCNVs")) {
+				callCNVs = true;
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + arg);
 			}
@@ -164,8 +191,8 @@ public class PRoCtOR {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			String err = shadow(proj, tempDir, outputBase, callrate, recomputeLRR, correctionType,
-													strategy, numComponents, numThreads);
+			String err = shadow(proj, tempDir, outputBase, callrate, recomputeLRR,
+													correctionType, strategy, numComponents, numThreads, callCNVs);
 			if (!"".equals(err)) {
 				System.err.println("Error - " + err);
 			}
