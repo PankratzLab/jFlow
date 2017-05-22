@@ -27,7 +27,7 @@ import org.xml.sax.SAXException;
 
 public class WSPLoader {
 
-	private static final String[][] PANELS = {{"panel 1", "p1"}, {"panel 2", "p2"},};
+	private static final String[][] PANELS = { {"panel 1", "p1"}, {"panel 2", "p2"},};
 	private static final String WSP_EXT = ".wsp";
 	private static final FilenameFilter WSP_FILTER = new FilenameFilter() {
 		@Override
@@ -36,7 +36,7 @@ public class WSPLoader {
 		}
 	};
 
-	final HashMap<String, SampleNode> panel1Nodes = new HashMap<>();
+	private final HashMap<String, SampleNode> panel1Nodes = new HashMap<>();
 	final HashMap<String, SampleNode> panel2Nodes = new HashMap<>();
 	final ArrayList<SampleNode> allSamples = new ArrayList<>();
 	final Logger log = new Logger();
@@ -60,7 +60,7 @@ public class WSPLoader {
 	}
 
 	private void loadSampleGating(String file) throws ParserConfigurationException, SAXException,
-																						 IOException {
+																						IOException {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
 		Document doc = builder.parse(new File(file));
@@ -205,5 +205,12 @@ public class WSPLoader {
 		return sampleRef;
 	}
 
-}
+	public HashMap<String, SampleNode> getPanel1Nodes() {
+		return panel1Nodes;
+	}
 
+	public HashMap<String, SampleNode> getPanel2Nodes() {
+		return panel2Nodes;
+	}
+
+}

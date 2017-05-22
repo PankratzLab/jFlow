@@ -331,7 +331,7 @@ public class SamplingPipeline {
 		final ConcurrentLinkedQueue<SampleNode> p2Queue = new ConcurrentLinkedQueue<>();
 
 		for (String s : p1Sampling) {
-			SampleNode sn = wspLoader.panel1Nodes.get(s);
+			SampleNode sn = wspLoader.getPanel1Nodes().get(s);
 			if (sn != null) {
 				sn.fcsFile = fileToPathMap1.get(s);
 				p1Queue.add(sn);
