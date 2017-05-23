@@ -20,7 +20,7 @@ public class SeqMetaPrimary {
 
   public static void batch(String cohort, String genos, String phenoFilename, String snpInfo,
                            int qsubMem, double qsubWalltime, String queue, boolean usePrep2,
-                           String saveName) {
+                           String saveName, String conditionals) {
     String phenoDir;
     String phenoRoot;
     String resultDir;
@@ -63,6 +63,8 @@ public class SeqMetaPrimary {
       new File(batchDir).mkdirs();
     }
 
+    conditionals = new File(conditionals).getAbsolutePath();
+
     try {
       v = new Vector<>();
       consolidateVector = new Vector<>();
@@ -72,15 +74,15 @@ public class SeqMetaPrimary {
       foundSnpInfo = false;
       for (int i = 1; i <= 26; i++) {
         if (i == 23) {
-          chrName = ".X";
+          chrName = "X";
         } else if (i == 24) {
-          chrName = ".Y";
+          chrName = "Y";
         } else if (i == 25) {
-          chrName = ".XY";
+          chrName = "XY";
         } else if (i == 26) {
-          chrName = ".MT";
+          chrName = "MT";
         } else {
-          chrName = "." + Integer.toString(i);
+          chrName = "" + i;
         }
         name = saveName == null ? cohort + "_chr" : saveName;
         currentGeno = ext.replaceAllWith(genos, "#", i + ""); // Files.getAppropriateWriter();
@@ -158,7 +160,14 @@ public class SeqMetaPrimary {
                   + "    colnames(mPheno) <- c(names[1], \"dummy\")\n"
                   + "    formu <- paste(names[1], \"~ 1\")\n" + "}\n" + "\n" + "formu \n"
                   + "offset <- 1+ncol(pheno)\n" + "mGeno <- merged[,1:ncol(Z)+offset]\n" + "\n"
-                  + "if (coxy == 2) {\n"
+                  + "conditions <- SNPInfo[0,c(\"SNP\", \"SKATgene\", \"chr\")]\n"
+                  + conditionals(conditionals, i) + "\n" + "if (nrow(conditions) > 0) {\n"
+                  + "  if(family == \"binomial\") { f<-binomial() } else { f<-gaussian() }\n"
+                  + "  message(\"conditions detected; using prepCondScores\")\n" + "  " + name
+                  + chrName
+                  + "<- prepCondScores(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", "
+                  + "aggregateBy=\"SKATgene\", data=mPheno, adjustments=conditions, family=f)\n"
+                  + "} else if (coxy == 2) {\n"
                   + "    message(\"time to event data detected; using a cox model\")\n" + "    "
                   + name + chrName
                   + " <- prepCox(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)\n"
@@ -274,8 +283,8 @@ public class SeqMetaPrimary {
 
   public static void batchMany(String cohort, String genos, String phenosCommaDelimited,
                                String racesCommaDelimited, String snpInfo, int qsubMem,
-                               double qsubWalltime, String queue, boolean usePrep2,
-                               String saveName) {
+                               double qsubWalltime, String queue, boolean usePrep2, String saveName,
+                               String conditionals) {
     String[] phenos, races;
     Vector<String> v;
 
@@ -296,7 +305,7 @@ public class SeqMetaPrimary {
           }
           batch(cohort + "_" + race + "_" + pheno, ext.replaceAllWith(genos, "[%race]", race),
                 ext.pwd() + cohort + "_" + race + "_" + pheno + ".csv", snpInfo, qsubMem,
-                qsubWalltime, queue, usePrep2, sn);
+                qsubWalltime, queue, usePrep2, sn, conditionals);
         } catch (Exception e) {
           System.err.println("Error - failed to script up " + pheno + "/" + race);
         }
@@ -562,6 +571,7 @@ public class SeqMetaPrimary {
     boolean usePrep2 = true;
     String saveName = null;
     String markers = null;
+    String conditionals = null;
 
     cohort = "ARIC";
     genos = "D:/SkatMeta/genotypes_blacks_AA/AA_ARIC_noJHS_chr#t.csv";
@@ -619,6 +629,8 @@ public class SeqMetaPrimary {
         saveName = arg.split("=")[1];
       } else if (arg.startsWith("markers=")) {
         markers = arg.split("=")[1];
+      } else if (arg.startsWith("conditionals=")) {
+        conditionals = arg.split("=")[1];
       } else {
         System.err.println("Error - invalid argument: " + arg);
       }
@@ -634,10 +646,11 @@ public class SeqMetaPrimary {
         additionalModels(cohort, phenos, snpInfo, qsubMem, qsubWalltime);
       } else {
         batchMany(cohort, genos, phenos, races, snpInfo, qsubMem, qsubWalltime, queue, usePrep2,
-                  saveName);
+                  saveName, conditionals);
       }
     } else {
-      batch(cohort, genos, pheno, snpInfo, qsubMem, qsubWalltime, queue, usePrep2, saveName);
+      batch(cohort, genos, pheno, snpInfo, qsubMem, qsubWalltime, queue, usePrep2, saveName,
+            conditionals);
     }
   }
 
@@ -783,6 +796,22 @@ public class SeqMetaPrimary {
     }
 
     return null;
+  }
+
+  private static String conditionals(String condFile, int chr) {
+    String rdata = "";
+
+    if (condFile != null) {
+      rdata = "condMarkers <- read.table(\"" + condFile + "\", header=T)\n" + "\n"
+              + "snpsonchr <- SNPInfo[SNPInfo$chr == " + chr + ",]\n"
+              + "for(i in nrow(condMarkers)) {\n" + "  if (condMarkers$chr[i] == " + chr + "){\n"
+              + "    cond <- snpsonchr[(snpsonchr$pos >= condMarkers$start[i] & "
+              + "snpsonchr$pos <= condMarkers$end[i]), c(\"SNP\", \"SKATgene\")]\n"
+              + "    cond$SNP <- rep(condMarkers$SNP[i], nrow(cond))\n" + "    cond<-unique(cond)\n"
+              + "    conditions <- rbind(conditions, cond)\n" + "  }" + "}\n";
+    }
+
+    return rdata;
   }
 
 }
