@@ -25,7 +25,7 @@ public class Rscript {
 																																													"\\(",
 																																													"\\)"));
 	public static final String R_REPLACEMENT = ".";
-	public static final String[] RSCRIPT_EXECS = {"/panfs/roc/itascasoft/R/3.2.2/bin/Rscript", // good
+	public static final String[] RSCRIPT_EXECS = {"/panfs/roc/itascasoft/R/3.3.3/bin/Rscript", // good
 																																														 // for
 																																														 // Mesabi
 																								// "/soft/R/3.0.1/bin/Rscript", // MSI
@@ -35,7 +35,7 @@ public class Rscript {
 																								"/share/apps/src/R-3.0.1/bin/Rscript", // alcatraz
 	};
 
-	public static final String[] R_EXECS = {"/panfs/roc/itascasoft/R/3.2.2/bin/R", // good for Mesabi
+	public static final String[] R_EXECS = {"/panfs/roc/itascasoft/R/3.3.3/bin/R", // good for Mesabi
 																					// "/soft/R/3.0.1/bin/R", // MSI
 																					"/soft/R/2.15.1/bin/R", // Itasca nodes can only see this
 																					"/share/apps/R-3.0.1/bin/R", // psych
@@ -91,7 +91,7 @@ public class Rscript {
 		for (String file : files) {
 			root = ext.rootOf(dir + file, false);
 			Qsub.qsub(root + ".qsub", getRscriptExecutable(log) + " --no-save " + root + ".R", 4000, 2,
-								 1);
+								1);
 			v.add("qsub " + root + ".qsub");
 		}
 
