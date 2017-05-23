@@ -14,12 +14,21 @@ public class Annotator implements IAnnotator {
 
 	Logger log = new Logger();
 
-	ArrayList<String> fcsKeys = new ArrayList<>();
-	HashMap<String, HashMap<String, AnnotatedImage>> imageMap = new HashMap<>();
-	ArrayList<Annotation> annotations = new ArrayList<>();
+	private ArrayList<String> fcsKeys = new ArrayList<>();
+	private HashMap<String, HashMap<String, AnnotatedImage>> imageMap = new HashMap<>();
+	private ArrayList<Annotation> annotations = new ArrayList<>();
+
+	public ArrayList<String> getFCSKeys() {
+		return fcsKeys;
+	}
 
 	public HashMap<String, HashMap<String, AnnotatedImage>> getAnnotationMap() {
 		return imageMap;
+	}
+
+	@Override
+	public ArrayList<Annotation> getAnnotations() {
+		return this.annotations;
 	}
 
 	@Override
@@ -77,9 +86,9 @@ public class Annotator implements IAnnotator {
 				}
 				if (gateInd >= 0) {
 					AnnotatedImage ai = new AnnotatedImage(gateInd + "", gateInd == 0);
-					ai.imageFile = ext.verifyDirFormat(d.getAbsolutePath()) + img;
+					ai.setImageFile(ext.verifyDirFormat(d.getAbsolutePath()) + img);
 					String name = ArrayUtils.toStr(GateTree.GATE_DIMS[gateInd], " v ");
-					ai.gateName = name;
+					ai.setGateName(name);
 					fcsImgs.put(name, ai);
 				}
 			}
@@ -105,15 +114,8 @@ public class Annotator implements IAnnotator {
 	}
 
 	@Override
-	public void applyAnnotation(Annotation annotation) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void addNewAnnotation(Annotation newAnnotation) {
-		// TODO Auto-generated method stub
-
+		this.annotations.add(newAnnotation);
 	}
 
 
