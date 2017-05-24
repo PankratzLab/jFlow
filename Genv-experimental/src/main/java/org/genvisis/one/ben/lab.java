@@ -1,6 +1,7 @@
 package org.genvisis.one.ben;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -679,6 +680,14 @@ public class lab {
 			// String outFile = dir + "markerDuplicates.out";
 			// markerDuplicateFilter(mkrInfoFile, missDropsFile, callrateFile, outFile);
 
+			String dir = "F:/Flow/Annotation/";
+			for (String s : (new File(dir)).list()) {
+				for (String s1 : (new File(dir + s)).list()) {
+					String fil = dir + s + "/" + s1;
+					fil = ext.removeDirectoryInfo(fil);
+					System.out.println(fil.substring(0, fil.indexOf(".fcs.") + 4));
+				}
+			}
 
 			// genDupe();
 

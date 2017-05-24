@@ -5,8 +5,6 @@ import java.util.HashMap;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 
-import org.genvisis.one.ben.flowannot.IAnnotator.AnnotatedImage;
-
 public final class GateTree {
 
 	private GateTree() {}

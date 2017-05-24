@@ -1,12 +1,17 @@
 package org.genvisis.one.ben.flowannot;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
@@ -16,7 +21,7 @@ public class Annotator implements IAnnotator {
 
 	private ArrayList<String> fcsKeys = new ArrayList<>();
 	private HashMap<String, HashMap<String, AnnotatedImage>> imageMap = new HashMap<>();
-	private ArrayList<Annotation> annotations = new ArrayList<>();
+	private ArrayList<AnnotatedImage.Annotation> annotations = new ArrayList<>();
 
 	public ArrayList<String> getFCSKeys() {
 		return fcsKeys;
@@ -27,26 +32,35 @@ public class Annotator implements IAnnotator {
 	}
 
 	@Override
-	public ArrayList<Annotation> getAnnotations() {
+	public ArrayList<AnnotatedImage.Annotation> getAnnotations() {
 		return this.annotations;
 	}
 
 	@Override
-	public void saveAnnotations(String annotFile) {
-		// TODO Auto-generated method stub
-
+	public void addNewAnnotation(AnnotatedImage.Annotation newAnnotation) {
+		this.annotations.add(newAnnotation);
 	}
 
 	@Override
-	public void replaceAnnotation(Annotation prevAnnot, Annotation newAnnot) {
-		// TODO Auto-generated method stub
-
+	public void replaceAnnotation(AnnotatedImage.Annotation prevAnnot, AnnotatedImage.Annotation newAnnot) {
+		this.annotations.set(this.annotations.indexOf(prevAnnot), newAnnot);
+		for (HashMap<String, AnnotatedImage> annMap : imageMap.values()) {
+			for (AnnotatedImage ai : annMap.values()) {
+				if (ai.getAnnotations().contains(prevAnnot)) {
+					ai.getAnnotations().set(ai.getAnnotations().indexOf(prevAnnot), newAnnot);
+				}
+			}
+		}
 	}
 
 	@Override
-	public void removeAnnotation(Annotation annotation) {
-		// TODO Auto-generated method stub
-
+	public void deleteAnnotation(AnnotatedImage.Annotation annotation) {
+		this.annotations.remove(annotation);
+		for (HashMap<String, AnnotatedImage> annMap : imageMap.values()) {
+			for (AnnotatedImage ai : annMap.values()) {
+				ai.getAnnotations().remove(annotation);
+			}
+		}
 	}
 
 	@Override
@@ -95,28 +109,79 @@ public class Annotator implements IAnnotator {
 		}
 	}
 
-	@Override
-	public void loadAnnotations(String annotFile) {
-		// TODO Auto-generated method stub
+	private static final String ANNOT_TOKEN = "@ANNOT";
+	private static final String IMAGE_TOKEN = "@IMAGE";
 
+	@Override
+	public void loadAnnotations(String annotFile) throws IOException {
+		BufferedReader reader = Files.getAppropriateReader(annotFile);
+		String line = null;
+
+		while ((line = reader.readLine()) != null) {
+			if ("".equals(line))
+				continue;
+			if (line.startsWith(ANNOT_TOKEN)) {
+				String[] pts = line.split("\t");
+				AnnotatedImage.Annotation a = new AnnotatedImage.Annotation(pts[1], pts[2]);
+				this.annotations.add(a);
+			} else if (line.startsWith(IMAGE_TOKEN)) {
+				String[] pts = line.split("\t")[1].split("\\|", -1);
+				AnnotatedImage ai = new AnnotatedImage(pts[0], GateTree.GATE_TREE[0][0].equals(pts[0]));
+				String imgFile = pts[1].equals("") ? null : pts[1];
+				ai.setImageFile(imgFile);
+				ai.setMissing(imgFile == null || !Files.exists(imgFile));
+				if (pts.length > 2) {
+					for (int i = 2; i < pts.length; i++) {
+						for (AnnotatedImage.Annotation a : this.annotations) {
+							if (a.annotation.equals(pts[i])) {
+								ai.getAnnotations().add(a);
+							}
+						}
+					}
+				}
+				String file = ext.removeDirectoryInfo(imgFile);
+				String fcsFile = file.substring(0, file.indexOf(".fcs.") + 4);
+				if (!fcsKeys.contains(fcsFile)) {
+					fcsKeys.add(fcsFile);
+				}
+				HashMap<String, AnnotatedImage> map = imageMap.get(fcsFile);
+				if (map == null) {
+					map = new HashMap<>();
+					imageMap.put(fcsFile, map);
+				}
+				map.put(ai.getGateName(), ai);
+			}
+		}
+		reader.close();
 	}
 
 	@Override
-	public String getLoadedAnnotationFile() {
-		// TODO Auto-generated method stub
-		return null;
+	public void saveAnnotations(String annotFile) {
+		HashMap<AnnotatedImage.Annotation, ArrayList<String>> map = new HashMap<>();
+		for (AnnotatedImage.Annotation a : annotations) {
+			map.put(a, new ArrayList<>());
+		}
+		for (String f : fcsKeys) {
+			for (Entry<String, AnnotatedImage> ent : imageMap.get(f).entrySet()) {
+				for (AnnotatedImage.Annotation a : ent.getValue().getAnnotations()) {
+					map.get(a).add(ent.getKey());
+				}
+			}
+		}
+		PrintWriter writer = Files.getAppropriateWriter(annotFile);
+		for (AnnotatedImage.Annotation a : map.keySet()) {
+			StringBuilder sb = new StringBuilder(ANNOT_TOKEN).append("\t").append(a.annotation)
+																											 .append("\t").append(a.mnemonic);
+			writer.println(sb.toString());
+		}
+		writer.println();
+		for (HashMap<String, AnnotatedImage> annMap : imageMap.values()) {
+			for (Entry<String, AnnotatedImage> ent : annMap.entrySet()) {
+				writer.println(IMAGE_TOKEN + "\t" + ent.getValue().exportToString());
+			}
+		}
+		writer.flush();
+		writer.close();
 	}
-
-	@Override
-	public void deleteAnnotation(Annotation annotation) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void addNewAnnotation(Annotation newAnnotation) {
-		this.annotations.add(newAnnotation);
-	}
-
 
 }
