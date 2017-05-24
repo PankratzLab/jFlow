@@ -210,7 +210,7 @@ public class SeqMeta {
 
     maxChr = 0;
     for (int chr = 1; chr <= 26; chr++) {
-      chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
+      chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : (chr == 25 ? "XY" : chr + ""));
       if (Files.exists("snpInfos/snpInfo_chr" + chrom + ".RData")) {
         maxChr = chr;
       }
@@ -2962,24 +2962,20 @@ public class SeqMeta {
 
     try {
       String[] headers = HEADER_TYPES[ext.indexOfStr(methods[0][2], ALGORITHMS)];
-      String header = "gene \t Name \t";
+      String header = "Pheno\tgene\tName\t";
+      writer = Files.openAppropriateWriter(ext.rootOf(betasFor) + "_summary.xln");
       for (int i = 0; i < phenotypes.length; i++) {
         Hashtable<String, String> lines = new Hashtable<>();
-        writer = Files.openAppropriateWriter(ext.rootOf(betasFor) + "_" + phenotypes[i][0]
-                                             + "_summary.xln");
-        header = "gene \t Name \t";
-
         for (int k = 0; k <= races.length; k++) {
           localDir = dir + phenotypes[i][0] + "/" + (k == races.length ? "" : races[k][0] + "/")
                      + methods[0][0] + "/";
 
           for (int j = metasOnly ? studies.length : 0; j <= studies.length; j++) {
-
             if (j == studies.length
                 || (k < races.length && !finalSets[i][j][k].equals("<missing>"))) {
               filename = (j == studies.length ? "" : studies[j] + "_")
                          + (k == races.length ? "" : races[k][0] + "_") + phenotypes[i][0] + "_"
-                         + methods[0][0] + ".csv";
+                         + methods[0][0] + ".csv.gz";
 
               for (int h = 2; h < headers.length; h++) { // skip gene and Name
                 header += (k == races.length ? "PanEthnic" : races[k][0]) + "_" + methods[0][0]
@@ -3005,10 +3001,11 @@ public class SeqMeta {
                       line = ArrayUtils.subArray(line, 2); // ignore gene and name
                       lines.put(marker, lines.get(marker) + "\t" + ArrayUtils.toStr(line));
                     } else {
-                      lines.put(marker, ArrayUtils.toStr(line));
+                      lines.put(marker, phenotypes[i][0] + "\t" + ArrayUtils.toStr(line));
                     }
                   }
                 }
+                System.out.println("Found keys: " + lines.keySet().size());
 
                 reader.close();
               } catch (FileNotFoundException fnfe) {
@@ -3026,7 +3023,13 @@ public class SeqMeta {
           }
           log.report("", true, false);
         }
+
+        writer.println(header);
+        for (String key : lines.keySet()) {
+          writer.println(lines.get(key));
+        }
       }
+      writer.close();
     } catch (Exception e) {
       System.err.println("Error writing to " + ext.rootOf(betasFor) + "_summary.xln");
       e.printStackTrace();
