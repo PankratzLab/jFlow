@@ -177,7 +177,7 @@ public class AnnotatedImage {
 	}
 
 	public static BufferedImage createReadyImage() {
-		return createImage("Select a gate to begin.", null);
+		return createImage("Load Image Directory to Begin.", null);
 	}
 
 	private BufferedImage createNoFileImage() {

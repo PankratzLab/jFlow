@@ -8,11 +8,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Properties;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -43,6 +47,8 @@ import javax.swing.tree.DefaultTreeModel;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class FlowAnnotator {
@@ -62,6 +68,8 @@ public class FlowAnnotator {
 	private JPanel annotPanel;
 
 	private JPanel imagePanel;
+
+	private static final String PROP_FILE = ".flowannotator.properties";
 
 	/**
 	 * Launch the application.
@@ -83,8 +91,51 @@ public class FlowAnnotator {
 	 * Create the application.
 	 */
 	public FlowAnnotator() {
+		loadProperties();
 		initialize();
 	}
+
+	private void loadProperties() {
+		Properties p = new Properties();
+		if (!Files.exists(PROP_FILE))
+			return;
+		try {
+			p.load(Files.getAppropriateInputStreamReader(PROP_FILE));
+			String lst = p.getProperty(KEY_LAST_OPENED, "");
+			String rec = p.getProperty(KEY_RECENT, "");
+			lastOpenedJFC = lst;
+			if (!"".equals(rec)) {
+				String[] ps = rec.split(";");
+				for (String s : ps) {
+					if (Files.exists(s)) {
+						recentAnnotFiles.add(s);
+					}
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void saveProperties() {
+		Properties p = new Properties();
+		if (lastOpenedJFC != null) {
+			p.setProperty(KEY_RECENT, lastOpenedJFC);
+		}
+		if (!recentAnnotFiles.isEmpty()) {
+			p.setProperty(KEY_LAST_OPENED, ArrayUtils.toStr(recentAnnotFiles, ";"));
+		}
+		try {
+			p.store(Files.getAppropriateWriter(PROP_FILE), "");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static final String KEY_LAST_OPENED = "LAST_OPEN";
+	private String lastOpenedJFC = null;
+	private static final String KEY_RECENT = "RECENT";
+	private HashSet<String> recentAnnotFiles = new HashSet<>();
 
 	/**
 	 * Initialize the contents of the frame.
@@ -95,6 +146,13 @@ public class FlowAnnotator {
 		frmFlowannotator.setBounds(100, 100, 1200, 800);
 		frmFlowannotator.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmFlowannotator.getContentPane().setLayout(new MigLayout("", "[grow]", "[grow]"));
+		frmFlowannotator.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				close();
+				super.windowClosing(e);
+			}
+		});
 
 		splitPane = new JSplitPane();
 		splitPane.setResizeWeight(0.78);
@@ -193,9 +251,7 @@ public class FlowAnnotator {
 		mnLoadRecent.setMnemonic('R');
 		mnFile.add(mnLoadRecent);
 
-		JMenuItem mnRecentPlacehldr = new JMenuItem("No Recent Files");
-		mnRecentPlacehldr.setEnabled(false);
-		mnLoadRecent.add(mnRecentPlacehldr);
+		updateRecentFiles();
 
 		JMenuItem mntmSaveAnnot = new JMenuItem();
 		mntmSaveAnnot.setAction(saveAction);
@@ -203,8 +259,42 @@ public class FlowAnnotator {
 		mntmSaveAnnot.setMnemonic('S');
 		mnFile.add(mntmSaveAnnot);
 
-		JMenuItem mntmExit = new JMenuItem("Exit");
+		JMenuItem mntmExit = new JMenuItem();
+		mntmExit.setAction(new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				close();
+			}
+		});
+		mntmExit.setText("Exit");
 		mnFile.add(mntmExit);
+	}
+
+	private void close() {
+		saveProperties();
+		frmFlowannotator.setVisible(false);
+		frmFlowannotator.dispose();
+	}
+
+	private void updateRecentFiles() {
+		mnLoadRecent.removeAll();
+		if (recentAnnotFiles.isEmpty()) {
+			JMenuItem mnRecentPlacehldr = new JMenuItem("No Recent Files");
+			mnRecentPlacehldr.setEnabled(false);
+			mnLoadRecent.add(mnRecentPlacehldr);
+		} else {
+			for (String s : recentAnnotFiles) {
+				JMenuItem mnRecent = new JMenuItem();
+				mnRecent.setAction(new AbstractAction() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						loadAnnotationFile(s);
+					}
+				});
+				mnRecent.setText(ext.removeDirectoryInfo(s));
+				mnLoadRecent.add(mnRecent);
+			}
+		}
 	}
 
 	protected void createNewAnnotation() {
@@ -221,14 +311,17 @@ public class FlowAnnotator {
 	}
 
 	private void loadFiles() {
-		JFileChooser jfc = new JFileChooser();
+		JFileChooser jfc = new JFileChooser(lastOpenedJFC == null ? "" : lastOpenedJFC);
 		jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		jfc.setDialogTitle("Open Directory");
 		int opt = jfc.showOpenDialog(frmFlowannotator);
 		if (opt == JFileChooser.APPROVE_OPTION) {
 			File f = jfc.getSelectedFile();
-			annotator.loadImgDir(ext.verifyDirFormat(f.getAbsolutePath()));
+			String fS = ext.verifyDirFormat(f.getAbsolutePath());
+			lastOpenedJFC = fS;
+			annotator.loadImgDir(fS);
 			reloadControls();
+			saveProperties();
 		}
 	}
 
@@ -376,30 +469,40 @@ public class FlowAnnotator {
 	}
 
 	private void saveAnnotations() {
-		JFileChooser jfc = new JFileChooser();
+		JFileChooser jfc = new JFileChooser(lastOpenedJFC == null ? "" : lastOpenedJFC);
 		jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		jfc.setDialogTitle("Save Annotations to File");
 		int opt = jfc.showSaveDialog(frmFlowannotator);
 		if (opt == JFileChooser.APPROVE_OPTION) {
 			String annFile = jfc.getSelectedFile().getAbsolutePath();
+			lastOpenedJFC = ext.verifyDirFormat(ext.parseDirectoryOfFile(annFile));
 			annotator.saveAnnotations(annFile);
+			recentAnnotFiles.add(annFile);
+			saveProperties();
 		}
 	}
 
 	private void loadAnnotations() {
-		JFileChooser jfc = new JFileChooser();
+		JFileChooser jfc = new JFileChooser(lastOpenedJFC == null ? "" : lastOpenedJFC);
 		jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		jfc.setDialogTitle("Load Annotations from File");
 		int opt = jfc.showOpenDialog(frmFlowannotator);
 		if (opt == JFileChooser.APPROVE_OPTION) {
 			String annFile = jfc.getSelectedFile().getAbsolutePath();
-			try {
-				annotator.loadAnnotations(annFile);
-				reloadControls();
-				updateAvail();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			loadAnnotationFile(annFile);
+		}
+	}
+
+	private void loadAnnotationFile(String annFile) {
+		try {
+			annotator.loadAnnotations(annFile);
+			lastOpenedJFC = ext.verifyDirFormat(ext.parseDirectoryOfFile(annFile));
+			recentAnnotFiles.add(annFile);
+			reloadControls();
+			updateAvail();
+			saveProperties();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
