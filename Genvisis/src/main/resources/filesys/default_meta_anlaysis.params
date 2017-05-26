@@ -48,6 +48,6 @@ GROUP_ANNOTATION_PARAMS
 # Any additional parameters to include in the summary file, use GenParser format
 #SingleVariant  ../SNPInfo_ExomeFreeze2_120810_aafSlim.csv 'SNP' 'gene' 'AAF'=CHARGE_AF
 #SingleVariant  ../snpInfoFunctionalSubset_CHARGES_ESP_RS_092413.csv.gz , simplifyQuotes 'SNP' 'CHROM'=Chr 'POS'=Position 'SKATgene' 'MAF'=CHARGE_ALL_AF 'function'
-SingleVariant   snpinfo_WES_v13_Analytic_10202015.csv , 'SNP' 'CHROM'=Chr 'POS'=Position 'SKATgene'
+SingleVariant   snpinfo_WES_v13_Analytic_10202015.csv , 'SNP' 'CHROM'=Chr 'POS'=Position 'SKATgene'  'ANNOVAR_ucsc_precedent_consequence'=Function
 #SingleVariant  snpinfo_ChargeSFreeze3Freeze4_ESP_RS_ERF_Broad_Analytic_04112014.csv , simplifyQuotes 'SNP' 'CHROM'=Chr 'POS'=Position 'SKATgene' 'MAF'=CHARGE_ALL_AF 'func_region'=Function
 BurdenTests     gene_positions.xln 'Gene' 'Chr' 'PositionOfFirstMarkerInGene' 'PositionOfLastMarkerInGene' 'NumMarkersInGene'
