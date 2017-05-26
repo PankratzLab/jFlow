@@ -1,4 +1,4 @@
-package org.genvisis.one.ben;
+package org.genvisis.one.ben.fcs;
 
 public class ParulaColorMap {
 

@@ -31,7 +31,6 @@ import org.genvisis.cnv.plots.GenericRectangle;
 import org.genvisis.cnv.plots.PlotPoint;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
-import org.genvisis.one.ben.ParulaColorMap;
 import org.genvisis.one.ben.fcs.FCSPlot.Classification;
 import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.Gate.PolygonGate;
@@ -494,9 +493,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 				xMin = !Float.isFinite(rgdX.getMin()) ? Integer.MIN_VALUE : rgdX.getMin();
 				xMax = !Float.isFinite(rgdX.getMax()) ? Integer.MAX_VALUE : rgdX.getMax();
 				yMin = isHistogram() || !Float.isFinite(rgdY.getMin()) ? Integer.MIN_VALUE
-																																		: rgdY.getMin();
+																															: rgdY.getMin();
 				yMax = isHistogram() || !Float.isFinite(rgdY.getMax()) ? Integer.MAX_VALUE
-																																		: rgdY.getMax();
+																															: rgdY.getMax();
 				rects.add(new GenericRectangle(lbl, xMin, yMin, xMax, yMax, (byte) 1, false, false,
 																			 (byte) 0, (byte) 99, editable));
 			} else if (g instanceof PolygonGate) {
@@ -679,9 +678,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 					if (!isHistogram()) {
 						RectangleGateDimension gdY = (RectangleGateDimension) rect.getYDimension();
 						yLow = !Float.isFinite(gdY.getMax()) ? Integer.MIN_VALUE
-																											: getYPixel(gdY.getMax());
+																								: getYPixel(gdY.getMax());
 						yHigh = !Float.isFinite(gdY.getMin()) ? Integer.MAX_VALUE
-																											 : getYPixel(gdY.getMin());
+																								 : getYPixel(gdY.getMin());
 						if (yLow <= tempY && yHigh >= tempY) {
 							retRects.add(rect);
 						}
@@ -721,15 +720,15 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 			RectangleGateDimension rgd1 = (RectangleGateDimension) ((RectangleGate) g).getXDimension();
 			double min, max, minY, maxY;
 			min = !Float.isFinite(rgd1.getMin()) ? Integer.MIN_VALUE
-																								: Math.min(rgd1.getMin(), rgd1.getMax());
+																					: Math.min(rgd1.getMin(), rgd1.getMax());
 			max = !Float.isFinite(rgd1.getMax()) ? Integer.MAX_VALUE
-																								: Math.max(rgd1.getMin(), rgd1.getMax());
+																					: Math.max(rgd1.getMin(), rgd1.getMax());
 			if (g.getYDimension() != null) {
 				RectangleGateDimension rgd2 = (RectangleGateDimension) ((RectangleGate) g).getYDimension();
 				minY = !Float.isFinite(rgd2.getMin()) ? Integer.MIN_VALUE
-																									 : Math.min(rgd2.getMin(), rgd2.getMax());
+																						 : Math.min(rgd2.getMin(), rgd2.getMax());
 				maxY = !Float.isFinite(rgd2.getMax()) ? Integer.MAX_VALUE
-																									 : Math.max(rgd2.getMin(), rgd2.getMax());
+																						 : Math.max(rgd2.getMin(), rgd2.getMax());
 			} else {
 				minY = Integer.MIN_VALUE;
 				maxY = Integer.MAX_VALUE;
@@ -749,15 +748,15 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 				RectangleGateDimension rgd1 = (RectangleGateDimension) ((RectangleGate) gP).getXDimension();
 				double min, max, minY, maxY;
 				min = !Float.isFinite(rgd1.getMin()) ? Integer.MIN_VALUE
-																									: Math.min(rgd1.getMin(), rgd1.getMax());
+																						: Math.min(rgd1.getMin(), rgd1.getMax());
 				max = !Float.isFinite(rgd1.getMax()) ? Integer.MAX_VALUE
-																									: Math.max(rgd1.getMin(), rgd1.getMax());
+																						: Math.max(rgd1.getMin(), rgd1.getMax());
 				if (gP.getYDimension() != null) {
 					RectangleGateDimension rgd2 = (RectangleGateDimension) ((RectangleGate) gP).getYDimension();
 					minY = !Float.isFinite(rgd2.getMin()) ? Integer.MIN_VALUE
-																										 : Math.min(rgd2.getMin(), rgd2.getMax());
+																							 : Math.min(rgd2.getMin(), rgd2.getMax());
 					maxY = !Float.isFinite(rgd2.getMax()) ? Integer.MAX_VALUE
-																										 : Math.max(rgd2.getMin(), rgd2.getMax());
+																							 : Math.max(rgd2.getMin(), rgd2.getMax());
 				} else {
 					minY = Integer.MIN_VALUE;
 					maxY = Integer.MAX_VALUE;

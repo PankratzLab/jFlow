@@ -42,7 +42,7 @@ public class ExportDir {
 					try {
 						loader.loadData(pathListExt[i]);
 					} catch (IOException e) {
-					} ;
+					};
 					loader.waitForData();
 
 					String filename = fileListExt[i];

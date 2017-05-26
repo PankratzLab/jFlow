@@ -2459,6 +2459,7 @@ public class GenvisisWorkflow {
 
 					int totalThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
 
+					boolean cnvCalling = Boolean.parseBoolean(variables.get(this).get(setupCNVCalling));
 					String projPropFile = proj.getPropertyFilename();
 					StringBuilder cmd = new StringBuilder();
 					cmd.append(Files.getRunString()).append(" org.genvisis.cnv.manage.PRoCtOR")
@@ -2470,6 +2471,9 @@ public class GenvisisWorkflow {
 						 .append(" numThreads=").append(totalThreads);
 					if (tmpDir != null) {
 						cmd.append(" tmp=").append(tmpDir);
+					}
+					if (cnvCalling) {
+						cmd.append(" -callCNVs");
 					}
 
 					return cmd.toString();
