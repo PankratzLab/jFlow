@@ -32,7 +32,7 @@ public class MetaAnalysisParams {
   private String variantName;
   private String chromName;
   private String geneName;
-  private String functionFlagName;
+  private String[] functionFlagName;
   private String rExec;
   private String[][] methods;
   private String[][] groupAnnotationParams;
@@ -49,13 +49,17 @@ public class MetaAnalysisParams {
     problem = false;
     runByChr = true;
 
-    if (!Files.exists(filename, false)) {
-      log.report("File '" + filename
-                 + "' does not exist; if you create an empty text file with this same filename, then it will be filled with example parameters and instructions");
-      System.exit(1);
-    }
+    // if (!Files.exists(filename, false, false)) {
+    // log.report("File '" + filename
+    // + "' does not exist; if you create an empty text file with this same filename, then it will
+    // be filled with example parameters and instructions");
+    // System.exit(1);
+    // }
 
-    if (new File(filename).length() == 0) {
+    if (new File(filename).length() < 100) {
+      if (!Files.exists(filename, false)) {
+        log.report(filename + " does not exist.");
+      }
       log.report("File '" + filename
                  + "' is being populated with example parameters and instructions; tailor to your datasets and then re-run");
       Files.copyFileFromJar(DEFAULT_PARAMETERS, filename);
@@ -132,7 +136,8 @@ public class MetaAnalysisParams {
           } else if (trav.startsWith("GENE_NAME=")) {
             geneName = ext.parseStringArg(trav, "SKATgene");
           } else if (trav.startsWith("FUNCTIONAL=")) {
-            functionFlagName = ext.parseStringArg(trav, null);
+            if (!(ext.parseStringArg(trav, null) == null)) trav += ",None";
+            functionFlagName = ext.parseStringArg(trav, "None").split(",");
           } else if (trav.startsWith("R_EXEC=")) {
             rExec = ext.parseStringArg(trav, null);
           } else if (trav.startsWith("RUN_BY_CHR=")) {
@@ -266,7 +271,7 @@ public class MetaAnalysisParams {
     return geneName;
   }
 
-  public String getFunctionFlagName() {
+  public String[] getFunctionFlagName() {
     return functionFlagName;
   }
 
