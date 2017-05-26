@@ -56,6 +56,7 @@
 		<module>Logicle</module>
 		<module>Genvisis</module>
 		<module>CFCS</module>
+		<module>Genv-flow</module>
 		<module>Genv-experimental</module>
 		<module>Genv-deprecated</module>
 		<module>Assembly</module>
@@ -90,6 +91,7 @@
 		<genvisis.version>0.0.1-SNAPSHOT</genvisis.version>
 		<genv-exp.version>0.0.1-SNAPSHOT</genv-exp.version>
 		<genv-dep.version>0.0.1-SNAPSHOT</genv-dep.version>
+		<genv-flow.version>0.0.1-SNAPSHOT</genv-flow.version>
 
 		<!-- CFCS -->
 		<cfcs.version>0.0.1-SNAPSHOT</cfcs.version>
@@ -191,6 +193,12 @@
 				<groupId>org.genvisis</groupId>
 				<artifactId>Genvisis</artifactId>
 				<version>${genvisis.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.genvisis</groupId>
+				<artifactId>Genv-flow</artifactId>
+				<version>${genv-flow.version}</version>
 			</dependency>
 
 			<dependency>
