@@ -20,6 +20,7 @@ Blacks  .AA.    _AA_    .AF.    _AF_
 # To be determined by an external source, similar to the .object
 
 SNP_INFO_FILE=snpinfo_WES_v13_Analytic_10202015.Rdata
+SNP_INFO_CHR_DIR=/panfs/roc/groups/5/pankrat2/shared/skatMeta/snpInfos/exome_chip_v7/
 VARIANT_NAME=SNP
 CHROM_NAME=CHROM
 GENE_NAME=SKATgene

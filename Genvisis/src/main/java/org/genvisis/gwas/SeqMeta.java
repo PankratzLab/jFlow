@@ -204,14 +204,17 @@ public class SeqMeta {
     return finalSets;
   }
 
-  public static int getMaxChr() {
+  public static int getMaxChr(String dir) {
     String chrom;
     int maxChr;
+    if (dir == null) {
+      dir = "snpInfos/";
+    }
 
     maxChr = 0;
     for (int chr = 1; chr <= 26; chr++) {
       chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : (chr == 25 ? "XY" : chr + ""));
-      if (Files.exists("snpInfos/snpInfo_chr" + chrom + ".RData")) {
+      if (Files.exists(dir + "snpInfo_chr" + chrom + ".RData")) {
         maxChr = chr;
       }
     }
@@ -254,7 +257,7 @@ public class SeqMeta {
     snpInfoFile = maps.getSnpInfoFilename();
     chromName = maps.getChromName();
     geneName = maps.getGeneName();
-    maxChr = getMaxChr();
+    maxChr = getMaxChr(maps.getSnpInfoChrsDir());
 
     log.report("Max chromosome was determined to be " + maxChr);
 
@@ -433,7 +436,7 @@ public class SeqMeta {
     phenotypes = maps.getPhenotypesWithFilenameAliases();
     studies = maps.getStudies();
     races = maps.getRacesWithFilenameAliases();
-    maxChr = getMaxChr();
+    maxChr = getMaxChr(maps.getSnpInfoChrsDir());
 
     count = 0;
     dir = ext.verifyDirFormat(dir);
@@ -547,7 +550,7 @@ public class SeqMeta {
     files = Files.list(dir, null, ".Rdata", false);
     finalSets = identifySet(maps, files, log);
 
-    maxChr = getMaxChr();
+    maxChr = getMaxChr(maps.getSnpInfoChrsDir());
     jobSizes = new IntVector();
     jobNames = new Vector<>();
     infoSizes = new int[maxChr + 2];
@@ -994,7 +997,7 @@ public class SeqMeta {
                                 + "/" + root + ".csv.gz").length() == 0) {
                   log.report(ext.getTime() + "\tStiching up " + root + ".csv.gz");
                   stitch(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/",
-                         root + "_chr#.csv.gz", root + ".csv.gz", log);
+                         root + "_chr#.csv.gz", root + ".csv.gz", maps.getSnpInfoChrsDir(), log);
                 }
 
               }
@@ -1016,7 +1019,7 @@ public class SeqMeta {
                             + root + ".csv.gz").length() == 0) {
               log.report(ext.getTime() + "\tStiching up " + root + ".csv.gz");
               stitch(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/",
-                     root + "_chr#.csv.gz", root + ".csv.gz", log);
+                     root + "_chr#.csv.gz", root + ".csv.gz", maps.getSnpInfoChrsDir(), log);
             }
           }
         }
@@ -1034,7 +1037,7 @@ public class SeqMeta {
                           + ".csv.gz").length() == 0) {
             log.report(ext.getTime() + "\tStiching up " + root + ".csv.gz");
             stitch(dir + phenotypes[i][0] + "/" + methods[m][0] + "/", root + "_chr#.csv.gz",
-                   root + ".csv.gz", log);
+                   root + ".csv.gz", maps.getSnpInfoChrsDir(), log);
           }
         }
       }
@@ -2856,12 +2859,13 @@ public class SeqMeta {
 
   }
 
-  public static void stitch(String dir, String pattern, String fileout, Logger log) {
+  public static void stitch(String dir, String pattern, String fileout, String snpInfoChrDir,
+                            Logger log) {
     String[] list;
     int[] skips;
     int maxChr;
 
-    maxChr = getMaxChr();
+    maxChr = getMaxChr(snpInfoChrDir);
     list = new String[maxChr];
     for (int chr = 1; chr <= maxChr; chr++) {
       list[chr - 1] = dir + ext.replaceAllWith(pattern, "#",
@@ -3429,7 +3433,7 @@ public class SeqMeta {
     races = maps.getRacesWithFilenameAliases();
     methods = maps.getMethods();
     runningByChr = maps.runningByChr();
-    maxChr = getMaxChr();
+    maxChr = getMaxChr(maps.getSnpInfoChrsDir());
 
     method = null;
     for (String[] method2 : methods) {
