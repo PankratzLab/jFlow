@@ -2032,6 +2032,12 @@ public class SeqMeta {
         filename = dir + phenotypes[i][0] + "/" + phenotypes[i][0] + "_" + group + "_hits.dat";
         groupHits.get(group).writeHits(filename);
         hits = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
+        if (hits == null) {
+          log.report("WARNING - No hits were found in " + filename
+                     + "\nThis may indicate a problem with the meta-analysis. Check "
+                     + phenotypes[i][0] + "/ for empty or missing .csv files.");
+          continue;
+        }
         groupParams.get(group).add(0, filename + " 0 1=minPval skip=0");
         if (group.startsWith("BurdenTests")) {
           line = HashVec.getKeys(macHashesHashByRace.get("PanEthnic"));
