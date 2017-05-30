@@ -208,16 +208,57 @@ public class Qsub {
 		Files.chmod(filename, false);
 	}
 
+	public static void qsubGb(String filename, String command, int totalMemoryRequestedInGb,
+														double walltimeRequestedInHours, int numProcs) {
+		PrintWriter writer;
+		String[] lines;
+
+		lines = command.split("\\n");
+		writer = Files.getAppropriateWriter(filename);
+		if (writer == null) {
+			return;
+		}
+
+		Qsub.writeQsubHeaderGb(writer, filename, totalMemoryRequestedInGb, walltimeRequestedInHours,
+													 numProcs, null);
+
+		boolean rewriteJavaCmd = totalMemoryRequestedInGb > 1; // default Java heap size is
+																													 // min(1/4 mem avail, 1GB)
+
+		for (String line : lines) {
+			if (line.startsWith("java ")) {
+				if (!line.contains("-Xmx") && rewriteJavaCmd) {
+					int memG = totalMemoryRequestedInGb;
+					line = line.replace("java ", "java -Xmx" + memG + "G ");
+				}
+			}
+			writer.println(line);
+		}
+		writer.println("echo \"end " + ext.rootOf(filename) + " at: \" `date`");
+		writer.flush();
+		writer.close();
+		Files.chmod(filename, false);
+	}
+
 	public static void writeQsubHeader(PrintWriter writer, String filename,
 																		 int totalMemoryRequestedInMb, double walltimeRequestedInHours,
 																		 int numProcs, String nodeToUse) {
 		writeQsubHeader(writer, filename, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs,
-										nodeToUse, true);
+										nodeToUse, true, false);
+	}
+
+	public static void writeQsubHeaderGb(PrintWriter writer, String filename,
+																			 int totalMemoryRequestedInGb,
+																			 double walltimeRequestedInHours,
+																			 int numProcs, String nodeToUse) {
+		writeQsubHeader(writer, filename, totalMemoryRequestedInGb, walltimeRequestedInHours, numProcs,
+										nodeToUse, true, true);
 	}
 
 	private static void writeQsubHeader(PrintWriter writer, String filename,
-																			int totalMemoryRequestedInMb, double walltimeRequestedInHours,
-																			int numProcs, String nodeToUse, boolean defualtMods) {
+																			int totalMemoryRequested, double walltimeRequestedInHours,
+																			int numProcs, String nodeToUse, boolean defualtMods,
+																			boolean useGb) {
 		Vector<String> params;
 		int hours, minutes;
 
@@ -227,8 +268,8 @@ public class Qsub {
 		writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
 		writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
 		params = new Vector<String>();
-		if (totalMemoryRequestedInMb > 0) {
-			params.add("mem=" + totalMemoryRequestedInMb + "mb");
+		if (totalMemoryRequested > 0) {
+			params.add("mem=" + totalMemoryRequested + (useGb ? "gb" : "mb"));
 		}
 		if (walltimeRequestedInHours > 0) {
 			hours = (int) Math.floor(walltimeRequestedInHours);
