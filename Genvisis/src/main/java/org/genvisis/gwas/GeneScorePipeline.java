@@ -36,6 +36,7 @@ public class GeneScorePipeline {
 	private static final String ARG_INDEX_THRESH = "indexThresh=";
 	private static final String ARG_WINDOW_SIZE = "minWinSize=";
 	private static final String ARG_WINDOW_EXT = "winThresh=";
+	private static final String ARG_MISS_THRESH = "missThresh=";
 
 	private static float DEFAULT_INDEX_THRESHOLD = (float) 0.00000005;
 	private static int DEFAULT_WINDOW_MIN_SIZE_PER_SIDE = 500000;// 500kb each side is technically a
@@ -45,6 +46,7 @@ public class GeneScorePipeline {
 																															 // algorithm
 	private static float DEFAULT_WINDOW_EXTENSION_THRESHOLD = (float) 0.000005; // (float)0.00001;
 	private static String[] DEFAULT_ADDL_ANNOT_VAR_NAMES = new String[0];
+	private static double DEFAULT_MIN_MISS_THRESH = 0.5;
 
 	private static final String PLINK_FRQ_DIR = "N:/statgen/1000G_work/Frequencies/";
 	private static final String TAG = "##";
@@ -61,6 +63,7 @@ public class GeneScorePipeline {
 	private float[] indexThresholds = new float[] {DEFAULT_INDEX_THRESHOLD};
 	private int[] windowMinSizePerSides = new int[] {DEFAULT_WINDOW_MIN_SIZE_PER_SIDE};
 	private float[] windowExtensionThresholds = new float[] {DEFAULT_WINDOW_EXTENSION_THRESHOLD};
+	private double minMissThresh = DEFAULT_MIN_MISS_THRESH;
 
 	// private int numThreads = 1;
 	// private boolean runPlink = false;
@@ -511,7 +514,7 @@ public class GeneScorePipeline {
 													 /*
 													  * int numThreads, boolean plink, boolean regression, boolean histogram,
 													  */float[] indexThresholds, int[] windowMins,
-													 float[] windowExtThresholds,
+													 float[] windowExtThresholds, double missThresh,
 													 Logger log) {
 		this.log = log;
 		this.metaDir = metaDir;
@@ -519,7 +522,7 @@ public class GeneScorePipeline {
 		// this.runPlink = plink;
 		// this.runRegression = runPlink && regression;
 		// this.writeHist = runPlink && histogram;
-
+		this.minMissThresh = missThresh;
 		this.indexThresholds = indexThresholds;
 		windowMinSizePerSides = windowMins;
 		windowExtensionThresholds = windowExtThresholds;
@@ -1261,8 +1264,12 @@ public class GeneScorePipeline {
 						// scoringAllele2 + "}");
 						// }
 					}
-					scoreWriter.println(ids[i][0] + "\t" + ids[i][1] + "\t" + markers.length + "\t"
-															+ (2 * cnt) + "\t" + cnt2 + "\t" + ext.formDeci(scoreSum, 3));
+
+					double mkrRatio = markers.length / (double) cnt;
+					if (mkrRatio > minMissThresh) {
+						scoreWriter.println(ids[i][0] + "\t" + ids[i][1] + "\t" + markers.length + "\t"
+																+ (2 * cnt) + "\t" + cnt2 + "\t" + ext.formDeci(scoreSum, 3));
+					}
 				}
 
 				scoreWriter.flush();
@@ -1659,6 +1666,7 @@ public class GeneScorePipeline {
 		float[] iT = new float[] {DEFAULT_INDEX_THRESHOLD};
 		int[] mZ = new int[] {DEFAULT_WINDOW_MIN_SIZE_PER_SIDE};
 		float[] wT = new float[] {DEFAULT_WINDOW_EXTENSION_THRESHOLD};
+		double mT = DEFAULT_MIN_MISS_THRESH;
 
 		String[] processList = null;
 		boolean process = false;
@@ -1708,14 +1716,22 @@ public class GeneScorePipeline {
 									 + "  OR\n"
 									 + "   (1) Metastudy directory root, containing subdirectories for each study (i.e. workDir=C:/ (not the default))\n"
 									 + "       OPTIONAL:\n"
-									 + "   (2) p-value threshold (or comma-delimited list) for index SNPs (i.e. indexThresh="
+									 + "   (2) p-value threshold (or comma-delimited list) for index SNPs (i.e. "
+									 + ARG_INDEX_THRESH
 									 + DEFAULT_INDEX_THRESHOLD
 									 + " (default))\n"
-									 + "   (3) minimum num bp per side of window (or comma delimited list) (i.e. minWinSize="
+									 + "   (3) minimum num bp per side of window (or comma delimited list) (i.e. "
+									 + ARG_WINDOW_SIZE
 									 + DEFAULT_WINDOW_MIN_SIZE_PER_SIDE
 									 + " (default))\n"
-									 + "   (4) p-value threshold to extend the window (or comma delimited list) (i.e. winThresh="
-									 + DEFAULT_WINDOW_EXTENSION_THRESHOLD + " (default))\n" +
+									 + "   (4) p-value threshold to extend the window (or comma delimited list) (i.e. "
+									 + ARG_WINDOW_EXT
+									 + DEFAULT_WINDOW_EXTENSION_THRESHOLD
+									 + " (default))\n"
+									 + "   (5) minimum ratio of missing data for an individual's gene loading score to be included in the final analysis (i.e. "
+									 + ARG_MISS_THRESH
+									 + DEFAULT_MIN_MISS_THRESH + " (default))\n"
+									 +
 									 // " (8) Number of threads to use for computation (i.e. threads=" + threads + "
 									 // (default))\n" +
 									 "";
@@ -1781,6 +1797,9 @@ public class GeneScorePipeline {
 					}
 				}
 				numArgs--;
+			} else if (arg.startsWith(ARG_MISS_THRESH)) {
+				mT = ext.parseDoubleArg(arg);
+				numArgs--;
 			} else if (arg.startsWith("log=")) {
 				logFile = arg.split("=")[1];
 				numArgs--;
@@ -1813,7 +1832,7 @@ public class GeneScorePipeline {
 		// System.err.println("Error - '-runPlink' option is required for '-writeHist' option");
 		// System.exit(1);
 		// }
-		GeneScorePipeline gsp = new GeneScorePipeline(workDir, iT, mZ, wT, log);
+		GeneScorePipeline gsp = new GeneScorePipeline(workDir, iT, mZ, wT, mT, log);
 		gsp.runPipeline();
 	}
 
