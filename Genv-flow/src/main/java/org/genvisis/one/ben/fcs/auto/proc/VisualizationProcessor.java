@@ -3,7 +3,6 @@ package org.genvisis.one.ben.fcs.auto.proc;
 import java.io.IOException;
 
 import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSPlot;
@@ -52,20 +51,20 @@ public class VisualizationProcessor implements SampleProcessor {
 
 			fcp.setClassifierGate(g.getName());
 
-			String name = g.getName();
-			String fNumD = FCSProcessingPipeline.getFNum(sn.fcsFile);
-
+			// String name = g.getName();
+			// String fNumD = FCSProcessingPipeline.getFNum(sn.fcsFile);
+			String outFile = outDir + sn.fcsFile + "/"
+											 + sn.fcsFile + "." + g.getXDimension().getParam() + "v"
+											 + g.getYDimension().getParam();
 			fcp.getPanel().classifierPrev = false;
 			fcp.getPanel().setForceGatesChanged();
 			fcp.getPanel().createImage();
-			fcp.screencap(outDir + fNumD + "/"
-										+ ext.replaceWithLinuxSafeCharacters(fNumD + "_" + name + ".png"));
+			fcp.screencap(outFile + ".png");
 
 			fcp.getPanel().classifierPrev = true;
 			fcp.getPanel().setForceGatesChanged();
 			fcp.getPanel().createImage();
-			fcp.screencap(outDir + fNumD + "/"
-										+ ext.replaceWithLinuxSafeCharacters(fNumD + "_" + name + "_prev.png"));
+			fcp.screencap(outFile + "_prev.png");
 
 			fcp.gateSelected(g, true);
 		}
