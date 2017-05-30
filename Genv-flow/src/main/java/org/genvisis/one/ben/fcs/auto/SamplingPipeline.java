@@ -18,6 +18,8 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.one.ben.fcs.auto.proc.ProcessorFactory;
+import org.genvisis.one.ben.fcs.auto.proc.SampleProcessor;
 import org.genvisis.one.ben.fcs.gating.Workbench.SampleNode;
 
 public class SamplingPipeline {
@@ -321,10 +323,16 @@ public class SamplingPipeline {
 			return;
 		}
 		int proc = Runtime.getRuntime().availableProcessors() / 2;
-		final ThreadPoolExecutor threadPool1 = new ThreadPoolExecutor(proc, proc, 0L,
+		final ThreadPoolExecutor threadPool1 = new ThreadPoolExecutor(
+																																	proc,
+																																	proc,
+																																	0L,
 																																	TimeUnit.MILLISECONDS,
 																																	new LinkedBlockingQueue<Runnable>());
-		final ThreadPoolExecutor threadPool2 = new ThreadPoolExecutor(proc, proc, 0L,
+		final ThreadPoolExecutor threadPool2 = new ThreadPoolExecutor(
+																																	proc,
+																																	proc,
+																																	0L,
 																																	TimeUnit.MILLISECONDS,
 																																	new LinkedBlockingQueue<Runnable>());
 		final ConcurrentLinkedQueue<SampleNode> p1Queue = new ConcurrentLinkedQueue<>();
@@ -362,7 +370,7 @@ public class SamplingPipeline {
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				/**/ }
+				/**/}
 		}
 
 		processorFactory.cleanup(p1Run);

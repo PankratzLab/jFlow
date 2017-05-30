@@ -1,4 +1,4 @@
-package org.genvisis.one.ben.fcs.auto;
+package org.genvisis.one.ben.fcs.auto.proc;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -19,58 +19,13 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.PlainTextExport;
-import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.gating.Gate;
-import org.genvisis.one.ben.fcs.gating.GateFileUtils;
 import org.genvisis.one.ben.fcs.gating.Workbench.SampleNode;
 import org.genvisis.one.ben.fcs.sub.EMInitializer;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 @FunctionalInterface
-interface SampleProcessor {
+public interface SampleProcessor {
 	public void processSample(SampleNode sn, Logger log) throws IOException;
-}
-
-
-interface ProcessorFactory<T extends SampleProcessor> {
-	T createProcessor(Object owner, int index);
-
-	void cleanup(Object owner);
-}
-
-
-abstract class AbstractSampleProcessor implements SampleProcessor {
-	NodeList popList;
-	HashMap<String, Element> popMap = new HashMap<>();
-	HashMap<String, Element> gateMap = new HashMap<>();
-	FCSDataLoader d;
-
-	protected AbstractSampleProcessor() {}
-
-	void loadPopsAndGates(SampleNode sn) {
-		popList = sn.sampleNode.getElementsByTagName("Population");
-		// annoOffsetX/annoOffsetY ???
-		// panelState ???
-		for (int i = 0; i < popList.getLength(); i++) {
-			Element e = (Element) popList.item(i);
-			Element g = (Element) e.getElementsByTagName("Gate").item(0);
-			popMap.put(g.getAttribute("gating:id"), e);
-			gateMap.put(g.getAttribute("gating:id"), g);
-		}
-	}
-
-	void loadData(SampleNode sn) throws IOException {
-		long t1 = System.currentTimeMillis();
-		d = new FCSDataLoader();
-		d.loadData(sn.fcsFile);
-		d.waitForData();
-		(new Logger()).reportTimeElapsed("Loaded FCS ... ", t1);
-		d.setTransformMap(sn.savedTransforms);
-		GateFileUtils.updateGateParams(d, sn.gating.gateRoots);
-		sn.gating.paramGateMap = GateFileUtils.parameterizeGates(sn.gating.gateMap);
-	}
-
 }
 
 
@@ -117,7 +72,8 @@ class PercentageWriterFactory implements ProcessorFactory<PercentageWriter> {
 		writer.close();
 	}
 
-	private static final String[] order = {"Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A)",
+	private static final String[] order = {
+																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A)",
 																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H)",
 																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A)",
 																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / B cells (CD3- CD19+) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19))",
@@ -499,4 +455,3 @@ class LeafDataSampler extends AbstractSampleProcessor {
 
 
 }
-
