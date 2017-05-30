@@ -2076,7 +2076,7 @@ public class Project implements PropertyChangeListener {
 	}
 
 	public void importProperties(Project proj) {
-		for (Property p : proj.getProperties()) {
+		for (Property<?> p : proj.getProperties()) {
 			switch (p.getCopyScheme()) {
 				case NO_COPY:
 					break;

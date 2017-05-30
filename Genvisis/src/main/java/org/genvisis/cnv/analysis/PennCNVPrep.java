@@ -748,6 +748,7 @@ public class PennCNVPrep {
 			} else {
 				SerializedFiles.writeSerial(outliers, outlierFile);
 			}
+			shadowProj.saveProperties();
 
 		} else {
 			prepExport(proj, dir, tmpDir, numComponents, markerFile, numThreads, numMarkerThreads, lType,
