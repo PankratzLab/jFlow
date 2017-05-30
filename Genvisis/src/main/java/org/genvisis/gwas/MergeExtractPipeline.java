@@ -735,7 +735,8 @@ public class MergeExtractPipeline {
 																				 + "\" doesn't exist.");
 		}
 
-		file = Files.isRelativePath(data) ? (Files.exists(runDir + data) ? runDir + data : "./" + data)
+		file = Files.isRelativePath(data) ?
+																		 (Files.exists(runDir + data) ? runDir + data : "./" + data)
 																		 : data;
 		if (!Files.exists(file)) {
 			throw new IllegalArgumentException("Error - provided data file \"" + file

@@ -32,7 +32,7 @@ import com.google.common.primitives.Doubles;
 
 public class GeneScorePipeline {
 
-	private static final String ARG_BROOT = "broot=";
+	private static final String ARG_WORKING_DIR = "workDir=";
 	private static final String ARG_INDEX_THRESH = "indexThresh=";
 	private static final String ARG_WINDOW_SIZE = "minWinSize=";
 	private static final String ARG_WINDOW_EXT = "winThresh=";
@@ -43,7 +43,7 @@ public class GeneScorePipeline {
 																															 // region, but we now take this into
 																															 // consideration in the main
 																															 // algorithm
-	private static float DEFAULT_WINDOW_EXTENSION_THRESHOLD = (float) 0.00000005; // (float)0.00001;
+	private static float DEFAULT_WINDOW_EXTENSION_THRESHOLD = (float) 0.000005; // (float)0.00001;
 	private static String[] DEFAULT_ADDL_ANNOT_VAR_NAMES = new String[0];
 
 	private static final String PLINK_FRQ_DIR = "N:/statgen/1000G_work/Frequencies/";
@@ -367,13 +367,12 @@ public class GeneScorePipeline {
 		return plinkFreqs;
 	}
 
-	public static void preprocessDataFiles(String[] files) {
+	public static void preprocessDataFiles(String[] files, Logger log) {
 		BufferedReader reader;
 		String temp, delimiter;
 		String[] header, snps = null, data, line;
 		String[][] factors;
 		int[] indices;
-		Logger log = new Logger();
 		HashMap<String, int[]> markerMap;
 		Hashtable<String, Vector<String>> fileData;
 		HashMap<String, Double> freqs;
@@ -1367,7 +1366,6 @@ public class GeneScorePipeline {
 									}
 								}
 								baselineIndeps.add(baseData);
-								System.out.println(ArrayUtils.toStr(covarData, ","));
 								indepData.add(covarData);
 							}
 						}
@@ -1533,7 +1531,7 @@ public class GeneScorePipeline {
 																																.append("\t").append(rr.se)
 																																.append("\t").append(rr.num)
 																																.append("\t").append(middle)
-																																.append("\t").append(pvalExcl);
+																																.append(pvalExcl);
 
 							writer.println(sb.toString());
 						}
@@ -1549,11 +1547,12 @@ public class GeneScorePipeline {
 	public static final String COMMAND_GENESCORE = "geneScore";
 
 	public static void fromParameters(String filename, Logger log) {
-
+		String dir = ext.verifyDirFormat(new File(ext.parseDirectoryOfFile(filename)).getAbsolutePath());
 		List<String> params;
-		params = Files.parseControlFile(filename, COMMAND_GENESCORE,
+		params = Files.parseControlFile(filename,
+																		COMMAND_GENESCORE,
 																		new String[] {
-																									ARG_BROOT + ext.parseDirectoryOfFile(filename),
+																									ARG_WORKING_DIR + dir,
 																									ARG_INDEX_THRESH + DEFAULT_INDEX_THRESHOLD,
 																									ARG_WINDOW_SIZE
 																											+ DEFAULT_WINDOW_MIN_SIZE_PER_SIDE,
@@ -1561,15 +1560,16 @@ public class GeneScorePipeline {
 																											+ DEFAULT_WINDOW_EXTENSION_THRESHOLD
 																		}, log);
 		if (params == null) {
-			setupCRF(filename);
+			setupCRF(filename, log);
 			return;
 		}
 		if (params != null) {
+			params.add("log=" + log.getFilename());
 			main(ArrayUtils.toStringArray(params));
 		}
 	}
 
-	private static void setupCRF(String crfFile) {
+	private static void setupCRF(String crfFile, Logger log) {
 		String dir = ext.parseDirectoryOfFile(crfFile);
 		String[] files = (new File(dir)).list();
 		HashSet<String> potentialRoots = new HashSet<>();
@@ -1597,9 +1597,9 @@ public class GeneScorePipeline {
 
 		createDataFile(dir, validData, phenos);
 
-		System.out.println("Processing " + preprocess.size() + " results files...");
-		preprocessDataFiles(preprocess.toArray(new String[preprocess.size()]));
-		System.out.println("Done!");
+		log.reportTime("Processing " + preprocess.size() + " results files...");
+		preprocessDataFiles(preprocess.toArray(new String[preprocess.size()]), log);
+		log.reportTime("Done!");
 	}
 
 	private static void createDataFile(String baseDir, HashSet<String> plinkRoots,
@@ -1608,8 +1608,9 @@ public class GeneScorePipeline {
 		new File(dir).mkdir();
 		PrintWriter writer = Files.getAppropriateWriter(dir + "data.txt");
 		for (String plinkRoot : plinkRoots) {
-			writer.println(plinkRoot + "\t" + baseDir + PSF.Plink.getBED(plinkRoot) + "\t" + baseDir
-										 + PSF.Plink.getBIM(plinkRoot) + "\t" + baseDir + PSF.Plink.getFAM(plinkRoot));
+			writer.println(plinkRoot + "\t" + getFull(baseDir + PSF.Plink.getBED(plinkRoot)) + "\t"
+										 + getFull(baseDir + PSF.Plink.getBIM(plinkRoot))
+										 + "\t" + getFull(baseDir + PSF.Plink.getFAM(plinkRoot)));
 		}
 		writer.flush();
 		writer.close();
@@ -1617,6 +1618,10 @@ public class GeneScorePipeline {
 		for (String s : phenoFiles) {
 			Files.copyFile(baseDir + s, dir + s);
 		}
+	}
+
+	private static String getFull(String file) {
+		return (new File(file)).getAbsolutePath();
 	}
 
 	// private void writeToForestInput() {
@@ -1648,13 +1653,15 @@ public class GeneScorePipeline {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 
-		String broot = null;
+		String workDir = null;
 		String logFile = null;
 
 		float[] iT = new float[] {DEFAULT_INDEX_THRESHOLD};
 		int[] mZ = new int[] {DEFAULT_WINDOW_MIN_SIZE_PER_SIDE};
 		float[] wT = new float[] {DEFAULT_WINDOW_EXTENSION_THRESHOLD};
 
+		String[] processList = null;
+		boolean process = false;
 		// boolean test = true;
 		// if (test) {
 		// preprocessDataFiles(new String[]{
@@ -1671,7 +1678,7 @@ public class GeneScorePipeline {
 		String usage = "\n"
 									 + "GeneScorePipeline is a convention-driven submodule.  It relies on a standard folder structure and file naming scheme:\n"
 									 + "\tThe directory and file structure must conform to the following:\n"
-									 + "\t\t>Root Directory ['broot' argument]\n"
+									 + "\t\t>Root Directory ['workDir' argument]\n"
 									 + "\t\t\t>SNP Effect files:\n"
 									 + "\t\t\t\t-Effect files must end with '.meta'.\n"
 									 + "\t\t\t\t-Effect files may be hand-constructed, or may be generated with the 'preprocess' command from a .xln file\n"
@@ -1699,7 +1706,7 @@ public class GeneScorePipeline {
 									 + "gwas.GeneScorePipeline requires 1+ arguments\n"
 									 + "   (1) Pre-process data files (i.e. process=path/to/file1.xln,path/to/file2.xln (not the default)) \n"
 									 + "  OR\n"
-									 + "   (1) Metastudy directory root, containing subdirectories for each study (i.e. broot=C:/ (not the default))\n"
+									 + "   (1) Metastudy directory root, containing subdirectories for each study (i.e. workDir=C:/ (not the default))\n"
 									 + "       OPTIONAL:\n"
 									 + "   (2) p-value threshold (or comma-delimited list) for index SNPs (i.e. indexThresh="
 									 + DEFAULT_INDEX_THRESHOLD
@@ -1717,13 +1724,12 @@ public class GeneScorePipeline {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (arg.startsWith(ARG_BROOT)) {
-				broot = arg.split("=")[1];
+			} else if (arg.startsWith(ARG_WORKING_DIR)) {
+				workDir = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("process=")) {
-				String[] lst = arg.split("=")[1].split(",");
-				preprocessDataFiles(lst);
-				return;
+				processList = arg.split("=")[1].split(",");
+				process = true;
 			} else if (arg.startsWith(ARG_INDEX_THRESH)) {
 				String[] lst = arg.split("=")[1].split(",");
 				int cntValid = 0;
@@ -1787,9 +1793,16 @@ public class GeneScorePipeline {
 			System.exit(1);
 		}
 
-		File dir = new File(broot);
+		Logger log = new Logger(logFile, true);
+
+		if (process) {
+			preprocessDataFiles(processList, log);
+			return;
+		}
+
+		File dir = new File(workDir);
 		if (!dir.isDirectory()) {
-			System.err.println("Error - argument 'broot' must be a valid directory");
+			System.err.println("Error - argument 'workDir' must be a valid directory");
 			System.exit(1);
 		}
 		// if (regress && !runPlink) {
@@ -1800,10 +1813,7 @@ public class GeneScorePipeline {
 		// System.err.println("Error - '-runPlink' option is required for '-writeHist' option");
 		// System.exit(1);
 		// }
-		Logger log = new Logger(logFile);
-		GeneScorePipeline gsp = new GeneScorePipeline(broot,
-																									/* threads, runPlink, regress, writeHist, */iT,
-																									mZ, wT, log);
+		GeneScorePipeline gsp = new GeneScorePipeline(workDir, iT, mZ, wT, log);
 		gsp.runPipeline();
 	}
 
