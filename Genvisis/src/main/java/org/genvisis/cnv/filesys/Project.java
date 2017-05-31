@@ -2097,7 +2097,6 @@ public class Project implements PropertyChangeListener {
 					break;
 			}
 		}
-		// TODO determine which properties to copy across
 	}
 
 	/**

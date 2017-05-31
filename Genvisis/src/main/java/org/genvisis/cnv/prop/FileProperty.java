@@ -33,6 +33,11 @@ public class FileProperty extends StringProperty {
 	}
 
 	@Override
+	public String getValueString() {
+		return getValue();
+	}
+
+	@Override
 	public String getValue() {
 		return getValue(false, false);
 	}
