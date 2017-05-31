@@ -237,6 +237,8 @@ public class QueuePicker extends JDialog {
 			jq.setDefaultProcCnt(getProcessors());
 
 			QueueProperties.setDefaultQueueName(jq.getName());
+
+			System.out.println("NEW DEFAULT QUEUE: " + jq.getName());
 			QueueProperties.save(QueueProperties.PROPERTIES_FILE);
 		}
 	}
@@ -277,6 +279,7 @@ public class QueuePicker extends JDialog {
 		}
 		spinMem.setModel(new SpinnerNumberModel((int) m / trans, (int) mMin / trans,
 																						(int) mMax / trans, 1));
+		spinMem.setEditor(new JSpinner.NumberEditor(spinMem, "00"));
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(jq.getMinMem() >= 0 ? memTransform(jq.getMinMem()) : "??")
@@ -336,6 +339,7 @@ public class QueuePicker extends JDialog {
 		int p, wH = 0, wD = 0;
 		m = jq.getDefaultMem();
 		p = jq.getDefaultProc();
+
 		if (p <= 0) {
 			p = 1;
 		}
@@ -354,6 +358,8 @@ public class QueuePicker extends JDialog {
 		}
 
 		spinProc.setModel(new SpinnerNumberModel(p, pMin, pMax, 1));
+		spinProc.setEditor(new JSpinner.NumberEditor(spinProc, "00"));
+
 
 		if (m < 0) {
 			m = 0;
@@ -373,15 +379,26 @@ public class QueuePicker extends JDialog {
 			mMax = mMax / 1024;
 		}
 
-		spinMem.setModel(new SpinnerNumberModel((int) m, (int) mMin, (int) mMax, 1));
+		String memSel = MB;
+		if (m > 1024) {
+			memSel = GB;
+			m = m / 1024;
+			mMin = mMin / 1024;
+			mMax = mMax / 1024;
+		}
 
-		comboMemUnit.setSelectedItem(MB);
+		spinMem.setModel(new SpinnerNumberModel((int) m, (int) mMin, (int) mMax, 1));
+		spinMem.setEditor(new JSpinner.NumberEditor(spinMem, "00"));
+
+		comboMemUnit.setSelectedItem(memSel);
 
 		spinProc.setValue(p);
 
 		spinWallDay.setValue(wD);
 		spinWallHours.setValue(wH);
 		settingLimits = false;
+		repaint();
+		pack();
 	}
 
 	private static final String TOOLTIP = "<html>"
