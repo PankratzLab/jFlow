@@ -1206,12 +1206,21 @@ public class ProjectPropertiesEditor extends JFrame {
 		public Component getTableCellEditorComponent(final JTable table, final Object value,
 																								 boolean isSelected, final int row,
 																								 final int column) {
+			String key = ((String) table.getValueAt(row, 0)).trim();
+			Property<?> p = proj.getProperty(key);
+			boolean dir = false;
+			if (p instanceof FileProperty) {
+				dir = ((FileProperty) p).isDirectory();
+			} else if (p instanceof StringListProperty) {
+				dir = ((StringListProperty) p).isDirectory();
+			}
+			final boolean isDir = dir;
 			this.table = table;
 			StringBuilder labelText = new StringBuilder();
 			ActionListener listener = null;
 			if (value instanceof File) {
 				isMulti = false;
-				if (((File) value).isDirectory()) {
+				if (dir) {
 					String pathStr = ext.verifyDirFormat(((File) value).getPath());
 					if (pathStr.startsWith(defaultLocation)) {
 						pathStr = pathStr.substring(defaultLocation.length());
@@ -1238,7 +1247,7 @@ public class ProjectPropertiesEditor extends JFrame {
 								if (Files.exists(value.toString())) {
 									fileChooser.setSelectedFile((File) value);
 								}
-								if (((File) value).isDirectory()) {
+								if (isDir) {
 									fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 								} else {
 									fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -1260,12 +1269,10 @@ public class ProjectPropertiesEditor extends JFrame {
 				};
 			} else if (value instanceof File[]) {
 				isMulti = true;
-				boolean isDirsTemp = false;
 				File[] files = (File[]) value;
 				if (files.length > 0) {
 					for (int i = 0; i < files.length; i++) {
-						if (files[i].isDirectory()) {
-							isDirsTemp = true;
+						if (isDir) {
 							String pathStr = ext.verifyDirFormat(files[i].getPath());
 							if (pathStr.startsWith(defaultLocation)) {
 								pathStr = pathStr.substring(defaultLocation.length());
@@ -1287,7 +1294,6 @@ public class ProjectPropertiesEditor extends JFrame {
 						}
 					}
 				}
-				final boolean isDirs = isDirsTemp;
 				listener = new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -1296,7 +1302,7 @@ public class ProjectPropertiesEditor extends JFrame {
 							@Override
 							public void run() {
 								fileChooser.setMultiSelectionEnabled(true);
-								if (isDirs) {
+								if (isDir) {
 									fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 								} else {
 									fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
