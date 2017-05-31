@@ -1,4 +1,3 @@
-
 package org.genvisis.cnv.filesys;
 
 import java.awt.BorderLayout;
@@ -54,6 +53,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import net.miginfocom.swing.MigLayout;
+
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
 import org.genvisis.cnv.filesys.Project.GROUP;
@@ -72,8 +73,6 @@ import org.genvisis.common.ext;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-
-import net.miginfocom.swing.MigLayout;
 
 public class ProjectPropertiesEditor extends JFrame {
 
@@ -125,7 +124,7 @@ public class ProjectPropertiesEditor extends JFrame {
 			}
 			if (newValue instanceof String[] || newValue instanceof String) {
 				String[] vals = newValue instanceof String[] ? (String[]) newValue
-																										 : new String[] {(String) newValue};
+																										: new String[] {(String) newValue};
 				if (vals.length == 1 && "".equals(vals[0])) {
 					return true;
 				}
@@ -342,7 +341,8 @@ public class ProjectPropertiesEditor extends JFrame {
 		fileRenderer.add(fileLabel, "cell 0 0");
 		fileRenderer.add(fileAddBtn2, "cell 1 0, width 21px, split 1");
 		fileRenderer.add(fileBtn2, "cell 1 0, width 21px");
-		final FileChooserCellEditor fileEditor = new FileChooserCellEditor(true,
+		final FileChooserCellEditor fileEditor = new FileChooserCellEditor(
+																																			 true,
 																																			 proj.getProperty(proj.PROJECT_DIRECTORY));
 		final DefaultCellEditor stringEditor = new DefaultCellEditor(new JTextField()) {
 			private static final long serialVersionUID = 1L;
@@ -514,7 +514,7 @@ public class ProjectPropertiesEditor extends JFrame {
 						if (!alreadyValidated && !exists) {
 							sb.append("</font>");
 						}
-						if (i < values.length - 1) {
+						if (i < values.length - 1 && sb.length() > 0) {
 							sb.append(";");
 						}
 					}
@@ -543,9 +543,10 @@ public class ProjectPropertiesEditor extends JFrame {
 					if (column == 0) {
 						returnComp = super.getTableCellRendererComponent(table, "            " + value,
 																														 isSelected, hasFocus, row, column);
-						((JComponent) returnComp).setFont(((JComponent) returnComp).getFont().deriveFont(
-																																														 Font.PLAIN,
-																																														 12f));
+						((JComponent) returnComp).setFont(((JComponent) returnComp).getFont()
+																																			 .deriveFont(
+																																									 Font.PLAIN,
+																																									 12f));
 					} else {
 						returnComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus,
 																														 row, column);
@@ -789,7 +790,8 @@ public class ProjectPropertiesEditor extends JFrame {
 		HashMap<String, String> changes = extract();
 		if (changes.size() > 0) {
 			if (promptChanges) {
-				StringBuilder message = new StringBuilder("The following properties have been changed.  Would you like to save your changes?");
+				StringBuilder message = new StringBuilder(
+																									"The following properties have been changed.  Would you like to save your changes?");
 				int cnt = 0;
 				for (String key : changes.keySet()) {
 					if (cnt == 10) {
@@ -838,16 +840,17 @@ public class ProjectPropertiesEditor extends JFrame {
 				if (set.length > 0) {
 					value = set[0].getPath();
 					if (!set[0].exists()) {
-						value = ((StringListProperty) proj.getProperty(key)).isDirectory() ? ext.verifyDirFormat(value)
-																																							 : ext.replaceAllWith(value,
-																																																		"\\",
-																																																		"/");
+						value = ((StringListProperty) proj.getProperty(key)).isDirectory()
+																																							? ext.verifyDirFormat(value)
+																																							: ext.replaceAllWith(value,
+																																																	 "\\",
+																																																	 "/");
 					} else {
 						value = set[0].isDirectory() ? ext.verifyDirFormat(value)
-																				 : ext.replaceAllWith(value, "\\", "/");
+																				: ext.replaceAllWith(value, "\\", "/");
 					}
 					value = set[0].isDirectory() ? ext.verifyDirFormat(value)
-																			 : ext.replaceAllWith(value, "\\", "/");
+																			: ext.replaceAllWith(value, "\\", "/");
 					if (value.startsWith(projectsDir)) {
 						value = value.substring(projectsDir.length());
 					} else if (value.startsWith(currProjDir)) {
@@ -856,13 +859,14 @@ public class ProjectPropertiesEditor extends JFrame {
 					for (int k = 1; k < set.length; k++) {
 						String fNm = set[k].getPath();
 						if (!set[k].exists()) {
-							fNm = ((StringListProperty) proj.getProperty(key)).isDirectory() ? ext.verifyDirFormat(fNm)
-																																							 : ext.replaceAllWith(fNm,
-																																																		"\\",
-																																																		"/");
+							fNm = ((StringListProperty) proj.getProperty(key)).isDirectory()
+																																							? ext.verifyDirFormat(fNm)
+																																							: ext.replaceAllWith(fNm,
+																																																	 "\\",
+																																																	 "/");
 						} else {
 							fNm = set[k].isDirectory() ? ext.verifyDirFormat(fNm)
-																				 : ext.replaceAllWith(fNm, "\\", "/");
+																				: ext.replaceAllWith(fNm, "\\", "/");
 						}
 						if (fNm.startsWith(projectsDir)) {
 							fNm = fNm.substring(projectsDir.length());
@@ -877,12 +881,12 @@ public class ProjectPropertiesEditor extends JFrame {
 				value = set.getPath();
 				if (!set.exists()) {
 					value = ((FileProperty) proj.getProperty(key)).isDirectory() ? ext.verifyDirFormat(value)
-																																			 : ext.replaceAllWith(value,
-																																														"\\",
-																																														"/");
+																																			: ext.replaceAllWith(value,
+																																													 "\\",
+																																													 "/");
 				} else {
 					value = set.isDirectory() ? ext.verifyDirFormat(value)
-																		: ext.replaceAllWith(value, "\\", "/");
+																	 : ext.replaceAllWith(value, "\\", "/");
 				}
 				if (!key.equals(proj.SOURCE_DIRECTORY.getName())
 						&& !key.equals(proj.PROJECT_DIRECTORY.getName())) {
@@ -903,7 +907,7 @@ public class ProjectPropertiesEditor extends JFrame {
 					} else {
 						value += tempValue;
 					}
-					if (k < ((String[]) rawValue).length - 1) {
+					if (k < ((String[]) rawValue).length - 1 && value.length() > 0) {
 						value += ";";
 					}
 				}
@@ -1177,7 +1181,7 @@ public class ProjectPropertiesEditor extends JFrame {
 							}
 							labelText.append(pathStr);
 						}
-						if (i < files.length - 1) {
+						if (i < files.length - 1 && labelText.length() > 0) {
 							labelText.append(";");
 						}
 					}
@@ -1278,7 +1282,7 @@ public class ProjectPropertiesEditor extends JFrame {
 							}
 							labelText.append(pathStr);
 						}
-						if (i < files.length - 1) {
+						if (i < files.length - 1 && labelText.length() > 0) {
 							labelText.append(";");
 						}
 					}
@@ -1304,7 +1308,7 @@ public class ProjectPropertiesEditor extends JFrame {
 									newValue = fileChooser.getSelectedFiles();
 								} /*
 									 * else {
-									 *
+									 * 
 									 * FileChooserCellEditor.this.setValue(value); }
 									 */
 
@@ -1472,4 +1476,3 @@ public class ProjectPropertiesEditor extends JFrame {
 	}
 
 }
-
