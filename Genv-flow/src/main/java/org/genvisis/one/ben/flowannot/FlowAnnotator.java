@@ -14,6 +14,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
@@ -21,9 +22,11 @@ import java.util.Properties;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.InputMap;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -33,17 +36,21 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -203,7 +210,8 @@ public class FlowAnnotator {
 
 		fcsCombo = new JComboBox<String>();
 		fcsCombo.addActionListener(comboListener);
-		controlPanel.add(fcsCombo, "cell 0 0,growx");
+		fcsCombo.setFocusable(false);
+		controlPanel.add(fcsCombo, "flowx,cell 0 0,growx");
 
 		JScrollPane scrollPane_1 = new JScrollPane();
 		controlPanel.add(scrollPane_1, "cell 0 1,grow");
@@ -228,8 +236,11 @@ public class FlowAnnotator {
 			}
 		});
 
+		frmFlowannotator.setJMenuBar(createMenuBar());
+	}
+
+	private JMenuBar createMenuBar() {
 		JMenuBar menuBar = new JMenuBar();
-		frmFlowannotator.setJMenuBar(menuBar);
 
 		JMenu mnFile = new JMenu("File");
 		mnFile.setMnemonic('F');
@@ -268,6 +279,62 @@ public class FlowAnnotator {
 		});
 		mntmExit.setText("Exit");
 		mnFile.add(mntmExit);
+
+		JMenu mnNav = new JMenu("Navigation");
+		mnNav.setMnemonic('N');
+		menuBar.add(mnNav);
+
+		JMenuItem mntmNavTravLbl = new JMenuItem();
+		mntmNavTravLbl.setEnabled(false);
+		mntmNavTravLbl.setText("Traversal:");
+		mnNav.add(mntmNavTravLbl);
+
+		AbstractAction travSelAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// System.out.println(e);
+			}
+		};
+		ButtonGroup travGrp = new ButtonGroup();
+
+		jrbTravAll = new JRadioButtonMenuItem();
+		jrbTravAll.setAction(travSelAction);
+		jrbTravAll.setText("All");
+		jrbTravAll.setSelected(true);
+		travGrp.add(jrbTravAll);
+		mnNav.add(jrbTravAll);
+		jrbTravAnn = new JRadioButtonMenuItem();
+		jrbTravAnn.setAction(travSelAction);
+		jrbTravAnn.setText("Annotated");
+		travGrp.add(jrbTravAnn);
+		mnNav.add(jrbTravAnn);
+		jrbTravNon = new JRadioButtonMenuItem();
+		jrbTravNon.setAction(travSelAction);
+		jrbTravNon.setText("Non-Annotated");
+		travGrp.add(jrbTravNon);
+		mnNav.add(jrbTravNon);
+		mnTravAnn = new JMenu("Annotation:");
+		mnNav.add(mnTravAnn);
+
+		mnNav.add(new JSeparator(SwingConstants.HORIZONTAL));
+
+		JMenuItem mntmNavOptLbl = new JMenuItem();
+		mntmNavOptLbl.setEnabled(false);
+		mntmNavOptLbl.setText("Other Options:");
+		mnNav.add(mntmNavOptLbl);
+
+		JCheckBoxMenuItem mntmNavKeepGate = new JCheckBoxMenuItem();
+		mntmNavKeepGate.setAction(new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				keepGateWhenFileChange = mntmNavKeepGate.isSelected();
+			}
+		});
+		mntmNavKeepGate.setText("Keep Gate When File Changes");
+		mntmNavKeepGate.setSelected(true);
+		mnNav.add(mntmNavKeepGate);
+
+		return menuBar;
 	}
 
 	private void close() {
@@ -374,6 +441,7 @@ public class FlowAnnotator {
 			annBox.setAction(mnemAct);
 			annBox.setText(allAnnots.get(i).annotation);
 			annBox.setMnemonic(allAnnots.get(i).mnemonic);
+			annBox.setFocusable(false);
 			mnemonicActions.put(allAnnots.get(i).mnemonic, mnemAct);
 			annotPanel.add(annBox, "cell 0 " + i);
 		}
@@ -388,6 +456,213 @@ public class FlowAnnotator {
 		}
 	}
 
+	boolean keepGateWhenFileChange = true;
+
+	private static final int ALL = 0;
+	private static final int ANN = 1;
+	private static final int NON = 2;
+
+	private int getTraversal() {
+		if (jrbTravAll.isSelected()) {
+			return ALL;
+		} else if (jrbTravAnn.isSelected()) {
+			return ANN;
+		} else if (jrbTravNon.isSelected()) {
+			return NON;
+		}
+		return 4;
+	}
+
+	private int getPrevNodeRow() {
+		int trav = getTraversal();
+		if (tree.isSelectionEmpty()) {
+			return -1;
+		}
+		int[] rows = tree.getSelectionRows();
+		if (rows == null || rows.length == 0) {
+			return -1;
+		}
+		int row = rows[0];
+		row--;
+		while (row >= 0) {
+			if (trav == ALL) {
+				break;
+			} else if (trav == ANN) {
+				TreePath tp = tree.getPathForRow(row);
+				DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tp.getLastPathComponent();
+				AnnotatedImage ai = (AnnotatedImage) dmtn.getUserObject();
+				if (!ai.getAnnotations().isEmpty()) {
+					break;
+				}
+			} else if (trav == NON) {
+				TreePath tp = tree.getPathForRow(row);
+				DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tp.getLastPathComponent();
+				AnnotatedImage ai = (AnnotatedImage) dmtn.getUserObject();
+				if (ai.getAnnotations().isEmpty()) {
+					break;
+				}
+			} else {
+				// TODO search for node with annotation
+			}
+			row--;
+		}
+		return row;
+	}
+
+	private int getNextNodeRow() {
+		int trav = getTraversal();
+		if (tree.isSelectionEmpty()) {
+			return -1;
+		}
+		int cnt = getTreeRowCount();
+		int[] rows = tree.getSelectionRows();
+		if (rows == null || rows.length == 0) {
+			return -1;
+		}
+		int row = rows[0];
+		row++;
+		while (row < cnt) {
+			if (trav == ALL) {
+				break;
+			} else if (trav == ANN) {
+				TreePath tp = tree.getPathForRow(row);
+				DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tp.getLastPathComponent();
+				AnnotatedImage ai = (AnnotatedImage) dmtn.getUserObject();
+				if (!ai.getAnnotations().isEmpty()) {
+					break;
+				}
+			} else if (trav == NON) {
+				TreePath tp = tree.getPathForRow(row);
+				DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tp.getLastPathComponent();
+				AnnotatedImage ai = (AnnotatedImage) dmtn.getUserObject();
+				if (ai.getAnnotations().isEmpty()) {
+					break;
+				}
+			} else {
+				// TODO search for node with annotation
+			}
+			row++;
+		}
+		return row;
+	}
+
+	private int getPrevFile() {
+		int trav = getTraversal();
+		int sel = fcsCombo.getSelectedIndex();
+		String gate = ((AnnotatedImage) ((DefaultMutableTreeNode) tree.getPathForRow(0)
+																																	.getLastPathComponent()).getUserObject()).getGateName();
+		// default to root, or last leaf?, or any ann/non?
+		if (keepGateWhenFileChange && !tree.isSelectionEmpty()) {
+			gate = ((AnnotatedImage) ((DefaultMutableTreeNode) tree.getSelectionPath()
+																														 .getLastPathComponent()).getUserObject()).getGateName();
+		}
+		sel--;
+		while (sel >= 0) {
+			if (trav == ALL) {
+				break;
+			} else if (trav == ANN) {
+				String fcs = fcsCombo.getItemAt(sel);
+				AnnotatedImage ai = annotator.getAnnotationMap().get(fcs).get(gate);
+				if (ai != null && ai.getAnnotations().size() > 0) {
+					break;
+				}
+			} else if (trav == NON) {
+				String fcs = fcsCombo.getItemAt(sel);
+				AnnotatedImage ai = annotator.getAnnotationMap().get(fcs).get(gate);
+				if (ai == null || ai.getAnnotations().size() == 0) {
+					break;
+				}
+			}
+			sel--;
+		}
+		return sel;
+	}
+
+	private int getNextFile() {
+		int trav = getTraversal();
+		int sel = fcsCombo.getSelectedIndex();
+		String gate = ((AnnotatedImage) ((DefaultMutableTreeNode) tree.getPathForRow(0)
+																																	.getLastPathComponent()).getUserObject()).getGateName();
+		// default to root, or last leaf?, or any ann/non?
+		if (keepGateWhenFileChange && !tree.isSelectionEmpty()) {
+			gate = ((AnnotatedImage) ((DefaultMutableTreeNode) tree.getSelectionPath()
+																														 .getLastPathComponent()).getUserObject()).getGateName();
+		}
+		sel++;
+		while (sel < fcsCombo.getItemCount()) {
+			if (trav == ALL) {
+				break;
+			} else if (trav == ANN) {
+				String fcs = fcsCombo.getItemAt(sel);
+				if (annotator.getAnnotationMap().get(fcs).get(gate).getAnnotations().size() > 0) {
+					break;
+				}
+			} else if (trav == NON) {
+				String fcs = fcsCombo.getItemAt(sel);
+				if (annotator.getAnnotationMap().get(fcs).get(gate).getAnnotations().size() == 0) {
+					break;
+				}
+			}
+			sel++;
+		}
+		return sel;
+	}
+
+	private void keyUp() { // prev node in tree
+		int newRow = getPrevNodeRow();
+		if (newRow < 0)
+			return;
+		tree.setSelectionRow(newRow);
+	}
+
+	private int getTreeRowCount() {
+		int cnt = getChildCount((DefaultMutableTreeNode) ((DefaultTreeModel) tree.getModel()).getRoot());
+		return cnt;
+	}
+
+	private int getChildCount(DefaultMutableTreeNode parent) {
+		int cnt = ((DefaultTreeModel) tree.getModel()).getChildCount(parent);
+		Enumeration e = parent.children();
+		while (e.hasMoreElements()) {
+			Object o = e.nextElement();
+			cnt += getChildCount((DefaultMutableTreeNode) o);
+		}
+		return cnt;
+	}
+
+	private void keyDown() { // next node in tree
+		int newRow = getNextNodeRow();
+		if (newRow >= getTreeRowCount())
+			return;
+		tree.setSelectionRow(newRow);
+	}
+
+	private void keyLeft() { // prev file
+		int prev = getPrevFile();
+		int[] rows = tree.getSelectionRows();
+		int row = -1;
+		if (rows != null && rows.length > 0) {
+			row = rows[0];
+		}
+		if (prev >= 0) {
+			fcsCombo.setSelectedIndex(prev);
+		}
+		tree.setSelectionRow(keepGateWhenFileChange && row != -1 ? row : 0);
+	}
+
+	private void keyRight() { // next file
+		int next = getNextFile();
+		int[] rows = tree.getSelectionRows();
+		int row = -1;
+		if (rows != null && rows.length > 0) {
+			row = rows[0];
+		}
+		if (next < fcsCombo.getItemCount()) {
+			fcsCombo.setSelectedIndex(next);
+			tree.setSelectionRow(keepGateWhenFileChange && row != -1 ? row : 0);
+		}
+	}
+
 	private void updateTreeKeys(JTree tree) {
 		tree.setUI(new BasicTreeUI() {
 
@@ -395,32 +670,23 @@ public class FlowAnnotator {
 				return new KeyAdapter() {
 					@Override
 					public void keyPressed(KeyEvent e) {
-						if (e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN) {
-							super.keyPressed(e);
-						} else if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_RIGHT) {
-							if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-								int cur = fcsCombo.getSelectedIndex();
-								if (cur > 0) {
-									fcsCombo.setSelectedIndex(cur - 1);
-								}
-							} else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-								int cnt = fcsCombo.getItemCount();
-								int cur = fcsCombo.getSelectedIndex();
-								if (cur < cnt - 1) {
-									fcsCombo.setSelectedIndex(cur + 1);
-								}
-							}
-							e.consume();
+						e.consume();
+						if (e.getKeyCode() == KeyEvent.VK_UP) {
+							keyUp();
+						} else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+							keyDown();
+						} else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+							keyLeft();
+						} else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+							keyRight();
 						} else {
 							if (!(e.isAltDown() && e.getKeyCode() == KeyEvent.VK_F4)) {
-								e.consume();
 								fireMnem((e.getKeyChar() + "").toUpperCase().charAt(0));
 							}
 						}
 					}
 				};
 			}
-
 		});
 	}
 
@@ -452,7 +718,6 @@ public class FlowAnnotator {
 		expandAllNodes(tree);
 		updateTreeKeys(tree);
 		tree.repaint();
-		tree.setSelectionRow(0);
 	}
 
 	private void updateNode(DefaultMutableTreeNode node, HashMap<String, AnnotatedImage> annMap) {
@@ -500,6 +765,7 @@ public class FlowAnnotator {
 			recentAnnotFiles.add(annFile);
 			reloadControls();
 			updateAvail();
+			tree.setSelectionRow(0);
 			saveProperties();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -555,6 +821,14 @@ public class FlowAnnotator {
 	private JPanel controlPanel;
 
 	private JSplitPane splitPane;
+
+	private JMenu mnTravAnn;
+
+	private JRadioButtonMenuItem jrbTravAll;
+
+	private JRadioButtonMenuItem jrbTravAnn;
+
+	private JRadioButtonMenuItem jrbTravNon;
 
 
 }
