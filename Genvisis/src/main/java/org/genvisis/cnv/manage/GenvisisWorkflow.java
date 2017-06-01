@@ -104,7 +104,7 @@ public class GenvisisWorkflow {
 			relatedStepsBuilder.add(this);
 			for (Requirement[] group : requirements) {
 				for (Requirement req : group) {
-					if (req instanceof StepRequirement) {
+					if (req instanceof StepRequirement && req != null) {
 						Step requiredStep = ((StepRequirement) req).getRequiredStep();
 						relatedStepsBuilder.add(requiredStep);
 						relatedStepsBuilder.addAll(requiredStep.getRelatedSteps());
