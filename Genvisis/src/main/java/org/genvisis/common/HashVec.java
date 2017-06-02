@@ -366,7 +366,7 @@ public class HashVec {
 	}
 
 	public static Map<String, String> loadFileColumnToMap(String filename, String key, String value,
-																										Logger log) {
+																												Logger log) {
 		int[] indices = ext.indexFactors(new String[] {key, value},
 																		 Files.getHeaderOfFile(filename, log), true, false);
 		if (indices[0] < 0)
@@ -376,8 +376,9 @@ public class HashVec {
 		return loadFileColumnToMap(filename, indices[0], indices[1], true, log);
 	}
 
-	public static Map<String, String> loadFileColumnToMap(String filename, int keyIndex, int valueIndex,
-																										boolean ignoreFirstLine, Logger log) {
+	public static Map<String, String> loadFileColumnToMap(String filename, int keyIndex,
+																												int valueIndex,
+																												boolean ignoreFirstLine, Logger log) {
 
 		BufferedReader reader = null;
 		Map<String, String> colMap = Maps.newHashMap();
@@ -413,10 +414,20 @@ public class HashVec {
 		String[] line;
 		int keyIndex;
 		int[] valueIndices;
+		String temp;
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			line = reader.readLine().trim().split("\t", -1);
+			temp = reader.readLine();
+			if (filename.endsWith(".csv")) {
+				// line = temp.split(",", -1);
+				line = ext.splitCommasIntelligently(temp, true, new Logger());
+			} else if (temp.indexOf("\t") == -1) {
+				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
+			} else {
+				line = temp.split("\t", -1);
+			}
+
 			keyIndex = ext.indexOfStr(keyHeader, line);
 			if (keyIndex == -1) {
 				System.err.println("Error - '" + keyHeader + "' not found in " + filename);
