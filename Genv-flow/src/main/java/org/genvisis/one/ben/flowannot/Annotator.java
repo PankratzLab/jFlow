@@ -12,12 +12,9 @@ import java.util.Map.Entry;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
 public class Annotator implements IAnnotator {
-
-	Logger log = new Logger();
 
 	private ArrayList<String> fcsKeys = new ArrayList<>();
 	private HashMap<String, HashMap<String, AnnotatedImage>> imageMap = new HashMap<>();
@@ -42,7 +39,8 @@ public class Annotator implements IAnnotator {
 	}
 
 	@Override
-	public void replaceAnnotation(AnnotatedImage.Annotation prevAnnot, AnnotatedImage.Annotation newAnnot) {
+	public void replaceAnnotation(AnnotatedImage.Annotation prevAnnot,
+																AnnotatedImage.Annotation newAnnot) {
 		this.annotations.set(this.annotations.indexOf(prevAnnot), newAnnot);
 		for (HashMap<String, AnnotatedImage> annMap : imageMap.values()) {
 			for (AnnotatedImage ai : annMap.values()) {
