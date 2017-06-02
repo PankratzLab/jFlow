@@ -63,6 +63,8 @@ public class Pipeline {
 		// Map<String, String> toRecal = runRecal();
 		// Map<String, String> toCall = runHaplotypeCaller();
 
+		runHaplotypeCallerItasca();
+
 	}
 
 	private Map<String, String> indexBAMs() {
@@ -167,7 +169,7 @@ public class Pipeline {
 			while (i < 3 && idIter.hasNext()) {
 				String id = idIter.next();
 				if (!fileExists(callerGvcf(id)) && itascaIDs.contains(id)) {
-					idsToBatch.add(idIter.next());
+					idsToBatch.add(id);
 					i++;
 				}
 			}
@@ -185,7 +187,7 @@ public class Pipeline {
 					 .add("\t-o " + callerGvcf(id) + " \\")
 					 .add("\t--dbsnp /home/pankrat2/public/bin/ref/dbsnp_138.b37.vcf \\")
 					 .add("\t-ERC GVCF \\")
-					 .add("\t-nct " + threads + "&");
+					 .add("\t-nct " + threads + " &");
 				cmd.add("");
 			}
 
