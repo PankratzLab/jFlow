@@ -47,15 +47,22 @@ public class VisualizationProcessor implements SampleProcessor {
 		for (String s : FCSProcessingPipeline.GATE_NAMES) {
 			Gate g = fcp.getGatingStrategy().gateMap.get(s);
 			fcp.setXDataName(g.getXDimension().getParam());
-			fcp.setYDataName(g.getYDimension().getParam());
+			if (g.getYDimension() != null) {
+				fcp.setYDataName(g.getYDimension().getParam());
+				fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+			} else {
+				fcp.setPlotType(PLOT_TYPE.HISTOGRAM);
+			}
 
 			fcp.setClassifierGate(g.getName());
 
 			// String name = g.getName();
 			// String fNumD = FCSProcessingPipeline.getFNum(sn.fcsFile);
 			String outFile = outDir + sn.fcsFile + "/"
-											 + sn.fcsFile + "." + g.getXDimension().getParam() + "v"
-											 + g.getYDimension().getParam();
+											 + sn.fcsFile + "." + g.getXDimension().getParam();
+			if (g.getYDimension() != null) {
+				outFile = outFile + "v" + g.getYDimension().getParam();
+			}
 			fcp.getPanel().classifierPrev = false;
 			fcp.getPanel().setForceGatesChanged();
 			fcp.getPanel().createImage();

@@ -21,15 +21,21 @@ public class GateFileUtils {
 
 	public static void updateGateParams(FCSDataLoader dataLoader, List<Gate> gates) {
 		for (Gate g : gates) {
-			String p = g.getXDimension().getParam();
-			String d = dataLoader.getInternalParamName(p);
-			if (!p.equals(d)) {
-				g.getXDimension().setParam(d);
+			String p;
+			String d;
+			if (g.getXDimension() != null) {
+				p = g.getXDimension().getParam();
+				d = dataLoader.getInternalParamName(p);
+				if (!p.equals(d)) {
+					g.getXDimension().setParam(d);
+				}
 			}
-			p = g.getYDimension().getParam();
-			d = dataLoader.getInternalParamName(p);
-			if (!p.equals(d)) {
-				g.getYDimension().setParam(d);
+			if (g.getYDimension() != null) {
+				p = g.getYDimension().getParam();
+				d = dataLoader.getInternalParamName(p);
+				if (!p.equals(d)) {
+					g.getYDimension().setParam(d);
+				}
 			}
 			updateGateParams(dataLoader, g.getChildGates());
 		}
@@ -184,7 +190,8 @@ public class GateFileUtils {
 			// }
 		} else if ("PolygonGate".equals(gateType)) {
 			gate = new PolygonGate(null, popName, id);
-			String resStr = gateNode.getAttributes().getNamedItem("gateResolution").getNodeValue();
+			Node resNode = gateNode.getAttributes().getNamedItem("gateResolution");
+			String resStr = resNode != null ? resNode.getNodeValue() : "-1";
 			int res = -1;
 			try {
 				res = Integer.parseInt(resStr);

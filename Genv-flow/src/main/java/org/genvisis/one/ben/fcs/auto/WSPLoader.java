@@ -137,11 +137,26 @@ public class WSPLoader {
 			sn.savedTransforms = transformMap;
 			sn.wspFile = file;
 
-			if (panel1IDs.contains(id)) {
-				panel1Nodes.put(ext.removeDirectoryInfo(sn.fcsFile), sn);
-			}
-			if (panel2IDs.contains(id)) {
-				panel2Nodes.put(ext.removeDirectoryInfo(sn.fcsFile), sn);
+			if (panel1IDs.isEmpty() && panel2IDs.isEmpty()) {
+				for (String chk : PANELS[0]) {
+					if (sn.fcsFile.toLowerCase().contains(chk)) {
+						panel1Nodes.put(ext.removeDirectoryInfo(sn.fcsFile), sn);
+						break;
+					}
+				}
+				for (String chk : PANELS[1]) {
+					if (sn.fcsFile.toLowerCase().contains(chk)) {
+						panel2Nodes.put(ext.removeDirectoryInfo(sn.fcsFile), sn);
+						break;
+					}
+				}
+			} else {
+				if (panel1IDs.contains(id)) {
+					panel1Nodes.put(ext.removeDirectoryInfo(sn.fcsFile), sn);
+				}
+				if (panel2IDs.contains(id)) {
+					panel2Nodes.put(ext.removeDirectoryInfo(sn.fcsFile), sn);
+				}
 			}
 			allSamples.add(sn);
 		}
