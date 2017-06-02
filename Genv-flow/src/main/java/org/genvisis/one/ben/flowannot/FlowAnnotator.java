@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.swing.AbstractAction;
@@ -57,26 +58,43 @@ import net.miginfocom.swing.MigLayout;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
+import org.genvisis.one.ben.flowannot.AnnotatedImage.Annotation;
 
 public class FlowAnnotator {
 
 	private JFrame frmFlowannotator;
-
 	private JComboBox<String> fcsCombo;
 	private JTree tree;
+
 	IAnnotator annotator = new Annotator();
 
 	BufferedImage selectedImage = AnnotatedImage.createReadyImage();
 
 	private JMenu mnLoadRecent;
-
 	private JTextField fldNewAnnot;
-
 	private JPanel annotPanel;
-
 	private JPanel imagePanel;
+	private JPanel controlPanel;
+	private JSplitPane splitPane;
+	private JMenu mnTravAnn;
+	private JRadioButtonMenuItem jrbTravAll;
+	private JRadioButtonMenuItem jrbTravAnn;
+	private JRadioButtonMenuItem jrbTravNon;
+	private ButtonGroup travGrp;
+	private HashMap<Annotation, JRadioButtonMenuItem> annTravMap = new HashMap<>();
 
 	private static final String PROP_FILE = ".flowannotator.properties";
+	private static final String KEY_LAST_OPENED = "LAST_OPEN";
+	private static final String KEY_RECENT = "RECENT";
+
+	private String lastOpenedJFC = null;
+	private HashSet<String> recentAnnotFiles = new HashSet<>();
+
+	private HashMap<Character, Action> mnemonicActions = new HashMap<>();
+
+	private static final int ALL = 0;
+	private static final int ANN = 1;
+	private static final int NON = 2;
 
 	/**
 	 * Launch the application.
@@ -138,11 +156,6 @@ public class FlowAnnotator {
 			e.printStackTrace();
 		}
 	}
-
-	private static final String KEY_LAST_OPENED = "LAST_OPEN";
-	private String lastOpenedJFC = null;
-	private static final String KEY_RECENT = "RECENT";
-	private HashSet<String> recentAnnotFiles = new HashSet<>();
 
 	/**
 	 * Initialize the contents of the frame.
@@ -233,6 +246,7 @@ public class FlowAnnotator {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				createNewAnnotation();
+				tree.requestFocusInWindow();
 			}
 		});
 
@@ -289,27 +303,18 @@ public class FlowAnnotator {
 		mntmNavTravLbl.setText("Traversal:");
 		mnNav.add(mntmNavTravLbl);
 
-		AbstractAction travSelAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// System.out.println(e);
-			}
-		};
-		ButtonGroup travGrp = new ButtonGroup();
+		travGrp = new ButtonGroup();
 
 		jrbTravAll = new JRadioButtonMenuItem();
-		jrbTravAll.setAction(travSelAction);
 		jrbTravAll.setText("All");
 		jrbTravAll.setSelected(true);
 		travGrp.add(jrbTravAll);
 		mnNav.add(jrbTravAll);
 		jrbTravAnn = new JRadioButtonMenuItem();
-		jrbTravAnn.setAction(travSelAction);
 		jrbTravAnn.setText("Annotated");
 		travGrp.add(jrbTravAnn);
 		mnNav.add(jrbTravAnn);
 		jrbTravNon = new JRadioButtonMenuItem();
-		jrbTravNon.setAction(travSelAction);
 		jrbTravNon.setText("Non-Annotated");
 		travGrp.add(jrbTravNon);
 		mnNav.add(jrbTravNon);
@@ -335,6 +340,14 @@ public class FlowAnnotator {
 		mnNav.add(mntmNavKeepGate);
 
 		return menuBar;
+	}
+
+	private void addAnnotationToTraversalMenu(Annotation annot) {
+		JRadioButtonMenuItem jrb = new JRadioButtonMenuItem();
+		jrb.setText(annot.annotation);
+		annTravMap.put(annot, jrb);
+		travGrp.add(jrb);
+		mnTravAnn.add(jrb);
 	}
 
 	private void close() {
@@ -372,6 +385,7 @@ public class FlowAnnotator {
 		}
 		AnnotatedImage.Annotation newAnn = new AnnotatedImage.Annotation(newAnnotation);
 		if (!annotator.getAnnotations().contains(newAnn)) {
+			addAnnotationToTraversalMenu(newAnn);
 			annotator.addNewAnnotation(newAnn);
 			refreshAnnotations();
 		}
@@ -393,7 +407,6 @@ public class FlowAnnotator {
 	}
 
 	private void reloadControls() {
-		// TODO track which is selected and re-select after reloading controls?
 		DefaultComboBoxModel<String> dcbm = new DefaultComboBoxModel<>(annotator.getFCSKeys()
 																																						.toArray(new String[0]));
 		fcsCombo.setModel(dcbm);
@@ -448,8 +461,6 @@ public class FlowAnnotator {
 		annotPanel.revalidate();
 	}
 
-	HashMap<Character, Action> mnemonicActions = new HashMap<>();
-
 	private void fireMnem(char code) {
 		if (mnemonicActions.containsKey(code)) {
 			mnemonicActions.get(code).actionPerformed(null);
@@ -457,10 +468,6 @@ public class FlowAnnotator {
 	}
 
 	boolean keepGateWhenFileChange = true;
-
-	private static final int ALL = 0;
-	private static final int ANN = 1;
-	private static final int NON = 2;
 
 	private int getTraversal() {
 		if (jrbTravAll.isSelected()) {
@@ -470,7 +477,7 @@ public class FlowAnnotator {
 		} else if (jrbTravNon.isSelected()) {
 			return NON;
 		}
-		return 4;
+		return -1;
 	}
 
 	private int getPrevNodeRow() {
@@ -485,28 +492,41 @@ public class FlowAnnotator {
 		int row = rows[0];
 		row--;
 		while (row >= 0) {
+			TreePath tp = tree.getPathForRow(row);
+			DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tp.getLastPathComponent();
+			AnnotatedImage ai = (AnnotatedImage) dmtn.getUserObject();
 			if (trav == ALL) {
 				break;
 			} else if (trav == ANN) {
-				TreePath tp = tree.getPathForRow(row);
-				DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tp.getLastPathComponent();
-				AnnotatedImage ai = (AnnotatedImage) dmtn.getUserObject();
 				if (!ai.getAnnotations().isEmpty()) {
 					break;
 				}
 			} else if (trav == NON) {
-				TreePath tp = tree.getPathForRow(row);
-				DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tp.getLastPathComponent();
-				AnnotatedImage ai = (AnnotatedImage) dmtn.getUserObject();
 				if (ai.getAnnotations().isEmpty()) {
 					break;
 				}
 			} else {
-				// TODO search for node with annotation
+				Annotation a = getTravAnnotation();
+				if (a == null)
+					return -1;
+				if (ai.getAnnotations().contains(a)) {
+					break;
+				}
 			}
 			row--;
 		}
 		return row;
+	}
+
+	private Annotation getTravAnnotation() {
+		Annotation sel = null;
+		for (Entry<Annotation, JRadioButtonMenuItem> entry : annTravMap.entrySet()) {
+			if (entry.getValue().isSelected()) {
+				sel = entry.getKey();
+				break;
+			}
+		}
+		return sel;
 	}
 
 	private int getNextNodeRow() {
@@ -522,24 +542,26 @@ public class FlowAnnotator {
 		int row = rows[0];
 		row++;
 		while (row < cnt) {
+			TreePath tp = tree.getPathForRow(row);
+			DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tp.getLastPathComponent();
+			AnnotatedImage ai = (AnnotatedImage) dmtn.getUserObject();
 			if (trav == ALL) {
 				break;
 			} else if (trav == ANN) {
-				TreePath tp = tree.getPathForRow(row);
-				DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tp.getLastPathComponent();
-				AnnotatedImage ai = (AnnotatedImage) dmtn.getUserObject();
 				if (!ai.getAnnotations().isEmpty()) {
 					break;
 				}
 			} else if (trav == NON) {
-				TreePath tp = tree.getPathForRow(row);
-				DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tp.getLastPathComponent();
-				AnnotatedImage ai = (AnnotatedImage) dmtn.getUserObject();
 				if (ai.getAnnotations().isEmpty()) {
 					break;
 				}
 			} else {
-				// TODO search for node with annotation
+				Annotation a = getTravAnnotation();
+				if (a == null)
+					return -1;
+				if (ai.getAnnotations().contains(a)) {
+					break;
+				}
 			}
 			row++;
 		}
@@ -558,18 +580,23 @@ public class FlowAnnotator {
 		}
 		sel--;
 		while (sel >= 0) {
+			String fcs = fcsCombo.getItemAt(sel);
+			AnnotatedImage ai = annotator.getAnnotationMap().get(fcs).get(gate);
 			if (trav == ALL) {
 				break;
 			} else if (trav == ANN) {
-				String fcs = fcsCombo.getItemAt(sel);
-				AnnotatedImage ai = annotator.getAnnotationMap().get(fcs).get(gate);
 				if (ai != null && ai.getAnnotations().size() > 0) {
 					break;
 				}
 			} else if (trav == NON) {
-				String fcs = fcsCombo.getItemAt(sel);
-				AnnotatedImage ai = annotator.getAnnotationMap().get(fcs).get(gate);
 				if (ai == null || ai.getAnnotations().size() == 0) {
+					break;
+				}
+			} else {
+				Annotation a = getTravAnnotation();
+				if (a == null)
+					return -1;
+				if (ai != null && ai.getAnnotations().contains(a)) {
 					break;
 				}
 			}
@@ -590,16 +617,22 @@ public class FlowAnnotator {
 		}
 		sel++;
 		while (sel < fcsCombo.getItemCount()) {
+			String fcs = fcsCombo.getItemAt(sel);
 			if (trav == ALL) {
 				break;
 			} else if (trav == ANN) {
-				String fcs = fcsCombo.getItemAt(sel);
 				if (annotator.getAnnotationMap().get(fcs).get(gate).getAnnotations().size() > 0) {
 					break;
 				}
 			} else if (trav == NON) {
-				String fcs = fcsCombo.getItemAt(sel);
 				if (annotator.getAnnotationMap().get(fcs).get(gate).getAnnotations().size() == 0) {
+					break;
+				}
+			} else {
+				Annotation a = getTravAnnotation();
+				if (a == null)
+					return -1;
+				if (annotator.getAnnotationMap().get(fcs).get(gate).getAnnotations().contains(a)) {
 					break;
 				}
 			}
@@ -622,7 +655,7 @@ public class FlowAnnotator {
 
 	private int getChildCount(DefaultMutableTreeNode parent) {
 		int cnt = ((DefaultTreeModel) tree.getModel()).getChildCount(parent);
-		Enumeration e = parent.children();
+		Enumeration<?> e = parent.children();
 		while (e.hasMoreElements()) {
 			Object o = e.nextElement();
 			cnt += getChildCount((DefaultMutableTreeNode) o);
@@ -764,6 +797,9 @@ public class FlowAnnotator {
 			lastOpenedJFC = ext.verifyDirFormat(ext.parseDirectoryOfFile(annFile));
 			recentAnnotFiles.add(annFile);
 			reloadControls();
+			for (Annotation a : annotator.getAnnotations()) {
+				addAnnotationToTraversalMenu(a);
+			}
 			updateAvail();
 			tree.setSelectionRow(0);
 			saveProperties();
@@ -817,18 +853,5 @@ public class FlowAnnotator {
 			saveAnnotations();
 		}
 	};
-
-	private JPanel controlPanel;
-
-	private JSplitPane splitPane;
-
-	private JMenu mnTravAnn;
-
-	private JRadioButtonMenuItem jrbTravAll;
-
-	private JRadioButtonMenuItem jrbTravAnn;
-
-	private JRadioButtonMenuItem jrbTravNon;
-
 
 }
