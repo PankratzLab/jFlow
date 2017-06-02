@@ -13,6 +13,8 @@ public interface IAnnotator {
 
 	void saveAnnotations(String annotFile);
 
+	void saveAnnotation(AnnotatedImage.Annotation annotation, String annotFile);
+
 	void addNewAnnotation(AnnotatedImage.Annotation newAnnotation);
 
 	void replaceAnnotation(AnnotatedImage.Annotation prevAnnot, AnnotatedImage.Annotation newAnnot);
