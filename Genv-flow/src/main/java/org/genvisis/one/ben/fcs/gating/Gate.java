@@ -236,11 +236,15 @@ public abstract class Gate {
 		@Override
 		public Gate copy(Gate parentGate) {
 			RectangleGate rg = new RectangleGate(parentGate, this.popName);
-			rg.setXDimension(new RectangleGateDimension(rg, this.getXDimension().paramName,
+			rg.setXDimension(new RectangleGateDimension(
+																									rg,
+																									this.getXDimension().paramName,
 																									((RectangleGateDimension) this.getXDimension()).getMin(),
 																									((RectangleGateDimension) this.getXDimension()).getMax()));
 			if (this.getYDimension() != null) {
-				rg.setYDimension(new RectangleGateDimension(rg, this.getYDimension().paramName,
+				rg.setYDimension(new RectangleGateDimension(
+																										rg,
+																										this.getYDimension().paramName,
 																										((RectangleGateDimension) this.getYDimension()).getMin(),
 																										((RectangleGateDimension) this.getYDimension()).getMax()));
 			}
@@ -284,12 +288,12 @@ public abstract class Gate {
 				return gating;
 			}
 			boolean[] includes = parentGate == null ? new boolean[dataLoader.getCount()]
-																							: getParentGating(dataLoader);
+																						 : getParentGating(dataLoader);
 			if (includes == null) {
 				return includes;
 			}
 			boolean[][] paramIncludes = new boolean[getYDimension() == null ? 1
-																																			: 2][dataLoader.getCount()];
+																																		 : 2][dataLoader.getCount()];
 
 			RectangleGateDimension rgd = (RectangleGateDimension) getXDimension();
 			if (!dataLoader.containsParam(rgd.paramName)) {
@@ -367,7 +371,8 @@ public abstract class Gate {
 
 			for (int i = -gateResolution; i < gateResolution; i++) {
 				for (int j = -gateResolution; j < gateResolution; j++) {
-					Rectangle r = new Rectangle(i * binStep + binStep / 2, j * binStep + binStep / 2, binStep,
+					Rectangle r = new Rectangle(i * binStep + binStep / 2, j * binStep + binStep / 2,
+																			binStep,
 																			binStep);
 					rectsXY.add(r);
 					rectsXY_arr[i + gateResolution][j + gateResolution] = r;
@@ -541,7 +546,7 @@ public abstract class Gate {
 				return gating;
 			}
 			boolean[] includes = parentGate == null ? new boolean[dataLoader.getCount()]
-																							: getParentGating(dataLoader);
+																						 : getParentGating(dataLoader);
 			if (includes == null) {
 				return includes;
 			}
@@ -595,14 +600,16 @@ public abstract class Gate {
 					// }
 					int xInd;
 					int yInd;
-					if (x < 0) x = 0;
-					if (y < 0) y = 0;
+					if (x < 0)
+						x = 0;
+					if (y < 0)
+						y = 0;
 					xInd = (int) (xT ? ((x) * (gateResolution * 2)) : ((x / binStep) + gateResolution));
 					yInd = (int) (yT ? ((y) * (gateResolution * 2)) : ((y / binStep) + gateResolution));
-//					xInd = Math.min(rectsArray.length, xInd);
-//					xInd = Math.max(0, xInd);
-//					yInd = Math.min(rectsArray[xInd].length, yInd);
-//					yInd = Math.max(0, yInd);
+					// xInd = Math.min(rectsArray.length, xInd);
+					// xInd = Math.max(0, xInd);
+					// yInd = Math.min(rectsArray[xInd].length, yInd);
+					// yInd = Math.max(0, yInd);
 					Rectangle rect = rectsArray[xInd][yInd];
 					if (myRects.contains(rect)) {
 						include = true;
@@ -667,9 +674,9 @@ public abstract class Gate {
 				int type = pi.currentSegment(coords);
 				if (type != PathIterator.SEG_CLOSE) {
 					xInd = (int) (xT ? ((coords[0]) * (gateResolution * 2))
-													 : ((coords[0] / binStep) + gateResolution));
+													: ((coords[0] / binStep) + gateResolution));
 					yInd = (int) (yT ? ((coords[1]) * (gateResolution * 2))
-													 : ((coords[1] / binStep) + gateResolution));
+													: ((coords[1] / binStep) + gateResolution));
 					vertexRects.add(rectsArray[xInd][yInd]);
 					if (ind == 0) {
 						path.moveTo(rectsArray[xInd][yInd].getCenterX(), rectsArray[xInd][yInd].getCenterY());
@@ -753,7 +760,8 @@ public abstract class Gate {
 			}
 		}
 
-		public void setGateResolution(int res) {
+		public void setGateResolution(int resol) {
+			int res = resol <= 0 ? DEFAULT_GATE_RESOLUTION : resol;
 			if (res == gateResolution) {
 				return;
 			}

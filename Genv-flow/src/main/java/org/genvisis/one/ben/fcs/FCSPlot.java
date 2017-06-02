@@ -1141,8 +1141,13 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		String[] gateNames = new String[hand.length];
 		for (int i = 0; i < hand.length; i++) {
 			Gate gate = this.getGatingStrategy().gateMap.get(gateNameMappings.get(autoData[0][i]));
-			hand[i] = gate.gate(dataLoader);
-			gateNames[i] = gate.getName();
+			if (gate != null) {
+				hand[i] = gate.gate(dataLoader);
+				gateNames[i] = gate.getName();
+			} else {
+				System.out.println("Gate missing: " + gateNameMappings.get(autoData[0][i]) + " | "
+													 + autoData[0][i]);
+			}
 		}
 
 		boolean[][] auto = new boolean[autoData[0].length][];
