@@ -153,6 +153,21 @@ public class Annotator implements IAnnotator {
 		reader.close();
 	}
 
+	public void saveAnnotation(AnnotatedImage.Annotation annot, String file) {
+		PrintWriter writer = Files.getAppropriateWriter(file);
+		writer.println(ANNOT_TOKEN + "=" + annot.annotation);
+		writer.println();
+		for (String fcs : fcsKeys) {
+			for (Entry<String, AnnotatedImage> ent : imageMap.get(fcs).entrySet()) {
+				if (ent.getValue().getAnnotations().contains(annot)) {
+					writer.println(fcs + "\t" + ent.getKey());
+				}
+			}
+		}
+		writer.flush();
+		writer.close();
+	}
+
 	@Override
 	public void saveAnnotations(String annotFile) {
 		HashMap<AnnotatedImage.Annotation, ArrayList<String>> map = new HashMap<>();

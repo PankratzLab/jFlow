@@ -284,6 +284,9 @@ public class FlowAnnotator {
 		mntmSaveAnnot.setMnemonic('S');
 		mnFile.add(mntmSaveAnnot);
 
+		mnSaveAnn = new JMenu("Save Annotation Set To File");
+		mnFile.add(mnSaveAnn);
+
 		JMenuItem mntmExit = new JMenuItem();
 		mntmExit.setAction(new AbstractAction() {
 			@Override
@@ -348,7 +351,39 @@ public class FlowAnnotator {
 		annTravMap.put(annot, jrb);
 		travGrp.add(jrb);
 		mnTravAnn.add(jrb);
+		JMenuItem jmn = new JMenuItem();
+		jmn.setAction(saveAnnotationAction);
+		jmn.setText(annot.annotation);
+		mnSaveAnn.add(jmn);
 	}
+
+	private AbstractAction saveAnnotationAction = new AbstractAction() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String annot = e.getActionCommand();
+			Annotation ann = null;
+			for (Annotation a : annotator.getAnnotations()) {
+				if (annot.equals(a.annotation)) {
+					ann = a;
+					break;
+				}
+			}
+			if (ann == null) {
+				return;
+			}
+
+			JFileChooser jfc = new JFileChooser(lastOpenedJFC == null ? "" : lastOpenedJFC);
+			jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			jfc.setDialogTitle("Save \"" + ann.annotation + "\" Annotation to File");
+			int opt = jfc.showSaveDialog(frmFlowannotator);
+			if (opt == JFileChooser.APPROVE_OPTION) {
+				String annFile = jfc.getSelectedFile().getAbsolutePath();
+				lastOpenedJFC = ext.verifyDirFormat(ext.parseDirectoryOfFile(annFile));
+				annotator.saveAnnotation(ann, annFile);
+				saveProperties();
+			}
+		}
+	};
 
 	private void close() {
 		saveProperties();
@@ -853,5 +888,6 @@ public class FlowAnnotator {
 			saveAnnotations();
 		}
 	};
+	private JMenu mnSaveAnn;
 
 }
