@@ -332,7 +332,7 @@ public class SeqMeta {
 
               chrsToDo = new IntVector();
               for (int chr = 1; chr <= maxChr; chr++) {
-                chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
+                chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : (chr == 25 ? "XY" : chr + ""));
                 subsetObject = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr"
                                + chrom;
                 if (!Files.exists(localDir + subsetObject + "_f" + f + ".RData")
@@ -350,8 +350,9 @@ public class SeqMeta {
               for (int c = 0; c < chrsToDo.size(); c++) {
                 chrom = chrsToDo.elementAt(c) == 23 ? "X"
                                                     : (chrsToDo.elementAt(c) == 24 ? "Y"
-                                                                                   : chrsToDo.elementAt(c)
-                                                                                     + "");
+                                                                                   : (chrsToDo.elementAt(c) == 25 ? "XY"
+                                                                                                                  : chrsToDo.elementAt(c)
+                                                                                                                    + ""));
                 subsetObject = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr"
                                + chrom;
 
@@ -459,7 +460,7 @@ public class SeqMeta {
 
               for (int chr = 1; chr <= maxChr; chr++) {
 
-                chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
+                chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : (chr == 25 ? "XY" : chr + ""));
                 subsetObject = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr"
                                + chrom;
 
@@ -557,7 +558,7 @@ public class SeqMeta {
 
     if (runningByChr) {
       for (int chr = 1; chr <= maxChr; chr++) {
-        chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
+        chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : (chr == 25 ? "XY" : chr + ""));
         filename = "snpInfos/snpInfo_chr" + chrom + ".RData";
         if (!Files.exists(filename)) {
           log.reportError("Error - could not find SNP Info file '" + filename + "'; aborting");
@@ -604,7 +605,7 @@ public class SeqMeta {
                        + "/";
 
             for (int chr = 1; chr <= (runningByChr ? maxChr : 1); chr++) {
-              chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
+              chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : (chr == 25 ? "XY" : chr + ""));
 
               if (runningByChr) {
                 objectName = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr"
@@ -729,7 +730,7 @@ public class SeqMeta {
       // Meta-analysis stratified by race
       for (int k = 0; k < races.length; k++) {
         for (int chr = 1; chr <= (runningByChr ? maxChr : 1); chr++) {
-          chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
+          chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : (chr == 25 ? "XY" : chr + ""));
           commands = new Vector<>();
           commands.add("print(.libPaths())");
           commands.add("library(bdsmatrix)");
@@ -821,7 +822,7 @@ public class SeqMeta {
 
       // Meta-analysis of all races
       for (int chr = 1; chr <= (runningByChr ? maxChr : 1); chr++) {
-        chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
+        chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : (chr == 25 ? "XY" : chr + ""));
         commands = new Vector<>();
         commands.add("print(.libPaths())");
         commands.add("library(bdsmatrix)");
@@ -2868,8 +2869,11 @@ public class SeqMeta {
     maxChr = getMaxChr(snpInfoChrDir);
     list = new String[maxChr];
     for (int chr = 1; chr <= maxChr; chr++) {
-      list[chr - 1] = dir + ext.replaceAllWith(pattern, "#",
-                                               chr == 23 ? "X" : (chr == 24 ? "Y" : chr + ""));
+      list[chr - 1] = dir
+                      + ext.replaceAllWith(pattern, "#",
+                                           chr == 23 ? "X"
+                                                     : (chr == 24 ? "Y"
+                                                                  : (chr == 25 ? "XY" : chr + "")));
     }
     skips = ArrayUtils.intArray(list.length, 1);
     skips[0] = 0;
@@ -3015,7 +3019,6 @@ public class SeqMeta {
                     }
                   }
                 }
-                System.out.println("Found keys: " + lines.keySet().size());
 
                 reader.close();
               } catch (FileNotFoundException fnfe) {
@@ -4108,6 +4111,7 @@ public class SeqMeta {
     boolean metasOnly = false;
     String forestMarkerList = null;
     boolean concatenateHits = false;
+    boolean prepHits = false;
 
     // metalCohortSensitivity("D:/ExomeChip/Hematology/results/DecemberPresentation/",
     // "Whites_Hct_SingleSNP_withLRGP.csv", new Logger());
@@ -4247,6 +4251,9 @@ public class SeqMeta {
         numArgs--;
       } else if (arg.startsWith("mafThreshold=")) {
         mafThreshold = ext.parseDoubleArg(arg);
+        numArgs--;
+      } else if (arg.startsWith("-prepHits")) {
+        prepHits = true;
         numArgs--;
       } else if (arg.startsWith("-hits")) {
         hits = true;
@@ -4423,6 +4430,9 @@ public class SeqMeta {
           // Logger(dir+"computeMACs_forMAF_LTE_"+mafThreshold+".log"));
           // }
           computeAllRelevantMACs(dir, maps, log);
+        } else if (prepHits) {
+          // do computemacs, genepositions, checkns, and metrics simultaneously
+
         } else if (hits) {
           assembleHits(dir, hitsDirectory, maps, macThresholdStudy, macThresholdTotal,
                        mafThreshold);
