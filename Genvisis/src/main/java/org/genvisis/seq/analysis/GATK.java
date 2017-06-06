@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
 import com.googlecode.charts4j.collect.Maps;
 
 public class GATK {
@@ -564,8 +565,11 @@ public class GATK {
 		return CmdLine.runCommandWithFileChecks(command, "",
 																						new String[] {referenceGenomeFasta, dedup_reads_bam,
 																													bqsrFile},
-																						new String[] {output}, verbose, overWriteExistingOutput,
-																						true, altLog == null ? log : altLog);
+																						new String[] {output,
+																													ext.rootOf(output, false)
+																																	+ Picard.INDEXED},
+																						verbose, overWriteExistingOutput, true,
+																						altLog == null ? log : altLog);
 	}
 
 	private boolean singleSampleAllSitesCall(String bamFile, String output,
