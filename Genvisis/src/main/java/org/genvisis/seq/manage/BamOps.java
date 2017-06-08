@@ -267,14 +267,14 @@ public class BamOps {
 			String[] id = samReadGroupRecord.getId().split("_");
 			String[] tmpCodes = id[id.length - 3].split("-");
 			if (tmpCodes.length != 2) {
-				throw new IllegalArgumentException("Could not parse barcodes for RG " + samReadGroupRecord
-																					 + " in bam file " + bam);
+				log.reportError("Could not parse barcodes for RG " + samReadGroupRecord
+												+ " in bam file " + bam + ", barcodes will not be included");
 
 			} else {
 				for (String tmpCode : tmpCodes) {
 					if (tmpCode.replaceAll("A", "").replaceAll("C", "").replaceAll("T", "")
 										 .replaceAll("G", "").length() != 0) {
-						throw new IllegalArgumentException("Invalid barcode " + tmpCode);
+						log.reportError("Invalid barcode " + tmpCode + ", barcode will not be included");
 					} else {
 						barcodesUnique.add(tmpCode);
 					}
