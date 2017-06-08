@@ -106,8 +106,10 @@ public class GenvisisWorkflow {
 				for (Requirement req : group) {
 					if (req instanceof StepRequirement && req != null) {
 						Step requiredStep = ((StepRequirement) req).getRequiredStep();
-						relatedStepsBuilder.add(requiredStep);
-						relatedStepsBuilder.addAll(requiredStep.getRelatedSteps());
+						if (requiredStep != null) {
+  						relatedStepsBuilder.add(requiredStep);
+  						relatedStepsBuilder.addAll(requiredStep.getRelatedSteps());
+						}
 					} else if (req == getNumThreadsReq()) {
 						stepFlags.add(Flag.MULTITHREADED);
 					}
@@ -643,7 +645,8 @@ public class GenvisisWorkflow {
 	public enum Flag {
 		MEMORY, RUNTIME, MULTITHREADED
 	}
-
+	
+	private static final String numThreadsDesc = "Number of Threads to Use"; 
 	private static final String PROJ_PROP_UPDATE_STR = " org.genvisis.cnv.filesys.Project proj=";
 	private static final String PLINK_SUBDIR = "plink/";
 	private static final String PLINKROOT = "plink";
@@ -662,7 +665,7 @@ public class GenvisisWorkflow {
 		proj = project;
 		log = project.getLog();
 		this.launch = launch;
-		numThreadsReq = new PosIntRequirement("Number of Threads to Use", proj.NUM_THREADS.getValue());
+		numThreadsReq = new PosIntRequirement(numThreadsDesc, proj.NUM_THREADS.getValue());
 
 		steps = Collections.unmodifiableSortedSet(generateSteps(!project.IS_PC_CORRECTED_PROJECT.getValue()));
 	}
@@ -2317,17 +2320,17 @@ public class GenvisisWorkflow {
 
 					String hmmP = proj.HMM_FILENAME.getValue();
 					String hmmG = variables.get(this).get(hmmFile);
-					if (!hmmP.equals(hmmG)) {
+					if (hmmG != null && !hmmP.equals(hmmG)) {
 						kvCmd += " HMM_FILENAME=" + hmmG;
 					}
 					String pfbP = proj.CUSTOM_PFB_FILENAME.getValue();
 					String pfbG = variables.get(this).get(pfbFileReq);
-					if (!pfbP.equals(pfbG)) {
+					if (pfbG != null && !pfbP.equals(pfbG)) {
 						kvCmd += " CUSTOM_PFB_FILENAME=" + pfbG;
 					}
 					String gcmP = proj.GC_MODEL_FILENAME.getValue();
 					String gcmG = variables.get(this).get(gcModelFileReq);
-					if (!gcmP.equals(gcmG)) {
+					if (gcmG != null && !gcmP.equals(gcmG)) {
 						kvCmd += " GC_MODEL_FILENAME=" + gcmG;
 					}
 
@@ -2668,6 +2671,8 @@ public class GenvisisWorkflow {
 			}
 			if (reqArr[0].getDescription().equals(CNVCaller.CNV_SCOPE_DESC)) {
 				cnvOpts.put(reqArr[0], CNVCaller.CALLING_SCOPE.BOTH.toString());
+			} else if (reqArr[0].getDescription().equals(numThreadsDesc)) {
+				cnvOpts.put(reqArr[0], "" + (Runtime.getRuntime().availableProcessors() - 1));
 			}
 		}
 		stepOpts.put(cnv, cnvOpts);
