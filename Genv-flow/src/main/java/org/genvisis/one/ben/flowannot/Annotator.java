@@ -20,6 +20,9 @@ public class Annotator implements IAnnotator {
 	private HashMap<String, HashMap<String, AnnotatedImage>> imageMap = new HashMap<>();
 	private ArrayList<AnnotatedImage.Annotation> annotations = new ArrayList<>();
 
+	// TODO add to this:
+	private HashMap<AnnotatedImage.Annotation, ArrayList<AnnotatedImage>> annotMap = new HashMap<>();
+
 	public ArrayList<String> getFCSKeys() {
 		return fcsKeys;
 	}
