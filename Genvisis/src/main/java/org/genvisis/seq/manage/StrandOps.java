@@ -29,7 +29,7 @@ public class StrandOps {
 	}
 
 	public static Allele flipIfNeeded(Allele allele, Strand strand) {
-		if (strand == Strand.NEGATIVE) {
+		if (strand == Strand.NEGATIVE && !allele.isSymbolic()) {
 			return Allele.create(flipEach(allele.getDisplayString(), true).toString(),
 													 allele.isReference());
 		}
