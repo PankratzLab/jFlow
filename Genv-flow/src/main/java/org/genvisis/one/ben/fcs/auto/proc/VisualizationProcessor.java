@@ -3,6 +3,7 @@ package org.genvisis.one.ben.fcs.auto.proc;
 import java.io.IOException;
 
 import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSPlot;
@@ -63,8 +64,8 @@ public class VisualizationProcessor implements SampleProcessor {
 
 			// String name = g.getName();
 			// String fNumD = FCSProcessingPipeline.getFNum(sn.fcsFile);
-			String outFile = outDir + sn.fcsFile + "/"
-											 + sn.fcsFile + "." + g.getXDimension().getParam();
+			String outFile = outDir + ext.removeDirectoryInfo(sn.fcsFile) + "/"
+											 + ext.removeDirectoryInfo(sn.fcsFile) + "." + g.getXDimension().getParam();
 			if (g.getYDimension() != null) {
 				outFile = outFile + "v" + g.getYDimension().getParam();
 			}
