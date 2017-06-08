@@ -490,6 +490,9 @@ public abstract class MarkerBlast {
 	 * @author lane0212 Parse alleles to ref/alt/A/B with strand flip for alts if needed
 	 */
 	static class AlleleParser {
+		/**
+		 * 
+		 */
 		private final Segment loc;
 		private final String aS;
 		private final String bS;
@@ -664,7 +667,7 @@ public abstract class MarkerBlast {
 
 						ref = Allele.create(tmp[0], true);
 						alts = new Allele[1];
-						alts[0] = Allele.create("<" + array + "_CNP>", false);// Symbolic allele
+						alts[0] = getCNPAllele(array);// Symbolic allele
 						A = Allele.create(alts[0], false);
 						B = Allele.create(alts[0], false);
 
@@ -696,7 +699,7 @@ public abstract class MarkerBlast {
 
 					ref = Allele.create("N", true);
 					alts = new Allele[1];
-					alts[0] = Allele.create("<" + array + "_CN>", false);// Symbolic allele
+					alts[0] = getCNPAllele(array);// Symbolic allele
 					A = Allele.create(alts[0], false);
 					B = Allele.create(alts[0], false);
 
@@ -711,6 +714,10 @@ public abstract class MarkerBlast {
 					B = Allele.create(bS, false);
 				}
 			}
+		}
+
+		private Allele getCNPAllele(ARRAY array) {
+			return Allele.create("<" + array + "_CNP>", false);
 		}
 	}
 
