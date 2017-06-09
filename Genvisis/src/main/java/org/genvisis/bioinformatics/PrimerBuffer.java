@@ -28,7 +28,7 @@ public class PrimerBuffer {
 		ArrayList<ReferenceAlleleQuery> rAlleleQueries = new ArrayList<ReferenceAlleleQuery>();
 		try {
 			BufferedReader reader = Files.getAppropriateReader(queryFile);
-			int[] header = ext.indexFactors(reader.readLine().trim().split("\t"), HEADER, true, true);
+			int[] header = ext.indexFactors(reader.readLine().trim().split("\t"), HEADER, true, false);
 			if (ArrayUtils.countIf(header, -1) > 0) {
 				log.reportError("Did not detect complete header " + ArrayUtils.toStr(HEADER) + " in "
 												+ queryFile);
