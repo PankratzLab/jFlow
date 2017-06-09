@@ -445,7 +445,7 @@ public class IndependentSNPs {
 		if (filteringDataset != null) {
 			log.report("Loading which markers are present in the " + filteringDataset + " dataset...",
 								 false, true);
-			chrHash = SnpMarkerSet.loadSnpMarkerSetToChrHash(filteringDataset);
+			chrHash = SnpMarkerSet.loadSnpMarkerSetToChrHash(filteringDataset, log);
 			log.report("done");
 			for (int j = 0; j < tags.size(); j++) {
 				trav = tags.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE)[0];
