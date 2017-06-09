@@ -163,7 +163,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	}
 
 	public SnpMarkerSet(String filename, boolean verbose, Logger log) {
-		this(filename, determineType(filename), verbose, log);
+		this(filename, determineType(filename, log), verbose, log);
 	}
 
 	public SnpMarkerSet(String filename, int type, boolean verbose, Logger log) {
@@ -438,7 +438,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 
 	@Override
 	public void exportToText(String outputFile, Logger log) {
-		writeToFile(outputFile, determineType(outputFile), log);
+		writeToFile(outputFile, determineType(outputFile, log), log);
 	}
 
 	public void writeToFile(String filename, int format, Logger log) {
@@ -946,8 +946,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		return segHash;
 	}
 
-	public static Hashtable<String, String> loadSnpMarkerSetToChrHash(String filenameSource) {
-		return loadSnpMarkerSetToChrHash(filenameSource, determineType(filenameSource));
+	public static Hashtable<String, String> loadSnpMarkerSetToChrHash(String filenameSource, Logger log) {
+		return loadSnpMarkerSetToChrHash(filenameSource, determineType(filenameSource, log));
 	}
 
 	public static Hashtable<String, String> loadSnpMarkerSetToChrHash(String filenameSource,
@@ -1131,7 +1131,12 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 														verbose, log);
 	}
 
+	// TODO Remove after dealing with calls to this 
 	public static int determineType(String file) {
+		return determineType(file, new Logger());
+	}
+	
+	public static int determineType(String file, Logger log) {
 		String filename = file;
 		if (filename.endsWith(".gz")) {
 			filename = filename.substring(0, filename.length() - 3);
@@ -1160,7 +1165,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 			return MINIMAC_INFO_FORMAT;
 		} else if (filename.endsWith(".xln") || filename.endsWith(".txt") || filename.endsWith(".dat")
 							 || filename.endsWith(".csv")) {
-			System.err.println("Warning - assuming the map file has three columns with headers: MarkerName, Chr, Position");
+			log.reportError("Warning - assuming the map file has three columns with headers: MarkerName, Chr, Position");
 			return GENERIC_FORMAT_IGNORE_FIRST_LINE;
 		} else if (filename.endsWith(".burdenInfo")) {
 			return INFO_FOR_BURDEN_TESTING;
@@ -1169,7 +1174,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		} else if (filename.endsWith(".freeze_info")) {
 			return FREEZE5_FORMAT;
 		} else {
-			System.err.println("Warning - format of file ('" + filename
+			log.reportError("Warning - format of file ('" + filename
 												 + "') could not be deduced solely by the filename extension");
 			return -1;
 		}
@@ -1434,7 +1439,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 																																									false),
 																										true, false, log)
 																							.writeToFile(outfile,
-																													 SnpMarkerSet.determineType(outfile),
+																													 SnpMarkerSet.determineType(outfile, log),
 																													 log);
 			} else if (!source.equals("")) {
 				if (new File(filename + ".ser").exists()) {
@@ -1452,7 +1457,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 				}
 				markerSet.interpolateCentiMorgans(sourceSet, log);
 				markerSet.writeToFile(ext.rootOf(filename, false) + "_with_centiMorgans.bim",
-															determineType(filename), log);
+															determineType(filename, log), log);
 			} else {
 				new SnpMarkerSet(filename, verbose,
 												 new Logger()).listUnambiguousMarkers(filename + "_unambiguous.txt",
