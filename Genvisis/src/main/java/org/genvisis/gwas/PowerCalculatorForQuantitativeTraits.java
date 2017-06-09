@@ -16,15 +16,15 @@ import org.genvisis.stats.ProbDist;
 public class PowerCalculatorForQuantitativeTraits {
 	// public static final double[] MAFs = {0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09,
 	// 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50};
-	// public static final double[] MAFs = {0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.15, 0.20, 0.25,
-	// 0.30, 0.40, 0.50};
-	public static final double[] MAFs = {0.0001, 0.0002, 0.0004, 0.0005, 0.0007, 0.001, 0.002, 0.004,
-																			 0.005, 0.007, 0.01, 0.02, 0.04, 0.05, 0.07, 0.10, 0.20, 0.40,
-																			 0.50}; //
+//	 public static final double[] MAFs = {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50};
+	public static final double[] MAFs = {0.0001, 0.0002, 0.0004, 0.0005, 0.0007, 
+										 0.001, 0.002, 0.004, 0.005, 0.007,
+										 0.01, 0.02, 0.04, 0.05, 0.07,
+										 0.10, 0.20, 0.30, 0.40, 0.50
+								};
 	public static final double[] ALPHAS = {0.05, 0.01, 0.0000025, 0.000000227, 0.00000005};
 	public static final double[] SIGMAS = {0.10, 0.20, 0.40, 0.60, 0.80, 1.00};
-	public static final double[] VARIANCES_EXPLAINED = {0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005,
-																											0.01, 0.02, 0.05, 0.10};
+	public static final double[] VARIANCES_EXPLAINED = {0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.10};
 	// public static final double[] MAFs = {0.20};
 	public static final String[] FORMATTING_TO_REMOVE = {"<em><font color=\"navy\">", "</font></em>"};
 	public static final double VARIANCE_INCREMENT = 0.001;
@@ -53,8 +53,8 @@ public class PowerCalculatorForQuantitativeTraits {
 		data.put("s", "1"); // singletons, not siblings
 		data.put("alpha", ext.prettyP(alpha, 2, 100, 2, true));
 		data.put("power", "0.80");
-		results = Internat.doSubmit("http://pngu.mgh.harvard.edu/~purcell/cgi-bin/qtlassoc.cgi", data,
-																1000);
+//		results = Internat.doSubmit("http://pngu.mgh.harvard.edu/~purcell/cgi-bin/qtlassoc.cgi", data, 1000);
+		results = Internat.doSubmit("http://zzz.bwh.harvard.edu/cgi-bin/qtlassoc.cgi", data, 1000);
 
 		Files.writeArray(results, "D:/test.html");
 
@@ -84,8 +84,7 @@ public class PowerCalculatorForQuantitativeTraits {
 		return -9;
 	}
 
-	public static double getVarianceExplainedAtEightyPercentPower(double maf, int sampleSize,
-																																double alpha) throws Exception {
+	public static double getVarianceExplainedAtEightyPercentPower(double maf, int sampleSize, double alpha) throws Exception {
 		boolean found;
 		int index, prev;
 		int[] array;
@@ -133,9 +132,7 @@ public class PowerCalculatorForQuantitativeTraits {
 			// System.out.println(MAFs[mafIndex]+"\t"+getSampleSize(prevalence, 1.6, MAFs[mafIndex],
 			// numCases, numControls, alpha, false));
 			varianceExplained = getVarianceExplainedAtEightyPercentPower(maf, sampleSize, alpha);
-			System.out.println(maf + "\t"
-												 + (varianceExplained == -9 ? "failed"
-																										: ext.formDeci(varianceExplained, 2)));
+			System.out.println(maf + "\t" + (varianceExplained == -9 ? "failed" : ext.formDeci(varianceExplained, 2)));
 		}
 	}
 
@@ -214,8 +211,7 @@ public class PowerCalculatorForQuantitativeTraits {
 		return new double[] {reg.getRsquare(), reg.getSigs()[1]};
 	}
 
-	public static double[] determineMeanRsqAndPower(int n, double sigma, double maf, int numReps,
-																									double alpha) {
+	public static double[] determineMeanRsqAndPower(int n, double sigma, double maf, int numReps, double alpha) {
 		double[] rsqs, power, values;
 
 		rsqs = new double[numReps];
@@ -233,8 +229,7 @@ public class PowerCalculatorForQuantitativeTraits {
 		return new double[] {ArrayUtils.mean(rsqs), ArrayUtils.mean(power)};
 	}
 
-	public static void rangeOfSigmaShiftsAndMAFsViaSimulation(int n, int numReps,
-																														int numTests) throws Exception {
+	public static void rangeOfSigmaShiftsAndMAFsViaSimulation(int n, int numReps, int numTests) throws Exception {
 		double[] meanRsqAndPower;
 		double alpha;
 
@@ -261,8 +256,7 @@ public class PowerCalculatorForQuantitativeTraits {
 		}
 	}
 
-	public static void simulatedBetting(int n, int numReps, int numTests,
-																			double proportionUpweighted) throws Exception {
+	public static void simulatedBetting(int n, int numReps, int numTests, double proportionUpweighted) throws Exception {
 		double[] meanRsqAndPower;
 		double alpha;
 
@@ -282,8 +276,7 @@ public class PowerCalculatorForQuantitativeTraits {
 			System.out.print(maf);
 			for (double element : SIGMAS) {
 				meanRsqAndPower = determineMeanRsqAndPower(n, element, maf, numReps, alpha);
-				System.out.print("\t" + ext.formDeci(meanRsqAndPower[0], 4, true) + ";"
-												 + (int) (meanRsqAndPower[1] * 100) + "%");
+				System.out.print("\t" + ext.formDeci(meanRsqAndPower[0], 4, true) + ";" + (int) (meanRsqAndPower[1] * 100) + "%");
 			}
 			System.out.println();
 		}
@@ -294,8 +287,10 @@ public class PowerCalculatorForQuantitativeTraits {
 		int numArgs = args.length;
 		String filename = "PowerCalculator.dat";
 
-		String usage = "\n" + "gwas.PowerCalculator requires 0-1 arguments\n"
-									 + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n"+ 
+					   "gwas.PowerCalculator requires 0-1 arguments\n" + 
+					   "   (1) filename (i.e. file=" + filename + " (default))\n" + 
+					   "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -327,10 +322,19 @@ public class PowerCalculatorForQuantitativeTraits {
 			// rangeOfSigmaShiftsAndMAFsViaSimulation(2500, 1000, 40); // hearing inflammation sequence
 			// discovery
 			// rangeOfSigmaShiftsAndMAFsViaSimulation(50000, 1000, 1000000); // Genvisis analyses
-			rangeOfSigmaShiftsAndMAFsViaSimulation(5500, 1000, 7767); // Power for IISS analyses
-			rangeOfSigmaShiftsAndMAFsViaSimulation(5500, 1000, 1000000); // Power for IISS analyses
-			rangeOfSigmaShiftsAndMAFsViaSimulation(50, 100, 5); // Power for IISS analyses
+//			rangeOfSigmaShiftsAndMAFsViaSimulation(5500, 1000, 7767); // Power for IISS analyses
+//			rangeOfSigmaShiftsAndMAFsViaSimulation(5500, 1000, 1000000); // Power for IISS analyses
+//			rangeOfSigmaShiftsAndMAFsViaSimulation(50, 100, 5); // Power for IISS analyses
+			rangeOfSigmaShiftsAndMAFsViaSimulation(10500, 1000, 1000000*28); // Power for LLFS Flow grant
 
+			/** proportion of variance explained can be computed quickly in R
+			N = 352708
+			alpha = 0.00000005
+			H2 = 0.00012
+			threshold = qchisq(alpha, df = 1, lower.tail = FALSE)
+			power = pchisq(threshold, df = 1, lower.tail = FALSE, ncp = N * H2)
+			power
+			*/
 
 			// simulatedBetting(10000, 1000, 1, 0.00);
 			System.out.println("Finished in " + ext.getTimeElapsed(time));
