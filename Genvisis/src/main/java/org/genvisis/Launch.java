@@ -106,7 +106,9 @@ public class Launch {
 																							 "replaceAll - replace Strings in a file using a list of replacements",
 																							 "snps - takes a list of marker names (rs IDs) and adds chr/pos info, and possibly additional information depending on options specified",
 																							 "search - takes a merged dbGap data set and searches for specific keywords",
-																							 "dbgap - takes the output of \"search\" and extracts data from merged dbGap data",};
+																							 "dbgap - takes the output of \"search\" and extracts data from merged dbGap data",
+																							 GeneScorePipeline.COMMAND_GENESCORE,
+	};
 
 	public static void run(String filename, Logger log) throws Elision {
 		String temp;
