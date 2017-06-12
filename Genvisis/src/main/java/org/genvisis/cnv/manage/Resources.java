@@ -447,6 +447,10 @@ public final class Resources {
 			return getFASTAResource(getPath() + ".fa");
 		}
 
+		public Resource getGRCFASTA() {
+			return getFASTAResource(build.getBuild() + "/GRCh" + build.getBuildInt() + "_canon.fa");
+		}
+
 		/**
 		 * @return .dat list of known problematic regions (e.g. centromere, chromosome ends)
 		 */
