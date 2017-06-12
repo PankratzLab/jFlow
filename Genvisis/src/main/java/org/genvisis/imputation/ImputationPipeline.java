@@ -276,10 +276,9 @@ public class ImputationPipeline {
 
 			VCFHeader vcfHeader = new VCFHeader(lines, idsToInclude);
 
-			SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(
-																																				Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
+			SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
 																																												 proj.getLog())
-																																								 .getFASTA()
+																																								 .getGRCFASTA()
 																																								 .getAbsolute(),
 																																				proj.getLog())
 																																											.getIndexedFastaSequenceFile()
@@ -299,7 +298,7 @@ public class ImputationPipeline {
 				MarkerData markerData = mdl.next();
 
 				VariantContextBuilder builderVc = new VariantContextBuilder();
-				builderVc.chr("chr" + chr);
+				builderVc.chr(String.valueOf(chr));
 				Marker mkr = prepMarkers.get(markerData.getMarkerName());
 				ArrayList<Allele> a = new ArrayList<Allele>();
 				Allele aR = mkr.getRef();
