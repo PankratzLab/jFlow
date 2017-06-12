@@ -95,7 +95,7 @@ public class ImputationPipeline {
 			proj.getLog().reportTimeWarning("Sample drop file doesn't exist: " + samplesToDropFile);
 			return;
 		}
-		dropSamples = HashVec.loadFileToHashSet(samplesToDropFile, false);
+		dropSamples = HashVec.loadFileToHashSet(samplesToDropFile, new int[] {0, 1}, "\t", false);
 	}
 
 	public void setSamplesToKeepFile(String samplesToKeepFile) {
@@ -103,7 +103,7 @@ public class ImputationPipeline {
 			proj.getLog().reportTimeWarning("Sample keep file doesn't exist: " + samplesToKeepFile);
 			return;
 		}
-		keepSamples = HashVec.loadFileToHashSet(samplesToKeepFile, false);
+		keepSamples = HashVec.loadFileToHashSet(samplesToKeepFile, new int[] {0, 1}, "\t", false);
 	}
 
 	public void setMarkersToDropFile(String markersToDropFile) {
