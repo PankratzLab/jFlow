@@ -681,6 +681,7 @@ public class FlowAnnotator {
 		if (newRow < 0)
 			return;
 		tree.setSelectionRow(newRow);
+		tree.scrollRowToVisible(newRow);
 	}
 
 	private int getTreeRowCount() {
@@ -703,6 +704,7 @@ public class FlowAnnotator {
 		if (newRow >= getTreeRowCount())
 			return;
 		tree.setSelectionRow(newRow);
+		tree.scrollRowToVisible(newRow);
 	}
 
 	private void keyLeft() { // prev file

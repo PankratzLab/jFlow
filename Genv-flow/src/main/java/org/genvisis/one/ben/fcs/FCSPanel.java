@@ -470,7 +470,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		for (Gate g : gatesForPlot) {
 			long t2 = System.currentTimeMillis();
 			boolean[] gt = g.gate(fcp.dataLoader);
-			System.out.println("gating " + g.getName() + ": " + ext.getTimeElapsed(t2));
+			// System.out.println("gating " + g.getName() + ": " + ext.getTimeElapsed(t2));
 			if (gt == null) {
 				continue;
 			}
@@ -508,7 +508,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
 		rectangles = rects.toArray(new GenericRectangle[rects.size()]);
 		polygons = polys.toArray(new GenericPath[polys.size()]);
-		System.out.println("Gate update time: " + ext.getTimeElapsed(t1));
+		// System.out.println("Gate update time: " + ext.getTimeElapsed(t1));
 	}
 
 	private void assignClusterColors() {
@@ -773,7 +773,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		if (SwingUtilities.isLeftMouseButton(e) && !lackingData) {
-			System.out.println("released");
+			// System.out.println("released");
 			int mouseEndX;
 			int mouseEndY;
 			mouseEndX = e.getX();
@@ -920,7 +920,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	@Override
 	public void mousePressed(MouseEvent e) {
 		if (SwingUtilities.isLeftMouseButton(e) && !lackingData) {
-			System.out.println("pressed");
+			// System.out.println("pressed");
 			int tempX = e.getX();
 			int tempY = e.getY();
 			if (tempPoly.isEmpty()) {

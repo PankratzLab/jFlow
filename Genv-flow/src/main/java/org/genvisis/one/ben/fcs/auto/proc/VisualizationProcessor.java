@@ -22,7 +22,8 @@ public class VisualizationProcessor implements SampleProcessor {
 
 	@Override
 	public void processSample(SampleNode sn, Logger log) throws IOException {
-		FCSPlot fcp = new FCSPlot();
+		System.gc();
+		final FCSPlot fcp = new FCSPlot();
 
 		fcp.loadFile(sn.fcsFile, true);
 		FCSDataLoader loader = fcp.getDataLoader(sn.fcsFile);
@@ -30,10 +31,10 @@ public class VisualizationProcessor implements SampleProcessor {
 
 		fcp.loadWorkspaceFile(sn.wspFile);
 
-		String fNum = fcp.discoverFNumFile(autoDir);
-		if (fNum == null)
-			return;
-		fcp.loadAutoValues(fNum);
+		// String fNum = fcp.discoverFNumFile(autoDir);
+		// if (fNum == null)
+		// return;
+		// fcp.loadAutoValues(fNum);
 
 		fcp.setSize(1000, 800);
 		fcp.getPanel().setSize(800, 600);
@@ -44,9 +45,15 @@ public class VisualizationProcessor implements SampleProcessor {
 		fcp.getPanel().setLayersInBase(new byte[] {0, 1, 99});
 		fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
 
+		int col = 1;
 		// for (String s : FCSProcessingPipeline.GATE_NAMES) {
 		for (String s : fcp.getGatingStrategy().getAllGateNames()) {
 			Gate g = fcp.getGatingStrategy().gateMap.get(s);
+
+			if (g.getParentGate() != null) {
+				fcp.gateSelected(g.getParentGate(), false);
+			}
+
 			if (g.getXDimension() == null && g.getYDimension() != null) {
 				// correct for swapped histogram
 				g.setXDimension(g.getYDimension());
@@ -55,36 +62,33 @@ public class VisualizationProcessor implements SampleProcessor {
 			fcp.setXDataName(g.getXDimension().getParam());
 			if (g.getYDimension() != null) {
 				fcp.setYDataName(g.getYDimension().getParam());
-				fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+				fcp.setPlotType(PLOT_TYPE.HEATMAP);
 			} else {
 				fcp.setPlotType(PLOT_TYPE.HISTOGRAM);
 			}
 
+			g.setColor((col++ % 12) + 1);
+
 			// fcp.setClassifierGate(g.getName());
 
-			// String name = g.getName();
-			// String fNumD = FCSProcessingPipeline.getFNum(sn.fcsFile);
-			String outFile = outDir + ext.removeDirectoryInfo(sn.fcsFile) + "/"
-											 + ext.removeDirectoryInfo(sn.fcsFile) + "." + g.getXDimension().getParam();
-			if (g.getYDimension() != null) {
-				outFile = outFile + "v" + g.getYDimension().getParam();
-			}
+			String cleanedName = ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(sn.fcsFile));
+			String outFile = outDir + cleanedName + "/" + cleanedName + "."
+											 + g.getName();
 			fcp.getPanel().classifierPrev = false;
 			fcp.getPanel().setForceGatesChanged();
 			fcp.getPanel().createImage();
+
 			fcp.screencap(outFile + ".png");
 
-			fcp.getPanel().classifierPrev = true;
-			fcp.getPanel().setForceGatesChanged();
-			fcp.getPanel().createImage();
-			fcp.screencap(outFile + "_prev.png");
+			// fcp.getPanel().classifierPrev = true;
+			// fcp.getPanel().setForceGatesChanged();
+			// fcp.getPanel().createImage();
+			// fcp.screencap(outFile + "_prev.png");
 
-			fcp.gateSelected(g, true);
 		}
 
 		loader.emptyAndReset();
-		fcp = null;
+		// fcp = null;
 		System.gc();
 	}
-
 }
