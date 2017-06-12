@@ -2333,17 +2333,7 @@ public class FilterCalls {
 		boolean exclude = false;
 		boolean stats = false;
 		boolean merge = false;
-
-		boolean testing = true;
-		if (testing) {
-			dir = "F:/temp/poynterCNVTesting/";
-			in = dir + "chr12_0191T-0.cnv";
-			out = dir + "combined.cnv";
-			mergeCNVs(in, out, DEFAULT_CLEAN_FACTOR, null);
-			return;
-		}
-
-
+		float mergeFactor = DEFAULT_CLEAN_FACTOR;
 
 		double totalRequired, delRequired, dupRequired, totalLimitedTo, delLimitedTo, dupLimitedTo, proportionOfProbesThatNeedToPassForFinalInclusion;
 		totalRequired = delRequired = dupRequired = totalLimitedTo = delLimitedTo = dupLimitedTo = proportionOfProbesThatNeedToPassForFinalInclusion = 0.0;
@@ -2511,6 +2501,9 @@ public class FilterCalls {
 			} else if (arg.startsWith("-merge")) {
 				merge = true;
 				numArgs--;
+			} else if (arg.startsWith("mergeFactor=")) {
+				mergeFactor = ext.parseFloatArg(arg);
+				numArgs--;
 			} else if (arg.startsWith("list=")) {
 				listFile = arg.split("=")[1];
 				numArgs--;
@@ -2616,7 +2609,7 @@ public class FilterCalls {
 				if (dir != null && !"".equals(dir)) {
 					CNVStats(proj, dir, in);
 				} else if (merge) {
-					mergeCNVs(proj, in, out, DEFAULT_CLEAN_FACTOR);
+					mergeCNVs(proj, in, out, mergeFactor);
 				} else {
 					int famCnt = Files.countLines(famFile, 0);
 					filterBasedOnNumberOfCNVsAtLocus(proj, in, out, (int) (totalRequired * famCnt * 2.0),
@@ -2632,7 +2625,7 @@ public class FilterCalls {
 			} else if (excludeFile != null) {
 				filterExclusions(dir, in, out, excludeFile, exclude);
 			} else if (merge) {
-				mergeCNVs(in, out, DEFAULT_CLEAN_FACTOR, null);
+				mergeCNVs(in, out, mergeFactor, null);
 			} else {
 				filterCNVs(dir, in, out, new int[] {delSize, hDelSize}, new int[] {dupSize, hDupSize},
 									 new int[] {number, hNumber}, score, filenameOfProblematicRegions,
