@@ -189,7 +189,6 @@ public class ClipSwap {
 
 		for (int i = 0; i < lines.length; i++) {
 			String[] line = lines[i].trim().split("\t", -1);
-			Logger log = new Logger();
 			double beta = 999;
 			double se = 999;
 
@@ -348,6 +347,47 @@ public class ClipSwap {
 		return true;
 	}
 
+	public static void convertToUCSC() {
+		String[][] strs = Matrix.toMatrix(ext.getClipboard().trim().split("\\n"), "\t");
+		String[] result = new String[strs.length];
+		int numColErrs = 0;
+		int numParseErrs = 0;
+		
+		for (int i = 0; i < strs.length; i++) {
+			if (strs[i].length != 3) {
+				if (numColErrs < 10) {
+					System.err.println("Error - row #"+(i+1)+" has "+(strs[i].length)+" columns instead of 3");
+					System.err.println("        "+ArrayUtils.toStr(strs[i], "/"));
+				}
+				numColErrs++;
+				result[i] = ".";
+			} else {
+				if (strs[i][0].toLowerCase().startsWith("chr")) {
+					strs[i][0] = strs[i][0].substring(3, strs[i][0].length());
+				}
+				for (int j = 0; j < 3; j++) {
+					try {
+						Integer.parseInt(strs[i][j]); 
+					} catch (NumberFormatException nfe) {
+						if (numParseErrs < 10) {
+							System.err.println("Error - row #"+(i+1)+" does not have a valid "+(j==0?"chromosome":(j==1?"start":"stop"))+" number: "+strs[i][0]);
+						}
+						numParseErrs++;
+					}
+				}
+				result[i] = "chr"+Integer.parseInt(strs[i][0])+":"+Integer.parseInt(strs[i][1])+"-"+Integer.parseInt(strs[i][2]);
+			}			
+		}
+		if (numColErrs >= 10) {
+			System.err.println("There were "+numColErrs+" mismatched column errors");
+		}
+		if (numParseErrs >= 10) {
+			System.err.println("There were "+numColErrs+" invalid number errors");
+		}
+
+		ext.setClipboard(ArrayUtils.toStr(result, "\n"));
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		boolean slash = false;
@@ -362,6 +402,7 @@ public class ClipSwap {
 		boolean nominalVariable = false;
 		boolean saveKeysToFile = false;
 		boolean lookupValuesForSavedKeys = false;
+		boolean convertToUCSC = false;
 		int sigfigs = 3;
 
 		String usage = "\n"
@@ -375,12 +416,11 @@ public class ClipSwap {
 									 + "   (7) Create bins and counts for a histogram (i.e. -histogram (not the default))\n"
 									 + "   (8) Perform an inverse-variance weighted meta-analysis on a series of betas/stderrs (i.e. -inverseVariance (not the default))\n"
 									 + "   (9) Convert a beta/SE pair to an OR (95% CI) pair (i.e. -convertBetaSE2OR_CI (not the default))\n"
-									 + "            using X number of significant digits (i.e. sigfigs="
-									 + sigfigs
-									 + " (default))\n"
+									 + "            using X number of significant digits (i.e. sigfigs="+ sigfigs+" (default))\n"
 									 + "   (10) Split a nominal variable into binary columns (i.e. -nominalVariable (not the default))\n"
 									 + "   (11) Extracts keys from clipboard and saves them to a serialized file, with tabs maintained in lookup values (i.e. -saveKeys (not the default))\n"
 									 + "   (12) Lookup the values for the stored keys using the contents of the clipboard (i.e. -lookupValuesForSavedKeys (not the default))\n"
+									 + "   (13) convert three columns of chr,start,stop into a single ucsc column chr:start-stop (i.e. -convertToUCSC (not the default))\n"
 									 + "";
 
 		for (String arg : args) {
@@ -425,6 +465,9 @@ public class ClipSwap {
 				numArgs--;
 			} else if (arg.startsWith("-lookupValuesForSavedKeys")) {
 				lookupValuesForSavedKeys = true;
+				numArgs--;
+			} else if (arg.startsWith("-convertToUCSC")) {
+				convertToUCSC = true;
 				numArgs--;
 			} else {
 				System.err.println("Error - don't know what to do with argument '" + arg + "'");
@@ -476,6 +519,9 @@ public class ClipSwap {
 				} else {
 					ext.waitForResponse("Lookup was not successful\npress any key to close");
 				}
+			}
+			if (convertToUCSC) {
+				convertToUCSC();
 			}
 
 		} catch (Exception e) {
