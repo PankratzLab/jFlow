@@ -78,6 +78,20 @@ public class GateFileUtils {
 
 			String id = gateNode.getAttribute("gating:id");
 			String parentID = gateNode.getAttribute("gating:parent_id");
+
+			if (parentID == null || "".equals(parentID)) {
+				Node n = popNode.getParentNode();
+				if (n != null) {
+					n = n.getParentNode();
+					if (n != null) {
+						Element e = (Element) n;
+						if (e.getNodeName().equals("Population")) {
+							parentID = e.getAttribute("name");
+						}
+					}
+				}
+			}
+
 			Node actualGateNode = null;
 			for (int n = 0, cnt = gateNode.getChildNodes().getLength(); n < cnt; n++) {
 				if (gateNode.getChildNodes().item(n).getNodeName().startsWith("gating:")) {
@@ -86,6 +100,9 @@ public class GateFileUtils {
 				}
 			}
 			if (actualGateNode != null) {
+				if (id == null || "".equals(id)) {
+					id = popName;
+				}
 				Gate newGate = buildGate(popName, id, parentID, actualGateNode, flowJo);
 				gateMap.put(id, newGate);
 				if (popName != null && !popName.equals("")) {

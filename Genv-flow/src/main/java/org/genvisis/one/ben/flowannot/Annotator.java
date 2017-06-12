@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -86,15 +85,9 @@ public class Annotator implements IAnnotator {
 			});
 			for (String img : imgFiles) {
 				int gateInd = -1;
-				for (int i = 0; i < GateTree.GATE_DIMS.length; i++) {
-					boolean containsAll = true;
-					for (String s : GateTree.GATE_DIMS[i]) {
-						if (!img.contains(s)) {
-							containsAll = false;
-							break;
-						}
-					}
-					if (containsAll) {
+				String name = img.substring(fcsFilename.length() + 1, img.length() - 4);
+				for (int i = 0; i < GateTree.GATE_TREE.length; i++) {
+					if (GateTree.GATE_TREE[i][0].equals(name)) {
 						gateInd = i;
 						break;
 					}
@@ -102,8 +95,8 @@ public class Annotator implements IAnnotator {
 				if (gateInd >= 0) {
 					AnnotatedImage ai = new AnnotatedImage(gateInd + "", gateInd == 0);
 					ai.setImageFile(ext.verifyDirFormat(d.getAbsolutePath()) + img);
-					String name = ArrayUtils.toStr(GateTree.GATE_DIMS[gateInd], " v ");
-					ai.setGateName(name);
+					// name = ArrayUtils.toStr(GateTree.GATE_DIMS[gateInd], " v ");
+					ai.setGateName(GateTree.GATE_TREE[gateInd][0]);
 					fcsImgs.put(name, ai);
 				}
 			}
