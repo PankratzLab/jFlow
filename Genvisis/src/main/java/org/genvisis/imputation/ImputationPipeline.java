@@ -1,18 +1,5 @@
 package org.genvisis.imputation;
 
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.variant.variantcontext.Allele;
-import htsjdk.variant.variantcontext.Genotype;
-import htsjdk.variant.variantcontext.GenotypeBuilder;
-import htsjdk.variant.variantcontext.VariantContextBuilder;
-import htsjdk.variant.variantcontext.writer.Options;
-import htsjdk.variant.variantcontext.writer.VariantContextWriter;
-import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
-import htsjdk.variant.vcf.VCFFormatHeaderLine;
-import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderLine;
-import htsjdk.variant.vcf.VCFHeaderLineType;
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -42,6 +29,19 @@ import org.genvisis.gwas.Qc;
 import org.genvisis.seq.manage.ReferenceGenome;
 
 import com.google.common.collect.ImmutableSet;
+
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypeBuilder;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.variantcontext.writer.Options;
+import htsjdk.variant.variantcontext.writer.VariantContextWriter;
+import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
+import htsjdk.variant.vcf.VCFFormatHeaderLine;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFHeaderLineType;
 
 /**
  * Export genotypes to either PLINK or VCF format and, depending on selected options, generate
@@ -256,7 +256,9 @@ public class ImputationPipeline {
 																														 proj.JAR_STATUS.getValue());
 		}
 
-		float gcThreshold = 0; /* this is unused in plink export code, so we won't use it here, either */// proj.GC_THRESHOLD.getValue().floatValue();
+		float gcThreshold = 0; /*
+													  * this is unused in plink export code, so we won't use it here, either
+													  */// proj.GC_THRESHOLD.getValue().floatValue();
 
 
 		// TODO multi-thread
