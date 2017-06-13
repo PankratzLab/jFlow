@@ -303,6 +303,8 @@ public class FlowAnnotator {
 		});
 
 		frmFlowannotator.setJMenuBar(createMenuBar());
+
+		// startAutoSaveThread();
 	}
 
 	private JMenuBar createMenuBar() {

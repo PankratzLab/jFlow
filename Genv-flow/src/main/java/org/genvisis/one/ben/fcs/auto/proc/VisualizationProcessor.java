@@ -1,5 +1,6 @@
 package org.genvisis.one.ben.fcs.auto.proc;
 
+import java.awt.Color;
 import java.io.IOException;
 
 import org.genvisis.common.Logger;
@@ -24,7 +25,7 @@ public class VisualizationProcessor implements SampleProcessor {
 	public void processSample(SampleNode sn, Logger log) throws IOException {
 		System.gc();
 		final FCSPlot fcp = new FCSPlot();
-
+		fcp.getPanel().setColorScheme(new Color[] {Color.BLACK, Color.RED, Color.RED, Color.RED});
 		fcp.loadFile(sn.fcsFile, true);
 		FCSDataLoader loader = fcp.getDataLoader(sn.fcsFile);
 		loader.waitForData();
@@ -45,10 +46,10 @@ public class VisualizationProcessor implements SampleProcessor {
 		fcp.getPanel().setLayersInBase(new byte[] {0, 1, 99});
 		fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
 
-		int col = 1;
 		// for (String s : FCSProcessingPipeline.GATE_NAMES) {
 		for (String s : fcp.getGatingStrategy().getAllGateNames()) {
 			Gate g = fcp.getGatingStrategy().gateMap.get(s);
+			g.setColor(1);
 
 			if (g.getParentGate() != null) {
 				fcp.gateSelected(g.getParentGate(), false);
@@ -66,8 +67,7 @@ public class VisualizationProcessor implements SampleProcessor {
 			} else {
 				fcp.setPlotType(PLOT_TYPE.HISTOGRAM);
 			}
-
-			g.setColor((col++ % 12) + 1);
+			g.setColor(1);
 
 			// fcp.setClassifierGate(g.getName());
 
