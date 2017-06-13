@@ -127,6 +127,15 @@ public class FCSProcessingPipeline {
 		String auto = "/home/pankrat2/shared/flow/testAutoGate/test2/gates2/";
 		String out = "/scratch.global/cole0482/FCS/testConcordance/";
 
+		boolean test = true;
+		if (test) {
+			fcs = wsp = auto = out = "F:/Flow/Annotation/viz/wsp/";
+			out += "out/";
+			new FCSProcessingPipeline(fcs, wsp, auto, out).run();
+			return;
+		}
+
+
 		for (String arg : args) {
 			if (arg.startsWith("fcs=")) {
 				fcs = ext.parseStringArg(arg);

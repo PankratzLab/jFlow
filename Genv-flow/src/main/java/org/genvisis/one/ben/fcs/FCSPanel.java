@@ -88,7 +88,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	private ArrayList<PolygonGate> draggingPolys = new ArrayList<>();
 	private final ArrayList<Integer> draggingPolyInds = new ArrayList<>();
 
-
 	public FCSPanel(FCSPlot fcsPlot) {
 		super();
 		setDoubleBuffered(false);
@@ -496,14 +495,21 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 																															: rgdY.getMin();
 				yMax = isHistogram() || !Float.isFinite(rgdY.getMax()) ? Integer.MAX_VALUE
 																															: rgdY.getMax();
-				rects.add(new GenericRectangle(lbl, xMin, yMin, xMax, yMax, (byte) 1, false, false,
-																			 (byte) 1, (byte) 99, editable));
+				GenericRectangle gRect = new GenericRectangle(lbl, xMin, yMin, xMax, yMax, (byte) 1,
+																											g.fillGate && !isHistogram(),
+																											false,
+																											(byte) 1,
+																											(byte) 99, editable);
+				if (g.fillGate && !isHistogram()) {
+					gRect.setFillColor((byte) 2);
+				}
+				rects.add(gRect);
 			} else if (g instanceof PolygonGate) {
 				boolean editable = selectedGates.contains(g) || mouseGates.contains(g)
 													 || draggingPolys.contains(g);
 				polys.add(new GenericPath(lbl, ((PolygonGate) g).getPath(), (byte) 1,
-																	(byte) 0, (byte) 99,
-																	false, editable));
+																	(byte) 2, (byte) 99,
+																	g.fillGate, editable));
 			}
 		}
 

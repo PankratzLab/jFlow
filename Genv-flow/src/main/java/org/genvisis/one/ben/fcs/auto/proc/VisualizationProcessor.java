@@ -25,7 +25,9 @@ public class VisualizationProcessor implements SampleProcessor {
 	public void processSample(SampleNode sn, Logger log) throws IOException {
 		System.gc();
 		final FCSPlot fcp = new FCSPlot();
-		fcp.getPanel().setColorScheme(new Color[] {Color.BLACK, Color.RED, Color.RED, Color.RED});
+		fcp.getPanel().setColorScheme(new Color[] {Color.BLACK, Color.RED,
+																							 new Color(128, 128, 128, 64)});
+
 		fcp.loadFile(sn.fcsFile, true);
 		FCSDataLoader loader = fcp.getDataLoader(sn.fcsFile);
 		loader.waitForData();
@@ -49,8 +51,6 @@ public class VisualizationProcessor implements SampleProcessor {
 		// for (String s : FCSProcessingPipeline.GATE_NAMES) {
 		for (String s : fcp.getGatingStrategy().getAllGateNames()) {
 			Gate g = fcp.getGatingStrategy().gateMap.get(s);
-			g.setColor(1);
-
 			if (g.getParentGate() != null) {
 				fcp.gateSelected(g.getParentGate(), false);
 			}
@@ -68,6 +68,8 @@ public class VisualizationProcessor implements SampleProcessor {
 				fcp.setPlotType(PLOT_TYPE.HISTOGRAM);
 			}
 			g.setColor(1);
+			g.fillGate = true;
+
 
 			// fcp.setClassifierGate(g.getName());
 
@@ -79,6 +81,8 @@ public class VisualizationProcessor implements SampleProcessor {
 			fcp.getPanel().createImage();
 
 			fcp.screencap(outFile + ".png");
+
+			g.fillGate = false;
 
 			// fcp.getPanel().classifierPrev = true;
 			// fcp.getPanel().setForceGatesChanged();
