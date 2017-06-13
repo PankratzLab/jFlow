@@ -654,10 +654,10 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 					ids = null;
 					if (linkKeyIndicies[TwoDPlot.FID_INDEX_IN_LINKERS] >= 0) { // if FID present
 						ids = sampleData.lookup(linkerDataElem[TwoDPlot.FID_INDEX_IN_LINKERS] + "\t"
-																		+ linkerDataElem[TwoDPlot.IID_INDEX_IN_LINKERS]);
+																		+ linkerDataElem[TwoDPlot.DNA_INDEX_IN_LINKERS]);
 					}
 					if (ids == null) {
-						ids = sampleData.lookup(linkerDataElem[TwoDPlot.IID_INDEX_IN_LINKERS]);
+						ids = sampleData.lookup(linkerDataElem[TwoDPlot.DNA_INDEX_IN_LINKERS]);
 					}
 					if (ids != null
 							&& Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + ids[0]

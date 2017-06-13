@@ -117,14 +117,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 																						ArrayUtils.combine(Aliases.POSITIONS,
 																															 Aliases.POSITIONS_START),
 																						Aliases.POSITIONS_STOP};
+	public static final int DNA_INDEX_IN_LINKERS = 2;
 	public static final int IID_INDEX_IN_LINKERS = 0;
 	public static final int FID_INDEX_IN_LINKERS = 1;
-	public static final int DNA_INDEX_IN_LINKERS = 2;
-	public static int MARKER_INDEX_IN_LINKERS = 3;
-	public static int REGION_INDEX_IN_LINKERS = 4;
-	public static int CHR_INDEX_IN_LINKERS = 5;
-	public static int POS_INDEX_IN_LINKERS = 6;
-	public static int STOP_POS_INDEX_IN_LINKERS = 7;
+	public static final int MARKER_INDEX_IN_LINKERS = 3;
+	public static final int REGION_INDEX_IN_LINKERS = 4;
+	public static final int CHR_INDEX_IN_LINKERS = 5;
+	public static final int POS_INDEX_IN_LINKERS = 6;
+	public static final int STOP_POS_INDEX_IN_LINKERS = 7;
 
 	public static final String[] MISSING_VALUES = {"."};
 
@@ -1168,7 +1168,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		byte index;
 		// TODO cache data based on x/y selected columns (??? or not?) and parser lines
 
-
 		selectedNodes = tree.getSelectionValues();
 		xData = new HashMap<String, String[]>();
 		yData = new HashMap<String, String[]>();
@@ -1193,30 +1192,35 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		outer: for (int i = 0; i < dataOfSelectedFile.size(); i++) {
 			inLine = dataOfSelectedFile.get(i);
 
+			//FIXME this badly needs to be reconciled with #getDataSelected
 			if (sampleData != null
 					&& (hideExcludes || colorKeyPanel.getDisabledClassValues().size() > 0)) {
-				for (int k = 0; k < 3; k++) {
-					if (linkKeyColumnIndices[k] >= 0) {
-						String curSample = inLine[linkKeyColumnIndices[k]];
 
-						IndiPheno indi = sampleData.getIndiFromSampleHash(curSample);
+				// Try DNA first
+				String curSample = inLine[linkKeyColumnIndices[DNA_INDEX_IN_LINKERS]];
+				IndiPheno indi = sampleData.getIndiFromSampleHash(curSample);
+				if (indi == null) {
+					// Try FID/IID
+					curSample = inLine[linkKeyColumnIndices[FID_INDEX_IN_LINKERS]] + "\t"
+											+ inLine[linkKeyColumnIndices[IID_INDEX_IN_LINKERS]];
+					curSample = sampleData.lookup(curSample)[0];
+					indi = sampleData.getIndiFromSampleHash(curSample);
+				}
 
-						int sampColorKey = 0;
-						if (indi != null) {
-							sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, indi,
-																															 (byte) 0, 0);
-						}
-						if (hideExcludes && sampleData.individualShouldBeExcluded(curSample)) {
-							continue outer;
-						}
-						if (colorKeyPanel.getDisabledClassValues()
-														 .containsKey(currentClass + "\t" + sampColorKey)) {
-							continue outer;
-						}
-					}
+				// Check if hidden
+				if (indi == null || (hideExcludes && sampleData.individualShouldBeExcluded(curSample))) {
+					continue outer;
+				}
+
+				int sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, indi,
+																														 (byte) 0, 0);
+
+				if (colorKeyPanel.getDisabledClassValues()
+												 .containsKey(currentClass + "\t" + sampColorKey)) {
+					continue outer;
 				}
 			}
-			xData.put(inLine[linkerIndices.get(selectedFileX)[IID_INDEX_IN_LINKERS]], inLine);
+			xData.put(inLine[linkerIndices.get(selectedFileX)[DNA_INDEX_IN_LINKERS]], inLine);
 		}
 		if (selectedNodes.length > 1 && selectedNodes[1] != null && selectedNodes[1][0] != null
 				&& linkerIndices.get(selectedNodes[1][0]) != null) {
@@ -1226,7 +1230,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			dataOfSelectedFile = dataHash.get(selectedFileY);
 			for (int i = 0; i < dataOfSelectedFile.size(); i++) {
 				inLine = dataOfSelectedFile.get(i);
-				yData.put(inLine[linkerIndices.get(selectedFileY)[IID_INDEX_IN_LINKERS]], inLine);
+				yData.put(inLine[linkerIndices.get(selectedFileY)[DNA_INDEX_IN_LINKERS]], inLine);
 			}
 		}
 
@@ -1361,25 +1365,29 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 				if (sampleData != null
 						&& (hideExcludes || colorKeyPanel.getDisabledClassValues().size() > 0)) {
-					for (int k = 0; k < 3; k++) {
-						if (linkKeyColumnIndices[k] >= 0) {
-							String curSample = inLine[linkKeyColumnIndices[k]];
 
-							IndiPheno indi = sampleData.getIndiFromSampleHash(curSample);
+					// Try DNA first
+					String curSample = inLine[linkKeyColumnIndices[DNA_INDEX_IN_LINKERS]];
+					IndiPheno indi = sampleData.getIndiFromSampleHash(curSample);
+					if (indi == null) {
+						// Try FID/IID
+						curSample = inLine[linkKeyColumnIndices[FID_INDEX_IN_LINKERS]] + "\t"
+												+ inLine[linkKeyColumnIndices[IID_INDEX_IN_LINKERS]];
+						curSample = sampleData.lookup(curSample)[0];
+						indi = sampleData.getIndiFromSampleHash(curSample);
+					}
 
-							int sampColorKey = 0;
-							if (indi != null) {
-								sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, indi,
-																																 (byte) 0, 0);
-							}
-							if (hideExcludes && sampleData.individualShouldBeExcluded(curSample)) {
-								continue outer;
-							}
-							if (colorKeyPanel.getDisabledClassValues()
-															 .containsKey(currentClass + "\t" + sampColorKey)) {
-								continue outer;
-							}
-						}
+					// Check if hidden
+					if (indi == null || (hideExcludes && sampleData.individualShouldBeExcluded(curSample))) {
+						continue outer;
+					}
+
+					int sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, indi,
+																															 (byte) 0, 0);
+
+					if (colorKeyPanel.getDisabledClassValues()
+													 .containsKey(currentClass + "\t" + sampColorKey)) {
+						continue outer;
 					}
 				}
 				outLine = new String[linkKeyColumnIndices.length + index];
@@ -1390,7 +1398,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 						outLine[j + index] = inLine[linkKeyColumnIndices[j]];
 					}
 				}
-				xHash.put(inLine[linkerIndices.get(selectedFile)[IID_INDEX_IN_LINKERS]], outLine);
+				xHash.put(inLine[linkerIndices.get(selectedFile)[DNA_INDEX_IN_LINKERS]], outLine);
 			}
 			if (selectedNodes.length > 1 && selectedNodes[1] != null && selectedNodes[1][0] != null
 					&& linkerIndices.get(selectedNodes[1][0]) != null) {
@@ -1399,7 +1407,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				dataOfSelectedFile = dataHash.get(selectedFile);
 				for (int i = 0; i < dataOfSelectedFile.size(); i++) {
 					inLine = dataOfSelectedFile.get(i);
-					yHash.put(inLine[linkerIndices.get(selectedFile)[IID_INDEX_IN_LINKERS]],
+					yHash.put(inLine[linkerIndices.get(selectedFile)[DNA_INDEX_IN_LINKERS]],
 										inLine[selectedColumn]);
 				}
 			}
@@ -2249,10 +2257,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, log, false);
 
-		if (linkKeyIndices[IID_INDEX_IN_LINKERS] == -1) {
-			log.report("ID linker not automatically identified for file '" + filename
+		if (linkKeyIndices[DNA_INDEX_IN_LINKERS] == -1) {
+			log.report("Sample ID not automatically identified for file '" + filename
 								 + "'; assuming the first column.");
-			linkKeyIndices[IID_INDEX_IN_LINKERS] = 0;
+			linkKeyIndices[DNA_INDEX_IN_LINKERS] = 0;
 		}
 
 		columnMetaData.put(filename, new HashMap<Integer, String[]>());
