@@ -37,6 +37,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
@@ -216,13 +217,12 @@ public class FlowAnnotator {
 		frmFlowannotator = new JFrame();
 		frmFlowannotator.setTitle("FlowAnnotator");
 		frmFlowannotator.setBounds(100, 100, 1200, 800);
-		frmFlowannotator.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frmFlowannotator.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frmFlowannotator.getContentPane().setLayout(new MigLayout("", "[grow]", "[grow]"));
 		frmFlowannotator.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				close();
-				super.windowClosing(e);
 			}
 		});
 
@@ -440,6 +440,9 @@ public class FlowAnnotator {
 	};
 
 	private void close() {
+		if (!promptToSaveAnnotations()) {
+			return;
+		}
 		saveProperties();
 		frmFlowannotator.setVisible(false);
 		frmFlowannotator.dispose();
@@ -480,7 +483,7 @@ public class FlowAnnotator {
 		}
 	}
 
-	private void loadFiles() {
+	private void loadImageFiles() {
 		JFileChooser jfc = new JFileChooser(getLastUsedImageDir());
 		jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		jfc.setDialogTitle("Open Directory");
@@ -858,7 +861,7 @@ public class FlowAnnotator {
 		}
 	}
 
-	private void saveAnnotations() {
+	private boolean saveAnnotations() {
 		JFileChooser jfc = new JFileChooser(getLastUsedAnnotationDir());
 		jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		jfc.setDialogTitle("Save Annotations to File");
@@ -869,10 +872,31 @@ public class FlowAnnotator {
 			annotator.saveAnnotations(annFile);
 			recentAnnotFiles.add(annFile);
 			saveProperties();
+			return true;
 		}
+		return false;
+	}
+
+	private boolean promptToSaveAnnotations() {
+		int result = JOptionPane.showConfirmDialog(this.frmFlowannotator, "Save Existing Annotations?",
+																							 "Save?",
+																							 JOptionPane.YES_NO_CANCEL_OPTION,
+																							 JOptionPane.QUESTION_MESSAGE);
+		if (result == JOptionPane.CANCEL_OPTION) {
+			return false;
+		}
+		if (result == JOptionPane.YES_OPTION) {
+			return saveAnnotations();
+		}
+		return true;
 	}
 
 	private void loadAnnotations() {
+		if (this.annotator.getAnnotations().size() > 0) {
+			if (!promptToSaveAnnotations()) {
+				return;
+			}
+		}
 		JFileChooser jfc = new JFileChooser(getLastUsedAnnotationDir());
 		jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		jfc.setDialogTitle("Load Annotations from File");
@@ -885,6 +909,7 @@ public class FlowAnnotator {
 
 	private void loadAnnotationFile(String annFile) {
 		try {
+			annotator = new Annotator();
 			annotator.loadAnnotations(annFile);
 			setLastUsedAnnotationDir(ext.verifyDirFormat(ext.parseDirectoryOfFile(annFile)));
 			recentAnnotFiles.add(annFile);
@@ -928,7 +953,7 @@ public class FlowAnnotator {
 	private final Action loadAction = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			loadFiles();
+			loadImageFiles();
 		}
 	};
 

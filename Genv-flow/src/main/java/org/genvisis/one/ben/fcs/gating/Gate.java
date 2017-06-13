@@ -29,6 +29,7 @@ public abstract class Gate {
 	protected GateDimension xDim, yDim;
 	protected boolean changed = false;
 	protected int displayLevel = 0;
+	public boolean fillGate = false;
 
 	static final Random rand = new Random();
 
