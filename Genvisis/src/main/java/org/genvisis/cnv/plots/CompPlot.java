@@ -16,10 +16,13 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
@@ -183,17 +186,12 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		// Position
 
 		// Get a list of the .cnv files
-		files = proj.CNV_FILENAMES.getValue();
-		if (files.length == 0) {
+		List<String> fileList = Arrays.stream(proj.CNV_FILENAMES.getValue())
+																	.collect(Collectors.toList());
+		if (fileList.size() == 0) {
 			// CNV_FILENAMES is empty, throw an error and exit
-			JOptionPane.showMessageDialog(null, "Error - CNV_FILENAMES property is empty");
-			// return;
-		}
-		allFiles = new ArrayList<String>();
-		for (String file2 : files) {
-			File file = new File(file2);
-			String filename = file.getName();
-			allFiles.add(filename);
+			JOptionPane.showMessageDialog(null,
+																		"Error - CNV_FILENAMES property is empty. No CNV tracks will be displayed.");
 		}
 
 		originalRegionFiles = proj.REGION_LIST_FILENAMES.getValue();
@@ -213,18 +211,30 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		// Load the variants into memory
 		hashes = new ArrayList<CNVariantHash>();
 		filterFiles = new ArrayList<String>();
-		for (String file : files) {
-			File filename = new File(file);
-			filterFiles.add(filename.getName());
+		Iterator<String> fit = fileList.iterator();
+		while (fit.hasNext()) {
+			String file = fit.next();
 			if (Files.exists(file, false)) {
+				File filename = new File(file);
+				filterFiles.add(filename.getName());
 				// Load the CNVs out of the files
 				CNVariantHash cnvHash = CNVariantHash.load(file, CNVariantHash.CONSTRUCT_ALL, false,
 																									 proj.getLog());
 				hashes.add(cnvHash);
 			} else {
-				JOptionPane.showMessageDialog(null, "Error - File " + file + " does not exist");
-				return;
+				JOptionPane.showMessageDialog(null, "Error - File " + file
+																						+ " does not exist, can not display CNV track.");
+				fit.remove();
 			}
+		}
+
+		files = fileList.toArray(new String[fileList.size()]);
+
+		allFiles = new ArrayList<String>();
+		for (String file2 : files) {
+			File file = new File(file2);
+			String filename = file.getName();
+			allFiles.add(filename);
 		}
 
 		setupGUI();
