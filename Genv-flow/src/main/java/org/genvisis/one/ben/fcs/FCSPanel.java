@@ -497,11 +497,12 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 				yMax = isHistogram() || !Float.isFinite(rgdY.getMax()) ? Integer.MAX_VALUE
 																															: rgdY.getMax();
 				rects.add(new GenericRectangle(lbl, xMin, yMin, xMax, yMax, (byte) 1, false, false,
-																			 (byte) 0, (byte) 99, editable));
+																			 (byte) 1, (byte) 99, editable));
 			} else if (g instanceof PolygonGate) {
 				boolean editable = selectedGates.contains(g) || mouseGates.contains(g)
 													 || draggingPolys.contains(g);
-				polys.add(new GenericPath(lbl, ((PolygonGate) g).getPath(), (byte) 0, (byte) 0, (byte) 99,
+				polys.add(new GenericPath(lbl, ((PolygonGate) g).getPath(), (byte) 1,
+																	(byte) 0, (byte) 99,
 																	false, editable));
 			}
 		}
