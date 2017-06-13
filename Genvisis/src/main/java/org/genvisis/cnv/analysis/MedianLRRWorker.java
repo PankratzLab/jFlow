@@ -290,7 +290,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 																											"Waiting for data to Load for Region " + MARKER_REGION_REGEX,
 																											"Creating Output Files",
 																											"Assigning cnv copyNumber for "};
-	private static final String[] CLASSES_TO_DUMP = {"IID"};
+	private static final String[] CLASSES_TO_DUMP = {"FID", "IID"};
 
 	private static final String[] MARKER_REGION_RESULTS_SUFFIX = {"MEDIAN", "MAD", "BDeviation_All",
 																																"BDeviation_Het", "BMAF_Metric",
