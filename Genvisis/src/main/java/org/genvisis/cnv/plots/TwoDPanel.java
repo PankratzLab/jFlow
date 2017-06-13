@@ -18,6 +18,7 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
+import org.genvisis.common.Numbers;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Histogram;
@@ -674,8 +675,8 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 					if (metaData[0] != null) {
 						int[] tempPositions = new int[3];
 						tempPositions[0] = Positions.chromosomeNumber(metaData[0][0]);
-						tempPositions[1] = Integer.parseInt(metaData[0][2]);
-						tempPositions[2] = Integer.parseInt(metaData[0][3]);
+						tempPositions[1] = Numbers.parseWithLocale(metaData[0][2]);
+						tempPositions[2] = Numbers.parseWithLocale(metaData[0][3]);
 						region = Positions.getUCSCformat(tempPositions);
 						// if (sample != null && tempRegion != null) {
 						// menu.add(new LaunchAction(proj, sample, tempRegion, Color.GRAY));
@@ -683,8 +684,8 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 					}
 					if (metaData.length > 1 && metaData[1] != null) {
 						positions[0] = Positions.chromosomeNumber(metaData[1][0]);
-						positions[1] = Integer.parseInt(metaData[1][2]);
-						positions[2] = Integer.parseInt(metaData[1][3]);
+						positions[1] = Numbers.parseWithLocale(metaData[1][2]);
+						positions[2] = Numbers.parseWithLocale(metaData[1][3]);
 						region2 = Positions.getUCSCformat(positions);
 					}
 				} else {
@@ -695,13 +696,13 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 						if (positions[0] != -1) {
 							if (linkKeyIndicies[TwoDPlot.POS_INDEX_IN_LINKERS] >= 0) {
 								try {
-									positions[1] = Integer.parseInt(linkerDataElem[TwoDPlot.POS_INDEX_IN_LINKERS]);
+									positions[1] = Numbers.parseWithLocale(linkerDataElem[TwoDPlot.POS_INDEX_IN_LINKERS]);
 								} catch (NumberFormatException nfe) {
 								}
 							}
 							if (linkKeyIndicies[TwoDPlot.STOP_POS_INDEX_IN_LINKERS] >= 0) {
 								try {
-									positions[2] = Integer.parseInt(linkerDataElem[TwoDPlot.STOP_POS_INDEX_IN_LINKERS]);
+									positions[2] = Numbers.parseWithLocale(linkerDataElem[TwoDPlot.STOP_POS_INDEX_IN_LINKERS]);
 								} catch (NumberFormatException nfe) {
 								}
 							}
