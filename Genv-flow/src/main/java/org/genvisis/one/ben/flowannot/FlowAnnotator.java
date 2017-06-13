@@ -99,6 +99,7 @@ public class FlowAnnotator {
 	private static final int ALL = 0;
 	private static final int ANN = 1;
 	private static final int NON = 2;
+	private static final String BACKUP_FILE = ".backup.annotations";
 
 	/**
 	 * Launch the application.
@@ -304,7 +305,40 @@ public class FlowAnnotator {
 
 		frmFlowannotator.setJMenuBar(createMenuBar());
 
-		// startAutoSaveThread();
+		checkForBackupFile();
+		startAutoSaveThread();
+	}
+
+	long lastTimeSaved = -1;
+	Thread autoSaveThread = null;
+
+
+	private void checkForBackupFile() {
+		if (Files.exists(BACKUP_FILE)) {
+			int opt = JOptionPane.showConfirmDialog(this.frmFlowannotator,
+																							"Load Auto-saved backup file?",
+																							"Auto-Save File Detected", JOptionPane.YES_NO_OPTION,
+																							JOptionPane.WARNING_MESSAGE);
+			if (opt == JOptionPane.YES_OPTION) {
+				loadAnnotationFile(BACKUP_FILE);
+				new File(BACKUP_FILE).delete();
+			}
+		}
+	}
+
+	private void startAutoSaveThread() {
+		autoSaveThread = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				if (lastTimeSaved == -1 || (System.currentTimeMillis() - lastTimeSaved > 120000)) {
+					if (annotator.getAnnotations().size() > 0) {
+						annotator.saveAnnotations(BACKUP_FILE);
+					}
+					lastTimeSaved = System.currentTimeMillis();
+				}
+			}
+		}, "AutoSaveThread");
+		autoSaveThread.start();
 	}
 
 	private JMenuBar createMenuBar() {
@@ -870,6 +904,10 @@ public class FlowAnnotator {
 			String annFile = jfc.getSelectedFile().getAbsolutePath();
 			setLastUsedAnnotationDir(ext.verifyDirFormat(ext.parseDirectoryOfFile(annFile)));
 			annotator.saveAnnotations(annFile);
+			lastTimeSaved = System.currentTimeMillis();
+			if (Files.exists(BACKUP_FILE)) {
+				new File(BACKUP_FILE).delete();
+			}
 			recentAnnotFiles.add(annFile);
 			saveProperties();
 			return true;
