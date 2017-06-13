@@ -13,6 +13,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -797,6 +798,15 @@ public class SampleData {
 	 */
 	public String[] lookup(String str) {
 		return lookup.get(str.toLowerCase());
+	}
+
+	/**
+	 * 
+	 * @return an unmodifiable Map from any Sample identifier (DNA, FID\tIID, IID (not guaranteed
+	 *         unique)) to an array of {DNA, FID\tIID, IID}
+	 */
+	public Map<String, String[]> getSampleIDLookup() {
+		return Collections.unmodifiableMap(lookup);
 	}
 
 	public IndiPheno getIndiFromSampleHash(String sampleID) {
