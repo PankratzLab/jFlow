@@ -1,4 +1,4 @@
-package org.genvisis.one.JL.cushing;
+package org.genvisis.seq.cnv;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -20,12 +20,12 @@ import org.genvisis.filesys.Segment;
 import com.google.common.primitives.Ints;
 
 /**
- * Specific to Cables1 cnv detection
+ * Class for when you really want to find a CNV, even if it's not real
  *
  */
 
-public class Cables1 {
-	private Cables1() {
+public class CNVFocus {
+	private CNVFocus() {
 
 	}
 
@@ -90,13 +90,11 @@ public class Cables1 {
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
-		// private String sampleName;
 		private double mean;
 		private double sd;
 
-		private SampleDistParams(String sampleName, double mean, double sd) {
+		private SampleDistParams(double mean, double sd) {
 			super();
-			// this.sampleName = sampleName;
 			this.mean = mean;
 			this.sd = sd;
 		}
@@ -139,7 +137,7 @@ public class Cables1 {
 				float[] lrrs = ArrayUtils.subArray(samp.getLRRs(), indices);
 				float mean = ArrayUtils.mean(lrrs, true);
 				float sd = ArrayUtils.stdev(lrrs, true);
-				sampleDistParams[i] = new SampleDistParams(samples[i], mean, sd);
+				sampleDistParams[i] = new SampleDistParams(mean, sd);
 				raw.append("\n" + samples[i] + "\t" + mean + "\t" + sd);
 				proj.getLog().reportTimeInfo("Sample " + i + "\t" + samples[i] + "\t" + mean + "\t" + sd);
 
@@ -161,14 +159,18 @@ public class Cables1 {
 		Segment test = new Segment("chr6:306,447-338,866");
 		Segment test2 = new Segment("chr3:141,874,465-142,094,208");
 		Segment bai1 = new Segment("chr8:143,545,377-143,626,368");
+		Segment usp8 = new Segment("chr15:50,716,579-50,793,277");
+
 		ArrayList<Segment> segs = new ArrayList<>();
 		segs.add(cables1Loc);
 		segs.add(alk);
 		segs.add(test);
 		segs.add(test2);
 		segs.add(bai1);
+		segs.add(usp8);
 
-		String outDir = proj.PROJECT_DIRECTORY.getValue() + "CablesCNVs/";
+
+		String outDir = proj.PROJECT_DIRECTORY.getValue() + "CUSHING_FOCUS_CNVs/";
 
 		new File(outDir).mkdirs();
 		PreparedMarkerSet preparedMarkerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
