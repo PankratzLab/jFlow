@@ -8,6 +8,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Hashtable;
 
@@ -61,8 +63,8 @@ public class ParseMXCResults {
 		}
 	}
 
-	private static String[] getKeys(String[][] mxc, String colname, Logger log) {
-		String[] headers = mxc[0];
+	private static String[] getKeys(String[][] matrix, String colname, Logger log) {
+		String[] headers = matrix[0];
 		int index = -1;
 		for (int i = 0; i < headers.length; i++)
 			if (colname.equals(headers[i]))
@@ -74,7 +76,7 @@ public class ParseMXCResults {
 			System.exit(0);
 		}
 
-		return Matrix.extractColumn(mxc, index);
+		return Matrix.extractColumn(matrix, index);
 	}
 
 	private static String[][] findGenes(String[][] mxc, String[] keys, String filename,
@@ -83,7 +85,7 @@ public class ParseMXCResults {
 		String[] headers = {"gene_name", "start_pos",
 												"stop_pos", "chr"};
 
-		String[][] genes = loadGenes(filename, log);
+		String[][] genes = loadGenes(filename, false, log);
 
 		// get the results of the comparison
 		try {
@@ -102,12 +104,12 @@ public class ParseMXCResults {
 		}
 
 		// filter out rows where no gene can be found
-		results = removeNAs(results, genes, keys, results[0].length - 4);
+		results = removeNAs(results, results[0].length - 4);
 
 		return results;
 	}
 
-	private static String[][] loadGenes(String filename, Logger log) {
+	private static String[][] loadGenes(String filename, boolean omitHeader, Logger log) {
 		int[] cols = new int[4];
 
 		try {
@@ -134,7 +136,7 @@ public class ParseMXCResults {
 			e.printStackTrace();
 		}
 
-		return HashVec.loadFileToStringMatrix(filename, false, cols, false);
+		return HashVec.loadFileToStringMatrix(filename, omitHeader, cols, false);
 	}
 
 	private static String[][] append(String[][] start, String[][] toAppend) {
@@ -152,37 +154,19 @@ public class ParseMXCResults {
 		return m;
 	}
 
-	private static String[][] removeNAs(String[][] mxc, String[][] genes, String[] keys, int col) {
-		boolean[] rowsToKeep = new boolean[mxc.length];
+	private static String[][] removeNAs(String[][] matrix, int col) {
+		boolean[] rowsToKeep = new boolean[matrix.length];
 		if (col < 0)
-			return mxc;
+			return matrix;
 
-		for (int i = 0; i < mxc.length; i++) {
-			if (mxc[i][col].equals("NA")) {
-				rowsToKeep[i] = false;
-				if (keys != null) {
-					// check for synonyms and fix results if possible
-					String[] synInfo = getSynonym(keys[i]);
-					if (synInfo != null) {
-						mxc[i][col] = synInfo[0];
-						mxc[i][col + 1] = synInfo[1];
-						mxc[i][col + 2] = synInfo[2];
-						mxc[i][col + 3] = synInfo[3];
-						rowsToKeep[i] = true;
-					}
-				}
-			} else {
-				rowsToKeep[i] = true;
-			}
+		for (int i = 0; i < matrix.length; i++) {
+			rowsToKeep[i] = !(matrix[i][col].equals("NA") || matrix[i][col].equals("."));
 		}
 
-		mxc = Matrix.subset(mxc, rowsToKeep);
-		return mxc;
+		matrix = Matrix.subset(matrix, rowsToKeep);
+		return matrix;
 	}
 
-	private static String[] getSynonym(String key) {
-		return null;
-	}
 
 
 	// TODO: Use genvisis qq and manhattan plots instead of R's
@@ -239,6 +223,7 @@ public class ParseMXCResults {
 
 
 		// maps rsid to a chr and position
+		// this could just be the same as the load file line, fix later
 		Hashtable<String, String> posmap = new Hashtable<String, String>();
 		for (int i = 0; i < pos.length; i++) {
 			posmap.put(pos[i][0], pos[i][1] + "," + pos[i][2]);
@@ -251,7 +236,7 @@ public class ParseMXCResults {
 		for (String s : metal.keySet()) {
 			if (!metal.get(s).equals("NA")) {
 				double p = Double.parseDouble(metal.get(s));
-				String ind = p < sig ? "***" : (p < sugg ? "**" : ".");
+				String ind = p < sig ? "***" : (p < sugg ? "*" : ".");
 				String chrAndPos = posmap.get(s);
 
 				results.add(s + "," + p + "," + ind + "," + chrAndPos);
@@ -276,6 +261,7 @@ public class ParseMXCResults {
 		Files.writeIterable(results, root + "relatedMarkers_all.csv");
 		Files.writeIterable(mxc_results, root + "relatedMarkers_mxc.csv");
 
+
 		String[][] regions = HitWindows.determine(root + "relatedMarkers_all.csv",
 																							sig, 500000, sugg, new String[] {},
 																							new Logger());
@@ -293,8 +279,161 @@ public class ParseMXCResults {
 		for (int i = 0; i < mxc[0].length; i++)
 			if (mxc[0][i].equals("pvalue"))
 				p = i;
-		mxc = removeNAs(mxc, null, null, p);
+		mxc = removeNAs(mxc, p);
 		return mxc;
+	}
+
+	public static void addMetalHits(String posfile, String mxcfile, String mapfile, String metalfile,
+																	Logger log) {
+		// read in the metal gwas results file
+		String[][] metal = null;
+		try {
+			BufferedReader b = new BufferedReader(new FileReader(new File(metalfile)));
+			String temp = b.readLine();
+			String[] line = null;
+			if (temp != null) {
+				line = temp.split("\t");
+			} else {
+				log.reportError("Could not find MarkerName in header for " + metalfile);
+				System.exit(1);
+			}
+
+			int[] valueIndices = ext.indexFactors(new String[] {"MarkerName", "P-value"}, line, false,
+																						true);
+
+			metal = HashVec.loadFileToStringMatrix(metalfile, true, valueIndices, false);
+			b.close();
+		} catch (Exception e) {
+			log.reportError("Unable to load gwas file. Aborting.");
+			System.exit(1);
+		}
+		float bf = (float) 0.05 / metal.length;
+
+		String[][] positions = HashVec.loadFileToStringMatrix(posfile, false, null, false);
+
+		String[] keys = Matrix.extractColumn(metal, 0);
+		String[][] results = null;
+
+		// combine snps, pvals, and positions;
+		try {
+			results = Files.combineInMemory(keys, positions, "NA", true, true, log);
+		} catch (Elision e) {
+			log.reportError(e.getMessage());
+		}
+
+		// metal should now be of the form MarkerName, P-value, (marker), Chr, Position
+		metal = append(metal, results);
+
+		Arrays.sort(metal, new Comparator<String[]>() {
+			@Override
+			public int compare(final String[] entry1, final String[] entry2) {
+				final String chr1 = entry1[3];
+				final String chr2 = entry2[3];
+				if (chr1.equals(chr2)) {
+					final int pos1 = Integer.parseInt(entry1[4]);
+					final int pos2 = Integer.parseInt(entry2[4]);
+					return pos1 - pos2;
+				}
+				return chr1.compareTo(chr2);
+			}
+		});
+
+		String[][] mxc = HashVec.loadFileToStringMatrix(mxcfile, false, null, false);
+
+		// get position ranges for genes
+		String[][] genePositions = loadGenes(genesFile, true, log);
+		genePositions = removeNAs(genePositions, 1);
+
+		Arrays.sort(genePositions, new Comparator<String[]>() {
+			@Override
+			public int compare(final String[] entry1, final String[] entry2) {
+				final String chr1 = entry1[3];
+				final String chr2 = entry2[3];
+				if (chr1.equals(chr2)) {
+					final int pos1 = Integer.parseInt(entry1[1]);
+					final int pos2 = Integer.parseInt(entry2[1]);
+					return pos1 - pos2;
+				}
+				return chr1.compareTo(chr2);
+			}
+		});
+
+		// maps gene to related snps
+		String[] mxcGenes = getKeys(mxc, "gene_name", new Logger());
+		ArrayList<String> snpsOnGene = new ArrayList<String>();
+		int startPos;
+		int endPos;
+		int snpPos;
+		double pval;
+		String chr, snpChr;
+		String[] snp, g;
+		int start = 1;
+		String[][] sig = new String[genePositions.length][];
+
+		snpsOnGene.add("gene,snp,chr,pos,p,sig");
+
+		for (int gene = 0; gene < genePositions.length; gene++) {
+			g = genePositions[gene];
+			startPos = Integer.parseInt(g[1]) < 500000 ? 0 : Integer.parseInt(g[1]) - 500000;
+			endPos = Integer.parseInt(g[2]) + 500000;
+			chr = g[3];
+
+			sig[gene] = new String[] {g[0], "0", "0"};
+
+			while (start < metal.length && !metal[start][3].equals(chr)) {
+				start++;
+			}
+
+			if (g[0].equals("SNCA")) {
+				System.out.println("Starting SNCA, with range " + startPos + " : " + endPos);
+				System.out.println("Starting search at position " + metal[start][4]);
+			}
+
+			for (int j = start; j < metal.length; j++) {
+				snp = metal[j];
+				pval = Double.parseDouble(snp[1]);
+				snpChr = snp[3];
+				snpPos = Integer.parseInt(snp[4]);
+
+				if (!snpChr.equals(chr))
+					break;
+
+				// genes are sorted by start position, so if we're not there yet, we can move it up
+				if (snpPos < startPos) {
+					start = j;
+					continue;
+				}
+
+				if (snpPos > endPos)
+					break;
+
+				if (pval < bf * 100) {
+					int[] numSig = new int[] {Integer.parseInt(sig[gene][1]), Integer.parseInt(sig[gene][2])};
+					if (pval < bf) {
+						snpsOnGene.add(g[0] + "," + snp[0] + "," + chr + "," + snpPos + "," + pval + ","
+													 + "***");
+						sig[gene][1] = numSig[0] + 1 + "";
+					} else {
+						snpsOnGene.add(g[0] + "," + snp[0] + "," + chr + "," + snpPos + "," + pval + "," + "*");
+					}
+					sig[gene][2] = numSig[1] + 1 + "";
+				}
+			}
+		}
+
+
+		// append num of sig snps to mxc file
+		try {
+			results = Files.combineInMemory(mxcGenes, sig, "NA", true, true, log);
+			results[0] = new String[] {"gene", "numSig", "numSug"};
+		} catch (Elision e) {
+			log.reportError(e.getMessage());
+		}
+
+		mxc = append(mxc, results);
+		// write to mxc file
+		Files.writeMatrix(mxc, ext.addToRoot(mxcfile, "_sig"), ",");
+		Files.writeIterable(snpsOnGene, ext.parseDirectoryOfFile(mxcfile) + "sigSNPs.csv");
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -309,6 +448,7 @@ public class ParseMXCResults {
 		String metal = null;
 		String map = null;
 		String posmap = null;
+		boolean addHits = false;
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("help")) {
@@ -336,12 +476,17 @@ public class ParseMXCResults {
 				map = arg.split("=")[1];
 			else if (arg.startsWith("posmap="))
 				posmap = arg.split("=")[1];
+			else if (arg.equals("-addHits"))
+				addHits = true;
 			else
 				log.report("Invalid argument: " + arg);
 		}
 
 		if (metal != null && map != null) {
-			markersUsed(map, posmap, mxcFile, metal);
+			if (addHits)
+				addMetalHits(posmap, mxcFile, map, metal, log);
+			else
+				markersUsed(map, posmap, mxcFile, metal);
 		} else {
 			cleanResultsFile(mxcFile, outputFile, log);
 			generateRScript(outputFile);
