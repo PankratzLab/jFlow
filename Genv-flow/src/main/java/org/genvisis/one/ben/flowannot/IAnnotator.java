@@ -27,4 +27,6 @@ public interface IAnnotator {
 
 	ArrayList<AnnotatedImage.Annotation> getAnnotations();
 
+	void backupExistingFile(String file);
+
 }

@@ -6,7 +6,9 @@ import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -151,6 +153,7 @@ public class Annotator implements IAnnotator {
 	}
 
 	public void saveAnnotation(AnnotatedImage.Annotation annot, String file) {
+		backupExistingFile(file);
 		PrintWriter writer = Files.getAppropriateWriter(file);
 		writer.println(ANNOT_TOKEN + "=" + annot.annotation);
 		writer.println();
@@ -178,6 +181,7 @@ public class Annotator implements IAnnotator {
 				}
 			}
 		}
+		backupExistingFile(annotFile);
 		PrintWriter writer = Files.getAppropriateWriter(annotFile);
 		for (AnnotatedImage.Annotation a : map.keySet()) {
 			StringBuilder sb = new StringBuilder(ANNOT_TOKEN).append("\t").append(a.annotation)
@@ -194,4 +198,16 @@ public class Annotator implements IAnnotator {
 		writer.close();
 	}
 
+	@Override
+	public void backupExistingFile(String file) {
+		if (file == null || "".equals(file) || !Files.exists(file)) {
+			return;
+		}
+		String root = ext.rootOf(file, false);
+		String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
+		String exten = file.substring(root.length());
+
+		String newFile = root + "_" + date + exten;
+		Files.copyFile(file, newFile);
+	}
 }
