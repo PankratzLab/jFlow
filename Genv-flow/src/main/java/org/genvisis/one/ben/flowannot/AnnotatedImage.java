@@ -33,11 +33,11 @@ public class AnnotatedImage {
 				this.mnemonic = mnemonicMap.get(this.annotation);
 			} else {
 				int ind = 0;
-				Character c;
-				do {
-					c = this.annotation.toUpperCase().charAt(ind);
+				Character c = this.annotation.toUpperCase().charAt(ind);
+				while (mnemonicMap.containsValue(c)) {
 					ind++;
-				} while (mnemonicMap.containsValue(c));
+					c = this.annotation.toUpperCase().charAt(ind);
+				}
 				if (ind == this.annotation.length()) {
 					System.err.println("Error - all possible mnemonic characters already used for annotation {"
 														 + this.annotation + "}.  Using alphanumerics instead.");

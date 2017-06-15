@@ -80,16 +80,7 @@ public class GateFileUtils {
 			String parentID = gateNode.getAttribute("gating:parent_id");
 
 			if (parentID == null || "".equals(parentID)) {
-				Node n = popNode.getParentNode();
-				if (n != null) {
-					n = n.getParentNode();
-					if (n != null) {
-						Element e = (Element) n;
-						if (e.getNodeName().equals("Population")) {
-							parentID = e.getAttribute("name");
-						}
-					}
-				}
+				parentID = getParentPopName(popNode);
 			}
 
 			Node actualGateNode = null;
@@ -103,6 +94,10 @@ public class GateFileUtils {
 				if (id == null || "".equals(id)) {
 					id = popName;
 				}
+				if (gateMap.containsKey(popName)) {
+					System.err.println("Error - duplicate population name: " + popName);
+					// popName = parentID + " -> " + popName;
+				}
 				Gate newGate = buildGate(popName, id, parentID, actualGateNode, flowJo);
 				gateMap.put(id, newGate);
 				if (popName != null && !popName.equals("")) {
@@ -112,6 +107,21 @@ public class GateFileUtils {
 
 		}
 		return gateMap;
+	}
+
+	private static String getParentPopName(Element popNode) {
+		String parentID = null;
+		Node n = popNode.getParentNode();
+		if (n != null) {
+			n = n.getParentNode();
+			if (n != null) {
+				Element e = (Element) n;
+				if (e.getNodeName().equals("Population")) {
+					parentID = e.getAttribute("name");
+				}
+			}
+		}
+		return parentID;
 	}
 
 	public static ArrayList<Gate> connectGates(HashMap<String, Gate> gateMap) {
