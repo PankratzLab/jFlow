@@ -92,6 +92,7 @@ public class FlowAnnotator {
 
 	private String lastOpenedImageDir = null;
 	private String lastOpenedAnnFileDir = null;
+	private String lastSavedAnnFile = null;
 	private HashSet<String> recentAnnotFiles = new HashSet<>();
 
 	private HashMap<Character, Action> mnemonicActions = new HashMap<>();
@@ -171,6 +172,10 @@ public class FlowAnnotator {
 
 	private void setLastUsedAnnotationDir(String annDir) {
 		this.lastOpenedAnnFileDir = annDir;
+	}
+
+	private void setLastSavedAnnotationFile(String annFile) {
+		this.lastSavedAnnFile = annFile;
 	}
 
 	private String getLastUsedAnnotationDir() {
@@ -367,10 +372,16 @@ public class FlowAnnotator {
 		updateRecentFiles();
 
 		JMenuItem mntmSaveAnnot = new JMenuItem();
-		mntmSaveAnnot.setAction(saveAction);
-		mntmSaveAnnot.setText("Save Annotations to File");
+		mntmSaveAnnot.setAction(saveAsAction);
+		mntmSaveAnnot.setText("Save Annotations");
 		mntmSaveAnnot.setMnemonic('S');
 		mnFile.add(mntmSaveAnnot);
+
+		JMenuItem mntmSaveAsAnnot = new JMenuItem();
+		mntmSaveAsAnnot.setAction(saveAsAction);
+		mntmSaveAsAnnot.setText("Save Annotations to File");
+		mntmSaveAsAnnot.setMnemonic('A');
+		mnFile.add(mntmSaveAsAnnot);
 
 		mnSaveAnn = new JMenu("Save Annotation Set To File");
 		mnFile.add(mnSaveAnn);
@@ -474,8 +485,11 @@ public class FlowAnnotator {
 	};
 
 	private void close() {
-		if (!promptToSaveAnnotations()) {
-			return;
+		if (annotator.getAnnotations().size() > 0
+				&& (lastTimeSaved == -1 || System.currentTimeMillis() - lastTimeSaved > 500)) {
+			if (!promptToSaveAnnotations()) {
+				return;
+			}
 		}
 		saveProperties();
 		frmFlowannotator.setVisible(false);
@@ -844,6 +858,8 @@ public class FlowAnnotator {
 						} else {
 							if (!(e.isAltDown() && e.getKeyCode() == KeyEvent.VK_F4)) {
 								fireMnem((e.getKeyChar() + "").toUpperCase().charAt(0));
+							} else {
+								close();
 							}
 						}
 					}
@@ -895,38 +911,65 @@ public class FlowAnnotator {
 		}
 	}
 
-	private boolean saveAnnotations() {
-		JFileChooser jfc = new JFileChooser(getLastUsedAnnotationDir());
-		jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		jfc.setDialogTitle("Save Annotations to File");
-		int opt = jfc.showSaveDialog(frmFlowannotator);
-		if (opt == JFileChooser.APPROVE_OPTION) {
-			String annFile = jfc.getSelectedFile().getAbsolutePath();
-			setLastUsedAnnotationDir(ext.verifyDirFormat(ext.parseDirectoryOfFile(annFile)));
-			annotator.saveAnnotations(annFile);
+	private boolean saveAnnotations(boolean prompt) {
+		boolean ask = prompt
+									|| (null == lastSavedAnnFile || "".equals(lastSavedAnnFile) || !Files.exists(lastSavedAnnFile));
+		String file = ask ? null : lastSavedAnnFile;
+		if (file == null) {
+			JFileChooser jfc = new JFileChooser(getLastUsedAnnotationDir());
+			jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			jfc.setDialogTitle("Save Annotations to File");
+			int opt = jfc.showSaveDialog(frmFlowannotator);
+			if (opt == JFileChooser.APPROVE_OPTION) {
+				file = jfc.getSelectedFile().getAbsolutePath();
+			}
+		}
+		if (file == null) {
+			return false;
+		} else {
+			setLastUsedAnnotationDir(ext.verifyDirFormat(ext.parseDirectoryOfFile(file)));
+			annotator.saveAnnotations(file);
+			setLastSavedAnnotationFile(file);
 			lastTimeSaved = System.currentTimeMillis();
 			if (Files.exists(BACKUP_FILE)) {
 				new File(BACKUP_FILE).delete();
 			}
-			recentAnnotFiles.add(annFile);
+			recentAnnotFiles.add(file);
 			saveProperties();
 			return true;
 		}
-		return false;
 	}
 
 	private boolean promptToSaveAnnotations() {
-		int result = JOptionPane.showConfirmDialog(this.frmFlowannotator, "Save Existing Annotations?",
-																							 "Save?",
-																							 JOptionPane.YES_NO_CANCEL_OPTION,
-																							 JOptionPane.QUESTION_MESSAGE);
-		if (result == JOptionPane.CANCEL_OPTION) {
-			return false;
+		boolean showSave = !(null == lastSavedAnnFile || "".equals(lastSavedAnnFile) || !Files.exists(lastSavedAnnFile));
+		final String[] options = showSave ? new String[] {"Save As...", "Save", "Don't Save", "Cancel"}
+																		 : new String[] {"Save As...", "Don't Save", "Cancel"};
+		int result = JOptionPane.showOptionDialog(this.frmFlowannotator, "Save Existing Annotations?",
+																							"Save?", JOptionPane.YES_NO_CANCEL_OPTION,
+																							JOptionPane.QUESTION_MESSAGE, null, options, "Cancel");
+		if (showSave) {
+			switch (result) {
+				case 0:
+					return saveAnnotations(true);
+				case 1:
+					return saveAnnotations(false);
+				case 2:
+					return true;
+				case 3:
+				default:
+					return false;
+			}
+		} else {
+			switch (result) {
+				case 0:
+					return saveAnnotations(true);
+				case 1:
+					return true;
+				case 2:
+				default:
+					return false;
+			}
 		}
-		if (result == JOptionPane.YES_OPTION) {
-			return saveAnnotations();
-		}
-		return true;
 	}
 
 	private void loadAnnotations() {
@@ -949,6 +992,7 @@ public class FlowAnnotator {
 		try {
 			annotator = new Annotator();
 			annotator.loadAnnotations(annFile);
+			setLastSavedAnnotationFile(annFile);
 			setLastUsedAnnotationDir(ext.verifyDirFormat(ext.parseDirectoryOfFile(annFile)));
 			recentAnnotFiles.add(annFile);
 			reloadControls();
@@ -1002,10 +1046,16 @@ public class FlowAnnotator {
 		}
 	};
 
+	private final Action saveAsAction = new AbstractAction() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			saveAnnotations(true);
+		}
+	};
 	private final Action saveAction = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			saveAnnotations();
+			saveAnnotations(false);
 		}
 	};
 	private JMenu mnSaveAnn;

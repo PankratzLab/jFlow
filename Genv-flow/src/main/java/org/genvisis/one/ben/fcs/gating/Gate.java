@@ -29,7 +29,16 @@ public abstract class Gate {
 	protected GateDimension xDim, yDim;
 	protected boolean changed = false;
 	protected int displayLevel = 0;
-	public boolean fillGate = false;
+	protected boolean fillGate = false;
+	protected boolean displayName = true;
+
+	public boolean isDisplayName() {
+		return displayName;
+	}
+
+	public void setDisplayName(boolean displayName) {
+		this.displayName = displayName;
+	}
 
 	static final Random rand = new Random();
 
@@ -85,6 +94,14 @@ public abstract class Gate {
 		} else if (!popName.equals(other.popName))
 			return false;
 		return true;
+	}
+
+	public boolean isFillGate() {
+		return fillGate;
+	}
+
+	public void setFillGate(boolean fillGate) {
+		this.fillGate = fillGate;
 	}
 
 	public Gate getParentGate() {

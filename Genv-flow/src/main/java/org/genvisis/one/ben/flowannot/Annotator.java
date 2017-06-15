@@ -87,7 +87,8 @@ public class Annotator implements IAnnotator {
 				int gateInd = -1;
 				String name = img.substring(fcsFilename.length() + 1, img.length() - 4);
 				for (int i = 0; i < GateTree.GATE_TREE.length; i++) {
-					if (GateTree.GATE_TREE[i][0].equals(name)) {
+					if (GateTree.GATE_TREE[i][0].equals(name)
+							|| ext.replaceWithLinuxSafeCharacters(GateTree.GATE_TREE[i][0]).equals(name)) {
 						gateInd = i;
 						break;
 					}
@@ -97,7 +98,7 @@ public class Annotator implements IAnnotator {
 					ai.setImageFile(ext.verifyDirFormat(d.getAbsolutePath()) + img);
 					// name = ArrayUtils.toStr(GateTree.GATE_DIMS[gateInd], " v ");
 					ai.setGateName(GateTree.GATE_TREE[gateInd][0]);
-					fcsImgs.put(name, ai);
+					fcsImgs.put(GateTree.GATE_TREE[gateInd][0], ai);
 				}
 			}
 		}

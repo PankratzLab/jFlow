@@ -3,6 +3,8 @@ package org.genvisis.one.ben.fcs.auto.proc;
 import java.awt.Color;
 import java.io.IOException;
 
+import javax.swing.SwingConstants;
+
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.PLOT_TYPE;
@@ -68,21 +70,25 @@ public class VisualizationProcessor implements SampleProcessor {
 				fcp.setPlotType(PLOT_TYPE.HISTOGRAM);
 			}
 			g.setColor(1);
-			g.fillGate = true;
-
+			g.setFillGate(true);
+			g.setDisplayName(false);
+			fcp.getPanel().setTitle(g.getName());
+			fcp.getPanel().setTitleLocation(SwingConstants.NORTH);
+			fcp.getPanel().setDisplayTitle(true);
+			fcp.getPanel().setTitleFontSize(20f);
 
 			// fcp.setClassifierGate(g.getName());
 
 			String cleanedName = ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(sn.fcsFile));
 			String outFile = outDir + cleanedName + "/" + cleanedName + "."
-											 + g.getName();
+											 + ext.replaceWithLinuxSafeCharacters(g.getName());
 			fcp.getPanel().classifierPrev = false;
 			fcp.getPanel().setForceGatesChanged();
 			fcp.getPanel().createImage();
 
 			fcp.screencap(outFile + ".png");
 
-			g.fillGate = false;
+			g.setFillGate(false);
 
 			// fcp.getPanel().classifierPrev = true;
 			// fcp.getPanel().setForceGatesChanged();

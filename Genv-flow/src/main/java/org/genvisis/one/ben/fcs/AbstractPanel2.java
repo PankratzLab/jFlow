@@ -154,6 +154,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	private String xAxisLabel;
 	private String yAxisLabel;
 	protected String title;
+	protected float titleFontSize;
 	private boolean displayXaxis;
 	private boolean displayYaxis;
 	protected boolean displayGrid;
@@ -232,6 +233,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		lastIndexInPlotPointSet = -1;
 		currentIndexInPlotPointSet = -1;
 		randomTest = false;
+		titleFontSize = 15;
 		setChartType(DEFAULT_TYPE);
 
 		layersInBase = null;
@@ -258,6 +260,14 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		// AXIS_SCALE.BIEX.setTransform(new LinearTransform(this));
 		// AXIS_SCALE.LOG.setTransform(new LogTransform(this));
 		AXIS_SCALE.BIEX.setTransform(new BiexTransform(this));
+	}
+
+	public float getTitleFontSize() {
+		return titleFontSize;
+	}
+
+	public void setTitleFontSize(float titleFontSize) {
+		this.titleFontSize = titleFontSize;
 	}
 
 	public void setInsideScrollpaneAndNoZoom() {
@@ -1172,6 +1182,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		}
 
 		if (base && displayTitle && title != null && !title.equals("")) {
+			Font curr = g.getFont();
+			g.setFont(curr.deriveFont(titleFontSize));
 			int titleX, titleY;
 			int PAD = 5;
 			int fontHeight = (fontMetrics == null ? 25 : fontMetrics.getHeight());
@@ -1197,6 +1209,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			g.setColor(Color.black);
 			g.drawString(title, titleX, titleY);
 			g.setColor(currColor);
+			g.setFont(curr);
 		}
 
 		setImageStatus(STATUS.IMAGE_COMPLETE);
