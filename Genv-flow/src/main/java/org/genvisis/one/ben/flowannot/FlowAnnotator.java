@@ -88,6 +88,7 @@ public class FlowAnnotator {
 	private static final String PROP_FILE = ".flowannotator.properties";
 	private static final String KEY_LAST_DIR_IMG = "LAST_DIR_IMG";
 	private static final String KEY_LAST_DIR_ANN = "LAST_DIR_ANN";
+	private static final String KEY_LAST_FILE_ANN = "LAST_FILE_ANN";
 	private static final String KEY_RECENT = "RECENT";
 
 	private String lastOpenedImageDir = null;
@@ -134,9 +135,11 @@ public class FlowAnnotator {
 			p.load(Files.getAppropriateInputStreamReader(PROP_FILE));
 			String lstAnn = p.getProperty(KEY_LAST_DIR_ANN, "");
 			String lstImg = p.getProperty(KEY_LAST_DIR_IMG, "");
+			String lstFil = p.getProperty(KEY_LAST_FILE_ANN, "");
 			String rec = p.getProperty(KEY_RECENT, "");
 			lastOpenedAnnFileDir = lstAnn;
 			lastOpenedImageDir = lstImg;
+			lastSavedAnnFile = lstFil;
 			if (!"".equals(rec)) {
 				String[] ps = rec.split(";");
 				for (String s : ps) {
@@ -156,8 +159,12 @@ public class FlowAnnotator {
 				&& Files.exists(lastOpenedImageDir)) {
 			p.setProperty(KEY_LAST_DIR_IMG, lastOpenedImageDir);
 		}
-		if (lastOpenedAnnFileDir != null && !"".equals(lastOpenedAnnFileDir)) {
+		if (lastOpenedAnnFileDir != null && !"".equals(lastOpenedAnnFileDir)
+				&& Files.exists(lastOpenedAnnFileDir)) {
 			p.setProperty(KEY_LAST_DIR_ANN, lastOpenedAnnFileDir);
+		}
+		if (lastSavedAnnFile != null && !"".equals(lastSavedAnnFile) && Files.exists(lastSavedAnnFile)) {
+			p.setProperty(KEY_LAST_FILE_ANN, lastSavedAnnFile);
 		}
 		if (!recentAnnotFiles.isEmpty()) {
 			p.setProperty(KEY_RECENT, ArrayUtils.toStr(recentAnnotFiles, ";"));
@@ -310,7 +317,7 @@ public class FlowAnnotator {
 
 		frmFlowannotator.setJMenuBar(createMenuBar());
 
-		checkForBackupFile();
+		checkForBackupFileOrLoadLast();
 		startAutoSaveThread();
 	}
 
@@ -318,7 +325,7 @@ public class FlowAnnotator {
 	Thread autoSaveThread = null;
 
 
-	private void checkForBackupFile() {
+	private void checkForBackupFileOrLoadLast() {
 		if (Files.exists(BACKUP_FILE)) {
 			int opt = JOptionPane.showConfirmDialog(this.frmFlowannotator,
 																							"Load Auto-saved backup file?",
@@ -327,6 +334,14 @@ public class FlowAnnotator {
 			if (opt == JOptionPane.YES_OPTION) {
 				loadAnnotationFile(BACKUP_FILE);
 				new File(BACKUP_FILE).delete();
+			} else {
+				if (!"".equals(lastSavedAnnFile) && Files.exists(lastSavedAnnFile)) {
+					loadAnnotationFile(lastSavedAnnFile);
+				}
+			}
+		} else {
+			if (!"".equals(lastSavedAnnFile) && Files.exists(lastSavedAnnFile)) {
+				loadAnnotationFile(lastSavedAnnFile);
 			}
 		}
 	}
