@@ -3167,19 +3167,19 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		// VCFOps.verifyIndex(vcfFiles[0], new Logger());
 		// new VariantViewer(proj, geneList, vcfFiles, popFile);
 
-		String dir = "F:/temp/variantviewer/johnJune16/";
-		String geneList = dir + "ATM.gene";
-		String[] vcfFiles = {dir + "john.vcf.gz"};
-		String popFile = dir + "CUSHING_FREQ_V4.vpop";
-		new VariantViewer(proj, geneList, vcfFiles, popFile);
-		boolean test = true;
-		if (test) {
-			return;
-		}
+		// String dir = "F:/temp/variantviewer/johnJune16/";
+		// String geneList = dir + "ATM.gene";
+		// String[] vcfFiles = {dir + "john.vcf.gz"};
+		// String popFile = dir + "CUSHING_FREQ_V4.vpop";
+		// new VariantViewer(proj, geneList, vcfFiles, popFile);
+		// boolean test = true;
+		// if (test) {
+		// return;
+		// }
 
-		// String geneList = "genes.txt";
-		// String[] vcfFiles = {"output.vcf"};
-		// String popFile = "pop.vpop";
+		String geneList = "genes.txt";
+		String[] vcfFiles = {"output.vcf"};
+		String popFile = "pop.vpop";
 
 		Object[][] argSet = {
 												 {"genes", "Gene list file, one per line", geneList, Arg.STRING},
