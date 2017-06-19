@@ -65,7 +65,8 @@ public class MarkerMetrics {
 																											"meanTheta_AA",
 																											"meanTheta_AB", "meanTheta_BB",
 																											"diffTheta_AB-AA",
-																											"diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB",
+																											"diffTheta_BB-AB", "sdTheta_AA",
+																											"sdTheta_AB",
 																											"sdTheta_BB", "meanR_AA", "meanR_AB",
 																											"meanR_BB",
 																											"num_AA", "num_AB", "num_BB", "pct_AA",
@@ -82,9 +83,9 @@ public class MarkerMetrics {
 
 
 
-	public static final String DEFAULT_REVIEW_CRITERIA = "cnv/qc/default_review.criteria";
-	public static final String DEFAULT_EXCLUSION_CRITERIA = "cnv/qc/default_exclusion.criteria";
-	public static final String DEFAULT_COMBINED_CRITERIA = "cnv/qc/default_combined.criteria";
+	public static final String DEFAULT_REVIEW_CRITERIA = "org/genvisis/cnv/qc/default_review.criteria";
+	public static final String DEFAULT_EXCLUSION_CRITERIA = "org/genvisis/cnv/qc/default_exclusion.criteria";
+	public static final String DEFAULT_COMBINED_CRITERIA = "org/genvisis/cnv/qc/default_combined.criteria";
 	public static final String DEFAULT_MENDEL_FILE_SUFFIX = ".mendel";
 	public static final String BATCH_EFFECTS_FILE_SUFFIX = "batchEffects.out";
 
@@ -99,7 +100,8 @@ public class MarkerMetrics {
 	 */
 	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude,
 														boolean checkMendel, int numThreads) {
-		fullQC(proj, samplesToExclude, markersToInclude, checkMendel, DEFAULT_SAMPLE_DATA_BATCH_HEADERS,
+		fullQC(proj, samplesToExclude, markersToInclude, checkMendel,
+					 DEFAULT_SAMPLE_DATA_BATCH_HEADERS,
 					 numThreads);
 	}
 
@@ -132,9 +134,10 @@ public class MarkerMetrics {
 																										+ markersToInclude, false, new int[] {0},
 																										false);
 			} else {
-				proj.getLog().reportTimeWarning(
-																				"Markers to QC file not found, using all markers in project: "
-																				+ markersToInclude);
+				proj.getLog()
+						.reportTimeWarning(
+															 "Markers to QC file not found, using all markers in project: "
+																	 + markersToInclude);
 				markerNames = proj.getMarkerNames();
 			}
 		} else {
@@ -173,7 +176,8 @@ public class MarkerMetrics {
 		}
 
 		if (numThreads <= 1) {
-			fullQC(proj, samplesToExclude, markerNames, finalQcFile, checkMendel, batchHeaderIndexBatches,
+			fullQC(proj, samplesToExclude, markerNames, finalQcFile, checkMendel,
+						 batchHeaderIndexBatches,
 						 batchHeaderBatches);
 		} else {
 			WorkerHive<Boolean> hive = new WorkerHive<Boolean>(numThreads, 10, proj.getLog());
@@ -253,8 +257,11 @@ public class MarkerMetrics {
 	}
 
 
-	private static void fullQC(Project proj, boolean[] sampleIndicesToExclude, String[] markerNames,
-														 String fullPathToOutput, final boolean checkMendel,
+	private static void fullQC(Project proj,
+														 boolean[] sampleIndicesToExclude,
+														 String[] markerNames,
+														 String fullPathToOutput,
+														 final boolean checkMendel,
 														 ImmutableMap<String, ImmutableMap<Integer, String>> batchHeaderIndexBatches,
 														 ImmutableMap<String, ImmutableMultiset<String>> batchHeaderBatches) {
 		String[] samples;
@@ -288,9 +295,10 @@ public class MarkerMetrics {
 		sexes = getSexes(proj, samples);
 		final Pedigree pedigree = proj.loadPedigree();
 
-		final boolean[] samplesToExclude = sampleIndicesToExclude == null ? ArrayUtils.booleanArray(samples.length,
-																																																false)
-																																			: sampleIndicesToExclude;
+		final boolean[] samplesToExclude = sampleIndicesToExclude == null
+																																		 ? ArrayUtils.booleanArray(samples.length,
+																																															 false)
+																																		 : sampleIndicesToExclude;
 
 		PrintWriter mendelWriter = null;
 
@@ -386,7 +394,8 @@ public class MarkerMetrics {
 
 				String mecCnt = ".";
 				if (pedigree != null && checkMendel) {
-					mecArr = Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData,
+					mecArr = Pedigree.PedigreeUtils.checkMendelErrors(pedigree,
+																														markerData,
 																														ArrayUtils.booleanNegative(samplesToExclude),
 																														null, clusterFilterCollection,
 																														gcThreshold, log);
@@ -418,7 +427,7 @@ public class MarkerMetrics {
 				line.add(markerName);
 				line.add(String.valueOf(markerData.getChr()));
 				line.add(String.valueOf(1 - ((float) counts[0]
-																		 / (counts[0] + counts[1] + counts[2] + counts[3]))));
+											 / (counts[0] + counts[1] + counts[2] + counts[3]))));
 				line.add(String.valueOf(meanTheta[1]));
 				line.add(String.valueOf(meanTheta[2]));
 				line.add(String.valueOf(meanTheta[3]));
@@ -440,7 +449,7 @@ public class MarkerMetrics {
 				line.add(String.valueOf((float) counts[3]
 																/ (counts[0] + counts[1] + counts[2] + counts[3])));
 				line.add(String.valueOf((float) (counts[1] < counts[3] ? (counts[1] + counts[2])
-																															 : (counts[2] + counts[3]))
+																															: (counts[2] + counts[3]))
 																/ (counts[0] + counts[1] + 2 * counts[2] + counts[3])));
 				line.add(String.valueOf(AlleleFreq.HetExcess(counts[1], counts[2], counts[3])[0]));
 				line.add(String.valueOf(numNaNs));
@@ -557,9 +566,13 @@ public class MarkerMetrics {
 			for (Set<String> duplicateSet : duplicateSets) {
 				Set<Integer> duplicateIndices = Sets.newHashSetWithExpectedSize(duplicateSet.size());
 				for (String duplicate : duplicateSet) {
-					int sampleIndex = sampleIndices.get(duplicate);
-					if (!samplesToExclude[sampleIndex])
-						duplicateIndices.add(sampleIndex);
+					Integer sampInd = sampleIndices.get(duplicate);
+					if (sampInd != null) { // occurs if data files don't match SampleData - sampleList is
+																 // built from file names in samples/ directory
+						int sampleIndex = sampInd.intValue();
+						if (!samplesToExclude[sampleIndex])
+							duplicateIndices.add(sampleIndex);
+					}
 				}
 				if (duplicateIndices.size() > 1) {
 					duplicateIndexSets.add(duplicateIndices);
@@ -598,9 +611,10 @@ public class MarkerMetrics {
 		if (parts.get(0).equals(BATCH_EFFECT_HEADER_PREFIX)) {
 			return Integer.parseInt(parts.get(parts.size() - 1));
 		} else {
-			throw new IllegalArgumentException(batchEffectHeader
-																				 + " is not formatted as a BatchEffect header with prefix \""
-																				 + BATCH_EFFECT_HEADER_PREFIX + "\"");
+			throw new IllegalArgumentException(
+																				 batchEffectHeader
+																						 + " is not formatted as a BatchEffect header with prefix \""
+																						 + BATCH_EFFECT_HEADER_PREFIX + "\"");
 		}
 
 	}
@@ -838,7 +852,7 @@ public class MarkerMetrics {
 				}
 
 				// int[][] interestedPairs = new int[][] {{0,0}, {1,2}, {2,1}};
-				int[][] interestedPairs = new int[][] {{0, 0}, {1, 2}};
+				int[][] interestedPairs = new int[][] { {0, 0}, {1, 2}};
 				zMean = count = 0;
 				zMin = Double.MAX_VALUE;
 				line += markerName;
@@ -903,8 +917,7 @@ public class MarkerMetrics {
 	}
 
 	public static void filterMetrics(Project proj) {
-		String markerMetricsFilename, reviewCriteriaFilename, exclusionCriteriaFilename,
-				combinedCriteriaFilename;
+		String markerMetricsFilename, reviewCriteriaFilename, exclusionCriteriaFilename, combinedCriteriaFilename;
 		Logger log;
 
 		log = proj.getLog();
@@ -927,7 +940,7 @@ public class MarkerMetrics {
 		if (Files.exists(exclusionCriteriaFilename)) {
 			log.report("Using " + exclusionCriteriaFilename + " for the review criteria");
 		} else {
-			log.report("Could not find " + reviewCriteriaFilename
+			log.report("Could not find " + exclusionCriteriaFilename
 								 + ", so generating from default parameters");
 			Files.copyFileFromJar(DEFAULT_EXCLUSION_CRITERIA, exclusionCriteriaFilename);
 		}
@@ -1044,7 +1057,7 @@ public class MarkerMetrics {
 					warnings = line[1].split(";");
 					for (String warning2 : warnings) {
 						warning = warning2.substring(0, warning2.indexOf(" (") > 0 ? warning2.indexOf(" (")
-																																			 : warning2.length());
+																																			: warning2.length());
 						if (!warningHash.containsKey(warning)) {
 							warningHash.put(warning, new Vector<String>());
 						}
@@ -1080,7 +1093,8 @@ public class MarkerMetrics {
 				if (checkForDeletedMarkers) {
 					markerData = markerDataLoader.requestMarkerData(j);
 					zeroedOut = true;
-					genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j],
+					genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection,
+																														markerNames[j],
 																														gcThreshold, log);
 					for (int k = 0; k < genotypes.length; k++) {
 						if (!shouldBeExcluded[k] && genotypes[k] != -1) {
@@ -1310,20 +1324,21 @@ public class MarkerMetrics {
 						}
 					}
 				}
-				writer.println(markerNames[i] + "\t" + markerData.getChr() + "\t" + markerData.getPosition()
+				writer.println(markerNames[i] + "\t" + markerData.getChr() + "\t"
+											 + markerData.getPosition()
 											 + "\t" + clusterFilterCollection.getClusterFilters(markerNames[i]).size()
 											 + "\t" + numGenotypesAffected + "\t"
 											 + ((double) numGenotypesAffected / (double) genotypesBefore.length) + "\t"
 											 + ((double) numNonMissingBefore / (double) genotypesBefore.length) + "\t"
 											 + ((double) numNonMissingAfter / (double) genotypesBefore.length) + "\t"
 											 + (((double) numNonMissingAfter / (double) genotypesBefore.length)
-													- ((double) numNonMissingBefore / (double) genotypesBefore.length))
+											 - ((double) numNonMissingBefore / (double) genotypesBefore.length))
 											 + "\t"
 											 + (ArrayUtils.mean(ArrayUtils.removeAllValues(genotypesBefore, (byte) -1))
-													/ 2)
+											 / 2)
 											 + "\t"
 											 + (ArrayUtils.mean(ArrayUtils.removeAllValues(genotypesAfter, (byte) -1))
-													/ 2));
+											 / 2));
 				markerDataLoader.releaseIndex(i);
 			}
 			writer.close();
@@ -1421,8 +1436,9 @@ public class MarkerMetrics {
 			}
 			writer.println("Any annotation\t" + markerNames.length + "\t" + reclusteredMarkers.size()
 										 + "\t" + droppedMarkers.size());
-			Files.writeArray(HashVec.getKeys(droppedMarkers), proj.RESULTS_DIRECTORY.getValue(false, true)
-																												+ "markers_that_were_dropped.out");
+			Files.writeArray(HashVec.getKeys(droppedMarkers),
+											 proj.RESULTS_DIRECTORY.getValue(false, true)
+													 + "markers_that_were_dropped.out");
 
 			allOtherMarkers = HashVec.loadToHashSet(proj.getMarkerNames());
 			for (String markerName : markerNames) {
@@ -1457,7 +1473,8 @@ public class MarkerMetrics {
 				if (checkForDeletedMarkers) {
 					markerData = markerDataLoader.requestMarkerData(j);
 					zeroedOut = true;
-					genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j],
+					genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection,
+																														markerNames[j],
 																														gcThreshold, log);
 					for (int k = 0; k < genotypes.length; k++) {
 						if (!shouldBeExcluded[k] && genotypes[k] != -1) {
@@ -1564,8 +1581,11 @@ public class MarkerMetrics {
 		private final ImmutableMap<String, ImmutableMap<Integer, String>> batchHeaderIndexBatches;
 		private final ImmutableMap<String, ImmutableMultiset<String>> batchHeaderBatches;
 
-		public MarkerMetricsWorker(Project proj, boolean[] samplesToExclude, String[] markerNames,
-															 String fullPathToOutput, boolean checkMendel,
+		public MarkerMetricsWorker(Project proj,
+															 boolean[] samplesToExclude,
+															 String[] markerNames,
+															 String fullPathToOutput,
+															 boolean checkMendel,
 															 ImmutableMap<String, ImmutableMap<Integer, String>> batchHeaderIndexBatches,
 															 ImmutableMap<String, ImmutableMultiset<String>> batchHeaderBatches) {
 			super();
@@ -1641,11 +1661,16 @@ public class MarkerMetrics {
 
 		String usage = "\n" + "cnv.qc.MarkerMetrics requires 0-1 arguments\n"
 									 + "   (1) project properties filename (i.e. proj="
-									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-									 + "   (2) filename of subset of samples to include (i.e. samples=" + samples
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)
+									 + " (default))\n"
+									 + "   (2) filename of subset of samples to include (i.e. samples="
+									 + samples
 									 + " (default; if null, uses all samples except those marked in the \"Excluded\" column in SampleData.txt))\n"
 									 + "   (3) filename of subset of markers to include / otherwise all markers (i.e. markers="
-									 + markersSubset + " (default))\n" + PSF.Ext.getNumThreadsCommand(4, numThreads) +
+									 + markersSubset
+									 + " (default))\n"
+									 + PSF.Ext.getNumThreadsCommand(4, numThreads)
+									 +
 
 									 "  AND\n"
 									 + "   (4) look at intensity separation between males and females (i.e. -separation (not the default))\n"
@@ -1653,8 +1678,10 @@ public class MarkerMetrics {
 									 + "   (4) perform full list of checks on marker quality (i.e. -fullQC (not the default))\n"
 									 + "   (5) do not check for mendelian errors when performing full qc (i.e. -skipMendel (not the default))\n"
 									 + "   (6) specify Sample Data headers to search for batch effects (i.e. "
-									 + BATCH_HEADERS_ARG + "="
-									 + Joiner.on(',').join(sampleDataBatchHeaders) + " (default))\n"
+									 + BATCH_HEADERS_ARG
+									 + "="
+									 + Joiner.on(',').join(sampleDataBatchHeaders)
+									 + " (default))\n"
 									 + "  OR\n"
 									 + "   (4) filter markers based on filter criteria (i.e. -filter (not the default))\n"
 									 + "  OR\n"
@@ -1662,7 +1689,9 @@ public class MarkerMetrics {
 									 + "  OR\n"
 									 + "   (4) tally the number of reviewed markers that were changed or dropped (i.e. -tally (not the default))\n"
 									 + "   (5) check for deleted markers (i.e. checkForDeleted="
-									 + checkForDeletedMarkers + " (default))\n" + "  OR\n"
+									 + checkForDeletedMarkers
+									 + " (default))\n"
+									 + "  OR\n"
 									 + "   (3) list which markers were adjusted using a cluster filter and how many genotypes changed class (i.e. -countFilters (not the default))\n"
 									 + "  OR\n"
 									 + "   (2) variable name in SampleData.txt to use as the outcome variable in the regression analyses (i.e. pheno=Class=ExamplePheno (not the default))\n"
@@ -1709,7 +1738,9 @@ public class MarkerMetrics {
 				pheno = arg.substring(6);
 				numArgs--;
 			} else if (arg.startsWith(BATCH_HEADERS_ARG + "=")) {
-				sampleDataBatchHeaders = ImmutableSet.copyOf(arg.split("=")[1].split(","));
+				sampleDataBatchHeaders = arg.split("=").length == 1
+																													 ? new HashSet<>()
+																													 : ImmutableSet.copyOf(arg.split("=")[1].split(","));
 				numArgs--;
 			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(arg);
@@ -1760,7 +1791,7 @@ public class MarkerMetrics {
 			if (fullQC) {
 				fullQC(proj,
 							 (samples == null) ? proj.getSamplesToExclude()
-																 : ArrayUtils.booleanNegative(proj.getSamplesToInclude(samples)),
+																: ArrayUtils.booleanNegative(proj.getSamplesToInclude(samples)),
 							 markersSubset, checkMendel, sampleDataBatchHeaders, numThreads);
 			}
 			if (lrrVariance) {

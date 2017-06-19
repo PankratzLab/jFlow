@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.analysis.PennCNV;
@@ -22,6 +23,7 @@ import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
@@ -860,6 +862,7 @@ public class CNVCaller {
 	 * 
 	 */
 	public static void callGenomeCnvs(Project proj, String outputFileBase, Centroids[] centroids,
+																		boolean[] markersToUse,
 																		int minNumMarkers, double minConf,
 																		PFB_MANAGEMENT_TYPE pManagementType, int numSampleThreads,
 																		int numChrThreads) {
@@ -868,7 +871,7 @@ public class CNVCaller {
 		CNVCallerIterator callerIterator;
 		// will passing null to chrsToCall result in calling on 23/24 also?
 
-		boolean[][] chrs = getSexChrMarkers(proj);
+		boolean[][] chrs = getSexChrMarkers(proj, markersToUse);
 		String[][] samplesBySex = getSexSegregatedSamples(proj);
 
 		output = proj.PROJECT_DIRECTORY.getValue() + outputFileBase + "_23M.cnv";
@@ -894,16 +897,16 @@ public class CNVCaller {
 
 	}
 
-	private static boolean[][] getSexChrMarkers(Project proj) {
+	private static boolean[][] getSexChrMarkers(Project proj, boolean[] markersToUse) {
 		PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
 		boolean[] chr23 = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
 		int[][] indicesByChr = markerSet.getIndicesByChr();
 		for (int i = 0; i < indicesByChr[23].length; i++) {
-			chr23[indicesByChr[23][i]] = true;
+			chr23[indicesByChr[23][i]] = true && markersToUse[indicesByChr[23][i]];
 		}
 		boolean[] chr24 = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
 		for (int i = 0; i < indicesByChr[24].length; i++) {
-			chr24[indicesByChr[24][i]] = true;
+			chr24[indicesByChr[24][i]] = true && markersToUse[indicesByChr[23][i]];
 		}
 		return new boolean[][] {chr23, chr24};
 	}
@@ -951,8 +954,9 @@ public class CNVCaller {
 
 		PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
 		PennHmm pennHmmOriginal = PennHmm.loadPennHmm(proj.HMM_FILENAME.getValue(), new Logger());
-		String pfbFile = isMale ? proj.PFB_MALE_FILENAME.getValue()
-													 : proj.PFB_FEMALE_FILENAME.getValue();
+		String pfbFile = null;
+		// isMale ? proj.PFB_MALE_FILENAME.getValue()
+		// : proj.PFB_FEMALE_FILENAME.getValue();
 		if (!Files.exists(pfbFile)) {
 			proj.getLog().reportTimeInfo("Did not find sex-specific PFB file for "
 																	 + (isMale ? "males" : "females")
@@ -964,6 +968,7 @@ public class CNVCaller {
 			}
 			pfbFile = proj.CUSTOM_PFB_FILENAME.getValue();
 		}
+		System.out.println("Loading PFB File: " + pfbFile);
 		PFB pfb = PFB.loadPFB(proj, pfbFile);
 		if (!Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))) {
 			Resource gmodelBase = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog())
@@ -1051,7 +1056,8 @@ public class CNVCaller {
 	 * @param output relative to the project directory
 	 */
 	public static void callAutosomalCNVs(Project proj, String output, String[] samples,
-																			 int[] chrsToCall, Centroids centroids, int minNumMarkers,
+																			 int[] chrsToCall, boolean[] markersToUse,
+																			 Centroids centroids, int minNumMarkers,
 																			 double minConf, PFB_MANAGEMENT_TYPE pManagementType,
 																			 int numSampleThreads, int numChrThreads) {
 		PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
@@ -1059,7 +1065,7 @@ public class CNVCaller {
 		proj.getLog().reportTimeInfo("CNVS will be reported to " + output);
 		new File(ext.parseDirectoryOfFile(output)).mkdirs();
 		CNVCallerIterator callerIterator = getCallerIterator(proj, markerSet, samples, chrsToCall,
-																												 null,
+																												 markersToUse,
 																												 centroids, minNumMarkers, minConf,
 																												 pManagementType, numSampleThreads,
 																												 numChrThreads);
@@ -1089,6 +1095,19 @@ public class CNVCaller {
 		}
 	}
 
+	private static boolean[] loadMarkersToUse(Project proj, String excludeFile) {
+		Map<String, Integer> markerNames = proj.getMarkerIndices();
+		boolean[] markers = ArrayUtils.booleanArray(markerNames.size(), true);
+		String file = Files.isRelativePath(excludeFile) ? proj.PROJECT_DIRECTORY.getValue()
+																											+ excludeFile : excludeFile;
+		String[] drops = HashVec.loadFileToStringArray(file, true, new int[] {0}, false);
+		for (String s : drops) {
+			if (markerNames.containsKey(s)) {
+				markers[markerNames.get(s).intValue()] = false;
+			}
+		}
+		return markers;
+	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
@@ -1099,6 +1118,7 @@ public class CNVCaller {
 		double minConf = DEFAULT_MIN_CONF;
 		boolean callGen = false;
 		boolean useCentroids = true;
+		String excludeFile = null;
 
 		String usage = "\n" + "cnv.hmm.CNVCaller requires 0-1 arguments\n";
 		usage += "   (1) proj (i.e. proj=" + filename + " (default))\n" + "";
@@ -1110,6 +1130,7 @@ public class CNVCaller {
 						 + "";
 		usage += "   (5) optional: Call genome CNVs (chromosomes 23 and 24) (will also call autosomal cnvs for known male/female samples) (i.e. -genome (not the default))\n"
 						 + "   (6) optional: if calling genome CNVs, don't use sex-specific centroids to recompute LRRs (i.e. -noCentroids (not the default))\n"
+						 + " (7) optional: A file of markers to exclude (i.e. exclude=markersToExclude.txt (not the default))\n"
 						 + "";
 
 		usage += PSF.Ext.getNumThreadsCommand(24, numThreads);
@@ -1136,6 +1157,9 @@ public class CNVCaller {
 			} else if (arg.startsWith("-noCentroids")) {
 				useCentroids = false;
 				numArgs--;
+			} else if (arg.startsWith("exclude=")) {
+				excludeFile = ext.parseStringArg(arg, "");
+				numArgs--;
 			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(arg);
 				numArgs--;
@@ -1149,6 +1173,10 @@ public class CNVCaller {
 		}
 		try {
 			Project proj = new Project(filename, false);
+			boolean[] markersToUse = null;
+			if (excludeFile != null && !"".equals(excludeFile)) {
+				markersToUse = loadMarkersToUse(proj, excludeFile);
+			}
 			if (callGen) {
 
 				String[] samples = proj.getSamples();
@@ -1180,16 +1208,15 @@ public class CNVCaller {
 																											 proj.JAR_STATUS.getValue())};
 					}
 				}
-
-				callGenomeCnvs(proj, output, sexCents, minNumMarkers,
+				callGenomeCnvs(proj, output, sexCents, markersToUse, minNumMarkers,
 											 minConf, PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
 			} else {
-				callAutosomalCNVs(proj, output, proj.getSamples(), null, null, minNumMarkers, minConf,
+				callAutosomalCNVs(proj, output, proj.getSamples(), null, markersToUse, null, minNumMarkers,
+													minConf,
 													PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
 }

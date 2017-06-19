@@ -186,13 +186,13 @@ public class SampleData {
 	public static final String[] MINIMAL_SAMPLE_DATA_HEADER = {"DNA", "FID", "IID"};
 	public static final String[] EUPHEMISMS = {"CleanedSex", "Sex", "Gender",};
 	public static final String[] EXCLUDE_ALIASES = {SampleQC.EXCLUDE_HEADER.split("=")[1]};
-	public static final String[][][] KEYS_FOR_BASIC_CLASSES = {{{"0", "All"}},
-																														 {{"1", "A/A"}, {"2", "A/B"},
-																															{"3", "B/B"}},
-																														 {{"1", "A/A"}, {"2", "A/B"},
-																															{"3", "B/B"}},
-																														 {{"1", "A/A"}, {"2", "A/B"},
-																															{"3", "B/B"}}};
+	public static final String[][][] KEYS_FOR_BASIC_CLASSES = { {{"0", "All"}},
+																														 { {"1", "A/A"}, {"2", "A/B"},
+																														 {"3", "B/B"}},
+																														 { {"1", "A/A"}, {"2", "A/B"},
+																														 {"3", "B/B"}},
+																														 { {"1", "A/A"}, {"2", "A/B"},
+																														 {"3", "B/B"}}};
 
 	// public static final String[][] LINKERS = {
 	// //TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
@@ -426,7 +426,7 @@ public class SampleData {
 
 				if (dupeIDIndex != -1) {
 					String dupeID = line[dupeIDIndex];
-					if (!ext.isMissingValue(dupeID))
+					if (!ext.isMissingValue(dupeID) && !"0".equals(dupeID))
 						duplicateSetBuilder.put(dupeID, line[dnaIndex]);
 				}
 
@@ -438,16 +438,18 @@ public class SampleData {
 
 				dv = new DoubleVector();
 				for (int i = 0; i < covarIs.size(); i++) {
-					dv.add(ext.isMissingValue(line[covarIs.elementAt(i)]) ? Double.NaN
-																																: Double.parseDouble(line[covarIs.elementAt(i)]));
+					dv.add(ext.isMissingValue(line[covarIs.elementAt(i)])
+																															 ? Double.NaN
+																															 : Double.parseDouble(line[covarIs.elementAt(i)]));
 				}
 				indi.setCovars(Doubles.toArray(dv));
 
 				iv = new IntVector();
 				for (int i = 0; i < classIs.size(); i++) {
 					iv.add(ext.isMissingValue(line[classIs.elementAt(i)])
-								 || Integer.parseInt(line[classIs.elementAt(i)]) < 0 ? Integer.MIN_VALUE
-																																		 : Integer.parseInt(line[classIs.elementAt(i)]));
+								 || Integer.parseInt(line[classIs.elementAt(i)]) < 0
+																																		? Integer.MIN_VALUE
+																																		: Integer.parseInt(line[classIs.elementAt(i)]));
 				}
 				indi.setClasses(Ints.toArray(iv));
 				if (sexClassIndex != -1) {
@@ -473,7 +475,8 @@ public class SampleData {
 						// listed in SampleData file; make sure 1=male and 2=female in the coding");
 					}
 				} else {
-					log.reportError("Error - variable names '" + ArrayUtils.toStr(EUPHEMISMS, "/")
+					log.reportError("Error - variable names '"
+													+ ArrayUtils.toStr(EUPHEMISMS, "/")
 													+ "' was not found in the SampleData file; recommend running Sex Check step");
 				}
 			}
@@ -542,8 +545,9 @@ public class SampleData {
 
 		if (sexClassIndex < 0) {
 			proj.getLog()
-					.reportTimeWarning("Variable names '" + ArrayUtils.toStr(EUPHEMISMS, "/")
-														 + "' were not found in the SampleData file; make sure 1=male and 2=female in the coding to retrive sample sex");
+					.reportTimeWarning("Variable names '"
+																 + ArrayUtils.toStr(EUPHEMISMS, "/")
+																 + "' were not found in the SampleData file; make sure 1=male and 2=female in the coding to retrive sample sex");
 		}
 		for (int i = 0; i < samples.length; i++) {
 			sexes[i] = getSexForIndividual(samples[i]);
@@ -674,7 +678,7 @@ public class SampleData {
 													 + ArrayUtils.toStr(ArrayUtils.toStringArray(missingFiles), "\n     ")
 													 + "\n\nTo prevent this message in the future, either find "
 													 + (missingFiles.size() > 1 ? "these files \n     or remove them"
-																											: "this file \n     or remove it")
+																										 : "this file \n     or remove it")
 													 + " from CNV_FILENAMES under CNV Files in Project Properties";
 		if (GraphicsEnvironment.isHeadless()) {
 			proj.getLog().reportTimeWarning(message);
@@ -1151,20 +1155,23 @@ public class SampleData {
 			// JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains a quantitative
 			// meaure and will be added as a COVAR in SampleData and not as a Class", "Warning",
 			// JOptionPane.ERROR_MESSAGE);
-			System.out.println("Variable '" + colorKeyHeader
+			System.out.println("Variable '"
+												 + colorKeyHeader
 												 + "' contains a quantitative measure and will be added as a COVAR in SampleData and not as a Class");
 		} else if (negativeValues) {
 			// JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains negative values
 			// and will be added as a COVAR in SampleData and not as a Class", "Warning",
 			// JOptionPane.ERROR_MESSAGE);
-			System.out.println("Variable '" + colorKeyHeader
+			System.out.println("Variable '"
+												 + colorKeyHeader
 												 + "' contains negative values and will be added as a COVAR in SampleData and not as a Class");
 			covar = true;
 		} else if (largerThanByte) {
 			// JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains values larger
 			// than 128 and will be added as a COVAR in SampleData and not as a Class", "Warning",
 			// JOptionPane.ERROR_MESSAGE);
-			System.out.println("Variable '" + colorKeyHeader
+			System.out.println("Variable '"
+												 + colorKeyHeader
 												 + "' contains values larger than 128 and will be added as a COVAR in SampleData and not as a Class");
 			covar = true;
 		}
@@ -1558,7 +1565,7 @@ public class SampleData {
 									linkData.put(line[linkerIndex],
 															 ArrayUtils.toStr(existingVals,
 																								linkDataDelimiter != null ? linkDataDelimiter
-																																					: "\t"));
+																																				 : "\t"));
 									numUnchanged++;
 								}
 							}
@@ -1628,9 +1635,10 @@ public class SampleData {
 		if ((sampleMapCsv == null || "".equals(sampleMapCsv) || !Files.exists(sampleMapCsv))
 				&& (pedFile == null || "".equals(pedFile) || !Files.exists(pedFile))
 				&& !Files.exists(sampleDataFilename)) {
-			proj.getLog().report(
-													 "Neither a sample manifest nor a sample map file was provided; generating sample data file at: "
-													 + sampleDataFilename);
+			proj.getLog()
+					.report(
+									"Neither a sample manifest nor a sample map file was provided; generating sample data file at: "
+											+ sampleDataFilename);
 			createMinimalSampleData(proj);
 			return 0;
 		} else if (!Files.exists(sampleDataFilename)) {
@@ -1642,7 +1650,8 @@ public class SampleData {
 				return 0;
 			}
 		} else {
-			proj.getLog().report("Detected that a sampleData file already exists at " + sampleDataFilename
+			proj.getLog().report("Detected that a sampleData file already exists at "
+													 + sampleDataFilename
 													 + ", skipping sampleData creation");
 			return -1;
 		}
@@ -1673,9 +1682,10 @@ public class SampleData {
 			String[] classed = MitoPipeline.PED_INPUT;
 			classed[5] = "Class=Sex";
 			writer.println(ArrayUtils.toStr(classed)
-										 + (inds[0].getSampleMapHeader() == null ? ""
-																														 : "\t"
-																															 + ArrayUtils.toStr(inds[0].getSampleMapHeader())));
+										 + (inds[0].getSampleMapHeader() == null
+																														? ""
+																														: "\t"
+																															+ ArrayUtils.toStr(inds[0].getSampleMapHeader())));
 			for (Individual ind : inds) {
 				writer.println(ind.getSampDataFormat());
 			}
@@ -1929,11 +1939,15 @@ public class SampleData {
 		String ped = null;
 		String samp = null;
 
-		String usage = "\n" + "cnv.var.SampleData requires 1-3 arguments\n"
+		String usage = "\n"
+									 + "cnv.var.SampleData requires 1-3 arguments\n"
 									 + "   (1) project properties filename (i.e. proj="
-									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-									 + " OR\n" + "   (1) project properties filename (i.e. proj="
-									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)
+									 + " (default))\n"
+									 + " OR\n"
+									 + "   (1) project properties filename (i.e. proj="
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)
+									 + " (default))\n"
 									 + "   (2a) OPTIONAL: .ped file (i.e. ped=data.ped (not the default))\n"
 									 + "      OR\n"
 									 + "   (2b) OPTIONAL: sampleMap.csv file (i.e. sampleMap=sampleMap.csv (not the default))\n"
@@ -1973,5 +1987,3 @@ public class SampleData {
 		}
 	}
 }
-
-
