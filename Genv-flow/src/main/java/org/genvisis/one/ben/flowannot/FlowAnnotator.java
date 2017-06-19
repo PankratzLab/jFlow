@@ -89,11 +89,14 @@ public class FlowAnnotator {
 	private static final String KEY_LAST_DIR_IMG = "LAST_DIR_IMG";
 	private static final String KEY_LAST_DIR_ANN = "LAST_DIR_ANN";
 	private static final String KEY_LAST_FILE_ANN = "LAST_FILE_ANN";
+	private static final String KEY_LAST_GATE = "LAST_SEL_NODE";
 	private static final String KEY_RECENT = "RECENT";
 
 	private String lastOpenedImageDir = null;
 	private String lastOpenedAnnFileDir = null;
 	private String lastSavedAnnFile = null;
+	private String lastSelectedGate = null;
+	private volatile boolean constructingTree = false;
 	private HashSet<String> recentAnnotFiles = new HashSet<>();
 
 	private HashMap<Character, Action> mnemonicActions = new HashMap<>();
@@ -101,7 +104,19 @@ public class FlowAnnotator {
 	private static final int ALL = 0;
 	private static final int ANN = 1;
 	private static final int NON = 2;
-	private static final String BACKUP_FILE = ".backup.annotations";
+	private static final String BACKUP_DIR = ".backup./";
+	private static final String BACKUP_FILE = BACKUP_DIR + "backup.annotations";
+	private volatile boolean annotationsChanged = false;
+
+	private void setAnnotationsChanged() {
+		annotationsChanged = true;
+	}
+
+	private boolean checkAnnotationsChanged() {
+		boolean value = annotationsChanged;
+		annotationsChanged = false;
+		return value;
+	}
 
 	/**
 	 * Launch the application.
@@ -136,10 +151,12 @@ public class FlowAnnotator {
 			String lstAnn = p.getProperty(KEY_LAST_DIR_ANN, "");
 			String lstImg = p.getProperty(KEY_LAST_DIR_IMG, "");
 			String lstFil = p.getProperty(KEY_LAST_FILE_ANN, "");
+			String lstGat = p.getProperty(KEY_LAST_GATE, "");
 			String rec = p.getProperty(KEY_RECENT, "");
 			lastOpenedAnnFileDir = lstAnn;
 			lastOpenedImageDir = lstImg;
 			lastSavedAnnFile = lstFil;
+			lastSelectedGate = lstGat;
 			if (!"".equals(rec)) {
 				String[] ps = rec.split(";");
 				for (String s : ps) {
@@ -165,6 +182,9 @@ public class FlowAnnotator {
 		}
 		if (lastSavedAnnFile != null && !"".equals(lastSavedAnnFile) && Files.exists(lastSavedAnnFile)) {
 			p.setProperty(KEY_LAST_FILE_ANN, lastSavedAnnFile);
+		}
+		if (lastSelectedGate != null && !"".equals(lastSelectedGate)) {
+			p.setProperty(KEY_LAST_GATE, lastSelectedGate);
 		}
 		if (!recentAnnotFiles.isEmpty()) {
 			p.setProperty(KEY_RECENT, ArrayUtils.toStr(recentAnnotFiles, ";"));
@@ -298,6 +318,7 @@ public class FlowAnnotator {
 		scrollPane_1.setViewportView(tree);
 		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
 		rootNode.add(GateTree.constructTree());
+		constructingTree = true;
 		DefaultTreeModel dtm = new DefaultTreeModel(rootNode);
 		tree.setModel(dtm);
 		tree.setShowsRootHandles(true);
@@ -316,8 +337,9 @@ public class FlowAnnotator {
 		});
 
 		frmFlowannotator.setJMenuBar(createMenuBar());
-
 		checkForBackupFileOrLoadLast();
+		constructingTree = false;
+
 		startAutoSaveThread();
 	}
 
@@ -337,11 +359,26 @@ public class FlowAnnotator {
 			} else {
 				if (!"".equals(lastSavedAnnFile) && Files.exists(lastSavedAnnFile)) {
 					loadAnnotationFile(lastSavedAnnFile);
+					selectLastSelectedGate();
 				}
 			}
 		} else {
 			if (!"".equals(lastSavedAnnFile) && Files.exists(lastSavedAnnFile)) {
 				loadAnnotationFile(lastSavedAnnFile);
+				selectLastSelectedGate();
+			}
+		}
+	}
+
+	private void selectLastSelectedGate() {
+		if (lastSelectedGate != null && !"".equals(lastSelectedGate)) {
+			for (int i = 0; i < tree.getRowCount(); i++) {
+				TreePath tp = tree.getPathForRow(i);
+				String gate = ((AnnotatedImage) ((DefaultMutableTreeNode) tp.getLastPathComponent()).getUserObject()).getGateName();
+				if (gate.equals(lastSelectedGate)) {
+					tree.setSelectionPath(tp);
+					break;
+				}
 			}
 		}
 	}
@@ -350,14 +387,28 @@ public class FlowAnnotator {
 		autoSaveThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				if (lastTimeSaved == -1 || (System.currentTimeMillis() - lastTimeSaved > 120000)) {
-					if (annotator.getAnnotations().size() > 0) {
-						annotator.saveAnnotations(BACKUP_FILE);
+				while (true) {
+					if (lastTimeSaved == -1 || (System.currentTimeMillis() - lastTimeSaved > 30000)) {
+						if (checkAnnotationsChanged()) {
+							new File(BACKUP_DIR).mkdir();
+							try {
+								System.out.println("Auto-saving to backup: "
+																	 + new File(BACKUP_FILE).getCanonicalPath());
+							} catch (IOException e) {
+							}
+							annotator.saveAnnotations(BACKUP_FILE);
+						}
+						lastTimeSaved = System.currentTimeMillis();
 					}
-					lastTimeSaved = System.currentTimeMillis();
+					try {
+						Thread.sleep(15000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}, "AutoSaveThread");
+		autoSaveThread.setDaemon(true);
 		autoSaveThread.start();
 	}
 
@@ -387,7 +438,7 @@ public class FlowAnnotator {
 		updateRecentFiles();
 
 		JMenuItem mntmSaveAnnot = new JMenuItem();
-		mntmSaveAnnot.setAction(saveAsAction);
+		mntmSaveAnnot.setAction(saveAction);
 		mntmSaveAnnot.setText("Save Annotations");
 		mntmSaveAnnot.setMnemonic('S');
 		mnFile.add(mntmSaveAnnot);
@@ -500,9 +551,10 @@ public class FlowAnnotator {
 	};
 
 	private void close() {
-		if (annotator.getAnnotations().size() > 0
+		if (checkAnnotationsChanged()
 				&& (lastTimeSaved == -1 || System.currentTimeMillis() - lastTimeSaved > 500)) {
 			if (!promptToSaveAnnotations()) {
+				setAnnotationsChanged();
 				return;
 			}
 		}
@@ -542,6 +594,7 @@ public class FlowAnnotator {
 		if (!annotator.getAnnotations().contains(newAnn)) {
 			addAnnotationToTraversalMenu(newAnn);
 			annotator.addNewAnnotation(newAnn);
+			setAnnotationsChanged();
 			refreshAnnotations();
 		}
 	}
@@ -556,6 +609,7 @@ public class FlowAnnotator {
 			String fS = ext.verifyDirFormat(f.getAbsolutePath());
 			setLastUsedImageDir(fS);
 			annotator.loadImgDir(fS);
+			setAnnotationsChanged();
 			reloadControls();
 			saveProperties();
 		}
@@ -603,6 +657,7 @@ public class FlowAnnotator {
 							myAnn.add(a);
 							annBox.setSelected(true);
 						}
+						setAnnotationsChanged();
 						annotPanel.repaint();
 					}
 				}
@@ -620,6 +675,7 @@ public class FlowAnnotator {
 	private void fireMnem(char code) {
 		if (mnemonicActions.containsKey(code)) {
 			mnemonicActions.get(code).actionPerformed(null);
+			setAnnotationsChanged();
 		}
 	}
 
@@ -898,6 +954,10 @@ public class FlowAnnotator {
 		selectedImage = img;
 		imagePanel.repaint();
 		refreshAnnotations();
+		if (!constructingTree) {
+			lastSelectedGate = node.getGateName();
+			System.out.println("Setting last used gate to " + lastSelectedGate);
+		}
 	}
 
 	private void updateAvail() {
@@ -946,6 +1006,7 @@ public class FlowAnnotator {
 			annotator.saveAnnotations(file);
 			setLastSavedAnnotationFile(file);
 			lastTimeSaved = System.currentTimeMillis();
+			checkAnnotationsChanged();
 			if (Files.exists(BACKUP_FILE)) {
 				new File(BACKUP_FILE).delete();
 			}
