@@ -29,6 +29,7 @@ import org.genvisis.gwas.Qc;
 import org.genvisis.seq.manage.ReferenceGenome;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.variant.variantcontext.Allele;
@@ -96,6 +97,12 @@ public class ImputationPipeline {
 			return;
 		}
 		dropSamples = HashVec.loadFileToHashSet(samplesToDropFile, new int[] {0, 1}, "\t", false);
+		Set<String> missingIDs = Sets.difference(dropSamples, proj.getSampleData(false)
+																															.getSampleIDLookup().keySet());
+		if (!missingIDs.isEmpty()) {
+			proj.getLog().reportError("Not all Samples to drop could be found in SampleData: "
+																+ ext.listWithCommas(missingIDs));
+		}
 	}
 
 	public void setSamplesToKeepFile(String samplesToKeepFile) {
@@ -104,6 +111,12 @@ public class ImputationPipeline {
 			return;
 		}
 		keepSamples = HashVec.loadFileToHashSet(samplesToKeepFile, new int[] {0, 1}, "\t", false);
+		Set<String> missingIDs = Sets.difference(keepSamples, proj.getSampleData(false)
+																															.getSampleIDLookup().keySet());
+		if (!missingIDs.isEmpty()) {
+			proj.getLog().reportError("Not all Samples to keep could be found in SampleData: "
+																+ ext.listWithCommas(missingIDs));
+		}
 	}
 
 	public void setMarkersToDropFile(String markersToDropFile) {
@@ -112,6 +125,12 @@ public class ImputationPipeline {
 			return;
 		}
 		dropMarkers = HashVec.loadFileToHashSet(markersToDropFile, false);
+		Set<String> missingIDs = Sets.difference(dropMarkers,
+																						 proj.getMarkerSet().getMarkerNameMap().keySet());
+		if (!missingIDs.isEmpty()) {
+			proj.getLog().reportError("Not all Markers to drop could be found in Project: "
+																+ ext.listWithCommas(missingIDs));
+		}
 	}
 
 	public void setMarkersToKeepFile(String markersToKeepFile) {
@@ -120,6 +139,12 @@ public class ImputationPipeline {
 			return;
 		}
 		keepMarkers = HashVec.loadFileToHashSet(markersToKeepFile, false);
+		Set<String> missingIDs = Sets.difference(keepMarkers,
+																						 proj.getMarkerSet().getMarkerNameMap().keySet());
+		if (!missingIDs.isEmpty()) {
+			proj.getLog().reportError("Not all Markers to keep could be found in Project: "
+																+ ext.listWithCommas(missingIDs));
+		}
 	}
 
 	private Set<String> getMarkersToExport() {
