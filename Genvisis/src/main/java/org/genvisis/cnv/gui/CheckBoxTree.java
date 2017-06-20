@@ -408,7 +408,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		root.removeAllChildren();
 		model.reload();
 
-		for (int i=0; i<selections.length; i++) {
+		for (int i = 0; i < selections.length; i++) {
 			if (selections[i] != null) {
 				selections[i].setSelected(false);
 			}
@@ -428,7 +428,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
 			System.err.println("Error - No root of a branch is selected.");
 			return;
 		}
-		index = getSelectedPathComponent();
+		index = getSelectedPathComponent().index();
 		model = (DefaultTreeModel) getModel();
 		root = (DefaultMutableTreeNode) model.getRoot();
 
@@ -522,44 +522,44 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		return selectedValues;
 	}
 
-	public int getSelectedPathComponent() {
+	public SelectedItem getSelectedPathComponent() {
 		DefaultMutableTreeNode selectedNode;
-		int index;
 		DefaultMutableTreeNode root, branch;
 		DefaultTreeModel model;
 
 		selectedNode = (DefaultMutableTreeNode) getLastSelectedPathComponent();
 		if (selectedNode == null) {
 			System.err.println("Error - No root of a branch is selected");
-			return -1;
+			return new SelectedItem("", -1);
 		}
 
-		index = -1;
 		model = (DefaultTreeModel) getModel();
 		root = (DefaultMutableTreeNode) model.getRoot();
 		for (int i = 0; i < root.getChildCount(); i++) {
 			branch = (DefaultMutableTreeNode) model.getChild(root, i);
+			Branch br = (Branch) branch.getUserObject();
+
 			if (branch == selectedNode) {
-				index = i;
+				return new SelectedItem(br.toString(), i);
 			}
 
 			if (selectedNode.getUserObject() instanceof JCheckBox) {
-				Branch br = (Branch) branch.getUserObject();
 				for (int j = 0; j < branch.getChildCount(); j++) {
 					JCheckBox box = (JCheckBox) br.elementAt(j);
 					if (box == (JCheckBox) (selectedNode.getUserObject())) {
-						index = i;
+						return new SelectedItem(box.getName(), i);
 					}
 				}
 			}
 		}
-		return index;
+
+		return new SelectedItem("", -1);
 	}
 
 	public String getSelectedPathComponentName() {
-		int index = getSelectedPathComponent();
-		if (index >= 0) {
-			return selections[index].getName().split(PSF.Regex.GREEDY_WHITESPACE)[0];
+		SelectedItem item = getSelectedPathComponent();
+		if (item.index() >= 0) {
+			return item.name().split(PSF.Regex.GREEDY_WHITESPACE)[0];
 		} else {
 			return null;
 		}
@@ -631,7 +631,26 @@ public class CheckBoxTree extends JTree implements ItemListener {
 
 		return new Branch("Root", branches);
 	}
+
+	public static class SelectedItem {
+		private final String name;
+		private final int index;
+
+		public SelectedItem(String n, int i) {
+			name = n;
+			index = i;
+		}
+
+		public String name() {
+			return name;
+		}
+
+		public int index() {
+			return index;
+		}
+	}
 }
+
 
 
 class CheckBoxNodeRenderer implements TreeCellRenderer {
@@ -777,3 +796,5 @@ class Branch extends Vector<Object> {
 		return name;
 	}
 }
+
+

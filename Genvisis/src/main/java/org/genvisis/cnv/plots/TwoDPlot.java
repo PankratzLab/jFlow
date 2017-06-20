@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -146,6 +147,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	private volatile boolean isHistPlot;
 	private CheckBoxTree tree;
 	private ArrayList<String> dataKeys;
+	// Map file short names to absolute path
+	private Map<String, String> filenameMap;
 	HashMap<String, ArrayList<String[]>> dataHash;
 	HashMap<String, String[]> dataColumnsHash;
 	HashMap<String, boolean[]> validColumnsHash;
@@ -196,6 +199,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		validExts = new HashSet<String>();
 		dataKeys = new ArrayList<String>();
 		dataHash = new HashMap<String, ArrayList<String[]>>();
+		filenameMap = new HashMap<>();
 		dataColumnsHash = new HashMap<String, String[]>();
 		validColumnsHash = new HashMap<String, boolean[]>();
 		linkerIndices = new HashMap<String, int[]>();
@@ -720,20 +724,19 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	public void removeSelectedData() {
-		byte numberOfSelectedNodes;
-		String[] keys;
-		numberOfSelectedNodes = (byte) tree.getSelectedPathComponent();
-		if (numberOfSelectedNodes != -1) {
-			keys = HashVec.getKeys(dataHash); // it is better for keys to be a local variable rather than
-																				// a global variable, otherwise it needs to be updated every
-																				// time something is added or deleted
+		String toRemove = tree.getSelectedPathComponentName();
+		if (toRemove != null) {
+			// When removing items from the GUI we may just have the file name and not the absolute path
+			// Ensure both are purged.
+			String path = filenameMap.get(toRemove);
 			tree.deleteSelectedNode();
-			dataHash.remove(keys[numberOfSelectedNodes]);// TODO tree.getSelectionValues()[0][0] is not
-																									 // the branch to delete.
-			dataColumnsHash.remove(keys[numberOfSelectedNodes]);
-			linkerIndices.remove(keys[numberOfSelectedNodes]);
-			validColumnsHash.remove(keys[numberOfSelectedNodes]);
-			dataKeys.remove(keys[numberOfSelectedNodes]);
+			for (String s : new String[] {toRemove, path}) {
+				dataHash.remove(s);
+				dataColumnsHash.remove(s);
+				linkerIndices.remove(s);
+				validColumnsHash.remove(s);
+				dataKeys.remove(s);
+			}
 		}
 	}
 
@@ -1192,7 +1195,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		outer: for (int i = 0; i < dataOfSelectedFile.size(); i++) {
 			inLine = dataOfSelectedFile.get(i);
 
-			//FIXME this badly needs to be reconciled with #getDataSelected
+			// FIXME this badly needs to be reconciled with #getDataSelected
 			if (sampleData != null
 					&& (hideExcludes || colorKeyPanel.getDisabledClassValues().size() > 0)) {
 
@@ -2221,6 +2224,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			}
 			reader.close();
 
+			filenameMap.put(new File(filename).getName(), filename);
 			addDataHeader(filename, header);
 			dataHash.put(filename, data);
 			validColumnsHash.put(filename, valid);

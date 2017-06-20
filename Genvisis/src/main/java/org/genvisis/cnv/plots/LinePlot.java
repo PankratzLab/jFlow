@@ -259,7 +259,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 				}
 			}
 		} else if (command.equals(REMOVE_DATA_FILE)) {
-			numberOfSelectedNodes = (byte) tree.getSelectedPathComponent();
+			numberOfSelectedNodes = (byte) tree.getSelectedPathComponent().index();
 			if (numberOfSelectedNodes != -1) {
 				keys = HashVec.getKeys(dataHash); // keys is better to be block variable than a class
 																					// variable. Otherwise, keys need to be updated every time
