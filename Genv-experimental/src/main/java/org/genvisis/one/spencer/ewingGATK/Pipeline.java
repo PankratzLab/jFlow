@@ -2,6 +2,7 @@ package org.genvisis.one.spencer.ewingGATK;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -13,6 +14,7 @@ import org.genvisis.common.ext;
 import org.genvisis.qsub.Qsub;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -63,7 +65,9 @@ public class Pipeline {
 		// Map<String, String> toRecal = runRecal();
 		// Map<String, String> toCall = runHaplotypeCaller();
 
-		runHaplotypeCallerItasca();
+		// runHaplotypeCallerItasca();
+
+		runCombineGVCFs();
 
 	}
 
@@ -201,6 +205,150 @@ public class Pipeline {
 
 	}
 
+	private void runSplitGVCFs() {
+
+		final int threads = 1;
+		List<String> commands = Lists.newArrayList();
+		int cmdCount = 0;
+		int commandScriptCount = 0;
+		for (String id : ids) {
+			boolean write = false;
+			StringJoiner cmd = new StringJoiner("\n");
+			cmd.add(cdCmd());
+			cmd.add("");
+			for (int i = 2; i < 26; i++) {
+
+				// if (!fileExists(callerGvcf(id), callerPBS(id))) {
+				String chr = Integer.toString(i);
+				if (i == 23)
+					chr = "X";
+				if (i == 24)
+					chr = "Y";
+				if (i == 25)
+					chr = "MT";
+				if (!fileExists(splitGvcf(id, chr), splitGvcfIndex(id, chr))) {
+					write = true;
+					cmd.add("");
+					cmd.add("java -jar /home/pankrat2/public/bin/GATK_3.7/GenomeAnalysisTK.jar \\")
+						 .add("\t-T SelectVariants \\")
+						 .add("\t-R " + REF_GENO + " \\")
+						 .add("\t-V " + callerGvcf(id) + " \\")
+						 .add("\t-o " + splitGvcf(id, chr) + " \\")
+						 .add("\t-L " + chr);
+					cmd.add("");
+
+				}
+			}
+			if (write) {
+				Qsub.qsub(splitPBS(id), cmd.toString(), 2500, 24, threads);
+				commands.add("qsub " + (cmdCount < 48 ? "-q pankratz " : "") + splitPBS(id));
+				if (cmdCount++ > 400) {
+					Files.writeIterable(commands,
+															"/panfs/roc/pankrat2-SpectorEwingSarcoma/SpectorEwingSarcoma/pbsScripts/splitGVCFJobs_"
+																				+ commandScriptCount);
+					commands.clear();
+					commandScriptCount++;
+					cmdCount = 0;
+				}
+			}
+		}
+		Files.writeIterable(commands,
+												"/panfs/roc/pankrat2-SpectorEwingSarcoma/SpectorEwingSarcoma/pbsScripts/splitGVCFJobs_"
+																	+ commandScriptCount);
+	}
+
+	private void runCombineGVCFs() {
+
+		final int threads = 1;
+
+		for (int i = 1; i < 26; i++) {
+
+			String chr = intToChr(i);
+			for (int batch = 1; batch <= 6; batch++) {
+				String gvcfList = "/panfs/roc/pankrat2-SpectorEwingSarcoma/SpectorEwingSarcoma/pbsScripts/chr"
+													+ chr + "_gVCFs_batch_" + batch + ".list";
+				// Files.writeIterable(ids.stream().map(id -> splitGvcf(id,
+				// chr)).collect(Collectors.toList()),
+				// gvcfList);
+
+				String pbsScript = "/panfs/roc/pankrat2-SpectorEwingSarcoma/SpectorEwingSarcoma/pbsScripts/CG_chr"
+													 + chr + "_gVCFs_batch_" + batch + "_combineGVCFs.pbs";
+
+				if (!fileExists(combinedGVCF(chr, batch), combinedGVCFIndex(chr, batch))) {
+
+					StringJoiner cmd = new StringJoiner("\n");
+					cmd.add(cdCmd());
+					cmd.add("");
+					cmd.add("java -Xmx14G -jar /home/pankrat2/public/bin/GATK_3.7/GenomeAnalysisTK.jar \\")
+						 .add("\t-T CombineGVCFs \\")
+						 .add("\t-R " + REF_GENO + " \\")
+						 .add("\t-V " + gvcfList + " \\")
+						 .add("\t-o " + combinedGVCF(chr, batch) + " \\")
+						 .add("\t-L " + chr);
+					cmd.add("");
+
+
+					Qsub.qsubGb(pbsScript, cmd.toString(), 16, 96, threads);
+				}
+
+			}
+		}
+
+	}
+
+	private static String combinedGVCF(String chr, int batch) {
+		return "ES_combined_chr" + chr + "_batch_" + batch + "_presplit.g.vcf.gz";
+	}
+
+	private static String combinedGVCFIndex(String chr, int batch) {
+		return combinedGVCF(chr, batch) + ".tbi";
+	}
+
+	private void runJointGenotyping() {
+
+
+		final int threads = 1;
+		for (int i = 1; i < 26; i++) {
+			StringJoiner cmd = new StringJoiner("\n");
+			cmd.add(cdCmd());
+			cmd.add("");
+			final String chr = intToChr(i);
+
+			String chrGVCFs = "/panfs/roc/pankrat2-SpectorEwingSarcoma/SpectorEwingSarcoma/chr" + chr
+												+ "_gVCFs.list";
+
+			Files.writeIterable(ids.stream()
+														 .map(s -> "/panfs/roc/pankrat2-SpectorEwingSarcoma/SpectorEwingSarcoma/gVCFs_byChr/"
+																			 + s + "_chr" + chr + "_recalibrated.snps.indels.g.vcf.gz")
+														 .collect(Collectors.toList()),
+													chrGVCFs);
+
+			if (!fileExists(jointVCF(chr), jointVCFIndex(chr))) {
+				cmd.add("");
+				cmd.add("java -Xmx15G -jar /home/pankrat2/public/bin/GATK_3.7/GenomeAnalysisTK.jar \\")
+					 .add("\t-T GenotypeGVCFs \\")
+					 .add("\t-R " + REF_GENO + " \\")
+					 .add("\t-V " + chrGVCFs + " \\")
+					 .add("\t-o " + jointVCF(chr) + " \\")
+					 .add("\t-L " + chr);
+				cmd.add("");
+				Qsub.qsubGb(jointGenoPBS(chr), cmd.toString(), 19, 440, threads);
+			}
+		}
+
+	}
+
+	private String intToChr(int i) {
+		String chr = Integer.toString(i);
+		if (i == 23)
+			chr = "X";
+		else if (i == 24)
+			chr = "Y";
+		else if (i == 25)
+			chr = "MT";
+		return chr;
+	}
+
 
 	private String cdCmd() {
 		return "cd " + bamDir;
@@ -234,8 +382,25 @@ public class Pipeline {
 		return "../gVCFs/" + id + "_recalibrated.snps.indels.g.vcf.gz";
 	}
 
+	private String splitGvcf(String id, String chr) {
+		return "../gVCFs_byChr/" + id + "_chr" + chr + "_recalibrated.snps.indels.g.vcf.gz";
+	}
+
+	private String jointVCF(String chr) {
+		return "/panfs/roc/pankrat2-SpectorEwingSarcoma/SpectorEwingSarcoma/vcfs/ES_JointGenotypes_chr"
+					 + chr + "_splitGVCFs.vcf.gz";
+	}
+
+	private String jointVCFIndex(String chr) {
+		return jointVCF(chr) + ".tbi";
+	}
+
 	private String callerGvcfIndex(String id) {
 		return "../gVCFs/" + id + "_recalibrated.snps.indels.g.vcf.gz.tbi";
+	}
+
+	private String splitGvcfIndex(String id, String chr) {
+		return splitGvcf(id, chr) + ".tbi";
 	}
 
 	private String indexPBS(String id) {
@@ -248,6 +413,14 @@ public class Pipeline {
 
 	private String callerPBS(String id) {
 		return "../pbsScripts/C_" + id + "_haplotypeCaller" + PBS;
+	}
+
+	private String splitPBS(String id) {
+		return "../pbsScripts/S_" + id + "_splitGVCFs" + PBS;
+	}
+
+	private String jointGenoPBS(String chr) {
+		return "../pbsScripts/J_chr" + chr + "_jointGenotyping" + PBS;
 	}
 
 	private boolean fileExists(String... filenames) {
