@@ -264,6 +264,38 @@ public class Files {
 		return chmod(filename, true);
 	}
 
+	/**
+	 * @param sourceLocation copy from here
+	 * @param targetLocation to here
+	 * @throws IOException
+	 */
+	public static void copyRecursive(File sourceLocation, File targetLocation) throws IOException {
+
+		if (sourceLocation.isDirectory()) {
+			if (!targetLocation.exists()) {
+				targetLocation.mkdir();
+			}
+
+			String[] children = sourceLocation.list();
+			for (String element : children) {
+				copyRecursive(new File(sourceLocation, element), new File(targetLocation, element));
+			}
+		} else {
+
+			InputStream in = new FileInputStream(sourceLocation);
+			OutputStream out = new FileOutputStream(targetLocation);
+
+			// Copy the bits from instream to outstream
+			byte[] buf = new byte[1024];
+			int len;
+			while ((len = in.read(buf)) > 0) {
+				out.write(buf, 0, len);
+			}
+			in.close();
+			out.close();
+		}
+	}
+
 	public static boolean copyFileUsingFileChannels(String source, String dest, Logger log) {
 		return copyFileUsingFileChannels(new File(source), new File(dest), log);
 	}

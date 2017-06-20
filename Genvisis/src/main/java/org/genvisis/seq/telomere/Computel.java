@@ -1,12 +1,8 @@
 package org.genvisis.seq.telomere;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -133,7 +129,7 @@ public class Computel {
 		new File(finalOutDirectory).mkdirs();
 
 		try {
-			copyDirectory(new File(computelDirectory), new File(finalOutDirectory));
+			Files.copyRecursive(new File(computelDirectory), new File(finalOutDirectory));
 		} catch (IOException e) {
 			log.reportException(e);
 		}
@@ -229,32 +225,7 @@ public class Computel {
 		return config;
 	}
 
-	private static void copyDirectory(File sourceLocation, File targetLocation) throws IOException {
 
-		if (sourceLocation.isDirectory()) {
-			if (!targetLocation.exists()) {
-				targetLocation.mkdir();
-			}
-
-			String[] children = sourceLocation.list();
-			for (String element : children) {
-				copyDirectory(new File(sourceLocation, element), new File(targetLocation, element));
-			}
-		} else {
-
-			InputStream in = new FileInputStream(sourceLocation);
-			OutputStream out = new FileOutputStream(targetLocation);
-
-			// Copy the bits from instream to outstream
-			byte[] buf = new byte[1024];
-			int len;
-			while ((len = in.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
-			in.close();
-			out.close();
-		}
-	}
 
 
 
