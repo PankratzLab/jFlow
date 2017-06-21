@@ -97,7 +97,7 @@ public class VCFSimpleTally {
 																												 "numHQCompoundHets",
 																												 "numHQCompoundHetsDiffHaplotype"};
 
-	private static boolean filterCHARGE(VariantContext vc, double maf) {
+	public static boolean filterCHARGE(VariantContext vc, double maf) {
 		boolean pass = true;
 		if (vc.hasAttribute("charge.MAF_whites")) {
 			pass = vc.getCommonInfo().getAttributeAsDouble("charge.MAF_whites", 0) <= maf;
