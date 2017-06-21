@@ -33,6 +33,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -79,6 +80,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.NumberFormatter;
+
+import net.miginfocom.swing.MigLayout;
 
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.MosaicismDetect;
@@ -138,8 +141,6 @@ import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.mining.Transformations;
 import org.genvisis.stats.BinnedMovingStatistic.MovingStat;
-
-import net.miginfocom.swing.MigLayout;
 
 public class Trailer extends JFrame implements ChrNavigator, ActionListener, ClickListener, MouseListener, MouseMotionListener, MouseWheelListener {
 
@@ -319,6 +320,75 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	};
 
 	/**
+	 * Menu action for dumping data
+	 */
+	AbstractAction dumpDisplayedAction = new AbstractAction() {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			JFileChooser jfc = new JFileChooser();
+			jfc.setDialogTitle("Select file...");
+			jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			jfc.setMultiSelectionEnabled(false);
+			jfc.setSelectedFile(new File(sample + "_dump.xln"));
+			int opt = jfc.showSaveDialog(Trailer.this);
+			if (opt != JFileChooser.APPROVE_OPTION) {
+				return;
+			}
+
+			String file = jfc.getSelectedFile().getAbsolutePath();
+			PrintWriter writer = Files.getAppropriateWriter(file);
+
+			String[] markerNames = proj.getMarkersForChrs(new int[] {chr});
+
+			boolean hasLRRs = lrrs != null;
+			boolean hasBAFs = bafs != null;
+			boolean hasTransformedData = transformation_type > 0 || centroids != null
+																	 || gcParameterDisplay.getCurrentParamIndex() >= 0;
+
+			StringBuilder sb = new StringBuilder();
+			sb.append("MarkerName").append("\t");
+			sb.append("Chr").append("\t");
+			sb.append("Pos").append("\t");
+			if (hasLRRs) {
+				sb.append("LRR").append("\t");
+				if (hasTransformedData) {
+					sb.append("OriginalLRR").append("\t");
+				}
+			}
+			if (hasBAFs) {
+				sb.append("BAF").append("\t");
+				if (hasTransformedData) {
+					sb.append("OriginalBAF").append("\t");
+				}
+			}
+			writer.println(sb.toString());
+
+			for (int i = startMarker; i <= stopMarker; i++) {
+				sb = new StringBuilder();
+				sb.append(markerNames[i]).append("\t");
+				sb.append(chr).append("\t");
+				sb.append(positions[i]).append("\t");
+				if (hasLRRs) {
+					sb.append(lrrValues[i]).append("\t");
+					if (hasTransformedData) {
+						sb.append(lrrs[i]).append("\t");
+					}
+				}
+				if (hasBAFs) {
+					sb.append(bafs[i]).append("\t");
+					if (hasTransformedData) {
+						sb.append(originalBAFs[i]).append("\t");
+					}
+				}
+				writer.println(sb.toString());
+			}
+
+			writer.close();
+		}
+	};
+
+	/**
 	 * Menu action for adding current visible area as a region to the current list.
 	 */
 	AbstractAction addRegionAction = new AbstractAction() {
@@ -457,6 +527,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				 *
 				 */
 				private static final long serialVersionUID = 1L;
+
 				// private Segment toQuant;
 
 				public QuantButton(final Segment toQuant, final CustomCallPopUp callPopUp) {
@@ -695,7 +766,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	 * @see #Trailer(Project, String, String[], String, String[][], int, int, int, int)
 	 */
 	public Trailer(Project proj, String selectedSample, String[] cnvFiles,
-								 final String startingLocation, final int startX, final int startY, final int width,
+								 final String startingLocation, final int startX, final int startY,
+								 final int width,
 								 final int height) {
 		this(proj, selectedSample, cnvFiles, startingLocation, null, startX, startY, width, height);
 	}
@@ -732,14 +804,15 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	 *        {@code chr<##>[:startPos-endPos]}
 	 * @param specifiedRegions (OPTIONAL) a hard-coded enumeration of desired regions. The number of
 	 *        regions = specifiedRegions.length. Each subarray should have the format:
-	 *        {@code {sampleID, location, [comment]}}
+	 *        {@code sampleID, location, [comment]}
 	 * @param startX GUI starting x position
 	 * @param startY GUI starting y positions
 	 * @param width GUI width
 	 * @param height GUI height
 	 */
 	public Trailer(final Project proj, String selectedSample, String[] cnvFiles,
-								 final String startingLocation, final String[][] specifiedRegions, final int startX,
+								 final String startingLocation, final String[][] specifiedRegions,
+								 final int startX,
 								 final int startY, final int width, final int height) {
 		// TODO Trailer should have a createAndShowGUI, same as all the other plots, as opposed to being
 		// its own frame
@@ -772,7 +845,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 						String message = newSet.size() + " files have been added.  ";
 						int choice = JOptionPane.showOptionDialog(null,
 																											message
-																														+ " Would you like to keep this configuration for the next time Trailer is loaded?",
+																													+ " Would you like to keep this configuration for the next time Trailer is loaded?",
 																											"Preserve Trailer workspace?",
 																											JOptionPane.YES_NO_OPTION,
 																											JOptionPane.QUESTION_MESSAGE, null, null,
@@ -1175,9 +1248,11 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 					}
 					end = getX(cnvs[i][j].getStop());
 					Color[] colors = getAColor(source);
-					Color cnvColor = cnvs[i][j].getCN() == PennHmm.LOH_FLAG ? Color.GRAY
-																																	: colors[cnvs[i][j].getCN() < 2 ? 0
-																																																	: 1];
+					Color cnvColor = cnvs[i][j].getCN() == PennHmm.LOH_FLAG
+																																 ? Color.GRAY
+																																 : colors[cnvs[i][j].getCN() < 2
+																																																? 0
+																																																: 1];
 					g.setColor(cnvColor);
 					g.fillRoundRect(begin, (yIndex + 2) * 15, end - begin + 1, 10, 2, 2);
 					g.setColor(Color.BLACK);
@@ -1205,7 +1280,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 	private int getX(int pos) {
 		return (int) ((double) (pos - start) / (double) (stop - start)
-									* (getWidth() - 2 * WIDTH_BUFFER))
+					 * (getWidth() - 2 * WIDTH_BUFFER))
 					 + WIDTH_BUFFER;
 	}
 
@@ -1227,9 +1302,11 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	}
 
 	private String chooseNewFiles() {
-		JFileChooser jfc = new JFileChooser((proj != null
-																				 || regionFileName == null ? proj.PROJECT_DIRECTORY.getValue()
-																																	 : ext.parseDirectoryOfFile(regionFileName)));
+		JFileChooser jfc = new JFileChooser(
+																				(proj != null
+																				 || regionFileName == null
+																																	? proj.PROJECT_DIRECTORY.getValue()
+																																	: ext.parseDirectoryOfFile(regionFileName)));
 		jfc.setMultiSelectionEnabled(true);
 		if (jfc.showOpenDialog(Trailer.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();
@@ -1380,10 +1457,11 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 						g.setColor(Color.LIGHT_GRAY);
 						g.drawLine(WIDTH_BUFFER,
 											 getHeight() - (int) ((double) (0 - min) / (double) (max - min)
-																						* (getHeight() - 2 * HEIGHT_BUFFER))
-																		 - HEIGHT_BUFFER,
+													 * (getHeight() - 2 * HEIGHT_BUFFER))
+													 - HEIGHT_BUFFER,
 											 getWidth() - WIDTH_BUFFER, getHeight()
-																									- (int) ((double) (0 - min) / (double) (max - min)
+																									- (int) ((double) (0 - min)
+																													 / (double) (max - min)
 																													 * (getHeight() - 2 * HEIGHT_BUFFER))
 																									- HEIGHT_BUFFER);
 					}
@@ -1418,7 +1496,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 																															- (int) ((double) (min - min)
 																																			 / (double) (max - min)
 																																			 * (getHeight()
-																																					- 2 * HEIGHT_BUFFER))
+																															- 2 * HEIGHT_BUFFER))
 																															- HEIGHT_BUFFER);
 							} else if (lrrValues[i] > max) {
 								g.drawString("^",
@@ -1426,14 +1504,14 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 																															- (int) ((double) (max - min)
 																																			 / (double) (max - min)
 																																			 * (getHeight()
-																																					- 2 * HEIGHT_BUFFER))
+																															- 2 * HEIGHT_BUFFER))
 																															- HEIGHT_BUFFER);
 							} else {
 								g.fillOval(Trailer.this.getX(positions[i]), getHeight()
 																														- (int) ((double) (lrrValues[i] - min)
 																																		 / (double) (max - min)
 																																		 * (getHeight()
-																																				- 2 * HEIGHT_BUFFER))
+																														- 2 * HEIGHT_BUFFER))
 																														- HEIGHT_BUFFER,
 													 SIZE, SIZE);
 							}
@@ -1510,19 +1588,19 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 								} else {
 									g.drawString("X", Trailer.this.getX(positions[i]),
 															 getHeight() - (int) (bafs[i]
-																										* (double) (getHeight() - 2 * HEIGHT_BUFFER))
-																																		 - HEIGHT_BUFFER + 5);
+																	 * (double) (getHeight() - 2 * HEIGHT_BUFFER))
+																	 - HEIGHT_BUFFER + 5);
 								}
 							} else if (genotypes != null && genotypes[i] == -1) {
 								g.drawString("+", Trailer.this.getX(positions[i]),
 														 getHeight() - (int) (bafs[i]
-																									* (double) (getHeight() - 4 * HEIGHT_BUFFER))
-																																	 - HEIGHT_BUFFER / 2);
+																 * (double) (getHeight() - 4 * HEIGHT_BUFFER))
+																 - HEIGHT_BUFFER / 2);
 							} else if (bafs != null && bafs.length > i) {
 								g.fillOval(Trailer.this.getX(positions[i]),
 													 getHeight() - (int) (bafs[i]
-																								* (double) (getHeight() - 4 * HEIGHT_BUFFER))
-																														- HEIGHT_BUFFER,
+															 * (double) (getHeight() - 4 * HEIGHT_BUFFER))
+															 - HEIGHT_BUFFER,
 													 SIZE, SIZE);
 							} else {
 								g.setFont(new Font("Arial", 0, 20));
@@ -1617,7 +1695,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					int trav = Integer.valueOf(((JTextField) e.getSource()).getText().trim()
+					int trav = Integer.valueOf(((JTextField) e.getSource()).getText()
+																																 .trim()
 																																 .split(PSF.Regex.GREEDY_WHITESPACE)[0])
 														.intValue()
 										 - 1;
@@ -1677,9 +1756,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 					}
 					regions[regionIndex] = regionDetails;
 					commentLabel.setText(regions[regionIndex][2].isEmpty() ? BLANK_COMMENT
-																																 : "region #" + (regionIndex + 1)
-																																	 + ":  "
-																																	 + regions[regionIndex][2]);
+																																: "region #" + (regionIndex + 1)
+																																	+ ":  "
+																																	+ regions[regionIndex][2]);
 					promptCommentSave = promptAndSaveRegions(promptCommentSave);
 				}
 				commentLabel.setVisible(true);
@@ -1901,10 +1980,12 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				NewRegionListDialog newRgnList = new NewRegionListDialog(proj == null ? null
-																																							: proj.getSamples(),
+				NewRegionListDialog newRgnList = new NewRegionListDialog(
 																																 proj == null ? null
-																																							: proj.PROJECT_DIRECTORY.getValue(),
+																																						 : proj.getSamples(),
+																																 proj == null
+																																						 ? null
+																																						 : proj.PROJECT_DIRECTORY.getValue(),
 																																 true);
 				newRgnList.setModal(true);
 				newRgnList.setVisible(true);
@@ -1962,6 +2043,22 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		screencap2.setText("Screen Capture to Clipboard");
 		screencap2.setFont(font);
 		fileMenu.add(screencap2);
+
+		fileMenu.add(new JSeparator());
+
+		JMenuItem dumpDisplayedOption = new JMenuItem();
+		dumpDisplayedOption.setAction(dumpDisplayedAction);
+		dumpDisplayedOption.setMnemonic('D');
+		dumpDisplayedOption.setText("Dump Displayed Data");
+		dumpDisplayedOption.setFont(font);
+		fileMenu.add(dumpDisplayedOption);
+
+		// JMenuItem dumpOption = new JMenuItem();
+		// dumpOption.setAction(dumpAction);
+		// dumpOption.setMnemonic('D');
+		// dumpOption.setText("Dump Data");
+		// dumpOption.setFont(font);
+		// fileMenu.add(dumpOption);
 
 		menuBar.add(fileMenu);
 
@@ -2081,6 +2178,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 		{
 			JMenu transMenu = new JMenu("Transformation");
+			transMenu.setMnemonic('T');
 
 			JMenuItem lbl1 = transMenu.add("LRR Transforms:");
 			lbl1.setEnabled(false);
@@ -2137,7 +2235,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 					JRadioButtonMenuItem jrb = (JRadioButtonMenuItem) ie.getItem();
 					if (jrb.isSelected()) {
 						transformSeparatelyByChromosome = jrb.getText().equals(Transforms.SCOPES[1]);
-						lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome,
+						lrrValues = getNewLRRs(proj, lrrs, transformation_type,
+																	 transformSeparatelyByChromosome,
 																	 markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
 						updateGUI();
 					}
@@ -2168,7 +2267,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			gcParameterDisplay = new GCParameterDisplay(proj, this, proj.getLog());
 
 			JMenu adjMenu = new JMenu("Adjustments");
-			adjMenu.setMnemonic(KeyEvent.VK_J);
+			adjMenu.setMnemonic(KeyEvent.VK_D);
 			ItemListener gcListener = new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent ie) {
@@ -2195,7 +2294,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 		{
 			JMenu qcMenu = new JMenu("Show QC");
-			String[] opts = new String[] {"Hide QC", "Genome", /* "Chromosome", */ "Region"};
+			qcMenu.setMnemonic('S');
+			String[] opts = new String[] {"Hide QC", "Genome", /* "Chromosome", */"Region"};
 			ItemListener qcListener = new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent arg0) {
@@ -2234,6 +2334,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 		{
 			JMenu centMenu = new JMenu("Centroids");
+			centMenu.setMnemonic('C');
 			autoSwitch = new JCheckBoxMenuItem();
 			autoSwitch.setText("Auto-Select Sex Centroid by Sample Sex");
 			autoSwitch.setMnemonic(KeyEvent.VK_A);
@@ -2327,6 +2428,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		{
 			// act.addSeparator();
 			JMenu cnvMenu = new JMenu("CNV Calls");
+			cnvMenu.setMnemonic('N');
 
 			ItemListener cnvListener = new ItemListener() {
 				@Override
@@ -2469,6 +2571,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 			previouslyLoadedManagers = new Hashtable<String, ColorExt.ColorManager<String>>();
 			JMenu colorMenu = new JMenu("Colors");
+			colorMenu.setMnemonic('O');
 			ArrayList<String[]> optsTmp = new ArrayList<String[]>();
 			optsTmp.add(new String[] {"Default", "Default", "Set color scheme to the Genvisis default"});
 			if (gcModel != null) {
@@ -2558,6 +2661,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		{
 
 			JMenu excudeMenu = new JMenu("ExcludeBy");
+			excudeMenu.setMnemonic('E');
 			ArrayList<String[]> optsTmp = new ArrayList<String[]>();
 			optsTmp.add(new String[] {"None", "None", "No Exclusions"});
 			if (proj.MARKER_COLOR_KEY_FILENAMES.getValue() != null) {
@@ -2856,9 +2960,11 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		MessageOfEncouragment mess;
 
 		time = new Date().getTime();
-		log.report("  Getting a list of all files with extension " + Sample.SAMPLE_FILE_EXTENSION
+		log.report("  Getting a list of all files with extension "
+							 + Sample.SAMPLE_FILE_EXTENSION
 							 + " (if the process hangs here the first time after reverse transposing, please be patient, the operating system is busy indexing the new files) ...");
-		mess = new MessageOfEncouragment("Getting a list of all sample files is taking longer than usual and probably means that your recently created files are still being indexed on the hard drive. Please be patient...",
+		mess = new MessageOfEncouragment(
+																		 "Getting a list of all sample files is taking longer than usual and probably means that your recently created files are still being indexed on the hard drive. Please be patient...",
 																		 proj);
 		new Thread(mess).start();
 		filesPresent = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true),
@@ -2907,7 +3013,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			JOptionPane.showMessageDialog(null,
 																		"Error - Failed to load the MarkerSet file; make sure the raw data is parsed",
 																		"Error", JOptionPane.ERROR_MESSAGE);
-			log.reportError("Error - failed to load MarkerSet for project " + proj.PROJECT_NAME.getValue()
+			log.reportError("Error - failed to load MarkerSet for project "
+											+ proj.PROJECT_NAME.getValue()
 											+ "; make sure the raw data is parsed");
 			return false;
 		}
@@ -2981,7 +3088,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			genotypes = samp.getAB_Genotypes();
 
 			if (transformation_type > 0) {
-				lrrValues = Transforms.transform(lrrs, transformation_type, transformSeparatelyByChromosome,
+				lrrValues = Transforms.transform(lrrs, transformation_type,
+																				 transformSeparatelyByChromosome,
 																				 markerSet);
 			} else if (transformation_type < 0 && centroids != null) {
 				lrrValues = samp.getLRRs(centroids);
@@ -3068,7 +3176,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				if (!sample.equals(proj.SAMPLE_DIRECTORY.getValue(false, true) + " directory is empty")) {
 					JOptionPane.showMessageDialog(this,
 																				"Sample '" + sample
-																							+ "' was not present in the SampleData file",
+																						+ "' was not present in the SampleData file",
 																				"Error", JOptionPane.ERROR_MESSAGE);
 				}
 				return;
@@ -3109,7 +3217,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				} else {
 					JOptionPane.showMessageDialog(this,
 																				"Data was not found for the next sample in the list ("
-																							+ newSample + ").",
+																						+ newSample + ").",
 																				"Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
@@ -3275,7 +3383,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		try {
 			String file = regionFileName.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue()
 																											+ regionFileName
-																										: regionFileName;
+																									 : regionFileName;
 			reader = Files.getAppropriateReader(file);// Files.getReader(file, jar, false, false);
 			System.out.print("Loading regions from " + regionFileName + "...");
 			v = new Vector<String[]>();
@@ -3301,22 +3409,24 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			if (invalidSamples > 0) {
 				JOptionPane.showMessageDialog(null,
 																			"Error - there were " + invalidSamples
-																						+ " invalid samples in '" + regionFileName
-																						+ "' that were ignored because they could not be found",
+																					+ " invalid samples in '" + regionFileName
+																					+ "' that were ignored because they could not be found",
 																			"Error", JOptionPane.ERROR_MESSAGE);
 			}
 			if (countMissingRegions > 0) {
 				JOptionPane.showMessageDialog(null,
-																			"Warning - there were " + countMissingRegions + " lines in '"
-																						+ regionFileName
-																						+ "' without a chromosomal region listed; using \"chr1\" for all missing values",
+																			"Warning - there were "
+																					+ countMissingRegions
+																					+ " lines in '"
+																					+ regionFileName
+																					+ "' without a chromosomal region listed; using \"chr1\" for all missing values",
 																			"Warning", JOptionPane.ERROR_MESSAGE);
 			}
 			if (ignoredLines > 1) {
 				JOptionPane.showMessageDialog(null,
 																			"Error - there were " + ignoredLines + " regions in '"
-																						+ regionFileName
-																						+ "' that were ignored due to improper formatting",
+																					+ regionFileName
+																					+ "' that were ignored due to improper formatting",
 																			"Error", JOptionPane.ERROR_MESSAGE);
 			}
 			reader.close();
@@ -3498,7 +3608,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	 */
 	private static float[] getNewLRRs(Project proj, float[] lrrsToTransform, int transformation_type,
 																		boolean transformSeparatelyByChromosome,
-																		PreparedMarkerSet markerSet, GcModel gcModel, boolean correctGC,
+																		PreparedMarkerSet markerSet, GcModel gcModel,
+																		boolean correctGC,
 																		boolean correctGCFirst, Logger log) {
 		float[] tmpLrrs = lrrsToTransform; // make sure not to modify
 		if (gcModel == null && correctGC) {
@@ -3506,7 +3617,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			correctGC = false;
 		}
 		if (correctGC && correctGCFirst) {
-			tmpLrrs = ArrayUtils.toFloatArray(GcAdjustor.getComputedAdjustor(proj, markerSet, tmpLrrs,
+			tmpLrrs = ArrayUtils.toFloatArray(GcAdjustor.getComputedAdjustor(proj,
+																																			 markerSet,
+																																			 tmpLrrs,
 																																			 gcModel,
 																																			 GC_CORRECTION_METHOD.GENVISIS_GC,
 																																			 false, false, true)
@@ -3518,7 +3631,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 																		 markerSet);
 		}
 		if (correctGC && !correctGCFirst) {
-			tmpLrrs = ArrayUtils.toFloatArray(GcAdjustor.getComputedAdjustor(proj, markerSet, tmpLrrs,
+			tmpLrrs = ArrayUtils.toFloatArray(GcAdjustor.getComputedAdjustor(proj,
+																																			 markerSet,
+																																			 tmpLrrs,
 																																			 gcModel,
 																																			 GC_CORRECTION_METHOD.GENVISIS_GC,
 																																			 false, false, true)
@@ -3606,7 +3721,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		builder.numMarkers(stopMarker - startMarker);
 		builder.score(Double.NaN);
 		CNVariant[] tmp = new CNVariant[MOSAIC_TYPE.values().length];
-		WorkerHive<MosaicQuantResults[]> hive = new WorkerHive<MosaicismQuant.MosaicQuantResults[]>(1,
+		WorkerHive<MosaicQuantResults[]> hive = new WorkerHive<MosaicismQuant.MosaicQuantResults[]>(
+																																																1,
 																																																10,
 																																																proj.getLog());
 		hive.addCallable(worker);
@@ -3912,5 +4028,3 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	}
 
 }
-
-

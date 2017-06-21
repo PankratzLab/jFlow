@@ -1,5 +1,8 @@
 package org.genvisis.cnv.filesys;
 
+import htsjdk.tribble.annotation.Strand;
+import htsjdk.variant.variantcontext.Allele;
+
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.ref.Reference;
@@ -38,9 +41,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-
-import htsjdk.tribble.annotation.Strand;
-import htsjdk.variant.variantcontext.Allele;
 
 public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport {
 
@@ -343,11 +343,11 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		int numMarkers = markerNames.length;
 		if (numMarkers != chrs.length || numMarkers != positions.length
 				|| (abAlleles != null && numMarkers != abAlleles.length)) {
-			throw new IllegalArgumentException(this.getClass().getName()
-																				 + " cannot be constructed with mismatched list of Markers and positions or AB Alleles");
+			throw new IllegalArgumentException(
+																				 this.getClass().getName()
+																						 + " cannot be constructed with mismatched list of Markers and positions or AB Alleles");
 		}
 		ImmutableList.Builder<Marker> markersBuilder = ImmutableList.builder();
-
 		for (int i = 0; i < markerNames.length; i++) {
 			String name = markerNames[i];
 			GenomicPosition genomicPosition = new GenomicPosition(chrs[i], positions[i]);
@@ -383,9 +383,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				} else {
 					if (Math.abs(naivePosition
 											 - annotation.getRefLoc().getStart()) < Math.abs(
-																																			 naivePosition
-																																			 - bestMatch.getRefLoc()
-																																									.getStart())) {
+																																	naivePosition
+																																			- bestMatch.getRefLoc()
+																																								 .getStart())) {
 						bestMatch = annotation;
 					}
 				}
@@ -471,8 +471,11 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			return null;
 		}
 		Map<String, MarkerBlastAnnotation> masterMarkerList = MarkerBlastAnnotation.initForMarkers(markerNames);
-		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(null, blastAnnotation,
-																																				 new MarkerDetailSet(naiveMarkerSet),
+		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(
+																																				 null,
+																																				 blastAnnotation,
+																																				 new MarkerDetailSet(
+																																														 naiveMarkerSet),
 																																				 true, log);
 		annotationLoader.setReportEvery(10000);
 		List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
@@ -527,8 +530,10 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				bestMatch = closestChrMatch(naiveMarkerSet.getChrs()[i], naiveMarkerSet.getPositions()[i],
 																		perfectMatches);
 				if (bestMatch == null) {
-					log.reportTimeWarning("Arbitrarily selecting first of " + perfectMatches.size()
-																+ " perfect matches for " + markerNames[i]
+					log.reportTimeWarning("Arbitrarily selecting first of "
+																+ perfectMatches.size()
+																+ " perfect matches for "
+																+ markerNames[i]
 																+ ", none of which are on the same chromosome as indicated by the array");
 					bestMatch = perfectMatches.get(0);
 				}
@@ -557,11 +562,14 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				} else if (!bestMatches.isEmpty()) {
 					//
 					ambiguousPosition = true;
-					bestMatch = closestChrMatch(naiveMarkerSet.getChrs()[i], naiveMarkerSet.getPositions()[i],
+					bestMatch = closestChrMatch(naiveMarkerSet.getChrs()[i],
+																			naiveMarkerSet.getPositions()[i],
 																			bestMatches);
 					if (bestMatch == null) {
-						log.reportTimeWarning("Arbitrarily selecting first of " + bestMatches.size()
-																	+ " best matches with identical E-values for " + markerNames[i]
+						log.reportTimeWarning("Arbitrarily selecting first of "
+																	+ bestMatches.size()
+																	+ " best matches with identical E-values for "
+																	+ markerNames[i]
 																	+ ", none of which are on the same chromosome as indicated by the array");
 						bestMatch = bestMatches.get(0);
 					}
@@ -585,7 +593,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		}
 		if (ambiguousPositionCount > 0) {
 			log.reportError("Warning - there " + (ambiguousPositionCount > 1 ? "were " : "was ")
-											+ ambiguousPositionCount + " marker" + (ambiguousPositionCount > 1 ? "s" : "")
+											+ ambiguousPositionCount + " marker"
+											+ (ambiguousPositionCount > 1 ? "s" : "")
 											+ " with ambiguous BLAST matches");
 		}
 		if (missingPositionCount > 0) {
@@ -603,7 +612,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 		if (markerDetailSet.getFingerprint() != naiveMarkerSet.getFingerprint()) {
 			throw new IllegalStateException(markerDetailSet.getClass().getName() + " fingerprint ("
-																			+ markerDetailSet.getFingerprint() + ") does not match naive "
+																			+ markerDetailSet.getFingerprint()
+																			+ ") does not match naive "
 																			+ naiveMarkerSet.getClass().getName() + " fingerprint ("
 																			+ naiveMarkerSet.getFingerprint() + ")");
 		}
@@ -658,11 +668,13 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	 *         GenomicPosition)
 	 */
 	public SetMultimap<GenomicPosition, Marker> getGenomicPositionMap() {
-		SetMultimap<GenomicPosition, Marker> genomicPositionMap = genomicPositionMapRef == null ? null
-																																														: genomicPositionMapRef.get();
+		SetMultimap<GenomicPosition, Marker> genomicPositionMap = genomicPositionMapRef == null
+																																													 ? null
+																																													 : genomicPositionMapRef.get();
 		if (genomicPositionMap == null) {
 			genomicPositionMap = generateGenomicPositionMap();
-			genomicPositionMapRef = new SoftReference<SetMultimap<GenomicPosition, Marker>>(genomicPositionMap);
+			genomicPositionMapRef = new SoftReference<SetMultimap<GenomicPosition, Marker>>(
+																																											genomicPositionMap);
 		}
 		return genomicPositionMap;
 	}
@@ -674,7 +686,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 	public Map<Marker, Integer> getMarkerIndexMap() {
 		Map<Marker, Integer> markerIndexMap = markerIndexMapRef == null ? null
-																																		: markerIndexMapRef.get();
+																																	 : markerIndexMapRef.get();
 		if (markerIndexMap == null) {
 			markerIndexMap = generateMarkerIndexMap();
 			markerIndexMapRef = new SoftReference<Map<Marker, Integer>>(markerIndexMap);
@@ -689,7 +701,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		try {
 			writer = Files.getAppropriateWriter(filename);
 			for (Marker marker : markers) {
-				writer.println(Joiner.on('\t').join(marker.getName(), marker.getChr(), marker.getPosition(),
+				writer.println(Joiner.on('\t').join(marker.getName(), marker.getChr(),
+																						marker.getPosition(),
 																						marker.getA(), marker.getB()));
 			}
 			writer.close();
