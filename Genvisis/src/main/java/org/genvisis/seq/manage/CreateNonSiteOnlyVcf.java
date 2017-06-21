@@ -35,6 +35,12 @@ public class CreateNonSiteOnlyVcf {
 		c.parseWithExit(args);
 
 		String vcf = c.get("vcf");
+		createNonSiteOnlyVcf(vcf);
+
+
+	}
+
+	public static String createNonSiteOnlyVcf(String vcf) {
 		VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 		if (reader.getFileHeader().getNGenotypeSamples() > 0) {
 			reader.close();
@@ -84,8 +90,7 @@ public class CreateNonSiteOnlyVcf {
 		}
 		reader.close();
 		writer.close();
-
-
+		return output;
 	}
 
 }
