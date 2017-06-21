@@ -10,6 +10,9 @@ import org.genvisis.seq.manage.VCFOps;
 /**
  * annotate a vcf using hard coded defualts...need I say this is dangerous?
  *
+ * Need to sort, use http://vcftools.sourceforge.net/perl_module.html
+ *
+ * vcf-sort file.vcf.gz
  */
 public class quickAnno {
 	private quickAnno() {
@@ -27,7 +30,7 @@ public class quickAnno {
 		String vcf = c.get("vcf");
 		Logger log = new Logger(VCFOps.getAppropriateRoot(vcf, false) + ".anno.log");
 		if (VCFOps.getSamplesInFile(vcf).length == 0) {
-			vcf = CreateNonSiteOnlyVcf.createNonSiteOnlyVcf(vcf);
+			vcf = CreateNonSiteOnlyVcf.createNonSiteOnlyVcf(vcf, false, false);
 		}
 		GATK_Genotyper.annotateOnlyWithDefualtLocations(vcf, null, PSF.Ext.DEFAULT_MEMORY_MB, true, false, log);
 	}

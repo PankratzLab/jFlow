@@ -13,7 +13,9 @@ import org.genvisis.common.ext;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.variantcontext.writer.Options;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
+import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFFormatHeaderLine;
 import htsjdk.variant.vcf.VCFHeader;
@@ -35,12 +37,12 @@ public class CreateNonSiteOnlyVcf {
 		c.parseWithExit(args);
 
 		String vcf = c.get("vcf");
-		createNonSiteOnlyVcf(vcf);
+		createNonSiteOnlyVcf(vcf, true, true);
 
 
 	}
 
-	public static String createNonSiteOnlyVcf(String vcf) {
+	public static String createNonSiteOnlyVcf(String vcf, boolean gzip, boolean index) {
 		VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 		if (reader.getFileHeader().getNGenotypeSamples() > 0) {
 			reader.close();
@@ -54,17 +56,27 @@ public class CreateNonSiteOnlyVcf {
 		HashSet<String> samps = new HashSet<String>();
 		samps.add(randSample);
 
-		String output = VCFOps.getAppropriateRoot(vcf, false) + randSample + ".vcf.gz";
-		VariantContextWriter writer = VCFOps.initWriter(output, VCFOps.DEFUALT_WRITER_OPTIONS,
-																										reader.getFileHeader().getSequenceDictionary());
+		String output = VCFOps.getAppropriateRoot(vcf, false) + randSample
+										+ (gzip ? ".vcf.gz" : ".vcf");
+		VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(output);
+		if (!index) {
+			builder.unsetOption(Options.INDEX_ON_THE_FLY);
+		}
+		if (reader.getFileHeader().getSequenceDictionary() != null) {
+			builder.setReferenceDictionary(reader.getFileHeader().getSequenceDictionary());
+		}
+
+		VariantContextWriter writer = builder.build();
+
 		VCFHeader header = reader.getFileHeader();
 
-		VCFFormatHeaderLine format = new VCFFormatHeaderLine("GT", -1, VCFHeaderLineType.String, "GT");
-		VCFInfoHeaderLine info = new VCFInfoHeaderLine("LEN", -1, VCFHeaderLineType.String,
+		VCFFormatHeaderLine format = new VCFFormatHeaderLine("GT", 1, VCFHeaderLineType.String,
+																												 "Genotype");
+		VCFInfoHeaderLine info = new VCFInfoHeaderLine("LEN", 1, VCFHeaderLineType.String,
 																									 "Don't know what this is, was not properly in the header -jlanej");
-		VCFInfoHeaderLine info2 = new VCFInfoHeaderLine("TYPE", -1, VCFHeaderLineType.String,
+		VCFInfoHeaderLine info2 = new VCFInfoHeaderLine("TYPE", 1, VCFHeaderLineType.String,
 																										"Don't know what this is, was not properly in the header -jlanej");
-		VCFInfoHeaderLine info3 = new VCFInfoHeaderLine("OLD_VARIANT", -1, VCFHeaderLineType.String,
+		VCFInfoHeaderLine info3 = new VCFInfoHeaderLine("OLD_VARIANT", 1, VCFHeaderLineType.String,
 																										"Don't know what this is, was not properly in the header -jlanej");
 
 
@@ -84,9 +96,9 @@ public class CreateNonSiteOnlyVcf {
 				log.reportTimeInfo("Converted " + count);
 			}
 
-			VariantContextBuilder builder = new VariantContextBuilder(vc);
-			builder.genotypes(GenotypeBuilder.create(randSample, vc.getAlleles()));
-			writer.add(builder.make());
+			VariantContextBuilder builderVC = new VariantContextBuilder(vc);
+			builderVC.genotypes(GenotypeBuilder.create(randSample, vc.getAlleles()));
+			writer.add(builderVC.make());
 		}
 		reader.close();
 		writer.close();
