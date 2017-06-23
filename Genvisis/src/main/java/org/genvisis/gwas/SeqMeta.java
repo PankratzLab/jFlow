@@ -2460,7 +2460,7 @@ public class SeqMeta {
     for (String[] phenotype : phenotypes) {
       ns = ArrayUtils.intArray(groups.length, -1);
       for (String[] method : methods) {
-        if (method[0].equals("SingleSNP")) {
+        if (method[1].equals("BurdenTests")) {
           for (String functionFileName : functionNames) {
             filename = phenotype[0] + "/" + method[0] + "/meta_panEthnic_pvals_mac"
                        + macThresholdTotal
