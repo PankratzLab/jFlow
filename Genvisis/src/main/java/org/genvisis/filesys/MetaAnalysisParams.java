@@ -137,7 +137,6 @@ public class MetaAnalysisParams {
           } else if (trav.startsWith("GENE_NAME=")) {
             geneName = ext.parseStringArg(trav, "SKATgene");
           } else if (trav.startsWith("FUNCTIONAL=")) {
-            if (!(ext.parseStringArg(trav, null) == null)) trav += ",None";
             functionFlagName = ext.parseStringArg(trav, "None").split(",");
           } else if (trav.startsWith("R_EXEC=")) {
             rExec = ext.parseStringArg(trav, null);
