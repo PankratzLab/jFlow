@@ -4,14 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Hashtable;
 
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
@@ -19,7 +15,6 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
-import org.genvisis.gwas.HitWindows;
 
 public class ParseMXCResults {
 	private static String resultsGeneCol = "gene_name";
@@ -30,38 +25,6 @@ public class ParseMXCResults {
 	private static String genesFile = "/home/pankrat2/public/bin/NCBI/genes37.xln";
 
 	private static String usage = "";
-
-	private static void cleanResultsFile(String inputFile, String outputFile,
-																			 Logger log) throws IOException {
-		String[][] mxc = mxcToMatrix(inputFile);
-
-		String[] keys = getKeys(mxc, resultsGeneCol, log);
-
-		String[][] results = findGenes(mxc, keys, genesFile, log);
-
-
-		// output cleaned stuff to a file
-		writeToFile(results, outputFile, log);
-	}
-
-	private static void writeToFile(String[][] matrix, String filename, Logger log) {
-		PrintWriter writer;
-
-		try {
-			writer = new PrintWriter(new FileWriter(filename));
-			for (String[] element : matrix) {
-				for (int j = 0; j < element.length; j++) {
-					writer.print((j == 0 ? "" : ",") + element[j]);
-				}
-				writer.println();
-			}
-
-			writer.close();
-		} catch (Exception e) {
-			log.report("Error writing to " + filename);
-			e.printStackTrace();
-		}
-	}
 
 	private static String[] getKeys(String[][] matrix, String colname, Logger log) {
 		String[] headers = matrix[0];
@@ -79,35 +42,6 @@ public class ParseMXCResults {
 		return Matrix.extractColumn(matrix, index);
 	}
 
-	private static String[][] findGenes(String[][] mxc, String[] keys, String filename,
-																			Logger log) throws IOException {
-		String[][] results = null;
-		String[] headers = {"gene_name", "start_pos",
-												"stop_pos", "chr"};
-
-		String[][] genes = loadGenes(filename, false, log);
-
-		// get the results of the comparison
-		try {
-			results = Files.combineInMemory(keys, genes, "NA", true, false, log);
-		} catch (Elision e) {
-			log.reportError(e.getMessage());
-		}
-
-		// append results to the original matrix
-		results = append(mxc, results);
-
-		// headers are marked as NA because the column names don't match
-		// put in R-safe headers in place of NA values
-		for (int j = 0; j < results[0].length; j++) {
-			results[0][j] = (j < mxc[0].length) ? mxc[0][j] : headers[j - mxc[0].length];
-		}
-
-		// filter out rows where no gene can be found
-		results = removeNAs(results, results[0].length - 4);
-
-		return results;
-	}
 
 	private static String[][] loadGenes(String filename, boolean omitHeader, Logger log) {
 		int[] cols = new int[4];
@@ -167,122 +101,6 @@ public class ParseMXCResults {
 		return matrix;
 	}
 
-
-
-	// TODO: Use genvisis qq and manhattan plots instead of R's
-	private static void generateRScript(String outputFile) {
-		ArrayList<String> r = new ArrayList<String>();
-		outputFile = new File(outputFile).getAbsolutePath();
-
-		String filename = outputFile.split("\\.")[0];
-
-		r.add("library(\"qqman\", lib.loc=\"/panfs/roc/groups/5/pankrat2/cole0482/R/x86_64-pc-linux-gnu-library/3.2\")");
-		r.add("data=read.csv(\"" + filename + ".csv" + "\")");
-		r.add("png(\"" + filename + "_manhattan.png\")");
-		r.add("manhattan(data, chr=\"chr\", bp=\"start_pos\", p=\"pvalue\")");
-		r.add("dev.off()");
-
-
-		// write rscript to a file
-		Files.writeIterable(r, filename + "_manhattan.R");
-
-		r.clear();
-		r.add("library(\"qqman\", lib.loc=\"/panfs/roc/groups/5/pankrat2/cole0482/R/x86_64-pc-linux-gnu-library/3.2\")");
-		r.add("data=read.csv(\"" + filename + ".csv" + "\")");
-		r.add("png(\"" + filename + "_qq.png\")");
-		r.add("qq(data$pvalue)");
-		r.add("dev.off()");
-
-		Files.writeIterable(r, filename + "_qq.R");
-	}
-
-
-	public static void markersUsed(String mapfile, String posfile, String mxcfile, String metalfile) {
-		Hashtable<String, String> mxc = HashVec.loadFileToHashString(mxcfile, "gene",
-																																 new String[] {"gene_name"}, ",");
-		Hashtable<String, String> metal = HashVec.loadFileToHashString(metalfile, "MarkerName",
-																																	 new String[] {"P-value"}, " ");
-		String[][] map = HashVec.loadFileToStringMatrix(mapfile, true, new int[] {0, 1}, false);
-		String[][] pos = HashVec.loadFileToStringMatrix(posfile, true, null, false);
-
-		float sig = (float) (0.05 / metal.keySet().size());
-		float sugg = sig * 100;
-
-		String root = ext.parseDirectoryOfFile(metalfile);
-
-		// maps gene to related rsids
-		Hashtable<String, HashSet<String>> markers = new Hashtable<String, HashSet<String>>();
-
-		for (int j = 0; j < map.length; j++) {
-			String key = map[j][0].split("\\.")[0];
-			if (!markers.containsKey(key)) {
-				markers.put(key, new HashSet<String>());
-			}
-			markers.get(key).add(map[j][1]);
-		}
-
-
-		// maps rsid to a chr and position
-		// this could just be the same as the load file line, fix later
-		Hashtable<String, String> posmap = new Hashtable<String, String>();
-		for (int i = 0; i < pos.length; i++) {
-			posmap.put(pos[i][0], pos[i][1] + "," + pos[i][2]);
-		}
-
-		ArrayList<String> results = new ArrayList<String>();
-		results.add("MarkerName,p,sig,Chr,Position");
-		ArrayList<String> mxc_results = new ArrayList<String>();
-		mxc_results.add("MarkerName,Gene,p,sig,Chr,Position");
-		for (String s : metal.keySet()) {
-			if (!metal.get(s).equals("NA")) {
-				double p = Double.parseDouble(metal.get(s));
-				String ind = p < sig ? "***" : (p < sugg ? "*" : ".");
-				String chrAndPos = posmap.get(s);
-
-				results.add(s + "," + p + "," + ind + "," + chrAndPos);
-			}
-		}
-
-		for (String g : mxc.keySet()) {
-			HashSet<String> rsids = markers.get(g);
-			if (rsids != null) {
-				for (String s : rsids) {
-					if (metal.get(s) != null && !metal.get(s).equals("NA")) {
-						double p = Double.parseDouble(metal.get(s));
-						String ind = p < sig ? "***" : (p < sugg ? "**" : ".");
-						String chrAndPos = posmap.get(s);
-						String geneName = mxc.get(g);
-						mxc_results.add(s + "," + geneName + "," + p + "," + ind + "," + chrAndPos);
-					}
-				}
-			}
-		}
-
-		Files.writeIterable(results, root + "relatedMarkers_all.csv");
-		Files.writeIterable(mxc_results, root + "relatedMarkers_mxc.csv");
-
-
-		String[][] regions = HitWindows.determine(root + "relatedMarkers_all.csv",
-																							sig, 500000, sugg, new String[] {},
-																							new Logger());
-		String[][] mxc_regions = HitWindows.determine(root + "relatedMarkers_mxc.csv",
-																									sig, 500000, sugg, new String[] {"Gene"},
-																									new Logger());
-
-		Files.writeMatrix(regions, root + "metal_regions.csv", ",");
-		Files.writeMatrix(mxc_regions, root + "mxc_regions.csv", ",");
-	}
-
-	private static String[][] mxcToMatrix(String filename) {
-		String[][] mxc = HashVec.loadFileToStringMatrix(filename, false, null, false);
-		int p = -1;
-		for (int i = 0; i < mxc[0].length; i++)
-			if (mxc[0][i].equals("pvalue"))
-				p = i;
-		mxc = removeNAs(mxc, p);
-		return mxc;
-	}
-
 	public static void addMetalHits(String posfile, String mxcfile, String mapfile, String metalfile,
 																	Logger log) {
 		// read in the metal gwas results file
@@ -304,7 +122,7 @@ public class ParseMXCResults {
 			metal = HashVec.loadFileToStringMatrix(metalfile, true, valueIndices, false);
 			b.close();
 		} catch (Exception e) {
-			log.reportError("Unable to load gwas file. Aborting.");
+			log.reportError("Unable to load gwas summary file. Aborting.");
 			System.exit(1);
 		}
 		float bf = (float) 0.05 / metal.length;
@@ -359,7 +177,7 @@ public class ParseMXCResults {
 		});
 
 		// maps gene to related snps
-		String[] mxcGenes = getKeys(mxc, "gene_name", new Logger());
+		String[] mxcGenes = getKeys(mxc, resultsGeneCol, new Logger());
 		ArrayList<String> snpsOnGene = new ArrayList<String>();
 		int startPos;
 		int endPos;
@@ -444,11 +262,9 @@ public class ParseMXCResults {
 		Logger log = new Logger();
 
 		String mxcFile = "";
-		String outputFile = "";
 		String metal = null;
 		String map = null;
 		String posmap = null;
-		boolean addHits = false;
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("help")) {
@@ -458,8 +274,6 @@ public class ParseMXCResults {
 				mxcFile = arg.split("=")[1];
 			else if (arg.startsWith("genes="))
 				genesFile = arg.split("=")[1];
-			else if (arg.startsWith("out="))
-				outputFile = arg.split("=")[1];
 			else if (arg.startsWith("chr="))
 				chrCol = arg.split("=")[1];
 			else if (arg.startsWith("mGeneCol="))
@@ -476,20 +290,11 @@ public class ParseMXCResults {
 				map = arg.split("=")[1];
 			else if (arg.startsWith("posmap="))
 				posmap = arg.split("=")[1];
-			else if (arg.equals("-addHits"))
-				addHits = true;
 			else
 				log.report("Invalid argument: " + arg);
 		}
 
-		if (metal != null && map != null) {
-			if (addHits)
-				addMetalHits(posmap, mxcFile, map, metal, log);
-			else
-				markersUsed(map, posmap, mxcFile, metal);
-		} else {
-			cleanResultsFile(mxcFile, outputFile, log);
-			generateRScript(outputFile);
-		}
+		addMetalHits(posmap, mxcFile, map, metal, log);
+
 	}
 }
