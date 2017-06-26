@@ -3,6 +3,7 @@ package org.genvisis.seq.analysis;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
@@ -539,7 +540,8 @@ public class RegNovo {
 	}
 
 	public static void detectDenovo(String vcf, String vpopFile, String bams, double gqVal,
-																	String excludeFile, Logger log) {
+																	String[] regions, String outputRoot, String excludeFile,
+																	Logger log) {
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.ANY, log);
 		vpop.report();
 		Hashtable<String, String> excludeHash = new Hashtable<String, String>();
@@ -559,32 +561,31 @@ public class RegNovo {
 		RegNovo regNovo = new RegNovo(vcf, bams, vpop, getQualityFilter(gqVal, log),
 																	getQualityFilter(gqVal, log), readDepths,
 																	ext.parseDirectoryOfFile(vpopFile), excludeHash, log);
-		// Segment[] segs = new Segment[] { new Segment("chr9:14079842-14400982"), new
-		// Segment("chr17:7571520-7590968"), new Segment("chr8:119933796-119966383") };
-		Segment[] segs = new Segment[] {new Segment("chr17:7571520-7590968")};
+		Segment[] segs = Arrays.stream(regions).map(Segment::new).toArray(Segment[]::new);
 		regNovo.scanForDenovo();
-		regNovo.scanAndReportSelection(segs, readDepths, getQualityFilter(gqVal, log),
-																	 "TP53_NFIB_TNFRSF11B");
-
-		//
-
+		regNovo.scanAndReportSelection(segs, readDepths, getQualityFilter(gqVal, log), outputRoot);
 	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String vcf = "D:/data/Project_Tsai_21_25_26_28_spector/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.vcf.gz";
 		String vpopFile = "D:/data/logan/OSv2_seq/RegNovo/noExcludeDenovoV2/OsSamps.vcfPop_noExclude2.txt";
-		String excludeFile = "D:/data/logan/OSv2_seq/RegNovo/noExcludeDenovoV2/excludeSamps.txt";
+		String excludeFile = null;
 		String bams = null;
+		String[] regions = null;
+		String outputRoot = null;
 		String logfile = null;
 		Logger log;
 		double gqVal = 40;
 
 		String usage = "\n" + "seq.analysis.RegNovo requires 0-1 arguments\n";
-		usage += "   (1) full path to a vcf file (i.e. vcf=" + vcf + " (default))\n" + "";
-		usage += "   (2) full path to a vpop file (i.e. vpop=" + vpopFile + " (default))\n" + "";
-		usage += "   (3) full path to a directory or file of bams (i.e. bams=" + bams
-						 + " (no default))\n" + "";
+		usage += "   (1) full path to a vcf file (i.e. vcf=" + vcf + " (default))\n";
+		usage += "   (2) full path to a vpop file (i.e. vpop=" + vpopFile + " (default))\n";
+		usage += "   (3) regions to search for de novos (i.e. regions=chr17:7571520-7590968,chr16 (no default, required))";
+		usage += "   (4) root to use for output files (i.e. outputRoot=TP53_NFIB_TNFRSF11B (no default, required))";
+		usage += "   (5) full path to a directory or file of bams (i.e. bams=" + bams
+						 + " (no default))\n";
+		usage += "   (6) full path to a file of samples to exclude (i.e. excludes=D:/data/logan/OSv2_seq/RegNovo/noExcludeDenovoV2/excludeSamps.txt (no default))\n";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -599,6 +600,15 @@ public class RegNovo {
 			} else if (arg.startsWith("bams=")) {
 				bams = ext.parseStringArg(arg, "");
 				numArgs--;
+			} else if (arg.startsWith("excludes=")) {
+				excludeFile = ext.parseStringArg(arg);
+				numArgs--;
+			} else if (arg.startsWith("regions=")) {
+				regions = ext.parseStringArrayArg(arg, new String[0]);
+				numArgs--;
+			} else if (arg.startsWith("outputRoot=")) {
+				outputRoot = ext.parseStringArg(arg);
+				numArgs--;
 			} else if (arg.startsWith("log=")) {
 				logfile = arg.split("=")[1];
 				numArgs--;
@@ -606,13 +616,13 @@ public class RegNovo {
 				System.err.println("Error - invalid argument: " + arg);
 			}
 		}
-		if (numArgs != 0) {
+		if (numArgs != 0 || regions == null || outputRoot == null) {
 			System.err.println(usage);
 			System.exit(1);
 		}
 		try {
 			log = new Logger(logfile);
-			detectDenovo(vcf, vpopFile, bams, gqVal, excludeFile, log);
+			detectDenovo(vcf, vpopFile, bams, gqVal, regions, outputRoot, excludeFile, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
