@@ -773,7 +773,9 @@ public class SeqMeta {
               root = races[k][0] + "_" + phenotypes[i][0] + "_" + method[0];
               outputFilename = dir + phenotypes[i][0] + "/" + races[k][0] + "/" + method[0] + "/"
                                + root
-                               + (functionFlagName.equals("None") ? "" : "_" + functionFlagName)
+                               + (functionFlagName.equals("None")
+                                  || method[2].equals("singlesnpMeta") ? ""
+                                                                       : "_" + functionFlagName)
                                + (runningByChr ? "_chr" + chrom : "") + ".csv";
               if (forceMeta
                   || (!Files.exists(outputFilename) && !Files.exists(outputFilename + ".gz"))
@@ -866,7 +868,8 @@ public class SeqMeta {
           for (String functionFlagName : functionNames) {
             root = phenotypes[i][0] + "_" + method[0];
             outputFilename = dir + phenotypes[i][0] + "/" + method[0] + "/" + root
-                             + (functionFlagName.equals("None") ? "" : "_" + functionFlagName)
+                             + (functionFlagName.equals("None")
+                                || method[2].equals("singlesnpMeta") ? "" : "_" + functionFlagName)
                              + (runningByChr ? "_chr" + chrom : "") + ".csv";
             if (forceMeta
                 || (!Files.exists(outputFilename) && !Files.exists(outputFilename + ".gz"))
