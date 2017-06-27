@@ -131,7 +131,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 
 	@Override
 	public void assignAxisLabels() {
-		displayXaxis = displayYaxis = true;
+		displayXAxis = displayYAxis = true;
 		if (!overrideAxisLabels) {
 			// xAxisLabel = "Bins";
 			// yAxisLabel = "";
@@ -173,20 +173,20 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	// float[][] currentData;
 	// CountVector uniqueValueCounts;
 	// byte type;
-	//// String[] twoDPlot.get
+	// // String[] twoDPlot.get
 	//
 	// currentData= tdp.getDataSelected(true);
 	// uniqueValueCounts = new CountVector();
-	//// sampleData.getClass();
+	// // sampleData.getClass();
 	//
 	// points = new PlotPoint[currentData.length];
 	// for (int i = 0; i < points.length; i++) {
 	// if (Float.isNaN(currentData[i][0]) || Float.isNaN(currentData[i][1])) {
 	// type = PlotPoint.NOT_A_NUMBER;
 	// uniqueValueCounts.add("0");
-	//// } else if (alleleCounts[i]==-1) {
-	//// type = PlotPoint.MISSING;
-	//// uniqueValueCounts.add("0");
+	// // } else if (alleleCounts[i]==-1) {
+	// // type = PlotPoint.MISSING;
+	// // uniqueValueCounts.add("0");
 	// } else {
 	// type = PlotPoint.FILLED_CIRCLE;
 	// uniqueValueCounts.add((byte)currentData[i][2] + "");
@@ -308,8 +308,9 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 
 			double[] dataArray = new double[currentData.size()];
 			for (int i = 0; i < dataArray.length; i++) {
-				dataArray[i] = ext.isMissingValue(currentData.get(i)[1]) ? Double.NaN
-																																 : Double.parseDouble(currentData.get(i)[1]);
+				dataArray[i] = ext.isMissingValue(currentData.get(i)[1])
+																																? Double.NaN
+																																: Double.parseDouble(currentData.get(i)[1]);
 			}
 			hist = new org.genvisis.stats.Histogram(dataArray);
 			setHistogram(hist);
@@ -325,7 +326,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		float binHalf = (float) (hist.getBins().length > 1 ? ext.roundToSignificantFigures(minDiff
 																																											 / 2.0,
 																																											 sig + 1)
-																											 : DEFAULT_HALF_BIN_SIZE);
+																											: DEFAULT_HALF_BIN_SIZE);
 
 		forcePlotXmax = (float) (max + minDiff);
 		forcePlotXmin = (float) (min - minDiff);
@@ -337,24 +338,24 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			if (swapAxes) {
 				startX = 0f;
 				startY = sig > 0 ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i]
-																																					- binHalf),
+																																 - binHalf),
 																																 sig)
-												 : (float) (hist.getBins()[i] - binHalf);
+												: (float) (hist.getBins()[i] - binHalf);
 				stopX = hist.getCounts()[i];
 				stopY = sig > 0 ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i]
-																																				 + binHalf),
+																																+ binHalf),
 																																sig)
-												: (float) (hist.getBins()[i] + binHalf);
+											 : (float) (hist.getBins()[i] + binHalf);
 			} else {
 				startX = sig > 0 ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i]
-																																					- binHalf),
+																																 - binHalf),
 																																 sig)
-												 : (float) (hist.getBins()[i] - binHalf);
+												: (float) (hist.getBins()[i] - binHalf);
 				startY = 0f;
 				stopX = sig > 0 ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i]
-																																				 + binHalf),
+																																+ binHalf),
 																																sig)
-												: (float) (hist.getBins()[i] + binHalf);
+											 : (float) (hist.getBins()[i] + binHalf);
 				stopY = hist.getCounts()[i];
 			}
 			rectangles[i] = new GenericRectangle(startX, startY, stopX, stopY, (byte) 5, true, false,
@@ -409,8 +410,8 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	// float binHalf = (float) (currentData.size() > 1 ? ext.roundToSignificantFigures(minDiff / 2.0,
 	// sig + 1) : DEFAULT_HALF_BIN_SIZE);
 	//
-	//// forcePlotXmax = (float) (max + (minDiff / 2.0));
-	//// forcePlotXmin = (float) (min - (minDiff / 2.0));
+	// // forcePlotXmax = (float) (max + (minDiff / 2.0));
+	// // forcePlotXmin = (float) (min - (minDiff / 2.0));
 	// forcePlotXmax = (float) (max + minDiff);
 	// forcePlotXmin = (float) (min - minDiff);
 	//
@@ -563,30 +564,30 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	/*
 	 * public void mouseMoved(MouseEvent event) { Graphics g = getGraphics(); IntVector iv; String
 	 * pos; int x, y;
-	 *
+	 * 
 	 * float[][] datapoints; IndiPheno indi; // Hashtable<String,IndiPheno> sampleHash =
 	 * sampleData.getSampleHash(); float[] gcScores; byte[] alleleCounts; float gcThreshold; int
 	 * xWidth; int plotType, currentClass; int i; byte chr; int position; int markerIndex; byte size,
 	 * xFontSize;
-	 *
+	 * 
 	 * x = event.getX(); y = event.getY();
-	 *
+	 * 
 	 * canvasSectionMinimumX = WIDTH_Y_AXIS; canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
 	 * canvasSectionMinimumY = HEIGHT_X_AXIS; canvasSectionMaximumY = getHeight()-HEAD_BUFFER; pos =
 	 * (int)Math.floor(x/DEFAULT_LOOKUP_RESOLUTION)+"x"+(int)Math.floor(y/DEFAULT_LOOKUP_RESOLUTION);
 	 * if (!pos.equals(prevPos)) { repaint(); } iv = locLookup.get(pos); prox = new IntVector();
-	 *
+	 * 
 	 * plotType = sp.getPlotType(); currentClass = sp.getCurrentClass(); markerIndex =
 	 * sp.getMarkerIndex(); datapoints = markerData[markerIndex].getDatapoints(plotType); gcScores =
 	 * markerData[markerIndex].getGCs(); alleleCounts = markerData[markerIndex].getAB_Genotypes(); chr
 	 * = markerData[markerIndex].getChr(); position = markerData[markerIndex].getPosition();
 	 * gcThreshold = sp.getGCthreshold();
-	 *
+	 * 
 	 * size = sp.getPointSize(); xFontSize = (byte)(size*2);
-	 *
+	 * 
 	 * g.setFont(new Font("Arial", 0, (int)(xFontSize*1.5))); xWidth =
 	 * g.getFontMetrics(g.getFont()).stringWidth("X");
-	 *
+	 * 
 	 * for (int l = 0; iv!=null&&l<iv.size(); l++) { i = iv.elementAt(l); if (Distance.euclidean(new
 	 * int[] {x, y}, new int[] {getX(datapoints[0][i]),
 	 * getY(datapoints[1][i])})<Math.sqrt(size*size/2)) { indi = sampleHash.get(samples[i]); if
@@ -595,9 +596,9 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	 * getX(datapoints[0][i])-xWidth/2, getY(datapoints[1][i])+(int)(xFontSize*1.5/2.0)-1); } else {
 	 * g.fillOval(getX(datapoints[0][i])-(int)(size*1.5)/2, getY(datapoints[1][i])-(int)(size*1.5)/2,
 	 * (int)(size*1.5), (int)(size*1.5)); } }
-	 *
+	 * 
 	 * prox.add(i); } }
-	 *
+	 * 
 	 * prevPos = pos; } // End of original section
 	 */
 

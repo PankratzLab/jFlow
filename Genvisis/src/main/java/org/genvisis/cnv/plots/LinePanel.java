@@ -123,7 +123,7 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 
 	@Override
 	public void assignAxisLabels() {
-		displayXaxis = displayYaxis = true;
+		displayXAxis = displayYAxis = true;
 		xAxisLabel = X_AXIS_LABEL;
 		yAxisLabel = Y_AXIS_LABEL;
 	}

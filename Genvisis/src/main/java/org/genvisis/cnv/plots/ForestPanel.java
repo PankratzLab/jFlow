@@ -240,7 +240,7 @@ public class ForestPanel extends AbstractPanel {
 
 	@Override
 	public void assignAxisLabels() {
-		displayXaxis = displayYaxis = true;
+		displayXAxis = displayYAxis = true;
 		xAxisLabel = (oddsDisplay ? "Odds Ratio" : "Relative Risk") + " (" + forestPlot.getPlotLabel()
 								 + ")";
 		yAxisLabel = " ";
@@ -502,7 +502,7 @@ public class ForestPanel extends AbstractPanel {
 			leftsize = determineLongestLeft(g, getMarkerFontSize(g));
 			rightsize = determineRightBorder(g, getMarkerFontSize(g));
 
-			if (displayXaxis) {
+			if (displayXAxis) {
 				canvasSectionMinimumX = WIDTH_BUFFER + leftsize;
 				canvasSectionMaximumX = getWidth() - rightsize;
 				canvasSectionMinimumY = 0;
@@ -551,7 +551,7 @@ public class ForestPanel extends AbstractPanel {
 										 getHeight() - 20);
 			}
 
-			if (displayYaxis) {
+			if (displayYAxis) {
 				g.setFont(new Font("Arial", 0, (int) getMarkerFontSize(g)));
 				fontMetrics = g.getFontMetrics();
 				canvasSectionMinimumX = 0;

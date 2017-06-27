@@ -145,22 +145,22 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 		currentPair = sp.getCurrentPair();
 		if (names.length == 0) {
 			sp.setDescriptor("Error - no files with .mds extension were present in the project directory");
-			displayXaxis = displayYaxis = false;
+			displayXAxis = displayYAxis = false;
 		} else if (currentPair[0][0] == -1 || currentPair[1][0] == -1) {
 			sp.setDescriptor("Double click on one of the files within the box on the left-hand side and select two of its components");
 			if (currentPair[0][0] == -1) {
-				displayXaxis = false;
+				displayXAxis = false;
 			} else {
 				xAxisLabel = names[currentPair[0][0]][0] + "_"
 										 + names[currentPair[0][0]][currentPair[0][1] + 1];
-				displayXaxis = true;
+				displayXAxis = true;
 			}
 			if (currentPair[1][0] == -1) {
-				displayYaxis = false;
+				displayYAxis = false;
 			} else {
 				yAxisLabel = names[currentPair[1][0]][0] + "_"
 										 + names[currentPair[1][0]][currentPair[1][1] + 1];
-				displayYaxis = true;
+				displayYAxis = true;
 			}
 		} else {
 			xAxisLabel = names[currentPair[0][0]][0] + "_"
@@ -168,7 +168,7 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 			yAxisLabel = names[currentPair[1][0]][0] + "_"
 									 + names[currentPair[1][0]][currentPair[1][1] + 1];
 			sp.setDescriptor(xAxisLabel + " x " + yAxisLabel);
-			displayXaxis = displayYaxis = true;
+			displayXAxis = displayYAxis = true;
 		}
 	}
 

@@ -64,6 +64,7 @@ import org.genvisis.cnv.gui.CheckBoxTree;
 import org.genvisis.cnv.gui.ColorKeyPanel;
 import org.genvisis.cnv.gui.GuiManager;
 import org.genvisis.cnv.gui.UITools;
+import org.genvisis.cnv.plots.data.DataPipe;
 import org.genvisis.cnv.var.IndiPheno;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
@@ -76,7 +77,6 @@ import org.genvisis.common.Numbers;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
-import org.genvisis.parse.GenParser;
 
 import com.google.common.base.Strings;
 
@@ -99,35 +99,21 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public static final String CREATE_SCREENS = "Create Screenshots";
 	// public static final String SET_AS_COLORKEY = "Set as Color Key";
 	// public static final String SET_AS_LINKKEY = "Set as Link Key";
-	// private static final String NO_VALUE_FOUND = ".";
-	// public static final String[] BUTTONS = {ADD_DATA_FILE, REMOVE_DATA_FILE, REMOVE_ALL,
-	// CREATE_SCREENS};
-	// public static final String[][] LINKERS = {
-	// //TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
-	// {"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID"},
-	// {"Family ID", "FamID", "FID"},
-	// {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"},
-	// {"MarkerName", "Marker", "SNP", "Variant", "VariantName"}, // will link to Scatter Plot
-	// {"Region", "UCSC", "Band", "Arm"}, // will link to Trailer
-	// {"Chromosome", "Chr"}, // secondary link to Trailer
-	// {"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
-	// {"Stop Position", "Stop", "End"} // secondary link to Trailer
-	// };
 	public static final String[][] LINKERS = {Aliases.INDIVIDUAL_ID, Aliases.FAMILY_ID, Aliases.DNA,
 																						Aliases.MARKER_NAMES, Aliases.REGION, Aliases.CHRS,
 																						ArrayUtils.combine(Aliases.POSITIONS,
 																															 Aliases.POSITIONS_START),
 																						Aliases.POSITIONS_STOP};
-	public static final int DNA_INDEX_IN_LINKERS = 2;
 	public static final int IID_INDEX_IN_LINKERS = 0;
 	public static final int FID_INDEX_IN_LINKERS = 1;
+	public static final int DNA_INDEX_IN_LINKERS = 2;
 	public static final int MARKER_INDEX_IN_LINKERS = 3;
 	public static final int REGION_INDEX_IN_LINKERS = 4;
 	public static final int CHR_INDEX_IN_LINKERS = 5;
 	public static final int POS_INDEX_IN_LINKERS = 6;
 	public static final int STOP_POS_INDEX_IN_LINKERS = 7;
 
-	public static final String[] MISSING_VALUES = {"."};
+	public static final String[] MISSING_VALUES = {".", "NA"};
 
 	/*
 	 * regex to match and pull out column title, chromosome, and position
@@ -145,6 +131,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	private JButton flipButton, invXButton, invYButton;
 	private volatile boolean flipStatus, xInvStatus, yInvStatus, hideExcludes;
 	private volatile boolean isHistPlot;
+	private volatile boolean isManhattanPlot;
 	private CheckBoxTree tree;
 	private ArrayList<String> dataKeys;
 	// Map file short names to absolute path
@@ -152,9 +139,27 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	HashMap<String, ArrayList<String[]>> dataHash;
 	HashMap<String, String[]> dataColumnsHash;
 	HashMap<String, boolean[]> validColumnsHash;
+	HashMap<String, HashMap<String, DataPipe>> fileColumnDataPipes;
 	HashSet<String> validExts;
-	// lbl, chr, region, start, stop
-	HashMap<String, HashMap<Integer, String[]>> columnMetaData;
+
+	class ColumnMetaData {
+		String lbl;
+		String chr;
+		String region;
+		String start;
+		String stop;
+
+		public ColumnMetaData(String l, String c, String r, String s1, String s2) {
+			this.lbl = l;
+			this.chr = c;
+			this.region = r;
+			this.start = s1;
+			this.stop = s2;
+		}
+	}
+
+	HashMap<String, HashMap<Integer, ColumnMetaData>> columnMetaData;
+
 	HashMap<String, int[]> linkerIndices;
 	Logger log;
 	Pattern headerPattern = Pattern.compile(DATA_TITLE_REGEX);
@@ -202,8 +207,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		filenameMap = new HashMap<>();
 		dataColumnsHash = new HashMap<String, String[]>();
 		validColumnsHash = new HashMap<String, boolean[]>();
+		fileColumnDataPipes = new HashMap<>();
 		linkerIndices = new HashMap<String, int[]>();
-		columnMetaData = new HashMap<String, HashMap<Integer, String[]>>();
+		columnMetaData = new HashMap<String, HashMap<Integer, ColumnMetaData>>();
 
 		if (fileExts != null) {
 			for (String ext : fileExts) {
@@ -371,35 +377,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			String[][] selectionValues = tree.getSelectionValues();
 			selectedDataHash.clear();
 			for (String[] selectionValue : selectionValues) {
-				// String file = selectionValues[i][0];
-				// int col = Integer.parseInt(selectionValues[i][1]);
 				selectedDataHash.add(selectionValue[0] + "***" + selectionValue[1]);
 			}
-			// JCheckBox source;
-			// JPopupMenu menu;
-			// source = (JCheckBox) e.getSource();
-			// if (e.getButton() == MouseEvent.BUTTON3) {
-			//
-			// menu = new JPopupMenu();
-			// menu.setName("Actions");
-			// menu.add(new AbstractAction("Set As Color Key") {
-			// private static final long serialVersionUID = 1L;
-			//
-			// @Override
-			// public void actionPerformed(ActionEvent e1) {
-			// setColorKeyHandler(tree.getSelectionRows());
-			// }
-			// });
-			// menu.add(new AbstractAction("Set As Link Key") {
-			// private static final long serialVersionUID = 1L;
-			//
-			// @Override
-			// public void actionPerformed(ActionEvent e1) {
-			// setLinkKeyHandler(tree.getSelectionRows());
-			// }
-			// });
-			// menu.show(source, e.getX(), e.getY());
-			// }
 		}
 
 		@Override
@@ -512,8 +491,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	private JMenuBar menuBar() {
 		JMenuBar menuBar;
 		JMenu menu;
-		JMenuItem menuItemExit, menuItemOpen, menuItemRemove, menuItemRemoveAll, menuItemScreens,
-				menuItemSave;
+		JMenuItem menuItemExit, menuItemOpen, menuItemRemove, menuItemRemoveAll, menuItemScreens, menuItemSave;
 		final JCheckBoxMenuItem menuItemExclude, menuItemHist;
 
 		menuBar = new JMenuBar();
@@ -548,8 +526,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		menuItemSave.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue()
-																																 : ".");
+				JFileChooser fileChooser = new JFileChooser(proj != null
+																																? proj.PROJECT_DIRECTORY.getValue()
+																																: ".");
 				int fileOpenActionSelected = fileChooser.showSaveDialog(TwoDPlot.this);
 				if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 					File fileToOpen = fileChooser.getSelectedFile();
@@ -606,33 +585,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 				tree.setMaxSelections(isHistogram() ? 1 : 2);
 
-				// tree = new CheckBoxTree(new String[0], new String[0], new String[0][], new boolean[0],
-				// /*isHistPlot ? 1 : */2);
-				// updateTree();
-				//
-				// treePanel.remove(scrollPane);
-				// scrollPane = new JScrollPane(tree);
-				// treePanel.add(scrollPane, BorderLayout.CENTER);
-				// tree.addTreeSelectionListener(TwoDPlot.this);
-				// TwoDPlot.this.revalidate();
-				// updateGUI();
-
 				twoDPanel.paintAgain();
 			}
 		});
 		menu.add(menuItemHist);
 
-
-		// menu.add(new JMenuItem("Cut"));
-		// menu.add(new JMenuItem("Copy"));
-		// menu.add(new JMenuItem("Paste"));
-		// menu.add(new JMenuItem("Paste Image"));
-		// menu.add(new JMenuItem("Find"));
-		// menu = new JMenu("Help");
-		// menuBar.add(menu);
-		// menu.add(new JMenuItem("Contents"));
-		// menu.add(new JMenuItem("Search"));
-		// menu.add(new JMenuItem("About"));
 		return menuBar;
 	}
 
@@ -647,25 +604,13 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 	@Override
 	public void actionPerformed(ActionEvent ae) {
-		// byte numberOfSelectedNodes;
 		String command;
-		// String[] keys;
 
 		command = ae.getActionCommand();
 		if (command.equals(ADD_DATA_FILE)) {
 			addFile();
 		} else if (command.equals(REMOVE_DATA_FILE)) {
 			removeSelectedData();
-			// System.out.println(dataHash.size()+"\t"+namesHash.size()+"\t"+numericHash.size()+"\t"+treeFilenameLookup.size());
-			// System.out.println("\n==== End =====\n");
-			// } else if (command.equals(SET_AS_COLORKEY)) {
-			//// colorKeyVariables.add(tree.getSelectedPathComponentName());
-			//// colorKeyVariables.add(getNamesSelected()[0]);
-			// System.out.println("getSelectedPathComponent: " + tree.getSelectedPathComponent() + "\t +
-			// getNamesSelected: " + Arrays.toString(getNamesSelected()));
-			// setColorKey(tree.getSelectionRows());
-			// } else if (command.equals(SET_AS_LINKKEY)) {
-			// setLinkKeyHandler(tree.getSelectionRows());
 		} else if (command.equals(REMOVE_ALL)) {
 			removeAllData();
 		} else if (command.equals(CREATE_SCREENS)) {
@@ -677,7 +622,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 	private void createScreenshotsFromFile() {
 		JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue()
-																										 : (new File(".")).toString());
+																										: (new File(".")).toString());
 		jfc.setMultiSelectionEnabled(true);
 		if (jfc.showOpenDialog(TwoDPlot.this) == JFileChooser.APPROVE_OPTION) {
 			File selFile = jfc.getSelectedFile();
@@ -719,6 +664,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		validColumnsHash.clear();
 		linkerIndices.clear();
 		columnMetaData.clear();
+		fileColumnDataPipes.clear();
 		tree.deleteAllNodes();
 		updateGUI();
 	}
@@ -735,206 +681,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				dataColumnsHash.remove(s);
 				linkerIndices.remove(s);
 				validColumnsHash.remove(s);
+				fileColumnDataPipes.remove(s);
 				dataKeys.remove(s);
 			}
 		}
 	}
 
-	// public void setColorKeyHandler(int[] selectedColorKey){
-	// String[][] selectedNodes;
-	//
-	// selectedNodes = tree.getSelectionValues();
-	// sampleData.setColorKey(selectedNodes[1][0], selectedColorKey[0]);
-	// reloadSampleDataUI();
-	// }
-
-	// public void setColorKey(int[] selectedColorKey) {
-	// String[][] selectedNodes;
-	// ArrayList<Integer> colorKeys;
-	//
-	// selectedNodes = tree.getSelectionValues();
-	// if (selectedColorKey.length == 1) {
-	// if (colorKeyIndex.containsKey(selectedNodes[1][0])) {
-	// colorKeys = colorKeyIndex.get(selectedNodes[1][0]);
-	// } else {
-	// colorKeyIndex.put(selectedNodes[1][0], colorKeys = new ArrayList<Integer>());
-	// }
-	// for (Integer colorKey : colorKeys) {
-	// if (colorKey == selectedColorKey[0]) {
-	// System.out.println("Error: Already sey as color key");
-	// JOptionPane.showMessageDialog(null, "Error: Already sey as color key", "Error",
-	// JOptionPane.ERROR_MESSAGE);
-	// return;
-	// }
-	// }
-	// colorKeys.add(selectedColorKey[0]); // add to colorKeys
-	// setColorKeyHandler(selectedNodes[1][0], selectedColorKey[0]);
-	// }
-	// }
-	//
-	// public void setColorKeyHandler(String recentSelectionFile, int selectedColorKey) {
-	// Hashtable<String, String> colorKeyValue;
-	// int[] linkKeyColumnLabels;
-	//
-	// linkKeyColumnLabels = keyIndices.get(recentSelectionFile);
-	// colorKeyValue = new Hashtable<String, String>();
-	// if (linkKeyIndex.containsKey(recentSelectionFile)) {
-	// switch (linkKeyIndex.get(recentSelectionFile)) {
-	// case DNA_INDEX_IN_LINKERS:
-	// colorKeyValue = HashVec.loadFileToHashString(recentSelectionFile, new
-	// int[]{linkKeyColumnLabels[linkKeyIndex.get(recentSelectionFile)]}, new
-	// int[]{selectedColorKey-1}, false, "",true, false, false);
-	// break;
-	// case FID_INDEX_IN_LINKERS:
-	// colorKeyValue = HashVec.loadFileToHashString(recentSelectionFile, new
-	// int[]{linkKeyColumnLabels[linkKeyIndex.get(recentSelectionFile)],
-	// linkKeyColumnLabels[IID_INDEX_IN_LINKERS]}, new int[]{selectedColorKey-1}, false, "",true,
-	// false, false);
-	// colorKeyValue = createHashWithSampleID(colorKeyValue); // colorkey value hash with key as
-	// sampleID
-	// break;
-	// case IID_INDEX_IN_LINKERS:
-	// colorKeyValue = HashVec.loadFileToHashString(recentSelectionFile, new
-	// int[]{linkKeyColumnLabels[linkKeyIndex.get(recentSelectionFile)]}, new
-	// int[]{selectedColorKey-1}, false, "",true, false, false);
-	// colorKeyValue = createHashWithSampleID(colorKeyValue); // colorkey value hash with key as
-	// sampleID
-	// break;
-	// default:
-	// System.out.println("Error: Unable to read color key values. Invalid link key.");
-	// JOptionPane.showMessageDialog(null, "Error: Unable to read color key values. Invalid link
-	// key.", "Error", JOptionPane.ERROR_MESSAGE);
-	// break;
-	// }
-	// }
-	// addToSampleData(colorKeyValue, recentSelectionFile, selectedColorKey);
-	// }
-
-
-	// /**
-	// * Function to indentify the headers in the sample data file
-	// * @param header: a string containing all the headers read as string
-	// */
-	// public int[] getSampleDataHeaders(String header) {
-	// String[] headersArray;
-	// int[] indices;
-	//
-	// if (header.contains("\t")) {
-	// headersArray = header.trim().split("\t",-1);
-	// } else {
-	// headersArray = header.trim().split(PSF.Regex.GREEDY_WHITESPACE);
-	// }
-	// indices = ext.indexFactors(LINKERS, headersArray, false, true, false, log, false);
-	//
-	// if (indices[0] == -1) {
-	// log.report("ID linker not automatically identified for Sample Data. Assuming the first
-	// column.");
-	// indices[0] = 0;
-	// }
-	// System.out.println("The header indices in Sample data are: " + Arrays.toString(headersArray));
-	//
-	// return indices;
-	// }
-
-	// public void addToSampleData(Hashtable<String, String> colorKeyValue, String
-	// recentSelectionFile, int selectedColorKey) {
-	// String sampleDatafilename;
-	// BufferedReader reader;
-	// BufferedWriter writer;
-	// String[] inLineArry;
-	// String bakFile;
-	// String inLine;
-	// String colorKeyHeader;
-	// String[] keys;
-	// boolean covar, negativeValues, largerThanByte;
-	// String trav;
-	//
-	// sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false);
-	//
-	// if (!Files.exists(sampleDatafilename, proj.getJarStatus())) {
-	// JOptionPane.showMessageDialog(null, "Cannot add as a color key without an existing SampleData
-	// file", "Error", JOptionPane.ERROR_MESSAGE);
-	// log.reportError("Cannot add as a color key without an existing SampleData file");
-	// return;
-	// }
-	//
-	// reader = null;
-	// writer = null;
-	//
-	// System.out.println("Sample data: " + sampleDatafilename);
-	// bakFile = proj.archiveFile(sampleDatafilename); // create backup of sample data file
-	// colorKeyHeader = namesHash.get(recentSelectionFile)[selectedColorKey-1];
-	//
-	// covar = false;
-	// negativeValues = false;
-	// largerThanByte = false;
-	// keys = HashVec.getKeys(colorKeyValue, false, false);
-	// for (String key : keys) {
-	// trav = colorKeyValue.get(key);
-	// if (!ext.isMissingValue(trav) && !ext.isValidInteger(trav)) {
-	// covar = true;
-	// }
-	// if (ext.isValidDouble(trav) && Double.parseDouble(trav) < 0) {
-	// negativeValues = true;
-	// }
-	// if (ext.isValidDouble(trav) && Double.parseDouble(trav) > Byte.MAX_VALUE) {
-	// largerThanByte = true;
-	// }
-	// }
-	//
-	// if (covar) {
-	// JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains a quantitative
-	// meaure and will be added as a COVAR in SampleData and not as a Class", "Warning",
-	// JOptionPane.ERROR_MESSAGE);
-	// } else if (negativeValues) {
-	// JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains negative values and
-	// will be added as a COVAR in SampleData and not as a Class", "Warning",
-	// JOptionPane.ERROR_MESSAGE);
-	// covar = true;
-	// } else if (largerThanByte) {
-	// JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains values larger than
-	// 128 and will be added as a COVAR in SampleData and not as a Class", "Warning",
-	// JOptionPane.ERROR_MESSAGE);
-	// covar = true;
-	// }
-	//
-	// try {
-	// reader = new BufferedReader(new FileReader(bakFile));
-	// writer = new BufferedWriter(new FileWriter(sampleDatafilename));
-	// inLine = reader.readLine();
-	// int samDataIndex = getSampleDataHeaders(inLine)[DNA_INDEX_IN_LINKERS];
-	// inLine = inLine + "\t"+(covar?"Covar=":"Class=") + colorKeyHeader;
-	// writer.write(inLine); // write the headers
-	// while(reader.ready()) {
-	// writer.newLine();
-	// inLine = reader.readLine();
-	// if (inLine.contains("\t")) {
-	// inLineArry = inLine.trim().split("\t",-1);
-	// } else {
-	// inLineArry = inLine.trim().split(PSF.Regex.GREEDY_WHITESPACE);
-	// }
-	// if (colorKeyValue.containsKey(inLineArry[samDataIndex])) {
-	// inLine = inLine + "\t" + colorKeyValue.get(inLineArry[samDataIndex]);
-	// } else {
-	// inLine = inLine + "\t" + NO_VALUE_FOUND;
-	// }
-	// writer.write(inLine);
-	// }
-	// } catch (FileNotFoundException e) {
-	// System.out.println("Error: Sample Data backup file not found");
-	// } catch (IOException e) {
-	// System.out.println("Error: unable to read sample data backup file");
-	// } finally {
-	// closeStream(reader);
-	// closeStream(writer);
-	//// twoDPanel.paintAgain();
-	// }
-	// reloadSampleDataUI();
-	// System.out.println(colorKeyHeader.split(";")[0] + " set as color key and added to Sample
-	// Data");
-	// JOptionPane.showMessageDialog(null, colorKeyHeader.split(";")[0] + " set as color key and added
-	// to Sample Data", "Information", JOptionPane.INFORMATION_MESSAGE);
-	// }
 
 	public void reloadSampleDataUI() {
 		// Note: This line resets the sample data by setting it to null which will cause linkKeyIndex to
@@ -1044,9 +796,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		String[][] metaData = getCurrentColumnMetaData();
 		String[][] selectedValues = tree.getSelectionValues();
 		for (int i = 0; i < metaData.length; i++) {
-			resultList.add(metaData[i] == null ? dataColumnsHash.get(selectedValues[i][0])[Integer.parseInt(selectedValues[i][1])]
-																				 : metaData[i][4] + " chr" + metaData[i][0] + ":"
-																					 + metaData[i][1]);
+			resultList.add(metaData[i] == null
+																				? dataColumnsHash.get(selectedValues[i][0])[Integer.parseInt(selectedValues[i][1])]
+																				: metaData[i][4] + " chr" + metaData[i][0] + ":"
+																					+ metaData[i][1]);
 		}
 		String[] result = resultList.toArray(new String[resultList.size()]);
 		return result;
@@ -1062,277 +815,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return linkerIndices.get(selectedValues[0][0]);
 	}
 
-	// public Vector<String[]> getCurrentLinkKeyValues() {
-	// return linkKeyValues;
-	// }
-
-	// public String[][] getCurrentLinkKeyValues() {
-	// String[][] linkKeyValues;
-	// int[] linkKeyColumnLabels;
-	// String[][] selectedValues;
-	// Vector<String[]> currentData;
-	//
-	// selectedValues = tree.getSelectionValues();
-	// if (selectedValues[0][0] == null || selectedValues[0][1] == null) {
-	// return null;
-	// }
-	// currentData = dataHash.get(selectedValues[0][0]);
-	// linkKeyColumnLabels = keyIndices.get(selectedValues[0][0]);
-	// linkKeyValues = new String[rowsSelected.size()][linkKeyColumnLabels.length]; //TODO Problem is
-	// here.
-	// for (int i=0; i<linkKeyValues.length; i++) {
-	// for (int j=0; j<linkKeyColumnLabels.length; j++) {
-	// if (linkKeyColumnLabels[j] >= 0) {
-	// linkKeyValues[i][j] = currentData.elementAt(rowsSelected.elementAt(i))[linkKeyColumnLabels[j]];
-	// }
-	// }
-	// }
-	// return linkKeyValues;
-	// }
-
-
-	// public String[][] getCurrentLinkKeyValues() {
-	// String[][] linkKeyValues;
-	// int[] linkKeyColumnLabels;
-	// Vector<String[]> dataOfSelectedFile;
-	// String[][] selectedValues;
-	//
-	// selectedValues = tree.getSelectionValues();
-	// if (selectedValues[0][0] == null || selectedValues[0][1] == null) {
-	// return null;
-	// }
-	// linkKeyColumnLabels = keyIndices.get(selectedValues[0][0]);
-	// dataOfSelectedFile = dataHash.get(tree.getSelectionValues()[0][0]);
-	// linkKeyValues = new String[dataOfSelectedFile.size()][linkKeyColumnLabels.length]; //TODO
-	// Problem is here.
-	// for (int i=0; i<linkKeyValues.length; i++) {
-	// for (int j=0; j<linkKeyColumnLabels.length; j++) {
-	// if (linkKeyColumnLabels[j] >= 0) {
-	// linkKeyValues[i][j] = dataOfSelectedFile.elementAt(i)[linkKeyColumnLabels[j]];
-	// }
-	// }
-	// }
-	// return linkKeyValues;
-	// }
-
 	public Project getProject() {
 		return proj;
 	}
 
-	HashMap<String, ArrayList<String[]>> genParserFiltersMap = new HashMap<String, ArrayList<String[]>>();
-
-	/**
-	 * All columns must be named, not indexed, due to concatenating arrays of data from two files. If
-	 * filter is for two-column/two-file data, columns must be prefixed by
-	 * <code>selectedFile + "__" + column</code>.
-	 *
-	 * @param fileKey
-	 * @param filterLine
-	 */
-	public void addGenParserFilter(String fileKey, String[] filterLine) {
-		ArrayList<String[]> filters = genParserFiltersMap.get(fileKey);
-		if (filters == null) {
-			filters = new ArrayList<String[]>();
-			genParserFiltersMap.put(fileKey, filters);
-		}
-		filters.add(filterLine);
-	}
-
-	public void removeGenParserFilter(String fileKey, int index) {
-		ArrayList<String[]> filters = genParserFiltersMap.get(fileKey);
-		if (index >= 0 && filters != null && filters.size() > 0 && index < filters.size()) {
-			filters.remove(index);
-		}
-	}
-
-	public void clearGenParserFilters(String fileKey) {
-		ArrayList<String[]> filters = genParserFiltersMap.get(fileKey);
-		if (filters != null) {
-			filters.clear();
-		}
-	}
-
-	private ArrayList<String[]> getDataSelectedAndFiltered(boolean includeColorKeyValue) {
-		String[][] selectedNodes;
-		String filterKey;
-		ArrayList<String[]> returnList;
-		ArrayList<String> genParseData;
-		ArrayList<String[]> dataOfSelectedFile;
-		HashMap<String, String[]> xData;
-		HashMap<String, String[]> yData;
-		String[] inLine, outLine;
-		int selectedColumnX, selectedColumnY = -1;
-		String selectedFileX, selectedFileY = null;
-		Set<String> keys;
-		int currentClass;
-		String[] ids;
-		byte colorCode;
-		int[] linkKeyColumnIndices;
-		byte index;
-		// TODO cache data based on x/y selected columns (??? or not?) and parser lines
-
-		selectedNodes = tree.getSelectionValues();
-		xData = new HashMap<String, String[]>();
-		yData = new HashMap<String, String[]>();
-		if (selectedNodes[0][0] == null || linkerIndices.get(selectedNodes[0][0]) == null) {
-			return new ArrayList<String[]>();
-		}
-
-		selectedColumnX = Integer.parseInt(selectedNodes[0][1]);
-		selectedFileX = selectedNodes[0][0];
-		filterKey = selectedFileX;
-		dataOfSelectedFile = dataHash.get(selectedFileX);
-		currentClass = colorKeyPanel.getCurrentClass();
-		if (currentClass < SampleData.BASIC_CLASSES.length
-				&& SampleData.BASIC_CLASSES[currentClass].equals(SampleData.HEATMAP)) {
-			twoDPanel.setChartType(AbstractPanel.HEAT_MAP_TYPE);
-		} else {
-			twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
-		}
-
-		linkKeyColumnIndices = linkerIndices.get(selectedFileX);
-		index = (byte) (includeColorKeyValue ? 4 : 3);
-		outer: for (int i = 0; i < dataOfSelectedFile.size(); i++) {
-			inLine = dataOfSelectedFile.get(i);
-
-			// FIXME this badly needs to be reconciled with #getDataSelected
-			if (sampleData != null
-					&& (hideExcludes || colorKeyPanel.getDisabledClassValues().size() > 0)) {
-
-				// Try DNA first
-				String curSample = inLine[linkKeyColumnIndices[DNA_INDEX_IN_LINKERS]];
-				IndiPheno indi = sampleData.getIndiFromSampleHash(curSample);
-				if (indi == null) {
-					// Try FID/IID
-					curSample = inLine[linkKeyColumnIndices[FID_INDEX_IN_LINKERS]] + "\t"
-											+ inLine[linkKeyColumnIndices[IID_INDEX_IN_LINKERS]];
-					curSample = sampleData.lookup(curSample)[0];
-					indi = sampleData.getIndiFromSampleHash(curSample);
-				}
-
-				// Check if hidden
-				if (indi == null || (hideExcludes && sampleData.individualShouldBeExcluded(curSample))) {
-					continue outer;
-				}
-
-				int sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, indi,
-																														 (byte) 0, 0);
-
-				if (colorKeyPanel.getDisabledClassValues()
-												 .containsKey(currentClass + "\t" + sampColorKey)) {
-					continue outer;
-				}
-			}
-			xData.put(inLine[linkerIndices.get(selectedFileX)[DNA_INDEX_IN_LINKERS]], inLine);
-		}
-		if (selectedNodes.length > 1 && selectedNodes[1] != null && selectedNodes[1][0] != null
-				&& linkerIndices.get(selectedNodes[1][0]) != null) {
-			selectedColumnY = Integer.parseInt(selectedNodes[1][1]);
-			selectedFileY = selectedNodes[1][0];
-			filterKey += "\t" + selectedFileY;
-			dataOfSelectedFile = dataHash.get(selectedFileY);
-			for (int i = 0; i < dataOfSelectedFile.size(); i++) {
-				inLine = dataOfSelectedFile.get(i);
-				yData.put(inLine[linkerIndices.get(selectedFileY)[DNA_INDEX_IN_LINKERS]], inLine);
-			}
-		}
-
-		genParseData = new ArrayList<String>();
-
-		keys = xData.keySet();
-
-		String[] dataHeaderX = dataColumnsHash.get(selectedFileX);
-		String[] dataHeaderY = selectedFileY == null ? null : dataColumnsHash.get(selectedFileY);
-		String[] dataHeader;
-		if (dataHeaderY != null) {
-			dataHeader = new String[dataHeaderX.length + dataHeaderY.length];
-			for (int i = 0; i < dataHeaderX.length; i++) {
-				dataHeader[i] = selectedFileX + "__" + dataHeaderX[i];
-			}
-			for (int i = 0; i < dataHeaderY.length; i++) {
-				dataHeader[i + dataHeaderX.length] = selectedFileY + "__" + dataHeaderY[i];
-			}
-		} else {
-			dataHeader = dataHeaderX;
-		}
-
-		genParseData.add(ArrayUtils.toStr(dataHeader, ","));
-
-		for (String key : keys) {
-			inLine = xData.get(key);
-			outLine = yData.get(key);
-			if (outLine != null) {
-				inLine = ArrayUtils.combine(inLine, outLine);
-			}
-			genParseData.add(ArrayUtils.toStr(inLine, ",")); // TODO should use comma here? use tab
-																											 // instead?
-		}
-
-		ArrayList<String[]> genParserLines = genParserFiltersMap.get(filterKey);
-		if (genParserLines == null) {
-			return null;
-		}
-		for (String[] parser : genParserLines) {
-			genParseData = GenParser.parse(parser, genParseData, log); // TODO parser needs to return data
-																																 // for all columns[?????]
-		}
-		String selX = dataHeaderX[selectedColumnX];
-		String selY = dataHeaderY != null ? dataHeaderY[selectedColumnY] : null;
-		int xInd = ext.indexOfStr(selX, genParserLines.get(0));
-		int yInd = selY == null ? -1 : ext.indexOfStr(selY, genParserLines.get(0));
-
-		returnList = new ArrayList<String[]>();
-		for (int i = 1; i < genParseData.size(); i++) {
-			inLine = genParseData.get(i).split(",");
-			outLine = new String[linkKeyColumnIndices.length + index];
-			outLine[0] = inLine[0];
-			outLine[1] = inLine[xInd];
-			outLine[2] = yInd == -1 ? "" : inLine[yInd];
-			for (int j = 0; j < linkKeyColumnIndices.length; j++) {
-				if (linkKeyColumnIndices[j] >= 0) {
-					outLine[j + index] = inLine[linkKeyColumnIndices[j]];
-				}
-			}
-			if (includeColorKeyValue) {
-				if (sampleData != null) {
-					ids = sampleData.lookup(inLine[0]);
-					if (ids == null) {
-						colorCode = 0;
-					} else if (generatingScreenshots) {
-						colorCode = getColorForScreenshot(ids[0]);
-					} else {
-						String[][] metaData = getCurrentColumnMetaData();
-						int chr = 0, start = 0, stop = 0;
-						if (metaData != null && metaData.length != 0 && metaData[0] != null) {
-							chr = Positions.chromosomeNumber(metaData[0][0]);
-							start = Integer.parseInt(metaData[0][2]);
-							stop = Integer.parseInt(metaData[0][3]);
-						}
-						colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0,
-																													sampleData.getIndiFromSampleHash(ids[0]),
-																													(byte) chr, start + ((stop - start) / 2));
-					}
-				} else {
-					colorCode = 0;
-				}
-				inLine[3] = colorCode + "";
-			}
-			returnList.add(outLine);
-		}
-
-		return returnList;
-		// error if genParser removes the desired data during parsing/filtering
-	}
-
 	public ArrayList<String[]> getDataSelected(boolean includeColorKeyValue) {
-		if (genParserFiltersMap.size() > 0) {
-			return getDataSelectedAndFiltered(includeColorKeyValue);
-		}
-
 		String[][] selectedNodes;
 		ArrayList<String[]> dataOfSelectedFile;
 		HashMap<String, String[]> xHash;
-		HashMap<String, String> yHash;
 		String[] inLine, outLine;
 		int selectedColumn;
 		String selectedFile;
@@ -1344,14 +834,18 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		int[] linkKeyColumnIndices;
 		byte index;
 
+		DataPipe pipeX;
+		DataPipe pipeY;
+
 		// file/collection name and column number of selected data collection
 		selectedNodes = tree.getSelectionValues();
 		v = new ArrayList<String[]>();
 		xHash = new HashMap<String, String[]>();
-		yHash = new HashMap<String, String>();
 		if (selectedNodes[0][0] != null && linkerIndices.get(selectedNodes[0][0]) != null) {
 			selectedColumn = Integer.parseInt(selectedNodes[0][1]);
 			selectedFile = selectedNodes[0][0];
+			pipeX = fileColumnDataPipes.get(selectedFile)
+																 .get(dataColumnsHash.get(selectedFile)[selectedColumn]);
 			dataOfSelectedFile = dataHash.get(selectedFile);
 			currentClass = colorKeyPanel.getCurrentClass();
 			if (currentClass < SampleData.BASIC_CLASSES.length
@@ -1363,94 +857,146 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 			linkKeyColumnIndices = linkerIndices.get(selectedFile);
 			index = (byte) (includeColorKeyValue ? 4 : 3);
-			outer: for (int i = 0; i < dataOfSelectedFile.size(); i++) {
+			for (int i = 0; i < dataOfSelectedFile.size(); i++) {
 				inLine = dataOfSelectedFile.get(i);
 
 				if (sampleData != null
 						&& (hideExcludes || colorKeyPanel.getDisabledClassValues().size() > 0)) {
 
 					// Try DNA first
-					String curSample = inLine[linkKeyColumnIndices[DNA_INDEX_IN_LINKERS]];
-					IndiPheno indi = sampleData.getIndiFromSampleHash(curSample);
+					IndiPheno indi = null;
+					String curSample = null;
+					if (linkKeyColumnIndices[DNA_INDEX_IN_LINKERS] >= 0) {
+						curSample = inLine[linkKeyColumnIndices[DNA_INDEX_IN_LINKERS]];
+						indi = sampleData.getIndiFromSampleHash(curSample);
+					}
 					if (indi == null) {
 						// Try FID/IID
-						curSample = inLine[linkKeyColumnIndices[FID_INDEX_IN_LINKERS]] + "\t"
-												+ inLine[linkKeyColumnIndices[IID_INDEX_IN_LINKERS]];
-						curSample = sampleData.lookup(curSample)[0];
-						indi = sampleData.getIndiFromSampleHash(curSample);
+						if (linkKeyColumnIndices[FID_INDEX_IN_LINKERS] >= 0
+								&& linkKeyColumnIndices[IID_INDEX_IN_LINKERS] >= 0) {
+							curSample = inLine[linkKeyColumnIndices[FID_INDEX_IN_LINKERS]] + "\t"
+													+ inLine[linkKeyColumnIndices[IID_INDEX_IN_LINKERS]];
+							curSample = sampleData.lookup(curSample)[0];
+							indi = sampleData.getIndiFromSampleHash(curSample);
+						}
 					}
 
 					// Check if hidden
-					if (indi == null || (hideExcludes && sampleData.individualShouldBeExcluded(curSample))) {
-						continue outer;
+					if (curSample != null && hideExcludes
+							&& sampleData.individualShouldBeExcluded(curSample)) {
+						continue;
 					}
 
-					int sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, indi,
-																															 (byte) 0, 0);
+					if (indi != null) {
+						int sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, indi,
+																																 (byte) 0, 0);
 
-					if (colorKeyPanel.getDisabledClassValues()
-													 .containsKey(currentClass + "\t" + sampColorKey)) {
-						continue outer;
+						if (colorKeyPanel.getDisabledClassValues()
+														 .containsKey(currentClass + "\t" + sampColorKey)) {
+							continue;
+						}
+					} else {
+						// TODO assign color based on value, check if values are hidden
 					}
 				}
 				outLine = new String[linkKeyColumnIndices.length + index];
-				outLine[0] = inLine[0];
+				outLine[0] = pipeX == null ? inLine[0] : pipeX.pipe(inLine[0]);
+				if (outLine[0] == null) { // rejected value from pipe
+					continue;
+				}
 				outLine[1] = inLine[selectedColumn];
 				for (int j = 0; j < linkKeyColumnIndices.length; j++) {
 					if (linkKeyColumnIndices[j] >= 0) {
 						outLine[j + index] = inLine[linkKeyColumnIndices[j]];
 					}
 				}
-				xHash.put(inLine[linkerIndices.get(selectedFile)[DNA_INDEX_IN_LINKERS]], outLine);
+				String key = linkerIndices.get(selectedFile)[DNA_INDEX_IN_LINKERS] == -1
+																																								? i + ""
+																																								: inLine[linkerIndices.get(selectedFile)[DNA_INDEX_IN_LINKERS]];
+				xHash.put(key, outLine);
 			}
 			if (selectedNodes.length > 1 && selectedNodes[1] != null && selectedNodes[1][0] != null
 					&& linkerIndices.get(selectedNodes[1][0]) != null) {
 				selectedColumn = Integer.parseInt(selectedNodes[1][1]);
 				selectedFile = selectedNodes[1][0];
+				pipeY = fileColumnDataPipes.get(selectedFile)
+																	 .get(dataColumnsHash.get(selectedFile)[selectedColumn]);
 				dataOfSelectedFile = dataHash.get(selectedFile);
 				for (int i = 0; i < dataOfSelectedFile.size(); i++) {
 					inLine = dataOfSelectedFile.get(i);
-					yHash.put(inLine[linkerIndices.get(selectedFile)[DNA_INDEX_IN_LINKERS]],
-										inLine[selectedColumn]);
+					String key = linkerIndices.get(selectedFile)[DNA_INDEX_IN_LINKERS] == -1
+																																									? i + ""
+																																									: inLine[linkerIndices.get(selectedFile)[DNA_INDEX_IN_LINKERS]];
+					if (xHash.containsKey(key)) {
+						String val = pipeY == null ? inLine[selectedColumn]
+																			: pipeY.pipe(inLine[selectedColumn]);
+						if (val == null) { // rejected by pipe
+							xHash.remove(key);
+							continue;
+						}
+						xHash.get(key)[2] = val;
+						if (includeColorKeyValue) {
+							if (sampleData != null) {
+								ids = sampleData.lookup(key);
+								if (ids == null) {
+									colorCode = 0;
+								} else if (generatingScreenshots) {
+									colorCode = getColorForScreenshot(ids[0]);
+								} else {
+									String[][] metaData = getCurrentColumnMetaData();
+									int chr = 0, start = 0, stop = 0;
+									if (metaData != null && metaData.length != 0 && metaData[0] != null) {
+										chr = Positions.chromosomeNumber(metaData[0][0]);
+										start = Numbers.parseWithLocale(metaData[0][2]);
+										stop = Numbers.parseWithLocale(metaData[0][3]);
+									}
+									colorCode = sampleData.determineCodeFromClass(currentClass,
+																																(byte) 0,
+																																sampleData.getIndiFromSampleHash(ids[0]),
+																																(byte) chr,
+																																start + ((stop - start) / 2));
+								}
+							} else {
+								colorCode = 0;
+								// TODO color by value
+							}
+							inLine[3] = colorCode + "";
+						}
+					}
 				}
 			}
 			keys = xHash.keySet();
 			v = new ArrayList<String[]>();
 			for (String key : keys) {
 				inLine = xHash.get(key);
-
-				boolean hasY = false;
-				if (yHash.containsKey(key)) {
-					inLine[2] = yHash.get(key);
-					hasY = true;
-				}
-				if (hasY || isHistogram()) {
-					if (includeColorKeyValue) {
-						if (sampleData != null) {
-							ids = sampleData.lookup(key);
-							if (ids == null) {
-								colorCode = 0;
-							} else if (generatingScreenshots) {
-								colorCode = getColorForScreenshot(ids[0]);
-							} else {
-								String[][] metaData = getCurrentColumnMetaData();
-								int chr = 0, start = 0, stop = 0;
-								if (metaData != null && metaData.length != 0 && metaData[0] != null) {
-									chr = Positions.chromosomeNumber(metaData[0][0]);
-									start = Numbers.parseWithLocale(metaData[0][2]);
-									stop = Numbers.parseWithLocale(metaData[0][3]);
-								}
-								colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0,
-																															sampleData.getIndiFromSampleHash(ids[0]),
-																															(byte) chr,
-																															start + ((stop - start) / 2));
-							}
-						} else {
+				if (includeColorKeyValue) {
+					if (sampleData != null) {
+						ids = sampleData.lookup(key);
+						if (ids == null) {
 							colorCode = 0;
+						} else if (generatingScreenshots) {
+							colorCode = getColorForScreenshot(ids[0]);
+						} else {
+							String[][] metaData = getCurrentColumnMetaData();
+							int chr = 0, start = 0, stop = 0;
+							if (metaData != null && metaData.length != 0 && metaData[0] != null) {
+								chr = Positions.chromosomeNumber(metaData[0][0]);
+								start = Numbers.parseWithLocale(metaData[0][2]);
+								stop = Numbers.parseWithLocale(metaData[0][3]);
+							}
+							colorCode = sampleData.determineCodeFromClass(currentClass,
+																														(byte) 0,
+																														sampleData.getIndiFromSampleHash(ids[0]),
+																														(byte) chr,
+																														start + ((stop - start) / 2));
 						}
-						inLine[3] = colorCode + "";
+					} else {
+						colorCode = 0;
+						// TODO color by value
 					}
-					// if (!inLine[3].equals("0"))
+					inLine[3] = colorCode + "";
+				}
+				if (inLine[2] != null || isHistogram()) {
 					v.add(inLine);
 				}
 			}
@@ -1471,144 +1017,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return selectedDataHash.hashCode();
 	}
 
-
-	// public float[][] getDataSelected() {
-	// return getDataSelected(false);
-	// }
-
-	// public float[][] getDataSelected(boolean includeColorKeyValue) {
-	// float[][] result;
-	// String[][] selectedNodes;
-	// Vector<String[]> dataOfSelectedFile;
-	// Hashtable<String, String> xHash, yHash;
-	// String[] line;
-	// int selectedColumn;
-	// String[] keys;
-	// Vector<String[]> v;
-	// int currentClass;
-	// String[] ids;
-	// byte colorCode;
-	//
-	// selectedNodes = tree.getSelectionValues();
-	// if (selectedNodes[0][0] == null || selectedNodes[1][0] == null) {
-	// result = new float[0][0];
-	//// result = null;
-	// } else {
-	// selectedColumn = Integer.parseInt(selectedNodes[0][1]);
-	// dataOfSelectedFile = dataHash.get(selectedNodes[0][0]);
-	// currentClass = colorKeyPanel.getCurrentClass();
-	// if (keyIndices.get(selectedNodes[0][0]) == null) {
-	// System.out.println("Please set link key for the file '" + selectedNodes[0][0] + "'.
-	// Alternatively, you could change the corresponding column lable to IID or ID and restart the
-	// program.");
-	// return new float[0][0];
-	// }
-	// xHash = new Hashtable<String, String>();
-	// for (int i=0; i<dataOfSelectedFile.size(); i++) {
-	// line = dataOfSelectedFile.elementAt(i);
-	// xHash.put(line[keyIndices.get(selectedNodes[0][0])[0]], line[selectedColumn]);
-	// }
-	//
-	// selectedColumn = Integer.parseInt(selectedNodes[1][1]);
-	// dataOfSelectedFile = dataHash.get(selectedNodes[1][0]);
-	// if (keyIndices.get(selectedNodes[1][0]) == null) {
-	// System.out.println("Please set link key for the file '" + selectedNodes[1][0] + "'.
-	// Alternatively, you could change the corresponding column lable to IID or ID and restart the
-	// program.");
-	// return new float[0][0];
-	// }
-	// yHash = new Hashtable<String, String>();
-	// for (int i=0; i<dataOfSelectedFile.size(); i++) {
-	// line = dataOfSelectedFile.elementAt(i);
-	// yHash.put(line[keyIndices.get(selectedNodes[1][0])[0]], line[selectedColumn]);
-	// }
-	//
-	// keys = HashVec.getKeys(xHash, false, false);
-	// v = new Vector<String[]>();
-	// if (includeColorKeyValue) {
-	// for (int i=0; i<keys.length; i++) {
-	// if (yHash.containsKey(keys[i])) {
-	// ids = sampleData.lookup(keys[i]);
-	// if (ids == null) {
-	// colorCode = 0;
-	// } else {
-	// colorCode = sampleData.determineCodeFromClass(currentClass, (byte)0,
-	// sampleData.getIndiFromSampleHash(ids[0]), (byte)0, 0);
-	// }
-	// v.add(new String[] {keys[i], xHash.get(keys[i]), yHash.get(keys[i]), colorCode + ""});
-	// }
-	// }
-	// result = new float[v.size()][3];
-	// for (int i=0; i<result.length; i++) {
-	// result[i][0] = Float.parseFloat(v.elementAt(i)[1]);
-	// result[i][1] = Float.parseFloat(v.elementAt(i)[2]);
-	// result[i][2] = Integer.parseInt(v.elementAt(i)[3]);
-	// }
-	//
-	// } else {
-	// for (int i=0; i<keys.length; i++) {
-	// if (yHash.containsKey(keys[i])) {
-	// v.add(new String[] {keys[i], xHash.get(keys[i]), yHash.get(keys[i])});
-	// }
-	// }
-	// result = new float[v.size()][2];
-	// for (int i=0; i<result.length; i++) {
-	// result[i][0] = Float.parseFloat(v.elementAt(i)[1]);
-	// result[i][1] = Float.parseFloat(v.elementAt(i)[2]);
-	// }
-	// }
-	// }
-	// return result;
-	// }
-
-
-	// public int[][] getCurrentPair() {
-	// if (tree.getSelectionIndices()[0][0]<0 || tree.getSelectionIndices()[0][1]<0 ||
-	// tree.getSelectionIndices()[1][0]<0 || tree.getSelectionIndices()[1][1]<0) {
-	// return null;
-	// } else {
-	// return tree.getSelectionIndices();
-	// }
-	// }
-
-	// public boolean maskMissing() {
-	// return maskMissing;
-	// }
-
 	public void updateGUI() {
-		// if (markerList.length==0) {
-		// markerName.setText("Error: marker data was not successfully loaded");
-		// commentLabel.setText("Check to make sure MarkerLookup is synchronized with the current
-		// data");
-		// classPanel.setEnabled(false);
-		// } else {
-		// markerName.setText(markerList[markerIndex]);
-		// commentLabel.setText(commentList[markerIndex]);
-		//
-		// if (classPanel!=null) {
-		// classPanel.setEnabled(markerData[markerIndex].getFingerprint()==sampleListFingerprint);
-		// }
-		// }
-
-
-
-		/*
-		 * if (plot_type >= 2) { symmetryBox.setEnabled(false); twoDPanel.setSymmetricAxes(false); }
-		 * else { symmetryBox.setEnabled(true); twoDPanel.setSymmetricAxes(symmetryBox.isSelected()); }
-		 * if (plot_type == 3) { boolean recomputed = false; for (int i = 0; i<centBoxes.length; i++) {
-		 * if (centBoxes[i].isSelected()) { if (!recomputed) {
-		 * markerData[markerIndex].recompute(cents[i][markerIndex]); recomputed = true; } else {
-		 * centBoxes[i].setSelected(false); } }
-		 *
-		 * } }
-		 */
-
 		twoDPanel.paintAgain();
 	}
 
 	public void updateColorKey(Hashtable<String, String> hash) {
 		colorKeyPanel.updateColorKey(hash);
-		// generateShortcutMenus();
 	}
 
 
@@ -1766,7 +1180,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			System.out.println("message: '" + message + "'");
 			choice = JOptionPane.showOptionDialog(null,
 																						message
-																									+ " Would you like to keep this configuration for the next time 2D Plot is loaded?",
+																								+ " Would you like to keep this configuration for the next time 2D Plot is loaded?",
 																						"Preserve 2D Plot workspace?",
 																						JOptionPane.YES_NO_CANCEL_OPTION,
 																						JOptionPane.QUESTION_MESSAGE, null, options,
@@ -1850,8 +1264,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	private static List<String> parseControlFile(String filename, Logger log) {
 		List<String> params;
 
-		params = Files.parseControlFile(filename, "twoDScreenshots",
-																		new String[] {"proj=", "dir=", "# Per-line:",
+		params = Files.parseControlFile(filename,
+																		"twoDScreenshots",
+																		new String[] {
+																									"proj=",
+																									"dir=",
+																									"# Per-line:",
 																									"# after being set once, all tags can be duplicated in a subsequent line by omitting them; the only necessary tags are {xDataColumn=<> and yDataColumn=<>}",
 																									"# fileX=<> fileY=<> xDataColumn=<> yDataColumn=<> xIDColumn=<> yIDColumn=<> colorFile=<> colorDataColumn=<> colorIDColumn=<> minX=<> minY=<> maxX=<> maxY=<> hideExcluded=True/False colorKey=True/False includeColorKey=True/False isHistogram=True/False",},
 																		log);
@@ -2028,9 +1446,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			}
 
 			twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
-			colorKeyPanel.getClassRadioButtons()[colorLoaded ? (colorKeyPanel.getClassRadioButtons().length
-																													- 1)
-																											 : 0].setSelected(true);
+			colorKeyPanel.getClassRadioButtons()[colorLoaded
+																											? (colorKeyPanel.getClassRadioButtons().length
+																											- 1)
+																											: 0].setSelected(true);
 
 			twoDPanel.createImage();
 
@@ -2071,7 +1490,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 																						 BufferedImage.TYPE_INT_ARGB);
 				colorKeyPanel.classValuesPanel.paint(bi.createGraphics());
 				// then reset and dispose of extra resources
-				colorKeyPanel.classValuesPanel.setLayout(new org.genvisis.cnv.gui.WrapLayout(FlowLayout.CENTER,
+				colorKeyPanel.classValuesPanel.setLayout(new org.genvisis.cnv.gui.WrapLayout(
+																																										 FlowLayout.CENTER,
 																																										 0, 0));
 				frame.removeAll();
 				frame.dispose();
@@ -2118,7 +1538,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 	private void loadColor(String baseDir, ScreenToCapture screencap) {
 		Hashtable<String, String> colorData = HashVec.loadFileToHashString(baseDir
-																																			 + screencap.colorFile,
+																																					 + screencap.colorFile,
 																																			 screencap.colorIDIndex,
 																																			 new int[] {screencap.colorIndex},
 																																			 "\t", true);
@@ -2132,32 +1552,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return (byte) (colorData.get(id) == null ? 0 : colorData.get(id).intValue());
 	}
 
-	public void addDataSource(String dataName, String[][] data, String[] columns) {
-		if (dataKeys.contains(dataName)) {
-			return;
-		}
-		if (dataName == null || columns == null || data == null) {
-			return;
-		}
-		dataKeys.add(dataName);
-		addDataHeader(dataName, columns);
 
-		// if (sampleData != null) {
-		// sampleData.initLinkKey(dataName); // initialize the link key
-		// }
-		// createLinkKeyToDataHash(filename, linkKeyIndices);
-		dataHash.put(dataName, new ArrayList<String[]>());
-
-		for (String[] line : data) {
-			if (line == null) {
-				continue;
-			}
-			dataHash.get(dataName).add(line);
-			validColumnsHash.put(dataName, validate(line));
-		}
-
-		updateTreeForNewData();
-	}
 
 	/**
 	 * @return Empty string if successful, otherwise an error message.
@@ -2193,17 +1588,15 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			readBuffer = reader.readLine();
 			String delim = ext.determineDelimiter(readBuffer);
 			header = readBuffer.trim().split(delim);
+
+			// TODO add column selection and data filtering / transformations
+			// don't load invalid data (or discard once loaded and display warning)
+
 			lineLength = header.length;
 
-			// validColumnsHash.put(filename, Array.booleanArray(dataColumnsHash.get(filename).length,
-			// true));
-
-			// if (sampleData != null) {
-			// sampleData.initLinkKey(filename); // initialize the link key
-			// }
-			// createLinkKeyToDataHash(filename, linkKeyIndices);
 			ArrayList<String[]> data = new ArrayList<String[]>();
 			boolean[] valid = ArrayUtils.booleanArray(header.length, true);
+
 			String tempLine = "";
 			int cnt = 0;
 			while ((tempLine = reader.readLine()) != null) {
@@ -2245,15 +1638,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return "";
 	}
 
-	enum OP {
-		GT, LT, EQ;
-	}
-	class Filter {
-		OP oper;
-		String data;
-		double compValue;
-	}
-
 	private void addDataHeader(String filename, String[] header) {
 		int[] linkKeyIndices;
 
@@ -2263,11 +1647,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		if (linkKeyIndices[DNA_INDEX_IN_LINKERS] == -1) {
 			log.report("Sample ID not automatically identified for file '" + filename
-								 + "'; assuming the first column.");
-			linkKeyIndices[DNA_INDEX_IN_LINKERS] = 0;
+								 + "'.");
+			linkKeyIndices[DNA_INDEX_IN_LINKERS] = -1;
 		}
 
-		columnMetaData.put(filename, new HashMap<Integer, String[]>());
+		columnMetaData.put(filename, new HashMap<Integer, ColumnMetaData>());
+		fileColumnDataPipes.put(filename, new HashMap<>());
 
 		String region, chr, start, stop, lbl;
 		String[] regSplit;
@@ -2285,7 +1670,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 					regSplit = region.split("-");
 					start = regSplit[0];
 					stop = regSplit[1];
-					columnMetaData.get(filename).put(i, new String[] {lbl, chr, region, start, stop});
+					columnMetaData.get(filename).put(i, new ColumnMetaData(lbl, chr, region, start, stop));
 				}
 			}
 		}
@@ -2328,7 +1713,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				branchHandles[0] = key;
 				namesOfNodes[0] = treeFileVariableNameLookup[i];
 				tree = new CheckBoxTree(namesOfBranches, branchHandles, namesOfNodes,
-																validColumnsHash.get(key), /* isHistPlot ? 1 : */ 2);
+																validColumnsHash.get(key), /* isHistPlot ? 1 : */2);
 			} else {
 				boolean found = false;
 				for (int j = 0; j < tree.getModel().getChildCount(tree.getModel().getRoot()); j++) {
@@ -2390,9 +1775,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			if (selectionValue != null && selectionValue[0] != null) {
 				String file = selectionValue[0];
 				int col = Integer.parseInt(selectionValue[1]);
-				String[] metaData = getColumnMetaData(file, col);
+				ColumnMetaData metaData = getColumnMetaData(file, col);
 				if (metaData != null) {
-					result = new String[] {metaData[1], metaData[2], metaData[3], metaData[4], metaData[0]};
+					result = new String[] {metaData.chr, metaData.region, metaData.start, metaData.stop,
+																 metaData.lbl};
 				} else {
 					String colName = dataColumnsHash.get(file)[col];
 					Matcher m = headerPattern.matcher(colName);
@@ -2420,7 +1806,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return returnResults;
 	}
 
-	public String[] getColumnMetaData(String filename, int index) {
+	public ColumnMetaData getColumnMetaData(String filename, int index) {
 		return columnMetaData.get(filename).get(index);
 	}
 
@@ -2491,5 +1877,3 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		});
 	}
 }
-
-

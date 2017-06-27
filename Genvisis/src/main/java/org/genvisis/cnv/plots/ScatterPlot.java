@@ -4273,8 +4273,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			scatterPanels[i].axisXHeight = 0;
 			scatterPanels[i].axisYWidth = 0;
 			scatterPanels[i].shrunk = true;
-			scatterPanels[i].displayXaxis = false;
-			scatterPanels[i].displayYaxis = false;
+			scatterPanels[i].displayXAxis = false;
+			scatterPanels[i].displayYAxis = false;
 			scatterOverview.add(indivPanels[i]);
 			indivPanels[i].invalidate();
 			scatterPanels[i].invalidate();
@@ -4344,8 +4344,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			scatterPanels[i].axisXHeight = AbstractPanel.HEIGHT_X_AXIS;
 			scatterPanels[i].axisYWidth = AbstractPanel.WIDTH_Y_AXIS;
 			scatterPanels[i].shrunk = false;
-			scatterPanels[i].displayXaxis = true;
-			scatterPanels[i].displayYaxis = true;
+			scatterPanels[i].displayXAxis = true;
+			scatterPanels[i].displayYAxis = true;
 			indivPanels[i].invalidate();
 			scatterPanels[i].invalidate();
 		}
