@@ -29,116 +29,14 @@ public interface SampleProcessor {
 }
 
 
-class PercentageWriterFactory implements ProcessorFactory<PercentageWriter> {
-	ConcurrentHashMap<Object, Map<String, Map<String, Double>>> resultMap = new ConcurrentHashMap<>();
-
-	@Override
-	public PercentageWriter createProcessor(Object owner, int index) {
-		Map<String, Map<String, Double>> map;
-		synchronized (resultMap) {
-			map = resultMap.get(owner);
-			if (map == null) {
-				map = new ConcurrentHashMap<>();
-				resultMap.put(owner, map);
-			}
-		}
-		return new PercentageWriter(map);
-	}
-
-	@Override
-	public void cleanup(Object owner) {
-		Map<String, Map<String, Double>> resMap = resultMap.get(owner);
-		if (resMap == null) {
-			return;
-		}
-		PrintWriter writer = Files.getAppropriateWriter("F:/Flow/gatingTest/p1.pcts.xln");
-		boolean header = false;
-		for (Entry<String, Map<String, Double>> entry : resMap.entrySet()) {
-			if (!header) {
-				StringBuilder sb = new StringBuilder();
-				for (String s : order) {
-					sb.append("\t").append(s);
-				}
-				writer.println(sb.toString());
-				header = true;
-			}
-			StringBuilder sb = new StringBuilder(entry.getKey());
-			for (String s : order) {
-				sb.append("\t").append(entry.getValue().get(s));
-			}
-			writer.println(sb.toString());
-		}
-		writer.flush();
-		writer.close();
-	}
-
-	private static final String[] order = {
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A)",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H)",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A)",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / B cells (CD3- CD19+) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / B cells (CD3- CD19+) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / IgD+ memory Bcells (CD27+) (Comp-BUV 737-A (IgD) v Comp-BB515-A (CD27))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / B cells (CD3- CD19+) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / IgD- memory Bcells (CD27+) (Comp-BUV 737-A (IgD) v Comp-BB515-A (CD27))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / B cells (CD3- CD19+) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / naive Bcells (CD27- IgD+) (Comp-BUV 737-A (IgD) v Comp-BB515-A (CD27))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / activated cytotoxic Tcells (CD8+ HLA-DR+) (Comp-PE-CF594-A (HLA-DR) v Comp-BUV 395-A (CD8))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / central memory cytotoxic Tcells (CCR7+ , CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / central memory cytotoxic Tcells (CCR7+ , CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / central memory cytotoxic Tcells (CD95+ CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / central memory cytotoxic Tcells (CCR7+ , CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / effector memory cytotoxic Tcells (CD95+ CD28-) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / central memory cytotoxic Tcells (CCR7+ , CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / naive cytotoxic Tcells (CD95- CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / central memory cytotoxic Tcells (CD95+ CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector cytotoxic Tcells  (CCR7-  CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector cytotoxic Tcells  (CCR7-  CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / central memory cytotoxic Tcells (CD95+ CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector cytotoxic Tcells  (CCR7-  CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / cytotoxic Tcells CD27- , CD28+ (Comp-BB515-A (CD27) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector cytotoxic Tcells  (CCR7-  CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / effector memory cytotoxic Tcells (CD95+ CD28-) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector cytotoxic Tcells  (CCR7-  CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / naive cytotoxic Tcells (CD95- CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector cytotoxic Tcells  (CCR7-  CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / pE cytotoxic Tcells (CD27-  CD28-) (Comp-BB515-A (CD27) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector cytotoxic Tcells  (CCR7-  CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / pE1 cytotoxic Tcells (CD27+  CD28+) (Comp-BB515-A (CD27) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector cytotoxic Tcells  (CCR7-  CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / pE2 cytotoxic Tcells (CD27+ , CD28-) (Comp-BB515-A (CD27) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector memory cytotoxic Tcells (CCR7- , CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector memory cytotoxic Tcells (CCR7- , CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / central memory cytotoxic Tcells (CD95+ CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector memory cytotoxic Tcells (CCR7- , CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / effector memory cytotoxic Tcells (CD95+ CD28-) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector memory cytotoxic Tcells (CCR7- , CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / EM1 cytotoxic Tcells (CD27+  CD28+) (Comp-BB515-A (CD27) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector memory cytotoxic Tcells (CCR7- , CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / EM2 cytotoxic Tcells (CD27+  CD28-) (Comp-BB515-A (CD27) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector memory cytotoxic Tcells (CCR7- , CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / EM3 cytotoxic Tcells (CD27-  CD28-) (Comp-BB515-A (CD27) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector memory cytotoxic Tcells (CCR7- , CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / EM4 cytotoxic Tcells (CD27-  CD28+) (Comp-BB515-A (CD27) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector memory cytotoxic Tcells (CCR7- , CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / naive cytotoxic Tcells (CD95- CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector memory cytotoxic Tcells (CD95+ CD28-) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / naive cytotoxic Tcells (CCR7+ , CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / naive cytotoxic Tcells (CCR7+ , CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / central memory cytotoxic Tcells (CD95+ CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / naive cytotoxic Tcells (CCR7+ , CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / effector memory cytotoxic Tcells (CD95+ CD28-) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / naive cytotoxic Tcells (CCR7+ , CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / naive cytotoxic Tcells (CD95- CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / cytotoxic Tcells-CD8+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / naive cytotoxic Tcells (CD95- CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / activated helper Tcells (CD4+ HLA-DR+) (Comp-PE-CF594-A (HLA-DR) v Comp-APC-Cy7-A (CD4))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / central memory helper Tcells (CCR7+ CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / central memory helper Tcells (CCR7+ CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / central memory helper Tcells (CD95+, CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / central memory helper Tcells (CCR7+ CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / effector memory helper Tcells (CD95+, CD28-) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / central memory helper Tcells (CCR7+ CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / naive helper Tcells (CD95-, CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / central memory helper Tcells (CD95+, CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector helper Tcells (CCR7- CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector helper Tcells (CCR7- CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / central memory helper Tcells (CD95+, CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector helper Tcells (CCR7- CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / effector memory helper Tcells (CD95+, CD28-) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector helper Tcells (CCR7- CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / naive helper Tcells (CD95-, CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector memory helper Tcells (CCR7- CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector memory helper Tcells (CCR7- CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / central memory helper Tcells (CD95+, CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector memory helper Tcells (CCR7- CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / effector memory helper Tcells (CD95+, CD28-) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector memory helper Tcells (CCR7- CD45RA-) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / naive helper Tcells (CD95-, CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / effector memory helper Tcells (CD95+, CD28-) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / naive helper Tcells (CCR7+ CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / naive helper Tcells (CCR7+ CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / central memory helper Tcells (CD95+, CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / naive helper Tcells (CCR7+ CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / effector memory helper Tcells (CD95+, CD28-) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / naive helper Tcells (CCR7+ CD45RA+) (Comp-BV 421-A (CCR7) v Comp-BV 711-A (CD45RA)) / naive helper Tcells (CD95-, CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",
-																				 "Lymphocytes (SSC-A v FSC-A) (FSC-A v SSC-A) / Single Cells (FSC-H v FSC-W) (FSC-W v FSC-H) / Live cells (PE-) (Comp-PE-A (L/D) v SSC-A) / Tcells (CD3+ CD19-) (Comp-APC-A (CD3) v Comp-PE-Cy7-A (CD19)) / Helper Tcells-CD4+ (Comp-APC-Cy7-A (CD4) v Comp-BUV 395-A (CD8)) / naive helper Tcells (CD95-, CD28+) (Comp-BV 605-A (CD95) v Comp-BV 510-A (CD28))",};
-}
-
-
-class PercentageWriter extends AbstractSampleProcessor {
+class PercentageAndCountWriter extends AbstractSampleProcessor {
 	final Map<String, Map<String, Double>> pctMap;
+	final Map<String, Map<String, Integer>> cntMap;
 
-	public PercentageWriter(Map<String, Map<String, Double>> pctMap) {
+	public PercentageAndCountWriter(Map<String, Map<String, Double>> pctMap,
+																	Map<String, Map<String, Integer>> cntMap) {
 		this.pctMap = pctMap;
+		this.cntMap = cntMap;
 	}
 
 	@Override
@@ -154,19 +52,24 @@ class PercentageWriter extends AbstractSampleProcessor {
 			pcts = new HashMap<>();
 			pctMap.put(sn.fcsFile, pcts);
 		}
+		Map<String, Integer> cnts = cntMap.get(sn.fcsFile);
+		if (cnts == null) {
+			cnts = new HashMap<>();
+			cntMap.put(sn.fcsFile, cnts);
+		}
 		HashSet<Gate> allGates = new HashSet<>(sn.gating.gateMap.values());
 		for (Gate g : allGates) {
 			boolean[] gating = g.gate(d);
 			boolean[] parent = g.getParentGating(d);
 			int g1 = ArrayUtils.booleanArraySum(gating);
 			int g2 = ArrayUtils.booleanArraySum(parent);
-			pcts.put(g.getFullNameAndGatingPath(), ((double) g1) / (double) g2);
+			pcts.put(g.getFullNameAndGatingPath(), 100 * ((double) g1) / (double) g2);
+			cnts.put(g.getFullNameAndGatingPath(), g1);
 		}
 
 		d.emptyAndReset();
 		d = null;
 	}
-
 }
 
 

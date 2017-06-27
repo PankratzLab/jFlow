@@ -2,7 +2,9 @@ package org.genvisis.one.ben.fcs.auto;
 
 import java.io.IOException;
 
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
+import org.genvisis.one.ben.fcs.auto.proc.PercentageAndCountWriterFactory;
 import org.genvisis.one.ben.fcs.auto.proc.ProcessorFactory;
 import org.genvisis.one.ben.fcs.auto.proc.SampleProcessor;
 import org.genvisis.one.ben.fcs.auto.proc.VisualizationProcessor;
@@ -33,9 +35,9 @@ public class FCSProcessingPipeline {
 
 	private String fcsDir, wspDir, autoDir, outDir;
 
-	private void run() throws IOException {
+	private void run(PIPELINE pipeToRun) throws IOException {
 
-		ProcessorFactory<? extends SampleProcessor> pf;
+		ProcessorFactory<? extends SampleProcessor> pf = null;
 
 		// pf = new GateAssignmentFactory();
 		// pf = new PercentageWriterFactory();
@@ -77,17 +79,28 @@ public class FCSProcessingPipeline {
 		// };
 		//
 		// SamplingPipeline sp = new SamplingPipeline(1, null, WSP, FCS, null, OUT, pf);
+		switch (pipeToRun) {
+			case VIZ:
+				pf = new ProcessorFactory<SampleProcessor>() {
 
-		pf = new ProcessorFactory<SampleProcessor>() {
+					@Override
+					public void cleanup(Object owner) {}
 
-			@Override
-			public void cleanup(Object owner) {}
-
-			@Override
-			public SampleProcessor createProcessor(Object owner, int index) {
-				return new VisualizationProcessor(autoDir, outDir);
-			}
-		};
+					@Override
+					public SampleProcessor createProcessor(Object owner, int index) {
+						return new VisualizationProcessor(autoDir, outDir);
+					}
+				};
+				break;
+			case PCTS_CNTS:
+				pf = new PercentageAndCountWriterFactory(outDir);
+				break;
+			default:
+				System.err.println("Error - pipeline option " + pipeToRun
+													 + " not recognized!  Options are: "
+													 + ArrayUtils.toStr(PIPELINE.values(), ", "));
+				return;
+		}
 
 		SamplingPipeline sp = new SamplingPipeline(1, null, wspDir, fcsDir, null, outDir, pf);
 
@@ -112,6 +125,11 @@ public class FCSProcessingPipeline {
 	}
 
 
+	private static enum PIPELINE {
+		VIZ,
+		PCTS_CNTS;
+	}
+
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 
@@ -126,14 +144,14 @@ public class FCSProcessingPipeline {
 		String wsp = "/panfs/roc/groups/15/thyagara/shared/HRS/UPLOAD WSP/";
 		String auto = "/home/pankrat2/shared/flow/testAutoGate/test2/gates2/";
 		String out = "/scratch.global/cole0482/FCS/testConcordance/";
-
-		boolean test = true;
-		if (test) {
-			fcs = wsp = auto = out = "F:/Flow/Annotation/viz/wsp/";
-			out += "out/";
-			new FCSProcessingPipeline(fcs, wsp, auto, out).run();
-			return;
-		}
+		PIPELINE pipe = null;
+		// boolean test = true;
+		// if (test) {
+		// fcs = wsp = auto = out = "F:/Flow/Annotation/viz/wsp/";
+		// out += "out/";
+		// new FCSProcessingPipeline(fcs, wsp, auto, out).run(PIPELINE.PCTS_CNTS);
+		// return;
+		// }
 
 
 		for (String arg : args) {
@@ -149,10 +167,12 @@ public class FCSProcessingPipeline {
 			} else if (arg.startsWith("out=")) {
 				out = ext.parseStringArg(arg);
 				numArgs--;
+			} else if (arg.startsWith("pipe=")) {
+				pipe = PIPELINE.valueOf(arg.split("=")[1]);
+				numArgs--;
 			}
 		}
 
-		new FCSProcessingPipeline(fcs, wsp, auto, out).run();
+		new FCSProcessingPipeline(fcs, wsp, auto, out).run(pipe);
 	}
-
 }
