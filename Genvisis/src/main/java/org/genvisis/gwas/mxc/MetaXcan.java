@@ -82,6 +82,7 @@ public class MetaXcan {
 		}
 
 		String gwas_folder = ext.parseDirectoryOfFile(new File(data).getAbsolutePath());
+		data = new File(data).getName();
 
 		db = new File(db).getAbsolutePath();
 		covar = new File(covar).getAbsolutePath();
@@ -112,7 +113,8 @@ public class MetaXcan {
 
 
 		// take the output mxc file and find the number of hits for each gene range
-		ParseMXCResults.addMetalHits(posmap, out, covar, data, new Logger("parseMXC.log"));
+		ParseMXCResults.addMetalHits(posmap, out, covar, gwas_folder + data,
+																 new Logger("parseMXC.log"));
 
 
 	}
