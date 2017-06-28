@@ -18,11 +18,12 @@ public class ManhattanPanel extends AbstractPanel {
 	ManhattanPlot mp;
 	byte size = 2;
 	byte layer = 1;
-	int numPointColors = 2;
+	int numPointColors = 3;
 
 	int[] lineValuesToDraw = new int[] {5, 7};
 	int[] sizeMult = new int[] {2, 4};
-	int[] lineColors = new int[] {3, 4};
+	int[] lineColors = new int[] {3, 3};
+	int[] aboveLineColors = new int[] {4, 5};
 
 	public ManhattanPanel(ManhattanPlot parent) {
 		super();
@@ -31,8 +32,9 @@ public class ManhattanPanel extends AbstractPanel {
 		setSymmetricAxes(false);
 
 		setColorScheme(new Color[] {
-																Color.BLACK,
 																Color.GRAY,
+																Color.BLACK,
+																Color.LIGHT_GRAY,
 																Color.RED,
 																Color.MAGENTA,
 																Color.GREEN
@@ -125,7 +127,7 @@ public class ManhattanPanel extends AbstractPanel {
 		lines = new GenericLine[lineValuesToDraw.length];
 		for (int i = 0; i < lineValuesToDraw.length; i++) {
 			lines[i] = new GenericLine(Integer.MIN_VALUE, lineValuesToDraw[i], (float) Integer.MAX_VALUE,
-																 lineValuesToDraw[i], (byte) 1, (byte) 2, (byte) 99);
+																 lineValuesToDraw[i], (byte) 1, (byte) lineColors[i], (byte) 99);
 		}
 	}
 
@@ -135,7 +137,7 @@ public class ManhattanPanel extends AbstractPanel {
 			if (transP < lineValuesToDraw[i]) {
 				break;
 			}
-			c = lineColors[i];
+			c = aboveLineColors[i];
 		}
 		return (byte) c;
 	}
