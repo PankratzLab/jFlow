@@ -476,13 +476,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		assignAxisLabels();
 
 		// zx 4/30/2012 swap X Y
-		if (invertable) {
-			for (PlotPoint point : points) {
-				// float temp = points[i].getRawX();
-				// points[i].setRawX() = points[i].getRawY();
-				// points[i].getRawY() = temp;
-			}
-		}
+		// if (invertable) {
+		// for (PlotPoint point : points) {
+		// float temp = points[i].getRawX();
+		// points[i].setRawX() = points[i].getRawY();
+		// points[i].getRawY() = temp;
+		// }
+		// }
 
 		// Scan for rawX, rawY range of the data points
 		minimumObservedRawX = Float.MAX_VALUE;
@@ -984,7 +984,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	}
 
 
-	private void drawXAxis(Graphics g, double[] plotMinMaxStep, FontMetrics fontMetrics) {
+	protected void drawXAxis(Graphics g, double[] plotMinMaxStep, FontMetrics fontMetrics) {
 		int sigFigs;
 		String str;
 		sigFigs = ext.getNumSigFig(plotMinMaxStep[2]);

@@ -13,4 +13,5 @@ public interface Pipe {
 	void setPrevPipe(Pipe p);
 
 	String pipeValue(String value) throws RejectedValueException;
+
 }

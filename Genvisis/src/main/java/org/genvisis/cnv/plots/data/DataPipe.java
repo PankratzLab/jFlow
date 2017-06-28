@@ -1,6 +1,5 @@
 package org.genvisis.cnv.plots.data;
 
-
 public class DataPipe {
 	Pipe start;
 

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
+import org.genvisis.CLI.Arg;
 import org.genvisis.cnv.plots.data.AbstractPipe.DropIfMatchAnyPipe;
 import org.genvisis.cnv.plots.data.DataFile;
 import org.genvisis.cnv.plots.data.DataListener;
@@ -13,6 +14,7 @@ import org.genvisis.cnv.plots.data.DataPipe;
 import org.genvisis.cnv.plots.data.FilterPipe;
 import org.genvisis.cnv.plots.data.TransformPipe;
 import org.genvisis.common.Aliases;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Maths.OPERATOR;
@@ -26,7 +28,7 @@ public class ManhattanPlot extends JFrame {
 
 	public static final String[][] LINKERS = {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS,
 																						Aliases.PVALUES};
-	private static final boolean[] REQ_LINKS = {true, true, true, true};
+	private static final boolean[] REQ_LINKS = {false, true, true, true};
 
 	static final int LIN_CHR_BUFFER = 10000000;
 	static final int LIN_LOC_START = Integer.MIN_VALUE + LIN_CHR_BUFFER;
@@ -75,55 +77,79 @@ public class ManhattanPlot extends JFrame {
 			}
 		});
 		dataPipes.put("P", pipe);
+	}
 
-		// DataPipe pipe2 = new DataPipe();
-		// pipe2.addPipe(new FilterPipe<Integer>(OPERATOR.EQUAL, 21, Integer.class));
-		// dataPipes.put("CHR", pipe2);
+	public ArrayList<ManhattanDataPoint> createData(String[] markerNames, int[] chrs, int[] pos,
+																									double[] pvals) {
+		return new ArrayList<>(); // TODO
+	}
+
+	public void setData(ArrayList<ManhattanDataPoint> dataPoints) {
+		this.cachedData = dataPoints;
+		// TODO new object "manualData", use cachedData for transforms / filters
 	}
 
 	public void loadFile(String filename) {
-		// TODO if file already loaded, return
-		// TODO if not allowed file or file doesn't exist, return
+		if (this.data != null && this.data.getFilename().equals(filename)) {
+			return;
+		}
+		if (!Files.exists(filename)) {
+			log.reportError("File not found: " + filename);
+			return;
+		}
 
 		DataFile dataFile = new DataFile(filename, log, LINKERS, REQ_LINKS);
 		if (!dataFile.hasRequiredData()) {
 			// TODO error, cancel
 		}
+		this.data = dataFile;
 
 		// add DataPipes to remove missing data
 		HashMap<String, DataPipe> selTrans = new HashMap<>();
 		DataPipe nonMissPipe = new DataPipe();
 		nonMissPipe.addPipe(new DropIfMatchAnyPipe(ext.MISSING_VALUES, true));
 		nonMissPipe.addPipe(new FilterPipe<Integer>(OPERATOR.GREATER_THAN, 0, Integer.class));
-		selTrans.put(dataFile.getColumns()[dataFile.getLinkIndices()[CHR_LINKER]], nonMissPipe);
-		selTrans.put(dataFile.getColumns()[dataFile.getLinkIndices()[POS_LINKER]], nonMissPipe);
+		selTrans.put(dataFile.getLinkedColumnName(CHR_LINKER), nonMissPipe);
+		selTrans.put(dataFile.getLinkedColumnName(POS_LINKER), nonMissPipe);
 
 		// add DataPipe to remove missing data and remove pVals < 0.05
 		DataPipe pValPipe = new DataPipe();
 		pValPipe.addPipe(new DropIfMatchAnyPipe(ext.MISSING_VALUES, true));
 		pValPipe.addPipe(new FilterPipe<Double>(OPERATOR.LESS_THAN_OR_EQUAL, 0.05, Double.class));
-		selTrans.put(dataFile.getColumns()[dataFile.getLinkIndices()[PVAL_LINKER]], pValPipe);
+		selTrans.put(dataFile.getLinkedColumnName(PVAL_LINKER), pValPipe);
 
 		// No data pipe, but indicate that we'd like to load SNP data also
-		selTrans.put(dataFile.getColumns()[dataFile.getLinkIndices()[SNP_LINKER]], null);
+		// but check to ensure we have SNP data first
+		if (dataFile.hasLinkedColumn(SNP_LINKER)) {
+			selTrans.put(dataFile.getLinkedColumnName(SNP_LINKER), null);
+		}
 
 		// TODO allow column selection? Load other info?
 
-		dataFile.pingWhenReady(new DataListener() {
+		dataFile.setSortColumns(new String[] {dataFile.getLinkedColumnName(CHR_LINKER),
+																					dataFile.getLinkedColumnName(POS_LINKER)},
+														new Arg[] {Arg.NUMBER, Arg.NUMBER});
+
+
+		DataListener pinger = new DataListener() {
 			@Override
 			public void ping(DataFile dataFile) {
-				ManhattanPlot.this.data = dataFile;
 				ManhattanPlot.this.manPan.paintAgain();
 			}
-		});
+		};
+		dataFile.pingWhenReady(pinger);
 		dataFile.loadData(selTrans, false);
+		this.manPan.paintAgain();
 	}
 
 	public ArrayList<ManhattanDataPoint> getData() {
 		ArrayList<ManhattanDataPoint> pts = getCachedData();
 		if (pts == null) {
-			pts = new ArrayList<>();
 			if (data == null) {
+				return null;
+			}
+			pts = new ArrayList<>();
+			if (!data.isLoaded()) {
 				return pts;
 			}
 			String chrCol = data.getLinkedColumnName(CHR_LINKER);
@@ -165,11 +191,12 @@ public class ManhattanPlot extends JFrame {
 					if (chrI > prev.chr) {
 						linLoc = prev.linearLoc + LIN_CHR_BUFFER;
 					} else {
-						linLoc = prev.linearLoc + (posI - prev.pos);
+						linLoc = prev.linearLoc + (Math.min(posI - prev.pos, LIN_CHR_BUFFER));
 					}
 				}
 				double val = Double.parseDouble(pVal);
-				pts.add(new ManhattanDataPoint(row[mkrInd], chrI, posI, linLoc, val));
+				pts.add(new ManhattanDataPoint(mkrInd == -1 ? chr + ":" + pos : row[mkrInd], chrI, posI,
+																			 linLoc, val));
 				// TODO add other data here
 			}
 			cachedData = pts;
