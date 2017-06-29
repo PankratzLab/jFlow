@@ -1,7 +1,5 @@
 package org.genvisis.cnv.plots.data;
 
-
-
 public abstract class AbstractPipe implements Pipe {
 	Pipe prev;
 	Pipe next;

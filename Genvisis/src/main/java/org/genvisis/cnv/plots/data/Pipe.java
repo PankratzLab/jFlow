@@ -1,7 +1,7 @@
 package org.genvisis.cnv.plots.data;
 
-
 public interface Pipe {
+
 	boolean hasNextPipe();
 
 	Pipe getNextPipe();
@@ -12,6 +12,6 @@ public interface Pipe {
 
 	void setPrevPipe(Pipe p);
 
-	String pipeValue(String value) throws RejectedValueException;
+	public String pipeValue(String value) throws RejectedValueException;
 
 }

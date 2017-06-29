@@ -3,32 +3,33 @@ package org.genvisis.cnv.plots;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
 import org.genvisis.CLI.Arg;
+import org.genvisis.cnv.plots.data.AbstractPipe;
 import org.genvisis.cnv.plots.data.AbstractPipe.DropIfMatchAnyPipe;
 import org.genvisis.cnv.plots.data.DataFile;
 import org.genvisis.cnv.plots.data.DataListener;
 import org.genvisis.cnv.plots.data.DataPipe;
 import org.genvisis.cnv.plots.data.FilterPipe;
-import org.genvisis.cnv.plots.data.TransformPipe;
 import org.genvisis.common.Aliases;
-import org.genvisis.common.Files;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Maths.OPERATOR;
 
 public class ManhattanPlot extends JFrame {
 
-	private static final int SNP_LINKER = 0;
-	private static final int CHR_LINKER = 1;
-	private static final int POS_LINKER = 2;
-	private static final int PVAL_LINKER = 3;
+	static final int SNP_LINKER = 0;
+	static final int CHR_LINKER = 1;
+	static final int POS_LINKER = 2;
+	static final int PVAL_LINKER = 3;
 
-	public static final String[][] LINKERS = {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS,
-																						Aliases.PVALUES};
-	private static final boolean[] REQ_LINKS = {false, true, true, true};
+	static final String[][] LINKERS = {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS,
+																		 Aliases.PVALUES, Aliases.EFFECTS, Aliases.STD_ERRS};
+	static final boolean[] REQ_LINKS = {false, true, true, true, false, false};
 
 	static final int LIN_CHR_BUFFER = 10000000;
 	static final int LIN_LOC_START = Integer.MIN_VALUE + LIN_CHR_BUFFER;
@@ -48,7 +49,7 @@ public class ManhattanPlot extends JFrame {
 
 	public static void main(String[] args) {
 		ManhattanPlot mp = new ManhattanPlot();
-		mp.loadFile("D:/data/ny_choanal/omni2.5v1.2/plink/plink.assoc");
+		mp.loadFile();// "D:/data/ny_choanal/omni2.5v1.2/plink/plink.assoc");
 	}
 
 	public ManhattanPlot() {
@@ -69,9 +70,9 @@ public class ManhattanPlot extends JFrame {
 
 	private void addTestDataPipes() {
 		DataPipe pipe = new DataPipe();
-		pipe.addPipe(new TransformPipe() {
+		pipe.addPipe(new AbstractPipe() {
 			@Override
-			public String transformValue(String value) {
+			public String pipeValue(String value) {
 				Double v = Double.parseDouble(value);
 				return "" + (-Math.log10(v));
 			}
@@ -89,47 +90,55 @@ public class ManhattanPlot extends JFrame {
 		// TODO new object "manualData", use cachedData for transforms / filters
 	}
 
-	public void loadFile(String filename) {
-		if (this.data != null && this.data.getFilename().equals(filename)) {
-			return;
-		}
-		if (!Files.exists(filename)) {
-			log.reportError("File not found: " + filename);
+	public void loadFile() {
+		ManhattanLoadGUI mlg = new ManhattanLoadGUI();
+		mlg.setVisible(true);
+
+		if (mlg.getCloseCode() != JFileChooser.APPROVE_OPTION) {
 			return;
 		}
 
-		DataFile dataFile = new DataFile(filename, log, LINKERS, REQ_LINKS);
-		if (!dataFile.hasRequiredData()) {
-			// TODO error, cancel
-		}
-		this.data = dataFile;
+		String[] cols = mlg.getSelectedColumns();
+		double filt = mlg.getPValueThreshold();
+		boolean[] chrs = mlg.getSelectedChrs();
+		this.data = mlg.getDataFile();
 
-		// add DataPipes to remove missing data
 		HashMap<String, DataPipe> selTrans = new HashMap<>();
-		DataPipe nonMissPipe = new DataPipe();
-		nonMissPipe.addPipe(new DropIfMatchAnyPipe(ext.MISSING_VALUES, true));
-		nonMissPipe.addPipe(new FilterPipe<Integer>(OPERATOR.GREATER_THAN, 0, Integer.class));
-		selTrans.put(dataFile.getLinkedColumnName(CHR_LINKER), nonMissPipe);
-		selTrans.put(dataFile.getLinkedColumnName(POS_LINKER), nonMissPipe);
 
-		// add DataPipe to remove missing data and remove pVals < 0.05
+		DataPipe chrPipe = new DataPipe();
+		chrPipe.addPipe(new DropIfMatchAnyPipe(ext.MISSING_VALUES, true));
+		int numChrs = ArrayUtils.booleanArraySum(chrs);
+		if (numChrs != chrs.length) {
+			if (numChrs == 1) {
+				int chr = ArrayUtils.booleanArrayToIndices(chrs)[0];
+				chrPipe.addPipe(new FilterPipe<Integer>(OPERATOR.EQUAL, chr, Integer.class));
+			} else {
+				String[] dropIfMatch = ArrayUtils.toStringArray(ArrayUtils.booleanArrayToIndices(ArrayUtils.booleanNegative(chrs)));
+				chrPipe.addPipe(new DropIfMatchAnyPipe(dropIfMatch, true));
+			}
+		}
+		selTrans.put(data.getLinkedColumnName(CHR_LINKER), chrPipe);
+
+		DataPipe posPipe = new DataPipe();
+		posPipe.addPipe(new DropIfMatchAnyPipe(ext.MISSING_VALUES, true));
+		selTrans.put(data.getLinkedColumnName(POS_LINKER), posPipe);
+
 		DataPipe pValPipe = new DataPipe();
 		pValPipe.addPipe(new DropIfMatchAnyPipe(ext.MISSING_VALUES, true));
-		pValPipe.addPipe(new FilterPipe<Double>(OPERATOR.LESS_THAN_OR_EQUAL, 0.05, Double.class));
-		selTrans.put(dataFile.getLinkedColumnName(PVAL_LINKER), pValPipe);
+		if (!Double.isNaN(filt)) {
+			pValPipe.addPipe(new FilterPipe<Double>(OPERATOR.LESS_THAN_OR_EQUAL, filt, Double.class));
+		}
+		selTrans.put(data.getLinkedColumnName(PVAL_LINKER), pValPipe);
 
-		// No data pipe, but indicate that we'd like to load SNP data also
-		// but check to ensure we have SNP data first
-		if (dataFile.hasLinkedColumn(SNP_LINKER)) {
-			selTrans.put(dataFile.getLinkedColumnName(SNP_LINKER), null);
+		for (String s : cols) {
+			if (!selTrans.containsKey(s)) {
+				selTrans.put(s, null);
+			}
 		}
 
-		// TODO allow column selection? Load other info?
-
-		dataFile.setSortColumns(new String[] {dataFile.getLinkedColumnName(CHR_LINKER),
-																					dataFile.getLinkedColumnName(POS_LINKER)},
-														new Arg[] {Arg.NUMBER, Arg.NUMBER});
-
+		data.setSortColumns(new String[] {data.getLinkedColumnName(CHR_LINKER),
+																			data.getLinkedColumnName(POS_LINKER)},
+												new Arg[] {Arg.NUMBER, Arg.NUMBER});
 
 		DataListener pinger = new DataListener() {
 			@Override
@@ -137,9 +146,13 @@ public class ManhattanPlot extends JFrame {
 				ManhattanPlot.this.manPan.paintAgain();
 			}
 		};
-		dataFile.pingWhenReady(pinger);
-		dataFile.loadData(selTrans, false);
+		data.pingWhenReady(pinger);
+		data.loadData(selTrans, false);
 		this.manPan.paintAgain();
+	}
+
+	public boolean isDataLoaded() {
+		return data != null && data.isLoaded();
 	}
 
 	public ArrayList<ManhattanDataPoint> getData() {

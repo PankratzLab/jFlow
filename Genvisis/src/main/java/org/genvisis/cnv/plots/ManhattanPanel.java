@@ -16,7 +16,7 @@ import org.genvisis.common.Grafik;
 public class ManhattanPanel extends AbstractPanel {
 
 	ManhattanPlot mp;
-	byte size = 2;
+	byte pointSize = 2;
 	byte layer = 1;
 	int numPointColors = 3;
 
@@ -24,6 +24,8 @@ public class ManhattanPanel extends AbstractPanel {
 	int[] sizeMult = new int[] {2, 4};
 	int[] lineColors = new int[] {3, 3};
 	int[] aboveLineColors = new int[] {4, 5};
+
+	HashMap<Integer, int[]> linearizedChrBnds = new HashMap<>();
 
 	public ManhattanPanel(ManhattanPlot parent) {
 		super();
@@ -81,20 +83,22 @@ public class ManhattanPanel extends AbstractPanel {
 		}
 	}
 
-	HashMap<Integer, int[]> linearizedChrBnds = new HashMap<>();
-
 	@Override
 	public void generatePoints() {
 		ArrayList<ManhattanDataPoint> dataPoints = mp.getData();
 		if (dataPoints == null) {
 			points = new PlotPoint[0];
 			lines = new GenericLine[0];
-			setNullMessage("No Data");
+			setNullMessage("Please Load a Data File.");
 			return;
 		} else if (dataPoints.isEmpty()) {
 			points = new PlotPoint[0];
 			lines = new GenericLine[0];
-			setNullMessage("Data Loading, Please Wait...");
+			if (mp.isDataLoaded()) {
+				setNullMessage("No Data Passed Filters.");
+			} else {
+				setNullMessage("Data Loading, Please Wait...");
+			}
 			return;
 		} else {
 			setNullMessage(null);
@@ -143,12 +147,12 @@ public class ManhattanPanel extends AbstractPanel {
 	}
 
 	private byte getSize(double pVal) {
-		int sz = size;
+		int sz = pointSize;
 		for (int i = 0; i < lineValuesToDraw.length; i++) {
 			if (pVal < lineValuesToDraw[i]) {
 				break;
 			}
-			sz = size * sizeMult[i];
+			sz = pointSize * sizeMult[i];
 		}
 		return (byte) sz;
 	}
