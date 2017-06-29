@@ -59,25 +59,11 @@ public class ManhattanPlot extends JFrame {
 		manPan = new ManhattanPanel(this);
 		dataPipes = new HashMap<>();
 
-		addTestDataPipes();
-
 		getContentPane().add(manPan);
 		setBounds(100, 100, 800, 600);
 
 		setVisible(true);
 		log = new Logger();
-	}
-
-	private void addTestDataPipes() {
-		DataPipe pipe = new DataPipe();
-		pipe.addPipe(new AbstractPipe() {
-			@Override
-			public String pipeValue(String value) {
-				Double v = Double.parseDouble(value);
-				return "" + (-Math.log10(v));
-			}
-		});
-		dataPipes.put("P", pipe);
 	}
 
 	public ArrayList<ManhattanDataPoint> createData(String[] markerNames, int[] chrs, int[] pos,
@@ -143,6 +129,15 @@ public class ManhattanPlot extends JFrame {
 		DataListener pinger = new DataListener() {
 			@Override
 			public void ping(DataFile dataFile) {
+				DataPipe pipe = new DataPipe();
+				pipe.addPipe(new AbstractPipe() {
+					@Override
+					public String pipeValue(String value) {
+						Double v = Double.parseDouble(value);
+						return "" + (-Math.log10(v));
+					}
+				});
+				dataPipes.put(data.getLinkedColumnName(PVAL_LINKER), pipe);
 				ManhattanPlot.this.manPan.paintAgain();
 			}
 		};

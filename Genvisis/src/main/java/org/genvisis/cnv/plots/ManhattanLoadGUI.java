@@ -84,6 +84,7 @@ public class ManhattanLoadGUI extends JDialog {
 	 */
 	public ManhattanLoadGUI() {
 		setBounds(100, 100, 450, 456);
+		setTitle("Load File");
 		setModal(true);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));

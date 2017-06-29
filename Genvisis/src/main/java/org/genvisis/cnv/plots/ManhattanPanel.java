@@ -11,6 +11,7 @@ import javax.swing.SwingUtilities;
 
 import org.genvisis.cnv.plots.ManhattanPlot.ManhattanDataPoint;
 import org.genvisis.common.Grafik;
+import org.genvisis.common.Positions;
 
 
 public class ManhattanPanel extends AbstractPanel {
@@ -51,7 +52,7 @@ public class ManhattanPanel extends AbstractPanel {
 				int[] bnds = linearizedChrBnds.get(i);
 				int x = (int) (bnds[0] + .5 * (bnds[1] - bnds[0]));
 				if (x >= plotXmin || !truncate) {
-					str = i + "";
+					str = Positions.CHR_CODES[i];
 					int xLoc = getXPixel(x) - fontMetrics.stringWidth(str) / 2;
 					int len = TICK_LENGTH;
 					if (xLoc <= prevEnd) {
