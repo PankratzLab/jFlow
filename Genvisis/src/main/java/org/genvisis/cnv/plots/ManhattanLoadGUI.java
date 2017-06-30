@@ -220,6 +220,15 @@ public class ManhattanLoadGUI extends JDialog {
 				JButton okButton = new JButton("OK");
 				okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
+						if (textField.getText().trim().equals("")) {
+							return;
+						}
+						if (!Files.exists(textField.getText().trim())) {
+							JOptionPane.showMessageDialog(ManhattanLoadGUI.this, "Error - file not found!",
+																						"Error - Missing File!",
+																						JOptionPane.ERROR_MESSAGE);
+							return;
+						}
 						close(false);
 					}
 				});

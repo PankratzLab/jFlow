@@ -119,17 +119,21 @@ public class LaunchAction extends AbstractAction {
 				String[] cnvs = {};
 				for (int i = 0; i < loc.length; i++) {
 					String pos = loc[i].endsWith("p") || loc[i].endsWith("q")
-																																		? loc[i].substring(0,
-																																											 loc[i].length()
-																																													- 1)
-																																		: loc[i];
-					Trailer t = new Trailer(proj, sample, cnvs, pos, new String[][] {{sample, pos}}, plotStartX,
-											plotStartY[i], plotWidth, plotHeight);
+																																	 ? loc[i].substring(0,
+																																											loc[i].length()
+																																											- 1)
+																																	 : loc[i];
+					Trailer t = new Trailer(proj, sample, cnvs, pos, new String[][] {{sample, pos}},
+																	plotStartX,
+																	plotStartY[i], plotWidth, plotHeight);
 					t.setVisible(true);
 				}
 				break;
 			case LAUNCH_SCATTER:
-				ext.setClipboard(sample + "\t" + ArrayUtils.toStr(loc));
+				if (sample != null || loc != null) {
+					ext.setClipboard(sample != null ? (sample)
+																				 : "" + loc != null ? ("\t" + ArrayUtils.toStr(loc)) : "");
+				}
 				ScatterPlot.createAndShowGUI(proj, new String[] {marker}, null, false);
 				break;
 			case COPY_ID:

@@ -352,12 +352,13 @@ public class ClipSwap {
 		String[] result = new String[strs.length];
 		int numColErrs = 0;
 		int numParseErrs = 0;
-		
+
 		for (int i = 0; i < strs.length; i++) {
 			if (strs[i].length != 3) {
 				if (numColErrs < 10) {
-					System.err.println("Error - row #"+(i+1)+" has "+(strs[i].length)+" columns instead of 3");
-					System.err.println("        "+ArrayUtils.toStr(strs[i], "/"));
+					System.err.println("Error - row #" + (i + 1) + " has " + (strs[i].length)
+														 + " columns instead of 3");
+					System.err.println("        " + ArrayUtils.toStr(strs[i], "/"));
 				}
 				numColErrs++;
 				result[i] = ".";
@@ -367,22 +368,25 @@ public class ClipSwap {
 				}
 				for (int j = 0; j < 3; j++) {
 					try {
-						Integer.parseInt(strs[i][j]); 
+						Integer.parseInt(strs[i][j]);
 					} catch (NumberFormatException nfe) {
 						if (numParseErrs < 10) {
-							System.err.println("Error - row #"+(i+1)+" does not have a valid "+(j==0?"chromosome":(j==1?"start":"stop"))+" number: "+strs[i][0]);
+							System.err.println("Error - row #" + (i + 1) + " does not have a valid "
+																 + (j == 0 ? "chromosome" : (j == 1 ? "start" : "stop"))
+																 + " number: " + strs[i][0]);
 						}
 						numParseErrs++;
 					}
 				}
-				result[i] = "chr"+Integer.parseInt(strs[i][0])+":"+Integer.parseInt(strs[i][1])+"-"+Integer.parseInt(strs[i][2]);
-			}			
+				result[i] = "chr" + Integer.parseInt(strs[i][0]) + ":" + Integer.parseInt(strs[i][1]) + "-"
+										+ Integer.parseInt(strs[i][2]);
+			}
 		}
 		if (numColErrs >= 10) {
-			System.err.println("There were "+numColErrs+" mismatched column errors");
+			System.err.println("There were " + numColErrs + " mismatched column errors");
 		}
 		if (numParseErrs >= 10) {
-			System.err.println("There were "+numColErrs+" invalid number errors");
+			System.err.println("There were " + numColErrs + " invalid number errors");
 		}
 
 		ext.setClipboard(ArrayUtils.toStr(result, "\n"));
@@ -416,7 +420,9 @@ public class ClipSwap {
 									 + "   (7) Create bins and counts for a histogram (i.e. -histogram (not the default))\n"
 									 + "   (8) Perform an inverse-variance weighted meta-analysis on a series of betas/stderrs (i.e. -inverseVariance (not the default))\n"
 									 + "   (9) Convert a beta/SE pair to an OR (95% CI) pair (i.e. -convertBetaSE2OR_CI (not the default))\n"
-									 + "            using X number of significant digits (i.e. sigfigs="+ sigfigs+" (default))\n"
+									 + "            using X number of significant digits (i.e. sigfigs="
+									 + sigfigs
+									 + " (default))\n"
 									 + "   (10) Split a nominal variable into binary columns (i.e. -nominalVariable (not the default))\n"
 									 + "   (11) Extracts keys from clipboard and saves them to a serialized file, with tabs maintained in lookup values (i.e. -saveKeys (not the default))\n"
 									 + "   (12) Lookup the values for the stored keys using the contents of the clipboard (i.e. -lookupValuesForSavedKeys (not the default))\n"

@@ -69,6 +69,10 @@ public class DataFile {
 		return fullHeader;
 	}
 
+	public String[] getLoadedColumns() {
+		return loadedHdr;
+	}
+
 	public String[] getUnlinkedColumns() {
 		String[] columns = new String[fullHeader.length
 																	- (linkIndices.length - ArrayUtils.countIf(linkIndices, -1))];

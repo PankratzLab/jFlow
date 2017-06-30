@@ -3,15 +3,25 @@ package org.genvisis.cnv.plots;
 import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
+import javax.swing.AbstractAction;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gui.LaunchAction;
 import org.genvisis.cnv.plots.ManhattanPlot.ManhattanDataPoint;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
 
 
 public class ManhattanPanel extends AbstractPanel {
@@ -42,8 +52,11 @@ public class ManhattanPanel extends AbstractPanel {
 																Color.MAGENTA,
 																Color.GREEN
 		});
+
+
 	}
 
+	@Override
 	protected void drawXAxis(Graphics g, double[] plotMinMaxStep, FontMetrics fontMetrics) {
 		String str;
 		if (displayXAxisScale) {
@@ -107,8 +120,8 @@ public class ManhattanPanel extends AbstractPanel {
 		setForcePlotXmin(dataPoints.get(0).linearLoc - ManhattanPlot.LIN_CHR_BUFFER);
 		setForcePlotXmax(dataPoints.get(dataPoints.size() - 1).linearLoc + ManhattanPlot.LIN_CHR_BUFFER);
 		points = new PlotPoint[dataPoints.size()];
-		int index = 0;
-		for (ManhattanDataPoint mdp : dataPoints) {
+		for (int i = 0, count = dataPoints.size(); i < count; i++) {
+			ManhattanDataPoint mdp = dataPoints.get(i);
 			int[] bnds = linearizedChrBnds.get(mdp.chr);
 			if (bnds == null) {
 				bnds = new int[] {Integer.MAX_VALUE, Integer.MIN_VALUE};
@@ -120,13 +133,13 @@ public class ManhattanPanel extends AbstractPanel {
 			if (mdp.linearLoc > bnds[1]) {
 				bnds[1] = mdp.linearLoc;
 			}
-			points[index++] = new PlotPoint(
-																			mdp.mkr == null ? mdp.chr + ":" + mdp.pos : mdp.mkr,
-																			PlotPoint.FILLED_CIRCLE,
-																			(float) mdp.linearLoc,
-																			(float) mdp.transformedPVal,
-																			getSize(mdp.transformedPVal),
-																			getPointColor(mdp.chr, mdp.transformedPVal), layer);
+			points[i] = new PlotPoint(
+																mdp.mkr == null ? mdp.chr + ":" + mdp.pos : mdp.mkr,
+																PlotPoint.FILLED_CIRCLE,
+																(float) mdp.linearLoc,
+																(float) mdp.transformedPVal,
+																getSize(mdp.transformedPVal),
+																getPointColor(mdp.chr, mdp.transformedPVal), layer);
 		}
 
 		lines = new GenericLine[lineValuesToDraw.length];
@@ -166,14 +179,108 @@ public class ManhattanPanel extends AbstractPanel {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		JPopupMenu menu;
+
 		if (SwingUtilities.isRightMouseButton(e)) {
 			if (prox != null && prox.size() > 0) {
-				for (int i = 0; i < prox.size(); i++) {
-					System.out.println(points[prox.get(i)].getId());
+				if (prox.size() <= 10) {
+					menu = new JPopupMenu();
+					Project proj = mp.getProject();
+					for (int i = 0; i < prox.size(); i++) {
+						ManhattanDataPoint mdp = mp.getData().get(prox.get(i));
+						if (!mdp.otherData.isEmpty()) {
+							// TODO add info to popup
+						}
+						JMenu subMen = new JMenu(mdp.mkr);
+						JMenuItem jmi;
+
+						jmi = new JMenuItem();
+						jmi.setEnabled(false);
+						jmi.setText("P-val: " + mdp.originalPVal + " | " + mdp.transformedPVal);
+						subMen.add(jmi);
+
+						jmi = new JMenuItem(new AbstractAction() {
+							@Override
+							public void actionPerformed(ActionEvent arg0) {
+								ext.setClipboard(mdp.mkr);
+							}
+						});
+						jmi.setText("Copy Name to Clipboard");
+						subMen.add(jmi);
+
+						jmi = new JMenuItem(new AbstractAction() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								ext.setClipboard(mdp.chr + ":" + mdp.pos);
+							}
+						});
+						jmi.setText("Copy Position to Clipboard");
+						subMen.add(jmi);
+
+						jmi = new JMenuItem(new AbstractAction() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								ext.setClipboard(mdp.mkr + "\t" + mdp.chr + ":" + mdp.pos);
+							}
+						});
+						jmi.setText("Copy Name & Position to Clipboard");
+						subMen.add(jmi);
+
+						if (proj != null) {
+							LaunchAction act = new LaunchAction(proj, mdp.mkr,
+																									colorScheme[getPointColor(mdp.chr,
+																																						mdp.transformedPVal)]);
+							subMen.add(act);
+						}
+
+						for (Entry<String, String> other : mdp.otherData.entrySet()) {
+							jmi = new JMenuItem();
+							jmi.setEnabled(false);
+							jmi.setText(other.getKey() + ": " + other.getValue());
+							subMen.add(jmi);
+						}
+
+						menu.add(subMen);
+					}
+					menu.show(this, e.getX(), e.getY());
 				}
 			}
 		}
 	}
+
+	@Override
+	public void mouseMoved(MouseEvent event) {
+		super.mouseMoved(event);
+
+		ToolTipManager.sharedInstance().setReshowDelay(3);
+		ToolTipManager.sharedInstance().setInitialDelay(3);
+
+		StringBuilder sb = new StringBuilder("<html>");
+		if (prox != null && prox.size() > 0) {
+			if (prox.size() == 1) {
+				sb.append(points[prox.get(0)].getId());
+			} else if (prox.size() <= 10) {
+				for (int i = 0; i < prox.size(); i++) {
+					ManhattanDataPoint mdp = mp.getData().get(prox.get(i));
+					sb.append(mdp.mkr);
+					if (i < prox.size() - 1) {
+						sb.append("<br/>");
+					}
+				}
+			} else {
+				sb = null;
+			}
+			if (sb != null) {
+				sb.append("</html>");
+				setToolTipText(sb.toString());
+			} else {
+				setToolTipText(null);
+			}
+		} else {
+			setToolTipText(null);
+		}
+
+	};
 
 	@Override
 	public void assignAxisLabels() {
