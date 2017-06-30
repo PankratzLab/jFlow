@@ -2345,8 +2345,8 @@ public class ArrayUtils {
 
 		for (int i = 0; i < array.length; i++) {
 			str.append((i == 0 ? "" : delimiter)
-						 + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
-																 : ext.formDeci(array[i], minSigFigs, maxSigFigs)));
+								 + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
+																		 : ext.formDeci(array[i], minSigFigs, maxSigFigs)));
 		}
 
 		return str.toString();
@@ -5007,6 +5007,29 @@ public class ArrayUtils {
 			newArray[i] = array2[i - array1.length];
 		}
 		return newArray;
+	}
+
+	/**
+	 * Appends the second matrix to the starting matrix Assumes the second matrix has at least as many
+	 * rows as the starting matrix Will not add rows to accommodate a longer second matrix
+	 * 
+	 * @param start Starting matrix
+	 * @param toAppend Matrix to append
+	 * @return
+	 */
+	public static String[][] append(String[][] start, String[][] toAppend) {
+		String[][] m = new String[start.length][start[0].length + toAppend[0].length];
+
+		for (int i = 0; i < m.length; i++) {
+			for (int j = 0; j < m[0].length; j++) {
+				if (start[0].length <= j)
+					m[i][j] = toAppend[i][j - start[0].length];
+				else
+					m[i][j] = start[i][j];
+			}
+		}
+
+		return m;
 	}
 
 	/**
