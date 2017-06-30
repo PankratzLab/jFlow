@@ -9,12 +9,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import org.genvisis.common.Aliases;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
+import org.genvisis.gwas.HitWindows;
 
 public class ParseMXCResults {
 	private static String resultsGeneCol = "gene_name";
@@ -43,7 +46,7 @@ public class ParseMXCResults {
 	}
 
 
-	private static String[][] loadGenes(String filename, boolean omitHeader, Logger log) {
+	public static String[][] loadGenes(String filename, boolean omitHeader, Logger log) {
 		int[] cols = new int[4];
 
 		try {
@@ -73,32 +76,46 @@ public class ParseMXCResults {
 		return HashVec.loadFileToStringMatrix(filename, omitHeader, cols, false);
 	}
 
-	private static String[][] append(String[][] start, String[][] toAppend) {
-		String[][] m = new String[start.length][start[0].length + toAppend[0].length];
-
-		for (int i = 0; i < m.length; i++) {
-			for (int j = 0; j < m[0].length; j++) {
-				if (start[0].length <= j)
-					m[i][j] = toAppend[i][j - start[0].length];
-				else
-					m[i][j] = start[i][j];
-			}
-		}
-
-		return m;
-	}
-
-	private static String[][] removeNAs(String[][] matrix, int col) {
+	private static String[][] removeNAs(String[][] matrix, int[] cols) {
 		boolean[] rowsToKeep = new boolean[matrix.length];
-		if (col < 0)
+		if (cols == null || cols.length == 0)
 			return matrix;
 
-		for (int i = 0; i < matrix.length; i++) {
-			rowsToKeep[i] = !(matrix[i][col].equals("NA") || matrix[i][col].equals("."));
+		for (int c : cols) {
+			for (int i = 0; i < matrix.length; i++) {
+				rowsToKeep[i] = !(matrix[i][c].equals("NA") || matrix[i][c].equals("."));
+			}
 		}
 
 		matrix = Matrix.subset(matrix, rowsToKeep);
 		return matrix;
+	}
+
+
+	private static void generateRScript(String outputFile) {
+		ArrayList<String> r = new ArrayList<String>();
+		outputFile = new File(outputFile).getAbsolutePath();
+
+		String filename = ext.rootOf(outputFile, false);
+
+		r.add("library(\"qqman\", lib.loc=\"/panfs/roc/groups/5/pankrat2/cole0482/R/x86_64-pc-linux-gnu-library/3.2\")");
+		r.add("data=read.csv(\"" + filename + ".csv" + "\")");
+		r.add("png(\"" + filename + "_manhattan.png\")");
+		r.add("manhattan(data, chr=\"chr\", bp=\"start_pos\", p=\"pvalue\")");
+		r.add("dev.off()");
+
+
+		// write rscript to a file
+		Files.writeIterable(r, filename + "_manhattan.R");
+
+		r.clear();
+		r.add("library(\"qqman\", lib.loc=\"/panfs/roc/groups/5/pankrat2/cole0482/R/x86_64-pc-linux-gnu-library/3.2\")");
+		r.add("data=read.csv(\"" + filename + ".csv" + "\")");
+		r.add("png(\"" + filename + "_qq.png\")");
+		r.add("qq(data$pvalue)");
+		r.add("dev.off()");
+
+		Files.writeIterable(r, filename + "_qq.R");
 	}
 
 	public static void addMetalHits(String posfile, String mxcfile, String mapfile, String metalfile,
@@ -106,7 +123,7 @@ public class ParseMXCResults {
 		// read in the metal gwas results file
 		String[][] metal = null;
 		try {
-			BufferedReader b = new BufferedReader(new FileReader(new File(metalfile)));
+			BufferedReader b = new BufferedReader(Files.getAppropriateReader(metalfile));
 			String temp = b.readLine();
 			String[] line = null;
 			if (temp != null) {
@@ -116,8 +133,9 @@ public class ParseMXCResults {
 				System.exit(1);
 			}
 
-			int[] valueIndices = ext.indexFactors(new String[] {"MarkerName", "P-value"}, line, false,
-																						true);
+			int[] valueIndices = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.PVALUES},
+																						line, false,
+																						true, false, false);
 
 			metal = HashVec.loadFileToStringMatrix(metalfile, true, valueIndices, false);
 			b.close();
@@ -140,8 +158,8 @@ public class ParseMXCResults {
 		}
 
 		// metal should now be of the form MarkerName, P-value, (marker), Chr, Position
-		metal = append(metal, results);
-
+		metal = ArrayUtils.append(metal, results);
+		metal = removeNAs(metal, new int[] {3, 4});
 		Arrays.sort(metal, new Comparator<String[]>() {
 			@Override
 			public int compare(final String[] entry1, final String[] entry2) {
@@ -160,7 +178,7 @@ public class ParseMXCResults {
 
 		// get position ranges for genes
 		String[][] genePositions = loadGenes(genesFile, true, log);
-		genePositions = removeNAs(genePositions, 1);
+		genePositions = removeNAs(genePositions, new int[] {1});
 
 		Arrays.sort(genePositions, new Comparator<String[]>() {
 			@Override
@@ -248,10 +266,18 @@ public class ParseMXCResults {
 			log.reportError(e.getMessage());
 		}
 
-		mxc = append(mxc, results);
+		mxc = ArrayUtils.append(mxc, results);
 		// write to mxc file
 		Files.writeMatrix(mxc, ext.addToRoot(mxcfile, "_sig"), ",");
 		Files.writeIterable(snpsOnGene, ext.parseDirectoryOfFile(mxcfile) + "sigSNPs.csv");
+
+		generateRScript(ext.addToRoot(mxcfile, "_plot"));
+
+		String[][] regions = HitWindows.determine(metalfile,
+																							bf, 500000, bf * 100, new String[] {},
+																							new Logger());
+
+		Files.writeMatrix(regions, ext.rootOf(mxcfile, false) + "_gwas_hits.txt", "\t");
 	}
 
 	public static void main(String[] args) throws IOException {
