@@ -973,6 +973,17 @@ public class GATK {
 			inputs.add(trainingResources.get(training));
 		}
 		List<String> ouputs = ImmutableList.of(recalFile, tranchesFile, rscriptFile);
+		List<String> command = buildSNPRecalibrationModelCommand(inputVCF, recalFile, tranchesFile,
+																														 rscriptFile, ignoreInbreeding, 1);
+		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
+																						overWriteExistingOutput, false,
+																						altLog == null ? log : altLog);
+	}
+
+	public List<String> buildSNPRecalibrationModelCommand(String inputVCF, String recalFile,
+																												String tranchesFile,
+																												String rscriptFile,
+																												boolean ignoreInbreeding, int threads) {
 		List<String> command = Lists.newArrayList(javaLocation,
 																							PSF.Java.buildXmxString(getMemoryInMB()), JAR,
 																							gatkLocation + GENOME_ANALYSIS_TK, T,
@@ -990,23 +1001,45 @@ public class GATK {
 			command.add(training.getArgument());
 			command.add(trainingResources.get(training));
 		}
-		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
-																						overWriteExistingOutput, false,
-																						altLog == null ? log : altLog);
+		if (threads > 1) {
+			command.add(NT);
+			command.add(String.valueOf(threads));
+		}
+
+		return command;
 	}
 
 	private boolean applySNPRecalibrationModel(String inputVCF, String recalFile, String tranchesFile,
 																						 String output, int numThreads, Logger altLog) {
-		String[] inputs = new String[] {inputVCF, recalFile, tranchesFile};
-		String[] ouputs = new String[] {output};
-		String[] command = new String[] {javaLocation, PSF.Java.buildXmxString(getMemoryInMB()), JAR,
-																		 gatkLocation + GENOME_ANALYSIS_TK, T, APPLY_RECALIBRATION, R,
-																		 referenceGenomeFasta, INPUT, inputVCF, MODE, SNP,
-																		 TRANCHES_FILE, tranchesFile, RECAL_FILE, recalFile,
-																		 TS_FILTER_LEVEL, DEFUALT_TS_FILTER_LEVEL_SNP, O, output};
+		List<String> inputs = ImmutableList.of(inputVCF, recalFile, tranchesFile);
+		List<String> ouputs = ImmutableList.of(output);
+		List<String> command = applySNPRecalibrationModelCommand(recalFile, tranchesFile, output,
+																														 1, inputVCF);
+
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
 																						overWriteExistingOutput, true,
 																						altLog == null ? log : altLog);
+	}
+
+	public List<String> applySNPRecalibrationModelCommand(String recalFile, String tranchesFile,
+																												String output,
+																												int threads, String... inputVCFs) {
+		List<String> command = Lists.newArrayList(javaLocation,
+																							PSF.Java.buildXmxString(getMemoryInMB()), JAR,
+																							gatkLocation + GENOME_ANALYSIS_TK, T,
+																							APPLY_RECALIBRATION, R, referenceGenomeFasta, MODE,
+																							SNP, TRANCHES_FILE, tranchesFile, RECAL_FILE,
+																							recalFile, TS_FILTER_LEVEL,
+																							DEFUALT_TS_FILTER_LEVEL_SNP, O, output);
+		for (String inputVCF : inputVCFs) {
+			command.add(INPUT);
+			command.add(inputVCF);
+		}
+		if (threads > 1) {
+			command.add(NT);
+			command.add(String.valueOf(threads));
+		}
+		return command;
 	}
 
 	private boolean buildINDELRecalibrationModel(String inputVCF, String recalFile,
@@ -1018,6 +1051,16 @@ public class GATK {
 			inputs.add(trainingResources.get(training));
 		}
 		List<String> ouputs = Lists.newArrayList(recalFile, tranchesFile, rscriptFile);
+		List<String> command = buildINDELRecalibrationModelCommand(inputVCF, recalFile, tranchesFile,
+																															 rscriptFile, ignoreInbreeding, 1);
+		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
+																						overWriteExistingOutput, true,
+																						altLog == null ? log : altLog);
+	}
+
+	public List<String> buildINDELRecalibrationModelCommand(String inputVCF, String recalFile,
+																													String tranchesFile, String rscriptFile,
+																													boolean ignoreInbreeding, int threads) {
 		List<String> command = Lists.newArrayList(javaLocation,
 																							PSF.Java.buildXmxString(getMemoryInMB()), JAR,
 																							gatkLocation + GENOME_ANALYSIS_TK, T,
@@ -1032,26 +1075,50 @@ public class GATK {
 			command.add(training.getArgument());
 			command.add(trainingResources.get(training));
 		}
-		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
-																						overWriteExistingOutput, true,
-																						altLog == null ? log : altLog);
+		if (threads > 1) {
+			command.add(NT);
+			command.add(String.valueOf(threads));
+		}
+		return command;
 	}
 
 	private boolean applyINDELRecalibrationModel(String inputVCF, String recalFile,
 																							 String tranchesFile, String output, int numThreads,
 																							 Logger altLog) {
-		String[] inputs = new String[] {inputVCF, recalFile, tranchesFile};
-		String[] ouputs = new String[] {output};
-		// NO DQ!
-		String[] command = new String[] {javaLocation, PSF.Java.buildXmxString(getMemoryInMB()), JAR,
-																		 gatkLocation + GENOME_ANALYSIS_TK, T, APPLY_RECALIBRATION, R,
-																		 referenceGenomeFasta, INPUT, inputVCF, MODE, INDEL,
-																		 TRANCHES_FILE, tranchesFile, RECAL_FILE, recalFile,
-																		 TS_FILTER_LEVEL, DEFUALT_TS_FILTER_LEVEL_INDEL, O, output};
-		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
+		List<String> inputs = ImmutableList.of(inputVCF, recalFile, tranchesFile);
+		List<String> outputs = ImmutableList.of(output);
+		List<String> command = applyINDELRecalibrationModelCommand(recalFile, tranchesFile, output,
+																															 1, inputVCF);
+		return CmdLine.runCommandWithFileChecks(command, "", inputs, outputs, verbose,
 																						overWriteExistingOutput, true,
 																						altLog == null ? log : altLog);
 	}
+
+	public List<String> applyINDELRecalibrationModelCommand(String recalFile, String tranchesFile,
+																													String output, int threads,
+																													String... inputVCFs) {
+		// NO DQ!
+		List<String> command = Lists.newArrayList(javaLocation,
+																							PSF.Java.buildXmxString(getMemoryInMB()), JAR,
+																							gatkLocation + GENOME_ANALYSIS_TK, T,
+																							APPLY_RECALIBRATION, R,
+																							referenceGenomeFasta, MODE, INDEL,
+																							TRANCHES_FILE, tranchesFile, RECAL_FILE, recalFile,
+																							TS_FILTER_LEVEL, DEFUALT_TS_FILTER_LEVEL_INDEL, O,
+																							output);
+
+		for (String inputVCF : inputVCFs) {
+			command.add(INPUT);
+			command.add(inputVCF);
+		}
+		if (threads > 1) {
+			command.add(NT);
+			command.add(String.valueOf(threads));
+		}
+
+		return command;
+	}
+
 
 	/**
 	 * @param inputGVCFs
