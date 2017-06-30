@@ -5,6 +5,7 @@ import java.io.File;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.gwas.AlleleVerification;
 
 public class MetaXcan {
 	// MetaXcan python call:
@@ -34,7 +35,10 @@ public class MetaXcan {
 									 + "\n (8) Effect Allele column (effect_allele=Allele1 (default))"
 									 + "\n (9) Non-effect Allele column (non_effect_allele=Allele2 (default))"
 									 + "\n (10) Standard Error column (se=se (default))"
-									 + "\n (11) Overwrite existing MetaXcan output (-overwrite)";
+									 + "\n (11) Overwrite existing MetaXcan output (-overwrite)"
+									 + "\n (12) Verify allele order and strand before running MetaXcan (-verify)"
+									 + "\n\t Reference file for expected allele order (ref=1000G.xln (default))"
+									 + "\n\t File containing allele frequencies (freq=freq.tbl (default))";
 
 
 		String data = "Metal_results.tbl";
@@ -48,8 +52,10 @@ public class MetaXcan {
 		String a2 = "Allele2";
 		String se = "se";
 		String posmap = "/panfs/roc/groups/5/pankrat2/mstimson/parkinsons/data/1000G_PD.map";
+		String freqFile = "freq.tbl";
+		String refFile = "1000G.xln";
 
-
+		boolean verify = false;
 		boolean overwrite = false;
 
 		for (String arg : args) {
@@ -75,10 +81,21 @@ public class MetaXcan {
 				overwrite = true;
 			} else if (arg.startsWith("se=")) {
 				se = ext.parseStringArg(arg);
+			} else if (arg.startsWith("-verify")) {
+				verify = true;
+			} else if (arg.startsWith("freq=")) {
+				freqFile = ext.parseStringArg(arg);
+			} else if (arg.startsWith("ref=")) {
+				refFile = ext.parseStringArg(arg);
 			} else {
 				System.err.println(usage);
 				System.exit(0);
 			}
+		}
+
+		if (verify) {
+			AlleleVerification.verifyAlleles(data, refFile, freqFile, posmap, false, new Logger());
+			data = ext.rootOf(data, false) + "_allele_verified.txt";
 		}
 
 		String gwas_folder = ext.parseDirectoryOfFile(new File(data).getAbsolutePath());

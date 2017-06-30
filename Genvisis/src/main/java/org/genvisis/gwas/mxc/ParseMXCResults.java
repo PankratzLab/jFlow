@@ -1,9 +1,11 @@
 package org.genvisis.gwas.mxc;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +19,6 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
-import org.genvisis.gwas.HitWindows;
 
 public class ParseMXCResults {
 	private static String resultsGeneCol = "gene_name";
@@ -122,27 +123,15 @@ public class ParseMXCResults {
 																	Logger log) {
 		// read in the metal gwas results file
 		String[][] metal = null;
-		try {
-			BufferedReader b = new BufferedReader(Files.getAppropriateReader(metalfile));
-			String temp = b.readLine();
-			String[] line = null;
-			if (temp != null) {
-				line = temp.split("\t");
-			} else {
-				log.reportError("Could not find MarkerName in header for " + metalfile);
-				System.exit(1);
-			}
 
-			int[] valueIndices = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.PVALUES},
-																						line, false,
-																						true, false, false);
+		String[] line = Files.getHeaderOfFile(metalfile, log);
 
-			metal = HashVec.loadFileToStringMatrix(metalfile, true, valueIndices, false);
-			b.close();
-		} catch (Exception e) {
-			log.reportError("Unable to load gwas summary file. Aborting.");
-			System.exit(1);
-		}
+		int[] valueIndices = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.PVALUES},
+																					line, false,
+																					true, false, false);
+
+		metal = HashVec.loadFileToStringMatrix(metalfile, true, valueIndices, false);
+
 		float bf = (float) 0.05 / metal.length;
 
 		String[][] positions = HashVec.loadFileToStringMatrix(posfile, false, null, false);
@@ -196,7 +185,6 @@ public class ParseMXCResults {
 
 		// maps gene to related snps
 		String[] mxcGenes = getKeys(mxc, resultsGeneCol, new Logger());
-		ArrayList<String> snpsOnGene = new ArrayList<String>();
 		int startPos;
 		int endPos;
 		int snpPos;
@@ -205,8 +193,6 @@ public class ParseMXCResults {
 		String[] snp, g;
 		int start = 1;
 		String[][] sig = new String[genePositions.length][];
-
-		snpsOnGene.add("gene,snp,chr,pos,p,sig");
 
 		for (int gene = 0; gene < genePositions.length; gene++) {
 			g = genePositions[gene];
@@ -218,11 +204,6 @@ public class ParseMXCResults {
 
 			while (start < metal.length && !metal[start][3].equals(chr)) {
 				start++;
-			}
-
-			if (g[0].equals("SNCA")) {
-				System.out.println("Starting SNCA, with range " + startPos + " : " + endPos);
-				System.out.println("Starting search at position " + metal[start][4]);
 			}
 
 			for (int j = start; j < metal.length; j++) {
@@ -245,13 +226,9 @@ public class ParseMXCResults {
 
 				if (pval < bf * 100) {
 					int[] numSig = new int[] {Integer.parseInt(sig[gene][1]), Integer.parseInt(sig[gene][2])};
-					if (pval < bf) {
-						snpsOnGene.add(g[0] + "," + snp[0] + "," + chr + "," + snpPos + "," + pval + ","
-													 + "***");
+					if (pval < bf)
 						sig[gene][1] = numSig[0] + 1 + "";
-					} else {
-						snpsOnGene.add(g[0] + "," + snp[0] + "," + chr + "," + snpPos + "," + pval + "," + "*");
-					}
+
 					sig[gene][2] = numSig[1] + 1 + "";
 				}
 			}
@@ -269,15 +246,22 @@ public class ParseMXCResults {
 		mxc = ArrayUtils.append(mxc, results);
 		// write to mxc file
 		Files.writeMatrix(mxc, ext.addToRoot(mxcfile, "_sig"), ",");
-		Files.writeIterable(snpsOnGene, ext.parseDirectoryOfFile(mxcfile) + "sigSNPs.csv");
+
+		try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter(ext.addToRoot(mxcfile,
+																																							"_no_sig_markers.csv")));
+			writer.write(ArrayUtils.toStr(mxc[0], ","));
+			for (String[] s : mxc) {
+				if (s[s.length - 2].equals("0"))
+					writer.write(ArrayUtils.toStr(s, ",") + "\n");
+			}
+			writer.close();
+		} catch (IOException e) {
+			log.reportError("Unable to write to " + ext.rootOf(mxcfile) + "_no_sig_markers.csv");
+			e.printStackTrace();
+		}
 
 		generateRScript(ext.addToRoot(mxcfile, "_plot"));
-
-		String[][] regions = HitWindows.determine(metalfile,
-																							bf, 500000, bf * 100, new String[] {},
-																							new Logger());
-
-		Files.writeMatrix(regions, ext.rootOf(mxcfile, false) + "_gwas_hits.txt", "\t");
 	}
 
 	public static void main(String[] args) throws IOException {
