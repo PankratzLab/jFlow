@@ -47,7 +47,7 @@ public class ext {
 	public static final String[][] META_REPLACEMENTS = {{"{Tab}", "\t"}, {"{Space}", " "},
 																											{"{!}", "!"}, {"{#}", "#"}, {"{+}", "+"}};
 	public static final String[] COMMON_IDS = {"id", "IID", "IndID", "gwas_id"};
-	public static final String REGEX_TO_SPLIT_SPACES_NOT_IN_QUOTES = "[ ]+(?=([^\"]*\"[^\"]*\")*[^\"]*$)";
+	public static final String REGEX_TO_SPLIT_SPACES_NOT_IN_QUOTES = PSF.Regex.regexSplitPreserveQuoted(" ");
 
 	// safer, reports spurious errors when called a lot
 	public static String replaceAllWithSafer(String str, String from, String to) {
