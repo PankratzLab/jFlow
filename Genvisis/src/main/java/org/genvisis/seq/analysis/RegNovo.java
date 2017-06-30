@@ -112,7 +112,7 @@ public class RegNovo {
 		String outputVCFReg = outputDir + ext.rootOf(vcf) + ".denovo.reg.vcf.gz";
 
 		String outputSummary = outputDir + ext.rootOf(vcf) + ".denovoSummary.txt";
-		String segSummary = outputDir + "denovo_segment.txt";
+		String segSummary = outputDir + ext.rootOf(vcf) + "_denovo_segment.txt";
 
 		if (!vpop.getSuperPop().containsKey(OFFSPRING)
 				|| !vpop.getSuperPop().containsKey(VcfPopulation.CONTROL)) {
