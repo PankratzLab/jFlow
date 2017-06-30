@@ -120,8 +120,6 @@ public class ImputationPrep {
 		return matchingMarkers;
 	}
 
-	@SuppressWarnings("resource") // eclipse doesn't recognize reader.close() calls in catch blocks,
-																// apparently
 	private Map<Byte, Map<Integer, Set<ReferencePosition>>> readRefFile() {
 		Set<GenomicPosition> markerSetPositions = proj.getMarkerSet().getGenomicPositionMap().keySet();
 		log.report("Parsing reference panel file");
