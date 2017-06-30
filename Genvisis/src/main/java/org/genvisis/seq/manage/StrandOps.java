@@ -112,7 +112,7 @@ public class StrandOps {
 		STRAND_CONFIG_DIFFERENT_ALLELES,
 		STRAND_CONFIG_BOTH_NULL,
 		STRAND_CONFIG_SPECIAL_CASE,
-		STRAND_CONFIG_AMBIGOUS,
+		STRAND_CONFIG_AMBIGUOUS,
 		STRAND_CONFIG_UNKNOWN;
 	}
 
@@ -143,7 +143,7 @@ public class StrandOps {
 		if (ext.indexOfStr(alleles[0], VALID_ALLELES) >= 0
 				&& ext.indexOfStr(alleles[1], VALID_ALLELES) >= 0) {
 			if (isAmbiguous(alleles)) {
-				return CONFIG.STRAND_CONFIG_AMBIGOUS;
+				return CONFIG.STRAND_CONFIG_AMBIGUOUS;
 			}
 
 			if (referenceAlleles[0] == null) {

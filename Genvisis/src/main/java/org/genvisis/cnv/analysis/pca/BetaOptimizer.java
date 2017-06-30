@@ -867,7 +867,7 @@ public class BetaOptimizer {
 			case STRAND_CONFIG_BOTH_NULL:
 			case STRAND_CONFIG_SPECIAL_CASE:
 			case STRAND_CONFIG_UNKNOWN:
-			case STRAND_CONFIG_AMBIGOUS:
+			case STRAND_CONFIG_AMBIGUOUS:
 				return false;
 
 			default:
@@ -913,7 +913,7 @@ public class BetaOptimizer {
 								String[] markerAlleles = new String[] {current.getMarkerAlleles()[0],
 																											 current.getMarkerAlleles()[1]};
 								CONFIG strandConfig = StrandOps.determineStrandConfig(markerAlleles, betaAlleles);
-								if (strandConfig == CONFIG.STRAND_CONFIG_AMBIGOUS) {
+								if (strandConfig == CONFIG.STRAND_CONFIG_AMBIGUOUS) {
 									ambi++;
 								}
 								if (useConfig(strandConfig) && current.isValidMatch()) {
