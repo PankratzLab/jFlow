@@ -1,7 +1,6 @@
 package org.genvisis.one.ben;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -662,6 +661,41 @@ public class lab {
 		writer.close();
 	}
 
+	public static void addPFBToMarkerMetrics() throws IOException {
+		String dir = "/scratch.global/cole0482/ny_prev/";
+		String fil = "marker_lrr_sd.xln";
+		String out = "marker_lrr_sd_pfb.xln";
+		String pfb1 = "data/females.pfb";
+		String pfb2 = "data/males.pfb";
+		String pfb3 = "data/custom.pfb";
+
+		Hashtable<String, String> pfb1Map = HashVec.loadFileToHashString(dir + pfb1, 0, new int[] {3},
+																																		 "\t", true);
+		Hashtable<String, String> pfb2Map = HashVec.loadFileToHashString(dir + pfb2, 0, new int[] {3},
+																																		 "\t", true);
+		Hashtable<String, String> pfb3Map = HashVec.loadFileToHashString(dir + pfb3, 0, new int[] {3},
+																																		 "\t", true);
+
+		BufferedReader reader = Files.getAppropriateReader(dir + fil);
+		PrintWriter writer = Files.getAppropriateWriter(dir + out);
+		String line = null;
+		String[] pts = null;
+		int cnt = 0;
+		while ((line = reader.readLine()) != null) {
+			pts = line.split("\t", -1);
+			pts = ArrayUtils.addStrToArray(cnt == 1 ? pfb1Map.get(pts[0]) : "Female PFB", pts);
+			pts = ArrayUtils.addStrToArray(cnt == 1 ? pfb2Map.get(pts[0]) : "Male PFB", pts);
+			pts = ArrayUtils.addStrToArray(cnt == 1 ? pfb3Map.get(pts[0]) : "Custom PFB", pts);
+			if (cnt == 0) {
+				cnt = 1;
+			}
+			writer.println(ArrayUtils.toStr(pts, "\t"));
+		}
+		reader.close();
+		writer.flush();
+		writer.close();
+	}
+
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		Project proj;
@@ -680,15 +714,12 @@ public class lab {
 			// String outFile = dir + "markerDuplicates.out";
 			// markerDuplicateFilter(mkrInfoFile, missDropsFile, callrateFile, outFile);
 
-			String dir = "F:/Flow/Annotation/";
-			for (String s : (new File(dir)).list()) {
-				for (String s1 : (new File(dir + s)).list()) {
-					String fil = dir + s + "/" + s1;
-					fil = ext.removeDirectoryInfo(fil);
-					System.out.println(fil.substring(0, fil.indexOf(".fcs.") + 4));
-				}
-			}
+			// addPFBToMarkerMetrics();
 
+			// proj = new Project("/home/pankrat2/cole0482/projects/Poynter1_Shadow.properties", false);
+			// System.out.println("Loading PFB for test: " + proj.CUSTOM_PFB_FILENAME.getValue());
+			// PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
+			// System.out.println(pfb.getPfbs().length + " pfb entries");
 			// genDupe();
 
 			// crossRefAndFilter("/scratch.global/cole0482/testImp/snps/allMarkers.txt",
