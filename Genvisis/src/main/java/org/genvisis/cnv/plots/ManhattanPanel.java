@@ -188,9 +188,7 @@ public class ManhattanPanel extends AbstractPanel {
 					Project proj = mp.getProject();
 					for (int i = 0; i < prox.size(); i++) {
 						ManhattanDataPoint mdp = mp.getData().get(prox.get(i));
-						if (!mdp.otherData.isEmpty()) {
-							// TODO add info to popup
-						}
+
 						JMenu subMen = new JMenu(mdp.mkr);
 						JMenuItem jmi;
 

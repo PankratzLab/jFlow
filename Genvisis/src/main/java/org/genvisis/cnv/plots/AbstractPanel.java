@@ -323,8 +323,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void screenCapture(String filename) {
 		boolean headless = GraphicsEnvironment.isHeadless();
 		try {
+			String imgDir = ext.parseDirectoryOfFile(filename);
+			boolean mkdirs = new File(imgDir).mkdirs();
 			File imgFile = new File(filename);
-			boolean mkdirs = imgFile.mkdirs();
 			if (mkdirs || Files.exists(ext.parseDirectoryOfFile(filename))) {
 				BufferedImage img = image;
 				while (img == null || imageStatus != IMAGE_COMPLETE) {

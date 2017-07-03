@@ -143,15 +143,16 @@ public class ManhattanPlot extends JFrame {
 
 	/**
 	 * 
-	 * @param markerNames
+	 * @param markerNames - can be null
 	 * @param chrs
 	 * @param pos
 	 * @param pvals Raw P-values, will be transformed with a -Log10 function.
-	 * @return List of data to be used with setData()
+	 * @return List of data to be used with setData(), i.e. <code>setData(createData(mkrs, chrs, pos,
+	 *         pvals));</code>
 	 */
 	public ArrayList<ManhattanDataPoint> createData(String[] markerNames, int[] chrs, int[] pos,
 																									double[] pvals) {
-		int len1 = markerNames.length;
+		int len1 = markerNames == null ? chrs.length : markerNames.length;
 		int len2 = chrs.length;
 		int len3 = pos.length;
 		int len4 = pvals.length;
@@ -170,7 +171,9 @@ public class ManhattanPlot extends JFrame {
 					}
 				}
 				double pVal = -Math.log10(pvals[i]);
-				data.add(new ManhattanDataPoint(markerNames[i], chrs[i], pos[i], linLoc, pVal, pvals[i]));
+				data.add(new ManhattanDataPoint(markerNames == null ? chrs[i] + ":" + pos[i]
+																													 : markerNames[i], chrs[i], pos[i],
+																				linLoc, pVal, pvals[i]));
 			}
 			return data;
 		} else {
@@ -182,7 +185,6 @@ public class ManhattanPlot extends JFrame {
 		this.cachedData = dataPoints;
 		// TODO new object "manualData", use cachedData for transforms / filters
 	}
-
 
 	public void loadFile() {
 		ManhattanLoadGUI mlg = new ManhattanLoadGUI();
@@ -260,7 +262,13 @@ public class ManhattanPlot extends JFrame {
 	}
 
 	public boolean isDataLoaded() {
-		return (data != null && data.isLoaded()) /* || manualData != null */;
+		return (data != null && data.isLoaded()) || cachedData != null;
+	}
+
+	public void screenshot(String file) {
+		this.manPan.createImage();
+		this.manPan.screenCapture(file);
+		log.reportTime("Screenshot to " + file);
 	}
 
 	public ArrayList<ManhattanDataPoint> getData() {
@@ -369,11 +377,79 @@ public class ManhattanPlot extends JFrame {
 	}
 
 	public static void main(String[] args) {
+		int numArgs = args.length;
 		Project proj = null;
-		// proj = new Project("D:/projects/ny_choanal_v12.properties", false);
-		ManhattanPlot mp = new ManhattanPlot(proj);
-		mp.setVisible(true);
-		// mp.loadFile();// "D:/data/ny_choanal/omni2.5v1.2/plink/plink.assoc");
+		String filename = null;
+		String screen = null;
+		int[] size = new int[] {800, 600};
+
+		String usage = "\n"
+									 +
+									 "org.genvisis.cnv.plots.ManhattanPlot requires 0+ arguments\n"
+									 + "   (1) OPTIONAL: data filename from which to load CHR/POS/PVAL (i.e. file=plink.assoc (not the default))\n"
+									 + "	 (2) OPTIONAL: Project properties file, for linking to ScatterPlot (i.e. proj=project.properties (not the default))\n"
+									 + "   (3.a) OPTIONAL: Create screenshots, with autonamed files, without opening ManhattanPlot (i.e. -screenshot (not the default))\n"
+									 + "   (3.b) OPTIONAL: Create named screenshots without opening ManhattanPlot (i.e. screen=screenshot.png (not the default))\n"
+									 + "   (4) OPTIONAL: if creating screenshots, specify the output image size (i.e. size=800,600 (default))\n"
+									 + "";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h")
+					|| args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("file=")) {
+				filename = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("proj=")) {
+				String projFile = args[i].split("=")[1];
+				proj = new Project(projFile, false);
+				numArgs--;
+			} else if (args[i].startsWith("-screenshot")) {
+				screen = "";
+				numArgs--;
+			} else if (args[i].startsWith("screen=")) {
+				screen = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("size=")) {
+				String[] sz = args[i].split("=")[1].split(",");
+				size = new int[] {Integer.parseInt(sz[0]), Integer.parseInt(sz[1])};
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		try {
+			ManhattanPlot mp = new ManhattanPlot(proj);
+			if (null != filename && !"".equals(filename)) {
+				if (!Files.exists(filename)) {
+					System.err.println("Error - file not found: " + filename);
+				} else {
+					mp.loadFileAuto(filename);
+					while (!mp.isDataLoaded()) {
+						Thread.sleep(200);
+					}
+				}
+			}
+			if (screen != null) {
+				if (size != null) {
+					mp.manPan.setSize(size[0], size[1]);
+				}
+				if ("".equals(screen)) {
+					mp.screenshot(ext.rootOf(filename, false) + ".png");
+				} else {
+					mp.screenshot(screen);
+				}
+			} else {
+				mp.setVisible(true);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }
