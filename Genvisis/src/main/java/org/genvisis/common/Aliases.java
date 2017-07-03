@@ -21,8 +21,10 @@ public class Aliases {
 																						{"noncoded_all", "A2", "Al2", "Allele2", "REF", "OTHER",
 																						 "Reference_allele", "NEA", "Other_allele",
 																						 "NonCoded.Allele", "NON_EFFECT_ALLELE"},};
-	public static final String[] REF_ALLELES = {"REF", "Ref", "ref", "RefAllele", "refAllele", "a0"};
-	public static final String[] ALT_ALLELES = {"ALT", "Alt", "alt", "AltAllele", "altAllele", "a1"};
+	public static final String[] REF_ALLELES = {"REF", "Ref", "ref", "RefAllele", "refAllele", "a0",
+																							"Allele1"};
+	public static final String[] ALT_ALLELES = {"ALT", "Alt", "alt", "AltAllele", "altAllele", "a1",
+																							"Allele2"};
 	public static final String[] EFFECTS = {"beta", "beta_SNP_add", "Effect", "BETA_SNP"};
 	public static final String[] STD_ERRS = {"se", "StdErr", "sebeta_SNP_add", "ROBUST_SE_SNP"};
 

@@ -1,66 +1,67 @@
 package org.genvisis.gwas.mxc;
 
 import java.io.File;
+import java.util.ArrayList;
 
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Logger;
+import org.genvisis.cnv.Launch;
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
-import org.genvisis.gwas.AlleleVerification;
+import org.genvisis.qsub.Qsub;
 
 public class MetaXcan {
-	// MetaXcan python call:
-	// ./MetaXcan.py \
-	// --model_db_path ../../mxc_presets/DGN-HapMap-2015/DGN-WB_0.5.db \
-	// --covariance data/covariance.DGN-WB_0.5.txt.gz \
-	// --gwas_folder ../../data \
-	// --gwas_file_pattern ".*tbl" \
-	// --beta_column Effect \
-	// --pvalue_column "P-value" \
-	// --output_file ../../mxc_results/zscore_run.csv \
-	// --effect_allele_column Allele2 \
-	// --non_effect_allele_column Allele1 \
-	// --snp_column MarkerName \
-	// --beta_sign_column Direction \
-	// --overwrite
+	private static void runMany(String dataFolder, String extension, String mxc_folder,
+															String refFile, String freqFile, String db, String covar,
+															String posmap, String out, boolean overwrite, boolean verify) {
+		String[] files = Files.list(dataFolder, extension, false);
+		int numProcs = Math.min(24, files.length);
 
+		ArrayList<String> commands = new ArrayList<String>();
+		for (String s : files) {
+			String c = "\njava -jar " + Launch.getJarLocation()
+								 + " gwas.mxc.ParseMXCResults data=" + dataFolder + s + " mxc="
+								 + mxc_folder + " ref=" + refFile + " freq=" + freqFile + " db=" + db + " covar="
+								 + covar + " posmap=" + posmap + " out="
+								 + ext.addToRoot(out, "_" + Files.removeExtention(s))
+								 + (overwrite ? " -overwrite" : "")
+								 + (verify ? " -verify" : "");
+			commands.add(c);
+		}
+
+
+		Qsub.qsubExecutor(new File("").getAbsolutePath(), commands, null, "batchMXC", numProcs, 32000,
+											4);
+	}
 
 	public static void main(String[] args) {
-		String usage = "Arguments \n (1) File of summary data to be analyzed (file=Metal_results.tbl (default))"
+		String usage = "Arguments: \n (1) File or folder of summary data to be analyzed (data=Metal_results.tbl (default))"
 									 + "\n (2) Location of MetaXcan script (mxc=MetaXcan/software (default))"
 									 + "\n (3) Output folder (eg out=results (default))"
 									 + "\n (4) Covariance table for MetaXcan (covar=covariance.DGN-WB_0.5.txt.gz (default))"
 									 + "\n (5) MetaXcan weights database (db=DGN-HapMap-2015/DGN-WB_0.5.db (default))"
-									 + "\n (6) Beta column name (beta_column=Effect (default))"
-									 + "\n (7) snp column name (snp_column=MarkerName (default))"
-									 + "\n (8) Effect Allele column (effect_allele=Allele1 (default))"
-									 + "\n (9) Non-effect Allele column (non_effect_allele=Allele2 (default))"
-									 + "\n (10) Standard Error column (se=se (default))"
-									 + "\n (11) Overwrite existing MetaXcan output (-overwrite)"
-									 + "\n (12) Verify allele order and strand before running MetaXcan (-verify)"
+									 + "\n (6) Overwrite existing MetaXcan output (-overwrite)"
+									 + "\n (7) Verify allele order and strand before running MetaXcan (-verify)"
 									 + "\n\t Reference file for expected allele order (ref=1000G.xln (default))"
 									 + "\n\t File containing allele frequencies (freq=freq.tbl (default))";
 
-
-		String data = "Metal_results.tbl";
-		String mxc_folder = "MetaXcan/software";
-		String out = "results/mxc.csv";
-		String db = "DGN-HapMap-2015/DGN-WB_0.5.db";
-		String covar = "covariance.DGN-WB_0.5.txt.gz";
-		String beta_column = "Effect";
-		String snp_column = "MarkerName";
-		String a1 = "Allele1";
-		String a2 = "Allele2";
-		String se = "se";
 		String posmap = "/panfs/roc/groups/5/pankrat2/mstimson/parkinsons/data/1000G_PD.map";
 		String freqFile = "freq.tbl";
 		String refFile = "1000G.xln";
+		String data = "Metal_results.tbl";
+		String mxc_folder = "MetaXcan/software/";
+		String out = "results/mxc.csv";
+		String db = "DGN-HapMap-2015/DGN-WB_0.5.db";
+		String covar = "covariance.DGN-WB_0.5.txt.gz";
+		String extension = ".tbl";
 
 		boolean verify = false;
 		boolean overwrite = false;
 
+
 		for (String arg : args) {
 			if (arg.startsWith("data=")) {
 				data = ext.parseStringArg(arg);
+			} else if (arg.startsWith("ext=")) {
+				extension = ext.parseStringArg(arg);
 			} else if (arg.startsWith("mxc=")) {
 				mxc_folder = ext.parseStringArg(arg);
 			} else if (arg.startsWith("out=")) {
@@ -69,70 +70,45 @@ public class MetaXcan {
 				db = ext.parseStringArg(arg);
 			} else if (arg.startsWith("covar=")) {
 				covar = ext.parseStringArg(arg);
-			} else if (arg.startsWith("beta_column=")) {
-				beta_column = ext.parseStringArg(arg);
-			} else if (arg.startsWith("snp_column=")) {
-				snp_column = ext.parseStringArg(arg);
-			} else if (arg.startsWith("effect_allele=")) {
-				a1 = ext.parseStringArg(arg);
-			} else if (arg.startsWith("non_effect_allele=")) {
-				a2 = ext.parseStringArg(arg);
 			} else if (arg.startsWith("-overwrite")) {
 				overwrite = true;
-			} else if (arg.startsWith("se=")) {
-				se = ext.parseStringArg(arg);
 			} else if (arg.startsWith("-verify")) {
 				verify = true;
 			} else if (arg.startsWith("freq=")) {
 				freqFile = ext.parseStringArg(arg);
 			} else if (arg.startsWith("ref=")) {
 				refFile = ext.parseStringArg(arg);
+			} else if (arg.startsWith("posmap=")) {
+				posmap = ext.parseStringArg(arg);
 			} else {
 				System.err.println(usage);
 				System.exit(0);
 			}
 		}
 
-		if (verify) {
-			AlleleVerification.verifyAlleles(data, refFile, freqFile, posmap, false, new Logger());
-			data = ext.rootOf(data, false) + "_allele_verified.txt";
-		}
-
-		String gwas_folder = ext.parseDirectoryOfFile(new File(data).getAbsolutePath());
-
-		db = new File(db).getAbsolutePath();
+		mxc_folder = new File(mxc_folder).getAbsolutePath();
+		refFile = new File(refFile).getAbsolutePath();
+		freqFile = new File(freqFile).getAbsolutePath();
 		covar = new File(covar).getAbsolutePath();
+		posmap = new File(posmap).getAbsolutePath();
+		data = new File(data).getAbsolutePath();
 
-		out = new File(out).getAbsolutePath();
+		if (!mxc_folder.endsWith("/"))
+			mxc_folder += "/";
 
-		String py = "MetaXcan.py";
-
-		// build mxc command
-		String command = "./" + py
-										 + " --model_db_path " + db + " --covariance " + covar + " --gwas_folder "
-										 + gwas_folder + " --gwas_file_pattern " + new File(data).getName()
-										 + " --beta_column "
-										 + beta_column + " --output_file " + out + " --effect_allele_column " + a1
-										 + " --non_effect_allele_column " + a2 + " --snp_column " + snp_column
-										 + " --se_column " + se
-										 + (overwrite ? " --overwrite" : "");
-
-		System.out.println(command);
-
-		// run MetaXcan on the given inputs
-		boolean runSuccess = CmdLine.run(command, ext.parseDirectoryOfFile(mxc_folder), null, null,
-																		 new Logger("MetaXcan.log"), false);
-
-		if (!runSuccess || !new File(out).exists()) {
-			System.out.println("Error running MetaXcan with the given inputs.");
-			System.exit(0);
+		if (Files.isDirectory(data)) {
+			if (!data.endsWith("/"))
+				data += "/";
+			runMany(data, extension, mxc_folder, refFile, freqFile, db, covar, posmap, out, overwrite,
+							verify);
+		} else {
+			String command = "cd " + ext.parseDirectoryOfFile(data) + "\njava -jar ~/"
+											 + org.genvisis.common.PSF.Java.GENVISIS + " gwas.mxc.ParseMXCResults data="
+											 + data + " mxc=" + mxc_folder + " ref=" + refFile + " freq=" + freqFile
+											 + " db=" + db + " covar=" + covar + " posmap=" + posmap + " out=" + out
+											 + (overwrite ? " -overwrite" : "") + (verify ? " -verify" : "");
+			Qsub.qsub("metaXcan.qsub", command, 32000, 2, 1);
 		}
-
-
-		// take the output mxc file and find the number of hits for each gene range
-		ParseMXCResults.addMetalHits(posmap, out, covar, data,
-																 new Logger("parseMXC.log"));
-
 
 	}
 }
