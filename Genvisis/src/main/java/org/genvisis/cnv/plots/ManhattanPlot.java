@@ -136,7 +136,7 @@ public class ManhattanPlot extends JFrame {
 		}
 		boolean[] chrs = ArrayUtils.booleanArray(27, true);
 		chrs[0] = false;
-		double filt = 0.05;
+		double filt = 1;
 
 		readyData(chrs, filt, cols);
 	}

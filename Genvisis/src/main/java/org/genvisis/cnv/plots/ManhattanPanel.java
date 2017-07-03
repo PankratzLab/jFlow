@@ -31,7 +31,7 @@ public class ManhattanPanel extends AbstractPanel {
 	byte layer = 1;
 	int numPointColors = 3;
 
-	int[] lineValuesToDraw = new int[] {5, 7};
+	double[] lineValuesToDraw = new double[] {.00001, 0.00000005};
 	int[] sizeMult = new int[] {2, 4};
 	int[] lineColors = new int[] {3, 3};
 	int[] aboveLineColors = new int[] {4, 5};
@@ -144,15 +144,17 @@ public class ManhattanPanel extends AbstractPanel {
 
 		lines = new GenericLine[lineValuesToDraw.length];
 		for (int i = 0; i < lineValuesToDraw.length; i++) {
-			lines[i] = new GenericLine(Integer.MIN_VALUE, lineValuesToDraw[i], (float) Integer.MAX_VALUE,
-																 lineValuesToDraw[i], (byte) 1, (byte) lineColors[i], (byte) 99);
+			float v = (float) -Math.log10(lineValuesToDraw[i]);
+			lines[i] = new GenericLine(Integer.MIN_VALUE, v, (float) Integer.MAX_VALUE,
+																 v, (byte) 1, (byte) lineColors[i], (byte) 99);
 		}
 	}
 
 	private byte getPointColor(int chr, double transP) {
 		int c = (chr % numPointColors);
 		for (int i = 0; i < lineValuesToDraw.length; i++) {
-			if (transP < lineValuesToDraw[i]) {
+			float v = (float) -Math.log10(lineValuesToDraw[i]);
+			if (transP < v) {
 				break;
 			}
 			c = aboveLineColors[i];
@@ -163,7 +165,8 @@ public class ManhattanPanel extends AbstractPanel {
 	private byte getSize(double pVal) {
 		int sz = pointSize;
 		for (int i = 0; i < lineValuesToDraw.length; i++) {
-			if (pVal < lineValuesToDraw[i]) {
+			float v = (float) -Math.log10(lineValuesToDraw[i]);
+			if (pVal < v) {
 				break;
 			}
 			sz = pointSize * sizeMult[i];

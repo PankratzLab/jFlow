@@ -75,6 +75,7 @@ import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.plots.CompPlot;
 import org.genvisis.cnv.plots.ForestPlotFrame;
 import org.genvisis.cnv.plots.LinePlot;
+import org.genvisis.cnv.plots.ManhattanPlot;
 import org.genvisis.cnv.plots.MosaicPlot;
 import org.genvisis.cnv.plots.QQPlotFrame;
 import org.genvisis.cnv.plots.ScatterPlot;
@@ -147,6 +148,7 @@ public class Launch extends JFrame implements ActionListener {
 	public static final String LINE_PLOT = "Line Plot";
 	public static final String COMP = "Comp Plot";
 	public static final String FOREST_PLOT = "Forest Plot";
+	public static final String MANHATTAN_PLOT = "Manhattan Plot";
 
 	public static final String GENERATE_ABLOOKUP = "Generate AB Lookup";
 	public static final String EXPORT_TO_PLINK = "Export to PLINK format";
@@ -193,6 +195,7 @@ public class Launch extends JFrame implements ActionListener {
 		plotIcons.put(QQ, "images/qqplot.gif");
 		plotIcons.put(STRAT, "images/stratPlot.png");
 		plotIcons.put(FOREST_PLOT, "images/forestPlot1.png");
+		plotIcons.put(MANHATTAN_PLOT, "images/manhattanPlot1.png");
 
 		// Initialize menu structure.
 		MENUS.put("File",
@@ -950,6 +953,14 @@ public class Launch extends JFrame implements ActionListener {
 					@Override
 					public void run() {
 						new ForestPlotFrame(proj);
+					}
+				});
+			} else if (command.equals(MANHATTAN_PLOT)) {
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						ManhattanPlot mp = new ManhattanPlot(proj);
+						mp.setVisible(true);
 					}
 				});
 			} else if (command.equals(POPULATIONBAF))
