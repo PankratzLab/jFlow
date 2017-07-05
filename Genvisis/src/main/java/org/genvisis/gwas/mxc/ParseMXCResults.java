@@ -40,7 +40,7 @@ public class ParseMXCResults {
 	}
 
 
-	public static String[][] loadGenes(String filename, boolean omitHeader, Logger log) {
+	private static String[][] loadGenes(String filename, boolean omitHeader, Logger log) {
 
 		String[] line = Files.getHeaderOfFile(filename, log);
 		int[] cols = ext.indexFactors(new String[][] {new String[] {"Assembly_name", "Gene",
@@ -95,9 +95,9 @@ public class ParseMXCResults {
 		Files.writeIterable(r, filename + "_qq.R");
 	}
 
-	public static void addMetalHits(String posfile, String mxcfile, String metalfile,
-																	String genesFile,
-																	Logger log) {
+	private static void addMetalHits(String posfile, String mxcfile, String metalfile,
+																	 String genesFile,
+																	 Logger log) {
 		// read in the metal gwas results file
 		String[][] metal = null;
 
@@ -123,17 +123,17 @@ public class ParseMXCResults {
 			log.reportError(e.getMessage());
 		}
 
-		// metal should now be of the form MarkerName, P-value, (marker), Chr, Position
+		// metal should now be of the form MarkerName, P-value, Chr, Position
 		metal = ArrayUtils.append(metal, results);
-		metal = removeNAs(metal, new int[] {3, 4});
+		metal = removeNAs(metal, new int[] {2, 3});
 		Arrays.sort(metal, new Comparator<String[]>() {
 			@Override
 			public int compare(final String[] entry1, final String[] entry2) {
-				final String chr1 = entry1[3];
-				final String chr2 = entry2[3];
+				final String chr1 = entry1[2];
+				final String chr2 = entry2[2];
 				if (chr1.equals(chr2)) {
-					final int pos1 = Integer.parseInt(entry1[4]);
-					final int pos2 = Integer.parseInt(entry2[4]);
+					final int pos1 = Integer.parseInt(entry1[3]);
+					final int pos2 = Integer.parseInt(entry2[3]);
 					return pos1 - pos2;
 				}
 				return chr1.compareTo(chr2);
@@ -179,15 +179,15 @@ public class ParseMXCResults {
 
 			sig[gene] = new String[] {g[0], "0", "0", g[1], g[3]};
 
-			while (start < metal.length && !metal[start][3].equals(chr)) {
+			while (start < metal.length && !metal[start][2].equals(chr)) {
 				start++;
 			}
 
 			for (int j = start; j < metal.length; j++) {
 				snp = metal[j];
 				pval = Double.parseDouble(snp[1]);
-				snpChr = snp[3];
-				snpPos = Integer.parseInt(snp[4]);
+				snpChr = snp[2];
+				snpPos = Integer.parseInt(snp[3]);
 
 				if (!snpChr.equals(chr))
 					break;
@@ -215,7 +215,7 @@ public class ParseMXCResults {
 		// append num of sig snps to mxc file
 		try {
 			results = Files.combineInMemory(mxcGenes, sig, "NA", true, true, log);
-			results[0] = new String[] {"gene", "numSig", "numSug", "pos", "chr"};
+			results[0] = new String[] {"numSig", "numSug", "pos", "chr"};
 		} catch (Elision e) {
 			log.reportError(e.getMessage());
 		}
@@ -244,9 +244,6 @@ public class ParseMXCResults {
 		generateRScript(ext.addToRoot(mxcfile, "_plot"));
 	}
 
-	// TODO: make this write the commands to a a file instead?
-	// Actually this should be in parse s/t main here can make the script executor
-	// and parse's main can call run
 	private static void run(String data, String db, String posmap, String covar, String out,
 													boolean overwrite,
 													String mxcFolder, Logger log) {
@@ -297,7 +294,8 @@ public class ParseMXCResults {
 
 		// run MetaXcan on the given inputs
 		boolean runSuccess = CmdLine.run(command, ext.parseDirectoryOfFile(mxcFolder), null, null,
-																		 new Logger("MetaXcan.log"), false);
+																		 new Logger(ext.parseDirectoryOfFile(out) + "MetaXcan.log"),
+																		 false);
 
 		if (!runSuccess || !new File(out).exists()) {
 			System.out.println("Error running MetaXcan with the given inputs.");
@@ -305,7 +303,7 @@ public class ParseMXCResults {
 		}
 	}
 
-	public static void plot(String filename, String out, Logger log) {
+	private static void plot(String filename, String out, Logger log) {
 		ManhattanPlot mp = new ManhattanPlot(null);
 
 		try {
@@ -326,6 +324,16 @@ public class ParseMXCResults {
 		mp.screenshot(out);
 	}
 
+	private static void combine(String pattern) {
+		String[] files = Files.list(ext.parseDirectoryOfFile(pattern), ext.rootOf(pattern), null, true,
+																false);
+
+
+		for (String s : files) {
+
+		}
+	}
+
 	public static void main(String[] args) throws IOException {
 		if (args.length == 0) {
 			System.out.println(usage);
@@ -342,9 +350,11 @@ public class ParseMXCResults {
 		String freqFile = "freq.tbl";
 		String refFile = "1000G.xln";
 		String genesFile = "/home/pankrat2/public/bin/NCBI/genes37.xln";
+		String pattern = null;
 
 		boolean verify = false;
 		boolean overwrite = false;
+		boolean combine = false;
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("help")) {
@@ -368,23 +378,30 @@ public class ParseMXCResults {
 				freqFile = ext.parseStringArg(arg);
 			else if (arg.startsWith("ref="))
 				refFile = ext.parseStringArg(arg);
+			else if (arg.startsWith("pattern"))
+				pattern = ext.parseStringArg(arg);
 			else if (arg.startsWith("-verify"))
 				verify = true;
 			else if (arg.startsWith("-overwrite"))
 				overwrite = true;
+			else if (arg.startsWith("-combine"))
+				combine = true;
 			else
 				log.report("Invalid argument: " + arg);
 		}
 
-		if (verify) {
-			AlleleVerification.verifyAlleles(data, refFile, freqFile, posmap, false, log);
-			data = ext.rootOf(data, false) + "_allele_verified.txt";
+		if (combine && pattern != null) {
+			combine(pattern);
+		} else {
+			if (verify) {
+				AlleleVerification.verifyAlleles(data, refFile, freqFile, posmap, false, log);
+				data = ext.rootOf(data, false) + "_allele_verified.txt";
+			}
+			// run(data, db, posmap, covar, out, overwrite, mxcFolder, log);
+			// take the output mxc file and find the number of hits for each gene range
+			addMetalHits(posmap, out, data, genesFile,
+									 new Logger(ext.parseDirectoryOfFile(data) + "parseMXC.log"));
 		}
-
-		// run(data, db, posmap, covar, out, overwrite, mxcFolder, log);
-
-		// take the output mxc file and find the number of hits for each gene range
-		addMetalHits(posmap, out, data, genesFile, new Logger("parseMXC.log"));
 
 	}
 }

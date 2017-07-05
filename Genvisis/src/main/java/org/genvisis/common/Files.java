@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.IntStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipInputStream;
@@ -1376,9 +1377,11 @@ public class Files {
 				}
 
 				if (hash.containsKey(key)) {
-					data[i] = lookupSource[hash.get(key)];
+					data[i] = hideIndex ? ArrayUtils.subArray(lookupSource[hash.get(key)], 1)
+															: lookupSource[hash.get(key)];
 				} else {
-					data[i] = ArrayUtils.stringArray(numColsInValues, missingValue);
+					data[i] = ArrayUtils.stringArray(hideIndex ? numColsInValues - 1 : numColsInValues,
+																					 missingValue);
 					count++;
 				}
 			}
@@ -1410,7 +1413,6 @@ public class Files {
 				}
 			}
 		}
-
 
 		return data;
 	}

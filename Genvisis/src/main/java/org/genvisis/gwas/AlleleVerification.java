@@ -206,10 +206,7 @@ public class AlleleVerification {
 																		 header, false, false, false, false);
 		String[][] positions = HashVec.loadFileToStringMatrix(posFile, true, indices, false);
 
-		// NOTE: we've told combineInMemory to omit the index, but it ignores this argument!
-		// We have to adjust results accordingly so we get a data array of the correct size
 		String[][] results = Files.combineInMemory(keys, positions, "NA", true, true, log);
-		results = Matrix.extractColumns(results, new int[] {1});
 		data = ArrayUtils.append(data, results);
 
 		// sort our data so that we can go through the ref faster
