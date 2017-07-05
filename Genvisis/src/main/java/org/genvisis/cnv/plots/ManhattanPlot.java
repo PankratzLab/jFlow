@@ -90,18 +90,18 @@ public class ManhattanPlot extends JFrame {
 	}
 
 	/**
-	 * Automatically loads a file based on defaults. Only loads CHR/POS/PVAL/SNP columns and filters
-	 * PVAL for <= 0.05.
+	 * Automatically loads a file based on defaults. Only loads CHR/POS/PVAL/SNP columns and doesn't
+	 * filter p-values.
 	 * 
 	 * @param filename File to load
 	 */
-	public void loadFileAuto(String filename) {
+	public boolean loadFileAuto(String filename) {
 		if ("".equals(filename)) {
-			return;
+			return false;
 		}
 		if (!Files.exists(filename)) {
 			log.reportTime("ERROR - file not found: " + filename);
-			return;
+			return false;
 		}
 
 		DataFile dataFile = new DataFile(filename, log, LINKERS, REQ_LINKS);
@@ -126,7 +126,7 @@ public class ManhattanPlot extends JFrame {
 				miss += "P-val";
 			}
 			log.reportTime("ERROR - missing " + miss + " data!");
-			return;
+			return false;
 		}
 
 		this.data = dataFile;
@@ -139,6 +139,7 @@ public class ManhattanPlot extends JFrame {
 		double filt = 1;
 
 		readyData(chrs, filt, cols);
+		return true;
 	}
 
 	/**
@@ -429,7 +430,11 @@ public class ManhattanPlot extends JFrame {
 				if (!Files.exists(filename)) {
 					System.err.println("Error - file not found: " + filename);
 				} else {
-					mp.loadFileAuto(filename);
+					boolean load = mp.loadFileAuto(filename);
+					if (!load) {
+						// error!
+						return;
+					}
 					while (!mp.isDataLoaded()) {
 						Thread.sleep(200);
 					}
