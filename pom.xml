@@ -481,6 +481,7 @@
 						<needMenu>true</needMenu>
 						<nativeReleaseVersion>0.0.1</nativeReleaseVersion>
 						<additionalAppResources>${resourcesDir}</additionalAppResources>
+						<updateExistingJar>true</updateExistingJar>
 						<manifestAttributes>
 							<Implementation-Build>${buildNumber}</Implementation-Build>
 							<Implementation-Date>${maven.build.timestamp}</Implementation-Date>
