@@ -78,8 +78,8 @@
 	</issueManagement>
 
 	<ciManagement>
-		<system>Travis</system>
-		<url></url>
+		<system>Jenkins</system>
+		<url>https://it.genvisis.org/jenkins</url>
 	</ciManagement>
 
 	<properties>
