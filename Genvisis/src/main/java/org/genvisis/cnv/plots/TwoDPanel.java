@@ -8,7 +8,9 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
 
 import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.Project;
@@ -615,10 +617,11 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		// Vector<String[]> linkKeyValues;
 		// boolean scatter, trailer;
 		String[] ids = null;
-		String markerName;
+		String markerName, comment;
 		String sample, region, region2;
 		int[] positions;
 		byte maxNumPoints;
+		int itemsAdded = 0;
 
 		// if (e.getButton()==MouseEvent.BUTTON1) { // left click
 		// } else if (e.getButton()==MouseEvent.BUTTON3) { // right click
@@ -634,12 +637,16 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			menu = new JPopupMenu();
 			maxNumPoints = (byte) Math.min(20, prox.size());
 			for (int i = 0; i < maxNumPoints; i++) {
+				if (itemsAdded > 0) {
+					menu.add(new JSeparator());
+				}
 				String[] linkerDataElem = linkerData[prox.elementAt(i)];
 
 				if (linkKeyIndicies[TwoDPlot.MARKER_INDEX_IN_LINKERS] >= 0) {
 					markerName = linkerDataElem[TwoDPlot.MARKER_INDEX_IN_LINKERS];
 					if (markerLookup.get(markerName) != null) {
 						menu.add(new LaunchAction(proj, markerName, Color.CYAN));
+						itemsAdded++;
 					}
 				}
 
@@ -657,13 +664,24 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 						ids = sampleData.lookup(linkerDataElem[TwoDPlot.FID_INDEX_IN_LINKERS] + "\t"
 																		+ linkerDataElem[TwoDPlot.DNA_INDEX_IN_LINKERS]);
 					}
-					if (ids == null) {
+					if (ids == null && linkKeyIndicies[TwoDPlot.DNA_INDEX_IN_LINKERS] >= 0) {
 						ids = sampleData.lookup(linkerDataElem[TwoDPlot.DNA_INDEX_IN_LINKERS]);
 					}
 					if (ids != null
 							&& Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + ids[0]
 															+ Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
 						sample = ids[0];
+					}
+				}
+
+				if (linkKeyIndicies[TwoDPlot.COMMENT_INDEX_IN_LINKERS] >= 0) {
+					comment = linkerDataElem[TwoDPlot.COMMENT_INDEX_IN_LINKERS];
+					if (comment.length() > 0) {
+						JMenuItem jmi = new JMenuItem();
+						jmi.setText(comment);
+						jmi.setEnabled(false);
+						menu.add(jmi);
+						itemsAdded++;
 					}
 				}
 
@@ -724,16 +742,21 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 						if (region2 != null && !region.equals(region2)) {
 							menu.add(new LaunchAction(proj, sample, new String[] {region, region2},
 																				sampColor == null ? Color.GRAY : sampColor));
+							itemsAdded++;
 						} else {
 							menu.add(new LaunchAction(proj, sample, region,
 																				sampColor == null ? Color.GRAY : sampColor));
+							itemsAdded++;
 						}
 					} else {
 						menu.add(new LaunchAction(proj, sample, Trailer.DEFAULT_LOCATION, sampColor));
+						itemsAdded++;
 					}
 				}
 			}
-			menu.show(this, e.getX(), e.getY());
+			if (itemsAdded > 0) {
+				menu.show(this, e.getX(), e.getY());
+			}
 		}
 	}
 

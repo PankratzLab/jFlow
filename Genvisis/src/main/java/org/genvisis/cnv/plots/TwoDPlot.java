@@ -99,11 +99,17 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public static final String CREATE_SCREENS = "Create Screenshots";
 	// public static final String SET_AS_COLORKEY = "Set as Color Key";
 	// public static final String SET_AS_LINKKEY = "Set as Link Key";
+
+	public static final String[] COMMENT_FIELD_ALIASES = {
+																												"COMMENT",
+																												"NOTE"
+	};
 	public static final String[][] LINKERS = {Aliases.INDIVIDUAL_ID, Aliases.FAMILY_ID, Aliases.DNA,
 																						Aliases.MARKER_NAMES, Aliases.REGION, Aliases.CHRS,
 																						ArrayUtils.combine(Aliases.POSITIONS,
 																															 Aliases.POSITIONS_START),
-																						Aliases.POSITIONS_STOP};
+																						Aliases.POSITIONS_STOP,
+																						COMMENT_FIELD_ALIASES};
 	public static final int IID_INDEX_IN_LINKERS = 0;
 	public static final int FID_INDEX_IN_LINKERS = 1;
 	public static final int DNA_INDEX_IN_LINKERS = 2;
@@ -112,6 +118,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public static final int CHR_INDEX_IN_LINKERS = 5;
 	public static final int POS_INDEX_IN_LINKERS = 6;
 	public static final int STOP_POS_INDEX_IN_LINKERS = 7;
+	public static final int COMMENT_INDEX_IN_LINKERS = 8;
 
 	public static final String[] MISSING_VALUES = {".", "NA"};
 
@@ -960,7 +967,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 								colorCode = 0;
 								// TODO color by value
 							}
-							inLine[3] = colorCode + "";
+							xHash.get(key)[3] = colorCode + "";
 						}
 					}
 				}
