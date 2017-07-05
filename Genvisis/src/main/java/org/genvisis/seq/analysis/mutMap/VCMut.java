@@ -5,8 +5,9 @@ package org.genvisis.seq.analysis.mutMap;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -346,7 +347,7 @@ public class VCMut {
 
 		BufferedReader br;
 		try {
-			br = new BufferedReader(new FileReader(loadMutMap()));
+			br = new BufferedReader(new InputStreamReader(loadMutMap()));
 			String sCurrentLine;
 
 			while ((sCurrentLine = br.readLine()) != null) {
@@ -364,8 +365,9 @@ public class VCMut {
 
 	}
 
-	private static File loadMutMap() {
-		return new File(VCMut.class.getResource("SNPEFF_MutMap.txt").getFile());
+	private static InputStream loadMutMap() {
+		return VCMut.class.getResourceAsStream("SNPEFF_MutMap.txt");
+		// return new File("/home/tsaim/lane0212/SNPEFF_MutMap.txt");
 	}
 
 
@@ -379,8 +381,8 @@ public class VCMut {
 	}
 
 
-	private static void run(String vcf, String outputDir, String vpopFile,
-													double maf, boolean removeFilter, Segment seg) {
+	public static void run(String vcf, String outputDir, String vpopFile,
+												 double maf, boolean removeFilter, Segment seg) {
 		new File(outputDir).mkdirs();
 		Logger log = new Logger(outputDir + "mutMap.log");
 
