@@ -93,18 +93,14 @@ public class ExtProjectDataParser {
 								if (typedFileLine.hasNumericData()) {
 									proj.getLog()
 											.reportError("Multiple entries for the same "
-																			 + (sampleBased ? "sample" : "marker")
-																			 + " "
-																			 + data
-																			 + " were found and numeric indices were requested, cannot load...");
+																	 + (sampleBased ? "sample" : "marker") + " " + data
+																	 + " were found and numeric indices were requested, cannot load...");
 
 								} else {
 									proj.getLog()
 											.reportError("Multiple entries for the same "
-																			 + (sampleBased ? "sample" : "marker")
-																			 + " "
-																			 + data
-																			 + " were found, consider setting the concatMultipleStringEntries option if only string data is needed");
+																	 + (sampleBased ? "sample" : "marker") + " " + data
+																	 + " were found, consider setting the concatMultipleStringEntries option if only string data is needed");
 								}
 								return;
 							}
@@ -126,11 +122,11 @@ public class ExtProjectDataParser {
 									stringData[i][dataIndex] = (concat ? stringData[i][dataIndex]
 																											 + typedFileParser.getSeparator()
 																											 + typedFileLine.getStringData()[1][i]
-																										: typedFileLine.getStringData()[1][i]);// 0 is
-																																													 // reserved
-																																													 // for
-																																													 // the
-																																													 // samples
+																										 : typedFileLine.getStringData()[1][i]);// 0 is
+																																														// reserved
+																																														// for
+																																														// the
+																																														// samples
 								}
 							}
 						}
@@ -296,7 +292,7 @@ public class ExtProjectDataParser {
 		if (index < 0 || stringData == null) {
 			proj.getLog().reportError("Data for " + title + " was not found");
 			proj.getLog().reportError(stringDataTitles == null ? "No String data Titles available"
-																												: ArrayUtils.toStr(stringDataTitles));
+																												 : ArrayUtils.toStr(stringDataTitles));
 			if (stringData == null) {
 				proj.getLog().reportError("No string data available");
 			}
@@ -321,8 +317,8 @@ public class ExtProjectDataParser {
 			proj.getLog().reportError("Data for " + title + " was not found");
 			proj.getLog()
 					.reportError(numericData == null ? "No Numeric data Titles available"
-																					: "Titles available: "
-																						+ ArrayUtils.toStr(numericDataTitles));
+																					 : "Titles available: "
+																						 + ArrayUtils.toStr(numericDataTitles));
 			if (numericData == null) {
 				proj.getLog().reportError("No Numeric data available");
 			}
@@ -425,8 +421,7 @@ public class ExtProjectDataParser {
 	private void treatAllNumeric() {
 		String[] header = Files.getHeaderOfFile(fullPathToDataFile, proj.getLog());
 		if (!hasHeader || determineSampleIndex(true, header)) {
-			proj.getLog().reportTimeInfo("Treating all columns besides index " + dataKeyColumnIndex
-																	 + " ("
+			proj.getLog().reportTimeInfo("Treating all columns besides index " + dataKeyColumnIndex + " ("
 																	 + dataKeyColumnName + ") as numeric column(s)");
 			proj.getLog()
 					.reportTimeInfo("If data titles are present, they are assumed to be in order of the column header");

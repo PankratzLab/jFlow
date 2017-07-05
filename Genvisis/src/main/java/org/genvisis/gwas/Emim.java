@@ -18,8 +18,6 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
-import org.genvisis.gwas.ResultsPackager.EmimPackager;
-import org.genvisis.gwas.ResultsPackager.Packager;
 import org.genvisis.qsub.Qsub;
 
 import com.google.common.collect.ImmutableSet;
@@ -106,7 +104,7 @@ public class Emim {
 
 		String[] getReplacement(boolean setTo) {
 			return setTo ? new String[] {"0" + lineSuffix, "1" + lineSuffix}
-									: new String[] {"1" + lineSuffix, "0" + lineSuffix};
+									 : new String[] {"1" + lineSuffix, "0" + lineSuffix};
 		}
 	}
 
@@ -299,7 +297,7 @@ public class Emim {
 	}
 
 	private static void listSexMarkers(String bimFile, String sexFile) throws NumberFormatException,
-																																		IOException {
+																																		 IOException {
 		PrintWriter writer;
 		BufferedReader reader;
 		String line;
@@ -568,11 +566,10 @@ public class Emim {
 		String outfile = dir + (resultPrefix == null ? "" : resultPrefix + "_") + "results_pVals_"
 										 + model.toString() + ".xln";
 
-		Packager p = new EmimPackager(resultsFileC, resultsFileM, resultsFileCM, resultsFileCIm,
-																	resultsFileCIp, resultsFileIm, resultsFileIp, resultsFileTdt,
-																	mapFile, mendelErrorFile, hweFile, frqFile, pValueThreshold,
-																	outfile, new Logger("EMIMparser.log"));
-		p.runPackager();
+		ResultsPackager.parseEmimFormat(resultsFileC, resultsFileM, resultsFileCM, resultsFileCIm,
+																		resultsFileCIp, resultsFileIm, resultsFileIp, resultsFileTdt,
+																		mapFile, mendelErrorFile, hweFile, frqFile, pValueThreshold,
+																		outfile, new Logger("EMIMparser.log"));
 	}
 
 	public static void replaceLines(String filenameOriginal, String filenameWithReplacements,
@@ -612,21 +609,14 @@ public class Emim {
 		String resultPrefix = null;
 
 		String usage = "\n" + "gwas.Emim requires 0-1 arguments\n"
-									 + "   (1) run type (either C, CM, or M) (i.e. run="
-									 + runType
-									 + " (default))\n"
-									 + "   (2) model ("
-									 + ArrayUtils.toStr(EMIM_MODEL.values(), ",")
-									 + ") (i.e. model="
-									 + model.toString()
-									 + " (default))\n"
-									 + "  OR\n"
+									 + "   (1) run type (either C, CM, or M) (i.e. run=" + runType + " (default))\n"
+									 + "   (2) model (" + ArrayUtils.toStr(EMIM_MODEL.values(), ",")
+									 + ") (i.e. model=" + model.toString() + " (default))\n" + "  OR\n"
 									 + "   (1) desired risk allele file (i.e. riskAlleles=forceRiskAllele.txt (not the default))\n"
 									 + "  OR\n"
 									 + "   (1) generate script that runs the full process (i.e. script=plinkPrefix (not the default))\n"
 									 + "   (2) p-value threshold to filter on (piped to parse method) (i.e. pThreshold="
-									 + pValueThreshold
-									 + " (default))\n"
+									 + pValueThreshold + " (default))\n"
 									 + "   (3) (optional) a file of markers to exclude - the default will generate a file of sex markers, as Emim won't parse these. (i.e. exclude=drops.dat (not the default))\n"
 									 + "   (4) (optional) a file of tab-delimited FID/IID pairs to keep (i.e. keep=completeTrios.dat (not the default))\n"
 									 + "  OR\n" + "   (1) directory to parse (i.e. parse=./ (not the default))\n"
