@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import org.genvisis.cnv.plots.ManhattanPlot;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
@@ -176,7 +177,7 @@ public class ParseMXCResults {
 			endPos = Integer.parseInt(g[2]) + 500000;
 			chr = g[3];
 
-			sig[gene] = new String[] {g[0], "0", "0"};
+			sig[gene] = new String[] {g[0], "0", "0", g[1], g[3]};
 
 			while (start < metal.length && !metal[start][3].equals(chr)) {
 				start++;
@@ -214,7 +215,7 @@ public class ParseMXCResults {
 		// append num of sig snps to mxc file
 		try {
 			results = Files.combineInMemory(mxcGenes, sig, "NA", true, true, log);
-			results[0] = new String[] {"gene", "numSig", "numSug"};
+			results[0] = new String[] {"gene", "numSig", "numSug", "pos", "chr"};
 		} catch (Elision e) {
 			log.reportError(e.getMessage());
 		}
@@ -225,10 +226,10 @@ public class ParseMXCResults {
 
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(ext.addToRoot(mxcfile,
-																																							"_no_sig_markers.csv")));
+																																							"_no_sig_markers")));
 			writer.write(ArrayUtils.toStr(mxc[0], ",") + "\n");
 			for (String[] s : mxc) {
-				if (s[s.length - 2].equals("0"))
+				if (s[s.length - 4].equals("0"))
 					writer.write(ArrayUtils.toStr(s, ",") + "\n");
 			}
 			writer.close();
@@ -236,6 +237,9 @@ public class ParseMXCResults {
 			log.reportError("Unable to write to " + ext.rootOf(mxcfile) + "_no_sig_markers.csv");
 			e.printStackTrace();
 		}
+
+		plot(ext.addToRoot(mxcfile, "_no_sig_markers"), ext.rootOf(mxcfile, false) + "_manhattan.png",
+				 log);
 
 		generateRScript(ext.addToRoot(mxcfile, "_plot"));
 	}
@@ -301,6 +305,27 @@ public class ParseMXCResults {
 		}
 	}
 
+	public static void plot(String filename, String out, Logger log) {
+		ManhattanPlot mp = new ManhattanPlot(null);
+
+		try {
+			boolean load = mp.loadFileAuto(filename);
+			if (!load) {
+				log.reportError("Unable to load " + filename + " for manhattan plot.");
+				return;
+			}
+			while (!mp.isDataLoaded()) {
+				Thread.sleep(200);
+			}
+		} catch (InterruptedException e) {
+			log.reportError("Problem creating manhattan plot from " + filename);
+			e.printStackTrace();
+		}
+
+		mp.getManPan().setSize(800, 400);
+		mp.screenshot(out);
+	}
+
 	public static void main(String[] args) throws IOException {
 		if (args.length == 0) {
 			System.out.println(usage);
@@ -356,7 +381,7 @@ public class ParseMXCResults {
 			data = ext.rootOf(data, false) + "_allele_verified.txt";
 		}
 
-		run(data, db, posmap, covar, out, overwrite, mxcFolder, log);
+		// run(data, db, posmap, covar, out, overwrite, mxcFolder, log);
 
 		// take the output mxc file and find the number of hits for each gene range
 		addMetalHits(posmap, out, data, genesFile, new Logger("parseMXC.log"));

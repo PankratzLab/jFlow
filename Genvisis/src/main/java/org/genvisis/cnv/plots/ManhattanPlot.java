@@ -173,7 +173,8 @@ public class ManhattanPlot extends JFrame {
 				}
 				double pVal = -Math.log10(pvals[i]);
 				data.add(new ManhattanDataPoint(markerNames == null ? chrs[i] + ":" + pos[i]
-																													 : markerNames[i], chrs[i], pos[i],
+																														: markerNames[i],
+																				chrs[i], pos[i],
 																				linLoc, pVal, pvals[i]));
 			}
 			return data;
@@ -227,7 +228,8 @@ public class ManhattanPlot extends JFrame {
 		DataPipe pValPipe = new DataPipe();
 		pValPipe.addPipe(new DropIfMatchAnyPipe(ext.MISSING_VALUES, true));
 		if (!Double.isNaN(pvalThresh)) {
-			pValPipe.addPipe(new FilterPipe<Double>(OPERATOR.LESS_THAN_OR_EQUAL, pvalThresh, Double.class));
+			pValPipe.addPipe(new FilterPipe<Double>(OPERATOR.LESS_THAN_OR_EQUAL, pvalThresh,
+																							Double.class));
 		}
 		selTrans.put(data.getLinkedColumnName(PVAL_LINKER), pValPipe);
 
@@ -348,7 +350,8 @@ public class ManhattanPlot extends JFrame {
 				double val = Double.parseDouble(transPVal);
 				double val2 = Double.parseDouble(pVal);
 				ManhattanDataPoint mdp = new ManhattanDataPoint(mkrInd == -1 ? chr + ":" + pos
-																																		: row[mkrInd], chrI, posI,
+																																		 : row[mkrInd],
+																												chrI, posI,
 																												linLoc, val, val2);
 				for (String s : loadedRest) {
 					String v = row[otherColInds.get(s)];
@@ -361,6 +364,10 @@ public class ManhattanPlot extends JFrame {
 		return pts;
 	}
 
+	public ManhattanPanel getManPan() {
+		return manPan;
+	}
+
 	ArrayList<ManhattanDataPoint> cachedData;
 
 	private ArrayList<ManhattanDataPoint> getCachedData() {
@@ -368,7 +375,8 @@ public class ManhattanPlot extends JFrame {
 	}
 
 	class ManhattanDataPoint {
-		public ManhattanDataPoint(String mkr, int chrI, int posI, int linLoc, double val, double valOrig) {
+		public ManhattanDataPoint(String mkr, int chrI, int posI, int linLoc, double val,
+															double valOrig) {
 			this.mkr = mkr;
 			this.chr = chrI;
 			this.pos = posI;
