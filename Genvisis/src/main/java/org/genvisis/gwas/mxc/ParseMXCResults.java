@@ -98,10 +98,16 @@ public class ParseMXCResults {
 	private static void addMetalHits(String posfile, String mxcfile, String metalfile,
 																	 String genesFile,
 																	 Logger log) {
+		String outDir = ext.parseDirectoryOfFile(mxcfile) + "results_parsed/";
+		if (!new File(outDir).exists()) {
+			new File(outDir).mkdir();
+		}
+
 		// read in the metal gwas results file
 		String[][] metal = null;
 
 		String[] line = Files.getHeaderOfFile(metalfile, log);
+
 
 		int[] valueIndices = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.PVALUES},
 																					line, false,
@@ -161,7 +167,7 @@ public class ParseMXCResults {
 		});
 
 		// maps gene to related snps
-		String[] mxcGenes = getKeys(mxc, "gene_name", new Logger());
+		String[] mxcGenes = getKeys(mxc, "gene_name", log);
 		int startPos;
 		int endPos;
 		int snpPos;
@@ -222,11 +228,11 @@ public class ParseMXCResults {
 
 		mxc = ArrayUtils.append(mxc, results);
 		// write to mxc file
-		Files.writeMatrix(mxc, ext.addToRoot(mxcfile, "_sig"), ",");
+		Files.writeMatrix(mxc, outDir + ext.removeDirectoryInfo(mxcfile), ",");
 
 		try {
-			BufferedWriter writer = new BufferedWriter(new FileWriter(ext.addToRoot(mxcfile,
-																																							"_no_sig_markers")));
+			BufferedWriter writer = new BufferedWriter(new FileWriter(outDir + "no_sig_markers_"
+																																+ ext.removeDirectoryInfo(mxcfile)));
 			writer.write(ArrayUtils.toStr(mxc[0], ",") + "\n");
 			for (String[] s : mxc) {
 				if (s[s.length - 4].equals("0"))
@@ -234,14 +240,14 @@ public class ParseMXCResults {
 			}
 			writer.close();
 		} catch (IOException e) {
-			log.reportError("Unable to write to " + ext.rootOf(mxcfile) + "_no_sig_markers.csv");
+			log.reportError("Unable to write to " + "no_sig_markers_" + ext.removeDirectoryInfo(mxcfile));
 			e.printStackTrace();
 		}
 
-		plot(ext.addToRoot(mxcfile, "_no_sig_markers"), ext.rootOf(mxcfile, false) + "_manhattan.png",
-				 log);
+		plot(outDir + "no_sig_markers_" + ext.removeDirectoryInfo(mxcfile),
+				 outDir + ext.rootOf(mxcfile) + "_manhattan.png", log);
 
-		generateRScript(ext.addToRoot(mxcfile, "_plot"));
+		generateRScript(outDir + ext.rootOf(mxcfile) + "_plot.R");
 	}
 
 	private static void run(String data, String db, String posmap, String covar, String out,
@@ -294,7 +300,7 @@ public class ParseMXCResults {
 
 		// run MetaXcan on the given inputs
 		boolean runSuccess = CmdLine.run(command, ext.parseDirectoryOfFile(mxcFolder), null, null,
-																		 new Logger(ext.parseDirectoryOfFile(out) + "MetaXcan.log"),
+																		 new Logger(new File("").getAbsolutePath() + "MetaXcan.log"),
 																		 false);
 
 		if (!runSuccess || !new File(out).exists()) {
@@ -324,14 +330,69 @@ public class ParseMXCResults {
 		mp.screenshot(out);
 	}
 
-	private static void combine(String pattern) {
-		String[] files = Files.list(ext.parseDirectoryOfFile(pattern), ext.rootOf(pattern), null, true,
-																false);
+	private static void combine(String pattern, Logger log) {
+		String[] files = Files.list(ext.parseDirectoryOfFile(pattern), ext.rootOf(pattern), ".csv",
+																true, false, true);
 
-
+		String[][] data, genes = null;
+		String[] header, keys;
+		int[] cols;
+		String[][] combined = null;
+		String label;
 		for (String s : files) {
+			log.report("attempting file " + s);
+			label = s.split(pattern)[1];
+			header = Files.getHeaderOfFile(s, log);
 
+			cols = ext.indexFactors(new String[] {"gene_name", "pvalue", "effect_size", "numSig",
+																						"numSug"},
+															header, false, false);
+
+			data = HashVec.loadFileToStringMatrix(s, false, cols, false);
+			data[0] = new String[] {"Gene", "p_" + label, "beta_" + label, "sig_" + label,
+															"sugg_" + label};
+
+			if (genes == null || data.length > genes.length) {
+				cols = ext.indexFactors(new String[][] {new String[] {"gene_name"}, Aliases.CHRS,
+																								Aliases.POSITIONS},
+																header, false, true, false, false);
+
+				genes = HashVec.loadFileToStringMatrix(s, false, cols, false);
+				genes[0] = new String[] {"Gene", "Chr", "pos"};
+
+				// we want our keys to be the longest set of genes so far
+				// so if we have an existing list, swap it with data before combining
+				if (combined != null) {
+					String[][] temp = combined;
+					combined = data;
+					data = temp;
+				}
+			}
+
+			if (combined == null) {
+				combined = data;
+			} else {
+				try {
+					keys = getKeys(combined, "Gene", log);
+					combined = ArrayUtils.append(combined,
+																			 Files.combineInMemory(keys, data, ".", true, true, log));
+				} catch (Elision e) {
+					log.reportError("Something went wrong while combining data from file " + s);
+					e.printStackTrace();
+				}
+			}
 		}
+
+		try {
+			keys = getKeys(genes, "Gene", log);
+			combined = ArrayUtils.append(genes,
+																	 Files.combineInMemory(keys, combined, ".", true, true, log));
+		} catch (Elision e) {
+			log.reportError("Unable to map combined files to genes.");
+			e.printStackTrace();
+		}
+
+		Matrix.writeToFile(combined, pattern + "combined.txt");
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -378,7 +439,7 @@ public class ParseMXCResults {
 				freqFile = ext.parseStringArg(arg);
 			else if (arg.startsWith("ref="))
 				refFile = ext.parseStringArg(arg);
-			else if (arg.startsWith("pattern"))
+			else if (arg.startsWith("pattern="))
 				pattern = ext.parseStringArg(arg);
 			else if (arg.startsWith("-verify"))
 				verify = true;
@@ -391,16 +452,17 @@ public class ParseMXCResults {
 		}
 
 		if (combine && pattern != null) {
-			combine(pattern);
+			combine(pattern, new Logger(new File("").getAbsolutePath() + "combine.log"));
 		} else {
 			if (verify) {
 				AlleleVerification.verifyAlleles(data, refFile, freqFile, posmap, false, log);
 				data = ext.rootOf(data, false) + "_allele_verified.txt";
 			}
-			// run(data, db, posmap, covar, out, overwrite, mxcFolder, log);
+
+			run(data, db, posmap, covar, out, overwrite, mxcFolder, log);
 			// take the output mxc file and find the number of hits for each gene range
 			addMetalHits(posmap, out, data, genesFile,
-									 new Logger(ext.parseDirectoryOfFile(data) + "parseMXC.log"));
+									 new Logger(new File("").getAbsolutePath() + "parseMXC.log"));
 		}
 
 	}
