@@ -291,13 +291,22 @@ public class ManhattanPlot extends JFrame {
 			int mkrInd = data.getIndexOfData(data.getLinkedColumnName(SNP_LINKER));
 
 			String[] loadedRest = data.getLoadedColumns();
-			loadedRest = ArrayUtils.removeFromArray(loadedRest,
-																							new String[] {
-																														data.getLinkedColumnName(SNP_LINKER),
-																														chrCol,
-																														posCol,
-																														pValCol
-																							});
+			String[] toRemove;
+			if (mkrInd == -1) {
+				toRemove = new String[] {
+																 chrCol,
+																 posCol,
+																 pValCol
+				};
+			} else {
+				toRemove = new String[] {
+																 data.getLinkedColumnName(SNP_LINKER),
+																 chrCol,
+																 posCol,
+																 pValCol
+				};
+			}
+			loadedRest = ArrayUtils.removeFromArray(loadedRest, toRemove);
 			HashMap<String, Integer> otherColInds = new HashMap<>();
 			for (String s : loadedRest) {
 				otherColInds.put(s, data.getIndexOfData(s));
