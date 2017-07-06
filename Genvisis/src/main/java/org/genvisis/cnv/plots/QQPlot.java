@@ -31,10 +31,10 @@ public class QQPlot {
 																								// "C:\\Documents and Settings\\npankrat\\My
 																								// Documents\\LOAD\\QQplots\\4PCs.txt",
 																								"C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\E2_E4.txt,0",
-			// "C:\\Documents and Settings\\npankrat\\My
-			// Documents\\LOAD\\QQplots\\4PCs_E2_E4.txt",
-			// "C:\\Documents and Settings\\npankrat\\My
-			// Documents\\LOAD\\QQplots\\E4_binary.txt"
+																							 // "C:\\Documents and Settings\\npankrat\\My
+																							 // Documents\\LOAD\\QQplots\\4PCs_E2_E4.txt",
+																							 // "C:\\Documents and Settings\\npankrat\\My
+																							 // Documents\\LOAD\\QQplots\\E4_binary.txt"
 	};
 
 	public static final boolean JAR = false;
@@ -108,7 +108,7 @@ public class QQPlot {
 	public void screenCap(String outFile) {
 
 		int descrHeight = qqPanel.getPvals().length * 35;
-		qqPanel.setPreferredSize(new Dimension(2000, 1440 + descrHeight));
+		qqPanel.setSize(new Dimension(2000, 1440 + descrHeight));
 		qqPanel.validate();
 		qqPanel.createImage();
 		qqPanel.screenCapture(outFile);
