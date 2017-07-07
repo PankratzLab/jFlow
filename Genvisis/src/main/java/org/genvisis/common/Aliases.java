@@ -3,7 +3,8 @@ package org.genvisis.common;
 public class Aliases {
 	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP", "SNP Name",
 																							 "SNPID", "SNP.id", "rs_id", "rsID", "Probe Set ID",
-																							 "ProbeSetName", "ProbeSet", "Variant", "VariantName",
+																							 "ProbeSetName", "ProbeSet", "Variant",
+																							 "VariantName",
 																							 "AnalysisUnit", "Variant_ID", "SingleVariant",
 																							 "BurdenTests", "RSID", "BinName"};
 	public static final String[] GENE_UNITS = {"Gene", "SKATgene"};
@@ -16,9 +17,11 @@ public class Aliases {
 	public static final String[] POSITIONS_STOP = {"Stop", "End", "Stop Position"};
 	public static final String[] CENTIMORGANS = {"centiMorgans", "cM"};
 
-	public static final String[][] ALLELES = {{"coded_all", "A1", "Al1", "Allele1", "ALT",
+	public static final String[][] ALLELES = {
+																						{"coded_all", "A1", "Al1", "Allele1", "ALT",
 																						 "Effect_allele", "EA", "Coded.Allele"},
-																						{"noncoded_all", "A2", "Al2", "Allele2", "REF", "OTHER",
+																						{"noncoded_all", "A2", "Al2", "Allele2", "REF",
+																						 "OTHER",
 																						 "Reference_allele", "NEA", "Other_allele",
 																						 "NonCoded.Allele", "NON_EFFECT_ALLELE"},};
 	public static final String[] REF_ALLELES = {"REF", "Ref", "ref", "RefAllele", "refAllele", "a0",
@@ -33,19 +36,22 @@ public class Aliases {
 	public static final String[] NS = {"N", "NMISS", "sampleN", "n_total", "ESampleSize"};
 
 	public static final String[] ALLELE_FREQS = {"freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF",
-																							 "sampleMAF", "Effect_allele_frequency", "EAF", "FRQ",
+																							 "sampleMAF", "Effect_allele_frequency", "EAF",
+																							 "FRQ",
 																							 "Coded.Af", "AF_coded_all"};
 
 	public static final String[] IMPUTATION_EFFICIENCY = {"imp_info", "rsq", "Qual"};
 
-	public static final String[] REFERENCE_FOLDERS = {"C:/bin/NCBI/", "N:/statgen/NCBI/",
+	public static final String[] REFERENCE_FOLDERS = {
+																										"C:/bin/NCBI/",
+																										"N:/statgen/NCBI/",
 																										"/panfs/roc/groups/5/pankrat2/public/bin/NCBI/",
 																										"/home/npankrat/NCBI/",
 																										"/panfs/roc/groups/5/pankrat2/public/bin/"};
 
 	public static final String[] INDIVIDUAL_ID = {"ID", "IID", "I_ID", "IndID", "Ind_ID"};
 	public static final String[] FAMILY_ID = {"Family ID", "FamID", "FID", "F_ID"};
-	public static final String[] DNA = {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"};
+	public static final String[] DNA = {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID", "SampleID"};
 
 	/**
 	 * Searches all of the reference directories to see if it contains the specified file
