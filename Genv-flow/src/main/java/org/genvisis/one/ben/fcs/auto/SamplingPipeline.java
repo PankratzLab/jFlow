@@ -128,19 +128,23 @@ public class SamplingPipeline {
 	}
 
 	private void loadFCS(File dir) {
+		if (!dir.canRead()) {
+			log.reportError("Can't read directory: " + dir.getAbsolutePath());
+			return;
+		}
 		String[] fcsFiles = dir.list(FCS_FILTER);
 		if (fcsFiles == null) {
 			log.reportError("No FCS files found in directory: " + dir.getAbsolutePath());
-			return;
-		}
-		for (String s : fcsFiles) {
-			int pnl = checkPanel(s.toLowerCase());
-			if (pnl == 1) {
-				fileToPathMap1.put(s, new File(ext.verifyDirFormat(dir.getAbsolutePath())
-																			 + s).getAbsolutePath());
-			} else if (pnl == 2) {
-				fileToPathMap2.put(s, new File(ext.verifyDirFormat(dir.getAbsolutePath())
-																			 + s).getAbsolutePath());
+		} else {
+			for (String s : fcsFiles) {
+				int pnl = checkPanel(s.toLowerCase());
+				if (pnl == 1) {
+					fileToPathMap1.put(s, new File(ext.verifyDirFormat(dir.getAbsolutePath())
+																				 + s).getAbsolutePath());
+				} else if (pnl == 2) {
+					fileToPathMap2.put(s, new File(ext.verifyDirFormat(dir.getAbsolutePath())
+																				 + s).getAbsolutePath());
+				}
 			}
 		}
 		File[] sub = dir.listFiles();
