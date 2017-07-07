@@ -95,7 +95,7 @@ public class GateFileUtils {
 					id = popName;
 				}
 				if (gateMap.containsKey(popName)) {
-					System.err.println("Error - duplicate population name: " + popName);
+					// System.err.println("Error - duplicate population name: " + popName);
 					// popName = parentID + " -> " + popName;
 				}
 				Gate newGate = buildGate(popName, id, parentID, actualGateNode, flowJo);

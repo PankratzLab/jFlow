@@ -251,7 +251,8 @@ public class FCSDataLoader {
 		spillObj = keys.getSpillover();
 		lastModified = keys.getLastModified();
 		if (lastModified == null) {
-			System.err.println("Warning - FCS file " + fcsFilename
+			System.err.println("Warning - FCS file "
+												 + fcsFilename
 												 + " does NOT contain a last modified date - using the last-modified system file date.");
 			lastModified = new Date(sysFile.lastModified());
 		}
@@ -305,7 +306,7 @@ public class FCSDataLoader {
 			} catch (Exception e) {
 				System.err.println("Warning - no axis scale set for parameter " + paramNamesInOrder.get(i)
 													 + "; assuming a linear scale.");
-			} ;
+			};
 			if (scale == AXIS_SCALE.LOG) {
 				scale = AXIS_SCALE.BIEX;
 			}
@@ -433,7 +434,8 @@ public class FCSDataLoader {
 				cleanup();
 				return;
 			}
-			compensatedData = compensateSmall(paramNamesInOrder, allData,
+			compensatedData = compensateSmall(paramNamesInOrder,
+																				allData,
 																				compensatedNames.toArray(new String[compensatedNames.size()]),
 																				getInvertedSpilloverMatrix(spillObj.getSpilloverCoefficients()));
 			if (Thread.currentThread().isInterrupted()) {
@@ -457,6 +459,7 @@ public class FCSDataLoader {
 			isTransposed = true;
 			dataObj = null;
 			syst.close();
+			syst = null;
 			setState(LOAD_STATE.LOADED);
 			System.gc();
 		}
@@ -473,9 +476,10 @@ public class FCSDataLoader {
 	}
 
 	public double[] getData(String colName, boolean waitIfNecessary) {
-		String columnName = colName.startsWith(COMPENSATED_PREPEND) ? COMPENSATED_PREPEND
-																																	+ getInternalParamName(colName.substring(COMP_LEN))
-																																: getInternalParamName(colName);
+		String columnName = colName.startsWith(COMPENSATED_PREPEND)
+																															 ? COMPENSATED_PREPEND
+																																 + getInternalParamName(colName.substring(COMP_LEN))
+																															 : getInternalParamName(colName);
 		LOAD_STATE currState = getLoadState();
 		double[] data;
 		if (columnName.startsWith(COMPENSATED_PREPEND)) {
@@ -544,10 +548,10 @@ public class FCSDataLoader {
 			return prepend ? COMPENSATED_PREPEND + nm : nm;
 		} else if ((ind = paramShortNamesInOrder.indexOf(nm)) != -1) {
 			return prepend ? COMPENSATED_PREPEND + paramNamesInOrder.get(ind)
-										 : paramNamesInOrder.get(ind);
+										: paramNamesInOrder.get(ind);
 		} else if ((ind = paramLongNamesInOrder.indexOf(nm)) != -1) {
 			return prepend ? COMPENSATED_PREPEND + paramNamesInOrder.get(ind)
-										 : paramNamesInOrder.get(ind);
+										: paramNamesInOrder.get(ind);
 		}
 		return prepend ? COMPENSATED_PREPEND + nm : nm;
 	}
