@@ -60,6 +60,7 @@
 		<module>Genv-experimental</module>
 		<module>Genv-deprecated</module>
 		<module>Assembly</module>
+		<module>App</module>
 	</modules>
 
 	<prerequisites>
@@ -92,6 +93,8 @@
 		<genv-exp.version>0.0.1-SNAPSHOT</genv-exp.version>
 		<genv-dep.version>0.0.1-SNAPSHOT</genv-dep.version>
 		<genv-flow.version>0.0.1-SNAPSHOT</genv-flow.version>
+		<assembly.version>0.1.11-SNAPSHOT</assembly.version>
+		<app.version>0.0.1-SNAPSHOT</app.version>
 
 		<!-- CFCS -->
 		<cfcs.version>0.0.1-SNAPSHOT</cfcs.version>
@@ -213,6 +216,18 @@
 				<version>${genv-dep.version}</version>
 			</dependency>
 
+			<dependency>
+				<groupId>org.genvisis</groupId>
+				<artifactId>Assembly</artifactId>
+				<version>${assembly.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.genvisis</groupId>
+				<artifactId>App</artifactId>
+				<version>${app.version}</version>
+			</dependency>
+
 			<!-- CFCS -->
 			<dependency>
 				<groupId>org.flowcyt</groupId>
@@ -309,7 +324,7 @@
 				<artifactId>guava</artifactId>
 				<version>${guava.version}</version>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>com.google.code.findbugs</groupId>
 				<artifactId>jsr305</artifactId>
@@ -437,17 +452,17 @@
 				</plugin>
 
 
-				<!--NOTICE - the jar, assembly, and JavaFX plugins all require
-						 consistent manifest configuration, to ensure data is consistent
-						 between .jars. Each controls a different paradigm respectively:
-						 building the individual component jar, the combined uber-jar and
-						 the native bundle. If there is a way to declare this information
-						 once without copying and pasting that would be preferred! -->
-
+				<!-- Default configuration to build an uber-jar. Just call the
+						 make-assembly goal:single execution and set params:
+						 * assemblyName
+						 * mainClass
+					-->
 				<plugin>
 					<artifactId>maven-assembly-plugin</artifactId>
 					<version>2.4</version>
 					<configuration>
+						<finalName>${assemblyName}</finalName>
+						<appendAssemblyId>false</appendAssemblyId>
 						<archive>
 							<manifest>
 								<addClasspath>true</addClasspath>
@@ -469,27 +484,24 @@
 					</configuration>
 				</plugin>
 
+				<!-- Build native app with JavaFX. Reuses configuration from
+						 assembly-plugin to provide consistency between the two.
+					-->
 				<plugin>
 					<groupId>com.zenjava</groupId>
 					<artifactId>javafx-maven-plugin</artifactId>
 					<version>8.6.0</version>
 					<configuration>
 						<mainClass>${mainClass}</mainClass>
-						<jfxMainAppJarName>${outname}-jfx.jar</jfxMainAppJarName>
-						<appName>${outname}</appName>
+						<jfxMainAppJarName>${assemblyName}-jfx.jar</jfxMainAppJarName>
+						<appName>${assemblyName}</appName>
+						<additionalAppResources>${resourcesDir}</additionalAppResources>
 						<needShortcut>true</needShortcut>
 						<needMenu>true</needMenu>
 						<nativeReleaseVersion>0.0.1</nativeReleaseVersion>
-						<additionalAppResources>${resourcesDir}</additionalAppResources>
+						<!-- By using the existing jar, we can reuse the manifest
+								 configuration -->
 						<updateExistingJar>true</updateExistingJar>
-						<manifestAttributes>
-							<Implementation-Build>${buildNumber}</Implementation-Build>
-							<Implementation-Date>${maven.build.timestamp}</Implementation-Date>
-							<Implementation-Version>${project.version}</Implementation-Version>
-							<Compile-Time>${timestamp}</Compile-Time>
-							<Build-Type>Development</Build-Type>
-							<Copyright>(c)2009-2016 Nathan Pankratz, GNU General Public License, v2</Copyright>
-						</manifestAttributes>
 					</configuration>
 					<executions>
 						<execution>

@@ -17,9 +17,12 @@
 	<description>Build the complete Genvisis executable jar, with dependencies.</description>
 
 	<properties>
-		<outname>genvisis</outname>
+		<assemblyName>genvisis</assemblyName>
 		<mainClass>org.genvisis.GenvisisMain</mainClass>
-		<resourcesDir>${project.basedir}/buildRsrc</resourcesDir>
+		<!-- Default settings just cause assembly .jar to be copied in place -->
+		<genv.upload.exe>dir</genv.upload.exe>
+		<genv.upload.path>${project.build.directory}</genv.upload.path>
+		<genv.copy.path>${project.build.directory}</genv.copy.path>
 	</properties>
 
 	<dependencies>
@@ -29,106 +32,60 @@
 		</dependency>
 	</dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<finalName>${outname}</finalName>
-					<appendAssemblyId>false</appendAssemblyId>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>chmod-jar</id>
-						<phase>package</phase>
-						<configuration>
-							<target>
-								<chmod file="${project.build.directory}/${outname}.jar" perm="ugo+rx"/>
-							</target>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
-
 	<profiles>
-		<!-- This profile is enabled by manually turning it on (e.g. "mvn -P jfx").
-				 It create a native installer and application bundle using available
-				 platform tools, via JavaFX -->
+		<!-- This profile builds genvisis.jar and optionally distributes it to
+				 other locations (local and remote) -->
 		<profile>
-			<id>jfx</id>
+			<id>genv</id>
+			<activation>
+				<property>
+					<name>!genv</name>
+				</property>
+			</activation>
 			<build>
 				<plugins>
+					<!-- Build the assembly uberjar -->
 					<plugin>
-						<groupId>com.zenjava</groupId>
-						<artifactId>javafx-maven-plugin</artifactId>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<configuration>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+						<executions>
+							<execution>
+								<id>make-assembly</id>
+								<phase>install</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+							</execution>
+						</executions>
 					</plugin>
 					<plugin>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<executions>
+							<!-- make the jar executable -->
 							<execution>
-								<id>zip-exe</id>
-								<phase>package</phase>
+								<id>chmod-jar</id>
+								<phase>install</phase>
 								<configuration>
 									<target>
-										<zip destfile="${project.build.directory}/genvisis.zip">
-											<zipfileset filemode="755" dir="${project.build.directory}/jfx/native/" includes="${outname}/**"/>
-										</zip>
+										<chmod file="${project.build.directory}/${assemblyName}.jar" perm="ugo+rx"/>
 									</target>
 								</configuration>
 								<goals>
 									<goal>run</goal>
 								</goals>
 							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-
-		<!-- This profile is enabled by either manually setting a
-				 "genv.upload.path" variable, or defining it in a local
-				 "~/.m2/settings.xml" file. This enables maven to automatically upload
-				 a .jar to the path specified by "genv.upload.path" each time this
-				 project is built. -->
-		<profile>
-			<id>upload-genvisis</id>
-			<activation>
-				<property>
-					<name>genv.upload.path</name>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<executions>
+							<!-- upload the jar to a remote location -->
 							<execution>
 								<id>upload-genvisis</id>
-								<phase>package</phase>
+								<phase>install</phase>
 								<configuration>
 									<target>
 										<exec dir="${project.basedir}" executable="${genv.upload.exe}" failonerror="true">
-											<arg value="${project.build.directory}/${outname}.jar"/>
+											<arg value="${project.build.directory}/${assemblyName}.jar"/>
 											<arg value="${genv.upload.path}"/>
 										</exec>
 									</target>
@@ -137,35 +94,13 @@
 									<goal>run</goal>
 								</goals>
 							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-
-		<!-- This profile is enabled by either manually setting a
-				 "genv.copy.path" variable, or defining it in a local
-				 "~/.m2/settings.xml" file. This enables maven to automatically copy
-				 a .jar to the path specified by "genv.copy.path" each time this
-				 project is built. -->
-		<profile>
-			<id>copy-genvisis</id>
-			<activation>
-				<property>
-					<name>genv.copy.path</name>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<executions>
+							<!-- copy the jar to a local location -->
 							<execution>
 								<id>copy-genvisis</id>
-								<phase>package</phase>
+								<phase>install</phase>
 								<configuration>
 									<target>
-										<copy todir="${genv.copy.path}" file="${project.build.directory}/${outname}.jar" />
+										<copy todir="${genv.copy.path}" file="${project.build.directory}/${assemblyName}.jar" />
 									</target>
 								</configuration>
 								<goals>
