@@ -310,9 +310,8 @@ public class ParseMXCResults {
 	}
 
 	private static void plot(String filename, String out, Logger log) {
-		ManhattanPlot mp = new ManhattanPlot(null);
-
 		try {
+			ManhattanPlot mp = new ManhattanPlot(null);
 			boolean load = mp.loadFileAuto(filename);
 			if (!load) {
 				log.reportError("Unable to load " + filename + " for manhattan plot.");
@@ -321,17 +320,14 @@ public class ParseMXCResults {
 			while (!mp.isDataLoaded()) {
 				Thread.sleep(200);
 			}
+
+			mp.getManPan().setSize(800, 400);
+			mp.screenshot(out);
 		} catch (InterruptedException e) {
 			log.reportError("Problem creating manhattan plot from " + filename);
 			e.printStackTrace();
 		}
 
-		try {
-			mp.getManPan().setSize(800, 400);
-			mp.screenshot(out);
-		} catch (Exception e) {
-			log.reportError("Unable to capture Manhattan plot. Check X11 forwarding.");
-		}
 	}
 
 	private static void combine(String pattern, Logger log) {

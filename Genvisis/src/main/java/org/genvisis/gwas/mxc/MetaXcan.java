@@ -33,7 +33,9 @@ public class MetaXcan {
 										+ "java -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS
 										+ " one.ScriptExecutor file=batchMXC.chain threads=" + numProcs + "\n"
 										+ "java -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS
-										+ " gwas.mxc.ParseMXCResults -combine pattern=" + ext.rootOf(out, false) + "_";
+										+ " gwas.mxc.ParseMXCResults -combine pattern=" + ext.parseDirectoryOfFile(out)
+										+ "results_parsed/"
+										+ ext.rootOf(out) + "_";
 
 		Qsub.qsub("batchMXC.pbs", script, 32000,
 							8, numProcs);
