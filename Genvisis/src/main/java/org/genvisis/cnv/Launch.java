@@ -847,7 +847,6 @@ public class Launch extends JFrame implements ActionListener {
 					log.reportFileNotFound(pedFile);
 					return;
 				}
-				proj.GC_THRESHOLD.setValue(peo.getGC());
 				String clusterFiltersFilename = peo.getClusterFilterSelection();
 				if (clusterFiltersFilename != null) {
 					clusterFiltersFilename = proj.DATA_DIRECTORY.getValue() + clusterFiltersFilename;
@@ -883,7 +882,7 @@ public class Launch extends JFrame implements ActionListener {
 				if (peo.exportAsBinary()) {
 					success = PlinkData.saveGenvisisToPlinkBedSet(proj, plinkFileroot,
 																												clusterFiltersFilename,
-																												targetMarkersFilename, -1);
+																												targetMarkersFilename);
 				} else {
 					success = PlinkData.saveGenvisisToPlinkPedSet(proj, plinkFileroot,
 																												clusterFiltersFilename,

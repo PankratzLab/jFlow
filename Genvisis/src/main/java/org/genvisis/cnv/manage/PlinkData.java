@@ -967,7 +967,7 @@ public class PlinkData {
 	 */
 	public static boolean saveGenvisisToPlinkBedSet(Project proj, String plinkPrefix,
 																									String clusterFilterFileName,
-																									String targetMarkersFileName, float gcThreshold) {
+																									String targetMarkersFileName) {
 		String[] targetMarkers;
 		int[] indicesOfTargetSamplesInProj;
 		int[] indicesOfTargetMarkersInProj;
@@ -1015,13 +1015,7 @@ public class PlinkData {
 		log.reportTime("Exporting data for " + targetMarkers.length + " markers.");
 		proj.getProgressMonitor().endTask(PROG_KEY);
 
-
 		PSF.checkInterrupted();
-		if (gcThreshold < 0) {
-			gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
-			log.reportTime("GC Threshold is negative; setting GC threshold to value in project properties: {"
-										 + gcThreshold + "}");
-		}
 
 		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Creating .bed file",
 																										 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
@@ -1029,7 +1023,7 @@ public class PlinkData {
 		boolean success = createBedFileSnpMajor10KperCycle(proj, ImmutableSet.copyOf(targetMarkers),
 																											 chrsOfTargetMarkers, posOfTargetMarkers,
 																											 indicesOfTargetSamplesInProj,
-																											 clusterFilterFileName, gcThreshold,
+																											 clusterFilterFileName,
 																											 outFileDirAndFilenameRoot, log);
 		proj.getProgressMonitor().endTask(PROG_KEY);
 
@@ -1223,7 +1217,6 @@ public class PlinkData {
 	 * @param targetSamples samples selected to convert
 	 * @param indicesOfTargetSamplesInProj
 	 * @param clusterFilterFileName
-	 * @param gcThreshold
 	 * @param plinkDirAndFilenameRoot
 	 * @param log
 	 * @return true on success, false on failure
@@ -1234,7 +1227,6 @@ public class PlinkData {
 																												 HashMap<String, Integer> posOfTargetMarkers,
 																												 int[] indicesOfTargetSamplesInProj,
 																												 String clusterFilterFileName,
-																												 float gcThreshold,
 																												 String plinkDirAndFilenameRoot,
 																												 Logger log) {
 		final RandomAccessFile out;
@@ -2245,7 +2237,6 @@ public class PlinkData {
 		boolean isSnpMajor = true;
 		int startByte = 100;
 		int nBytes = -1;
-		float gcThreshold = 0.15f;
 		int indexOfStartMarker = 0;
 		int nMarkers = -1;
 		int indexOfStartSample = 0;
@@ -2267,10 +2258,7 @@ public class PlinkData {
 									 + "To export from Genvisis to PLINK text (.ped) data set, the following arguments are required:\n"
 									 + "   (1) the command (i.e. -genvisisToPed (not the default));\n"
 									 + "   (2) the Genvisis project's property file location (i.e. proj=~/projects/default.properties (not the default));\n"
-									 + "   (3) the GC threshold (i.e. gcthreshold="
-									 + gcThreshold
-									 + " (default));\n"
-									 + "   (4) the directory and filename root for the final PLINK data set (i.e. plinkdata="
+									 + "   (3) the directory and filename root for the final PLINK data set (i.e. plinkdata="
 									 + plinkDataDirAndFilenameRoot
 									 + " (default));\n"
 									 + "\n"
@@ -2279,10 +2267,7 @@ public class PlinkData {
 									 + "   (2) the Genvisis project's property file location (i.e. proj="
 									 + projPropertyFileFullPath
 									 + " (default));\n"
-									 + "   (3) the GC threshold (i.e. gcthreshold="
-									 + gcThreshold
-									 + " (default));\n"
-									 + "   (4) is the .bed file going to be SNP Major (i.e. issnpmajor="
+									 + "   (3) is the .bed file going to be SNP Major (i.e. issnpmajor="
 									 + isSnpMajor
 									 + " (default));\n"
 									 + "   (5) the directory and filename root for the final PLINK data set (i.e. plinkdata="
@@ -2356,8 +2341,6 @@ public class PlinkData {
 				plinkDataDirAndFilenameRoot = arg.split("=")[1];
 			} else if (arg.startsWith("issnpmajor=")) {
 				isSnpMajor = Boolean.parseBoolean(arg.split("=")[1]);
-			} else if (arg.startsWith("gcthreshold=")) {
-				gcThreshold = Float.parseFloat(arg.split("=")[1]);
 			} else if (arg.startsWith("startbyte=")) {
 				startByte = Integer.parseInt(arg.split("=")[1]);
 			} else if (arg.startsWith("nbytes=")) {
@@ -2400,7 +2383,7 @@ public class PlinkData {
 				clusterFile = null;
 			}
 			saveGenvisisToPlinkBedSet(proj, plinkDataDirAndFilenameRoot, clusterFile,
-																null, gcThreshold);
+																null);
 
 		} else if (conversionToRun.equals("-pedToBed")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_"

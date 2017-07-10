@@ -381,7 +381,8 @@ public class GCTA {
 
 					@Override
 					public VarianceResult call() throws Exception {
-						return determineVarianceExplained(mergedGRM, resultsDir + current, phenoFile, covarFile,
+						return determineVarianceExplained(mergedGRM, resultsDir + current, phenoFile,
+																							covarFile,
 																							1, proj.getLog());
 					}
 				});
@@ -429,9 +430,9 @@ public class GCTA {
 	private static void run(Project proj, String sampFile, String[] phenoFiles, PHENO_TYPE pType,
 													int pcCovars, double grmCutoff, int numthreads) {
 		String[] samples = sampFile == null ? null
-																				: HashVec.loadFileToStringArray(sampFile, false, false,
-																																				new int[] {0}, false, true,
-																																				"\t");
+																			 : HashVec.loadFileToStringArray(sampFile, false, false,
+																																			 new int[] {0}, false, true,
+																																			 "\t");
 		Logger log = proj.getLog();
 		String outDir = proj.PROJECT_DIRECTORY.getValue() + "gcta/";
 		String plinkRoot = outDir + "gcta";
@@ -444,7 +445,7 @@ public class GCTA {
 			String nonCNFile = outDir + "markersToQC.txt";
 			Files.writeArray(proj.getNonCNMarkers(), nonCNFile);
 			Pedigree.build(proj, null, samples, false);
-			PlinkData.saveGenvisisToPlinkBedSet(proj, "gcta/gcta", null, nonCNFile, -1);
+			PlinkData.saveGenvisisToPlinkBedSet(proj, "gcta/gcta", null, nonCNFile);
 		}
 
 		// , Not doing ld pruning...
@@ -522,7 +523,8 @@ public class GCTA {
 					PrintWriter writer = Files.getAppropriateWriter(output);
 
 					for (int i = 0; i < phenoFiles.length; i++) {
-						ArrayList<VarianceResult> results = processDNAPhenoFile(proj, phenoFiles[i], mergeRmGRM,
+						ArrayList<VarianceResult> results = processDNAPhenoFile(proj, phenoFiles[i],
+																																		mergeRmGRM,
 																																		true, covarFile, numthreads,
 																																		log);
 						if (i == 0) {
@@ -608,11 +610,14 @@ public class GCTA {
 		int numthreads = 24;
 		int pcCovars = 10;
 
-		String usage = "\n" + "cnv.analysis.GCTA requires 1-3 arguments\n"
+		String usage = "\n"
+									 + "cnv.analysis.GCTA requires 1-3 arguments\n"
 									 + "   (1) project properties filename (i.e. proj="
-									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)
+									 + " (default))\n"
 									 + "   (2) samples to use (i.e. samps= (defaults to all samples))\n"
-									 + PSF.Ext.getNumThreadsCommand(3, numthreads) + "\n"
+									 + PSF.Ext.getNumThreadsCommand(3, numthreads)
+									 + "\n"
 									 + "   (4) phenotype file(s) (i.e. pheno= (no default))\n"
 									 + "   (5) number of Principal components to compute for covariate use, set to -1 to skip (i.e. pcCovars="
 									 + pcCovars + " (default))\n" + "   (6) grm relatedness cutoff (i.e. grmCutoff="

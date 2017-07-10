@@ -217,8 +217,6 @@ public class ImputationPipeline {
 		// UNUSED - could potentially apply
 		String clusterFilterFileName = proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue();
 
-		float gcThreshold = 0; /* this is unused in plink export code */// proj.GC_THRESHOLD.getValue().floatValue();
-
 		// TODO multi-thread
 		for (int chr : chrs) {
 			proj.getLog().report("Exporting chr" + chr);
@@ -238,7 +236,6 @@ public class ImputationPipeline {
 																																	 posOfTargetMarkers,
 																																	 indicesOfTargetSamplesInProj,
 																																	 clusterFilterFileName,
-																																	 gcThreshold,
 																																	 dirAndRoot, proj.getLog());
 
 			if (success) {
