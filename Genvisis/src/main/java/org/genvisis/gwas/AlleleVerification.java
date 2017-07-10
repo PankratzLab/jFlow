@@ -92,9 +92,7 @@ public class AlleleVerification {
 						String[] sp = k.split(":");
 						if (k.startsWith("rs")) {
 							newKey = sp[0];
-						} else if (k.startsWith(chr + ":")) { // FIXME: should decide chr dynamically, but we're
-																									// just
-							// testing rn
+						} else if (k.startsWith(chr + ":")) {
 							newKey = sp[0] + ":" + sp[1];
 						} else {
 							newKey = chr + ":" + sp[1];
@@ -172,8 +170,6 @@ public class AlleleVerification {
 						err++;
 						// drop this allele pair bc something's wrong
 						log.report("Unable to map marker " + line[indices[0]]);
-						// log.report("Given: " + ArrayUtils.toStr(alleles) + "\tExpected: "
-						// + ArrayUtils.toStr(ref_alleles));
 						break;
 				}
 			}

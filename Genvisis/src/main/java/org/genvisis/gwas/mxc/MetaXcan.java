@@ -27,9 +27,16 @@ public class MetaXcan {
 			commands.add(c);
 		}
 
+		Files.writeIterable(commands, "batchMXC.chain");
 
-		Qsub.qsubExecutor(new File("").getAbsolutePath(), commands, null, "batchMXC", numProcs, 32000,
-											4);
+		String script = "cd " + new File("").getAbsolutePath() + "\n"
+										+ "java -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS
+										+ " one.ScriptExecutor file=batchMXC.chain threads=" + numProcs + "\n"
+										+ "java -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS
+										+ " gwas.mxc.ParseMXCResults -combine pattern=" + ext.rootOf(out, false) + "_";
+
+		Qsub.qsub("batchMXC.pbs", script, 32000,
+							8, numProcs);
 	}
 
 	public static void main(String[] args) {

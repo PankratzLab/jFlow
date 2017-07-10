@@ -179,8 +179,8 @@ public class ParseMXCResults {
 
 		for (int gene = 0; gene < genePositions.length; gene++) {
 			g = genePositions[gene];
-			startPos = Integer.parseInt(g[1]) < 500000 ? 0 : Integer.parseInt(g[1]) - 500000;
-			endPos = Integer.parseInt(g[2]) + 500000;
+			startPos = Integer.parseInt(g[1]) < 250000 ? 0 : Integer.parseInt(g[1]) - 250000;
+			endPos = Integer.parseInt(g[2]) + 250000;
 			chr = g[3];
 
 			sig[gene] = new String[] {g[0], "0", "0", g[1], g[3]};
@@ -296,7 +296,7 @@ public class ParseMXCResults {
 										 + effect
 										 + (overwrite ? " --overwrite" : "");
 
-		System.out.println(command);
+		log.report(command);
 
 		// run MetaXcan on the given inputs
 		boolean runSuccess = CmdLine.run(command, ext.parseDirectoryOfFile(mxcFolder), null, null,
@@ -304,8 +304,8 @@ public class ParseMXCResults {
 																		 false);
 
 		if (!runSuccess || !new File(out).exists()) {
-			System.out.println("Error running MetaXcan with the given inputs.");
-			System.exit(0);
+			log.reportError("Encountered a problem running MetaXcan with the given inputs.");
+			System.exit(1);
 		}
 	}
 
@@ -326,8 +326,12 @@ public class ParseMXCResults {
 			e.printStackTrace();
 		}
 
-		mp.getManPan().setSize(800, 400);
-		mp.screenshot(out);
+		try {
+			mp.getManPan().setSize(800, 400);
+			mp.screenshot(out);
+		} catch (Exception e) {
+			log.reportError("Unable to capture Manhattan plot. Check X11 forwarding.");
+		}
 	}
 
 	private static void combine(String pattern, Logger log) {
@@ -340,7 +344,6 @@ public class ParseMXCResults {
 		String[][] combined = null;
 		String label;
 		for (String s : files) {
-			log.report("attempting file " + s);
 			label = s.split(pattern)[1];
 			header = Files.getHeaderOfFile(s, log);
 
@@ -452,7 +455,7 @@ public class ParseMXCResults {
 		}
 
 		if (combine && pattern != null) {
-			combine(pattern, new Logger(new File("").getAbsolutePath() + "combine.log"));
+			combine(pattern, new Logger(ext.parseDirectoryOfFile(pattern) + "combine.log"));
 		} else {
 			if (verify) {
 				AlleleVerification.verifyAlleles(data, refFile, freqFile, posmap, false, log);
@@ -462,7 +465,7 @@ public class ParseMXCResults {
 			run(data, db, posmap, covar, out, overwrite, mxcFolder, log);
 			// take the output mxc file and find the number of hits for each gene range
 			addMetalHits(posmap, out, data, genesFile,
-									 new Logger(new File("").getAbsolutePath() + "parseMXC.log"));
+									 new Logger(ext.parseDirectoryOfFile(data) + "parseMXC.log"));
 		}
 
 	}
