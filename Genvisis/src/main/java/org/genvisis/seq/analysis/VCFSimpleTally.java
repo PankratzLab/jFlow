@@ -1074,7 +1074,8 @@ public class VCFSimpleTally {
 																		 + g.getSampleName() + "\t" + g.toString() + "\t"
 																		 + pass.getTestPerformed() + "\t"
 																		 + ArrayUtils.toStr(GenotypeOps.getGenoAnnotationsFor(genotypeAnnotations[0],
-																																													g, ".")));
+																																													g, ".",
+																																													log)));
 							annoWriterSample.print("\t" + ArrayUtils.toStr(vcCaseGroup.getSummary()));
 							for (int j = 0; j < controlsOrdered.size(); j++) {
 								annoWriterSample.print("\t"

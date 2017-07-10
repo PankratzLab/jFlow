@@ -20,13 +20,26 @@ public class GenotypeOps {
 		return noCall;
 	}
 
+	/**
+	 * @param annosToGet genotype annotations to extract
+	 * @param g {@link Genotype}
+	 * @param defaultValue missing/failed extractions will be set to this
+	 * @param log
+	 * @return
+	 */
 	public static String[] getGenoAnnotationsFor(String[] annosToGet, Genotype g,
-																							 String defaultValue) {
+																							 String defaultValue, Logger log) {
 		String[] annos = new String[annosToGet.length];
 		for (int i = 0; i < annos.length; i++) {
 			String tmp = defaultValue;
 			if (g.hasAnyAttribute(annosToGet[i])) {
-				tmp = g.getAnyAttribute(annosToGet[i]).toString();
+				try {
+					tmp = g.getAnyAttribute(annosToGet[i]).toString();
+				} catch (NullPointerException npe) {
+					log.reportTimeWarning("Could not extract annotation " + annosToGet[i] + " for genotype "
+																+ g.toString());
+					log.reportException(npe);
+				}
 			}
 			annos[i] = tmp;
 		}

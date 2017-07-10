@@ -45,7 +45,7 @@ public class SomSnipLOH {
 					if (!g.isNoCall() && !g.isHomRef()) {
 						writer.println(base + "\t" + g.getSampleName() + "\t"
 													 + ArrayUtils.toStr(GenotypeOps.getGenoAnnotationsFor(geneAnno[0], g,
-																																								"."))
+																																								".", log))
 													 + "\t" + ArrayUtils.toStr(vcAnnot));
 					}
 				}
