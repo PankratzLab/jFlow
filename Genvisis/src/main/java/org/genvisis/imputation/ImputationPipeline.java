@@ -1,5 +1,18 @@
 package org.genvisis.imputation;
 
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypeBuilder;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.variantcontext.writer.Options;
+import htsjdk.variant.variantcontext.writer.VariantContextWriter;
+import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
+import htsjdk.variant.vcf.VCFFormatHeaderLine;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFHeaderLineType;
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -30,19 +43,6 @@ import org.genvisis.seq.manage.ReferenceGenome;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.variant.variantcontext.Allele;
-import htsjdk.variant.variantcontext.Genotype;
-import htsjdk.variant.variantcontext.GenotypeBuilder;
-import htsjdk.variant.variantcontext.VariantContextBuilder;
-import htsjdk.variant.variantcontext.writer.Options;
-import htsjdk.variant.variantcontext.writer.VariantContextWriter;
-import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
-import htsjdk.variant.vcf.VCFFormatHeaderLine;
-import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderLine;
-import htsjdk.variant.vcf.VCFHeaderLineType;
 
 /**
  * Export genotypes to either PLINK or VCF format and, depending on selected options, generate
@@ -254,7 +254,7 @@ public class ImputationPipeline {
 
 	}
 
-	public void exportToVCF(String vcfDirAndRoot, int[] chrs) {
+	public void exportToVCF(String vcfDirAndRoot, int[] chrs, boolean useGRC) {
 		SampleData sd = proj.getSampleData(false);
 		String[] allSamples = proj.getSamples();
 		List<String> idsToInclude = new ArrayList<String>();
@@ -303,13 +303,21 @@ public class ImputationPipeline {
 
 			VCFHeader vcfHeader = new VCFHeader(lines, idsToInclude);
 
-			SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
-																																												 proj.getLog())
-																																								 .getGRCFASTA()
-																																								 .getAbsolute(),
-																																				proj.getLog())
-																																											.getIndexedFastaSequenceFile()
-																																											.getSequenceDictionary();
+			ReferenceGenome refGen = useGRC
+																		 ?
+																		 new ReferenceGenome(
+																												 Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
+																																					proj.getLog())
+																																	.getGRCFASTA().getAbsolute(),
+																												 proj.getLog())
+																		 : new ReferenceGenome(
+																													 Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
+																																						proj.getLog())
+																																		.getFASTA().getAbsolute(),
+																													 proj.getLog());
+
+			SAMSequenceDictionary samSequenceDictionary = refGen.getIndexedFastaSequenceFile()
+																													.getSequenceDictionary();
 
 			builder.setReferenceDictionary(samSequenceDictionary);
 			vcfHeader.setSequenceDictionary(samSequenceDictionary);
@@ -385,9 +393,9 @@ public class ImputationPipeline {
 	private static class ImputationPipeRunner {
 
 		public static void runVCF(String projPropFile, int[] chrs, String refFile, String plinkSubdir,
-															String vcfDirAndRoot) {
+															String vcfDirAndRoot, boolean useGRC) {
 			ImputationPipeline ip = setupPipe(projPropFile, refFile, plinkSubdir);
-			ip.exportToVCF(vcfDirAndRoot, chrs);
+			ip.exportToVCF(vcfDirAndRoot, chrs, useGRC);
 		}
 
 		public static void runPlink(String projPropFile, int[] chrs, String refFile,
@@ -448,6 +456,7 @@ public class ImputationPipeline {
 		String outDir = null;
 		String plinkPrefix = null;
 		int[] chrs = null;
+		boolean useGRC = true;
 		IMPUTATION_PIPELINE_PATH path = null;
 
 		String usage = "\n" +
@@ -487,6 +496,9 @@ public class ImputationPipeline {
 			} else if (args[i].startsWith("type=")) {
 				path = IMPUTATION_PIPELINE_PATH.valueOf(ext.parseStringArg(args[i]));
 				numArgs--;
+			} else if (args[i].startsWith("useGRC=")) {
+				useGRC = ext.parseBooleanArg(args[i]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -499,7 +511,7 @@ public class ImputationPipeline {
 		try {
 			switch (path) {
 				case VCF_ONLY:
-					ImputationPipeRunner.runVCF(projFile, chrs, refFile, plinkSubdir, outDirAndRoot);
+					ImputationPipeRunner.runVCF(projFile, chrs, refFile, plinkSubdir, outDirAndRoot, useGRC);
 					break;
 				case PLINK_ONLY:
 					ImputationPipeRunner.runPlink(projFile, chrs, refFile, plinkSubdir, outDirAndRoot);
