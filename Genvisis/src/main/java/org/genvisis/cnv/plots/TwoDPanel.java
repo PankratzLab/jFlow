@@ -1,6 +1,7 @@
 package org.genvisis.cnv.plots;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -8,9 +9,10 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+import javax.swing.AbstractAction;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.JSeparator;
 
 import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.Project;
@@ -614,38 +616,31 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	public void mouseClicked(MouseEvent e) {
 		JPopupMenu menu;
 		int[] linkKeyIndicies;
-		// Vector<String[]> linkKeyValues;
-		// boolean scatter, trailer;
 		String[] ids = null;
-		String markerName, comment;
+		String markerName;
 		String sample, region, region2;
 		int[] positions;
 		byte maxNumPoints;
 		int itemsAdded = 0;
 
-		// if (e.getButton()==MouseEvent.BUTTON1) { // left click
-		// } else if (e.getButton()==MouseEvent.BUTTON3) { // right click
-		// }
-
 		linkKeyIndicies = tdp.getCurrentLinkKeyColumnIndices();
-		// linkKeyValues = tdp.getCurrentLinkKeyValues();
-		// if (linkKeyValues == null) {
-		// return;
-		// }
 
 		if (prox != null && prox.size() > 0) {
 			menu = new JPopupMenu();
 			maxNumPoints = (byte) Math.min(20, prox.size());
 			for (int i = 0; i < maxNumPoints; i++) {
 				if (itemsAdded > 0) {
-					menu.add(new JSeparator());
+					menu.addSeparator();
 				}
 				String[] linkerDataElem = linkerData[prox.elementAt(i)];
 
 				if (linkKeyIndicies[TwoDPlot.MARKER_INDEX_IN_LINKERS] >= 0) {
 					markerName = linkerDataElem[TwoDPlot.MARKER_INDEX_IN_LINKERS];
 					if (markerLookup.get(markerName) != null) {
-						menu.add(new LaunchAction(proj, markerName, Color.CYAN));
+						JMenu markerMenu = new JMenu(markerName + ":");
+						markerMenu.add(new LaunchAction(markerName, false));
+						markerMenu.add(new LaunchAction(proj, markerName, Color.CYAN));
+						menu.add(markerMenu);
 						itemsAdded++;
 					}
 				}
@@ -675,9 +670,15 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				}
 
 				if (linkKeyIndicies[TwoDPlot.COMMENT_INDEX_IN_LINKERS] >= 0) {
-					comment = linkerDataElem[TwoDPlot.COMMENT_INDEX_IN_LINKERS];
+					final String comment = linkerDataElem[TwoDPlot.COMMENT_INDEX_IN_LINKERS];
 					if (comment.length() > 0) {
 						JMenuItem jmi = new JMenuItem();
+						jmi.setAction(new AbstractAction() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								ext.setClipboard(comment);
+							}
+						});
 						jmi.setText(comment);
 						jmi.setEnabled(false);
 						menu.add(jmi);
@@ -738,20 +739,25 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 																																		(byte) 0, 0)];
 				}
 				if (sample != null) {
+					ArrayList<LaunchAction> acts = new ArrayList<>();
 					if (region != null) {
 						if (region2 != null && !region.equals(region2)) {
-							menu.add(new LaunchAction(proj, sample, new String[] {region, region2},
+							acts.add(new LaunchAction(proj, sample, new String[] {region, region2},
 																				sampColor == null ? Color.GRAY : sampColor));
-							itemsAdded++;
 						} else {
-							menu.add(new LaunchAction(proj, sample, region,
+							acts.add(new LaunchAction(proj, sample, region,
 																				sampColor == null ? Color.GRAY : sampColor));
-							itemsAdded++;
 						}
 					} else {
-						menu.add(new LaunchAction(proj, sample, Trailer.DEFAULT_LOCATION, sampColor));
-						itemsAdded++;
+						acts.add(new LaunchAction(proj, sample, Trailer.DEFAULT_LOCATION, sampColor));
 					}
+					itemsAdded += acts.size();
+					JMenu sampleMenu = new JMenu(sample + ":");
+					sampleMenu.add(new LaunchAction(sample, false));
+					for (LaunchAction a : acts) {
+						sampleMenu.add(a);
+					}
+					menu.add(sampleMenu);
 				}
 			}
 			if (itemsAdded > 0) {

@@ -138,7 +138,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	private JButton flipButton, invXButton, invYButton;
 	private volatile boolean flipStatus, xInvStatus, yInvStatus, hideExcludes;
 	private volatile boolean isHistPlot;
-	private volatile boolean isManhattanPlot;
 	private CheckBoxTree tree;
 	private ArrayList<String> dataKeys;
 	// Map file short names to absolute path
