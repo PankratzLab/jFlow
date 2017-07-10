@@ -1,5 +1,6 @@
 package org.genvisis.cnv.plots;
 
+import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +28,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Maths.OPERATOR;
 
-public class ManhattanPlot extends JFrame {
+public class ManhattanPlot {
 
 	static final int SNP_LINKER = 0;
 	static final int CHR_LINKER = 1;
@@ -41,6 +42,7 @@ public class ManhattanPlot extends JFrame {
 	static final int LIN_CHR_BUFFER = 10000000;
 	static final int LIN_LOC_START = Integer.MIN_VALUE + LIN_CHR_BUFFER;
 
+	JFrame parentFrame;
 	ManhattanPanel manPan;
 	Project proj;
 	Logger log;
@@ -48,17 +50,21 @@ public class ManhattanPlot extends JFrame {
 	HashMap<String, DataPipe> dataPipes;
 
 	public ManhattanPlot(Project proj) {
-		super("Genvisis - ManhattanPlot");
-		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		if (!GraphicsEnvironment.isHeadless()) {
+			parentFrame = new JFrame("Genvisis - ManhattanPlot");
+			parentFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+			createMenubar();
+		}
 
-		createMenubar();
 
 		this.proj = proj;
 		manPan = new ManhattanPanel(this);
 		dataPipes = new HashMap<>();
 
-		getContentPane().add(manPan);
-		setBounds(100, 100, 800, 600);
+		if (parentFrame != null) {
+			parentFrame.getContentPane().add(manPan);
+			parentFrame.setBounds(100, 100, 800, 600);
+		}
 
 		log = proj == null ? new Logger() : proj.getLog();
 	}
@@ -82,11 +88,17 @@ public class ManhattanPlot extends JFrame {
 		fileM.add(openFileItem);
 
 
-		this.setJMenuBar(menuBar);
+		parentFrame.setJMenuBar(menuBar);
 	}
 
 	public Project getProject() {
 		return proj;
+	}
+
+	public void setVisible(boolean b) {
+		if (parentFrame != null) {
+			parentFrame.setVisible(b);
+		}
 	}
 
 	/**
