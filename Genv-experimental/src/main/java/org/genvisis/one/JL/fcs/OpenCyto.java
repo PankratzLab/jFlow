@@ -29,6 +29,7 @@ public class OpenCyto {
 	private static final String INPUT_FCS = "inputFCS";
 	private static final String R_SOURCE = "rSource";
 	private static final String PANEL_1_MAP = "panel1Map";
+	private static final String PANEL_2_MAP = "panel2Map";
 	private static final String FCS_WSP_MAP = "mapFile";
 
 	private OpenCyto() {
@@ -47,9 +48,10 @@ public class OpenCyto {
 		for (int i = 0; i < rscript.length; i++) {
 			if (rscript[i].startsWith("inputDir = ")) {
 				rscript[i] = "inputDir = " + addQ(c.get(INPUT_FCS));
-
 			} else if (rscript[i].startsWith("panle1mapFile =")) {
 				rscript[i] = "panle1mapFile =" + addQ(c.get(PANEL_1_MAP));
+			} else if (rscript[i].startsWith("panle2mapFile =")) {
+				rscript[i] = "panle2mapFile =" + addQ(c.get(PANEL_2_MAP));
 			} else if (rscript[i].startsWith("outputDir =")) {
 				rscript[i] = "outputDir =" + addQ(batchOut);
 			} else if (rscript[i].startsWith("templateLymph =")) {
@@ -64,7 +66,7 @@ public class OpenCyto {
 				List<String> notToUse = new ArrayList<>();
 
 				for (int j = 0; j < inputFiles.length; j++) {
-					if (!inputFiles[j].contains("Compensation Controls") && !inputFiles[j].contains("PANEL 2")) {
+					if (!inputFiles[j].contains("Compensation Controls")) {
 						toUse.add(ext.removeDirectoryInfo(inputFiles[j]));
 					} else {
 						notToUse.add(inputFiles[j]);
@@ -112,6 +114,7 @@ public class OpenCyto {
 		cmd.add(TEMPLATE_MONOCYTE + "=" + c.get(TEMPLATE_MONOCYTE));
 		cmd.add(CLI.ARG_THREADS + "=" + c.getI(CLI.ARG_THREADS));
 		cmd.add(PANEL_1_MAP + "=" + c.get(PANEL_1_MAP));
+		cmd.add(PANEL_2_MAP + "=" + c.get(PANEL_2_MAP));
 
 		int batch = c.getI(BATCH);
 		if (batch < 1) {
@@ -176,6 +179,8 @@ public class OpenCyto {
 				"~/fcs/");
 		c.addArgWithDefault(FCS_WSP_MAP, "a map between fcs files and manual .wsps", "map.txt");
 		c.addArgWithDefault(PANEL_1_MAP, "map from automatic to manual gate scheme", "p1.map.txt");
+		c.addArgWithDefault(PANEL_2_MAP, "map from automatic to manual gate scheme", "p2.map.txt");
+
 		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, "~/fcsAnalyzed/");
 		c.addArgWithDefault(TEMPLATE_LYMPH, "full path to lymphocyte gating .csv template", "~/templates/lymph.csv");
 		c.addArgWithDefault(TEMPLATE_MONOCYTE, "full path to monocyte gating .csv template", "~/templates/mono.csv");
