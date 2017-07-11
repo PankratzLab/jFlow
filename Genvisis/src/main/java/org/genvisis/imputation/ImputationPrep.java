@@ -1,5 +1,8 @@
 package org.genvisis.imputation;
 
+import htsjdk.tribble.annotation.Strand;
+import htsjdk.variant.variantcontext.Allele;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Arrays;
@@ -28,9 +31,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
-import htsjdk.tribble.annotation.Strand;
-import htsjdk.variant.variantcontext.Allele;
 
 public class ImputationPrep {
 
@@ -230,7 +230,7 @@ public class ImputationPrep {
 																																 true));
 					Allele altFlip = Allele.create(StrandOps.flipsIfNeeded(alt.getBaseString(),
 																																 Strand.NEGATIVE,
-																																 true));;
+																																 true));
 					if (matches(refFlip, altFlip, refMatches)) {
 						strandFlips++;
 					} else if (matches(altFlip, refFlip, refMatches)) {

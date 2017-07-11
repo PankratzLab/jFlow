@@ -67,11 +67,13 @@ import org.genvisis.cnv.gui.ImportProjectGUI;
 import org.genvisis.cnv.gui.PlinkExportOptions;
 import org.genvisis.cnv.gui.ProjectCreationGUI;
 import org.genvisis.cnv.gui.UITools;
+import org.genvisis.cnv.gui.VCFExportOptions;
 import org.genvisis.cnv.manage.DemoPackage;
 import org.genvisis.cnv.manage.ExportCNVsToPedFormat;
 import org.genvisis.cnv.manage.GenvisisWorkflow;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.manage.VCFData;
 import org.genvisis.cnv.plots.CompPlot;
 import org.genvisis.cnv.plots.ForestPlotFrame;
 import org.genvisis.cnv.plots.LinePlot;
@@ -91,6 +93,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
+import org.genvisis.common.HashVec;
 import org.genvisis.common.HttpUpdate;
 import org.genvisis.common.LauncherManifest;
 import org.genvisis.common.Logger;
@@ -152,6 +155,7 @@ public class Launch extends JFrame implements ActionListener {
 
 	public static final String GENERATE_ABLOOKUP = "Generate AB Lookup";
 	public static final String EXPORT_TO_PLINK = "Export to PLINK format";
+	public static final String EXPORT_TO_VCF = "Export to VCF format";
 	public static final String GENERATE_PENNCNV_FILES = "Generate PennCNV files";
 	public static final String PARSE_RAW_PENNCNV_RESULTS = "Parse raw PennCNV results files";
 	public static final String POPULATIONBAF = "Compute Population BAF file";
@@ -210,7 +214,7 @@ public class Launch extends JFrame implements ActionListener {
 																					TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS}));
 		MENUS.put("Plots", new ArrayList<String>(plotIcons.keySet()));
 		MENUS.put("Tools",
-							Arrays.asList(new String[] {GENERATE_ABLOOKUP, EXPORT_TO_PLINK,
+							Arrays.asList(new String[] {GENERATE_ABLOOKUP, EXPORT_TO_PLINK, EXPORT_TO_VCF,
 																					GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS,
 																					POPULATIONBAF, GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV,
 																					EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS,
@@ -891,6 +895,42 @@ public class Launch extends JFrame implements ActionListener {
 				if (success) {
 					log.report("Success!");
 				}
+			} else if (command.equals(EXPORT_TO_VCF)) {
+				VCFExportOptions veo = new VCFExportOptions(proj);
+				veo.setModal(true);
+				veo.setVisible(true);
+
+				if (veo.getCancelled()) {
+					return;
+				}
+
+				String root = veo.getVCFRoot();
+				if (root == null) {
+					return;
+				}
+
+				String sampFile = veo.getSampleListFile();
+				String markFile = veo.getTargetMarkersFile();
+				// double gc = veo.getGC(); // unused
+				boolean splitChrs = veo.getSplitChrs();
+				boolean useGRCRefGen = veo.getWriteChrContigs();
+
+				String[] samplesToExport = "".equals(sampFile) || sampFile == null
+																																					? null
+																																					: HashVec.loadFileToStringArray(sampFile,
+																																																					false,
+																																																					new int[] {0},
+																																																					false);
+				String[] markersToExport = "".equals(markFile) || markFile == null
+																																					? null
+																																					: HashVec.loadFileToStringArray(markFile,
+																																																					false,
+																																																					new int[] {0},
+																																																					false);
+
+				VCFData.exportGenvisisToVCF(proj, samplesToExport, markersToExport, splitChrs,
+																		useGRCRefGen, root);
+
 			} else if (command.equals(GENERATE_PENNCNV_FILES)) {
 				org.genvisis.cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(),
 																													null, null, proj.NUM_THREADS.getValue());
