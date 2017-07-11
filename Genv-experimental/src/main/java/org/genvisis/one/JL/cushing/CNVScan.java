@@ -2,6 +2,7 @@ package org.genvisis.one.JL.cushing;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -29,6 +30,7 @@ import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+
 
 public class CNVScan {
 
@@ -80,7 +82,7 @@ public class CNVScan {
 		// controlSet, minQual,
 		// maxOverlap);
 
-		ArrayList<CNVariant> filteredCase = cushings;
+		List<CNVariant> allCNVs = Arrays.asList(CNVariant.loadLocSet(cnvFile, log).getLoci());
 
 		GeneAnnotator geneAnnotator = GeneAnnotator.getDefaultAnnotator(GENOME_BUILD.HG19, log);
 		GDIAnnotator gdiAnnotator = GDIAnnotator.getDefaultGDIAnnotator(log);
@@ -89,7 +91,7 @@ public class CNVScan {
 
 		ArrayList<CNVariantAnnotated> annotateds = new ArrayList<>();
 
-		for (CNVariant cnv : filteredCase) {
+		for (CNVariant cnv : allCNVs) {
 			SegmentAnotation segmentAnotation = new SegmentAnotation();
 
 			wesMappabilityAnnotator.annotate(cnv, segmentAnotation);
