@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 import org.genvisis.cnv.plots.ManhattanPlot;
+import org.genvisis.cnv.plots.QQPlot;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
@@ -245,7 +246,7 @@ public class ParseMXCResults {
 		}
 
 		plot(outDir + "no_sig_markers_" + ext.removeDirectoryInfo(mxcfile),
-				 outDir + ext.rootOf(mxcfile) + "_manhattan.png", log);
+				 outDir + ext.rootOf(mxcfile) + ".png", log);
 
 		generateRScript(outDir + ext.rootOf(mxcfile) + "_plot.R");
 	}
@@ -310,6 +311,11 @@ public class ParseMXCResults {
 	}
 
 	private static void plot(String filename, String out, Logger log) {
+		String[] header = Files.getHeaderOfFile(filename, log);
+		int[] cols = ext.indexFactors(new String[] {"pvalue"}, header, false, false);
+		String[] data = HashVec.loadFileToStringArray(filename, true, cols, false);
+		data = ArrayUtils.removeMissingValues(data);
+
 		try {
 			ManhattanPlot mp = new ManhattanPlot(null);
 			boolean load = mp.loadFileAuto(filename);
@@ -322,12 +328,20 @@ public class ParseMXCResults {
 			}
 
 			mp.getManPan().setSize(800, 400);
-			mp.screenshot(out);
+			mp.screenshot(ext.addToRoot(out, "_manhattan"));
 		} catch (InterruptedException e) {
 			log.reportError("Problem creating manhattan plot from " + filename);
 			e.printStackTrace();
 		}
 
+		try {
+			QQPlot qq = new QQPlot(new String[] {ext.rootOf(filename)},
+														 new double[][] {ArrayUtils.toDoubleArray(data)},
+														 true, false, false, 10, log);
+			qq.screenCap(ext.addToRoot(out, "_qq"));
+		} catch (Exception e) {
+
+		}
 	}
 
 	private static void combine(String pattern, Logger log) {
