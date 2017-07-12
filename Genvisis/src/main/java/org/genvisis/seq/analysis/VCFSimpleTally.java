@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -112,7 +113,7 @@ public class VCFSimpleTally {
 														 double controlFreq, Logger log) {
 		if (!Files.exists(output)) {
 			Set<String> cases = vpop.getSuperPop().get(casePop);
-			Hashtable<String, Set<String>> controls = vpop.getSuperPop();
+			Map<String, Set<String>> controls = vpop.getSuperPop();
 
 			log.reportTimeInfo("CASE :" + casePop + " n: " + cases.size());
 			controls.remove(casePop);
@@ -865,7 +866,7 @@ public class VCFSimpleTally {
 		String hqCaseDef = hqCases.size() == cases.size() ? caseDef : "HIGH_Q_SAMPLE_" + caseDef;
 		log.reportTimeInfo(cases.size() + " total cases, " + hqCases.size() + " HQ cases");
 		vpopAc.report();
-		Hashtable<String, Set<String>> controls = vpopAc.getSuperPop();
+		Map<String, Set<String>> controls = vpopAc.getSuperPop();
 		controls.remove(caseDef);
 		controls.remove(VcfPopulation.EXCLUDE);
 
@@ -1236,7 +1237,7 @@ public class VCFSimpleTally {
 
 	private static void summarizeAnalysisParams(String sumFile, String caseDef, Set<String> cases,
 																							Set<String> lowerQualityCases,
-																							Hashtable<String, Set<String>> controls, double maf,
+																							Map<String, Set<String>> controls, double maf,
 																							Logger log) {
 		try {
 			PrintWriter writer = Files.openAppropriateWriter(sumFile);

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
@@ -321,6 +322,18 @@ public class VCFOps {
 	 */
 	public static SAMSequenceDictionary getSequenceDictionary(final VCFFileReader vcfFileReader) {
 		return vcfFileReader.getFileHeader().getSequenceDictionary();
+	}
+
+	/**
+	 * @param vcf
+	 * @param log
+	 * @return the first contig of the first {@link VariantContext}
+	 */
+	public static String getFirstContig(String vcf, Logger log) {
+		VCFFileReader reader = new VCFFileReader(new File(vcf), false);
+		VariantContext vc = reader.iterator().next();
+		reader.close();
+		return vc.getContig();
 	}
 
 	/**
@@ -691,8 +704,8 @@ public class VCFOps {
 		public static final String DETERMINE_ANCESTRY = "DETERMINE_ANCESTRY";
 		public static final String[] HEADER = new String[] {"IID", "Population", "SuperPopulation"};
 		private static final String SKIP = "#N/A";
-		private final Hashtable<String, Set<String>> subPop;
-		private final Hashtable<String, Set<String>> superPop;
+		private final Map<String, Set<String>> subPop;
+		private final Map<String, Set<String>> superPop;
 		private final ArrayList<String> uniqSubPop;
 		private final ArrayList<String> uniqSuperPop;
 		private final POPULATION_TYPE type;
@@ -718,8 +731,14 @@ public class VCFOps {
 			return type;
 		}
 
-		public VcfPopulation(Hashtable<String, Set<String>> subPop,
-												 Hashtable<String, Set<String>> superPop, POPULATION_TYPE type,
+		/**
+		 * @param subPop
+		 * @param superPop
+		 * @param type
+		 * @param log
+		 */
+		public VcfPopulation(Map<String, Set<String>> subPop,
+												 Map<String, Set<String>> superPop, POPULATION_TYPE type,
 												 Logger log) {
 			super();
 			this.subPop = subPop;
@@ -950,11 +969,11 @@ public class VCFOps {
 			}
 		}
 
-		public Hashtable<String, Set<String>> getSubPop() {
+		public Map<String, Set<String>> getSubPop() {
 			return subPop;
 		}
 
-		public Hashtable<String, Set<String>> getSuperPop() {
+		public Map<String, Set<String>> getSuperPop() {
 			return superPop;
 		}
 
@@ -1022,7 +1041,17 @@ public class VCFOps {
 
 		public static String[] splitVcfByPopulation(String vcf, String fullPathToPopFile,
 																								boolean removeMonoMorphic, boolean keepIds,
-																								boolean useRSIDs, Logger log) {
+																								boolean useRSIDs,
+																								Logger log) {
+			return splitVcfByPopulation(vcf, fullPathToPopFile, removeMonoMorphic, keepIds, useRSIDs,
+																	true, log);
+
+		}
+
+		public static String[] splitVcfByPopulation(String vcf, String fullPathToPopFile,
+																								boolean removeMonoMorphic, boolean keepIds,
+																								boolean useRSIDs,
+																								boolean rederiveAllelesFromGenotypes, Logger log) {
 			if (vcf != null && !Files.exists(vcf)) {
 				log.reportFileNotFound(vcf);
 				return null;
@@ -1076,7 +1105,9 @@ public class VCFOps {
 					for (int i = 0; i < writers.length; i++) {
 						if (writers[i] != null) {
 							VariantContext vcSub = VCOps.getSubset(vc, vpop.getSuperPop()
-																														 .get(vpop.getUniqSuperPop().get(i)));
+																														 .get(vpop.getUniqSuperPop().get(i)),
+																										 VC_SUBSET_TYPE.SUBSET_STRICT,
+																										 rederiveAllelesFromGenotypes);
 							if (!removeMonoMorphic || !vcSub.isMonomorphicInSamples()) {
 								writers[i].add(vcSub);
 							} else {

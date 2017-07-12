@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
 import com.googlecode.charts4j.collect.Maps;
 
 public class GATK {
@@ -707,6 +706,10 @@ public class GATK {
 		return new Mutect2Normal(bamFile, outputVcf, !progress);
 	}
 
+	/**
+	 * Stores results from {@link GATK#refineGenotypes(String, String, String, Logger)}
+	 *
+	 */
 	public static class GenotypeRefiner {
 		private final String ped;
 		private final String baseVCF;
@@ -717,6 +720,12 @@ public class GATK {
 		private final Logger log;
 		private boolean fail;
 
+		/**
+		 * @param ped pedigree file
+		 * @param baseVCF input vcf
+		 * @param outputDir output directory
+		 * @param log
+		 */
 		public GenotypeRefiner(String ped, String baseVCF, String outputDir, Logger log) {
 			super();
 			this.ped = ped;
@@ -733,6 +742,14 @@ public class GATK {
 
 		public void setFail(boolean fail) {
 			this.fail = fail;
+		}
+
+
+
+		@Override
+		public String toString() {
+			return "GenotypeRefiner [ped=" + ped + ", baseVCF=" + baseVCF + ", cgpVCF=" + cgpVCF
+						 + ", filtVCF=" + filtVCF + ", denovoVCF=" + denovoVCF + "]";
 		}
 
 		public String getPed() {
@@ -769,9 +786,19 @@ public class GATK {
 
 	}
 
+
+
+	/**
+	 * @param vcf input vcf file
+	 * @param ped full pedigree for vcf samples
+	 * @param outputDir
+	 * @param log
+	 * @return {@link GenotypeRefiner}
+	 */
 	/**
 	 * Running https://www.broadinstitute.org/gatk/guide/tagged?tag=denovo
 	 */
+
 	public GenotypeRefiner refineGenotypes(String vcf, String ped, String outputDir, Logger log) {
 		new File(outputDir).mkdirs();
 		GenotypeRefiner refiner = new GenotypeRefiner(ped, vcf, outputDir, log);
@@ -794,9 +821,8 @@ public class GATK {
 																 Logger log) {
 
 		new File(outputDir).mkdirs();
-		String[] input = new String[] {referenceGenomeFasta, inputVCF, ped, supportingSnps,
-																	 cosmicKnownSites};
-		ArrayList<String> command = new ArrayList<String>();
+		String[] input = new String[] {referenceGenomeFasta, inputVCF, ped};
+		ArrayList<String> command = new ArrayList<>();
 		command.add(javaLocation);
 		command.add(JAR);
 		command.add(gatkLocation + GENOME_ANALYSIS_TK);
@@ -821,9 +847,8 @@ public class GATK {
 																				 Logger log) {
 
 		new File(outputDir).mkdirs();
-		String[] input = new String[] {referenceGenomeFasta, inputVCF, supportingSnps,
-																	 cosmicKnownSites};
-		ArrayList<String> command = new ArrayList<String>();
+		String[] input = new String[] {referenceGenomeFasta, inputVCF};
+		ArrayList<String> command = new ArrayList<>();
 		command.add(javaLocation);
 		command.add(JAR);
 		command.add(gatkLocation + GENOME_ANALYSIS_TK);
@@ -832,7 +857,7 @@ public class GATK {
 		command.add(R);
 		command.add(referenceGenomeFasta);
 		command.add("-G_filter");
-		command.add("\"GQ < 20.0\"");
+		command.add("GQ < 20.0");
 		command.add("-G_filterName");
 		command.add("lowGQ");
 		command.add(V);

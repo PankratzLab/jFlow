@@ -53,6 +53,10 @@ public class ReferenceGenome {
 		}
 	}
 
+	public SAMSequenceDictionary getDictionary() {
+		return indexedFastaSequenceFile.getSequenceDictionary();
+	}
+
 	/**
 	 * @param bpBinSize the bin size (non-sliding) to break the reference genome into;
 	 * @return
