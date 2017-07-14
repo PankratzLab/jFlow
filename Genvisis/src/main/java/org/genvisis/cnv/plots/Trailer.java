@@ -81,15 +81,9 @@ import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.NumberFormatter;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.MosaicismDetect;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
-import org.genvisis.cnv.analysis.MosaicismQuant;
-import org.genvisis.cnv.analysis.MosaicismQuant.MOSAIC_TYPE;
-import org.genvisis.cnv.analysis.MosaicismQuant.MosaicQuantResults;
-import org.genvisis.cnv.analysis.MosaicismQuant.MosaicQuantWorker;
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
@@ -131,7 +125,6 @@ import org.genvisis.common.Matrix;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.TransferableImage;
-import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariant.CNVBuilder;
@@ -141,6 +134,8 @@ import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.mining.Transformations;
 import org.genvisis.stats.BinnedMovingStatistic.MovingStat;
+
+import net.miginfocom.swing.MigLayout;
 
 public class Trailer extends JFrame implements ChrNavigator, ActionListener, ClickListener, MouseListener, MouseMotionListener, MouseWheelListener {
 
@@ -3709,41 +3704,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	}
 
 	private void quantHere(Segment quantSeg, boolean checkAlreadyCalled) {
-		MosaicQuantWorker worker = new MosaicQuantWorker(new Segment[] {quantSeg}, proj, sample,
-																										 MOSAIC_TYPE.values(), 5);
-		CNVBuilder builder = new CNVBuilder();
-		builder.chr(quantSeg.getChr());
-		builder.start(quantSeg.getStart());
-		builder.stop(quantSeg.getStop());
-		builder.cn(2);
-		builder.familyID(sample);
-		builder.individualID(sample);
-		builder.numMarkers(stopMarker - startMarker);
-		builder.score(Double.NaN);
-		CNVariant[] tmp = new CNVariant[MOSAIC_TYPE.values().length];
-		WorkerHive<MosaicQuantResults[]> hive = new WorkerHive<MosaicismQuant.MosaicQuantResults[]>(
-																																																1,
-																																																10,
-																																																proj.getLog());
-		hive.addCallable(worker);
-		hive.execute(true);
-		for (int i = 0; i < tmp.length; i++) {
-			tmp[i] = builder.build();
-		}
-		ArrayList<MosaicQuantResults[]> mqrs = hive.getResults();
-		MosaicQuantResults[] mqr = mqrs.get(0);
-		for (int i = 0; i < mqr.length; i++) {
-			builder.score(mqr[i].getFs()[0]);
-			builder.numMarkers(mqr[i].getNumMarkers()[0]);
-			tmp[i] = builder.build();
-		}
+		
 		int externalCNVs = prepInternalClasses();
-		// private static final String[] INTERNAL_CNV_CLASSES = new String[] { "CNVCaller",
-		// "RevCNVCaller", "Consensus", "MosaicCaller", "MONOSOMY_DISOMYF", "CUSTOMF", "BEAST_SCORE",
-		// "BEAST_SCORE_CUSTOM" };
-		// private static final int[] INTERNAL_CNV_CLASSES_INDICES = new int[] { 0, 1, 2, 3, 4, 5, 6, 7
-		// };
-		addCnvsToPheno(tmp, externalCNVs, INTERNAL_CNV_TYPES.MONSOMOMY_DYSOMYF);
 		if (!checkAlreadyCalled || selectedCNV == null
 				|| selectedCNV[0] != externalCNVs + INTERNAL_CNV_TYPES.MOSAIC_CALLER.getIndex()) {
 			MosaicBuilder builderMosaic = new MosaicBuilder();
@@ -3758,6 +3720,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				addCnvsToPheno(new CNVariant[] {mosSet.getLoci()[0]}, externalCNVs,
 											 INTERNAL_CNV_TYPES.CUSTOMF);
 			}
+		} else {
+			log.reportTimeInfo("Previously called mosaic region, already quantified (See score)");
 		}
 		sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
 		updateCNVs(chr);
