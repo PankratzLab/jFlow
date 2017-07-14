@@ -95,7 +95,7 @@ public class MosaicismDetect {
 			segIndices = removeMasked(segIndices);
 		}
 		int totalIndices = segIndices.length;
-		ArrayList<Integer> evalIndicestmp = new ArrayList<Integer>(totalIndices / 2);
+		ArrayList<Integer> evalIndicestmp = new ArrayList<>(totalIndices / 2);
 		LocusSet<CNVariant> dud = new LocusSet<CNVariant>(new CNVariant[0], true, proj.getLog());
 
 		LocusSet<MosaicRegion> mSet = new LocusSet<MosaicRegion>(new MosaicRegion[0], true,
@@ -266,7 +266,7 @@ public class MosaicismDetect {
 	}
 
 	private int[] removeMasked(int[] autosomalIndices) {
-		ArrayList<Integer> notMasked = new ArrayList<Integer>();
+		ArrayList<Integer> notMasked = new ArrayList<>();
 		for (int autosomalIndice : autosomalIndices) {
 			if (use[autosomalIndice]) {
 				notMasked.add(autosomalIndice);
@@ -303,11 +303,11 @@ public class MosaicismDetect {
 			double[] t_sMeanVar = getMeanVar(autosomalBafs, r2, 1);
 			means[0] = zero_tsMeanVar[0];
 			variances[0] = Double.isFinite(zero_tsMeanVar[1]) && zero_tsMeanVar[1] > 0
-																																											? zero_tsMeanVar[1]
-																																											: 1;
+																																								 ? zero_tsMeanVar[1]
+																																								 : 1;
 			means[1] = t_tsMeanVar[0];
 			variances[1] = Double.isFinite(t_tsMeanVar[1]) && t_tsMeanVar[1] > 0 ? t_tsMeanVar[1]
-																																								: 1;
+																																					 : 1;
 			means[2] = t_sMeanVar[0];
 			variances[2] = Double.isFinite(t_sMeanVar[1]) && t_sMeanVar[1] > 0 ? t_sMeanVar[1] : 1;
 
@@ -482,7 +482,7 @@ public class MosaicismDetect {
 			lrrs = ArrayUtils.toDoubleArray(samp.getLRRs());
 			builder.indicesByChr(indicesByChr);
 			MosaicismDetect md = builder.build(proj, sample, markerSet, bafs);
-			ArrayList<MosaicRegion> all = new ArrayList<MosaicRegion>();
+			ArrayList<MosaicRegion> all = new ArrayList<>();
 			for (int i = 0; i < segs.getLoci().length; i++) {
 				LocusSet<MosaicRegion> tmp = md.callMosaic(segs.getLoci()[i], false);
 				tmp.addAll(all);
@@ -601,10 +601,10 @@ public class MosaicismDetect {
 		builder.indicesByChr(indicesByChr);
 
 		// develop segments to call on
-		ArrayList<Segment> callSegs = new ArrayList<Segment>();
+		ArrayList<Segment> callSegs = new ArrayList<>();
 
 		for (int i = 0; i < indicesByChr.length; i++) {
-			if (i > 0 && i < 23 && indicesByChr[i].length > 0) {// weird things happen on non-auto
+			if (i > 0 && indicesByChr[i].length > 0) {
 				callSegs.add(new Segment((byte) i, 0, Integer.MAX_VALUE));
 			}
 		}
@@ -619,7 +619,7 @@ public class MosaicismDetect {
 		};
 
 		MosaicProducer producer = new MosaicProducer(proj, builder, proj.getSamples(), markerSet, segs);
-		WorkerTrain<LocusSet<MosaicRegion>> train = new WorkerTrain<LocusSet<MosaicRegion>>(producer,
+		WorkerTrain<LocusSet<MosaicRegion>> train = new WorkerTrain<>(producer,
 																																												numThreads,
 																																												10,
 																																												proj.getLog());
