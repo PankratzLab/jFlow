@@ -228,6 +228,8 @@ public class ImputationPipeline {
 																																	 chrsOfTargetMarkers,
 																																	 posOfTargetMarkers,
 																																	 indicesOfTargetSamplesInProj,
+																																	 proj.GC_THRESHOLD.getValue()
+																																										.floatValue(),
 																																	 clusterFilterFileName,
 																																	 dirAndRoot, proj.getLog());
 
@@ -247,7 +249,8 @@ public class ImputationPipeline {
 		String[] samplesToExport = getSamplesToExport().toArray(new String[0]);
 		String[] markersToExport = getMarkersToExport().toArray(new String[0]);
 
-		VCFData.exportGenvisisToVCF(proj, samplesToExport, markersToExport, true, useGRC, vcfDirAndRoot);
+		VCFData.exportGenvisisToVCF(proj, samplesToExport, markersToExport, true, useGRC, chrs,
+																vcfDirAndRoot);
 	}
 
 	private static class ImputationPipeRunner {

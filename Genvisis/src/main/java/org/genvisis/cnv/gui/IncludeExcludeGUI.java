@@ -106,6 +106,9 @@ public class IncludeExcludeGUI extends JDialog {
 		pack();
 	}
 
+	/**
+	 * @return Either JOptionPane.OK_OPTION or JOptionPane.CANCEL_OPTION.
+	 */
 	public int getCloseCode() {
 		return close;
 	}

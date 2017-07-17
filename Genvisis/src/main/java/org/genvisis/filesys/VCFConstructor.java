@@ -1,4 +1,4 @@
-package org.genvisis.one.ben;
+package org.genvisis.filesys;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,7 +18,6 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
-import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.seq.manage.ReferenceGenome;
 
 import htsjdk.samtools.SAMSequenceDictionary;

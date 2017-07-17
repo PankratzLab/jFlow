@@ -266,9 +266,12 @@ public class LaunchProperties {
 		// decouple
 		JButton projects = new EditFileButton(DefaultLaunchKeys.PROJECTS_DIR);
 		JButton resources = new EditFileButton(DefaultLaunchKeys.RESOURCES_DIR);
-		final JComponent[] inputs = new JComponent[] {new JLabel(DefaultLaunchKeys.PROJECTS_DIR.toString()),
+		final JComponent[] inputs = new JComponent[] {
+																									new JLabel(
+																														 DefaultLaunchKeys.PROJECTS_DIR.toString()),
 																									projects,
-																									new JLabel(DefaultLaunchKeys.RESOURCES_DIR.toString()),
+																									new JLabel(
+																														 DefaultLaunchKeys.RESOURCES_DIR.toString()),
 																									resources};
 		int res = JOptionPane.showConfirmDialog(null, inputs, "Genvisis preferences",
 																						JOptionPane.OK_CANCEL_OPTION,

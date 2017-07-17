@@ -11,6 +11,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 
 import javax.swing.DefaultComboBoxModel;
@@ -36,6 +38,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
+import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 
 public class VCFExportOptions extends JDialog {
@@ -88,11 +91,11 @@ public class VCFExportOptions extends JDialog {
 		this.proj = proj;
 		setTitle("VCF Export Options");
 		setMinimumSize(new Dimension(100, 100));
-		UITools.setSize(this, new Dimension(300, 400));
+		UITools.setSize(this, new Dimension(350, 450));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(new MigLayout("", "[grow]", "[][][][][][][][][][]"));
+		contentPanel.setLayout(new MigLayout("", "[grow]", "[][][][][][][][][][][]"));
 		{
 			lblSampleFile = new JLabel("Samples to export file:");
 			contentPanel.add(lblSampleFile, "flowx,cell 0 0");
@@ -118,14 +121,42 @@ public class VCFExportOptions extends JDialog {
 			contentPanel.add(btnSampleFile, "cell 0 1");
 		}
 		{
+			btnSelectChromosomesTo = new JButton("Select Chromosomes to Export");
+			btnSelectChromosomesTo.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					String[] chrs = new String[27];
+					for (int i = 0; i < chrs.length; i++) {
+						chrs[i] = Positions.CHR_CODES[i];
+					}
+					IncludeExcludeGUI iegui = new IncludeExcludeGUI(
+																													VCFExportOptions.this,
+																													chrs,
+																													ArrayUtils.booleanArray(chrs.length, true));
+					iegui.setModal(true);
+					iegui.setVisible(true);
+					if (iegui.getCloseCode() == JOptionPane.OK_OPTION) {
+						boolean[] sel = iegui.getSelected();
+						chrsToWrite = new Byte[ArrayUtils.booleanArraySum(sel)];
+						int ind = 0;
+						for (int i = 0; i < sel.length; i++) {
+							if (sel[i]) {
+								chrsToWrite[ind++] = Positions.chromosomeNumber(chrs[i]);
+							}
+						}
+					}
+				}
+			});
+			contentPanel.add(btnSelectChromosomesTo, "cell 0 4,growx");
+		}
+		{
 			JLabel lblClusterFilterCollection = new JLabel("Cluster Filter File:");
-			contentPanel.add(lblClusterFilterCollection, "flowx,cell 0 4");
+			contentPanel.add(lblClusterFilterCollection, "flowx,cell 0 5");
 		}
 		{
 			comboBoxClusterFilters = new JComboBox<String>();// (getClusterFiltersOptions());
 			comboBoxClusterFilters.setFont(comboBoxClusterFilters.getFont().deriveFont(Font.PLAIN));
 			comboBoxClusterFilters.setSelectedItem(NO_CLUSTER_FILTERS);
-			contentPanel.add(comboBoxClusterFilters, "cell 0 5,growx");
+			contentPanel.add(comboBoxClusterFilters, "cell 0 6,growx");
 		}
 		{
 			JLabel lblTargetMarkersFile = new JLabel("Markers to export file:");
@@ -182,12 +213,13 @@ public class VCFExportOptions extends JDialog {
 		}
 		{
 			JLabel lblVCFOutputFileroot = new JLabel("VCF Output Fileroot:");
-			contentPanel.add(lblVCFOutputFileroot, "flowx,cell 0 6");
+			contentPanel.add(lblVCFOutputFileroot, "flowx,cell 0 7");
 		}
 		{
 			textFieldVCFFileroot = new JTextField();
 			textFieldVCFFileroot.setFont(textFieldVCFFileroot.getFont().deriveFont(Font.PLAIN));
-			textFieldVCFFileroot.setText(ext.replaceWithLinuxSafeCharacters(proj.PROJECT_NAME.getValue()));
+			textFieldVCFFileroot.setText(proj.PROJECT_DIRECTORY.getValue()
+																	 + ext.replaceWithLinuxSafeCharacters(proj.PROJECT_NAME.getValue()));
 			textFieldVCFFileroot.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
@@ -195,13 +227,13 @@ public class VCFExportOptions extends JDialog {
 					updateVCFStatus();
 				}
 			});
-			contentPanel.add(textFieldVCFFileroot, "cell 0 7,growx");
+			contentPanel.add(textFieldVCFFileroot, "cell 0 8,growx");
 		}
 		{
 			lblNameConflict = new JLabel("Error - files already exist!");
 			lblNameConflict.setForeground(Color.RED.darker());
 			lblNameConflict.setVisible(false);
-			contentPanel.add(lblNameConflict, "flowx,cell 0 8,alignx right");
+			contentPanel.add(lblNameConflict, "flowx,cell 0 9,alignx right");
 		}
 		{
 			chckbxOverwrite = new JCheckBox();
@@ -209,11 +241,11 @@ public class VCFExportOptions extends JDialog {
 			chckbxOverwrite.addActionListener(buttonListener);
 			chckbxOverwrite.setText("Overwrite");
 			chckbxOverwrite.setEnabled(false);
-			contentPanel.add(chckbxOverwrite, "cell 0 8,alignx right");
+			contentPanel.add(chckbxOverwrite, "cell 0 9,alignx right");
 		}
 		{
 			panel = new JPanel();
-			contentPanel.add(panel, "cell 0 9,grow");
+			contentPanel.add(panel, "cell 0 10,grow");
 			panel.setLayout(new MigLayout("ins 0", "[][][grow]", "[][]"));
 			lblGcCutoff = new JLabel("GC Cutoff:");
 			panel.add(lblGcCutoff, "cell 0 0");
@@ -252,11 +284,11 @@ public class VCFExportOptions extends JDialog {
 		}
 		{
 			tooltipClusterFilters = Grafik.getToolTipIconLabel("<html><p width=\"380\">The list of cluster filter files is generated from any file ending with \"*clusterFilters.ser\" in the project's data/ directory. The clusters can be manually added from within the ScatterPlot module. See manual for more detail.</p></html>");
-			contentPanel.add(tooltipClusterFilters, "cell 0 4");
+			contentPanel.add(tooltipClusterFilters, "cell 0 5");
 		}
 		{
 			tooltipFileroot = Grafik.getToolTipIconLabel("<html><p width=\"380\">The root of the VCF file to be generated. If this already exists, you must click the checkbox to overwrite it.</p></html>");
-			contentPanel.add(tooltipFileroot, "cell 0 6");
+			contentPanel.add(tooltipFileroot, "cell 0 7");
 		}
 		{
 			JPanel buttonPane = new JPanel();
@@ -278,6 +310,13 @@ public class VCFExportOptions extends JDialog {
 				buttonPane.add(cancelButton);
 			}
 		}
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				close(true);
+			}
+		});
+
 		pack();
 		updateVCFStatus();
 	}
@@ -346,7 +385,8 @@ public class VCFExportOptions extends JDialog {
 	private JSeparator separator;
 	private JCheckBox chckbxSplitChromosomes;
 	private JCheckBox chckbxExportchrIn;
-
+	private JButton btnSelectChromosomesTo;
+	private Byte[] chrsToWrite;
 
 	private void close(boolean cancelled) {
 		this.cancelled = cancelled;
@@ -355,7 +395,7 @@ public class VCFExportOptions extends JDialog {
 
 	protected boolean checkSampleList() {
 		String text = textFieldSampleListFile.getText();
-		return new File(text).exists();
+		return text.equals("") || new File(text).exists();
 	}
 
 	private void updateVCFStatus() {
@@ -373,7 +413,8 @@ public class VCFExportOptions extends JDialog {
 
 	private boolean isValidVCFRoot() {
 		String vcfRoot = textFieldVCFFileroot.getText().trim();
-		String vcfRootDir = proj.PROJECT_DIRECTORY.getValue() + vcfRoot;
+		String vcfRootDir = (Files.isRelativePath(vcfRoot) ? proj.PROJECT_DIRECTORY.getValue() : "")
+												+ vcfRoot;
 		boolean exists = false;
 		if (new File(vcfRootDir + ".vcf.gz").exists()) {
 			exists = true;
@@ -427,6 +468,10 @@ public class VCFExportOptions extends JDialog {
 
 	public boolean getWriteChrContigs() {
 		return chckbxExportchrIn.isSelected();
+	}
+
+	public Byte[] getChrsToWrite() {
+		return chrsToWrite;
 	}
 
 	public boolean getCancelled() {

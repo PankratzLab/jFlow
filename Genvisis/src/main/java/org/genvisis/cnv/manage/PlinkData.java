@@ -1017,12 +1017,15 @@ public class PlinkData {
 
 		PSF.checkInterrupted();
 
+		float gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
+
 		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Creating .bed file",
 																										 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		proj.getLog().report("Creating .bed file from SNP major data");
 		boolean success = createBedFileSnpMajor10KperCycle(proj, ImmutableSet.copyOf(targetMarkers),
 																											 chrsOfTargetMarkers, posOfTargetMarkers,
 																											 indicesOfTargetSamplesInProj,
+																											 gcThreshold,
 																											 clusterFilterFileName,
 																											 outFileDirAndFilenameRoot, log);
 		proj.getProgressMonitor().endTask(PROG_KEY);
@@ -1216,6 +1219,7 @@ public class PlinkData {
 	 * @param indicesOfTargetMarkersInProj
 	 * @param targetSamples samples selected to convert
 	 * @param indicesOfTargetSamplesInProj
+	 * @param gcThreshold
 	 * @param clusterFilterFileName
 	 * @param plinkDirAndFilenameRoot
 	 * @param log
@@ -1226,6 +1230,7 @@ public class PlinkData {
 																												 HashMap<String, Byte> chrsOfTargetMarkers,
 																												 HashMap<String, Integer> posOfTargetMarkers,
 																												 int[] indicesOfTargetSamplesInProj,
+																												 float gcThreshold,
 																												 String clusterFilterFileName,
 																												 String plinkDirAndFilenameRoot,
 																												 Logger log) {
@@ -1297,7 +1302,8 @@ public class PlinkData {
 			while (mdl.hasNext()) {
 				MarkerData markerData = mdl.next();
 				genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection,
-																													markerData.getMarkerName(), 0, log);
+																													markerData.getMarkerName(), gcThreshold,
+																													log);
 				for (int k = 0; k < indicesOfTargetSamplesInProj.length; k++) {
 					genotypesOfTargetSamples[k] = genotypes[indicesOfTargetSamplesInProj[k]];
 				}

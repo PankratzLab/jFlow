@@ -85,6 +85,7 @@ import org.genvisis.cnv.plots.SexPlot;
 import org.genvisis.cnv.plots.StratPlot;
 import org.genvisis.cnv.plots.Trailer;
 import org.genvisis.cnv.plots.TwoDPlot;
+import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.MarkerBlastQC;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
@@ -93,7 +94,6 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
-import org.genvisis.common.HashVec;
 import org.genvisis.common.HttpUpdate;
 import org.genvisis.common.LauncherManifest;
 import org.genvisis.common.Logger;
@@ -881,6 +881,8 @@ public class Launch extends JFrame implements ActionListener {
 					return;
 				}
 
+				proj.GC_THRESHOLD.setValue(peo.getGC());
+
 				proj.saveProperties();
 				boolean success = false;
 				if (peo.exportAsBinary()) {
@@ -912,24 +914,22 @@ public class Launch extends JFrame implements ActionListener {
 				String sampFile = veo.getSampleListFile();
 				String markFile = veo.getTargetMarkersFile();
 				// double gc = veo.getGC(); // unused
+				Byte[] chrs = veo.getChrsToWrite();
+				int[] chrsToWrite = null;
+				if (chrs != null) {
+					chrsToWrite = new int[chrs.length];
+					for (int i = 0; i < chrs.length; i++) {
+						chrsToWrite[i] = chrs[i].intValue();
+					}
+				}
 				boolean splitChrs = veo.getSplitChrs();
 				boolean useGRCRefGen = veo.getWriteChrContigs();
 
-				String[] samplesToExport = "".equals(sampFile) || sampFile == null
-																																					? null
-																																					: HashVec.loadFileToStringArray(sampFile,
-																																																					false,
-																																																					new int[] {0},
-																																																					false);
-				String[] markersToExport = "".equals(markFile) || markFile == null
-																																					? null
-																																					: HashVec.loadFileToStringArray(markFile,
-																																																					false,
-																																																					new int[] {0},
-																																																					false);
+				proj.GC_THRESHOLD.setValue(veo.getGC());
+				proj.saveProperties(new Property<?>[] {proj.GC_THRESHOLD});
 
-				VCFData.exportGenvisisToVCF(proj, samplesToExport, markersToExport, splitChrs,
-																		useGRCRefGen, root);
+				VCFData.exportGenvisisToVCF(proj, sampFile, markFile, splitChrs, useGRCRefGen, chrsToWrite,
+																		root);
 
 			} else if (command.equals(GENERATE_PENNCNV_FILES)) {
 				org.genvisis.cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(),

@@ -24,10 +24,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.genvisis.CLI;
+import org.genvisis.CLI.Arg;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
@@ -35,6 +38,8 @@ import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker.RefAllele;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Sort;
 import org.genvisis.filesys.Segment;
@@ -47,15 +52,51 @@ public final class VCFData {
 		// private un-instantiable class
 	}
 
+	public static void exportGenvisisToVCF(Project proj, String fileOfSamplesToExport,
+																				 String fileOfMarkersToExport,
+																				 boolean splitChrs, boolean useGRCRefGen,
+																				 int[] chrsToExport,
+																				 String outputDirAndRoot) {
+		String[] samples = null;
+		String[] markers = null;
+
+		boolean sampMiss = false;
+		boolean markMiss = false;
+		if (fileOfSamplesToExport != null && !"".equals(fileOfSamplesToExport)) {
+			if (!Files.exists(fileOfSamplesToExport)) {
+				sampMiss = true;
+				proj.getLog().reportFileNotFound(fileOfSamplesToExport);
+			} else {
+				samples = HashVec.loadFileToStringArray(fileOfSamplesToExport, false, new int[] {0}, false);
+			}
+		}
+		if (fileOfMarkersToExport != null && !"".equals(fileOfMarkersToExport)) {
+			if (!Files.exists(fileOfMarkersToExport)) {
+				markMiss = true;
+				proj.getLog().reportFileNotFound(fileOfMarkersToExport);
+			} else {
+				markers = HashVec.loadFileToStringArray(fileOfMarkersToExport, false, new int[] {0}, false);
+			}
+		}
+		if (sampMiss || markMiss) {
+			return;
+		}
+
+		exportGenvisisToVCF(proj, samples, markers, splitChrs, useGRCRefGen, chrsToExport,
+												outputDirAndRoot);
+	}
+
 	public static void exportGenvisisToVCF(Project proj, String[] samplesToExport,
 																				 String[] markersToExport,
 																				 boolean splitChrs, boolean useGRCRefGen,
+																				 int[] chrsToExport,
 																				 String outputDirAndRoot) {
 		SampleData sd = proj.getSampleData(false);
 		String[] allSamples = proj.getSamples();
 		Set<String> idsSet = new HashSet<String>();
 		List<String> idsToInclude = new ArrayList<String>();
-		for (String s : (samplesToExport == null ? allSamples : samplesToExport)) {
+		for (String s : (samplesToExport == null || samplesToExport.length == 0 ? allSamples
+																																					 : samplesToExport)) {
 			idsSet.add(s);
 		}
 		Map<String, Integer> idIndexMap = new HashMap<String, Integer>();
@@ -64,7 +105,7 @@ public final class VCFData {
 			if (sd.lookup(s) == null) {
 				System.out.println("No SampleData lookup for " + s);
 			} else {
-				if (idsSet.contains(sd.lookup(s)[1])) {
+				if (idsSet.contains(s) || idsSet.contains(sd.lookup(s)[1])) {
 					idsToInclude.add(s);
 					idIndexMap.put(s, i);
 				}
@@ -94,24 +135,40 @@ public final class VCFData {
 																																				.getFASTA().getAbsolute(),
 																															 proj.getLog());
 
+		if (refGen.getIndexedFastaSequenceFile().getSequenceDictionary() == null) {
+			proj.getLog()
+					.reportError("VCF export requires a valid ReferenceGenome. Please fix your project or configuration and try again.");
+			return;
+		}
+
 		MarkerDetailSet mds = proj.getMarkerSet();
+
+		HashSet<Integer> allowedChrs = new HashSet<>();
+		if (chrsToExport != null && chrsToExport.length != 0) {
+			for (int c : chrsToExport) {
+				allowedChrs.add(c);
+			}
+		}
 
 		Map<String, Marker> markerMap = mds.getMarkerNameMap();
 
 		HashMap<Integer, List<String>> markersByChr = new HashMap<>();
-		for (String m : markersToExport) {
+		for (String m : (markersToExport == null ? proj.getMarkerNames()
+																						: markersToExport)) {
 			Marker mkr = markerMap.get(m);
-			List<String> mkrChr = markersByChr.get((int) mkr.getChr());
-			if (mkrChr == null) {
-				mkrChr = new ArrayList<>();
-				markersByChr.put((int) mkr.getChr(), mkrChr);
+			if (allowedChrs.isEmpty() || allowedChrs.contains((int) mkr.getChr())) {
+				List<String> mkrChr = markersByChr.get((int) mkr.getChr());
+				if (mkrChr == null) {
+					mkrChr = new ArrayList<>();
+					markersByChr.put((int) mkr.getChr(), mkrChr);
+				}
+				mkrChr.add(m);
 			}
-			mkrChr.add(m);
 		}
 
 		ConcurrentMap<Marker, MATCH_FAIL> failMap = new ConcurrentHashMap<>();
 
-		ArrayList<Runnable> runners = new ArrayList<>();
+		ArrayList<ActualExporter> runners = new ArrayList<>();
 		if (splitChrs) {
 			for (int chr : markersByChr.keySet()) {
 				proj.getLog()
@@ -120,13 +177,18 @@ public final class VCFData {
 
 				String fileOut = outputDirAndRoot + "_chr" + chr + ".vcf.gz";
 
-				Runnable runner = new ActualExporter(proj, refGen, fileOut, idsToInclude, idIndexMap,
-																						 mkrs.toArray(new String[mkrs.size()]), markerMap,
-																						 clusterFilterCollection, failMap);
+				ActualExporter runner = new ActualExporter(proj, refGen, useGRCRefGen, fileOut,
+																									 idsToInclude, idIndexMap,
+																									 mkrs.toArray(new String[mkrs.size()]),
+																									 markerMap,
+																									 clusterFilterCollection, failMap);
 				runners.add(runner);
 			}
 		} else {
-			proj.getLog().report("Exporting " + markersToExport.length + " markers");
+			proj.getLog()
+					.report("Exporting "
+									+ (markersToExport == null ? proj.getMarkerNames() : markersToExport).length
+									+ " markers");
 			List<String> allMarkers = new ArrayList<>();
 			Integer[] chrs = markersByChr.keySet().toArray(new Integer[markersByChr.keySet().size()]);
 			Arrays.sort(chrs);
@@ -136,9 +198,10 @@ public final class VCFData {
 
 			String fileOut = outputDirAndRoot + ".vcf.gz";
 
-			Runnable runner = new ActualExporter(proj, refGen, fileOut, idsToInclude, idIndexMap,
-																					 allMarkers.toArray(new String[allMarkers.size()]),
-																					 markerMap, clusterFilterCollection, failMap);
+			ActualExporter runner = new ActualExporter(proj, refGen, useGRCRefGen, fileOut, idsToInclude,
+																								 idIndexMap,
+																								 allMarkers.toArray(new String[allMarkers.size()]),
+																								 markerMap, clusterFilterCollection, failMap);
 			runners.add(runner);
 		}
 
@@ -151,8 +214,8 @@ public final class VCFData {
 			}
 		}
 
-		int cntS, cntA, cntSA;
-		cntS = cntA = cntSA = 0;
+		int cntS, cntA, cntSA, missSeq, missAll;
+		cntS = cntA = cntSA = missSeq = missAll = 0;
 
 		for (MATCH_FAIL mf : failMap.values()) {
 			switch (mf) {
@@ -164,6 +227,12 @@ public final class VCFData {
 					break;
 				case STRAND_FLIP:
 					cntS++;
+					break;
+				case MISSING_SEQ:
+					missSeq++;
+					break;
+				case MISSING_ALLELES:
+					missAll++;
 					break;
 				default:
 					break;
@@ -187,24 +256,36 @@ public final class VCFData {
 																 + cntSA
 																 + " possibly strand- and allele-flipped markers.  ALT allele is unknown, so these cannot be confirmed.");
 		}
+		if (missSeq > 0) {
+			proj.getLog().reportTimeWarning("Found " + missSeq
+																			+ " markers missing from the reference genome.");
+		}
+		if (missAll > 0) {
+			proj.getLog()
+					.reportTimeWarning("Found "
+																 + missAll
+																 + " markers missing both alleles in the project data. These markers were dropped.");
+		}
 
 	}
 
-	private static boolean execute(List<Runnable> runners) {
+	private static boolean execute(List<ActualExporter> runners) {
 		int avail = Runtime.getRuntime().availableProcessors();
-		ExecutorService executor = Executors.newFixedThreadPool(avail - 1);
+		ExecutorService executor = Executors.newFixedThreadPool(Math.max(1, avail - 1));
 
-		for (Runnable runner : runners) {
+		CountDownLatch cdl = new CountDownLatch(runners.size());
+		for (ActualExporter runner : runners) {
+			runner.setCDL(cdl);
+			runner.setParentThread(Thread.currentThread());
 			executor.submit(runner);
 		}
 
 		executor.shutdown();
 		boolean success = false;
 		try {
-			boolean s = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-			success = s;
+			cdl.await(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+			success = true;
 		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 		return success;
 	}
@@ -240,6 +321,8 @@ public final class VCFData {
 	}
 
 	enum MATCH_FAIL {
+		MISSING_ALLELES,
+		MISSING_SEQ,
 		STRAND_FLIP,
 		POSS_ALLELE,
 		POSS_STRAND_ALLELE;
@@ -255,9 +338,13 @@ public final class VCFData {
 		String[] markers;
 		Map<String, Marker> markerMap;
 		ClusterFilterCollection clusterFilterCollection;
+		boolean useChr;
 
-		public ActualExporter(Project proj, ReferenceGenome refGen, String fileOut,
-													List<String> idsToInclude,
+		CountDownLatch cdl;
+		Thread parent;
+
+		public ActualExporter(Project proj, ReferenceGenome refGen, boolean useChr,
+													String fileOut, List<String> idsToInclude,
 													Map<String, Integer> idIndexMap,
 													String[] markers, Map<String, Marker> markerMap,
 													ClusterFilterCollection clusterFilterCollection,
@@ -271,10 +358,33 @@ public final class VCFData {
 			this.markerMap = markerMap;
 			this.clusterFilterCollection = clusterFilterCollection;
 			this.fails = failMap;
+			this.useChr = useChr;
+		}
+
+		protected void setCDL(CountDownLatch cdl) {
+			this.cdl = cdl;
+		}
+
+		protected void setParentThread(Thread th) {
+			this.parent = th;
 		}
 
 		@Override
 		public void run() {
+			try {
+				actualRun();
+			} catch (Exception e) {
+				e.printStackTrace();
+				if (parent != null) {
+					parent.interrupt();
+				}
+			}
+			if (cdl != null) {
+				cdl.countDown();
+			}
+		}
+
+		private void actualRun() {
 			Logger log = proj.getLog();
 
 			VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(fileOut);
@@ -297,27 +407,41 @@ public final class VCFData {
 			vcfHeader.hasGenotypingData();
 			writer.writeHeader(vcfHeader);
 
-			float gcThreshold = 0; // include everything
+			float gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
 
+			log.report("Initializing MDL for " + markers.length + " markers...");
 			MDL mdl = new MDL(proj, proj.getMarkerSet(), markers);
 
 			while (mdl.hasNext()) {
 				MarkerData markerData = mdl.next();
 
 				VariantContextBuilder builderVc = new VariantContextBuilder();
-				builderVc.chr(String.valueOf((int) markerData.getChr()));
+				builderVc.chr((useChr ? "chr" : "") + String.valueOf((int) markerData.getChr()));
 				Marker mkr = markerMap.get(markerData.getMarkerName());
 				ArrayList<Allele> a = new ArrayList<Allele>();
 				Allele aR = mkr.getRef();
 				Allele aA = mkr.getAlt();
-				a.add(aR);
-				a.add(aA);
 
 				String[] bases = refGen.getSequenceFor(new Segment(mkr.getChr(),
 																													 mkr.getPosition(),
 																													 mkr.getPosition()));
+				if (aR == null && aA == null) {
+					missingAlleles(mkr);
+					continue;
+				}
+				if (aR == null) {
+					log.reportError("REF allele for marker " + mkr.getName() + " is null!");
+					aR = bases == null ? Allele.create("N") : Allele.create(bases[0], true);
+				}
+				if (aA == null) {
+					log.reportError("ALT allele for marker " + mkr.getName() + " is null!");
+					aA = Allele.create("N", false);
+				}
+				a.add(aR);
+				a.add(aA);
+
 				if (bases == null) {
-					log.reportError("Couldn't find sequence for marker in ReferenceGenome");
+					missingSeq(mkr);
 				} else {
 					Allele refGenRef = Allele.create(bases[0], true);
 					boolean match = matches(refGenRef, aR);
@@ -394,10 +518,26 @@ public final class VCFData {
 
 			writer.close();
 			writer = null;
+
 			System.gc();
+
+			log.report("Processed " + markers.length + " markers for " + idsToInclude.size()
+								 + " samples.");
 		}
 
 		Map<Marker, MATCH_FAIL> fails;
+
+		private void missingAlleles(Marker mkr) {
+			if (fails != null) {
+				fails.put(mkr, MATCH_FAIL.MISSING_ALLELES);
+			}
+		}
+
+		private void missingSeq(Marker mkr) {
+			if (fails != null) {
+				fails.put(mkr, MATCH_FAIL.MISSING_SEQ);
+			}
+		}
 
 		private void possibleStrandAndAlleleFlip(Marker mkr) {
 			if (fails != null) {
@@ -418,4 +558,63 @@ public final class VCFData {
 		}
 	}
 
+	private static final String SAMP_ARG = "samples";
+	private static final String MARK_ARG = "markers";
+	private static final String SPLIT_ARG = "split";
+	private static final String GRC_ARG = "grc";
+	private static final String CHRS_ARG = "chrs";
+
+	public static void main(String[] args) {
+		Project proj = null;
+		String samp = null;
+		String mark = null;
+		boolean split = true;
+		int[] chrs = null;
+		boolean grc = true;
+		String out = null;
+
+		Object[][] argSet = {
+												 {CLI.ARG_PROJ, CLI.DESC_PROJ, "example.properties", Arg.STRING},
+												 {SAMP_ARG, "List of Sample IDs", "", Arg.STRING},
+												 {MARK_ARG, "List of Markers", "", Arg.STRING},
+												 {SPLIT_ARG, "Split output by chromosomes", split, Arg.STRING},
+												 {GRC_ARG, "Use GRC output rather than HG (exports 'chr' in contigs)", grc,
+													Arg.STRING},
+												 {CHRS_ARG,
+													"OPTIONAL: comma-delimited list of specific chromosomes to export", "",
+													Arg.STRING},
+												 {CLI.ARG_OUTFILE, CLI.DESC_OUTFILE, "", Arg.STRING},
+		};
+
+		CLI cli = new CLI(VCFData.class);
+
+		for (Object[] arg : argSet) {
+			cli.addArgWithDefault((String) arg[0], (String) arg[1], arg[2] + "", (Arg) arg[3]);
+		}
+
+		cli.parseWithExit(args);
+
+		String projFile = cli.get(CLI.ARG_PROJ);
+		if ("".equals(projFile) || !Files.exists(projFile)) {
+			System.err.println("Error - valid project properties file is required!");
+			System.err.println("");
+			return;
+		}
+		proj = new Project(projFile, false);
+		samp = cli.get(SAMP_ARG);
+		mark = cli.get(MARK_ARG);
+		split = Boolean.parseBoolean(cli.get(SPLIT_ARG));
+		grc = Boolean.parseBoolean(cli.get(GRC_ARG));
+		String[] chrStrs = cli.get(CHRS_ARG).equals("") ? null : cli.get(CHRS_ARG).split(",");
+		chrs = new int[chrStrs.length];
+		for (int i = 0; i < chrs.length; i++) {
+			chrs[i] = Integer.parseInt(chrStrs[i]);
+		}
+		out = cli.get(CLI.ARG_OUTFILE);
+		if (out == null || "".equals(out)) {
+			out = proj.PROJECT_NAME.getValue();
+		}
+
+		VCFData.exportGenvisisToVCF(proj, samp, mark, split, grc, chrs, out);
+	}
 }
