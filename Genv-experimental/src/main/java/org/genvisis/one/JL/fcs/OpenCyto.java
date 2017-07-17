@@ -45,6 +45,11 @@ public class OpenCyto {
 		String batchOut = c.get(CLI.ARG_OUTDIR) + ext.rootOf(batchFile) + "/";
 		String gateDir = batchOut + "gates/";
 		new File(gateDir).mkdirs();
+		String gateQCDir = batchOut + "gatesQC/";
+		new File(gateQCDir).mkdirs();
+		String fcsQCDir = batchOut + "fcsQC/";
+		new File(fcsQCDir).mkdirs();
+
 		for (int i = 0; i < rscript.length; i++) {
 			if (rscript[i].startsWith("inputDir = ")) {
 				rscript[i] = "inputDir = " + addQ(c.get(INPUT_FCS));
