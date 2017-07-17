@@ -2,6 +2,8 @@ package org.genvisis.one.ben.fcs.auto.proc;
 
 import java.awt.Color;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.SwingConstants;
 
@@ -30,11 +32,17 @@ public class VisualizationProcessor implements SampleProcessor {
 		fcp.getPanel().setColorScheme(new Color[] {Color.BLACK, Color.RED,
 																							 new Color(128, 128, 128, 64)});
 
+		long time1 = System.nanoTime();
 		fcp.loadFile(sn.fcsFile, true);
 		FCSDataLoader loader = fcp.getDataLoader(sn.fcsFile);
 		loader.waitForData();
 
+		long time2 = System.nanoTime();
+		int rowCnt = loader.getCount();
+
 		fcp.loadWorkspaceFile(sn.wspFile);
+
+		long time3 = System.nanoTime();
 
 		// String fNum = fcp.discoverFNumFile(autoDir);
 		// if (fNum == null)
@@ -51,11 +59,19 @@ public class VisualizationProcessor implements SampleProcessor {
 		fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
 
 		// for (String s : FCSProcessingPipeline.GATE_NAMES) {
+		long time4 = System.nanoTime();
+		ArrayList<String> gateNames = new ArrayList<>();
+		ArrayList<long[]> gateTimes = new ArrayList<>();
+
 		for (String s : fcp.getGatingStrategy().getAllGateNames()) {
+			gateNames.add(s);
+			long[] times = new long[4];
+
 			Gate g = fcp.getGatingStrategy().gateMap.get(s);
 			if (g.getParentGate() != null) {
 				fcp.gateSelected(g.getParentGate(), false);
 			}
+			times[0] = System.nanoTime();
 
 			if (g.getXDimension() == null && g.getYDimension() != null) {
 				// correct for swapped histogram
@@ -84,9 +100,14 @@ public class VisualizationProcessor implements SampleProcessor {
 											 + ext.replaceWithLinuxSafeCharacters(g.getName());
 			fcp.getPanel().classifierPrev = false;
 			fcp.getPanel().setForceGatesChanged();
+			times[1] = System.nanoTime();
+
 			fcp.getPanel().createImage();
+			times[2] = System.nanoTime();
 
 			fcp.screencap(outFile + ".png");
+
+			times[3] = System.nanoTime();
 
 			g.setFillGate(false);
 
@@ -94,11 +115,45 @@ public class VisualizationProcessor implements SampleProcessor {
 			// fcp.getPanel().setForceGatesChanged();
 			// fcp.getPanel().createImage();
 			// fcp.screencap(outFile + "_prev.png");
-
+			gateTimes.add(times);
 		}
 
 		loader.emptyAndReset();
 		// fcp = null;
 		System.gc();
+
+		long time5 = System.nanoTime();
+
+		StringBuilder sb1 = new StringBuilder("TIMING-HDR").append("\t");
+		sb1.append("FCS_FILE").append("\t");
+		sb1.append("ROWS").append("\t");
+		sb1.append("INIT").append("\t");
+		sb1.append("LOAD").append("\t");
+		sb1.append("WSP_LOAD").append("\t");
+		sb1.append("CONF").append("\t");
+		for (String s : gateNames) {
+			sb1.append(s).append("\t");
+			sb1.append("CONF").append("\t");
+			sb1.append("CREATE").append("\t");
+			sb1.append("SCREEN").append("\t");
+		}
+		sb1.append("CLEANUP");
+
+		StringBuilder sb = new StringBuilder("TIMING").append("\t");
+		sb.append(sn.fcsFile).append("\t");
+		sb.append(rowCnt).append("\t");
+		sb.append(TimeUnit.NANOSECONDS.toSeconds(time1)).append("\t");
+		sb.append(TimeUnit.NANOSECONDS.toSeconds(time2)).append("\t");
+		sb.append(TimeUnit.NANOSECONDS.toSeconds(time3)).append("\t");
+		sb.append(TimeUnit.NANOSECONDS.toSeconds(time4)).append("\t");
+		for (long[] timing : gateTimes) {
+			for (long l : timing) {
+				sb.append(TimeUnit.NANOSECONDS.toSeconds(l)).append("\t");
+			}
+		}
+		sb.append(TimeUnit.NANOSECONDS.toSeconds(time5));
+
+		System.out.println(sb1.toString());
+		System.out.println(sb.toString());
 	}
 }
