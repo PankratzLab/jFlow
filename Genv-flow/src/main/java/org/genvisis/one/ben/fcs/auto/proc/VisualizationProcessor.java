@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.swing.SwingConstants;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.PLOT_TYPE;
@@ -33,14 +34,34 @@ public class VisualizationProcessor implements SampleProcessor {
 																							 new Color(128, 128, 128, 64)});
 
 		long time1 = System.nanoTime();
+		fcp.loadWorkspaceFile(sn.wspFile);
+
+		boolean hasAll = true;
+
+		for (String s : fcp.getGatingStrategy().getAllGateNames()) {
+			Gate g = fcp.getGatingStrategy().gateMap.get(s);
+
+			String cleanedName = ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(sn.fcsFile));
+			String outFile = outDir + cleanedName + "/" + cleanedName + "."
+											 + ext.replaceWithLinuxSafeCharacters(g.getName());
+
+			if (Files.exists(outFile + ".png")) {
+				continue;
+			}
+
+			hasAll = false;
+			break;
+		}
+		if (hasAll) {
+			log.report("All screenshots found; Skipping FCS file: " + sn.fcsFile);
+			return;
+		}
+
+		long time2 = System.nanoTime();
 		fcp.loadFile(sn.fcsFile, true);
 		FCSDataLoader loader = fcp.getDataLoader(sn.fcsFile);
 		loader.waitForData();
-
-		long time2 = System.nanoTime();
 		int rowCnt = loader.getCount();
-
-		fcp.loadWorkspaceFile(sn.wspFile);
 
 		long time3 = System.nanoTime();
 
@@ -64,10 +85,20 @@ public class VisualizationProcessor implements SampleProcessor {
 		ArrayList<long[]> gateTimes = new ArrayList<>();
 
 		for (String s : fcp.getGatingStrategy().getAllGateNames()) {
-			gateNames.add(s);
 			long[] times = new long[4];
 
 			Gate g = fcp.getGatingStrategy().gateMap.get(s);
+
+			String cleanedName = ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(sn.fcsFile));
+			String outFile = outDir + cleanedName + "/" + cleanedName + "."
+											 + ext.replaceWithLinuxSafeCharacters(g.getName());
+
+			if (Files.exists(outFile + ".png")) {
+				continue;
+			}
+
+			gateNames.add(s);
+
 			if (g.getParentGate() != null) {
 				fcp.gateSelected(g.getParentGate(), false);
 			}
@@ -95,9 +126,6 @@ public class VisualizationProcessor implements SampleProcessor {
 
 			// fcp.setClassifierGate(g.getName());
 
-			String cleanedName = ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(sn.fcsFile));
-			String outFile = outDir + cleanedName + "/" + cleanedName + "."
-											 + ext.replaceWithLinuxSafeCharacters(g.getName());
 			fcp.getPanel().classifierPrev = false;
 			fcp.getPanel().setForceGatesChanged();
 			times[1] = System.nanoTime();
@@ -128,8 +156,8 @@ public class VisualizationProcessor implements SampleProcessor {
 		sb1.append("FCS_FILE").append("\t");
 		sb1.append("ROWS").append("\t");
 		sb1.append("INIT").append("\t");
-		sb1.append("LOAD").append("\t");
 		sb1.append("WSP_LOAD").append("\t");
+		sb1.append("LOAD").append("\t");
 		sb1.append("CONF").append("\t");
 		for (String s : gateNames) {
 			sb1.append(s).append("\t");
