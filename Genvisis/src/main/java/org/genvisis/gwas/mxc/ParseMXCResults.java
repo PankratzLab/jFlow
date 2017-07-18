@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Hashtable;
 
 import org.genvisis.cnv.plots.ManhattanPlot;
 import org.genvisis.cnv.plots.QQPlot;
@@ -245,10 +246,11 @@ public class ParseMXCResults {
 			e.printStackTrace();
 		}
 
-		plot(outDir + "no_sig_markers_" + ext.removeDirectoryInfo(mxcfile),
-				 outDir + ext.rootOf(mxcfile) + ".png", log);
+		mplot(outDir + "no_sig_markers_" + ext.removeDirectoryInfo(mxcfile),
+					outDir + ext.rootOf(mxcfile) + ".png", log);
+		qqplot(mxcfile, outDir + ext.rootOf(mxcfile) + ".png", log);
 
-		generateRScript(outDir + ext.rootOf(mxcfile) + "_plot.R");
+		// generateRScript(outDir + ext.rootOf(mxcfile) + "_plot.R");
 	}
 
 	private static void run(String data, String db, String posmap, String covar, String out,
@@ -310,11 +312,24 @@ public class ParseMXCResults {
 		}
 	}
 
-	private static void plot(String filename, String out, Logger log) {
+	private static void qqplot(String filename, String out, Logger log) {
 		String[] header = Files.getHeaderOfFile(filename, log);
 		int[] cols = ext.indexFactors(new String[] {"pvalue"}, header, false, false);
 		String[] data = HashVec.loadFileToStringArray(filename, true, cols, false);
 		data = ArrayUtils.removeMissingValues(data);
+
+		try {
+			QQPlot qq = new QQPlot(new String[] {ext.rootOf(filename)},
+														 new double[][] {ArrayUtils.toDoubleArray(data)},
+														 true, false, false, Float.MAX_VALUE, log);
+			qq.screenCap(ext.addToRoot(out, "_qq"));
+		} catch (Exception e) {
+
+		}
+	}
+
+	private static void mplot(String filename, String out, Logger log) {
+
 
 		try {
 			ManhattanPlot mp = new ManhattanPlot(null);
@@ -334,14 +349,7 @@ public class ParseMXCResults {
 			e.printStackTrace();
 		}
 
-		try {
-			QQPlot qq = new QQPlot(new String[] {ext.rootOf(filename)},
-														 new double[][] {ArrayUtils.toDoubleArray(data)},
-														 true, false, false, 10, log);
-			qq.screenCap(ext.addToRoot(out, "_qq"));
-		} catch (Exception e) {
 
-		}
 	}
 
 	private static void combine(String pattern, Logger log) {
@@ -408,6 +416,118 @@ public class ParseMXCResults {
 		Matrix.writeToFile(combined, pattern + "combined.txt");
 	}
 
+	private static void index(String indicesFile, String mxcFile, int range, Logger log) {
+		// read in indices from which to pull data
+		String[] header = Files.getHeaderOfFile(indicesFile, log);
+		int[] cols = ext.indexFactors(new String[][] {Aliases.GENE_UNITS, Aliases.POSITIONS,
+																									Aliases.CHRS},
+																	header, false, true, false, false);
+		if (ArrayUtils.min(cols) == -1) {
+			log.reportError("Expected " + indicesFile
+											+ " to be of the form: Gene Label, Position, Chromosome");
+			System.exit(1);
+		}
+
+		String[][] indices = HashVec.loadFileToStringMatrix(indicesFile, true, cols, false);
+		indices = removeNAs(indices, new int[] {1, 2});
+		Arrays.sort(indices, new Comparator<String[]>() {
+			@Override
+			public int compare(final String[] entry1, final String[] entry2) {
+				final int chr1 = Integer.parseInt(entry1[2]);
+				final int chr2 = Integer.parseInt(entry2[2]);
+				if (chr1 == chr2) {
+					final int pos1 = Integer.parseInt(entry1[1]);
+					final int pos2 = Integer.parseInt(entry2[1]);
+					return pos1 - pos2;
+				}
+				return chr1 - chr2;
+			}
+		});
+
+		// read in mxc file and sort it by chr/pos
+		header = Files.getHeaderOfFile(mxcFile, log);
+		cols = ext.indexFactors(new String[][] {new String[] {"gene_name"}, Aliases.POSITIONS,
+																						Aliases.CHRS, Aliases.PVALUES},
+														header, false, true, false, false);
+
+		if (ArrayUtils.min(cols) == -1) {
+			log.reportError("Invalid header for " + mxcFile);
+			System.exit(1);
+		}
+
+		String[][] mxc = HashVec.loadFileToStringMatrix(mxcFile, true, cols, false);
+		mxc = removeNAs(mxc, new int[] {1, 2});
+		Arrays.sort(mxc, new Comparator<String[]>() {
+			@Override
+			public int compare(final String[] entry1, final String[] entry2) {
+				final int chr1 = Integer.parseInt(entry1[2]);
+				final int chr2 = Integer.parseInt(entry2[2]);
+				if (chr1 == chr2) {
+					final int pos1 = Integer.parseInt(entry1[1]);
+					final int pos2 = Integer.parseInt(entry2[1]);
+					return pos1 - pos2;
+				}
+				return chr1 - chr2;
+			}
+		});
+
+		Hashtable<String, ArrayList<String[]>> regions = new Hashtable<String, ArrayList<String[]>>();
+		int start = 0;
+		// for each index, generate a list of mxc genes in the region
+		// calculate the lambda for this region
+		// calculate the bf threshold
+		for (String[] i : indices) {
+			String label = i[0];
+			int startPos = Integer.max(Integer.parseInt(i[1]) - range, 0);
+			int endPos = Integer.parseInt(i[1]) + range;
+			int chr = Integer.parseInt(i[2]);
+
+			for (int j = start; j < mxc.length; j++) {
+				// check if this gene is in range
+				int c = Integer.parseInt(mxc[j][2]);
+				int pos = Integer.parseInt(mxc[j][1]);
+				if (c < chr)
+					continue;
+				else if (c > chr || pos > endPos)
+					break;
+
+				if (pos < startPos)
+					continue;
+
+				// if this is the first one, add it and update the start pos
+				if (!regions.containsKey(label)) {
+					regions.put(label, new ArrayList<String[]>());
+					start = j;
+				}
+
+				regions.get(label).add(mxc[j]);
+			}
+		}
+
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(ext.rootOf(indicesFile)
+																														 + "_regions.txt"));
+
+			out.write("Label\tGene\tPos\tChr\tPvalue\tLambda\tSig Threshold\n");
+			for (String key : regions.keySet()) {
+				ArrayList<String[]> g = regions.get(key);
+				double[] pvals = new double[g.size()];
+				for (int j = 0; j < g.size(); j++) {
+					pvals[j] = Double.parseDouble(g.get(j)[3]);
+				}
+
+				double lambda = ArrayUtils.lambda(pvals);
+				double bf = 0.05 / pvals.length;
+				for (String[] s : g) {
+					out.write(key + "\t" + ArrayUtils.toStr(s) + "\t" + lambda + "\t" + bf + "\n");
+				}
+			}
+			out.close();
+		} catch (IOException e) {
+			log.report("Error writing to " + ext.rootOf(indicesFile) + "_regions.txt");
+		}
+	}
+
 	public static void main(String[] args) throws IOException {
 		if (args.length == 0) {
 			System.out.println(usage);
@@ -425,10 +545,14 @@ public class ParseMXCResults {
 		String refFile = "1000G.xln";
 		String genesFile = "/home/pankrat2/public/bin/NCBI/genes37.xln";
 		String pattern = null;
+		String indexFile = "index.txt";
+
+		int range = 250000;
 
 		boolean verify = false;
 		boolean overwrite = false;
 		boolean combine = false;
+		boolean index = false;
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("help")) {
@@ -460,12 +584,21 @@ public class ParseMXCResults {
 				overwrite = true;
 			else if (arg.startsWith("-combine"))
 				combine = true;
+			else if (arg.startsWith("-index"))
+				index = true;
+			else if (arg.startsWith("indexFile="))
+				indexFile = ext.parseStringArg(arg);
+			else if (arg.startsWith("range="))
+				range = ext.parseIntArg(arg);
 			else
 				log.report("Invalid argument: " + arg);
 		}
 
+
 		if (combine && pattern != null) {
 			combine(pattern, new Logger(ext.parseDirectoryOfFile(pattern) + "combine.log"));
+		} else if (index) {
+			index(indexFile, data, range, new Logger("index.log"));
 		} else {
 			if (verify) {
 				AlleleVerification.verifyAlleles(data, refFile, freqFile, posmap, false, log);
