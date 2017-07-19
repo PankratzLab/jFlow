@@ -1480,7 +1480,6 @@ public class GenvisisWorkflow {
 					Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(RelationAncestryQc.DEFAULT_QC_METRIC_THRESHOLDS);
 					markerQCThresholds.put(QC_METRIC.CALLRATE, variables.get(this).get(callrateReq));
 					new RelationAncestryQc(dir, PLINKROOT, markerQCThresholds, log).run(false);
-					RelationAncestryQc.fullGamut(dir, PLINKROOT, false, proj.getLog());
 					if (new File(dir + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR + PLINKROOT
 											 + ".genome").exists()) {
 						proj.GENOME_CLUSTER_FILENAME.setValue(dir + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR
