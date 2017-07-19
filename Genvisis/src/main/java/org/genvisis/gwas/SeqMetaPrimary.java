@@ -13,6 +13,7 @@ import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
+import org.genvisis.filesys.MetaAnalysisParams;
 import org.genvisis.qsub.Qsub;
 import org.genvisis.stats.Rscript;
 
@@ -399,6 +400,138 @@ public class SeqMetaPrimary {
     Files.chmod("packageUpAll");
   }
 
+  public static String run(MetaAnalysisParams maps, String pheno, String[] chrs, String condFile,
+                           String resultDir, boolean usePrep2, Logger log) {
+    String rCode, currentGeno, currentSnpInfo;
+    boolean runByChr = maps.runningByChr();
+    String snpInfo = maps.getSnpInfoChrsDir()
+                     + (runByChr ? "snpInfo_chr#.RData" : maps.getSnpInfoFilename());
+    String genos = maps.getGenos();
+    String[][] races = maps.getRacesWithFilenameAliases();
+    String[] studies = maps.getStudies();
+    String primaryDir = maps.getPrimaryDir();
+    String rFiles = "";
+
+    if (studies == null || studies.length == 0) studies = new String[] {""};
+
+    for (String study : studies) {
+      for (String[] race : races) {
+        String name;
+        String[] phenos;
+        int i = 0;
+        do {
+          name = (study.equals("") ? "" : study) + (pheno == null ? race[i] : race[i] + pheno);
+          phenos = Files.list(primaryDir, name, ".csv", false, false);
+          i++;
+        } while (phenos.length == 0 && i < race.length);
+
+        for (String phenoFilename : phenos) {
+          for (String c : chrs) {
+            currentGeno = ext.replaceAllWith(ext.replaceAllWith(genos, "#", c), "[%race]",
+                                             race[0].equals("Whites") ? "EA" : "AA");
+            currentSnpInfo = ext.replaceAllWith(snpInfo, "#", c);
+
+            rCode = "library(\"seqMeta\")\n" + "library(\"methods\")\n" + "setwd(\"" + primaryDir
+                    + "\")\n" + "\n"
+                    + (currentSnpInfo.toLowerCase()
+                                     .endsWith(".rdata") ? "obj_name <- load(\"" + currentSnpInfo + "\")\n" + "SNPInfo <- get(obj_name)\n" + "rm(list=obj_name)\n" + "rm(obj_name)\n" : "SNPInfo <- read.csv(\"" + currentSnpInfo + "\", header=T, as.is=T)\n")
+                    + "\n"
+                    + (genos.toLowerCase().endsWith(".rdata")
+                       || genos.toLowerCase().endsWith(".rda")
+                                                               ? "genoName <- load(\"" + currentGeno
+                                                                 + "\")\n" + "Z <- get(genoName)\n"
+                                                                 + "if (any(grepl(\":\", rownames(Z)))){\n"
+                                                                 + "    Z <- t(Z)\n" + "    }\n"
+                                                                 + "percent_miss <- mean(colnames(Z) %in% SNPInfo[,\"SNP\"])\n"
+                                                                 + "if (percent_miss == 0) {\n"
+                                                                 + "    names <- colnames(Z)\n"
+                                                                 + "    for (i in 1:ncol(Z)) {\n"
+                                                                 + "        names[i] <- paste(\"chr\", names[i], sep=\"\")\n"
+                                                                 + "    }\n"
+                                                                 + "    colnames(Z) <- names\n"
+                                                                 + "}\n"
+                                                               : "Z <- t(read.csv(\"" + currentGeno
+                                                                 + "\", header=T, as.is=T, row.names=1))\n"
+                                                                 + "names <- colnames(Z)\n"
+                                                                 + "for (i in 1:ncol(Z)) {\n"
+                                                                 + "    tmp <- names[i]\n"
+                                                                 + "    if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
+                                                                 + "        names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n"
+                                                                 + "    }\n" + "}\n"
+                                                                 + "colnames(Z) <- names\n")
+                    + "\n" + "pheno <- read.csv(\"" + phenoFilename
+                    + "\", header=T, as.is=T, row.names=1)\n" + "xphen <- na.omit(pheno)\n"
+                    + "b <- nrow(unique(pheno[1])) \n" + "if (b > 2) { \n"
+                    + "  family <- \"gaussian\" \n" + "} else {\n" + "  family <= \"binomial\"\n"
+                    + "}\n" + "merged <- merge(xphen, Z, by=\"row.names\")\n"
+                    + "mPheno <- merged[,1:ncol(pheno)+1]\n" + "names <- colnames(pheno)\n"
+                    + "coxy <- sum(names %in% c(\"time\", \"status\"))\n"
+                    + "if (length(names)>1) {\n" + "    if (coxy == 2) {\n"
+                    + "        formu <- paste(\"Surv(time,status)\", \"~\")\n"
+                    + "        if (length(names)>2) {\n"
+                    + "            formu <- paste(formu, names[3])\n"
+                    + "            for (i in 4:length(names)) {\n"
+                    + "                formu <- paste(formu, \"+\", names[i])\n" + "            }\n"
+                    + "        } else {\n" + "                formu <- paste(formu, \"1\")\n"
+                    + "        }\n" + "    } else {\n"
+                    + "        formu <- paste(names[1], \"~\", names[2])\n"
+                    + "        for (i in 3:length(names)) {\n"
+                    + "            formu <- paste(formu, \"+\", names[i])\n" + "        }\n"
+                    + "    }\n" + "} else {\n" + "    len <- length(mPheno)\n"
+                    + "    mPheno <- c(mPheno, rep(1, len))\n" + "    dim(mPheno) <- c(len, 2)\n"
+                    + "    mPheno <- as.data.frame(mPheno)\n"
+                    + "    colnames(mPheno) <- c(names[1], \"dummy\")\n"
+                    + "    formu <- paste(names[1], \"~ 1\")\n" + "}\n" + "\n" + "formu \n"
+                    + "offset <- 1+ncol(pheno)\n" + "mGeno <- merged[,1:ncol(Z)+offset]\n" + "\n"
+                    + "\n" + "chrs <- c(\"Chr\", \"chr\", \"CHROM\")\n"
+                    + "chrindex <- which(colnames(SNPInfo) %in% chrs, arr.ind=T)\n"
+                    + "colnames(SNPInfo)[chrindex] <- \"chr\"\n"
+                    + "conditions <- SNPInfo[0,c(\"SNP\", \"SKATgene\", \"chr\")]\n"
+                    + conditionals(condFile, Integer.parseInt(c)) + "\n"
+                    + "if (nrow(conditions) > 0 & any(colnames(mGeno) %in% conditions$SNP) {\n"
+                    + "  if(family == \"binomial\") { f<-binomial() } else { f<-gaussian() }\n"
+                    + "  message(\"conditions detected; using prepCondScores\")\n" + "  "
+                    + ext.rootOf(phenoFilename) + "_chr" + c
+                    + "<- prepCondScores(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", "
+                    + "aggregateBy=\"SKATgene\", data=mPheno, adjustments=conditions, family=f)\n"
+                    + "} else if (coxy == 2) {\n"
+                    + "    message(\"time to event data detected; using a cox model\")\n" + "    "
+                    + ext.rootOf(phenoFilename) + "_chr" + c
+                    + " <- prepCox(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)\n"
+                    + "} else {\n" + "    message(\"using "
+                    + (usePrep2 ? "prepScores2" : "traditional prepScores method") + "\")\n    "
+                    + ext.rootOf(phenoFilename) + "_chr" + c + " <- prepScores"
+                    + (usePrep2 ? "2" : "")
+                    + "(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno, family=family"
+                    + (c.equals("23") ? ", male=mPhenos$SEX" : "") + ")\n" + "}\n"
+                    // + "results <- singlesnpMeta(" + cohort + "_chr" + i + ", SNPInfo=SNPInfo,
+                    // snpNames = \"Name\", cohortBetas = TRUE)\n"
+                    + "results <- burdenMeta(" + name + c
+                    + ", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), SNPInfo=SNPInfo, snpNames=\"SNP\", wts = 1)\n"
+                    + "write.table(results, \"" + resultDir + ext.rootOf(phenoFilename) + "_chr" + c
+                    + "_beforeSave_results.csv\", sep=\",\", row.names = F)\n" + "save("
+                    + ext.rootOf(phenoFilename) + "_chr" + c + ", file=\"" + resultDir
+                    + ext.rootOf(phenoFilename) + "_chr" + c + ".RData\", compress=\"bzip2\")";
+
+            String filename = resultDir + ext.rootOf(phenoFilename) + "_chr" + c + ".R";
+            try {
+              PrintWriter out = Files.getAppropriateWriter(filename);
+
+              out.write(rCode);
+              rFiles += Rscript.getRscriptExecutable(log) + " --no-save " + filename + "\n";
+              out.close();
+            } catch (Exception e) {
+              log.reportError("Problem writing to " + filename);
+            }
+          }
+        }
+
+      }
+    }
+
+    return rFiles;
+  }
+
   public static void additionalModels(String cohort, String phenosCommaDelimited, String snpInfo,
                                       int qsubMem, double qsubWalltime) {
     String[] phenos;
@@ -652,11 +785,11 @@ public class SeqMetaPrimary {
       } else if (arg.startsWith("-prep2")) {
         usePrep2 = false;
       } else if (arg.startsWith("savename=")) {
-        saveName = arg.split("=")[1];
+        saveName = ext.parseStringArg(arg);
       } else if (arg.startsWith("markers=")) {
-        markers = arg.split("=")[1];
+        markers = ext.parseStringArg(arg);
       } else if (arg.startsWith("conditionals=")) {
-        conditionals = arg.split("=")[1];
+        conditionals = ext.parseStringArg(arg);
       } else {
         System.err.println("Error - invalid argument: " + arg);
       }
@@ -830,11 +963,11 @@ public class SeqMetaPrimary {
     if (condFile != null) {
       rdata = "condMarkers <- read.table(\"" + condFile + "\", header=T)\n" + "\n"
               + "snpsonchr <- SNPInfo[SNPInfo$chr == " + chr + ",]\n"
-              + "for(i in nrow(condMarkers)) {\n" + "  if (condMarkers$chr[i] == " + chr + "){\n"
+              + "for(i in 1:nrow(condMarkers)) {\n" + "  if (condMarkers$chr[i] == " + chr + "){\n"
               + "    cond <- snpsonchr[(snpsonchr$pos >= condMarkers$start[i] & "
               + "snpsonchr$pos <= condMarkers$end[i]), c(\"SNP\", \"SKATgene\")]\n"
               + "    cond$SNP <- rep(condMarkers$SNP[i], nrow(cond))\n" + "    cond<-unique(cond)\n"
-              + "    conditions <- rbind(conditions, cond)\n" + "  }" + "}\n";
+              + "    conditions <- rbind(conditions, cond)\n" + "  }\n" + "}\n";
     }
 
     return rdata;

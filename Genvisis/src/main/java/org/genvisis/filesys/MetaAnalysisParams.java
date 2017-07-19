@@ -21,7 +21,8 @@ public class MetaAnalysisParams {
                                                  "GROUP_ANNOTATION_PARAMS"};
   public static final String[] KEY_PROPERTIES = {"SNP_INFO_FILE=", "VARIANT_NAME=", "CHROM_NAME=",
                                                  "GENE_NAME=", "FUNCTIONAL=", "R_EXEC=",
-                                                 "RUN_BY_CHR=", "SNP_INFO_CHR_DIR="};
+                                                 "RUN_BY_CHR=", "SNP_INFO_CHR_DIR=", "PRIMARY_DIR=",
+                                                 "GENOS="};
 
   private String[] studies;
   private String[] studyGroupings;
@@ -37,6 +38,8 @@ public class MetaAnalysisParams {
   private String rExec;
   private String[][] methods;
   private String[][] groupAnnotationParams;
+  private String genos;
+  private String primaryDir;
   private boolean runByChr;
 
   private BufferedReader reader;
@@ -144,6 +147,10 @@ public class MetaAnalysisParams {
             runByChr = ext.parseBooleanArg(trav);
           } else if (trav.startsWith("SNP_INFO_CHR_DIR=")) {
             snpInfoChrsDir = ext.parseStringArg(trav, null);
+          } else if (trav.startsWith("PRIMARY_DIR=")) {
+            primaryDir = ext.parseStringArg(trav, null);
+          } else if (trav.startsWith("GENOS=")) {
+            genos = ext.parseStringArg(trav, null);
           } else {
             log.reportError("Error - property '" + trav
                             + "' was defined in MetaAnalysisParams.KEY_PROPERTIES but is not yet mapped to a variable name");
@@ -287,6 +294,14 @@ public class MetaAnalysisParams {
 
   public String[][] getMethods() {
     return methods;
+  }
+
+  public String getPrimaryDir() {
+    return primaryDir;
+  }
+
+  public String getGenos() {
+    return genos;
   }
 
   public String[] getGroups() {

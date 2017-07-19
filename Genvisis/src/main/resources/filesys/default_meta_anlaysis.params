@@ -26,6 +26,8 @@ CHROM_NAME=CHROM
 GENE_NAME=SKATgene
 # Set function flag equal to blank ("FUNCTIONAL=") if all variants should be included
 FUNCTIONAL=sc_functional
+PRIMARY_DIR=
+GENOS=
 
 # For R_EXEC, provide the entire path to the Rscript command, leave blank to test the usual locations
 #R_EXEC=/soft/R/3.1.0/bin/Rscript

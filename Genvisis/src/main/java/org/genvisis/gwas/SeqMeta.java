@@ -4120,30 +4120,26 @@ public class SeqMeta {
     String primaryDir = maps.getPrimaryDir();
     String[][] phenotypes = maps.getPhenotypesWithFilenameAliases();
 
-    new File("conditional").mkdirs();
-    String root = new File("").getAbsolutePath();
+    String root = new File("").getAbsolutePath() + "/";
 
     ArrayList<String> rFiles = new ArrayList<String>();
     for (String[] pheno : phenotypes) {
-      // clean up
-
       // build r-script files w/ primary
-      String condFile = hitsDir + pheno[0] + "_SingleVariant.csv";
-      String[] chrs = HashVec.loadFileToStringArray(condFile, true, new int[] {0}, false);
+      String condFile = root + pheno[0] + "_covar.txt";
+      String[] chrs = HashVec.loadFileToStringArray(condFile, true, new int[] {1}, false);
       String resultDir = root + "conditional/" + Files.countLines(condFile, 1) + "/";
       new File(resultDir).mkdirs();
       rFiles.add(SeqMetaPrimary.run(maps, pheno[0], chrs, condFile, resultDir, true, log));
 
+      // clean up based on chr
+      // rm objects/study/race/pheno/*chr#.RData
+      // rm pheno/*/*chr#.csv[.gz]
+      // rm pheno/*/*/*chr#.csv[.gz]
     }
 
-    String condFile = hitsDir + "SingleVariant.csv";
-    String[] chrs = HashVec.loadFileToStringArray(condFile, true, new int[] {0}, false);
-    String resultDir = root + "conditional/" + Files.countLines(condFile, 1) + "/";
-    rFiles.add(SeqMetaPrimary.run(maps, null, chrs, condFile, resultDir, true, log));
-
     // create .pbs qsub that calls .chain followed by the copy function
-    Qsub.qsubExecutor(primaryDir, rFiles, null, "primary",
-                      Math.min(24, chrs.length * phenotypes.length), 62000, 8.0);
+    Qsub.qsubExecutor(primaryDir, rFiles, null, root + "primary", Math.min(24, phenotypes.length),
+                      62000, 8.0);
   }
 
   private static void pickCovars(MetaAnalysisParams maps, String hitsDir, Logger log) {
@@ -4155,6 +4151,7 @@ public class SeqMeta {
     double minPval = Double.MAX_VALUE;
     String markerName = "";
     String chr = "";
+    int pos = -1;
 
     String[][] results;
 
@@ -4163,53 +4160,32 @@ public class SeqMeta {
       filename = hitsDir + pheno[0] + "_SingleVariant.csv";
 
       header = Files.getHeaderOfFile(filename, log);
-      cols = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.PVALUES},
+      cols = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS,
+                                              Aliases.PVALUES},
                               header, false, true, false, false);
 
       results = HashVec.loadFileToStringMatrix(filename, true, cols, false);
       for (int i = 0; i < results.length; i++) {
-        double p = Double.parseDouble(results[i][2]);
+        double p = Double.parseDouble(results[i][3]);
         if (p < minPval) {
           minPval = p;
           markerName = results[i][0];
           chr = results[i][1];
+          pos = Integer.parseInt(results[i][2]);
         }
       }
 
       String covarFile = pheno[0] + "_covar.txt";
 
       PrintWriter out = Files.getAppropriateWriter(covarFile, true);
-      if (!Files.exists(covarFile)) {
-        out.write("MarkerName\tChr");
+      if (!Files.exists(covarFile, false, true)) {
+        out.write("SNP\tchr\tstart\tend");
       }
-
-      out.write(markerName + "\t" + chr);
-
+      int start = Math.max(0, pos - 250000);
+      int end = pos + 250000;
+      out.write("\n" + markerName + "\t" + chr + "\t" + start + "\t" + end);
+      out.close();
     }
-
-    filename = hitsDir + "SingleVariant.csv";
-    header = Files.getHeaderOfFile(filename, log);
-    cols = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.PVALUES},
-                            header, false, true, false, false);
-
-    results = HashVec.loadFileToStringMatrix(filename, true, cols, false);
-    minPval = Double.MAX_VALUE;
-    for (int i = 0; i < results.length; i++) {
-      double p = Double.parseDouble(results[i][2]);
-      if (p < minPval) {
-        minPval = p;
-        markerName = results[i][0];
-        chr = results[i][1];
-      }
-    }
-    String covarFile = "covar.txt";
-
-    PrintWriter out = Files.getAppropriateWriter(covarFile, true);
-    if (!Files.exists(covarFile)) {
-      out.write("MarkerName\tChr");
-    }
-
-    out.write(markerName + "\t" + chr);
   }
 
   public static void main(String[] args) {
