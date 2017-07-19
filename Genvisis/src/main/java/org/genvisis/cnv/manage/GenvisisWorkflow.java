@@ -107,8 +107,8 @@ public class GenvisisWorkflow {
 					if (req instanceof StepRequirement && req != null) {
 						Step requiredStep = ((StepRequirement) req).getRequiredStep();
 						if (requiredStep != null) {
-  						relatedStepsBuilder.add(requiredStep);
-  						relatedStepsBuilder.addAll(requiredStep.getRelatedSteps());
+							relatedStepsBuilder.add(requiredStep);
+							relatedStepsBuilder.addAll(requiredStep.getRelatedSteps());
 						}
 					} else if (req == getNumThreadsReq()) {
 						stepFlags.add(Flag.MULTITHREADED);
@@ -387,7 +387,7 @@ public class GenvisisWorkflow {
 
 		private static String stepReqMessage(Step requiredStep) {
 			String msg = "[" + (requiredStep == null ? "" : requiredStep.getName())
-						 + "] step must have been run already or must be selected";
+									 + "] step must have been run already or must be selected";
 			return msg;
 		}
 
@@ -645,8 +645,8 @@ public class GenvisisWorkflow {
 	public enum Flag {
 		MEMORY, RUNTIME, MULTITHREADED
 	}
-	
-	private static final String numThreadsDesc = "Number of Threads to Use"; 
+
+	private static final String numThreadsDesc = "Number of Threads to Use";
 	private static final String PROJ_PROP_UPDATE_STR = " org.genvisis.cnv.filesys.Project proj=";
 	private static final String PLINK_SUBDIR = "plink/";
 	private static final String PLINKROOT = "plink";
@@ -1137,7 +1137,8 @@ public class GenvisisWorkflow {
 					String kvCmd = "";
 
 					String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
-					String gcOutputFile = variables == null ? null : variables.get(this).get(gcModelOutputReq);
+					String gcOutputFile = variables == null ? null
+																									: variables.get(this).get(gcModelOutputReq);
 					if (gcOutputFile != null && !ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
 						kvCmd += " GC_MODEL_FILENAME=" + gcOutputFile;
 					}
@@ -2120,7 +2121,7 @@ public class GenvisisWorkflow {
 					String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
 					String subSampFile = variables == null ? null : variables.get(this).get(sampleSubsetReq);
 					String setPFBFile = proj.CUSTOM_PFB_FILENAME.getValue();
-					String pfbOutputFile =  variables == null ? null : variables.get(this).get(outputFileReq);
+					String pfbOutputFile = variables == null ? null : variables.get(this).get(outputFileReq);
 
 					if (subSampFile != null && !ext.verifyDirFormat(setSubSampFile).equals(subSampFile)) {
 						kvCmd += " SAMPLE_SUBSET_FILENAME=" + subSampFile;
@@ -2188,7 +2189,9 @@ public class GenvisisWorkflow {
 				@Override
 				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
 
-					int numThreads = resolveThreads(variables == null ? "-1" : variables.get(this).get(getNumThreadsReq()));
+					int numThreads = resolveThreads(variables == null ? "-1"
+																														: variables.get(this)
+																																			 .get(getNumThreadsReq()));
 					String mainCmd = Files.getRunString() + " cnv.filesys.Centroids proj="
 													 + proj.getPropertyFilename() + " -sexSpecific "
 													 + PSF.Ext.NUM_THREADS_COMMAND + numThreads;
@@ -2302,7 +2305,8 @@ public class GenvisisWorkflow {
 						proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output);
 					}
 					if (scope != CALLING_SCOPE.AUTOSOMAL) {
-						CNVCaller.callGenomeCnvs(proj, output, cents, null, CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF,
+						CNVCaller.callGenomeCnvs(proj, output, cents, null, CNVCaller.DEFAULT_MIN_SITES,
+																		 CNVCaller.DEFAULT_MIN_CONF,
 																		 PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
 
 						proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output + "_23M.cnv");
@@ -2402,7 +2406,8 @@ public class GenvisisWorkflow {
 																																		CORRECTION_TYPE.XY);
 			final Requirement sexChromosomeStrategyReq = new EnumRequirement("Sex Chromosome Strategy",
 																																			 CHROMOSOME_X_STRATEGY.BIOLOGICAL);
-			final Requirement setupCNVCalling = new OptionalBoolRequirement("Create script with steps to process corrected data and call CNVs?", false);
+			final Requirement setupCNVCalling = new OptionalBoolRequirement("Create script with steps to process corrected data and call CNVs?",
+																																			false);
 			return register(new Step("Create PC-Corrected Project", "",
 															 new Requirement[][] {{parseSamplesStepReq}, {numPCsReq},
 																										{outputBaseReq},
@@ -2411,7 +2416,7 @@ public class GenvisisWorkflow {
 																										{sexChromosomeStrategyReq},
 																										{getNumThreadsReq()},
 																										{setupCNVCalling},
-																										},
+															 },
 															 EnumSet.of(Flag.MEMORY, Flag.RUNTIME), priority()) {
 
 				@Override
@@ -2442,10 +2447,10 @@ public class GenvisisWorkflow {
 																				 totalThreads, cnvCalling);
 					if (retMsg != null && !"".equals(retMsg)) {
 						setFailed(retMsg);
-					} 
+					}
 				}
-				
-				
+
+
 				@Override
 				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
 					int numComponents = Integer.parseInt(variables.get(this).get(numPCsReq));
