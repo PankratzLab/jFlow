@@ -17,6 +17,7 @@ import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
@@ -281,6 +282,7 @@ public class PlinkMendelianChecker {
 	final String mendelFile; // from MarkerMetrics.fullQC - outputs a property file with an appended
 													 // name
 	final String outDir;
+	final Logger log;
 
 	public PlinkMendelianChecker(Project project) {
 		this.project = project;
@@ -290,16 +292,18 @@ public class PlinkMendelianChecker {
 		genomeFile = project.GENOME_CLUSTER_FILENAME.getValue();
 		genomeDNA = false;
 		outDir = parseOutputDirectory(project);
+		log = project.getLog();
 	}
 
 	public PlinkMendelianChecker(String pedFile, String mendelFile, String genomeFile,
-															 boolean genomeDNA, String outDir) {
+															 boolean genomeDNA, String outDir, Logger log) {
 		project = null;
 		this.pedFile = pedFile;
 		this.mendelFile = mendelFile;
 		this.genomeFile = genomeFile;
 		this.genomeDNA = genomeDNA;
 		this.outDir = ext.verifyDirFormat(outDir);
+		this.log = log;
 	}
 
 
@@ -454,19 +458,17 @@ public class PlinkMendelianChecker {
 			System.out.println(ext.getTime() + "]\tLoading GenomicCluster data...");
 			gl = GenomeLoader.run(genomeFile, pairs);
 		} else {
-			project.getLog()
-						 .reportTimeWarning("No Genome data found - output will be limited. Is "
-																+ project.GENOME_CLUSTER_FILENAME.getName()
-																+ " set appropriately?");
+			log.reportTimeWarning("No Genome data found - output will be limited. Is "
+														+ project.GENOME_CLUSTER_FILENAME.getName()
+														+ " set appropriately?");
 		}
 		if (mendelFile != null && (new File(mendelFile)).exists()) {
 			System.out.println(ext.getTime() + "]\tLoading MendelianError data...");
 			ml = MendelLoader.run(mendelFile);
 		} else {
-			project.getLog()
-						 .reportTimeWarning("Mendelian data not found"
-																+ (mendelFile == null ? "" : " at " + mendelFile)
-																+ " - output will be limited");
+			log.reportTimeWarning("Mendelian data not found"
+														+ (mendelFile == null ? "" : " at " + mendelFile)
+														+ " - output will be limited");
 		}
 
 		StringBuilder sb;
@@ -1072,7 +1074,8 @@ public class PlinkMendelianChecker {
 				if (out == null) {
 					out = ext.parseDirectoryOfFile(ped);
 				}
-				(new PlinkMendelianChecker(ped, mendel, genome, genomeDNA, out)).run();
+				(new PlinkMendelianChecker(ped, mendel, genome, genomeDNA, out,
+																	 new Logger("plinkMendelianChecks.log"))).run();
 			} else {
 				System.err.println(usage);
 				System.exit(1);
