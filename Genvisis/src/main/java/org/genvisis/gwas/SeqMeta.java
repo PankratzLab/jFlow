@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -873,7 +874,8 @@ public class SeqMeta {
                              + (runningByChr ? "_chr" + chrom : "") + ".csv";
             if (forceMeta
                 || (!Files.exists(outputFilename) && !Files.exists(outputFilename + ".gz"))
-                || new File(outputFilename).length() == 0) {
+                || (new File(outputFilename).length() < 100
+                    && new File(outputFilename + ".gz").length() < 100)) {
               if (objects.size() > 0) {
                 commands.add("results <- " + method[2] + "("
                              + ArrayUtils.toStr(ArrayUtils.toStringArray(objects), ", ")
@@ -1757,7 +1759,7 @@ public class SeqMeta {
     Logger log;
     String localDir, localRaceDir;
     Hashtable<String, Hits> groupHits;
-    Hashtable<String, HashSet<String>> groupParams;
+    Hashtable<String, ArrayList<String>> groupParams;
     String[] groups, hits;
     String filename, pvalFile;
     String[] header;
@@ -1834,7 +1836,8 @@ public class SeqMeta {
           if (!groupHits.containsKey(methods[m][1] + (useFunc ? "" : "_" + functionFileName))) {
             groupHits.put(methods[m][1] + (useFunc ? "" : "_" + functionFileName), new Hits());
             groupParams.put(methods[m][1] + (useFunc ? "" : "_" + functionFileName),
-                            new HashSet<>());
+                            new ArrayList<>());
+>>>>>>> d1e2ec560... [SeqMeta] pretties up -hits output column order 
           }
         }
 
@@ -1852,7 +1855,7 @@ public class SeqMeta {
         macHashesHashByRace.put("PanEthnic", new Hashtable<>());
       }
 
-      groupParams.put("SingleVariant", new HashSet<String>());
+      groupParams.put("SingleVariant", new ArrayList<>());
       for (String functionFileName : functionNames) {
         for (int m = 0; m < methods.length; m++) {
           boolean useFunc = functionFileName.equals("None")
@@ -1932,7 +1935,10 @@ public class SeqMeta {
                 if (methods[m][1].equals("BurdenTests")) {
                   groupParams.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
                              .add(localRaceDir + filename + " " + ArrayUtils.toStr(header, " "));
-                } else {
+                } else if (!groupParams.get(methods[m][1])
+                                       .contains(localRaceDir + filename + " "
+                                                 + ArrayUtils.toStr(ArrayUtils.subArray(header, 1),
+                                                                    " "))) {
                   groupParams.get(methods[m][1])
                              .add(localRaceDir + filename + " "
                                   + ArrayUtils.toStr(ArrayUtils.subArray(header, 1), " "));
@@ -1971,10 +1977,15 @@ public class SeqMeta {
               header[1] = temp;
               header = ArrayUtils.subArray(header, 0, getHeaderForMethod(methods[m]).length);
             }
-            groupParams.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
-                       .add(localRaceDir + filename + " " + ArrayUtils.toStr(header, " "));
-            groupHits.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
-                     .incorporateFromFile(localDir + pvalFile, new int[] {0, 1}, 0.001, log);
+
+            if (!groupParams.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
+                            .contains(localRaceDir + filename + " "
+                                      + ArrayUtils.toStr(header, " "))) {
+              groupParams.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
+                         .add(k, localRaceDir + filename + " " + ArrayUtils.toStr(header, " "));
+              groupHits.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
+                       .incorporateFromFile(localDir + pvalFile, new int[] {0, 1}, 0.001, log);
+            }
           }
 
           filename = phenotypes[i][0] + "_" + methods[m][0]
@@ -2006,10 +2017,13 @@ public class SeqMeta {
             header = ArrayUtils.subArray(header, 0, getHeaderForMethod(methods[m]).length);
           }
 
-          groupParams.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
-                     .add(localDir + filename + " " + ArrayUtils.toStr(header, " "));
-          groupHits.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
-                   .incorporateFromFile(localDir + pvalFile, new int[] {0, 1}, 0.001, log);
+          if (!groupParams.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
+                          .contains(localDir + filename + " " + ArrayUtils.toStr(header, " "))) {
+            groupParams.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
+                       .add(0, localDir + filename + " " + ArrayUtils.toStr(header, " "));
+            groupHits.get(methods[m][1] + (useFunc ? "" : "_" + functionFileName))
+                     .incorporateFromFile(localDir + pvalFile, new int[] {0, 1}, 0.001, log);
+          }
 
           // filename = PHENOTYPES[i][0]+"_"+METHODS[j][0]+".pval.metal";
           // if (!Files.exists(localDir+filename+"1.out") || new
@@ -2051,17 +2065,17 @@ public class SeqMeta {
                      + phenotypes[i][0] + "/ for empty or missing .csv files.");
           continue;
         }
-        groupParams.get(group).add(filename + " 0 1=minPval skip=0");
+        groupParams.get(group).add(0, filename + " 0 1=minPval skip=0");
         if (group.startsWith("BurdenTests")) {
           String[] func = (group.split("_", 2));
           line = HashVec.getKeys(macHashesHashByRace.get("PanEthnic"
                                                          + (func.length == 1 ? ""
                                                                              : "_" + func[1])));
           for (String element : line) {
-            groupParams.get(group)
-                       .add(dir + phenotypes[i][0] + "/" + "minorAlleleCounts.maf" + element
-                            + (func.length == 1 ? "" : "." + func[1]) + ".xln 0 'Total'=MAC<"
-                            + element + "%");
+            groupParams.get(group).add(1,
+                                       dir + phenotypes[i][0] + "/" + "minorAlleleCounts.maf"
+                                          + element + (func.length == 1 ? "" : "." + func[1])
+                                          + ".xln 0 'Total'=MAC<" + element + "%");
           }
         }
 
@@ -2081,10 +2095,8 @@ public class SeqMeta {
         count = 0;
         for (String[] groupAnnotationParam : groupAnnotationParams) {
           if (group.startsWith(groupAnnotationParam[0])) {
-            groupParams.get(group).add(dir + groupAnnotationParam[1]);
+            groupParams.get(group).add(count, dir + groupAnnotationParam[1]);
             count++;
-            // change from Vector to HashSet means ordering in groupParams no longer works
-            // count is currently unused here; this should only affect .crf generation
           }
         }
         try {
@@ -4104,6 +4116,102 @@ public class SeqMeta {
     }
   }
 
+  private static void runPrimary(MetaAnalysisParams maps, String hitsDir, Logger log) {
+    String primaryDir = maps.getPrimaryDir();
+    String[][] phenotypes = maps.getPhenotypesWithFilenameAliases();
+
+    new File("conditional").mkdirs();
+    String root = new File("").getAbsolutePath();
+
+    ArrayList<String> rFiles = new ArrayList<String>();
+    for (String[] pheno : phenotypes) {
+      // clean up
+
+      // build r-script files w/ primary
+      String condFile = hitsDir + pheno[0] + "_SingleVariant.csv";
+      String[] chrs = HashVec.loadFileToStringArray(condFile, true, new int[] {0}, false);
+      String resultDir = root + "conditional/" + Files.countLines(condFile, 1) + "/";
+      new File(resultDir).mkdirs();
+      rFiles.add(SeqMetaPrimary.run(maps, pheno[0], chrs, condFile, resultDir, true, log));
+
+    }
+
+    String condFile = hitsDir + "SingleVariant.csv";
+    String[] chrs = HashVec.loadFileToStringArray(condFile, true, new int[] {0}, false);
+    String resultDir = root + "conditional/" + Files.countLines(condFile, 1) + "/";
+    rFiles.add(SeqMetaPrimary.run(maps, null, chrs, condFile, resultDir, true, log));
+
+    // create .pbs qsub that calls .chain followed by the copy function
+    Qsub.qsubExecutor(primaryDir, rFiles, null, "primary",
+                      Math.min(24, chrs.length * phenotypes.length), 62000, 8.0);
+  }
+
+  private static void pickCovars(MetaAnalysisParams maps, String hitsDir, Logger log) {
+    // find the hitsAssembled/SingleSnp
+    String[][] phenotypes = maps.getPhenotypesWithFilenameAliases();
+    String filename;
+    String[] header;
+    int[] cols;
+    double minPval = Double.MAX_VALUE;
+    String markerName = "";
+    String chr = "";
+
+    String[][] results;
+
+    for (String[] pheno : phenotypes) {
+      // build a covar file for pheno_SingleVariant
+      filename = hitsDir + pheno[0] + "_SingleVariant.csv";
+
+      header = Files.getHeaderOfFile(filename, log);
+      cols = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.PVALUES},
+                              header, false, true, false, false);
+
+      results = HashVec.loadFileToStringMatrix(filename, true, cols, false);
+      for (int i = 0; i < results.length; i++) {
+        double p = Double.parseDouble(results[i][2]);
+        if (p < minPval) {
+          minPval = p;
+          markerName = results[i][0];
+          chr = results[i][1];
+        }
+      }
+
+      String covarFile = pheno[0] + "_covar.txt";
+
+      PrintWriter out = Files.getAppropriateWriter(covarFile, true);
+      if (!Files.exists(covarFile)) {
+        out.write("MarkerName\tChr");
+      }
+
+      out.write(markerName + "\t" + chr);
+
+    }
+
+    filename = hitsDir + "SingleVariant.csv";
+    header = Files.getHeaderOfFile(filename, log);
+    cols = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.PVALUES},
+                            header, false, true, false, false);
+
+    results = HashVec.loadFileToStringMatrix(filename, true, cols, false);
+    minPval = Double.MAX_VALUE;
+    for (int i = 0; i < results.length; i++) {
+      double p = Double.parseDouble(results[i][2]);
+      if (p < minPval) {
+        minPval = p;
+        markerName = results[i][0];
+        chr = results[i][1];
+      }
+    }
+    String covarFile = "covar.txt";
+
+    PrintWriter out = Files.getAppropriateWriter(covarFile, true);
+    if (!Files.exists(covarFile)) {
+      out.write("MarkerName\tChr");
+    }
+
+    out.write(markerName + "\t" + chr);
+  }
+
   public static void main(String[] args) {
     int numArgs = args.length;
     String logfile = null;
@@ -4149,6 +4257,8 @@ public class SeqMeta {
     String forestMarkerList = null;
     boolean concatenateHits = false;
     boolean prepHits = false;
+    boolean covar = false;
+    boolean primary = false;
 
     // metalCohortSensitivity("D:/ExomeChip/Hematology/results/DecemberPresentation/",
     // "Whites_Hct_SingleSNP_withLRGP.csv", new Logger());
@@ -4367,6 +4477,12 @@ public class SeqMeta {
       } else if (arg.startsWith("log=")) {
         logfile = arg.split("=")[1];
         numArgs--;
+      } else if (arg.startsWith("-covar")) {
+        covar = true;
+        numArgs--;
+      } else if (arg.startsWith("-primary")) {
+        primary = true;
+        numArgs--;
       } else {
         System.err.println("Error - invalid argument: " + arg);
       }
@@ -4499,6 +4615,10 @@ public class SeqMeta {
           conatenateHits(dir, maps, hitsDirectory, log);
         } else if (forestMarkerList != null) {
           prepForestFile(dir, maps, forestMarkerList, hitsDirectory);
+        } else if (covar) {
+          pickCovars(maps, hitsDirectory, log);
+        } else if (primary) {
+          runPrimary(maps, hitsDirectory, log);
         }
       }
     } catch (Exception e) {
