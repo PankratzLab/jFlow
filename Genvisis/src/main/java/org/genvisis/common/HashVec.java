@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -230,6 +231,14 @@ public class HashVec {
 		return v == null ? null : ArrayUtils.toStringArray(v);
 	}
 
+	public static String[] loadFileToStringArray(String filename, boolean ignoreFirstLine,
+																							 Collection<String> commentIndicators, int[] cols,
+																							 boolean onlyIfAbsent) {
+		Vector<String> v = loadFileToVec(filename, ignoreFirstLine, commentIndicators, cols,
+																		 onlyIfAbsent, false);
+		return v == null ? null : ArrayUtils.toStringArray(v);
+	}
+
 	public static String[] loadFileToStringArray(String filename, boolean jar,
 																							 boolean ignoreFirstLine, int[] cols,
 																							 boolean onlyIfAbsent) {
@@ -252,13 +261,28 @@ public class HashVec {
 												 Files.determineDelimiter(filename, new Logger()));
 	}
 
+	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine,
+																						 Collection<String> commentIndicators, int[] cols,
+																						 boolean onlyIfAbsent, boolean jar) {
+		return loadFileToVec(filename, ignoreFirstLine, commentIndicators, cols, true, onlyIfAbsent,
+												 jar,
+												 Files.determineDelimiter(filename, new Logger()));
+	}
+
 	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine, int[] cols,
+																						 boolean trimFirst, boolean onlyIfAbsent, boolean jar,
+																						 String delimiter) {
+		return loadFileToVec(filename, ignoreFirstLine, Collections.emptyList(), cols, trimFirst,
+												 onlyIfAbsent, jar, delimiter);
+	}
+
+	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine,
+																						 Collection<String> commentIndicators, int[] cols,
 																						 boolean trimFirst, boolean onlyIfAbsent, boolean jar,
 																						 String delimiter) {
 		BufferedReader reader = null;
 		Vector<String> v = new Vector<String>();
 		HashSet<String> onlyIfAbsentHash = new HashSet<String>();
-		String trav;
 		String[] line;
 		int count;
 
@@ -273,29 +297,32 @@ public class HashVec {
 			}
 			count = 1;
 			while (reader.ready()) {
-				trav = reader.readLine();
-				if (cols != null) {
-					if (trimFirst) {
-						trav = trav.trim(); // trim() needed for all PLINK files
-					}
-					if (delimiter.equals(",")) {
-						line = ext.splitCommasIntelligently(trav, true, new Logger());
-					} else {
-						line = trav.split(delimiter, -1);
-					}
-					trav = "";
-					for (int i = 0; i < cols.length; i++) {
-						if (line.length <= cols[i]) {
-							System.err.println("Error - not enough columns at line " + count + " of file "
-																 + filename + ": " + ArrayUtils.toStr(line));
+				final String readLine = reader.readLine();
+				if (!commentIndicators.stream().anyMatch(readLine::startsWith)) {
+					String trav = readLine;
+					if (cols != null) {
+						if (trimFirst) {
+							trav = trav.trim(); // trim() needed for all PLINK files
 						}
-						trav += (i == 0 ? "" : "\t") + line[cols[i]];
+						if (delimiter.equals(",")) {
+							line = ext.splitCommasIntelligently(trav, true, new Logger());
+						} else {
+							line = trav.split(delimiter, -1);
+						}
+						trav = "";
+						for (int i = 0; i < cols.length; i++) {
+							if (line.length <= cols[i]) {
+								System.err.println("Error - not enough columns at line " + count + " of file "
+																	 + filename + ": " + ArrayUtils.toStr(line));
+							}
+							trav += (i == 0 ? "" : "\t") + line[cols[i]];
+						}
 					}
-				}
-				if (!onlyIfAbsent || !onlyIfAbsentHash.contains(trav)) {
-					v.add(trav);
-					if (onlyIfAbsent) {
-						onlyIfAbsentHash.add(trav);
+					if (!onlyIfAbsent || !onlyIfAbsentHash.contains(trav)) {
+						v.add(trav);
+						if (onlyIfAbsent) {
+							onlyIfAbsentHash.add(trav);
+						}
 					}
 				}
 				count++;
