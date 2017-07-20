@@ -20,6 +20,7 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.Producer;
 import org.genvisis.common.ext;
+import org.genvisis.filesys.Pedfile;
 import org.genvisis.seq.analysis.GATK.GenotypeRefiner;
 import org.genvisis.seq.analysis.GATK.Mutect;
 import org.genvisis.seq.manage.ReferenceGenome;
@@ -68,7 +69,8 @@ public class GenotypeRefinement {
 																			int threads) {
 		new File(outputDir).mkdirs();
 		Logger log = new Logger(outputDir + "gtRefine.log");
-		String[] sampsinPed = HashVec.loadFileToStringArray(ped, false, new int[] {1}, true);
+		String[] sampsinPed = HashVec.loadFileToStringArray(ped, false, Pedfile.COMMENT_INDICATORS,
+																												new int[] {1}, true);
 		String[] vcfSamps = VCFOps.getSamplesInFile(vcf);
 		if (!ext.containsAll(sampsinPed, vcfSamps)) {
 			throw new IllegalArgumentException("All pedigree samples must be in vcf file");

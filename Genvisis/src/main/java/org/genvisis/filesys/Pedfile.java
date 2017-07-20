@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Hashtable;
 
@@ -15,10 +16,12 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.Vectors;
 import org.genvisis.common.ext;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 
 public class Pedfile {
 	public static final String[] MISSING_VALUES = {"0"};
+	public static final Collection<String> COMMENT_INDICATORS = ImmutableList.of("#");
 
 	private FamilyStructure famStruct;
 	private int[][] markerCounts;
