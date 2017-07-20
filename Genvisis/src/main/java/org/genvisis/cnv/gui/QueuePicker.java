@@ -386,6 +386,8 @@ public class QueuePicker extends JDialog {
 			mMin = mMin / 1024;
 			mMax = mMax / 1024;
 		}
+		mMin = Math.min(mMin, m);
+		mMax = Math.max(mMax, m);
 
 		spinMem.setModel(new SpinnerNumberModel((int) m, (int) mMin, (int) mMax, 1));
 		spinMem.setEditor(new JSpinner.NumberEditor(spinMem, "00"));
