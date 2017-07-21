@@ -194,7 +194,10 @@ public class Grafik {
 
 		// if (jar) {
 		try {
-			iicon = new ImageIcon(ClassLoader.getSystemResource(filename));
+			if (!filename.startsWith("/")) {
+				filename = "/" + filename;
+			}
+			iicon = new ImageIcon(Grafik.class.getResource(filename));
 		} catch (NullPointerException npe) {
 			iicon = null;
 		}
