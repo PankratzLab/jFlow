@@ -16,6 +16,7 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -4095,5 +4096,50 @@ public class Files {
 			e.printStackTrace();
 		}
 	}
+
+	public static String tail(String filename, int numLines) {
+	    RandomAccessFile fileHandler = null;
+	    try {
+	        fileHandler = new java.io.RandomAccessFile(new File(filename), "r");
+	        long fileLength = fileHandler.length() - 1;
+	        StringBuilder sb = new StringBuilder();
+	        int line = 0;
+
+	        for(long filePointer = fileLength; filePointer != -1; filePointer--){
+	            fileHandler.seek( filePointer );
+	            int readByte = fileHandler.readByte();
+
+	             if(readByte == 0xA) {
+	                if (filePointer < fileLength) {
+	                    line = line + 1;
+	                }
+	            } else if(readByte == 0xD) {
+	                if (filePointer < fileLength-1) {
+	                    line = line + 1;
+	                }
+	            }
+	            if (line >= numLines) {
+	                break;
+	            }
+	            sb.append((char)readByte );
+	        }
+
+	        String lastLine = sb.reverse().toString();
+	        return lastLine;
+	    } catch(FileNotFoundException e) {
+	        e.printStackTrace();
+	        return null;
+	    } catch(IOException e) {
+	        e.printStackTrace();
+	        return null;
+	    }
+	    finally {
+	        if (fileHandler != null )
+	            try {
+	                fileHandler.close();
+	            } catch (IOException e) {
+	            }
+	    }
+	}	
 
 }
