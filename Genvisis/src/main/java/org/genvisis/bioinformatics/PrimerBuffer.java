@@ -17,12 +17,17 @@ import org.genvisis.seq.manage.ReferenceGenome;
 
 public class PrimerBuffer {
 	private static final String[] HEADER = new String[] {"CHR", "START", "STOP", "TARGET_SEQUENCE"};
-	private static final String[] HEADER_OUT_ADD = new String[] {"BUFFER_LOCATION",
-																															 "BUFFER_SEQUENCE_TOTAL_LENGTH",
-																															 "BUFFER_SEQUENCE"};
+	private static final String[] HEADER_OUT_ADD = new String[] {"BUFFER_LOCATION", "BUFFER_SEQUENCE_TOTAL_LENGTH", "BUFFER_SEQUENCE"};
 
-	private static void extractBuffer(String queryFile, String referenceGenomeFast, int bpBuffer,
-																		Logger log) {
+	private static void extractBuffer(String queryFile, String referenceGenomeFast, int bpBuffer, Logger log) {
+		if (!Files.exists(referenceGenomeFast)) {
+			log.reportError("Error - could not find the reference genome provided as an argument: "+referenceGenomeFast);
+			return;
+		} else if (!Files.exists(referenceGenomeFast+".fai")) {
+			log.reportError("Error - could not find the index file for the reference genome: "+referenceGenomeFast+".fai");
+			return;
+		}
+		
 		ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFast, log);
 		String output = ext.addToRoot(queryFile, ".query");
 		ArrayList<ReferenceAlleleQuery> rAlleleQueries = new ArrayList<ReferenceAlleleQuery>();
