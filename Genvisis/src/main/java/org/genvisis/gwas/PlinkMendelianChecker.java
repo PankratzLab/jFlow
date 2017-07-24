@@ -359,9 +359,9 @@ public class PlinkMendelianChecker {
 			pedDNA.add(ped.getDnas()[i]);
 			pedToFAMO.put(ped.getFID(i) + "\t" + ped.getIID(i),
 										new String[] {"0".equals(ped.getFA(i)) ? "."
-																													 : ped.getFID(i) + "\t" + ped.getFA(i),
+																													: ped.getFID(i) + "\t" + ped.getFA(i),
 																	"0".equals(ped.getMO(i)) ? "."
-																													 : ped.getFID(i) + "\t" + ped.getMO(i)});
+																													: ped.getFID(i) + "\t" + ped.getMO(i)});
 			if (!"0".equals(ped.getFA(i))) {
 				ArrayList<String> children = childrenMap.get(ped.getFID(i) + "\t" + ped.getFA(i));
 				if (children == null) {
@@ -408,7 +408,7 @@ public class PlinkMendelianChecker {
 				}
 
 				String[] famo = pedToFAMO.get(childFIDIID);
-				ArrayList<String> spouseChildren = null;
+				ArrayList<String> spouseChildren = new ArrayList<>();
 				if (famo[0].equals(fidiid) && !".".equals(famo[1])) {
 					spouseChildren = childrenMap.get(famo[1]);
 				} else if (famo[1].equals(fidiid) && !".".equals(famo[0])) {
@@ -472,12 +472,14 @@ public class PlinkMendelianChecker {
 		}
 
 		StringBuilder sb;
-		sb = new StringBuilder().append(FAMID).append("\t").append(INDID).append("\t").append(FATHER_ID)
+		sb = new StringBuilder().append(FAMID).append("\t").append(INDID).append("\t")
+														.append(FATHER_ID)
 														.append("\t").append(MOTHER_ID).append("\t").append("SEX").append("\t")
 														.append(IND_DNA).append("\t").append(FATHER_DNA).append("\t")
 														.append(MOTHER_DNA).append("\t");
 		if (gl != null) {
-			sb.append("IBD0_FATHER").append("\t").append("IBD1_FATHER").append("\t").append("IBD2_FATHER")
+			sb.append("IBD0_FATHER").append("\t").append("IBD1_FATHER").append("\t")
+				.append("IBD2_FATHER")
 				.append("\t").append("PIHAT_FATHER").append("\t").append("IBD0_MOTHER").append("\t")
 				.append("IBD1_MOTHER").append("\t").append("IBD2_MOTHER").append("\t")
 				.append("PIHAT_MOTHER").append("\t");
@@ -766,7 +768,7 @@ public class PlinkMendelianChecker {
 					continue;
 				}
 				String[] famo = pedToFAMO.get(childFIDIID);
-				ArrayList<String> spouseChildren = null;
+				ArrayList<String> spouseChildren = new ArrayList<>();
 				if (famo[0].equals(fidiid) && !".".equals(famo[1])) {
 					spouseChildren = childrenMap.get(famo[1]);
 				} else if (famo[1].equals(fidiid) && !".".equals(famo[0])) {
@@ -1026,9 +1028,11 @@ public class PlinkMendelianChecker {
 		String out = null;
 		boolean genomeDNA = false;
 
-		String usage = "\n" + "gwas.PlinkMendelianChecker requires 0-1 arguments\n"
+		String usage = "\n"
+									 + "gwas.PlinkMendelianChecker requires 0-1 arguments\n"
 									 + "   (1) Project properties filename (i.e. proj="
-									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)
+									 + " (default))\n"
 									 + "  OR \n"
 									 + "   (1) File with pedigree data (i.e. pedigree=pedigree.dat (not the default))\n"
 									 + "   (2) (optional) File with Mendelian Error data (i.e. mendel=markerQualityChecks.mendel (not the default))\n"

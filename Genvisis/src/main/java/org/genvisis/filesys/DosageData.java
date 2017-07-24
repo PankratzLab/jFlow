@@ -2412,7 +2412,7 @@ public class DosageData implements Serializable {
 		return 0;
 	}
 
-	private static String[] loadMarkers(String markersToUseFile, Logger log) {
+	public static String[] loadMarkers(String markersToUseFile, Logger log) {
 		String[] markers = null;
 
 		if (markersToUseFile != null && !"".equals(markersToUseFile)) {

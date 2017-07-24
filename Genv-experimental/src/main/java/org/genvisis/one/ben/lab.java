@@ -696,6 +696,31 @@ public class lab {
 		writer.close();
 	}
 
+	private static void run() {
+
+		String dir = "F:/temp/HB_PLINK/dupeSets/";
+		String file = "Marcotte_dupeSet1.ped.in";
+		String out = "Marcotte_dupeSet1.ped";
+
+		String[][] data = HashVec.loadFileToStringMatrix(dir + file, false, null, "\t", false, 3000,
+																										 false);
+
+		PrintWriter writer = Files.getAppropriateWriter(dir + out);
+		for (String[] line : data) {
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < 6; i++) {
+				sb.append(line[i]).append("\t");
+			}
+			for (int i = 6; i < line.length; i++) {
+				sb.append(line[i].charAt(0)).append("\t").append(line[i].charAt(1)).append("\t");
+			}
+			writer.println(sb.toString());
+		}
+		writer.flush();
+		writer.close();
+
+	}
+
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		Project proj;
@@ -705,7 +730,7 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
-
+			run();
 			// String dir = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/";
 			// String mkrInfoFile = "/home/pankrat2/cole0482/Affy6_duplicates.txt";
 			// String missDropsFile = dir + "quality_control/further_analysis_QC/miss_drops.dat";

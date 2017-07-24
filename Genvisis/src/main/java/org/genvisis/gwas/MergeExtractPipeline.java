@@ -56,6 +56,7 @@ public class MergeExtractPipeline {
 	int[][] regions;
 	String[] regionLabels;
 
+	boolean permissiveLookup = true;
 	boolean splitOutput = false;
 	boolean overwrite = false;
 	boolean renameMarkers = true;
@@ -68,7 +69,11 @@ public class MergeExtractPipeline {
 
 	private void initLog() {
 		if (log == null) {
-			log = new Logger();
+			log = new Logger(markersFile != null ? ext.rootOf(markersFile, false)
+																					: (regionsFile != null ? ext.rootOf(regionsFile, false)
+																																: "./MergeExtractPipeline."
+																																	+ ext.getDate())
+																						+ ".log");
 		}
 	}
 
@@ -193,6 +198,11 @@ public class MergeExtractPipeline {
 		return this;
 	}
 
+	public MergeExtractPipeline setPermissiveMarkerFiltering(boolean permissiveLookup) {
+		this.permissiveLookup = permissiveLookup;
+		return this;
+	}
+
 	public MergeExtractPipeline setBestGuessOutput(boolean bestGuess) {
 		bestGuessOutput = bestGuess;
 		return this;
@@ -293,8 +303,7 @@ public class MergeExtractPipeline {
 					} else {
 						Matcher m = Pattern.compile(DosageData.CHR_REGEX).matcher(name);
 						if (m.matches()) {
-							byte chr = -1;
-							chr = (byte) Integer.parseInt(m.group(1));
+							byte chr = Positions.chromosomeNumber(m.group(1), false, log);
 							int bpStart = -1, bpEnd = -1;
 							String[] testPos = name.split("\\.");
 							for (int i = 0; i < testPos.length; i++) {
@@ -454,6 +463,31 @@ public class MergeExtractPipeline {
 		// }
 		// }
 
+		ArrayList<String> tempMarkerFiles = new ArrayList<>();
+		String origMkrsFile = markersFile;
+		if (permissiveLookup && markers != null) {
+			HashSet<String> allMarkersLookup = new HashSet<>();
+			for (int i = 0; i < markers.length; i++) {
+				allMarkersLookup.add(markers[i]);
+				if (!markers[i].contains(":")) {
+					String temp = markerLocations[i][0] + ":" + markerLocations[i][1];
+					allMarkersLookup.add("chr" + temp);
+					allMarkersLookup.add(temp);
+				}
+			}
+			if (allMarkersLookup.size() > markers.length) {
+				String tempFile = "./tempMarkers." + ext.replaceWithLinuxSafeCharacters(ext.getDate())
+													+ ".snp";
+
+				log.reportTime("Permissive Lookup flagged, creating a temporary marker lookup file at "
+											 + tempFile + ".  This will be removed after completion.");
+
+				Files.writeIterable(allMarkersLookup, tempFile);
+				markersFile = tempFile;
+				tempMarkerFiles.add(tempFile);
+			}
+		}
+
 		ArrayList<String> plinkRoots = new ArrayList<String>();
 		ArrayList<String> plinkLabels = new ArrayList<String>();
 		// discover and merge all plink files
@@ -494,6 +528,7 @@ public class MergeExtractPipeline {
 																																														 // PlinkMergePrep
 			if (markersFile != null && !"".equals(markersFile)) {
 				String newMkrFile = (new File(PlinkMergePrep.TEMP_MKR_FILE)).getAbsolutePath();
+				tempMarkerFiles.add(newMkrFile);
 				log.report("Setting markers file to temporarily generated plink-renamed markers file: "
 									 + newMkrFile);
 				markersFile = newMkrFile;
@@ -525,9 +560,9 @@ public class MergeExtractPipeline {
 					combineAnnotations(annotations, dd2Annots, dd2.getMarkerSet().getAnnotation(),
 														 dd2.getMarkerSet().getMarkerNames());
 				}
+				dd1 = DosageData.combine(dd1, dd2, DosageData.COMBINE_OP.EITHER_IF_OTHER_MISSING,
+																 bestGuessOutput, bestGuessThreshold, log);
 			}
-			dd1 = DosageData.combine(dd1, dd2, DosageData.COMBINE_OP.EITHER_IF_OTHER_MISSING,
-															 bestGuessOutput, bestGuessThreshold, log);
 			dd2 = null;
 			System.gc();
 		}
@@ -559,6 +594,10 @@ public class MergeExtractPipeline {
 		}
 
 		writeAnnotations(allMarkers, annotations);
+
+		for (String f : tempMarkerFiles) {
+			new File(f).delete();
+		}
 
 		System.gc();
 	}
@@ -815,6 +854,7 @@ public class MergeExtractPipeline {
 		boolean rename = true;
 		float bestThresh = 0;
 		boolean bestGuess = false;
+		boolean permissive = true;
 
 		String usage = "\n"
 									 + "filesys.MergeExtractPipeline requires 4+ arguments\n"
@@ -848,14 +888,17 @@ public class MergeExtractPipeline {
 									 + "   (7) Optional: Split output files (if region file is specified) (i.e. split="
 									 + split
 									 + " (default))\n"
-									 + "   (8) Optional: Overwrite files if they already exist (i.e. overwrite="
+									 + "   (8) Optional: enable/disable permissive marker lookups (creates a temporary file with the chr:pos identifier for each marker added) (i.e. permissive="
+									 + permissive
+									 + " (default))\n"
+									 + "   (9) Optional: Overwrite files if they already exist (i.e. overwrite="
 									 + overwrite
 									 + " (default))\n"
-									 + "   (9) Optional: Rename markers in any data files to dataLabel+MarkerName (i.e. rename="
+									 + "   (10) Optional: Rename markers in any data files to dataLabel+MarkerName (i.e. rename="
 									 + rename
 									 + " (default))\n"
 									 + "\n"
-									 + "   (10) Optional: if source data contains genotype probabilities and output format is in dosage values, use \"Best Guess\" dosage rather than computed dosage value. The value specified is used such that if all genotype probability values are below the given value, the dosage value is set to missing. (i.e. best="
+									 + "   (11) Optional: if source data contains genotype probabilities and output format is in dosage values, use \"Best Guess\" dosage rather than computed dosage value. The value specified is used such that if all genotype probability values are below the given value, the dosage value is set to missing. (i.e. best="
 									 + bestThresh + " (not the default))\n"
 									 + "";
 
@@ -889,6 +932,9 @@ public class MergeExtractPipeline {
 				numArgs--;
 			} else if (arg.startsWith("rename=")) {
 				rename = ext.parseBooleanArg(arg);
+				numArgs--;
+			} else if (arg.startsWith("permissive=")) {
+				permissive = ext.parseBooleanArg(arg);
 				numArgs--;
 			} else if (arg.startsWith("log=")) {
 				logFile = arg.split("=")[1];
@@ -929,6 +975,7 @@ public class MergeExtractPipeline {
 			mep.setBestGuessOutput(bestGuess);
 			mep.setBestGuessThreshold(bestThresh);
 		}
+		mep.setPermissiveMarkerFiltering(permissive);
 		mep.initLog();
 		ArrayList<DataSource> dss = parseDataFile(mep.runDir, mep.markerLocations, mep.regions, data,
 																							0,
