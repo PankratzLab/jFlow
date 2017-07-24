@@ -143,8 +143,6 @@ public class ProjectCreationGUI extends JDialog {
 		ProjectCreationGUI createGUI = new ProjectCreationGUI(LaunchProperties.getListOfProjectNames());
 		createGUI.setModal(true);
 		createGUI.setVisible(true);
-		UITools.setSize(createGUI, new Dimension(550, 500));
-		createGUI.pack();
 
 		if (createGUI.wasCancelled()) {
 			return null;
@@ -336,6 +334,8 @@ public class ProjectCreationGUI extends JDialog {
 		panel.add(btnCancel, "cell 1 0");
 
 		updateSourceFileNotice();
+		UITools.setSize(this, new Dimension(650, 500));
+		this.pack();
 	}
 
 	private boolean checkValues() {
