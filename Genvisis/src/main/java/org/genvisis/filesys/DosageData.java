@@ -1483,7 +1483,8 @@ public class DosageData implements Serializable {
 				ddNew.chrs[m] = chrSrc == null ? missingChr : chrSrc[ind];
 				ddNew.alleles[m] = alleleSrc == null ? missingAlleles : alleleSrc[ind];
 				ddNew.positions[m] = posSrc == null ? missingPos : posSrc[ind];
-				String[] annot = dd1.markerSet.getAnnotation()[ind];
+				String[] annot = dd1.markerSet.getAnnotation() == null ? new String[0]
+																															: dd1.markerSet.getAnnotation()[ind];
 				for (int i = 0; i < dd1NumAnnot; i++) {
 					annotations[m][i] = annot[i];
 				}
@@ -1492,7 +1493,8 @@ public class DosageData implements Serializable {
 				ddNew.chrs[m] = chrSrc2 == null ? missingChr : chrSrc2[ind];
 				ddNew.alleles[m] = alleleSrc2 == null ? missingAlleles : alleleSrc2[ind];
 				ddNew.positions[m] = posSrc2 == null ? missingPos : posSrc2[ind];
-				String[] annot = dd2.markerSet.getAnnotation()[ind];
+				String[] annot = dd2.markerSet.getAnnotation() == null ? new String[0]
+																															: dd2.markerSet.getAnnotation()[ind];
 				for (int i = 0; i < dd2NumAnnot; i++) {
 					annotations[m][i + dd1NumAnnot] = annot[i];
 				}

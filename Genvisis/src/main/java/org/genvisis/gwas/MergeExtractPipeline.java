@@ -464,7 +464,6 @@ public class MergeExtractPipeline {
 		// }
 
 		ArrayList<String> tempMarkerFiles = new ArrayList<>();
-		String origMkrsFile = markersFile;
 		if (permissiveLookup && markers != null) {
 			HashSet<String> allMarkersLookup = new HashSet<>();
 			for (int i = 0; i < markers.length; i++) {
