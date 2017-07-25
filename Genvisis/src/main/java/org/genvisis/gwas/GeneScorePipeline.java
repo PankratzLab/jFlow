@@ -143,7 +143,7 @@ public class GeneScorePipeline {
 		}
 
 		public void loadDataSources(String dataKey, String[] hitMkrs) {
-			SnpMarkerSet markerSet = new SnpMarkerSet(hitMkrs);
+			SnpMarkerSet markerSet = new SnpMarkerSet(hitMkrs, false, log);
 			markerSet.parseSNPlocations(log);
 			int[][] markerLocations = markerSet.getChrAndPositionsAsInts();
 			dataSources = MergeExtractPipeline.parseDataFile(null, markerLocations, null, dataSource, 0,

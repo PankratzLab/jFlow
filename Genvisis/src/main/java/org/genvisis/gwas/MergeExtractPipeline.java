@@ -69,11 +69,7 @@ public class MergeExtractPipeline {
 
 	private void initLog() {
 		if (log == null) {
-			log = new Logger(markersFile != null ? ext.rootOf(markersFile, false)
-																					: (regionsFile != null ? ext.rootOf(regionsFile, false)
-																																: "./MergeExtractPipeline."
-																																	+ ext.getDate())
-																						+ ".log");
+			log = new Logger();
 		}
 	}
 
@@ -180,7 +176,7 @@ public class MergeExtractPipeline {
 		}
 		markers = HashVec.loadFileToStringArray(markersFile, false, false, new int[] {0}, true, false,
 																						"\t");
-		SnpMarkerSet markerSet = new SnpMarkerSet(markers);
+		SnpMarkerSet markerSet = new SnpMarkerSet(markers, false, log);
 		markerSet.parseSNPlocations(log);
 		markerLocations = markerSet.getChrAndPositionsAsInts();
 		for (int[] markerLocation : markerLocations) {
@@ -482,8 +478,8 @@ public class MergeExtractPipeline {
 											 + tempFile + ".  This will be removed after completion.");
 
 				Files.writeIterable(allMarkersLookup, tempFile);
-				markersFile = tempFile;
 				tempMarkerFiles.add(tempFile);
+				setMarkers(tempFile);
 			}
 		}
 
@@ -802,7 +798,7 @@ public class MergeExtractPipeline {
 					// the program will die with only a "null" in the error log if the user does not have
 					// permissions to access dir
 					String[] filesToAdd = (new File(dir)).list(ff);
-					log.report("Found " + filesToAdd.length + " files to add");
+					log.report("Found " + filesToAdd.length + " files to add from " + dir);
 					for (String fileToAdd : filesToAdd) {
 						sources.add(new DataSource(lbl, dir, fileToAdd,
 																			 fileToAdd.substring(0,
@@ -952,9 +948,12 @@ public class MergeExtractPipeline {
 		}
 
 		MergeExtractPipeline mep = new MergeExtractPipeline();
-		if (logFile != null) {
-			mep.setLogger(new Logger(logFile));
-		}
+		mep.setLogger(logFile == null
+																 ? new Logger(ext.rootOf(data, false)
+																							+ ext.replaceWithLinuxSafeCharacters(ext.getDate()
+																																									 + "_"
+																																									 + ext.getTime())
+																							+ ".log") : new Logger(logFile));
 		if (rundir != null) {
 			mep.setRunDirectory(rundir, true);
 		}

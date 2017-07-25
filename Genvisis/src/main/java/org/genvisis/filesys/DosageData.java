@@ -83,7 +83,7 @@ public class DosageData implements Serializable {
 
 	public static final int CHR_INFO_IN_FILENAME = -2;
 
-	public static final String CHR_REGEX = ".*?chr(\\d\\d?).*?";
+	public static final String CHR_REGEX = ".*?chr(\\d\\d?|\\w\\w?).*?";
 
 	public static final String[][] HEADS = {null, null, {"id"}, {"SNP", "A1", "A2"}, null, null,
 																					{"FID", "IID"}};
@@ -236,7 +236,9 @@ public class DosageData implements Serializable {
 		markersToKeep = filterMarkers(markerNames, regions, markers, verbose, log);
 		keepTotal = ArrayUtils.booleanArraySum(markersToKeep);
 
-		log.report("Keeping " + keepTotal + " markers out of " + markerNames.length);
+		if (verbose) {
+			log.report("Keeping " + keepTotal + " markers out of " + markerNames.length);
+		}
 
 		if (keepTotal == 0) {
 			empty = true;
@@ -1261,7 +1263,7 @@ public class DosageData implements Serializable {
 					}
 				}
 			}
-			if (mkrsToKeep.size() > 0) {
+			if (mkrsToKeep.size() > 0 && verbose) {
 				log.reportTimeWarning(mkrsToKeep.size()
 															+ " markers listed in extract file not found in map file");
 			}
@@ -1507,7 +1509,7 @@ public class DosageData implements Serializable {
 		}
 
 		ddNew.markerSet = new SnpMarkerSet(mkrs, ddNew.chrs, ddNew.positions, ddNew.alleles,
-																			 annotations, false, true);
+																			 annotations, false, false);
 
 		if ((dosageOverride || dd1NumGeno == 1) && dd2NumGeno > 1 && dd2.dosageValues == null) {
 			if (computeDosageAsBestGuess) {
