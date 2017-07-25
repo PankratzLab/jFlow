@@ -67,7 +67,7 @@ public class SeqMetaPrimary {
       new File(batchDir).mkdirs();
     }
 
-    conditionals = new File(conditionals).getAbsolutePath();
+    conditionals = conditionals == null ? null : new File(conditionals).getAbsolutePath();
 
     try {
       v = new Vector<>();
@@ -112,8 +112,8 @@ public class SeqMetaPrimary {
         }
 
         if (foundGenos && foundSnpInfo) {
-          rCode = rCode(currentSnpInfo, currentGeno, phenoFilename, conditionals, resultDir,
-                        chrName, name, usePrep2);
+          rCode = rCode(currentSnpInfo, currentGeno, phenoFilename, conditionals, resultDir, i + "",
+                        name, usePrep2);
 
           // consolidate won't run if it's not added
           filename = batchDir + name + ".R";
@@ -249,6 +249,7 @@ public class SeqMetaPrimary {
                 qsubWalltime, queue, usePrep2, sn, conditionals, r);
         } catch (Exception e) {
           System.err.println("Error - failed to script up " + pheno + "/" + race);
+          e.printStackTrace();
         }
         v.add("cd " + cohort + "_" + race + "_" + pheno + "/batchFiles/");
         v.add("qsub batchChrs.pbs");
@@ -443,7 +444,7 @@ public class SeqMetaPrimary {
                    + "colnames(SNPInfo)[chrindex] <- \"chr\"\n"
                    + "conditions <- SNPInfo[0,c(\"SNP\", \"SKATgene\", \"chr\")]\n"
                    + conditionals(condFile, Integer.parseInt(chr)) + "\n"
-                   + "if (nrow(conditions) > 0 & any(colnames(mGeno) %in% conditions$SNP) {\n"
+                   + "if (nrow(conditions) > 0 & any(colnames(mGeno) %in% conditions$SNP)) {\n"
                    + "  if(family == \"binomial\") { f<-binomial() } else { f<-gaussian() }\n"
                    + "  message(\"conditions detected; using prepCondScores\")\n" + "  " + saveName
                    + "<- prepCondScores(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", "
@@ -456,7 +457,7 @@ public class SeqMetaPrimary {
                    + (usePrep2 ? "prepScores2" : "traditional prepScores method") + "\")\n    "
                    + saveName + " <- prepScores" + (usePrep2 ? "2" : "")
                    + "(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno, family=family"
-                   + (chr.equals("23") ? ", male=mPhenos$SEX" : "") + ")\n" + "}\n"
+                   + (chr.equals("23") ? ", male=mPheno$SEX" : "") + ")\n" + "}\n"
                    + "results <- burdenMeta(" + saveName
                    + ", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), SNPInfo=SNPInfo, snpNames=\"SNP\", wts = 1)\n"
                    + "write.table(results, \"" + resultDir + saveName
