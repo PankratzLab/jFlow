@@ -231,8 +231,7 @@ public class Pedigree extends FamilyStructure {
 			for (int i = 0; i < pedigree.getIDs().length; i++) {
 				int sampleIndex = pedigree.getIDNAIndex(i);
 				MendelErrors mendelErrors = null;
-				if ((samplesToCheck == null || samplesToCheck[sampleIndex])
-						&& sampleIndex >= 0) {
+				if (sampleIndex >= 0 && (samplesToCheck == null || samplesToCheck[sampleIndex])) {
 					int faDNAIndex = pedigree.getFaDNAIndex(i);
 					int moDNAIndex = pedigree.getMoDNAIndex(i);
 
